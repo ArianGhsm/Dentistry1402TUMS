@@ -1,24 +1,24 @@
-const STATIC_CACHE = "dent1402-static-20260421-v2";
-const PAGE_CACHE = "dent1402-pages-20260421-v2";
+const STATIC_CACHE = "dent1402-static-20260422-v8";
+
 const STATIC_ASSETS = [
-  "/",
-  "/app/",
-  "/chat/",
-  "/grades/",
-  "/notes/",
-  "/notes/1403/",
-  "/resources/",
   "/offline.html",
   "/manifest.webmanifest",
-  "/assets/site/styles/core.css?v=20260421-pwa",
-  "/assets/site/styles/app.css?v=20260421-pwa",
-  "/assets/site/styles/content.css?v=20260421-pwa",
-  "/assets/site/styles/hub.css?v=20260421-pwa",
-  "/assets/site/styles/chat.css?v=20260421-telegram",
-  "/assets/site/styles/grades.css?v=20260421-pwa",
-  "/assets/site/styles/quiz.css?v=20260421-pwa",
-  "/assets/site/scripts/pwa.js?v=20260421-pwa",
-  "/assets/site/scripts/shell.js?v=20260421-pwa",
+  "/assets/site/styles/core.css?v=20260422-cache1",
+  "/assets/site/styles/app.css?v=20260422-cache1",
+  "/assets/site/styles/content.css?v=20260422-cache1",
+  "/assets/site/styles/hub.css?v=20260422-cache1",
+  "/assets/site/styles/chat.css?v=20260422-cache1",
+  "/assets/site/styles/grades.css?v=20260422-cache1",
+  "/assets/site/styles/quiz.css?v=20260422-cache1",
+  "/assets/site/styles/theme.css?v=20260422-cache1",
+  "/assets/site/styles/account.css?v=20260422-cache1",
+  "/assets/site/scripts/theme.js?v=20260422-cache1",
+  "/assets/site/scripts/pwa.js?v=20260422-cache1",
+  "/assets/site/scripts/shell.js?v=20260422-cache1",
+  "/assets/site/scripts/auth.js?v=20260422-cache1",
+  "/assets/site/scripts/account.js?v=20260422-cache1",
+  "/assets/site/scripts/chat.js?v=20260422-cache1",
+  "/assets/site/scripts/grades.js?v=20260422-cache1",
   "/assets/images/logo.png",
   "/assets/images/favicon.png",
   "/assets/icons/icon-192.png",
@@ -26,53 +26,11 @@ const STATIC_ASSETS = [
   "/assets/icons/icon-maskable-192.png",
   "/assets/icons/icon-maskable-512.png",
   "/assets/icons/apple-touch-icon.png",
+  "/fonts/AbarHigh-Regular.ttf",
+  "/fonts/AbarHigh-SemiBold.ttf",
+  "/fonts/AbarHigh-Bold.ttf",
   "/fonts/YekanBakh-VF.woff2",
   "/fonts/YekanBakh-VF.woff"
-];
-
-const PAGE_ROUTES = [
-  "/exams/",
-  "/exams/partialprosthesis/",
-  "/exams/partialprosthesis/1/",
-  "/exams/partialprosthesis/2/",
-  "/exams/partialprosthesis/3/",
-  "/exams/partialprosthesis/4/",
-  "/exams/partialprosthesis/5/",
-  "/exams/partialprosthesis/6/",
-  "/exams/partialprosthesis/7/",
-  "/exams/completeprosthesis/",
-  "/exams/completeprosthesis/1/",
-  "/exams/completeprosthesis/2/",
-  "/exams/completeprosthesis/3/",
-  "/exams/completeprosthesis/4/",
-  "/exams/completeprosthesis/5/",
-  "/exams/pharmacology/",
-  "/exams/pharmacology/1/",
-  "/exams/pharmacology/2/",
-  "/exams/pharmacology/3/",
-  "/exams/pharmacology/4-1/",
-  "/exams/pharmacology/4-2/",
-  "/exams/pharmacology/5/",
-  "/exams/pharmacology/6/",
-  "/exams/pharmacology/8/",
-  "/exams/systemicdiseases/",
-  "/exams/systemicdiseases/1/",
-  "/exams/systemicdiseases/2/",
-  "/exams/systemicdiseases/3/",
-  "/exams/systemicdiseases/4/",
-  "/exams/systemicdiseases/5/",
-  "/exams/systemicdiseases/6/",
-  "/exams/systemicdiseases/7/",
-  "/exams/systemicdiseases/8/",
-  "/exams/systemicdiseases/9/",
-  "/exams/systemicdiseases/10/",
-  "/exams/systemicdiseases/11/",
-  "/exams/systemicdiseases/12/",
-  "/exams/systemicdiseases/13/",
-  "/exams/systemicdiseases/14/",
-  "/exams/systemicdiseases/15/",
-  "/exams/systemicdiseases/16/",
-  "/exams/systemicdiseases/17/"
 ];
 
 const DYNAMIC_BYPASS = [
@@ -89,9 +47,6 @@ self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const staticCache = await caches.open(STATIC_CACHE);
     await staticCache.addAll(STATIC_ASSETS);
-
-    const pageCache = await caches.open(PAGE_CACHE);
-    await pageCache.addAll(PAGE_ROUTES);
     self.skipWaiting();
   })());
 });
@@ -100,7 +55,7 @@ self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
     await Promise.all(keys.map((key) => {
-      if (key !== STATIC_CACHE && key !== PAGE_CACHE) {
+      if (key !== STATIC_CACHE) {
         return caches.delete(key);
       }
       return Promise.resolve();
@@ -109,16 +64,16 @@ self.addEventListener("activate", (event) => {
   })());
 });
 
-function shouldBypass(requestUrl, request) {
+function shouldBypass(url, request) {
   if (request.method !== "GET") {
     return true;
   }
 
-  if (requestUrl.origin !== self.location.origin) {
+  if (url.origin !== self.location.origin) {
     return false;
   }
 
-  return DYNAMIC_BYPASS.some((segment) => requestUrl.pathname.includes(segment));
+  return DYNAMIC_BYPASS.some((segment) => url.pathname.includes(segment));
 }
 
 async function staleWhileRevalidate(request) {
@@ -133,17 +88,11 @@ async function staleWhileRevalidate(request) {
   return cached || networkPromise;
 }
 
-async function networkFirstPage(request) {
-  const cache = await caches.open(PAGE_CACHE);
+async function networkOnlyPage(request) {
   try {
-    const response = await fetch(request);
-    if (response && response.ok) {
-      cache.put(request, response.clone());
-    }
-    return response;
+    return await fetch(request, { cache: "no-store" });
   } catch (error) {
-    const cached = await cache.match(request);
-    return cached || caches.match("/offline.html");
+    return caches.match("/offline.html");
   }
 }
 
@@ -156,11 +105,15 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate" && url.origin === self.location.origin) {
-    event.respondWith(networkFirstPage(request));
+    event.respondWith(networkOnlyPage(request));
     return;
   }
 
-  if (url.origin === self.location.origin && (request.destination === "style" || request.destination === "script" || request.destination === "font" || request.destination === "image")) {
+  if (url.origin === self.location.origin &&
+      (request.destination === "style" ||
+       request.destination === "script" ||
+       request.destination === "font" ||
+       request.destination === "image")) {
     event.respondWith(staleWhileRevalidate(request));
   }
 });

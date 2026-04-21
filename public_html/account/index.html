@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>حساب کاربری | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="description" content="ورود، مدیریت حساب، پروفایل و پنل نماینده‌های ورودی ۱۴۰۲ دندانپزشکی تهران.">
+    <meta name="theme-color" content="#eef2f7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+    <script src="/assets/site/scripts/theme.js?v=20260422-cache1"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache1">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260422-cache1">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache1">
+</head>
+<body class="account-page">
+    <div class="background-overlay" aria-hidden="true"></div>
+
+    <header class="site-header">
+        <div class="logo-area">
+            <div class="logo-circle">
+                <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲ دندانپزشکی">
+            </div>
+            <div class="site-info">
+                <h1>حساب کاربری</h1>
+                <p>ورود، هویت و مدیریت دسترسی</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a class="header-link" href="/app/">خانه</a>
+        </div>
+    </header>
+
+    <main class="account-shell">
+        <section class="account-hero">
+            <span class="account-kicker">حساب</span>
+            <h2 class="account-title">یک ورود، یک هویت، در کل سایت.</h2>
+            <p class="account-desc">از همین‌جا وارد شو، نشستت روی همین دستگاه نگه داشته می‌شود و هویتت در نمرات، چت و بخش‌های حساب‌محور یکدست می‌ماند.</p>
+        </section>
+
+        <section id="account-boot" class="account-stage account-stage--boot" aria-live="polite">
+            <div class="account-card account-card--boot">
+                <div class="loader">
+                    <span class="loader-dot"></span>
+                    <span class="loader-dot"></span>
+                    <span class="loader-dot"></span>
+                    <span id="account-boot-text">در حال بازیابی نشست...</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="account-login" class="account-stage" hidden>
+            <div class="account-grid">
+                <section class="account-card">
+                    <div class="account-card__head">
+                        <span class="account-section-kicker">ورود</span>
+                        <h3>ورود به حساب کاربری</h3>
+                        <p>شماره دانشجویی و رمز از پیش‌تعریف‌شده را بزن. بعد از ورود، دیگر لازم نیست در هر صفحه جداگانه لاگین کنی.</p>
+                    </div>
+
+                    <form id="login-form" class="account-form" novalidate>
+                        <label for="login-student-number">شماره دانشجویی</label>
+                        <input id="login-student-number" name="studentNumber" type="text" inputmode="numeric" autocomplete="username" placeholder="مثلاً 40211272003">
+
+                        <label for="login-password">رمز عبور</label>
+                        <input id="login-password" name="password" type="password" autocomplete="current-password" placeholder="رمز عبور">
+
+                        <button id="login-submit" class="shell-action-btn shell-action-btn-primary account-submit" type="submit">ورود به حساب</button>
+                        <div id="login-feedback" class="account-feedback" aria-live="polite"></div>
+                    </form>
+                </section>
+
+                <aside class="account-card account-card--info">
+                    <div class="account-card__head">
+                        <span class="account-section-kicker">بعد از ورود</span>
+                        <h3>چه چیزهایی یکپارچه می‌شود؟</h3>
+                    </div>
+                    <ul class="account-checklist">
+                        <li>وضعیت ورود در نمرات، چت و حساب کاربری یکی می‌شود.</li>
+                        <li>بستن و باز کردن دوباره سایت، نشستت را از بین نمی‌برد مگر اینکه خروج بزنی.</li>
+                        <li>نوار پایین و هدرها بر اساس هویت فعلی‌ات تغییر می‌کنند.</li>
+                        <li>اگر مالک سامانه باشی، پنل مدیریت نماینده‌ها همین‌جا باز می‌شود.</li>
+                    </ul>
+                </aside>
+            </div>
+        </section>
+
+        <section id="account-panel" class="account-stage" hidden>
+            <div class="account-grid">
+                <section class="account-card account-card--identity">
+                    <div class="account-identity">
+                        <div class="account-identity__avatar">
+                            <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+                        </div>
+                        <div class="account-identity__copy">
+                            <span class="account-section-kicker" id="account-role-eyebrow">دانشجو</span>
+                            <h3 id="account-name">-</h3>
+                            <p id="account-student-number">شماره دانشجویی: -</p>
+                        </div>
+                    </div>
+
+                    <div class="account-status-row">
+                        <span id="account-role-badge" class="account-role-badge">دانشجو</span>
+                        <span id="account-session-badge" class="account-session-badge">نشست فعال</span>
+                    </div>
+
+                    <div class="account-actions">
+                        <a class="shell-action-btn" href="/grades/">نمرات</a>
+                        <a class="shell-action-btn" href="/chat/">چت کلاس</a>
+                        <button id="logout-submit" class="shell-action-btn shell-action-btn-primary" type="button">خروج از حساب</button>
+                    </div>
+                </section>
+
+                <section class="account-card">
+                    <div class="account-card__head">
+                        <span class="account-section-kicker">پروفایل</span>
+                        <h3>اطلاعات حساب فعلی</h3>
+                        <p>نام و شماره دانشجویی از سمت سامانه کنترل می‌شوند. فقط فیلدهای مجاز این بخش قابل ویرایش‌اند.</p>
+                    </div>
+
+                    <form id="profile-form" class="account-form" novalidate>
+                        <label for="profile-name">نام</label>
+                        <input id="profile-name" type="text" readonly>
+
+                        <label for="profile-student-number">شماره دانشجویی</label>
+                        <input id="profile-student-number" type="text" readonly>
+
+                        <label for="profile-focus-area">حوزه تمرکز</label>
+                        <input id="profile-focus-area" name="focusArea" type="text" placeholder="مثلاً پروتز یا جزوه‌ها">
+
+                        <label for="profile-contact-handle">راه ارتباطی / آیدی</label>
+                        <input id="profile-contact-handle" name="contactHandle" type="text" placeholder="مثلاً telegram: @username">
+
+                        <label for="profile-bio">بیو</label>
+                        <textarea id="profile-bio" name="bio" rows="4" placeholder="یک معرفی کوتاه برای حساب خودت بنویس."></textarea>
+
+                        <button id="profile-submit" class="shell-action-btn shell-action-btn-primary account-submit" type="submit">ذخیره تغییرات</button>
+                        <div id="profile-feedback" class="account-feedback" aria-live="polite"></div>
+                    </form>
+                </section>
+            </div>
+
+            <section class="account-card">
+                <div class="account-card__head">
+                    <span class="account-section-kicker">امنیت</span>
+                    <h3>تغییر رمز عبور</h3>
+                    <p>رمز جدید روی همین حساب ذخیره می‌شود و ورودهای بعدی با همان رمز انجام خواهند شد.</p>
+                </div>
+
+                <form id="security-form" class="account-form account-form--security" novalidate>
+                    <label for="security-current-password">رمز فعلی</label>
+                    <input id="security-current-password" name="currentPassword" type="password" autocomplete="current-password" placeholder="رمز فعلی">
+
+                    <label for="security-new-password">رمز جدید</label>
+                    <input id="security-new-password" name="newPassword" type="password" autocomplete="new-password" placeholder="رمز جدید">
+
+                    <label for="security-confirm-password">تکرار رمز جدید</label>
+                    <input id="security-confirm-password" name="confirmPassword" type="password" autocomplete="new-password" placeholder="تکرار رمز جدید">
+
+                    <button id="security-submit" class="shell-action-btn shell-action-btn-primary account-submit" type="submit">ثبت رمز جدید</button>
+                    <div id="security-feedback" class="account-feedback" aria-live="polite"></div>
+                </form>
+            </section>
+
+            <section id="owner-panel" class="account-card" hidden>
+                <div class="account-card__head">
+                    <span class="account-section-kicker">مدیریت</span>
+                    <h3>پنل مالک و نماینده‌ها</h3>
+                    <p>اینجا لیست کاربران، نماینده‌های فعلی و کنترل ارتقا/لغو نماینده‌ها را می‌بینی. این بخش فقط برای حساب مالک فعال است.</p>
+                </div>
+
+                <div class="owner-summary" id="owner-summary"></div>
+
+                <div class="owner-toolbar">
+                    <label class="owner-search">
+                        <span>جست‌وجوی کاربر</span>
+                        <input id="owner-search" type="search" placeholder="نام یا شماره دانشجویی">
+                    </label>
+                    <div id="owner-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
+                </div>
+
+                <section class="owner-block">
+                    <div class="owner-block__head">
+                        <h4>نماینده‌های فعال</h4>
+                        <p>این کاربران امکان مدیریت گفت‌وگو را در چت دارند.</p>
+                    </div>
+                    <div id="representative-list" class="owner-representatives"></div>
+                </section>
+
+                <section class="owner-block">
+                    <div class="owner-block__head">
+                        <h4>همه کاربران</h4>
+                        <p>از اینجا می‌توانی هر حساب را به نماینده تبدیل کنی یا از آن نقش خارجش کنی.</p>
+                    </div>
+                    <div id="owner-user-list" class="owner-user-list"></div>
+                </section>
+            </section>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
+    </footer>
+
+    <script src="/assets/site/scripts/auth.js?v=20260422-cache1"></script>
+    <script src="/assets/site/scripts/account.js?v=20260422-cache1"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260422-cache1"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260422-cache1"></script>
+</body>
+</html>
+

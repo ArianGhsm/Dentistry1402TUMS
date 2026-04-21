@@ -1,374 +1,503 @@
 <?php
 declare(strict_types=1);
-session_start();
 
-/*
-  Dent1402Chat Backend (chat_api.php)
-  - Auth from users.csv (supports both headers: username,password,name OR StudentID,Password,Name)
-  - Messages stored in data/messages.json
-  - State stored in data/state.json (mute)
-  - Features: send, edit, delete (admin), reply, pin/unpin (admin), mute/unmute (admin)
-*/
+require_once __DIR__ . '/../api/auth_store.php';
 
-header('Content-Type: application/json; charset=UTF-8');
-
-$BASE_DIR   = __DIR__;
-$USERS_CSV  = $BASE_DIR . '/users.csv';
-$DATA_DIR   = $BASE_DIR . '/data';
-$MSG_FILE   = $DATA_DIR . '/messages.json';
-$STATE_FILE = $DATA_DIR . '/state.json';
-
-// ✅ Admin Users (Keep As You Wanted)
-$ADMIN_USERS = ['40211272003', '40211272021'];
-
-/* ---------------- Helpers ---------------- */
-
-function respond(array $data): void {
-  echo json_encode($data, JSON_UNESCAPED_UNICODE);
-  exit;
+function chat_messages_path(): string
+{
+    return dent_storage_path('chat/messages.json');
 }
 
-function ensureDataFiles(string $dataDir, string $msgFile, string $stateFile): void {
-  if (!is_dir($dataDir)) { @mkdir($dataDir, 0755, true); }
-  if (!file_exists($msgFile)) { file_put_contents($msgFile, json_encode([], JSON_UNESCAPED_UNICODE), LOCK_EX); }
-  if (!file_exists($stateFile)) {
-    $init = ['muted' => false, 'mutedBy' => null, 'mutedAt' => null];
-    file_put_contents($stateFile, json_encode($init, JSON_UNESCAPED_UNICODE), LOCK_EX);
-  }
+function chat_state_path(): string
+{
+    return dent_storage_path('chat/state.json');
 }
 
-function readJsonFile(string $path, $default) {
-  $raw = @file_get_contents($path);
-  if ($raw === false || trim($raw) === '') return $default;
-  $data = json_decode($raw, true);
-  return (json_last_error() === JSON_ERROR_NONE) ? $data : $default;
-}
+function chat_ensure_storage(): void
+{
+    dent_ensure_directory(dirname(chat_messages_path()));
 
-function writeJsonFile(string $path, $data): bool {
-  $json = json_encode($data, JSON_UNESCAPED_UNICODE);
-  return file_put_contents($path, $json, LOCK_EX) !== false;
-}
-
-function isLoggedIn(): bool {
-  return isset($_SESSION['username'], $_SESSION['name']);
-}
-
-function isAdmin(array $adminUsers): bool {
-  return isLoggedIn() && in_array((string)$_SESSION['username'], $adminUsers, true);
-}
-
-function sanitizeText(string $s, int $maxLen = 2000): string {
-  $s = trim($s);
-  // normalize newlines
-  $s = preg_replace("/\r\n|\r/u", "\n", $s);
-  // remove null bytes
-  $s = str_replace("\0", "", $s);
-  // limit length (UTF-8 safe-ish)
-  if (mb_strlen($s, 'UTF-8') > $maxLen) {
-    $s = mb_substr($s, 0, $maxLen, 'UTF-8');
-  }
-  return $s;
-}
-
-function now(): int { return time(); }
-
-/* ---------------- CSV Users ----------------
-   Supports headers:
-   - username,password,name
-   - StudentID,Password,Name
-*/
-function loadUsers(string $csvPath): array {
-  if (!file_exists($csvPath)) return [];
-  $fh = fopen($csvPath, 'r');
-  if (!$fh) return [];
-
-  $header = fgetcsv($fh);
-  if (!$header) { fclose($fh); return []; }
-
-  $map = [];
-  foreach ($header as $i => $col) {
-    $key = trim((string)$col);
-    $map[$key] = $i;
-  }
-
-  $candidates = [
-    // canonical
-    ['u' => 'username',  'p' => 'password',  'n' => 'name'],
-    // your dataset header
-    ['u' => 'StudentID', 'p' => 'Password',  'n' => 'Name'],
-  ];
-
-  $uKey = $pKey = $nKey = null;
-  foreach ($candidates as $c) {
-    if (isset($map[$c['u']], $map[$c['p']], $map[$c['n']])) {
-      $uKey = $c['u']; $pKey = $c['p']; $nKey = $c['n'];
-      break;
+    if (!file_exists(chat_messages_path())) {
+        dent_write_json_file(chat_messages_path(), []);
     }
-  }
 
-  if ($uKey === null) { fclose($fh); return []; }
+    if (!file_exists(chat_state_path())) {
+        dent_write_json_file(chat_state_path(), [
+            'muted' => false,
+            'mutedBy' => null,
+            'mutedAt' => null,
+        ]);
+    }
 
-  $users = [];
-  while (($row = fgetcsv($fh)) !== false) {
-    $u = trim((string)($row[$map[$uKey]] ?? ''));
-    if ($u === '') continue;
-    $p = (string)($row[$map[$pKey]] ?? '');
-    $n = trim((string)($row[$map[$nKey]] ?? ''));
-    $users[$u] = ['username' => $u, 'password' => $p, 'name' => ($n !== '' ? $n : $u)];
-  }
-
-  fclose($fh);
-  return $users;
+    if (!isset($_SESSION['chat_rate_limit'])) {
+        $_SESSION['chat_rate_limit'] = [
+            'startedAt' => 0,
+            'count' => 0,
+        ];
+    }
 }
 
-/* ---------------- Message Model ----------------
-  {
-    id: int,
-    username: string,
-    name: string,
-    text: string,
-    ts: int,
-    editedAt: int|null,
-    replyTo: int|null,
-    pinned: bool
-  }
-*/
-
-function getLastId(array $messages): int {
-  $lastId = 0;
-  if (!empty($messages)) {
-    $last = end($messages);
-    $lastId = (int)($last['id'] ?? 0);
-  }
-  return $lastId;
+function chat_read_messages(): array
+{
+    $messages = dent_read_json_file(chat_messages_path(), []);
+    return is_array($messages) ? $messages : [];
 }
 
-function findMessageById(array $messages, int $id): ?array {
-  foreach ($messages as $m) {
-    if ((int)($m['id'] ?? 0) === $id) return $m;
-  }
-  return null;
+function chat_write_messages(array $messages): void
+{
+    dent_write_json_file(chat_messages_path(), array_values($messages));
 }
 
-/* ---------------- Init ---------------- */
-ensureDataFiles($DATA_DIR, $MSG_FILE, $STATE_FILE);
+function chat_read_state(): array
+{
+    $state = dent_read_json_file(chat_state_path(), [
+        'muted' => false,
+        'mutedBy' => null,
+        'mutedAt' => null,
+    ]);
 
-/* Basic anti-spam (per session) */
-if (!isset($_SESSION['rl'])) $_SESSION['rl'] = ['t' => 0, 'c' => 0];
+    if (!is_array($state)) {
+        $state = [
+            'muted' => false,
+            'mutedBy' => null,
+            'mutedAt' => null,
+        ];
+    }
 
-/* ---------------- Router ---------------- */
-$action = (string)($_POST['action'] ?? $_GET['action'] ?? '');
-$action = trim($action);
+    return [
+        'muted' => (bool) ($state['muted'] ?? false),
+        'mutedBy' => $state['mutedBy'] ?? null,
+        'mutedAt' => $state['mutedAt'] ?? null,
+    ];
+}
+
+function chat_write_state(array $state): void
+{
+    dent_write_json_file(chat_state_path(), [
+        'muted' => (bool) ($state['muted'] ?? false),
+        'mutedBy' => $state['mutedBy'] ?? null,
+        'mutedAt' => $state['mutedAt'] ?? null,
+    ]);
+}
+
+function chat_next_message_id(array $messages): int
+{
+    $lastId = 0;
+    foreach ($messages as $message) {
+        $lastId = max($lastId, (int) ($message['id'] ?? 0));
+    }
+
+    return $lastId + 1;
+}
+
+function chat_find_message_index(array $messages, int $messageId): int
+{
+    foreach ($messages as $index => $message) {
+        if ((int) ($message['id'] ?? 0) === $messageId) {
+            return (int) $index;
+        }
+    }
+
+    return -1;
+}
+
+function chat_sanitize_message_text(string $value, int $maxLength = 2000): string
+{
+    return dent_clean_text($value, $maxLength);
+}
+
+function chat_sanitize_emoji(string $value): string
+{
+    $value = trim($value);
+    $allowed = ['??', '??', '??', '??', '??', '??'];
+
+    return in_array($value, $allowed, true) ? $value : '';
+}
+
+function chat_public_user_payload(array $user): array
+{
+    $public = dent_public_user($user);
+    return [
+        'studentNumber' => $public['studentNumber'],
+        'username' => $public['studentNumber'],
+        'name' => $public['name'],
+        'role' => $public['role'],
+        'roleLabel' => $public['roleLabel'],
+        'canModerateChat' => $public['canModerateChat'],
+    ];
+}
+
+function chat_role_payload_for_student(string $studentNumber): array
+{
+    $user = dent_get_user_record($studentNumber);
+    if ($user === null) {
+        return [
+            'role' => 'student',
+            'roleLabel' => dent_role_label('student'),
+            'canModerateChat' => false,
+        ];
+    }
+
+    $public = dent_public_user($user);
+    return [
+        'role' => $public['role'],
+        'roleLabel' => $public['roleLabel'],
+        'canModerateChat' => $public['canModerateChat'],
+    ];
+}
+
+function chat_normalize_message(array $message): array
+{
+    $studentNumber = dent_normalize_student_number((string) ($message['username'] ?? $message['studentNumber'] ?? ''));
+    $rolePayload = chat_role_payload_for_student($studentNumber);
+
+    return [
+        'id' => (int) ($message['id'] ?? 0),
+        'username' => $studentNumber,
+        'studentNumber' => $studentNumber,
+        'name' => (string) ($message['name'] ?? $studentNumber),
+        'text' => (string) ($message['text'] ?? ''),
+        'ts' => (int) ($message['ts'] ?? time()),
+        'editedAt' => isset($message['editedAt']) ? (int) $message['editedAt'] : null,
+        'replyTo' => isset($message['replyTo']) ? (int) $message['replyTo'] : null,
+        'pinned' => (bool) ($message['pinned'] ?? false),
+        'reactions' => is_array($message['reactions'] ?? null) ? $message['reactions'] : [],
+        'role' => $rolePayload['role'],
+        'roleLabel' => $rolePayload['roleLabel'],
+        'canModerateChat' => $rolePayload['canModerateChat'],
+    ];
+}
+
+function chat_normalize_messages(array $messages): array
+{
+    $normalized = [];
+    foreach ($messages as $message) {
+        if (!is_array($message)) {
+            continue;
+        }
+
+        $normalized[] = chat_normalize_message($message);
+    }
+
+    return $normalized;
+}
+
+function chat_require_user(): array
+{
+    return dent_require_user();
+}
+
+function chat_require_moderator(): array
+{
+    $user = chat_require_user();
+    if (!dent_can_moderate_chat($user)) {
+        dent_error('??? ??? ??? ???? ???? ?? ??????? ???? ???.', 403);
+    }
+
+    return $user;
+}
+
+function chat_apply_rate_limit(): void
+{
+    $windowSeconds = 10;
+    $maxMessages = 6;
+    $state = $_SESSION['chat_rate_limit'] ?? [
+        'startedAt' => 0,
+        'count' => 0,
+    ];
+
+    $now = time();
+    if (($now - (int) ($state['startedAt'] ?? 0)) > $windowSeconds) {
+        $state = [
+            'startedAt' => $now,
+            'count' => 0,
+        ];
+    }
+
+    $state['count'] = (int) ($state['count'] ?? 0) + 1;
+    $_SESSION['chat_rate_limit'] = $state;
+
+    if ((int) $state['count'] > $maxMessages) {
+        dent_error('????? ??? ???????? ???? ?????.', 429);
+    }
+}
+
+chat_ensure_storage();
+
+$action = dent_request_action();
 
 if ($action === 'login') {
-  $username = trim((string)($_POST['username'] ?? ''));
-  $password = trim((string)($_POST['password'] ?? ''));
+    $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? $_POST['username'] ?? '');
+    $password = (string) ($_POST['password'] ?? '');
 
-  if ($username === '' || $password === '') respond(['error' => 'لطفاً Username و Password را وارد کنید.']);
+    if ($studentNumber === '' || trim($password) === '') {
+        dent_error('????? ???????? ? ??? ???? ?? ???? ??.', 422);
+    }
 
-  $users = loadUsers($USERS_CSV);
-  if (!isset($users[$username])) respond(['error' => 'Username یا Password اشتباه است.']);
+    $user = dent_verify_credentials($studentNumber, $password);
+    if ($user === null) {
+        dent_error('????? ???????? ?? ??? ???? ?????? ???.', 401, ['loggedOut' => true]);
+    }
 
-  // Plain password check (as in your current system)
-  if ((string)$users[$username]['password'] !== $password) respond(['error' => 'Username یا Password اشتباه است.']);
+    dent_login_user($user);
 
-  $_SESSION['username'] = $users[$username]['username'];
-  $_SESSION['name']     = $users[$username]['name'];
-
-  respond([
-    'success'  => true,
-    'username' => $_SESSION['username'],
-    'name'     => $_SESSION['name'],
-    'isAdmin'  => in_array($_SESSION['username'], $ADMIN_USERS, true),
-    'state'    => readJsonFile($STATE_FILE, ['muted' => false]),
-  ]);
+    dent_json_response([
+        'success' => true,
+        'loggedIn' => true,
+        'user' => chat_public_user_payload($user),
+        'state' => chat_read_state(),
+    ]);
 }
 
 if ($action === 'logout') {
-  session_destroy();
-  respond(['success' => true]);
+    dent_logout_user();
+    dent_json_response([
+        'success' => true,
+        'loggedIn' => false,
+    ]);
 }
 
 if ($action === 'me') {
-  if (!isLoggedIn()) respond(['loggedIn' => false]);
-  respond([
-    'loggedIn' => true,
-    'username' => $_SESSION['username'],
-    'name'     => $_SESSION['name'],
-    'isAdmin'  => isAdmin($ADMIN_USERS),
-    'state'    => readJsonFile($STATE_FILE, ['muted' => false]),
-  ]);
+    $user = dent_current_user();
+    if ($user === null) {
+        dent_json_response([
+            'success' => true,
+            'loggedIn' => false,
+        ]);
+    }
+
+    dent_json_response([
+        'success' => true,
+        'loggedIn' => true,
+        'user' => chat_public_user_payload($user),
+        'state' => chat_read_state(),
+    ]);
 }
 
 if ($action === 'fetch') {
-  if (!isLoggedIn()) respond(['error' => 'Unauthorized']);
+    chat_require_user();
 
-  $sinceId = (int)($_GET['sinceId'] ?? $_POST['sinceId'] ?? 0);
+    $sinceId = (int) ($_GET['sinceId'] ?? $_POST['sinceId'] ?? 0);
+    $messages = chat_read_messages();
+    $filtered = [];
 
-  $messages = readJsonFile($MSG_FILE, []);
-  if (!is_array($messages)) $messages = [];
+    foreach ($messages as $message) {
+        if ((int) ($message['id'] ?? 0) > $sinceId) {
+            $filtered[] = $message;
+        }
+    }
 
-  $state = readJsonFile($STATE_FILE, ['muted' => false]);
-
-  $filtered = [];
-  foreach ($messages as $m) {
-    $id = (int)($m['id'] ?? 0);
-    if ($id > $sinceId) $filtered[] = $m;
-  }
-
-  respond([
-    'success'  => true,
-    'messages' => $filtered,
-    'state'    => $state,
-  ]);
+    dent_json_response([
+        'success' => true,
+        'messages' => chat_normalize_messages($filtered),
+        'state' => chat_read_state(),
+    ]);
 }
 
 if ($action === 'send') {
-  if (!isLoggedIn()) respond(['error' => 'Unauthorized']);
+    $user = chat_require_user();
+    chat_apply_rate_limit();
 
-  // rate limit: max 6 messages / 10 seconds per session
-  $rl = $_SESSION['rl'];
-  $t  = now();
-  if (($t - (int)$rl['t']) > 10) { $rl = ['t' => $t, 'c' => 0]; }
-  $rl['c'] = (int)$rl['c'] + 1;
-  $_SESSION['rl'] = $rl;
-  if ($rl['c'] > 6) respond(['error' => 'لطفاً کمی آهسته‌تر پیام بفرستید.']);
+    $state = chat_read_state();
+    if ($state['muted'] && !dent_can_moderate_chat($user)) {
+        dent_error('????? ???? ???? ??????? ?????? ???? ??? ???.', 403);
+    }
 
-  $state = readJsonFile($STATE_FILE, ['muted' => false]);
-  if (($state['muted'] ?? false) === true && !isAdmin($ADMIN_USERS)) {
-    respond(['error' => 'ارسال پیام توسط مدیر متوقف شده است.']);
-  }
+    $text = chat_sanitize_message_text((string) ($_POST['text'] ?? ''));
+    if ($text === '') {
+        dent_error('???? ???? ???.', 422);
+    }
 
-  $text = sanitizeText((string)($_POST['text'] ?? ''), 2000);
-  if ($text === '') respond(['error' => 'پیام خالی است.']);
+    $replyTo = (int) ($_POST['replyTo'] ?? 0);
+    $replyTo = $replyTo > 0 ? $replyTo : null;
 
-  $replyTo = (int)($_POST['replyTo'] ?? 0);
-  $replyTo = $replyTo > 0 ? $replyTo : null;
+    $messages = chat_read_messages();
+    if ($replyTo !== null && chat_find_message_index($messages, $replyTo) === -1) {
+        $replyTo = null;
+    }
 
-  $messages = readJsonFile($MSG_FILE, []);
-  if (!is_array($messages)) $messages = [];
+    $message = [
+        'id' => chat_next_message_id($messages),
+        'username' => (string) $user['studentNumber'],
+        'name' => (string) $user['name'],
+        'text' => $text,
+        'ts' => time(),
+        'editedAt' => null,
+        'replyTo' => $replyTo,
+        'pinned' => false,
+        'reactions' => [],
+    ];
 
-  if ($replyTo !== null && findMessageById($messages, $replyTo) === null) {
-    $replyTo = null; // ignore invalid reply target
-  }
+    $messages[] = $message;
+    chat_write_messages($messages);
 
-  $new = [
-    'id'       => getLastId($messages) + 1,
-    'username' => (string)$_SESSION['username'],
-    'name'     => (string)$_SESSION['name'],
-    'text'     => $text,
-    'ts'       => now(),
-    'editedAt' => null,
-    'replyTo'  => $replyTo,
-    'pinned'   => false,
-  ];
-
-  $messages[] = $new;
-
-  if (!writeJsonFile($MSG_FILE, $messages)) respond(['error' => 'خطا در ذخیره پیام.']);
-
-  respond(['success' => true, 'message' => $new]);
+    dent_json_response([
+        'success' => true,
+        'message' => chat_normalize_message($message),
+    ]);
 }
 
 if ($action === 'edit') {
-  if (!isLoggedIn()) respond(['error' => 'Unauthorized']);
+    $user = chat_require_user();
+    $messageId = (int) ($_POST['id'] ?? 0);
+    $text = chat_sanitize_message_text((string) ($_POST['text'] ?? ''));
 
-  $id   = (int)($_POST['id'] ?? 0);
-  $text = sanitizeText((string)($_POST['text'] ?? ''), 2000);
-  if ($id <= 0) respond(['error' => 'Id نامعتبر است.']);
-  if ($text === '') respond(['error' => 'پیام خالی است.']);
-
-  $messages = readJsonFile($MSG_FILE, []);
-  if (!is_array($messages)) $messages = [];
-
-  $found = false;
-  for ($i = 0; $i < count($messages); $i++) {
-    $mId = (int)($messages[$i]['id'] ?? 0);
-    if ($mId === $id) {
-      $owner = (string)($messages[$i]['username'] ?? '');
-      $canEdit = ($owner === (string)$_SESSION['username']) || isAdmin($ADMIN_USERS);
-      if (!$canEdit) respond(['error' => 'اجازه ویرایش این پیام را ندارید.']);
-
-      $messages[$i]['text'] = $text;
-      $messages[$i]['editedAt'] = now();
-      $found = true;
-      $editedMsg = $messages[$i];
-      break;
+    if ($messageId <= 0) {
+        dent_error('????? ???? ??????? ???.', 422);
     }
-  }
 
-  if (!$found) respond(['error' => 'پیام پیدا نشد.']);
-  if (!writeJsonFile($MSG_FILE, $messages)) respond(['error' => 'خطا در ویرایش پیام.']);
+    if ($text === '') {
+        dent_error('???? ???? ???.', 422);
+    }
 
-  respond(['success' => true, 'message' => $editedMsg]);
+    $messages = chat_read_messages();
+    $index = chat_find_message_index($messages, $messageId);
+    if ($index === -1) {
+        dent_error('???? ???? ???.', 404);
+    }
+
+    $ownerStudentNumber = dent_normalize_student_number((string) ($messages[$index]['username'] ?? ''));
+    $canEdit = $ownerStudentNumber === (string) $user['studentNumber'] || dent_can_moderate_chat($user);
+    if (!$canEdit) {
+        dent_error('????? ?????? ??? ???? ?? ?????.', 403);
+    }
+
+    $messages[$index]['text'] = $text;
+    $messages[$index]['editedAt'] = time();
+    chat_write_messages($messages);
+
+    dent_json_response([
+        'success' => true,
+        'message' => chat_normalize_message($messages[$index]),
+    ]);
 }
 
 if ($action === 'delete') {
-  if (!isLoggedIn()) respond(['error' => 'Unauthorized']);
+    $user = chat_require_user();
+    $messageId = (int) ($_POST['id'] ?? 0);
 
-  $id = (int)($_POST['id'] ?? 0);
-  if ($id <= 0) respond(['error' => 'Id نامعتبر است.']);
+    if ($messageId <= 0) {
+        dent_error('????? ???? ??????? ???.', 422);
+    }
 
-  $messages = readJsonFile($MSG_FILE, []);
-  if (!is_array($messages)) $messages = [];
+    $messages = chat_read_messages();
+    $index = chat_find_message_index($messages, $messageId);
+    if ($index === -1) {
+        dent_error('???? ???? ???.', 404);
+    }
 
-  $out = [];
-  $deleted = false;
+    $ownerStudentNumber = dent_normalize_student_number((string) ($messages[$index]['username'] ?? ''));
+    $canDelete = $ownerStudentNumber === (string) $user['studentNumber'] || dent_can_moderate_chat($user);
+    if (!$canDelete) {
+        dent_error('????? ??? ??? ???? ?? ?????.', 403);
+    }
 
-  foreach ($messages as $m) {
-    if ((int)($m['id'] ?? 0) === $id) { $deleted = true; continue; }
-    $out[] = $m;
-  }
+    array_splice($messages, $index, 1);
+    chat_write_messages($messages);
 
-  if (!$deleted) respond(['error' => 'پیام پیدا نشد.']);
-  if (!writeJsonFile($MSG_FILE, $out)) respond(['error' => 'خطا در حذف پیام.']);
-
-  respond(['success' => true, 'deletedId' => $id]);
+    dent_json_response([
+        'success' => true,
+        'deletedId' => $messageId,
+    ]);
 }
 
 if ($action === 'pin') {
-  if (!isLoggedIn()) respond(['error' => 'Unauthorized']);
-  if (!isAdmin($ADMIN_USERS)) respond(['error' => 'Access Denied']);
+    chat_require_moderator();
 
-  $id = (int)($_POST['id'] ?? 0);
-  $pin = (int)($_POST['pinned'] ?? 1) === 1;
+    $messageId = (int) ($_POST['id'] ?? 0);
+    $shouldPin = (string) ($_POST['pinned'] ?? '1') === '1';
 
-  if ($id <= 0) respond(['error' => 'Id نامعتبر است.']);
-
-  $messages = readJsonFile($MSG_FILE, []);
-  if (!is_array($messages)) $messages = [];
-
-  $found = false;
-  for ($i = 0; $i < count($messages); $i++) {
-    if ((int)($messages[$i]['id'] ?? 0) === $id) {
-      $messages[$i]['pinned'] = $pin;
-      $found = true;
-      $pinnedMsg = $messages[$i];
-      break;
+    if ($messageId <= 0) {
+        dent_error('????? ???? ??????? ???.', 422);
     }
-  }
 
-  if (!$found) respond(['error' => 'پیام پیدا نشد.']);
-  if (!writeJsonFile($MSG_FILE, $messages)) respond(['error' => 'خطا در پین کردن پیام.']);
+    $messages = chat_read_messages();
+    $index = chat_find_message_index($messages, $messageId);
+    if ($index === -1) {
+        dent_error('???? ???? ???.', 404);
+    }
 
-  respond(['success' => true, 'message' => $pinnedMsg]);
+    $messages[$index]['pinned'] = $shouldPin;
+    chat_write_messages($messages);
+
+    dent_json_response([
+        'success' => true,
+        'message' => chat_normalize_message($messages[$index]),
+    ]);
+}
+
+if ($action === 'react') {
+    chat_require_user();
+
+    $messageId = (int) ($_POST['id'] ?? 0);
+    $emoji = chat_sanitize_emoji((string) ($_POST['emoji'] ?? ''));
+
+    if ($messageId <= 0) {
+        dent_error('????? ???? ??????? ???.', 422);
+    }
+
+    if ($emoji === '') {
+        dent_error('????? ??????? ???.', 422);
+    }
+
+    $messages = chat_read_messages();
+    $index = chat_find_message_index($messages, $messageId);
+    if ($index === -1) {
+        dent_error('???? ???? ???.', 404);
+    }
+
+    if (!isset($messages[$index]['reactions']) || !is_array($messages[$index]['reactions'])) {
+        $messages[$index]['reactions'] = [];
+    }
+
+    if (!isset($messages[$index]['reactions'][$emoji]) || !is_array($messages[$index]['reactions'][$emoji])) {
+        $messages[$index]['reactions'][$emoji] = [];
+    }
+
+    $studentNumber = (string) (dent_current_user()['studentNumber'] ?? '');
+    $currentUsers = array_values(array_filter(
+        $messages[$index]['reactions'][$emoji],
+        static fn($value): bool => is_string($value) && trim($value) !== ''
+    ));
+
+    if (in_array($studentNumber, $currentUsers, true)) {
+        $currentUsers = array_values(array_filter(
+            $currentUsers,
+            static fn(string $value): bool => $value !== $studentNumber
+        ));
+    } else {
+        $currentUsers[] = $studentNumber;
+    }
+
+    if ($currentUsers === []) {
+        unset($messages[$index]['reactions'][$emoji]);
+    } else {
+        $messages[$index]['reactions'][$emoji] = $currentUsers;
+    }
+
+    chat_write_messages($messages);
+
+    dent_json_response([
+        'success' => true,
+        'message' => chat_normalize_message($messages[$index]),
+    ]);
 }
 
 if ($action === 'setMute') {
-  if (!isLoggedIn()) respond(['error' => 'Unauthorized']);
-  if (!isAdmin($ADMIN_USERS)) respond(['error' => 'Access Denied']);
+    $user = chat_require_moderator();
 
-  $muted = (int)($_POST['muted'] ?? 0) === 1;
+    $state = [
+        'muted' => (string) ($_POST['muted'] ?? '0') === '1',
+        'mutedBy' => (string) $user['studentNumber'],
+        'mutedAt' => time(),
+    ];
 
-  $newState = [
-    'muted'   => $muted,
-    'mutedBy' => (string)$_SESSION['username'],
-    'mutedAt' => now(),
-  ];
+    chat_write_state($state);
 
-  if (!writeJsonFile($STATE_FILE, $newState)) respond(['error' => 'خطا در ذخیره وضعیت.']);
-
-  respond(['success' => true, 'state' => $newState]);
+    dent_json_response([
+        'success' => true,
+        'state' => $state,
+    ]);
 }
 
-respond(['error' => 'Unknown Action']);
+dent_error('??????? ??????? ???.', 404);

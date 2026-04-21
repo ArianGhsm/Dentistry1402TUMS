@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#050b14">
+    <meta name="theme-color" content="#eef2f7">
     <title>آفلاین | ورودی ۱۴۰۲ دندانپزشکی</title>
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+    <script src="/assets/site/scripts/theme.js?v=20260422-cache1"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache1">
     <style>
         body.offline-page main {
             flex: 1;
@@ -22,10 +23,8 @@
             width: 100%;
             padding: 1.4rem;
             border-radius: 28px;
-            border: 1px solid rgba(35, 53, 84, 0.92);
-            background:
-                radial-gradient(circle at 10% 10%, rgba(0, 223, 216, 0.12), transparent 24%),
-                linear-gradient(180deg, rgba(17, 27, 43, 0.98), rgba(11, 22, 36, 0.98));
+            border: 1px solid rgba(127, 145, 165, 0.16);
+            background: rgba(255, 255, 255, 0.9);
             box-shadow: var(--surface-shadow);
         }
 
@@ -48,6 +47,7 @@
             flex-wrap: wrap;
         }
     </style>
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache1">
 </head>
 <body class="offline-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -57,7 +57,7 @@
                 <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲ دندانپزشکی">
             </div>
             <div class="site-info">
-                <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+                <h1>ورودی ۱۴۰۲ دندانپزشکی تهران</h1>
                 <p>خانه دانشجو</p>
             </div>
         </div>
@@ -66,12 +66,19 @@
         <section class="offline-card">
             <span class="app-pill">اتصال قطع شده</span>
             <h2>الان اینترنت قطع است.</h2>
-            <p>وقتی اتصال برگردد، دوباره می‌توانی به چت، آزمون‌ها، نمرات و جزوات برگردی.</p>
+            <p>وقتی اتصال برگردد، دوباره می‌توانی به اپلیکیشن برگردی.</p>
             <div class="offline-actions">
                 <a class="shell-action-btn shell-action-btn-primary" href="/app/">بازگشت به خانه</a>
                 <button class="shell-action-btn" type="button" onclick="window.location.reload()">تلاش دوباره</button>
             </div>
         </section>
     </main>
+    <footer class="site-footer">
+        <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
+    </footer>
 </body>
 </html>
+
+
+
+

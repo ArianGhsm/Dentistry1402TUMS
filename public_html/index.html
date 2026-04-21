@@ -1,22 +1,25 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ورودی ۱۴۰۲ دندانپزشکی تهران</title>
     <meta name="description" content="خانه دانشجویی ورودی ۱۴۰۲ دندانپزشکی تهران برای چت، آزمون‌ها، نمرات، جزوات و خدمات پرکاربرد.">
-    <meta name="theme-color" content="#050b14">
+    <meta name="theme-color" content="#eef2f7">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="icon" type="image/png" href="/assets/images/favicon.png">
     <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
-    <link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260421-pwa">
+    <script src="/assets/site/scripts/theme.js?v=20260422-cache1"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache1">
+    <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260422-cache1">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache1">
 </head>
-<body class="hub-page">
+<body class="home-page app-shell-hidden" data-shell="off">
     <div class="background-overlay" aria-hidden="true"></div>
+
     <header class="site-header">
         <div class="logo-area">
             <div class="logo-circle">
@@ -28,72 +31,79 @@
             </div>
         </div>
         <div class="header-actions">
-            <a class="header-link" href="/app/">ورود</a>
+            <a class="header-link" href="/app/">ورود به خانه</a>
         </div>
     </header>
 
     <main>
-        <section class="hero-content">
-            <span class="greeting-pill">همه‌چیز همین‌جاست</span>
-            <h2 class="hero-title">چت، آزمون، نمره و جزوه <span>ساده و دم‌دست</span></h2>
-            <p class="hero-desc">برای کارهای اصلی از همین‌جا شروع کن.</p>
+        <section class="portal-hero">
+            <span class="portal-kicker">ورودی ۱۴۰۲</span>
+            <h2 class="portal-title">همه‌چیز برای کلاس، یک‌جا.</h2>
+            <p class="portal-desc">اگر فقط می‌خواهی سریع وارد شوی، از خانه دانشجو شروع کن. چت، آزمون، نمرات و جزوات همان‌جا کنار هم هستند.</p>
         </section>
 
-        <section class="cards-container" aria-label="بخش‌های اصلی">
-            <article class="action-card">
-                <div class="card-content">
-                    <div class="card-header">
-                        <span class="card-badge">گفت‌وگو</span>
-                        <h3 class="card-title">چت کلاس</h3>
-                    </div>
-                    <p class="card-desc">پیام‌ها و گفتگوهای کلاس را دنبال کن.</p>
-                </div>
-                <a class="card-btn" href="/chat/">باز کردن چت</a>
-            </article>
+        <section class="portal-layout">
+            <section class="portal-panel portal-panel--lead">
+                <h3 class="portal-section-title">شروع سریع</h3>
+                <div class="portal-list">
+                    <article class="portal-row">
+                        <div class="portal-row__content">
+                            <span class="portal-row__eyebrow">اصلی</span>
+                            <h3 class="portal-row__title">خانه دانشجو</h3>
+                            <p class="portal-row__meta">همه بخش‌های مهم را از یک‌جا باز کن.</p>
+                        </div>
+                        <div class="portal-row__actions">
+                            <a class="shell-action-btn shell-action-btn-primary" href="/app/">ورود</a>
+                        </div>
+                    </article>
 
-            <article class="action-card">
-                <div class="card-content">
-                    <div class="card-header">
-                        <span class="card-badge">مرور</span>
-                        <h3 class="card-title">آزمون‌ها</h3>
-                    </div>
-                    <p class="card-desc">درس را انتخاب کن و آزمون جلسه‌ها را بزن.</p>
-                </div>
-                <a class="card-btn" href="/exams/">دیدن آزمون‌ها</a>
-            </article>
+                    <article class="portal-row">
+                        <div class="portal-row__content">
+                            <span class="portal-row__eyebrow">سریع</span>
+                            <h3 class="portal-row__title">چت کلاس</h3>
+                            <p class="portal-row__meta">اگر مستقیم دنبال پیام‌ها هستی، همین‌جا وارد شو.</p>
+                        </div>
+                        <div class="portal-row__actions">
+                            <a class="shell-action-btn" href="/chat/">باز کردن</a>
+                        </div>
+                    </article>
 
-            <article class="action-card">
-                <div class="card-content">
-                    <div class="card-header">
-                        <span class="card-badge">شخصی</span>
-                        <h3 class="card-title">نمرات</h3>
-                    </div>
-                    <p class="card-desc">با شماره دانشجویی و رمز، نمره‌هایت را ببین.</p>
+                    <article class="portal-row">
+                        <div class="portal-row__content">
+                            <span class="portal-row__eyebrow">فایل‌ها</span>
+                            <h3 class="portal-row__title">جزوات و برنامه امتحان</h3>
+                            <p class="portal-row__meta">فایل‌های ۱۴۰۲ و ۱۴۰۳ را از همین مسیر بگیر.</p>
+                        </div>
+                        <div class="portal-row__actions">
+                            <a class="shell-action-btn" href="/notes/">۱۴۰۲</a>
+                            <a class="shell-action-btn" href="/notes/1403/">۱۴۰۳</a>
+                        </div>
+                    </article>
                 </div>
-                <a class="card-btn" href="/grades/">دیدن نمرات</a>
-            </article>
+            </section>
 
-            <article class="action-card">
-                <div class="card-content">
-                    <div class="card-header">
-                        <span class="card-badge">فایل‌ها</span>
-                        <h3 class="card-title">جزوات</h3>
-                    </div>
-                    <p class="card-desc">برنامه امتحان، جزوه‌ها و کتاب‌ها را بردار.</p>
+            <aside class="portal-panel portal-panel--secondary">
+                <div>
+                    <h3 class="portal-section-title">دو راه دیگر</h3>
+                    <p class="portal-note">اگر مستقیم دنبال یک بخش مشخص هستی، از این میانبرها استفاده کن.</p>
                 </div>
-                <a class="card-btn" href="/notes/">دیدن جزوات</a>
-            </article>
-
-            <article class="action-card">
-                <div class="card-content">
-                    <div class="card-header">
-                        <span class="card-badge">بیشتر</span>
-                        <h3 class="card-title">خدمات</h3>
-                    </div>
-                    <p class="card-desc">نوید، تغذیه، سیپاد و چند لینک پرکاربرد دیگر.</p>
+                <div class="portal-secondary">
+                    <a class="portal-mini-link" href="/exams/">
+                        <span>آزمون‌ها</span>
+                        <span class="portal-mini-link__meta">تمرین و مرور</span>
+                    </a>
+                    <a class="portal-mini-link" href="/grades/">
+                        <span>نمرات</span>
+                        <span class="portal-mini-link__meta">شخصی</span>
+                    </a>
+                    <a class="portal-mini-link" href="/resources/">
+                        <span>خدمات</span>
+                        <span class="portal-mini-link__meta">لینک‌های لازم</span>
+                    </a>
                 </div>
-                <a class="card-btn" href="/resources/">رفتن به خدمات</a>
-            </article>
+                <button class="shell-action-btn shell-action-btn-primary" type="button" data-install-app>نصب روی گوشی</button>
+                <p class="shell-install-hint" data-install-hint>اگر مرورگر پشتیبانی کند، این دکمه فعال می‌شود.</p>
+            </aside>
         </section>
     </main>
 
@@ -101,7 +111,9 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260422-cache1"></script>
 </body>
 </html>
+
+
+

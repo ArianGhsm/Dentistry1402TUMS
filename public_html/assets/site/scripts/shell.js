@@ -1,23 +1,25 @@
 (function () {
-    if (document.body && document.body.dataset.shell === "off") {
-        return;
-    }
+    "use strict";
 
-    var NAV_ITEMS = [
-        { href: "/app/", label: "خانه", icon: "⌂", active: ["/", "/app/"] },
-        { href: "/chat/", label: "چت", icon: "◉", active: ["/chat/"] },
-        { href: "/exams/", label: "آزمون", icon: "◎", active: ["/exams/"] },
-        { href: "/grades/", label: "نمرات", icon: "◌", active: ["/grades/"] },
-        { href: "/resources/", label: "بیشتر", icon: "⋯", active: ["/resources/", "/notes/"] }
-    ];
-
-    var drawer = null;
-    var drawerBackdrop = null;
-    var drawerOpen = false;
+    var shellDisabled = !!(document.body && document.body.dataset.shell === "off");
     var modal = null;
     var modalBackdrop = null;
     var pendingExternal = null;
-    var statusPill = null;
+    var navInner = null;
+    var authLinkSeeded = false;
+
+    function icon(name) {
+        var icons = {
+            home: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10.5L12 4L20 10.5V19A1 1 0 0 1 19 20H5A1 1 0 0 1 4 19V10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.5 20V13.5H14.5V20" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+            chat: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 18.5L3.8 20L4.7 16.6C3.6 15.3 3 13.7 3 12C3 7.58 7.03 4 12 4C16.97 4 21 7.58 21 12C21 16.42 16.97 20 12 20C10.2 20 8.53 19.53 7 18.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+            exam: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4.5H17A2 2 0 0 1 19 6.5V19.5L12 16.5L5 19.5V6.5A2 2 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 9H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 12.5H13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+            grades: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 18.5V13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 18.5V9.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M19 18.5V5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3.5 19.5H20.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+            resources: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7.5A2.5 2.5 0 0 1 7.5 5H16.5A2.5 2.5 0 0 1 19 7.5V16.5A2.5 2.5 0 0 1 16.5 19H7.5A2.5 2.5 0 0 1 5 16.5V7.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 9H15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8.5 12H15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8.5 15H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+            account: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12.25A3.75 3.75 0 1 0 12 4.75A3.75 3.75 0 0 0 12 12.25Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 19.25C5.93 16.74 8.48 15 12 15C15.52 15 18.07 16.74 19 19.25" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+        };
+
+        return icons[name] || "";
+    }
 
     function currentPath() {
         var path = window.location.pathname || "/";
@@ -31,15 +33,70 @@
         });
     }
 
-    function injectBottomNav() {
+    function authState() {
+        if (window.Dent1402Auth && typeof window.Dent1402Auth.getState === "function") {
+            return window.Dent1402Auth.getState();
+        }
+
+        return {
+            status: "logged-out",
+            loggedIn: false,
+            user: null,
+            error: ""
+        };
+    }
+
+    function authLinkHref(isLoggedIn) {
+        if (isLoggedIn) {
+            return "/account/";
+        }
+
+        var returnTo = window.location.pathname + window.location.search + window.location.hash;
+        return "/account/?returnTo=" + encodeURIComponent(returnTo);
+    }
+
+    function navItems(state) {
+        return [
+            { href: "/app/", label: "????", icon: "home", active: ["/app/"] },
+            { href: "/chat/", label: "??", icon: "chat", active: ["/chat/"] },
+            { href: "/exams/", label: "?????", icon: "exam", active: ["/exams/"] },
+            { href: "/grades/", label: "?????", icon: "grades", active: ["/grades/"] },
+            { href: "/resources/", label: "?????", icon: "resources", active: ["/resources/", "/notes/"] },
+            {
+                href: authLinkHref(state.loggedIn),
+                label: state.loggedIn ? "????" : "????",
+                icon: "account",
+                active: ["/account/"]
+            }
+        ];
+    }
+
+    function ensureBottomNav() {
+        if (shellDisabled || navInner) {
+            return;
+        }
+
         var nav = document.createElement("nav");
         nav.className = "shell-bottom-nav";
-        nav.setAttribute("aria-label", "ناوبری اصلی");
+        nav.setAttribute("aria-label", "?????? ????");
 
-        var inner = document.createElement("div");
-        inner.className = "shell-bottom-nav__inner";
+        navInner = document.createElement("div");
+        navInner.className = "shell-bottom-nav__inner";
 
-        NAV_ITEMS.forEach(function (item) {
+        nav.appendChild(navInner);
+        document.body.appendChild(nav);
+    }
+
+    function renderBottomNav(state) {
+        if (shellDisabled) {
+            return;
+        }
+
+        ensureBottomNav();
+        navInner.innerHTML = "";
+        navInner.style.setProperty("--nav-count", String(navItems(state).length));
+
+        navItems(state).forEach(function (item) {
             var link = document.createElement("a");
             link.className = "shell-bottom-nav__link";
             if (isActive(item)) {
@@ -47,116 +104,60 @@
                 link.setAttribute("aria-current", "page");
             }
             link.href = item.href;
-            link.innerHTML = '<span class="shell-bottom-nav__icon" aria-hidden="true">' + item.icon + '</span><span class="shell-bottom-nav__label">' + item.label + '</span>';
-            inner.appendChild(link);
+            link.innerHTML = '<span class="shell-bottom-nav__icon" aria-hidden="true">' + icon(item.icon) + '</span><span class="shell-bottom-nav__label">' + item.label + "</span>";
+            navInner.appendChild(link);
         });
-
-        nav.appendChild(inner);
-        document.body.appendChild(nav);
     }
 
-    function createStatusPill() {
-        statusPill = document.createElement("div");
-        statusPill.className = "shell-status-pill";
-        statusPill.setAttribute("role", "status");
-        statusPill.setAttribute("aria-live", "polite");
-        document.body.appendChild(statusPill);
-    }
-
-    function setStatus(message, mode) {
-        if (!statusPill) {
+    function ensureHeaderAuthLink() {
+        if (authLinkSeeded) {
             return;
         }
 
-        statusPill.textContent = message;
-        statusPill.classList.toggle("is-offline", mode === "offline");
-        statusPill.classList.add("is-visible");
-
-        window.clearTimeout(setStatus._timer);
-        if (mode !== "offline") {
-            setStatus._timer = window.setTimeout(function () {
-                statusPill.classList.remove("is-visible");
-            }, 2600);
+        var headerActions = document.querySelector(".header-actions");
+        if (!headerActions) {
+            return;
         }
+
+        if (headerActions.querySelector("[data-auth-link]")) {
+            authLinkSeeded = true;
+            return;
+        }
+
+        var link = document.createElement("a");
+        link.className = "header-link header-link--auth";
+        link.href = "/account/";
+        link.dataset.authLink = "true";
+        link.dataset.authInLabel = "???? ??????";
+        link.dataset.authOutLabel = "????";
+        headerActions.appendChild(link);
+        authLinkSeeded = true;
     }
 
-    function createDrawer() {
-        drawerBackdrop = document.createElement("div");
-        drawerBackdrop.className = "shell-drawer-backdrop";
-        drawerBackdrop.addEventListener("click", closeDrawer);
+    function syncAuthLinks(state) {
+        ensureHeaderAuthLink();
 
-        drawer = document.createElement("aside");
-        drawer.className = "shell-drawer";
-        drawer.setAttribute("aria-hidden", "true");
-        drawer.innerHTML = [
-            '<div class="shell-drawer__header">',
-            '  <div>',
-            '    <h2 class="shell-drawer__title">منو</h2>',
-            '    <p class="shell-drawer__desc">هر بخشی را لازم داری از همین‌جا باز کن.</p>',
-            '  </div>',
-            '  <button class="shell-dismiss-btn" type="button" aria-label="بستن">×</button>',
-            '</div>',
-            '<div class="shell-drawer__group">',
-            '  <span class="shell-drawer__label">بخش‌های اصلی</span>',
-            '  <div class="shell-drawer__grid">',
-            '    <a class="shell-drawer__link" href="/app/"><span>خانه</span><span class="shell-drawer__meta">شروع</span></a>',
-            '    <a class="shell-drawer__link" href="/chat/"><span>چت</span><span class="shell-drawer__meta">گفت‌وگو</span></a>',
-            '    <a class="shell-drawer__link" href="/exams/"><span>آزمون‌ها</span><span class="shell-drawer__meta">مرور</span></a>',
-            '    <a class="shell-drawer__link" href="/grades/"><span>نمرات</span><span class="shell-drawer__meta">شخصی</span></a>',
-            '    <a class="shell-drawer__link" href="/notes/"><span>جزوات ۱۴۰۲</span><span class="shell-drawer__meta">فایل‌ها</span></a>',
-            '    <a class="shell-drawer__link" href="/notes/1403/"><span>جزوات ۱۴۰۳</span><span class="shell-drawer__meta">فایل‌ها</span></a>',
-            '    <a class="shell-drawer__link" href="/resources/"><span>خدمات</span><span class="shell-drawer__meta">لینک‌ها</span></a>',
-            '  </div>',
-            '</div>',
-            '<div class="shell-drawer__group">',
-            '  <span class="shell-drawer__label">لینک‌های بیرونی</span>',
-            '  <div class="shell-drawer__grid">',
-            '    <a class="shell-drawer__link" href="https://navid.tums.ac.ir/" data-external-link="true"><span>نوید</span><span class="shell-drawer__meta">آموزشی</span></a>',
-            '    <a class="shell-drawer__link" href="https://foodstu.tums.ac.ir/" data-external-link="true"><span>تغذیه</span><span class="shell-drawer__meta">رزرو</span></a>',
-            '    <a class="shell-drawer__link" href="https://sipad.tums.ac.ir/" data-external-link="true"><span>سیپاد</span><span class="shell-drawer__meta">دانشگاه</span></a>',
-            '    <a class="shell-drawer__link" href="https://t.me/teledentistry1402" data-external-link="true"><span>تلگرام</span><span class="shell-drawer__meta">کلاس</span></a>',
-            '    <a class="shell-drawer__link" href="https://dentistry.tums.ac.ir/" data-external-link="true"><span>دانشکده</span><span class="shell-drawer__meta">سایت رسمی</span></a>',
-            '  </div>',
-            '</div>'
-        ].join("");
+        document.querySelectorAll("[data-auth-link]").forEach(function (link) {
+            var outLabel = link.dataset.authOutLabel || "????";
+            var inLabel = link.dataset.authInLabel || "???? ??????";
+            var useName = link.dataset.authUseName === "true";
+            var text = state.loggedIn
+                ? (useName && state.user && state.user.name ? state.user.name : inLabel)
+                : outLabel;
 
-        drawer.querySelector(".shell-dismiss-btn").addEventListener("click", closeDrawer);
-
-        document.body.appendChild(drawerBackdrop);
-        document.body.appendChild(drawer);
-    }
-
-    function openDrawer() {
-        drawerOpen = true;
-        drawerBackdrop.classList.add("is-open");
-        drawer.classList.add("is-open");
-        drawer.setAttribute("aria-hidden", "false");
-    }
-
-    function closeDrawer() {
-        drawerOpen = false;
-        drawerBackdrop.classList.remove("is-open");
-        drawer.classList.remove("is-open");
-        drawer.setAttribute("aria-hidden", "true");
-    }
-
-    function createMenuButton() {
-        var button = document.createElement("button");
-        button.type = "button";
-        button.className = "shell-menu-trigger shell-action-btn";
-        button.setAttribute("aria-label", "باز کردن منو");
-        button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 12H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 17H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-        button.addEventListener("click", function () {
-            if (drawerOpen) {
-                closeDrawer();
-            } else {
-                openDrawer();
-            }
+            link.href = state.loggedIn ? "/account/" : authLinkHref(false);
+            link.textContent = text;
+            link.setAttribute("title", text);
+            link.setAttribute("aria-label", text);
+            link.classList.toggle("is-authenticated", !!state.loggedIn);
         });
-        document.body.appendChild(button);
     }
 
     function createModal() {
+        if (modal && modalBackdrop) {
+            return;
+        }
+
         modalBackdrop = document.createElement("div");
         modalBackdrop.className = "shell-modal-backdrop";
         modalBackdrop.addEventListener("click", closeModal);
@@ -167,13 +168,13 @@
         modal.setAttribute("aria-modal", "true");
         modal.setAttribute("aria-hidden", "true");
         modal.innerHTML = [
-            '<h2 class="shell-modal__title">باز کردن لینک بیرونی</h2>',
-            '<p class="shell-modal__desc">این لینک بیرون از سایت باز می‌شود.</p>',
+            '<h2 class="shell-modal__title">???? ?? ????</h2>',
+            '<p class="shell-modal__desc">??? ???? ????? ?? ???? ??? ??????.</p>',
             '<div class="shell-modal__host"></div>',
             '<div class="shell-modal__actions">',
-            '  <button type="button" class="shell-action-btn" data-shell-cancel>برگشت</button>',
-            '  <button type="button" class="shell-action-btn shell-action-btn-primary" data-shell-continue>باز کردن</button>',
-            '</div>'
+            '  <button type="button" class="shell-action-btn" data-shell-cancel>?????</button>',
+            '  <button type="button" class="shell-action-btn shell-action-btn-primary" data-shell-continue>??? ????</button>',
+            "</div>"
         ].join("");
 
         modal.querySelector("[data-shell-cancel]").addEventListener("click", closeModal);
@@ -188,6 +189,7 @@
             href: anchor.href,
             target: anchor.target
         };
+
         modal.querySelector(".shell-modal__host").textContent = new URL(anchor.href).host;
         modal.classList.add("is-open");
         modalBackdrop.classList.add("is-open");
@@ -196,6 +198,10 @@
 
     function closeModal() {
         pendingExternal = null;
+        if (!modal || !modalBackdrop) {
+            return;
+        }
+
         modal.classList.remove("is-open");
         modalBackdrop.classList.remove("is-open");
         modal.setAttribute("aria-hidden", "true");
@@ -210,10 +216,12 @@
         var href = pendingExternal.href;
         var target = pendingExternal.target;
         closeModal();
+
         if (target === "_blank") {
             window.open(href, "_blank", "noopener");
             return;
         }
+
         window.location.href = href;
     }
 
@@ -254,36 +262,26 @@
 
                 button.hidden = false;
                 button.disabled = !detail.canInstall && !detail.isIOS;
-                button.textContent = detail.canInstall ? "نصب روی دستگاه" : (detail.isIOS ? "افزودن به صفحه اصلی" : "فعلاً در دسترس نیست");
+                button.textContent = detail.canInstall ? "??? ??? ????" : (detail.isIOS ? "?????? ?? ???? ????" : "????? ?? ????? ????");
             });
 
             var hints = document.querySelectorAll("[data-install-hint]");
             hints.forEach(function (hint) {
                 if (detail.installed) {
-                    hint.textContent = "می‌توانی از صفحه اصلی دستگاه بازش کنی.";
+                    hint.textContent = "????? ?? ???? ???? ?????? ???? ??.";
                 } else if (detail.canInstall) {
-                    hint.textContent = "اگر خواستی، با همین دکمه به صفحه اصلی دستگاه اضافه‌اش کن.";
+                    hint.textContent = "??? ??????? ?? ???? ???? ??? ???? ???? ???.";
                 } else if (detail.isIOS) {
-                    hint.textContent = "در Safari از منوی اشتراک‌گذاری، «افزودن به صفحه اصلی» را بزن.";
+                    hint.textContent = "?? Safari ?? ???? ????????????? �?????? ?? ???? ????� ?? ???.";
                 } else {
-                    hint.textContent = "اگر مرورگر پشتیبانی کند، این دکمه بعداً فعال می‌شود.";
+                    hint.textContent = "??? ?????? ???????? ???? ??? ???? ???? ??????.";
                 }
             });
-
-            if (detail.isOffline) {
-                setStatus("اینترنت قطع است", "offline");
-            } else {
-                setStatus("اتصال برقرار شد", "online");
-            }
         }
 
         document.addEventListener("click", function (event) {
             var button = event.target.closest("[data-install-app]");
-            if (!button) {
-                return;
-            }
-
-            if (!window.Dent1402PWA) {
+            if (!button || !window.Dent1402PWA) {
                 return;
             }
 
@@ -299,21 +297,28 @@
         });
     }
 
+    function syncAuthUi(state) {
+        syncAuthLinks(state);
+        renderBottomNav(state);
+    }
+
     function init() {
         document.body.classList.add("has-app-shell");
-        createStatusPill();
-        injectBottomNav();
-        createDrawer();
-        createMenuButton();
+        if (shellDisabled) {
+            document.body.classList.add("app-shell-hidden");
+        }
+
         createModal();
         bindExternalLinks();
         bindInstallButtons();
+        syncAuthUi(authState());
+
+        if (window.Dent1402Auth && typeof window.Dent1402Auth.onChange === "function") {
+            window.Dent1402Auth.onChange(syncAuthUi);
+        }
 
         document.addEventListener("keydown", function (event) {
             if (event.key === "Escape") {
-                if (drawerOpen) {
-                    closeDrawer();
-                }
                 closeModal();
             }
         });

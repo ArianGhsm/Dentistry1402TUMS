@@ -1,371 +1,33 @@
 ﻿<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
-<link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260421-pwa">
-<link rel="icon" type="image/png" href="/assets/images/favicon.png">
-<link rel="shortcut icon" href="/assets/images/favicon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>جزوات | ورودی ۱۴۰۳ دندانپزشکی</title>
     <meta name="description" content="جزوه‌ها، برنامه امتحان و نمونه سؤال‌های ورودی ۱۴۰۳ دندانپزشکی تهران.">
-    
-    <style>
-        /* ========================================
-           1. تنظیمات کلی و متغیرها (Variables)
-           ======================================== */
-        :root {
-            --bg-body: #050b14;       /* سرمه‌ای خیلی تیره مایل به مشکی */
-            --bg-card: #111b2b;       /* پس‌زمینه کارت‌ها */
-            --bg-card-hover: #1a283d; /* کارت هنگام هاور */
-            --text-primary: #e6f1ff;  /* تیترها */
-            --text-secondary: #8892b0;/* توضیحات */
-            --accent-color: #64ffda;  /* سبزآبی نئونی */
-            --border-color: #233554;  /* بوردرها */
-            
-            --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
-            --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
-
-            --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: var(--font-main);
-            background-color: var(--bg-body);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow-x: hidden;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        a { text-decoration: none; color: inherit; }
-        ul { list-style: none; }
-
-        /* پس‌زمینه (می‌توانی بعداً عکس هم اضافه کنی) */
-        .background-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            /* اگر عکس داشتی: */
-            /* background-image: url('assets/images/hero-bg.jpg'); */
-            /* background-size: cover; */
-            background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
-        }
-
-        /* ========================================
-           2. هدر
-           ======================================== */
-        .site-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 1rem 5%;
-            background: rgba(5, 11, 20, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-color);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-.logo-circle {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    overflow: hidden;              /* بریدن گوشه‌های عکس */
-    box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
-    flex-shrink: 0;
-}
-
-/* عکس داخل دایره */
-.logo-circle img {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;             /* اگر مربع نیست، قشنگ وسط می‌ایستد */
-}
-
-        .site-info h1 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 2px;
-        }
-
-        .site-info p {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: .6rem;
-        }
-
-        .badge-unofficial {
-            font-size: 0.7rem;
-            background: rgba(255, 99, 99, 0.1);
-            color: #ff6363;
-            padding: 4px 10px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 99, 99, 0.2);
-            white-space: nowrap;
-        }
-
-        .header-link {
-            font-size: .8rem;
-            padding: 5px 12px;
-            border-radius: 18px;
-            border: 1px solid rgba(100, 255, 218, 0.35);
-            color: var(--accent-color);
-            background: rgba(15, 23, 42, 0.7);
-            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .header-link:hover {
-            background: rgba(15, 23, 42, 0.95);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 223, 216, 0.25);
-        }
-
-        @media (max-width: 400px) {
-            .badge-unofficial { display: none; }
-            .header-link { font-size: 0.7rem; padding: 4px 10px; }
-        }
-
-        /* ========================================
-           3. چیدمان اصلی
-           ======================================== */
-        main {
-            flex: 1;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 5%;
-            display: grid;
-            gap: 3rem;
-            align-items: center;
-        }
-
-        @media (min-width: 992px) {
-            main {
-                grid-template-columns: 1fr 1fr;
-                height: calc(100vh - 80px);
-            }
-        }
-
-        /* ========================================
-           4. بخش متنی (هیرو)
-           ======================================== */
-        .hero-content {
-            text-align: right;
-            animation: fadeInRight 0.8s ease-out;
-        }
-
-        .greeting-pill {
-            display: inline-block;
-            background: rgba(100, 255, 218, 0.1);
-            color: var(--accent-color);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            border: 1px solid rgba(100, 255, 218, 0.2);
-        }
-
-        .hero-title {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            line-height: 1.4;
-            color: var(--text-primary);
-        }
-
-        .hero-title span {
-            color: #00dfd8;
-        }
-
-        .hero-desc {
-            font-size: 1rem;
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-            max-width: 500px;
-        }
-
-        @media (min-width: 992px) {
-            .hero-title { font-size: 2.6rem; }
-            .hero-desc { font-size: 1.05rem; }
-        }
-
-        /* ========================================
-           5. کارت‌های آزمون
-           ======================================== */
-        .cards-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            width: 100%;
-            animation: fadeInLeft 0.8s ease-out 0.2s backwards;
-        }
-
-        .action-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 1.2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        @media (min-width: 600px) {
-            .action-card {
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-between;
-                padding: 1rem 1.5rem;
-            }
-        }
-
-        .action-card:hover {
-            transform: translateY(-4px);
-            background: var(--bg-card-hover);
-            border-color: rgba(100, 255, 218, 0.3);
-            box-shadow: 0 10px 30px -10px rgba(2, 12, 27, 0.7);
-        }
-
-        .card-content {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card-badge {
-            font-size: 0.7rem;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--accent-color);
-            padding: 3px 8px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .card-title {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .card-desc {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin: 0;
-            line-height: 1.4;
-        }
-
-        .card-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--btn-gradient);
-            color: #fff;
-            padding: 10px 24px;
-            border-radius: 50px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            box-shadow: var(--btn-shadow);
-            transition: transform 0.2s, filter 0.2s;
-            white-space: nowrap;
-            min-width: 140px;
-            text-align: center;
-        }
-
-        .action-card:hover .card-btn {
-            filter: brightness(1.1);
-        }
-
-        .card-btn:active {
-            transform: scale(0.96);
-        }
-
-        @media (max-width: 599px) {
-            .card-btn {
-                width: 100%;
-            }
-        }
-
-        /* ========================================
-           6. فوتر
-           ======================================== */
-        footer {
-            text-align: center;
-            padding: 1.5rem;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            border-top: 1px solid var(--border-color);
-            background: var(--bg-body);
-        }
-
-        footer span {
-            color: var(--accent-color);
-        }
-
-        /* انیمیشن‌ها */
-        @keyframes fadeInRight {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes fadeInLeft {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-    </style>
-<meta name="theme-color" content="#050b14">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-<link rel="manifest" href="/manifest.webmanifest">
-<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
-<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260421-pwa">
+    <meta name="theme-color" content="#eef2f7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+    <script src="/assets/site/scripts/theme.js?v=20260422-cache1"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache1">
+    <link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260422-cache1">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache1">
 </head>
 <body class="hub-page">
-
-    <div class="background-overlay"></div>
+    <div class="background-overlay" aria-hidden="true"></div>
 
     <header class="site-header">
         <div class="logo-area">
- <div class="logo-circle">
-            <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
-        </div>
+            <div class="logo-circle">
+                <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+            </div>
             <div class="site-info">
-                <h1>سایت ورودی ۱۴۰۲ دندانپزشکی، شاخه ورودی ۱۴۰۳</h1>
-                <p>دانشگاه علوم پزشکی تهران</p>
+                <h1>ورودی ۱۴۰۳ دندانپزشکی</h1>
+                <p>فایل‌ها و برنامه امتحان</p>
             </div>
         </div>
         <div class="header-actions">
@@ -374,153 +36,124 @@
     </header>
 
     <main>
-        <!-- متن سمت راست -->
         <section class="hero-content">
             <span class="greeting-pill">جزوات ۱۴۰۳</span>
-            <h2 class="hero-title">
-                فایل‌ها و نمونه سؤال‌ها
-                <br>
-                <span>همه‌چیز یک‌جا و مرتب</span>
-            </h2>
-            <p class="hero-desc">
-                برنامه امتحان، جزوه‌ها و فایل‌های لازم را از همین صفحه بردار.
-            </p>
+            <h2 class="hero-title">فایل‌ها و نمونه سؤال‌ها</h2>
+            <p class="hero-desc">برنامه امتحان، جزوه‌ها و فایل‌های لازم را از همین صفحه بردار.</p>
         </section>
 
-        <!-- کارت‌های آزمون سمت چپ -->
         <section class="cards-container">
-
-
-
-            <div class="action-card">
-
+            <article class="action-card">
                 <div class="card-content">
                     <div class="card-header">
                         <span class="card-badge">برنامه</span>
-                        <h3 class="card-title">برنامه امتحانات پایان‌ترم </h3>
+                        <h3 class="card-title">برنامه امتحانات پایان‌ترم</h3>
                     </div>
-                    <p class="card-desc">برنامه پایان‌ترم</p>
+                    <p class="card-desc">برنامه پایان‌ترم.</p>
                 </div>
-                <a href="https://my.uupload.ir/dl/EOwg2LrM" class="card-btn">
-                    دیدن برنامه
-                </a>
-            </div>
-            <div class="action-card">
+                <a href="https://my.uupload.ir/dl/EOwg2LrM" class="card-btn" data-external-link="true">دیدن</a>
+            </article>
+
+            <article class="action-card">
                 <div class="card-content">
                     <div class="card-header">
                         <span class="card-badge">نوروآناتومی</span>
-                        <h3 class="card-title">جزوات جامع نوروآناتومی</h3>
+                        <h3 class="card-title">جزوه جامع نوروآناتومی</h3>
                     </div>
-                    <p class="card-desc">فایل کامل</p>
+                    <p class="card-desc">فایل کامل.</p>
                 </div>
-                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20نوروآناتومی.pdf" class="card-btn">
-                    دریافت فایل
-                </a>
-            </div>
+                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20نوروآناتومی.pdf" class="card-btn" data-external-link="true">دریافت</a>
+            </article>
 
-                                                <div class="action-card">
-
-      
+            <article class="action-card">
                 <div class="card-content">
                     <div class="card-header">
                         <span class="card-badge">ویروس</span>
-                        <h3 class="card-title">جزوه جامع ویروس شناسی پایان‌ترم</h3>
+                        <h3 class="card-title">جزوه جامع ویروس‌شناسی پایان‌ترم</h3>
                     </div>
-                    <p class="card-desc">جزوه پایان‌ترم</p>
+                    <p class="card-desc">جزوه پایان‌ترم.</p>
                 </div>
-                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20ویروس_شناسی%20پایانترم.pdf" class="card-btn">
-                    دریافت فایل
-                </a>
-            </div>
+                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20ویروس_شناسی%20پایانترم.pdf" class="card-btn" data-external-link="true">دریافت</a>
+            </article>
 
-  
-                        <div class="action-card">
+            <article class="action-card">
                 <div class="card-content">
                     <div class="card-header">
                         <span class="card-badge">ژنتیک</span>
                         <h3 class="card-title">جزوه جامع ژنتیک ۱ تا ۸</h3>
                     </div>
-                    <p class="card-desc">جلسه‌های ۱ تا ۸</p>
+                    <p class="card-desc">جلسه‌های ۱ تا ۸.</p>
                 </div>
-                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20ژنتیک%20۱%20تا%20۸.pdf" class="card-btn">
-                    دریافت فایل
-                </a>
-            </div>
-            
-                                    <div class="action-card">
+                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20ژنتیک%20۱%20تا%20۸.pdf" class="card-btn" data-external-link="true">دریافت</a>
+            </article>
+
+            <article class="action-card">
                 <div class="card-content">
                     <div class="card-header">
                         <span class="card-badge">فیزیک پزشکی</span>
-                        <h3 class="card-title">جزوه جامع فیزیک پزشکی به جز جلسه ۴</h3>
+                        <h3 class="card-title">جزوه جامع فیزیک پزشکی</h3>
                     </div>
-                    <p class="card-desc">به‌جز جلسه ۴</p>
+                    <p class="card-desc">به‌جز جلسه ۴.</p>
                 </div>
-                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20فیزیک%20پزشکی%20بجز%20۴.pdf" class="card-btn">
-                    دریافت فایل
-                </a>
-            </div>
-                                                <div class="action-card">
+                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20فیزیک%20پزشکی%20بجز%20۴.pdf" class="card-btn" data-external-link="true">دریافت</a>
+            </article>
+
+            <article class="action-card">
                 <div class="card-content">
                     <div class="card-header">
                         <span class="card-badge">متون</span>
-                        <h3 class="card-title">کتاب تفسیر موضوعی قرآن کریم محمدعلی رضایی اصفهانی</h3>
+                        <h3 class="card-title">تفسیر موضوعی قرآن کریم</h3>
                     </div>
-                    <p class="card-desc">فایل کامل کتاب</p>
+                    <p class="card-desc">فایل کامل کتاب.</p>
                 </div>
-                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/تفسیر_موضوعی_قرآن_کریم_محمدعلی_رضایی_اصفهانی.pdf" class="card-btn">
-                    دریافت فایل
-                </a>
-            </div>
+                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/تفسیر_موضوعی_قرآن_کریم_محمدعلی_رضایی_اصفهانی.pdf" class="card-btn" data-external-link="true">دریافت</a>
+            </article>
 
-                                                <div class="action-card">
+            <article class="action-card">
                 <div class="card-content">
                     <div class="card-header">
                         <span class="card-badge">انقلاب</span>
-                        <h3 class="card-title">کتاب صعود چهل ساله</h3>
+                        <h3 class="card-title">کتاب صعود چهل‌ساله</h3>
                     </div>
-                    <p class="card-desc">فایل کامل کتاب</p>
+                    <p class="card-desc">فایل کامل کتاب.</p>
                 </div>
-                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/صعود%20چهل%20ساله%20۲.pdf" class="card-btn">
-                    دریافت فایل
-                </a>
-            </div>
-            
-                                                            <div class="action-card">
+                <a href="https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/صعود%20چهل%20ساله%20۲.pdf" class="card-btn" data-external-link="true">دریافت</a>
+            </article>
+
+            <article class="action-card">
                 <div class="card-content">
                     <div class="card-header">
                         <span class="card-badge">زبان</span>
-                        <h3 class="card-title">مجموعه فایل های زبان عمومی</h3>
+                        <h3 class="card-title">مجموعه فایل‌های زبان عمومی</h3>
                     </div>
-                    <p class="card-desc">فایل‌های درس</p>
+                    <p class="card-desc">فایل‌های درس.</p>
                 </div>
-                <a href="https://s31.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/زبان%20عمومی/زبان%20عمومی.zip" class="card-btn">
-                    دریافت فایل
-                </a>
-            </div>
-                                                <div class="action-card">
+                <a href="https://s31.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/زبان%20عمومی/زبان%20عمومی.zip" class="card-btn" data-external-link="true">دریافت</a>
+            </article>
+
+            <article class="action-card">
                 <div class="card-content">
                     <div class="card-header">
                         <span class="card-badge">متون</span>
-                        <h3 class="card-title">نمونه سوال متون</h3>
+                        <h3 class="card-title">نمونه سؤال متون</h3>
                     </div>
-                    <p class="card-desc">نمونه سؤال</p>
+                    <p class="card-desc">فایل نمونه سؤال.</p>
                 </div>
-                <a href="https://s31.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/خلاصه%20و%20نمونه%20سوال%20متون/نمونه%20سوال%20متون.pdf" class="card-btn">
-                    دریافت فایل
-                </a>
-            </div>
-
+                <a href="https://s31.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/خلاصه%20و%20نمونه%20سوال%20متون/نمونه%20سوال%20متون.pdf" class="card-btn" data-external-link="true">دریافت</a>
+            </article>
         </section>
     </main>
 
-    <footer>
+    <footer class="site-footer">
         <p>ورودی ۱۴۰۲ و ۱۴۰۳ دندانپزشکی تهران</p>
     </footer>
 
-<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
-<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260422-cache1"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260422-cache1"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260422-cache1"></script>
 </body>
 </html>
+
 
 
 

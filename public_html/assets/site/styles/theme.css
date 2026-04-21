@@ -1,0 +1,159 @@
+html[data-theme="dark"] body {
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .site-header {
+    background: rgba(11, 17, 27, 0.84);
+    border-bottom-color: rgba(124, 145, 168, 0.12);
+}
+
+html[data-theme="dark"] .logo-circle,
+html[data-theme="dark"] .header-link,
+html[data-theme="dark"] .shell-action-btn,
+html[data-theme="dark"] .theme-toggle-btn,
+html[data-theme="dark"] .shell-bottom-nav__inner,
+html[data-theme="dark"] .shell-drawer,
+html[data-theme="dark"] .shell-modal {
+    border-color: rgba(124, 145, 168, 0.16);
+    box-shadow: var(--surface-shadow);
+}
+
+html[data-theme="dark"] .header-link,
+html[data-theme="dark"] .shell-action-btn,
+html[data-theme="dark"] .theme-toggle-btn,
+html[data-theme="dark"] .shell-drawer__link,
+html[data-theme="dark"] .shell-dismiss-btn {
+    background: var(--surface-muted);
+}
+
+html[data-theme="dark"] .header-link:hover,
+html[data-theme="dark"] .header-link:focus-visible,
+html[data-theme="dark"] .shell-action-btn:hover,
+html[data-theme="dark"] .shell-action-btn:focus-visible,
+html[data-theme="dark"] .theme-toggle-btn:hover,
+html[data-theme="dark"] .theme-toggle-btn:focus-visible,
+html[data-theme="dark"] .shell-drawer__link:hover,
+html[data-theme="dark"] .shell-drawer__link:focus-visible {
+    background: var(--surface-strong);
+}
+
+html[data-theme="dark"] .shell-bottom-nav {
+    background: linear-gradient(180deg, rgba(13, 20, 32, 0), rgba(13, 20, 32, 0.84) 26%, rgba(13, 20, 32, 0.96));
+}
+
+html[data-theme="dark"] .shell-bottom-nav__inner {
+    background: rgba(14, 22, 34, 0.94);
+}
+
+html[data-theme="dark"] .shell-bottom-nav__link {
+    color: var(--text-tertiary);
+}
+
+html[data-theme="dark"] .shell-bottom-nav__link:hover,
+html[data-theme="dark"] .shell-bottom-nav__link:focus-visible {
+    color: var(--text-primary);
+}
+
+html[data-theme="dark"] .shell-bottom-nav__link.is-active {
+    background: rgba(114, 169, 255, 0.14);
+    color: var(--accent-strong);
+}
+
+html[data-theme="dark"] .portal-panel,
+html[data-theme="dark"] body.hub-page .cards-container,
+html[data-theme="dark"] body.grades-page .grades-card,
+html[data-theme="dark"] body.grades-page .grades-box,
+html[data-theme="dark"] body.grades-page .grade-item,
+html[data-theme="dark"] body.quiz-page .quiz-header,
+html[data-theme="dark"] body.quiz-page .question-card,
+html[data-theme="dark"] body.quiz-page .results-section,
+html[data-theme="dark"] body.quiz-page .results-box,
+html[data-theme="dark"] body.quiz-page .answer-card {
+    background: rgba(15, 23, 36, 0.86) !important;
+    border-color: rgba(124, 145, 168, 0.16) !important;
+    box-shadow: var(--surface-shadow) !important;
+}
+
+html[data-theme="dark"] .portal-note,
+html[data-theme="dark"] .portal-desc,
+html[data-theme="dark"] .portal-row__meta,
+html[data-theme="dark"] .portal-mini-link__meta,
+html[data-theme="dark"] body.grades-page .grades-subtitle,
+html[data-theme="dark"] body.grades-page .grades-footer-note,
+html[data-theme="dark"] body.grades-page .password-note,
+html[data-theme="dark"] body.grades-page .grades-extra,
+html[data-theme="dark"] body.grades-page .grades-name-title {
+    color: var(--text-secondary) !important;
+}
+
+html[data-theme="dark"] .portal-mini-link,
+html[data-theme="dark"] body.grades-page .input-group input {
+    background: var(--surface-muted) !important;
+    border-color: rgba(124, 145, 168, 0.16) !important;
+    color: var(--text-primary) !important;
+}
+
+html[data-theme="dark"] body.quiz-page .background-overlay {
+    background:
+        radial-gradient(circle at 50% 10%, rgba(62, 112, 220, 0.2) 0%, transparent 26%) !important,
+        linear-gradient(180deg, #111a29 0%, #0b121d 72%) !important;
+}
+
+html[data-theme="dark"] body.chat-page {
+    --chat-bg: #0c141f;
+    --chat-surface: rgba(12, 20, 31, 0.76);
+    --chat-surface-strong: #101928;
+    --chat-border: rgba(124, 145, 168, 0.12);
+    --chat-text: #eef3ff;
+    --chat-muted: #9aabc2;
+    --chat-accent: #79adff;
+    --chat-accent-soft: rgba(121, 173, 255, 0.12);
+    --chat-bubble: rgba(16, 25, 40, 0.98);
+    --chat-bubble-me: linear-gradient(180deg, #1d3b63 0%, #173252 100%);
+}
+
+html[data-theme="dark"] body.chat-page .background-overlay {
+    background:
+        radial-gradient(circle at 12% 8%, rgba(79, 141, 255, 0.14), transparent 28%),
+        radial-gradient(circle at 90% 0%, rgba(67, 194, 255, 0.12), transparent 24%),
+        linear-gradient(180deg, #182436 0%, #0c141f 100%);
+}
+
+html[data-theme="dark"] body.chat-page .chat-app__header,
+html[data-theme="dark"] body.chat-page .chat-login-panel,
+html[data-theme="dark"] body.chat-page .chat-stage,
+html[data-theme="dark"] body.chat-page .chat-banner,
+html[data-theme="dark"] body.chat-page .composer,
+html[data-theme="dark"] body.chat-page .composer-box,
+html[data-theme="dark"] body.chat-page .chat-back,
+html[data-theme="dark"] body.chat-page .chat-top-btn,
+html[data-theme="dark"] body.chat-page .chat-tool-btn,
+html[data-theme="dark"] body.chat-page .icon-btn,
+html[data-theme="dark"] body.chat-page .chat-connection {
+    background: rgba(16, 25, 40, 0.88);
+    border-color: rgba(124, 145, 168, 0.12);
+    color: var(--chat-text);
+}
+
+html[data-theme="dark"] body.chat-page .messages,
+html[data-theme="dark"] body.chat-page .stream-state {
+    background:
+        linear-gradient(rgba(12, 20, 31, 0.86), rgba(12, 20, 31, 0.86)),
+        radial-gradient(circle at 1px 1px, rgba(124, 145, 168, 0.1) 1px, transparent 0);
+    background-size: auto, 24px 24px;
+}
+
+html[data-theme="dark"] body.chat-page input,
+html[data-theme="dark"] body.chat-page textarea {
+    background: rgba(16, 25, 40, 0.92);
+    border-color: rgba(124, 145, 168, 0.14);
+    color: var(--chat-text);
+}
+
+html[data-theme="dark"] body.chat-page .reply-preview,
+html[data-theme="dark"] body.chat-page .reply-bar,
+html[data-theme="dark"] body.chat-page .chat-banner-pin {
+    background: rgba(121, 173, 255, 0.08);
+    border-color: rgba(121, 173, 255, 0.14);
+}
