@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>آزمون پروتز پارسیل ۱ – جلسه ۱ (مبانی، طبقه‌بندی و قالبگیری) | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- آیکون تب (logo.png مثل سایت اصلی) -->
+    <link rel="icon" type="image/png" href="https://dentistry1402tums.ir/assets/images/logo.png">
+    <link rel="shortcut icon" href="https://dentistry1402tums.ir/assets/images/logo.png">
+
+    <style>
+        :root {
+            --bg-body: #050b14;
+            --bg-card: #111b2b;
+            --bg-card-hover: #1a283d;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --accent-color: #64ffda;
+            --border-color: #233554;
+            --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
+            --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
+            --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .background-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
+        }
+
+        /* هدر مثل قالب اصلی */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 5%;
+            background: rgba(5, 11, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
+            flex-shrink: 0;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .site-info h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .site-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .badge-unofficial {
+            font-size: 0.7rem;
+            background: rgba(255, 99, 99, 0.1);
+            color: #ff6363;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 99, 99, 0.2);
+            white-space: nowrap;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .quiz-wrapper {
+            max-width: 900px;
+            margin: 0 auto 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .back-button-wrapper {
+            margin-bottom: 0.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.82rem;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .back-icon {
+            font-size: 1rem;
+        }
+
+        .quiz-header {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .info-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(100, 255, 218, 0.08);
+            border: 1px solid rgba(100, 255, 218, 0.4);
+            font-size: 0.78rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .quiz-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .quiz-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-wrapper {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .progress-top-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(15, 23, 42, 1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: var(--btn-gradient);
+            transition: width 0.2s ease-out;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.82rem;
+        }
+
+        .question-tag {
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .question-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .question-text {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #0b1624;
+            padding: 0.75rem 0.9rem;
+            text-align: right;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+            font-size: 0.92rem;
+            font-family: var(--font-main);
+            color: #ffffff; /* متن گزینه‌ها سفید */
+        }
+
+        .option-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+        }
+
+        .option-btn.selected {
+            background: rgba(100, 255, 218, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px rgba(100, 255, 218, 0.35);
+        }
+
+        .option-letter {
+            font-weight: 700;
+            min-width: 24px;
+            color: var(--accent-color);
+        }
+
+        .option-text {
+            flex: 1;
+            font-family: var(--font-main); /* هم‌فونت با سؤال‌ها: یکان */
+            color: #ffffff;
+        }
+
+        .nav-buttons {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: space-between;
+        }
+
+        .nav-left,
+        .nav-right {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-base {
+            border-radius: 999px;
+            padding: 0.55rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .btn-base:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .btn-base:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .btn-primary {
+            background: var(--btn-gradient);
+            color: #ffffff;
+            border: none;
+            box-shadow: var(--btn-shadow);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        #resultsSection {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .results-section {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .results-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .results-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .results-score {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--accent-color);
+        }
+
+        .score-number {
+            font-size: 2.4rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .score-detail {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .results-box {
+            background: #0b1624;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 0.7rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .results-box-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .results-box-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .answer-card {
+            background: #0b1624;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .answer-question-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .answer-question-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .answer-options-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .option-main {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .option-label {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .option-row .option-text {
+            color: var(--text-primary);
+        }
+
+        .option-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .option-row.correct {
+            border: 1px solid rgba(34, 197, 94, 0.75);
+            background: rgba(22, 163, 74, 0.14);
+        }
+
+        .option-row.user-correct {
+            border: 1px solid rgba(34, 197, 94, 0.95);
+            background: rgba(22, 163, 74, 0.22);
+        }
+
+        .option-row.user-wrong {
+            border: 1px solid rgba(248, 113, 113, 0.9);
+            background: rgba(248, 113, 113, 0.12);
+        }
+
+        .option-row.correct .option-tag,
+        .option-row.user-correct .option-tag {
+            border-color: rgba(34, 197, 94, 0.9);
+            color: #bbf7d0;
+        }
+
+        .option-row.user-wrong .option-tag {
+            border-color: rgba(248, 113, 113, 0.9);
+            color: #fecaca;
+        }
+
+        .answer-explanation {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .answer-explanation strong {
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-body);
+        }
+
+        footer span {
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1.3rem 4%;
+            }
+
+            .quiz-header,
+            .question-card,
+            .results-section {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .question-card {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="background-overlay"></div>
+
+<header class="site-header">
+    <div class="logo-area">
+        <div class="logo-circle">
+            <img src="https://dentistry1402tums.ir/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+        </div>
+        <div class="site-info">
+            <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+            <p>دانشگاه علوم پزشکی تهران</p>
+        </div>
+    </div>
+    <div class="badge-unofficial">سامانه غیررسمی</div>
+</header>
+
+<main>
+    <section class="quiz-wrapper">
+        <div class="back-button-wrapper">
+            <!-- برمی‌گرده به فهرست آزمون‌های پروتز پارسیل -->
+            <a href="https://exams.dentistry1402tums.ir/partialprosthesis/" class="back-btn">
+                <span class="back-icon">←</span>
+                بازگشت به فهرست آزمون‌های پروتز پارسیل
+            </a>
+        </div>
+
+        <!-- هدر آزمون -->
+        <div class="quiz-header">
+            <span class="info-pill">آزمون تمرینی پروتز پارسیل ۱ – جلسه ۱ (مبانی، طبقه‌بندی و قالبگیری)</span>
+            <h2 class="quiz-title">سؤالات جلسه ۱ – مبانی RPD و طبقه‌بندی Kennedy / Applegate</h2>
+            <p class="quiz-subtitle">
+                بعد از انتخاب هر گزینه، به‌صورت خودکار به سؤال بعدی می‌روی. در انتها روی «پایان آزمون و مشاهده نتیجه»
+                کلیک کن تا نمره و پاسخ‌های تشریحی را ببینی.
+            </p>
+
+            <div class="progress-wrapper">
+                <div class="progress-top-row">
+                    <span id="questionCounter">سؤال ۱ از ۴۰</span>
+                    <span id="answeredCounter">۰ / ۴۰ پاسخ داده شده</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت سؤال -->
+        <div class="question-card">
+            <div class="question-top-row">
+                <span id="questionTag" class="question-tag">سؤال ۱</span>
+                <span id="questionStatus" class="question-status">وضعیت: بدون پاسخ</span>
+            </div>
+            <h3 id="questionText" class="question-text"></h3>
+
+            <div id="optionsContainer" class="options-list">
+                <!-- گزینه‌ها با JS اضافه می‌شن -->
+            </div>
+
+            <div class="nav-buttons">
+                <div class="nav-right">
+                    <button id="prevBtn" class="btn-base" type="button">
+                        ← سؤال قبلی
+                    </button>
+                    <button id="nextBtn" class="btn-base" type="button">
+                        سؤال بعدی →
+                    </button>
+                </div>
+                <div class="nav-left">
+                    <button id="finishBtn" class="btn-base btn-primary" type="button">
+                        پایان آزمون و مشاهده نتیجه
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- نتایج -->
+        <section id="resultsSection" class="results-section">
+            <div class="results-header">
+                <div class="results-main">
+                    <div class="results-score">
+                        <span id="scorePercent" class="score-number">0%</span>
+                    </div>
+                    <div id="scoreLabel" class="score-label">۰ پاسخ صحیح از ۴۰ سؤال</div>
+                    <div class="score-detail">
+                        عملکردت رو در این آزمون ببین؛ پایین‌تر می‌تونی پاسخ صحیح و توضیح تشریحی همه سؤالات رو ببینی.
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ صحیح</span>
+                        <span id="scoreCorrect" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ غلط</span>
+                        <span id="scoreWrong" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">بی‌پاسخ</span>
+                        <span id="scoreUnanswered" class="results-box-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="answers-list" id="answersContainer">
+                <!-- مرور پاسخ‌ها اینجا ساخته می‌شود -->
+            </div>
+        </section>
+    </section>
+</main>
+
+<footer>
+    <p>طراحی شده با ❤️ برای ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران - آرین قاسم‌پور</p>
+</footer>
+
+<script>
+    // ۴۰ سؤال – پروتز پارسیل ۱ (مبانی، طبقه‌بندی، اجزا و قالبگیری)
+    const questions = [
+        {
+            question: 'مطابق تقسیم‌بندی ارائه‌شده، کدام عبارت درباره جایگاه درمان Implant صحیح است؟',
+            options: [
+                'درمان Implant شاخهٔ مجزا در این رشته محسوب نمی‌شود و می‌تواند در درمان‌های Fixed/Removable/Maxillofacial به‌کار رود.',
+                'درمان Implant فقط در گروه Fixed قرار می‌گیرد و در درمان‌های Removable نقشی ندارد.',
+                'درمان Implant فقط در گروه Removable قرار می‌گیرد و در درمان‌های Fixed نقشی ندارد.',
+                'درمان Implant صرفاً زیرمجموعه Maxillofacial prostheses است.'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=3<br>' +
+                '<strong>گزینه صحیح: الف</strong><br>' +
+                'در متن ذکر شده Implant «شاخهٔ مجزا نیست» و می‌تواند در درمان‌های ثابت/متحرک/Maxillofacial استفاده شود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) مطابق متن است.<br>' +
+                'ب) متن درمان‌های Removable بر Implant را نیز ذکر کرده است.<br>' +
+                'ج) متن درمان‌های Fixed بر Implant را نیز ذکر کرده است.<br>' +
+                'د) محدودسازی به Maxillofacial در متن نیامده است.'
+        },
+        {
+            question: 'طبق تعریف ارائه‌شده، کدام توصیف برای Appliance دقیق‌تر است؟',
+            options: [
+                'وسیله‌ای است که جایگزین عضو/بافت از دست‌رفته می‌شود و هدف اصلی‌اش جایگزینی است.',
+                'وسیله‌ای است که کاربرد درمانی دارد اما جایگزین عضو/بافت از دست‌رفته نمی‌شود.',
+                'وسیله‌ای است که فقط برای اهداف زیبایی ساخته می‌شود و کاربرد درمانی ندارد.',
+                'وسیله‌ای است که فقط در پروتزهای Fixed استفاده می‌شود و در Removable کاربرد ندارد.'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=3<br>' +
+                '<strong>گزینه صحیح: ب</strong><br>' +
+                'Appliance در متن وسیله‌ای با کاربرد درمانی معرفی شده که جایگزین عضو/بافت از دست‌رفته نیست (مثال: Orthodontic Appliance، Space Maintainer، Splint).<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) این تعریف به Prosthesis نزدیک است، نه Appliance.<br>' +
+                'ب) مطابق متن است.<br>' +
+                'ج) متن کاربرد درمانی را برای Appliance ذکر کرده است.<br>' +
+                'د) چنین محدودسازی‌ای در متن نیامده است.'
+        },
+        {
+            question: 'در پروتزهای پارسیل، Retention دقیقاً به چه معناست؟',
+            options: [
+                'مقاومت در برابر نیروهای افقی (جلو–عقب و راست–چپ)',
+                'جلوگیری از فشار آمدن نیروهای عمودی روی بافت نرم',
+                'مقاومت در برابر نیروی عمودیِ تمایل به بلند کردن پروتز از جای خود',
+                'توانایی توزیع نیروها به شکل مناسب‌تر در قوس'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=5<br>' +
+                '<strong>گزینه صحیح: ج</strong><br>' +
+                'Retention در متن «مقاومت در برابر نیروی عمودیِ تمایل به خارج شدن/بلند شدن پروتز» تعریف شده است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) این تعریف مربوط به Stability است.<br>' +
+                'ب) این مفهوم به Support نزدیک است (انتقال نیروهای عمودی به دندان/کاهش فشار به بافت نرم).<br>' +
+                'ج) مطابق متن است.<br>' +
+                'د) این جمله تعریف Retention نیست.'
+        },
+        {
+            question: 'در پروتزهای پارسیل، Abutment به کدام ساختار گفته می‌شود؟',
+            options: [
+                'بخشی از پروتز که روی بافت نرم و سخت فک قرار می‌گیرد (Denture Base)',
+                'خط محوری که چرخش پروتز حول آن رخ می‌دهد (Line Fulcrum)',
+                'سطح صاف و موازی روی دندان‌های پایه که مسیر ورود/خروج را کنترل می‌کند (Guiding Planes)',
+                'دندان یا Implant که نیروها را تحمل می‌کند و نقش تکیه‌گاهی دارد'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=5<br>' +
+                '<strong>گزینه صحیح: د</strong><br>' +
+                'Abutment در متن «دندان یا Implant که نیروها را تحمل می‌کند» معرفی شده است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) تعریف Denture Base است.<br>' +
+                'ب) تعریف Line Fulcrum است.<br>' +
+                'ج) تعریف Guiding Planes است.<br>' +
+                'د) مطابق متن است.'
+        },
+        {
+            question: 'ویژگی کلیدی RPD Transitional طبق متن کدام است؟',
+            options: [
+                'امکان اصلاح‌های کوچک و اضافه‌کردن دندان در آینده با تغییرات محدود در پروتز',
+                'استفاده صرفاً در فاصلهٔ بین جراحی تا پایان ترمیم دائمی بدون تغییر در طول زمان',
+                'پروتزی که فقط روی بافت نرم تکیه دارد و به دندان‌های پایه متکی نیست',
+                'پروتزی که الزاماً از فلز و به‌صورت non-perforated ساخته می‌شود'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=6<br>' +
+                '<strong>گزینه صحیح: الف</strong><br>' +
+                'RPD Transitional در متن به امکان اصلاح و اضافه‌کردن دندان‌های از دست‌رفته در آینده (با تغییرات کوچک) اشاره دارد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) مطابق متن است.<br>' +
+                'ب) «بدون تغییر در طول زمان» با ماهیت Transitional که قابلیت اصلاح دارد همخوان نیست.<br>' +
+                'ج) متن چنین تعریف «فقط بافتی» برای Transitional نداده است.<br>' +
+                'د) فلزی/non-perforated مربوط به بخش تری قالبگیری است، نه تعریف Transitional.'
+        },
+        {
+            question: 'درباره Denture Treatment طبق متن، کدام گزینه صحیح است؟',
+            options: [
+                'هدف آن فقط جایگزینی دندان‌های از دست‌رفته است و کاربرد درمانی دیگری ندارد.',
+                'می‌تواند نقش پانسمان/حامل مواد درمانی داشته باشد و سطح داخلی آن معمولاً با Soft Liner یا مواد مشابه پوشانده می‌شود.',
+                'فقط برای بیماران Implant انجام‌شده استفاده می‌شود و در سایر بیماران کاربرد ندارد.',
+                'فقط زمانی استفاده می‌شود که بیمار هیچ جلسهٔ درمانی دیگری نداشته باشد.'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=6<br>' +
+                '<strong>گزینه صحیح: ب</strong><br>' +
+                'متن بیان می‌کند Denture Treatment می‌تواند کاربرد درمانی/پانسمانی داشته باشد و سطح داخلی آن با Soft Liner یا مشابه پوشانده می‌شود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) متن صراحتاً «فقط جایگزینی نیست» را ذکر کرده است.<br>' +
+                'ب) مطابق متن است.<br>' +
+                'ج) چنین محدودیتی در متن نیامده است.<br>' +
+                'د) چنین شرطی در متن ذکر نشده است.'
+        },
+        {
+            question: 'Height Of Contour (HOC) در متن چگونه تعریف شده است؟',
+            options: [
+                'عمق ناحیهٔ فرورفتهٔ زیر HOC که محل گیر پروتز است',
+                'خطی که از انسیال‌ترین Restها می‌گذرد و محور چرخش پروتز است',
+                'برجسته‌ترین نقطهٔ سطح دندان که در تماس با یک میلهٔ عمودی قرار می‌گیرد',
+                'سطح صاف و موازی که مسیر ورود و خروج پروتز را تعیین می‌کند'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=7<br>' +
+                '<strong>گزینه صحیح: ج</strong><br>' +
+                'HOC در متن «برجسته‌ترین قسمت سطح دندان» تعریف شده که در تماس با یک میله عمودی قرار می‌گیرد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) تعریف Undercut است.<br>' +
+                'ب) تعریف Line Fulcrum است.<br>' +
+                'ج) مطابق متن است.<br>' +
+                'د) تعریف Guiding Planes است.'
+        },
+        {
+            question: 'Undercut طبق متن به کدام ناحیه اطلاق می‌شود؟',
+            options: [
+                'سطحی بالاتر از HOC که بازوی گیر در آن قرار می‌گیرد',
+                'برجسته‌ترین نقطهٔ سطح دندان نسبت به محور عمودی',
+                'ناحیهٔ صاف و موازی روی سطح پروگزیمال دندان‌های پایه',
+                'ناحیهٔ فرورفته‌ای که پایین‌تر از HOC قرار دارد'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=7<br>' +
+                '<strong>گزینه صحیح: د</strong><br>' +
+                'Undercut در متن «ناحیه فرورفته زیر HOC» معرفی شده است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) متن Undercut را زیر HOC می‌داند، نه بالای آن.<br>' +
+                'ب) توصیف HOC است، نه Undercut.<br>' +
+                'ج) توصیف Guiding Planes است.<br>' +
+                'د) مطابق متن است.'
+        },
+        {
+            question: 'در مورد Convergence Cervical Of Angle (Angle of cervical convergence) طبق متن کدام گزاره درست است؟',
+            options: [
+                'هرچه این زاویه کمتر باشد، برای ساخت پروتزهای پارسیل مطلوب‌تر است.',
+                'هرچه این زاویه بیشتر باشد، برای ساخت پروتزهای پارسیل مطلوب‌تر است.',
+                'مقدار این زاویه هیچ ارتباطی با Undercut ندارد.',
+                'این زاویه فقط در دندان‌های قدامی تعریف می‌شود.'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=8<br>' +
+                '<strong>گزینه صحیح: الف</strong><br>' +
+                'متن صریحاً بیان می‌کند «هرچه Angle of cervical convergence کمتر باشد، مطلوب‌تر است».<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) مطابق متن است.<br>' +
+                'ب) خلاف جهت گفته‌شده در متن است.<br>' +
+                'ج) متن این زاویه را مرتبط با ایجاد Undercut معرفی می‌کند.<br>' +
+                'د) چنین محدودیتی در متن ذکر نشده است.'
+        },
+        {
+            question: 'Guiding Planes طبق متن چه کارکردی دارد؟',
+            options: [
+                'ایجاد محور چرخش پروتز و تعیین Line Fulcrum',
+                'کنترل مسیر ورود/خروج پروتز و کمک به افزایش ثبات/Retention و نشستن مناسب',
+                'تعیین نوع Kennedy و تعداد Modification',
+                'کاهش فاصلهٔ بین دیوارهٔ تری و سطح دندان برای جلوگیری از پارگی آلیینات'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=8<br>' +
+                '<strong>گزینه صحیح: ب</strong><br>' +
+                'متن برای Guiding Planes کنترل مسیر ورود/خروج و افزایش ثبات و کمک به Retention و نشستن مناسب را ذکر می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) Line Fulcrum در بخش Indirect Retainer مطرح می‌شود، نه Guiding Planes.<br>' +
+                'ب) مطابق متن است.<br>' +
+                'ج) مربوط به طبقه‌بندی Kennedy است.<br>' +
+                'د) مربوط به بحث اندازه تری و قالبگیری است.'
+        },
+
+        {
+            question: 'درباره Retainers Direct طبق متن کدام عبارت درست است؟',
+            options: [
+                'فقط شامل Indirect Retainer است و نقش اصلی‌اش جلوگیری از چرخش است.',
+                'فقط به دو نوع Suprabulge و Infrabulge تقسیم می‌شود و نوع Intracoronal ندارد.',
+                'به دو گروه Intracoronal و Extracoronal تقسیم می‌شود و نوع Extracoronal شایع‌تر است.',
+                'فقط در پروتزهای Fixed به کار می‌رود و در Removable استفاده نمی‌شود.'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=9<br>' +
+                '<strong>گزینه صحیح: ج</strong><br>' +
+                'متن Direct Retainers را Intracoronal و Extracoronal تقسیم کرده و شایع‌تر بودن Extracoronal را بیان می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) این توضیح مربوط به Indirect Retainer است، نه Direct.<br>' +
+                'ب) متن Intracoronal را نیز ذکر کرده است.<br>' +
+                'ج) مطابق متن است.<br>' +
+                'د) متن در زمینه RPD (Removable) صحبت می‌کند.'
+        },
+        {
+            question: 'در تقسیم‌بندی Arms Clasp Retentive، تفاوت Suprabulge و Infrabulge طبق متن چیست؟',
+            options: [
+                'Suprabulge از زیر HOC وارد Undercut می‌شود و Infrabulge از بالای HOC.',
+                'هر دو از زیر HOC وارد Undercut می‌شوند ولی در جنس متفاوت‌اند.',
+                'هر دو از بالای HOC وارد Undercut می‌شوند ولی در محل Rest متفاوت‌اند.',
+                'Suprabulge از بالای HOC و Infrabulge از زیر HOC وارد ناحیه Undercut می‌شوند.'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=9<br>' +
+                '<strong>گزینه صحیح: د</strong><br>' +
+                'متن مسیر بازوی گیر را نسبت به HOC مشخص می‌کند: Suprabulge از بالا و Infrabulge از زیر HOC.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) جهت‌ها را برعکس گفته است.<br>' +
+                'ب) متن تفاوت مسیر را ذکر می‌کند، نه صرفاً جنس.<br>' +
+                'ج) متن معیار را «مسیر نسبت به HOC» می‌داند، نه محل Rest.<br>' +
+                'د) مطابق متن است.'
+        },
+        {
+            question: 'درباره Clasp Bar و I-Bar طبق متن کدام گزینه صحیح است؟',
+            options: [
+                'Clasp Bar از نوع Infrabulge است و I-Bar به شکل حرف I و در زیر HOC قرار می‌گیرد.',
+                'Clasp Bar از نوع Suprabulge است و I-Bar همیشه بالای HOC قرار می‌گیرد.',
+                'Clasp Bar فقط به صورت Intracoronal ساخته می‌شود و I-Bar فقط Precision است.',
+                'Clasp Bar به Rest مربوط است و I-Bar به Major Connector.'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=10<br>' +
+                '<strong>گزینه صحیح: الف</strong><br>' +
+                'در متن Clasp Bar به‌عنوان Infrabulge و I-Bar به‌عنوان نوع معروف با شکل I و قرارگیری زیر HOC مطرح شده است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) مطابق متن است.<br>' +
+                'ب) Clasp Bar در متن Infrabulge است، نه Suprabulge.<br>' +
+                'ج) متن I-Bar را در چارچوب clasp bar آورده، نه Precision/Intracoronal.<br>' +
+                'د) چنین نسبت‌دهی‌ای در متن نیامده است.'
+        },
+        {
+            question: 'در Intracoronal Retainer، کدام تطابق Matrix/Patrix مطابق متن است؟',
+            options: [
+                'Matrix زائدهٔ اضافه است و Patrix فرورفتگی داخل روکش',
+                'Patrix زائدهٔ اضافه است و Matrix فرورفتگی (Receptacle)',
+                'Matrix و Patrix هر دو فرورفتگی‌اند و تفاوت فقط در جنس است',
+                'Matrix و Patrix هر دو زائده‌اند و تفاوت فقط در محل قرارگیری است'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=10<br>' +
+                '<strong>گزینه صحیح: ب</strong><br>' +
+                'متن Patrix را «نرینگی/زائده» و Matrix را «مادگی/فرورفتگی» معرفی می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) برعکس متن است.<br>' +
+                'ب) مطابق متن است.<br>' +
+                'ج) متن تفاوت شکلی (زائده/فرورفتگی) را مشخص کرده است.<br>' +
+                'د) متن هر دو را زائده معرفی نکرده است.'
+        },
+        {
+            question: 'تفاوت Precision Attachments و SemiPrecision Attachments طبق متن کدام است؟',
+            options: [
+                'Precision از جنس پلاستیک است و SemiPrecision ماشین‌کاری‌شده از فلز',
+                'Precision فقط در Extracoronal به کار می‌رود و SemiPrecision فقط در Intracoronal',
+                'Precision به صورت ماشین‌کاری‌شده با دقت بالا ساخته می‌شود؛ SemiPrecision ابتدا پلاستیکی/مومی است و سپس با Casting به فلز تبدیل می‌شود.',
+                'Precision فقط در فک بالا کاربرد دارد و SemiPrecision فقط در فک پایین'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=11<br>' +
+                '<strong>گزینه صحیح: ج</strong><br>' +
+                'متن Precision را ماشین‌کاری‌شده/دقیق و SemiPrecision را ابتدا مومی/پلاستیکی و سپس Casting شده معرفی می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) جنس‌ها را نادرست و برعکس بیان کرده است.<br>' +
+                'ب) این محدودسازی در متن ذکر نشده است.<br>' +
+                'ج) مطابق متن است.<br>' +
+                'د) چنین محدودیتی در متن نیامده است.'
+        },
+        {
+            question: 'نقش اصلی Rest در پروتز پارسیل طبق متن چیست؟',
+            options: [
+                'جلوگیری از چرخش پروتز حول Line Fulcrum',
+                'ایجاد Undercut مناسب برای بازوی گیر',
+                'افزایش Convergence Cervical Of Angle برای بهبود گیر',
+                'انتقال نیروهای عمودی (مثلاً هنگام جویدن) به دندان‌های پایه و جلوگیری از فشار به بافت نرم'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=11<br>' +
+                '<strong>گزینه صحیح: د</strong><br>' +
+                'متن نقش Rest را انتقال نیروهای عمودی به Abutment و جلوگیری از وارد شدن نیرو به بافت نرم ذکر می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) این نقش در متن برای Indirect Retainer آمده است.<br>' +
+                'ب) Undercut زیر HOC تعریف می‌شود، نه با Rest.<br>' +
+                'ج) زاویه سرویکال ویژگی دندان است و نقش Rest نیست.<br>' +
+                'د) مطابق متن است.'
+        },
+
+        {
+            question: 'Retainer Indirect طبق متن به چه دلیل/با چه مکانیسمی اهمیت دارد؟',
+            options: [
+                'نوعی Rest است که از چرخش پروتز حول Line Fulcrum جلوگیری می‌کند.',
+                'بازوی گیر است که از زیر HOC وارد Undercut می‌شود.',
+                'یک Connector Major است که همه اجزا را به هم متصل می‌کند.',
+                'همان Denture Base است که روی بافت نرم قرار می‌گیرد.'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=12<br>' +
+                '<strong>گزینه صحیح: الف</strong><br>' +
+                'در متن Indirect Retainer به‌عنوان نوعی Rest معرفی شده که از چرخش پروتز حول Line Fulcrum جلوگیری می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) مطابق متن است.<br>' +
+                'ب) توصیف Bar clasp (Infrabulge) است.<br>' +
+                'ج) توصیف Major Connector است، نه Indirect Retainer.<br>' +
+                'د) توصیف Denture Base است.'
+        },
+        {
+            question: 'درباره Denture Base طبق متن کدام گزینه درست است؟',
+            options: [
+                'فقط از آکریل ساخته می‌شود و نوع فلزی کاربردی ندارد.',
+                'نوع فلزی استحکام/دوام بیشتری دارد اما تغییرات و Repair آن دشوارتر است.',
+                'نوع فلزی برای Repair ساده‌تر از آکریل است و به‌راحتی قابل تغییر است.',
+                'Denture Base فقط در پروتزهای Fixed تعریف می‌شود.'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=12<br>' +
+                '<strong>گزینه صحیح: ب</strong><br>' +
+                'متن می‌گوید Denture Base می‌تواند آکریلی یا فلزی باشد؛ نوع فلزی مقاوم‌تر است اما Repair/تغییر آن سخت‌تر است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) متن وجود نوع فلزی را ذکر کرده است.<br>' +
+                'ب) مطابق متن است.<br>' +
+                'ج) خلاف متن است (Repair در فلزی دشوارتر ذکر شده).<br>' +
+                'د) Denture Base در زمینه RPD (Removable) مطرح شده است.'
+        },
+        {
+            question: 'در طبقه‌بندی بر اساس نوع ساپورت، ویژگی Tooth Supported طبق متن چیست؟',
+            options: [
+                'همیشه فضای بی‌دندانی انتهایی آزاد دارد و نیرو عمدتاً روی بافت نرم توزیع می‌شود.',
+                'در این حالت، هیچ دندانی در ابتدا و انتهای فضای بی‌دندانی وجود ندارد.',
+                'در ابتدا و انتهای فضای بی‌دندانی دندان وجود دارد و نیرو از طریق Rest به دندان‌های پایه منتقل می‌شود.',
+                'همیشه جزء Tooth & Tissue Supported محسوب می‌شود.'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=14<br>' +
+                '<strong>گزینه صحیح: ج</strong><br>' +
+                'Tooth Supported در متن یعنی در ابتدا و انتهای فضای بی‌دندانی دندان وجود دارد و نیروها از طریق Rest به دندان‌ها منتقل می‌شود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) به وضعیت انتهایی آزاد نزدیک است، نه Tooth Supported.<br>' +
+                'ب) متن وجود دندان در ابتدا و انتها را شرط می‌داند.<br>' +
+                'ج) مطابق متن است.<br>' +
+                'د) متن Tooth Supported را جداگانه تعریف می‌کند.'
+        },
+        {
+            question: 'چرا طبق متن، طبقه‌بندی صرفاً بر اساس نوع ساپورت کافی نیست؟',
+            options: [
+                'چون نوع ساپورت فقط در فک بالا معنی دارد.',
+                'چون نوع ساپورت فقط در بیماران Implant کاربرد دارد.',
+                'چون نوع ساپورت فقط دربارهٔ جنس پروتز اطلاعات می‌دهد.',
+                'چون محل و شکل دقیق فضای بی‌دندانی را مشخص نمی‌کند و برای طراحی به سیستم دقیق‌تر نیاز است.'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=14<br>' +
+                '<strong>گزینه صحیح: د</strong><br>' +
+                'متن می‌گوید این روش محل و شکل دقیق فضای بی‌دندانی را نمی‌دهد و سیستم دقیق‌تر برای طراحی لازم است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) چنین محدودسازی‌ای در متن نیست.<br>' +
+                'ب) متن این موضوع را به Implant محدود نکرده است.<br>' +
+                'ج) متن علت را «محل/شکل فضای بی‌دندانی» می‌داند، نه جنس.<br>' +
+                'د) مطابق متن است.'
+        },
+
+        {
+            question: 'Kennedy Class I طبق متن کدام وضعیت را توصیف می‌کند؟',
+            options: [
+                'وجود نواحی بی‌دندانی دوطرفه در ناحیهٔ خلفی (انتهایی آزاد)',
+                'وجود ناحیهٔ بی‌دندانی یک‌طرفه در ناحیهٔ خلفی (انتهایی آزاد)',
+                'وجود ناحیهٔ بی‌دندانی محدود که از هر دو سمت توسط دندان‌ها احاطه شده است',
+                'وجود ناحیهٔ بی‌دندانی قدامی که از Midline عبور می‌کند'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=15<br>' +
+                '<strong>گزینه صحیح: الف</strong><br>' +
+                'Class I در متن «بی‌دندانی دوطرفه خلفی (انتهایی آزاد)» معرفی شده است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) مطابق متن است.<br>' +
+                'ب) توصیف Class II است.<br>' +
+                'ج) توصیف Class III است.<br>' +
+                'د) توصیف Class IV است.'
+        },
+        {
+            question: 'Kennedy Class II طبق متن کدام وضعیت را توصیف می‌کند؟',
+            options: [
+                'نواحی بی‌دندانی دوطرفه در خلف',
+                'ناحیهٔ بی‌دندانی یک‌طرفه در خلف (انتهایی آزاد) با وجود دندان در سمت دیگر و سایر نواحی',
+                'ناحیهٔ بی‌دندانی محدود در خلف که از هر دو سمت توسط دندان‌ها احاطه شده',
+                'ناحیهٔ بی‌دندانی قدامی که از Midline عبور می‌کند'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=15<br>' +
+                '<strong>گزینه صحیح: ب</strong><br>' +
+                'Class II در متن «بی‌دندانی یک‌طرفه خلفی (انتهایی آزاد)» توصیف شده است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) توصیف Class I است.<br>' +
+                'ب) مطابق متن است.<br>' +
+                'ج) توصیف Class III است.<br>' +
+                'د) توصیف Class IV است.'
+        },
+        {
+            question: 'معیار افتراق Kennedy Class III و Class IV طبق متن چیست؟',
+            options: [
+                'وجود یا عدم وجود دندان مولر ۳',
+                'میزان تحلیل آلوئول',
+                'عبور کردن یا نکردن فضای بی‌دندانی از Midline',
+                'جنس تری قالبگیری (فلزی/پلاستیکی)'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=16<br>' +
+                '<strong>گزینه صحیح: ج</strong><br>' +
+                'متن می‌گوید Class IV فضای قدامی است که از Midline عبور می‌کند؛ معیار افتراق با Class III همین عبور از Midline است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) مربوط به قواعد Applegate است، نه معیار اصلی افتراق Class III/IV.<br>' +
+                'ب) چنین معیاری در متن برای افتراق این دو کلاس نیامده است.<br>' +
+                'ج) مطابق متن است.<br>' +
+                'د) مربوط به قالبگیری است، نه طبقه‌بندی Kennedy.'
+        },
+        {
+            question: 'عدد Modification در نام‌گذاری Kennedy بر چه مبنایی تعیین می‌شود؟',
+            options: [
+                'بر اساس اندازهٔ (طول/عرض) نواحی بی‌دندانی اضافی',
+                'بر اساس محل قدامی یا خلفی بودن نواحی اضافی',
+                'بر اساس وجود یا عدم وجود دندان مولر ۲',
+                'بر اساس تعداد نواحی بی‌دندانی اضافی (غیر از ناحیهٔ تعیین‌کنندهٔ کلاس)'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=16<br>' +
+                '<strong>گزینه صحیح: د</strong><br>' +
+                'در متن، Modification بر اساس «تعداد» فضاهای بی‌دندانی اضافی تعیین می‌شود (نه اندازه).<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) متن اندازه را معیار نمی‌داند.<br>' +
+                'ب) متن محل را معیار نمی‌داند.<br>' +
+                'ج) مربوط به Applegate Rule 4 است، نه تعریف Mod.<br>' +
+                'د) مطابق متن است.'
+        },
+
+        {
+            question: 'Applegate’s Rule 1 طبق متن چه می‌گوید؟',
+            options: [
+                'طبقه‌بندی باید بعد از کشیدن دندان‌هایی انجام شود که نیاز به کشیدن دارند.',
+                'دندان مولر ۳ که جایگزین نمی‌شود در طبقه‌بندی لحاظ می‌شود.',
+                'Class IV می‌تواند Modification داشته باشد.',
+                'شماره Modification بر اساس بزرگی فضا تعیین می‌شود.'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=17<br>' +
+                '<strong>گزینه صحیح: الف</strong><br>' +
+                'Rule 1 در متن: طبقه‌بندی بعد از کشیدن دندان‌هایی انجام شود که باید کشیده شوند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) مطابق متن است.<br>' +
+                'ب) خلاف Rule 2 است (اگر مولر۳ از دست رفته و جایگزین نمی‌شود، لحاظ نشود).<br>' +
+                'ج) خلاف Rule 8 است (Class IV Modification ندارد).<br>' +
+                'د) خلاف Rule 7 است (اندازه معیار Mod نیست).'
+        },
+        {
+            question: 'Applegate’s Rule 2 طبق متن کدام است؟',
+            options: [
+                'اگر مولر ۳ باقی بماند و Rest باشد، حتماً باید در طبقه‌بندی لحاظ شود.',
+                'اگر مولر ۳ از دست رفته و قصد جایگزینی آن وجود ندارد، نباید در طبقه‌بندی لحاظ شود.',
+                'اگر مولر ۲ از دست رفته و قصد جایگزینی وجود ندارد، همیشه باید در طبقه‌بندی لحاظ شود.',
+                'طبقه‌بندی قبل از کشیدن دندان‌های hopeless انجام می‌شود.'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=17<br>' +
+                '<strong>گزینه صحیح: ب</strong><br>' +
+                'Rule 2 در متن: اگر مولر ۳ از دست رفته و جایگزین نمی‌شود، در طبقه‌بندی لحاظ نشود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) متن Rule 3 را مطرح می‌کند که در شرایطی نیازی به لحاظ کردن مولر۳ نیست؛ این عبارت «حتماً» نادرست است.<br>' +
+                'ب) مطابق متن است.<br>' +
+                'ج) متن اشاره می‌کند این Rule 4 معمولاً رعایت نمی‌شود و این عبارت «همیشه» مطابق متن نیست.<br>' +
+                'د) خلاف Rule 1 است.'
+        },
+        {
+            question: 'Applegate’s Rule 5 طبق متن چیست؟',
+            options: [
+                'Class IV می‌تواند Modification داشته باشد.',
+                'نواحی بی‌دندانی اضافی را Mod می‌نامند و در نام‌گذاری نمی‌آیند.',
+                'ناحیهٔ بی‌دندانی «خلفی‌ترین/پشتی‌ترین» تعیین‌کنندهٔ طبقه‌بندی است.',
+                'بزرگی نواحی بی‌دندانی اضافی شماره Modification را تعیین می‌کند.'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=18<br>' +
+                '<strong>گزینه صحیح: ج</strong><br>' +
+                'Rule 5: «خلفی‌ترین فضای بی‌دندانی» تعیین‌کننده طبقه‌بندی است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) خلاف Rule 8 است.<br>' +
+                'ب) خلاف Rule 6 است (نواحی اضافی به‌صورت Modification در نام‌گذاری مطرح می‌شوند).<br>' +
+                'ج) مطابق متن است.<br>' +
+                'د) خلاف Rule 7 است.'
+        },
+        {
+            question: 'طبق متن، مناسب‌ترین نوع تری برای قالبگیری در پروتز پارسیل کدام است؟',
+            options: [
+                'تری پلاستیکی perforated',
+                'تری پلاستیکی non-perforated',
+                'تری فلزی perforated',
+                'تری فلزی non-perforated'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=18<br>' +
+                '<strong>گزینه صحیح: د</strong><br>' +
+                'متن «تری فلزی بدون سوراخ (non-perforated)» را مناسب‌ترین تری معرفی می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) در متن به عنوان مناسب‌ترین ذکر نشده است.<br>' +
+                'ب) در متن به عنوان مناسب‌ترین ذکر نشده است.<br>' +
+                'ج) متن خروج آلیینات از سوراخ‌ها را مشکل‌زا مطرح می‌کند.<br>' +
+                'د) مطابق متن است.'
+        },
+
+        {
+            question: 'در بررسی اندازهٔ تری، طبق متن فاصلهٔ مناسب بین سطح بیرونی دندان‌ها و دیوارهٔ داخل تری چیست؟',
+            options: [
+                '۵ تا ۷ میلی‌متر (با تأکید حداقل ۵ میلی‌متر)',
+                '۱ تا ۲ میلی‌متر',
+                '۸ تا ۱۰ میلی‌متر',
+                'کمتر از ۳ میلی‌متر'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=19<br>' +
+                '<strong>گزینه صحیح: الف</strong><br>' +
+                'متن فاصله را ۵ تا ۷ میلی‌متر ذکر می‌کند و حداقل ۵ میلی‌متر را تأکید می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) مطابق متن است.<br>' +
+                'ب) کمتر از حداقل توصیه‌شده است.<br>' +
+                'ج) در متن به عنوان فاصله مناسب توصیه نشده و برای کام عمیق >۷ به‌عنوان مسئله مطرح می‌شود.<br>' +
+                'د) کمتر از مقادیر مطرح‌شده در متن است.'
+        },
+        {
+            question: 'در بیمار با کام عمیق، اگر فاصلهٔ سطح داخلی تری تا عمق کام بیش از ۷ میلی‌متر باشد، اقدام پیشنهادی متن چیست؟',
+            options: [
+                'انتخاب تری کوچک‌تر حتی اگر به دندان‌ها نزدیک شود',
+                'استفاده از موم یا کامپاند برای کاهش فاصله',
+                'افزایش سوراخ‌های تری برای خروج مواد اضافه',
+                'نازک‌تر کردن آلیینات با افزودن آب بیشتر'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=19<br>' +
+                '<strong>گزینه صحیح: ب</strong><br>' +
+                'متن توصیه می‌کند با موم یا هسمپسند/کامپاند فاصله کم شود تا ضخامت آلیینات نامناسب نباشد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) چنین راهکاری در متن توصیه نشده است.<br>' +
+                'ب) مطابق متن است.<br>' +
+                'ج) این راهکار در متن نیامده است.<br>' +
+                'د) متن رقیق بودن آلیینات را عامل خطا می‌داند، نه راهکار.'
+        },
+        {
+            question: 'در مرحلهٔ اوت‌وسص کردن تری با هسمپسند/کامپاند، طبق متن تکرار ورود و خروج تری قبل از سفت شدن کامل چه هدفی دارد؟',
+            options: [
+                'افزایش Convergence Cervical Of Angle دندان‌ها',
+                'ایجاد Guiding Planes روی سطوح پروگزیمال',
+                'حذف Undercutهای ایجادشده در هسمپسند/کامپاند تا بعد از سخت شدن به بافت گیر نکند',
+                'تبدیل Soft Liner به مادهٔ نهایی آکریلی'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=20<br>' +
+                '<strong>گزینه صحیح: ج</strong><br>' +
+                'متن هدف را حذف Undercutهای هسمپسند/کامپاند قبل از سفت شدن کامل بیان می‌کند تا گیر ایجاد نشود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) زاویه سرویکال ویژگی دندان است، نه هدف این مرحله.<br>' +
+                'ب) Guiding Planes با تراش ایجاد می‌شود، نه با هسمپسند تری.<br>' +
+                'ج) مطابق متن است.<br>' +
+                'د) Soft Liner مربوط به Denture Treatment است.'
+        },
+        {
+            question: 'در همان مراحل اوت‌وسص کردن تری، طبق متن کدام بخش از هسمپسند باید با تیغ برداشته شود؟',
+            options: [
+                'بخش‌هایی که روی عمق وستیبول‌ها قرار گرفته‌اند',
+                'بخش‌هایی که روی Line Fulcrum قرار گرفته‌اند',
+                'بخش‌هایی که روی Restها قرار گرفته‌اند',
+                'بخش‌هایی از هسمپسند که روی سطوح اکلوزال دندان‌ها قرار گرفته‌اند'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=20<br>' +
+                '<strong>گزینه صحیح: د</strong><br>' +
+                'متن می‌گوید قسمت‌هایی از هسمپسند که روی دندان‌ها/سطوح اکلوزال قرار گرفته‌اند با تیغ برداشته شوند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) متن روی دندان‌ها/سطوح اکلوزال تأکید دارد، نه عمق وستیبول.<br>' +
+                'ب) Line Fulcrum مربوط به طراحی RPD است و این‌جا مطرح نیست.<br>' +
+                'ج) Restها جزء پروتز هستند؛ این عبارت مطابق متن مراحل تری نیست.<br>' +
+                'د) مطابق متن است.'
+        },
+
+        {
+            question: 'موقعیت بیمار و دندانپزشک هنگام قالبگیری طبق متن چگونه است؟',
+            options: [
+                'بیمار عمودی بنشیند و دندانپزشک ایستاده باشد و سطح اکلوزال در حد افق قرار گیرد.',
+                'بیمار در وضعیت خوابیده کامل باشد و دندانپزشک نشسته باشد.',
+                'بیمار نیمه‌خوابیده باشد و دندانپزشک صرفاً پشت سر بیمار بنشیند.',
+                'بیمار به پهلو قرار گیرد و دندانپزشک روبه‌روی بیمار بایستد.'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=21<br>' +
+                '<strong>گزینه صحیح: الف</strong><br>' +
+                'در متن: بیمار عمودی، دندانپزشک ایستاده، و سطح اکلوزال نزدیک افق ذکر شده است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) مطابق متن است.<br>' +
+                'ب) وضعیت خوابیده کامل در متن توصیه نشده است.<br>' +
+                'ج) متن حالت عمودی را صریح بیان کرده است.<br>' +
+                'د) چنین وضعیتی در متن نیامده است.'
+        },
+        {
+            question: 'درباره تنظیم صندلی طبق متن، کدام گزینه صحیح است؟',
+            options: [
+                'صندلی باید آن‌قدر بالا باشد که دهان بیمار بالاتر از شانه دندانپزشک قرار گیرد.',
+                'ارتفاع صندلی باید طوری باشد که دهان بیمار پایین‌تر از آرنج دندانپزشک قرار نگیرد.',
+                'صندلی باید طوری تنظیم شود که دهان بیمار هم‌سطح زانو دندانپزشک شود.',
+                'ارتفاع صندلی نقشی در کیفیت قالبگیری ندارد.'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=21<br>' +
+                '<strong>گزینه صحیح: ب</strong><br>' +
+                'متن معیار را این‌گونه ذکر می‌کند که دهان بیمار پایین‌تر از آرنج دندانپزشک قرار نگیرد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) چنین معیاری در متن نیامده است.<br>' +
+                'ب) مطابق متن است.<br>' +
+                'ج) چنین معیاری در متن وجود ندارد.<br>' +
+                'د) متن تنظیم ارتفاع را مهم دانسته است.'
+        },
+        {
+            question: 'یکی از خطاهای شایع و تصمیم‌گیری پس از قالبگیری با آلیینات طبق متن کدام است؟',
+            options: [
+                'همیشه بدون بررسی، قالب را می‌توان به لابراتوار ارسال کرد.',
+                'اگر روی لب‌ها Border molding ضخیم باشد، حتماً باید قالبگیری تکرار شود.',
+                'قالب باید با نور و بزرگنمایی مناسب بررسی شود و وجود حباب در نواحی مهم می‌تواند نیاز به تکرار قالبگیری ایجاد کند.',
+                'تماس دندان‌های قدامی با تری باعث بهبود ثبت آن‌ها می‌شود.'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=22<br>' +
+                '<strong>گزینه صحیح: ج</strong><br>' +
+                'متن بر بررسی قالب با نور/بزرگنمایی و توجه به حباب‌ها (در نواحی مهم) و تصمیم به تکرار تأکید دارد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) متن توصیه به بررسی می‌کند، نه ارسال بدون بررسی.<br>' +
+                'ب) متن می‌گوید در برخی شرایط ضخیم شدن لب‌ها لزوماً نیاز به تکرار ندارد؛ «حتماً» غلط است.<br>' +
+                'ج) مطابق متن است.<br>' +
+                'د) متن فشار/تماس نامناسب را خطا می‌داند، نه عامل بهبود.'
+        },
+        {
+            question: 'طبق متن، یکی از نکات کنترلی مهم پس از قرار دادن تری در دهان بیمار چیست؟',
+            options: [
+                'دیستال مولر ۳ باید حتماً در قالب ثبت شود.',
+                'تری باید عمداً به یک سمت متمایل باشد تا ضخامت آلیینات افزایش یابد.',
+                'فشار عمودی باید تا حد ممکن زیاد باشد تا ثبت دقیق‌تر شود.',
+                'مرکز تری باید با Midline بیمار منطبق باشد تا ضخامت آلیینات در دو سمت یکسان‌تر شود.'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=22<br>' +
+                '<strong>گزینه صحیح: د</strong><br>' +
+                'متن تأکید می‌کند مرکز تری با Midline بیمار منطبق باشد تا ضخامت مواد در دو سمت متفاوت نشود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) در متن چنین الزام مستقیمی برای این مرحله نیامده است.<br>' +
+                'ب) متن انحراف تری را عامل نامناسب شدن ضخامت می‌داند.<br>' +
+                'ج) متن فشار عمودی زیاد را مشکل‌زا ذکر می‌کند.<br>' +
+                'د) مطابق متن است.'
+        },
+
+        {
+            question: 'یکی از نشانه‌های قالبگیری نامناسب طبق متن، «گسترش ناکافی لبه‌ها» است. کدام عامل/راهکار مطابق متن با این موضوع مرتبط است؟',
+            options: [
+                'رقیق بودن آلیینات یا کم بودن فاصلهٔ تری تا عمق وستیبول؛ و در صورت کم بودن فاصله، قبل از قالبگیری افزایش فاصله با موم یا هسمپسند توصیه شده است.',
+                'افزایش سوراخ‌های تری باعث بهبود گسترش لبه‌ها می‌شود.',
+                'پولیش شدن دندان‌ها باعث گسترش ناکافی لبه‌ها می‌شود.',
+                'تماس سطح اکلوزال دندان‌ها با تری شرط لازم برای گسترش صحیح لبه‌ها است.'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=23<br>' +
+                '<strong>گزینه صحیح: الف</strong><br>' +
+                'متن علت/راهکار را رقیق بودن آلیینات یا کم بودن فاصله و در صورت نیاز افزایش فاصله با موم/هسمپسند بیان می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) مطابق متن است.<br>' +
+                'ب) این راهکار در متن ذکر نشده است.<br>' +
+                'ج) متن چنین علتی را برای این مورد بیان نکرده است.<br>' +
+                'د) تماس اکلوزال با تری در متن به‌عنوان خطا مطرح می‌شود.'
+        },
+        {
+            question: 'برای جلوگیری از جدا شدن آلیینات از تری non-perforated، طبق متن کدام اقدام توصیه شده است؟',
+            options: [
+                'نازک کردن شدید آلیینات برای افزایش چسبندگی',
+                'استفاده از Adhesive آلیینات روی تری قبل از ریختن آلیینات',
+                'حذف کامل مرحلهٔ خارج کردن تری در یک مرحله',
+                'افزایش فشار عمودی هنگام قرار دادن تری برای قفل شدن مواد'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=23<br>' +
+                '<strong>گزینه صحیح: ب</strong><br>' +
+                'متن می‌گوید برای تری non-perforated، استفاده از Adhesive آلیینات روی تری توصیه می‌شود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) رقیق/نازک بودن آلیینات در متن عامل مشکل‌زا است.<br>' +
+                'ب) مطابق متن است.<br>' +
+                'ج) متن به خروج مناسب/حمایت از آلیینات اشاره دارد، نه حذف مرحله خروج.<br>' +
+                'د) فشار عمودی زیاد در متن عامل خطا ذکر شده است.'
+        },
+        {
+            question: 'طبق متن، نگهداری طولانی‌مدت قالب آلیینات می‌تواند باعث تغییر شکل شود. دو پدیدهٔ ذکرشده کدام‌اند؟',
+            options: [
+                'Casting و Milling',
+                'Retention و Stability',
+                'Imbibition و Syneresis',
+                'Intracoronal و Extracoronal'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=24<br>' +
+                '<strong>گزینه صحیح: ج</strong><br>' +
+                'در بخش ملاحظات، تغییر شکل آلیینات با پدیده‌های Imbibition و Syneresis مطرح شده است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) فرایندهای ساخت لابراتواری است، نه تغییر شکل آلیینات.<br>' +
+                'ب) مفاهیم طراحی RPD هستند، نه پدیده‌های نگهداری آلیینات.<br>' +
+                'ج) مطابق متن است.<br>' +
+                'د) تقسیم‌بندی Retainerهاست.'
+        },
+        {
+            question: 'یکی از ملاحظات بعد از انجام قالبگیری طبق متن کدام است؟',
+            options: [
+                'قالب باید کاملاً خشک و بدون هیچ ماده‌ای در هوای آزاد نگهداری شود.',
+                'قالب باید حتماً در آب غوطه‌ور شود تا تغییر شکل ندهد.',
+                'بهترین کار، نگهداری طولانی‌مدت آلیینات است تا کامل «سفت» شود.',
+                'برای حذف بزاق/مایعات نامطلوب، روی قالب ماده ضدعفونی‌کننده مناسب ریخته/اسپری می‌شود و سپس در پوشش پلاستیکی قرار می‌گیرد.'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>منبع:</strong> DocID=1، PDF Page#=24<br>' +
+                '<strong>گزینه صحیح: د</strong><br>' +
+                'متن توصیه می‌کند قالب شستشو/ضدعفونی شود و سپس در پوشش پلاستیکی قرار گیرد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف) متن نگهداری خشک در هوای آزاد را توصیه نکرده و به تغییر شکل اشاره دارد.<br>' +
+                'ب) غوطه‌وری به‌عنوان الزام در متن نیامده است.<br>' +
+                'ج) متن نگهداری طولانی‌مدت را عامل تغییر شکل می‌داند.<br>' +
+                'د) مطابق متن است.'
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    const questionCounterEl = document.getElementById('questionCounter');
+    const answeredCounterEl = document.getElementById('answeredCounter');
+    const progressFillEl = document.getElementById('progressFill');
+    const questionTagEl = document.getElementById('questionTag');
+    const questionStatusEl = document.getElementById('questionStatus');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainerEl = document.getElementById('optionsContainer');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const finishBtn = document.getElementById('finishBtn');
+
+    const resultsSectionEl = document.getElementById('resultsSection');
+    const scorePercentEl = document.getElementById('scorePercent');
+    const scoreLabelEl = document.getElementById('scoreLabel');
+    const scoreCorrectEl = document.getElementById('scoreCorrect');
+    const scoreWrongEl = document.getElementById('scoreWrong');
+    const scoreUnansweredEl = document.getElementById('scoreUnanswered');
+    const answersContainerEl = document.getElementById('answersContainer');
+
+    function updateProgressUI() {
+        const total = questions.length;
+        const answeredCount = userAnswers.filter(a => a !== null).length;
+
+        questionCounterEl.textContent = `سؤال ${currentQuestionIndex + 1} از ${total}`;
+        answeredCounterEl.textContent = `${answeredCount} / ${total} پاسخ داده شده`;
+
+        const progressPercent = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+        progressFillEl.style.width = progressPercent + '%';
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestionIndex];
+
+        questionTagEl.textContent = `سؤال ${currentQuestionIndex + 1}`;
+        questionTextEl.textContent = q.question;
+
+        const userAnswer = userAnswers[currentQuestionIndex];
+        questionStatusEl.textContent = userAnswer === null ? 'وضعیت: بدون پاسخ' : 'وضعیت: پاسخ داده شده';
+
+        optionsContainerEl.innerHTML = '';
+        const letters = ['الف', 'ب', 'ج', 'د'];
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'option-btn';
+            if (userAnswer === index) btn.classList.add('selected');
+            btn.dataset.index = index.toString();
+
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'option-letter';
+            letterSpan.textContent = letters[index] + ')';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'option-text';
+            textSpan.textContent = opt;
+
+            btn.appendChild(letterSpan);
+            btn.appendChild(textSpan);
+
+            btn.addEventListener('click', () => handleOptionSelect(index));
+            optionsContainerEl.appendChild(btn);
+        });
+
+        prevBtn.disabled = currentQuestionIndex === 0;
+        nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+
+        updateProgressUI();
+    }
+
+    function handleOptionSelect(optionIndex) {
+        userAnswers[currentQuestionIndex] = optionIndex;
+        if (currentQuestionIndex < questions.length - 1) currentQuestionIndex++;
+        renderQuestion();
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+    });
+
+    finishBtn.addEventListener('click', () => {
+        finishQuiz();
+    });
+
+    function finishQuiz() {
+        const total = questions.length;
+        let correct = 0, wrong = 0, unanswered = 0;
+
+        questions.forEach((q, index) => {
+            const ans = userAnswers[index];
+            if (ans === null) unanswered++;
+            else if (ans === q.correctIndex) correct++;
+            else wrong++;
+        });
+
+        const percent = total === 0 ? 0 : Math.round((correct / total) * 100);
+
+        scorePercentEl.textContent = percent + '%';
+        scoreLabelEl.textContent = `${correct} پاسخ صحیح از ${total} سؤال`;
+        scoreCorrectEl.textContent = correct.toString();
+        scoreWrongEl.textContent = wrong.toString();
+        scoreUnansweredEl.textContent = unanswered.toString();
+
+        buildAnswersReview();
+        resultsSectionEl.style.display = 'flex';
+        resultsSectionEl.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function buildAnswersReview() {
+        answersContainerEl.innerHTML = '';
+        const letters = ['الف', 'ب', 'ج', 'د'];
+
+        questions.forEach((q, index) => {
+            const userAnswer = userAnswers[index];
+
+            const card = document.createElement('div');
+            card.className = 'answer-card';
+
+            const qTitle = document.createElement('div');
+            qTitle.className = 'answer-question-title';
+            qTitle.textContent = `سؤال ${index + 1}`;
+            card.appendChild(qTitle);
+
+            const qText = document.createElement('div');
+            qText.className = 'answer-question-text';
+            qText.textContent = q.question;
+            card.appendChild(qText);
+
+            const optionsWrapper = document.createElement('div');
+            optionsWrapper.className = 'answer-options-wrapper';
+
+            q.options.forEach((opt, optIdx) => {
+                const row = document.createElement('div');
+                row.className = 'option-row';
+
+                const main = document.createElement('div');
+                main.className = 'option-main';
+
+                const label = document.createElement('span');
+                label.className = 'option-label';
+                label.textContent = letters[optIdx] + ')';
+
+                const text = document.createElement('span');
+                text.className = 'option-text';
+                text.textContent = opt;
+
+                main.appendChild(label);
+                main.appendChild(text);
+                row.appendChild(main);
+
+                const tag = document.createElement('span');
+                tag.className = 'option-tag';
+
+                if (optIdx === q.correctIndex && userAnswer === optIdx) {
+                    row.classList.add('user-correct');
+                    tag.textContent = '✓ صحیح (انتخاب شما)';
+                } else if (optIdx === q.correctIndex) {
+                    row.classList.add('correct');
+                    tag.textContent = '✓ گزینه صحیح';
+                } else if (userAnswer === optIdx) {
+                    row.classList.add('user-wrong');
+                    tag.textContent = '✗ انتخاب شما';
+                }
+
+                if (tag.textContent) row.appendChild(tag);
+                optionsWrapper.appendChild(row);
+            });
+
+            card.appendChild(optionsWrapper);
+
+            const expl = document.createElement('div');
+            expl.className = 'answer-explanation';
+            if (userAnswer === null) {
+                expl.innerHTML = `<strong>وضعیت پاسخ:</strong> این سؤال را پاسخ ندادی.<br><strong>توضیح:</strong> ${q.explanation}`;
+            } else {
+                expl.innerHTML = `<strong>توضیح:</strong> ${q.explanation}`;
+            }
+
+            card.appendChild(expl);
+            answersContainerEl.appendChild(card);
+        });
+    }
+
+    renderQuestion();
+</script>
+
+</body>
+</html>

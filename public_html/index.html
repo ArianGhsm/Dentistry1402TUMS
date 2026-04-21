@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+        <link rel="stylesheet" href="/css/style.css?v=1">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
+    <link rel="shortcut icon" href="/assets/images/favicon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورودی ۱۴۰۲ دندانپزشکی تهران | سامانه دانشجویی</title>
+    <meta name="description" content="دسترسی سریع به سامانه‌های آزمون، نمرات، تغذیه و سیپاد مخصوص ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران">
+    
+    <style>
+        /* ========================================
+           1. تنظیمات کلی و متغیرها (Variables)
+           ========================================
+        */
+        :root {
+            /* پالت رنگی دارک و مدرن */
+            --bg-body: #050b14;       /* سرمه‌ای خیلی تیره مایل به مشکی */
+            --bg-card: #111b2b;       /* رنگ پس‌زمینه کارت‌ها */
+            --bg-card-hover: #1a283d; /* رنگ کارت هنگام هاور */
+            --text-primary: #e6f1ff;  /* سفید یخی برای تیترها */
+            --text-secondary: #8892b0;/* خاکستری آبی برای توضیحات */
+            --accent-color: #64ffda;  /* سبزآبی نئونی برای تأکید */
+            --border-color: #233554;  /* رنگ بوردرها */
+            
+            /* گرادیان دکمه‌ها (شیک و استارتاپی) */
+            --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
+            --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
+
+            /* فونت */
+            --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
+        }
+
+        /* ریست کردن پیش‌فرض‌ها */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden; /* جلوگیری از اسکرول افقی */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* پس‌زمینه کلی (می‌توانید عکس بلور شده بگذارید) */
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* اگر عکس داشتید خط زیر را فعال کنید و آدرس عکس را بدهید */
+            /* background-image: url('assets/images/hero-bg.jpg'); */
+            /* background-size: cover; */
+            
+            /* فعلاً یک گرادیان زیبا می‌گذاریم */
+            background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
+            filter: blur(0px); /* اگر عکس گذاشتید اینجا عدد بلور را زیاد کنید مثلا 10px */
+        }
+
+        /* ========================================
+           2. هدر (Header)
+           ========================================
+        */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 5%;
+            background: rgba(5, 11, 20, 0.8); /* شیشه‌ای تیره */
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+.logo-circle {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    overflow: hidden;              /* بریدن گوشه‌های عکس */
+    box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
+    flex-shrink: 0;
+}
+
+/* عکس داخل دایره */
+.logo-circle img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;             /* اگر مربع نیست، قشنگ وسط می‌ایستد */
+}
+
+
+        .site-info h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .site-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .badge-unofficial {
+    font-size: 0.7rem;
+    background: rgb(43, 39, 66);
+    color: #7d63ff;
+    padding: 4px 10px;
+    border-radius: 30px;
+    border: 3px solid rgb(125 99 255);
+    white-space: nowrap;
+        }
+
+        /* مخفی کردن بج در موبایل‌های خیلی کوچک اگر جا نبود */
+        @media (max-width: 400px) {
+            .badge-unofficial { display: none; }
+        }
+
+        /* ========================================
+           3. کانتینر اصلی (Main Layout)
+           ========================================
+        */
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+            display: grid;
+            gap: 3rem;
+            align-items: center; /* تراز عمودی وسط */
+        }
+
+        /* در دسکتاپ دو ستون شود */
+        @media (min-width: 992px) {
+            main {
+                grid-template-columns: 1fr 1fr; /* 50% متن، 50% کارت‌ها */
+                height: calc(100vh - 80px); /* ارتفاع تمام صفحه منهای هدر */
+            }
+        }
+
+        /* ========================================
+           4. بخش متنی (Hero Text - سمت راست)
+           ========================================
+        */
+        .hero-content {
+            text-align: right;
+            animation: fadeInRight 0.8s ease-out;
+        }
+
+        .greeting-pill {
+            display: inline-block;
+            background: rgba(100, 255, 218, 0.1);
+            color: var(--accent-color);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+            color: var(--text-primary);
+        }
+        
+        .hero-title span {
+            color: #00dfd8; /* هایلایت بخشی از متن */
+        }
+
+        .hero-desc {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+
+        /* در دسکتاپ فونت بزرگتر شود */
+        @media (min-width: 992px) {
+            .hero-title { font-size: 2.8rem; }
+            .hero-desc { font-size: 1.1rem; }
+        }
+
+        /* ========================================
+           5. لیست کارت‌ها (Cards - سمت چپ)
+           ========================================
+        */
+        .cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            animation: fadeInLeft 0.8s ease-out 0.2s backwards; /* کمی تاخیر برای زیبایی */
+        }
+
+        .action-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.2rem;
+            display: flex;
+            flex-direction: column; /* موبایل: زیر هم */
+            gap: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* دسکتاپ: کنار هم */
+        @media (min-width: 600px) {
+            .action-card {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                padding: 1rem 1.5rem;
+            }
+        }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            background: var(--bg-card-hover);
+            border-color: rgba(100, 255, 218, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(2, 12, 27, 0.7);
+        }
+
+        /* محتوای متنی کارت */
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-badge {
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--accent-color);
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* دکمه داخل کارت */
+        .card-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--btn-gradient);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 50px; /* Pill Shape */
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: var(--btn-shadow);
+            transition: transform 0.2s, filter 0.2s;
+            white-space: nowrap;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .action-card:hover .card-btn {
+            filter: brightness(1.1);
+        }
+
+        .card-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* در موبایل دکمه تمام عرض باشد */
+        @media (max-width: 599px) {
+            .card-btn {
+                width: 100%;
+            }
+        }
+
+        /* ========================================
+           6. فوتر (Footer)
+           ========================================
+        */
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-body);
+        }
+
+        footer span {
+            color: var(--accent-color);
+        }
+
+        /* انیمیشن‌های ساده */
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="background-overlay"></div>
+
+    <header class="site-header">
+        <div class="logo-area">
+ <div class="logo-circle">
+            <img src="https://dentistry1402tums.ir/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+        </div>
+            <div class="site-info">
+                <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+                <p>دانشگاه علوم پزشکی تهران</p>
+            </div>
+        </div>
+        <div class="badge-unofficial">سامانه غیررسمی</div>
+    </header>
+
+    <main>
+        
+        <section class="hero-content">
+            <span class="greeting-pill">سلام هم‌کلاسی! 👋</span>
+            <h1 class="hero-title">
+                همه‌چیز برای ورودی ۱۴۰۲<br>
+                <span>ساده، سریع و منظم.</span>
+            </h1>
+            <p class="hero-desc">
+                این سایت رسمی دانشکده نیست؛ یک میانبر اختصاصی برای خودمان است تا سریع‌تر به همچی دسترسی داشته باشیم.
+            </p>
+        </section>
+
+        <section class="cards-container">
+
+
+            <div class="action-card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <span class="card-badge">چت روم</span>
+                        <h3 class="card-title">گروه کلاسی ورودی ۱۴۰۲</h3>
+                    </div>
+                    <p class="card-desc">محیط امن و اختصاصی دانشجویان کلاس برای چت و پرسش و پاسخ.</p>
+                </div>
+                <a href="https://dentistry1402tums.ir/chat" target="_blank" clas class="card-btn">
+                    ورود به پیام‌رسان 
+                </a>
+            </div>
+            
+            
+            <div class="action-card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <span class="card-badge">جزوه‌ها</span>
+                        <h3 class="card-title">جزوه‌های ورودی ۱۴۰۲</h3>
+                    </div>
+                    <p class="card-desc">دانلود کردن همه جزوات در یک فایل زیپ در شرایط اضطراری.</p>
+                </div>
+                <a href="https://dentistry1402tums.ir/booklets" target="_blank" clas class="card-btn">
+                    دانلود جزوات
+                </a>
+            </div>
+            
+                        <div class="action-card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <span class="card-badge">جزوه‌ها</span>
+                        <h3 class="card-title">جزوه‌های ورودی ۱۴۰۳</h3>
+                    </div>
+                    <p class="card-desc">دانلود کردن همه جزوات و کتاب‌ها در یک فایل در شرایط اضطراری.</p>
+                </div>
+                <a href="https://dentistry1402tums.ir/booklets1403" target="_blank" clas class="card-btn">
+                    دانلود جزوات
+                </a>
+            </div>
+
+            <div class="action-card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <span class="card-badge">آزمون‌ها</span>
+                        <h3 class="card-title">سامانه آزمون‌های آنلاین</h3>
+                    </div>
+                    <p class="card-desc">شرکت در آزمون‌های کلاسی، کوییزها و مرور سوالات قبلی.</p>
+                </div>
+                <a href="https://exams.dentistry1402tums.ir/" target="_blank" class="card-btn">
+                    ورود به آزمون
+                </a>
+            </div>
+
+            <div class="action-card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <span class="card-badge">نمرات</span>
+                        <h3 class="card-title">مشاهده نمرات داخلی</h3>
+                    </div>
+                    <p class="card-desc">پیگیری نمرات امتحانات و کوییزهای اختصاصی ورودی ۱۴۰۲.</p>
+                </div>
+<a href="https://grades.dentistry1402tums.ir/" class="card-btn">
+    مشاهده نمرات
+</a>
+
+            </div>
+            
+                        <div class="action-card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <span class="card-badge">نوید</span>
+                        <h3 class="card-title">ورود به سامانه نوید</h3>
+                    </div>
+                    <p class="card-desc">سامانه ارسال تکالیف و بارگذاری فایل اساتید</p>
+                </div>
+<a href="https://navid.tums.ac.ir/" class="card-btn">
+    ورود مستقیم
+</a>
+
+            </div>
+
+            <div class="action-card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <span class="card-badge">تغذیه</span>
+                        <h3 class="card-title">سامانه رزرو غذا</h3>
+                    </div>
+                    <p class="card-desc">لینک مستقیم به اتوماسیون تغذیه دانشگاه علوم پزشکی.</p>
+                </div>
+                <a href="https://foodstu.tums.ac.ir/" target="_blank" class="card-btn">
+                    رزرو غذا
+                </a>
+            </div>
+
+            <div class="action-card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <span class="card-badge">آموزش</span>
+                        <h3 class="card-title">سامانه سیپاد</h3>
+                    </div>
+                    <p class="card-desc">مشاهده برنامه‌های درسی، انتخاب واحد و کارنامه رسمی.</p>
+                </div>
+                <a href="https://sipad.tums.ac.ir" target="_blank" class="card-btn">
+                    ورود به سیپاد
+                </a>
+            </div>
+
+            <div class="action-card">
+                <div class="card-content">
+                    <div class="card-header">
+                        <span class="card-badge">منابع</span>
+                        <h3 class="card-title">کانال جزوات تلگرام</h3>
+                    </div>
+                    <p class="card-desc">دانلود جزوات، ویس‌ها و فایل‌های آموزشی ورودی.</p>
+                </div>
+                <a href="https://t.me/Dent1402Booklets" target="_blank" class="card-btn">
+                    کانال جزوات
+                </a>
+            </div>
+
+        </section>
+    </main>
+
+    <footer>
+        <p>طراحی شده با ❤️ برای ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران - آرین قاسم پور</p>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>آزمون پروتز پارسیل – جلسه ۴ (Surveying) | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- آیکون تب (logo.png مثل سایت اصلی) -->
+    <link rel="icon" type="image/png" href="https://dentistry1402tums.ir/assets/images/logo.png">
+    <link rel="shortcut icon" href="https://dentistry1402tums.ir/assets/images/logo.png">
+
+    <style>
+        :root {
+            --bg-body: #050b14;
+            --bg-card: #111b2b;
+            --bg-card-hover: #1a283d;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --accent-color: #64ffda;
+            --border-color: #233554;
+            --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
+            --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
+            --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .background-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
+        }
+
+        /* هدر مثل قالب اصلی */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 5%;
+            background: rgba(5, 11, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
+            flex-shrink: 0;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .site-info h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .site-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .badge-unofficial {
+            font-size: 0.7rem;
+            background: rgba(255, 99, 99, 0.1);
+            color: #ff6363;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 99, 99, 0.2);
+            white-space: nowrap;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .quiz-wrapper {
+            max-width: 900px;
+            margin: 0 auto 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .back-button-wrapper {
+            margin-bottom: 0.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.82rem;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .back-icon {
+            font-size: 1rem;
+        }
+
+        .quiz-header {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .info-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(100, 255, 218, 0.08);
+            border: 1px solid rgba(100, 255, 218, 0.4);
+            font-size: 0.78rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .quiz-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .quiz-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-wrapper {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .progress-top-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(15, 23, 42, 1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: var(--btn-gradient);
+            transition: width 0.2s ease-out;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.82rem;
+        }
+
+        .question-tag {
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .question-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .question-text {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #0b1624;
+            padding: 0.75rem 0.9rem;
+            text-align: right;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+            font-size: 0.92rem;
+            font-family: var(--font-main);
+            color: #ffffff; /* متن گزینه‌ها سفید */
+        }
+
+        .option-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+        }
+
+        .option-btn.selected {
+            background: rgba(100, 255, 218, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px rgba(100, 255, 218, 0.35);
+        }
+
+        .option-letter {
+            font-weight: 700;
+            min-width: 24px;
+            color: var(--accent-color);
+        }
+
+        .option-text {
+            flex: 1;
+            font-family: var(--font-main); /* هم‌فونت با سؤال‌ها: یکان */
+            color: #ffffff;
+        }
+
+        .nav-buttons {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: space-between;
+        }
+
+        .nav-left,
+        .nav-right {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-base {
+            border-radius: 999px;
+            padding: 0.55rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .btn-base:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .btn-base:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .btn-primary {
+            background: var(--btn-gradient);
+            color: #ffffff;
+            border: none;
+            box-shadow: var(--btn-shadow);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        #resultsSection {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .results-section {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .results-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .results-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .results-score {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--accent-color);
+        }
+
+        .score-number {
+            font-size: 2.4rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .score-detail {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .results-box {
+            background: #0b1624;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 0.7rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .results-box-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .results-box-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .answer-card {
+            background: #0b1624;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .answer-question-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .answer-question-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .answer-options-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .option-main {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .option-label {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .option-row .option-text {
+            color: var(--text-primary);
+        }
+
+        .option-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .option-row.correct {
+            border: 1px solid rgba(34, 197, 94, 0.75);
+            background: rgba(22, 163, 74, 0.14);
+        }
+
+        .option-row.user-correct {
+            border: 1px solid rgba(34, 197, 94, 0.95);
+            background: rgba(22, 163, 74, 0.22);
+        }
+
+        .option-row.user-wrong {
+            border: 1px solid rgba(248, 113, 113, 0.9);
+            background: rgba(248, 113, 113, 0.12);
+        }
+
+        .option-row.correct .option-tag,
+        .option-row.user-correct .option-tag {
+            border-color: rgba(34, 197, 94, 0.9);
+            color: #bbf7d0;
+        }
+
+        .option-row.user-wrong .option-tag {
+            border-color: rgba(248, 113, 113, 0.9);
+            color: #fecaca;
+        }
+
+        .answer-explanation {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .answer-explanation strong {
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-body);
+        }
+
+        footer span {
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1.3rem 4%;
+            }
+
+            .quiz-header,
+            .question-card,
+            .results-section {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .question-card {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="background-overlay"></div>
+
+<header class="site-header">
+    <div class="logo-area">
+        <div class="logo-circle">
+            <img src="https://dentistry1402tums.ir/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+        </div>
+        <div class="site-info">
+            <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+            <p>دانشگاه علوم پزشکی تهران</p>
+        </div>
+    </div>
+    <div class="badge-unofficial">سامانه غیررسمی</div>
+</header>
+
+<main>
+    <section class="quiz-wrapper">
+        <div class="back-button-wrapper">
+            <!-- برمی‌گرده به فهرست آزمون‌های پروتز پارسیل -->
+            <a href="https://exams.dentistry1402tums.ir/partialprosthesis/" class="back-btn">
+                <span class="back-icon">←</span>
+                بازگشت به فهرست آزمون‌های پروتز پارسیل
+            </a>
+        </div>
+
+        <!-- هدر آزمون -->
+        <div class="quiz-header">
+            <span class="info-pill">آزمون تمرینی پروتز پارسیل – جلسه ۴ (Surveying)</span>
+            <h2 class="quiz-title">سؤالات جلسه ۴ – Surveying، Undercut، Guiding Planes، Interference، Esthetics</h2>
+            <p class="quiz-subtitle">
+                بعد از انتخاب هر گزینه، به‌صورت خودکار به سؤال بعدی می‌روی. در انتها روی «پایان آزمون و مشاهده نتیجه»
+                کلیک کن تا نمره و پاسخ‌های تشریحی را ببینی.
+            </p>
+
+            <div class="progress-wrapper">
+                <div class="progress-top-row">
+                    <span id="questionCounter">سؤال ۱ از ۴۰</span>
+                    <span id="answeredCounter">۰ / ۴۰ پاسخ داده شده</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت سؤال -->
+        <div class="question-card">
+            <div class="question-top-row">
+                <span id="questionTag" class="question-tag">سؤال ۱</span>
+                <span id="questionStatus" class="question-status">وضعیت: بدون پاسخ</span>
+            </div>
+            <h3 id="questionText" class="question-text"></h3>
+
+            <div id="optionsContainer" class="options-list">
+                <!-- گزینه‌ها با JS اضافه می‌شن -->
+            </div>
+
+            <div class="nav-buttons">
+                <div class="nav-right">
+                    <button id="prevBtn" class="btn-base" type="button">
+                        ← سؤال قبلی
+                    </button>
+                    <button id="nextBtn" class="btn-base" type="button">
+                        سؤال بعدی →
+                    </button>
+                </div>
+                <div class="nav-left">
+                    <button id="finishBtn" class="btn-base btn-primary" type="button">
+                        پایان آزمون و مشاهده نتیجه
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- نتایج -->
+        <section id="resultsSection" class="results-section">
+            <div class="results-header">
+                <div class="results-main">
+                    <div class="results-score">
+                        <span id="scorePercent" class="score-number">0%</span>
+                    </div>
+                    <div id="scoreLabel" class="score-label">۰ پاسخ صحیح از ۴۰ سؤال</div>
+                    <div class="score-detail">
+                        عملکردت رو در این آزمون ببین؛ پایین‌تر می‌تونی پاسخ صحیح و توضیح تشریحی همه سؤالات رو ببینی.
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ صحیح</span>
+                        <span id="scoreCorrect" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ غلط</span>
+                        <span id="scoreWrong" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">بی‌پاسخ</span>
+                        <span id="scoreUnanswered" class="results-box-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="answers-list" id="answersContainer">
+                <!-- مرور پاسخ‌ها اینجا ساخته می‌شود -->
+            </div>
+        </section>
+    </section>
+</main>
+
+<footer>
+    <p>طراحی شده با ❤️ برای ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران - آرین قاسم‌پور</p>
+</footer>
+
+<script>
+    // ۴۰ سؤال – پروتز پارسیل (Session 4)
+    const questions = [
+        {
+            question: 'در متنِ معرفی Surveyor، اگر طراحی prosthesis (پروتز) بدون استفاده از Surveyor و صرفاً «چشمی» انجام شود، به‌عنوان یکی از پیامدها به کدام مورد اشاره شده است؟',
+            options: [
+                'ایجاد گیر غذایی',
+                'نیاز به تغییر Path of Insertion and Removal پس از ساخت',
+                'انتخاب Bar Palatal Posterior-Anterior برای عبور از Palatal Torus',
+                'افزایش طول Guiding Planes با تراش پروگزیمال'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: الف<br>منبع: DocID=1، PDF Page#=1<br>' +
+                'متن، طراحی چشمی را همراه با خطاهایی مثل ایجاد گیر غذایی ذکر می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: درست است.<br>' +
+                'ب: این مورد در بحث «اصلاحات بعد از ساخت/عدم سروی» مطرح شده، نه به‌عنوان پیامد مستقیم طراحی چشمی در همان بخش.<br>' +
+                'ج: مربوط به مثال Interference (Palatal Torus) و انتخاب Major connector است.<br>' +
+                'د: مربوط به بحث افزایش Guiding Planes در بخش Guiding Planes است.'
+        },
+        {
+            question: 'در تکنیک Rotational Path یا Dual Path که در متن ذکر شده، ترتیب قرارگیری prosthesis چگونه توصیف شده است؟',
+            options: [
+                'ابتدا قسمت خلفی می‌نشیند و سپس قسمت قدامی در جای خود قرار می‌گیرد',
+                'ابتدا مسیر نشست برای قسمت قدامی تعیین می‌شود، prosthesis می‌چرخد و سپس قسمت خلفی در جای خود قرار می‌گیرد',
+                'ابتدا Undercut در تیلت صفر درجه حذف می‌شود و سپس کست تیلت داده می‌شود',
+                'ابتدا Interference با جراحی حذف می‌شود و سپس مسیر نشست تعیین می‌گردد'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: ب<br>منبع: DocID=1، PDF Page#=1<br>' +
+                'طبق متن، ابتدا مسیر نشست بخش قدامی تعیین می‌شود و سپس با حرکت چرخشی، بخش خلفی در جای خود می‌نشیند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: ترتیب را برعکس بیان می‌کند.<br>' +
+                'ب: درست است.<br>' +
+                'ج: مربوط به بحث تیلت/Undercut است و توالی تکنیک Rotational Path نیست.<br>' +
+                'د: رویکرد Interference است، نه توالی این تکنیک.'
+        },
+        {
+            question: 'در مثال Kennedy Class IV با Undercut لبیال قدامی، تغییر مسیر نشست حین Surveying چه نتیجه‌ای دارد؟',
+            options: [
+                'فقط باعث می‌شود از Undercut Gauge 0.03 inch استفاده شود',
+                'باعث می‌شود قسمت خلفی کامل بنشیند ولی قسمت قدامی خارج بماند',
+                'امکان قرارگیری prosthesis در مسیر جدید را فراهم کرده و مشکل نیاز به Block-out و ایجاد فاصله در آن ناحیه را برطرف می‌کند',
+                'باعث می‌شود مسیر نشست مشخص نباشد و prosthesis چند مسیر خروج داشته باشد'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: ج<br>منبع: DocID=1، PDF Page#=1<br>' +
+                'متن توضیح می‌دهد با تغییر مسیر نشست، نیاز به Block-out و فاصله قدامی برطرف می‌شود و پروتز در مسیر جدید می‌نشیند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: 0.03 inch عمدتاً برای Block-out ذکر شده و «نتیجه» این مثال نیست.<br>' +
+                'ب: متن می‌گوید با مسیر جدید مشکل حل می‌شود، نه اینکه قدام خارج بماند.<br>' +
+                'ج: درست است.<br>' +
+                'د: چندمسیره شدن در متن به واگرایی Guiding Planes نسبت داده شده است.'
+        },
+        {
+            question: 'برای انجام فرآیند Survey در متن از نام کدام وسیله/دستگاه استفاده شده است؟',
+            options: [
+                'Undercut Gauge',
+                'Analysing rod',
+                'Wax Knife / Trimmer Wax',
+                'Surveyor'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: د<br>منبع: DocID=1، PDF Page#=1<br>' +
+                'دستگاه اصلی برای Survey کردن، Surveyor است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: ابزار اندازه‌گیری Undercut است.<br>' +
+                'ب: ابزار تعیین HOC و بررسی آناتومی است.<br>' +
+                'ج: ابزار کار مومی/Block-out و Waxing است.<br>' +
+                'د: درست است.'
+        },
+
+        {
+            question: 'طبق متنِ «مشکلات ناشی از عدم انجام سروی»، Surveying علاوه بر حذف Undercutهای مضر، چه قابلیتی درباره تراش دندان‌ها و نسج‌ها ایجاد می‌کند؟',
+            options: [
+                'امکان کنترل میزان تراش‌های موردنیاز روی دندان‌ها و نسج‌ها',
+                'الزام به استفاده از Undercut Gauge 0.03 inch',
+                'ایجاد چند مسیر نشست و برخاست برای prosthesis',
+                'قرار دادن بازوی clasp روی Distal survey line'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: الف<br>منبع: DocID=1، PDF Page#=2<br>' +
+                'متن می‌گوید Surveying علاوه بر حذف Undercutهای مضر، کنترل میزان تراش لازم را ممکن می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: درست است.<br>' +
+                'ب: 0.03 inch به‌عنوان الزام مطرح نشده و عمدتاً برای Block-out ذکر شده است.<br>' +
+                'ج: چندمسیره شدن نتیجه واگرایی Guiding Planes است، نه مزیت Surveying.<br>' +
+                'د: توصیه Distal survey line در بخش Esthetics آمده است.'
+        },
+        {
+            question: 'در همان بخش، با Surveying می‌توان Undercutهای مفید را شناسایی کرد و از آن‌ها برای قرارگیری کدام جزء جهت ایجاد گیر استفاده نمود؟',
+            options: [
+                'صفحه افقی Surveyor',
+                'بازوهای clasp',
+                'Strap Palatal',
+                'pencil (مداد)'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: ب<br>منبع: DocID=1، PDF Page#=2<br>' +
+                'طبق متن، Undercutهای مفید برای قرارگیری بازوهای clasp جهت ایجاد گیر استفاده می‌شوند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: جزء دستگاه است، نه جزء گیرگیری.<br>' +
+                'ب: درست است.<br>' +
+                'ج: Major connector است و ربط مستقیم به استفاده از Undercut برای clasp ندارد.<br>' +
+                'د: ابزار ترسیم خط سروی است، نه جزء گیرگیری.'
+        },
+        {
+            question: 'در نبود تعیین Path of Insertion and Removal و انجام اصلاحات بعد از ساخت، متن به کدام پیامد برای دندان‌های باقی‌مانده اشاره می‌کند؟',
+            options: [
+                'افزایش طول Guiding Planes به ۴–۶ میلی‌متر',
+                'ایجاد Undercut قابل استفاده با تیلت غیر صفر درجه',
+                'Decalcification (دکلسيفیکاسیون) دندان‌های باقی‌مانده',
+                'امکان استفاده از Rotational Path در هر بیمار'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: ج<br>منبع: DocID=1، PDF Page#=2<br>' +
+                'متن، از پیامدهایی مانند Decalcification دندان‌های باقی‌مانده در صورت عدم برنامه‌ریزی مسیر نشست و اصلاحات بعدی نام می‌برد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: عدد طول Guiding Planes مربوط به Tooth Supported است، نه پیامد عدم سروی.<br>' +
+                'ب: متن تأکید می‌کند Undercutِ صرفاً تیلت‌محور کاربردی نیست.<br>' +
+                'ج: درست است.<br>' +
+                'د: Rotational Path تکنیک انتخابی برای برخی شرایط است، نه پیامد این وضعیت.'
+        },
+        {
+            question: 'در فهرست اجزای دستگاه Surveyor، کدام مورد عیناً به‌عنوان «بازوی عمودی متحرک» آمده است؟',
+            options: [
+                'صفحه افقی (محل قرارگیری و حرکت میزک کست)',
+                'بازوی افقی',
+                'میزک قرارگیری کست (محل تغییر تیلت کست)',
+                'بازوی عمودی متحرک'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: د<br>منبع: DocID=1، PDF Page#=2<br>' +
+                'در لیست اجزای Surveyor، «بازوی عمودی متحرک» به‌صورت مستقل ذکر شده است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: جزء دیگری از دستگاه است.<br>' +
+                'ب: جزء دیگری از دستگاه است.<br>' +
+                'ج: جزء دیگری از دستگاه است.<br>' +
+                'د: درست است.'
+        },
+
+        {
+            question: 'در معرفی ابزار Analysing rod، این ابزار چگونه توصیف شده است؟',
+            options: [
+                'میله‌ای استوانه‌ای کاملاً صاف و نسبتاً باریک',
+                'گیجی با «لب افقی» در سه اندازه',
+                'مدادی با مغزی گرافیتی ضخیم',
+                'ابزاری برای انتخاب نوع Major connector'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: الف<br>منبع: DocID=1، PDF Page#=3<br>' +
+                'Analysing rod در متن به‌صورت میله استوانه‌ای صاف و باریک توصیف شده است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: درست است.<br>' +
+                'ب: توصیف Undercut Gauge است.<br>' +
+                'ج: توصیف pencil است.<br>' +
+                'د: انتخاب Major connector در بحث Interference آمده است.'
+        },
+        {
+            question: 'وقتی Analysing rod با سطح دندان تماس داده می‌شود، این تماس نشانگر کدام ناحیه/خط است؟',
+            options: [
+                'طول مناسب Guiding Planes',
+                'محل Contour of Height (HOC)',
+                'محل Interference در دهان',
+                'محل لازم برای Block-out نهایی'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: ب<br>منبع: DocID=1، PDF Page#=3<br>' +
+                'تماس Analysing rod با دندان، محل HOC را نشان می‌دهد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: طول Guiding Planes در بخش جداگانه عددگذاری شده است.<br>' +
+                'ب: درست است.<br>' +
+                'ج: Interference مفهوم دیگری است و با این تعریف تعیین نمی‌شود.<br>' +
+                'د: Block-out با Wax Knife/Trimmer Wax مطرح است.'
+        },
+        {
+            question: 'طبق متن، در تعیین بهترین وضعیت کست (تیلت) هنگام کار با Analysing rod، کدام مجموعه ملاحظات همزمان بررسی می‌شود؟',
+            options: [
+                'فقط وجود Interference و امکان جراحی',
+                'فقط زیبایی و میزان دیده‌شدن clasp',
+                'عمق/میزان Undercutهای دو طرف قوس + بررسی تماس/قرارگیری مرتبط با صفحه راهنما برای رسیدن به وضعیت بهتر',
+                'فقط طول Guiding Planes و حذف کامل Undercut'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: ج<br>منبع: DocID=1، PDF Page#=3<br>' +
+                'متن، همزمان به ارزیابی Undercutهای دو طرف و نیز وضعیت مرتبط با Guiding plane برای رسیدن به بهترین تیلت اشاره می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: فقط Interference معیار این مرحله نیست.<br>' +
+                'ب: زیبایی به‌تنهایی معیار این مرحله معرفی نشده است.<br>' +
+                'ج: درست است.<br>' +
+                'د: هدف «حذف کامل Undercut» نیست.'
+        },
+        {
+            question: 'چرا در متن تأکید شده طول Analysing rod باید بیشتر از ارتفاع دندانِ مورد نظر باشد؟',
+            options: [
+                'برای اینکه Undercut Gauge دقیق‌تر خوانده شود',
+                'برای اینکه Wax Knife بتواند Taper را بهتر ایجاد کند',
+                'برای اینکه Guiding Planes بلندتر از حد استاندارد ساخته شوند',
+                'برای اطمینان از اینکه محل برخورد میله با دندان دقیقاً روی HOC قرار گرفته است'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: د<br>منبع: DocID=1، PDF Page#=3<br>' +
+                'متن می‌گوید طول میله باید بیشتر از ارتفاع دندان باشد تا برخورد دقیقاً روی HOC باشد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: خواندن Undercut Gauge وابسته به آن است، نه طول rod.<br>' +
+                'ب: Wax Knife ابزار دیگری است.<br>' +
+                'ج: طول Guiding Planes با این نکته تعیین نمی‌شود.<br>' +
+                'د: درست است.'
+        },
+
+        {
+            question: 'در توضیح Undercut Gauge، در چه حالتی گفته می‌شود مقدار Undercut «دقیقاً به اندازه طول لب افقی» است؟',
+            options: [
+                'وقتی همزمان بخش عمودی میله روی HOC باشد و لب افقی در ناحیه Undercut قرار گیرد',
+                'وقتی لب افقی فقط با سطح اکلوزال تماس داشته باشد',
+                'وقتی بخش عمودی میله داخل Undercut باشد و لب افقی روی HOC قرار گیرد',
+                'وقتی کست در تیلت غیر صفر درجه تنظیم شده باشد'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: الف<br>منبع: DocID=1، PDF Page#=4<br>' +
+                'طبق متن، همزمان بودن قرارگیری قسمت عمودی روی HOC و قرارگیری لب افقی در Undercut معیار است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: درست است.<br>' +
+                'ب: معیار متن نیست.<br>' +
+                'ج: جای‌گذاری‌ها مطابق متن نیست.<br>' +
+                'د: تیلت غیر صفر شرط تعریف این معیار نیست.'
+        },
+        {
+            question: 'طبق متن، برای cast claspها (با انعطاف کمتر) معمولاً از کدام اندازه Undercut Gauge استفاده می‌شود؟',
+            options: [
+                '0.03 inch',
+                '0.01 inch',
+                '0.02 inch',
+                'هر سه اندازه به یک میزان'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: ب<br>منبع: DocID=1، PDF Page#=4<br>' +
+                'متن برای cast clasp (انعطاف کمتر) مقدار 0.01 inch را ذکر می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: 0.03 inch عمدتاً برای Block-out ذکر شده است.<br>' +
+                'ب: درست است.<br>' +
+                'ج: 0.02 inch برای Wire Wrought ذکر شده است.<br>' +
+                'د: متن انتخاب را وابسته به نوع clasp می‌داند.'
+        },
+        {
+            question: 'طبق متن، در صورت استفاده از Wire Wrought (با انعطاف بیشتر)، کدام اندازه Undercut Gauge پیشنهاد شده است؟',
+            options: [
+                '0.01 inch',
+                '0.03 inch',
+                '0.02 inch',
+                '0.04 inch'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: ج<br>منبع: DocID=1، PDF Page#=4<br>' +
+                'برای Wire Wrought (انعطاف بیشتر)، متن مقدار 0.02 inch را پیشنهاد می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: برای cast clasp ذکر شده است.<br>' +
+                'ب: عمدتاً برای Block-out ذکر شده است.<br>' +
+                'ج: درست است.<br>' +
+                'د: در متن نیامده است.'
+        },
+        {
+            question: 'طبق متن، کاربرد Undercut Gauge 0.03 inch به‌طور شاخص در کدام زمینه ذکر شده است؟',
+            options: [
+                'تعیین مسیر نشست قدامی در Kennedy Class IV',
+                'تعیین طول استاندارد Guiding Planes',
+                'علامت‌گذاری دقیق خط سروی روی HOC',
+                'کاربرد در Block-out (و معمولاً نه برای بررسی Undercutها)'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: د<br>منبع: DocID=1، PDF Page#=4<br>' +
+                '0.03 inch در متن به‌عنوان گیجِ کاربردی برای Block-out ذکر شده و معمولاً برای بررسی Undercutها استفاده نمی‌شود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: مربوط به مثال تغییر مسیر نشست است، نه کاربرد شاخص 0.03.<br>' +
+                'ب: طول Guiding Planes با میلی‌متر بیان شده است.<br>' +
+                'ج: علامت‌گذاری با pencil مطرح است.<br>' +
+                'د: درست است.'
+        },
+
+        {
+            question: 'در ادامه توضیح Wax Knife / Trimmer Wax، یکی از کاربردهای ذکرشده برای این ابزار چیست؟',
+            options: [
+                'کمک به Waxing دندان‌ها برای رسیدن به الگویی که طراحی و روکش در امتداد مسیر نشست prosthesis باشد',
+                'تعیین مقدار Undercut به واحد اینچ',
+                'تشخیص Interference ناشی از Palatal Torus',
+                'تعیین طول عددی Guiding Planes در میلی‌متر'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: الف<br>منبع: DocID=1، PDF Page#=5<br>' +
+                'متن می‌گوید Wax Knife/Trimmer Wax در Waxing برای هم‌راستایی طرح با مسیر نشست prosthesis هم کاربرد دارد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: درست است.<br>' +
+                'ب: وظیفه Undercut Gauge است.<br>' +
+                'ج: Interference/Torus در بخش دیگری آمده است.<br>' +
+                'د: طول Guiding Planes در بخش Guiding Planes ذکر شده است.'
+        },
+        {
+            question: 'در معرفی pencil (مداد)، کدام ویژگی و کاربرد برای آن ذکر شده است؟',
+            options: [
+                'نوک فلزی با قابلیت تراش مینای دندان',
+                'میله عمودی از جنس گرافیت با «مغزی ضخیم» برای ترسیم دقیق خط سروی روی HOC (و نیز روی نسج نرم)',
+                'گیجی با لب افقی برای اندازه‌گیری Undercut',
+                'ابزار اختصاصی برای ساخت Major connector'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: ب<br>منبع: DocID=1، PDF Page#=5<br>' +
+                'طبق متن، مداد با مغزی ضخیم گرافیتی برای ترسیم دقیق خط سروی روی HOC و نیز روی نسج نرم به‌کار می‌رود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: در متن ذکر نشده است.<br>' +
+                'ب: درست است.<br>' +
+                'ج: مربوط به Undercut Gauge است.<br>' +
+                'د: ساخت Major connector با این ابزار تعریف نشده است.'
+        },
+        {
+            question: 'طبق تعریف متن، Guiding Planes برای هم‌راستاسازی prosthesis با کدام سطوح/ناحیه‌ها مطرح شده‌اند؟',
+            options: [
+                'فقط سطح اکلوزال دندان‌های مجاور',
+                'فقط ناحیه Undercutهای دندانی',
+                'سطوح پروگزیمال دندان‌های مجاور ناحیه بی‌دندانی (دندان‌های پایه)',
+                'فقط سطح لینگوال Major connector'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: ج<br>منبع: DocID=1، PDF Page#=5<br>' +
+                'متن Guiding Planes را روی سطوح پروگزیمال دندان‌های پایه مجاور ناحیه بی‌دندانی تعریف می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: متن Guiding Planes را فقط اکلوزالی تعریف نمی‌کند.<br>' +
+                'ب: Undercut موضوع گیر clasp است، نه محل تعریف Guiding Planes.<br>' +
+                'ج: درست است.<br>' +
+                'د: محدود کردن به سطح لینگوال Major connector در متن نیامده است.'
+        },
+        {
+            question: 'طبق متن، Guiding Planes در ساخت prosthesis پارسیل چه نقشی را «مهم‌ترین» توصیف کرده‌اند؟',
+            options: [
+                'تعیین نوع clasp (مثل Akers یا Bar I)',
+                'حذف کامل Undercutها',
+                'افزایش فضای ناحیه بی‌دندانی',
+                'تعیین Path of Insertion and Removal'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: د<br>منبع: DocID=1، PDF Page#=5<br>' +
+                'متن می‌گوید مهم‌ترین نقش Guiding Planes، تعیین Path of Insertion and Removal است.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: انتخاب clasp بحث دیگری است، نه «مهم‌ترین نقش» اینجا.<br>' +
+                'ب: حذف کامل Undercut هدف Guiding Planes نیست.<br>' +
+                'ج: افزایش فضای بی‌دندانی به‌عنوان نقش اصلی ذکر نشده است.<br>' +
+                'د: درست است.'
+        },
+
+        {
+            question: 'طبق متن، طول مناسب Guiding Planes در Tooth Supported (در محدوده ذکرشده) کدام است؟',
+            options: [
+                '۴ تا ۶ میلی‌متر',
+                '۱ تا ۲ میلی‌متر',
+                '۲ تا ۴ میلی‌متر (به‌عنوان محدوده اصلی)',
+                '۶ تا ۸ میلی‌متر'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: الف<br>منبع: DocID=1، PDF Page#=6<br>' +
+                'برای Tooth Supported، متن طول ۴ تا ۶ میلی‌متر را ذکر می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: درست است.<br>' +
+                'ب: مربوط به Tooth & Tissue Supported است.<br>' +
+                'ج: به‌عنوان ذکر برخی منابع آمده، نه محدوده اصلی در متن.<br>' +
+                'د: در متن نیامده است.'
+        },
+        {
+            question: 'طبق متن، طول مناسب Guiding Planes در Tooth & Tissue Supported کدام است؟',
+            options: [
+                '۴ تا ۶ میلی‌متر',
+                '۱ تا ۲ میلی‌متر',
+                '۲ تا ۴ میلی‌متر',
+                '۶ تا ۸ میلی‌متر'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: ب<br>منبع: DocID=1، PDF Page#=6<br>' +
+                'برای Tooth & Tissue Supported، متن طول ۱ تا ۲ میلی‌متر را ذکر می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: مربوط به Tooth Supported است.<br>' +
+                'ب: درست است.<br>' +
+                'ج: در متن برای این حالت به‌عنوان استاندارد ذکر نشده است.<br>' +
+                'د: در متن نیامده است.'
+        },
+        {
+            question: 'طبق متن، اگر امکان ایجاد گیر با وضعیت موجود فراهم نباشد، کدام اقدام برای ایجاد مسیر نشست مناسب ذکر شده است؟',
+            options: [
+                'استفاده از Undercut Gauge 0.03 inch برای افزایش گیر',
+                'انتخاب Strap Palatal به‌جای سایر Major connectorها',
+                'افزایش طول Guiding Planes با تراش ناحیه پروگزیمال دندان‌های پایه تا حد دلخواه',
+                'حذف Analysing rod و انجام کار به‌صورت چشمی'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: ج<br>منبع: DocID=1، PDF Page#=6<br>' +
+                'متن می‌گوید با تراش ناحیه پروگزیمال دندان‌های پایه می‌توان طول Guiding Planes را افزایش داد تا مسیر نشست مناسب ایجاد شود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: 0.03 inch به‌عنوان راه افزایش گیر معرفی نشده و عمدتاً برای Block-out است.<br>' +
+                'ب: Strap Palatal در مثال Torus (Interference) مطرح می‌شود، نه این راه‌حل.<br>' +
+                'ج: درست است.<br>' +
+                'د: انجام چشمی خلاف تأکید متن بر ابزارهاست.'
+        },
+        {
+            question: 'طبق متن، اگر Guiding Planes دو طرف ناحیه بی‌دندانی نسبت به هم «واگرا (divergent)» باشند، کدام نتیجه درباره مسیر و گیر prosthesis مطرح شده است؟',
+            options: [
+                'prosthesis حتماً روی سطح اکلوزال گیر می‌کند و نمی‌نشیند',
+                'تنها مشکل، افزایش دیده‌شدن clasp است',
+                'با این وضعیت، Undercutها در تیلت صفر درجه حذف می‌شوند',
+                'مسیر نشست و برخاست مشخص نخواهد بود و ممکن است prosthesis چند مسیر خروج داشته باشد و گیر/ثبات کمتر شود'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: د<br>منبع: DocID=1، PDF Page#=6<br>' +
+                'متن واگرایی را عامل نامشخص شدن مسیر و چندمسیره شدن خروج و کاهش گیر/ثبات می‌داند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: گیر کردن روی اکلوزال در متن برای حالت همگرایی ذکر شده است.<br>' +
+                'ب: نتیجه اصلی واگرایی در متن «چندمسیره شدن» است، نه فقط زیبایی.<br>' +
+                'ج: حذف Undercut نتیجه مستقیم واگرایی نیست.<br>' +
+                'د: درست است.'
+        },
+
+        {
+            question: 'طبق متن، اگر Guiding Planes دو طرف ناحیه بی‌دندانی نسبت به هم «همگرا (convergent)» باشند، هنگام نشاندن prosthesis چه رخدادی توصیف شده است؟',
+            options: [
+                'در حین نشاندن، روی سطح اکلوزال گیر می‌کند و برای نشستن کامل نیاز به برداشتن مقداری از prosthesis مطرح می‌شود و نهایتاً فاصله‌ای زیر Guiding Planes ایجاد می‌گردد',
+                'هیچ مشکلی رخ نمی‌دهد چون مسیر نشست همیشه مشخص است',
+                'فقط انتخاب نوع Major connector تغییر می‌کند',
+                'تنها راه‌حل، استفاده از Rotational Path است'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: الف<br>منبع: DocID=1، PDF Page#=7<br>' +
+                'متن در همگرایی، گیر روی اکلوزال و نیاز به اصلاح prosthesis و ایجاد فاصله زیر Guiding Planes را توصیف می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: درست است.<br>' +
+                'ب: این توصیف مربوط به حالت موازی است.<br>' +
+                'ج: تغییر Major connector در بحث Interference است.<br>' +
+                'د: متن Rotational Path را راه‌حل عمومی این حالت معرفی نکرده است.'
+        },
+        {
+            question: 'طبق متن، اگر Guiding Planes دو طرف ناحیه بی‌دندانی نسبت به هم «موازی (parallel)» باشند، کدام گزاره درست است؟',
+            options: [
+                'حتماً نیاز به Block-out وسیع ایجاد می‌شود',
+                'هیچ‌کدام از مشکلات حالت‌های همگرا/واگرا وجود نخواهد داشت',
+                'مسیر نشست مشخص نمی‌شود و prosthesis چند مسیر خروج دارد',
+                'Undercut فقط در تیلت غیر صفر درجه قابل استفاده خواهد بود'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: ب<br>منبع: DocID=1، PDF Page#=7<br>' +
+                'متن می‌گوید در حالت موازی، مشکلات همگرایی/واگرایی رخ نمی‌دهد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: در متن «حتماً» برای موازی ذکر نشده است.<br>' +
+                'ب: درست است.<br>' +
+                'ج: چندمسیره شدن مربوط به واگرایی است.<br>' +
+                'د: چنین قیدی برای حالت موازی در متن نیامده است.'
+        },
+        {
+            question: 'طبق متن، برای اینکه Undercut دندانی بتواند گیرِ مورد نظر را برای clasp فراهم کند، چه شرط کلیدی ذکر شده است؟',
+            options: [
+                'Undercut فقط در تیلت غیر صفر درجه ایجاد شده باشد',
+                'Undercut روی سطوح لینگوال Major connector قرار داشته باشد',
+                'در حالتی که سطح اکلوزال دندان‌های کست در موقعیت کاملاً افقی (تیلت صفر درجه) قرار گیرد، Undercutهای دندانی وجود داشته باشند',
+                'عمق Undercut همیشه 0.03 inch باشد'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: ج<br>منبع: DocID=1، PDF Page#=7<br>' +
+                'طبق متن، برای گیر واقعی clasp باید در تیلت صفر درجه Undercut دندانی وجود داشته باشد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: متن می‌گوید Undercut تیلت‌محور (بدون Undercut در تیلت صفر) کاربردی نیست.<br>' +
+                'ب: چنین محدودیتی در متن نیامده است.<br>' +
+                'ج: درست است.<br>' +
+                'د: 0.03 inch به‌عنوان شرط گیر ذکر نشده و عمدتاً برای Block-out است.'
+        },
+        {
+            question: 'طبق متن، اگر در تیلت صفر درجه Undercut وجود نداشته باشد اما با تیلت دادن کست Undercut «ایجاد شده به نظر برسد»، چرا این Undercut کاربردی توصیف نشده است؟',
+            options: [
+                'چون Guiding Planes کوتاه‌تر از ۱ میلی‌متر می‌شوند',
+                'چون Analysing rod فقط برای زیبایی است',
+                'چون Major connector دیگر قابل انتخاب نیست',
+                'چون این Undercut صرفاً مربوط به مسیر نشست انتخاب‌شده است و نیروهای وارد معمولاً عمود بر سطح اکلوزال‌اند؛ بنابراین prosthesis می‌تواند جدا شود'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: د<br>منبع: DocID=1، PDF Page#=7<br>' +
+                'متن توضیح می‌دهد این Undercut فقط نسبت به مسیر نشست تعریف شده و با توجه به جهت نیروها، گیر واقعی ایجاد نمی‌کند و پروتز می‌تواند جدا شود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: ربطی به علت اصلی ذکرشده در متن ندارد.<br>' +
+                'ب: متن Analysing rod را صرفاً زیبایی معرفی نکرده است.<br>' +
+                'ج: انتخاب Major connector به این علت وابسته نیست.<br>' +
+                'د: درست است.'
+        },
+
+        {
+            question: 'در مثال تصویری متن، وقتی کست دوباره به تیلت صفر درجه برگردانده می‌شود، درباره گیر prosthesis چه نتیجه‌ای بیان شده است؟',
+            options: [
+                'هیچ Undercuty وجود ندارد و prosthesis عملاً گیر مؤثری نخواهد داشت',
+                'گیر افزایش می‌یابد چون Undercutها تثبیت می‌شوند',
+                'مسیر نشست چندگانه ایجاد می‌شود و گیر بیشتر می‌گردد',
+                'Guiding Planes خودبه‌خود به ۴–۶ میلی‌متر تبدیل می‌شوند'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: الف<br>منبع: DocID=1، PDF Page#=8<br>' +
+                'متن نشان می‌دهد با بازگشت به تیلت صفر، مشخص می‌شود Undercut واقعی وجود ندارد و گیر مؤثر حاصل نمی‌شود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: درست است.<br>' +
+                'ب: خلاف نتیجه متن است.<br>' +
+                'ج: چندمسیره شدن به واگرایی Guiding Planes مربوط است، نه این مثال.<br>' +
+                'د: چنین نتیجه‌ای در متن وجود ندارد.'
+        },
+        {
+            question: 'متن درباره مشاهده Undercut در تیلت غیر صفر درجه و سپس بازگشت به تیلت صفر درجه چه نکته‌ای را برجسته می‌کند؟',
+            options: [
+                'Undercutهای تیلت غیر صفر همیشه بهترین‌اند و باید همان‌ها مبنا قرار گیرند',
+                'ممکن است در تیلت غیر صفر Undercut دیده شود، اما با بازگشت به تیلت صفر مشخص می‌شود آن Undercut واقعیِ قابل اتکا برای گیر نیست',
+                'در تیلت صفر درجه باید از Undercut Gauge 0.03 inch استفاده کرد',
+                'در تیلت صفر درجه فقط می‌توان Interferenceها را تشخیص داد نه Undercutها'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: ب<br>منبع: DocID=1، PDF Page#=8<br>' +
+                'نکته آموزشی متن این است که Undercut ظاهری در تیلت غیر صفر می‌تواند گمراه‌کننده باشد و باید تیلت صفر هم بررسی شود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: خلاف پیام متن است.<br>' +
+                'ب: درست است.<br>' +
+                'ج: چنین الزامی در متن نیامده است.<br>' +
+                'د: متن از بررسی Undercut در تیلت صفر شروع می‌کند.'
+        },
+        {
+            question: 'طبق پاسخِ پرسش انتهای متن، تغییر تیلت کست چه کاربردی برای «متعادل‌سازی» Undercutها دارد؟',
+            options: [
+                'ایجاد Undercut جدید روی دندان‌هایی که هیچ Undercut ندارند',
+                'حذف کامل نیاز به Guiding Planes',
+                'اگر یک سمت Undercut بیش از حد زیاد و سمت دیگر کم باشد، با تغییر تیلت می‌توان از عمق سمت اول کم و به عمق سمت دوم اضافه کرد',
+                'تبدیل هر Undercut به مقدار ثابت 0.03 inch'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: ج<br>منبع: DocID=1، PDF Page#=8<br>' +
+                'متن مثال می‌زند با تغییر تیلت می‌توان عمق Undercutها را بین دو سمت متعادل کرد (کم/زیاد شدن نسبی).<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: متن می‌گوید تیلت برای ایجاد Undercut نیست.<br>' +
+                'ب: حذف نیاز به Guiding Planes ذکر نشده است.<br>' +
+                'ج: درست است.<br>' +
+                'د: تبدیل همگانی به 0.03 inch در متن وجود ندارد.'
+        },
+        {
+            question: 'طبق همان پاسخ، تغییر تیلت کست «صرفاً» برای کدام منظور مجاز/تعریف شده است؟',
+            options: [
+                'ایجاد Undercutهای جدید',
+                'حذف کامل Interference بدون اصلاح دهان',
+                'حذف نیاز به Surveyor',
+                'جابه‌جایی/تنظیم/تغییر ابعاد Undercutها (نه ایجاد Undercut)'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: د<br>منبع: DocID=1، PDF Page#=8<br>' +
+                'متن صریحاً بیان می‌کند تیلت برای جابه‌جایی/تنظیم Undercutهاست و نه ایجاد Undercut جدید.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: صراحتاً رد شده است.<br>' +
+                'ب: چنین قاعده‌ای در متن به‌صورت کلی ذکر نشده است.<br>' +
+                'ج: خلاف کل فلسفه استفاده از Surveyor است.<br>' +
+                'د: درست است.'
+        },
+
+        {
+            question: 'در بخش Interference، کدام مورد به‌عنوان نمونه‌ای از نواحی ایجادکننده مانع برای نشستن prosthesis ذکر شده است؟',
+            options: [
+                'دندان Malposed',
+                'خط HOC',
+                'طول ۴–۶ میلی‌متری Guiding Planes',
+                'Undercut Gauge 0.02 inch'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: الف<br>منبع: DocID=1، PDF Page#=9<br>' +
+                'متن دندان Malposed را به‌عنوان یکی از مثال‌های Interference بیان می‌کند.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: درست است.<br>' +
+                'ب: HOC مربوط به Surveying است، نه مثال Interference در این بخش.<br>' +
+                'ج: عدد طول Guiding Planes است، نه Interference.<br>' +
+                'د: اندازه گیج مربوط به Undercut است، نه Interference.'
+        },
+        {
+            question: 'طبق متن، اولین رویکرد برای مواجهه با Interferenceها چیست؟',
+            options: [
+                'تعویض نوع clasp بدون تغییر مسیر نشست',
+                'تغییر Path of Insertion and Removal اگر با این کار بتوان prosthesis را طوری طراحی کرد که از Interferenceها دور بزند و همزمان نیازهای prosthesis (مثل گیر و ثبات) حفظ شود',
+                'انتخاب فوری Shaped-U برای همه بیماران',
+                'انجام Block-out وسیع با موم در همه موارد'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: ب<br>منبع: DocID=1، PDF Page#=9<br>' +
+                'متن رویکرد اول را تغییر مسیر نشست می‌داند؛ به شرط حفظ نیازهای پروتز مثل گیر/ثبات.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: به‌عنوان «اولین رویکرد» ذکر نشده است.<br>' +
+                'ب: درست است.<br>' +
+                'ج: Shaped-U فقط در یک مثال خاص مطرح است.<br>' +
+                'د: Block-out راه‌حل عمومی همه Interferenceها معرفی نشده است.'
+        },
+        {
+            question: 'در مثال Palatal Torus که امکان دور زدن با تغییر مسیر نشست و نیز امکان جراحی ذکر نشده، متن برای تغییر طرح درمان چه پیشنهادی داده است؟',
+            options: [
+                'جایگزینی Analysing rod با Undercut Gauge',
+                'استفاده از Strap Palatal به‌عنوان انتخاب اصلی',
+                'به‌جای Strap Palatal از Bar Palatal Posterior-Anterior یا Shaped-U استفاده شود',
+                'افزایش طول Guiding Planes به ۶–۸ میلی‌متر'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: ج<br>منبع: DocID=1، PDF Page#=9<br>' +
+                'متن می‌گوید در Torus بزرگ، اگر تغییر مسیر نشست/جراحی ممکن نباشد، می‌توان به‌جای Strap Palatal از Bar Palatal Posterior-Anterior یا Shaped-U استفاده کرد تا Torus دور زده شود.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: به این مثال مربوط نیست.<br>' +
+                'ب: متن دقیقاً «به‌جای Strap Palatal» گزینه‌های دیگر را مطرح می‌کند.<br>' +
+                'ج: درست است.<br>' +
+                'د: ۶–۸ میلی‌متر در متن برای Guiding Planes ذکر نشده است.'
+        },
+        {
+            question: 'طبق متن، اگر بیمار Undercut در بایت با Interference داشته باشد که امکان حذف/اصلاح آن موجود نباشد، درباره انتخاب بازوی clasp چه پیشنهادی آمده است؟',
+            options: [
+                'به‌جای Wire Wrought از Bar I استفاده شود',
+                'فقط Bar I مجاز است چون کم‌حجم‌تر است',
+                'فقط تغییر تیلت کست کافی است و انتخاب clasp اهمیتی ندارد',
+                'به‌جای Bar I از انواع دیگر مثل Wire Wrought و Akers استفاده شود'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: د<br>منبع: DocID=1، PDF Page#=9<br>' +
+                'متن در مثال می‌گوید اگر امکان اصلاح Interference نیست، می‌توان به‌جای Bar I از Wire Wrought و Akers استفاده کرد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: برعکس پیشنهاد متن است.<br>' +
+                'ب: چنین محدودیتی در متن نیامده است.<br>' +
+                'ج: متن انتخاب clasp را در این مثال مهم می‌داند.<br>' +
+                'د: درست است.'
+        },
+
+        {
+            question: 'در بخش «زیبایی»، متن توصیه می‌کند Undercut دندانی طوری باشد که بازوی clasp تا حد امکان در کجا قرار بگیرد؟',
+            options: [
+                'روی Distal survey line همان دندان',
+                'روی سطح اکلوزال همان دندان',
+                'روی سطح لینگوال Major connector',
+                'داخل ناحیه Interference'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: الف<br>منبع: DocID=1، PDF Page#=10<br>' +
+                'متن توصیه می‌کند برای زیبایی، بازوی clasp تا حد امکان روی Distal survey line قرار گیرد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: درست است.<br>' +
+                'ب: به‌عنوان توصیه زیبایی در متن نیامده است.<br>' +
+                'ج: ربطی به محل بازوی clasp در این توصیه ندارد.<br>' +
+                'د: Interference موضوع دیگری است.'
+        },
+        {
+            question: 'طبق متن، برای قرارگیری بازوی clasp به‌صورت زیبایی، تا حد امکان از کدام نوع Undercut دندانی باید استفاده شود؟',
+            options: [
+                'Undercutهای نزدیک اکلوزال',
+                'Undercutهای نزدیک جینجیوا (gingival)',
+                'فقط Undercutهای قابل مشاهده در تیلت غیر صفر',
+                'فقط Undercutهای 0.03 inch'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: ب<br>منبع: DocID=1، PDF Page#=10<br>' +
+                'طبق متن، Undercutهای نزدیک gingival باعث می‌شوند بخش کمتری از clasp دیده شود و زیبایی بهتر باشد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: متن اولویت زیبایی را نزدیک gingival می‌داند، نه نزدیک اکلوزال.<br>' +
+                'ب: درست است.<br>' +
+                'ج: Undercut تیلت‌محور در متن «کاربردی» معرفی نشده است.<br>' +
+                'د: 0.03 inch عمدتاً برای Block-out ذکر شده است.'
+        },
+        {
+            question: 'متن پس از اشاره به حرکت دندان‌های مجاور ناحیه بی‌دندانی در طول زمان، هنگام تعیین مسیر نشست چه نکته‌ای را لازم می‌داند؟',
+            options: [
+                'بی‌توجهی به تغییرات ناحیه بی‌دندانی چون طول آن ثابت می‌ماند',
+                'انتخاب مسیر نشست فقط بر اساس Interferenceهای لینگوال',
+                'انتخاب مسیری که بتواند دندان جایگزینِ ناحیه بی‌دندانی را در جای مناسب قرار دهد (با توجه به تغییرات تدریجی ناحیه بی‌دندانی)',
+                'الزام به استفاده از Rotational Path در همه موارد'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: ج<br>منبع: DocID=1، PDF Page#=10<br>' +
+                'متن می‌گوید با گذشت زمان دندان‌های مجاور به سمت ناحیه بی‌دندانی حرکت می‌کنند؛ پس مسیر نشست باید طوری انتخاب شود که دندان جایگزین در جای مناسب قرار گیرد.<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: متن کاهش تدریجی ابعاد ناحیه بی‌دندانی را ذکر می‌کند، پس بی‌توجهی غلط است.<br>' +
+                'ب: محدود کردن معیار فقط به Interference لینگوال در متن نیامده است.<br>' +
+                'ج: درست است.<br>' +
+                'د: چنین الزامی در متن وجود ندارد.'
+        },
+        {
+            question: 'طبق متن، در ارتباط با زیبایی و هماهنگی ظاهری، کدام اصل درباره «فاصله بین دندان‌ها» بیان شده است؟',
+            options: [
+                'فاصله بین دندان طبیعی و دندان پروتزی برای تمیزکاری بهتر لازم است',
+                'فاصله فقط در ناحیه خلفی مجاز است نه قدامی',
+                'فاصله با انتخاب Undercut Gauge مناسب حذف می‌شود',
+                'طراحی باید طوری باشد که بین دندان‌های طبیعی و دندانِ قرارگرفته در prosthesis هیچ فاصله‌ای وجود نداشته باشد'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: د<br>منبع: DocID=1، PDF Page#=10<br>' +
+                'متن تأکید می‌کند نباید بین دندان‌های طبیعی و دندانِ پروتزی فاصله وجود داشته باشد (از نظر زیبایی/هماهنگی).<br>' +
+                '<strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>' +
+                'الف: خلاف تأکید متن بر «عدم فاصله» است.<br>' +
+                'ب: چنین تفکیکی در متن نیامده است.<br>' +
+                'ج: حذف فاصله به انتخاب Undercut Gauge نسبت داده نشده است.<br>' +
+                'د: درست است.'
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    const questionCounterEl = document.getElementById('questionCounter');
+    const answeredCounterEl = document.getElementById('answeredCounter');
+    const progressFillEl = document.getElementById('progressFill');
+    const questionTagEl = document.getElementById('questionTag');
+    const questionStatusEl = document.getElementById('questionStatus');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainerEl = document.getElementById('optionsContainer');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const finishBtn = document.getElementById('finishBtn');
+
+    const resultsSectionEl = document.getElementById('resultsSection');
+    const scorePercentEl = document.getElementById('scorePercent');
+    const scoreLabelEl = document.getElementById('scoreLabel');
+    const scoreCorrectEl = document.getElementById('scoreCorrect');
+    const scoreWrongEl = document.getElementById('scoreWrong');
+    const scoreUnansweredEl = document.getElementById('scoreUnanswered');
+    const answersContainerEl = document.getElementById('answersContainer');
+
+    function updateProgressUI() {
+        const total = questions.length;
+        const answeredCount = userAnswers.filter(a => a !== null).length;
+
+        questionCounterEl.textContent = `سؤال ${currentQuestionIndex + 1} از ${total}`;
+        answeredCounterEl.textContent = `${answeredCount} / ${total} پاسخ داده شده`;
+
+        const progressPercent = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+        progressFillEl.style.width = progressPercent + '%';
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestionIndex];
+
+        questionTagEl.textContent = `سؤال ${currentQuestionIndex + 1}`;
+        questionTextEl.textContent = q.question;
+
+        const userAnswer = userAnswers[currentQuestionIndex];
+        questionStatusEl.textContent = userAnswer === null ? 'وضعیت: بدون پاسخ' : 'وضعیت: پاسخ داده شده';
+
+        optionsContainerEl.innerHTML = '';
+        const letters = ['الف', 'ب', 'ج', 'د'];
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'option-btn';
+            if (userAnswer === index) btn.classList.add('selected');
+            btn.dataset.index = index.toString();
+
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'option-letter';
+            letterSpan.textContent = letters[index] + ')';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'option-text';
+            textSpan.textContent = opt;
+
+            btn.appendChild(letterSpan);
+            btn.appendChild(textSpan);
+
+            btn.addEventListener('click', () => handleOptionSelect(index));
+            optionsContainerEl.appendChild(btn);
+        });
+
+        prevBtn.disabled = currentQuestionIndex === 0;
+        nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+
+        updateProgressUI();
+    }
+
+    function handleOptionSelect(optionIndex) {
+        userAnswers[currentQuestionIndex] = optionIndex;
+        if (currentQuestionIndex < questions.length - 1) currentQuestionIndex++;
+        renderQuestion();
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+    });
+
+    finishBtn.addEventListener('click', () => {
+        finishQuiz();
+    });
+
+    function finishQuiz() {
+        const total = questions.length;
+        let correct = 0, wrong = 0, unanswered = 0;
+
+        questions.forEach((q, index) => {
+            const ans = userAnswers[index];
+            if (ans === null) unanswered++;
+            else if (ans === q.correctIndex) correct++;
+            else wrong++;
+        });
+
+        const percent = total === 0 ? 0 : Math.round((correct / total) * 100);
+
+        scorePercentEl.textContent = percent + '%';
+        scoreLabelEl.textContent = `${correct} پاسخ صحیح از ${total} سؤال`;
+        scoreCorrectEl.textContent = correct.toString();
+        scoreWrongEl.textContent = wrong.toString();
+        scoreUnansweredEl.textContent = unanswered.toString();
+
+        buildAnswersReview();
+        resultsSectionEl.style.display = 'flex';
+        resultsSectionEl.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function buildAnswersReview() {
+        answersContainerEl.innerHTML = '';
+        const letters = ['الف', 'ب', 'ج', 'د'];
+
+        questions.forEach((q, index) => {
+            const userAnswer = userAnswers[index];
+
+            const card = document.createElement('div');
+            card.className = 'answer-card';
+
+            const qTitle = document.createElement('div');
+            qTitle.className = 'answer-question-title';
+            qTitle.textContent = `سؤال ${index + 1}`;
+            card.appendChild(qTitle);
+
+            const qText = document.createElement('div');
+            qText.className = 'answer-question-text';
+            qText.textContent = q.question;
+            card.appendChild(qText);
+
+            const optionsWrapper = document.createElement('div');
+            optionsWrapper.className = 'answer-options-wrapper';
+
+            q.options.forEach((opt, optIdx) => {
+                const row = document.createElement('div');
+                row.className = 'option-row';
+
+                const main = document.createElement('div');
+                main.className = 'option-main';
+
+                const label = document.createElement('span');
+                label.className = 'option-label';
+                label.textContent = letters[optIdx] + ')';
+
+                const text = document.createElement('span');
+                text.className = 'option-text';
+                text.textContent = opt;
+
+                main.appendChild(label);
+                main.appendChild(text);
+                row.appendChild(main);
+
+                const tag = document.createElement('span');
+                tag.className = 'option-tag';
+
+                if (optIdx === q.correctIndex && userAnswer === optIdx) {
+                    row.classList.add('user-correct');
+                    tag.textContent = '✓ صحیح (انتخاب شما)';
+                } else if (optIdx === q.correctIndex) {
+                    row.classList.add('correct');
+                    tag.textContent = '✓ گزینه صحیح';
+                } else if (userAnswer === optIdx) {
+                    row.classList.add('user-wrong');
+                    tag.textContent = '✗ انتخاب شما';
+                }
+
+                if (tag.textContent) row.appendChild(tag);
+                optionsWrapper.appendChild(row);
+            });
+
+            card.appendChild(optionsWrapper);
+
+            const expl = document.createElement('div');
+            expl.className = 'answer-explanation';
+            if (userAnswer === null) {
+                expl.innerHTML = `<strong>وضعیت پاسخ:</strong> این سؤال را پاسخ ندادی.<br><strong>توضیح:</strong> ${q.explanation}`;
+            } else {
+                expl.innerHTML = `<strong>توضیح:</strong> ${q.explanation}`;
+            }
+
+            card.appendChild(expl);
+            answersContainerEl.appendChild(card);
+        });
+    }
+
+    renderQuestion();
+</script>
+
+</body>
+</html>
