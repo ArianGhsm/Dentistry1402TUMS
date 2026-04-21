@@ -1,0 +1,1086 @@
+﻿
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+<link rel="stylesheet" href="/assets/site/styles/quiz.css?v=20260421-pwa">
+<meta charset="UTF-8">
+    <title>آزمون جلسه ۸  | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" type="image/png" href="/assets/images/favicon.png">
+<link rel="shortcut icon" href="/assets/images/favicon.png">
+    <style>
+        :root {
+            --bg-body: #050b14;
+            --bg-card: #111b2b;
+            --bg-card-hover: #1a283d;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --accent-color: #64ffda;
+            --border-color: #233554;
+            --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
+            --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
+            --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        .background-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
+        }
+
+        /* هدر دقیقا با استایل صفحه اصلی */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 5%;
+            background: rgba(5, 11, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
+            flex-shrink: 0;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .site-info h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .site-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .badge-unofficial {
+            font-size: 0.7rem;
+            background: rgb(43, 39, 66);
+            color: #7d63ff;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 99, 99, 0.2);
+            white-space: nowrap;
+        }
+
+        @media (max-width: 400px) {
+            .badge-unofficial { display: none; }
+        }
+
+        /* لایه اصلی آزمون */
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .quiz-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* دکمه بازگشت بالا */
+        .back-button-wrapper {
+            margin-bottom: 0.75rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 1.2rem;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        .back-icon {
+            font-size: 1.1rem;
+        }
+
+        .quiz-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .info-pill {
+            display: inline-block;
+            background: rgba(100, 255, 218, 0.08);
+            color: var(--accent-color);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+        }
+
+        .quiz-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .quiz-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-wrapper {
+            margin-top: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .progress-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #0b1624;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--btn-gradient);
+            transition: width 0.3s ease;
+        }
+
+        .question-card {
+            margin-top: 1rem;
+            background: var(--bg-card);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.5rem;
+            box-shadow: 0 10px 30px -12px rgba(2, 12, 27, 0.8);
+        }
+
+        .question-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+        }
+
+        .question-text {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #0b1624;
+            padding: 0.75rem 0.9rem;
+            text-align: right;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+            font-size: 0.92rem;
+            font-family: var(--font-main);
+            color: #ffffff;
+        }
+
+        .option-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+        }
+
+        .option-btn.selected {
+            background: rgba(100, 255, 218, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px rgba(100, 255, 218, 0.35);
+        }
+
+        .option-letter {
+            font-weight: 700;
+            min-width: 24px;
+            color: var(--accent-color);
+        }
+
+        .option-text {
+            flex: 1;
+            font-family: var(--font-main);
+            color: #ffffff;
+        }
+
+        .nav-buttons {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: space-between;
+        }
+
+        .nav-left,
+        .nav-right {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-base {
+            border-radius: 999px;
+            padding: 0.55rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .btn-base:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .btn-base:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .btn-primary {
+            background: var(--btn-gradient);
+            color: #ffffff;
+            border: none;
+            box-shadow: var(--btn-shadow);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        #resultsSection {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .score-card {
+            max-width: 360px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 1.6rem 1.4rem;
+            border-radius: 20px;
+            border: 1px solid rgba(100, 255, 218, 0.35);
+            background: radial-gradient(circle at top, #1e293b 0%, #020617 55%, #020617 100%);
+            box-shadow: 0 18px 45px -18px rgba(0, 0, 0, 0.8);
+        }
+
+        .score-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+
+        .score-percent {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--accent-color);
+            margin-bottom: 0.2rem;
+        }
+
+        .score-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            margin-bottom: 0.8rem;
+        }
+
+        .score-stats {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .score-stat-label {
+            display: block;
+            margin-bottom: 0.1rem;
+        }
+
+        .score-stat-value {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .answers-section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .answers-section-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+        }
+
+        .answer-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.1rem;
+        }
+
+        .answer-question-title {
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            margin-bottom: 0.35rem;
+        }
+
+        .answer-question-text {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.7rem;
+        }
+
+        .answer-options-wrapper {
+            margin-bottom: 0.6rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.85);
+            margin-bottom: 0.25rem;
+            font-size: 0.87rem;
+        }
+
+        .option-main {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .option-row .option-label {
+            font-weight: 700;
+            min-width: 24px;
+            color: var(--accent-color);
+        }
+
+        .option-row .option-text {
+            color: var(--text-primary);
+        }
+
+        .option-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .option-row.correct {
+            border: 1px solid rgba(34, 197, 94, 0.75);
+            background: rgba(22, 163, 74, 0.14);
+        }
+
+        .option-row.user-correct {
+            border: 1px solid rgba(34, 197, 94, 0.95);
+            background: rgba(22, 163, 74, 0.22);
+        }
+
+        .option-row.user-wrong {
+            border: 1px solid rgba(248, 113, 113, 0.9);
+            background: rgba(248, 113, 113, 0.12);
+        }
+
+        .option-row.correct .option-tag,
+        .option-row.user-correct .option-tag {
+            border-color: rgba(34, 197, 94, 0.9);
+            color: #bbf7d0;
+        }
+
+        .option-row.user-wrong .option-tag {
+            border-color: rgba(248, 113, 113, 0.9);
+            color: #fecaca;
+        }
+
+        .answer-explanation {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .answer-explanation strong {
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-body);
+        }
+
+        footer span {
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 600px) {
+            .question-card {
+                padding: 1.1rem 1rem;
+            }
+        }
+    </style>
+<meta name="theme-color" content="#050b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dent1402">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260421-pwa">
+</head>
+<body class="quiz-page">
+
+<div class="background-overlay"></div>
+
+<header class="site-header">
+    <div class="logo-area">
+        <div class="logo-circle">
+            <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+        </div>
+        <div class="site-info">
+            <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+            <p>دانشگاه علوم پزشکی تهران</p>
+        </div>
+    </div>
+    <div class="badge-unofficial">سامانه غیررسمی</div>
+</header>
+
+<main>
+    <section class="quiz-wrapper">
+        <div class="back-button-wrapper">
+            <a href="/" class="back-btn">
+                <span class="back-icon">←</span>
+                بازگشت به صفحه اصلی
+            </a>
+        </div>
+        <!-- هدر آزمون -->
+        <div class="quiz-header">
+            <span class="info-pill">آزمون تمرینی فارماکولوژی – جلسه ۸ (NSAIDs)</span>
+            <h2 class="quiz-title">سؤالات استاد دهپور – NSAIDها</h2>
+            <p class="quiz-subtitle">
+                بعد از انتخاب هر گزینه، به‌صورت خودکار به سؤال بعدی می‌روی. در انتها روی «پایان آزمون» بزن تا نمره و پاسخ‌های تشریحی را ببینی.
+            </p>
+
+            <div class="progress-wrapper">
+                <div class="progress-top-row">
+                    <span id="questionCounter">سؤال ۱ از ۲۰</span>
+                    <span id="answeredCounter">۰ / ۲۰ پاسخ داده شده</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت سؤال -->
+        <div class="question-card">
+            <div class="question-meta">
+                <span id="questionTag">سؤال ۱</span>
+                <span id="questionStatus">وضعیت: بدون پاسخ</span>
+            </div>
+            <div class="question-text" id="questionText"></div>
+            <div class="options-list" id="optionsContainer"></div>
+
+            <div class="nav-buttons">
+                <div class="nav-left">
+                    <button class="btn-base" id="prevBtn">سؤال قبلی</button>
+                    <button class="btn-base" id="nextBtn">سؤال بعدی</button>
+                </div>
+                <div class="nav-right">
+                    <button class="btn-base btn-primary" id="finishBtn">
+                        پایان آزمون و مشاهده نتایج
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- نتایج + پاسخ‌های تشریحی -->
+        <section id="resultsSection">
+            <div class="score-card">
+                <div class="score-title">نتیجه آزمون جلسه ۸</div>
+                <div class="score-percent" id="scorePercent">0%</div>
+                <div class="score-subtitle" id="scoreLabel">۰ پاسخ صحیح از ۲۰ سؤال</div>
+                <div class="score-stats">
+                    <div>
+                        <span class="score-stat-label">صحیح</span>
+                        <span class="score-stat-value" id="scoreCorrect">0</span>
+                    </div>
+                    <div>
+                        <span class="score-stat-label">غلط</span>
+                        <span class="score-stat-value" id="scoreWrong">0</span>
+                    </div>
+                    <div>
+                        <span class="score-stat-label">نزده</span>
+                        <span class="score-stat-value" id="scoreUnanswered">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="answers-list">
+                <div>
+                    <div class="answers-section-title">بررسی سؤال‌به‌سؤال</div>
+                    <div class="answers-section-subtitle">
+                        برای هر سؤال، متن سؤال، تمام گزینه‌ها، گزینه انتخابی شما و گزینه صحیح نمایش داده می‌شود؛ سپس پاسخ تشریحی آورده شده است.
+                    </div>
+                </div>
+                <div id="answersContainer"></div>
+            </div>
+        </section>
+    </section>
+</main>
+
+<footer>
+    <p>طراحی شده با ❤️ برای ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران - آرین قاسم‌پور</p>
+</footer>
+
+<script>
+    const questions = [
+        {
+            question: 'کدام مورد بهترین تعریف و نام‌گذاری NSAID ها را توضیح می‌دهد؟',
+            options: [
+                'داروهای ضد درد و ضد تب که استروئیدی هستند و روی گیرنده‌های گلوکوکورتیکوئیدی عمل می‌کنند.',
+                'داروهایی ضد درد، ضد التهاب و ضد تب که استروئیدی نیستند و به همین دلیل Non-Steroidal Anti-Inflammatory Drugs نامیده شده‌اند.',
+                'داروهایی که فقط اثر ضدالتهابی دارند و هیچ‌گونه اثر ضددرد یا ضدهتب ندارند.',
+                'هر داروی ضددرد مرکزی (مثل Opioidها) در این دسته قرار می‌گیرد.'
+            ],
+            correctIndex: 1,
+            explanation: 'NSAID ها سه اثر اصلی «ضد درد، ضد التهاب و ضد تب» دارند و چون ساختار یا مکانیسمشان استروئیدی نیست، به آن‌ها داروهای ضدالتهاب غیر استروئیدی گفته می‌شود.'
+        },
+        {
+            question: 'بر اساس جزوه، دو جایگاه اصلی که NSAID ها در آن‌ها اثر ضددردی خود را اعمال می‌کنند کدام‌اند؟',
+            options: [
+                'فقط قشر مغز',
+                'نخاع و قشر بینایی',
+                'حساس‌سازی محیطی و حساس‌سازی نخاعی (peripheral & spinal sensitization)',
+                'گیرنده‌های اوپیوئیدی در مغز'
+            ],
+            correctIndex: 2,
+            explanation: 'NSAID ها با کاهش «sensitization محیطی» در محل التهاب و «sensitization نخاعی» در سطح شاخ خلفی نخاع، انتقال پیام درد را کم می‌کنند؛ برخلاف اوپیوئیدها که بیشتر در مراکز بالادستی CNS عمل می‌کنند.'
+        },
+        {
+            question: 'کدام مورد در مورد اثرات محیطی NSAID ها در کاهش درد درست است؟',
+            options: [
+                'با افزایش آزادسازی برادی‌کینین باعث کاهش درد می‌شوند.',
+                'با مهار تولید پروستاگلاندین‌های التهابی، آستانه تحریک گیرنده‌های درد (nociceptors) را بالا می‌برند.',
+                'با تحریک مستقیم گیرنده‌های اوپیوییدی محیطی در محل التهاب عمل می‌کنند.',
+                'فقط روی دردهای نوروپاتیک اثر دارند، نه دردهای التهابی.'
+            ],
+            correctIndex: 1,
+            explanation: 'NSAID ها با مهار COX و کاهش تولید پروستاگلاندین‌ها، از «حساس شدن» گیرنده‌های درد توسط مدیاتورهایی مثل برادی‌کینین جلوگیری کرده و آستانه درد را بالا می‌برند؛ لذا بیمار درد کمتر حس می‌کند.'
+        },
+        {
+            question: 'کدام جمله در مورد اثرات نخاعی (spinal) NSAID ها صحیح است؟',
+            options: [
+                'در شاخ خلفی نخاع از ترشح نوروترانسمیترهای تحریکی وابسته به گلوتامات و سابستنس P می‌کاهند.',
+                'مستقیماً گیرنده‌های μ اوپیوئیدی را فعال می‌کنند.',
+                'باعث دپلاریزه شدن نورون‌های درد و تشدید انتقال پیام درد می‌شوند.',
+                'تنها در سطح ساقه مغز اثر گذاشته و هیچ نقشی در نخاع ندارند.'
+            ],
+            correctIndex: 0,
+            explanation: 'NSAID ها در سطح نخاع با کاهش تولید پروستاگلاندین‌ها، از آزاد شدن نوروترانسمیترهای تحریکی در سیناپس‌های درد کم کرده و به این ترتیب انتقال پیام درد را تعدیل می‌کنند.'
+        },
+        {
+            question: 'کدام یک از موارد زیر جزو اثرات ضدهتابی NSAID ها محسوب می‌شود؟',
+            options: [
+                'کاهش اتساع عروقی و نفوذپذیری مویرگی در محل التهاب',
+                'افزایش فیلتراسیون گلومرولی',
+                'افزایش تجمع پلاکتی',
+                'تحریک آزادسازی هیستامین از ماست‌سل‌ها'
+            ],
+            correctIndex: 0,
+            explanation: 'NSAID ها با مهار پروستاگلاندین‌ها، از اتساع عروقی و افزایش نفوذپذیری مویرگی جلوگیری می‌کنند؛ بنابراین قرمزی، گرمی و تورم در محل التهاب کاهش می‌یابد.'
+        },
+        {
+            question: 'دردی که NSAID ها بیشترین کارایی را در کاهش آن دارند، معمولاً چه ویژگی‌ای دارد؟',
+            options: [
+                'دردهای شدید احشایی بدون زمینه التهابی',
+                'دردهای خفیف تا متوسط با زمینه التهابی و منشاء اسکلتی‌عضلانی',
+                'هر نوع درد شدید حاد و مزمن به هر علت',
+                'فقط دردهای نوروپاتیک'
+            ],
+            correctIndex: 1,
+            explanation: 'NSAID ها برای دردهای خفیف تا متوسط با زمینه التهاب (مثل درد مفاصل، دردهای عضلانی، دندان‌درد التهابی) مناسب‌اند؛ برای دردهای شدید و احشایی معمولاً اوپیوئید لازم می‌شود.'
+        },
+        {
+            question: 'کدام جمله در مورد تفاوت مهم NSAID ها با اوپیوئیدها صحیح است؟',
+            options: [
+                'NSAID ها مانند اوپیوئیدها باعث یوفوریا و وابستگی جسمی می‌شوند.',
+                'NSAID ها علاوه بر مهار درد، مرکز تنفس را مهار کرده و سبب دپرسیون تنفسی می‌شوند.',
+                'اوپیوئیدها عوارض گوارشی NSAID ها را ندارند ولی NSAID ها ulcerogenic هستند.',
+                'هیچ‌کدام از این دو گروه دارویی اثری بر التهاب ندارند.'
+            ],
+            correctIndex: 2,
+            explanation: 'NSAID ها به دلیل مهار پروستاگلاندین‌ها در مخاط معده ulcerogenic هستند و می‌توانند زخم و خونریزی گوارشی بدهند؛ اوپیوئیدها چنین عارضه مستقیمی روی مخاط ندارند اما عوارضی مثل وابستگی و دپرسیون تنفسی دارند.'
+        },
+        {
+            question: 'اصطلاح ulcerogenic بودن NSAID ها به چه معناست؟',
+            options: [
+                'تمایل به ایجاد زخم‌های پوستی',
+                'قابلیت ایجاد زخم و آسیب مخاطی در دستگاه گوارش',
+                'اثرات تخریبی روی زخم‌های جراحی',
+                'توانایی ترمیم زخم‌ها'
+            ],
+            correctIndex: 1,
+            explanation: 'ulcerogenic یعنی «زخم‌زا»؛ NSAID ها با مهار پروستاگلاندین‌های محافظ مخاط معده (مثل PGE2) باعث کاهش موکوس، کاهش جریان خون مخاطی و افزایش آسیب‌پذیری در برابر اسید شده و مستعد ایجاد زخم گوارشی هستند.'
+        },
+        {
+            question: 'کدام جمله در مورد نقش پروستاگلاندین‌های محافظتی معده صحیح است؟',
+            options: [
+                'باعث افزایش ترشح اسید معده می‌شوند.',
+                'ترشح موکوس و بیکربنات را افزایش داده و جریان خون مخاط را بهبود می‌بخشند.',
+                'باعث کاهش ضخامت لایه مخاطی و افزایش ریسک زخم می‌شوند.',
+                'هیچ نقشی در فیزیولوژی معده ندارند.'
+            ],
+            correctIndex: 1,
+            explanation: 'پروستاگلاندین‌های محافظ (مانند PGE2) با افزایش تولید موکوس و بیکربنات و بهبود خون‌رسانی مخاط معده، یک لایه دفاعی مهم در برابر اسید و پپسین ایجاد می‌کنند؛ مهار آن‌ها توسط NSAID ها عامل اصلی زخم‌زایی است.'
+        },
+        {
+            question: 'کدام مورد در مورد عوارض گوارشی NSAID ها نادرست است؟',
+            options: [
+                'می‌توانند سبب سوءهاضمه و درد اپی‌گاستر شوند.',
+                'ریسک زخم و خونریزی معده و دوازدهه را افزایش می‌دهند.',
+                'در افراد سالم هیچ‌گونه عارضه گوارشی ندارند.',
+                'مصرف طولانی‌مدت در دوزهای بالا خطرناک‌تر است.'
+            ],
+            correctIndex: 2,
+            explanation: 'NSAID ها حتی در افراد بدون سابقه قبلی زخم گوارشی هم می‌توانند باعث دیس‌پپسی، گاستریت، زخم و حتی خونریزی شوند؛ پس این‌که «در افراد سالم هیچ عارضه‌ای ندارند» نادرست است.'
+        },
+        {
+            question: 'کدام فاکتور ریسک برای بروز عوارض گوارشی NSAID ها مهم‌تر محسوب می‌شود؟',
+            options: [
+                'سن بالاتر از ۶۵ سال',
+                'سابقه زخم معده یا خونریزی گوارشی',
+                'مصرف همزمان کورتون‌ها یا ضدانعقادها',
+                'همه موارد فوق'
+            ],
+            correctIndex: 3,
+            explanation: 'سن بالا، سابقه زخم یا خونریزی گوارشی و مصرف همزمان داروهای دیگری مثل کورتیکواستروئیدها و ضدانعقادها همگی ریسک عوارض گوارشی را به‌طور قابل توجهی افزایش می‌دهند.'
+        },
+        {
+            question: 'اثر NSAID ها بر روی کلیه‌ها عمدتاً ناشی از چیست؟',
+            options: [
+                'افزایش مستقیم جریان خون کلیوی',
+                'مهار پروستاگلاندین‌های کلیوی و کاهش جریان خون در شرایط وابسته به PG',
+                'تحریک تولید رنین',
+                'تحریک ترشح آلدوسترون از قشر فوق‌کلیه'
+            ],
+            correctIndex: 1,
+            explanation: 'در شرایطی که پرفیوژن کلیه کاهش یافته و پروستاگلاندین‌ها برای حفظ جریان خون کلیوی حیاتی هستند، مهار آن‌ها توسط NSAID ها می‌تواند باعث کاهش GFR و نارسایی حاد کلیه شود.'
+        },
+        {
+            question: 'مصرف NSAID ها در کدام وضعیت زیر می‌تواند به‌طور ویژه خطرناک‌تر باشد؟',
+            options: [
+                'نارسایی احتقانی قلب',
+                'سیروز کبدی با آسیت',
+                'هیپوولمی (کم‌حجمی) شدید',
+                'همه موارد فوق'
+            ],
+            correctIndex: 3,
+            explanation: 'در تمام این حالات، پرفیوژن کلیه کاهش یافته و کلیه تا حدی به واسطه پروستاگلاندین‌ها پرفیوژن خود را حفظ می‌کند؛ مهار آن‌ها با NSAID ها می‌تواند نارسایی کلیه را تشدید کند.'
+        },
+        {
+            question: 'کدام مورد از عوارض احتمالی کلیوی NSAID ها محسوب می‌شود؟',
+            options: [
+                'احتباس آب و نمک و تشدید ادم یا فشار خون',
+                'افزایش واضح دفع پتاسیم و هیپوکالمی',
+                'تحریک تولید اریتروپویتین',
+                'کاهش بروز سنگ کلیه'
+            ],
+            correctIndex: 0,
+            explanation: 'NSAID ها می‌توانند با تغییرات همودینامیک و اثرات روی کلیه، باعث احتباس سدیم و آب شده و به این ترتیب ادم یا فشار خون را بدتر کنند.'
+        },
+        {
+            question: 'کدام جمله در مورد اثرات NSAID ها بر روی خونریزی صحیح است؟',
+            options: [
+                'تمام NSAID ها به‌طور برگشت‌ناپذیر تجمع پلاکتی را مهار می‌کنند.',
+                'مهار تجمع پلاکتی عمدتاً با آسپیرین (ASA) که به‌صورت غیرقابل برگشت COX-1 پلاکت را مهار می‌کند دیده می‌شود.',
+                'NSAID ها هیچ تأثیری بر روی خونریزی ندارند.',
+                'NSAID ها از طریق افزایش ترومبوکسان A2 لخته را پایدارتر می‌کنند.'
+            ],
+            correctIndex: 1,
+            explanation: 'آسپیرین با استیله کردن COX-1 در پلاکت‌ها به‌طور غیرقابل برگشت موجب مهار سنتز ترومبوکسان A2 شده و تجمع پلاکتی را برای کل عمر پلاکت کاهش می‌دهد؛ سایر NSAID ها معمولاً مهار برگشت‌پذیرتری دارند.'
+        },
+        {
+            question: 'در مورد مصرف NSAID ها در دوران بارداری کدام گزینه صحیح‌تر است؟',
+            options: [
+                'در هر سه‌ماهه کاملاً بی‌خطر هستند.',
+                'به‌خصوص در سه‌ماهه سوم می‌توانند باعث بسته شدن زودرس مجرای شریانی (ductus arteriosus) شوند.',
+                'فقط در سه‌ماهه اول ممنوع‌اند.',
+                'هیچ ارتباطی با عوارض جنینی ندارند.'
+            ],
+            correctIndex: 1,
+            explanation: 'NSAID ها و به‌ویژه مهارکننده‌های پروستاگلاندین می‌توانند در سه‌ماهه سوم باعث بسته شدن زودرس مجرای شریانی جنین و عوارض قلبی‌ریوی شوند؛ بنابراین مصرفشان باید با احتیاط زیاد یا اجتناب باشد.'
+        },
+        {
+            question: 'کدام عبارت در مورد انتخاب بین NSAID های مختلف (مثل ایبوپروفن، ناپروکسن و ...) صحیح‌تر است؟',
+            options: [
+                'همه آن‌ها دقیقاً پروفایل عارضه یکسان دارند.',
+                'تفاوت‌هایی در نیمه‌عمر، شدت عوارض گوارشی و قلبی‌عروقی و انتخاب‌پذیری COX-2 بین آن‌ها وجود دارد.',
+                'فقط آسپیرین NSAID محسوب می‌شود.',
+                'هیچ‌کدام از NSAID ها مهار COX-2 ندارند.'
+            ],
+            correctIndex: 1,
+            explanation: 'هر NSAID پروفایل فارماکوکینتیک و عارضه‌ای خود را دارد (مثلاً نیمه‌عمر، درصد مهار COX-2، ریسک قلبی‌عروقی و گوارشی) و انتخاب بین آن‌ها باید بر اساس شرایط بالینی و فردی بیمار باشد.'
+        },
+        {
+            question: 'در بیماران با ریسک بالای زخم گوارشی که ناچار به مصرف NSAID هستند، کدام اقدام کمکی توصیه می‌شود؟',
+            options: [
+                'مصرف همزمان PPI (مثل امپرازول) یا میزوپروستول برای محافظت مخاط معده',
+                'حذف کامل هرگونه درمان حمایتی',
+                'افزایش دوز NSAID برای کاهش درد و در نتیجه کاهش ریسک زخم',
+                'همزمانی با کورتیکواستروئید برای کاهش التهاب'
+            ],
+            correctIndex: 0,
+            explanation: 'در بیماران پرخطر، معمولاً توصیه می‌شود همراه با NSAID از داروهای محافظ مخاط (مثل PPI یا میزوپروستول) استفاده شود تا ریسک زخم و خونریزی کاهش یابد.'
+        },
+        {
+            question: 'در کدام مورد باید از تجویز NSAID ها با احتیاط بسیار یا اجتناب کامل استفاده کرد؟',
+            options: [
+                'بیمار با سابقه خونریزی گوارشی فعال',
+                'بیمار با نارسایی کلیه پیشرفته',
+                'بیمار با نارسایی شدید قلبی',
+                'همه موارد فوق'
+            ],
+            correctIndex: 3,
+            explanation: 'در تمام این شرایط، NSAID ها می‌توانند وضعیت بیمار را بدتر کنند (خونریزی مجدد، تشدید نارسایی کلیه، احتباس مایع و تشدید نارسایی قلبی)، بنابراین یا نباید تجویز شوند یا باید با نظارت شدید و جایگزین‌های مناسب بررسی شوند.'
+        },
+        {
+            question: 'کدام مورد در مورد دوز و مدت مصرف NSAID ها از نظر ایمنی صحیح‌تر است؟',
+            options: [
+                'مصرف بلندمدت در دوزهای حداکثری همیشه بی‌خطر است.',
+                'کمترین دوز مؤثر در کوتاه‌ترین مدت زمان توصیه می‌شود.',
+                'هر چه دوز بالاتر باشد، عوارض کلیوی و قلبی‌عروقی کمتر است.',
+                'هیچ رابطه‌ای بین دوز و عوارض NSAID ها وجود ندارد.'
+            ],
+            correctIndex: 1,
+            explanation: 'اصول کلی مصرف NSAID ها این است که برای کاهش ریسک عوارض (به‌ویژه گوارشی، کلیوی و قلبی‌عروقی) از «کمترین دوز مؤثر» و در «کوتاه‌ترین دوره زمانی لازم» استفاده شود.'
+        },
+        {
+            question: 'در مورد نقش NSAID ها در کنترل تب، کدام گزینه درست‌تر است؟',
+            options: [
+                'با مهار سنتز پروستاگلاندین‌ها در هیپوتالاموس، set point دمای بدن را پایین می‌آورند.',
+                'فقط روی تب‌های ناشی از عفونت‌های ویروسی اثر دارند.',
+                'هیچ اثری روی مرکز تنظیم حرارت در هیپوتالاموس ندارند.',
+                'تنها از طریق تعریق و اتساع محیطی عروق عمل می‌کنند و نقشی در مدیاتورهای شیمیایی ندارند.'
+            ],
+            correctIndex: 0,
+            explanation: 'NSAID ها با مهار تولید پروستاگلاندین E2 در هیپوتالاموس، set point دمایی را پایین می‌آورند و در نتیجه، مکانیسم‌های دفع حرارت (اتساع عروق پوستی، تعریق) فعال شده و تب کاهش می‌یابد.'
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    const questionCounterEl = document.getElementById('questionCounter');
+    const answeredCounterEl = document.getElementById('answeredCounter');
+    const progressFillEl = document.getElementById('progressFill');
+    const questionTagEl = document.getElementById('questionTag');
+    const questionStatusEl = document.getElementById('questionStatus');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainerEl = document.getElementById('optionsContainer');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const finishBtn = document.getElementById('finishBtn');
+
+    const resultsSectionEl = document.getElementById('resultsSection');
+    const scorePercentEl = document.getElementById('scorePercent');
+    const scoreLabelEl = document.getElementById('scoreLabel');
+    const scoreCorrectEl = document.getElementById('scoreCorrect');
+    const scoreWrongEl = document.getElementById('scoreWrong');
+    const scoreUnansweredEl = document.getElementById('scoreUnanswered');
+    const answersContainerEl = document.getElementById('answersContainer');
+
+    function updateProgressUI() {
+        const total = questions.length;
+        const answeredCount = userAnswers.filter(a => a !== null).length;
+
+        questionCounterEl.textContent = `سؤال ${currentQuestionIndex + 1} از ${total}`;
+        answeredCounterEl.textContent = `${answeredCount} / ${total} پاسخ داده شده`;
+
+        const progressPercent = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+        progressFillEl.style.width = progressPercent + '%';
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestionIndex];
+
+        questionTagEl.textContent = `سؤال ${currentQuestionIndex + 1}`;
+        questionTextEl.textContent = q.question;
+
+        const userAnswer = userAnswers[currentQuestionIndex];
+        questionStatusEl.textContent = userAnswer === null ? 'وضعیت: بدون پاسخ' : 'وضعیت: پاسخ داده شده';
+
+        optionsContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'option-btn';
+            if (userAnswer === index) btn.classList.add('selected');
+            btn.dataset.index = index.toString();
+
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'option-letter';
+            letterSpan.textContent = letters[index] + ')';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'option-text';
+            textSpan.textContent = opt;
+
+            btn.appendChild(letterSpan);
+            btn.appendChild(textSpan);
+
+            btn.addEventListener('click', () => handleOptionSelect(index));
+            optionsContainerEl.appendChild(btn);
+        });
+
+        prevBtn.disabled = currentQuestionIndex === 0;
+        nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+
+        updateProgressUI();
+    }
+
+    function handleOptionSelect(optionIndex) {
+        userAnswers[currentQuestionIndex] = optionIndex;
+        if (currentQuestionIndex < questions.length - 1) currentQuestionIndex++;
+        renderQuestion();
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+    });
+
+    finishBtn.addEventListener('click', () => {
+        finishQuiz();
+    });
+
+    function finishQuiz() {
+        const total = questions.length;
+        let correct = 0, wrong = 0, unanswered = 0;
+
+        questions.forEach((q, index) => {
+            const ans = userAnswers[index];
+            if (ans === null) unanswered++;
+            else if (ans === q.correctIndex) correct++;
+            else wrong++;
+        });
+
+        const percent = total === 0 ? 0 : Math.round((correct / total) * 100);
+
+        scorePercentEl.textContent = percent + '%';
+        scoreLabelEl.textContent = `${correct} پاسخ صحیح از ${total} سؤال`;
+        scoreCorrectEl.textContent = correct.toString();
+        scoreWrongEl.textContent = wrong.toString();
+        scoreUnansweredEl.textContent = unanswered.toString();
+
+        buildAnswersReview();
+        resultsSectionEl.style.display = 'flex';
+        resultsSectionEl.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function buildAnswersReview() {
+        answersContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        questions.forEach((q, index) => {
+            const userAnswer = userAnswers[index];
+
+            const card = document.createElement('div');
+            card.className = 'answer-card';
+
+            const qTitle = document.createElement('div');
+            qTitle.className = 'answer-question-title';
+            qTitle.textContent = `سؤال ${index + 1}`;
+            card.appendChild(qTitle);
+
+            const qText = document.createElement('div');
+            qText.className = 'answer-question-text';
+            qText.textContent = q.question;
+            card.appendChild(qText);
+
+            const optionsWrapper = document.createElement('div');
+            optionsWrapper.className = 'answer-options-wrapper';
+
+            q.options.forEach((opt, optIdx) => {
+                const row = document.createElement('div');
+                row.className = 'option-row';
+
+                const main = document.createElement('div');
+                main.className = 'option-main';
+
+                const label = document.createElement('span');
+                label.className = 'option-label';
+                label.textContent = letters[optIdx] + ')';
+
+                const text = document.createElement('span');
+                text.className = 'option-text';
+                text.textContent = opt;
+
+                main.appendChild(label);
+                main.appendChild(text);
+                row.appendChild(main);
+
+                const tag = document.createElement('span');
+                tag.className = 'option-tag';
+
+                if (optIdx === q.correctIndex && userAnswer === optIdx) {
+                    row.classList.add('user-correct');
+                    tag.textContent = '✓ صحیح (انتخاب شما)';
+                } else if (optIdx === q.correctIndex) {
+                    row.classList.add('correct');
+                    tag.textContent = '✓ گزینه صحیح';
+                } else if (userAnswer === optIdx) {
+                    row.classList.add('user-wrong');
+                    tag.textContent = '✗ انتخاب شما';
+                }
+
+                if (tag.textContent) row.appendChild(tag);
+                optionsWrapper.appendChild(row);
+            });
+
+            card.appendChild(optionsWrapper);
+
+            const expl = document.createElement('div');
+            expl.className = 'answer-explanation';
+            if (userAnswer === null) {
+                expl.innerHTML = `<strong>وضعیت پاسخ:</strong> این سؤال را پاسخ ندادی.<br><strong>توضیح:</strong> ${q.explanation}`;
+            } else {
+                expl.innerHTML = `<strong>توضیح:</strong> ${q.explanation}`;
+            }
+
+            card.appendChild(expl);
+            answersContainerEl.appendChild(card);
+        });
+    }
+
+    renderQuestion();
+</script>
+
+<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
+<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+</body>
+</html>
+
+
+

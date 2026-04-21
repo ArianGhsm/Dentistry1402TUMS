@@ -1,0 +1,864 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+<link rel="stylesheet" href="/assets/site/styles/grades.css?v=20260421-pwa">
+<link rel="icon" type="image/png" href="/assets/images/favicon.png">
+<link rel="shortcut icon" href="/assets/images/favicon.png">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>نمرات | ورودی ۱۴۰۲ دندانپزشکی</title>
+  <style>
+    /* ================================
+       1. متغیرها و تم کلی (مثل صفحه اصلی)
+       ================================ */
+    :root {
+      --bg-body: #050b14;
+      --bg-card: #111b2b;
+      --bg-card-hover: #1a283d;
+      --text-primary: #e6f1ff;
+      --text-secondary: #8892b0;
+      --accent-color: #64ffda;
+      --border-color: #233554;
+
+      --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
+      --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
+
+      --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-main);
+      background-color: var(--bg-body);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+
+    /* پس‌زمینه گرادیانی */
+    .background-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
+    }
+
+    /* ================================
+       2. هدر (هم‌استایل با صفحه اصلی)
+       ================================ */
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 5%;
+      background: rgba(5, 11, 20, 0.8);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+.logo-circle {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    overflow: hidden;              /* بریدن گوشه‌های عکس */
+    box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
+    flex-shrink: 0;
+}
+
+/* عکس داخل دایره */
+.logo-circle img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;             /* اگر مربع نیست، قشنگ وسط می‌ایستد */
+}
+
+
+    .site-info h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .site-info p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .badge-unofficial {
+      font-size: 0.7rem;
+      background: rgba(255, 99, 99, 0.1);
+      color: #ff6363;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 99, 99, 0.2);
+      white-space: nowrap;
+    }
+
+    .header-link {
+      font-size: .8rem;
+      padding: 5px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(100, 255, 218, 0.35);
+      color: var(--accent-color);
+      background: rgba(15, 23, 42, 0.7);
+      transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .header-link:hover {
+      background: rgba(15, 23, 42, 0.95);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 223, 216, 0.25);
+    }
+
+    @media (max-width: 400px) {
+      .badge-unofficial { display: none; }
+      .header-link { font-size: 0.7rem; padding: 4px 10px; }
+    }
+
+    /* ================================
+       3. چیدمان اصلی
+       ================================ */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 5%;
+      display: grid;
+      gap: 2.5rem;
+      align-items: center;
+    }
+
+    @media (min-width: 992px) {
+      main {
+        grid-template-columns: 1fr 1fr; /* راست متن، چپ کارت نمرات */
+        height: calc(100vh - 80px);
+      }
+    }
+
+    /* ================================
+       4. بخش متنی سمت راست
+       ================================ */
+    .hero-content {
+      text-align: right;
+      animation: fadeInRight 0.8s ease-out;
+    }
+
+    .greeting-pill {
+      display: inline-block;
+      background: rgba(100, 255, 218, 0.1);
+      color: var(--accent-color);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(100, 255, 218, 0.2);
+    }
+
+    .hero-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      line-height: 1.4;
+      color: var(--text-primary);
+    }
+
+    .hero-title span {
+      color: #00dfd8;
+    }
+
+    .hero-desc {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      max-width: 500px;
+    }
+
+    @media (min-width: 992px) {
+      .hero-title { font-size: 2.4rem; }
+      .hero-desc  { font-size: 1.05rem; }
+    }
+
+    /* ================================
+       5. کارت سامانه نمرات (سمت چپ)
+       ================================ */
+    .cards-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+      animation: fadeInLeft 0.8s ease-out 0.2s backwards;
+    }
+
+    .grades-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 1.4rem 1.4rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px -10px rgba(2, 12, 27, 0.7);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .grades-card:hover {
+      transform: translateY(-3px);
+      background: var(--bg-card-hover);
+      border-color: rgba(100, 255, 218, 0.3);
+      box-shadow: 0 14px 35px -8px rgba(2, 12, 27, 0.9);
+    }
+
+    .grades-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.4rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .grades-logo {
+      width: 140px;
+      height: auto;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    .grades-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .grades-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* لیبل و اینپوت‌ها */
+    label {
+      display: block;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.3rem;
+      color: var(--text-primary);
+    }
+
+    .input-group {
+      position: relative;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 9px 11px;
+      padding-right: 32px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.65);
+      background: rgba(10, 18, 30, 0.9);
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, transform 0.1s ease;
+    }
+
+    .input-group input::placeholder {
+      color: #6b7280;
+    }
+
+    .input-group input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.7), 0 8px 20px rgba(37, 99, 235, 0.4);
+      background: rgba(15, 23, 42, 0.98);
+      transform: translateY(-1px);
+    }
+
+    .input-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+    /* دکمه اصلی */
+    #submit-btn {
+      width: 100%;
+      margin-top: 0.9rem;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--btn-gradient);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: var(--btn-shadow);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
+
+    #submit-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 223, 216, 0.35);
+      filter: brightness(1.05);
+    }
+
+    #submit-btn:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(0, 223, 216, 0.25);
+      filter: brightness(0.98);
+    }
+
+    #submit-btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .button-icon {
+      font-size: 0.9rem;
+    }
+
+    /* پیام‌ها */
+    #msg {
+      margin-top: 0.6rem;
+      font-size: 0.8rem;
+      text-align: center;
+      min-height: 1.2em;
+    }
+
+    #msg.error {
+      color: #f87171;
+    }
+
+    #msg.success {
+      color: #22c55e;
+    }
+
+    .loader {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .loader-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--accent-color);
+      animation: bounce 0.9s infinite alternate;
+    }
+    .loader-dot:nth-child(2) { animation-delay: 0.12s; }
+    .loader-dot:nth-child(3) { animation-delay: 0.24s; }
+
+    @keyframes bounce {
+      from { transform: translateY(1px); opacity: 0.55; }
+      to   { transform: translateY(-2px); opacity: 1; }
+    }
+
+    /* باکس نمرات */
+    #grades {
+      margin-top: 0.8rem;
+      background: #050b14;
+      border-radius: 14px;
+      border: 1px solid #233554;
+      padding: 0.75rem 0.7rem 0.6rem;
+      font-size: 0.78rem;
+    }
+
+    .grades-name-block {
+      margin-bottom: 0.5rem;
+    }
+
+    .grades-name-title {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .grades-name-value {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .grades-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .grade-item {
+      border-radius: 12px;
+      padding: 0.45rem 0.4rem 0.5rem;
+      background: #111b2b;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      text-align: center;
+    }
+
+    .grade-label {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.15rem;
+    }
+
+    .grade-value {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .grades-extra {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: 0.15rem;
+    }
+
+    /* تغییر رمز */
+    .password-change {
+      border-top: 1px dashed rgba(55, 65, 81, 0.9);
+      padding-top: 0.5rem;
+      margin-top: 0.4rem;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .password-row {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: 0.35rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .password-row input {
+      padding: 6px 9px;
+      font-size: 0.75rem;
+    }
+
+    .password-btn {
+      margin-top: 0.2rem;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: none;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #0ea5e9, #22c55e);
+      color: #fff;
+      display: block;
+      margin-left: auto;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
+
+    .password-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.6);
+      filter: brightness(1.05);
+    }
+
+    .password-note {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 0.2rem;
+    }
+
+    .grades-footer-note {
+      margin-top: 0.5rem;
+      font-size: 0.72rem;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    /* فوتر پایین صفحه */
+    footer {
+      text-align: center;
+      padding: 1.2rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border-color);
+      background: rgba(5, 11, 20, 0.9);
+    }
+
+    footer span {
+      color: var(--accent-color);
+    }
+
+    /* انیمیشن‌ها */
+    @keyframes fadeInRight {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeInLeft {
+      from { opacity: 0; transform: translateX(-20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @media (max-width: 768px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+<meta name="theme-color" content="#050b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260421-pwa">
+</head>
+<body class="grades-page">
+
+  <div class="background-overlay"></div>
+
+  <header class="site-header">
+    <div class="logo-area">
+ <div class="logo-circle">
+            <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+        </div>
+      <div class="site-info">
+        <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+        <p>نمرات دانشجو</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="/app/" class="header-link">خانه</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- متن سمت راست -->
+    <section class="hero-content">
+      <span class="greeting-pill">نمرات</span>
+      <h2 class="hero-title">
+        نمره‌هایت را ببین<br>
+        <span>سریع و ساده</span>
+      </h2>
+      <p class="hero-desc">
+        شماره دانشجویی و رمز را وارد کن. بعد از ورود می‌توانی نمره‌ها را ببینی و در صورت نیاز رمزت را عوض کنی.
+      </p>
+    </section>
+
+    <!-- کارت نمرات سمت چپ -->
+    <section class="cards-container">
+      <div class="grades-card">
+        <div class="grades-header">
+          <!-- ⬇️ لوگوی قبلی، طبق خواسته‌ات بدون تغییر -->
+          <img
+            src="https://cdn.imgurl.ir/uploads/w485427______.png"
+            alt="Dent 1402 Logo"
+            class="grades-logo"
+          />
+          <div class="grades-title">نمرات ورودی ۱۴۰۲</div>
+          <div class="grades-subtitle">برای دیدن نمره‌ها وارد شو.</div>
+        </div>
+
+        <div>
+          <label for="sid">شماره دانشجویی</label>
+          <div class="input-group">
+            <span class="input-icon">🎓</span>
+            <input type="text" id="sid" placeholder="مثلاً 40211272568">
+          </div>
+
+          <label for="pwd">رمز عبور</label>
+          <div class="input-group">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="pwd" placeholder="رمز عبور">
+          </div>
+
+          <button id="submit-btn" type="button">
+            <span class="button-icon">📊</span>
+            دیدن نمرات
+          </button>
+
+          <div id="msg"></div>
+          <div id="grades" style="display:none;"></div>
+
+          <div class="grades-footer-note">
+            اگر مشکلی بود، با نماینده ورودی هماهنگ کن.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
+  </footer>
+
+  <script>
+    // ✅ این همان منطق قبلی است؛ فقط به PHP خودت وصل می‌شود
+
+    // تبدیل اعداد فارسی به انگلیسی
+    function toEnglishDigits(str) {
+      if (!str) return "";
+      return str.replace(/[۰-۹]/g, function (d) {
+        return "0123456789"["۰۱۲۳۴۵۶۷۸۹".indexOf(d)];
+      });
+    }
+
+    let currentSid = null;
+    let currentPassword = null;
+
+    const submitBtn = document.getElementById('submit-btn');
+    const msg       = document.getElementById('msg');
+    const gradesBox = document.getElementById('grades');
+
+    function setLoading(isLoading) {
+      if (isLoading) {
+        submitBtn.disabled = true;
+        msg.className = '';
+        msg.innerHTML =
+          '<div class="loader">' +
+            '<span class="loader-dot"></span>' +
+            '<span class="loader-dot"></span>' +
+            '<span class="loader-dot"></span>' +
+            '<span>در حال بررسی اطلاعات...</span>' +
+          '</div>';
+      } else {
+        submitBtn.disabled = false;
+      }
+    }
+
+    async function checkGrades() {
+      const sidRaw = document.getElementById('sid').value.trim();
+      const pwdRaw = document.getElementById('pwd').value.trim();
+
+      const sid = toEnglishDigits(sidRaw);
+      const pwd = toEnglishDigits(pwdRaw);
+
+      msg.textContent = '';
+      msg.className   = '';
+      gradesBox.style.display = 'none';
+      gradesBox.innerHTML     = '';
+
+      if (!sid || !pwd) {
+        msg.textContent = 'لطفاً شماره دانشجویی و رمز عبور را وارد کنید.';
+        msg.className   = 'error';
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const response = await fetch('grades_api.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+          },
+          body: new URLSearchParams({
+            action: 'check',
+            studentId: sid,
+            password: pwd
+          })
+        });
+
+        const result = await response.json();
+        setLoading(false);
+
+        if (!result || result.error) {
+          msg.textContent = result && result.error ? result.error : 'شماره دانشجویی یا رمز اشتباه است.';
+          msg.className   = 'error';
+          gradesBox.style.display = 'none';
+          currentSid      = null;
+          currentPassword = null;
+          return;
+        }
+
+        msg.textContent = 'نمرات شما با موفقیت بارگذاری شد.';
+        msg.className   = 'success';
+        gradesBox.style.display = 'block';
+
+        currentSid      = sid;
+        currentPassword = pwd;
+
+        // ✅ مپ کردن stats بر اساس label (میانگین/رتبه برای هر نمره جدا)
+        const statsMap = {};
+        (result.stats || []).forEach(function(st) {
+          if (st && st.label) statsMap[st.label] = st;
+        });
+
+        // ✅ هر نمره یک ردیف + رتبه/میانگین زیر همان ردیف
+        let rowsHtml = '';
+        (result.grades || []).forEach(function(g) {
+          const value = (g.value === undefined || g.value === '') ? '-' : g.value;
+
+          const st = statsMap[g.label] || null;
+
+          rowsHtml +=
+            '<div class="grade-item">' +
+              '<div class="grade-label">' + g.label + '</div>' +
+              '<div class="grade-value">' + value + '</div>';
+
+          if (st && st.classAverage !== null && st.classAverage !== undefined) {
+            const avg = Number(st.classAverage).toFixed(2);
+            rowsHtml += '<div class="grades-extra">میانگین نمره کلاس: ' + avg + '</div>';
+          }
+
+          if (st && st.rank !== null && st.rank !== undefined &&
+              st.totalWithScore !== null && st.totalWithScore !== undefined) {
+            rowsHtml += '<div class="grades-extra">رتبه شما در کلاس: ' + st.rank + ' از ' + st.totalWithScore + '</div>';
+          }
+
+          rowsHtml += '</div>';
+        });
+
+        let html = '';
+        html += '<div class="grades-name-block">';
+        html +=   '<div class="grades-name-title">نام و نام خانوادگی:</div>';
+        html +=   '<div class="grades-name-value">' + (result.name || '') + '</div>';
+        html += '</div>';
+
+        // ✅ forcing 1 column so each grade is one row
+        html += '<div class="grades-grid" style="grid-template-columns: 1fr;">' + rowsHtml + '</div>';
+
+        // بخش تغییر رمز (بدون تغییر)
+        html +=
+          '<div class="password-change">' +
+            '<div>تغییر رمز عبور:</div>' +
+            '<div class="password-row">' +
+              '<div class="input-group">' +
+                '<input type="password" id="new-pwd" placeholder="رمز جدید">' +
+              '</div>' +
+              '<div class="input-group">' +
+                '<input type="password" id="new-pwd-confirm" placeholder="تکرار رمز جدید">' +
+              '</div>' +
+            '</div>' +
+            '<button class="password-btn" type="button" onclick="changePassword()">تغییر رمز</button>' +
+            '<div class="password-note">در صورت فراموشی رمز، با نماینده ورودی یا مسئول درس هماهنگ کنید.</div>' +
+          '</div>';
+
+        gradesBox.innerHTML = html;
+
+      } catch (err) {
+        console.error(err);
+        setLoading(false);
+        msg.textContent = 'خطایی رخ داد. لطفاً بعداً دوباره امتحان کنید.';
+        msg.className   = 'error';
+      }
+    }
+
+    async function changePassword() {
+      const newPwdInput        = document.getElementById('new-pwd');
+      const newPwdConfirmInput = document.getElementById('new-pwd-confirm');
+
+      if (!currentSid || !currentPassword) {
+        msg.textContent = 'برای تغییر رمز، ابتدا وارد سامانه شوید.';
+        msg.className   = 'error';
+        return;
+      }
+
+      const newPwdRaw        = newPwdInput.value.trim();
+      const newPwdConfirmRaw = newPwdConfirmInput.value.trim();
+
+      const newPwd        = toEnglishDigits(newPwdRaw);
+      const newPwdConfirm = toEnglishDigits(newPwdConfirmRaw);
+
+      if (!newPwd || !newPwdConfirm) {
+        msg.textContent = 'رمز جدید و تکرار آن را وارد کنید.';
+        msg.className   = 'error';
+        return;
+      }
+
+      if (newPwd !== newPwdConfirm) {
+        msg.textContent = 'رمز جدید و تکرار آن یکسان نیستند.';
+        msg.className   = 'error';
+        return;
+      }
+
+      msg.textContent = '';
+      msg.className   = '';
+
+      try {
+        const response = await fetch('grades_api.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+          },
+          body: new URLSearchParams({
+            action: 'changePassword',
+            studentId: currentSid,
+            oldPassword: currentPassword,
+            newPassword: newPwd
+          })
+        });
+
+        const result = await response.json();
+
+        if (result && result.success) {
+          msg.textContent = 'رمز شما با موفقیت تغییر کرد.';
+          msg.className   = 'success';
+          currentPassword = newPwd;
+          newPwdInput.value        = '';
+          newPwdConfirmInput.value = '';
+        } else {
+          msg.textContent = result && result.error ? result.error : 'تغییر رمز با خطا مواجه شد.';
+          msg.className   = 'error';
+        }
+
+      } catch (err) {
+        console.error(err);
+        msg.textContent = 'خطایی در تغییر رمز رخ داد.';
+        msg.className   = 'error';
+      }
+    }
+
+    submitBtn.addEventListener('click', checkGrades);
+
+    document.getElementById('pwd').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        checkGrades();
+      }
+    });
+  </script>
+<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
+<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+</body>
+</html>
+
+
+
+

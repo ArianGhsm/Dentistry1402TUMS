@@ -1,0 +1,1243 @@
+﻿
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+<link rel="stylesheet" href="/assets/site/styles/quiz.css?v=20260421-pwa">
+<meta charset="UTF-8">
+    <title>آزمون بیماری‌های سیستمیک ۱ – جلسه ۶ (اختلالات WBC) | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- استایل کلی سایت و فونت -->
+    <!-- آیکون تب -->
+    <link rel="icon" type="image/png" href="/assets/images/logo.png">
+    <link rel="shortcut icon" href="/assets/images/logo.png">
+
+    <style>
+        :root {
+            --bg-body: #050b14;
+            --bg-card: #111b2b;
+            --bg-card-hover: #1a283d;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --accent-color: #64ffda;
+            --border-color: #233554;
+            --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
+            --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
+            --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .background-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
+        }
+
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 5%;
+            background: rgba(5, 11, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
+            flex-shrink: 0;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .site-info h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .site-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .badge-unofficial {
+            font-size: 0.7rem;
+            background: rgba(255, 99, 99, 0.1);
+            color: #ff6363;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 99, 99, 0.2);
+            white-space: nowrap;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .quiz-wrapper {
+            max-width: 900px;
+            margin: 0 auto 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .back-button-wrapper {
+            margin-bottom: 0.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.82rem;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .back-icon {
+            font-size: 1rem;
+        }
+
+        .quiz-header {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .info-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(100, 255, 218, 0.08);
+            border: 1px solid rgba(100, 255, 218, 0.4);
+            font-size: 0.78rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .quiz-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .quiz-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-wrapper {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .progress-top-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(15, 23, 42, 1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: var(--btn-gradient);
+            transition: width 0.2s ease-out;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.82rem;
+        }
+
+        .question-tag {
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .question-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .question-text {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #0b1624;
+            padding: 0.75rem 0.9rem;
+            text-align: right;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+            font-size: 0.92rem;
+            font-family: var(--font-main);
+            color: #ffffff;
+        }
+
+        .option-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+        }
+
+        .option-btn.selected {
+            background: rgba(100, 255, 218, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px rgba(100, 255, 218, 0.35);
+        }
+
+        .option-letter {
+            font-weight: 700;
+            min-width: 24px;
+            color: var(--accent-color);
+        }
+
+        .option-text {
+            flex: 1;
+            font-family: var(--font-main);
+            color: #ffffff;
+        }
+
+        .nav-buttons {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: space-between;
+        }
+
+        .nav-left,
+        .nav-right {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-base {
+            border-radius: 999px;
+            padding: 0.55rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .btn-base:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .btn-base:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .btn-primary {
+            background: var(--btn-gradient);
+            color: #ffffff;
+            border: none;
+            box-shadow: var(--btn-shadow);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        #resultsSection {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .results-section {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .results-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .results-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .results-score {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--accent-color);
+        }
+
+        .score-number {
+            font-size: 2.4rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .score-detail {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .results-box {
+            background: #0b1624;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 0.7rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .results-box-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .results-box-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .answer-card {
+            background: #0b1624;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .answer-question-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .answer-question-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .answer-options-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .option-main {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .option-label {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .option-row .option-text {
+            color: var(--text-primary);
+        }
+
+        .option-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .option-row.correct {
+            border: 1px solid rgba(34, 197, 94, 0.75);
+            background: rgba(22, 163, 74, 0.14);
+        }
+
+        .option-row.user-correct {
+            border: 1px solid rgba(34, 197, 94, 0.95);
+            background: rgba(22, 163, 74, 0.22);
+        }
+
+        .option-row.user-wrong {
+            border: 1px solid rgba(248, 113, 113, 0.9);
+            background: rgba(248, 113, 113, 0.12);
+        }
+
+        .option-row.correct .option-tag,
+        .option-row.user-correct .option-tag {
+            border-color: rgba(34, 197, 94, 0.9);
+            color: #bbf7d0;
+        }
+
+        .option-row.user-wrong .option-tag {
+            border-color: rgba(248, 113, 113, 0.9);
+            color: #fecaca;
+        }
+
+        .answer-explanation {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .answer-explanation strong {
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-body);
+        }
+
+        footer span {
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1.3rem 4%;
+            }
+
+            .quiz-header,
+            .question-card,
+            .results-section {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .question-card {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.5rem;
+            }
+        }
+    </style>
+<meta name="theme-color" content="#050b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dent1402">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260421-pwa">
+</head>
+<body class="quiz-page">
+
+<div class="background-overlay"></div>
+
+<header class="site-header">
+    <div class="logo-area">
+        <div class="logo-circle">
+            <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+        </div>
+        <div class="site-info">
+            <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+            <p>دانشگاه علوم پزشکی تهران</p>
+        </div>
+    </div>
+    <div class="badge-unofficial">سامانه غیررسمی</div>
+</header>
+
+<main>
+    <section class="quiz-wrapper">
+        <div class="back-button-wrapper">
+            <a href=".." class="back-btn">
+                <span class="back-icon">←</span>
+                بازگشت به فهرست آزمون‌های سیستمیک ۱
+            </a>
+        </div>
+
+        <div class="quiz-header">
+            <span class="info-pill">آزمون تمرینی بیماری‌های سیستمیک ۱ – جلسه ۶ (WBC disorders)</span>
+            <h2 class="quiz-title">سؤالات جلسه ۶ – اختلالات WBC، لوسمی، لنفوم، میلوم مولتیپل و نوتروپنی</h2>
+            <p class="quiz-subtitle">
+                بعد از انتخاب هر گزینه، می‌توانی با دکمه‌های «سؤال قبلی / بعدی» حرکت کنی. در انتها روی
+                «پایان آزمون و مشاهده نتیجه» بزن تا نمره و پاسخ‌های تشریحی را ببینی.
+            </p>
+
+            <div class="progress-wrapper">
+                <div class="progress-top-row">
+                    <span id="questionCounter">سؤال ۱ از ۳۰</span>
+                    <span id="answeredCounter">۰ / ۳۰ پاسخ داده شده</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="question-card">
+            <div class="question-top-row">
+                <span id="questionTag" class="question-tag">سؤال ۱</span>
+                <span id="questionStatus" class="question-status">وضعیت: بدون پاسخ</span>
+            </div>
+            <h3 id="questionText" class="question-text"></h3>
+
+            <div id="optionsContainer" class="options-list">
+                <!-- گزینه‌ها با JS ساخته می‌شوند -->
+            </div>
+
+            <div class="nav-buttons">
+                <div class="nav-right">
+                    <button id="prevBtn" class="btn-base" type="button">
+                        ← سؤال قبلی
+                    </button>
+                    <button id="nextBtn" class="btn-base" type="button">
+                        سؤال بعدی →
+                    </button>
+                </div>
+                <div class="nav-left">
+                    <button id="finishBtn" class="btn-base btn-primary" type="button">
+                        پایان آزمون و مشاهده نتیجه
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <section id="resultsSection" class="results-section">
+            <div class="results-header">
+                <div class="results-main">
+                    <div class="results-score">
+                        <span id="scorePercent" class="score-number">0%</span>
+                    </div>
+                    <div id="scoreLabel" class="score-label">۰ پاسخ صحیح از ۳۰ سؤال</div>
+                    <div class="score-detail">
+                        عملکردت رو در این آزمون ببین؛ پایین‌تر می‌تونی پاسخ صحیح و توضیح تشریحی همه سؤالات رو ببینی.
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ صحیح</span>
+                        <span id="scoreCorrect" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ غلط</span>
+                        <span id="scoreWrong" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">بی‌پاسخ</span>
+                        <span id="scoreUnanswered" class="results-box-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="answers-list" id="answersContainer"></div>
+        </section>
+    </section>
+</main>
+
+<footer>
+    <p>طراحی شده با ❤️ برای ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران - آرین قاسم‌پور</p>
+</footer>
+
+<script>
+    // ۳۰ سؤال جلسه ۶ – اختلالات WBC، لوسمی، لنفوم، میلوم و نوتروپنی
+    const questions = [
+        {
+            question: 'گرانولوسیتوز (Neutrophilia) طبق تعریف این جلسه یعنی:',
+            options: [
+                'افزایش نسبی لنفوسیت‌ها نسبت به نوتروفیل‌ها',
+                'افزایش تعداد نوتروفیل‌ها در خون محیطی بالاتر از حد نرمال',
+                'کاهش شدید تعداد نوتروفیل‌ها زیر ۵۰۰ در میکرولیتر',
+                'افزایش تعداد ائوزینوفیل‌ها به دنبال آلرژی'
+            ],
+            correctIndex: 1,
+            explanation: 'در اسلایدهای جلسه ۶، گرانولوسیتوز/Neutrophilia به صورت افزایش شمار نوتروفیل‌های خون محیطی تعریف شده و در عفونت حاد، استرس، سوختگی و التهاب دیده می‌شود.'
+        },
+        {
+            question: 'نوتروپنی (Neutropenia) معمولاً بر اساس کدام شاخص تعریف می‌شود؟',
+            options: [
+                'کاهش درصد نوتروفیل‌ها زیر ۲۰٪',
+                'کاهش ANC به زیر حد مشخص',
+                'کاهش WBC به زیر ۲۰۰۰ در میکرولیتر صرف‌نظر از نوع سلول‌ها',
+                'کاهش تعداد مونوسیت‌ها و لنفوسیت‌ها'
+            ],
+            correctIndex: 1,
+            explanation: 'معیار اصلی نوتروپنی، Absolute Neutrophil Count (ANC) است، نه صرفاً درصد نوتروفیل یا WBC کلی.'
+        },
+        {
+            question: 'فرمول صحیح برای محاسبهٔ ANC کدام است؟',
+            options: [
+                'WBC × (Lymphocytes% + Monocytes%)',
+                '(WBC × Neutrophils%) ÷ 100',
+                'WBC × Neutrophils%',
+                'WBC × (Neutrophils% + Bands%)'
+            ],
+            correctIndex: 3,
+            explanation: 'در اسلاید جلسه ۶، ANC به صورت «WBC × (Neutrophils% + Bands%)» تعریف شده است.'
+        },
+        {
+            question: 'در بیمار با ANC حدود ۸۰۰/µL و بدون علامت حاد، کدام جمله برای درمان‌های دندان‌پزشکی صحیح‌تر است؟',
+            options: [
+                'درمان‌های انتخابی ممنوع است و فقط در موارد اورژانس با آنتی‌بیوتیک پروفیلاکسی انجام می‌شود.',
+                'می‌توان هر نوع درمان انتخابی را بدون محدودیت انجام داد.',
+                'فقط جرم‌گیری بدون آنتی‌بیوتیک مجاز است.',
+                'محدودیتی وجود ندارد اگر بیمار تب نداشته باشد.'
+            ],
+            correctIndex: 0,
+            explanation: 'در ANC پایین، مخصوصاً در حوالی ۱۰۰۰ و کمتر، درمان انتخابی توصیه نمی‌شود و در صورت نیاز به درمان اورژانس باید با پروفیلاکسی آنتی‌بیوتیکی و تدابیر محافظه‌کارانه انجام شود.'
+        },
+        {
+            question: 'کدام‌یک از علائم زیر برای نوتروپنی شدید/آگرانولوسیتوز در ناحیه دهان تیپیک‌تر است؟',
+            options: [
+                'تنها علامت: رنگ‌پریدگی مخاط',
+                'لکوپلاکیاهای متعدد',
+                'زخم‌های نکروتیک دردناک با حاشیه اریتماتوز و گاهی پوشش pseudomembrane',
+                'تنها علامت: هایپرپلازی لثه'
+            ],
+            correctIndex: 2,
+            explanation: 'در نوتروپنی شدید، زخم‌های دهانی نکروتیک، پوشیده از لایه خاکستری با هاله التهابی، همراه تب و تأخیر ترمیم از یافته‌های اصلی هستند.'
+        },
+        {
+            question: 'در مورد نوتروپنی دوره‌ای (Cyclic neutropenia) کدام گزینه صحیح‌تر است؟',
+            options: [
+                'کاهش دائمی و بدون نوسان ANC',
+                'تنها علامت: تب بدون ضایعات دهانی',
+                'نوسان دوره‌ای ANC بدون تأثیر بر پریودنشیوم',
+                'تب‌های دوره‌ای، زخم‌های دهانی و بیماری شدید پریودنتال با لقی بیشتر از میزان جرم دندانی'
+            ],
+            correctIndex: 3,
+            explanation: 'نوتروپنی دوره‌ای با تب‌های دوره‌ای، عفونت‌های مکرر، زخم‌های دهانی و پریودنتیت شدید با لقی دندان‌ها بیش از حد انتظار بر اساس جرم توصیف شده است.'
+        },
+        {
+            question: 'بیماری با سابقه شیمی‌درمانی مراجعه کرده است. در آزمایش CBC، ANC = ۱۲۰۰ گزارش شده و آخرین سیکل شیمی‌درمانی ۱۰ روز قبل انجام شده است. بهترین تصمیم برای جرم‌گیری وسیع چیست؟',
+            options: [
+                'انجام جرم‌گیری کامل بدون نیاز به اقدام خاص',
+                'انجام جرم‌گیری بعد از مشاوره با پزشک و با آنتی‌بیوتیک پروفیلاکسی',
+                'انجام فوری جرم‌گیری و تعویق هرگونه آنتی‌بیوتیک',
+                'خودداری کامل از هر نوع درمان دندان‌پزشکی در تمام طول عمر'
+            ],
+            correctIndex: 1,
+            explanation: 'معمولاً روزهای ۷–۱۴ پس از شیمی‌درمانی دورهٔ نوتروپنی شدیدتر است؛ درمان انتخابی ترجیحاً به تعویق می‌افتد و در صورت ضرورت باید با مشاوره و پروفیلاکسی آنتی‌بیوتیکی انجام شود.'
+        },
+        {
+            question: 'در سندرم Chediak–Higashi کدام ویژگی مهم‌تر است؟',
+            options: [
+                'افزایش تعداد نوتروفیل‌ها با عملکرد طبیعی',
+                'آلبینیسم (موهای روشن/نقره‌ای)، عفونت‌های مکرر و خونریزی به علت اختلال پلاکتی',
+                'فقط درگیری غدد بزاقی بدون علائم سیستمیک',
+                'تنها علامت: هایپرپیگمانتاسیون پوستی'
+            ],
+            correctIndex: 1,
+            explanation: 'Chediak–Higashi با نقص گرانول‌های لیزوزومی، آلبینیسم، عفونت‌های مکرر، نوتروپنی و اختلال عملکرد پلاکت تظاهر می‌کند و در دهان با پریودنتیت شدید همراه است.'
+        },
+        {
+            question: 'کدام یافته دهانی برای Chediak–Higashi تیپیک‌تر است؟',
+            options: [
+                'تنها افزایش پوسیدگی',
+                'پریودنتیت شدید و از دست رفتن زودرس دندان‌ها',
+                'زبان جغرافیایی',
+                'تلانژکتازی‌های متعدد روی مخاط دهان'
+            ],
+            correctIndex: 1,
+            explanation: 'در اسلایدها، پریودنتیت شدید، لقی و از دست رفتن زودرس دندان‌ها و خونریزی از دهان به‌عنوان تظاهرات دهانی این سندرم ذکر شده است.'
+        },
+        {
+            question: 'در مورد لنفوسیتوز (Lymphocytosis) کدام جمله درست‌تر است؟',
+            options: [
+                'همیشه نشانهٔ بدخیمی هماتولوژیک است.',
+                'می‌تواند به صورت reactive در عفونت‌های ویروسی و بیماری‌های خودایمن دیده شود.',
+                'فقط در بیماران مبتلا به لوسمی لنفوسیتی مزمن گزارش می‌شود.',
+                'در دندان‌پزشکی اهمیتی ندارد.'
+            ],
+            correctIndex: 1,
+            explanation: 'لنفوسیتوز می‌تواند reactive (غیر کلونال) در عفونت‌های ویروسی و بیماری‌های خودایمن باشد و الزاماً بدخیمی نیست؛ نوع clonal در بدخیمی‌هایی مانند CLL دیده می‌شود.'
+        },
+        {
+            question: 'در لوسمی حاد، کدامیک از تظاهرات دهانی شایع‌تر است؟',
+            options: [
+                'هایپرپیگمانتاسیون مخاط',
+                'پولیپ بینی',
+                'خونریزی لثه، بزرگی منتشر لثه و عفونت‌های مکرر دهانی',
+                'تنها تظاهر: کرم‌خوردگی دندان‌ها'
+            ],
+            correctIndex: 2,
+            explanation: 'در «Oral manifestations – acute leukemia» خونریزی لثه، gingival enlargement، عفونت‌های شدید، زخم‌های بدون حاشیه مشخص و پتشی/پورپورا ذکر شده‌اند.'
+        },
+        {
+            question: 'کدامیک از یافته‌های زیر می‌تواند اولین تظاهر لوسمی حاد در ناحیه دهان باشد و با بیماری پریودنتال اشتباه شود؟',
+            options: [
+                'ضایعه سفید کراتوتیک در گونه',
+                'جرم زیرلثه‌ای سخت و زرد',
+                'توده سبزرنگ نرم و بدون درد در لثه (Granulocytic sarcoma / Chloroma)',
+                'کلسیفیکاسیون غدد بزاقی فرعی'
+            ],
+            correctIndex: 2,
+            explanation: 'Granulocytic sarcoma یا Chloroma توده‌ای سبزرنگ، نرم، بدون درد است که می‌تواند در لثه و استخوان فک ظاهر شود و گاهی اولین تظاهر AML است و با ضایعات پریودنتال اشتباه می‌شود.'
+        },
+        {
+            question: 'بیمار ۳۵ ساله‌ای با شکایت خونریزی لثه، افزایش حجم منتشر لثه و تب مراجعه کرده است. در معاینه، پتشی روی کام نرم و لنفادنوپاتی گردنی دیده می‌شود و بیمار از خستگی و کاهش وزن اخیر می‌گوید. محتمل‌ترین تشخیص کدام است؟',
+            options: [
+                'ژنژیویت ناشی از پلاک',
+                'آنمی فقر آهن ساده',
+                'لوسمی حاد',
+                'لنفوم هوچکین محدود به گردن'
+            ],
+            correctIndex: 2,
+            explanation: 'ترکیب gingival enlargement، خونریزی، پتشی، تب، خستگی و کاهش وزن در مدت کوتاه الگوی کلاسیک تظاهرات دهانی و سیستمیک لوسمی حاد است.'
+        },
+        {
+            question: 'در مواجهه با بیمار دچار شک به لوسمی حاد در مطب دندان‌پزشکی، بهترین رویکرد چیست؟',
+            options: [
+                'کشیدن دندان‌های مشکل‌دار قبل از ارجاع',
+                'انجام جرم‌گیری کامل برای کاهش خطر عفونت',
+                'پرهیز از درمان‌های تهاجمی و ارجاع فوری برای بررسی هماتولوژیک',
+                'شروع آنتی‌بیوتیک و پیگیری بدون ارجاع'
+            ],
+            correctIndex: 2,
+            explanation: 'در شک به لوسمی باید از هرگونه کار تهاجمی خودداری و بیمار فوراً برای CBC، اسمیر خون و ارزیابی توسط هماتولوژیست ارجاع شود.'
+        },
+        {
+            question: 'کدام ترکیب در مورد لنفوم هوچکین درست‌تر است؟',
+            options: [
+                'درگیری غالباً غدد لنفاوی محیطی بدون حلقه Waldeyer',
+                'همراهی شایع با علائم B (تب، کاهش وزن، تعریق شبانه) و امکان درگیری حلقه Waldeyer',
+                'هرگز با رادیوتراپی درمان نمی‌شود',
+                'فقط در سنین کودکی دیده می‌شود'
+            ],
+            correctIndex: 1,
+            explanation: 'در لنفوم هوچکین، درگیری غدد لنفاوی گردن و حلقه Waldeyer و علائم B (تب، تعریق شبانه، کاهش وزن) شایع است و درمان با رادیوتراپی/شیمی‌درمانی انجام می‌شود.'
+        },
+        {
+            question: 'برای تشخیص لنفادنوپاتی مشکوک به لنفوم در سر و گردن، قانون «۳ تا ۱» در جزوه به چه اشاره دارد؟',
+            options: [
+                'غدد لنفاوی بیش از ۳ میلی‌متر و بیش از یک روز باقی بمانند',
+                'غدد لنفاوی بیش از ۱ سانتی‌متر، بیش از یک ماه باقی بمانند و بیش از یک ناحیه درگیر باشد',
+                'هر غده‌ای بیش از ۳ سانتی‌متر بلافاصله نشانهٔ بدخیمی است',
+                'وجود یک غده لنفاوی کوچک به مدت ۳ سال نشانهٔ لنفوم است'
+            ],
+            correctIndex: 1,
+            explanation: 'در اسلاید لنفوم آمده است که لنفادنوپاتی‌هایی که بزرگ‌تر از ۱ سانتی‌متر، بیش از یک ماه پایدار بمانند و بیش از یک ناحیه را درگیر کنند (بدون منبع عفونی واضح) مشکوک به لنفوم‌اند.'
+        },
+        {
+            question: 'در مورد Non-Hodgkin lymphoma در ناحیه دهان، کدام گزینه صحیح‌تر است؟',
+            options: [
+                'معمولاً فقط به صورت لک سفید بدون توده ظاهر می‌شود.',
+                'می‌تواند به صورت تودهٔ پیشرونده در لثه/کام یا محل کشیدن دندان که ترمیم نمی‌شود، دیده شود.',
+                'همیشه فقط غدد لنفاوی گردن را درگیر می‌کند.',
+                'تظاهرات داخل دهانی ندارد.'
+            ],
+            correctIndex: 1,
+            explanation: 'در NHL، تومور می‌تواند در فک، لثه یا محل کشیدن دندان به صورت توده‌ای که به‌خوبی ترمیم نمی‌شود دیده شود و با ضایعات دندانی ساده اشتباه گردد.'
+        },
+        {
+            question: 'بیمار ۱۲ ساله‌ای با تورم سریع‌الرشد در فک بالا، لقی دندان‌ها و «نمای دندان‌های شناور» در رادیوگرافی مراجعه کرده است. محتمل‌ترین تشخیص بر اساس جلسه ۶ چیست؟',
+            options: [
+                'Burkitt lymphoma',
+                'Multiple myeloma',
+                'لوسمی مزمن میلوئیدی',
+                'نوتروپنی دوره‌ای'
+            ],
+            correctIndex: 0,
+            explanation: 'Burkitt lymphoma با رشد سریع تومور فک، تورم شدید، mobility دندان‌ها، open bite و نمای “floating teeth” در رادیوگرافی مطرح می‌شود.'
+        },
+        {
+            question: 'در مورد Multiple myeloma کدام گزینه صحیح‌تر است؟',
+            options: [
+                'بدخیمی سلول‌های T لنفوسیتی است.',
+                'بدخیمی سلول‌های پلاسما در مغز استخوان با تولید پروتئین مونوکلونال و درد استخوان',
+                'تنها تظاهر، آنمی خفیف است',
+                'فقط در کودکان دیده می‌شود'
+            ],
+            correctIndex: 1,
+            explanation: 'میلوم مولتیپل یک بدخیمی پلاسموسیتی با درگیری مغز استخوان، پروتئین مونوکلونال (M protein / Bence-Jones)، ضایعات استئولیتیک و درد استخوان است.'
+        },
+        {
+            question: 'کدام نمای رادیولوژیک در فک بیماران مبتلا به Multiple myeloma شایع‌تر توصیف شده است؟',
+            options: [
+                'Ground-glass',
+                'Cotton wool',
+                'Honeycomb',
+                'ضایعات متعدد «Punch-out» رادیولوسنت'
+            ],
+            correctIndex: 3,
+            explanation: 'در اسلایدها، ضایعات متعدد استئولیتیک گرد با حاشیه واضح به صورت «punch-out» در استخوان‌های جمجمه و فک توصیف شده است.'
+        },
+        {
+            question: 'خانم ۶۵ ساله مبتلا به Multiple myeloma که تحت درمان با Bisphosphonate وریدی است، برای کشیدن دندان مولر پایین مراجعه کرده است. کدام نکته دندان‌پزشکی در اولویت قرار دارد؟',
+            options: [
+                'انجام کشیدن دندان بدون نگرانی خاص',
+                'توجه به خطر شکستگی فک و استئونکروز فک (ONJ) و ارزیابی جایگزین‌های غیرجراحی',
+                'تجویز روتین NSAID با دوز بالا برای کنترل درد',
+                'بی‌نیازی از بررسی آزمایش خون'
+            ],
+            correctIndex: 1,
+            explanation: 'در میلوم تحت درمان با Bisphosphonate IV، خطر ONJ و شکستگی پاتولوژیک فک مطرح است؛ باید تا حد امکان درمان محافظه‌کارانه و پرهیز از کشیدن/جراحی غیرضروری مدنظر باشد.'
+        },
+        {
+            question: 'در بیماران با نقص ایمنی و ANC پایین، تفاوت اصلی پروفیلاکسی آنتی‌بیوتیک با پروفیلاکسی اندوکاردیت چیست؟',
+            options: [
+                'در نقص ایمنی، همیشه تک‌دوز قبل از پروسیجر کافی است.',
+                'در نقص ایمنی، معمولاً علاوه بر دوز پیش از درمان، ادامهٔ چندروزهٔ آنتی‌بیوتیک تا ترمیم کامل زخم توصیه می‌شود.',
+                'هیچ تفاوتی ندارند.',
+                'در اندوکاردیت، پروفیلاکسی چندروزه و در نقص ایمنی فقط تک‌دوز است.'
+            ],
+            correctIndex: 1,
+            explanation: 'در جلسه ۶ تأکید می‌شود که در بیماران با ANC پایین، پروفیلاکسی چنددوز (قبل از کار و ادامه چند روز پس از آن) لازم است، درحالی‌که در اندوکاردیت کلاسیک معمولاً تک‌دوز قبل از پروسیجر مدنظر است.'
+        },
+        {
+            question: 'کدام یک از شرایط زیر به‌طور شایع می‌تواند لنفوسیتوز واکنشی (Reactive lymphocytosis) ایجاد کند؟',
+            options: [
+                'میلوم مولتیپل',
+                'عفونت ویروسی حاد',
+                'Burkitt lymphoma',
+                'نوتروپنی دوره‌ای'
+            ],
+            correctIndex: 1,
+            explanation: 'در بخش لنفوسیتوز، عفونت‌های ویروسی، برخی داروها و بیماری‌های خودایمن به‌عنوان علل reactive lymphocytosis ذکر شده‌اند.'
+        },
+        {
+            question: 'در بیمار مبتلا به لوسمی حاد که تحت شیمی‌درمانی است، کدام اقدام دندان‌پزشکی قبل از شروع دورهٔ درمان سرطان توصیه شده است؟',
+            options: [
+                'کشیدن دندان‌های غیرقابل نگهداری قبل از شیمی‌درمانی، با فاصله‌ای کافی برای ترمیم بافت',
+                'صبر کردن تا پایان تمام دوره‌های شیمی‌درمانی برای هر نوع کار دندان‌پزشکی',
+                'انجام جرم‌گیری سنگین در اوج نوتروپنی',
+                'ممنوعیت هر نوع رادیوگرافی دندانی'
+            ],
+            correctIndex: 0,
+            explanation: 'بهتر است قبل از شروع شیمی‌درمانی، دندان‌های غیرقابل نگهداری کشیده شوند تا در دورهٔ نوتروپنی شدید منبع عفونت حاد باقی نماند.'
+        },
+        {
+            question: 'کدام‌یک از موارد زیر از عوارض درمانی لنفوم و لوسمی در ناحیه دهان محسوب می‌شود؟',
+            options: [
+                'فقط لثه‌های نسبتا پرخون',
+                'موکوزیت، زروستومیا و افزایش خطر پوسیدگی و عفونت',
+                'افزایش ضخامت مینای دندان',
+                'کاهش ریسک عفونت‌های دهانی'
+            ],
+            correctIndex: 1,
+            explanation: 'رادیوتراپی سر و گردن و شیمی‌درمانی می‌توانند باعث موکوزیت، خشکی دهان، تغییرات طعم، افزایش پوسیدگی و عفونت‌های ثانویه شوند.'
+        },
+        {
+            question: 'در بیمار با نوتروپنی شناخته‌شده که فقط به جرم‌گیری سادهٔ supragingival نیاز دارد، کدام رویکرد صحیح‌تر است؟',
+            options: [
+                'نادیده گرفتن نوتروپنی و انجام درمان در هر سطح ANC',
+                'ارزیابی ANC و در صورت پایین بودن، هماهنگی با پزشک برای آنتی‌بیوتیک و زمان‌بندی مناسب',
+                'انجام درمان بدون هیچ‌گونه محافظت آنتی‌بیوتیکی',
+                'لغو همیشگی درمان دندان‌پزشکی'
+            ],
+            correctIndex: 1,
+            explanation: 'حتی برای کاری نسبتاً ساده، در ANC پایین خطر عفونت بالاست و باید بر اساس ANC، مشاوره و در صورت نیاز آنتی‌بیوتیک و زمان مناسب درمان انتخاب شود.'
+        },
+        {
+            question: 'کدام‌یک از یافته‌های زیر تیپیک‌ترین تظاهر دهانی لوسمی حاد نیست؟',
+            options: [
+                'سینوزیت ماگزیلا',
+                'خونریزی لثه',
+                'افزایش حجم لثه',
+                'کاهش واضح رنگ لثه بدون خونریزی یا تورم'
+            ],
+            correctIndex: 3,
+            explanation: 'در اسلایدها خونریزی، تورم ژنژیوال، زخم‌ها و حتی سینوزیت ماگزیلا ذکر شده‌اند؛ صرفاً پالور بدون سایر علائم، تیپیک برای لوسمی حاد نیست.'
+        },
+        {
+            question: 'در بیماری که با شکایت خونریزی لثه، خارش، سردرد و قرمزی مخاط مراجعه می‌کند و در CBC هماتوکریت بالا گزارش شده، محتمل‌ترین تشخیص هماتولوژیک کدام است؟',
+            options: [
+                'Iron deficiency anemia',
+                'Polycythemia vera',
+                'Aplastic anemia',
+                'Neutropenia'
+            ],
+            correctIndex: 1,
+            explanation: 'این الگو (خونریزی لثه، قرمزی، سردرد، pruritus و هماتوکریت بالا) تیپیک پلی‌سایتمی ورا است که در جلسهٔ قبلی هم مطرح شده بود.'
+        },
+        {
+            question: 'در بیماران مبتلا به اختلالات بدخیم WBC (لوسمی، لنفوم، میلوم) هدف اصلی دندان‌پزشک در برنامه‌ریزی درمان چیست؟',
+            options: [
+                'کشیدن هرچه بیشتر دندان‌ها قبل از شیمی‌درمانی',
+                'حداقل‌سازی تروما، حذف کانون‌های عفونت حاد و هماهنگی نزدیک با تیم پزشکی',
+                'انجام تمام درمان‌های انتخابی در دوره نوتروپنی شدید',
+                'صرفاً توجه به زیبایی دهانی بیمار'
+            ],
+            correctIndex: 1,
+            explanation: 'هدف، کنترل منابع عفونت، کاهش تروما، پرهیز از کارهای غیرضروری در دوره نوتروپنی/ترومبوسیتوپنی و هماهنگی با هماتولوژیست است.'
+        },
+        {
+            question: 'در مجموع، در بیمارانی که اختلال WBC و نوتروپنی دارند، مهم‌ترین هشدار برای دندان‌پزشک کدام است؟',
+            options: [
+                'خطر خونریزی شدید در هر نوع کار',
+                'خطر بروز عفونت شدید و sepsis پس از درمان‌های تهاجمی',
+                'خطر افزایش پوسیدگی به‌تنهایی',
+                'کاهش احتمال موفقیت درمان ریشه'
+            ],
+            correctIndex: 1,
+            explanation: 'در نوتروپنی و سایر اختلالات WBC، محور اصلی کاهش دفاع میزبان و خطر عفونت شدید سیستمیک است، حتی پس از کارهای نسبتاً ساده دندان‌پزشکی.'
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    const questionCounterEl = document.getElementById('questionCounter');
+    const answeredCounterEl = document.getElementById('answeredCounter');
+    const progressFillEl = document.getElementById('progressFill');
+    const questionTagEl = document.getElementById('questionTag');
+    const questionStatusEl = document.getElementById('questionStatus');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainerEl = document.getElementById('optionsContainer');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const finishBtn = document.getElementById('finishBtn');
+
+    const resultsSectionEl = document.getElementById('resultsSection');
+    const scorePercentEl = document.getElementById('scorePercent');
+    const scoreLabelEl = document.getElementById('scoreLabel');
+    const scoreCorrectEl = document.getElementById('scoreCorrect');
+    const scoreWrongEl = document.getElementById('scoreWrong');
+    const scoreUnansweredEl = document.getElementById('scoreUnanswered');
+    const answersContainerEl = document.getElementById('answersContainer');
+
+    function updateProgressUI() {
+        const total = questions.length;
+        const answeredCount = userAnswers.filter(a => a !== null).length;
+
+        questionCounterEl.textContent = `سؤال ${currentQuestionIndex + 1} از ${total}`;
+        answeredCounterEl.textContent = `${answeredCount} / ${total} پاسخ داده شده`;
+
+        const progressPercent = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+        progressFillEl.style.width = progressPercent + '%';
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestionIndex];
+
+        questionTagEl.textContent = `سؤال ${currentQuestionIndex + 1}`;
+        questionTextEl.textContent = q.question;
+
+        const userAnswer = userAnswers[currentQuestionIndex];
+        questionStatusEl.textContent = userAnswer === null ? 'وضعیت: بدون پاسخ' : 'وضعیت: پاسخ داده شده';
+
+        optionsContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'option-btn';
+            if (userAnswer === index) btn.classList.add('selected');
+            btn.dataset.index = index.toString();
+
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'option-letter';
+            letterSpan.textContent = letters[index] + ')';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'option-text';
+            textSpan.textContent = opt;
+
+            btn.appendChild(letterSpan);
+            btn.appendChild(textSpan);
+
+            btn.addEventListener('click', () => handleOptionSelect(index));
+            optionsContainerEl.appendChild(btn);
+        });
+
+        prevBtn.disabled = currentQuestionIndex === 0;
+        nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+
+        updateProgressUI();
+    }
+
+    function handleOptionSelect(optionIndex) {
+        userAnswers[currentQuestionIndex] = optionIndex;
+        if (currentQuestionIndex < questions.length - 1) currentQuestionIndex++;
+        renderQuestion();
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+    });
+
+    finishBtn.addEventListener('click', () => {
+        finishQuiz();
+    });
+
+    function finishQuiz() {
+        const total = questions.length;
+        let correct = 0, wrong = 0, unanswered = 0;
+
+        questions.forEach((q, index) => {
+            const ans = userAnswers[index];
+            if (ans === null) unanswered++;
+            else if (ans === q.correctIndex) correct++;
+            else wrong++;
+        });
+
+        const percent = total === 0 ? 0 : Math.round((correct / total) * 100);
+
+        scorePercentEl.textContent = percent + '%';
+        scoreLabelEl.textContent = `${correct} پاسخ صحیح از ${total} سؤال`;
+        scoreCorrectEl.textContent = correct.toString();
+        scoreWrongEl.textContent = wrong.toString();
+        scoreUnansweredEl.textContent = unanswered.toString();
+
+        buildAnswersReview();
+        resultsSectionEl.style.display = 'flex';
+        resultsSectionEl.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function buildAnswersReview() {
+        answersContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        questions.forEach((q, index) => {
+            const userAnswer = userAnswers[index];
+
+            const card = document.createElement('div');
+            card.className = 'answer-card';
+
+            const qTitle = document.createElement('div');
+            qTitle.className = 'answer-question-title';
+            qTitle.textContent = `سؤال ${index + 1}`;
+            card.appendChild(qTitle);
+
+            const qText = document.createElement('div');
+            qText.className = 'answer-question-text';
+            qText.textContent = q.question;
+            card.appendChild(qText);
+
+            const optionsWrapper = document.createElement('div');
+            optionsWrapper.className = 'answer-options-wrapper';
+
+            q.options.forEach((opt, optIdx) => {
+                const row = document.createElement('div');
+                row.className = 'option-row';
+
+                const main = document.createElement('div');
+                main.className = 'option-main';
+
+                const label = document.createElement('span');
+                label.className = 'option-label';
+                label.textContent = letters[optIdx] + ')';
+
+                const text = document.createElement('span');
+                text.className = 'option-text';
+                text.textContent = opt;
+
+                main.appendChild(label);
+                main.appendChild(text);
+                row.appendChild(main);
+
+                const tag = document.createElement('span');
+                tag.className = 'option-tag';
+
+                if (optIdx === q.correctIndex && userAnswer === optIdx) {
+                    row.classList.add('user-correct');
+                    tag.textContent = '✓ صحیح (انتخاب شما)';
+                } else if (optIdx === q.correctIndex) {
+                    row.classList.add('correct');
+                    tag.textContent = '✓ گزینه صحیح';
+                } else if (userAnswer === optIdx) {
+                    row.classList.add('user-wrong');
+                    tag.textContent = '✗ انتخاب شما';
+                }
+
+                if (tag.textContent) row.appendChild(tag);
+                optionsWrapper.appendChild(row);
+            });
+
+            card.appendChild(optionsWrapper);
+
+            const expl = document.createElement('div');
+            expl.className = 'answer-explanation';
+            if (userAnswer === null) {
+                expl.innerHTML = `<strong>وضعیت پاسخ:</strong> این سؤال را پاسخ ندادی.<br><strong>توضیح:</strong> ${q.explanation}`;
+            } else {
+                expl.innerHTML = `<strong>توضیح:</strong> ${q.explanation}`;
+            }
+
+            card.appendChild(expl);
+            answersContainerEl.appendChild(card);
+        });
+    }
+
+    renderQuestion();
+</script>
+
+<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
+<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+</body>
+</html>
+
+
+
+

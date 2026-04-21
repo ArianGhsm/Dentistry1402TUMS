@@ -1,0 +1,1397 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+<link rel="stylesheet" href="/assets/site/styles/quiz.css?v=20260421-pwa">
+<meta charset="UTF-8">
+    <title>آزمون پروتز پارسیل ۳ – Direct retainers / Clasps / Indirect retainers / Denture base | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- آیکون تب (logo.png مثل سایت اصلی) -->
+    <link rel="icon" type="image/png" href="/assets/images/logo.png">
+    <link rel="shortcut icon" href="/assets/images/logo.png">
+
+    <style>
+        :root {
+            --bg-body: #050b14;
+            --bg-card: #111b2b;
+            --bg-card-hover: #1a283d;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --accent-color: #64ffda;
+            --border-color: #233554;
+            --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
+            --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
+            --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .background-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
+        }
+
+        /* هدر مثل قالب اصلی */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 5%;
+            background: rgba(5, 11, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
+            flex-shrink: 0;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .site-info h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .site-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .badge-unofficial {
+            font-size: 0.7rem;
+            background: rgba(255, 99, 99, 0.1);
+            color: #ff6363;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 99, 99, 0.2);
+            white-space: nowrap;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .quiz-wrapper {
+            max-width: 900px;
+            margin: 0 auto 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .back-button-wrapper {
+            margin-bottom: 0.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.82rem;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .back-icon {
+            font-size: 1rem;
+        }
+
+        .quiz-header {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .info-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(100, 255, 218, 0.08);
+            border: 1px solid rgba(100, 255, 218, 0.4);
+            font-size: 0.78rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .quiz-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .quiz-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-wrapper {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .progress-top-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(15, 23, 42, 1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: var(--btn-gradient);
+            transition: width 0.2s ease-out;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.82rem;
+        }
+
+        .question-tag {
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .question-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .question-text {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #0b1624;
+            padding: 0.75rem 0.9rem;
+            text-align: right;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+            font-size: 0.92rem;
+            font-family: var(--font-main);
+            color: #ffffff; /* متن گزینه‌ها سفید */
+        }
+
+        .option-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+        }
+
+        .option-btn.selected {
+            background: rgba(100, 255, 218, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px rgba(100, 255, 218, 0.35);
+        }
+
+        .option-letter {
+            font-weight: 700;
+            min-width: 24px;
+            color: var(--accent-color);
+        }
+
+        .option-text {
+            flex: 1;
+            font-family: var(--font-main); /* هم‌فونت با سؤال‌ها: یکان */
+            color: #ffffff;
+        }
+
+        .nav-buttons {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: space-between;
+        }
+
+        .nav-left,
+        .nav-right {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-base {
+            border-radius: 999px;
+            padding: 0.55rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .btn-base:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .btn-base:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .btn-primary {
+            background: var(--btn-gradient);
+            color: #ffffff;
+            border: none;
+            box-shadow: var(--btn-shadow);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        #resultsSection {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .results-section {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .results-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .results-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .results-score {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--accent-color);
+        }
+
+        .score-number {
+            font-size: 2.4rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .score-detail {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .results-box {
+            background: #0b1624;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 0.7rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .results-box-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .results-box-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .answer-card {
+            background: #0b1624;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .answer-question-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .answer-question-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .answer-options-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .option-main {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .option-label {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .option-row .option-text {
+            color: var(--text-primary);
+        }
+
+        .option-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .option-row.correct {
+            border: 1px solid rgba(34, 197, 94, 0.75);
+            background: rgba(22, 163, 74, 0.14);
+        }
+
+        .option-row.user-correct {
+            border: 1px solid rgba(34, 197, 94, 0.95);
+            background: rgba(22, 163, 74, 0.22);
+        }
+
+        .option-row.user-wrong {
+            border: 1px solid rgba(248, 113, 113, 0.9);
+            background: rgba(248, 113, 113, 0.12);
+        }
+
+        .option-row.correct .option-tag,
+        .option-row.user-correct .option-tag {
+            border-color: rgba(34, 197, 94, 0.9);
+            color: #bbf7d0;
+        }
+
+        .option-row.user-wrong .option-tag {
+            border-color: rgba(248, 113, 113, 0.9);
+            color: #fecaca;
+        }
+
+        .answer-explanation {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .answer-explanation strong {
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-body);
+        }
+
+        footer span {
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1.3rem 4%;
+            }
+
+            .quiz-header,
+            .question-card,
+            .results-section {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .question-card {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.5rem;
+            }
+        }
+    </style>
+<meta name="theme-color" content="#050b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dent1402">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260421-pwa">
+</head>
+<body class="quiz-page">
+
+<div class="background-overlay"></div>
+
+<header class="site-header">
+    <div class="logo-area">
+        <div class="logo-circle">
+            <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+        </div>
+        <div class="site-info">
+            <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+            <p>دانشگاه علوم پزشکی تهران</p>
+        </div>
+    </div>
+    <div class="badge-unofficial">سامانه غیررسمی</div>
+</header>
+
+<main>
+    <section class="quiz-wrapper">
+        <div class="back-button-wrapper">
+            <!-- برمی‌گرده به فهرست آزمون‌های پروتز پارسیل -->
+            <a href="/exams/partialprosthesis/" class="back-btn">
+                <span class="back-icon">←</span>
+                بازگشت به فهرست آزمون‌های پروتز پارسیل
+            </a>
+        </div>
+
+        <!-- هدر آزمون -->
+        <div class="quiz-header">
+            <span class="info-pill">آزمون تمرینی پروتز پارسیل ۳ – Direct retainers / Clasps / Indirect retainers / Denture base</span>
+            <h2 class="quiz-title">سؤالات پروتز پارسیل ۳</h2>
+            <p class="quiz-subtitle">
+                بعد از انتخاب هر گزینه، به‌صورت خودکار به سؤال بعدی می‌روی. در انتها روی «پایان آزمون و مشاهده نتیجه»
+                کلیک کن تا نمره و پاسخ‌های تشریحی را ببینی.
+            </p>
+
+            <div class="progress-wrapper">
+                <div class="progress-top-row">
+                    <span id="questionCounter">سؤال ۱ از ۴۰</span>
+                    <span id="answeredCounter">۰ / ۴۰ پاسخ داده شده</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت سؤال -->
+        <div class="question-card">
+            <div class="question-top-row">
+                <span id="questionTag" class="question-tag">سؤال ۱</span>
+                <span id="questionStatus" class="question-status">وضعیت: بدون پاسخ</span>
+            </div>
+            <h3 id="questionText" class="question-text"></h3>
+
+            <div id="optionsContainer" class="options-list">
+                <!-- گزینه‌ها با JS اضافه می‌شن -->
+            </div>
+
+            <div class="nav-buttons">
+                <div class="nav-right">
+                    <button id="prevBtn" class="btn-base" type="button">
+                        ← سؤال قبلی
+                    </button>
+                    <button id="nextBtn" class="btn-base" type="button">
+                        سؤال بعدی →
+                    </button>
+                </div>
+                <div class="nav-left">
+                    <button id="finishBtn" class="btn-base btn-primary" type="button">
+                        پایان آزمون و مشاهده نتیجه
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- نتایج -->
+        <section id="resultsSection" class="results-section">
+            <div class="results-header">
+                <div class="results-main">
+                    <div class="results-score">
+                        <span id="scorePercent" class="score-number">0%</span>
+                    </div>
+                    <div id="scoreLabel" class="score-label">۰ پاسخ صحیح از ۴۰ سؤال</div>
+                    <div class="score-detail">
+                        عملکردت رو در این آزمون ببین؛ پایین‌تر می‌تونی پاسخ صحیح و توضیح تشریحی همه سؤالات رو ببینی.
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ صحیح</span>
+                        <span id="scoreCorrect" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ غلط</span>
+                        <span id="scoreWrong" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">بی‌پاسخ</span>
+                        <span id="scoreUnanswered" class="results-box-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="answers-list" id="answersContainer">
+                <!-- مرور پاسخ‌ها اینجا ساخته می‌شود -->
+            </div>
+        </section>
+    </section>
+</main>
+
+<footer>
+    <p>طراحی شده با ❤️ برای ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران - آرین قاسم‌پور</p>
+</footer>
+
+<script>
+    // ۴۰ سؤال – پروتز پارسیل ۳ (Direct retainers / Clasps / Indirect retainers / Denture base)
+    const questions = [
+        {
+            question: 'نگهدارنده‌های مستقیم (Direct retainers) به‌طور کلی به کدام دو دسته تقسیم می‌شوند؟',
+            options: [
+                'intracoronal و extracoronal',
+                'precision attachment و semiprecision attachment',
+                'suprabulge و infrabulge',
+                'attachment و clasp'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>گزینه صحیح:</strong> الف<br><strong>توضیح:</strong> در تقسیم‌بندی کلی Direct retainers، دو دسته اصلی intracoronal و extracoronal مطرح شده‌اند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- ب: زیرمجموعه intracoronal attachmentهاست (دسته‌بندی کلی نیست).<br>- ج: تقسیم‌بندی مربوط به claspهاست نه کل Direct retainers.<br>- د: اجزای خارج‌تاجی هستند، اما «دو دسته اصلی» کل Direct retainerها نیستند.'
+        },
+        {
+            question: 'در توصیف semiprecision attachment کدام ویژگی ذکر شده است؟',
+            options: [
+                'اجزای آن از قبل ساخته شده‌اند و جداگانه در دهان قرار می‌گیرند.',
+                'به شکل ریختگی تهیه می‌شود و همراه پروتز ساخته/قرار داده می‌شود.',
+                'فقط به صورت clasp خارج تاجی طراحی می‌شود.',
+                'صرفاً در دسته suprabulge قرار می‌گیرد.'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ب<br><strong>توضیح:</strong> semiprecision attachment در جزوه به‌صورت ریختگی (casting) و همراه ساخت پروتز توصیف شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: این ویژگی برای precision attachment ذکر شده است.<br>- ج: semiprecision «attachment» است نه «فقط clasp».<br>- د: suprabulge/infrabulge مربوط به clasp است نه attachment.'
+        },
+        {
+            question: 'در مجموعه اجزای clasp، کدام جزء در ناحیه undercut قرار می‌گیرد؟',
+            options: [
+                'rest',
+                'reciprocal clasp',
+                'proximal plate',
+                'retentive clasp'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>گزینه صحیح:</strong> د<br><strong>توضیح:</strong> طبق تعریف اجزای clasp، retentive clasp بخشی است که در undercut قرار می‌گیرد و نیروی خارج‌کننده را مهار می‌کند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: rest نقش ساپورت دارد و به عنوان جزء داخل undercut تعریف نشده است.<br>- ب: reciprocal clasp برای خنثی‌سازی نیرو/تعادل است و جایگاهش به عنوان undercut ذکر نشده.<br>- ج: proximal plate جزء پروگزیمالی است، نه جزء تعریف‌شده برای undercut.'
+        },
+        {
+            question: 'در مکانیسم عملکرد clasp هنگام وارد شدن نیروی خارج‌کننده، کدام رخداد برای بازوی گیر توصیف شده است؟',
+            options: [
+                'proximal plate وارد undercut می‌شود و مانع خروج می‌گردد.',
+                'reciprocal clasp وارد undercut می‌شود و مانع خروج می‌گردد.',
+                'بازوی گیر درگیر undercut می‌شود و با حالت ارتجاعی از خروج جلوگیری می‌کند.',
+                'rest به تنهایی در برابر نیروی خارج‌کننده مقاومت ایجاد می‌کند.'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ج<br><strong>توضیح:</strong> در متن، بازوی گیر (retentive arm) با درگیری در undercut و خاصیت ارتجاعی در برابر نیروی خارج‌کننده مقاومت می‌کند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: proximal plate به‌عنوان مکانیسم اصلی درگیری با undercut برای جلوگیری از خروج مطرح نشده است.<br>- ب: reciprocal clasp نقش درگیری در undercut برای گیر را ندارد.<br>- د: rest به تنهایی مکانیسم گیر در undercut را ایجاد نمی‌کند.'
+        },
+        {
+            question: 'در توصیف cone theory برای دندان، مرز بین دو سطح تاج (قاعده دو مخروط) چه نام دارد؟',
+            options: [
+                'height of contour',
+                'undercut',
+                'angle of insertion',
+                'proximal plate'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>گزینه صحیح:</strong> الف<br><strong>توضیح:</strong> در cone theory، مرز بین دو سطح تاج (قاعده دو مخروط) با عنوان height of contour معرفی شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- ب: undercut ناحیه زیر height of contour است.<br>- ج: angle of insertion مربوط به مسیر ورود/خروج است نه نام مرز سطوح.<br>- د: proximal plate جزء clasp است.'
+        },
+        {
+            question: 'برای تعیین مسیر ورود/خروج و مشخص‌کردن height of contour و undercut روی دندان پایه از چه وسیله‌ای استفاده می‌شود؟',
+            options: [
+                'attachment semiprecision',
+                'clasp-c',
+                'proximal plate',
+                'surveyor'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>گزینه صحیح:</strong> د<br><strong>توضیح:</strong> در جزوه ابزار surveyor برای تعیین مسیر ورود/خروج و مشخص کردن height of contour و undercut بیان شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: نوع attachment است، ابزار تعیین مسیر نیست.<br>- ب: نوعی clasp حلقوی است، ابزار نیست.<br>- ج: جزء طراحی clasp است، ابزار اندازه‌گیری نیست.'
+        },
+        {
+            question: 'تغییر اندک زاویه دیا (tilt) در تعیین height of contour چه کاربردی می‌تواند داشته باشد؟',
+            options: [
+                'باعث حذف کامل undercut می‌شود و دیگر نیازی به surveyor نیست.',
+                'می‌تواند height of contour کاذب ایجاد کند و مسیر ورود/خروج را قابل تنظیم کند.',
+                'موجب تبدیل clasp به attachment precision می‌شود.',
+                'فقط برای زیبایی و کاهش دربرگیری به‌کار می‌رود.'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ب<br><strong>توضیح:</strong> طبق متن، با تغییر اندک tilt می‌توان height of contour کاذب ایجاد کرد و مسیر ورود/خروج را تنظیم نمود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: نیاز به surveyor حذف نمی‌شود و «حذف کامل undercut» به این شکل بیان نشده.<br>- ج: tilt باعث تبدیل clasp به precision attachment نمی‌شود.<br>- د: کاربرد صرفاً زیبایی ذکر نشده؛ هدف اصلی تنظیم مسیر و HOC است.'
+        },
+        {
+            question: 'در تقسیم‌بندی clasp به suprabulge و infrabulge، درباره بازوی گیر (retentive arm) کدام جمله مطرح شده است؟',
+            options: [
+                'فقط در suprabulge وارد undercut می‌شود.',
+                'فقط در infrabulge وارد undercut می‌شود.',
+                'در هر دو حالت وارد undercut می‌شود.',
+                'در هیچ‌کدام وارد undercut نمی‌شود.'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ج<br><strong>توضیح:</strong> در جزوه صراحتاً گفته شده در هر دو حالت suprabulge و infrabulge بازوی گیر وارد undercut می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: محدود کردن به suprabulge خلاف متن است.<br>- ب: محدود کردن به infrabulge خلاف متن است.<br>- د: نفی ورود به undercut خلاف متن است.'
+        },
+        {
+            question: 'در بازوی حلقوی (circumferential)، اصطلاح shoulder به کدام بخش اطلاق شده است؟',
+            options: [
+                'نوک بازوی گیر که در undercut قرار می‌گیرد.',
+                'rest اکلوزالی که روی دندان قرار می‌گیرد.',
+                'proximal plate که در ناحیه پروگزیمال قرار دارد.',
+                'یک‌سوم ابتدایی بازو که از ابتدا/نزدیک رست شروع می‌شود و قطورتر است.'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>گزینه صحیح:</strong> د<br><strong>توضیح:</strong> در متن، shoulder به یک‌سوم ابتدایی و قطورتر بازوی حلقوی اشاره دارد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: نوک بازو در متن به عنوان terminal/ترمینوس مطرح می‌شود.<br>- ب: rest جزء مستقل است نه shoulder.<br>- ج: proximal plate جزء دیگری از مجموعه clasp است.'
+        },
+        {
+            question: 'در clasp های bar (infrabulge)، بخشی از بازو که از قسمت rigid شروع شده و به سمت terminal حرکت می‌کند چه نام دارد؟',
+            options: [
+                'approach arm',
+                'shoulder',
+                'reciprocal clasp',
+                'rest'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>گزینه صحیح:</strong> الف<br><strong>توضیح:</strong> در bar claspها، مسیر بازو از قسمت rigid تا نزدیک terminal با عنوان approach arm آمده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- ب: shoulder برای بازوی حلقوی تعریف شده است.<br>- ج: reciprocal clasp جزء دیگری است و نام این بخش نیست.<br>- د: rest جزء جداگانه است.'
+        },
+        {
+            question: 'درباره clasp های حلقوی، کدام مورد به عنوان یکی از معایب ذکر شده است؟',
+            options: [
+                'گیر غذایی به حداقل می‌رسد.',
+                'تطابق خیلی نزدیک با دندان پایه دارند.',
+                'باعث افزایش عرض سطح اکلوزال می‌شوند.',
+                'ثبات و دربرگیری عالی دارند.'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ج<br><strong>توضیح:</strong> در معایب clasp های حلقوی ذکر شده می‌توانند باعث افزایش عرض سطح اکلوزال شوند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: این مورد به عنوان مزیت مطرح شده است.<br>- ب: به عنوان مزیت ذکر شده است.<br>- د: به عنوان مزیت ذکر شده است.'
+        },
+        {
+            question: 'کدام مورد در فهرست انواع clasp های حلقوی ذکر شده است؟',
+            options: [
+                'I-bar',
+                'Hair-pin clasp / reverse action clasp / clasp-c',
+                'T-bar',
+                'Modified T'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ب<br><strong>توضیح:</strong> در لیست انواع clasp حلقوی، Hair-pin clasp و معادل‌های آن (reverse action clasp / clasp-c) آمده‌اند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: I-bar از انواع bar (infrabulge) است.<br>- ج: T-bar از انواع bar است.<br>- د: Modified T از انواع bar است.'
+        },
+        {
+            question: 'تفاوت embrasure clasp و multiple clasp از نظر فاصله رست‌ها چگونه بیان می‌شود؟',
+            options: [
+                'در multiple clasp رست‌ها از هم دورترند و در embrasure clasp رست‌ها مجاور هم‌اند.',
+                'در multiple clasp رست‌ها مجاورند و در embrasure clasp رست‌ها از هم دورترند.',
+                'در هر دو، رست‌ها مجاور هم‌اند ولی نوک بازوهای گیر کنار هم نیست.',
+                'در هر دو، رست‌ها از هم دورند ولی نوک بازوهای گیر کنار هم است.'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>گزینه صحیح:</strong> الف<br><strong>توضیح:</strong> طبق اصلاحیه، در multiple clasp رست‌ها از هم دور هستند و در embrasure clasp رست‌ها مجاور هم‌اند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- ب: جابجایی نادرست دو کلسپ است.<br>- ج: با توصیف فاصله رست‌ها سازگار نیست.<br>- د: هر دو را «رست‌های دور» فرض کرده که مطابق اصلاحیه نیست.'
+        },
+        {
+            question: 'در توصیف ring clasp، محل درگیری انتهای بازوی گیر چگونه بیان شده است؟',
+            options: [
+                'وقتی undercut مجاور فضای بی‌دندانی باشد از نوع معکوس استفاده می‌شود.',
+                'در ناحیه rest به صورت دو clasp حلقوی ساده طراحی می‌شود.',
+                'به شکل I در قسمت میانی یا ناحیه مارژینال قرار می‌گیرد.',
+                'در نهایت وارد undercut مزیولینگوالی می‌شود.'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>گزینه صحیح:</strong> د<br><strong>توضیح:</strong> در ring clasp، پس از دور زدن دندان، انتهای بازوی گیر در undercut مزیولینگوالی قرار می‌گیرد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: اندیکاسیون reverse ring clasp است نه محل درگیری انتها.<br>- ب: مربوط به embrasure clasp (دو clasp حلقوی) است.<br>- ج: مربوط به I-bar است.'
+        },
+        {
+            question: 'در کلسپ حلقوی ساده، کدام محدودیت تنظیم به دلیل شکل بازو ذکر شده است؟',
+            options: [
+                'فقط امکان تنظیم اپیکالی وجود دارد و تنظیم اکلوزالی ندارد.',
+                'فقط امکان چرخش ۱۸۰ درجه وجود دارد و تغییر نزدیک/دور ندارد.',
+                'امکان بالا/پایین‌کردن وجود ندارد و فقط نزدیک/دور کردن ممکن است.',
+                'فقط امکان افزایش عرض سطح اکلوزال وجود دارد و تغییر دیگری ندارد.'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ج<br><strong>توضیح:</strong> به علت شکل بازو، در کلسپ حلقوی ساده «بالا و پایین کردن» ممکن نیست و فقط نزدیک/دور کردن قابل انجام است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: این عبارت به شکل صریح برای محدودیت تنظیم ذکر نشده است.<br>- ب: چنین محدودیتی در متن نیامده است.<br>- د: افزایش عرض سطح اکلوزال عیب clasp حلقوی است، نه «محدودیت تنظیم» کلسپ حلقوی ساده.'
+        },
+        {
+            question: 'کلسپ حلقوی معکوس (Reverse ring clasp) در کدام وضعیت به‌کار می‌رود؟',
+            options: [
+                'وقتی دندان‌های پایه از نظر پریودنتالی ضعیف باشند.',
+                'وقتی undercut در مجاورت فضای بی‌دندانی باشد و استفاده از نوع ساده ممکن نباشد.',
+                'وقتی عمق وستیبول باکال کم باشد.',
+                'وقتی قرار است در طرح RPI استفاده شود.'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ب<br><strong>توضیح:</strong> در متن، reverse ring clasp زمانی مطرح شده که undercut در مجاورت فضای بی‌دندانی است و نوع ساده مناسب نیست.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: اندیکاسیون multiple clasp است.<br>- ج: کم بودن عمق وستیبول باکال در منع infrabulge آمده است.<br>- د: طرح RPI به I-bar مربوط است.'
+        },
+        {
+            question: 'embrasure clasp از نظر ساخت و محل استفاده چگونه توصیف شده است؟',
+            options: [
+                'یک clasp حلقوی ساده است که فقط روی یک دندان قرار می‌گیرد.',
+                'یک clasp bar است که از سمت gingival وارد undercut می‌شود.',
+                'یک clasp است که بازو کاملاً دندان را دور می‌زند و وارد undercut مزیولینگوالی می‌شود.',
+                'از دو clasp حلقوی ساده تشکیل می‌شود و در ناحیه embrasure به‌کار می‌رود.'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>گزینه صحیح:</strong> د<br><strong>توضیح:</strong> embrasure clasp در جزوه به‌صورت دو clasp حلقوی ساده در ناحیه embrasure توصیف شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: تعریف embrasure نیست.<br>- ب: تعریف bar clasp است.<br>- ج: تعریف ring clasp است.'
+        },
+        {
+            question: 'multiple clasp در چه شرایطی پیشنهاد شده است؟',
+            options: [
+                'وقتی دندان‌های پایه از نظر پریودنتالی ضعیف باشند تا نیرو بهتر توزیع شود.',
+                'وقتی پلن اکلوزال شیب‌دار باشد و بعضی دندان‌ها پایین‌تر باشند.',
+                'وقتی عمق وستیبول باکال کم باشد.',
+                'وقتی نیاز به حذف بازوی افقی برای زیبایی وجود داشته باشد.'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>گزینه صحیح:</strong> الف<br><strong>توضیح:</strong> در متن، multiple clasp برای دندان‌های پایه پریودنتالی ضعیف جهت توزیع بهتر نیرو ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- ب: مربوط به طرح دیگر در پلن اکلوزال شیب‌دار است.<br>- ج: در موارد منع infrabulge آمده است.<br>- د: مربوط به Modified T است.'
+        },
+        {
+            question: 'در طرحی از clasp که برای پلن اکلوزال شیب‌دار مطرح شده است، برای بهبود زیبایی چه پیشنهادی ذکر شده است؟',
+            options: [
+                'افزایش دربرگیری برای بالا بردن ثبات',
+                'ونیر کردن با رزین اکریلی یا طلا',
+                'تبدیل طراحی به I-bar',
+                'استفاده از lingual plate به‌جای clasp'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ب<br><strong>توضیح:</strong> در بخش مربوط به پلن اکلوزال شیب‌دار، برای زیبایی «ونیر با رزین اکریلی یا طلا» ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: به عنوان پیشنهاد آن بخش نیامده است.<br>- ج: I-bar مربوط به bar clasp و RPI است.<br>- د: lingual plate در انواع indirect retainer آمده، نه پیشنهاد این طرح.'
+        },
+        {
+            question: 'در مقایسه ماهیت نیرو در infrabulge نسبت به clasp حلقوی، کدام توصیف مطرح شده است؟',
+            options: [
+                'هر دو صرفاً کششی هستند.',
+                'هر دو صرفاً فشاری هستند.',
+                'infrabulge به‌صورت کمربند فشاری توصیف شده است.',
+                'infrabulge فقط باعث افزایش عرض سطح اکلوزال می‌شود.'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ج<br><strong>توضیح:</strong> در متن، infrabulge به شکل کمربند فشاری توصیف شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: متن چنین همسان‌سازی‌ای نکرده است.<br>- ب: متن «صرفاً» فشاری بودن هر دو را بیان نکرده است.<br>- د: افزایش عرض سطح اکلوزال در معایب clasp حلقوی آمده است.'
+        },
+        {
+            question: 'در فهرست معایب infrabulge clasp کدام مورد ذکر شده است؟',
+            options: [
+                'گیر غذایی بیشتر',
+                'دسترسی به undercut از سمت gingival',
+                'زیبایی بیشتر به دلیل دسترسی اپیکالی',
+                'قابلیت ارتجاعی بیشتر به دلیل طول بیشتر بازو'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>گزینه صحیح:</strong> الف<br><strong>توضیح:</strong> در معایب infrabulge، گیر غذایی بیشتر ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- ب: در مزایای infrabulge آمده است.<br>- ج: در مزایا ذکر شده است.<br>- د: افزایش طول و ارتجاع‌پذیری بیشتر به عنوان مزیت آمده است.'
+        },
+        {
+            question: 'کدام گزینه یکی از انواع clasp های bar (infrabulge) است؟',
+            options: [
+                'Akers clasp',
+                'reverse Akers clasp',
+                'embrasure clasp',
+                'I-bar'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>گزینه صحیح:</strong> د<br><strong>توضیح:</strong> در لیست انواع bar clasp، I-bar ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: Akers clasp در انواع clasp حلقوی آمده است.<br>- ب: reverse Akers clasp نیز در انواع حلقوی آمده است.<br>- ج: embrasure clasp در بخش حلقوی مطرح شده است.'
+        },
+        {
+            question: 'کلسپ T شکل در چه موقعیتی پیشنهاد شده است؟',
+            options: [
+                'زمانی که رست‌ها از هم دور باشند و نوک بازوها کنار هم قرار گیرد.',
+                'وقتی undercut دندان پایه مجاور انتهای آزاد در مجاورت فضای بی‌دندانی باشد.',
+                'زمانی که قرار است بازو کاملاً دندان را دور بزند.',
+                'زمانی که پلن اکلوزال شیب‌دار باشد و دندان‌ها در یک سطح نباشند.'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ب<br><strong>توضیح:</strong> در متن، T clasp زمانی پیشنهاد شده که undercut دندان پایه مجاور انتهای آزاد در مجاورت فضای بی‌دندانی باشد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: این توصیف مربوط به مقایسه multiple/embrasure است.<br>- ج: مربوط به ring clasp است.<br>- د: مربوط به طرح پلن اکلوزال شیب‌دار است.'
+        },
+        {
+            question: 'درباره Modified T کدام توصیف مطرح شده است؟',
+            options: [
+                'دو بازوی bar حفظ می‌شوند و از سمت اکلوزال وارد undercut می‌شود.',
+                'مانند ring clasp، وارد undercut مزیولینگوالی می‌شود.',
+                'یک نیمه T دارد و سطح دربرگیری آن کمتر از T شکل است.',
+                'از دو clasp حلقوی ساده در ناحیه embrasure تشکیل می‌شود.'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ج<br><strong>توضیح:</strong> در تعریف Modified T (Half T)، حذف بخشی از بازوها و کاهش دربرگیری نسبت به T ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: چنین توصیفی برای Modified T در متن نیامده است.<br>- ب: undercut مزیولینگوالی مربوط به ring clasp است.<br>- د: تعریف embrasure clasp است.'
+        },
+        {
+            question: 'نقش اصلی نگهدارنده غیرمستقیم (Indirect retainer) در پروتزهای دارای ناحیه آزاد چگونه توصیف شده است؟',
+            options: [
+                'افزایش عرض سطح اکلوزال برای ایجاد ثبات',
+                'تبدیل نیروهای کششی به فشاری در clasp حلقوی',
+                'ایجاد undercut جدید با تغییر tilt',
+                'جلوگیری از حرکات عمودی و چرخشی پروتز حول fulcrum line'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>گزینه صحیح:</strong> د<br><strong>توضیح:</strong> Indirect retainer برای جلوگیری از حرکت عمودی/چرخشی پروتز حول fulcrum line در نواحی آزاد مطرح شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: افزایش عرض سطح اکلوزال عیب clasp حلقوی است، نه نقش indirect retainer.<br>- ب: این نقش به عنوان تعریف indirect retainer در متن نیامده است.<br>- ج: مربوط به tilt و height of contour کاذب است.'
+        },
+        {
+            question: 'محل رایج قرارگیری Indirect retainer چگونه بیان شده است؟',
+            options: [
+                'یک rest قدامی روی مزیال کانین',
+                'نوک بازوی گیر در undercut مزیولینگوالی',
+                'proximal plate در ناحیه پروگزیمال دندان خلفی',
+                'approach arm در قسمت میانی وستیبول'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>گزینه صحیح:</strong> الف<br><strong>توضیح:</strong> در متن، محل رایج indirect retainer معمولاً به صورت یک rest قدامی روی مزیال کانین ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- ب: مربوط به ring clasp است.<br>- ج: جزء clasp است، نه محل indirect retainer.<br>- د: جزء bar clasp است.'
+        },
+        {
+            question: 'fulcrum line افقی در Kennedy class I از کجا عبور می‌کند؟',
+            options: [
+                'از دندان‌های پایه مجاور فضای بی‌دندانی در قدام',
+                'از رست‌های خلفی‌ترین دندان‌های پایه در هر دو طرف',
+                'از رست‌های مجاور انتهای آزاد و رست خلفی سمت مقابل به‌صورت مورب',
+                'از سایر دندان‌های پایه (بدون در نظر گرفتن دندان ضعیف)'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ب<br><strong>توضیح:</strong> برای Kennedy class I، fulcrum line افقی از رست‌های خلفی‌ترین دندان‌های پایه در هر دو طرف عبور می‌کند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: توصیف class IV است.<br>- ج: توصیف class II است (مورب).<br>- د: توصیف class III در حالت دندان پایه ضعیف است.'
+        },
+        {
+            question: 'fulcrum line در Kennedy class IV از کجا عبور می‌کند؟',
+            options: [
+                'از رست‌های خلفی‌ترین دندان‌های پایه در هر دو طرف',
+                'از رست‌های مجاور انتهای آزاد و رست خلفی سمت مقابل به‌صورت مورب',
+                'از دندان‌های پایه مجاور فضای بی‌دندانی',
+                'با حذف دندان پایه ضعیف از سایر دندان‌های پایه عبور می‌کند'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ج<br><strong>توضیح:</strong> برای Kennedy class IV، fulcrum line از دندان‌های پایه مجاور فضای بی‌دندانی عبور می‌کند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: توصیف class I است.<br>- ب: توصیف class II است.<br>- د: توصیف مربوط به class III (با دندان پایه ضعیف) است.'
+        },
+        {
+            question: 'ارتباط فاصله محل Indirect retainer از fulcrum line با کارایی آن چگونه بیان شده است؟',
+            options: [
+                'هرچه فاصله بیشتر باشد کارایی بیشتر است.',
+                'هرچه فاصله کمتر باشد کارایی بیشتر است.',
+                'فاصله اثری ندارد و فقط نوع clasp مهم است.',
+                'فاصله فقط در class IV اهمیت دارد.'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>گزینه صحیح:</strong> الف<br><strong>توضیح:</strong> در عوامل مؤثر بر کارایی indirect retainer ذکر شده هرچه فاصله از fulcrum line بیشتر باشد، کارایی بیشتر است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- ب: خلاف متن است.<br>- ج: فاصله به عنوان عامل مطرح شده است.<br>- د: محدود به class IV بیان نشده است.'
+        },
+        {
+            question: 'کدام گزینه به‌عنوان یک نوع Indirect retainer با شرط «ساپورت شدن توسط دو rest در دو انتها» ذکر شده است؟',
+            options: [
+                'approach arm',
+                'I-bar',
+                'Akers clasp',
+                'lingual bar یا lingual plate'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>گزینه صحیح:</strong> د<br><strong>توضیح:</strong> در انواع indirect retainer، lingual bar یا lingual plate با شرط ساپورت شدن توسط دو rest در دو انتها ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: جزء bar clasp است.<br>- ب: نوع bar clasp است (نه indirect retainer با این شرط).<br>- ج: نوع clasp حلقوی است.'
+        },
+        {
+            question: 'کدام مورد در فهرست خصوصیات denture base ایده‌آل ذکر شده است؟',
+            options: [
+                'امکان جابجایی پروتز به سمت خلف',
+                'افزایش عرض سطح اکلوزال',
+                'محکم، قابل پرداخت و بدون تخلخل',
+                'حذف بازوی افقی برای زیبایی'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ج<br><strong>توضیح:</strong> در خصوصیات برس دنچر ایده‌آل، محکم بودن، قابلیت پرداخت و بدون تخلخل بودن ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: به عنوان ویژگی ایده‌آل بیس مطرح نشده است.<br>- ب: عیب clasp حلقوی است.<br>- د: مربوط به Modified T است.'
+        },
+        {
+            question: 'کدام مورد به‌عنوان یکی از معایب برس رزین آکریلی نسبت به فلز ذکر شده است؟',
+            options: [
+                'قابلیت relining کردن کمتر از فلز',
+                'ثبات ابعادی کمتر نسبت به فلز',
+                'زیبایی قابل قبول‌تر از فلز',
+                'ترمیم آن دشوارتر از فلز است'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ب<br><strong>توضیح:</strong> در مقایسه‌ها، ثبات ابعادی کمتر به عنوان عیب رزین آکریلی نسبت به فلز ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: relining کردن برای رزین آکریلی به عنوان مزیت مطرح شده است.<br>- ج: زیبایی بهتر برای رزین آکریلی به عنوان مزیت آمده است، نه عیب.<br>- د: «ترمیم آسان» برای رزین آکریلی مطرح شده است.'
+        },
+        {
+            question: 'در موارد منع استفاده از infrabulge clasp، کدام عبارت درباره undercut ذکر شده است؟',
+            options: [
+                'undercut فقط در سطح باکال قابل استفاده است.',
+                'undercut باید در مزیولینگوال باشد.',
+                'undercut با تغییر tilt حذف می‌شود و منع ندارد.',
+                'undercut کمتر از 1 mm (معادل گیج 30 surveyor)'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>گزینه صحیح:</strong> د<br><strong>توضیح:</strong> در موارد منع استفاده از infrabulge، undercut کمتر از 1 mm (گیج 30 surveyor) به عنوان undercut ناکافی ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: چنین محدودیتی در متن نیامده است.<br>- ب: مزیولینگوال مربوط به ring clasp است، نه شرط منع infrabulge.<br>- ج: بحث tilt در height of contour آمده و به صورت «رفع منع» بیان نشده است.'
+        },
+        {
+            question: 'کدام نوع bar clasp معمولاً در طرح RPI استفاده می‌شود؟',
+            options: [
+                'I-bar',
+                'T-bar',
+                'Modified T',
+                'Akers clasp'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>گزینه صحیح:</strong> الف<br><strong>توضیح:</strong> در متن I-bar به عنوان کلسپی که معمولاً در طرح RPI استفاده می‌شود ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- ب: T-bar نوع bar clasp است اما «معمولاً در RPI» برای آن ذکر نشده است.<br>- ج: Modified T به صورت جداگانه توضیح داده شده است.<br>- د: Akers clasp نوع حلقوی است.'
+        },
+        {
+            question: 'fulcrum line در Kennedy class II چگونه توصیف شده است؟',
+            options: [
+                'افقی و از رست‌های خلفی‌ترین دندان‌های پایه در هر دو طرف عبور می‌کند.',
+                'مورب و از رست مجاور انتهای آزاد و رست اکلوزال دندان پایه خلفی سمت مقابل عبور می‌کند.',
+                'فقط از دندان‌های پایه مجاور فضای بی‌دندانی عبور می‌کند.',
+                'صرفاً از نوک بازوی گیر در undercut عبور می‌کند.'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ب<br><strong>توضیح:</strong> در class II، محور چرخش مورب است و از رست مجاور انتهای آزاد و رست اکلوزال دندان پایه خلفی سمت مقابل عبور می‌کند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: توصیف class I است.<br>- ج: توصیف class IV است.<br>- د: fulcrum line به «نوک بازوی گیر» تعریف نشده است.'
+        },
+        {
+            question: 'برس دنچر (denture base) در پروتز پارسیل چگونه معرفی شده است؟',
+            options: [
+                'قطعه فلزی اصلی برای انتقال حرارت و کاهش حجم',
+                'یک clasp حلقوی برای ساپورت دندان پایه و کاهش پوسیدگی',
+                'قسمت بیس رزین اکریلی برای ساپورت/گیر دندان مصنوعی و حفظ زیبایی',
+                'یک attachment precision برای افزایش ثبات و حذف clasp'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ج<br><strong>توضیح:</strong> برس دنچر در پروتز پارسیل به عنوان بیس (معمولاً رزین اکریلی) برای ساپورت و گیر دندان مصنوعی و حفظ زیبایی معرفی شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: تعریف اولیه «قطعه فلزی اصلی» نیست.<br>- ب: denture base clasp نیست.<br>- د: precision attachment تعریف دیگری دارد و مربوط به intracoronal است.'
+        },
+        {
+            question: 'کدام مورد به‌عنوان یکی از «وظایف کمکی» Indirect retainer ذکر شده است؟',
+            options: [
+                'کاهش حرکت اهرمی چرخشی',
+                'افزایش عرض سطح اکلوزال',
+                'ایجاد undercut مزیولینگوالی',
+                'حذف بازوی افقی در Modified T'
+            ],
+            correctIndex: 0,
+            explanation:
+                '<strong>گزینه صحیح:</strong> الف<br><strong>توضیح:</strong> در وظایف کمکی indirect retainer، کاهش حرکت اهرمی چرخشی ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- ب: عیب clasp حلقوی است.<br>- ج: ویژگی ring clasp است.<br>- د: ویژگی Modified T است.'
+        },
+        {
+            question: 'کدام ترکیب ویژگی مربوط به embrasure clasp است؟',
+            options: [
+                'رست‌ها مجاور هم و نوک بازوهای گیر کنار هم',
+                'رست‌ها از هم دور و انتهای بازوها از هم دور',
+                'رست‌ها از هم دور و نوک بازوهای گیر کنار هم',
+                'رست‌ها مجاور هم و انتهای بازوها از هم دور'
+            ],
+            correctIndex: 3,
+            explanation:
+                '<strong>گزینه صحیح:</strong> د<br><strong>توضیح:</strong> طبق اصلاحیه، در embrasure clasp رست‌ها مجاور هم و انتهای بازوها از هم دور هستند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: «نوک بازوهای گیر کنار هم» مطابق multiple clasp است نه embrasure.<br>- ب: هر دو را «دور» فرض کرده و با اصلاحیه نمی‌خواند.<br>- ج: این ترکیب دقیقاً ویژگی multiple clasp است (رست‌ها دور + نوک بازوهای گیر کنار هم).'
+        },
+        {
+            question: 'در مقایسه با برس رزین آکریلی، کدام مزیت برای metal base ذکر شده است؟',
+            options: [
+                'امکان ایجاد undercut کاذب',
+                'افزایش عرض سطح اکلوزال',
+                'هدایت حرارتی مناسب‌تر',
+                'نیاز کمتر به پرداخت و صیقل'
+            ],
+            correctIndex: 2,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ج<br><strong>توضیح:</strong> برای metal base نسبت به رزین آکریلی، هدایت حرارتی مناسب‌تر ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: undercut کاذب مربوط به tilt/height of contour است.<br>- ب: عیب clasp حلقوی است.<br>- د: به این صورت به عنوان مزیت اختصاصی فلز در متن ذکر نشده است.'
+        },
+        {
+            question: 'در suprabulge clasp مسیر دسترسی بازوی گیر به undercut چگونه توصیف می‌شود؟',
+            options: [
+                'دسترسی از سمت gingival است.',
+                'بازوی گیر از ناحیه اکلوزال/بالای height of contour به undercut می‌رسد.',
+                'بازو کاملاً دندان را دور می‌زند و وارد undercut مزیولینگوالی می‌شود.',
+                'بازو به شکل I در قسمت میانی یا مارژینال قرار می‌گیرد.'
+            ],
+            correctIndex: 1,
+            explanation:
+                '<strong>گزینه صحیح:</strong> ب<br><strong>توضیح:</strong> در suprabulge، دسترسی بازوی گیر به undercut از ناحیه اکلوزال/بالای height of contour توصیف می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- الف: دسترسی از سمت gingival مربوط به infrabulge است.<br>- ج: مربوط به ring clasp است.<br>- د: مربوط به I-bar است.'
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    const questionCounterEl = document.getElementById('questionCounter');
+    const answeredCounterEl = document.getElementById('answeredCounter');
+    const progressFillEl = document.getElementById('progressFill');
+    const questionTagEl = document.getElementById('questionTag');
+    const questionStatusEl = document.getElementById('questionStatus');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainerEl = document.getElementById('optionsContainer');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const finishBtn = document.getElementById('finishBtn');
+
+    const resultsSectionEl = document.getElementById('resultsSection');
+    const scorePercentEl = document.getElementById('scorePercent');
+    const scoreLabelEl = document.getElementById('scoreLabel');
+    const scoreCorrectEl = document.getElementById('scoreCorrect');
+    const scoreWrongEl = document.getElementById('scoreWrong');
+    const scoreUnansweredEl = document.getElementById('scoreUnanswered');
+    const answersContainerEl = document.getElementById('answersContainer');
+
+    function updateProgressUI() {
+        const total = questions.length;
+        const answeredCount = userAnswers.filter(a => a !== null).length;
+
+        questionCounterEl.textContent = `سؤال ${currentQuestionIndex + 1} از ${total}`;
+        answeredCounterEl.textContent = `${answeredCount} / ${total} پاسخ داده شده`;
+
+        const progressPercent = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+        progressFillEl.style.width = progressPercent + '%';
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestionIndex];
+
+        questionTagEl.textContent = `سؤال ${currentQuestionIndex + 1}`;
+        questionTextEl.textContent = q.question;
+
+        const userAnswer = userAnswers[currentQuestionIndex];
+        questionStatusEl.textContent = userAnswer === null ? 'وضعیت: بدون پاسخ' : 'وضعیت: پاسخ داده شده';
+
+        optionsContainerEl.innerHTML = '';
+        const letters = ['الف', 'ب', 'ج', 'د'];
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'option-btn';
+            if (userAnswer === index) btn.classList.add('selected');
+            btn.dataset.index = index.toString();
+
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'option-letter';
+            letterSpan.textContent = letters[index] + ')';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'option-text';
+            textSpan.textContent = opt;
+
+            btn.appendChild(letterSpan);
+            btn.appendChild(textSpan);
+
+            btn.addEventListener('click', () => handleOptionSelect(index));
+            optionsContainerEl.appendChild(btn);
+        });
+
+        prevBtn.disabled = currentQuestionIndex === 0;
+        nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+
+        updateProgressUI();
+    }
+
+    function handleOptionSelect(optionIndex) {
+        userAnswers[currentQuestionIndex] = optionIndex;
+        if (currentQuestionIndex < questions.length - 1) currentQuestionIndex++;
+        renderQuestion();
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+    });
+
+    finishBtn.addEventListener('click', () => {
+        finishQuiz();
+    });
+
+    function finishQuiz() {
+        const total = questions.length;
+        let correct = 0, wrong = 0, unanswered = 0;
+
+        questions.forEach((q, index) => {
+            const ans = userAnswers[index];
+            if (ans === null) unanswered++;
+            else if (ans === q.correctIndex) correct++;
+            else wrong++;
+        });
+
+        const percent = total === 0 ? 0 : Math.round((correct / total) * 100);
+
+        scorePercentEl.textContent = percent + '%';
+        scoreLabelEl.textContent = `${correct} پاسخ صحیح از ${total} سؤال`;
+        scoreCorrectEl.textContent = correct.toString();
+        scoreWrongEl.textContent = wrong.toString();
+        scoreUnansweredEl.textContent = unanswered.toString();
+
+        buildAnswersReview();
+        resultsSectionEl.style.display = 'flex';
+        resultsSectionEl.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function buildAnswersReview() {
+        answersContainerEl.innerHTML = '';
+        const letters = ['الف', 'ب', 'ج', 'د'];
+
+        questions.forEach((q, index) => {
+            const userAnswer = userAnswers[index];
+
+            const card = document.createElement('div');
+            card.className = 'answer-card';
+
+            const qTitle = document.createElement('div');
+            qTitle.className = 'answer-question-title';
+            qTitle.textContent = `سؤال ${index + 1}`;
+            card.appendChild(qTitle);
+
+            const qText = document.createElement('div');
+            qText.className = 'answer-question-text';
+            qText.textContent = q.question;
+            card.appendChild(qText);
+
+            const optionsWrapper = document.createElement('div');
+            optionsWrapper.className = 'answer-options-wrapper';
+
+            q.options.forEach((opt, optIdx) => {
+                const row = document.createElement('div');
+                row.className = 'option-row';
+
+                const main = document.createElement('div');
+                main.className = 'option-main';
+
+                const label = document.createElement('span');
+                label.className = 'option-label';
+                label.textContent = letters[optIdx] + ')';
+
+                const text = document.createElement('span');
+                text.className = 'option-text';
+                text.textContent = opt;
+
+                main.appendChild(label);
+                main.appendChild(text);
+                row.appendChild(main);
+
+                const tag = document.createElement('span');
+                tag.className = 'option-tag';
+
+                if (optIdx === q.correctIndex && userAnswer === optIdx) {
+                    row.classList.add('user-correct');
+                    tag.textContent = '✓ صحیح (انتخاب شما)';
+                } else if (optIdx === q.correctIndex) {
+                    row.classList.add('correct');
+                    tag.textContent = '✓ گزینه صحیح';
+                } else if (userAnswer === optIdx) {
+                    row.classList.add('user-wrong');
+                    tag.textContent = '✗ انتخاب شما';
+                }
+
+                if (tag.textContent) row.appendChild(tag);
+                optionsWrapper.appendChild(row);
+            });
+
+            card.appendChild(optionsWrapper);
+
+            const expl = document.createElement('div');
+            expl.className = 'answer-explanation';
+            if (userAnswer === null) {
+                expl.innerHTML = `<strong>وضعیت پاسخ:</strong> این سؤال را پاسخ ندادی.<br>${q.explanation}`;
+            } else {
+                expl.innerHTML = q.explanation;
+            }
+
+            card.appendChild(expl);
+            answersContainerEl.appendChild(card);
+        });
+    }
+
+    renderQuestion();
+</script>
+
+<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
+<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,802 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+<link rel="stylesheet" href="/assets/site/styles/quiz.css?v=20260421-pwa">
+<meta charset="UTF-8">
+  <title>آزمون فارما CNS - جلسه ۳</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+      padding: 16px 14px 14px;
+      margin-bottom: 14px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .title-card {
+      margin-bottom: 12px;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .quiz-card {
+      margin-top: 4px;
+    }
+
+    .question-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    #question-header {
+      font-size: 0.86rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #1e3a8a;
+    }
+
+    .progress {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #progress-label {
+      font-size: 0.72rem;
+      color: #6b7280;
+      text-align: left;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+      transition: width 0.3s ease-out;
+    }
+
+    #question-text {
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      cursor: pointer;
+      font-size: 0.86rem;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .option:hover {
+      background: #f3f4ff;
+      border-color: #c7d2fe;
+    }
+
+    .option input {
+      display: none;
+    }
+
+    .radio-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid #9ca3af;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .radio-inner {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: transparent;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .option.selected {
+      background: #e0f2fe;
+      border-color: #38bdf8;
+    }
+
+    .option.selected .radio-inner {
+      background: #0ea5e9;
+      transform: scale(1.05);
+    }
+
+    .buttons-column {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    button {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: #f9fafb;
+      border-color: #9ca3af;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    #next-btn {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+    }
+
+    #next-btn:hover:not(:disabled) {
+      background: #dbeafe;
+      border-color: #60a5fa;
+    }
+
+    #submit-btn {
+      border-color: #22c55e;
+      background: #22c55e;
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    #submit-btn:hover:not(:disabled) {
+      background: #16a34a;
+      border-color: #15803d;
+      box-shadow: 0 6px 16px rgba(22, 163, 74, 0.25);
+    }
+
+    #status {
+      margin-top: 8px;
+      font-size: 0.76rem;
+      color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .result-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .result-main h2 {
+      margin: 0 0 6px;
+      font-size: 0.95rem;
+    }
+
+    .score-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      font-size: 0.8rem;
+      color: #374151;
+    }
+
+    .score-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .percent-big {
+      font-size: 1.4rem;
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .percent-big.bad {
+      color: #ef4444;
+    }
+
+    .percent-label {
+      font-size: 0.72rem;
+      color: #6b7280;
+      text-align: left;
+    }
+
+    .muted {
+      color: #6b7280;
+      font-size: 0.78rem;
+      margin-top: 4px;
+    }
+
+    .summary-question {
+      padding-top: 4px;
+      margin-top: 4px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 0.82rem;
+    }
+
+    .summary-question:first-of-type {
+      border-top: none;
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    .summary-question-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .summary-line {
+      margin: 1px 0;
+    }
+
+    .summary-label {
+      color: #6b7280;
+    }
+
+    .correct {
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .incorrect {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    .explanation {
+      margin-top: 4px;
+      color: #374151;
+    }
+
+    .quiz-disabled {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 14px 12px 12px;
+      }
+      #question-text {
+        font-size: 0.88rem;
+      }
+      .option {
+        font-size: 0.84rem;
+      }
+    }
+  </style>
+<meta name="theme-color" content="#050b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dent1402">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260421-pwa">
+</head>
+<body class="quiz-page">
+
+  <div class="wrapper">
+    <div class="card title-card">
+      <h1 class="title">فارما CNS - آزمون جلسه ۳</h1>
+      <p class="subtitle">۲۰ سؤال چهارگزینه‌ای | صرع، پارکینسون، اپیوئیدها و نوروترنسمیترها | پاسخ‌ها بعد از پایان آزمون نمایش داده می‌شوند.</p>
+    </div>
+
+    <div id="quiz-area" class="card quiz-card">
+      <div class="question-header-row">
+        <div id="question-header"></div>
+        <div class="progress">
+          <span id="progress-label">۰٪ انجام شده</span>
+          <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="question-text"></div>
+      <div id="options" class="options"></div>
+
+      <div class="buttons-column">
+        <button id="next-btn">سؤال بعدی ⟶</button>
+        <button id="prev-btn">⟵ سؤال قبلی</button>
+        <button id="submit-btn">پایان آزمون و تصحیح</button>
+      </div>
+
+      <div id="status"></div>
+    </div>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        text: "۱) در مورد مکانیزم کلی داروهای ضد صرع طبق جزوه، کدام گزینه صحیح‌تر است؟",
+        options: [
+          "A) مهار سنتز تمام نوروترنسمیترها در مغز",
+          "B) مهار کانال‌های سدیمی یا کلسیمی در نواحی دشارژ غیرطبیعی نورون‌ها",
+          "C) فعال‌کردن کانال‌های پتاسیمی در تمام نورون‌ها",
+          "D) افزایش آزادسازی گلوتامات در قشر مغز"
+        ],
+        correctIndex: 1,
+        explanation: "در جزوه صرع گفته می‌شود که اکثر داروهای مؤثر در صرع، با مهار کانال‌های سدیمی و کلسیمی در شاخه‌های مغزیِ دچار دشارژ غیرطبیعی عمل می‌کنند و از انتشار تخلیه‌های غیرطبیعی جلوگیری می‌کنند."
+      },
+      {
+        text: "۲) طبق جزوه، چرا انتخاب داروی مناسب ضدصرع برای هر بیمار اهمیت زیادی دارد؟",
+        options: [
+          "A) چون همه داروهای ضدصرع فقط روی یک نوع تشنج اثر دارند",
+          "B) چون بعضی بیماران فقط به یک داروی خاص و در یک دوز خاص پاسخ می‌دهند",
+          "C) چون همهٔ داروها تحمل‌پذیری بسیار بدی دارند",
+          "D) چون داروهای ضدصرع فقط باید کوتاه‌مدت مصرف شوند"
+        ],
+        correctIndex: 1,
+        explanation: "استاد تأکید کرده که در درمان صرع، بعضی بیماران فقط با یک داروی خاص و در یک دوز مشخص کنترل می‌شوند؛ بنابراین تشخیص نوع صرع و انتخاب داروی مناسب بسیار مهم است."
+      },
+      {
+        text: "۳) در جزوه آمده است بسیاری از بیماران مبتلا به صرع، دارو را باید چگونه مصرف کنند؟",
+        options: [
+          "A) فقط در زمان بروز تشنج",
+          "B) چند هفته تا قطع کامل تشنج، سپس قطع ناگهانی",
+          "C) معمولاً در تمام طول عمر یا حداقل بخش بزرگی از آن",
+          "D) فقط قبل از اعمال جراحی دندانپزشکی"
+        ],
+        correctIndex: 2,
+        explanation: "در متن تأکید شده که این افراد باید در تمام طول عمر خود از داروی صرع استفاده کنند یا دست‌کم مدت طولانی، و قطع دارو باید تدریجی باشد."
+      },
+      {
+        text: "۴) کدام مورد طبق جزوه از تداخلات مهم داروهای ضدصرع است که باید حتماً در نسخه‌نویسی به آن توجه شود؟",
+        options: [
+          "A) مصرف همزمان با آنتی‌اسیدهای ساده",
+          "B) مصرف قرص ضدبارداری خوراکی که باعث کاهش سطح داروی ضدصرع می‌شود",
+          "C) تجویز همزمان با داروهای ضدالتهاب غیر استروییدی",
+          "D) مصرف همراه با ویتامین D"
+        ],
+        correctIndex: 1,
+        explanation: "ذکر شده که بعضی قرص‌های ضدبارداری خوراکی می‌توانند سطح پلاسمایی داروهای ضدصرع را کاهش دهند و لازم است دوز داروی ضدصرع تنظیم شود. از طرف دیگر، وجود وارفارین نیز نیاز به تنظیم دقیق دوز دارد."
+      },
+      {
+        text: "۵) طبق جزوه، کدام داروی زیر از داروهای قدیمی ضدصرع است که هنوز هم در بعضی بیماران به‌صورت ترکیبی و با دوز حدود ۱۰۰ میلی‌گرم استفاده می‌شود؟",
+        options: [
+          "A) فنیتوئین",
+          "B) اتوسوکسیماید",
+          "C) فنوباربیتال",
+          "D) کاربامازپین"
+        ],
+        correctIndex: 2,
+        explanation: "در متن به‌طور مشخص از فنوباربیتال به‌عنوان یکی از داروهای قدیمی درمان صرع نام برده شده که هنوز در بعضی بیماران، غالباً به صورت ترکیبی و با دوز تقریبی ۱۰۰ میلی‌گرم مصرف می‌شود."
+      },
+      {
+        text: "۶) در جزوه CNS، کدام مجموعه از علائم به‌عنوان تریاد مهم مسمومیت با اپیوئیدها ذکر شده است که استاد روی آن تأکید داشته است؟",
+        options: [
+          "A) تب، تشنج، میدریاز",
+          "B) اغما، دپرشن تنفسی شدید، میوزیس شدید",
+          "C) هیپرتانسیون، تاکی‌کاردی، میوزیس",
+          "D) برادی‌پنه، برادی‌کاردی، کهیر منتشر"
+        ],
+        correctIndex: 1,
+        explanation: "در بخش اپیوئیدها گفته شده سه علامت دپرشن تنفسی شدید، کما و میوز شدید تریاد کلاسیک مسمومیت با اپیوئیدها هستند و استاد تأکید می‌کند که این سه علامت را حتماً به‌خاطر بسپارید."
+      },
+      {
+        text: "۷) در مورد داروی Naloxone طبق جزوه کدام گزینه صحیح است؟",
+        options: [
+          "A) آگونیست قوی گیرنده مو است و در دردهای شدید استفاده می‌شود.",
+          "B) آنتاگونیست اپیوئیدی است و در درمان مسمومیت حاد ناشی از مصرف بیش از حد اپیوئیدها به کار می‌رود.",
+          "C) فقط روی گیرنده‌های سروتونرژیک اثر دارد.",
+          "D) برای پیشگیری از وابستگی به اپیوئیدها به‌صورت طولانی‌مدت مصرف می‌شود."
+        ],
+        correctIndex: 1,
+        explanation: "نالوکسان به‌عنوان آنتاگونیست اپیوئیدی معرفی می‌شود که برای درمان مسمومیت شدید اپیوئیدی با همان تریاد کما، دپرشن تنفسی و میوز استفاده شده و باعث بهبود سریع بیمار می‌گردد."
+      },
+      {
+        text: "۸) در مورد داروی Tramadol طبق جزوه، کدام عبارت درست‌تر است؟",
+        options: [
+          "A) آگونیست بسیار قوی گیرنده مو است و فقط به‌صورت تزریق وریدی وجود دارد.",
+          "B) بیشتر اثرش از طریق مهار بازجذب سروتونین و نوراپی‌نفرین است و روی گیرنده مو اثر ضعیف‌تری دارد.",
+          "C) فقط به‌صورت موضعی در دندانپزشکی استفاده می‌شود.",
+          "D) دارویی بدون نیاز به نسخه است و مصرف آن آزاد است."
+        ],
+        correctIndex: 1,
+        explanation: "گفته می‌شود دارویی با اسم ترامادول در بازار موجود است که اثر ضعیفی روی رسپتور مو دارد و بخش مهم اثرش از طریق سیستم سروتونرژیک و مهار بازجذب مونوآمین‌هاست؛ به صورت قرص و آمپول برای دردهای متوسط مصرف می‌شود و باید با نسخه پزشک تجویز شود."
+      },
+      {
+        text: "۹) در جزوه، وابستگی دارویی به اپیوئیدها چگونه توصیف شده است؟",
+        options: [
+          "A) پدیده‌ای ساده که فقط با افزایش دوز دارو رخ می‌دهد.",
+          "B) پدیده‌ای پیچیده در مغز که قطع ناگهانی دارو می‌تواند عود علائم را به‌دنبال داشته باشد.",
+          "C) حالتی که فقط در معتادان خیابانی دیده می‌شود.",
+          "D) وابسته به ژنتیک نیست و فقط به محیط مربوط است."
+        ],
+        correctIndex: 1,
+        explanation: "از وابستگی به‌عنوان یکی از پیچیده‌ترین پدیده‌های مغز یاد شده و مثال می‌زند که بعضی بیماران سال‌ها دارو مثل اپیوئیدها مصرف می‌کنند و قطع ناگهانی می‌تواند باعث بازگشت علائم و مشکل شود؛ به همین دلیل نباید دارو را ناگهان قطع کرد."
+      },
+      {
+        text: "۱۰) طبق جزوه، در بیماری پارکینسون چه اتفاق پاتوفیزیولوژیکی اصلی در مغز رخ می‌دهد؟",
+        options: [
+          "A) تخریب نورون‌های سروتونرژیک در ناحیه رافه",
+          "B) افزایش تعداد نورون‌های کولینرژیک در قشر مغز",
+          "C) کاهش نورون‌های دوپامینرژیک در ناحیه سابستانشیا نیگرا",
+          "D) کاهش نورون‌های گلوتاماترژیک در مخچه"
+        ],
+        correctIndex: 2,
+        explanation: "ویژگی اصلی پارکینسون کاهش نورون‌های دوپامینرژیک در ناحیه‌ای مثل سابستانشیا نیگرا است که معمولاً در سنین بالای ۶۰ سال تظاهر می‌کند."
+      },
+      {
+        text: "۱۱) هدف کلی درمان دارویی در پارکینسون طبق جزوه چیست؟",
+        options: [
+          "A) بلوک کامل گیرنده‌های دوپامین در تمام مسیرهای مغزی",
+          "B) افزایش گابا در مخچه",
+          "C) برقراری مجدد تعادل بین سیستم دوپامینرژیک و کولینرژیک",
+          "D) مهار تولید سروتونین در هسته‌های رافه"
+        ],
+        correctIndex: 2,
+        explanation: "تأکید شده که در مغز تعادل طبیعی بین سیستم دوپامینرژیک و کولینرژیک وجود دارد و در پارکینسون این تعادل به‌هم می‌خورد؛ بنابراین هدف اصلی درمان، برگرداندن این تعادل است."
+      },
+      {
+        text: "۱۲) طبق جزوه، کدام ترکیب داروی القاکننده پارکینسونیسم دارویی محسوب می‌شود؟",
+        options: [
+          "A) متیل‌دوپا",
+          "B) آملودیپین",
+          "C) داروهای آنتی‌سایکوتیک تیپیکال مثل Trifluoperazine",
+          "D) داروهای ضدالتهاب غیر استروییدی"
+        ],
+        correctIndex: 2,
+        explanation: "به داروهای آنتی‌سایکوتیک تیپیکال مثل تری‌فلوپرازین اشاره شده که با اثر آنتی‌دوپامینرژیک خود می‌توانند پارکینسونیسم دارویی ایجاد کنند."
+      },
+      {
+        text: "۱۳) در درمان Parkinsonism دارویی که بر اثر داروهای آنتی‌سایکوتیک ایجاد شده، طبق جزوه معمولاً کدام دسته ترجیح داده می‌شود؟",
+        options: [
+          "A) تجویز مستقیم لوودوپا در همهٔ موارد",
+          "B) قطع آنتی‌سایکوتیک و تجویز آنتی‌کولینرژیک‌ها",
+          "C) افزایش دوز آنتی‌سایکوتیک",
+          "D) تجویز بنزودیازپین‌ها"
+        ],
+        correctIndex: 1,
+        explanation: "در بحث آنتی‌کولینرژیک‌ها آمده که یکی از کاربردهای مهم آنها در درمان پارکینسونیسم دارویی است؛ در این حالت معمولاً از آنتی‌کولینرژیک‌ها استفاده می‌شود و لوودوپا توصیه نمی‌گردد."
+      },
+      {
+        text: "۱۴) طبق جزوه، تغییرات سطح دوپامین در کدام مسیرهای مغزی به ترتیب باعث پارکینسون و سایکوز می‌شوند؟",
+        options: [
+          "A) کاهش در مزولیمبیک باعث پارکینسون؛ افزایش در نیگروستریاتال باعث سایکوز",
+          "B) کاهش در نیگروستریاتال باعث پارکینسون؛ افزایش در مزولیمبیک باعث سایکوز",
+          "C) کاهش در قشر پیش‌پیشانی باعث هر دو",
+          "D) افزایش در هیپوتالاموس باعث سایکوز؛ کاهش در مخچه باعث پارکینسون"
+        ],
+        correctIndex: 1,
+        explanation: "توضیح داده شده که وقتی مقدار دوپامین در مسیر نیگروستریاتال کم شود، علائم پارکینسون ایجاد می‌شود و وقتی در مسیر مزولیمبیک زیاد شود، علائم سایکوز بروز می‌کند."
+      },
+      {
+        text: "۱۵) در مورد نوروترنسمیترهای شایع مغز کدام گزینه مطابق جزوه صحیح است؟",
+        options: [
+          "A) استیل‌کولین تنها نوروترنسمیتر تحریکی مغز است.",
+          "B) دوپامین نقش مهمی در بحث پاداش، صرع و مسیرهای لیمبیک دارد.",
+          "C) سروتونین فقط در کنترل فشار خون نقش دارد.",
+          "D) گلوتامات یک نوروترنسمیتر مهاری است."
+        ],
+        correctIndex: 1,
+        explanation: "در جزوه لیستی از نوروترنسمیترهای رایج مثل استیل‌کولین، نوراپی‌نفرین، دوپامین، سروتونین و اسیدهای آمینه داده شده و برای دوپامین نقش مهم در پاداش، صرع و مسیرهای مزولیمبیک ذکر شده است."
+      },
+      {
+        text: "۱۶) در جزوه، داروی LSD در کدام دسته از مواد قرار گرفته است؟",
+        options: [
+          "A) محرک‌های دوپامینرژیک",
+          "B) داروهای بی‌حس‌کننده موضعی",
+          "C) داروهای توهم‌زا که از طریق سیستم سروتونرژیک اثر می‌کنند",
+          "D) داروهای ضدصرع کلاسیک"
+        ],
+        correctIndex: 2,
+        explanation: "اشاره شده که برخی داروهای مورد سوء‌مصرف مانند LSD از طریق سیستم سروتونرژیک اثر می‌کنند و جزء مواد توهم‌زا محسوب می‌شوند."
+      },
+      {
+        text: "۱۷) در جزوه، ترکیباتی مانند آمفتامین، دکستروآمفتامین و ریتالین به‌عنوان محرک‌های CNS چگونه عمل می‌کنند؟",
+        options: [
+          "A) با مهار کامل کانال‌های سدیمی در قشر مغز",
+          "B) با افزایش آزادسازی و مهار بازجذب مونوآمین‌هایی مثل دوپامین و نوراپی‌نفرین",
+          "C) با مهار گیرنده‌های گابا",
+          "D) تنها با کاهش ترشح استیل‌کولین"
+        ],
+        correctIndex: 1,
+        explanation: "ذکر شده داروهایی که بازجذب مونوآمین‌ها مثل دوپامین، نوراپی‌نفرین و سروتونین را مهار می‌کنند، باعث تجمع آنها در سیناپس و ایجاد علائم محرک مغزی مثل بی‌خوابی، کاهش اشتها و علائم شبه‌اسکیزوفرنی می‌شوند؛ نمونه‌ها آمفتامین‌ها، مت‌آمفتامین و ریتالین هستند."
+      },
+      {
+        text: "۱۸) طبق جزوه، مهارکننده‌های MAO در درمان کدام مشکل روان‌پزشکی به‌کار می‌روند و چه نکته‌ای برای دندانپزشک مهم است؟",
+        options: [
+          "A) اضطراب؛ بدون اهمیت دندانپزشکی",
+          "B) افسردگی عودکننده؛ لزوم گرفتن شرح حال دقیق و احتیاط در تداخل با درمان دندانپزشکی",
+          "C) اسکیزوفرنی؛ الزاماً باید قبل از هر کار دندانپزشکی قطع شوند",
+          "D) مانیا؛ تداخلی با داروهای دندانپزشکی ندارند"
+        ],
+        correctIndex: 1,
+        explanation: "مهارکننده‌های MAO مثل ایزوکاربوکسازید، فنلزین و موکلوبماید در افسردگی‌های عودکننده استفاده می‌شوند و استاد تأکید می‌کند دندانپزشک باید هنگام برخورد با چنین بیماران، شرح حال دارویی دقیق بگیرد چون ممکن است با داروهای مورد استفاده در دندانپزشکی تداخل مهمی داشته باشند."
+      },
+      {
+        text: "۱۹) کدام گزینه در مورد اثر استرس و اضطراب ناشی از درمان دندانپزشکی بر سیستم نورآدرنرژیک طبق جزوه صحیح است؟",
+        options: [
+          "A) استرس باعث کاهش آزادسازی اپی‌نفرین و نوراپی‌نفرین می‌شود.",
+          "B) استرس تأثیری بر سیستم نورآدرنرژیک ندارد.",
+          "C) استرس باعث آزادسازی زیاد اپی‌نفرین و نوراپی‌نفرین در سیستم مرکزی می‌شود.",
+          "D) تنها سطح سروتونین را تغییر می‌دهد."
+        ],
+        correctIndex: 2,
+        explanation: "اشاره شده بیماری که تحت جراحی دهان قرار می‌گیرد و دچار اضطراب است، مقدار زیادی اپی‌نفرین و نوراپی‌نفرین در سیستم مرکزی آزاد می‌کند و این نکته در تجویز دارو و استفاده از اپی‌نفرین در بی‌حسی موضعی مهم است."
+      },
+      {
+        text: "۲۰) یک بیمار مبتلا به صرع که تحت درمان طولانی‌مدت با داروی ضدصرع و همزمان وارفارین است، برای کشیدن دندان به شما مراجعه می‌کند. طبق نکات جزوه، کدام پاسخ بهترین اقدام اولیه است؟",
+        options: [
+          "A) بدون توجه به داروها، فقط از لیدوکائین ساده استفاده کنید.",
+          "B) داروی ضدصرع را قبل از عمل قطع کنید تا تداخل از بین برود.",
+          "C) از پزشک معالج درباره دوز و سطح وارفارین و لود داروی ضدصرع مشورت بگیرید، چون تنظیم دوز لازم است.",
+          "D) دوز وارفارین را خودتان نصف کنید."
+        ],
+        correctIndex: 2,
+        explanation: "در بحث تداخلات داروهای ضدصرع، به‌ویژه اشاره شده که وارفارین و داروهای ضدصرع می‌توانند بر متابولیسم یکدیگر اثر بگذارند و تنظیم دوز ضروری است؛ دندانپزشک باید با پزشک معالج هماهنگ شود و خودسرانه دارو را قطع یا دوز را تغییر ندهد."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    const questionHeaderEl = document.getElementById("question-header");
+    const questionTextEl = document.getElementById("question-text");
+    const optionsEl = document.getElementById("options");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const submitBtn = document.getElementById("submit-btn");
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+    const quizAreaEl = document.getElementById("quiz-area");
+    const progressFillEl = document.getElementById("progress-fill");
+    const progressLabelEl = document.getElementById("progress-label");
+
+    function renderQuestion() {
+      const q = questions[currentQuestionIndex];
+      questionHeaderEl.textContent = `سؤال ${currentQuestionIndex + 1} از ${questions.length}`;
+      questionTextEl.textContent = q.text;
+      optionsEl.innerHTML = "";
+
+      q.options.forEach((opt, idx) => {
+        const label = document.createElement("label");
+        label.className = "option";
+
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "option";
+        input.value = idx;
+
+        if (userAnswers[currentQuestionIndex] === idx) {
+          input.checked = true;
+          label.classList.add("selected");
+        }
+
+        input.addEventListener("change", () => {
+          userAnswers[currentQuestionIndex] = idx;
+
+          Array.from(optionsEl.querySelectorAll(".option")).forEach(el => el.classList.remove("selected"));
+          label.classList.add("selected");
+
+          updateStatus();
+          autoNext();
+        });
+
+        const radio = document.createElement("div");
+        radio.className = "radio-dot";
+        const inner = document.createElement("div");
+        inner.className = "radio-inner";
+        radio.appendChild(inner);
+
+        const textSpan = document.createElement("span");
+        textSpan.textContent = opt;
+
+        label.appendChild(input);
+        label.appendChild(radio);
+        label.appendChild(textSpan);
+        optionsEl.appendChild(label);
+      });
+
+      prevBtn.disabled = currentQuestionIndex === 0;
+      nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+
+      updateStatus();
+    }
+
+    function updateStatus() {
+      const answeredCount = userAnswers.filter(a => a !== null).length;
+      const total = questions.length;
+      const percent = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+
+      statusEl.innerHTML = `
+        <span>پاسخ‌داده‌شده: ${answeredCount} از ${total}</span>
+        <span>پیشرفت: ${percent}٪</span>
+      `;
+
+      progressFillEl.style.width = percent + "%";
+      progressLabelEl.textContent = percent + "% انجام شده";
+    }
+
+    function goToNext() {
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+      }
+    }
+
+    function goToPrev() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestion();
+      }
+    }
+
+    function autoNext() {
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+      }
+    }
+
+    prevBtn.addEventListener("click", goToPrev);
+    nextBtn.addEventListener("click", goToNext);
+
+    submitBtn.addEventListener("click", () => {
+      let correctCount = 0;
+      let unansweredCount = 0;
+
+      questions.forEach((q, i) => {
+        if (userAnswers[i] === null) {
+          unansweredCount++;
+        } else if (userAnswers[i] === q.correctIndex) {
+          correctCount++;
+        }
+      });
+
+      const total = questions.length;
+      const percent = total === 0 ? 0 : Math.round((correctCount / total) * 100);
+
+      let html = `
+        <div class="card">
+          <div class="result-main">
+            <div>
+              <h2>نتیجه آزمون</h2>
+              <div class="score-chip">
+                <span class="score-dot"></span>
+                <span>${correctCount} سؤال درست از ${total}</span>
+              </div>
+              ${unansweredCount > 0
+                ? `<p class="muted">${unansweredCount} سؤال بدون پاسخ بود (در محاسبه، نادرست محسوب شده‌اند).</p>`
+                : `<p class="muted">همه سؤالات را پاسخ داده‌اید.</p>`
+              }
+            </div>
+            <div>
+              <div class="percent-big ${percent < 60 ? "bad" : ""}">${percent}٪</div>
+              <div class="percent-label">درصد نهایی</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h2 style="margin:0 0 6px;font-size:0.9rem;">بررسی سؤالات</h2>
+          <p class="muted" style="margin-top:0;">برای هر سؤال، پاسخ خودت، پاسخ صحیح و توضیح جزوه نوشته شده است.</p>
+      `;
+
+      questions.forEach((q, i) => {
+        const userIndex = userAnswers[i];
+        const isCorrect = userIndex === q.correctIndex;
+        const userText = userIndex !== null ? q.options[userIndex] : "بدون پاسخ";
+        const correctText = q.options[q.correctIndex];
+        const explanationText = q.explanation || "توضیحی ثبت نشده است.";
+
+        html += `
+          <div class="summary-question">
+            <div class="summary-question-title">سؤال ${i + 1}</div>
+            <div class="summary-line">
+              <span class="summary-label">متن سؤال: </span>${q.text}
+            </div>
+            <div class="summary-line">
+              <span class="summary-label">پاسخ شما: </span>
+              <span class="${isCorrect ? "correct" : "incorrect"}">${userText}</span>
+            </div>
+            <div class="summary-line">
+              <span class="summary-label">پاسخ صحیح: </span>
+              <span class="correct">${correctText}</span>
+            </div>
+            <div class="explanation">
+              <span class="summary-label">توضیح: </span>${explanationText}
+            </div>
+          </div>
+        `;
+      });
+
+      html += "</div>";
+
+      resultEl.innerHTML = html;
+
+      quizAreaEl.classList.add("quiz-disabled");
+    });
+
+    // init
+    renderQuestion();
+  </script>
+
+<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
+<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+</body>
+</html>
+
+
+

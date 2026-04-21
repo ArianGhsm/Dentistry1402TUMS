@@ -1,0 +1,223 @@
+body.app-dashboard-page main,
+body.resources-page main {
+    flex: 1;
+    width: min(1200px, 100%);
+    margin: 0 auto;
+    padding: 1.5rem 5% 0;
+}
+
+body.app-dashboard-page .app-layout,
+body.resources-page .app-layout {
+    display: grid;
+    gap: 1rem;
+}
+
+body.app-dashboard-page .app-hero,
+body.resources-page .app-hero {
+    padding: 1.2rem;
+    border-radius: 24px;
+    border: 1px solid rgba(35, 53, 84, 0.95);
+    background:
+        radial-gradient(circle at 10% 10%, rgba(0, 223, 216, 0.1), transparent 24%),
+        linear-gradient(180deg, rgba(17, 27, 43, 0.98), rgba(11, 22, 36, 0.98));
+    box-shadow: var(--surface-shadow);
+}
+
+body.app-dashboard-page .app-pill,
+body.resources-page .app-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.42rem 0.85rem;
+    border-radius: var(--radius-pill);
+    background: rgba(100, 255, 218, 0.08);
+    border: 1px solid rgba(100, 255, 218, 0.24);
+    color: var(--accent-color);
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+body.app-dashboard-page .app-hero h2,
+body.resources-page .app-hero h2 {
+    margin: 0.95rem 0 0.5rem;
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    font-weight: 900;
+    line-height: 1.55;
+}
+
+body.app-dashboard-page .app-hero p,
+body.resources-page .app-hero p {
+    margin: 0;
+    max-width: 740px;
+    color: var(--text-secondary);
+}
+
+body.app-dashboard-page .app-hero-actions {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+}
+
+body.app-dashboard-page .app-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+body.app-dashboard-page .app-card,
+body.resources-page .resource-card,
+body.resources-page .resource-info {
+    border-radius: 20px;
+    border: 1px solid rgba(35, 53, 84, 0.92);
+    background: linear-gradient(180deg, rgba(17, 27, 43, 0.98), rgba(11, 22, 36, 0.98));
+    box-shadow: var(--surface-shadow);
+}
+
+body.app-dashboard-page .app-card {
+    padding: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.95rem;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+body.app-dashboard-page .app-card:hover,
+body.app-dashboard-page .app-card:focus-within {
+    transform: translateY(-2px);
+    border-color: rgba(100, 255, 218, 0.26);
+    box-shadow: var(--surface-shadow-strong);
+}
+
+body.app-dashboard-page .app-card__top {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+body.app-dashboard-page .app-card__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 0 0.72rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--accent-color);
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+body.app-dashboard-page .app-card__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+body.app-dashboard-page .app-card__desc {
+    margin: 0.28rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    line-height: 1.85;
+}
+
+body.app-dashboard-page .app-card__meta {
+    display: none;
+}
+
+body.app-dashboard-page .app-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+body.resources-page .resources-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+body.resources-page .resource-card,
+body.resources-page .resource-info {
+    padding: 1.15rem;
+}
+
+body.resources-page .resource-info {
+    display: none;
+}
+
+body.resources-page .resource-card__title,
+body.resources-page .resource-info h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+body.resources-page .resource-card__desc,
+body.resources-page .resource-info p,
+body.resources-page .resource-card__meta {
+    margin: 0.45rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+    line-height: 1.9;
+}
+
+body.resources-page .resource-card__actions {
+    margin-top: 0.95rem;
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+body.resources-page .resource-list {
+    margin-top: 0.85rem;
+    display: grid;
+    gap: 0.6rem;
+}
+
+body.resources-page .resource-list li {
+    padding: 0.7rem 0.85rem;
+    border-radius: 16px;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(35, 53, 84, 0.92);
+    color: var(--text-secondary);
+}
+
+@media (min-width: 960px) {
+    body.app-dashboard-page .app-layout {
+        grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+        align-items: start;
+    }
+
+    body.app-dashboard-page .app-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.resources-page .resources-grid {
+        grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+        align-items: start;
+    }
+}
+
+@media (max-width: 640px) {
+    body.app-dashboard-page .app-hero,
+    body.resources-page .app-hero,
+    body.app-dashboard-page .app-card,
+    body.resources-page .resource-card,
+    body.resources-page .resource-info {
+        border-radius: 22px;
+        padding: 1rem;
+    }
+
+    body.app-dashboard-page .app-hero-actions,
+    body.app-dashboard-page .app-card__actions,
+    body.resources-page .resource-card__actions {
+        flex-direction: column;
+    }
+
+    body.app-dashboard-page .app-card__actions .shell-action-btn,
+    body.resources-page .resource-card__actions .shell-action-btn,
+    body.app-dashboard-page .app-hero-actions .shell-action-btn {
+        width: 100%;
+    }
+}

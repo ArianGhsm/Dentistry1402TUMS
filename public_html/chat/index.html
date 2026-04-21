@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<link rel="stylesheet" href="https://dentistry1402tums.ir/css/style.css?v=3">
-<link rel="icon" type="image/png" href="https://dentistry1402tums.ir/assets/images/favicon.png">
-<link rel="shortcut icon" href="https://dentistry1402tums.ir/assets/images/favicon.png">
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+<link rel="icon" type="image/png" href="/assets/images/favicon.png">
+<link rel="shortcut icon" href="/assets/images/favicon.png">
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>چت ورودی ۱۴۰۲ | Dentistry 1402</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<title>چت کلاس | ورودی ۱۴۰۲ دندانپزشکی</title>
 
 <style>
   :root {
@@ -150,6 +156,57 @@
     color: var(--text-secondary);
     max-width: 520px;
   }
+  .sidebar-panel{
+    padding: 1.1rem;
+    margin-bottom: 1rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-color);
+    background: linear-gradient(180deg, rgba(17, 27, 43, 0.98), rgba(11, 22, 36, 0.98));
+    box-shadow: var(--surface-shadow);
+  }
+  .sidebar-top{ margin-bottom: .9rem; }
+  .sidebar-list{
+    display:grid;
+    gap:.75rem;
+  }
+  .sidebar-chat{
+    display:flex;
+    align-items:center;
+    gap:.75rem;
+    padding:.9rem;
+    border-radius:16px;
+    border:1px solid rgba(35, 53, 84, 0.9);
+    background:rgba(15, 23, 42, 0.72);
+  }
+  .sidebar-chat:not(.sidebar-chat-active),
+  .sidebar-grid,
+  .sidebar-note{
+    display:none;
+  }
+  .sidebar-chat-avatar,
+  .sidebar-chat-icon{
+    width:46px;
+    height:46px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    font-weight:900;
+    background: rgba(100, 255, 218, 0.1);
+    border: 1px solid rgba(100, 255, 218, 0.2);
+    color: var(--accent-color);
+  }
+  .sidebar-chat-title{
+    font-size:.92rem;
+    font-weight:900;
+  }
+  .sidebar-chat-snippet{
+    margin-top:.2rem;
+    font-size:.82rem;
+    color:var(--text-secondary);
+    line-height:1.8;
+  }
 
   /* Card */
   .card {
@@ -192,6 +249,19 @@
   .brand-logo span{ font-size: 1.35rem; }
   .brand-title{ font-weight: 900; font-size: 1.05rem; }
   .brand-subtitle{ font-size: .8rem; color: var(--text-secondary); margin-top: 2px; }
+  .online-badge{
+    display:inline-flex;
+    align-items:center;
+    min-height:22px;
+    padding:0 .5rem;
+    margin-inline-start:.35rem;
+    border-radius:999px;
+    background: rgba(34, 197, 94, 0.14);
+    border: 1px solid rgba(34, 197, 94, 0.24);
+    color: #bbf7d0;
+    font-size: .7rem;
+    font-weight: 800;
+  }
 
   /* Inputs */
   label{
@@ -547,33 +617,55 @@
     .messages{ height: 360px; }
   }
 </style>
+<link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260421-telegram">
 </head>
-<body>
+<body class="chat-page">
 
 <div class="background-overlay"></div>
 
 <header class="site-header">
   <div class="logo-area">
     <div class="logo-circle">
-      <img src="https://dentistry1402tums.ir/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+      <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
     </div>
     <div class="site-info">
       <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
-      <p>محیط چت دانشجویان</p>
+      <p>چت کلاس</p>
     </div>
   </div>
   <div class="header-actions">
-    <a href="https://dentistry1402tums.ir/" class="header-link">بازگشت به صفحه اصلی</a>
-    <div class="badge-unofficial">سامانه غیررسمی</div>
+    <a href="/app/" class="header-link">خانه</a>
   </div>
 </header>
 
 <main>
   <section class="hero-content">
-    <span class="greeting-pill">💬 چت ورودی ۱۴۰۲</span>
+    <div class="sidebar-panel">
+      <div class="sidebar-top">
+        <span class="greeting-pill">چت کلاس</span>
+        <h2 class="hero-title">
+          گفت‌وگوی کلاس را همین‌جا دنبال کن<br>
+          <span>سریع، مرتب و ساده</span>
+        </h2>
+        <p class="hero-desc" id="sidebar-status">
+          بعد از ورود، پیام‌ها را همین‌جا می‌بینی و می‌توانی راحت گفتگو کنی.
+        </p>
+      </div>
+
+      <div class="sidebar-list">
+        <article class="sidebar-chat sidebar-chat-active">
+          <div class="sidebar-chat-avatar">1402</div>
+          <div class="sidebar-chat-body">
+            <div class="sidebar-chat-title">گفت‌وگوی کلاس دندان‌پزشکی ۱۴۰۲</div>
+            <div class="sidebar-chat-snippet">برای دیدن پیام‌های کلاس و فرستادن پیام از این بخش استفاده کن.</div>
+          </div>
+        </article>
+      </div>
+    </div>
+    <span class="greeting-pill">ورود</span>
     <h2 class="hero-title">
-      گفتگو سریع و مرتب<br>
-      <span>Reply, Edit, Pin و مدیریت پیام</span>
+      برای شروع وارد شو<br>
+      <span>و گفت‌وگو را ادامه بده</span>
     </h2>
 
   </section>
@@ -583,8 +675,9 @@
       <div class="brand-block">
         <div class="brand-logo"><span>💬</span></div>
         <div>
-          <div class="brand-title">Dent1402 Chat</div>
-          <div class="brand-subtitle">محیط چت بروز با قابلیت‌های کامل</div>
+          <div class="brand-title">چت کلاس <span class="online-badge">آنلاین</span></div>
+          <div class="brand-subtitle brand-status" id="chat-status">برای شروع وارد شو</div>
+          <div class="brand-subtitle">گفت‌وگوی کلاس ورودی ۱۴۰۲</div>
         </div>
       </div>
       <button id="logout-btn" class="btn btn-secondary btn-sm" type="button" style="display:none;">خروج</button>
@@ -592,6 +685,13 @@
 
     <!-- Login -->
     <div id="login-box">
+      <div class="login-banner">
+        <div class="login-banner-icon">🔐</div>
+        <div>
+          <div class="login-banner-title">ورود به چت</div>
+          <div class="login-banner-text">با شماره دانشجویی و رمز وارد شو.</div>
+        </div>
+      </div>
       <label for="u">شماره دانشجویی</label>
       <div class="input-group">
         <span class="input-icon">🎓</span>
@@ -601,7 +701,7 @@
       <label for="p">رمز عبور</label>
       <div class="input-group">
         <span class="input-icon">🔒</span>
-        <input type="password" id="p" placeholder="Password شما">
+        <input type="password" id="p" placeholder="رمز عبور">
       </div>
 
       <button id="login-btn" class="btn" type="button">
@@ -609,6 +709,7 @@
         ورود به چت
       </button>
 
+      <div class="login-note">بعد از ورود، پیام‌ها را همین‌جا می‌بینی.</div>
       <div id="msg"></div>
     </div>
 
@@ -626,7 +727,7 @@
       <div class="admin-bar" id="admin-bar">
         <button class="btn btn-sm btn-danger" id="mute-btn" type="button">⛔ توقف ارسال</button>
         <button class="btn btn-sm btn-secondary" id="unmute-btn" type="button" style="display:none;">✅ فعال‌سازی ارسال</button>
-        <div class="admin-note">مدیریت: حذف پیام / پین پیام / توقف ارسال</div>
+        <div class="admin-note">امکانات مدیر: حذف پیام، سنجاق و توقف ارسال</div>
       </div>
 
       <div id="mute-badge"></div>
@@ -644,7 +745,7 @@
 
         <div class="composer">
           <div class="reply-bar" id="reply-bar">
-            <div>Reply به: <b id="reply-to-name"></b> — <span id="reply-to-snippet"></span></div>
+            <div>پاسخ به: <b id="reply-to-name"></b> — <span id="reply-to-snippet"></span></div>
             <button class="reply-cancel" type="button" id="reply-cancel">لغو</button>
           </div>
 
@@ -653,12 +754,12 @@
 
           <div class="row">
             <div class="grow"></div>
-            <button class="btn btn-sm btn-secondary" id="refresh-btn" type="button">🔄 Refresh</button>
+            <button class="btn btn-sm btn-secondary" id="refresh-btn" type="button">🔄 تازه‌سازی</button>
             <button class="btn btn-sm" id="send-btn" type="button">📨 ارسال</button>
           </div>
 
           <div class="grades-footer-note" style="margin-top:.7rem;font-size:.78rem;color:var(--text-secondary);text-align:center;">
-            Ctrl + Enter برای ارسال سریع
+            برای فرستادن سریع می‌توانی از Ctrl + Enter هم استفاده کنی.
           </div>
         </div>
       </div>
@@ -666,8 +767,10 @@
   </section>
 </main>
 
+<div class="toast" id="toast" aria-live="polite"></div>
+
 <footer>
-  <p>طراحی شده با ❤️ برای ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران - آرین قاسم پور</p>
+  <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
 </footer>
 
 <script>
@@ -710,10 +813,14 @@
   const replyToName= $("reply-to-name");
   const replyToSnip= $("reply-to-snippet");
   const replyCancel= $("reply-cancel");
+  const chatStatusEl = $("chat-status");
+  const sidebarStatusEl = $("sidebar-status");
+  const toastEl = $("toast");
 
   let me = { loggedIn:false, username:null, name:null, isAdmin:false };
   let lastId = 0;
   let pollingTimer = null;
+  let toastTimer = null;
 
   // Reply state
   let replyTargetId = null;
@@ -772,6 +879,42 @@
   function showStatus(text, kind) {
     msgBox.textContent = text || "";
     msgBox.className = kind || "";
+  }
+
+  function showToast(text) {
+    if (!toastEl || !text) return;
+    toastEl.textContent = text;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1800);
+  }
+
+  function avatarLabel(value) {
+    const clean = String(value || "").replace(/\s+/g, " ").trim();
+    if (!clean) return "?";
+    const parts = clean.split(" ").filter(Boolean);
+    return parts.slice(0, 2).map(part => part.charAt(0)).join("") || clean.charAt(0);
+  }
+
+  function updateChatMeta() {
+    const countText = cache.size
+      ? (cache.size.toLocaleString("fa-IR") + " پیام")
+      : "هنوز پیامی ثبت نشده";
+
+    if (chatStatusEl) {
+      if (me.loggedIn) {
+        const roleText = me.isAdmin ? "نماینده" : "دانشجو";
+        chatStatusEl.textContent = countText + " • " + roleText + " • در حال گفت‌وگو";
+      } else {
+        chatStatusEl.textContent = "برای شروع وارد شو";
+      }
+    }
+
+    if (sidebarStatusEl) {
+      sidebarStatusEl.textContent = me.loggedIn
+        ? ("الان " + countText + " در این گفت‌وگو دیده می‌شود.")
+        : "بعد از ورود، پیام‌ها را همین‌جا می‌بینی و می‌توانی راحت گفتگو کنی.";
+    }
   }
 
   function setReplyTarget(message) {
@@ -865,7 +1008,7 @@
     const box = document.createElement("div");
     box.className = "reply-preview";
     const snippet = (ref.text || "").replace(/\s+/g, " ").trim();
-    box.innerHTML = "<div>Reply به <b>" + (ref.name || ref.username || "") + "</b></div>" +
+    box.innerHTML = "<div>پاسخ به <b>" + (ref.name || ref.username || "") + "</b></div>" +
       "<div style=\"margin-top:2px;\">" + escapeHtml(snippet.length > 80 ? (snippet.slice(0, 80) + "…") : snippet) + "</div>";
     return box;
   }
@@ -886,6 +1029,36 @@
     b.textContent = text;
     b.addEventListener("click", onClick);
     return b;
+  }
+
+  async function copyMessageText(message) {
+    const text = String((message && message.text) || "").trim();
+    if (!text) return;
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        showToast("پیام کپی شد.");
+        return;
+      }
+
+      const helper = document.createElement("textarea");
+      helper.value = text;
+      helper.setAttribute("readonly", "");
+      helper.style.position = "fixed";
+      helper.style.opacity = "0";
+      helper.style.pointerEvents = "none";
+      document.body.appendChild(helper);
+      helper.focus();
+      helper.select();
+      const copied = document.execCommand("copy");
+      helper.remove();
+      if (!copied) throw new Error("Copy command failed");
+      showToast("پیام کپی شد.");
+    } catch (err) {
+      console.error("Copy failed:", err);
+      alert("کپی پیام انجام نشد.");
+    }
   }
 
   function replaceMessageInDom(updated) {
@@ -920,6 +1093,7 @@
       const el = document.querySelector('[data-mid="' + message.id + '"]');
       if (el) el.remove();
       updatePinnedUi();
+      updateChatMeta();
     }
   }
 
@@ -933,9 +1107,20 @@
   }
 
   function renderMessage(m) {
-    const wrap = document.createElement("div");
-    wrap.className = "msg-item " + msgClass(m.username);
+    const isMine = String(m.username) === String(me.username);
+    const wrap = document.createElement("article");
+    wrap.className = "msg-item " + msgClass(m.username) + (isMine ? " me" : " other");
     wrap.dataset.mid = String(m.id);
+
+    const row = document.createElement("div");
+    row.className = "msg-row";
+
+    const avatar = document.createElement("div");
+    avatar.className = "msg-avatar";
+    avatar.textContent = avatarLabel(m.name || m.username || "");
+
+    const bubble = document.createElement("div");
+    bubble.className = "msg-bubble";
 
     const meta = document.createElement("div");
     meta.className = "msg-meta";
@@ -951,20 +1136,20 @@
     if (isAdminUsername(m.username)) {
       const b = document.createElement("span");
       b.className = "badge admin";
-      b.textContent = "Admin";
+      b.textContent = "نماینده";
       badges.appendChild(b);
     }
     if (m.editedAt) {
       const b = document.createElement("span");
       b.className = "badge edited";
-      b.textContent = "Edited";
+      b.textContent = "ویرایش شد";
       badges.appendChild(b);
     }
     if (m.pinned) {
       const b = document.createElement("span");
       b.className = "badge";
       b.dataset.badge = "pinned";
-      b.textContent = "Pinned";
+      b.textContent = "سنجاق شد";
       badges.appendChild(b);
     }
 
@@ -972,27 +1157,28 @@
     actions.className = "msg-actions";
 
     // Reply (everyone)
-    actions.appendChild(makeActionButton("↩ Reply", "", () => setReplyTarget(m)));
+    actions.appendChild(makeActionButton("↩ پاسخ", "", () => setReplyTarget(m)));
+    actions.appendChild(makeActionButton("📋 کپی", "", () => copyMessageText(m)));
 
     // Edit (owner or admin)
     const canEdit = (String(m.username) === String(me.username)) || me.isAdmin;
     if (canEdit) {
-      actions.appendChild(makeActionButton("✏ Edit", "", () => openEditPrompt(m)));
+      actions.appendChild(makeActionButton("✏ ویرایش", "", () => openEditPrompt(m)));
     }
 
     // Pin/Unpin (admin only)
     if (me.isAdmin) {
       if (m.pinned) {
-        actions.appendChild(makeActionButton("📌 Unpin", "pin", () => togglePin(m, false)));
+        actions.appendChild(makeActionButton("📌 برداشتن", "pin", () => togglePin(m, false)));
       } else {
-        actions.appendChild(makeActionButton("📌 Pin", "pin", () => togglePin(m, true)));
+        actions.appendChild(makeActionButton("📌 سنجاق", "pin", () => togglePin(m, true)));
       }
     }
 
     // Delete (admin only)
     const canDelete = (String(m.username) === String(me.username)) || me.isAdmin;
     if (canDelete) {
-      actions.appendChild(makeActionButton("🗑 Delete", "danger", () => deleteMessage(m)));
+      actions.appendChild(makeActionButton("🗑 حذف", "danger", () => deleteMessage(m)));
     }
 
     const time = document.createElement("div");
@@ -1001,32 +1187,42 @@
 
     meta.appendChild(name);
     meta.appendChild(badges);
-    meta.appendChild(actions);
     meta.appendChild(time);
 
     const text = document.createElement("div");
     text.className = "msg-text";
     text.textContent = m.text || "";
 
-    wrap.appendChild(meta);
+    bubble.appendChild(meta);
 
     // Reply preview if exists
     if (m.replyTo) {
       const rp = renderReplyPreview(m.replyTo);
-      if (rp) wrap.appendChild(rp);
+      if (rp) bubble.appendChild(rp);
     }
 
-    wrap.appendChild(text);
+    bubble.appendChild(text);
+    bubble.appendChild(actions);
+
+    if (isMine) {
+      row.appendChild(bubble);
+      row.appendChild(avatar);
+    } else {
+      row.appendChild(avatar);
+      row.appendChild(bubble);
+    }
+
+    wrap.appendChild(row);
 
     return wrap;
   }
 
   function appendMessages(list) {
-    if (!Array.isArray(list) || list.length === 0) return;
+    const items = Array.isArray(list) ? list : [];
 
     const atBottom = (messagesEl.scrollTop + messagesEl.clientHeight + 60) >= messagesEl.scrollHeight;
 
-    for (const m of list) {
+    for (const m of items) {
       if (!m || !m.id) continue;
       cache.set(m.id, m);
       lastId = Math.max(lastId, Number(m.id));
@@ -1036,6 +1232,7 @@
     }
 
     updatePinnedUi();
+    updateChatMeta();
 
     if (atBottom) {
       messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -1047,6 +1244,7 @@
     lastId = 0;
     cache.clear();
     messagesEl.innerHTML = "";
+    updateChatMeta();
     await poll(true);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
@@ -1098,10 +1296,11 @@
       logoutBtn.style.display = "inline-flex";
 
       meNameEl.textContent = me.name || "";
-      meRoleEl.textContent = me.isAdmin ? "نماینده" : "دانشجو(غیر نماینده)";
+      meRoleEl.textContent = me.isAdmin ? "نماینده" : "دانشجو";
 
       adminBar.style.display = me.isAdmin ? "flex" : "none";
       updateMuteUi(res.state);
+      updateChatMeta();
 
       await fullRefresh();
       startPolling();
@@ -1114,6 +1313,7 @@
     logoutBtn.style.display = "none";
     stopPolling();
     clearReplyTarget();
+    updateChatMeta();
   }
 
   loginBtn.addEventListener("click", async () => {
@@ -1203,6 +1403,8 @@
   // Init
   initMe();
 </script>
+<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
+<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
 
 </body>
 </html>

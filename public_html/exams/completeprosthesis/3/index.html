@@ -1,0 +1,1357 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+<link rel="stylesheet" href="/assets/site/styles/quiz.css?v=20260421-pwa">
+<meta charset="UTF-8">
+    <title>آزمون پروتز کامل ۳ – جلسه ۳ (Record base, Wax occlusion rim, Vertical dimension) | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- آیکون تب (logo.png مثل سایت اصلی) -->
+    <link rel="icon" type="image/png" href="/assets/images/logo.png">
+    <link rel="shortcut icon" href="/assets/images/logo.png">
+
+    <style>
+        :root {
+            --bg-body: #050b14;
+            --bg-card: #111b2b;
+            --bg-card-hover: #1a283d;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --accent-color: #64ffda;
+            --border-color: #233554;
+            --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
+            --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
+            --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .background-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
+        }
+
+        /* هدر مثل قالب اصلی */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 5%;
+            background: rgba(5, 11, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
+            flex-shrink: 0;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .site-info h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .site-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .badge-unofficial {
+            font-size: 0.7rem;
+            background: rgba(255, 99, 99, 0.1);
+            color: #ff6363;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 99, 99, 0.2);
+            white-space: nowrap;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .quiz-wrapper {
+            max-width: 900px;
+            margin: 0 auto 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .back-button-wrapper {
+            margin-bottom: 0.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.82rem;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .back-icon {
+            font-size: 1rem;
+        }
+
+        .quiz-header {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .info-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(100, 255, 218, 0.08);
+            border: 1px solid rgba(100, 255, 218, 0.4);
+            font-size: 0.78rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .quiz-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .quiz-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-wrapper {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .progress-top-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(15, 23, 42, 1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: var(--btn-gradient);
+            transition: width 0.2s ease-out;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.82rem;
+        }
+
+        .question-tag {
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .question-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .question-text {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #0b1624;
+            padding: 0.75rem 0.9rem;
+            text-align: right;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+            font-size: 0.92rem;
+            font-family: var(--font-main);
+            color: #ffffff; /* متن گزینه‌ها سفید */
+        }
+
+        .option-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+        }
+
+        .option-btn.selected {
+            background: rgba(100, 255, 218, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px rgba(100, 255, 218, 0.35);
+        }
+
+        .option-letter {
+            font-weight: 700;
+            min-width: 24px;
+            color: var(--accent-color);
+        }
+
+        .option-text {
+            flex: 1;
+            font-family: var(--font-main); /* هم‌فونت با سؤال‌ها: یکان */
+            color: #ffffff;
+        }
+
+        .nav-buttons {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: space-between;
+        }
+
+        .nav-left,
+        .nav-right {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-base {
+            border-radius: 999px;
+            padding: 0.55rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .btn-base:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .btn-base:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .btn-primary {
+            background: var(--btn-gradient);
+            color: #ffffff;
+            border: none;
+            box-shadow: var(--btn-shadow);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        #resultsSection {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .results-section {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .results-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .results-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .results-score {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--accent-color);
+        }
+
+        .score-number {
+            font-size: 2.4rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .score-detail {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .results-box {
+            background: #0b1624;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 0.7rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .results-box-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .results-box-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .answer-card {
+            background: #0b1624;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .answer-question-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .answer-question-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .answer-options-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .option-main {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .option-label {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .option-row .option-text {
+            color: var(--text-primary);
+        }
+
+        .option-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .option-row.correct {
+            border: 1px solid rgba(34, 197, 94, 0.75);
+            background: rgba(22, 163, 74, 0.14);
+        }
+
+        .option-row.user-correct {
+            border: 1px solid rgba(34, 197, 94, 0.95);
+            background: rgba(22, 163, 74, 0.22);
+        }
+
+        .option-row.user-wrong {
+            border: 1px solid rgba(248, 113, 113, 0.9);
+            background: rgba(248, 113, 113, 0.12);
+        }
+
+        .option-row.correct .option-tag,
+        .option-row.user-correct .option-tag {
+            border-color: rgba(34, 197, 94, 0.9);
+            color: #bbf7d0;
+        }
+
+        .option-row.user-wrong .option-tag {
+            border-color: rgba(248, 113, 113, 0.9);
+            color: #fecaca;
+        }
+
+        .answer-explanation {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .answer-explanation strong {
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-body);
+        }
+
+        footer span {
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1.3rem 4%;
+            }
+
+            .quiz-header,
+            .question-card,
+            .results-section {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .question-card {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.5rem;
+            }
+        }
+    </style>
+<meta name="theme-color" content="#050b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dent1402">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260421-pwa">
+</head>
+<body class="quiz-page">
+
+<div class="background-overlay"></div>
+
+<header class="site-header">
+    <div class="logo-area">
+        <div class="logo-circle">
+            <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+        </div>
+        <div class="site-info">
+            <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+            <p>دانشگاه علوم پزشکی تهران</p>
+        </div>
+    </div>
+    <div class="badge-unofficial">سامانه غیررسمی</div>
+</header>
+
+<main>
+    <section class="quiz-wrapper">
+        <div class="back-button-wrapper">
+            <!-- برمی‌گرده به صفحه آزمون‌های پروتز کامل -->
+            <a href="/exams/completeprosthesis/" class="back-btn">
+                <span class="back-icon">←</span>
+                بازگشت به صفحه آزمون‌های پروتز کامل
+            </a>
+        </div>
+
+        <!-- هدر آزمون -->
+        <div class="quiz-header">
+            <span class="info-pill">آزمون تمرینی پروتز کامل ۳ – Record base، Wax occlusion rim، Vertical dimension</span>
+            <h2 class="quiz-title">سؤالات جلسه ۳ – پروتز کامل (Complete Prosthesis 3)</h2>
+            <p class="quiz-subtitle">
+                بعد از انتخاب هر گزینه، به‌صورت خودکار به سؤال بعدی می‌روی. در انتها روی «پایان آزمون و مشاهده نتیجه»
+                کلیک کن تا نمره و پاسخ‌های تشریحی را ببینی.
+            </p>
+
+            <div class="progress-wrapper">
+                <div class="progress-top-row">
+                    <span id="questionCounter">سؤال ۱ از ۴۰</span>
+                    <span id="answeredCounter">۰ / ۴۰ پاسخ داده شده</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت سؤال -->
+        <div class="question-card">
+            <div class="question-top-row">
+                <span id="questionTag" class="question-tag">سؤال ۱</span>
+                <span id="questionStatus" class="question-status">وضعیت: بدون پاسخ</span>
+            </div>
+            <h3 id="questionText" class="question-text"></h3>
+
+            <div id="optionsContainer" class="options-list">
+                <!-- گزینه‌ها با JS اضافه می‌شن -->
+            </div>
+
+            <div class="nav-buttons">
+                <div class="nav-right">
+                    <button id="prevBtn" class="btn-base" type="button">
+                        ← سؤال قبلی
+                    </button>
+                    <button id="nextBtn" class="btn-base" type="button">
+                        سؤال بعدی →
+                    </button>
+                </div>
+                <div class="nav-left">
+                    <button id="finishBtn" class="btn-base btn-primary" type="button">
+                        پایان آزمون و مشاهده نتیجه
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- نتایج -->
+        <section id="resultsSection" class="results-section">
+            <div class="results-header">
+                <div class="results-main">
+                    <div class="results-score">
+                        <span id="scorePercent" class="score-number">0%</span>
+                    </div>
+                    <div id="scoreLabel" class="score-label">۰ پاسخ صحیح از ۴۰ سؤال</div>
+                    <div class="score-detail">
+                        عملکردت رو در این آزمون ببین؛ پایین‌تر می‌تونی پاسخ صحیح و توضیح تشریحی همه سؤالات رو ببینی.
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ صحیح</span>
+                        <span id="scoreCorrect" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ غلط</span>
+                        <span id="scoreWrong" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">بی‌پاسخ</span>
+                        <span id="scoreUnanswered" class="results-box-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="answers-list" id="answersContainer">
+                <!-- مرور پاسخ‌ها اینجا ساخته می‌شود -->
+            </div>
+        </section>
+    </section>
+</main>
+
+<footer>
+    <p>طراحی شده با ❤️ برای ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران - آرین قاسم‌پور</p>
+</footer>
+
+<script>
+    // ۴۰ سؤال – پروتز کامل ۳ (Complete Prosthesis 3)
+    const questions = [
+        {
+            question: 'کدام گزاره دربارهٔ یکی از فواید رکورد بیس (Record base) صحیح است؟',
+            options: [
+                'فقط برای تعیین پلن اکلوزال (Occlusal plane) استفاده می‌شود.',
+                'برای حمایت و ایجاد پایهٔ پایدار جهت قرارگیری Wax occlusion rims به‌کار می‌رود.',
+                'صرفاً برای کم‌کردن رفلکس تهوع (Gag reflex) ساخته می‌شود.',
+                'فقط در مرحلهٔ تحویل دنچر نهایی کاربرد دارد.',
+            ],
+            correctIndex: 1,
+            explanation: '<strong>گزینه صحیح: B</strong><br>رکورد بیس یک پایهٔ پایدار ایجاد می‌کند تا Wax occlusion rims روی آن قرار بگیرند و رابطهٔ فک‌ها ثبت شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>A) تعیین Occlusal plane از اهداف Wax rim است، نه «فقط» رکورد بیس.<br>C) کاهش Gag reflex هدف مستقیم رکورد بیس نیست؛ ضخامت زیاد حتی Gag reflex را بیشتر می‌کند.<br>D) رکورد بیس در مراحل قبل از دنچر نهایی (ثبت روابط/تراي‌این) استفاده می‌شود، نه فقط تحویل نهایی.'
+        },
+        {
+            question: 'در فواید رکورد بیس، کدام مورد به‌طور مشخص به ثبت دقیق‌تر روابط فکی-ماگزیلاری اشاره دارد؟',
+            options: [
+                'ایجاد پایه‌ای محکم برای ثبت Centric relation و Vertical dimension',
+                'افزایش ضخامت کام برای شبیه‌سازی بهتر بیس دنچر',
+                'حذف نیاز به Wax occlusion rim در همه بیماران',
+                'جلوگیری کامل از حرکت زبان هنگام صحبت',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در جزوه آمده که با قرار دادن پایهٔ محکم، ثبت رابطهٔ فک‌ها (از جمله Centric relation و Vertical dimension) دقیق‌تر انجام می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) ضخامت زیاد کام توصیه نشده و مشکلاتی مثل کاهش فضای دهان و اختلال تکلم می‌دهد.<br>C) Wax rim همچنان برای مراحل بعدی لازم است.<br>D) هدف رکورد بیس جلوگیری کامل از حرکت زبان نیست و چنین ادعایی در جزوه نیامده است.'
+        },
+        {
+            question: 'کدام کاربرد رکورد بیس در مرحلهٔ آزمایش (In-try) در جزوه ذکر شده است؟',
+            options: [
+                'قرارگیری دندان‌های مصنوعی روی همین پایه برای بررسی زیبایی، تکلم و اکلوزیون',
+                'ساخت نهایی فلنج‌ها در همان جلسه و تحویل مستقیم به بیمار',
+                'ثبت موقعیت فک پایین نسبت به جمجمه با Facebow',
+                'اندازه‌گیری Free-way space بدون نیاز به Wax rim',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در جزوه ذکر شده در مرحلهٔ In-try، دندان‌های مصنوعی روی همین پایه قرار می‌گیرند تا زیبایی، تکلم و اکلوزیون بررسی/اصلاح شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) ساخت نهایی دنچر و تحویل مستقیم جزو کارکرد رکورد بیس در In-try نیست.<br>C) Facebow برای ثبت موقعیت فک بالا است، نه فک پایین، و به رکورد بیس در آن معنا محدود نمی‌شود.<br>D) Free-way space در چارچوب تنظیم VDR/VDO مطرح است و در جزوه با اندازه‌گیری روی بیمار توضیح داده شده، نه «بدون Wax rim».'
+        },
+        {
+            question: 'در ویژگی‌های رکورد بیس ایده‌آل، «rigidity and Strength» بیشتر برای پیشگیری از کدام پیامد ذکر شده است؟',
+            options: [
+                'تغییر شکل (Distortion) رکورد بیس هنگام کار',
+                'افزایش سرعت تحلیل ریج (ridge resorption)',
+                'ایجاد کلیک در مفصل (TMJ clicking)',
+                'کاهش tooth show در قدام',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>طبق جزوه، رکورد بیس باید از نظر rigidity and Strength کافی باشد تا هنگام کار دچار تغییر شکل نشود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) افزایش ridge resorption در جزوه در ارتباط با اشتباهات VDO مطرح شده است، نه ضعف rigidity رکورد بیس.<br>C) TMJ clicking در VDO زیاد ذکر شده، نه ویژگی rigidity رکورد بیس.<br>D) tooth show در بخش تعیین ساپورت لب و پلن اکلوزال مطرح است و ربط مستقیمی به rigidity رکورد بیس ندارد.'
+        },
+        {
+            question: 'در ویژگی‌های رکورد بیس ایده‌آل، «Accuracy» به کدام مفهوم اشاره دارد؟',
+            options: [
+                'تطابق دقیق رکورد بیس با قالب اصلی (Master cast)',
+                'قابلیت افزایش ضخامت کام تا هر مقدار دلخواه',
+                'ایجاد تماس زودرس دندان‌ها برای تثبیت فک‌ها',
+                'جلوگیری از نیاز به بالک‌اوت (Blocking out)',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه تأکید می‌کند پایه رکورد باید دقیقاً مطابق Master cast باشد تا ثبت روابط فکی درست انجام شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) ضخامت کام توصیه‌شده یکنواخت و حدود ۱–۲ میلی‌متر است، نه افزایش دلخواه.<br>C) تماس زودرس دندان‌ها جزو عوارض VDO زیاد است و مطلوب نیست.<br>D) Blocking out برای جلوگیری از گیرکردن رکورد بیس در نواحی Undercuts انجام می‌شود و با «Accuracy» حذف نمی‌شود.'
+        },
+        {
+            question: 'در ویژگی‌های رکورد بیس ایده‌آل، «No rocking on the cast» چرا مهم است؟',
+            options: [
+                'حرکت روی قالب می‌تواند موجب خطا در ثبت رابطهٔ فک‌ها شود.',
+                'باعث افزایش Free-way space به ۴ میلی‌متر می‌شود.',
+                'باعث می‌شود پلن اکلوزال قدامی با Interpupillary line موازی شود.',
+                'تنها برای کاهش Gag reflex اهمیت دارد.',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در جزوه آمده رکورد بیس نباید روی Master cast لق بزند؛ چون حرکت موجب خطا در ثبت رابطهٔ فک‌ها می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Free-way space (۲–۴ میلی‌متر) اختلاف VDR و VDO است و به rocking روی قالب مربوط نیست.<br>C) موازی‌سازی پلن اکلوزال قدامی با Interpupillary line با plane fox/plane j مطرح است، نه rocking.<br>D) Gag reflex در بحث ضخامت زیاد کام مطرح شده و rocking علت اصلی آن نیست.'
+        },
+        {
+            question: 'طبق جزوه، صیقلی و گرد بودن Flanges (rounded and smooth) در رکورد بیس ایده‌آل بیشتر برای تأمین کدام هدف است؟',
+            options: [
+                'راحتی بیمار و سلامت بافت نرم',
+                'افزایش عمدی فشار به سقف دهان',
+                'ایجاد گیر بسیار زیاد برای جلوگیری از برداشتن رکورد بیس',
+                'کاهش طول فلنج‌ها در ناحیه Land',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه می‌گوید لبه‌های جانبی باید rounded and smooth باشند تا راحتی بیمار و سلامت بافت نرم تأمین شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) فشار زیاد به سقف دهان در جزوه به‌عنوان مشکل (افزایش Gag reflex) مطرح شده است.<br>C) گیر باید «Reasonably retentive» باشد؛ نه آن‌قدر زیاد که برداشتن دشوار شود.<br>D) موضوع Land مربوط به عدم وجود acrylic flash است، نه کاهش طول فلنج‌ها به این شکل.'
+        },
+        {
+            question: 'در بخش Land، جزوه صراحتاً هشدار می‌دهد که رکورد بیس نباید کدام وضعیت را داشته باشد؟',
+            options: [
+                'وجود acrylic flash اضافه روی ناحیه Land قالب اصلی',
+                'تقویت ناحیه Lingual ridge به‌صورت مقعر',
+                'پوشش کامل Retromolar pad برای گیر و ثبات',
+                'نازک بودن نواحی Labial ridge برای جا دادن Anterior teeth',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>طبق جزوه، رکورد بیس نباید روی ناحیه Land امتداد داشته باشد یا acrylic flash اضافه داشته باشد، چون در ساخت صحیح فلنج‌ها اختلال ایجاد می‌کند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) تقویت/مقعرسازی ناحیه Lingual ridge در چک‌لیست رکورد بیس کام آمده است.<br>C) پوشش کامل Retromolar pad در چک‌لیست ذکر شده تا گیر و ثبات کافی فراهم شود.<br>D) نازک بودن Labial ridge نیز در چک‌لیست برای فراهم شدن فضای Anterior teeth آمده است.'
+        },
+        {
+            question: 'در ویژگی «Reasonably retentive» رکورد بیس ایده‌آل، کدام توصیف با جزوه همخوان است؟',
+            options: [
+                'گیر کافی برای ثابت ماندن، اما نه آن‌قدر زیاد که برداشتن دشوار شود.',
+                'گیر حداکثری به‌طوری که فقط با ابزار مخصوص خارج شود.',
+                'عدم وجود هرگونه گیر تا برداشتن راحت‌تر شود.',
+                'گیر فقط روی ناحیه Land برای تعیین طول فلنج‌ها.',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه بیان می‌کند رکورد بیس باید گیر کافی داشته باشد تا روی قالب/در دهان ثابت بماند، ولی نباید آن‌قدر محکم باشد که برداشتن دشوار شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) «گیر حداکثری» در جزوه توصیه نشده و خلاف «Reasonably» است.<br>C) نبود گیر باعث ناپایداری و خطا در مراحل ثبت می‌شود.<br>D) گیر روی Land مطرح نشده؛ Land به عنوان محل شکل‌گیری فلنج‌ها ذکر شده و وجود flash روی آن ممنوع است.'
+        },
+        {
+            question: 'در جزوه، ضخامت مناسب Palate در رکورد بیس چگونه ذکر شده است؟',
+            options: [
+                'یکنواخت و حدود ۱ تا ۲ میلی‌متر',
+                'یکنواخت و حدود ۴ تا ۶ میلی‌متر',
+                'متغیر از ۰/۵ تا ۵ میلی‌متر بسته به بیمار',
+                'بهتر است کام در رکورد بیس ضخامت نداشته باشد (صفر میلی‌متر)',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در جزوه آمده Palate باید به‌صورت یکنواخت حدود ۱ تا ۲ میلی‌متر باشد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) ۴–۶ میلی‌متر در جزوه به‌عنوان ضخامت مناسب ذکر نشده و می‌تواند فضای دهان را کم کند.<br>C) عددهای ارائه‌شده با متن جزوه تطابق ندارد.<br>D) «صفر میلی‌متر» عملاً امکان‌پذیر/مطرح نشده و با نیاز به ساخت رکورد بیس سازگار نیست.'
+        },
+        {
+            question: 'طبق جزوه، اگر رکورد بیس در ناحیهٔ کام خیلی ضخیم ساخته شود، کدام پیامد ذکر شده است؟',
+            options: [
+                'کاهش فضای دهان',
+                'افزایش tooth show به‌صورت پایدار',
+                'موازی شدن خودکار پلن اکلوزال خلفی با Ala-tragal line',
+                'افزایش Free-way space تا بیش از ۶ میلی‌متر',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه در بخش «مشکل رکورد بیس ضخیم» می‌گوید ضخیم شدن رکورد بیس در کام باعث کاهش فضای دهان می‌شود (و پیامدهای دیگری هم دارد).<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) tooth show در مبحث تعیین ساپورت لب/پلن اکلوزال مطرح است و افزایش آن به ضخامت کام نسبت داده نشده است.<br>C) موازی‌سازی پلن خلفی با Ala-tragal line با ابزارها و بررسی انجام می‌شود، نه ضخامت کام.<br>D) Free-way space در جزوه ۲–۴ میلی‌متر ذکر شده و به ضخامت کام ربط داده نشده است.'
+        },
+        {
+            question: 'در چک‌لیست رکورد بیس کام، برای فراهم شدن فضای کافی زبان، کدام اقدام برای ناحیه Lingual ridge ذکر شده است؟',
+            options: [
+                'تقویت شود یا به‌صورت مقعر ساخته شود',
+                'کاملاً نازک و لبه‌تیز ساخته شود',
+                'از پوشش آن صرف‌نظر شود تا رکورد بیس سبک‌تر گردد',
+                'با acrylic flash اضافه پوشانده شود تا گیر افزایش یابد',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در چک‌لیست آمده ناحیه Lingual ridge باید تقویت شود یا به‌صورت مقعر ساخته شود تا زبان فضای کافی داشته باشد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) لبه‌تیز بودن به‌عنوان معیار ذکر نشده و می‌تواند باعث ناراحتی شود.<br>C) حذف این ناحیه در چک‌لیست نیامده و خلاف هدف ایجاد فضای عملکردی است.<br>D) acrylic flash اضافه به‌ویژه روی Land ممنوع شده و افزایش گیر به این روش ذکر نشده است.'
+        },
+        {
+            question: 'در چک‌لیست رکورد بیس، پوشش کامل کدام ناحیه برای تأمین گیر و ثبات کافی تأکید شده است؟',
+            options: [
+                'Retromolar pad',
+                'Land',
+                'Frenum areas',
+                'Interpupillary line',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه می‌گوید ناحیه Retromolar pad باید به‌طور کامل پوشانده شود تا دنچر گیر و ثبات کافی داشته باشد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Land محل شکل‌گیری فلنج‌هاست و وجود acrylic flash/امتداد رکورد بیس روی آن منع شده است.<br>C) Frenum areas در مبحث Blocking out به‌عنوان نواحی متحرک که باید آزاد شوند مطرح است، نه پوشش کامل برای گیر.<br>D) Interpupillary line خط مرجع برای پلن اکلوزال قدامی است و ناحیه آناتومیک برای پوشش رکورد بیس نیست.'
+        },
+        {
+            question: 'طبق جزوه، چرا نواحی Labial ridge در رکورد بیس/بیس دنچر باید نازک باشند؟',
+            options: [
+                'برای فراهم شدن فضای کافی جهت قرارگیری Anterior teeth',
+                'برای افزایش عمدی فشار روی ریج آلوئولار',
+                'برای جلوگیری از نیاز به Wax spatula در ساخت ریم',
+                'برای افزایش ضخامت کام و کاهش Gag reflex',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه می‌گوید Labial ridge باید نازک باشد تا فضای کافی برای قرارگیری Anterior teeth فراهم شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) افزایش فشار اضافی روی ریج در جزوه به‌عنوان هدف ذکر نشده و حتی باید از آن پرهیز شود.<br>C) Wax spatula ابزار کار با موم است و ربطی به نازک/ضخیم بودن Labial ridge ندارد.<br>D) ضخامت زیاد کام باعث افزایش احتمال Gag reflex می‌شود، نه کاهش آن.'
+        },
+        {
+            question: 'در چک‌لیست رکورد بیس کام، «تطابق با قالب» به‌عنوان کدام معیار ذکر شده است؟',
+            options: [
+                'سطح رکورد بیس باید با Master cast تطابق داشته باشد.',
+                'رکورد بیس باید عمداً روی Master cast لق بزند.',
+                'فقط Flanges باید تطابق داشته باشند و سطح داخلی اهمیتی ندارد.',
+                'تطابق فقط در ناحیه Land لازم است.',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در چک‌لیست آمده رکورد بیس باید با قالب (Master cast) تطابق داشته باشد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) No rocking on the cast از ویژگی‌های ایده‌آل است؛ لق‌زدن ممنوع است.<br>C) Tissue surfaces well adapted در جزوه آمده و سطح داخلی اهمیت مستقیم دارد.<br>D) Land محل شکل‌گیری فلنج‌هاست و حتی وجود flash روی آن ممنوع است؛ تطابق به کل سطح مربوط است.'
+        },
+        {
+            question: 'در جزوه، Ridge lap portion چگونه تعریف شده است؟',
+            options: [
+                'سطح داخلی دندان‌های قدامی که روی ریج آلوئولار قرار می‌گیرد',
+                'بخش خلفی Wax rim که با زاویه تیز ساخته می‌شود',
+                'ناحیه Land روی Master cast که فلنج‌ها در آن شکل می‌گیرند',
+                'خط اتصال Ala به Tragus برای تعیین پلن خلفی',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه Ridge lap portion را سطح داخلی دندان‌های قدامی معرفی می‌کند که روی ریج آلوئولار می‌نشیند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) زاویه‌دار بودن قسمت خلفی در بخش فرم Wax rim مطرح شده و تعریف Ridge lap نیست.<br>C) Land مربوط به قالب است و تعریف Ridge lap نیست.<br>D) Ala-tragal line یک خط مرجع برای پلن اکلوزال خلفی است، نه Ridge lap.'
+        },
+        {
+            question: 'طبق جزوه، اگر Ridge lap portion بیش از حد ضخیم باشد، محتمل‌ترین پیامد کدام است؟',
+            options: [
+                'دندان‌های قدامی درست روی ریج قرار نمی‌گیرند و دنچر حجیم و غیرطبیعی می‌شود.',
+                'Free-way space به‌طور ثابت به ۴ میلی‌متر افزایش می‌یابد.',
+                'پوشش Retromolar pad غیرممکن می‌شود.',
+                'Flanges به‌صورت خودکار polished و rounded می‌شوند.',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه می‌گوید ضخیم بودن Ridge lap باعث می‌شود دندان‌های قدامی به‌درستی روی ریج ننشینند و دنچر حجیم و غیرطبیعی شود؛ بنابراین باید به اندازه کافی نازک باشد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Free-way space به اختلاف VDR و VDO مربوط است، نه Ridge lap.<br>C) پوشش Retromolar pad مربوط به بیس دنچر/رکورد بیس است و به ضخامت Ridge lap محدود نمی‌شود.<br>D) polished/rounded بودن Flanges یک ویژگی جداگانه است و با ضخامت Ridge lap «خودکار» ایجاد نمی‌شود.'
+        },
+        {
+            question: 'هدف اصلی Blocking out قبل از ساخت رکورد بیس طبق جزوه چیست؟',
+            options: [
+                'جلوگیری از گیرکردن رکورد بیس در نواحی Undercuts',
+                'افزایش عمدی گیر رکورد بیس به‌وسیله درگیر کردن Undercuts',
+                'کاهش اختلاف VDR و VDO به کمتر از ۱ میلی‌متر',
+                'تعیین پلن اکلوزال خلفی با Ala-tragal line',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه توضیح می‌دهد که Blocking out برای پر کردن Undercuts انجام می‌شود تا رکورد بیس در قالب گیر نکند و به راحتی خارج شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) درگیر کردن Undercuts باعث گیرکردن و مشکل در خارج کردن/شکستن می‌شود و خلاف هدف است.<br>C) اختلاف VDR و VDO در جزوه ۲–۴ میلی‌متر بیان شده و با Blocking out تغییر نمی‌کند.<br>D) تعیین پلن خلفی با خطوط مرجع و ابزارهای Fox/J plane مطرح است، نه Blocking out.'
+        },
+        {
+            question: 'طبق جزوه، پر کردن Undercuts در Blocking out علاوه بر جلوگیری از گیرکردن رکورد بیس، کدام فایده را هم دارد؟',
+            options: [
+                'پیشگیری از آسیب به قالب و رکورد بیس هنگام خارج کردن',
+                'افزایش tooth show در بیماران مرد',
+                'ایجاد Distortion عمدی برای شبیه‌سازی شکل صورت',
+                'کاهش احتمال Angular Cheilitis',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در جزوه ذکر شده اگر Undercuts پر نشوند، رکورد بیس ممکن است گیر کند و هنگام خارج کردن به قالب یا رکورد بیس آسیب برسد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) tooth show در بخش لب/پلن اکلوزال مطرح شده و ارتباطی با Blocking out ندارد.<br>C) Distortion در جزوه به‌عنوان عارضهٔ اشتباهات VD آمده و «عمدی» نیست.<br>D) Angular Cheilitis در VDO کم مطرح شده و به Blocking out ربط داده نشده است.'
+        },
+        {
+            question: 'در جزوه، Blocking out در ناحیه Frenum areas با چه منطقی توصیه شده است؟',
+            options: [
+                'چون بافت متحرک است و باید از تحریک/فشار اضافی جلوگیری شود.',
+                'چون این ناحیه باید برای گیر بیشتر کاملاً ضخیم شود.',
+                'چون فقط در Frenum areas اختلاف VDR و VDO اندازه‌گیری می‌شود.',
+                'چون Frenum areas همان Land روی Master cast است.',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه اشاره می‌کند Frenum areas نواحی با بافت متحرک هستند و Blocking out/relief در این بخش‌ها برای پیشگیری از فشار و تحریک لازم است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) ضخیم‌کردن برای گیر بیشتر در این ناحیه ذکر نشده و می‌تواند باعث ناراحتی شود.<br>C) اندازه‌گیری VD با دو نقطه روی بینی و چانه انجام می‌شود، نه Frenum areas.<br>D) Land یک ناحیه روی قالب است، نه Frenum.'
+        },
+        {
+            question: 'در جزوه، Blocking out در نواحی redundant tissue areas بیشتر با کدام هدف مرتبط دانسته شده است؟',
+            options: [
+                'جلوگیری از فشار اضافی روی بافت و ناراحتی بیمار',
+                'تعیین موقعیت فک بالا نسبت به TMJ',
+                'ساخت Occlusal plane former',
+                'افزایش ضخامت کام تا بیش از ۲ میلی‌متر',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در متن Blocking out، پر کردن/relief در نواحی redundant tissue برای جلوگیری از وارد شدن فشار اضافی و ایجاد ناراحتی ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) ثبت موقعیت فک بالا نسبت به TMJ مربوط به Facebow است.<br>C) Occlusal plane former ابزار صاف‌کردن سطح ریم است و با Blocking out ساخته نمی‌شود.<br>D) ضخامت بیش از حد کام در جزوه به‌عنوان مشکل مطرح شده است، نه هدف.'
+        },
+        {
+            question: 'طبق جزوه، یکی از کاربردهای Wax occlusion rim چیست؟',
+            options: [
+                'انتقال Facebow record',
+                'ساخت نهایی فلنج‌های دنچر روی Land',
+                'حذف نیاز به تعیین VDR و VDO',
+                'اندازه‌گیری مستقیم Undercuts روی قالب',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در لیست اهداف Wax occlusion rim، «انتقال Facebow record» به‌طور صریح ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) ساخت نهایی فلنج‌ها مربوط به دنچر نهایی است؛ Land هم در بحث رکورد بیس/فلنج مطرح می‌شود نه هدف Wax rim.<br>C) Wax rim برای تعیین VDO به‌کار می‌رود، نه حذف آن.<br>D) Undercuts در بحث Blocking out مطرح است، نه Wax rim.'
+        },
+        {
+            question: 'در اهداف Wax occlusion rim، کدام گزینه به کمک در تعیین موقعیت دندان‌های قدامی (Anterior teeth) مرتبط است؟',
+            options: [
+                'کمک به قرارگیری صحیح Anterior teeth از نظر position و angle',
+                'افزایش ضخامت Palate برای ایجاد گیر',
+                'پوشاندن کامل Land برای کوتاه‌کردن فلنج‌ها',
+                'کاهش Free-way space به صفر',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه بیان می‌کند Wax rim برای کمک به قرارگیری Anterior teeth از نظر موقعیت و زاویه استفاده می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) ضخامت Palate باید ۱–۲ میلی‌متر و یکنواخت باشد؛ افزایش ضخامت هدف Wax rim نیست.<br>C) پوشاندن Land ممنوع است و ربطی به Wax rim ندارد.<br>D) Free-way space در جزوه ۲–۴ میلی‌متر ذکر شده و به صفر رساندن آن مطرح نشده است.'
+        },
+        {
+            question: 'یکی از کاربردهای Wax occlusion rim برای هدایت Clinician در تعیین Occlusal plane چیست؟',
+            options: [
+                'کمک به orientation صحیح Occlusal plane',
+                'ایجاد Distortion کنترل‌شده در صورت بیمار',
+                'اندازه‌گیری VDR روی قالب بدون حضور بیمار',
+                'به‌وجود آوردن Acrylic flash روی Land برای علامت‌گذاری',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در اهداف Wax rim آمده که به clinician برای orientation صحیح Occlusal plane کمک می‌کند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Distortion پیامد اشتباهات VD است، نه هدف Wax rim.<br>C) VDR در جزوه با دو نقطه روی بینی و چانه و در حضور بیمار اندازه‌گیری می‌شود.<br>D) acrylic flash روی Land در جزوه منع شده است.'
+        },
+        {
+            question: 'طبق جزوه، Wax occlusion rim در تعیین کدام پارامتر عمودی نقش مستقیم دارد؟',
+            options: [
+                'Vertical dimension of occlusion (VDO)',
+                'Vertical dimension of rest (VDR) به‌تنهایی و بدون بیمار',
+                'Interpupillary line',
+                'Ala-tragal line',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه ذکر می‌کند Wax rim در تعیین Vertical dimension of occlusion (VDO) استفاده می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) VDR در حالت استراحت بیمار اندازه‌گیری می‌شود و «بدون بیمار» در جزوه مطرح نیست.<br>C) Interpupillary line یک مرجع افقی برای پلن قدامی است، نه پارامتر عمودی.<br>D) Ala-tragal line مرجع پلن خلفی است، نه VDO.'
+        },
+        {
+            question: 'در فهرست اهداف Wax occlusion rim، برای ساخت «tentative centric relation record» به چه علت به Wax rim نیاز داریم؟',
+            options: [
+                'چون Wax rim بستری برای ثبت اولیهٔ Centric relation فراهم می‌کند.',
+                'چون Wax rim به‌تنهایی جایگزین Facebow می‌شود.',
+                'چون Wax rim اختلاف VDR و VDO را به ۶ میلی‌متر افزایش می‌دهد.',
+                'چون Wax rim موجب پوشش کامل Frenum areas و افزایش گیر می‌شود.',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه تصریح می‌کند Wax rim برای تهیهٔ tentative centric relation record به‌کار می‌رود؛ یعنی بستری برای ثبت اولیهٔ رابطهٔ فک‌ها فراهم می‌کند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Facebow تعریف و کارکرد جداگانه دارد و در جزوه جایگزینی آن با Wax rim ذکر نشده است.<br>C) اختلاف VDR و VDO (Free-way space) در جزوه ۲–۴ میلی‌متر است و «افزایش به ۶ میلی‌متر» مطرح نشده است.<br>D) Frenum areas در جزوه به‌عنوان نواحی با بافت متحرک معرفی شده و در مبحث Blocking out برای جلوگیری از تحریک/فشار مطرح است؛ نه اینکه Wax rim با پوشش آن‌ها گیر را افزایش دهد.'
+        },
+        {
+            question: 'برای تعیین Occlusal plane قدامی، جزوه موازی بودن آن را با کدام خط مرجع ذکر می‌کند؟',
+            options: [
+                'Interpupillary line',
+                'Ala-tragal line',
+                'Land line روی Master cast',
+                'خط میانی لب (Midline lip)',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه می‌گوید پلن اکلوزال قدامی باید موازی Interpupillary line باشد و برای این کار می‌توان از plane fox و plane j استفاده کرد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Ala-tragal line برای پلن خلفی به‌کار می‌رود نه قدامی.<br>C) Land یک ناحیه روی قالب است و خط مرجع افقی صورت نیست.<br>D) خط میانی لب برای جهت‌گیری افقی پلن قدامی در جزوه به‌عنوان مرجع اصلی ذکر نشده است.'
+        },
+        {
+            question: 'طبق جزوه، برای تعیین Occlusal plane خلفی، از کدام خط مرجع استفاده می‌شود؟',
+            options: [
+                'Ala-tragal line',
+                'Interpupillary line',
+                'VDR line',
+                'Ridge lap line',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه اشاره می‌کند برای قسمت خلفی از Ala-tragal line استفاده می‌شود تا پلن خلفی با این خط موازی باشد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Interpupillary line مربوط به پلن قدامی است.<br>C) VDR یک اندازه عمودی است، نه خط مرجع افقی برای پلن خلفی.<br>D) Ridge lap line در جزوه وجود ندارد؛ Ridge lap portion سطح داخلی دندان‌های قدامی است.'
+        },
+        {
+            question: 'Facebow در جزوه چگونه تعریف شده است؟',
+            options: [
+                'ابزاری فلزی در پروتز که موقعیت فک بالا را نسبت به جمجمه و TMJ ثبت و به Articulator منتقل می‌کند.',
+                'ابزاری برای گرم‌کردن Occlusal plane former و صاف کردن سطح ریم',
+                'یک ماده ثبت رابطه فکی از جنس موم-آلومینیوم (wax-Alu)',
+                'اصطلاحی برای اختلاف بین VDR و VDO (Free-way space)',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در جزوه Facebow به‌عنوان یک وسیلهٔ فلزی در پروتز معرفی می‌شود که موقعیت ماگزیلا را نسبت به جمجمه/TMJ ثبت و به آرتیکولاتور منتقل می‌کند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) صاف‌کردن سطح ریم با Occlusal plane former انجام می‌شود، نه Facebow.<br>C) wax-Alu به‌عنوان ماده/رکورد نیست و Facebow ابزار فلزی است.<br>D) Free-way space اختلاف VDR و VDO است و تعریف Facebow نیست.'
+        },
+        {
+            question: 'در تکنیک ساخت Wax occlusion rim، «baseplate wax» در اولین مراحل چه نقشی دارد؟',
+            options: [
+                'به‌عنوان مادهٔ اصلی برای ساخت بدنهٔ ریم به‌کار می‌رود.',
+                'برای پر کردن Undercuts در مرحله Blocking out استفاده می‌شود.',
+                'به‌عنوان خط مرجع برای Interpupillary line روی صورت بیمار چسبانده می‌شود.',
+                'برای اندازه‌گیری VDR روی قالب به‌کار می‌رود.',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در تکنیک ساخت ریم، یک ورق baseplate wax گرم و نرم می‌شود و سپس به شکل لوله/ریم فرم داده می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Blocking out با موم یا modeling compound برای پر کردن Undercuts انجام می‌شود، اما baseplate wax به‌عنوان ماده اصلی ریم معرفی شده است نه «پُرکنندهٔ Undercuts» در این مرحله.<br>C) Interpupillary line یک مرجع بصری است و baseplate wax به آن منظور در جزوه ذکر نشده است.<br>D) VDR روی بیمار (نقاط بینی و چانه) اندازه‌گیری می‌شود، نه روی قالب.'
+        },
+        {
+            question: 'در ادامه تکنیک ساخت ریم، «Occlusal plane former» طبق جزوه برای کدام مرحله استفاده می‌شود؟',
+            options: [
+                'Flattening the occlusal aspect',
+                'Forming the buccal and labial contours',
+                'Blocking out undercuts',
+                'Transfer of Facebow record',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه می‌گوید در مرحله صاف‌کردن سطح اکلوزال، Occlusal plane former را گرم کرده و روی سطح ریم می‌گذاریم تا سطح صاف شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) برای شکل‌دهی کانتورهای باکال و لبیال، در جزوه از Hot plate استفاده شده است.<br>C) Blocking out مرحله جداگانه پیش از ساخت رکورد بیس است.<br>D) انتقال Facebow record جزو اهداف Wax rim است، نه کار Occlusal plane former.'
+        },
+        {
+            question: 'در جزوه، استفاده از «Hot plate» در ساخت Wax rim به کدام هدف نسبت داده شده است؟',
+            options: [
+                'شکل‌دهی کانتورهای Buccal و Labial برای ظاهر بهتر و حمایت مناسب لب و گونه',
+                'اندازه‌گیری Free-way space بین VDR و VDO',
+                'ایجاد acrylic flash روی Land برای راهنمای تکنسین',
+                'تقویت ناحیه Lingual ridge به‌صورت مقعر',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در مرحله Forming the labial and buccal contours، جزوه استفاده از Hot plate را برای شکل‌دهی کانتورها و ایجاد حمایت مناسب لب‌ها و گونه‌ها ذکر می‌کند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Free-way space با اندازه‌گیری VD روی بیمار و اختلاف VDR/VDO تعیین می‌شود، نه با Hot plate.<br>C) acrylic flash روی Land در جزوه منع شده است.<br>D) تقویت/مقعرسازی Lingual ridge در چک‌لیست رکورد بیس کام آمده است، نه به عنوان کار Hot plate در این مرحله.'
+        },
+        {
+            question: 'در تکنیک ساخت Wax occlusion rim، جزوه تأکید می‌کند قبل از شروع، رکورد بیس فک بالا روی cast چه وضعیتی داشته باشد؟',
+            options: [
+                'پایدار و دقیق روی قالب قرار گیرد.',
+                'عمداً کمی لق باشد تا راحت‌تر خارج شود.',
+                'روی ناحیه Land امتداد داشته باشد تا طول فلنج‌ها مشخص شود.',
+                'کاملاً بدون پوشش Retromolar pad ساخته شود.',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در مرحلهٔ اول تکنیک، گفته شده رکورد بیس باید پایدار و دقیق روی cast قرار گیرد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) لق بودن با «No rocking» در ویژگی‌های ایده‌آل منافات دارد و موجب خطا می‌شود.<br>C) امتداد روی Land و وجود acrylic flash در جزوه منع شده است.<br>D) پوشش Retromolar pad در چک‌لیست برای گیر و ثبات کافی توصیه شده است.'
+        },
+        {
+            question: 'در مرحلهٔ Press the roll of wax against the crest of the ridge، جزوه شروع کار را در کدام ناحیه توصیه می‌کند؟',
+            options: [
+                'Tuberosity',
+                'Frenum area',
+                'Land area',
+                'Anterior ridge lap portion',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در جزوه آمده هنگام قرار دادن موم روی crest of the ridge، از ناحیه Tuberosity شروع کنید.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Frenum area بافت متحرک است و در بحث relief/Blocking out مطرح شده، نه محل شروع ریم.<br>C) Land area محل شکل‌گیری فلنج‌ها روی cast است و محل شروع قرار دادن ریم نیست.<br>D) Ridge lap portion مربوط به سطح داخلی دندان‌های قدامی است، نه ناحیه شروع لوله موم.'
+        },
+        {
+            question: 'طبق جزوه، در فک بالا انتهای موم ریم باید با چه زاویه‌ای برش داده شود؟',
+            options: [
+                '45 درجه',
+                '30 درجه',
+                '60 درجه',
+                '90 درجه',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه صراحتاً می‌گوید انتهای موم در فک بالا باید با زاویه 45 درجه برش داده شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) 30 درجه در متن جزوه برای این مرحله ذکر نشده است.<br>C) 60 درجه در متن جزوه نیامده است.<br>D) 90 درجه (برش عمودی) با دستور 45 درجه مغایر است.'
+        },
+        {
+            question: 'در جزوه، VDR و VDO به‌ترتیب به چه معنا هستند؟',
+            options: [
+                'VDR: Vertical dimension of rest ، VDO: Vertical dimension of occlusion',
+                'VDR: Vertical dimension of occlusion ، VDO: Vertical dimension of rest',
+                'VDR: Free-way space ، VDO: Interpupillary line',
+                'VDR: Ridge lap dimension ، VDO: Land dimension',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه تعریف می‌کند VDR یعنی Vertical dimension of rest و VDO یعنی Vertical dimension of occlusion.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) جای این دو در جزوه برعکس نشده است.<br>C) Free-way space اختلاف VDR و VDO است، نه خود VDR.<br>D) Ridge lap و Land اصطلاحات دیگری هستند و به این تعاریف مربوط نیستند.'
+        },
+        {
+            question: 'طبق جزوه، اختلاف بین VDR و VDO معمولاً در چه بازه‌ای است و با چه اصطلاحی بیان می‌شود؟',
+            options: [
+                '۲ تا ۴ میلی‌متر؛ Free-way space',
+                '۰ تا ۱ میلی‌متر؛ Closest Speaking Space',
+                '۴ تا ۶ میلی‌متر؛ Interpupillary space',
+                '۱ تا ۲ سانتی‌متر؛ Gag space',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>در جزوه آمده فاصلهٔ ۲ تا ۴ میلی‌متری بین VDR و VDO را Free-way space می‌گویند (میانگین حدود ۳ میلی‌متر).<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Closest Speaking Space روش دیگری برای ارزیابی VD است، نه نام اختلاف ۰–۱ میلی‌متر.<br>C) اصطلاح Interpupillary space در جزوه به این معنا نیامده است.<br>D) چنین بازه‌ای و اصطلاحی در جزوه ذکر نشده است.'
+        },
+        {
+            question: 'طبق جزوه، اگر VDO کم باشد، کدام مجموعه پیامدها به‌عنوان اشتباه رایج ذکر شده است؟',
+            options: [
+                'کاهش فاصله بین دو قوس، Overclosure، احتمال آسیب TMJ و افزایش احتمال Angular Cheilitis',
+                'تماس زودرس دندان‌ها، کلیک مفصل و دشواری بلع',
+                'کاهش فضای دهان به علت ضخیم بودن Palate در رکورد بیس',
+                'عدم امکان انتقال Facebow record به Articulator',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه می‌گوید در VDO کم، فاصله بین دو قوس کم می‌شود و بیمار دچار Overclosure می‌شود که می‌تواند به TMJ آسیب بزند؛ همچنین نزدیک شدن چانه به بینی و افزایش احتمال Angular Cheilitis ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) این‌ها در جزوه به‌عنوان علائم VDO زیاد آمده‌اند.<br>C) کاهش فضای دهان در «مشکل رکورد بیس ضخیم» آمده است، نه اشتباه VDO کم.<br>D) انتقال Facebow record هدف Wax rim است و با VDO کم به این شکل مطرح نشده است.'
+        },
+        {
+            question: 'طبق جزوه، اگر VDO زیاد باشد، کدام علامت/عارضه در متن آمده است؟',
+            options: [
+                'برخورد زودتر دندان‌ها، احساس کلیک در مفصل و دشواری بلع',
+                'افزایش احتمال Angular Cheilitis به‌علت نزدیک شدن چانه به بینی',
+                'لق زدن رکورد بیس روی cast و خطا در ثبت رابطه فک‌ها',
+                'کاهش حرکت زبان و افزایش Gag reflex به‌علت فشار به سقف دهان',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه بیان می‌کند در VDO زیاد، دندان‌ها زودتر در حالت بی‌دندان به هم برخورد می‌کنند و بیمار هنگام صحبت/عملکرد ممکن است احساس کلیک در مفصل داشته باشد؛ همچنین دشواری بلع و درد/ناراحتی عضلات و زیر دنچر ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) Angular Cheilitis در جزوه در ارتباط با VDO کم مطرح شده است.<br>C) rocking رکورد بیس ویژگی نامطلوب رکورد بیس است و به VDO زیاد نسبت داده نشده است.<br>D) کاهش حرکت زبان و افزایش Gag reflex از پیامدهای رکورد بیس ضخیم در کام است.'
+        },
+        {
+            question: 'در روش Closest Speaking Space که در جزوه به‌عنوان راه دیگر ارزیابی VD ذکر شده، کدام معیار برای فاصله دندان‌های قدامی هنگام تلفظ حرف s آمده است؟',
+            options: [
+                'حدود ۲ میلی‌متر هنگام شمردن ۳۰ تا ۴۰',
+                'حدود ۶ میلی‌متر هنگام تلفظ حرف M',
+                '۰ میلی‌متر و تماس کامل دندان‌ها در تکلم',
+                'حدود ۴ میلی‌متر در حالت استراحت بدون تکلم',
+            ],
+            correctIndex: 0,
+            explanation: '<strong>گزینه صحیح: A</strong><br>جزوه می‌گوید در روش Closest Speaking Space، هنگام تلفظ حرف s (مثلاً هنگام شمردن ۳۰ تا ۴۰)، دندان‌های قدامی باید حدود ۲ میلی‌متر از هم فاصله داشته باشند؛ اگر فاصله بیشتر باشد VD کم و اگر کمتر باشد VD بیش از حد است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>B) حرف M در جزوه برای قرار دادن بیمار در حالت rest جهت اندازه‌گیری VDR ذکر شده، نه معیار ۶ میلی‌متر.<br>C) تماس کامل دندان‌ها در تکلم در جزوه به‌عنوان معیار صحیح ذکر نشده و می‌تواند نشانه VD زیاد باشد.<br>D) ۴ میلی‌متر معیار Free-way space بین VDR و VDO است، نه فاصله قدامی هنگام s.'
+        },
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    const questionCounterEl = document.getElementById('questionCounter');
+    const answeredCounterEl = document.getElementById('answeredCounter');
+    const progressFillEl = document.getElementById('progressFill');
+    const questionTagEl = document.getElementById('questionTag');
+    const questionStatusEl = document.getElementById('questionStatus');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainerEl = document.getElementById('optionsContainer');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const finishBtn = document.getElementById('finishBtn');
+
+    const resultsSectionEl = document.getElementById('resultsSection');
+    const scorePercentEl = document.getElementById('scorePercent');
+    const scoreLabelEl = document.getElementById('scoreLabel');
+    const scoreCorrectEl = document.getElementById('scoreCorrect');
+    const scoreWrongEl = document.getElementById('scoreWrong');
+    const scoreUnansweredEl = document.getElementById('scoreUnanswered');
+    const answersContainerEl = document.getElementById('answersContainer');
+
+    function updateProgressUI() {
+        const total = questions.length;
+        const answeredCount = userAnswers.filter(a => a !== null).length;
+
+        questionCounterEl.textContent = `سؤال ${currentQuestionIndex + 1} از ${total}`;
+        answeredCounterEl.textContent = `${answeredCount} / ${total} پاسخ داده شده`;
+
+        const progressPercent = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+        progressFillEl.style.width = progressPercent + '%';
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestionIndex];
+
+        questionTagEl.textContent = `سؤال ${currentQuestionIndex + 1}`;
+        questionTextEl.textContent = q.question;
+
+        const userAnswer = userAnswers[currentQuestionIndex];
+        questionStatusEl.textContent = userAnswer === null ? 'وضعیت: بدون پاسخ' : 'وضعیت: پاسخ داده شده';
+
+        optionsContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'option-btn';
+            if (userAnswer === index) btn.classList.add('selected');
+            btn.dataset.index = index.toString();
+
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'option-letter';
+            letterSpan.textContent = letters[index] + ')';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'option-text';
+            textSpan.textContent = opt;
+
+            btn.appendChild(letterSpan);
+            btn.appendChild(textSpan);
+
+            btn.addEventListener('click', () => handleOptionSelect(index));
+            optionsContainerEl.appendChild(btn);
+        });
+
+        prevBtn.disabled = currentQuestionIndex === 0;
+        nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+
+        updateProgressUI();
+    }
+
+    function handleOptionSelect(optionIndex) {
+        userAnswers[currentQuestionIndex] = optionIndex;
+        if (currentQuestionIndex < questions.length - 1) currentQuestionIndex++;
+        renderQuestion();
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+    });
+
+    finishBtn.addEventListener('click', () => {
+        finishQuiz();
+    });
+
+    function finishQuiz() {
+        const total = questions.length;
+        let correct = 0, wrong = 0, unanswered = 0;
+
+        questions.forEach((q, index) => {
+            const ans = userAnswers[index];
+            if (ans === null) unanswered++;
+            else if (ans === q.correctIndex) correct++;
+            else wrong++;
+        });
+
+        const percent = total === 0 ? 0 : Math.round((correct / total) * 100);
+
+        scorePercentEl.textContent = percent + '%';
+        scoreLabelEl.textContent = `${correct} پاسخ صحیح از ${total} سؤال`;
+        scoreCorrectEl.textContent = correct.toString();
+        scoreWrongEl.textContent = wrong.toString();
+        scoreUnansweredEl.textContent = unanswered.toString();
+
+        buildAnswersReview();
+        resultsSectionEl.style.display = 'flex';
+        resultsSectionEl.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function buildAnswersReview() {
+        answersContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        questions.forEach((q, index) => {
+            const userAnswer = userAnswers[index];
+
+            const card = document.createElement('div');
+            card.className = 'answer-card';
+
+            const qTitle = document.createElement('div');
+            qTitle.className = 'answer-question-title';
+            qTitle.textContent = `سؤال ${index + 1}`;
+            card.appendChild(qTitle);
+
+            const qText = document.createElement('div');
+            qText.className = 'answer-question-text';
+            qText.textContent = q.question;
+            card.appendChild(qText);
+
+            const optionsWrapper = document.createElement('div');
+            optionsWrapper.className = 'answer-options-wrapper';
+
+            q.options.forEach((opt, optIdx) => {
+                const row = document.createElement('div');
+                row.className = 'option-row';
+
+                const main = document.createElement('div');
+                main.className = 'option-main';
+
+                const label = document.createElement('span');
+                label.className = 'option-label';
+                label.textContent = letters[optIdx] + ')';
+
+                const text = document.createElement('span');
+                text.className = 'option-text';
+                text.textContent = opt;
+
+                main.appendChild(label);
+                main.appendChild(text);
+                row.appendChild(main);
+
+                const tag = document.createElement('span');
+                tag.className = 'option-tag';
+
+                if (optIdx === q.correctIndex && userAnswer === optIdx) {
+                    row.classList.add('user-correct');
+                    tag.textContent = '✓ صحیح (انتخاب شما)';
+                } else if (optIdx === q.correctIndex) {
+                    row.classList.add('correct');
+                    tag.textContent = '✓ گزینه صحیح';
+                } else if (userAnswer === optIdx) {
+                    row.classList.add('user-wrong');
+                    tag.textContent = '✗ انتخاب شما';
+                }
+
+                if (tag.textContent) row.appendChild(tag);
+                optionsWrapper.appendChild(row);
+            });
+
+            card.appendChild(optionsWrapper);
+
+            const expl = document.createElement('div');
+            expl.className = 'answer-explanation';
+            if (userAnswer === null) {
+                expl.innerHTML = `<strong>وضعیت پاسخ:</strong> این سؤال را پاسخ ندادی.<br><strong>توضیح:</strong> ${q.explanation}`;
+            } else {
+                expl.innerHTML = `<strong>توضیح:</strong> ${q.explanation}`;
+            }
+
+            card.appendChild(expl);
+            answersContainerEl.appendChild(card);
+        });
+    }
+
+    renderQuestion();
+</script>
+
+<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
+<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+</body>
+</html>
+
+
+

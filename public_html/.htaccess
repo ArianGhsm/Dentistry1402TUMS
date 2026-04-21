@@ -4,6 +4,7 @@
   AddType application/vnd.ms-fontobject .eot
   AddType font/ttf .ttf
   AddType font/otf .otf
+  AddType application/manifest+json .webmanifest
 </IfModule>
 
 <IfModule mod_headers.c>
@@ -11,4 +12,25 @@
     Header set Access-Control-Allow-Origin "*"
     Header set Access-Control-Allow-Methods "GET, OPTIONS"
   </FilesMatch>
+
+  <FilesMatch "^(sw\.js|manifest\.webmanifest)$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+  </FilesMatch>
+
+  <FilesMatch "^(chat_api\.php|grades_api\.php)$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+  </FilesMatch>
+
+  <FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg|webp|woff2|woff)$">
+    Header set Cache-Control "public, max-age=2592000, immutable"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  RewriteRule ^booklets/?$ /notes/ [R=301,L,NE]
+  RewriteRule ^booklets/index\.html$ /notes/ [R=301,L,NE]
+  RewriteRule ^booklets1403/?$ /notes/1403/ [R=301,L,NE]
+  RewriteRule ^booklets1403/index\.html$ /notes/1403/ [R=301,L,NE]
 </IfModule>

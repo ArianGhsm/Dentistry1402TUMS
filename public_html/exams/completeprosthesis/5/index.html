@@ -1,0 +1,1414 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+<link rel="stylesheet" href="/assets/site/styles/quiz.css?v=20260421-pwa">
+<meta charset="UTF-8">
+    <title>آزمون پروتز کامل – جلسه ۵ (اکلوژن و انتخاب دندان‌های خلفی) | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- آیکون تب (logo.png مثل سایت اصلی) -->
+    <link rel="icon" type="image/png" href="/assets/images/logo.png">
+    <link rel="shortcut icon" href="/assets/images/logo.png">
+
+    <style>
+        :root {
+            --bg-body: #050b14;
+            --bg-card: #111b2b;
+            --bg-card-hover: #1a283d;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --accent-color: #64ffda;
+            --border-color: #233554;
+            --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
+            --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
+            --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .background-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
+        }
+
+        /* هدر مثل قالب اصلی */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 5%;
+            background: rgba(5, 11, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
+            flex-shrink: 0;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .site-info h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .site-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .badge-unofficial {
+            font-size: 0.7rem;
+            background: rgba(255, 99, 99, 0.1);
+            color: #ff6363;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 99, 99, 0.2);
+            white-space: nowrap;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .quiz-wrapper {
+            max-width: 900px;
+            margin: 0 auto 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .back-button-wrapper {
+            margin-bottom: 0.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.82rem;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .back-icon {
+            font-size: 1rem;
+        }
+
+        .quiz-header {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .info-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(100, 255, 218, 0.08);
+            border: 1px solid rgba(100, 255, 218, 0.4);
+            font-size: 0.78rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .quiz-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .quiz-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-wrapper {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .progress-top-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(15, 23, 42, 1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: var(--btn-gradient);
+            transition: width 0.2s ease-out;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.82rem;
+        }
+
+        .question-tag {
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .question-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .question-text {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #0b1624;
+            padding: 0.75rem 0.9rem;
+            text-align: right;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+            font-size: 0.92rem;
+            font-family: var(--font-main);
+            color: #ffffff; /* متن گزینه‌ها سفید */
+        }
+
+        .option-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+        }
+
+        .option-btn.selected {
+            background: rgba(100, 255, 218, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px rgba(100, 255, 218, 0.35);
+        }
+
+        .option-letter {
+            font-weight: 700;
+            min-width: 24px;
+            color: var(--accent-color);
+        }
+
+        .option-text {
+            flex: 1;
+            font-family: var(--font-main); /* هم‌فونت با سؤال‌ها: یکان */
+            color: #ffffff;
+        }
+
+        .nav-buttons {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: space-between;
+        }
+
+        .nav-left,
+        .nav-right {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-base {
+            border-radius: 999px;
+            padding: 0.55rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .btn-base:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .btn-base:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .btn-primary {
+            background: var(--btn-gradient);
+            color: #ffffff;
+            border: none;
+            box-shadow: var(--btn-shadow);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        #resultsSection {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .results-section {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .results-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .results-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .results-score {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--accent-color);
+        }
+
+        .score-number {
+            font-size: 2.4rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .score-detail {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .results-box {
+            background: #0b1624;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 0.7rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .results-box-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .results-box-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .answer-card {
+            background: #0b1624;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .answer-question-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .answer-question-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .answer-options-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .option-main {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .option-label {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .option-row .option-text {
+            color: var(--text-primary);
+        }
+
+        .option-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .option-row.correct {
+            border: 1px solid rgba(34, 197, 94, 0.75);
+            background: rgba(22, 163, 74, 0.14);
+        }
+
+        .option-row.user-correct {
+            border: 1px solid rgba(34, 197, 94, 0.95);
+            background: rgba(22, 163, 74, 0.22);
+        }
+
+        .option-row.user-wrong {
+            border: 1px solid rgba(248, 113, 113, 0.9);
+            background: rgba(248, 113, 113, 0.12);
+        }
+
+        .option-row.correct .option-tag,
+        .option-row.user-correct .option-tag {
+            border-color: rgba(34, 197, 94, 0.9);
+            color: #bbf7d0;
+        }
+
+        .option-row.user-wrong .option-tag {
+            border-color: rgba(248, 113, 113, 0.9);
+            color: #fecaca;
+        }
+
+        .answer-explanation {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .answer-explanation strong {
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-body);
+        }
+
+        footer span {
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1.3rem 4%;
+            }
+
+            .quiz-header,
+            .question-card,
+            .results-section {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .question-card {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.5rem;
+            }
+        }
+    </style>
+<meta name="theme-color" content="#050b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dent1402">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260421-pwa">
+</head>
+<body class="quiz-page">
+
+<div class="background-overlay"></div>
+
+<header class="site-header">
+    <div class="logo-area">
+        <div class="logo-circle">
+            <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+        </div>
+        <div class="site-info">
+            <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+            <p>دانشگاه علوم پزشکی تهران</p>
+        </div>
+    </div>
+    <div class="badge-unofficial">سامانه غیررسمی</div>
+</header>
+
+<main>
+    <section class="quiz-wrapper">
+        <div class="back-button-wrapper">
+            <!-- برمی‌گرده به فهرست آزمون‌های پروتز -->
+            <a href="/exams/completeprosthesis/" class="back-btn">
+                <span class="back-icon">←</span>
+                بازگشت به فهرست آزمون‌های پروتز
+            </a>
+        </div>
+
+        <!-- هدر آزمون -->
+        <div class="quiz-header">
+            <span class="info-pill">آزمون تمرینی پروتز کامل – جلسه ۵ (اکلوژن و انتخاب دندان‌های خلفی)</span>
+            <h2 class="quiz-title">سؤالات جلسه ۵ – اکلوژن و انتخاب دندان‌های خلفی</h2>
+            <p class="quiz-subtitle">
+                بعد از انتخاب هر گزینه، به‌صورت خودکار به سؤال بعدی می‌روی. در انتها روی «پایان آزمون و مشاهده نتیجه»
+                کلیک کن تا نمره و پاسخ‌های تشریحی را ببینی.
+            </p>
+
+            <div class="progress-wrapper">
+                <div class="progress-top-row">
+                    <span id="questionCounter">سؤال ۱ از ۴۰</span>
+                    <span id="answeredCounter">۰ / ۴۰ پاسخ داده شده</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت سؤال -->
+        <div class="question-card">
+            <div class="question-top-row">
+                <span id="questionTag" class="question-tag">سؤال ۱</span>
+                <span id="questionStatus" class="question-status">وضعیت: بدون پاسخ</span>
+            </div>
+            <h3 id="questionText" class="question-text"></h3>
+
+            <div id="optionsContainer" class="options-list">
+                <!-- گزینه‌ها با JS اضافه می‌شن -->
+            </div>
+
+            <div class="nav-buttons">
+                <div class="nav-right">
+                    <button id="prevBtn" class="btn-base" type="button">
+                        ← سؤال قبلی
+                    </button>
+                    <button id="nextBtn" class="btn-base" type="button">
+                        سؤال بعدی →
+                    </button>
+                </div>
+                <div class="nav-left">
+                    <button id="finishBtn" class="btn-base btn-primary" type="button">
+                        پایان آزمون و مشاهده نتیجه
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- نتایج -->
+        <section id="resultsSection" class="results-section">
+            <div class="results-header">
+                <div class="results-main">
+                    <div class="results-score">
+                        <span id="scorePercent" class="score-number">0%</span>
+                    </div>
+                    <div id="scoreLabel" class="score-label">۰ پاسخ صحیح از ۴۰ سؤال</div>
+                    <div class="score-detail">
+                        عملکردت رو در این آزمون ببین؛ پایین‌تر می‌تونی پاسخ صحیح و توضیح تشریحی همه سؤالات رو ببینی.
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ صحیح</span>
+                        <span id="scoreCorrect" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ غلط</span>
+                        <span id="scoreWrong" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">بی‌پاسخ</span>
+                        <span id="scoreUnanswered" class="results-box-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="answers-list" id="answersContainer">
+                <!-- مرور پاسخ‌ها اینجا ساخته می‌شود -->
+            </div>
+        </section>
+    </section>
+</main>
+
+<footer>
+    <p>طراحی شده با ❤️ برای ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران - آرین قاسم‌پور</p>
+</footer>
+
+<script>
+    // ۴۰ سؤال – پروتز کامل (جلسه ۵: اکلوژن و انتخاب/چیدمان دندان‌های خلفی)
+    const questions = [
+        {
+            question: 'پس از چیدمان دندان‌های قدامی، پیش از شروع چیدمان دندان‌های خلفی در دهان بیمار کدام ارزیابی انجام می‌شود؟',
+            options: [
+                'بررسی CR و ارزیابی تلفظ حروف C و S',
+                'تعیین کاسپ‌های فانکشنال در Arch Opposing',
+                'بررسی ICP و RCP و ثبت shift Retrusive',
+                'انجام Enameloplasty برای هماهنگی مورفولوژی'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: A)<br><strong>دلیل:</strong> بعد از چیدمان قدامی‌ها، قبل از ورود به خلفی‌ها باید CR و تلفظ C و S ارزیابی شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- B) این مرحله به‌عنوان چک روتین بلافاصله بعد از قدامی‌ها ذکر نشده و مربوط به تنظیمات دیگر است.<br>- C) ICP/RCP و shift Retrusive در بحث دنچر فوری مطرح می‌شود، نه چک معمول بعد از قدامی‌ها.<br>- D) Enameloplasty مربوط به هماهنگی با دندان طبیعی است و مرحلهٔ استانداردِ بعد از قدامی‌ها نیست.'
+        },
+        {
+            question: 'در شرایط Ridges Flabby/Resorbed برای کاهش نیروهای جانبی، انتخاب مناسب دندان‌های خلفی کدام است؟',
+            options: [
+                'Anatomic با کاسپ کامل (۳۰ درجه یا بیشتر)',
+                'Nonanatomic یا دندان‌های با کاسپ کوتاه',
+                'Lingualized با تماس کاسپ لینگوال ماگزیال و فوسای مرکزی مندیبل',
+                'Semi-anatomic با زاویه ۱۰–۲۰ درجه'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: B)<br><strong>دلیل:</strong> در Ridges Flabby/Resorbed برای کاهش نیروهای جانبی، Nonanatomic یا کاسپ کوتاه توصیه می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) کاسپ کامل می‌تواند نیروهای جانبی را افزایش دهد.<br>- C) Lingualized اندیکاسیون‌های خاص دارد و در این بند به‌عنوان انتخاب مستقیم ذکر نشده است.<br>- D) Semi-anatomic تعریف جدا دارد و الزاماً انتخاب اول این وضعیت نیست.'
+        },
+        {
+            question: 'در بیمار با ریج تحلیل‌رفته/بی‌ثبات، رابطه «ثبات رکورد بیس» با «ارتفاع کاسپ دندان‌های خلفی» چگونه توصیف شده است؟',
+            options: [
+                'هرچه ثبات رکورد بیس کمتر باشد، ارتفاع کاسپ بیشتر انتخاب می‌شود',
+                'ثبات رکورد بیس اثری بر ارتفاع کاسپ ندارد',
+                'هرچه ثبات رکورد بیس کمتر باشد، باید از دندان‌های با ارتفاع کاسپ کمتر استفاده شود',
+                'هرچه ثبات رکورد بیس کمتر باشد، فقط ramp Balancing توصیه می‌شود'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: C)<br><strong>دلیل:</strong> با کاهش ثبات رکورد بیس، باید ارتفاع کاسپ کمتر انتخاب شود تا نیروهای جانبی کاهش یابد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) خلاف جهت قاعدهٔ ذکرشده است.<br>- B) متن دقیقاً اثر ثبات رکورد بیس را مطرح می‌کند.<br>- D) ramp Balancing «فقط» و به‌صورت انحصاری به‌عنوان راهکار بیان نشده است.'
+        },
+        {
+            question: 'در برخی بیماران با ریجهای بسیار تحلیل‌رفته که کنترل زبانی بسیار پایدار دارند و جویدن عمدتاً عمودی است، کدام نتیجه‌گیری درباره انتخاب دندان/طرح اکلوژن بیان شده است؟',
+            options: [
+                'تنها طرح مناسب Occlusion Monoplane است',
+                'باید از دندان‌های Anatomic با کاسپ کامل (۳۰ درجه یا بیشتر) اجتناب شود و فقط Semi-anatomic گذاشته شود',
+                'بهترین انتخاب، Nonanatomic همراه با balancing ramp است',
+                'می‌توان از دندان‌های کاسپ-فوسا استفاده کرد و این گروه بهترین کاندید Occlusion Lingualized هستند'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: D)<br><strong>دلیل:</strong> در این استثنا، امکان استفاده از cusp-fossa مطرح شده و بهترین کاندید برای Occlusion Lingualized معرفی می‌شوند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) Monoplane گزینه‌ای عمومی برای شرایط خاص است ولی در این «استثنا» الزام نشده است.<br>- B) اجبار به Semi-anatomic در متن نیامده است.<br>- C) در این استثنا، «Nonanatomic + ramp» به‌عنوان بهترین انتخاب ذکر نشده است.'
+        },
+        {
+            question: 'در Grinders & Bruxers Chronic، «بهترین انتخاب» برای طرح اکلوژن دنچر کامل کدام ذکر شده است؟',
+            options: [
+                'Occlusion Monoplane',
+                'Occlusion Lingualized',
+                'Anatomic با کاسپ کامل',
+                'ramp Balancing'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: A)<br><strong>دلیل:</strong> برای Bruxers/Grinders مزمن، Monoplane به‌عنوان بهترین انتخاب جهت کاهش نیروهای جانبی مطرح شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- B) Lingualized اندیکاسیون‌های دیگری دارد و در این بخش بهترین انتخاب معرفی نشده است.<br>- C) کاسپدار بودن در این گروه می‌تواند نیروهای افقی/جانبی و بی‌ثباتی را بیشتر کند.<br>- D) ramp Balancing به‌عنوان «بهترین انتخاب» این گروه ذکر نشده است.'
+        },
+        {
+            question: 'اگر دنچر فعلی بیمار دارای دندان‌های آناتومیک باشد و این دندان‌ها خیلی ساییده/صاف نشده باشند و ریجها شدیداً تحلیل نرفته باشند، انتخاب مجدد دندان‌های خلفی چگونه توصیه شده است؟',
+            options: [
+                'تبدیل به Nonanatomic برای کاهش نیروهای جانبی',
+                'امکان استفاده مجدد از دندان‌های Anatomic (کاسپدار)',
+                'فقط Lingualized برای جلوگیری از تداخل',
+                'حذف مولر دوم ماگزیال برای کاهش تداخل'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: B)<br><strong>دلیل:</strong> اگر دنچر قبلی آناتومیک بوده و زیاد صاف نشده و ریجها خیلی تحلیل نرفته باشند، استفاده مجدد از Anatomic قابل قبول است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) تبدیل به Nonanatomic وقتی دندان‌ها زیاد ساییده/صاف شده باشند مطرح می‌شود، نه این سناریو.<br>- C) «فقط» Lingualized الزام نشده است.<br>- D) حذف مولر دوم ماگزیال به‌عنوان توصیه این بخش نیامده است.'
+        },
+        {
+            question: 'در Relationship Ridge کلاس II (فک پایین عقب‌تر از فک بالا)، راهکار پیشنهادی برای پیشگیری از تداخل اکلوژن در چیدمان دندان‌های خلفی کدام است؟',
+            options: [
+                'استفاده از Anatomic با کاسپ کامل برای افزایش کارایی جویدن',
+                'استفاده از Semi-anatomic و بالا بردن کاسپ دیستوباکال ۱.۵ میلی‌متر',
+                'استفاده از Nonanatomic یا استفاده از دندان‌های خلفی مندیبل با فوساهای باز برای تماس‌های متعدد قدامی–خلفی بدون تداخل',
+                'الزام به ایجاد کراسبایت در همه موارد کلاس II'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: C)<br><strong>دلیل:</strong> در کلاس II برای جلوگیری از تداخل، Nonanatomic یا فوساهای باز مندیبل پیشنهاد می‌شود تا تماس‌های متعدد بدون تداخل ایجاد شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) کاسپدار بودن می‌تواند تداخل را بیشتر کند.<br>- B) بالا بردن ۱.۵ میلی‌متر مربوط به مولر دوم ماگزیال/Compensating Curve است، نه راهکار کلاس II.<br>- D) کراسبایت فقط در شرایط خاص عرض قوس مطرح می‌شود، نه الزام در همه کلاس II.'
+        },
+        {
+            question: 'در کراسبایت ناشی از بیشتر بودن عرض قوس مندیبل نسبت به ماگزیلا، کدام رابطه کاسپ/فوسا برای کاهش تداخل و افزایش ثبات دنچر ذکر شده است؟',
+            options: [
+                'قرارگیری کاسپ‌های باکال مندیبل در فوساهای ماگزیال',
+                'تماس اصلی کاسپ لینگوال ماگزیال با فوسای مرکزی مندیبل',
+                'قرارگیری کاسپ پاالتال ماگزیال در شیار مرکزی دندان‌های فک بالا',
+                'قرارگیری کاسپ‌های باکال ماگزیال در مقابل فوساهای مرکزی مندیبل'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: D)<br><strong>دلیل:</strong> در این کراسبایت، رابطهٔ توصیف‌شده قرارگیری کاسپ‌های باکال ماگزیال در مقابل فوساهای مرکزی مندیبل است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) بیشتر به سناریوهای دیگر (مثل دنچر ماگزیال مقابل دندان طبیعی مندیبل) نزدیک است.<br>- B) تعریف Lingualized است، نه کراسبایت ناشی از عرض قوس.<br>- C) این توصیف مربوط به overjet/چیدمان کلی فک پایین نسبت به فک بالا است، نه کراسبایت.'
+        },
+        {
+            question: 'پس از کشیدن دندان‌ها و گذاشتن Dentures Immediate، فک پایین چه تمایلی از نظر تغییر وضعیت نشان می‌دهد؟',
+            options: [
+                'تمایل به shift Retrusive (رسیدن از ICP به RCP)',
+                'تمایل به پروتروژن با افزایش ICP نسبت به RCP',
+                'ثابت ماندن در ICP بدون تغییر به RCP',
+                'ایجاد shift جانبی به سمت کراسبایت به‌صورت اولیه'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: A)<br><strong>دلیل:</strong> بعد از کشیدن و Immediate denture، تمایل به عقب رفتن فک پایین (shift Retrusive) و حرکت از ICP به RCP ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- B) پروتروژن به‌عنوان روند اصلی ذکر نشده است.<br>- C) متن به تغییر اشاره می‌کند، نه ثابت ماندن.<br>- D) کراسبایت علت دیگری دارد و به‌عنوان روند اولیه بعد از کشیدن مطرح نشده است.'
+        },
+        {
+            question: 'برای جلوگیری از مشکل تداخل اکلوژن ناشی از shift Retrusive در دنچر فوری، چه نوع طرح/طرح‌هایی به‌عنوان intercuspated-Non معرفی شده‌اند؟',
+            options: [
+                'فقط Anatomic (۳۰ درجه یا بیشتر)',
+                'Occlusion Monoplane و Occlusion Lingualized',
+                'فقط Semi-anatomic (۱۰–۲۰ درجه)',
+                'فقط ramp Balancing'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: B)<br><strong>دلیل:</strong> برای پیشگیری از تداخل ناشی از shift Retrusive، طرح‌های intercuspated-Non مانند Monoplane و Lingualized معرفی شده‌اند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) کاسپدار بودن می‌تواند تداخل را تشدید کند.<br>- C) Semi-anatomic به‌عنوان مثال intercuspated-Non ذکر نشده است.<br>- D) ramp Balancing به‌تنهایی به‌عنوان راهکار این مشکل معرفی نشده است.'
+        },
+        {
+            question: 'در حالتی که دنچر مندیبل در برابر دندان‌های طبیعی ماگزیال قرار می‌گیرد، انتخاب دندان‌های خلفی چگونه بیان شده است؟',
+            options: [
+                'Nonanatomic برای جلوگیری از سایش دندان طبیعی',
+                'Lingualized برای متمرکز کردن نیروها روی ریج',
+                'استفاده از دندان‌های خلفی کاسپدار',
+                'حذف تماس‌های اکلوژن و اتکا به آزادی حرکت فک‌ها'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: C)<br><strong>دلیل:</strong> در مندیبل denture مقابل دندان طبیعی ماگزیال، استفاده از دندان‌های خلفی کاسپدار ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) Nonanatomic انتخاب اصلی این سناریو معرفی نشده است.<br>- B) Lingualized در این بند به‌عنوان انتخاب اصلی نیامده است.<br>- D) حذف تماس‌های اکلوژن مطرح نشده و حتی به هماهنگی تماس‌ها اشاره می‌شود.'
+        },
+        {
+            question: 'در حالتی که دنچر ماگزیال در برابر دندان‌های طبیعی مندیبل قرار می‌گیرد، کدام کاسپ‌ها به‌عنوان کاسپ‌های functional معرفی شده‌اند؟',
+            options: [
+                'کاسپ‌های باکال ماگزیلا',
+                'کاسپ‌های لینگوال مندیبل',
+                'کاسپ‌های لینگوال ماگزیلا',
+                'کاسپ‌های باکال مندیبل'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: D)<br><strong>دلیل:</strong> در ماگزیلاری denture مقابل دندان‌های طبیعی مندیبل، کاسپ‌های باکال مندیبل functional معرفی می‌شوند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) در این سناریو functional معرفی نشده‌اند.<br>- B) در این بند functional معرفی نشده‌اند.<br>- C) نقش کلیدی لینگوال ماگزیلا مربوط به Lingualized است.'
+        },
+        {
+            question: 'زاویه کاسپ در دندان‌های Semi-anatomic طبق متن کدام است؟',
+            options: [
+                '۱۰–۲۰ درجه',
+                '۲۰–۳۰ درجه',
+                '۳۰ درجه یا بیشتر',
+                'بدون کاسپ (صفر درجه)'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: A)<br><strong>دلیل:</strong> Semi-anatomic با زاویه کاسپ ۱۰–۲۰ درجه تعریف شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- B) این بازه در تعریف نیامده است.<br>- C) ۳۰° یا بیشتر مربوط به Anatomic است.<br>- D) بدون کاسپ مربوط به Nonanatomic است.'
+        },
+        {
+            question: 'در تعریف Lingualized، تماس اصلی چگونه توصیف شده است؟',
+            options: [
+                'تماس کاسپ‌های باکال مندیبل با فوساهای ماگزیال',
+                'تماس کاسپ لینگوال ماگزیال با فوسای مرکزی مندیبل',
+                'تماس همه کاسپ‌های مولر اول ماگزیال با سطح Slap',
+                'تماس کاسپ دیستولینگوال مولر اول ماگزیال با سطح Slap'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: B)<br><strong>دلیل:</strong> Lingualized با تماس کاسپ لینگوال ماگزیال با فوسای مرکزی مندیبل تعریف می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) توصیف دیگری است و تعریف Lingualized نیست.<br>- C) این مربوط به مراحل چیدمان و ارتباط با Slap است، نه تعریف Lingualized.<br>- D) کاسپ دیستولینگوال طبق متن بالاتر از Slap قرار می‌گیرد و تعریف Lingualized نیست.'
+        },
+
+        {
+            question: 'در اندیکاسیون‌های Occlusion Monoplane، کدام مورد در بخش «شرایط فکی و بافتی» آمده است؟',
+            options: [
+                'نیازهای زیبایی بالا',
+                'dentition natural opposes Denture',
+                'Poor residual ridges',
+                'موفقیت قبلی با اکلوژن Lingualized'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: C)<br><strong>دلیل:</strong> Poor residual ridges در اندیکاسیون‌های Monoplane (شرایط فکی و بافتی) ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) در اندیکاسیون‌های Lingualized آمده است.<br>- B) در اندیکاسیون‌های anatomic ذکر می‌شود.<br>- D) موفقیت قبلی با Lingualized جزء اندیکاسیون‌های Lingualized است.'
+        },
+        {
+            question: 'در اندیکاسیون‌های Occlusion Monoplane، کدام مثال برای «کنترل عصبی–عضالنی ضعیف» ذکر شده است؟',
+            options: [
+                'patient coordinated Well',
+                'ridges residual Good',
+                'موفقیت قبلی با anatomic dentures',
+                'Bruxers یا CP'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: D)<br><strong>دلیل:</strong> برای کنترل عصبی–عضالنی ضعیف، مثال‌هایی مثل Bruxers و CP ذکر شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) patient coordinated Well اندیکاسیون anatomic است.<br>- B) ridges residual Good اندیکاسیون anatomic است.<br>- C) موفقیت قبلی با anatomic dentures نیز اندیکاسیون anatomic است.'
+        },
+        {
+            question: 'در اندیکاسیون‌های اکلوژن آناتومیک در دنچر کامل، کدام مورد ذکر شده است؟',
+            options: [
+                'ridges residual Good',
+                'Poor residual ridges',
+                'احتمال پیگیری و فالوآپ ضعیف',
+                'Immediate dentures'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: A)<br><strong>دلیل:</strong> ridges residual Good در اندیکاسیون‌های اکلوژن anatomic آمده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- B) Poor residual ridges اندیکاسیون Monoplane است.<br>- C) احتمال پیگیری ضعیف در اندیکاسیون‌های Monoplane آمده است.<br>- D) Immediate dentures در اندیکاسیون‌های Monoplane مطرح شده است.'
+        },
+        {
+            question: 'در اندیکاسیون‌های اکلوژن آناتومیک در دنچر کامل، کدام «شرط پروتزی» ذکر شده است؟',
+            options: [
+                'موارد کراسبایت',
+                'dentition natural opposes Denture',
+                'Arch discrepancies',
+                'سایش شدید دنچر قبلی'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: B)<br><strong>دلیل:</strong> dentition natural opposes Denture به‌عنوان شرط پروتزی در اندیکاسیون‌های anatomic آمده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) کراسبایت در اندیکاسیون‌های Monoplane ذکر می‌شود.<br>- C) Arch discrepancies نیز در Monoplane مطرح شده است.<br>- D) سایش شدید دنچر قبلی در Monoplane آمده است.'
+        },
+        {
+            question: 'در فواید اکلوژن مونوپلین، مفهوم رابطه مرکزی (CR) چگونه بیان شده است؟',
+            options: [
+                'CR باید دقیقاً یک نقطه منحصر به فرد باشد',
+                'CR تنها با تداخل‌های اکلوژن قابل تشخیص است',
+                'CR به‌صورت ناحیه‌ای (در یک محدوده کوچک) قابل برقراری است',
+                'CR فقط در حضور دندان‌های کاسپدار معنی‌دار است'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: C)<br><strong>دلیل:</strong> در Monoplane، CR به‌صورت ناحیه‌ای (نه یک نقطه دقیق) قابل تحقق است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) متن دقیقاً «نقطه خاص» را نفی می‌کند.<br>- B) این تعریف در متن نیامده است.<br>- D) CR محدود به دندان‌های کاسپدار نیست.'
+        },
+        {
+            question: 'یکی از معایب اکلوژن مونوپلین که به «حس بیمار» مربوط می‌شود کدام است؟',
+            options: [
+                'کاهش نیروهای افقی به دلیل صاف بودن سطوح',
+                'آزادی حرکت فک‌ها بدون بی‌ثباتی دنچر',
+                'سهولت در چیدمان و تنظیم دندان‌ها',
+                'نبود موقعیت اینترکاسیشن مثبت و احساس نبود جای مشخص برای قرارگیری'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: D)<br><strong>دلیل:</strong> در معایب Monoplane ذکر می‌شود که intercuspation مثبت وجود ندارد و بیمار ممکن است حس کند جای مشخصی برای قرارگیری ندارد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) از فواید Monoplane است.<br>- B) در فواید Monoplane ذکر شده است.<br>- C) از فواید Monoplane است.'
+        },
+
+        {
+            question: 'یکی از مزایای اکلوژن آناتومیک/نیمه‌آناتومیک کدام است؟',
+            options: [
+                'ایجاد نقطه مشخص اینترکاسیشن مثبت',
+                'کاهش کارایی پس از تنظیم اکلوژن',
+                'نبود مؤلفه عمودی برای برش غذا',
+                'سازگاری آسان در شرایط جابه‌جایی دنچر'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: A)<br><strong>دلیل:</strong> اکلوژن anatomic/semi-anatomic باعث ایجاد intercuspation مثبت و نقطه مشخص می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- B) این از معایب Monoplane است.<br>- C) این نیز از معایب Monoplane است.<br>- D) سازگاری آسان با جابه‌جایی دنچر در فواید Monoplane مطرح شده است.'
+        },
+        {
+            question: 'یکی از معایب اکلوژن آناتومیک/نیمه‌آناتومیک که به تغییرات زمانی پایه دنچر مربوط است کدام است؟',
+            options: [
+                'شباهت زیبایی به دندان‌های طبیعی',
+                'از دست رفتن اکلوژن متعادل با Settling پایه دنچر',
+                'حفظ توانایی برشی حتی پس از سایش متوسط',
+                'ایجاد نقطه مشخص اینترکاسیشن مثبت'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: B)<br><strong>دلیل:</strong> با Settling پایه دنچر، اکلوژن متعادل در anatomic/semi-anatomic ممکن است از دست برود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) مزیت است نه عیب.<br>- C) مزیت است نه عیب.<br>- D) مزیت است نه عیب.'
+        },
+
+        {
+            question: 'در مراحل چینش دندان‌ها به روش آناتومیک (پریکلینیک)، اولین اقدام ذکر شده کدام است؟',
+            options: [
+                'شروع چینش از مولر اول مندیبل به‌عنوان کلید اکلوژن',
+                'قرار دادن پرمولر دوم ماگزیال عمود بر پلن اکلوزال',
+                'رسم خط مرکزی روی فک پایین روی رأس ریج',
+                'انتقال خط به فک بالا با Slap'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: C)<br><strong>دلیل:</strong> اولین گام در روش پریکلینیک، رسم خط مرکزی روی ریج فک پایین است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) شروع از مولر اول مربوط به توالی چینش فک پایین پس از آماده شدن شرایط است.<br>- B) مربوط به چیدمان فک بالاست و اولین مرحله نیست.<br>- D) انتقال خط مرحله بعدی است، نه اول.'
+        },
+        {
+            question: 'در شروع چینش دندان‌ها در فک بالا (روش آناتومیک پریکلینیک)، اولین دندانی که قرار داده می‌شود و شرط فاصله‌گذاری آن از دندان قدامی کدام است؟',
+            options: [
+                'پرمولر دوم با فاصله ۰.۵ میلی‌متر از کانین',
+                'مولر اول با تماس مستقیم با کانین',
+                'مولر دوم با فاصله ۱ میلی‌متر از کانین',
+                'پرمولر اول با فاصله حدود ۱ میلی‌متر از کانین'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: D)<br><strong>دلیل:</strong> اولین دندان در فک بالا پرمولر اول است و حدود ۱ میلی‌متر از کانین فاصله می‌گیرد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) پرمولر دوم اولین دندان نیست و فاصله ۰.۵ برای این مورد ذکر نشده است.<br>- B) مولر اول اولین دندان نیست.<br>- C) مولر دوم دیرتر چیده می‌شود.'
+        },
+        {
+            question: 'در مراحل چینش دندان‌ها در فک بالا (روش آناتومیک)، درباره پرمولر دوم ماگزیال کدام گزینه با متن هماهنگ است؟',
+            options: [
+                'به‌صورت عمود بر پلن اکلوزال قرار داده می‌شود و هر دو کاسپ با سطح Slap تماس دارند',
+                'کاسپ دیستوباکال آن باید ۰.۵ میلی‌متر بالاتر از سطح Slap قرار گیرد',
+                'تمام کاسپ‌های آن باید ۱ میلی‌متر بالاتر از سطح Slap قرار گیرند',
+                'فقط کاسپ لینگوال باید سطح Slap را لمس کند'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: A)<br><strong>دلیل:</strong> پرمولر دوم ماگزیال عمود بر پلن اکلوزال قرار می‌گیرد و هر دو کاسپ با Slap تماس دارند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- B) ۰.۵ میلی‌متر مربوط به کاسپ دیستوباکال مولر اول ماگزیال است.<br>- C) ۱ میلی‌متر مربوط به کاسپ مزیوباکال مولر دوم ماگزیال است، نه همه کاسپ‌های پرمولر دوم.<br>- D) متن «هر دو کاسپ» را ذکر می‌کند.'
+        },
+        {
+            question: 'در چیدمان مولر اول ماگزیال، کدام کاسپ حدود 0.5 میلی‌متر بالاتر از سطح Slap قرار می‌گیرد؟',
+            options: [
+                'مزیوباکال',
+                'دیستوباکال',
+                'مزیولینگوال',
+                'دیستولینگوال'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: B)<br><strong>دلیل:</strong> در مولر اول ماگزیال، کاسپ دیستوباکال حدود ۰.۵ میلی‌متر بالاتر از Slap قرار می‌گیرد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) مزیوباکال باید Slap را لمس کند.<br>- C) مزیولینگوال نیز در گروه کاسپ‌های مزیال است که Slap را لمس می‌کند.<br>- D) دیستولینگوال طبق متن حدود ۰.۷۵ میلی‌متر بالاتر از Slap است.'
+        },
+
+        {
+            question: 'پس از چیدمان دندان‌های خلفی فک بالا، در چینش دندان‌های فک پایین «مبنای چیدمان» چگونه بیان شده است؟',
+            options: [
+                'حداقل تماس اکلوزالی برای کاهش نیروهای عمودی',
+                'تماس کاسپ‌های لینگوال ماگزیال با فوسای مرکزی مندیبل به‌عنوان تنها تماس',
+                'حداکثر تماس اکلوزالی با فک بالا همراه با رعایت overjet به‌گونه‌ای که کاسپ باکال دندان‌های فک پایین در شیار مرکزی دندان‌های فک بالا قرار گیرد',
+                'ایجاد کراسبایت دوطرفه برای همه بیماران'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: C)<br><strong>دلیل:</strong> مبنا «حداکثر تماس» با رعایت overjet است و کاسپ باکال مندیبل در شیار مرکزی دندان‌های فک بالا قرار می‌گیرد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) متن «حداکثر تماس» را ذکر می‌کند نه حداقل.<br>- B) این توصیف تعریف Lingualized است، نه مبنای عمومی چینش فک پایین.<br>- D) کراسبایت همگانی نیست و در شرایط خاص مطرح می‌شود.'
+        },
+        {
+            question: 'درباره رابطه تعداد دندان‌های مقابل در چینش فک پایین، کدام عبارت ذکر شده است؟',
+            options: [
+                'هر دندان فک پایین فقط در مقابل یک دندان فک بالا قرار می‌گیرد',
+                'هر دندان فک بالا معمولاً در مقابل دو دندان فک پایین قرار می‌گیرد',
+                'هر دندان فک پایین معمولاً در مقابل سه دندان فک بالا قرار می‌گیرد',
+                'هر دندان فک پایین معمولاً در مقابل دو دندان فک بالا قرار می‌گیرد'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: D)<br><strong>دلیل:</strong> در چینش، هر دندان فک پایین عموماً در مقابل دو دندان فک بالا قرار می‌گیرد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) خلاف رابطهٔ ذکرشده است.<br>- B) جهت رابطه را برعکس بیان می‌کند.<br>- C) «سه دندان» ذکر نشده و با متن تطابق ندارد.'
+        },
+        {
+            question: 'برای شروع چینش مولر اول فک پایین، روی ریج فک پایین با آرتیکولاتور بسته چه نقاطی علامت‌گذاری می‌شود؟',
+            options: [
+                'دیستال مولر اول و نوک کاسپ باکالی پرمولر اول',
+                'مزیال مولر دوم و نوک کاسپ لینگوال پرمولر دوم',
+                'دیستال کانین و نوک کاسپ دیستوباکال مولر اول',
+                'مزیال پرمولر اول و نوک کاسپ دیستولینگوال مولر اول'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: A)<br><strong>دلیل:</strong> برای راهنمای چینش مولر اول مندیبل، دیستال مولر اول و نوک کاسپ باکالی پرمولر اول علامت‌گذاری می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- B) این نقاط به‌عنوان علامت‌گذاری ذکر نشده‌اند.<br>- C) چنین ترکیبی در متن نیامده است.<br>- D) این نقاط نیز در متن ذکر نشده‌اند.'
+        },
+        {
+            question: 'در توالی چینش دندان‌های خلفی فک پایین (طبق توضیح)، پس از قرار دادن مولر اول کدام ترتیب ذکر شده است؟',
+            options: [
+                'ابتدا پرمولرها، سپس مولر دوم',
+                'سپس مولر دوم، و در نهایت پرمولرها',
+                'ابتدا مولر دوم، سپس کانین',
+                'ابتدا کانین، سپس پرمولرها'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: B)<br><strong>دلیل:</strong> بعد از مولر اول، مولر دوم و سپس پرمولرها چیده می‌شوند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) ترتیب برعکس بیان شده است.<br>- C) کانین در این توالی ذکر نشده است.<br>- D) کانین در این توالی مطرح نشده است.'
+        },
+
+        {
+            question: 'در چیدمان مولر دوم ماگزیال، کدام جفت «کاسپ–ارتفاع نسبت به سطح Slap» مطابق متن است؟',
+            options: [
+                'کاسپ دیستولینگوال: ۰.۷۵ میلی‌متر بالاتر؛ کاسپ دیستوباکال: ۰.۵ میلی‌متر بالاتر',
+                'کاسپ مزیوباکال: ۰.۵ میلی‌متر بالاتر؛ کاسپ دیستوباکال: ۰.۷۵ میلی‌متر بالاتر',
+                'کاسپ مزیوباکال: حدود ۱ میلی‌متر بالاتر؛ کاسپ دیستوباکال: حدود ۱.۵ میلی‌متر بالاتر',
+                'همه کاسپ‌ها دقیقاً هم‌سطح Slap قرار می‌گیرند'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: C)<br><strong>دلیل:</strong> در مولر دوم ماگزیال: مزیوباکال حدود ۱ میلی‌متر و دیستوباکال حدود ۱.۵ میلی‌متر بالاتر از Slap قرار می‌گیرند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) اعداد ۰.۷۵ و ۰.۵ مربوط به مولر اول ماگزیال است.<br>- B) این هم مربوط به مولر اول است نه مولر دوم.<br>- D) متن صراحتاً اختلاف ارتفاع را ذکر می‌کند.'
+        },
+        {
+            question: 'اختلاف ارتفاع کاسپ‌ها در مولر دوم ماگزیال (نسبت به Slap) در متن با چه هدفی ذکر شده است؟',
+            options: [
+                'کاهش زیبایی برای تطابق با دنچر قبلی',
+                'افزایش مؤلفه افقی برای خرد کردن غذا',
+                'ایجاد ICP و حذف RCP',
+                'ایجاد Compensating Curve و انجام بالانس اکلوژن'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: D)<br><strong>دلیل:</strong> اختلاف ارتفاع برای ایجاد Compensating Curve و بالانس اکلوژن ضروری بیان شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) هدف زیبایی به‌عنوان علت این اختلاف ذکر نشده است.<br>- B) افزایش نیروهای افقی هدف نیست و در مباحث دیگر نیروهای افقی مشکل‌زا توصیف می‌شوند.<br>- C) ICP/RCP مربوط به دنچر فوری است، نه این بحث.'
+        },
+
+        {
+            question: 'کدام مورد به‌عنوان فایده اکلوژن مونوپلین ذکر شده است؟',
+            options: [
+                'کاهش نیروهای افقی به‌علت صاف بودن سطح دندان‌ها',
+                'ایجاد نقطه مشخص اینترکاسیشن مثبت',
+                'شباهت زیبایی به دندان‌های طبیعی',
+                'امکان اکلوژن متعادل کاسپ به کاسپ'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: A)<br><strong>دلیل:</strong> صاف بودن سطح دندان‌ها باعث کاهش نیروهای افقی در Monoplane می‌شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- B) این مزیت مربوط به anatomic/semi-anatomic است.<br>- C) شباهت زیبایی در anatomic/semi-anatomic ذکر می‌شود.<br>- D) اکلوژن متعادل کاسپ به کاسپ در anatomic/semi-anatomic مطرح است.'
+        },
+        {
+            question: 'کدام مورد به‌عنوان یکی از معایب اکلوژن مونوپلین ذکر شده است؟',
+            options: [
+                'از دست رفتن اکلوژن متعادل با Settling پایه دنچر',
+                'کاهش کارایی پس از تنظیم اکلوژن مگر اینکه شیارها و لبه‌های برشی دوباره ساخته شوند',
+                'ایجاد نیروهای افقی به دلیل شیب کاسپ‌ها',
+                'نیاز به پیگیری مکرر و احتمال ریالین‌های بیشتر'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: B)<br><strong>دلیل:</strong> در Monoplane اگر تنظیم اکلوژن لازم شود، کارایی کاهش می‌یابد مگر شیارها/لبه‌های برشی بازسازی شوند.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) مربوط به عیب anatomic/semi-anatomic با Settling است.<br>- C) مربوط به شیب کاسپ در anatomic/semi-anatomic است.<br>- D) نیاز به پیگیری/ریالین بیشتر در anatomic/semi-anatomic مطرح شده است.'
+        },
+
+        {
+            question: 'در معایب اکلوژن آناتومیک/نیمه‌آناتومیک، کدام پیامد در متن آمده است؟',
+            options: [
+                'نبود مؤلفه عمودی برای برش غذا',
+                'نبود موقعیت اینترکاسیشن مثبت',
+                'نیاز به پیگیری مکرر و احتمال ریالین‌های بیشتر',
+                'امکان ایجاد اکلوژن پایدار حتی در ناهماهنگی قوس‌ها'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: C)<br><strong>دلیل:</strong> در معایب anatomic/semi-anatomic به پیگیری مکرر و احتمال ریالین‌های بیشتر اشاره شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) عیب Monoplane است.<br>- B) عیب Monoplane است.<br>- D) «پایداری در ناهماهنگی قوس‌ها» از فواید Monoplane مطرح می‌شود.'
+        },
+        {
+            question: 'در مزایای اکلوژن آناتومیک/نیمه‌آناتومیک، کدام مورد ذکر شده است؟',
+            options: [
+                'سهولت در چیدمان و تنظیم دندان‌ها',
+                'سازگاری آسان در شرایط جابه‌جایی دنچر',
+                'کاهش نیروهای افقی به‌علت صاف بودن سطح دندان‌ها',
+                'امکان دستیابی به اکلوژن متعادل دندان به دندان و کاسپ به کاسپ'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: D)<br><strong>دلیل:</strong> یکی از مزایا، امکان اکلوژن متعادل دندان به دندان و کاسپ به کاسپ است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) سهولت چیدمان از فواید Monoplane است و در anatomic/semi-anatomic معمولاً دشوارتر است.<br>- B) سازگاری آسان با جابه‌جایی دنچر در Monoplane ذکر می‌شود.<br>- C) کاهش نیروهای افقی به علت سطح صاف، مزیت Monoplane است.'
+        },
+
+        {
+            question: 'کدام مورد از مزایای Lingualized Occlusion در متن ذکر شده است؟',
+            options: [
+                'متمرکز کردن نیروهای عمودی بر روی تیغه فک و کاهش نیروهای واژگون‌کننده دنچر',
+                'ایجاد نقطه مشخص اینترکاسیشن مثبت با حس “جای مشخص” برای بیمار',
+                'نبود مؤلفه عمودی برای برش غذا',
+                'سازگاری کمتر با ناهماهنگی قوس‌های فکی'
+            ],
+            correctIndex: 0,
+            explanation:
+                'گزینه صحیح: A)<br><strong>دلیل:</strong> در Lingualized نیروهای عمودی متمرکز می‌شوند و نیروهای واژگون‌کننده کاهش می‌یابد.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- B) مربوط به مزیت anatomic/semi-anatomic است.<br>- C) عیب Monoplane است.<br>- D) سازگاری کمتر با ناهماهنگی قوس‌ها از معایب anatomic/semi-anatomic است.'
+        },
+        {
+            question: 'در توضیح اثر pestle and Mortar در اکلوژن Lingualized، کدام پیامد عملکردی برجسته شده است؟',
+            options: [
+                'رانده شدن غذا به اطراف برای افزایش آزادی حرکت فک‌ها',
+                'نفوذ بهتر بولوس غذایی و خرد شدن کارآمدتر با فشرده شدن غذا در مرکز سطح جونده',
+                'افزایش نیروهای جانبی برای بهبود نگهداری دنچر',
+                'حذف نیاز به تماس‌های اکلوژن در حرکات فکی'
+            ],
+            correctIndex: 1,
+            explanation:
+                'گزینه صحیح: B)<br><strong>دلیل:</strong> در Lingualized غذا در مرکز سطح جونده فشرده می‌شود و نفوذ/خردشدن بهتر ایجاد می‌گردد (نه رانده شدن به اطراف).<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) متن تأکید می‌کند غذا «به اطراف رانده نمی‌شود».<br>- C) هدف کاهش نیروهای جانبی است نه افزایش.<br>- D) حذف تماس‌ها مطرح نشده و بر تماس/تعادل تمرکز دارد.'
+        },
+
+        {
+            question: 'در دنچر فوری، اگر پس از کشیدن دندان‌ها shift Retrusive رخ دهد، وجود کدام ویژگی در دندان‌های خلفی می‌تواند باعث تداخل اکلوژن و دشواری جویدن شود؟',
+            options: [
+                'صاف بودن سطح دندان‌ها بدون کاسپ برجسته',
+                'تماس اصلی کاسپ لینگوال ماگزیال با فوسای مرکزی مندیبل',
+                'کاسپدار بودن دندان‌های خلفی دنچر',
+                'وجود فوساهای باز در دندان‌های خلفی مندیبل'
+            ],
+            correctIndex: 2,
+            explanation:
+                'گزینه صحیح: C)<br><strong>دلیل:</strong> در shift Retrusive دنچر فوری، کاسپدار بودن دندان‌های خلفی می‌تواند باعث تداخل و دشواری جویدن شود.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) صاف بودن سطح (Monoplane) معمولاً برای کاهش تداخل/آزادی حرکت کمک‌کننده است.<br>- B) Lingualized به‌عنوان یکی از طرح‌های پیشنهادی برای این مشکل معرفی می‌شود، نه عامل تداخل.<br>- D) فوساهای باز در کلاس II به‌عنوان راهکار مطرح شده‌اند، نه عامل تداخل دنچر فوری.'
+        },
+        {
+            question: 'در تعریف Position Cuspal Retruded (RCP)، کدام توصیف آمده است؟',
+            options: [
+                'موقعیت بسته شدن طبیعی فک‌ها وقتی دندان‌ها روی هم قرار می‌گیرند',
+                'موقعیت فک پایین هنگام باز شدن دهان در حالت عادی',
+                'موقعیت تماس کاسپ دیستوباکال مولر اول ماگزیال با Slap',
+                'موقعیت بسته شدن فک پایین وقتی کمی به عقب رانده می‌شود (حالت رترود)'
+            ],
+            correctIndex: 3,
+            explanation:
+                'گزینه صحیح: D)<br><strong>دلیل:</strong> RCP موقعیت بسته شدن فک پایین وقتی کمی به عقب رانده می‌شود تعریف شده است.<br><strong>چرا سایر گزینه‌ها غلط‌اند؟</strong><br>- A) این تعریف بیشتر با ICP همخوانی دارد.<br>- B) تعریف RCP نیست و در متن نیامده است.<br>- C) ارتباطی به تعریف RCP ندارد و بحث Slap مربوط به چیدمان است.'
+        }
+    ];
+
+    // نکته: قالب اصلی ۳۰ سؤال داشت؛ اینجا ۴۰ سؤال لازم بود.
+    // برای اینکه خروجی دقیقاً ۴۰ سؤال باشد، اگر تعداد آیتم‌ها کمتر شد، همینجا ادامه بده و سوالات را اضافه کن.
+    // (این نسخه با مجموعهٔ فعلی ۴۰ سؤال کامل شده است.)
+    // اگر در پروژهٔ شما لازم است دقیقاً همان ترتیب قبلی باشد، ترتیب را همینجا جابه‌جا کنید.
+
+    // اگر به هر دلیل کمتر از 40 شد، خط زیر را حذف نکنید:
+    // console.log('Total questions:', questions.length);
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    const questionCounterEl = document.getElementById('questionCounter');
+    const answeredCounterEl = document.getElementById('answeredCounter');
+    const progressFillEl = document.getElementById('progressFill');
+    const questionTagEl = document.getElementById('questionTag');
+    const questionStatusEl = document.getElementById('questionStatus');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainerEl = document.getElementById('optionsContainer');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const finishBtn = document.getElementById('finishBtn');
+
+    const resultsSectionEl = document.getElementById('resultsSection');
+    const scorePercentEl = document.getElementById('scorePercent');
+    const scoreLabelEl = document.getElementById('scoreLabel');
+    const scoreCorrectEl = document.getElementById('scoreCorrect');
+    const scoreWrongEl = document.getElementById('scoreWrong');
+    const scoreUnansweredEl = document.getElementById('scoreUnanswered');
+    const answersContainerEl = document.getElementById('answersContainer');
+
+    function updateProgressUI() {
+        const total = questions.length;
+        const answeredCount = userAnswers.filter(a => a !== null).length;
+
+        questionCounterEl.textContent = `سؤال ${currentQuestionIndex + 1} از ${total}`;
+        answeredCounterEl.textContent = `${answeredCount} / ${total} پاسخ داده شده`;
+
+        const progressPercent = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+        progressFillEl.style.width = progressPercent + '%';
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestionIndex];
+
+        questionTagEl.textContent = `سؤال ${currentQuestionIndex + 1}`;
+        questionTextEl.textContent = q.question;
+
+        const userAnswer = userAnswers[currentQuestionIndex];
+        questionStatusEl.textContent = userAnswer === null ? 'وضعیت: بدون پاسخ' : 'وضعیت: پاسخ داده شده';
+
+        optionsContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'option-btn';
+            if (userAnswer === index) btn.classList.add('selected');
+            btn.dataset.index = index.toString();
+
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'option-letter';
+            letterSpan.textContent = letters[index] + ')';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'option-text';
+            textSpan.textContent = opt;
+
+            btn.appendChild(letterSpan);
+            btn.appendChild(textSpan);
+
+            btn.addEventListener('click', () => handleOptionSelect(index));
+            optionsContainerEl.appendChild(btn);
+        });
+
+        prevBtn.disabled = currentQuestionIndex === 0;
+        nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+
+        updateProgressUI();
+    }
+
+    function handleOptionSelect(optionIndex) {
+        userAnswers[currentQuestionIndex] = optionIndex;
+        if (currentQuestionIndex < questions.length - 1) currentQuestionIndex++;
+        renderQuestion();
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+    });
+
+    finishBtn.addEventListener('click', () => {
+        finishQuiz();
+    });
+
+    function finishQuiz() {
+        const total = questions.length;
+        let correct = 0, wrong = 0, unanswered = 0;
+
+        questions.forEach((q, index) => {
+            const ans = userAnswers[index];
+            if (ans === null) unanswered++;
+            else if (ans === q.correctIndex) correct++;
+            else wrong++;
+        });
+
+        const percent = total === 0 ? 0 : Math.round((correct / total) * 100);
+
+        scorePercentEl.textContent = percent + '%';
+        scoreLabelEl.textContent = `${correct} پاسخ صحیح از ${total} سؤال`;
+        scoreCorrectEl.textContent = correct.toString();
+        scoreWrongEl.textContent = wrong.toString();
+        scoreUnansweredEl.textContent = unanswered.toString();
+
+        buildAnswersReview();
+        resultsSectionEl.style.display = 'flex';
+        resultsSectionEl.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function buildAnswersReview() {
+        answersContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        questions.forEach((q, index) => {
+            const userAnswer = userAnswers[index];
+
+            const card = document.createElement('div');
+            card.className = 'answer-card';
+
+            const qTitle = document.createElement('div');
+            qTitle.className = 'answer-question-title';
+            qTitle.textContent = `سؤال ${index + 1}`;
+            card.appendChild(qTitle);
+
+            const qText = document.createElement('div');
+            qText.className = 'answer-question-text';
+            qText.textContent = q.question;
+            card.appendChild(qText);
+
+            const optionsWrapper = document.createElement('div');
+            optionsWrapper.className = 'answer-options-wrapper';
+
+            q.options.forEach((opt, optIdx) => {
+                const row = document.createElement('div');
+                row.className = 'option-row';
+
+                const main = document.createElement('div');
+                main.className = 'option-main';
+
+                const label = document.createElement('span');
+                label.className = 'option-label';
+                label.textContent = letters[optIdx] + ')';
+
+                const text = document.createElement('span');
+                text.className = 'option-text';
+                text.textContent = opt;
+
+                main.appendChild(label);
+                main.appendChild(text);
+                row.appendChild(main);
+
+                const tag = document.createElement('span');
+                tag.className = 'option-tag';
+
+                if (optIdx === q.correctIndex && userAnswer === optIdx) {
+                    row.classList.add('user-correct');
+                    tag.textContent = '✓ صحیح (انتخاب شما)';
+                } else if (optIdx === q.correctIndex) {
+                    row.classList.add('correct');
+                    tag.textContent = '✓ گزینه صحیح';
+                } else if (userAnswer === optIdx) {
+                    row.classList.add('user-wrong');
+                    tag.textContent = '✗ انتخاب شما';
+                }
+
+                if (tag.textContent) row.appendChild(tag);
+                optionsWrapper.appendChild(row);
+            });
+
+            card.appendChild(optionsWrapper);
+
+            const expl = document.createElement('div');
+            expl.className = 'answer-explanation';
+            if (userAnswer === null) {
+                expl.innerHTML = `<strong>وضعیت پاسخ:</strong> این سؤال را پاسخ ندادی.<br><strong>توضیح:</strong> ${q.explanation}`;
+            } else {
+                expl.innerHTML = `<strong>توضیح:</strong> ${q.explanation}`;
+            }
+
+            card.appendChild(expl);
+            answersContainerEl.appendChild(card);
+        });
+    }
+
+    renderQuestion();
+</script>
+
+<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
+<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+</body>
+</html>
+
+
+

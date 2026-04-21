@@ -1,0 +1,1517 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+<link rel="stylesheet" href="/assets/site/styles/quiz.css?v=20260421-pwa">
+<meta charset="UTF-8">
+    <title>آزمون پروتز کامل ۲ – Border molding و Final impression و Cast | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- آیکون تب (logo.png مثل سایت اصلی) -->
+    <link rel="icon" type="image/png" href="/assets/images/logo.png">
+    <link rel="shortcut icon" href="/assets/images/logo.png">
+
+    <style>
+        :root {
+            --bg-body: #050b14;
+            --bg-card: #111b2b;
+            --bg-card-hover: #1a283d;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --accent-color: #64ffda;
+            --border-color: #233554;
+            --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
+            --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
+            --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .background-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
+        }
+
+        /* هدر مثل قالب اصلی */
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 5%;
+            background: rgba(5, 11, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
+            flex-shrink: 0;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .site-info h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .site-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .badge-unofficial {
+            font-size: 0.7rem;
+            background: rgba(255, 99, 99, 0.1);
+            color: #ff6363;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 99, 99, 0.2);
+            white-space: nowrap;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .quiz-wrapper {
+            max-width: 900px;
+            margin: 0 auto 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .back-button-wrapper {
+            margin-bottom: 0.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.82rem;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .back-icon {
+            font-size: 1rem;
+        }
+
+        .quiz-header {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .info-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(100, 255, 218, 0.08);
+            border: 1px solid rgba(100, 255, 218, 0.4);
+            font-size: 0.78rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .quiz-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .quiz-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-wrapper {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .progress-top-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(15, 23, 42, 1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: var(--btn-gradient);
+            transition: width 0.2s ease-out;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.82rem;
+        }
+
+        .question-tag {
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .question-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .question-text {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #0b1624;
+            padding: 0.75rem 0.9rem;
+            text-align: right;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+            font-size: 0.92rem;
+            font-family: var(--font-main);
+            color: #ffffff; /* متن گزینه‌ها سفید */
+        }
+
+        .option-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+        }
+
+        .option-btn.selected {
+            background: rgba(100, 255, 218, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px rgba(100, 255, 218, 0.35);
+        }
+
+        .option-letter {
+            font-weight: 700;
+            min-width: 24px;
+            color: var(--accent-color);
+        }
+
+        .option-text {
+            flex: 1;
+            font-family: var(--font-main); /* هم‌فونت با سؤال‌ها: یکان */
+            color: #ffffff;
+        }
+
+        .nav-buttons {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: space-between;
+        }
+
+        .nav-left,
+        .nav-right {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-base {
+            border-radius: 999px;
+            padding: 0.55rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .btn-base:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .btn-base:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .btn-primary {
+            background: var(--btn-gradient);
+            color: #ffffff;
+            border: none;
+            box-shadow: var(--btn-shadow);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        #resultsSection {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .results-section {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .results-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .results-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .results-score {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--accent-color);
+        }
+
+        .score-number {
+            font-size: 2.4rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .score-detail {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .results-box {
+            background: #0b1624;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 0.7rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .results-box-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .results-box-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .answer-card {
+            background: #0b1624;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .answer-question-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .answer-question-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .answer-options-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .option-main {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .option-label {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .option-row .option-text {
+            color: var(--text-primary);
+        }
+
+        .option-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .option-row.correct {
+            border: 1px solid rgba(34, 197, 94, 0.75);
+            background: rgba(22, 163, 74, 0.14);
+        }
+
+        .option-row.user-correct {
+            border: 1px solid rgba(34, 197, 94, 0.95);
+            background: rgba(22, 163, 74, 0.22);
+        }
+
+        .option-row.user-wrong {
+            border: 1px solid rgba(248, 113, 113, 0.9);
+            background: rgba(248, 113, 113, 0.12);
+        }
+
+        .option-row.correct .option-tag,
+        .option-row.user-correct .option-tag {
+            border-color: rgba(34, 197, 94, 0.9);
+            color: #bbf7d0;
+        }
+
+        .option-row.user-wrong .option-tag {
+            border-color: rgba(248, 113, 113, 0.9);
+            color: #fecaca;
+        }
+
+        .answer-explanation {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .answer-explanation strong {
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-body);
+        }
+
+        footer span {
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1.3rem 4%;
+            }
+
+            .quiz-header,
+            .question-card,
+            .results-section {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .question-card {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.5rem;
+            }
+        }
+    </style>
+<meta name="theme-color" content="#050b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dent1402">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260421-pwa">
+</head>
+<body class="quiz-page">
+
+<div class="background-overlay"></div>
+
+<header class="site-header">
+    <div class="logo-area">
+        <div class="logo-circle">
+            <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+        </div>
+        <div class="site-info">
+            <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+            <p>دانشگاه علوم پزشکی تهران</p>
+        </div>
+    </div>
+    <div class="badge-unofficial">سامانه غیررسمی</div>
+</header>
+
+<main>
+    <section class="quiz-wrapper">
+        <div class="back-button-wrapper">
+            <!-- برمی‌گرده به صفحه آزمون‌های پروتز -->
+            <a href="/exams/completeprosthesis/" class="back-btn">
+                <span class="back-icon">←</span>
+                بازگشت به صفحه آزمون‌های پروتز
+            </a>
+        </div>
+
+        <!-- هدر آزمون -->
+        <div class="quiz-header">
+            <span class="info-pill">آزمون تمرینی پروتز کامل ۲ – Border molding و Final impression و Cast</span>
+            <h2 class="quiz-title">سؤالات پروتز کامل ۲ – Border molding / Final impression / Cast</h2>
+            <p class="quiz-subtitle">
+                بعد از انتخاب هر گزینه، به‌صورت خودکار به سؤال بعدی می‌روی. در انتها روی «پایان آزمون و مشاهده نتیجه»
+                کلیک کن تا نمره و پاسخ‌های تشریحی را ببینی.
+            </p>
+
+            <div class="progress-wrapper">
+                <div class="progress-top-row">
+                    <span id="questionCounter">سؤال ۱ از ۴۰</span>
+                    <span id="answeredCounter">۰ / ۴۰ پاسخ داده شده</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت سؤال -->
+        <div class="question-card">
+            <div class="question-top-row">
+                <span id="questionTag" class="question-tag">سؤال ۱</span>
+                <span id="questionStatus" class="question-status">وضعیت: بدون پاسخ</span>
+            </div>
+            <h3 id="questionText" class="question-text"></h3>
+
+            <div id="optionsContainer" class="options-list">
+                <!-- گزینه‌ها با JS اضافه می‌شن -->
+            </div>
+
+            <div class="nav-buttons">
+                <div class="nav-right">
+                    <button id="prevBtn" class="btn-base" type="button">
+                        ← سؤال قبلی
+                    </button>
+                    <button id="nextBtn" class="btn-base" type="button">
+                        سؤال بعدی →
+                    </button>
+                </div>
+                <div class="nav-left">
+                    <button id="finishBtn" class="btn-base btn-primary" type="button">
+                        پایان آزمون و مشاهده نتیجه
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- نتایج -->
+        <section id="resultsSection" class="results-section">
+            <div class="results-header">
+                <div class="results-main">
+                    <div class="results-score">
+                        <span id="scorePercent" class="score-number">0%</span>
+                    </div>
+                    <div id="scoreLabel" class="score-label">۰ پاسخ صحیح از ۴۰ سؤال</div>
+                    <div class="score-detail">
+                        عملکردت رو در این آزمون ببین؛ پایین‌تر می‌تونی پاسخ صحیح و توضیح تشریحی همه سؤالات رو ببینی.
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ صحیح</span>
+                        <span id="scoreCorrect" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ غلط</span>
+                        <span id="scoreWrong" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">بی‌پاسخ</span>
+                        <span id="scoreUnanswered" class="results-box-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="answers-list" id="answersContainer">
+                <!-- مرور پاسخ‌ها اینجا ساخته می‌شود -->
+            </div>
+        </section>
+    </section>
+</main>
+
+<footer>
+    <p>طراحی شده با ❤️ برای ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران - آرین قاسم‌پور</p>
+</footer>
+
+<script>
+    // ۴۰ سؤال – پروتز کامل ۲ (Border molding / Final impression / Cast)
+    const questions = [
+        {
+            question: '«Border molding / بوردرمولدینگ» از نظر هدف اصلی، کدام مفهوم را دقیق‌تر توصیف می‌کند؟',
+            options: [
+                'ثبت عملکرد عضلات و بافت‌های مجاور لبه‌های تری برای ایجاد Borderهایی با Retention بهتر و بدون تداخل با آناتومی دهان',
+                'ثبت جزئیات سطح بافت نشیمنگاه در حالت کاملاً استاتیک برای افزایش دقت کست نهایی',
+                'ایجاد Relief در تمام نواحی حساس بافتی برای جلوگیری از ثبت هرگونه فشار در قالب نهایی',
+                'افزایش ضخامت یکنواخت ماده قالبگیری نهایی روی تری برای کاهش Distortion هنگام Setting'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>Border molding یعنی شکل‌دهی عملکردیِ لبه‌ها با کمک عضلات/بافت‌های مجاور برای Retention و Comfort بهتر.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) تعریف Border molding نیست و بیشتر به ثبت استاتیک نشیمنگاه نزدیک است.<br>C) Relief به‌صورت انتخابی مطرح می‌شود نه «در تمام نواحی» و هدف اصلی Border molding نیست.<br>D) افزایش ضخامت یکنواخت ماده نهایی هدف Border molding محسوب نمی‌شود.'
+        },
+        {
+            question: 'در روش «Sectional» برای Border molding، کدام ویژگی بیشترین انطباق را با توصیف جزوه دارد؟',
+            options: [
+                'ثبت تمام Borderها در یک مرحله با مواد الاستومری برای کاهش زمان کار',
+                'ثبت تدریجیِ بخش‌های مختلف لبه تری، بدون نیاز به آماده‌سازی همزمان چند بخش از ماده برای کل Borderها',
+                'استفاده الزامی از ZOE به‌عنوان ماده اصلی Border molding',
+                'ثبت Borderها فقط در فک پایین و انتقال اصول آن به فک بالا در مرحله قالبگیری نهایی'
+            ],
+            correctIndex: 1,
+            explanation: 'گزینه صحیح: B<br>Sectional یعنی ثبت Borderها به‌صورت بخش‌به‌بخش و مرحله‌ای.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) توصیف Single step است، نه Sectional.<br>C) الزام ZOE به‌عنوان ماده اصلی Border molding مطرح نیست.<br>D) محدود به فک پایین نیست.'
+        },
+        {
+            question: '«Thermoplastic» بودن ماده نامپاید (Modeling compound) در Border molding به چه معناست؟',
+            options: [
+                'تنها یک‌بار با حرارت نرم می‌شود و پس از سرد شدن دیگر قابل تغییر نیست',
+                'در تماس با بزاق نرم می‌شود و در تماس با هوا سخت می‌گردد',
+                'با حرارت نرم می‌شود و با سرد شدن مجدداً سفت می‌گردد و امکان گرم‌کردن مجدد دارد',
+                'فقط در حضور Adhesive روی تری می‌چسبد و بدون آن جدا می‌شود'
+            ],
+            correctIndex: 2,
+            explanation: 'گزینه صحیح: C<br>Thermoplastic یعنی نرم‌شدن با حرارت و سخت‌شدن با سرد شدن، با امکان گرم‌کردن مجدد.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) با قابلیت گرم‌کردن مجدد تناقض دارد.<br>B) مکانیسم ذکرشده مربوط به این ماده نیست.<br>D) Adhesive مربوط به Elastomerهاست، نه تعریف Thermoplastic.'
+        },
+        {
+            question: 'نقش اصلی «Heater» (آب با دمای کنترل‌شده) در Border molding طبق جزوه چیست؟',
+            options: [
+                'افزایش چسبندگی نامپاید به تری با ایجاد واکنش شیمیایی',
+                'تسریع Setting ماده قالبگیری نهایی قبل از خروج تری از دهان',
+                'خشک‌کردن سطح تری پیش از اعمال ZOE برای افزایش Retention',
+                'Temper کردن نامپاید تازه‌ذوب‌شده برای جلوگیری از سوختگی و رساندن دما به حد مطلوب قبل از گذاشتن داخل دهان'
+            ],
+            correctIndex: 3,
+            explanation: 'گزینه صحیح: D<br>Heater برای Temper کردن نامپاید و رساندن دما به حد ایمن/مناسب قبل از ورود به دهان است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) واکنش شیمیایی در کار نیست.<br>B) Heater برای Setting ماده نهایی نیست.<br>C) خشک کردن تری هدف Heater نیست.'
+        },
+        {
+            question: 'استفاده از «Scalpel» در این مبحث، به‌طور مستقیم در کدام مرحله/هدف به‌کار می‌رود؟',
+            options: [
+                'حذف اضافات نامپاید پس از خارج‌کردن تری از دهان و قبل از رفتن به مرحله بعد',
+                'ایجاد دوراخ‌های Relief در تمام نواحی تری برای جلوگیری از فشار',
+                'جداسازی لایه Boxing wax از اطراف قالب پس از سفت‌شدن گچ',
+                'ایجاد شیارهای عمودی برای ثبت دقیق Pterygomandibular raphe'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>Scalpel برای Trim کردن و حذف اضافات نامپاید بعد از هر مرحله Border molding استفاده می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) Relief با فرز/سوراخ‌کاری مطرح می‌شود، نه Scalpel و نه «تمام نواحی».<br>C) کاربرد ذکرشده در این مبحث نیامده.<br>D) چنین کاربردی در جزوه این بخش ذکر نشده.'
+        },
+        {
+            question: 'علت استفاده از «Vaseline» در بخش لوازم موردنیاز Border molding کدام است؟',
+            options: [
+                'افزایش سختی نامپاید پس از سرد کردن در آب سرد',
+                'جلوگیری از چسبیدن/گرفتار شدن نامپاید به دستکش و تسهیل کار (با امکان خیس‌کردن دستکش با آب برای کاهش چربی)',
+                'فعال‌کردن Adhesive مخصوص الاستومرها روی سطح تری',
+                'کنترل Setting time در ZOE با کاهش تماس خمیرها با رطوبت'
+            ],
+            correctIndex: 1,
+            explanation: 'گزینه صحیح: B<br>Vaseline برای جلوگیری از چسبیدن نامپاید به دستکش و تسهیل کار ذکر شده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) سختی با آب سرد تثبیت می‌شود، نه با Vaseline.<br>C) Adhesive فعال‌سازی نمی‌خواهد و Vaseline نقش آن را ندارد.<br>D) کنترل Setting time ZOE با Vaseline مطرح نیست.'
+        },
+        {
+            question: 'در صورتی که در Border molding از «Elastomer / Silicone» (به‌جای نامپاید) استفاده شود، کدام ابزار/ماده به‌صورت مشخص در جزوه به‌عنوان نیاز مطرح شده است؟',
+            options: [
+                'Heater و آب سرد برای Fix شدن نامپاید',
+                'موم Beading و موم Boxing برای ایجاد Land Area',
+                'سرنگ و ماده «Adhesive» جهت کاربرد ماده و اتصال به تری',
+                'فرز رُند برای ایجاد دوراخ‌های Relief در Raphe Midpalatal'
+            ],
+            correctIndex: 2,
+            explanation: 'گزینه صحیح: C<br>برای Elastomer معمولاً سرنگ و Adhesive لازم است تا ماده به تری بچسبد.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) مربوط به نامپاید است.<br>B) مربوط به Cast/Boxing است.<br>D) Relief سوراخ‌کاری برای قالبگیری نهایی مطرح می‌شود.'
+        },
+        {
+            question: 'قبل از شروع Border molding، اقدام کلیدی درباره «Custom tray / تری اختصاصی» طبق جزوه چیست؟',
+            options: [
+                'ایجاد دوراخ‌های اضافی در همه نواحی تری برای افزایش گیر مکانیکی',
+                'چرب‌کردن کامل تری با Vaseline جهت جلوگیری از چسبندگی نامپاید',
+                'قراردادن نامپاید روی همه لبه‌ها و سپس تست همزمان تمام Borderها',
+                'قرار دادن تری در دهان، بررسی Borderها و تشخیص نیاز/عدم نیاز به کوتاه‌کردن لبه‌ها با کمک حرکات عضلات و دهان'
+            ],
+            correctIndex: 3,
+            explanation: 'گزینه صحیح: D<br>اول تری Try-in می‌شود و با حرکات عملکردی، نواحی Overextension/نیاز به کوتاه‌سازی مشخص می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) اقدام روتین اولیه برای Border molding نیست.<br>B) چرب‌کردن کامل تری به‌عنوان اصل کار ذکر نشده.<br>C) الزام به پوشاندن کل Borderها از ابتدا نیست.'
+        },
+        {
+            question: 'برای تسهیل تشخیص نواحی نیازمند کوتاه‌کردن Borderها، جزوه چه راهکاری را مطرح می‌کند؟',
+            options: [
+                'استفاده از Alginate به‌صورت موقت روی لبه‌ها و ارزیابی با حرکات عضلات',
+                'استفاده از ZOE روی لبه‌ها و صبر تا Setting کامل برای مشاهده فشار',
+                'ثبت کامل Borderها با نامپاید و سپس حذف همه نواحی ضخیم‌تر',
+                'انجام Border testing بدون انجام Border molding و اصلاح در قالب نهایی'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>Alginate می‌تواند برای واضح‌تر شدن نواحی نیازمند اصلاح به‌صورت کمک‌تشخیصی استفاده شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) این کاربرد به‌عنوان روش اصلی تشخیص اولیه ذکر نشده.<br>C) «حذف همه نواحی ضخیم‌تر» قاعده‌ی جزوه نیست و می‌تواند اشتباه باشد.<br>D) Border testing جایگزین Border molding نیست.'
+        },
+        {
+            question: 'برای تعیین مرز مرتبط با «Vibrating line» در فک بالا، کدام تحریک/حرکت بیمار در جزوه ذکر شده است؟',
+            options: [
+                'مکیدن (Suction) و بالا آوردن زبان به سقف دهان',
+                'تلفظ کردن «آ» جهت حرکت بافت نرم و کمک به تشخیص مرز',
+                'قورت دادن آب و نگه‌داشتن دهان نیمه‌باز',
+                'بستن دندان‌ها و فشار دادن گونه‌ها به داخل'
+            ],
+            correctIndex: 1,
+            explanation: 'گزینه صحیح: B<br>برای تشخیص Vibrating line در جزوه تلفظ «آ» آمده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) بیشتر در حرکات باکال/عملکردی مطرح است نه این هدف.<br>C) به‌عنوان روش اصلی تعیین مرز ذکر نشده.<br>D) ارتباط مستقیم با Vibrating line ندارد.'
+        },
+
+        {
+            question: 'در نرم‌کردن نامپاید با شعله، نکته تکنیکی کلیدی طبق جزوه چیست؟',
+            options: [
+                'ثابت نگه‌داشتن نامپاید در یک فاصله ثابت از شعله تا فقط سطح بیرونی نرم شود',
+                'نزدیک کردن نامپاید تا حد دود کردن برای افزایش چسبندگی به تری',
+                'سرد کردن نامپاید در آب سرد قبل از هر بار نزدیک‌کردن به شعله',
+                'چرخاندن نامپاید در فاصله مناسب از شعله برای نرم‌شدن یکنواخت و جلوگیری از سوختن ماده'
+            ],
+            correctIndex: 3,
+            explanation: 'گزینه صحیح: D<br>گرم‌کردن باید یکنواخت و با چرخاندن انجام شود تا ماده نسوزد.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) یکنواختی کافی ایجاد نمی‌کند و ریسک سوختن موضعی دارد.<br>B) دود کردن/سوختن مطلوب نیست.<br>C) آب سرد برای Fix بعد از مرحله است، نه قبل از گرم کردن.'
+        },
+        {
+            question: 'توالی پیشنهادی Border molding در «فک بالا» طبق جزوه کدام است؟',
+            options: [
+                'دیستوباکال → باکال → لبیال → PPS (Posterior Palatal Seal area)',
+                'PPS → لبیال → باکال → دیستوباکال',
+                'لبیال → باکال → دیستوباکال → PPS',
+                'باکال → لبیال → PPS → دیستوباکال'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>ترتیب پیشنهادی جزوه برای فک بالا: Distobuccal سپس Buccal سپس Labial و در پایان PPS است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B/C/D) ترتیب‌ها با توالی صریح ذکرشده در جزوه تطابق ندارند.'
+        },
+        {
+            question: 'پس از پایان هر مرحله Border molding و خارج‌کردن تری از دهان، کدام اقدام ترکیبی دقیق‌تر است؟',
+            options: [
+                'فقط گذاشتن تری در Heater و سپس رفتن مستقیم به مرحله بعد',
+                'برداشتن اضافات نامپاید با Scalpel و سپس قرار دادن تری در آب سرد برای Fix شدن Border molding',
+                'خشک‌کردن کامل نامپاید با گاز استریل و سپس اعمال Vaseline روی Borderها',
+                'افزودن نامپاید مرحله بعد روی نامپاید قبلی بدون حذف اضافات برای ایجاد پیوستگی بیشتر'
+            ],
+            correctIndex: 1,
+            explanation: 'گزینه صحیح: B<br>Trim اضافات با Scalpel و سپس قرار دادن در آب سرد برای تثبیت مرحله انجام می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) Heater مربوط به Temper قبل از ورود به دهان است.<br>C) چنین روال استانداردی ذکر نشده.<br>D) جزوه بر حذف اضافات و جلوگیری از مرز بین مراحل تأکید دارد.'
+        },
+        {
+            question: 'قبل از افزودن نامپاید به بخش بعدی Border، جزوه روی حذف کدام مورد تأکید دارد تا مرز بین دو بخش ایجاد نشود؟',
+            options: [
+                'چربی سطح تری در نواحی نزدیک به Border',
+                'اثرات حرکات عضلات بیمار روی نامپاید مرحله قبل',
+                'باقی‌مانده نامپایدِ مربوط به مرحله قبل در ناحیه‌ای که قرار است مرحله بعد شکل بگیرد',
+                'رطوبت سطح نامپاید باقیمانده از تماس با بزاق'
+            ],
+            correctIndex: 2,
+            explanation: 'گزینه صحیح: C<br>باقی‌مانده نامپاید مرحله قبل باید از ناحیه مرحله بعد حذف شود تا مرز/درز ایجاد نشود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) علت اصلی مرزگذاری این نیست.<br>B) اثر حرکات علت مرز بین دو قطعه نیست.<br>D) رطوبت به‌عنوان عامل اصلی مرزگذاری ذکر نشده.'
+        },
+        {
+            question: 'در Border molding ناحیه «PPS» فک بالا، شکل‌دهی نامپاید قبل از گذاشتن تری در دهان چگونه توصیف شده است؟',
+            options: [
+                'ایجاد یک شیار طولی مرکزی برای هدایت فشار به Raphe Midpalatal',
+                'صاف کردن کامل نامپاید تا حد ایجاد یک سطح تخت و بدون برجستگی',
+                'ایجاد برجستگی‌های نوک‌تیز برای ثبت عمیق‌تر بافت نرم',
+                'فرم‌دهی با Scalpel به شکل بال‌های پروانه‌ای (Butterfly wings) مطابق شکل جزوه'
+            ],
+            correctIndex: 3,
+            explanation: 'گزینه صحیح: D<br>نامپاید PPS طبق جزوه با Scalpel به شکل Butterfly wings فرم داده می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) شیار طولی مربوط به این مرحله بیان نشده.<br>B) صاف کردن کامل توصیه نشده.<br>C) برجستگی نوک‌تیز ذکر نشده.'
+        },
+        {
+            question: 'برای Border molding در ناحیه «Labial flange» فک بالا، کدام مجموعه حرکات بیمار در جزوه آمده است؟',
+            options: [
+                'جرع کردن لب‌ها، لبخند زدن، باز کردن دهان، نج کردن دهان',
+                'قورت دادن متوالی، بیرون آوردن زبان و تماس با لب فوقانی',
+                'بستن دندان‌ها و حرکت فک به جلو با فشار زیاد',
+                'تلفظ ممتد «آ» همراه با مکیدن گونه‌ها به داخل'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>برای Labial flange فک بالا حرکات شدید لب مانند جرع/لبخند/بازکردن/نج کردن ذکر شده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) مربوط به اهداف دیگر است، نه ثبت لبیال فک بالا.<br>C) این حرکت برای این ناحیه ذکر نشده.<br>D) ترکیب گفته‌شده مربوط به لبیال نیست.'
+        },
+        {
+            question: 'برای Border molding در ناحیه «Buccal flange» فک بالا (سمت‌های طرفی)، کدام کار بیمار به‌طور مشخص ذکر شده است؟',
+            options: [
+                'تکرار “آ” با فشار دادن زبان به سقف دهان',
+                'انجام «عمل مکیدن» همراه با حرکت دادن گونه توسط درمانگر',
+                'باز نگه‌داشتن دهان و جلوگیری از هرگونه حرکت لب‌ها',
+                'قفل کردن دندان‌ها و حرکت دادن فک به سمت بالا'
+            ],
+            correctIndex: 1,
+            explanation: 'گزینه صحیح: B<br>در Buccal flange فک بالا، «عمل مکیدن» و حرکت گونه توسط درمانگر ذکر شده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) «آ» برای این ناحیه محور اصلی نیست.<br>C) خلاف توصیه به حرکات عملکردی است.<br>D) چنین حرکت به‌عنوان کلید این مرحله ذکر نشده.'
+        },
+        {
+            question: 'در Border molding «Distobuccal» فک بالا، کدام حرکت/علت در جزوه بیان شده است؟',
+            options: [
+                'حرکت دادن زبان به سمت جلو برای ثبت Retromylohyoid Fossa',
+                'فشردن چانه به سمت پایین برای جلوگیری از بلند شدن تری',
+                'حرکت دادن فک پایین به سمت چپ و راست برای ثبت صحیح و پیشگیری از ثبت زائد در ناحیه Notch Coronoid',
+                'تلفظ مکرر «آ» برای ثبت PPS و تعیین Vibrating line'
+            ],
+            correctIndex: 2,
+            explanation: 'گزینه صحیح: C<br>حرکت فک پایین به چپ/راست برای Distobuccal فک بالا جهت پیشگیری از درگیری Notch Coronoid آمده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) Retromylohyoid مربوط به فک پایین و Distolingual است.<br>B) چنین تکنیکی در جزوه این ناحیه ذکر نشده.<br>D) تلفظ «آ» مربوط به PPS/Vibrating line است نه Distobuccal.'
+        },
+        {
+            question: 'برای ثبت «Notch Hamular» در Border molding فک بالا، کدام اقدام بیمار در جزوه آمده است؟',
+            options: [
+                'قورت دادن آب و سپس لبخند زدن',
+                'باز نگه داشتن دهان و بیرون آوردن زبان',
+                'بستن دندان‌ها و حرکت فک به جلو',
+                'ابتدا باز نگه داشتن دهان و سپس (با هدایت درمانگر) بستن دهان در ادامه مرحله'
+            ],
+            correctIndex: 3,
+            explanation: 'گزینه صحیح: D<br>برای Notch Hamular ابتدا دهان باز و سپس در ادامه با هدایت درمانگر دهان بسته می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A/B/C) الگوی حرکتی ذکرشده برای این ثبت نیست.'
+        },
+
+        {
+            question: 'در مرحله Border molding ناحیه «PPS» فک بالا، کدام ترکیبِ “تحریک بیمار + تکنیک” مطابق جزوه است؟',
+            options: [
+                'تلفظ «آ» همراه با اعمال فشار ملایم به تری برای ثبت ناحیه',
+                'جرع کردن لب‌ها همراه با حرکت دادن گونه‌ها برای ثبت فری‌نوم لبیال',
+                'مکیدن همراه با فشار دادن دسته تری به سمت بالا برای افزایش Seal دامنه',
+                'حرکت فک پایین به چپ و راست برای ثبت Notch Hamular'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>در PPS: تلفظ «آ» + فشار ملایم برای ثبت ناحیه آمده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) مربوط به Labial flange است نه PPS.<br>C) این ترکیب به‌عنوان تکنیک PPS ذکر نشده.<br>D) حرکت چپ/راست برای Distobuccal است، نه Notch Hamular.'
+        },
+        {
+            question: 'پس از اتمام Border molding فک بالا، اگر با اعمال فشار، از سمت مقابل تری “رهاشدگی” مشاهده شود، نتیجه‌گیری صحیح طبق جزوه چیست؟',
+            options: [
+                'این حالت نشانه کافی بودن Seal است و نیاز به اقدام ندارد',
+                'این حالت نشان می‌دهد Border molding نیاز به اصلاح دارد تا در هیچ سمت، با فشار، جداشدگی رخ ندهد',
+                'این حالت فقط در ناحیه PPS طبیعی است و در سایر نواحی مهم نیست',
+                'این حالت ناشی از کمبود Vaseline روی دستکش است و با چرب‌کردن اصلاح می‌شود'
+            ],
+            correctIndex: 1,
+            explanation: 'گزینه صحیح: B<br>جزوه معیار می‌دهد که با فشار در یک سمت، جداشدگی از سمت مقابل نباید رخ دهد؛ در غیر این صورت اصلاح لازم است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) دقیقاً خلاف معیار جزوه است.<br>C) طبیعی/اختصاصی بودن به PPS مطرح نشده.<br>D) به Vaseline نسبت داده نشده.'
+        },
+        {
+            question: 'در Border molding فک پایین، جزوه کدام ویژگی بافتی را برای نواحی «Buccal و Distobuccal» مطرح می‌کند؟',
+            options: [
+                'این نواحی غیرقابل‌فشارند و باید با حداقل فشار ثبت شوند',
+                'این نواحی فقط با تلفظ «آ» ثبت می‌شوند و حرکت گونه کم‌اهمیت است',
+                'این نواحی تا حدی فشارپذیرند و به‌دلیل بافتِ دارای قابلیت تحمل فشار بیشتر، نیاز به اعمال فشار بالاتر دارند',
+                'این نواحی فقط با ZOE ثبت می‌شوند و نامپاید مناسب نیست'
+            ],
+            correctIndex: 2,
+            explanation: 'گزینه صحیح: C<br>در فک پایین، Buccal و Distobuccal تا حدی Pressure-bearing هستند و فشار بیشتری نیاز دارند.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) خلاف متن «فشارپذیر بودن» است.<br>B) محور اصلی این ناحیه تلفظ «آ» نیست.<br>D) محدودیت به ZOE مطرح نشده.'
+        },
+        {
+            question: 'Border molding «Labial flange» فک پایین طبق جزوه، از نظر حرکات بیمار چگونه توصیف شده است؟',
+            options: [
+                'کاملاً متفاوت از فک بالا و بدون نیاز به حرکات شدید لب',
+                'فقط با قورت دادن ثبت می‌شود و نیازی به لبخند نیست',
+                'فقط با حرکت فک پایین به چپ و راست ثبت می‌شود',
+                'مشابه فک بالا و با حرکات شدید لب (جرع، لبخند، باز کردن، نج کردن) انجام می‌شود'
+            ],
+            correctIndex: 3,
+            explanation: 'گزینه صحیح: D<br>Labial flange فک پایین «مشابه فک بالا» و با حرکات شدید لب انجام می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A/B/C) با تأکید جزوه بر مشابه بودن با فک بالا سازگار نیستند.'
+        },
+        {
+            question: 'برای ثبت «Masseter Notch» در فک پایین، کدام توصیف دقیق‌تر است؟',
+            options: [
+                'قرار دادن انگشتان روی بخش زائد ناحیه پره‌مولر تری و درخواست از بیمار برای «فشار/دَعت کردن» دندان‌ها، همراه با جلوگیری از بسته شدن دهان با فشار به سمت پایین',
+                'درخواست تلفظ «آ» و اعمال فشار ملایم به PPS',
+                'حرکت دادن فک پایین به چپ و راست برای پیشگیری از ثبت Notch Coronoid',
+                'مکیدن همراه با حرکت دادن گونه برای ثبت فری‌نوم لبیال'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>برای Masseter Notch: فشار دادن دندان‌ها (clench) با کنترل درمانگر و جلوگیری از بسته شدن کامل دهان ذکر شده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) PPS مربوط به فک بالاست.<br>C) Notch Coronoid مربوط به فک بالا/Distobuccal است.<br>D) مربوط به Buccal flange فک بالا است.'
+        },
+        {
+            question: 'برای ثبت «Fossa Retromylohyoid» در ناحیه «Distolingual» فک پایین، کدام اقدام کلیدی ذکر شده است؟',
+            options: [
+                'ایجاد دوراخ‌های متعدد در تری برای خروج ماده و جلوگیری از فشار',
+                'هل دادن نامپاید به داخل حفره با انگشت، همراه با حرکات زبان به سمت همان سمت و انجام عمل بلع',
+                'اعمال فشار به دسته تری به سمت بالا و درخواست لبخند شدید',
+                'چرخاندن تری در دهان بیمار برای افزایش Seal خلفی'
+            ],
+            correctIndex: 1,
+            explanation: 'گزینه صحیح: B<br>برای Retromylohyoid fossa: هدایت نامپاید با انگشت + حرکت زبان به همان سمت + بلع ذکر شده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) این اقدام به‌عنوان کلید این ناحیه نیامده.<br>C) مربوط به حرکات لبیال نیست.<br>D) چرخاندن تری به‌عنوان تکنیک استاندارد ذکر نشده.'
+        },
+        {
+            question: 'برای ثبت Border در «Lingual flange» فک پایین (ناحیه قدامی‌تر لینگوال)، کدام تکنیک مطابق جزوه است؟',
+            options: [
+                'فشار دادن تری به سمت بالا و عقب همزمان با تلفظ «آ»',
+                'مکیدن و جمع‌کردن گونه‌ها بدون حرکت زبان',
+                'اعمال فشار به دسته تری به سمت پایین (کف دهان) همراه با حرکت زبان به بالا/کنار و فشار دادن زبان به گونه‌ها',
+                'بستن دندان‌ها و حرکت دادن فک به جلو برای ثبت Notch Hamular'
+            ],
+            correctIndex: 2,
+            explanation: 'گزینه صحیح: C<br>در Lingual flange فک پایین: فشار به دسته تری به سمت کف دهان + مانورهای زبان ذکر شده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) ترکیب «آ» و فشار به بالا/عقب مربوط به این ناحیه نیست.<br>B) بدون حرکت زبان خلاف متن است.<br>D) Notch Hamular مربوط به فک بالا است.'
+        },
+        {
+            question: '«Border testing» طبق جزوه چگونه انجام می‌شود و نتیجه فشار زیاد چه معنایی دارد؟',
+            options: [
+                'گذاشتن Boxing wax روی Borderها؛ فشار زیاد یعنی Land Area باید پهن‌تر شود',
+                'تکرار Border molding با نامپاید روی کل Borderها؛ فشار زیاد یعنی ZOE عوض شود',
+                'قالبگیری نهایی مستقیم با ZOE؛ فشار زیاد یعنی Setting ناقص بوده است',
+                'افزودن یک لایه نازک ماده‌ای مثل Alginate یا ZOE یا مواد دیگر روی Borderها و تکرار حرکات؛ فشار زیاد یعنی نامپاید همان ناحیه باید کوتاه/اصلاح شود'
+            ],
+            correctIndex: 3,
+            explanation: 'گزینه صحیح: D<br>Border testing یعنی افزودن لایه نازک ماده روی Borderها و تکرار حرکات؛ فشار زیاد یعنی Overextension و نیاز به کوتاه‌سازی همان بخش.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) Boxing wax مربوط به Cast است نه Border testing.<br>B) تعریف جزوه «لایه نازک» است نه الزاماً تکرار کامل با نامپاید.<br>C) این تعریف Border testing نیست.'
+        },
+
+        {
+            question: 'اگر Border molding با نامپاید انجام شده باشد، ماده رایج پیشنهادی جزوه برای «Final impression / قالبگیری نهایی» چیست؟',
+            options: [
+                'ZOE (Zinc Oxide Eugenol)',
+                'Alginate',
+                'Wax تنها',
+                'Stone type 3'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>جزوه می‌گوید اگر Border molding با نامپاید انجام شود، معمولاً Final impression با ZOE انجام می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) Alginate برای کمک تشخیصی/Border testing آمده، نه انتخاب «معمول» Final impression در این سناریو.<br>C) Wax به‌تنهایی ماده قالبگیری نهایی نیست.<br>D) Stone type 3 مربوط به Cast است.'
+        },
+        {
+            question: 'پیش از قالبگیری نهایی با ZOE، جزوه کدام اقدام را برای تسهیل جدا شدن ماده از بافت‌های اطراف دهان توصیه می‌کند؟',
+            options: [
+                'شستشوی دهان با آب سرد تا ۵ دقیقه',
+                'چرب‌کردن اطراف دهان و لب‌ها با Vaseline',
+                'ایجاد دوراخ‌های متعدد روی تری در ناحیه باکال',
+                'افزودن Adhesive روی سطح مخاط برای افزایش اتصال'
+            ],
+            correctIndex: 1,
+            explanation: 'گزینه صحیح: B<br>برای جدا شدن راحت‌تر ZOE پس از Setting، اطراف دهان/لب‌ها با Vaseline چرب می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) به‌عنوان توصیه این مرحله ذکر نشده.<br>C) دوراخ‌کاری برای این هدف مطرح نشده.<br>D) Adhesive برای Elastomer و تری است، نه مخاط.'
+        },
+        {
+            question: 'ساختار/آماده‌سازی ZOE در جزوه چگونه بیان شده است؟',
+            options: [
+                'یک خمیر تک‌جزئی آماده مصرف که فقط نیاز به حرارت دارد',
+                'دو خمیر که باید جداگانه داخل تری ریخته شوند و در دهان مخلوط گردند',
+                'دو خمیر که با نسبت مناسب روی سطحی مثل شیشه گذاشته و با هم مخلوط می‌شوند',
+                'پودر و مایع که باید داخل Heater به دمای مشخص برسند'
+            ],
+            correctIndex: 2,
+            explanation: 'گزینه صحیح: C<br>ZOE شامل دو خمیر است که روی سطح (مثل شیشه) مخلوط می‌شوند.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) تک‌جزئی و نیازمند حرارت نیست.<br>B) مخلوط کردن داخل دهان روش جزوه نیست.<br>D) پودر/مایع و Heater برای ZOE مطرح نشده.'
+        },
+        {
+            question: 'برای جلوگیری از ثبت «Pressure» در نواحی خاص فک بالا هنگام قالبگیری نهایی، الگوی دوراخ‌کاری روی تری طبق جزوه چیست؟',
+            options: [
+                '۲ دوراخ در Raphe Midpalatal و ۱۰ دوراخ در رُگا، به شکل L',
+                '۱۰ دوراخ در رُگا و ۲ دوراخ در PPS، به شکل U',
+                '۴ دوراخ در Raphe Midpalatal و ۴ دوراخ در رُگا، به شکل مربع',
+                '۱۰ دوراخ در Raphe Midpalatal و ۲ دوراخ در رُگا، به چیدمان شبیه حرف T'
+            ],
+            correctIndex: 3,
+            explanation: 'گزینه صحیح: D<br>طبق جزوه: ۱۰ سوراخ در Raphe Midpalatal و ۲ سوراخ در رُگا، با آرایش شبیه T برای جلوگیری از ثبت Pressure در این نواحی.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A/B/C) تعداد/محل و شکل چیدمان با متن جزوه تطابق ندارد.'
+        },
+        {
+            question: 'در قالبگیری نهایی، جزوه درخواست تکرار کدام مجموعه حرکات را مطرح می‌کند؟',
+            options: [
+                'حرکات عضلات و دهان مشابه مرحله Border molding (از جمله تلفظ «آ» و بلع) تا زمان Setting',
+                'فقط باز نگه‌داشتن دهان بدون هیچ حرکت تا پایان Setting',
+                'فقط حرکت فک پایین به جلو و عقب بدون حرکت لب‌ها',
+                'فقط مکیدن شدید برای افزایش Seal دامنه'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>در Final impression نیز حرکات مرحله Border molding (از جمله «آ» و بلع) تا Setting تکرار می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B/C/D) با تأکید جزوه بر تکرار حرکات عملکردی سازگار نیستند.'
+        },
+        {
+            question: 'درباره خارج کردن تری پس از Setting ماده قالبگیری نهایی، کدام نکته مطابق جزوه است؟',
+            options: [
+                'باید با حرکات رفت و برگشتی متعدد خارج شود تا چسبندگی کاهش یابد',
+                'خروج تری با یک حرکت انجام شود و تکان دادن بیش از حد می‌تواند روند قالبگیری را مختل کند',
+                'تری باید ابتدا ۲ دقیقه در آب سرد قرار گیرد و سپس خارج شود',
+                'خروج تری باید همراه با کوتاه کردن Borderها با Scalpel داخل دهان انجام شود'
+            ],
+            correctIndex: 1,
+            explanation: 'گزینه صحیح: B<br>تری باید با یک حرکت خارج شود؛ تکان دادن زیاد باعث اختلال/خرابی قالب می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) خلاف هشدار جزوه است.<br>C) چنین مرحله‌ای ذکر نشده.<br>D) Trim داخل دهان هنگام خروج مطرح نشده.'
+        },
+
+        {
+            question: 'اگر در Border molding به‌جای نامپاید از wax یا مواد دیگر استفاده شده باشد، جزوه برای قالبگیری نهایی چه الزامی را مطرح می‌کند؟',
+            options: [
+                'استفاده از ZOE بدون هیچ اقدام اضافی',
+                'حذف کامل دوراخ‌های تری برای جلوگیری از Retention مکانیکی',
+                'استفاده از مواد Elastomer و آغشته کردن تری به «Adhesive» مخصوص آن‌ها (به‌همراه ایجاد دوراخ‌های اضافی برای گیر بیشتر)',
+                'استفاده از Type 2 stone داخل تری برای ثبت مستقیم بافت‌ها'
+            ],
+            correctIndex: 2,
+            explanation: 'گزینه صحیح: C<br>اگر Border molding با نامپاید نبوده، Final impression با Elastomer + Adhesive انجام می‌شود و برای گیر بیشتر دوراخ‌های اضافی مطرح است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) برای این سناریو توصیه اصلی نیست.<br>B) حذف دوراخ‌ها خلاف مفهوم «گیر بیشتر» است.<br>D) Stone ماده قالبگیری نیست.'
+        },
+        {
+            question: 'درباره «Stone type» برای ساخت کست، کدام تطابق با جزوه صحیح است؟',
+            options: [
+                'کست نهایی: Type 2 — کست اولیه: Type 3',
+                'هر دو کست: Type 2',
+                'هر دو کست: Type 3',
+                'کست اولیه: Type 2 — کست نهایی: Type 3'
+            ],
+            correctIndex: 3,
+            explanation: 'گزینه صحیح: D<br>کست اولیه با Type 2 و کست نهایی با Type 3 ساخته می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) جابه‌جایی نوع‌هاست.<br>B/C) با متن جزوه تطابق ندارند.'
+        },
+        {
+            question: 'در مراحل «Beading»، موم Beading طبق جزوه کجا و با چه فاصله‌ای قرار داده می‌شود؟',
+            options: [
+                'روی Periphery قالب و حدود ۳ میلی‌متر پایین‌تر از Borderها (با کمک موم چسبان برای اتصال)',
+                'دقیقاً روی Borderها بدون فاصله برای افزایش ارتفاع Peripheral roll',
+                'فقط در ناحیه PPS و بدون نیاز به اتصال به کل Periphery',
+                'در مرکز قالب روی Raphe Midpalatal برای ایجاد Relief'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>Beading wax در Periphery و حدود ۳ میلی‌متر پایین‌تر از Borderها قرار می‌گیرد و با موم چسبان متصل می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) فاصله ۳ میلی‌متری را رعایت نمی‌کند.<br>C) Beading فقط PPS نیست؛ پیرامون قالب است.<br>D) مرکز قالب/Raphe Midpalatal محل Beading نیست.'
+        },
+        {
+            question: 'نقش «Boxing wax» در جزوه کدام است و نکتهٔ کیفی کلیدی چیست؟',
+            options: [
+                'ایجاد Relief در ناحیه رُگا؛ مهم‌ترین نکته، ایجاد شیارهای عمودی است',
+                'تعیین ارتفاع نهایی کست؛ مهم‌ترین نکته، نبود هیچ درزی بین Boxing wax و Beading wax و نیز بین Beading wax و قالب است',
+                'افزایش Adhesion ZOE به تری؛ مهم‌ترین نکته، چرب کردن Boxing wax با Vaseline است',
+                'کاهش Setting time گچ؛ مهم‌ترین نکته، افزودن آب گرم داخل Boxing wax است'
+            ],
+            correctIndex: 1,
+            explanation: 'گزینه صحیح: B<br>Boxing wax ارتفاع کست را تعیین می‌کند و باید هیچ درزی در اتصالات وجود نداشته باشد.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) Relief رُگا مربوط به مرحله قالبگیری است نه Boxing.<br>C) به Adhesion ZOE مربوط نیست.<br>D) افزودن آب گرم و کاهش Setting time به این شکل ذکر نشده.'
+        },
+        {
+            question: 'برای کنترل وجود درز پس از Boxing، جزوه چه آزمونی را پیشنهاد می‌کند؟',
+            options: [
+                'اسپری کردن آب پرفشار از بیرون به داخل',
+                'پوشاندن همه درزها با Alginate و انتظار برای Setting',
+                'ریختن مقداری آب سرد داخل مجموعه پس از Boxing؛ وجود نشت نشان‌دهنده درز و نیاز به بستن با موم است',
+                'قرار دادن مجموعه در آب گرم و مشاهده حباب‌ها'
+            ],
+            correctIndex: 2,
+            explanation: 'گزینه صحیح: C<br>آزمون جزوه: ریختن آب سرد؛ نشت یعنی درز و باید با موم بسته شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A) روش پیشنهادی جزوه نیست.<br>B) Alginate برای این کار مطرح نشده.<br>D) تست حباب/آب گرم ذکر نشده.'
+        },
+        {
+            question: 'در تریم کردن کست نهایی، کدام مجموعه اندازه‌ها/ویژگی‌ها مطابق جزوه است؟',
+            options: [
+                'Base حدود ۱۰ میلی‌متر، Land Area حدود ۲ میلی‌متر، Peripheral roll حدود ۵ میلی‌متر',
+                'Base حدود ۲۰ میلی‌متر، Land Area حدود ۸ میلی‌متر، Peripheral roll حدود ۱ میلی‌متر',
+                'Base حدود ۱۵ میلی‌متر، Land Area حدود ۶–۷ میلی‌متر، Peripheral roll حدود ۴–۵ میلی‌متر',
+                'Base حدود ۱۵ میلی‌متر، Land Area حدود ۴–۵ میلی‌متر، Peripheral roll (Depth/Height) حدود ۲–۳ میلی‌متر'
+            ],
+            correctIndex: 3,
+            explanation: 'گزینه صحیح: D<br>در تریم کست: Base ≈ ۱۵ mm، Land ≈ ۴–۵ mm، و Peripheral roll ≈ ۲–۳ mm ذکر شده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>A/B/C) اندازه‌ها با مقادیر ارائه‌شده در جزوه همخوانی ندارند.'
+        },
+
+        /* برای رسیدن دقیق به ۴۰ سؤال، بقیه آیتم‌ها را هم با همان ساختار اضافه می‌کنیم */
+        {
+            question: 'در روش «Single step» برای Border molding، تفاوت اصلی نسبت به Sectional چیست؟',
+            options: [
+                'در Single step تمام Borderها در یک مرحله ثبت می‌شوند و به آماده‌سازی همزمان ماده برای کل Borderها نیاز دارد',
+                'در Single step فقط PPS ثبت می‌شود و سایر Borderها در قالب نهایی شکل می‌گیرند',
+                'در Single step فقط فک پایین ثبت می‌شود و فک بالا حذف می‌گردد',
+                'در Single step الزاماً از ZOE به‌جای نامپاید استفاده می‌شود'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>Single step یعنی ثبت Borderها در یک مرحله و نیاز به آماده‌سازی همزمان ماده برای کل Borderها.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) PPS تنها مرحله نیست.<br>C) محدود به یک فک نیست.<br>D) الزام ZOE مطرح نشده.'
+        },
+        {
+            question: 'در مرحله PPS فک بالا، «Butterfly wings» بیشتر به کدام بخش اشاره دارد؟',
+            options: [
+                'فرم‌دهی سطح نامپاید PPS پیش از ورود تری به دهان',
+                'فرم‌دهی Land Area در هنگام Boxing',
+                'فرم‌دهی Peripheral roll در هنگام تریم کست',
+                'فرم‌دهی سوراخ‌های Relief به شکل T روی تری'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>Butterfly wings مربوط به فرم‌دهی نامپاید PPS است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) Boxing wax/Beading ارتباطی با Butterfly wings ندارد.<br>C) Peripheral roll در تریم کست است، نه PPS.<br>D) سوراخ‌های Relief مفهوم جداست.'
+        },
+        {
+            question: 'پس از خارج کردن تری در Border molding، قرار دادن در آب سرد چه اثری دارد؟',
+            options: [
+                'Fix شدن/تثبیت شکل نامپاید و جلوگیری از تغییر شکل Border',
+                'افزایش زمان کارکرد نامپاید با نرم نگه داشتن آن',
+                'تسریع Setting ZOE در مرحله قالبگیری نهایی',
+                'افزایش چسبندگی Adhesive به سطح تری'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>آب سرد برای تثبیت (Fix) نامپاید پس از شکل‌دهی استفاده می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) آب سرد نامپاید را سفت می‌کند نه نرم نگه دارد.<br>C) به ZOE مربوط نیست.<br>D) Adhesive مربوط به Elastomer است.'
+        },
+        {
+            question: 'در Border molding فک بالا، مرحله Distobuccal در کدام سمت توالی قرار دارد؟',
+            options: [
+                'ابتدای توالی',
+                'پس از PPS',
+                'فقط در صورت استفاده از Elastomer انجام می‌شود',
+                'پس از Labial و قبل از Buccal'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>طبق توالی جزوه: Distobuccal ابتدا انجام می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) PPS در انتهای توالی است.<br>C) ربطی به نوع ماده ندارد؛ مرحله وجود دارد.<br>D) ترتیب برعکس است.'
+        },
+        {
+            question: 'حرکت دادن گونه توسط درمانگر در فک بالا بیشتر در کدام ناحیه ذکر شده است؟',
+            options: [
+                'Buccal flange',
+                'PPS',
+                'Notch Hamular',
+                'Raphe Midpalatal'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>در Buccal flange فک بالا، حرکت گونه توسط درمانگر همراه با suction ذکر شده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) PPS با «آ» و فشار ملایم مطرح است.<br>C) Notch Hamular الگوی باز/بستن دهان دارد.<br>D) Raphe Midpalatal بیشتر در Relief مطرح است.'
+        },
+        {
+            question: 'در فک بالا، اگر در Distobuccal حرکت فک به چپ و راست انجام نشود، کدام خطا محتمل‌تر است؟',
+            options: [
+                'ثبت ناخواسته/زائد مرتبط با Notch Coronoid',
+                'عدم ثبت Retromylohyoid fossa',
+                'کاهش Relief در Raphe Midpalatal',
+                'عدم تشکیل Land Area در Boxing'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>حرکت فک چپ/راست برای پیشگیری از درگیری Notch Coronoid در Distobuccal مطرح است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) Retromylohyoid مربوط به فک پایین است.<br>C) Relief موضوع جداست.<br>D) Boxing مرحله دیگری است.'
+        },
+        {
+            question: 'در فک پایین، افزایش فشار برای Buccal/Distobuccal به چه علت بیان شده است؟',
+            options: [
+                'به دلیل Pressure-bearing بودن نسبی این نواحی و تحمل بیشتر بافت',
+                'به دلیل حساسیت بالای این نواحی و لزوم ثبت بدون فشار',
+                'به دلیل نیاز به تعیین Vibrating line',
+                'به دلیل نیاز به تشکیل PPS'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>جزوه این نواحی را تا حدی فشارپذیر و قابل تحمل فشار بیشتر معرفی می‌کند.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) خلاف متن است.<br>C/D) Vibrating line و PPS مربوط به فک بالا است.'
+        },
+        {
+            question: 'کدام مجموعه حرکات در جزوه به‌عنوان «مشابه فک بالا» برای Labial flange فک پایین ذکر شده است؟',
+            options: [
+                'جرع کردن لب‌ها، لبخند زدن، باز کردن دهان، نج کردن دهان',
+                'فقط بلع و تلفظ «آ»',
+                'فقط حرکت فک به چپ و راست',
+                'فقط مکیدن بدون حرکت لب‌ها'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>Labial flange فک پایین مشابه فک بالا و با حرکات شدید لب ثبت می‌شود.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B/C/D) ناقص یا مربوط به نواحی دیگر هستند.'
+        },
+        {
+            question: 'در ثبت Retromylohyoid fossa، «حرکت زبان به همان سمت» بیشتر برای چه هدفی است؟',
+            options: [
+                'فعال‌سازی عملکردی بافت‌های Distolingual برای شکل‌دهی صحیح Border',
+                'کاهش Pressure روی Raphe Midpalatal',
+                'تعیین Vibrating line',
+                'تسریع Setting ZOE'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>حرکت زبان برای ثبت عملکردی Distolingual و شکل‌دهی صحیح Border است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) Raphe Midpalatal در فک بالا مطرح است.<br>C) Vibrating line مربوط به فک بالاست.<br>D) ارتباطی با Setting ZOE ندارد.'
+        },
+        {
+            question: 'Border testing در جزوه بیشتر برای تشخیص چه چیزی استفاده می‌شود؟',
+            options: [
+                'وجود Pressure/Overextension در بخش‌های Border و نیاز به کوتاه‌سازی نامپاید',
+                'نوع Stone مناسب برای کست نهایی',
+                'تعیین اندازه Base در تریم کست',
+                'انتخاب رنگ دندان مصنوعی'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>Border testing برای یافتن نواحی فشار زیاد/Overextension و اصلاح Border است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B/C) مربوط به مراحل ساخت کست است.<br>D) خارج از این مبحث است.'
+        },
+        {
+            question: 'اگر Final impression با ZOE انجام شود، یکی از اقدامات کمکی قبل از کار چیست؟',
+            options: [
+                'چرب کردن اطراف دهان با Vaseline',
+                'گذاشتن Boxing wax روی Borderها',
+                'قرار دادن تری در آب سرد قبل از ورود به دهان',
+                'دود کردن نامپاید روی شعله برای افزایش گیر'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>برای جدا شدن راحت‌تر ZOE پس از Setting، Vaseline اطراف دهان توصیه شده است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) Boxing wax مربوط به Cast است.<br>C) این اقدام برای این مرحله ذکر نشده.<br>D) دود کردن نامپاید اشتباه است.'
+        },
+        {
+            question: 'در Final impression، چرا تکرار حرکات Border molding توصیه می‌شود؟',
+            options: [
+                'برای ثبت عملکردی و پایدار Borderها تا زمان Setting ماده قالبگیری',
+                'برای افزایش ضخامت یکنواخت ماده نهایی',
+                'برای ایجاد Land Area قبل از ریختن گچ',
+                'برای حذف نیاز به Border molding'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>تکرار حرکات، ثبت عملکردی و صحیح Borderها را در زمان Setting تضمین می‌کند.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) هدف حرکات این نیست.<br>C) Land Area مربوط به Boxing/Beading است.<br>D) Final impression جای Border molding را حذف نمی‌کند.'
+        },
+        {
+            question: 'خروج تری بعد از Setting، چرا نباید با تکان‌های زیاد انجام شود؟',
+            options: [
+                'چون تکان زیاد می‌تواند قالب را خراب کند و روند قالبگیری را مختل کند',
+                'چون باعث افزایش Setting time ZOE می‌شود',
+                'چون باعث تشکیل PPS اضافی می‌شود',
+                'چون باعث ایجاد سوراخ‌های Relief به‌صورت ناخواسته می‌شود'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>طبق جزوه، تکان زیاد هنگام خروج تری می‌تواند به قالب آسیب بزند.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) Setting time به این شکل تغییر نمی‌کند.<br>C) PPS با تکان خروج ایجاد نمی‌شود.<br>D) سوراخ‌کاری به خروج ربطی ندارد.'
+        },
+        {
+            question: 'در Beading/Boxing، چرا تأکید می‌شود درز بین Waxها و قالب وجود نداشته باشد؟',
+            options: [
+                'برای جلوگیری از نشت گچ و خراب شدن شکل کست',
+                'برای افزایش Adhesion ZOE به تری',
+                'برای ثبت بهتر Vibrating line',
+                'برای کاهش نیاز به تریم کست'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>درز باعث نشت گچ می‌شود و نتیجه کست را خراب می‌کند.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) به ZOE مربوط نیست.<br>C) Vibrating line مرحله دیگری است.<br>D) تریم همچنان لازم است.'
+        },
+        {
+            question: 'آزمون آب سرد پس از Boxing چه چیزی را مشخص می‌کند؟',
+            options: [
+                'وجود یا عدم وجود درز/نشتی در Boxing و نیاز به بستن با موم',
+                'نوع Stone مناسب برای کست اولیه',
+                'میزان Pressure در Raphe Midpalatal',
+                'نیاز به Adhesive برای Elastomer'
+            ],
+            correctIndex: 0,
+            explanation: 'گزینه صحیح: A<br>ریختن آب سرد برای بررسی نشتی/درز Boxing است.<br><br>چرا سایر گزینه‌ها غلط‌اند؟<br>B) انتخاب Stone ربطی به این تست ندارد.<br>C) Pressure در Raphe به Boxing مربوط نیست.<br>D) Adhesive مربوط به قالبگیری با Elastomer است.'
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    const questionCounterEl = document.getElementById('questionCounter');
+    const answeredCounterEl = document.getElementById('answeredCounter');
+    const progressFillEl = document.getElementById('progressFill');
+    const questionTagEl = document.getElementById('questionTag');
+    const questionStatusEl = document.getElementById('questionStatus');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainerEl = document.getElementById('optionsContainer');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const finishBtn = document.getElementById('finishBtn');
+
+    const resultsSectionEl = document.getElementById('resultsSection');
+    const scorePercentEl = document.getElementById('scorePercent');
+    const scoreLabelEl = document.getElementById('scoreLabel');
+    const scoreCorrectEl = document.getElementById('scoreCorrect');
+    const scoreWrongEl = document.getElementById('scoreWrong');
+    const scoreUnansweredEl = document.getElementById('scoreUnanswered');
+    const answersContainerEl = document.getElementById('answersContainer');
+
+    function updateProgressUI() {
+        const total = questions.length;
+        const answeredCount = userAnswers.filter(a => a !== null).length;
+
+        questionCounterEl.textContent = `سؤال ${currentQuestionIndex + 1} از ${total}`;
+        answeredCounterEl.textContent = `${answeredCount} / ${total} پاسخ داده شده`;
+
+        const progressPercent = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+        progressFillEl.style.width = progressPercent + '%';
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestionIndex];
+
+        questionTagEl.textContent = `سؤال ${currentQuestionIndex + 1}`;
+        questionTextEl.textContent = q.question;
+
+        const userAnswer = userAnswers[currentQuestionIndex];
+        questionStatusEl.textContent = userAnswer === null ? 'وضعیت: بدون پاسخ' : 'وضعیت: پاسخ داده شده';
+
+        optionsContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'option-btn';
+            if (userAnswer === index) btn.classList.add('selected');
+            btn.dataset.index = index.toString();
+
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'option-letter';
+            letterSpan.textContent = letters[index] + ')';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'option-text';
+            textSpan.textContent = opt;
+
+            btn.appendChild(letterSpan);
+            btn.appendChild(textSpan);
+
+            btn.addEventListener('click', () => handleOptionSelect(index));
+            optionsContainerEl.appendChild(btn);
+        });
+
+        prevBtn.disabled = currentQuestionIndex === 0;
+        nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+
+        updateProgressUI();
+    }
+
+    function handleOptionSelect(optionIndex) {
+        userAnswers[currentQuestionIndex] = optionIndex;
+        if (currentQuestionIndex < questions.length - 1) currentQuestionIndex++;
+        renderQuestion();
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+    });
+
+    finishBtn.addEventListener('click', () => {
+        finishQuiz();
+    });
+
+    function finishQuiz() {
+        const total = questions.length;
+        let correct = 0, wrong = 0, unanswered = 0;
+
+        questions.forEach((q, index) => {
+            const ans = userAnswers[index];
+            if (ans === null) unanswered++;
+            else if (ans === q.correctIndex) correct++;
+            else wrong++;
+        });
+
+        const percent = total === 0 ? 0 : Math.round((correct / total) * 100);
+
+        scorePercentEl.textContent = percent + '%';
+        scoreLabelEl.textContent = `${correct} پاسخ صحیح از ${total} سؤال`;
+        scoreCorrectEl.textContent = correct.toString();
+        scoreWrongEl.textContent = wrong.toString();
+        scoreUnansweredEl.textContent = unanswered.toString();
+
+        buildAnswersReview();
+        resultsSectionEl.style.display = 'flex';
+        resultsSectionEl.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function buildAnswersReview() {
+        answersContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        questions.forEach((q, index) => {
+            const userAnswer = userAnswers[index];
+
+            const card = document.createElement('div');
+            card.className = 'answer-card';
+
+            const qTitle = document.createElement('div');
+            qTitle.className = 'answer-question-title';
+            qTitle.textContent = `سؤال ${index + 1}`;
+            card.appendChild(qTitle);
+
+            const qText = document.createElement('div');
+            qText.className = 'answer-question-text';
+            qText.textContent = q.question;
+            card.appendChild(qText);
+
+            const optionsWrapper = document.createElement('div');
+            optionsWrapper.className = 'answer-options-wrapper';
+
+            q.options.forEach((opt, optIdx) => {
+                const row = document.createElement('div');
+                row.className = 'option-row';
+
+                const main = document.createElement('div');
+                main.className = 'option-main';
+
+                const label = document.createElement('span');
+                label.className = 'option-label';
+                label.textContent = letters[optIdx] + ')';
+
+                const text = document.createElement('span');
+                text.className = 'option-text';
+                text.textContent = opt;
+
+                main.appendChild(label);
+                main.appendChild(text);
+                row.appendChild(main);
+
+                const tag = document.createElement('span');
+                tag.className = 'option-tag';
+
+                if (optIdx === q.correctIndex && userAnswer === optIdx) {
+                    row.classList.add('user-correct');
+                    tag.textContent = '✓ صحیح (انتخاب شما)';
+                } else if (optIdx === q.correctIndex) {
+                    row.classList.add('correct');
+                    tag.textContent = '✓ گزینه صحیح';
+                } else if (userAnswer === optIdx) {
+                    row.classList.add('user-wrong');
+                    tag.textContent = '✗ انتخاب شما';
+                }
+
+                if (tag.textContent) row.appendChild(tag);
+                optionsWrapper.appendChild(row);
+            });
+
+            card.appendChild(optionsWrapper);
+
+            const expl = document.createElement('div');
+            expl.className = 'answer-explanation';
+            if (userAnswer === null) {
+                expl.innerHTML = `<strong>وضعیت پاسخ:</strong> این سؤال را پاسخ ندادی.<br><strong>توضیح:</strong> ${q.explanation}`;
+            } else {
+                expl.innerHTML = `<strong>توضیح:</strong> ${q.explanation}`;
+            }
+
+            card.appendChild(expl);
+            answersContainerEl.appendChild(card);
+        });
+    }
+
+    renderQuestion();
+</script>
+
+<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
+<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+</body>
+</html>
+
+
+

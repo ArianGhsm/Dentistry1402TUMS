@@ -1,0 +1,802 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+<link rel="stylesheet" href="/assets/site/styles/quiz.css?v=20260421-pwa">
+<meta charset="UTF-8">
+  <title>آزمون فارما اعصاب اتونوم - جلسه ۲</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08);
+      padding: 16px 14px 14px;
+      margin-bottom: 14px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .title-card {
+      margin-bottom: 12px;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+
+    .quiz-card {
+      margin-top: 4px;
+    }
+
+    .question-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    #question-header {
+      font-size: 0.86rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #1e3a8a;
+    }
+
+    .progress {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #progress-label {
+      font-size: 0.72rem;
+      color: #6b7280;
+      text-align: left;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+      transition: width 0.3s ease-out;
+    }
+
+    #question-text {
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      cursor: pointer;
+      font-size: 0.86rem;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .option:hover {
+      background: #f3f4ff;
+      border-color: #c7d2fe;
+    }
+
+    .option input {
+      display: none;
+    }
+
+    .radio-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid #9ca3af;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .radio-inner {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: transparent;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .option.selected {
+      background: #e0f2fe;
+      border-color: #38bdf8;
+    }
+
+    .option.selected .radio-inner {
+      background: #0ea5e9;
+      transform: scale(1.05);
+    }
+
+    .buttons-column {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    button {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: #f9fafb;
+      border-color: #9ca3af;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    #next-btn {
+      border-color: #bfdbfe;
+      background: #eff6ff;
+    }
+
+    #next-btn:hover:not(:disabled) {
+      background: #dbeafe;
+      border-color: #60a5fa;
+    }
+
+    #submit-btn {
+      border-color: #22c55e;
+      background: #22c55e;
+      color: #ffffff;
+      font-weight: 500;
+    }
+
+    #submit-btn:hover:not(:disabled) {
+      background: #16a34a;
+      border-color: #15803d;
+      box-shadow: 0 6px 16px rgba(22, 163, 74, 0.25);
+    }
+
+    #status {
+      margin-top: 8px;
+      font-size: 0.76rem;
+      color: #6b7280;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .result-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .result-main h2 {
+      margin: 0 0 6px;
+      font-size: 0.95rem;
+    }
+
+    .score-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      font-size: 0.8rem;
+      color: #374151;
+    }
+
+    .score-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+    }
+
+    .percent-big {
+      font-size: 1.4rem;
+      font-weight: 700;
+      text-align: left;
+    }
+
+    .percent-big.bad {
+      color: #ef4444;
+    }
+
+    .percent-label {
+      font-size: 0.72rem;
+      color: #6b7280;
+      text-align: left;
+    }
+
+    .muted {
+      color: #6b7280;
+      font-size: 0.78rem;
+      margin-top: 4px;
+    }
+
+    .summary-question {
+      padding-top: 4px;
+      margin-top: 4px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 0.82rem;
+    }
+
+    .summary-question:first-of-type {
+      border-top: none;
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    .summary-question-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .summary-line {
+      margin: 1px 0;
+    }
+
+    .summary-label {
+      color: #6b7280;
+    }
+
+    .correct {
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .incorrect {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    .explanation {
+      margin-top: 4px;
+      color: #374151;
+    }
+
+    .quiz-disabled {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 14px 12px 12px;
+      }
+      #question-text {
+        font-size: 0.88rem;
+      }
+      .option {
+        font-size: 0.84rem;
+      }
+    }
+  </style>
+<meta name="theme-color" content="#050b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dent1402">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260421-pwa">
+</head>
+<body class="quiz-page">
+
+  <div class="wrapper">
+    <div class="card title-card">
+      <h1 class="title">فارما اعصاب اتونوم - آزمون جلسه ۲</h1>
+      <p class="subtitle">۲۰ سؤال چهارگزینه‌ای | فقط بر اساس جزوه | پاسخ‌ها بعد از پایان آزمون نمایش داده می‌شوند.</p>
+    </div>
+
+    <div id="quiz-area" class="card quiz-card">
+      <div class="question-header-row">
+        <div id="question-header"></div>
+        <div class="progress">
+          <span id="progress-label">۰٪ انجام شده</span>
+          <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="question-text"></div>
+      <div id="options" class="options"></div>
+
+      <div class="buttons-column">
+        <button id="next-btn">سؤال بعدی ⟶</button>
+        <button id="prev-btn">⟵ سؤال قبلی</button>
+        <button id="submit-btn">پایان آزمون و تصحیح</button>
+      </div>
+
+      <div id="status"></div>
+    </div>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        text: "۱) در مورد تفاوت رشته‌های عصبی در سیستم سمپاتیک و پاراسمپاتیک کدام گزینه صحیح است؟",
+        options: [
+          "A) در هر دو سیستم، رشته‌های پیش‌گانگلیونی کوتاه و پس‌گانگلیونی بلندند.",
+          "B) در سیستم سمپاتیک، رشته‌های پیش‌گانگلیونی بلند و پس‌گانگلیونی کوتاه‌اند.",
+          "C) در سیستم سمپاتیک، رشته‌های پیش‌گانگلیونی کوتاه و در پاراسمپاتیک بلند هستند.",
+          "D) رشته‌های پیش‌گانگلیونی در هر دو سیستم بدون میلین‌اند."
+        ],
+        correctIndex: 2,
+        explanation: "طبق جزوه، در هر دو سیستم پیش‌گانگلیونی‌ها معمولاً میلینه‌اند اما در سمپاتیک کوتاه و در پاراسمپاتیک بلند هستند؛ پس‌گانگلیونی‌ها برعکس."
+      },
+      {
+        text: "۲) در سیستم اعصاب اتونوم، کدام ترکیب به‌طور طبیعی از رشته‌های پیش‌گانگلیونی هم در سمپاتیک و هم در پاراسمپاتیک آزاد می‌شود؟",
+        options: [
+          "A) نوراپی‌نفرین",
+          "B) استیل‌کولین",
+          "C) دوپامین",
+          "D) اپی‌نفرین"
+        ],
+        correctIndex: 1,
+        explanation: "استیل‌کولین نوروترانسمیتر رشته‌های پیش‌گانگلیونی در هر دو سیستم سمپاتیک و پاراسمپاتیک است. نوراپی‌نفرین عمدتاً از پس‌گانگلیونی سمپاتیک آزاد می‌شود."
+      },
+      {
+        text: "۳) کدام مورد از استثناهای مهم در سیستم سمپاتیک است که به‌جای نوراپی‌نفرین، استیل‌کولین از رشته‌های پس‌گانگلیونی آزاد می‌کند؟",
+        options: [
+          "A) غدد بزاقی",
+          "B) غدد عرق تنظیم‌کننده دمای بدن",
+          "C) نورون‌های اینترنورنال نخاع",
+          "D) عضله قلب"
+        ],
+        correctIndex: 1,
+        explanation: "برخی رشته‌های پس‌گانگلیونی سمپاتیک (به‌ویژه به سمت عروق عضله اسکلتی و غدد عرق نوع تنظیم‌کننده حرارت) کولینرژیک هستند و استیل‌کولین آزاد می‌کنند."
+      },
+      {
+        text: "۴) در دندانپزشکی، عارضه‌ی xerostomia (خشکی دهان) در کدام وضعیت شایع‌تر است؟",
+        options: [
+          "A) مصرف داروهای کولینومیمتیک مستقیم",
+          "B) مصرف داروهای آنتی‌کولینرژیک مثل TCAها",
+          "C) مصرف بتابلاکرهای قلبی",
+          "D) تزریق اپی‌نفرین موضعی بدون لیدوکائین"
+        ],
+        correctIndex: 1,
+        explanation: "بسیاری از داروهای آنتی‌کولینرژیک (مثل ضدافسردگی‌های سه‌حلقه‌ای، آنتی‌هیستامین‌ها و…) باعث خشکی دهان، بوی بد و افزایش پوسیدگی می‌شوند."
+      },
+      {
+        text: "۵) کدام‌یک از داروهای زیر جزء استرهای کولین و از کولینومیمتیک‌های با اثر مستقیم است؟",
+        options: [
+          "A) Neostigmine",
+          "B) Pilocarpine",
+          "C) Bethanechol",
+          "D) Edrophonium"
+        ],
+        correctIndex: 2,
+        explanation: "استرهای کولین شامل استیل‌کولین، متاکولین، کرباکول و بتانکول هستند که مستقیماً گیرنده‌های موسکارینی/نیکوتینی را تحریک می‌کنند. نئوستیگمین و ادروفونیوم مهارکننده‌ی کولین‌استراز (غیرمستقیم) هستند و پیلوکارپین از آلکالوئیدهاست."
+      },
+      {
+        text: "۶) در مورد داروی Bethanechol کدام گزینه صحیح است؟",
+        options: [
+          "A) استر کولین با اثر مستقیم بر گیرنده‌های موسکارینی است و برای احتباس ادراری به کار می‌رود.",
+          "B) مهارکننده‌ی برگشت‌پذیر کولین‌استراز است و در آلزایمر مصرف می‌شود.",
+          "C) آلکالوئید گیاهی است که فقط به‌صورت قطره‌ی چشمی به کار می‌رود.",
+          "D) استر کولین بسیار حساس به آنزیم کولین‌استراز است و کاربرد بالینی ندارد."
+        ],
+        correctIndex: 0,
+        explanation: "بتانکول از استرهای کولین با اثر مستقیم بر گیرنده‌های موسکارینی و مقاوم به کولین‌استراز است و در درمان احتباس ادرار و ایلئوس کاربرد دارد."
+      },
+      {
+        text: "۷) کدام دارو بیش از همه برای تشخیص آسم به‌صورت استنشاقی (در گذشته) در متن جزوه ذکر شده است؟",
+        options: [
+          "A) Acetylcholine",
+          "B) Methacholine",
+          "C) Carbachol",
+          "D) Edrophonium"
+        ],
+        correctIndex: 1,
+        explanation: "متاکولین، استر کولینی است که بیشتر بر گیرنده‌های موسکارینی اثر دارد و نسبت به استیل‌کولین مقاوم‌تر به آنزیم است؛ در جزوه به استفاده‌ی استنشاقی آن برای تشخیص آسم اشاره شده است."
+      },
+      {
+        text: "۸) در مورد Carbamates به‌عنوان مهارکننده‌های کولین‌استراز کدام گزینه صحیح است؟",
+        options: [
+          "A) اتصال برگشت‌ناپذیر دارند و طول اثرشان چند روز است.",
+          "B) اتصال بسیار ضعیف دارند و طول اثرشان فقط چند دقیقه است.",
+          "C) اتصال کووالانسی برگشت‌پذیر دارند و طول اثرشان در حد چند ساعت است.",
+          "D) فقط در کشاورزی و به‌عنوان حشره‌کش استفاده می‌شوند و هیچ کاربرد بالینی ندارند."
+        ],
+        correctIndex: 2,
+        explanation: "کاربامات‌ها پیوند کووالانسی ولی برگشت‌پذیر با آنزیم دارند و طول اثرشان چند ساعت است؛ مثال: Neostigmine, Pyridostigmine, Physostigmine, Donepezil و…"
+      },
+      {
+        text: "۹) کدام‌یک به‌عنوان ارگانوفسفات با اثر مهار کولین‌استراز غیر قابل برگشت در جزوه مطرح شده است؟",
+        options: [
+          "A) Echothiophate",
+          "B) Edrophonium",
+          "C) Rivastigmine",
+          "D) Pilocarpine"
+        ],
+        correctIndex: 0,
+        explanation: "اکوتیوفات به‌عنوان یک ارگانوفسفات با طول اثر طولانی و کاربرد چشمی (مثلاً در گلوکوم) ذکر می‌شود. ارگانوفسفات‌ها اتصال قوی و تقریباً غیرقابل برگشت با آنزیم دارند."
+      },
+      {
+        text: "۱۰) کدام علامت، جزو الگوی DUMBELS در مسمومیت موسکارینی کولینومیمتیک‌ها نیست؟",
+        options: [
+          "A) اسهال",
+          "B) میوزیس و برونکوکونستریکشن",
+          "C) افزایش تعریق و ترشح بزاق",
+          "D) یبوست و خشکی پوست"
+        ],
+        correctIndex: 3,
+        explanation: "DUMBELS به‌صورت Diarrhea, Urination, Miosis, Bronchoconstriction, Excitation, Lacrimation, Salivation, Sweating است؛ یبوست و خشکی پوست برعکس این الگو هستند."
+      },
+      {
+        text: "۱۱) در مورد بیماری Myasthenia gravis کدام گزینه صحیح است؟",
+        options: [
+          "A) در این بیماری تعداد گیرنده‌های موسکارینی کاهش می‌یابد.",
+          "B) علت، ایجاد آنتی‌بادی علیه گیرنده‌های نیکوتینی است و باعث افتادگی پلک و اختلال تنفس می‌شود.",
+          "C) درمان انتخابی، تجویز وارنیکلین است.",
+          "D) در این بیماری آزادسازی استیل‌کولین از انتهای عصبی مختل است."
+        ],
+        correctIndex: 1,
+        explanation: "MG یک بیماری خودایمنی با آنتی‌بادی علیه گیرنده‌های نیکوتینی در محل اتصال عصب–عضله است که منجر به ptosis، دیس‌فونی و در موارد شدید نارسایی تنفسی می‌شود."
+      },
+      {
+        text: "۱۲) کدام داروها طبق جزوه بیشتر برای درمان Myasthenia gravis استفاده می‌شوند؟",
+        options: [
+          "A) Donepezil و Galantamine",
+          "B) Neostigmine و Pyridostigmine",
+          "C) Varenicline و Pilocarpine",
+          "D) Edrophonium و Atropine"
+        ],
+        correctIndex: 1,
+        explanation: "برای MG از مهارکننده‌های کولین‌استراز با اثر محیطی مثل نئوستیگمین و پیریدوستیگمین استفاده می‌شود تا استیل‌کولین در محل اتصال عصب–عضله افزایش یابد."
+      },
+      {
+        text: "۱۳) در جزوه، کدام گروه دارویی برای بهبود اختلال شناختی در آلزایمر مطرح شده است؟",
+        options: [
+          "A) آنتاگونیست‌های موسکارینی",
+          "B) مهارکننده‌های کولین‌استراز با نفوذ به CNS",
+          "C) آگونیست‌های دوپامینرژیک",
+          "D) بتابلاکرهای انتخابی"
+        ],
+        correctIndex: 1,
+        explanation: "در فرضیه‌ی کولینرژیک آلزایمر، داروهایی مثل Donepezil، Rivastigmine، Galantamine و Tacrine به‌عنوان مهارکننده‌های کولین‌استراز لیپوفیل و مؤثر بر CNS ذکر شده‌اند."
+      },
+      {
+        text: "۱۴) در مورد داروی Varenicline طبق توضیحات جزوه، کدام عبارت صحیح‌تر است؟",
+        options: [
+          "A) یک آنتاگونیست موسکارینی برای درمان گلوکوم است.",
+          "B) مهارکننده‌ی کولین‌استراز محیطی در MG است.",
+          "C) دارویی نسبتاً جدید برای ترک سیگار است که با آزاد کردن دوپامین روی مراکز پاداش اثر می‌کند.",
+          "D) فقط به‌صورت موضعی در دهان‌شویه‌ها کاربرد دارد."
+        ],
+        correctIndex: 2,
+        explanation: "وارنیکلین به‌عنوان داروی مهم برای کمک به ترک سیگار معرفی می‌شود که با آزادسازی دوپامین در مراکز پاداش، اشتیاق به سیگار را کاهش می‌دهد."
+      },
+      {
+        text: "۱۵) کدام گزینه بهترین توصیف مکانیسم آنتی‌موسکارینیک‌ها است؟",
+        options: [
+          "A) آنتاگونیست غیررقابتی گیرنده‌های نیکوتینی",
+          "B) آنتاگونیست رقابتی برگشت‌پذیر گیرنده‌های موسکارینی",
+          "C) مهار سنتز استیل‌کولین در پایانه‌ی عصبی",
+          "D) مهار آزادسازی نوراپی‌نفرین از رشته‌های پس‌گانگلیونی"
+        ],
+        correctIndex: 1,
+        explanation: "آنتی‌موسکارینیک‌ها آنتاگونیست‌های فارماکولوژیک برگشت‌پذیر و رقابتی گیرنده‌های موسکارینی هستند و با اشغال گیرنده، مانع اتصال آگونیست می‌شوند."
+      },
+      {
+        text: "۱۶) کدام مورد نشان‌دهنده‌ی ترتیب حساسیت ارگان‌ها به آتروپین (از دوزهای کم به زیاد) در متن جزوه است؟",
+        options: [
+          "A) عضله صاف عروق → غدد بزاقی و عرق → سلول‌های پاریتال",
+          "B) غدد بزاقی و عرق → عضله مژگانی چشم و تطابق → ترشح اسید معده",
+          "C) سلول‌های پاریتال → غدد بزاقی → عضله مژگانی",
+          "D) قلب → غدد عرق → سلول‌های پاریتال"
+        ],
+        correctIndex: 1,
+        explanation: "با دوز کم آنتی‌کولینرژیک، ترشح بزاق و عرق مهار می‌شود؛ برای اختلال تطابق و میدریاز دوز متوسط، و برای کاهش ترشح اسید معده دوزهای بالاتر لازم است؛ این ترتیب نشان‌دهنده‌ی حساسیت متفاوت ارگان‌ها است."
+      },
+      {
+        text: "۱۷) کدام‌یک از عوارض زیر در جزوه به‌عنوان عوارض آنتی‌موسکارینیک‌ها ذکر شده است؟",
+        options: [
+          "A) میوزیس و افزایش ترشح اشک",
+          "B) یبوست و خشکی دهان",
+          "C) اسهال و تکرر ادرار",
+          "D) برونکواسپاسم و اسپاسم مثانه"
+        ],
+        correctIndex: 1,
+        explanation: "عوارض آنتی‌موسکارینیک‌ها شامل خشکی دهان، میدریاز و اختلال تطابق، تاکی‌کاردی و کاهش ترشحات و موتیلیتی گوارش (یعنی یبوست) هستند."
+      },
+      {
+        text: "۱۸) طبق جزوه، در نوزادان زیر ۶ ماه که برای کولیک شکمی آنتی‌کولینرژیک دریافت می‌کنند، مهم‌ترین نگرانی بالینی چیست؟",
+        options: [
+          "A) بروز برادی‌کاردی شدید",
+          "B) تشنج ناشی از هیپوکلسمی",
+          "C) هایپرترمی به علت مهار تعریق",
+          "D) افت شدید فشار خون"
+        ],
+        correctIndex: 2,
+        explanation: "آنتی‌کولینرژیک‌ها می‌توانند تعریق را متوقف کنند و در نوزادان زیر ۶ ماه به علت نابالغ بودن غدد عرق، خطر هایپرترمی جدی وجود دارد؛ در صورت بروز باید با ice pack و در صورت تشنج با دیازپام و در صورت لزوم فیزوستیگمین اقدام کرد."
+      },
+      {
+        text: "۱۹) کدام مورد از موارد منع مصرف برای تجویز داروهای با اثر آنتی‌کولینرژیک طبق جزوه است؟",
+        options: [
+          "A) بیمار با افسردگی خفیف بدون بیماری همراه",
+          "B) بیمار مبتلا به گلوکوم زاویه بسته و هایپرپلازی پروستات",
+          "C) بیمار مبتلا به آسم خفیف",
+          "D) بیمار با تب خفیف ویروسی"
+        ],
+        correctIndex: 1,
+        explanation: "در بیمارانی با گلوکوم، هایپرپلازی پروستات، احتباس ادراری و انسداد گوارشی، تجویز آنتی‌کولینرژیک‌ها می‌تواند حمله و تشدید علائم ایجاد کند و ممنوع است."
+      },
+      {
+        text: "۲۰) در مورد اثر داروهای کولینومیمتیک و آنتی‌کولینرژیک بر دستگاه گوارش کدام گزینه صحیح است؟",
+        options: [
+          "A) کولینومیمتیک‌ها یبوست و آنتی‌کولینرژیک‌ها اسهال ایجاد می‌کنند.",
+          "B) هر دو گروه باعث کاهش موتیلیتی روده می‌شوند.",
+          "C) کولینومیمتیک‌ها اسهال و آنتی‌کولینرژیک‌ها یبوست ایجاد می‌کنند.",
+          "D) هیچ‌کدام اثری بر موتیلیتی روده ندارند و فقط ترشحات را تغییر می‌دهند."
+        ],
+        correctIndex: 2,
+        explanation: "کولینومیمتیک‌ها با افزایش فعالیت پاراسمپاتیک، موتیلیتی روده را زیاد کرده و می‌توانند اسهال بدهند، در حالی‌که آنتی‌موسکارینیک‌ها موتیلیتی را کاهش داده و یبوست ایجاد می‌کنند."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    const questionHeaderEl = document.getElementById("question-header");
+    const questionTextEl = document.getElementById("question-text");
+    const optionsEl = document.getElementById("options");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const submitBtn = document.getElementById("submit-btn");
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+    const quizAreaEl = document.getElementById("quiz-area");
+    const progressFillEl = document.getElementById("progress-fill");
+    const progressLabelEl = document.getElementById("progress-label");
+
+    function renderQuestion() {
+      const q = questions[currentQuestionIndex];
+      questionHeaderEl.textContent = `سؤال ${currentQuestionIndex + 1} از ${questions.length}`;
+      questionTextEl.textContent = q.text;
+      optionsEl.innerHTML = "";
+
+      q.options.forEach((opt, idx) => {
+        const label = document.createElement("label");
+        label.className = "option";
+
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "option";
+        input.value = idx;
+
+        if (userAnswers[currentQuestionIndex] === idx) {
+          input.checked = true;
+          label.classList.add("selected");
+        }
+
+        input.addEventListener("change", () => {
+          userAnswers[currentQuestionIndex] = idx;
+
+          Array.from(optionsEl.querySelectorAll(".option")).forEach(el => el.classList.remove("selected"));
+          label.classList.add("selected");
+
+          updateStatus();
+          autoNext();
+        });
+
+        const radio = document.createElement("div");
+        radio.className = "radio-dot";
+        const inner = document.createElement("div");
+        inner.className = "radio-inner";
+        radio.appendChild(inner);
+
+        const textSpan = document.createElement("span");
+        textSpan.textContent = opt;
+
+        label.appendChild(input);
+        label.appendChild(radio);
+        label.appendChild(textSpan);
+        optionsEl.appendChild(label);
+      });
+
+      prevBtn.disabled = currentQuestionIndex === 0;
+      nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+
+      updateStatus();
+    }
+
+    function updateStatus() {
+      const answeredCount = userAnswers.filter(a => a !== null).length;
+      const total = questions.length;
+      const percent = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+
+      statusEl.innerHTML = `
+        <span>پاسخ‌داده‌شده: ${answeredCount} از ${total}</span>
+        <span>پیشرفت: ${percent}٪</span>
+      `;
+
+      progressFillEl.style.width = percent + "%";
+      progressLabelEl.textContent = percent + "% انجام شده";
+    }
+
+    function goToNext() {
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+      }
+    }
+
+    function goToPrev() {
+      if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        renderQuestion();
+      }
+    }
+
+    function autoNext() {
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+      }
+    }
+
+    prevBtn.addEventListener("click", goToPrev);
+    nextBtn.addEventListener("click", goToNext);
+
+    submitBtn.addEventListener("click", () => {
+      let correctCount = 0;
+      let unansweredCount = 0;
+
+      questions.forEach((q, i) => {
+        if (userAnswers[i] === null) {
+          unansweredCount++;
+        } else if (userAnswers[i] === q.correctIndex) {
+          correctCount++;
+        }
+      });
+
+      const total = questions.length;
+      const percent = total === 0 ? 0 : Math.round((correctCount / total) * 100);
+
+      let html = `
+        <div class="card">
+          <div class="result-main">
+            <div>
+              <h2>نتیجه آزمون</h2>
+              <div class="score-chip">
+                <span class="score-dot"></span>
+                <span>${correctCount} سؤال درست از ${total}</span>
+              </div>
+              ${unansweredCount > 0
+                ? `<p class="muted">${unansweredCount} سؤال بدون پاسخ بود (در محاسبه، نادرست محسوب شده‌اند).</p>`
+                : `<p class="muted">همه سؤالات را پاسخ داده‌اید.</p>`
+              }
+            </div>
+            <div>
+              <div class="percent-big ${percent < 60 ? "bad" : ""}">${percent}٪</div>
+              <div class="percent-label">درصد نهایی</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h2 style="margin:0 0 6px;font-size:0.9rem;">بررسی سؤالات</h2>
+          <p class="muted" style="margin-top:0;">برای هر سؤال، پاسخ خودت، پاسخ صحیح و توضیح جزوه نوشته شده است.</p>
+      `;
+
+      questions.forEach((q, i) => {
+        const userIndex = userAnswers[i];
+        const isCorrect = userIndex === q.correctIndex;
+        const userText = userIndex !== null ? q.options[userIndex] : "بدون پاسخ";
+        const correctText = q.options[q.correctIndex];
+        const explanationText = q.explanation || "توضیحی ثبت نشده است.";
+
+        html += `
+          <div class="summary-question">
+            <div class="summary-question-title">سؤال ${i + 1}</div>
+            <div class="summary-line">
+              <span class="summary-label">متن سؤال: </span>${q.text}
+            </div>
+            <div class="summary-line">
+              <span class="summary-label">پاسخ شما: </span>
+              <span class="${isCorrect ? "correct" : "incorrect"}">${userText}</span>
+            </div>
+            <div class="summary-line">
+              <span class="summary-label">پاسخ صحیح: </span>
+              <span class="correct">${correctText}</span>
+            </div>
+            <div class="explanation">
+              <span class="summary-label">توضیح: </span>${explanationText}
+            </div>
+          </div>
+        `;
+      });
+
+      html += "</div>";
+
+      resultEl.innerHTML = html;
+
+      quizAreaEl.classList.add("quiz-disabled");
+    });
+
+    // init
+    renderQuestion();
+  </script>
+
+<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
+<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+</body>
+</html>
+
+
+

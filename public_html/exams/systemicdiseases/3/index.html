@@ -1,0 +1,1247 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260421-pwa">
+<link rel="stylesheet" href="/assets/site/styles/quiz.css?v=20260421-pwa">
+<meta charset="UTF-8">
+    <title>آزمون بیماری‌های سیستمیک ۱ – جلسه ۳ (اندوکاردیت، پروفیلاکسی و ملاحظات قلبی) | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- استایل کلی سایت برای فونت و ... -->
+    <!-- آیکون تب (logo.png مثل سایت اصلی) -->
+    <link rel="icon" type="image/png" href="/assets/images/logo.png">
+    <link rel="shortcut icon" href="/assets/images/logo.png">
+
+    <style>
+        :root {
+            --bg-body: #050b14;
+            --bg-card: #111b2b;
+            --bg-card-hover: #1a283d;
+            --text-primary: #e6f1ff;
+            --text-secondary: #8892b0;
+            --accent-color: #64ffda;
+            --border-color: #233554;
+            --btn-gradient: linear-gradient(135deg, #007cf0 0%, #00dfd8 100%);
+            --btn-shadow: 0 4px 15px rgba(0, 223, 216, 0.3);
+            --font-main: "Yekan Bakh", "Yekan", "IRANSans", system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .background-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 10%, #172a45 0%, #050b14 70%);
+        }
+
+        .site-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 5%;
+            background: rgba(5, 11, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 223, 216, 0.4);
+            flex-shrink: 0;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        .site-info h1 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .site-info p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .badge-unofficial {
+            font-size: 0.7rem;
+            background: rgba(255, 99, 99, 0.1);
+            color: #ff6363;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 99, 99, 0.2);
+            white-space: nowrap;
+        }
+
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .quiz-wrapper {
+            max-width: 900px;
+            margin: 0 auto 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .back-button-wrapper {
+            margin-bottom: 0.5rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.82rem;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .back-icon {
+            font-size: 1rem;
+        }
+
+        .quiz-header {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .info-pill {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(100, 255, 218, 0.08);
+            border: 1px solid rgba(100, 255, 218, 0.4);
+            font-size: 0.78rem;
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .quiz-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .quiz-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-wrapper {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .progress-top-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(15, 23, 42, 1);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: var(--btn-gradient);
+            transition: width 0.2s ease-out;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.82rem;
+        }
+
+        .question-tag {
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .question-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .question-text {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-btn {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: #0b1624;
+            padding: 0.75rem 0.9rem;
+            text-align: right;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+            font-size: 0.92rem;
+            font-family: var(--font-main);
+            color: #ffffff; /* متن گزینه‌ها سفید */
+        }
+
+        .option-btn:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+        }
+
+        .option-btn.selected {
+            background: rgba(100, 255, 218, 0.08);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 1px rgba(100, 255, 218, 0.35);
+        }
+
+        .option-letter {
+            font-weight: 700;
+            min-width: 24px;
+            color: var(--accent-color);
+        }
+
+        .option-text {
+            flex: 1;
+            font-family: var(--font-main);
+            color: #ffffff;
+        }
+
+        .nav-buttons {
+            margin-top: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            justify-content: space-between;
+        }
+
+        .nav-left,
+        .nav-right {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-base {
+            border-radius: 999px;
+            padding: 0.55rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-secondary);
+            transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
+        }
+
+        .btn-base:hover {
+            background: #131f33;
+            border-color: rgba(100, 255, 218, 0.35);
+            color: var(--text-primary);
+        }
+
+        .btn-base:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .btn-primary {
+            background: var(--btn-gradient);
+            color: #ffffff;
+            border: none;
+            box-shadow: var(--btn-shadow);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+
+        #resultsSection {
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .results-section {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 1.4rem 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .results-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .results-main {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .results-score {
+            font-size: 2.1rem;
+            font-weight: 800;
+            color: var(--accent-color);
+        }
+
+        .score-number {
+            font-size: 2.4rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .score-detail {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .results-box {
+            background: #0b1624;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 0.7rem 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+        }
+
+        .results-box-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .results-box-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .answer-card {
+            background: #0b1624;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .answer-question-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .answer-question-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .answer-options-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(15, 23, 42, 0.6);
+        }
+
+        .option-main {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.85rem;
+        }
+
+        .option-label {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .option-row .option-text {
+            color: var(--text-primary);
+        }
+
+        .option-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .option-row.correct {
+            border: 1px solid rgba(34, 197, 94, 0.75);
+            background: rgba(22, 163, 74, 0.14);
+        }
+
+        .option-row.user-correct {
+            border: 1px solid rgba(34, 197, 94, 0.95);
+            background: rgba(22, 163, 74, 0.22);
+        }
+
+        .option-row.user-wrong {
+            border: 1px solid rgba(248, 113, 113, 0.9);
+            background: rgba(248, 113, 113, 0.12);
+        }
+
+        .option-row.correct .option-tag,
+        .option-row.user-correct .option-tag {
+            border-color: rgba(34, 197, 94, 0.9);
+            color: #bbf7d0;
+        }
+
+        .option-row.user-wrong .option-tag {
+            border-color: rgba(248, 113, 113, 0.9);
+            color: #fecaca;
+        }
+
+        .answer-explanation {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .answer-explanation strong {
+            color: var(--text-primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-body);
+        }
+
+        footer span {
+            color: var(--accent-color);
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 1.3rem 4%;
+            }
+
+            .quiz-header,
+            .question-card,
+            .results-section {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .question-card {
+                padding: 1.1rem 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.5rem;
+            }
+        }
+    </style>
+<meta name="theme-color" content="#050b14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dent1402">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260421-pwa">
+</head>
+<body class="quiz-page">
+
+<div class="background-overlay"></div>
+
+<header class="site-header">
+    <div class="logo-area">
+        <div class="logo-circle">
+            <img src="/assets/images/logo.png" alt="لوگوی ورودی ۱۴۰۲">
+        </div>
+        <div class="site-info">
+            <h1>ورودی ۱۴۰۲ دندانپزشکی</h1>
+            <p>دانشگاه علوم پزشکی تهران</p>
+        </div>
+    </div>
+    <div class="badge-unofficial">سامانه غیررسمی</div>
+</header>
+
+<main>
+    <section class="quiz-wrapper">
+        <div class="back-button-wrapper">
+            <!-- برمی‌گرده به فهرست آزمون‌های سیستمیک ۱ -->
+            <a href=".." class="back-btn">
+                <span class="back-icon">←</span>
+                بازگشت به فهرست آزمون‌های سیستمیک ۱
+            </a>
+        </div>
+
+        <!-- هدر آزمون -->
+        <div class="quiz-header">
+            <span class="info-pill">آزمون تمرینی بیماری‌های سیستمیک ۱ – جلسه ۳ (اندوکاردیت، پروفیلاکسی و ملاحظات قلبی)</span>
+            <h2 class="quiz-title">سؤالات جلسه ۳ – اندوکاردیت عفونی، پروفیلاکسی و ملاحظات قلبی در دندان‌پزشکی</h2>
+            <p class="quiz-subtitle">
+                بعد از انتخاب هر گزینه، به‌صورت خودکار به سؤال بعدی می‌روی. در انتها روی «پایان آزمون و مشاهده نتیجه»
+                کلیک کن تا نمره و پاسخ‌های تشریحی را ببینی.
+            </p>
+
+            <div class="progress-wrapper">
+                <div class="progress-top-row">
+                    <span id="questionCounter">سؤال ۱ از ۳۰</span>
+                    <span id="answeredCounter">۰ / ۳۰ پاسخ داده شده</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- کارت سؤال -->
+        <div class="question-card">
+            <div class="question-top-row">
+                <span id="questionTag" class="question-tag">سؤال ۱</span>
+                <span id="questionStatus" class="question-status">وضعیت: بدون پاسخ</span>
+            </div>
+            <h3 id="questionText" class="question-text"></h3>
+
+            <div id="optionsContainer" class="options-list">
+                <!-- گزینه‌ها با JS اضافه می‌شن -->
+            </div>
+
+            <div class="nav-buttons">
+                <div class="nav-right">
+                    <button id="prevBtn" class="btn-base" type="button">
+                        ← سؤال قبلی
+                    </button>
+                    <button id="nextBtn" class="btn-base" type="button">
+                        سؤال بعدی →
+                    </button>
+                </div>
+                <div class="nav-left">
+                    <button id="finishBtn" class="btn-base btn-primary" type="button">
+                        پایان آزمون و مشاهده نتیجه
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- نتایج -->
+        <section id="resultsSection" class="results-section">
+            <div class="results-header">
+                <div class="results-main">
+                    <div class="results-score">
+                        <span id="scorePercent" class="score-number">0%</span>
+                    </div>
+                    <div id="scoreLabel" class="score-label">۰ پاسخ صحیح از ۳۰ سؤال</div>
+                    <div class="score-detail">
+                        عملکردت رو در این آزمون ببین؛ پایین‌تر می‌تونی پاسخ صحیح و توضیح تشریحی همه سؤالات رو ببینی.
+                    </div>
+                </div>
+
+                <div class="results-grid">
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ صحیح</span>
+                        <span id="scoreCorrect" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">پاسخ غلط</span>
+                        <span id="scoreWrong" class="results-box-value">0</span>
+                    </div>
+                    <div class="results-box">
+                        <span class="results-box-label">بی‌پاسخ</span>
+                        <span id="scoreUnanswered" class="results-box-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="answers-list" id="answersContainer">
+                <!-- مرور پاسخ‌ها اینجا ساخته می‌شود -->
+            </div>
+        </section>
+    </section>
+</main>
+
+<footer>
+    <p>طراحی شده با ❤️ برای ورودی ۱۴۰۲ دانشکده دندانپزشکی تهران - آرین قاسم‌پور</p>
+</footer>
+
+<script>
+    // ۳۰ سؤال جلسه ۳ – اندوکاردیت، پروفیلاکسی و ملاحظات قلبی
+    const questions = [
+        {
+            question: 'در مورد اهداف تجویز آنتی‌بیوتیک پروفیلاکسی در بیماران در معرض اندوکاردیت عفونی، کدام جمله صحیح‌تر است؟',
+            options: [
+                'برای درمان عفونت مخفی دریچه‌های قلبی تجویز می‌شود.',
+                'برای کاهش شدت اندوکاردیت در صورت بروز، نه پیشگیری از آن.',
+                'برای کاهش باکتریمی گذرا ناشی از اعمال دندان‌پزشکی در بیماران پرخطر.',
+                'برای پیشگیری از ایجاد پلاک‌های آتروماتوز در عروق کرونر.'
+            ],
+            correctIndex: 2,
+            explanation: 'هدف اصلی پروفیلاکسی، کاهش باکتریمی ناشی از مداخلات دندان‌پزشکی در بیماران با ریسک بالای IE است، نه درمان عفونت مزمن یا پیشگیری از آترواسکلروز.'
+        },
+        {
+            question: 'کدامیک از وضعیت‌های قلبی زیر در پروتکل جدید جزو گروه با ریسک بالای اندوکاردیت و نیازمند پروفیلاکسی محسوب می‌شود؟',
+            options: [
+                'سوفل سیستولیک عملکردی بدون بیماری ساختاری',
+                'پرولاپس دریچه میترال بدون نارسایی',
+                'دریچه قلبی پروتزی (مکانیکی یا بیولوژیک)',
+                'کاردیومیوپاتی هیپرتروفیک بدون علائم'
+            ],
+            correctIndex: 2,
+            explanation: 'دریچه‌های پروتزی قلب (مکانیکی یا بیولوژیک) در گروه پرخطر قرار دارند؛ پرولاپس ساده و سوفل عملکردی به‌تنهایی اندیکاسیون پروفیلاکسی نیستند.'
+        },
+        {
+            question: 'طبق پروتکل‌های جدید، وجود کدام مورد به‌تنهایی اندیکاسیون پروفیلاکسی اندوکاردیت قبل از درمان دندان‌پزشکی نیست؟',
+            options: [
+                'سابقه قبلی اندوکاردیت عفونی',
+                'برخی بیماری‌های مادرزادی سیانوتیک اصلاح‌نشده',
+                'سابقه پیوند قلب همراه با درگیری دریچه‌ای',
+                'پرولاپس دریچه میترال بدون عارضه'
+            ],
+            correctIndex: 3,
+            explanation: 'در پروتکل جدید، «پرولاپس میترال» بدون عارضه از فهرست شرایط نیازمند پروفیلاکسی حذف شده است؛ سه مورد دیگر جزء شرایط پرخطر هستند.'
+        },
+        {
+            question: 'همه موارد زیر از پروسیجرهای دندان‌پزشکی نیازمند پروفیلاکسی هستند، به جز:',
+            options: [
+                'کشیدن دندان مولر با درگیری لثه',
+                'جرم‌گیری و روت پلنینگ زیر لثه‌ای',
+                'جراحی فلپ پریودنتال',
+                'ترمیم سطح مزیال دندان قدامی با ایزولیشن مناسب و بدون خونریزی لثه'
+            ],
+            correctIndex: 3,
+            explanation: 'اعمالی که با دستکاری بافت لثه یا ناحیه پری‌آپیکال یا سوراخ کردن مخاط همراه‌اند نیازمند پروفیلاکسی هستند؛ ترمیم سطحی بدون تماس با لثه معمولاً در این گروه نیست.'
+        },
+        {
+            question: 'کدامیک از اقدامات زیر معمولاً نیاز به پروفیلاکسی آنتی‌بیوتیکی ندارد؟',
+            options: [
+                'جرم‌گیری ساب‌جینجیوال',
+                'بیوپسی از ضایعه مخاطی دهان',
+                'تزریق بی‌حسی موضعی اینفیلتراسیون در بافت غیرعفونی',
+                'کشیدن دندان نهفته با فلپ جراحی'
+            ],
+            correctIndex: 2,
+            explanation: 'تزریق بی‌حسی در بافت سالم در فهرست پروسیجرهایی است که نیاز به پروفیلاکسی ندارند؛ بقیه پروسیجرها با دستکاری قابل‌توجه لثه/مخاط همراه‌اند.'
+        },
+        {
+            question: 'در بیمار پرخطر برای اندوکاردیت که نیاز به جرم‌گیری دارد، بهترین زمان تجویز آنتی‌بیوتیک پروفیلاکسی بر اساس جزوه کدام است؟',
+            options: [
+                'همزمان با شروع جرم‌گیری',
+                '۳۰ تا ۶۰ دقیقه قبل از شروع پروسیجر',
+                'بلافاصله پس از پایان درمان',
+                'شب قبل از درمان و تکرار دوز صبح درمان'
+            ],
+            correctIndex: 1,
+            explanation: 'آنتی‌بیوتیک باید حدود نیم تا یک ساعت قبل از مداخله تجویز شود تا هنگام ایجاد باکتریمی سطح دارو در خون مناسب باشد.'
+        },
+        {
+            question: 'کدامیک از ترکیب‌های زیر، در بیمار بدون حساسیت دارویی، رژیم استاندارد پروفیلاکسی اندوکاردیت را بهتر نشان می‌دهد؟',
+            options: [
+                'آموکسی‌سیلین خوراکی تک‌دوز قبل از درمان',
+                'مترونیدازول خوراکی به مدت ۷ روز',
+                'سفالکسین خوراکی سه روز قبل از درمان',
+                'سیپروفلوکساسین خوراکی بعد از پایان درمان'
+            ],
+            correctIndex: 0,
+            explanation: 'انتخاب اول پروفیلاکسی در بیمار بدون حساسیت، آموکسی‌سیلین خوراکی تک‌دوز قبل از پروسیجر است.'
+        },
+        {
+            question: 'در بیمار با حساسیت شدید به پنی‌سیلین که در گروه پرخطر اندوکاردیت قرار دارد، کدام گزینه مناسب‌ترین جایگزین برای پروفیلاکسی است؟',
+            options: [
+                'آموکسی‌سیلین',
+                'کلیندامایسین یا آزیترومایسین طبق دوز توصیه‌شده',
+                'مترونیدازول به تنهایی',
+                'سفالکسین با دوز مشابه آموکسی‌سیلین'
+            ],
+            correctIndex: 1,
+            explanation: 'در بیماران آلرژیک به پنی‌سیلین، از ماکرولیدها یا کلیندامایسین به‌عنوان جایگزین استفاده می‌شود؛ سفالکسین در حساسیت شدید می‌تواند مشکل‌ساز باشد.'
+        },
+        {
+            question: 'در مورد تعداد جلسات درمانی با فاصله کم در بیمار پرخطر برای اندوکاردیت، کدام جمله درست‌تر است؟',
+            options: [
+                'می‌توان در هر روز چند بار آنتی‌بیوتیک پروفیلاکسی تکرار کرد.',
+                'در صورت لزوم چند جلسه در یک روز بهتر از پخش کردن درمان در چند روز است.',
+                'بین جلسات نیازمند پروفیلاکسی باید حداقل ۷ تا ۱۰ روز فاصله باشد.',
+                'در جلسات بعدی نیازی به پروفیلاکسی نیست اگر جلسه اول آنتی‌بیوتیک داده شده باشد.'
+            ],
+            correctIndex: 2,
+            explanation: 'برای کاهش احتمال مقاومت و حفظ فلور نرمال، بین جلسات پروفیلاکسی ترجیحاً حدود یک هفته فاصله وجود داشته باشد.'
+        },
+        {
+            question: 'در کدام بیمار زیر، پروفیلاکسی اندوکاردیت برای جرم‌گیری روتین اندیکاسیون ندارد؟',
+            options: [
+                'بیمار با سابقه اندوکاردیت عفونی قبلی',
+                'بیمار با دریچه آئورت مکانیکی',
+                'بیمار با پرولاپس میترال بدون نارسایی و بدون سابقه اندوکاردیت',
+                'بیمار با شنت سیانوتیک مادرزادی اصلاح‌نشده'
+            ],
+            correctIndex: 2,
+            explanation: 'سه گزینه دیگر در گروه پرخطر تعریف شده در جزوه هستند و نیازمند پروفیلاکسی‌اند؛ پرولاپس ساده بدون عارضه معیار پروفیلاکسی نیست.'
+        },
+        {
+            question: 'کدام یک از موارد زیر در بیمار مبتلا به آنژین پایدار برای درمان دندان‌پزشکی صحیح‌تر است؟',
+            options: [
+                'وقت درمان در انتهای روز و طولانی تنظیم شود.',
+                'نیتروگلیسیرین باید در دسترس باشد و قبل از شروع کار آماده گردد.',
+                'از هرگونه داروی ضداضطراب اجتناب شود.',
+                'استفاده از اپی‌نفرین در بی‌حسی موضعی کاملاً ممنوع است.'
+            ],
+            correctIndex: 1,
+            explanation: 'در بیماران ایسکمیک، نیتروگلیسیرین و اکسیژن باید در دسترس باشند و درمان‌ها کوتاه و همراه با کاهش اضطراب انجام شود؛ اپی‌نفرین به‌طور مطلق ممنوع نیست بلکه باید محدود شود.'
+        },
+        {
+            question: 'همه موارد زیر جزو اصول پروتکل کاهش اضطراب در بیماران قلبی هستند به جز:',
+            options: [
+                'وقت صبح، با مدت کوتاه و استراحت‌های بین کار',
+                'تبیین مراحل درمان و جلب همکاری بیمار',
+                'استفاده از بنزودیازپین‌های کوتاه‌اثر در صورت لزوم',
+                'انجام حداکثر درمان ممکن در یک جلسه طولانی برای کاهش تعداد مراجعات'
+            ],
+            correctIndex: 3,
+            explanation: 'جلسات باید کوتاه و غیرخسته‌کننده باشند؛ انجام حجم زیاد کار در یک جلسه طولانی باعث استرس و افزایش ریسک ایسکمیک می‌شود.'
+        },
+        {
+            question: 'در بیمار با سابقه MI کمتر از یک ماه، کدام اقدام صحیح‌تر است؟',
+            options: [
+                'می‌توان درمان انتخابی دندان‌پزشکی را با رعایت پروفیلاکسی انجام داد.',
+                'درمان‌های انتخابی باید به تعویق افتاده و فقط اقدامات اورژانس با حداقل تداخل انجام شود.',
+                'تنها محدودیت، عدم استفاده از اپی‌نفرین است.',
+                'هیچ محدودیتی وجود ندارد اگر بیمار بدون علامت باشد.'
+            ],
+            correctIndex: 1,
+            explanation: 'دوره کمتر از یک ماه پس از MI پرخطر است؛ درمان‌های انتخابی باید به تعویق افتند و فقط اورژانس با حداقل استرس انجام شود.'
+        },
+        {
+            question: 'بیماری که سابقه MI بیش از یک ماه دارد ولی هنوز در گروه پرخطر شدید قرار نمی‌گیرد، در کدام گروه ریسک قلبی قرار می‌گیرد؟',
+            options: [
+                'بدون خطر قلبی',
+                'خطر پایین قلبی',
+                'خطر متوسط قلبی',
+                'خطر شدید قلبی'
+            ],
+            correctIndex: 2,
+            explanation: 'در جدول طبقه‌بندی ریسک قلبی، MI بیش از یک ماه (بدون علائم ناپایدار) در گروه خطر متوسط قرار داده شده است.'
+        },
+        {
+            question: 'در مورد استفاده از بتابلوکرهای غیرانتخابی در بیمار قلبی که نیاز به تزریق بی‌حسی حاوی اپی‌نفرین دارد، کدام گزینه درست‌تر است؟',
+            options: [
+                'ترکیب بتابلوکر غیرانتخابی و اپی‌نفرین می‌تواند باعث بحران هیپرتانسیو شود.',
+                'بتابلوکرها هیچ تداخلی با اپی‌نفرین ندارند.',
+                'در حضور بتابلوکر باید دوز اپی‌نفرین دو برابر شود تا اثر کند.',
+                'مصرف بتابلوکر از عوارض اندوکاردیت پیشگیری می‌کند.'
+            ],
+            correctIndex: 0,
+            explanation: 'در مصرف‌کنندگان بتابلوکرهای غیرانتخابی، پاسخ عروقی اپی‌نفرین تغییر کرده و خطر افزایش ناگهانی فشار خون وجود دارد؛ دوز اپی‌نفرین باید محدود و با احتیاط استفاده شود.'
+        },
+        {
+            question: 'در بیماران تحت درمان با کلسیم کانال‌بلوکر (CCB)، تجویز کدام آنتی‌بیوتیک دندان‌پزشکی می‌تواند باعث افزایش عوارض داروی قلبی شود و باید از آن اجتناب شود؟',
+            options: [
+                'آموکسی‌سیلین',
+                'مترونیدازول',
+                'اریترومایسین',
+                'سیپروفلوکساسین'
+            ],
+            correctIndex: 2,
+            explanation: 'ماکرولیدهایی مانند اریترومایسین و کلاریترومایسین با مهار CYP3A4 می‌توانند سطح خونی CCB را افزایش داده و خطر هیپوتانسیون و برادی‌کاردی را بالا ببرند.'
+        },
+        {
+            question: 'در بیمار فشارخونی که داروی ضد فشار خون مصرف می‌کند، مصرف طولانی‌مدت NSAID چه اثری بر کنترل فشار خون دارد؟',
+            options: [
+                'باعث تقویت اثر داروهای ضد فشار خون می‌شود.',
+                'معمولاً اثری ندارد.',
+                'می‌تواند اثر داروهای ضد فشار خون را کاهش دهد.',
+                'فقط خطر خونریزی گوارشی را بالا می‌برد و به فشار خون ربطی ندارد.'
+            ],
+            correctIndex: 2,
+            explanation: 'NSAID‌ها در مصرف بیش از حدود دو هفته می‌توانند با مهار پروستاگلاندین‌ها، اثر بسیاری از داروهای ضد فشار خون را کاهش دهند.'
+        },
+        {
+            question: 'کدام داروی فشار خون از گروه CCB بیشترین ارتباط با افزایش حجم لثه در جزوه دارد؟',
+            options: [
+                'کاپتوپریل',
+                'دیلتیازم',
+                'هیدرالازین',
+                'لوزارتان'
+            ],
+            correctIndex: 1,
+            explanation: 'در بخش عوارض دهانی داروهای قلبی، دیلتیازم و سایر CCBها به‌عنوان داروهای مرتبط با هایپرپلازی لثه ذکر شده‌اند؛ ACEI و ARB در این مورد نقشی ندارند.'
+        },
+        {
+            question: 'در بیمار با اندوکاردیت عفونی فعال، در مورد درمان‌های دندان‌پزشکی انتخابی کدام گزینه صحیح‌تر است؟',
+            options: [
+                'می‌توان با پروفیلاکسی مناسب درمان را انجام داد.',
+                'باید تا پایان دوره درمان پزشکی اندوکاردیت به تعویق بیفتد.',
+                'فقط کشیدن دندان مجاز است.',
+                'فقط ترمیم‌های بدون خونریزی مجاز هستند.'
+            ],
+            correctIndex: 1,
+            explanation: 'در مرحله بیماری فعال، اولویت با کنترل عفونت سیستمیک است و درمان‌های انتخابی دندان‌پزشکی باید تا پایدار شدن وضعیت قلبی به تعویق بیفتند.'
+        },
+        {
+            question: 'در تشخیص اندوکاردیت عفونی، کدام مورد زیر جزو معیارهای اصلی (Major criteria) نیست؟',
+            options: [
+                'کشت خون مثبت برای میکروارگانیسم‌های شایع IE',
+                'شواهد اکوی کاردیوگرافی از درگیری اندوکارد',
+                'تب بالاتر از ۳۸ درجه',
+                'ضایعات اندوکاردیتی روی دریچه در اکوی ترانس‌اوسوفاژیال'
+            ],
+            correctIndex: 2,
+            explanation: 'در معیارهای Duke، تب در دسته معیارهای فرعی قرار دارد؛ کشت خون مثبت و شواهد اکوی مشخص جزو معیارهای اصلی هستند.'
+        },
+        {
+            question: 'شایع‌ترین عارضه و اولین علت مرگ در اندوکاردیت عفونی بر اساس جزوه کدام است؟',
+            options: [
+                'سکته مغزی',
+                'نارسایی قلب',
+                'آمبولی ریه',
+                'نارسایی کلیه'
+            ],
+            correctIndex: 1,
+            explanation: '«نارسایی قلب» به‌عنوان شایع‌ترین عارضه و مهم‌ترین علت مرگ بیماران IE معرفی شده است.'
+        },
+        {
+            question: 'کدامیک از علائم زیر جزو تریاد بالینی کلاسیک اندوکاردیت عفونی محسوب نمی‌شود؟',
+            options: [
+                'تب',
+                'سوفل قلبی',
+                'کشت خون مثبت',
+                'فشار خون بالا'
+            ],
+            correctIndex: 3,
+            explanation: 'تریاد کلاسیک شامل تب، سوفل جدید یا تغییر یافته و شواهد عفونت خونی است؛ فشار خون بالا به‌عنوان علامت اندوکاردیت مطرح نشده است.'
+        },
+        {
+            question: 'در مورد ملاحظات دندان‌پزشکی بیمار مبتلا به نارسایی قلبی، کدام گزینه صحیح است؟',
+            options: [
+                'استفاده از وضعیت تام‌سوپاین برای مدت طولانی توصیه می‌شود.',
+                'بهتر است بیمار در وضعیت نیمه نشسته (Semi-supine) قرار گیرد.',
+                'مصرف اپی‌نفرین در هر دوزی بدون محدودیت است.',
+                'بهتر است حجم زیادی از محلول بی‌حسی بدون وازوکنستریکور تزریق شود.'
+            ],
+            correctIndex: 1,
+            explanation: 'در نارسایی قلبی، وضعیت نیمه‌نشسته برای کاهش تنگی نفس و کاهش بار قلبی ترجیح دارد؛ همچنین باید از تزریق سریع حجم زیاد بی‌حسی اجتناب شود.'
+        },
+        {
+            question: 'در بیمار قلبی که همزمان وارفارین مصرف می‌کند و نیاز به درمان دندان‌پزشکی دارد، کدام اصل در جزوه برای تصمیم‌گیری اولیه مورد تأکید است؟',
+            options: [
+                'قطع کامل وارفارین یک هفته قبل از هر درمان دندان‌پزشکی',
+                'ارزیابی INR و تصمیم‌گیری بر اساس محدوده قابل قبول برای پروسیجر',
+                'جایگزینی وارفارین با NSAID',
+                'تجویز خودسرانه ویتامین K قبل از کار'
+            ],
+            correctIndex: 1,
+            explanation: 'ابتدا باید INR بررسی شود و در محدوده مشخصی بسیاری از درمان‌های دندان‌پزشکی بدون تغییر در دوز وارفارین قابل انجام‌اند؛ قطع خودسرانه دارو خطرناک است.'
+        },
+        {
+            question: 'در مورد بیمار فشارخونی که داروی دیورتیک مصرف می‌کند، کدام نکته در زمان درمان دندان‌پزشکی مهم‌تر است؟',
+            options: [
+                'احتمال بروز خشکی دهان و افزایش خطر پوسیدگی',
+                'کاهش شدید پلاکت‌ها',
+                'افزایش شدید خطر اندوکاردیت عفونی',
+                'بروز ناگهانی آریتمی بطنی'
+            ],
+            correctIndex: 0,
+            explanation: 'دیورتیک‌ها ممکن است با ایجاد زروستومیا، خطر پوسیدگی و مشکلات مخاطی را افزایش دهند؛ این نکته در مراقبت دهانی مهم است.'
+        },
+        {
+            question: 'کدام شرایط زیر نمونه‌ای از پروسیجرهایی است که علی‌رغم احتمال خونریزی خفیف، در دسته نیازمند پروفیلاکسی قرار نمی‌گیرند؟',
+            options: [
+                'افتادن خودبه‌خودی دندان شیری',
+                'جراحی برداشت ضایعه پری‌آپیکال',
+                'جرم‌گیری عمیق',
+                'ایمپلنت دندانی'
+            ],
+            correctIndex: 0,
+            explanation: 'ریزش فیزیولوژیک دندان شیری در فهرست پروسیجرهایی قرار دارد که نیاز به پروفیلاکسی ندارند، چون خطر آن بیش از فعالیت‌های روزمره نیست.'
+        },
+        {
+            question: 'در بیمار قلبی پرخطر که قبلاً در همان روز یک دوز پروفیلاکسی دریافت کرده و به‌علت شکست درمان نیاز به تکرار درمان در همان روز دارد، براساس توصیه جزوه چه رویکردی مناسب‌تر است؟',
+            options: [
+                'تکرار همان دوز پروفیلاکسی در همان روز',
+                'عدم تکرار آنتی‌بیوتیک و انجام درمان با رعایت آسپسی',
+                'قطع درمان و انتقال به روز دیگری با فاصله مناسب',
+                'تجویز دوز نصفه آنتی‌بیوتیک'
+            ],
+            correctIndex: 2,
+            explanation: 'برای پیشگیری از مصرف بی‌رویه آنتی‌بیوتیک و کاهش خطر مقاومت، در صورت نیاز به درمان مجدد، بهتر است درمان به روز دیگری با فاصله چند روز موکول شود تا پروفیلاکسی استاندارد تکرار شود.'
+        },
+        {
+            question: 'در کودک مبتلا به بیماری قلبی مادرزادی اصلاح‌نشده که نیاز به کشیدن دندان دارد، کدام گزینه در مورد پروفیلاکسی صحیح‌تر است؟',
+            options: [
+                'این بیماران نیاز به پروفیلاکسی ندارند.',
+                'فقط در صورت وجود تب نیاز به پروفیلاکسی است.',
+                'جزء گروه پرخطر محسوب شده و پروفیلاکسی قبل از کشیدن دندان توصیه می‌شود.',
+                'فقط در جراحی‌های بیمارستانی پروفیلاکسی لازم است.'
+            ],
+            correctIndex: 2,
+            explanation: 'برخی ناهنجاری‌های سیانوتیک اصلاح‌نشده در گروه پرخطر قرار گرفته و نیاز به آنتی‌بیوتیک پروفیلاکسی قبل از اعمال تهاجمی دهانی دارند.'
+        },
+        {
+            question: 'کدام یک از جملات زیر در مورد باکتریمی ناشی از اعمال دندان‌پزشکی بر اساس جزوه اندوکاردیت صحیح است؟',
+            options: [
+                'تنها پروسیجر ایجادکننده باکتریمی، کشیدن دندان است.',
+                'حتی مسواک زدن و جویدن می‌توانند باکتریمی خفیف ایجاد کنند.',
+                'باکتریمی فقط بعد از اعمال جراحی بزرگ فک و صورت رخ می‌دهد.',
+                'جرم‌گیری هیچ‌گاه باکتریمی ایجاد نمی‌کند.'
+            ],
+            correctIndex: 1,
+            explanation: 'باکتریمی گذرا می‌تواند در فعالیت‌های روزمره مانند مسواک‌زدن و جویدن نیز رخ دهد؛ این نکته در مقایسه ریسک درمان دندان‌پزشکی و زندگی روزمره مهم است.'
+        },
+        {
+            question: 'در بیمار پرخطر برای اندوکاردیت که نیاز به جرم‌گیری و تزریق بی‌حسی موضعی دارد، کدام ترتیب اقدامات مناسب‌تر است؟',
+            options: [
+                'ابتدا تزریق بی‌حسی، سپس پروفیلاکسی آنتی‌بیوتیکی',
+                'ابتدا پروفیلاکسی آنتی‌بیوتیکی، سپس تزریق بی‌حسی و شروع جرم‌گیری',
+                'ترتیب اهمیت ندارد؛ فقط پروفیلاکسی بعد از کار داده شود.',
+                'برای جرم‌گیری نیازی به بی‌حسی نیست اگر پروفیلاکسی داده شده باشد.'
+            ],
+            correctIndex: 1,
+            explanation: 'آنتی‌بیوتیک باید قبل از هر مداخله‌ای که احتمال باکتریمی دارد (از جمله تزریق داخل بافتی و جرم‌گیری) تجویز شود تا سطح خونی مناسب هنگام شروع کار وجود داشته باشد.'
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = new Array(questions.length).fill(null);
+
+    const questionCounterEl = document.getElementById('questionCounter');
+    const answeredCounterEl = document.getElementById('answeredCounter');
+    const progressFillEl = document.getElementById('progressFill');
+    const questionTagEl = document.getElementById('questionTag');
+    const questionStatusEl = document.getElementById('questionStatus');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainerEl = document.getElementById('optionsContainer');
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const finishBtn = document.getElementById('finishBtn');
+
+    const resultsSectionEl = document.getElementById('resultsSection');
+    const scorePercentEl = document.getElementById('scorePercent');
+    const scoreLabelEl = document.getElementById('scoreLabel');
+    const scoreCorrectEl = document.getElementById('scoreCorrect');
+    const scoreWrongEl = document.getElementById('scoreWrong');
+    const scoreUnansweredEl = document.getElementById('scoreUnanswered');
+    const answersContainerEl = document.getElementById('answersContainer');
+
+    function updateProgressUI() {
+        const total = questions.length;
+        const answeredCount = userAnswers.filter(a => a !== null).length;
+
+        questionCounterEl.textContent = `سؤال ${currentQuestionIndex + 1} از ${total}`;
+        answeredCounterEl.textContent = `${answeredCount} / ${total} پاسخ داده شده`;
+
+        const progressPercent = total === 0 ? 0 : Math.round((answeredCount / total) * 100);
+        progressFillEl.style.width = progressPercent + '%';
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestionIndex];
+
+        questionTagEl.textContent = `سؤال ${currentQuestionIndex + 1}`;
+        questionTextEl.textContent = q.question;
+
+        const userAnswer = userAnswers[currentQuestionIndex];
+        questionStatusEl.textContent = userAnswer === null ? 'وضعیت: بدون پاسخ' : 'وضعیت: پاسخ داده شده';
+
+        optionsContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'option-btn';
+            if (userAnswer === index) btn.classList.add('selected');
+            btn.dataset.index = index.toString();
+
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'option-letter';
+            letterSpan.textContent = letters[index] + ')';
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'option-text';
+            textSpan.textContent = opt;
+
+            btn.appendChild(letterSpan);
+            btn.appendChild(textSpan);
+
+            btn.addEventListener('click', () => handleOptionSelect(index));
+            optionsContainerEl.appendChild(btn);
+        });
+
+        prevBtn.disabled = currentQuestionIndex === 0;
+        nextBtn.disabled = currentQuestionIndex === questions.length - 1;
+
+        updateProgressUI();
+    }
+
+    function handleOptionSelect(optionIndex) {
+        userAnswers[currentQuestionIndex] = optionIndex;
+        if (currentQuestionIndex < questions.length - 1) currentQuestionIndex++;
+        renderQuestion();
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < questions.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+    });
+
+    finishBtn.addEventListener('click', () => {
+        finishQuiz();
+    });
+
+    function finishQuiz() {
+        const total = questions.length;
+        let correct = 0, wrong = 0, unanswered = 0;
+
+        questions.forEach((q, index) => {
+            const ans = userAnswers[index];
+            if (ans === null) unanswered++;
+            else if (ans === q.correctIndex) correct++;
+            else wrong++;
+        });
+
+        const percent = total === 0 ? 0 : Math.round((correct / total) * 100);
+
+        scorePercentEl.textContent = percent + '%';
+        scoreLabelEl.textContent = `${correct} پاسخ صحیح از ${total} سؤال`;
+        scoreCorrectEl.textContent = correct.toString();
+        scoreWrongEl.textContent = wrong.toString();
+        scoreUnansweredEl.textContent = unanswered.toString();
+
+        buildAnswersReview();
+        resultsSectionEl.style.display = 'flex';
+        resultsSectionEl.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function buildAnswersReview() {
+        answersContainerEl.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D', 'E'];
+
+        questions.forEach((q, index) => {
+            const userAnswer = userAnswers[index];
+
+            const card = document.createElement('div');
+            card.className = 'answer-card';
+
+            const qTitle = document.createElement('div');
+            qTitle.className = 'answer-question-title';
+            qTitle.textContent = `سؤال ${index + 1}`;
+            card.appendChild(qTitle);
+
+            const qText = document.createElement('div');
+            qText.className = 'answer-question-text';
+            qText.textContent = q.question;
+            card.appendChild(qText);
+
+            const optionsWrapper = document.createElement('div');
+            optionsWrapper.className = 'answer-options-wrapper';
+
+            q.options.forEach((opt, optIdx) => {
+                const row = document.createElement('div');
+                row.className = 'option-row';
+
+                const main = document.createElement('div');
+                main.className = 'option-main';
+
+                const label = document.createElement('span');
+                label.className = 'option-label';
+                label.textContent = letters[optIdx] + ')';
+
+                const text = document.createElement('span');
+                text.className = 'option-text';
+                text.textContent = opt;
+
+                main.appendChild(label);
+                main.appendChild(text);
+                row.appendChild(main);
+
+                const tag = document.createElement('span');
+                tag.className = 'option-tag';
+
+                if (optIdx === q.correctIndex && userAnswer === optIdx) {
+                    row.classList.add('user-correct');
+                    tag.textContent = '✓ صحیح (انتخاب شما)';
+                } else if (optIdx === q.correctIndex) {
+                    row.classList.add('correct');
+                    tag.textContent = '✓ گزینه صحیح';
+                } else if (userAnswer === optIdx) {
+                    row.classList.add('user-wrong');
+                    tag.textContent = '✗ انتخاب شما';
+                }
+
+                if (tag.textContent) row.appendChild(tag);
+                optionsWrapper.appendChild(row);
+            });
+
+            card.appendChild(optionsWrapper);
+
+            const expl = document.createElement('div');
+            expl.className = 'answer-explanation';
+            if (userAnswer === null) {
+                expl.innerHTML = `<strong>وضعیت پاسخ:</strong> این سؤال را پاسخ ندادی.<br><strong>توضیح:</strong> ${q.explanation}`;
+            } else {
+                expl.innerHTML = `<strong>توضیح:</strong> ${q.explanation}`;
+            }
+
+            card.appendChild(expl);
+            answersContainerEl.appendChild(card);
+        });
+    }
+
+    renderQuestion();
+</script>
+
+<script src="/assets/site/scripts/pwa.js?v=20260421-pwa"></script>
+<script src="/assets/site/scripts/shell.js?v=20260421-pwa"></script>
+</body>
+</html>
+
+
+

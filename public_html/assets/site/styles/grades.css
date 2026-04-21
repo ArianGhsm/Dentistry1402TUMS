@@ -1,0 +1,298 @@
+body.grades-page main {
+    flex: 1;
+    width: min(1200px, 100%);
+    margin: 0 auto;
+    padding: 2rem 5%;
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+}
+
+body.grades-page .hero-content {
+    text-align: right;
+    animation: fade-in-right 0.8s ease-out;
+}
+
+body.grades-page .greeting-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+    padding: 0.4rem 0.95rem;
+    border-radius: var(--radius-pill);
+    background: rgba(100, 255, 218, 0.1);
+    border: 1px solid rgba(100, 255, 218, 0.2);
+    color: var(--accent-color);
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+body.grades-page .hero-title {
+    margin: 0 0 1rem;
+    font-size: clamp(1.95rem, 4vw, 2.5rem);
+    font-weight: 900;
+    line-height: 1.45;
+}
+
+body.grades-page .hero-title span {
+    color: var(--accent-strong);
+}
+
+body.grades-page .hero-desc {
+    margin: 0;
+    max-width: 560px;
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+body.grades-page .cards-container {
+    animation: fade-in-left 0.8s ease-out 0.15s backwards;
+}
+
+body.grades-page .grades-card {
+    background: linear-gradient(180deg, rgba(17, 27, 43, 0.98), rgba(11, 22, 36, 0.98));
+    border: 1px solid rgba(35, 53, 84, 0.95);
+    border-radius: var(--radius-xl);
+    padding: 1.4rem 1.4rem 1.15rem;
+    box-shadow: var(--surface-shadow);
+    transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+}
+
+body.grades-page .grades-card:hover,
+body.grades-page .grades-card:focus-within {
+    transform: translateY(-3px);
+    border-color: rgba(100, 255, 218, 0.28);
+    box-shadow: var(--surface-shadow-strong);
+}
+
+body.grades-page .grades-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.35rem;
+    margin-bottom: 0.85rem;
+}
+
+body.grades-page .grades-logo {
+    width: min(160px, 55%);
+    height: auto;
+}
+
+body.grades-page .grades-title {
+    font-size: 1.06rem;
+    font-weight: 900;
+}
+
+body.grades-page .grades-subtitle,
+body.grades-page .grades-footer-note,
+body.grades-page .password-note,
+body.grades-page .grades-extra,
+body.grades-page .grades-name-title {
+    color: var(--text-secondary);
+}
+
+body.grades-page .grades-subtitle {
+    font-size: 0.82rem;
+}
+
+body.grades-page label {
+    display: block;
+    margin: 0.6rem 0 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+body.grades-page .input-group {
+    position: relative;
+}
+
+body.grades-page .input-group input {
+    width: 100%;
+    min-height: 44px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(148, 163, 184, 0.65);
+    background: var(--bg-soft);
+    color: var(--text-primary);
+    padding: 0.7rem 0.9rem 0.7rem 2.5rem;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, transform 0.1s ease;
+}
+
+body.grades-page .input-group input::placeholder {
+    color: #6b7280;
+}
+
+body.grades-page .input-group input:focus {
+    border-color: #3b82f6;
+    background: rgba(15, 23, 42, 0.98);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.7), 0 8px 20px rgba(37, 99, 235, 0.35);
+    transform: translateY(-1px);
+}
+
+body.grades-page .input-icon {
+    position: absolute;
+    inset-inline-start: 0.95rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+body.grades-page .primary-btn,
+body.grades-page .password-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 44px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    color: #fff;
+    font-weight: 800;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+body.grades-page .primary-btn {
+    width: 100%;
+    margin-top: 0.9rem;
+    padding: 0.7rem 1rem;
+    background: var(--btn-gradient);
+    box-shadow: var(--btn-shadow);
+}
+
+body.grades-page .password-btn {
+    margin-top: 0.4rem;
+    margin-inline-start: auto;
+    padding: 0.55rem 1rem;
+    background: linear-gradient(135deg, #0ea5e9, #22c55e);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+body.grades-page .primary-btn:hover:not(:disabled),
+body.grades-page .password-btn:hover:not(:disabled),
+body.grades-page .primary-btn:focus-visible,
+body.grades-page .password-btn:focus-visible {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+
+body.grades-page .primary-btn:hover:not(:disabled),
+body.grades-page .primary-btn:focus-visible {
+    box-shadow: 0 8px 20px rgba(0, 223, 216, 0.28);
+}
+
+body.grades-page .password-btn:hover:not(:disabled),
+body.grades-page .password-btn:focus-visible {
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.4);
+}
+
+body.grades-page .primary-btn:disabled,
+body.grades-page .password-btn:disabled {
+    opacity: 0.65;
+    transform: none;
+    box-shadow: none;
+    cursor: default;
+}
+
+body.grades-page .button-icon {
+    font-size: 0.94rem;
+}
+
+body.grades-page .feedback {
+    min-height: 1.3rem;
+    margin-top: 0.7rem;
+    font-size: 0.82rem;
+    text-align: center;
+}
+
+body.grades-page .feedback.error {
+    color: var(--danger-color);
+}
+
+body.grades-page .feedback.success {
+    color: var(--success-color);
+}
+
+body.grades-page .grades-box {
+    margin-top: 0.85rem;
+    padding: 0.8rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(35, 53, 84, 0.95);
+    background: rgba(5, 11, 20, 0.9);
+}
+
+body.grades-page .grades-name-block {
+    margin-bottom: 0.65rem;
+}
+
+body.grades-page .grades-name-value {
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+body.grades-page .grades-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+}
+
+body.grades-page .grade-item {
+    padding: 0.6rem 0.7rem;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(17, 27, 43, 0.85);
+}
+
+body.grades-page .grade-label {
+    font-size: 0.77rem;
+    color: var(--text-secondary);
+}
+
+body.grades-page .grade-value {
+    margin-top: 0.12rem;
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+body.grades-page .grades-extra {
+    margin-top: 0.2rem;
+    font-size: 0.76rem;
+}
+
+body.grades-page .password-change {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed rgba(55, 65, 81, 0.9);
+    font-size: 0.78rem;
+}
+
+body.grades-page .password-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.45rem;
+}
+
+body.grades-page .password-note,
+body.grades-page .grades-footer-note {
+    font-size: 0.74rem;
+}
+
+body.grades-page .grades-footer-note {
+    margin-top: 0.75rem;
+    text-align: center;
+}
+
+@media (min-width: 992px) {
+    body.grades-page main {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        min-height: calc(100vh - 86px);
+    }
+}
+
+@media (max-width: 768px) {
+    body.grades-page .password-row {
+        grid-template-columns: 1fr;
+    }
+}
