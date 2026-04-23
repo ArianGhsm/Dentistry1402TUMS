@@ -56,15 +56,11 @@ function Run-Git([string[]]$GitArgs) {
         return @()
     }
 
-    if ($output -is [System.Array]) {
-        return @($output)
-    }
-
-    return @([string]$output)
+    return @([string[]]$output)
 }
 
 function Run-GitSingle([string[]]$GitArgs) {
-    $lines = Run-Git -GitArgs $GitArgs
+    $lines = @(Run-Git -GitArgs $GitArgs)
     if ($lines.Count -eq 0) {
         return ""
     }
