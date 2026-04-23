@@ -61,7 +61,7 @@ Persistent instructions for coding agents working in this repository.
 - Deployment status explicitly reported.
 
 ## Deploy Runbook
-- Primary deploy command (changed-only under `public_html`):
+- Primary deploy command (default behavior is mandatory: `git pull --ff-only` -> host deploy -> live health-check):
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
@@ -72,4 +72,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRu
 - Full sync (only when explicitly needed):
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -FullSync
+```
+- Explicit local-state override (only when explicitly requested):
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipGitPull
 ```

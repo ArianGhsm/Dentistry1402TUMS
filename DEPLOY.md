@@ -1,51 +1,70 @@
 # Deploy
 
-مسیر مجاز deploy این پروژه:
+Canonical deploy entrypoint for this project:
 
-- لوکال: `public_html/`
-- ریموت: `/home/wluoczid/public_html`
+- script: `scripts/deploy_public_html.ps1`
+- local web root: `public_html/`
+- remote web root: `/public_html` (locked by script safety checks)
 
-قواعد:
+## Required default flow
 
-- `storage/` جزو web deploy نیست.
-- `scripts/` جزو web deploy نیست.
-- `.vscode/` نباید روی هاست بماند.
-- فقط از اسکریپت `scripts/deploy_public_html.ps1` استفاده کن.
+Running the default deploy command now always enforces this order:
 
-## رفتار پیش‌فرض (مهم)
+1. `git pull --ff-only` from the current branch upstream
+2. deploy to host
+3. post-deploy live health checks
 
-اسکریپت به صورت پیش‌فرض **فقط فایل‌های تغییرکرده داخل `public_html`** را deploy می‌کند:
+If sync fails (auth error, divergence, branch mismatch, pull failure, dirty working tree), deployment stops before any host upload/delete.
 
-- فایل‌های `Modified/Added/Untracked` آپلود می‌شوند.
-- فایل‌های `Deleted` از ریموت حذف می‌شوند.
-- rename هم به صورت حذف مسیر قدیم + آپلود مسیر جدید اعمال می‌شود.
+## Standard commands
 
-نمونه اجرا (استاندارد):
+Default deploy (recommended):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
 
-پیش‌نمایش بدون آپلود واقعی:
+Dry-run preview:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRun
 ```
 
-فقط اگر واقعاً لازم بود، full sync کل `public_html`:
+Full sync under `public_html` (only when explicitly needed):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -FullSync
 ```
 
-اگر لازم بود `.vscode` ریموت هم حذف شود:
+Delete remote `.vscode` after deploy if required:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DeleteVscodeOnRemote
 ```
 
-برای ترکیب فلگ‌ها:
+## Explicit overrides (use intentionally)
+
+Deploy current local state without `git pull` (only when explicitly requested):
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRun -DeleteVscodeOnRemote
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipGitPull
 ```
+
+Skip post-deploy health checks:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipPostDeployVerification
+```
+
+Custom verification URLs:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -HealthCheckUrls "https://dentistry1402tums.ir/","https://dentistry1402tums.ir/chat/"
+```
+
+## Scope and safety
+
+- `storage/` is not part of web deploy.
+- `scripts/` is not part of web deploy.
+- `.vscode/` must not remain on host.
+- Do not use ad-hoc deploy paths; use this script as the single deploy entrypoint.
