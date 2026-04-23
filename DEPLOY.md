@@ -2,7 +2,8 @@
 
 Canonical deploy entrypoint for this project:
 
-- script: `scripts/deploy_public_html.ps1`
+- script (Windows/PowerShell): `scripts/deploy_public_html.ps1`
+- script (Linux/macOS fallback): `scripts/deploy_public_html.sh`
 - local web root: `public_html/`
 - remote web root: `/public_html` (locked by script safety checks)
 
@@ -28,6 +29,19 @@ Dry-run preview:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRun
+```
+
+
+Linux/macOS fallback (for environments without `powershell`):
+
+```bash
+bash ./scripts/deploy_public_html.sh
+```
+
+Dry-run on Linux/macOS:
+
+```bash
+bash ./scripts/deploy_public_html.sh --dry-run
 ```
 
 Full sync under `public_html` (only when explicitly needed):
@@ -68,3 +82,18 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -Healt
 - `scripts/` is not part of web deploy.
 - `.vscode/` must not remain on host.
 - Do not use ad-hoc deploy paths; use this script as the single deploy entrypoint.
+
+## Credentials resolution
+
+Both deploy scripts can read credentials from `.vscode/sftp.json` when present.
+
+For Linux/macOS fallback script, you can also pass credentials via environment variables:
+
+```bash
+export DEPLOY_FTP_HOST="dentistry1402tums.ir"
+export DEPLOY_FTP_USER="<cpanel-user>"
+export DEPLOY_FTP_PASS="<cpanel-password>"
+# optional (defaults to public_html): export DEPLOY_REMOTE_PATH="public_html"
+bash ./scripts/deploy_public_html.sh
+```
+
