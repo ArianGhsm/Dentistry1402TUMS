@@ -1,4 +1,4 @@
-﻿{
+{
     "schemaVersion":  1,
     "ownerStudentNumber":  "40211272003",
     "users":  {
@@ -1535,6 +1535,19 @@
                                                   },
                                       "createdAt":  "2026-04-21T22:59:49.4050538+03:30",
                                       "updatedAt":  "2026-04-21T22:59:49.4050538+03:30"
+                                  },
+                  "40411272001":  {
+                                      "studentNumber":  "40411272001",
+                                      "name":  "بهاره مهدیقلی",
+                                      "passwordHash":  "pbkdf2_sha256$210000$TuQ2HDQOtjRG7SJvfO5mPQ$I4gJ9ZVpADYTNv8dxn2SQTRicqdic8Fb8RUGlUXCvLw",
+                                      "role":  "student",
+                                      "profile":  {
+                                                      "bio":  "",
+                                                      "contactHandle":  "",
+                                                      "focusArea":  ""
+                                                  },
+                                      "createdAt":  "2026-04-22T23:46:40.6043039+03:30",
+                                      "updatedAt":  "2026-04-22T23:46:40.6043039+03:30"
                                   },
                   "40411272002":  {
                                       "studentNumber":  "40411272002",

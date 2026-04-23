@@ -62,15 +62,31 @@
     --accent-color: #2b6df3;
     --accent-strong: #1f56d6;
     --accent-soft: rgba(43, 109, 243, 0.12);
+    --text-on-accent: #ffffff;
     --success-color: #158f63;
     --warning-color: #c2811d;
     --danger-color: #c7535e;
     --border-color: rgba(127, 145, 165, 0.2);
     --border-color-strong: rgba(102, 122, 148, 0.3);
+    --focus-ring: rgba(43, 109, 243, 0.18);
+    --focus-ring-soft: rgba(43, 109, 243, 0.08);
     --surface-shadow: 0 16px 40px -30px rgba(19, 35, 62, 0.14);
     --surface-shadow-strong: 0 22px 50px -34px rgba(17, 30, 54, 0.18);
     --btn-gradient: linear-gradient(135deg, #2b6df3 0%, #4a8bff 100%);
     --btn-shadow: 0 12px 28px -16px rgba(43, 109, 243, 0.45);
+    --overlay-backdrop: rgba(18, 28, 45, 0.18);
+    --shell-nav-overlay: linear-gradient(180deg, rgba(244, 247, 251, 0), rgba(244, 247, 251, 0.82) 26%, rgba(244, 247, 251, 0.96));
+    --shell-nav-inner-bg: rgba(255, 255, 255, 0.94);
+    --shell-nav-inner-border: rgba(127, 145, 165, 0.15);
+    --shell-nav-active-bg: rgba(43, 109, 243, 0.1);
+    --shell-nav-badge-border: rgba(255, 255, 255, 0.92);
+    --shell-nav-badge-shadow: 0 10px 18px -14px rgba(20, 30, 45, 0.62);
+    --background-overlay:
+        radial-gradient(circle at 10% 6%, rgba(43, 109, 243, 0.08), transparent 24%),
+        radial-gradient(circle at 88% 0%, rgba(53, 178, 255, 0.06), transparent 20%),
+        linear-gradient(180deg, #f9fbfd 0%, #f4f7fb 46%, #eef2f7 100%);
+    --footer-title-color: #2e4f79;
+    --footer-credit-color: #58708d;
     --radius-xl: 30px;
     --radius-lg: 22px;
     --radius-md: 16px;
@@ -102,15 +118,31 @@ html[data-theme="dark"] {
     --accent-color: #72a9ff;
     --accent-strong: #90b9ff;
     --accent-soft: rgba(114, 169, 255, 0.14);
+    --text-on-accent: #f5f9ff;
     --success-color: #43c28f;
     --warning-color: #e5a44b;
     --danger-color: #ef7c88;
     --border-color: rgba(124, 145, 168, 0.18);
     --border-color-strong: rgba(124, 145, 168, 0.26);
+    --focus-ring: rgba(114, 169, 255, 0.24);
+    --focus-ring-soft: rgba(114, 169, 255, 0.12);
     --surface-shadow: 0 20px 48px -34px rgba(0, 0, 0, 0.48);
     --surface-shadow-strong: 0 26px 56px -34px rgba(0, 0, 0, 0.58);
     --btn-gradient: linear-gradient(135deg, #4f8dff 0%, #67a7ff 100%);
     --btn-shadow: 0 16px 30px -18px rgba(79, 141, 255, 0.38);
+    --overlay-backdrop: rgba(8, 14, 24, 0.5);
+    --shell-nav-overlay: linear-gradient(180deg, rgba(13, 20, 32, 0), rgba(13, 20, 32, 0.84) 26%, rgba(13, 20, 32, 0.96));
+    --shell-nav-inner-bg: rgba(14, 22, 34, 0.94);
+    --shell-nav-inner-border: rgba(124, 145, 168, 0.16);
+    --shell-nav-active-bg: rgba(114, 169, 255, 0.14);
+    --shell-nav-badge-border: rgba(14, 22, 34, 0.96);
+    --shell-nav-badge-shadow: 0 12px 20px -14px rgba(0, 0, 0, 0.68);
+    --background-overlay:
+        radial-gradient(circle at 12% 6%, rgba(82, 132, 255, 0.16), transparent 24%),
+        radial-gradient(circle at 88% 0%, rgba(78, 197, 255, 0.1), transparent 20%),
+        linear-gradient(180deg, #152133 0%, #0d1420 42%, #09101a 100%);
+    --footer-title-color: #a5bddd;
+    --footer-credit-color: #7f99b9;
 }
 
 *,
@@ -187,17 +219,7 @@ ol {
     position: fixed;
     inset: 0;
     z-index: -1;
-    background:
-        radial-gradient(circle at 10% 6%, rgba(43, 109, 243, 0.08), transparent 24%),
-        radial-gradient(circle at 88% 0%, rgba(53, 178, 255, 0.06), transparent 20%),
-        linear-gradient(180deg, #f9fbfd 0%, #f4f7fb 46%, #eef2f7 100%);
-}
-
-html[data-theme="dark"] .background-overlay {
-    background:
-        radial-gradient(circle at 12% 6%, rgba(82, 132, 255, 0.16), transparent 24%),
-        radial-gradient(circle at 88% 0%, rgba(78, 197, 255, 0.1), transparent 20%),
-        linear-gradient(180deg, #152133 0%, #0d1420 42%, #09101a 100%);
+    background: var(--background-overlay);
 }
 
 .site-header {
@@ -210,7 +232,7 @@ html[data-theme="dark"] .background-overlay {
     gap: 1rem;
     padding: 0.78rem 5%;
     background: var(--surface);
-    border-bottom: 1px solid rgba(127, 145, 165, 0.14);
+    border-bottom: 1px solid var(--border-color);
     backdrop-filter: blur(16px);
 }
 
@@ -228,14 +250,41 @@ html[data-theme="dark"] .background-overlay {
     overflow: hidden;
     border-radius: 14px;
     border: 1px solid rgba(127, 145, 165, 0.16);
-    background: var(--surface-solid);
-    box-shadow: 0 10px 28px -22px rgba(17, 30, 54, 0.14);
+    background:
+        radial-gradient(circle at top left, rgba(43, 109, 243, 0.18), transparent 42%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 246, 252, 0.96));
+    box-shadow: 0 14px 30px -22px rgba(17, 30, 54, 0.2);
 }
 
 .logo-circle img {
     width: 100%;
     height: 100%;
+    padding: 0.08rem;
     object-fit: cover;
+    filter: saturate(1.04) contrast(1.02);
+}
+
+/* Fallback sizing for dashboard service icons in case stale app.css is cached. */
+.portal-row__icon {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.portal-row__icon svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+}
+
+html[data-theme="dark"] .logo-circle {
+    border-color: rgba(127, 145, 165, 0.24);
+    background:
+        radial-gradient(circle at top left, rgba(121, 173, 255, 0.22), transparent 42%),
+        linear-gradient(180deg, rgba(20, 31, 47, 0.98), rgba(11, 19, 30, 0.96));
+    box-shadow: 0 16px 32px -22px rgba(3, 8, 15, 0.42);
 }
 
 .site-info {
@@ -317,6 +366,10 @@ footer {
 .site-footer p,
 footer p {
     margin: 0;
+    color: var(--footer-title-color);
+    font-family: var(--font-accent);
+    font-weight: 700;
+    letter-spacing: 0;
 }
 
 .site-footer::after,
@@ -324,7 +377,7 @@ footer::after {
     content: "ساخته شده با ❤ توسط آرین قاسم پور";
     display: block;
     margin-top: 0.55rem;
-    color: #58708d;
+    color: var(--footer-credit-color);
     font-family: var(--font-accent);
     font-size: 0.88rem;
     font-weight: 700;
@@ -425,7 +478,7 @@ body.app-shell-hidden {
 
 .shell-action-btn-primary {
     border: 0;
-    color: #fff;
+    color: var(--text-on-accent);
     background: var(--btn-gradient);
     box-shadow: var(--btn-shadow);
 }
@@ -443,7 +496,7 @@ body.app-shell-hidden {
     inset-block-end: 0;
     z-index: 210;
     padding: 0.5rem 0.65rem calc(0.72rem + env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(180deg, rgba(244, 247, 251, 0), rgba(244, 247, 251, 0.82) 26%, rgba(244, 247, 251, 0.96));
+    background: var(--shell-nav-overlay);
     pointer-events: none;
 }
 
@@ -454,8 +507,8 @@ body.app-shell-hidden {
     display: grid;
     grid-template-columns: repeat(var(--nav-count, 5), minmax(0, 1fr));
     gap: 0.22rem;
-    background: rgba(255, 255, 255, 0.94);
-    border: 1px solid rgba(127, 145, 165, 0.15);
+    background: var(--shell-nav-inner-bg);
+    border: 1px solid var(--shell-nav-inner-border);
     border-radius: 22px;
     box-shadow: 0 24px 54px -38px rgba(17, 30, 54, 0.22);
     backdrop-filter: blur(16px);
@@ -482,7 +535,7 @@ body.app-shell-hidden {
 }
 
 .shell-bottom-nav__link.is-active {
-    background: rgba(43, 109, 243, 0.1);
+    background: var(--shell-nav-active-bg);
     color: var(--accent-strong);
 }
 
@@ -492,6 +545,7 @@ body.app-shell-hidden {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 .shell-bottom-nav__icon svg {
@@ -505,12 +559,32 @@ body.app-shell-hidden {
     line-height: 1.1;
 }
 
+.shell-bottom-nav__badge {
+    position: absolute;
+    top: -8px;
+    inset-inline-start: 12px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    border: 1px solid var(--shell-nav-badge-border);
+    background: var(--danger-color);
+    color: var(--text-on-accent);
+    font-size: 0.58rem;
+    font-weight: 850;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shell-nav-badge-shadow);
+}
+
 .shell-drawer-backdrop,
 .shell-modal-backdrop {
     position: fixed;
     inset: 0;
     z-index: 260;
-    background: rgba(18, 28, 45, 0.18);
+    background: var(--overlay-backdrop);
     backdrop-filter: blur(6px);
     opacity: 0;
     pointer-events: none;

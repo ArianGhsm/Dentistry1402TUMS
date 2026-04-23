@@ -1,4 +1,7 @@
 <IfModule mod_mime.c>
+  AddDefaultCharset UTF-8
+  AddCharset UTF-8 .html .htm .css .js .json .webmanifest .txt .xml .svg
+
   AddType font/woff2 .woff2
   AddType font/woff  .woff
   AddType application/vnd.ms-fontobject .eot

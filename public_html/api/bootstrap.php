@@ -39,6 +39,32 @@ function dent_bootstrap(): void
 
         session_start();
     }
+
+    set_exception_handler(static function (Throwable $exception): void {
+        if (headers_sent()) {
+            return;
+        }
+
+        dent_emit_fallback_json_error('خطای داخلی سرور رخ داد.', 500);
+    });
+
+    register_shutdown_function(static function (): void {
+        $error = error_get_last();
+        if (!is_array($error)) {
+            return;
+        }
+
+        $fatalTypes = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR];
+        if (!in_array((int) ($error['type'] ?? 0), $fatalTypes, true)) {
+            return;
+        }
+
+        if (headers_sent()) {
+            return;
+        }
+
+        dent_emit_fallback_json_error('خطای داخلی سرور رخ داد.', 500);
+    });
 }
 
 function dent_storage_path(string $relativePath): string
@@ -55,16 +81,56 @@ function dent_ensure_directory(string $directory): void
     }
 
     if (!mkdir($directory, 0755, true) && !is_dir($directory)) {
-        dent_error('????? ?????????? ???? ?????????? ???? ?????.', 500);
+        dent_error('امکان آماده‌سازی فضای ذخیره‌سازی وجود ندارد.', 500);
     }
 }
 
 function dent_json_response(array $payload, int $statusCode = 200): void
 {
+    $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+    $json = json_encode($payload, $flags);
+    if ($json === false) {
+        $statusCode = 500;
+        $json = json_encode([
+            'success' => false,
+            'error' => 'خطا در تولید پاسخ JSON سرور.',
+        ], $flags);
+
+        if ($json === false) {
+            $json = '{"success":false,"error":"Server JSON encoding failed."}';
+        }
+    }
+
     http_response_code($statusCode);
     header('Content-Type: application/json; charset=UTF-8');
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    echo $json;
+    exit;
+}
+
+function dent_emit_fallback_json_error(string $message, int $statusCode = 500): void
+{
+    $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+
+    $json = json_encode([
+        'success' => false,
+        'error' => $message,
+    ], $flags);
+
+    if ($json === false) {
+        $json = '{"success":false,"error":"Server error."}';
+    }
+
+    http_response_code($statusCode);
+    header('Content-Type: application/json; charset=UTF-8');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    echo $json;
     exit;
 }
 
@@ -99,13 +165,18 @@ function dent_write_json_file(string $path, $payload): void
 {
     dent_ensure_directory(dirname($path));
 
-    $json = json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+
+    $json = json_encode($payload, $flags);
     if ($json === false) {
-        dent_error('??? ?? ????? ???? JSON.', 500);
+        dent_error('خطا در تولید داده JSON.', 500);
     }
 
     if (file_put_contents($path, $json . PHP_EOL, LOCK_EX) === false) {
-        dent_error('??? ?? ?????????? ???????.', 500);
+        dent_error('خطا در ذخیره‌سازی داده‌ها.', 500);
     }
 }
 
@@ -120,6 +191,13 @@ function dent_request_method(): string
     return strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
 }
 
+function dent_release_session_lock(): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+}
+
 function dent_normalize_digits(?string $value): string
 {
     $value = trim((string) $value);
@@ -128,7 +206,7 @@ function dent_normalize_digits(?string $value): string
     }
 
     return str_replace(
-        ['?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?', '?'],
+        ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹', '٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'],
         ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
         $value
     );
@@ -146,7 +224,7 @@ function dent_iso_now(): string
 
 function dent_clean_text(?string $value, int $maxLength): string
 {
-    $value = trim((string) $value);
+    $value = trim(dent_force_utf8((string) $value));
     $value = preg_replace('/\r\n|\r/u', "\n", $value) ?? '';
     $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $value) ?? '';
 
@@ -159,6 +237,43 @@ function dent_clean_text(?string $value, int $maxLength): string
     }
 
     return trim($value);
+}
+
+function dent_force_utf8(?string $value): string
+{
+    $value = (string) $value;
+    if ($value === '') {
+        return '';
+    }
+
+    if (preg_match('//u', $value) === 1) {
+        return $value;
+    }
+
+    $encodings = ['Windows-1256', 'CP1256', 'Windows-1252', 'ISO-8859-1'];
+
+    if (function_exists('iconv')) {
+        foreach ($encodings as $encoding) {
+            $converted = @iconv($encoding, 'UTF-8//IGNORE', $value);
+            if (is_string($converted) && $converted !== '' && preg_match('//u', $converted) === 1) {
+                return $converted;
+            }
+        }
+
+        $converted = @iconv('UTF-8', 'UTF-8//IGNORE', $value);
+        if (is_string($converted) && $converted !== '') {
+            return $converted;
+        }
+    }
+
+    if (function_exists('mb_convert_encoding')) {
+        $converted = @mb_convert_encoding($value, 'UTF-8', 'UTF-8,Windows-1256,CP1256,Windows-1252,ISO-8859-1');
+        if (is_string($converted) && $converted !== '' && preg_match('//u', $converted) === 1) {
+            return $converted;
+        }
+    }
+
+    return preg_replace('/[^\x09\x0A\x0D\x20-\x7E]/', '', $value) ?? '';
 }
 
 dent_bootstrap();

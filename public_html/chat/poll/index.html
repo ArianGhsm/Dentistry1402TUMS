@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#dfe8f3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="رأی‌گیری">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260422-brand1">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260422-brand1">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260422-brand1">
+    <title>نظرسنجی | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
+    <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache2">
+    <link rel="stylesheet" href="/assets/site/styles/polls.css?v=20260422-polls4">
+</head>
+<body class="polls-page">
+    <div class="background-overlay" aria-hidden="true"></div>
+
+    <div class="poll-shell poll-shell-single">
+        <header class="poll-topbar">
+            <a class="poll-topbar__back" href="/chat/">بازگشت به پیام‌رسان</a>
+            <div class="poll-topbar__copy">
+                <h1>رأی‌گیری</h1>
+                <p id="poll-subtitle">لینک نظرسنجی</p>
+            </div>
+            <button type="button" class="poll-topbar__account" id="refresh-btn">بازخوانی</button>
+        </header>
+
+        <main class="poll-main">
+            <section class="poll-card poll-state-card" id="boot-box">
+                <h2>در حال آماده‌سازی نشست</h2>
+                <p>یک لحظه صبر کن...</p>
+            </section>
+
+            <section class="poll-card poll-state-card" id="login-box" hidden>
+                <h2>برای رأی‌دادن باید وارد حساب شوی</h2>
+                <p>این نظرسنجی به حساب واقعی سایت متصل است و رأی ناشناسِ بدون ورود ندارد.</p>
+                <div class="poll-inline-actions">
+                    <a class="poll-btn poll-btn-primary" id="login-link" href="/account/">ورود</a>
+                    <a class="poll-btn poll-btn-ghost" href="/account/">مدیریت حساب</a>
+                </div>
+            </section>
+
+            <section class="poll-card poll-state-card" id="not-found-box" hidden>
+                <h2>نظرسنجی پیدا نشد</h2>
+                <p>لینک ممکن است اشتباه باشد یا نظرسنجی حذف شده باشد.</p>
+                <div class="poll-inline-actions">
+                    <a class="poll-btn poll-btn-ghost" href="/chat/">بازگشت به پیام‌رسان</a>
+                </div>
+            </section>
+
+            <section id="poll-box" hidden>
+                <article class="poll-card poll-focus-card">
+                    <div class="poll-section-head">
+                        <h2 id="poll-title">—</h2>
+                        <span class="poll-chip" id="poll-status-chip">—</span>
+                    </div>
+                    <p class="poll-meta" id="poll-meta">—</p>
+                    <p class="poll-question" id="poll-question">—</p>
+
+                    <form id="vote-form" class="poll-options-vote"></form>
+                    <p class="poll-feedback" id="vote-feedback" aria-live="polite"></p>
+
+                    <div class="poll-inline-actions">
+                        <button type="button" class="poll-btn poll-btn-primary" id="vote-btn">ثبت رأی</button>
+                    </div>
+                </article>
+
+                <section class="poll-card" id="results-box">
+                    <div class="poll-section-head">
+                        <h2>نتایج</h2>
+                        <span class="poll-chip poll-chip-soft" id="results-total-chip">—</span>
+                    </div>
+                    <p class="poll-note" id="results-hidden-note" hidden></p>
+                    <div id="results-list" class="poll-results-list"></div>
+                </section>
+
+                <section class="poll-card" id="manage-box" hidden>
+                    <div class="poll-section-head">
+                        <h2>مدیریت سازنده/مدیر</h2>
+                        <span class="poll-chip poll-chip-soft">کنترل وضعیت</span>
+                    </div>
+                    <div class="poll-inline-actions">
+                        <button type="button" class="poll-btn poll-btn-danger" id="close-poll-btn">بستن نظرسنجی</button>
+                        <button type="button" class="poll-btn poll-btn-ghost" id="reopen-poll-btn">بازگشایی نظرسنجی</button>
+                    </div>
+                </section>
+
+                <section class="poll-card">
+                    <div class="poll-section-head">
+                        <h2>اشتراک‌گذاری</h2>
+                        <span class="poll-chip poll-chip-soft">لینک مستقیم</span>
+                    </div>
+                    <div class="poll-share-row">
+                        <input id="share-link" readonly>
+                        <button type="button" class="poll-btn poll-btn-ghost" id="copy-link-btn">کپی لینک</button>
+                    </div>
+                    <div class="poll-inline-links">
+                        <a id="conversation-link" href="/chat/" hidden>رفتن به گفتگوی مرتبط</a>
+                        <a id="polls-center-link" href="/chat/polls/" hidden>مرکز ساخت نظرسنجی</a>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <div class="poll-toast" id="toast" aria-live="polite"></div>
+
+    <script src="/assets/site/scripts/auth.js?v=20260422-authfix6"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
+    <script src="/assets/site/scripts/poll-view.js?v=20260422-polls4"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260422-cache4"></script>
+</body>
+</html>

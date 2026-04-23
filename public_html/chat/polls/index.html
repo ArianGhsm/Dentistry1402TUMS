@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#dfe8f3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="مرکز نظرسنجی">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260422-brand1">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260422-brand1">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260422-brand1">
+    <title>مرکز نظرسنجی | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
+    <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache2">
+    <link rel="stylesheet" href="/assets/site/styles/polls.css?v=20260422-polls4">
+</head>
+<body class="polls-page">
+    <div class="background-overlay" aria-hidden="true"></div>
+
+    <div class="poll-shell">
+        <header class="poll-topbar">
+            <a class="poll-topbar__back" href="/chat/" aria-label="بازگشت به پیام‌رسان">بازگشت به گفتگو</a>
+            <div class="poll-topbar__copy">
+                <h1>مرکز نظرسنجی</h1>
+                <p id="creator-role-copy">در حال بررسی سطح دسترسی...</p>
+            </div>
+            <a class="poll-topbar__account" id="account-link" href="/account/">حساب</a>
+        </header>
+
+        <main class="poll-main">
+            <section class="poll-card poll-state-card" id="boot-box">
+                <h2>در حال آماده‌سازی نشست</h2>
+                <p>یک لحظه صبر کن...</p>
+            </section>
+
+            <section class="poll-card poll-state-card" id="login-box" hidden>
+                <h2>برای ادامه باید وارد حساب شوی</h2>
+                <p>رأی‌گیری و ساخت نظرسنجی فقط با حساب واقعی سایت انجام می‌شود.</p>
+                <div class="poll-inline-actions">
+                    <a class="poll-btn poll-btn-primary" id="login-link" href="/account/?returnTo=%2Fchat%2Fpolls%2F">ورود</a>
+                    <a class="poll-btn poll-btn-ghost" href="/account/">مدیریت حساب</a>
+                </div>
+            </section>
+
+            <section class="poll-card poll-state-card" id="access-box" hidden></section>
+
+            <section id="polls-box" hidden>
+                <section class="poll-card" id="create-card">
+                    <div class="poll-section-head">
+                        <h2>ساخت نظرسنجی جدید</h2>
+                        <span class="poll-chip poll-chip-soft" id="creator-name-chip">—</span>
+                    </div>
+
+                    <form id="create-form" class="poll-form-grid">
+                        <label class="poll-field" for="poll-question">
+                            <span>سوال نظرسنجی</span>
+                            <textarea id="poll-question" rows="2" maxlength="280" placeholder="مثلا: زمان مناسب برای جلسه تمرین عملی؟" required></textarea>
+                        </label>
+
+                        <div class="poll-field">
+                            <div class="poll-field-head">
+                                <span>گزینه‌ها</span>
+                                <button type="button" id="add-option-btn" class="poll-link-btn">افزودن گزینه</button>
+                            </div>
+                            <div id="poll-options" class="poll-options-editor"></div>
+                            <small>حداقل ۲ و حداکثر ۱۲ گزینه</small>
+                        </div>
+
+                        <div class="poll-form-inline">
+                            <label class="poll-check">
+                                <input type="checkbox" id="poll-anonymous" checked>
+                                <span>رأی‌گیری ناشناس</span>
+                            </label>
+                            <label class="poll-check">
+                                <input type="checkbox" id="poll-multiple">
+                                <span>چندگزینه‌ای</span>
+                            </label>
+                        </div>
+
+                        <div class="poll-form-inline">
+                            <label class="poll-check">
+                                <input type="checkbox" id="poll-allow-vote-change" checked>
+                                <span>امکان تغییر رأی</span>
+                            </label>
+                            <label class="poll-check">
+                                <input type="checkbox" id="poll-allow-creator-vote" checked>
+                                <span>سازنده هم بتواند رأی بدهد</span>
+                            </label>
+                        </div>
+
+                        <div class="poll-form-inline poll-form-inline-4">
+                            <label class="poll-field" for="poll-max-choices">
+                                <span>حداکثر انتخاب</span>
+                                <input id="poll-max-choices" type="number" min="2" max="12" value="2" disabled>
+                            </label>
+                            <label class="poll-field" for="poll-audience">
+                                <span>فعال برای</span>
+                                <select id="poll-audience">
+                                    <option value="link">هرکسی که لینک داشته باشد</option>
+                                    <option value="all-users">همه کاربران سایت</option>
+                                    <option value="rotation-1">فقط روتیشن ۱</option>
+                                    <option value="rotation-2">فقط روتیشن ۲</option>
+                                    <option value="both-rotations">هر دو روتیشن</option>
+                                </select>
+                            </label>
+                            <label class="poll-field" for="poll-result-visibility">
+                                <span>نمایش نتیجه هنگام فعال بودن</span>
+                                <select id="poll-result-visibility">
+                                    <option value="live">نمایش زنده برای همه</option>
+                                    <option value="after-close">تا پایان مخفی</option>
+                                    <option value="creator-only">فقط سازنده/مدیر ببیند</option>
+                                </select>
+                            </label>
+                            <label class="poll-field" for="poll-conversation">
+                                <span>ارسال در گفتگو</span>
+                                <select id="poll-conversation">
+                                    <option value="">فقط لینک (بدون ارسال در گفتگو)</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="poll-form-inline poll-form-inline-3">
+                            <label class="poll-field" for="poll-start-at">
+                                <span>شروع (اختیاری)</span>
+                                <input id="poll-start-at" type="datetime-local">
+                            </label>
+                            <label class="poll-field" for="poll-end-at">
+                                <span>پایان (اختیاری)</span>
+                                <input id="poll-end-at" type="datetime-local">
+                            </label>
+                            <label class="poll-check poll-check-strong">
+                                <input type="checkbox" id="poll-post-conversation" checked>
+                                <span>بعد از ساخت، پیام نظرسنجی داخل گفتگو هم ثبت شود</span>
+                            </label>
+                        </div>
+
+                        <div class="poll-inline-actions">
+                            <button type="submit" class="poll-btn poll-btn-primary" id="create-poll-btn">ساخت نظرسنجی</button>
+                            <button type="button" class="poll-btn poll-btn-ghost" id="reload-polls-btn">بازخوانی</button>
+                        </div>
+                        <p class="poll-feedback" id="create-feedback" aria-live="polite"></p>
+                    </form>
+                </section>
+
+                <section class="poll-card" id="created-poll-box" hidden>
+                    <div class="poll-section-head">
+                        <h2>لینک قابل اشتراک</h2>
+                        <span class="poll-chip" id="created-status-chip">ایجاد شد</span>
+                    </div>
+                    <div class="poll-share-row">
+                        <input id="created-poll-link" readonly>
+                        <button type="button" class="poll-btn poll-btn-ghost" id="created-copy-btn">کپی لینک</button>
+                        <a id="created-open-link" class="poll-btn poll-btn-primary" href="#" target="_blank" rel="noopener">باز کردن</a>
+                    </div>
+                </section>
+
+                <section class="poll-card">
+                    <div class="poll-section-head">
+                        <h2 id="poll-list-title">نظرسنجی‌های من / مدیریت‌پذیر</h2>
+                        <span class="poll-chip poll-chip-soft" id="poll-count-chip">۰</span>
+                    </div>
+                    <p class="poll-note" id="poll-list-hint">این لیست شامل نظرسنجی‌هایی است که ساخته‌ای، رأی داده‌ای یا حق مدیریتشان را داری.</p>
+                    <div id="poll-list-empty" class="poll-empty">هنوز نظرسنجی قابل نمایش وجود ندارد.</div>
+                    <div id="poll-list" class="poll-list"></div>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <div class="poll-toast" id="toast" aria-live="polite"></div>
+
+    <script src="/assets/site/scripts/auth.js?v=20260422-authfix6"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
+    <script src="/assets/site/scripts/polls.js?v=20260422-polls3"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260422-cache4"></script>
+</body>
+</html>

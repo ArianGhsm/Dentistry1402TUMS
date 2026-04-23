@@ -80,7 +80,7 @@
 
     if ("serviceWorker" in navigator) {
         window.addEventListener("load", function () {
-            navigator.serviceWorker.register("/sw.js?v=20260422-cache1").then(function (registration) {
+            navigator.serviceWorker.register("/sw.js?v=20260422-cache4").then(function (registration) {
                 registration.update().catch(function () {
                     // Ignore update failures.
                 });

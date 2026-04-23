@@ -1,4 +1,4 @@
-body.grades-page main.grades-flow {
+﻿body.grades-page main.grades-flow {
     width: min(980px, 100%);
     margin: 0 auto;
     padding: 1.15rem 5% 0;
@@ -59,7 +59,7 @@ body.grades-page main.grades-flow {
 .grades-summary-card,
 .grades-skeleton {
     border-radius: 28px;
-    border: 1px solid rgba(127, 145, 165, 0.16);
+    border: 1px solid var(--border-color);
     background: var(--surface);
     box-shadow: var(--surface-shadow);
     backdrop-filter: blur(14px);
@@ -91,9 +91,9 @@ body.grades-page main.grades-flow {
     height: 76px;
     padding: 0.22rem;
     border-radius: 24px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(236, 242, 250, 0.9));
-    border: 1px solid rgba(127, 145, 165, 0.12);
-    box-shadow: 0 18px 34px -26px rgba(17, 30, 54, 0.2);
+    background: linear-gradient(180deg, var(--surface-solid), var(--surface-muted));
+    border: 1px solid var(--border-color);
+    box-shadow: var(--surface-shadow);
 }
 
 .grades-auth-card__logo img,
@@ -201,7 +201,7 @@ body.grades-page .input-group input {
     min-height: 48px;
     padding: 0.74rem 0.95rem 0.74rem 2.8rem;
     border-radius: 17px;
-    border: 1px solid rgba(127, 145, 165, 0.18);
+    border: 1px solid var(--border-color-strong);
     background: var(--surface-muted);
     color: var(--text-primary);
     transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, transform 0.18s ease;
@@ -212,9 +212,9 @@ body.grades-page .input-group input::placeholder {
 }
 
 body.grades-page .input-group input:focus {
-    border-color: rgba(43, 109, 243, 0.34);
+    border-color: var(--focus-ring);
     background: var(--surface-solid);
-    box-shadow: 0 0 0 3px rgba(43, 109, 243, 0.08);
+    box-shadow: 0 0 0 3px var(--focus-ring-soft);
 }
 
 body.grades-page .input-icon {
@@ -244,12 +244,12 @@ body.grades-page .primary-btn,
 body.grades-page .password-btn {
     border: 0;
     background: var(--btn-gradient);
-    color: #fff;
+    color: var(--text-on-accent);
     box-shadow: var(--btn-shadow);
 }
 
 body.grades-page .secondary-btn {
-    border: 1px solid rgba(127, 145, 165, 0.18);
+    border: 1px solid var(--border-color-strong);
     background: var(--surface-muted);
     color: var(--text-primary);
 }
@@ -312,7 +312,7 @@ body.grades-page .feedback.success {
     gap: 1rem;
     padding: 1rem;
     border-radius: 28px;
-    border: 1px solid rgba(127, 145, 165, 0.16);
+    border: 1px solid var(--border-color);
     background: var(--surface);
     box-shadow: var(--surface-shadow);
 }
@@ -339,21 +339,21 @@ body.grades-page .feedback.success {
     padding: 0.72rem 0.9rem;
     border-radius: 18px;
     font-size: 0.82rem;
-    border: 1px solid rgba(127, 145, 165, 0.16);
+    border: 1px solid var(--border-color);
     background: var(--surface);
     color: var(--text-secondary);
 }
 
 .grades-status-banner.success {
     color: var(--success-color);
-    background: rgba(21, 143, 99, 0.08);
-    border-color: rgba(21, 143, 99, 0.16);
+    background: color-mix(in srgb, var(--success-color) 14%, transparent);
+    border-color: color-mix(in srgb, var(--success-color) 28%, transparent);
 }
 
 .grades-status-banner.error {
     color: var(--danger-color);
-    background: rgba(199, 83, 94, 0.08);
-    border-color: rgba(199, 83, 94, 0.16);
+    background: color-mix(in srgb, var(--danger-color) 14%, transparent);
+    border-color: color-mix(in srgb, var(--danger-color) 28%, transparent);
 }
 
 .grades-summary-grid {
@@ -411,7 +411,7 @@ body.grades-page .feedback.success {
     gap: 0.85rem;
     padding: 0.82rem 0.9rem;
     border-radius: 18px;
-    border: 1px solid rgba(127, 145, 165, 0.14);
+    border: 1px solid var(--border-color);
     background: var(--surface-muted);
     transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
@@ -419,7 +419,7 @@ body.grades-page .feedback.success {
 .grades-row:hover,
 .grades-row:focus-within {
     transform: translateY(-1px);
-    border-color: rgba(43, 109, 243, 0.2);
+    border-color: var(--focus-ring);
     background: var(--surface-solid);
 }
 
@@ -434,21 +434,21 @@ body.grades-page .feedback.success {
     text-align: center;
     padding: 0.42rem 0.78rem;
     border-radius: var(--radius-pill);
-    background: rgba(43, 109, 243, 0.08);
+    background: var(--accent-soft);
     color: var(--accent-strong);
     font-size: 0.92rem;
     font-weight: 900;
 }
 
 .grades-row--empty .grades-row__value {
-    background: rgba(127, 145, 165, 0.12);
+    background: var(--surface-strong);
     color: var(--text-tertiary);
 }
 
 .grades-empty-state {
     padding: 1rem;
     border-radius: 20px;
-    border: 1px dashed rgba(127, 145, 165, 0.24);
+    border: 1px dashed var(--border-color-strong);
     background: var(--surface-muted);
     display: grid;
     gap: 0.24rem;
@@ -583,3 +583,4 @@ body.grades-page .feedback.success {
         justify-self: flex-start;
     }
 }
+

@@ -1,4 +1,4 @@
-body.hub-page main {
+﻿body.hub-page main {
     width: min(960px, 100%);
     margin: 0 auto;
     padding: 1.15rem 5% 0;
@@ -17,7 +17,7 @@ body.hub-page .greeting-pill {
     min-height: 30px;
     padding: 0.34rem 0.78rem;
     border-radius: var(--radius-pill);
-    background: rgba(43, 109, 243, 0.08);
+    background: var(--accent-soft);
     color: var(--accent-strong);
     font-size: 0.76rem;
     font-weight: 860;
@@ -47,8 +47,8 @@ body.hub-page .cards-container {
     gap: 0;
     padding: 0.85rem 0.95rem;
     border-radius: 28px;
-    border: 1px solid rgba(127, 145, 165, 0.16);
-    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid var(--border-color);
+    background: var(--surface);
     box-shadow: var(--surface-shadow);
     backdrop-filter: blur(14px);
 }
@@ -59,7 +59,7 @@ body.hub-page .action-card {
     align-items: center;
     gap: 0.85rem;
     padding: 0.95rem 0.1rem;
-    border-bottom: 1px solid rgba(127, 145, 165, 0.12);
+    border-bottom: 1px solid var(--border-color);
     background: transparent;
     box-shadow: none;
     transition: transform 0.16s ease;
@@ -77,7 +77,7 @@ body.hub-page .action-card:first-child {
 body.hub-page .action-card:hover,
 body.hub-page .action-card:focus-within {
     transform: translateX(-1px);
-    border-color: rgba(127, 145, 165, 0.12);
+    border-color: var(--border-color);
 }
 
 body.hub-page .card-content {
@@ -127,7 +127,7 @@ body.hub-page .card-btn {
     padding: 0.5rem 0.9rem;
     border-radius: var(--radius-pill);
     background: var(--btn-gradient);
-    color: #fff;
+    color: var(--text-on-accent);
     font-size: 0.78rem;
     font-weight: 840;
     box-shadow: var(--btn-shadow);
@@ -141,9 +141,122 @@ body.hub-page .card-btn:focus-visible {
     box-shadow: 0 16px 28px -20px rgba(43, 109, 243, 0.42);
 }
 
+body.hub-page .archive-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+body.hub-page .archive-summary__card,
+body.hub-page .archive-empty,
+body.hub-page .archive-term-nav a {
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    box-shadow: var(--surface-shadow);
+    backdrop-filter: blur(14px);
+}
+
+body.hub-page .archive-summary__card {
+    display: grid;
+    gap: 0.22rem;
+    padding: 0.9rem 1rem;
+    border-radius: 22px;
+}
+
+body.hub-page .archive-summary__card strong {
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+body.hub-page .archive-summary__card span {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.8;
+}
+
+body.hub-page .archive-term-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+body.hub-page .archive-term-nav a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0.42rem 0.9rem;
+    border-radius: var(--radius-pill);
+    color: var(--text-primary);
+    font-size: 0.78rem;
+    font-weight: 820;
+    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+body.hub-page .archive-term-nav a:hover,
+body.hub-page .archive-term-nav a:focus-visible {
+    transform: translateY(-1px);
+    border-color: var(--focus-ring);
+    background: var(--surface-solid);
+}
+
+body.hub-page .archive-term {
+    display: grid;
+    gap: 0.9rem;
+}
+
+body.hub-page .archive-term__head {
+    display: grid;
+    gap: 0.3rem;
+}
+
+body.hub-page .archive-term__kicker {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 28px;
+    padding: 0 0.7rem;
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 0.72rem;
+    font-weight: 840;
+}
+
+body.hub-page .archive-term__head h3 {
+    margin: 0.25rem 0 0;
+    font-size: 1.12rem;
+    font-weight: 900;
+    line-height: 1.6;
+}
+
+body.hub-page .archive-term__head p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.9;
+}
+
+body.hub-page .archive-empty {
+    padding: 1rem 1.1rem;
+    border-radius: 24px;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.9;
+    text-align: center;
+}
+
+body.hub-page .archive-term--single .cards-container {
+    margin-top: 0;
+}
+
 @media (max-width: 720px) {
     body.hub-page main {
         padding-top: 0.95rem;
+    }
+
+    body.hub-page .archive-summary {
+        grid-template-columns: 1fr;
     }
 
     body.hub-page .cards-container {
@@ -161,3 +274,4 @@ body.hub-page .card-btn:focus-visible {
         width: 100%;
     }
 }
+

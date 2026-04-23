@@ -1,6 +1,6 @@
 # Deploy
 
-تنها مسیر مجاز برای deploy این پروژه:
+مسیر مجاز deploy این پروژه:
 
 - لوکال: `public_html/`
 - ریموت: `/home/wluoczid/public_html`
@@ -10,16 +10,42 @@
 - `storage/` جزو web deploy نیست.
 - `scripts/` جزو web deploy نیست.
 - `.vscode/` نباید روی هاست بماند.
-- برای deploy از اسکریپت `scripts/deploy_public_html.ps1` استفاده کن.
+- فقط از اسکریپت `scripts/deploy_public_html.ps1` استفاده کن.
 
-نمونه اجرا:
+## رفتار پیش‌فرض (مهم)
+
+اسکریپت به صورت پیش‌فرض **فقط فایل‌های تغییرکرده داخل `public_html`** را deploy می‌کند:
+
+- فایل‌های `Modified/Added/Untracked` آپلود می‌شوند.
+- فایل‌های `Deleted` از ریموت حذف می‌شوند.
+- rename هم به صورت حذف مسیر قدیم + آپلود مسیر جدید اعمال می‌شود.
+
+نمونه اجرا (استاندارد):
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
 
-اگر لازم بود `.vscode` ریموت هم پاک شود:
+پیش‌نمایش بدون آپلود واقعی:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRun
+```
+
+فقط اگر واقعاً لازم بود، full sync کل `public_html`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -FullSync
+```
+
+اگر لازم بود `.vscode` ریموت هم حذف شود:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DeleteVscodeOnRemote
+```
+
+برای ترکیب فلگ‌ها:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRun -DeleteVscodeOnRemote
 ```

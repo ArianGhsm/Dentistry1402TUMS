@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>نوید | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="theme-color" content="#eef2f7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260422-brand1">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260422-brand1">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260422-brand1">
+    <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
+    <link rel="stylesheet" href="/assets/site/styles/navid.css?v=20260423-navid3">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache2">
+</head>
+<body class="navid-page">
+    <div class="background-overlay" aria-hidden="true"></div>
+
+    <header class="site-header">
+        <div class="logo-area">
+            <div class="logo-circle">
+                <img src="/assets/images/logo.png?v=20260422-brand1" alt="لوگوی ورودی ۱۴۰۲ دندانپزشکی">
+            </div>
+            <div class="site-info">
+                <h1>ورودی ۱۴۰۲ دندانپزشکی تهران</h1>
+                <p>نوید</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a class="header-link" href="/app/">خانه</a>
+        </div>
+    </header>
+
+    <main class="navid-flow" id="navid-flow" data-auth-state="restoring">
+        <section class="navid-intro">
+            <span class="navid-kicker">نوید</span>
+            <h2 class="navid-title">پایش تکالیف فعال، مهلت‌ها و جزئیات درس‌ها</h2>
+            <p class="navid-desc">این صفحه خروجی یکپارچه‌سازی سمت سرور نوید را نشان می‌دهد؛ تکالیف فعلی، آخرین تغییرات و وضعیت همگام‌سازی به‌صورت یکجا نمایش داده می‌شود.</p>
+        </section>
+
+        <section id="navid-auth-stage" class="navid-auth-stage" hidden>
+            <div class="navid-auth-card">
+                <h3>برای دیدن تکالیف نوید وارد حساب شو</h3>
+                <p>این بخش از نشست سراسری سایت استفاده می‌کند و ورود جداگانه ندارد.</p>
+                <div class="navid-auth-actions">
+                    <a id="navid-login-link" class="shell-action-btn shell-action-btn-primary" href="/account/">ورود به حساب</a>
+                    <a class="shell-action-btn" href="/account/">مدیریت حساب</a>
+                </div>
+                <div id="navid-auth-feedback" class="navid-feedback" aria-live="polite"></div>
+            </div>
+        </section>
+
+        <section id="navid-loading" class="navid-loading" aria-hidden="false">
+            <div class="navid-skeleton">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </section>
+
+        <section id="navid-dashboard" class="navid-dashboard" hidden>
+            <section class="navid-panel navid-panel--status">
+                <div class="navid-status-head">
+                    <div class="navid-status-head__copy">
+                        <h3 id="navid-status-title">وضعیت یکپارچه‌سازی نوید</h3>
+                        <p id="navid-status-desc">در حال دریافت وضعیت...</p>
+                    </div>
+                    <div class="navid-status-head__actions">
+                        <button id="navid-sync-now" class="shell-action-btn shell-action-btn-primary" type="button" hidden>همگام‌سازی فوری</button>
+                        <a class="shell-action-btn" href="/account/">تنظیمات اتصال</a>
+                    </div>
+                </div>
+                <div class="navid-status-grid">
+                    <article class="navid-status-card">
+                        <span>تکالیف فعلی</span>
+                        <strong id="navid-count-assignments">۰</strong>
+                    </article>
+                    <article class="navid-status-card">
+                        <span>به‌روزرسانی‌های اخیر</span>
+                        <strong id="navid-count-updates">۰</strong>
+                    </article>
+                    <article class="navid-status-card">
+                        <span>آخرین بررسی</span>
+                        <strong id="navid-last-check">—</strong>
+                    </article>
+                    <article class="navid-status-card">
+                        <span>وضعیت نشست</span>
+                        <strong id="navid-session-state">—</strong>
+                    </article>
+                </div>
+                <div id="navid-feedback" class="navid-feedback navid-feedback--inline" aria-live="polite"></div>
+            </section>
+
+            <section id="navid-owner-box" class="navid-panel navid-panel--owner" hidden>
+                <div class="navid-owner-head">
+                    <h3>وضعیت اتصال</h3>
+                    <p>اگر نشست منقضی شود، اتصال مجدد را از صفحه حساب انجام بده.</p>
+                </div>
+                <div id="navid-owner-status-cards" class="navid-owner-status-cards"></div>
+            </section>
+
+            <section class="navid-grid">
+                <section class="navid-panel">
+                    <div class="navid-panel__head">
+                        <h3>به‌روزرسانی‌های جدید</h3>
+                        <p>جدیدترین موارد تشخیص‌داده‌شده از نوید</p>
+                    </div>
+                    <div id="navid-updates-list" class="navid-list"></div>
+                </section>
+
+                <section class="navid-panel">
+                    <div class="navid-panel__head">
+                        <h3>تکالیف فعلی</h3>
+                        <p>همراه با مهلت، محتوا و فایل‌های پیوست</p>
+                    </div>
+                    <div id="navid-assignments-list" class="navid-list"></div>
+                </section>
+            </section>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
+    </footer>
+
+    <script src="/assets/site/scripts/auth.js?v=20260422-authfix6"></script>
+    <script src="/assets/site/scripts/navid-page.js?v=20260423-navid3"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260422-cache4"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
+</body>
+</html>

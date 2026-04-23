@@ -5,6 +5,8 @@
     var media = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
     var listeners = [];
     var manualTheme = "";
+    var digitObserver = null;
+    var persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
 
     try {
         var stored = window.localStorage.getItem(STORAGE_KEY);
@@ -65,7 +67,7 @@
 
         var theme = resolvedTheme();
         var nextTheme = theme === "dark" ? "light" : "dark";
-        var label = nextTheme === "dark" ? "???? ??" : "???? ???";
+        var label = nextTheme === "dark" ? "تم تیره" : "تم روشن";
         var iconMarkup = nextTheme === "dark"
             ? '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 14.5A7.5 7.5 0 0 1 9.5 4A8.5 8.5 0 1 0 20 14.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
             : '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.5V5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 18.5V20.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20.5 12H18.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5.5 12H3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18.01 5.99L16.59 7.41" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7.41 16.59L5.99 18.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18.01 18.01L16.59 16.59" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7.41 7.41L5.99 5.99" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3.6" stroke="currentColor" stroke-width="1.8"/></svg>';
@@ -80,6 +82,152 @@
 
     function syncButtons() {
         document.querySelectorAll("[data-theme-toggle]").forEach(syncButton);
+    }
+
+    function toPersianDigits(value) {
+        var text = value == null ? "" : String(value);
+        if (!/[0-9٠-٩]/.test(text)) {
+            return text;
+        }
+
+        return text
+            .replace(/[0-9]/g, function (digit) {
+                return persianDigits[digit.charCodeAt(0) - 48];
+            })
+            .replace(/[٠-٩]/g, function (digit) {
+                return persianDigits[digit.charCodeAt(0) - 1632];
+            });
+    }
+
+    function shouldSkipDigitLocalization(element) {
+        // Messenger preserves user-entered text (chat titles/messages) as-is.
+        // We keep chat counters localized in chat.js instead of mutating all text nodes here.
+        if (document.body && document.body.classList.contains("chat-page")) {
+            return true;
+        }
+
+        if (!element) {
+            return true;
+        }
+
+        if (element.closest("[data-digit-locale='latin'], [data-latin-digits='true']")) {
+            return true;
+        }
+
+        if (element.closest("script, style, textarea, code, pre, kbd, samp")) {
+            return true;
+        }
+
+        if (element.isContentEditable || element.closest("[contenteditable='true']")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function localizeTextNode(node) {
+        if (!node || node.nodeType !== Node.TEXT_NODE) {
+            return;
+        }
+
+        var parent = node.parentElement;
+        if (shouldSkipDigitLocalization(parent)) {
+            return;
+        }
+
+        var nextValue = toPersianDigits(node.nodeValue || "");
+        if (nextValue !== node.nodeValue) {
+            node.nodeValue = nextValue;
+        }
+    }
+
+    function localizeAttribute(element, name) {
+        if (!element || !element.hasAttribute(name) || shouldSkipDigitLocalization(element)) {
+            return;
+        }
+
+        var value = element.getAttribute(name);
+        var localized = toPersianDigits(value);
+        if (localized !== value) {
+            element.setAttribute(name, localized);
+        }
+    }
+
+    function localizeDigits(root) {
+        if (!root) {
+            return;
+        }
+
+        if (root.nodeType === Node.TEXT_NODE) {
+            localizeTextNode(root);
+            return;
+        }
+
+        if (root.nodeType === Node.ELEMENT_NODE) {
+            localizeAttribute(root, "placeholder");
+            localizeAttribute(root, "title");
+            localizeAttribute(root, "aria-label");
+        }
+
+        var base = root.nodeType === Node.ELEMENT_NODE ? root : document.body;
+        if (!base) {
+            return;
+        }
+
+        var walker = document.createTreeWalker(base, NodeFilter.SHOW_TEXT, null);
+        var current = walker.nextNode();
+        while (current) {
+            localizeTextNode(current);
+            current = walker.nextNode();
+        }
+
+        if (typeof base.querySelectorAll === "function") {
+            base.querySelectorAll("[placeholder], [title], [aria-label]").forEach(function (element) {
+                localizeAttribute(element, "placeholder");
+                localizeAttribute(element, "title");
+                localizeAttribute(element, "aria-label");
+            });
+        }
+    }
+
+    function startDigitLocalization() {
+        if (!document.body) {
+            return;
+        }
+
+        localizeDigits(document.body);
+
+        if (!window.MutationObserver || digitObserver) {
+            return;
+        }
+
+        digitObserver = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                if (mutation.type === "characterData") {
+                    localizeTextNode(mutation.target);
+                    return;
+                }
+
+                if (mutation.type === "attributes" && mutation.target && mutation.target.nodeType === Node.ELEMENT_NODE) {
+                    localizeAttribute(mutation.target, mutation.attributeName || "");
+                    return;
+                }
+
+                if (mutation.type === "childList") {
+                    mutation.addedNodes.forEach(function (node) {
+                        localizeDigits(node);
+                    });
+                }
+            });
+        });
+
+        digitObserver.observe(document.body, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+            attributes: true,
+            attributeFilter: ["placeholder", "title", "aria-label"]
+        });
     }
 
     function persistTheme() {
@@ -174,11 +322,19 @@
         }
     };
 
+    window.Dent1402Locale = {
+        toPersianDigits: toPersianDigits,
+        localizeDigits: function (root) {
+            localizeDigits(root || document.body);
+        }
+    };
+
     applyTheme(resolvedTheme());
 
     function boot() {
         injectButtons();
         syncButtons();
+        startDigitLocalization();
         notify();
     }
 

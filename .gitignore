@@ -1,3 +1,39 @@
-# Ignore VS Code SFTP deployment configs in this repo and subfolders
+# IDE and editor files
 .vscode
 **/.vscode/sftp.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Local test/debug artifacts
+.codex-local/
+_remote_*
+
+# Python caches
+__pycache__/
+**/__pycache__/
+.pytest_cache/
+.mypy_cache/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Runtime/temp outputs
+storage/navid/
+*.pid
+*.tmp
+*.log
+logs/
+
+# Dependency folders
+node_modules/
+vendor/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+Desktop.ini

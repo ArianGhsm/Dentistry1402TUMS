@@ -8,19 +8,19 @@ $action = dent_request_action();
 
 if ($action === 'login') {
     if (dent_request_method() !== 'POST') {
-        dent_error('??? ???? ??????? ???.', 405);
+        dent_error('متد ورود نامعتبر است.', 405);
     }
 
     $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? $_POST['username'] ?? '');
     $password = dent_normalize_digits($_POST['password'] ?? '');
 
     if ($studentNumber === '' || $password === '') {
-        dent_error('????? ???????? ? ??? ???? ?? ???? ??.', 422);
+        dent_error('شماره دانشجویی و رمز عبور را وارد کن.', 422);
     }
 
     $user = dent_verify_credentials($studentNumber, $password);
     if ($user === null) {
-        dent_error('????? ???????? ?? ??? ???? ?????? ???.', 401, ['loggedOut' => true]);
+        dent_error('شماره دانشجویی یا رمز عبور اشتباه است.', 401, ['loggedOut' => true]);
     }
 
     dent_json_response([
@@ -62,26 +62,36 @@ if ($action === 'me') {
 
 if ($action === 'updateProfile') {
     if (dent_request_method() !== 'POST') {
-        dent_error('??? ??????????? ??????? ??????? ???.', 405);
+        dent_error('متد به‌روزرسانی پروفایل نامعتبر است.', 405);
     }
 
     $user = dent_require_user();
-    $updatedUser = dent_update_profile($user, [
-        'bio' => $_POST['bio'] ?? '',
+    $profileInput = [
         'contactHandle' => $_POST['contactHandle'] ?? '',
         'focusArea' => $_POST['focusArea'] ?? '',
-    ]);
+    ];
+
+    if (array_key_exists('about', $_POST) || array_key_exists('bio', $_POST)) {
+        $profileInput['about'] = $_POST['about'] ?? ($_POST['bio'] ?? '');
+        $profileInput['bio'] = $_POST['bio'] ?? ($_POST['about'] ?? '');
+    }
+
+    if (array_key_exists('avatarUrl', $_POST)) {
+        $profileInput['avatarUrl'] = $_POST['avatarUrl'];
+    }
+
+    $updatedUser = dent_update_profile($user, $profileInput);
 
     dent_json_response([
         'success' => true,
         'user' => dent_public_user($updatedUser),
-        'message' => '??????? ???? ?????? ????? ??.',
+        'message' => 'اطلاعات حساب کاربری ذخیره شد.',
     ]);
 }
 
 if ($action === 'changePassword') {
     if (dent_request_method() !== 'POST') {
-        dent_error('??? ????? ??? ??????? ???.', 405);
+        dent_error('متد تغییر رمز نامعتبر است.', 405);
     }
 
     $user = dent_require_user();
@@ -94,7 +104,156 @@ if ($action === 'changePassword') {
     dent_json_response([
         'success' => true,
         'user' => dent_public_user($updatedUser),
-        'message' => '??? ???? ?? ?????? ????? ???.',
+        'message' => 'رمز عبور با موفقیت تغییر کرد.',
+    ]);
+}
+
+if ($action === 'requestLoginOtp') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('Invalid method for OTP request.', 405);
+    }
+
+    $phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
+    $result = dent_request_login_otp($phoneNumber);
+
+    dent_json_response([
+        'success' => true,
+        'message' => 'OTP code sent.',
+        'phoneMasked' => (string) ($result['phoneMasked'] ?? ''),
+        'cooldownSeconds' => (int) ($result['cooldownSeconds'] ?? 0),
+        'expiresInSeconds' => (int) ($result['expiresInSeconds'] ?? 0),
+    ]);
+}
+
+if ($action === 'verifyLoginOtp') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('Invalid method for OTP verification.', 405);
+    }
+
+    $phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
+    $otpCode = (string) ($_POST['otpCode'] ?? ($_POST['code'] ?? ''));
+    $loggedInUser = dent_verify_login_otp($phoneNumber, $otpCode);
+
+    dent_json_response([
+        'success' => true,
+        'loggedIn' => true,
+        'status' => dent_auth_status($loggedInUser),
+        'user' => dent_public_user($loggedInUser),
+        'message' => 'OTP login completed.',
+    ]);
+}
+
+if ($action === 'requestPhoneEnrollOtp') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('Invalid method for phone enrollment OTP request.', 405);
+    }
+
+    $user = dent_require_user();
+    $phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
+    $result = dent_request_phone_enrollment_otp($user, $phoneNumber);
+
+    dent_json_response([
+        'success' => true,
+        'message' => 'Phone verification code sent.',
+        'phoneMasked' => (string) ($result['phoneMasked'] ?? ''),
+        'cooldownSeconds' => (int) ($result['cooldownSeconds'] ?? 0),
+        'expiresInSeconds' => (int) ($result['expiresInSeconds'] ?? 0),
+    ]);
+}
+
+if ($action === 'verifyPhoneEnrollOtp') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('Invalid method for phone enrollment verification.', 405);
+    }
+
+    $user = dent_require_user();
+    $phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
+    $otpCode = (string) ($_POST['otpCode'] ?? ($_POST['code'] ?? ''));
+    $updatedUser = dent_verify_phone_enrollment_otp($user, $phoneNumber, $otpCode);
+
+    dent_json_response([
+        'success' => true,
+        'user' => dent_public_user($updatedUser),
+        'message' => 'Phone number verified.',
+    ]);
+}
+
+if ($action === 'setPhoneLoginEnabled') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('Invalid method for phone-login toggle.', 405);
+    }
+
+    $user = dent_require_user();
+    $enabled = filter_var($_POST['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
+    $updatedUser = dent_set_phone_login_enabled($user, $enabled);
+
+    dent_json_response([
+        'success' => true,
+        'user' => dent_public_user($updatedUser),
+        'message' => $enabled ? 'Phone OTP login enabled.' : 'Phone OTP login disabled.',
+    ]);
+}
+
+if ($action === 'dismissPhoneNudge') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('Invalid method for dismissing phone nudge.', 405);
+    }
+
+    $user = dent_require_user();
+    $updatedUser = dent_dismiss_phone_nudge($user);
+
+    dent_json_response([
+        'success' => true,
+        'user' => dent_public_user($updatedUser),
+        'message' => 'Phone setup reminder dismissed.',
+    ]);
+}
+
+if ($action === 'smsStatus') {
+    dent_require_owner();
+
+    dent_json_response([
+        'success' => true,
+        'status' => dent_sms_status_payload(),
+    ]);
+}
+
+if ($action === 'saveSmsConfig') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('Invalid method for saving SMS config.', 405);
+    }
+
+    dent_require_owner();
+    $status = dent_save_sms_owner_config([
+        'enabled' => $_POST['enabled'] ?? '0',
+        'apiKey' => $_POST['apiKey'] ?? '',
+        'clearApiKey' => $_POST['clearApiKey'] ?? '0',
+        'patternCode' => $_POST['patternCode'] ?? '',
+        'senderLine' => $_POST['senderLine'] ?? '',
+        'domain' => $_POST['domain'] ?? '',
+        'codeParam' => $_POST['codeParam'] ?? 'code',
+    ]);
+
+    dent_json_response([
+        'success' => true,
+        'status' => $status,
+        'message' => 'SMS provider settings saved.',
+    ]);
+}
+
+if ($action === 'smsHealthCheck') {
+    if (!in_array(dent_request_method(), ['POST', 'GET'], true)) {
+        dent_error('Invalid method for SMS health check.', 405);
+    }
+
+    dent_require_owner();
+    $phoneNumber = (string) ($_POST['phoneNumber'] ?? ($_GET['phoneNumber'] ?? ''));
+    $health = dent_sms_health_check($phoneNumber === '' ? null : $phoneNumber);
+
+    dent_json_response([
+        'success' => (bool) ($health['success'] ?? false),
+        'message' => (string) ($health['message'] ?? ''),
+        'status' => $health['status'] ?? dent_sms_status_payload(),
     ]);
 }
 
@@ -128,7 +287,7 @@ if ($action === 'users') {
 
 if ($action === 'setRepresentative') {
     if (dent_request_method() !== 'POST') {
-        dent_error('??? ????? ??????? ??????? ???.', 405);
+        dent_error('متد تغییر نماینده نامعتبر است.', 405);
     }
 
     dent_require_owner();
@@ -140,8 +299,29 @@ if ($action === 'setRepresentative') {
     dent_json_response([
         'success' => true,
         'user' => dent_public_user($updatedUser),
-        'message' => $representative ? '??????? ??? ??.' : '??????? ?? ??? ???? ??????? ??.',
+        'message' => $representative ? 'نماینده ثبت شد.' : 'نماینده از این حساب برداشته شد.',
     ]);
 }
 
-dent_error('??????? ??????? ???.', 404);
+if ($action === 'createStudent') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد ایجاد حساب دانشجو نامعتبر است.', 405);
+    }
+
+    dent_require_owner();
+
+    $firstName = (string) ($_POST['firstName'] ?? '');
+    $lastName = (string) ($_POST['lastName'] ?? '');
+    $studentNumber = (string) ($_POST['studentNumber'] ?? '');
+    $password = (string) ($_POST['password'] ?? '');
+
+    $created = dent_create_student_account($firstName, $lastName, $studentNumber, $password);
+
+    dent_json_response([
+        'success' => true,
+        'user' => dent_public_user($created),
+        'message' => 'حساب دانشجو ایجاد شد.',
+    ]);
+}
+
+dent_error('درخواست نامعتبر است.', 404);

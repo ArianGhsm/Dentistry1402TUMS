@@ -11,4 +11,4 @@ if ($action === 'me') {
     dent_json_response(dent_build_grades_payload($user));
 }
 
-dent_error('??????? ??????? ???.', 404);
+dent_error('درخواست نامعتبر است.', 404);

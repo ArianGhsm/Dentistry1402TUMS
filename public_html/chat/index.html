@@ -2,48 +2,44 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#dfe8f3">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
-    <title>چت کلاس | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
-    <script src="/assets/site/scripts/theme.js?v=20260422-cache1"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache1">
-    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260422-cache1">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache1">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260422-brand1">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260422-brand1">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260422-brand1">
+    <title>پیام‌رسان | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
+    <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
+    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260423-mobilescale5">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache2">
 </head>
-<body class="chat-page app-shell-hidden" data-shell="off">
+<body class="chat-page" data-shell="off">
     <div class="background-overlay" aria-hidden="true"></div>
 
-    <div class="chat-app">
+    <div class="chat-app" id="chat-app" data-mobile-view="list">
         <header class="chat-app__header">
             <a class="chat-back" href="/app/" aria-label="بازگشت به خانه">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5L8 12L15 19" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M15 5L8 12L15 19" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
             </a>
 
-            <button class="chat-room" id="room-info-trigger" type="button" aria-label="اطلاعات گفتگو">
-                <div class="chat-room__avatar">
-                    <img src="/assets/images/logo.png" alt="" aria-hidden="true">
-                </div>
-                <div class="chat-room__copy">
-                    <h1 class="chat-room__title">چت کلاس</h1>
-                    <p class="chat-room__status" id="chat-status">در حال بازیابی نشست...</p>
-                </div>
-            </button>
+            <div class="chat-app__identity">
+                <h1>پیام‌رسان</h1>
+                <p>گروه کلاس اجباری، پیام خصوصی، گروه‌های جدید و نظرسنجی</p>
+            </div>
 
             <div class="chat-app__actions">
-                <span class="chat-connection" id="connection-badge" data-state="idle">آماده</span>
+                <span class="chat-connection" id="connection-badge" data-state="idle">آفلاین</span>
                 <a id="account-btn" class="chat-top-btn" href="/account/" aria-label="حساب کاربری">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12.25A3.75 3.75 0 1 0 12 4.75A3.75 3.75 0 0 0 12 12.25Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 19.25C5.93 16.74 8.48 15 12 15C15.52 15 18.07 16.74 19 19.25" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                    <img id="account-btn-avatar-image" alt="" hidden>
+                    <span id="account-btn-avatar-fallback">?</span>
                 </a>
-                <button id="refresh-btn" class="chat-top-btn" type="button" hidden aria-label="به‌روزرسانی">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 12A8 8 0 1 1 17.66 6.34" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M20 4V9H15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
-                <button id="logout-btn" class="chat-top-btn" type="button" hidden>خروج</button>
+                <button id="logout-btn" class="chat-top-btn chat-top-btn-text" type="button" hidden>خروج</button>
             </div>
         </header>
 
@@ -51,7 +47,7 @@
             <section id="boot-box" class="chat-login-panel" aria-live="polite">
                 <div class="chat-login-head">
                     <span class="chat-login-kicker">نشست</span>
-                    <h2 class="chat-login-title">در حال آماده‌سازی چت کلاس</h2>
+                    <h2 class="chat-login-title">در حال آماده‌سازی پیام‌رسان</h2>
                     <p id="boot-text" class="chat-login-text">در حال بازیابی نشست...</p>
                 </div>
             </section>
@@ -59,8 +55,8 @@
             <section id="login-box" class="chat-login-panel" hidden>
                 <div class="chat-login-head">
                     <span class="chat-login-kicker">ورود</span>
-                    <h2 class="chat-login-title">برای دیدن گفت‌وگو اول وارد حساب شو.</h2>
-                    <p class="chat-login-text">هویت چت از همان نشست سراسری سایت می‌آید. یک‌بار وارد حساب شوی، همین‌جا با همان نام و نقش وارد گفت‌وگو می‌شوی.</p>
+                    <h2 class="chat-login-title">برای استفاده از پیام‌رسان وارد حساب خودت شو.</h2>
+                    <p class="chat-login-text">احراز هویت پیام‌رسان مستقیماً از سامانه مشترک سایت می‌آید و حساب جداگانه‌ای ندارد.</p>
                 </div>
 
                 <div class="chat-guard-actions">
@@ -72,43 +68,187 @@
             </section>
 
             <section id="chat-box" class="chat-stage" hidden>
-                <div class="chat-mute-strip" id="mute-badge" hidden></div>
-
-                <button class="chat-pinned-strip" id="pinned-wrap" type="button" hidden>
-                    <span class="chat-pinned-strip__line"></span>
-                    <span class="chat-pinned-strip__copy">
-                        <strong>پیام سنجاق‌شده</strong>
-                        <span id="pinned-text"></span>
-                    </span>
-                    <span class="chat-pinned-strip__action" id="pinned-action-label">باز کردن</span>
-                </button>
-
-                <div class="chat-shell">
-                    <div class="chat-stream">
-                        <div class="stream-state" id="stream-state" hidden></div>
-                        <div class="messages" id="messages" aria-live="polite"></div>
+                <aside class="conversation-pane" id="conversation-pane">
+                    <div class="conversation-pane__header">
+                        <div class="conversation-pane__title-block">
+                            <h2>گفتگوها</h2>
+                            <p id="conversation-meta">در حال همگام‌سازی...</p>
+                        </div>
+                        <div class="conversation-pane__header-actions">
+                            <button id="conversation-manage-btn" class="conversation-pane__icon-btn" type="button" aria-label="مدیریت گفتگوها">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M7 12H17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                    <path d="M7 7H17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                    <path d="M7 17H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+                            <button id="new-dm-btn" class="conversation-pane__icon-btn" type="button" aria-label="پیام خصوصی">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M4.5 6.5H19.5C20.0523 6.5 20.5 6.94772 20.5 7.5V16.5C20.5 17.0523 20.0523 17.5 19.5 17.5H4.5C3.94772 17.5 3.5 17.0523 3.5 16.5V7.5C3.5 6.94772 3.94772 6.5 4.5 6.5Z" stroke="currentColor" stroke-width="1.8"/>
+                                    <path d="M4 8L12 13L20 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <button id="new-group-btn" class="conversation-pane__icon-btn" type="button" aria-label="گروه جدید">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M16 11C17.6569 11 19 9.65685 19 8C19 6.34315 17.6569 5 16 5C14.3431 5 13 6.34315 13 8C13 9.65685 14.3431 11 16 11Z" stroke="currentColor" stroke-width="1.8"/>
+                                    <path d="M8 12C9.933 12 11.5 10.433 11.5 8.5C11.5 6.567 9.933 5 8 5C6.067 5 4.5 6.567 4.5 8.5C4.5 10.433 6.067 12 8 12Z" stroke="currentColor" stroke-width="1.8"/>
+                                    <path d="M3.5 18C3.5 15.7909 5.29086 14 7.5 14H8.5C10.7091 14 12.5 15.7909 12.5 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                    <path d="M14.5 16.5H20.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                    <path d="M17.5 13.5V19.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                            </button>
+</div>
+                        <button id="mobile-close-list" class="conversation-pane__close" type="button" aria-label="بستن لیست گفتگو">
+                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                                <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                            </svg>
+                        </button>
                     </div>
 
-                    <div class="composer">
-                        <div class="reply-bar" id="reply-bar" hidden>
-                            <div class="reply-bar__copy">
-                                <span class="reply-bar__label">پاسخ به</span>
-                                <b id="reply-to-name"></b>
-                                <span id="reply-to-snippet"></span>
+                    <label class="conversation-search-wrap" for="conversation-search">
+                        <input id="conversation-search" type="search" placeholder="جستجو در گفتگوها...">
+                    </label>
+                    <section class="conversation-manage-bar" id="conversation-manage-bar" hidden>
+                        <div class="conversation-manage-bar__head">
+                            <strong id="conversation-selection-count">۰ مورد انتخاب</strong>
+                            <div class="conversation-manage-bar__head-actions">
+                                <button id="conversation-selection-toggle-all" type="button">انتخاب همه</button>
+                                <button id="conversation-selection-clear" type="button">لغو</button>
                             </div>
-                            <button class="reply-cancel" type="button" id="reply-cancel">لغو</button>
                         </div>
+                        <div class="conversation-manage-bar__actions">
+                            <button id="conversation-batch-read" type="button">خوانده</button>
+                            <button id="conversation-batch-unread" type="button">خوانده‌نشده</button>
+                            <button id="conversation-batch-pin" type="button">سنجاق</button>
+                            <button id="conversation-batch-unpin" type="button">برداشتن سنجاق</button>
+                            <button id="conversation-batch-archive" type="button">بایگانی</button>
+                            <button id="conversation-batch-unarchive" type="button">خروج از بایگانی</button>
+                            <button id="conversation-batch-mute" type="button">بی‌صدا</button>
+                            <button id="conversation-batch-unmute" type="button">خروج از سکوت</button>
+                            <button id="conversation-batch-delete" type="button" class="is-danger">حذف</button>
+                        </div>
+                    </section>
 
-                        <div class="composer-box">
-                            <div class="composer-entry">
-                                <textarea id="chat-text" rows="1" placeholder="پیامت را بنویس..."></textarea>
+                    <div class="conversation-empty" id="conversation-empty" hidden>هنوز گفتگویی پیدا نشد.</div>
+                    <div class="conversation-list" id="conversation-list" aria-live="polite"></div>
+                </aside>
+
+                <section class="thread-pane" id="thread-pane">
+                    <div class="thread-placeholder" id="thread-placeholder">
+                        <strong>یک گفتگو را انتخاب کن</strong>
+                        <span>از کلاس اجباری شروع کن یا یک پیام خصوصی باز کن.</span>
+                    </div>
+
+                    <div class="thread-shell" id="thread-shell" hidden>
+                        <header class="thread-head">
+                            <button id="mobile-open-list" class="thread-head__mobile-btn" type="button" aria-label="باز کردن لیست گفتگو">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M4 7H20" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                                    <path d="M4 12H20" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                                    <path d="M4 17H14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                                </svg>
+                            </button>
+
+                            <button class="thread-head__identity" id="thread-info-trigger" type="button" aria-label="اطلاعات گفتگو">
+                                <span class="thread-head__avatar" id="thread-avatar">
+                                    <img id="thread-avatar-image" alt="" hidden>
+                                    <span id="thread-avatar-fallback">?</span>
+                                </span>
+                                <span class="thread-head__copy">
+                                    <strong id="thread-title" data-digit-locale="latin">گفتگو</strong>
+                                    <span id="thread-subtitle" data-digit-locale="latin">در حال بارگذاری...</span>
+                                </span>
+                            </button>
+
+                            <div class="thread-head__actions">
+                                <button id="refresh-btn" class="chat-top-btn" type="button" aria-label="بازخوانی">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <path d="M20 12A8 8 0 1 1 17.66 6.34" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                                        <path d="M20 4V9H15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
                             </div>
-                            <button class="composer-send" id="send-btn" type="button" aria-label="ارسال پیام">
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11L20 4L13 20L11 13L4 11Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>
+                        </header>
+
+                        <div class="thread-banner-stack">
+                            <div class="chat-mute-strip" id="mute-badge" hidden></div>
+
+                            <button class="chat-pinned-strip" id="pinned-wrap" type="button" hidden>
+                                <span class="chat-pinned-strip__line"></span>
+                                <span class="chat-pinned-strip__copy">
+                                    <strong>پیام سنجاق‌شده</strong>
+                                    <span id="pinned-text"></span>
+                                </span>
+                                <span class="chat-pinned-strip__action" id="pinned-action-label">رفتن به پیام</span>
                             </button>
                         </div>
+
+                        <div class="thread-stream">
+                            <div class="stream-state" id="stream-state" hidden></div>
+                            <div class="messages" id="messages" aria-live="polite"></div>
+                        </div>
+
+                        <div class="composer">
+                            <div class="reply-bar" id="reply-bar" hidden>
+                                <div class="reply-bar__copy">
+                                    <span class="reply-bar__label">پاسخ به</span>
+                                    <b id="reply-to-name"></b>
+                                    <span id="reply-to-snippet"></span>
+                                </div>
+                                <button class="reply-cancel" type="button" id="reply-cancel">لغو</button>
+                            </div>
+
+                            <div class="composer-upload-sheet" id="composer-upload-sheet" hidden>
+                                <button type="button" class="composer-upload-option" data-attach-accept="image/*" data-attach-label="تصویر">تصویر</button>
+                                <button type="button" class="composer-upload-option" data-attach-accept="video/*" data-attach-label="ویدیو">ویدیو</button>
+                                <button type="button" class="composer-upload-option" data-attach-accept="audio/*" data-attach-label="فایل صوتی">صوت</button>
+                                <button type="button" class="composer-upload-option" data-attach-accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.txt,.csv,.zip,.rar,.7z,.tar,.gz,.tgz,.bz2" data-attach-label="سند/فایل">سند</button>
+                                <button type="button" class="composer-upload-option" data-attach-accept="*/*" data-attach-label="هر فایل">همه فایل‌ها</button>
+                            </div>
+
+                            <div class="composer-uploads" id="composer-uploads" hidden></div>
+
+                            <div class="composer-voice" id="composer-voice" hidden>
+                                <span class="composer-voice__dot" aria-hidden="true"></span>
+                                <span class="composer-voice__timer" id="composer-voice-timer" data-digit-locale="latin">00:00</span>
+                                <div class="composer-voice__actions">
+                                    <button type="button" class="shell-action-btn" id="voice-cancel-btn">لغو</button>
+                                    <button type="button" class="shell-action-btn" id="voice-stop-btn">توقف</button>
+                                    <button type="button" class="shell-action-btn shell-action-btn-primary" id="voice-send-btn">ارسال</button>
+                                </div>
+                            </div>
+
+                            <div class="composer-box">
+                                <div class="composer-tools">
+                                    <button class="composer-tool" id="attach-btn" type="button" aria-label="پیوست فایل">
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <path d="M8.5 12.8 14.6 6.7a3.2 3.2 0 1 1 4.5 4.5l-8 8a4.7 4.7 0 0 1-6.7-6.7l8.1-8.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </button>
+                                    <button class="composer-tool" id="voice-btn" type="button" aria-label="ضبط پیام صوتی">
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <rect x="9" y="4" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.8" />
+                                            <path d="M6 11.5a6 6 0 1 0 12 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                            <path d="M12 18.5V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="composer-entry">
+                                    <textarea id="chat-text" rows="1" placeholder="پیامت را بنویس..."></textarea>
+                                </div>
+                                <button class="composer-send" id="send-btn" type="button" aria-label="ارسال پیام">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <path d="M4 11L20 4L13 20L11 13L4 11Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="composer-status" id="composer-status"></div>
+                            <div class="composer-storage-note">به‌دلیل محدودیت فضای ذخیره‌سازی، ممکن است فایل‌های ارسالی بعداً فقط به‌صورت پیش‌نمایش/متادیتا باقی بمانند.</div>
+                        </div>
                     </div>
-                </div>
+                </section>
             </section>
         </main>
     </div>
@@ -118,31 +258,70 @@
         <div class="chat-reaction-bar" id="chat-reaction-bar"></div>
         <div class="chat-context-actions" id="chat-context-actions"></div>
     </div>
+    <div class="chat-list-context-backdrop" id="chat-list-context-backdrop" hidden></div>
+    <div class="chat-list-context-menu" id="chat-list-context-menu" hidden>
+        <div class="chat-list-context-menu__head">
+            <strong id="chat-list-context-title" data-digit-locale="latin">گفت‌وگو</strong>
+            <span id="chat-list-context-subtitle" data-digit-locale="latin"></span>
+        </div>
+        <div class="chat-list-context-actions" id="chat-list-context-actions"></div>
+    </div>
 
     <div class="chat-sheet-backdrop" id="chat-sheet-backdrop" hidden></div>
     <aside class="chat-info-sheet" id="chat-info-sheet" hidden aria-labelledby="chat-info-title">
         <div class="chat-info-sheet__header">
             <div class="chat-info-sheet__identity">
                 <div class="chat-info-sheet__avatar">
-                    <img src="/assets/images/logo.png" alt="" aria-hidden="true">
+                    <img id="chat-info-avatar-image" alt="" hidden>
+                    <span id="chat-info-avatar-fallback">?</span>
                 </div>
                 <div>
-                    <h2 id="chat-info-title">چت کلاس</h2>
-                    <p id="chat-info-status">هنوز کسی وارد نشده.</p>
+                    <h2 id="chat-info-title" data-digit-locale="latin">گفتگو</h2>
+                    <p id="chat-info-status">در حال بارگذاری...</p>
                 </div>
             </div>
             <button class="chat-sheet-close" id="chat-sheet-close" type="button" aria-label="بستن">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
             </button>
+        </div>
+        <div class="chat-info-sheet__links">
+            <a id="chat-info-peer-link" class="chat-info-sheet__link" href="/account/" hidden>پروفایل مخاطب</a>
+            <a id="chat-info-profile-link" class="chat-info-sheet__link" href="/account/#account-profile">پروفایل پیام‌رسان من</a>
+            <a id="chat-info-security-link" class="chat-info-sheet__link" href="/account/#account-security">امنیت حساب</a>
+            <a id="chat-info-account-link" class="chat-info-sheet__link" href="/account/">هاب حساب کاربری</a>
         </div>
 
         <section class="chat-info-block">
-            <span class="chat-info-block__label">درباره گفت‌وگو</span>
-            <p class="chat-info-block__text">فضای هماهنگی کلاس برای سؤال، خبر و پیگیری‌های روزمره. اگر پیامی سنجاق شده باشد، از همین‌جا هم دیده می‌شود.</p>
+            <span class="chat-info-block__label">درباره گفتگو</span>
+            <p class="chat-info-block__text" id="chat-info-about">—</p>
         </section>
 
         <section class="chat-info-block">
-            <span class="chat-info-block__label">وضعیت</span>
+            <span class="chat-info-block__label">هویت گفتگو</span>
+            <div class="chat-info-rows" id="chat-info-identity-rows"></div>
+        </section>
+
+        <section class="chat-info-block">
+            <span class="chat-info-block__label">تنظیمات گفتگو</span>
+            <div class="chat-info-rows" id="chat-info-settings-rows"></div>
+        </section>
+
+        <section class="chat-info-block" id="chat-info-actions-block">
+            <span class="chat-info-block__label">اقدام‌های گفتگو</span>
+            <div class="chat-info-actions chat-info-actions--stack" id="chat-info-primary-actions">
+                <button class="chat-sheet-btn" id="archive-btn" type="button">بایگانی گفتگو</button>
+                <button class="chat-sheet-btn" id="unarchive-btn" type="button" hidden>بازگردانی از بایگانی</button>
+                <button class="chat-sheet-btn" id="clear-history-btn" type="button">پاک کردن تاریخچه</button>
+                <button class="chat-sheet-btn chat-sheet-btn-danger" id="leave-btn" type="button" hidden>ترک گروه</button>
+                <button class="chat-sheet-btn chat-sheet-btn-danger" id="delete-conversation-btn" type="button">حذف گفتگو</button>
+            </div>
+        </section>
+
+        <section class="chat-info-block">
+            <span class="chat-info-block__label">آمار گفتگو</span>
             <div class="chat-info-stats" id="chat-info-stats"></div>
         </section>
 
@@ -152,7 +331,7 @@
         </section>
 
         <section class="chat-info-block" id="chat-admin-tools" hidden>
-            <span class="chat-info-block__label">مدیریت گفت‌وگو</span>
+            <span class="chat-info-block__label">مدیریت گفتگو</span>
             <div class="chat-info-actions">
                 <button class="chat-sheet-btn chat-sheet-btn-danger" id="mute-btn" type="button">بستن ارسال</button>
                 <button class="chat-sheet-btn" id="unmute-btn" type="button" hidden>باز کردن ارسال</button>
@@ -161,11 +340,189 @@
         </section>
     </aside>
 
-    <div class="toast" id="toast" aria-live="polite"></div>
+    <div class="chat-modal-backdrop" id="chat-modal-backdrop" hidden></div>
 
-    <script src="/assets/site/scripts/auth.js?v=20260422-cache1"></script>
-    <script src="/assets/site/scripts/chat.js?v=20260422-cache1"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260422-cache1"></script>
+    <section class="chat-modal chat-modal--dm" id="dm-modal" hidden aria-labelledby="dm-modal-title">
+        <div class="chat-modal__header">
+            <h2 id="dm-modal-title">شروع پیام خصوصی</h2>
+            <button class="chat-sheet-close" id="dm-modal-close" type="button" aria-label="بستن">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+        <label class="conversation-search-wrap" for="dm-search">
+            <input id="dm-search" type="search" placeholder="جستجوی دانشجو...">
+        </label>
+        <div class="chat-modal__body chat-modal__body--dense" id="dm-list"></div>
+    </section>
+
+    <section class="chat-modal chat-modal--group" id="group-modal" hidden aria-labelledby="group-modal-title">
+        <div class="chat-modal__header">
+            <div class="chat-modal__title-wrap">
+                <h2 id="group-modal-title">ساخت گروه جدید</h2>
+                <p id="group-modal-subtitle">۱ از ۲ • انتخاب اعضا</p>
+            </div>
+            <button class="chat-sheet-close" id="group-modal-close" type="button" aria-label="بستن">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="group-flow-step is-active" id="group-step-members" data-step="members">
+            <div class="chat-modal__fields chat-modal__fields--compact">
+                <label for="group-search">انتخاب اعضا</label>
+                <input id="group-search" type="search" placeholder="جستجوی دانشجو برای افزودن...">
+                <p id="group-selection-meta" class="chat-modal-meta">هنوز عضوی انتخاب نشده است.</p>
+                <div class="group-selected" id="group-selected-members"></div>
+            </div>
+            <div class="chat-modal__body chat-modal__members" id="group-members"></div>
+        </div>
+
+        <div class="group-flow-step" id="group-step-details" data-step="details" hidden>
+            <div class="chat-modal__fields">
+                <label for="group-title">نام گروه</label>
+                <input id="group-title" type="text" maxlength="80" placeholder="مثلاً: گروه تمرین پروتز">
+
+                <label for="group-about">درباره گروه</label>
+                <textarea id="group-about" rows="4" maxlength="280" placeholder="توضیح کوتاه درباره موضوع گروه..."></textarea>
+            </div>
+        </div>
+
+        <div class="chat-modal__footer chat-modal__footer--split">
+            <button id="group-step-back" class="chat-modal-secondary-btn" type="button" hidden>بازگشت</button>
+            <button id="group-step-next" class="chat-modal-secondary-btn chat-modal-secondary-btn-primary" type="button">ادامه</button>
+            <button id="group-create-btn" class="chat-login-btn" type="button">ساخت گروه</button>
+        </div>
+    </section>
+
+    <section class="chat-modal chat-modal--forward" id="forward-modal" hidden aria-labelledby="forward-modal-title">
+        <div class="chat-modal__header">
+            <h2 id="forward-modal-title">ارسال پیام به گفتگوی دیگر</h2>
+            <button class="chat-sheet-close" id="forward-modal-close" type="button" aria-label="بستن">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+        <label class="conversation-search-wrap" for="forward-search">
+            <input id="forward-search" type="search" placeholder="جستجو در گفتگوها...">
+        </label>
+        <div class="chat-modal__body chat-modal__body--dense" id="forward-list"></div>
+    </section>
+
+    <section class="chat-modal chat-modal--reaction" id="reaction-modal" hidden aria-labelledby="reaction-modal-title">
+        <div class="chat-modal__header">
+            <h2 id="reaction-modal-title">انتخاب واکنش</h2>
+            <button class="chat-sheet-close" id="reaction-modal-close" type="button" aria-label="بستن">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+        <label class="conversation-search-wrap" for="reaction-search">
+            <input id="reaction-search" type="search" placeholder="ایموجی موردنظر را جستجو کن...">
+        </label>
+        <div class="reaction-picker-native-wrap" id="reaction-native-wrap" hidden>
+            <button id="reaction-native-btn" type="button">ایموجی سیستم</button>
+        </div>
+        <div class="reaction-picker-tabs" id="reaction-tabs"></div>
+        <div class="chat-modal__body chat-modal__body--dense reaction-picker-grid" id="reaction-grid"></div>
+    </section>
+
+    <section class="chat-modal chat-modal--edit" id="edit-modal" hidden aria-labelledby="edit-modal-title">
+        <div class="chat-modal__header">
+            <h2 id="edit-modal-title">ویرایش پیام</h2>
+            <button class="chat-sheet-close" id="edit-modal-close" type="button" aria-label="بستن">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+        <div class="chat-modal__body">
+            <div class="chat-modal__fields">
+                <label for="edit-text">متن پیام</label>
+                <textarea id="edit-text" rows="6" maxlength="2000" placeholder="متن پیام را ویرایش کن..."></textarea>
+            </div>
+        </div>
+        <div class="chat-modal__footer chat-modal__footer--split">
+            <button id="edit-cancel" class="chat-modal-secondary-btn" type="button">انصراف</button>
+            <button id="edit-save" class="chat-login-btn" type="button">ذخیره ویرایش</button>
+        </div>
+    </section>
+
+    <section class="chat-modal chat-modal--confirm" id="confirm-modal" hidden aria-labelledby="confirm-modal-title">
+        <div class="chat-modal__header">
+            <h2 id="confirm-modal-title">تایید عملیات</h2>
+            <button class="chat-sheet-close" id="confirm-modal-close" type="button" aria-label="بستن">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+        <div class="chat-modal__body chat-modal__body--confirm">
+            <p id="confirm-modal-text">آیا از انجام این عملیات مطمئن هستی؟</p>
+        </div>
+        <div class="chat-modal__footer chat-modal__footer--split">
+            <button id="confirm-cancel" class="chat-modal-secondary-btn" type="button">انصراف</button>
+            <button id="confirm-accept" class="chat-login-btn chat-login-btn-danger" type="button">تایید</button>
+        </div>
+    </section>
+
+    <button id="mobile-new-chat-fab" class="chat-fab" type="button" aria-label="گفتگوی جدید">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 20L9.8 18.5L18.8 9.5C19.6 8.7 19.6 7.4 18.8 6.6L17.4 5.2C16.6 4.4 15.3 4.4 14.5 5.2L5.5 14.2L4 20Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M13.5 6.2L17.8 10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+    </button>
+
+    <nav class="chat-mobile-nav" id="chat-mobile-nav" aria-label="ناوبری پیام‌رسان">
+        <button id="chat-nav-list" class="chat-mobile-nav__item is-active" type="button" aria-label="گفتگوها">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 7H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                <path d="M5 12H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                <path d="M5 17H14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+            <span>چت‌ها</span>
+        </button>
+        <button id="chat-nav-compose" class="chat-mobile-nav__item" type="button" aria-label="پیام خصوصی">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 20L9.8 18.5L18.8 9.5C19.6 8.7 19.6 7.4 18.8 6.6L17.4 5.2C16.6 4.4 15.3 4.4 14.5 5.2L5.5 14.2L4 20Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="M13.5 6.2L17.8 10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>پیام</span>
+        </button>
+        <button id="chat-nav-group" class="chat-mobile-nav__item" type="button" aria-label="گروه جدید">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M16 11C17.6569 11 19 9.65685 19 8C19 6.34315 17.6569 5 16 5C14.3431 5 13 6.34315 13 8C13 9.65685 14.3431 11 16 11Z" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M8 12C9.933 12 11.5 10.433 11.5 8.5C11.5 6.567 9.933 5 8 5C6.067 5 4.5 6.567 4.5 8.5C4.5 10.433 6.067 12 8 12Z" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M3.5 18C3.5 15.7909 5.29086 14 7.5 14H8.5C10.7091 14 12.5 15.7909 12.5 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M14.5 16.5H20.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>گروه</span>
+        </button>
+<a id="chat-nav-settings" class="chat-mobile-nav__item" href="/account/" aria-label="تنظیمات">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5A3.5 3.5 0 0 0 12 15.5Z" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M19.4 13.5C19.47 13 19.5 12.5 19.5 12C19.5 11.5 19.47 11 19.4 10.5L21 9.2L19.3 6.2L17.3 6.8C16.6 6.2 15.8 5.7 14.9 5.4L14.6 3.4H11.4L11.1 5.4C10.2 5.7 9.4 6.2 8.7 6.8L6.7 6.2L5 9.2L6.6 10.5C6.53 11 6.5 11.5 6.5 12C6.5 12.5 6.53 13 6.6 13.5L5 14.8L6.7 17.8L8.7 17.2C9.4 17.8 10.2 18.3 11.1 18.6L11.4 20.6H14.6L14.9 18.6C15.8 18.3 16.6 17.8 17.3 17.2L19.3 17.8L21 14.8L19.4 13.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+            </svg>
+            <span>تنظیمات</span>
+        </a>
+    </nav>
+
+    <div class="toast" id="toast" aria-live="polite"></div>
+    <input id="attachment-input" type="file" hidden multiple>
+
+    <script src="/assets/site/scripts/auth.js?v=20260422-authfix6"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
+    <script src="/assets/site/scripts/chat.js?v=20260423-messengerux12"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260422-cache4"></script>
 </body>
 </html>
-

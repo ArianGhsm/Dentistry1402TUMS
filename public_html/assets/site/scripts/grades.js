@@ -10,9 +10,21 @@
     }
 
     function normalizeNumeric(value) {
-        var normalized = String(value == null ? "" : value).replace(",", ".");
+        var normalized = String(value == null ? "" : value).trim();
+        if (!normalized) {
+            return null;
+        }
+
+        normalized = normalized
+            .replace(/[\u06F0-\u06F9]/g, function (char) { return String(char.charCodeAt(0) - 0x06F0); })
+            .replace(/[\u0660-\u0669]/g, function (char) { return String(char.charCodeAt(0) - 0x0660); })
+            .replace(/\u066B/g, ".")
+            .replace(/\u066C/g, "")
+            .replace(/\u060C/g, ",")
+            .replace(/,/g, ".");
+
         var parsed = Number(normalized);
-        return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
     }
 
     var flow = $("grades-flow");
@@ -95,28 +107,28 @@
 
         var average = numericGrades.length
             ? (numericGrades.reduce(function (sum, item) { return sum + item; }, 0) / numericGrades.length).toFixed(2)
-            : "�";
+            : "—";
 
         return [
             {
-                label: "??????? ??",
+                label: "میانگین تو",
                 value: average,
-                meta: numericGrades.length ? numericGrades.length.toLocaleString("fa-IR") + " ???? ???????" : "???? ??????? ??? ????"
+                meta: numericGrades.length ? numericGrades.length.toLocaleString("fa-IR") + " نمره ثبت‌شده" : "هنوز نمره‌ای ثبت نشده"
             },
             {
-                label: "??????? ????",
-                value: best ? best.value.toFixed(2) : "�",
-                meta: best ? best.label : "????? ????"
+                label: "بیشترین نمره",
+                value: best ? best.value.toFixed(2) : "—",
+                meta: best ? best.label : "فعلاً خالی"
             },
             {
-                label: "???????? ?????",
-                value: rankedCount ? rankedCount.toLocaleString("fa-IR") : "�",
-                meta: rankedCount ? "???? ???? ?????? ???? ?????? ???" : "??????? ??? ????"
+                label: "رتبه‌های موجود",
+                value: rankedCount ? rankedCount.toLocaleString("fa-IR") : "—",
+                meta: rankedCount ? "برای بعضی درس‌ها رتبه محاسبه شده" : "رتبه‌ای ثبت نشده"
             },
             {
-                label: "?????",
-                value: currentStudentNumber || "�",
-                meta: "????? ????????"
+                label: "شناسه",
+                value: currentStudentNumber || "—",
+                meta: "شماره دانشجویی"
             }
         ];
     }
@@ -151,15 +163,15 @@
         }).length;
 
         gradesCountLabel.textContent = availableCount
-            ? availableCount.toLocaleString("fa-IR") + " ???? ??? ???"
-            : "???? ??????? ??? ????.";
+            ? availableCount.toLocaleString("fa-IR") + " نمره ثبت شده"
+            : "هنوز نمره‌ای ثبت نشده.";
 
         if (!rows.length || !availableCount) {
             var empty = document.createElement("div");
             empty.className = "grades-empty-state";
             empty.innerHTML =
-                "<strong>????? ??????? ???? ????? ????.</strong>" +
-                "<span>??? ???? ?????? ???????? ??? ??? ?????? ???? ?? ???? ??.</span>";
+                "<strong>فعلاً نمره‌ای برای نمایش نیست.</strong>" +
+                "<span>اگر تازه امتحان داده‌ای، کمی بعد دوباره صفحه را تازه کن.</span>";
             gradesList.appendChild(empty);
             flow.dataset.authState = "empty";
             return;
@@ -171,12 +183,12 @@
             var meta = [];
 
             if (stat && stat.classAverage !== null && stat.classAverage !== undefined) {
-                meta.push("??????? ???? " + Number(stat.classAverage).toFixed(2));
+                meta.push("میانگین کلاس " + Number(stat.classAverage).toFixed(2));
             }
 
             if (stat && stat.rank !== null && stat.rank !== undefined &&
                 stat.totalWithScore !== null && stat.totalWithScore !== undefined) {
-                meta.push("???? " + stat.rank + " ?? " + stat.totalWithScore);
+                meta.push("رتبه " + stat.rank + " از " + stat.totalWithScore);
             }
 
             var row = document.createElement("article");
@@ -184,24 +196,24 @@
             row.innerHTML =
                 '<div class="grades-row__main">' +
                     '<h4>' + grade.label + "</h4>" +
-                    '<p>' + (meta.length ? meta.join(" � ") : "???? ??????? ???? ??? ??? ??? ???? ???.") + "</p>" +
+                    '<p>' + (meta.length ? meta.join(" • ") : "هنوز نمره‌ای برای این درس ثبت نشده است.") + "</p>" +
                 "</div>" +
-                '<div class="grades-row__value">' + ((grade.value === undefined || grade.value === "") ? "�" : grade.value) + "</div>";
+                '<div class="grades-row__value">' + ((grade.value === undefined || grade.value === "") ? "—" : grade.value) + "</div>";
             gradesList.appendChild(row);
         });
     }
 
     function renderDashboard(result) {
         currentPayload = result;
-        studentName.textContent = result.name || "??????";
-        studentMeta.textContent = "????? ????????: " + (currentStudentNumber || "�");
+        studentName.textContent = result.name || "دانشجو";
+        studentMeta.textContent = "شماره دانشجویی: " + (currentStudentNumber || "—");
         renderSummary(result);
         renderGrades(result);
     }
 
     function ensureSignedOutState(errorText) {
         setState(errorText ? "unauthorized" : "signed-out");
-        setAuthMessage(errorText || "???? ???? ???????? ??? ???? ???? ?????? ??.", errorText ? "error" : "", false);
+        setAuthMessage(errorText || "برای دیدن کارنامه، اول وارد حساب کاربری شو.", errorText ? "error" : "", false);
         if (accountEntryLink) {
             accountEntryLink.href = window.Dent1402Auth.loginUrl();
         }
@@ -210,12 +222,46 @@
     async function fetchGrades() {
         var response = await fetch("grades_api.php?action=me", {
             method: "GET",
+            credentials: "same-origin",
             headers: {
                 "Accept": "application/json"
             }
         });
 
-        return response.json();
+        var payload = await response.json().catch(function () {
+            return {
+                error: "پاسخ نامعتبر از سرور دریافت شد."
+            };
+        });
+        payload.httpStatus = response.status;
+        return payload;
+    }
+
+    function consumeUnauthorized(response, fallbackText) {
+        var auth = window.Dent1402Auth && typeof window.Dent1402Auth === "object"
+            ? window.Dent1402Auth
+            : null;
+        if (!auth) {
+            return false;
+        }
+
+        var message = fallbackText || "نشست شما منقضی شده است. دوباره وارد شوید.";
+        try {
+            if (typeof auth.handleUnauthorizedPayload === "function") {
+                return !!auth.handleUnauthorizedPayload(response, message);
+            }
+        } catch (_error) {
+            // Ignore stale auth surface mismatch and continue fallback.
+        }
+
+        if (response && (response.loggedOut || response.httpStatus === 401)) {
+            if (typeof auth.markUnauthorized === "function") {
+                auth.markUnauthorized((response && response.error) || message);
+            }
+            return true;
+        }
+
+        return false;
     }
 
     async function loadGrades() {
@@ -226,27 +272,26 @@
             var result = await fetchGrades();
 
             if (!result || result.error) {
-                if (result && result.loggedOut) {
-                    await window.Dent1402Auth.bootstrap(true);
-                    ensureSignedOutState("????? ????? ??. ?????? ???? ???? ?????? ??.");
+                if (consumeUnauthorized(result, "نشست شما منقضی شده است. دوباره وارد شوید.")) {
+                    ensureSignedOutState("نشست شما منقضی شده است. دوباره وارد شوید.");
                     return;
                 }
 
-                throw new Error((result && result.error) || "????? ????? ????? ???.");
+                throw new Error((result && result.error) || "گرفتن نمرات انجام نشد.");
             }
 
             renderDashboard(result);
             setState(flow.dataset.authState === "empty" ? "empty" : "ready");
-            showDashboardFeedback("??????? ????? ???.", "success");
+            showDashboardFeedback("کارنامه آماده است.", "success");
         } catch (error) {
             console.error(error);
-            ensureSignedOutState(error.message || "????? ????? ????? ???.");
+            ensureSignedOutState(error.message || "گرفتن نمرات انجام نشد.");
         }
     }
 
     async function refreshGrades() {
         refreshBtn.disabled = true;
-        showDashboardFeedback("?? ??? ????????? ?????...", "", false);
+        showDashboardFeedback("در حال تازه‌سازی نمرات...", "", false);
 
         try {
             await loadGrades();
@@ -262,9 +307,9 @@
     }
 
     function handleAuthChange(detail) {
-        if (detail.status === "restoring" || detail.status === "logging-out") {
+        if (detail.status === "session-restoring" || detail.status === "logging-out") {
             setState("restoring");
-            setAuthMessage("?? ??? ??????? ????...", "", true);
+            setAuthMessage("در حال بازیابی نشست...", "", true);
             return;
         }
 
@@ -273,7 +318,7 @@
             currentStudentNumber = "";
             gradesList.innerHTML = "";
             summaryGrid.innerHTML = "";
-            ensureSignedOutState("");
+            ensureSignedOutState(detail.status === "unauthorized" ? detail.error : "");
             return;
         }
 
@@ -288,3 +333,4 @@
     logoutBtn.addEventListener("click", logout);
     window.Dent1402Auth.onChange(handleAuthChange);
 })();
+
