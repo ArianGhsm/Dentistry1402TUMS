@@ -137,8 +137,8 @@ if ($action === 'verifyLoginOtp') {
     dent_json_response([
         'success' => true,
         'loggedIn' => true,
-        'status' => dent_auth_status($loggedInUser),
-        'user' => dent_public_user($loggedInUser),
+        'status' => 'logged-in',
+        'user' => $loggedInUser,
         'message' => 'ورود با کد تایید انجام شد.',
     ]);
 }
