@@ -1374,7 +1374,7 @@ function dent_user_phone_ready_for_otp(array $user): bool
 function dent_phone_number_in_use(string $phoneNumber, string $excludeStudentNumber = ''): bool
 {
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
-    if ($normalizedPhone === '') {
+    if ($normalizedPhone === '' || $providerPhone === '') {
         return false;
     }
 
@@ -1399,7 +1399,7 @@ function dent_phone_number_in_use(string $phoneNumber, string $excludeStudentNum
 function dent_find_user_by_phone(string $phoneNumber): ?array
 {
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
-    if ($normalizedPhone === '') {
+    if ($normalizedPhone === '' || $providerPhone === '') {
         return null;
     }
 
@@ -1438,6 +1438,37 @@ function dent_normalize_sms_sender_number(string $value): string
     }
     if (str_starts_with($digits, '0098')) {
         $digits = substr($digits, 2);
+    }
+
+    return $digits;
+}
+
+function dent_sms_provider_recipient_number(string $value): string
+{
+    $clean = trim(dent_normalize_digits($value));
+    if ($clean === '') {
+        return '';
+    }
+
+    if (str_starts_with($clean, '+')) {
+        $clean = substr($clean, 1);
+    }
+
+    $digits = preg_replace('/\D+/u', '', $clean) ?? '';
+    if ($digits === '') {
+        return '';
+    }
+
+    if (str_starts_with($digits, '0098')) {
+        $digits = '0' . substr($digits, 4);
+    } elseif (str_starts_with($digits, '98')) {
+        $digits = '0' . substr($digits, 2);
+    } elseif (str_starts_with($digits, '9')) {
+        $digits = '0' . $digits;
+    }
+
+    if (strlen($digits) !== 11 || !str_starts_with($digits, '09')) {
+        return '';
     }
 
     return $digits;
@@ -1579,6 +1610,7 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
 {
     $config = dent_sms_resolved_config();
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
+    $providerPhone = dent_sms_provider_recipient_number($normalizedPhone);
 
     if (!(bool) $config['enabled']) {
         dent_sms_log('send_blocked', ['reason' => 'disabled', 'phone' => dent_mask_phone_number($normalizedPhone)]);
@@ -1597,7 +1629,7 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
         return ['success' => false, 'message' => 'لاین/شماره ارسال پیامک تنظیم نشده است.'];
     }
 
-    if ($normalizedPhone === '') {
+    if ($normalizedPhone === '' || $providerPhone === '') {
         return ['success' => false, 'message' => 'شماره موبایل مقصد نامعتبر است.'];
     }
 
@@ -1614,7 +1646,7 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
 
     $payload = [
         'code' => (string) $config['patternCode'],
-        'recipient' => $normalizedPhone,
+        'recipient' => $providerPhone,
         'line_number' => (string) $config['senderLine'],
         'number_format' => 'english',
         'attributes' => $params,
@@ -1817,7 +1849,7 @@ function dent_otp_cleanup_records(array &$metaStore): bool
 function dent_issue_otp_for_phone(string $purpose, string $phoneNumber, string $studentNumber = ''): array
 {
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
-    if ($normalizedPhone === '') {
+    if ($normalizedPhone === '' || $providerPhone === '') {
         return ['success' => false, 'error' => 'شماره موبایل نامعتبر است.', 'statusCode' => 422];
     }
 
@@ -1925,7 +1957,7 @@ function dent_issue_otp_for_phone(string $purpose, string $phoneNumber, string $
 function dent_verify_otp_for_phone(string $purpose, string $phoneNumber, string $code, string $studentNumber = ''): array
 {
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
-    if ($normalizedPhone === '') {
+    if ($normalizedPhone === '' || $providerPhone === '') {
         return ['success' => false, 'error' => 'شماره موبایل نامعتبر است.', 'statusCode' => 422];
     }
 
@@ -2006,7 +2038,7 @@ function dent_request_phone_enrollment_otp(array $user, string $phoneNumber): ar
     }
 
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
-    if ($normalizedPhone === '') {
+    if ($normalizedPhone === '' || $providerPhone === '') {
         dent_error('شماره موبایل نامعتبر است.', 422);
     }
 
@@ -2069,7 +2101,7 @@ function dent_set_phone_login_enabled(array $user, bool $enabled): array
 function dent_request_login_otp(string $phoneNumber): array
 {
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
-    if ($normalizedPhone === '') {
+    if ($normalizedPhone === '' || $providerPhone === '') {
         dent_error('شماره موبایل نامعتبر است.', 422);
     }
 
@@ -2092,7 +2124,7 @@ function dent_request_login_otp(string $phoneNumber): array
 function dent_verify_login_otp(string $phoneNumber, string $otpCode): array
 {
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
-    if ($normalizedPhone === '') {
+    if ($normalizedPhone === '' || $providerPhone === '') {
         dent_error('شماره موبایل نامعتبر است.', 422);
     }
 
@@ -2124,7 +2156,7 @@ function dent_sms_health_check(?string $phoneNumber = null): array
     }
 
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
-    if ($normalizedPhone === '') {
+    if ($normalizedPhone === '' || $providerPhone === '') {
         dent_error('شماره موبایل تست نامعتبر است.', 422);
     }
 
