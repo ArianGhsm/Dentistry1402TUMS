@@ -651,7 +651,7 @@ body.account-page.account-stage-panel-active .account-hero {
     font-weight: 780;
 }
 
-.account-form input,
+.account-form input:not([type="checkbox"]):not([type="radio"]),
 .account-form select,
 .account-form textarea,
 .owner-search input,
@@ -667,7 +667,7 @@ body.account-page.account-stage-panel-active .account-hero {
     font: inherit;
 }
 
-.account-form input:focus,
+.account-form input:not([type="checkbox"]):not([type="radio"]):focus,
 .account-form select:focus,
 .account-form textarea:focus,
 .owner-search input:focus,
@@ -688,7 +688,7 @@ body.account-page.account-stage-panel-active .account-hero {
     background-repeat: no-repeat;
 }
 
-.account-form input[readonly],
+.account-form input:not([type="checkbox"]):not([type="radio"])[readonly],
 .account-readonly-value {
     background: var(--surface-muted);
     color: var(--text-secondary);
@@ -718,8 +718,9 @@ body.account-page.account-stage-panel-active .account-hero {
 #login-otp-code,
 #phone-enroll-code {
     max-width: 220px;
-    letter-spacing: 0.24em;
+    letter-spacing: 0.08em;
     font-weight: 860;
+    text-align: center;
 }
 
 .account-readonly-value {
@@ -773,12 +774,48 @@ body.account-page.account-stage-panel-active .account-hero {
 .settings-row--checkbox {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--surface-solid);
+    padding: 0.58rem 0.68rem;
 }
 
 .settings-row--checkbox input[type="checkbox"] {
+    appearance: none;
+    width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.settings-row--checkbox input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    right: 2px;
     width: 18px;
     height: 18px;
-    accent-color: var(--accent-color);
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    transition: transform 0.16s ease, background 0.16s ease;
+}
+
+.settings-row--checkbox input[type="checkbox"]:checked {
+    background: var(--accent-soft);
+    border-color: var(--accent-color);
+}
+
+.settings-row--checkbox input[type="checkbox"]:checked::after {
+    transform: translateX(-18px);
+    background: var(--accent-color);
+}
+
+.settings-row--checkbox input[type="checkbox"]:focus-visible {
+    box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
 .profile-avatar-editor {
@@ -1292,6 +1329,11 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
     .account-inline-actions {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    #login-otp-code,
+    #phone-enroll-code {
+        max-width: 100%;
     }
 
     .profile-avatar-preview {

@@ -1558,6 +1558,9 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
     if (trim((string) $config['patternCode']) === '') {
         return ['success' => false, 'message' => 'کد پترن پیامکی تنظیم نشده است.'];
     }
+    if (trim((string) $config['senderLine']) === '') {
+        return ['success' => false, 'message' => 'لاین/شماره ارسال پیامک تنظیم نشده است.'];
+    }
 
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
     if ($normalizedPhone === '') {
@@ -1581,6 +1584,7 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
         'recipients' => [$normalizedPhone],
         'params' => $params,
     ];
+    $payload['from_number'] = (string) $config['senderLine'];
     if (trim((string) $config['senderLine']) !== '') {
         $payload['from_number'] = (string) $config['senderLine'];
     }

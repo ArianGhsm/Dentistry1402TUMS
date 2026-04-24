@@ -959,11 +959,12 @@
     function renderOwnerSmsStatus(status) {
         if (!ownerSmsStatus) return;
         var s = status && typeof status === "object" ? status : {};
-        var ready = !!(s.enabled && s.apiKeyConfigured && s.patternConfigured);
+        var ready = !!(s.enabled && s.apiKeyConfigured && s.patternConfigured && s.senderLineConfigured);
         var missing = [];
         if (!s.enabled) missing.push("فعال‌سازی سرویس");
         if (!s.apiKeyConfigured) missing.push("API Key");
         if (!s.patternConfigured) missing.push("Pattern Code");
+        if (!s.senderLineConfigured) missing.push("لاین ارسال");
 
         var healthLabel = smsHealthStatusLabel(s.lastHealthStatus || "");
         var healthTone = healthLabel === "سالم" ? "ok" : (healthLabel === "خطادار" ? "danger" : "warn");
@@ -2326,5 +2327,4 @@
     resetOtpUi();
     window.Dent1402Auth.onChange(handleAuthState);
 })();
-
 
