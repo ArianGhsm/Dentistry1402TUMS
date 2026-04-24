@@ -14,7 +14,7 @@
     <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260422-brand1">
     <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260424-otpfix1">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260425-otpux2">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache2">
 </head>
 <body class="account-page">
@@ -78,17 +78,41 @@
                         <div id="login-feedback" class="account-feedback" aria-live="polite"></div>
                     </form>
 
-                    <form id="login-otp-form" class="account-form" novalidate data-login-panel="otp" hidden>
-                        <label for="login-phone-number">شماره موبایل</label>
-                        <input id="login-phone-number" name="phoneNumber" type="tel" inputmode="numeric" autocomplete="tel" placeholder="مثلا 09xxxxxxxxx">
+                    <form id="login-otp-form" class="account-form otp-auth-panel" novalidate data-login-panel="otp" hidden>
+                        <div class="otp-auth-panel__hero">
+                            <span class="account-section-kicker">ورود پیامکی</span>
+                            <h4>ورود با شماره موبایل</h4>
+                            <p>شماره تاییدشده‌ات را وارد کن، کد پیامک را بزن و وارد شو.</p>
+                        </div>
 
-                        <div class="account-inline-actions">
+                        <div class="settings-row">
+                            <label for="login-phone-number">شماره موبایل</label>
+                            <div class="otp-phone-shell">
+                                <span class="otp-phone-shell__country" aria-hidden="true">ایران</span>
+                                <span class="otp-phone-shell__prefix" dir="ltr">+98</span>
+                                <input id="login-phone-number" name="phoneNumber" type="tel" inputmode="numeric" autocomplete="tel" placeholder="9xxxxxxxxx یا 09xxxxxxxxx">
+                            </div>
+                        </div>
+
+                        <div class="account-inline-actions otp-auth-panel__actions">
                             <button id="login-otp-request" class="shell-action-btn" type="button">ارسال کد تایید</button>
                             <span id="login-otp-meta" class="account-inline-meta">ورود پیامکی فقط برای شماره تاییدشده و فعال‌شده امکان دارد.</span>
                         </div>
 
-                        <label for="login-otp-code">کد تایید</label>
-                        <input id="login-otp-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد پیامک‌شده">
+                        <div class="settings-row">
+                            <label for="login-otp-code">کد تایید</label>
+                            <div id="login-otp-field" class="otp-slot-field" data-otp-field="login">
+                                <input id="login-otp-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد ۶ رقمی">
+                                <div id="login-otp-slots" class="otp-slot-field__slots" aria-hidden="true">
+                                    <span class="otp-slot"></span>
+                                    <span class="otp-slot"></span>
+                                    <span class="otp-slot"></span>
+                                    <span class="otp-slot"></span>
+                                    <span class="otp-slot"></span>
+                                    <span class="otp-slot"></span>
+                                </div>
+                            </div>
+                        </div>
 
                         <button id="login-otp-submit" class="shell-action-btn shell-action-btn-primary account-submit" type="submit">ورود با کد تایید</button>
                         <div id="login-otp-feedback" class="account-feedback" aria-live="polite"></div>
@@ -427,6 +451,16 @@
                                 <span id="phone-verify-state" class="phone-status-pill">تایید نامشخص</span>
                                 <span id="phone-login-state" class="phone-status-pill">ورود پیامکی نامشخص</span>
                             </div>
+                            <div class="phone-current-box">
+                                <span>شماره فعلی</span>
+                                <strong id="phone-current-number" class="phone-number-ltr">—</strong>
+                                <small id="phone-current-caption">برای تغییر شماره، شماره جدید را وارد کن و دوباره تایید بگیر.</small>
+                            </div>
+                            <div class="phone-manage-row">
+                                <button id="phone-number-edit" class="shell-action-btn" type="button">تغییر شماره</button>
+                                <button id="phone-number-remove" class="shell-action-btn shell-action-btn-danger" type="button">حذف شماره</button>
+                            </div>
+                            <div id="phone-manage-feedback" class="account-feedback" aria-live="polite"></div>
                         </section>
 
                         <section class="phone-flow-card" aria-label="ثبت و تایید شماره موبایل">
@@ -440,7 +474,11 @@
 
                             <div class="settings-row">
                                 <label for="phone-enroll-number">شماره موبایل</label>
-                                <input id="phone-enroll-number" type="tel" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxxx" aria-describedby="phone-enroll-meta">
+                                <div class="otp-phone-shell">
+                                    <span class="otp-phone-shell__country" aria-hidden="true">ایران</span>
+                                    <span class="otp-phone-shell__prefix" dir="ltr">+98</span>
+                                    <input id="phone-enroll-number" type="tel" inputmode="numeric" autocomplete="tel" placeholder="9xxxxxxxxx یا 09xxxxxxxxx" aria-describedby="phone-enroll-meta">
+                                </div>
                             </div>
 
                             <div class="phone-action-row">
@@ -451,7 +489,17 @@
                             <div class="phone-code-row">
                                 <div class="settings-row">
                                     <label for="phone-enroll-code">کد تایید</label>
-                                    <input id="phone-enroll-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد ۶ رقمی">
+                                    <div id="phone-enroll-otp-field" class="otp-slot-field" data-otp-field="enroll">
+                                        <input id="phone-enroll-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد ۶ رقمی">
+                                        <div id="phone-enroll-otp-slots" class="otp-slot-field__slots" aria-hidden="true">
+                                            <span class="otp-slot"></span>
+                                            <span class="otp-slot"></span>
+                                            <span class="otp-slot"></span>
+                                            <span class="otp-slot"></span>
+                                            <span class="otp-slot"></span>
+                                            <span class="otp-slot"></span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <button id="phone-enroll-submit" class="shell-action-btn shell-action-btn-primary" type="button">تایید شماره</button>
                             </div>
@@ -656,8 +704,8 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260423-authotp1"></script>
-    <script src="/assets/site/scripts/account.js?v=20260424-otpfix1"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260425-authotp2"></script>
+    <script src="/assets/site/scripts/account.js?v=20260425-otpux2"></script>
     <script src="/assets/site/scripts/pwa.js?v=20260422-cache4"></script>
     <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
 </body>

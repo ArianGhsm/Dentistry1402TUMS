@@ -2098,6 +2098,31 @@ function dent_set_phone_login_enabled(array $user, bool $enabled): array
     return dent_persist_user($user);
 }
 
+function dent_remove_phone_number(array $user): array
+{
+    $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    if ($studentNumber === '') {
+        dent_error('شناسه کاربر نامعتبر است.', 422);
+    }
+
+    $currentPhone = dent_normalize_phone_number((string) ($user['phoneNumber'] ?? ''));
+    if ($currentPhone === '') {
+        $user['phoneNumber'] = '';
+        $user['phoneVerifiedAt'] = '';
+        $user['phoneLoginEnabled'] = false;
+        return dent_persist_user($user);
+    }
+
+    $user['phoneNumber'] = '';
+    $user['phoneVerifiedAt'] = '';
+    $user['phoneLoginEnabled'] = false;
+    $user['phoneNudgeDismissedAt'] = dent_iso_now();
+    $updated = dent_persist_user($user);
+
+    dent_clear_phone_related_otp_records($studentNumber, $currentPhone);
+    return $updated;
+}
+
 function dent_request_login_otp(string $phoneNumber): array
 {
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
@@ -2140,6 +2165,44 @@ function dent_verify_login_otp(string $phoneNumber, string $otpCode): array
     }
 
     return dent_login_user($user);
+}
+
+function dent_clear_phone_related_otp_records(string $studentNumber, string $phoneNumber): void
+{
+    $normalizedStudentNumber = dent_normalize_student_number($studentNumber);
+    $normalizedPhone = dent_normalize_phone_number($phoneNumber);
+    if ($normalizedStudentNumber === '' || $normalizedPhone === '') {
+        return;
+    }
+
+    $meta = dent_load_auth_meta_store();
+    if (!is_array($meta['otp'] ?? null)) {
+        return;
+    }
+    $records = is_array($meta['otp']['records'] ?? null) ? $meta['otp']['records'] : [];
+    if (!$records) {
+        return;
+    }
+
+    $keys = [
+        dent_otp_record_key('login', $normalizedPhone),
+        dent_otp_record_key('enroll:' . $normalizedStudentNumber, $normalizedPhone),
+    ];
+    $changed = false;
+    foreach ($keys as $key) {
+        if (!isset($records[$key])) {
+            continue;
+        }
+        unset($records[$key]);
+        $changed = true;
+    }
+
+    if (!$changed) {
+        return;
+    }
+
+    $meta['otp']['records'] = $records;
+    dent_save_auth_meta_store($meta);
 }
 
 function dent_sms_health_check(?string $phoneNumber = null): array

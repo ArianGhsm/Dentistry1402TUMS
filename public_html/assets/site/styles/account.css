@@ -606,6 +606,131 @@ body.account-page.account-stage-panel-active .account-hero {
     line-height: 1.75;
 }
 
+.otp-auth-panel {
+    gap: 0.72rem;
+}
+
+.otp-auth-panel__hero {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.64rem 0.72rem;
+    border-radius: 15px;
+    border: 1px solid rgba(43, 109, 243, 0.24);
+    background:
+        radial-gradient(circle at 96% 0, rgba(43, 109, 243, 0.12), transparent 38%),
+        var(--surface-muted);
+}
+
+.otp-auth-panel__hero h4 {
+    margin: 0;
+    font-size: 0.96rem;
+    font-weight: 860;
+}
+
+.otp-auth-panel__hero p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    line-height: 1.9;
+}
+
+.otp-auth-panel__actions {
+    margin-top: -0.2rem;
+}
+
+.otp-phone-shell {
+    direction: ltr;
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid rgba(43, 109, 243, 0.24);
+    background:
+        linear-gradient(180deg, rgba(43, 109, 243, 0.08), rgba(43, 109, 243, 0.02)),
+        var(--surface-solid);
+    border-radius: 16px;
+    padding: 0.38rem 0.58rem;
+}
+
+.otp-phone-shell__country {
+    direction: rtl;
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 0.52rem;
+    border-radius: 10px;
+    background: rgba(127, 145, 165, 0.16);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 760;
+}
+
+.otp-phone-shell__prefix {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    color: var(--accent-strong);
+    font-weight: 820;
+    letter-spacing: 0.02em;
+}
+
+.otp-phone-shell input {
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    min-height: 38px;
+    padding: 0.34rem 0.24rem !important;
+}
+
+.otp-slot-field {
+    position: relative;
+}
+
+.otp-slot-field__slots {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.44rem;
+}
+
+.otp-slot {
+    min-height: 52px;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+    display: grid;
+    place-items: center;
+    font-size: 1.06rem;
+    font-weight: 860;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.otp-slot::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(127, 145, 165, 0.5);
+    opacity: 0.36;
+}
+
+.otp-slot.has-value::before {
+    display: none;
+}
+
+.otp-slot-field__slots.is-focused .otp-slot.is-active {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.otp-slot-field__slots.is-complete .otp-slot {
+    background:
+        linear-gradient(180deg, rgba(43, 109, 243, 0.09), rgba(43, 109, 243, 0.03)),
+        var(--surface-solid);
+}
+
 .account-phone-nudge {
     gap: 0.42rem;
     border-color: rgba(43, 109, 243, 0.3);
@@ -708,6 +833,41 @@ body.account-page.account-stage-panel-active .account-hero {
     flex-wrap: wrap;
 }
 
+.phone-current-box {
+    padding: 0.58rem 0.64rem;
+    border-radius: 13px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+    display: grid;
+    gap: 0.18rem;
+}
+
+.phone-current-box > span {
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 760;
+}
+
+.phone-current-box > strong {
+    font-size: 0.96rem;
+    font-weight: 860;
+    color: var(--text-primary);
+}
+
+.phone-current-box > small {
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    line-height: 1.76;
+}
+
+.phone-number-ltr {
+    direction: ltr;
+    unicode-bidi: isolate;
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+}
+
 .phone-status-pill {
     display: inline-flex;
     align-items: center;
@@ -772,6 +932,29 @@ body.account-page.account-stage-panel-active .account-hero {
 
 .phone-action-row .shell-action-btn {
     min-height: 40px;
+}
+
+.phone-manage-row {
+    display: flex;
+    align-items: center;
+    gap: 0.48rem;
+    flex-wrap: wrap;
+}
+
+.phone-manage-row .shell-action-btn {
+    min-height: 38px;
+}
+
+.shell-action-btn-danger {
+    border-color: rgba(199, 83, 94, 0.34);
+    color: var(--danger-color);
+    background: rgba(199, 83, 94, 0.08);
+}
+
+.shell-action-btn-danger:hover,
+.shell-action-btn-danger:focus-visible {
+    border-color: rgba(199, 83, 94, 0.52);
+    background: rgba(199, 83, 94, 0.14);
 }
 
 .phone-code-row {
@@ -923,9 +1106,7 @@ body.account-page.account-stage-panel-active .account-hero {
 
 #login-phone-number,
 #phone-enroll-number,
-#owner-sms-test-phone,
-#login-otp-code,
-#phone-enroll-code {
+#owner-sms-test-phone {
     direction: ltr;
     text-align: left;
     font-variant-numeric: tabular-nums;
@@ -943,10 +1124,21 @@ body.account-page.account-stage-panel-active .account-hero {
 
 #login-otp-code,
 #phone-enroll-code {
-    max-width: 220px;
-    letter-spacing: 0.08em;
-    font-weight: 860;
-    text-align: center;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.01;
+    border: 0 !important;
+    background: transparent !important;
+    color: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    letter-spacing: 0.2em;
+    text-align: left;
+    caret-color: transparent;
+    pointer-events: none;
 }
 
 .account-readonly-value {
@@ -1435,13 +1627,54 @@ html[data-theme="dark"] body.account-page .phone-status-pill.is-error {
 
 html[data-theme="dark"] body.account-page #login-phone-number,
 html[data-theme="dark"] body.account-page #phone-enroll-number,
-html[data-theme="dark"] body.account-page #owner-sms-test-phone,
-html[data-theme="dark"] body.account-page #login-otp-code,
-html[data-theme="dark"] body.account-page #phone-enroll-code {
+html[data-theme="dark"] body.account-page #owner-sms-test-phone {
     border-color: rgba(114, 169, 255, 0.32);
     background:
         linear-gradient(180deg, rgba(114, 169, 255, 0.2), rgba(17, 29, 45, 0.9)),
         var(--surface-solid);
+}
+
+html[data-theme="dark"] body.account-page .otp-auth-panel__hero {
+    border-color: rgba(114, 169, 255, 0.34);
+    background:
+        radial-gradient(circle at 96% 0, rgba(114, 169, 255, 0.22), transparent 40%),
+        var(--surface-muted);
+}
+
+html[data-theme="dark"] body.account-page .otp-phone-shell {
+    border-color: rgba(114, 169, 255, 0.34);
+    background:
+        linear-gradient(180deg, rgba(114, 169, 255, 0.2), rgba(17, 29, 45, 0.9)),
+        var(--surface-solid);
+}
+
+html[data-theme="dark"] body.account-page .otp-phone-shell__country {
+    background: rgba(124, 145, 168, 0.26);
+}
+
+html[data-theme="dark"] body.account-page .otp-slot {
+    border-color: rgba(124, 145, 168, 0.34);
+    background: rgba(15, 24, 37, 0.86);
+}
+
+html[data-theme="dark"] body.account-page .otp-slot::before {
+    background: rgba(167, 182, 201, 0.62);
+}
+
+html[data-theme="dark"] body.account-page .otp-slot-field__slots.is-complete .otp-slot {
+    background:
+        linear-gradient(180deg, rgba(114, 169, 255, 0.26), rgba(17, 29, 45, 0.82)),
+        rgba(15, 24, 37, 0.86);
+}
+
+html[data-theme="dark"] body.account-page .phone-current-box {
+    border-color: rgba(124, 145, 168, 0.34);
+    background: rgba(15, 24, 37, 0.86);
+}
+
+html[data-theme="dark"] body.account-page .shell-action-btn-danger {
+    border-color: rgba(239, 124, 136, 0.4);
+    background: rgba(239, 124, 136, 0.15);
 }
 
 html[data-theme="dark"] body.account-page .owner-summary-card--ok {
@@ -1619,14 +1852,32 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
         min-width: 0;
     }
 
+    .phone-manage-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
     .phone-code-row {
         grid-template-columns: 1fr;
         align-items: stretch;
     }
 
-    #login-otp-code,
-    #phone-enroll-code {
-        max-width: 100%;
+    .otp-phone-shell {
+        grid-template-columns: auto 1fr;
+        row-gap: 0.3rem;
+    }
+
+    .otp-phone-shell__country {
+        display: none;
+    }
+
+    .otp-slot-field__slots {
+        gap: 0.34rem;
+    }
+
+    .otp-slot {
+        min-height: 48px;
+        font-size: 0.98rem;
     }
 
     .profile-avatar-preview {

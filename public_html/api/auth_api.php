@@ -194,6 +194,21 @@ if ($action === 'setPhoneLoginEnabled') {
     ]);
 }
 
+if ($action === 'removePhoneNumber') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد حذف شماره موبایل نامعتبر است.', 405);
+    }
+
+    $user = dent_require_user();
+    $updatedUser = dent_remove_phone_number($user);
+
+    dent_json_response([
+        'success' => true,
+        'user' => dent_public_user($updatedUser),
+        'message' => 'شماره موبایل از حساب حذف شد.',
+    ]);
+}
+
 if ($action === 'dismissPhoneNudge') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد بستن یادآوری شماره موبایل نامعتبر است.', 405);

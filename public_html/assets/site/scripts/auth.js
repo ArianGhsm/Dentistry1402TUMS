@@ -318,6 +318,14 @@
         return response;
     }
 
+    async function removePhoneNumber() {
+        var response = await request("removePhoneNumber", "POST", {});
+        if (response && response.success && response.user) {
+            patchCurrentUser(response.user, STATUS.LOGGED_IN);
+        }
+        return response;
+    }
+
     async function smsStatus() {
         return request("smsStatus", "GET");
     }
@@ -403,6 +411,7 @@
         verifyPhoneEnrollOtp: verifyPhoneEnrollOtp,
         setPhoneLoginEnabled: setPhoneLoginEnabled,
         dismissPhoneNudge: dismissPhoneNudge,
+        removePhoneNumber: removePhoneNumber,
         smsStatus: smsStatus,
         saveSmsConfig: saveSmsConfig,
         smsHealthCheck: smsHealthCheck,

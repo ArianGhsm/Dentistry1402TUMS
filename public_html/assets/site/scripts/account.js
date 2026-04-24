@@ -27,6 +27,7 @@
     var loginOtpMeta = $("login-otp-meta");
     var loginPhoneInput = $("login-phone-number");
     var loginOtpCodeInput = $("login-otp-code");
+    var loginOtpSlots = $("login-otp-slots");
 
     var profileForm = $("profile-form");
     var profileSubmit = $("profile-submit");
@@ -100,8 +101,14 @@
     var phoneNumberState = $("phone-number-state");
     var phoneVerifyState = $("phone-verify-state");
     var phoneLoginState = $("phone-login-state");
+    var phoneCurrentNumber = $("phone-current-number");
+    var phoneCurrentCaption = $("phone-current-caption");
+    var phoneNumberEditButton = $("phone-number-edit");
+    var phoneNumberRemoveButton = $("phone-number-remove");
+    var phoneManageFeedback = $("phone-manage-feedback");
     var phoneEnrollNumber = $("phone-enroll-number");
     var phoneEnrollCode = $("phone-enroll-code");
+    var phoneEnrollOtpSlots = $("phone-enroll-otp-slots");
     var phoneEnrollRequestButton = $("phone-enroll-request");
     var phoneEnrollSubmitButton = $("phone-enroll-submit");
     var phoneEnrollMeta = $("phone-enroll-meta");
@@ -429,6 +436,57 @@
         return String(mins).padStart(2, "0") + ":" + String(secs).padStart(2, "0");
     }
 
+    function ltrIsolateText(value) {
+        var clean = String(value || "").trim();
+        if (!clean) {
+            return "";
+        }
+        return "\u2066" + clean + "\u2069";
+    }
+
+    function ltrMaskedPhone(value, fallback) {
+        var clean = String(value || "").trim();
+        if (!clean) {
+            return fallback || "";
+        }
+        return ltrIsolateText(clean);
+    }
+
+    function applyOtpSlots(input, slotsRoot) {
+        if (!input || !slotsRoot) {
+            return;
+        }
+        var slots = Array.prototype.slice.call(slotsRoot.querySelectorAll(".otp-slot"));
+        if (!slots.length) {
+            return;
+        }
+
+        var update = function () {
+            var digits = normalizeDigits(input.value).replace(/\D+/g, "").slice(0, slots.length);
+            slots.forEach(function (slot, index) {
+                var ch = digits.charAt(index);
+                slot.textContent = ch || "";
+                slot.classList.toggle("has-value", !!ch);
+                slot.classList.toggle("is-active", index === digits.length && digits.length < slots.length);
+            });
+            slotsRoot.classList.toggle("is-complete", digits.length === slots.length);
+        };
+
+        input.addEventListener("focus", function () {
+            slotsRoot.classList.add("is-focused");
+            update();
+        });
+        input.addEventListener("blur", function () {
+            slotsRoot.classList.remove("is-focused");
+            update();
+        });
+        input.addEventListener("input", update);
+        slotsRoot.addEventListener("click", function () {
+            input.focus({ preventScroll: true });
+        });
+        update();
+    }
+
     function parsedPhone(user) {
         var source = user && typeof user === "object" && user.phone && typeof user.phone === "object"
             ? user.phone
@@ -451,6 +509,8 @@
 
     function renderPhoneSecurityState(user) {
         var phone = parsedPhone(user || {});
+        var maskedPhone = String(phone.numberMasked || "").trim();
+        var maskedPhoneLabel = ltrMaskedPhone(maskedPhone, "شماره ثبت‌شده");
         var badgeText = "نیاز به ثبت شماره";
         var badgeState = "warn";
         var summary = "شماره‌ای برای این حساب ثبت نشده است. برای فعال‌سازی ورود پیامکی، شماره را ثبت و تایید کن.";
@@ -462,11 +522,11 @@
         } else if (phone.hasNumber && phone.verified && !phone.otpLoginEnabled) {
             badgeText = "شماره تایید شده";
             badgeState = "ok";
-            summary = "شماره " + (phone.numberMasked || "ثبت‌شده") + " تایید شده است؛ ورود با کد تایید هنوز غیرفعال است.";
+            summary = "شماره " + maskedPhoneLabel + " تایید شده است؛ ورود با کد تایید هنوز غیرفعال است.";
         } else if (phone.hasNumber && phone.verified && phone.otpLoginEnabled) {
             badgeText = "ورود پیامکی فعال";
             badgeState = "ok";
-            summary = "ورود با کد تایید برای " + (phone.numberMasked || "شماره ثبت‌شده") + " فعال است.";
+            summary = "ورود با کد تایید برای " + maskedPhoneLabel + " فعال است.";
         }
 
         if (phoneStatusBadge) {
@@ -476,7 +536,7 @@
         if (phoneStatusSummary) {
             phoneStatusSummary.textContent = summary;
         }
-        setPhonePill(phoneNumberState, phone.hasNumber ? (phone.numberMasked || "شماره ثبت شده") : "شماره ثبت نشده", phone.hasNumber ? "ok" : "warn");
+        setPhonePill(phoneNumberState, phone.hasNumber ? ("شماره " + maskedPhoneLabel) : "شماره ثبت نشده", phone.hasNumber ? "ok" : "warn");
         setPhonePill(phoneVerifyState, phone.verified ? "تایید شده" : "تایید نشده", phone.verified ? "ok" : "warn");
         setPhonePill(phoneLoginState, phone.otpLoginEnabled ? "ورود پیامکی فعال" : "ورود پیامکی غیرفعال", phone.otpLoginEnabled ? "ok" : "warn");
 
@@ -492,8 +552,22 @@
                 ? "می‌توانی ورود پیامکی را برای همین شماره روشن یا خاموش کنی."
                 : "برای فعال‌سازی، ابتدا شماره را با کد پیامکی تایید کن.";
         }
-        if (phoneEnrollNumber && !phoneEnrollNumber.value && phone.hasNumber) {
-            phoneEnrollNumber.placeholder = phone.numberMasked ? ("شماره فعلی: " + phone.numberMasked) : "09xxxxxxxxx";
+        if (phoneCurrentNumber) {
+            phoneCurrentNumber.textContent = phone.hasNumber ? ltrMaskedPhone(maskedPhone, "—") : "—";
+        }
+        if (phoneCurrentCaption) {
+            phoneCurrentCaption.textContent = phone.hasNumber
+                ? "برای تغییر شماره، شماره جدید را وارد کن و دوباره تایید بگیر."
+                : "هنوز شماره‌ای ثبت نشده است. از کارت پایین برای ثبت شماره استفاده کن.";
+        }
+        if (phoneNumberEditButton) {
+            phoneNumberEditButton.textContent = phone.hasNumber ? "تغییر شماره" : "ثبت شماره";
+        }
+        if (phoneNumberRemoveButton) {
+            phoneNumberRemoveButton.disabled = !phone.hasNumber;
+        }
+        if (phoneEnrollNumber && !phoneEnrollNumber.value) {
+            phoneEnrollNumber.placeholder = "9xxxxxxxxx یا 09xxxxxxxxx";
         }
         if (accountPhoneNudge) {
             accountPhoneNudge.hidden = !shouldShowPhoneNudge(user || {});
@@ -914,15 +988,16 @@
         }
 
         var phone = parsedPhone(user);
+        var phoneLabel = ltrMaskedPhone(phone.numberMasked, "شماره ثبت‌شده");
         if (accountRowPhoneMeta) {
             if (!phone.hasNumber) {
                 accountRowPhoneMeta.textContent = "هنوز شماره‌ای ثبت نشده است.";
             } else if (!phone.verified) {
-                accountRowPhoneMeta.textContent = "شماره ثبت شده ولی هنوز تایید نشده است.";
+                accountRowPhoneMeta.textContent = "شماره " + phoneLabel + " ثبت شده ولی هنوز تایید نشده است.";
             } else if (phone.otpLoginEnabled) {
-                accountRowPhoneMeta.textContent = "ورود با کد تایید فعال است (" + (phone.numberMasked || "شماره ثبت‌شده") + ").";
+                accountRowPhoneMeta.textContent = "ورود با کد تایید فعال است (" + phoneLabel + ").";
             } else {
-                accountRowPhoneMeta.textContent = "شماره تایید شده است ولی ورود پیامکی غیرفعال است.";
+                accountRowPhoneMeta.textContent = "شماره " + phoneLabel + " تایید شده است ولی ورود پیامکی غیرفعال است.";
             }
         }
         renderPhoneSecurityState(user);
@@ -1734,6 +1809,10 @@
         setFeedback(phoneToggleFeedback, text, kind, loading);
     }
 
+    function phoneManageFeedbackMessage(text, kind, loading) {
+        setFeedback(phoneManageFeedback, text, kind, loading);
+    }
+
     function applyPhoneDetailsFromCurrentUser() {
         var user = currentUser || {};
         renderPhoneSecurityState(user);
@@ -1746,6 +1825,7 @@
             setFeedback(loginOtpFeedback, "شماره موبایل معتبر وارد کن.", "error");
             return;
         }
+        loginPhoneInput.value = phoneNumber;
         if (loginOtpRequestButton) loginOtpRequestButton.disabled = true;
         setFeedback(loginOtpFeedback, "در حال ارسال کد تایید...", "", true);
         try {
@@ -1760,7 +1840,11 @@
             }
 
             startLoginOtpCooldown(response.cooldownSeconds || 0);
-            setFeedback(loginOtpFeedback, (response.message || "کد تایید ارسال شد.") + (response.phoneMasked ? (" (" + response.phoneMasked + ")") : ""), "success");
+            var masked = ltrMaskedPhone(response && response.phoneMasked, "");
+            setFeedback(loginOtpFeedback, (response.message || "کد تایید ارسال شد.") + (masked ? (" (" + masked + ")") : ""), "success");
+            if (loginOtpCodeInput) {
+                loginOtpCodeInput.focus({ preventScroll: true });
+            }
         } finally {
             updateLoginOtpCooldownUi();
         }
@@ -1797,6 +1881,7 @@
             phoneEnrollFeedbackMessage("شماره موبایل معتبر وارد کن.", "error");
             return;
         }
+        phoneEnrollNumber.value = phoneNumber;
 
         phoneEnrollFeedbackMessage("در حال ارسال کد تایید...", "", true);
         if (phoneEnrollRequestButton) phoneEnrollRequestButton.disabled = true;
@@ -1814,7 +1899,11 @@
                 return;
             }
             startPhoneEnrollCooldown(response.cooldownSeconds || 0);
-            phoneEnrollFeedbackMessage((response.message || "کد تایید ارسال شد.") + (response.phoneMasked ? (" (" + response.phoneMasked + ")") : ""), "success");
+            var masked = ltrMaskedPhone(response && response.phoneMasked, "");
+            phoneEnrollFeedbackMessage((response.message || "کد تایید ارسال شد.") + (masked ? (" (" + masked + ")") : ""), "success");
+            if (phoneEnrollCode) {
+                phoneEnrollCode.focus({ preventScroll: true });
+            }
         } finally {
             updatePhoneEnrollCooldownUi();
         }
@@ -1875,6 +1964,66 @@
             phoneToggleFeedbackMessage(response.message || "وضعیت ورود پیامکی ذخیره شد.", "success");
         } finally {
             if (phoneLoginSaveButton) phoneLoginSaveButton.disabled = false;
+        }
+    }
+
+    function startPhoneNumberEdit() {
+        if (!phoneEnrollNumber) {
+            return;
+        }
+        phoneEnrollNumber.focus({ preventScroll: true });
+        phoneEnrollNumber.select();
+        phoneManageFeedbackMessage("شماره جدید را وارد کن، کد تایید بگیر و ثبت کن.", "success");
+    }
+
+    async function removePhoneNumber() {
+        if (!currentUser) {
+            return;
+        }
+
+        var phone = parsedPhone(currentUser);
+        if (!phone.hasNumber) {
+            phoneManageFeedbackMessage("شماره‌ای برای حذف ثبت نشده است.", "error");
+            return;
+        }
+
+        var masked = ltrMaskedPhone(phone.numberMasked, "شماره فعلی");
+        var confirmed = window.confirm("شماره " + masked + " از این حساب حذف شود؟");
+        if (!confirmed) {
+            return;
+        }
+
+        if (phoneNumberRemoveButton) {
+            phoneNumberRemoveButton.disabled = true;
+        }
+        phoneManageFeedbackMessage("در حال حذف شماره موبایل...", "", true);
+        try {
+            var response = await window.Dent1402Auth.removePhoneNumber();
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                phoneManageFeedbackMessage("نشستت منقضی شد. دوباره وارد شو.", "error");
+                return;
+            }
+            if (!response || !response.success || !response.user) {
+                phoneManageFeedbackMessage((response && response.error) || "حذف شماره انجام نشد.", "error");
+                return;
+            }
+            currentUser = response.user;
+            renderIdentity(response.user);
+            applyPhoneDetailsFromCurrentUser();
+            if (phoneEnrollNumber) {
+                phoneEnrollNumber.value = "";
+            }
+            if (phoneEnrollCode) {
+                phoneEnrollCode.value = "";
+                phoneEnrollCode.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+            phoneEnrollFeedbackMessage("", "");
+            phoneToggleFeedbackMessage("", "");
+            phoneManageFeedbackMessage(response.message || "شماره موبایل حذف شد.", "success");
+        } finally {
+            if (phoneNumberRemoveButton) {
+                phoneNumberRemoveButton.disabled = false;
+            }
         }
     }
 
@@ -1990,6 +2139,7 @@
             }
             phoneEnrollFeedbackMessage("", "");
             phoneToggleFeedbackMessage("", "");
+            phoneManageFeedbackMessage("", "");
             setFeedback(loginOtpFeedback, "", "");
             setLoginMode(loginMode);
             setInlineFeedback(profileAvatarFeedback, "", "");
@@ -2091,6 +2241,8 @@
     bindNumericInput(ownerSmsTestPhone, 14);
     bindNumericInput(loginOtpCodeInput, 6);
     bindNumericInput(phoneEnrollCode, 6);
+    applyOtpSlots(loginOtpCodeInput, loginOtpSlots);
+    applyOtpSlots(phoneEnrollCode, phoneEnrollOtpSlots);
 
     if (loginMethodPasswordBtn) {
         loginMethodPasswordBtn.addEventListener("click", function () {
@@ -2127,6 +2279,20 @@
 
     if (phoneLoginSaveButton) {
         phoneLoginSaveButton.addEventListener("click", savePhoneLoginToggle);
+    }
+
+    if (phoneNumberEditButton) {
+        phoneNumberEditButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            startPhoneNumberEdit();
+        });
+    }
+
+    if (phoneNumberRemoveButton) {
+        phoneNumberRemoveButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            removePhoneNumber();
+        });
     }
 
     if (accountPhoneNudgeOpen) {
