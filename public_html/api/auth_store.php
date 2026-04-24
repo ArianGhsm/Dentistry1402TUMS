@@ -1568,46 +1568,77 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
         return ['success' => false, 'message' => 'cURL روی سرور فعال نیست.'];
     }
 
+    $params = [
+        (string) $config['codeParam'] => $otpCode,
+    ];
+    if (trim((string) $config['domain']) !== '') {
+        $params['domain'] = (string) $config['domain'];
+    }
+
     $payload = [
         'sending_type' => 'pattern',
         'code' => (string) $config['patternCode'],
         'recipients' => [$normalizedPhone],
-        'params' => [
-            (string) $config['codeParam'] => $otpCode,
-        ],
+        'params' => $params,
     ];
     if (trim((string) $config['senderLine']) !== '') {
         $payload['from_number'] = (string) $config['senderLine'];
     }
 
-    $ch = curl_init('https://edge.ippanel.com/v1/api/send');
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 15,
-        CURLOPT_HTTPHEADER => [
-            'Accept: application/json',
-            'Content-Type: application/json',
-            'Authorization: ' . (string) $config['apiKey'],
-        ],
-        CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-    ]);
+    $attempts = 3;
+    $raw = '';
+    $httpCode = 0;
+    $curlError = '';
+    $decoded = null;
 
-    $raw = curl_exec($ch);
-    $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    curl_close($ch);
+    for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+        $ch = curl_init('https://edge.ippanel.com/v1/api/send');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_CONNECTTIMEOUT => 8,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/json',
+                'Content-Type: application/json',
+                'Authorization: ' . (string) $config['apiKey'],
+            ],
+            CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ]);
 
-    if (!is_string($raw) || $raw === '') {
+        $response = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        $raw = is_string($response) ? $response : '';
+        $decoded = $raw !== '' ? json_decode($raw, true) : null;
+
+        $temporaryFailure = $curlError !== '' || $httpCode >= 500;
+        if (!$temporaryFailure) {
+            break;
+        }
+        if ($attempt < $attempts) {
+            usleep(250000 * $attempt);
+            continue;
+        }
+    }
+
+    if ($raw === '') {
         return [
             'success' => false,
             'message' => $curlError !== '' ? ('خطای ارتباط با سرویس پیامک: ' . $curlError) : 'پاسخی از سرویس پیامکی دریافت نشد.',
+            'httpStatus' => $httpCode,
         ];
     }
 
-    $decoded = json_decode($raw, true);
     if (!is_array($decoded)) {
-        return ['success' => false, 'message' => 'پاسخ سرویس پیامکی نامعتبر است.'];
+        if ($httpCode >= 500) {
+            return ['success' => false, 'message' => 'سرویس پیامکی موقتاً در دسترس نیست.', 'httpStatus' => $httpCode];
+        }
+        $brief = dent_clean_text(trim(strip_tags($raw)), 120);
+        $detail = $brief !== '' ? (' جزئیات: ' . $brief) : '';
+        return ['success' => false, 'message' => 'پاسخ سرویس پیامکی نامعتبر است.' . $detail, 'httpStatus' => $httpCode];
     }
 
     $meta = is_array($decoded['meta'] ?? null) ? $decoded['meta'] : [];
@@ -1738,7 +1769,7 @@ function dent_issue_otp_for_phone(string $purpose, string $phoneNumber, string $
         ];
     }
 
-    $code = str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
+    $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     $salt = dent_base64url_encode(random_bytes(12));
     $codeHash = hash_hmac('sha256', $code, dent_auth_secret_key() . '|' . $salt);
 
