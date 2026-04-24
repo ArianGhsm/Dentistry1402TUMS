@@ -1,0 +1,10 @@
+{
+  "http.noProxy": [
+    "185.94.99.231",
+    "dentistry1402tums.ir",
+    "*.dentistry1402tums.ir"
+  ],
+  "terminal.integrated.env.windows": {
+    "NO_PROXY": "185.94.99.231,dentistry1402tums.ir,.dentistry1402tums.ir"
+  }
+}

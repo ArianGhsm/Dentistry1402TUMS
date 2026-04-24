@@ -1,0 +1,54 @@
+
+1. **Architecture summary**
+
+Static multi-page app/PWA, not an SPA. Routing is folder-based under `public_html`, UI is vanilla HTML/CSS/JS, and data/auth are PHP endpoints backed by JSON/CSV in `storage`. Most pages share a common header/theme/PWA/auth shell; `/chat/` is intentionally a dedicated full-screen module with the shared bottom nav disabled. RTL/Persian is first-class across page markup, locale formatting, and chat layout.
+
+2. **Exact files involved**
+
+- Routes: [public_html/index.html](</d:/Arian's Documents/py/dentistry1402tums/public_html/index.html>), [public_html/app/index.html](</d:/Arian's Documents/py/dentistry1402tums/public_html/app/index.html>), [public_html/account/index.html](</d:/Arian's Documents/py/dentistry1402tums/public_html/account/index.html>), [public_html/chat/index.html](</d:/Arian's Documents/py/dentistry1402tums/public_html/chat/index.html>), [public_html/grades/index.html](</d:/Arian's Documents/py/dentistry1402tums/public_html/grades/index.html>), [public_html/resources/index.html](</d:/Arian's Documents/py/dentistry1402tums/public_html/resources/index.html>), [public_html/exams/index.html](</d:/Arian's Documents/py/dentistry1402tums/public_html/exams/index.html>), [public_html/notes/index.html](</d:/Arian's Documents/py/dentistry1402tums/public_html/notes/index.html>), [public_html/notes/1403/index.html](</d:/Arian's Documents/py/dentistry1402tums/public_html/notes/1403/index.html>)
+- Shared client shell/state: [auth.js](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/scripts/auth.js>), [shell.js](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/scripts/shell.js>), [theme.js](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/scripts/theme.js>), [pwa.js](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/scripts/pwa.js>), [app-home.js](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/scripts/app-home.js>)
+- Feature client: [account.js](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/scripts/account.js>), [chat.js](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/scripts/chat.js>), [grades.js](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/scripts/grades.js>)
+- Styling/tokens: [core.css](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/styles/core.css>), [theme.css](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/styles/theme.css>), [app.css](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/styles/app.css>), [hub.css](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/styles/hub.css>), [account.css](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/styles/account.css>), [chat.css](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/styles/chat.css>), [grades.css](</d:/Arian's Documents/py/dentistry1402tums/public_html/assets/site/styles/grades.css>)
+- Backend/auth/data: [bootstrap.php](</d:/Arian's Documents/py/dentistry1402tums/public_html/api/bootstrap.php>), [auth_store.php](</d:/Arian's Documents/py/dentistry1402tums/public_html/api/auth_store.php>), [auth_api.php](</d:/Arian's Documents/py/dentistry1402tums/public_html/api/auth_api.php>), [grades_store.php](</d:/Arian's Documents/py/dentistry1402tums/public_html/api/grades_store.php>), [grades_api.php](</d:/Arian's Documents/py/dentistry1402tums/public_html/grades/grades_api.php>), [chat_api.php](</d:/Arian's Documents/py/dentistry1402tums/public_html/chat/chat_api.php>)
+- Stored models/state: [storage/auth/users.json](</d:/Arian's Documents/py/dentistry1402tums/storage/auth/users.json>), [storage/grades/grades.csv](</d:/Arian's Documents/py/dentistry1402tums/storage/grades/grades.csv>), [storage/chat/messages.json](</d:/Arian's Documents/py/dentistry1402tums/storage/chat/messages.json>), [storage/chat/state.json](</d:/Arian's Documents/py/dentistry1402tums/storage/chat/state.json>), [manifest.webmanifest](</d:/Arian's Documents/py/dentistry1402tums/public_html/manifest.webmanifest>), [sw.js](</d:/Arian's Documents/py/dentistry1402tums/public_html/sw.js>)
+
+3. **What already exists**
+
+- Shared site-wide auth already exists: PHP session cookie `dent1402_session`, shared user store, `/api/auth_api.php`, and client singleton `window.Dent1402Auth`.
+- Messenger already auto-consumes shared auth on the client. `/chat/` listens to `Dent1402Auth.onChange`; no separate chat login UI is being used in practice.
+- Bottom nav already exists in `shell.js` and is auth-aware. It is enabled on app/account/grades/resources/exams/notes and explicitly disabled on landing and chat.
+- Messenger already has a strong baseline: full-screen route, polling, reply, edit, delete, reactions, pin, mute, context menu, member sheet, grouped bubbles, mobile long-press, and moderator controls.
+- Grades already has a dashboard, not just a form: shared-auth guard, loading state, summary cards, per-course rows, class average/rank, and refresh/logout hooks.
+- Profile/account UI already exists: login, profile fields (`bio`, `contactHandle`, `focusArea`), password change, current-user panel, and owner-only representative management.
+- Roles already exist: `owner`, `representative`, `student`; owner is tied to a specific student number in `auth_store.php`; chat moderation is role-based.
+- Styling/mobile/RTL already exist: shared tokens in `core.css`, dark mode in `theme.js`/`theme.css`, safe-area handling, multiple mobile breakpoints, `lang="fa" dir="rtl"`, and `fa-IR` formatting.
+
+4. **What is missing**
+
+- No real avatar/profile-photo system. Account/chat/grades all use the site logo or generated initials; there is no upload/storage field for user photos.
+- No Telegram-grade chat infrastructure yet: no conversations list, no search, no media/file messages, no voice, no read states, no presence, no message delivery states, no real-time transport.
+- No central reusable page-layout abstraction; header/footer/script wiring is duplicated per route.
+- No richer current-user model beyond name/student number/role/profile text fields.
+- Admin tooling is narrow: representative toggle and chat mute/pin only; no broader moderation/audit/user management surface.
+- `chat_api.php` still carries redundant `login/logout/me` actions. They use the same shared auth backend, but they are duplication and should not become a second auth surface.
+
+5. **Telegram-grade vs domain-specific**
+
+- Must become Telegram-grade: `/chat/` route, chat interaction model, chat message rendering/composer/context actions, chat identity presentation, and any supporting shared auth/profile/avatar pieces required for chat.
+- Must remain domain-specific: `/app/`, `/grades/`, `/exams/`, `/notes/`, `/resources/`, and the account/admin surfaces. These should feel polished and app-like, but not chat-like.
+
+6. **Is the existing login reusable as the foundation?**
+
+- Yes. It is already the foundation.
+- `auth.js` -> `/api/auth_api.php` -> `auth_store.php` -> PHP session is the source of truth for account, shell, grades, and current chat client behavior.
+- Logged-in users are automatically recognized in messenger; site logout already propagates to messenger because both depend on the same session.
+- The only cleanup needed is consolidation: keep shared auth as the only public auth contract and treat chat-local auth endpoints as legacy duplication.
+
+7. **Cleanest implementation order**
+
+- Lock the auth boundary first: keep `auth_api.php`/`Dent1402Auth` as the only intended login flow and stop expanding chat-local auth actions.
+- Define one shared user identity contract next: name, role, moderation flags, profile text, and future avatar/media fields in `auth_store.php`.
+- Upgrade messenger backend after that: message model, richer capabilities, moderation, performance, and eventually real-time transport.
+- Upgrade `/chat/` UI next: list/info surfaces, composer, message states, search, media, polish, motion, and mobile ergonomics.
+- Then polish shared non-chat surfaces: account/profile, grades dashboard, app shell, and bottom nav so they feel native-quality without adopting chat metaphors.
+- Finish with cross-cutting sweep: RTL details, dark mode parity, safe-area/mobile behavior, PWA/offline rules, and visual token cleanup.
