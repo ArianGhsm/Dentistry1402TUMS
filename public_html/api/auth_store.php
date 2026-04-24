@@ -1432,22 +1432,15 @@ function dent_normalize_sms_sender_number(string $value): string
     if ($clean === '') {
         return '';
     }
-    if (str_starts_with($clean, '+')) {
-        $digits = preg_replace('/\D+/u', '', substr($clean, 1)) ?? '';
-        return $digits !== '' ? ('+' . $digits) : '';
-    }
-
     $digits = preg_replace('/\D+/u', '', $clean) ?? '';
     if ($digits === '') {
         return '';
     }
     if (str_starts_with($digits, '0098')) {
         $digits = substr($digits, 2);
-    } elseif (!str_starts_with($digits, '98')) {
-        $digits = '98' . ltrim($digits, '0');
     }
 
-    return '+' . $digits;
+    return $digits;
 }
 
 function dent_sms_log(string $event, array $context = []): void
@@ -1620,11 +1613,11 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
     }
 
     $payload = [
-        'sending_type' => 'pattern',
         'code' => (string) $config['patternCode'],
-        'recipients' => [$normalizedPhone],
-        'params' => $params,
-        'from_number' => (string) $config['senderLine'],
+        'recipient' => $normalizedPhone,
+        'line_number' => (string) $config['senderLine'],
+        'number_format' => 'english',
+        'attributes' => $params,
     ];
 
     $attempts = 3;
@@ -1642,7 +1635,7 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
             'params' => implode(',', array_keys($params)),
         ]);
 
-        $ch = curl_init('https://edge.ippanel.com/v1/api/send');
+        $ch = curl_init('https://api.iranpayamak.com/ws/v1/sms/pattern');
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
@@ -1651,7 +1644,7 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
             CURLOPT_HTTPHEADER => [
                 'Accept: application/json',
                 'Content-Type: application/json',
-                'Authorization: ' . (string) $config['apiKey'],
+                'Api-Key: ' . (string) $config['apiKey'],
             ],
             CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         ]);
@@ -1702,33 +1695,32 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
         return ['success' => false, 'message' => 'پاسخ سرویس پیامکی نامعتبر است.' . $detail, 'httpStatus' => $httpCode];
     }
 
-    $meta = is_array($decoded['meta'] ?? null) ? $decoded['meta'] : [];
-    $statusCandidate = $meta['status'] ?? ($decoded['status'] ?? ($decoded['success'] ?? null));
-    $ok = filter_var($statusCandidate, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-    if (!is_bool($ok)) {
-        $ok = false;
-    }
-
-    $message = dent_clean_text((string) ($meta['message'] ?? ($decoded['message'] ?? '')), 220);
-    $messageCode = dent_clean_text((string) ($meta['message_code'] ?? ($decoded['message_code'] ?? ($decoded['code'] ?? ''))), 40);
-    if ($message === '' && is_array($meta['errors'] ?? null)) {
-        foreach ((array) $meta['errors'] as $errorValue) {
-            if (is_string($errorValue)) {
-                $message = dent_clean_text($errorValue, 220);
+    $statusRaw = strtolower(trim((string) ($decoded['status'] ?? '')));
+    $ok = $statusRaw === 'success';
+    $messageCode = dent_clean_text((string) ($decoded['code'] ?? ''), 40);
+    $message = '';
+    $rawMessage = $decoded['message'] ?? '';
+    if (is_string($rawMessage)) {
+        $message = dent_clean_text($rawMessage, 220);
+    } elseif (is_array($rawMessage)) {
+        foreach ($rawMessage as $messageItem) {
+            if (is_string($messageItem)) {
+                $message = dent_clean_text($messageItem, 220);
                 if ($message !== '') {
                     break;
                 }
                 continue;
             }
-            if (is_array($errorValue)) {
-                foreach ($errorValue as $nested) {
-                    if (!is_string($nested)) {
-                        continue;
-                    }
-                    $message = dent_clean_text($nested, 220);
-                    if ($message !== '') {
-                        break 2;
-                    }
+            if (!is_array($messageItem)) {
+                continue;
+            }
+            foreach ($messageItem as $nestedMessage) {
+                if (!is_string($nestedMessage)) {
+                    continue;
+                }
+                $message = dent_clean_text($nestedMessage, 220);
+                if ($message !== '') {
+                    break 2;
                 }
             }
         }
