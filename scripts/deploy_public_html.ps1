@@ -6,6 +6,15 @@ param(
     [switch]$SkipPostDeployVerification,
     [switch]$SkipGitHubSync,
     [switch]$PullBeforeDeploy,
+    [switch]$AllowProxyPull,
+    [switch]$AllowProxyOverBudget,
+    [string]$NetworkPath = "auto",
+    [string]$HostDeployNetworkPath = "auto",
+    [string]$HealthCheckNetworkPath = "auto",
+    [string]$GitHubNetworkPath = "auto",
+    [string]$LowBandwidthMode = "auto",
+    [string]$ProxyEndpoint = "",
+    [int]$ProxyBudgetMb = 0,
     [string]$CommitMessage = "chore: sync deployed laptop state to github",
     [string[]]$HealthCheckUrls = @(
         "https://dentistry1402tums.ir/",
@@ -31,6 +40,311 @@ $remotePath = "/" + ($config.remotePath.TrimStart('/'))
 $ftpBase = "ftp://$($config.host)$remotePath"
 $credentials = "$($config.username):$($config.password)"
 $runStartedAt = [DateTimeOffset]::Now
+
+function Normalize-NetworkPath([string]$value) {
+    $normalized = ([string]$value).Trim().ToLowerInvariant()
+    if ($normalized -in @("auto", "direct", "proxy")) {
+        return $normalized
+    }
+    return "auto"
+}
+
+function Normalize-LowBandwidthMode([string]$value) {
+    $normalized = ([string]$value).Trim().ToLowerInvariant()
+    if ($normalized -in @("auto", "on", "off")) {
+        return $normalized
+    }
+    return "auto"
+}
+
+function Parse-PositiveInt([string]$value, [int]$fallback) {
+    if ([string]::IsNullOrWhiteSpace($value)) {
+        return $fallback
+    }
+
+    $parsed = 0
+    if ([int]::TryParse($value.Trim(), [ref]$parsed) -and $parsed -gt 0) {
+        return $parsed
+    }
+    return $fallback
+}
+
+function Get-ProxyEnvValues() {
+    $keys = @(
+        "HTTP_PROXY",
+        "HTTPS_PROXY",
+        "ALL_PROXY",
+        "FTP_PROXY",
+        "http_proxy",
+        "https_proxy",
+        "all_proxy",
+        "ftp_proxy"
+    )
+
+    $values = New-Object System.Collections.Generic.List[string]
+    foreach ($key in $keys) {
+        $value = [Environment]::GetEnvironmentVariable($key)
+        if (-not [string]::IsNullOrWhiteSpace($value)) {
+            [void]$values.Add($value.Trim())
+        }
+    }
+    return @($values)
+}
+
+function Test-ProxyEndpointConfigured([string]$endpoint) {
+    if ([string]::IsNullOrWhiteSpace($endpoint)) {
+        return $false
+    }
+
+    $needle = $endpoint.Trim().ToLowerInvariant()
+    foreach ($value in @(Get-ProxyEnvValues)) {
+        if ([string]::IsNullOrWhiteSpace($value)) {
+            continue
+        }
+
+        $normalized = $value.Trim().ToLowerInvariant()
+        if ($normalized.Contains($needle)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Get-HostNameFromTarget([string]$target) {
+    if ([string]::IsNullOrWhiteSpace($target)) {
+        return ""
+    }
+
+    $raw = $target.Trim()
+    $uri = $null
+    if ([Uri]::TryCreate($raw, [UriKind]::Absolute, [ref]$uri)) {
+        return $uri.Host.ToLowerInvariant()
+    }
+
+    $candidate = $raw
+    if ($candidate.Contains("/")) {
+        $candidate = $candidate.Split('/')[0]
+    }
+    if ($candidate.Contains("@")) {
+        $candidate = $candidate.Split('@')[-1]
+    }
+    if ($candidate.StartsWith("[")) {
+        $closing = $candidate.IndexOf("]")
+        if ($closing -gt 0) {
+            return $candidate.Substring(1, $closing - 1).ToLowerInvariant()
+        }
+    }
+    if ($candidate.Contains(":")) {
+        $candidate = $candidate.Split(':')[0]
+    }
+    return $candidate.Trim().ToLowerInvariant()
+}
+
+function Test-NoProxyBypass([string]$hostName) {
+    if ([string]::IsNullOrWhiteSpace($hostName)) {
+        return $false
+    }
+
+    $tokens = @()
+    foreach ($key in @("NO_PROXY", "no_proxy")) {
+        $value = [Environment]::GetEnvironmentVariable($key)
+        if ([string]::IsNullOrWhiteSpace($value)) {
+            continue
+        }
+        $tokens += ($value -split ",")
+    }
+
+    if ($tokens.Count -eq 0) {
+        return $false
+    }
+
+    $subject = $hostName.Trim().ToLowerInvariant()
+    foreach ($token in $tokens) {
+        $rule = ([string]$token).Trim().ToLowerInvariant()
+        if ([string]::IsNullOrWhiteSpace($rule)) {
+            continue
+        }
+        if ($rule -eq "*") {
+            return $true
+        }
+        if ($rule.StartsWith(".")) {
+            $rule = $rule.TrimStart(".")
+        }
+        if ([string]::IsNullOrWhiteSpace($rule)) {
+            continue
+        }
+        if ($subject -eq $rule) {
+            return $true
+        }
+        if ($subject.EndsWith("." + $rule)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Resolve-EffectiveNetworkPath(
+    [string]$preferred,
+    [string]$envOverride,
+    [string]$targetHost,
+    [bool]$proxyConfigured,
+    [string]$fallback = "auto"
+) {
+    $choice = Normalize-NetworkPath -value $preferred
+    if ($choice -eq "auto" -and -not [string]::IsNullOrWhiteSpace($envOverride)) {
+        $choice = Normalize-NetworkPath -value $envOverride
+    }
+    if ($choice -eq "auto") {
+        $choice = Normalize-NetworkPath -value $fallback
+    }
+    if ($choice -in @("direct", "proxy")) {
+        return $choice
+    }
+    if (-not $proxyConfigured) {
+        return "direct"
+    }
+    if (Test-NoProxyBypass -hostName $targetHost) {
+        return "direct"
+    }
+    return "proxy"
+}
+
+function Format-Bytes([int64]$bytes) {
+    if ($bytes -lt 1024) {
+        return "$bytes B"
+    }
+    if ($bytes -lt 1MB) {
+        return ("{0:N2} KB" -f ($bytes / 1KB))
+    }
+    return ("{0:N2} MB" -f ($bytes / 1MB))
+}
+
+function Get-FileBytesFromRelativeList([string]$rootPath, [string[]]$relativeList) {
+    $total = [int64]0
+    foreach ($relative in @($relativeList)) {
+        if ([string]::IsNullOrWhiteSpace($relative)) {
+            continue
+        }
+
+        $fullPath = Join-Path $rootPath ($relative -replace '/', '\')
+        if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+            continue
+        }
+
+        try {
+            $fileInfo = Get-Item -LiteralPath $fullPath -ErrorAction Stop
+            $total += [int64]$fileInfo.Length
+        } catch {
+            continue
+        }
+    }
+    return $total
+}
+
+function Get-ProxyBudgetBytes([int]$budgetMb) {
+    return [int64]$budgetMb * 1MB
+}
+
+function Assert-ProxyBudget([string]$stepName, [int64]$estimatedBytes, [int]$budgetMb, [switch]$allowOverBudget) {
+    $budgetBytes = Get-ProxyBudgetBytes -budgetMb $budgetMb
+    if ($estimatedBytes -le $budgetBytes) {
+        return
+    }
+
+    $estimatedReadable = Format-Bytes -bytes $estimatedBytes
+    $budgetReadable = Format-Bytes -bytes $budgetBytes
+    if ($allowOverBudget) {
+        Write-Warning "$stepName exceeds proxy budget ($estimatedReadable > $budgetReadable) but continuing due to explicit override."
+        return
+    }
+
+    throw "$stepName exceeds proxy budget ($estimatedReadable > $budgetReadable). Use direct path, reduce scope, or rerun with -AllowProxyOverBudget."
+}
+
+if ([string]::IsNullOrWhiteSpace($ProxyEndpoint)) {
+    $ProxyEndpoint = [Environment]::GetEnvironmentVariable("DENT_PROXY_ENDPOINT")
+}
+if ([string]::IsNullOrWhiteSpace($ProxyEndpoint)) {
+    $ProxyEndpoint = "127.0.0.1:10808"
+}
+
+if ($ProxyBudgetMb -le 0) {
+    $ProxyBudgetMb = Parse-PositiveInt -value ([Environment]::GetEnvironmentVariable("DENT_PROXY_BUDGET_MB")) -fallback 10
+}
+if ($ProxyBudgetMb -le 0) {
+    $ProxyBudgetMb = 10
+}
+
+$remoteHost = Get-HostNameFromTarget -target $config.host
+$healthHost = $remoteHost
+foreach ($candidateUrl in $HealthCheckUrls) {
+    if ([string]::IsNullOrWhiteSpace($candidateUrl)) {
+        continue
+    }
+
+    $uri = $null
+    if ([Uri]::TryCreate($candidateUrl.Trim(), [UriKind]::Absolute, [ref]$uri)) {
+        $healthHost = $uri.Host.ToLowerInvariant()
+        break
+    }
+}
+
+$proxyConfigured = Test-ProxyEndpointConfigured -endpoint $ProxyEndpoint
+$globalPath = Resolve-EffectiveNetworkPath `
+    -preferred $NetworkPath `
+    -envOverride ([Environment]::GetEnvironmentVariable("DENT_NETWORK_PATH")) `
+    -targetHost $remoteHost `
+    -proxyConfigured $proxyConfigured
+
+$hostDeployPath = Resolve-EffectiveNetworkPath `
+    -preferred $HostDeployNetworkPath `
+    -envOverride ([Environment]::GetEnvironmentVariable("DENT_HOST_DEPLOY_PATH")) `
+    -targetHost $remoteHost `
+    -proxyConfigured $proxyConfigured `
+    -fallback $globalPath
+
+$healthCheckPath = Resolve-EffectiveNetworkPath `
+    -preferred $HealthCheckNetworkPath `
+    -envOverride ([Environment]::GetEnvironmentVariable("DENT_HEALTHCHECK_PATH")) `
+    -targetHost $healthHost `
+    -proxyConfigured $proxyConfigured `
+    -fallback $globalPath
+
+$githubPath = Resolve-EffectiveNetworkPath `
+    -preferred $GitHubNetworkPath `
+    -envOverride ([Environment]::GetEnvironmentVariable("DENT_GITHUB_PATH")) `
+    -targetHost "github.com" `
+    -proxyConfigured $proxyConfigured `
+    -fallback $globalPath
+
+$lowBandwidthMode = Normalize-LowBandwidthMode -value $LowBandwidthMode
+$envLowBandwidthMode = Normalize-LowBandwidthMode -value ([Environment]::GetEnvironmentVariable("DENT_LOW_BANDWIDTH_MODE"))
+if ($lowBandwidthMode -eq "auto") {
+    $lowBandwidthMode = $envLowBandwidthMode
+}
+
+$lowBandwidthEnabled = $true
+if ($lowBandwidthMode -eq "off") {
+    $lowBandwidthEnabled = $false
+} elseif ($lowBandwidthMode -eq "auto") {
+    $lowBandwidthEnabled = $proxyConfigured
+}
+
+$script:NetworkPolicy = [PSCustomObject]@{
+    ProxyEndpoint        = $ProxyEndpoint
+    ProxyConfigured      = $proxyConfigured
+    BudgetMb             = $ProxyBudgetMb
+    GlobalPath           = $globalPath
+    HostDeployPath       = $hostDeployPath
+    HealthCheckPath      = $healthCheckPath
+    GitHubPath           = $githubPath
+    LowBandwidthEnabled  = $lowBandwidthEnabled
+    StrictHostDeploy     = ($lowBandwidthEnabled -and $hostDeployPath -eq "proxy")
+    StrictHealthCheck    = ($lowBandwidthEnabled -and $healthCheckPath -eq "proxy")
+    StrictGitHub         = ($lowBandwidthEnabled -and $githubPath -eq "proxy")
+}
 
 function Get-IsoNow() {
     return ([DateTimeOffset]::Now).ToString("yyyy-MM-ddTHH:mm:sszzz")
@@ -198,6 +512,10 @@ function Run-OptionalPullBeforeDeploy() {
         }
     }
 
+    if ($script:NetworkPolicy.StrictGitHub -and -not $AllowProxyPull) {
+        throw "Optional git pull is blocked in proxy low-bandwidth mode. Use direct path or rerun with -AllowProxyPull."
+    }
+
     Assert-GitAvailable
     Assert-CleanWorkingTree
 
@@ -304,6 +622,38 @@ function Collect-WorkingTreeDelta([System.Collections.Generic.HashSet[string]]$u
     foreach ($path in $untracked) {
         Add-RelativePath -set $uploadSet -path $path
     }
+}
+
+function Get-GitAheadBehind([string]$upstream) {
+    if ([string]::IsNullOrWhiteSpace($upstream)) {
+        return [PSCustomObject]@{
+            Ahead  = 0
+            Behind = 0
+        }
+    }
+
+    $counts = Run-GitSingle -GitArgs @("rev-list", "--left-right", "--count", "$upstream...HEAD")
+    $parts = ($counts -split "\s+") | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    if ($parts.Count -lt 2) {
+        return [PSCustomObject]@{
+            Ahead  = 0
+            Behind = 0
+        }
+    }
+
+    return [PSCustomObject]@{
+        Behind = [int]$parts[0]
+        Ahead  = [int]$parts[1]
+    }
+}
+
+function Get-EstimatedBytesForGitRange([string]$rangeSpec) {
+    if ([string]::IsNullOrWhiteSpace($rangeSpec)) {
+        return [int64]0
+    }
+
+    $paths = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=ACMRTUXB", $rangeSpec)
+    return Get-FileBytesFromRelativeList -rootPath $projectRoot -relativeList @($paths)
 }
 
 function Build-DeployPlan() {
@@ -446,6 +796,11 @@ function Run-PostDeployVerification() {
         throw "No health-check URL is configured. Provide -HealthCheckUrls for post-deploy verification."
     }
 
+    if ($script:NetworkPolicy.StrictHealthCheck -and $targets.Count -gt 1) {
+        Write-Warning "Proxy low-bandwidth mode active for health checks. Limiting verification to the first target."
+        $targets = @($targets[0])
+    }
+
     $verificationStartedAt = Get-IsoNow
     Write-Host "Step 4/5: live post-deploy verification"
     foreach ($target in $targets) {
@@ -475,6 +830,7 @@ function Sync-GitHubFromLaptop() {
             HeadAfterSync = ""
             HeadCommit    = $null
             PushCommand   = ""
+            EstimatedPushBytes = [int64]0
         }
     }
 
@@ -489,6 +845,7 @@ function Sync-GitHubFromLaptop() {
             HeadAfterSync = ""
             HeadCommit    = $null
             PushCommand   = ""
+            EstimatedPushBytes = [int64]0
         }
     }
 
@@ -527,11 +884,43 @@ function Sync-GitHubFromLaptop() {
     }
 
     $upstream = Try-GetUpstreamBranch
-    $pushCommand = "git push"
+    $pushCommand = ""
+    $estimatedPushBytes = [int64]0
+
     if ([string]::IsNullOrWhiteSpace($upstream)) {
+        if ($script:NetworkPolicy.StrictGitHub -and -not $AllowProxyOverBudget) {
+            throw "Proxy low-bandwidth mode cannot estimate first push size (no upstream). Use direct path or rerun with -AllowProxyOverBudget."
+        }
+        if ($script:NetworkPolicy.StrictGitHub -and $AllowProxyOverBudget) {
+            Write-Warning "Proxy low-bandwidth mode: first push size is unknown, continuing due to explicit override."
+        }
         $pushCommand = "git push -u origin $currentBranch"
         & git -C $projectRoot push -u origin $currentBranch
     } else {
+        $divergence = Get-GitAheadBehind -upstream $upstream
+        if ($divergence.Ahead -le 0) {
+            Write-Host "No local commits ahead of $upstream; skipping push."
+            $headAfterSyncNoop = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
+            $headCommitNoop = Get-CommitInfo -Revision $headAfterSyncNoop
+            return [PSCustomObject]@{
+                Status            = "completed-noop"
+                StartedAt         = $started
+                FinishedAt        = Get-IsoNow
+                CurrentBranch     = $currentBranch
+                CreatedCommit     = $createdCommit
+                HeadAfterSync     = $headAfterSyncNoop
+                HeadCommit        = $headCommitNoop
+                PushCommand       = "skipped(no-ahead)"
+                EstimatedPushBytes = [int64]0
+            }
+        }
+
+        $estimatedPushBytes = Get-EstimatedBytesForGitRange -rangeSpec "$upstream..HEAD"
+        if ($script:NetworkPolicy.StrictGitHub) {
+            Assert-ProxyBudget -stepName "GitHub sync push" -estimatedBytes $estimatedPushBytes -budgetMb $script:NetworkPolicy.BudgetMb -allowOverBudget:$AllowProxyOverBudget
+        }
+
+        $pushCommand = "git push"
         & git -C $projectRoot push
     }
 
@@ -543,14 +932,15 @@ function Sync-GitHubFromLaptop() {
     $headCommit = Get-CommitInfo -Revision $headAfterSync
 
     return [PSCustomObject]@{
-        Status        = "completed"
-        StartedAt     = $started
-        FinishedAt    = Get-IsoNow
-        CurrentBranch = $currentBranch
-        CreatedCommit = $createdCommit
-        HeadAfterSync = $headAfterSync
-        HeadCommit    = $headCommit
-        PushCommand   = $pushCommand
+        Status            = "completed"
+        StartedAt         = $started
+        FinishedAt        = Get-IsoNow
+        CurrentBranch     = $currentBranch
+        CreatedCommit     = $createdCommit
+        HeadAfterSync     = $headAfterSync
+        HeadCommit        = $headCommit
+        PushCommand       = $pushCommand
+        EstimatedPushBytes = $estimatedPushBytes
     }
 }
 
@@ -572,13 +962,14 @@ $pullInfo = [PSCustomObject]@{
     CommitRange = ""
 }
 $deployInfo = [PSCustomObject]@{
-    Status      = "not-run"
-    StartedAt   = ""
-    FinishedAt  = ""
-    Mode        = ""
-    UploadCount = 0
-    DeleteCount = 0
-    Notes       = @()
+    Status               = "not-run"
+    StartedAt            = ""
+    FinishedAt           = ""
+    Mode                 = ""
+    UploadCount          = 0
+    DeleteCount          = 0
+    EstimatedUploadBytes = [int64]0
+    Notes                = @()
 }
 $verificationInfo = [PSCustomObject]@{
     Status     = "not-run"
@@ -587,14 +978,15 @@ $verificationInfo = [PSCustomObject]@{
     Targets    = @()
 }
 $githubSyncInfo = [PSCustomObject]@{
-    Status        = "not-run"
-    StartedAt     = ""
-    FinishedAt    = ""
-    CurrentBranch = ""
-    CreatedCommit = ""
-    HeadAfterSync = ""
-    HeadCommit    = $null
-    PushCommand   = ""
+    Status            = "not-run"
+    StartedAt         = ""
+    FinishedAt        = ""
+    CurrentBranch     = ""
+    CreatedCommit     = ""
+    HeadAfterSync     = ""
+    HeadCommit        = $null
+    PushCommand       = ""
+    EstimatedPushBytes = [int64]0
 }
 
 $failureMessage = ""
@@ -611,7 +1003,16 @@ try {
     $deployInfo.Mode = [string]$plan.Mode
     $deployInfo.UploadCount = $uploadList.Count
     $deployInfo.DeleteCount = $deleteList.Count
+    $deployInfo.EstimatedUploadBytes = Get-FileBytesFromRelativeList -rootPath $localRoot -relativeList $uploadList
     $deployInfo.Notes = @($plan.Notes)
+
+    if ($script:NetworkPolicy.StrictHostDeploy -and $deployInfo.EstimatedUploadBytes -gt 0) {
+        Assert-ProxyBudget `
+            -stepName "Host deploy upload" `
+            -estimatedBytes $deployInfo.EstimatedUploadBytes `
+            -budgetMb $script:NetworkPolicy.BudgetMb `
+            -allowOverBudget:$AllowProxyOverBudget
+    }
 
     if ($uploadList.Count -eq 0 -and $deleteList.Count -eq 0) {
         Write-Host "Step 3/5: deploy to host"
@@ -661,6 +1062,11 @@ try {
     Write-Host "Deploy completed to $remotePath"
     Write-Host "Deployment report (laptop-first):"
     Write-Host " - Run started at: $($runStartedAt.ToString('yyyy-MM-ddTHH:mm:sszzz'))"
+    Write-Host " - Proxy endpoint target: $($script:NetworkPolicy.ProxyEndpoint)"
+    Write-Host " - Proxy env detected: $($script:NetworkPolicy.ProxyConfigured)"
+    Write-Host " - Low-bandwidth mode enabled: $($script:NetworkPolicy.LowBandwidthEnabled)"
+    Write-Host " - Effective network path (global/host/health/github): $($script:NetworkPolicy.GlobalPath)/$($script:NetworkPolicy.HostDeployPath)/$($script:NetworkPolicy.HealthCheckPath)/$($script:NetworkPolicy.GitHubPath)"
+    Write-Host " - Proxy budget: $($script:NetworkPolicy.BudgetMb) MB"
 
     Write-Host " - Validation status: $($validationInfo.Status)"
     if (-not [string]::IsNullOrWhiteSpace($validationInfo.StartedAt)) {
@@ -697,6 +1103,7 @@ try {
     }
     Write-Host " - Upload count: $($deployInfo.UploadCount)"
     Write-Host " - Delete count: $($deployInfo.DeleteCount)"
+    Write-Host " - Estimated upload bytes: $(Format-Bytes -bytes $deployInfo.EstimatedUploadBytes)"
     foreach ($note in @($deployInfo.Notes)) {
         Write-Host "   * $note"
     }
@@ -730,6 +1137,7 @@ try {
     if (-not [string]::IsNullOrWhiteSpace($githubSyncInfo.PushCommand)) {
         Write-Host " - Push command: $($githubSyncInfo.PushCommand)"
     }
+    Write-Host " - Estimated push bytes: $(Format-Bytes -bytes $githubSyncInfo.EstimatedPushBytes)"
 
     Write-Host " - Run finished at: $runFinishedAt"
 

@@ -630,6 +630,232 @@ body.account-page.account-stage-panel-active .account-hero {
     --row-icon-color: #1d5be0;
 }
 
+.phone-security-grid {
+    display: grid;
+    gap: 0.76rem;
+}
+
+.phone-status-card,
+.phone-flow-card {
+    padding: 0.82rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    display: grid;
+    gap: 0.62rem;
+}
+
+.phone-status-card {
+    background:
+        radial-gradient(circle at 100% 0, rgba(43, 109, 243, 0.08), transparent 34%),
+        var(--surface-muted);
+}
+
+.phone-status-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.58rem;
+    flex-wrap: wrap;
+}
+
+.phone-status-card__head strong {
+    font-size: 0.85rem;
+    font-weight: 860;
+}
+
+.phone-status-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0.14rem 0.62rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 840;
+}
+
+.phone-status-badge.is-ok {
+    color: var(--success-color);
+    border-color: rgba(21, 143, 99, 0.24);
+    background: rgba(21, 143, 99, 0.1);
+}
+
+.phone-status-badge.is-warn {
+    color: var(--warning-color);
+    border-color: rgba(194, 129, 29, 0.24);
+    background: rgba(194, 129, 29, 0.12);
+}
+
+.phone-status-badge.is-error {
+    color: var(--danger-color);
+    border-color: rgba(199, 83, 94, 0.24);
+    background: rgba(199, 83, 94, 0.12);
+}
+
+#phone-status-summary {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.9;
+}
+
+.phone-status-pills {
+    display: flex;
+    gap: 0.42rem;
+    flex-wrap: wrap;
+}
+
+.phone-status-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0.14rem 0.56rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 760;
+}
+
+.phone-status-pill.is-ok {
+    color: var(--success-color);
+    border-color: rgba(21, 143, 99, 0.24);
+    background: rgba(21, 143, 99, 0.1);
+}
+
+.phone-status-pill.is-warn {
+    color: var(--warning-color);
+    border-color: rgba(194, 129, 29, 0.24);
+    background: rgba(194, 129, 29, 0.11);
+}
+
+.phone-status-pill.is-error {
+    color: var(--danger-color);
+    border-color: rgba(199, 83, 94, 0.24);
+    background: rgba(199, 83, 94, 0.11);
+}
+
+.phone-flow-card__head {
+    display: grid;
+    gap: 0.24rem;
+}
+
+.phone-flow-card__head h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 860;
+}
+
+.phone-flow-card__head p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    line-height: 1.84;
+}
+
+.phone-flow-card--toggle {
+    background:
+        linear-gradient(180deg, rgba(43, 109, 243, 0.08), rgba(43, 109, 243, 0.02)),
+        var(--surface-muted);
+}
+
+.phone-action-row {
+    display: flex;
+    align-items: center;
+    gap: 0.54rem;
+    flex-wrap: wrap;
+}
+
+.phone-action-row .shell-action-btn {
+    min-height: 40px;
+}
+
+.phone-code-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.58rem;
+    align-items: end;
+}
+
+.phone-code-row .shell-action-btn {
+    min-height: 42px;
+    min-width: 130px;
+}
+
+.phone-toggle-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.62rem;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--surface-solid);
+    padding: 0.6rem 0.7rem;
+}
+
+.phone-toggle-row span {
+    display: grid;
+    gap: 0.12rem;
+}
+
+.phone-toggle-row strong {
+    font-size: 0.82rem;
+    font-weight: 840;
+}
+
+.phone-toggle-row small {
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    line-height: 1.8;
+}
+
+.phone-toggle-row input[type="checkbox"] {
+    appearance: none;
+    width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    position: relative;
+    cursor: pointer;
+    transition: background 0.16s ease, border-color 0.16s ease;
+}
+
+.phone-toggle-row input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    transition: transform 0.16s ease, background 0.16s ease;
+}
+
+.phone-toggle-row input[type="checkbox"]:checked {
+    background: var(--accent-soft);
+    border-color: var(--accent-color);
+}
+
+.phone-toggle-row input[type="checkbox"]:checked::after {
+    transform: translateX(-18px);
+    background: var(--accent-color);
+}
+
+.phone-toggle-row input[type="checkbox"]:focus-visible {
+    box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.phone-toggle-row input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .account-field-head {
     display: flex;
     align-items: center;
@@ -1177,6 +1403,36 @@ html[data-theme="dark"] body.account-page .account-phone-nudge {
         rgba(15, 24, 37, 0.9);
 }
 
+html[data-theme="dark"] body.account-page .phone-status-card {
+    background:
+        radial-gradient(circle at 100% 0, rgba(114, 169, 255, 0.18), transparent 36%),
+        var(--surface-muted);
+}
+
+html[data-theme="dark"] body.account-page .phone-flow-card--toggle {
+    background:
+        linear-gradient(180deg, rgba(114, 169, 255, 0.18), rgba(17, 29, 45, 0.86)),
+        var(--surface-muted);
+}
+
+html[data-theme="dark"] body.account-page .phone-status-badge.is-ok,
+html[data-theme="dark"] body.account-page .phone-status-pill.is-ok {
+    border-color: rgba(67, 194, 143, 0.34);
+    background: rgba(67, 194, 143, 0.2);
+}
+
+html[data-theme="dark"] body.account-page .phone-status-badge.is-warn,
+html[data-theme="dark"] body.account-page .phone-status-pill.is-warn {
+    border-color: rgba(229, 164, 75, 0.34);
+    background: rgba(229, 164, 75, 0.2);
+}
+
+html[data-theme="dark"] body.account-page .phone-status-badge.is-error,
+html[data-theme="dark"] body.account-page .phone-status-pill.is-error {
+    border-color: rgba(239, 124, 136, 0.34);
+    background: rgba(239, 124, 136, 0.2);
+}
+
 html[data-theme="dark"] body.account-page #login-phone-number,
 html[data-theme="dark"] body.account-page #phone-enroll-number,
 html[data-theme="dark"] body.account-page #owner-sms-test-phone,
@@ -1231,6 +1487,22 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
 
     #account-panel[data-surface]:not([data-surface="hub"]) .account-surface-layout {
         max-width: 860px;
+    }
+}
+
+@media (min-width: 860px) {
+    .phone-security-grid {
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        align-items: start;
+    }
+
+    .phone-status-card {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+    }
+
+    .phone-flow-card {
+        grid-column: 2;
     }
 }
 
@@ -1328,6 +1600,27 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
 
     .account-inline-actions {
         flex-direction: column;
+        align-items: stretch;
+    }
+
+    .phone-status-card,
+    .phone-flow-card {
+        padding: 0.74rem;
+    }
+
+    .phone-action-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .phone-action-row .shell-action-btn,
+    .phone-code-row .shell-action-btn {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .phone-code-row {
+        grid-template-columns: 1fr;
         align-items: stretch;
     }
 

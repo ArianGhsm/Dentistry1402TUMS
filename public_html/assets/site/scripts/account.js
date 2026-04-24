@@ -96,6 +96,10 @@
     var surfacePanels = Array.prototype.slice.call(document.querySelectorAll(".account-surface-panel[data-surface]"));
 
     var phoneStatusSummary = $("phone-status-summary");
+    var phoneStatusBadge = $("phone-status-badge");
+    var phoneNumberState = $("phone-number-state");
+    var phoneVerifyState = $("phone-verify-state");
+    var phoneLoginState = $("phone-login-state");
     var phoneEnrollNumber = $("phone-enroll-number");
     var phoneEnrollCode = $("phone-enroll-code");
     var phoneEnrollRequestButton = $("phone-enroll-request");
@@ -104,6 +108,7 @@
     var phoneEnrollFeedback = $("phone-enroll-feedback");
     var phoneLoginEnabledInput = $("phone-login-enabled");
     var phoneLoginSaveButton = $("phone-login-save");
+    var phoneLoginToggleHint = $("phone-login-toggle-hint");
     var phoneToggleFeedback = $("phone-toggle-feedback");
 
     var ownerSmsStatus = $("owner-sms-status");
@@ -157,8 +162,6 @@
     var profileDraftAvatarUrl = "";
     var profileSaving = false;
     var profileAvatarProcessing = false;
-    var DEFAULT_SMS_HEALTH_PHONE = "09009840305";
-
     function safeReturnTo(value) {
         if (!value || typeof value !== "string") {
             return "";
@@ -398,13 +401,9 @@
 
     function ensureOwnerSmsHealthPhone() {
         if (!ownerSmsTestPhone) {
-            return DEFAULT_SMS_HEALTH_PHONE;
+            return "";
         }
         var normalized = normalizedPhone(ownerSmsTestPhone.value);
-        if (!normalized) {
-            ownerSmsTestPhone.value = DEFAULT_SMS_HEALTH_PHONE;
-            return DEFAULT_SMS_HEALTH_PHONE;
-        }
         ownerSmsTestPhone.value = normalized;
         return normalized;
     }
@@ -442,6 +441,63 @@
             canLoginWithOtp: !!source.canLoginWithOtp,
             nudgeDismissedAt: String(source.nudgeDismissedAt || "")
         };
+    }
+
+    function setPhonePill(node, text, state) {
+        if (!node) return;
+        node.textContent = text;
+        node.className = "phone-status-pill" + (state ? (" is-" + state) : "");
+    }
+
+    function renderPhoneSecurityState(user) {
+        var phone = parsedPhone(user || {});
+        var badgeText = "نیاز به ثبت شماره";
+        var badgeState = "warn";
+        var summary = "شماره‌ای برای این حساب ثبت نشده است. برای فعال‌سازی ورود پیامکی، شماره را ثبت و تایید کن.";
+
+        if (phone.hasNumber && !phone.verified) {
+            badgeText = "در انتظار تایید";
+            badgeState = "warn";
+            summary = "شماره موبایل ثبت شده ولی هنوز با کد پیامکی تایید نشده است.";
+        } else if (phone.hasNumber && phone.verified && !phone.otpLoginEnabled) {
+            badgeText = "شماره تایید شده";
+            badgeState = "ok";
+            summary = "شماره " + (phone.numberMasked || "ثبت‌شده") + " تایید شده است؛ ورود با کد تایید هنوز غیرفعال است.";
+        } else if (phone.hasNumber && phone.verified && phone.otpLoginEnabled) {
+            badgeText = "ورود پیامکی فعال";
+            badgeState = "ok";
+            summary = "ورود با کد تایید برای " + (phone.numberMasked || "شماره ثبت‌شده") + " فعال است.";
+        }
+
+        if (phoneStatusBadge) {
+            phoneStatusBadge.textContent = badgeText;
+            phoneStatusBadge.className = "phone-status-badge is-" + badgeState;
+        }
+        if (phoneStatusSummary) {
+            phoneStatusSummary.textContent = summary;
+        }
+        setPhonePill(phoneNumberState, phone.hasNumber ? (phone.numberMasked || "شماره ثبت شده") : "شماره ثبت نشده", phone.hasNumber ? "ok" : "warn");
+        setPhonePill(phoneVerifyState, phone.verified ? "تایید شده" : "تایید نشده", phone.verified ? "ok" : "warn");
+        setPhonePill(phoneLoginState, phone.otpLoginEnabled ? "ورود پیامکی فعال" : "ورود پیامکی غیرفعال", phone.otpLoginEnabled ? "ok" : "warn");
+
+        if (phoneLoginEnabledInput) {
+            phoneLoginEnabledInput.checked = !!phone.otpLoginEnabled;
+            phoneLoginEnabledInput.disabled = !phone.hasNumber || !phone.verified;
+        }
+        if (phoneLoginSaveButton) {
+            phoneLoginSaveButton.disabled = !phone.hasNumber || !phone.verified;
+        }
+        if (phoneLoginToggleHint) {
+            phoneLoginToggleHint.textContent = phone.hasNumber && phone.verified
+                ? "می‌توانی ورود پیامکی را برای همین شماره روشن یا خاموش کنی."
+                : "برای فعال‌سازی، ابتدا شماره را با کد پیامکی تایید کن.";
+        }
+        if (phoneEnrollNumber && !phoneEnrollNumber.value && phone.hasNumber) {
+            phoneEnrollNumber.placeholder = phone.numberMasked ? ("شماره فعلی: " + phone.numberMasked) : "09xxxxxxxxx";
+        }
+        if (accountPhoneNudge) {
+            accountPhoneNudge.hidden = !shouldShowPhoneNudge(user || {});
+        }
     }
 
     function shouldShowPhoneNudge(user) {
@@ -489,7 +545,7 @@
         if (loginOtpMeta) {
             loginOtpMeta.textContent = active
                 ? ("ارسال مجدد تا " + formatSeconds(left) + " دیگر")
-                : "برای این شماره قبلا باید تایید انجام شده باشد.";
+                : "ورود پیامکی فقط برای شماره تاییدشده و فعال‌شده امکان دارد.";
         }
         if (!active) {
             stopLoginOtpCooldownTicker();
@@ -520,7 +576,7 @@
         if (phoneEnrollMeta) {
             phoneEnrollMeta.textContent = active
                 ? ("ارسال مجدد تا " + formatSeconds(left) + " دیگر")
-                : "کد برای همین شماره ارسال می‌شود.";
+                : "بعد از ارسال، امکان ارسال دوباره با زمان‌سنج فعال می‌شود.";
         }
         if (!active) {
             stopPhoneEnrollCooldownTicker();
@@ -869,20 +925,7 @@
                 accountRowPhoneMeta.textContent = "شماره تایید شده است ولی ورود پیامکی غیرفعال است.";
             }
         }
-        if (phoneStatusSummary) {
-            var statusParts = [];
-            statusParts.push(phone.hasNumber ? (phone.numberMasked || "شماره ثبت شده") : "شماره ثبت نشده");
-            statusParts.push(phone.verified ? "تایید شده" : "تایید نشده");
-            statusParts.push(phone.otpLoginEnabled ? "ورود پیامکی فعال" : "ورود پیامکی غیرفعال");
-            phoneStatusSummary.textContent = statusParts.join(" • ");
-        }
-        if (phoneLoginEnabledInput) {
-            phoneLoginEnabledInput.checked = !!phone.otpLoginEnabled;
-            phoneLoginEnabledInput.disabled = !phone.hasNumber || !phone.verified;
-        }
-        if (accountPhoneNudge) {
-            accountPhoneNudge.hidden = !shouldShowPhoneNudge(user);
-        }
+        renderPhoneSecurityState(user);
 
         if (accountRotation) {
             var rotation = user.rotation && typeof user.rotation === "object" ? user.rotation : null;
@@ -1000,7 +1043,7 @@
         }
         if (ownerSmsTestPhone) {
             var normalized = normalizedPhone(ownerSmsTestPhone.value);
-            ownerSmsTestPhone.value = normalized || DEFAULT_SMS_HEALTH_PHONE;
+            ownerSmsTestPhone.value = normalized;
         }
     }
 
@@ -1086,6 +1129,10 @@
 
         try {
             var testPhone = ensureOwnerSmsHealthPhone();
+            if (!testPhone) {
+                ownerSmsFeedbackMessage("برای تست ارسال واقعی، شماره موبایل معتبر را وارد کن.", "error");
+                return;
+            }
             var response = await request("smsHealthCheck", {
                 phoneNumber: testPhone
             });
@@ -1689,25 +1736,7 @@
 
     function applyPhoneDetailsFromCurrentUser() {
         var user = currentUser || {};
-        var phone = parsedPhone(user);
-
-        if (phoneStatusSummary) {
-            var parts = [];
-            parts.push(phone.hasNumber ? (phone.numberMasked || "شماره ثبت شده") : "شماره ثبت نشده");
-            parts.push(phone.verified ? "تایید شده" : "تایید نشده");
-            parts.push(phone.otpLoginEnabled ? "ورود پیامکی فعال" : "ورود پیامکی غیرفعال");
-            phoneStatusSummary.textContent = parts.join(" • ");
-        }
-        if (phoneLoginEnabledInput) {
-            phoneLoginEnabledInput.checked = !!phone.otpLoginEnabled;
-            phoneLoginEnabledInput.disabled = !phone.hasNumber || !phone.verified;
-        }
-        if (phoneEnrollNumber && !phoneEnrollNumber.value && phone.hasNumber) {
-            phoneEnrollNumber.value = phone.numberMasked || "";
-        }
-        if (accountPhoneNudge) {
-            accountPhoneNudge.hidden = !shouldShowPhoneNudge(user);
-        }
+        renderPhoneSecurityState(user);
     }
 
     async function requestLoginOtpCode() {
@@ -1723,6 +1752,9 @@
             var auth = window.Dent1402Auth;
             var response = await auth.requestLoginOtp(phoneNumber);
             if (!response || !response.success) {
+                if (response && response.cooldownSeconds) {
+                    startLoginOtpCooldown(response.cooldownSeconds);
+                }
                 setFeedback(loginOtpFeedback, (response && response.error) || "ارسال کد تایید انجام نشد.", "error");
                 return;
             }
@@ -1747,7 +1779,12 @@
         if (loginOtpSubmitButton) loginOtpSubmitButton.disabled = true;
         setFeedback(loginOtpFeedback, "در حال ورود با کد تایید...", "", true);
         try {
-            await window.Dent1402Auth.loginWithOtp(phoneNumber, otpCode);
+            var state = await window.Dent1402Auth.loginWithOtp(phoneNumber, otpCode);
+            if (!state || !state.loggedIn) {
+                setFeedback(loginOtpFeedback, (state && state.error) || "ورود با کد تایید انجام نشد.", "error");
+                return;
+            }
+            setFeedback(loginOtpFeedback, "ورود با کد تایید انجام شد.", "success");
         } finally {
             if (loginOtpSubmitButton) loginOtpSubmitButton.disabled = false;
         }
@@ -1770,6 +1807,9 @@
                 return;
             }
             if (!response || !response.success) {
+                if (response && response.cooldownSeconds) {
+                    startPhoneEnrollCooldown(response.cooldownSeconds);
+                }
                 phoneEnrollFeedbackMessage((response && response.error) || "ارسال کد تایید انجام نشد.", "error");
                 return;
             }
@@ -2327,4 +2367,3 @@
     resetOtpUi();
     window.Dent1402Auth.onChange(handleAuthState);
 })();
-

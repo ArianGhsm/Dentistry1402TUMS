@@ -11,6 +11,65 @@ if (!defined('DENT_STORAGE_ROOT')) {
 
 date_default_timezone_set('Asia/Tehran');
 
+function dent_load_env_files(): void
+{
+    static $loaded = false;
+    if ($loaded) {
+        return;
+    }
+    $loaded = true;
+
+    $paths = [];
+    $explicit = getenv('DENT_ENV_FILE');
+    if (is_string($explicit) && trim($explicit) !== '') {
+        $paths[] = trim($explicit);
+    }
+    $paths[] = dirname(__DIR__) . DIRECTORY_SEPARATOR . '.env';
+    $paths[] = DENT_PROJECT_ROOT . DIRECTORY_SEPARATOR . '.env';
+    $paths[] = DENT_STORAGE_ROOT . DIRECTORY_SEPARATOR . '.env';
+    $paths[] = DENT_STORAGE_ROOT . DIRECTORY_SEPARATOR . 'auth' . DIRECTORY_SEPARATOR . '.env';
+    $paths[] = DENT_STORAGE_ROOT . DIRECTORY_SEPARATOR . 'auth' . DIRECTORY_SEPARATOR . 'sms.env';
+
+    foreach (array_unique($paths) as $path) {
+        if (!is_file($path) || !is_readable($path)) {
+            continue;
+        }
+
+        $lines = file($path, FILE_IGNORE_NEW_LINES);
+        if (!is_array($lines)) {
+            continue;
+        }
+
+        foreach ($lines as $line) {
+            $line = trim((string) $line);
+            if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
+                continue;
+            }
+
+            [$name, $value] = explode('=', $line, 2);
+            $name = trim($name);
+            if ($name === '' || preg_match('/^[A-Z_][A-Z0-9_]*$/', $name) !== 1) {
+                continue;
+            }
+            if (getenv($name) !== false) {
+                continue;
+            }
+
+            $value = trim($value);
+            if (
+                strlen($value) >= 2 &&
+                (($value[0] === '"' && substr($value, -1) === '"') || ($value[0] === "'" && substr($value, -1) === "'"))
+            ) {
+                $value = substr($value, 1, -1);
+            }
+
+            putenv($name . '=' . $value);
+            $_ENV[$name] = $value;
+            $_SERVER[$name] = $value;
+        }
+    }
+}
+
 function dent_bootstrap(): void
 {
     static $booted = false;
@@ -20,6 +79,7 @@ function dent_bootstrap(): void
     }
 
     $booted = true;
+    dent_load_env_files();
 
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');

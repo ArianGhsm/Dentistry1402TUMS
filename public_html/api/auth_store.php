@@ -1426,6 +1426,45 @@ function dent_sms_env_bool(string $name): ?bool
     return is_bool($parsed) ? $parsed : null;
 }
 
+function dent_normalize_sms_sender_number(string $value): string
+{
+    $clean = trim(dent_normalize_digits($value));
+    if ($clean === '') {
+        return '';
+    }
+    if (str_starts_with($clean, '+')) {
+        $digits = preg_replace('/\D+/u', '', substr($clean, 1)) ?? '';
+        return $digits !== '' ? ('+' . $digits) : '';
+    }
+
+    $digits = preg_replace('/\D+/u', '', $clean) ?? '';
+    if ($digits === '') {
+        return '';
+    }
+    if (str_starts_with($digits, '0098')) {
+        $digits = substr($digits, 2);
+    } elseif (!str_starts_with($digits, '98')) {
+        $digits = '98' . ltrim($digits, '0');
+    }
+
+    return '+' . $digits;
+}
+
+function dent_sms_log(string $event, array $context = []): void
+{
+    $safe = [
+        'event' => $event,
+        'at' => dent_iso_now(),
+    ];
+    foreach ($context as $key => $value) {
+        if (in_array((string) $key, ['apiKey', 'authorization', 'otpCode', 'code'], true)) {
+            continue;
+        }
+        $safe[(string) $key] = is_scalar($value) || $value === null ? $value : json_encode($value, JSON_UNESCAPED_UNICODE);
+    }
+    error_log('[dent_sms] ' . json_encode($safe, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+}
+
 function dent_sms_resolved_config(): array
 {
     $meta = dent_load_auth_meta_store();
@@ -1444,16 +1483,11 @@ function dent_sms_resolved_config(): array
     if ($senderLine === '') {
         $senderLine = dent_clean_text((string) (getenv('DENT_SMS_FARAZ_SENDER_LINE') ?: ''), 40);
     }
+    $senderLine = dent_normalize_sms_sender_number($senderLine);
 
     $domain = dent_clean_text((string) ($sms['domain'] ?? ''), 120);
     if ($domain === '') {
         $domain = dent_clean_text((string) (getenv('DENT_SMS_FARAZ_DOMAIN') ?: ''), 120);
-    }
-    if ($domain === '') {
-        $domain = dent_clean_text((string) (getenv('DENT_SITE_DOMAIN') ?: ''), 120);
-    }
-    if ($domain === '') {
-        $domain = dent_clean_text((string) ($_SERVER['HTTP_HOST'] ?? ''), 120);
     }
     $domain = trim($domain, " \t\n\r\0\x0B/");
 
@@ -1469,6 +1503,8 @@ function dent_sms_resolved_config(): array
     $envEnabled = dent_sms_env_bool('DENT_SMS_FARAZ_ENABLED');
     if ($envEnabled !== null) {
         $enabled = $envEnabled;
+    } elseif ($storedApiKey === '' && $envApiKey !== '' && $patternCode !== '' && $senderLine !== '') {
+        $enabled = true;
     }
 
     return [
@@ -1549,20 +1585,25 @@ function dent_save_sms_owner_config(array $input): array
 function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
 {
     $config = dent_sms_resolved_config();
+    $normalizedPhone = dent_normalize_phone_number($phoneNumber);
+
     if (!(bool) $config['enabled']) {
+        dent_sms_log('send_blocked', ['reason' => 'disabled', 'phone' => dent_mask_phone_number($normalizedPhone)]);
         return ['success' => false, 'message' => 'سرویس پیامکی غیرفعال است.'];
     }
     if (trim((string) $config['apiKey']) === '') {
+        dent_sms_log('send_blocked', ['reason' => 'missing_api_key', 'phone' => dent_mask_phone_number($normalizedPhone)]);
         return ['success' => false, 'message' => 'کلید API سرویس پیامکی تنظیم نشده است.'];
     }
     if (trim((string) $config['patternCode']) === '') {
+        dent_sms_log('send_blocked', ['reason' => 'missing_pattern', 'phone' => dent_mask_phone_number($normalizedPhone)]);
         return ['success' => false, 'message' => 'کد پترن پیامکی تنظیم نشده است.'];
     }
     if (trim((string) $config['senderLine']) === '') {
+        dent_sms_log('send_blocked', ['reason' => 'missing_sender', 'phone' => dent_mask_phone_number($normalizedPhone)]);
         return ['success' => false, 'message' => 'لاین/شماره ارسال پیامک تنظیم نشده است.'];
     }
 
-    $normalizedPhone = dent_normalize_phone_number($phoneNumber);
     if ($normalizedPhone === '') {
         return ['success' => false, 'message' => 'شماره موبایل مقصد نامعتبر است.'];
     }
@@ -1583,11 +1624,8 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
         'code' => (string) $config['patternCode'],
         'recipients' => [$normalizedPhone],
         'params' => $params,
+        'from_number' => (string) $config['senderLine'],
     ];
-    $payload['from_number'] = (string) $config['senderLine'];
-    if (trim((string) $config['senderLine']) !== '') {
-        $payload['from_number'] = (string) $config['senderLine'];
-    }
 
     $attempts = 3;
     $raw = '';
@@ -1596,6 +1634,14 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
     $decoded = null;
 
     for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+        dent_sms_log('send_attempt', [
+            'attempt' => $attempt,
+            'phone' => dent_mask_phone_number($normalizedPhone),
+            'patternConfigured' => true,
+            'sender' => (string) $config['senderLine'],
+            'params' => implode(',', array_keys($params)),
+        ]);
+
         $ch = curl_init('https://edge.ippanel.com/v1/api/send');
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
@@ -1629,6 +1675,12 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
     }
 
     if ($raw === '') {
+        dent_sms_log('send_failed', [
+            'reason' => 'empty_response',
+            'phone' => dent_mask_phone_number($normalizedPhone),
+            'httpStatus' => $httpCode,
+            'curlError' => dent_clean_text($curlError, 160),
+        ]);
         return [
             'success' => false,
             'message' => $curlError !== '' ? ('خطای ارتباط با سرویس پیامک: ' . $curlError) : 'پاسخی از سرویس پیامکی دریافت نشد.',
@@ -1637,6 +1689,11 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
     }
 
     if (!is_array($decoded)) {
+        dent_sms_log('send_failed', [
+            'reason' => 'invalid_json',
+            'phone' => dent_mask_phone_number($normalizedPhone),
+            'httpStatus' => $httpCode,
+        ]);
         if ($httpCode >= 500) {
             return ['success' => false, 'message' => 'سرویس پیامکی موقتاً در دسترس نیست.', 'httpStatus' => $httpCode];
         }
@@ -1646,8 +1703,36 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
     }
 
     $meta = is_array($decoded['meta'] ?? null) ? $decoded['meta'] : [];
-    $ok = (bool) ($meta['status'] ?? false);
-    $message = dent_clean_text((string) ($meta['message'] ?? ''), 220);
+    $statusCandidate = $meta['status'] ?? ($decoded['status'] ?? ($decoded['success'] ?? null));
+    $ok = filter_var($statusCandidate, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    if (!is_bool($ok)) {
+        $ok = false;
+    }
+
+    $message = dent_clean_text((string) ($meta['message'] ?? ($decoded['message'] ?? '')), 220);
+    $messageCode = dent_clean_text((string) ($meta['message_code'] ?? ($decoded['message_code'] ?? ($decoded['code'] ?? ''))), 40);
+    if ($message === '' && is_array($meta['errors'] ?? null)) {
+        foreach ((array) $meta['errors'] as $errorValue) {
+            if (is_string($errorValue)) {
+                $message = dent_clean_text($errorValue, 220);
+                if ($message !== '') {
+                    break;
+                }
+                continue;
+            }
+            if (is_array($errorValue)) {
+                foreach ($errorValue as $nested) {
+                    if (!is_string($nested)) {
+                        continue;
+                    }
+                    $message = dent_clean_text($nested, 220);
+                    if ($message !== '') {
+                        break 2;
+                    }
+                }
+            }
+        }
+    }
     if ($message === '') {
         $message = $ok ? 'ارسال انجام شد.' : 'ارسال پیامک انجام نشد.';
     }
@@ -1655,10 +1740,18 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
         $message = 'سرویس پیامکی موقتاً در دسترس نیست.';
     }
 
+    dent_sms_log($ok ? 'send_ok' : 'send_failed', [
+        'phone' => dent_mask_phone_number($normalizedPhone),
+        'httpStatus' => $httpCode,
+        'messageCode' => $messageCode,
+        'providerMessage' => $message,
+    ]);
+
     return [
         'success' => $ok,
         'message' => $message,
         'httpStatus' => $httpCode,
+        'messageCode' => $messageCode,
     ];
 }
 
@@ -1777,16 +1870,37 @@ function dent_issue_otp_for_phone(string $purpose, string $phoneNumber, string $
     $salt = dent_base64url_encode(random_bytes(12));
     $codeHash = hash_hmac('sha256', $code, dent_auth_secret_key() . '|' . $salt);
 
+    $records[$key] = array_merge($record, [
+        'purpose' => $purpose,
+        'phoneNumber' => $normalizedPhone,
+        'studentNumber' => dent_normalize_student_number($studentNumber),
+        'issuedAt' => $now,
+        'cooldownUntil' => $now + dent_otp_cooldown_seconds(),
+        'sendWindowStart' => $windowStart,
+        'sendCount' => $sendCount + 1,
+        'lastSendFailedAt' => 0,
+    ]);
+    $meta['otp']['records'] = $records;
+    dent_save_auth_meta_store($meta);
+
     $sendResult = dent_sms_send_pattern($normalizedPhone, $code);
     dent_sms_health_store_update((bool) ($sendResult['success'] ?? false), (string) ($sendResult['message'] ?? ''));
     if (!(bool) ($sendResult['success'] ?? false)) {
-        if ($metaChanged) {
-            dent_save_auth_meta_store($meta);
-        }
+        $records[$key]['lastSendFailedAt'] = time();
+        $records[$key]['lastSendFailureMessage'] = dent_clean_text((string) ($sendResult['message'] ?? ''), 220);
+        $records[$key]['codeHash'] = '';
+        $records[$key]['salt'] = '';
+        $records[$key]['expiresAt'] = 0;
+        $records[$key]['attempts'] = 0;
+        $records[$key]['maxAttempts'] = dent_otp_max_attempts();
+        $records[$key]['consumedAt'] = 0;
+        $meta['otp']['records'] = $records;
+        dent_save_auth_meta_store($meta);
         return [
             'success' => false,
             'error' => (string) ($sendResult['message'] ?? 'ارسال کد تایید انجام نشد.'),
             'statusCode' => 502,
+            'cooldownSeconds' => dent_otp_cooldown_seconds(),
         ];
     }
 
@@ -1862,8 +1976,11 @@ function dent_verify_otp_for_phone(string $purpose, string $phoneNumber, string 
     $maxAttempts = max(1, (int) ($record['maxAttempts'] ?? dent_otp_max_attempts()));
     $salt = (string) ($record['salt'] ?? '');
     $expectedHash = (string) ($record['codeHash'] ?? '');
+    if ($expectedHash === '' || $salt === '') {
+        return ['success' => false, 'error' => 'کد فعالی برای این شماره ثبت نشده است. دوباره درخواست ارسال بده.', 'statusCode' => 404];
+    }
     $candidateHash = hash_hmac('sha256', $normalizedCode, dent_auth_secret_key() . '|' . $salt);
-    if ($expectedHash === '' || !hash_equals($expectedHash, $candidateHash)) {
+    if (!hash_equals($expectedHash, $candidateHash)) {
         $attempts++;
         if ($attempts >= $maxAttempts) {
             unset($records[$key]);

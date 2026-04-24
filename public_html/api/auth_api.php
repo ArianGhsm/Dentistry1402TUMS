@@ -110,7 +110,7 @@ if ($action === 'changePassword') {
 
 if ($action === 'requestLoginOtp') {
     if (dent_request_method() !== 'POST') {
-        dent_error('Invalid method for OTP request.', 405);
+        dent_error('متد درخواست کد ورود نامعتبر است.', 405);
     }
 
     $phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
@@ -118,7 +118,7 @@ if ($action === 'requestLoginOtp') {
 
     dent_json_response([
         'success' => true,
-        'message' => 'OTP code sent.',
+        'message' => 'کد ورود پیامکی ارسال شد.',
         'phoneMasked' => (string) ($result['phoneMasked'] ?? ''),
         'cooldownSeconds' => (int) ($result['cooldownSeconds'] ?? 0),
         'expiresInSeconds' => (int) ($result['expiresInSeconds'] ?? 0),
@@ -127,7 +127,7 @@ if ($action === 'requestLoginOtp') {
 
 if ($action === 'verifyLoginOtp') {
     if (dent_request_method() !== 'POST') {
-        dent_error('Invalid method for OTP verification.', 405);
+        dent_error('متد تایید کد ورود نامعتبر است.', 405);
     }
 
     $phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
@@ -139,13 +139,13 @@ if ($action === 'verifyLoginOtp') {
         'loggedIn' => true,
         'status' => dent_auth_status($loggedInUser),
         'user' => dent_public_user($loggedInUser),
-        'message' => 'OTP login completed.',
+        'message' => 'ورود با کد تایید انجام شد.',
     ]);
 }
 
 if ($action === 'requestPhoneEnrollOtp') {
     if (dent_request_method() !== 'POST') {
-        dent_error('Invalid method for phone enrollment OTP request.', 405);
+        dent_error('متد درخواست تایید شماره نامعتبر است.', 405);
     }
 
     $user = dent_require_user();
@@ -154,7 +154,7 @@ if ($action === 'requestPhoneEnrollOtp') {
 
     dent_json_response([
         'success' => true,
-        'message' => 'Phone verification code sent.',
+        'message' => 'کد تایید شماره موبایل ارسال شد.',
         'phoneMasked' => (string) ($result['phoneMasked'] ?? ''),
         'cooldownSeconds' => (int) ($result['cooldownSeconds'] ?? 0),
         'expiresInSeconds' => (int) ($result['expiresInSeconds'] ?? 0),
@@ -163,7 +163,7 @@ if ($action === 'requestPhoneEnrollOtp') {
 
 if ($action === 'verifyPhoneEnrollOtp') {
     if (dent_request_method() !== 'POST') {
-        dent_error('Invalid method for phone enrollment verification.', 405);
+        dent_error('متد تایید شماره موبایل نامعتبر است.', 405);
     }
 
     $user = dent_require_user();
@@ -174,13 +174,13 @@ if ($action === 'verifyPhoneEnrollOtp') {
     dent_json_response([
         'success' => true,
         'user' => dent_public_user($updatedUser),
-        'message' => 'Phone number verified.',
+        'message' => 'شماره موبایل تایید شد.',
     ]);
 }
 
 if ($action === 'setPhoneLoginEnabled') {
     if (dent_request_method() !== 'POST') {
-        dent_error('Invalid method for phone-login toggle.', 405);
+        dent_error('متد تغییر وضعیت ورود پیامکی نامعتبر است.', 405);
     }
 
     $user = dent_require_user();
@@ -190,13 +190,13 @@ if ($action === 'setPhoneLoginEnabled') {
     dent_json_response([
         'success' => true,
         'user' => dent_public_user($updatedUser),
-        'message' => $enabled ? 'Phone OTP login enabled.' : 'Phone OTP login disabled.',
+        'message' => $enabled ? 'ورود با کد تایید فعال شد.' : 'ورود با کد تایید غیرفعال شد.',
     ]);
 }
 
 if ($action === 'dismissPhoneNudge') {
     if (dent_request_method() !== 'POST') {
-        dent_error('Invalid method for dismissing phone nudge.', 405);
+        dent_error('متد بستن یادآوری شماره موبایل نامعتبر است.', 405);
     }
 
     $user = dent_require_user();
@@ -205,7 +205,7 @@ if ($action === 'dismissPhoneNudge') {
     dent_json_response([
         'success' => true,
         'user' => dent_public_user($updatedUser),
-        'message' => 'Phone setup reminder dismissed.',
+        'message' => 'یادآوری ثبت شماره موبایل بسته شد.',
     ]);
 }
 
@@ -220,7 +220,7 @@ if ($action === 'smsStatus') {
 
 if ($action === 'saveSmsConfig') {
     if (dent_request_method() !== 'POST') {
-        dent_error('Invalid method for saving SMS config.', 405);
+        dent_error('متد ذخیره تنظیمات پیامک نامعتبر است.', 405);
     }
 
     dent_require_owner();
@@ -237,13 +237,13 @@ if ($action === 'saveSmsConfig') {
     dent_json_response([
         'success' => true,
         'status' => $status,
-        'message' => 'SMS provider settings saved.',
+        'message' => 'تنظیمات سرویس پیامک ذخیره شد.',
     ]);
 }
 
 if ($action === 'smsHealthCheck') {
     if (!in_array(dent_request_method(), ['POST', 'GET'], true)) {
-        dent_error('Invalid method for SMS health check.', 405);
+        dent_error('متد بررسی سلامت پیامک نامعتبر است.', 405);
     }
 
     dent_require_owner();

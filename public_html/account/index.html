@@ -410,43 +410,77 @@
                         <button class="shell-action-btn account-surface-back" type="button" data-surface-back>بازگشت</button>
                         <div class="account-surface-head__copy">
                             <span class="account-section-kicker">موبایل + OTP</span>
-                            <h3>ثبت شماره موبایل و ورود پیامکی</h3>
-                            <p>این بخش برای ثبت شماره، تایید OTP و فعال/غیرفعال‌سازی ورود با کد تایید استفاده می‌شود.</p>
+                            <h3>امنیت شماره موبایل و ورود با کد تایید</h3>
+                            <p>شماره موبایل از همین حساب مشترک خوانده می‌شود و فقط بعد از تایید پیامکی می‌تواند برای ورود استفاده شود.</p>
                         </div>
                     </header>
 
-                    <div class="settings-section">
-                        <div class="settings-row">
-                            <label>وضعیت فعلی شماره موبایل</label>
-                            <div id="phone-status-summary" class="account-readonly-value">—</div>
-                        </div>
-                        <div class="settings-row">
-                            <label for="phone-enroll-number">شماره موبایل</label>
-                            <input id="phone-enroll-number" type="tel" inputmode="numeric" autocomplete="tel" placeholder="مثلا 09xxxxxxxxx">
-                        </div>
-                        <div class="account-inline-actions">
-                            <button id="phone-enroll-request" class="shell-action-btn" type="button">ارسال کد تایید</button>
-                            <span id="phone-enroll-meta" class="account-inline-meta">کد برای همین شماره ارسال می‌شود.</span>
-                        </div>
-                        <div class="settings-row">
-                            <label for="phone-enroll-code">کد تایید</label>
-                            <input id="phone-enroll-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد تایید پیامک">
-                        </div>
-                        <div class="owner-user__actions">
-                            <button id="phone-enroll-submit" class="shell-action-btn shell-action-btn-primary" type="button">ثبت و تایید شماره موبایل</button>
-                        </div>
-                        <div id="phone-enroll-feedback" class="account-feedback" aria-live="polite"></div>
-                    </div>
+                    <div class="phone-security-grid">
+                        <section class="phone-status-card" aria-label="وضعیت موبایل">
+                            <div class="phone-status-card__head">
+                                <span id="phone-status-badge" class="phone-status-badge">در حال بررسی</span>
+                                <strong>وضعیت فعلی شماره</strong>
+                            </div>
+                            <p id="phone-status-summary">—</p>
+                            <div class="phone-status-pills" aria-label="جزئیات وضعیت موبایل">
+                                <span id="phone-number-state" class="phone-status-pill">شماره نامشخص</span>
+                                <span id="phone-verify-state" class="phone-status-pill">تایید نامشخص</span>
+                                <span id="phone-login-state" class="phone-status-pill">ورود پیامکی نامشخص</span>
+                            </div>
+                        </section>
 
-                    <div class="settings-section">
-                        <div class="settings-row settings-row--checkbox">
-                            <label for="phone-login-enabled">فعال بودن ورود با کد تایید</label>
-                            <input id="phone-login-enabled" type="checkbox">
-                        </div>
-                        <div class="owner-user__actions">
-                            <button id="phone-login-save" class="shell-action-btn" type="button">ذخیره وضعیت ورود پیامکی</button>
-                        </div>
-                        <div id="phone-toggle-feedback" class="account-feedback" aria-live="polite"></div>
+                        <section class="phone-flow-card" aria-label="ثبت و تایید شماره موبایل">
+                            <div class="phone-flow-card__head">
+                                <span class="account-section-kicker">مرحله ۱</span>
+                                <div>
+                                    <h4>ثبت یا تغییر شماره موبایل</h4>
+                                    <p>شماره را با ارقام انگلیسی یا فارسی وارد کن. کد فقط برای همین شماره ارسال می‌شود.</p>
+                                </div>
+                            </div>
+
+                            <div class="settings-row">
+                                <label for="phone-enroll-number">شماره موبایل</label>
+                                <input id="phone-enroll-number" type="tel" inputmode="numeric" autocomplete="tel" placeholder="09xxxxxxxxx" aria-describedby="phone-enroll-meta">
+                            </div>
+
+                            <div class="phone-action-row">
+                                <button id="phone-enroll-request" class="shell-action-btn" type="button">ارسال کد تایید</button>
+                                <span id="phone-enroll-meta" class="account-inline-meta">بعد از ارسال، امکان ارسال دوباره با زمان‌سنج فعال می‌شود.</span>
+                            </div>
+
+                            <div class="phone-code-row">
+                                <div class="settings-row">
+                                    <label for="phone-enroll-code">کد تایید</label>
+                                    <input id="phone-enroll-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد ۶ رقمی">
+                                </div>
+                                <button id="phone-enroll-submit" class="shell-action-btn shell-action-btn-primary" type="button">تایید شماره</button>
+                            </div>
+
+                            <div id="phone-enroll-feedback" class="account-feedback" aria-live="polite"></div>
+                        </section>
+
+                        <section class="phone-flow-card phone-flow-card--toggle" aria-label="فعال‌سازی ورود پیامکی">
+                            <div class="phone-flow-card__head">
+                                <span class="account-section-kicker">مرحله ۲</span>
+                                <div>
+                                    <h4>ورود با کد تایید</h4>
+                                    <p>این گزینه فقط برای شماره تاییدشده فعال می‌شود. ورود با شماره دانشجویی و رمز همچنان برقرار می‌ماند.</p>
+                                </div>
+                            </div>
+
+                            <label class="phone-toggle-row" for="phone-login-enabled">
+                                <span>
+                                    <strong>فعال بودن ورود پیامکی</strong>
+                                    <small id="phone-login-toggle-hint">برای فعال‌سازی، ابتدا شماره را تایید کن.</small>
+                                </span>
+                                <input id="phone-login-enabled" type="checkbox">
+                            </label>
+
+                            <div class="phone-action-row">
+                                <button id="phone-login-save" class="shell-action-btn" type="button">ذخیره وضعیت ورود</button>
+                            </div>
+                            <div id="phone-toggle-feedback" class="account-feedback" aria-live="polite"></div>
+                        </section>
                     </div>
                 </article>
                 <article id="owner-panel" class="account-card account-surface-panel" data-surface="owner" hidden>
@@ -482,8 +516,8 @@
                                 <input id="owner-sms-clear-api" type="checkbox">
                             </div>
 
-                            <label for="owner-sms-sender-line">شماره/لاین سرویس (اختیاری)</label>
-                            <input id="owner-sms-sender-line" type="text" maxlength="40" placeholder="مثلا 90008361 یا 30000505">
+                            <label for="owner-sms-sender-line">شماره/لاین سرویس پیامک (الزامی)</label>
+                            <input id="owner-sms-sender-line" type="text" maxlength="40" placeholder="مثلا +9830000505">
 
                             <label for="owner-sms-domain">دامنه سرویس</label>
                             <input id="owner-sms-domain" type="text" maxlength="120" placeholder="dentistry1402tums.ir">
@@ -492,7 +526,7 @@
                             <input id="owner-sms-code-param" type="text" maxlength="40" placeholder="code">
 
                             <label for="owner-sms-test-phone">شماره تست سلامت (اختیاری)</label>
-                            <input id="owner-sms-test-phone" type="tel" inputmode="numeric" placeholder="09009840305">
+                            <input id="owner-sms-test-phone" type="tel" inputmode="numeric" placeholder="09xxxxxxxxx">
 
                             <div class="owner-user__actions navid-config-actions">
                                 <button id="owner-sms-save" class="shell-action-btn shell-action-btn-primary" type="submit">ذخیره تنظیمات پیامک</button>
@@ -628,4 +662,3 @@
     <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
 </body>
 </html>
-

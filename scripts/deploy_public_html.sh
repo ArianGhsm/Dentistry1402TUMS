@@ -16,6 +16,15 @@ SKIP_VALIDATION=0
 SKIP_POST_DEPLOY_VERIFICATION=0
 SKIP_GITHUB_SYNC=0
 PULL_BEFORE_DEPLOY=0
+ALLOW_PROXY_PULL=0
+ALLOW_PROXY_OVER_BUDGET=0
+NETWORK_PATH="${DENT_NETWORK_PATH:-auto}"
+HOST_DEPLOY_NETWORK_PATH="${DENT_HOST_DEPLOY_PATH:-auto}"
+HEALTH_CHECK_NETWORK_PATH="${DENT_HEALTHCHECK_PATH:-auto}"
+GITHUB_NETWORK_PATH="${DENT_GITHUB_PATH:-auto}"
+LOW_BANDWIDTH_MODE="${DENT_LOW_BANDWIDTH_MODE:-auto}"
+PROXY_ENDPOINT="${DENT_PROXY_ENDPOINT:-127.0.0.1:10808}"
+PROXY_BUDGET_MB="${DENT_PROXY_BUDGET_MB:-10}"
 COMMIT_MESSAGE="chore: sync deployed laptop state to github"
 HEALTH_CHECK_URLS=("https://dentistry1402tums.ir/" "https://dentistry1402tums.ir/chat/")
 
@@ -28,6 +37,50 @@ while [[ $# -gt 0 ]]; do
     --skip-post-deploy-verification) SKIP_POST_DEPLOY_VERIFICATION=1; shift ;;
     --skip-github-sync) SKIP_GITHUB_SYNC=1; shift ;;
     --pull-before-deploy) PULL_BEFORE_DEPLOY=1; shift ;;
+    --allow-proxy-pull) ALLOW_PROXY_PULL=1; shift ;;
+    --allow-proxy-over-budget) ALLOW_PROXY_OVER_BUDGET=1; shift ;;
+    --network-path)
+      shift
+      [[ $# -gt 0 ]] || { echo "Missing value for --network-path" >&2; exit 1; }
+      NETWORK_PATH="$1"
+      shift
+      ;;
+    --host-deploy-network-path)
+      shift
+      [[ $# -gt 0 ]] || { echo "Missing value for --host-deploy-network-path" >&2; exit 1; }
+      HOST_DEPLOY_NETWORK_PATH="$1"
+      shift
+      ;;
+    --health-check-network-path)
+      shift
+      [[ $# -gt 0 ]] || { echo "Missing value for --health-check-network-path" >&2; exit 1; }
+      HEALTH_CHECK_NETWORK_PATH="$1"
+      shift
+      ;;
+    --github-network-path)
+      shift
+      [[ $# -gt 0 ]] || { echo "Missing value for --github-network-path" >&2; exit 1; }
+      GITHUB_NETWORK_PATH="$1"
+      shift
+      ;;
+    --low-bandwidth-mode)
+      shift
+      [[ $# -gt 0 ]] || { echo "Missing value for --low-bandwidth-mode" >&2; exit 1; }
+      LOW_BANDWIDTH_MODE="$1"
+      shift
+      ;;
+    --proxy-endpoint)
+      shift
+      [[ $# -gt 0 ]] || { echo "Missing value for --proxy-endpoint" >&2; exit 1; }
+      PROXY_ENDPOINT="$1"
+      shift
+      ;;
+    --proxy-budget-mb)
+      shift
+      [[ $# -gt 0 ]] || { echo "Missing value for --proxy-budget-mb" >&2; exit 1; }
+      PROXY_BUDGET_MB="$1"
+      shift
+      ;;
     --commit-message)
       shift
       [[ $# -gt 0 ]] || { echo "Missing value for --commit-message" >&2; exit 1; }
