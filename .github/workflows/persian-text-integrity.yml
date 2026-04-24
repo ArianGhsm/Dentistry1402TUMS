@@ -2,7 +2,21 @@ name: Persian Text Integrity
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+
+concurrency:
+  group: persian-text-integrity-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:

@@ -78,3 +78,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -FullS
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipGitPull
 ```
+
+## GitHub PR Merge
+- For Codex-created PRs, use GitHub auto-merge by default.
+- Auto-merge must wait for all required checks/reviews and must not bypass branch protections.
