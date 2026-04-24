@@ -1,0 +1,80 @@
+name: Codex PR Auto-Approve
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: codex-auto-approve-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  auto-approve:
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate PR safety and author
+        id: evaluate
+        uses: actions/github-script@v7
+        env:
+          CODEX_AUTHORS: 'openai-codex[bot],codex[bot],codex-agent[bot]'
+          SENSITIVE_PATTERNS: '^\\.github/workflows/|^scripts/deploy_|^DEPLOY\\.md$|^storage/auth/|^public_html/api/auth_|^public_html/assets/site/scripts/auth\\.js$|(^|/)secrets?(/|$)|(^|/)infra(/|$)|(^|/)billing(/|$)'
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const author = pr.user.login;
+            const allowedAuthors = process.env.CODEX_AUTHORS
+              .split(',')
+              .map((x) => x.trim())
+              .filter(Boolean);
+
+            const authorAllowed = allowedAuthors.includes(author);
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+
+            const sensitiveRegex = new RegExp(process.env.SENSITIVE_PATTERNS, 'i');
+            const sensitiveMatches = files
+              .map((f) => f.filename)
+              .filter((filename) => sensitiveRegex.test(filename));
+
+            core.notice(`PR #${pr.number} author: ${author}`);
+            core.notice(`Changed files scanned: ${files.length}`);
+
+            if (!authorAllowed) {
+              core.notice(`Skip auto-approve: author is not a configured Codex account. Allowed: ${allowedAuthors.join(', ')}`);
+            }
+
+            if (sensitiveMatches.length > 0) {
+              core.notice(`Skip auto-approve: sensitive file changes detected: ${sensitiveMatches.join(', ')}`);
+            }
+
+            core.setOutput('author_allowed', String(authorAllowed));
+            core.setOutput('has_sensitive_changes', String(sensitiveMatches.length > 0));
+
+      - name: Auto-approve eligible Codex PR
+        if: steps.evaluate.outputs.author_allowed == 'true' && steps.evaluate.outputs.has_sensitive_changes != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              event: 'APPROVE',
+              body: 'Automatically approved for trusted Codex-authored PR with no sensitive-path changes.',
+            });
+            core.notice(`Approved PR #${pr.number}`);
