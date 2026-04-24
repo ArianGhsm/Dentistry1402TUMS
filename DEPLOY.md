@@ -11,19 +11,22 @@ Canonical deploy entrypoint for this project:
 
 Running the default deploy command now always enforces this order:
 
-1. `git pull --ff-only` from the current branch upstream
-2. deploy to host
-3. post-deploy live health checks
+1. run local validation on the current laptop working copy
+2. deploy laptop code to host
+3. run post-deploy live health checks
+4. commit and push the same deployed state to GitHub
 
-If sync fails (auth error, divergence, branch mismatch, pull failure, dirty working tree), deployment stops before any host upload/delete.
+The default flow does **not** pull from GitHub first. GitHub is synced after successful deploy and verification.
+If validation fails, deployment stops before host upload.
+If deploy or verification fails, GitHub sync is skipped.
 
 The script also prints a deployment time report on every run, including:
 
-- git pull start/finish time
-- synced HEAD commit hash + commit time
-- pulled commit timeline (hash, commit time, subject) when new commits are applied
+- validation start/finish time
+- optional pull override start/finish time (only when explicitly requested)
 - deploy step start/finish time
 - verification start/finish time + status
+- GitHub sync start/finish time + synced HEAD
 
 ## Standard commands
 
@@ -66,16 +69,28 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -Delet
 
 ## Explicit overrides (use intentionally)
 
-Deploy current local state without `git pull` (only when explicitly requested):
+Optional `git pull --ff-only` before deploy (only when explicitly requested):
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipGitPull
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullBeforeDeploy
 ```
 
 Skip post-deploy health checks:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipPostDeployVerification
+```
+
+Skip local validation (only for emergency/manual override):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipValidation
+```
+
+Skip GitHub sync after a successful deploy (only for emergency/manual override):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipGitHubSync
 ```
 
 Custom verification URLs:

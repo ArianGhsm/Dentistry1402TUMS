@@ -2,8 +2,11 @@ param(
     [switch]$DeleteVscodeOnRemote,
     [switch]$FullSync,
     [switch]$DryRun,
-    [switch]$SkipGitPull,
+    [switch]$SkipValidation,
     [switch]$SkipPostDeployVerification,
+    [switch]$SkipGitHubSync,
+    [switch]$PullBeforeDeploy,
+    [string]$CommitMessage = "chore: sync deployed laptop state to github",
     [string[]]$HealthCheckUrls = @(
         "https://dentistry1402tums.ir/",
         "https://dentistry1402tums.ir/chat/"
@@ -51,6 +54,12 @@ function Add-RelativePath([System.Collections.Generic.HashSet[string]]$set, [str
     [void]$set.Add($relative)
 }
 
+function Assert-GitAvailable() {
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        throw "Git is required for deployment and GitHub sync."
+    }
+}
+
 function Run-Git([string[]]$GitArgs) {
     $output = & git -C $projectRoot @GitArgs
     if ($LASTEXITCODE -ne 0) {
@@ -71,6 +80,15 @@ function Run-GitSingle([string[]]$GitArgs) {
     }
 
     return [string]$lines[0]
+}
+
+function Try-GetUpstreamBranch() {
+    $upstream = & git -C $projectRoot rev-parse --abbrev-ref --symbolic-full-name "@{upstream}" 2>$null
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace([string]$upstream)) {
+        return ""
+    }
+
+    return [string]$upstream
 }
 
 function Get-CommitInfo([string]$Revision) {
@@ -101,38 +119,6 @@ function Get-CommitInfo([string]$Revision) {
     }
 }
 
-function Get-CommitInfoListInRange([string]$CommitRange) {
-    if ([string]::IsNullOrWhiteSpace($CommitRange)) {
-        return @()
-    }
-
-    $lines = @(Run-Git -GitArgs @("log", "--reverse", "--format=%H%x09%cI%x09%s", $CommitRange))
-    $results = @()
-    foreach ($line in $lines) {
-        if ([string]::IsNullOrWhiteSpace($line)) {
-            continue
-        }
-
-        $parts = $line -split "`t", 3
-        if ($parts.Count -lt 2) {
-            continue
-        }
-
-        $subject = ""
-        if ($parts.Count -ge 3) {
-            $subject = [string]$parts[2]
-        }
-
-        $results += [PSCustomObject]@{
-            Hash       = [string]$parts[0]
-            CommitTime = [string]$parts[1]
-            Subject    = $subject
-        }
-    }
-
-    return @($results)
-}
-
 function Assert-CleanWorkingTree() {
     $status = & git -C $projectRoot status --porcelain --untracked-files=all
     if ($LASTEXITCODE -ne 0) {
@@ -141,136 +127,246 @@ function Assert-CleanWorkingTree() {
 
     $lines = @($status) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
     if ($lines.Count -gt 0) {
-        throw "Working tree is not clean. Commit/stash/discard local changes before deploy, or use -SkipGitPull for an explicit local-state deploy."
+        throw "Working tree is not clean. Commit/stash/discard local changes before using -PullBeforeDeploy."
     }
 }
 
-function Get-UpstreamBranch() {
-    $upstream = & git -C $projectRoot rev-parse --abbrev-ref --symbolic-full-name "@{upstream}" 2>$null
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace([string]$upstream)) {
-        throw "No upstream branch is configured for the current branch. Configure upstream before deploy."
+function Resolve-PythonCommand() {
+    $py = Get-Command python -ErrorAction SilentlyContinue
+    if ($null -ne $py) {
+        return [string]$py.Source
     }
 
-    return [string]$upstream
+    $py3 = Get-Command python3 -ErrorAction SilentlyContinue
+    if ($null -ne $py3) {
+        return [string]$py3.Source
+    }
+
+    return ""
 }
 
-function Get-RemoteDefaultBranch() {
-    $remoteHead = & git -C $projectRoot symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>$null
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace([string]$remoteHead)) {
-        return ""
-    }
-
-    $value = [string]$remoteHead
-    if ($value.StartsWith("origin/")) {
-        return $value.Substring("origin/".Length)
-    }
-
-    return $value
-}
-
-function Get-BranchDivergence() {
-    $counts = Run-GitSingle -GitArgs @("rev-list", "--left-right", "--count", "@{upstream}...HEAD")
-    $parts = $counts -split "\s+"
-    if ($parts.Count -lt 2) {
-        throw "Unable to parse branch divergence output: $counts"
-    }
-
-    return [PSCustomObject]@{
-        Behind = [int]$parts[0]
-        Ahead  = [int]$parts[1]
-    }
-}
-
-function Sync-RepositoryFromRemote() {
-    if ($SkipGitPull) {
-        Write-Warning "Git sync skipped by explicit -SkipGitPull override. Deploying current local state."
-        $head = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
-        $headInfo = Get-CommitInfo -Revision $head
-        $now = Get-IsoNow
+function Run-Validation() {
+    $started = Get-IsoNow
+    if ($SkipValidation) {
+        Write-Warning "Step 1/5 skipped by explicit -SkipValidation override."
         return [PSCustomObject]@{
-            BeforeHead      = $head
-            AfterHead       = $head
-            CommitRange     = ""
-            Synced          = $false
-            CurrentBranch   = (Run-GitSingle -GitArgs @("rev-parse", "--abbrev-ref", "HEAD"))
-            PullStartedAt   = $now
-            PullFinishedAt  = $now
-            BeforeCommit    = $headInfo
-            AfterCommit     = $headInfo
-            PulledCommits   = @()
+            Status     = "skipped-explicit"
+            StartedAt  = $started
+            FinishedAt = Get-IsoNow
+            Command    = ""
         }
     }
 
-    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-        throw "Git is required for deployment sync."
+    $scriptPath = Join-Path $projectRoot "scripts\check_text_integrity.py"
+    if (-not (Test-Path $scriptPath)) {
+        throw "Validation script not found: $scriptPath"
     }
 
+    $python = Resolve-PythonCommand
+    if ([string]::IsNullOrWhiteSpace($python)) {
+        throw "Python is required for validation but no python/python3 command was found."
+    }
+
+    Write-Host "Step 1/5: local validation"
+    Write-Host "Running: $python $scriptPath"
+    & $python $scriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Validation failed (scripts/check_text_integrity.py). Deployment aborted before host upload."
+    }
+
+    return [PSCustomObject]@{
+        Status     = "completed"
+        StartedAt  = $started
+        FinishedAt = Get-IsoNow
+        Command    = "$python $scriptPath"
+    }
+}
+
+function Run-OptionalPullBeforeDeploy() {
+    $started = Get-IsoNow
+    if (-not $PullBeforeDeploy) {
+        return [PSCustomObject]@{
+            Status         = "skipped-default"
+            StartedAt      = $started
+            FinishedAt     = Get-IsoNow
+            Upstream       = ""
+            BeforeHead     = ""
+            AfterHead      = ""
+            BeforeCommit   = $null
+            AfterCommit    = $null
+            CommitRange    = ""
+        }
+    }
+
+    Assert-GitAvailable
     Assert-CleanWorkingTree
 
-    $currentBranch = Run-GitSingle -GitArgs @("rev-parse", "--abbrev-ref", "HEAD")
-    $defaultBranch = Get-RemoteDefaultBranch
-    if (-not [string]::IsNullOrWhiteSpace($defaultBranch) -and $currentBranch -ne $defaultBranch) {
-        throw "Current branch '$currentBranch' does not match origin default branch '$defaultBranch'. Deploy from the release branch or override intentionally."
-    }
-
-    $upstream = Get-UpstreamBranch
-    $divergence = Get-BranchDivergence
-    if ($divergence.Ahead -gt 0 -and $divergence.Behind -eq 0) {
-        throw "Local branch is ahead of $upstream by $($divergence.Ahead) commit(s). Push first so deploy uses canonical remote state."
-    }
-    if ($divergence.Ahead -gt 0 -and $divergence.Behind -gt 0) {
-        throw "Local and remote branches are diverged (ahead $($divergence.Ahead), behind $($divergence.Behind)). Resolve divergence before deploy."
+    $upstream = Try-GetUpstreamBranch
+    if ([string]::IsNullOrWhiteSpace($upstream)) {
+        throw "No upstream branch is configured for the current branch. Configure upstream before using -PullBeforeDeploy."
     }
 
     $beforeHead = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
     $beforeCommit = Get-CommitInfo -Revision $beforeHead
-    $pullStartedAt = Get-IsoNow
-    Write-Host "Step 1/3: git pull --ff-only from $upstream"
-    Write-Host "Git pull started at: $pullStartedAt"
+
+    Write-Host "Step 2/5: optional git pull --ff-only (explicit override)"
+    Write-Host "Git pull started at: $started"
     & git -C $projectRoot pull --ff-only
     if ($LASTEXITCODE -ne 0) {
-        throw "git pull --ff-only failed. Deployment aborted."
+        throw "git pull --ff-only failed under -PullBeforeDeploy override."
     }
-    $pullFinishedAt = Get-IsoNow
 
+    $finished = Get-IsoNow
     $afterHead = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
     $afterCommit = Get-CommitInfo -Revision $afterHead
-    $range = ""
-    $pulledCommits = @()
+
     if ($beforeHead -ne $afterHead) {
-        $range = "$beforeHead..$afterHead"
-        $pulledCommits = Get-CommitInfoListInRange -CommitRange $range
         Write-Host "Git sync updated HEAD: $beforeHead -> $afterHead"
-        Write-Host "Git pull finished at: $pullFinishedAt"
-        Write-Host "Updated HEAD commit time: $($afterCommit.CommitTime)"
-        Write-Host "Pulled commit timeline:"
-        foreach ($entry in $pulledCommits) {
-            Write-Host " - $($entry.Hash) | $($entry.CommitTime) | $($entry.Subject)"
-        }
     } else {
         Write-Host "Git sync completed: already up to date."
-        Write-Host "Git pull finished at: $pullFinishedAt"
-        if ($afterCommit -ne $null) {
-            Write-Host "Current HEAD commit time: $($afterCommit.CommitTime)"
+    }
+
+    return [PSCustomObject]@{
+        Status         = "completed"
+        StartedAt      = $started
+        FinishedAt     = $finished
+        Upstream       = $upstream
+        BeforeHead     = $beforeHead
+        AfterHead      = $afterHead
+        BeforeCommit   = $beforeCommit
+        AfterCommit    = $afterCommit
+        CommitRange    = if ($beforeHead -ne $afterHead) { "$beforeHead..$afterHead" } else { "" }
+    }
+}
+
+function Collect-GitRangeDelta([System.Collections.Generic.HashSet[string]]$uploadSet, [System.Collections.Generic.HashSet[string]]$deleteSet, [string]$rangeSpec) {
+    if ([string]::IsNullOrWhiteSpace($rangeSpec)) {
+        return
+    }
+
+    $trackedChanges = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=ACMRTUXB", $rangeSpec, "--", "public_html")
+    foreach ($path in $trackedChanges) {
+        Add-RelativePath -set $uploadSet -path $path
+    }
+
+    $trackedDeletes = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=D", $rangeSpec, "--", "public_html")
+    foreach ($path in $trackedDeletes) {
+        Add-RelativePath -set $deleteSet -path $path
+    }
+
+    $renames = Run-Git -GitArgs @("diff", "--name-status", "--diff-filter=R", $rangeSpec, "--", "public_html")
+    foreach ($line in $renames) {
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+
+        $parts = $line -split "`t"
+        if ($parts.Count -lt 3) {
+            continue
+        }
+
+        $oldPath = $parts[1]
+        $newPath = $parts[2]
+        Add-RelativePath -set $deleteSet -path $oldPath
+        Add-RelativePath -set $uploadSet -path $newPath
+    }
+}
+
+function Collect-WorkingTreeDelta([System.Collections.Generic.HashSet[string]]$uploadSet, [System.Collections.Generic.HashSet[string]]$deleteSet) {
+    $trackedChanges = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=ACMRTUXB", "HEAD", "--", "public_html")
+    foreach ($path in $trackedChanges) {
+        Add-RelativePath -set $uploadSet -path $path
+    }
+
+    $trackedDeletes = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=D", "HEAD", "--", "public_html")
+    foreach ($path in $trackedDeletes) {
+        Add-RelativePath -set $deleteSet -path $path
+    }
+
+    $renames = Run-Git -GitArgs @("diff", "--name-status", "--diff-filter=R", "HEAD", "--", "public_html")
+    foreach ($line in $renames) {
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+
+        $parts = $line -split "`t"
+        if ($parts.Count -lt 3) {
+            continue
+        }
+
+        $oldPath = $parts[1]
+        $newPath = $parts[2]
+        Add-RelativePath -set $deleteSet -path $oldPath
+        Add-RelativePath -set $uploadSet -path $newPath
+    }
+
+    $untracked = Run-Git -GitArgs @("ls-files", "--others", "--exclude-standard", "--", "public_html")
+    foreach ($path in $untracked) {
+        Add-RelativePath -set $uploadSet -path $path
+    }
+}
+
+function Build-DeployPlan() {
+    $uploadSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+    $deleteSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+    $notes = New-Object System.Collections.Generic.List[string]
+
+    if ($FullSync) {
+        $files = Get-ChildItem -LiteralPath $localRoot -Recurse -File
+        foreach ($file in $files) {
+            $relative = $file.FullName.Substring($localRoot.Length).TrimStart('\\') -replace '\\', '/'
+            [void]$uploadSet.Add($relative)
+        }
+        [void]$notes.Add("Full sync uploads the full laptop public_html tree.")
+
+        return [PSCustomObject]@{
+            Mode       = "full-sync (laptop source)"
+            UploadList = @($uploadSet) | Sort-Object
+            DeleteList = @($deleteSet) | Sort-Object
+            Notes      = @($notes)
+        }
+    }
+
+    Assert-GitAvailable
+
+    $upstream = Try-GetUpstreamBranch
+    if (-not [string]::IsNullOrWhiteSpace($upstream)) {
+        $counts = Run-GitSingle -GitArgs @("rev-list", "--left-right", "--count", "@{upstream}...HEAD")
+        $parts = $counts -split "\s+"
+        if ($parts.Count -ge 2) {
+            $behind = [int]$parts[0]
+            $ahead = [int]$parts[1]
+            if ($ahead -gt 0) {
+                Collect-GitRangeDelta -uploadSet $uploadSet -deleteSet $deleteSet -rangeSpec "@{upstream}..HEAD"
+                [void]$notes.Add("Included committed local delta ahead of $upstream (ahead=$ahead).")
+            }
+            if ($behind -gt 0) {
+                [void]$notes.Add("Local branch is behind $upstream by $behind commit(s); deploy still uses laptop state.")
+            }
+        }
+    } else {
+        [void]$notes.Add("No upstream branch configured; deploying local tracked/untracked workspace delta only.")
+    }
+
+    Collect-WorkingTreeDelta -uploadSet $uploadSet -deleteSet $deleteSet
+    [void]$notes.Add("Included staged/unstaged/untracked local workspace changes.")
+
+    foreach ($path in @($deleteSet)) {
+        if ($uploadSet.Contains($path)) {
+            [void]$deleteSet.Remove($path)
         }
     }
 
     return [PSCustomObject]@{
-        BeforeHead      = $beforeHead
-        AfterHead       = $afterHead
-        CommitRange     = $range
-        Synced          = $true
-        CurrentBranch   = $currentBranch
-        PullStartedAt   = $pullStartedAt
-        PullFinishedAt  = $pullFinishedAt
-        BeforeCommit    = $beforeCommit
-        AfterCommit     = $afterCommit
-        PulledCommits   = @($pulledCommits)
+        Mode       = "local-delta (laptop source)"
+        UploadList = @($uploadSet) | Sort-Object
+        DeleteList = @($deleteSet) | Sort-Object
+        Notes      = @($notes)
     }
 }
 
 function Upload-File([string]$relative) {
-    $source = Join-Path $localRoot ($relative -replace '/', '\')
+    $source = Join-Path $localRoot ($relative -replace '/', '\\')
     if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
         Write-Warning "Skip upload, file not found locally: $relative"
         return
@@ -326,7 +422,7 @@ function Invoke-HealthCheck([string]$url) {
 
 function Run-PostDeployVerification() {
     if ($DryRun) {
-        Write-Host "[DryRun] Step 3/3 skipped: post-deploy verification"
+        Write-Host "[DryRun] Step 4/5 skipped: post-deploy verification"
         return [PSCustomObject]@{
             Status     = "skipped-dry-run"
             StartedAt  = Get-IsoNow
@@ -336,7 +432,7 @@ function Run-PostDeployVerification() {
     }
 
     if ($SkipPostDeployVerification) {
-        Write-Warning "Step 3/3 skipped by explicit -SkipPostDeployVerification override."
+        Write-Warning "Step 4/5 skipped by explicit -SkipPostDeployVerification override."
         return [PSCustomObject]@{
             Status     = "skipped-explicit"
             StartedAt  = Get-IsoNow
@@ -351,7 +447,7 @@ function Run-PostDeployVerification() {
     }
 
     $verificationStartedAt = Get-IsoNow
-    Write-Host "Step 3/3: live post-deploy verification"
+    Write-Host "Step 4/5: live post-deploy verification"
     foreach ($target in $targets) {
         Invoke-HealthCheck -url $target
     }
@@ -365,155 +461,283 @@ function Run-PostDeployVerification() {
     }
 }
 
-$syncInfo = Sync-RepositoryFromRemote
-$deployStepStartedAt = Get-IsoNow
+function Sync-GitHubFromLaptop() {
+    $started = Get-IsoNow
 
-if ($FullSync) {
-    $uploadSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
-    $deleteSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
-
-    $files = Get-ChildItem -LiteralPath $localRoot -Recurse -File | Where-Object {
-        $_.FullName -notlike "*\.vscode\*"
-    }
-
-    foreach ($file in $files) {
-        $relative = $file.FullName.Substring($localRoot.Length).TrimStart('\') -replace '\\', '/'
-        [void]$uploadSet.Add($relative)
-    }
-} else {
-    $uploadSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
-    $deleteSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
-
-    if ($SkipGitPull) {
-        $trackedChanges = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=ACMRTUXB", "HEAD", "--", "public_html")
-        foreach ($path in $trackedChanges) {
-            Add-RelativePath -set $uploadSet -path $path
-        }
-
-        $untracked = Run-Git -GitArgs @("ls-files", "--others", "--exclude-standard", "--", "public_html")
-        foreach ($path in $untracked) {
-            Add-RelativePath -set $uploadSet -path $path
-        }
-
-        $trackedDeletes = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=D", "HEAD", "--", "public_html")
-        foreach ($path in $trackedDeletes) {
-            Add-RelativePath -set $deleteSet -path $path
-        }
-
-        $renames = Run-Git -GitArgs @("diff", "--name-status", "--diff-filter=R", "HEAD", "--", "public_html")
-        foreach ($line in $renames) {
-            if ([string]::IsNullOrWhiteSpace($line)) {
-                continue
-            }
-
-            $parts = $line -split "`t"
-            if ($parts.Count -lt 3) {
-                continue
-            }
-
-            $oldPath = $parts[1]
-            $newPath = $parts[2]
-            Add-RelativePath -set $deleteSet -path $oldPath
-            Add-RelativePath -set $uploadSet -path $newPath
-        }
-    } elseif (-not [string]::IsNullOrWhiteSpace($syncInfo.CommitRange)) {
-        $commitRange = $syncInfo.CommitRange
-
-        $trackedChanges = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=ACMRTUXB", $commitRange, "--", "public_html")
-        foreach ($path in $trackedChanges) {
-            Add-RelativePath -set $uploadSet -path $path
-        }
-
-        $trackedDeletes = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=D", $commitRange, "--", "public_html")
-        foreach ($path in $trackedDeletes) {
-            Add-RelativePath -set $deleteSet -path $path
-        }
-
-        $renames = Run-Git -GitArgs @("diff", "--name-status", "--diff-filter=R", $commitRange, "--", "public_html")
-        foreach ($line in $renames) {
-            if ([string]::IsNullOrWhiteSpace($line)) {
-                continue
-            }
-
-            $parts = $line -split "`t"
-            if ($parts.Count -lt 3) {
-                continue
-            }
-
-            $oldPath = $parts[1]
-            $newPath = $parts[2]
-            Add-RelativePath -set $deleteSet -path $oldPath
-            Add-RelativePath -set $uploadSet -path $newPath
-        }
-    } else {
-        Write-Host "No new commits were pulled from remote. Changed-only deploy has no git delta."
-    }
-
-    foreach ($path in @($deleteSet)) {
-        if ($uploadSet.Contains($path)) {
-            [void]$deleteSet.Remove($path)
-        }
-    }
-}
-
-$uploadList = @($uploadSet) | Sort-Object
-$deleteList = @($deleteSet) | Sort-Object
-
-if ($uploadList.Count -eq 0 -and $deleteList.Count -eq 0) {
-    Write-Host "No changes detected under public_html. Nothing to deploy."
-} else {
-    $modeLabel = if ($FullSync) {
-        "full-sync"
-    } elseif ($SkipGitPull) {
-        "changed-only (local-state override)"
-    } else {
-        "changed-only (pulled commit range)"
-    }
-
-    Write-Host "Step 2/3: deploy to host"
-    Write-Host "Deploy mode: $modeLabel"
-    Write-Host "Upload count: $($uploadList.Count)"
-    Write-Host "Delete count: $($deleteList.Count)"
-
-    foreach ($relative in $uploadList) {
-        Upload-File -relative $relative
-    }
-
-    foreach ($relative in $deleteList) {
-        Delete-RemoteFile -relative $relative
-    }
-}
-
-if ($DeleteVscodeOnRemote) {
     if ($DryRun) {
-        Write-Host "[DryRun] Delete remote .vscode directory"
+        Write-Host "[DryRun] Step 5/5 skipped: GitHub sync"
+        return [PSCustomObject]@{
+            Status        = "skipped-dry-run"
+            StartedAt     = $started
+            FinishedAt    = Get-IsoNow
+            CurrentBranch = ""
+            CreatedCommit = ""
+            HeadAfterSync = ""
+            HeadCommit    = $null
+            PushCommand   = ""
+        }
+    }
+
+    if ($SkipGitHubSync) {
+        Write-Warning "Step 5/5 skipped by explicit -SkipGitHubSync override."
+        return [PSCustomObject]@{
+            Status        = "skipped-explicit"
+            StartedAt     = $started
+            FinishedAt    = Get-IsoNow
+            CurrentBranch = ""
+            CreatedCommit = ""
+            HeadAfterSync = ""
+            HeadCommit    = $null
+            PushCommand   = ""
+        }
+    }
+
+    Assert-GitAvailable
+
+    $currentBranch = Run-GitSingle -GitArgs @("rev-parse", "--abbrev-ref", "HEAD")
+    if ($currentBranch -eq "HEAD") {
+        throw "Detached HEAD is not supported for GitHub sync. Checkout a branch first."
+    }
+
+    Write-Host "Step 5/5: sync GitHub from deployed laptop state"
+
+    & git -C $projectRoot add -A
+    if ($LASTEXITCODE -ne 0) {
+        throw "git add -A failed before GitHub sync."
+    }
+
+    & git -C $projectRoot diff --cached --quiet --exit-code
+    $hasStagedChanges = $false
+    if ($LASTEXITCODE -eq 1) {
+        $hasStagedChanges = $true
+    } elseif ($LASTEXITCODE -ne 0) {
+        throw "Unable to determine staged changes before commit."
+    }
+
+    $createdCommit = ""
+    if ($hasStagedChanges) {
+        & git -C $projectRoot commit -m $CommitMessage
+        if ($LASTEXITCODE -ne 0) {
+            throw "git commit failed during GitHub sync."
+        }
+        $createdCommit = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
+        Write-Host "Created commit: $createdCommit"
     } else {
-        & curl.exe --silent --show-error --user $credentials --quote "RMD $remotePath/.vscode" "ftp://$($config.host)/"
+        Write-Host "No new local changes to commit; push will sync existing local commits if needed."
+    }
+
+    $upstream = Try-GetUpstreamBranch
+    $pushCommand = "git push"
+    if ([string]::IsNullOrWhiteSpace($upstream)) {
+        $pushCommand = "git push -u origin $currentBranch"
+        & git -C $projectRoot push -u origin $currentBranch
+    } else {
+        & git -C $projectRoot push
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "GitHub push failed after successful host deploy/verification. Deployed host state is intact; sync to GitHub must be resolved manually."
+    }
+
+    $headAfterSync = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
+    $headCommit = Get-CommitInfo -Revision $headAfterSync
+
+    return [PSCustomObject]@{
+        Status        = "completed"
+        StartedAt     = $started
+        FinishedAt    = Get-IsoNow
+        CurrentBranch = $currentBranch
+        CreatedCommit = $createdCommit
+        HeadAfterSync = $headAfterSync
+        HeadCommit    = $headCommit
+        PushCommand   = $pushCommand
     }
 }
 
-$deployStepFinishedAt = Get-IsoNow
-$verificationInfo = Run-PostDeployVerification
-$runFinishedAt = Get-IsoNow
-
-Write-Host "Deploy completed to $remotePath"
-Write-Host "Deployment report:"
-Write-Host " - Run started at: $($runStartedAt.ToString('yyyy-MM-ddTHH:mm:sszzz'))"
-Write-Host " - Git pull started at: $($syncInfo.PullStartedAt)"
-Write-Host " - Git pull finished at: $($syncInfo.PullFinishedAt)"
-if ($syncInfo.AfterCommit -ne $null) {
-    Write-Host " - HEAD after sync: $($syncInfo.AfterCommit.Hash)"
-    Write-Host " - HEAD commit time (Git): $($syncInfo.AfterCommit.CommitTime)"
+$validationInfo = [PSCustomObject]@{
+    Status     = "not-run"
+    StartedAt  = ""
+    FinishedAt = ""
+    Command    = ""
 }
-if ($syncInfo.PulledCommits.Count -gt 0) {
-    Write-Host " - Pulled commits:"
-    foreach ($entry in $syncInfo.PulledCommits) {
-        Write-Host "   * $($entry.Hash) @ $($entry.CommitTime) | $($entry.Subject)"
+$pullInfo = [PSCustomObject]@{
+    Status      = "not-run"
+    StartedAt   = ""
+    FinishedAt  = ""
+    Upstream    = ""
+    BeforeHead  = ""
+    AfterHead   = ""
+    BeforeCommit = $null
+    AfterCommit  = $null
+    CommitRange = ""
+}
+$deployInfo = [PSCustomObject]@{
+    Status      = "not-run"
+    StartedAt   = ""
+    FinishedAt  = ""
+    Mode        = ""
+    UploadCount = 0
+    DeleteCount = 0
+    Notes       = @()
+}
+$verificationInfo = [PSCustomObject]@{
+    Status     = "not-run"
+    StartedAt  = ""
+    FinishedAt = ""
+    Targets    = @()
+}
+$githubSyncInfo = [PSCustomObject]@{
+    Status        = "not-run"
+    StartedAt     = ""
+    FinishedAt    = ""
+    CurrentBranch = ""
+    CreatedCommit = ""
+    HeadAfterSync = ""
+    HeadCommit    = $null
+    PushCommand   = ""
+}
+
+$failureMessage = ""
+
+try {
+    $validationInfo = Run-Validation
+    $pullInfo = Run-OptionalPullBeforeDeploy
+
+    $deployInfo.StartedAt = Get-IsoNow
+    $plan = Build-DeployPlan
+    $uploadList = @($plan.UploadList)
+    $deleteList = @($plan.DeleteList)
+
+    $deployInfo.Mode = [string]$plan.Mode
+    $deployInfo.UploadCount = $uploadList.Count
+    $deployInfo.DeleteCount = $deleteList.Count
+    $deployInfo.Notes = @($plan.Notes)
+
+    if ($uploadList.Count -eq 0 -and $deleteList.Count -eq 0) {
+        Write-Host "Step 3/5: deploy to host"
+        Write-Host "No local delta detected under public_html. Nothing to deploy."
+    } else {
+        Write-Host "Step 3/5: deploy to host"
+        Write-Host "Deploy mode: $($deployInfo.Mode)"
+        Write-Host "Upload count: $($uploadList.Count)"
+        Write-Host "Delete count: $($deleteList.Count)"
+
+        foreach ($relative in $uploadList) {
+            Upload-File -relative $relative
+        }
+
+        foreach ($relative in $deleteList) {
+            Delete-RemoteFile -relative $relative
+        }
+    }
+
+    if ($DeleteVscodeOnRemote) {
+        if ($DryRun) {
+            Write-Host "[DryRun] Delete remote .vscode directory"
+        } else {
+            & curl.exe --silent --show-error --user $credentials --quote "RMD $remotePath/.vscode" "ftp://$($config.host)/"
+        }
+    }
+
+    $deployInfo.Status = "completed"
+    $deployInfo.FinishedAt = Get-IsoNow
+
+    $verificationInfo = Run-PostDeployVerification
+    $githubSyncInfo = Sync-GitHubFromLaptop
+} catch {
+    $failureMessage = $_.Exception.Message
+    if (-not $deployInfo.FinishedAt) {
+        $deployInfo.FinishedAt = Get-IsoNow
+    }
+    if (-not $verificationInfo.FinishedAt) {
+        $verificationInfo.FinishedAt = Get-IsoNow
+    }
+    if (-not $githubSyncInfo.FinishedAt) {
+        $githubSyncInfo.FinishedAt = Get-IsoNow
+    }
+} finally {
+    $runFinishedAt = Get-IsoNow
+
+    Write-Host "Deploy completed to $remotePath"
+    Write-Host "Deployment report (laptop-first):"
+    Write-Host " - Run started at: $($runStartedAt.ToString('yyyy-MM-ddTHH:mm:sszzz'))"
+
+    Write-Host " - Validation status: $($validationInfo.Status)"
+    if (-not [string]::IsNullOrWhiteSpace($validationInfo.StartedAt)) {
+        Write-Host " - Validation started at: $($validationInfo.StartedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($validationInfo.FinishedAt)) {
+        Write-Host " - Validation finished at: $($validationInfo.FinishedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($validationInfo.Command)) {
+        Write-Host " - Validation command: $($validationInfo.Command)"
+    }
+
+    Write-Host " - Optional pull status: $($pullInfo.Status)"
+    if (-not [string]::IsNullOrWhiteSpace($pullInfo.StartedAt)) {
+        Write-Host " - Optional pull started at: $($pullInfo.StartedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($pullInfo.FinishedAt)) {
+        Write-Host " - Optional pull finished at: $($pullInfo.FinishedAt)"
+    }
+    if ($pullInfo.AfterCommit -ne $null) {
+        Write-Host " - HEAD after optional pull: $($pullInfo.AfterCommit.Hash)"
+        Write-Host " - HEAD commit time after optional pull: $($pullInfo.AfterCommit.CommitTime)"
+    }
+
+    Write-Host " - Deploy status: $($deployInfo.Status)"
+    if (-not [string]::IsNullOrWhiteSpace($deployInfo.StartedAt)) {
+        Write-Host " - Deploy step started at: $($deployInfo.StartedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($deployInfo.FinishedAt)) {
+        Write-Host " - Deploy step finished at: $($deployInfo.FinishedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($deployInfo.Mode)) {
+        Write-Host " - Deploy mode: $($deployInfo.Mode)"
+    }
+    Write-Host " - Upload count: $($deployInfo.UploadCount)"
+    Write-Host " - Delete count: $($deployInfo.DeleteCount)"
+    foreach ($note in @($deployInfo.Notes)) {
+        Write-Host "   * $note"
+    }
+
+    Write-Host " - Verification status: $($verificationInfo.Status)"
+    if (-not [string]::IsNullOrWhiteSpace($verificationInfo.StartedAt)) {
+        Write-Host " - Verification started at: $($verificationInfo.StartedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($verificationInfo.FinishedAt)) {
+        Write-Host " - Verification finished at: $($verificationInfo.FinishedAt)"
+    }
+
+    Write-Host " - GitHub sync status: $($githubSyncInfo.Status)"
+    if (-not [string]::IsNullOrWhiteSpace($githubSyncInfo.StartedAt)) {
+        Write-Host " - GitHub sync started at: $($githubSyncInfo.StartedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($githubSyncInfo.FinishedAt)) {
+        Write-Host " - GitHub sync finished at: $($githubSyncInfo.FinishedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($githubSyncInfo.CurrentBranch)) {
+        Write-Host " - GitHub sync branch: $($githubSyncInfo.CurrentBranch)"
+    }
+    if ($githubSyncInfo.HeadCommit -ne $null) {
+        Write-Host " - GitHub sync HEAD: $($githubSyncInfo.HeadCommit.Hash)"
+        Write-Host " - GitHub sync HEAD commit time: $($githubSyncInfo.HeadCommit.CommitTime)"
+        Write-Host " - GitHub sync HEAD subject: $($githubSyncInfo.HeadCommit.Subject)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($githubSyncInfo.CreatedCommit)) {
+        Write-Host " - Created commit in this deploy run: $($githubSyncInfo.CreatedCommit)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($githubSyncInfo.PushCommand)) {
+        Write-Host " - Push command: $($githubSyncInfo.PushCommand)"
+    }
+
+    Write-Host " - Run finished at: $runFinishedAt"
+
+    if (-not [string]::IsNullOrWhiteSpace($failureMessage)) {
+        Write-Error $failureMessage
     }
 }
-Write-Host " - Deploy step started at: $deployStepStartedAt"
-Write-Host " - Deploy step finished at: $deployStepFinishedAt"
-Write-Host " - Verification status: $($verificationInfo.Status)"
-Write-Host " - Verification started at: $($verificationInfo.StartedAt)"
-Write-Host " - Verification finished at: $($verificationInfo.FinishedAt)"
-Write-Host " - Run finished at: $runFinishedAt"
+
+if (-not [string]::IsNullOrWhiteSpace($failureMessage)) {
+    throw $failureMessage
+}
