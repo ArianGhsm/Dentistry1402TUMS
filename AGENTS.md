@@ -65,6 +65,7 @@ Persistent instructions for coding agents working in this repository.
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
+- Deploy output must include a timestamp report (git sync start/finish time, synced HEAD commit time, deploy step time, verification time).
 - Dry run:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRun

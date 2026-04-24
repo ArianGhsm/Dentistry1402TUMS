@@ -17,6 +17,14 @@ Running the default deploy command now always enforces this order:
 
 If sync fails (auth error, divergence, branch mismatch, pull failure, dirty working tree), deployment stops before any host upload/delete.
 
+The script also prints a deployment time report on every run, including:
+
+- git pull start/finish time
+- synced HEAD commit hash + commit time
+- pulled commit timeline (hash, commit time, subject) when new commits are applied
+- deploy step start/finish time
+- verification start/finish time + status
+
 ## Standard commands
 
 Default deploy (recommended):
@@ -96,4 +104,3 @@ export DEPLOY_FTP_PASS="<cpanel-password>"
 # optional (defaults to public_html): export DEPLOY_REMOTE_PATH="public_html"
 bash ./scripts/deploy_public_html.sh
 ```
-
