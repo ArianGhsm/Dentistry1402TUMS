@@ -61,11 +61,11 @@ Persistent instructions for coding agents working in this repository.
 - Deployment status explicitly reported.
 
 ## Deploy Runbook
-- Primary deploy command (default behavior is mandatory: `git pull --ff-only` -> host deploy -> live health-check):
+- Primary deploy command (default behavior is mandatory: laptop-first `local validation` -> `host deploy` -> `live health-check` -> `GitHub sync`):
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
-- Deploy output must include a timestamp report (git sync start/finish time, synced HEAD commit time, deploy step time, verification time).
+- Deploy output must include a timestamp report (validation time, optional git-sync override time, deploy step time, verification time, GitHub sync time).
 - Dry run:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRun
@@ -74,9 +74,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRu
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -FullSync
 ```
-- Explicit local-state override (only when explicitly requested):
+- Explicit optional remote sync before deploy (only when explicitly requested):
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipGitPull
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullBeforeDeploy
 ```
 
 ## GitHub PR Merge
