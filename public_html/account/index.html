@@ -14,7 +14,7 @@
     <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260422-brand1">
     <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260425-otpux2">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260424-phoneux3">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache2">
 </head>
 <body class="account-page">
@@ -87,10 +87,10 @@
 
                         <div class="settings-row">
                             <label for="login-phone-number">شماره موبایل</label>
-                            <div class="otp-phone-shell">
+                            <div class="otp-phone-shell" dir="ltr">
                                 <span class="otp-phone-shell__country" aria-hidden="true">ایران</span>
                                 <span class="otp-phone-shell__prefix" dir="ltr">+98</span>
-                                <input id="login-phone-number" name="phoneNumber" type="tel" inputmode="numeric" autocomplete="tel" placeholder="9xxxxxxxxx یا 09xxxxxxxxx">
+                                <input id="login-phone-number" name="phoneNumber" type="tel" inputmode="numeric" autocomplete="tel" dir="ltr" placeholder="9xxxxxxxxx یا 09xxxxxxxxx">
                             </div>
                         </div>
 
@@ -102,8 +102,8 @@
                         <div class="settings-row">
                             <label for="login-otp-code">کد تایید</label>
                             <div id="login-otp-field" class="otp-slot-field" data-otp-field="login">
-                                <input id="login-otp-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد ۶ رقمی">
-                                <div id="login-otp-slots" class="otp-slot-field__slots" aria-hidden="true">
+                                <input id="login-otp-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr" placeholder="کد ۶ رقمی">
+                                <div id="login-otp-slots" class="otp-slot-field__slots" dir="ltr" aria-hidden="true">
                                     <span class="otp-slot"></span>
                                     <span class="otp-slot"></span>
                                     <span class="otp-slot"></span>
@@ -474,10 +474,10 @@
 
                             <div class="settings-row">
                                 <label for="phone-enroll-number">شماره موبایل</label>
-                                <div class="otp-phone-shell">
+                                <div class="otp-phone-shell" dir="ltr">
                                     <span class="otp-phone-shell__country" aria-hidden="true">ایران</span>
                                     <span class="otp-phone-shell__prefix" dir="ltr">+98</span>
-                                    <input id="phone-enroll-number" type="tel" inputmode="numeric" autocomplete="tel" placeholder="9xxxxxxxxx یا 09xxxxxxxxx" aria-describedby="phone-enroll-meta">
+                                    <input id="phone-enroll-number" type="tel" inputmode="numeric" autocomplete="tel" dir="ltr" placeholder="9xxxxxxxxx یا 09xxxxxxxxx" aria-describedby="phone-enroll-meta">
                                 </div>
                             </div>
 
@@ -490,8 +490,8 @@
                                 <div class="settings-row">
                                     <label for="phone-enroll-code">کد تایید</label>
                                     <div id="phone-enroll-otp-field" class="otp-slot-field" data-otp-field="enroll">
-                                        <input id="phone-enroll-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="کد ۶ رقمی">
-                                        <div id="phone-enroll-otp-slots" class="otp-slot-field__slots" aria-hidden="true">
+                                        <input id="phone-enroll-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr" placeholder="کد ۶ رقمی">
+                                        <div id="phone-enroll-otp-slots" class="otp-slot-field__slots" dir="ltr" aria-hidden="true">
                                             <span class="otp-slot"></span>
                                             <span class="otp-slot"></span>
                                             <span class="otp-slot"></span>
@@ -574,7 +574,7 @@
                             <input id="owner-sms-code-param" type="text" maxlength="40" placeholder="code">
 
                             <label for="owner-sms-test-phone">شماره تست سلامت (اختیاری)</label>
-                            <input id="owner-sms-test-phone" type="tel" inputmode="numeric" placeholder="09xxxxxxxxx">
+                            <input id="owner-sms-test-phone" type="tel" inputmode="numeric" dir="ltr" placeholder="09xxxxxxxxx">
 
                             <div class="owner-user__actions navid-config-actions">
                                 <button id="owner-sms-save" class="shell-action-btn shell-action-btn-primary" type="submit">ذخیره تنظیمات پیامک</button>
@@ -705,7 +705,7 @@
     </footer>
 
     <script src="/assets/site/scripts/auth.js?v=20260425-authotp2"></script>
-    <script src="/assets/site/scripts/account.js?v=20260425-otpux2"></script>
+    <script src="/assets/site/scripts/account.js?v=20260424-phoneux3"></script>
     <script src="/assets/site/scripts/pwa.js?v=20260422-cache4"></script>
     <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
 </body>
