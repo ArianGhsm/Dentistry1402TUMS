@@ -4,12 +4,22 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "public_html/**"
+      - "scripts/check_text_integrity.py"
+      - "CONTRIBUTING-UTF8.md"
+      - ".github/workflows/persian-text-integrity.yml"
   pull_request:
     types:
       - opened
       - synchronize
       - reopened
       - ready_for_review
+    paths:
+      - "public_html/**"
+      - "scripts/check_text_integrity.py"
+      - "CONTRIBUTING-UTF8.md"
+      - ".github/workflows/persian-text-integrity.yml"
 
 permissions:
   contents: read

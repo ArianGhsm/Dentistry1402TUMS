@@ -1,23 +1,13 @@
 # Contributing Workflow
 
-## Codex PR Auto-Merge Policy
+## Keep It Lean
+- Make focused changes only for requested scope.
+- Avoid unrelated refactors in the same commit.
+- Keep commit messages clear and small in scope.
 
-- Pull requests opened by Codex should use GitHub **auto-merge**.
-- Auto-merge must not bypass repository protections.
-- Merge happens only after all required conditions are satisfied:
-  - required CI checks are green
-  - required reviews/approvals are complete
-  - any branch protection rules on `main` are satisfied
+## Required Local Checks
+- After UI text/CSS edits: run `python scripts/check_text_integrity.py`.
+- Run any additional checks/tests relevant to touched files.
 
-## Required CI Check Name
-
-Branch protection should require this check for PRs:
-
-- `Persian Text Integrity / check`
-
-## Typical Maintainer Flow
-
-1. Codex opens PR to `main`.
-2. Reviewer confirms scope and leaves required review.
-3. Maintainer enables auto-merge on the PR.
-4. GitHub merges automatically when all required checks/reviews pass.
+## Deploy
+- Use canonical deploy script and flow in `DEPLOY.md`.
