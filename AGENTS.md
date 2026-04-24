@@ -65,6 +65,7 @@ Persistent instructions for coding agents working in this repository.
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
+- Deploy output must include a timestamp report (git sync start/finish time, synced HEAD commit time, deploy step time, verification time).
 - Dry run:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRun
@@ -77,3 +78,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -FullS
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipGitPull
 ```
+
+## GitHub PR Merge
+- For Codex-created PRs, use GitHub auto-merge by default.
+- Auto-merge must wait for all required checks/reviews and must not bypass branch protections.

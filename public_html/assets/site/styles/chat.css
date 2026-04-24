@@ -963,8 +963,8 @@ body.chat-page.chat-selection-mode .conversation-item__select {
 }
 
 .thread-head__avatar {
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     overflow: hidden;
     display: grid;
@@ -1005,13 +1005,13 @@ body.chat-page.chat-selection-mode .conversation-item__select {
 }
 
 .thread-head__copy strong {
-    font-size: 0.79rem;
+    font-size: 0.9rem;
     font-weight: 900;
 }
 
 .thread-head__copy span {
     color: var(--chat-muted);
-    font-size: 0.66rem;
+    font-size: 0.72rem;
 }
 
 .thread-head__actions {
@@ -1178,8 +1178,8 @@ body.chat-page.chat-selection-mode .conversation-item__select {
 }
 
 .msg-avatar {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
     flex-shrink: 0;
     display: grid;
     place-items: center;
@@ -1205,7 +1205,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     border-radius: inherit;
     background: inherit;
     color: #fff;
-    font-size: 0.62rem;
+    font-size: 0.74rem;
     font-weight: 900;
 }
 
@@ -1341,15 +1341,22 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid var(--chat-border);
-    background: var(--chat-pane-bg);
+    background: rgba(5, 10, 18, 0.88);
 }
 
-.msg-attachment__media img,
+.msg-attachment__media img {
+    display: block;
+    width: 100%;
+    max-height: min(460px, 62vh);
+    object-fit: contain;
+    background: rgba(5, 10, 18, 0.88);
+}
+
 .msg-attachment__media video {
     display: block;
     width: 100%;
-    max-height: min(320px, 56vh);
-    object-fit: cover;
+    max-height: min(460px, 62vh);
+    object-fit: contain;
     background: #000;
 }
 
@@ -3308,18 +3315,18 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     }
 
     .thread-head__avatar {
-        width: 36px;
-        height: 36px;
-        font-size: 0.72rem;
+        width: 48px;
+        height: 48px;
+        font-size: 0.82rem;
     }
 
     .thread-head__copy strong {
-        font-size: 0.82rem;
+        font-size: 0.94rem;
         line-height: 1.46;
     }
 
     .thread-head__copy span {
-        font-size: 0.66rem;
+        font-size: 0.75rem;
         line-height: 1.48;
     }
 
@@ -3332,12 +3339,12 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     }
 
     .msg-avatar {
-        width: 30px;
-        height: 30px;
+        width: 36px;
+        height: 36px;
     }
 
     .msg-bubble {
-        max-width: 86%;
+        max-width: 90%;
         padding: 0.44rem 0.58rem 0.36rem;
         border-radius: 14px;
     }
@@ -3479,7 +3486,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     }
 
     .msg-bubble {
-        max-width: 87%;
+        max-width: 92%;
         padding: 0.42rem 0.56rem 0.34rem;
     }
 
@@ -3488,8 +3495,13 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     }
 
     .msg-avatar {
-        width: 28px;
-        height: 28px;
+        width: 34px;
+        height: 34px;
+    }
+
+    .msg-attachment__media img,
+    .msg-attachment__media video {
+        max-height: min(56vh, 420px);
     }
 
     .composer {

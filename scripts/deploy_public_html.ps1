@@ -27,6 +27,11 @@ $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $remotePath = "/" + ($config.remotePath.TrimStart('/'))
 $ftpBase = "ftp://$($config.host)$remotePath"
 $credentials = "$($config.username):$($config.password)"
+$runStartedAt = [DateTimeOffset]::Now
+
+function Get-IsoNow() {
+    return ([DateTimeOffset]::Now).ToString("yyyy-MM-ddTHH:mm:sszzz")
+}
 
 function Add-RelativePath([System.Collections.Generic.HashSet[string]]$set, [string]$path) {
     if ([string]::IsNullOrWhiteSpace($path)) {
@@ -66,6 +71,66 @@ function Run-GitSingle([string[]]$GitArgs) {
     }
 
     return [string]$lines[0]
+}
+
+function Get-CommitInfo([string]$Revision) {
+    if ([string]::IsNullOrWhiteSpace($Revision)) {
+        return $null
+    }
+
+    $line = Run-GitSingle -GitArgs @("show", "-s", "--format=%H%x09%cI%x09%aI%x09%s", $Revision)
+    if ([string]::IsNullOrWhiteSpace($line)) {
+        return $null
+    }
+
+    $parts = $line -split "`t", 4
+    if ($parts.Count -lt 3) {
+        return $null
+    }
+
+    $subject = ""
+    if ($parts.Count -ge 4) {
+        $subject = [string]$parts[3]
+    }
+
+    return [PSCustomObject]@{
+        Hash       = [string]$parts[0]
+        CommitTime = [string]$parts[1]
+        AuthorTime = [string]$parts[2]
+        Subject    = $subject
+    }
+}
+
+function Get-CommitInfoListInRange([string]$CommitRange) {
+    if ([string]::IsNullOrWhiteSpace($CommitRange)) {
+        return @()
+    }
+
+    $lines = @(Run-Git -GitArgs @("log", "--reverse", "--format=%H%x09%cI%x09%s", $CommitRange))
+    $results = @()
+    foreach ($line in $lines) {
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+
+        $parts = $line -split "`t", 3
+        if ($parts.Count -lt 2) {
+            continue
+        }
+
+        $subject = ""
+        if ($parts.Count -ge 3) {
+            $subject = [string]$parts[2]
+        }
+
+        $results += [PSCustomObject]@{
+            Hash       = [string]$parts[0]
+            CommitTime = [string]$parts[1]
+            Subject    = $subject
+        }
+    }
+
+    return @($results)
 }
 
 function Assert-CleanWorkingTree() {
@@ -120,12 +185,19 @@ function Sync-RepositoryFromRemote() {
     if ($SkipGitPull) {
         Write-Warning "Git sync skipped by explicit -SkipGitPull override. Deploying current local state."
         $head = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
+        $headInfo = Get-CommitInfo -Revision $head
+        $now = Get-IsoNow
         return [PSCustomObject]@{
-            BeforeHead   = $head
-            AfterHead    = $head
-            CommitRange  = ""
-            Synced       = $false
-            CurrentBranch = (Run-GitSingle -GitArgs @("rev-parse", "--abbrev-ref", "HEAD"))
+            BeforeHead      = $head
+            AfterHead       = $head
+            CommitRange     = ""
+            Synced          = $false
+            CurrentBranch   = (Run-GitSingle -GitArgs @("rev-parse", "--abbrev-ref", "HEAD"))
+            PullStartedAt   = $now
+            PullFinishedAt  = $now
+            BeforeCommit    = $headInfo
+            AfterCommit     = $headInfo
+            PulledCommits   = @()
         }
     }
 
@@ -151,27 +223,49 @@ function Sync-RepositoryFromRemote() {
     }
 
     $beforeHead = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
+    $beforeCommit = Get-CommitInfo -Revision $beforeHead
+    $pullStartedAt = Get-IsoNow
     Write-Host "Step 1/3: git pull --ff-only from $upstream"
+    Write-Host "Git pull started at: $pullStartedAt"
     & git -C $projectRoot pull --ff-only
     if ($LASTEXITCODE -ne 0) {
         throw "git pull --ff-only failed. Deployment aborted."
     }
+    $pullFinishedAt = Get-IsoNow
 
     $afterHead = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
+    $afterCommit = Get-CommitInfo -Revision $afterHead
     $range = ""
+    $pulledCommits = @()
     if ($beforeHead -ne $afterHead) {
         $range = "$beforeHead..$afterHead"
+        $pulledCommits = Get-CommitInfoListInRange -CommitRange $range
         Write-Host "Git sync updated HEAD: $beforeHead -> $afterHead"
+        Write-Host "Git pull finished at: $pullFinishedAt"
+        Write-Host "Updated HEAD commit time: $($afterCommit.CommitTime)"
+        Write-Host "Pulled commit timeline:"
+        foreach ($entry in $pulledCommits) {
+            Write-Host " - $($entry.Hash) | $($entry.CommitTime) | $($entry.Subject)"
+        }
     } else {
         Write-Host "Git sync completed: already up to date."
+        Write-Host "Git pull finished at: $pullFinishedAt"
+        if ($afterCommit -ne $null) {
+            Write-Host "Current HEAD commit time: $($afterCommit.CommitTime)"
+        }
     }
 
     return [PSCustomObject]@{
-        BeforeHead    = $beforeHead
-        AfterHead     = $afterHead
-        CommitRange   = $range
-        Synced        = $true
-        CurrentBranch = $currentBranch
+        BeforeHead      = $beforeHead
+        AfterHead       = $afterHead
+        CommitRange     = $range
+        Synced          = $true
+        CurrentBranch   = $currentBranch
+        PullStartedAt   = $pullStartedAt
+        PullFinishedAt  = $pullFinishedAt
+        BeforeCommit    = $beforeCommit
+        AfterCommit     = $afterCommit
+        PulledCommits   = @($pulledCommits)
     }
 }
 
@@ -233,12 +327,22 @@ function Invoke-HealthCheck([string]$url) {
 function Run-PostDeployVerification() {
     if ($DryRun) {
         Write-Host "[DryRun] Step 3/3 skipped: post-deploy verification"
-        return
+        return [PSCustomObject]@{
+            Status     = "skipped-dry-run"
+            StartedAt  = Get-IsoNow
+            FinishedAt = Get-IsoNow
+            Targets    = @()
+        }
     }
 
     if ($SkipPostDeployVerification) {
         Write-Warning "Step 3/3 skipped by explicit -SkipPostDeployVerification override."
-        return
+        return [PSCustomObject]@{
+            Status     = "skipped-explicit"
+            StartedAt  = Get-IsoNow
+            FinishedAt = Get-IsoNow
+            Targets    = @()
+        }
     }
 
     $targets = @($HealthCheckUrls | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -246,13 +350,23 @@ function Run-PostDeployVerification() {
         throw "No health-check URL is configured. Provide -HealthCheckUrls for post-deploy verification."
     }
 
+    $verificationStartedAt = Get-IsoNow
     Write-Host "Step 3/3: live post-deploy verification"
     foreach ($target in $targets) {
         Invoke-HealthCheck -url $target
     }
+    $verificationFinishedAt = Get-IsoNow
+
+    return [PSCustomObject]@{
+        Status     = "completed"
+        StartedAt  = $verificationStartedAt
+        FinishedAt = $verificationFinishedAt
+        Targets    = @($targets)
+    }
 }
 
 $syncInfo = Sync-RepositoryFromRemote
+$deployStepStartedAt = Get-IsoNow
 
 if ($FullSync) {
     $uploadSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
@@ -378,6 +492,28 @@ if ($DeleteVscodeOnRemote) {
     }
 }
 
-Run-PostDeployVerification
+$deployStepFinishedAt = Get-IsoNow
+$verificationInfo = Run-PostDeployVerification
+$runFinishedAt = Get-IsoNow
 
 Write-Host "Deploy completed to $remotePath"
+Write-Host "Deployment report:"
+Write-Host " - Run started at: $($runStartedAt.ToString('yyyy-MM-ddTHH:mm:sszzz'))"
+Write-Host " - Git pull started at: $($syncInfo.PullStartedAt)"
+Write-Host " - Git pull finished at: $($syncInfo.PullFinishedAt)"
+if ($syncInfo.AfterCommit -ne $null) {
+    Write-Host " - HEAD after sync: $($syncInfo.AfterCommit.Hash)"
+    Write-Host " - HEAD commit time (Git): $($syncInfo.AfterCommit.CommitTime)"
+}
+if ($syncInfo.PulledCommits.Count -gt 0) {
+    Write-Host " - Pulled commits:"
+    foreach ($entry in $syncInfo.PulledCommits) {
+        Write-Host "   * $($entry.Hash) @ $($entry.CommitTime) | $($entry.Subject)"
+    }
+}
+Write-Host " - Deploy step started at: $deployStepStartedAt"
+Write-Host " - Deploy step finished at: $deployStepFinishedAt"
+Write-Host " - Verification status: $($verificationInfo.Status)"
+Write-Host " - Verification started at: $($verificationInfo.StartedAt)"
+Write-Host " - Verification finished at: $($verificationInfo.FinishedAt)"
+Write-Host " - Run finished at: $runFinishedAt"

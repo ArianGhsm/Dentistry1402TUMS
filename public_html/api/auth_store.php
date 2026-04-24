@@ -1585,6 +1585,9 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
         'params' => $params,
     ];
     $payload['from_number'] = (string) $config['senderLine'];
+    if (trim((string) $config['senderLine']) !== '') {
+        $payload['from_number'] = (string) $config['senderLine'];
+    }
 
     $attempts = 3;
     $raw = '';
