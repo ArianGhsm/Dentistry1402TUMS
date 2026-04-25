@@ -236,14 +236,13 @@
   var lastPolls = [];
   var toastTimer = null;
   var pendingLoad = false;
-  var forcedActiveMode = new URLSearchParams(window.location.search).get("mode") === "active";
 
   function canCreatePoll(user) {
     return isPollCreatorRole(user);
   }
 
   function isCreatorView() {
-    return authState.loggedIn && canCreatePoll(authState.user) && !forcedActiveMode;
+    return authState.loggedIn && canCreatePoll(authState.user);
   }
 
   function hideAllStates() {

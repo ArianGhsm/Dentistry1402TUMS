@@ -1443,6 +1443,18 @@ body.account-page.account-stage-panel-active .account-hero {
     background: var(--surface-muted);
     border: 1px solid var(--border-color);
     display: grid;
+    gap: 0.64rem;
+}
+
+.owner-user.is-expanded {
+    border-color: color-mix(in srgb, var(--accent-color) 30%, var(--border-color));
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 8%, transparent), transparent 45%),
+        var(--surface-muted);
+}
+
+.owner-user__head {
+    display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.72rem;
     align-items: center;
@@ -1465,6 +1477,117 @@ body.account-page.account-stage-panel-active .account-hero {
 .owner-user__copy span,
 .owner-user__copy small {
     color: var(--text-secondary);
+}
+
+.owner-user__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.36rem;
+    justify-content: flex-end;
+}
+
+.owner-user__actions .shell-action-btn {
+    min-height: 36px;
+}
+
+.owner-user__actions--detail {
+    justify-content: flex-start;
+}
+
+.owner-user__details {
+    display: grid;
+    gap: 0.58rem;
+    padding: 0.66rem 0.72rem;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+}
+
+.owner-user__meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.46rem;
+}
+
+.owner-user-meta-item {
+    padding: 0.44rem 0.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    display: grid;
+    gap: 0.12rem;
+    min-width: 0;
+}
+
+.owner-user-meta-item span {
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    font-weight: 760;
+}
+
+.owner-user-meta-item strong {
+    font-size: 0.8rem;
+    font-weight: 840;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.owner-user__grades {
+    display: grid;
+    gap: 0.44rem;
+}
+
+.owner-user__hint {
+    padding: 0.56rem 0.62rem;
+    border-radius: 12px;
+    border: 1px dashed var(--border-color-strong);
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    line-height: 1.7;
+}
+
+.owner-grade-list {
+    display: grid;
+    gap: 0.38rem;
+}
+
+.owner-grade-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+    gap: 0.42rem;
+    align-items: center;
+}
+
+.owner-grade-row__label {
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    font-weight: 760;
+}
+
+.owner-grade-row__controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.36rem;
+    align-items: center;
+}
+
+.owner-grade-input {
+    width: 100%;
+    min-height: 38px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+    padding: 0.45rem 0.58rem;
+    font: inherit;
+    font-size: 0.78rem;
+}
+
+.owner-grade-input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
 .owner-empty {
@@ -1907,6 +2030,20 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
     .owner-user {
         grid-template-columns: 1fr;
         align-items: stretch;
+    }
+
+    .owner-user__head {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+
+    .owner-user__meta-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .owner-grade-row,
+    .owner-grade-row__controls {
+        grid-template-columns: 1fr;
     }
 
     .navid-config-actions {

@@ -1163,6 +1163,51 @@ function dent_create_student_account(
     return $store['users'][$studentNumber];
 }
 
+function dent_owner_remove_user_phone(string $studentNumber): array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی نامعتبر است.', 422);
+    }
+
+    if ($studentNumber === dent_owner_student_number()) {
+        dent_error('حذف شماره موبایل حساب مالک اصلی از این بخش مجاز نیست.', 422);
+    }
+
+    $user = dent_get_user_record($studentNumber);
+    if ($user === null) {
+        dent_error('کاربر موردنظر پیدا نشد.', 404);
+    }
+
+    return dent_remove_phone_number($user);
+}
+
+function dent_owner_delete_student_account(string $studentNumber): array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی نامعتبر است.', 422);
+    }
+
+    if ($studentNumber === dent_owner_student_number()) {
+        dent_error('حساب مالک اصلی قابل حذف نیست.', 422);
+    }
+
+    $store = dent_load_user_store();
+    $user = $store['users'][$studentNumber] ?? null;
+    if (!is_array($user)) {
+        dent_error('کاربر موردنظر پیدا نشد.', 404);
+    }
+
+    $phoneNumber = dent_normalize_phone_number((string) ($user['phoneNumber'] ?? ''));
+    unset($store['users'][$studentNumber]);
+    dent_save_user_store($store);
+
+    dent_clear_phone_related_otp_records($studentNumber, $phoneNumber);
+
+    return dent_normalize_user_record($studentNumber, $user);
+}
+
 function dent_auth_meta_path(): string
 {
     return dent_storage_path('auth/meta.json');

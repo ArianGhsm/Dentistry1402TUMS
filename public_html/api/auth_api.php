@@ -283,6 +283,8 @@ if ($action === 'users') {
         $studentNumber = (string) ($user['studentNumber'] ?? '');
         $hasGrades = isset($gradeRoster[$studentNumber]);
         $user['hasGrades'] = $hasGrades;
+        $phone = is_array($user['phone'] ?? null) ? $user['phone'] : [];
+        $user['hasPhone'] = !empty($phone['hasNumber']);
         if (($user['role'] ?? '') === 'representative') {
             $representativeCount++;
         }
@@ -297,6 +299,32 @@ if ($action === 'users') {
             'representatives' => $representativeCount,
             'ownerStudentNumber' => dent_owner_student_number(),
         ],
+    ]);
+}
+
+if ($action === 'ownerUserGrades') {
+    if (!in_array(dent_request_method(), ['POST', 'GET'], true)) {
+        dent_error('متد دریافت کارنامه کاربر نامعتبر است.', 405);
+    }
+
+    dent_require_owner();
+
+    $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? ($_GET['studentNumber'] ?? ''));
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی نامعتبر است.', 422);
+    }
+
+    $user = dent_get_user_record($studentNumber);
+    if ($user === null) {
+        dent_error('کاربر موردنظر پیدا نشد.', 404);
+    }
+
+    $grades = dent_owner_grades_payload($studentNumber, (string) ($user['name'] ?? ''));
+
+    dent_json_response([
+        'success' => true,
+        'studentNumber' => $studentNumber,
+        'grades' => $grades,
     ]);
 }
 
@@ -336,6 +364,81 @@ if ($action === 'createStudent') {
         'success' => true,
         'user' => dent_public_user($created),
         'message' => 'حساب دانشجو ایجاد شد.',
+    ]);
+}
+
+if ($action === 'ownerSetUserGrade') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد ثبت نمره کاربر نامعتبر است.', 405);
+    }
+
+    dent_require_owner();
+
+    $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی نامعتبر است.', 422);
+    }
+
+    $columnIndex = (int) ($_POST['columnIndex'] ?? -1);
+    $gradeValue = (string) ($_POST['gradeValue'] ?? '');
+    $user = dent_get_user_record($studentNumber);
+    if ($user === null) {
+        dent_error('کاربر موردنظر پیدا نشد.', 404);
+    }
+
+    $grades = dent_owner_set_grade($studentNumber, $columnIndex, $gradeValue, (string) ($user['name'] ?? ''));
+    $updatedUser = dent_get_user_record($studentNumber);
+    $publicUser = $updatedUser ? dent_public_user($updatedUser) : dent_public_user($user);
+    $publicUser['hasGrades'] = true;
+    $publicUser['hasPhone'] = !empty(($publicUser['phone'] ?? [])['hasNumber']);
+
+    dent_json_response([
+        'success' => true,
+        'grades' => $grades,
+        'user' => $publicUser,
+        'message' => trim($gradeValue) === '' ? 'نمره پاک شد.' : 'نمره ذخیره شد.',
+    ]);
+}
+
+if ($action === 'ownerRemoveUserPhone') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد حذف شماره کاربر نامعتبر است.', 405);
+    }
+
+    dent_require_owner();
+    $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
+    $updatedUser = dent_owner_remove_user_phone($studentNumber);
+    $publicUser = dent_public_user($updatedUser);
+    $publicUser['hasPhone'] = !empty(($publicUser['phone'] ?? [])['hasNumber']);
+    $gradeRoster = dent_grade_roster_index();
+    $publicUser['hasGrades'] = isset($gradeRoster[(string) ($publicUser['studentNumber'] ?? '')]);
+
+    dent_json_response([
+        'success' => true,
+        'user' => $publicUser,
+        'message' => 'شماره موبایل کاربر حذف شد.',
+    ]);
+}
+
+if ($action === 'ownerDeleteStudent') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد حذف دانشجو نامعتبر است.', 405);
+    }
+
+    dent_require_owner();
+
+    $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی نامعتبر است.', 422);
+    }
+
+    dent_owner_delete_student_account($studentNumber);
+    dent_owner_remove_grades_row($studentNumber);
+
+    dent_json_response([
+        'success' => true,
+        'studentNumber' => $studentNumber,
+        'message' => 'حساب دانشجو حذف شد.',
     ]);
 }
 

@@ -283,3 +283,196 @@ function dent_build_grades_payload(array $user): array
         'totalWithScore' => $default['totalWithScore'] ?? 0,
     ];
 }
+
+function dent_format_grade_for_store(float $score): string
+{
+    $normalized = number_format($score, 2, '.', '');
+    $normalized = rtrim(rtrim($normalized, '0'), '.');
+    return $normalized === '' ? '0' : $normalized;
+}
+
+function dent_write_grades_source(array $header, array $rows): void
+{
+    $csvFile = dent_grades_store_path();
+    dent_ensure_directory(dirname($csvFile));
+
+    $handle = fopen($csvFile, 'c+');
+    if ($handle === false) {
+        dent_error('امکان نگارش فایل نمرات وجود ندارد.', 500);
+    }
+
+    if (!flock($handle, LOCK_EX)) {
+        fclose($handle);
+        dent_error('قفل فایل نمرات گرفته نشد.', 500);
+    }
+
+    $columnCount = count($header);
+    rewind($handle);
+    ftruncate($handle, 0);
+    fputcsv($handle, $header);
+
+    foreach ($rows as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $normalizedRow = $row;
+        if (count($normalizedRow) < $columnCount) {
+            $normalizedRow = array_pad($normalizedRow, $columnCount, '');
+        } elseif (count($normalizedRow) > $columnCount) {
+            $normalizedRow = array_slice($normalizedRow, 0, $columnCount);
+        }
+        fputcsv($handle, $normalizedRow);
+    }
+
+    fflush($handle);
+    flock($handle, LOCK_UN);
+    fclose($handle);
+}
+
+function dent_owner_grades_payload(string $studentNumber, string $fallbackName = ''): array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی نامعتبر است.', 422);
+    }
+
+    $source = dent_read_grades_source();
+    $row = null;
+    $rowExists = false;
+
+    foreach ($source['rows'] as $candidate) {
+        $candidateStudentNumber = dent_normalize_student_number($candidate[$source['idIndex']] ?? '');
+        if ($candidateStudentNumber === $studentNumber) {
+            $row = $candidate;
+            $rowExists = true;
+            break;
+        }
+    }
+
+    if (!is_array($row)) {
+        $row = array_fill(0, count($source['header']), '');
+        $row[$source['idIndex']] = $studentNumber;
+        if ($fallbackName !== '') {
+            $row[$source['nameIndex']] = dent_clean_text($fallbackName, 120);
+        }
+    }
+
+    $name = trim((string) ($row[$source['nameIndex']] ?? ''));
+    if ($name === '') {
+        $name = dent_clean_text($fallbackName, 120);
+    }
+
+    $grades = [];
+    foreach ($source['gradeColumns'] as $index => $label) {
+        $grades[] = [
+            'index' => (int) $index,
+            'label' => $label,
+            'value' => (string) ($row[$index] ?? ''),
+        ];
+    }
+
+    return [
+        'studentNumber' => $studentNumber,
+        'name' => $name,
+        'rowExists' => $rowExists,
+        'grades' => $grades,
+    ];
+}
+
+function dent_owner_set_grade(
+    string $studentNumber,
+    int $columnIndex,
+    ?string $gradeValue,
+    string $fallbackName = ''
+): array {
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی نامعتبر است.', 422);
+    }
+
+    $source = dent_read_grades_source();
+    if (!array_key_exists($columnIndex, $source['gradeColumns'])) {
+        dent_error('ستون نمره نامعتبر است.', 422);
+    }
+
+    $finalValue = '';
+    $rawValue = trim((string) $gradeValue);
+    if ($rawValue !== '') {
+        $normalized = dent_normalize_number_string($rawValue);
+        if ($normalized === '' || !is_numeric($normalized)) {
+            dent_error('مقدار نمره باید عددی باشد.', 422);
+        }
+
+        $score = (float) $normalized;
+        if ($score < 0) {
+            dent_error('نمره منفی مجاز نیست.', 422);
+        }
+
+        $finalValue = dent_format_grade_for_store($score);
+    }
+
+    $fallbackName = dent_clean_text($fallbackName, 120);
+    $rowFound = false;
+    foreach ($source['rows'] as $index => $candidate) {
+        $candidateStudentNumber = dent_normalize_student_number($candidate[$source['idIndex']] ?? '');
+        if ($candidateStudentNumber !== $studentNumber) {
+            continue;
+        }
+
+        $rowFound = true;
+        $row = $candidate;
+        if (count($row) < count($source['header'])) {
+            $row = array_pad($row, count($source['header']), '');
+        }
+        $row[$source['idIndex']] = $studentNumber;
+        if ($fallbackName !== '' && trim((string) ($row[$source['nameIndex']] ?? '')) === '') {
+            $row[$source['nameIndex']] = $fallbackName;
+        }
+        $row[$columnIndex] = $finalValue;
+        $source['rows'][$index] = $row;
+        break;
+    }
+
+    if (!$rowFound) {
+        $row = array_fill(0, count($source['header']), '');
+        $row[$source['idIndex']] = $studentNumber;
+        if ($fallbackName !== '') {
+            $row[$source['nameIndex']] = $fallbackName;
+        }
+        $row[$columnIndex] = $finalValue;
+        $source['rows'][] = $row;
+    }
+
+    dent_write_grades_source($source['header'], $source['rows']);
+    return dent_owner_grades_payload($studentNumber, $fallbackName);
+}
+
+function dent_owner_remove_grades_row(string $studentNumber): bool
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        return false;
+    }
+
+    $source = dent_read_grades_source(false);
+    if (!is_array($source['header']) || count($source['header']) === 0) {
+        return false;
+    }
+
+    $keptRows = [];
+    $removed = false;
+    foreach ($source['rows'] as $row) {
+        $candidateStudentNumber = dent_normalize_student_number($row[$source['idIndex']] ?? '');
+        if ($candidateStudentNumber === $studentNumber) {
+            $removed = true;
+            continue;
+        }
+        $keptRows[] = $row;
+    }
+
+    if ($removed) {
+        dent_write_grades_source($source['header'], $keptRows);
+    }
+
+    return $removed;
+}

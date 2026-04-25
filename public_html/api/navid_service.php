@@ -598,25 +598,70 @@ function navid_extract_courses(array $dashboardPayload, string $loginUrl): array
         if (!is_array($entry)) {
             continue;
         }
+
         $instance = is_array($entry['courseInstance'] ?? null) ? $entry['courseInstance'] : [];
-        $courseTemplateId = (int) ($instance['activeCourseTemplateId'] ?? 0);
+        $courseTemplateId = (int) (
+            $entry['activeCourseTemplateId']
+            ?? $instance['activeCourseTemplateId']
+            ?? $entry['courseTemplateId']
+            ?? $instance['courseTemplateId']
+            ?? 0
+        );
         if ($courseTemplateId <= 0) {
             continue;
         }
 
-        $title = dent_clean_text((string) ($instance['courseTitle'] ?? ''), 180);
+        $courseInstanceId = (int) (
+            $entry['courseInstanceId']
+            ?? $instance['id']
+            ?? $instance['courseInstanceId']
+            ?? 0
+        );
+
+        $title = dent_clean_text(
+            (string) (
+                $entry['courseTitle']
+                ?? $instance['courseTitle']
+                ?? $instance['title']
+                ?? ''
+            ),
+            180
+        );
         if ($title === '') {
             $title = 'درس ' . $courseTemplateId;
         }
 
+        $activeCount = (int) (
+            $entry['activeCourseTemplateCount']
+            ?? $instance['activeCourseTemplateCount']
+            ?? 0
+        );
+
+        $termTitle = dent_clean_text(
+            (string) (
+                $entry['termTitle']
+                ?? $instance['termTitle']
+                ?? ''
+            ),
+            120
+        );
+        $periodTitle = dent_clean_text(
+            (string) (
+                $entry['periodTitle']
+                ?? $instance['periodTitle']
+                ?? ''
+            ),
+            120
+        );
+
         $coursesById[(string) $courseTemplateId] = [
             'courseTemplateId' => $courseTemplateId,
             'courseTitle' => $title,
-            'courseInstanceId' => (int) ($instance['id'] ?? 0),
+            'courseInstanceId' => $courseInstanceId,
             'courseUrl' => navid_absolute_url($origin, '/coursetemplate/details/' . $courseTemplateId . '/1/'),
-            'activeCourseTemplateCount' => (int) ($instance['activeCourseTemplateCount'] ?? 0),
-            'termTitle' => dent_clean_text((string) ($instance['termTitle'] ?? ''), 120),
-            'periodTitle' => dent_clean_text((string) ($instance['periodTitle'] ?? ''), 120),
+            'activeCourseTemplateCount' => $activeCount,
+            'termTitle' => $termTitle,
+            'periodTitle' => $periodTitle,
         ];
     }
 
@@ -858,6 +903,7 @@ function navid_build_owner_status(array $store): array
             'consecutiveFailures' => (int) ($state['consecutiveFailures'] ?? 0),
             'requiresReconnect' => !empty($state['requiresReconnect']),
             'lastSyncDurationMs' => (int) ($state['lastSyncDurationMs'] ?? 0),
+            'lastFailedCourses' => (int) ($state['lastFailedCourses'] ?? 0),
             'lastResult' => (string) ($state['lastResult'] ?? ''),
             'actionRequired' => $actionRequired,
             'credentialsMissing' => $actionRequired === 'save-credentials',
@@ -867,6 +913,7 @@ function navid_build_owner_status(array $store): array
             'courses' => count(is_array($snapshot['courses'] ?? null) ? $snapshot['courses'] : []),
             'assignments' => count($assignments),
             'updates' => count(is_array($store['updates'] ?? null) ? $store['updates'] : []),
+            'failedCourses' => (int) ($state['lastFailedCourses'] ?? 0),
         ],
     ];
 }
@@ -885,12 +932,15 @@ function navid_sync_due(array $store): bool
         $intervalMinutes = 5;
     }
 
-    $lastSuccessAt = trim((string) ($state['lastSuccessAt'] ?? ''));
-    if ($lastSuccessAt === '') {
+    $lastAnchor = trim((string) ($state['lastSuccessAt'] ?? ''));
+    if ($lastAnchor === '') {
+        $lastAnchor = trim((string) ($state['lastSyncAt'] ?? ''));
+    }
+    if ($lastAnchor === '') {
         return true;
     }
 
-    $lastTs = strtotime($lastSuccessAt);
+    $lastTs = strtotime($lastAnchor);
     if ($lastTs === false) {
         return true;
     }
@@ -951,6 +1001,7 @@ function navid_sync(bool $force = false): array
 
     $store['state']['lastSyncAt'] = dent_iso_now();
     $store['state']['lastResult'] = 'running';
+    $store['state']['lastFailedCourses'] = 0;
 
     try {
         if (empty($dashboard['success'])) {
@@ -962,6 +1013,7 @@ function navid_sync(bool $force = false): array
                 $loginFailureMeta = navid_login_failure_meta($loginErrorCode);
                 $store['state']['requiresReconnect'] = !empty($loginFailureMeta['requiresReconnect']);
                 $store['state']['lastResult'] = (string) ($loginFailureMeta['status'] ?? 'login-failed');
+                $store['state']['lastFailedCourses'] = 0;
                 navid_clear_session_cookies($store);
                 navid_log('error', 'sync_login_failed', ['error' => $login['error'] ?? '', 'message' => $login['message'] ?? '']);
                 navid_save_store($store);
@@ -986,6 +1038,7 @@ function navid_sync(bool $force = false): array
             $store['state']['lastError'] = 'خواندن داشبورد نوید انجام نشد.';
             $store['state']['consecutiveFailures'] = (int) ($store['state']['consecutiveFailures'] ?? 0) + 1;
             $store['state']['lastResult'] = 'dashboard-failed';
+            $store['state']['lastFailedCourses'] = 0;
             navid_set_session_cookies($store, $cookies);
             navid_save_store($store);
             return [
@@ -1000,6 +1053,8 @@ function navid_sync(bool $force = false): array
         $currentAssignmentsByKey = [];
         $courseSnapshot = [];
         $failedCourses = 0;
+        $previousAssignments = is_array($store['snapshot']['assignments'] ?? null) ? $store['snapshot']['assignments'] : [];
+        $previousCourses = is_array($store['snapshot']['courses'] ?? null) ? $store['snapshot']['courses'] : [];
 
         foreach ($courses as $course) {
             $courseTemplateId = (int) ($course['courseTemplateId'] ?? 0);
@@ -1012,6 +1067,31 @@ function navid_sync(bool $force = false): array
 
             if (empty($assignmentResult['success'])) {
                 $failedCourses++;
+                $preservedKeys = [];
+                $previousCourseSnapshot = is_array($previousCourses[(string) $courseTemplateId] ?? null)
+                    ? $previousCourses[(string) $courseTemplateId]
+                    : [];
+                $previousKeys = is_array($previousCourseSnapshot['assignmentKeys'] ?? null)
+                    ? $previousCourseSnapshot['assignmentKeys']
+                    : [];
+                foreach ($previousKeys as $previousKey) {
+                    $key = (string) $previousKey;
+                    if ($key === '' || !is_array($previousAssignments[$key] ?? null)) {
+                        continue;
+                    }
+                    $currentAssignmentsByKey[$key] = $previousAssignments[$key];
+                    $preservedKeys[] = $key;
+                }
+                $courseSnapshot[(string) $courseTemplateId] = [
+                    'courseTemplateId' => $courseTemplateId,
+                    'courseTitle' => (string) ($course['courseTitle'] ?? ''),
+                    'courseUrl' => (string) ($course['courseUrl'] ?? ''),
+                    'assignmentKeys' => $preservedKeys,
+                    'assignmentCount' => count($preservedKeys),
+                    'lastCheckedAt' => dent_iso_now(),
+                    'fetchStatus' => 'failed',
+                    'fetchError' => (string) ($assignmentResult['message'] ?? $assignmentResult['error'] ?? 'fetch_failed'),
+                ];
                 continue;
             }
 
@@ -1039,10 +1119,11 @@ function navid_sync(bool $force = false): array
                 'assignmentKeys' => $courseAssignmentKeys,
                 'assignmentCount' => count($courseAssignmentKeys),
                 'lastCheckedAt' => dent_iso_now(),
+                'fetchStatus' => 'ok',
+                'fetchError' => '',
             ];
         }
 
-        $previousAssignments = is_array($store['snapshot']['assignments'] ?? null) ? $store['snapshot']['assignments'] : [];
         $newEvents = 0;
 
         foreach ($currentAssignmentsByKey as $key => $assignment) {
@@ -1078,14 +1159,43 @@ function navid_sync(bool $force = false): array
         $store['session']['status'] = 'active';
         $store['session']['lastValidatedAt'] = dent_iso_now();
 
-        $store['state']['lastSuccessAt'] = dent_iso_now();
-        $store['state']['lastError'] = '';
-        $store['state']['consecutiveFailures'] = 0;
-        $store['state']['requiresReconnect'] = false;
-        $store['state']['lastResult'] = 'ok';
+        $store['state']['lastFailedCourses'] = $failedCourses;
         $store['state']['lastSyncDurationMs'] = (int) round((microtime(true) - $startedAt) * 1000);
+        $store['state']['requiresReconnect'] = false;
+        $store['state']['consecutiveFailures'] = 0;
+        if ($failedCourses > 0) {
+            $store['state']['lastResult'] = 'partial';
+            $store['state']['lastError'] = 'برخی دروس نوید در همگام‌سازی آخر دریافت نشدند. تا تکمیل همه دروس، خروجی تایید نمی‌شود.';
+        } else {
+            $store['state']['lastSuccessAt'] = dent_iso_now();
+            $store['state']['lastResult'] = 'ok';
+            $store['state']['lastError'] = '';
+        }
 
         navid_save_store($store);
+
+        if ($failedCourses > 0) {
+            navid_log('warning', 'sync_partial', [
+                'courses' => count($courses),
+                'assignments' => count($currentAssignmentsByKey),
+                'newEvents' => $newEvents,
+                'failedCourses' => $failedCourses,
+            ]);
+
+            return [
+                'success' => false,
+                'status' => 'partial',
+                'message' => 'همگام‌سازی نوید ناقص بود و بعضی دروس دریافت نشدند.',
+                'summary' => [
+                    'coursesChecked' => count($courses),
+                    'assignmentsFetched' => count($currentAssignmentsByKey),
+                    'newEvents' => $newEvents,
+                    'failedCourses' => $failedCourses,
+                ],
+                'ownerStatus' => navid_build_owner_status($store),
+            ];
+        }
+
         navid_log('info', 'sync_success', [
             'courses' => count($courses),
             'assignments' => count($currentAssignmentsByKey),
@@ -1108,6 +1218,7 @@ function navid_sync(bool $force = false): array
     } catch (Throwable $exception) {
         $store['state']['lastError'] = 'خطای داخلی همگام‌سازی نوید.';
         $store['state']['consecutiveFailures'] = (int) ($store['state']['consecutiveFailures'] ?? 0) + 1;
+        $store['state']['lastFailedCourses'] = 0;
         $store['state']['lastResult'] = 'exception';
         $store['state']['lastSyncDurationMs'] = (int) round((microtime(true) - $startedAt) * 1000);
         navid_save_store($store);
@@ -1166,6 +1277,7 @@ function navid_update_config(array $input): array
         navid_set_credentials($store, $username, $password);
         $store['state']['requiresReconnect'] = false;
         $store['state']['lastError'] = '';
+        $store['state']['lastFailedCourses'] = 0;
         $lastResult = (string) ($store['state']['lastResult'] ?? '');
         if (in_array($lastResult, ['credentials-missing', 'credentials-invalid'], true)) {
             $store['state']['lastResult'] = 'config-updated';
@@ -1327,6 +1439,7 @@ function navid_feed_payload(bool $ownerView): array
             'lastSyncAt' => (string) ($store['state']['lastSyncAt'] ?? ''),
             'lastSuccessAt' => (string) ($store['state']['lastSuccessAt'] ?? ''),
             'lastResult' => (string) ($store['state']['lastResult'] ?? ''),
+            'lastFailedCourses' => (int) ($store['state']['lastFailedCourses'] ?? 0),
             'lastError' => (string) ($store['state']['lastError'] ?? ''),
             'requiresReconnect' => !empty($store['state']['requiresReconnect']),
             'enabled' => $enabled,
@@ -1347,4 +1460,3 @@ function navid_feed_payload(bool $ownerView): array
         'data' => $payload,
     ];
 }
-

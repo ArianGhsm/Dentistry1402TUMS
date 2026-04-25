@@ -44,6 +44,7 @@ function navid_default_store(): array
             'consecutiveFailures' => 0,
             'requiresReconnect' => false,
             'lastSyncDurationMs' => 0,
+            'lastFailedCourses' => 0,
             'lastResult' => '',
         ],
         'snapshot' => [

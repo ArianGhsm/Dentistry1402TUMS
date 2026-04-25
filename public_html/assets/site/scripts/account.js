@@ -145,7 +145,13 @@
         loading: false,
         savingStudentNumber: "",
         creatingStudent: false,
-        users: []
+        deletingStudentNumber: "",
+        removingPhoneStudentNumber: "",
+        loadingGradesStudentNumber: "",
+        savingGradeKey: "",
+        expandedStudentNumber: "",
+        users: [],
+        gradePayloadByStudent: {}
     };
     var navidState = {
         loading: false,
@@ -1031,10 +1037,14 @@
         var withGrades = users.filter(function (user) {
             return user.hasGrades;
         }).length;
+        var withPhone = users.filter(function (user) {
+            return !!user.hasPhone;
+        }).length;
 
         ownerSummary.innerHTML = [
             summaryCard("کاربر", totalUsers.toLocaleString("fa-IR"), "کل حساب‌های تعریف‌شده"),
             summaryCard("نماینده", representatives.toLocaleString("fa-IR"), "افراد دارای دسترسی گفت‌وگو"),
+            summaryCard("دارای شماره", withPhone.toLocaleString("fa-IR"), "کاربرهایی که شماره موبایل ثبت‌شده دارند"),
             summaryCard("دارای نمره", withGrades.toLocaleString("fa-IR"), "کاربرهایی که در فایل نمرات رکورد دارند")
         ].join("");
 
@@ -1348,12 +1358,211 @@
         return user.role === "representative" ? "لغو نماینده" : "ثبت به‌عنوان نماینده";
     }
 
+    function isOwnerUser(user) {
+        return !!user && user.role === "owner";
+    }
+
+    function ownerRoleMeta(user) {
+        if (!user) {
+            return "دانشجو";
+        }
+        return user.roleLabel || (user.role === "representative" ? "نماینده" : (user.role === "owner" ? "مالک" : "دانشجو"));
+    }
+
+    function ownerUserPhoneMeta(user) {
+        var phone = parsedPhone(user || {});
+        if (!phone.hasNumber) {
+            return "ثبت نشده";
+        }
+        var masked = ltrMaskedPhone(phone.numberMasked, "شماره ثبت‌شده");
+        if (!phone.verified) {
+            return masked + " (تایید نشده)";
+        }
+        if (phone.otpLoginEnabled) {
+            return masked + " (OTP فعال)";
+        }
+        return masked + " (OTP غیرفعال)";
+    }
+
+    function ownerGradesPayload(studentNumber) {
+        var key = String(studentNumber || "");
+        if (!key) {
+            return null;
+        }
+        var payload = ownerState.gradePayloadByStudent[key];
+        if (!payload || typeof payload !== "object") {
+            return null;
+        }
+        return payload;
+    }
+
+    function ownerGradeSaveKey(studentNumber, columnIndex) {
+        return String(studentNumber || "") + ":" + String(Math.max(0, Math.floor(toNumber(columnIndex, 0))));
+    }
+
+    function ownerUserBusyState(studentNumber) {
+        var key = String(studentNumber || "");
+        return {
+            representative: ownerState.savingStudentNumber === key,
+            gradesLoading: ownerState.loadingGradesStudentNumber === key,
+            removingPhone: ownerState.removingPhoneStudentNumber === key,
+            deletingUser: ownerState.deletingStudentNumber === key
+        };
+    }
+
+    function ownerDetailsToggleLabel(isExpanded) {
+        return isExpanded ? "بستن پنل" : "پنل کاربر";
+    }
+
     function userMeta(user) {
-        var parts = [user.roleLabel || "دانشجو"];
+        var parts = [ownerRoleMeta(user)];
+        parts.push(user.hasPhone ? "دارای شماره" : "بدون شماره");
         if (user.hasGrades) {
             parts.push("دارای نمرات");
         }
         return parts.join(" • ");
+    }
+
+    function buildOwnerMetaCell(label, value) {
+        var item = document.createElement("div");
+        item.className = "owner-user-meta-item";
+
+        var title = document.createElement("span");
+        title.textContent = label;
+
+        var content = document.createElement("strong");
+        content.textContent = value || "—";
+
+        item.appendChild(title);
+        item.appendChild(content);
+        return item;
+    }
+
+    function buildOwnerUserDetails(user, busyState) {
+        var studentNumber = String(user.studentNumber || "");
+        var details = document.createElement("section");
+        details.className = "owner-user__details";
+
+        var metaGrid = document.createElement("div");
+        metaGrid.className = "owner-user__meta-grid";
+        metaGrid.appendChild(buildOwnerMetaCell("نام", user.name || "—"));
+        metaGrid.appendChild(buildOwnerMetaCell("شماره دانشجویی", studentNumber || "—"));
+        metaGrid.appendChild(buildOwnerMetaCell("نقش", ownerRoleMeta(user)));
+        metaGrid.appendChild(buildOwnerMetaCell("موبایل", ownerUserPhoneMeta(user)));
+        details.appendChild(metaGrid);
+
+        var actions = document.createElement("div");
+        actions.className = "owner-user__actions owner-user__actions--detail";
+
+        var gradesPayload = ownerGradesPayload(studentNumber);
+        var loadGradesBtn = document.createElement("button");
+        loadGradesBtn.type = "button";
+        loadGradesBtn.className = "shell-action-btn";
+        loadGradesBtn.dataset.ownerAction = "reload-grades";
+        loadGradesBtn.dataset.studentNumber = studentNumber;
+        loadGradesBtn.disabled = busyState.gradesLoading || busyState.deletingUser;
+        loadGradesBtn.textContent = busyState.gradesLoading
+            ? "در حال دریافت کارنامه..."
+            : (gradesPayload ? "بارگذاری مجدد کارنامه" : "نمایش کارنامه");
+        actions.appendChild(loadGradesBtn);
+
+        var removePhoneBtn = document.createElement("button");
+        removePhoneBtn.type = "button";
+        removePhoneBtn.className = "shell-action-btn";
+        removePhoneBtn.dataset.ownerAction = "remove-phone";
+        removePhoneBtn.dataset.studentNumber = studentNumber;
+        removePhoneBtn.disabled = busyState.removingPhone || busyState.deletingUser || isOwnerUser(user) || !user.hasPhone;
+        removePhoneBtn.textContent = busyState.removingPhone ? "در حال حذف شماره..." : "حذف شماره ثبت‌شده";
+        actions.appendChild(removePhoneBtn);
+
+        var deleteUserBtn = document.createElement("button");
+        deleteUserBtn.type = "button";
+        deleteUserBtn.className = "shell-action-btn shell-action-btn-danger";
+        deleteUserBtn.dataset.ownerAction = "delete-student";
+        deleteUserBtn.dataset.studentNumber = studentNumber;
+        deleteUserBtn.disabled = busyState.deletingUser || isOwnerUser(user);
+        deleteUserBtn.textContent = busyState.deletingUser ? "در حال حذف دانشجو..." : "حذف کامل دانشجو";
+        actions.appendChild(deleteUserBtn);
+
+        details.appendChild(actions);
+
+        var gradesWrap = document.createElement("div");
+        gradesWrap.className = "owner-user__grades";
+
+        if (busyState.gradesLoading && !gradesPayload) {
+            var loadingHint = document.createElement("div");
+            loadingHint.className = "owner-user__hint";
+            loadingHint.textContent = "در حال دریافت کارنامه...";
+            gradesWrap.appendChild(loadingHint);
+            details.appendChild(gradesWrap);
+            return details;
+        }
+
+        if (!gradesPayload) {
+            var emptyHint = document.createElement("div");
+            emptyHint.className = "owner-user__hint";
+            emptyHint.textContent = "برای مشاهده و ویرایش نمرات، روی «نمایش کارنامه» بزن.";
+            gradesWrap.appendChild(emptyHint);
+            details.appendChild(gradesWrap);
+            return details;
+        }
+
+        var gradeList = document.createElement("div");
+        gradeList.className = "owner-grade-list";
+        var grades = Array.isArray(gradesPayload.grades) ? gradesPayload.grades : [];
+
+        if (!grades.length) {
+            var noGrades = document.createElement("div");
+            noGrades.className = "owner-user__hint";
+            noGrades.textContent = "ستون نمره‌ای برای این دانشجو پیدا نشد.";
+            gradesWrap.appendChild(noGrades);
+            details.appendChild(gradesWrap);
+            return details;
+        }
+
+        grades.forEach(function (grade) {
+            var index = Math.max(0, Math.floor(toNumber(grade.index, 0)));
+            var row = document.createElement("div");
+            row.className = "owner-grade-row";
+
+            var label = document.createElement("label");
+            label.className = "owner-grade-row__label";
+            label.textContent = String(grade.label || ("ستون " + index));
+            row.appendChild(label);
+
+            var controls = document.createElement("div");
+            controls.className = "owner-grade-row__controls";
+
+            var input = document.createElement("input");
+            input.type = "text";
+            input.inputMode = "decimal";
+            input.className = "owner-grade-input";
+            input.placeholder = "بدون نمره";
+            input.value = String(grade.value == null ? "" : grade.value);
+            input.dataset.gradeInput = "true";
+            input.dataset.studentNumber = studentNumber;
+            input.dataset.columnIndex = String(index);
+            input.disabled = busyState.deletingUser || busyState.gradesLoading;
+            controls.appendChild(input);
+
+            var saveBtn = document.createElement("button");
+            saveBtn.type = "button";
+            saveBtn.className = "shell-action-btn shell-action-btn-primary";
+            saveBtn.dataset.ownerAction = "save-grade";
+            saveBtn.dataset.studentNumber = studentNumber;
+            saveBtn.dataset.columnIndex = String(index);
+            var isSaving = ownerState.savingGradeKey === ownerGradeSaveKey(studentNumber, index);
+            saveBtn.disabled = isSaving || busyState.deletingUser || busyState.gradesLoading;
+            saveBtn.textContent = isSaving ? "در حال ذخیره..." : "ذخیره";
+            controls.appendChild(saveBtn);
+
+            row.appendChild(controls);
+            gradeList.appendChild(row);
+        });
+
+        gradesWrap.appendChild(gradeList);
+        details.appendChild(gradesWrap);
+        return details;
     }
 
     function renderUsers(users) {
@@ -1369,20 +1578,54 @@
 
         ownerUserList.innerHTML = "";
         visibleUsers.forEach(function (user) {
+            var studentNumber = String(user.studentNumber || "");
+            var isExpanded = ownerState.expandedStudentNumber === studentNumber;
+            var busyState = ownerUserBusyState(studentNumber);
             var article = document.createElement("article");
-            article.className = "owner-user";
+            article.className = "owner-user" + (isExpanded ? " is-expanded" : "");
 
-            var actionDisabled = user.role === "owner" || ownerState.savingStudentNumber === user.studentNumber;
-            var button = '<button class="shell-action-btn' + (user.role === "representative" ? " shell-action-btn-primary" : "") + '" type="button" data-student-number="' + user.studentNumber + '" ' + (actionDisabled ? "disabled" : "") + ">" + toggleButtonLabel(user) + "</button>";
+            var head = document.createElement("div");
+            head.className = "owner-user__head";
 
-            article.innerHTML = [
-                '<div class="owner-user__copy">',
-                "  <strong>" + user.name + "</strong>",
-                "  <span>" + user.studentNumber + "</span>",
-                "  <small>" + userMeta(user) + "</small>",
-                "</div>",
-                '<div class="owner-user__actions">' + button + "</div>"
-            ].join("");
+            var copy = document.createElement("div");
+            copy.className = "owner-user__copy";
+            var strong = document.createElement("strong");
+            strong.textContent = user.name || "دانشجو";
+            var number = document.createElement("span");
+            number.textContent = studentNumber || "—";
+            var meta = document.createElement("small");
+            meta.textContent = userMeta(user);
+            copy.appendChild(strong);
+            copy.appendChild(number);
+            copy.appendChild(meta);
+            head.appendChild(copy);
+
+            var actions = document.createElement("div");
+            actions.className = "owner-user__actions";
+
+            var representativeBtn = document.createElement("button");
+            representativeBtn.type = "button";
+            representativeBtn.className = "shell-action-btn" + (user.role === "representative" ? " shell-action-btn-primary" : "");
+            representativeBtn.dataset.ownerAction = "toggle-representative";
+            representativeBtn.dataset.studentNumber = studentNumber;
+            representativeBtn.disabled = isOwnerUser(user) || busyState.representative || busyState.deletingUser;
+            representativeBtn.textContent = busyState.representative ? "در حال ذخیره..." : toggleButtonLabel(user);
+            actions.appendChild(representativeBtn);
+
+            var panelBtn = document.createElement("button");
+            panelBtn.type = "button";
+            panelBtn.className = "shell-action-btn";
+            panelBtn.dataset.ownerAction = "toggle-details";
+            panelBtn.dataset.studentNumber = studentNumber;
+            panelBtn.textContent = ownerDetailsToggleLabel(isExpanded);
+            actions.appendChild(panelBtn);
+
+            head.appendChild(actions);
+            article.appendChild(head);
+
+            if (isExpanded) {
+                article.appendChild(buildOwnerUserDetails(user, busyState));
+            }
 
             ownerUserList.appendChild(article);
         });
@@ -1397,6 +1640,8 @@
         switch (result) {
             case "ok":
                 return "\u067e\u0627\u06cc\u062f\u0627\u0631";
+            case "partial":
+                return "\u0646\u0627\u0642\u0635";
             case "running":
                 return "\u062f\u0631 \u062d\u0627\u0644 \u0627\u062c\u0631\u0627";
             case "config-updated":
@@ -1467,6 +1712,7 @@
         var counts = ownerStatus.snapshotCounts || {};
         var actionRequired = String(state.actionRequired || "");
         var statusDetail = String(state.lastError || "").trim();
+        var failedCourses = Math.max(0, Math.floor(toNumber(state.lastFailedCourses != null ? state.lastFailedCourses : counts.failedCourses, 0)));
 
         if (!statusDetail) {
             if (actionRequired === "save-credentials" || !!state.credentialsMissing) {
@@ -1475,6 +1721,10 @@
                 statusDetail = "\u0627\u0639\u062a\u0628\u0627\u0631 \u0630\u062e\u06cc\u0631\u0647\u200c\u0634\u062f\u0647 \u0646\u0648\u06cc\u062f \u0646\u0627\u0645\u0639\u062a\u0628\u0631 \u0627\u0633\u062a.";
             } else if (actionRequired === "manual-reconnect" || !!state.requiresReconnect) {
                 statusDetail = "\u0646\u0634\u0633\u062a \u0646\u0648\u06cc\u062f \u0646\u06cc\u0627\u0632 \u0628\u0647 \u0627\u062a\u0635\u0627\u0644 \u0645\u062c\u062f\u062f \u062f\u0627\u0631\u062f.";
+            } else if (String(state.lastResult || "") === "partial") {
+                statusDetail = failedCourses > 0
+                    ? ("\u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u0646\u0627\u0642\u0635 \u0628\u0648\u062f\u061b " + failedCourses.toLocaleString("fa-IR") + " \u062f\u0631\u0633 \u062f\u0631\u06cc\u0627\u0641\u062a \u0646\u0634\u062f.")
+                    : "\u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u0646\u0627\u0642\u0635 \u0628\u0648\u062f \u0648 \u062e\u0631\u0648\u062c\u06cc \u062a\u0627\u06cc\u06cc\u062f \u0646\u0634\u062f.";
             } else if (String(state.lastResult || "") === "ok") {
                 statusDetail = "\u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u0646\u0648\u06cc\u062f \u0633\u0627\u0644\u0645 \u0627\u0633\u062a.";
             } else {
@@ -1486,6 +1736,7 @@
             summaryCard("\u0648\u0636\u0639\u06cc\u062a", navidStatusResultLabel(state.lastResult || ""), statusDetail),
             summaryCard("\u0622\u062e\u0631\u06cc\u0646 \u0645\u0648\u0641\u0642", state.lastSuccessAt || "\u2014", "\u0622\u062e\u0631\u06cc\u0646 \u0632\u0645\u0627\u0646 \u0645\u0648\u0641\u0642\u06cc\u062a \u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc"),
             summaryCard("\u062a\u06a9\u0627\u0644\u06cc\u0641 \u0641\u0639\u0644\u06cc", String(counts.assignments || 0).toLocaleString("fa-IR"), "\u0645\u062c\u0645\u0648\u0639 \u062a\u06a9\u0627\u0644\u06cc\u0641 \u0630\u062e\u06cc\u0631\u0647\u200c\u0634\u062f\u0647 \u062f\u0631 snapshot"),
+            summaryCard("\u062f\u0631\u0648\u0633 \u0646\u0627\u0645\u0648\u0641\u0642", String(failedCourses).toLocaleString("fa-IR"), "\u062a\u0627 \u0635\u0641\u0631 \u0646\u0634\u062f\u0646 \u0627\u06cc\u0646 \u0645\u0642\u062f\u0627\u0631\u060c \u062e\u0631\u0648\u062c\u06cc \u0646\u0648\u06cc\u062f \u062a\u0627\u06cc\u06cc\u062f \u0646\u0645\u06cc\u200c\u0634\u0648\u062f.", failedCourses > 0 ? "warn" : "ok"),
             summaryCard("\u0627\u0642\u062f\u0627\u0645 \u0644\u0627\u0632\u0645", navidActionRequiredLabel(actionRequired), "\u0627\u0642\u062f\u0627\u0645\u06cc \u06a9\u0647 \u0628\u0631\u0627\u06cc \u067e\u0627\u06cc\u062f\u0627\u0631\u06cc \u0627\u062a\u0635\u0627\u0644 \u0628\u0627\u06cc\u062f \u0627\u0646\u062c\u0627\u0645 \u0634\u0648\u062f."),
             summaryCard("\u062d\u0633\u0627\u0628 \u0630\u062e\u06cc\u0631\u0647\u200c\u0634\u062f\u0647", config.hasCredentials ? (config.usernameMasked || "\u062b\u0628\u062a \u0634\u062f\u0647") : "\u062b\u0628\u062a \u0646\u0634\u062f\u0647", "\u0646\u0627\u0645 \u06a9\u0627\u0631\u0628\u0631\u06cc \u0631\u0645\u0632\u0646\u06af\u0627\u0631\u06cc\u200c\u0634\u062f\u0647 \u062f\u0631 \u0633\u0631\u0648\u0631"),
             summaryCard("\u0648\u0636\u0639\u06cc\u062a \u0646\u0634\u0633\u062a", session.status || "missing", "\u0622\u062e\u0631\u06cc\u0646 \u0648\u0636\u0639\u06cc\u062a \u06a9\u0648\u06a9\u06cc \u0646\u0634\u0633\u062a \u0646\u0648\u06cc\u062f")
@@ -1700,7 +1951,20 @@
             return;
         }
 
-        ownerState.users = Array.isArray(response.users) ? response.users : [];
+        var nextUsers = Array.isArray(response.users) ? response.users : [];
+        var preservedGrades = {};
+        nextUsers.forEach(function (user) {
+            var key = String(user.studentNumber || "");
+            if (!key) return;
+            if (ownerState.gradePayloadByStudent[key]) {
+                preservedGrades[key] = ownerState.gradePayloadByStudent[key];
+            }
+        });
+        ownerState.users = nextUsers;
+        ownerState.gradePayloadByStudent = preservedGrades;
+        if (!ownerState.users.some(function (item) { return item.studentNumber === ownerState.expandedStudentNumber; })) {
+            ownerState.expandedStudentNumber = "";
+        }
         ownerFeedbackMessage("", "");
         renderOwnerPanel();
     }
@@ -1734,7 +1998,223 @@
             renderOwnerPanel();
         } finally {
             ownerState.savingStudentNumber = "";
+            renderOwnerPanel();
+        }
+    }
+
+    function upsertOwnerUserRecord(nextUser) {
+        if (!nextUser || typeof nextUser !== "object") {
+            return;
+        }
+        var targetStudentNumber = String(nextUser.studentNumber || "");
+        if (!targetStudentNumber) {
+            return;
+        }
+        ownerState.users = ownerState.users.map(function (user) {
+            if (String(user.studentNumber || "") !== targetStudentNumber) {
+                return user;
+            }
+            return Object.assign({}, user, nextUser);
+        });
+    }
+
+    async function loadOwnerUserGrades(studentNumber, options) {
+        var opts = options && typeof options === "object" ? options : {};
+        var targetStudentNumber = String(studentNumber || "").trim();
+        if (!targetStudentNumber) {
+            return null;
+        }
+
+        ownerState.loadingGradesStudentNumber = targetStudentNumber;
+        if (!opts.silent) {
+            ownerFeedbackMessage("در حال دریافت کارنامه کاربر...", "");
+        }
+        renderUsers(ownerState.users);
+
+        try {
+            var response = await request("ownerUserGrades", { studentNumber: targetStudentNumber });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                if (!opts.silent) {
+                    ownerFeedbackMessage("", "");
+                }
+                return null;
+            }
+            if (!response || !response.success || !response.grades) {
+                ownerFeedbackMessage((response && response.error) || "خواندن کارنامه کاربر انجام نشد.", "error");
+                return null;
+            }
+
+            ownerState.gradePayloadByStudent[targetStudentNumber] = response.grades;
+            var hasGrades = Array.isArray(response.grades.grades) && response.grades.grades.some(function (grade) {
+                return String(grade && grade.value != null ? grade.value : "").trim() !== "";
+            });
+            ownerState.users = ownerState.users.map(function (user) {
+                if (String(user.studentNumber || "") !== targetStudentNumber) {
+                    return user;
+                }
+                return Object.assign({}, user, { hasGrades: hasGrades });
+            });
+            if (!opts.silent) {
+                ownerFeedbackMessage("", "");
+            }
+            renderOwnerPanel();
+            return response.grades;
+        } finally {
+            ownerState.loadingGradesStudentNumber = "";
             renderUsers(ownerState.users);
+        }
+    }
+
+    function ownerGradeInputValue(studentNumber, columnIndex) {
+        if (!ownerUserList) {
+            return "";
+        }
+        var selector = 'input[data-grade-input="true"][data-student-number="' + String(studentNumber || "") + '"][data-column-index="' + String(columnIndex) + '"]';
+        var input = ownerUserList.querySelector(selector);
+        return input ? input.value.trim() : "";
+    }
+
+    async function saveOwnerUserGrade(studentNumber, columnIndex, gradeValue) {
+        var targetStudentNumber = String(studentNumber || "").trim();
+        var targetColumnIndex = Math.floor(toNumber(columnIndex, -1));
+        if (!targetStudentNumber || targetColumnIndex < 0) {
+            return;
+        }
+
+        ownerState.savingGradeKey = ownerGradeSaveKey(targetStudentNumber, targetColumnIndex);
+        ownerFeedbackMessage("در حال ذخیره نمره...", "");
+        renderUsers(ownerState.users);
+
+        try {
+            var response = await request("ownerSetUserGrade", {
+                studentNumber: targetStudentNumber,
+                columnIndex: String(targetColumnIndex),
+                gradeValue: String(gradeValue == null ? "" : gradeValue).trim()
+            });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                ownerFeedbackMessage("", "");
+                return;
+            }
+            if (!response || !response.success || !response.grades) {
+                ownerFeedbackMessage((response && response.error) || "ذخیره نمره انجام نشد.", "error");
+                return;
+            }
+
+            ownerState.gradePayloadByStudent[targetStudentNumber] = response.grades;
+            upsertOwnerUserRecord(response.user || {});
+            ownerFeedbackMessage(response.message || "نمره ذخیره شد.", "success");
+            renderOwnerPanel();
+        } finally {
+            ownerState.savingGradeKey = "";
+            renderUsers(ownerState.users);
+        }
+    }
+
+    async function removeOwnerUserPhone(studentNumber) {
+        var targetStudentNumber = String(studentNumber || "").trim();
+        if (!targetStudentNumber) {
+            return;
+        }
+
+        var targetUser = ownerState.users.find(function (item) {
+            return String(item.studentNumber || "") === targetStudentNumber;
+        }) || null;
+        if (!targetUser || !targetUser.hasPhone || isOwnerUser(targetUser)) {
+            return;
+        }
+
+        var confirmText = "شماره ثبت‌شده کاربر «" + (targetUser.name || targetStudentNumber) + "» حذف شود؟";
+        if (!window.confirm(confirmText)) {
+            return;
+        }
+
+        ownerState.removingPhoneStudentNumber = targetStudentNumber;
+        ownerFeedbackMessage("در حال حذف شماره ثبت‌شده کاربر...", "");
+        renderUsers(ownerState.users);
+
+        try {
+            var response = await request("ownerRemoveUserPhone", { studentNumber: targetStudentNumber });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                ownerFeedbackMessage("", "");
+                return;
+            }
+            if (!response || !response.success || !response.user) {
+                ownerFeedbackMessage((response && response.error) || "حذف شماره کاربر انجام نشد.", "error");
+                return;
+            }
+            upsertOwnerUserRecord(response.user);
+            ownerFeedbackMessage(response.message || "شماره کاربر حذف شد.", "success");
+            renderOwnerPanel();
+        } finally {
+            ownerState.removingPhoneStudentNumber = "";
+            renderUsers(ownerState.users);
+        }
+    }
+
+    async function deleteOwnerStudentAccount(studentNumber) {
+        var targetStudentNumber = String(studentNumber || "").trim();
+        if (!targetStudentNumber) {
+            return;
+        }
+
+        var targetUser = ownerState.users.find(function (item) {
+            return String(item.studentNumber || "") === targetStudentNumber;
+        }) || null;
+        if (!targetUser || isOwnerUser(targetUser)) {
+            return;
+        }
+
+        var confirmText = "حساب دانشجو «" + (targetUser.name || targetStudentNumber) + "» به‌طور کامل حذف شود؟ این عمل قابل بازگشت نیست.";
+        if (!window.confirm(confirmText)) {
+            return;
+        }
+
+        ownerState.deletingStudentNumber = targetStudentNumber;
+        ownerFeedbackMessage("در حال حذف دانشجو...", "");
+        renderUsers(ownerState.users);
+
+        try {
+            var response = await request("ownerDeleteStudent", { studentNumber: targetStudentNumber });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                ownerFeedbackMessage("", "");
+                return;
+            }
+            if (!response || !response.success) {
+                ownerFeedbackMessage((response && response.error) || "حذف دانشجو انجام نشد.", "error");
+                return;
+            }
+
+            ownerState.users = ownerState.users.filter(function (item) {
+                return String(item.studentNumber || "") !== targetStudentNumber;
+            });
+            delete ownerState.gradePayloadByStudent[targetStudentNumber];
+            if (ownerState.expandedStudentNumber === targetStudentNumber) {
+                ownerState.expandedStudentNumber = "";
+            }
+            ownerFeedbackMessage(response.message || "حساب دانشجو حذف شد.", "success");
+            renderOwnerPanel();
+        } finally {
+            ownerState.deletingStudentNumber = "";
+            renderUsers(ownerState.users);
+        }
+    }
+
+    function toggleOwnerUserDetails(studentNumber) {
+        var targetStudentNumber = String(studentNumber || "").trim();
+        if (!targetStudentNumber) {
+            return;
+        }
+
+        if (ownerState.expandedStudentNumber === targetStudentNumber) {
+            ownerState.expandedStudentNumber = "";
+            renderUsers(ownerState.users);
+            return;
+        }
+
+        ownerState.expandedStudentNumber = targetStudentNumber;
+        renderUsers(ownerState.users);
+        if (!ownerGradesPayload(targetStudentNumber)) {
+            loadOwnerUserGrades(targetStudentNumber, { silent: true });
         }
     }
 
@@ -2124,6 +2604,14 @@
             if (ownerHubSection) {
                 ownerHubSection.hidden = true;
             }
+            ownerState.users = [];
+            ownerState.expandedStudentNumber = "";
+            ownerState.gradePayloadByStudent = {};
+            ownerState.savingStudentNumber = "";
+            ownerState.deletingStudentNumber = "";
+            ownerState.removingPhoneStudentNumber = "";
+            ownerState.loadingGradesStudentNumber = "";
+            ownerState.savingGradeKey = "";
             if (pollManagerHubSection) {
                 pollManagerHubSection.hidden = true;
             }
@@ -2186,6 +2674,13 @@
                 ownerHubSection.hidden = true;
             }
             ownerState.users = [];
+            ownerState.expandedStudentNumber = "";
+            ownerState.gradePayloadByStudent = {};
+            ownerState.savingStudentNumber = "";
+            ownerState.deletingStudentNumber = "";
+            ownerState.removingPhoneStudentNumber = "";
+            ownerState.loadingGradesStudentNumber = "";
+            ownerState.savingGradeKey = "";
             setCreateStudentBusy(false);
             ownerCreateStudentFeedbackMessage("", "");
             navidState.loaded = false;
@@ -2482,21 +2977,77 @@
 
     if (ownerUserList) {
         ownerUserList.addEventListener("click", function (event) {
-            var button = event.target.closest("button[data-student-number]");
+            var button = event.target.closest("button[data-owner-action]");
             if (!button) {
                 return;
             }
 
-            var studentNumber = button.dataset.studentNumber;
+            var action = String(button.dataset.ownerAction || "");
+            var studentNumber = String(button.dataset.studentNumber || "");
             var user = ownerState.users.find(function (item) {
                 return item.studentNumber === studentNumber;
             });
 
-            if (!user || user.role === "owner") {
+            if (!user) {
                 return;
             }
 
-            setRepresentative(studentNumber, user.role !== "representative");
+            if (action === "toggle-representative") {
+                if (user.role === "owner") {
+                    return;
+                }
+                setRepresentative(studentNumber, user.role !== "representative");
+                return;
+            }
+
+            if (action === "toggle-details") {
+                toggleOwnerUserDetails(studentNumber);
+                return;
+            }
+
+            if (action === "reload-grades") {
+                loadOwnerUserGrades(studentNumber);
+                return;
+            }
+
+            if (action === "save-grade") {
+                var columnIndex = Math.floor(toNumber(button.dataset.columnIndex, -1));
+                if (columnIndex < 0) {
+                    return;
+                }
+                var gradeValue = ownerGradeInputValue(studentNumber, columnIndex);
+                saveOwnerUserGrade(studentNumber, columnIndex, gradeValue);
+                return;
+            }
+
+            if (action === "remove-phone") {
+                removeOwnerUserPhone(studentNumber);
+                return;
+            }
+
+            if (action === "delete-student") {
+                deleteOwnerStudentAccount(studentNumber);
+            }
+        });
+
+        ownerUserList.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter") {
+                return;
+            }
+            var input = event.target && event.target.closest
+                ? event.target.closest('input[data-grade-input="true"]')
+                : null;
+            if (!input) {
+                return;
+            }
+
+            event.preventDefault();
+            var studentNumber = String(input.dataset.studentNumber || "");
+            var columnIndex = Math.floor(toNumber(input.dataset.columnIndex, -1));
+            if (!studentNumber || columnIndex < 0) {
+                return;
+            }
+            saveOwnerUserGrade(studentNumber, columnIndex, input.value.trim());
         });
     }
 

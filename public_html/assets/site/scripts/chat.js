@@ -312,6 +312,18 @@
     }
   }
 
+  function dayKeyFromTimestamp(ts) {
+    var n = toNumber(ts, 0);
+    if (!n) return "";
+    var date = new Date(n * 1000);
+    if (Number.isNaN(date.getTime())) return "";
+    return [
+      String(date.getFullYear()),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0")
+    ].join("-");
+  }
+
   function formatFileSize(bytes) {
     var size = Math.max(0, Math.floor(toNumber(bytes, 0)));
     if (!size) return "0 B";
@@ -446,6 +458,7 @@
 
   var conversationMeta = $("conversation-meta");
   var conversationSearch = $("conversation-search");
+  var conversationFilterTabs = $("conversation-filter-tabs");
   var conversationManageBtn = $("conversation-manage-btn");
   var conversationManageBar = $("conversation-manage-bar");
   var conversationSelectionCount = $("conversation-selection-count");
@@ -473,6 +486,7 @@
   var chatNavCompose = $("chat-nav-compose");
   var chatNavGroup = $("chat-nav-group");
   var chatNavPolls = $("chat-nav-polls");
+  var chatNavHome = $("chat-nav-home");
   var chatNavSettings = $("chat-nav-settings");
 
   var threadInfoTrigger = $("thread-info-trigger");
@@ -587,6 +601,8 @@
   var confirmAcceptBtn = $("confirm-accept");
 
   var toastEl = $("toast");
+  var themeColorMetas = Array.from(document.querySelectorAll('meta[name="theme-color"]'));
+  var appleStatusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
 
   if (!chatApp || !bootBox || !loginBox || !chatBox) {
     return;
@@ -611,6 +627,7 @@
     conversations: [],
     conversationsById: new Map(),
     conversationFilter: "",
+    conversationListCategory: "all",
     messages: new Map(),
     lastMessageId: 0,
     replyTargetId: null,
@@ -636,7 +653,9 @@
     reactionUsage: new Map(),
     pendingEditMessageId: null,
     confirmDialog: null,
+    connectionIssue: false,
     showArchivedConversations: false,
+    threadAutoStick: true,
     initialConversationId: normalizeSpace(new URLSearchParams(window.location.search).get("conversationId")),
     groupMemberSelection: new Set(),
     directoryUsers: [],
@@ -799,8 +818,10 @@
     if (!kind) {
       streamStateEl.hidden = true;
       streamStateEl.innerHTML = "";
+      delete streamStateEl.dataset.kind;
       return;
     }
+    streamStateEl.dataset.kind = normalizeSpace(kind) || "info";
     streamStateEl.hidden = false;
     streamStateEl.innerHTML =
       "<strong>" + escapeHtml(title || "") + "</strong>" +
@@ -825,10 +846,145 @@
       viewportHeight = window.visualViewport.height;
     }
     document.documentElement.style.setProperty("--chat-vh", Math.round(viewportHeight) + "px");
+    syncThemeColor();
   }
 
   function isMobileViewport() {
     return window.matchMedia("(max-width: 980px)").matches;
+  }
+
+  function isKeyboardViewportShift() {
+    if (!isMobileViewport() || !window.visualViewport) {
+      return false;
+    }
+    var vv = window.visualViewport;
+    var delta = Math.max(0, Math.round(window.innerHeight - vv.height));
+    return delta >= 140;
+  }
+
+  function normalizeConversationListCategory(value) {
+    var category = normalizeSpace(value || "").toLowerCase();
+    if (category === "unread" || category === "groups" || category === "direct") {
+      return category;
+    }
+    return "all";
+  }
+
+  function updateConversationFilterTabs() {
+    if (!conversationFilterTabs) return;
+    var activeCategory = normalizeConversationListCategory(state.conversationListCategory);
+    var buttons = Array.from(conversationFilterTabs.querySelectorAll("[data-list-filter]"));
+    buttons.forEach(function (button) {
+      var isActive = normalizeConversationListCategory(button.getAttribute("data-list-filter")) === activeCategory;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-selected", isActive ? "true" : "false");
+      if (isActive) {
+        button.setAttribute("tabindex", "0");
+      } else {
+        button.setAttribute("tabindex", "-1");
+      }
+    });
+  }
+
+  function setConversationListCategory(value) {
+    var next = normalizeConversationListCategory(value);
+    if (state.conversationListCategory === next) {
+      updateConversationFilterTabs();
+      return;
+    }
+    state.conversationListCategory = next;
+    updateConversationFilterTabs();
+    renderConversationList();
+  }
+
+  function conversationMatchesListCategory(conversation) {
+    if (!conversation) return false;
+    var category = normalizeConversationListCategory(state.conversationListCategory);
+    if (category === "unread") {
+      return Math.max(0, Math.floor(toNumber(conversation.unreadCount, 0))) > 0;
+    }
+    if (category === "groups") {
+      return conversation.type !== "direct";
+    }
+    if (category === "direct") {
+      return conversation.type === "direct";
+    }
+    return true;
+  }
+
+  function parseRgbChannels(value) {
+    var raw = normalizeSpace(value || "");
+    if (!raw) return null;
+
+    var hexMatch = raw.match(/^#([0-9a-f]{3,8})$/i);
+    if (hexMatch) {
+      var hex = hexMatch[1];
+      if (hex.length === 3 || hex.length === 4) {
+        return [
+          parseInt(hex.charAt(0) + hex.charAt(0), 16),
+          parseInt(hex.charAt(1) + hex.charAt(1), 16),
+          parseInt(hex.charAt(2) + hex.charAt(2), 16)
+        ];
+      }
+      if (hex.length >= 6) {
+        return [
+          parseInt(hex.slice(0, 2), 16),
+          parseInt(hex.slice(2, 4), 16),
+          parseInt(hex.slice(4, 6), 16)
+        ];
+      }
+    }
+
+    var rgbMatch = raw.match(/rgba?\(\s*([0-9.]+)[,\s]+([0-9.]+)[,\s]+([0-9.]+)/i);
+    if (!rgbMatch) return null;
+    return [
+      clamp(Math.round(toNumber(rgbMatch[1], 0)), 0, 255),
+      clamp(Math.round(toNumber(rgbMatch[2], 0)), 0, 255),
+      clamp(Math.round(toNumber(rgbMatch[3], 0)), 0, 255)
+    ];
+  }
+
+  function resolveThemeColorValue() {
+    if (!document.body) return "";
+    var styles = window.getComputedStyle(document.body);
+    var candidateColors = [
+      styles.getPropertyValue("--chat-statusbar-color"),
+      styles.getPropertyValue("--chat-top-chrome-color"),
+      styles.getPropertyValue("--chat-header-bg"),
+      styles.getPropertyValue("--chat-pane-bg-strong")
+    ];
+
+    for (var i = 0; i < candidateColors.length; i += 1) {
+      var candidate = normalizeSpace(candidateColors[i]);
+      if (!candidate) continue;
+      var channels = parseRgbChannels(candidate);
+      if (channels) {
+        return "rgb(" + channels[0] + ", " + channels[1] + ", " + channels[2] + ")";
+      }
+      if (candidate.charAt(0) === "#") {
+        return candidate;
+      }
+    }
+    return "";
+  }
+
+  function syncThemeColor() {
+    if ((!themeColorMetas || !themeColorMetas.length) && !appleStatusBarMeta) return;
+    var color = resolveThemeColorValue();
+    if (!color) return;
+
+    themeColorMetas.forEach(function (meta) {
+      if (!meta) return;
+      meta.setAttribute("content", color);
+    });
+
+    if (appleStatusBarMeta) {
+      var channels = parseRgbChannels(color);
+      if (channels) {
+        var luminance = (0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]) / 255;
+        appleStatusBarMeta.setAttribute("content", luminance < 0.55 ? "black-translucent" : "default");
+      }
+    }
   }
 
   function canOpenPollCenterForUser(user) {
@@ -891,6 +1047,7 @@
     chatApp.dataset.mobileView = next;
     updateFabVisibility();
     updateMobileNav();
+    syncThemeColor();
   }
 
   function openListPane() {
@@ -923,6 +1080,7 @@
       if (document.body) {
         document.body.classList.remove("chat-mobile-nav-visible");
       }
+      syncThemeColor();
       return;
     }
     var loggedIn = !!state.me.loggedIn && chatBox && !chatBox.hidden;
@@ -938,7 +1096,9 @@
       setMobileNavItemActive(chatNavCompose, false);
       setMobileNavItemActive(chatNavGroup, false);
       setMobileNavItemActive(chatNavPolls, false);
+      setMobileNavItemActive(chatNavHome, false);
       setMobileNavItemActive(chatNavSettings, false);
+      syncThemeColor();
       return;
     }
 
@@ -948,7 +1108,9 @@
     setMobileNavItemActive(chatNavCompose, hasDmModal);
     setMobileNavItemActive(chatNavGroup, hasGroupModal);
     setMobileNavItemActive(chatNavPolls, false);
+    setMobileNavItemActive(chatNavHome, false);
     setMobileNavItemActive(chatNavSettings, false);
+    syncThemeColor();
   }
 
   function selectedConversations() {
@@ -1511,6 +1673,7 @@
     state.messages.clear();
     state.lastMessageId = 0;
     state.replyTargetId = null;
+    state.threadAutoStick = true;
     clearReplyTarget();
     if (messagesEl) messagesEl.innerHTML = "";
     showStreamState("empty", "گفت‌وگو خالی است", "برای شروع گفت‌وگو، یک پیام بفرست.");
@@ -1748,8 +1911,11 @@
   }
   function filteredConversations() {
     var q = normalizeSpace(state.conversationFilter).toLowerCase();
-    if (!q) return state.conversations.slice();
     return state.conversations.filter(function (conversation) {
+      if (!conversationMatchesListCategory(conversation)) {
+        return false;
+      }
+      if (!q) return true;
       var hay = [
         conversation.title,
         conversation.subtitle,
@@ -1766,6 +1932,7 @@
     var list = filteredConversations();
     var buckets = splitConversationBuckets(list);
     var hasQuery = !!normalizeSpace(state.conversationFilter);
+    var hasCategory = normalizeConversationListCategory(state.conversationListCategory) !== "all";
     var activeList = buckets.active;
     var archivedList = buckets.archived;
     var hasAny = activeList.length > 0 || archivedList.length > 0;
@@ -1786,7 +1953,7 @@
     if (archivedList.length) {
       var archivedToggle = document.createElement("button");
       archivedToggle.type = "button";
-      archivedToggle.className = "conversation-archive-toggle" + (state.showArchivedConversations || hasQuery ? " is-open" : "");
+      archivedToggle.className = "conversation-archive-toggle" + (state.showArchivedConversations || hasQuery || hasCategory ? " is-open" : "");
       archivedToggle.innerHTML = [
         '<span>گفتگوهای بایگانی‌شده</span>',
         '<strong>' + archivedList.length.toLocaleString("fa-IR") + "</strong>"
@@ -1797,7 +1964,7 @@
       });
       conversationList.appendChild(archivedToggle);
 
-      if (state.showArchivedConversations || hasQuery) {
+      if (state.showArchivedConversations || hasQuery || hasCategory) {
         archivedList.forEach(function (conversation) {
           conversationList.appendChild(renderConversationItem(conversation));
         });
@@ -1816,6 +1983,7 @@
     });
     state.selectedConversationIds = validSelectedIds;
     updateSelectionUi();
+    updateConversationFilterTabs();
     updateConversationMeta();
   }
 
@@ -1937,6 +2105,11 @@
 
     if (recordingVoice) {
       setComposerStatus("در حال ضبط پیام صوتی...", "");
+      return;
+    }
+
+    if (state.connectionIssue) {
+      setComposerStatus("اتصال ناپایدار است؛ در حال تلاش برای اتصال مجدد...", "error");
       return;
     }
 
@@ -2180,6 +2353,9 @@
     row.className = messageClass(message);
     row.dataset.mid = String(message.id);
     row.dataset.sender = message.studentNumber || "";
+    row.dataset.ts = String(Math.max(0, Math.floor(toNumber(message.ts, 0))));
+    row.dataset.dayKey = dayKeyFromTimestamp(message.ts);
+    row.dataset.dayLabel = formatDate(message.ts);
 
     var showRole = !!(message.canModerateChat && message.studentNumber !== state.me.studentNumber);
     var ownMessage = message.studentNumber === state.me.studentNumber;
@@ -2243,15 +2419,27 @@
   function updateMessageGroups() {
     if (!messagesEl) return;
     var items = Array.from(messagesEl.querySelectorAll(".msg-item"));
+    var groupGapSeconds = 8 * 60;
     items.forEach(function (item, index) {
-      item.classList.remove("group-start", "group-middle", "group-end", "group-single", "grouped-with-prev");
+      item.classList.remove("group-start", "group-middle", "group-end", "group-single", "grouped-with-prev", "day-start");
 
       var currentSender = item.dataset.sender;
       var prev = index > 0 ? items[index - 1] : null;
       var next = index < items.length - 1 ? items[index + 1] : null;
+      var currentTs = toNumber(item.dataset.ts, 0);
+      var prevTs = prev ? toNumber(prev.dataset.ts, 0) : 0;
+      var nextTs = next ? toNumber(next.dataset.ts, 0) : 0;
+      var sameDayWithPrev = !!(prev && prev.dataset.dayKey === item.dataset.dayKey);
+      var sameDayWithNext = !!(next && next.dataset.dayKey === item.dataset.dayKey);
+      var closeToPrev = sameDayWithPrev && currentTs > 0 && prevTs > 0 && Math.abs(currentTs - prevTs) <= groupGapSeconds;
+      var closeToNext = sameDayWithNext && currentTs > 0 && nextTs > 0 && Math.abs(nextTs - currentTs) <= groupGapSeconds;
 
-      var samePrev = !!(prev && prev.dataset.sender === currentSender);
-      var sameNext = !!(next && next.dataset.sender === currentSender);
+      if (item.dataset.dayLabel && !sameDayWithPrev) {
+        item.classList.add("day-start");
+      }
+
+      var samePrev = !!(prev && prev.dataset.sender === currentSender && closeToPrev);
+      var sameNext = !!(next && next.dataset.sender === currentSender && closeToNext);
 
       if (samePrev) item.classList.add("grouped-with-prev");
       if (!samePrev && !sameNext) {
@@ -2280,9 +2468,42 @@
 
   function scrollToBottom(smooth) {
     if (!messagesEl) return;
+    state.threadAutoStick = true;
     messagesEl.scrollTo({
       top: messagesEl.scrollHeight,
       behavior: smooth ? "smooth" : "auto"
+    });
+  }
+
+  function isThreadNearBottom(threshold) {
+    if (!messagesEl) return true;
+    var offset = toNumber(threshold, 110);
+    return (messagesEl.scrollTop + messagesEl.clientHeight + offset) >= messagesEl.scrollHeight;
+  }
+
+  function bindMediaAutoStick(node) {
+    if (!node || !messagesEl) return;
+    var mediaNodes = Array.from(node.querySelectorAll(".msg-attachment__media img, .msg-attachment__media video"));
+    mediaNodes.forEach(function (media) {
+      if (!media) return;
+      var isReady = media.tagName === "IMG"
+        ? !!media.complete
+        : (toNumber(media.readyState, 0) >= 1);
+      if (isReady) return;
+
+      var handleReady = function () {
+        media.removeEventListener("load", handleReady);
+        media.removeEventListener("loadedmetadata", handleReady);
+        media.removeEventListener("error", handleReady);
+        if (!isThreadNearBottom(140)) return;
+        window.requestAnimationFrame(function () {
+          scrollToBottom(false);
+        });
+      };
+
+      media.addEventListener("load", handleReady, { once: true });
+      media.addEventListener("loadedmetadata", handleReady, { once: true });
+      media.addEventListener("error", handleReady, { once: true });
     });
   }
 
@@ -2317,14 +2538,21 @@
     var list = Array.isArray(messages) ? messages : [];
     if (!messagesEl) return;
 
-    var shouldStick = (messagesEl.scrollTop + messagesEl.clientHeight + 96) >= messagesEl.scrollHeight;
+    var shouldStick = !!state.threadAutoStick && isThreadNearBottom(56);
     var markNew = !!(options && options.markNew);
     var forceReplace = !!(options && options.replaceAll);
+    var existingNodes = new Map();
+    var fragment = document.createDocumentFragment();
 
     if (forceReplace) {
       state.messages.clear();
       messagesEl.innerHTML = "";
       state.lastMessageId = 0;
+    } else {
+      Array.from(messagesEl.querySelectorAll(".msg-item[data-mid]")).forEach(function (node) {
+        if (!node || !node.dataset || !node.dataset.mid) return;
+        existingNodes.set(node.dataset.mid, node);
+      });
     }
 
     list.forEach(function (message) {
@@ -2332,20 +2560,25 @@
       state.lastMessageId = Math.max(state.lastMessageId, message.id);
       state.messages.set(message.id, message);
 
-      var existing = messagesEl.querySelector('[data-mid="' + message.id + '"]');
+      var nextNode = renderMessage(message);
+      bindMediaAutoStick(nextNode);
+      var existing = existingNodes.get(String(message.id));
       if (existing) {
-        existing.replaceWith(renderMessage(message));
+        existing.replaceWith(nextNode);
       } else {
-        var node = renderMessage(message);
         if (markNew) {
-          node.classList.add("is-new");
+          nextNode.classList.add("is-new");
           window.setTimeout(function () {
-            node.classList.remove("is-new");
-          }, 280);
+            nextNode.classList.remove("is-new");
+          }, 220);
         }
-        messagesEl.appendChild(node);
+        fragment.appendChild(nextNode);
       }
     });
+
+    if (fragment.childNodes.length) {
+      messagesEl.appendChild(fragment);
+    }
 
     updateMessageGroups();
     syncMessageFocus();
@@ -2359,6 +2592,7 @@
     }
 
     if (shouldStick || (options && options.forceStick)) {
+      state.threadAutoStick = true;
       window.requestAnimationFrame(function () {
         scrollToBottom(!!(options && options.smooth));
       });
@@ -2370,7 +2604,9 @@
     state.messages.set(message.id, message);
     var existing = messagesEl.querySelector('[data-mid="' + message.id + '"]');
     if (existing) {
-      existing.replaceWith(renderMessage(message));
+      var nextNode = renderMessage(message);
+      bindMediaAutoStick(nextNode);
+      existing.replaceWith(nextNode);
     }
     updateMessageGroups();
     syncMessageFocus();
@@ -3584,6 +3820,9 @@
 
       ensureSuccessResponse(response, "همگام‌سازی گفتگو انجام نشد.");
 
+      var hadConnectionIssue = !!state.connectionIssue;
+      state.connectionIssue = false;
+
       if (response && asObject(response.transport) && response.transport.intervalMs != null) {
         state.pollIntervalMs = clamp(toNumber(response.transport.intervalMs, 1700), MIN_POLL_MS, MAX_POLL_MS);
       }
@@ -3637,9 +3876,10 @@
         updateInfoSheet();
         updateFabVisibility();
         updateMobileNav();
-        if (!silent) {
+        if (!silent || hadConnectionIssue) {
           setConnectionState("idle", "آفلاین");
         }
+        updateComposerState();
         return response;
       }
 
@@ -3659,17 +3899,25 @@
       });
 
       updateInfoSheet();
+      updateComposerState();
 
-      if (!silent) {
+      if (!silent || hadConnectionIssue) {
         setConnectionState("live", "متصل");
       }
 
       return response;
     } catch (error) {
+      state.connectionIssue = true;
+      updateComposerState();
       if (!silent) {
         setConnectionState("issue", "اختلال ارتباط");
         if (state.messages.size === 0) {
           showStreamState("error", "ارتباط با سرور قطع شد", "چند لحظه دیگر دوباره تلاش کن.");
+        }
+      } else {
+        setConnectionState("issue", "در انتظار اتصال");
+        if (state.messages.size === 0) {
+          showStreamState("reconnect", "در حال برقراری اتصال مجدد", "ارتباط ناپایدار است، لطفاً چند لحظه صبر کن.");
         }
       }
       throw error;
@@ -3687,6 +3935,7 @@
 
     if (changed) {
       state.lastMessageId = 0;
+      state.threadAutoStick = true;
       clearReplyTarget();
       closeContextMenu();
       clearComposerAttachments();
@@ -3749,6 +3998,8 @@
     state.activeConversationId = "";
     state.conversations = [];
     state.conversationsById.clear();
+    state.conversationFilter = "";
+    state.conversationListCategory = "all";
     state.messages.clear();
     state.lastMessageId = 0;
     state.replyTargetId = null;
@@ -3760,7 +4011,9 @@
     state.pendingReactionMessageId = null;
     state.pendingEditMessageId = null;
     state.confirmDialog = null;
+    state.connectionIssue = false;
     state.showArchivedConversations = false;
+    state.threadAutoStick = true;
     state.recentReactions = [];
     state.reactionUsage = new Map();
     state.pendingAttachments = [];
@@ -3777,6 +4030,7 @@
     setThreadVisible(false);
     clearThreadState();
     renderConversationList();
+    updateConversationFilterTabs();
     updateThreadHead();
     updateComposerState();
     updatePinnedUi();
@@ -3809,6 +4063,7 @@
     updatePollActionVisibility();
     updateFabVisibility();
     updateMobileNav();
+    syncThemeColor();
   }
 
   async function applyAuthenticatedUser(rawUser) {
@@ -3826,6 +4081,8 @@
       state.activeConversationId = state.initialConversationId || "";
       state.conversations = [];
       state.conversationsById.clear();
+      state.conversationFilter = "";
+      state.conversationListCategory = "all";
       state.messages.clear();
       state.lastMessageId = 0;
       state.directoryUsers = [];
@@ -3834,6 +4091,7 @@
       state.pendingReactionMessageId = null;
       state.pendingEditMessageId = null;
       state.confirmDialog = null;
+      state.connectionIssue = false;
       state.showArchivedConversations = false;
       state.pendingAttachments = [];
       setUploadSheetOpen(false);
@@ -3857,6 +4115,7 @@
 
     syncCurrentUserAvatar();
     updatePollActionVisibility();
+    updateConversationFilterTabs();
 
     try {
       await syncConversation({
@@ -4333,6 +4592,7 @@
     var opts = asObject(options) || {};
     var conversation = activeConversation();
     if (!conversation || !chatTextEl || !sendBtn || sendBtn.disabled) return;
+    var response = null;
 
     if (composerHasUploadingItems()) {
       showToast("بارگذاری فایل‌ها هنوز کامل نشده است.");
@@ -4368,11 +4628,12 @@
     setComposerStatus("در حال ارسال...", "");
 
     try {
-      var response = await apiPost("send", payload);
+      response = await apiPost("send", payload);
       if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
         throw new Error((response && response.error) || "نشست شما منقضی شده است.");
       }
       ensureSuccessResponse(response, "ارسال پیام انجام نشد.");
+      state.connectionIssue = false;
 
       var message = normalizeMessage(response.message);
       if (message) {
@@ -4401,6 +4662,10 @@
       setComposerStatus("", "");
       setConnectionState("live", "متصل");
     } catch (error) {
+      if (response && (response.networkError || toNumber(response.httpStatus, 0) <= 0)) {
+        state.connectionIssue = true;
+        setConnectionState("issue", "در انتظار اتصال");
+      }
       setComposerStatus(error && error.message ? error.message : "ارسال پیام انجام نشد.", "error");
       showToast(error && error.message ? error.message : "ارسال پیام انجام نشد.");
     } finally {
@@ -5151,6 +5416,13 @@
         renderConversationList();
       });
     }
+    if (conversationFilterTabs) {
+      conversationFilterTabs.addEventListener("click", function (event) {
+        var button = event.target && event.target.closest ? event.target.closest("[data-list-filter]") : null;
+        if (!button) return;
+        setConversationListCategory(button.getAttribute("data-list-filter"));
+      });
+    }
     if (conversationManageBtn) {
       conversationManageBtn.addEventListener("click", function () {
         if (state.listSelectionMode) {
@@ -5337,17 +5609,11 @@
     if (messagesEl) messagesEl.addEventListener("scroll", function () {
       if (state.contextOpen) closeContextMenu();
       if (state.listContextOpen) closeListContextMenu();
+      state.threadAutoStick = isThreadNearBottom(56);
     });
 
     if (chatTextEl) {
       chatTextEl.addEventListener("input", autosizeComposer);
-      chatTextEl.addEventListener("focus", function () {
-        if (isMobileViewport()) {
-          window.setTimeout(function () {
-            scrollToBottom(false);
-          }, 120);
-        }
-      });
       chatTextEl.addEventListener("keydown", function (event) {
         if (event.key === "Enter" && !event.shiftKey) {
           event.preventDefault();
@@ -5524,6 +5790,10 @@
 
     window.addEventListener("resize", function () {
       applyViewportHeight();
+      if (isKeyboardViewportShift()) {
+        updateMobileNav();
+        return;
+      }
       if (!isMobileViewport()) {
         setMobileView("list");
       } else if (state.modalOpen) {
@@ -5567,6 +5837,7 @@
 
   function boot() {
     applyViewportHeight();
+    syncThemeColor();
     autosizeComposer();
     renderComposerUploads();
     updateVoiceUi();
@@ -5575,6 +5846,7 @@
     setMobileView("list");
     setConnectionState("idle", "آفلاین");
     showStreamState("loading", "در حال آماده‌سازی...", "در حال بررسی وضعیت نشست.");
+    updateConversationFilterTabs();
     updateConversationMeta();
     renderConversationList();
     updateThreadHead();
@@ -5585,6 +5857,23 @@
     updatePollActionVisibility();
     updateFabVisibility();
     bindEvents();
+    if (window.matchMedia) {
+      var darkMedia = window.matchMedia("(prefers-color-scheme: dark)");
+      if (typeof darkMedia.addEventListener === "function") {
+        darkMedia.addEventListener("change", syncThemeColor);
+      } else if (typeof darkMedia.addListener === "function") {
+        darkMedia.addListener(syncThemeColor);
+      }
+    }
+    if (typeof MutationObserver === "function") {
+      var themeObserver = new MutationObserver(function () {
+        syncThemeColor();
+      });
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme", "class"]
+      });
+    }
 
     var auth = safeAuthApi();
     if (!auth || typeof auth.onChange !== "function") {
