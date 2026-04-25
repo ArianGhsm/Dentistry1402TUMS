@@ -296,7 +296,28 @@
     var n = toNumber(ts, 0);
     if (!n) return "";
     try {
-      return new Date(n * 1000).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" });
+      var date = new Date(n * 1000);
+      var now = new Date();
+      var sameDay = date.getFullYear() === now.getFullYear()
+        && date.getMonth() === now.getMonth()
+        && date.getDate() === now.getDate();
+      if (sameDay) {
+        return date.toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" });
+      }
+
+      var yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      var isYesterday = date.getFullYear() === yesterday.getFullYear()
+        && date.getMonth() === yesterday.getMonth()
+        && date.getDate() === yesterday.getDate();
+      if (isYesterday) {
+        return "دیروز";
+      }
+
+      if (date.getFullYear() === now.getFullYear()) {
+        return date.toLocaleDateString("fa-IR", { month: "short", day: "numeric" });
+      }
+
+      return date.toLocaleDateString("fa-IR", { year: "numeric", month: "short", day: "numeric" });
     } catch (error) {
       return "";
     }
@@ -1745,7 +1766,7 @@
       if (conversation.type === "direct") return "شروع گفت‌وگو";
       if (conversation.type === "class-group") return "گفت‌وگوی عمومی کلاس";
       var aboutText = normalizeSpace(conversation.about);
-      if (aboutText) return snippet(aboutText, 58);
+      if (aboutText) return snippet(aboutText, 72);
       var memberCount = Math.max(0, Math.floor(toNumber(conversation.memberCount, 0)));
       if (memberCount > 0) {
         return memberCount.toLocaleString("fa-IR") + " عضو • هنوز پیامی ثبت نشده";
@@ -1759,7 +1780,21 @@
     if (own) {
       deliveryPrefix = last.delivery === "seen" ? "✓✓ " : "✓ ";
     }
-    return deliveryPrefix + prefix + snippet(messagePreviewText(last), 58);
+    return deliveryPrefix + prefix + snippet(messagePreviewText(last), 72);
+  }
+
+  function conversationListLabel(conversation) {
+    if (!conversation) return "";
+    if (conversation.lastMessage) return "";
+    if (conversation.type === "class-group") return "کلاس";
+    if (conversation.type === "direct") {
+      return normalizeSpace(conversation.subtitle) || "خصوصی";
+    }
+    var memberCount = Math.max(0, Math.floor(toNumber(conversation.memberCount, 0)));
+    if (memberCount > 0) {
+      return memberCount.toLocaleString("fa-IR") + " عضو";
+    }
+    return "گروه";
   }
 
   function renderConversationItem(conversation) {
@@ -1786,7 +1821,7 @@
       node.classList.add("is-selected");
     }
 
-    var badge = conversationBadgeText(conversation);
+    var label = conversationListLabel(conversation);
     var lastTs = conversation.lastMessage ? conversation.lastMessage.ts : conversation.updatedAt;
     var timeLabel = lastTs ? formatTime(lastTs) : "";
     var unread = Math.max(0, Math.floor(toNumber(conversation.unreadCount, 0)));
@@ -1809,12 +1844,12 @@
       "  </span>",
       '  <span class="conversation-item__copy">',
       '    <span class="conversation-item__head">',
-      '      <span class="conversation-item__kind" aria-hidden="true">' + conversationTypeIconMarkup(conversation) + "</span>",
       '      <strong class="conversation-item__title" data-digit-locale="latin">' + escapeHtml(conversation.title) + "</strong>",
-      (badge ? '      <span class="conversation-badge">' + escapeHtml(badge) + "</span>" : ""),
       "    </span>",
-      '    <span class="conversation-item__subtitle" data-digit-locale="latin">' + escapeHtml(conversation.subtitle || "") + "</span>",
-      '    <span class="conversation-item__preview" data-digit-locale="latin">' + escapeHtml(conversationPreview(conversation)) + "</span>",
+      '    <span class="conversation-item__preview-row">',
+      (label ? '      <span class="conversation-item__subtitle" data-digit-locale="latin">' + escapeHtml(label) + "</span>" : ""),
+      '      <span class="conversation-item__preview" data-digit-locale="latin">' + escapeHtml(conversationPreview(conversation)) + "</span>",
+      "    </span>",
       "  </span>",
       '  <span class="conversation-item__meta">',
       '    <span class="conversation-item__time">' + escapeHtml(timeLabel) + "</span>",
