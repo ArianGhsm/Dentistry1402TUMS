@@ -459,6 +459,53 @@ function Resolve-PythonCommand() {
     return ""
 }
 
+function Run-VersionStamp() {
+    $started = Get-IsoNow
+
+    if ($DryRun) {
+        Write-Host "[DryRun] Skip PWA version stamp"
+        return [PSCustomObject]@{
+            Status     = "skipped-dry-run"
+            StartedAt  = $started
+            FinishedAt = Get-IsoNow
+            Version    = ""
+            Command    = ""
+        }
+    }
+
+    $scriptPath = Join-Path $projectRoot "scripts\stamp_pwa_version.py"
+    if (-not (Test-Path $scriptPath)) {
+        throw "PWA version stamp script not found: $scriptPath"
+    }
+
+    $python = Resolve-PythonCommand
+    if ([string]::IsNullOrWhiteSpace($python)) {
+        throw "Python is required for PWA version stamping but no python/python3 command was found."
+    }
+
+    Write-Host "Refreshing PWA version stamp"
+    $output = & $python $scriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "PWA version stamp failed (scripts/stamp_pwa_version.py)."
+    }
+
+    $version = ""
+    foreach ($line in @($output)) {
+        if ([string]$line -match "^STAMP_VERSION=(.+)$") {
+            $version = $Matches[1].Trim()
+            break
+        }
+    }
+
+    return [PSCustomObject]@{
+        Status     = "completed"
+        StartedAt  = $started
+        FinishedAt = Get-IsoNow
+        Version    = $version
+        Command    = "$python $scriptPath"
+    }
+}
+
 function Run-Validation() {
     $started = Get-IsoNow
     if ($SkipValidation) {
@@ -950,6 +997,13 @@ $validationInfo = [PSCustomObject]@{
     FinishedAt = ""
     Command    = ""
 }
+$versionStampInfo = [PSCustomObject]@{
+    Status     = "not-run"
+    StartedAt  = ""
+    FinishedAt = ""
+    Version    = ""
+    Command    = ""
+}
 $pullInfo = [PSCustomObject]@{
     Status      = "not-run"
     StartedAt   = ""
@@ -992,8 +1046,9 @@ $githubSyncInfo = [PSCustomObject]@{
 $failureMessage = ""
 
 try {
-    $validationInfo = Run-Validation
     $pullInfo = Run-OptionalPullBeforeDeploy
+    $versionStampInfo = Run-VersionStamp
+    $validationInfo = Run-Validation
 
     $deployInfo.StartedAt = Get-IsoNow
     $plan = Build-DeployPlan
@@ -1089,6 +1144,20 @@ try {
     if ($pullInfo.AfterCommit -ne $null) {
         Write-Host " - HEAD after optional pull: $($pullInfo.AfterCommit.Hash)"
         Write-Host " - HEAD commit time after optional pull: $($pullInfo.AfterCommit.CommitTime)"
+    }
+
+    Write-Host " - Version stamp status: $($versionStampInfo.Status)"
+    if (-not [string]::IsNullOrWhiteSpace($versionStampInfo.StartedAt)) {
+        Write-Host " - Version stamp started at: $($versionStampInfo.StartedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($versionStampInfo.FinishedAt)) {
+        Write-Host " - Version stamp finished at: $($versionStampInfo.FinishedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($versionStampInfo.Version)) {
+        Write-Host " - Active PWA version: $($versionStampInfo.Version)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($versionStampInfo.Command)) {
+        Write-Host " - Version stamp command: $($versionStampInfo.Command)"
     }
 
     Write-Host " - Deploy status: $($deployInfo.Status)"

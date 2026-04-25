@@ -1787,7 +1787,7 @@
       if (conversation.type === "direct") return "شروع گفت‌وگو";
       if (conversation.type === "class-group") return "گفت‌وگوی عمومی کلاس";
       var aboutText = normalizeSpace(conversation.about);
-      if (aboutText) return snippet(aboutText, 72);
+      if (aboutText) return snippet(aboutText, 96);
       var memberCount = Math.max(0, Math.floor(toNumber(conversation.memberCount, 0)));
       if (memberCount > 0) {
         return memberCount.toLocaleString("fa-IR") + " عضو • هنوز پیامی ثبت نشده";
@@ -1801,7 +1801,7 @@
     if (own) {
       deliveryPrefix = last.delivery === "seen" ? "✓✓ " : "✓ ";
     }
-    return deliveryPrefix + prefix + snippet(messagePreviewText(last), 72);
+    return deliveryPrefix + prefix + snippet(messagePreviewText(last), 96);
   }
 
   function conversationListLabel(conversation) {

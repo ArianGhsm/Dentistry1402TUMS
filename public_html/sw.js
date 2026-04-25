@@ -1,8 +1,9 @@
-const STATIC_CACHE = "dent1402-static-20260423-v30";
+const APP_VERSION = "20260425-191551";
+const STATIC_CACHE = "dent1402-static-" + APP_VERSION;
 
 const STATIC_ASSETS = [
   "/offline.html",
-  "/manifest.webmanifest?v=20260422-brand1",
+  "/manifest.webmanifest?v=" + APP_VERSION,
   "/assets/site/styles/core.css?v=20260422-cache2",
   "/assets/site/styles/app.css?v=20260422-cache1",
   "/assets/site/styles/app.css?v=20260422-navidhome1",
@@ -19,6 +20,7 @@ const STATIC_ASSETS = [
   "/assets/site/styles/chat.css?v=20260423-mobilescale2",
   "/assets/site/styles/chat.css?v=20260423-mobilescale3",
   "/assets/site/styles/chat.css?v=20260423-mobilescale4",
+  "/assets/site/styles/chat.css?v=20260425-chatlayout1",
   "/assets/site/styles/navid.css?v=20260422-navid1",
   "/assets/site/styles/navid.css?v=20260422-navid2",
   "/assets/site/styles/polls.css?v=20260422-polls2",
@@ -32,8 +34,7 @@ const STATIC_ASSETS = [
   "/assets/site/styles/account.css?v=20260422-cache1",
   "/assets/site/styles/account.css?v=20260423-ownercreate1",
   "/assets/site/scripts/theme.js?v=20260422-utf8fix1",
-  "/assets/site/scripts/pwa.js?v=20260422-cache3",
-  "/assets/site/scripts/pwa.js?v=20260422-cache4",
+  "/assets/site/scripts/pwa.js?v=" + APP_VERSION,
   "/assets/site/scripts/shell.js?v=20260422-utf8fix1",
   "/assets/site/scripts/shell.js?v=20260422-shellpoll1",
   "/assets/site/scripts/app-home.js?v=20260422-navidhome1",
@@ -55,6 +56,7 @@ const STATIC_ASSETS = [
   "/assets/site/scripts/chat.js?v=20260423-messengerux8",
   "/assets/site/scripts/chat.js?v=20260423-messengerux10",
   "/assets/site/scripts/chat.js?v=20260423-messengerux11",
+  "/assets/site/scripts/chat.js?v=20260425-chatlayout1",
   "/assets/site/scripts/polls.js?v=20260422-polls2",
   "/assets/site/scripts/polls.js?v=20260422-polls3",
   "/assets/site/scripts/poll-view.js?v=20260422-polls3",
@@ -62,12 +64,12 @@ const STATIC_ASSETS = [
   "/assets/site/scripts/grades.js?v=20260422-gradesfix3",
   "/assets/site/scripts/grades.js?v=20260422-gradesfix4",
   "/assets/images/logo.png?v=20260422-brand1",
-  "/assets/images/favicon.png?v=20260422-brand1",
-  "/assets/icons/icon-192.png?v=20260422-brand1",
-  "/assets/icons/icon-512.png?v=20260422-brand1",
-  "/assets/icons/icon-maskable-192.png?v=20260422-brand1",
-  "/assets/icons/icon-maskable-512.png?v=20260422-brand1",
-  "/assets/icons/apple-touch-icon.png?v=20260422-brand1",
+  "/assets/images/favicon.png?v=" + APP_VERSION,
+  "/assets/icons/icon-192.png?v=" + APP_VERSION,
+  "/assets/icons/icon-512.png?v=" + APP_VERSION,
+  "/assets/icons/icon-maskable-192.png?v=" + APP_VERSION,
+  "/assets/icons/icon-maskable-512.png?v=" + APP_VERSION,
+  "/assets/icons/apple-touch-icon.png?v=" + APP_VERSION,
   "/fonts/AbarHigh-Regular.ttf",
   "/fonts/AbarHigh-SemiBold.ttf",
   "/fonts/AbarHigh-Bold.ttf",
@@ -76,6 +78,7 @@ const STATIC_ASSETS = [
 ];
 
 const DYNAMIC_BYPASS = [
+  "/app-version.json",
   "/chat/chat_api.php",
   "/grades/grades_api.php",
   "/api/navid_api.php",
@@ -105,6 +108,13 @@ self.addEventListener("activate", (event) => {
     }));
     await self.clients.claim();
   })());
+});
+
+self.addEventListener("message", (event) => {
+  if (!event.data || event.data.type !== "SKIP_WAITING") {
+    return;
+  }
+  self.skipWaiting();
 });
 
 function shouldBypass(url, request) {
