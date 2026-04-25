@@ -19,6 +19,13 @@ Persistent instructions for coding agents in this repository.
 - Polls.
 - Real conversation model and real user discovery.
 
+## Persistent Data And Sync (Non-Negotiable)
+- User memory, grades, messages, and any other memory/stateful data must remain synchronized across the live site, local project folders, and deploy targets.
+- Deployments must not wipe, reset, fork, or desynchronize persistent data.
+- Do not keep the only copy of memory/stateful data in deploy-replaced files or temporary runtime storage.
+- Any change that affects storage, sync, backup, restore, migration, or deploy flow must preserve existing data continuity and message/history integrity.
+- Prevent false persistence assumptions: do not report success if data is only stored locally, only cached temporarily, or not yet synchronized to the canonical shared storage.
+
 ## Execution Workflow
 1. Inspect current repo state first (`git status`, relevant files, current guidance docs).
 2. Reproduce reported issues on desktop and phone-sized view.

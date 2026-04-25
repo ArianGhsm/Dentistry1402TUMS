@@ -867,6 +867,9 @@
       viewportHeight = window.visualViewport.height;
     }
     document.documentElement.style.setProperty("--chat-vh", Math.round(viewportHeight) + "px");
+    if (document.body) {
+      document.body.classList.toggle("chat-keyboard-open", isKeyboardViewportShift());
+    }
     syncThemeColor();
   }
 
@@ -881,6 +884,24 @@
     var vv = window.visualViewport;
     var delta = Math.max(0, Math.round(window.innerHeight - vv.height));
     return delta >= 140;
+  }
+
+  function syncFocusedComposerIntoView() {
+    if (!chatTextEl || document.activeElement !== chatTextEl || !isMobileViewport()) {
+      return;
+    }
+    window.requestAnimationFrame(function () {
+      autosizeComposer();
+      try {
+        chatTextEl.scrollIntoView({ block: "nearest", inline: "nearest" });
+      } catch (error) {}
+      if (messagesEl && state.threadAutoStick) {
+        messagesEl.scrollTo({
+          top: messagesEl.scrollHeight,
+          behavior: "auto"
+        });
+      }
+    });
   }
 
   function normalizeConversationListCategory(value) {
@@ -5655,6 +5676,15 @@
           sendCurrentMessage();
         }
       });
+      chatTextEl.addEventListener("focus", function () {
+        applyViewportHeight();
+        syncFocusedComposerIntoView();
+        window.setTimeout(syncFocusedComposerIntoView, 140);
+        window.setTimeout(syncFocusedComposerIntoView, 320);
+      });
+      chatTextEl.addEventListener("blur", function () {
+        window.setTimeout(applyViewportHeight, 160);
+      });
     }
 
     if (sendBtn) sendBtn.addEventListener("click", sendCurrentMessage);
@@ -5827,6 +5857,7 @@
       applyViewportHeight();
       if (isKeyboardViewportShift()) {
         updateMobileNav();
+        syncFocusedComposerIntoView();
         return;
       }
       if (!isMobileViewport()) {
@@ -5854,8 +5885,14 @@
     });
 
     if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", applyViewportHeight);
-      window.visualViewport.addEventListener("scroll", applyViewportHeight);
+      window.visualViewport.addEventListener("resize", function () {
+        applyViewportHeight();
+        syncFocusedComposerIntoView();
+      });
+      window.visualViewport.addEventListener("scroll", function () {
+        applyViewportHeight();
+        syncFocusedComposerIntoView();
+      });
     }
 
     window.addEventListener("focus", function () {

@@ -4518,12 +4518,30 @@ body.chat-page [contenteditable="true"] {
 }
 
 @media (max-width: 980px) {
+    body.chat-page,
+    .chat-app,
+    .chat-app__main,
+    .chat-stage {
+        height: var(--chat-vh, 100dvh);
+        min-height: var(--chat-vh, 100dvh);
+    }
+
+    .chat-app[data-mobile-view="list"] .conversation-pane,
+    .chat-app[data-mobile-view="thread"] .thread-pane {
+        transform: none;
+    }
+
     body.chat-page input,
     body.chat-page textarea,
     body.chat-page select,
     .conversation-search-wrap input,
     .composer-entry textarea {
         font-size: 16px !important;
+    }
+
+    body.chat-page.chat-keyboard-open .conversation-pane,
+    body.chat-page.chat-keyboard-open .thread-pane {
+        transition: none;
     }
 
     .conversation-item__title {
