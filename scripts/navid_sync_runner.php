@@ -8,7 +8,7 @@ if (PHP_SAPI === 'cli' && isset($argv[1]) && $argv[1] === '--due-only') {
     $force = false;
 }
 
-$result = navid_sync($force);
+$result = navid_sync_browser($force);
 $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
 if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
     $flags |= JSON_INVALID_UTF8_SUBSTITUTE;

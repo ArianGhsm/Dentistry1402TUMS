@@ -1,0 +1,33 @@
+{
+    "schemaVersion": 1,
+    "config": {
+        "enabled": true,
+        "loginUrl": "https://navid.tums.ac.ir/account/loginsipadservice",
+        "syncIntervalMinutes": 5,
+        "captchaStrategy": "manual_challenge",
+        "credentialUpdatedAt": "",
+        "credentials": null
+    },
+    "session": {
+        "cookies": null,
+        "updatedAt": "2026-04-26T18:19:22+03:30",
+        "lastValidatedAt": "",
+        "status": "missing"
+    },
+    "challenge": null,
+    "state": {
+        "lastSyncAt": "2026-04-26T18:19:22+03:30",
+        "lastSuccessAt": "",
+        "lastError": "اطلاعات ورود نوید ذخیره نشده است.",
+        "consecutiveFailures": 495,
+        "requiresReconnect": false,
+        "lastSyncDurationMs": 0,
+        "lastFailedCourses": 0,
+        "lastResult": "credentials-missing"
+    },
+    "snapshot": {
+        "courses": [],
+        "assignments": []
+    },
+    "updates": []
+}

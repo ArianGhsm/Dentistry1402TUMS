@@ -282,6 +282,53 @@ function dent_iso_now(): string
     return date('c');
 }
 
+function dent_utf8_strlen(string $value): int
+{
+    if ($value === '') {
+        return 0;
+    }
+
+    if (function_exists('mb_strlen')) {
+        return (int) mb_strlen($value, 'UTF-8');
+    }
+
+    if (preg_match_all('/./us', $value, $matches) === false) {
+        return strlen($value);
+    }
+
+    return count($matches[0]);
+}
+
+function dent_utf8_substr(string $value, int $start, int $length): string
+{
+    if ($value === '' || $length <= 0) {
+        return '';
+    }
+
+    if (function_exists('mb_substr')) {
+        return (string) mb_substr($value, $start, $length, 'UTF-8');
+    }
+
+    if (preg_match_all('/./us', $value, $matches) === false) {
+        return substr($value, $start, $length);
+    }
+
+    return implode('', array_slice($matches[0], $start, $length));
+}
+
+function dent_utf8_strtolower(string $value): string
+{
+    if ($value === '') {
+        return '';
+    }
+
+    if (function_exists('mb_strtolower')) {
+        return (string) mb_strtolower($value, 'UTF-8');
+    }
+
+    return strtolower($value);
+}
+
 function dent_clean_text(?string $value, int $maxLength): string
 {
     $value = trim(dent_force_utf8((string) $value));
@@ -292,8 +339,8 @@ function dent_clean_text(?string $value, int $maxLength): string
         return '';
     }
 
-    if (mb_strlen($value, 'UTF-8') > $maxLength) {
-        $value = mb_substr($value, 0, $maxLength, 'UTF-8');
+    if (dent_utf8_strlen($value) > $maxLength) {
+        $value = dent_utf8_substr($value, 0, $maxLength);
     }
 
     return trim($value);

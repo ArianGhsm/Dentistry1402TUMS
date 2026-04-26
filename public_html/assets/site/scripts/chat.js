@@ -469,6 +469,10 @@
   var threadPane = $("thread-pane");
   var threadPlaceholder = $("thread-placeholder");
   var threadShell = $("thread-shell");
+  var placeholderActiveCount = $("placeholder-active-count");
+  var placeholderUnreadCount = $("placeholder-unread-count");
+  var placeholderClassLabel = $("placeholder-class-label");
+  var placeholderActionButtons = Array.from(document.querySelectorAll("[data-placeholder-action]"));
 
   var connectionBadge = $("connection-badge");
   var accountBtn = $("account-btn");
@@ -1741,6 +1745,18 @@
     return { active: active, archived: archived };
   }
 
+  function primaryMandatoryConversation() {
+    var preferred = state.conversations.find(function (conversation) {
+      return !!(conversation && conversation.isMandatory && !(conversation.viewerState && conversation.viewerState.archived));
+    });
+    if (preferred) return preferred;
+    preferred = state.conversations.find(function (conversation) {
+      return !!(conversation && conversation.isMandatory);
+    });
+    if (preferred) return preferred;
+    return state.conversations[0] || null;
+  }
+
   function updateConversationMeta() {
     if (!conversationMeta) return;
     var buckets = splitConversationBuckets(state.conversations);
@@ -1763,6 +1779,32 @@
       return;
     }
     conversationMeta.textContent = activeTotal.toLocaleString("fa-IR") + " گفت‌وگوی فعال";
+  }
+
+  function updateThreadPlaceholderUi() {
+    var buckets = splitConversationBuckets(state.conversations);
+    var activeTotal = buckets.active.length;
+    var unread = buckets.active.reduce(function (count, item) {
+      return count + Math.max(0, Math.floor(toNumber(item && item.unreadCount, 0)));
+    }, 0);
+    var primaryConversation = primaryMandatoryConversation();
+
+    if (placeholderActiveCount) {
+      placeholderActiveCount.textContent = activeTotal.toLocaleString("fa-IR");
+    }
+    if (placeholderUnreadCount) {
+      placeholderUnreadCount.textContent = unread.toLocaleString("fa-IR");
+    }
+    if (placeholderClassLabel) {
+      placeholderClassLabel.textContent = primaryConversation
+        ? snippet(toText(primaryConversation.title), 32)
+        : "کلاس اجباری";
+    }
+    placeholderActionButtons.forEach(function (button) {
+      if (button.getAttribute("data-placeholder-action") === "mandatory") {
+        button.disabled = !primaryConversation;
+      }
+    });
   }
 
   function conversationBadgeText(conversation) {
@@ -2041,6 +2083,7 @@
     updateSelectionUi();
     updateConversationFilterTabs();
     updateConversationMeta();
+    updateThreadPlaceholderUi();
   }
 
   function updateThreadHead() {
@@ -5527,6 +5570,27 @@
     }
     if (newDmBtn) newDmBtn.addEventListener("click", openDmCreationFlow);
     if (newGroupBtn) newGroupBtn.addEventListener("click", openGroupCreationFlow);
+    placeholderActionButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        var action = normalizeSpace(button.getAttribute("data-placeholder-action"));
+        if (action === "mandatory") {
+          var conversation = primaryMandatoryConversation();
+          if (!conversation) {
+            showToast("هنوز گفت‌وگوی فعالی برای شروع وجود ندارد.");
+            return;
+          }
+          openConversation(conversation.id, { forceFull: true, source: "placeholder" });
+          return;
+        }
+        if (action === "dm") {
+          openDmCreationFlow();
+          return;
+        }
+        if (action === "group") {
+          openGroupCreationFlow();
+        }
+      });
+    });
 
     if (newPollLink) {
       newPollLink.addEventListener("click", function (event) {

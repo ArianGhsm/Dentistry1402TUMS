@@ -1,0 +1,7 @@
+if (!response || !response.success) {
+                navidReconnectMessage((response && response.error) || "اتصال مجدد نوید انجام نشد.", "error");
+                return;
+            }
+
+            navidReconnectMessage(response.message || "اتصال مجدد نوید انجام شد.", "success");
+            if (response &&

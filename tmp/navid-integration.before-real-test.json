@@ -1,0 +1,40 @@
+{
+    "schemaVersion": 1,
+    "config": {
+        "enabled": true,
+        "loginUrl": "https://navid.tums.ac.ir/account/loginsipadservice",
+        "syncIntervalMinutes": 30,
+        "captchaStrategy": "python_ocr",
+        "credentialUpdatedAt": "2026-04-26T18:07:31+03:30",
+        "credentials": {
+            "v": 1,
+            "alg": "aes-256-gcm",
+            "iv": "0gpDlv2ktu2IEtAy",
+            "tag": "YChIdAh6CPdWZrHQeLrzAQ==",
+            "ct": "X8Q56Jcol0l9CYbmJmJVdKdKMBpHR7rNs+crIOSlMcrT1Az14gVVi81gJkRCSXXsN2cwIeSw"
+        }
+    },
+    "session": {
+        "cookies": null,
+        "browserState": null,
+        "updatedAt": "2026-04-26T18:07:31+03:30",
+        "lastValidatedAt": "2026-04-26T17:17:33+03:30",
+        "status": "missing"
+    },
+    "challenge": null,
+    "state": {
+        "lastSyncAt": "2026-04-26T18:07:31+03:30",
+        "lastSuccessAt": "2026-04-26T17:17:33+03:30",
+        "lastError": "خطای داخلی همگام‌سازی نوید.",
+        "consecutiveFailures": 3,
+        "requiresReconnect": false,
+        "lastSyncDurationMs": 12416,
+        "lastFailedCourses": 0,
+        "lastResult": "exception"
+    },
+    "snapshot": {
+        "courses": [],
+        "assignments": []
+    },
+    "updates": []
+}

@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260425-191551">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260425-191551">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260425-191551">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260426-192939">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260426-192939">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260426-192939">
     <title>پیام‌رسان | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
     <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
-    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260425-chatlayout1">
+    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260426-chatlux1">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache2">
 </head>
 <body class="chat-page" data-shell="off">
@@ -156,8 +156,42 @@
 
                 <section class="thread-pane" id="thread-pane">
                     <div class="thread-placeholder" id="thread-placeholder">
-                        <strong>یک گفتگو را انتخاب کن</strong>
-                        <span>از کلاس اجباری شروع کن یا یک پیام خصوصی باز کن.</span>
+                        <div class="thread-placeholder__shell">
+                            <span class="thread-placeholder__eyebrow">Dentistry 1402 Chat Suite</span>
+                            <strong>یک گفتگو را انتخاب کن</strong>
+                            <span class="thread-placeholder__lead">از کلاس اجباری شروع کن، یک پیام خصوصی بساز، یا گروه جدید را راه‌اندازی کن.</span>
+                            <div class="thread-placeholder__stats" aria-hidden="true">
+                                <div class="thread-placeholder__stat">
+                                    <b id="placeholder-active-count" data-digit-locale="latin">۰</b>
+                                    <span>گفت‌وگوی فعال</span>
+                                </div>
+                                <div class="thread-placeholder__stat">
+                                    <b id="placeholder-unread-count" data-digit-locale="latin">۰</b>
+                                    <span>پیام خوانده‌نشده</span>
+                                </div>
+                                <div class="thread-placeholder__stat">
+                                    <b id="placeholder-class-label">کلاس اجباری</b>
+                                    <span>برای شروع سریع</span>
+                                </div>
+                            </div>
+                            <div class="thread-placeholder__actions">
+                                <button class="thread-placeholder__action" type="button" data-placeholder-action="mandatory">
+                                    <span class="thread-placeholder__action-kicker">Quick Start</span>
+                                    <strong>ورود به کلاس اجباری</strong>
+                                    <span>نخستین گفت‌وگوی اجباری را باز کن.</span>
+                                </button>
+                                <button class="thread-placeholder__action" type="button" data-placeholder-action="dm">
+                                    <span class="thread-placeholder__action-kicker">Direct</span>
+                                    <strong>شروع پیام خصوصی</strong>
+                                    <span>برای دانشجو جدید درگاه DM را باز کن.</span>
+                                </button>
+                                <button class="thread-placeholder__action" type="button" data-placeholder-action="group">
+                                    <span class="thread-placeholder__action-kicker">Collaborate</span>
+                                    <strong>ساخت گروه جدید</strong>
+                                    <span>برای کار کلاسی یا هماهنگی، گروه بساز.</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="thread-shell" id="thread-shell" hidden>
@@ -562,7 +596,7 @@
 
     <script src="/assets/site/scripts/auth.js?v=20260422-authfix6"></script>
     <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
-    <script src="/assets/site/scripts/chat.js?v=20260425-chatlayout1"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260425-191551"></script>
+    <script src="/assets/site/scripts/chat.js?v=20260426-chatlux1"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260426-192939"></script>
 </body>
 </html>

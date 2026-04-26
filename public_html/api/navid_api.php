@@ -53,12 +53,14 @@ if ($action === 'syncNow') {
     }
     dent_require_owner();
 
-    $result = navid_sync(true);
+    $result = navid_sync_browser(true);
     dent_json_response([
         'success' => !empty($result['success']),
         'status' => (string) ($result['status'] ?? ''),
         'message' => (string) ($result['message'] ?? ''),
         'summary' => $result['summary'] ?? null,
+        'captchaDataUri' => (string) ($result['captchaDataUri'] ?? ''),
+        'expiresAt' => (string) (($result['ownerStatus']['state']['challengeExpiresAt'] ?? '') ?: ''),
         'ownerStatus' => $result['ownerStatus'] ?? navid_build_owner_status(navid_load_store()),
     ]);
 }
@@ -69,7 +71,7 @@ if ($action === 'captchaChallenge') {
     }
     dent_require_owner();
 
-    $result = navid_create_captcha_challenge();
+    $result = navid_create_captcha_challenge_browser();
     dent_json_response([
         'success' => true,
         'message' => (string) ($result['message'] ?? ''),
@@ -86,10 +88,13 @@ if ($action === 'completeReconnect') {
     dent_require_owner();
 
     $captchaCode = (string) ($_POST['captchaCode'] ?? '');
-    $result = navid_complete_captcha_challenge($captchaCode);
+    $result = navid_complete_captcha_challenge_browser($captchaCode);
     dent_json_response([
-        'success' => true,
+        'success' => !empty($result['success']),
+        'status' => (string) ($result['status'] ?? ''),
         'message' => (string) ($result['message'] ?? ''),
+        'summary' => $result['summary'] ?? null,
+        'captchaDataUri' => (string) ($result['captchaDataUri'] ?? ''),
         'ownerStatus' => $result['ownerStatus'] ?? navid_build_owner_status(navid_load_store()),
     ]);
 }
@@ -102,6 +107,7 @@ if ($action === 'clearSession') {
 
     $store = navid_load_store();
     navid_clear_session_cookies($store);
+    navid_clear_challenge($store);
     $store['state']['requiresReconnect'] = true;
     $store['state']['lastError'] = 'نشست نوید دستی پاک شد.';
     navid_save_store($store);

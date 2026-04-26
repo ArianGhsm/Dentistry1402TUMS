@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     "use strict";
 
     function $(id) {
@@ -83,6 +83,8 @@
     var accountPhoneNudgeDismiss = $("account-phone-nudge-dismiss");
     var ownerHubSection = $("account-owner-section");
     var pollManagerHubSection = $("account-poll-manager-section");
+    var accountActivePollsRow = $("account-active-polls-row");
+    var accountActivePollsMeta = $("account-active-polls-meta");
     var accountInfoRole = $("account-info-role");
     var accountInfoSession = $("account-info-session");
     var accountInfoRotation = $("account-info-rotation");
@@ -141,6 +143,11 @@
     var pendingReturnTo = safeReturnTo(new URLSearchParams(window.location.search).get("returnTo"));
     var activeSurface = "hub";
     var currentUser = null;
+    var pollShortcutState = {
+        loading: false,
+        lastUserKey: "",
+        count: 0
+    };
     var ownerState = {
         loading: false,
         savingStudentNumber: "",
@@ -218,6 +225,11 @@
         var source = user || currentUser || {};
         var role = String(source.role || "").trim();
         return !!source.isOwner || !!source.isRepresentative || role === "owner" || role === "representative";
+    }
+
+    function accountUserKey(user) {
+        var source = user || currentUser || {};
+        return String(source.studentNumber || "").trim();
     }
 
     function canOpenSurface(surface) {
@@ -368,11 +380,11 @@
             return "";
         }
         return text
-            .replace(/[۰-۹]/g, function (ch) {
-                return String("۰۱۲۳۴۵۶۷۸۹".indexOf(ch));
+            .replace(/[Û°-Û¹]/g, function (ch) {
+                return String("Û°Û±Û²Û³Û´ÛµÛ¶Û·Û¸Û¹".indexOf(ch));
             })
-            .replace(/[٠-٩]/g, function (ch) {
-                return String("٠١٢٣٤٥٦٧٨٩".indexOf(ch));
+            .replace(/[Ù -Ù©]/g, function (ch) {
+                return String("Ù Ù¡Ù¢Ù£Ù¤Ù¥Ù¦Ù§Ù¨Ù©".indexOf(ch));
             });
     }
 
@@ -406,10 +418,10 @@
 
     function smsHealthStatusLabel(value) {
         var status = String(value || "").trim().toLowerCase();
-        if (status === "ok") return "سالم";
-        if (status === "error") return "خطادار";
-        if (status === "unknown") return "نامشخص";
-        return status || "نامشخص";
+        if (status === "ok") return "Ø³Ø§Ù„Ù…";
+        if (status === "error") return "Ø®Ø·Ø§Ø¯Ø§Ø±";
+        if (status === "unknown") return "Ù†Ø§Ù…Ø´Ø®Øµ";
+        return status || "Ù†Ø§Ù…Ø´Ø®Øµ";
     }
 
     function ensureOwnerSmsHealthPhone() {
@@ -516,23 +528,23 @@
     function renderPhoneSecurityState(user) {
         var phone = parsedPhone(user || {});
         var maskedPhone = String(phone.numberMasked || "").trim();
-        var maskedPhoneLabel = ltrMaskedPhone(maskedPhone, "شماره ثبت‌شده");
-        var badgeText = "نیاز به ثبت شماره";
+        var maskedPhoneLabel = ltrMaskedPhone(maskedPhone, "Ø´Ù…Ø§Ø±Ù‡ Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡");
+        var badgeText = "Ù†ÛŒØ§Ø² Ø¨Ù‡ Ø«Ø¨Øª Ø´Ù…Ø§Ø±Ù‡";
         var badgeState = "warn";
-        var summary = "شماره‌ای برای این حساب ثبت نشده است. برای فعال‌سازی ورود پیامکی، شماره را ثبت و تایید کن.";
+        var summary = "Ø´Ù…Ø§Ø±Ù‡â€ŒØ§ÛŒ Ø¨Ø±Ø§ÛŒ Ø§ÛŒÙ† Ø­Ø³Ø§Ø¨ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª. Ø¨Ø±Ø§ÛŒ ÙØ¹Ø§Ù„â€ŒØ³Ø§Ø²ÛŒ ÙˆØ±ÙˆØ¯ Ù¾ÛŒØ§Ù…Ú©ÛŒØŒ Ø´Ù…Ø§Ø±Ù‡ Ø±Ø§ Ø«Ø¨Øª Ùˆ ØªØ§ÛŒÛŒØ¯ Ú©Ù†.";
 
         if (phone.hasNumber && !phone.verified) {
-            badgeText = "در انتظار تایید";
+            badgeText = "Ø¯Ø± Ø§Ù†ØªØ¸Ø§Ø± ØªØ§ÛŒÛŒØ¯";
             badgeState = "warn";
-            summary = "شماره موبایل ثبت شده ولی هنوز با کد پیامکی تایید نشده است.";
+            summary = "Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ Ø«Ø¨Øª Ø´Ø¯Ù‡ ÙˆÙ„ÛŒ Ù‡Ù†ÙˆØ² Ø¨Ø§ Ú©Ø¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ ØªØ§ÛŒÛŒØ¯ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.";
         } else if (phone.hasNumber && phone.verified && !phone.otpLoginEnabled) {
-            badgeText = "شماره تایید شده";
+            badgeText = "Ø´Ù…Ø§Ø±Ù‡ ØªØ§ÛŒÛŒØ¯ Ø´Ø¯Ù‡";
             badgeState = "ok";
-            summary = "شماره " + maskedPhoneLabel + " تایید شده است؛ ورود با کد تایید هنوز غیرفعال است.";
+            summary = "Ø´Ù…Ø§Ø±Ù‡ " + maskedPhoneLabel + " ØªØ§ÛŒÛŒØ¯ Ø´Ø¯Ù‡ Ø§Ø³ØªØ› ÙˆØ±ÙˆØ¯ Ø¨Ø§ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ Ù‡Ù†ÙˆØ² ØºÛŒØ±ÙØ¹Ø§Ù„ Ø§Ø³Øª.";
         } else if (phone.hasNumber && phone.verified && phone.otpLoginEnabled) {
-            badgeText = "ورود پیامکی فعال";
+            badgeText = "ÙˆØ±ÙˆØ¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ ÙØ¹Ø§Ù„";
             badgeState = "ok";
-            summary = "ورود با کد تایید برای " + maskedPhoneLabel + " فعال است.";
+            summary = "ÙˆØ±ÙˆØ¯ Ø¨Ø§ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ Ø¨Ø±Ø§ÛŒ " + maskedPhoneLabel + " ÙØ¹Ø§Ù„ Ø§Ø³Øª.";
         }
 
         if (phoneStatusBadge) {
@@ -542,9 +554,9 @@
         if (phoneStatusSummary) {
             phoneStatusSummary.textContent = summary;
         }
-        setPhonePill(phoneNumberState, phone.hasNumber ? ("شماره " + maskedPhoneLabel) : "شماره ثبت نشده", phone.hasNumber ? "ok" : "warn");
-        setPhonePill(phoneVerifyState, phone.verified ? "تایید شده" : "تایید نشده", phone.verified ? "ok" : "warn");
-        setPhonePill(phoneLoginState, phone.otpLoginEnabled ? "ورود پیامکی فعال" : "ورود پیامکی غیرفعال", phone.otpLoginEnabled ? "ok" : "warn");
+        setPhonePill(phoneNumberState, phone.hasNumber ? ("Ø´Ù…Ø§Ø±Ù‡ " + maskedPhoneLabel) : "Ø´Ù…Ø§Ø±Ù‡ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡", phone.hasNumber ? "ok" : "warn");
+        setPhonePill(phoneVerifyState, phone.verified ? "ØªØ§ÛŒÛŒØ¯ Ø´Ø¯Ù‡" : "ØªØ§ÛŒÛŒØ¯ Ù†Ø´Ø¯Ù‡", phone.verified ? "ok" : "warn");
+        setPhonePill(phoneLoginState, phone.otpLoginEnabled ? "ÙˆØ±ÙˆØ¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ ÙØ¹Ø§Ù„" : "ÙˆØ±ÙˆØ¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ ØºÛŒØ±ÙØ¹Ø§Ù„", phone.otpLoginEnabled ? "ok" : "warn");
 
         if (phoneLoginEnabledInput) {
             phoneLoginEnabledInput.checked = !!phone.otpLoginEnabled;
@@ -555,25 +567,25 @@
         }
         if (phoneLoginToggleHint) {
             phoneLoginToggleHint.textContent = phone.hasNumber && phone.verified
-                ? "می‌توانی ورود پیامکی را برای همین شماره روشن یا خاموش کنی."
-                : "برای فعال‌سازی، ابتدا شماره را با کد پیامکی تایید کن.";
+                ? "Ù…ÛŒâ€ŒØªÙˆØ§Ù†ÛŒ ÙˆØ±ÙˆØ¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ Ø±Ø§ Ø¨Ø±Ø§ÛŒ Ù‡Ù…ÛŒÙ† Ø´Ù…Ø§Ø±Ù‡ Ø±ÙˆØ´Ù† ÛŒØ§ Ø®Ø§Ù…ÙˆØ´ Ú©Ù†ÛŒ."
+                : "Ø¨Ø±Ø§ÛŒ ÙØ¹Ø§Ù„â€ŒØ³Ø§Ø²ÛŒØŒ Ø§Ø¨ØªØ¯Ø§ Ø´Ù…Ø§Ø±Ù‡ Ø±Ø§ Ø¨Ø§ Ú©Ø¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ ØªØ§ÛŒÛŒØ¯ Ú©Ù†.";
         }
         if (phoneCurrentNumber) {
-            phoneCurrentNumber.textContent = phone.hasNumber ? ltrMaskedPhone(maskedPhone, "—") : "—";
+            phoneCurrentNumber.textContent = phone.hasNumber ? ltrMaskedPhone(maskedPhone, "â€”") : "â€”";
         }
         if (phoneCurrentCaption) {
             phoneCurrentCaption.textContent = phone.hasNumber
-                ? "برای تغییر شماره، شماره جدید را وارد کن و دوباره تایید بگیر."
-                : "هنوز شماره‌ای ثبت نشده است. از کارت پایین برای ثبت شماره استفاده کن.";
+                ? "Ø¨Ø±Ø§ÛŒ ØªØºÛŒÛŒØ± Ø´Ù…Ø§Ø±Ù‡ØŒ Ø´Ù…Ø§Ø±Ù‡ Ø¬Ø¯ÛŒØ¯ Ø±Ø§ ÙˆØ§Ø±Ø¯ Ú©Ù† Ùˆ Ø¯ÙˆØ¨Ø§Ø±Ù‡ ØªØ§ÛŒÛŒØ¯ Ø¨Ú¯ÛŒØ±."
+                : "Ù‡Ù†ÙˆØ² Ø´Ù…Ø§Ø±Ù‡â€ŒØ§ÛŒ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª. Ø§Ø² Ú©Ø§Ø±Øª Ù¾Ø§ÛŒÛŒÙ† Ø¨Ø±Ø§ÛŒ Ø«Ø¨Øª Ø´Ù…Ø§Ø±Ù‡ Ø§Ø³ØªÙØ§Ø¯Ù‡ Ú©Ù†.";
         }
         if (phoneNumberEditButton) {
-            phoneNumberEditButton.textContent = phone.hasNumber ? "تغییر شماره" : "ثبت شماره";
+            phoneNumberEditButton.textContent = phone.hasNumber ? "ØªØºÛŒÛŒØ± Ø´Ù…Ø§Ø±Ù‡" : "Ø«Ø¨Øª Ø´Ù…Ø§Ø±Ù‡";
         }
         if (phoneNumberRemoveButton) {
             phoneNumberRemoveButton.disabled = !phone.hasNumber;
         }
         if (phoneEnrollNumber && !phoneEnrollNumber.value) {
-            phoneEnrollNumber.placeholder = "9xxxxxxxxx یا 09xxxxxxxxx";
+            phoneEnrollNumber.placeholder = "9xxxxxxxxx ÛŒØ§ 09xxxxxxxxx";
         }
         if (accountPhoneNudge) {
             accountPhoneNudge.hidden = !shouldShowPhoneNudge(user || {});
@@ -624,8 +636,8 @@
         }
         if (loginOtpMeta) {
             loginOtpMeta.textContent = active
-                ? ("ارسال مجدد تا " + formatSeconds(left) + " دیگر")
-                : "ورود پیامکی فقط برای شماره تاییدشده و فعال‌شده امکان دارد.";
+                ? ("Ø§Ø±Ø³Ø§Ù„ Ù…Ø¬Ø¯Ø¯ ØªØ§ " + formatSeconds(left) + " Ø¯ÛŒÚ¯Ø±")
+                : "ÙˆØ±ÙˆØ¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ ÙÙ‚Ø· Ø¨Ø±Ø§ÛŒ Ø´Ù…Ø§Ø±Ù‡ ØªØ§ÛŒÛŒØ¯Ø´Ø¯Ù‡ Ùˆ ÙØ¹Ø§Ù„â€ŒØ´Ø¯Ù‡ Ø§Ù…Ú©Ø§Ù† Ø¯Ø§Ø±Ø¯.";
         }
         if (!active) {
             stopLoginOtpCooldownTicker();
@@ -655,8 +667,8 @@
         }
         if (phoneEnrollMeta) {
             phoneEnrollMeta.textContent = active
-                ? ("ارسال مجدد تا " + formatSeconds(left) + " دیگر")
-                : "بعد از ارسال، امکان ارسال دوباره با زمان‌سنج فعال می‌شود.";
+                ? ("Ø§Ø±Ø³Ø§Ù„ Ù…Ø¬Ø¯Ø¯ ØªØ§ " + formatSeconds(left) + " Ø¯ÛŒÚ¯Ø±")
+                : "Ø¨Ø¹Ø¯ Ø§Ø² Ø§Ø±Ø³Ø§Ù„ØŒ Ø§Ù…Ú©Ø§Ù† Ø§Ø±Ø³Ø§Ù„ Ø¯ÙˆØ¨Ø§Ø±Ù‡ Ø¨Ø§ Ø²Ù…Ø§Ù†â€ŒØ³Ù†Ø¬ ÙØ¹Ø§Ù„ Ù…ÛŒâ€ŒØ´ÙˆØ¯.";
         }
         if (!active) {
             stopPhoneEnrollCooldownTicker();
@@ -683,7 +695,7 @@
     function avatarLabel(value) {
         var clean = String(value || "").replace(/\s+/g, " ").trim();
         if (!clean) {
-            return "؟";
+            return "ØŸ";
         }
 
         var parts = clean.split(" ").filter(Boolean);
@@ -741,7 +753,7 @@
 
         container.dataset.hasAvatar = "1";
         imageNode.hidden = false;
-        imageNode.alt = label ? ("تصویر پروفایل " + label) : "تصویر پروفایل";
+        imageNode.alt = label ? ("ØªØµÙˆÛŒØ± Ù¾Ø±ÙˆÙØ§ÛŒÙ„ " + label) : "ØªØµÙˆÛŒØ± Ù¾Ø±ÙˆÙØ§ÛŒÙ„";
         imageNode.onerror = function () {
             container.dataset.hasAvatar = "0";
             imageNode.hidden = true;
@@ -857,7 +869,7 @@
             return response.json().catch(function () {
                 return {
                     success: false,
-                    error: "پاسخ نامعتبر از سرور دریافت شد."
+                    error: "Ù¾Ø§Ø³Ø® Ù†Ø§Ù…Ø¹ØªØ¨Ø± Ø§Ø² Ø³Ø±ÙˆØ± Ø¯Ø±ÛŒØ§ÙØª Ø´Ø¯."
                 };
             }).then(function (data) {
                 data.httpStatus = response.status;
@@ -877,7 +889,27 @@
             return response.json().catch(function () {
                 return {
                     success: false,
-                    error: "پاسخ نامعتبر از سرور دریافت شد."
+                    error: "Ù¾Ø§Ø³Ø® Ù†Ø§Ù…Ø¹ØªØ¨Ø± Ø§Ø² Ø³Ø±ÙˆØ± Ø¯Ø±ÛŒØ§ÙØª Ø´Ø¯."
+                };
+            }).then(function (data) {
+                data.httpStatus = response.status;
+                return data;
+            });
+        });
+    }
+
+    function requestActivePolls() {
+        return fetch("/chat/chat_api.php?action=activePolls", {
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json"
+            }
+        }).then(function (response) {
+            return response.json().catch(function () {
+                return {
+                    success: false,
+                    error: "Ù¾Ø§Ø³Ø® Ù†Ø§Ù…Ø¹ØªØ¨Ø± Ø§Ø² Ø³Ø±ÙˆØ± Ø¯Ø±ÛŒØ§ÙØª Ø´Ø¯."
                 };
             }).then(function (data) {
                 data.httpStatus = response.status;
@@ -897,7 +929,7 @@
             return response.json().catch(function () {
                 return {
                     success: false,
-                    error: "پاسخ نامعتبر از سرور دریافت شد."
+                    error: "Ù¾Ø§Ø³Ø® Ù†Ø§Ù…Ø¹ØªØ¨Ø± Ø§Ø² Ø³Ø±ÙˆØ± Ø¯Ø±ÛŒØ§ÙØª Ø´Ø¯."
                 };
             }).then(function (data) {
                 data.httpStatus = response.status;
@@ -919,10 +951,13 @@
             return response.json().catch(function () {
                 return {
                     success: false,
-                    error: "پاسخ نامعتبر از سرور دریافت شد."
+                    error: "Ù¾Ø§Ø³Ø® Ù†Ø§Ù…Ø¹ØªØ¨Ø± Ø§Ø² Ø³Ø±ÙˆØ± Ø¯Ø±ÛŒØ§ÙØª Ø´Ø¯."
                 };
             }).then(function (data) {
                 data.httpStatus = response.status;
+                if (action === "syncNow" || action === "captchaChallenge" || action === "completeReconnect") {
+                    navidSyncChallengeVisual((data && data.ownerStatus) || navidState.ownerStatus, data && data.captchaDataUri);
+                }
                 return data;
             });
         });
@@ -937,7 +972,7 @@
             return false;
         }
 
-        var message = fallbackText || "نشست شما منقضی شده است.";
+        var message = fallbackText || "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.";
         try {
             if (typeof auth.handleUnauthorizedPayload === "function") {
                 return !!auth.handleUnauthorizedPayload(response, message);
@@ -956,17 +991,88 @@
         return false;
     }
 
+    function renderActivePollShortcut(user, count) {
+        if (!accountActivePollsRow) {
+            return;
+        }
+
+        var total = Math.max(0, Math.floor(toNumber(count, 0)));
+        var show = total > 0;
+        accountActivePollsRow.hidden = !show;
+
+        if (accountActivePollsMeta) {
+            if (show) {
+                accountActivePollsMeta.textContent = total.toLocaleString("fa-IR") + " Ù†Ø¸Ø±Ø³Ù†Ø¬ÛŒ ÙØ¹Ø§Ù„ Ø¨Ø±Ø§ÛŒ Ø´Ù…Ø§ Ø¯Ø± Ø¯Ø³ØªØ±Ø³ Ø§Ø³Øª.";
+            } else {
+                accountActivePollsMeta.textContent = "Ø¯Ø± Ø­Ø§Ù„ Ø­Ø§Ø¶Ø± Ù†Ø¸Ø±Ø³Ù†Ø¬ÛŒ ÙØ¹Ø§Ù„ÛŒ Ø¨Ø±Ø§ÛŒ Ø§ÛŒÙ† Ø­Ø³Ø§Ø¨ ÙˆØ¬ÙˆØ¯ Ù†Ø¯Ø§Ø±Ø¯.";
+            }
+        }
+    }
+
+    function resetActivePollShortcut() {
+        pollShortcutState.loading = false;
+        pollShortcutState.lastUserKey = "";
+        pollShortcutState.count = 0;
+        renderActivePollShortcut(null, 0);
+    }
+
+    function loadActivePollShortcut(user) {
+        var userKey = accountUserKey(user);
+        if (!userKey || pollShortcutState.loading) {
+            return;
+        }
+
+        if (pollShortcutState.lastUserKey === userKey) {
+            renderActivePollShortcut(user, pollShortcutState.count);
+            return;
+        }
+
+        pollShortcutState.loading = true;
+        requestActivePolls().then(function (response) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
+                resetActivePollShortcut();
+                return;
+            }
+
+            if (!response || !response.success) {
+                if (response && response.captchaDataUri && navidCaptchaImage) {
+                    navidCaptchaImage.hidden = false;
+                    navidCaptchaImage.src = response.captchaDataUri;
+                }
+                if (response && response.ownerStatus) {
+                    navidState.ownerStatus = response.ownerStatus;
+                    navidRenderOwnerStatus(navidState.ownerStatus);
+                }
+                pollShortcutState.lastUserKey = userKey;
+                pollShortcutState.count = 0;
+                renderActivePollShortcut(user, 0);
+                return;
+            }
+
+            var count = toNumber(response.count, Array.isArray(response.polls) ? response.polls.length : 0);
+            pollShortcutState.lastUserKey = userKey;
+            pollShortcutState.count = Math.max(0, Math.floor(count));
+            renderActivePollShortcut(user, pollShortcutState.count);
+        }).catch(function () {
+            pollShortcutState.lastUserKey = userKey;
+            pollShortcutState.count = 0;
+            renderActivePollShortcut(user, 0);
+        }).finally(function () {
+            pollShortcutState.loading = false;
+        });
+    }
+
     function renderIdentity(user) {
-        var roleLabel = user.roleLabel || "دانشجو";
-        var sessionLabel = user.isOwner ? "دسترسی مالک فعال" : (user.canModerateChat ? "دسترسی نماینده فعال" : "نشست فعال");
+        var roleLabel = user.roleLabel || "Ø¯Ø§Ù†Ø´Ø¬Ùˆ";
+        var sessionLabel = user.isOwner ? "Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ø§Ù„Ú© ÙØ¹Ø§Ù„" : (user.canModerateChat ? "Ø¯Ø³ØªØ±Ø³ÛŒ Ù†Ù…Ø§ÛŒÙ†Ø¯Ù‡ ÙØ¹Ø§Ù„" : "Ù†Ø´Ø³Øª ÙØ¹Ø§Ù„");
         var profile = user.profile && typeof user.profile === "object" ? user.profile : {};
         var aboutText = profileAbout(profile);
         var focusText = profile.focusArea || "";
         var contactText = profile.contactHandle || "";
 
         $("account-role-eyebrow").textContent = roleLabel;
-        $("account-name").textContent = user.name || "دانشجو";
-        $("account-student-number").textContent = "شماره دانشجویی: " + (user.studentNumber || "-");
+        $("account-name").textContent = user.name || "Ø¯Ø§Ù†Ø´Ø¬Ùˆ";
+        $("account-student-number").textContent = "Ø´Ù…Ø§Ø±Ù‡ Ø¯Ø§Ù†Ø´Ø¬ÙˆÛŒÛŒ: " + (user.studentNumber || "-");
         $("account-role-badge").textContent = roleLabel;
         $("account-session-badge").textContent = sessionLabel;
 
@@ -987,23 +1093,23 @@
         }
 
         if (accountRowProfileMeta) {
-            accountRowProfileMeta.textContent = aboutText || focusText || contactText || "ویرایش آواتار، بیو و راه ارتباطی";
+            accountRowProfileMeta.textContent = aboutText || focusText || contactText || "ÙˆÛŒØ±Ø§ÛŒØ´ Ø¢ÙˆØ§ØªØ§Ø±ØŒ Ø¨ÛŒÙˆ Ùˆ Ø±Ø§Ù‡ Ø§Ø±ØªØ¨Ø§Ø·ÛŒ";
         }
         if (accountRowInfoMeta) {
-            accountRowInfoMeta.textContent = [user.studentNumber || "-", roleLabel].join(" • ");
+            accountRowInfoMeta.textContent = [user.studentNumber || "-", roleLabel].join(" â€¢ ");
         }
 
         var phone = parsedPhone(user);
-        var phoneLabel = ltrMaskedPhone(phone.numberMasked, "شماره ثبت‌شده");
+        var phoneLabel = ltrMaskedPhone(phone.numberMasked, "Ø´Ù…Ø§Ø±Ù‡ Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡");
         if (accountRowPhoneMeta) {
             if (!phone.hasNumber) {
-                accountRowPhoneMeta.textContent = "هنوز شماره‌ای ثبت نشده است.";
+                accountRowPhoneMeta.textContent = "Ù‡Ù†ÙˆØ² Ø´Ù…Ø§Ø±Ù‡â€ŒØ§ÛŒ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.";
             } else if (!phone.verified) {
-                accountRowPhoneMeta.textContent = "شماره " + phoneLabel + " ثبت شده ولی هنوز تایید نشده است.";
+                accountRowPhoneMeta.textContent = "Ø´Ù…Ø§Ø±Ù‡ " + phoneLabel + " Ø«Ø¨Øª Ø´Ø¯Ù‡ ÙˆÙ„ÛŒ Ù‡Ù†ÙˆØ² ØªØ§ÛŒÛŒØ¯ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.";
             } else if (phone.otpLoginEnabled) {
-                accountRowPhoneMeta.textContent = "ورود با کد تایید فعال است (" + phoneLabel + ").";
+                accountRowPhoneMeta.textContent = "ÙˆØ±ÙˆØ¯ Ø¨Ø§ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ ÙØ¹Ø§Ù„ Ø§Ø³Øª (" + phoneLabel + ").";
             } else {
-                accountRowPhoneMeta.textContent = "شماره " + phoneLabel + " تایید شده است ولی ورود پیامکی غیرفعال است.";
+                accountRowPhoneMeta.textContent = "Ø´Ù…Ø§Ø±Ù‡ " + phoneLabel + " ØªØ§ÛŒÛŒØ¯ Ø´Ø¯Ù‡ Ø§Ø³Øª ÙˆÙ„ÛŒ ÙˆØ±ÙˆØ¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ ØºÛŒØ±ÙØ¹Ø§Ù„ Ø§Ø³Øª.";
             }
         }
         renderPhoneSecurityState(user);
@@ -1013,7 +1119,7 @@
             var rotationSummary = rotation && rotation.assigned ? String(rotation.summary || "").trim() : "";
             if (rotationSummary) {
                 accountRotation.hidden = false;
-                accountRotation.textContent = "روتیشن/گروه: " + rotationSummary;
+                accountRotation.textContent = "Ø±ÙˆØªÛŒØ´Ù†/Ú¯Ø±ÙˆÙ‡: " + rotationSummary;
                 if (accountInfoRotation) {
                     accountInfoRotation.textContent = rotationSummary;
                 }
@@ -1021,11 +1127,11 @@
                 accountRotation.hidden = true;
                 accountRotation.textContent = "";
                 if (accountInfoRotation) {
-                    accountInfoRotation.textContent = "—";
+                    accountInfoRotation.textContent = "â€”";
                 }
             }
         } else if (accountInfoRotation) {
-            accountInfoRotation.textContent = "—";
+            accountInfoRotation.textContent = "â€”";
         }
     }
 
@@ -1042,17 +1148,17 @@
         }).length;
 
         ownerSummary.innerHTML = [
-            summaryCard("کاربر", totalUsers.toLocaleString("fa-IR"), "کل حساب‌های تعریف‌شده"),
-            summaryCard("نماینده", representatives.toLocaleString("fa-IR"), "افراد دارای دسترسی گفت‌وگو"),
-            summaryCard("دارای شماره", withPhone.toLocaleString("fa-IR"), "کاربرهایی که شماره موبایل ثبت‌شده دارند"),
-            summaryCard("دارای نمره", withGrades.toLocaleString("fa-IR"), "کاربرهایی که در فایل نمرات رکورد دارند")
+            summaryCard("Ú©Ø§Ø±Ø¨Ø±", totalUsers.toLocaleString("fa-IR"), "Ú©Ù„ Ø­Ø³Ø§Ø¨â€ŒÙ‡Ø§ÛŒ ØªØ¹Ø±ÛŒÙâ€ŒØ´Ø¯Ù‡"),
+            summaryCard("Ù†Ù…Ø§ÛŒÙ†Ø¯Ù‡", representatives.toLocaleString("fa-IR"), "Ø§ÙØ±Ø§Ø¯ Ø¯Ø§Ø±Ø§ÛŒ Ø¯Ø³ØªØ±Ø³ÛŒ Ú¯ÙØªâ€ŒÙˆÚ¯Ùˆ"),
+            summaryCard("Ø¯Ø§Ø±Ø§ÛŒ Ø´Ù…Ø§Ø±Ù‡", withPhone.toLocaleString("fa-IR"), "Ú©Ø§Ø±Ø¨Ø±Ù‡Ø§ÛŒÛŒ Ú©Ù‡ Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡ Ø¯Ø§Ø±Ù†Ø¯"),
+            summaryCard("Ø¯Ø§Ø±Ø§ÛŒ Ù†Ù…Ø±Ù‡", withGrades.toLocaleString("fa-IR"), "Ú©Ø§Ø±Ø¨Ø±Ù‡Ø§ÛŒÛŒ Ú©Ù‡ Ø¯Ø± ÙØ§ÛŒÙ„ Ù†Ù…Ø±Ø§Øª Ø±Ú©ÙˆØ±Ø¯ Ø¯Ø§Ø±Ù†Ø¯")
         ].join("");
 
         if (accountRowOwnerMeta) {
             accountRowOwnerMeta.textContent = [
-                "کاربر " + totalUsers.toLocaleString("fa-IR"),
-                "نماینده " + representatives.toLocaleString("fa-IR")
-            ].join(" • ");
+                "Ú©Ø§Ø±Ø¨Ø± " + totalUsers.toLocaleString("fa-IR"),
+                "Ù†Ù…Ø§ÛŒÙ†Ø¯Ù‡ " + representatives.toLocaleString("fa-IR")
+            ].join(" â€¢ ");
         }
     }
 
@@ -1089,26 +1195,26 @@
         var s = status && typeof status === "object" ? status : {};
         var ready = !!(s.enabled && s.apiKeyConfigured && s.patternConfigured && s.senderLineConfigured);
         var missing = [];
-        if (!s.enabled) missing.push("فعال‌سازی سرویس");
+        if (!s.enabled) missing.push("ÙØ¹Ø§Ù„â€ŒØ³Ø§Ø²ÛŒ Ø³Ø±ÙˆÛŒØ³");
         if (!s.apiKeyConfigured) missing.push("API Key");
         if (!s.patternConfigured) missing.push("Pattern Code");
-        if (!s.senderLineConfigured) missing.push("لاین ارسال");
+        if (!s.senderLineConfigured) missing.push("Ù„Ø§ÛŒÙ† Ø§Ø±Ø³Ø§Ù„");
 
         var healthLabel = smsHealthStatusLabel(s.lastHealthStatus || "");
-        var healthTone = healthLabel === "سالم" ? "ok" : (healthLabel === "خطادار" ? "danger" : "warn");
+        var healthTone = healthLabel === "Ø³Ø§Ù„Ù…" ? "ok" : (healthLabel === "Ø®Ø·Ø§Ø¯Ø§Ø±" ? "danger" : "warn");
         var readinessMeta = ready
-            ? "تنظیمات پایه برای ارسال OTP کامل است."
-            : ("موارد ناقص: " + missing.join("، "));
+            ? "ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ù¾Ø§ÛŒÙ‡ Ø¨Ø±Ø§ÛŒ Ø§Ø±Ø³Ø§Ù„ OTP Ú©Ø§Ù…Ù„ Ø§Ø³Øª."
+            : ("Ù…ÙˆØ§Ø±Ø¯ Ù†Ø§Ù‚Øµ: " + missing.join("ØŒ "));
 
         ownerSmsStatus.innerHTML = [
-            summaryCard("آمادگی OTP", ready ? "آماده" : "ناقص", readinessMeta, ready ? "ok" : "warn"),
-            summaryCard("سرویس", s.enabled ? "فعال" : "غیرفعال", "وضعیت کلی سرویس FarazSMS", s.enabled ? "ok" : "warn"),
-            summaryCard("API Key", s.apiKeyConfigured ? "تنظیم شده" : "تنظیم نشده", "کلید API فقط روی سرور نگهداری می‌شود.", s.apiKeyConfigured ? "ok" : "warn"),
-            summaryCard("Pattern Code", s.patternConfigured ? "تنظیم شده" : "تنظیم نشده", "کد پترن مخصوص ارسال OTP.", s.patternConfigured ? "ok" : "warn"),
-            summaryCard("خط ارسال", s.senderLineConfigured ? (s.senderLine || "تنظیم شده") : "مسیر خدماتی", "در نبود خط اختصاصی، از مسیر خدماتی/اشتراکی استفاده می‌شود."),
-            summaryCard("دامنه", s.domainConfigured ? (s.domain || "تنظیم شده") : "تنظیم نشده", "برای مانیتورینگ و اعتبارسنجی درخواست‌ها."),
-            summaryCard("آخرین تست سلامت", healthLabel, s.lastHealthMessage || "هنوز تستی اجرا نشده است.", healthTone),
-            summaryCard("زمان آخرین تست", s.lastHealthAt || "—", "آخرین زمان health check ثبت‌شده")
+            summaryCard("Ø¢Ù…Ø§Ø¯Ú¯ÛŒ OTP", ready ? "Ø¢Ù…Ø§Ø¯Ù‡" : "Ù†Ø§Ù‚Øµ", readinessMeta, ready ? "ok" : "warn"),
+            summaryCard("Ø³Ø±ÙˆÛŒØ³", s.enabled ? "ÙØ¹Ø§Ù„" : "ØºÛŒØ±ÙØ¹Ø§Ù„", "ÙˆØ¶Ø¹ÛŒØª Ú©Ù„ÛŒ Ø³Ø±ÙˆÛŒØ³ FarazSMS", s.enabled ? "ok" : "warn"),
+            summaryCard("API Key", s.apiKeyConfigured ? "ØªÙ†Ø¸ÛŒÙ… Ø´Ø¯Ù‡" : "ØªÙ†Ø¸ÛŒÙ… Ù†Ø´Ø¯Ù‡", "Ú©Ù„ÛŒØ¯ API ÙÙ‚Ø· Ø±ÙˆÛŒ Ø³Ø±ÙˆØ± Ù†Ú¯Ù‡Ø¯Ø§Ø±ÛŒ Ù…ÛŒâ€ŒØ´ÙˆØ¯.", s.apiKeyConfigured ? "ok" : "warn"),
+            summaryCard("Pattern Code", s.patternConfigured ? "ØªÙ†Ø¸ÛŒÙ… Ø´Ø¯Ù‡" : "ØªÙ†Ø¸ÛŒÙ… Ù†Ø´Ø¯Ù‡", "Ú©Ø¯ Ù¾ØªØ±Ù† Ù…Ø®ØµÙˆØµ Ø§Ø±Ø³Ø§Ù„ OTP.", s.patternConfigured ? "ok" : "warn"),
+            summaryCard("Ø®Ø· Ø§Ø±Ø³Ø§Ù„", s.senderLineConfigured ? (s.senderLine || "ØªÙ†Ø¸ÛŒÙ… Ø´Ø¯Ù‡") : "Ù…Ø³ÛŒØ± Ø®Ø¯Ù…Ø§ØªÛŒ", "Ø¯Ø± Ù†Ø¨ÙˆØ¯ Ø®Ø· Ø§Ø®ØªØµØ§ØµÛŒØŒ Ø§Ø² Ù…Ø³ÛŒØ± Ø®Ø¯Ù…Ø§ØªÛŒ/Ø§Ø´ØªØ±Ø§Ú©ÛŒ Ø§Ø³ØªÙØ§Ø¯Ù‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯."),
+            summaryCard("Ø¯Ø§Ù…Ù†Ù‡", s.domainConfigured ? (s.domain || "ØªÙ†Ø¸ÛŒÙ… Ø´Ø¯Ù‡") : "ØªÙ†Ø¸ÛŒÙ… Ù†Ø´Ø¯Ù‡", "Ø¨Ø±Ø§ÛŒ Ù…Ø§Ù†ÛŒØªÙˆØ±ÛŒÙ†Ú¯ Ùˆ Ø§Ø¹ØªØ¨Ø§Ø±Ø³Ù†Ø¬ÛŒ Ø¯Ø±Ø®ÙˆØ§Ø³Øªâ€ŒÙ‡Ø§."),
+            summaryCard("Ø¢Ø®Ø±ÛŒÙ† ØªØ³Øª Ø³Ù„Ø§Ù…Øª", healthLabel, s.lastHealthMessage || "Ù‡Ù†ÙˆØ² ØªØ³ØªÛŒ Ø§Ø¬Ø±Ø§ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.", healthTone),
+            summaryCard("Ø²Ù…Ø§Ù† Ø¢Ø®Ø±ÛŒÙ† ØªØ³Øª", s.lastHealthAt || "â€”", "Ø¢Ø®Ø±ÛŒÙ† Ø²Ù…Ø§Ù† health check Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡")
         ].join("");
 
         if (ownerSmsEnabled) {
@@ -1137,28 +1243,28 @@
         var m = media && typeof media === "object" ? media : {};
         var usagePercent = toNumber(m.usagePercent, 0);
         ownerMediaStatus.innerHTML = [
-            summaryCard("مصرف فضای مدیریت‌شده", usagePercent.toFixed(2) + "%", formatBytes(m.usageBytes || 0) + " از " + formatBytes(m.targetBytes || 0)),
-            summaryCard("آستانه پاکسازی", toNumber(m.thresholdPercent, 60).toFixed(2) + "%", "وقتی مصرف از این حد عبور کند پاکسازی خودکار اجرا می‌شود"),
-            summaryCard("فایل اصلی باقی‌مانده", String(Math.max(0, Math.floor(toNumber(m.originalCount, 0))).toLocaleString("fa-IR")), "تعداد originalهایی که هنوز در دسترس‌اند"),
-            summaryCard("فایل پاک‌شده", String(Math.max(0, Math.floor(toNumber(m.purgedCount, 0))).toLocaleString("fa-IR")), "تعداد originalهای منقضی/پاک‌شده"),
-            summaryCard("آخرین پاکسازی", m.lastCleanupAt || "—", m.lastCleanupStatus || "unknown"),
-            summaryCard("سلامت پاکسازی", m.cleanupHealthy ? "سالم" : "مشکل‌دار", m.lastCleanupError || "بدون خطای ثبت‌شده")
+            summaryCard("Ù…ØµØ±Ù ÙØ¶Ø§ÛŒ Ù…Ø¯ÛŒØ±ÛŒØªâ€ŒØ´Ø¯Ù‡", usagePercent.toFixed(2) + "%", formatBytes(m.usageBytes || 0) + " Ø§Ø² " + formatBytes(m.targetBytes || 0)),
+            summaryCard("Ø¢Ø³ØªØ§Ù†Ù‡ Ù¾Ø§Ú©Ø³Ø§Ø²ÛŒ", toNumber(m.thresholdPercent, 60).toFixed(2) + "%", "ÙˆÙ‚ØªÛŒ Ù…ØµØ±Ù Ø§Ø² Ø§ÛŒÙ† Ø­Ø¯ Ø¹Ø¨ÙˆØ± Ú©Ù†Ø¯ Ù¾Ø§Ú©Ø³Ø§Ø²ÛŒ Ø®ÙˆØ¯Ú©Ø§Ø± Ø§Ø¬Ø±Ø§ Ù…ÛŒâ€ŒØ´ÙˆØ¯"),
+            summaryCard("ÙØ§ÛŒÙ„ Ø§ØµÙ„ÛŒ Ø¨Ø§Ù‚ÛŒâ€ŒÙ…Ø§Ù†Ø¯Ù‡", String(Math.max(0, Math.floor(toNumber(m.originalCount, 0))).toLocaleString("fa-IR")), "ØªØ¹Ø¯Ø§Ø¯ originalÙ‡Ø§ÛŒÛŒ Ú©Ù‡ Ù‡Ù†ÙˆØ² Ø¯Ø± Ø¯Ø³ØªØ±Ø³â€ŒØ§Ù†Ø¯"),
+            summaryCard("ÙØ§ÛŒÙ„ Ù¾Ø§Ú©â€ŒØ´Ø¯Ù‡", String(Math.max(0, Math.floor(toNumber(m.purgedCount, 0))).toLocaleString("fa-IR")), "ØªØ¹Ø¯Ø§Ø¯ originalÙ‡Ø§ÛŒ Ù…Ù†Ù‚Ø¶ÛŒ/Ù¾Ø§Ú©â€ŒØ´Ø¯Ù‡"),
+            summaryCard("Ø¢Ø®Ø±ÛŒÙ† Ù¾Ø§Ú©Ø³Ø§Ø²ÛŒ", m.lastCleanupAt || "â€”", m.lastCleanupStatus || "unknown"),
+            summaryCard("Ø³Ù„Ø§Ù…Øª Ù¾Ø§Ú©Ø³Ø§Ø²ÛŒ", m.cleanupHealthy ? "Ø³Ø§Ù„Ù…" : "Ù…Ø´Ú©Ù„â€ŒØ¯Ø§Ø±", m.lastCleanupError || "Ø¨Ø¯ÙˆÙ† Ø®Ø·Ø§ÛŒ Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡")
         ].join("");
     }
 
     async function loadOwnerSmsStatus() {
         if (!currentUser || !currentUser.isOwner) return;
         smsState.loading = true;
-        ownerSmsFeedbackMessage("در حال دریافت وضعیت پیامک...", "", true);
+        ownerSmsFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª ÙˆØ¶Ø¹ÛŒØª Ù¾ÛŒØ§Ù…Ú©...", "", true);
         var response = await request("smsStatus", {});
         smsState.loading = false;
 
-        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
             ownerSmsFeedbackMessage("", "");
             return;
         }
         if (!response || !response.success || !response.status) {
-            ownerSmsFeedbackMessage((response && response.error) || "خواندن وضعیت پیامک انجام نشد.", "error");
+            ownerSmsFeedbackMessage((response && response.error) || "Ø®ÙˆØ§Ù†Ø¯Ù† ÙˆØ¶Ø¹ÛŒØª Ù¾ÛŒØ§Ù…Ú© Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
             return;
         }
 
@@ -1171,7 +1277,7 @@
         if (event) event.preventDefault();
         if (!currentUser || !currentUser.isOwner || !ownerSmsForm) return;
 
-        ownerSmsFeedbackMessage("در حال ذخیره تنظیمات پیامک...", "", true);
+        ownerSmsFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø°Ø®ÛŒØ±Ù‡ ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ù¾ÛŒØ§Ù…Ú©...", "", true);
         if (ownerSmsSaveButton) ownerSmsSaveButton.disabled = true;
         if (ownerSmsHealthButton) ownerSmsHealthButton.disabled = true;
 
@@ -1186,12 +1292,12 @@
                 codeParam: ownerSmsCodeParam ? ownerSmsCodeParam.value.trim() : "code"
             });
 
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 ownerSmsFeedbackMessage("", "");
                 return;
             }
             if (!response || !response.success || !response.status) {
-                ownerSmsFeedbackMessage((response && response.error) || "ذخیره تنظیمات پیامک انجام نشد.", "error");
+                ownerSmsFeedbackMessage((response && response.error) || "Ø°Ø®ÛŒØ±Ù‡ ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ù¾ÛŒØ§Ù…Ú© Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
@@ -1199,7 +1305,7 @@
             renderOwnerSmsStatus(smsState.status);
             if (ownerSmsApiKey) ownerSmsApiKey.value = "";
             if (ownerSmsClearApi) ownerSmsClearApi.checked = false;
-            ownerSmsFeedbackMessage(response.message || "تنظیمات پیامک ذخیره شد.", "success");
+            ownerSmsFeedbackMessage(response.message || "ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ù¾ÛŒØ§Ù…Ú© Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯.", "success");
         } finally {
             if (ownerSmsSaveButton) ownerSmsSaveButton.disabled = false;
             if (ownerSmsHealthButton) ownerSmsHealthButton.disabled = false;
@@ -1208,20 +1314,20 @@
 
     async function runOwnerSmsHealthCheck() {
         if (!currentUser || !currentUser.isOwner) return;
-        ownerSmsFeedbackMessage("در حال بررسی سلامت سرویس پیامک...", "", true);
+        ownerSmsFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø±Ø±Ø³ÛŒ Ø³Ù„Ø§Ù…Øª Ø³Ø±ÙˆÛŒØ³ Ù¾ÛŒØ§Ù…Ú©...", "", true);
         if (ownerSmsHealthButton) ownerSmsHealthButton.disabled = true;
         if (ownerSmsSaveButton) ownerSmsSaveButton.disabled = true;
 
         try {
             var testPhone = ensureOwnerSmsHealthPhone();
             if (!testPhone) {
-                ownerSmsFeedbackMessage("برای تست ارسال واقعی، شماره موبایل معتبر را وارد کن.", "error");
+                ownerSmsFeedbackMessage("Ø¨Ø±Ø§ÛŒ ØªØ³Øª Ø§Ø±Ø³Ø§Ù„ ÙˆØ§Ù‚Ø¹ÛŒØŒ Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ Ù…Ø¹ØªØ¨Ø± Ø±Ø§ ÙˆØ§Ø±Ø¯ Ú©Ù†.", "error");
                 return;
             }
             var response = await request("smsHealthCheck", {
                 phoneNumber: testPhone
             });
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 ownerSmsFeedbackMessage("", "");
                 return;
             }
@@ -1230,10 +1336,10 @@
                 renderOwnerSmsStatus(smsState.status);
             }
             if (!response || !response.success) {
-                ownerSmsFeedbackMessage((response && response.error) || (response && response.message) || "تست سلامت سرویس پیامکی ناموفق بود.", "error");
+                ownerSmsFeedbackMessage((response && response.error) || (response && response.message) || "ØªØ³Øª Ø³Ù„Ø§Ù…Øª Ø³Ø±ÙˆÛŒØ³ Ù¾ÛŒØ§Ù…Ú©ÛŒ Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯.", "error");
                 return;
             }
-            ownerSmsFeedbackMessage(response.message || "تست سلامت سرویس پیامکی با موفقیت انجام شد.", "success");
+            ownerSmsFeedbackMessage(response.message || "ØªØ³Øª Ø³Ù„Ø§Ù…Øª Ø³Ø±ÙˆÛŒØ³ Ù¾ÛŒØ§Ù…Ú©ÛŒ Ø¨Ø§ Ù…ÙˆÙÙ‚ÛŒØª Ø§Ù†Ø¬Ø§Ù… Ø´Ø¯.", "success");
         } finally {
             if (ownerSmsHealthButton) ownerSmsHealthButton.disabled = false;
             if (ownerSmsSaveButton) ownerSmsSaveButton.disabled = false;
@@ -1243,14 +1349,14 @@
     async function loadOwnerMediaStatus() {
         if (!currentUser || !currentUser.isOwner) return;
         mediaState.loading = true;
-        ownerMediaFeedbackMessage("در حال دریافت وضعیت فضای رسانه...", "", true);
+        ownerMediaFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª ÙˆØ¶Ø¹ÛŒØª ÙØ¶Ø§ÛŒ Ø±Ø³Ø§Ù†Ù‡...", "", true);
         var response = await fetch("/chat/chat_api.php?action=mediaStatus", {
             method: "GET",
             credentials: "same-origin",
             headers: { "Accept": "application/json" }
         }).then(function (res) {
             return res.json().catch(function () {
-                return { success: false, error: "پاسخ نامعتبر از سرور دریافت شد." };
+                return { success: false, error: "Ù¾Ø§Ø³Ø® Ù†Ø§Ù…Ø¹ØªØ¨Ø± Ø§Ø² Ø³Ø±ÙˆØ± Ø¯Ø±ÛŒØ§ÙØª Ø´Ø¯." };
             }).then(function (data) {
                 data.httpStatus = res.status;
                 return data;
@@ -1258,12 +1364,12 @@
         });
         mediaState.loading = false;
 
-        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
             ownerMediaFeedbackMessage("", "");
             return;
         }
         if (!response || !response.success || !response.media) {
-            ownerMediaFeedbackMessage((response && response.error) || "خواندن وضعیت فضای رسانه انجام نشد.", "error");
+            ownerMediaFeedbackMessage((response && response.error) || "Ø®ÙˆØ§Ù†Ø¯Ù† ÙˆØ¶Ø¹ÛŒØª ÙØ¶Ø§ÛŒ Ø±Ø³Ø§Ù†Ù‡ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
             return;
         }
 
@@ -1274,7 +1380,7 @@
 
     async function runOwnerMediaCleanup() {
         if (!currentUser || !currentUser.isOwner) return;
-        ownerMediaFeedbackMessage("در حال اجرای پاکسازی فوری...", "", true);
+        ownerMediaFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø§Ø¬Ø±Ø§ÛŒ Ù¾Ø§Ú©Ø³Ø§Ø²ÛŒ ÙÙˆØ±ÛŒ...", "", true);
         if (ownerMediaCleanupButton) ownerMediaCleanupButton.disabled = true;
         if (ownerMediaRefreshButton) ownerMediaRefreshButton.disabled = true;
 
@@ -1289,25 +1395,25 @@
                 body: new URLSearchParams({ action: "mediaCleanupNow" })
             }).then(function (res) {
                 return res.json().catch(function () {
-                    return { success: false, error: "پاسخ نامعتبر از سرور دریافت شد." };
+                    return { success: false, error: "Ù¾Ø§Ø³Ø® Ù†Ø§Ù…Ø¹ØªØ¨Ø± Ø§Ø² Ø³Ø±ÙˆØ± Ø¯Ø±ÛŒØ§ÙØª Ø´Ø¯." };
                 }).then(function (data) {
                     data.httpStatus = res.status;
                     return data;
                 });
             });
 
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 ownerMediaFeedbackMessage("", "");
                 return;
             }
             if (!response || !response.success || !response.media) {
-                ownerMediaFeedbackMessage((response && response.error) || "پاکسازی فضای رسانه انجام نشد.", "error");
+                ownerMediaFeedbackMessage((response && response.error) || "Ù¾Ø§Ú©Ø³Ø§Ø²ÛŒ ÙØ¶Ø§ÛŒ Ø±Ø³Ø§Ù†Ù‡ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
             mediaState.status = response.media;
             renderOwnerMediaStatus(mediaState.status);
-            ownerMediaFeedbackMessage("پاکسازی فوری انجام شد.", "success");
+            ownerMediaFeedbackMessage("Ù¾Ø§Ú©Ø³Ø§Ø²ÛŒ ÙÙˆØ±ÛŒ Ø§Ù†Ø¬Ø§Ù… Ø´Ø¯.", "success");
         } finally {
             if (ownerMediaCleanupButton) ownerMediaCleanupButton.disabled = false;
             if (ownerMediaRefreshButton) ownerMediaRefreshButton.disabled = false;
@@ -1334,7 +1440,7 @@
         });
 
         if (!items.length) {
-            representativeList.innerHTML = '<div class="owner-empty">فعلاً نماینده‌ای تعریف نشده است.</div>';
+            representativeList.innerHTML = '<div class="owner-empty">ÙØ¹Ù„Ø§Ù‹ Ù†Ù…Ø§ÛŒÙ†Ø¯Ù‡â€ŒØ§ÛŒ ØªØ¹Ø±ÛŒÙ Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.</div>';
             return;
         }
 
@@ -1352,10 +1458,10 @@
 
     function toggleButtonLabel(user) {
         if (user.role === "owner") {
-            return "مالک اصلی";
+            return "Ù…Ø§Ù„Ú© Ø§ØµÙ„ÛŒ";
         }
 
-        return user.role === "representative" ? "لغو نماینده" : "ثبت به‌عنوان نماینده";
+        return user.role === "representative" ? "Ù„ØºÙˆ Ù†Ù…Ø§ÛŒÙ†Ø¯Ù‡" : "Ø«Ø¨Øª Ø¨Ù‡â€ŒØ¹Ù†ÙˆØ§Ù† Ù†Ù…Ø§ÛŒÙ†Ø¯Ù‡";
     }
 
     function isOwnerUser(user) {
@@ -1364,24 +1470,24 @@
 
     function ownerRoleMeta(user) {
         if (!user) {
-            return "دانشجو";
+            return "Ø¯Ø§Ù†Ø´Ø¬Ùˆ";
         }
-        return user.roleLabel || (user.role === "representative" ? "نماینده" : (user.role === "owner" ? "مالک" : "دانشجو"));
+        return user.roleLabel || (user.role === "representative" ? "Ù†Ù…Ø§ÛŒÙ†Ø¯Ù‡" : (user.role === "owner" ? "Ù…Ø§Ù„Ú©" : "Ø¯Ø§Ù†Ø´Ø¬Ùˆ"));
     }
 
     function ownerUserPhoneMeta(user) {
         var phone = parsedPhone(user || {});
         if (!phone.hasNumber) {
-            return "ثبت نشده";
+            return "Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡";
         }
-        var masked = ltrMaskedPhone(phone.numberMasked, "شماره ثبت‌شده");
+        var masked = ltrMaskedPhone(phone.numberMasked, "Ø´Ù…Ø§Ø±Ù‡ Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡");
         if (!phone.verified) {
-            return masked + " (تایید نشده)";
+            return masked + " (ØªØ§ÛŒÛŒØ¯ Ù†Ø´Ø¯Ù‡)";
         }
         if (phone.otpLoginEnabled) {
-            return masked + " (OTP فعال)";
+            return masked + " (OTP ÙØ¹Ø§Ù„)";
         }
-        return masked + " (OTP غیرفعال)";
+        return masked + " (OTP ØºÛŒØ±ÙØ¹Ø§Ù„)";
     }
 
     function ownerGradesPayload(studentNumber) {
@@ -1411,16 +1517,16 @@
     }
 
     function ownerDetailsToggleLabel(isExpanded) {
-        return isExpanded ? "بستن پنل" : "پنل کاربر";
+        return isExpanded ? "Ø¨Ø³ØªÙ† Ù¾Ù†Ù„" : "Ù¾Ù†Ù„ Ú©Ø§Ø±Ø¨Ø±";
     }
 
     function userMeta(user) {
         var parts = [ownerRoleMeta(user)];
-        parts.push(user.hasPhone ? "دارای شماره" : "بدون شماره");
+        parts.push(user.hasPhone ? "Ø¯Ø§Ø±Ø§ÛŒ Ø´Ù…Ø§Ø±Ù‡" : "Ø¨Ø¯ÙˆÙ† Ø´Ù…Ø§Ø±Ù‡");
         if (user.hasGrades) {
-            parts.push("دارای نمرات");
+            parts.push("Ø¯Ø§Ø±Ø§ÛŒ Ù†Ù…Ø±Ø§Øª");
         }
-        return parts.join(" • ");
+        return parts.join(" â€¢ ");
     }
 
     function buildOwnerMetaCell(label, value) {
@@ -1431,7 +1537,7 @@
         title.textContent = label;
 
         var content = document.createElement("strong");
-        content.textContent = value || "—";
+        content.textContent = value || "â€”";
 
         item.appendChild(title);
         item.appendChild(content);
@@ -1445,10 +1551,10 @@
 
         var metaGrid = document.createElement("div");
         metaGrid.className = "owner-user__meta-grid";
-        metaGrid.appendChild(buildOwnerMetaCell("نام", user.name || "—"));
-        metaGrid.appendChild(buildOwnerMetaCell("شماره دانشجویی", studentNumber || "—"));
-        metaGrid.appendChild(buildOwnerMetaCell("نقش", ownerRoleMeta(user)));
-        metaGrid.appendChild(buildOwnerMetaCell("موبایل", ownerUserPhoneMeta(user)));
+        metaGrid.appendChild(buildOwnerMetaCell("Ù†Ø§Ù…", user.name || "â€”"));
+        metaGrid.appendChild(buildOwnerMetaCell("Ø´Ù…Ø§Ø±Ù‡ Ø¯Ø§Ù†Ø´Ø¬ÙˆÛŒÛŒ", studentNumber || "â€”"));
+        metaGrid.appendChild(buildOwnerMetaCell("Ù†Ù‚Ø´", ownerRoleMeta(user)));
+        metaGrid.appendChild(buildOwnerMetaCell("Ù…ÙˆØ¨Ø§ÛŒÙ„", ownerUserPhoneMeta(user)));
         details.appendChild(metaGrid);
 
         var actions = document.createElement("div");
@@ -1462,8 +1568,8 @@
         loadGradesBtn.dataset.studentNumber = studentNumber;
         loadGradesBtn.disabled = busyState.gradesLoading || busyState.deletingUser;
         loadGradesBtn.textContent = busyState.gradesLoading
-            ? "در حال دریافت کارنامه..."
-            : (gradesPayload ? "بارگذاری مجدد کارنامه" : "نمایش کارنامه");
+            ? "Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª Ú©Ø§Ø±Ù†Ø§Ù…Ù‡..."
+            : (gradesPayload ? "Ø¨Ø§Ø±Ú¯Ø°Ø§Ø±ÛŒ Ù…Ø¬Ø¯Ø¯ Ú©Ø§Ø±Ù†Ø§Ù…Ù‡" : "Ù†Ù…Ø§ÛŒØ´ Ú©Ø§Ø±Ù†Ø§Ù…Ù‡");
         actions.appendChild(loadGradesBtn);
 
         var removePhoneBtn = document.createElement("button");
@@ -1472,7 +1578,7 @@
         removePhoneBtn.dataset.ownerAction = "remove-phone";
         removePhoneBtn.dataset.studentNumber = studentNumber;
         removePhoneBtn.disabled = busyState.removingPhone || busyState.deletingUser || isOwnerUser(user) || !user.hasPhone;
-        removePhoneBtn.textContent = busyState.removingPhone ? "در حال حذف شماره..." : "حذف شماره ثبت‌شده";
+        removePhoneBtn.textContent = busyState.removingPhone ? "Ø¯Ø± Ø­Ø§Ù„ Ø­Ø°Ù Ø´Ù…Ø§Ø±Ù‡..." : "Ø­Ø°Ù Ø´Ù…Ø§Ø±Ù‡ Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡";
         actions.appendChild(removePhoneBtn);
 
         var deleteUserBtn = document.createElement("button");
@@ -1481,7 +1587,7 @@
         deleteUserBtn.dataset.ownerAction = "delete-student";
         deleteUserBtn.dataset.studentNumber = studentNumber;
         deleteUserBtn.disabled = busyState.deletingUser || isOwnerUser(user);
-        deleteUserBtn.textContent = busyState.deletingUser ? "در حال حذف دانشجو..." : "حذف کامل دانشجو";
+        deleteUserBtn.textContent = busyState.deletingUser ? "Ø¯Ø± Ø­Ø§Ù„ Ø­Ø°Ù Ø¯Ø§Ù†Ø´Ø¬Ùˆ..." : "Ø­Ø°Ù Ú©Ø§Ù…Ù„ Ø¯Ø§Ù†Ø´Ø¬Ùˆ";
         actions.appendChild(deleteUserBtn);
 
         details.appendChild(actions);
@@ -1492,7 +1598,7 @@
         if (busyState.gradesLoading && !gradesPayload) {
             var loadingHint = document.createElement("div");
             loadingHint.className = "owner-user__hint";
-            loadingHint.textContent = "در حال دریافت کارنامه...";
+            loadingHint.textContent = "Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª Ú©Ø§Ø±Ù†Ø§Ù…Ù‡...";
             gradesWrap.appendChild(loadingHint);
             details.appendChild(gradesWrap);
             return details;
@@ -1501,7 +1607,7 @@
         if (!gradesPayload) {
             var emptyHint = document.createElement("div");
             emptyHint.className = "owner-user__hint";
-            emptyHint.textContent = "برای مشاهده و ویرایش نمرات، روی «نمایش کارنامه» بزن.";
+            emptyHint.textContent = "Ø¨Ø±Ø§ÛŒ Ù…Ø´Ø§Ù‡Ø¯Ù‡ Ùˆ ÙˆÛŒØ±Ø§ÛŒØ´ Ù†Ù…Ø±Ø§ØªØŒ Ø±ÙˆÛŒ Â«Ù†Ù…Ø§ÛŒØ´ Ú©Ø§Ø±Ù†Ø§Ù…Ù‡Â» Ø¨Ø²Ù†.";
             gradesWrap.appendChild(emptyHint);
             details.appendChild(gradesWrap);
             return details;
@@ -1514,7 +1620,7 @@
         if (!grades.length) {
             var noGrades = document.createElement("div");
             noGrades.className = "owner-user__hint";
-            noGrades.textContent = "ستون نمره‌ای برای این دانشجو پیدا نشد.";
+            noGrades.textContent = "Ø³ØªÙˆÙ† Ù†Ù…Ø±Ù‡â€ŒØ§ÛŒ Ø¨Ø±Ø§ÛŒ Ø§ÛŒÙ† Ø¯Ø§Ù†Ø´Ø¬Ùˆ Ù¾ÛŒØ¯Ø§ Ù†Ø´Ø¯.";
             gradesWrap.appendChild(noGrades);
             details.appendChild(gradesWrap);
             return details;
@@ -1527,7 +1633,7 @@
 
             var label = document.createElement("label");
             label.className = "owner-grade-row__label";
-            label.textContent = String(grade.label || ("ستون " + index));
+            label.textContent = String(grade.label || ("Ø³ØªÙˆÙ† " + index));
             row.appendChild(label);
 
             var controls = document.createElement("div");
@@ -1537,7 +1643,7 @@
             input.type = "text";
             input.inputMode = "decimal";
             input.className = "owner-grade-input";
-            input.placeholder = "بدون نمره";
+            input.placeholder = "Ø¨Ø¯ÙˆÙ† Ù†Ù…Ø±Ù‡";
             input.value = String(grade.value == null ? "" : grade.value);
             input.dataset.gradeInput = "true";
             input.dataset.studentNumber = studentNumber;
@@ -1553,7 +1659,7 @@
             saveBtn.dataset.columnIndex = String(index);
             var isSaving = ownerState.savingGradeKey === ownerGradeSaveKey(studentNumber, index);
             saveBtn.disabled = isSaving || busyState.deletingUser || busyState.gradesLoading;
-            saveBtn.textContent = isSaving ? "در حال ذخیره..." : "ذخیره";
+            saveBtn.textContent = isSaving ? "Ø¯Ø± Ø­Ø§Ù„ Ø°Ø®ÛŒØ±Ù‡..." : "Ø°Ø®ÛŒØ±Ù‡";
             controls.appendChild(saveBtn);
 
             row.appendChild(controls);
@@ -1572,7 +1678,7 @@
         });
 
         if (!visibleUsers.length) {
-            ownerUserList.innerHTML = '<div class="owner-empty">کاربری با این جست‌وجو پیدا نشد.</div>';
+            ownerUserList.innerHTML = '<div class="owner-empty">Ú©Ø§Ø±Ø¨Ø±ÛŒ Ø¨Ø§ Ø§ÛŒÙ† Ø¬Ø³Øªâ€ŒÙˆØ¬Ùˆ Ù¾ÛŒØ¯Ø§ Ù†Ø´Ø¯.</div>';
             return;
         }
 
@@ -1590,9 +1696,9 @@
             var copy = document.createElement("div");
             copy.className = "owner-user__copy";
             var strong = document.createElement("strong");
-            strong.textContent = user.name || "دانشجو";
+            strong.textContent = user.name || "Ø¯Ø§Ù†Ø´Ø¬Ùˆ";
             var number = document.createElement("span");
-            number.textContent = studentNumber || "—";
+            number.textContent = studentNumber || "â€”";
             var meta = document.createElement("small");
             meta.textContent = userMeta(user);
             copy.appendChild(strong);
@@ -1609,7 +1715,7 @@
             representativeBtn.dataset.ownerAction = "toggle-representative";
             representativeBtn.dataset.studentNumber = studentNumber;
             representativeBtn.disabled = isOwnerUser(user) || busyState.representative || busyState.deletingUser;
-            representativeBtn.textContent = busyState.representative ? "در حال ذخیره..." : toggleButtonLabel(user);
+            representativeBtn.textContent = busyState.representative ? "Ø¯Ø± Ø­Ø§Ù„ Ø°Ø®ÛŒØ±Ù‡..." : toggleButtonLabel(user);
             actions.appendChild(representativeBtn);
 
             var panelBtn = document.createElement("button");
@@ -1693,6 +1799,26 @@
     function navidReconnectMessage(text, kind, loading) {
         setInlineFeedback(navidReconnectFeedback, text, kind, loading);
     }
+
+    function navidSyncChallengeVisual(ownerStatus, explicitCaptchaDataUri) {
+        if (!navidCaptchaImage) {
+            return;
+        }
+
+        var state = ownerStatus && typeof ownerStatus === "object" ? (ownerStatus.state || {}) : {};
+        var challengeActive = !!state.hasActiveChallenge;
+        var captchaDataUri = String(explicitCaptchaDataUri || state.captchaDataUri || "").trim();
+
+        if (challengeActive && captchaDataUri) {
+            navidCaptchaImage.hidden = false;
+            navidCaptchaImage.src = captchaDataUri;
+            return;
+        }
+
+        navidCaptchaImage.hidden = true;
+        navidCaptchaImage.removeAttribute("src");
+    }
+
     function navidRenderOwnerStatus(ownerStatus) {
         if (!navidOwnerStatus) {
             return;
@@ -1700,6 +1826,7 @@
 
         if (!ownerStatus || typeof ownerStatus !== "object") {
             navidOwnerStatus.innerHTML = summaryCard("\u0646\u0648\u06cc\u062f", "\u2014", "\u0648\u0636\u0639\u06cc\u062a \u06cc\u06a9\u067e\u0627\u0631\u0686\u0647\u200c\u0633\u0627\u0632\u06cc \u062f\u0631 \u062f\u0633\u062a\u0631\u0633 \u0646\u06cc\u0633\u062a.");
+            navidSyncChallengeVisual(null, "");
             if (accountRowNavidMeta) {
                 accountRowNavidMeta.textContent = "\u0648\u0636\u0639\u06cc\u062a \u0627\u062a\u0635\u0627\u0644 \u062e\u0648\u0627\u0646\u062f\u0647 \u0646\u0634\u062f\u0647 \u0627\u0633\u062a";
             }
@@ -1735,11 +1862,13 @@
         navidOwnerStatus.innerHTML = [
             summaryCard("\u0648\u0636\u0639\u06cc\u062a", navidStatusResultLabel(state.lastResult || ""), statusDetail),
             summaryCard("\u0622\u062e\u0631\u06cc\u0646 \u0645\u0648\u0641\u0642", state.lastSuccessAt || "\u2014", "\u0622\u062e\u0631\u06cc\u0646 \u0632\u0645\u0627\u0646 \u0645\u0648\u0641\u0642\u06cc\u062a \u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc"),
+            summaryCard("\u062f\u0631\u0648\u0633 \u0645\u0648\u0641\u0642", String(counts.successfulCourses || 0).toLocaleString("fa-IR"), "\u062a\u0639\u062f\u0627\u062f \u062f\u0631\u0633\u200c\u0647\u0627\u06cc\u06cc \u06a9\u0647 \u062f\u0631 \u0622\u062e\u0631\u06cc\u0646 sync \u0628\u062f\u0648\u0646 \u062e\u0637\u0627 \u06af\u0631\u0641\u062a\u0647 \u0634\u062f\u0646\u062f.", (counts.successfulCourses || 0) > 0 ? "ok" : ""),
             summaryCard("\u062a\u06a9\u0627\u0644\u06cc\u0641 \u0641\u0639\u0644\u06cc", String(counts.assignments || 0).toLocaleString("fa-IR"), "\u0645\u062c\u0645\u0648\u0639 \u062a\u06a9\u0627\u0644\u06cc\u0641 \u0630\u062e\u06cc\u0631\u0647\u200c\u0634\u062f\u0647 \u062f\u0631 snapshot"),
             summaryCard("\u062f\u0631\u0648\u0633 \u0646\u0627\u0645\u0648\u0641\u0642", String(failedCourses).toLocaleString("fa-IR"), "\u062a\u0627 \u0635\u0641\u0631 \u0646\u0634\u062f\u0646 \u0627\u06cc\u0646 \u0645\u0642\u062f\u0627\u0631\u060c \u062e\u0631\u0648\u062c\u06cc \u0646\u0648\u06cc\u062f \u062a\u0627\u06cc\u06cc\u062f \u0646\u0645\u06cc\u200c\u0634\u0648\u062f.", failedCourses > 0 ? "warn" : "ok"),
             summaryCard("\u0627\u0642\u062f\u0627\u0645 \u0644\u0627\u0632\u0645", navidActionRequiredLabel(actionRequired), "\u0627\u0642\u062f\u0627\u0645\u06cc \u06a9\u0647 \u0628\u0631\u0627\u06cc \u067e\u0627\u06cc\u062f\u0627\u0631\u06cc \u0627\u062a\u0635\u0627\u0644 \u0628\u0627\u06cc\u062f \u0627\u0646\u062c\u0627\u0645 \u0634\u0648\u062f."),
             summaryCard("\u062d\u0633\u0627\u0628 \u0630\u062e\u06cc\u0631\u0647\u200c\u0634\u062f\u0647", config.hasCredentials ? (config.usernameMasked || "\u062b\u0628\u062a \u0634\u062f\u0647") : "\u062b\u0628\u062a \u0646\u0634\u062f\u0647", "\u0646\u0627\u0645 \u06a9\u0627\u0631\u0628\u0631\u06cc \u0631\u0645\u0632\u0646\u06af\u0627\u0631\u06cc\u200c\u0634\u062f\u0647 \u062f\u0631 \u0633\u0631\u0648\u0631"),
-            summaryCard("\u0648\u0636\u0639\u06cc\u062a \u0646\u0634\u0633\u062a", session.status || "missing", "\u0622\u062e\u0631\u06cc\u0646 \u0648\u0636\u0639\u06cc\u062a \u06a9\u0648\u06a9\u06cc \u0646\u0634\u0633\u062a \u0646\u0648\u06cc\u062f")
+            summaryCard("\u0648\u0636\u0639\u06cc\u062a \u0646\u0634\u0633\u062a", session.status || "missing", "\u0622\u062e\u0631\u06cc\u0646 \u0648\u0636\u0639\u06cc\u062a \u062f\u0627\u062f\u0647 \u0646\u0634\u0633\u062a \u0646\u0648\u06cc\u062f"),
+            summaryCard("\u0627\u0646\u0642\u0636\u0627\u06cc \u0686\u0627\u0644\u0634", state.challengeExpiresAt || "\u2014", "\u0627\u06af\u0631 \u06a9\u067e\u0686\u0627\u06cc \u062f\u0633\u062a\u06cc \u0641\u0639\u0627\u0644 \u0628\u0627\u0634\u062f\u060c \u0627\u06cc\u0646 \u0632\u0645\u0627\u0646 \u0628\u0631\u0627\u06cc \u062a\u06a9\u0645\u06cc\u0644 \u0622\u0646 \u0627\u0633\u062a.")
         ].join("");
 
         if (accountRowNavidMeta) {
@@ -1759,6 +1888,7 @@
         if (navidCaptchaStrategyInput) {
             navidCaptchaStrategyInput.value = config.captchaStrategy || "python_ocr";
         }
+        navidSyncChallengeVisual(ownerStatus, "");
     }
 
     async function loadNavidOwnerStatus() {
@@ -1767,19 +1897,19 @@
         }
 
         navidState.loading = true;
-        navidFeedbackMessage("در حال خواندن وضعیت نوید...", "", true);
+        navidFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø®ÙˆØ§Ù†Ø¯Ù† ÙˆØ¶Ø¹ÛŒØª Ù†ÙˆÛŒØ¯...", "", true);
         navidRenderOwnerStatus(navidState.ownerStatus);
 
         var response = await navidGet("ownerStatus");
         navidState.loading = false;
 
-        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
             navidFeedbackMessage("", "");
             return;
         }
 
         if (!response || !response.success || !response.ownerStatus) {
-            navidFeedbackMessage((response && response.error) || "وضعیت نوید خوانده نشد.", "error");
+            navidFeedbackMessage((response && response.error) || "ÙˆØ¶Ø¹ÛŒØª Ù†ÙˆÛŒØ¯ Ø®ÙˆØ§Ù†Ø¯Ù‡ Ù†Ø´Ø¯.", "error");
             return;
         }
 
@@ -1804,26 +1934,26 @@
             password: (navidPasswordInput && navidPasswordInput.value.trim()) || ""
         };
 
-        navidFeedbackMessage("در حال ذخیره تنظیمات نوید...", "", true);
+        navidFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø°Ø®ÛŒØ±Ù‡ ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ù†ÙˆÛŒØ¯...", "", true);
         if (navidSyncNowButton) {
             navidSyncNowButton.disabled = true;
         }
 
         try {
             var response = await navidPost("saveConfig", payload);
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 navidFeedbackMessage("", "");
                 return;
             }
 
             if (!response || !response.success) {
-                navidFeedbackMessage((response && response.error) || "ذخیره تنظیمات نوید انجام نشد.", "error");
+                navidFeedbackMessage((response && response.error) || "Ø°Ø®ÛŒØ±Ù‡ ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ù†ÙˆÛŒØ¯ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
             navidState.ownerStatus = response.ownerStatus || navidState.ownerStatus;
             navidRenderOwnerStatus(navidState.ownerStatus);
-            navidFeedbackMessage(response.message || "تنظیمات نوید ذخیره شد.", "success");
+            navidFeedbackMessage(response.message || "ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ù†ÙˆÛŒØ¯ Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯.", "success");
             if (navidPasswordInput) {
                 navidPasswordInput.value = "";
             }
@@ -1840,22 +1970,28 @@
         }
 
         navidSyncNowButton.disabled = true;
-        navidFeedbackMessage("در حال همگام‌سازی فوری نوید...", "", true);
+        navidFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ ÙÙˆØ±ÛŒ Ù†ÙˆÛŒØ¯...", "", true);
         try {
             var response = await navidPost("syncNow", {});
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 navidFeedbackMessage("", "");
                 return;
             }
 
             if (!response || !response.success) {
-                navidFeedbackMessage((response && response.message) || (response && response.error) || "همگام‌سازی نوید موفق نشد.", "error");
+                navidFeedbackMessage((response && response.message) || (response && response.error) || "Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ Ù†ÙˆÛŒØ¯ Ù…ÙˆÙÙ‚ Ù†Ø´Ø¯.", "error");
             } else {
-                navidFeedbackMessage(response.message || "همگام‌سازی نوید انجام شد.", "success");
+                navidFeedbackMessage(response.message || "Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ Ù†ÙˆÛŒØ¯ Ø§Ù†Ø¬Ø§Ù… Ø´Ø¯.", "success");
             }
 
             navidState.ownerStatus = response.ownerStatus || navidState.ownerStatus;
             navidRenderOwnerStatus(navidState.ownerStatus);
+            if (!response || !response.success) {
+                navidSyncChallengeVisual(navidState.ownerStatus, response && response.captchaDataUri);
+                if (response && response.captchaDataUri) {
+                    navidReconnectMessage("\u06a9\u067e\u0686\u0627\u06cc \u0646\u0648\u06cc\u062f \u0622\u0645\u0627\u062f\u0647 \u0627\u0633\u062a. \u06a9\u062f \u0631\u0627 \u0648\u0627\u0631\u062f \u06a9\u0646 \u0648 \u0627\u062a\u0635\u0627\u0644 \u0645\u062c\u062f\u062f \u0631\u0627 \u0628\u0632\u0646.", "error");
+                }
+            }
         } finally {
             navidSyncNowButton.disabled = false;
         }
@@ -1867,24 +2003,21 @@
         }
 
         navidGetCaptchaButton.disabled = true;
-        navidReconnectMessage("در حال دریافت کپچای نوید...", "", true);
+        navidReconnectMessage("Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª Ú©Ù¾Ú†Ø§ÛŒ Ù†ÙˆÛŒØ¯...", "", true);
         try {
             var response = await navidPost("captchaChallenge", {});
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 navidReconnectMessage("", "");
                 return;
             }
 
             if (!response || !response.success || !response.captchaDataUri) {
-                navidReconnectMessage((response && response.error) || "دریافت کپچا انجام نشد.", "error");
+                navidReconnectMessage((response && response.error) || "Ø¯Ø±ÛŒØ§ÙØª Ú©Ù¾Ú†Ø§ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
-            if (navidCaptchaImage) {
-                navidCaptchaImage.hidden = false;
-                navidCaptchaImage.src = response.captchaDataUri;
-            }
-            navidReconnectMessage("کپچا آماده شد. کد را وارد کن و اتصال مجدد را بزن.", "success");
+            navidSyncChallengeVisual(response.ownerStatus || navidState.ownerStatus, response.captchaDataUri);
+            navidReconnectMessage("Ú©Ù¾Ú†Ø§ Ø¢Ù…Ø§Ø¯Ù‡ Ø´Ø¯. Ú©Ø¯ Ø±Ø§ ÙˆØ§Ø±Ø¯ Ú©Ù† Ùˆ Ø§ØªØµØ§Ù„ Ù…Ø¬Ø¯Ø¯ Ø±Ø§ Ø¨Ø²Ù†.", "success");
             navidState.ownerStatus = response.ownerStatus || navidState.ownerStatus;
             navidRenderOwnerStatus(navidState.ownerStatus);
         } finally {
@@ -1899,25 +2032,29 @@
 
         var captchaCode = (navidCaptchaCodeInput && navidCaptchaCodeInput.value.trim()) || "";
         if (!captchaCode) {
-            navidReconnectMessage("کد کپچا را وارد کن.", "error");
+            navidReconnectMessage("Ú©Ø¯ Ú©Ù¾Ú†Ø§ Ø±Ø§ ÙˆØ§Ø±Ø¯ Ú©Ù†.", "error");
             return;
         }
 
         navidCompleteReconnectButton.disabled = true;
-        navidReconnectMessage("در حال اتصال مجدد نوید...", "", true);
+        navidReconnectMessage("Ø¯Ø± Ø­Ø§Ù„ Ø§ØªØµØ§Ù„ Ù…Ø¬Ø¯Ø¯ Ù†ÙˆÛŒØ¯...", "", true);
         try {
             var response = await navidPost("completeReconnect", { captchaCode: captchaCode });
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 navidReconnectMessage("", "");
                 return;
             }
 
             if (!response || !response.success) {
-                navidReconnectMessage((response && response.error) || "اتصال مجدد نوید انجام نشد.", "error");
+                navidReconnectMessage((response && response.error) || "Ø§ØªØµØ§Ù„ Ù…Ø¬Ø¯Ø¯ Ù†ÙˆÛŒØ¯ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
-            navidReconnectMessage(response.message || "اتصال مجدد نوید انجام شد.", "success");
+            navidReconnectMessage(response.message || "Ø§ØªØµØ§Ù„ Ù…Ø¬Ø¯Ø¯ Ù†ÙˆÛŒØ¯ Ø§Ù†Ø¬Ø§Ù… Ø´Ø¯.", "success");
+            if (response && response.captchaDataUri && navidCaptchaImage) {
+                navidCaptchaImage.hidden = false;
+                navidCaptchaImage.src = response.captchaDataUri;
+            }
             if (navidCaptchaCodeInput) {
                 navidCaptchaCodeInput.value = "";
             }
@@ -1930,24 +2067,24 @@
 
     async function loadOwnerUsers() {
         ownerState.loading = true;
-        ownerFeedbackMessage("در حال گرفتن فهرست کاربران...", "");
-        ownerSummary.innerHTML = summaryCard("کاربر", "…", "در حال بارگذاری داده‌های حساب‌ها");
-        representativeList.innerHTML = '<div class="owner-empty">در حال خواندن نماینده‌ها...</div>';
-        ownerUserList.innerHTML = '<div class="owner-empty">در حال خواندن فهرست کاربران...</div>';
+        ownerFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ú¯Ø±ÙØªÙ† ÙÙ‡Ø±Ø³Øª Ú©Ø§Ø±Ø¨Ø±Ø§Ù†...", "");
+        ownerSummary.innerHTML = summaryCard("Ú©Ø§Ø±Ø¨Ø±", "â€¦", "Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø§Ø±Ú¯Ø°Ø§Ø±ÛŒ Ø¯Ø§Ø¯Ù‡â€ŒÙ‡Ø§ÛŒ Ø­Ø³Ø§Ø¨â€ŒÙ‡Ø§");
+        representativeList.innerHTML = '<div class="owner-empty">Ø¯Ø± Ø­Ø§Ù„ Ø®ÙˆØ§Ù†Ø¯Ù† Ù†Ù…Ø§ÛŒÙ†Ø¯Ù‡â€ŒÙ‡Ø§...</div>';
+        ownerUserList.innerHTML = '<div class="owner-empty">Ø¯Ø± Ø­Ø§Ù„ Ø®ÙˆØ§Ù†Ø¯Ù† ÙÙ‡Ø±Ø³Øª Ú©Ø§Ø±Ø¨Ø±Ø§Ù†...</div>';
         if (accountRowOwnerMeta) {
-            accountRowOwnerMeta.textContent = "در حال بارگذاری کاربران...";
+            accountRowOwnerMeta.textContent = "Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø§Ø±Ú¯Ø°Ø§Ø±ÛŒ Ú©Ø§Ø±Ø¨Ø±Ø§Ù†...";
         }
 
         var response = await requestUsers();
         ownerState.loading = false;
 
-        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
             ownerFeedbackMessage("", "");
             return;
         }
 
         if (!response || !response.success) {
-            ownerFeedbackMessage((response && response.error) || "فهرست کاربران گرفته نشد.", "error");
+            ownerFeedbackMessage((response && response.error) || "ÙÙ‡Ø±Ø³Øª Ú©Ø§Ø±Ø¨Ø±Ø§Ù† Ú¯Ø±ÙØªÙ‡ Ù†Ø´Ø¯.", "error");
             return;
         }
 
@@ -1971,7 +2108,7 @@
 
     async function setRepresentative(studentNumber, representative) {
         ownerState.savingStudentNumber = studentNumber;
-        ownerFeedbackMessage(representative ? "در حال ثبت نماینده..." : "در حال لغو نقش نماینده...", "");
+        ownerFeedbackMessage(representative ? "Ø¯Ø± Ø­Ø§Ù„ Ø«Ø¨Øª Ù†Ù…Ø§ÛŒÙ†Ø¯Ù‡..." : "Ø¯Ø± Ø­Ø§Ù„ Ù„ØºÙˆ Ù†Ù‚Ø´ Ù†Ù…Ø§ÛŒÙ†Ø¯Ù‡...", "");
         renderUsers(ownerState.users);
 
         try {
@@ -1980,13 +2117,13 @@
                 representative: representative ? "1" : "0"
             });
 
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 ownerFeedbackMessage("", "");
                 return;
             }
 
             if (!response || !response.success || !response.user) {
-                ownerFeedbackMessage((response && response.error) || "ذخیره تغییرات انجام نشد.", "error");
+                ownerFeedbackMessage((response && response.error) || "Ø°Ø®ÛŒØ±Ù‡ ØªØºÛŒÛŒØ±Ø§Øª Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
@@ -1994,7 +2131,7 @@
                 return user.studentNumber === response.user.studentNumber ? Object.assign({}, user, response.user) : user;
             });
 
-            ownerFeedbackMessage(response.message || "تغییرات ذخیره شد.", "success");
+            ownerFeedbackMessage(response.message || "ØªØºÛŒÛŒØ±Ø§Øª Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯.", "success");
             renderOwnerPanel();
         } finally {
             ownerState.savingStudentNumber = "";
@@ -2027,20 +2164,20 @@
 
         ownerState.loadingGradesStudentNumber = targetStudentNumber;
         if (!opts.silent) {
-            ownerFeedbackMessage("در حال دریافت کارنامه کاربر...", "");
+            ownerFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª Ú©Ø§Ø±Ù†Ø§Ù…Ù‡ Ú©Ø§Ø±Ø¨Ø±...", "");
         }
         renderUsers(ownerState.users);
 
         try {
             var response = await request("ownerUserGrades", { studentNumber: targetStudentNumber });
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 if (!opts.silent) {
                     ownerFeedbackMessage("", "");
                 }
                 return null;
             }
             if (!response || !response.success || !response.grades) {
-                ownerFeedbackMessage((response && response.error) || "خواندن کارنامه کاربر انجام نشد.", "error");
+                ownerFeedbackMessage((response && response.error) || "Ø®ÙˆØ§Ù†Ø¯Ù† Ú©Ø§Ø±Ù†Ø§Ù…Ù‡ Ú©Ø§Ø±Ø¨Ø± Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return null;
             }
 
@@ -2082,7 +2219,7 @@
         }
 
         ownerState.savingGradeKey = ownerGradeSaveKey(targetStudentNumber, targetColumnIndex);
-        ownerFeedbackMessage("در حال ذخیره نمره...", "");
+        ownerFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø°Ø®ÛŒØ±Ù‡ Ù†Ù…Ø±Ù‡...", "");
         renderUsers(ownerState.users);
 
         try {
@@ -2091,18 +2228,18 @@
                 columnIndex: String(targetColumnIndex),
                 gradeValue: String(gradeValue == null ? "" : gradeValue).trim()
             });
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 ownerFeedbackMessage("", "");
                 return;
             }
             if (!response || !response.success || !response.grades) {
-                ownerFeedbackMessage((response && response.error) || "ذخیره نمره انجام نشد.", "error");
+                ownerFeedbackMessage((response && response.error) || "Ø°Ø®ÛŒØ±Ù‡ Ù†Ù…Ø±Ù‡ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
             ownerState.gradePayloadByStudent[targetStudentNumber] = response.grades;
             upsertOwnerUserRecord(response.user || {});
-            ownerFeedbackMessage(response.message || "نمره ذخیره شد.", "success");
+            ownerFeedbackMessage(response.message || "Ù†Ù…Ø±Ù‡ Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯.", "success");
             renderOwnerPanel();
         } finally {
             ownerState.savingGradeKey = "";
@@ -2123,27 +2260,27 @@
             return;
         }
 
-        var confirmText = "شماره ثبت‌شده کاربر «" + (targetUser.name || targetStudentNumber) + "» حذف شود؟";
+        var confirmText = "Ø´Ù…Ø§Ø±Ù‡ Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡ Ú©Ø§Ø±Ø¨Ø± Â«" + (targetUser.name || targetStudentNumber) + "Â» Ø­Ø°Ù Ø´ÙˆØ¯ØŸ";
         if (!window.confirm(confirmText)) {
             return;
         }
 
         ownerState.removingPhoneStudentNumber = targetStudentNumber;
-        ownerFeedbackMessage("در حال حذف شماره ثبت‌شده کاربر...", "");
+        ownerFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø­Ø°Ù Ø´Ù…Ø§Ø±Ù‡ Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡ Ú©Ø§Ø±Ø¨Ø±...", "");
         renderUsers(ownerState.users);
 
         try {
             var response = await request("ownerRemoveUserPhone", { studentNumber: targetStudentNumber });
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 ownerFeedbackMessage("", "");
                 return;
             }
             if (!response || !response.success || !response.user) {
-                ownerFeedbackMessage((response && response.error) || "حذف شماره کاربر انجام نشد.", "error");
+                ownerFeedbackMessage((response && response.error) || "Ø­Ø°Ù Ø´Ù…Ø§Ø±Ù‡ Ú©Ø§Ø±Ø¨Ø± Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
             upsertOwnerUserRecord(response.user);
-            ownerFeedbackMessage(response.message || "شماره کاربر حذف شد.", "success");
+            ownerFeedbackMessage(response.message || "Ø´Ù…Ø§Ø±Ù‡ Ú©Ø§Ø±Ø¨Ø± Ø­Ø°Ù Ø´Ø¯.", "success");
             renderOwnerPanel();
         } finally {
             ownerState.removingPhoneStudentNumber = "";
@@ -2164,23 +2301,23 @@
             return;
         }
 
-        var confirmText = "حساب دانشجو «" + (targetUser.name || targetStudentNumber) + "» به‌طور کامل حذف شود؟ این عمل قابل بازگشت نیست.";
+        var confirmText = "Ø­Ø³Ø§Ø¨ Ø¯Ø§Ù†Ø´Ø¬Ùˆ Â«" + (targetUser.name || targetStudentNumber) + "Â» Ø¨Ù‡â€ŒØ·ÙˆØ± Ú©Ø§Ù…Ù„ Ø­Ø°Ù Ø´ÙˆØ¯ØŸ Ø§ÛŒÙ† Ø¹Ù…Ù„ Ù‚Ø§Ø¨Ù„ Ø¨Ø§Ø²Ú¯Ø´Øª Ù†ÛŒØ³Øª.";
         if (!window.confirm(confirmText)) {
             return;
         }
 
         ownerState.deletingStudentNumber = targetStudentNumber;
-        ownerFeedbackMessage("در حال حذف دانشجو...", "");
+        ownerFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø­Ø°Ù Ø¯Ø§Ù†Ø´Ø¬Ùˆ...", "");
         renderUsers(ownerState.users);
 
         try {
             var response = await request("ownerDeleteStudent", { studentNumber: targetStudentNumber });
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 ownerFeedbackMessage("", "");
                 return;
             }
             if (!response || !response.success) {
-                ownerFeedbackMessage((response && response.error) || "حذف دانشجو انجام نشد.", "error");
+                ownerFeedbackMessage((response && response.error) || "Ø­Ø°Ù Ø¯Ø§Ù†Ø´Ø¬Ùˆ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
@@ -2191,7 +2328,7 @@
             if (ownerState.expandedStudentNumber === targetStudentNumber) {
                 ownerState.expandedStudentNumber = "";
             }
-            ownerFeedbackMessage(response.message || "حساب دانشجو حذف شد.", "success");
+            ownerFeedbackMessage(response.message || "Ø­Ø³Ø§Ø¨ Ø¯Ø§Ù†Ø´Ø¬Ùˆ Ø­Ø°Ù Ø´Ø¯.", "success");
             renderOwnerPanel();
         } finally {
             ownerState.deletingStudentNumber = "";
@@ -2242,17 +2379,17 @@
         var password = ownerStudentPassword ? ownerStudentPassword.value.trim() : "";
 
         if (!firstName || !lastName || !studentNumber || !password) {
-            ownerCreateStudentFeedbackMessage("همه فیلدها را کامل وارد کن.", "error");
+            ownerCreateStudentFeedbackMessage("Ù‡Ù…Ù‡ ÙÛŒÙ„Ø¯Ù‡Ø§ Ø±Ø§ Ú©Ø§Ù…Ù„ ÙˆØ§Ø±Ø¯ Ú©Ù†.", "error");
             return;
         }
 
         if (password.length < 6) {
-            ownerCreateStudentFeedbackMessage("رمز عبور باید حداقل ۶ کاراکتر باشد.", "error");
+            ownerCreateStudentFeedbackMessage("Ø±Ù…Ø² Ø¹Ø¨ÙˆØ± Ø¨Ø§ÛŒØ¯ Ø­Ø¯Ø§Ù‚Ù„ Û¶ Ú©Ø§Ø±Ø§Ú©ØªØ± Ø¨Ø§Ø´Ø¯.", "error");
             return;
         }
 
         setCreateStudentBusy(true);
-        ownerCreateStudentFeedbackMessage("در حال ایجاد حساب دانشجو...", "", true);
+        ownerCreateStudentFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø§ÛŒØ¬Ø§Ø¯ Ø­Ø³Ø§Ø¨ Ø¯Ø§Ù†Ø´Ø¬Ùˆ...", "", true);
         try {
             var response = await request("createStudent", {
                 firstName: firstName,
@@ -2261,20 +2398,20 @@
                 password: password
             });
 
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 ownerCreateStudentFeedbackMessage("", "");
                 return;
             }
 
             if (!response || !response.success || !response.user) {
-                ownerCreateStudentFeedbackMessage((response && response.error) || "ایجاد حساب دانشجو انجام نشد.", "error");
+                ownerCreateStudentFeedbackMessage((response && response.error) || "Ø§ÛŒØ¬Ø§Ø¯ Ø­Ø³Ø§Ø¨ Ø¯Ø§Ù†Ø´Ø¬Ùˆ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
             if (ownerCreateStudentForm) {
                 ownerCreateStudentForm.reset();
             }
-            ownerCreateStudentFeedbackMessage(response.message || "حساب دانشجو ایجاد شد.", "success");
+            ownerCreateStudentFeedbackMessage(response.message || "Ø­Ø³Ø§Ø¨ Ø¯Ø§Ù†Ø´Ø¬Ùˆ Ø§ÛŒØ¬Ø§Ø¯ Ø´Ø¯.", "success");
             await loadOwnerUsers();
         } finally {
             setCreateStudentBusy(false);
@@ -2302,12 +2439,12 @@
         if (!loginPhoneInput) return;
         var phoneNumber = normalizedPhone(loginPhoneInput.value);
         if (!phoneNumber) {
-            setFeedback(loginOtpFeedback, "شماره موبایل معتبر وارد کن.", "error");
+            setFeedback(loginOtpFeedback, "Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ Ù…Ø¹ØªØ¨Ø± ÙˆØ§Ø±Ø¯ Ú©Ù†.", "error");
             return;
         }
         loginPhoneInput.value = phoneNumber;
         if (loginOtpRequestButton) loginOtpRequestButton.disabled = true;
-        setFeedback(loginOtpFeedback, "در حال ارسال کد تایید...", "", true);
+        setFeedback(loginOtpFeedback, "Ø¯Ø± Ø­Ø§Ù„ Ø§Ø±Ø³Ø§Ù„ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯...", "", true);
         try {
             var auth = window.Dent1402Auth;
             var response = await auth.requestLoginOtp(phoneNumber);
@@ -2315,13 +2452,13 @@
                 if (response && response.cooldownSeconds) {
                     startLoginOtpCooldown(response.cooldownSeconds);
                 }
-                setFeedback(loginOtpFeedback, (response && response.error) || "ارسال کد تایید انجام نشد.", "error");
+                setFeedback(loginOtpFeedback, (response && response.error) || "Ø§Ø±Ø³Ø§Ù„ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
             startLoginOtpCooldown(response.cooldownSeconds || 0);
             var masked = ltrMaskedPhone(response && response.phoneMasked, "");
-            setFeedback(loginOtpFeedback, (response.message || "کد تایید ارسال شد.") + (masked ? (" (" + masked + ")") : ""), "success");
+            setFeedback(loginOtpFeedback, (response.message || "Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ Ø§Ø±Ø³Ø§Ù„ Ø´Ø¯.") + (masked ? (" (" + masked + ")") : ""), "success");
             if (loginOtpCodeInput) {
                 loginOtpCodeInput.focus({ preventScroll: true });
             }
@@ -2336,19 +2473,19 @@
         var phoneNumber = normalizedPhone(loginPhoneInput.value);
         var otpCode = normalizeDigits(loginOtpCodeInput.value).replace(/\D+/g, "");
         if (!phoneNumber || !otpCode) {
-            setFeedback(loginOtpFeedback, "شماره موبایل و کد تایید را کامل وارد کن.", "error");
+            setFeedback(loginOtpFeedback, "Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ Ùˆ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ Ø±Ø§ Ú©Ø§Ù…Ù„ ÙˆØ§Ø±Ø¯ Ú©Ù†.", "error");
             return;
         }
 
         if (loginOtpSubmitButton) loginOtpSubmitButton.disabled = true;
-        setFeedback(loginOtpFeedback, "در حال ورود با کد تایید...", "", true);
+        setFeedback(loginOtpFeedback, "Ø¯Ø± Ø­Ø§Ù„ ÙˆØ±ÙˆØ¯ Ø¨Ø§ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯...", "", true);
         try {
             var state = await window.Dent1402Auth.loginWithOtp(phoneNumber, otpCode);
             if (!state || !state.loggedIn) {
-                setFeedback(loginOtpFeedback, (state && state.error) || "ورود با کد تایید انجام نشد.", "error");
+                setFeedback(loginOtpFeedback, (state && state.error) || "ÙˆØ±ÙˆØ¯ Ø¨Ø§ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
-            setFeedback(loginOtpFeedback, "ورود با کد تایید انجام شد.", "success");
+            setFeedback(loginOtpFeedback, "ÙˆØ±ÙˆØ¯ Ø¨Ø§ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ Ø§Ù†Ø¬Ø§Ù… Ø´Ø¯.", "success");
         } finally {
             if (loginOtpSubmitButton) loginOtpSubmitButton.disabled = false;
         }
@@ -2358,29 +2495,29 @@
         if (!phoneEnrollNumber) return;
         var phoneNumber = normalizedPhone(phoneEnrollNumber.value);
         if (!phoneNumber) {
-            phoneEnrollFeedbackMessage("شماره موبایل معتبر وارد کن.", "error");
+            phoneEnrollFeedbackMessage("Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ Ù…Ø¹ØªØ¨Ø± ÙˆØ§Ø±Ø¯ Ú©Ù†.", "error");
             return;
         }
         phoneEnrollNumber.value = phoneNumber;
 
-        phoneEnrollFeedbackMessage("در حال ارسال کد تایید...", "", true);
+        phoneEnrollFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø§Ø±Ø³Ø§Ù„ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯...", "", true);
         if (phoneEnrollRequestButton) phoneEnrollRequestButton.disabled = true;
         try {
             var response = await window.Dent1402Auth.requestPhoneEnrollOtp(phoneNumber);
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-                phoneEnrollFeedbackMessage("نشستت منقضی شد. دوباره وارد شو.", "error");
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
+                phoneEnrollFeedbackMessage("Ù†Ø´Ø³ØªØª Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯. Ø¯ÙˆØ¨Ø§Ø±Ù‡ ÙˆØ§Ø±Ø¯ Ø´Ùˆ.", "error");
                 return;
             }
             if (!response || !response.success) {
                 if (response && response.cooldownSeconds) {
                     startPhoneEnrollCooldown(response.cooldownSeconds);
                 }
-                phoneEnrollFeedbackMessage((response && response.error) || "ارسال کد تایید انجام نشد.", "error");
+                phoneEnrollFeedbackMessage((response && response.error) || "Ø§Ø±Ø³Ø§Ù„ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
             startPhoneEnrollCooldown(response.cooldownSeconds || 0);
             var masked = ltrMaskedPhone(response && response.phoneMasked, "");
-            phoneEnrollFeedbackMessage((response.message || "کد تایید ارسال شد.") + (masked ? (" (" + masked + ")") : ""), "success");
+            phoneEnrollFeedbackMessage((response.message || "Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ Ø§Ø±Ø³Ø§Ù„ Ø´Ø¯.") + (masked ? (" (" + masked + ")") : ""), "success");
             if (phoneEnrollCode) {
                 phoneEnrollCode.focus({ preventScroll: true });
             }
@@ -2394,20 +2531,20 @@
         var phoneNumber = normalizedPhone(phoneEnrollNumber.value);
         var otpCode = normalizeDigits(phoneEnrollCode.value).replace(/\D+/g, "");
         if (!phoneNumber || !otpCode) {
-            phoneEnrollFeedbackMessage("شماره موبایل و کد تایید را کامل وارد کن.", "error");
+            phoneEnrollFeedbackMessage("Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ Ùˆ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ Ø±Ø§ Ú©Ø§Ù…Ù„ ÙˆØ§Ø±Ø¯ Ú©Ù†.", "error");
             return;
         }
 
         if (phoneEnrollSubmitButton) phoneEnrollSubmitButton.disabled = true;
-        phoneEnrollFeedbackMessage("در حال تایید شماره موبایل...", "", true);
+        phoneEnrollFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ ØªØ§ÛŒÛŒØ¯ Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„...", "", true);
         try {
             var response = await window.Dent1402Auth.verifyPhoneEnrollOtp(phoneNumber, otpCode);
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-                phoneEnrollFeedbackMessage("نشستت منقضی شد. دوباره وارد شو.", "error");
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
+                phoneEnrollFeedbackMessage("Ù†Ø´Ø³ØªØª Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯. Ø¯ÙˆØ¨Ø§Ø±Ù‡ ÙˆØ§Ø±Ø¯ Ø´Ùˆ.", "error");
                 return;
             }
             if (!response || !response.success || !response.user) {
-                phoneEnrollFeedbackMessage((response && response.error) || "تایید شماره انجام نشد.", "error");
+                phoneEnrollFeedbackMessage((response && response.error) || "ØªØ§ÛŒÛŒØ¯ Ø´Ù…Ø§Ø±Ù‡ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
             currentUser = response.user;
@@ -2416,7 +2553,7 @@
             if (phoneEnrollCode) {
                 phoneEnrollCode.value = "";
             }
-            phoneEnrollFeedbackMessage(response.message || "شماره موبایل تایید شد.", "success");
+            phoneEnrollFeedbackMessage(response.message || "Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ ØªØ§ÛŒÛŒØ¯ Ø´Ø¯.", "success");
             phoneToggleFeedbackMessage("", "");
         } finally {
             if (phoneEnrollSubmitButton) phoneEnrollSubmitButton.disabled = false;
@@ -2427,21 +2564,21 @@
         if (!phoneLoginEnabledInput) return;
         var enabled = !!phoneLoginEnabledInput.checked;
         if (phoneLoginSaveButton) phoneLoginSaveButton.disabled = true;
-        phoneToggleFeedbackMessage("در حال ذخیره وضعیت ورود پیامکی...", "", true);
+        phoneToggleFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø°Ø®ÛŒØ±Ù‡ ÙˆØ¶Ø¹ÛŒØª ÙˆØ±ÙˆØ¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ...", "", true);
         try {
             var response = await window.Dent1402Auth.setPhoneLoginEnabled(enabled);
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-                phoneToggleFeedbackMessage("نشستت منقضی شد. دوباره وارد شو.", "error");
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
+                phoneToggleFeedbackMessage("Ù†Ø´Ø³ØªØª Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯. Ø¯ÙˆØ¨Ø§Ø±Ù‡ ÙˆØ§Ø±Ø¯ Ø´Ùˆ.", "error");
                 return;
             }
             if (!response || !response.success || !response.user) {
-                phoneToggleFeedbackMessage((response && response.error) || "ذخیره وضعیت ورود پیامکی انجام نشد.", "error");
+                phoneToggleFeedbackMessage((response && response.error) || "Ø°Ø®ÛŒØ±Ù‡ ÙˆØ¶Ø¹ÛŒØª ÙˆØ±ÙˆØ¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
             currentUser = response.user;
             renderIdentity(response.user);
             applyPhoneDetailsFromCurrentUser();
-            phoneToggleFeedbackMessage(response.message || "وضعیت ورود پیامکی ذخیره شد.", "success");
+            phoneToggleFeedbackMessage(response.message || "ÙˆØ¶Ø¹ÛŒØª ÙˆØ±ÙˆØ¯ Ù¾ÛŒØ§Ù…Ú©ÛŒ Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯.", "success");
         } finally {
             if (phoneLoginSaveButton) phoneLoginSaveButton.disabled = false;
         }
@@ -2453,7 +2590,7 @@
         }
         phoneEnrollNumber.focus({ preventScroll: true });
         phoneEnrollNumber.select();
-        phoneManageFeedbackMessage("شماره جدید را وارد کن، کد تایید بگیر و ثبت کن.", "success");
+        phoneManageFeedbackMessage("Ø´Ù…Ø§Ø±Ù‡ Ø¬Ø¯ÛŒØ¯ Ø±Ø§ ÙˆØ§Ø±Ø¯ Ú©Ù†ØŒ Ú©Ø¯ ØªØ§ÛŒÛŒØ¯ Ø¨Ú¯ÛŒØ± Ùˆ Ø«Ø¨Øª Ú©Ù†.", "success");
     }
 
     async function removePhoneNumber() {
@@ -2463,12 +2600,12 @@
 
         var phone = parsedPhone(currentUser);
         if (!phone.hasNumber) {
-            phoneManageFeedbackMessage("شماره‌ای برای حذف ثبت نشده است.", "error");
+            phoneManageFeedbackMessage("Ø´Ù…Ø§Ø±Ù‡â€ŒØ§ÛŒ Ø¨Ø±Ø§ÛŒ Ø­Ø°Ù Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.", "error");
             return;
         }
 
-        var masked = ltrMaskedPhone(phone.numberMasked, "شماره فعلی");
-        var confirmed = window.confirm("شماره " + masked + " از این حساب حذف شود؟");
+        var masked = ltrMaskedPhone(phone.numberMasked, "Ø´Ù…Ø§Ø±Ù‡ ÙØ¹Ù„ÛŒ");
+        var confirmed = window.confirm("Ø´Ù…Ø§Ø±Ù‡ " + masked + " Ø§Ø² Ø§ÛŒÙ† Ø­Ø³Ø§Ø¨ Ø­Ø°Ù Ø´ÙˆØ¯ØŸ");
         if (!confirmed) {
             return;
         }
@@ -2476,15 +2613,15 @@
         if (phoneNumberRemoveButton) {
             phoneNumberRemoveButton.disabled = true;
         }
-        phoneManageFeedbackMessage("در حال حذف شماره موبایل...", "", true);
+        phoneManageFeedbackMessage("Ø¯Ø± Ø­Ø§Ù„ Ø­Ø°Ù Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„...", "", true);
         try {
             var response = await window.Dent1402Auth.removePhoneNumber();
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-                phoneManageFeedbackMessage("نشستت منقضی شد. دوباره وارد شو.", "error");
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
+                phoneManageFeedbackMessage("Ù†Ø´Ø³ØªØª Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯. Ø¯ÙˆØ¨Ø§Ø±Ù‡ ÙˆØ§Ø±Ø¯ Ø´Ùˆ.", "error");
                 return;
             }
             if (!response || !response.success || !response.user) {
-                phoneManageFeedbackMessage((response && response.error) || "حذف شماره انجام نشد.", "error");
+                phoneManageFeedbackMessage((response && response.error) || "Ø­Ø°Ù Ø´Ù…Ø§Ø±Ù‡ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
             currentUser = response.user;
@@ -2499,7 +2636,7 @@
             }
             phoneEnrollFeedbackMessage("", "");
             phoneToggleFeedbackMessage("", "");
-            phoneManageFeedbackMessage(response.message || "شماره موبایل حذف شد.", "success");
+            phoneManageFeedbackMessage(response.message || "Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ Ø­Ø°Ù Ø´Ø¯.", "success");
         } finally {
             if (phoneNumberRemoveButton) {
                 phoneNumberRemoveButton.disabled = false;
@@ -2512,7 +2649,7 @@
         if (accountPhoneNudgeDismiss) accountPhoneNudgeDismiss.disabled = true;
         try {
             var response = await window.Dent1402Auth.dismissPhoneNudge();
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
                 return;
             }
             if (!response || !response.success || !response.user) {
@@ -2536,7 +2673,7 @@
         }
 
         redirectedAfterLogin = true;
-        setBootText("ورود انجام شد، در حال بازگشت...");
+        setBootText("ÙˆØ±ÙˆØ¯ Ø§Ù†Ø¬Ø§Ù… Ø´Ø¯ØŒ Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø§Ø²Ú¯Ø´Øª...");
         showStage("boot");
 
         window.setTimeout(function () {
@@ -2546,19 +2683,19 @@
 
     function handleAuthState(detail) {
         if (detail.status === "session-restoring") {
-            setBootText("در حال بازیابی نشست...");
+            setBootText("Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø§Ø²ÛŒØ§Ø¨ÛŒ Ù†Ø´Ø³Øª...");
             showStage("boot");
             return;
         }
 
         if (detail.status === "logging-in") {
-            setFeedback(loginFeedback, "در حال ورود...", "", true);
+            setFeedback(loginFeedback, "Ø¯Ø± Ø­Ø§Ù„ ÙˆØ±ÙˆØ¯...", "", true);
             showStage("login");
             return;
         }
 
         if (detail.status === "logging-out") {
-            setBootText("در حال خروج از حساب...");
+            setBootText("Ø¯Ø± Ø­Ø§Ù„ Ø®Ø±ÙˆØ¬ Ø§Ø² Ø­Ø³Ø§Ø¨...");
             showStage("boot");
             return;
         }
@@ -2575,31 +2712,31 @@
                 accountRotation.textContent = "";
             }
             if (accountInfoRole) {
-                accountInfoRole.textContent = "—";
+                accountInfoRole.textContent = "â€”";
             }
             if (accountInfoSession) {
-                accountInfoSession.textContent = "—";
+                accountInfoSession.textContent = "â€”";
             }
             if (accountInfoRotation) {
-                accountInfoRotation.textContent = "—";
+                accountInfoRotation.textContent = "â€”";
             }
             if (accountRowProfileMeta) {
-                accountRowProfileMeta.textContent = "ویرایش آواتار، بیو و راه ارتباطی";
+                accountRowProfileMeta.textContent = "ÙˆÛŒØ±Ø§ÛŒØ´ Ø¢ÙˆØ§ØªØ§Ø±ØŒ Ø¨ÛŒÙˆ Ùˆ Ø±Ø§Ù‡ Ø§Ø±ØªØ¨Ø§Ø·ÛŒ";
             }
             if (accountRowInfoMeta) {
-                accountRowInfoMeta.textContent = "نام، شماره دانشجویی و نوع دسترسی";
+                accountRowInfoMeta.textContent = "Ù†Ø§Ù…ØŒ Ø´Ù…Ø§Ø±Ù‡ Ø¯Ø§Ù†Ø´Ø¬ÙˆÛŒÛŒ Ùˆ Ù†ÙˆØ¹ Ø¯Ø³ØªØ±Ø³ÛŒ";
             }
             if (accountRowOwnerMeta) {
-                accountRowOwnerMeta.textContent = "مدیریت کاربران، نماینده‌ها و ایجاد دانشجو";
+                accountRowOwnerMeta.textContent = "Ù…Ø¯ÛŒØ±ÛŒØª Ú©Ø§Ø±Ø¨Ø±Ø§Ù†ØŒ Ù†Ù…Ø§ÛŒÙ†Ø¯Ù‡â€ŒÙ‡Ø§ Ùˆ Ø§ÛŒØ¬Ø§Ø¯ Ø¯Ø§Ù†Ø´Ø¬Ùˆ";
             }
             if (accountRowNavidMeta) {
-                accountRowNavidMeta.textContent = "وضعیت اتصال و همگام‌سازی نوید";
+                accountRowNavidMeta.textContent = "ÙˆØ¶Ø¹ÛŒØª Ø§ØªØµØ§Ù„ Ùˆ Ù‡Ù…Ú¯Ø§Ù…â€ŒØ³Ø§Ø²ÛŒ Ù†ÙˆÛŒØ¯";
             }
             if (accountRowPollsMeta) {
                 accountRowPollsMeta.textContent = "\u062f\u0633\u062a\u0631\u0633\u06cc \u0645\u062f\u06cc\u0631\u06cc\u062a \u0646\u0638\u0631\u0633\u0646\u062c\u06cc \u0628\u0631\u0627\u06cc \u0645\u0627\u0644\u06a9/\u0646\u0645\u0627\u06cc\u0646\u062f\u0647 \u0641\u0639\u0627\u0644 \u0627\u0633\u062a.";
             }
             if (accountRowPhoneMeta) {
-                accountRowPhoneMeta.textContent = "ثبت شماره موبایل، تایید با OTP و فعال‌سازی مسیر دوم ورود";
+                accountRowPhoneMeta.textContent = "Ø«Ø¨Øª Ø´Ù…Ø§Ø±Ù‡ Ù…ÙˆØ¨Ø§ÛŒÙ„ØŒ ØªØ§ÛŒÛŒØ¯ Ø¨Ø§ OTP Ùˆ ÙØ¹Ø§Ù„â€ŒØ³Ø§Ø²ÛŒ Ù…Ø³ÛŒØ± Ø¯ÙˆÙ… ÙˆØ±ÙˆØ¯";
             }
             if (ownerHubSection) {
                 ownerHubSection.hidden = true;
@@ -2615,11 +2752,12 @@
             if (pollManagerHubSection) {
                 pollManagerHubSection.hidden = true;
             }
+            resetActivePollShortcut();
             if (accountPhoneNudge) {
                 accountPhoneNudge.hidden = true;
             }
             if (phoneStatusSummary) {
-                phoneStatusSummary.textContent = "—";
+                phoneStatusSummary.textContent = "â€”";
             }
             if (phoneLoginEnabledInput) {
                 phoneLoginEnabledInput.checked = false;
@@ -2633,7 +2771,7 @@
             setInlineFeedback(profileAvatarFeedback, "", "");
             setProfileBusy(false);
             if (detail.status === "login-error" || detail.status === "unauthorized") {
-                setFeedback(loginFeedback, detail.error || "ورود انجام نشد.", "error");
+                setFeedback(loginFeedback, detail.error || "ÙˆØ±ÙˆØ¯ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
             } else {
                 setFeedback(loginFeedback, "", "");
             }
@@ -2652,6 +2790,7 @@
         if (pollManagerHubSection) {
             pollManagerHubSection.hidden = !hasPollManagementAccess(detail.user);
         }
+        loadActivePollShortcut(detail.user);
 
         if (detail.user.isOwner) {
             if (ownerHubSection) {
@@ -2827,7 +2966,7 @@
         var password = $("login-password").value.trim();
 
         if (!studentNumber || !password) {
-            setFeedback(loginFeedback, "شماره دانشجویی و رمز عبور را کامل وارد کن.", "error");
+            setFeedback(loginFeedback, "Ø´Ù…Ø§Ø±Ù‡ Ø¯Ø§Ù†Ø´Ø¬ÙˆÛŒÛŒ Ùˆ Ø±Ù…Ø² Ø¹Ø¨ÙˆØ± Ø±Ø§ Ú©Ø§Ù…Ù„ ÙˆØ§Ø±Ø¯ Ú©Ù†.", "error");
             return;
         }
 
@@ -2845,23 +2984,23 @@
             }
 
             if (file.size > (12 * 1024 * 1024)) {
-                setInlineFeedback(profileAvatarFeedback, "حجم فایل زیاد است. یک عکس کوچک‌تر انتخاب کن.", "error");
+                setInlineFeedback(profileAvatarFeedback, "Ø­Ø¬Ù… ÙØ§ÛŒÙ„ Ø²ÛŒØ§Ø¯ Ø§Ø³Øª. ÛŒÚ© Ø¹Ú©Ø³ Ú©ÙˆÚ†Ú©â€ŒØªØ± Ø§Ù†ØªØ®Ø§Ø¨ Ú©Ù†.", "error");
                 profileAvatarFile.value = "";
                 return;
             }
 
             setProfileAvatarProcessing(true);
-            setInlineFeedback(profileAvatarFeedback, "در حال آماده‌سازی عکس...", "", true);
+            setInlineFeedback(profileAvatarFeedback, "Ø¯Ø± Ø­Ø§Ù„ Ø¢Ù…Ø§Ø¯Ù‡â€ŒØ³Ø§Ø²ÛŒ Ø¹Ú©Ø³...", "", true);
             imageFileToAvatarDataUrl(file).then(function (avatarDataUrl) {
                 profileDraftAvatarUrl = avatarDataUrl;
                 updateIdentityAvatars($("profile-name").value || $("account-name").textContent || "");
-                setInlineFeedback(profileAvatarFeedback, "عکس آماده شد. برای ثبت نهایی، ذخیره تغییرات را بزن.", "success");
+                setInlineFeedback(profileAvatarFeedback, "Ø¹Ú©Ø³ Ø¢Ù…Ø§Ø¯Ù‡ Ø´Ø¯. Ø¨Ø±Ø§ÛŒ Ø«Ø¨Øª Ù†Ù‡Ø§ÛŒÛŒØŒ Ø°Ø®ÛŒØ±Ù‡ ØªØºÛŒÛŒØ±Ø§Øª Ø±Ø§ Ø¨Ø²Ù†.", "success");
             }).catch(function (error) {
                 if (error && error.message === "avatar-too-large") {
-                    setInlineFeedback(profileAvatarFeedback, "حجم عکس نهایی بیشتر از حد مجاز است. عکس ساده‌تری انتخاب کن.", "error");
+                    setInlineFeedback(profileAvatarFeedback, "Ø­Ø¬Ù… Ø¹Ú©Ø³ Ù†Ù‡Ø§ÛŒÛŒ Ø¨ÛŒØ´ØªØ± Ø§Ø² Ø­Ø¯ Ù…Ø¬Ø§Ø² Ø§Ø³Øª. Ø¹Ú©Ø³ Ø³Ø§Ø¯Ù‡â€ŒØªØ±ÛŒ Ø§Ù†ØªØ®Ø§Ø¨ Ú©Ù†.", "error");
                     return;
                 }
-                setInlineFeedback(profileAvatarFeedback, "خواندن عکس انجام نشد. دوباره تلاش کن.", "error");
+                setInlineFeedback(profileAvatarFeedback, "Ø®ÙˆØ§Ù†Ø¯Ù† Ø¹Ú©Ø³ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯. Ø¯ÙˆØ¨Ø§Ø±Ù‡ ØªÙ„Ø§Ø´ Ú©Ù†.", "error");
             }).finally(function () {
                 setProfileAvatarProcessing(false);
                 profileAvatarFile.value = "";
@@ -2877,7 +3016,7 @@
 
             profileDraftAvatarUrl = "";
             updateIdentityAvatars($("profile-name").value || $("account-name").textContent || "");
-            setInlineFeedback(profileAvatarFeedback, "عکس پروفایل حذف شد. برای ثبت نهایی، ذخیره تغییرات را بزن.", "success");
+            setInlineFeedback(profileAvatarFeedback, "Ø¹Ú©Ø³ Ù¾Ø±ÙˆÙØ§ÛŒÙ„ Ø­Ø°Ù Ø´Ø¯. Ø¨Ø±Ø§ÛŒ Ø«Ø¨Øª Ù†Ù‡Ø§ÛŒÛŒØŒ Ø°Ø®ÛŒØ±Ù‡ ØªØºÛŒÛŒØ±Ø§Øª Ø±Ø§ Ø¨Ø²Ù†.", "success");
         });
     }
 
@@ -2885,7 +3024,7 @@
         event.preventDefault();
 
         setProfileBusy(true);
-        setFeedback(profileFeedback, "در حال ذخیره پروفایل...", "", true);
+        setFeedback(profileFeedback, "Ø¯Ø± Ø­Ø§Ù„ Ø°Ø®ÛŒØ±Ù‡ Ù¾Ø±ÙˆÙØ§ÛŒÙ„...", "", true);
 
         try {
             var response = await request("updateProfile", {
@@ -2895,13 +3034,13 @@
                 avatarUrl: profileDraftAvatarUrl
             });
 
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-                setFeedback(profileFeedback, "نشستت منقضی شد. دوباره وارد شو.", "error");
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
+                setFeedback(profileFeedback, "Ù†Ø´Ø³ØªØª Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯. Ø¯ÙˆØ¨Ø§Ø±Ù‡ ÙˆØ§Ø±Ø¯ Ø´Ùˆ.", "error");
                 return;
             }
 
             if (!response || !response.success || !response.user) {
-                setFeedback(profileFeedback, (response && response.error) || "ذخیره پروفایل انجام نشد.", "error");
+                setFeedback(profileFeedback, (response && response.error) || "Ø°Ø®ÛŒØ±Ù‡ Ù¾Ø±ÙˆÙØ§ÛŒÙ„ Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
@@ -2910,7 +3049,7 @@
             } else {
                 window.Dent1402Auth.bootstrap(true);
             }
-            setFeedback(profileFeedback, response.message || "پروفایل ذخیره شد.", "success");
+            setFeedback(profileFeedback, response.message || "Ù¾Ø±ÙˆÙØ§ÛŒÙ„ Ø°Ø®ÛŒØ±Ù‡ Ø´Ø¯.", "success");
             setInlineFeedback(profileAvatarFeedback, "", "");
         } finally {
             setProfileBusy(false);
@@ -2925,17 +3064,17 @@
         var confirmPassword = $("security-confirm-password").value.trim();
 
         if (!currentPassword || !newPassword || !confirmPassword) {
-            setFeedback(securityFeedback, "همه فیلدهای رمز را کامل کن.", "error");
+            setFeedback(securityFeedback, "Ù‡Ù…Ù‡ ÙÛŒÙ„Ø¯Ù‡Ø§ÛŒ Ø±Ù…Ø² Ø±Ø§ Ú©Ø§Ù…Ù„ Ú©Ù†.", "error");
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            setFeedback(securityFeedback, "رمز جدید و تکرارش یکسان نیست.", "error");
+            setFeedback(securityFeedback, "Ø±Ù…Ø² Ø¬Ø¯ÛŒØ¯ Ùˆ ØªÚ©Ø±Ø§Ø±Ø´ ÛŒÚ©Ø³Ø§Ù† Ù†ÛŒØ³Øª.", "error");
             return;
         }
 
         securitySubmit.disabled = true;
-        setFeedback(securityFeedback, "در حال تغییر رمز...", "", true);
+        setFeedback(securityFeedback, "Ø¯Ø± Ø­Ø§Ù„ ØªØºÛŒÛŒØ± Ø±Ù…Ø²...", "", true);
 
         try {
             var response = await request("changePassword", {
@@ -2943,20 +3082,20 @@
                 newPassword: newPassword
             });
 
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-                setFeedback(securityFeedback, "نشستت منقضی شد. دوباره وارد شو.", "error");
+            if (consumeUnauthorized(response, "Ù†Ø´Ø³Øª Ø´Ù…Ø§ Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯Ù‡ Ø§Ø³Øª.")) {
+                setFeedback(securityFeedback, "Ù†Ø´Ø³ØªØª Ù…Ù†Ù‚Ø¶ÛŒ Ø´Ø¯. Ø¯ÙˆØ¨Ø§Ø±Ù‡ ÙˆØ§Ø±Ø¯ Ø´Ùˆ.", "error");
                 return;
             }
 
             if (!response || !response.success) {
-                setFeedback(securityFeedback, (response && response.error) || "تغییر رمز انجام نشد.", "error");
+                setFeedback(securityFeedback, (response && response.error) || "ØªØºÛŒÛŒØ± Ø±Ù…Ø² Ø§Ù†Ø¬Ø§Ù… Ù†Ø´Ø¯.", "error");
                 return;
             }
 
             $("security-current-password").value = "";
             $("security-new-password").value = "";
             $("security-confirm-password").value = "";
-            setFeedback(securityFeedback, response.message || "رمز عبور تغییر کرد.", "success");
+            setFeedback(securityFeedback, response.message || "Ø±Ù…Ø² Ø¹Ø¨ÙˆØ± ØªØºÛŒÛŒØ± Ú©Ø±Ø¯.", "success");
         } finally {
             securitySubmit.disabled = false;
         }

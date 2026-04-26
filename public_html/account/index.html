@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260425-191551">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260425-191551">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260425-191551">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260426-192939">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260426-192939">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260426-192939">
     <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
     <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260425-ownerpanel1">
@@ -235,6 +235,16 @@
                         </span>
                         <span class="account-list-row__chevron" aria-hidden="true">‹</span>
                     </button>
+                    <a class="account-list-row account-list-row--link" href="/dis-request/manage/">
+                        <span class="account-list-row__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><rect x="4" y="4.2" width="16" height="15.6" rx="3.6"></rect><path d="M8 9h8"></path><path d="M8 12.2h6.2"></path><path d="M8 15.4h5.1"></path><path d="m15.8 14.7 1.1 1.1 2-2"></path></svg>
+                        </span>
+                        <span class="account-list-row__copy">
+                            <strong>مدیریت فرم DIS</strong>
+                            <small>لینک عمومی فرم، وضعیت تکمیل، بررسی پاسخ‌ها و خروجی‌های Excel</small>
+                        </span>
+                        <span class="account-list-row__chevron" aria-hidden="true">‹</span>
+                    </a>
                 </section>
 
                 <section id="account-poll-manager-section" class="account-list-group account-list-group--admin" aria-label="مدیریت نظرسنجی" hidden>
@@ -275,13 +285,23 @@
                         </span>
                         <span class="account-list-row__chevron" aria-hidden="true">‹</span>
                     </a>
-                    <a class="account-list-row account-list-row--link account-list-row--polls-active" href="/chat/polls/?mode=active">
+                    <a class="account-list-row account-list-row--link" href="/dis-request/">
+                        <span class="account-list-row__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><rect x="4" y="4.2" width="16" height="15.6" rx="3.6"></rect><path d="M8 9h8"></path><path d="M8 12.2h6.2"></path><path d="M8 15.4h5.1"></path><path d="m15.8 14.7 1.1 1.1 2-2"></path></svg>
+                        </span>
+                        <span class="account-list-row__copy">
+                            <strong>فرم درخواست ایجاد کاربری در DIS</strong>
+                            <small>تکمیل فرم اختصاصی احراز هویت‌شده برای درخواست کاربری DIS</small>
+                        </span>
+                        <span class="account-list-row__chevron" aria-hidden="true">‹</span>
+                    </a>
+                    <a id="account-active-polls-row" class="account-list-row account-list-row--link account-list-row--polls-active" href="/chat/polls/?mode=active" hidden>
                         <span class="account-list-row__icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24"><rect x="4" y="4.2" width="16" height="15.6" rx="3.6"></rect><path d="M8 9h8"></path><path d="M8 12.2h6.4"></path><path d="M8 15.4h4.6"></path><circle cx="16.9" cy="15.2" r="1.4"></circle></svg>
                         </span>
                         <span class="account-list-row__copy">
                             <strong>نظرسنجی‌های فعال</strong>
-                            <small>شرکت در نظرسنجی‌های باز و مرتبط با روتیشن/گروه شما</small>
+                            <small id="account-active-polls-meta">شرکت در نظرسنجی‌های باز و مرتبط با روتیشن/گروه شما</small>
                         </span>
                         <span class="account-list-row__chevron" aria-hidden="true">‹</span>
                     </a>
@@ -706,7 +726,7 @@
 
     <script src="/assets/site/scripts/auth.js?v=20260425-authotp2"></script>
     <script src="/assets/site/scripts/account.js?v=20260425-ownerpanel1"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260425-191551"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260426-192939"></script>
     <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
 </body>
 </html>

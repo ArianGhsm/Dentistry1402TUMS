@@ -40,7 +40,7 @@ function dent_rotation_name_canonical(string $value): string
     );
     $normalized = preg_replace('/[\x{200c}\x{200d}\x{200e}\x{200f}\s\-_]+/u', '', $normalized) ?? '';
     $normalized = preg_replace('/[^\p{L}\p{N}]+/u', '', $normalized) ?? '';
-    $normalized = trim(mb_strtolower($normalized, 'UTF-8'));
+    $normalized = trim(dent_utf8_strtolower($normalized));
     return $normalized;
 }
 
@@ -57,7 +57,7 @@ function dent_rotation_name_keys(string $value): array
         if (!str_starts_with($base, $prefix)) {
             continue;
         }
-        $next = trim(mb_substr($base, mb_strlen($prefix, 'UTF-8'), null, 'UTF-8'));
+        $next = trim(dent_utf8_substr($base, dent_utf8_strlen($prefix), dent_utf8_strlen($base)));
         if ($next !== '') {
             $keys[$next] = true;
         }
@@ -311,11 +311,11 @@ function dent_rotation_assignment_for_name(string $name): ?array
     }
 
     foreach ($keys as $key) {
-        if (mb_strlen($key, 'UTF-8') < 6) {
+        if (dent_utf8_strlen($key) < 6) {
             continue;
         }
         foreach ($index as $indexedName => $assignment) {
-            if (mb_strlen($indexedName, 'UTF-8') < 6) {
+            if (dent_utf8_strlen($indexedName) < 6) {
                 continue;
             }
             if (str_contains($indexedName, $key) || str_contains($key, $indexedName)) {
@@ -1047,7 +1047,7 @@ function dent_change_user_password(array $user, string $currentPassword, string 
         dent_error('رمز فعلی درست نیست.', 422);
     }
 
-    if (mb_strlen($newPassword, 'UTF-8') < 6) {
+    if (dent_utf8_strlen($newPassword) < 6) {
         dent_error('رمز جدید باید حداقل ۶ کاراکتر باشد.', 422);
     }
 
@@ -1138,7 +1138,7 @@ function dent_create_student_account(
     }
 
     $password = dent_normalize_digits($password);
-    if (mb_strlen($password, 'UTF-8') < 6) {
+    if (dent_utf8_strlen($password) < 6) {
         dent_error('رمز عبور باید حداقل ۶ کاراکتر باشد.', 422);
     }
 

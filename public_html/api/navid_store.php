@@ -32,6 +32,7 @@ function navid_default_store(): array
         ],
         'session' => [
             'cookies' => null,
+            'browserState' => null,
             'updatedAt' => '',
             'lastValidatedAt' => '',
             'status' => 'missing',
@@ -300,15 +301,31 @@ function navid_set_session_cookies(array &$store, array $cookies): void
     $store['session']['status'] = 'stored';
 }
 
+function navid_set_session_browser_state(array &$store, array $browserState): void
+{
+    $store['session']['browserState'] = navid_encrypt_json($browserState);
+    $cookies = is_array($browserState['cookies'] ?? null) ? $browserState['cookies'] : [];
+    $store['session']['cookies'] = navid_encrypt_json($cookies);
+    $store['session']['updatedAt'] = dent_iso_now();
+    $store['session']['status'] = 'stored';
+}
+
 function navid_get_session_cookies(array $store): array
 {
     $decrypted = navid_decrypt_json($store['session']['cookies'] ?? null);
     return is_array($decrypted) ? $decrypted : [];
 }
 
+function navid_get_session_browser_state(array $store): ?array
+{
+    $decrypted = navid_decrypt_json($store['session']['browserState'] ?? null);
+    return is_array($decrypted) ? $decrypted : null;
+}
+
 function navid_clear_session_cookies(array &$store): void
 {
     $store['session']['cookies'] = null;
+    $store['session']['browserState'] = null;
     $store['session']['status'] = 'missing';
     $store['session']['updatedAt'] = dent_iso_now();
 }
