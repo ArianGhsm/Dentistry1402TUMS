@@ -6,6 +6,13 @@
     var listeners = [];
     var manualTheme = "";
     var digitObserver = null;
+    var LAUNCH_SPLASH_CLASS = "dent-launch-splash";
+    var LAUNCH_SPLASH_LEAVING_CLASS = "dent-launch-splash--leaving";
+    var LAUNCH_SPLASH_STYLE_ID = "dent1402-launch-splash-style";
+    var LAUNCH_SPLASH_MIN_VISIBLE_MS = 1000;
+    var LAUNCH_SPLASH_FADE_MS = 150;
+    var LAUNCH_SPLASH_LOGO_URL = "/assets/images/logo.png?v=20260422-brand1";
+    var launchSplashMounted = false;
     var persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
 
     try {
@@ -31,6 +38,172 @@
 
     function themeColor(theme) {
         return theme === "dark" ? "#0d1420" : "#eef2f7";
+    }
+
+    function parseVersionFromUrl(rawUrl) {
+        if (!rawUrl) {
+            return "";
+        }
+
+        try {
+            var parsed = new URL(rawUrl, window.location.origin);
+            var queryVersion = (parsed.searchParams.get("v") || "").trim();
+            if (queryVersion) {
+                return queryVersion;
+            }
+        } catch (error) {
+            // Ignore invalid URLs and keep fallback parsing.
+        }
+
+        var fallbackMatch = String(rawUrl).match(/[?&]v=([^&#]+)/i);
+        return fallbackMatch && fallbackMatch[1] ? decodeURIComponent(fallbackMatch[1]) : "";
+    }
+
+    function resolveLaunchBuildLabel() {
+        var manifestTag = document.querySelector('link[rel="manifest"]');
+        var fromManifest = parseVersionFromUrl(manifestTag && manifestTag.getAttribute("href"));
+        if (fromManifest) {
+            return fromManifest;
+        }
+
+        var pwaScript = document.querySelector('script[src*="/assets/site/scripts/pwa.js"]');
+        var fromPwaScript = parseVersionFromUrl(pwaScript && pwaScript.getAttribute("src"));
+        if (fromPwaScript) {
+            return fromPwaScript;
+        }
+
+        var versionMeta = document.querySelector('meta[name="app-version"]');
+        if (versionMeta && versionMeta.content) {
+            return String(versionMeta.content).trim();
+        }
+
+        return "";
+    }
+
+    function navigationType() {
+        if (window.performance && typeof window.performance.getEntriesByType === "function") {
+            var entries = window.performance.getEntriesByType("navigation");
+            if (entries && entries.length && entries[0] && entries[0].type) {
+                return entries[0].type;
+            }
+        }
+
+        if (window.performance && window.performance.navigation) {
+            if (window.performance.navigation.type === 1) {
+                return "reload";
+            }
+
+            if (window.performance.navigation.type === 2) {
+                return "back_forward";
+            }
+        }
+
+        return "navigate";
+    }
+
+    function isStandaloneDisplayMode() {
+        return !!(
+            window.navigator.standalone === true ||
+            (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
+        );
+    }
+
+    function isSameOriginReferrer() {
+        if (!document.referrer) {
+            return false;
+        }
+
+        try {
+            return new URL(document.referrer, window.location.origin).origin === window.location.origin;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function shouldShowLaunchSplash() {
+        var navType = navigationType();
+        if (navType === "reload") {
+            return true;
+        }
+
+        if (navType === "back_forward") {
+            return false;
+        }
+
+        if (!document.referrer) {
+            return true;
+        }
+
+        if (isStandaloneDisplayMode() && !isSameOriginReferrer()) {
+            return true;
+        }
+
+        return !isSameOriginReferrer();
+    }
+
+    function ensureLaunchSplashStyle() {
+        if (document.getElementById(LAUNCH_SPLASH_STYLE_ID)) {
+            return;
+        }
+
+        var style = document.createElement("style");
+        style.id = LAUNCH_SPLASH_STYLE_ID;
+        style.textContent = [
+            "html." + LAUNCH_SPLASH_CLASS + "::before,html." + LAUNCH_SPLASH_CLASS + "::after{position:fixed;inset:0;pointer-events:none;opacity:1;transition:opacity 0.15s ease;}",
+            "html." + LAUNCH_SPLASH_CLASS + "::before{content:\"\";z-index:10020;background-image:url(\"" + LAUNCH_SPLASH_LOGO_URL + "\"),radial-gradient(circle at 20% 12%,rgba(255,255,255,0.22),transparent 44%),linear-gradient(160deg,var(--accent-color,#2b6df3) 0%,var(--accent-strong,#1f56d6) 100%);background-repeat:no-repeat,no-repeat,no-repeat;background-size:clamp(124px,32vw,190px) auto,cover,cover;background-position:center calc(50% - 10px),center,center;}",
+            "html[data-theme=\"dark\"]." + LAUNCH_SPLASH_CLASS + "::before{background-image:url(\"" + LAUNCH_SPLASH_LOGO_URL + "\"),radial-gradient(circle at 18% 14%,rgba(154,195,255,0.18),transparent 44%),linear-gradient(160deg,var(--bg-body,#0d1420) 0%,var(--accent-color,#72a9ff) 100%);}",
+            "html." + LAUNCH_SPLASH_CLASS + "::after{content:attr(data-launch-build);z-index:10021;display:flex;align-items:flex-end;justify-content:center;padding:0 1.1rem calc(env(safe-area-inset-bottom,0px) + 0.72rem);color:rgba(255,255,255,0.82);font-family:var(--font-main,system-ui,sans-serif);font-size:0.66rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;}",
+            "html[data-theme=\"dark\"]." + LAUNCH_SPLASH_CLASS + "::after{color:rgba(241,247,255,0.76);}",
+            "html." + LAUNCH_SPLASH_CLASS + "." + LAUNCH_SPLASH_LEAVING_CLASS + "::before,html." + LAUNCH_SPLASH_CLASS + "." + LAUNCH_SPLASH_LEAVING_CLASS + "::after{opacity:0;}",
+            "@media (prefers-reduced-motion: reduce){html." + LAUNCH_SPLASH_CLASS + "::before,html." + LAUNCH_SPLASH_CLASS + "::after{transition-duration:0.01ms;}}"
+        ].join("");
+
+        (document.head || document.documentElement).appendChild(style);
+    }
+
+    function primeLaunchLogo() {
+        var img = new Image();
+        img.decoding = "async";
+        img.loading = "eager";
+        img.src = LAUNCH_SPLASH_LOGO_URL;
+    }
+
+    function mountLaunchSplash() {
+        if (launchSplashMounted || !shouldShowLaunchSplash()) {
+            return;
+        }
+        launchSplashMounted = true;
+
+        ensureLaunchSplashStyle();
+        primeLaunchLogo();
+
+        var root = document.documentElement;
+        var buildLabel = resolveLaunchBuildLabel();
+        root.setAttribute("data-launch-build", buildLabel ? "Build " + buildLabel : "");
+        root.classList.add(LAUNCH_SPLASH_CLASS);
+
+        var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var fadeDuration = reducedMotion ? 1 : LAUNCH_SPLASH_FADE_MS;
+        var isHiding = false;
+
+        function cleanupSplash() {
+            root.classList.remove(LAUNCH_SPLASH_CLASS);
+            root.classList.remove(LAUNCH_SPLASH_LEAVING_CLASS);
+            root.removeAttribute("data-launch-build");
+        }
+
+        function beginHide() {
+            if (isHiding) {
+                return;
+            }
+
+            isHiding = true;
+            root.classList.add(LAUNCH_SPLASH_LEAVING_CLASS);
+            window.setTimeout(cleanupSplash, fadeDuration + 24);
+        }
+
+        window.setTimeout(beginHide, LAUNCH_SPLASH_MIN_VISIBLE_MS);
+        window.addEventListener("pagehide", cleanupSplash, { once: true });
     }
 
     function syncMeta(theme) {
@@ -330,6 +503,7 @@
     };
 
     applyTheme(resolvedTheme());
+    mountLaunchSplash();
 
     function boot() {
         injectButtons();

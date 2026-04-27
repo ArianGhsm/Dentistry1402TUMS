@@ -11,6 +11,70 @@ function source_path(string $relativePath): string
     return project_root() . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath);
 }
 
+function env_path_value(string $name): string
+{
+    $value = getenv($name);
+    if (!is_string($value)) {
+        return '';
+    }
+
+    return trim($value);
+}
+
+function is_absolute_path(string $path): bool
+{
+    if ($path === '') {
+        return false;
+    }
+
+    if (DIRECTORY_SEPARATOR === '\\') {
+        return preg_match('/^[A-Za-z]:[\\\\\/]/', $path) === 1 || str_starts_with($path, '\\\\');
+    }
+
+    return str_starts_with($path, '/');
+}
+
+function resolve_path(string $path, string $basePath): string
+{
+    $normalized = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, trim($path));
+    if ($normalized === '') {
+        return rtrim($basePath, '\\/');
+    }
+
+    if (is_absolute_path($normalized)) {
+        return rtrim($normalized, '\\/');
+    }
+
+    return rtrim($basePath, '\\/') . DIRECTORY_SEPARATOR . trim($normalized, '\\/');
+}
+
+function default_server_only_root(): string
+{
+    $configured = env_path_value('DENT_SERVER_ONLY_ROOT');
+    if ($configured !== '') {
+        return resolve_path($configured, project_root());
+    }
+
+    return source_path('server-only');
+}
+
+function resolve_storage_root(): string
+{
+    $configuredStorage = env_path_value('DENT_STORAGE_ROOT');
+    if ($configuredStorage !== '') {
+        return resolve_path($configuredStorage, project_root());
+    }
+
+    $serverOnlyStorage = default_server_only_root() . DIRECTORY_SEPARATOR . 'storage';
+    $legacyStorage = source_path('storage');
+
+    if (is_dir($serverOnlyStorage) || !is_dir($legacyStorage)) {
+        return $serverOnlyStorage;
+    }
+
+    return $legacyStorage;
+}
+
 function normalize_digits(string $value): string
 {
     return str_replace(
@@ -138,7 +202,7 @@ foreach ($chatMap as $studentNumber => $chatUser) {
 
 ksort($mergedUsers, SORT_STRING);
 
-$storageRoot = source_path('storage');
+$storageRoot = resolve_storage_root();
 $authDirectory = $storageRoot . DIRECTORY_SEPARATOR . 'auth';
 $gradesDirectory = $storageRoot . DIRECTORY_SEPARATOR . 'grades';
 $chatDirectory = $storageRoot . DIRECTORY_SEPARATOR . 'chat';
@@ -196,6 +260,6 @@ if (file_exists($chatStatePath)) {
     copy($chatStatePath, $chatDirectory . DIRECTORY_SEPARATOR . 'state.json');
 }
 
-echo 'Migrated ' . count($mergedUsers) . " users into storage/auth/users.json\n";
-echo "Wrote storage/grades/grades.csv without password column\n";
-echo "Copied chat state into storage/chat/\n";
+echo 'Migrated ' . count($mergedUsers) . " users into $usersJsonPath\n";
+echo "Wrote grades CSV without password column to $gradesOutputPath\n";
+echo "Copied chat state into $chatDirectory\n";

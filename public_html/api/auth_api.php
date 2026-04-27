@@ -294,6 +294,8 @@ if ($action === 'users') {
     dent_json_response([
         'success' => true,
         'users' => $users,
+        'rotationCatalog' => dent_rotation_group_options(),
+        'campusLabel' => 'دانشجوی پردیس',
         'summary' => [
             'totalUsers' => count($users),
             'representatives' => $representativeCount,
@@ -346,6 +348,67 @@ if ($action === 'setRepresentative') {
     ]);
 }
 
+if ($action === 'ownerSetUserPassword') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد تغییر رمز کاربر نامعتبر است.', 405);
+    }
+
+    dent_require_owner();
+
+    $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
+    $newPassword = (string) ($_POST['newPassword'] ?? '');
+    $updatedUser = dent_owner_set_user_password($studentNumber, $newPassword);
+
+    dent_json_response([
+        'success' => true,
+        'user' => dent_public_user($updatedUser),
+        'message' => 'رمز عبور کاربر ذخیره شد.',
+    ]);
+}
+
+if ($action === 'ownerSetUserRotation') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد تنظیم روتیشن/گروه کاربر نامعتبر است.', 405);
+    }
+
+    dent_require_owner();
+
+    $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
+    $rotationMode = (string) ($_POST['rotationMode'] ?? 'none');
+    $rotationIdRaw = $_POST['rotationId'] ?? null;
+    $groupNumberRaw = $_POST['groupNumber'] ?? null;
+    $rotationId = ($rotationIdRaw === null || $rotationIdRaw === '') ? null : (int) $rotationIdRaw;
+    $groupNumber = ($groupNumberRaw === null || $groupNumberRaw === '') ? null : (int) $groupNumberRaw;
+
+    $updatedUser = dent_owner_set_user_rotation($studentNumber, $rotationMode, $rotationId, $groupNumber);
+    $publicUser = dent_public_user($updatedUser);
+    $summary = trim((string) (($publicUser['rotation']['summary'] ?? '') ?: 'بدون روتیشن/گروه'));
+
+    dent_json_response([
+        'success' => true,
+        'user' => $publicUser,
+        'message' => 'روتیشن/گروه کاربر به‌روزرسانی شد: ' . $summary,
+    ]);
+}
+
+if ($action === 'ownerMarkCampusStudents') {
+    if (!in_array(dent_request_method(), ['POST', 'GET'], true)) {
+        dent_error('متد تخصیص دانشجوی پردیس نامعتبر است.', 405);
+    }
+
+    dent_require_owner();
+
+    $result = dent_mark_unassigned_students_as_campus();
+
+    dent_json_response([
+        'success' => true,
+        'updatedCount' => (int) ($result['count'] ?? 0),
+        'updatedStudentNumbers' => $result['studentNumbers'] ?? [],
+        'updatedUsers' => $result['users'] ?? [],
+        'message' => 'تخصیص دانشجوی پردیس انجام شد.',
+    ]);
+}
+
 if ($action === 'createStudent') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد ایجاد حساب دانشجو نامعتبر است.', 405);
@@ -357,8 +420,21 @@ if ($action === 'createStudent') {
     $lastName = (string) ($_POST['lastName'] ?? '');
     $studentNumber = (string) ($_POST['studentNumber'] ?? '');
     $password = (string) ($_POST['password'] ?? '');
+    $rotationMode = (string) ($_POST['rotationMode'] ?? 'none');
+    $rotationIdRaw = $_POST['rotationId'] ?? null;
+    $groupNumberRaw = $_POST['groupNumber'] ?? null;
+    $rotationId = ($rotationIdRaw === null || $rotationIdRaw === '') ? null : (int) $rotationIdRaw;
+    $groupNumber = ($groupNumberRaw === null || $groupNumberRaw === '') ? null : (int) $groupNumberRaw;
 
-    $created = dent_create_student_account($firstName, $lastName, $studentNumber, $password);
+    $created = dent_create_student_account(
+        $firstName,
+        $lastName,
+        $studentNumber,
+        $password,
+        $rotationMode,
+        $rotationId,
+        $groupNumber
+    );
 
     dent_json_response([
         'success' => true,

@@ -30,6 +30,22 @@ function dent_default_profile(): array
     ];
 }
 
+function dent_to_fa_digits(string $value): string
+{
+    return strtr($value, [
+        '0' => '۰',
+        '1' => '۱',
+        '2' => '۲',
+        '3' => '۳',
+        '4' => '۴',
+        '5' => '۵',
+        '6' => '۶',
+        '7' => '۷',
+        '8' => '۸',
+        '9' => '۹',
+    ]);
+}
+
 function dent_rotation_name_canonical(string $value): string
 {
     $normalized = dent_force_utf8($value);
@@ -296,6 +312,109 @@ function dent_rotation_assignment_index(): array
     return $index;
 }
 
+function dent_rotation_group_options(): array
+{
+    static $options = null;
+    if (is_array($options)) {
+        return $options;
+    }
+
+    $options = [];
+    foreach (dent_rotation_group_catalog() as $group) {
+        $rotationId = (int) ($group['rotationId'] ?? 0);
+        $groupNumber = (int) ($group['groupNumber'] ?? 0);
+        if (!in_array($rotationId, [1, 2], true) || $groupNumber <= 0) {
+            continue;
+        }
+
+        $groupTitle = trim((string) ($group['groupTitle'] ?? ''));
+        $rotationLabel = 'روتیشن ' . ($rotationId === 1 ? '۱' : '۲');
+        $groupLabel = 'گروه ' . dent_to_fa_digits((string) $groupNumber);
+        $summary = $rotationLabel . ' • ' . $groupLabel . ($groupTitle !== '' ? (' (' . $groupTitle . ')') : '');
+
+        $options[] = [
+            'rotationId' => $rotationId,
+            'rotationLabel' => $rotationLabel,
+            'groupNumber' => $groupNumber,
+            'groupLabel' => $groupLabel,
+            'groupTitle' => $groupTitle,
+            'summary' => $summary,
+            'source' => 'catalog',
+            'isCampus' => false,
+        ];
+    }
+
+    usort($options, static function (array $left, array $right): int {
+        $leftOrder = ((int) ($left['rotationId'] ?? 0)) * 100 + (int) ($left['groupNumber'] ?? 0);
+        $rightOrder = ((int) ($right['rotationId'] ?? 0)) * 100 + (int) ($right['groupNumber'] ?? 0);
+        return $leftOrder <=> $rightOrder;
+    });
+
+    return $options;
+}
+
+function dent_rotation_group_option(int $rotationId, int $groupNumber): ?array
+{
+    static $index = null;
+    if (!is_array($index)) {
+        $index = [];
+        foreach (dent_rotation_group_options() as $option) {
+            $key = (string) ($option['rotationId'] ?? 0) . ':' . (string) ($option['groupNumber'] ?? 0);
+            $index[$key] = $option;
+        }
+    }
+
+    return $index[$rotationId . ':' . $groupNumber] ?? null;
+}
+
+function dent_campus_rotation_assignment(): array
+{
+    return [
+        'rotationId' => null,
+        'rotationLabel' => 'پردیس',
+        'groupNumber' => null,
+        'groupLabel' => 'دانشجوی پردیس',
+        'groupTitle' => 'دانشجوی پردیس',
+        'summary' => 'دانشجوی پردیس',
+        'source' => 'campus',
+        'isCampus' => true,
+    ];
+}
+
+function dent_normalize_rotation_override($raw): array
+{
+    if (!is_array($raw)) {
+        return ['mode' => 'none'];
+    }
+
+    $mode = trim(strtolower((string) ($raw['mode'] ?? 'none')));
+    if ($mode === '' || $mode === 'auto' || $mode === 'catalog') {
+        $mode = 'none';
+    }
+
+    if ($mode === 'campus') {
+        return ['mode' => 'campus'];
+    }
+
+    if ($mode === 'manual') {
+        $rotationId = (int) ($raw['rotationId'] ?? 0);
+        $groupNumber = (int) ($raw['groupNumber'] ?? 0);
+        $groupOption = dent_rotation_group_option($rotationId, $groupNumber);
+        if (!is_array($groupOption)) {
+            return ['mode' => 'none'];
+        }
+
+        return [
+            'mode' => 'manual',
+            'rotationId' => $rotationId,
+            'groupNumber' => $groupNumber,
+            'groupTitle' => (string) ($groupOption['groupTitle'] ?? ''),
+        ];
+    }
+
+    return ['mode' => 'none'];
+}
+
 function dent_rotation_assignment_for_name(string $name): ?array
 {
     $keys = dent_rotation_name_keys($name);
@@ -306,7 +425,10 @@ function dent_rotation_assignment_for_name(string $name): ?array
     $index = dent_rotation_assignment_index();
     foreach ($keys as $key) {
         if (isset($index[$key])) {
-            return $index[$key];
+            $matched = $index[$key];
+            $matched['source'] = 'catalog';
+            $matched['isCampus'] = false;
+            return $matched;
         }
     }
 
@@ -319,6 +441,8 @@ function dent_rotation_assignment_for_name(string $name): ?array
                 continue;
             }
             if (str_contains($indexedName, $key) || str_contains($key, $indexedName)) {
+                $assignment['source'] = 'catalog';
+                $assignment['isCampus'] = false;
                 return $assignment;
             }
         }
@@ -329,10 +453,29 @@ function dent_rotation_assignment_for_name(string $name): ?array
 
 function dent_user_rotation_assignment(array $user): ?array
 {
+    $override = dent_normalize_rotation_override($user['rotationOverride'] ?? null);
+    $mode = (string) ($override['mode'] ?? 'none');
+
+    if ($mode === 'campus') {
+        return dent_campus_rotation_assignment();
+    }
+
+    if ($mode === 'manual') {
+        $rotationId = (int) ($override['rotationId'] ?? 0);
+        $groupNumber = (int) ($override['groupNumber'] ?? 0);
+        $groupOption = dent_rotation_group_option($rotationId, $groupNumber);
+        if (is_array($groupOption)) {
+            $groupOption['source'] = 'manual';
+            $groupOption['isCampus'] = false;
+            return $groupOption;
+        }
+    }
+
     $name = trim((string) ($user['name'] ?? ''));
     if ($name === '') {
         return null;
     }
+
     return dent_rotation_assignment_for_name($name);
 }
 
@@ -549,6 +692,7 @@ function dent_normalize_user_record($studentNumber, array $user): array
 {
     $studentNumber = dent_normalize_student_number($studentNumber);
     $profile = $user['profile'] ?? [];
+    $rotationOverride = dent_normalize_rotation_override($user['rotationOverride'] ?? null);
     $defaults = dent_default_profile();
     $name = dent_clean_text((string) ($user['name'] ?? $studentNumber), 120);
     if ($name === '') {
@@ -608,6 +752,7 @@ function dent_normalize_user_record($studentNumber, array $user): array
         'phoneVerifiedAt' => $phoneVerifiedAt,
         'phoneLoginEnabled' => $phoneLoginEnabled,
         'phoneNudgeDismissedAt' => $phoneNudgeDismissedAt,
+        'rotationOverride' => $rotationOverride,
         'createdAt' => trim((string) ($user['createdAt'] ?? dent_iso_now())),
         'updatedAt' => trim((string) ($user['updatedAt'] ?? dent_iso_now())),
     ];
@@ -850,6 +995,7 @@ function dent_public_user(array $user): array
     $role = dent_normalize_role($user['role'] ?? 'student', (string) ($user['studentNumber'] ?? ''));
     $permissions = dent_permissions_for_role($role);
     $rotation = dent_user_rotation_assignment($user);
+    $rotationSource = $rotation !== null ? (string) ($rotation['source'] ?? 'catalog') : 'none';
     $rotationPayload = [
         'assigned' => $rotation !== null,
         'rotationId' => $rotation['rotationId'] ?? null,
@@ -858,6 +1004,8 @@ function dent_public_user(array $user): array
         'groupLabel' => $rotation['groupLabel'] ?? '',
         'groupTitle' => $rotation['groupTitle'] ?? '',
         'summary' => $rotation['summary'] ?? '',
+        'source' => $rotationSource,
+        'isCampus' => (bool) ($rotation['isCampus'] ?? false),
     ];
 
     return [
@@ -1116,11 +1264,128 @@ function dent_set_representative_status(string $studentNumber, bool $isRepresent
     return dent_persist_user($user);
 }
 
+function dent_owner_set_user_password(string $studentNumber, string $newPassword): array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی نامعتبر است.', 422);
+    }
+
+    $user = dent_get_user_record($studentNumber);
+    if ($user === null) {
+        dent_error('کاربر موردنظر پیدا نشد.', 404);
+    }
+
+    $newPassword = dent_normalize_digits($newPassword);
+    if (dent_utf8_strlen($newPassword) < 6) {
+        dent_error('رمز عبور باید حداقل ۶ کاراکتر باشد.', 422);
+    }
+
+    $user['passwordHash'] = dent_hash_password($newPassword);
+    return dent_persist_user($user);
+}
+
+function dent_owner_set_user_rotation(
+    string $studentNumber,
+    string $rotationMode,
+    ?int $rotationId = null,
+    ?int $groupNumber = null
+): array {
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی نامعتبر است.', 422);
+    }
+
+    $user = dent_get_user_record($studentNumber);
+    if ($user === null) {
+        dent_error('کاربر موردنظر پیدا نشد.', 404);
+    }
+
+    $rotationMode = trim(strtolower($rotationMode));
+    if ($rotationMode === '' || $rotationMode === 'auto' || $rotationMode === 'catalog') {
+        $rotationMode = 'none';
+    }
+
+    $overrideInput = ['mode' => $rotationMode];
+    if ($rotationMode === 'manual') {
+        $overrideInput['rotationId'] = (int) ($rotationId ?? 0);
+        $overrideInput['groupNumber'] = (int) ($groupNumber ?? 0);
+    }
+    $override = dent_normalize_rotation_override($overrideInput);
+
+    if ($rotationMode === 'manual' && ($override['mode'] ?? '') !== 'manual') {
+        dent_error('برای ثبت دستی، روتیشن و گروه معتبر انتخاب کنید.', 422);
+    }
+    if ($rotationMode === 'campus' && ($override['mode'] ?? '') !== 'campus') {
+        dent_error('حالت پردیس نامعتبر است.', 422);
+    }
+
+    $user['rotationOverride'] = $override;
+    return dent_persist_user($user);
+}
+
+function dent_mark_unassigned_students_as_campus(): array
+{
+    $store = dent_load_user_store();
+    $updatedUsers = [];
+    $updatedStudentNumbers = [];
+
+    foreach (($store['users'] ?? []) as $studentNumber => $user) {
+        if (!is_array($user)) {
+            continue;
+        }
+
+        $role = dent_normalize_role((string) ($user['role'] ?? 'student'), (string) $studentNumber);
+        if ($role !== 'student') {
+            continue;
+        }
+
+        $override = dent_normalize_rotation_override($user['rotationOverride'] ?? null);
+        if (($override['mode'] ?? 'none') !== 'none') {
+            continue;
+        }
+
+        $name = trim((string) ($user['name'] ?? ''));
+        if ($name !== '' && dent_rotation_assignment_for_name($name) !== null) {
+            continue;
+        }
+
+        $user['rotationOverride'] = ['mode' => 'campus'];
+        $normalizedStudentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? $studentNumber));
+        if ($normalizedStudentNumber === '') {
+            continue;
+        }
+
+        $store['users'][$normalizedStudentNumber] = dent_normalize_user_record($normalizedStudentNumber, $user);
+        $updatedStudentNumbers[] = $normalizedStudentNumber;
+        $updatedUsers[] = dent_public_user($store['users'][$normalizedStudentNumber]);
+    }
+
+    if ($updatedStudentNumbers !== []) {
+        dent_save_user_store($store);
+    }
+
+    usort($updatedUsers, static function (array $left, array $right): int {
+        return strcmp((string) ($left['studentNumber'] ?? ''), (string) ($right['studentNumber'] ?? ''));
+    });
+
+    sort($updatedStudentNumbers, SORT_STRING);
+
+    return [
+        'count' => count($updatedStudentNumbers),
+        'studentNumbers' => $updatedStudentNumbers,
+        'users' => $updatedUsers,
+    ];
+}
+
 function dent_create_student_account(
     string $firstName,
     string $lastName,
     string $studentNumber,
-    string $password
+    string $password,
+    string $rotationMode = 'none',
+    ?int $rotationId = null,
+    ?int $groupNumber = null
 ): array {
     $studentNumber = dent_normalize_student_number($studentNumber);
     if ($studentNumber === '') {
@@ -1147,6 +1412,20 @@ function dent_create_student_account(
         dent_error('برای این شماره دانشجویی حسابی وجود دارد.', 409);
     }
 
+    $rotationMode = trim(strtolower($rotationMode));
+    if ($rotationMode === '' || $rotationMode === 'auto' || $rotationMode === 'catalog') {
+        $rotationMode = 'none';
+    }
+    $rotationOverrideInput = ['mode' => $rotationMode];
+    if ($rotationMode === 'manual') {
+        $rotationOverrideInput['rotationId'] = (int) ($rotationId ?? 0);
+        $rotationOverrideInput['groupNumber'] = (int) ($groupNumber ?? 0);
+    }
+    $rotationOverride = dent_normalize_rotation_override($rotationOverrideInput);
+    if ($rotationMode === 'manual' && ($rotationOverride['mode'] ?? '') !== 'manual') {
+        dent_error('برای ثبت دستی، روتیشن و گروه معتبر انتخاب کنید.', 422);
+    }
+
     $name = trim($firstName . ' ' . $lastName);
     $now = dent_iso_now();
     $store['users'][$studentNumber] = dent_normalize_user_record($studentNumber, [
@@ -1155,6 +1434,7 @@ function dent_create_student_account(
         'passwordHash' => dent_hash_password($password),
         'role' => 'student',
         'profile' => dent_default_profile(),
+        'rotationOverride' => $rotationOverride,
         'createdAt' => $now,
         'updatedAt' => $now,
     ]);

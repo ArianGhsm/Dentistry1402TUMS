@@ -53,6 +53,51 @@
         return normalizeDigits(value).replace(/\D+/g, "");
     }
 
+    function parseTimestampLike(value) {
+        var raw = String(value == null ? "" : value).trim();
+        if (!raw) {
+            return null;
+        }
+
+        var direct = new Date(raw);
+        if (Number.isFinite(direct.getTime())) {
+            return direct;
+        }
+
+        var numeric = Number(raw);
+        if (!Number.isFinite(numeric)) {
+            return null;
+        }
+
+        if (Math.abs(numeric) < 1000000000000) {
+            numeric = numeric * 1000;
+        }
+
+        var fromNumber = new Date(numeric);
+        return Number.isFinite(fromNumber.getTime()) ? fromNumber : null;
+    }
+
+    function formatJalaliDateTime(value, fallback) {
+        var raw = String(value == null ? "" : value).trim();
+        if (!raw) {
+            return fallback || "—";
+        }
+
+        var parsed = parseTimestampLike(raw);
+        if (!parsed) {
+            return raw;
+        }
+
+        return parsed.toLocaleString("fa-IR-u-ca-persian", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+        });
+    }
+
     function showToast(text) {
         if (!toastEl || !text) {
             return;
@@ -222,7 +267,7 @@
             statusKicker.textContent = "ثبت نهایی انجام شد";
             statusTitle.textContent = "پاسخ این حساب قبلا ثبت شده است";
             statusText.textContent = "ارسال تکراری برای همین حساب غیرفعال است و پاسخ ثبت‌شده نگهداری می‌شود.";
-            submittedAt.textContent = response.submittedAt || "—";
+            submittedAt.textContent = formatJalaliDateTime(response.submittedAt, "—");
             if (fullName.replace(/\s+/g, "").trim()) {
                 statusText.textContent = "درخواست ثبت‌شده برای «" + fullName.trim() + "» نگهداری می‌شود و ارسال مجدد فعال نیست.";
             }

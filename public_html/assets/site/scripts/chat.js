@@ -302,7 +302,7 @@
         && date.getMonth() === now.getMonth()
         && date.getDate() === now.getDate();
       if (sameDay) {
-        return date.toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" });
+        return date.toLocaleTimeString("fa-IR-u-ca-persian", { hour: "2-digit", minute: "2-digit", hour12: false });
       }
 
       var yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
@@ -314,10 +314,10 @@
       }
 
       if (date.getFullYear() === now.getFullYear()) {
-        return date.toLocaleDateString("fa-IR", { month: "short", day: "numeric" });
+        return date.toLocaleDateString("fa-IR-u-ca-persian", { month: "short", day: "numeric" });
       }
 
-      return date.toLocaleDateString("fa-IR", { year: "numeric", month: "short", day: "numeric" });
+      return date.toLocaleDateString("fa-IR-u-ca-persian", { year: "numeric", month: "short", day: "numeric" });
     } catch (error) {
       return "";
     }
@@ -327,7 +327,7 @@
     var n = toNumber(ts, 0);
     if (!n) return "";
     try {
-      return new Date(n * 1000).toLocaleDateString("fa-IR", { month: "short", day: "numeric" });
+      return new Date(n * 1000).toLocaleDateString("fa-IR-u-ca-persian", { month: "short", day: "numeric" });
     } catch (error) {
       return "";
     }
@@ -866,9 +866,17 @@
   }
 
   function applyViewportHeight() {
-    var viewportHeight = window.innerHeight;
-    if (window.visualViewport && window.visualViewport.height) {
-      viewportHeight = window.visualViewport.height;
+    var fallbackHeight = Math.max(0, Math.round(window.innerHeight || 0));
+    var viewportHeight = fallbackHeight;
+    if (window.visualViewport) {
+      var vvHeight = Math.max(0, Math.round(window.visualViewport.height || 0));
+      var vvOffsetTop = Math.max(0, Math.round(window.visualViewport.offsetTop || 0));
+      if (vvHeight > 0) {
+        viewportHeight = vvHeight + vvOffsetTop;
+      }
+    }
+    if (viewportHeight < 320) {
+      viewportHeight = fallbackHeight > 0 ? fallbackHeight : 320;
     }
     document.documentElement.style.setProperty("--chat-vh", Math.round(viewportHeight) + "px");
     if (document.body) {

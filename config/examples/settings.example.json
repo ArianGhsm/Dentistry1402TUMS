@@ -1,0 +1,11 @@
+{
+  "http.noProxy": [
+    "your-host.example.com",
+    "your-domain.example.com",
+    "*.your-domain.example.com"
+  ],
+  "terminal.integrated.env.windows": {
+    "NO_PROXY": "your-host.example.com,your-domain.example.com,.your-domain.example.com"
+  }
+}
+

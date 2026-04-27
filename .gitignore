@@ -21,9 +21,25 @@ __pycache__/
 .env.*
 !.env.example
 !.env.*.example
+sftp.json
+settings.json
+
+# Runtime state (must never be versioned)
+/storage/
+/tmp/
+/sessions/
+/backups/
+/secrets/
+/server-only/*
+!/server-only/.gitignore
+!/server-only/README.md
+
+# Config policy: examples only
+/config/*
+!/config/examples/
+!/config/examples/**
 
 # Runtime/temp outputs
-storage/navid/
 *.pid
 *.tmp
 *.log

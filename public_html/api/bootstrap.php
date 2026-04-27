@@ -5,8 +5,98 @@ if (!defined('DENT_PROJECT_ROOT')) {
     define('DENT_PROJECT_ROOT', dirname(__DIR__, 2));
 }
 
+function dent_env_value(string $name): string
+{
+    $value = getenv($name);
+    if (!is_string($value)) {
+        return '';
+    }
+
+    return trim($value);
+}
+
+function dent_is_absolute_path(string $path): bool
+{
+    if ($path === '') {
+        return false;
+    }
+
+    if (DIRECTORY_SEPARATOR === '\\') {
+        return preg_match('/^[A-Za-z]:[\\\\\/]/', $path) === 1 || str_starts_with($path, '\\\\');
+    }
+
+    return str_starts_with($path, '/');
+}
+
+function dent_resolve_path(string $path, string $basePath): string
+{
+    $normalized = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, trim($path));
+    if ($normalized === '') {
+        return rtrim($basePath, '\\/');
+    }
+
+    if (dent_is_absolute_path($normalized)) {
+        return rtrim($normalized, '\\/');
+    }
+
+    return rtrim($basePath, '\\/') . DIRECTORY_SEPARATOR . trim($normalized, '\\/');
+}
+
+function dent_default_server_only_root(): string
+{
+    $configured = dent_env_value('DENT_SERVER_ONLY_ROOT');
+    if ($configured !== '') {
+        return dent_resolve_path($configured, DENT_PROJECT_ROOT);
+    }
+
+    return DENT_PROJECT_ROOT . DIRECTORY_SEPARATOR . 'server-only';
+}
+
+function dent_default_storage_root(): string
+{
+    $configured = dent_env_value('DENT_STORAGE_ROOT');
+    if ($configured !== '') {
+        return dent_resolve_path($configured, DENT_PROJECT_ROOT);
+    }
+
+    $serverOnlyStorage = DENT_SERVER_ONLY_ROOT . DIRECTORY_SEPARATOR . 'storage';
+    $legacyStorage = DENT_PROJECT_ROOT . DIRECTORY_SEPARATOR . 'storage';
+
+    if (is_dir($serverOnlyStorage) || !is_dir($legacyStorage)) {
+        return $serverOnlyStorage;
+    }
+
+    return $legacyStorage;
+}
+
+function dent_default_session_save_path(): string
+{
+    $configured = dent_env_value('DENT_SESSION_SAVE_PATH');
+    if ($configured !== '') {
+        return dent_resolve_path($configured, DENT_PROJECT_ROOT);
+    }
+
+    return DENT_SERVER_ONLY_ROOT . DIRECTORY_SEPARATOR . 'sessions';
+}
+
+if (!defined('DENT_SERVER_ONLY_ROOT')) {
+    define('DENT_SERVER_ONLY_ROOT', dent_default_server_only_root());
+}
+
 if (!defined('DENT_STORAGE_ROOT')) {
-    define('DENT_STORAGE_ROOT', DENT_PROJECT_ROOT . DIRECTORY_SEPARATOR . 'storage');
+    define('DENT_STORAGE_ROOT', dent_default_storage_root());
+}
+
+if (!defined('DENT_TMP_ROOT')) {
+    define('DENT_TMP_ROOT', DENT_SERVER_ONLY_ROOT . DIRECTORY_SEPARATOR . 'tmp');
+}
+
+if (!defined('DENT_BACKUP_ROOT')) {
+    define('DENT_BACKUP_ROOT', DENT_SERVER_ONLY_ROOT . DIRECTORY_SEPARATOR . 'backups');
+}
+
+if (!defined('DENT_SECRETS_ROOT')) {
+    define('DENT_SECRETS_ROOT', DENT_SERVER_ONLY_ROOT . DIRECTORY_SEPARATOR . 'secrets');
 }
 
 date_default_timezone_set('Asia/Tehran');
@@ -26,6 +116,7 @@ function dent_load_env_files(): void
     }
     $paths[] = dirname(__DIR__) . DIRECTORY_SEPARATOR . '.env';
     $paths[] = DENT_PROJECT_ROOT . DIRECTORY_SEPARATOR . '.env';
+    $paths[] = DENT_SERVER_ONLY_ROOT . DIRECTORY_SEPARATOR . '.env';
     $paths[] = DENT_STORAGE_ROOT . DIRECTORY_SEPARATOR . '.env';
     $paths[] = DENT_STORAGE_ROOT . DIRECTORY_SEPARATOR . 'auth' . DIRECTORY_SEPARATOR . '.env';
     $paths[] = DENT_STORAGE_ROOT . DIRECTORY_SEPARATOR . 'auth' . DIRECTORY_SEPARATOR . 'sms.env';
@@ -84,6 +175,11 @@ function dent_bootstrap(): void
     ini_set('session.use_strict_mode', '1');
     ini_set('session.use_only_cookies', '1');
     ini_set('session.cookie_httponly', '1');
+
+    $sessionSavePath = dent_default_session_save_path();
+    if ($sessionSavePath !== '' && (is_dir($sessionSavePath) || @mkdir($sessionSavePath, 0755, true))) {
+        ini_set('session.save_path', $sessionSavePath);
+    }
 
     if (session_status() !== PHP_SESSION_ACTIVE) {
         $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');

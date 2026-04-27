@@ -54,6 +54,51 @@
         });
     }
 
+    function parseTimestampLike(value) {
+        var raw = String(value == null ? "" : value).trim();
+        if (!raw) {
+            return null;
+        }
+
+        var direct = new Date(raw);
+        if (Number.isFinite(direct.getTime())) {
+            return direct;
+        }
+
+        var numeric = Number(raw);
+        if (!Number.isFinite(numeric)) {
+            return null;
+        }
+
+        if (Math.abs(numeric) < 1000000000000) {
+            numeric = numeric * 1000;
+        }
+
+        var fromNumber = new Date(numeric);
+        return Number.isFinite(fromNumber.getTime()) ? fromNumber : null;
+    }
+
+    function formatJalaliDateTime(value, fallback) {
+        var raw = String(value == null ? "" : value).trim();
+        if (!raw) {
+            return fallback || "—";
+        }
+
+        var parsed = parseTimestampLike(raw);
+        if (!parsed) {
+            return raw;
+        }
+
+        return parsed.toLocaleString("fa-IR-u-ca-persian", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+        });
+    }
+
     function parseJsonResponse(response) {
         return response.json().catch(function () {
             return {
@@ -171,7 +216,7 @@
 
         if (summary.latestSubmissionAt) {
             cards.push({
-                value: summary.latestSubmissionAt,
+                value: formatJalaliDateTime(summary.latestSubmissionAt, "—"),
                 label: "آخرین ثبت",
                 meta: "زمان آخرین پاسخ ثبت‌شده"
             });
@@ -217,7 +262,7 @@
             var metaBits = [
                 userStatusChip(item.statusLabel || "تکمیل شده", false),
                 "<span>" + safeText(item.user && item.user.roleLabel ? item.user.roleLabel : "کاربر") + "</span>",
-                "<span>" + safeText(item.submittedAt || "—") + "</span>"
+                "<span>" + safeText(formatJalaliDateTime(item.submittedAt, "—")) + "</span>"
             ];
             return [
                 '<button class="dis-user-card' + (isActive ? " is-active" : "") + '" type="button" data-response-student="' + safeText(studentNumber) + '">',
@@ -287,7 +332,7 @@
         var fullName = ((fields.firstName || "") + " " + (fields.lastName || "")).trim() || user.name || response.studentNumber || "کاربر";
 
         detailTitle.textContent = fullName;
-        detailMeta.textContent = "وضعیت: " + (response.statusLabel || "تکمیل شده") + " • " + (response.submittedAt || "—");
+        detailMeta.textContent = "وضعیت: " + (response.statusLabel || "تکمیل شده") + " • " + formatJalaliDateTime(response.submittedAt, "—");
         detailEmpty.hidden = true;
         detailBody.hidden = false;
 
@@ -295,7 +340,7 @@
             readonlyItem("شناسه کاربر سایت", user.studentNumber || response.studentNumber || ""),
             readonlyItem("نام کاربر سایت", user.name || ""),
             readonlyItem("عنوان نقش", user.roleLabel || ""),
-            readonlyItem("submitted_at", response.submittedAt || ""),
+            readonlyItem("زمان ثبت", formatJalaliDateTime(response.submittedAt, "—")),
             readonlyItem("کد ملی", fields.nationalCode || ""),
             readonlyItem("شماره تلفن", fields.phoneNumber || "")
         ].join("");
@@ -339,7 +384,7 @@
             var meta = [];
             meta.push(item.status === "submitted" ? "ثبت‌شده" : "در انتظار اقدام");
             if (item.updatedAt) {
-                meta.push(item.updatedAt);
+                meta.push(formatJalaliDateTime(item.updatedAt, item.updatedAt));
             }
             return [
                 '<div class="dis-approval-row">',

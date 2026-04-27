@@ -64,5 +64,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipG
 
 ## Scope/Safety
 - Deploy is locked to remote path `/public_html`.
-- `storage/` and `scripts/` are not web-deployed.
+- Runtime state must stay under `server-only/` (`storage/`, `tmp/`, `sessions/`, `backups/`, `secrets/`) and must not be committed.
+- Legacy root `storage/`/`tmp/` paths are deprecated and should remain untracked.
+- `storage/`, `server-only/`, and `scripts/` are not web-deployed.
 - Prefer this canonical script; avoid ad-hoc deploy commands.

@@ -1407,6 +1407,14 @@ body.account-page.account-stage-panel-active .account-hero {
     min-width: 200px;
 }
 
+.owner-create-student-form select {
+    width: 100%;
+}
+
+#owner-mark-campus-students {
+    border-style: dashed;
+}
+
 .owner-representatives {
     display: flex;
     gap: 0.6rem;
@@ -1507,6 +1515,55 @@ body.account-page.account-stage-panel-active .account-hero {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.46rem;
+}
+
+.owner-user__admin-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.52rem;
+}
+
+.owner-user-admin-card {
+    padding: 0.58rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    display: grid;
+    gap: 0.42rem;
+}
+
+.owner-user-admin-card__title {
+    font-size: 0.74rem;
+    font-weight: 760;
+    color: var(--text-secondary);
+}
+
+.owner-user-inline-row {
+    display: grid;
+    gap: 0.34rem;
+}
+
+.owner-user-inline-row--double {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.owner-user-inline-input,
+.owner-user-inline-select {
+    width: 100%;
+    min-height: 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+    color: var(--text-primary);
+    padding: 0.44rem 0.56rem;
+    font: inherit;
+    font-size: 0.78rem;
+}
+
+.owner-user-inline-input:focus,
+.owner-user-inline-select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .owner-user-meta-item {
@@ -2038,6 +2095,11 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
     }
 
     .owner-user__meta-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .owner-user__admin-grid,
+    .owner-user-inline-row--double {
         grid-template-columns: 1fr;
     }
 

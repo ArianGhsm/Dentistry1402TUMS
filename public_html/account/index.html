@@ -9,12 +9,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260426-192939">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260426-192939">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260426-192939">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260427-235833">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260427-235833">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260427-235833">
     <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260425-ownerpanel1">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260426-ownerpanel2">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache2">
 </head>
 <body class="account-page">
@@ -650,7 +650,27 @@
                             <label for="owner-student-password">رمز عبور اولیه</label>
                             <input id="owner-student-password" type="password" minlength="6" autocomplete="new-password" placeholder="حداقل ۶ کاراکتر">
 
+                            <label for="owner-student-rotation-mode">نوع تخصیص آموزشی</label>
+                            <select id="owner-student-rotation-mode">
+                                <option value="none">بدون تخصیص (بعدا تعیین می‌شود)</option>
+                                <option value="manual">روتیشن/گروه مشخص</option>
+                                <option value="campus">دانشجوی پردیس</option>
+                            </select>
+
+                            <label for="owner-student-rotation-id">روتیشن</label>
+                            <select id="owner-student-rotation-id">
+                                <option value="">انتخاب روتیشن</option>
+                                <option value="1">روتیشن ۱</option>
+                                <option value="2">روتیشن ۲</option>
+                            </select>
+
+                            <label for="owner-student-group-number">گروه</label>
+                            <select id="owner-student-group-number">
+                                <option value="">ابتدا روتیشن را انتخاب کنید</option>
+                            </select>
+
                             <button id="owner-create-student-submit" class="shell-action-btn shell-action-btn-primary" type="submit">ایجاد حساب دانشجو</button>
+                            <button id="owner-mark-campus-students" class="shell-action-btn" type="button">تعیین خودکار دانشجوی پردیس (فاقد گروه/روتیشن)</button>
                             <div id="owner-create-student-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
                         </form>
                     </section>
@@ -725,8 +745,8 @@
     </footer>
 
     <script src="/assets/site/scripts/auth.js?v=20260425-authotp2"></script>
-    <script src="/assets/site/scripts/account.js?v=20260425-ownerpanel1"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260426-192939"></script>
+    <script src="/assets/site/scripts/account.js?v=20260426-ownerpanel3"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260427-235833"></script>
     <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
 </body>
 </html>

@@ -92,6 +92,8 @@
     --radius-md: 16px;
     --radius-sm: 12px;
     --radius-pill: 999px;
+    --shell-nav-offset: calc(104px + env(safe-area-inset-bottom, 0px));
+    --shell-nav-content-reserve: calc(var(--shell-nav-offset) + 0.5rem);
     --font-main: "YekanBakh", "Yekan", "IRANSans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-accent: "AbarHigh", "YekanBakh", "Yekan", "IRANSans", sans-serif;
 }
@@ -153,6 +155,7 @@ html[data-theme="dark"] {
 
 html {
     scroll-behavior: smooth;
+    scroll-padding-bottom: var(--shell-nav-content-reserve);
 }
 
 body {
@@ -439,7 +442,7 @@ footer::after {
 }
 
 body.has-app-shell {
-    padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: var(--shell-nav-content-reserve);
 }
 
 body.app-shell-hidden {
@@ -599,7 +602,7 @@ body.app-shell-hidden {
 
 .shell-drawer {
     position: fixed;
-    inset-block-end: calc(96px + env(safe-area-inset-bottom, 0px));
+    inset-block-end: var(--shell-nav-offset);
     inset-inline: 1rem;
     z-index: 270;
     width: min(420px, calc(100vw - 2rem));
@@ -699,7 +702,7 @@ body.app-shell-hidden {
 .shell-modal {
     position: fixed;
     inset-inline: 1rem;
-    inset-block-end: calc(96px + env(safe-area-inset-bottom, 0px));
+    inset-block-end: var(--shell-nav-offset);
     z-index: 280;
     width: min(420px, calc(100vw - 2rem));
     margin: 0 auto;

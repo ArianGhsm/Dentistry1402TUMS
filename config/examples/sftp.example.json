@@ -1,10 +1,10 @@
 {
   "name": "Main Site",
-  "host": "185.94.99.231",
+  "host": "your-host.example.com",
   "protocol": "ftp",
   "port": 21,
-  "username": "wluoczid",
-  "password": "t6nu2A19Mk",
+  "username": "your-ftp-user",
+  "password": "__SET_IN_LOCAL_UNTRACKED_COPY__",
   "remotePath": "public_html",
   "passive": true,
   "uploadOnSave": true,
@@ -15,6 +15,9 @@
     ".git",
     ".gitignore",
     "storage",
-    "scripts"
+    "scripts",
+    "server-only",
+    "tmp"
   ]
 }
+
