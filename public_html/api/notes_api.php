@@ -6,6 +6,7 @@ require_once __DIR__ . '/auth_store.php';
 const NOTES_1402_SCHEMA_VERSION = 1;
 const NOTES_1402_MIN_TERM = 5;
 const NOTES_1402_MAX_TERM = 12;
+const NOTES_1402_SEED_BACKFILL_VERSION = 1;
 
 function notes_1402_store_path(): string
 {
@@ -132,6 +133,124 @@ function notes_1402_seed_term_5_items(): array
     ];
 }
 
+function notes_1402_item_signature(array $item): string
+{
+    $title = dent_utf8_strtolower(trim((string) ($item['title'] ?? '')));
+    $buttonUrl = trim((string) ($item['buttonUrl'] ?? ''));
+    return $title . '|' . $buttonUrl;
+}
+
+function notes_1402_needs_term_5_seed_backfill(array $seed): bool
+{
+    $backfillVersion = (int) ($seed['seedBackfillVersion'] ?? 0);
+    if ($backfillVersion >= NOTES_1402_SEED_BACKFILL_VERSION) {
+        return false;
+    }
+
+    $term5 = is_array($seed['terms']['5'] ?? null) ? $seed['terms']['5'] : [];
+    $items = is_array($term5['items'] ?? null) ? $term5['items'] : [];
+    if (count($items) === 0 || count($items) >= count(notes_1402_seed_term_5_items())) {
+        return false;
+    }
+
+    // Legacy bad migration left term 5 with only a couple of seed items.
+    // Keep backfill conservative so owner-managed states are not overridden.
+    if (count($items) > 3) {
+        return false;
+    }
+
+    $seedSignatures = [];
+    foreach (notes_1402_seed_term_5_items() as $seedItem) {
+        $normalized = notes_1402_normalize_item_record($seedItem);
+        if ($normalized === null) {
+            continue;
+        }
+        $seedSignatures[notes_1402_item_signature($normalized)] = true;
+    }
+
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            return false;
+        }
+
+        $normalized = notes_1402_normalize_item_record($item);
+        if ($normalized === null) {
+            return false;
+        }
+
+        if (!isset($seedSignatures[notes_1402_item_signature($normalized)])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function notes_1402_apply_term_5_seed_backfill(array $seed): array
+{
+    if (!notes_1402_needs_term_5_seed_backfill($seed)) {
+        return $seed;
+    }
+
+    if (!isset($seed['terms']) || !is_array($seed['terms'])) {
+        $seed['terms'] = [];
+    }
+    if (!isset($seed['terms']['5']) || !is_array($seed['terms']['5'])) {
+        $seed['terms']['5'] = notes_1402_term_template(5);
+    }
+
+    $term5 = $seed['terms']['5'];
+    $currentItems = is_array($term5['items'] ?? null) ? $term5['items'] : [];
+    $mergedItems = [];
+    $knownSignatures = [];
+    $maxId = 0;
+
+    foreach ($currentItems as $itemSeed) {
+        if (!is_array($itemSeed)) {
+            continue;
+        }
+        $normalized = notes_1402_normalize_item_record($itemSeed);
+        if ($normalized === null) {
+            continue;
+        }
+
+        $signature = notes_1402_item_signature($normalized);
+        if (isset($knownSignatures[$signature])) {
+            continue;
+        }
+        $knownSignatures[$signature] = true;
+        $maxId = max($maxId, (int) ($normalized['id'] ?? 0));
+        $mergedItems[] = $normalized;
+    }
+
+    foreach (notes_1402_seed_term_5_items() as $seedItem) {
+        $normalized = notes_1402_normalize_item_record($seedItem);
+        if ($normalized === null) {
+            continue;
+        }
+
+        $signature = notes_1402_item_signature($normalized);
+        if (isset($knownSignatures[$signature])) {
+            continue;
+        }
+
+        $knownSignatures[$signature] = true;
+        $maxId = max($maxId, (int) ($normalized['id'] ?? 0));
+        $mergedItems[] = $normalized;
+    }
+
+    usort($mergedItems, static function (array $left, array $right): int {
+        return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
+    });
+
+    $term5['items'] = $mergedItems;
+    $seed['terms']['5'] = $term5;
+    $seed['nextItemId'] = max((int) ($seed['nextItemId'] ?? 1), $maxId + 1);
+    $seed['seedBackfillVersion'] = NOTES_1402_SEED_BACKFILL_VERSION;
+
+    return $seed;
+}
+
 function notes_1402_default_store(): array
 {
     $terms = [];
@@ -143,6 +262,7 @@ function notes_1402_default_store(): array
 
     return [
         'schemaVersion' => NOTES_1402_SCHEMA_VERSION,
+        'seedBackfillVersion' => NOTES_1402_SEED_BACKFILL_VERSION,
         'nextItemId' => 12,
         'terms' => $terms,
     ];
@@ -163,7 +283,11 @@ function notes_1402_normalize_url(string $value): string
         return '';
     }
 
-    $clean = dent_clean_text($value, 900);
+    $clean = preg_replace('/[\x{200E}\x{200F}\x{202A}-\x{202E}\x{2066}-\x{2069}]/u', '', $value);
+    if (!is_string($clean)) {
+        $clean = $value;
+    }
+    $clean = trim($clean);
     if ($clean === '') {
         return '';
     }
@@ -178,7 +302,16 @@ function notes_1402_normalize_url(string $value): string
 
     $validated = filter_var($clean, FILTER_VALIDATE_URL);
     if (!is_string($validated) || trim($validated) === '') {
-        return '';
+        $parsed = @parse_url($clean);
+        if (
+            !is_array($parsed) ||
+            !in_array(dent_utf8_strtolower((string) ($parsed['scheme'] ?? '')), ['http', 'https'], true) ||
+            trim((string) ($parsed['host'] ?? '')) === ''
+        ) {
+            return '';
+        }
+
+        return $clean;
     }
 
     return $validated;
@@ -255,6 +388,7 @@ function notes_1402_normalize_store(array $seed): array
 
     return [
         'schemaVersion' => NOTES_1402_SCHEMA_VERSION,
+        'seedBackfillVersion' => max(0, (int) ($seed['seedBackfillVersion'] ?? 0)),
         'nextItemId' => max(1, (int) ($seed['nextItemId'] ?? 1), $maxItemId + 1),
         'terms' => $normalizedTerms,
     ];
@@ -266,6 +400,7 @@ function notes_1402_load_store_unlocked(): array
     if (!is_array($raw)) {
         $raw = notes_1402_default_store();
     }
+    $raw = notes_1402_apply_term_5_seed_backfill($raw);
 
     return notes_1402_normalize_store($raw);
 }
@@ -393,6 +528,16 @@ function notes_1402_require_method(array $allowed): void
     }
 }
 
+function notes_1402_parse_item_id($raw): int
+{
+    $itemId = (int) dent_normalize_digits((string) $raw);
+    if ($itemId <= 0) {
+        dent_error('شناسه کارت معتبر نیست.', 422);
+    }
+
+    return $itemId;
+}
+
 $action = dent_request_action();
 
 if ($action === 'term') {
@@ -462,6 +607,48 @@ if ($action === 'addItem') {
         'success' => true,
         'item' => notes_1402_item_payload($created),
         'message' => 'کارت منبع جدید با موفقیت ثبت شد.',
+    ]);
+}
+
+if ($action === 'deleteItem') {
+    notes_1402_require_method(['POST']);
+    dent_require_owner();
+
+    $term = notes_1402_parse_term($_POST['term'] ?? '');
+    $itemId = notes_1402_parse_item_id($_POST['itemId'] ?? '');
+
+    try {
+        $deleted = notes_1402_with_store_lock(static function (array &$store) use ($term, $itemId): array {
+            $termKey = (string) $term;
+            if (!is_array($store['terms'][$termKey]['items'] ?? null)) {
+                throw new RuntimeException('item-not-found');
+            }
+
+            $items = &$store['terms'][$termKey]['items'];
+            foreach ($items as $index => $item) {
+                if ((int) ($item['id'] ?? 0) !== $itemId) {
+                    continue;
+                }
+
+                $deleted = is_array($item) ? $item : [];
+                array_splice($items, $index, 1);
+                return $deleted;
+            }
+
+            throw new RuntimeException('item-not-found');
+        });
+    } catch (RuntimeException $error) {
+        if ($error->getMessage() === 'item-not-found') {
+            dent_error('کارت موردنظر پیدا نشد.', 404);
+        }
+
+        throw $error;
+    }
+
+    dent_json_response([
+        'success' => true,
+        'item' => notes_1402_item_payload($deleted),
+        'message' => 'کارت منبع حذف شد.',
     ]);
 }
 

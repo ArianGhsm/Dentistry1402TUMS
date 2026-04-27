@@ -28,6 +28,7 @@
         canManage: false,
         loading: false,
         saving: false,
+        deletingItemId: 0,
         authKey: ""
     };
 
@@ -95,6 +96,7 @@
     function buildCard(item) {
         var card = document.createElement("article");
         card.className = "action-card";
+        card.dataset.itemId = String(item.id || "");
 
         var content = document.createElement("div");
         content.className = "card-content";
@@ -119,6 +121,9 @@
         content.appendChild(header);
         content.appendChild(desc);
 
+        var actions = document.createElement("div");
+        actions.className = "notes-card-actions";
+
         var button = document.createElement("a");
         button.className = "card-btn";
         button.href = item.buttonUrl || "#";
@@ -128,9 +133,21 @@
             button.target = "_blank";
             button.rel = "noopener noreferrer";
         }
+        actions.appendChild(button);
+
+        if (state.canManage) {
+            var deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "notes-card-delete";
+            deleteButton.setAttribute("data-notes-delete", "true");
+            deleteButton.setAttribute("data-item-id", String(item.id || ""));
+            deleteButton.textContent = state.deletingItemId === Number(item.id || 0) ? "در حال حذف..." : "حذف";
+            deleteButton.disabled = state.deletingItemId === Number(item.id || 0);
+            actions.appendChild(deleteButton);
+        }
 
         card.appendChild(content);
-        card.appendChild(button);
+        card.appendChild(actions);
         return card;
     }
 
@@ -173,6 +190,11 @@
             addSubmit.disabled = state.saving;
             addSubmit.textContent = state.saving ? "در حال ثبت..." : "افزودن کارت";
         }
+    }
+
+    function setDeletingItemId(itemId) {
+        state.deletingItemId = Number(itemId) || 0;
+        renderTerm();
     }
 
     function handleUnauthorized(payload) {
@@ -307,6 +329,57 @@
         });
     }
 
+    function bindCardActions() {
+        cardsContainer.addEventListener("click", function (event) {
+            var deleteButton = event.target && event.target.closest ? event.target.closest("[data-notes-delete='true']") : null;
+            if (!deleteButton) {
+                return;
+            }
+
+            if (!state.canManage || state.saving || state.deletingItemId) {
+                return;
+            }
+
+            var itemId = Number(deleteButton.getAttribute("data-item-id") || "0");
+            if (!Number.isFinite(itemId) || itemId <= 0) {
+                return;
+            }
+
+            var confirmed = window.confirm("این کارت منبع حذف شود؟");
+            if (!confirmed) {
+                return;
+            }
+
+            setFeedback("", "");
+            setDeletingItemId(itemId);
+
+            request("deleteItem", "POST", {
+                term: String(term),
+                itemId: String(itemId)
+            }).then(function (response) {
+                if (handleUnauthorized(response)) {
+                    throw new Error("برای مدیریت منابع باید وارد حساب مالک شوید.");
+                }
+
+                if (!response || !response.success || !response.item) {
+                    throw new Error((response && response.error) || "حذف کارت انجام نشد.");
+                }
+
+                if (state.termData && Array.isArray(state.termData.items)) {
+                    state.termData.items = state.termData.items.filter(function (item) {
+                        return Number(item.id || 0) !== itemId;
+                    });
+                }
+                renderTerm();
+                setFeedback(response.message || "کارت منبع حذف شد.", "success");
+            }).catch(function (error) {
+                setFeedback(error && error.message ? error.message : "حذف کارت با خطا مواجه شد.", "error");
+            }).finally(function () {
+                setDeletingItemId(0);
+            });
+        });
+    }
+
     function watchAuthChanges() {
         var auth = window.Dent1402Auth;
         if (!auth || typeof auth.onChange !== "function") {
@@ -327,6 +400,7 @@
     function boot() {
         state.authKey = authSnapshotKey();
         bindManageForm();
+        bindCardActions();
         watchAuthChanges();
         loadTerm({ silent: false });
     }
