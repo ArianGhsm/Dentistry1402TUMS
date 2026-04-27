@@ -374,6 +374,72 @@ function Assert-GitAvailable() {
     }
 }
 
+function Get-HostDeployStatePath() {
+    return Join-Path $projectRoot ".codex-local\deploy\host_last_deploy.json"
+}
+
+function Read-HostDeployState() {
+    $path = Get-HostDeployStatePath
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        return $null
+    }
+
+    try {
+        $raw = Get-Content -LiteralPath $path -Raw -ErrorAction Stop
+        if ([string]::IsNullOrWhiteSpace($raw)) {
+            return $null
+        }
+
+        $parsed = $raw | ConvertFrom-Json -ErrorAction Stop
+        $head = ""
+        $branch = ""
+        $finishedAt = ""
+        if ($null -ne $parsed.PSObject.Properties["Head"]) {
+            $head = [string]$parsed.Head
+        }
+        if ($null -ne $parsed.PSObject.Properties["Branch"]) {
+            $branch = [string]$parsed.Branch
+        }
+        if ($null -ne $parsed.PSObject.Properties["FinishedAt"]) {
+            $finishedAt = [string]$parsed.FinishedAt
+        }
+
+        return [PSCustomObject]@{
+            Path       = $path
+            Head       = $head
+            Branch     = $branch
+            FinishedAt = $finishedAt
+        }
+    } catch {
+        Write-Warning "Host deploy state is unreadable at $path. A fresh state will be recorded after success."
+        return $null
+    }
+}
+
+function Write-HostDeployState([string]$head, [string]$branch, [string]$finishedAt) {
+    if ([string]::IsNullOrWhiteSpace($head)) {
+        return ""
+    }
+
+    $path = Get-HostDeployStatePath
+    $directory = Split-Path -Path $path -Parent
+    if (-not (Test-Path -LiteralPath $directory)) {
+        New-Item -ItemType Directory -Path $directory -Force | Out-Null
+    }
+
+    $payload = [ordered]@{
+        Head       = $head
+        Branch     = $branch
+        FinishedAt = $finishedAt
+        RecordedAt = Get-IsoNow
+        RemotePath = $remotePath
+    }
+
+    $json = $payload | ConvertTo-Json -Depth 5
+    Set-Content -LiteralPath $path -Value $json -Encoding UTF8
+    return $path
+}
+
 function Run-Git([string[]]$GitArgs) {
     $output = & git -C $projectRoot @GitArgs
     if ($LASTEXITCODE -ne 0) {
@@ -403,6 +469,31 @@ function Try-GetUpstreamBranch() {
     }
 
     return [string]$upstream
+}
+
+function Test-GitCommitExists([string]$Revision) {
+    if ([string]::IsNullOrWhiteSpace($Revision)) {
+        return $false
+    }
+
+    & git -C $projectRoot cat-file -e "$Revision`^{commit}" 2>$null
+    return ($LASTEXITCODE -eq 0)
+}
+
+function Test-GitCommitAncestor([string]$Ancestor, [string]$Descendant) {
+    if ([string]::IsNullOrWhiteSpace($Ancestor) -or [string]::IsNullOrWhiteSpace($Descendant)) {
+        return $false
+    }
+
+    & git -C $projectRoot merge-base --is-ancestor $Ancestor $Descendant 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        return $true
+    }
+    if ($LASTEXITCODE -eq 1) {
+        return $false
+    }
+
+    throw "Unable to compare commit ancestry for deploy-state fallback."
 }
 
 function Get-CommitInfo([string]$Revision) {
@@ -727,6 +818,7 @@ function Build-DeployPlan() {
     Assert-GitAvailable
 
     $upstream = Try-GetUpstreamBranch
+    $currentHead = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
     if (-not [string]::IsNullOrWhiteSpace($upstream)) {
         $counts = Run-GitSingle -GitArgs @("rev-list", "--left-right", "--count", "@{upstream}...HEAD")
         $parts = $counts -split "\s+"
@@ -743,6 +835,23 @@ function Build-DeployPlan() {
         }
     } else {
         [void]$notes.Add("No upstream branch configured; deploying local tracked/untracked workspace delta only.")
+    }
+
+    $lastDeployState = Read-HostDeployState
+    if ($null -ne $lastDeployState -and -not [string]::IsNullOrWhiteSpace($lastDeployState.Head)) {
+        $lastHead = $lastDeployState.Head
+        if (-not (Test-GitCommitExists -Revision $lastHead)) {
+            [void]$notes.Add("Last successful host deploy head '$lastHead' is no longer available locally.")
+        } elseif ($lastHead -eq $currentHead) {
+            [void]$notes.Add("Current HEAD already matches last successful host deploy state.")
+        } elseif (Test-GitCommitAncestor -Ancestor $lastHead -Descendant $currentHead) {
+            Collect-GitRangeDelta -uploadSet $uploadSet -deleteSet $deleteSet -rangeSpec "$lastHead..$currentHead"
+            [void]$notes.Add("Included committed public_html delta since last successful host deploy ($lastHead..$currentHead).")
+        } else {
+            [void]$notes.Add("Last successful host deploy head is not an ancestor of current HEAD; skipped host-state delta inference.")
+        }
+    } else {
+        [void]$notes.Add("No previous successful host deploy state was found; fallback deploy-state delta is skipped.")
     }
 
     Collect-WorkingTreeDelta -uploadSet $uploadSet -deleteSet $deleteSet
@@ -1042,6 +1151,13 @@ $githubSyncInfo = [PSCustomObject]@{
     PushCommand       = ""
     EstimatedPushBytes = [int64]0
 }
+$deployStateInfo = [PSCustomObject]@{
+    Status     = "not-updated"
+    Path       = ""
+    Head       = ""
+    Branch     = ""
+    FinishedAt = ""
+}
 
 $failureMessage = ""
 
@@ -1100,6 +1216,20 @@ try {
 
     $verificationInfo = Run-PostDeployVerification
     $githubSyncInfo = Sync-GitHubFromLaptop
+
+    if ($githubSyncInfo.HeadCommit -ne $null -and -not [string]::IsNullOrWhiteSpace([string]$githubSyncInfo.HeadCommit.Hash)) {
+        $statePath = Write-HostDeployState `
+            -head ([string]$githubSyncInfo.HeadCommit.Hash) `
+            -branch ([string]$githubSyncInfo.CurrentBranch) `
+            -finishedAt ([string]$deployInfo.FinishedAt)
+        $deployStateInfo.Status = "updated"
+        $deployStateInfo.Path = $statePath
+        $deployStateInfo.Head = [string]$githubSyncInfo.HeadCommit.Hash
+        $deployStateInfo.Branch = [string]$githubSyncInfo.CurrentBranch
+        $deployStateInfo.FinishedAt = [string]$deployInfo.FinishedAt
+    } else {
+        $deployStateInfo.Status = "skipped-no-head"
+    }
 } catch {
     $failureMessage = $_.Exception.Message
     if (-not $deployInfo.FinishedAt) {
@@ -1110,6 +1240,9 @@ try {
     }
     if (-not $githubSyncInfo.FinishedAt) {
         $githubSyncInfo.FinishedAt = Get-IsoNow
+    }
+    if (-not $deployStateInfo.FinishedAt) {
+        $deployStateInfo.FinishedAt = Get-IsoNow
     }
 } finally {
     $runFinishedAt = Get-IsoNow
@@ -1207,6 +1340,13 @@ try {
         Write-Host " - Push command: $($githubSyncInfo.PushCommand)"
     }
     Write-Host " - Estimated push bytes: $(Format-Bytes -bytes $githubSyncInfo.EstimatedPushBytes)"
+    Write-Host " - Host deploy state record: $($deployStateInfo.Status)"
+    if (-not [string]::IsNullOrWhiteSpace($deployStateInfo.Path)) {
+        Write-Host " - Host deploy state path: $($deployStateInfo.Path)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($deployStateInfo.Head)) {
+        Write-Host " - Last successful host deploy HEAD: $($deployStateInfo.Head)"
+    }
 
     Write-Host " - Run finished at: $runFinishedAt"
 

@@ -17,6 +17,7 @@ Important defaults:
 - If validation fails: stop before host deploy.
 - If deploy or live verification fails: stop before GitHub sync.
 - If GitHub push fails after successful deploy: host state stays deployed and push failure is reported.
+- Deploy script records last successful host-synced `HEAD` in `.codex-local/deploy/host_last_deploy.json` and includes `public_html` commit delta since that point to prevent false `No local delta` skips.
 
 ## Standard Commands
 
