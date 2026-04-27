@@ -114,6 +114,10 @@ body.resources-page main {
     color: #1f9a73;
 }
 
+.portal-row__icon--buy {
+    color: #a3621c;
+}
+
 .portal-row:last-child {
     border-bottom: 0;
     padding-bottom: 0.15rem;

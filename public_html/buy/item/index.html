@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>پرداخت آیتم | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="description" content="صفحه عمومی پرداخت یک آیتم با نمایش تصویر، توضیحات، مشخصات و فرم پرداخت‌کننده.">
+    <meta name="theme-color" content="#eef2f7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260428-005145">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260428-005145">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260428-005145">
+    <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
+    <link rel="stylesheet" href="/assets/site/styles/buy.css?v=20260428-buy1">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260422-cache2">
+</head>
+<body class="buy-page" data-buy-page="item">
+    <div class="background-overlay" aria-hidden="true"></div>
+
+    <header class="site-header">
+        <div class="logo-area">
+            <div class="logo-circle">
+                <img src="/assets/images/logo.png?v=20260422-brand1" alt="لوگوی ورودی ۱۴۰۲ دندانپزشکی">
+            </div>
+            <div class="site-info">
+                <h1>پرداخت لینک‌محور</h1>
+                <p>نمایش جزئیات آیتم و شروع پرداخت</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a class="header-link" href="/buy/">همه پرداخت‌ها</a>
+        </div>
+    </header>
+
+    <main class="buy-shell">
+        <section class="buy-item-layout">
+            <section class="buy-card">
+                <span id="buy-item-state" class="buy-status">در حال بارگذاری</span>
+                <h2 id="buy-item-title">در حال دریافت اطلاعات آیتم...</h2>
+                <p id="buy-item-short" class="buy-muted">چند لحظه صبر کنید.</p>
+
+                <div id="buy-item-hero" class="buy-item-main-hero"></div>
+                <div id="buy-item-gallery" class="buy-gallery" aria-label="گالری آیتم"></div>
+
+                <div class="buy-meta-grid">
+                    <div class="buy-meta-card">
+                        <span>قیمت</span>
+                        <strong id="buy-item-price" class="buy-item-price">—</strong>
+                    </div>
+                    <div class="buy-meta-card">
+                        <span>ظرفیت</span>
+                        <strong id="buy-item-capacity">—</strong>
+                    </div>
+                </div>
+
+                <div class="buy-meta-inline">
+                    <span id="buy-item-time">—</span>
+                </div>
+
+                <section class="buy-copy-block">
+                    <h3>توضیحات</h3>
+                    <p id="buy-item-full" class="buy-muted">—</p>
+                </section>
+
+                <section class="buy-copy-block">
+                    <h3>جزئیات</h3>
+                    <div id="buy-item-specs" class="buy-spec-list"></div>
+                </section>
+            </section>
+
+            <aside class="buy-card">
+                <div class="buy-card__head">
+                    <h3>اطلاعات پرداخت‌کننده</h3>
+                    <p class="buy-muted">مبلغ از روی آیتم در سرور تعیین می‌شود و از سمت کاربر قابل تغییر نیست.</p>
+                </div>
+
+                <form id="buy-order-form" class="buy-form" novalidate>
+                    <label class="buy-form__field">
+                        <span>نام و نام خانوادگی *</span>
+                        <input id="buy-payer-name" type="text" maxlength="120" autocomplete="name" placeholder="مثلا آریا رضایی">
+                    </label>
+
+                    <label class="buy-form__field">
+                        <span>شماره موبایل *</span>
+                        <input id="buy-payer-phone" type="tel" inputmode="numeric" maxlength="14" autocomplete="tel" dir="ltr" placeholder="09xxxxxxxxx">
+                    </label>
+
+                    <label class="buy-form__field">
+                        <span>شماره دانشجویی</span>
+                        <input id="buy-payer-student-number" type="text" inputmode="numeric" maxlength="20" autocomplete="off" dir="ltr" placeholder="در صورت نیاز">
+                    </label>
+
+                    <div id="buy-extra-fields" class="buy-form__extra"></div>
+
+                    <button id="buy-order-submit" class="shell-action-btn shell-action-btn-primary" type="submit">پرداخت آنلاین</button>
+                    <div id="buy-order-feedback" class="buy-feedback" aria-live="polite"></div>
+                </form>
+            </aside>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
+    </footer>
+
+    <script src="/assets/site/scripts/auth.js?v=20260422-authfix6"></script>
+    <script src="/assets/site/scripts/buy.js?v=20260428-buy1"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260428-005145"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
+</body>
+</html>

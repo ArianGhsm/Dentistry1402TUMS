@@ -218,6 +218,7 @@
             case "security":
             case "phone":
             case "owner":
+            case "payments":
             case "navid":
                 return name;
             default:
@@ -241,7 +242,7 @@
     }
 
     function canOpenSurface(surface) {
-        if (surface === "owner" || surface === "navid") {
+        if (surface === "owner" || surface === "payments" || surface === "navid") {
             return hasOwnerAccess();
         }
         return true;
@@ -3744,4 +3745,3 @@
     resetOtpUi();
     window.Dent1402Auth.onChange(handleAuthState);
 })();
-

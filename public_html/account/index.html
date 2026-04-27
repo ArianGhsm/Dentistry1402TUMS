@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260428-004141">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260428-004141">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260428-004141">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260428-005145">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260428-005145">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260428-005145">
     <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
     <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260426-ownerpanel2">
@@ -222,6 +222,16 @@
                         <span class="account-list-row__copy">
                             <strong>مدیریت کاربران و نماینده‌ها</strong>
                             <small id="account-row-owner-meta">نمایش کاربران، تعیین نماینده و ایجاد دستی حساب دانشجو</small>
+                        </span>
+                        <span class="account-list-row__chevron" aria-hidden="true">‹</span>
+                    </button>
+                    <button class="account-list-row account-list-row--admin-payments" type="button" data-open-surface="payments">
+                        <span class="account-list-row__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M4 7.2A2.2 2.2 0 0 1 6.2 5h11.6A2.2 2.2 0 0 1 20 7.2v9.6a2.2 2.2 0 0 1-2.2 2.2H6.2A2.2 2.2 0 0 1 4 16.8z"></path><path d="M4 9.4h16"></path><path d="M8 14.2h3.2"></path><path d="M14.7 14.2h1.6"></path></svg>
+                        </span>
+                        <span class="account-list-row__copy">
+                            <strong>مدیریت خرید و پرداخت</strong>
+                            <small id="account-row-payments-meta">ساخت لینک پرداخت، گزارش تراکنش‌ها و اعلان‌های مالی</small>
                         </span>
                         <span class="account-list-row__chevron" aria-hidden="true">‹</span>
                     </button>
@@ -684,6 +694,160 @@
                     </section>
                 </article>
 
+                <article id="payments-panel" class="account-card account-surface-panel" data-surface="payments" hidden>
+                    <header class="account-surface-head">
+                        <button class="shell-action-btn account-surface-back" type="button" data-surface-back>بازگشت</button>
+                        <div class="account-surface-head__copy">
+                            <span class="account-section-kicker">مدیریت خرید</span>
+                            <h3>لینک‌های پرداخت و گزارش تراکنش‌ها</h3>
+                            <p>ساخت آیتم پرداخت، دریافت لینک عمومی، کنترل ظرفیت و مهلت، و مشاهده‌ی verify تراکنش‌ها در همین سطح انجام می‌شود.</p>
+                        </div>
+                    </header>
+
+                    <div id="payments-summary" class="owner-summary"></div>
+
+                    <section class="owner-block owner-block--payments-toolbar">
+                        <div class="payments-inline-actions">
+                            <button id="payments-new-item" class="shell-action-btn shell-action-btn-primary" type="button">آیتم جدید</button>
+                            <button id="payments-reload-dashboard" class="shell-action-btn" type="button">به‌روزرسانی آمار</button>
+                            <button id="payments-mark-notifications-read" class="shell-action-btn" type="button">خواندن همه اعلان‌ها</button>
+                        </div>
+                        <div id="payments-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
+                    </section>
+
+                    <section class="owner-block owner-block--payments">
+                        <div class="owner-block__head">
+                            <h4>اعلان‌های مالی</h4>
+                            <p>پرداخت‌های موفق و ناموفق اینجا ثبت می‌شوند و بعدا می‌توان hook پیامکی/ایمیل/تلگرام را به آن وصل کرد.</p>
+                        </div>
+                        <div id="payments-notifications-list" class="payments-notifications-list"></div>
+                    </section>
+
+                    <section class="owner-block owner-block--payments">
+                        <div class="owner-block__head">
+                            <h4>ساخت یا ویرایش آیتم پرداخت</h4>
+                            <p>برای `gallery`، `specifications` و `requiredFields` از JSON استفاده می‌شود تا فاز اول سبک و همسو با ساختار فعلی بماند.</p>
+                        </div>
+
+                        <form id="payments-item-form" class="account-form payments-item-form" novalidate>
+                            <input id="payments-item-id" type="hidden">
+
+                            <label for="payments-item-title">عنوان آیتم</label>
+                            <input id="payments-item-title" type="text" maxlength="140" placeholder="مثلا شیلد کلاس">
+
+                            <label for="payments-item-slug">اسلاگ / لینک عمومی</label>
+                            <input id="payments-item-slug" type="text" maxlength="120" dir="ltr" placeholder="class-shield-1402">
+
+                            <label for="payments-item-price">قیمت (ریال)</label>
+                            <input id="payments-item-price" type="text" inputmode="numeric" maxlength="12" dir="ltr" placeholder="2500000">
+
+                            <label for="payments-item-status">وضعیت</label>
+                            <select id="payments-item-status">
+                                <option value="active">فعال</option>
+                                <option value="inactive">غیرفعال</option>
+                            </select>
+
+                            <label for="payments-item-short-description">توضیح کوتاه</label>
+                            <textarea id="payments-item-short-description" maxlength="460" placeholder="خلاصه‌ی کوتاه برای کارت لیست و بالای صفحه عمومی"></textarea>
+
+                            <label for="payments-item-full-description">توضیح کامل</label>
+                            <textarea id="payments-item-full-description" maxlength="6000" placeholder="شرح کامل آیتم، شرایط و توضیحات لازم"></textarea>
+
+                            <label for="payments-item-hero-image">تصویر اصلی</label>
+                            <input id="payments-item-hero-image" type="text" maxlength="420" dir="ltr" placeholder="/assets/images/sample.jpg">
+
+                            <label for="payments-item-gallery">گالری تصاویر (JSON array)</label>
+                            <textarea id="payments-item-gallery" dir="ltr" placeholder='["/assets/images/one.jpg","/assets/images/two.jpg"]'></textarea>
+
+                            <label for="payments-item-specifications">مشخصات / جزئیات (JSON)</label>
+                            <textarea id="payments-item-specifications" dir="ltr" placeholder='[{"label":"مکان","value":"سالن همایش"},{"label":"مسئول","value":"انجمن علمی"}]'></textarea>
+
+                            <label for="payments-item-required-fields">فیلدهای لازم از کاربر (JSON)</label>
+                            <textarea id="payments-item-required-fields" dir="ltr" placeholder='[{"name":"nationalCode","label":"کد ملی","type":"text","required":true}]'></textarea>
+
+                            <label for="payments-item-success-message">متن موفقیت</label>
+                            <textarea id="payments-item-success-message" maxlength="600" placeholder="پیام بعد از verify موفق پرداخت"></textarea>
+
+                            <label for="payments-item-failure-message">متن خطا</label>
+                            <textarea id="payments-item-failure-message" maxlength="600" placeholder="پیام پرداخت ناموفق یا لغوشده"></textarea>
+
+                            <label for="payments-item-starts-at">زمان شروع</label>
+                            <input id="payments-item-starts-at" type="datetime-local">
+
+                            <label for="payments-item-expires-at">مهلت پرداخت</label>
+                            <input id="payments-item-expires-at" type="datetime-local">
+
+                            <label for="payments-item-capacity">ظرفیت</label>
+                            <input id="payments-item-capacity" type="text" inputmode="numeric" maxlength="8" dir="ltr" placeholder="اختیاری">
+
+                            <div class="payments-inline-actions">
+                                <button id="payments-item-save" class="shell-action-btn shell-action-btn-primary" type="submit">ذخیره آیتم</button>
+                                <button id="payments-item-reset" class="shell-action-btn" type="button">پاک کردن فرم</button>
+                            </div>
+                            <div id="payments-item-form-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
+                        </form>
+                    </section>
+
+                    <section class="owner-block owner-block--payments">
+                        <div class="owner-block__head">
+                            <h4>آیتم‌های پرداخت</h4>
+                            <p>از اینجا می‌توانی لینک عمومی را برداری، آیتم را ویرایش کنی یا موقتا غیرفعال کنی.</p>
+                        </div>
+                        <div id="payments-items-grid" class="payments-items-grid"></div>
+                    </section>
+
+                    <section class="owner-block owner-block--payments">
+                        <div class="owner-block__head">
+                            <h4>تراکنش‌ها و فیلترها</h4>
+                            <p>فیلتر براساس آیتم، وضعیت، بازه‌ی زمانی و نام/شماره/authority اعمال می‌شود.</p>
+                        </div>
+
+                        <form id="payments-orders-filter-form" class="payments-filter-grid" novalidate>
+                            <label for="payments-filter-item">آیتم</label>
+                            <select id="payments-filter-item">
+                                <option value="0">همه آیتم‌ها</option>
+                            </select>
+
+                            <label for="payments-filter-status">وضعیت</label>
+                            <select id="payments-filter-status">
+                                <option value="all">همه وضعیت‌ها</option>
+                                <option value="pending">در انتظار</option>
+                                <option value="success">موفق</option>
+                                <option value="failed">ناموفق</option>
+                                <option value="canceled">لغو شده</option>
+                                <option value="expired">منقضی شده</option>
+                            </select>
+
+                            <label for="payments-filter-date-from">از تاریخ</label>
+                            <input id="payments-filter-date-from" type="date">
+
+                            <label for="payments-filter-date-to">تا تاریخ</label>
+                            <input id="payments-filter-date-to" type="date">
+
+                            <label for="payments-filter-query">جست‌وجو</label>
+                            <input id="payments-filter-query" type="search" placeholder="نام، شماره، authority یا ref id">
+
+                            <div class="payments-inline-actions">
+                                <button class="shell-action-btn shell-action-btn-primary" type="submit">اعمال فیلتر</button>
+                                <button id="payments-filter-reset" class="shell-action-btn" type="button">حذف فیلتر</button>
+                            </div>
+                        </form>
+
+                        <div id="payments-orders-summary" class="owner-summary owner-summary--compact"></div>
+                        <div id="payments-orders-list" class="payments-orders-list"></div>
+                    </section>
+
+                    <section class="owner-block owner-block--payments">
+                        <div class="owner-block__head">
+                            <h4>جزئیات تراکنش</h4>
+                            <p>اسنپ‌شات پاسخ درگاه و فیلدهای ثبت‌شده برای عیب‌یابی اینجا نمایش داده می‌شود.</p>
+                        </div>
+                        <div id="payments-order-detail" class="payments-order-detail">
+                            <div class="owner-empty">برای دیدن جزئیات، یکی از تراکنش‌ها را انتخاب کن.</div>
+                        </div>
+                    </section>
+                </article>
+
                 <article id="navid-panel" class="account-card account-surface-panel" data-surface="navid" hidden>
                     <header class="account-surface-head">
                         <button class="shell-action-btn account-surface-back" type="button" data-surface-back>بازگشت</button>
@@ -746,7 +910,8 @@
 
     <script src="/assets/site/scripts/auth.js?v=20260425-authotp2"></script>
     <script src="/assets/site/scripts/account.js?v=20260426-ownerpanel3"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260428-004141"></script>
+    <script src="/assets/site/scripts/account-payments.js?v=20260428-payments1"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260428-005145"></script>
     <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
 </body>
 </html>

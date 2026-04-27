@@ -370,7 +370,8 @@ body.account-page.account-stage-panel-active .account-hero {
 }
 
 .account-list-row--admin-tools,
-.account-list-row--admin-navid {
+.account-list-row--admin-navid,
+.account-list-row--admin-payments {
     --row-icon-bg: rgba(186, 133, 54, 0.16);
     --row-icon-color: #805919;
 }
@@ -1394,6 +1395,201 @@ body.account-page.account-stage-panel-active .account-hero {
         var(--surface-muted);
 }
 
+.owner-block--payments-toolbar,
+.owner-block--payments {
+    padding: 0.82rem;
+    border-radius: 18px;
+    border: 1px solid rgba(127, 145, 165, 0.2);
+    background:
+        radial-gradient(circle at 100% 0%, rgba(186, 133, 54, 0.09), transparent 36%),
+        var(--surface-muted);
+}
+
+.payments-inline-actions {
+    display: flex;
+    gap: 0.52rem;
+    flex-wrap: wrap;
+}
+
+.payments-inline-actions .shell-action-btn {
+    min-height: 38px;
+}
+
+.payments-item-form,
+.payments-filter-grid {
+    margin-top: 0.2rem;
+    padding: 0.82rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+}
+
+.payments-item-form textarea,
+.payments-item-form input,
+.payments-item-form select,
+.payments-filter-grid input,
+.payments-filter-grid select {
+    width: 100%;
+}
+
+.payments-items-grid,
+.payments-orders-list,
+.payments-notifications-list {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.payments-item-card,
+.payments-order-card,
+.payments-note,
+.payments-order-detail {
+    padding: 0.82rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+}
+
+.payments-item-card,
+.payments-order-card,
+.payments-note {
+    display: grid;
+    gap: 0.62rem;
+}
+
+.payments-item-card__head,
+.payments-order-card__head,
+.payments-note__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.72rem;
+    align-items: flex-start;
+}
+
+.payments-item-card__head h4,
+.payments-order-card__head h4,
+.payments-note__head strong,
+.payments-code-block h5 {
+    margin: 0;
+}
+
+.payments-item-card__head p,
+.payments-order-card__head p,
+.payments-note p {
+    margin: 0.22rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    line-height: 1.84;
+}
+
+.payments-item-card__meta,
+.payments-order-card__meta {
+    display: grid;
+    gap: 0.28rem;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+.payments-item-card__actions,
+.payments-order-card__actions,
+.payments-note__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.46rem;
+}
+
+.payments-pill,
+.payments-note__state {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 28px;
+    padding: 0.16rem 0.64rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 820;
+}
+
+.payments-pill--ok {
+    color: var(--success-color);
+    border-color: rgba(21, 143, 99, 0.26);
+    background: rgba(21, 143, 99, 0.1);
+}
+
+.payments-pill--warn {
+    color: var(--warning-color);
+    border-color: rgba(194, 129, 29, 0.28);
+    background: rgba(194, 129, 29, 0.12);
+}
+
+.payments-pill--danger {
+    color: var(--danger-color);
+    border-color: rgba(199, 83, 94, 0.28);
+    background: rgba(199, 83, 94, 0.12);
+}
+
+.payments-note.is-unread {
+    border-color: rgba(194, 129, 29, 0.34);
+    background:
+        linear-gradient(180deg, rgba(194, 129, 29, 0.12), rgba(194, 129, 29, 0.03)),
+        var(--surface-solid);
+}
+
+.payments-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.72rem;
+    align-items: end;
+}
+
+.payments-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.52rem;
+}
+
+.payments-detail-row {
+    padding: 0.62rem 0.68rem;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    display: grid;
+    gap: 0.18rem;
+}
+
+.payments-detail-row span {
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+}
+
+.payments-detail-row strong {
+    font-size: 0.8rem;
+    line-height: 1.8;
+}
+
+.payments-code-block {
+    margin-top: 0.78rem;
+    display: grid;
+    gap: 0.46rem;
+}
+
+.payments-code-block pre {
+    margin: 0;
+    max-width: 100%;
+    overflow: auto;
+    padding: 0.82rem;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    background: rgba(15, 23, 42, 0.04);
+    color: var(--text-primary);
+    font-size: 0.72rem;
+    line-height: 1.9;
+    direction: ltr;
+    text-align: left;
+}
+
 .owner-create-student-form {
     margin-top: 0.3rem;
     padding: 0.76rem;
@@ -1761,6 +1957,7 @@ html[data-theme="dark"] body.account-page .account-list-row--security {
 
 html[data-theme="dark"] body.account-page .account-list-row--admin-tools,
 html[data-theme="dark"] body.account-page .account-list-row--admin-navid,
+html[data-theme="dark"] body.account-page .account-list-row--admin-payments,
 html[data-theme="dark"] body.account-page .account-list-row--admin-polls {
     --row-icon-color: #f2cb8a;
 }
@@ -1885,6 +2082,23 @@ html[data-theme="dark"] body.account-page .owner-summary-card--danger {
     background:
         linear-gradient(180deg, rgba(239, 124, 136, 0.2), rgba(15, 24, 37, 0.92)),
         var(--surface-muted);
+}
+
+html[data-theme="dark"] body.account-page .owner-block--payments-toolbar,
+html[data-theme="dark"] body.account-page .owner-block--payments,
+html[data-theme="dark"] body.account-page .payments-item-form,
+html[data-theme="dark"] body.account-page .payments-filter-grid,
+html[data-theme="dark"] body.account-page .payments-item-card,
+html[data-theme="dark"] body.account-page .payments-order-card,
+html[data-theme="dark"] body.account-page .payments-note,
+html[data-theme="dark"] body.account-page .payments-order-detail {
+    background:
+        linear-gradient(180deg, rgba(173, 120, 42, 0.08), rgba(15, 24, 37, 0.92)),
+        var(--surface-muted);
+}
+
+html[data-theme="dark"] body.account-page .payments-code-block pre {
+    background: rgba(8, 14, 24, 0.86);
 }
 
 html[data-theme="dark"] body.account-page .account-list-row__chevron {
@@ -2099,13 +2313,33 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
     }
 
     .owner-user__admin-grid,
-    .owner-user-inline-row--double {
+    .owner-user-inline-row--double,
+    .payments-filter-grid,
+    .payments-detail-grid {
         grid-template-columns: 1fr;
     }
 
     .owner-grade-row,
     .owner-grade-row__controls {
         grid-template-columns: 1fr;
+    }
+
+    .payments-item-card__head,
+    .payments-order-card__head,
+    .payments-note__head,
+    .payments-inline-actions,
+    .payments-item-card__actions,
+    .payments-order-card__actions,
+    .payments-note__actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .payments-inline-actions .shell-action-btn,
+    .payments-item-card__actions .shell-action-btn,
+    .payments-order-card__actions .shell-action-btn,
+    .payments-note__actions .shell-action-btn {
+        width: 100%;
     }
 
     .navid-config-actions {
