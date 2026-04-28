@@ -149,6 +149,8 @@
         var style = document.createElement("style");
         style.id = LAUNCH_SPLASH_STYLE_ID;
         style.textContent = [
+            "html." + LAUNCH_SPLASH_CLASS + ",html." + LAUNCH_SPLASH_CLASS + " body{background:var(--accent-color,#2b6df3)!important;}",
+            "html[data-theme=\"dark\"]." + LAUNCH_SPLASH_CLASS + ",html[data-theme=\"dark\"]." + LAUNCH_SPLASH_CLASS + " body{background:var(--bg-body,#0d1420)!important;}",
             "html." + LAUNCH_SPLASH_CLASS + "::before,html." + LAUNCH_SPLASH_CLASS + "::after{position:fixed;inset:0;pointer-events:none;opacity:1;transition:opacity 0.15s ease;}",
             "html." + LAUNCH_SPLASH_CLASS + "::before{content:\"\";z-index:10020;background-image:url(\"" + LAUNCH_SPLASH_LOGO_URL + "\"),radial-gradient(circle at 20% 12%,rgba(255,255,255,0.22),transparent 44%),linear-gradient(160deg,var(--accent-color,#2b6df3) 0%,var(--accent-strong,#1f56d6) 100%);background-repeat:no-repeat,no-repeat,no-repeat;background-size:clamp(124px,32vw,190px) auto,cover,cover;background-position:center calc(50% - 10px),center,center;}",
             "html[data-theme=\"dark\"]." + LAUNCH_SPLASH_CLASS + "::before{background-image:url(\"" + LAUNCH_SPLASH_LOGO_URL + "\"),radial-gradient(circle at 18% 14%,rgba(154,195,255,0.18),transparent 44%),linear-gradient(160deg,var(--bg-body,#0d1420) 0%,var(--accent-color,#72a9ff) 100%);}",
@@ -210,6 +212,12 @@
         var themeMeta = document.querySelector('meta[name="theme-color"]');
         if (themeMeta) {
             themeMeta.setAttribute("content", themeColor(theme));
+        }
+
+        var appleStatusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+        if (appleStatusBarMeta) {
+            // Full-bleed status bar in iOS standalone mode prevents white top strips during splash.
+            appleStatusBarMeta.setAttribute("content", isStandaloneDisplayMode() ? "black-translucent" : "default");
         }
     }
 
