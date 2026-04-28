@@ -230,6 +230,126 @@ body.buy-page main.buy-shell {
     gap: 0.65rem;
 }
 
+.buy-gateway {
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    overflow: hidden;
+}
+
+.buy-gateway__head {
+    padding: 0.62rem 0.72rem 0.55rem;
+    border-bottom: 1px solid var(--border-color);
+    display: grid;
+    gap: 0.2rem;
+}
+
+.buy-gateway__head h4 {
+    margin: 0;
+    font-size: 0.96rem;
+}
+
+.buy-gateway__head .buy-muted {
+    font-size: 0.76rem;
+}
+
+.buy-gateway__list {
+    display: grid;
+}
+
+.buy-gateway-option {
+    position: relative;
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    gap: 0.62rem;
+    align-items: center;
+    padding: 0.64rem 0.72rem;
+    border: 0;
+    border-bottom: 1px solid var(--border-color);
+    background: transparent;
+    cursor: pointer;
+}
+
+.buy-gateway-option:last-child {
+    border-bottom: 0;
+}
+
+.buy-gateway-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.buy-gateway-option__radio {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid color-mix(in srgb, var(--accent-color) 40%, var(--border-color));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-solid);
+}
+
+.buy-gateway-option__radio::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: transparent;
+    transition: background 0.18s ease;
+}
+
+.buy-gateway-option__copy {
+    display: grid;
+    gap: 0.12rem;
+}
+
+.buy-gateway-option__title {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 860;
+}
+
+.buy-gateway-option__meta {
+    margin: 0;
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+}
+
+.buy-gateway-option__badge {
+    min-width: 36px;
+    min-height: 26px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 860;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.46rem;
+}
+
+.buy-gateway-option input[type="radio"]:checked ~ .buy-gateway-option__radio {
+    border-color: var(--accent-color);
+    background: color-mix(in srgb, var(--accent-color) 10%, var(--surface-solid));
+}
+
+.buy-gateway-option input[type="radio"]:checked ~ .buy-gateway-option__radio::after {
+    background: var(--accent-color);
+}
+
+.buy-gateway-option:focus-within {
+    box-shadow: inset 0 0 0 2px var(--focus-ring-soft);
+}
+
+.buy-gateway-option.is-disabled {
+    opacity: 0.52;
+    cursor: not-allowed;
+}
+
 .buy-form label {
     display: grid;
     gap: 0.36rem;

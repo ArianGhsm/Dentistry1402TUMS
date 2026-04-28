@@ -335,6 +335,37 @@ function payments_api_trigger_notification_hook(array $notification, array $orde
     payments_gateway_http_post_json($webhook, $payload, 8);
 }
 
+function payments_api_checkout_gateways_payload(): array
+{
+    $catalog = payments_gateway_checkout_catalog(false);
+    $defaultKey = payments_gateway_default_enabled_checkout(false);
+
+    $gateways = [];
+    foreach ($catalog as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $key = payments_gateway_clean((string) ($entry['key'] ?? ''));
+        if ($key === '') {
+            continue;
+        }
+
+        $gateways[] = [
+            'key' => $key,
+            'label' => dent_clean_text((string) ($entry['label'] ?? ''), 80),
+            'provider' => dent_clean_text((string) ($entry['provider'] ?? ''), 120),
+            'icon' => dent_clean_text((string) ($entry['icon'] ?? ''), 8),
+            'isEnabled' => (bool) ($entry['isEnabled'] ?? false),
+            'isDefault' => (bool) ($entry['isEnabled'] ?? false) && $key === $defaultKey,
+        ];
+    }
+
+    return [
+        'defaultKey' => $defaultKey,
+        'gateways' => $gateways,
+    ];
+}
+
 $action = dent_request_action();
 
 if ($action === 'listPublicItems') {
@@ -380,6 +411,7 @@ if ($action === 'publicItem') {
     $item = $store['items'][$itemIndex];
     $payload = payments_public_item_payload($item);
     $payload['statusMessage'] = payments_api_item_status_message($payload['state']);
+    $payload['paymentGateways'] = payments_api_checkout_gateways_payload();
 
     dent_json_response([
         'success' => true,
@@ -407,8 +439,17 @@ if ($action === 'createOrder') {
 
     $payerStudentNumber = dent_normalize_student_number((string) ($_POST['payerStudentNumber'] ?? ''));
     $extraFormData = payments_api_parse_extra_form_data($_POST['extraFormData'] ?? ($_POST['extra_form_data'] ?? ''));
+
+    $enabledGateways = payments_gateway_enabled_checkout_keys(false);
+    if ($enabledGateways === []) {
+        dent_error('هیچ درگاه پرداخت فعالی برای ثبت سفارش وجود ندارد.', 503);
+    }
+
     $requestedGateway = payments_gateway_clean((string) ($_POST['gateway'] ?? ''));
-    $gateway = $requestedGateway !== '' ? $requestedGateway : payments_gateway_default();
+    $gateway = $requestedGateway !== '' ? $requestedGateway : payments_gateway_default_enabled_checkout(false);
+    if ($gateway === '' || !in_array($gateway, $enabledGateways, true)) {
+        dent_error('درگاه پرداخت انتخاب‌شده فعال نیست. لطفا گزینه دیگری را انتخاب کنید.', 422);
+    }
     $user = dent_current_user();
     $userId = $user ? dent_normalize_student_number((string) ($user['studentNumber'] ?? '')) : '';
     if ($payerStudentNumber === '' && $userId !== '') {

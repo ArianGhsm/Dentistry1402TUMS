@@ -144,6 +144,162 @@
         return "";
     }
 
+    function gatewayProviderFallback(key) {
+        var clean = String(key || "").trim().toLowerCase();
+        if (clean === "zibal") {
+            return "درگاه زیبال";
+        }
+        if (clean === "zarinpal") {
+            return "درگاه زرین‌پال";
+        }
+        if (clean === "mock") {
+            return "درگاه آزمایشی";
+        }
+        return "درگاه آنلاین";
+    }
+
+    function normalizeGatewayBundle(raw) {
+        var source = raw && typeof raw === "object" ? raw : {};
+        var rows = Array.isArray(source.gateways) ? source.gateways : [];
+        var defaultKey = String(source.defaultKey || "").trim().toLowerCase();
+        var gateways = [];
+        rows.forEach(function (row) {
+            if (!row || typeof row !== "object") {
+                return;
+            }
+            var key = String(row.key || "").trim().toLowerCase();
+            if (!key) {
+                return;
+            }
+            gateways.push({
+                key: key,
+                label: String(row.label || "پرداخت آنلاین"),
+                provider: String(row.provider || gatewayProviderFallback(key)),
+                icon: String(row.icon || "").trim(),
+                isEnabled: !!row.isEnabled,
+                isDefault: !!row.isDefault
+            });
+        });
+
+        if (!defaultKey) {
+            var explicit = gateways.find(function (entry) { return entry.isEnabled && entry.isDefault; });
+            if (explicit) {
+                defaultKey = explicit.key;
+            }
+        }
+        if (!defaultKey) {
+            var firstEnabled = gateways.find(function (entry) { return entry.isEnabled; });
+            if (firstEnabled) {
+                defaultKey = firstEnabled.key;
+            }
+        }
+
+        return {
+            gateways: gateways,
+            defaultKey: defaultKey
+        };
+    }
+
+    function renderGatewayOptions(raw, form, submit) {
+        var section = $("buy-gateway-section");
+        var root = $("buy-gateway-options");
+        if (!section || !root || !form) {
+            return {
+                hasEnabled: true,
+                getSelected: function () { return ""; },
+                refreshSubmitText: function () {}
+            };
+        }
+
+        var bundle = normalizeGatewayBundle(raw);
+        var options = bundle.gateways;
+        var enabledCount = options.filter(function (entry) { return entry.isEnabled; }).length;
+
+        if (!options.length) {
+            section.hidden = true;
+            root.innerHTML = "";
+            return {
+                hasEnabled: true,
+                getSelected: function () { return ""; },
+                refreshSubmitText: function () {}
+            };
+        }
+
+        section.hidden = false;
+        var selectedOnce = false;
+        root.innerHTML = options.map(function (entry, index) {
+            var inputId = "buy-gateway-" + entry.key + "-" + String(index);
+            var checked = false;
+            if (entry.isEnabled && !selectedOnce && bundle.defaultKey && entry.key === bundle.defaultKey) {
+                checked = true;
+                selectedOnce = true;
+            } else if (entry.isEnabled && !selectedOnce && !bundle.defaultKey) {
+                checked = true;
+                selectedOnce = true;
+            }
+            var disabled = !entry.isEnabled;
+            var subtitle = entry.provider || gatewayProviderFallback(entry.key);
+            if (disabled) {
+                subtitle += " (غیرفعال)";
+            }
+
+            return [
+                '<label class="buy-gateway-option' + (disabled ? " is-disabled" : "") + '" for="' + text(inputId) + '">',
+                '  <input id="' + text(inputId) + '" type="radio" name="buy_gateway" value="' + text(entry.key) + '"' + (checked ? " checked" : "") + (disabled ? " disabled" : "") + ">",
+                '  <span class="buy-gateway-option__radio" aria-hidden="true"></span>',
+                '  <span class="buy-gateway-option__copy">',
+                '    <strong class="buy-gateway-option__title">' + text(entry.label || "پرداخت آنلاین") + "</strong>",
+                '    <small class="buy-gateway-option__meta">' + text(subtitle) + "</small>",
+                "  </span>",
+                '  <span class="buy-gateway-option__badge">' + text(entry.icon || entry.key.toUpperCase()) + "</span>",
+                "</label>"
+            ].join("");
+        }).join("");
+
+        function readSelectedInput() {
+            return form.querySelector("input[name='buy_gateway']:checked");
+        }
+
+        function selectedTitle() {
+            var input = readSelectedInput();
+            if (!input) {
+                return "پرداخت آنلاین";
+            }
+            var optionNode = input.closest(".buy-gateway-option");
+            if (!optionNode) {
+                return "پرداخت آنلاین";
+            }
+            var titleNode = optionNode.querySelector(".buy-gateway-option__title");
+            return titleNode ? String(titleNode.textContent || "").trim() || "پرداخت آنلاین" : "پرداخت آنلاین";
+        }
+
+        function refreshSubmitText() {
+            if (!submit) {
+                return;
+            }
+            if (enabledCount <= 0) {
+                submit.textContent = "درگاه فعالی موجود نیست";
+                submit.disabled = true;
+                return;
+            }
+            submit.textContent = selectedTitle();
+        }
+
+        root.addEventListener("change", function () {
+            refreshSubmitText();
+        });
+        refreshSubmitText();
+
+        return {
+            hasEnabled: enabledCount > 0,
+            getSelected: function () {
+                var input = readSelectedInput();
+                return input ? String(input.value || "").trim().toLowerCase() : "";
+            },
+            refreshSubmitText: refreshSubmitText
+        };
+    }
+
     function renderList(items) {
         var root = $("buy-list-root");
         if (!root) return;
@@ -330,6 +486,7 @@
         var form = $("buy-order-form");
         var submit = $("buy-order-submit");
         var feedback = $("buy-order-feedback");
+        var gatewaySelection = null;
 
         if (!slug) {
             if (titleNode) titleNode.textContent = "آیتم پرداخت پیدا نشد";
@@ -377,10 +534,20 @@
             renderGallery(item);
             renderSpecifications(item.specifications || []);
             renderRequiredFields(item.requiredFields || []);
+            gatewaySelection = renderGatewayOptions(item.paymentGateways || {}, form, submit);
 
             if (submit) {
-                submit.disabled = !payable;
-                submit.textContent = payable ? "پرداخت آنلاین" : "در حال حاضر قابل پرداخت نیست";
+                var hasGateway = !!(gatewaySelection && gatewaySelection.hasEnabled);
+                submit.disabled = !payable || !hasGateway;
+                if (!payable) {
+                    submit.textContent = "در حال حاضر قابل پرداخت نیست";
+                } else if (!hasGateway) {
+                    submit.textContent = "درگاه فعالی موجود نیست";
+                } else if (gatewaySelection && typeof gatewaySelection.refreshSubmitText === "function") {
+                    gatewaySelection.refreshSubmitText();
+                } else {
+                    submit.textContent = "پرداخت آنلاین";
+                }
             }
             setFeedback(feedback, payable ? "" : (item.statusMessage || "این آیتم در حال حاضر قابل پرداخت نیست."), payable ? "" : "is-error");
 
@@ -429,6 +596,14 @@
                     return;
                 }
 
+                var selectedGateway = gatewaySelection && typeof gatewaySelection.getSelected === "function"
+                    ? gatewaySelection.getSelected()
+                    : "";
+                if (!selectedGateway) {
+                    setFeedback(feedback, "لطفا روش پرداخت را انتخاب کنید.", "is-error");
+                    return;
+                }
+
                 if (submit) submit.disabled = true;
                 setFeedback(feedback, "در حال انتقال به درگاه پرداخت...", "");
 
@@ -437,7 +612,8 @@
                     payerName: payerName,
                     payerPhone: payerPhone,
                     payerStudentNumber: payerStudentNumber,
-                    extraFormData: JSON.stringify(extraData)
+                    extraFormData: JSON.stringify(extraData),
+                    gateway: selectedGateway
                 }).then(function (response) {
                     if (!response || !response.success || !response.redirectUrl) {
                         if (submit) submit.disabled = false;

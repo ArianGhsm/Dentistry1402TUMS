@@ -43,6 +43,140 @@ function payments_gateway_clean(string $value): string
     return '';
 }
 
+function payments_gateway_label(string $gateway): string
+{
+    $clean = payments_gateway_clean($gateway);
+    if ($clean === PAYMENTS_GATEWAY_ZIBAL) {
+        return 'زیبال';
+    }
+    if ($clean === PAYMENTS_GATEWAY_ZARINPAL) {
+        return 'زرین‌پال';
+    }
+    if ($clean === PAYMENTS_GATEWAY_MOCK) {
+        return 'درگاه آزمایشی';
+    }
+
+    return '';
+}
+
+function payments_gateway_is_configured(string $gateway): bool
+{
+    $clean = payments_gateway_clean($gateway);
+    if ($clean === PAYMENTS_GATEWAY_ZIBAL) {
+        return payments_zibal_merchant_id() !== '';
+    }
+    if ($clean === PAYMENTS_GATEWAY_ZARINPAL) {
+        return trim((string) getenv('DENT_PAYMENT_ZARINPAL_MERCHANT_ID')) !== '';
+    }
+    if ($clean === PAYMENTS_GATEWAY_MOCK) {
+        return true;
+    }
+
+    return false;
+}
+
+function payments_gateway_checkout_catalog(bool $includeMock = false): array
+{
+    $catalog = [
+        [
+            'key' => PAYMENTS_GATEWAY_ZIBAL,
+            'label' => 'پرداخت آنلاین',
+            'provider' => 'درگاه زیبال',
+            'icon' => 'Z',
+            'priority' => 10,
+        ],
+        [
+            'key' => PAYMENTS_GATEWAY_ZARINPAL,
+            'label' => 'پرداخت آنلاین',
+            'provider' => 'درگاه زرین‌پال',
+            'icon' => 'ZP',
+            'priority' => 20,
+        ],
+    ];
+
+    if ($includeMock) {
+        $catalog[] = [
+            'key' => PAYMENTS_GATEWAY_MOCK,
+            'label' => 'پرداخت آزمایشی',
+            'provider' => 'فقط برای تست',
+            'icon' => 'T',
+            'priority' => 100,
+        ];
+    }
+
+    $defaultGateway = payments_gateway_default();
+    $fallbackDefault = '';
+    $result = [];
+    foreach ($catalog as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $key = payments_gateway_clean((string) ($entry['key'] ?? ''));
+        if ($key === '') {
+            continue;
+        }
+        $isEnabled = payments_gateway_is_configured($key);
+        if ($fallbackDefault === '' && $isEnabled) {
+            $fallbackDefault = $key;
+        }
+
+        $result[] = [
+            'key' => $key,
+            'label' => (string) ($entry['label'] ?? payments_gateway_label($key)),
+            'provider' => (string) ($entry['provider'] ?? payments_gateway_label($key)),
+            'icon' => dent_clean_text((string) ($entry['icon'] ?? ''), 8),
+            'priority' => (int) ($entry['priority'] ?? 999),
+            'isEnabled' => $isEnabled,
+            'isDefault' => $isEnabled && $key === $defaultGateway,
+        ];
+    }
+
+    if ($fallbackDefault !== '' && !in_array($defaultGateway, array_column($result, 'key'), true)) {
+        $defaultGateway = $fallbackDefault;
+    }
+
+    foreach ($result as $index => $entry) {
+        $key = (string) ($entry['key'] ?? '');
+        $result[$index]['isDefault'] = (bool) ($entry['isEnabled'] ?? false) && $key === $defaultGateway;
+    }
+
+    usort($result, static function (array $left, array $right): int {
+        return (int) ($left['priority'] ?? 999) <=> (int) ($right['priority'] ?? 999);
+    });
+
+    return $result;
+}
+
+function payments_gateway_enabled_checkout_keys(bool $includeMock = false): array
+{
+    $keys = [];
+    foreach (payments_gateway_checkout_catalog($includeMock) as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        if (!(bool) ($entry['isEnabled'] ?? false)) {
+            continue;
+        }
+        $key = payments_gateway_clean((string) ($entry['key'] ?? ''));
+        if ($key !== '' && !in_array($key, $keys, true)) {
+            $keys[] = $key;
+        }
+    }
+
+    return $keys;
+}
+
+function payments_gateway_default_enabled_checkout(bool $includeMock = false): string
+{
+    $preferred = payments_gateway_clean(payments_gateway_default());
+    $enabled = payments_gateway_enabled_checkout_keys($includeMock);
+    if ($preferred !== '' && in_array($preferred, $enabled, true)) {
+        return $preferred;
+    }
+
+    return $enabled[0] ?? '';
+}
+
 function payments_gateway_http_post_json(string $url, array $payload, int $timeoutSeconds = 20): array
 {
     $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
