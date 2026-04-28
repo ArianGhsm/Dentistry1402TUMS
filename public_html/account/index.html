@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260429-001735">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260429-001735">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260429-001735">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260429-002903">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260429-002903">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260429-002903">
     <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
     <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260426-ownerpanel2">
@@ -694,7 +694,7 @@
                     </section>
                 </article>
 
-                <article id="payments-panel" class="account-card account-surface-panel" data-surface="payments" hidden>
+                <article id="payments-panel" class="account-card account-surface-panel payments-redesign" data-surface="payments" hidden>
                     <header class="account-surface-head">
                         <button class="shell-action-btn account-surface-back" type="button" data-surface-back>بازگشت</button>
                         <div class="account-surface-head__copy">
@@ -706,7 +706,7 @@
 
                     <div id="payments-summary" class="owner-summary"></div>
 
-                    <section class="owner-block owner-block--payments-toolbar">
+                    <section class="owner-block owner-block--payments-toolbar owner-block--payments-toolbar-redesign">
                         <div class="payments-inline-actions">
                             <button id="payments-new-item" class="shell-action-btn shell-action-btn-primary" type="button">آیتم جدید</button>
                             <button id="payments-reload-dashboard" class="shell-action-btn" type="button">به‌روزرسانی آمار</button>
@@ -715,7 +715,7 @@
                         <div id="payments-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
                     </section>
 
-                    <section class="owner-block owner-block--payments">
+                    <section class="owner-block owner-block--payments owner-block--payments-notifications">
                         <div class="owner-block__head">
                             <h4>اعلان‌های مالی</h4>
                             <p>پرداخت‌های موفق و ناموفق اینجا ثبت می‌شوند و بعدا می‌توان hook پیامکی/ایمیل/تلگرام را به آن وصل کرد.</p>
@@ -723,13 +723,13 @@
                         <div id="payments-notifications-list" class="payments-notifications-list"></div>
                     </section>
 
-                    <section class="owner-block owner-block--payments">
+                    <section class="owner-block owner-block--payments owner-block--payments-editor">
                         <div class="owner-block__head">
                             <h4>ساخت یا ویرایش آیتم پرداخت</h4>
                             <p>برای شروع فقط اطلاعات اصلی را وارد کن. تنظیمات JSON و متن‌های سیستم در بخش پیشرفته قرار گرفته‌اند تا فرم سریع‌تر و ساده‌تر باشد.</p>
                         </div>
 
-                        <form id="payments-item-form" class="account-form payments-item-form payments-item-form--refined" novalidate>
+                        <form id="payments-item-form" class="account-form payments-item-form payments-item-form--refined payments-item-form--redesign" novalidate>
                             <input id="payments-item-id" type="hidden">
 
                             <section class="payments-form-section">
@@ -829,7 +829,7 @@
                         </form>
                     </section>
 
-                    <section class="owner-block owner-block--payments">
+                    <section class="owner-block owner-block--payments owner-block--payments-items">
                         <div class="owner-block__head">
                             <h4>آیتم‌های پرداخت</h4>
                             <p>از اینجا می‌توانی لینک عمومی را برداری، آیتم را ویرایش کنی یا موقتا غیرفعال کنی.</p>
@@ -837,7 +837,7 @@
                         <div id="payments-items-grid" class="payments-items-grid"></div>
                     </section>
 
-                    <section class="owner-block owner-block--payments">
+                    <section class="owner-block owner-block--payments owner-block--payments-orders">
                         <div class="owner-block__head">
                             <h4>تراکنش‌ها و فیلترها</h4>
                             <p>فیلتر بر اساس آیتم، وضعیت، بازه زمانی و نام/شماره/authority اعمال می‌شود.</p>
@@ -888,7 +888,7 @@
                         <div id="payments-orders-list" class="payments-orders-list"></div>
                     </section>
 
-                    <section class="owner-block owner-block--payments">
+                    <section class="owner-block owner-block--payments owner-block--payments-order-detail">
                         <div class="owner-block__head">
                             <h4>جزئیات تراکنش</h4>
                             <p>اسنپ‌شات پاسخ درگاه و فیلدهای ثبت‌شده برای عیب‌یابی اینجا نمایش داده می‌شود.</p>
@@ -962,7 +962,7 @@
     <script src="/assets/site/scripts/auth.js?v=20260425-authotp2"></script>
     <script src="/assets/site/scripts/account.js?v=20260426-ownerpanel3"></script>
     <script src="/assets/site/scripts/account-payments.js?v=20260428-payments1"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260429-001735"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260429-002903"></script>
     <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
 </body>
 </html>

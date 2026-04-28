@@ -511,6 +511,26 @@
         populateFilterItems();
     }
 
+    function upsertItemInState(item) {
+        if (!item || typeof item !== "object") {
+            return;
+        }
+        var itemId = Number(item.id || 0);
+        if (!itemId) {
+            return;
+        }
+        var index = state.items.findIndex(function (entry) {
+            return Number(entry.id || 0) === itemId;
+        });
+        if (index >= 0) {
+            state.items[index] = item;
+        } else {
+            state.items.unshift(item);
+        }
+        renderItems();
+        populateFilterItems();
+    }
+
     async function loadDashboard(silent) {
         if (!isOwner() || state.loadingDashboard) {
             return;
@@ -615,6 +635,15 @@
             capacity: normalizeDigits($("payments-item-capacity").value).replace(/\D+/g, "")
         };
 
+        if (!payload.id && payload.slug) {
+            var matchedItem = state.items.find(function (entry) {
+                return String(entry.slug || "").trim().toLowerCase() === String(payload.slug || "").trim().toLowerCase();
+            });
+            if (matchedItem && Number(matchedItem.id || 0) > 0) {
+                payload.id = String(matchedItem.id || "");
+            }
+        }
+
         var response = await request("ownerSaveItem", payload, "POST");
         if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
             return;
@@ -624,10 +653,11 @@
             return;
         }
 
+        upsertItemInState(response.item);
         setFeedback(itemFormFeedback, response.message || "آیتم پرداخت ذخیره شد.", "success");
+        fillItemForm(response.item.id);
         await loadDashboard(true);
         await loadOrders(true);
-        fillItemForm(response.item.id);
     }
 
     async function toggleItem(itemId, enabled) {
@@ -642,6 +672,9 @@
         if (!response || !response.success) {
             setFeedback(feedbackNode, (response && response.error) || "تغییر وضعیت آیتم انجام نشد.", "error");
             return;
+        }
+        if (response.item) {
+            upsertItemInState(response.item);
         }
         setFeedback(feedbackNode, response.message || "وضعیت آیتم به‌روزرسانی شد.", "success");
         await loadDashboard(true);
