@@ -1,22 +1,8 @@
-﻿# Runtime Data Boundary (`server-only`)
+﻿# server-only
 
-## File Identity
-- What: Runtime storage boundary documentation.
-- Where: `server-only/README.md`.
-- Role: Prevents committing live runtime/secrets and defines expected layout.
-- Controls: location of runtime data and env-path wiring.
-- Dependencies:
-  - `.gitignore`
-  - runtime bootstrap env resolution
-- Read when:
-  - configuring new machine/host
-  - changing runtime storage/session paths
+تمام داده‌های runtime و secret باید فقط اینجا باشند و commit نشوند.
 
-## Rule
-- Runtime data lives under `server-only/` and must never be committed.
-- This directory is intentionally ignored except this `README.md` and `.gitignore`.
-
-## Recommended Layout
+## ساختار پیشنهادی
 ```text
 server-only/
   storage/
@@ -26,9 +12,9 @@ server-only/
   secrets/
 ```
 
-## Notes
-- Keep real data and credentials here, not in tracked root files.
-- Point runtime using env vars when needed:
+## قواعد
+- داده واقعی و credential در فایل‌های tracked ریشه پروژه قرار نگیرند.
+- برای مسیر runtime از env varها استفاده شود:
   - `DENT_SERVER_ONLY_ROOT`
   - `DENT_STORAGE_ROOT`
   - `DENT_SESSION_SAVE_PATH`

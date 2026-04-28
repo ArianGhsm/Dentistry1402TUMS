@@ -3,7 +3,7 @@
         return;
     }
 
-    var CURRENT_VERSION = "20260428-231245";
+    var CURRENT_VERSION = "20260428-233925";
     var VERSION_ENDPOINT = "/app-version.json";
     var SERVICE_WORKER_ENDPOINT = "/sw.js";
     var UPDATE_CHECK_MIN_INTERVAL = 30000;

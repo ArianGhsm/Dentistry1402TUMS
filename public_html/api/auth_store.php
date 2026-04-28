@@ -30,6 +30,20 @@ function dent_default_profile(): array
     ];
 }
 
+function dent_normalize_national_code(?string $value): string
+{
+    $digits = preg_replace('/\D+/u', '', dent_normalize_digits($value)) ?? '';
+    if ($digits === '') {
+        return '';
+    }
+
+    if (strlen($digits) !== 10) {
+        return '';
+    }
+
+    return $digits;
+}
+
 function dent_to_fa_digits(string $value): string
 {
     return strtr($value, [
@@ -729,6 +743,14 @@ function dent_normalize_user_record($studentNumber, array $user): array
         $user['phoneNudgeDismissedAt']
         ?? ($user['phone']['nudgeDismissedAt'] ?? '')
     ));
+    $nationalCode = dent_normalize_national_code((string) (
+        $user['nationalCode']
+        ?? ($user['private']['nationalCode'] ?? '')
+    ));
+    $directoryPhoneNumber = dent_normalize_phone_number((string) (
+        $user['directoryPhoneNumber']
+        ?? ($user['private']['directoryPhoneNumber'] ?? '')
+    ));
     if ($phoneNumber === '') {
         $phoneVerifiedAt = '';
         $phoneLoginEnabled = false;
@@ -752,6 +774,8 @@ function dent_normalize_user_record($studentNumber, array $user): array
         'phoneVerifiedAt' => $phoneVerifiedAt,
         'phoneLoginEnabled' => $phoneLoginEnabled,
         'phoneNudgeDismissedAt' => $phoneNudgeDismissedAt,
+        'nationalCode' => $nationalCode,
+        'directoryPhoneNumber' => $directoryPhoneNumber,
         'rotationOverride' => $rotationOverride,
         'createdAt' => trim((string) ($user['createdAt'] ?? dent_iso_now())),
         'updatedAt' => trim((string) ($user['updatedAt'] ?? dent_iso_now())),
@@ -1039,6 +1063,21 @@ function dent_public_user(array $user): array
     ];
 }
 
+function dent_owner_private_user_fields(array $user): array
+{
+    $nationalCode = dent_normalize_national_code((string) ($user['nationalCode'] ?? ''));
+    $directoryPhone = dent_normalize_phone_number((string) ($user['directoryPhoneNumber'] ?? ''));
+
+    return [
+        'nationalCode' => $nationalCode,
+        'directoryPhoneNumber' => $directoryPhone,
+        'nationalCodeMasked' => $nationalCode === '' ? '' : ('******' . substr($nationalCode, -4)),
+        'directoryPhoneMasked' => $directoryPhone === '' ? '' : dent_mask_phone_number($directoryPhone),
+        'hasNationalCode' => $nationalCode !== '',
+        'hasDirectoryPhone' => $directoryPhone !== '',
+    ];
+}
+
 function dent_auth_status(array $user): string
 {
     return 'logged-in';
@@ -1204,13 +1243,16 @@ function dent_change_user_password(array $user, string $currentPassword, string 
     return dent_persist_user($user);
 }
 
-function dent_list_public_users(): array
+function dent_list_public_users(bool $includeOwnerPrivate = false): array
 {
     $store = dent_load_user_store();
     $users = [];
 
     foreach ($store['users'] as $studentNumber => $user) {
         $public = dent_public_user($user);
+        if ($includeOwnerPrivate) {
+            $public['ownerPrivate'] = dent_owner_private_user_fields($user);
+        }
         $public['sortableName'] = trim((string) ($user['name'] ?? $studentNumber));
         $users[] = $public;
     }
@@ -1385,7 +1427,9 @@ function dent_create_student_account(
     string $password,
     string $rotationMode = 'none',
     ?int $rotationId = null,
-    ?int $groupNumber = null
+    ?int $groupNumber = null,
+    string $nationalCode = '',
+    string $directoryPhoneNumber = ''
 ): array {
     $studentNumber = dent_normalize_student_number($studentNumber);
     if ($studentNumber === '') {
@@ -1428,12 +1472,16 @@ function dent_create_student_account(
 
     $name = trim($firstName . ' ' . $lastName);
     $now = dent_iso_now();
+    $normalizedNationalCode = dent_normalize_national_code($nationalCode);
+    $normalizedDirectoryPhone = dent_normalize_phone_number($directoryPhoneNumber);
     $store['users'][$studentNumber] = dent_normalize_user_record($studentNumber, [
         'studentNumber' => $studentNumber,
         'name' => $name,
         'passwordHash' => dent_hash_password($password),
         'role' => 'student',
         'profile' => dent_default_profile(),
+        'nationalCode' => $normalizedNationalCode,
+        'directoryPhoneNumber' => $normalizedDirectoryPhone,
         'rotationOverride' => $rotationOverride,
         'createdAt' => $now,
         'updatedAt' => $now,

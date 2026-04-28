@@ -1,27 +1,17 @@
-﻿# Contributing Workflow
+﻿# CONTRIBUTING
 
-## File Identity
-- What: Lightweight contribution rules.
-- Where: Repo root.
-- Role: Keeps implementation focused and verifiable.
-- Controls: scope discipline, checks before handoff/deploy.
-- Dependencies:
-  - `AGENTS.md`
-  - `CONTRIBUTING-UTF8.md`
-  - `DEPLOY.md`
-- Read when:
-  - starting implementation
-  - preparing final handoff
+## اصل کار
+- تغییرات باید مستقیم در راستای درخواست باشند.
+- refactor نامرتبط در همان تغییر ممنوع.
+- commit message کوچک، روشن، قابل‌ردیابی.
 
-## Scope Discipline
-- Keep changes focused on requested scope.
-- Avoid unrelated refactors in the same change.
-- Keep commit messages clear and narrow.
-
-## Required Local Checks
-- After UI text/CSS edits, run:
+## الزامات قبل از تحویل
+- اگر متن UI یا CSS تغییر کرد:
   - `python scripts/check_text_integrity.py`
-- Run additional checks/tests relevant to touched files.
+- تست/چک مرتبط با فایل‌های touch‌شده اجرا شود.
+- flowهای متاثر روی desktop و mobile دوباره بررسی شوند.
 
-## Deploy Link
-- Use canonical deploy process from `DEPLOY.md`.
+## مسیر مرجع
+- قوانین اجرایی کل پروژه: `AGENTS.md`
+- قواعد متن/RTL/Locale: `CONTRIBUTING-UTF8.md`
+- قرارداد deploy: `DEPLOY.md`

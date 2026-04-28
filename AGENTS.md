@@ -1,92 +1,88 @@
 ﻿# AGENTS.md
 
-## File Identity
-- What: Persistent execution contract for coding agents in this repository.
-- Where: Repo root.
-- Role: Source of truth for scope, constraints, workflow, and reporting.
-- Controls: product boundary, auth boundary, data continuity, QA/deploy flow.
-- Primary dependencies:
+دستورالعمل اجرایی اصلی برای کل پروژه Dentistry1402TUMS.
+
+## 1) مرز محصول (کل سایت)
+- این پروژه یک سایت آموزشی چندبخشی است، نه یک پیام‌رسان مستقل.
+- مسیرهای اصلی سایت باید کاربرد آموزشی خود را حفظ کنند: `/app/`, `/grades/`, `/exams/`, `/notes/`, `/resources/`, `/account/`.
+- UX تلگرام‌مانند فقط برای `/chat/` و بخش‌های تنظیمات/پروفایل مرتبط با چت مجاز است.
+- هیچ بخش غیرچتی نباید به الگوی پیام‌رسان تبدیل شود.
+
+## 2) معماری کلان (کل پروژه)
+- Frontend: چندصفحه‌ای (MPA) با HTML/CSS/JS در `public_html/`.
+- Backend: APIهای PHP در `public_html/api/` و `public_html/chat/` و `public_html/grades/`.
+- Storage: داده‌های پایدار باید در مسیرهای ذخیره‌سازی مشترک نگه‌داری شوند؛ نه در فایل‌های موقتی جایگزین‌شونده در Deploy.
+- PWA: `manifest.webmanifest` و `sw.js` فعال هستند و باید سازگار بمانند.
+
+## 3) هویت و احراز هویت (غیرقابل مذاکره)
+- تنها منبع حقیقت هویت/نقش/session:
   - `public_html/api/auth_api.php`
-  - shared auth/session store
-  - `scripts/check_text_integrity.py`
-  - `scripts/deploy_public_html.ps1`
-- Read when:
-  - before starting any task
-  - before modifying chat/auth/storage/deploy
-  - before final status reporting
+  - `public_html/api/auth_store.php`
+  - shared PHP session/bootstrap
+- ایجاد auth یا identity موازی برای چت ممنوع است.
+- `chat_api.php` نباید به منبع دوم auth تبدیل شود.
 
-## Scope Boundary
-- This is a multi-section academic site, not a messenger-only app.
-- Telegram-grade UX upgrades are allowed only for `/chat/` and chat-related profile/settings surfaces.
-- Non-chat sections must stay domain-specific and must not be reshaped into messenger UX.
+## 4) حداقل قابلیت الزامی پیام‌رسان
+- گروه اجباری کلاس.
+- گفت‌وگوی خصوصی (DM).
+- گروه‌های اضافه.
+- Poll.
+- مدل واقعی conversation + user discovery واقعی.
 
-## Shared Auth And Identity (Non-Negotiable)
-- Messenger must use shared site auth/account as the only source of truth.
-- Do not create separate messenger auth or profile identity stores.
-- Identity/role/session must come from shared APIs/session (`/api/auth_api.php`, shared auth store/session).
+## 5) قرارداد داده پایدار و همگام‌سازی (غیرقابل مذاکره)
+- پیام‌ها، نمرات، حافظه کاربر و هر state پایدار باید بین local + live + deploy target همگام بمانند.
+- Deploy نباید باعث wipe/reset/fork/desync داده شود.
+- تنها نسخه داده نباید در فایل‌های deploy-replaced یا temp runtime نگه‌داری شود.
+- هر تغییر در storage/sync/backup/restore/migration/deploy باید continuity تاریخچه پیام و داده را حفظ کند.
+- گزارش موفقیت کاذب ممنوع است: اگر داده فقط local یا cache است، موفقیت اعلام نشود.
 
-## Minimum Messenger Capability (Required)
-- Mandatory class group.
-- Private chats.
-- Additional groups.
-- Polls.
-- Real conversation model and real user discovery.
-
-## Persistent Data And Sync (Non-Negotiable)
-- User memory, grades, messages, and any stateful data must remain synchronized across:
-  - live site
-  - local project folders
-  - deploy targets
-- Deployments must not wipe, reset, fork, or desynchronize persistent data.
-- Never keep the only copy of stateful data in deploy-replaced files or temporary runtime storage.
-- Storage/sync/backup/restore/migration/deploy changes must preserve history/message continuity.
-- Prevent false persistence claims: do not report success when data is only local, only cached, or not synced to canonical shared storage.
-
-## Execution Workflow (Mandatory)
-1. Inspect current repo state (`git status`, relevant files, guidance docs).
-2. Reproduce reported issue on desktop and phone-sized view.
-3. Inspect real request/response and frontend state transitions (no guess-only fixes).
-4. Apply scoped fixes.
-5. Retest the same flows on desktop and mobile.
-6. Report status explicitly as `completed`, `partial`, or `blocked`.
-7. Deploy by default after verified changes unless user explicitly says not to deploy.
-
-## Operational Guardrails
-- Do not assume prior chat history is available.
-- Do not use proxy/VPN/filter workarounds unless explicitly requested.
-- Mobile-first quality is required for messenger create flows and core chat actions.
-- After UI text/CSS edits, run:
+## 6) قرارداد زبان/متن/RTL/Locale
+- متن‌های UI باید UTF-8 سالم بمانند.
+- تاریخ و ساعت و اعداد کاربر-محور باید فارسی (`fa-IR`) نمایش داده شوند، مگر فیلد machine-only.
+- برای فیلدهای فنی Latin-digit:
+  - `data-digit-locale="latin"` یا `data-latin-digits="true"`
+- الگوی bidi ناامن (به‌خصوص `unicode-bidi: plaintext`) فقط با توجیه صریح.
+- پیش‌فرض امن بلوک‌های فارسی:
+  - `direction: rtl`
+  - `unicode-bidi: isolate`
+- بعد از هر ویرایش متن UI/CSS باید اجرا شود:
   - `python scripts/check_text_integrity.py`
-- Avoid unsafe bidi patterns (especially `unicode-bidi: plaintext`) unless explicitly justified.
-- Clean temporary test chats/groups/DMs after validation.
-- Prevent false-success states:
-  - no success toast when final state is broken
-  - created conversation/group must appear in list and open
-  - UI/store/network state must remain synchronized
-  - messages must not become mixed/corrupted (no "گاتی" states in ordering/content)
 
-## Persian/RTL And Locale Integrity
-- User-facing Persian text must stay UTF-8 safe.
-- User-facing numeric/date/time rendering must stay Persian-first unless a machine-only field explicitly requires Latin digits.
-- RTL directionality must stay stable and readable across chat and non-chat pages.
+## 7) قرارداد کیفیت اجرا (desktop + mobile)
+- قبل از اصلاح، باگ باید بازتولید شود (desktop و phone-size).
+- فقط با حدس اصلاح نکنید؛ request/response و state transition واقعی بررسی شود.
+- بعد از اصلاح، همان flow روی desktop و mobile retest شود.
+- کیفیت mobile-first برای create-flow و core actionهای چت اجباری است.
+- تست موقت چت/گروه/DM باید بعد از اعتبارسنجی cleanup شود.
 
-## Theme Contract
-- Prefer semantic tokens from `public_html/assets/site/styles/core.css`.
-- Avoid reusable hardcoded light-only colors.
-- Avoid page-specific dark-mode `!important` patching.
+## 8) جلوگیری از false-success
+- toast موفقیت وقتی end-state خراب است ممنوع.
+- conversation/group ایجادشده باید در لیست دیده شود و باز شود.
+- UI/store/network state باید sync بمانند.
+- پیام‌ها نباید گاتی/مخدوش/نامنظم شوند.
 
-## Deploy Runbook (Default)
-Primary command:
+## 9) قرارداد تم و استایل
+- از semantic tokenهای `public_html/assets/site/styles/core.css` استفاده شود.
+- از hardcode رنگ reusable روشن‌محور خودداری شود.
+- patch موضعی dark-mode با `!important` فقط در صورت اجبار.
+
+## 10) Workflow اجباری اجرای کار
+1. وضعیت مخزن را بررسی کنید (`git status` + فایل‌های مرتبط).
+2. مسئله را روی desktop/mobile بازتولید کنید.
+3. رفتار واقعی شبکه و state را بررسی کنید.
+4. اصلاح scoped اعمال کنید.
+5. retest کامل همان flow روی desktop/mobile.
+6. وضعیت را دقیق گزارش کنید: `completed` / `partial` / `blocked`.
+7. Deploy پیش‌فرض انجام شود مگر کاربر صراحتاً منع کند.
+
+## 11) Deploy پیش‌فرض
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
-
-Default deploy order (mandatory):
-- local validation -> host deploy -> live health-check -> GitHub sync
-
-Rules:
-- Do not run pre-deploy `git pull` unless explicitly requested.
-- Optional override when explicitly requested:
+- ترتیب اجباری:
+  - local validation -> host deploy -> live health-check -> GitHub sync
+- `git pull` قبل از deploy پیش‌فرض ممنوع است مگر درخواست صریح.
+- override اختیاری:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullBeforeDeploy
 ```

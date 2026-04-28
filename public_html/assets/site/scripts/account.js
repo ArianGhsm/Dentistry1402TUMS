@@ -1200,19 +1200,29 @@
         var withPhone = users.filter(function (user) {
             return !!user.hasPhone;
         }).length;
+        var withNationalCode = users.filter(function (user) {
+            return !!user.hasNationalCode;
+        }).length;
+        var withDirectoryPhone = users.filter(function (user) {
+            return !!user.hasDirectoryPhone;
+        }).length;
 
         ownerSummary.innerHTML = [
             summaryCard("کاربر", totalUsers.toLocaleString("fa-IR"), "کل حساب‌های تعریف‌شده"),
             summaryCard("نماینده", representatives.toLocaleString("fa-IR"), "افراد دارای دسترسی گفت‌وگو"),
-            summaryCard("دارای شماره", withPhone.toLocaleString("fa-IR"), "کاربرهایی که شماره موبایل ثبت‌شده دارند"),
+            summaryCard("دارای شماره", withPhone.toLocaleString("fa-IR"), "کاربرهایی که شماره ورود پیامکی ثبت‌شده دارند"),
+            summaryCard("دارای تلفن", withDirectoryPhone.toLocaleString("fa-IR"), "کاربرهایی که تلفن تماس برای مدیریت دارند"),
+            summaryCard("دارای کدملی", withNationalCode.toLocaleString("fa-IR"), "کاربرهایی که کدملی ثبت‌شده دارند"),
             summaryCard("دارای نمره", withGrades.toLocaleString("fa-IR"), "کاربرهایی که در فایل نمرات رکورد دارند")
         ].join("");
 
         if (accountRowOwnerMeta) {
             accountRowOwnerMeta.textContent = [
                 "کاربر " + totalUsers.toLocaleString("fa-IR"),
-                "نماینده " + representatives.toLocaleString("fa-IR")
-            ].join(" • ");
+                "نماینده " + representatives.toLocaleString("fa-IR"),
+                "کدملی " + withNationalCode.toLocaleString("fa-IR"),
+                "تلفن " + withDirectoryPhone.toLocaleString("fa-IR")
+            ].join(" \u2022 ");
         }
     }
 
@@ -1484,8 +1494,11 @@
             return true;
         }
 
+        var ownerPrivate = user && user.ownerPrivate && typeof user.ownerPrivate === "object" ? user.ownerPrivate : {};
         return String(user.name || "").toLowerCase().indexOf(normalized) !== -1 ||
-            String(user.studentNumber || "").indexOf(normalized) !== -1;
+            String(user.studentNumber || "").indexOf(normalized) !== -1 ||
+            String(ownerPrivate.nationalCode || "").indexOf(normalized) !== -1 ||
+            String(ownerPrivate.directoryPhoneNumber || "").indexOf(normalized) !== -1;
     }
 
     function renderRepresentatives(users) {
@@ -1542,6 +1555,24 @@
             return masked + " (OTP فعال)";
         }
         return masked + " (OTP غیرفعال)";
+    }
+
+    function ownerUserNationalCodeMeta(user) {
+        var ownerPrivate = user && user.ownerPrivate && typeof user.ownerPrivate === "object" ? user.ownerPrivate : {};
+        var nationalCode = String(ownerPrivate.nationalCode || "").trim();
+        if (!nationalCode) {
+            return "ثبت نشده";
+        }
+        return ltrIsolateText(nationalCode);
+    }
+
+    function ownerUserContactPhoneMeta(user) {
+        var ownerPrivate = user && user.ownerPrivate && typeof user.ownerPrivate === "object" ? user.ownerPrivate : {};
+        var directoryPhone = String(ownerPrivate.directoryPhoneNumber || "").trim();
+        if (directoryPhone) {
+            return ltrIsolateText(directoryPhone);
+        }
+        return ownerUserPhoneMeta(user);
     }
 
     function ownerRotationCatalog() {
@@ -1614,6 +1645,12 @@
         var parts = [ownerRoleMeta(user)];
         parts.push(ownerRotationMeta(user));
         parts.push(user.hasPhone ? "دارای شماره" : "بدون شماره");
+        if (user.hasDirectoryPhone) {
+            parts.push("دارای تلفن");
+        }
+        if (user.hasNationalCode) {
+            parts.push("دارای کدملی");
+        }
         if (user.hasGrades) {
             parts.push("دارای نمرات");
         }
@@ -1646,7 +1683,8 @@
         metaGrid.appendChild(buildOwnerMetaCell("\u0634\u0645\u0627\u0631\u0647 \u062f\u0627\u0646\u0634\u062c\u0648\u06cc\u06cc", studentNumber || "\u2014"));
         metaGrid.appendChild(buildOwnerMetaCell("\u0646\u0642\u0634", ownerRoleMeta(user)));
         metaGrid.appendChild(buildOwnerMetaCell("\u0631\u0648\u062a\u06cc\u0634\u0646/\u06af\u0631\u0648\u0647", ownerRotationMeta(user)));
-        metaGrid.appendChild(buildOwnerMetaCell("\u0645\u0648\u0628\u0627\u06cc\u0644", ownerUserPhoneMeta(user)));
+        metaGrid.appendChild(buildOwnerMetaCell("\u06a9\u062f \u0645\u0644\u06cc", ownerUserNationalCodeMeta(user)));
+        metaGrid.appendChild(buildOwnerMetaCell("\u062a\u0644\u0641\u0646", ownerUserContactPhoneMeta(user)));
         details.appendChild(metaGrid);
 
         var adminGrid = document.createElement("div");

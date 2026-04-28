@@ -275,9 +275,11 @@ if ($action === 'smsHealthCheck') {
 if ($action === 'users') {
     dent_require_owner();
 
-    $users = dent_list_public_users();
+    $users = dent_list_public_users(true);
     $gradeRoster = dent_grade_roster_index();
     $representativeCount = 0;
+    $withNationalCodeCount = 0;
+    $withDirectoryPhoneCount = 0;
 
     foreach ($users as &$user) {
         $studentNumber = (string) ($user['studentNumber'] ?? '');
@@ -285,6 +287,15 @@ if ($action === 'users') {
         $user['hasGrades'] = $hasGrades;
         $phone = is_array($user['phone'] ?? null) ? $user['phone'] : [];
         $user['hasPhone'] = !empty($phone['hasNumber']);
+        $ownerPrivate = is_array($user['ownerPrivate'] ?? null) ? $user['ownerPrivate'] : [];
+        $user['hasNationalCode'] = !empty($ownerPrivate['hasNationalCode']);
+        $user['hasDirectoryPhone'] = !empty($ownerPrivate['hasDirectoryPhone']);
+        if ($user['hasNationalCode']) {
+            $withNationalCodeCount++;
+        }
+        if ($user['hasDirectoryPhone']) {
+            $withDirectoryPhoneCount++;
+        }
         if (($user['role'] ?? '') === 'representative') {
             $representativeCount++;
         }
@@ -299,6 +310,8 @@ if ($action === 'users') {
         'summary' => [
             'totalUsers' => count($users),
             'representatives' => $representativeCount,
+            'withNationalCode' => $withNationalCodeCount,
+            'withDirectoryPhone' => $withDirectoryPhoneCount,
             'ownerStudentNumber' => dent_owner_student_number(),
         ],
     ]);
@@ -420,6 +433,8 @@ if ($action === 'createStudent') {
     $lastName = (string) ($_POST['lastName'] ?? '');
     $studentNumber = (string) ($_POST['studentNumber'] ?? '');
     $password = (string) ($_POST['password'] ?? '');
+    $nationalCode = (string) ($_POST['nationalCode'] ?? '');
+    $directoryPhoneNumber = (string) ($_POST['directoryPhoneNumber'] ?? '');
     $rotationMode = (string) ($_POST['rotationMode'] ?? 'none');
     $rotationIdRaw = $_POST['rotationId'] ?? null;
     $groupNumberRaw = $_POST['groupNumber'] ?? null;
@@ -433,7 +448,9 @@ if ($action === 'createStudent') {
         $password,
         $rotationMode,
         $rotationId,
-        $groupNumber
+        $groupNumber,
+        $nationalCode,
+        $directoryPhoneNumber
     );
 
     dent_json_response([
