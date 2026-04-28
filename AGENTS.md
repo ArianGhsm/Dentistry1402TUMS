@@ -1,18 +1,31 @@
-# AGENTS.md
+﻿# AGENTS.md
 
-Persistent instructions for coding agents in this repository.
+## File Identity
+- What: Persistent execution contract for coding agents in this repository.
+- Where: Repo root.
+- Role: Source of truth for scope, constraints, workflow, and reporting.
+- Controls: product boundary, auth boundary, data continuity, QA/deploy flow.
+- Primary dependencies:
+  - `public_html/api/auth_api.php`
+  - shared auth/session store
+  - `scripts/check_text_integrity.py`
+  - `scripts/deploy_public_html.ps1`
+- Read when:
+  - before starting any task
+  - before modifying chat/auth/storage/deploy
+  - before final status reporting
 
-## Scope
+## Scope Boundary
 - This is a multi-section academic site, not a messenger-only app.
-- Upgrade to Telegram-grade UX only for `/chat/` and chat-related settings/profile surfaces.
-- Keep non-chat sections purpose-specific and do not reshape them into messenger UX.
+- Telegram-grade UX upgrades are allowed only for `/chat/` and chat-related profile/settings surfaces.
+- Non-chat sections must stay domain-specific and must not be reshaped into messenger UX.
 
 ## Shared Auth And Identity (Non-Negotiable)
-- Messenger must use the shared site auth/account system as the only source of truth.
-- Do not create separate messenger auth or profile identity sources.
-- Identity/role/session data must come from shared APIs and session store (`/api/auth_api.php`, shared auth store/session).
+- Messenger must use shared site auth/account as the only source of truth.
+- Do not create separate messenger auth or profile identity stores.
+- Identity/role/session must come from shared APIs/session (`/api/auth_api.php`, shared auth store/session).
 
-## Minimum Messenger Capability
+## Minimum Messenger Capability (Required)
 - Mandatory class group.
 - Private chats.
 - Additional groups.
@@ -20,46 +33,60 @@ Persistent instructions for coding agents in this repository.
 - Real conversation model and real user discovery.
 
 ## Persistent Data And Sync (Non-Negotiable)
-- User memory, grades, messages, and any other memory/stateful data must remain synchronized across the live site, local project folders, and deploy targets.
+- User memory, grades, messages, and any stateful data must remain synchronized across:
+  - live site
+  - local project folders
+  - deploy targets
 - Deployments must not wipe, reset, fork, or desynchronize persistent data.
-- Do not keep the only copy of memory/stateful data in deploy-replaced files or temporary runtime storage.
-- Any change that affects storage, sync, backup, restore, migration, or deploy flow must preserve existing data continuity and message/history integrity.
-- Prevent false persistence assumptions: do not report success if data is only stored locally, only cached temporarily, or not yet synchronized to the canonical shared storage.
+- Never keep the only copy of stateful data in deploy-replaced files or temporary runtime storage.
+- Storage/sync/backup/restore/migration/deploy changes must preserve history/message continuity.
+- Prevent false persistence claims: do not report success when data is only local, only cached, or not synced to canonical shared storage.
 
-## Execution Workflow
-1. Inspect current repo state first (`git status`, relevant files, current guidance docs).
-2. Reproduce reported issues on desktop and phone-sized view.
+## Execution Workflow (Mandatory)
+1. Inspect current repo state (`git status`, relevant files, guidance docs).
+2. Reproduce reported issue on desktop and phone-sized view.
 3. Inspect real request/response and frontend state transitions (no guess-only fixes).
 4. Apply scoped fixes.
 5. Retest the same flows on desktop and mobile.
-6. Report status explicitly as `completed`, `partial`, `blocked`.
+6. Report status explicitly as `completed`, `partial`, or `blocked`.
 7. Deploy by default after verified changes unless user explicitly says not to deploy.
 
 ## Operational Guardrails
 - Do not assume prior chat history is available.
 - Do not use proxy/VPN/filter workarounds unless explicitly requested.
 - Mobile-first quality is required for messenger create flows and core chat actions.
-- After UI text/CSS edits, run: `python scripts/check_text_integrity.py`.
+- After UI text/CSS edits, run:
+  - `python scripts/check_text_integrity.py`
 - Avoid unsafe bidi patterns (especially `unicode-bidi: plaintext`) unless explicitly justified.
-- When creating temporary chats/groups/DMs for tests, clean them up after validation.
+- Clean temporary test chats/groups/DMs after validation.
 - Prevent false-success states:
-  - no success toast when end state is broken
+  - no success toast when final state is broken
   - created conversation/group must appear in list and open
   - UI/store/network state must remain synchronized
+  - messages must not become mixed/corrupted (no "گاتی" states in ordering/content)
+
+## Persian/RTL And Locale Integrity
+- User-facing Persian text must stay UTF-8 safe.
+- User-facing numeric/date/time rendering must stay Persian-first unless a machine-only field explicitly requires Latin digits.
+- RTL directionality must stay stable and readable across chat and non-chat pages.
 
 ## Theme Contract
 - Prefer semantic tokens from `public_html/assets/site/styles/core.css`.
-- Avoid hardcoded reusable light-only colors and page-specific dark-mode `!important` patches.
+- Avoid reusable hardcoded light-only colors.
+- Avoid page-specific dark-mode `!important` patching.
 
 ## Deploy Runbook (Default)
-- Primary command:
+Primary command:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
-- Default deploy order is mandatory:
-  - local validation -> host deploy -> live health-check -> GitHub sync
+
+Default deploy order (mandatory):
+- local validation -> host deploy -> live health-check -> GitHub sync
+
+Rules:
 - Do not run pre-deploy `git pull` unless explicitly requested.
-- Explicit optional pre-deploy pull override:
+- Optional override when explicitly requested:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullBeforeDeploy
 ```
