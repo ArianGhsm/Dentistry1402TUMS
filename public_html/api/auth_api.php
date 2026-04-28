@@ -4,6 +4,43 @@ declare(strict_types=1);
 require_once __DIR__ . '/auth_store.php';
 require_once __DIR__ . '/grades_store.php';
 
+function dent_owner_dis_request_private_index(): array
+{
+    $store = dent_read_json_file(dent_storage_path('dis_request/store.json'), [
+        'responses' => [],
+    ]);
+    $responses = is_array($store['responses'] ?? null) ? $store['responses'] : [];
+    $index = [];
+
+    foreach ($responses as $studentNumber => $record) {
+        if (!is_array($record)) {
+            continue;
+        }
+
+        $normalizedStudentNumber = dent_normalize_student_number((string) ($record['studentNumber'] ?? $studentNumber));
+        if ($normalizedStudentNumber === '') {
+            continue;
+        }
+
+        $fields = is_array($record['fields'] ?? null) ? $record['fields'] : [];
+        $nationalCode = dent_normalize_national_code((string) ($fields['nationalCode'] ?? ''));
+        $directoryPhoneNumber = dent_normalize_phone_number((string) ($fields['phoneNumber'] ?? ''));
+        if ($nationalCode === '' && $directoryPhoneNumber === '') {
+            continue;
+        }
+
+        $index[$normalizedStudentNumber] = [
+            'nationalCode' => $nationalCode,
+            'directoryPhoneNumber' => $directoryPhoneNumber,
+            'hasNationalCode' => $nationalCode !== '',
+            'hasDirectoryPhone' => $directoryPhoneNumber !== '',
+            'source' => 'dis-request',
+        ];
+    }
+
+    return $index;
+}
+
 $action = dent_request_action();
 
 if ($action === 'login') {
@@ -277,6 +314,7 @@ if ($action === 'users') {
 
     $users = dent_list_public_users(true);
     $gradeRoster = dent_grade_roster_index();
+    $disPrivateIndex = dent_owner_dis_request_private_index();
     $representativeCount = 0;
     $withNationalCodeCount = 0;
     $withDirectoryPhoneCount = 0;
@@ -288,6 +326,19 @@ if ($action === 'users') {
         $phone = is_array($user['phone'] ?? null) ? $user['phone'] : [];
         $user['hasPhone'] = !empty($phone['hasNumber']);
         $ownerPrivate = is_array($user['ownerPrivate'] ?? null) ? $user['ownerPrivate'] : [];
+        $disPrivate = is_array($disPrivateIndex[$studentNumber] ?? null) ? $disPrivateIndex[$studentNumber] : [];
+        if (empty($ownerPrivate['nationalCode']) && !empty($disPrivate['nationalCode'])) {
+            $ownerPrivate['nationalCode'] = (string) $disPrivate['nationalCode'];
+        }
+        if (empty($ownerPrivate['directoryPhoneNumber']) && !empty($disPrivate['directoryPhoneNumber'])) {
+            $ownerPrivate['directoryPhoneNumber'] = (string) $disPrivate['directoryPhoneNumber'];
+        }
+        $ownerPrivate['hasNationalCode'] = !empty($ownerPrivate['nationalCode']);
+        $ownerPrivate['hasDirectoryPhone'] = !empty($ownerPrivate['directoryPhoneNumber']);
+        if (!empty($disPrivate['source'])) {
+            $ownerPrivate['source'] = (string) $disPrivate['source'];
+        }
+        $user['ownerPrivate'] = $ownerPrivate;
         $user['hasNationalCode'] = !empty($ownerPrivate['hasNationalCode']);
         $user['hasDirectoryPhone'] = !empty($ownerPrivate['hasDirectoryPhone']);
         if ($user['hasNationalCode']) {

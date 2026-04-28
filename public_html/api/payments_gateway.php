@@ -7,6 +7,10 @@ if (!defined('PAYMENTS_GATEWAY_ZARINPAL')) {
     define('PAYMENTS_GATEWAY_ZARINPAL', 'zarinpal');
 }
 
+if (!defined('PAYMENTS_GATEWAY_ZIBAL')) {
+    define('PAYMENTS_GATEWAY_ZIBAL', 'zibal');
+}
+
 if (!defined('PAYMENTS_GATEWAY_MOCK')) {
     define('PAYMENTS_GATEWAY_MOCK', 'mock');
 }
@@ -24,6 +28,10 @@ function payments_gateway_default(): string
 function payments_gateway_clean(string $value): string
 {
     $value = trim(strtolower($value));
+    if ($value === PAYMENTS_GATEWAY_ZIBAL) {
+        return PAYMENTS_GATEWAY_ZIBAL;
+    }
+
     if ($value === PAYMENTS_GATEWAY_ZARINPAL) {
         return PAYMENTS_GATEWAY_ZARINPAL;
     }
@@ -153,6 +161,10 @@ function payments_gateway_start_payment(string $gateway, array $item, array $ord
         ];
     }
 
+    if ($gateway === PAYMENTS_GATEWAY_ZIBAL) {
+        return payments_zibal_start_payment($item, $order, $context);
+    }
+
     if ($gateway === PAYMENTS_GATEWAY_ZARINPAL) {
         return payments_zarinpal_start_payment($item, $order, $context);
     }
@@ -175,11 +187,256 @@ function payments_gateway_verify_payment(string $gateway, array $order, array $c
         ];
     }
 
+    if ($gateway === PAYMENTS_GATEWAY_ZIBAL) {
+        return payments_zibal_verify_payment($order, $context);
+    }
+
     if ($gateway === PAYMENTS_GATEWAY_ZARINPAL) {
         return payments_zarinpal_verify_payment($order, $context);
     }
 
     return payments_mock_verify_payment($order, $context);
+}
+
+function payments_zibal_error_message(int $code): string
+{
+    $normalized = abs($code);
+    if ($normalized === 100) {
+        return 'با موفقیت تایید شد.';
+    }
+    if ($normalized === 102) {
+        return 'merchant یافت نشد.';
+    }
+    if ($normalized === 103) {
+        return 'merchant غیرفعال است.';
+    }
+    if ($normalized === 104) {
+        return 'merchant نامعتبر است.';
+    }
+    if ($normalized === 105) {
+        return 'amount باید بیشتر از 1000 ریال باشد.';
+    }
+    if ($normalized === 106) {
+        return 'callbackUrl نامعتبر است (باید با http یا https شروع شود).';
+    }
+    if ($normalized === 113) {
+        return 'amount بیشتر از سقف مجاز تراکنش است.';
+    }
+    if ($normalized === 201) {
+        return 'تراکنش قبلا تایید شده است.';
+    }
+    if ($normalized === 202) {
+        return 'سفارش پرداخت نشده یا ناموفق بوده است.';
+    }
+    if ($normalized === 203) {
+        return 'trackId نامعتبر است.';
+    }
+
+    return 'خطا در ارتباط با زیبال.';
+}
+
+function payments_zibal_merchant_id(): string
+{
+    $keys = [
+        'DENT_PAYMENT_ZIBAL_MERCHANT',
+        'DENT_PAYMENT_ZIBAL_TOKEN',
+        'DENT_PAYMENT_ZIBAL_MERCHANT_ID',
+    ];
+
+    foreach ($keys as $key) {
+        $value = trim((string) getenv($key));
+        if ($value !== '') {
+            return $value;
+        }
+    }
+
+    return '';
+}
+
+function payments_zibal_start_payment(array $item, array $order, array $context = []): array
+{
+    $merchant = payments_zibal_merchant_id();
+    if ($merchant === '') {
+        return [
+            'success' => false,
+            'gateway' => PAYMENTS_GATEWAY_ZIBAL,
+            'error' => 'تنظیمات زیبال کامل نیست (merchant/token).',
+            'raw' => null,
+        ];
+    }
+
+    $requestUrl = trim((string) getenv('DENT_PAYMENT_ZIBAL_REQUEST_URL'));
+    if ($requestUrl === '') {
+        $requestUrl = 'https://gateway.zibal.ir/v1/request';
+    }
+
+    $description = dent_clean_text(
+        (string) ($context['description'] ?? ('پرداخت بابت ' . (string) ($item['title'] ?? 'آیتم پرداخت'))),
+        200
+    );
+    if ($description === '') {
+        $description = 'پرداخت آنلاین';
+    }
+
+    $amount = max(0, (int) ($order['amount'] ?? 0));
+    if ($amount <= 0) {
+        return [
+            'success' => false,
+            'gateway' => PAYMENTS_GATEWAY_ZIBAL,
+            'error' => 'مبلغ سفارش معتبر نیست.',
+            'raw' => null,
+        ];
+    }
+
+    $payload = [
+        'merchant' => $merchant,
+        'amount' => $amount,
+        'callbackUrl' => (string) ($context['callbackUrl'] ?? ''),
+        'description' => $description,
+    ];
+
+    $mobile = trim((string) ($context['mobile'] ?? ''));
+    if ($mobile !== '') {
+        $payload['mobile'] = $mobile;
+    }
+
+    $orderId = trim((string) ($context['orderId'] ?? ($order['public_token'] ?? '')));
+    if ($orderId !== '') {
+        $payload['orderId'] = $orderId;
+    }
+
+    $httpResponse = payments_gateway_http_post_json($requestUrl, $payload, 22);
+    $responsePayload = is_array($httpResponse['json'] ?? null) ? $httpResponse['json'] : [];
+    $resultCode = (int) ($responsePayload['result'] ?? 0);
+    $resultCode = abs($resultCode);
+    $trackIdRaw = $responsePayload['trackId'] ?? '';
+    $trackId = dent_clean_text(is_scalar($trackIdRaw) ? (string) $trackIdRaw : '', 120);
+
+    if ($trackId === '' || $resultCode !== 100) {
+        $errorMessage = trim((string) ($responsePayload['message'] ?? ''));
+        if ($errorMessage === '') {
+            $errorMessage = payments_zibal_error_message($resultCode);
+        }
+
+        return [
+            'success' => false,
+            'gateway' => PAYMENTS_GATEWAY_ZIBAL,
+            'error' => $errorMessage,
+            'raw' => [
+                'request' => $payload,
+                'response' => $httpResponse,
+            ],
+        ];
+    }
+
+    $startUrl = trim((string) getenv('DENT_PAYMENT_ZIBAL_START_URL'));
+    if ($startUrl === '') {
+        $startUrl = 'https://gateway.zibal.ir/start/';
+    }
+    $startUrl = rtrim($startUrl, '/') . '/';
+
+    return [
+        'success' => true,
+        'gateway' => PAYMENTS_GATEWAY_ZIBAL,
+        'authority' => $trackId,
+        'trackId' => $trackId,
+        'redirectUrl' => $startUrl . rawurlencode($trackId),
+        'raw' => [
+            'request' => $payload,
+            'response' => $httpResponse,
+        ],
+    ];
+}
+
+function payments_zibal_verify_payment(array $order, array $context = []): array
+{
+    $merchant = payments_zibal_merchant_id();
+    if ($merchant === '') {
+        return [
+            'success' => false,
+            'gateway' => PAYMENTS_GATEWAY_ZIBAL,
+            'verified' => false,
+            'status' => 'failed',
+            'refId' => '',
+            'error' => 'تنظیمات زیبال کامل نیست (merchant/token).',
+            'raw' => null,
+        ];
+    }
+
+    $trackId = trim((string) ($context['trackId'] ?? ($context['authority'] ?? ($order['authority'] ?? ''))));
+    if ($trackId === '') {
+        return [
+            'success' => false,
+            'gateway' => PAYMENTS_GATEWAY_ZIBAL,
+            'verified' => false,
+            'status' => 'failed',
+            'refId' => '',
+            'error' => 'trackId سفارش برای verify معتبر نیست.',
+            'raw' => null,
+        ];
+    }
+
+    $verifyUrl = trim((string) getenv('DENT_PAYMENT_ZIBAL_VERIFY_URL'));
+    if ($verifyUrl === '') {
+        $verifyUrl = 'https://gateway.zibal.ir/v1/verify';
+    }
+
+    $payload = [
+        'merchant' => $merchant,
+        'trackId' => $trackId,
+    ];
+
+    $httpResponse = payments_gateway_http_post_json($verifyUrl, $payload, 22);
+    $responsePayload = is_array($httpResponse['json'] ?? null) ? $httpResponse['json'] : [];
+    $resultCode = abs((int) ($responsePayload['result'] ?? 0));
+    $refIdRaw = $responsePayload['refNumber'] ?? ($responsePayload['ref_number'] ?? '');
+    $refId = dent_clean_text(is_scalar($refIdRaw) ? (string) $refIdRaw : '', 120);
+
+    if (in_array($resultCode, [100, 201], true)) {
+        if ($refId === '') {
+            $refId = dent_clean_text((string) ($order['ref_id'] ?? ''), 120);
+        }
+        if ($refId === '') {
+            $refId = $trackId;
+        }
+
+        return [
+            'success' => true,
+            'gateway' => PAYMENTS_GATEWAY_ZIBAL,
+            'verified' => true,
+            'status' => 'success',
+            'refId' => $refId,
+            'error' => '',
+            'raw' => [
+                'request' => $payload,
+                'response' => $httpResponse,
+            ],
+        ];
+    }
+
+    $status = PAYMENTS_ORDER_STATUS_FAILED;
+    $zibalStatusCode = (int) ($responsePayload['status'] ?? 0);
+    if (in_array($zibalStatusCode, [3], true)) {
+        $status = PAYMENTS_ORDER_STATUS_CANCELED;
+    }
+
+    $errorMessage = trim((string) ($responsePayload['message'] ?? ''));
+    if ($errorMessage === '') {
+        $errorMessage = payments_zibal_error_message($resultCode);
+    }
+
+    return [
+        'success' => false,
+        'gateway' => PAYMENTS_GATEWAY_ZIBAL,
+        'verified' => false,
+        'status' => $status,
+        'refId' => $refId,
+        'error' => $errorMessage,
+        'raw' => [
+            'request' => $payload,
+            'response' => $httpResponse,
+        ],
+    ];
 }
 
 function payments_zarinpal_start_payment(array $item, array $order, array $context = []): array

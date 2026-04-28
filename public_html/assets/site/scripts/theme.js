@@ -12,6 +12,8 @@
     var LAUNCH_SPLASH_MIN_VISIBLE_MS = 1000;
     var LAUNCH_SPLASH_FADE_MS = 150;
     var LAUNCH_SPLASH_LOGO_URL = "/assets/images/logo.png?v=20260422-brand1";
+    var LAUNCH_SPLASH_COLOR_LIGHT = "#2b6df3";
+    var LAUNCH_SPLASH_COLOR_DARK = "#0d1420";
     var launchSplashMounted = false;
     var persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
 
@@ -38,6 +40,10 @@
 
     function themeColor(theme) {
         return theme === "dark" ? "#0d1420" : "#eef2f7";
+    }
+
+    function launchSplashColor(theme) {
+        return theme === "dark" ? LAUNCH_SPLASH_COLOR_DARK : LAUNCH_SPLASH_COLOR_LIGHT;
     }
 
     function parseVersionFromUrl(rawUrl) {
@@ -180,9 +186,11 @@
         primeLaunchLogo();
 
         var root = document.documentElement;
+        var splashTheme = resolvedTheme();
         var buildLabel = resolveLaunchBuildLabel();
         root.setAttribute("data-launch-build", buildLabel ? "Build " + buildLabel : "");
         root.classList.add(LAUNCH_SPLASH_CLASS);
+        forceLaunchMeta(splashTheme);
 
         var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         var fadeDuration = reducedMotion ? 1 : LAUNCH_SPLASH_FADE_MS;
@@ -192,6 +200,7 @@
             root.classList.remove(LAUNCH_SPLASH_CLASS);
             root.classList.remove(LAUNCH_SPLASH_LEAVING_CLASS);
             root.removeAttribute("data-launch-build");
+            syncMeta(resolvedTheme());
         }
 
         function beginHide() {
@@ -218,6 +227,19 @@
         if (appleStatusBarMeta) {
             // Full-bleed status bar in iOS standalone mode prevents white top strips during splash.
             appleStatusBarMeta.setAttribute("content", isStandaloneDisplayMode() ? "black-translucent" : "default");
+        }
+    }
+
+    function forceLaunchMeta(theme) {
+        var color = launchSplashColor(theme);
+        var themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeMeta) {
+            themeMeta.setAttribute("content", color);
+        }
+
+        var appleStatusBarMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+        if (appleStatusBarMeta) {
+            appleStatusBarMeta.setAttribute("content", "black-translucent");
         }
     }
 

@@ -509,6 +509,7 @@ if ($action === 'createOrder') {
         'callbackUrl' => $callbackUrl,
         'description' => 'پرداخت بابت ' . (string) ($item['title'] ?? 'آیتم پرداخت'),
         'mobile' => $payerPhone,
+        'orderId' => (string) ($order['public_token'] ?? ''),
     ]);
 
     payments_log_gateway_event('start-request', [
@@ -598,7 +599,8 @@ if ($action === 'callback') {
 
     $authority = dent_clean_text((string) ($_GET['Authority'] ?? ($_GET['authority'] ?? ($_POST['Authority'] ?? ($_POST['authority'] ?? '')))), 120);
     $gatewayStatus = dent_clean_text((string) ($_GET['Status'] ?? ($_GET['status'] ?? ($_POST['Status'] ?? ($_POST['status'] ?? '')))), 40);
-    $gatewayStatusLower = strtolower($gatewayStatus);
+    $zibalTrackId = dent_clean_text((string) ($_GET['trackId'] ?? ($_POST['trackId'] ?? '')), 120);
+    $zibalSuccess = dent_clean_text((string) ($_GET['success'] ?? ($_POST['success'] ?? '')), 20);
 
     $store = payments_read_store();
     $orderIndex = payments_find_order_index_by_token($store, $orderToken);
@@ -606,6 +608,32 @@ if ($action === 'callback') {
         dent_error('سفارش callback پیدا نشد.', 404);
     }
     $order = $store['orders'][$orderIndex];
+    $orderGateway = (string) ($order['gateway'] ?? '');
+
+    if ($orderGateway === PAYMENTS_GATEWAY_ZIBAL) {
+        if ($zibalTrackId !== '') {
+            $authority = $zibalTrackId;
+        }
+
+        $zibalSuccessLower = strtolower($zibalSuccess);
+        $zibalStatusLower = strtolower($gatewayStatus);
+        $isZibalApproved = false;
+
+        if (in_array($zibalSuccessLower, ['1', 'true', 'yes'], true)) {
+            $isZibalApproved = true;
+        }
+        if (in_array($zibalStatusLower, ['2', 'success', 'ok', 'paid'], true)) {
+            $isZibalApproved = true;
+        }
+
+        if ($gatewayStatus === '') {
+            $gatewayStatus = $isZibalApproved ? 'ok' : ($zibalSuccess !== '' ? 'cancel' : 'failed');
+        } elseif (!$isZibalApproved && in_array($zibalStatusLower, ['0', '-1', '-2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'], true)) {
+            $gatewayStatus = 'cancel';
+        }
+    }
+
+    $gatewayStatusLower = strtolower($gatewayStatus);
 
     if ((string) ($order['status'] ?? '') === PAYMENTS_ORDER_STATUS_SUCCESS) {
         payments_api_redirect_to_result($orderToken);
@@ -652,8 +680,9 @@ if ($action === 'callback') {
         payments_api_redirect_to_result($orderToken);
     }
 
-    $verifyResult = payments_gateway_verify_payment((string) ($order['gateway'] ?? ''), $order, [
+    $verifyResult = payments_gateway_verify_payment($orderGateway, $order, [
         'authority' => $authority,
+        'trackId' => $zibalTrackId !== '' ? $zibalTrackId : $authority,
         'status' => $gatewayStatusLower !== '' ? $gatewayStatusLower : 'ok',
     ]);
 
