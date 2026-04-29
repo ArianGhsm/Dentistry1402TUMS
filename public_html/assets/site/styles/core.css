@@ -343,6 +343,75 @@ html[data-theme="dark"] .logo-circle {
     font-size: 0.78rem;
 }
 
+.site-header.site-header--minimal {
+    justify-content: center;
+    min-height: calc(56px + env(safe-area-inset-top, 0px));
+    padding: calc(0.42rem + env(safe-area-inset-top, 0px)) max(0.88rem, calc((100vw - 1180px) / 2 + 1rem)) 0.42rem;
+}
+
+.site-header--minimal .logo-area {
+    flex: 0 1 auto;
+    justify-content: center;
+    gap: 0;
+    text-align: center;
+}
+
+.site-header--minimal .logo-circle,
+.site-header--minimal .site-info p,
+.site-header--minimal .site-top-nav,
+.site-header--minimal .header-link,
+.site-header--minimal [data-auth-link],
+.site-header--minimal .badge-unofficial {
+    display: none !important;
+}
+
+.site-header--minimal .site-info h1 {
+    max-width: min(72vw, 34rem);
+    color: var(--text-primary);
+    font-family: var(--font-accent);
+    font-size: 1.06rem;
+    line-height: 1.35;
+    font-weight: 900;
+    letter-spacing: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.site-header--minimal .header-actions {
+    position: absolute;
+    inset-block-start: calc(50% + (env(safe-area-inset-top, 0px) / 2));
+    inset-inline-start: max(0.68rem, calc((100vw - 1180px) / 2 + 1rem));
+    transform: translateY(-50%);
+    width: auto;
+    max-width: none;
+    gap: 0;
+}
+
+.site-header--minimal .theme-toggle-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-primary);
+    box-shadow: none;
+}
+
+.site-header--minimal .theme-toggle-btn:hover,
+.site-header--minimal .theme-toggle-btn:focus-visible {
+    background: var(--surface-muted);
+    border-color: transparent;
+    box-shadow: none;
+}
+
+.site-header--minimal .theme-toggle-btn__label {
+    display: none !important;
+}
+
 .header-actions {
     display: flex;
     align-items: center;
@@ -567,7 +636,7 @@ body.app-shell-hidden {
 }
 
 .shell-bottom-nav__inner {
-    width: min(780px, 100%);
+    width: min(430px, 100%);
     margin: 0 auto;
     padding: 0.24rem;
     display: grid;
@@ -981,6 +1050,11 @@ body.app-shell-hidden {
         padding-bottom: 0.36rem;
     }
 
+    .site-header--minimal .site-info h1 {
+        max-width: 74vw;
+        font-size: 0.92rem;
+    }
+
     .logo-area {
         gap: 0.46rem;
     }
@@ -1020,7 +1094,7 @@ body.app-shell-hidden {
 
 @media (min-width: 992px) {
     .shell-bottom-nav__inner {
-        width: min(660px, calc(100% - 2rem));
+        width: min(430px, calc(100% - 2rem));
     }
 }
 

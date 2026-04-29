@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260429-200841">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260429-200841">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260429-200841">
-    <script src="/assets/site/scripts/theme.js?v=20260429-200841"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260429-200841">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260429-200841">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260429-200841">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260430-021133">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260430-021133">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260430-021133">
+    <script src="/assets/site/scripts/theme.js?v=20260430-021133"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260430-021133">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260430-021133">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260430-021133">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -739,7 +739,7 @@
 
                     <div id="payments-summary" class="owner-summary"></div>
 
-                    <section class="owner-block owner-block--payments-toolbar">
+                    <section class="owner-block owner-block--payments-toolbar payments-owner-commandbar">
                         <div class="payments-inline-actions">
                             <button id="payments-new-item" class="shell-action-btn shell-action-btn-primary" type="button">افزودن آیتم جدید</button>
                             <button id="payments-reload-dashboard" class="shell-action-btn" type="button">به‌روزرسانی آمار</button>
@@ -764,6 +764,16 @@
 
                         <form id="payments-item-form" class="account-form payments-item-form payments-item-form--refined" novalidate>
                             <input id="payments-item-id" type="hidden">
+                            <input id="payments-item-hero-image" type="hidden">
+                            <textarea id="payments-item-gallery" hidden></textarea>
+
+                            <div class="payments-form-quickbar">
+                                <div>
+                                    <span>ثبت آگهی خرید</span>
+                                    <strong>اطلاعات آیتم را مرحله‌ای کامل کن</strong>
+                                </div>
+                                <button id="payments-item-reset-top" class="shell-action-btn" type="button">پاک کردن</button>
+                            </div>
 
                             <div class="payments-owner-composer">
                                 <aside class="payments-owner-preview" aria-label="پیش‌نمایش آیتم خرید">
@@ -799,8 +809,8 @@
                                         </div>
                                         <div class="payments-form-grid">
                                             <div class="payments-field payments-field--full">
-                                                <label for="payments-item-title">عنوان آیتم</label>
-                                                <input id="payments-item-title" type="text" maxlength="140" placeholder="مثلا شیلد ابری سامان زر دندان">
+                                                <label for="payments-item-title">عنوان آیتم <span aria-hidden="true">*</span></label>
+                                                <input id="payments-item-title" type="text" maxlength="140" placeholder="مثلا شیلد ابری سامان زر دندان" required>
                                             </div>
                                             <div class="payments-field">
                                                 <label for="payments-item-category">دسته‌بندی</label>
@@ -813,8 +823,8 @@
                                                 </select>
                                             </div>
                                             <div class="payments-field">
-                                                <label for="payments-item-price">قیمت برای درگاه (ریال)</label>
-                                                <input id="payments-item-price" type="text" inputmode="numeric" maxlength="12" dir="ltr" placeholder="1200000">
+                                                <label for="payments-item-price">قیمت برای درگاه (ریال) <span aria-hidden="true">*</span></label>
+                                                <input id="payments-item-price" type="text" inputmode="numeric" maxlength="12" dir="ltr" placeholder="1200000" required data-latin-digits="true">
                                             </div>
                                             <div class="payments-field">
                                                 <label for="payments-item-status">وضعیت انتشار</label>
@@ -839,7 +849,7 @@
                                             <span>۲</span>
                                             <div>
                                                 <h5>تصویر، لینک و زمان‌بندی</h5>
-                                                <p>این بخش ظاهر عمومی، مهلت و ظرفیت را کنترل می‌کند.</p>
+                                                <p>تصویر کالا از دستگاه آپلود می‌شود؛ لینک مستقیم اینترنتی برای تصویر محصول مجاز نیست.</p>
                                             </div>
                                         </div>
                                         <div class="payments-form-grid">
@@ -848,8 +858,20 @@
                                                 <input id="payments-item-slug" type="text" maxlength="120" dir="ltr" placeholder="saman-foam-face-shield">
                                             </div>
                                             <div class="payments-field payments-field--full">
-                                                <label for="payments-item-hero-image">تصویر اصلی کالا</label>
-                                                <input id="payments-item-hero-image" type="text" maxlength="420" dir="ltr" placeholder="https://example.com/product.jpg">
+                                                <span class="payments-field-label">عکس آگهی / تصویر اصلی کالا <span aria-hidden="true">*</span></span>
+                                                <div class="payments-image-uploader" id="payments-image-uploader">
+                                                    <label class="payments-image-drop" for="payments-item-hero-file">
+                                                        <input id="payments-item-hero-file" type="file" accept="image/jpeg,image/png,image/webp">
+                                                        <img id="payments-item-hero-preview" alt="" hidden>
+                                                        <span class="payments-image-drop__icon" aria-hidden="true">+</span>
+                                                        <strong>افزودن عکس کالا</strong>
+                                                        <small>jpg، png یا webp تا ۵ مگابایت. تصویر هنگام ذخیره روی storage پرداخت آپلود می‌شود.</small>
+                                                    </label>
+                                                    <div class="payments-image-toolbar">
+                                                        <button id="payments-item-hero-clear" class="shell-action-btn" type="button">حذف عکس</button>
+                                                        <span id="payments-item-hero-status">تصویر اصلی هنوز انتخاب نشده است.</span>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="payments-field">
                                                 <label for="payments-item-starts-at">زمان شروع</label>
@@ -894,8 +916,12 @@
                                         <div class="payments-advanced-block__body">
                                             <div class="payments-form-grid">
                                                 <div class="payments-field payments-field--full">
-                                                    <label for="payments-item-gallery">گالری تصاویر (JSON array)</label>
-                                                    <textarea id="payments-item-gallery" dir="ltr" placeholder='["/assets/images/one.jpg","/assets/images/two.jpg"]'></textarea>
+                                                    <label for="payments-item-gallery-files">گالری تصاویر کالا</label>
+                                                    <div class="payments-gallery-uploader">
+                                                        <input id="payments-item-gallery-files" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+                                                        <small>تصاویر انتخاب‌شده هنگام ذخیره آپلود می‌شوند و به گالری همین آیتم اضافه می‌شوند.</small>
+                                                        <div id="payments-gallery-list" class="payments-gallery-list" aria-live="polite"></div>
+                                                    </div>
                                                 </div>
                                                 <div class="payments-field payments-field--full">
                                                     <label for="payments-item-specifications">مشخصات / جزئیات (JSON)</label>
@@ -1079,10 +1105,10 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260429-200841"></script>
-    <script src="/assets/site/scripts/account.js?v=20260429-200841"></script>
-    <script src="/assets/site/scripts/account-payments.js?v=20260429-200841"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260429-200841"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260429-200841"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260430-021133"></script>
+    <script src="/assets/site/scripts/account.js?v=20260430-021133"></script>
+    <script src="/assets/site/scripts/account-payments.js?v=20260430-021133"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260430-021133"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260430-021133"></script>
 </body>
 </html>

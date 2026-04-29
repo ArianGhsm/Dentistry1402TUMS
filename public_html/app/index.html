@@ -9,165 +9,156 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260429-200841">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260429-200841">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260429-200841">
-    <script src="/assets/site/scripts/theme.js?v=20260429-200841"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260429-homecompact1">
-    <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260429-homecompact1">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260429-200841">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260430-021133">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260430-021133">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260430-021133">
+    <script src="/assets/site/scripts/theme.js?v=20260430-021133"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260430-021133">
+    <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260430-021133">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260430-021133">
 </head>
-<body class="app-dashboard-page app-dashboard-page--compact">
+<body class="app-dashboard-page app-dashboard-page--digipay">
     <div class="background-overlay" aria-hidden="true"></div>
 
     <header class="site-header site-header--app">
         <div class="logo-area">
-            <div class="logo-circle">
-                <img src="/assets/images/logo.png?v=20260422-brand1" alt="لوگوی ورودی ۱۴۰۲ دندانپزشکی">
-            </div>
             <div class="site-info">
                 <h1>ورودی ۱۴۰۲ دندانپزشکی تهران</h1>
-                <p>خانه دانشجو</p>
             </div>
         </div>
-        <div class="header-actions">
-            <a class="header-link" href="#resources">منابع</a>
-        </div>
+        <div class="header-actions"></div>
     </header>
 
     <main class="app-home-main">
-        <section class="home-compact-hero" aria-labelledby="app-home-title">
-            <div class="home-compact-hero__brand">
-                <span class="home-logo-card" aria-hidden="true">
-                    <img src="/assets/images/logo.png?v=20260422-brand1" alt="">
-                </span>
-                <div class="home-compact-hero__copy">
-                    <span class="home-kicker">خانه کلاس</span>
-                    <h2 id="app-home-title">همه مسیرهای ضروری، یک نگاه.</h2>
-                    <p>چت، فرم، آزمون، نمره، خرید، جزوات و منابع بدون شلوغی.</p>
-                </div>
+        <section class="home-wallet-card" aria-labelledby="app-home-title">
+            <span class="home-wallet-card__mark home-wallet-card__mark--bell" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M7.2 10.2C7.2 7.05 9.14 4.8 12 4.8C14.86 4.8 16.8 7.05 16.8 10.2V12.4L18.6 15.4H5.4L7.2 12.4V10.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    <path d="M10.2 18.1C10.65 18.78 11.26 19.15 12 19.15C12.74 19.15 13.35 18.78 13.8 18.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="home-wallet-card__mark home-wallet-card__mark--scan" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M7.5 4.7H5.7A1.7 1.7 0 0 0 4 6.4V8.2M16.5 4.7H18.3A1.7 1.7 0 0 1 20 6.4V8.2M7.5 19.3H5.7A1.7 1.7 0 0 1 4 17.6V15.8M16.5 19.3H18.3A1.7 1.7 0 0 0 20 17.6V15.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M8 12H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <div class="home-wallet-card__copy">
+                <span class="home-kicker">صفحه اصلی کلاس</span>
+                <h2 id="app-home-title">ورودی ۱۴۰۲</h2>
+                <p>دسترسی‌های آموزشی و عملیاتی کلاس، بدون تکرار نوار پایین.</p>
+                <a class="home-wallet-card__link" href="#home-services">مشاهده مسیرها</a>
+            </div>
+            <span class="home-wallet-card__logo" aria-hidden="true">
+                <img src="/assets/images/logo.png?v=20260422-brand1" alt="">
+            </span>
+        </section>
+
+        <section class="home-services-panel" id="home-services" aria-labelledby="home-services-title">
+            <div class="home-section-head">
+                <span class="portal-section-title">خدمات</span>
+                <h3 id="home-services-title">مسیرهای مخصوص صفحه اصلی</h3>
             </div>
 
-            <nav class="home-quick-grid" aria-label="دسترسی سریع">
-                <a class="home-quick-card home-quick-card--primary" href="/chat/">
-                    <span class="home-quick-card__icon" aria-hidden="true">چ</span>
+            <nav class="home-service-grid" aria-label="دسترسی‌های صفحه اصلی">
+                <a class="home-service-card home-service-card--primary" href="/chat/">
+                    <span class="home-service-card__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M7 18.2L4.2 19.5L5 16.4C3.9 15.18 3.3 13.65 3.3 12C3.3 7.75 7.2 4.3 12 4.3C16.8 4.3 20.7 7.75 20.7 12C20.7 16.25 16.8 19.7 12 19.7C10.17 19.7 8.45 19.18 7 18.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
                     <span>چت</span>
                 </a>
-                <a class="home-quick-card" href="/forms/">
-                    <span class="home-quick-card__icon" aria-hidden="true">ف</span>
+                <a class="home-service-card" href="/forms/">
+                    <span class="home-service-card__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="5.5" y="4.2" width="13" height="15.6" rx="3" stroke="currentColor" stroke-width="1.8"/>
+                            <path d="M8.7 9H15.3M8.7 12.2H15.3M8.7 15.4H12.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </span>
                     <span>فرم‌ها</span>
                 </a>
-                <a class="home-quick-card" href="/exams/">
-                    <span class="home-quick-card__icon" aria-hidden="true">آ</span>
-                    <span>آزمون</span>
-                </a>
-                <a class="home-quick-card" href="/grades/">
-                    <span class="home-quick-card__icon" aria-hidden="true">ن</span>
+                <a class="home-service-card" href="/grades/">
+                    <span class="home-service-card__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M5 18.5V13.4M12 18.5V9.2M19 18.5V5.5M3.8 19.5H20.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </span>
                     <span>نمرات</span>
                 </a>
-                <a class="home-quick-card" href="/navid/">
-                    <span class="home-quick-card__icon" aria-hidden="true">نو</span>
-                    <span>نوید</span>
+                <a class="home-service-card" href="/exams/">
+                    <span class="home-service-card__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M7 4.7H17A2 2 0 0 1 19 6.7V19.4L12 16.4L5 19.4V6.7A2 2 0 0 1 7 4.7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                            <path d="M9 9.2H15M9 12.6H13.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <span>آزمون‌ها</span>
                 </a>
-                <a class="home-quick-card" href="/notes/">
-                    <span class="home-quick-card__icon" aria-hidden="true">ج</span>
+                <a class="home-service-card" href="/notes/">
+                    <span class="home-service-card__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M4.8 7.2A2.2 2.2 0 0 1 7 5H10.1L11.7 6.8H17A2.2 2.2 0 0 1 19.2 9V17A2.2 2.2 0 0 1 17 19.2H7A2.2 2.2 0 0 1 4.8 17V7.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
                     <span>جزوات</span>
                 </a>
-                <a class="home-quick-card" href="/buy/">
-                    <span class="home-quick-card__icon" aria-hidden="true">خ</span>
-                    <span>خرید</span>
+                <a class="home-service-card" href="/notes/1403/">
+                    <span class="home-service-card__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="5" y="5.5" width="14" height="14" rx="3" stroke="currentColor" stroke-width="1.8"/>
+                            <path d="M8.5 4V7.2M15.5 4V7.2M5.5 10H18.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <span>جزوات ۱۴۰۳</span>
                 </a>
-                <a class="home-quick-card" href="/account/">
-                    <span class="home-quick-card__icon" aria-hidden="true">ح</span>
-                    <span>حساب</span>
+                <a class="home-service-card" href="/resources/">
+                    <span class="home-service-card__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M9.6 14.4L14.4 9.6M10.5 7.2L11.6 6.1A4 4 0 0 1 17.3 11.8L16.2 12.9M13.5 16.8L12.4 17.9A4 4 0 0 1 6.7 12.2L7.8 11.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <span>منابع</span>
+                </a>
+                <a class="home-service-card" href="/navid/">
+                    <span class="home-service-card__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M6 6.8A2.8 2.8 0 0 1 8.8 4H15.2A2.8 2.8 0 0 1 18 6.8V17.2A2.8 2.8 0 0 1 15.2 20H8.8A2.8 2.8 0 0 1 6 17.2V6.8Z" stroke="currentColor" stroke-width="1.8"/>
+                            <path d="M9.2 8.8H14.8M9.2 12H14.8M9.2 15.2H12.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <span>نوید</span>
                 </a>
             </nav>
         </section>
 
-        <section class="home-live-grid" aria-label="وضعیت حساب و نوید">
-            <section id="home-identity-panel" class="portal-panel portal-panel--identity" data-auth-state="restoring" aria-live="polite">
-                <div class="portal-identity">
-                    <div class="portal-identity__copy">
-                        <span id="home-identity-status" class="portal-identity__eyebrow">در حال بازیابی</span>
-                        <h3 id="home-identity-title" class="portal-identity__title">نشست حساب در حال آماده‌سازی است.</h3>
-                        <p id="home-identity-desc" class="portal-identity__desc">اگر قبلاً وارد شده باشی، هویتت روی همین دستگاه برمی‌گردد.</p>
-                        <p id="home-identity-meta" class="portal-identity__meta">چند لحظه صبر کن.</p>
-                    </div>
-                    <span id="home-owner-badge" class="portal-identity__badge" hidden>حساب ویژه</span>
-                </div>
-                <div class="portal-actions">
-                    <a id="home-identity-primary" class="shell-action-btn shell-action-btn-primary" href="/account/">حساب کاربری</a>
-                    <a id="home-identity-secondary" class="shell-action-btn" href="/grades/">نمرات من</a>
-                </div>
-            </section>
-
-            <section id="home-navid-panel" class="portal-panel portal-panel--navid" data-state="restoring" aria-live="polite">
-                <div class="portal-navid-head">
-                    <div class="portal-navid-head__copy">
-                        <span class="portal-section-title">نوید</span>
-                        <h3 class="portal-navid-title">وضعیت تکالیف</h3>
-                        <p id="home-navid-state" class="portal-note">در حال بررسی همگام‌سازی...</p>
-                    </div>
-                    <a class="shell-action-btn shell-action-btn-primary" href="/navid/">نوید</a>
-                </div>
-                <div class="portal-navid-meta">
-                    <span id="home-navid-sync">آخرین بررسی: —</span>
-                </div>
-                <div id="home-navid-updates" class="portal-navid-list"></div>
-                <div id="home-navid-assignments" class="portal-navid-list"></div>
-            </section>
-        </section>
-
-        <section class="home-route-board" id="main-services" aria-labelledby="main-services-title">
-            <div class="home-section-head">
-                <span class="portal-section-title">مسیرها</span>
-                <h3 id="main-services-title">بخش‌های اصلی سایت</h3>
+        <section class="home-promo-card" aria-labelledby="home-promo-title">
+            <div class="home-promo-card__visual" aria-hidden="true">
+                <img src="/assets/images/hero-bg.jpg?v=20260422-brand1" alt="">
             </div>
-            <div class="home-route-grid">
-                <a class="home-route-card" href="/forms/">
-                    <strong>فرم‌ها</strong>
-                    <span>نظرسنجی و فرم‌ساز</span>
-                </a>
-                <a class="home-route-card" href="/exams/">
-                    <strong>آزمون‌ها</strong>
-                    <span>تمرین و مرور</span>
-                </a>
-                <a class="home-route-card" href="/grades/">
-                    <strong>نمرات</strong>
-                    <span>کارنامه و وضعیت</span>
-                </a>
-                <a class="home-route-card" href="/notes/">
-                    <strong>جزوات ۱۴۰۲</strong>
-                    <span>آرشیو درسی</span>
-                </a>
-                <a class="home-route-card" href="/notes/1403/">
-                    <strong>جزوات ۱۴۰۳</strong>
-                    <span>فایل‌های جدید</span>
-                </a>
-                <a class="home-route-card" href="/buy/">
-                    <strong>خرید گروهی</strong>
-                    <span>ثبت‌نام و سفارش</span>
-                </a>
+            <div class="home-promo-card__copy">
+                <span class="portal-section-title">وب‌اپ</span>
+                <h3 id="home-promo-title">دسترسی سریع‌تر روی گوشی</h3>
+                <p>می‌توانی این سایت را مثل اپلیکیشن از صفحه خانه گوشی باز کنی.</p>
             </div>
-        </section>
-
-        <section class="home-resource-dock" id="resources" aria-labelledby="resources-title">
-            <div class="home-resource-dock__head">
-                <div>
-                    <span class="portal-section-title">منابع</span>
-                    <h3 id="resources-title">لینک‌های ضروری</h3>
-                </div>
-                <button class="shell-action-btn shell-action-btn-primary" type="button" data-install-app>نصب روی گوشی</button>
-            </div>
-            <div class="home-resource-strip">
-                <a href="https://navid.tums.ac.ir/" data-external-link="true">نوید</a>
-                <a href="https://sipad.tums.ac.ir/" data-external-link="true">سیپاد</a>
-                <a href="https://foodstu.tums.ac.ir/" data-external-link="true">تغذیه</a>
-                <a href="https://dentistry.tums.ac.ir/" data-external-link="true">دانشکده</a>
-                <a href="https://t.me/teledentistry1402" data-external-link="true">تلگرام کلاس</a>
-                <a href="https://uupload.ir/" data-external-link="true">آپلود فایل</a>
-            </div>
+            <button class="shell-action-btn shell-action-btn-primary" type="button" data-install-app>نصب روی گوشی</button>
             <p class="shell-install-hint" data-install-hint>اگر مرورگر پشتیبانی کند، دکمه نصب فعال می‌شود.</p>
+        </section>
+
+        <section id="home-identity-panel" class="portal-panel portal-panel--identity" data-auth-state="restoring" aria-live="polite" hidden>
+            <div class="portal-identity">
+                <div class="portal-identity__copy">
+                    <span id="home-identity-status" class="portal-identity__eyebrow">در حال بازیابی</span>
+                    <h3 id="home-identity-title" class="portal-identity__title">نشست حساب در حال آماده‌سازی است.</h3>
+                    <p id="home-identity-desc" class="portal-identity__desc">اگر قبلاً وارد شده باشی، هویتت روی همین دستگاه برمی‌گردد.</p>
+                    <p id="home-identity-meta" class="portal-identity__meta">چند لحظه صبر کن.</p>
+                </div>
+                <span id="home-owner-badge" class="portal-identity__badge" hidden>حساب ویژه</span>
+            </div>
+            <div class="portal-actions">
+                <a id="home-identity-primary" class="shell-action-btn shell-action-btn-primary" href="/account/">حساب کاربری</a>
+                <a id="home-identity-secondary" class="shell-action-btn" href="/grades/">نمرات من</a>
+            </div>
         </section>
     </main>
 
@@ -175,9 +166,9 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/pwa.js?v=20260429-200841"></script>
-    <script src="/assets/site/scripts/auth.js?v=20260429-200841"></script>
-    <script src="/assets/site/scripts/app-home.js?v=20260429-200841"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260429-200841"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260430-021133"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260430-021133"></script>
+    <script src="/assets/site/scripts/app-home.js?v=20260430-021133"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260430-021133"></script>
 </body>
 </html>

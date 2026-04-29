@@ -34,6 +34,7 @@
 - هر تغییر در storage/sync/backup/restore/migration/deploy باید continuity تاریخچه پیام و داده را حفظ کند.
 - داده‌های فرم‌ساز جدید باید در storage مشترک `forms/store.json` بماند و داده‌های قبلی DIS در `dis_request/store.json` یا نظرسنجی‌های قدیمی chat بدون migration صریح حذف/بازنویسی نشوند.
 - داده‌های خرید/سفارش باید در storage مشترک `payments/store.json` بماند و deploy نباید سفارش‌ها، آیتم‌ها، کدهای تخفیف یا تاریخچه پرداخت را reset کند.
+- تصاویر آپلودی کالاهای بخش خرید باید در storage مشترک `payments/uploads/` بمانند و نباید با فایل‌های deploy-replaced یا مسیرهای temp جایگزین شوند.
 - گزارش موفقیت کاذب ممنوع است: اگر داده فقط local یا cache است، موفقیت اعلام نشود.
 
 ## 5) قرارداد مدیریت قابلیت‌ها و پنل کاربر

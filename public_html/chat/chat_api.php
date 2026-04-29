@@ -3607,6 +3607,41 @@ function chat_normalize_messages_for_client(array $messages, ?array $store = nul
     return $normalized;
 }
 
+function chat_conversation_search_text(array $messages): string
+{
+    $parts = [];
+    $limit = 80;
+    $count = 0;
+
+    for ($index = count($messages) - 1; $index >= 0; $index--) {
+        if ($count >= $limit) {
+            break;
+        }
+
+        $message = is_array($messages[$index] ?? null) ? $messages[$index] : [];
+        $text = dent_clean_text((string) ($message['text'] ?? ''), 220);
+        if ($text === '' && is_array($message['attachments'] ?? null)) {
+            foreach ($message['attachments'] as $attachment) {
+                if (!is_array($attachment)) {
+                    continue;
+                }
+                $text = dent_clean_text((string) ($attachment['name'] ?? ''), 120);
+                if ($text !== '') {
+                    break;
+                }
+            }
+        }
+        if ($text === '') {
+            continue;
+        }
+
+        $parts[] = $text;
+        $count++;
+    }
+
+    return dent_clean_text(implode(' ', array_reverse($parts)), 8000);
+}
+
 function chat_conversation_members_payload(array $conversation): array
 {
     $members = [];
@@ -3814,6 +3849,7 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
         ],
         'lastMessage' => $lastMessage !== null ? chat_normalize_message_for_client($lastMessage, $store, $viewer) : null,
         'pinnedMessage' => $pinnedMessage !== null ? chat_normalize_message_for_client($pinnedMessage, $store, $viewer) : null,
+        'searchText' => chat_conversation_search_text($messages),
     ];
 
     if ($canManageConversation) {

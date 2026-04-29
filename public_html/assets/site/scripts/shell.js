@@ -81,24 +81,17 @@
         var status = authStatus(state);
         var isPending = isAuthTransitioning(status);
         var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
-        var items = [
+        return [
             { href: "/app/", label: "خانه", icon: "home", active: ["/app/"] },
-            { href: "/chat/", label: "چت", icon: "chat", active: ["/chat/"] },
-            { href: "/forms/", label: "فرم‌ها", icon: "forms", active: ["/forms/"] },
-            { href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] },
-            { href: "/grades/", label: "نمرات", icon: "grades", active: ["/grades/"] },
-            { href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/"] }
+            { href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/"] },
+            {
+                href: accountHref,
+                label: state.loggedIn ? "حساب" : "ورود",
+                icon: "account",
+                active: ["/account/"],
+                pending: isPending
+            }
         ];
-
-        items.push({
-            href: accountHref,
-            label: state.loggedIn ? "حساب" : "ورود",
-            icon: "account",
-            active: ["/account/"],
-            pending: isPending
-        });
-
-        return items;
     }
 
     function ensureBottomNav() {
@@ -154,28 +147,148 @@
         });
     }
 
+    function themeIconMarkup(targetTheme) {
+        if (targetTheme === "dark") {
+            return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 14.5A7.5 7.5 0 0 1 9.5 4A8.5 8.5 0 1 0 20 14.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        }
+
+        return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.5V5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 18.5V20.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20.5 12H18.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5.5 12H3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18.01 5.99L16.59 7.41" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7.41 16.59L5.99 18.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18.01 18.01L16.59 16.59" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7.41 7.41L5.99 5.99" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3.6" stroke="currentColor" stroke-width="1.8"/></svg>';
+    }
+
+    function syncShellThemeButton(button) {
+        if (!button || !window.Dent1402Theme || typeof window.Dent1402Theme.getState !== "function") {
+            return;
+        }
+
+        var theme = window.Dent1402Theme.getState().theme;
+        var nextTheme = theme === "dark" ? "light" : "dark";
+        var label = nextTheme === "dark" ? "تم تیره" : "تم روشن";
+        button.innerHTML = '<span class="theme-toggle-btn__icon">' + themeIconMarkup(nextTheme) + "</span>";
+        button.dataset.themeTarget = nextTheme;
+        button.setAttribute("aria-label", label);
+        button.setAttribute("title", label);
+    }
+
+    function ensureMinimalThemeButton(actions) {
+        if (!actions || !window.Dent1402Theme || typeof window.Dent1402Theme.toggle !== "function") {
+            return;
+        }
+
+        var button = actions.querySelector("[data-theme-toggle]");
+        if (button) {
+            return;
+        }
+
+        button = document.createElement("button");
+        button.type = "button";
+        button.className = "theme-toggle-btn";
+        button.dataset.themeToggle = "true";
+        button.addEventListener("click", function () {
+            window.Dent1402Theme.toggle();
+        });
+        window.addEventListener("dent1402:theme-change", function () {
+            syncShellThemeButton(button);
+        });
+        actions.appendChild(button);
+        syncShellThemeButton(button);
+    }
+
+    function createMinimalSiteHeader() {
+        if (document.querySelector(".site-header") || shellDisabled) {
+            return;
+        }
+
+        if (document.body.classList.contains("chat-page")) {
+            return;
+        }
+
+        var header = document.createElement("header");
+        header.className = "site-header";
+        header.innerHTML = [
+            '<div class="logo-area">',
+            '  <div class="site-info"><h1>ورودی ۱۴۰۲ دندانپزشکی تهران</h1></div>',
+            "</div>",
+            '<div class="header-actions"></div>'
+        ].join("");
+
+        var overlay = document.querySelector(".background-overlay");
+        if (overlay && overlay.parentNode === document.body && overlay.nextSibling) {
+            document.body.insertBefore(header, overlay.nextSibling);
+            return;
+        }
+
+        document.body.insertBefore(header, document.body.firstChild);
+    }
+
+    function normalizeSiteHeader() {
+        createMinimalSiteHeader();
+
+        document.querySelectorAll(".site-header").forEach(function (header) {
+            header.classList.add("site-header--minimal");
+
+            var logoArea = header.querySelector(".logo-area");
+            if (!logoArea) {
+                logoArea = document.createElement("div");
+                logoArea.className = "logo-area";
+                header.insertBefore(logoArea, header.firstChild);
+            }
+
+            logoArea.querySelectorAll(".logo-circle, .badge-unofficial").forEach(function (node) {
+                node.remove();
+            });
+
+            var siteInfo = logoArea.querySelector(".site-info");
+            if (!siteInfo) {
+                siteInfo = document.createElement("div");
+                siteInfo.className = "site-info";
+                logoArea.appendChild(siteInfo);
+            }
+
+            var title = siteInfo.querySelector("h1");
+            if (!title) {
+                title = document.createElement("h1");
+                siteInfo.insertBefore(title, siteInfo.firstChild);
+            }
+            title.textContent = "ورودی ۱۴۰۲ دندانپزشکی تهران";
+
+            siteInfo.querySelectorAll("p").forEach(function (node) {
+                node.remove();
+            });
+
+            header.querySelectorAll(".site-top-nav, .header-link, [data-auth-link], .badge-unofficial").forEach(function (node) {
+                node.remove();
+            });
+
+            var actions = header.querySelector(".header-actions");
+            if (!actions) {
+                actions = document.createElement("div");
+                actions.className = "header-actions";
+                header.appendChild(actions);
+            }
+
+            Array.prototype.slice.call(actions.children).forEach(function (node) {
+                if (!node.matches("[data-theme-toggle]")) {
+                    node.remove();
+                }
+            });
+
+            ensureMinimalThemeButton(actions);
+        });
+    }
+
+    function normalizePageTopbars() {
+        document.querySelectorAll(".forms-topbar").forEach(function (topbar) {
+            topbar.querySelectorAll('a[href="/app/"], a[href="/account/"]').forEach(function (node) {
+                node.remove();
+            });
+
+            if (!topbar.querySelector(".forms-icon-btn")) {
+                topbar.classList.add("forms-topbar--plain");
+            }
+        });
+    }
+
     function ensureHeaderAuthLink() {
-        if (authLinkSeeded) {
-            return;
-        }
-
-        var headerActions = document.querySelector(".header-actions");
-        if (!headerActions) {
-            return;
-        }
-
-        if (headerActions.querySelector("[data-auth-link]")) {
-            authLinkSeeded = true;
-            return;
-        }
-
-        var link = document.createElement("a");
-        link.className = "header-link header-link--auth";
-        link.href = "/account/";
-        link.dataset.authLink = "true";
-        link.dataset.authInLabel = "حساب کاربری";
-        link.dataset.authOutLabel = "ورود";
-        headerActions.appendChild(link);
         authLinkSeeded = true;
     }
 
@@ -430,6 +543,8 @@
         createModal();
         bindExternalLinks();
         bindInstallButtons();
+        normalizeSiteHeader();
+        normalizePageTopbars();
         syncAuthUi(authState());
 
         if (window.Dent1402Auth && typeof window.Dent1402Auth.onChange === "function") {

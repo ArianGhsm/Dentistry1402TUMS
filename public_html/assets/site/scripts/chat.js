@@ -502,6 +502,7 @@
   var conversationEmpty = $("conversation-empty");
   var newDmBtn = $("new-dm-btn");
   var newGroupBtn = $("new-group-btn");
+  var conversationQuickActionButtons = Array.from(document.querySelectorAll("[data-chat-quick-action]"));
   var newPollLink = null;
   var mobileOpenListBtn = $("mobile-open-list");
   var mobileCloseListBtn = $("mobile-close-list");
@@ -635,6 +636,7 @@
   var receiptsList = $("receipts-list");
   var mediaViewer = $("chat-media-viewer");
   var mediaViewerClose = $("chat-media-viewer-close");
+  var mediaViewerMore = $("chat-media-viewer-more");
   var mediaViewerStage = $("chat-media-viewer-stage");
   var mediaViewerCaption = $("chat-media-viewer-caption");
 
@@ -671,6 +673,7 @@
     replyTargetId: null,
     pollingTimer: null,
     pollIntervalMs: 1700,
+    pollInFlight: false,
     requestToken: 0,
     toastTimer: null,
     contextOpen: false,
@@ -1684,6 +1687,7 @@
       },
       lastMessage: normalizeMessage(source.lastMessage),
       pinnedMessage: normalizeMessage(source.pinnedMessage),
+      searchText: normalizeSpace(source.searchText || source.searchIndex || ""),
       peer: peer,
       admins: Array.isArray(source.admins) ? source.admins.map(normalizeStudentNumber).filter(Boolean) : [],
       members: []
@@ -2029,18 +2033,28 @@
   }
   function filteredConversations() {
     var q = normalizeSpace(state.conversationFilter).toLowerCase();
+    var qDigits = normalizeSpace(normalizeDigits(state.conversationFilter)).toLowerCase();
     return state.conversations.filter(function (conversation) {
       if (!conversationMatchesListCategory(conversation)) {
         return false;
       }
       if (!q) return true;
+      var loadedMessageText = "";
+      if (conversation.id === state.activeConversationId && state.messages.size) {
+        loadedMessageText = Array.from(state.messages.values()).map(function (message) {
+          return messagePreviewText(message);
+        }).join(" ");
+      }
       var hay = [
         conversation.title,
         conversation.subtitle,
         conversationPreview(conversation),
+        conversation.searchText,
+        loadedMessageText,
         canCurrentUserViewStudentNumbers() && conversation.type === "direct" && conversation.peer ? conversation.peer.studentNumber : ""
       ].join(" ").toLowerCase();
-      return hay.indexOf(q) !== -1;
+      var hayDigits = normalizeDigits(hay).toLowerCase();
+      return hay.indexOf(q) !== -1 || (qDigits && hayDigits.indexOf(qDigits) !== -1);
     });
   }
 
@@ -2446,9 +2460,19 @@
     }
 
     var linkUrl = attachment.downloadUrl || attachment.url;
+    var isPreviewMedia = attachment.category === "image" || attachment.category === "video";
     var linkAttrs = attachment.available && linkUrl
       ? ('href="' + escapeHtml(linkUrl) + '" target="_blank" rel="noopener"')
       : 'href="#" aria-disabled="true"';
+    var actionsHtml = "";
+    if (!isPreviewMedia || stateText) {
+      actionsHtml = [
+        '  <div class="msg-attachment__actions">',
+        isPreviewMedia ? "" : ('    <a class="msg-attachment__link" ' + linkAttrs + ">" + (attachment.available ? "دانلود" : "ناموجود") + "</a>"),
+        stateText ? ('    <span class="msg-attachment__state is-expired">' + escapeHtml(stateText) + "</span>") : "",
+        "  </div>"
+      ].join("");
+    }
 
     return [
       '<article class="msg-attachment">',
@@ -2457,10 +2481,7 @@
       '    <span class="msg-attachment__name" title="' + escapeHtml(attachment.name) + '">' + escapeHtml(attachment.name) + "</span>",
       '    <span class="msg-attachment__meta">' + escapeHtml(attachmentMetaText(attachment)) + "</span>",
       "  </div>",
-      '  <div class="msg-attachment__actions">',
-      '    <a class="msg-attachment__link" ' + linkAttrs + ">" + (attachment.available ? "دانلود" : "ناموجود") + "</a>",
-      stateText ? ('    <span class="msg-attachment__state is-expired">' + escapeHtml(stateText) + "</span>") : "",
-      "  </div>",
+      actionsHtml,
       "</article>"
     ].join("");
   }
@@ -2493,6 +2514,20 @@
       return '<span class="msg-delivery is-seen">✓✓</span>';
     }
     return '<span class="msg-delivery">✓</span>';
+  }
+
+  function messageReceiptSummary(message) {
+    if (!message || message.studentNumber !== state.me.studentNumber) return "";
+    if (message.delivery === "sending") return "در حال ارسال";
+    if (message.delivery === "failed") return "ارسال ناموفق";
+    var seenCount = Math.max(0, Math.floor(toNumber(message.seenByCount, 0)));
+    if (message.delivery === "seen" || seenCount > 0) {
+      if (seenCount > 0) {
+        return "دیده‌شده توسط " + seenCount.toLocaleString("fa-IR") + " نفر";
+      }
+      return "دیده‌شده";
+    }
+    return "ارسال‌شده";
   }
 
   function renderMessage(message) {
@@ -2696,6 +2731,10 @@
     if (!mediaViewer) return;
     mediaViewer.classList.remove("is-open");
     mediaViewer.hidden = true;
+    if (mediaViewerMore) {
+      mediaViewerMore.hidden = true;
+      mediaViewerMore.removeAttribute("href");
+    }
     if (mediaViewerStage) mediaViewerStage.innerHTML = "";
     if (mediaViewerCaption) mediaViewerCaption.textContent = "";
   }
@@ -2711,6 +2750,10 @@
     mediaViewerStage.innerHTML = kind === "video"
       ? '<video controls autoplay playsinline src="' + escapeHtml(src) + '"' + (poster ? ' poster="' + escapeHtml(poster) + '"' : "") + "></video>"
       : '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(caption || "رسانه") + '">';
+    if (mediaViewerMore) {
+      mediaViewerMore.href = src;
+      mediaViewerMore.hidden = false;
+    }
     if (mediaViewerCaption) mediaViewerCaption.textContent = caption || "";
     mediaViewer.hidden = false;
     window.requestAnimationFrame(function () {
@@ -2905,17 +2948,17 @@
     if (!contextMenu) return;
     var menuWidth = contextMenu.offsetWidth;
     var menuHeight = contextMenu.offsetHeight;
-    if (isMobileViewport()) {
-      var mobileLeft = Math.max(8, Math.min((window.innerWidth - menuWidth) / 2, window.innerWidth - menuWidth - 8));
-      var mobileTop = Math.max(8, window.innerHeight - menuHeight - 8);
-      contextMenu.style.left = mobileLeft + "px";
-      contextMenu.style.top = mobileTop + "px";
-      return;
-    }
     var left = Math.max(8, Math.min(clientX - menuWidth / 2, window.innerWidth - menuWidth - 8));
-    var top = Math.max(8, Math.min(clientY + 12, window.innerHeight - menuHeight - 8));
-    contextMenu.style.left = left + "px";
-    contextMenu.style.top = top + "px";
+    var top;
+    if (isMobileViewport()) {
+      var preferredTop = clientY - menuHeight - 10;
+      top = preferredTop >= 8 ? preferredTop : clientY + 10;
+      top = Math.max(8, Math.min(top, window.innerHeight - menuHeight - 8));
+    } else {
+      top = Math.max(8, Math.min(clientY + 12, window.innerHeight - menuHeight - 8));
+    }
+    contextMenu.style.setProperty("left", left + "px", "important");
+    contextMenu.style.setProperty("top", top + "px", "important");
   }
 
   function closeContextMenu() {
@@ -2955,17 +2998,17 @@
     if (!listContextMenu) return;
     var menuWidth = listContextMenu.offsetWidth;
     var menuHeight = listContextMenu.offsetHeight;
-    if (isMobileViewport()) {
-      var mobileLeft = Math.max(8, Math.min((window.innerWidth - menuWidth) / 2, window.innerWidth - menuWidth - 8));
-      var mobileTop = Math.max(8, window.innerHeight - menuHeight - 8);
-      listContextMenu.style.left = mobileLeft + "px";
-      listContextMenu.style.top = mobileTop + "px";
-      return;
-    }
     var left = Math.max(8, Math.min(clientX - menuWidth / 2, window.innerWidth - menuWidth - 8));
-    var top = Math.max(8, Math.min(clientY + 12, window.innerHeight - menuHeight - 8));
-    listContextMenu.style.left = left + "px";
-    listContextMenu.style.top = top + "px";
+    var top;
+    if (isMobileViewport()) {
+      var preferredTop = clientY - menuHeight - 10;
+      top = preferredTop >= 8 ? preferredTop : clientY + 10;
+      top = Math.max(8, Math.min(top, window.innerHeight - menuHeight - 8));
+    } else {
+      top = Math.max(8, Math.min(clientY + 12, window.innerHeight - menuHeight - 8));
+    }
+    listContextMenu.style.setProperty("left", left + "px", "important");
+    listContextMenu.style.setProperty("top", top + "px", "important");
   }
 
   function closeListContextMenu() {
@@ -3129,11 +3172,21 @@
     reactionBar.appendChild(customReactionBtn);
 
     contextActions.innerHTML = "";
+    var receiptSummary = messageReceiptSummary(message);
+    if (receiptSummary) {
+      var receiptNode = document.createElement("div");
+      receiptNode.className = "chat-context-receipt";
+      receiptNode.textContent = receiptSummary;
+      contextActions.appendChild(receiptNode);
+    }
     if (message.studentNumber === state.me.studentNumber) {
-      contextActions.appendChild(contextAction("سین‌ها", "مشاهده وضعیت سین پیام", function () {
-        openReceiptsModal(message);
-        closeContextMenu();
-      }));
+      var conversation = activeConversation();
+      if (conversation && conversation.type !== "direct" && Math.max(0, Math.floor(toNumber(conversation.memberCount, 0))) > 2) {
+        contextActions.appendChild(contextAction("فهرست سین‌ها", "مشاهده اعضای دیده یا ندیده", function () {
+          openReceiptsModal(message);
+          closeContextMenu();
+        }));
+      }
     }
     contextActions.appendChild(contextAction("پاسخ", "پاسخ به پیام", function () {
       setReplyTarget(message);
@@ -4256,22 +4309,39 @@
 
   function stopPolling() {
     if (state.pollingTimer) {
-      window.clearInterval(state.pollingTimer);
+      window.clearTimeout(state.pollingTimer);
     }
     state.pollingTimer = null;
+    state.pollInFlight = false;
   }
 
   function startPolling() {
     stopPolling();
     if (!state.me.loggedIn) return;
 
-    state.pollingTimer = window.setInterval(function () {
-      syncConversation({
-        forceFull: false,
-        includeMembers: state.infoSheetOpen,
-        silent: true
-      }).catch(function () {});
-    }, clamp(state.pollIntervalMs, MIN_POLL_MS, MAX_POLL_MS));
+    var scheduleNextPoll = function () {
+      if (!state.me.loggedIn) {
+        state.pollingTimer = null;
+        return;
+      }
+      state.pollingTimer = window.setTimeout(function () {
+        if (state.pollInFlight) {
+          scheduleNextPoll();
+          return;
+        }
+        state.pollInFlight = true;
+        syncConversation({
+          forceFull: false,
+          includeMembers: state.infoSheetOpen,
+          silent: true
+        }).catch(function () {}).finally(function () {
+          state.pollInFlight = false;
+          scheduleNextPoll();
+        });
+      }, clamp(state.pollIntervalMs, MIN_POLL_MS, MAX_POLL_MS));
+    };
+
+    scheduleNextPoll();
   }
 
   async function syncConversation(options) {
@@ -4320,7 +4390,10 @@
       state.connectionIssue = false;
 
       if (response && asObject(response.transport) && response.transport.intervalMs != null) {
-        state.pollIntervalMs = clamp(toNumber(response.transport.intervalMs, 1700), MIN_POLL_MS, MAX_POLL_MS);
+        var nextPollInterval = clamp(toNumber(response.transport.intervalMs, 1700), MIN_POLL_MS, MAX_POLL_MS);
+        if (nextPollInterval !== state.pollIntervalMs) {
+          state.pollIntervalMs = nextPollInterval;
+        }
       }
 
       var incomingConversations = (Array.isArray(response.conversations) ? response.conversations : [])
@@ -5134,7 +5207,7 @@
       state.connectionIssue = false;
 
       var message = normalizeMessage(response.message);
-      if (message) {
+      if (message && (!message.conversationId || message.conversationId === state.activeConversationId)) {
         appendMessages([message], {
           replaceAll: false,
           forceStick: true,
@@ -5971,6 +6044,18 @@
     }
     if (newDmBtn) newDmBtn.addEventListener("click", openDmCreationFlow);
     if (newGroupBtn) newGroupBtn.addEventListener("click", openGroupCreationFlow);
+    conversationQuickActionButtons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        var action = normalizeSpace(button.getAttribute("data-chat-quick-action"));
+        if (action === "dm") {
+          openDmCreationFlow();
+          return;
+        }
+        if (action === "group") {
+          openGroupCreationFlow();
+        }
+      });
+    });
     placeholderActionButtons.forEach(function (button) {
       button.addEventListener("click", function () {
         var action = normalizeSpace(button.getAttribute("data-placeholder-action"));

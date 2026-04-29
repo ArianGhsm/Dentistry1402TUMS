@@ -404,7 +404,160 @@ function payments_api_checkout_gateways_payload(): array
     ];
 }
 
+function payments_api_uploads_dir(): string
+{
+    return dent_storage_path('payments/uploads');
+}
+
+function payments_api_clean_upload_name(string $value): string
+{
+    $name = basename(str_replace('\\', '/', $value));
+    if (preg_match('/^[a-zA-Z0-9][a-zA-Z0-9._-]{5,180}$/', $name) !== 1) {
+        return '';
+    }
+
+    return $name;
+}
+
+function payments_api_image_mime_from_extension(string $name): string
+{
+    $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    if ($extension === 'jpg' || $extension === 'jpeg') {
+        return 'image/jpeg';
+    }
+    if ($extension === 'png') {
+        return 'image/png';
+    }
+    if ($extension === 'webp') {
+        return 'image/webp';
+    }
+
+    return 'application/octet-stream';
+}
+
+function payments_api_uploaded_image_url(string $name): string
+{
+    return '/api/payments_api.php?action=paymentImage&name=' . rawurlencode($name);
+}
+
+function payments_api_validate_uploaded_image_url(string $value): bool
+{
+    $clean = trim($value);
+    if ($clean === '') {
+        return false;
+    }
+
+    if (str_starts_with($clean, '/api/payments_api.php?action=paymentImage&name=')) {
+        return true;
+    }
+
+    if (str_starts_with($clean, '/assets/images/buy/')) {
+        return true;
+    }
+
+    return false;
+}
+
+function payments_api_store_uploaded_image(array $file): array
+{
+    $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+    if ($error !== UPLOAD_ERR_OK) {
+        dent_error('آپلود تصویر انجام نشد. دوباره تصویر را انتخاب کن.', 422);
+    }
+
+    $tmpName = (string) ($file['tmp_name'] ?? '');
+    $size = max(0, (int) ($file['size'] ?? 0));
+    if ($tmpName === '' || !is_uploaded_file($tmpName)) {
+        dent_error('فایل تصویر معتبر نیست.', 422);
+    }
+
+    $maxBytes = 5 * 1024 * 1024;
+    if ($size <= 0 || $size > $maxBytes) {
+        dent_error('حجم تصویر باید کمتر از ۵ مگابایت باشد.', 422);
+    }
+
+    $imageInfo = @getimagesize($tmpName);
+    if (!is_array($imageInfo)) {
+        dent_error('فایل انتخاب‌شده تصویر معتبر نیست.', 422);
+    }
+
+    $mime = strtolower((string) ($imageInfo['mime'] ?? ''));
+    $extensions = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+    ];
+    if (!isset($extensions[$mime])) {
+        dent_error('فرمت تصویر باید jpg، png یا webp باشد.', 422);
+    }
+
+    $width = max(0, (int) ($imageInfo[0] ?? 0));
+    $height = max(0, (int) ($imageInfo[1] ?? 0));
+    if ($width < 120 || $height < 120) {
+        dent_error('ابعاد تصویر برای نمایش کالا خیلی کوچک است.', 422);
+    }
+
+    dent_ensure_directory(payments_api_uploads_dir());
+    try {
+        $token = bin2hex(random_bytes(8));
+    } catch (Throwable $error) {
+        $token = substr(sha1((string) mt_rand() . '|' . microtime(true)), 0, 16);
+    }
+
+    $name = 'buy-' . date('Ymd-His') . '-' . $token . '.' . $extensions[$mime];
+    $target = payments_api_uploads_dir() . DIRECTORY_SEPARATOR . $name;
+    if (!move_uploaded_file($tmpName, $target)) {
+        dent_error('ذخیره تصویر در فضای پایدار پرداخت انجام نشد.', 500);
+    }
+    @chmod($target, 0644);
+
+    return [
+        'name' => $name,
+        'url' => payments_api_uploaded_image_url($name),
+        'mime' => $mime,
+        'size' => $size,
+        'width' => $width,
+        'height' => $height,
+    ];
+}
+
 $action = dent_request_action();
+
+if ($action === 'paymentImage') {
+    payments_api_require_method(['GET']);
+    $name = payments_api_clean_upload_name((string) ($_GET['name'] ?? ''));
+    if ($name === '') {
+        dent_error('نام تصویر معتبر نیست.', 422);
+    }
+
+    $path = payments_api_uploads_dir() . DIRECTORY_SEPARATOR . $name;
+    if (!is_file($path) || !is_readable($path)) {
+        dent_error('تصویر پیدا نشد.', 404);
+    }
+
+    header('Content-Type: ' . payments_api_image_mime_from_extension($name));
+    header('Content-Length: ' . (string) filesize($path));
+    header('Cache-Control: public, max-age=31536000, immutable');
+    readfile($path);
+    exit;
+}
+
+if ($action === 'ownerUploadImage') {
+    payments_api_require_method(['POST']);
+    dent_require_owner();
+
+    $file = $_FILES['image'] ?? null;
+    if (!is_array($file)) {
+        dent_error('تصویر کالا انتخاب نشده است.', 422);
+    }
+
+    $stored = payments_api_store_uploaded_image($file);
+    dent_json_response([
+        'success' => true,
+        'image' => $stored,
+        'message' => 'تصویر کالا با موفقیت آپلود شد.',
+    ]);
+}
 
 if ($action === 'listPublicItems') {
     payments_api_require_method(['GET']);
@@ -1079,6 +1232,17 @@ if ($action === 'ownerSaveItem') {
     $fullDescription = dent_clean_text((string) ($_POST['fullDescription'] ?? ($_POST['full_description'] ?? '')), 6000);
     $heroImage = dent_clean_text((string) ($_POST['heroImage'] ?? ($_POST['hero_image'] ?? '')), 420);
     $gallery = payments_api_parse_gallery_input($_POST['gallery'] ?? []);
+    if ($heroImage === '') {
+        dent_error('تصویر اصلی کالا الزامی است. تصویر را از دستگاه آپلود کن.', 422);
+    }
+    if (!payments_api_validate_uploaded_image_url($heroImage)) {
+        dent_error('برای تصویر کالا لینک مستقیم اینترنتی مجاز نیست. تصویر را از پنل مالک آپلود کن.', 422);
+    }
+    foreach ($gallery as $galleryImage) {
+        if (!payments_api_validate_uploaded_image_url((string) $galleryImage)) {
+            dent_error('برای گالری کالا لینک مستقیم اینترنتی مجاز نیست. تصاویر را از پنل مالک آپلود کن.', 422);
+        }
+    }
     $specifications = payments_api_parse_specifications_input($_POST['specifications'] ?? []);
     $requiredFields = payments_api_parse_required_fields_input($_POST['requiredFields'] ?? ($_POST['required_fields'] ?? []));
     $audienceNote = dent_clean_text((string) ($_POST['audienceNote'] ?? ($_POST['audience_note'] ?? '')), 220);

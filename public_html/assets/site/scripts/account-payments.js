@@ -35,6 +35,16 @@
     var previewMeta = $("payments-preview-meta");
     var previewSpecs = $("payments-preview-specs");
     var fillShieldSampleButton = $("payments-fill-shield-sample");
+    var heroImageInput = $("payments-item-hero-image");
+    var heroFileInput = $("payments-item-hero-file");
+    var heroPreviewImage = $("payments-item-hero-preview");
+    var heroStatus = $("payments-item-hero-status");
+    var heroClearButton = $("payments-item-hero-clear");
+    var galleryInput = $("payments-item-gallery");
+    var galleryFileInput = $("payments-item-gallery-files");
+    var galleryList = $("payments-gallery-list");
+    var heroPreviewObjectUrl = "";
+    var heroPreviewObjectFile = null;
 
     var state = {
         currentUser: null,
@@ -120,6 +130,19 @@
             method: "GET",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
+        }).then(parseJsonResponse);
+    }
+
+    function requestFormData(action, formData) {
+        var body = formData instanceof FormData ? formData : new FormData();
+        body.set("action", action);
+        return fetch("/api/payments_api.php", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json"
+            },
+            body: body
         }).then(parseJsonResponse);
     }
 
@@ -230,12 +253,135 @@
         }
     }
 
+    function safeImageUrl(value) {
+        var clean = String(value || "").trim();
+        if (!clean) {
+            return "";
+        }
+        if (clean.indexOf("/api/payments_api.php?action=paymentImage&name=") === 0 ||
+            clean.indexOf("/assets/images/buy/") === 0) {
+            return clean;
+        }
+        return "";
+    }
+
+    function selectedFile(input) {
+        return input && input.files && input.files.length ? input.files[0] : null;
+    }
+
+    function selectedFiles(input) {
+        return input && input.files ? Array.prototype.slice.call(input.files) : [];
+    }
+
+    function releaseHeroPreviewObjectUrl() {
+        if (heroPreviewObjectUrl) {
+            URL.revokeObjectURL(heroPreviewObjectUrl);
+        }
+        heroPreviewObjectUrl = "";
+        heroPreviewObjectFile = null;
+    }
+
+    function heroFilePreviewUrl(file) {
+        if (!file) {
+            releaseHeroPreviewObjectUrl();
+            return "";
+        }
+        if (heroPreviewObjectUrl && heroPreviewObjectFile === file) {
+            return heroPreviewObjectUrl;
+        }
+        releaseHeroPreviewObjectUrl();
+        heroPreviewObjectFile = file;
+        heroPreviewObjectUrl = URL.createObjectURL(file);
+        return heroPreviewObjectUrl;
+    }
+
+    function galleryValues() {
+        var parsed = parseLooseJson(readField("payments-item-gallery"), []);
+        if (!Array.isArray(parsed)) {
+            return [];
+        }
+        return parsed.map(function (entry) {
+            return safeImageUrl(entry);
+        }).filter(Boolean);
+    }
+
+    function writeGalleryValues(values) {
+        writeField("payments-item-gallery", prettyJson(Array.from(new Set((values || []).map(function (entry) {
+            return safeImageUrl(entry);
+        }).filter(Boolean)))));
+    }
+
+    function renderHeroUploader() {
+        var file = selectedFile(heroFileInput);
+        var stored = safeImageUrl(heroImageInput ? heroImageInput.value : "");
+        var src = "";
+        var status = "تصویر اصلی هنوز انتخاب نشده است.";
+        if (file) {
+            src = heroFilePreviewUrl(file);
+            status = "تصویر انتخاب شده و با ذخیره آیتم آپلود می‌شود.";
+        } else if (stored) {
+            releaseHeroPreviewObjectUrl();
+            src = stored;
+            status = "تصویر اصلی برای این آیتم ثبت شده است.";
+        } else {
+            releaseHeroPreviewObjectUrl();
+        }
+
+        if (heroPreviewImage) {
+            if (src) {
+                heroPreviewImage.hidden = false;
+                heroPreviewImage.src = src;
+            } else {
+                heroPreviewImage.hidden = true;
+                heroPreviewImage.removeAttribute("src");
+            }
+        }
+        if (heroStatus) {
+            heroStatus.textContent = status;
+        }
+    }
+
+    function renderGalleryUploader() {
+        if (!galleryList) {
+            return;
+        }
+        var uploaded = galleryValues();
+        var pending = selectedFiles(galleryFileInput);
+        var rows = [];
+        uploaded.forEach(function (url, index) {
+            rows.push([
+                '<article class="payments-gallery-thumb">',
+                '  <img src="' + escapeHtml(url) + '" alt="تصویر گالری">',
+                '  <button type="button" data-payment-remove-gallery="' + escapeHtml(index) + '">حذف</button>',
+                "</article>"
+            ].join(""));
+        });
+        pending.forEach(function (file) {
+            rows.push([
+                '<article class="payments-gallery-thumb payments-gallery-thumb--pending">',
+                '  <span>در انتظار آپلود</span>',
+                '  <small>' + escapeHtml(file.name || "تصویر انتخاب‌شده") + "</small>",
+                "</article>"
+            ].join(""));
+        });
+        galleryList.innerHTML = rows.length ? rows.join("") : '<div class="payments-gallery-empty">تصویری برای گالری انتخاب نشده است.</div>';
+    }
+
+    function renderImageUploaders() {
+        renderHeroUploader();
+        renderGalleryUploader();
+    }
+
     function firstImageFromForm() {
-        var hero = readField("payments-item-hero-image");
+        var file = selectedFile(heroFileInput);
+        if (file) {
+            return heroFilePreviewUrl(file);
+        }
+        var hero = safeImageUrl(readField("payments-item-hero-image"));
         if (hero) {
             return hero;
         }
-        var gallery = parseLooseJson(readField("payments-item-gallery"), []);
+        var gallery = galleryValues();
         return Array.isArray(gallery) && gallery.length ? String(gallery[0] || "") : "";
     }
 
@@ -290,6 +436,7 @@
                 return "<span><b>" + escapeHtml(entry && entry.label || "مشخصه") + "</b>" + escapeHtml(entry && entry.value || "—") + "</span>";
             }).join("");
         }
+        renderImageUploaders();
     }
 
     function fillShieldSample() {
@@ -317,6 +464,12 @@
         writeField("payments-item-reviews", prettyJson(SHIELD_SAMPLE.reviews));
         writeField("payments-item-success-message", SHIELD_SAMPLE.successMessage);
         writeField("payments-item-failure-message", SHIELD_SAMPLE.failureMessage);
+        if (heroFileInput) {
+            heroFileInput.value = "";
+        }
+        if (galleryFileInput) {
+            galleryFileInput.value = "";
+        }
         if ($("payments-item-allow-cancellation")) {
             $("payments-item-allow-cancellation").checked = !!SHIELD_SAMPLE.allowCancellation;
         }
@@ -669,6 +822,7 @@
         }
         itemForm.reset();
         $("payments-item-id").value = "";
+        $("payments-item-hero-image").value = "";
         $("payments-item-category").value = "group_order";
         $("payments-item-max-quantity").value = "1";
         $("payments-item-audience-note").value = "دانشجویان دندانپزشکی ورودی ۱۴۰۲";
@@ -684,6 +838,12 @@
         $("payments-item-reviews").value = "[]";
         $("payments-item-success-message").value = "پرداخت شما با موفقیت ثبت شد.";
         $("payments-item-failure-message").value = "پرداخت شما ناموفق بود.";
+        if (heroFileInput) {
+            heroFileInput.value = "";
+        }
+        if (galleryFileInput) {
+            galleryFileInput.value = "";
+        }
         setFeedback(itemFormFeedback, "", "");
         updateItemPreview();
     }
@@ -721,6 +881,12 @@
         $("payments-item-starts-at").value = toDatetimeLocal(item.startsAt);
         $("payments-item-expires-at").value = toDatetimeLocal(item.expiresAt);
         $("payments-item-capacity").value = item.capacity == null ? "" : String(item.capacity);
+        if (heroFileInput) {
+            heroFileInput.value = "";
+        }
+        if (galleryFileInput) {
+            galleryFileInput.value = "";
+        }
         setFeedback(itemFormFeedback, "حالت ویرایش برای «" + (item.title || "آیتم") + "» فعال شد.", "success");
         updateItemPreview();
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -750,6 +916,71 @@
         }
         renderItems();
         populateFilterItems();
+    }
+
+    async function uploadPaymentImage(file) {
+        if (!file) {
+            return null;
+        }
+        if (!/^image\/(jpeg|png|webp)$/i.test(String(file.type || ""))) {
+            throw new Error("فرمت تصویر باید jpg، png یا webp باشد.");
+        }
+        if (Number(file.size || 0) > 5 * 1024 * 1024) {
+            throw new Error("حجم تصویر باید کمتر از ۵ مگابایت باشد.");
+        }
+
+        var body = new FormData();
+        body.append("image", file);
+        var response = await requestFormData("ownerUploadImage", body);
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            throw new Error("نشست شما منقضی شده است.");
+        }
+        if (!response || !response.success || !response.image || !response.image.url) {
+            throw new Error((response && response.error) || "آپلود تصویر انجام نشد.");
+        }
+        return response.image;
+    }
+
+    async function uploadSelectedImagesBeforeSave() {
+        var heroImage = safeImageUrl(readField("payments-item-hero-image"));
+        var gallery = galleryValues();
+        var heroFile = selectedFile(heroFileInput);
+        var galleryFiles = selectedFiles(galleryFileInput);
+
+        if (heroFile) {
+            setFeedback(itemFormFeedback, "در حال آپلود تصویر اصلی کالا...", "", true);
+            var storedHero = await uploadPaymentImage(heroFile);
+            heroImage = storedHero.url;
+            writeField("payments-item-hero-image", heroImage);
+            if (heroFileInput) {
+                heroFileInput.value = "";
+            }
+        }
+
+        if (galleryFiles.length) {
+            setFeedback(itemFormFeedback, "در حال آپلود تصاویر گالری...", "", true);
+            for (var index = 0; index < galleryFiles.length; index += 1) {
+                var storedGalleryImage = await uploadPaymentImage(galleryFiles[index]);
+                gallery.push(storedGalleryImage.url);
+            }
+            if (galleryFileInput) {
+                galleryFileInput.value = "";
+            }
+        }
+
+        gallery = Array.from(new Set(gallery.filter(Boolean)));
+        writeGalleryValues(gallery);
+        if (!heroImage && gallery.length) {
+            heroImage = gallery[0];
+            writeField("payments-item-hero-image", heroImage);
+        }
+        renderImageUploaders();
+        updateItemPreview();
+
+        return {
+            heroImage: heroImage,
+            gallery: gallery
+        };
     }
 
     async function loadDashboard(silent) {
@@ -836,18 +1067,46 @@
             return;
         }
 
+        var titleValue = $("payments-item-title").value.trim();
+        var priceValue = normalizeDigits($("payments-item-price").value).replace(/\D+/g, "");
+        if (!titleValue) {
+            setFeedback(itemFormFeedback, "عنوان آیتم الزامی است.", "error");
+            $("payments-item-title").focus();
+            return;
+        }
+        if (!priceValue || Number(priceValue) <= 0) {
+            setFeedback(itemFormFeedback, "قیمت برای درگاه باید بیشتر از صفر باشد.", "error");
+            $("payments-item-price").focus();
+            return;
+        }
+
+        var uploadedImages;
+        try {
+            uploadedImages = await uploadSelectedImagesBeforeSave();
+        } catch (error) {
+            setFeedback(itemFormFeedback, (error && error.message) || "آپلود تصویر انجام نشد.", "error");
+            return;
+        }
+        if (!uploadedImages || !uploadedImages.heroImage) {
+            setFeedback(itemFormFeedback, "تصویر اصلی کالا الزامی است. تصویر را از دستگاه آپلود کن.", "error");
+            if (heroFileInput) {
+                heroFileInput.focus();
+            }
+            return;
+        }
+
         setFeedback(itemFormFeedback, "در حال ذخیره آیتم کاتالوگ...", "", true);
         var payload = {
             id: $("payments-item-id").value || "",
-            title: $("payments-item-title").value.trim(),
+            title: titleValue,
             category: $("payments-item-category").value,
             slug: $("payments-item-slug").value.trim(),
-            price: normalizeDigits($("payments-item-price").value).replace(/\D+/g, ""),
+            price: priceValue,
             status: $("payments-item-status").value,
             shortDescription: $("payments-item-short-description").value.trim(),
             fullDescription: $("payments-item-full-description").value.trim(),
-            heroImage: $("payments-item-hero-image").value.trim(),
-            gallery: $("payments-item-gallery").value.trim() || "[]",
+            heroImage: uploadedImages.heroImage,
+            gallery: prettyJson(uploadedImages.gallery || []),
             specifications: $("payments-item-specifications").value.trim() || "[]",
             requiredFields: $("payments-item-required-fields").value.trim() || "[]",
             audienceNote: $("payments-item-audience-note").value.trim(),
@@ -1040,6 +1299,51 @@
 
     if ($("payments-item-reset")) {
         $("payments-item-reset").addEventListener("click", resetItemForm);
+    }
+
+    if ($("payments-item-reset-top")) {
+        $("payments-item-reset-top").addEventListener("click", resetItemForm);
+    }
+
+    if (heroFileInput) {
+        heroFileInput.addEventListener("change", function () {
+            renderImageUploaders();
+            updateItemPreview();
+        });
+    }
+
+    if (heroClearButton) {
+        heroClearButton.addEventListener("click", function () {
+            if (heroFileInput) {
+                heroFileInput.value = "";
+            }
+            writeField("payments-item-hero-image", "");
+            renderImageUploaders();
+            updateItemPreview();
+        });
+    }
+
+    if (galleryFileInput) {
+        galleryFileInput.addEventListener("change", function () {
+            renderGalleryUploader();
+        });
+    }
+
+    if (galleryList) {
+        galleryList.addEventListener("click", function (event) {
+            var removeButton = event.target.closest("[data-payment-remove-gallery]");
+            if (!removeButton) {
+                return;
+            }
+            var index = Number(removeButton.getAttribute("data-payment-remove-gallery"));
+            var values = galleryValues();
+            if (Number.isFinite(index) && index >= 0) {
+                values.splice(index, 1);
+                writeGalleryValues(values);
+                renderGalleryUploader();
+                updateItemPreview();
+            }
+        });
     }
 
     if ($("payments-new-item")) {

@@ -59,6 +59,10 @@ body.forms-page button {
     border-radius: 22px;
 }
 
+.forms-topbar--plain {
+    grid-template-columns: 1fr;
+}
+
 .forms-topbar__copy {
     min-width: 0;
 }

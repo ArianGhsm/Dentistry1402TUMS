@@ -1703,6 +1703,21 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
     min-height: 38px;
 }
 
+body.account-page:has(#account-panel[data-surface="payments"]) main.account-shell {
+    width: min(1180px, 100%);
+}
+
+#account-panel[data-surface="payments"] .account-surface-layout {
+    width: 100%;
+    max-width: min(1120px, calc(100vw - 1.6rem));
+}
+
+.payments-owner-commandbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.58rem;
+}
+
 .payments-item-form,
 .payments-filter-grid {
     margin-top: 0.2rem;
@@ -1725,6 +1740,37 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
 .payments-item-form--refined {
     display: grid;
     gap: 0.8rem;
+}
+
+.payments-form-quickbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.72rem;
+    padding: 0.66rem 0.72rem;
+    border-radius: 16px;
+    border: 1px solid rgba(127, 145, 165, 0.2);
+    background:
+        linear-gradient(180deg, rgba(43, 109, 243, 0.08), rgba(21, 143, 99, 0.045)),
+        var(--surface-muted);
+}
+
+.payments-form-quickbar div {
+    min-width: 0;
+    display: grid;
+    gap: 0.08rem;
+}
+
+.payments-form-quickbar span {
+    color: var(--accent-color);
+    font-size: 0.72rem;
+    font-weight: 880;
+}
+
+.payments-form-quickbar strong {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.6;
 }
 
 .payments-owner-composer {
@@ -1910,8 +1956,195 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
     gap: 0.36rem;
 }
 
+.payments-field label span,
+.payments-field-label span {
+    color: var(--danger-color);
+    font-weight: 900;
+}
+
+.payments-field-label {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 820;
+}
+
 .payments-field--full {
     grid-column: 1 / -1;
+}
+
+.payments-image-uploader,
+.payments-gallery-uploader {
+    display: grid;
+    gap: 0.54rem;
+}
+
+.payments-image-drop {
+    position: relative;
+    min-height: 210px;
+    display: grid;
+    place-items: center;
+    gap: 0.22rem;
+    padding: 1rem;
+    border-radius: 16px;
+    border: 1px dashed rgba(43, 109, 243, 0.38);
+    background:
+        linear-gradient(145deg, rgba(43, 109, 243, 0.08), rgba(21, 143, 99, 0.08)),
+        var(--surface-muted);
+    color: var(--text-secondary);
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.payments-image-drop input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.payments-image-drop img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.payments-image-drop:has(img:not([hidden])) {
+    min-height: 260px;
+    border-style: solid;
+}
+
+.payments-image-drop:has(img:not([hidden]))::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 45%, rgba(2, 6, 23, 0.58));
+}
+
+.payments-image-drop:has(img:not([hidden])) .payments-image-drop__icon,
+.payments-image-drop:has(img:not([hidden])) strong,
+.payments-image-drop:has(img:not([hidden])) small {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    text-shadow: 0 1px 12px rgba(2, 6, 23, 0.4);
+}
+
+.payments-image-drop__icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: var(--accent-soft);
+    color: var(--accent-color);
+    font-size: 1.46rem;
+    font-weight: 760;
+    line-height: 1;
+}
+
+.payments-image-drop strong {
+    color: var(--text-primary);
+    font-size: 0.92rem;
+    line-height: 1.7;
+}
+
+.payments-image-drop small,
+.payments-gallery-uploader small {
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    line-height: 1.8;
+}
+
+.payments-image-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.payments-image-toolbar span {
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    line-height: 1.8;
+}
+
+.payments-gallery-uploader input[type="file"] {
+    min-height: 46px;
+    padding: 0.58rem 0.68rem;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+}
+
+.payments-gallery-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 0.52rem;
+}
+
+.payments-gallery-thumb {
+    position: relative;
+    min-height: 112px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+}
+
+.payments-gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    min-height: 112px;
+    object-fit: cover;
+    display: block;
+}
+
+.payments-gallery-thumb button {
+    position: absolute;
+    inset-block-start: 0.42rem;
+    inset-inline-start: 0.42rem;
+    min-height: 30px;
+    padding: 0.1rem 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    background: rgba(2, 6, 23, 0.62);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 820;
+}
+
+.payments-gallery-thumb--pending,
+.payments-gallery-empty {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 0.18rem;
+    padding: 0.66rem;
+    color: var(--text-secondary);
+    text-align: center;
+    border: 1px dashed rgba(127, 145, 165, 0.42);
+    border-radius: 14px;
+    background: var(--surface-muted);
+}
+
+.payments-gallery-thumb--pending small {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    direction: ltr;
+}
+
+.payments-gallery-empty {
+    min-height: 70px;
+    grid-column: 1 / -1;
+    font-size: 0.74rem;
+    line-height: 1.8;
 }
 
 .payments-switch {
@@ -2817,6 +3050,17 @@ html[data-theme="dark"] body.account-page .payments-owner-preview__specs span {
     background: rgba(8, 14, 24, 0.4);
 }
 
+html[data-theme="dark"] body.account-page .payments-form-quickbar,
+html[data-theme="dark"] body.account-page .payments-image-drop,
+html[data-theme="dark"] body.account-page .payments-gallery-uploader input[type="file"],
+html[data-theme="dark"] body.account-page .payments-gallery-thumb--pending,
+html[data-theme="dark"] body.account-page .payments-gallery-empty {
+    background:
+        linear-gradient(180deg, rgba(114, 169, 255, 0.13), rgba(17, 29, 45, 0.88)),
+        var(--surface-muted);
+    border-color: rgba(124, 145, 168, 0.34);
+}
+
 html[data-theme="dark"] body.account-page .account-list-row__chevron {
     background: rgba(24, 36, 54, 0.86);
     border-color: rgba(124, 145, 168, 0.26);
@@ -3134,6 +3378,17 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
         position: static;
     }
 
+    .payments-form-quickbar,
+    .payments-image-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .payments-form-quickbar .shell-action-btn,
+    .payments-image-toolbar .shell-action-btn {
+        width: 100%;
+    }
+
     .payments-owner-preview {
         padding: 0.68rem;
         border-radius: 16px;
@@ -3156,6 +3411,18 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
     .payments-filter-grid,
     .payments-form-section {
         padding: 0.72rem;
+    }
+
+    .payments-image-drop {
+        min-height: 184px;
+    }
+
+    .payments-image-drop:has(img:not([hidden])) {
+        min-height: 220px;
+    }
+
+    .payments-gallery-uploader input[type="file"] {
+        font-size: 16px;
     }
 
     .payments-item-submitbar {
