@@ -8,6 +8,8 @@
 
 # Local test/debug artifacts
 .codex-local/
+.codex_tmp/
+.codex-tmp/
 _remote_*
 
 # Python caches
