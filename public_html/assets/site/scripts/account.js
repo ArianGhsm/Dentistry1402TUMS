@@ -191,6 +191,7 @@
     var profileDraftAvatarUrl = "";
     var profileSaving = false;
     var profileAvatarProcessing = false;
+    var loginViewportTickTimer = null;
     function safeReturnTo(value) {
         if (!value || typeof value !== "string") {
             return "";
@@ -209,6 +210,11 @@
         stagePanel.hidden = name !== "panel";
         document.body.classList.toggle("account-stage-login-active", name === "login");
         document.body.classList.toggle("account-stage-panel-active", name === "panel");
+        if (name !== "login") {
+            document.body.classList.remove("account-keyboard-open", "account-login-input-focus");
+            return;
+        }
+        queueLoginViewportSync();
     }
 
     function normalizeSurfaceName(raw) {
@@ -715,6 +721,48 @@
         } else {
             meta.setAttribute("content", meta.dataset.baseViewportContent);
         }
+    }
+
+    function isLoginInputElement(node) {
+        return !!(node && node.matches && node.matches('#account-login input:not([type="checkbox"]):not([type="radio"]), #account-login textarea, #account-login select'));
+    }
+
+    function isLoginInputFocused() {
+        return isLoginInputElement(document.activeElement);
+    }
+
+    function isViewportKeyboardShifted() {
+        if (!window.visualViewport) {
+            return false;
+        }
+        var touchPoints = Number(window.navigator.maxTouchPoints || 0);
+        var compactViewport = window.matchMedia && window.matchMedia("(max-width: 820px)").matches;
+        if (!compactViewport && touchPoints < 1) {
+            return false;
+        }
+        var vv = window.visualViewport;
+        var viewportHeight = Math.max(0, Number(vv.height || 0));
+        var viewportOffsetTop = Math.max(0, Number(vv.offsetTop || 0));
+        var layoutHeight = Math.max(0, Number(window.innerHeight || document.documentElement.clientHeight || 0));
+        var hiddenHeight = layoutHeight - (viewportHeight + viewportOffsetTop);
+        return hiddenHeight > 92;
+    }
+
+    function syncLoginViewportState() {
+        if (!document.body.classList.contains("account-stage-login-active")) {
+            return;
+        }
+        var focused = isLoginInputFocused();
+        var keyboardOpen = focused && isViewportKeyboardShifted();
+        document.body.classList.toggle("account-login-input-focus", focused);
+        document.body.classList.toggle("account-keyboard-open", keyboardOpen);
+    }
+
+    function queueLoginViewportSync() {
+        if (loginViewportTickTimer) {
+            window.clearTimeout(loginViewportTickTimer);
+        }
+        loginViewportTickTimer = window.setTimeout(syncLoginViewportState, 34);
     }
 
     function stopLoginOtpCooldownTicker() {
@@ -3477,17 +3525,26 @@
                 return;
             }
             setViewportScaleLock(true);
+            queueLoginViewportSync();
         });
         formNode.addEventListener("focusout", function () {
             window.setTimeout(function () {
-                var active = document.activeElement;
-                if (active && active.matches && active.matches('#account-login input:not([type="checkbox"]):not([type="radio"]), #account-login textarea, #account-login select')) {
+                if (isLoginInputFocused()) {
+                    queueLoginViewportSync();
                     return;
                 }
                 setViewportScaleLock(false);
+                queueLoginViewportSync();
             }, 60);
         });
     });
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", queueLoginViewportSync, { passive: true });
+        window.visualViewport.addEventListener("scroll", queueLoginViewportSync, { passive: true });
+    }
+    window.addEventListener("resize", queueLoginViewportSync, { passive: true });
+    window.addEventListener("orientationchange", queueLoginViewportSync, { passive: true });
 
     if (phoneEnrollRequestButton) {
         phoneEnrollRequestButton.addEventListener("click", requestPhoneEnrollmentOtp);
