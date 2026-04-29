@@ -6932,7 +6932,9 @@ body.chat-page .chat-mobile-nav__item.is-active {
 
     body.chat-page #mobile-home-link,
     body.chat-page #conversation-manage-btn,
-    body.chat-page #mobile-close-list {
+    body.chat-page #mobile-close-list,
+    body.chat-page #thread-home-link,
+    body.chat-page #refresh-btn {
         display: none !important;
     }
 
