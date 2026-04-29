@@ -780,10 +780,11 @@ body.app-dashboard-page {
     }
 
     .portal-service-card {
-        grid-template-columns: 1fr;
+        grid-template-columns: auto minmax(0, 1fr);
         grid-template-areas:
-            "icon"
-            "copy"
-            "action";
+            "icon copy"
+            "action action";
+        gap: 0.62rem;
+        padding: 0.9rem;
     }
 }

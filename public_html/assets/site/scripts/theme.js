@@ -168,7 +168,7 @@
             "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__mark img{width:82%;height:82%;object-fit:contain;border-radius:20px;}",
             "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__progress{width:min(280px,54vw);height:5px;border-radius:999px;background:rgba(22,34,53,0.14);overflow:hidden;}",
             "html[data-theme=\"dark\"] #" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__progress{background:rgba(237,243,255,0.16);}",
-            "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__progress span{display:block;width:100%;height:100%;border-radius:inherit;background:#2b6df3;transform-origin:right center;animation:dentLaunchProgress 0.78s cubic-bezier(0.2,0.8,0.2,1) both;}",
+            "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__progress span{display:block;width:100%;height:100%;border-radius:inherit;background:#2b6df3;transform-origin:right center;animation:dentLaunchProgress 0.48s cubic-bezier(0.2,0.8,0.2,1) both;}",
             "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__brand{margin-top:min(11vh,7rem);font-family:var(--font-accent,var(--font-main));font-size:clamp(1rem,4vw,1.35rem);font-weight:900;color:rgba(17,24,39,0.78);}",
             "html[data-theme=\"dark\"] #" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__brand{color:rgba(237,243,255,0.8);}",
             "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__build{display:none;}",
