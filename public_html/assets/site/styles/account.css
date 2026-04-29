@@ -1769,6 +1769,42 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
     grid-column: 1 / -1;
 }
 
+.payments-switch {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.62rem;
+    align-items: start;
+    padding: 0.66rem 0.72rem;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--surface-muted);
+}
+
+.payments-switch input {
+    width: 22px !important;
+    height: 22px;
+    margin-top: 0.12rem;
+    accent-color: var(--accent-color);
+}
+
+.payments-switch span {
+    display: grid;
+    gap: 0.12rem;
+}
+
+.payments-switch strong {
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    font-weight: 880;
+}
+
+.payments-switch small {
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    line-height: 1.72;
+}
+
 .payments-field #payments-item-short-description {
     min-height: 92px;
 }

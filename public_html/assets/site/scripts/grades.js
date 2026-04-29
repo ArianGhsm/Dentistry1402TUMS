@@ -41,9 +41,29 @@
     var refreshBtn = $("refresh-grades-btn");
     var logoutBtn = $("reset-grades-btn");
     var accountEntryLink = $("account-entry-link");
+    var ownerPanel = $("grades-owner-panel");
+    var ownerSummary = $("grades-owner-summary");
+    var ownerRefreshBtn = $("grades-owner-refresh");
+    var ownerImportForm = $("grades-owner-import-form");
+    var ownerImportText = $("grades-owner-import-text");
+    var ownerImportFile = $("grades-owner-import-file");
+    var ownerImportSubmit = $("grades-owner-import-submit");
+    var ownerCourseSelect = $("grades-owner-course-select");
+    var ownerDeleteCourseBtn = $("grades-owner-delete-course");
+    var ownerResetAllBtn = $("grades-owner-reset-all");
+    var ownerFeedback = $("grades-owner-feedback");
 
     var currentPayload = null;
     var currentStudentNumber = "";
+    var currentUser = null;
+    var ownerState = {
+        loaded: false,
+        loading: false,
+        courses: [],
+        importing: false,
+        deletingCourseKey: "",
+        resetting: false
+    };
 
     function setState(state) {
         flow.dataset.authState = state;
@@ -82,6 +102,89 @@
         dashboardFeedback.hidden = false;
         dashboardFeedback.textContent = text;
         dashboardFeedback.className = "grades-status-banner" + (kind ? " " + kind : "");
+    }
+
+    function showOwnerFeedback(text, kind, loading) {
+        if (!ownerFeedback) {
+            return;
+        }
+
+        if (!text) {
+            ownerFeedback.hidden = true;
+            ownerFeedback.textContent = "";
+            ownerFeedback.className = "grades-status-banner";
+            return;
+        }
+
+        ownerFeedback.hidden = false;
+        ownerFeedback.textContent = loading ? text + "..." : text;
+        ownerFeedback.className = "grades-status-banner" + (kind ? " " + kind : "");
+    }
+
+    function isCurrentUserOwner() {
+        return !!(currentUser && currentUser.isOwner);
+    }
+
+    function toSafeNumber(value, fallback) {
+        var parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : (fallback || 0);
+    }
+
+    function ownerSummaryCard(label, value, meta, kind) {
+        return [
+            '<article class="grades-owner-summary-card' + (kind ? " is-" + kind : "") + '">',
+            '  <span>' + label + '</span>',
+            '  <strong>' + value + '</strong>',
+            '  <small>' + meta + '</small>',
+            '</article>'
+        ].join("");
+    }
+
+    async function gradesApiRequest(action, method, payload) {
+        var requestMethod = method || "GET";
+        var url = "grades_api.php?action=" + encodeURIComponent(action);
+        var options = {
+            method: requestMethod,
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        if (requestMethod !== "GET") {
+            options.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
+            options.body = new URLSearchParams(payload || {});
+        }
+
+        var response = await fetch(url, options);
+        var data = await response.json().catch(function () {
+            return {
+                success: false,
+                error: "پاسخ نامعتبر از سرور دریافت شد."
+            };
+        });
+        data.httpStatus = response.status;
+        return data;
+    }
+
+    async function gradesApiFormRequest(action, formData) {
+        var body = formData instanceof FormData ? formData : new FormData();
+        var response = await fetch("grades_api.php?action=" + encodeURIComponent(action), {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json"
+            },
+            body: body
+        });
+        var data = await response.json().catch(function () {
+            return {
+                success: false,
+                error: "پاسخ نامعتبر از سرور دریافت شد."
+            };
+        });
+        data.httpStatus = response.status;
+        return data;
     }
 
     function summaryCards(result) {

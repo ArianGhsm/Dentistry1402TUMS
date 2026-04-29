@@ -572,6 +572,7 @@
   var infoAvatar = $("chat-info-avatar-fallback") ? $("chat-info-avatar-fallback").parentElement : null;
   var infoAvatarImage = $("chat-info-avatar-image");
   var infoAvatarFallback = $("chat-info-avatar-fallback");
+  var infoCopyLink = $("chat-info-copy-link");
   var infoPeerLink = $("chat-info-peer-link");
   var infoProfileLink = $("chat-info-profile-link");
   var infoSecurityLink = $("chat-info-security-link");
@@ -1392,6 +1393,8 @@
     state.groupMemberSelection.clear();
     if (groupTitleInput) groupTitleInput.value = "";
     if (groupAboutInput) groupAboutInput.value = "";
+    if (groupKindGroupInput) groupKindGroupInput.checked = true;
+    if (groupKindChannelInput) groupKindChannelInput.checked = false;
     if (groupSearch) groupSearch.value = "";
     renderGroupSelectedMembers();
     updateGroupSelectionMeta();
@@ -1569,12 +1572,12 @@
     }
 
     if (rawTitle && looksAutoConversationTitle(rawTitle)) {
-      return "گروه جدید";
+      return "گروه یا کانال جدید";
     }
 
     var convId = normalizeSpace(conversationId);
     if (looksAutoConversationTitle(convId)) {
-      return "گروه جدید";
+      return "گروه یا کانال جدید";
     }
 
     return rawTitle || "گروه";
@@ -2689,6 +2692,96 @@
     }, 1400);
   }
 
+  function closeMediaViewer() {
+    if (!mediaViewer) return;
+    mediaViewer.classList.remove("is-open");
+    mediaViewer.hidden = true;
+    if (mediaViewerStage) mediaViewerStage.innerHTML = "";
+    if (mediaViewerCaption) mediaViewerCaption.textContent = "";
+  }
+
+  function openMediaViewerFromNode(node) {
+    if (!node || !mediaViewer || !mediaViewerStage) return;
+    var kind = normalizeSpace(node.getAttribute("data-media-kind"));
+    var src = toText(node.getAttribute("data-media-src"));
+    var poster = toText(node.getAttribute("data-media-poster"));
+    var caption = normalizeSpace(node.getAttribute("data-media-caption"));
+    if (!src) return;
+
+    mediaViewerStage.innerHTML = kind === "video"
+      ? '<video controls autoplay playsinline src="' + escapeHtml(src) + '"' + (poster ? ' poster="' + escapeHtml(poster) + '"' : "") + "></video>"
+      : '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(caption || "رسانه") + '">';
+    if (mediaViewerCaption) mediaViewerCaption.textContent = caption || "";
+    mediaViewer.hidden = false;
+    window.requestAnimationFrame(function () {
+      mediaViewer.classList.add("is-open");
+    });
+  }
+
+  function renderReceiptRow(entry, seen) {
+    var user = normalizeUser(entry && entry.user) || {
+      studentNumber: "",
+      name: "کاربر",
+      profile: { avatarUrl: "" }
+    };
+    var seenAt = entry && entry.seenAt ? (formatDate(entry.seenAt) + " " + formatTime(entry.seenAt)) : "";
+    return [
+      '<div class="receipt-row">',
+      '  <span class="receipt-row__avatar" data-has-avatar="0"><img alt="" hidden><span>' + escapeHtml(avatarLabel(user.name)) + '</span></span>',
+      '  <span class="receipt-row__copy">',
+      '    <strong>' + escapeHtml(user.name) + '</strong>',
+      '    <small>' + escapeHtml(seen ? (seenAt || "مشاهده شده") : "هنوز مشاهده نشده") + '</small>',
+      '  </span>',
+      '  <span class="receipt-row__state' + (seen ? " is-seen" : "") + '">' + (seen ? "سین" : "ارسال") + '</span>',
+      '</div>'
+    ].join("");
+  }
+
+  function hydrateReceiptAvatars(container, entries, offset) {
+    if (!container) return;
+    var rows = Array.from(container.querySelectorAll(".receipt-row"));
+    entries.forEach(function (entry, index) {
+      var row = rows[index + (offset || 0)];
+      var user = normalizeUser(entry && entry.user);
+      if (!row || !user) return;
+      var avatar = row.querySelector(".receipt-row__avatar");
+      var image = row.querySelector("img");
+      var fallback = row.querySelector(".receipt-row__avatar span");
+      renderAvatar(avatar, image, fallback, user.profile && user.profile.avatarUrl, user.name);
+    });
+  }
+
+  async function openReceiptsModal(message) {
+    if (!message || !receiptsModal || !receiptsList) return;
+    openModal(receiptsModal, "receipts");
+    receiptsList.innerHTML = '<div class="chat-picker-empty">در حال دریافت وضعیت مشاهده...</div>';
+    setModalBusy("receipts", true);
+    try {
+      var response = await apiGet("messageReceipts", {
+        conversationId: state.activeConversationId,
+        messageId: String(message.id)
+      });
+      ensureSuccessResponse(response, "وضعیت مشاهده پیام دریافت نشد.");
+      var receipts = asObject(response.receipts) || {};
+      var seen = Array.isArray(receipts.seen) ? receipts.seen : [];
+      var pending = Array.isArray(receipts.pending) ? receipts.pending : [];
+      if (!seen.length && !pending.length) {
+        receiptsList.innerHTML = '<div class="chat-picker-empty">برای این پیام وضعیت مشاهده‌ای ثبت نشده است.</div>';
+        return;
+      }
+      receiptsList.innerHTML = [
+        seen.length ? '<div class="receipt-section"><strong>مشاهده‌شده</strong>' + seen.map(function (entry) { return renderReceiptRow(entry, true); }).join("") + '</div>' : "",
+        pending.length ? '<div class="receipt-section"><strong>در انتظار مشاهده</strong>' + pending.map(function (entry) { return renderReceiptRow(entry, false); }).join("") + '</div>' : ""
+      ].join("");
+      hydrateReceiptAvatars(receiptsList, seen, 0);
+      hydrateReceiptAvatars(receiptsList, pending, seen.length);
+    } catch (error) {
+      receiptsList.innerHTML = '<div class="chat-picker-empty">' + escapeHtml(error && error.message ? error.message : "وضعیت مشاهده پیام دریافت نشد.") + '</div>';
+    } finally {
+      setModalBusy("receipts", false);
+    }
+  }
+
   function clearReplyTarget() {
     state.replyTargetId = null;
     if (replyBar) replyBar.hidden = true;
@@ -3036,6 +3129,12 @@
     reactionBar.appendChild(customReactionBtn);
 
     contextActions.innerHTML = "";
+    if (message.studentNumber === state.me.studentNumber) {
+      contextActions.appendChild(contextAction("سین‌ها", "مشاهده وضعیت سین پیام", function () {
+        openReceiptsModal(message);
+        closeContextMenu();
+      }));
+    }
     contextActions.appendChild(contextAction("پاسخ", "پاسخ به پیام", function () {
       setReplyTarget(message);
       closeContextMenu();
@@ -3176,6 +3275,33 @@
     }
   }
 
+  async function copyConversationLink() {
+    var conversation = activeConversation();
+    if (!conversation) return;
+    var path = conversation.shareUrl || ("/chat/?conversationId=" + encodeURIComponent(conversation.id));
+    var link = window.location.origin + path;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        var helper = document.createElement("textarea");
+        helper.value = link;
+        helper.setAttribute("readonly", "");
+        helper.style.position = "fixed";
+        helper.style.opacity = "0";
+        helper.style.pointerEvents = "none";
+        document.body.appendChild(helper);
+        helper.focus();
+        helper.select();
+        document.execCommand("copy");
+        helper.remove();
+      }
+      showToast("لینک گفتگو کپی شد.");
+    } catch (error) {
+      showToast("کپی لینک گفتگو انجام نشد.");
+    }
+  }
+
   function renderInfoRows(container, rows) {
     if (!container) return;
     var list = Array.isArray(rows) ? rows.filter(Boolean) : [];
@@ -3194,6 +3320,133 @@
     }).join("");
   }
 
+  function attachmentBucket(attachment) {
+    var category = normalizeAttachmentCategory(attachment && attachment.category);
+    if (category === "image" || category === "video") return "media";
+    if (category === "audio" || category === "voice") return "voice";
+    if (category === "pdf" || category === "office" || category === "document" || category === "archive" || category === "file") return "files";
+    return "files";
+  }
+
+  function collectConversationContent() {
+    var buckets = {
+      media: [],
+      files: [],
+      links: [],
+      voice: []
+    };
+    messageList().forEach(function (message) {
+      (Array.isArray(message.attachments) ? message.attachments : []).forEach(function (attachment) {
+        var bucket = attachmentBucket(attachment);
+        buckets[bucket].push({
+          message: message,
+          attachment: attachment,
+          title: attachment.name || attachmentCategoryLabel(attachment.category),
+          meta: attachmentMetaText(attachment),
+          ts: message.ts
+        });
+      });
+      messageLinks(message.text).forEach(function (url) {
+        var host = url;
+        try {
+          host = new URL(url).host.replace(/^www\./i, "");
+        } catch (error) {}
+        buckets.links.push({
+          message: message,
+          url: url,
+          title: host,
+          meta: snippet(url, 72),
+          ts: message.ts
+        });
+      });
+    });
+    Object.keys(buckets).forEach(function (key) {
+      buckets[key].sort(function (left, right) {
+        return toNumber(right.ts, 0) - toNumber(left.ts, 0);
+      });
+    });
+    return buckets;
+  }
+
+  function renderInfoContentOverview() {
+    if (!infoContentTabs || !infoContentTable) return;
+    var buckets = collectConversationContent();
+    var labels = [
+      { key: "media", label: "رسانه" },
+      { key: "files", label: "فایل" },
+      { key: "links", label: "لینک" },
+      { key: "voice", label: "صوت" }
+    ];
+    if (!labels.some(function (item) { return item.key === state.infoContentCategory; })) {
+      state.infoContentCategory = "media";
+    }
+    infoContentTabs.innerHTML = labels.map(function (item) {
+      var count = buckets[item.key].length;
+      return '<button type="button" class="' + (item.key === state.infoContentCategory ? "is-active" : "") + '" data-info-content="' + item.key + '">' + escapeHtml(item.label) + '<span>' + count.toLocaleString("fa-IR") + '</span></button>';
+    }).join("");
+
+    var activeItems = buckets[state.infoContentCategory] || [];
+    if (!activeItems.length) {
+      infoContentTable.innerHTML = '<div class="chat-info-empty">موردی برای این دسته وجود ندارد.</div>';
+      return;
+    }
+
+    infoContentTable.innerHTML = activeItems.slice(0, 16).map(function (item) {
+      var href = item.url || (item.attachment && (item.attachment.url || item.attachment.downloadUrl)) || "";
+      var tag = href ? "a" : "button";
+      var attrs = href
+        ? ' href="' + escapeHtml(href) + '" target="_blank" rel="noopener" data-bypass-external-warning="true"'
+        : ' type="button" data-scroll-message="' + String(item.message.id) + '"';
+      return [
+        '<' + tag + ' class="chat-info-content-row"' + attrs + '>',
+        '  <span>',
+        '    <strong>' + escapeHtml(item.title || "محتوا") + '</strong>',
+        '    <small>' + escapeHtml(item.meta || "") + '</small>',
+        '  </span>',
+        '  <em>' + escapeHtml(formatDate(item.ts)) + '</em>',
+        '</' + tag + '>'
+      ].join("");
+    }).join("");
+  }
+
+  function renderRecentActions(conversation) {
+    if (!infoRecentActions) return;
+    if (!conversation) {
+      infoRecentActions.innerHTML = "";
+      return;
+    }
+    var actions = [];
+    if (conversation.createdAt) {
+      actions.push({ label: "ایجاد گفتگو", ts: conversation.createdAt });
+    }
+    if (conversation.updatedAt) {
+      actions.push({ label: "آخرین بروزرسانی", ts: conversation.updatedAt });
+    }
+    if (conversation.settings && conversation.settings.mutedAt) {
+      actions.push({ label: conversation.settings.muted ? "ارسال پیام بسته شد" : "تنظیم ارسال پیام", ts: conversation.settings.mutedAt });
+    }
+    messageList().filter(function (message) {
+      return message.pinned || message.editedAt;
+    }).forEach(function (message) {
+      if (message.pinned) {
+        actions.push({ label: "پیام سنجاق شد", ts: message.ts, messageId: message.id });
+      }
+      if (message.editedAt) {
+        actions.push({ label: "پیام ویرایش شد", ts: message.editedAt, messageId: message.id });
+      }
+    });
+    actions.sort(function (left, right) {
+      return toNumber(right.ts, 0) - toNumber(left.ts, 0);
+    });
+    if (!actions.length) {
+      infoRecentActions.innerHTML = '<div class="chat-info-empty">تغییر اخیری ثبت نشده است.</div>';
+      return;
+    }
+    infoRecentActions.innerHTML = actions.slice(0, 8).map(function (item) {
+      return '<button type="button" class="chat-recent-action" data-scroll-message="' + escapeHtml(item.messageId || "") + '"><strong>' + escapeHtml(item.label) + '</strong><span>' + escapeHtml(formatDate(item.ts) + " " + formatTime(item.ts)) + '</span></button>';
+    }).join("");
+  }
+
   function updateInfoSheet() {
     if (!infoSheet) return;
     var conversation = activeConversation();
@@ -3204,6 +3457,9 @@
       if (infoIdentityRows) infoIdentityRows.innerHTML = "";
       if (infoSettingsRows) infoSettingsRows.innerHTML = "";
       if (infoStats) infoStats.innerHTML = "";
+      if (infoContentTabs) infoContentTabs.innerHTML = "";
+      if (infoContentTable) infoContentTable.innerHTML = "";
+      if (infoRecentActions) infoRecentActions.innerHTML = "";
       if (infoMembers) infoMembers.innerHTML = "";
       if (infoActionsBlock) infoActionsBlock.hidden = true;
       if (adminTools) adminTools.hidden = true;
@@ -3315,6 +3571,8 @@
         '<div class="chat-info-stat"><strong>آخرین فعالیت</strong><span>' + (lastMessage ? escapeHtml(formatDate(lastMessage.ts) + " " + formatTime(lastMessage.ts)) : "بدون فعالیت") + "</span></div>"
       ].join("");
     }
+    renderInfoContentOverview();
+    renderRecentActions(conversation);
 
     if (infoMembers) {
       infoMembers.innerHTML = "";
@@ -3328,13 +3586,16 @@
         members.forEach(function (member) {
           var node = document.createElement("div");
           node.className = "chat-member";
+          var tag = normalizeSpace(member.conversationTag);
+          var canManageMember = !!(conversation.permissions && conversation.permissions.canManageConversation && conversation.type === "group");
           node.innerHTML = [
             '<span class="chat-member__avatar" data-has-avatar="0"><img alt="" hidden><span>' + escapeHtml(avatarLabel(member.name)) + "</span></span>",
             '<span class="chat-member__copy">',
             "  <strong>" + escapeHtml(member.name) + "</strong>",
-            "  <span>" + escapeHtml(userRoleMetaText(member)) + "</span>",
+            "  <span>" + escapeHtml(userRoleMetaText(member)) + (tag ? ' <b class="chat-member-tag">' + escapeHtml(tag) + '</b>' : "") + "</span>",
             "  <small>" + escapeHtml(member.profile && member.profile.about ? member.profile.about : "بدون توضیح") + "</small>",
-            "</span>"
+            "</span>",
+            canManageMember ? '<span class="chat-member__actions"><button type="button" data-member-tag="' + escapeHtml(member.studentNumber) + '">تگ</button><button type="button" data-member-admin="' + escapeHtml(member.studentNumber) + '" data-admin-next="' + (member.isConversationAdmin ? "0" : "1") + '">' + (member.isConversationAdmin ? "حذف مدیر" : "مدیر") + '</button></span>' : ""
           ].join("");
           var avatar = node.querySelector(".chat-member__avatar");
           var image = node.querySelector("img");
@@ -3406,6 +3667,60 @@
     updateMobileNav();
   }
 
+  async function setMemberTag(studentNumber) {
+    var conversation = activeConversation();
+    var memberId = normalizeStudentNumber(studentNumber);
+    if (!conversation || !memberId) return;
+    var member = (conversation.members || []).find(function (item) {
+      return normalizeStudentNumber(item.studentNumber) === memberId;
+    });
+    var currentTag = normalizeSpace(member && member.conversationTag);
+    var nextTag = window.prompt("تگ کنار نام کاربر", currentTag);
+    if (nextTag === null) return;
+    nextTag = normalizeSpace(nextTag).slice(0, 32);
+    try {
+      var response = await apiPost("setMemberTag", {
+        conversationId: conversation.id,
+        memberStudentNumber: memberId,
+        tag: nextTag
+      });
+      ensureSuccessResponse(response, "تگ عضو ذخیره نشد.");
+      var nextConversation = normalizeConversation(response.conversation);
+      if (nextConversation) {
+        upsertConversation(nextConversation);
+        rebuildConversationsFromMap();
+      }
+      updateInfoSheet();
+      renderConversationList();
+      showToast("تگ عضو ذخیره شد.");
+    } catch (error) {
+      showToast(error && error.message ? error.message : "تگ عضو ذخیره نشد.");
+    }
+  }
+
+  async function setMemberAdmin(studentNumber, admin) {
+    var conversation = activeConversation();
+    var memberId = normalizeStudentNumber(studentNumber);
+    if (!conversation || !memberId) return;
+    try {
+      var response = await apiPost("setMemberAdmin", {
+        conversationId: conversation.id,
+        memberStudentNumber: memberId,
+        admin: admin ? "1" : "0"
+      });
+      ensureSuccessResponse(response, "وضعیت مدیر ذخیره نشد.");
+      var nextConversation = normalizeConversation(response.conversation);
+      if (nextConversation) {
+        upsertConversation(nextConversation);
+        rebuildConversationsFromMap();
+      }
+      updateInfoSheet();
+      showToast(admin ? "مدیر اضافه شد." : "دسترسی مدیر برداشته شد.");
+    } catch (error) {
+      showToast(error && error.message ? error.message : "وضعیت مدیر ذخیره نشد.");
+    }
+  }
+
   function modalNodeByKey(key) {
     if (key === "dm") return dmModal;
     if (key === "group") return groupModal;
@@ -3454,7 +3769,7 @@
       return;
     }
     if (!hardClose && state.modalOpen === "group" && state.pendingGroupCreate) {
-      showToast("در حال ساخت گروه است...");
+      showToast("در حال ساخت گروه یا کانال است...");
       return;
     }
     var hadOpenModal = !!state.modalOpen;
@@ -5498,7 +5813,8 @@
     if (state.pendingGroupCreate) return;
 
     var selected = Array.from(state.groupMemberSelection);
-    if (!selected.length) {
+    var conversationKind = groupKindChannelInput && groupKindChannelInput.checked ? "channel" : "group";
+    if (!selected.length && conversationKind !== "channel") {
       showToast("حداقل یک عضو برای ساخت گروه انتخاب کن.");
       setGroupCreateStep("members");
       return;
@@ -5506,7 +5822,7 @@
 
     var title = normalizeSpace(groupTitleInput && groupTitleInput.value);
     if (!title) {
-      showToast("نام گروه را وارد کن.");
+      showToast("نام گفتگو را وارد کن.");
       setGroupCreateStep("details");
       if (groupTitleInput) groupTitleInput.focus({ preventScroll: true });
       return;
@@ -5521,13 +5837,14 @@
       var response = await apiPost("createGroup", {
         title: title,
         about: about,
-        membersJson: JSON.stringify(selected)
+        membersJson: JSON.stringify(selected),
+        kind: conversationKind
       });
 
       if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
         throw new Error((response && response.error) || "نشست شما منقضی شده است.");
       }
-      ensureSuccessResponse(response, "ساخت گروه انجام نشد.");
+      ensureSuccessResponse(response, "ساخت گفتگو انجام نشد.");
 
       var conversations = (Array.isArray(response.conversations) ? response.conversations : [])
         .map(normalizeConversation)
@@ -5559,7 +5876,7 @@
       var createdGroupTitle = normalizeSpace(currentConversation && currentConversation.title) || title || "گروه";
       showToast("گروه «" + createdGroupTitle + "» ساخته شد.");
     } catch (error) {
-      showToast(error && error.message ? error.message : "ساخت گروه انجام نشد.");
+      showToast(error && error.message ? error.message : "ساخت گفتگو انجام نشد.");
     } finally {
       state.pendingGroupCreate = false;
       setModalBusy("group", false);
@@ -5732,6 +6049,7 @@
     if (groupModalClose) groupModalClose.addEventListener("click", closeModal);
     if (forwardModalClose) forwardModalClose.addEventListener("click", closeModal);
     if (reactionModalClose) reactionModalClose.addEventListener("click", closeModal);
+    if (receiptsModalClose) receiptsModalClose.addEventListener("click", closeModal);
     if (editModalClose) editModalClose.addEventListener("click", closeModal);
     if (editCancelBtn) editCancelBtn.addEventListener("click", closeModal);
     if (confirmModalClose) {
@@ -5784,6 +6102,40 @@
     }
     if (infoSheetClose) infoSheetClose.addEventListener("click", closeInfoSheet);
     if (infoSheetBackdrop) infoSheetBackdrop.addEventListener("click", closeInfoSheet);
+    if (infoCopyLink) infoCopyLink.addEventListener("click", copyConversationLink);
+    if (infoMembers) {
+      infoMembers.addEventListener("click", function (event) {
+        var tagButton = event.target && event.target.closest ? event.target.closest("[data-member-tag]") : null;
+        if (tagButton) {
+          setMemberTag(tagButton.getAttribute("data-member-tag"));
+          return;
+        }
+        var adminButton = event.target && event.target.closest ? event.target.closest("[data-member-admin]") : null;
+        if (adminButton) {
+          setMemberAdmin(adminButton.getAttribute("data-member-admin"), adminButton.getAttribute("data-admin-next") === "1");
+        }
+      });
+    }
+    if (infoContentTabs) {
+      infoContentTabs.addEventListener("click", function (event) {
+        var button = event.target && event.target.closest ? event.target.closest("[data-info-content]") : null;
+        if (!button) return;
+        state.infoContentCategory = normalizeSpace(button.getAttribute("data-info-content")) || "media";
+        renderInfoContentOverview();
+      });
+    }
+    [infoContentTable, infoRecentActions].forEach(function (container) {
+      if (!container) return;
+      container.addEventListener("click", function (event) {
+        var button = event.target && event.target.closest ? event.target.closest("[data-scroll-message]") : null;
+        if (!button) return;
+        var messageId = Math.floor(toNumber(button.getAttribute("data-scroll-message"), 0));
+        if (messageId > 0) {
+          closeInfoSheet();
+          scrollToMessage(messageId);
+        }
+      });
+    });
 
     if (muteBtn) muteBtn.addEventListener("click", function () { setConversationMute(true); });
     if (unmuteBtn) unmuteBtn.addEventListener("click", function () { setConversationMute(false); });
@@ -5903,6 +6255,12 @@
       });
     }
     if (replyCancel) replyCancel.addEventListener("click", clearReplyTarget);
+    if (mediaViewerClose) mediaViewerClose.addEventListener("click", closeMediaViewer);
+    if (mediaViewer) {
+      mediaViewer.addEventListener("click", function (event) {
+        if (event.target === mediaViewer) closeMediaViewer();
+      });
+    }
 
     if (logoutBtn) {
       logoutBtn.addEventListener("click", function () {
@@ -5975,6 +6333,10 @@
 
     document.addEventListener("keydown", function (event) {
       if (event.key !== "Escape") return;
+      if (mediaViewer && !mediaViewer.hidden) {
+        closeMediaViewer();
+        return;
+      }
       if (composerUploadSheet && !composerUploadSheet.hidden) {
         setUploadSheetOpen(false);
       }

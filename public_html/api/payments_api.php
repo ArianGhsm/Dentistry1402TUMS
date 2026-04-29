@@ -203,7 +203,7 @@ function payments_api_item_status_message(array $state): string
 {
     $key = (string) ($state['key'] ?? '');
     if ($key === 'inactive') {
-        return 'این آیتم پرداخت غیرفعال است.';
+        return 'این آیتم سفارش غیرفعال است.';
     }
     if ($key === 'upcoming') {
         return 'پرداخت این آیتم هنوز شروع نشده است.';
@@ -437,13 +437,13 @@ if ($action === 'publicItem') {
     payments_api_require_method(['GET']);
     $slug = payments_clean_slug((string) ($_GET['slug'] ?? ''));
     if ($slug === '') {
-        dent_error('شناسه لینک پرداخت معتبر نیست.', 422);
+        dent_error('شناسه آیتم سفارش معتبر نیست.', 422);
     }
 
     $store = payments_read_store();
     $itemIndex = payments_find_item_index_by_slug($store, $slug);
     if ($itemIndex < 0) {
-        dent_error('آیتم پرداخت موردنظر پیدا نشد.', 404);
+        dent_error('آیتم سفارش موردنظر پیدا نشد.', 404);
     }
 
     $item = $store['items'][$itemIndex];
@@ -502,7 +502,7 @@ if ($action === 'createOrder') {
 
     $slug = payments_clean_slug((string) ($_POST['slug'] ?? ''));
     if ($slug === '') {
-        dent_error('لینک آیتم پرداخت معتبر نیست.', 422);
+        dent_error('شناسه آیتم سفارش معتبر نیست.', 422);
     }
 
     $payerName = dent_clean_text((string) ($_POST['payerName'] ?? ''), 120);
@@ -550,7 +550,7 @@ if ($action === 'createOrder') {
         ): array {
             $itemIndex = payments_find_item_index_by_slug($store, $slug);
             if ($itemIndex < 0) {
-                throw new PaymentsApiException('آیتم پرداخت موردنظر پیدا نشد.', 404);
+                throw new PaymentsApiException('آیتم سفارش موردنظر پیدا نشد.', 404);
             }
 
             $item = $store['items'][$itemIndex];
@@ -590,7 +590,7 @@ if ($action === 'createOrder') {
             }
             $amount = max(0, (int) ($quote['amount'] ?? 0));
             if ($amount <= 0) {
-                throw new PaymentsApiException('مبلغ آیتم پرداخت معتبر نیست.', 422);
+                throw new PaymentsApiException('مبلغ آیتم سفارش معتبر نیست.', 422);
             }
 
             $now = dent_iso_now();
@@ -644,7 +644,7 @@ if ($action === 'createOrder') {
 
     $startResult = payments_gateway_start_payment((string) ($order['gateway'] ?? ''), $item, $order, [
         'callbackUrl' => $callbackUrl,
-        'description' => 'پرداخت بابت ' . (string) ($item['title'] ?? 'آیتم پرداخت'),
+        'description' => 'ثبت سفارش ' . (string) ($item['title'] ?? 'آیتم مشخص'),
         'mobile' => $payerPhone,
         'orderId' => (string) ($order['public_token'] ?? ''),
     ]);
@@ -1044,7 +1044,7 @@ if ($action === 'ownerSaveItem') {
     $itemId = max(0, (int) ($_POST['id'] ?? 0));
     $title = dent_clean_text((string) ($_POST['title'] ?? ''), 140);
     if ($title === '') {
-        dent_error('عنوان آیتم پرداخت الزامی است.', 422);
+        dent_error('عنوان آیتم الزامی است.', 422);
     }
 
     $slug = payments_clean_slug((string) ($_POST['slug'] ?? ''));
@@ -1200,7 +1200,7 @@ if ($action === 'ownerSaveItem') {
     dent_json_response([
         'success' => true,
         'item' => payments_owner_item_payload($saved),
-        'message' => $itemId > 0 ? 'آیتم پرداخت ویرایش شد.' : 'آیتم پرداخت جدید ساخته شد.',
+        'message' => $itemId > 0 ? 'آیتم کاتالوگ ویرایش شد.' : 'آیتم کاتالوگ جدید ساخته شد.',
     ]);
 }
 
@@ -1220,7 +1220,7 @@ if ($action === 'ownerToggleItem') {
         $item = payments_with_store_lock(static function (array &$store) use ($itemId, $status): array {
             $index = payments_find_item_index_by_id($store, $itemId);
             if ($index < 0) {
-                throw new PaymentsApiException('آیتم پرداخت پیدا نشد.', 404);
+                throw new PaymentsApiException('آیتم سفارش پیدا نشد.', 404);
             }
 
             $current = $store['items'][$index];

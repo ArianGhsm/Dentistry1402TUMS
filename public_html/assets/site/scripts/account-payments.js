@@ -187,6 +187,10 @@
         return String(state.label || item.status || "نامشخص");
     }
 
+    function itemCategoryLabel(item) {
+        return String(item && (item.categoryLabel || item.category) || "سفارش گروهی");
+    }
+
     function itemStateTone(item) {
         var key = String(item && item.state ? item.state.key || "" : "");
         if (key === "active") return "ok";
@@ -358,7 +362,7 @@
             return;
         }
         if (!state.items.length) {
-            itemsRoot.innerHTML = '<div class="owner-empty">هنوز آیتم پرداختی ساخته نشده است.</div>';
+            itemsRoot.innerHTML = '<div class="owner-empty">هنوز آیتمی برای کاتالوگ خرید یا ثبت‌نام ساخته نشده است.</div>';
             return;
         }
         itemsRoot.innerHTML = state.items.map(function (item) {
@@ -369,7 +373,7 @@
                 '    <div>',
                 '      <span class="payments-pill payments-pill--' + escapeHtml(itemStateTone(item)) + '">' + escapeHtml(itemStateLabel(item)) + "</span>",
                 '      <h4>' + escapeHtml(item.title || "بدون عنوان") + "</h4>",
-                '      <p dir="ltr">' + escapeHtml(item.slug || "") + "</p>",
+                '      <p>' + escapeHtml(itemCategoryLabel(item)) + ' • <span dir="ltr">' + escapeHtml(item.slug || "") + "</span></p>",
                 "    </div>",
                 '    <strong>' + escapeHtml(money(item.price || 0)) + "</strong>",
                 "  </div>",
@@ -377,6 +381,8 @@
                 '    <span>لینک عمومی: <a href="' + escapeHtml(publicUrl || "#") + '" target="_blank" rel="noopener">' + escapeHtml(publicUrl || "—") + "</a></span>",
                 '    <span>فروخته‌شده: ' + escapeHtml(String(Number(item.soldCount || 0).toLocaleString("fa-IR"))) + "</span>",
                 '    <span>مهلت: ' + escapeHtml(formatDateTime(item.expiresAt, "بدون مهلت")) + "</span>",
+                '    <span>حداکثر تعداد هر سفارش: ' + escapeHtml(String(Number(item.maxQuantityPerOrder || 1).toLocaleString("fa-IR"))) + "</span>",
+                '    <span>لغو توسط خریدار: ' + (item.allowCancellation ? "فعال" : "غیرفعال") + "</span>",
                 "  </div>",
                 '  <div class="payments-item-card__actions">',
                 '    <button class="shell-action-btn shell-action-btn-primary" type="button" data-payment-edit-item="' + escapeHtml(item.id) + '">ویرایش</button>',
@@ -457,13 +463,20 @@
             '  <div class="payments-detail-row"><span>شماره موبایل</span><strong>' + escapeHtml(order.payerPhone || "—") + "</strong></div>",
             '  <div class="payments-detail-row"><span>شماره دانشجویی</span><strong>' + escapeHtml(order.payerStudentNumber || "—") + "</strong></div>",
             '  <div class="payments-detail-row"><span>وضعیت</span><strong>' + escapeHtml(statusLabel(order.status)) + "</strong></div>",
-            '  <div class="payments-detail-row"><span>مبلغ</span><strong>' + escapeHtml(money(order.amount || 0)) + "</strong></div>",
+            '  <div class="payments-detail-row"><span>تعداد</span><strong>' + escapeHtml(Number(order.quantity || 1).toLocaleString("fa-IR")) + "</strong></div>",
+            '  <div class="payments-detail-row"><span>جمع قبل از تخفیف</span><strong>' + escapeHtml(money(order.subtotal || order.amount || 0)) + "</strong></div>",
+            '  <div class="payments-detail-row"><span>کد/مبلغ تخفیف</span><strong>' + escapeHtml((order.discountCode || "—") + " / " + money(order.discountAmount || 0)) + "</strong></div>",
+            '  <div class="payments-detail-row"><span>مبلغ نهایی</span><strong>' + escapeHtml(money(order.amount || 0)) + "</strong></div>",
             '  <div class="payments-detail-row"><span>درگاه</span><strong>' + escapeHtml(order.gateway || "—") + "</strong></div>",
             '  <div class="payments-detail-row"><span>authority</span><strong>' + escapeHtml(order.authority || "—") + "</strong></div>",
             '  <div class="payments-detail-row"><span>ref id</span><strong>' + escapeHtml(order.refId || "—") + "</strong></div>",
             '  <div class="payments-detail-row"><span>ثبت سفارش</span><strong>' + escapeHtml(formatDateTime(order.createdAt, "—")) + "</strong></div>",
             '  <div class="payments-detail-row"><span>تایید نهایی</span><strong>' + escapeHtml(formatDateTime(order.verifiedAt, "—")) + "</strong></div>",
             extras,
+            "</div>",
+            '<div class="payments-item-card__actions payments-order-admin-actions">',
+            order.status === "pending" ? '<button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-status-update="' + escapeHtml(order.id) + '" data-payment-next-status="canceled">لغو سفارش</button>' : "",
+            order.status !== "pending" && order.status !== "success" ? '<button class="shell-action-btn" type="button" data-payment-status-update="' + escapeHtml(order.id) + '" data-payment-next-status="pending">بازگردانی به در انتظار</button>' : "",
             "</div>",
             '<div class="payments-code-block">',
             "  <h5>اسنپ‌شات پاسخ درگاه</h5>",
@@ -478,9 +491,19 @@
         }
         itemForm.reset();
         $("payments-item-id").value = "";
+        $("payments-item-category").value = "group_order";
+        $("payments-item-max-quantity").value = "1";
+        $("payments-item-audience-note").value = "دانشجویان دندانپزشکی ورودی ۱۴۰۲";
+        $("payments-item-delivery-note").value = "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود.";
+        $("payments-item-support-note").value = "برای پیگیری سفارش با نماینده یا مالک سایت تماس بگیرید.";
+        $("payments-item-allow-cancellation").checked = false;
         $("payments-item-gallery").value = "[]";
         $("payments-item-specifications").value = "[]";
         $("payments-item-required-fields").value = "[]";
+        $("payments-item-discount-codes").value = "[]";
+        $("payments-item-rating-average").value = "";
+        $("payments-item-rating-count").value = "";
+        $("payments-item-reviews").value = "[]";
         $("payments-item-success-message").value = "پرداخت شما با موفقیت ثبت شد.";
         $("payments-item-failure-message").value = "پرداخت شما ناموفق بود.";
         setFeedback(itemFormFeedback, "", "");
@@ -495,6 +518,7 @@
         }
         $("payments-item-id").value = item.id || "";
         $("payments-item-title").value = item.title || "";
+        $("payments-item-category").value = item.category || "group_order";
         $("payments-item-slug").value = item.slug || "";
         $("payments-item-price").value = String(item.price || "");
         $("payments-item-status").value = item.status || "inactive";
@@ -504,6 +528,15 @@
         $("payments-item-gallery").value = prettyJson(item.gallery || []);
         $("payments-item-specifications").value = prettyJson(item.specifications || []);
         $("payments-item-required-fields").value = prettyJson(item.requiredFields || []);
+        $("payments-item-audience-note").value = item.audienceNote || "دانشجویان دندانپزشکی ورودی ۱۴۰۲";
+        $("payments-item-delivery-note").value = item.deliveryNote || "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود.";
+        $("payments-item-support-note").value = item.supportNote || "برای پیگیری سفارش با نماینده یا مالک سایت تماس بگیرید.";
+        $("payments-item-allow-cancellation").checked = !!item.allowCancellation;
+        $("payments-item-max-quantity").value = String(item.maxQuantityPerOrder || 1);
+        $("payments-item-discount-codes").value = prettyJson(item.discountCodes || []);
+        $("payments-item-rating-average").value = item.ratingAverage ? String(item.ratingAverage) : "";
+        $("payments-item-rating-count").value = item.ratingCount ? String(item.ratingCount) : "";
+        $("payments-item-reviews").value = prettyJson(item.reviews || []);
         $("payments-item-success-message").value = item.successMessage || "پرداخت شما با موفقیت ثبت شد.";
         $("payments-item-failure-message").value = item.failureMessage || "پرداخت شما ناموفق بود.";
         $("payments-item-starts-at").value = toDatetimeLocal(item.startsAt);
@@ -623,10 +656,11 @@
             return;
         }
 
-        setFeedback(itemFormFeedback, "در حال ذخیره آیتم پرداخت...", "", true);
+        setFeedback(itemFormFeedback, "در حال ذخیره آیتم کاتالوگ...", "", true);
         var payload = {
             id: $("payments-item-id").value || "",
             title: $("payments-item-title").value.trim(),
+            category: $("payments-item-category").value,
             slug: $("payments-item-slug").value.trim(),
             price: normalizeDigits($("payments-item-price").value).replace(/\D+/g, ""),
             status: $("payments-item-status").value,
@@ -636,6 +670,15 @@
             gallery: $("payments-item-gallery").value.trim() || "[]",
             specifications: $("payments-item-specifications").value.trim() || "[]",
             requiredFields: $("payments-item-required-fields").value.trim() || "[]",
+            audienceNote: $("payments-item-audience-note").value.trim(),
+            deliveryNote: $("payments-item-delivery-note").value.trim(),
+            supportNote: $("payments-item-support-note").value.trim(),
+            allowCancellation: $("payments-item-allow-cancellation").checked ? "1" : "0",
+            maxQuantityPerOrder: normalizeDigits($("payments-item-max-quantity").value).replace(/\D+/g, "") || "1",
+            discountCodes: $("payments-item-discount-codes").value.trim() || "[]",
+            ratingAverage: normalizeDigits($("payments-item-rating-average").value).replace(/[^0-9.]+/g, ""),
+            ratingCount: normalizeDigits($("payments-item-rating-count").value).replace(/\D+/g, ""),
+            reviews: $("payments-item-reviews").value.trim() || "[]",
             successMessage: $("payments-item-success-message").value.trim(),
             failureMessage: $("payments-item-failure-message").value.trim(),
             startsAt: fromDatetimeLocal($("payments-item-starts-at").value),
@@ -666,7 +709,7 @@
         }
 
         upsertItemInState(response.item);
-        setFeedback(itemFormFeedback, response.message || "آیتم پرداخت ذخیره شد.", "success");
+        setFeedback(itemFormFeedback, response.message || "آیتم کاتالوگ ذخیره شد.", "success");
         fillItemForm(response.item.id);
         await loadDashboard(true);
         await loadOrders(true);
@@ -691,6 +734,24 @@
         setFeedback(feedbackNode, response.message || "وضعیت آیتم به‌روزرسانی شد.", "success");
         await loadDashboard(true);
         await loadOrders(true);
+    }
+
+    async function updateOrderStatus(orderId, status) {
+        if (!isOwner() || !orderId || !status) {
+            return;
+        }
+        setFeedback(feedbackNode, "در حال به‌روزرسانی وضعیت سفارش...", "", true);
+        var response = await request("ownerUpdateOrderStatus", { id: orderId, status: status }, "POST");
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            return;
+        }
+        if (!response || !response.success) {
+            setFeedback(feedbackNode, (response && response.error) || "به‌روزرسانی وضعیت سفارش انجام نشد.", "error");
+            return;
+        }
+        setFeedback(feedbackNode, response.message || "وضعیت سفارش به‌روزرسانی شد.", "success");
+        await loadOrders(true);
+        await loadOrderDetail(orderId);
     }
 
     async function markNotificationRead(id, markAll) {
@@ -745,7 +806,7 @@
             ordersRoot.innerHTML = '<div class="owner-empty">برای استفاده از این بخش باید با حساب مالک وارد شوی.</div>';
         }
         if (rowMeta) {
-            rowMeta.textContent = "ساخت لینک پرداخت، گزارش تراکنش‌ها و اعلان‌های مالی";
+            rowMeta.textContent = "تعریف آیتم مشخص، کد تخفیف، سفارش‌ها و اعلان‌های مالی";
         }
     }
 
@@ -797,7 +858,7 @@
     if ($("payments-new-item")) {
         $("payments-new-item").addEventListener("click", function () {
             resetItemForm();
-            setFeedback(itemFormFeedback, "فرم برای ساخت آیتم جدید آماده شد.", "success");
+            setFeedback(itemFormFeedback, "فرم برای افزودن آیتم جدید آماده شد.", "success");
             window.scrollTo({ top: 0, behavior: "smooth" });
         });
     }
@@ -866,6 +927,19 @@
                 return;
             }
             loadOrderDetail(detailButton.getAttribute("data-payment-order-detail"));
+        });
+    }
+
+    if (orderDetailRoot) {
+        orderDetailRoot.addEventListener("click", function (event) {
+            var statusButton = event.target.closest("[data-payment-status-update]");
+            if (!statusButton) {
+                return;
+            }
+            updateOrderStatus(
+                statusButton.getAttribute("data-payment-status-update"),
+                statusButton.getAttribute("data-payment-next-status")
+            );
         });
     }
 

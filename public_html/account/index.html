@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260429-191427">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260429-191427">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260429-191427">
-    <script src="/assets/site/scripts/theme.js?v=20260429-191427"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260429-191427">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260429-191427">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260429-191427">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260429-195533">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260429-195533">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260429-195533">
+    <script src="/assets/site/scripts/theme.js?v=20260429-195533"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260429-195533">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260429-195533">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260429-195533">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -582,48 +582,11 @@
                         <div class="account-surface-head__copy">
                             <span class="account-section-kicker">مدیریت مالک</span>
                             <h3>ابزارهای مدیریت کاربران</h3>
-                            <p>نماینده‌ها، ساخت دستی دانشجو، کارنامه و پنل اختصاصی هر کاربر فقط در این سطح مدیریت می‌شود.</p>
+                            <p>نماینده‌ها، ساخت دستی دانشجو و پنل اختصاصی هر کاربر فقط در این سطح مدیریت می‌شود. مدیریت گروهی کارنامه از بخش نمرات انجام می‌شود.</p>
                         </div>
                     </header>
 
                     <div class="owner-summary" id="owner-summary"></div>
-
-                    <section class="owner-block owner-block--grades-manager">
-                        <div class="owner-block__head">
-                            <h4>مدیریت گروهی کارنامه</h4>
-                            <p>Import نمره با متن ساده یا فایل Excel انجام می‌شود. حذف درس و ریست کامل روی همه کاربران اعمال می‌شود.</p>
-                        </div>
-
-                        <div id="owner-grades-courses-summary" class="owner-summary owner-summary--compact"></div>
-
-                        <form id="owner-grades-import-form" class="account-form owner-grades-import-form" novalidate>
-                            <label for="owner-grades-import-text">Import متنی</label>
-                            <textarea id="owner-grades-import-text" class="owner-grade-import-textarea" rows="7" placeholder="پروتز کامل نظری, 10&#10;40211272003, 6.5&#10;40211272004, 7.4"></textarea>
-
-                            <label for="owner-grades-import-file">یا فایل متنی / Excel</label>
-                            <input id="owner-grades-import-file" type="file" accept=".txt,.csv,.xlsx,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-
-                            <div class="owner-grade-import-hint">
-                                <span>Excel: ردیف اول ستون اول نام درس، ستون سوم سقف نمره؛ از ردیف دوم ستون اول شماره دانشجویی و ستون دوم نمره.</span>
-                            </div>
-
-                            <div class="owner-grade-manager-actions">
-                                <button id="owner-grades-import-submit" class="shell-action-btn shell-action-btn-primary" type="submit">Import نمرات</button>
-                            </div>
-                        </form>
-
-                        <div class="owner-grade-course-tools">
-                            <label for="owner-grades-course-select">درس ثبت‌شده</label>
-                            <select id="owner-grades-course-select">
-                                <option value="">درسی ثبت نشده است</option>
-                            </select>
-                            <div class="owner-grade-manager-actions">
-                                <button id="owner-grades-delete-course" class="shell-action-btn shell-action-btn-danger" type="button">حذف کامل درس از همه کارنامه‌ها</button>
-                                <button id="owner-grades-reset-all" class="shell-action-btn shell-action-btn-danger" type="button">ریست کامل کارنامه</button>
-                            </div>
-                        </div>
-                        <div id="owner-grades-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
-                    </section>
 
                     <section class="owner-block owner-block--sms">
                         <div class="owner-block__head">
@@ -802,164 +765,202 @@
                         <form id="payments-item-form" class="account-form payments-item-form payments-item-form--refined" novalidate>
                             <input id="payments-item-id" type="hidden">
 
-                            <section class="payments-form-section">
-                                <div class="payments-form-section__head">
-                                    <h5>اطلاعات اصلی</h5>
-                                    <p>عنوان، دسته و قیمت باید عمومی، قابل فهم و مخصوص یک آیتم یا ثبت‌نام مشخص باشد.</p>
-                                </div>
-                                <div class="payments-form-grid">
-                                    <div class="payments-field payments-field--full">
-                                        <label for="payments-item-title">عنوان آیتم</label>
-                                        <input id="payments-item-title" type="text" maxlength="140" placeholder="مثلا شیلد محافظ کلاس ترمیمی">
+                            <div class="payments-owner-composer">
+                                <aside class="payments-owner-preview" aria-label="پیش‌نمایش آیتم خرید">
+                                    <div class="payments-owner-preview__media" id="payments-preview-image">
+                                        <span>بدون تصویر</span>
                                     </div>
-                                    <div class="payments-field">
-                                        <label for="payments-item-category">دسته‌بندی</label>
-                                        <select id="payments-item-category">
-                                            <option value="educational_supplies">ملزومات آموزشی</option>
-                                            <option value="consumables">اقلام مصرفی</option>
-                                            <option value="event_registration">ثبت‌نام رویداد</option>
-                                            <option value="educational_package">بسته آموزشی</option>
-                                            <option value="group_order">سفارش گروهی</option>
-                                        </select>
+                                    <div class="payments-owner-preview__body">
+                                        <div class="payments-owner-preview__chips">
+                                            <span id="payments-preview-category">سفارش گروهی</span>
+                                            <span id="payments-preview-status">غیرفعال</span>
+                                        </div>
+                                        <h5 id="payments-preview-title">عنوان آیتم خرید</h5>
+                                        <p id="payments-preview-short">پیش‌نمایش زنده از چیزی که دانشجو در صفحه خرید می‌بیند.</p>
+                                        <strong id="payments-preview-price">۰ ریال</strong>
+                                        <div id="payments-preview-meta" class="payments-owner-preview__meta"></div>
+                                        <div id="payments-preview-specs" class="payments-owner-preview__specs"></div>
                                     </div>
-                                    <div class="payments-field">
-                                        <label for="payments-item-price">قیمت (ریال)</label>
-                                        <input id="payments-item-price" type="text" inputmode="numeric" maxlength="12" dir="ltr" placeholder="2500000">
+                                    <div class="payments-owner-preview__actions">
+                                        <button id="payments-fill-shield-sample" class="shell-action-btn shell-action-btn-primary" type="button">پر کردن نمونه شیلد</button>
+                                        <a class="shell-action-btn" href="/buy/" target="_blank" rel="noopener">نمای کاتالوگ</a>
                                     </div>
-                                    <div class="payments-field">
-                                        <label for="payments-item-status">وضعیت</label>
-                                        <select id="payments-item-status">
-                                            <option value="active">فعال</option>
-                                            <option value="inactive">غیرفعال</option>
-                                        </select>
-                                    </div>
-                                    <div class="payments-field payments-field--full">
-                                        <label for="payments-item-short-description">توضیح کوتاه</label>
-                                        <textarea id="payments-item-short-description" maxlength="460" placeholder="خلاصه کوتاه برای کارت محصول و صفحه جزئیات"></textarea>
-                                    </div>
-                                    <div class="payments-field payments-field--full">
-                                        <label for="payments-item-full-description">توضیح کامل</label>
-                                        <textarea id="payments-item-full-description" maxlength="6000" placeholder="شرح کامل آیتم، شرایط خرید، محدودیت‌ها، محتویات بسته یا هدف ثبت‌نام"></textarea>
-                                    </div>
-                                </div>
-                            </section>
+                                    <p class="payments-owner-preview__trust">هر آیتم باید مثل یک کالای واقعی با قیمت، ظرفیت، تصویر، توضیح، شرایط تحویل و وضعیت مشخص نمایش داده شود.</p>
+                                </aside>
 
-                            <section class="payments-form-section">
-                                <div class="payments-form-section__head">
-                                    <h5>نمایش و زمان‌بندی</h5>
-                                    <p>این موارد اختیاری هستند و برای کنترل دقیق‌تر صفحه پرداخت استفاده می‌شوند.</p>
-                                </div>
-                                <div class="payments-form-grid">
-                                    <div class="payments-field payments-field--full">
-                                        <label for="payments-item-slug">اسلاگ / لینک عمومی</label>
-                                        <input id="payments-item-slug" type="text" maxlength="120" dir="ltr" placeholder="class-shield-1402">
-                                    </div>
-                                    <div class="payments-field payments-field--full">
-                                        <label for="payments-item-hero-image">تصویر اصلی</label>
-                                        <input id="payments-item-hero-image" type="text" maxlength="420" dir="ltr" placeholder="/assets/images/sample.jpg">
-                                    </div>
-                                    <div class="payments-field">
-                                        <label for="payments-item-starts-at">زمان شروع</label>
-                                        <input id="payments-item-starts-at" type="datetime-local">
-                                    </div>
-                                    <div class="payments-field">
-                                        <label for="payments-item-expires-at">مهلت پرداخت</label>
-                                        <input id="payments-item-expires-at" type="datetime-local">
-                                    </div>
-                                    <div class="payments-field">
-                                        <label for="payments-item-capacity">ظرفیت</label>
-                                        <input id="payments-item-capacity" type="text" inputmode="numeric" maxlength="8" dir="ltr" placeholder="اختیاری">
-                                    </div>
-                                    <div class="payments-field">
-                                        <label for="payments-item-max-quantity">حداکثر تعداد هر سفارش</label>
-                                        <input id="payments-item-max-quantity" type="text" inputmode="numeric" maxlength="3" dir="ltr" placeholder="1">
-                                    </div>
-                                    <div class="payments-field payments-field--full">
-                                        <label for="payments-item-audience-note">مخاطب آیتم</label>
-                                        <input id="payments-item-audience-note" type="text" maxlength="220" placeholder="دانشجویان دندانپزشکی ورودی ۱۴۰۲">
-                                    </div>
-                                    <div class="payments-field payments-field--full">
-                                        <label for="payments-item-delivery-note">تحویل یا نحوه استفاده</label>
-                                        <textarea id="payments-item-delivery-note" maxlength="360" placeholder="مثلا تحویل حضوری در دانشکده دندانپزشکی دانشگاه علوم پزشکی تهران"></textarea>
-                                    </div>
-                                    <div class="payments-field payments-field--full">
-                                        <label for="payments-item-support-note">مسیر پشتیبانی</label>
-                                        <textarea id="payments-item-support-note" maxlength="360" placeholder="برای پیگیری، کد رهگیری را برای نماینده یا مالک سایت ارسال کنید."></textarea>
-                                    </div>
-                                    <label class="payments-switch payments-field--full" for="payments-item-allow-cancellation">
-                                        <input id="payments-item-allow-cancellation" type="checkbox">
-                                        <span>
-                                            <strong>امکان لغو توسط خریدار</strong>
-                                            <small>پیش‌فرض خاموش است؛ فقط اگر مالک شرایط لغو را پذیرفته باشد روشن شود.</small>
-                                        </span>
-                                    </label>
-                                </div>
-                            </section>
+                                <div class="payments-owner-editor">
+                                    <section class="payments-form-section payments-form-section--lead">
+                                        <div class="payments-form-section__head">
+                                            <span>۱</span>
+                                            <div>
+                                                <h5>اطلاعات اصلی کالا</h5>
+                                                <p>عنوان، دسته و قیمت باید عمومی، قابل فهم و مخصوص یک آیتم یا ثبت‌نام مشخص باشد.</p>
+                                            </div>
+                                        </div>
+                                        <div class="payments-form-grid">
+                                            <div class="payments-field payments-field--full">
+                                                <label for="payments-item-title">عنوان آیتم</label>
+                                                <input id="payments-item-title" type="text" maxlength="140" placeholder="مثلا شیلد ابری سامان زر دندان">
+                                            </div>
+                                            <div class="payments-field">
+                                                <label for="payments-item-category">دسته‌بندی</label>
+                                                <select id="payments-item-category">
+                                                    <option value="educational_supplies">ملزومات آموزشی</option>
+                                                    <option value="consumables">اقلام مصرفی</option>
+                                                    <option value="event_registration">ثبت‌نام رویداد</option>
+                                                    <option value="educational_package">بسته آموزشی</option>
+                                                    <option value="group_order">سفارش گروهی</option>
+                                                </select>
+                                            </div>
+                                            <div class="payments-field">
+                                                <label for="payments-item-price">قیمت برای درگاه (ریال)</label>
+                                                <input id="payments-item-price" type="text" inputmode="numeric" maxlength="12" dir="ltr" placeholder="1200000">
+                                            </div>
+                                            <div class="payments-field">
+                                                <label for="payments-item-status">وضعیت انتشار</label>
+                                                <select id="payments-item-status">
+                                                    <option value="active">فعال و قابل خرید</option>
+                                                    <option value="inactive">غیرفعال</option>
+                                                </select>
+                                            </div>
+                                            <div class="payments-field payments-field--full">
+                                                <label for="payments-item-short-description">توضیح کوتاه کارت کالا</label>
+                                                <textarea id="payments-item-short-description" maxlength="460" placeholder="خلاصه کوتاه برای کارت محصول و صفحه جزئیات"></textarea>
+                                            </div>
+                                            <div class="payments-field payments-field--full">
+                                                <label for="payments-item-full-description">شرح کامل و شرایط خرید</label>
+                                                <textarea id="payments-item-full-description" maxlength="6000" placeholder="شرح کامل آیتم، شرایط خرید، محدودیت‌ها، محتویات بسته یا هدف ثبت‌نام"></textarea>
+                                            </div>
+                                        </div>
+                                    </section>
 
-                            <details class="payments-advanced-block">
-                                <summary>تنظیمات پیشرفته (JSON و پیام‌ها)</summary>
-                                <div class="payments-advanced-block__body">
-                                    <div class="payments-form-grid">
-                                        <div class="payments-field payments-field--full">
-                                            <label for="payments-item-gallery">گالری تصاویر (JSON array)</label>
-                                            <textarea id="payments-item-gallery" dir="ltr" placeholder='["/assets/images/one.jpg","/assets/images/two.jpg"]'></textarea>
+                                    <section class="payments-form-section">
+                                        <div class="payments-form-section__head">
+                                            <span>۲</span>
+                                            <div>
+                                                <h5>تصویر، لینک و زمان‌بندی</h5>
+                                                <p>این بخش ظاهر عمومی، مهلت و ظرفیت را کنترل می‌کند.</p>
+                                            </div>
                                         </div>
-                                        <div class="payments-field payments-field--full">
-                                            <label for="payments-item-specifications">مشخصات / جزئیات (JSON)</label>
-                                            <textarea id="payments-item-specifications" dir="ltr" placeholder='[{"label":"مکان","value":"سالن همایش"},{"label":"مسئول","value":"انجمن علمی"}]'></textarea>
+                                        <div class="payments-form-grid">
+                                            <div class="payments-field payments-field--full">
+                                                <label for="payments-item-slug">اسلاگ / لینک عمومی</label>
+                                                <input id="payments-item-slug" type="text" maxlength="120" dir="ltr" placeholder="saman-foam-face-shield">
+                                            </div>
+                                            <div class="payments-field payments-field--full">
+                                                <label for="payments-item-hero-image">تصویر اصلی کالا</label>
+                                                <input id="payments-item-hero-image" type="text" maxlength="420" dir="ltr" placeholder="https://example.com/product.jpg">
+                                            </div>
+                                            <div class="payments-field">
+                                                <label for="payments-item-starts-at">زمان شروع</label>
+                                                <input id="payments-item-starts-at" type="datetime-local">
+                                            </div>
+                                            <div class="payments-field">
+                                                <label for="payments-item-expires-at">مهلت پرداخت</label>
+                                                <input id="payments-item-expires-at" type="datetime-local">
+                                            </div>
+                                            <div class="payments-field">
+                                                <label for="payments-item-capacity">ظرفیت موجودی</label>
+                                                <input id="payments-item-capacity" type="text" inputmode="numeric" maxlength="8" dir="ltr" placeholder="اختیاری">
+                                            </div>
+                                            <div class="payments-field">
+                                                <label for="payments-item-max-quantity">حداکثر تعداد هر سفارش</label>
+                                                <input id="payments-item-max-quantity" type="text" inputmode="numeric" maxlength="3" dir="ltr" placeholder="1">
+                                            </div>
+                                            <div class="payments-field payments-field--full">
+                                                <label for="payments-item-audience-note">مخاطب آیتم</label>
+                                                <input id="payments-item-audience-note" type="text" maxlength="220" placeholder="دانشجویان دندانپزشکی ورودی ۱۴۰۲">
+                                            </div>
+                                            <div class="payments-field payments-field--full">
+                                                <label for="payments-item-delivery-note">تحویل یا نحوه استفاده</label>
+                                                <textarea id="payments-item-delivery-note" maxlength="360" placeholder="مثلا تحویل حضوری در دانشکده دندانپزشکی دانشگاه علوم پزشکی تهران"></textarea>
+                                            </div>
+                                            <div class="payments-field payments-field--full">
+                                                <label for="payments-item-support-note">مسیر پشتیبانی</label>
+                                                <textarea id="payments-item-support-note" maxlength="360" placeholder="برای پیگیری، کد رهگیری را برای نماینده یا مالک سایت ارسال کنید."></textarea>
+                                            </div>
+                                            <label class="payments-switch payments-field--full" for="payments-item-allow-cancellation">
+                                                <input id="payments-item-allow-cancellation" type="checkbox">
+                                                <span>
+                                                    <strong>امکان لغو توسط خریدار</strong>
+                                                    <small>پیش‌فرض خاموش است؛ فقط اگر مالک شرایط لغو را پذیرفته باشد روشن شود.</small>
+                                                </span>
+                                            </label>
                                         </div>
-                                        <div class="payments-field payments-field--full">
-                                            <label for="payments-item-required-fields">فیلدهای لازم از کاربر (JSON)</label>
-                                            <textarea id="payments-item-required-fields" dir="ltr" placeholder='[{"name":"nationalCode","label":"کد ملی","type":"text","required":true}]'></textarea>
+                                    </section>
+
+                                    <details class="payments-advanced-block">
+                                        <summary>تنظیمات پیشرفته، گالری، کد تخفیف و دیدگاه‌ها</summary>
+                                        <div class="payments-advanced-block__body">
+                                            <div class="payments-form-grid">
+                                                <div class="payments-field payments-field--full">
+                                                    <label for="payments-item-gallery">گالری تصاویر (JSON array)</label>
+                                                    <textarea id="payments-item-gallery" dir="ltr" placeholder='["/assets/images/one.jpg","/assets/images/two.jpg"]'></textarea>
+                                                </div>
+                                                <div class="payments-field payments-field--full">
+                                                    <label for="payments-item-specifications">مشخصات / جزئیات (JSON)</label>
+                                                    <textarea id="payments-item-specifications" dir="ltr" placeholder='[{"label":"مکان","value":"سالن همایش"},{"label":"مسئول","value":"انجمن علمی"}]'></textarea>
+                                                </div>
+                                                <div class="payments-field payments-field--full">
+                                                    <label for="payments-item-required-fields">فیلدهای لازم از کاربر (JSON)</label>
+                                                    <textarea id="payments-item-required-fields" dir="ltr" placeholder='[{"name":"nationalCode","label":"کد ملی","type":"text","required":true}]'></textarea>
+                                                </div>
+                                                <div class="payments-field payments-field--full">
+                                                    <label for="payments-item-discount-codes">کدهای تخفیف (JSON)</label>
+                                                    <textarea id="payments-item-discount-codes" dir="ltr" placeholder='[{"code":"TUMS10","type":"percent","amount":10,"label":"تخفیف دانشجویی","isEnabled":true}]'></textarea>
+                                                </div>
+                                                <div class="payments-field">
+                                                    <label for="payments-item-rating-average">میانگین امتیاز</label>
+                                                    <input id="payments-item-rating-average" type="text" inputmode="decimal" maxlength="4" dir="ltr" placeholder="4.8">
+                                                </div>
+                                                <div class="payments-field">
+                                                    <label for="payments-item-rating-count">تعداد امتیاز</label>
+                                                    <input id="payments-item-rating-count" type="text" inputmode="numeric" maxlength="6" dir="ltr" placeholder="24">
+                                                </div>
+                                                <div class="payments-field payments-field--full">
+                                                    <label for="payments-item-reviews">دیدگاه‌های قابل نمایش (JSON)</label>
+                                                    <textarea id="payments-item-reviews" dir="ltr" placeholder='[{"name":"دانشجو","rating":5,"body":"کیفیت مناسب و تحویل سریع"}]'></textarea>
+                                                </div>
+                                                <div class="payments-field payments-field--full">
+                                                    <label for="payments-item-success-message">متن موفقیت</label>
+                                                    <textarea id="payments-item-success-message" maxlength="600" placeholder="پیام بعد از verify موفق پرداخت"></textarea>
+                                                </div>
+                                                <div class="payments-field payments-field--full">
+                                                    <label for="payments-item-failure-message">متن خطا</label>
+                                                    <textarea id="payments-item-failure-message" maxlength="600" placeholder="پیام پرداخت ناموفق یا لغوشده"></textarea>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="payments-field payments-field--full">
-                                            <label for="payments-item-discount-codes">کدهای تخفیف (JSON)</label>
-                                            <textarea id="payments-item-discount-codes" dir="ltr" placeholder='[{"code":"TUMS10","type":"percent","amount":10,"label":"تخفیف دانشجویی","isEnabled":true}]'></textarea>
+                                    </details>
+
+                                    <div class="payments-item-submitbar">
+                                        <div>
+                                            <strong>ثبت آیتم در کاتالوگ خرید</strong>
+                                            <span>بعد از ذخیره، صفحه عمومی آیتم و روند سبد/پرداخت از همین داده ساخته می‌شود.</span>
                                         </div>
-                                        <div class="payments-field">
-                                            <label for="payments-item-rating-average">میانگین امتیاز</label>
-                                            <input id="payments-item-rating-average" type="text" inputmode="decimal" maxlength="4" dir="ltr" placeholder="4.8">
-                                        </div>
-                                        <div class="payments-field">
-                                            <label for="payments-item-rating-count">تعداد امتیاز</label>
-                                            <input id="payments-item-rating-count" type="text" inputmode="numeric" maxlength="6" dir="ltr" placeholder="24">
-                                        </div>
-                                        <div class="payments-field payments-field--full">
-                                            <label for="payments-item-reviews">دیدگاه‌های قابل نمایش (JSON)</label>
-                                            <textarea id="payments-item-reviews" dir="ltr" placeholder='[{"name":"کاربر دیجی‌کالا","rating":5,"body":"کیفیت مناسب و تحویل سریع"}]'></textarea>
-                                        </div>
-                                        <div class="payments-field payments-field--full">
-                                            <label for="payments-item-success-message">متن موفقیت</label>
-                                            <textarea id="payments-item-success-message" maxlength="600" placeholder="پیام بعد از verify موفق پرداخت"></textarea>
-                                        </div>
-                                        <div class="payments-field payments-field--full">
-                                            <label for="payments-item-failure-message">متن خطا</label>
-                                            <textarea id="payments-item-failure-message" maxlength="600" placeholder="پیام پرداخت ناموفق یا لغوشده"></textarea>
+                                        <div class="payments-inline-actions">
+                                            <button id="payments-item-save" class="shell-action-btn shell-action-btn-primary" type="submit">ذخیره آیتم</button>
+                                            <button id="payments-item-reset" class="shell-action-btn" type="button">پاک کردن فرم</button>
                                         </div>
                                     </div>
+                                    <div id="payments-item-form-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
                                 </div>
-                            </details>
-
-                            <div class="payments-inline-actions">
-                                <button id="payments-item-save" class="shell-action-btn shell-action-btn-primary" type="submit">ذخیره آیتم</button>
-                                <button id="payments-item-reset" class="shell-action-btn" type="button">پاک کردن فرم</button>
                             </div>
-                            <div id="payments-item-form-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
                         </form>
                     </section>
 
                     <section class="owner-block owner-block--payments">
                         <div class="owner-block__head">
-                            <h4>آیتم‌های پرداخت</h4>
-                            <p>از اینجا می‌توانی لینک عمومی را برداری، آیتم را ویرایش کنی یا موقتا غیرفعال کنی.</p>
+                            <h4>آیتم‌های کاتالوگ</h4>
+                            <p>از اینجا می‌توانی صفحه عمومی هر آیتم را ببینی، لینک آن را کپی کنی، ویرایش کنی یا موقتاً غیرفعال کنی.</p>
                         </div>
                         <div id="payments-items-grid" class="payments-items-grid"></div>
                     </section>
 
                     <section class="owner-block owner-block--payments">
                         <div class="owner-block__head">
-                            <h4>تراکنش‌ها و فیلترها</h4>
-                            <p>فیلتر بر اساس آیتم، وضعیت، بازه زمانی و نام/شماره/authority اعمال می‌شود.</p>
+                            <h4>سفارش‌ها، وضعیت‌ها و فیلترها</h4>
+                            <p>فیلتر بر اساس آیتم، وضعیت سفارش، بازه زمانی و نام/شماره/authority اعمال می‌شود.</p>
                         </div>
 
                         <form id="payments-orders-filter-form" class="payments-filter-grid payments-filter-grid--refined" novalidate>
@@ -1009,8 +1010,8 @@
 
                     <section class="owner-block owner-block--payments">
                         <div class="owner-block__head">
-                            <h4>جزئیات تراکنش</h4>
-                            <p>اسنپ‌شات پاسخ درگاه و فیلدهای ثبت‌شده برای عیب‌یابی اینجا نمایش داده می‌شود.</p>
+                            <h4>جزئیات سفارش و تراکنش</h4>
+                            <p>مشخصات سفارش، تعداد، تخفیف، وضعیت و اسنپ‌شات پاسخ درگاه برای عیب‌یابی اینجا نمایش داده می‌شود.</p>
                         </div>
                         <div id="payments-order-detail" class="payments-order-detail">
                             <div class="owner-empty">برای دیدن جزئیات، یکی از تراکنش‌ها را انتخاب کن.</div>
@@ -1078,10 +1079,10 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260429-191427"></script>
-    <script src="/assets/site/scripts/account.js?v=20260429-191427"></script>
-    <script src="/assets/site/scripts/account-payments.js?v=20260429-191427"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260429-191427"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260429-191427"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260429-195533"></script>
+    <script src="/assets/site/scripts/account.js?v=20260429-195533"></script>
+    <script src="/assets/site/scripts/account-payments.js?v=20260429-195533"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260429-195533"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260429-195533"></script>
 </body>
 </html>

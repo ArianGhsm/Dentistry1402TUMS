@@ -1,4 +1,4 @@
-const APP_VERSION = "20260429-191427";
+const APP_VERSION = "20260429-195533";
 const STATIC_CACHE = "dent1402-static-" + APP_VERSION;
 
 const STATIC_ASSETS = [
@@ -27,6 +27,7 @@ const DYNAMIC_BYPASS = [
   "/grades/grades_api.php",
   "/api/forms_api.php",
   "/api/navid_api.php",
+  "/api/payments_api.php",
   "/chat/data/",
   "/messages.json",
   "/state.json",

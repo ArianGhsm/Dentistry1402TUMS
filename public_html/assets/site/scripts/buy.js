@@ -1468,8 +1468,8 @@
                 var itemHref = item && item.slug ? "/buy/item/?slug=" + encodeURIComponent(String(item.slug)) : "/buy/";
                 var ref = String(order.refId || order.authority || "");
                 actionsNode.innerHTML = [
-                    '<a class="buy-primary-btn" href="' + itemHref + '">بازگشت به صفحه پرداخت</a>',
-                    '<a class="shell-action-btn" href="/buy/">مشاهده سایر پرداخت‌ها</a>',
+                    '<a class="buy-primary-btn" href="' + itemHref + '">بازگشت به صفحه آیتم</a>',
+                    '<a class="shell-action-btn" href="/buy/">مشاهده سایر آیتم‌ها</a>',
                     ref ? '<button class="shell-action-btn" type="button" data-copy-result="' + text(ref) + '">کپی کد رهگیری</button>' : ""
                 ].join("");
             }

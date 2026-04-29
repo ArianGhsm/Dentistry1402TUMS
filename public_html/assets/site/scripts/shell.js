@@ -90,16 +90,6 @@
             { href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/"] }
         ];
 
-        if (state.loggedIn && pollNavState.count > 0) {
-            items.push({
-                href: "/chat/polls/?mode=active",
-                label: "نظرسنجی‌ها",
-                icon: "polls",
-                active: ["/chat/polls/", "/chat/poll/"],
-                badgeCount: pollNavState.count
-            });
-        }
-
         items.push({
             href: accountHref,
             label: state.loggedIn ? "حساب" : "ورود",
@@ -277,48 +267,8 @@
             return;
         }
 
-        if (!state.loggedIn) {
-            if (pollNavState.count !== 0 || pollNavState.lastUserKey !== "") {
-                resetPollCountState();
-                renderBottomNav(state);
-            }
-            return;
-        }
-
-        if (!shouldRefetchPollCount(state) || pollNavState.pending) {
-            return;
-        }
-
-        pollNavState.pending = true;
-        var key = userKey(state);
-        fetch("/chat/chat_api.php?action=activePolls", {
-            method: "GET",
-            credentials: "same-origin",
-            headers: {
-                Accept: "application/json"
-            }
-        }).then(parseJsonResponse).then(function (payload) {
-            if (consumeUnauthorized(payload, "نشست شما منقضی شده است.")) {
-                updatePollCountState(0, "");
-                return;
-            }
-
-            if (payload && payload.success) {
-                var count = Number(payload.count);
-                if (!Number.isFinite(count)) {
-                    count = Array.isArray(payload.polls) ? payload.polls.length : 0;
-                }
-                updatePollCountState(count, key);
-                return;
-            }
-
-            updatePollCountState(0, key);
-        }).catch(function () {
-            updatePollCountState(0, key);
-        }).finally(function () {
-            pollNavState.pending = false;
-            renderBottomNav(authState());
-        });
+        resetPollCountState();
+        renderBottomNav(state);
     }
 
     function createModal() {

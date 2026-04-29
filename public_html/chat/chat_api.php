@@ -2793,7 +2793,7 @@ function chat_poll_option_voters(array $poll): array
 
 function chat_poll_share_url(string $pollId): string
 {
-    return '/chat/poll/?poll=' . urlencode($pollId);
+    return '/chat/';
 }
 
 function chat_poll_payload(array $store, array $poll, array $viewer, bool $withVoterLists = true): array
@@ -3810,7 +3810,7 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
             'canMarkRead' => $isMember,
             'canMarkUnread' => $isMember,
             'canCreateGroup' => true,
-            'canCreatePoll' => chat_can_create_poll($viewer) && $canSend,
+            'canCreatePoll' => false,
         ],
         'lastMessage' => $lastMessage !== null ? chat_normalize_message_for_client($lastMessage, $store, $viewer) : null,
         'pinnedMessage' => $pinnedMessage !== null ? chat_normalize_message_for_client($pinnedMessage, $store, $viewer) : null,
@@ -4144,14 +4144,14 @@ function chat_create_group_conversation(
 
     $memberList = array_values($memberList);
     sort($memberList, SORT_STRING);
-    if (count($memberList) < 2) {
+    $conversationKind = chat_clean_conversation_kind($conversationKind);
+    if ($conversationKind === 'group' && count($memberList) < 2) {
         dent_error('برای ساخت گروه باید حداقل یک عضو دیگر انتخاب شود.', 422);
     }
 
     $conversationId = chat_next_group_conversation_id($store);
     $now = time();
     $isTemporary = $temporary || chat_title_marks_test_conversation($title);
-    $conversationKind = chat_clean_conversation_kind($conversationKind);
     $conversation = [
         'id' => $conversationId,
         'type' => 'group',
@@ -5307,6 +5307,10 @@ if ($action === 'directory') {
         'success' => true,
         'users' => $users,
     ]);
+}
+
+if (in_array($action, ['listPolls', 'activePolls', 'createPoll', 'poll', 'votePoll', 'deletePoll', 'closePoll', 'reopenPoll'], true)) {
+    dent_error('بخش نظرسنجی در پیام‌رسان غیرفعال شده است.', 410);
 }
 
 if ($action === 'listPolls') {
