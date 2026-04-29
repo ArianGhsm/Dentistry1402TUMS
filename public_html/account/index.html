@@ -9,9 +9,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260429-140604">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260429-140604">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260429-140604">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260429-141117">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260429-141117">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260429-141117">
     <script src="/assets/site/scripts/theme.js?v=20260422-utf8fix1"></script>
     <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260422-cache2">
     <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260426-ownerpanel2">
@@ -56,15 +56,13 @@
         <section id="account-login" class="account-stage account-stage--auth" hidden>
             <div class="account-grid account-grid--login account-grid--auth">
                 <section class="account-card account-card--auth">
-                    <div class="account-card__head">
-                        <span class="account-section-kicker">ورود</span>
-                        <h3>ورود به حساب کاربری</h3>
-                        <p>شماره دانشجویی و رمزت را وارد کن. بعد از ورود، همین هویت در پیام‌رسان، نمرات و بخش‌های حساب‌محور یکپارچه می‌ماند.</p>
+                    <div class="auth-brand" aria-hidden="true">
+                        <img src="/assets/images/logo.png?v=20260422-brand1" alt="">
+                        <strong>ورودی ۱۴۰۲</strong>
                     </div>
-
-                    <div class="login-method-switch" id="login-method-switch" role="tablist" aria-label="روش ورود">
-                        <button id="login-method-password" class="login-method-btn is-active" type="button" data-login-method="password" role="tab" aria-selected="true">ورود با شماره دانشجویی و رمز</button>
-                        <button id="login-method-otp" class="login-method-btn" type="button" data-login-method="otp" role="tab" aria-selected="false">ورود با شماره موبایل و کد تایید</button>
+                    <div class="account-card__head">
+                        <h3>ورود/ثبت‌نام</h3>
+                        <p>شماره موبایل خود را وارد کنید.</p>
                     </div>
 
                     <form id="login-form" class="account-form" novalidate data-login-panel="password">
@@ -80,9 +78,8 @@
 
                     <form id="login-otp-form" class="account-form otp-auth-panel" novalidate data-login-panel="otp" hidden>
                         <div class="otp-auth-panel__hero">
-                            <span class="account-section-kicker">ورود پیامکی</span>
                             <h4>ورود با شماره موبایل</h4>
-                            <p>شماره تاییدشده‌ات را وارد کن، کد پیامک را بزن و وارد شو.</p>
+                            <p>کد تایید برایت پیامک می‌شود.</p>
                         </div>
 
                         <div class="settings-row">
@@ -94,29 +91,36 @@
                             </div>
                         </div>
 
-                        <div class="account-inline-actions otp-auth-panel__actions">
-                            <button id="login-otp-request" class="shell-action-btn" type="button">ارسال کد تایید</button>
-                            <span id="login-otp-meta" class="account-inline-meta">ورود پیامکی فقط برای شماره تاییدشده و فعال‌شده امکان دارد.</span>
+                        <div class="account-inline-actions otp-auth-panel__actions otp-auth-panel__actions--request">
+                            <button id="login-otp-request" class="shell-action-btn shell-action-btn-primary" type="button">ارسال کد</button>
+                            <span id="login-otp-meta" class="account-inline-meta">فقط شماره‌های تاییدشده امکان ورود پیامکی دارند.</span>
                         </div>
 
-                        <div class="settings-row">
-                            <label for="login-otp-code">کد تایید</label>
-                            <div id="login-otp-field" class="otp-slot-field" data-otp-field="login">
-                                <input id="login-otp-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr" placeholder="کد ۶ رقمی">
-                                <div id="login-otp-slots" class="otp-slot-field__slots" dir="ltr" aria-hidden="true">
-                                    <span class="otp-slot"></span>
-                                    <span class="otp-slot"></span>
-                                    <span class="otp-slot"></span>
-                                    <span class="otp-slot"></span>
-                                    <span class="otp-slot"></span>
-                                    <span class="otp-slot"></span>
+                        <div id="login-otp-verify-group" hidden>
+                            <div class="settings-row">
+                                <label for="login-otp-code">کد تایید</label>
+                                <div id="login-otp-field" class="otp-slot-field" data-otp-field="login">
+                                    <input id="login-otp-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr" placeholder="کد ۶ رقمی">
+                                    <div id="login-otp-slots" class="otp-slot-field__slots" dir="ltr" aria-hidden="true">
+                                        <span class="otp-slot"></span>
+                                        <span class="otp-slot"></span>
+                                        <span class="otp-slot"></span>
+                                        <span class="otp-slot"></span>
+                                        <span class="otp-slot"></span>
+                                        <span class="otp-slot"></span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <button id="login-otp-submit" class="shell-action-btn shell-action-btn-primary account-submit" type="submit">ورود با کد تایید</button>
+                            <button id="login-otp-submit" class="shell-action-btn shell-action-btn-primary account-submit" type="submit">ورود</button>
+                        </div>
                         <div id="login-otp-feedback" class="account-feedback" aria-live="polite"></div>
                     </form>
+
+                    <div class="login-method-switch" id="login-method-switch" role="tablist" aria-label="روش ورود">
+                        <button id="login-method-password" class="login-method-btn is-active" type="button" data-login-method="password" role="tab" aria-selected="true">ورود با رمزعبور</button>
+                        <button id="login-method-otp" class="login-method-btn" type="button" data-login-method="otp" role="tab" aria-selected="false">ورود با موبایل</button>
+                    </div>
                 </section>
 
                 <aside class="account-card account-card--info account-card--auth-info">
@@ -962,7 +966,7 @@
     <script src="/assets/site/scripts/auth.js?v=20260425-authotp2"></script>
     <script src="/assets/site/scripts/account.js?v=20260426-ownerpanel3"></script>
     <script src="/assets/site/scripts/account-payments.js?v=20260428-payments1"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260429-140604"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260429-141117"></script>
     <script src="/assets/site/scripts/shell.js?v=20260422-shellpoll1"></script>
 </body>
 </html>

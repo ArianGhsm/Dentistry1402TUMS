@@ -25,6 +25,7 @@
     var loginOtpSubmitButton = $("login-otp-submit");
     var loginOtpFeedback = $("login-otp-feedback");
     var loginOtpMeta = $("login-otp-meta");
+    var loginOtpVerifyGroup = $("login-otp-verify-group");
     var loginPhoneInput = $("login-phone-number");
     var loginOtpCodeInput = $("login-otp-code");
     var loginOtpSlots = $("login-otp-slots");
@@ -182,7 +183,7 @@
         loading: false,
         status: null
     };
-    var loginMode = "password";
+    var loginMode = "otp";
     var loginOtpCooldownUntil = 0;
     var phoneEnrollCooldownUntil = 0;
     var loginOtpCooldownTimer = null;
@@ -673,6 +674,21 @@
         if (loginOtpForm) {
             loginOtpForm.hidden = loginMode !== "otp";
         }
+
+        if (loginMode === "otp") {
+            setLoginOtpVerifyVisible(false);
+            if (loginOtpCodeInput) {
+                loginOtpCodeInput.value = "";
+                loginOtpCodeInput.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+        }
+    }
+
+    function setLoginOtpVerifyVisible(visible) {
+        if (!loginOtpVerifyGroup) {
+            return;
+        }
+        loginOtpVerifyGroup.hidden = !visible;
     }
 
     function stopLoginOtpCooldownTicker() {
@@ -744,6 +760,7 @@
         stopPhoneEnrollCooldownTicker();
         updateLoginOtpCooldownUi();
         updatePhoneEnrollCooldownUi();
+        setLoginOtpVerifyVisible(false);
     }
 
     function avatarLabel(value) {
@@ -2968,6 +2985,7 @@
             startLoginOtpCooldown(response.cooldownSeconds || 0);
             var masked = ltrMaskedPhone(response && response.phoneMasked, "");
             setFeedback(loginOtpFeedback, (response.message || "کد تایید ارسال شد.") + (masked ? (" (" + masked + ")") : ""), "success");
+            setLoginOtpVerifyVisible(true);
             if (loginOtpCodeInput) {
                 loginOtpCodeInput.focus({ preventScroll: true });
             }
@@ -3779,7 +3797,7 @@
     }
 
     updateCreateStudentGroupOptions();
-    setLoginMode("password");
+    setLoginMode("otp");
     resetOtpUi();
     window.Dent1402Auth.onChange(handleAuthState);
 })();
