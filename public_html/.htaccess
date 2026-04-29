@@ -16,15 +16,21 @@
     Header set Access-Control-Allow-Methods "GET, OPTIONS"
   </FilesMatch>
 
-  <FilesMatch "^(sw\.js|manifest\.webmanifest)$">
+  <FilesMatch "^(sw\.js|manifest\.webmanifest|app-version\.json)$">
     Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+  </FilesMatch>
+
+  <FilesMatch "^sw\.js$">
+    Header set Service-Worker-Allowed "/"
   </FilesMatch>
 
   <FilesMatch "^(chat_api\.php|grades_api\.php)$">
     Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
   </FilesMatch>
 
-  <FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg|webp|woff2|woff)$">
+  <FilesMatch "^(?!sw\.js$).*\.(css|js|png|jpg|jpeg|gif|svg|webp|woff2|woff)$">
     Header set Cache-Control "public, max-age=2592000, immutable"
   </FilesMatch>
 </IfModule>

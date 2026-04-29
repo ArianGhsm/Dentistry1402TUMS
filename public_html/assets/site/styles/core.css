@@ -156,6 +156,7 @@ html[data-theme="dark"] {
 html {
     scroll-behavior: smooth;
     scroll-padding-bottom: var(--shell-nav-content-reserve);
+    overflow-x: hidden;
 }
 
 body {
@@ -816,20 +817,138 @@ body.app-shell-hidden {
 
 @media (max-width: 768px) {
     .site-header {
-        align-items: flex-start;
-        flex-direction: column;
-        padding-top: 0.85rem;
-        padding-bottom: 0.85rem;
+        align-items: center;
+        flex-direction: row;
+        gap: 0.48rem;
+        min-height: calc(58px + env(safe-area-inset-top, 0px));
+        padding: calc(0.42rem + env(safe-area-inset-top, 0px)) max(0.66rem, 4vw) 0.42rem;
+    }
+
+    .logo-area {
+        flex: 1 1 auto;
+        gap: 0.52rem;
+        min-width: 0;
+    }
+
+    .logo-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+    }
+
+    .site-info {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .site-info h1,
+    .site-info p {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .site-info h1 {
+        font-size: 0.82rem;
+        line-height: 1.28;
+    }
+
+    .site-info p {
+        margin-top: 0.02rem;
+        font-size: 0.66rem;
+        line-height: 1.35;
     }
 
     .header-actions {
-        width: 100%;
-        justify-content: flex-start;
-        flex-wrap: wrap;
+        flex: 0 0 auto;
+        width: auto;
+        max-width: min(58vw, 15rem);
+        justify-content: flex-end;
+        flex-wrap: nowrap;
+        gap: 0.32rem;
+        min-width: 0;
+    }
+
+    .header-link,
+    .theme-toggle-btn {
+        min-width: 40px;
+        min-height: 40px;
+        max-width: 5.8rem;
+        padding: 0.42rem 0.58rem;
+        font-size: 0.72rem;
+        line-height: 1.1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        box-shadow: none;
+    }
+
+    .theme-toggle-btn {
+        padding-inline: 0.56rem;
+        border-radius: 13px;
+    }
+
+    .theme-toggle-btn__label {
+        display: none;
+    }
+
+    .theme-toggle-btn__icon,
+    .theme-toggle-btn__icon svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .header-link--auth {
+        max-width: 5rem;
     }
 
     .page-shell {
         padding-top: 1rem;
+    }
+}
+
+@media (max-width: 430px) {
+    .site-header {
+        gap: 0.4rem;
+        min-height: calc(54px + env(safe-area-inset-top, 0px));
+        padding-inline: max(0.58rem, 3.4vw);
+        padding-bottom: 0.36rem;
+    }
+
+    .logo-area {
+        gap: 0.46rem;
+    }
+
+    .logo-circle {
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+    }
+
+    .site-info h1 {
+        font-size: 0.78rem;
+    }
+
+    .site-info p {
+        font-size: 0.62rem;
+    }
+
+    .header-actions {
+        max-width: min(60vw, 13rem);
+        gap: 0.26rem;
+    }
+
+    .header-link,
+    .theme-toggle-btn {
+        min-width: 40px;
+        min-height: 40px;
+        max-width: 5.15rem;
+        padding: 0.38rem 0.5rem;
+        font-size: 0.69rem;
+    }
+
+    .header-link--auth {
+        max-width: 4.6rem;
     }
 }
 

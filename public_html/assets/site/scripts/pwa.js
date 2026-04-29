@@ -3,11 +3,11 @@
         return;
     }
 
-    var CURRENT_VERSION = "20260429-142521";
+    var CURRENT_VERSION = "20260429-143845";
     var VERSION_ENDPOINT = "/app-version.json";
     var SERVICE_WORKER_ENDPOINT = "/sw.js";
-    var UPDATE_CHECK_MIN_INTERVAL = 30000;
-    var UPDATE_CHECK_INTERVAL = 180000;
+    var UPDATE_CHECK_MIN_INTERVAL = 5000;
+    var UPDATE_CHECK_INTERVAL = 30000;
 
     var standaloneQuery = window.matchMedia ? window.matchMedia("(display-mode: standalone)") : null;
     var lastVersionCheckAt = 0;
@@ -56,7 +56,7 @@
     }
 
     function shouldShowUpdateBanner() {
-        return !!state.updateAvailable && !state.updateDismissed && state.installed;
+        return !!state.updateAvailable && !state.updateDismissed;
     }
 
     function notify() {
@@ -161,7 +161,7 @@
         }
 
         if (state.latestVersion && state.latestVersion !== state.currentVersion) {
-            bannerMessageEl.textContent = "برای دریافت آخرین تغییرات و آیکون جدید، وب‌اپ را یک‌بار بازآوری کن.";
+            bannerMessageEl.textContent = "برای دریافت آخرین تغییرات، وب‌اپ را یک‌بار به‌روزرسانی کن.";
             return;
         }
 
@@ -243,7 +243,7 @@
         var targetVersion = normalizeVersion(version || state.latestVersion || state.currentVersion);
         var serviceWorkerUrl = SERVICE_WORKER_ENDPOINT + "?v=" + encodeURIComponent(targetVersion);
 
-        return navigator.serviceWorker.register(serviceWorkerUrl).then(function (registration) {
+        return navigator.serviceWorker.register(serviceWorkerUrl, { updateViaCache: "none" }).then(function (registration) {
             bindRegistration(registration);
             return registration;
         });
@@ -418,6 +418,12 @@
     window.addEventListener("focus", function () {
         checkForUpdates(false).catch(function () {
             // Silence focus refresh failures.
+        });
+    });
+
+    window.addEventListener("pageshow", function () {
+        checkForUpdates(false).catch(function () {
+            // Silence bfcache refresh failures.
         });
     });
 

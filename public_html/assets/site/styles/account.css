@@ -13,19 +13,33 @@ body.account-page {
     text-size-adjust: 100%;
 }
 
+body.account-page.account-stage-login-active {
+    height: 100dvh;
+    min-height: 100dvh;
+    overflow: hidden;
+    padding-bottom: 0;
+}
+
+body.account-page.account-stage-login-active .site-header,
+body.account-page.account-stage-login-active .shell-bottom-nav {
+    display: none;
+}
+
 body.account-page.account-stage-login-active main.account-shell {
     width: min(560px, 100%);
     padding-inline: clamp(0.95rem, 4.4vw, 1.4rem);
-    padding-bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.96rem));
-    min-height: 100svh;
-    min-height: 100dvh;
+    padding-block: max(0.9rem, env(safe-area-inset-top)) max(0.9rem, env(safe-area-inset-bottom));
+    height: 100dvh;
+    min-height: 0;
+    align-content: center;
+    justify-items: center;
+    overflow: hidden;
 }
 
 body.account-page.account-stage-login-active .background-overlay {
     background:
-        radial-gradient(circle at 85% 12%, rgba(126, 89, 255, 0.2), transparent 32%),
-        radial-gradient(circle at 14% 2%, rgba(92, 124, 255, 0.14), transparent 26%),
-        linear-gradient(180deg, #1b0f56 0 29%, #f2f4f8 29% 100%);
+        linear-gradient(180deg, rgba(25, 20, 75, 0.98) 0 29%, rgba(242, 244, 248, 0) 29% 100%),
+        linear-gradient(180deg, #f8fafc 0%, #f2f4f8 100%);
 }
 
 .account-hero {
@@ -145,6 +159,17 @@ body.account-page.account-stage-login-active .account-card--auth-info {
 
 body.account-page.account-stage-login-active .account-hero {
     display: none;
+}
+
+body.account-page.account-stage-login-active .account-grid--login {
+    width: min(430px, 100%);
+    grid-template-columns: 1fr;
+    justify-self: center;
+    margin-inline: auto;
+}
+
+body.account-page.account-stage-login-active .account-card--auth {
+    width: 100%;
 }
 
 .auth-brand {
@@ -1253,6 +1278,17 @@ body.account-page.account-stage-login-active #account-login .otp-phone-shell inp
     letter-spacing: 0.01em;
 }
 
+#login-phone-number {
+    direction: rtl;
+    text-align: right;
+}
+
+#login-phone-number:not(:placeholder-shown) {
+    direction: rtl;
+    text-align: right;
+    unicode-bidi: isolate;
+}
+
 #login-otp-code,
 #phone-enroll-code {
     position: absolute;
@@ -2181,6 +2217,38 @@ html[data-theme="dark"] body.account-page .account-hero {
         linear-gradient(180deg, rgba(73, 125, 255, 0.2), rgba(73, 125, 255, 0.05)),
         rgba(14, 22, 34, 0.84);
     border-color: rgba(124, 145, 168, 0.24);
+}
+
+html[data-theme="dark"] body.account-page.account-stage-login-active .background-overlay {
+    background:
+        linear-gradient(180deg, rgba(16, 22, 35, 0.98) 0 29%, rgba(13, 20, 32, 0) 29% 100%),
+        linear-gradient(180deg, #121b2a 0%, #0d1420 100%);
+}
+
+html[data-theme="dark"] body.account-page.account-stage-login-active .auth-brand strong {
+    color: #edf3ff;
+}
+
+html[data-theme="dark"] body.account-page.account-stage-login-active .account-card--auth::before {
+    background: linear-gradient(180deg, rgba(114, 169, 255, 0.1), rgba(114, 169, 255, 0));
+}
+
+html[data-theme="dark"] body.account-page.account-stage-login-active .otp-auth-panel__hero {
+    border: 0;
+    background: transparent;
+}
+
+html[data-theme="dark"] body.account-page.account-stage-login-active #account-login .account-form input:not([type="checkbox"]):not([type="radio"]),
+html[data-theme="dark"] body.account-page.account-stage-login-active #account-login .account-form select,
+html[data-theme="dark"] body.account-page.account-stage-login-active #account-login .account-form textarea,
+html[data-theme="dark"] body.account-page.account-stage-login-active #account-login .otp-phone-shell {
+    border-color: rgba(124, 145, 168, 0.32);
+    background: rgba(12, 19, 31, 0.82);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme="dark"] body.account-page.account-stage-login-active #account-login input::placeholder {
+    color: rgba(154, 171, 194, 0.72);
 }
 
 html[data-theme="dark"] body.account-page .account-list-group {

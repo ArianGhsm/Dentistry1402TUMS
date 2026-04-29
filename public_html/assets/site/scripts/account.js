@@ -404,6 +404,12 @@
             });
     }
 
+    function toPersianDigits(value) {
+        return String(value || "").replace(/[0-9]/g, function (ch) {
+            return "\u06F0\u06F1\u06F2\u06F3\u06F4\u06F5\u06F6\u06F7\u06F8\u06F9".charAt(Number(ch));
+        });
+    }
+
     function normalizedPhone(value) {
         var digits = normalizeDigits(value).replace(/\D+/g, "");
         if (!digits) return "";
@@ -425,6 +431,9 @@
             var next = digits;
             if (Number.isFinite(maxLength) && maxLength > 0) {
                 next = next.slice(0, maxLength);
+            }
+            if (input.dataset && input.dataset.displayDigits === "persian") {
+                next = toPersianDigits(next);
             }
             if (input.value !== next) {
                 input.value = next;

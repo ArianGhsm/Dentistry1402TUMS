@@ -29,10 +29,11 @@ HTML_PATTERNS = [
         re.compile(r'(<link\b[^>]*\brel="apple-touch-icon"[^>]*\bhref=")[^"]+(")', re.IGNORECASE),
         lambda _match, version: "/assets/icons/apple-touch-icon.png?v=" + version,
     ),
-    (
-        re.compile(r'(<script\b[^>]*\bsrc=")(?:/assets/site/scripts/pwa\.js\?v=[^"]+|P\d+(?:-\d+)?)("></script>)', re.IGNORECASE),
-        lambda _match, version: "/assets/site/scripts/pwa.js?v=" + version,
-    ),
+]
+
+ASSET_VERSION_PATTERNS = [
+    re.compile(r'(<link\b[^>]*\brel="stylesheet"[^>]*\bhref=")(/assets/site/styles/[^"?]+\.css)(?:\?v=[^"]*)?(")', re.IGNORECASE),
+    re.compile(r'(<script\b[^>]*\bsrc=")(/assets/site/scripts/[^"?]+\.js)(?:\?v=[^"]*)?(")', re.IGNORECASE),
 ]
 
 
@@ -52,6 +53,16 @@ def replace_all(text: str, patterns: list[tuple[re.Pattern[str], object]], versi
     return updated
 
 
+def stamp_asset_versions(text: str, version: str) -> str:
+    updated = text
+    for pattern in ASSET_VERSION_PATTERNS:
+        updated = pattern.sub(
+            lambda match: match.group(1) + match.group(2) + "?v=" + version + match.group(3),
+            updated,
+        )
+    return updated
+
+
 def write_text_if_changed(path: Path, text: str, changed: list[str]) -> None:
     original = path.read_text(encoding="utf-8")
     if original == text:
@@ -66,6 +77,7 @@ def stamp_html(version: str, changed: list[str]) -> None:
             continue
         original = path.read_text(encoding="utf-8")
         updated = replace_all(original, HTML_PATTERNS, version)
+        updated = stamp_asset_versions(updated, version)
         if updated != original:
             path.write_text(updated, encoding="utf-8", newline="\n")
             changed.append(str(path.relative_to(ROOT)).replace("\\", "/"))
