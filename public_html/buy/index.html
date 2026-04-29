@@ -35,19 +35,66 @@
         </div>
     </header>
 
-    <main class="buy-shell">
-        <section class="buy-hero">
-            <span class="buy-kicker">خرید</span>
-            <h2>هر آیتم پرداخت، یک لینک مستقیم و مستقل</h2>
-            <p class="buy-muted">اگر برای کلاس، اردو، ثبت‌نام رویداد یا هر هزینه‌ی مشابه لینک پرداخت دریافت کرده‌ای، از همین مسیر می‌توانی جزئیات را ببینی و پرداخت را انجام بدهی.</p>
+    <main class="buy-shell buy-shell--market">
+        <section class="buy-market-head" aria-label="جست‌وجوی پرداخت‌ها">
+            <label class="buy-search">
+                <span class="buy-search__icon" aria-hidden="true"></span>
+                <input id="buy-search-input" type="search" autocomplete="off" placeholder="جست‌وجو در پرداخت‌ها">
+            </label>
+            <button id="buy-clear-search" class="buy-icon-btn" type="button" aria-label="پاک کردن جست‌وجو" hidden>
+                <span aria-hidden="true">×</span>
+            </button>
         </section>
 
-        <section class="buy-card">
-            <div class="buy-card__head">
-                <h3>آیتم‌های فعال</h3>
-                <p class="buy-muted">لیست زیر به‌صورت خودکار از پنل مالک مدیریت می‌شود.</p>
+        <button class="buy-location" type="button" aria-label="موقعیت پرداخت‌ها">
+            <span class="buy-location__pin" aria-hidden="true"></span>
+            <span>موقعیت: دانشکده دندانپزشکی تهران</span>
+            <small>لینک‌های رسمی ورودی ۱۴۰۲</small>
+        </button>
+
+        <section class="buy-category-strip" aria-label="دسته‌بندی پرداخت‌ها">
+            <button class="buy-category is-active" type="button" data-buy-category="all">
+                <span class="buy-category__icon buy-category__icon--all" aria-hidden="true"></span>
+                <span>همه</span>
+            </button>
+            <button class="buy-category" type="button" data-buy-category="event">
+                <span class="buy-category__icon buy-category__icon--event" aria-hidden="true"></span>
+                <span>رویداد</span>
+            </button>
+            <button class="buy-category" type="button" data-buy-category="class">
+                <span class="buy-category__icon buy-category__icon--class" aria-hidden="true"></span>
+                <span>کلاس</span>
+            </button>
+            <button class="buy-category" type="button" data-buy-category="exam">
+                <span class="buy-category__icon buy-category__icon--exam" aria-hidden="true"></span>
+                <span>آزمون</span>
+            </button>
+            <button class="buy-category" type="button" data-buy-category="order">
+                <span class="buy-category__icon buy-category__icon--order" aria-hidden="true"></span>
+                <span>سفارش</span>
+            </button>
+            <button class="buy-category" type="button" data-buy-category="saved">
+                <span class="buy-category__icon buy-category__icon--saved" aria-hidden="true"></span>
+                <span>نشان‌شده</span>
+            </button>
+        </section>
+
+        <section class="buy-filter-bar" aria-label="فیلترهای سریع">
+            <button class="buy-filter-chip is-active" type="button" data-buy-filter="all">همه پرداخت‌ها</button>
+            <button class="buy-filter-chip" type="button" data-buy-filter="payable">قابل پرداخت</button>
+            <button class="buy-filter-chip" type="button" data-buy-filter="limited">ظرفیت‌دار</button>
+            <button class="buy-filter-chip" type="button" data-buy-filter="deadline">مهلت‌دار</button>
+        </section>
+
+        <section class="buy-market-section">
+            <div class="buy-section-title">
+                <div>
+                    <span class="buy-kicker">پرداخت امن</span>
+                    <h2>آیتم‌های فعال خرید</h2>
+                </div>
+                <p id="buy-list-count" class="buy-muted">در حال بارگذاری...</p>
             </div>
-            <div id="buy-list-root" class="buy-list" aria-live="polite">
+            <div id="buy-list-root" class="buy-feed" aria-live="polite">
                 <div class="buy-empty">در حال بارگذاری آیتم‌های پرداخت...</div>
             </div>
         </section>

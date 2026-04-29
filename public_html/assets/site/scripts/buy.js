@@ -1,6 +1,16 @@
 (function () {
     "use strict";
 
+    var SAVED_KEY = "dent1402_buy_saved_slugs";
+    var MARKET_LOCATION = "دانشکده دندانپزشکی تهران";
+    var state = {
+        items: [],
+        query: "",
+        category: "all",
+        filter: "all",
+        currentItem: null
+    };
+
     function $(id) {
         return document.getElementById(id);
     }
@@ -142,6 +152,102 @@
             return parts[itemIndex + 1];
         }
         return "";
+    }
+
+    function savedSlugs() {
+        try {
+            var parsed = JSON.parse(window.localStorage.getItem(SAVED_KEY) || "[]");
+            if (Array.isArray(parsed)) {
+                return parsed.map(function (slug) {
+                    return String(slug || "").trim();
+                }).filter(Boolean);
+            }
+        } catch (_error) {
+            return [];
+        }
+        return [];
+    }
+
+    function writeSavedSlugs(slugs) {
+        try {
+            window.localStorage.setItem(SAVED_KEY, JSON.stringify(Array.from(new Set(slugs.filter(Boolean)))));
+        } catch (_error) {
+            // Local save is optional; payment flow must keep working without it.
+        }
+    }
+
+    function isSaved(slug) {
+        return savedSlugs().indexOf(String(slug || "").trim()) >= 0;
+    }
+
+    function toggleSaved(slug) {
+        var clean = String(slug || "").trim();
+        if (!clean) return false;
+        var current = savedSlugs();
+        var index = current.indexOf(clean);
+        if (index >= 0) {
+            current.splice(index, 1);
+            writeSavedSlugs(current);
+            return false;
+        }
+        current.push(clean);
+        writeSavedSlugs(current);
+        return true;
+    }
+
+    function copyText(value) {
+        var clean = String(value || "").trim();
+        if (!clean) {
+            return Promise.reject(new Error("empty"));
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+            return navigator.clipboard.writeText(clean);
+        }
+        return new Promise(function (resolve, reject) {
+            var input = document.createElement("textarea");
+            input.value = clean;
+            input.setAttribute("readonly", "readonly");
+            input.style.position = "fixed";
+            input.style.insetInlineStart = "-9999px";
+            document.body.appendChild(input);
+            input.select();
+            try {
+                var ok = document.execCommand("copy");
+                document.body.removeChild(input);
+                ok ? resolve() : reject(new Error("copy"));
+            } catch (error) {
+                document.body.removeChild(input);
+                reject(error);
+            }
+        });
+    }
+
+    function flashButton(button, value, fallback) {
+        if (!button) return;
+        var original = button.textContent;
+        button.textContent = value;
+        window.setTimeout(function () {
+            button.textContent = fallback || original;
+        }, 1200);
+    }
+
+    function shareUrl(url, title, button) {
+        var shareData = {
+            title: title || document.title,
+            text: title || "لینک پرداخت",
+            url: url
+        };
+        if (navigator.share) {
+            navigator.share(shareData).catch(function () {});
+            return;
+        }
+        copyText(url).then(function () {
+            flashButton(button, "✓", "↗");
+        }).catch(function () {
+            if (button) {
+                button.setAttribute("title", "کپی خودکار در این مرورگر پشتیبانی نشد.");
+            }
+        });
     }
 
     function gatewayProviderFallback(key) {
@@ -300,47 +406,232 @@
         };
     }
 
+    function itemText(item) {
+        var specs = Array.isArray(item.specifications) ? item.specifications.map(function (spec) {
+            return [spec.label, spec.value].join(" ");
+        }).join(" ") : "";
+        return [
+            item.title,
+            item.shortDescription,
+            item.fullDescription,
+            specs,
+            item.slug
+        ].join(" ").toLowerCase();
+    }
+
+    function itemCategory(item) {
+        var haystack = itemText(item);
+        if (/آزمون|امتحان|تست|کوئیز|exam|quiz/.test(haystack)) return "exam";
+        if (/کلاس|جلسه|درس|جزوه|کارگاه|workshop|class/.test(haystack)) return "class";
+        if (/سفارش|محصول|شیلد|کتاب|لباس|خرید|order|product/.test(haystack)) return "order";
+        if (/رویداد|اردو|همایش|جشن|ثبت‌نام|ثبت نام|event|camp/.test(haystack)) return "event";
+        return "event";
+    }
+
+    function categoryLabel(key) {
+        switch (key) {
+            case "exam":
+                return "آزمون";
+            case "class":
+                return "کلاس";
+            case "order":
+                return "سفارش";
+            case "event":
+                return "رویداد";
+            default:
+                return "آیتم پرداخت";
+        }
+    }
+
+    function imageList(item) {
+        var output = [];
+        var hero = String(item.heroImage || "").trim();
+        if (hero) output.push(hero);
+        if (Array.isArray(item.gallery)) {
+            item.gallery.forEach(function (url) {
+                var clean = String(url || "").trim();
+                if (clean && output.indexOf(clean) < 0) {
+                    output.push(clean);
+                }
+            });
+        }
+        return output;
+    }
+
+    function itemMeta(item) {
+        var meta = [];
+        if (item.expiresAt) {
+            meta.push("مهلت " + formatDateTime(item.expiresAt, "—"));
+        } else if (item.updatedAt) {
+            meta.push("به‌روزرسانی " + formatDateTime(item.updatedAt, "—"));
+        }
+        if (item.remainingCapacity != null) {
+            meta.push("باقی‌مانده " + Number(item.remainingCapacity || 0).toLocaleString("fa-IR"));
+        }
+        meta.push(MARKET_LOCATION);
+        return meta.join(" • ");
+    }
+
+    function matchesFilters(item) {
+        var query = state.query.trim().toLowerCase();
+        if (query && itemText(item).indexOf(query) < 0) {
+            return false;
+        }
+        if (state.category === "saved" && !isSaved(item.slug)) {
+            return false;
+        }
+        if (state.category !== "all" && state.category !== "saved" && itemCategory(item) !== state.category) {
+            return false;
+        }
+        var itemState = item.state || {};
+        if (state.filter === "payable" && !itemState.isPayable) {
+            return false;
+        }
+        if (state.filter === "limited" && item.capacity == null) {
+            return false;
+        }
+        if (state.filter === "deadline" && !item.expiresAt) {
+            return false;
+        }
+        return true;
+    }
+
+    function syncListControls() {
+        document.querySelectorAll("[data-buy-category]").forEach(function (button) {
+            button.classList.toggle("is-active", String(button.dataset.buyCategory || "") === state.category);
+        });
+        document.querySelectorAll("[data-buy-filter]").forEach(function (button) {
+            button.classList.toggle("is-active", String(button.dataset.buyFilter || "") === state.filter);
+        });
+        var clear = $("buy-clear-search");
+        if (clear) {
+            clear.hidden = state.query.trim() === "";
+        }
+    }
+
     function renderList(items) {
         var root = $("buy-list-root");
+        var countNode = $("buy-list-count");
         if (!root) return;
 
-        if (!Array.isArray(items) || !items.length) {
+        var source = Array.isArray(items) ? items : [];
+        var visible = source.filter(matchesFilters);
+        syncListControls();
+
+        if (countNode) {
+            countNode.textContent = visible.length
+                ? visible.length.toLocaleString("fa-IR") + " پرداخت مطابق فیلتر"
+                : "موردی پیدا نشد";
+        }
+
+        if (!source.length) {
             root.innerHTML = '<div class="buy-empty">فعلا آیتم فعالی برای پرداخت وجود ندارد.</div>';
             return;
         }
+        if (!visible.length) {
+            root.innerHTML = '<div class="buy-empty">برای این جست‌وجو یا فیلتر، پرداختی پیدا نشد.</div>';
+            return;
+        }
 
-        root.innerHTML = items.map(function (item) {
-            var state = item.state || {};
-            var hero = String(item.heroImage || "").trim();
-            var meta = [];
-            if (item.remainingCapacity != null) {
-                meta.push("باقی‌مانده " + String(Number(item.remainingCapacity || 0).toLocaleString("fa-IR")));
-            }
-            if (item.expiresAt) {
-                meta.push("مهلت " + formatDateTime(item.expiresAt, "—"));
-            }
+        root.innerHTML = visible.map(function (item) {
+            var itemState = item.state || {};
+            var images = imageList(item);
+            var hero = images[0] || "";
+            var slug = String(item.slug || "");
+            var href = "/buy/item/?slug=" + encodeURIComponent(slug);
+            var saved = isSaved(slug);
             return [
-                '<article class="buy-item-card">',
-                '  <a class="buy-item-card__hero" href="/buy/item/?slug=' + encodeURIComponent(String(item.slug || "")) + '">',
+                '<article class="buy-item-card" data-buy-card="' + text(slug) + '">',
+                '  <div class="buy-item-card__body">',
+                '    <div class="buy-item-card__top">',
+                '      <span class="buy-status ' + statusClass(itemState.key || item.status) + '">' + text(itemState.label || "نامشخص") + "</span>",
+                '      <span class="buy-kicker">' + text(categoryLabel(itemCategory(item))) + "</span>",
+                "    </div>",
+                '    <a href="' + href + '"><h3 class="buy-item-card__title">' + text(item.title || "بدون عنوان") + "</h3></a>",
+                '    <p class="buy-item-card__desc">' + text(item.shortDescription || "—") + "</p>",
+                '    <strong class="buy-item-card__price">' + text(money(item.price || 0)) + "</strong>",
+                '    <p class="buy-item-card__meta">' + text(itemMeta(item)) + "</p>",
+                '    <div class="buy-item-card__actions">',
+                '      <a class="buy-card-link" href="' + href + '">مشاهده و پرداخت</a>',
+                '      <button class="buy-card-icon-btn' + (saved ? " is-saved" : "") + '" type="button" data-buy-save="' + text(slug) + '" aria-label="نشان کردن">' + (saved ? "♥" : "♡") + "</button>",
+                '      <button class="buy-card-icon-btn" type="button" data-buy-share="' + text(slug) + '" data-buy-share-title="' + text(item.title || "لینک پرداخت") + '" aria-label="اشتراک‌گذاری">↗</button>',
+                "    </div>",
+                "  </div>",
+                '  <a class="buy-item-card__hero" href="' + href + '">',
                 hero
                     ? '    <img src="' + text(hero) + '" alt="' + text(item.title || "تصویر آیتم پرداخت") + '">'
                     : '    <span>بدون تصویر</span>',
+                images.length ? '    <span class="buy-item-card__media-badge">' + text(images.length.toLocaleString("fa-IR")) + "</span>" : "",
                 "  </a>",
-                '  <div class="buy-item-card__body">',
-                '    <div class="buy-item-card__head">',
-                '      <div class="buy-item-card__copy">',
-                '        <span class="buy-status ' + statusClass(state.key || item.status) + '">' + text(state.label || "نامشخص") + "</span>",
-                '        <h3 class="buy-item-card__title">' + text(item.title || "بدون عنوان") + "</h3>",
-                "      </div>",
-                '      <strong class="buy-item-card__price">' + text(money(item.price || 0)) + "</strong>",
-                "    </div>",
-                '    <p class="buy-item-card__desc">' + text(item.shortDescription || "—") + "</p>",
-                meta.length ? '    <p class="buy-item-card__meta">' + text(meta.join(" • ")) + "</p>" : "",
-                '    <a class="shell-action-btn shell-action-btn-primary" href="/buy/item/?slug=' + encodeURIComponent(String(item.slug || "")) + '">مشاهده و پرداخت</a>',
-                "  </div>",
                 "</article>"
             ].join("");
         }).join("");
+    }
+
+    function bindListControls() {
+        var search = $("buy-search-input");
+        var clear = $("buy-clear-search");
+        var root = $("buy-list-root");
+
+        if (search && !search.dataset.buyBound) {
+            search.dataset.buyBound = "1";
+            search.addEventListener("input", function () {
+                state.query = search.value || "";
+                renderList(state.items);
+            });
+        }
+        if (clear && !clear.dataset.buyBound) {
+            clear.dataset.buyBound = "1";
+            clear.addEventListener("click", function () {
+                state.query = "";
+                if (search) search.value = "";
+                renderList(state.items);
+                if (search) search.focus();
+            });
+        }
+
+        document.querySelectorAll("[data-buy-category]").forEach(function (button) {
+            if (button.dataset.buyBound) return;
+            button.dataset.buyBound = "1";
+            button.addEventListener("click", function () {
+                state.category = String(button.dataset.buyCategory || "all");
+                renderList(state.items);
+            });
+        });
+
+        document.querySelectorAll("[data-buy-filter]").forEach(function (button) {
+            if (button.dataset.buyBound) return;
+            button.dataset.buyBound = "1";
+            button.addEventListener("click", function () {
+                state.filter = String(button.dataset.buyFilter || "all");
+                renderList(state.items);
+            });
+        });
+
+        if (root && !root.dataset.buyBound) {
+            root.dataset.buyBound = "1";
+            root.addEventListener("click", function (event) {
+                var saveButton = event.target.closest("[data-buy-save]");
+                if (saveButton) {
+                    var slug = saveButton.getAttribute("data-buy-save");
+                    var saved = toggleSaved(slug);
+                    saveButton.classList.toggle("is-saved", saved);
+                    saveButton.textContent = saved ? "♥" : "♡";
+                    if (state.category === "saved") {
+                        renderList(state.items);
+                    }
+                    return;
+                }
+
+                var shareButton = event.target.closest("[data-buy-share]");
+                if (shareButton) {
+                    var shareSlug = shareButton.getAttribute("data-buy-share");
+                    var title = shareButton.getAttribute("data-buy-share-title") || "لینک پرداخت";
+                    var url = window.location.origin + "/buy/item/?slug=" + encodeURIComponent(shareSlug || "");
+                    shareUrl(url, title, shareButton);
+                }
+            });
+        }
     }
 
     function renderRequiredFields(schema) {
@@ -382,7 +673,8 @@
                 control = '<select ' + attrs.join(" ") + (required ? " required" : "") + ">" + optionsHtml.join("") + "</select>";
             } else {
                 var inputType = type === "tel" ? "tel" : (type === "number" ? "number" : "text");
-                control = '<input ' + attrs.join(" ") + ' type="' + inputType + '" maxlength="' + String(Math.max(10, Math.min(1000, maxLength))) + '" placeholder="' + text(placeholder) + '"' + (required ? " required" : "") + ">";
+                var digitAttrs = (inputType === "tel" || inputType === "number") ? ' inputmode="numeric" data-digit-locale="latin"' : "";
+                control = '<input ' + attrs.join(" ") + ' type="' + inputType + '"' + digitAttrs + ' maxlength="' + String(Math.max(10, Math.min(1000, maxLength))) + '" placeholder="' + text(placeholder) + '"' + (required ? " required" : "") + ">";
             }
 
             return [
@@ -417,17 +709,14 @@
     function renderGallery(item) {
         var heroNode = $("buy-item-hero");
         var galleryNode = $("buy-item-gallery");
-        var hero = String(item.heroImage || "").trim();
-        var gallery = Array.isArray(item.gallery) ? item.gallery.slice() : [];
-
-        if (hero && gallery.indexOf(hero) < 0) {
-            gallery.unshift(hero);
-        }
+        var gallery = imageList(item);
+        var hero = gallery[0] || "";
 
         if (heroNode) {
             heroNode.innerHTML = hero
                 ? '<img src="' + text(hero) + '" alt="' + text(item.title || "تصویر آیتم") + '">'
                 : '<div class="buy-image-placeholder">تصویری ثبت نشده است</div>';
+            heroNode.setAttribute("data-gallery-count", gallery.length ? gallery.length.toLocaleString("fa-IR") + " تصویر" : "");
         }
 
         if (!galleryNode) {
@@ -462,14 +751,105 @@
         };
     }
 
+    function prefillFromAuth() {
+        if (!window.Dent1402Auth || typeof window.Dent1402Auth.getState !== "function") {
+            return;
+        }
+        var authState = window.Dent1402Auth.getState();
+        var user = authState && authState.loggedIn ? authState.user : null;
+        if (!user) {
+            return;
+        }
+        var name = $("buy-payer-name");
+        var studentNumber = $("buy-payer-student-number");
+        if (name && !String(name.value || "").trim() && user.name) {
+            name.value = user.name;
+        }
+        if (studentNumber && !String(studentNumber.value || "").trim() && user.studentNumber) {
+            studentNumber.value = user.studentNumber;
+        }
+    }
+
+    function updateSaveButton(slug) {
+        var save = $("buy-save-item");
+        if (!save) return;
+        var saved = isSaved(slug);
+        save.classList.toggle("is-saved", saved);
+        save.textContent = saved ? "♥" : "♡";
+    }
+
+    function setFloatingBar(item, payable, submit, form) {
+        var bar = $("buy-floating-bar");
+        var price = $("buy-floating-price");
+        var action = $("buy-floating-submit");
+        if (!bar || !price || !action || !item) {
+            return;
+        }
+        price.textContent = money(item.price || 0);
+        bar.hidden = false;
+        action.disabled = !payable || (submit && submit.disabled);
+        action.textContent = payable ? "ادامه پرداخت" : "قابل پرداخت نیست";
+        if (!action.dataset.buyBound) {
+            action.dataset.buyBound = "1";
+            action.addEventListener("click", function () {
+                if (action.disabled) {
+                    if (form) form.scrollIntoView({ behavior: "smooth", block: "center" });
+                    return;
+                }
+                if (form && typeof form.requestSubmit === "function") {
+                    form.requestSubmit();
+                } else if (form) {
+                    form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+                }
+            });
+        }
+    }
+
+    function bindDetailActions(slug, item, feedback) {
+        var share = $("buy-share-item");
+        var save = $("buy-save-item");
+        var report = $("buy-report-link");
+        updateSaveButton(slug);
+
+        if (share && !share.dataset.buyBound) {
+            share.dataset.buyBound = "1";
+            share.addEventListener("click", function () {
+                shareUrl(window.location.href, item ? item.title : "لینک پرداخت", share);
+            });
+        }
+
+        if (save && !save.dataset.buyBound) {
+            save.dataset.buyBound = "1";
+            save.addEventListener("click", function () {
+                var saved = toggleSaved(slug);
+                save.classList.toggle("is-saved", saved);
+                save.textContent = saved ? "♥" : "♡";
+            });
+        }
+
+        if (report && !report.dataset.buyBound) {
+            report.dataset.buyBound = "1";
+            report.addEventListener("click", function () {
+                setFeedback(feedback, "برای گزارش مشکل، لینک و عنوان پرداخت را برای نماینده یا مالک سایت ارسال کنید. ثبت گزارش خودکار برای این صفحه هنوز به API وصل نشده است.", "");
+                if (feedback) {
+                    feedback.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+            });
+        }
+    }
+
     function initListPage() {
+        bindListControls();
         apiGet("listPublicItems", {}).then(function (payload) {
             if (!payload || !payload.success) {
+                state.items = [];
                 renderList([]);
                 return;
             }
-            renderList(Array.isArray(payload.items) ? payload.items : []);
+            state.items = Array.isArray(payload.items) ? payload.items : [];
+            renderList(state.items);
         }).catch(function () {
+            state.items = [];
             renderList([]);
         });
     }
@@ -483,6 +863,7 @@
         var stateNode = $("buy-item-state");
         var capacityNode = $("buy-item-capacity");
         var timeNode = $("buy-item-time");
+        var categoryNode = $("buy-item-category-label");
         var form = $("buy-order-form");
         var submit = $("buy-order-submit");
         var feedback = $("buy-order-feedback");
@@ -500,25 +881,28 @@
                 if (titleNode) titleNode.textContent = "آیتم پرداخت پیدا نشد";
                 if (shortNode) shortNode.textContent = (payload && payload.error) || "لینک پرداخت معتبر نیست.";
                 if (form) form.hidden = true;
+                bindDetailActions(slug, null, feedback);
                 return;
             }
 
             var item = payload.item;
-            var state = item.state || {};
-            var payable = !!state.isPayable;
+            state.currentItem = item;
+            var itemState = item.state || {};
+            var payable = !!itemState.isPayable;
 
             if (titleNode) titleNode.textContent = item.title || "آیتم پرداخت";
             if (shortNode) shortNode.textContent = item.shortDescription || "—";
             if (fullNode) fullNode.textContent = item.fullDescription || "—";
             if (priceNode) priceNode.textContent = money(item.price || 0);
+            if (categoryNode) categoryNode.textContent = categoryLabel(itemCategory(item));
             if (stateNode) {
-                stateNode.textContent = state.label || "نامشخص";
-                stateNode.className = "buy-status " + statusClass(state.key || item.status);
+                stateNode.textContent = itemState.label || "نامشخص";
+                stateNode.className = "buy-status " + statusClass(itemState.key || item.status);
             }
             if (capacityNode) {
                 capacityNode.textContent = item.capacity == null
                     ? "بدون محدودیت ظرفیت"
-                    : ("کل " + String(Number(item.capacity || 0).toLocaleString("fa-IR")) + " • باقی‌مانده " + String(Number(item.remainingCapacity || 0).toLocaleString("fa-IR")));
+                    : ("کل " + Number(item.capacity || 0).toLocaleString("fa-IR") + " • باقی‌مانده " + Number(item.remainingCapacity || 0).toLocaleString("fa-IR"));
             }
             if (timeNode) {
                 var timeMeta = [];
@@ -535,6 +919,8 @@
             renderSpecifications(item.specifications || []);
             renderRequiredFields(item.requiredFields || []);
             gatewaySelection = renderGatewayOptions(item.paymentGateways || {}, form, submit);
+            bindDetailActions(slug, item, feedback);
+            prefillFromAuth();
 
             if (submit) {
                 var hasGateway = !!(gatewaySelection && gatewaySelection.hasEnabled);
@@ -550,6 +936,7 @@
                 }
             }
             setFeedback(feedback, payable ? "" : (item.statusMessage || "این آیتم در حال حاضر قابل پرداخت نیست."), payable ? "" : "is-error");
+            setFloatingBar(item, payable, submit, form);
 
             if (!form) {
                 return;
@@ -605,6 +992,7 @@
                 }
 
                 if (submit) submit.disabled = true;
+                setFloatingBar(item, payable, submit, form);
                 setFeedback(feedback, "در حال انتقال به درگاه پرداخت...", "");
 
                 apiPost("createOrder", {
@@ -617,12 +1005,14 @@
                 }).then(function (response) {
                     if (!response || !response.success || !response.redirectUrl) {
                         if (submit) submit.disabled = false;
+                        setFloatingBar(item, payable, submit, form);
                         setFeedback(feedback, (response && response.error) || "ایجاد درخواست پرداخت انجام نشد.", "is-error");
                         return;
                     }
                     window.location.href = response.redirectUrl;
                 }).catch(function () {
                     if (submit) submit.disabled = false;
+                    setFloatingBar(item, payable, submit, form);
                     setFeedback(feedback, "ارتباط با سرور برقرار نشد.", "is-error");
                 });
             };
@@ -630,7 +1020,33 @@
             if (titleNode) titleNode.textContent = "دریافت آیتم پرداخت انجام نشد";
             if (shortNode) shortNode.textContent = "ارتباط با سرور برقرار نشد.";
             if (form) form.hidden = true;
+            bindDetailActions(slug, null, feedback);
         });
+    }
+
+    function bindResultActions(order) {
+        var actions = $("buy-result-actions");
+        if (!actions || actions.dataset.buyBound) {
+            return;
+        }
+        actions.dataset.buyBound = "1";
+        actions.addEventListener("click", function (event) {
+            var button = event.target.closest("[data-copy-result]");
+            if (!button) return;
+            var value = button.getAttribute("data-copy-result") || "";
+            copyText(value).then(function () {
+                flashButton(button, "کپی شد", "کپی کد رهگیری");
+            }).catch(function () {
+                button.textContent = "کپی پشتیبانی نشد";
+                window.setTimeout(function () {
+                    button.textContent = "کپی کد رهگیری";
+                }, 1400);
+            });
+        });
+
+        if (order) {
+            actions.dataset.orderId = String(order.id || "");
+        }
     }
 
     function initResultPage() {
@@ -698,11 +1114,14 @@
             }
             if (actionsNode) {
                 var itemHref = item && item.slug ? "/buy/item/?slug=" + encodeURIComponent(String(item.slug)) : "/buy/";
+                var ref = String(order.refId || order.authority || "");
                 actionsNode.innerHTML = [
-                    '<a class="shell-action-btn shell-action-btn-primary" href="' + itemHref + '">بازگشت به صفحه پرداخت</a>',
-                    '<a class="shell-action-btn" href="/buy/">مشاهده سایر پرداخت‌ها</a>'
+                    '<a class="buy-primary-btn" href="' + itemHref + '">بازگشت به صفحه پرداخت</a>',
+                    '<a class="shell-action-btn" href="/buy/">مشاهده سایر پرداخت‌ها</a>',
+                    ref ? '<button class="shell-action-btn" type="button" data-copy-result="' + text(ref) + '">کپی کد رهگیری</button>' : ""
                 ].join("");
             }
+            bindResultActions(order);
         }).catch(function () {
             if (titleNode) titleNode.textContent = "نتیجه پرداخت دریافت نشد";
             if (messageNode) messageNode.textContent = "ارتباط با سرور برقرار نشد.";

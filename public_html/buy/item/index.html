@@ -35,49 +35,87 @@
         </div>
     </header>
 
-    <main class="buy-shell">
-        <section class="buy-item-layout">
-            <section class="buy-card">
-                <span id="buy-item-state" class="buy-status">در حال بارگذاری</span>
-                <h2 id="buy-item-title">در حال دریافت اطلاعات آیتم...</h2>
-                <p id="buy-item-short" class="buy-muted">چند لحظه صبر کنید.</p>
+    <main class="buy-shell buy-shell--item">
+        <nav class="buy-detail-toolbar" aria-label="اکشن‌های پرداخت">
+            <a class="buy-icon-btn" href="/buy/" aria-label="بازگشت به لیست پرداخت‌ها">
+                <span aria-hidden="true">›</span>
+            </a>
+            <div class="buy-detail-toolbar__actions">
+                <button id="buy-share-item" class="buy-icon-btn" type="button" aria-label="اشتراک‌گذاری لینک پرداخت">
+                    <span aria-hidden="true">↗</span>
+                </button>
+                <button id="buy-save-item" class="buy-icon-btn" type="button" aria-label="نشان کردن پرداخت">
+                    <span aria-hidden="true">♡</span>
+                </button>
+            </div>
+        </nav>
 
+        <section class="buy-item-layout">
+            <article class="buy-detail">
                 <div id="buy-item-hero" class="buy-item-main-hero"></div>
                 <div id="buy-item-gallery" class="buy-gallery" aria-label="گالری آیتم"></div>
 
-                <div class="buy-meta-grid">
-                    <div class="buy-meta-card">
-                        <span>قیمت</span>
-                        <strong id="buy-item-price" class="buy-item-price">—</strong>
+                <div class="buy-detail__body">
+                    <div class="buy-breadcrumb">خرید و پرداخت / <span id="buy-item-category-label">آیتم پرداخت</span></div>
+                    <span id="buy-item-state" class="buy-status">در حال بارگذاری</span>
+                    <h2 id="buy-item-title">در حال دریافت اطلاعات آیتم...</h2>
+                    <p id="buy-item-short" class="buy-muted">چند لحظه صبر کنید.</p>
+
+                    <div class="buy-meta-line">
+                        <span id="buy-item-time">—</span>
                     </div>
-                    <div class="buy-meta-card">
-                        <span>ظرفیت</span>
-                        <strong id="buy-item-capacity">—</strong>
+
+                    <div class="buy-meta-grid">
+                        <div class="buy-meta-card">
+                            <span>مبلغ</span>
+                            <strong id="buy-item-price" class="buy-item-price">—</strong>
+                        </div>
+                        <div class="buy-meta-card">
+                            <span>ظرفیت</span>
+                            <strong id="buy-item-capacity">—</strong>
+                        </div>
                     </div>
+
+                    <details class="buy-safety" open>
+                        <summary>
+                            <span class="buy-safety__icon" aria-hidden="true"></span>
+                            <span>پرداخت را فقط از همین لینک و درگاه رسمی انجام بدهید.</span>
+                        </summary>
+                        <p>مبلغ در سرور کنترل می‌شود، رسید بعد از verify نمایش داده می‌شود و لینک پرداخت را می‌توانید از بالای صفحه ذخیره یا ارسال کنید.</p>
+                    </details>
+
+                    <section class="buy-copy-block">
+                        <h3>جزئیات</h3>
+                        <div id="buy-item-specs" class="buy-spec-list"></div>
+                    </section>
+
+                    <section class="buy-copy-block">
+                        <h3>توضیحات</h3>
+                        <p id="buy-item-full" class="buy-muted">—</p>
+                    </section>
+
+                    <section class="buy-report-block">
+                        <button id="buy-report-link" class="buy-report-btn" type="button">
+                            <span aria-hidden="true">ⓘ</span>
+                            گزارش مشکل در لینک پرداخت
+                        </button>
+                    </section>
                 </div>
+            </article>
 
-                <div class="buy-meta-inline">
-                    <span id="buy-item-time">—</span>
-                </div>
-
-                <section class="buy-copy-block">
-                    <h3>توضیحات</h3>
-                    <p id="buy-item-full" class="buy-muted">—</p>
-                </section>
-
-                <section class="buy-copy-block">
-                    <h3>جزئیات</h3>
-                    <div id="buy-item-specs" class="buy-spec-list"></div>
-                </section>
-            </section>
-
-            <aside class="buy-card">
-                <div class="buy-card__head">
+            <aside class="buy-checkout-card" aria-label="فرم پرداخت">
+                <div class="buy-checkout-card__head">
+                    <span class="buy-kicker">شروع پرداخت</span>
                     <h3>اطلاعات پرداخت‌کننده</h3>
-                    <p class="buy-muted">مبلغ از روی آیتم در سرور تعیین می‌شود و از سمت کاربر قابل تغییر نیست.</p>
+                    <p class="buy-muted">یک فرم کوتاه مثل ورود native: شماره موبایل برای پیگیری رسید استفاده می‌شود.</p>
                 </div>
 
                 <form id="buy-order-form" class="buy-form" novalidate>
+                    <div class="buy-form-step">
+                        <span>۱</span>
+                        <strong>مشخصات</strong>
+                    </div>
+
                     <label class="buy-form__field">
                         <span>نام و نام خانوادگی *</span>
                         <input id="buy-payer-name" type="text" maxlength="120" autocomplete="name" placeholder="مثلا آریا رضایی">
@@ -85,29 +123,40 @@
 
                     <label class="buy-form__field">
                         <span>شماره موبایل *</span>
-                        <input id="buy-payer-phone" type="tel" inputmode="numeric" maxlength="14" autocomplete="tel" dir="ltr" placeholder="09xxxxxxxxx">
+                        <input id="buy-payer-phone" type="tel" inputmode="numeric" maxlength="14" autocomplete="tel" dir="ltr" data-digit-locale="latin" placeholder="09xxxxxxxxx">
                     </label>
 
                     <label class="buy-form__field">
                         <span>شماره دانشجویی</span>
-                        <input id="buy-payer-student-number" type="text" inputmode="numeric" maxlength="20" autocomplete="off" dir="ltr" placeholder="در صورت نیاز">
+                        <input id="buy-payer-student-number" type="text" inputmode="numeric" maxlength="20" autocomplete="off" dir="ltr" data-digit-locale="latin" placeholder="در صورت نیاز">
                     </label>
 
                     <div id="buy-extra-fields" class="buy-form__extra"></div>
 
                     <section id="buy-gateway-section" class="buy-gateway" aria-label="روش پرداخت">
                         <div class="buy-gateway__head">
-                            <h4>روش پرداخت</h4>
+                            <div class="buy-form-step">
+                                <span>۲</span>
+                                <strong>روش پرداخت</strong>
+                            </div>
                             <p class="buy-muted">درگاه آنلاین را انتخاب کنید.</p>
                         </div>
                         <div id="buy-gateway-options" class="buy-gateway__list" aria-live="polite"></div>
                     </section>
 
-                    <button id="buy-order-submit" class="shell-action-btn shell-action-btn-primary" type="submit">پرداخت آنلاین</button>
+                    <button id="buy-order-submit" class="buy-primary-btn" type="submit">پرداخت آنلاین</button>
                     <div id="buy-order-feedback" class="buy-feedback" aria-live="polite"></div>
                 </form>
             </aside>
         </section>
+
+        <div id="buy-floating-bar" class="buy-floating-bar" hidden>
+            <div>
+                <span>مبلغ پرداخت</span>
+                <strong id="buy-floating-price">—</strong>
+            </div>
+            <button id="buy-floating-submit" class="buy-primary-btn" type="button">ادامه پرداخت</button>
+        </div>
     </main>
 
     <footer class="site-footer">
