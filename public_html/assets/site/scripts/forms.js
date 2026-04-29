@@ -714,6 +714,22 @@
                     return item.text;
                 });
             }
+            if (["multiple_choice_grid", "checkbox_grid"].indexOf(next.type) !== -1) {
+                next.rows = next.rows.map(function (item, index) {
+                    return {
+                        id: String(item.id || ("row-" + (index + 1))),
+                        text: String(item.text || "").trim()
+                    };
+                }).filter(function (item) {
+                    return item.text;
+                });
+                if (next.rows.length < 1) {
+                    throw new Error("برای جدول حداقل یک ردیف لازم است.");
+                }
+            }
+            if (fieldNeedsOptions(next.type) && next.options.length < 2) {
+                throw new Error("برای پرسش‌های گزینه‌ای حداقل دو گزینه لازم است.");
+            }
             return next;
         }).filter(function (field) {
             return field.label;
@@ -867,9 +883,32 @@
 
                 var exportA = document.createElement("a");
                 exportA.className = "forms-btn";
-                exportA.href = "/api/forms_api.php?action=export&formId=" + encodeURIComponent(String(form.id || ""));
-                exportA.textContent = "Excel";
+                exportA.href = "/api/forms_api.php?action=export&mode=responses&formId=" + encodeURIComponent(String(form.id || ""));
+                exportA.textContent = "Excel پاسخ‌ها";
                 actions.appendChild(exportA);
+
+                var summaryA = document.createElement("a");
+                summaryA.className = "forms-btn";
+                summaryA.href = "/api/forms_api.php?action=export&mode=summary&formId=" + encodeURIComponent(String(form.id || ""));
+                summaryA.textContent = "خلاصه Excel";
+                actions.appendChild(summaryA);
+
+                var officialA = document.createElement("a");
+                officialA.className = "forms-btn";
+                officialA.href = "/api/forms_api.php?action=export&mode=official&formId=" + encodeURIComponent(String(form.id || ""));
+                officialA.textContent = "خروجی رسمی";
+                actions.appendChild(officialA);
+
+                if (form.permissions && form.permissions.canDelete) {
+                    var deleteBtn = document.createElement("button");
+                    deleteBtn.className = "forms-btn forms-btn--danger";
+                    deleteBtn.type = "button";
+                    deleteBtn.textContent = "حذف کامل";
+                    deleteBtn.addEventListener("click", function () {
+                        deleteForm(form.id);
+                    });
+                    actions.appendChild(deleteBtn);
+                }
             }
 
             item.appendChild(actions);
@@ -950,6 +989,32 @@
         }
     }
 
+    async function deleteForm(formId) {
+        if (!formId || !window.confirm("این فرم و همه پاسخ‌های آن حذف شود؟ این کار فقط برای مالک مجاز است و برگشت‌پذیر نیست.")) {
+            return;
+        }
+        try {
+            var response = await apiPost("delete", {
+                formId: String(formId || "")
+            });
+            if (consumeUnauthorized(response)) return;
+            if (!response || !response.success) {
+                throw new Error((response && response.error) || "حذف فرم انجام نشد.");
+            }
+            if (state.editingId === String(formId || "")) {
+                applyTemplate("blank");
+            }
+            responsesList.innerHTML = "";
+            responsesEmpty.hidden = false;
+            exportLink.hidden = true;
+            exportLink.removeAttribute("href");
+            showToast("فرم حذف شد.");
+            await loadForms();
+        } catch (error) {
+            showToast(error && error.message ? error.message : "حذف فرم انجام نشد.");
+        }
+    }
+
     async function loadResponses(formId) {
         try {
             var response = await apiGet("responses", { formId: String(formId || "") });
@@ -971,7 +1036,7 @@
         responsesTitle.textContent = form && form.title ? "پاسخ‌ها: " + form.title : "پاسخ‌ها";
         if (form && form.id) {
             exportLink.hidden = false;
-            exportLink.href = "/api/forms_api.php?action=export&formId=" + encodeURIComponent(String(form.id));
+            exportLink.href = "/api/forms_api.php?action=export&mode=responses&formId=" + encodeURIComponent(String(form.id));
         } else {
             exportLink.hidden = true;
             exportLink.removeAttribute("href");

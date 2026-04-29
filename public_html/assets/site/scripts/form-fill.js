@@ -177,6 +177,13 @@
         });
     }
 
+    function syncGridStyles(card) {
+        Array.prototype.forEach.call(card.querySelectorAll(".forms-grid-choice"), function (label) {
+            var input = label.querySelector("input");
+            label.classList.toggle("is-selected", !!(input && input.checked));
+        });
+    }
+
     function renderQuestion(field) {
         var card = document.createElement("section");
         card.className = "forms-card forms-fill-question";
@@ -228,6 +235,57 @@
             return card;
         }
 
+        if (["multiple_choice_grid", "checkbox_grid"].indexOf(type) !== -1) {
+            var gridWrap = document.createElement("div");
+            gridWrap.className = "forms-grid-question-wrap";
+            var table = document.createElement("table");
+            table.className = "forms-grid-question";
+            var thead = document.createElement("thead");
+            var headRow = document.createElement("tr");
+            headRow.appendChild(document.createElement("th"));
+            (Array.isArray(field.options) ? field.options : []).forEach(function (option) {
+                var th = document.createElement("th");
+                th.textContent = String(option.text || option.id || "");
+                headRow.appendChild(th);
+            });
+            thead.appendChild(headRow);
+            table.appendChild(thead);
+
+            var tbody = document.createElement("tbody");
+            (Array.isArray(field.rows) ? field.rows : []).forEach(function (row) {
+                var tr = document.createElement("tr");
+                var rowHead = document.createElement("th");
+                rowHead.scope = "row";
+                rowHead.textContent = String(row.text || row.id || "");
+                tr.appendChild(rowHead);
+                (Array.isArray(field.options) ? field.options : []).forEach(function (option) {
+                    var td = document.createElement("td");
+                    var label = document.createElement("label");
+                    label.className = "forms-grid-choice";
+                    var input = document.createElement("input");
+                    input.type = type === "checkbox_grid" ? "checkbox" : "radio";
+                    input.name = "answer-" + String(field.id || "") + "-" + String(row.id || "");
+                    input.value = String(option.id || "");
+                    input.dataset.gridInput = "1";
+                    input.dataset.rowId = String(row.id || "");
+                    input.addEventListener("change", function () {
+                        syncGridStyles(card);
+                    });
+                    var text = document.createElement("span");
+                    text.textContent = String(option.text || option.id || "");
+                    label.appendChild(input);
+                    label.appendChild(text);
+                    td.appendChild(label);
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            gridWrap.appendChild(table);
+            card.appendChild(gridWrap);
+            return card;
+        }
+
         if (type === "dropdown") {
             var selectWrap = document.createElement("label");
             selectWrap.className = "forms-field";
@@ -261,7 +319,8 @@
                     : type === "number" ? "number"
                         : type === "date" ? "date"
                             : type === "time" ? "time"
-                                : "text";
+                                : type === "url" ? "url"
+                                    : "text";
             if (type === "phone" || type === "number") {
                 input.dir = "ltr";
                 input.setAttribute("data-latin-digits", "true");
@@ -374,6 +433,24 @@
             if (type === "dropdown") {
                 var select = card.querySelector("select[data-answer-input]");
                 answers[fieldId] = select ? String(select.value || "") : "";
+                return;
+            }
+            if (["multiple_choice_grid", "checkbox_grid"].indexOf(type) !== -1) {
+                var gridAnswer = {};
+                (Array.isArray(field.rows) ? field.rows : []).forEach(function (row) {
+                    gridAnswer[String(row.id || "")] = type === "checkbox_grid" ? [] : "";
+                });
+                Array.prototype.forEach.call(card.querySelectorAll("input[data-grid-input]:checked"), function (input) {
+                    var rowId = String(input.dataset.rowId || "");
+                    if (!rowId) return;
+                    if (type === "checkbox_grid") {
+                        if (!Array.isArray(gridAnswer[rowId])) gridAnswer[rowId] = [];
+                        gridAnswer[rowId].push(String(input.value || ""));
+                    } else {
+                        gridAnswer[rowId] = String(input.value || "");
+                    }
+                });
+                answers[fieldId] = gridAnswer;
                 return;
             }
             var input = card.querySelector("[data-answer-input]");

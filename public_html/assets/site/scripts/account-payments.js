@@ -26,6 +26,15 @@
     var filterDateFrom = $("payments-filter-date-from");
     var filterDateTo = $("payments-filter-date-to");
     var filterQuery = $("payments-filter-query");
+    var previewImage = $("payments-preview-image");
+    var previewCategory = $("payments-preview-category");
+    var previewStatus = $("payments-preview-status");
+    var previewTitle = $("payments-preview-title");
+    var previewShort = $("payments-preview-short");
+    var previewPrice = $("payments-preview-price");
+    var previewMeta = $("payments-preview-meta");
+    var previewSpecs = $("payments-preview-specs");
+    var fillShieldSampleButton = $("payments-fill-shield-sample");
 
     var state = {
         currentUser: null,
@@ -36,6 +45,48 @@
         items: [],
         notifications: [],
         orders: []
+    };
+
+    var SHIELD_SAMPLE = {
+        title: "شیلد ابری سامان زر دندان",
+        category: "consumables",
+        slug: "saman-foam-face-shield",
+        price: "1200000",
+        status: "active",
+        shortDescription: "شیلد محافظ صورت دندانپزشکی با فوم فاصله‌دهنده، مناسب تمرین‌های عملی، لابراتوار و کارهای کلینیکی دانشجویان.",
+        fullDescription: "این آیتم تستی بر اساس محصول شیلد ابری سامان زر دندان در دنتی‌پارس ساخته شده است. شیلد برای محافظت صورت هنگام کار دندانپزشکی و استفاده در لابراتوار مناسب است، فوم با ضخامت مناسب برای فاصله طلق از صورت دارد، قابل استفاده مجدد و قابل شستشو است و با کش پشت سر قرار می‌گیرد. قیمت مرجع سایت منبع ۱۲۰٬۰۰۰ تومان است و برای درگاه به‌صورت ۱٬۲۰۰٬۰۰۰ ریال ثبت می‌شود.",
+        heroImage: "/assets/images/buy/saman-foam-face-shield.jpg",
+        expiresAt: "2026-05-15T23:59",
+        gallery: [
+            "/assets/images/buy/saman-foam-face-shield.jpg"
+        ],
+        specifications: [
+            { label: "کاربرد", value: "دندانپزشکی، لابراتوار و محیط آموزشی" },
+            { label: "محتوای بسته", value: "۲ عددی" },
+            { label: "ویژگی", value: "قابل استفاده مجدد، قابل شستشو، دارای کش" },
+            { label: "منبع قیمت", value: "دنتی‌پارس، ۱۲۰٬۰۰۰ تومان" }
+        ],
+        requiredFields: [
+            { name: "studentNumber", label: "شماره دانشجویی", type: "text", required: true, maxLength: 14 },
+            { name: "group", label: "گروه/بخش تحویل", type: "text", required: false, maxLength: 80 }
+        ],
+        audienceNote: "دانشجویان دندانپزشکی ورودی ۱۴۰۲",
+        deliveryNote: "تحویل حضوری در محدوده دانشکده دندانپزشکی دانشگاه علوم پزشکی تهران هماهنگ می‌شود.",
+        supportNote: "برای پیگیری سفارش، کد رهگیری پرداخت را برای نماینده یا مالک سایت ارسال کنید.",
+        allowCancellation: false,
+        maxQuantityPerOrder: "2",
+        capacity: "40",
+        discountCodes: [
+            { code: "SHIELD10", type: "percent", amount: 10, label: "تخفیف تستی دانشجویی", isEnabled: true }
+        ],
+        ratingAverage: "4.8",
+        ratingCount: "12",
+        reviews: [
+            { name: "دانشجوی ترمیمی", rating: 5, body: "سبک است و فاصله طلق از صورت برای کار طولانی بهتر از مدل ساده است." },
+            { name: "دانشجوی لابراتوار", rating: 4.5, body: "برای تمرین و کارگاه مناسب است؛ بهتر است قبل از تحویل سلامت طلق چک شود." }
+        ],
+        successMessage: "سفارش شیلد شما با موفقیت ثبت شد و با کد رهگیری قابل پیگیری است.",
+        failureMessage: "پرداخت سفارش شیلد تایید نشد؛ در صورت کسر وجه با پشتیبانی تماس بگیرید."
     };
 
     function parseJsonResponse(response) {
@@ -144,6 +195,133 @@
 
     function money(value) {
         return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " ریال";
+    }
+
+    function readField(id) {
+        var node = $(id);
+        return node ? String(node.value || "").trim() : "";
+    }
+
+    function writeField(id, value) {
+        var node = $(id);
+        if (!node) {
+            return;
+        }
+        node.value = value == null ? "" : String(value);
+    }
+
+    function selectedText(id, fallback) {
+        var node = $(id);
+        if (!node || !node.options || node.selectedIndex < 0) {
+            return fallback || "";
+        }
+        return String(node.options[node.selectedIndex].textContent || fallback || "").trim();
+    }
+
+    function parseLooseJson(raw, fallback) {
+        var text = String(raw || "").trim();
+        if (!text) {
+            return fallback;
+        }
+        try {
+            return JSON.parse(text);
+        } catch (_error) {
+            return fallback;
+        }
+    }
+
+    function firstImageFromForm() {
+        var hero = readField("payments-item-hero-image");
+        if (hero) {
+            return hero;
+        }
+        var gallery = parseLooseJson(readField("payments-item-gallery"), []);
+        return Array.isArray(gallery) && gallery.length ? String(gallery[0] || "") : "";
+    }
+
+    function formDeadlineLabel() {
+        var expires = readField("payments-item-expires-at");
+        return expires ? formatDateTime(fromDatetimeLocal(expires), "بدون مهلت") : "بدون مهلت";
+    }
+
+    function updateItemPreview() {
+        if (!previewTitle) {
+            return;
+        }
+
+        var title = readField("payments-item-title") || "عنوان آیتم خرید";
+        var shortDescription = readField("payments-item-short-description") || "پیش‌نمایش زنده از چیزی که دانشجو در صفحه خرید می‌بیند.";
+        var price = normalizeDigits(readField("payments-item-price")).replace(/\D+/g, "");
+        var image = firstImageFromForm();
+        var capacity = normalizeDigits(readField("payments-item-capacity")).replace(/\D+/g, "");
+        var maxQuantity = normalizeDigits(readField("payments-item-max-quantity")).replace(/\D+/g, "") || "1";
+        var audience = readField("payments-item-audience-note") || "دانشجویان دندانپزشکی ورودی ۱۴۰۲";
+        var specs = parseLooseJson(readField("payments-item-specifications"), []);
+
+        if (previewImage) {
+            previewImage.innerHTML = image
+                ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(title) + '">'
+                : "<span>بدون تصویر</span>";
+        }
+        if (previewCategory) {
+            previewCategory.textContent = selectedText("payments-item-category", "سفارش گروهی");
+        }
+        if (previewStatus) {
+            previewStatus.textContent = selectedText("payments-item-status", "غیرفعال");
+        }
+        previewTitle.textContent = title;
+        if (previewShort) {
+            previewShort.textContent = shortDescription;
+        }
+        if (previewPrice) {
+            previewPrice.textContent = money(price || 0);
+        }
+        if (previewMeta) {
+            previewMeta.innerHTML = [
+                "<span><b>ظرفیت</b>" + escapeHtml(capacity ? Number(capacity).toLocaleString("fa-IR") : "نامحدود") + "</span>",
+                "<span><b>حداکثر سفارش</b>" + escapeHtml(Number(maxQuantity).toLocaleString("fa-IR")) + "</span>",
+                "<span><b>مهلت</b>" + escapeHtml(formDeadlineLabel()) + "</span>",
+                "<span><b>مخاطب</b>" + escapeHtml(audience) + "</span>"
+            ].join("");
+        }
+        if (previewSpecs) {
+            var visibleSpecs = Array.isArray(specs) ? specs.slice(0, 4) : [];
+            previewSpecs.innerHTML = visibleSpecs.map(function (entry) {
+                return "<span><b>" + escapeHtml(entry && entry.label || "مشخصه") + "</b>" + escapeHtml(entry && entry.value || "—") + "</span>";
+            }).join("");
+        }
+    }
+
+    function fillShieldSample() {
+        writeField("payments-item-id", "");
+        writeField("payments-item-title", SHIELD_SAMPLE.title);
+        writeField("payments-item-category", SHIELD_SAMPLE.category);
+        writeField("payments-item-slug", SHIELD_SAMPLE.slug);
+        writeField("payments-item-price", SHIELD_SAMPLE.price);
+        writeField("payments-item-status", SHIELD_SAMPLE.status);
+        writeField("payments-item-short-description", SHIELD_SAMPLE.shortDescription);
+        writeField("payments-item-full-description", SHIELD_SAMPLE.fullDescription);
+        writeField("payments-item-hero-image", SHIELD_SAMPLE.heroImage);
+        writeField("payments-item-expires-at", SHIELD_SAMPLE.expiresAt);
+        writeField("payments-item-gallery", prettyJson(SHIELD_SAMPLE.gallery));
+        writeField("payments-item-specifications", prettyJson(SHIELD_SAMPLE.specifications));
+        writeField("payments-item-required-fields", prettyJson(SHIELD_SAMPLE.requiredFields));
+        writeField("payments-item-audience-note", SHIELD_SAMPLE.audienceNote);
+        writeField("payments-item-delivery-note", SHIELD_SAMPLE.deliveryNote);
+        writeField("payments-item-support-note", SHIELD_SAMPLE.supportNote);
+        writeField("payments-item-max-quantity", SHIELD_SAMPLE.maxQuantityPerOrder);
+        writeField("payments-item-capacity", SHIELD_SAMPLE.capacity);
+        writeField("payments-item-discount-codes", prettyJson(SHIELD_SAMPLE.discountCodes));
+        writeField("payments-item-rating-average", SHIELD_SAMPLE.ratingAverage);
+        writeField("payments-item-rating-count", SHIELD_SAMPLE.ratingCount);
+        writeField("payments-item-reviews", prettyJson(SHIELD_SAMPLE.reviews));
+        writeField("payments-item-success-message", SHIELD_SAMPLE.successMessage);
+        writeField("payments-item-failure-message", SHIELD_SAMPLE.failureMessage);
+        if ($("payments-item-allow-cancellation")) {
+            $("payments-item-allow-cancellation").checked = !!SHIELD_SAMPLE.allowCancellation;
+        }
+        updateItemPreview();
+        setFeedback(itemFormFeedback, "نمونه شیلد از منبع دنتی‌پارس داخل فرم آماده شد؛ بعد از ذخیره در کاتالوگ عمومی نمایش داده می‌شود.", "success");
     }
 
     function absoluteUrl(path) {
@@ -507,6 +685,7 @@
         $("payments-item-success-message").value = "پرداخت شما با موفقیت ثبت شد.";
         $("payments-item-failure-message").value = "پرداخت شما ناموفق بود.";
         setFeedback(itemFormFeedback, "", "");
+        updateItemPreview();
     }
 
     function fillItemForm(itemId) {
@@ -543,6 +722,7 @@
         $("payments-item-expires-at").value = toDatetimeLocal(item.expiresAt);
         $("payments-item-capacity").value = item.capacity == null ? "" : String(item.capacity);
         setFeedback(itemFormFeedback, "حالت ویرایش برای «" + (item.title || "آیتم") + "» فعال شد.", "success");
+        updateItemPreview();
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -829,6 +1009,8 @@
 
     if (itemForm) {
         itemForm.addEventListener("submit", saveItem);
+        itemForm.addEventListener("input", updateItemPreview);
+        itemForm.addEventListener("change", updateItemPreview);
     }
 
     if ($("payments-item-title") && $("payments-item-slug")) {
@@ -840,8 +1022,13 @@
             var candidate = slugifyLatin($("payments-item-title").value);
             if (candidate) {
                 slugInput.value = candidate;
+                updateItemPreview();
             }
         });
+    }
+
+    if (fillShieldSampleButton) {
+        fillShieldSampleButton.addEventListener("click", fillShieldSample);
     }
 
     if (filterForm) {

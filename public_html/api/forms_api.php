@@ -977,6 +977,19 @@ function forms_response_payload(array $response, array $form): array
             $fieldsById[(string) $field['id']] = $field;
         }
     }
+    $settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
+    $anonymous = forms_parse_bool($settings['anonymousResponses'] ?? false, false);
+    $identity = is_array($response['identity'] ?? null) ? $response['identity'] : [];
+    if ($anonymous) {
+        $identity = [
+            'kind' => (string) ($identity['kind'] ?? 'guest'),
+            'key' => '',
+            'studentNumber' => '',
+            'name' => 'پاسخ ناشناس',
+            'roleLabel' => '',
+            'phone' => '',
+        ];
+    }
 
     $answerPayload = [];
     foreach ((array) ($response['answers'] ?? []) as $fieldId => $answer) {
@@ -995,7 +1008,7 @@ function forms_response_payload(array $response, array $form): array
         'formId' => (string) ($response['formId'] ?? ''),
         'submittedAt' => (int) ($response['submittedAt'] ?? 0),
         'updatedAt' => (int) ($response['updatedAt'] ?? 0),
-        'identity' => is_array($response['identity'] ?? null) ? $response['identity'] : [],
+        'identity' => $identity,
         'answers' => $answerPayload,
     ];
 }
@@ -1132,7 +1145,7 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
     if ($canSubmit && $viewer !== null && forms_can_manage($form, $viewer) && !forms_parse_bool($settings['allowCreatorSubmit'] ?? true, true)) {
         $canSubmit = false;
     }
-    if ($canSubmit && $limitOneResponse && $alreadySubmitted) {
+    if ($canSubmit && $limitOneResponse && $alreadySubmitted && !forms_parse_bool($settings['allowEditResponse'] ?? false, false)) {
         $canSubmit = false;
     }
 
@@ -1403,7 +1416,35 @@ function forms_export_xlsx(array $form, array $responses, string $mode = 'respon
         foreach ($fields as $field) {
             $fieldId = (string) ($field['id'] ?? '');
             $type = (string) ($field['type'] ?? '');
-            if (!in_array($type, ['single_choice', 'multiple_choice', 'dropdown', 'linear_scale'], true)) {
+            if (!in_array($type, ['single_choice', 'multiple_choice', 'dropdown', 'linear_scale', 'multiple_choice_grid', 'checkbox_grid'], true)) {
+                continue;
+            }
+            if (in_array($type, ['multiple_choice_grid', 'checkbox_grid'], true)) {
+                $optionMap = forms_option_map($field);
+                foreach (forms_row_map($field) as $rowId => $rowLabel) {
+                    $counts = [];
+                    foreach ($optionMap as $optionId => $_label) {
+                        $counts[$optionId] = 0;
+                    }
+                    foreach ($responses as $response) {
+                        $answers = is_array($response['answers'] ?? null) ? $response['answers'] : [];
+                        $gridAnswer = is_array($answers[$fieldId] ?? null) ? $answers[$fieldId] : [];
+                        $rowAnswer = $gridAnswer[$rowId] ?? null;
+                        foreach (is_array($rowAnswer) ? $rowAnswer : [$rowAnswer] as $item) {
+                            $key = (string) $item;
+                            if (isset($counts[$key])) {
+                                $counts[$key]++;
+                            }
+                        }
+                    }
+                    foreach ($counts as $optionId => $count) {
+                        $rows[] = [
+                            (string) ($field['label'] ?? '') . ' / ' . $rowLabel,
+                            (string) ($optionMap[$optionId] ?? $optionId),
+                            (string) $count,
+                        ];
+                    }
+                }
                 continue;
             }
             $counts = [];
@@ -1468,8 +1509,18 @@ function forms_export_xlsx(array $form, array $responses, string $mode = 'respon
 
         $rows = [];
         $index = 1;
+        $anonymous = forms_parse_bool($settings['anonymousResponses'] ?? false, false);
         foreach ($responses as $response) {
             $identity = is_array($response['identity'] ?? null) ? $response['identity'] : [];
+            if ($anonymous) {
+                $identity = [
+                    'kind' => (string) ($identity['kind'] ?? 'guest'),
+                    'name' => 'پاسخ ناشناس',
+                    'studentNumber' => '',
+                    'roleLabel' => '',
+                    'phone' => '',
+                ];
+            }
             $identityValues = [
                 'index' => (string) $index,
                 'responseId' => (string) ($response['id'] ?? ''),
@@ -1568,7 +1619,7 @@ if ($action === 'list') {
         if (!is_array($form)) {
             continue;
         }
-        if (forms_can_create($user) || forms_viewer_can_access($form, $user)) {
+        if (forms_can_create($user) || forms_can_manage($form, $user) || forms_viewer_can_access($form, $user)) {
             $forms[] = forms_form_payload($store, $form, $user, false);
         }
     }
@@ -1585,7 +1636,7 @@ if ($action === 'create') {
     }
     $user = dent_require_user();
     if (!forms_can_create($user)) {
-        dent_error('ساخت فرم و نظرسنجی فقط برای مالک یا نماینده فعال است.', 403);
+        dent_error('ساخت فرم و نظرسنجی فقط برای مالک فعال است.', 403);
     }
     $store = forms_load_store();
     $form = forms_build_form_from_payload(forms_request_payload(), $user, null);
@@ -1764,7 +1815,7 @@ if ($action === 'submit') {
     $formPayload = forms_form_payload($store, $form, $user, true, $identityKey);
     dent_json_response([
         'success' => true,
-        'message' => 'پاسخ با موفقیت ثبت شد.',
+        'message' => is_array($existingResponse) ? 'پاسخ با موفقیت به‌روزرسانی شد.' : 'پاسخ با موفقیت ثبت شد.',
         'response' => forms_response_payload($response, $form),
         'form' => $formPayload,
     ]);

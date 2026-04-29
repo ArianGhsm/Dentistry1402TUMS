@@ -270,7 +270,7 @@
     function hasPollManagementAccess(user) {
         var source = user || currentUser || {};
         var role = String(source.role || "").trim();
-        return !!source.isOwner || !!source.isRepresentative || role === "owner" || role === "representative";
+        return !!source.isOwner || role === "owner";
     }
 
     function accountUserKey(user) {
@@ -1115,7 +1115,7 @@
     }
 
     function requestActivePolls() {
-        return fetch("/chat/chat_api.php?action=activePolls", {
+        return fetch("/api/forms_api.php?action=session", {
             method: "GET",
             credentials: "same-origin",
             headers: {
@@ -1218,9 +1218,9 @@
 
         if (accountActivePollsMeta) {
             if (show) {
-                accountActivePollsMeta.textContent = total.toLocaleString("fa-IR") + " نظرسنجی فعال برای شما در دسترس است.";
+                accountActivePollsMeta.textContent = total.toLocaleString("fa-IR") + " فرم فعال برای شما در دسترس است.";
             } else {
-                accountActivePollsMeta.textContent = "در حال حاضر نظرسنجی فعالی برای این حساب وجود ندارد.";
+                accountActivePollsMeta.textContent = "در حال حاضر فرم فعالی برای این حساب وجود ندارد.";
             }
         }
     }
@@ -1265,7 +1265,7 @@
                 return;
             }
 
-            var count = toNumber(response.count, Array.isArray(response.polls) ? response.polls.length : 0);
+            var count = toNumber(response.activeCount, 0);
             pollShortcutState.lastUserKey = userKey;
             pollShortcutState.count = Math.max(0, Math.floor(count));
             renderActivePollShortcut(user, pollShortcutState.count);
@@ -3684,7 +3684,7 @@
                 accountRowNavidMeta.textContent = "وضعیت اتصال و همگام‌سازی نوید";
             }
             if (accountRowPollsMeta) {
-                accountRowPollsMeta.textContent = "\u062f\u0633\u062a\u0631\u0633\u06cc \u0645\u062f\u06cc\u0631\u06cc\u062a \u0646\u0638\u0631\u0633\u0646\u062c\u06cc \u0628\u0631\u0627\u06cc \u0645\u0627\u0644\u06a9/\u0646\u0645\u0627\u06cc\u0646\u062f\u0647 \u0641\u0639\u0627\u0644 \u0627\u0633\u062a.";
+                accountRowPollsMeta.textContent = "ساخت فرم و نظرسنجی فقط برای مالک فعال است.";
             }
             if (accountRowPhoneMeta) {
                 accountRowPhoneMeta.textContent = "ثبت شماره موبایل، تایید با OTP و فعال‌سازی مسیر دوم ورود";

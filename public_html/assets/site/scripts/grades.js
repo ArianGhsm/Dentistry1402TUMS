@@ -310,6 +310,84 @@
         });
     }
 
+    function renderOwnerManager() {
+        if (!ownerPanel) {
+            return;
+        }
+
+        var isOwner = isCurrentUserOwner();
+        ownerPanel.hidden = !isOwner;
+        if (!isOwner) {
+            showOwnerFeedback("", "");
+            return;
+        }
+
+        var courses = Array.isArray(ownerState.courses) ? ownerState.courses : [];
+        var totalScores = courses.reduce(function (sum, course) {
+            return sum + Math.max(0, Math.floor(toSafeNumber(course.withScore, 0)));
+        }, 0);
+
+        if (ownerSummary) {
+            ownerSummary.innerHTML = [
+                ownerSummaryCard("درس", courses.length.toLocaleString("fa-IR"), "تعداد درس‌های موجود در کارنامه"),
+                ownerSummaryCard("نمره ثبت‌شده", totalScores.toLocaleString("fa-IR"), "جمع نمره‌های غیرخالی همه درس‌ها"),
+                ownerSummaryCard("وضعیت", ownerState.loading ? "در حال خواندن" : "آماده", ownerState.loaded ? "داده مدیریت به‌روز شده" : "هنوز بارگذاری نشده", ownerState.loading ? "warn" : "ok")
+            ].join("");
+        }
+
+        if (ownerCourseSelect) {
+            var selected = ownerCourseSelect.value;
+            ownerCourseSelect.innerHTML = "";
+            if (!courses.length) {
+                var emptyOption = document.createElement("option");
+                emptyOption.value = "";
+                emptyOption.textContent = "درسی ثبت نشده است";
+                ownerCourseSelect.appendChild(emptyOption);
+            } else {
+                courses.forEach(function (course) {
+                    var option = document.createElement("option");
+                    var label = String(course.label || "درس بدون نام");
+                    var maxScore = course.maxScore !== null && course.maxScore !== undefined
+                        ? " از " + Number(course.maxScore).toLocaleString("fa-IR", { maximumFractionDigits: 2 })
+                        : "";
+                    option.value = String(course.key || "");
+                    option.textContent = label + maxScore + " - " +
+                        Math.max(0, Math.floor(toSafeNumber(course.withScore, 0))).toLocaleString("fa-IR") + " نمره";
+                    option.selected = option.value === selected;
+                    ownerCourseSelect.appendChild(option);
+                });
+                if (!ownerCourseSelect.value && ownerCourseSelect.options.length) {
+                    ownerCourseSelect.selectedIndex = 0;
+                }
+            }
+            ownerCourseSelect.disabled = ownerState.loading || ownerState.importing || ownerState.resetting || !courses.length;
+        }
+
+        if (ownerRefreshBtn) {
+            ownerRefreshBtn.disabled = ownerState.loading || ownerState.importing || ownerState.resetting;
+            ownerRefreshBtn.textContent = ownerState.loading ? "در حال تازه‌سازی..." : "تازه‌سازی مدیریت";
+        }
+        if (ownerImportSubmit) {
+            ownerImportSubmit.disabled = ownerState.loading || ownerState.importing || ownerState.resetting;
+            ownerImportSubmit.textContent = ownerState.importing ? "در حال import..." : "Import نمرات";
+        }
+        if (ownerDeleteCourseBtn) {
+            var currentCourseKey = ownerCourseSelect ? String(ownerCourseSelect.value || "") : "";
+            ownerDeleteCourseBtn.disabled = ownerState.loading || ownerState.importing || ownerState.resetting ||
+                !currentCourseKey || ownerState.deletingCourseKey === currentCourseKey;
+            ownerDeleteCourseBtn.textContent = ownerState.deletingCourseKey ? "در حال حذف درس..." : "حذف کامل درس از همه کارنامه‌ها";
+        }
+        if (ownerResetAllBtn) {
+            ownerResetAllBtn.disabled = ownerState.loading || ownerState.importing || ownerState.resetting || !courses.length;
+            ownerResetAllBtn.textContent = ownerState.resetting ? "در حال ریست..." : "ریست کامل کارنامه";
+        }
+        [ownerImportText, ownerImportFile].forEach(function (node) {
+            if (node) {
+                node.disabled = ownerState.loading || ownerState.importing || ownerState.resetting;
+            }
+        });
+    }
+
     function renderDashboard(result) {
         currentPayload = result;
         studentName.textContent = result.name || "دانشجو";
@@ -371,6 +449,191 @@
         return false;
     }
 
+    async function loadOwnerCatalog(options) {
+        if (!isCurrentUserOwner() || ownerState.loading) {
+            renderOwnerManager();
+            return;
+        }
+
+        var silent = !!(options && options.silent);
+        ownerState.loading = true;
+        if (!silent) {
+            showOwnerFeedback("در حال تازه‌سازی مدیریت نمرات", "", true);
+        }
+        renderOwnerManager();
+
+        try {
+            var result = await gradesApiRequest("ownerCatalog", "GET");
+            if (consumeUnauthorized(result, "نشست شما منقضی شده است. دوباره وارد شوید.")) {
+                showOwnerFeedback("", "");
+                return;
+            }
+            if (!result || !result.success) {
+                showOwnerFeedback((result && result.error) || "گرفتن فهرست درس‌ها انجام نشد.", "error");
+                return;
+            }
+
+            ownerState.courses = Array.isArray(result.courses) ? result.courses : [];
+            ownerState.loaded = true;
+            if (!silent) {
+                showOwnerFeedback("مدیریت نمرات به‌روز شد.", "success");
+            }
+        } catch (error) {
+            console.error(error);
+            showOwnerFeedback(error.message || "گرفتن فهرست درس‌ها انجام نشد.", "error");
+        } finally {
+            ownerState.loading = false;
+            renderOwnerManager();
+        }
+    }
+
+    async function importOwnerGrades(event) {
+        if (event) {
+            event.preventDefault();
+        }
+        if (!isCurrentUserOwner() || ownerState.importing) {
+            return;
+        }
+
+        var text = ownerImportText ? ownerImportText.value.trim() : "";
+        var file = ownerImportFile && ownerImportFile.files ? ownerImportFile.files[0] : null;
+        if (!text && !file) {
+            showOwnerFeedback("متن import یا فایل نمرات را وارد کن.", "error");
+            return;
+        }
+
+        var formData = new FormData();
+        if (text) {
+            formData.append("importText", text);
+        }
+        if (file) {
+            formData.append("gradesFile", file);
+        }
+
+        ownerState.importing = true;
+        showOwnerFeedback("در حال import نمرات", "", true);
+        renderOwnerManager();
+
+        try {
+            var response = await gradesApiFormRequest("ownerImportGrades", formData);
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است. دوباره وارد شوید.")) {
+                showOwnerFeedback("", "");
+                return;
+            }
+            if (!response || !response.success) {
+                showOwnerFeedback((response && response.error) || "Import نمرات انجام نشد.", "error");
+                return;
+            }
+
+            ownerState.courses = Array.isArray(response.courses) ? response.courses : ownerState.courses;
+            ownerState.loaded = true;
+            if (ownerImportText) {
+                ownerImportText.value = "";
+            }
+            if (ownerImportFile) {
+                ownerImportFile.value = "";
+            }
+            showOwnerFeedback(
+                (response.message || "Import نمرات انجام شد.") + " " +
+                Math.max(0, Math.floor(toSafeNumber(response.importedCount, 0))).toLocaleString("fa-IR") +
+                " ردیف پردازش شد.",
+                "success"
+            );
+            await loadGrades();
+        } catch (error) {
+            console.error(error);
+            showOwnerFeedback(error.message || "Import نمرات انجام نشد.", "error");
+        } finally {
+            ownerState.importing = false;
+            renderOwnerManager();
+        }
+    }
+
+    async function deleteOwnerGradeCourse() {
+        if (!isCurrentUserOwner() || ownerState.deletingCourseKey || ownerState.resetting || !ownerCourseSelect) {
+            return;
+        }
+
+        var courseKey = String(ownerCourseSelect.value || "");
+        if (!courseKey) {
+            showOwnerFeedback("اول یک درس را انتخاب کن.", "error");
+            return;
+        }
+
+        var label = ownerCourseSelect.options[ownerCourseSelect.selectedIndex]
+            ? ownerCourseSelect.options[ownerCourseSelect.selectedIndex].textContent
+            : "درس انتخاب‌شده";
+        if (!window.confirm("همه نمرات «" + label + "» برای همه کاربران حذف شود؟")) {
+            return;
+        }
+
+        ownerState.deletingCourseKey = courseKey;
+        showOwnerFeedback("در حال حذف درس از کارنامه همه کاربران", "", true);
+        renderOwnerManager();
+
+        try {
+            var response = await gradesApiRequest("ownerDeleteGradeCourse", "POST", { courseKey: courseKey });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است. دوباره وارد شوید.")) {
+                showOwnerFeedback("", "");
+                return;
+            }
+            if (!response || !response.success) {
+                showOwnerFeedback((response && response.error) || "حذف درس انجام نشد.", "error");
+                return;
+            }
+
+            ownerState.courses = Array.isArray(response.courses) ? response.courses : [];
+            ownerState.loaded = true;
+            showOwnerFeedback(response.message || "درس حذف شد.", "success");
+            await loadGrades();
+        } catch (error) {
+            console.error(error);
+            showOwnerFeedback(error.message || "حذف درس انجام نشد.", "error");
+        } finally {
+            ownerState.deletingCourseKey = "";
+            renderOwnerManager();
+        }
+    }
+
+    async function resetOwnerGradebook() {
+        if (!isCurrentUserOwner() || ownerState.resetting) {
+            return;
+        }
+
+        var confirmation = window.prompt("برای ریست کامل همه درس‌ها و نمرات، عبارت RESET را وارد کن.");
+        if (confirmation !== "RESET") {
+            showOwnerFeedback("ریست کارنامه لغو شد.", "");
+            return;
+        }
+
+        ownerState.resetting = true;
+        showOwnerFeedback("در حال ریست کامل کارنامه", "", true);
+        renderOwnerManager();
+
+        try {
+            var response = await gradesApiRequest("ownerResetGradebook", "POST", { confirm: "RESET" });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است. دوباره وارد شوید.")) {
+                showOwnerFeedback("", "");
+                return;
+            }
+            if (!response || !response.success) {
+                showOwnerFeedback((response && response.error) || "ریست کارنامه انجام نشد.", "error");
+                return;
+            }
+
+            ownerState.courses = [];
+            ownerState.loaded = true;
+            showOwnerFeedback(response.message || "کارنامه ریست شد.", "success");
+            await loadGrades();
+        } catch (error) {
+            console.error(error);
+            showOwnerFeedback(error.message || "ریست کارنامه انجام نشد.", "error");
+        } finally {
+            ownerState.resetting = false;
+            renderOwnerManager();
+        }
+    }
+
     async function loadGrades() {
         setState("loading");
         showDashboardFeedback("", "");
@@ -389,6 +652,10 @@
 
             renderDashboard(result);
             setState(flow.dataset.authState === "empty" ? "empty" : "ready");
+            renderOwnerManager();
+            if (isCurrentUserOwner() && !ownerState.loaded) {
+                loadOwnerCatalog({ silent: true });
+            }
             showDashboardFeedback("کارنامه آماده است.", "success");
         } catch (error) {
             console.error(error);
@@ -423,13 +690,26 @@
         if (!detail.loggedIn || !detail.user) {
             currentPayload = null;
             currentStudentNumber = "";
+            currentUser = null;
+            ownerState.loaded = false;
+            ownerState.loading = false;
+            ownerState.courses = [];
+            ownerState.importing = false;
+            ownerState.deletingCourseKey = "";
+            ownerState.resetting = false;
             gradesList.innerHTML = "";
             summaryGrid.innerHTML = "";
+            renderOwnerManager();
             ensureSignedOutState(detail.status === "unauthorized" ? detail.error : "");
             return;
         }
 
+        currentUser = detail.user;
         currentStudentNumber = detail.user.studentNumber || "";
+        renderOwnerManager();
+        if (isCurrentUserOwner() && !ownerState.loaded && !ownerState.loading) {
+            loadOwnerCatalog({ silent: true });
+        }
 
         if (!currentPayload || currentPayload.studentNumber !== currentStudentNumber) {
             loadGrades();
@@ -438,6 +718,29 @@
 
     refreshBtn.addEventListener("click", refreshGrades);
     logoutBtn.addEventListener("click", logout);
+    if (ownerRefreshBtn) {
+        ownerRefreshBtn.addEventListener("click", function () {
+            loadOwnerCatalog();
+        });
+    }
+    if (ownerImportForm) {
+        ownerImportForm.addEventListener("submit", importOwnerGrades);
+    }
+    if (ownerDeleteCourseBtn) {
+        ownerDeleteCourseBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            deleteOwnerGradeCourse();
+        });
+    }
+    if (ownerResetAllBtn) {
+        ownerResetAllBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            resetOwnerGradebook();
+        });
+    }
+    if (ownerCourseSelect) {
+        ownerCourseSelect.addEventListener("change", renderOwnerManager);
+    }
     window.Dent1402Auth.onChange(handleAuthChange);
 })();
 

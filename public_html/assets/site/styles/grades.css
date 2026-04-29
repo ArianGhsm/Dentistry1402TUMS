@@ -56,6 +56,7 @@
 .grades-auth-card,
 .grades-auth-note,
 .grades-panel,
+.grades-owner-panel,
 .grades-summary-card,
 .grades-skeleton {
     border-radius: 28px;
@@ -356,6 +357,177 @@ body.grades-page .feedback.success {
     border-color: color-mix(in srgb, var(--danger-color) 28%, transparent);
 }
 
+.grades-owner-panel {
+    padding: 1rem;
+    display: grid;
+    gap: 0.9rem;
+}
+
+.grades-owner-panel__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+}
+
+.grades-owner-panel__head h3,
+.grades-owner-tool__head h4 {
+    margin: 0;
+    font-size: 0.96rem;
+    font-weight: 900;
+}
+
+.grades-owner-panel__head p,
+.grades-owner-tool__head p,
+.grades-owner-hint {
+    margin: 0.2rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.85;
+}
+
+.grades-owner-panel__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    width: fit-content;
+    margin-bottom: 0.34rem;
+    padding: 0.22rem 0.68rem;
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    font-size: 0.72rem;
+    font-weight: 840;
+}
+
+.grades-owner-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.grades-owner-summary-card,
+.grades-owner-tool {
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    background: var(--surface-muted);
+}
+
+.grades-owner-summary-card {
+    min-width: 0;
+    padding: 0.78rem 0.85rem;
+    display: grid;
+    gap: 0.14rem;
+}
+
+.grades-owner-summary-card span {
+    color: var(--text-tertiary);
+    font-size: 0.72rem;
+    font-weight: 820;
+}
+
+.grades-owner-summary-card strong {
+    color: var(--text-primary);
+    font-size: 1.02rem;
+    line-height: 1.55;
+    font-weight: 930;
+}
+
+.grades-owner-summary-card small {
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    line-height: 1.7;
+}
+
+.grades-owner-summary-card.is-ok strong {
+    color: var(--success-color);
+}
+
+.grades-owner-summary-card.is-warn strong {
+    color: var(--warning-color);
+}
+
+.grades-owner-tools {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+    gap: 0.75rem;
+    align-items: start;
+}
+
+.grades-owner-tool {
+    padding: 0.88rem;
+    display: grid;
+    gap: 0.68rem;
+}
+
+.grades-owner-tool label {
+    display: block;
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.78rem;
+    font-weight: 840;
+}
+
+.grades-owner-tool textarea,
+.grades-owner-tool input,
+.grades-owner-tool select {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid var(--border-color-strong);
+    border-radius: 16px;
+    background: var(--surface-solid);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.grades-owner-tool textarea {
+    min-height: 150px;
+    padding: 0.82rem 0.9rem;
+    direction: ltr;
+    text-align: left;
+    resize: vertical;
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    line-height: 1.7;
+}
+
+.grades-owner-tool input,
+.grades-owner-tool select {
+    padding: 0.68rem 0.82rem;
+}
+
+.grades-owner-tool textarea:focus,
+.grades-owner-tool input:focus,
+.grades-owner-tool select:focus {
+    border-color: var(--focus-ring);
+    box-shadow: 0 0 0 3px var(--focus-ring-soft);
+}
+
+.grades-owner-hint {
+    padding: 0.62rem 0.72rem;
+    border: 1px dashed var(--border-color-strong);
+    border-radius: 16px;
+    background: var(--surface-solid);
+}
+
+.grades-owner-import-form .primary-btn {
+    width: fit-content;
+    min-width: 180px;
+    margin-top: 0;
+}
+
+.grades-owner-danger-zone {
+    border-color: color-mix(in srgb, var(--danger-color) 24%, var(--border-color));
+}
+
+.grades-owner-danger-actions {
+    display: grid;
+    gap: 0.56rem;
+}
+
+.grades-owner-danger-actions .secondary-btn {
+    width: 100%;
+}
+
 .grades-summary-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -540,6 +712,10 @@ body.grades-page .feedback.success {
     .grades-summary-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .grades-owner-tools {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 720px) {
@@ -561,7 +737,17 @@ body.grades-page .feedback.success {
         width: 100%;
     }
 
+    .grades-owner-panel__head {
+        display: grid;
+    }
+
+    .grades-owner-summary {
+        grid-template-columns: 1fr;
+    }
+
     .grades-dashboard__actions .secondary-btn,
+    .grades-owner-panel__head .secondary-btn,
+    .grades-owner-import-form .primary-btn,
     .grades-auth-actions .primary-btn,
     .grades-auth-actions .secondary-btn,
     .grades-panel--password .password-btn {
