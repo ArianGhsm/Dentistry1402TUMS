@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -13,11 +13,11 @@
     <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260429-200841">
     <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260429-200841">
     <script src="/assets/site/scripts/theme.js?v=20260429-200841"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260429-200841">
-    <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260429-200841">
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260429-homecompact1">
+    <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260429-homecompact1">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260429-200841">
 </head>
-<body class="app-dashboard-page">
+<body class="app-dashboard-page app-dashboard-page--compact">
     <div class="background-overlay" aria-hidden="true"></div>
 
     <header class="site-header site-header--app">
@@ -30,48 +30,61 @@
                 <p>خانه دانشجو</p>
             </div>
         </div>
-        <nav class="site-top-nav" aria-label="مسیرهای اصلی">
-            <a href="/chat/">چت</a>
-            <a href="/forms/">فرم‌ها</a>
-            <a href="/exams/">آزمون‌ها</a>
-            <a href="/grades/">نمرات</a>
-            <a href="/buy/">خرید</a>
-            <a href="#resources">منابع</a>
-        </nav>
         <div class="header-actions">
-            <a class="header-link" href="#main-services">مسیرها</a>
+            <a class="header-link" href="#resources">منابع</a>
         </div>
     </header>
 
     <main class="app-home-main">
-        <section class="portal-hero" aria-labelledby="app-home-title">
-            <div class="portal-hero__content">
-                <a class="portal-kicker" href="#main-services">خانه کلاس، آماده استفاده</a>
-                <h2 id="app-home-title" class="portal-title">مسیرهای درسی و عملیاتی، با شروعی نرم و سریع.</h2>
-                <p class="portal-desc">چت، فرم‌ها، آزمون‌ها، نمرات، نوید، جزوات و لینک‌های دانشگاهی بدون تغییر در عملکرد فعلی، در یک صفحه مرتب و قابل اسکن نگه داشته شده‌اند.</p>
-                <div class="portal-hero__actions">
-                    <a class="shell-action-btn shell-action-btn-primary" href="/chat/">شروع از چت</a>
-                    <a class="shell-action-btn shell-action-btn-light" href="#resources">منابع ضروری</a>
-                </div>
-                <div class="portal-hero__metrics" aria-label="مسیرهای فعال">
-                    <span>۷ مسیر اصلی</span>
-                    <span>نوید و جزوات</span>
-                    <span>سازگار با موبایل</span>
+        <section class="home-compact-hero" aria-labelledby="app-home-title">
+            <div class="home-compact-hero__brand">
+                <span class="home-logo-card" aria-hidden="true">
+                    <img src="/assets/images/logo.png?v=20260422-brand1" alt="">
+                </span>
+                <div class="home-compact-hero__copy">
+                    <span class="home-kicker">خانه کلاس</span>
+                    <h2 id="app-home-title">همه مسیرهای ضروری، یک نگاه.</h2>
+                    <p>چت، فرم، آزمون، نمره، خرید، جزوات و منابع بدون شلوغی.</p>
                 </div>
             </div>
-            <div class="portal-hero__visual" aria-hidden="true">
-                <div class="portal-hero__orbital">
-                    <span class="portal-hero__orbit portal-hero__orbit--chat">چت</span>
-                    <span class="portal-hero__orbit portal-hero__orbit--grades">نمرات</span>
-                    <span class="portal-hero__orbit portal-hero__orbit--forms">فرم‌ها</span>
-                    <div class="portal-hero__mark">
-                        <img src="/assets/images/logo.png?v=20260422-brand1" alt="">
-                    </div>
-                </div>
-            </div>
+
+            <nav class="home-quick-grid" aria-label="دسترسی سریع">
+                <a class="home-quick-card home-quick-card--primary" href="/chat/">
+                    <span class="home-quick-card__icon" aria-hidden="true">چ</span>
+                    <span>چت</span>
+                </a>
+                <a class="home-quick-card" href="/forms/">
+                    <span class="home-quick-card__icon" aria-hidden="true">ف</span>
+                    <span>فرم‌ها</span>
+                </a>
+                <a class="home-quick-card" href="/exams/">
+                    <span class="home-quick-card__icon" aria-hidden="true">آ</span>
+                    <span>آزمون</span>
+                </a>
+                <a class="home-quick-card" href="/grades/">
+                    <span class="home-quick-card__icon" aria-hidden="true">ن</span>
+                    <span>نمرات</span>
+                </a>
+                <a class="home-quick-card" href="/navid/">
+                    <span class="home-quick-card__icon" aria-hidden="true">نو</span>
+                    <span>نوید</span>
+                </a>
+                <a class="home-quick-card" href="/notes/">
+                    <span class="home-quick-card__icon" aria-hidden="true">ج</span>
+                    <span>جزوات</span>
+                </a>
+                <a class="home-quick-card" href="/buy/">
+                    <span class="home-quick-card__icon" aria-hidden="true">خ</span>
+                    <span>خرید</span>
+                </a>
+                <a class="home-quick-card" href="/account/">
+                    <span class="home-quick-card__icon" aria-hidden="true">ح</span>
+                    <span>حساب</span>
+                </a>
+            </nav>
         </section>
 
-        <section class="portal-command-grid" aria-label="وضعیت حساب و نوید">
+        <section class="home-live-grid" aria-label="وضعیت حساب و نوید">
             <section id="home-identity-panel" class="portal-panel portal-panel--identity" data-auth-state="restoring" aria-live="polite">
                 <div class="portal-identity">
                     <div class="portal-identity__copy">
@@ -92,10 +105,10 @@
                 <div class="portal-navid-head">
                     <div class="portal-navid-head__copy">
                         <span class="portal-section-title">نوید</span>
-                        <h3 class="portal-navid-title">پایش تکالیف نوید</h3>
-                        <p id="home-navid-state" class="portal-note">در حال بررسی وضعیت همگام‌سازی نوید...</p>
+                        <h3 class="portal-navid-title">وضعیت تکالیف</h3>
+                        <p id="home-navid-state" class="portal-note">در حال بررسی همگام‌سازی...</p>
                     </div>
-                    <a class="shell-action-btn shell-action-btn-primary" href="/navid/">صفحه نوید</a>
+                    <a class="shell-action-btn shell-action-btn-primary" href="/navid/">نوید</a>
                 </div>
                 <div class="portal-navid-meta">
                     <span id="home-navid-sync">آخرین بررسی: —</span>
@@ -105,161 +118,56 @@
             </section>
         </section>
 
-        <section class="portal-layout" id="main-services">
-            <section class="portal-services" aria-labelledby="main-services-title">
-                <div class="portal-section-head">
-                    <span class="portal-section-title">مسیرهای اصلی</span>
-                    <h3 id="main-services-title">دسترسی‌های روزانه</h3>
-                </div>
-                <div class="portal-service-grid">
-                    <a class="portal-service-card" href="/chat/">
-                        <span class="portal-row__icon portal-row__icon--chat" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><path d="M7 18.5L3.8 20L4.7 16.6C3.6 15.3 3 13.7 3 12C3 7.58 7.03 4 12 4C16.97 4 21 7.58 21 12C21 16.42 16.97 20 12 20C10.2 20 8.53 19.53 7 18.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-                        </span>
-                        <div class="portal-row__content">
-                            <span class="portal-row__eyebrow">گفت‌وگو</span>
-                            <h3 class="portal-row__title">چت کلاس</h3>
-                            <p class="portal-row__meta">چت عمومی، پیام خصوصی و گروه‌ها.</p>
-                        </div>
-                        <span class="portal-service-card__action">ورود</span>
-                    </a>
-
-                    <a class="portal-service-card" href="/forms/">
-                        <span class="portal-row__icon portal-row__icon--exam" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4.2" width="16" height="15.6" rx="3.6" stroke="currentColor" stroke-width="1.8"/><path d="M8 9h8M8 12.2h7M8 15.4h4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="m15.5 15.2 1.1 1.1 2-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </span>
-                        <div class="portal-row__content">
-                            <span class="portal-row__eyebrow">فرم</span>
-                            <h3 class="portal-row__title">فرم‌ها و نظرسنجی‌ها</h3>
-                            <p class="portal-row__meta">ساخت فرم، شرکت در نظرسنجی‌ها و خروجی Excel.</p>
-                        </div>
-                        <span class="portal-service-card__action">باز کردن</span>
-                    </a>
-
-                    <a class="portal-service-card" href="/exams/">
-                        <span class="portal-row__icon portal-row__icon--exam" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><path d="M7 4.5H17A2 2 0 0 1 19 6.5V19.5L12 16.5L5 19.5V6.5A2 2 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 9H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 12.5H13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                        </span>
-                        <div class="portal-row__content">
-                            <span class="portal-row__eyebrow">مرور</span>
-                            <h3 class="portal-row__title">آزمون‌ها</h3>
-                            <p class="portal-row__meta">آزمون‌های طبقه‌بندی‌شده بر اساس درس و جلسه.</p>
-                        </div>
-                        <span class="portal-service-card__action">باز کردن</span>
-                    </a>
-
-                    <a class="portal-service-card" href="/grades/">
-                        <span class="portal-row__icon portal-row__icon--grades" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><path d="M5 18.5V13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 18.5V9.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M19 18.5V5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3.5 19.5H20.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                        </span>
-                        <div class="portal-row__content">
-                            <span class="portal-row__eyebrow">شخصی</span>
-                            <h3 class="portal-row__title">نمرات</h3>
-                            <p class="portal-row__meta">کارنامه و وضعیت درسی با همان نشست حساب.</p>
-                        </div>
-                        <span class="portal-service-card__action">مشاهده</span>
-                    </a>
-
-                    <a class="portal-service-card" href="/buy/">
-                        <span class="portal-row__icon portal-row__icon--buy" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><path d="M4 7.2A2.2 2.2 0 0 1 6.2 5h11.6A2.2 2.2 0 0 1 20 7.2v9.6a2.2 2.2 0 0 1-2.2 2.2H6.2A2.2 2.2 0 0 1 4 16.8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 9.4h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 14.2h3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14.7 14.2h1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                        </span>
-                        <div class="portal-row__content">
-                            <span class="portal-row__eyebrow">خرید</span>
-                            <h3 class="portal-row__title">خرید گروهی و ثبت‌نام</h3>
-                            <p class="portal-row__meta">کاتالوگ عمومی آیتم‌های مشخص، ملزومات آموزشی، اقلام مصرفی و ثبت‌نام‌های دانشجویی.</p>
-                        </div>
-                        <span class="portal-service-card__action">ورود</span>
-                    </a>
-                </div>
-            </section>
-
-            <aside class="portal-toolbox">
-                <div>
-                    <h3 class="portal-section-title">آرشیو جزوات</h3>
-                    <p class="portal-note">جزوات و فایل‌های هر ورودی از همین‌جا در دسترس‌اند.</p>
-                </div>
-
-                <div class="portal-secondary">
-                    <a class="portal-mini-link" href="/notes/">
-                        <span>آرشیو ۱۴۰۲</span>
-                        <span class="portal-mini-link__meta">تفکیک ترمی</span>
-                    </a>
-                    <a class="portal-mini-link" href="/notes/1403/">
-                        <span>آرشیو ۱۴۰۳</span>
-                        <span class="portal-mini-link__meta">فایل‌های جاری</span>
-                    </a>
-                </div>
-
-                <button class="shell-action-btn shell-action-btn-primary" type="button" data-install-app>نصب روی گوشی</button>
-                <p class="shell-install-hint" data-install-hint>اگر مرورگر پشتیبانی کند، این دکمه فعال می‌شود.</p>
-            </aside>
+        <section class="home-route-board" id="main-services" aria-labelledby="main-services-title">
+            <div class="home-section-head">
+                <span class="portal-section-title">مسیرها</span>
+                <h3 id="main-services-title">بخش‌های اصلی سایت</h3>
+            </div>
+            <div class="home-route-grid">
+                <a class="home-route-card" href="/forms/">
+                    <strong>فرم‌ها</strong>
+                    <span>نظرسنجی و فرم‌ساز</span>
+                </a>
+                <a class="home-route-card" href="/exams/">
+                    <strong>آزمون‌ها</strong>
+                    <span>تمرین و مرور</span>
+                </a>
+                <a class="home-route-card" href="/grades/">
+                    <strong>نمرات</strong>
+                    <span>کارنامه و وضعیت</span>
+                </a>
+                <a class="home-route-card" href="/notes/">
+                    <strong>جزوات ۱۴۰۲</strong>
+                    <span>آرشیو درسی</span>
+                </a>
+                <a class="home-route-card" href="/notes/1403/">
+                    <strong>جزوات ۱۴۰۳</strong>
+                    <span>فایل‌های جدید</span>
+                </a>
+                <a class="home-route-card" href="/buy/">
+                    <strong>خرید گروهی</strong>
+                    <span>ثبت‌نام و سفارش</span>
+                </a>
+            </div>
         </section>
 
-        <section class="portal-panel resource-panel" id="resources">
-            <div class="resource-panel__head">
+        <section class="home-resource-dock" id="resources" aria-labelledby="resources-title">
+            <div class="home-resource-dock__head">
                 <div>
-                    <span class="portal-section-title">منابع و سامانه‌ها</span>
-                    <h3 class="resource-panel__title">لینک‌های ضروری دانشگاه و ابزارها</h3>
+                    <span class="portal-section-title">منابع</span>
+                    <h3 id="resources-title">لینک‌های ضروری</h3>
                 </div>
-                <p class="portal-note">همه مواردی که قبلاً در صفحه منابع بود، حالا اینجاست.</p>
+                <button class="shell-action-btn shell-action-btn-primary" type="button" data-install-app>نصب روی گوشی</button>
             </div>
-
-            <div class="resource-grid">
-                <a class="resource-card" href="https://navid.tums.ac.ir/" data-external-link="true">
-                    <span class="resource-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M6 5.5H18A2 2 0 0 1 20 7.5V16.5A2 2 0 0 1 18 18.5H6A2 2 0 0 1 4 16.5V7.5A2 2 0 0 1 6 5.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M8 9H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 12H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 15H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                    </span>
-                    <strong class="resource-card__title">سامانه نوید</strong>
-                    <p class="resource-card__desc">تکالیف، محتوا و فعالیت‌های کلاسی.</p>
-                    <span class="resource-card__meta">باز کردن</span>
-                </a>
-
-                <a class="resource-card" href="https://sipad.tums.ac.ir/" data-external-link="true">
-                    <span class="resource-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5L19 7V17L12 20.5L5 17V7L12 3.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 9V20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5.5 7.2L12 10.6L18.5 7.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                    </span>
-                    <strong class="resource-card__title">سیپاد</strong>
-                    <p class="resource-card__desc">امور آموزشی و پیگیری رسمی.</p>
-                    <span class="resource-card__meta">ورود</span>
-                </a>
-
-                <a class="resource-card" href="https://foodstu.tums.ac.ir/" data-external-link="true">
-                    <span class="resource-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M8 4V12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M11 4V12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 8H11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 4V20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 4C18.2 4.7 19 6.3 19 8V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                    </span>
-                    <strong class="resource-card__title">سامانه تغذیه</strong>
-                    <p class="resource-card__desc">رزرو و مدیریت وعده غذایی.</p>
-                    <span class="resource-card__meta">ورود</span>
-                </a>
-
-                <a class="resource-card" href="https://dentistry.tums.ac.ir/" data-external-link="true">
-                    <span class="resource-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M4 5H20V19H4V5Z" stroke="currentColor" stroke-width="1.8"/><path d="M4 9H20" stroke="currentColor" stroke-width="1.8"/><path d="M8 13H12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                    </span>
-                    <strong class="resource-card__title">سایت رسمی دانشکده</strong>
-                    <p class="resource-card__desc">اخبار، اطلاعیه‌ها و فایل‌های رسمی.</p>
-                    <span class="resource-card__meta">باز کردن</span>
-                </a>
-
-                <a class="resource-card" href="https://t.me/teledentistry1402" data-external-link="true">
-                    <span class="resource-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M21 4L3.5 11L11 13.5L13.5 21L21 4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M11 13.5L15 9.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                    </span>
-                    <strong class="resource-card__title">کانال تلگرام کلاس</strong>
-                    <p class="resource-card__desc">اطلاع‌رسانی و هماهنگی سریع.</p>
-                    <span class="resource-card__meta">ورود</span>
-                </a>
-
-                <a class="resource-card" href="https://uupload.ir/" data-external-link="true">
-                    <span class="resource-card__icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 16V5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8.5 8.5L12 5L15.5 8.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16V18.5A1.5 1.5 0 0 0 5.5 20H18.5A1.5 1.5 0 0 0 20 18.5V16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                    </span>
-                    <strong class="resource-card__title">UUpload</strong>
-                    <p class="resource-card__desc">آپلود و اشتراک فایل‌های جانبی.</p>
-                    <span class="resource-card__meta">باز کردن</span>
-                </a>
+            <div class="home-resource-strip">
+                <a href="https://navid.tums.ac.ir/" data-external-link="true">نوید</a>
+                <a href="https://sipad.tums.ac.ir/" data-external-link="true">سیپاد</a>
+                <a href="https://foodstu.tums.ac.ir/" data-external-link="true">تغذیه</a>
+                <a href="https://dentistry.tums.ac.ir/" data-external-link="true">دانشکده</a>
+                <a href="https://t.me/teledentistry1402" data-external-link="true">تلگرام کلاس</a>
+                <a href="https://uupload.ir/" data-external-link="true">آپلود فایل</a>
             </div>
+            <p class="shell-install-hint" data-install-hint>اگر مرورگر پشتیبانی کند، دکمه نصب فعال می‌شود.</p>
         </section>
     </main>
 
