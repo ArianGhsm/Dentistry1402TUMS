@@ -217,6 +217,15 @@
         queueLoginViewportSync();
     }
 
+    function resetLoginScrollPosition() {
+        if (!document.body.classList.contains("account-stage-login-active")) {
+            return;
+        }
+        window.requestAnimationFrame(function () {
+            window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        });
+    }
+
     function normalizeSurfaceName(raw) {
         var name = String(raw || "").trim().toLowerCase();
         switch (name) {
@@ -697,6 +706,8 @@
                 loginOtpCodeInput.dispatchEvent(new Event("input", { bubbles: true }));
             }
         }
+
+        resetLoginScrollPosition();
     }
 
     function setLoginOtpVerifyVisible(visible) {

@@ -14,13 +14,14 @@ body.account-page {
 }
 
 body.account-page.account-stage-login-active {
-    height: 100dvh;
     min-height: 100dvh;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     padding-bottom: 0;
 }
 
 body.account-page.account-stage-login-active .site-header,
+body.account-page.account-stage-login-active .site-footer,
 body.account-page.account-stage-login-active .shell-bottom-nav {
     display: none;
 }
@@ -29,11 +30,11 @@ body.account-page.account-stage-login-active main.account-shell {
     width: min(560px, 100%);
     padding-inline: clamp(0.95rem, 4.4vw, 1.4rem);
     padding-block: max(0.9rem, env(safe-area-inset-top)) max(0.9rem, env(safe-area-inset-bottom));
-    height: 100dvh;
-    min-height: 0;
+    min-height: 100dvh;
+    height: auto;
     align-content: center;
     justify-items: center;
-    overflow: hidden;
+    overflow: visible;
 }
 
 body.account-page.account-stage-login-active .background-overlay {
@@ -136,6 +137,32 @@ body.account-page.account-stage-panel-active .account-hero {
     backdrop-filter: none;
 }
 
+.account-login-home {
+    position: absolute;
+    inset-block-start: 0.86rem;
+    inset-inline-start: 0.9rem;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0.26rem 0.76rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(43, 109, 243, 0.18);
+    background: rgba(43, 109, 243, 0.08);
+    color: var(--accent-strong);
+    font-size: 0.82rem;
+    font-weight: 840;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.account-login-home:hover,
+.account-login-home:focus-visible {
+    background: var(--accent-soft);
+    border-color: rgba(43, 109, 243, 0.34);
+}
+
 .account-card--auth::before {
     content: "";
     position: absolute;
@@ -162,7 +189,7 @@ body.account-page.account-stage-login-active .account-hero {
 }
 
 body.account-page.account-stage-login-active .account-grid--login {
-    width: min(430px, 100%);
+    width: min(460px, 100%);
     grid-template-columns: 1fr;
     justify-self: center;
     margin-inline: auto;
@@ -178,7 +205,8 @@ body.account-page.account-stage-login-active .account-card--auth {
     justify-content: flex-start;
     gap: 0.5rem;
     min-height: 56px;
-    margin-bottom: 0.3rem;
+    margin: 0 0 0.3rem;
+    padding-inline-start: 4.5rem;
 }
 
 .auth-brand img {
@@ -2526,6 +2554,24 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
 
     .phone-flow-card {
         grid-column: 2;
+    }
+}
+
+@media (pointer: coarse) {
+    body.account-page.account-stage-login-active main.account-shell {
+        width: min(820px, 100%);
+    }
+
+    body.account-page.account-stage-login-active .account-stage--auth {
+        width: min(760px, 100%);
+    }
+
+    body.account-page.account-stage-login-active .account-grid--login {
+        width: min(760px, calc(100% - 1rem));
+    }
+
+    body.account-page.account-stage-login-active .account-card--auth {
+        padding: clamp(1.18rem, 3.6vw, 1.7rem) clamp(1rem, 4vw, 1.45rem) 1.08rem;
     }
 }
 
