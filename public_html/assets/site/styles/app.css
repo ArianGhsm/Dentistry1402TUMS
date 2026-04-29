@@ -8,15 +8,11 @@ body.app-dashboard-page main {
 }
 
 body.app-dashboard-page {
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.64) 0%, rgba(244, 247, 251, 0) 42%),
-        var(--bg-body);
+    background: var(--bg-body);
 }
 
 html[data-theme="dark"] body.app-dashboard-page {
-    background:
-        linear-gradient(180deg, rgba(21, 33, 51, 0.54) 0%, rgba(13, 20, 32, 0) 44%),
-        var(--bg-body);
+    background: var(--bg-body);
 }
 
 .app-home-main {
@@ -25,31 +21,27 @@ html[data-theme="dark"] body.app-dashboard-page {
 
 .home-wallet-card {
     position: relative;
-    min-height: 220px;
+    min-height: 156px;
     overflow: hidden;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
-    gap: 1rem;
-    padding: 1.2rem;
-    border-radius: 30px;
-    border: 1px solid color-mix(in srgb, var(--accent-color) 18%, var(--border-color));
+    justify-items: center;
+    gap: 0.78rem;
+    padding: 1.08rem;
+    border-radius: 28px;
+    border: 1px solid var(--border-color);
     background:
-        radial-gradient(circle at 22% 6%, color-mix(in srgb, var(--commerce-accent) 44%, transparent), transparent 34%),
-        radial-gradient(circle at 84% 8%, color-mix(in srgb, var(--commerce-cta) 44%, transparent), transparent 34%),
-        linear-gradient(135deg, color-mix(in srgb, var(--accent-color) 68%, var(--surface-solid)) 0%, var(--accent-strong) 54%, color-mix(in srgb, var(--commerce-cta) 58%, var(--accent-color)) 100%);
-    color: var(--text-on-accent);
-    box-shadow: 0 28px 70px -44px color-mix(in srgb, var(--accent-color) 58%, #000);
+        linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 54%, transparent), transparent 72%),
+        var(--surface);
+    color: var(--text-primary);
+    text-align: center;
+    box-shadow: var(--surface-shadow);
+    backdrop-filter: blur(14px);
 }
 
 .home-wallet-card::after {
-    content: "";
-    position: absolute;
-    inset-inline: 0;
-    inset-block-end: 0;
-    height: 42%;
-    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--bg-body) 86%, transparent));
-    pointer-events: none;
+    display: none;
 }
 
 .home-wallet-card__copy,
@@ -62,6 +54,7 @@ html[data-theme="dark"] body.app-dashboard-page {
 .home-wallet-card__copy {
     min-width: 0;
     display: grid;
+    justify-items: center;
     gap: 0.32rem;
 }
 
@@ -74,15 +67,15 @@ html[data-theme="dark"] body.app-dashboard-page {
 }
 
 .home-wallet-card .home-kicker {
-    color: color-mix(in srgb, var(--text-on-accent) 78%, transparent);
+    color: var(--accent-strong);
 }
 
 .home-wallet-card h2 {
     margin: 0;
-    color: var(--text-on-accent);
+    color: var(--text-primary);
     font-family: var(--font-accent);
-    font-size: 3.5rem;
-    line-height: 1.15;
+    font-size: 1.42rem;
+    line-height: 1.5;
     font-weight: 900;
     letter-spacing: 0;
 }
@@ -90,9 +83,10 @@ html[data-theme="dark"] body.app-dashboard-page {
 .home-wallet-card p {
     max-width: 25rem;
     margin: 0;
-    color: color-mix(in srgb, var(--text-on-accent) 82%, transparent);
+    color: var(--text-secondary);
     font-size: 0.92rem;
     line-height: 1.85;
+    text-align: center;
 }
 
 .home-wallet-card__link {
@@ -101,7 +95,7 @@ html[data-theme="dark"] body.app-dashboard-page {
     display: inline-flex;
     align-items: center;
     gap: 0.38rem;
-    color: var(--text-on-accent);
+    color: var(--accent-strong);
     font-size: 0.86rem;
     font-weight: 840;
 }
@@ -113,14 +107,16 @@ html[data-theme="dark"] body.app-dashboard-page {
 }
 
 .home-wallet-card__logo {
-    width: 92px;
-    height: 92px;
+    order: -1;
+    width: 76px;
+    height: 76px;
     display: grid;
     place-items: center;
     padding: 0.58rem;
-    border-radius: 24px;
-    background: color-mix(in srgb, var(--surface-solid) 82%, transparent);
-    box-shadow: 0 20px 50px -34px rgba(0, 0, 0, 0.42);
+    border-radius: 22px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+    box-shadow: 0 14px 32px -28px rgba(17, 30, 54, 0.24);
 }
 
 .home-wallet-card__logo img {
@@ -181,12 +177,15 @@ html[data-theme="dark"] body.app-dashboard-page {
     display: grid;
     gap: 0.82rem;
     padding: 1rem;
+    text-align: center;
 }
 
 .home-section-head {
     min-width: 0;
     display: grid;
+    justify-items: center;
     gap: 0.14rem;
+    text-align: center;
 }
 
 .home-section-head h3,
@@ -202,7 +201,7 @@ html[data-theme="dark"] body.app-dashboard-page {
 
 .home-service-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.64rem;
 }
 
@@ -222,31 +221,23 @@ html[data-theme="dark"] body.app-dashboard-page {
 }
 
 .home-service-card:nth-child(2) {
-    --service-accent: var(--commerce-accent);
-}
-
-.home-service-card:nth-child(3) {
     --service-accent: var(--success-color);
 }
 
-.home-service-card:nth-child(4) {
+.home-service-card:nth-child(3) {
     --service-accent: var(--commerce-cta);
 }
 
-.home-service-card:nth-child(5) {
+.home-service-card:nth-child(4) {
     --service-accent: var(--warning-color);
+}
+
+.home-service-card:nth-child(5) {
+    --service-accent: var(--commerce-accent);
 }
 
 .home-service-card:nth-child(6) {
     --service-accent: var(--accent-strong);
-}
-
-.home-service-card:nth-child(7) {
-    --service-accent: var(--commerce-accent-strong);
-}
-
-.home-service-card:nth-child(8) {
-    --service-accent: var(--danger-color);
 }
 
 .home-service-card__icon {
@@ -256,11 +247,9 @@ html[data-theme="dark"] body.app-dashboard-page {
     place-items: center;
     border-radius: 50%;
     border: 1px solid color-mix(in srgb, var(--service-accent) 18%, var(--border-color));
-    background:
-        radial-gradient(circle at 30% 18%, color-mix(in srgb, var(--service-accent) 16%, transparent), transparent 42%),
-        var(--surface-solid);
+    background: color-mix(in srgb, var(--service-accent) 6%, var(--surface-solid));
     color: var(--service-accent);
-    box-shadow: 0 18px 40px -34px color-mix(in srgb, var(--service-accent) 52%, #000);
+    box-shadow: 0 12px 28px -26px color-mix(in srgb, var(--service-accent) 42%, #000);
     transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
 }
 
@@ -271,7 +260,7 @@ html[data-theme="dark"] body.app-dashboard-page {
 
 .home-service-card:hover .home-service-card__icon,
 .home-service-card:focus-visible .home-service-card__icon {
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     border-color: color-mix(in srgb, var(--service-accent) 34%, var(--border-color));
     background: color-mix(in srgb, var(--service-accent) 9%, var(--surface-solid));
 }
@@ -297,8 +286,36 @@ html[data-theme="dark"] body.app-dashboard-page {
 .home-resource-dock {
     display: grid;
     align-content: start;
+    justify-items: center;
     gap: 0.68rem;
     padding: 0.96rem;
+    text-align: center;
+}
+
+.portal-identity {
+    display: grid;
+    justify-items: center;
+    gap: 0.52rem;
+    text-align: center;
+}
+
+.portal-identity__copy {
+    display: grid;
+    justify-items: center;
+    gap: 0.18rem;
+}
+
+.portal-identity__title,
+.portal-identity__desc,
+.portal-identity__meta {
+    margin: 0;
+}
+
+.portal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
 }
 
 .portal-panel--navid {
@@ -426,11 +443,13 @@ html[data-theme="dark"] body.app-dashboard-page {
 }
 
 .home-promo-card {
-    grid-template-columns: 84px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
+    justify-items: center;
     background:
-        radial-gradient(circle at 10% 8%, var(--commerce-accent-soft), transparent 36%),
+        linear-gradient(180deg, color-mix(in srgb, var(--commerce-accent-soft) 58%, transparent), transparent 72%),
         var(--surface);
+    text-align: center;
 }
 
 .home-promo-card__visual {
@@ -511,21 +530,20 @@ html[data-theme="dark"] body.app-dashboard-page {
     }
 
     .home-wallet-card {
-        min-height: 208px;
+        min-height: 150px;
         grid-template-columns: 1fr;
         padding: 1.05rem;
     }
 
     .home-wallet-card h2 {
-        font-size: 3rem;
+        font-size: 1.34rem;
     }
 
     .home-wallet-card__logo {
-        position: absolute;
-        inset-inline-end: 1.1rem;
-        inset-block-end: 1.1rem;
-        width: 72px;
-        height: 72px;
+        position: relative;
+        inset: auto;
+        width: 68px;
+        height: 68px;
         border-radius: 21px;
     }
 
@@ -564,12 +582,12 @@ html[data-theme="dark"] body.app-dashboard-page {
     }
 
     .home-wallet-card {
-        min-height: 196px;
+        min-height: 144px;
         border-radius: 26px;
     }
 
     .home-wallet-card h2 {
-        font-size: 2.55rem;
+        font-size: 1.26rem;
     }
 
     .home-wallet-card p {
@@ -586,6 +604,7 @@ html[data-theme="dark"] body.app-dashboard-page {
     }
 
     .home-service-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.38rem;
     }
 
@@ -620,8 +639,7 @@ html[data-theme="dark"] body.app-dashboard-page {
         border-radius: 20px;
     }
 
-    .home-resource-strip a,
-    .home-service-card span:last-child {
+    .home-resource-strip a {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;

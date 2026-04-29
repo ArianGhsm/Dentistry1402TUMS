@@ -83,6 +83,7 @@
         var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
         return [
             { href: "/app/", label: "خانه", icon: "home", active: ["/app/"] },
+            { href: "/chat/", label: "چت", icon: "chat", active: ["/chat/"] },
             { href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/"] },
             {
                 href: accountHref,
