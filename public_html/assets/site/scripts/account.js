@@ -691,6 +691,32 @@
         loginOtpVerifyGroup.hidden = !visible;
     }
 
+    function iosLikeDevice() {
+        var ua = String(window.navigator.userAgent || "");
+        var platform = String(window.navigator.platform || "");
+        var touchPoints = Number(window.navigator.maxTouchPoints || 0);
+        return /iPhone|iPad|iPod/i.test(ua) || ((/Mac/i.test(platform) || /Macintosh/i.test(ua)) && touchPoints > 1);
+    }
+
+    function setViewportScaleLock(active) {
+        if (!iosLikeDevice()) {
+            return;
+        }
+        var meta = document.querySelector('meta[name="viewport"]');
+        if (!meta) {
+            return;
+        }
+        var base = meta.dataset.baseViewportContent || meta.getAttribute("content") || "";
+        if (!meta.dataset.baseViewportContent) {
+            meta.dataset.baseViewportContent = base.replace(/,\s*maximum-scale=1\b/g, "").trim();
+        }
+        if (active) {
+            meta.setAttribute("content", meta.dataset.baseViewportContent + ", maximum-scale=1");
+        } else {
+            meta.setAttribute("content", meta.dataset.baseViewportContent);
+        }
+    }
+
     function stopLoginOtpCooldownTicker() {
         if (loginOtpCooldownTimer) {
             window.clearInterval(loginOtpCooldownTimer);
@@ -3437,6 +3463,31 @@
     if (loginOtpForm) {
         loginOtpForm.addEventListener("submit", submitOtpLogin);
     }
+
+    [loginForm, loginOtpForm].forEach(function (formNode) {
+        if (!formNode) {
+            return;
+        }
+        formNode.addEventListener("focusin", function (event) {
+            var target = event.target;
+            if (!target || !target.matches) {
+                return;
+            }
+            if (!target.matches('input:not([type="checkbox"]):not([type="radio"]), textarea, select')) {
+                return;
+            }
+            setViewportScaleLock(true);
+        });
+        formNode.addEventListener("focusout", function () {
+            window.setTimeout(function () {
+                var active = document.activeElement;
+                if (active && active.matches && active.matches('#account-login input:not([type="checkbox"]):not([type="radio"]), #account-login textarea, #account-login select')) {
+                    return;
+                }
+                setViewportScaleLock(false);
+            }, 60);
+        });
+    });
 
     if (phoneEnrollRequestButton) {
         phoneEnrollRequestButton.addEventListener("click", requestPhoneEnrollmentOtp);

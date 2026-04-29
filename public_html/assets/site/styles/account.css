@@ -138,13 +138,13 @@ body.account-page.account-stage-login-active .account-hero {
 }
 
 .auth-brand img {
-    width: 38px;
-    height: 38px;
-    object-fit: cover;
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
 }
 
 .auth-brand strong {
-    font-size: 1.4rem;
+    font-size: 1.26rem;
     font-weight: 880;
     color: #11295f;
 }
@@ -2374,6 +2374,21 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
     }
 }
 
+@media (min-width: 761px) {
+    body.account-page.account-stage-login-active main.account-shell {
+        width: min(980px, 100%);
+        min-height: calc(100dvh - 170px);
+        padding-inline: clamp(1rem, 3.2vw, 2.2rem);
+        display: grid;
+        align-content: center;
+        justify-items: center;
+    }
+
+    body.account-page.account-stage-login-active .account-stage--auth {
+        width: min(460px, 100%);
+    }
+}
+
 @media (min-width: 860px) {
     .phone-security-grid {
         grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -2410,7 +2425,7 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
 
     body.account-page.account-stage-login-active .account-card__head h3 {
         text-align: center;
-        font-size: 1.84rem;
+        font-size: 1.2rem;
         line-height: 1.55;
     }
 
@@ -2424,7 +2439,7 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
     body.account-page.account-stage-login-active .account-form select,
     body.account-page.account-stage-login-active .account-form textarea,
     body.account-page.account-stage-login-active .otp-phone-shell input {
-        font-size: 16px !important;
+        font-size: 17px !important;
     }
 
     body.account-page.account-stage-login-active .shell-action-btn {
@@ -2673,6 +2688,16 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
 
     .navid-reconnect__row {
         grid-template-columns: 1fr;
+    }
+}
+
+@supports (-webkit-touch-callout: none) {
+    body.account-page.account-stage-login-active .account-form input:not([type="checkbox"]):not([type="radio"]),
+    body.account-page.account-stage-login-active .account-form select,
+    body.account-page.account-stage-login-active .account-form textarea,
+    body.account-page.account-stage-login-active .otp-phone-shell input,
+    body.account-page.account-stage-login-active #login-otp-code {
+        font-size: 17px !important;
     }
 }
 
