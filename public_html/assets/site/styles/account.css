@@ -138,21 +138,21 @@ body.account-page.account-stage-panel-active .account-hero {
 }
 
 .account-login-home {
-    position: absolute;
-    inset-block-start: 0.86rem;
-    inset-inline-start: 0.9rem;
-    z-index: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 36px;
-    padding: 0.26rem 0.76rem;
-    border-radius: var(--radius-pill);
-    border: 1px solid rgba(43, 109, 243, 0.18);
-    background: rgba(43, 109, 243, 0.08);
+    width: 100%;
+    min-height: 46px;
+    margin-top: 0.52rem;
+    padding: 0.42rem 0.9rem;
+    border-radius: 16px;
+    border: 1px solid rgba(43, 109, 243, 0.22);
+    background:
+        linear-gradient(180deg, rgba(43, 109, 243, 0.1), rgba(43, 109, 243, 0.045)),
+        var(--surface-solid);
     color: var(--accent-strong);
-    font-size: 0.82rem;
-    font-weight: 840;
+    font-size: 0.94rem;
+    font-weight: 860;
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
 }
@@ -197,16 +197,28 @@ body.account-page.account-stage-login-active .account-grid--login {
 
 body.account-page.account-stage-login-active .account-card--auth {
     width: 100%;
+    text-align: center;
+}
+
+body.account-page.account-stage-login-active .account-card--auth .account-card__head,
+body.account-page.account-stage-login-active .account-card--auth .otp-auth-panel__hero {
+    justify-items: center;
+    text-align: center;
+}
+
+body.account-page.account-stage-login-active #account-login .account-form label,
+body.account-page.account-stage-login-active #account-login .account-feedback,
+body.account-page.account-stage-login-active #account-login .account-inline-meta {
+    text-align: center;
 }
 
 .auth-brand {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 0.5rem;
     min-height: 56px;
     margin: 0 0 0.3rem;
-    padding-inline-start: 4.5rem;
 }
 
 .auth-brand img {

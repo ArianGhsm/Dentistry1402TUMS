@@ -60,6 +60,7 @@
 - از semantic tokenهای `public_html/assets/site/styles/core.css` استفاده شود.
 - از hardcode رنگ reusable روشن‌محور خودداری شود.
 - patch موضعی dark-mode با `!important` فقط در صورت اجبار.
+- درصورت تغییر زبان طراحی و UI، فایل های semantic token هم آپدیت شوند.
 
 ## 11) Workflow اجباری اجرای کار
 1. وضعیت مخزن را بررسی کنید (`git status` + فایل‌های مرتبط).
@@ -81,6 +82,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullBeforeDeploy
 ```
+- صرفا فایل هایی که تغییر کردن یا اضافه/حذف شدن دپلوی/حذف بشن! نیاز نیست هربار کل فایل ها من جمله کل فونت ها آپلود بشن!
+
 ## 13) درصورت نیاز به تست سایت
 یوزرنیم مالک(من): 40211272003
 رمز مالک: AAbb11__
