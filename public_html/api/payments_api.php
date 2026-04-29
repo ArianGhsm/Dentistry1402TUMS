@@ -953,7 +953,19 @@ if ($action === 'ownerSaveItem') {
 
     $slug = payments_clean_slug((string) ($_POST['slug'] ?? ''));
     if ($slug === '') {
-        dent_error('اسلاگ آیتم پرداخت معتبر نیست.', 422);
+        if ($itemId > 0) {
+            $previewStore = payments_read_store();
+            $previewIndex = payments_find_item_index_by_id($previewStore, $itemId);
+            if ($previewIndex >= 0 && is_array($previewStore['items'][$previewIndex] ?? null)) {
+                $slug = payments_clean_slug((string) ($previewStore['items'][$previewIndex]['slug'] ?? ''));
+            }
+        }
+        if ($slug === '') {
+            $slug = payments_clean_slug($title);
+        }
+        if ($slug === '') {
+            $slug = 'item-' . date('YmdHis') . '-' . substr(sha1($title . '|' . microtime(true)), 0, 6);
+        }
     }
 
     $price = max(0, (int) dent_normalize_digits((string) ($_POST['price'] ?? '0')));

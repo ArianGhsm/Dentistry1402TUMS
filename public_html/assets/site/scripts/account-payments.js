@@ -223,6 +223,14 @@
             });
     }
 
+    function slugifyLatin(value) {
+        return String(value || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "")
+            .slice(0, 80);
+    }
+
     function toDatetimeLocal(value) {
         var raw = String(value || "").trim();
         if (!raw) {
@@ -635,6 +643,10 @@
             capacity: normalizeDigits($("payments-item-capacity").value).replace(/\D+/g, "")
         };
 
+        if (!payload.slug && payload.title) {
+            payload.slug = slugifyLatin(payload.title);
+        }
+
         if (!payload.id && payload.slug) {
             var matchedItem = state.items.find(function (entry) {
                 return String(entry.slug || "").trim().toLowerCase() === String(payload.slug || "").trim().toLowerCase();
@@ -756,6 +768,19 @@
 
     if (itemForm) {
         itemForm.addEventListener("submit", saveItem);
+    }
+
+    if ($("payments-item-title") && $("payments-item-slug")) {
+        $("payments-item-title").addEventListener("blur", function () {
+            var slugInput = $("payments-item-slug");
+            if (!slugInput || String(slugInput.value || "").trim() !== "") {
+                return;
+            }
+            var candidate = slugifyLatin($("payments-item-title").value);
+            if (candidate) {
+                slugInput.value = candidate;
+            }
+        });
     }
 
     if (filterForm) {
