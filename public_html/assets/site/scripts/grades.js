@@ -186,6 +186,10 @@
                 meta.push("میانگین کلاس " + Number(stat.classAverage).toFixed(2));
             }
 
+            if (grade.maxScore !== null && grade.maxScore !== undefined && Number.isFinite(Number(grade.maxScore))) {
+                meta.push("از " + Number(grade.maxScore).toLocaleString("fa-IR", { maximumFractionDigits: 2 }));
+            }
+
             if (stat && stat.rank !== null && stat.rank !== undefined &&
                 stat.totalWithScore !== null && stat.totalWithScore !== undefined) {
                 meta.push("رتبه " + stat.rank + " از " + stat.totalWithScore);

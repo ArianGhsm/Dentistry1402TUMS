@@ -66,6 +66,22 @@
     var ownerCreateStudentSubmit = $("owner-create-student-submit");
     var ownerMarkCampusStudentsButton = $("owner-mark-campus-students");
     var ownerCreateStudentFeedback = $("owner-create-student-feedback");
+    var ownerGradesCoursesSummary = $("owner-grades-courses-summary");
+    var ownerGradesImportForm = $("owner-grades-import-form");
+    var ownerGradesImportText = $("owner-grades-import-text");
+    var ownerGradesImportFile = $("owner-grades-import-file");
+    var ownerGradesImportSubmit = $("owner-grades-import-submit");
+    var ownerGradesCourseSelect = $("owner-grades-course-select");
+    var ownerGradesDeleteCourseButton = $("owner-grades-delete-course");
+    var ownerGradesResetAllButton = $("owner-grades-reset-all");
+    var ownerGradesFeedback = $("owner-grades-feedback");
+    var ownerUserPanel = $("owner-user-panel");
+    var ownerUserPanelBack = $("owner-user-panel-back");
+    var ownerUserPanelTitle = $("owner-user-panel-title");
+    var ownerUserPanelSubtitle = $("owner-user-panel-subtitle");
+    var ownerUserPanelSummary = $("owner-user-panel-summary");
+    var ownerUserPanelFeedback = $("owner-user-panel-feedback");
+    var ownerUserPanelBody = $("owner-user-panel-body");
     var navidConfigForm = $("navid-config-form");
     var navidOwnerStatus = $("navid-owner-status");
     var navidLoginUrlInput = $("navid-login-url");
@@ -164,9 +180,13 @@
         removingPhoneStudentNumber: "",
         loadingGradesStudentNumber: "",
         savingGradeKey: "",
-        expandedStudentNumber: "",
+        activeUserPanelStudentNumber: "",
+        importingGrades: false,
+        deletingGradeCourseKey: "",
+        resettingGrades: false,
         users: [],
         gradePayloadByStudent: {},
+        gradeCourses: [],
         rotationCatalog: []
     };
     var navidState = {
@@ -234,6 +254,7 @@
             case "security":
             case "phone":
             case "owner":
+            case "owner-user":
             case "payments":
             case "navid":
                 return name;
@@ -258,7 +279,7 @@
     }
 
     function canOpenSurface(surface) {
-        if (surface === "owner" || surface === "payments" || surface === "navid") {
+        if (surface === "owner" || surface === "owner-user" || surface === "payments" || surface === "navid") {
             return hasOwnerAccess();
         }
         return true;
@@ -1013,12 +1034,19 @@
         });
     }
 
-    function ownerFeedbackMessage(text, kind) {
-        setInlineFeedback(ownerFeedback, text, kind);
+    function ownerFeedbackMessage(text, kind, loading) {
+        setInlineFeedback(ownerFeedback, text, kind, loading);
+        if (ownerUserPanelFeedback && activeSurface === "owner-user") {
+            setInlineFeedback(ownerUserPanelFeedback, text, kind, loading);
+        }
     }
 
     function ownerCreateStudentFeedbackMessage(text, kind, loading) {
         setInlineFeedback(ownerCreateStudentFeedback, text, kind, loading);
+    }
+
+    function ownerGradesFeedbackMessage(text, kind, loading) {
+        setInlineFeedback(ownerGradesFeedback, text, kind, loading);
     }
 
     function request(action, payload) {
@@ -1030,6 +1058,29 @@
                 "Accept": "application/json"
             },
             body: new URLSearchParams(Object.assign({ action: action }, payload || {}))
+        }).then(function (response) {
+            return response.json().catch(function () {
+                return {
+                    success: false,
+                    error: "پاسخ نامعتبر از سرور دریافت شد."
+                };
+            }).then(function (data) {
+                data.httpStatus = response.status;
+                return data;
+            });
+        });
+    }
+
+    function requestFormData(action, formData) {
+        var body = formData instanceof FormData ? formData : new FormData();
+        body.set("action", action);
+        return fetch("/api/auth_api.php", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json"
+            },
+            body: body
         }).then(function (response) {
             return response.json().catch(function () {
                 return {
@@ -1332,7 +1383,8 @@
                 "کاربر " + totalUsers.toLocaleString("fa-IR"),
                 "نماینده " + representatives.toLocaleString("fa-IR"),
                 "کدملی " + withNationalCode.toLocaleString("fa-IR"),
-                "تلفن " + withDirectoryPhone.toLocaleString("fa-IR")
+                "تلفن " + withDirectoryPhone.toLocaleString("fa-IR"),
+                "درس " + ownerState.gradeCourses.length.toLocaleString("fa-IR")
             ].join(" \u2022 ");
         }
     }
@@ -1634,6 +1686,76 @@
         });
     }
 
+    function formatGradeMaxScore(value) {
+        var score = toNumber(value, NaN);
+        if (!Number.isFinite(score) || score <= 0) {
+            return "نامشخص";
+        }
+        return score.toLocaleString("fa-IR", { maximumFractionDigits: 2 });
+    }
+
+    function renderOwnerGradeManager() {
+        var courses = Array.isArray(ownerState.gradeCourses) ? ownerState.gradeCourses : [];
+        var totalScores = courses.reduce(function (sum, item) {
+            return sum + Math.max(0, Math.floor(toNumber(item.withScore, 0)));
+        }, 0);
+
+        if (ownerGradesCoursesSummary) {
+            ownerGradesCoursesSummary.innerHTML = [
+                summaryCard("درس", courses.length.toLocaleString("fa-IR"), "تعداد درس‌های موجود در کارنامه"),
+                summaryCard("نمره ثبت‌شده", totalScores.toLocaleString("fa-IR"), "جمع نمره‌های غیرخالی در همه درس‌ها"),
+                summaryCard("Import", ownerState.importingGrades ? "در حال اجرا" : "آماده", "ورودی متنی یا Excel", ownerState.importingGrades ? "warn" : "ok")
+            ].join("");
+        }
+
+        if (ownerGradesCourseSelect) {
+            var selected = ownerGradesCourseSelect.value;
+            ownerGradesCourseSelect.innerHTML = "";
+            if (!courses.length) {
+                var emptyOption = document.createElement("option");
+                emptyOption.value = "";
+                emptyOption.textContent = "درسی ثبت نشده است";
+                ownerGradesCourseSelect.appendChild(emptyOption);
+            } else {
+                courses.forEach(function (course) {
+                    var option = document.createElement("option");
+                    option.value = String(course.key || "");
+                    option.textContent = String(course.label || "درس") +
+                        " - از " + formatGradeMaxScore(course.maxScore) +
+                        " - " + Math.max(0, Math.floor(toNumber(course.withScore, 0))).toLocaleString("fa-IR") + " نمره";
+                    option.selected = option.value === selected;
+                    ownerGradesCourseSelect.appendChild(option);
+                });
+                if (!ownerGradesCourseSelect.value && ownerGradesCourseSelect.options.length) {
+                    ownerGradesCourseSelect.selectedIndex = 0;
+                }
+            }
+            ownerGradesCourseSelect.disabled = ownerState.importingGrades || ownerState.resettingGrades || !courses.length;
+        }
+
+        if (ownerGradesImportSubmit) {
+            ownerGradesImportSubmit.disabled = ownerState.importingGrades || ownerState.resettingGrades;
+            ownerGradesImportSubmit.textContent = ownerState.importingGrades ? "در حال import..." : "Import نمرات";
+        }
+        if (ownerGradesDeleteCourseButton) {
+            var currentCourseKey = ownerGradesCourseSelect ? String(ownerGradesCourseSelect.value || "") : "";
+            ownerGradesDeleteCourseButton.disabled = ownerState.importingGrades || ownerState.resettingGrades || !currentCourseKey ||
+                ownerState.deletingGradeCourseKey === currentCourseKey;
+            ownerGradesDeleteCourseButton.textContent = ownerState.deletingGradeCourseKey
+                ? "در حال حذف درس..."
+                : "حذف کامل درس از همه کارنامه‌ها";
+        }
+        if (ownerGradesResetAllButton) {
+            ownerGradesResetAllButton.disabled = ownerState.importingGrades || ownerState.resettingGrades || !courses.length;
+            ownerGradesResetAllButton.textContent = ownerState.resettingGrades ? "در حال ریست..." : "ریست کامل کارنامه";
+        }
+        [ownerGradesImportText, ownerGradesImportFile].forEach(function (node) {
+            if (node) {
+                node.disabled = ownerState.importingGrades || ownerState.resettingGrades;
+            }
+        });
+    }
+
     function toggleButtonLabel(user) {
         if (user.role === "owner") {
             return "مالک اصلی";
@@ -1746,10 +1868,6 @@
             removingPhone: ownerState.removingPhoneStudentNumber === key,
             deletingUser: ownerState.deletingStudentNumber === key
         };
-    }
-
-    function ownerDetailsToggleLabel(isExpanded) {
-        return isExpanded ? "بستن پنل" : "پنل کاربر";
     }
 
     function userMeta(user) {
@@ -2001,7 +2119,9 @@
 
             var label = document.createElement("label");
             label.className = "owner-grade-row__label";
-            label.textContent = String(grade.label || ("\u0633\u062a\u0648\u0646 " + index));
+            var maxScoreLabel = formatGradeMaxScore(grade.maxScore);
+            label.textContent = String(grade.label || ("\u0633\u062a\u0648\u0646 " + index)) +
+                (maxScoreLabel !== "نامشخص" ? (" (از " + maxScoreLabel + ")") : "");
             row.appendChild(label);
 
             var controls = document.createElement("div");
@@ -2039,6 +2159,65 @@
         return details;
     }
 
+    function findOwnerUser(studentNumber) {
+        var target = String(studentNumber || "").trim();
+        if (!target) {
+            return null;
+        }
+        return ownerState.users.find(function (item) {
+            return String(item.studentNumber || "") === target;
+        }) || null;
+    }
+
+    function renderOwnerUserPanel() {
+        if (!ownerUserPanelBody) {
+            return;
+        }
+
+        var studentNumber = String(ownerState.activeUserPanelStudentNumber || "").trim();
+        var user = findOwnerUser(studentNumber);
+        if (!studentNumber || !user) {
+            if (ownerUserPanelTitle) {
+                ownerUserPanelTitle.textContent = "مدیریت کاربر";
+            }
+            if (ownerUserPanelSubtitle) {
+                ownerUserPanelSubtitle.textContent = "برای مدیریت، یک کاربر را از فهرست انتخاب کن.";
+            }
+            if (ownerUserPanelSummary) {
+                ownerUserPanelSummary.innerHTML = "";
+            }
+            ownerUserPanelBody.innerHTML = '<div class="owner-empty">برای باز کردن پنل اختصاصی، از فهرست کاربران روی «پنل کاربر» بزن.</div>';
+            return;
+        }
+
+        var busyState = ownerUserBusyState(studentNumber);
+        var gradesPayload = ownerGradesPayload(studentNumber);
+        var gradeCount = 0;
+        if (gradesPayload && Array.isArray(gradesPayload.grades)) {
+            gradeCount = gradesPayload.grades.filter(function (grade) {
+                return String(grade && grade.value != null ? grade.value : "").trim() !== "";
+            }).length;
+        }
+
+        if (ownerUserPanelTitle) {
+            ownerUserPanelTitle.textContent = user.name || "دانشجو";
+        }
+        if (ownerUserPanelSubtitle) {
+            ownerUserPanelSubtitle.textContent = "شماره دانشجویی: " + (studentNumber || "—") + " • " + ownerRoleMeta(user);
+        }
+        if (ownerUserPanelSummary) {
+            ownerUserPanelSummary.innerHTML = [
+                summaryCard("نقش", ownerRoleMeta(user), user.role === "owner" ? "حساب مالک اصلی" : "سطح دسترسی فعلی"),
+                summaryCard("روتیشن/گروه", ownerRotationMeta(user), "تخصیص آموزشی حساب"),
+                summaryCard("نمره", gradeCount ? gradeCount.toLocaleString("fa-IR") : "—", gradesPayload ? "نمره‌های ثبت‌شده برای این کاربر" : "کارنامه هنوز بارگذاری نشده"),
+                summaryCard("تماس", user.hasPhone ? "دارای شماره" : "بدون شماره", ownerUserContactPhoneMeta(user))
+            ].join("");
+        }
+
+        ownerUserPanelBody.innerHTML = "";
+        ownerUserPanelBody.appendChild(buildOwnerUserDetails(user, busyState));
+    }
+
     function renderUsers(users) {
         var query = ownerSearch.value || "";
         var visibleUsers = users.filter(function (user) {
@@ -2047,16 +2226,16 @@
 
         if (!visibleUsers.length) {
             ownerUserList.innerHTML = '<div class="owner-empty">کاربری با این جست‌وجو پیدا نشد.</div>';
+            renderOwnerUserPanel();
             return;
         }
 
         ownerUserList.innerHTML = "";
         visibleUsers.forEach(function (user) {
             var studentNumber = String(user.studentNumber || "");
-            var isExpanded = ownerState.expandedStudentNumber === studentNumber;
             var busyState = ownerUserBusyState(studentNumber);
             var article = document.createElement("article");
-            article.className = "owner-user" + (isExpanded ? " is-expanded" : "");
+            article.className = "owner-user" + (ownerState.activeUserPanelStudentNumber === studentNumber ? " is-active-panel" : "");
 
             var head = document.createElement("div");
             head.className = "owner-user__head";
@@ -2089,26 +2268,25 @@
             var panelBtn = document.createElement("button");
             panelBtn.type = "button";
             panelBtn.className = "shell-action-btn";
-            panelBtn.dataset.ownerAction = "toggle-details";
+            panelBtn.dataset.ownerAction = "open-user-panel";
             panelBtn.dataset.studentNumber = studentNumber;
-            panelBtn.textContent = ownerDetailsToggleLabel(isExpanded);
+            panelBtn.textContent = "پنل کاربر";
             actions.appendChild(panelBtn);
 
             head.appendChild(actions);
             article.appendChild(head);
 
-            if (isExpanded) {
-                article.appendChild(buildOwnerUserDetails(user, busyState));
-            }
-
             ownerUserList.appendChild(article);
         });
+        renderOwnerUserPanel();
     }
 
     function renderOwnerPanel() {
         renderOwnerSummary(ownerState.users);
+        renderOwnerGradeManager();
         renderRepresentatives(ownerState.users);
         renderUsers(ownerState.users);
+        renderOwnerUserPanel();
     }
     function navidStatusResultLabel(result) {
         switch (result) {
@@ -2459,6 +2637,7 @@
         }
 
         ownerState.rotationCatalog = Array.isArray(response.rotationCatalog) ? response.rotationCatalog : [];
+        ownerState.gradeCourses = Array.isArray(response.gradeCourses) ? response.gradeCourses : [];
         var nextUsers = Array.isArray(response.users) ? response.users : [];
         var preservedGrades = {};
         nextUsers.forEach(function (user) {
@@ -2470,8 +2649,8 @@
         });
         ownerState.users = nextUsers;
         ownerState.gradePayloadByStudent = preservedGrades;
-        if (!ownerState.users.some(function (item) { return item.studentNumber === ownerState.expandedStudentNumber; })) {
-            ownerState.expandedStudentNumber = "";
+        if (!ownerState.users.some(function (item) { return item.studentNumber === ownerState.activeUserPanelStudentNumber; })) {
+            ownerState.activeUserPanelStudentNumber = "";
         }
         ownerFeedbackMessage("", "");
         updateCreateStudentGroupOptions();
@@ -2575,12 +2754,18 @@
     }
 
     function ownerGradeInputValue(studentNumber, columnIndex) {
-        if (!ownerUserList) {
-            return "";
-        }
         var selector = 'input[data-grade-input="true"][data-student-number="' + String(studentNumber || "") + '"][data-column-index="' + String(columnIndex) + '"]';
-        var input = ownerUserList.querySelector(selector);
-        return input ? input.value.trim() : "";
+        var roots = [ownerUserPanelBody, ownerUserList];
+        for (var i = 0; i < roots.length; i++) {
+            if (!roots[i]) {
+                continue;
+            }
+            var input = roots[i].querySelector(selector);
+            if (input) {
+                return input.value.trim();
+            }
+        }
+        return "";
     }
 
     function ownerPasswordInputValue(studentNumber) {
@@ -2719,6 +2904,147 @@
         }
     }
 
+    async function reloadOwnerAfterGradebookMutation() {
+        ownerState.gradePayloadByStudent = {};
+        await loadOwnerUsers();
+        if (ownerState.activeUserPanelStudentNumber) {
+            await loadOwnerUserGrades(ownerState.activeUserPanelStudentNumber, { silent: true });
+        }
+    }
+
+    async function importOwnerGrades(event) {
+        if (event) {
+            event.preventDefault();
+        }
+        if (!ownerGradesImportForm || ownerState.importingGrades) {
+            return;
+        }
+
+        var formData = new FormData();
+        var text = ownerGradesImportText ? ownerGradesImportText.value.trim() : "";
+        var file = ownerGradesImportFile && ownerGradesImportFile.files ? ownerGradesImportFile.files[0] : null;
+        if (!text && !file) {
+            ownerGradesFeedbackMessage("متن import یا فایل نمرات را وارد کن.", "error");
+            return;
+        }
+        if (text) {
+            formData.set("importText", text);
+        }
+        if (file) {
+            formData.set("gradesFile", file);
+        }
+
+        ownerState.importingGrades = true;
+        renderOwnerGradeManager();
+        ownerGradesFeedbackMessage("در حال import نمرات...", "", true);
+
+        try {
+            var response = await requestFormData("ownerImportGrades", formData);
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                ownerGradesFeedbackMessage("", "");
+                return;
+            }
+            if (!response || !response.success) {
+                ownerGradesFeedbackMessage((response && response.error) || "Import نمرات انجام نشد.", "error");
+                return;
+            }
+
+            if (ownerGradesImportText) {
+                ownerGradesImportText.value = "";
+            }
+            if (ownerGradesImportFile) {
+                ownerGradesImportFile.value = "";
+            }
+            ownerState.gradeCourses = Array.isArray(response.courses) ? response.courses : ownerState.gradeCourses;
+            ownerGradesFeedbackMessage(
+                (response.message || "Import نمرات انجام شد.") + " " +
+                Number(response.importedCount || 0).toLocaleString("fa-IR") + " ردیف ثبت شد.",
+                "success"
+            );
+            await reloadOwnerAfterGradebookMutation();
+        } finally {
+            ownerState.importingGrades = false;
+            renderOwnerGradeManager();
+        }
+    }
+
+    async function deleteOwnerGradeCourse() {
+        if (ownerState.deletingGradeCourseKey || ownerState.resettingGrades || !ownerGradesCourseSelect) {
+            return;
+        }
+
+        var courseKey = String(ownerGradesCourseSelect.value || "");
+        if (!courseKey) {
+            ownerGradesFeedbackMessage("اول یک درس را انتخاب کن.", "error");
+            return;
+        }
+
+        var label = ownerGradesCourseSelect.options[ownerGradesCourseSelect.selectedIndex]
+            ? ownerGradesCourseSelect.options[ownerGradesCourseSelect.selectedIndex].textContent
+            : "درس انتخاب‌شده";
+        if (!window.confirm("همه نمرات «" + label + "» برای همه کاربران حذف شود؟")) {
+            return;
+        }
+
+        ownerState.deletingGradeCourseKey = courseKey;
+        renderOwnerGradeManager();
+        ownerGradesFeedbackMessage("در حال حذف درس از کارنامه همه کاربران...", "", true);
+
+        try {
+            var response = await request("ownerDeleteGradeCourse", { courseKey: courseKey });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                ownerGradesFeedbackMessage("", "");
+                return;
+            }
+            if (!response || !response.success) {
+                ownerGradesFeedbackMessage((response && response.error) || "حذف درس انجام نشد.", "error");
+                return;
+            }
+
+            ownerState.gradeCourses = Array.isArray(response.courses) ? response.courses : [];
+            ownerGradesFeedbackMessage(response.message || "درس حذف شد.", "success");
+            await reloadOwnerAfterGradebookMutation();
+        } finally {
+            ownerState.deletingGradeCourseKey = "";
+            renderOwnerGradeManager();
+        }
+    }
+
+    async function resetOwnerGradebook() {
+        if (ownerState.resettingGrades) {
+            return;
+        }
+
+        var confirmation = window.prompt("برای ریست کامل همه درس‌ها و نمرات، عبارت RESET را وارد کن.");
+        if (confirmation !== "RESET") {
+            ownerGradesFeedbackMessage("ریست کارنامه لغو شد.", "");
+            return;
+        }
+
+        ownerState.resettingGrades = true;
+        renderOwnerGradeManager();
+        ownerGradesFeedbackMessage("در حال ریست کامل کارنامه...", "", true);
+
+        try {
+            var response = await request("ownerResetGradebook", { confirm: "RESET" });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                ownerGradesFeedbackMessage("", "");
+                return;
+            }
+            if (!response || !response.success) {
+                ownerGradesFeedbackMessage((response && response.error) || "ریست کارنامه انجام نشد.", "error");
+                return;
+            }
+
+            ownerState.gradeCourses = [];
+            ownerGradesFeedbackMessage(response.message || "کارنامه ریست شد.", "success");
+            await reloadOwnerAfterGradebookMutation();
+        } finally {
+            ownerState.resettingGrades = false;
+            renderOwnerGradeManager();
+        }
+    }
+
     async function saveOwnerUserGrade(studentNumber, columnIndex, gradeValue) {
         var targetStudentNumber = String(studentNumber || "").trim();
         var targetColumnIndex = Math.floor(toNumber(columnIndex, -1));
@@ -2833,8 +3159,9 @@
                 return String(item.studentNumber || "") !== targetStudentNumber;
             });
             delete ownerState.gradePayloadByStudent[targetStudentNumber];
-            if (ownerState.expandedStudentNumber === targetStudentNumber) {
-                ownerState.expandedStudentNumber = "";
+            if (ownerState.activeUserPanelStudentNumber === targetStudentNumber) {
+                ownerState.activeUserPanelStudentNumber = "";
+                openSurface("owner", { replaceHash: true });
             }
             ownerFeedbackMessage(response.message || "حساب دانشجو حذف شد.", "success");
             renderOwnerPanel();
@@ -2844,19 +3171,14 @@
         }
     }
 
-    function toggleOwnerUserDetails(studentNumber) {
+    function openOwnerUserPanel(studentNumber) {
         var targetStudentNumber = String(studentNumber || "").trim();
         if (!targetStudentNumber) {
             return;
         }
 
-        if (ownerState.expandedStudentNumber === targetStudentNumber) {
-            ownerState.expandedStudentNumber = "";
-            renderUsers(ownerState.users);
-            return;
-        }
-
-        ownerState.expandedStudentNumber = targetStudentNumber;
+        ownerState.activeUserPanelStudentNumber = targetStudentNumber;
+        openSurface("owner-user", { replaceHash: false });
         renderUsers(ownerState.users);
         if (!ownerGradesPayload(targetStudentNumber)) {
             loadOwnerUserGrades(targetStudentNumber, { silent: true });
@@ -2864,10 +3186,18 @@
     }
 
     function ownerSelectNode(studentNumber, selector) {
-        if (!ownerUserList) {
-            return null;
+        var suffix = selector + '[data-student-number="' + String(studentNumber || "") + '"]';
+        var roots = [ownerUserPanelBody, ownerUserList];
+        for (var i = 0; i < roots.length; i++) {
+            if (!roots[i]) {
+                continue;
+            }
+            var node = roots[i].querySelector(suffix);
+            if (node) {
+                return node;
+            }
         }
-        return ownerUserList.querySelector(selector + '[data-student-number="' + String(studentNumber || "") + '"]');
+        return null;
     }
 
     function syncOwnerGroupOptions(studentNumber) {
@@ -3363,8 +3693,9 @@
                 ownerHubSection.hidden = true;
             }
             ownerState.users = [];
-            ownerState.expandedStudentNumber = "";
+            ownerState.activeUserPanelStudentNumber = "";
             ownerState.gradePayloadByStudent = {};
+            ownerState.gradeCourses = [];
             ownerState.rotationCatalog = [];
             ownerState.savingStudentNumber = "";
             ownerState.savingPasswordStudentNumber = "";
@@ -3373,6 +3704,9 @@
             ownerState.removingPhoneStudentNumber = "";
             ownerState.loadingGradesStudentNumber = "";
             ownerState.savingGradeKey = "";
+            ownerState.importingGrades = false;
+            ownerState.deletingGradeCourseKey = "";
+            ownerState.resettingGrades = false;
             ownerState.campusMarking = false;
             if (pollManagerHubSection) {
                 pollManagerHubSection.hidden = true;
@@ -3438,8 +3772,9 @@
                 ownerHubSection.hidden = true;
             }
             ownerState.users = [];
-            ownerState.expandedStudentNumber = "";
+            ownerState.activeUserPanelStudentNumber = "";
             ownerState.gradePayloadByStudent = {};
+            ownerState.gradeCourses = [];
             ownerState.rotationCatalog = [];
             ownerState.savingStudentNumber = "";
             ownerState.savingPasswordStudentNumber = "";
@@ -3448,6 +3783,9 @@
             ownerState.removingPhoneStudentNumber = "";
             ownerState.loadingGradesStudentNumber = "";
             ownerState.savingGradeKey = "";
+            ownerState.importingGrades = false;
+            ownerState.deletingGradeCourseKey = "";
+            ownerState.resettingGrades = false;
             ownerState.campusMarking = false;
             setCreateStudentBusy(false);
             ownerCreateStudentFeedbackMessage("", "");
@@ -3462,7 +3800,7 @@
             renderOwnerMediaStatus(null);
             ownerSmsFeedbackMessage("", "");
             ownerMediaFeedbackMessage("", "");
-            if (activeSurface === "owner" || activeSurface === "navid") {
+            if (activeSurface === "owner" || activeSurface === "owner-user" || activeSurface === "navid") {
                 openSurface("hub", { replaceHash: true, preserveScroll: true });
             }
         }
@@ -3777,70 +4115,73 @@
         });
     }
 
+    function handleOwnerActionButton(button) {
+        if (!button) {
+            return;
+        }
+
+        var action = String(button.dataset.ownerAction || "");
+        var studentNumber = String(button.dataset.studentNumber || "");
+        var user = ownerState.users.find(function (item) {
+            return item.studentNumber === studentNumber;
+        });
+
+        if (!user) {
+            return;
+        }
+
+        if (action === "toggle-representative") {
+            if (user.role === "owner") {
+                return;
+            }
+            setRepresentative(studentNumber, user.role !== "representative");
+            return;
+        }
+
+        if (action === "open-user-panel") {
+            openOwnerUserPanel(studentNumber);
+            return;
+        }
+
+        if (action === "reload-grades") {
+            loadOwnerUserGrades(studentNumber);
+            return;
+        }
+
+        if (action === "save-password") {
+            saveOwnerUserPassword(studentNumber, ownerPasswordInputValue(studentNumber));
+            return;
+        }
+
+        if (action === "save-rotation") {
+            var values = ownerRotationFormValue(studentNumber);
+            saveOwnerUserRotation(studentNumber, values.mode, values.rotationId, values.groupNumber);
+            return;
+        }
+
+        if (action === "save-grade") {
+            var columnIndex = Math.floor(toNumber(button.dataset.columnIndex, -1));
+            if (columnIndex < 0) {
+                return;
+            }
+            var gradeValue = ownerGradeInputValue(studentNumber, columnIndex);
+            saveOwnerUserGrade(studentNumber, columnIndex, gradeValue);
+            return;
+        }
+
+        if (action === "remove-phone") {
+            removeOwnerUserPhone(studentNumber);
+            return;
+        }
+
+        if (action === "delete-student") {
+            deleteOwnerStudentAccount(studentNumber);
+        }
+    }
+
     if (ownerUserList) {
         ownerUserList.addEventListener("click", function (event) {
-            var button = event.target.closest("button[data-owner-action]");
-            if (!button) {
-                return;
-            }
-
-            var action = String(button.dataset.ownerAction || "");
-            var studentNumber = String(button.dataset.studentNumber || "");
-            var user = ownerState.users.find(function (item) {
-                return item.studentNumber === studentNumber;
-            });
-
-            if (!user) {
-                return;
-            }
-
-            if (action === "toggle-representative") {
-                if (user.role === "owner") {
-                    return;
-                }
-                setRepresentative(studentNumber, user.role !== "representative");
-                return;
-            }
-
-            if (action === "toggle-details") {
-                toggleOwnerUserDetails(studentNumber);
-                return;
-            }
-
-            if (action === "reload-grades") {
-                loadOwnerUserGrades(studentNumber);
-                return;
-            }
-
-            if (action === "save-password") {
-                saveOwnerUserPassword(studentNumber, ownerPasswordInputValue(studentNumber));
-                return;
-            }
-
-            if (action === "save-rotation") {
-                var values = ownerRotationFormValue(studentNumber);
-                saveOwnerUserRotation(studentNumber, values.mode, values.rotationId, values.groupNumber);
-                return;
-            }
-
-            if (action === "save-grade") {
-                var columnIndex = Math.floor(toNumber(button.dataset.columnIndex, -1));
-                if (columnIndex < 0) {
-                    return;
-                }
-                var gradeValue = ownerGradeInputValue(studentNumber, columnIndex);
-                saveOwnerUserGrade(studentNumber, columnIndex, gradeValue);
-                return;
-            }
-
-            if (action === "remove-phone") {
-                removeOwnerUserPhone(studentNumber);
-                return;
-            }
-
-            if (action === "delete-student") {
-                deleteOwnerStudentAccount(studentNumber);
-            }
+            handleOwnerActionButton(event.target.closest("button[data-owner-action]"));
         });
 
         ownerUserList.addEventListener("change", function (event) {
@@ -3880,8 +4221,79 @@
         });
     }
 
+    if (ownerUserPanelBody) {
+        ownerUserPanelBody.addEventListener("click", function (event) {
+            handleOwnerActionButton(event.target.closest("button[data-owner-action]"));
+        });
+
+        ownerUserPanelBody.addEventListener("change", function (event) {
+            var target = event.target;
+            if (!target || !target.matches) {
+                return;
+            }
+
+            if (target.matches('select[data-owner-rotation-mode="true"]')) {
+                syncOwnerGroupOptions(String(target.dataset.studentNumber || ""));
+                return;
+            }
+
+            if (target.matches('select[data-owner-rotation-id="true"]')) {
+                syncOwnerGroupOptions(String(target.dataset.studentNumber || ""));
+            }
+        });
+
+        ownerUserPanelBody.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter") {
+                return;
+            }
+            var input = event.target && event.target.closest
+                ? event.target.closest('input[data-grade-input="true"]')
+                : null;
+            if (!input) {
+                return;
+            }
+
+            event.preventDefault();
+            var studentNumber = String(input.dataset.studentNumber || "");
+            var columnIndex = Math.floor(toNumber(input.dataset.columnIndex, -1));
+            if (!studentNumber || columnIndex < 0) {
+                return;
+            }
+            saveOwnerUserGrade(studentNumber, columnIndex, input.value.trim());
+        });
+    }
+
+    if (ownerUserPanelBack) {
+        ownerUserPanelBack.addEventListener("click", function (event) {
+            event.preventDefault();
+            openSurface("owner", { replaceHash: true });
+        });
+    }
+
     if (ownerCreateStudentForm) {
         ownerCreateStudentForm.addEventListener("submit", createStudentAccount);
+    }
+
+    if (ownerGradesImportForm) {
+        ownerGradesImportForm.addEventListener("submit", importOwnerGrades);
+    }
+
+    if (ownerGradesDeleteCourseButton) {
+        ownerGradesDeleteCourseButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            deleteOwnerGradeCourse();
+        });
+    }
+
+    if (ownerGradesResetAllButton) {
+        ownerGradesResetAllButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            resetOwnerGradebook();
+        });
+    }
+
+    if (ownerGradesCourseSelect) {
+        ownerGradesCourseSelect.addEventListener("change", renderOwnerGradeManager);
     }
 
     if (ownerStudentRotationMode) {

@@ -2,6 +2,7 @@
     "use strict";
 
     var SAVED_KEY = "dent1402_buy_saved_slugs";
+    var CART_KEY = "dent1402_buy_cart_items";
     var MARKET_LOCATION = "دانشکده دندانپزشکی تهران";
     var state = {
         items: [],
@@ -195,6 +196,59 @@
         return true;
     }
 
+    function cartItems() {
+        try {
+            var parsed = JSON.parse(window.localStorage.getItem(CART_KEY) || "[]");
+            if (Array.isArray(parsed)) {
+                return parsed.map(function (entry) {
+                    return {
+                        slug: String(entry && entry.slug || "").trim(),
+                        quantity: Math.max(1, Math.min(99, Number(entry && entry.quantity) || 1)),
+                        addedAt: String(entry && entry.addedAt || "")
+                    };
+                }).filter(function (entry) {
+                    return entry.slug;
+                });
+            }
+        } catch (_error) {
+            return [];
+        }
+        return [];
+    }
+
+    function writeCartItems(items) {
+        try {
+            window.localStorage.setItem(CART_KEY, JSON.stringify(items || []));
+        } catch (_error) {
+            // Cart is a convenience layer; checkout still works from the item page.
+        }
+    }
+
+    function addToCart(slug, quantity) {
+        var clean = String(slug || "").trim();
+        if (!clean) return;
+        var items = cartItems();
+        var existing = items.find(function (entry) { return entry.slug === clean; });
+        if (existing) {
+            existing.quantity = Math.max(1, Math.min(99, Number(quantity) || existing.quantity || 1));
+            existing.addedAt = new Date().toISOString();
+        } else {
+            items.unshift({
+                slug: clean,
+                quantity: Math.max(1, Math.min(99, Number(quantity) || 1)),
+                addedAt: new Date().toISOString()
+            });
+        }
+        writeCartItems(items);
+    }
+
+    function removeFromCart(slug) {
+        var clean = String(slug || "").trim();
+        writeCartItems(cartItems().filter(function (entry) {
+            return entry.slug !== clean;
+        }));
+    }
+
     function copyText(value) {
         var clean = String(value || "").trim();
         if (!clean) {
@@ -234,7 +288,7 @@
     function shareUrl(url, title, button) {
         var shareData = {
             title: title || document.title,
-            text: title || "لینک پرداخت",
+            text: title || "آیتم خرید",
             url: url
         };
         if (navigator.share) {
@@ -420,26 +474,32 @@
     }
 
     function itemCategory(item) {
+        var direct = String(item && item.category || "").trim();
+        if (direct) {
+            return direct;
+        }
         var haystack = itemText(item);
-        if (/آزمون|امتحان|تست|کوئیز|exam|quiz/.test(haystack)) return "exam";
-        if (/کلاس|جلسه|درس|جزوه|کارگاه|workshop|class/.test(haystack)) return "class";
-        if (/سفارش|محصول|شیلد|کتاب|لباس|خرید|order|product/.test(haystack)) return "order";
-        if (/رویداد|اردو|همایش|جشن|ثبت‌نام|ثبت نام|event|camp/.test(haystack)) return "event";
-        return "event";
+        if (/مواد|اقلام مصرفی|دستکش|ماسک|گاز|سرنگ|consumable/.test(haystack)) return "consumables";
+        if (/جزوه|کتاب|بسته|کلاس|درس|آزمون|امتحان|کوئیز|package|class|exam|quiz/.test(haystack)) return "educational_package";
+        if (/رویداد|اردو|همایش|جشن|ثبت‌نام|ثبت نام|event|camp/.test(haystack)) return "event_registration";
+        if (/شیلد|ابزار|وسایل|ملزومات|educational|supplies/.test(haystack)) return "educational_supplies";
+        return "group_order";
     }
 
     function categoryLabel(key) {
         switch (key) {
-            case "exam":
-                return "آزمون";
-            case "class":
-                return "کلاس";
-            case "order":
-                return "سفارش";
-            case "event":
-                return "رویداد";
+            case "educational_supplies":
+                return "ملزومات آموزشی";
+            case "consumables":
+                return "اقلام مصرفی";
+            case "event_registration":
+                return "ثبت‌نام رویداد";
+            case "educational_package":
+                return "بسته آموزشی";
+            case "group_order":
+                return "سفارش گروهی";
             default:
-                return "آیتم پرداخت";
+                return "آیتم مشخص";
         }
     }
 
@@ -520,16 +580,16 @@
 
         if (countNode) {
             countNode.textContent = visible.length
-                ? visible.length.toLocaleString("fa-IR") + " پرداخت مطابق فیلتر"
+                ? visible.length.toLocaleString("fa-IR") + " آیتم مطابق فیلتر"
                 : "موردی پیدا نشد";
         }
 
         if (!source.length) {
-            root.innerHTML = '<div class="buy-empty">فعلا آیتم فعالی برای پرداخت وجود ندارد.</div>';
+            root.innerHTML = '<div class="buy-empty">فعلا آیتم فعالی برای خرید یا ثبت‌نام وجود ندارد.</div>';
             return;
         }
         if (!visible.length) {
-            root.innerHTML = '<div class="buy-empty">برای این جست‌وجو یا فیلتر، پرداختی پیدا نشد.</div>';
+            root.innerHTML = '<div class="buy-empty">برای این جست‌وجو یا فیلتر، آیتمی پیدا نشد.</div>';
             return;
         }
 
@@ -552,14 +612,15 @@
                 '    <strong class="buy-item-card__price">' + text(money(item.price || 0)) + "</strong>",
                 '    <p class="buy-item-card__meta">' + text(itemMeta(item)) + "</p>",
                 '    <div class="buy-item-card__actions">',
-                '      <a class="buy-card-link" href="' + href + '">مشاهده و پرداخت</a>',
-                '      <button class="buy-card-icon-btn' + (saved ? " is-saved" : "") + '" type="button" data-buy-save="' + text(slug) + '" aria-label="نشان کردن">' + (saved ? "♥" : "♡") + "</button>",
-                '      <button class="buy-card-icon-btn" type="button" data-buy-share="' + text(slug) + '" data-buy-share-title="' + text(item.title || "لینک پرداخت") + '" aria-label="اشتراک‌گذاری">↗</button>',
+                '      <a class="buy-card-link" href="' + href + '">مشاهده و سفارش</a>',
+                '      <button class="buy-card-icon-btn" type="button" data-buy-cart="' + text(slug) + '" aria-label="افزودن به سبد">＋</button>',
+                '      <button class="buy-card-icon-btn' + (saved ? " is-saved" : "") + '" type="button" data-buy-save="' + text(slug) + '" aria-label="افزودن به علاقه‌مندی‌ها">' + (saved ? "♥" : "♡") + "</button>",
+                '      <button class="buy-card-icon-btn" type="button" data-buy-share="' + text(slug) + '" data-buy-share-title="' + text(item.title || "آیتم خرید") + '" aria-label="اشتراک‌گذاری">↗</button>',
                 "    </div>",
                 "  </div>",
                 '  <a class="buy-item-card__hero" href="' + href + '">',
                 hero
-                    ? '    <img src="' + text(hero) + '" alt="' + text(item.title || "تصویر آیتم پرداخت") + '">'
+                    ? '    <img src="' + text(hero) + '" alt="' + text(item.title || "تصویر آیتم") + '">'
                     : '    <span>بدون تصویر</span>',
                 images.length ? '    <span class="buy-item-card__media-badge">' + text(images.length.toLocaleString("fa-IR")) + "</span>" : "",
                 "  </a>",
@@ -626,9 +687,16 @@
                 var shareButton = event.target.closest("[data-buy-share]");
                 if (shareButton) {
                     var shareSlug = shareButton.getAttribute("data-buy-share");
-                    var title = shareButton.getAttribute("data-buy-share-title") || "لینک پرداخت";
+                    var title = shareButton.getAttribute("data-buy-share-title") || "آیتم خرید";
                     var url = window.location.origin + "/buy/item/?slug=" + encodeURIComponent(shareSlug || "");
                     shareUrl(url, title, shareButton);
+                    return;
+                }
+
+                var cartButton = event.target.closest("[data-buy-cart]");
+                if (cartButton) {
+                    addToCart(cartButton.getAttribute("data-buy-cart"), 1);
+                    flashButton(cartButton, "✓", "＋");
                 }
             });
         }
@@ -706,6 +774,113 @@
         }).join("");
     }
 
+    function renderPolicy(item) {
+        var root = $("buy-item-policy");
+        if (!root) return;
+        var rows = [
+            { label: "مخاطب", value: item.audienceNote || "دانشجویان دندانپزشکی ورودی ۱۴۰۲" },
+            { label: "تحویل یا استفاده", value: item.deliveryNote || "دانشگاه علوم پزشکی تهران" },
+            { label: "لغو سفارش", value: item.allowCancellation ? "امکان لغو با هماهنگی مالک فعال است." : "لغو توسط خریدار برای این آیتم فعال نیست." },
+            { label: "پشتیبانی", value: item.supportNote || "برای پیگیری سفارش با نماینده یا مالک سایت تماس بگیرید." }
+        ];
+        root.innerHTML = rows.map(function (row) {
+            return [
+                '<div class="buy-spec-row">',
+                '  <span>' + text(row.label) + "</span>",
+                '  <strong>' + text(row.value) + "</strong>",
+                "</div>"
+            ].join("");
+        }).join("");
+    }
+
+    function ratingText(item) {
+        var rating = Number(item && item.ratingAverage) || 0;
+        var count = Number(item && item.ratingCount) || 0;
+        if (rating <= 0 || count <= 0) {
+            return "بدون امتیاز ثبت‌شده";
+        }
+        return rating.toLocaleString("fa-IR", { maximumFractionDigits: 1 }) + " از ۵ • " + count.toLocaleString("fa-IR") + " امتیاز";
+    }
+
+    function renderReviews(item) {
+        var line = $("buy-rating-line");
+        var countNode = $("buy-review-count");
+        var root = $("buy-item-reviews");
+        var reviews = Array.isArray(item && item.reviews) ? item.reviews : [];
+        if (line) {
+            line.textContent = ratingText(item);
+        }
+        if (countNode) {
+            countNode.textContent = reviews.length ? reviews.length.toLocaleString("fa-IR") + " دیدگاه" : "دیدگاهی ثبت نشده";
+        }
+        if (!root) return;
+        if (!reviews.length) {
+            root.innerHTML = '<div class="buy-empty">هنوز دیدگاهی برای این آیتم ثبت نشده است.</div>';
+            return;
+        }
+        root.innerHTML = reviews.map(function (review) {
+            return [
+                '<article class="buy-review-card">',
+                '  <div><strong>' + text(review.name || "کاربر") + '</strong><span>' + text((Number(review.rating || 0)).toLocaleString("fa-IR", { maximumFractionDigits: 1 })) + " از ۵</span></div>",
+                '  <p>' + text(review.body || "") + "</p>",
+                review.created_at ? '  <small>' + text(formatDateTime(review.created_at, "—")) + "</small>" : "",
+                "</article>"
+            ].join("");
+        }).join("");
+    }
+
+    function renderPriceBreakdown(quote, item) {
+        var root = $("buy-price-breakdown");
+        if (!root || !item) return;
+        var source = quote || {
+            quantity: 1,
+            unitPrice: item.price || 0,
+            subtotal: item.price || 0,
+            discountAmount: 0,
+            amount: item.price || 0
+        };
+        root.innerHTML = [
+            '<div><span>قیمت واحد</span><strong>' + text(money(source.unitPrice || item.price || 0)) + "</strong></div>",
+            '<div><span>تعداد</span><strong>' + text(Number(source.quantity || 1).toLocaleString("fa-IR")) + "</strong></div>",
+            '<div><span>تخفیف</span><strong>' + text(money(source.discountAmount || 0)) + "</strong></div>",
+            '<div class="is-total"><span>مبلغ نهایی</span><strong>' + text(money(source.amount || 0)) + "</strong></div>"
+        ].join("");
+    }
+
+    function openImageModal(url, title) {
+        var modal = $("buy-image-modal");
+        var img = $("buy-image-modal-img");
+        if (!modal || !img || !url) return;
+        img.src = url;
+        img.alt = title || "تصویر آیتم";
+        modal.hidden = false;
+        document.body.classList.add("buy-modal-open");
+    }
+
+    function bindImageModal() {
+        var modal = $("buy-image-modal");
+        var close = $("buy-image-modal-close");
+        if (!modal || modal.dataset.buyBound) return;
+        modal.dataset.buyBound = "1";
+        function closeModal() {
+            modal.hidden = true;
+            document.body.classList.remove("buy-modal-open");
+        }
+        if (close) {
+            close.addEventListener("click", closeModal);
+        }
+        modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+        window.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && !modal.hidden) {
+                closeModal();
+            }
+        });
+    }
+
     function renderGallery(item) {
         var heroNode = $("buy-item-hero");
         var galleryNode = $("buy-item-gallery");
@@ -717,6 +892,13 @@
                 ? '<img src="' + text(hero) + '" alt="' + text(item.title || "تصویر آیتم") + '">'
                 : '<div class="buy-image-placeholder">تصویری ثبت نشده است</div>';
             heroNode.setAttribute("data-gallery-count", gallery.length ? gallery.length.toLocaleString("fa-IR") + " تصویر" : "");
+            heroNode.dataset.currentImage = hero;
+            if (!heroNode.dataset.buyBound) {
+                heroNode.dataset.buyBound = "1";
+                heroNode.addEventListener("click", function () {
+                    openImageModal(heroNode.dataset.currentImage || "", item.title || "تصویر آیتم");
+                });
+            }
         }
 
         if (!galleryNode) {
@@ -745,6 +927,7 @@
                 return;
             }
             heroNode.innerHTML = '<img src="' + text(nextUrl) + '" alt="' + text(item.title || "تصویر آیتم") + '">';
+            heroNode.dataset.currentImage = nextUrl;
             Array.prototype.slice.call(galleryNode.querySelectorAll("[data-buy-gallery-item]")).forEach(function (node) {
                 node.classList.toggle("is-active", node === button);
             });
@@ -814,7 +997,7 @@
         if (share && !share.dataset.buyBound) {
             share.dataset.buyBound = "1";
             share.addEventListener("click", function () {
-                shareUrl(window.location.href, item ? item.title : "لینک پرداخت", share);
+                shareUrl(window.location.href, item ? item.title : "آیتم خرید", share);
             });
         }
 
@@ -830,7 +1013,7 @@
         if (report && !report.dataset.buyBound) {
             report.dataset.buyBound = "1";
             report.addEventListener("click", function () {
-                setFeedback(feedback, "برای گزارش مشکل، لینک و عنوان پرداخت را برای نماینده یا مالک سایت ارسال کنید. ثبت گزارش خودکار برای این صفحه هنوز به API وصل نشده است.", "");
+                setFeedback(feedback, "برای گزارش مشکل، عنوان آیتم و لینک سفارش را برای نماینده یا مالک سایت ارسال کنید.", "");
                 if (feedback) {
                     feedback.scrollIntoView({ behavior: "smooth", block: "center" });
                 }
@@ -854,6 +1037,75 @@
         });
     }
 
+    function renderCart(items) {
+        var root = $("buy-cart-root");
+        var count = $("buy-cart-count");
+        if (!root) return;
+        var cart = cartItems();
+        if (count) {
+            count.textContent = cart.length ? cart.length.toLocaleString("fa-IR") + " آیتم در سبد" : "سبد خالی است";
+        }
+        if (!cart.length) {
+            root.innerHTML = '<div class="buy-empty">سبد خرید خالی است. از کاتالوگ، آیتم موردنظر را اضافه کنید.</div>';
+            return;
+        }
+        var bySlug = {};
+        (Array.isArray(items) ? items : []).forEach(function (item) {
+            bySlug[String(item.slug || "")] = item;
+        });
+        root.innerHTML = cart.map(function (entry) {
+            var item = bySlug[entry.slug] || null;
+            var href = "/buy/item/?slug=" + encodeURIComponent(entry.slug) + "&qty=" + encodeURIComponent(String(entry.quantity || 1));
+            if (!item) {
+                return [
+                    '<article class="buy-cart-card">',
+                    '  <div><strong>آیتم در دسترس نیست</strong><p dir="ltr">' + text(entry.slug) + "</p></div>",
+                    '  <button class="buy-secondary-btn" type="button" data-buy-cart-remove="' + text(entry.slug) + '">حذف</button>',
+                    "</article>"
+                ].join("");
+            }
+            var image = imageList(item)[0] || "";
+            return [
+                '<article class="buy-cart-card">',
+                '  <a class="buy-cart-card__media" href="' + href + '">',
+                image ? '<img src="' + text(image) + '" alt="' + text(item.title || "تصویر آیتم") + '">' : '<span>بدون تصویر</span>',
+                "  </a>",
+                '  <div class="buy-cart-card__body">',
+                '    <span class="buy-kicker">' + text(item.categoryLabel || categoryLabel(itemCategory(item))) + "</span>",
+                '    <h3><a href="' + href + '">' + text(item.title || "بدون عنوان") + "</a></h3>",
+                '    <p>' + text(item.shortDescription || "—") + "</p>",
+                '    <strong>' + text(money((item.price || 0) * (entry.quantity || 1))) + "</strong>",
+                '    <small>تعداد انتخابی: ' + text(Number(entry.quantity || 1).toLocaleString("fa-IR")) + "</small>",
+                '    <div class="buy-cart-card__actions">',
+                '      <a class="buy-primary-btn" href="' + href + '">ادامه پرداخت</a>',
+                '      <button class="buy-secondary-btn" type="button" data-buy-cart-remove="' + text(entry.slug) + '">حذف از سبد</button>',
+                "    </div>",
+                "  </div>",
+                "</article>"
+            ].join("");
+        }).join("");
+    }
+
+    function initCartPage() {
+        var root = $("buy-cart-root");
+        if (root && !root.dataset.buyBound) {
+            root.dataset.buyBound = "1";
+            root.addEventListener("click", function (event) {
+                var remove = event.target.closest("[data-buy-cart-remove]");
+                if (!remove) return;
+                removeFromCart(remove.getAttribute("data-buy-cart-remove"));
+                renderCart(state.items);
+            });
+        }
+        apiGet("listPublicItems", {}).then(function (payload) {
+            state.items = payload && payload.success && Array.isArray(payload.items) ? payload.items : [];
+            renderCart(state.items);
+        }).catch(function () {
+            state.items = [];
+            renderCart([]);
+        });
+    }
+
     function initItemPage() {
         var slug = readSlugFromLocation();
         var titleNode = $("buy-item-title");
@@ -862,24 +1114,31 @@
         var priceNode = $("buy-item-price");
         var stateNode = $("buy-item-state");
         var capacityNode = $("buy-item-capacity");
+        var audienceNode = $("buy-item-audience");
+        var deliveryNode = $("buy-item-delivery");
         var timeNode = $("buy-item-time");
         var categoryNode = $("buy-item-category-label");
         var form = $("buy-order-form");
         var submit = $("buy-order-submit");
+        var addCartButton = $("buy-add-to-cart");
+        var quantityInput = $("buy-order-quantity");
+        var discountInput = $("buy-discount-code");
         var feedback = $("buy-order-feedback");
         var gatewaySelection = null;
+        var quoteState = null;
+        var quoteTimer = null;
 
         if (!slug) {
-            if (titleNode) titleNode.textContent = "آیتم پرداخت پیدا نشد";
-            if (shortNode) shortNode.textContent = "لینک پرداخت معتبر نیست.";
+            if (titleNode) titleNode.textContent = "آیتم سفارش پیدا نشد";
+            if (shortNode) shortNode.textContent = "لینک آیتم معتبر نیست.";
             if (form) form.hidden = true;
             return;
         }
 
         apiGet("publicItem", { slug: slug }).then(function (payload) {
             if (!payload || !payload.success || !payload.item) {
-                if (titleNode) titleNode.textContent = "آیتم پرداخت پیدا نشد";
-                if (shortNode) shortNode.textContent = (payload && payload.error) || "لینک پرداخت معتبر نیست.";
+                if (titleNode) titleNode.textContent = "آیتم سفارش پیدا نشد";
+                if (shortNode) shortNode.textContent = (payload && payload.error) || "لینک آیتم معتبر نیست.";
                 if (form) form.hidden = true;
                 bindDetailActions(slug, null, feedback);
                 return;
@@ -889,12 +1148,71 @@
             state.currentItem = item;
             var itemState = item.state || {};
             var payable = !!itemState.isPayable;
+            var maxQuantity = Math.max(1, Math.min(Number(item.maxQuantityPerOrder || 1) || 1, Number(item.remainingCapacity || item.maxQuantityPerOrder || 1) || 1));
 
-            if (titleNode) titleNode.textContent = item.title || "آیتم پرداخت";
+            function readQuantity() {
+                var value = normalizeDigits(quantityInput ? quantityInput.value : "1").replace(/\D+/g, "");
+                var parsed = Math.max(1, Math.min(maxQuantity, Number(value) || 1));
+                if (quantityInput && String(quantityInput.value || "") !== String(parsed)) {
+                    quantityInput.value = String(parsed);
+                }
+                return parsed;
+            }
+
+            function readDiscountCode() {
+                return String(discountInput && discountInput.value || "").trim();
+            }
+
+            function refreshQuote(silent) {
+                var quantity = readQuantity();
+                var discountCode = readDiscountCode();
+                renderPriceBreakdown(quoteState, item);
+                if (!payable) {
+                    return;
+                }
+                apiPost("quoteOrder", {
+                    slug: item.slug,
+                    quantity: quantity,
+                    discountCode: discountCode
+                }).then(function (response) {
+                    if (!response || !response.success || !response.quote) {
+                        if (!silent && discountCode) {
+                            setFeedback(feedback, (response && response.error) || "محاسبه کد تخفیف انجام نشد.", "is-error");
+                        }
+                        quoteState = {
+                            quantity: quantity,
+                            unitPrice: item.price || 0,
+                            subtotal: (item.price || 0) * quantity,
+                            discountAmount: 0,
+                            amount: (item.price || 0) * quantity
+                        };
+                        renderPriceBreakdown(quoteState, item);
+                        return;
+                    }
+                    quoteState = response.quote;
+                    renderPriceBreakdown(quoteState, item);
+                    if (!silent && discountCode && response.quote.discountApplied) {
+                        setFeedback(feedback, "کد تخفیف روی سفارش اعمال شد.", "is-success");
+                    }
+                }).catch(function () {
+                    if (!silent) {
+                        setFeedback(feedback, "محاسبه مبلغ نهایی انجام نشد.", "is-error");
+                    }
+                });
+            }
+
+            function scheduleQuote() {
+                window.clearTimeout(quoteTimer);
+                quoteTimer = window.setTimeout(function () {
+                    refreshQuote(false);
+                }, 360);
+            }
+
+            if (titleNode) titleNode.textContent = item.title || "آیتم سفارش";
             if (shortNode) shortNode.textContent = item.shortDescription || "—";
             if (fullNode) fullNode.textContent = item.fullDescription || "—";
             if (priceNode) priceNode.textContent = money(item.price || 0);
-            if (categoryNode) categoryNode.textContent = categoryLabel(itemCategory(item));
+            if (categoryNode) categoryNode.textContent = item.categoryLabel || categoryLabel(itemCategory(item));
             if (stateNode) {
                 stateNode.textContent = itemState.label || "نامشخص";
                 stateNode.className = "buy-status " + statusClass(itemState.key || item.status);
@@ -903,6 +1221,21 @@
                 capacityNode.textContent = item.capacity == null
                     ? "بدون محدودیت ظرفیت"
                     : ("کل " + Number(item.capacity || 0).toLocaleString("fa-IR") + " • باقی‌مانده " + Number(item.remainingCapacity || 0).toLocaleString("fa-IR"));
+            }
+            if (audienceNode) audienceNode.textContent = item.audienceNote || "دانشجویان دندانپزشکی ورودی ۱۴۰۲";
+            if (deliveryNode) deliveryNode.textContent = item.deliveryNote || "دانشگاه علوم پزشکی تهران";
+            if (quantityInput) {
+                quantityInput.max = String(maxQuantity);
+                quantityInput.value = String(Math.min(maxQuantity, Number(readParam("qty") || "1") || 1));
+                quantityInput.addEventListener("input", scheduleQuote);
+                quantityInput.addEventListener("change", scheduleQuote);
+            }
+            if (discountInput) {
+                discountInput.addEventListener("input", scheduleQuote);
+                discountInput.addEventListener("change", scheduleQuote);
+                if (!item.hasDiscountCodes) {
+                    discountInput.placeholder = "کد فعالی تعریف نشده";
+                }
             }
             if (timeNode) {
                 var timeMeta = [];
@@ -917,9 +1250,14 @@
 
             renderGallery(item);
             renderSpecifications(item.specifications || []);
+            renderPolicy(item);
+            renderReviews(item);
             renderRequiredFields(item.requiredFields || []);
+            renderPriceBreakdown(null, item);
+            refreshQuote(true);
             gatewaySelection = renderGatewayOptions(item.paymentGateways || {}, form, submit);
             bindDetailActions(slug, item, feedback);
+            bindImageModal();
             prefillFromAuth();
 
             if (submit) {
@@ -937,6 +1275,14 @@
             }
             setFeedback(feedback, payable ? "" : (item.statusMessage || "این آیتم در حال حاضر قابل پرداخت نیست."), payable ? "" : "is-error");
             setFloatingBar(item, payable, submit, form);
+
+            if (addCartButton && !addCartButton.dataset.buyBound) {
+                addCartButton.dataset.buyBound = "1";
+                addCartButton.addEventListener("click", function () {
+                    addToCart(item.slug, readQuantity());
+                    setFeedback(feedback, "آیتم به سبد خرید اضافه شد.", "is-success");
+                });
+            }
 
             if (!form) {
                 return;
@@ -997,6 +1343,8 @@
 
                 apiPost("createOrder", {
                     slug: item.slug,
+                    quantity: readQuantity(),
+                    discountCode: readDiscountCode(),
                     payerName: payerName,
                     payerPhone: payerPhone,
                     payerStudentNumber: payerStudentNumber,
@@ -1017,7 +1365,7 @@
                 });
             };
         }).catch(function () {
-            if (titleNode) titleNode.textContent = "دریافت آیتم پرداخت انجام نشد";
+            if (titleNode) titleNode.textContent = "دریافت آیتم سفارش انجام نشد";
             if (shortNode) shortNode.textContent = "ارتباط با سرور برقرار نشد.";
             if (form) form.hidden = true;
             bindDetailActions(slug, null, feedback);
@@ -1086,11 +1434,15 @@
             }
             if (summaryNode) {
                 var rows = [
-                    { label: "مبلغ", value: money(order.amount || 0) },
+                    { label: "مبلغ نهایی", value: money(order.amount || 0) },
+                    { label: "تعداد", value: Number(order.quantity || 1).toLocaleString("fa-IR") },
                     { label: "پرداخت‌کننده", value: order.payerName || "—" },
                     { label: "موبایل", value: order.payerPhone || "—" },
                     { label: "زمان ثبت", value: formatDateTime(order.createdAt, "—") }
                 ];
+                if (Number(order.discountAmount || 0) > 0) {
+                    rows.splice(2, 0, { label: "تخفیف", value: money(order.discountAmount || 0) });
+                }
                 if (item && item.title) {
                     rows.unshift({ label: "آیتم", value: item.title });
                 }
@@ -1135,6 +1487,10 @@
     }
     if (page === "item") {
         initItemPage();
+        return;
+    }
+    if (page === "cart") {
+        initCartPage();
         return;
     }
     if (page === "result") {

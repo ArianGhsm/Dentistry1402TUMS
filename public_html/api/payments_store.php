@@ -62,6 +62,42 @@ function payments_default_store(): array
     ];
 }
 
+function payments_item_categories(): array
+{
+    return [
+        'educational_supplies' => 'ملزومات آموزشی',
+        'consumables' => 'اقلام مصرفی',
+        'event_registration' => 'ثبت‌نام رویداد',
+        'educational_package' => 'بسته آموزشی',
+        'group_order' => 'سفارش گروهی',
+    ];
+}
+
+function payments_normalize_item_category(string $value): string
+{
+    $key = trim(strtolower($value));
+    if (isset(payments_item_categories()[$key])) {
+        return $key;
+    }
+
+    $legacy = [
+        'class' => 'educational_package',
+        'exam' => 'educational_package',
+        'event' => 'event_registration',
+        'order' => 'group_order',
+        'product' => 'group_order',
+    ];
+
+    return $legacy[$key] ?? 'group_order';
+}
+
+function payments_item_category_label(string $value): string
+{
+    $key = payments_normalize_item_category($value);
+    $labels = payments_item_categories();
+    return $labels[$key] ?? 'سفارش گروهی';
+}
+
 function payments_ensure_storage(): void
 {
     dent_ensure_directory(dirname(payments_store_path()));
@@ -276,14 +312,20 @@ function payments_normalize_item_record(array $seed): ?array
     $gallery = payments_normalize_string_list($seed['gallery'] ?? [], 24, 420);
     $specifications = payments_normalize_specifications($seed['specifications'] ?? []);
     $requiredFields = payments_normalize_required_fields_loose($seed['required_fields'] ?? []);
+    $discountCodes = payments_normalize_discount_codes($seed['discount_codes'] ?? []);
+    $reviews = payments_normalize_reviews($seed['reviews'] ?? []);
 
     $startsAt = payments_normalize_datetime_string((string) ($seed['starts_at'] ?? ''));
     $expiresAt = payments_normalize_datetime_string((string) ($seed['expires_at'] ?? ''));
     $capacity = payments_normalize_positive_int_nullable($seed['capacity'] ?? null, 1000000);
+    $ratingAverage = (float) dent_normalize_digits((string) ($seed['rating_average'] ?? 0));
+    $ratingAverage = max(0, min(5, $ratingAverage));
+    $ratingCount = max(0, (int) dent_normalize_digits((string) ($seed['rating_count'] ?? 0)));
 
     return [
         'id' => $id,
         'slug' => $slug,
+        'category' => payments_normalize_item_category((string) ($seed['category'] ?? '')),
         'title' => dent_clean_text((string) ($seed['title'] ?? ''), 140),
         'short_description' => dent_clean_text((string) ($seed['short_description'] ?? ''), 460),
         'full_description' => dent_clean_text((string) ($seed['full_description'] ?? ''), 6000),
@@ -295,8 +337,17 @@ function payments_normalize_item_record(array $seed): ?array
         'starts_at' => $startsAt,
         'expires_at' => $expiresAt,
         'capacity' => $capacity,
+        'max_quantity_per_order' => max(1, min(99, (int) dent_normalize_digits((string) ($seed['max_quantity_per_order'] ?? 1)))),
         'sold_count' => max(0, (int) ($seed['sold_count'] ?? 0)),
         'required_fields' => $requiredFields,
+        'audience_note' => dent_clean_text((string) ($seed['audience_note'] ?? 'دانشجویان دندانپزشکی ورودی ۱۴۰۲'), 220),
+        'delivery_note' => dent_clean_text((string) ($seed['delivery_note'] ?? 'تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود.'), 360),
+        'support_note' => dent_clean_text((string) ($seed['support_note'] ?? 'برای پیگیری سفارش با نماینده یا مالک سایت تماس بگیرید.'), 360),
+        'allow_cancellation' => filter_var($seed['allow_cancellation'] ?? false, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true,
+        'discount_codes' => $discountCodes,
+        'rating_average' => $ratingAverage,
+        'rating_count' => $ratingCount,
+        'reviews' => $reviews,
         'success_message' => dent_clean_text((string) ($seed['success_message'] ?? 'پرداخت شما با موفقیت ثبت شد.'), 600),
         'failure_message' => dent_clean_text((string) ($seed['failure_message'] ?? 'پرداخت شما تایید نشد.'), 600),
         'created_at' => payments_normalize_datetime_string((string) ($seed['created_at'] ?? dent_iso_now()), dent_iso_now()),
@@ -349,6 +400,11 @@ function payments_normalize_order_record(array $seed): ?array
         'payer_phone' => payments_normalize_phone((string) ($seed['payer_phone'] ?? '')),
         'payer_student_number' => dent_normalize_student_number((string) ($seed['payer_student_number'] ?? '')),
         'extra_form_data' => payments_normalize_extra_form_data($extraFormData),
+        'quantity' => max(1, min(99, (int) dent_normalize_digits((string) ($seed['quantity'] ?? 1)))),
+        'unit_price' => max(0, (int) ($seed['unit_price'] ?? ($seed['amount'] ?? 0))),
+        'subtotal' => max(0, (int) ($seed['subtotal'] ?? ($seed['amount'] ?? 0))),
+        'discount_code' => dent_clean_text((string) ($seed['discount_code'] ?? ''), 40),
+        'discount_amount' => max(0, (int) ($seed['discount_amount'] ?? 0)),
         'amount' => max(0, (int) ($seed['amount'] ?? 0)),
         'gateway' => dent_clean_text((string) ($seed['gateway'] ?? ''), 32),
         'authority' => dent_clean_text((string) ($seed['authority'] ?? ''), 120),
@@ -558,6 +614,107 @@ function payments_normalize_specifications($value): array
     return $normalized;
 }
 
+function payments_normalize_discount_codes($value): array
+{
+    $codes = [];
+    if (is_array($value)) {
+        $codes = $value;
+    } elseif (is_string($value)) {
+        $trimmed = trim($value);
+        if ($trimmed !== '') {
+            $decoded = json_decode($trimmed, true);
+            if (is_array($decoded)) {
+                $codes = $decoded;
+            }
+        }
+    }
+
+    $normalized = [];
+    $seen = [];
+    foreach ($codes as $code) {
+        if (!is_array($code)) {
+            continue;
+        }
+
+        $rawCode = dent_clean_text((string) ($code['code'] ?? ''), 40);
+        $rawCode = strtoupper(preg_replace('/\s+/u', '', $rawCode) ?? '');
+        if ($rawCode === '' || isset($seen[$rawCode])) {
+            continue;
+        }
+
+        $type = trim(strtolower((string) ($code['type'] ?? 'fixed')));
+        if (!in_array($type, ['fixed', 'percent'], true)) {
+            $type = 'fixed';
+        }
+
+        $amount = max(0, (int) dent_normalize_digits((string) ($code['amount'] ?? 0)));
+        if ($amount <= 0) {
+            continue;
+        }
+        if ($type === 'percent') {
+            $amount = min(95, $amount);
+        }
+
+        $normalized[] = [
+            'code' => $rawCode,
+            'type' => $type,
+            'amount' => $amount,
+            'label' => dent_clean_text((string) ($code['label'] ?? ''), 120),
+            'expires_at' => payments_normalize_datetime_string((string) ($code['expiresAt'] ?? ($code['expires_at'] ?? '')), ''),
+            'is_enabled' => !array_key_exists('isEnabled', $code) || (bool) $code['isEnabled'],
+        ];
+        $seen[$rawCode] = true;
+        if (count($normalized) >= 30) {
+            break;
+        }
+    }
+
+    return $normalized;
+}
+
+function payments_normalize_reviews($value): array
+{
+    $reviews = [];
+    if (is_array($value)) {
+        $reviews = $value;
+    } elseif (is_string($value)) {
+        $trimmed = trim($value);
+        if ($trimmed !== '') {
+            $decoded = json_decode($trimmed, true);
+            if (is_array($decoded)) {
+                $reviews = $decoded;
+            }
+        }
+    }
+
+    $normalized = [];
+    foreach ($reviews as $review) {
+        if (!is_array($review)) {
+            continue;
+        }
+
+        $name = dent_clean_text((string) ($review['name'] ?? ($review['reviewer'] ?? 'کاربر')), 80);
+        $body = dent_clean_text((string) ($review['body'] ?? ($review['text'] ?? '')), 700);
+        $rating = (float) dent_normalize_digits((string) ($review['rating'] ?? 0));
+        $rating = max(1, min(5, $rating));
+        if ($body === '') {
+            continue;
+        }
+
+        $normalized[] = [
+            'name' => $name !== '' ? $name : 'کاربر',
+            'rating' => round($rating, 1),
+            'body' => $body,
+            'created_at' => payments_normalize_datetime_string((string) ($review['createdAt'] ?? ($review['created_at'] ?? '')), ''),
+        ];
+        if (count($normalized) >= 12) {
+            break;
+        }
+    }
+
+    return $normalized;
+}
+
 function payments_normalize_required_fields_loose($value): array
 {
     $fields = [];
@@ -698,7 +855,8 @@ function payments_recalculate_sold_counts(array &$store): void
             continue;
         }
 
-        $successByItem[$itemId] = ($successByItem[$itemId] ?? 0) + 1;
+        $quantity = max(1, (int) ($order['quantity'] ?? 1));
+        $successByItem[$itemId] = ($successByItem[$itemId] ?? 0) + $quantity;
     }
 
     foreach ($store['items'] as $index => $item) {
@@ -772,9 +930,23 @@ function payments_timestamp_or_null(string $value): ?int
 function payments_public_item_payload(array $item): array
 {
     $state = payments_item_public_state($item);
+    $ratingAverage = (float) ($item['rating_average'] ?? 0);
+    $ratingCount = max(0, (int) ($item['rating_count'] ?? 0));
+    $reviews = is_array($item['reviews'] ?? null) ? array_values($item['reviews']) : [];
+    if ($ratingAverage <= 0 && $reviews !== []) {
+        $sum = 0.0;
+        foreach ($reviews as $review) {
+            $sum += (float) ($review['rating'] ?? 0);
+        }
+        $ratingAverage = count($reviews) > 0 ? $sum / count($reviews) : 0;
+        $ratingCount = max($ratingCount, count($reviews));
+    }
+
     return [
         'id' => (int) ($item['id'] ?? 0),
         'slug' => (string) ($item['slug'] ?? ''),
+        'category' => payments_normalize_item_category((string) ($item['category'] ?? '')),
+        'categoryLabel' => payments_item_category_label((string) ($item['category'] ?? '')),
         'title' => (string) ($item['title'] ?? ''),
         'shortDescription' => (string) ($item['short_description'] ?? ''),
         'fullDescription' => (string) ($item['full_description'] ?? ''),
@@ -787,9 +959,18 @@ function payments_public_item_payload(array $item): array
         'startsAt' => (string) ($item['starts_at'] ?? ''),
         'expiresAt' => (string) ($item['expires_at'] ?? ''),
         'capacity' => payments_normalize_positive_int_nullable($item['capacity'] ?? null, 1000000),
+        'maxQuantityPerOrder' => max(1, min(99, (int) ($item['max_quantity_per_order'] ?? 1))),
         'soldCount' => max(0, (int) ($item['sold_count'] ?? 0)),
         'remainingCapacity' => payments_item_remaining_capacity($item),
         'requiredFields' => is_array($item['required_fields'] ?? null) ? array_values($item['required_fields']) : [],
+        'audienceNote' => (string) ($item['audience_note'] ?? ''),
+        'deliveryNote' => (string) ($item['delivery_note'] ?? ''),
+        'supportNote' => (string) ($item['support_note'] ?? ''),
+        'allowCancellation' => (bool) ($item['allow_cancellation'] ?? false),
+        'hasDiscountCodes' => payments_normalize_discount_codes($item['discount_codes'] ?? []) !== [],
+        'ratingAverage' => round(max(0, min(5, $ratingAverage)), 1),
+        'ratingCount' => $ratingCount,
+        'reviews' => $reviews,
         'successMessage' => (string) ($item['success_message'] ?? ''),
         'failureMessage' => (string) ($item['failure_message'] ?? ''),
         'updatedAt' => (string) ($item['updated_at'] ?? ''),
@@ -807,11 +988,65 @@ function payments_item_remaining_capacity(array $item): ?int
     return max(0, $capacity - $soldCount);
 }
 
+function payments_calculate_item_quote(array $item, int $quantity, string $discountCode = ''): array
+{
+    $maxQuantity = max(1, min(99, (int) ($item['max_quantity_per_order'] ?? 1)));
+    $quantity = max(1, min($maxQuantity, $quantity));
+    $unitPrice = max(0, (int) ($item['price'] ?? 0));
+    $subtotal = $unitPrice * $quantity;
+    $normalizedCode = strtoupper(preg_replace('/\s+/u', '', dent_clean_text($discountCode, 40)) ?? '');
+    $discountAmount = 0;
+    $discountLabel = '';
+    $discountApplied = false;
+    $discountValid = $normalizedCode === '';
+
+    if ($normalizedCode !== '') {
+        foreach (payments_normalize_discount_codes($item['discount_codes'] ?? []) as $code) {
+            if ((string) ($code['code'] ?? '') !== $normalizedCode) {
+                continue;
+            }
+            if (!(bool) ($code['is_enabled'] ?? true)) {
+                continue;
+            }
+            $expiresAt = payments_timestamp_or_null((string) ($code['expires_at'] ?? ''));
+            if ($expiresAt !== null && $expiresAt <= time()) {
+                continue;
+            }
+
+            $discountValid = true;
+            $discountApplied = true;
+            $discountLabel = (string) ($code['label'] ?? '');
+            if ((string) ($code['type'] ?? 'fixed') === 'percent') {
+                $discountAmount = (int) floor($subtotal * ((int) ($code['amount'] ?? 0)) / 100);
+            } else {
+                $discountAmount = (int) ($code['amount'] ?? 0);
+            }
+            break;
+        }
+    }
+
+    $discountAmount = max(0, min($subtotal, $discountAmount));
+    $amount = max(0, $subtotal - $discountAmount);
+
+    return [
+        'quantity' => $quantity,
+        'unitPrice' => $unitPrice,
+        'subtotal' => $subtotal,
+        'discountCode' => $discountApplied ? $normalizedCode : '',
+        'discountAmount' => $discountAmount,
+        'discountLabel' => $discountLabel,
+        'discountApplied' => $discountApplied,
+        'discountValid' => $discountValid,
+        'amount' => $amount,
+    ];
+}
+
 function payments_owner_item_payload(array $item): array
 {
     $public = payments_public_item_payload($item);
     $public['createdAt'] = (string) ($item['created_at'] ?? '');
     $public['publicUrl'] = '/buy/item/?slug=' . rawurlencode((string) ($item['slug'] ?? ''));
+    $public['discountCodes'] = payments_normalize_discount_codes($item['discount_codes'] ?? []);
     return $public;
 }
 
@@ -827,6 +1062,11 @@ function payments_owner_order_payload(array $order, ?array $item = null): array
         'payerPhone' => (string) ($order['payer_phone'] ?? ''),
         'payerStudentNumber' => (string) ($order['payer_student_number'] ?? ''),
         'extraFormData' => is_array($order['extra_form_data'] ?? null) ? $order['extra_form_data'] : [],
+        'quantity' => max(1, (int) ($order['quantity'] ?? 1)),
+        'unitPrice' => max(0, (int) ($order['unit_price'] ?? 0)),
+        'subtotal' => max(0, (int) ($order['subtotal'] ?? 0)),
+        'discountCode' => (string) ($order['discount_code'] ?? ''),
+        'discountAmount' => max(0, (int) ($order['discount_amount'] ?? 0)),
         'amount' => max(0, (int) ($order['amount'] ?? 0)),
         'gateway' => (string) ($order['gateway'] ?? ''),
         'authority' => (string) ($order['authority'] ?? ''),
@@ -867,6 +1107,11 @@ function payments_order_public_result_payload(array $order, ?array $item = null)
         'status' => $status,
         'statusLabel' => $statusLabel,
         'message' => $message,
+        'quantity' => max(1, (int) ($order['quantity'] ?? 1)),
+        'unitPrice' => max(0, (int) ($order['unit_price'] ?? 0)),
+        'subtotal' => max(0, (int) ($order['subtotal'] ?? 0)),
+        'discountCode' => (string) ($order['discount_code'] ?? ''),
+        'discountAmount' => max(0, (int) ($order['discount_amount'] ?? 0)),
         'amount' => max(0, (int) ($order['amount'] ?? 0)),
         'authority' => (string) ($order['authority'] ?? ''),
         'refId' => (string) ($order['ref_id'] ?? ''),

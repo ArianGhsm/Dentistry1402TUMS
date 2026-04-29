@@ -502,7 +502,7 @@
   var conversationEmpty = $("conversation-empty");
   var newDmBtn = $("new-dm-btn");
   var newGroupBtn = $("new-group-btn");
-  var newPollLink = $("new-poll-link");
+  var newPollLink = null;
   var mobileOpenListBtn = $("mobile-open-list");
   var mobileCloseListBtn = $("mobile-close-list");
   var mobileNewChatFab = $("mobile-new-chat-fab");
@@ -510,7 +510,7 @@
   var chatNavList = $("chat-nav-list");
   var chatNavCompose = $("chat-nav-compose");
   var chatNavGroup = $("chat-nav-group");
-  var chatNavPolls = $("chat-nav-polls");
+  var chatNavPolls = null;
   var chatNavHome = $("chat-nav-home");
   var chatNavSettings = $("chat-nav-settings");
 
@@ -564,6 +564,9 @@
   var infoIdentityRows = $("chat-info-identity-rows");
   var infoSettingsRows = $("chat-info-settings-rows");
   var infoStats = $("chat-info-stats");
+  var infoContentTabs = $("chat-info-content-tabs");
+  var infoContentTable = $("chat-info-content-table");
+  var infoRecentActions = $("chat-recent-actions");
   var infoMembers = $("chat-info-members");
   var infoActionsBlock = $("chat-info-actions-block");
   var infoAvatar = $("chat-info-avatar-fallback") ? $("chat-info-avatar-fallback").parentElement : null;
@@ -597,6 +600,8 @@
   var groupStepNext = $("group-step-next");
   var groupTitleInput = $("group-title");
   var groupAboutInput = $("group-about");
+  var groupKindGroupInput = $("group-kind-group");
+  var groupKindChannelInput = $("group-kind-channel");
   var groupSearch = $("group-search");
   var groupSelectionMeta = $("group-selection-meta");
   var groupSelectedMembers = $("group-selected-members");
@@ -624,6 +629,13 @@
   var confirmModalText = $("confirm-modal-text");
   var confirmCancelBtn = $("confirm-cancel");
   var confirmAcceptBtn = $("confirm-accept");
+  var receiptsModal = $("receipts-modal");
+  var receiptsModalClose = $("receipts-modal-close");
+  var receiptsList = $("receipts-list");
+  var mediaViewer = $("chat-media-viewer");
+  var mediaViewerClose = $("chat-media-viewer-close");
+  var mediaViewerStage = $("chat-media-viewer-stage");
+  var mediaViewerCaption = $("chat-media-viewer-caption");
 
   var toastEl = $("toast");
   var themeColorMetas = Array.from(document.querySelectorAll('meta[name="theme-color"]'));
@@ -667,6 +679,7 @@
     listSelectionMode: false,
     selectedConversationIds: new Set(),
     infoSheetOpen: false,
+    infoContentCategory: "media",
     modalOpen: "",
     groupCreateStep: "members",
     pendingDirectStart: false,
@@ -1071,23 +1084,6 @@
   }
 
   function updatePollActionVisibility() {
-    var canOpen = !!state.me.loggedIn && canOpenPollCenterForUser(state.me);
-    if (newPollLink) {
-      newPollLink.hidden = !canOpen;
-      newPollLink.setAttribute("aria-hidden", canOpen ? "false" : "true");
-    }
-    if (chatNavPolls) {
-      chatNavPolls.hidden = !canOpen;
-      chatNavPolls.setAttribute("aria-hidden", canOpen ? "false" : "true");
-    }
-    if (!canOpen) {
-      if (newPollLink) {
-        newPollLink.blur();
-      }
-      if (chatNavPolls) {
-        chatNavPolls.blur();
-      }
-    }
     updateMobileNav();
   }
 
@@ -1149,7 +1145,6 @@
       setMobileNavItemActive(chatNavList, false);
       setMobileNavItemActive(chatNavCompose, false);
       setMobileNavItemActive(chatNavGroup, false);
-      setMobileNavItemActive(chatNavPolls, false);
       setMobileNavItemActive(chatNavHome, false);
       setMobileNavItemActive(chatNavSettings, false);
       syncThemeColor();
@@ -1161,7 +1156,6 @@
     setMobileNavItemActive(chatNavList, true);
     setMobileNavItemActive(chatNavCompose, hasDmModal);
     setMobileNavItemActive(chatNavGroup, hasGroupModal);
-    setMobileNavItemActive(chatNavPolls, false);
     setMobileNavItemActive(chatNavHome, false);
     setMobileNavItemActive(chatNavSettings, false);
     syncThemeColor();
@@ -1443,6 +1437,10 @@
       canModerateChat: !!source.canModerateChat,
       isOwner: !!source.isOwner || normalizeSpace(source.role) === "owner",
       isRepresentative: !!source.isRepresentative || normalizeSpace(source.role) === "representative",
+      isConversationAdmin: !!source.isConversationAdmin,
+      isConversationCreator: !!source.isConversationCreator,
+      conversationRole: normalizeSpace(source.conversationRole) || "",
+      conversationTag: normalizeSpace(source.conversationTag),
       profile: {
         avatarUrl: normalizeAvatarUrl(profile.avatarUrl || source.avatarUrl || ""),
         about: normalizeSpace(profile.about || profile.bio || source.about || "")
@@ -1464,6 +1462,8 @@
 
     return {
       id: id,
+      messageId: Math.max(0, Math.floor(toNumber(source.messageId, 0))),
+      conversationId: normalizeSpace(source.conversationId),
       category: category,
       name: normalizeSpace(source.name) || normalizeSpace(source.safeFileName) || "file",
       safeFileName: normalizeSpace(source.safeFileName),
@@ -1631,13 +1631,19 @@
     var viewerState = asObject(source.viewerState) || {};
     var peer = normalizeUser(source.peer);
     var memberCount = Math.max(0, Math.floor(toNumber(source.memberCount, 0)));
+    var conversationKind = normalizeSpace(source.conversationKind || settings.conversationKind || settings.kind).toLowerCase();
+    if (conversationKind !== "channel") {
+      conversationKind = "group";
+    }
     var normalized = {
       id: id,
       type: type,
+      kind: conversationKind,
       title: conversationTitleFromSource(source, type, peer, id),
       subtitle: conversationSubtitleFromSource(source, type, peer, memberCount),
       about: toText(source.about || ""),
       avatarUrl: normalizeAvatarUrl(source.avatarUrl),
+      shareUrl: normalizeSpace(source.shareUrl),
       createdAt: Math.floor(toNumber(source.createdAt, 0)),
       updatedAt: Math.floor(toNumber(source.updatedAt, 0)),
       isMandatory: !!source.isMandatory,
@@ -1647,7 +1653,9 @@
       settings: {
         muted: !!settings.muted,
         mutedAt: settings.mutedAt != null ? Math.floor(toNumber(settings.mutedAt, 0)) : null,
-        mutedBy: normalizeSpace(settings.mutedBy)
+        mutedBy: normalizeSpace(settings.mutedBy),
+        conversationKind: conversationKind,
+        memberPosting: settings.memberPosting !== false
       },
       viewerState: {
         pinned: !!viewerState.pinned,
@@ -1674,6 +1682,7 @@
       lastMessage: normalizeMessage(source.lastMessage),
       pinnedMessage: normalizeMessage(source.pinnedMessage),
       peer: peer,
+      admins: Array.isArray(source.admins) ? source.admins.map(normalizeStudentNumber).filter(Boolean) : [],
       members: []
     };
 
@@ -2384,9 +2393,9 @@
     var previewUrl = attachment.previewUrl || attachment.url;
     if ((attachment.category === "image" || attachment.category === "video") && previewUrl && (attachment.available || attachment.hasPreview)) {
       if (attachment.category === "video" && attachment.available && attachment.url) {
-        return '<div class="msg-attachment__media"><video controls preload="metadata" src="' + escapeHtml(attachment.url) + '"></video></div>';
+        return '<button type="button" class="msg-attachment__media msg-attachment__media-btn" data-media-kind="video" data-media-src="' + escapeHtml(attachment.url) + '" data-media-poster="' + escapeHtml(previewUrl) + '" data-media-caption="' + escapeHtml(attachment.name || "") + '"><video controls preload="metadata" src="' + escapeHtml(attachment.url) + '" poster="' + escapeHtml(previewUrl) + '"></video></button>';
       }
-      return '<div class="msg-attachment__media"><img src="' + escapeHtml(previewUrl) + '" alt="' + escapeHtml(attachment.name || "attachment") + '" loading="lazy"></div>';
+      return '<button type="button" class="msg-attachment__media msg-attachment__media-btn" data-media-kind="image" data-media-src="' + escapeHtml(attachment.url || previewUrl) + '" data-media-caption="' + escapeHtml(attachment.name || "") + '"><img src="' + escapeHtml(previewUrl) + '" alt="' + escapeHtml(attachment.name || "attachment") + '" loading="lazy"></button>';
     }
 
     if ((attachment.category === "audio" || attachment.category === "voice") && attachment.available && attachment.url) {
@@ -2394,6 +2403,34 @@
     }
 
     return "";
+  }
+
+  function messageLinks(text) {
+    var raw = toText(text);
+    var matches = raw.match(/https?:\/\/[^\s<>"']+/ig) || [];
+    return Array.from(new Set(matches)).slice(0, 3);
+  }
+
+  function renderLinkPreviews(message) {
+    var urls = messageLinks(message && message.text);
+    if (!urls.length) return "";
+    return '<div class="msg-link-previews">' + urls.map(function (url) {
+      var host = "";
+      try {
+        host = new URL(url).host.replace(/^www\./i, "");
+      } catch (error) {
+        host = url;
+      }
+      return [
+        '<a class="msg-link-preview" href="' + escapeHtml(url) + '" target="_blank" rel="noopener" data-bypass-external-warning="true">',
+        '  <span class="msg-link-preview__rail"></span>',
+        '  <span class="msg-link-preview__copy">',
+        '    <strong>' + escapeHtml(host || "لینک") + '</strong>',
+        '    <small>' + escapeHtml(url) + '</small>',
+        '  </span>',
+        '</a>'
+      ].join("");
+    }).join("") + "</div>";
   }
 
   function renderAttachment(attachment) {
@@ -2480,6 +2517,7 @@
       "    </div>",
       message.replyTo ? renderReplyPreview(message.replyTo) : "",
       '    <div class="msg-text" data-digit-locale="latin">' + escapeHtml(message.text) + "</div>",
+      renderLinkPreviews(message),
       renderAttachments(message),
       renderReactions(message),
       '    <div class="msg-foot">',
@@ -2519,6 +2557,30 @@
         }
       });
     });
+    Array.from(row.querySelectorAll(".msg-attachment__media-btn")).forEach(function (button) {
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        openMediaViewerFromNode(button);
+      });
+    });
+    var deliveryNode = row.querySelector(".msg-delivery");
+    if (deliveryNode && ownMessage) {
+      deliveryNode.classList.add("msg-delivery-btn");
+      deliveryNode.setAttribute("role", "button");
+      deliveryNode.tabIndex = 0;
+      var openReceipts = function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        openReceiptsModal(message);
+      };
+      deliveryNode.addEventListener("click", openReceipts);
+      deliveryNode.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          openReceipts(event);
+        }
+      });
+    }
     attachBubbleMenuEvents(bubble, message);
     return row;
   }
@@ -3351,6 +3413,7 @@
     if (key === "reaction") return reactionModal;
     if (key === "edit") return editModal;
     if (key === "confirm") return confirmModal;
+    if (key === "receipts") return receiptsModal;
     return null;
   }
 
@@ -3399,7 +3462,7 @@
       modalBackdrop.classList.remove("is-open");
       modalBackdrop.hidden = true;
     }
-    [dmModal, groupModal, forwardModal, reactionModal, editModal, confirmModal].forEach(function (node) {
+    [dmModal, groupModal, forwardModal, reactionModal, editModal, confirmModal, receiptsModal].forEach(function (node) {
       if (!node) return;
       node.classList.remove("is-open");
       node.classList.remove("is-busy");
@@ -3431,6 +3494,9 @@
     }
     if (hadOpenModal && closingKey === "confirm") {
       resolveConfirmDialog(false);
+    }
+    if (hadOpenModal && closingKey === "receipts" && receiptsList) {
+      receiptsList.innerHTML = "";
     }
     if (hadOpenModal && isMobileViewport()) {
       setMobileView(state.activeConversationId ? "thread" : "list");
@@ -3863,6 +3929,14 @@
     chatTextEl.style.height = "auto";
     var nextHeight = clamp(chatTextEl.scrollHeight, 38, isMobileViewport() ? 156 : 184);
     chatTextEl.style.height = nextHeight + "px";
+    syncComposerDraftState();
+  }
+
+  function syncComposerDraftState() {
+    if (!document.body) return;
+    var hasText = !!(chatTextEl && normalizeSpace(chatTextEl.value));
+    var hasAttachment = Array.isArray(state.pendingAttachments) && state.pendingAttachments.length > 0;
+    document.body.classList.toggle("chat-composer-has-draft", hasText || hasAttachment);
   }
 
   function stopPolling() {
@@ -4322,10 +4396,12 @@
     if (!state.pendingAttachments.length) {
       composerUploads.hidden = true;
       composerUploads.innerHTML = "";
+      syncComposerDraftState();
       return;
     }
 
     composerUploads.hidden = false;
+    syncComposerDraftState();
     composerUploads.innerHTML = state.pendingAttachments.map(function (item) {
       var statusLabel = "در حال ارسال";
       if (item.status === "uploaded") {

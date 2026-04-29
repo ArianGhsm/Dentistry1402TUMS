@@ -9,14 +9,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260429-151625">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260429-151625">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260429-151625">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260429-191427">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260429-191427">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260429-191427">
     <title>پیام‌رسان | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
-    <script src="/assets/site/scripts/theme.js?v=20260429-151625"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260429-151625">
-    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260429-151625">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260429-151625">
+    <script src="/assets/site/scripts/theme.js?v=20260429-191427"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260429-191427">
+    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260429-191427">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260429-191427">
 </head>
 <body class="chat-page" data-shell="off">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -31,7 +31,7 @@
 
             <div class="chat-app__identity">
                 <h1>پیام‌رسان</h1>
-                <p>گروه کلاس اجباری، پیام خصوصی، گروه‌های جدید و نظرسنجی</p>
+                <p>گروه کلاس اجباری، پیام خصوصی، گروه‌ها و کانال‌های درسی</p>
             </div>
 
             <div class="chat-app__actions">
@@ -103,14 +103,6 @@
                                     <path d="M17.5 13.5V19.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                 </svg>
                             </button>
-                            <a id="new-poll-link" class="conversation-pane__icon-btn" href="/chat/polls/" aria-label="مرکز نظرسنجی" hidden aria-hidden="true">
-                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                    <path d="M4.5 6.2H19.5V17.8H4.5V6.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                                    <path d="M8 10H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                    <path d="M8 13H13.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                    <path d="M14.8 13.4L16.3 14.9L19.1 11.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                            </a>
 </div>
                         <button id="mobile-close-list" class="conversation-pane__close" type="button" aria-label="بستن لیست گفتگو">
                             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -383,6 +375,17 @@
         </section>
 
         <section class="chat-info-block">
+            <span class="chat-info-block__label">محتوای گفتگو</span>
+            <div class="chat-info-content-tabs" id="chat-info-content-tabs"></div>
+            <div class="chat-info-content-table" id="chat-info-content-table"></div>
+        </section>
+
+        <section class="chat-info-block">
+            <span class="chat-info-block__label">تغییرات اخیر</span>
+            <div class="chat-recent-actions" id="chat-recent-actions"></div>
+        </section>
+
+        <section class="chat-info-block">
             <span class="chat-info-block__label">اعضا</span>
             <div class="chat-info-members" id="chat-info-members"></div>
         </section>
@@ -446,6 +449,18 @@
 
                 <label for="group-about">درباره گروه</label>
                 <textarea id="group-about" rows="4" maxlength="280" placeholder="توضیح کوتاه درباره موضوع گروه..."></textarea>
+
+                <fieldset class="group-kind-control" aria-label="نوع گفتگو">
+                    <legend>نوع گفتگو</legend>
+                    <label>
+                        <input type="radio" name="group-kind" id="group-kind-group" value="group" checked>
+                        <span>گروه</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="group-kind" id="group-kind-channel" value="channel">
+                        <span>کانال</span>
+                    </label>
+                </fieldset>
             </div>
         </div>
 
@@ -565,15 +580,6 @@
             </svg>
             <span>گروه</span>
         </button>
-        <a id="chat-nav-polls" class="chat-mobile-nav__item" href="/chat/polls/" aria-label="نظرسنجی" hidden aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M4.5 6.2H19.5V17.8H4.5V6.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                <path d="M8 10H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                <path d="M8 13H13.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                <path d="M14.8 13.4L16.3 14.9L19.1 11.9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>نظرسنجی</span>
-        </a>
         <a id="chat-nav-home" class="chat-mobile-nav__item" href="/app/" aria-label="خانه">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M4.5 10.2L12 4L19.5 10.2V19.2H14.2V13.8H9.8V19.2H4.5V10.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
@@ -592,9 +598,33 @@
     <div class="toast" id="toast" aria-live="polite"></div>
     <input id="attachment-input" type="file" hidden multiple>
 
-    <script src="/assets/site/scripts/auth.js?v=20260429-151625"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260429-151625"></script>
-    <script src="/assets/site/scripts/chat.js?v=20260429-151625"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260429-151625"></script>
+    <section class="chat-modal chat-modal--receipts" id="receipts-modal" hidden aria-labelledby="receipts-modal-title">
+        <div class="chat-modal__header">
+            <h2 id="receipts-modal-title">وضعیت مشاهده</h2>
+            <button class="chat-sheet-close" id="receipts-modal-close" type="button" aria-label="بستن">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+        <div class="chat-modal__body chat-modal__body--dense" id="receipts-list"></div>
+    </section>
+
+    <section class="chat-media-viewer" id="chat-media-viewer" hidden aria-label="نمایش رسانه">
+        <button class="chat-media-viewer__close" id="chat-media-viewer-close" type="button" aria-label="بستن">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+            </svg>
+        </button>
+        <div class="chat-media-viewer__stage" id="chat-media-viewer-stage"></div>
+        <div class="chat-media-viewer__caption" id="chat-media-viewer-caption"></div>
+    </section>
+
+    <script src="/assets/site/scripts/auth.js?v=20260429-191427"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260429-191427"></script>
+    <script src="/assets/site/scripts/chat.js?v=20260429-191427"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260429-191427"></script>
 </body>
 </html>

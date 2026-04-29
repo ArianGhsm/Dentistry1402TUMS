@@ -9,12 +9,15 @@
     var LAUNCH_SPLASH_CLASS = "dent-launch-splash";
     var LAUNCH_SPLASH_LEAVING_CLASS = "dent-launch-splash--leaving";
     var LAUNCH_SPLASH_STYLE_ID = "dent1402-launch-splash-style";
-    var LAUNCH_SPLASH_MIN_VISIBLE_MS = 620;
-    var LAUNCH_SPLASH_FADE_MS = 190;
+    var LAUNCH_SPLASH_NODE_ID = "dent1402-launch-splash";
+    var LAUNCH_SPLASH_MIN_VISIBLE_MS = 460;
+    var LAUNCH_SPLASH_MAX_VISIBLE_MS = 980;
+    var LAUNCH_SPLASH_FADE_MS = 160;
     var LAUNCH_SPLASH_LOGO_URL = "/assets/images/logo.png?v=20260422-brand1";
-    var LAUNCH_SPLASH_COLOR_LIGHT = "#f9fbfd";
+    var LAUNCH_SPLASH_COLOR_LIGHT = "#f2f3f5";
     var LAUNCH_SPLASH_COLOR_DARK = "#101827";
     var launchSplashMounted = false;
+    var launchSplashNode = null;
     var persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
 
     try {
@@ -155,16 +158,24 @@
         var style = document.createElement("style");
         style.id = LAUNCH_SPLASH_STYLE_ID;
         style.textContent = [
-            "html." + LAUNCH_SPLASH_CLASS + ",html." + LAUNCH_SPLASH_CLASS + " body{background:#f9fbfd!important;}",
+            "html." + LAUNCH_SPLASH_CLASS + ",html." + LAUNCH_SPLASH_CLASS + " body{background:#f2f3f5!important;}",
             "html[data-theme=\"dark\"]." + LAUNCH_SPLASH_CLASS + ",html[data-theme=\"dark\"]." + LAUNCH_SPLASH_CLASS + " body{background:#101827!important;}",
-            "html." + LAUNCH_SPLASH_CLASS + "::before,html." + LAUNCH_SPLASH_CLASS + "::after{position:fixed;pointer-events:none;opacity:1;}",
-            "html." + LAUNCH_SPLASH_CLASS + "::before{content:\"\";inset:0;z-index:10020;background:radial-gradient(circle at 50% 18%,rgba(43,109,243,0.1),transparent 30%),radial-gradient(circle at 12% 0%,rgba(53,178,255,0.08),transparent 26%),linear-gradient(180deg,#f9fbfd 0%,#f4f7fb 52%,#eef2f7 100%);transition:opacity 0.19s ease;}",
-            "html[data-theme=\"dark\"]." + LAUNCH_SPLASH_CLASS + "::before{background:radial-gradient(circle at 50% 18%,rgba(114,169,255,0.14),transparent 30%),radial-gradient(circle at 12% 0%,rgba(78,197,255,0.1),transparent 26%),linear-gradient(180deg,#101827 0%,#0d1420 54%,#09101a 100%);}",
-            "html." + LAUNCH_SPLASH_CLASS + "::after{content:\"\";left:50%;top:50%;z-index:10021;width:clamp(138px,34vw,194px);height:clamp(82px,20vw,112px);border:1px solid rgba(127,145,165,0.16);border-radius:28px;background-color:rgba(255,255,255,0.82);background-image:url(\"" + LAUNCH_SPLASH_LOGO_URL + "\");background-repeat:no-repeat;background-position:center;background-size:78% auto;box-shadow:0 22px 54px -34px rgba(17,30,54,0.28);transform:translate(-50%,-50%) scale(1);transition:opacity 0.19s ease,transform 0.22s cubic-bezier(0.2,0.8,0.2,1);}",
-            "html[data-theme=\"dark\"]." + LAUNCH_SPLASH_CLASS + "::after{border-color:rgba(124,145,168,0.2);background-color:rgba(245,249,255,0.92);box-shadow:0 24px 58px -32px rgba(0,0,0,0.62);}",
-            "html." + LAUNCH_SPLASH_CLASS + "." + LAUNCH_SPLASH_LEAVING_CLASS + "::before{opacity:0;}",
-            "html." + LAUNCH_SPLASH_CLASS + "." + LAUNCH_SPLASH_LEAVING_CLASS + "::after{opacity:0;transform:translate(-50%,-50%) scale(0.985);}",
-            "@media (prefers-reduced-motion: reduce){html." + LAUNCH_SPLASH_CLASS + "::before,html." + LAUNCH_SPLASH_CLASS + "::after{transition-duration:0.01ms;}}"
+            "#" + LAUNCH_SPLASH_NODE_ID + "{position:fixed;inset:0;z-index:10020;display:grid;grid-template-rows:1fr auto auto;justify-items:center;align-items:center;padding:clamp(2rem,6vh,4rem) 1.4rem calc(1.8rem + env(safe-area-inset-bottom,0px));background:#f2f3f5;color:#111827;opacity:1;pointer-events:none;transition:opacity 0.16s ease;}",
+            "html[data-theme=\"dark\"] #" + LAUNCH_SPLASH_NODE_ID + "{background:#101827;color:#edf3ff;}",
+            "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__center{align-self:center;display:grid;justify-items:center;gap:1.1rem;transform:translateY(8vh);transition:transform 0.22s cubic-bezier(0.2,0.8,0.2,1),opacity 0.16s ease;}",
+            "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__mark{width:clamp(92px,22vw,124px);height:clamp(92px,22vw,124px);display:grid;place-items:center;border-radius:28px;background:rgba(255,255,255,0.72);border:1px solid rgba(127,145,165,0.12);box-shadow:0 22px 54px -38px rgba(17,30,54,0.38);overflow:hidden;}",
+            "html[data-theme=\"dark\"] #" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__mark{background:rgba(245,249,255,0.9);border-color:rgba(124,145,168,0.16);box-shadow:0 24px 60px -38px rgba(0,0,0,0.68);}",
+            "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__mark img{width:82%;height:82%;object-fit:contain;border-radius:20px;}",
+            "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__progress{width:min(280px,54vw);height:5px;border-radius:999px;background:rgba(22,34,53,0.14);overflow:hidden;}",
+            "html[data-theme=\"dark\"] #" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__progress{background:rgba(237,243,255,0.16);}",
+            "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__progress span{display:block;width:100%;height:100%;border-radius:inherit;background:#2b6df3;transform-origin:right center;animation:dentLaunchProgress 0.78s cubic-bezier(0.2,0.8,0.2,1) both;}",
+            "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__brand{margin-top:min(11vh,7rem);font-family:var(--font-accent,var(--font-main));font-size:clamp(1rem,4vw,1.35rem);font-weight:900;color:rgba(17,24,39,0.78);}",
+            "html[data-theme=\"dark\"] #" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__brand{color:rgba(237,243,255,0.8);}",
+            "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__build{display:none;}",
+            "html." + LAUNCH_SPLASH_CLASS + "." + LAUNCH_SPLASH_LEAVING_CLASS + " #" + LAUNCH_SPLASH_NODE_ID + "{opacity:0;}",
+            "html." + LAUNCH_SPLASH_CLASS + "." + LAUNCH_SPLASH_LEAVING_CLASS + " #" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__center{opacity:0;transform:translateY(7vh) scale(0.985);}",
+            "@keyframes dentLaunchProgress{0%{transform:scaleX(0.08);opacity:0.7;}100%{transform:scaleX(1);opacity:1;}}",
+            "@media (prefers-reduced-motion: reduce){#" + LAUNCH_SPLASH_NODE_ID + ",#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__center{transition-duration:0.01ms;}#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__progress span{animation-duration:0.01ms;}}"
         ].join("");
 
         (document.head || document.documentElement).appendChild(style);
@@ -175,6 +186,29 @@
         img.decoding = "async";
         img.loading = "eager";
         img.src = LAUNCH_SPLASH_LOGO_URL;
+    }
+
+    function createLaunchSplashNode(buildLabel) {
+        if (launchSplashNode) {
+            return launchSplashNode;
+        }
+
+        var splash = document.createElement("div");
+        splash.id = LAUNCH_SPLASH_NODE_ID;
+        splash.dir = "rtl";
+        splash.setAttribute("aria-hidden", "true");
+        splash.innerHTML = [
+            '<div class="dent-launch-splash__center">',
+            '  <div class="dent-launch-splash__mark"><img src="' + LAUNCH_SPLASH_LOGO_URL + '" alt=""></div>',
+            '  <div class="dent-launch-splash__progress"><span></span></div>',
+            "</div>",
+            '<div class="dent-launch-splash__brand">ورودی ۱۴۰۲ دندانپزشکی تهران</div>',
+            '<div class="dent-launch-splash__build" data-digit-locale="latin">' + (buildLabel || "") + "</div>"
+        ].join("");
+
+        document.documentElement.appendChild(splash);
+        launchSplashNode = splash;
+        return splash;
     }
 
     function mountLaunchSplash() {
@@ -189,6 +223,7 @@
         var root = document.documentElement;
         var splashTheme = resolvedTheme();
         var buildLabel = resolveLaunchBuildLabel();
+        createLaunchSplashNode(buildLabel ? "Build " + buildLabel : "");
         root.setAttribute("data-launch-build", buildLabel ? "Build " + buildLabel : "");
         root.classList.add(LAUNCH_SPLASH_CLASS);
         forceLaunchMeta(splashTheme);
@@ -196,11 +231,17 @@
         var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         var fadeDuration = reducedMotion ? 1 : LAUNCH_SPLASH_FADE_MS;
         var isHiding = false;
+        var minElapsed = false;
+        var domReady = document.readyState !== "loading";
 
         function cleanupSplash() {
             root.classList.remove(LAUNCH_SPLASH_CLASS);
             root.classList.remove(LAUNCH_SPLASH_LEAVING_CLASS);
             root.removeAttribute("data-launch-build");
+            if (launchSplashNode && launchSplashNode.parentNode) {
+                launchSplashNode.parentNode.removeChild(launchSplashNode);
+            }
+            launchSplashNode = null;
             syncMeta(resolvedTheme());
         }
 
@@ -214,7 +255,29 @@
             window.setTimeout(cleanupSplash, fadeDuration + 24);
         }
 
-        window.setTimeout(beginHide, LAUNCH_SPLASH_MIN_VISIBLE_MS);
+        function maybeHide() {
+            if (minElapsed && domReady) {
+                beginHide();
+            }
+        }
+
+        window.setTimeout(function () {
+            minElapsed = true;
+            maybeHide();
+        }, reducedMotion ? 1 : LAUNCH_SPLASH_MIN_VISIBLE_MS);
+
+        if (!domReady) {
+            document.addEventListener("DOMContentLoaded", function () {
+                window.requestAnimationFrame(function () {
+                    domReady = true;
+                    maybeHide();
+                });
+            }, { once: true });
+        } else {
+            maybeHide();
+        }
+
+        window.setTimeout(beginHide, reducedMotion ? 1 : LAUNCH_SPLASH_MAX_VISIBLE_MS);
         window.addEventListener("pagehide", cleanupSplash, { once: true });
     }
 

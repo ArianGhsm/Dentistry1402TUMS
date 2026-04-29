@@ -1617,6 +1617,72 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
         var(--surface-muted);
 }
 
+.owner-block--grades-manager {
+    padding: 0.82rem;
+    border-radius: 18px;
+    border: 1px solid rgba(21, 143, 99, 0.24);
+    background:
+        linear-gradient(180deg, rgba(21, 143, 99, 0.1), rgba(21, 143, 99, 0.025)),
+        var(--surface-muted);
+}
+
+.owner-grades-import-form {
+    padding: 0.74rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+}
+
+.owner-grade-import-textarea {
+    min-height: 150px;
+    resize: vertical;
+    direction: rtl;
+    unicode-bidi: isolate;
+}
+
+.owner-grade-import-hint {
+    padding: 0.56rem 0.64rem;
+    border-radius: 12px;
+    border: 1px dashed var(--border-color-strong);
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    line-height: 1.8;
+}
+
+.owner-grade-course-tools {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 0.75fr);
+    gap: 0.54rem;
+    align-items: end;
+    padding: 0.72rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+}
+
+.owner-grade-course-tools label {
+    grid-column: 1 / -1;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 820;
+}
+
+.owner-grade-course-tools select {
+    width: 100%;
+}
+
+.owner-grade-manager-actions {
+    display: flex;
+    gap: 0.46rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.owner-grade-manager-actions .shell-action-btn {
+    min-height: 40px;
+}
+
 .owner-block--payments-toolbar,
 .owner-block--payments {
     padding: 0.82rem;
@@ -2004,11 +2070,17 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
     gap: 0.64rem;
 }
 
-.owner-user.is-expanded {
+.owner-user.is-expanded,
+.owner-user.is-active-panel {
     border-color: color-mix(in srgb, var(--accent-color) 30%, var(--border-color));
     background:
         linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 8%, transparent), transparent 45%),
         var(--surface-muted);
+}
+
+.owner-user-panel-body {
+    display: grid;
+    gap: 0.72rem;
 }
 
 .owner-user__head {
@@ -2483,6 +2555,9 @@ html[data-theme="dark"] body.account-page .owner-summary-card--danger {
 
 html[data-theme="dark"] body.account-page .owner-block--payments-toolbar,
 html[data-theme="dark"] body.account-page .owner-block--payments,
+html[data-theme="dark"] body.account-page .owner-block--grades-manager,
+html[data-theme="dark"] body.account-page .owner-grades-import-form,
+html[data-theme="dark"] body.account-page .owner-grade-course-tools,
 html[data-theme="dark"] body.account-page .payments-item-form,
 html[data-theme="dark"] body.account-page .payments-filter-grid,
 html[data-theme="dark"] body.account-page .payments-form-section,
@@ -2817,6 +2892,7 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
 
     .owner-user__admin-grid,
     .owner-user-inline-row--double,
+    .owner-grade-course-tools,
     .payments-filter-grid,
     .payments-form-grid,
     .payments-detail-grid {
@@ -2849,6 +2925,7 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
     .payments-item-card__head,
     .payments-order-card__head,
     .payments-note__head,
+    .owner-grade-manager-actions,
     .payments-inline-actions,
     .payments-item-card__actions,
     .payments-order-card__actions,
@@ -2858,6 +2935,7 @@ html[data-theme="dark"] body.account-page .account-list-row:active .account-list
     }
 
     .payments-inline-actions .shell-action-btn,
+    .owner-grade-manager-actions .shell-action-btn,
     .payments-item-card__actions .shell-action-btn,
     .payments-order-card__actions .shell-action-btn,
     .payments-note__actions .shell-action-btn {

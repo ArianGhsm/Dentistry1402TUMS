@@ -93,12 +93,21 @@ function chat_public_media_url(string $attachmentId, string $variant = CHAT_MEDI
 
 function chat_default_settings(array $seed = []): array
 {
+    $kind = dent_clean_text((string) ($seed['conversationKind'] ?? ($seed['kind'] ?? 'group')), 20);
+    if (!in_array($kind, ['group', 'channel'], true)) {
+        $kind = 'group';
+    }
+
     return [
         'muted' => (bool) ($seed['muted'] ?? false),
         'mutedBy' => ($seed['mutedBy'] ?? null) !== null
             ? dent_normalize_student_number((string) $seed['mutedBy'])
             : null,
         'mutedAt' => isset($seed['mutedAt']) ? (int) $seed['mutedAt'] : null,
+        'conversationKind' => $kind,
+        'memberPosting' => $kind === 'channel'
+            ? false
+            : (bool) ($seed['memberPosting'] ?? true),
     ];
 }
 
@@ -1061,6 +1070,7 @@ function chat_normalize_conversation_record(string $conversationId, array $conve
     $admins = chat_normalize_student_list($conversation['admins'] ?? []);
     $createdBy = dent_normalize_student_number((string) ($conversation['createdBy'] ?? ''));
     $settings = is_array($conversation['settings'] ?? null) ? $conversation['settings'] : [];
+    $memberTagsRaw = is_array($conversation['memberTags'] ?? null) ? $conversation['memberTags'] : [];
     $temporary = chat_parse_bool(
         $conversation['temporary'] ?? ($settings['temporary'] ?? false),
         false
@@ -1130,6 +1140,18 @@ function chat_normalize_conversation_record(string $conversationId, array $conve
 
     $about = dent_clean_text((string) ($conversation['about'] ?? ''), 280);
     $avatarUrl = dent_clean_avatar_url((string) ($conversation['avatarUrl'] ?? ''), false);
+    $memberTags = [];
+    foreach ($memberTagsRaw as $studentNumber => $tag) {
+        $cleanStudentNumber = dent_normalize_student_number((string) $studentNumber);
+        if ($cleanStudentNumber === '' || !in_array($cleanStudentNumber, $memberStudentNumbers, true)) {
+            continue;
+        }
+
+        $cleanTag = chat_clean_member_tag((string) $tag);
+        if ($cleanTag !== '') {
+            $memberTags[$cleanStudentNumber] = $cleanTag;
+        }
+    }
 
     return [
         'id' => $conversationId,
@@ -1144,9 +1166,21 @@ function chat_normalize_conversation_record(string $conversationId, array $conve
         'memberStudentNumbers' => $memberStudentNumbers,
         'directParticipants' => $directParticipants,
         'admins' => $admins,
+        'memberTags' => $memberTags,
         'temporary' => $temporary,
         'settings' => chat_default_settings($settings),
     ];
+}
+
+function chat_clean_member_tag(?string $value): string
+{
+    return dent_clean_text((string) $value, 32);
+}
+
+function chat_clean_conversation_kind(?string $value): string
+{
+    $kind = dent_clean_text((string) $value, 20);
+    return $kind === 'channel' ? 'channel' : 'group';
 }
 
 function chat_clean_media_relative_path(?string $value): string
@@ -2453,6 +2487,11 @@ function chat_can_send_message(array $conversation, array $user): bool
     }
 
     $settings = is_array($conversation['settings'] ?? null) ? $conversation['settings'] : chat_default_settings();
+    $conversationKind = (string) ($settings['conversationKind'] ?? 'group');
+    if ($conversationKind === 'channel' && !chat_can_manage_conversation($conversation, $user)) {
+        return false;
+    }
+
     $muted = (bool) ($settings['muted'] ?? false);
     if (!$muted) {
         return true;
@@ -3275,6 +3314,61 @@ function chat_message_delivery_meta(array $store, array $conversation, array $me
     ];
 }
 
+function chat_message_receipts_payload(array $store, array $conversation, array $message, array $viewer): array
+{
+    $conversationId = chat_clean_conversation_id((string) ($conversation['id'] ?? ''));
+    $messageId = (int) ($message['id'] ?? 0);
+    $senderStudentNumber = dent_normalize_student_number((string) ($message['senderStudentNumber'] ?? ''));
+    $viewerStudentNumber = chat_actor_student_number($viewer);
+    $canInspect = $viewerStudentNumber !== ''
+        && $senderStudentNumber !== ''
+        && ($viewerStudentNumber === $senderStudentNumber || chat_can_manage_conversation($conversation, $viewer));
+
+    if ($conversationId === '' || $messageId <= 0 || !$canInspect) {
+        dent_error('اجازه مشاهده وضعیت سین این پیام را ندارید.', 403);
+    }
+
+    $seen = [];
+    $pending = [];
+    foreach (chat_conversation_member_student_numbers($conversation) as $studentNumber) {
+        $studentNumber = dent_normalize_student_number((string) $studentNumber);
+        if ($studentNumber === '' || $studentNumber === $senderStudentNumber) {
+            continue;
+        }
+
+        $readState = chat_read_state($store, $conversationId, $studentNumber);
+        $lastReadMessageId = max(0, (int) ($readState['lastReadMessageId'] ?? 0));
+        $entry = [
+            'user' => chat_public_user_for_student($studentNumber),
+            'seen' => $lastReadMessageId >= $messageId,
+            'seenAt' => $lastReadMessageId >= $messageId ? ($readState['lastReadAt'] ?? null) : null,
+        ];
+
+        if ($entry['seen']) {
+            $seen[] = $entry;
+        } else {
+            $pending[] = $entry;
+        }
+    }
+
+    usort($seen, static function (array $left, array $right): int {
+        return (int) ($right['seenAt'] ?? 0) <=> (int) ($left['seenAt'] ?? 0);
+    });
+    usort($pending, static function (array $left, array $right): int {
+        return strcasecmp((string) ($left['user']['name'] ?? ''), (string) ($right['user']['name'] ?? ''));
+    });
+
+    return [
+        'messageId' => $messageId,
+        'conversationId' => $conversationId,
+        'conversationType' => (string) ($conversation['type'] ?? 'group'),
+        'seenCount' => count($seen),
+        'pendingCount' => count($pending),
+        'seen' => $seen,
+        'pending' => $pending,
+    ];
+}
+
 function chat_attachment_absolute_path(string $relativePath): string
 {
     $clean = chat_clean_media_relative_path($relativePath);
@@ -3516,8 +3610,29 @@ function chat_normalize_messages_for_client(array $messages, ?array $store = nul
 function chat_conversation_members_payload(array $conversation): array
 {
     $members = [];
+    $admins = chat_normalize_student_list($conversation['admins'] ?? []);
+    $memberTags = is_array($conversation['memberTags'] ?? null) ? $conversation['memberTags'] : [];
+    $createdBy = dent_normalize_student_number((string) ($conversation['createdBy'] ?? ''));
     foreach (chat_conversation_member_student_numbers($conversation) as $studentNumber) {
-        $members[] = chat_public_user_for_student((string) $studentNumber);
+        $studentNumber = dent_normalize_student_number((string) $studentNumber);
+        if ($studentNumber === '') {
+            continue;
+        }
+
+        $member = chat_public_user_for_student($studentNumber);
+        $member['isConversationAdmin'] = in_array($studentNumber, $admins, true);
+        $member['isConversationCreator'] = $createdBy !== '' && $studentNumber === $createdBy;
+        $member['conversationRole'] = $member['isConversationCreator']
+            ? 'owner'
+            : ($member['isConversationAdmin'] ? 'admin' : 'member');
+        $tag = chat_clean_member_tag((string) ($memberTags[$studentNumber] ?? ''));
+        if ($tag === '' && $member['isConversationCreator']) {
+            $tag = 'مالک';
+        } elseif ($tag === '' && $member['isConversationAdmin']) {
+            $tag = 'مدیر';
+        }
+        $member['conversationTag'] = $tag;
+        $members[] = $member;
     }
 
     usort($members, static function (array $left, array $right): int {
@@ -3668,6 +3783,8 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
         'updatedAt' => (int) ($conversation['updatedAt'] ?? time()),
         'isMandatory' => $isMandatory,
         'temporary' => chat_parse_bool($conversation['temporary'] ?? false, false),
+        'conversationKind' => (string) ($settings['conversationKind'] ?? 'group'),
+        'shareUrl' => '/chat/?conversationId=' . rawurlencode($conversationId),
         'memberCount' => count(chat_conversation_member_student_numbers($conversation)),
         'unreadCount' => chat_unread_count($store, $conversation, $viewerStudentNumber),
         'lastReadMessageId' => chat_last_read_message_id($store, $conversationId, $viewerStudentNumber),
@@ -3698,6 +3815,10 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
         'lastMessage' => $lastMessage !== null ? chat_normalize_message_for_client($lastMessage, $store, $viewer) : null,
         'pinnedMessage' => $pinnedMessage !== null ? chat_normalize_message_for_client($pinnedMessage, $store, $viewer) : null,
     ];
+
+    if ($canManageConversation) {
+        $payload['admins'] = chat_normalize_student_list($conversation['admins'] ?? []);
+    }
 
     if ($conversationType === 'direct') {
         $participants = chat_normalize_student_list($conversation['directParticipants'] ?? []);
@@ -4000,7 +4121,8 @@ function chat_create_group_conversation(
     string $about,
     array $members,
     string $avatarUrl,
-    bool $temporary = false
+    bool $temporary = false,
+    string $conversationKind = 'group'
 ): array {
     $creatorStudentNumber = chat_actor_student_number($user);
     if ($creatorStudentNumber === '') {
@@ -4029,6 +4151,7 @@ function chat_create_group_conversation(
     $conversationId = chat_next_group_conversation_id($store);
     $now = time();
     $isTemporary = $temporary || chat_title_marks_test_conversation($title);
+    $conversationKind = chat_clean_conversation_kind($conversationKind);
     $conversation = [
         'id' => $conversationId,
         'type' => 'group',
@@ -4042,8 +4165,12 @@ function chat_create_group_conversation(
         'memberStudentNumbers' => $memberList,
         'directParticipants' => [],
         'admins' => [$creatorStudentNumber],
+        'memberTags' => [],
         'temporary' => $isTemporary,
-        'settings' => chat_default_settings(),
+        'settings' => chat_default_settings([
+            'conversationKind' => $conversationKind,
+            'memberPosting' => $conversationKind !== 'channel',
+        ]),
     ];
 
     chat_put_conversation($store, $conversation);
@@ -5450,6 +5577,7 @@ if ($action === 'createGroup') {
     $avatarUrl = dent_clean_avatar_url((string) ($_POST['avatarUrl'] ?? ''), false);
     $members = chat_parse_members_input($_POST['members'] ?? ($_POST['membersJson'] ?? []));
     $temporaryConversation = chat_parse_bool($_POST['temporary'] ?? false, false);
+    $conversationKind = chat_clean_conversation_kind((string) ($_POST['kind'] ?? $_POST['conversationKind'] ?? 'group'));
 
     if ($title === '') {
         dent_error('نام گروه الزامی است.', 422);
@@ -5463,7 +5591,8 @@ if ($action === 'createGroup') {
         $about,
         $members,
         $avatarUrl,
-        $temporaryConversation
+        $temporaryConversation,
+        $conversationKind
     );
     chat_save_store($store);
 
@@ -5739,6 +5868,122 @@ if ($action === 'markUnread') {
         'success' => true,
         'conversation' => chat_conversation_payload($store, $conversation, $user, false),
         'conversations' => chat_conversation_summaries_for_user($store, $user),
+    ]);
+}
+
+if ($action === 'messageReceipts') {
+    $user = chat_require_user();
+    $conversationId = chat_clean_conversation_id((string) ($_GET['conversationId'] ?? $_POST['conversationId'] ?? CHAT_CLASS_CONVERSATION_ID));
+    $messageId = (int) ($_GET['messageId'] ?? $_POST['messageId'] ?? $_GET['id'] ?? $_POST['id'] ?? 0);
+
+    if ($conversationId === '' || $messageId <= 0) {
+        dent_error('شناسه پیام یا گفتگو نامعتبر است.', 422);
+    }
+
+    $store = chat_load_store();
+    $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
+    $messages = chat_get_messages($store, $conversationId);
+    $index = chat_find_message_index($messages, $messageId);
+    if ($index === -1) {
+        dent_error('پیام پیدا نشد.', 404);
+    }
+
+    dent_json_response([
+        'success' => true,
+        'receipts' => chat_message_receipts_payload($store, $conversation, $messages[$index], $user),
+    ]);
+}
+
+if ($action === 'setMemberTag') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد تنظیم تگ عضو نامعتبر است.', 405);
+    }
+
+    $user = chat_require_user();
+    $conversationId = chat_clean_conversation_id((string) ($_POST['conversationId'] ?? ''));
+    $memberStudentNumber = dent_normalize_student_number((string) ($_POST['memberStudentNumber'] ?? ''));
+    $tag = chat_clean_member_tag((string) ($_POST['tag'] ?? ''));
+
+    if ($conversationId === '' || $memberStudentNumber === '') {
+        dent_error('شناسه گفتگو یا عضو نامعتبر است.', 422);
+    }
+
+    $store = chat_load_store();
+    $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
+    if (!chat_can_manage_conversation($conversation, $user)) {
+        dent_error('اجازه مدیریت این گفتگو را ندارید.', 403);
+    }
+    if (!chat_is_member($conversation, $memberStudentNumber)) {
+        dent_error('این کاربر عضو گفتگو نیست.', 422);
+    }
+
+    $memberTags = is_array($conversation['memberTags'] ?? null) ? $conversation['memberTags'] : [];
+    if ($tag === '') {
+        unset($memberTags[$memberStudentNumber]);
+    } else {
+        $memberTags[$memberStudentNumber] = $tag;
+    }
+    $conversation['memberTags'] = $memberTags;
+    $conversation['updatedAt'] = time();
+    chat_put_conversation($store, $conversation);
+    chat_save_store($store);
+
+    dent_json_response([
+        'success' => true,
+        'conversation' => chat_conversation_payload($store, $conversation, $user, true),
+    ]);
+}
+
+if ($action === 'setMemberAdmin') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد تنظیم مدیر نامعتبر است.', 405);
+    }
+
+    $user = chat_require_user();
+    $conversationId = chat_clean_conversation_id((string) ($_POST['conversationId'] ?? ''));
+    $memberStudentNumber = dent_normalize_student_number((string) ($_POST['memberStudentNumber'] ?? ''));
+    $admin = (string) ($_POST['admin'] ?? '1') === '1';
+
+    if ($conversationId === '' || $memberStudentNumber === '') {
+        dent_error('شناسه گفتگو یا عضو نامعتبر است.', 422);
+    }
+
+    $store = chat_load_store();
+    $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
+    if ((string) ($conversation['type'] ?? '') !== 'group') {
+        dent_error('مدیریت مدیرها فقط برای گروه و کانال پشتیبانی می‌شود.', 422);
+    }
+    if (!chat_can_manage_conversation($conversation, $user)) {
+        dent_error('اجازه مدیریت این گفتگو را ندارید.', 403);
+    }
+    if (!chat_is_member($conversation, $memberStudentNumber)) {
+        dent_error('این کاربر عضو گفتگو نیست.', 422);
+    }
+    if (dent_normalize_student_number((string) ($conversation['createdBy'] ?? '')) === $memberStudentNumber && !$admin) {
+        dent_error('مالک گفتگو باید مدیر بماند.', 422);
+    }
+
+    $admins = chat_normalize_student_list($conversation['admins'] ?? []);
+    if ($admin && !in_array($memberStudentNumber, $admins, true)) {
+        $admins[] = $memberStudentNumber;
+    } elseif (!$admin) {
+        $admins = array_values(array_filter(
+            $admins,
+            static fn($studentNumber): bool => dent_normalize_student_number((string) $studentNumber) !== $memberStudentNumber
+        ));
+    }
+    if ($admins === []) {
+        $admins[] = dent_normalize_student_number((string) ($conversation['createdBy'] ?? $user['studentNumber'] ?? ''));
+    }
+    sort($admins, SORT_STRING);
+    $conversation['admins'] = $admins;
+    $conversation['updatedAt'] = time();
+    chat_put_conversation($store, $conversation);
+    chat_save_store($store);
+
+    dent_json_response([
+        'success' => true,
+        'conversation' => chat_conversation_payload($store, $conversation, $user, true),
     ]);
 }
 
