@@ -10,6 +10,7 @@
     }
 
     var panel = $("account-panel");
+    var ownerConsole = $("buy-owner-console");
     var rowMeta = $("account-row-payments-meta");
     var summaryRoot = $("payments-summary");
     var feedbackNode = $("payments-feedback");
@@ -43,8 +44,30 @@
     var galleryInput = $("payments-item-gallery");
     var galleryFileInput = $("payments-item-gallery-files");
     var galleryList = $("payments-gallery-list");
+    var gatewaysRoot = $("payments-gateways-list");
+    var gatewayForm = $("payments-gateway-form");
+    var gatewayIdInput = $("payments-gateway-id");
+    var gatewayProviderInput = $("payments-gateway-provider");
+    var gatewayKeyInput = $("payments-gateway-key");
+    var gatewayLabelInput = $("payments-gateway-label");
+    var gatewayProviderLabelInput = $("payments-gateway-provider-label");
+    var gatewayMerchantInput = $("payments-gateway-merchant");
+    var gatewayRequestUrlInput = $("payments-gateway-request-url");
+    var gatewayVerifyUrlInput = $("payments-gateway-verify-url");
+    var gatewayStartUrlInput = $("payments-gateway-start-url");
+    var gatewayEnabledInput = $("payments-gateway-enabled");
+    var gatewayDefaultInput = $("payments-gateway-default");
+    var tabButtons = Array.prototype.slice.call(document.querySelectorAll("[data-payment-tab]"));
+    var tabPanels = Array.prototype.slice.call(document.querySelectorAll("[data-payment-tab-panel]"));
+    var stepButtons = Array.prototype.slice.call(document.querySelectorAll("[data-payment-step]"));
+    var stepPanels = Array.prototype.slice.call(document.querySelectorAll("[data-payment-step-panel]"));
+    var stepPrevButton = $("payments-step-prev");
+    var stepNextButton = $("payments-step-next");
+    var stepTitle = $("payments-step-title");
+    var saveButton = $("payments-item-save");
     var heroPreviewObjectUrl = "";
     var heroPreviewObjectFile = null;
+    var activeStep = 1;
 
     var state = {
         currentUser: null,
@@ -53,6 +76,8 @@
         loadingOrders: false,
         selectedOrderId: 0,
         items: [],
+        gateways: [],
+        gatewaySettings: null,
         notifications: [],
         orders: []
     };
@@ -529,6 +554,55 @@
         return "danger";
     }
 
+    function gatewayProviderLabel(provider) {
+        switch (String(provider || "").trim().toLowerCase()) {
+            case "zibal":
+                return "درگاه زیبال";
+            case "zarinpal":
+                return "درگاه زرین‌پال";
+            case "mock":
+                return "درگاه آزمایشی";
+            default:
+                return "درگاه آنلاین";
+        }
+    }
+
+    function gatewayPublicLabel(provider) {
+        switch (String(provider || "").trim().toLowerCase()) {
+            case "mock":
+                return "پرداخت آزمایشی";
+            case "zibal":
+            case "zarinpal":
+            default:
+                return "پرداخت آنلاین";
+        }
+    }
+
+    function gatewayById(id) {
+        var gatewayId = Number(id || 0);
+        if (!gatewayId) {
+            return null;
+        }
+        return state.gateways.find(function (gateway) {
+            return Number(gateway && gateway.id || 0) === gatewayId;
+        }) || null;
+    }
+
+    function syncGatewayPayload(payload) {
+        var bundle = null;
+        if (payload && payload.gateways && !Array.isArray(payload.gateways) && typeof payload.gateways === "object" && Array.isArray(payload.gateways.gateways)) {
+            bundle = payload.gateways;
+        } else if (payload && Array.isArray(payload.gateways)) {
+            bundle = payload;
+        }
+        if (!bundle) {
+            return;
+        }
+        state.gatewaySettings = bundle;
+        state.gateways = Array.isArray(bundle.gateways) ? bundle.gateways : [];
+        renderGateways();
+    }
+
     function formatDateTime(value, fallback) {
         var raw = String(value || "").trim();
         if (!raw) {
@@ -607,7 +681,85 @@
     }
 
     function isPaymentsSurfaceOpen() {
+        if (ownerConsole) {
+            return !ownerConsole.hidden;
+        }
         return !!(panel && panel.dataset && panel.dataset.surface === "payments");
+    }
+
+    function setOwnerConsoleVisible(visible) {
+        if (ownerConsole) {
+            ownerConsole.hidden = !visible;
+        }
+    }
+
+    function openPaymentTab(name) {
+        var target = String(name || "overview").trim() || "overview";
+        var matched = false;
+        tabPanels.forEach(function (node) {
+            var active = String(node.dataset.paymentTabPanel || "") === target;
+            node.hidden = !active;
+            matched = matched || active;
+        });
+        if (!matched) {
+            target = "overview";
+            tabPanels.forEach(function (node) {
+                node.hidden = String(node.dataset.paymentTabPanel || "") !== target;
+            });
+        }
+        tabButtons.forEach(function (button) {
+            var active = String(button.dataset.paymentTab || "") === target;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        if (target === "orders" && isOwner()) {
+            loadOrders(true);
+        }
+    }
+
+    function setPaymentStep(step) {
+        var next = Math.max(1, Math.min(3, Number(step) || 1));
+        activeStep = next;
+        stepPanels.forEach(function (node) {
+            node.hidden = Number(node.dataset.paymentStepPanel || 0) !== activeStep;
+        });
+        stepButtons.forEach(function (button) {
+            var active = Number(button.dataset.paymentStep || 0) === activeStep;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-selected", active ? "true" : "false");
+        });
+        if (stepPrevButton) {
+            stepPrevButton.hidden = activeStep <= 1;
+        }
+        if (stepNextButton) {
+            stepNextButton.hidden = activeStep >= 3;
+        }
+        if (saveButton) {
+            saveButton.hidden = activeStep < 3;
+        }
+        if (stepTitle) {
+            stepTitle.textContent = activeStep === 1
+                ? "مرحله ۱: عنوان، توضیح و تصویر"
+                : (activeStep === 2 ? "مرحله ۲: قیمت، دسته، ظرفیت و زمان" : "مرحله ۳: تحویل، لینک و گزینه‌های تکمیلی");
+        }
+    }
+
+    function validateCurrentStep() {
+        if (activeStep === 1 && !$("payments-item-title").value.trim()) {
+            setFeedback(itemFormFeedback, "برای رفتن به مرحله بعد، عنوان آیتم را وارد کن.", "error");
+            $("payments-item-title").focus();
+            return false;
+        }
+        if (activeStep === 2) {
+            var priceValue = normalizeDigits($("payments-item-price").value).replace(/\D+/g, "");
+            if (!priceValue || Number(priceValue) <= 0) {
+                setFeedback(itemFormFeedback, "برای رفتن به مرحله بعد، قیمت معتبر وارد کن.", "error");
+                $("payments-item-price").focus();
+                return false;
+            }
+        }
+        setFeedback(itemFormFeedback, "", "");
+        return true;
     }
 
     function currentFilters() {
@@ -719,6 +871,46 @@
                 '    <button class="shell-action-btn shell-action-btn-primary" type="button" data-payment-edit-item="' + escapeHtml(item.id) + '">ویرایش</button>',
                 '    <button class="shell-action-btn" type="button" data-payment-copy-link="' + escapeHtml(publicUrl || "") + '">کپی لینک</button>',
                 '    <button class="shell-action-btn" type="button" data-payment-toggle-item="' + escapeHtml(item.id) + '" data-payment-enabled="' + (item.status === "active" ? "0" : "1") + '">' + (item.status === "active" ? "غیرفعال‌کردن" : "فعال‌کردن") + "</button>",
+                '    <button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-delete-item="' + escapeHtml(item.id) + '">حذف</button>',
+                "  </div>",
+                "</article>"
+            ].join("");
+        }).join("");
+    }
+
+    function renderGateways() {
+        if (!gatewaysRoot) {
+            return;
+        }
+        if (!state.gateways.length) {
+            gatewaysRoot.innerHTML = '<div class="owner-empty">هنوز درگاه پرداختی اضافه نشده است. اولین درگاه را از فرم بالا ثبت کن.</div>';
+            return;
+        }
+        gatewaysRoot.innerHTML = state.gateways.map(function (gateway) {
+            var configured = !!gateway.isConfigured;
+            var enabled = !!gateway.isEnabled;
+            var provider = String(gateway.provider || "");
+            var statusText = !enabled ? "غیرفعال" : (configured ? "فعال" : "نیازمند کلید");
+            var statusTone = !enabled ? "warn" : (configured ? "ok" : "danger");
+            return [
+                '<article class="payments-item-card payments-gateway-card">',
+                '  <div class="payments-item-card__head">',
+                '    <div>',
+                '      <span class="payments-pill payments-pill--' + escapeHtml(statusTone) + '">' + escapeHtml(statusText) + "</span>",
+                '      <h4>' + escapeHtml(gateway.label || "پرداخت آنلاین") + "</h4>",
+                '      <p>' + escapeHtml(gateway.providerLabel || gatewayProviderLabel(provider)) + ' • <span dir="ltr">' + escapeHtml(gateway.key || "") + "</span></p>",
+                "    </div>",
+                gateway.isDefault ? '<strong>پیش‌فرض</strong>' : '<strong>درگاه</strong>',
+                "  </div>",
+                '  <div class="payments-item-card__meta">',
+                '    <span>نوع: ' + escapeHtml(gatewayProviderLabel(provider)) + "</span>",
+                '    <span>وضعیت کلید: ' + (configured ? "ثبت شده" : "ثبت نشده") + "</span>",
+                '    <span>ایجاد: ' + escapeHtml(formatDateTime(gateway.createdAt, "—")) + "</span>",
+                '    <span>آخرین ویرایش: ' + escapeHtml(formatDateTime(gateway.updatedAt, "—")) + "</span>",
+                "  </div>",
+                '  <div class="payments-item-card__actions">',
+                '    <button class="shell-action-btn shell-action-btn-primary" type="button" data-payment-edit-gateway="' + escapeHtml(gateway.id) + '">ویرایش</button>',
+                '    <button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-delete-gateway="' + escapeHtml(gateway.id) + '">حذف درگاه</button>',
                 "  </div>",
                 "</article>"
             ].join("");
@@ -845,6 +1037,7 @@
             galleryFileInput.value = "";
         }
         setFeedback(itemFormFeedback, "", "");
+        setPaymentStep(1);
         updateItemPreview();
     }
 
@@ -888,12 +1081,19 @@
             galleryFileInput.value = "";
         }
         setFeedback(itemFormFeedback, "حالت ویرایش برای «" + (item.title || "آیتم") + "» فعال شد.", "success");
+        openPaymentTab("item");
+        setPaymentStep(1);
         updateItemPreview();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (ownerConsole) {
+            ownerConsole.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
     }
 
     function renderDashboard() {
         renderItems();
+        renderGateways();
         renderNotifications();
         populateFilterItems();
     }
@@ -1005,6 +1205,7 @@
 
             state.dashboardLoaded = true;
             state.items = Array.isArray(response.items) ? response.items : [];
+            syncGatewayPayload(response);
             state.notifications = Array.isArray(response.notifications) ? response.notifications : [];
             renderSummary(response.summary || {});
             renderDashboard();
@@ -1175,6 +1376,146 @@
         await loadOrders(true);
     }
 
+    async function deleteItem(itemId) {
+        if (!isOwner() || !itemId) {
+            return;
+        }
+        var item = state.items.find(function (entry) {
+            return Number(entry && entry.id || 0) === Number(itemId);
+        });
+        var title = item && item.title ? item.title : "این آیتم";
+        if (!window.confirm("آیتم «" + title + "» از کاتالوگ خرید حذف شود؟ سوابق سفارش‌های قبلی حفظ می‌شود.")) {
+            return;
+        }
+        setFeedback(feedbackNode, "در حال حذف آیتم از کاتالوگ...", "", true);
+        var response = await request("ownerDeleteItem", { id: itemId }, "POST");
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            return;
+        }
+        if (!response || !response.success) {
+            setFeedback(feedbackNode, (response && response.error) || "حذف آیتم انجام نشد.", "error");
+            return;
+        }
+        state.items = state.items.filter(function (entry) {
+            return Number(entry && entry.id || 0) !== Number(itemId);
+        });
+        if ($("payments-item-id") && Number($("payments-item-id").value || 0) === Number(itemId)) {
+            resetItemForm();
+        }
+        renderItems();
+        populateFilterItems();
+        setFeedback(feedbackNode, response.message || "آیتم حذف شد.", "success");
+        await loadDashboard(true);
+        await loadOrders(true);
+    }
+
+    function resetGatewayForm() {
+        if (!gatewayForm) {
+            return;
+        }
+        gatewayForm.reset();
+        if (gatewayIdInput) gatewayIdInput.value = "";
+        if (gatewayProviderInput) gatewayProviderInput.value = "zibal";
+        if (gatewayKeyInput) gatewayKeyInput.value = "";
+        if (gatewayLabelInput) gatewayLabelInput.value = gatewayPublicLabel("zibal");
+        if (gatewayProviderLabelInput) gatewayProviderLabelInput.value = gatewayProviderLabel("zibal");
+        if (gatewayMerchantInput) gatewayMerchantInput.value = "";
+        if (gatewayRequestUrlInput) gatewayRequestUrlInput.value = "";
+        if (gatewayVerifyUrlInput) gatewayVerifyUrlInput.value = "";
+        if (gatewayStartUrlInput) gatewayStartUrlInput.value = "";
+        if (gatewayEnabledInput) gatewayEnabledInput.checked = true;
+        if (gatewayDefaultInput) gatewayDefaultInput.checked = state.gateways.filter(function (entry) { return !!(entry && entry.isEnabled); }).length === 0;
+    }
+
+    function fillGatewayForm(gatewayId) {
+        var gateway = gatewayById(gatewayId);
+        if (!gateway || !gatewayForm) {
+            return;
+        }
+        if (gatewayIdInput) gatewayIdInput.value = String(gateway.id || "");
+        if (gatewayProviderInput) gatewayProviderInput.value = String(gateway.provider || "zibal");
+        if (gatewayKeyInput) gatewayKeyInput.value = String(gateway.key || "");
+        if (gatewayLabelInput) gatewayLabelInput.value = String(gateway.label || gatewayPublicLabel(gateway.provider));
+        if (gatewayProviderLabelInput) gatewayProviderLabelInput.value = String(gateway.providerLabel || gatewayProviderLabel(gateway.provider));
+        if (gatewayMerchantInput) gatewayMerchantInput.value = String(gateway.merchantId || gateway.apiKey || "");
+        if (gatewayRequestUrlInput) gatewayRequestUrlInput.value = String(gateway.requestUrl || "");
+        if (gatewayVerifyUrlInput) gatewayVerifyUrlInput.value = String(gateway.verifyUrl || "");
+        if (gatewayStartUrlInput) gatewayStartUrlInput.value = String(gateway.startUrl || "");
+        if (gatewayEnabledInput) gatewayEnabledInput.checked = !!gateway.isEnabled;
+        if (gatewayDefaultInput) gatewayDefaultInput.checked = !!gateway.isDefault;
+        setFeedback(feedbackNode, "حالت ویرایش برای درگاه «" + (gateway.label || gateway.key || "پرداخت") + "» فعال شد.", "success");
+        openPaymentTab("gateways");
+        gatewayForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function saveGateway(event) {
+        event.preventDefault();
+        if (!isOwner() || !gatewayForm) {
+            return;
+        }
+        var provider = String(gatewayProviderInput && gatewayProviderInput.value || "zibal").trim();
+        var credential = String(gatewayMerchantInput && gatewayMerchantInput.value || "").trim();
+        var enabled = gatewayEnabledInput ? gatewayEnabledInput.checked : true;
+        if (enabled && provider !== "mock" && !credential) {
+            setFeedback(feedbackNode, "برای فعال‌سازی این درگاه، Merchant یا API Key را وارد کن.", "error");
+            if (gatewayMerchantInput) gatewayMerchantInput.focus();
+            return;
+        }
+
+        setFeedback(feedbackNode, "در حال ذخیره درگاه پرداخت...", "", true);
+        var response = await request("ownerSaveGateway", {
+            id: gatewayIdInput ? gatewayIdInput.value : "",
+            provider: provider,
+            key: gatewayKeyInput ? gatewayKeyInput.value.trim() : "",
+            label: gatewayLabelInput ? gatewayLabelInput.value.trim() : "",
+            providerLabel: gatewayProviderLabelInput ? gatewayProviderLabelInput.value.trim() : "",
+            merchantId: credential,
+            apiKey: provider === "mock" ? "" : credential,
+            requestUrl: gatewayRequestUrlInput ? gatewayRequestUrlInput.value.trim() : "",
+            verifyUrl: gatewayVerifyUrlInput ? gatewayVerifyUrlInput.value.trim() : "",
+            startUrl: gatewayStartUrlInput ? gatewayStartUrlInput.value.trim() : "",
+            isEnabled: enabled ? "1" : "0",
+            isDefault: gatewayDefaultInput && gatewayDefaultInput.checked ? "1" : "0"
+        }, "POST");
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            return;
+        }
+        if (!response || !response.success) {
+            setFeedback(feedbackNode, (response && response.error) || "ذخیره درگاه پرداخت انجام نشد.", "error");
+            return;
+        }
+        syncGatewayPayload(response);
+        if (response.gateway && gatewayIdInput) {
+            gatewayIdInput.value = String(response.gateway.id || "");
+        }
+        setFeedback(feedbackNode, response.message || "درگاه پرداخت ذخیره شد.", "success");
+    }
+
+    async function deleteGateway(gatewayId) {
+        if (!isOwner() || !gatewayId) {
+            return;
+        }
+        var gateway = gatewayById(gatewayId);
+        var title = gateway && (gateway.label || gateway.key) ? (gateway.label || gateway.key) : "این درگاه";
+        if (!window.confirm("درگاه «" + title + "» حذف شود؟ اگر سفارش در انتظار با این درگاه وجود داشته باشد، حذف انجام نمی‌شود.")) {
+            return;
+        }
+        setFeedback(feedbackNode, "در حال حذف درگاه پرداخت...", "", true);
+        var response = await request("ownerDeleteGateway", { id: gatewayId }, "POST");
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            return;
+        }
+        if (!response || !response.success) {
+            setFeedback(feedbackNode, (response && response.error) || "حذف درگاه پرداخت انجام نشد.", "error");
+            return;
+        }
+        syncGatewayPayload(response);
+        if (gatewayIdInput && Number(gatewayIdInput.value || 0) === Number(gatewayId)) {
+            resetGatewayForm();
+        }
+        setFeedback(feedbackNode, response.message || "درگاه پرداخت حذف شد.", "success");
+    }
+
     async function updateOrderStatus(orderId, status) {
         if (!isOwner() || !orderId || !status) {
             return;
@@ -1233,17 +1574,21 @@
         state.dashboardLoaded = false;
         state.currentUser = null;
         state.items = [];
+        state.gateways = [];
+        state.gatewaySettings = null;
         state.notifications = [];
         state.orders = [];
         state.selectedOrderId = 0;
         renderSummary(null);
         renderNotifications();
         renderItems();
+        renderGateways();
         renderOrdersSummary(null);
         renderOrderDetail(null, null);
         if (ordersRoot) {
             ordersRoot.innerHTML = '<div class="owner-empty">برای استفاده از این بخش باید با حساب مالک وارد شوی.</div>';
         }
+        setOwnerConsoleVisible(false);
         if (rowMeta) {
             rowMeta.textContent = "تعریف آیتم مشخص، کد تخفیف، سفارش‌ها و اعلان‌های مالی";
         }
@@ -1263,7 +1608,39 @@
             return;
         }
         state.currentUser = detail.user;
+        setOwnerConsoleVisible(true);
         ensureLoaded();
+    }
+
+    tabButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            openPaymentTab(button.dataset.paymentTab || "overview");
+        });
+    });
+
+    stepButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            var target = Number(button.dataset.paymentStep || 1);
+            if (target > activeStep && !validateCurrentStep()) {
+                return;
+            }
+            setPaymentStep(target);
+        });
+    });
+
+    if (stepPrevButton) {
+        stepPrevButton.addEventListener("click", function () {
+            setPaymentStep(activeStep - 1);
+        });
+    }
+
+    if (stepNextButton) {
+        stepNextButton.addEventListener("click", function () {
+            if (!validateCurrentStep()) {
+                return;
+            }
+            setPaymentStep(activeStep + 1);
+        });
     }
 
     if (itemForm) {
@@ -1349,8 +1726,14 @@
     if ($("payments-new-item")) {
         $("payments-new-item").addEventListener("click", function () {
             resetItemForm();
+            openPaymentTab("item");
+            setPaymentStep(1);
             setFeedback(itemFormFeedback, "فرم برای افزودن آیتم جدید آماده شد.", "success");
-            window.scrollTo({ top: 0, behavior: "smooth" });
+            if (ownerConsole) {
+                ownerConsole.scrollIntoView({ behavior: "smooth", block: "start" });
+            } else {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
         });
     }
 
@@ -1392,6 +1775,54 @@
             var toggleButton = event.target.closest("[data-payment-toggle-item]");
             if (toggleButton) {
                 toggleItem(toggleButton.getAttribute("data-payment-toggle-item"), String(toggleButton.getAttribute("data-payment-enabled")) === "1");
+                return;
+            }
+
+            var deleteButton = event.target.closest("[data-payment-delete-item]");
+            if (deleteButton) {
+                deleteItem(deleteButton.getAttribute("data-payment-delete-item"));
+            }
+        });
+    }
+
+    if (gatewayForm) {
+        gatewayForm.addEventListener("submit", saveGateway);
+    }
+
+    if ($("payments-gateway-reset")) {
+        $("payments-gateway-reset").addEventListener("click", function () {
+            resetGatewayForm();
+            setFeedback(feedbackNode, "فرم برای افزودن درگاه جدید آماده شد.", "success");
+        });
+    }
+
+    if (gatewayProviderInput) {
+        gatewayProviderInput.addEventListener("change", function () {
+            var provider = String(gatewayProviderInput.value || "zibal");
+            if (gatewayLabelInput && !String(gatewayLabelInput.value || "").trim()) {
+                gatewayLabelInput.value = gatewayPublicLabel(provider);
+            }
+            if (gatewayProviderLabelInput && !String(gatewayProviderLabelInput.value || "").trim()) {
+                gatewayProviderLabelInput.value = gatewayProviderLabel(provider);
+            }
+            if (gatewayMerchantInput) {
+                gatewayMerchantInput.disabled = provider === "mock";
+                gatewayMerchantInput.placeholder = provider === "mock" ? "برای درگاه آزمایشی لازم نیست" : "Merchant یا API Key";
+            }
+        });
+    }
+
+    if (gatewaysRoot) {
+        gatewaysRoot.addEventListener("click", function (event) {
+            var editGatewayButton = event.target.closest("[data-payment-edit-gateway]");
+            if (editGatewayButton) {
+                fillGatewayForm(editGatewayButton.getAttribute("data-payment-edit-gateway"));
+                return;
+            }
+
+            var deleteGatewayButton = event.target.closest("[data-payment-delete-gateway]");
+            if (deleteGatewayButton) {
+                deleteGateway(deleteGatewayButton.getAttribute("data-payment-delete-gateway"));
             }
         });
     }
@@ -1444,6 +1875,9 @@
     }
 
     resetItemForm();
+    resetGatewayForm();
+    openPaymentTab("overview");
+    setPaymentStep(1);
     clearForSignedOut();
     window.Dent1402Auth.onChange(handleAuthState);
 })();

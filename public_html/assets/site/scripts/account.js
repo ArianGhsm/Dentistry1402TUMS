@@ -255,7 +255,6 @@
             case "phone":
             case "owner":
             case "owner-user":
-            case "payments":
             case "navid":
                 return name;
             default:
@@ -279,7 +278,7 @@
     }
 
     function canOpenSurface(surface) {
-        if (surface === "owner" || surface === "owner-user" || surface === "payments" || surface === "navid") {
+        if (surface === "owner" || surface === "owner-user" || surface === "navid") {
             return hasOwnerAccess();
         }
         return true;

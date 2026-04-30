@@ -2,21 +2,21 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f5f7">
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#131b25">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260430-021133">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260430-021133">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260430-021133">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260430-100743">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260430-100743">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260430-100743">
     <title>پیام‌رسان | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
-    <script src="/assets/site/scripts/theme.js?v=20260430-021133"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260430-021133">
-    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260430-021133">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260430-021133">
+    <script src="/assets/site/scripts/theme.js?v=20260430-100743"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260430-100743">
+    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260430-100743">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260430-100743">
 </head>
 <body class="chat-page" data-shell="off">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -361,6 +361,11 @@
         </div>
         <div class="chat-info-sheet__links">
             <button id="chat-info-copy-link" class="chat-info-sheet__link" type="button">کپی لینک گفتگو</button>
+            <button id="chat-info-notification-btn" class="chat-info-sheet__link" type="button">تنظیمات اعلان</button>
+            <button id="chat-info-edit-profile-btn" class="chat-info-sheet__link" type="button" hidden>ویرایش پروفایل گروه</button>
+            <button id="chat-info-group-type-btn" class="chat-info-sheet__link" type="button" hidden>نوع گروه</button>
+            <button id="chat-info-reaction-settings-btn" class="chat-info-sheet__link" type="button" hidden>تنظیمات واکنش</button>
+            <button id="chat-info-add-members-btn" class="chat-info-sheet__link" type="button" hidden>افزودن عضو</button>
             <a id="chat-info-peer-link" class="chat-info-sheet__link" href="/account/" hidden>پروفایل مخاطب</a>
             <a id="chat-info-profile-link" class="chat-info-sheet__link" href="/account/#account-profile">پروفایل پیام‌رسان من</a>
             <a id="chat-info-security-link" class="chat-info-sheet__link" href="/account/#account-security">امنیت حساب</a>
@@ -553,6 +558,19 @@
         </div>
     </section>
 
+    <section class="chat-modal chat-modal--options" id="conversation-options-modal" hidden aria-labelledby="conversation-options-title">
+        <div class="chat-modal__header">
+            <h2 id="conversation-options-title">تنظیمات گفتگو</h2>
+            <button class="chat-sheet-close" id="conversation-options-close" type="button" aria-label="بستن">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+        <div class="chat-modal__body chat-modal__body--options" id="conversation-options-body"></div>
+    </section>
+
     <section class="chat-modal chat-modal--confirm" id="confirm-modal" hidden aria-labelledby="confirm-modal-title">
         <div class="chat-modal__header">
             <h2 id="confirm-modal-title">تایید عملیات</h2>
@@ -579,7 +597,7 @@
         </svg>
     </button>
 
-    <nav class="chat-mobile-nav" id="chat-mobile-nav" aria-label="ناوبری پیام‌رسان">
+    <nav class="chat-mobile-nav" id="chat-mobile-nav" aria-label="ناوبری پیام‌رسان" hidden>
         <button id="chat-nav-list" class="chat-mobile-nav__item is-active" type="button" aria-label="گفتگوها">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M5 7H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
@@ -637,9 +655,9 @@
         <div class="chat-media-viewer__caption" id="chat-media-viewer-caption"></div>
     </section>
 
-    <script src="/assets/site/scripts/auth.js?v=20260430-021133"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260430-021133"></script>
-    <script src="/assets/site/scripts/chat.js?v=20260430-021133"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260430-021133"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260430-100743"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260430-100743"></script>
+    <script src="/assets/site/scripts/chat.js?v=20260430-100743"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260430-100743"></script>
 </body>
 </html>

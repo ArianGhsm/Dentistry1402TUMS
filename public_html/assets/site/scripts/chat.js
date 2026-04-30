@@ -574,6 +574,11 @@
   var infoAvatarImage = $("chat-info-avatar-image");
   var infoAvatarFallback = $("chat-info-avatar-fallback");
   var infoCopyLink = $("chat-info-copy-link");
+  var infoNotificationBtn = $("chat-info-notification-btn");
+  var infoEditProfileBtn = $("chat-info-edit-profile-btn");
+  var infoGroupTypeBtn = $("chat-info-group-type-btn");
+  var infoReactionSettingsBtn = $("chat-info-reaction-settings-btn");
+  var infoAddMembersBtn = $("chat-info-add-members-btn");
   var infoPeerLink = $("chat-info-peer-link");
   var infoProfileLink = $("chat-info-profile-link");
   var infoSecurityLink = $("chat-info-security-link");
@@ -625,6 +630,10 @@
   var editCancelBtn = $("edit-cancel");
   var editSaveBtn = $("edit-save");
   var editTextInput = $("edit-text");
+  var conversationOptionsModal = $("conversation-options-modal");
+  var conversationOptionsClose = $("conversation-options-close");
+  var conversationOptionsTitle = $("conversation-options-title");
+  var conversationOptionsBody = $("conversation-options-body");
   var confirmModal = $("confirm-modal");
   var confirmModalClose = $("confirm-modal-close");
   var confirmModalTitle = $("confirm-modal-title");
@@ -694,6 +703,7 @@
     recentReactions: [],
     reactionUsage: new Map(),
     pendingEditMessageId: null,
+    conversationOptionsMode: "",
     confirmDialog: null,
     connectionIssue: false,
     showArchivedConversations: false,
@@ -1294,6 +1304,10 @@
   }
 
   function activeReactionGroups(sourceMessage) {
+    var conversation = activeConversation();
+    if (conversation && conversation.settings && conversation.settings.reactionMode === "none") {
+      return [];
+    }
     var groups = REACTION_GROUPS.map(function (group) {
       var emojis = group.id === "recent"
         ? state.recentReactions.concat(reactionEntries(sourceMessage).map(function (entry) { return entry.emoji; }))
@@ -1307,11 +1321,24 @@
     }).filter(function (group) {
       return group.id !== "recent" || group.emojis.length > 0;
     });
-    groups.unshift({ id: "all", label: "همه", emojis: REACTIONS.slice() });
+    var mode = conversation && conversation.settings ? conversation.settings.reactionMode : "all";
+    groups.unshift({ id: "all", label: "همه", emojis: mode === "quick" ? QUICK_REACTIONS.slice() : REACTIONS.slice() });
     return groups;
   }
 
+  function reactionAllowedInActiveConversation(emoji) {
+    var conversation = activeConversation();
+    var mode = conversation && conversation.settings ? conversation.settings.reactionMode : "all";
+    if (mode === "none") return false;
+    if (mode === "quick") return QUICK_REACTIONS.indexOf(emoji) !== -1;
+    return true;
+  }
+
   function quickReactionsForMessage(message) {
+    var conversation = activeConversation();
+    if (conversation && conversation.settings && conversation.settings.reactionMode === "none") {
+      return [];
+    }
     var ordered = [];
     reactionEntries(message).forEach(function (entry) {
       if (!isLikelyEmoji(entry.emoji)) return;
@@ -1326,7 +1353,7 @@
     });
     var unique = [];
     ordered.forEach(function (emoji) {
-      if (unique.indexOf(emoji) !== -1) return;
+      if (unique.indexOf(emoji) !== -1 || !reactionAllowedInActiveConversation(emoji)) return;
       unique.push(emoji);
     });
     unique.sort(function (left, right) {
@@ -1641,6 +1668,14 @@
     if (conversationKind !== "channel") {
       conversationKind = "group";
     }
+    var reactionMode = normalizeSpace(settings.reactionMode || source.reactionMode || "all").toLowerCase();
+    if (reactionMode !== "quick" && reactionMode !== "none") {
+      reactionMode = "all";
+    }
+    var visibility = normalizeSpace(settings.visibility || source.visibility || "private").toLowerCase();
+    if (visibility !== "public") {
+      visibility = "private";
+    }
     var normalized = {
       id: id,
       type: type,
@@ -1661,7 +1696,9 @@
         mutedAt: settings.mutedAt != null ? Math.floor(toNumber(settings.mutedAt, 0)) : null,
         mutedBy: normalizeSpace(settings.mutedBy),
         conversationKind: conversationKind,
-        memberPosting: settings.memberPosting !== false
+        memberPosting: settings.memberPosting !== false,
+        reactionMode: reactionMode,
+        visibility: visibility
       },
       viewerState: {
         pinned: !!viewerState.pinned,
@@ -1669,7 +1706,9 @@
         archived: !!viewerState.archived,
         archivedAt: viewerState.archivedAt != null ? Math.floor(toNumber(viewerState.archivedAt, 0)) : null,
         deleted: !!viewerState.deleted,
-        deletedAt: viewerState.deletedAt != null ? Math.floor(toNumber(viewerState.deletedAt, 0)) : null
+        deletedAt: viewerState.deletedAt != null ? Math.floor(toNumber(viewerState.deletedAt, 0)) : null,
+        notificationsMuted: !!viewerState.notificationsMuted,
+        notificationsMutedAt: viewerState.notificationsMutedAt != null ? Math.floor(toNumber(viewerState.notificationsMutedAt, 0)) : null
       },
       permissions: {
         canSend: permissions.canSend !== false,
@@ -1683,7 +1722,11 @@
         canDeleteConversation: !!permissions.canDeleteConversation,
         canMarkRead: permissions.canMarkRead !== false,
         canMarkUnread: permissions.canMarkUnread !== false,
-        canCreateGroup: permissions.canCreateGroup !== false
+        canCreateGroup: permissions.canCreateGroup !== false,
+        canEditProfile: !!permissions.canEditProfile,
+        canEditGroupType: !!permissions.canEditGroupType,
+        canEditReactions: !!permissions.canEditReactions,
+        canAddMembers: !!permissions.canAddMembers
       },
       lastMessage: normalizeMessage(source.lastMessage),
       pinnedMessage: normalizeMessage(source.pinnedMessage),
@@ -3148,7 +3191,8 @@
 
     reactionBar.innerHTML = "";
     var ownReactions = new Set(reactionEntries(message).filter(function (entry) { return entry.own; }).map(function (entry) { return entry.emoji; }));
-    quickReactionsForMessage(message).forEach(function (emoji) {
+    var quickReactionItems = quickReactionsForMessage(message);
+    quickReactionItems.forEach(function (emoji) {
       var button = document.createElement("button");
       button.type = "button";
       button.className = "chat-reaction-btn";
@@ -3161,15 +3205,17 @@
       });
       reactionBar.appendChild(button);
     });
-    var customReactionBtn = document.createElement("button");
-    customReactionBtn.type = "button";
-    customReactionBtn.className = "chat-reaction-btn chat-reaction-btn-more";
-    customReactionBtn.textContent = "+";
-    customReactionBtn.title = "واکنش دیگر";
-    customReactionBtn.addEventListener("click", function () {
-      openReactionPicker(message);
-    });
-    reactionBar.appendChild(customReactionBtn);
+    if (reactionAllowedInActiveConversation(QUICK_REACTIONS[0])) {
+      var customReactionBtn = document.createElement("button");
+      customReactionBtn.type = "button";
+      customReactionBtn.className = "chat-reaction-btn chat-reaction-btn-more";
+      customReactionBtn.textContent = "+";
+      customReactionBtn.title = "واکنش دیگر";
+      customReactionBtn.addEventListener("click", function () {
+        openReactionPicker(message);
+      });
+      reactionBar.appendChild(customReactionBtn);
+    }
 
     contextActions.innerHTML = "";
     var receiptSummary = messageReceiptSummary(message);
@@ -3203,10 +3249,12 @@
       closeContextMenu();
     }));
 
-    contextActions.appendChild(contextAction("واکنش دیگر", "ثبت هر ایموجی", function () {
-      openReactionPicker(message);
-      closeContextMenu();
-    }));
+    if (quickReactionItems.length) {
+      contextActions.appendChild(contextAction("واکنش دیگر", "ثبت هر ایموجی", function () {
+        openReactionPicker(message);
+        closeContextMenu();
+      }));
+    }
 
     if (canManageMessage(message)) {
       contextActions.appendChild(contextAction("ویرایش", "ویرایش پیام", function () {
@@ -3500,6 +3548,355 @@
     }).join("");
   }
 
+  function conversationKindLabel(conversation) {
+    if (!conversation) return "گفتگو";
+    if (conversation.type === "direct") return "خصوصی";
+    if (conversation.type === "class-group") return "گروه اجباری کلاس";
+    return conversation.settings && conversation.settings.conversationKind === "channel" ? "کانال" : "گروه";
+  }
+
+  function groupVisibilityLabel(value) {
+    return value === "public" ? "عمومی با لینک دعوت" : "خصوصی";
+  }
+
+  function reactionModeLabel(value) {
+    if (value === "none") return "بدون واکنش";
+    if (value === "quick") return "واکنش‌های منتخب";
+    return "همه واکنش‌ها";
+  }
+
+  async function setNotificationMuteForConversation(muted) {
+    var conversation = activeConversation();
+    if (!conversation) return;
+    try {
+      var response = await apiPost("setNotificationMute", {
+        conversationId: conversation.id,
+        muted: muted ? "1" : "0"
+      });
+      ensureSuccessResponse(response, "تنظیم اعلان ذخیره نشد.");
+      await refreshAfterConversationAction(response, conversation.id, { keepCurrentActive: true, forceFull: false, silent: true });
+      showToast(muted ? "اعلان‌های گفتگو بی‌صدا شد." : "اعلان‌های گفتگو فعال شد.");
+    } catch (error) {
+      showToast(error && error.message ? error.message : "تنظیم اعلان ذخیره نشد.");
+    }
+  }
+
+  function openConversationOptions(mode) {
+    var conversation = activeConversation();
+    if (!conversation || !conversationOptionsModal || !conversationOptionsBody || !conversationOptionsTitle) return;
+    state.conversationOptionsMode = mode || "";
+    if (mode === "profile") {
+      renderConversationProfileOptions(conversation);
+    } else if (mode === "type") {
+      renderConversationTypeOptions(conversation);
+    } else if (mode === "reactions") {
+      renderConversationReactionOptions(conversation);
+    } else if (mode === "add-members") {
+      renderConversationAddMembersOptions(conversation);
+    } else {
+      renderConversationNotificationOptions(conversation);
+    }
+    openModal(conversationOptionsModal, "conversation-options");
+  }
+
+  function renderConversationNotificationOptions(conversation) {
+    var muted = !!(conversation.viewerState && conversation.viewerState.notificationsMuted);
+    conversationOptionsTitle.textContent = "تنظیمات اعلان";
+    conversationOptionsBody.innerHTML = [
+      '<div class="chat-options-stack">',
+      '  <button class="chat-option-row' + (!muted ? ' is-selected' : '') + '" type="button" data-notification-muted="0">',
+      '    <strong>اعلان‌ها روشن باشد</strong>',
+      '    <span>پیام‌های جدید این گفتگو در وضعیت عادی دیده می‌شود.</span>',
+      '  </button>',
+      '  <button class="chat-option-row' + (muted ? ' is-selected' : '') + '" type="button" data-notification-muted="1">',
+      '    <strong>بی‌صدا کردن اعلان‌ها</strong>',
+      '    <span>گفتگو در لیست می‌ماند، اما اعلان آن مزاحم نمی‌شود.</span>',
+      '  </button>',
+      '</div>'
+    ].join("");
+    Array.from(conversationOptionsBody.querySelectorAll("[data-notification-muted]")).forEach(function (button) {
+      button.addEventListener("click", function () {
+        var nextMuted = button.getAttribute("data-notification-muted") === "1";
+        closeModal(true);
+        setNotificationMuteForConversation(nextMuted);
+      });
+    });
+  }
+
+  function renderConversationProfileOptions(conversation) {
+    conversationOptionsTitle.textContent = "ویرایش پروفایل گروه";
+    conversationOptionsBody.innerHTML = [
+      '<div class="chat-modal__fields chat-options-form">',
+      '  <label for="conversation-option-title">نام گفتگو</label>',
+      '  <input id="conversation-option-title" type="text" maxlength="80" value="' + escapeHtml(conversation.title || "") + '">',
+      '  <label for="conversation-option-about">درباره گفتگو</label>',
+      '  <textarea id="conversation-option-about" rows="4" maxlength="280">' + escapeHtml(conversation.about || "") + '</textarea>',
+      '  <label for="conversation-option-avatar">آدرس تصویر گروه</label>',
+      '  <input id="conversation-option-avatar" type="url" dir="ltr" value="' + escapeHtml(conversation.avatarUrl || "") + '" placeholder="/assets/images/logo.png">',
+      '</div>',
+      '<div class="chat-modal__footer chat-modal__footer--split chat-options-footer">',
+      '  <button class="chat-modal-secondary-btn" type="button" data-options-cancel>انصراف</button>',
+      '  <button class="chat-login-btn" type="button" data-options-save-profile>ذخیره پروفایل</button>',
+      '</div>'
+    ].join("");
+    var titleInput = $("conversation-option-title");
+    var aboutInput = $("conversation-option-about");
+    var avatarInput = $("conversation-option-avatar");
+    var cancel = conversationOptionsBody.querySelector("[data-options-cancel]");
+    var save = conversationOptionsBody.querySelector("[data-options-save-profile]");
+    if (cancel) cancel.addEventListener("click", function () { closeModal(true); });
+    if (save) {
+      save.addEventListener("click", async function () {
+        var title = normalizeSpace(titleInput && titleInput.value);
+        if (!title) {
+          showToast("نام گفتگو را وارد کن.");
+          if (titleInput) titleInput.focus({ preventScroll: true });
+          return;
+        }
+        setModalBusy("conversation-options", true);
+        try {
+          var response = await apiPost("updateConversationProfile", {
+            conversationId: conversation.id,
+            title: title,
+            about: normalizeSpace(aboutInput && aboutInput.value),
+            avatarUrl: normalizeSpace(avatarInput && avatarInput.value)
+          });
+          ensureSuccessResponse(response, "پروفایل گفتگو ذخیره نشد.");
+          closeModal(true);
+          await refreshAfterConversationAction(response, conversation.id, { keepCurrentActive: true, forceFull: false, silent: true });
+          showToast("پروفایل گفتگو ذخیره شد.");
+        } catch (error) {
+          showToast(error && error.message ? error.message : "پروفایل گفتگو ذخیره نشد.");
+        } finally {
+          setModalBusy("conversation-options", false);
+        }
+      });
+    }
+  }
+
+  function renderConversationTypeOptions(conversation) {
+    var current = conversation.settings && conversation.settings.visibility === "public" ? "public" : "private";
+    conversationOptionsTitle.textContent = "نوع گروه";
+    conversationOptionsBody.innerHTML = [
+      '<div class="chat-options-stack">',
+      '  <label class="chat-option-row' + (current === "private" ? ' is-selected' : '') + '">',
+      '    <input type="radio" name="conversation-visibility" value="private"' + (current === "private" ? " checked" : "") + '>',
+      '    <strong>گروه خصوصی</strong>',
+      '    <span>عضویت فقط با افزودن مدیران انجام می‌شود.</span>',
+      '  </label>',
+      '  <label class="chat-option-row' + (current === "public" ? ' is-selected' : '') + '">',
+      '    <input type="radio" name="conversation-visibility" value="public"' + (current === "public" ? " checked" : "") + '>',
+      '    <strong>گروه عمومی با لینک</strong>',
+      '    <span>لینک دعوت گفتگو از صفحه اطلاعات قابل کپی است.</span>',
+      '  </label>',
+      '</div>',
+      '<div class="chat-options-link"><span>' + escapeHtml(window.location.origin + (conversation.shareUrl || ("/chat/?conversationId=" + encodeURIComponent(conversation.id)))) + '</span><button type="button" data-options-copy-link>کپی</button></div>',
+      '<div class="chat-modal__footer chat-modal__footer--split chat-options-footer">',
+      '  <button class="chat-modal-secondary-btn" type="button" data-options-cancel>انصراف</button>',
+      '  <button class="chat-login-btn" type="button" data-options-save-type>ذخیره نوع گروه</button>',
+      '</div>'
+    ].join("");
+    var cancel = conversationOptionsBody.querySelector("[data-options-cancel]");
+    var copy = conversationOptionsBody.querySelector("[data-options-copy-link]");
+    var save = conversationOptionsBody.querySelector("[data-options-save-type]");
+    if (cancel) cancel.addEventListener("click", function () { closeModal(true); });
+    if (copy) copy.addEventListener("click", copyConversationLink);
+    Array.from(conversationOptionsBody.querySelectorAll('input[name="conversation-visibility"]')).forEach(function (input) {
+      input.addEventListener("change", function () {
+        Array.from(conversationOptionsBody.querySelectorAll(".chat-option-row")).forEach(function (row) {
+          var rowInput = row.querySelector("input");
+          row.classList.toggle("is-selected", !!(rowInput && rowInput.checked));
+        });
+      });
+    });
+    if (save) {
+      save.addEventListener("click", async function () {
+        var checked = conversationOptionsBody.querySelector('input[name="conversation-visibility"]:checked');
+        var visibility = checked ? checked.value : current;
+        setModalBusy("conversation-options", true);
+        try {
+          var response = await apiPost("setGroupVisibility", {
+            conversationId: conversation.id,
+            visibility: visibility
+          });
+          ensureSuccessResponse(response, "نوع گروه ذخیره نشد.");
+          closeModal(true);
+          await refreshAfterConversationAction(response, conversation.id, { keepCurrentActive: true, forceFull: false, silent: true });
+          showToast("نوع گروه ذخیره شد.");
+        } catch (error) {
+          showToast(error && error.message ? error.message : "نوع گروه ذخیره نشد.");
+        } finally {
+          setModalBusy("conversation-options", false);
+        }
+      });
+    }
+  }
+
+  function renderConversationReactionOptions(conversation) {
+    var current = conversation.settings && conversation.settings.reactionMode ? conversation.settings.reactionMode : "all";
+    conversationOptionsTitle.textContent = "تنظیمات واکنش";
+    var options = [
+      { value: "all", title: "همه واکنش‌ها", desc: "اعضا می‌توانند از همه ایموجی‌های واکنش استفاده کنند." },
+      { value: "quick", title: "انتخاب برخی از واکنش‌ها", desc: "فقط واکنش‌های پرکاربرد و امن در منوی واکنش نمایش داده می‌شود." },
+      { value: "none", title: "بدون واکنش", desc: "ثبت واکنش روی پیام‌های این گفتگو غیرفعال می‌شود." }
+    ];
+    conversationOptionsBody.innerHTML = [
+      '<div class="chat-options-stack">',
+      options.map(function (item) {
+        return [
+          '<label class="chat-option-row' + (item.value === current ? ' is-selected' : '') + '">',
+          '  <input type="radio" name="conversation-reaction-mode" value="' + escapeHtml(item.value) + '"' + (item.value === current ? " checked" : "") + '>',
+          '  <strong>' + escapeHtml(item.title) + '</strong>',
+          '  <span>' + escapeHtml(item.desc) + '</span>',
+          '</label>'
+        ].join("");
+      }).join(""),
+      '</div>',
+      '<div class="chat-modal__footer chat-modal__footer--split chat-options-footer">',
+      '  <button class="chat-modal-secondary-btn" type="button" data-options-cancel>انصراف</button>',
+      '  <button class="chat-login-btn" type="button" data-options-save-reactions>ذخیره واکنش‌ها</button>',
+      '</div>'
+    ].join("");
+    var cancel = conversationOptionsBody.querySelector("[data-options-cancel]");
+    var save = conversationOptionsBody.querySelector("[data-options-save-reactions]");
+    if (cancel) cancel.addEventListener("click", function () { closeModal(true); });
+    Array.from(conversationOptionsBody.querySelectorAll('input[name="conversation-reaction-mode"]')).forEach(function (input) {
+      input.addEventListener("change", function () {
+        Array.from(conversationOptionsBody.querySelectorAll(".chat-option-row")).forEach(function (row) {
+          var rowInput = row.querySelector("input");
+          row.classList.toggle("is-selected", !!(rowInput && rowInput.checked));
+        });
+      });
+    });
+    if (save) {
+      save.addEventListener("click", async function () {
+        var checked = conversationOptionsBody.querySelector('input[name="conversation-reaction-mode"]:checked');
+        var reactionMode = checked ? checked.value : current;
+        setModalBusy("conversation-options", true);
+        try {
+          var response = await apiPost("setReactionMode", {
+            conversationId: conversation.id,
+            reactionMode: reactionMode
+          });
+          ensureSuccessResponse(response, "تنظیمات واکنش ذخیره نشد.");
+          closeModal(true);
+          await refreshAfterConversationAction(response, conversation.id, { keepCurrentActive: true, forceFull: false, silent: true });
+          showToast("تنظیمات واکنش ذخیره شد.");
+        } catch (error) {
+          showToast(error && error.message ? error.message : "تنظیمات واکنش ذخیره نشد.");
+        } finally {
+          setModalBusy("conversation-options", false);
+        }
+      });
+    }
+  }
+
+  function renderConversationAddMembersOptions(conversation) {
+    conversationOptionsTitle.textContent = "افزودن عضو";
+    conversationOptionsBody.innerHTML = '<div class="chat-picker-empty">در حال بارگذاری فهرست دانشجویان...</div>';
+    loadDirectory(false).then(function () {
+      var selected = new Set();
+      var memberIds = new Set((conversation.members || []).map(function (member) {
+        return normalizeStudentNumber(member && member.studentNumber);
+      }).filter(Boolean));
+
+      function renderList() {
+        var queryInput = $("conversation-option-member-search");
+        var query = normalizeSpace(queryInput && queryInput.value).toLowerCase();
+        var users = state.directoryUsers.filter(function (user) {
+          if (!user || memberIds.has(user.studentNumber)) return false;
+          if (!query) return true;
+          return [user.name, user.studentNumber, user.roleLabel, user.profile && user.profile.about]
+            .some(function (value) { return normalizeSpace(value).toLowerCase().indexOf(query) !== -1; });
+        });
+        var selectedMeta = selected.size ? selected.size.toLocaleString("fa-IR") + " عضو انتخاب شد" : "عضوی انتخاب نشده است";
+        conversationOptionsBody.innerHTML = [
+          '<label class="conversation-search-wrap chat-options-search" for="conversation-option-member-search">',
+          '  <input id="conversation-option-member-search" type="search" placeholder="جستجوی دانشجو برای افزودن..." value="' + escapeHtml(queryInput ? queryInput.value : "") + '">',
+          '</label>',
+          '<p class="chat-modal-meta">' + escapeHtml(selectedMeta) + '</p>',
+          '<div class="chat-modal__body chat-modal__body--dense chat-options-member-list" id="conversation-option-members"></div>',
+          '<div class="chat-modal__footer chat-modal__footer--split chat-options-footer">',
+          '  <button class="chat-modal-secondary-btn" type="button" data-options-cancel>انصراف</button>',
+          '  <button class="chat-login-btn" type="button" data-options-add-members>افزودن عضو</button>',
+          '</div>'
+        ].join("");
+        var listNode = $("conversation-option-members");
+        if (listNode) {
+          if (!users.length) {
+            listNode.innerHTML = '<div class="chat-picker-empty">دانشجوی جدیدی برای افزودن پیدا نشد.</div>';
+          } else {
+            users.forEach(function (user) {
+              var checked = selected.has(user.studentNumber);
+              var item = document.createElement("button");
+              item.type = "button";
+              item.className = "chat-picker-item" + (checked ? " is-selected" : "");
+              item.innerHTML = [
+                '<span class="chat-picker-item__avatar" data-has-avatar="0"><img alt="" hidden><span>' + escapeHtml(avatarLabel(user.name)) + '</span></span>',
+                '<span class="chat-picker-item__copy">',
+                '  <strong>' + escapeHtml(user.name) + '</strong>',
+                '  <span>' + escapeHtml((user.profile && user.profile.about) || userRoleMetaText(user)) + '</span>',
+                '</span>',
+                '<input class="chat-picker-check" type="checkbox"' + (checked ? ' checked' : '') + ' tabindex="-1" aria-hidden="true">'
+              ].join("");
+              var avatar = item.querySelector(".chat-picker-item__avatar");
+              renderAvatar(avatar, item.querySelector("img"), item.querySelector(".chat-picker-item__avatar span"), user.profile && user.profile.avatarUrl, user.name);
+              item.addEventListener("click", function () {
+                if (selected.has(user.studentNumber)) {
+                  selected.delete(user.studentNumber);
+                } else {
+                  selected.add(user.studentNumber);
+                }
+                renderList();
+              });
+              listNode.appendChild(item);
+            });
+          }
+        }
+        var nextQuery = $("conversation-option-member-search");
+        if (nextQuery) {
+          nextQuery.addEventListener("input", renderList);
+          if (query) {
+            nextQuery.focus({ preventScroll: true });
+            nextQuery.setSelectionRange(nextQuery.value.length, nextQuery.value.length);
+          }
+        }
+        var cancel = conversationOptionsBody.querySelector("[data-options-cancel]");
+        var add = conversationOptionsBody.querySelector("[data-options-add-members]");
+        if (cancel) cancel.addEventListener("click", function () { closeModal(true); });
+        if (add) {
+          add.disabled = selected.size <= 0;
+          add.addEventListener("click", async function () {
+            if (!selected.size) {
+              showToast("حداقل یک عضو جدید انتخاب کن.");
+              return;
+            }
+            setModalBusy("conversation-options", true);
+            try {
+              var response = await apiPost("addMembers", {
+                conversationId: conversation.id,
+                membersJson: JSON.stringify(Array.from(selected))
+              });
+              ensureSuccessResponse(response, "افزودن عضو انجام نشد.");
+              closeModal(true);
+              await refreshAfterConversationAction(response, conversation.id, { keepCurrentActive: true, forceFull: false, silent: true });
+              showToast("عضوهای جدید اضافه شدند.");
+            } catch (error) {
+              showToast(error && error.message ? error.message : "افزودن عضو انجام نشد.");
+            } finally {
+              setModalBusy("conversation-options", false);
+            }
+          });
+        }
+      }
+
+      renderList();
+    }).catch(function (error) {
+      conversationOptionsBody.innerHTML = '<div class="chat-picker-empty">بارگذاری فهرست دانشجویان انجام نشد.</div>';
+      showToast(error && error.message ? error.message : "بارگذاری فهرست دانشجویان انجام نشد.");
+    });
+  }
+
   function updateInfoSheet() {
     if (!infoSheet) return;
     var conversation = activeConversation();
@@ -3516,6 +3913,11 @@
       if (infoMembers) infoMembers.innerHTML = "";
       if (infoActionsBlock) infoActionsBlock.hidden = true;
       if (adminTools) adminTools.hidden = true;
+      if (infoNotificationBtn) infoNotificationBtn.hidden = true;
+      if (infoEditProfileBtn) infoEditProfileBtn.hidden = true;
+      if (infoGroupTypeBtn) infoGroupTypeBtn.hidden = true;
+      if (infoReactionSettingsBtn) infoReactionSettingsBtn.hidden = true;
+      if (infoAddMembersBtn) infoAddMembersBtn.hidden = true;
       if (infoPeerLink) infoPeerLink.hidden = true;
       if (infoProfileLink) infoProfileLink.href = "/account/?from=chat#account-profile";
       if (infoSecurityLink) infoSecurityLink.href = "/account/?from=chat#account-security";
@@ -3562,6 +3964,24 @@
         infoPeerLink.hidden = true;
       }
     }
+    if (infoNotificationBtn) {
+      infoNotificationBtn.hidden = false;
+      infoNotificationBtn.textContent = conversation.viewerState && conversation.viewerState.notificationsMuted
+        ? "روشن کردن اعلان‌ها"
+        : "بی‌صدا کردن اعلان‌ها";
+    }
+    if (infoEditProfileBtn) {
+      infoEditProfileBtn.hidden = !(conversation.permissions && conversation.permissions.canEditProfile);
+    }
+    if (infoGroupTypeBtn) {
+      infoGroupTypeBtn.hidden = !(conversation.permissions && conversation.permissions.canEditGroupType);
+    }
+    if (infoReactionSettingsBtn) {
+      infoReactionSettingsBtn.hidden = !(conversation.permissions && conversation.permissions.canEditReactions);
+    }
+    if (infoAddMembersBtn) {
+      infoAddMembersBtn.hidden = !(conversation.permissions && conversation.permissions.canAddMembers);
+    }
 
     var canViewStudentNumbers = canCurrentUserViewStudentNumbers();
     var roleLabel = conversation.permissions && conversation.permissions.canManageConversation
@@ -3570,9 +3990,7 @@
     var identityRows = [
       {
         label: "نوع گفتگو",
-        value: conversation.type === "direct"
-          ? "خصوصی"
-          : (conversation.type === "class-group" ? "گروه اجباری کلاس" : "گروه")
+        value: conversationKindLabel(conversation)
       },
       {
         label: "نقش شما",
@@ -3608,6 +4026,23 @@
         value: Math.max(0, Math.floor(toNumber(conversation.unreadCount, 0))).toLocaleString("fa-IR")
       }
     ];
+    if (conversation.type !== "direct") {
+      settingsRows.push({
+        label: "واکنش‌ها",
+        value: reactionModeLabel(conversation.settings && conversation.settings.reactionMode)
+      });
+    }
+    if (conversation.type === "group") {
+      settingsRows.push({
+        label: "نوع عضویت",
+        value: groupVisibilityLabel(conversation.settings && conversation.settings.visibility)
+      });
+    }
+    settingsRows.push({
+      label: "اعلان‌ها",
+      value: conversation.viewerState && conversation.viewerState.notificationsMuted ? "بی‌صدا" : "فعال",
+      tone: conversation.viewerState && conversation.viewerState.notificationsMuted ? "muted" : "good"
+    });
     renderInfoRows(infoSettingsRows, settingsRows);
 
     if (infoStats) {
@@ -3780,6 +4215,7 @@
     if (key === "forward") return forwardModal;
     if (key === "reaction") return reactionModal;
     if (key === "edit") return editModal;
+    if (key === "conversation-options") return conversationOptionsModal;
     if (key === "confirm") return confirmModal;
     if (key === "receipts") return receiptsModal;
     return null;
@@ -3830,7 +4266,7 @@
       modalBackdrop.classList.remove("is-open");
       modalBackdrop.hidden = true;
     }
-    [dmModal, groupModal, forwardModal, reactionModal, editModal, confirmModal, receiptsModal].forEach(function (node) {
+    [dmModal, groupModal, forwardModal, reactionModal, editModal, conversationOptionsModal, confirmModal, receiptsModal].forEach(function (node) {
       if (!node) return;
       node.classList.remove("is-open");
       node.classList.remove("is-busy");
@@ -3859,6 +4295,10 @@
     if (hadOpenModal && closingKey === "edit") {
       state.pendingEditMessageId = null;
       if (editTextInput) editTextInput.value = "";
+    }
+    if (hadOpenModal && closingKey === "conversation-options") {
+      state.conversationOptionsMode = "";
+      if (conversationOptionsBody) conversationOptionsBody.innerHTML = "";
     }
     if (hadOpenModal && closingKey === "confirm") {
       resolveConfirmDialog(false);
@@ -4081,6 +4521,11 @@
     );
 
     var groups = activeReactionGroups(sourceMessage);
+    if (!groups.length) {
+      reactionGrid.innerHTML = '<div class="chat-picker-empty">واکنش‌ها در این گفتگو غیرفعال هستند.</div>';
+      if (reactionTabs) reactionTabs.innerHTML = "";
+      return;
+    }
     var selectedGroup = state.reactionCategory || "recent";
     if (!groups.some(function (group) { return group.id === selectedGroup; })) {
       selectedGroup = groups[0] ? groups[0].id : "all";
@@ -4104,7 +4549,7 @@
 
     var baseGroup = groups.find(function (group) { return group.id === selectedGroup; }) || { emojis: REACTIONS.slice() };
     var list = baseGroup.emojis.filter(function (emoji) {
-      return reactionMatchesQuery(emoji, query);
+      return reactionAllowedInActiveConversation(emoji) && reactionMatchesQuery(emoji, query);
     });
     list = Array.from(new Set(list)).sort(function (left, right) {
       return reactionUsageScore(right) - reactionUsageScore(left);
@@ -5255,6 +5700,10 @@
       showToast("ایموجی واکنش معتبر نیست.");
       return false;
     }
+    if (!reactionAllowedInActiveConversation(normalizedEmoji)) {
+      showToast("این واکنش در تنظیمات گفتگو مجاز نیست.");
+      return false;
+    }
 
     try {
       var response = await apiPost("react", {
@@ -5887,8 +6336,8 @@
 
     var selected = Array.from(state.groupMemberSelection);
     var conversationKind = groupKindChannelInput && groupKindChannelInput.checked ? "channel" : "group";
-    if (!selected.length && conversationKind !== "channel") {
-      showToast("حداقل یک عضو برای ساخت گروه انتخاب کن.");
+    if (conversationKind === "group" && selected.length < 2) {
+      showToast("برای گروه حداقل دو عضو دیگر انتخاب کن. برای گفتگوی یک‌به‌یک از پیام خصوصی استفاده کن.");
       setGroupCreateStep("members");
       return;
     }
@@ -6137,6 +6586,7 @@
     if (receiptsModalClose) receiptsModalClose.addEventListener("click", closeModal);
     if (editModalClose) editModalClose.addEventListener("click", closeModal);
     if (editCancelBtn) editCancelBtn.addEventListener("click", closeModal);
+    if (conversationOptionsClose) conversationOptionsClose.addEventListener("click", closeModal);
     if (confirmModalClose) {
       confirmModalClose.addEventListener("click", function () {
         resolveConfirmDialog(false);
@@ -6188,6 +6638,11 @@
     if (infoSheetClose) infoSheetClose.addEventListener("click", closeInfoSheet);
     if (infoSheetBackdrop) infoSheetBackdrop.addEventListener("click", closeInfoSheet);
     if (infoCopyLink) infoCopyLink.addEventListener("click", copyConversationLink);
+    if (infoNotificationBtn) infoNotificationBtn.addEventListener("click", function () { openConversationOptions("notifications"); });
+    if (infoEditProfileBtn) infoEditProfileBtn.addEventListener("click", function () { openConversationOptions("profile"); });
+    if (infoGroupTypeBtn) infoGroupTypeBtn.addEventListener("click", function () { openConversationOptions("type"); });
+    if (infoReactionSettingsBtn) infoReactionSettingsBtn.addEventListener("click", function () { openConversationOptions("reactions"); });
+    if (infoAddMembersBtn) infoAddMembersBtn.addEventListener("click", function () { openConversationOptions("add-members"); });
     if (infoMembers) {
       infoMembers.addEventListener("click", function (event) {
         var tagButton = event.target && event.target.closest ? event.target.closest("[data-member-tag]") : null;

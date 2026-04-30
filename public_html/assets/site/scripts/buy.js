@@ -3,14 +3,20 @@
 
     var SAVED_KEY = "dent1402_buy_saved_slugs";
     var CART_KEY = "dent1402_buy_cart_items";
+    var CHECKOUT_KEY = "dent1402_buy_checkout";
     var MARKET_LOCATION = "دانشکده دندانپزشکی تهران";
     var state = {
         items: [],
         query: "",
         category: "all",
         filter: "all",
-        currentItem: null
+        currentItem: null,
+        cartQuote: null,
+        cartGateways: null,
+        cartQuoteError: "",
+        cartQuoteLoading: false
     };
+    var cartQuoteTimer = null;
 
     function $(id) {
         return document.getElementById(id);
@@ -229,17 +235,38 @@
         if (!clean) return;
         var items = cartItems();
         var existing = items.find(function (entry) { return entry.slug === clean; });
+        var nextQuantity = Math.max(1, Math.min(99, Number(quantity) || 1));
         if (existing) {
-            existing.quantity = Math.max(1, Math.min(99, Number(quantity) || existing.quantity || 1));
+            existing.quantity = Math.max(1, Math.min(99, (Number(existing.quantity) || 1) + nextQuantity));
             existing.addedAt = new Date().toISOString();
         } else {
             items.unshift({
                 slug: clean,
-                quantity: Math.max(1, Math.min(99, Number(quantity) || 1)),
+                quantity: nextQuantity,
                 addedAt: new Date().toISOString()
             });
         }
         writeCartItems(items);
+    }
+
+    function updateCartQuantity(slug, quantity) {
+        var clean = String(slug || "").trim();
+        var next = Math.max(1, Math.min(99, Number(quantity) || 1));
+        var changed = false;
+        var items = cartItems().map(function (entry) {
+            if (entry.slug === clean) {
+                changed = true;
+                return {
+                    slug: entry.slug,
+                    quantity: next,
+                    addedAt: entry.addedAt || new Date().toISOString()
+                };
+            }
+            return entry;
+        });
+        if (changed) {
+            writeCartItems(items);
+        }
     }
 
     function removeFromCart(slug) {
@@ -247,6 +274,59 @@
         writeCartItems(cartItems().filter(function (entry) {
             return entry.slug !== clean;
         }));
+    }
+
+    function removeCartSlugs(slugs) {
+        var remove = Array.isArray(slugs) ? slugs.map(function (slug) {
+            return String(slug || "").trim();
+        }).filter(Boolean) : [];
+        if (!remove.length) {
+            return;
+        }
+        writeCartItems(cartItems().filter(function (entry) {
+            return remove.indexOf(entry.slug) < 0;
+        }));
+    }
+
+    function readCheckoutData() {
+        try {
+            var parsed = JSON.parse(window.localStorage.getItem(CHECKOUT_KEY) || "{}");
+            if (parsed && typeof parsed === "object") {
+                return {
+                    discountCode: String(parsed.discountCode || ""),
+                    payerName: String(parsed.payerName || ""),
+                    payerPhone: String(parsed.payerPhone || ""),
+                    payerStudentNumber: String(parsed.payerStudentNumber || ""),
+                    lineExtraFormData: parsed.lineExtraFormData && typeof parsed.lineExtraFormData === "object" ? parsed.lineExtraFormData : {}
+                };
+            }
+        } catch (_error) {
+            // Checkout data is local convenience state only.
+        }
+        return {
+            discountCode: "",
+            payerName: "",
+            payerPhone: "",
+            payerStudentNumber: "",
+            lineExtraFormData: {}
+        };
+    }
+
+    function writeCheckoutData(data) {
+        try {
+            window.localStorage.setItem(CHECKOUT_KEY, JSON.stringify(data || {}));
+        } catch (_error) {
+            // Checkout still works without local persistence.
+        }
+    }
+
+    function updateCheckoutData(patch) {
+        var data = readCheckoutData();
+        Object.keys(patch || {}).forEach(function (key) {
+            data[key] = patch[key];
+        });
+        writeCheckoutData(data);
+        return data;
     }
 
     function copyText(value) {
@@ -387,6 +467,8 @@
 
         section.hidden = false;
         var selectedOnce = false;
+        var firstEnabled = normalized.gateways.find(function (entry) { return entry.isEnabled; });
+        var fallbackKey = firstEnabled ? firstEnabled.key : "";
         root.innerHTML = options.map(function (entry, index) {
             var inputId = "buy-gateway-" + entry.key + "-" + String(index);
             var checked = false;
@@ -1037,16 +1119,185 @@
         });
     }
 
+    function cartStep() {
+        var allowed = ["cart", "discount", "details", "gateway"];
+        var step = readParam("step") || "cart";
+        return allowed.indexOf(step) >= 0 ? step : "cart";
+    }
+
+    function setCartStep(step) {
+        var next = ["cart", "discount", "details", "gateway"].indexOf(step) >= 0 ? step : "cart";
+        window.clearTimeout(cartQuoteTimer);
+        var url = new URL(window.location.href);
+        if (next === "cart") {
+            url.searchParams.delete("step");
+        } else {
+            url.searchParams.set("step", next);
+        }
+        window.history.pushState({ buyCartStep: next }, "", url.toString());
+        renderCartCheckout(state.items);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function cartSnapshot(items) {
+        var source = Array.isArray(items) ? items : [];
+        var bySlug = {};
+        source.forEach(function (item) {
+            bySlug[String(item.slug || "")] = item;
+        });
+        var valid = [];
+        var missing = [];
+        cartItems().forEach(function (entry) {
+            var item = bySlug[entry.slug] || null;
+            var quantity = Math.max(1, Math.min(99, Number(entry.quantity) || 1));
+            if (!item) {
+                missing.push(entry);
+                return;
+            }
+            var lineAmount = (Number(item.price) || 0) * quantity;
+            valid.push({
+                slug: entry.slug,
+                quantity: quantity,
+                item: item,
+                amount: lineAmount
+            });
+        });
+        return {
+            lines: valid,
+            missing: missing,
+            quantity: valid.reduce(function (sum, line) { return sum + line.quantity; }, 0),
+            subtotal: valid.reduce(function (sum, line) { return sum + line.amount; }, 0)
+        };
+    }
+
+    function cartItemsPayload() {
+        return cartItems().map(function (entry) {
+            return {
+                slug: entry.slug,
+                quantity: Math.max(1, Math.min(99, Number(entry.quantity) || 1))
+            };
+        });
+    }
+
+    function quoteSource(snapshot) {
+        var quote = state.cartQuote && typeof state.cartQuote === "object" ? state.cartQuote : null;
+        return quote || {
+            lines: snapshot.lines.map(function (line) {
+                return {
+                    slug: line.slug,
+                    title: line.item.title || "آیتم",
+                    quantity: line.quantity,
+                    unitPrice: line.item.price || 0,
+                    subtotal: line.amount,
+                    discountAmount: 0,
+                    amount: line.amount,
+                    requiredFields: Array.isArray(line.item.requiredFields) ? line.item.requiredFields : [],
+                    item: line.item
+                };
+            }),
+            quantity: snapshot.quantity,
+            subtotal: snapshot.subtotal,
+            discountAmount: 0,
+            amount: snapshot.subtotal
+        };
+    }
+
+    function cartStepsHtml(active) {
+        var steps = [
+            { key: "cart", label: "سبد" },
+            { key: "discount", label: "تخفیف" },
+            { key: "details", label: "مشخصات" },
+            { key: "gateway", label: "درگاه" }
+        ];
+        var activeIndex = steps.findIndex(function (step) { return step.key === active; });
+        return [
+            '<nav class="buy-checkout-steps" aria-label="مراحل پرداخت سبد">',
+            steps.map(function (step, index) {
+                var stateClass = index === activeIndex ? " is-active" : (index < activeIndex ? " is-done" : "");
+                return '<button class="' + stateClass + '" type="button" data-buy-cart-step="' + text(step.key) + '"><span>' + text(Number(index + 1).toLocaleString("fa-IR")) + "</span><strong>" + text(step.label) + "</strong></button>";
+            }).join(""),
+            "</nav>"
+        ].join("");
+    }
+
+    function cartSummaryHtml(snapshot) {
+        var source = quoteSource(snapshot);
+        return [
+            '<div class="buy-cart-total">',
+            '  <div><span>جمع آیتم‌ها</span><strong>' + text(money(source.subtotal || snapshot.subtotal || 0)) + "</strong></div>",
+            '  <div><span>تعداد کل</span><strong>' + text(Number(source.quantity || snapshot.quantity || 0).toLocaleString("fa-IR")) + "</strong></div>",
+            '  <div><span>تخفیف</span><strong>' + text(money(source.discountAmount || 0)) + "</strong></div>",
+            '  <div class="is-payable"><span>مبلغ قابل پرداخت</span><strong>' + text(money(source.amount || snapshot.subtotal || 0)) + "</strong></div>",
+            "</div>"
+        ].join("");
+    }
+
+    function checkoutFeedbackHtml() {
+        if (state.cartQuoteLoading) {
+            return '<div class="buy-feedback">در حال محاسبه مبلغ سبد...</div>';
+        }
+        if (state.cartQuoteError) {
+            return '<div class="buy-feedback is-error">' + text(state.cartQuoteError) + "</div>";
+        }
+        return '<div id="buy-cart-feedback" class="buy-feedback" aria-live="polite"></div>';
+    }
+
+    function refreshCartQuote(silent) {
+        var snapshot = cartSnapshot(state.items);
+        if (!snapshot.lines.length) {
+            state.cartQuote = null;
+            state.cartGateways = null;
+            return Promise.resolve(null);
+        }
+        var data = readCheckoutData();
+        state.cartQuoteLoading = true;
+        if (!silent) {
+            state.cartQuoteError = "";
+            renderCartCheckout(state.items, { skipQuote: true });
+        }
+        return apiPost("quoteCart", {
+            items: JSON.stringify(cartItemsPayload()),
+            discountCode: data.discountCode || ""
+        }).then(function (response) {
+            state.cartQuoteLoading = false;
+            if (!response || !response.success || !response.quote) {
+                state.cartQuote = null;
+                state.cartGateways = response && response.paymentGateways ? response.paymentGateways : state.cartGateways;
+                state.cartQuoteError = (response && response.error) || "محاسبه مبلغ سبد انجام نشد.";
+                renderCartCheckout(state.items, { skipQuote: true });
+                return null;
+            }
+            state.cartQuote = response.quote;
+            state.cartGateways = response.paymentGateways || state.cartGateways;
+            state.cartQuoteError = "";
+            renderCartCheckout(state.items, { skipQuote: true });
+            return response.quote;
+        }).catch(function () {
+            state.cartQuoteLoading = false;
+            state.cartQuote = null;
+            state.cartQuoteError = "ارتباط با سرور برای محاسبه سبد برقرار نشد.";
+            renderCartCheckout(state.items, { skipQuote: true });
+            return null;
+        });
+    }
+
     function renderCart(items) {
         var root = $("buy-cart-root");
         var count = $("buy-cart-count");
         if (!root) return;
         var cart = cartItems();
+        var snapshot = cartSnapshot(items);
         if (count) {
-            count.textContent = cart.length ? cart.length.toLocaleString("fa-IR") + " آیتم در سبد" : "سبد خالی است";
+            count.textContent = cart.length
+                ? cart.length.toLocaleString("fa-IR") + " آیتم، " + snapshot.quantity.toLocaleString("fa-IR") + " عدد"
+                : "سبد خالی است";
         }
         if (!cart.length) {
             root.innerHTML = '<div class="buy-empty">سبد خرید خالی است. از کاتالوگ، آیتم موردنظر را اضافه کنید.</div>';
+            var checkoutRoot = $("buy-cart-checkout");
+            if (checkoutRoot) {
+                checkoutRoot.innerHTML = "";
+            }
             return;
         }
         var bySlug = {};
@@ -1065,6 +1316,7 @@
                 ].join("");
             }
             var image = imageList(item)[0] || "";
+            var lineAmount = (Number(item.price) || 0) * (Number(entry.quantity) || 1);
             return [
                 '<article class="buy-cart-card">',
                 '  <a class="buy-cart-card__media" href="' + href + '">',
@@ -1074,16 +1326,265 @@
                 '    <span class="buy-kicker">' + text(item.categoryLabel || categoryLabel(itemCategory(item))) + "</span>",
                 '    <h3><a href="' + href + '">' + text(item.title || "بدون عنوان") + "</a></h3>",
                 '    <p>' + text(item.shortDescription || "—") + "</p>",
-                '    <strong>' + text(money((item.price || 0) * (entry.quantity || 1))) + "</strong>",
-                '    <small>تعداد انتخابی: ' + text(Number(entry.quantity || 1).toLocaleString("fa-IR")) + "</small>",
+                '    <strong>' + text(money(lineAmount)) + "</strong>",
+                '    <div class="buy-cart-quantity" aria-label="تعداد">',
+                '      <button type="button" data-buy-cart-qty="' + text(entry.slug) + '" data-buy-cart-next-qty="' + text(String(Math.max(1, Number(entry.quantity || 1) - 1))) + '">−</button>',
+                '      <span>' + text(Number(entry.quantity || 1).toLocaleString("fa-IR")) + "</span>",
+                '      <button type="button" data-buy-cart-qty="' + text(entry.slug) + '" data-buy-cart-next-qty="' + text(String(Math.min(99, Number(entry.quantity || 1) + 1))) + '">＋</button>',
+                "    </div>",
                 '    <div class="buy-cart-card__actions">',
-                '      <a class="buy-primary-btn" href="' + href + '">ادامه پرداخت</a>',
+                '      <a class="buy-secondary-btn" href="' + href + '">مشاهده آیتم</a>',
                 '      <button class="buy-secondary-btn" type="button" data-buy-cart-remove="' + text(entry.slug) + '">حذف از سبد</button>',
                 "    </div>",
                 "  </div>",
                 "</article>"
             ].join("");
         }).join("");
+        renderCartCheckout(items);
+    }
+
+    function renderCartLineFields(lines, checkoutData) {
+        var data = checkoutData || readCheckoutData();
+        var extraBySlug = data.lineExtraFormData && typeof data.lineExtraFormData === "object" ? data.lineExtraFormData : {};
+        var rows = [];
+        (Array.isArray(lines) ? lines : []).forEach(function (line) {
+            var fields = Array.isArray(line.requiredFields) ? line.requiredFields : [];
+            if (!fields.length) {
+                return;
+            }
+            rows.push('<section class="buy-cart-line-fields"><h4>' + text(line.title || "آیتم") + "</h4>");
+            fields.forEach(function (field) {
+                var name = String(field.name || "").trim();
+                if (!name) {
+                    return;
+                }
+                var label = String(field.label || name);
+                var required = !!field.required;
+                var maxLength = Math.max(10, Math.min(1000, Number(field.maxLength || 140)));
+                var value = String((extraBySlug[line.slug] && extraBySlug[line.slug][name]) || "");
+                var attrs = [
+                    'data-cart-line-field="true"',
+                    'data-slug="' + text(line.slug || "") + '"',
+                    'data-field-name="' + text(name) + '"',
+                    'data-field-label="' + text(label) + '"',
+                    'data-field-required="' + (required ? "1" : "0") + '"'
+                ];
+                var type = String(field.type || "text");
+                var control = "";
+                if (type === "textarea") {
+                    control = '<textarea ' + attrs.join(" ") + ' maxlength="' + text(String(maxLength)) + '">' + text(value) + "</textarea>";
+                } else if (type === "select" && Array.isArray(field.options)) {
+                    var options = ['<option value="">انتخاب کنید</option>'];
+                    field.options.forEach(function (option) {
+                        var selected = String(option) === value ? " selected" : "";
+                        options.push('<option value="' + text(option) + '"' + selected + ">" + text(option) + "</option>");
+                    });
+                    control = '<select ' + attrs.join(" ") + ">" + options.join("") + "</select>";
+                } else {
+                    var inputType = type === "tel" ? "tel" : (type === "number" ? "number" : "text");
+                    var digitAttrs = (inputType === "tel" || inputType === "number") ? ' inputmode="numeric" data-digit-locale="latin"' : "";
+                    control = '<input ' + attrs.join(" ") + ' type="' + text(inputType) + '"' + digitAttrs + ' maxlength="' + text(String(maxLength)) + '" value="' + text(value) + '">';
+                }
+                rows.push([
+                    '<label class="buy-form__field">',
+                    '  <span>' + text(label) + (required ? " *" : "") + "</span>",
+                    control,
+                    "</label>"
+                ].join(""));
+            });
+            rows.push("</section>");
+        });
+        return rows.join("");
+    }
+
+    function readLineExtrasFrom(root) {
+        var output = {};
+        Array.prototype.slice.call(root ? root.querySelectorAll("[data-cart-line-field='true']") : []).forEach(function (field) {
+            var slug = String(field.dataset.slug || "").trim();
+            var name = String(field.dataset.fieldName || "").trim();
+            if (!slug || !name) {
+                return;
+            }
+            if (!output[slug]) {
+                output[slug] = {};
+            }
+            output[slug][name] = String(field.value || "").trim();
+        });
+        return output;
+    }
+
+    function renderCartGateways(bundle) {
+        var normalized = normalizeGatewayBundle(bundle || {});
+        var enabledCount = normalized.gateways.filter(function (entry) { return entry.isEnabled; }).length;
+        if (!normalized.gateways.length) {
+            return '<div class="buy-empty">درگاه پرداختی برای این سبد تعریف نشده است.</div>';
+        }
+        var selectedOnce = false;
+        return [
+            '<div id="buy-cart-gateway-options" class="buy-gateway__list">',
+            normalized.gateways.map(function (entry, index) {
+                var inputId = "buy-cart-gateway-" + entry.key + "-" + String(index);
+                var disabled = !entry.isEnabled;
+                var checked = false;
+                if (!disabled && !selectedOnce && normalized.defaultKey && entry.key === normalized.defaultKey) {
+                    checked = true;
+                    selectedOnce = true;
+                } else if (!disabled && !selectedOnce && (!normalized.defaultKey || normalized.defaultKey !== fallbackKey) && entry.key === fallbackKey) {
+                    checked = true;
+                    selectedOnce = true;
+                }
+                return [
+                    '<label class="buy-gateway-option' + (disabled ? " is-disabled" : "") + '" for="' + text(inputId) + '">',
+                    '  <input id="' + text(inputId) + '" type="radio" name="buy_cart_gateway" value="' + text(entry.key) + '"' + (checked ? " checked" : "") + (disabled ? " disabled" : "") + ">",
+                    '  <span class="buy-gateway-option__radio" aria-hidden="true"></span>',
+                    '  <span class="buy-gateway-option__copy">',
+                    '    <strong class="buy-gateway-option__title">' + text(entry.label || "پرداخت آنلاین") + "</strong>",
+                    '    <small class="buy-gateway-option__meta">' + text(entry.provider || gatewayProviderFallback(entry.key)) + (disabled ? " (غیرفعال)" : "") + "</small>",
+                    "  </span>",
+                    '  <span class="buy-gateway-option__badge">' + text(entry.icon || entry.key.toUpperCase()) + "</span>",
+                    "</label>"
+                ].join("");
+            }).join(""),
+            enabledCount <= 0 ? '<div class="buy-feedback is-error">درگاه فعالی برای پرداخت وجود ندارد.</div>' : "",
+            "</div>"
+        ].join("");
+    }
+
+    function renderCartCheckout(items, options) {
+        var root = $("buy-cart-checkout");
+        if (!root) {
+            return;
+        }
+        var opts = options || {};
+        var snapshot = cartSnapshot(items);
+        if (!snapshot.lines.length) {
+            root.innerHTML = snapshot.missing.length
+                ? '<div class="buy-empty">آیتم‌های موجود در سبد دیگر قابل سفارش نیستند. آن‌ها را حذف کنید و دوباره از کاتالوگ اضافه کنید.</div>'
+                : "";
+            return;
+        }
+
+        var active = cartStep();
+        var data = readCheckoutData();
+        var quote = quoteSource(snapshot);
+        var stepBody = "";
+        if (active === "cart") {
+            stepBody = [
+                '<section class="buy-cart-step">',
+                '  <h3>مرور سبد خرید</h3>',
+                '  <p class="buy-muted">مبلغ کل بر اساس تعداد انتخابی آیتم‌ها محاسبه شده و در مراحل بعد ادامه پیدا می‌کند.</p>',
+                cartSummaryHtml(snapshot),
+                '  <div class="buy-cart-step-actions">',
+                '    <button class="buy-primary-btn" type="button" data-buy-cart-step="discount">ادامه به کد تخفیف</button>',
+                '    <a class="buy-secondary-btn" href="/buy/">افزودن آیتم بیشتر</a>',
+                "  </div>",
+                "</section>"
+            ].join("");
+        } else if (active === "discount") {
+            stepBody = [
+                '<form id="buy-cart-discount-form" class="buy-cart-step buy-form" novalidate>',
+                '  <h3>کد تخفیف سبد</h3>',
+                '  <p class="buy-muted">اگر کد تخفیف برای یک یا چند آیتم معتبر باشد، مبلغ کل همینجا دوباره محاسبه می‌شود.</p>',
+                '  <label class="buy-form__field"><span>کد تخفیف</span><input id="buy-cart-discount-code" type="text" maxlength="40" autocomplete="off" dir="ltr" data-digit-locale="latin" value="' + text(data.discountCode || "") + '" placeholder="اختیاری"></label>',
+                cartSummaryHtml(snapshot),
+                checkoutFeedbackHtml(),
+                '  <div class="buy-cart-step-actions">',
+                '    <button class="buy-secondary-btn" type="button" data-buy-cart-step="cart">بازگشت به سبد</button>',
+                '    <button class="buy-primary-btn" type="submit">ادامه به مشخصات</button>',
+                "  </div>",
+                "</form>"
+            ].join("");
+        } else if (active === "details") {
+            var authData = readCheckoutData();
+            if (window.Dent1402Auth && typeof window.Dent1402Auth.getState === "function") {
+                var authState = window.Dent1402Auth.getState();
+                var user = authState && authState.loggedIn ? authState.user : null;
+                if (user && !authData.payerName && user.name) authData.payerName = user.name;
+                if (user && !authData.payerStudentNumber && user.studentNumber) authData.payerStudentNumber = user.studentNumber;
+            }
+            stepBody = [
+                '<form id="buy-cart-details-form" class="buy-cart-step buy-form" novalidate>',
+                '  <h3>مشخصات پرداخت‌کننده</h3>',
+                '  <p class="buy-muted">این اطلاعات برای کل سفارش سبد ثبت می‌شود. فیلدهای اختصاصی هر آیتم پایین‌تر آمده است.</p>',
+                '  <label class="buy-form__field"><span>نام و نام خانوادگی *</span><input id="buy-cart-payer-name" type="text" maxlength="120" autocomplete="name" value="' + text(authData.payerName || "") + '"></label>',
+                '  <label class="buy-form__field"><span>شماره موبایل *</span><input id="buy-cart-payer-phone" type="tel" inputmode="numeric" maxlength="14" autocomplete="tel" dir="ltr" data-digit-locale="latin" value="' + text(authData.payerPhone || "") + '" placeholder="09xxxxxxxxx"></label>',
+                '  <label class="buy-form__field"><span>شماره دانشجویی</span><input id="buy-cart-payer-student-number" type="text" inputmode="numeric" maxlength="20" autocomplete="off" dir="ltr" data-digit-locale="latin" value="' + text(authData.payerStudentNumber || "") + '"></label>',
+                renderCartLineFields(quote.lines || [], authData),
+                cartSummaryHtml(snapshot),
+                checkoutFeedbackHtml(),
+                '  <div class="buy-cart-step-actions">',
+                '    <button class="buy-secondary-btn" type="button" data-buy-cart-step="discount">بازگشت به تخفیف</button>',
+                '    <button class="buy-primary-btn" type="submit">ادامه به انتخاب درگاه</button>',
+                "  </div>",
+                "</form>"
+            ].join("");
+        } else {
+            stepBody = [
+                '<form id="buy-cart-gateway-form" class="buy-cart-step buy-form" novalidate>',
+                '  <h3>انتخاب درگاه پرداخت</h3>',
+                '  <p class="buy-muted">درگاه فقط در این مرحله انتخاب می‌شود و مبلغ قابل پرداخت همان جمع نهایی سبد است.</p>',
+                cartSummaryHtml(snapshot),
+                renderCartGateways(state.cartGateways || {}),
+                checkoutFeedbackHtml(),
+                '  <div class="buy-cart-step-actions">',
+                '    <button class="buy-secondary-btn" type="button" data-buy-cart-step="details">بازگشت به مشخصات</button>',
+                '    <button id="buy-cart-pay-submit" class="buy-primary-btn" type="submit">پرداخت مبلغ کل سبد</button>',
+                "  </div>",
+                "</form>"
+            ].join("");
+        }
+
+        root.innerHTML = cartStepsHtml(active) + stepBody;
+        if (active !== "cart" && !opts.skipQuote && (active === "discount" || !state.cartQuote)) {
+            refreshCartQuote(true);
+        }
+    }
+
+    function submitCartOrder(form) {
+        var feedback = $("buy-cart-feedback");
+        var data = readCheckoutData();
+        var selected = form.querySelector("input[name='buy_cart_gateway']:checked");
+        if (!selected) {
+            setFeedback(feedback, "لطفا روش پرداخت را انتخاب کنید.", "is-error");
+            return;
+        }
+        if (!data.payerName || !normalizePhone(data.payerPhone)) {
+            setFeedback(feedback, "ابتدا مشخصات پرداخت‌کننده را کامل کنید.", "is-error");
+            setCartStep("details");
+            return;
+        }
+        var submit = $("buy-cart-pay-submit");
+        if (submit) {
+            submit.disabled = true;
+            submit.textContent = "در حال انتقال به درگاه...";
+        }
+        setFeedback(feedback, "در حال ایجاد سفارش سبد خرید...", "");
+        apiPost("createCartOrder", {
+            items: JSON.stringify(cartItemsPayload()),
+            discountCode: data.discountCode || "",
+            payerName: data.payerName,
+            payerPhone: normalizePhone(data.payerPhone),
+            payerStudentNumber: normalizeDigits(data.payerStudentNumber || "").replace(/\D+/g, ""),
+            lineExtraFormData: JSON.stringify(data.lineExtraFormData || {}),
+            extraFormData: JSON.stringify({ source: "cart" }),
+            gateway: String(selected.value || "").trim()
+        }).then(function (response) {
+            if (!response || !response.success || !response.redirectUrl) {
+                if (submit) {
+                    submit.disabled = false;
+                    submit.textContent = "پرداخت مبلغ کل سبد";
+                }
+                setFeedback(feedback, (response && response.error) || "ایجاد سفارش سبد خرید انجام نشد.", "is-error");
+                return;
+            }
+            window.location.href = response.redirectUrl;
+        }).catch(function () {
+            if (submit) {
+                submit.disabled = false;
+                submit.textContent = "پرداخت مبلغ کل سبد";
+            }
+            setFeedback(feedback, "ارتباط با سرور برقرار نشد.", "is-error");
+        });
     }
 
     function initCartPage() {
@@ -1092,11 +1593,122 @@
             root.dataset.buyBound = "1";
             root.addEventListener("click", function (event) {
                 var remove = event.target.closest("[data-buy-cart-remove]");
-                if (!remove) return;
-                removeFromCart(remove.getAttribute("data-buy-cart-remove"));
+                if (remove) {
+                    removeFromCart(remove.getAttribute("data-buy-cart-remove"));
+                    state.cartQuote = null;
+                    renderCart(state.items);
+                    return;
+                }
+
+                var qtyButton = event.target.closest("[data-buy-cart-qty]");
+                if (!qtyButton) return;
+                updateCartQuantity(
+                    qtyButton.getAttribute("data-buy-cart-qty"),
+                    qtyButton.getAttribute("data-buy-cart-next-qty")
+                );
+                state.cartQuote = null;
                 renderCart(state.items);
             });
         }
+        var checkout = $("buy-cart-checkout");
+        if (checkout && !checkout.dataset.buyBound) {
+            checkout.dataset.buyBound = "1";
+            checkout.addEventListener("click", function (event) {
+                var stepButton = event.target.closest("[data-buy-cart-step]");
+                if (!stepButton) {
+                    return;
+                }
+                setCartStep(stepButton.getAttribute("data-buy-cart-step"));
+            });
+            checkout.addEventListener("input", function (event) {
+                if (event.target && event.target.id === "buy-cart-discount-code") {
+                    updateCheckoutData({ discountCode: String(event.target.value || "").trim() });
+                    window.clearTimeout(cartQuoteTimer);
+                    cartQuoteTimer = window.setTimeout(function () {
+                        refreshCartQuote(true);
+                    }, 420);
+                    return;
+                }
+                if (event.target && event.target.matches("[data-cart-line-field='true']")) {
+                    var existing = readCheckoutData();
+                    updateCheckoutData({
+                        lineExtraFormData: Object.assign({}, existing.lineExtraFormData || {}, readLineExtrasFrom(checkout))
+                    });
+                    return;
+                }
+                if (!event.target || !event.target.id) {
+                    return;
+                }
+                if (event.target.id === "buy-cart-payer-name" || event.target.id === "buy-cart-payer-phone" || event.target.id === "buy-cart-payer-student-number") {
+                    updateCheckoutData({
+                        payerName: $("buy-cart-payer-name") ? $("buy-cart-payer-name").value : readCheckoutData().payerName,
+                        payerPhone: $("buy-cart-payer-phone") ? $("buy-cart-payer-phone").value : readCheckoutData().payerPhone,
+                        payerStudentNumber: $("buy-cart-payer-student-number") ? $("buy-cart-payer-student-number").value : readCheckoutData().payerStudentNumber
+                    });
+                }
+            });
+            checkout.addEventListener("submit", function (event) {
+                var form = event.target;
+                if (!form) {
+                    return;
+                }
+                if (form.id === "buy-cart-discount-form") {
+                    event.preventDefault();
+                    window.clearTimeout(cartQuoteTimer);
+                    updateCheckoutData({ discountCode: $("buy-cart-discount-code") ? $("buy-cart-discount-code").value.trim() : "" });
+                    refreshCartQuote(false).then(function (quote) {
+                        if (quote || !state.cartQuoteError) {
+                            setCartStep("details");
+                        }
+                    });
+                    return;
+                }
+                if (form.id === "buy-cart-details-form") {
+                    event.preventDefault();
+                    var payerName = String(($("buy-cart-payer-name") && $("buy-cart-payer-name").value) || "").trim();
+                    var payerPhone = normalizePhone(String(($("buy-cart-payer-phone") && $("buy-cart-payer-phone").value) || ""));
+                    var payerStudentNumber = normalizeDigits(String(($("buy-cart-payer-student-number") && $("buy-cart-payer-student-number").value) || "")).replace(/\D+/g, "");
+                    if (!payerName) {
+                        setFeedback($("buy-cart-feedback"), "نام پرداخت‌کننده الزامی است.", "is-error");
+                        return;
+                    }
+                    if (!payerPhone || payerPhone.length < 10) {
+                        setFeedback($("buy-cart-feedback"), "شماره موبایل معتبر وارد کنید.", "is-error");
+                        return;
+                    }
+                    var valid = true;
+                    Array.prototype.slice.call(form.querySelectorAll("[data-cart-line-field='true']")).forEach(function (field) {
+                        if (!valid) {
+                            return;
+                        }
+                        var required = String(field.dataset.fieldRequired || "0") === "1";
+                        var label = String(field.dataset.fieldLabel || "فیلد");
+                        if (required && !String(field.value || "").trim()) {
+                            setFeedback($("buy-cart-feedback"), "فیلد «" + label + "» الزامی است.", "is-error");
+                            valid = false;
+                        }
+                    });
+                    if (!valid) {
+                        return;
+                    }
+                    updateCheckoutData({
+                        payerName: payerName,
+                        payerPhone: payerPhone,
+                        payerStudentNumber: payerStudentNumber,
+                        lineExtraFormData: readLineExtrasFrom(form)
+                    });
+                    setCartStep("gateway");
+                    return;
+                }
+                if (form.id === "buy-cart-gateway-form") {
+                    event.preventDefault();
+                    submitCartOrder(form);
+                }
+            });
+        }
+        window.addEventListener("popstate", function () {
+            renderCartCheckout(state.items);
+        });
         apiGet("listPublicItems", {}).then(function (payload) {
             state.items = payload && payload.success && Array.isArray(payload.items) ? payload.items : [];
             renderCart(state.items);
@@ -1420,6 +2032,11 @@
 
             var order = payload.order;
             var item = order.item || null;
+            var resultCartItems = Array.isArray(order.cartItems) ? order.cartItems : [];
+            if (order.status === "success" && resultCartItems.length) {
+                removeCartSlugs(resultCartItems.map(function (entry) { return entry.slug; }));
+                writeCheckoutData({});
+            }
             if (statusNode) {
                 statusNode.textContent = order.statusLabel || "در انتظار";
                 statusNode.className = "buy-status " + statusClass(order.status);
@@ -1446,6 +2063,18 @@
                 if (item && item.title) {
                     rows.unshift({ label: "آیتم", value: item.title });
                 }
+                if (resultCartItems.length) {
+                    rows.unshift({
+                        label: "سبد",
+                        value: resultCartItems.length.toLocaleString("fa-IR") + " آیتم / " + Number(order.quantity || 1).toLocaleString("fa-IR") + " عدد"
+                    });
+                    rows.push({
+                        label: "آیتم‌ها",
+                        value: resultCartItems.map(function (entry) {
+                            return (entry.title || entry.slug || "آیتم") + " × " + Number(entry.quantity || 1).toLocaleString("fa-IR");
+                        }).join("، ")
+                    });
+                }
                 if (order.refId) {
                     rows.push({ label: "کد رهگیری", value: order.refId });
                 } else if (order.authority) {
@@ -1465,10 +2094,10 @@
                 }).join("");
             }
             if (actionsNode) {
-                var itemHref = item && item.slug ? "/buy/item/?slug=" + encodeURIComponent(String(item.slug)) : "/buy/";
+                var itemHref = resultCartItems.length ? "/buy/cart/" : (item && item.slug ? "/buy/item/?slug=" + encodeURIComponent(String(item.slug)) : "/buy/");
                 var ref = String(order.refId || order.authority || "");
                 actionsNode.innerHTML = [
-                    '<a class="buy-primary-btn" href="' + itemHref + '">بازگشت به صفحه آیتم</a>',
+                    '<a class="buy-primary-btn" href="' + itemHref + '">' + (resultCartItems.length ? "بازگشت به سبد خرید" : "بازگشت به صفحه آیتم") + "</a>",
                     '<a class="shell-action-btn" href="/buy/">مشاهده سایر آیتم‌ها</a>',
                     ref ? '<button class="shell-action-btn" type="button" data-copy-result="' + text(ref) + '">کپی کد رهگیری</button>' : ""
                 ].join("");

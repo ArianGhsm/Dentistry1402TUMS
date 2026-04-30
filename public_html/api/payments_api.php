@@ -340,7 +340,14 @@ function payments_api_append_order_notification(
     $orderId = (int) ($order['id'] ?? 0);
     $type = $success ? PAYMENTS_NOTIFICATION_TYPE_ORDER_SUCCESS : PAYMENTS_NOTIFICATION_TYPE_ORDER_FAILED;
     $title = $success ? 'پرداخت موفق جدید' : 'پرداخت ناموفق یا لغوشده';
-    $itemTitle = $item ? (string) ($item['title'] ?? '') : 'آیتم نامشخص';
+    $cartItems = payments_normalize_cart_order_items($order['cart_items'] ?? []);
+    $itemTitle = $item ? (string) ($item['title'] ?? '') : '';
+    if ($itemTitle === '' && $cartItems !== []) {
+        $itemTitle = 'سبد خرید (' . count($cartItems) . ' آیتم)';
+    }
+    if ($itemTitle === '') {
+        $itemTitle = 'آیتم نامشخص';
+    }
     $payerName = (string) ($order['payer_name'] ?? 'کاربر');
     $amount = number_format(max(0, (int) ($order['amount'] ?? 0)));
     $statusLabel = payments_api_status_label((string) ($order['status'] ?? ''));
@@ -402,6 +409,188 @@ function payments_api_checkout_gateways_payload(): array
         'defaultKey' => $defaultKey,
         'gateways' => $gateways,
     ];
+}
+
+function payments_api_owner_gateway_payload(array $gateway): array
+{
+    $provider = payments_gateway_provider_clean((string) ($gateway['provider'] ?? ''));
+    return [
+        'id' => (int) ($gateway['id'] ?? 0),
+        'key' => (string) ($gateway['key'] ?? ''),
+        'provider' => $provider,
+        'providerLabel' => (string) ($gateway['provider_label'] ?? payments_gateway_provider_label_from_type($provider)),
+        'label' => (string) ($gateway['label'] ?? payments_gateway_public_label($provider)),
+        'icon' => (string) ($gateway['icon'] ?? ''),
+        'merchantId' => (string) ($gateway['merchant_id'] ?? ''),
+        'apiKey' => (string) ($gateway['api_key'] ?? ''),
+        'requestUrl' => (string) ($gateway['request_url'] ?? ''),
+        'verifyUrl' => (string) ($gateway['verify_url'] ?? ''),
+        'startUrl' => (string) ($gateway['start_url'] ?? ''),
+        'isEnabled' => (bool) ($gateway['is_enabled'] ?? false),
+        'isDefault' => (bool) ($gateway['is_default'] ?? false),
+        'isConfigured' => payments_gateway_is_record_configured($gateway),
+        'createdAt' => (string) ($gateway['created_at'] ?? ''),
+        'updatedAt' => (string) ($gateway['updated_at'] ?? ''),
+    ];
+}
+
+function payments_api_owner_gateways_payload(array $store): array
+{
+    $gateways = [];
+    foreach ($store['gateways'] as $gateway) {
+        if (!is_array($gateway)) {
+            continue;
+        }
+        $gateways[] = payments_api_owner_gateway_payload($gateway);
+    }
+
+    return [
+        'managed' => (bool) (($store['gatewaySettings']['managed'] ?? false)),
+        'gateways' => $gateways,
+        'checkout' => payments_api_checkout_gateways_payload(),
+    ];
+}
+
+function payments_api_parse_cart_items_input($raw): array
+{
+    $rows = [];
+    if (is_array($raw)) {
+        $rows = $raw;
+    } else {
+        $text = trim((string) $raw);
+        if ($text !== '') {
+            $decoded = json_decode($text, true);
+            if (is_array($decoded)) {
+                $rows = $decoded;
+            }
+        }
+    }
+
+    $items = [];
+    $seen = [];
+    foreach ($rows as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $slug = payments_clean_slug((string) ($row['slug'] ?? ''));
+        if ($slug === '') {
+            continue;
+        }
+        $quantity = max(1, min(99, (int) dent_normalize_digits((string) ($row['quantity'] ?? 1))));
+        if (isset($seen[$slug])) {
+            $items[$seen[$slug]]['quantity'] = min(99, $items[$seen[$slug]]['quantity'] + $quantity);
+            continue;
+        }
+        $seen[$slug] = count($items);
+        $items[] = [
+            'slug' => $slug,
+            'quantity' => $quantity,
+        ];
+        if (count($items) >= 40) {
+            break;
+        }
+    }
+
+    return $items;
+}
+
+function payments_api_cart_quote(array $store, array $cartItems, string $discountCode = '', array $extraBySlug = []): array
+{
+    if ($cartItems === []) {
+        throw new PaymentsApiException('سبد خرید خالی است.', 422);
+    }
+
+    $lines = [];
+    $subtotal = 0;
+    $discountAmount = 0;
+    $amount = 0;
+    $discountValid = $discountCode === '';
+    $discountApplied = false;
+
+    foreach ($cartItems as $cartItem) {
+        $slug = payments_clean_slug((string) ($cartItem['slug'] ?? ''));
+        $quantity = max(1, min(99, (int) ($cartItem['quantity'] ?? 1)));
+        $itemIndex = payments_find_item_index_by_slug($store, $slug);
+        if ($itemIndex < 0) {
+            throw new PaymentsApiException('یکی از آیتم‌های سبد پیدا نشد.', 404);
+        }
+
+        $item = $store['items'][$itemIndex];
+        $publicItem = payments_public_item_payload($item);
+        $state = is_array($publicItem['state'] ?? null) ? $publicItem['state'] : ['key' => 'inactive'];
+        if (!(bool) ($state['isPayable'] ?? false)) {
+            throw new PaymentsApiException('آیتم «' . (string) ($item['title'] ?? $slug) . '» قابل پرداخت نیست.', 422);
+        }
+
+        $remaining = payments_item_remaining_capacity($item);
+        if ($remaining !== null && $quantity > $remaining) {
+            throw new PaymentsApiException('تعداد انتخاب‌شده برای «' . (string) ($item['title'] ?? $slug) . '» بیشتر از ظرفیت باقی‌مانده است.', 422);
+        }
+
+        $quote = payments_calculate_item_quote($item, $quantity, $discountCode);
+        if ($discountCode !== '' && (bool) ($quote['discountValid'] ?? false)) {
+            $discountValid = true;
+        }
+        if ((bool) ($quote['discountApplied'] ?? false)) {
+            $discountApplied = true;
+        }
+
+        $lineSubtotal = max(0, (int) ($quote['subtotal'] ?? 0));
+        $lineDiscount = max(0, (int) ($quote['discountAmount'] ?? 0));
+        $lineAmount = max(0, (int) ($quote['amount'] ?? 0));
+        $lineExtra = is_array($extraBySlug[$slug] ?? null) ? payments_normalize_extra_form_data($extraBySlug[$slug]) : [];
+
+        $lines[] = [
+            'itemId' => (int) ($item['id'] ?? 0),
+            'slug' => $slug,
+            'title' => (string) ($item['title'] ?? ''),
+            'quantity' => (int) ($quote['quantity'] ?? $quantity),
+            'unitPrice' => max(0, (int) ($quote['unitPrice'] ?? 0)),
+            'subtotal' => $lineSubtotal,
+            'discountCode' => (string) ($quote['discountCode'] ?? ''),
+            'discountAmount' => $lineDiscount,
+            'amount' => $lineAmount,
+            'requiredFields' => is_array($publicItem['requiredFields'] ?? null) ? $publicItem['requiredFields'] : [],
+            'extraFormData' => $lineExtra,
+            'item' => $publicItem,
+        ];
+        $subtotal += $lineSubtotal;
+        $discountAmount += $lineDiscount;
+        $amount += $lineAmount;
+    }
+
+    if ($discountCode !== '' && !$discountValid) {
+        throw new PaymentsApiException('کد تخفیف برای آیتم‌های این سبد معتبر یا فعال نیست.', 422);
+    }
+    if ($amount <= 0) {
+        throw new PaymentsApiException('مبلغ سبد خرید معتبر نیست.', 422);
+    }
+
+    return [
+        'lines' => $lines,
+        'quantity' => array_sum(array_map(static function (array $line): int {
+            return max(1, (int) ($line['quantity'] ?? 1));
+        }, $lines)),
+        'subtotal' => $subtotal,
+        'discountCode' => $discountApplied ? strtoupper(preg_replace('/\s+/u', '', $discountCode) ?? '') : '',
+        'discountAmount' => $discountAmount,
+        'discountApplied' => $discountApplied,
+        'discountValid' => $discountValid,
+        'amount' => $amount,
+    ];
+}
+
+function payments_api_cart_order_title(array $lines): string
+{
+    $count = count($lines);
+    if ($count <= 0) {
+        return 'سبد خرید';
+    }
+    if ($count === 1) {
+        return (string) ($lines[0]['title'] ?? 'سبد خرید');
+    }
+
+    return 'سبد خرید (' . $count . ' آیتم)';
 }
 
 function payments_api_uploads_dir(): string
@@ -600,6 +789,9 @@ if ($action === 'publicItem') {
     }
 
     $item = $store['items'][$itemIndex];
+    if ((string) ($item['status'] ?? '') === PAYMENTS_ITEM_STATUS_DELETED) {
+        dent_error('آیتم سفارش موردنظر پیدا نشد.', 404);
+    }
     $payload = payments_public_item_payload($item);
     $payload['statusMessage'] = payments_api_item_status_message($payload['state']);
     $payload['paymentGateways'] = payments_api_checkout_gateways_payload();
@@ -647,6 +839,246 @@ if ($action === 'quoteOrder') {
     dent_json_response([
         'success' => true,
         'quote' => $quote,
+    ]);
+}
+
+if ($action === 'quoteCart') {
+    payments_api_require_method(['POST']);
+
+    $cartItems = payments_api_parse_cart_items_input($_POST['items'] ?? ($_POST['cartItems'] ?? []));
+    $discountCode = dent_clean_text((string) ($_POST['discountCode'] ?? ($_POST['discount_code'] ?? '')), 40);
+    $store = payments_read_store();
+
+    try {
+        $quote = payments_api_cart_quote($store, $cartItems, $discountCode);
+    } catch (PaymentsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode());
+    }
+
+    dent_json_response([
+        'success' => true,
+        'quote' => $quote,
+        'paymentGateways' => payments_api_checkout_gateways_payload(),
+    ]);
+}
+
+if ($action === 'createCartOrder') {
+    payments_api_require_method(['POST']);
+
+    $cartItems = payments_api_parse_cart_items_input($_POST['items'] ?? ($_POST['cartItems'] ?? []));
+    if ($cartItems === []) {
+        dent_error('سبد خرید خالی است.', 422);
+    }
+
+    $payerName = dent_clean_text((string) ($_POST['payerName'] ?? ''), 120);
+    if ($payerName === '') {
+        dent_error('نام پرداخت‌کننده الزامی است.', 422);
+    }
+
+    $payerPhone = payments_normalize_phone((string) ($_POST['payerPhone'] ?? ''));
+    if ($payerPhone === '' || strlen($payerPhone) < 10 || strlen($payerPhone) > 14) {
+        dent_error('شماره موبایل پرداخت‌کننده معتبر نیست.', 422);
+    }
+
+    $payerStudentNumber = dent_normalize_student_number((string) ($_POST['payerStudentNumber'] ?? ''));
+    $extraFormData = payments_api_parse_extra_form_data($_POST['extraFormData'] ?? ($_POST['extra_form_data'] ?? ''));
+    $extraBySlug = [];
+    $rawLineExtras = $_POST['lineExtraFormData'] ?? ($_POST['line_extra_form_data'] ?? '');
+    $decodedLineExtras = is_array($rawLineExtras) ? $rawLineExtras : json_decode(trim((string) $rawLineExtras), true);
+    if (is_array($decodedLineExtras)) {
+        foreach ($decodedLineExtras as $slug => $fields) {
+            $cleanSlug = payments_clean_slug((string) $slug);
+            if ($cleanSlug === '' || !is_array($fields)) {
+                continue;
+            }
+            $extraBySlug[$cleanSlug] = payments_normalize_extra_form_data($fields);
+        }
+    }
+
+    $discountCode = dent_clean_text((string) ($_POST['discountCode'] ?? ($_POST['discount_code'] ?? '')), 40);
+    $enabledGateways = payments_gateway_enabled_checkout_keys(false);
+    if ($enabledGateways === []) {
+        dent_error('هیچ درگاه پرداخت فعالی برای ثبت سفارش وجود ندارد.', 503);
+    }
+
+    $requestedGateway = payments_gateway_clean((string) ($_POST['gateway'] ?? ''));
+    $gateway = $requestedGateway !== '' ? $requestedGateway : payments_gateway_default_enabled_checkout(false);
+    if ($gateway === '' || !in_array($gateway, $enabledGateways, true)) {
+        dent_error('درگاه پرداخت انتخاب‌شده فعال نیست. لطفا گزینه دیگری را انتخاب کنید.', 422);
+    }
+
+    $user = dent_current_user();
+    $userId = $user ? dent_normalize_student_number((string) ($user['studentNumber'] ?? '')) : '';
+    if ($payerStudentNumber === '' && $userId !== '') {
+        $payerStudentNumber = $userId;
+    }
+
+    try {
+        $created = payments_with_store_lock(static function (array &$store) use (
+            $cartItems,
+            $discountCode,
+            $extraBySlug,
+            $extraFormData,
+            $payerName,
+            $payerPhone,
+            $payerStudentNumber,
+            $gateway,
+            $userId
+        ): array {
+            $quote = payments_api_cart_quote($store, $cartItems, $discountCode, $extraBySlug);
+
+            foreach ($quote['lines'] as $line) {
+                $slug = payments_clean_slug((string) ($line['slug'] ?? ''));
+                $lineExtra = is_array($extraBySlug[$slug] ?? null) ? $extraBySlug[$slug] : [];
+                $requiredFields = is_array($line['requiredFields'] ?? null) ? $line['requiredFields'] : [];
+                foreach ($requiredFields as $field) {
+                    if (!is_array($field)) {
+                        continue;
+                    }
+                    $name = (string) ($field['name'] ?? '');
+                    if ($name === '') {
+                        continue;
+                    }
+                    $required = (bool) ($field['required'] ?? true);
+                    $value = dent_clean_text((string) ($lineExtra[$name] ?? ''), (int) ($field['maxLength'] ?? 140));
+                    if ($required && $value === '') {
+                        $label = dent_clean_text((string) ($field['label'] ?? $name), 80);
+                        throw new PaymentsApiException('فیلد «' . $label . '» برای «' . (string) ($line['title'] ?? 'آیتم') . '» الزامی است.', 422);
+                    }
+                    $extraBySlug[$slug][$name] = $value;
+                }
+            }
+
+            $cartOrderItems = [];
+            foreach ($quote['lines'] as $line) {
+                $slug = payments_clean_slug((string) ($line['slug'] ?? ''));
+                $cartOrderItems[] = [
+                    'item_id' => (int) ($line['itemId'] ?? 0),
+                    'slug' => $slug,
+                    'title' => (string) ($line['title'] ?? ''),
+                    'quantity' => (int) ($line['quantity'] ?? 1),
+                    'unit_price' => (int) ($line['unitPrice'] ?? 0),
+                    'subtotal' => (int) ($line['subtotal'] ?? 0),
+                    'discount_code' => (string) ($line['discountCode'] ?? ''),
+                    'discount_amount' => (int) ($line['discountAmount'] ?? 0),
+                    'amount' => (int) ($line['amount'] ?? 0),
+                    'extra_form_data' => is_array($extraBySlug[$slug] ?? null) ? $extraBySlug[$slug] : [],
+                ];
+            }
+
+            $now = dent_iso_now();
+            $order = [
+                'id' => payments_next_order_id($store),
+                'item_id' => count($cartOrderItems) === 1 ? (int) ($cartOrderItems[0]['item_id'] ?? 0) : 0,
+                'user_id' => $userId,
+                'payer_name' => $payerName,
+                'payer_phone' => $payerPhone,
+                'payer_student_number' => $payerStudentNumber,
+                'extra_form_data' => $extraFormData,
+                'cart_items' => $cartOrderItems,
+                'quantity' => max(1, (int) ($quote['quantity'] ?? 1)),
+                'unit_price' => count($cartOrderItems) === 1 ? (int) ($cartOrderItems[0]['unit_price'] ?? 0) : 0,
+                'subtotal' => (int) ($quote['subtotal'] ?? 0),
+                'discount_code' => (string) ($quote['discountCode'] ?? ''),
+                'discount_amount' => (int) ($quote['discountAmount'] ?? 0),
+                'amount' => (int) ($quote['amount'] ?? 0),
+                'gateway' => $gateway,
+                'authority' => '',
+                'ref_id' => '',
+                'status' => PAYMENTS_ORDER_STATUS_PENDING,
+                'gateway_response_snapshot' => [
+                    'created' => ['at' => $now, 'type' => 'cart'],
+                ],
+                'created_at' => $now,
+                'paid_at' => '',
+                'verified_at' => '',
+                'public_token' => payments_random_token(),
+            ];
+
+            $store['orders'][] = $order;
+            return [
+                'order' => $order,
+                'quote' => $quote,
+            ];
+        });
+    } catch (PaymentsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode());
+    }
+
+    if (!is_array($created['order'] ?? null)) {
+        dent_error('ایجاد سفارش سبد خرید انجام نشد.', 500);
+    }
+
+    $order = $created['order'];
+    $quote = is_array($created['quote'] ?? null) ? $created['quote'] : ['lines' => []];
+    $orderToken = (string) ($order['public_token'] ?? '');
+    $callbackUrl = payments_api_absolute_url(
+        '/api/payments_api.php?action=callback&orderToken=' . rawurlencode($orderToken)
+    );
+    $syntheticItem = [
+        'id' => 0,
+        'title' => payments_api_cart_order_title(is_array($quote['lines'] ?? null) ? $quote['lines'] : []),
+    ];
+
+    $startResult = payments_gateway_start_payment((string) ($order['gateway'] ?? ''), $syntheticItem, $order, [
+        'callbackUrl' => $callbackUrl,
+        'description' => 'پرداخت ' . (string) ($syntheticItem['title'] ?? 'سبد خرید'),
+        'mobile' => $payerPhone,
+        'orderId' => (string) ($order['public_token'] ?? ''),
+    ]);
+
+    payments_log_gateway_event('start-request', [
+        'orderId' => (int) ($order['id'] ?? 0),
+        'gateway' => (string) ($order['gateway'] ?? ''),
+        'result' => $startResult,
+    ]);
+
+    if (!(bool) ($startResult['success'] ?? false)) {
+        payments_with_store_lock(static function (array &$store) use ($order, $startResult): void {
+            $orderIndex = payments_find_order_index_by_id($store, (int) ($order['id'] ?? 0));
+            if ($orderIndex < 0) {
+                return;
+            }
+            $current = $store['orders'][$orderIndex];
+            if ((string) ($current['status'] ?? '') === PAYMENTS_ORDER_STATUS_PENDING) {
+                $current['status'] = PAYMENTS_ORDER_STATUS_FAILED;
+            }
+            $snapshot = is_array($current['gateway_response_snapshot'] ?? null) ? $current['gateway_response_snapshot'] : [];
+            $snapshot['start'] = $startResult;
+            $current['gateway_response_snapshot'] = $snapshot;
+            $store['orders'][$orderIndex] = $current;
+            payments_api_append_order_notification($store, $current, null, false);
+        });
+
+        dent_error((string) ($startResult['error'] ?? 'ایجاد درخواست درگاه پرداخت انجام نشد.'), 503, [
+            'orderToken' => $orderToken,
+        ]);
+    }
+
+    $authority = dent_clean_text((string) ($startResult['authority'] ?? ''), 120);
+    $redirectUrl = dent_clean_text((string) ($startResult['redirectUrl'] ?? ''), 900);
+    if ($redirectUrl === '') {
+        dent_error('لینک انتقال به درگاه پرداخت دریافت نشد.', 500);
+    }
+
+    payments_with_store_lock(static function (array &$store) use ($order, $authority, $startResult): void {
+        $orderIndex = payments_find_order_index_by_id($store, (int) ($order['id'] ?? 0));
+        if ($orderIndex < 0) {
+            return;
+        }
+        $current = $store['orders'][$orderIndex];
+        $current['authority'] = $authority;
+        $snapshot = is_array($current['gateway_response_snapshot'] ?? null) ? $current['gateway_response_snapshot'] : [];
+        $snapshot['start'] = $startResult;
+        $current['gateway_response_snapshot'] = $snapshot;
+        $store['orders'][$orderIndex] = $current;
+    });
+
+    dent_json_response([
+        'success' => true,
+        'orderToken' => $orderToken,
+        'redirectUrl' => $redirectUrl,
+        'resultUrl' => PAYMENTS_PUBLIC_RESULT_PATH . '?orderToken=' . rawurlencode($orderToken),
     ]);
 }
 
@@ -899,8 +1331,12 @@ if ($action === 'callback') {
     }
     $order = $store['orders'][$orderIndex];
     $orderGateway = (string) ($order['gateway'] ?? '');
+    $orderGatewayRecord = payments_gateway_resolve_record($orderGateway);
+    $orderGatewayProvider = is_array($orderGatewayRecord)
+        ? payments_gateway_provider_clean((string) ($orderGatewayRecord['provider'] ?? ''))
+        : payments_gateway_provider_clean($orderGateway);
 
-    if ($orderGateway === PAYMENTS_GATEWAY_ZIBAL) {
+    if ($orderGatewayProvider === PAYMENTS_GATEWAY_ZIBAL) {
         if ($zibalTrackId !== '') {
             $authority = $zibalTrackId;
         }
@@ -1145,6 +1581,9 @@ if ($action === 'ownerDashboard') {
         if (!is_array($item)) {
             continue;
         }
+        if ((string) ($item['status'] ?? '') === PAYMENTS_ITEM_STATUS_DELETED) {
+            continue;
+        }
         $items[] = payments_owner_item_payload($item);
     }
 
@@ -1168,7 +1607,209 @@ if ($action === 'ownerDashboard') {
         'items' => $items,
         'recentOrders' => $recentOrders,
         'notifications' => $notifications,
+        'gateways' => payments_api_owner_gateways_payload($store),
     ]);
+}
+
+if ($action === 'ownerGateways') {
+    payments_api_require_method(['GET']);
+    dent_require_owner();
+
+    $store = payments_read_store();
+    dent_json_response(array_merge(['success' => true], payments_api_owner_gateways_payload($store)));
+}
+
+if ($action === 'ownerSaveGateway') {
+    payments_api_require_method(['POST']);
+    dent_require_owner();
+
+    $gatewayId = max(0, (int) ($_POST['id'] ?? 0));
+    $provider = payments_gateway_provider_clean((string) ($_POST['provider'] ?? ''));
+    if ($provider === '') {
+        dent_error('نوع درگاه پرداخت معتبر نیست.', 422);
+    }
+
+    $key = payments_gateway_clean((string) ($_POST['key'] ?? ''));
+    if ($key === '') {
+        $key = $provider . '-' . ($gatewayId > 0 ? (string) $gatewayId : substr(sha1((string) microtime(true)), 0, 6));
+    }
+
+    $label = dent_clean_text((string) ($_POST['label'] ?? ''), 80);
+    if ($label === '') {
+        $label = payments_gateway_public_label($provider);
+    }
+
+    $providerLabel = dent_clean_text((string) ($_POST['providerLabel'] ?? ($_POST['provider_label'] ?? '')), 120);
+    if ($providerLabel === '') {
+        $providerLabel = payments_gateway_provider_label_from_type($provider);
+    }
+
+    $merchantId = dent_clean_text((string) ($_POST['merchantId'] ?? ($_POST['merchant_id'] ?? '')), 260);
+    $apiKey = dent_clean_text((string) ($_POST['apiKey'] ?? ($_POST['api_key'] ?? '')), 320);
+    $isEnabled = filter_var($_POST['isEnabled'] ?? ($_POST['is_enabled'] ?? true), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) !== false;
+    if ($isEnabled && $provider !== PAYMENTS_GATEWAY_MOCK && $merchantId === '' && $apiKey === '') {
+        dent_error('برای فعال‌سازی این درگاه باید merchant یا API Key وارد شود.', 422);
+    }
+
+    $isDefault = filter_var($_POST['isDefault'] ?? ($_POST['is_default'] ?? false), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
+    $payload = [
+        'key' => $key,
+        'provider' => $provider,
+        'label' => $label,
+        'provider_label' => $providerLabel,
+        'icon' => dent_clean_text((string) ($_POST['icon'] ?? ''), 8),
+        'merchant_id' => $merchantId,
+        'api_key' => $apiKey,
+        'request_url' => dent_clean_text((string) ($_POST['requestUrl'] ?? ($_POST['request_url'] ?? '')), 420),
+        'verify_url' => dent_clean_text((string) ($_POST['verifyUrl'] ?? ($_POST['verify_url'] ?? '')), 420),
+        'start_url' => dent_clean_text((string) ($_POST['startUrl'] ?? ($_POST['start_url'] ?? '')), 420),
+        'is_enabled' => $isEnabled,
+        'is_default' => $isDefault,
+    ];
+
+    try {
+        $result = payments_with_store_lock(static function (array &$store) use ($gatewayId, $payload): array {
+            $store['gatewaySettings'] = ['managed' => true];
+            $now = dent_iso_now();
+            $targetIndex = -1;
+            foreach ($store['gateways'] as $index => $gateway) {
+                if (!is_array($gateway)) {
+                    continue;
+                }
+                if ($gatewayId > 0 && (int) ($gateway['id'] ?? 0) === $gatewayId) {
+                    $targetIndex = (int) $index;
+                    continue;
+                }
+                if ((string) ($gateway['key'] ?? '') === (string) ($payload['key'] ?? '')) {
+                    throw new PaymentsApiException('کلید این درگاه قبلا استفاده شده است.', 422);
+                }
+            }
+
+            if ((bool) ($payload['is_default'] ?? false)) {
+                foreach ($store['gateways'] as $index => $gateway) {
+                    if (!is_array($gateway)) {
+                        continue;
+                    }
+                    $gateway['is_default'] = false;
+                    $store['gateways'][$index] = $gateway;
+                }
+            }
+
+            if ($targetIndex >= 0) {
+                $existing = is_array($store['gateways'][$targetIndex]) ? $store['gateways'][$targetIndex] : [];
+                $next = array_merge($existing, $payload, [
+                    'id' => (int) ($existing['id'] ?? $gatewayId),
+                    'created_at' => (string) ($existing['created_at'] ?? $now),
+                    'updated_at' => $now,
+                ]);
+                $store['gateways'][$targetIndex] = $next;
+            } else {
+                $next = array_merge($payload, [
+                    'id' => payments_next_gateway_id($store),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+                $store['gateways'][] = $next;
+            }
+
+            $hasDefault = false;
+            foreach ($store['gateways'] as $gateway) {
+                if (is_array($gateway) && (bool) ($gateway['is_default'] ?? false) && (bool) ($gateway['is_enabled'] ?? false)) {
+                    $hasDefault = true;
+                    break;
+                }
+            }
+            if (!$hasDefault) {
+                foreach ($store['gateways'] as $index => $gateway) {
+                    if (!is_array($gateway) || !(bool) ($gateway['is_enabled'] ?? false)) {
+                        continue;
+                    }
+                    $gateway['is_default'] = true;
+                    $store['gateways'][$index] = $gateway;
+                    break;
+                }
+            }
+
+            return [
+                'gateway' => $next,
+                'store' => $store,
+            ];
+        });
+    } catch (PaymentsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode());
+    }
+
+    dent_json_response([
+        'success' => true,
+        'gateway' => payments_api_owner_gateway_payload($result['gateway']),
+        'gateways' => payments_api_owner_gateways_payload($result['store']),
+        'message' => $gatewayId > 0 ? 'درگاه پرداخت ویرایش شد.' : 'درگاه پرداخت جدید اضافه شد.',
+    ]);
+}
+
+if ($action === 'ownerDeleteGateway') {
+    payments_api_require_method(['POST']);
+    dent_require_owner();
+
+    $gatewayId = max(0, (int) ($_POST['id'] ?? 0));
+    if ($gatewayId <= 0) {
+        dent_error('شناسه درگاه معتبر نیست.', 422);
+    }
+
+    try {
+        $storePayload = payments_with_store_lock(static function (array &$store) use ($gatewayId): array {
+            $targetIndex = -1;
+            $targetKey = '';
+            foreach ($store['gateways'] as $index => $gateway) {
+                if (!is_array($gateway) || (int) ($gateway['id'] ?? 0) !== $gatewayId) {
+                    continue;
+                }
+                $targetIndex = (int) $index;
+                $targetKey = (string) ($gateway['key'] ?? '');
+                break;
+            }
+            if ($targetIndex < 0) {
+                throw new PaymentsApiException('درگاه پرداخت پیدا نشد.', 404);
+            }
+
+            foreach ($store['orders'] as $order) {
+                if (!is_array($order)) {
+                    continue;
+                }
+                if ((string) ($order['gateway'] ?? '') === $targetKey && (string) ($order['status'] ?? '') === PAYMENTS_ORDER_STATUS_PENDING) {
+                    throw new PaymentsApiException('این درگاه سفارش در انتظار دارد و فعلا قابل حذف نیست.', 422);
+                }
+            }
+
+            array_splice($store['gateways'], $targetIndex, 1);
+            $hasDefault = false;
+            foreach ($store['gateways'] as $gateway) {
+                if (is_array($gateway) && (bool) ($gateway['is_default'] ?? false) && (bool) ($gateway['is_enabled'] ?? false)) {
+                    $hasDefault = true;
+                    break;
+                }
+            }
+            if (!$hasDefault) {
+                foreach ($store['gateways'] as $index => $gateway) {
+                    if (!is_array($gateway) || !(bool) ($gateway['is_enabled'] ?? false)) {
+                        continue;
+                    }
+                    $gateway['is_default'] = true;
+                    $store['gateways'][$index] = $gateway;
+                    break;
+                }
+            }
+
+            return $store;
+        });
+    } catch (PaymentsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode());
+    }
+
+    dent_json_response(array_merge([
+        'success' => true,
+        'message' => 'درگاه پرداخت حذف شد.',
+    ], payments_api_owner_gateways_payload($storePayload)));
 }
 
 if ($action === 'ownerItems') {
@@ -1179,6 +1820,9 @@ if ($action === 'ownerItems') {
     $items = [];
     foreach ($store['items'] as $item) {
         if (!is_array($item)) {
+            continue;
+        }
+        if ((string) ($item['status'] ?? '') === PAYMENTS_ITEM_STATUS_DELETED) {
             continue;
         }
         $items[] = payments_owner_item_payload($item);
@@ -1401,6 +2045,39 @@ if ($action === 'ownerToggleItem') {
         'success' => true,
         'item' => payments_owner_item_payload($item),
         'message' => $enabled ? 'آیتم فعال شد.' : 'آیتم غیرفعال شد.',
+    ]);
+}
+
+if ($action === 'ownerDeleteItem') {
+    payments_api_require_method(['POST']);
+    dent_require_owner();
+
+    $itemId = max(0, (int) ($_POST['id'] ?? 0));
+    if ($itemId <= 0) {
+        dent_error('شناسه آیتم معتبر نیست.', 422);
+    }
+
+    try {
+        $deleted = payments_with_store_lock(static function (array &$store) use ($itemId): array {
+            $index = payments_find_item_index_by_id($store, $itemId);
+            if ($index < 0) {
+                throw new PaymentsApiException('آیتم سفارش پیدا نشد.', 404);
+            }
+
+            $current = $store['items'][$index];
+            $current['status'] = PAYMENTS_ITEM_STATUS_DELETED;
+            $current['updated_at'] = dent_iso_now();
+            $store['items'][$index] = $current;
+            return $current;
+        });
+    } catch (PaymentsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode());
+    }
+
+    dent_json_response([
+        'success' => true,
+        'item' => payments_owner_item_payload($deleted),
+        'message' => 'آیتم از کاتالوگ حذف شد و سوابق سفارش‌های قبلی حفظ شد.',
     ]);
 }
 

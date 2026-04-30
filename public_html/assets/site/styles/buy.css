@@ -346,6 +346,112 @@ body.buy-page .site-header {
     gap: 0.62rem;
 }
 
+.buy-owner-console {
+    display: grid;
+    gap: 0.72rem;
+    padding: 0.82rem;
+    border: 1px solid color-mix(in srgb, var(--commerce-accent) 26%, var(--border-color));
+    border-radius: 8px;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--commerce-accent-soft) 62%, transparent), transparent),
+        var(--commerce-surface);
+    box-shadow: var(--surface-shadow);
+}
+
+.buy-owner-console[hidden],
+.buy-owner-tab-panel[hidden],
+[data-payment-step-panel][hidden] {
+    display: none !important;
+}
+
+.buy-owner-console__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.72rem;
+    align-items: flex-start;
+    padding-bottom: 0.64rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.buy-owner-console__head div {
+    min-width: 0;
+}
+
+.buy-owner-console__head h2,
+.buy-owner-console__head p {
+    margin: 0;
+}
+
+.buy-owner-console__head h2 {
+    font-size: 1.02rem;
+    line-height: 1.55;
+}
+
+.buy-owner-console__head p {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.82;
+}
+
+.buy-owner-tabs,
+.payments-stepper {
+    display: flex;
+    gap: 0.42rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.buy-owner-tabs::-webkit-scrollbar,
+.payments-stepper::-webkit-scrollbar {
+    display: none;
+}
+
+.buy-owner-tabs button,
+.payments-stepper button {
+    min-height: 38px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--commerce-surface-muted);
+    color: var(--text-secondary);
+    padding: 0.38rem 0.72rem;
+    font-size: 0.76rem;
+    font-weight: 840;
+    white-space: nowrap;
+}
+
+.buy-owner-tabs button.is-active,
+.payments-stepper button.is-active,
+.buy-owner-tabs button:hover,
+.payments-stepper button:hover,
+.buy-owner-tabs button:focus-visible,
+.payments-stepper button:focus-visible {
+    color: var(--commerce-accent-strong);
+    border-color: color-mix(in srgb, var(--commerce-accent) 34%, var(--border-color));
+    background: color-mix(in srgb, var(--commerce-accent-soft) 70%, var(--commerce-surface));
+}
+
+.payments-stepper button {
+    width: 38px;
+    padding-inline: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.payments-step-actions {
+    display: flex;
+    gap: 0.52rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    padding-top: 0.1rem;
+}
+
+.buy-page .payments-owner-preview {
+    top: calc(62px + env(safe-area-inset-top, 0px));
+}
+
+.buy-page .payments-item-form {
+    margin-top: 0;
+}
+
 .buy-section-title {
     display: flex;
     align-items: end;
@@ -1297,6 +1403,186 @@ body.buy-page .site-header {
     min-width: 132px;
 }
 
+.buy-cart-quantity {
+    width: max-content;
+    display: inline-grid;
+    grid-template-columns: 34px minmax(38px, auto) 34px;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--commerce-surface-muted);
+}
+
+.buy-cart-quantity button {
+    min-width: 34px;
+    min-height: 34px;
+    border: 0;
+    background: transparent;
+    color: var(--commerce-accent-strong);
+    font-size: 1rem;
+    font-weight: 900;
+}
+
+.buy-cart-quantity span {
+    min-width: 38px;
+    text-align: center;
+    color: var(--text-primary);
+    font-size: 0.86rem;
+    font-weight: 900;
+}
+
+.buy-cart-checkout {
+    display: grid;
+    gap: 0.72rem;
+    margin-top: 0.86rem;
+}
+
+.buy-checkout-steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.42rem;
+}
+
+.buy-checkout-steps button {
+    min-width: 0;
+    min-height: 54px;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 0.34rem;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.42rem;
+    background: var(--commerce-surface-muted);
+    color: var(--text-secondary);
+    text-align: start;
+}
+
+.buy-checkout-steps span {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--commerce-surface);
+    color: var(--text-tertiary);
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+.buy-checkout-steps strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 900;
+}
+
+.buy-checkout-steps button.is-active,
+.buy-checkout-steps button.is-done {
+    border-color: color-mix(in srgb, var(--commerce-accent) 35%, var(--border-color));
+    background: color-mix(in srgb, var(--commerce-accent-soft) 68%, var(--commerce-surface));
+    color: var(--commerce-accent-strong);
+}
+
+.buy-checkout-steps button.is-active span,
+.buy-checkout-steps button.is-done span {
+    background: var(--commerce-accent);
+    color: var(--commerce-on-accent);
+}
+
+.buy-cart-step {
+    display: grid;
+    gap: 0.68rem;
+    padding: 0.86rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--commerce-surface);
+    box-shadow: var(--surface-shadow);
+}
+
+.buy-cart-step h3,
+.buy-cart-step h4,
+.buy-cart-step p {
+    margin: 0;
+}
+
+.buy-cart-step h3 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+.buy-cart-total {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.48rem;
+}
+
+.buy-cart-total div {
+    min-width: 0;
+    display: grid;
+    gap: 0.18rem;
+    padding: 0.58rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--commerce-surface-muted);
+}
+
+.buy-cart-total span {
+    color: var(--text-tertiary);
+    font-size: 0.72rem;
+    font-weight: 780;
+}
+
+.buy-cart-total strong {
+    color: var(--text-primary);
+    font-size: 0.86rem;
+    font-weight: 930;
+    line-height: 1.45;
+}
+
+.buy-cart-total .is-payable {
+    border-color: color-mix(in srgb, var(--commerce-accent) 35%, var(--border-color));
+    background: color-mix(in srgb, var(--commerce-accent-soft) 72%, var(--commerce-surface));
+}
+
+.buy-cart-step-actions {
+    display: flex;
+    gap: 0.52rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.buy-cart-step-actions .buy-primary-btn,
+.buy-cart-step-actions .buy-secondary-btn {
+    width: auto;
+    min-width: 148px;
+}
+
+.buy-cart-line-fields {
+    display: grid;
+    gap: 0.56rem;
+    padding: 0.62rem;
+    border: 1px dashed var(--border-color-strong);
+    border-radius: 8px;
+    background: var(--commerce-surface-muted);
+}
+
+.buy-cart-line-fields h4 {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.65;
+}
+
+.buy-cart-checkout input,
+.buy-cart-checkout select,
+.buy-cart-checkout textarea {
+    font-size: 1rem;
+}
+
 .buy-image-modal {
     position: fixed;
     inset: 0;
@@ -1443,6 +1729,26 @@ body.buy-modal-open {
         align-items: stretch;
     }
 
+    .buy-owner-console {
+        padding: 0.68rem;
+    }
+
+    .buy-owner-console__head {
+        display: grid;
+    }
+
+    .buy-owner-console__head .payments-inline-actions,
+    .payments-step-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .buy-owner-console__head .payments-inline-actions .shell-action-btn,
+    .payments-step-actions .shell-action-btn,
+    #payments-item-reset {
+        width: 100%;
+    }
+
     .buy-trust-strip a {
         width: 100%;
     }
@@ -1505,6 +1811,14 @@ body.buy-modal-open {
         grid-template-columns: 1fr;
     }
 
+    .buy-checkout-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .buy-cart-total {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .buy-actions {
         display: grid;
         grid-template-columns: 1fr;
@@ -1530,6 +1844,17 @@ body.buy-modal-open {
         width: 100%;
         min-width: 0;
     }
+
+    .buy-cart-step-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .buy-cart-step-actions .buy-primary-btn,
+    .buy-cart-step-actions .buy-secondary-btn {
+        width: 100%;
+        min-width: 0;
+    }
 }
 
 @media (max-width: 420px) {
@@ -1550,6 +1875,11 @@ body.buy-modal-open {
     }
 
     .buy-floating-bar {
+        grid-template-columns: 1fr;
+    }
+
+    .buy-checkout-steps,
+    .buy-cart-total {
         grid-template-columns: 1fr;
     }
 }

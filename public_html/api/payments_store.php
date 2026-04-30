@@ -4,13 +4,25 @@ declare(strict_types=1);
 require_once __DIR__ . '/bootstrap.php';
 
 if (!defined('PAYMENTS_SCHEMA_VERSION')) {
-    define('PAYMENTS_SCHEMA_VERSION', 1);
+    define('PAYMENTS_SCHEMA_VERSION', 2);
 }
 if (!defined('PAYMENTS_ITEM_STATUS_ACTIVE')) {
     define('PAYMENTS_ITEM_STATUS_ACTIVE', 'active');
 }
 if (!defined('PAYMENTS_ITEM_STATUS_INACTIVE')) {
     define('PAYMENTS_ITEM_STATUS_INACTIVE', 'inactive');
+}
+if (!defined('PAYMENTS_ITEM_STATUS_DELETED')) {
+    define('PAYMENTS_ITEM_STATUS_DELETED', 'deleted');
+}
+if (!defined('PAYMENTS_GATEWAY_ZARINPAL')) {
+    define('PAYMENTS_GATEWAY_ZARINPAL', 'zarinpal');
+}
+if (!defined('PAYMENTS_GATEWAY_ZIBAL')) {
+    define('PAYMENTS_GATEWAY_ZIBAL', 'zibal');
+}
+if (!defined('PAYMENTS_GATEWAY_MOCK')) {
+    define('PAYMENTS_GATEWAY_MOCK', 'mock');
 }
 if (!defined('PAYMENTS_ORDER_STATUS_PENDING')) {
     define('PAYMENTS_ORDER_STATUS_PENDING', 'pending');
@@ -56,6 +68,11 @@ function payments_default_store(): array
         'nextItemId' => 1,
         'nextOrderId' => 1,
         'nextNotificationId' => 1,
+        'nextGatewayId' => 1,
+        'gatewaySettings' => [
+            'managed' => false,
+        ],
+        'gateways' => [],
         'items' => [],
         'orders' => [],
         'notifications' => [],
@@ -195,6 +212,12 @@ function payments_normalize_store(array $store): array
         $notificationsRaw = [];
     }
 
+    $gatewaySettings = payments_normalize_gateway_settings($store['gatewaySettings'] ?? []);
+    $gatewaysRaw = $store['gateways'] ?? ($store['paymentGateways'] ?? []);
+    if (!is_array($gatewaysRaw)) {
+        $gatewaysRaw = [];
+    }
+
     $normalizedItems = [];
     $maxItemId = 0;
     $seenSlugs = [];
@@ -278,11 +301,59 @@ function payments_normalize_store(array $store): array
         return strcmp((string) ($right['created_at'] ?? ''), (string) ($left['created_at'] ?? ''));
     });
 
+    $normalizedGateways = [];
+    $maxGatewayId = 0;
+    $seenGatewayKeys = [];
+    $hasDefaultGateway = false;
+    foreach ($gatewaysRaw as $seed) {
+        if (!is_array($seed)) {
+            continue;
+        }
+
+        $gateway = payments_normalize_gateway_record($seed);
+        if ($gateway === null) {
+            continue;
+        }
+
+        $gatewayId = (int) $gateway['id'];
+        $maxGatewayId = max($maxGatewayId, $gatewayId);
+
+        $key = (string) $gateway['key'];
+        if ($key === '' || isset($seenGatewayKeys[$key])) {
+            $key = 'gateway-' . $gatewayId;
+            while (isset($seenGatewayKeys[$key])) {
+                $key .= '-x';
+            }
+            $gateway['key'] = $key;
+        }
+        $seenGatewayKeys[$key] = true;
+
+        if ((bool) ($gateway['is_default'] ?? false)) {
+            if ($hasDefaultGateway) {
+                $gateway['is_default'] = false;
+            } else {
+                $hasDefaultGateway = true;
+            }
+        }
+
+        $normalizedGateways[] = $gateway;
+    }
+
+    usort($normalizedGateways, static function (array $left, array $right): int {
+        if ((bool) ($left['is_default'] ?? false) !== (bool) ($right['is_default'] ?? false)) {
+            return (bool) ($left['is_default'] ?? false) ? -1 : 1;
+        }
+        return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
+    });
+
     $normalized = [
         'schemaVersion' => PAYMENTS_SCHEMA_VERSION,
         'nextItemId' => max($maxItemId + 1, (int) ($store['nextItemId'] ?? 1), 1),
         'nextOrderId' => max($maxOrderId + 1, (int) ($store['nextOrderId'] ?? 1), 1),
         'nextNotificationId' => max($maxNotificationId + 1, (int) ($store['nextNotificationId'] ?? 1), 1),
+        'nextGatewayId' => max($maxGatewayId + 1, (int) ($store['nextGatewayId'] ?? 1), 1),
+        'gatewaySettings' => $gatewaySettings,
+        'gateways' => $normalizedGateways,
         'items' => $normalizedItems,
         'orders' => $normalizedOrders,
         'notifications' => $normalizedNotifications,
@@ -305,7 +376,7 @@ function payments_normalize_item_record(array $seed): ?array
     }
 
     $status = trim((string) ($seed['status'] ?? PAYMENTS_ITEM_STATUS_ACTIVE));
-    if (!in_array($status, [PAYMENTS_ITEM_STATUS_ACTIVE, PAYMENTS_ITEM_STATUS_INACTIVE], true)) {
+    if (!in_array($status, [PAYMENTS_ITEM_STATUS_ACTIVE, PAYMENTS_ITEM_STATUS_INACTIVE, PAYMENTS_ITEM_STATUS_DELETED], true)) {
         $status = PAYMENTS_ITEM_STATUS_INACTIVE;
     }
 
@@ -355,6 +426,156 @@ function payments_normalize_item_record(array $seed): ?array
     ];
 }
 
+function payments_normalize_gateway_settings($value): array
+{
+    $settings = is_array($value) ? $value : [];
+    $managed = filter_var($settings['managed'] ?? false, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+    return [
+        'managed' => $managed === true,
+    ];
+}
+
+function payments_gateway_key_clean(string $value): string
+{
+    $value = trim(strtolower($value));
+    if ($value === '') {
+        return '';
+    }
+
+    $value = preg_replace('/[^a-z0-9_-]+/', '-', $value) ?? '';
+    $value = trim($value, '-_');
+    if ($value === '') {
+        return '';
+    }
+
+    if (strlen($value) > 60) {
+        $value = substr($value, 0, 60);
+        $value = trim($value, '-_');
+    }
+
+    return $value;
+}
+
+function payments_gateway_provider_clean(string $value): string
+{
+    $value = trim(strtolower($value));
+    if ($value === PAYMENTS_GATEWAY_ZIBAL) {
+        return PAYMENTS_GATEWAY_ZIBAL;
+    }
+    if ($value === PAYMENTS_GATEWAY_ZARINPAL) {
+        return PAYMENTS_GATEWAY_ZARINPAL;
+    }
+    if ($value === PAYMENTS_GATEWAY_MOCK) {
+        return PAYMENTS_GATEWAY_MOCK;
+    }
+
+    return '';
+}
+
+function payments_gateway_public_label(string $provider): string
+{
+    $provider = payments_gateway_provider_clean($provider);
+    if ($provider === PAYMENTS_GATEWAY_MOCK) {
+        return 'پرداخت آزمایشی';
+    }
+
+    return 'پرداخت آنلاین';
+}
+
+function payments_gateway_provider_label_from_type(string $provider): string
+{
+    $provider = payments_gateway_provider_clean($provider);
+    if ($provider === PAYMENTS_GATEWAY_ZIBAL) {
+        return 'درگاه زیبال';
+    }
+    if ($provider === PAYMENTS_GATEWAY_ZARINPAL) {
+        return 'درگاه زرین‌پال';
+    }
+    if ($provider === PAYMENTS_GATEWAY_MOCK) {
+        return 'درگاه آزمایشی';
+    }
+
+    return 'درگاه پرداخت';
+}
+
+function payments_gateway_record_credential(array $gateway): string
+{
+    $merchantId = trim((string) ($gateway['merchant_id'] ?? ''));
+    if ($merchantId !== '') {
+        return $merchantId;
+    }
+
+    return trim((string) ($gateway['api_key'] ?? ''));
+}
+
+function payments_gateway_is_record_configured(array $gateway): bool
+{
+    $provider = payments_gateway_provider_clean((string) ($gateway['provider'] ?? ''));
+    if ($provider === PAYMENTS_GATEWAY_MOCK) {
+        return true;
+    }
+
+    return payments_gateway_record_credential($gateway) !== '';
+}
+
+function payments_normalize_gateway_record(array $seed): ?array
+{
+    $id = (int) ($seed['id'] ?? 0);
+    if ($id <= 0) {
+        return null;
+    }
+
+    $provider = payments_gateway_provider_clean((string) ($seed['provider'] ?? ($seed['provider_type'] ?? ($seed['type'] ?? ''))));
+    if ($provider === '') {
+        $provider = payments_gateway_provider_clean((string) ($seed['key'] ?? ''));
+    }
+    if ($provider === '') {
+        return null;
+    }
+
+    $key = payments_gateway_key_clean((string) ($seed['key'] ?? ''));
+    if ($key === '') {
+        $key = payments_gateway_key_clean($provider . '-' . $id);
+    }
+    if ($key === '') {
+        return null;
+    }
+
+    $enabled = filter_var($seed['is_enabled'] ?? ($seed['isEnabled'] ?? true), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    $isDefault = filter_var($seed['is_default'] ?? ($seed['isDefault'] ?? false), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+    $label = dent_clean_text((string) ($seed['label'] ?? ''), 80);
+    if ($label === '') {
+        $label = payments_gateway_public_label($provider);
+    }
+
+    $providerLabel = dent_clean_text((string) ($seed['provider_label'] ?? ($seed['providerLabel'] ?? '')), 120);
+    if ($providerLabel === '') {
+        $providerLabel = payments_gateway_provider_label_from_type($provider);
+    }
+
+    $now = dent_iso_now();
+
+    return [
+        'id' => $id,
+        'key' => $key,
+        'provider' => $provider,
+        'label' => $label,
+        'provider_label' => $providerLabel,
+        'icon' => dent_clean_text((string) ($seed['icon'] ?? ''), 8),
+        'merchant_id' => dent_clean_text((string) ($seed['merchant_id'] ?? ($seed['merchantId'] ?? ($seed['credential'] ?? ''))), 260),
+        'api_key' => dent_clean_text((string) ($seed['api_key'] ?? ($seed['apiKey'] ?? '')), 320),
+        'request_url' => dent_clean_text((string) ($seed['request_url'] ?? ($seed['requestUrl'] ?? '')), 420),
+        'verify_url' => dent_clean_text((string) ($seed['verify_url'] ?? ($seed['verifyUrl'] ?? '')), 420),
+        'start_url' => dent_clean_text((string) ($seed['start_url'] ?? ($seed['startUrl'] ?? '')), 420),
+        'is_enabled' => $enabled !== false,
+        'is_default' => $isDefault === true,
+        'created_at' => payments_normalize_datetime_string((string) ($seed['created_at'] ?? ($seed['createdAt'] ?? $now)), $now),
+        'updated_at' => payments_normalize_datetime_string((string) ($seed['updated_at'] ?? ($seed['updatedAt'] ?? $now)), $now),
+    ];
+}
+
 function payments_normalize_order_record(array $seed): ?array
 {
     $id = (int) ($seed['id'] ?? 0);
@@ -392,20 +613,43 @@ function payments_normalize_order_record(array $seed): ?array
         $publicToken = payments_random_token();
     }
 
+    $cartItems = payments_normalize_cart_order_items($seed['cart_items'] ?? ($seed['cartItems'] ?? []));
+    $fallbackItemId = max(0, (int) ($seed['item_id'] ?? 0));
+    $fallbackQuantity = max(1, min(99, (int) dent_normalize_digits((string) ($seed['quantity'] ?? 1))));
+    $fallbackUnitPrice = max(0, (int) ($seed['unit_price'] ?? ($seed['amount'] ?? 0)));
+    $fallbackSubtotal = max(0, (int) ($seed['subtotal'] ?? ($seed['amount'] ?? 0)));
+    $fallbackDiscountAmount = max(0, (int) ($seed['discount_amount'] ?? 0));
+    $fallbackAmount = max(0, (int) ($seed['amount'] ?? 0));
+    if ($cartItems === [] && $fallbackItemId > 0) {
+        $cartItems[] = [
+            'item_id' => $fallbackItemId,
+            'slug' => '',
+            'title' => '',
+            'quantity' => $fallbackQuantity,
+            'unit_price' => $fallbackUnitPrice,
+            'subtotal' => $fallbackSubtotal,
+            'discount_code' => dent_clean_text((string) ($seed['discount_code'] ?? ''), 40),
+            'discount_amount' => $fallbackDiscountAmount,
+            'amount' => $fallbackAmount,
+            'extra_form_data' => payments_normalize_extra_form_data($extraFormData),
+        ];
+    }
+
     return [
         'id' => $id,
-        'item_id' => max(0, (int) ($seed['item_id'] ?? 0)),
+        'item_id' => $fallbackItemId,
         'user_id' => dent_normalize_student_number((string) ($seed['user_id'] ?? '')),
         'payer_name' => dent_clean_text((string) ($seed['payer_name'] ?? ''), 120),
         'payer_phone' => payments_normalize_phone((string) ($seed['payer_phone'] ?? '')),
         'payer_student_number' => dent_normalize_student_number((string) ($seed['payer_student_number'] ?? '')),
         'extra_form_data' => payments_normalize_extra_form_data($extraFormData),
-        'quantity' => max(1, min(99, (int) dent_normalize_digits((string) ($seed['quantity'] ?? 1)))),
-        'unit_price' => max(0, (int) ($seed['unit_price'] ?? ($seed['amount'] ?? 0))),
-        'subtotal' => max(0, (int) ($seed['subtotal'] ?? ($seed['amount'] ?? 0))),
+        'cart_items' => $cartItems,
+        'quantity' => $fallbackQuantity,
+        'unit_price' => $fallbackUnitPrice,
+        'subtotal' => $fallbackSubtotal,
         'discount_code' => dent_clean_text((string) ($seed['discount_code'] ?? ''), 40),
-        'discount_amount' => max(0, (int) ($seed['discount_amount'] ?? 0)),
-        'amount' => max(0, (int) ($seed['amount'] ?? 0)),
+        'discount_amount' => $fallbackDiscountAmount,
+        'amount' => $fallbackAmount,
         'gateway' => dent_clean_text((string) ($seed['gateway'] ?? ''), 32),
         'authority' => dent_clean_text((string) ($seed['authority'] ?? ''), 120),
         'ref_id' => dent_clean_text((string) ($seed['ref_id'] ?? ''), 120),
@@ -416,6 +660,55 @@ function payments_normalize_order_record(array $seed): ?array
         'verified_at' => payments_normalize_datetime_string((string) ($seed['verified_at'] ?? ''), ''),
         'public_token' => $publicToken,
     ];
+}
+
+function payments_normalize_cart_order_items($value): array
+{
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $normalized = [];
+    foreach ($value as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+
+        $itemId = max(0, (int) ($entry['item_id'] ?? ($entry['itemId'] ?? 0)));
+        $quantity = max(1, min(99, (int) dent_normalize_digits((string) ($entry['quantity'] ?? 1))));
+        $unitPrice = max(0, (int) ($entry['unit_price'] ?? ($entry['unitPrice'] ?? 0)));
+        $subtotal = max(0, (int) ($entry['subtotal'] ?? ($unitPrice * $quantity)));
+        $discountAmount = max(0, (int) ($entry['discount_amount'] ?? ($entry['discountAmount'] ?? 0)));
+        $amount = max(0, (int) ($entry['amount'] ?? max(0, $subtotal - $discountAmount)));
+
+        if ($itemId <= 0 && $amount <= 0) {
+            continue;
+        }
+
+        $extraFormData = $entry['extra_form_data'] ?? ($entry['extraFormData'] ?? []);
+        if (!is_array($extraFormData)) {
+            $extraFormData = [];
+        }
+
+        $normalized[] = [
+            'item_id' => $itemId,
+            'slug' => payments_clean_slug((string) ($entry['slug'] ?? '')),
+            'title' => dent_clean_text((string) ($entry['title'] ?? ''), 160),
+            'quantity' => $quantity,
+            'unit_price' => $unitPrice,
+            'subtotal' => $subtotal,
+            'discount_code' => dent_clean_text((string) ($entry['discount_code'] ?? ($entry['discountCode'] ?? '')), 40),
+            'discount_amount' => min($subtotal, $discountAmount),
+            'amount' => min($subtotal, $amount),
+            'extra_form_data' => payments_normalize_extra_form_data($extraFormData),
+        ];
+
+        if (count($normalized) >= 40) {
+            break;
+        }
+    }
+
+    return $normalized;
 }
 
 function payments_normalize_notification_record(array $seed): ?array
@@ -842,6 +1135,13 @@ function payments_next_notification_id(array &$store): int
     return $next;
 }
 
+function payments_next_gateway_id(array &$store): int
+{
+    $next = max(1, (int) ($store['nextGatewayId'] ?? 1));
+    $store['nextGatewayId'] = $next + 1;
+    return $next;
+}
+
 function payments_recalculate_sold_counts(array &$store): void
 {
     $successByItem = [];
@@ -850,11 +1150,23 @@ function payments_recalculate_sold_counts(array &$store): void
             continue;
         }
 
+        $cartItems = payments_normalize_cart_order_items($order['cart_items'] ?? []);
+        if ($cartItems !== []) {
+            foreach ($cartItems as $cartItem) {
+                $itemId = max(0, (int) ($cartItem['item_id'] ?? 0));
+                if ($itemId <= 0) {
+                    continue;
+                }
+                $quantity = max(1, (int) ($cartItem['quantity'] ?? 1));
+                $successByItem[$itemId] = ($successByItem[$itemId] ?? 0) + $quantity;
+            }
+            continue;
+        }
+
         $itemId = max(0, (int) ($order['item_id'] ?? 0));
         if ($itemId <= 0) {
             continue;
         }
-
         $quantity = max(1, (int) ($order['quantity'] ?? 1));
         $successByItem[$itemId] = ($successByItem[$itemId] ?? 0) + $quantity;
     }
@@ -868,6 +1180,13 @@ function payments_recalculate_sold_counts(array &$store): void
 function payments_item_public_state(array $item): array
 {
     $status = (string) ($item['status'] ?? PAYMENTS_ITEM_STATUS_INACTIVE);
+    if ($status === PAYMENTS_ITEM_STATUS_DELETED) {
+        return [
+            'key' => 'deleted',
+            'label' => 'حذف‌شده',
+            'isPayable' => false,
+        ];
+    }
     if ($status !== PAYMENTS_ITEM_STATUS_ACTIVE) {
         return [
             'key' => 'inactive',
@@ -1052,16 +1371,36 @@ function payments_owner_item_payload(array $item): array
 
 function payments_owner_order_payload(array $order, ?array $item = null): array
 {
+    $cartItems = payments_normalize_cart_order_items($order['cart_items'] ?? []);
+    $cartPayload = [];
+    foreach ($cartItems as $cartItem) {
+        $cartPayload[] = [
+            'itemId' => (int) ($cartItem['item_id'] ?? 0),
+            'slug' => (string) ($cartItem['slug'] ?? ''),
+            'title' => (string) ($cartItem['title'] ?? ''),
+            'quantity' => max(1, (int) ($cartItem['quantity'] ?? 1)),
+            'unitPrice' => max(0, (int) ($cartItem['unit_price'] ?? 0)),
+            'subtotal' => max(0, (int) ($cartItem['subtotal'] ?? 0)),
+            'discountCode' => (string) ($cartItem['discount_code'] ?? ''),
+            'discountAmount' => max(0, (int) ($cartItem['discount_amount'] ?? 0)),
+            'amount' => max(0, (int) ($cartItem['amount'] ?? 0)),
+            'extraFormData' => is_array($cartItem['extra_form_data'] ?? null) ? $cartItem['extra_form_data'] : [],
+        ];
+    }
+
     return [
         'id' => (int) ($order['id'] ?? 0),
         'itemId' => (int) ($order['item_id'] ?? 0),
-        'itemTitle' => (string) ($item['title'] ?? ''),
+        'itemTitle' => $cartPayload !== []
+            ? 'سبد خرید (' . count($cartPayload) . ' آیتم)'
+            : (string) ($item['title'] ?? ''),
         'itemSlug' => (string) ($item['slug'] ?? ''),
         'userId' => (string) ($order['user_id'] ?? ''),
         'payerName' => (string) ($order['payer_name'] ?? ''),
         'payerPhone' => (string) ($order['payer_phone'] ?? ''),
         'payerStudentNumber' => (string) ($order['payer_student_number'] ?? ''),
         'extraFormData' => is_array($order['extra_form_data'] ?? null) ? $order['extra_form_data'] : [],
+        'cartItems' => $cartPayload,
         'quantity' => max(1, (int) ($order['quantity'] ?? 1)),
         'unitPrice' => max(0, (int) ($order['unit_price'] ?? 0)),
         'subtotal' => max(0, (int) ($order['subtotal'] ?? 0)),
@@ -1102,6 +1441,22 @@ function payments_order_public_result_payload(array $order, ?array $item = null)
         $message = 'پرداخت هنوز در حال بررسی است.';
     }
 
+    $cartItems = payments_normalize_cart_order_items($order['cart_items'] ?? []);
+    $cartPayload = [];
+    foreach ($cartItems as $cartItem) {
+        $cartPayload[] = [
+            'itemId' => (int) ($cartItem['item_id'] ?? 0),
+            'slug' => (string) ($cartItem['slug'] ?? ''),
+            'title' => (string) ($cartItem['title'] ?? ''),
+            'quantity' => max(1, (int) ($cartItem['quantity'] ?? 1)),
+            'unitPrice' => max(0, (int) ($cartItem['unit_price'] ?? 0)),
+            'subtotal' => max(0, (int) ($cartItem['subtotal'] ?? 0)),
+            'discountCode' => (string) ($cartItem['discount_code'] ?? ''),
+            'discountAmount' => max(0, (int) ($cartItem['discount_amount'] ?? 0)),
+            'amount' => max(0, (int) ($cartItem['amount'] ?? 0)),
+        ];
+    }
+
     return [
         'id' => (int) ($order['id'] ?? 0),
         'status' => $status,
@@ -1118,7 +1473,8 @@ function payments_order_public_result_payload(array $order, ?array $item = null)
         'createdAt' => (string) ($order['created_at'] ?? ''),
         'paidAt' => (string) ($order['paid_at'] ?? ''),
         'verifiedAt' => (string) ($order['verified_at'] ?? ''),
-        'item' => $item ? payments_public_item_payload($item) : null,
+        'item' => $cartPayload === [] && $item ? payments_public_item_payload($item) : null,
+        'cartItems' => $cartPayload,
         'payerName' => (string) ($order['payer_name'] ?? ''),
         'payerPhone' => (string) ($order['payer_phone'] ?? ''),
         'payerStudentNumber' => (string) ($order['payer_student_number'] ?? ''),

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/payments_store.php';
 
 if (!defined('PAYMENTS_GATEWAY_ZARINPAL')) {
     define('PAYMENTS_GATEWAY_ZARINPAL', 'zarinpal');
@@ -17,6 +17,11 @@ if (!defined('PAYMENTS_GATEWAY_MOCK')) {
 
 function payments_gateway_default(): string
 {
+    $managedDefault = payments_gateway_managed_default_key();
+    if ($managedDefault !== '') {
+        return $managedDefault;
+    }
+
     $configured = payments_gateway_clean((string) getenv('DENT_PAYMENT_GATEWAY'));
     if ($configured !== '') {
         return $configured;
@@ -27,56 +32,224 @@ function payments_gateway_default(): string
 
 function payments_gateway_clean(string $value): string
 {
-    $value = trim(strtolower($value));
-    if ($value === PAYMENTS_GATEWAY_ZIBAL) {
-        return PAYMENTS_GATEWAY_ZIBAL;
-    }
-
-    if ($value === PAYMENTS_GATEWAY_ZARINPAL) {
-        return PAYMENTS_GATEWAY_ZARINPAL;
-    }
-
-    if ($value === PAYMENTS_GATEWAY_MOCK) {
-        return PAYMENTS_GATEWAY_MOCK;
-    }
-
-    return '';
+    return payments_gateway_key_clean($value);
 }
 
 function payments_gateway_label(string $gateway): string
 {
-    $clean = payments_gateway_clean($gateway);
-    if ($clean === PAYMENTS_GATEWAY_ZIBAL) {
-        return 'زیبال';
-    }
-    if ($clean === PAYMENTS_GATEWAY_ZARINPAL) {
-        return 'زرین‌پال';
-    }
-    if ($clean === PAYMENTS_GATEWAY_MOCK) {
-        return 'درگاه آزمایشی';
+    $record = payments_gateway_resolve_record($gateway);
+    if ($record !== null) {
+        return (string) ($record['provider_label'] ?? payments_gateway_provider_label_from_type((string) ($record['provider'] ?? '')));
     }
 
-    return '';
+    return payments_gateway_provider_label_from_type($gateway);
 }
 
 function payments_gateway_is_configured(string $gateway): bool
 {
-    $clean = payments_gateway_clean($gateway);
-    if ($clean === PAYMENTS_GATEWAY_ZIBAL) {
-        return payments_zibal_merchant_id() !== '';
+    $record = payments_gateway_resolve_record($gateway);
+    if ($record !== null) {
+        return payments_gateway_is_record_configured($record);
     }
-    if ($clean === PAYMENTS_GATEWAY_ZARINPAL) {
-        return trim((string) getenv('DENT_PAYMENT_ZARINPAL_MERCHANT_ID')) !== '';
+
+    $provider = payments_gateway_provider_clean($gateway);
+    if ($provider === PAYMENTS_GATEWAY_ZIBAL) {
+        return payments_zibal_merchant_id([]) !== '';
     }
-    if ($clean === PAYMENTS_GATEWAY_MOCK) {
+    if ($provider === PAYMENTS_GATEWAY_ZARINPAL) {
+        return payments_zarinpal_merchant_id([]) !== '';
+    }
+    if ($provider === PAYMENTS_GATEWAY_MOCK) {
         return true;
     }
 
     return false;
 }
 
+function payments_gateway_managed_store(): ?array
+{
+    if (!function_exists('payments_read_store')) {
+        return null;
+    }
+
+    $store = payments_read_store();
+    $settings = is_array($store['gatewaySettings'] ?? null) ? $store['gatewaySettings'] : [];
+    if (!(bool) ($settings['managed'] ?? false)) {
+        return null;
+    }
+
+    $gateways = is_array($store['gateways'] ?? null) ? $store['gateways'] : [];
+    if ($gateways === []) {
+        return null;
+    }
+
+    return $store;
+}
+
+function payments_gateway_managed_default_key(): string
+{
+    $store = payments_gateway_managed_store();
+    if ($store === null) {
+        return '';
+    }
+
+    foreach ($store['gateways'] as $gateway) {
+        if (!is_array($gateway)) {
+            continue;
+        }
+        if ((bool) ($gateway['is_default'] ?? false) && (bool) ($gateway['is_enabled'] ?? false)) {
+            return payments_gateway_clean((string) ($gateway['key'] ?? ''));
+        }
+    }
+
+    foreach ($store['gateways'] as $gateway) {
+        if (!is_array($gateway)) {
+            continue;
+        }
+        if ((bool) ($gateway['is_enabled'] ?? false)) {
+            return payments_gateway_clean((string) ($gateway['key'] ?? ''));
+        }
+    }
+
+    return '';
+}
+
+function payments_gateway_resolve_record(string $gateway): ?array
+{
+    $key = payments_gateway_clean($gateway);
+    if ($key === '') {
+        return null;
+    }
+
+    $store = payments_gateway_managed_store();
+    if ($store !== null) {
+        foreach ($store['gateways'] as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            if ((string) ($entry['key'] ?? '') === $key) {
+                return $entry;
+            }
+        }
+        return null;
+    }
+
+    return payments_gateway_builtin_record($key);
+}
+
+function payments_gateway_builtin_record(string $key): ?array
+{
+    $provider = payments_gateway_provider_clean($key);
+    if ($provider === '') {
+        return null;
+    }
+
+    if ($provider === PAYMENTS_GATEWAY_ZIBAL) {
+        return [
+            'id' => 0,
+            'key' => PAYMENTS_GATEWAY_ZIBAL,
+            'provider' => PAYMENTS_GATEWAY_ZIBAL,
+            'label' => 'پرداخت آنلاین',
+            'provider_label' => 'درگاه زیبال',
+            'icon' => 'Z',
+            'merchant_id' => payments_zibal_merchant_id([]),
+            'api_key' => '',
+            'request_url' => trim((string) getenv('DENT_PAYMENT_ZIBAL_REQUEST_URL')),
+            'verify_url' => trim((string) getenv('DENT_PAYMENT_ZIBAL_VERIFY_URL')),
+            'start_url' => trim((string) getenv('DENT_PAYMENT_ZIBAL_START_URL')),
+            'is_enabled' => payments_zibal_merchant_id([]) !== '',
+            'is_default' => payments_gateway_clean((string) getenv('DENT_PAYMENT_GATEWAY')) === PAYMENTS_GATEWAY_ZIBAL,
+        ];
+    }
+
+    if ($provider === PAYMENTS_GATEWAY_ZARINPAL) {
+        return [
+            'id' => 0,
+            'key' => PAYMENTS_GATEWAY_ZARINPAL,
+            'provider' => PAYMENTS_GATEWAY_ZARINPAL,
+            'label' => 'پرداخت آنلاین',
+            'provider_label' => 'درگاه زرین‌پال',
+            'icon' => 'ZP',
+            'merchant_id' => payments_zarinpal_merchant_id([]),
+            'api_key' => '',
+            'request_url' => trim((string) getenv('DENT_PAYMENT_ZARINPAL_REQUEST_URL')),
+            'verify_url' => trim((string) getenv('DENT_PAYMENT_ZARINPAL_VERIFY_URL')),
+            'start_url' => trim((string) getenv('DENT_PAYMENT_ZARINPAL_START_URL')),
+            'is_enabled' => payments_zarinpal_merchant_id([]) !== '',
+            'is_default' => payments_gateway_clean((string) getenv('DENT_PAYMENT_GATEWAY')) === PAYMENTS_GATEWAY_ZARINPAL,
+        ];
+    }
+
+    return [
+        'id' => 0,
+        'key' => PAYMENTS_GATEWAY_MOCK,
+        'provider' => PAYMENTS_GATEWAY_MOCK,
+        'label' => 'پرداخت آزمایشی',
+        'provider_label' => 'فقط برای تست',
+        'icon' => 'T',
+        'merchant_id' => '',
+        'api_key' => '',
+        'request_url' => '',
+        'verify_url' => '',
+        'start_url' => '',
+        'is_enabled' => true,
+        'is_default' => payments_gateway_clean((string) getenv('DENT_PAYMENT_GATEWAY')) === PAYMENTS_GATEWAY_MOCK,
+    ];
+}
+
 function payments_gateway_checkout_catalog(bool $includeMock = false): array
 {
+    $managed = payments_gateway_managed_store();
+    if ($managed !== null) {
+        $result = [];
+        foreach ($managed['gateways'] as $index => $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            $provider = payments_gateway_provider_clean((string) ($entry['provider'] ?? ''));
+            if ($provider === '' || (!$includeMock && $provider === PAYMENTS_GATEWAY_MOCK)) {
+                continue;
+            }
+            $key = payments_gateway_clean((string) ($entry['key'] ?? ''));
+            if ($key === '') {
+                continue;
+            }
+            $result[] = [
+                'key' => $key,
+                'label' => (string) ($entry['label'] ?? payments_gateway_public_label($provider)),
+                'provider' => (string) ($entry['provider_label'] ?? payments_gateway_provider_label_from_type($provider)),
+                'providerType' => $provider,
+                'icon' => dent_clean_text((string) ($entry['icon'] ?? ''), 8),
+                'priority' => (int) $index,
+                'isEnabled' => (bool) ($entry['is_enabled'] ?? false) && payments_gateway_is_record_configured($entry),
+                'isDefault' => (bool) ($entry['is_default'] ?? false),
+            ];
+        }
+
+        $fallbackDefault = '';
+        $hasDefault = false;
+        foreach ($result as $index => $entry) {
+            if ((bool) ($entry['isEnabled'] ?? false) && $fallbackDefault === '') {
+                $fallbackDefault = (string) ($entry['key'] ?? '');
+            }
+            if ((bool) ($entry['isEnabled'] ?? false) && (bool) ($entry['isDefault'] ?? false) && !$hasDefault) {
+                $hasDefault = true;
+                continue;
+            }
+            $result[$index]['isDefault'] = false;
+        }
+        if (!$hasDefault && $fallbackDefault !== '') {
+            foreach ($result as $index => $entry) {
+                if ((string) ($entry['key'] ?? '') === $fallbackDefault) {
+                    $result[$index]['isDefault'] = true;
+                    break;
+                }
+            }
+        }
+
+        return $result;
+    }
+
     $catalog = [
         [
             'key' => PAYMENTS_GATEWAY_ZIBAL,
@@ -286,20 +459,25 @@ function payments_gateway_http_post_json(string $url, array $payload, int $timeo
 function payments_gateway_start_payment(string $gateway, array $item, array $order, array $context = []): array
 {
     $gateway = payments_gateway_clean($gateway);
-    if ($gateway === '') {
+    $record = $gateway !== '' ? payments_gateway_resolve_record($gateway) : null;
+    if ($gateway === '' || $record === null || !(bool) ($record['is_enabled'] ?? false) || !payments_gateway_is_record_configured($record)) {
         return [
             'success' => false,
-            'gateway' => '',
-            'error' => 'درگاه پرداخت انتخاب‌شده معتبر نیست.',
+            'gateway' => $gateway,
+            'error' => 'درگاه پرداخت انتخاب‌شده معتبر یا فعال نیست.',
             'raw' => null,
         ];
     }
 
-    if ($gateway === PAYMENTS_GATEWAY_ZIBAL) {
+    $context['gatewayKey'] = $gateway;
+    $context['gatewayConfig'] = $record;
+    $provider = payments_gateway_provider_clean((string) ($record['provider'] ?? $gateway));
+
+    if ($provider === PAYMENTS_GATEWAY_ZIBAL) {
         return payments_zibal_start_payment($item, $order, $context);
     }
 
-    if ($gateway === PAYMENTS_GATEWAY_ZARINPAL) {
+    if ($provider === PAYMENTS_GATEWAY_ZARINPAL) {
         return payments_zarinpal_start_payment($item, $order, $context);
     }
 
@@ -309,10 +487,11 @@ function payments_gateway_start_payment(string $gateway, array $item, array $ord
 function payments_gateway_verify_payment(string $gateway, array $order, array $context = []): array
 {
     $gateway = payments_gateway_clean($gateway);
-    if ($gateway === '') {
+    $record = $gateway !== '' ? payments_gateway_resolve_record($gateway) : null;
+    if ($gateway === '' || $record === null || !payments_gateway_is_record_configured($record)) {
         return [
             'success' => false,
-            'gateway' => '',
+            'gateway' => $gateway,
             'verified' => false,
             'status' => 'failed',
             'refId' => '',
@@ -321,11 +500,15 @@ function payments_gateway_verify_payment(string $gateway, array $order, array $c
         ];
     }
 
-    if ($gateway === PAYMENTS_GATEWAY_ZIBAL) {
+    $context['gatewayKey'] = $gateway;
+    $context['gatewayConfig'] = $record;
+    $provider = payments_gateway_provider_clean((string) ($record['provider'] ?? $gateway));
+
+    if ($provider === PAYMENTS_GATEWAY_ZIBAL) {
         return payments_zibal_verify_payment($order, $context);
     }
 
-    if ($gateway === PAYMENTS_GATEWAY_ZARINPAL) {
+    if ($provider === PAYMENTS_GATEWAY_ZARINPAL) {
         return payments_zarinpal_verify_payment($order, $context);
     }
 
@@ -369,8 +552,13 @@ function payments_zibal_error_message(int $code): string
     return 'خطا در ارتباط با زیبال.';
 }
 
-function payments_zibal_merchant_id(): string
+function payments_zibal_merchant_id(array $config = []): string
 {
+    $managed = payments_gateway_record_credential($config);
+    if ($managed !== '') {
+        return $managed;
+    }
+
     $keys = [
         'DENT_PAYMENT_ZIBAL_MERCHANT',
         'DENT_PAYMENT_ZIBAL_TOKEN',
@@ -389,7 +577,8 @@ function payments_zibal_merchant_id(): string
 
 function payments_zibal_start_payment(array $item, array $order, array $context = []): array
 {
-    $merchant = payments_zibal_merchant_id();
+    $config = is_array($context['gatewayConfig'] ?? null) ? $context['gatewayConfig'] : [];
+    $merchant = payments_zibal_merchant_id($config);
     if ($merchant === '') {
         return [
             'success' => false,
@@ -399,7 +588,10 @@ function payments_zibal_start_payment(array $item, array $order, array $context 
         ];
     }
 
-    $requestUrl = trim((string) getenv('DENT_PAYMENT_ZIBAL_REQUEST_URL'));
+    $requestUrl = dent_clean_text((string) ($config['request_url'] ?? ''), 420);
+    if ($requestUrl === '') {
+        $requestUrl = trim((string) getenv('DENT_PAYMENT_ZIBAL_REQUEST_URL'));
+    }
     if ($requestUrl === '') {
         $requestUrl = 'https://gateway.zibal.ir/v1/request';
     }
@@ -463,7 +655,10 @@ function payments_zibal_start_payment(array $item, array $order, array $context 
         ];
     }
 
-    $startUrl = trim((string) getenv('DENT_PAYMENT_ZIBAL_START_URL'));
+    $startUrl = dent_clean_text((string) ($config['start_url'] ?? ''), 420);
+    if ($startUrl === '') {
+        $startUrl = trim((string) getenv('DENT_PAYMENT_ZIBAL_START_URL'));
+    }
     if ($startUrl === '') {
         $startUrl = 'https://gateway.zibal.ir/start/';
     }
@@ -484,7 +679,8 @@ function payments_zibal_start_payment(array $item, array $order, array $context 
 
 function payments_zibal_verify_payment(array $order, array $context = []): array
 {
-    $merchant = payments_zibal_merchant_id();
+    $config = is_array($context['gatewayConfig'] ?? null) ? $context['gatewayConfig'] : [];
+    $merchant = payments_zibal_merchant_id($config);
     if ($merchant === '') {
         return [
             'success' => false,
@@ -510,7 +706,10 @@ function payments_zibal_verify_payment(array $order, array $context = []): array
         ];
     }
 
-    $verifyUrl = trim((string) getenv('DENT_PAYMENT_ZIBAL_VERIFY_URL'));
+    $verifyUrl = dent_clean_text((string) ($config['verify_url'] ?? ''), 420);
+    if ($verifyUrl === '') {
+        $verifyUrl = trim((string) getenv('DENT_PAYMENT_ZIBAL_VERIFY_URL'));
+    }
     if ($verifyUrl === '') {
         $verifyUrl = 'https://gateway.zibal.ir/v1/verify';
     }
@@ -573,9 +772,20 @@ function payments_zibal_verify_payment(array $order, array $context = []): array
     ];
 }
 
+function payments_zarinpal_merchant_id(array $config = []): string
+{
+    $managed = payments_gateway_record_credential($config);
+    if ($managed !== '') {
+        return $managed;
+    }
+
+    return trim((string) getenv('DENT_PAYMENT_ZARINPAL_MERCHANT_ID'));
+}
+
 function payments_zarinpal_start_payment(array $item, array $order, array $context = []): array
 {
-    $merchantId = trim((string) getenv('DENT_PAYMENT_ZARINPAL_MERCHANT_ID'));
+    $config = is_array($context['gatewayConfig'] ?? null) ? $context['gatewayConfig'] : [];
+    $merchantId = payments_zarinpal_merchant_id($config);
     if ($merchantId === '') {
         return [
             'success' => false,
@@ -585,7 +795,10 @@ function payments_zarinpal_start_payment(array $item, array $order, array $conte
         ];
     }
 
-    $requestUrl = trim((string) getenv('DENT_PAYMENT_ZARINPAL_REQUEST_URL'));
+    $requestUrl = dent_clean_text((string) ($config['request_url'] ?? ''), 420);
+    if ($requestUrl === '') {
+        $requestUrl = trim((string) getenv('DENT_PAYMENT_ZARINPAL_REQUEST_URL'));
+    }
     if ($requestUrl === '') {
         $requestUrl = 'https://payment.zarinpal.com/pg/v4/payment/request.json';
     }
@@ -652,7 +865,10 @@ function payments_zarinpal_start_payment(array $item, array $order, array $conte
         ];
     }
 
-    $startUrl = trim((string) getenv('DENT_PAYMENT_ZARINPAL_START_URL'));
+    $startUrl = dent_clean_text((string) ($config['start_url'] ?? ''), 420);
+    if ($startUrl === '') {
+        $startUrl = trim((string) getenv('DENT_PAYMENT_ZARINPAL_START_URL'));
+    }
     if ($startUrl === '') {
         $startUrl = 'https://www.zarinpal.com/pg/StartPay/';
     }
@@ -672,7 +888,8 @@ function payments_zarinpal_start_payment(array $item, array $order, array $conte
 
 function payments_zarinpal_verify_payment(array $order, array $context = []): array
 {
-    $merchantId = trim((string) getenv('DENT_PAYMENT_ZARINPAL_MERCHANT_ID'));
+    $config = is_array($context['gatewayConfig'] ?? null) ? $context['gatewayConfig'] : [];
+    $merchantId = payments_zarinpal_merchant_id($config);
     if ($merchantId === '') {
         return [
             'success' => false,
@@ -698,7 +915,10 @@ function payments_zarinpal_verify_payment(array $order, array $context = []): ar
         ];
     }
 
-    $verifyUrl = trim((string) getenv('DENT_PAYMENT_ZARINPAL_VERIFY_URL'));
+    $verifyUrl = dent_clean_text((string) ($config['verify_url'] ?? ''), 420);
+    if ($verifyUrl === '') {
+        $verifyUrl = trim((string) getenv('DENT_PAYMENT_ZARINPAL_VERIFY_URL'));
+    }
     if ($verifyUrl === '') {
         $verifyUrl = 'https://payment.zarinpal.com/pg/v4/payment/verify.json';
     }
