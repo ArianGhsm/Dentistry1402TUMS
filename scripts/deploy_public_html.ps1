@@ -536,10 +536,8 @@ function Test-RemoteStorageDataFileName([string]$name) {
         return $false
     }
 
-    foreach ($extension in @(".json", ".csv", ".env", ".key", ".txt")) {
-        if ($leaf.EndsWith($extension)) {
-            return $true
-        }
+    if ($leaf.Contains(".")) {
+        return $true
     }
 
     return $false
@@ -547,7 +545,7 @@ function Test-RemoteStorageDataFileName([string]$name) {
 
 function Test-RemoteStorageSkippedDirectoryName([string]$name) {
     $leaf = ([string]$name).Trim().ToLowerInvariant()
-    return $leaf -in @("media", "uploads", "originals", "previews", "tmp", "sessions", "backups", "cache")
+    return $leaf -in @("uploads", "tmp", "sessions", "backups", "cache")
 }
 
 function Test-RemoteStorageLikelyDirectoryName([string]$name) {
