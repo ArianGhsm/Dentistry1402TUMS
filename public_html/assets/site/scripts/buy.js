@@ -467,7 +467,7 @@
 
         section.hidden = false;
         var selectedOnce = false;
-        var firstEnabled = normalized.gateways.find(function (entry) { return entry.isEnabled; });
+        var firstEnabled = options.find(function (entry) { return entry.isEnabled; });
         var fallbackKey = firstEnabled ? firstEnabled.key : "";
         root.innerHTML = options.map(function (entry, index) {
             var inputId = "buy-gateway-" + entry.key + "-" + String(index);
@@ -475,7 +475,7 @@
             if (entry.isEnabled && !selectedOnce && bundle.defaultKey && entry.key === bundle.defaultKey) {
                 checked = true;
                 selectedOnce = true;
-            } else if (entry.isEnabled && !selectedOnce && !bundle.defaultKey) {
+            } else if (entry.isEnabled && !selectedOnce && (!bundle.defaultKey || bundle.defaultKey !== fallbackKey) && entry.key === fallbackKey) {
                 checked = true;
                 selectedOnce = true;
             }
@@ -1740,18 +1740,43 @@
         var quoteState = null;
         var quoteTimer = null;
 
-        if (!slug) {
-            if (titleNode) titleNode.textContent = "آیتم سفارش پیدا نشد";
-            if (shortNode) shortNode.textContent = "لینک آیتم معتبر نیست.";
+        function showItemLoadError(title, message) {
+            var detail = document.querySelector(".buy-detail");
+            if (detail) {
+                detail.classList.add("is-error-state");
+            }
+            if (titleNode) titleNode.textContent = title;
+            if (shortNode) shortNode.textContent = message;
             if (form) form.hidden = true;
+            var hero = $("buy-item-hero");
+            if (hero) {
+                hero.innerHTML = '<div class="buy-image-placeholder">اطلاعات آیتم در دسترس نیست.</div>';
+                hero.setAttribute("data-gallery-count", "");
+            }
+            [
+                "buy-item-gallery",
+                "buy-rating-line",
+                "buy-item-time",
+                "buy-item-specs",
+                "buy-item-policy",
+                "buy-item-reviews"
+            ].forEach(function (id) {
+                var node = $(id);
+                if (node) node.innerHTML = "";
+            });
+            Array.prototype.slice.call(document.querySelectorAll(".buy-meta-grid, .buy-safety, .buy-copy-block, .buy-report-block")).forEach(function (node) {
+                node.hidden = true;
+            });
+        }
+
+        if (!slug) {
+            showItemLoadError("آیتم سفارش پیدا نشد", "لینک آیتم معتبر نیست.");
             return;
         }
 
         apiGet("publicItem", { slug: slug }).then(function (payload) {
             if (!payload || !payload.success || !payload.item) {
-                if (titleNode) titleNode.textContent = "آیتم سفارش پیدا نشد";
-                if (shortNode) shortNode.textContent = (payload && payload.error) || "لینک آیتم معتبر نیست.";
-                if (form) form.hidden = true;
+                showItemLoadError("آیتم سفارش پیدا نشد", (payload && payload.error) || "لینک آیتم معتبر نیست.");
                 bindDetailActions(slug, null, feedback);
                 return;
             }
@@ -1977,9 +2002,7 @@
                 });
             };
         }).catch(function () {
-            if (titleNode) titleNode.textContent = "دریافت آیتم سفارش انجام نشد";
-            if (shortNode) shortNode.textContent = "ارتباط با سرور برقرار نشد.";
-            if (form) form.hidden = true;
+            showItemLoadError("دریافت آیتم سفارش انجام نشد", "ارتباط با سرور برقرار نشد.");
             bindDetailActions(slug, null, feedback);
         });
     }
