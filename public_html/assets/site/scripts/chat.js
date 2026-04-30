@@ -4994,6 +4994,9 @@
   }
 
   function resetLoggedOutUi(errorText) {
+    document.body.classList.add("chat-auth-guard");
+    document.body.classList.remove("chat-authenticated");
+
     state.me = {
       loggedIn: false,
       studentNumber: "",
@@ -5086,6 +5089,9 @@
       resetLoggedOutUi("اطلاعات هویتی حساب معتبر نیست.");
       return;
     }
+
+    document.body.classList.remove("chat-auth-guard");
+    document.body.classList.add("chat-authenticated");
 
     var userChanged = state.me.studentNumber !== user.studentNumber;
     state.me = Object.assign({ loggedIn: true }, user);

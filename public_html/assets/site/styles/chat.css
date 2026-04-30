@@ -7306,6 +7306,7 @@ body.chat-page .chat-app::before {
 }
 
 body.chat-page .chat-app__header,
+body.chat-page .chat-login-panel,
 body.chat-page .chat-stage,
 body.chat-page .conversation-pane,
 body.chat-page .thread-pane,
@@ -7314,6 +7315,20 @@ body.chat-page .conversation-pane__header {
     background: var(--chat-bale-surface) !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
+}
+
+body.chat-page .chat-login-title,
+body.chat-page .chat-login-head {
+    color: var(--chat-bale-text) !important;
+}
+
+body.chat-page .chat-login-text,
+body.chat-page #msg {
+    color: var(--chat-bale-muted) !important;
+}
+
+body.chat-page .chat-login-panel {
+    border-color: var(--chat-bale-line-strong) !important;
 }
 
 body.chat-page .conversation-filter-tab.is-active {
@@ -8166,5 +8181,23 @@ body.chat-page .chat-modal--options .chat-modal__body--options {
 
     body.chat-page .chat-modal--options.is-open {
         transform: translateY(0) !important;
+    }
+}
+
+body.chat-page.chat-auth-guard .chat-app {
+    grid-template-rows: auto minmax(0, 1fr) !important;
+}
+
+body.chat-page.chat-auth-guard .chat-app__header {
+    display: grid !important;
+}
+
+body.chat-page.chat-auth-guard .chat-app__identity p {
+    display: block !important;
+}
+
+@media (max-width: 980px) {
+    body.chat-page.chat-auth-guard .chat-app__header {
+        display: grid !important;
     }
 }

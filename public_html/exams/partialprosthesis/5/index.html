@@ -1,27 +1,15 @@
 ﻿<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260430-104508">
-<link rel="stylesheet" href="/assets/site/styles/quiz.css?v=20260430-104508">
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260430-113012">
+<link rel="stylesheet" href="/assets/site/styles/quiz.css?v=20260430-113012">
 <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>آزمون پروتز پارسیل – جلسه ۵</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-
     <style>
         :root {
-            --bg-body: #020b17;
-            --bg-card: rgba(15, 23, 42, 0.85);
-            --accent-color: #64ffda;
-            --text-primary: #e2e8f0;
-            --text-secondary: #94a3b8;
-            --border-color: rgba(148, 163, 184, 0.25);
-            --btn-gradient: linear-gradient(90deg, #06b6d4, #8b5cf6);
-            --btn-shadow: 0 10px 30px rgba(139, 92, 246, 0.22);
-            --font-main: "Vazirmatn", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            --bg-card: var(--surface);
         }
 
         * { box-sizing: border-box; }
@@ -32,10 +20,7 @@
             background: var(--bg-body);
             color: var(--text-primary);
             min-height: 100vh;
-            background-image:
-                radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.25), transparent 55%),
-                radial-gradient(circle at 80% 0%, rgba(6, 182, 212, 0.22), transparent 50%),
-                radial-gradient(circle at 10% 90%, rgba(100, 255, 218, 0.12), transparent 45%);
+            background-image: var(--background-overlay);
         }
 
         a { color: inherit; text-decoration: none; }
@@ -44,7 +29,7 @@
             position: fixed;
             inset: 0;
             pointer-events: none;
-            background: linear-gradient(180deg, rgba(2, 11, 23, 0.65) 0%, rgba(2, 11, 23, 0.9) 100%);
+            background: transparent;
             z-index: 0;
         }
 
@@ -57,7 +42,7 @@
             justify-content: space-between;
             gap: 1rem;
             border-bottom: 1px solid var(--border-color);
-            background: rgba(2, 11, 23, 0.75);
+            background: var(--surface);
             backdrop-filter: blur(10px);
         }
 
@@ -70,8 +55,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(100, 255, 218, 0.25);
+            background: var(--surface-muted);
+            border: 1px solid var(--border-color);
             overflow: hidden;
         }
 
@@ -95,8 +80,8 @@
             font-weight: 700;
             padding: 0.35rem 0.75rem;
             border-radius: 999px;
-            border: 1px solid rgba(100, 255, 218, 0.25);
-            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid var(--border-color);
+            background: var(--accent-soft);
             color: var(--accent-color);
         }
 
@@ -124,7 +109,7 @@
             padding: 0.55rem 1rem;
             border-radius: 999px;
             border: 1px solid var(--border-color);
-            background: rgba(15, 23, 42, 0.85);
+            background: var(--surface);
             color: var(--text-secondary);
             transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
             font-size: 0.85rem;
@@ -132,8 +117,8 @@
         }
 
         .back-btn:hover {
-            background: #131f33;
-            border-color: rgba(100, 255, 218, 0.35);
+            background: var(--surface-strong);
+            border-color: var(--border-color-strong);
             color: var(--text-primary);
         }
 
@@ -155,8 +140,8 @@
             font-weight: 700;
             padding: 0.25rem 0.7rem;
             border-radius: 999px;
-            background: rgba(100, 255, 218, 0.10);
-            border: 1px solid rgba(100, 255, 218, 0.25);
+            background: var(--accent-soft);
+            border: 1px solid var(--border-color);
             color: var(--accent-color);
         }
 
@@ -192,8 +177,8 @@
             width: 100%;
             height: 6px;
             border-radius: 999px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(15, 23, 42, 1);
+            background: var(--surface-strong);
+            border: 1px solid var(--border-color);
             overflow: hidden;
         }
 
@@ -226,8 +211,8 @@
         .question-tag {
             padding: 3px 10px;
             border-radius: 999px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: var(--surface-muted);
+            border: 1px solid var(--border-color);
             color: var(--accent-color);
             font-weight: 600;
         }
@@ -246,7 +231,7 @@
             width: 100%;
             border-radius: 12px;
             border: 1px solid var(--border-color);
-            background: #0b1624;
+            background: var(--surface-muted);
             padding: 0.75rem 0.9rem;
             text-align: right;
             display: flex;
@@ -256,18 +241,18 @@
             transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
             font-size: 0.92rem;
             font-family: var(--font-main);
-            color: #ffffff;
+            color: var(--text-primary);
         }
 
         .option-btn:hover {
-            background: #131f33;
-            border-color: rgba(100, 255, 218, 0.35);
+            background: var(--surface-strong);
+            border-color: var(--border-color-strong);
         }
 
         .option-btn.selected {
-            background: rgba(100, 255, 218, 0.08);
+            background: var(--accent-soft);
             border-color: var(--accent-color);
-            box-shadow: 0 0 0 1px rgba(100, 255, 218, 0.35);
+            box-shadow: 0 0 0 1px var(--accent-soft);
         }
 
         .option-letter {
@@ -276,7 +261,7 @@
             color: var(--accent-color);
         }
 
-        .option-text { flex: 1; font-family: var(--font-main); color: #ffffff; }
+        .option-text { flex: 1; font-family: var(--font-main); color: var(--text-primary); }
 
         .nav-buttons {
             margin-top: 1rem;
@@ -298,14 +283,14 @@
             display: inline-flex;
             align-items: center;
             gap: 0.3rem;
-            background: rgba(15, 23, 42, 0.85);
+            background: var(--surface);
             color: var(--text-secondary);
             transition: background 0.2s, border-color 0.2s, transform 0.1s, color 0.2s;
         }
 
         .btn-base:hover {
-            background: #131f33;
-            border-color: rgba(100, 255, 218, 0.35);
+            background: var(--surface-strong);
+            border-color: var(--border-color-strong);
             color: var(--text-primary);
         }
 
@@ -313,7 +298,7 @@
 
         .btn-primary {
             background: var(--btn-gradient);
-            color: #ffffff;
+            color: var(--text-on-accent);
             border: none;
             box-shadow: var(--btn-shadow);
         }
@@ -330,7 +315,7 @@
         }
 
         .results-section {
-            background: rgba(15, 23, 42, 0.95);
+            background: var(--surface);
             border-radius: 18px;
             border: 1px solid var(--border-color);
             padding: 1.4rem 1.3rem;
@@ -364,7 +349,7 @@
         }
 
         .results-box {
-            background: #0b1624;
+            background: var(--surface-muted);
             border-radius: 12px;
             border: 1px solid var(--border-color);
             padding: 0.7rem 0.8rem;
@@ -384,7 +369,7 @@
         }
 
         .answer-card {
-            background: #0b1624;
+            background: var(--surface-muted);
             border-radius: 16px;
             border: 1px solid var(--border-color);
             padding: 1rem 1.1rem;
@@ -411,7 +396,7 @@
             padding: 0.45rem 0.7rem;
             border-radius: 10px;
             border: 1px solid rgba(148, 163, 184, 0.35);
-            background: rgba(15, 23, 42, 0.65);
+            background: var(--surface);
         }
 
         .option-main {
@@ -451,12 +436,12 @@
         .option-row.correct .option-tag,
         .option-row.user-correct .option-tag {
             border-color: rgba(34, 197, 94, 0.9);
-            color: #bbf7d0;
+            color: var(--success-color);
         }
 
         .option-row.user-wrong .option-tag {
             border-color: rgba(248, 113, 113, 0.9);
-            color: #fecaca;
+            color: var(--danger-color);
         }
 
         .answer-explanation {
@@ -495,11 +480,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Dent1402">
-<link rel="manifest" href="/manifest.webmanifest?v=20260430-104508">
-<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260430-104508">
-    <script src="/assets/site/scripts/theme.js?v=20260430-104508"></script>
-<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260430-104508">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260430-104508">
+<link rel="manifest" href="/manifest.webmanifest?v=20260430-113012">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260430-113012">
+    <script src="/assets/site/scripts/theme.js?v=20260430-113012"></script>
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260430-113012">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260430-113012">
 </head>
 
 <body class="quiz-page">
@@ -1403,13 +1388,11 @@
 
     renderQuestion();
 </script>
-<script src="/assets/site/scripts/pwa.js?v=20260430-104508"></script>
-<script src="/assets/site/scripts/auth.js?v=20260430-104508"></script>
-<script src="/assets/site/scripts/shell.js?v=20260430-104508"></script>
+<script src="/assets/site/scripts/pwa.js?v=20260430-113012"></script>
+<script src="/assets/site/scripts/auth.js?v=20260430-113012"></script>
+<script src="/assets/site/scripts/shell.js?v=20260430-113012"></script>
 </body>
 </html>
-
-
 
 
 

@@ -534,6 +534,10 @@
     }
 
     function injectButtons() {
+        document.querySelectorAll("[data-theme-toggle-slot]").forEach(function (slot) {
+            ensureButton(slot, true);
+        });
+
         var chatActions = document.querySelector(".chat-app__actions");
         if (chatActions) {
             ensureButton(chatActions, true);
