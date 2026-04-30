@@ -103,7 +103,6 @@
     var accountPhoneNudgeOpen = $("account-phone-nudge-open");
     var accountPhoneNudgeDismiss = $("account-phone-nudge-dismiss");
     var ownerHubSection = $("account-owner-section");
-    var pollManagerHubSection = $("account-poll-manager-section");
     var accountActivePollsRow = $("account-active-polls-row");
     var accountActivePollsMeta = $("account-active-polls-meta");
     var accountInfoRole = $("account-info-role");
@@ -113,7 +112,6 @@
     var accountRowInfoMeta = $("account-row-info-meta");
     var accountRowOwnerMeta = $("account-row-owner-meta");
     var accountRowNavidMeta = $("account-row-navid-meta");
-    var accountRowPollsMeta = $("account-row-polls-meta");
     var accountRowPhoneMeta = $("account-row-phone-meta");
     var surfaceOpeners = Array.prototype.slice.call(document.querySelectorAll("[data-open-surface]"));
     var surfaceBackButtons = Array.prototype.slice.call(document.querySelectorAll("[data-surface-back]"));
@@ -264,12 +262,6 @@
 
     function hasOwnerAccess() {
         return !!(currentUser && currentUser.isOwner);
-    }
-
-    function hasPollManagementAccess(user) {
-        var source = user || currentUser || {};
-        var role = String(source.role || "").trim();
-        return !!source.isOwner || role === "owner";
     }
 
     function accountUserKey(user) {
@@ -3682,9 +3674,6 @@
             if (accountRowNavidMeta) {
                 accountRowNavidMeta.textContent = "وضعیت اتصال و همگام‌سازی نوید";
             }
-            if (accountRowPollsMeta) {
-                accountRowPollsMeta.textContent = "ساخت فرم و نظرسنجی فقط برای مالک فعال است.";
-            }
             if (accountRowPhoneMeta) {
                 accountRowPhoneMeta.textContent = "ثبت شماره موبایل، تایید با OTP و فعال‌سازی مسیر دوم ورود";
             }
@@ -3707,9 +3696,6 @@
             ownerState.deletingGradeCourseKey = "";
             ownerState.resettingGrades = false;
             ownerState.campusMarking = false;
-            if (pollManagerHubSection) {
-                pollManagerHubSection.hidden = true;
-            }
             resetActivePollShortcut();
             if (accountPhoneNudge) {
                 accountPhoneNudge.hidden = true;
@@ -3745,9 +3731,6 @@
         setFeedback(profileFeedback, "", "");
         setFeedback(securityFeedback, "", "");
 
-        if (pollManagerHubSection) {
-            pollManagerHubSection.hidden = !hasPollManagementAccess(detail.user);
-        }
         loadActivePollShortcut(detail.user);
 
         if (detail.user.isOwner) {

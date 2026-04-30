@@ -1831,6 +1831,7 @@
         notificationsRoot.addEventListener("click", function (event) {
             var detailButton = event.target.closest("[data-payment-order-detail]");
             if (detailButton) {
+                openPaymentTab("orders");
                 loadOrderDetail(detailButton.getAttribute("data-payment-order-detail"));
                 return;
             }
@@ -1848,6 +1849,7 @@
             if (!detailButton) {
                 return;
             }
+            openPaymentTab("orders");
             loadOrderDetail(detailButton.getAttribute("data-payment-order-detail"));
         });
     }

@@ -230,14 +230,16 @@
         }
     }
 
-    function addToCart(slug, quantity) {
+    function addToCart(slug, quantity, replaceQuantity) {
         var clean = String(slug || "").trim();
-        if (!clean) return;
+        if (!clean) return cartItems();
         var items = cartItems();
         var existing = items.find(function (entry) { return entry.slug === clean; });
         var nextQuantity = Math.max(1, Math.min(99, Number(quantity) || 1));
         if (existing) {
-            existing.quantity = Math.max(1, Math.min(99, (Number(existing.quantity) || 1) + nextQuantity));
+            existing.quantity = replaceQuantity
+                ? nextQuantity
+                : Math.max(1, Math.min(99, (Number(existing.quantity) || 1) + nextQuantity));
             existing.addedAt = new Date().toISOString();
         } else {
             items.unshift({
@@ -247,6 +249,7 @@
             });
         }
         writeCartItems(items);
+        return items;
     }
 
     function updateCartQuantity(slug, quantity) {
@@ -297,6 +300,7 @@
                     payerName: String(parsed.payerName || ""),
                     payerPhone: String(parsed.payerPhone || ""),
                     payerStudentNumber: String(parsed.payerStudentNumber || ""),
+                    gateway: String(parsed.gateway || ""),
                     lineExtraFormData: parsed.lineExtraFormData && typeof parsed.lineExtraFormData === "object" ? parsed.lineExtraFormData : {}
                 };
             }
@@ -308,6 +312,7 @@
             payerName: "",
             payerPhone: "",
             payerStudentNumber: "",
+            gateway: "",
             lineExtraFormData: {}
         };
     }
@@ -779,6 +784,7 @@
                 if (cartButton) {
                     addToCart(cartButton.getAttribute("data-buy-cart"), 1);
                     flashButton(cartButton, "✓", "＋");
+                    renderCartDock(state.items);
                 }
             });
         }
@@ -1070,6 +1076,71 @@
         }
     }
 
+    function currentBuyPage() {
+        return document.body && document.body.dataset ? String(document.body.dataset.buyPage || "") : "";
+    }
+
+    function renderCartDock(items) {
+        var pageKey = currentBuyPage();
+        if (pageKey === "cart" || pageKey === "result") {
+            return;
+        }
+        var main = document.querySelector("main.buy-shell");
+        if (!main) {
+            return;
+        }
+        var dock = $("buy-cart-dock");
+        if (!dock) {
+            dock = document.createElement("aside");
+            dock.id = "buy-cart-dock";
+            dock.className = "buy-cart-dock";
+            dock.setAttribute("aria-live", "polite");
+            main.appendChild(dock);
+        }
+
+        var cart = cartItems();
+        if (!cart.length) {
+            dock.hidden = true;
+            dock.innerHTML = "";
+            return;
+        }
+
+        var snapshot = cartSnapshot(Array.isArray(items) ? items : state.items);
+        var title = snapshot.quantity > 0
+            ? snapshot.quantity.toLocaleString("fa-IR") + " عدد در سبد"
+            : cart.length.toLocaleString("fa-IR") + " آیتم در سبد";
+        var amount = snapshot.subtotal > 0 ? money(snapshot.subtotal) : "محاسبه در سبد";
+        var note = snapshot.missing.length
+            ? "برخی آیتم‌ها برای محاسبه نهایی باید در سبد بررسی شوند."
+            : "جمع سبد تا مرحله پرداخت حفظ می‌شود.";
+
+        dock.hidden = false;
+        dock.innerHTML = [
+            '<div class="buy-cart-dock__copy">',
+            '  <span>' + text(title) + "</span>",
+            '  <strong>' + text(amount) + "</strong>",
+            '  <small>' + text(note) + "</small>",
+            "</div>",
+            '<a class="buy-primary-btn" href="/buy/cart/">مشاهده سبد و ادامه</a>'
+        ].join("");
+    }
+
+    function refreshCartDockCatalog(fallbackItems) {
+        var fallback = Array.isArray(fallbackItems) ? fallbackItems : state.items;
+        renderCartDock(fallback);
+        if (currentBuyPage() !== "item" || !cartItems().length) {
+            return;
+        }
+        apiGet("listPublicItems", {}).then(function (payload) {
+            if (payload && payload.success && Array.isArray(payload.items)) {
+                state.items = payload.items;
+                renderCartDock(state.items);
+            }
+        }).catch(function () {
+            renderCartDock(fallback);
+        });
+    }
+
     function bindDetailActions(slug, item, feedback) {
         var share = $("buy-share-item");
         var save = $("buy-save-item");
@@ -1113,28 +1184,35 @@
             }
             state.items = Array.isArray(payload.items) ? payload.items : [];
             renderList(state.items);
+            renderCartDock(state.items);
         }).catch(function () {
             state.items = [];
             renderList([]);
+            renderCartDock([]);
         });
     }
 
     function cartStep() {
         var allowed = ["cart", "discount", "details", "gateway"];
-        var step = readParam("step") || "cart";
+        var parts = String(window.location.pathname || "").split("/").filter(Boolean);
+        var cartIndex = parts.indexOf("cart");
+        var pathStep = cartIndex >= 0 && parts.length > cartIndex + 1 ? parts[cartIndex + 1] : "";
+        var step = pathStep || readParam("step") || "cart";
         return allowed.indexOf(step) >= 0 ? step : "cart";
+    }
+
+    function cartStepUrl(step) {
+        var clean = ["cart", "discount", "details", "gateway"].indexOf(step) >= 0 ? step : "cart";
+        var url = new URL(window.location.href);
+        url.pathname = clean === "cart" ? "/buy/cart/" : "/buy/cart/" + clean + "/";
+        url.search = "";
+        return url.toString();
     }
 
     function setCartStep(step) {
         var next = ["cart", "discount", "details", "gateway"].indexOf(step) >= 0 ? step : "cart";
         window.clearTimeout(cartQuoteTimer);
-        var url = new URL(window.location.href);
-        if (next === "cart") {
-            url.searchParams.delete("step");
-        } else {
-            url.searchParams.set("step", next);
-        }
-        window.history.pushState({ buyCartStep: next }, "", url.toString());
+        window.history.pushState({ buyCartStep: next }, "", cartStepUrl(next));
         renderCartCheckout(state.items);
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -1222,12 +1300,15 @@
 
     function cartSummaryHtml(snapshot) {
         var source = quoteSource(snapshot);
+        var subtotal = source.subtotal == null ? (snapshot.subtotal || 0) : Number(source.subtotal || 0);
+        var quantity = source.quantity == null ? (snapshot.quantity || 0) : Number(source.quantity || 0);
+        var amount = source.amount == null ? (snapshot.subtotal || 0) : Number(source.amount || 0);
         return [
             '<div class="buy-cart-total">',
-            '  <div><span>جمع آیتم‌ها</span><strong>' + text(money(source.subtotal || snapshot.subtotal || 0)) + "</strong></div>",
-            '  <div><span>تعداد کل</span><strong>' + text(Number(source.quantity || snapshot.quantity || 0).toLocaleString("fa-IR")) + "</strong></div>",
+            '  <div><span>جمع آیتم‌ها</span><strong>' + text(money(subtotal)) + "</strong></div>",
+            '  <div><span>تعداد کل</span><strong>' + text(Number(quantity).toLocaleString("fa-IR")) + "</strong></div>",
             '  <div><span>تخفیف</span><strong>' + text(money(source.discountAmount || 0)) + "</strong></div>",
-            '  <div class="is-payable"><span>مبلغ قابل پرداخت</span><strong>' + text(money(source.amount || snapshot.subtotal || 0)) + "</strong></div>",
+            '  <div class="is-payable"><span>مبلغ قابل پرداخت</span><strong>' + text(money(amount)) + "</strong></div>",
             "</div>"
         ].join("");
     }
@@ -1420,13 +1501,19 @@
             return '<div class="buy-empty">درگاه پرداختی برای این سبد تعریف نشده است.</div>';
         }
         var selectedOnce = false;
+        var firstEnabled = normalized.gateways.find(function (entry) { return entry.isEnabled; });
+        var fallbackKey = firstEnabled ? firstEnabled.key : "";
+        var savedGateway = String(readCheckoutData().gateway || "").trim().toLowerCase();
         return [
             '<div id="buy-cart-gateway-options" class="buy-gateway__list">',
             normalized.gateways.map(function (entry, index) {
                 var inputId = "buy-cart-gateway-" + entry.key + "-" + String(index);
                 var disabled = !entry.isEnabled;
                 var checked = false;
-                if (!disabled && !selectedOnce && normalized.defaultKey && entry.key === normalized.defaultKey) {
+                if (!disabled && !selectedOnce && savedGateway && entry.key === savedGateway) {
+                    checked = true;
+                    selectedOnce = true;
+                } else if (!disabled && !selectedOnce && normalized.defaultKey && entry.key === normalized.defaultKey) {
                     checked = true;
                     selectedOnce = true;
                 } else if (!disabled && !selectedOnce && (!normalized.defaultKey || normalized.defaultKey !== fallbackKey) && entry.key === fallbackKey) {
@@ -1548,6 +1635,7 @@
             setFeedback(feedback, "لطفا روش پرداخت را انتخاب کنید.", "is-error");
             return;
         }
+        updateCheckoutData({ gateway: String(selected.value || "").trim() });
         if (!data.payerName || !normalizePhone(data.payerPhone)) {
             setFeedback(feedback, "ابتدا مشخصات پرداخت‌کننده را کامل کنید.", "is-error");
             setCartStep("details");
@@ -1637,6 +1725,10 @@
                     return;
                 }
                 if (!event.target || !event.target.id) {
+                    return;
+                }
+                if (event.target.name === "buy_cart_gateway") {
+                    updateCheckoutData({ gateway: String(event.target.value || "").trim() });
                     return;
                 }
                 if (event.target.id === "buy-cart-payer-name" || event.target.id === "buy-cart-payer-phone" || event.target.id === "buy-cart-payer-student-number") {
@@ -1783,6 +1875,7 @@
 
             var item = payload.item;
             state.currentItem = item;
+            refreshCartDockCatalog([item]);
             var itemState = item.state || {};
             var payable = !!itemState.isPayable;
             var maxQuantity = Math.max(1, Math.min(Number(item.maxQuantityPerOrder || 1) || 1, Number(item.remainingCapacity || item.maxQuantityPerOrder || 1) || 1));
@@ -1917,7 +2010,8 @@
                 addCartButton.dataset.buyBound = "1";
                 addCartButton.addEventListener("click", function () {
                     addToCart(item.slug, readQuantity());
-                    setFeedback(feedback, "آیتم به سبد خرید اضافه شد.", "is-success");
+                    refreshCartDockCatalog([item]);
+                    setFeedback(feedback, "آیتم به سبد خرید اضافه شد. ادامه پرداخت از سبد انجام می‌شود.", "is-success");
                 });
             }
 
@@ -1928,6 +2022,16 @@
             form.onsubmit = function (event) {
                 event.preventDefault();
                 if (!payable) {
+                    return;
+                }
+
+                if (String(form.dataset.buyItemRouteCart || "") === "true") {
+                    addToCart(item.slug, readQuantity(), true);
+                    refreshCartDockCatalog([item]);
+                    setFeedback(feedback, "آیتم به سبد اضافه شد. در حال انتقال به پرداخت مرحله‌ای...", "is-success");
+                    window.setTimeout(function () {
+                        window.location.href = cartStepUrl("discount");
+                    }, 120);
                     return;
                 }
 

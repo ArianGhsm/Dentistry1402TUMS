@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260430-101928">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260430-101928">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260430-101928">
-    <script src="/assets/site/scripts/theme.js?v=20260430-101928"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260430-101928">
-    <link rel="stylesheet" href="/assets/site/styles/buy.css?v=20260430-101928">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260430-101928">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260430-103625">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260430-103625">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260430-103625">
+    <script src="/assets/site/scripts/theme.js?v=20260430-103625"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260430-103625">
+    <link rel="stylesheet" href="/assets/site/styles/buy.css?v=20260430-103625">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260430-103625">
 </head>
 <body class="buy-page" data-buy-page="item">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -27,7 +27,7 @@
             </div>
             <div class="site-info">
                 <h1>ثبت سفارش و پرداخت</h1>
-                <p>جزئیات آیتم، قیمت شفاف، سبد خرید و انتخاب درگاه</p>
+                <p>جزئیات آیتم، قیمت شفاف و ادامه پرداخت از سبد خرید</p>
             </div>
         </div>
         <div class="header-actions">
@@ -129,17 +129,17 @@
                 </div>
             </article>
 
-            <aside class="buy-checkout-card" aria-label="فرم پرداخت">
+            <aside class="buy-checkout-card" aria-label="افزودن به سبد خرید">
                 <div class="buy-checkout-card__head">
                     <span class="buy-kicker">ثبت سفارش</span>
-                    <h3>سبد و پرداخت</h3>
-                    <p class="buy-muted">فرم کوتاه و شفاف؛ مبلغ نهایی در سرور محاسبه و سفارش با همین آیتم ثبت می‌شود.</p>
+                    <h3>افزودن به سبد</h3>
+                    <p class="buy-muted">تعداد را انتخاب کنید و ادامه پرداخت را از سبد خرید مرحله‌ای انجام دهید.</p>
                 </div>
 
-                <form id="buy-order-form" class="buy-form" novalidate>
+                <form id="buy-order-form" class="buy-form" data-buy-item-route-cart="true" novalidate>
                     <div class="buy-form-step">
                         <span>۱</span>
-                        <strong>اطلاعات سفارش</strong>
+                        <strong>تعداد و مبلغ</strong>
                     </div>
 
                     <label class="buy-form__field">
@@ -147,48 +147,15 @@
                         <input id="buy-order-quantity" type="number" inputmode="numeric" min="1" max="1" value="1" data-digit-locale="latin">
                     </label>
 
-                    <label class="buy-form__field">
-                        <span>کد تخفیف</span>
-                        <input id="buy-discount-code" type="text" maxlength="40" autocomplete="off" dir="ltr" data-digit-locale="latin" placeholder="اختیاری">
-                    </label>
-
                     <div id="buy-price-breakdown" class="buy-price-breakdown" aria-live="polite"></div>
 
                     <div class="buy-form-step">
                         <span>۲</span>
-                        <strong>مشخصات پرداخت‌کننده</strong>
+                        <strong>ادامه پرداخت</strong>
                     </div>
 
-                    <label class="buy-form__field">
-                        <span>نام و نام خانوادگی *</span>
-                        <input id="buy-payer-name" type="text" maxlength="120" autocomplete="name" placeholder="مثلا آریا رضایی">
-                    </label>
-
-                    <label class="buy-form__field">
-                        <span>شماره موبایل *</span>
-                        <input id="buy-payer-phone" type="tel" inputmode="numeric" maxlength="14" autocomplete="tel" dir="ltr" data-digit-locale="latin" placeholder="09xxxxxxxxx">
-                    </label>
-
-                    <label class="buy-form__field">
-                        <span>شماره دانشجویی</span>
-                        <input id="buy-payer-student-number" type="text" inputmode="numeric" maxlength="20" autocomplete="off" dir="ltr" data-digit-locale="latin" placeholder="در صورت نیاز">
-                    </label>
-
-                    <div id="buy-extra-fields" class="buy-form__extra"></div>
-
-                    <section id="buy-gateway-section" class="buy-gateway" aria-label="روش پرداخت">
-                        <div class="buy-gateway__head">
-                            <div class="buy-form-step">
-                                <span>۳</span>
-                                <strong>انتخاب درگاه پرداخت</strong>
-                            </div>
-                            <p class="buy-muted">فعلاً ارسال نیاز نیست؛ محل تحویل/استفاده دانشگاه علوم پزشکی تهران است.</p>
-                        </div>
-                        <div id="buy-gateway-options" class="buy-gateway__list" aria-live="polite"></div>
-                    </section>
-
                     <button id="buy-add-to-cart" class="buy-secondary-btn" type="button">افزودن به سبد خرید</button>
-                    <button id="buy-order-submit" class="buy-primary-btn" type="submit">ثبت سفارش و پرداخت</button>
+                    <button id="buy-order-submit" class="buy-primary-btn" type="submit">ادامه به پرداخت مرحله‌ای</button>
                     <div id="buy-order-feedback" class="buy-feedback" aria-live="polite"></div>
                 </form>
             </aside>
@@ -212,9 +179,9 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260430-101928"></script>
-    <script src="/assets/site/scripts/buy.js?v=20260430-101928"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260430-101928"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260430-101928"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260430-103625"></script>
+    <script src="/assets/site/scripts/buy.js?v=20260430-103625"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260430-103625"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260430-103625"></script>
 </body>
 </html>

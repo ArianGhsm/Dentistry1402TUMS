@@ -183,6 +183,10 @@ function navid_secret_key(): string
 
 function navid_encrypt_text(string $plainText): array
 {
+    if (!function_exists('openssl_encrypt')) {
+        dent_error('رمزنگاری سمت سرور برای نوید در دسترس نیست.', 500);
+    }
+
     $key = navid_secret_key();
     $iv = random_bytes(12);
     $tag = '';
@@ -203,7 +207,7 @@ function navid_encrypt_text(string $plainText): array
 
 function navid_decrypt_text($payload): string
 {
-    if (!is_array($payload)) {
+    if (!is_array($payload) || !function_exists('openssl_decrypt')) {
         return '';
     }
 

@@ -219,6 +219,18 @@ function navid_http_request(string $method, string $url, array $options = []): a
     $responseHeaders = [];
     $body = '';
 
+    if (!function_exists('curl_init')) {
+        return [
+            'ok' => false,
+            'status' => 0,
+            'body' => '',
+            'headers' => [],
+            'cookies' => [],
+            'error' => 'curl-missing',
+            'effectiveUrl' => $url,
+        ];
+    }
+
     $curl = curl_init($url);
     if ($curl === false) {
         return [
