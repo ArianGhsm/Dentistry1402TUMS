@@ -500,8 +500,6 @@
   var conversationBatchDelete = $("conversation-batch-delete");
   var conversationList = $("conversation-list");
   var conversationEmpty = $("conversation-empty");
-  var newDmBtn = $("new-dm-btn");
-  var newGroupBtn = $("new-group-btn");
   var conversationQuickActionButtons = Array.from(document.querySelectorAll("[data-chat-quick-action]"));
   var newPollLink = null;
   var mobileOpenListBtn = $("mobile-open-list");
@@ -6497,8 +6495,6 @@
     if (conversationBatchDelete) {
       conversationBatchDelete.addEventListener("click", function () { runConversationBatchAction("delete"); });
     }
-    if (newDmBtn) newDmBtn.addEventListener("click", openDmCreationFlow);
-    if (newGroupBtn) newGroupBtn.addEventListener("click", openGroupCreationFlow);
     conversationQuickActionButtons.forEach(function (button) {
       button.addEventListener("click", function () {
         var action = normalizeSpace(button.getAttribute("data-chat-quick-action"));
