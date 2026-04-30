@@ -1784,10 +1784,701 @@ body.buy-modal-open {
     border-radius: 8px;
 }
 
+.buy-owner-entry {
+    min-height: 82px;
+    padding: 0.82rem;
+    border: 1px solid color-mix(in srgb, var(--commerce-accent) 26%, var(--border-color));
+    border-radius: 8px;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--commerce-accent-soft) 62%, transparent), transparent),
+        var(--commerce-surface);
+    box-shadow: var(--surface-shadow);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.72rem;
+    align-items: center;
+}
+
+.buy-owner-entry[hidden] {
+    display: none !important;
+}
+
+.buy-owner-entry h2,
+.buy-owner-entry p {
+    margin: 0;
+}
+
+.buy-owner-entry h2 {
+    font-size: 0.98rem;
+    line-height: 1.6;
+}
+
+.buy-owner-entry p {
+    margin-top: 0.12rem;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.8;
+}
+
+.buy-shell--manage {
+    width: min(1180px, 100%);
+}
+
+.buy-manage-guard {
+    display: grid;
+}
+
+.buy-manage-app {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.buy-manage-app[hidden],
+.buy-manage-panel[hidden] {
+    display: none !important;
+}
+
+.buy-manage-nav {
+    position: sticky;
+    top: calc(58px + env(safe-area-inset-top, 0px));
+    z-index: 70;
+    display: flex;
+    gap: 0.44rem;
+    overflow-x: auto;
+    padding: 0.42rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--commerce-surface) 90%, transparent);
+    box-shadow: var(--surface-shadow);
+    backdrop-filter: blur(14px);
+    scrollbar-width: none;
+}
+
+.buy-manage-nav::-webkit-scrollbar,
+.buy-manage-subtabs::-webkit-scrollbar {
+    display: none;
+}
+
+.buy-manage-nav a,
+.buy-manage-subtabs button {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.38rem 0.72rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-solid);
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    font-weight: 850;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.buy-manage-nav a.is-active,
+.buy-manage-nav a:hover,
+.buy-manage-nav a:focus-visible,
+.buy-manage-subtabs button.is-active,
+.buy-manage-subtabs button:hover,
+.buy-manage-subtabs button:focus-visible {
+    color: var(--commerce-accent-strong);
+    border-color: color-mix(in srgb, var(--commerce-accent) 34%, var(--border-color));
+    background: color-mix(in srgb, var(--commerce-accent-soft) 68%, var(--surface-solid));
+}
+
+.buy-manage-head {
+    min-height: 92px;
+    padding: 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--commerce-accent-soft) 42%, transparent), transparent),
+        var(--surface-solid);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.78rem;
+    align-items: center;
+}
+
+.buy-manage-head h2,
+.buy-manage-head p {
+    margin: 0;
+}
+
+.buy-manage-head h2 {
+    font-size: 1.15rem;
+    line-height: 1.6;
+}
+
+.buy-manage-head p {
+    margin-top: 0.14rem;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.85;
+}
+
+.buy-manage-root {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.buy-manage-module-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.72rem;
+}
+
+.buy-manage-module {
+    min-height: 150px;
+    padding: 0.86rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-solid);
+    display: grid;
+    align-content: space-between;
+    gap: 0.7rem;
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.buy-manage-module:hover,
+.buy-manage-module:focus-visible {
+    border-color: color-mix(in srgb, var(--commerce-accent) 34%, var(--border-color));
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--commerce-accent-soft) 50%, transparent), transparent),
+        var(--surface-solid);
+}
+
+.buy-manage-module h3,
+.buy-manage-module p {
+    margin: 0;
+}
+
+.buy-manage-module h3 {
+    font-size: 0.96rem;
+    line-height: 1.6;
+}
+
+.buy-manage-module p {
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    line-height: 1.82;
+}
+
+.buy-manage-module span {
+    color: var(--commerce-accent-strong);
+    font-size: 0.76rem;
+    font-weight: 880;
+}
+
+.buy-manage-toolbar {
+    padding: 0.68rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-solid);
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(160px, 220px);
+    gap: 0.62rem;
+    align-items: end;
+}
+
+.buy-manage-search,
+.buy-manage-select,
+.buy-page .payments-filter-row,
+.buy-page .payments-field {
+    display: grid;
+    gap: 0.34rem;
+}
+
+.buy-manage-search span,
+.buy-manage-select span,
+.buy-page .payments-filter-row label,
+.buy-page .payments-field label,
+.buy-page .payments-field-label {
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    font-weight: 800;
+}
+
+.buy-manage-search input,
+.buy-manage-select select,
+.buy-page .payments-filter-grid input,
+.buy-page .payments-filter-grid select,
+.buy-page .payments-field input,
+.buy-page .payments-field textarea,
+.buy-page .payments-field select {
+    width: 100%;
+    min-height: 42px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-solid);
+    color: var(--text-primary);
+    padding: 0.52rem 0.64rem;
+    font: inherit;
+    font-size: 0.84rem;
+}
+
+.buy-page .payments-field textarea {
+    min-height: 112px;
+    resize: vertical;
+    line-height: 1.8;
+}
+
+.buy-manage-search input:focus,
+.buy-manage-select select:focus,
+.buy-page .payments-filter-grid input:focus,
+.buy-page .payments-filter-grid select:focus,
+.buy-page .payments-field input:focus,
+.buy-page .payments-field textarea:focus,
+.buy-page .payments-field select:focus {
+    border-color: var(--commerce-accent);
+    box-shadow: 0 0 0 3px var(--commerce-accent-soft);
+}
+
+.buy-manage-list,
+.payments-notifications-list {
+    display: grid;
+    gap: 0.58rem;
+}
+
+.buy-page .payments-item-card,
+.buy-page .payments-order-card,
+.buy-page .payments-note,
+.buy-page .owner-block--payments,
+.buy-page .owner-block--payments-toolbar {
+    padding: 0.78rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-solid);
+    box-shadow: none;
+}
+
+.buy-page .payments-item-card,
+.buy-page .payments-order-card,
+.buy-page .payments-note {
+    display: grid;
+    gap: 0.58rem;
+}
+
+.buy-page .payments-item-card__head,
+.buy-page .payments-order-card__head,
+.buy-page .payments-note__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.72rem;
+    align-items: flex-start;
+}
+
+.buy-page .payments-item-card__head h4,
+.buy-page .payments-order-card__head h4,
+.buy-page .payments-note__head strong,
+.buy-page .payments-code-block h5 {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.65;
+}
+
+.buy-page .payments-item-card__head p,
+.buy-page .payments-order-card__head p,
+.buy-page .payments-note p {
+    margin: 0.16rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    line-height: 1.85;
+}
+
+.buy-page .payments-item-card__meta,
+.buy-page .payments-order-card__meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.42rem;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+.buy-page .payments-item-card__actions,
+.buy-page .payments-order-card__actions,
+.buy-page .payments-note__actions,
+.buy-page .payments-inline-actions,
+.buy-manage-savebar {
+    display: flex;
+    gap: 0.46rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.buy-page .payments-pill,
+.buy-page .payments-note__state {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    min-height: 28px;
+    padding: 0.14rem 0.62rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 840;
+}
+
+.buy-page .payments-pill--ok {
+    color: var(--success-color);
+    border-color: color-mix(in srgb, var(--success-color) 28%, var(--border-color));
+    background: color-mix(in srgb, var(--success-color) 10%, var(--surface-solid));
+}
+
+.buy-page .payments-pill--warn {
+    color: var(--warning-color);
+    border-color: color-mix(in srgb, var(--warning-color) 30%, var(--border-color));
+    background: color-mix(in srgb, var(--warning-color) 12%, var(--surface-solid));
+}
+
+.buy-page .payments-pill--danger,
+.buy-page .shell-action-btn-danger {
+    color: var(--danger-color);
+}
+
+.buy-page .payments-pill--danger {
+    border-color: color-mix(in srgb, var(--danger-color) 30%, var(--border-color));
+    background: color-mix(in srgb, var(--danger-color) 12%, var(--surface-solid));
+}
+
+.buy-page .shell-action-btn-danger {
+    border-color: color-mix(in srgb, var(--danger-color) 32%, var(--border-color));
+    background: color-mix(in srgb, var(--danger-color) 9%, var(--surface-solid));
+}
+
+.buy-page .payments-note.is-unread {
+    border-color: color-mix(in srgb, var(--warning-color) 36%, var(--border-color));
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--warning-color) 12%, transparent), transparent),
+        var(--surface-solid);
+}
+
+.buy-manage-editor {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+    gap: 0.72rem;
+    align-items: start;
+}
+
+.buy-manage-editor__main,
+.buy-page .payments-filter-grid,
+.buy-manage-gateway-form {
+    padding: 0.78rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-solid);
+    display: grid;
+    gap: 0.72rem;
+}
+
+.buy-manage-subtabs {
+    display: flex;
+    gap: 0.42rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.buy-manage-panel {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.buy-page .payments-form-section__head {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 0.58rem;
+    align-items: start;
+}
+
+.buy-page .payments-form-section__head span {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--commerce-accent-soft);
+    color: var(--commerce-accent-strong);
+    font-weight: 900;
+}
+
+.buy-page .payments-form-section__head h5,
+.buy-page .payments-form-section__head p {
+    margin: 0;
+}
+
+.buy-page .payments-form-section__head h5 {
+    font-size: 0.94rem;
+    line-height: 1.6;
+}
+
+.buy-page .payments-form-section__head p {
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    line-height: 1.8;
+}
+
+.buy-page .payments-form-grid,
+.buy-page .payments-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.62rem;
+}
+
+.buy-page .payments-field--full,
+.buy-page .payments-filter-row--full,
+.buy-page .payments-filter-grid--refined .payments-inline-actions {
+    grid-column: 1 / -1;
+}
+
+.buy-page .payments-owner-preview {
+    position: sticky;
+    top: calc(130px + env(safe-area-inset-top, 0px));
+    padding: 0.72rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-solid);
+    display: grid;
+    gap: 0.62rem;
+}
+
+.buy-page .payments-owner-preview__media {
+    aspect-ratio: 4 / 3;
+    border-radius: 8px;
+    border: 1px dashed var(--border-color);
+    background: var(--surface-muted);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    color: var(--text-tertiary);
+    font-size: 0.76rem;
+}
+
+.buy-page .payments-owner-preview__media img,
+.buy-page .payments-image-drop img,
+.buy-page .payments-gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.buy-page .payments-owner-preview__body,
+.buy-page .payments-owner-preview__meta {
+    display: grid;
+    gap: 0.42rem;
+}
+
+.buy-page .payments-owner-preview__chips,
+.buy-page .payments-owner-preview__actions {
+    display: flex;
+    gap: 0.36rem;
+    flex-wrap: wrap;
+}
+
+.buy-page .payments-owner-preview__chips span,
+.buy-page .payments-owner-preview__meta span {
+    width: fit-content;
+    padding: 0.18rem 0.54rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+}
+
+.buy-page .payments-owner-preview__body h5,
+.buy-page .payments-owner-preview__body p {
+    margin: 0;
+}
+
+.buy-page .payments-owner-preview__body h5 {
+    font-size: 0.92rem;
+    line-height: 1.65;
+}
+
+.buy-page .payments-owner-preview__body p {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    line-height: 1.75;
+}
+
+.buy-page .payments-owner-preview__body > strong {
+    color: var(--commerce-accent-strong);
+    font-size: 0.96rem;
+}
+
+.buy-page .payments-image-uploader,
+.buy-page .payments-gallery-uploader {
+    display: grid;
+    gap: 0.48rem;
+}
+
+.buy-page .payments-image-drop {
+    min-height: 180px;
+    border: 1px dashed color-mix(in srgb, var(--commerce-accent) 34%, var(--border-color));
+    border-radius: 8px;
+    background: var(--surface-muted);
+    display: grid;
+    place-items: center;
+    gap: 0.16rem;
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+}
+
+.buy-page .payments-image-drop input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.buy-page .payments-image-drop__icon {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: var(--commerce-accent-soft);
+    color: var(--commerce-accent-strong);
+    font-size: 1.3rem;
+    font-weight: 900;
+}
+
+.buy-page .payments-image-drop strong,
+.buy-page .payments-image-drop small,
+.buy-page .payments-gallery-uploader small,
+.buy-page .payments-image-toolbar span {
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    line-height: 1.8;
+}
+
+.buy-page .payments-image-toolbar {
+    display: flex;
+    gap: 0.44rem;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.buy-page .payments-gallery-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.46rem;
+}
+
+.buy-page .payments-gallery-thumb,
+.buy-page .payments-gallery-empty {
+    min-height: 92px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-muted);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+}
+
+.buy-page .payments-gallery-thumb {
+    position: relative;
+}
+
+.buy-page .payments-gallery-thumb button {
+    position: absolute;
+    inset-block-end: 0.34rem;
+    inset-inline-end: 0.34rem;
+    min-height: 30px;
+    border: 1px solid color-mix(in srgb, var(--danger-color) 30%, var(--border-color));
+    border-radius: 8px;
+    background: var(--surface-solid);
+    color: var(--danger-color);
+    font-size: 0.7rem;
+    font-weight: 820;
+}
+
+.buy-page .payments-switch {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.52rem;
+    align-items: center;
+    padding: 0.58rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-muted);
+}
+
+.buy-page .payments-switch input {
+    width: 20px;
+    height: 20px;
+}
+
+.buy-page .payments-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.52rem;
+}
+
+.buy-page .payments-detail-row,
+.buy-order-line {
+    padding: 0.62rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-muted);
+    display: grid;
+    gap: 0.18rem;
+}
+
+.buy-page .payments-detail-row span,
+.buy-order-line span {
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+}
+
+.buy-page .payments-detail-row strong,
+.buy-order-line strong {
+    font-size: 0.8rem;
+    line-height: 1.8;
+}
+
+.buy-order-lines {
+    display: grid;
+    gap: 0.44rem;
+}
+
+.buy-page .payments-code-block {
+    display: grid;
+    gap: 0.46rem;
+}
+
+.buy-page .payments-code-block pre {
+    margin: 0;
+    max-width: 100%;
+    overflow: auto;
+    padding: 0.72rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--surface-muted) 78%, transparent);
+    color: var(--text-primary);
+    font-size: 0.72rem;
+    line-height: 1.9;
+    direction: ltr;
+    text-align: left;
+}
+
 @media (max-width: 980px) {
     .buy-feed,
     .buy-item-layout,
-    .buy-info-grid {
+    .buy-info-grid,
+    .buy-manage-module-grid,
+    .buy-manage-editor {
         grid-template-columns: 1fr;
     }
 
@@ -1808,6 +2499,14 @@ body.buy-modal-open {
     .buy-cart-dock {
         inset-block-end: calc(var(--shell-nav-offset) + 0.48rem);
         grid-template-columns: 1fr;
+    }
+
+    .buy-page .payments-owner-preview {
+        position: static;
+    }
+
+    .buy-page .payments-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -1836,6 +2535,42 @@ body.buy-modal-open {
     .buy-trust-strip {
         grid-template-columns: 1fr;
         align-items: stretch;
+    }
+
+    .buy-owner-entry,
+    .buy-manage-head,
+    .buy-manage-toolbar,
+    .buy-page .payments-form-grid,
+    .buy-page .payments-filter-grid,
+    .buy-page .payments-item-card__meta,
+    .buy-page .payments-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .buy-owner-entry .buy-primary-btn,
+    .buy-manage-head .buy-primary-btn,
+    .buy-page .payments-item-card__actions .shell-action-btn,
+    .buy-page .payments-order-card__actions .shell-action-btn,
+    .buy-page .payments-note__actions .shell-action-btn,
+    .buy-page .payments-inline-actions .shell-action-btn {
+        width: 100%;
+    }
+
+    .buy-manage-search input,
+    .buy-manage-select select,
+    .buy-search input,
+    .buy-form input,
+    .buy-form textarea,
+    .buy-form select,
+    .buy-cart-checkout input,
+    .buy-cart-checkout select,
+    .buy-cart-checkout textarea,
+    .buy-page .payments-filter-grid input,
+    .buy-page .payments-filter-grid select,
+    .buy-page .payments-field input,
+    .buy-page .payments-field textarea,
+    .buy-page .payments-field select {
+        font-size: 1rem;
     }
 
     .buy-owner-console {

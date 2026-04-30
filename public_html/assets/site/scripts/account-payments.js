@@ -9,77 +9,44 @@
         return document.getElementById(id);
     }
 
-    var panel = $("account-panel");
-    var ownerConsole = $("buy-owner-console");
-    var rowMeta = $("account-row-payments-meta");
-    var summaryRoot = $("payments-summary");
+    var page = document.body && document.body.dataset ? String(document.body.dataset.buyManagePage || "") : "";
+    var mode = document.body && document.body.dataset ? String(document.body.dataset.buyManageMode || "") : "";
+    var root = $("payments-manage-root");
+    var app = $("payments-manage-app");
+    var guard = $("payments-auth-guard");
     var feedbackNode = $("payments-feedback");
-    var notificationsRoot = $("payments-notifications-list");
-    var itemsRoot = $("payments-items-grid");
-    var ordersSummaryRoot = $("payments-orders-summary");
-    var ordersRoot = $("payments-orders-list");
-    var orderDetailRoot = $("payments-order-detail");
-    var itemForm = $("payments-item-form");
-    var itemFormFeedback = $("payments-item-form-feedback");
-    var filterForm = $("payments-orders-filter-form");
-    var filterItem = $("payments-filter-item");
-    var filterStatus = $("payments-filter-status");
-    var filterDateFrom = $("payments-filter-date-from");
-    var filterDateTo = $("payments-filter-date-to");
-    var filterQuery = $("payments-filter-query");
-    var previewImage = $("payments-preview-image");
-    var previewCategory = $("payments-preview-category");
-    var previewStatus = $("payments-preview-status");
-    var previewTitle = $("payments-preview-title");
-    var previewShort = $("payments-preview-short");
-    var previewPrice = $("payments-preview-price");
-    var previewMeta = $("payments-preview-meta");
-    var previewSpecs = $("payments-preview-specs");
-    var fillShieldSampleButton = $("payments-fill-shield-sample");
-    var heroImageInput = $("payments-item-hero-image");
-    var heroFileInput = $("payments-item-hero-file");
-    var heroPreviewImage = $("payments-item-hero-preview");
-    var heroStatus = $("payments-item-hero-status");
-    var heroClearButton = $("payments-item-hero-clear");
-    var galleryInput = $("payments-item-gallery");
-    var galleryFileInput = $("payments-item-gallery-files");
-    var galleryList = $("payments-gallery-list");
-    var gatewaysRoot = $("payments-gateways-list");
-    var gatewayForm = $("payments-gateway-form");
-    var gatewayIdInput = $("payments-gateway-id");
-    var gatewayProviderInput = $("payments-gateway-provider");
-    var gatewayKeyInput = $("payments-gateway-key");
-    var gatewayLabelInput = $("payments-gateway-label");
-    var gatewayProviderLabelInput = $("payments-gateway-provider-label");
-    var gatewayMerchantInput = $("payments-gateway-merchant");
-    var gatewayRequestUrlInput = $("payments-gateway-request-url");
-    var gatewayVerifyUrlInput = $("payments-gateway-verify-url");
-    var gatewayStartUrlInput = $("payments-gateway-start-url");
-    var gatewayEnabledInput = $("payments-gateway-enabled");
-    var gatewayDefaultInput = $("payments-gateway-default");
-    var tabButtons = Array.prototype.slice.call(document.querySelectorAll("[data-payment-tab]"));
-    var tabPanels = Array.prototype.slice.call(document.querySelectorAll("[data-payment-tab-panel]"));
-    var stepButtons = Array.prototype.slice.call(document.querySelectorAll("[data-payment-step]"));
-    var stepPanels = Array.prototype.slice.call(document.querySelectorAll("[data-payment-step-panel]"));
-    var stepPrevButton = $("payments-step-prev");
-    var stepNextButton = $("payments-step-next");
-    var stepTitle = $("payments-step-title");
-    var saveButton = $("payments-item-save");
+    var activeItemSection = "basic";
+    var activeGatewaySection = "main";
     var heroPreviewObjectUrl = "";
     var heroPreviewObjectFile = null;
-    var activeStep = 1;
+
+    if (!page || !root) {
+        return;
+    }
 
     var state = {
         currentUser: null,
-        dashboardLoaded: false,
         loadingDashboard: false,
+        dashboardLoaded: false,
         loadingOrders: false,
-        selectedOrderId: 0,
+        summary: null,
         items: [],
         gateways: [],
         gatewaySettings: null,
         notifications: [],
-        orders: []
+        orders: [],
+        ordersSummary: null,
+        orderFilters: {
+            itemId: "0",
+            status: "all",
+            dateFrom: "",
+            dateTo: "",
+            query: ""
+        },
+        itemQuery: "",
+        itemStatus: "all",
+        currentOrder: null,
+        currentGatewaySnapshot: null
     };
 
     var SHIELD_SAMPLE = {
@@ -89,17 +56,14 @@
         price: "1200000",
         status: "active",
         shortDescription: "شیلد محافظ صورت دندانپزشکی با فوم فاصله‌دهنده، مناسب تمرین‌های عملی، لابراتوار و کارهای کلینیکی دانشجویان.",
-        fullDescription: "این آیتم تستی بر اساس محصول شیلد ابری سامان زر دندان در دنتی‌پارس ساخته شده است. شیلد برای محافظت صورت هنگام کار دندانپزشکی و استفاده در لابراتوار مناسب است، فوم با ضخامت مناسب برای فاصله طلق از صورت دارد، قابل استفاده مجدد و قابل شستشو است و با کش پشت سر قرار می‌گیرد. قیمت مرجع سایت منبع ۱۲۰٬۰۰۰ تومان است و برای درگاه به‌صورت ۱٬۲۰۰٬۰۰۰ ریال ثبت می‌شود.",
+        fullDescription: "شیلد برای محافظت صورت هنگام کار دندانپزشکی و استفاده در لابراتوار مناسب است، فوم فاصله‌دهنده دارد، قابل استفاده مجدد و قابل شستشو است.",
         heroImage: "/assets/images/buy/saman-foam-face-shield.jpg",
         expiresAt: "2026-05-15T23:59",
-        gallery: [
-            "/assets/images/buy/saman-foam-face-shield.jpg"
-        ],
+        gallery: ["/assets/images/buy/saman-foam-face-shield.jpg"],
         specifications: [
             { label: "کاربرد", value: "دندانپزشکی، لابراتوار و محیط آموزشی" },
             { label: "محتوای بسته", value: "۲ عددی" },
-            { label: "ویژگی", value: "قابل استفاده مجدد، قابل شستشو، دارای کش" },
-            { label: "منبع قیمت", value: "دنتی‌پارس، ۱۲۰٬۰۰۰ تومان" }
+            { label: "ویژگی", value: "قابل استفاده مجدد، قابل شستشو، دارای کش" }
         ],
         requiredFields: [
             { name: "studentNumber", label: "شماره دانشجویی", type: "text", required: true, maxLength: 14 },
@@ -117,8 +81,7 @@
         ratingAverage: "4.8",
         ratingCount: "12",
         reviews: [
-            { name: "دانشجوی ترمیمی", rating: 5, body: "سبک است و فاصله طلق از صورت برای کار طولانی بهتر از مدل ساده است." },
-            { name: "دانشجوی لابراتوار", rating: 4.5, body: "برای تمرین و کارگاه مناسب است؛ بهتر است قبل از تحویل سلامت طلق چک شود." }
+            { name: "دانشجوی ترمیمی", rating: 5, body: "سبک است و فاصله طلق از صورت برای کار طولانی مناسب است." }
         ],
         successMessage: "سفارش شیلد شما با موفقیت ثبت شد و با کد رهگیری قابل پیگیری است.",
         failureMessage: "پرداخت سفارش شیلد تایید نشد؛ در صورت کسر وجه با پشتیبانی تماس بگیرید."
@@ -126,10 +89,7 @@
 
     function parseJsonResponse(response) {
         return response.json().catch(function () {
-            return {
-                success: false,
-                error: "پاسخ نامعتبر از سرور دریافت شد."
-            };
+            return { success: false, error: "پاسخ نامعتبر از سرور دریافت شد." };
         }).then(function (payload) {
             payload.httpStatus = response.status;
             return payload;
@@ -164,55 +124,69 @@
         return fetch("/api/payments_api.php", {
             method: "POST",
             credentials: "same-origin",
-            headers: {
-                "Accept": "application/json"
-            },
+            headers: { "Accept": "application/json" },
             body: body
         }).then(parseJsonResponse);
     }
 
     function consumeUnauthorized(payload, fallbackText) {
         var auth = window.Dent1402Auth;
-        var message = fallbackText || "نشست شما منقضی شده است.";
-        if (!auth || typeof auth !== "object") {
-            return false;
+        if (auth && typeof auth.handleUnauthorizedPayload === "function") {
+            return !!auth.handleUnauthorizedPayload(payload, fallbackText || "نشست شما منقضی شده است.");
         }
-
-        try {
-            if (typeof auth.handleUnauthorizedPayload === "function") {
-                return !!auth.handleUnauthorizedPayload(payload, message);
-            }
-        } catch (_error) {
-            // Continue with fallback.
-        }
-
-        if (payload && (payload.loggedOut || payload.httpStatus === 401)) {
-            if (typeof auth.markUnauthorized === "function") {
-                auth.markUnauthorized((payload && payload.error) || message);
-            }
-            return true;
-        }
-        return false;
+        return !!(payload && (payload.loggedOut || payload.httpStatus === 401));
     }
 
     function escapeHtml(value) {
         return String(value == null ? "" : value).replace(/[&<>"]/g, function (char) {
             switch (char) {
-                case "&":
-                    return "&amp;";
-                case "<":
-                    return "&lt;";
-                case ">":
-                    return "&gt;";
-                case "\"":
-                    return "&quot;";
-                default:
-                    return char;
+                case "&": return "&amp;";
+                case "<": return "&lt;";
+                case ">": return "&gt;";
+                case "\"": return "&quot;";
+                default: return char;
             }
         });
     }
 
-    function setFeedback(node, text, kind, loading) {
+    function money(value) {
+        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " ریال";
+    }
+
+    function normalizeDigits(value) {
+        return String(value || "")
+            .replace(/[\u06F0-\u06F9]/g, function (ch) {
+                return String("\u06F0\u06F1\u06F2\u06F3\u06F4\u06F5\u06F6\u06F7\u06F8\u06F9".indexOf(ch));
+            })
+            .replace(/[\u0660-\u0669]/g, function (ch) {
+                return String("\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669".indexOf(ch));
+            });
+    }
+
+    function formatDateTime(value, fallback) {
+        var raw = String(value || "").trim();
+        if (!raw) {
+            return fallback || "—";
+        }
+        var parsed = new Date(raw);
+        if (!Number.isFinite(parsed.getTime())) {
+            return raw;
+        }
+        return parsed.toLocaleString("fa-IR-u-ca-persian", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+        });
+    }
+
+    function readParam(name) {
+        return String(new URLSearchParams(window.location.search).get(name) || "").trim();
+    }
+
+    function setFeedback(node, message, kind, loading) {
         if (!node) {
             return;
         }
@@ -223,12 +197,35 @@
                 '  <span class="loader-dot"></span>',
                 '  <span class="loader-dot"></span>',
                 '  <span class="loader-dot"></span>',
-                "  <span>" + escapeHtml(text || "") + "</span>",
+                "  <span>" + escapeHtml(message || "") + "</span>",
                 "</div>"
             ].join("");
             return;
         }
-        node.textContent = text || "";
+        node.textContent = message || "";
+    }
+
+    function setActions(html) {
+        var node = $("payments-manage-actions");
+        if (node) {
+            node.innerHTML = html || "";
+        }
+    }
+
+    function setHead(kicker, title, description) {
+        if ($("payments-manage-kicker")) $("payments-manage-kicker").textContent = kicker || "";
+        if ($("payments-manage-title")) $("payments-manage-title").textContent = title || "";
+        if ($("payments-manage-description")) $("payments-manage-description").textContent = description || "";
+    }
+
+    function syncNav() {
+        var active = page;
+        if (page === "item-form") active = "items";
+        if (page === "gateway-form") active = "gateways";
+        if (page === "order-detail") active = "orders";
+        document.querySelectorAll("[data-manage-nav]").forEach(function (link) {
+            link.classList.toggle("is-active", String(link.dataset.manageNav || "") === active);
+        });
     }
 
     function summaryCard(label, value, meta, tone) {
@@ -236,34 +233,74 @@
             '<article class="owner-summary-card' + (tone ? (" owner-summary-card--" + tone) : "") + '">',
             '  <span>' + escapeHtml(label) + "</span>",
             '  <strong>' + escapeHtml(value) + "</strong>",
-            '  <small>' + escapeHtml(meta) + "</small>",
+            '  <small>' + escapeHtml(meta || "") + "</small>",
             "</article>"
         ].join("");
     }
 
-    function money(value) {
-        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " ریال";
-    }
-
-    function readField(id) {
-        var node = $(id);
-        return node ? String(node.value || "").trim() : "";
-    }
-
-    function writeField(id, value) {
-        var node = $(id);
-        if (!node) {
-            return;
+    function statusLabel(status) {
+        switch (String(status || "")) {
+            case "success": return "موفق";
+            case "failed": return "ناموفق";
+            case "canceled": return "لغو شده";
+            case "expired": return "منقضی شده";
+            default: return "در انتظار";
         }
-        node.value = value == null ? "" : String(value);
     }
 
-    function selectedText(id, fallback) {
-        var node = $(id);
-        if (!node || !node.options || node.selectedIndex < 0) {
-            return fallback || "";
+    function statusTone(status) {
+        switch (String(status || "")) {
+            case "success": return "ok";
+            case "failed":
+            case "canceled":
+            case "expired": return "danger";
+            default: return "warn";
         }
-        return String(node.options[node.selectedIndex].textContent || fallback || "").trim();
+    }
+
+    function itemStateLabel(item) {
+        var itemState = item && item.state ? item.state : {};
+        return String(itemState.label || item.status || "نامشخص");
+    }
+
+    function itemStateTone(item) {
+        var key = String(item && item.state ? item.state.key || "" : "");
+        if (key === "active") return "ok";
+        if (key === "upcoming" || key === "full") return "warn";
+        return "danger";
+    }
+
+    function itemCategoryLabel(item) {
+        return String(item && (item.categoryLabel || item.category) || "سفارش گروهی");
+    }
+
+    function gatewayProviderLabel(provider) {
+        switch (String(provider || "").trim().toLowerCase()) {
+            case "zibal": return "درگاه زیبال";
+            case "zarinpal": return "درگاه زرین‌پال";
+            case "mock": return "درگاه آزمایشی";
+            default: return "درگاه آنلاین";
+        }
+    }
+
+    function gatewayPublicLabel(provider) {
+        return String(provider || "").trim().toLowerCase() === "mock" ? "پرداخت آزمایشی" : "پرداخت آنلاین";
+    }
+
+    function absoluteUrl(path) {
+        try {
+            return new URL(String(path || ""), window.location.origin).href;
+        } catch (_error) {
+            return String(path || "");
+        }
+    }
+
+    function prettyJson(value) {
+        try {
+            return JSON.stringify(value == null ? {} : value, null, 2);
+        } catch (_error) {
+            return "{}";
+        }
     }
 
     function parseLooseJson(raw, fallback) {
@@ -278,16 +315,64 @@
         }
     }
 
+    function readField(id) {
+        var node = $(id);
+        return node ? String(node.value || "").trim() : "";
+    }
+
+    function writeField(id, value) {
+        var node = $(id);
+        if (node) {
+            node.value = value == null ? "" : String(value);
+        }
+    }
+
     function safeImageUrl(value) {
         var clean = String(value || "").trim();
         if (!clean) {
             return "";
         }
         if (clean.indexOf("/api/payments_api.php?action=paymentImage&name=") === 0 ||
-            clean.indexOf("/assets/images/buy/") === 0) {
+            clean.indexOf("/assets/images/buy/") === 0 ||
+            clean.indexOf("data:image/") === 0) {
             return clean;
         }
         return "";
+    }
+
+    function toDatetimeLocal(value) {
+        var raw = String(value || "").trim();
+        if (!raw) {
+            return "";
+        }
+        var parsed = new Date(raw);
+        if (!Number.isFinite(parsed.getTime())) {
+            return "";
+        }
+        return [
+            parsed.getFullYear(),
+            String(parsed.getMonth() + 1).padStart(2, "0"),
+            String(parsed.getDate()).padStart(2, "0")
+        ].join("-") + "T" + [
+            String(parsed.getHours()).padStart(2, "0"),
+            String(parsed.getMinutes()).padStart(2, "0")
+        ].join(":");
+    }
+
+    function fromDatetimeLocal(value) {
+        var raw = String(value || "").trim();
+        if (!raw) {
+            return "";
+        }
+        return raw.length === 16 ? raw.replace("T", " ") + ":00" : raw.replace("T", " ");
+    }
+
+    function slugifyLatin(value) {
+        return String(value || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-+|-+$/g, "")
+            .slice(0, 80);
     }
 
     function selectedFile(input) {
@@ -325,20 +410,511 @@
         if (!Array.isArray(parsed)) {
             return [];
         }
-        return parsed.map(function (entry) {
-            return safeImageUrl(entry);
-        }).filter(Boolean);
+        return parsed.map(safeImageUrl).filter(Boolean);
     }
 
     function writeGalleryValues(values) {
-        writeField("payments-item-gallery", prettyJson(Array.from(new Set((values || []).map(function (entry) {
-            return safeImageUrl(entry);
-        }).filter(Boolean)))));
+        writeField("payments-item-gallery", prettyJson(Array.from(new Set((values || []).map(safeImageUrl).filter(Boolean)))));
+    }
+
+    function renderLoading(message) {
+        root.innerHTML = '<div class="owner-empty">' + escapeHtml(message || "در حال بارگذاری...") + "</div>";
+    }
+
+    function renderSummary(summary) {
+        if (!summary) {
+            return '<div class="owner-summary">' + summaryCard("پرداخت", "—", "آمار هنوز بارگذاری نشده است.") + "</div>";
+        }
+        return [
+            '<div class="owner-summary">',
+            summaryCard("آیتم فعال", Number(summary.activeItems || 0).toLocaleString("fa-IR"), "از " + Number(summary.totalItems || 0).toLocaleString("fa-IR") + " آیتم", (summary.activeItems || 0) > 0 ? "ok" : "warn"),
+            summaryCard("دریافتی کل", money(summary.totalReceived || 0), "پرداخت‌های تاییدشده", (summary.totalReceived || 0) > 0 ? "ok" : ""),
+            summaryCard("پرداخت موفق", Number(summary.totalSuccess || 0).toLocaleString("fa-IR"), "تراکنش verify شده", (summary.totalSuccess || 0) > 0 ? "ok" : ""),
+            summaryCard("در انتظار", Number(summary.totalPending || 0).toLocaleString("fa-IR"), "سفارش‌های باز", (summary.totalPending || 0) > 0 ? "warn" : ""),
+            summaryCard("نیازمند توجه", Number((summary.totalFailed || 0) + (summary.totalCanceled || 0) + (summary.totalExpired || 0)).toLocaleString("fa-IR"), "ناموفق، لغو یا منقضی", ((summary.totalFailed || 0) + (summary.totalCanceled || 0) + (summary.totalExpired || 0)) > 0 ? "danger" : ""),
+            summaryCard("اعلان نخوانده", Number(summary.unreadNotifications || 0).toLocaleString("fa-IR"), "اعلان‌های مالی جدید", (summary.unreadNotifications || 0) > 0 ? "warn" : "ok"),
+            "</div>"
+        ].join("");
+    }
+
+    function syncGatewayPayload(payload) {
+        var bundle = null;
+        if (payload && payload.gateways && !Array.isArray(payload.gateways) && typeof payload.gateways === "object" && Array.isArray(payload.gateways.gateways)) {
+            bundle = payload.gateways;
+        } else if (payload && Array.isArray(payload.gateways)) {
+            bundle = payload;
+        }
+        if (!bundle) {
+            return;
+        }
+        state.gatewaySettings = bundle;
+        state.gateways = Array.isArray(bundle.gateways) ? bundle.gateways : [];
+    }
+
+    async function loadDashboard(silent) {
+        if (!state.currentUser || state.loadingDashboard) {
+            return;
+        }
+        state.loadingDashboard = true;
+        if (!silent) {
+            setFeedback(feedbackNode, "در حال دریافت داده‌های مدیریت خرید...", "", true);
+        }
+        try {
+            var response = await request("ownerDashboard", {}, "GET");
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                return;
+            }
+            if (!response || !response.success) {
+                setFeedback(feedbackNode, (response && response.error) || "دریافت داده‌های مدیریت خرید انجام نشد.", "error");
+                return;
+            }
+            state.dashboardLoaded = true;
+            state.summary = response.summary || {};
+            state.items = Array.isArray(response.items) ? response.items : [];
+            state.notifications = Array.isArray(response.notifications) ? response.notifications : [];
+            syncGatewayPayload(response);
+            if (!silent) {
+                setFeedback(feedbackNode, "داده‌های مدیریت خرید به‌روزرسانی شد.", "success");
+            }
+        } finally {
+            state.loadingDashboard = false;
+        }
+    }
+
+    function currentFilters() {
+        return {
+            itemId: $("payments-filter-item") ? String($("payments-filter-item").value || "0") : state.orderFilters.itemId,
+            status: $("payments-filter-status") ? String($("payments-filter-status").value || "all") : state.orderFilters.status,
+            dateFrom: $("payments-filter-date-from") ? String($("payments-filter-date-from").value || "") : state.orderFilters.dateFrom,
+            dateTo: $("payments-filter-date-to") ? String($("payments-filter-date-to").value || "") : state.orderFilters.dateTo,
+            query: $("payments-filter-query") ? String($("payments-filter-query").value || "").trim() : state.orderFilters.query
+        };
+    }
+
+    async function loadOrders(silent) {
+        if (!state.currentUser || state.loadingOrders) {
+            return;
+        }
+        state.loadingOrders = true;
+        if (!silent && $("payments-orders-list")) {
+            $("payments-orders-list").innerHTML = '<div class="owner-empty">در حال دریافت سفارش‌ها...</div>';
+        }
+        try {
+            var response = await request("ownerOrders", currentFilters(), "GET");
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                return;
+            }
+            if (!response || !response.success) {
+                setFeedback(feedbackNode, (response && response.error) || "دریافت سفارش‌ها انجام نشد.", "error");
+                return;
+            }
+            state.orders = Array.isArray(response.orders) ? response.orders : [];
+            state.ordersSummary = response.filteredSummary || response.summary || null;
+            renderOrdersSummary();
+            renderOrdersList();
+        } finally {
+            state.loadingOrders = false;
+        }
+    }
+
+    async function loadOrderDetail(orderId) {
+        var cleanId = Number(orderId || 0);
+        if (!cleanId) {
+            root.innerHTML = '<div class="owner-empty">شناسه سفارش در آدرس معتبر نیست.</div>';
+            return;
+        }
+        renderLoading("در حال دریافت جزئیات سفارش...");
+        var response = await request("ownerOrderDetails", { id: cleanId }, "GET");
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            return;
+        }
+        if (!response || !response.success || !response.order) {
+            root.innerHTML = '<div class="owner-empty">' + escapeHtml((response && response.error) || "جزئیات سفارش دریافت نشد.") + "</div>";
+            return;
+        }
+        state.currentOrder = response.order;
+        state.currentGatewaySnapshot = response.gatewaySnapshot || {};
+        renderOrderDetailPage();
+    }
+
+    function renderOverviewPage() {
+        setHead("داشبورد", "مرور مدیریت خرید", "وضعیت فروش و مسیرهای اصلی مدیریت را کوتاه و قابل اقدام ببینید.");
+        setActions([
+            '<a class="shell-action-btn shell-action-btn-primary" href="/buy/manage/items/new/">آیتم جدید</a>',
+            '<a class="shell-action-btn" href="/buy/manage/orders/">سفارش‌ها</a>',
+            '<button class="shell-action-btn" type="button" data-payment-refresh>به‌روزرسانی</button>'
+        ].join(""));
+
+        var modules = [
+            { title: "آیتم‌ها", meta: "ساخت، ویرایش، فعال/غیرفعال، کپی لینک و حذف", href: "/buy/manage/items/", action: "مدیریت آیتم‌ها" },
+            { title: "درگاه‌ها", meta: "credential، وضعیت فعال، پیش‌فرض و حذف امن", href: "/buy/manage/gateways/", action: "مدیریت درگاه‌ها" },
+            { title: "سفارش‌ها", meta: "فیلتر، جست‌وجو، جزئیات و وضعیت تراکنش", href: "/buy/manage/orders/", action: "مشاهده سفارش‌ها" }
+        ];
+        root.innerHTML = [
+            renderSummary(state.summary),
+            '<section class="buy-manage-module-grid" aria-label="میانبرهای مدیریت">',
+            modules.map(function (entry) {
+                return [
+                    '<article class="buy-manage-module">',
+                    '  <div><span class="buy-kicker">بخش</span><h3>' + escapeHtml(entry.title) + "</h3><p>" + escapeHtml(entry.meta) + "</p></div>",
+                    '  <a class="shell-action-btn" href="' + escapeHtml(entry.href) + '">' + escapeHtml(entry.action) + "</a>",
+                    "</article>"
+                ].join("");
+            }).join(""),
+            "</section>",
+            '<section class="owner-block owner-block--payments">',
+            '  <div class="owner-block__head"><h4>اعلان‌های اخیر پرداخت</h4><p>آخرین تغییرات وضعیت سفارش‌ها و پرداخت‌ها.</p></div>',
+            '  <div id="payments-notifications-list" class="payments-notifications-list">',
+            notificationsHtml(),
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function notificationsHtml() {
+        if (!state.notifications.length) {
+            return '<div class="owner-empty">اعلان مالی جدیدی ثبت نشده است.</div>';
+        }
+        return state.notifications.slice(0, 12).map(function (note) {
+            var read = !!String(note.read_at || "").trim();
+            return [
+                '<article class="payments-note' + (read ? "" : " is-unread") + '">',
+                '  <div class="payments-note__head">',
+                '    <strong>' + escapeHtml(note.title || "اعلان مالی") + "</strong>",
+                '    <span>' + escapeHtml(formatDateTime(note.created_at, "—")) + "</span>",
+                "  </div>",
+                '  <p>' + escapeHtml(note.body || "—") + "</p>",
+                '  <div class="payments-note__actions">',
+                note.related_order_id ? '<a class="shell-action-btn" href="/buy/manage/orders/detail/?id=' + encodeURIComponent(String(note.related_order_id)) + '">جزئیات سفارش</a>' : "",
+                read ? '<span class="payments-note__state">خوانده شده</span>' : '<button class="shell-action-btn" type="button" data-payment-read-note="' + escapeHtml(note.id) + '">خواندم</button>',
+                "  </div>",
+                "</article>"
+            ].join("");
+        }).join("");
+    }
+
+    function itemMatchesFilters(item) {
+        var query = state.itemQuery.trim().toLowerCase();
+        var haystack = [
+            item.title,
+            item.shortDescription,
+            item.slug,
+            item.categoryLabel,
+            item.category
+        ].join(" ").toLowerCase();
+        if (query && haystack.indexOf(query) < 0) {
+            return false;
+        }
+        if (state.itemStatus !== "all" && String(item.status || "") !== state.itemStatus) {
+            return false;
+        }
+        return true;
+    }
+
+    function renderItemsPage() {
+        setHead("کاتالوگ", "لیست آیتم‌ها", "ابتدا آیتم را در لیست پیدا کنید، بعد مشاهده، ویرایش، تغییر وضعیت یا حذف را انجام دهید.");
+        setActions([
+            '<a class="shell-action-btn shell-action-btn-primary" href="/buy/manage/items/new/">آیتم جدید</a>',
+            '<button class="shell-action-btn" type="button" data-payment-refresh>به‌روزرسانی</button>'
+        ].join(""));
+        root.innerHTML = [
+            '<section class="buy-manage-toolbar" aria-label="فیلتر آیتم‌ها">',
+            '  <label class="buy-manage-search"><span>جست‌وجو</span><input id="payments-items-search" type="search" value="' + escapeHtml(state.itemQuery) + '" placeholder="عنوان، لینک یا دسته"></label>',
+            '  <label class="buy-manage-select"><span>وضعیت</span><select id="payments-items-status-filter"><option value="all">همه وضعیت‌ها</option><option value="active">فعال</option><option value="inactive">غیرفعال</option></select></label>',
+            "</section>",
+            '<div id="payments-items-grid" class="payments-items-grid buy-manage-list"></div>'
+        ].join("");
+        if ($("payments-items-status-filter")) {
+            $("payments-items-status-filter").value = state.itemStatus;
+        }
+        renderItemsList();
+    }
+
+    function renderItemsList() {
+        var node = $("payments-items-grid");
+        if (!node) {
+            return;
+        }
+        var visible = state.items.filter(itemMatchesFilters);
+        if (!state.items.length) {
+            node.innerHTML = '<div class="owner-empty">هنوز آیتمی ساخته نشده است.</div>';
+            return;
+        }
+        if (!visible.length) {
+            node.innerHTML = '<div class="owner-empty">با این فیلتر آیتمی پیدا نشد.</div>';
+            return;
+        }
+        node.innerHTML = visible.map(function (item) {
+            var publicUrl = absoluteUrl(item.publicUrl || "");
+            return [
+                '<article class="payments-item-card buy-manage-row">',
+                '  <div class="payments-item-card__head">',
+                '    <div>',
+                '      <span class="payments-pill payments-pill--' + escapeHtml(itemStateTone(item)) + '">' + escapeHtml(itemStateLabel(item)) + "</span>",
+                '      <h4>' + escapeHtml(item.title || "بدون عنوان") + "</h4>",
+                '      <p>' + escapeHtml(itemCategoryLabel(item)) + ' • <span dir="ltr">' + escapeHtml(item.slug || "") + "</span></p>",
+                "    </div>",
+                '    <strong>' + escapeHtml(money(item.price || 0)) + "</strong>",
+                "  </div>",
+                '  <div class="payments-item-card__meta">',
+                '    <span>فروخته‌شده: ' + escapeHtml(Number(item.soldCount || 0).toLocaleString("fa-IR")) + "</span>",
+                '    <span>حداکثر هر سفارش: ' + escapeHtml(Number(item.maxQuantityPerOrder || 1).toLocaleString("fa-IR")) + "</span>",
+                '    <span>مهلت: ' + escapeHtml(formatDateTime(item.expiresAt, "بدون مهلت")) + "</span>",
+                '    <span>لینک: <a href="' + escapeHtml(publicUrl || "#") + '" target="_blank" rel="noopener">' + escapeHtml(publicUrl || "—") + "</a></span>",
+                "  </div>",
+                '  <div class="payments-item-card__actions">',
+                '    <a class="shell-action-btn" href="' + escapeHtml(publicUrl || "#") + '" target="_blank" rel="noopener">مشاهده</a>',
+                '    <a class="shell-action-btn shell-action-btn-primary" href="/buy/manage/items/edit/?id=' + encodeURIComponent(String(item.id || "")) + '">ویرایش</a>',
+                '    <button class="shell-action-btn" type="button" data-payment-copy-link="' + escapeHtml(publicUrl || "") + '">کپی لینک</button>',
+                '    <button class="shell-action-btn" type="button" data-payment-toggle-item="' + escapeHtml(item.id) + '" data-payment-enabled="' + (item.status === "active" ? "0" : "1") + '">' + (item.status === "active" ? "غیرفعال‌کردن" : "فعال‌کردن") + "</button>",
+                '    <button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-delete-item="' + escapeHtml(item.id) + '">حذف</button>',
+                "  </div>",
+                "</article>"
+            ].join("");
+        }).join("");
+    }
+
+    function itemFormHtml() {
+        return [
+            '<form id="payments-item-form" class="account-form payments-item-form payments-item-form--refined buy-manage-form" novalidate>',
+            '  <input id="payments-item-id" type="hidden">',
+            '  <input id="payments-item-hero-image" type="hidden">',
+            '  <textarea id="payments-item-gallery" hidden></textarea>',
+            '  <div class="buy-manage-editor">',
+            '    <aside class="payments-owner-preview buy-manage-preview" aria-label="پیش‌نمایش آیتم">',
+            '      <div class="payments-owner-preview__media" id="payments-preview-image"><span>بدون تصویر</span></div>',
+            '      <div class="payments-owner-preview__body">',
+            '        <div class="payments-owner-preview__chips"><span id="payments-preview-category">سفارش گروهی</span><span id="payments-preview-status">غیرفعال</span></div>',
+            '        <h5 id="payments-preview-title">عنوان آیتم خرید</h5>',
+            '        <p id="payments-preview-short">پیش‌نمایش کارت عمومی آیتم.</p>',
+            '        <strong id="payments-preview-price">۰ ریال</strong>',
+            '        <div id="payments-preview-meta" class="payments-owner-preview__meta"></div>',
+            '      </div>',
+            '      <div class="payments-owner-preview__actions">',
+            '        <button id="payments-fill-shield-sample" class="shell-action-btn" type="button">پر کردن نمونه</button>',
+            '        <a class="shell-action-btn" href="/buy/" target="_blank" rel="noopener">کاتالوگ</a>',
+            '      </div>',
+            '    </aside>',
+            '    <div class="buy-manage-editor__main">',
+            '      <nav class="buy-manage-subtabs" aria-label="بخش‌های فرم آیتم">',
+            itemSectionButton("basic", "اطلاعات اصلی"),
+            itemSectionButton("sale", "فروش"),
+            itemSectionButton("media", "رسانه"),
+            itemSectionButton("rules", "شرایط"),
+            itemSectionButton("advanced", "پیشرفته"),
+            "      </nav>",
+            itemPanelBasic(),
+            itemPanelSale(),
+            itemPanelMedia(),
+            itemPanelRules(),
+            itemPanelAdvanced(),
+            '      <div class="payments-step-actions buy-manage-savebar">',
+            '        <a class="shell-action-btn" href="/buy/manage/items/">بازگشت به لیست</a>',
+            '        <button id="payments-item-save" class="shell-action-btn shell-action-btn-primary" type="submit">ذخیره آیتم</button>',
+            '      </div>',
+            '      <div id="payments-item-form-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>',
+            "    </div>",
+            "  </div>",
+            "</form>"
+        ].join("");
+    }
+
+    function itemSectionButton(key, label) {
+        return '<button class="' + (activeItemSection === key ? "is-active" : "") + '" type="button" data-payment-item-section="' + key + '">' + escapeHtml(label) + "</button>";
+    }
+
+    function panelAttrs(key) {
+        return ' class="payments-form-section buy-manage-panel" data-payment-item-panel="' + key + '"' + (activeItemSection === key ? "" : " hidden");
+    }
+
+    function itemPanelBasic() {
+        return [
+            '<section' + panelAttrs("basic") + '>',
+            '  <div class="payments-form-section__head"><span>۱</span><div><h5>عنوان و معرفی</h5><p>اطلاعاتی که کاربر در نگاه اول می‌بیند.</p></div></div>',
+            '  <div class="payments-form-grid">',
+            field("payments-item-title", "عنوان آیتم", "text", "مثلا شیلد ابری سامان زر دندان", true, "payments-field--full", "140"),
+            field("payments-item-slug", "اسلاگ / لینک عمومی", "text", "saman-foam-face-shield", false, "payments-field--full", "120", "ltr", "data-latin-digits=\"true\""),
+            selectField("payments-item-category", "دسته‌بندی", [
+                ["educational_supplies", "ملزومات آموزشی"],
+                ["consumables", "اقلام مصرفی"],
+                ["event_registration", "ثبت‌نام رویداد"],
+                ["educational_package", "بسته آموزشی"],
+                ["group_order", "سفارش گروهی"]
+            ]),
+            selectField("payments-item-status", "وضعیت انتشار", [["active", "فعال و قابل خرید"], ["inactive", "غیرفعال"]]),
+            textareaField("payments-item-short-description", "توضیح کوتاه کارت کالا", "خلاصه کوتاه برای کارت محصول و صفحه جزئیات", "payments-field--full", "460"),
+            textareaField("payments-item-full-description", "شرح کامل و شرایط خرید", "شرح کامل آیتم، شرایط خرید، محدودیت‌ها یا محتویات بسته", "payments-field--full", "6000"),
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function itemPanelSale() {
+        return [
+            '<section' + panelAttrs("sale") + '>',
+            '  <div class="payments-form-section__head"><span>۲</span><div><h5>قیمت، ظرفیت و بازه فروش</h5><p>مقادیر عملیاتی پرداخت و محدودیت سفارش.</p></div></div>',
+            '  <div class="payments-form-grid">',
+            field("payments-item-price", "قیمت واحد برای درگاه (ریال)", "text", "1200000", true, "", "12", "ltr", "inputmode=\"numeric\" data-latin-digits=\"true\""),
+            field("payments-item-max-quantity", "حداکثر تعداد هر سفارش", "text", "1", false, "", "3", "ltr", "inputmode=\"numeric\" data-latin-digits=\"true\""),
+            field("payments-item-capacity", "ظرفیت موجودی", "text", "اختیاری", false, "", "8", "ltr", "inputmode=\"numeric\" data-latin-digits=\"true\""),
+            field("payments-item-starts-at", "زمان شروع", "datetime-local", "", false),
+            field("payments-item-expires-at", "مهلت پرداخت", "datetime-local", "", false),
+            switchField("payments-item-allow-cancellation", "لغو با هماهنگی فعال باشد", "اگر فعال شود، متن شرایط لغو در صفحه آیتم نمایش داده می‌شود."),
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function itemPanelMedia() {
+        return [
+            '<section' + panelAttrs("media") + '>',
+            '  <div class="payments-form-section__head"><span>۳</span><div><h5>تصویر اصلی و گالری</h5><p>تصاویر در storage پرداخت ذخیره می‌شوند و جزو فایل‌های deploy نیستند.</p></div></div>',
+            '  <div class="payments-form-grid">',
+            '    <div class="payments-field payments-field--full">',
+            '      <span class="payments-field-label">تصویر اصلی کالا</span>',
+            '      <div class="payments-image-uploader" id="payments-image-uploader">',
+            '        <label class="payments-image-drop" for="payments-item-hero-file">',
+            '          <input id="payments-item-hero-file" type="file" accept="image/jpeg,image/png,image/webp">',
+            '          <img id="payments-item-hero-preview" alt="" hidden>',
+            '          <span class="payments-image-drop__icon" aria-hidden="true">+</span>',
+            '          <strong>افزودن عکس کالا</strong>',
+            '          <small>jpg، png یا webp تا ۵ مگابایت.</small>',
+            "        </label>",
+            '        <div class="payments-image-toolbar"><button id="payments-item-hero-clear" class="shell-action-btn" type="button">حذف عکس</button><span id="payments-item-hero-status">تصویر اصلی هنوز انتخاب نشده است.</span></div>',
+            "      </div>",
+            "    </div>",
+            '    <div class="payments-field payments-field--full">',
+            '      <label for="payments-item-gallery-files">تصاویر گالری</label>',
+            '      <div class="payments-gallery-uploader">',
+            '        <input id="payments-item-gallery-files" type="file" accept="image/jpeg,image/png,image/webp" multiple>',
+            '        <small>تصاویر انتخاب‌شده هنگام ذخیره آیتم آپلود می‌شوند.</small>',
+            '        <div id="payments-gallery-list" class="payments-gallery-list"></div>',
+            "      </div>",
+            "    </div>",
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function itemPanelRules() {
+        return [
+            '<section' + panelAttrs("rules") + '>',
+            '  <div class="payments-form-section__head"><span>۴</span><div><h5>مخاطب، تحویل و پشتیبانی</h5><p>متن‌های عملیاتی که کاربر برای تصمیم خرید نیاز دارد.</p></div></div>',
+            '  <div class="payments-form-grid">',
+            field("payments-item-audience-note", "مخاطب آیتم", "text", "دانشجویان دندانپزشکی ورودی ۱۴۰۲", false, "payments-field--full", "220"),
+            textareaField("payments-item-delivery-note", "تحویل یا نحوه استفاده", "مثلا تحویل حضوری در دانشکده دندانپزشکی", "payments-field--full", "360"),
+            textareaField("payments-item-support-note", "مسیر پشتیبانی", "برای پیگیری، کد رهگیری را برای نماینده یا مالک سایت ارسال کنید.", "payments-field--full", "360"),
+            textareaField("payments-item-specifications", "مشخصات قابل نمایش (JSON)", "[{\"label\":\"کاربرد\",\"value\":\"آموزشی\"}]", "payments-field--full", ""),
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function itemPanelAdvanced() {
+        return [
+            '<section' + panelAttrs("advanced") + '>',
+            '  <div class="payments-form-section__head"><span>۵</span><div><h5>فرم، تخفیف و پیام‌ها</h5><p>گزینه‌های کمتر تکراری در یک بخش مستقل نگه‌داری شده‌اند.</p></div></div>',
+            '  <div class="payments-form-grid">',
+            textareaField("payments-item-required-fields", "فیلدهای لازم از کاربر (JSON)", "[{\"name\":\"studentNumber\",\"label\":\"شماره دانشجویی\",\"type\":\"text\",\"required\":true}]", "payments-field--full", ""),
+            textareaField("payments-item-discount-codes", "کدهای تخفیف (JSON)", "[{\"code\":\"TUMS10\",\"type\":\"percent\",\"amount\":10,\"label\":\"تخفیف دانشجویی\",\"isEnabled\":true}]", "payments-field--full", ""),
+            field("payments-item-rating-average", "میانگین امتیاز", "text", "4.8", false, "", "4", "ltr", "inputmode=\"decimal\" data-latin-digits=\"true\""),
+            field("payments-item-rating-count", "تعداد امتیاز", "text", "24", false, "", "6", "ltr", "inputmode=\"numeric\" data-latin-digits=\"true\""),
+            textareaField("payments-item-reviews", "دیدگاه‌های قابل نمایش (JSON)", "[{\"name\":\"دانشجو\",\"rating\":5,\"body\":\"کیفیت مناسب\"}]", "payments-field--full", ""),
+            textareaField("payments-item-success-message", "متن موفقیت", "پیام بعد از تایید پرداخت", "payments-field--full", "600"),
+            textareaField("payments-item-failure-message", "متن خطا", "پیام پرداخت ناموفق یا لغوشده", "payments-field--full", "600"),
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function field(id, label, type, placeholder, required, extraClass, maxLength, dir, attrs) {
+        return [
+            '<div class="payments-field ' + escapeHtml(extraClass || "") + '">',
+            '  <label for="' + escapeHtml(id) + '">' + escapeHtml(label) + (required ? ' <span aria-hidden="true">*</span>' : "") + "</label>",
+            '  <input id="' + escapeHtml(id) + '" type="' + escapeHtml(type || "text") + '"' + (maxLength ? ' maxlength="' + escapeHtml(maxLength) + '"' : "") + (dir ? ' dir="' + escapeHtml(dir) + '"' : "") + (placeholder ? ' placeholder="' + escapeHtml(placeholder) + '"' : "") + (required ? " required" : "") + (attrs ? " " + attrs : "") + ">",
+            "</div>"
+        ].join("");
+    }
+
+    function textareaField(id, label, placeholder, extraClass, maxLength) {
+        return [
+            '<div class="payments-field ' + escapeHtml(extraClass || "") + '">',
+            '  <label for="' + escapeHtml(id) + '">' + escapeHtml(label) + "</label>",
+            '  <textarea id="' + escapeHtml(id) + '"' + (maxLength ? ' maxlength="' + escapeHtml(maxLength) + '"' : "") + (placeholder ? ' placeholder=\'' + escapeHtml(placeholder) + '\'' : "") + "></textarea>",
+            "</div>"
+        ].join("");
+    }
+
+    function selectField(id, label, options) {
+        return [
+            '<div class="payments-field">',
+            '  <label for="' + escapeHtml(id) + '">' + escapeHtml(label) + "</label>",
+            '  <select id="' + escapeHtml(id) + '">',
+            (options || []).map(function (entry) {
+                return '<option value="' + escapeHtml(entry[0]) + '">' + escapeHtml(entry[1]) + "</option>";
+            }).join(""),
+            "  </select>",
+            "</div>"
+        ].join("");
+    }
+
+    function switchField(id, title, help) {
+        return [
+            '<label class="payments-switch payments-field--full" for="' + escapeHtml(id) + '">',
+            '  <input id="' + escapeHtml(id) + '" type="checkbox">',
+            '  <span><strong>' + escapeHtml(title) + "</strong><small>" + escapeHtml(help) + "</small></span>",
+            "</label>"
+        ].join("");
+    }
+
+    function renderItemFormPage() {
+        var isEdit = mode === "edit";
+        setHead(isEdit ? "ویرایش آیتم" : "آیتم جدید", isEdit ? "ویرایش آیتم خرید" : "ساخت آیتم خرید", "فرم آیتم به بخش‌های کوتاه تقسیم شده تا صفحه اصلی مدیریت شلوغ نشود.");
+        setActions([
+            '<a class="shell-action-btn" href="/buy/manage/items/">لیست آیتم‌ها</a>',
+            isEdit ? '<a id="payments-open-public-item" class="shell-action-btn" href="#" target="_blank" rel="noopener" hidden>مشاهده عمومی</a>' : "",
+            !isEdit ? '<button class="shell-action-btn" type="button" data-payment-fill-sample>نمونه</button>' : ""
+        ].join(""));
+        root.innerHTML = itemFormHtml();
+        if (isEdit) {
+            var itemId = Number(readParam("id") || 0);
+            if (!itemId) {
+                setFeedback($("payments-item-form-feedback"), "شناسه آیتم در آدرس معتبر نیست.", "error");
+                return;
+            }
+            fillItemForm(itemId);
+        } else {
+            resetItemForm();
+        }
+    }
+
+    function selectedText(id, fallback) {
+        var node = $(id);
+        if (!node || !node.options || node.selectedIndex < 0) {
+            return fallback || "";
+        }
+        return String(node.options[node.selectedIndex].textContent || fallback || "").trim();
+    }
+
+    function firstImageFromForm() {
+        var heroFile = selectedFile($("payments-item-hero-file"));
+        if (heroFile) {
+            return heroFilePreviewUrl(heroFile);
+        }
+        var hero = safeImageUrl(readField("payments-item-hero-image"));
+        if (hero) {
+            return hero;
+        }
+        var gallery = galleryValues();
+        return gallery.length ? gallery[0] : "";
     }
 
     function renderHeroUploader() {
+        var heroFileInput = $("payments-item-hero-file");
+        var heroPreviewImage = $("payments-item-hero-preview");
+        var heroStatus = $("payments-item-hero-status");
         var file = selectedFile(heroFileInput);
-        var stored = safeImageUrl(heroImageInput ? heroImageInput.value : "");
+        var stored = safeImageUrl(readField("payments-item-hero-image"));
         var src = "";
         var status = "تصویر اصلی هنوز انتخاب نشده است.";
         if (file) {
@@ -351,7 +927,6 @@
         } else {
             releaseHeroPreviewObjectUrl();
         }
-
         if (heroPreviewImage) {
             if (src) {
                 heroPreviewImage.hidden = false;
@@ -367,13 +942,12 @@
     }
 
     function renderGalleryUploader() {
+        var galleryList = $("payments-gallery-list");
         if (!galleryList) {
             return;
         }
-        var uploaded = galleryValues();
-        var pending = selectedFiles(galleryFileInput);
         var rows = [];
-        uploaded.forEach(function (url, index) {
+        galleryValues().forEach(function (url, index) {
             rows.push([
                 '<article class="payments-gallery-thumb">',
                 '  <img src="' + escapeHtml(url) + '" alt="تصویر گالری">',
@@ -381,7 +955,7 @@
                 "</article>"
             ].join(""));
         });
-        pending.forEach(function (file) {
+        selectedFiles($("payments-item-gallery-files")).forEach(function (file) {
             rows.push([
                 '<article class="payments-gallery-thumb payments-gallery-thumb--pending">',
                 '  <span>در انتظار آپلود</span>',
@@ -392,80 +966,102 @@
         galleryList.innerHTML = rows.length ? rows.join("") : '<div class="payments-gallery-empty">تصویری برای گالری انتخاب نشده است.</div>';
     }
 
-    function renderImageUploaders() {
-        renderHeroUploader();
-        renderGalleryUploader();
-    }
-
-    function firstImageFromForm() {
-        var file = selectedFile(heroFileInput);
-        if (file) {
-            return heroFilePreviewUrl(file);
-        }
-        var hero = safeImageUrl(readField("payments-item-hero-image"));
-        if (hero) {
-            return hero;
-        }
-        var gallery = galleryValues();
-        return Array.isArray(gallery) && gallery.length ? String(gallery[0] || "") : "";
-    }
-
-    function formDeadlineLabel() {
-        var expires = readField("payments-item-expires-at");
-        return expires ? formatDateTime(fromDatetimeLocal(expires), "بدون مهلت") : "بدون مهلت";
-    }
-
     function updateItemPreview() {
-        if (!previewTitle) {
-            return;
-        }
-
         var title = readField("payments-item-title") || "عنوان آیتم خرید";
-        var shortDescription = readField("payments-item-short-description") || "پیش‌نمایش زنده از چیزی که دانشجو در صفحه خرید می‌بیند.";
+        var shortDescription = readField("payments-item-short-description") || "پیش‌نمایش کارت عمومی آیتم.";
         var price = normalizeDigits(readField("payments-item-price")).replace(/\D+/g, "");
         var image = firstImageFromForm();
         var capacity = normalizeDigits(readField("payments-item-capacity")).replace(/\D+/g, "");
         var maxQuantity = normalizeDigits(readField("payments-item-max-quantity")).replace(/\D+/g, "") || "1";
-        var audience = readField("payments-item-audience-note") || "دانشجویان دندانپزشکی ورودی ۱۴۰۲";
-        var specs = parseLooseJson(readField("payments-item-specifications"), []);
-
-        if (previewImage) {
-            previewImage.innerHTML = image
-                ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(title) + '">'
-                : "<span>بدون تصویر</span>";
+        if ($("payments-preview-image")) {
+            $("payments-preview-image").innerHTML = image ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(title) + '">' : "<span>بدون تصویر</span>";
         }
-        if (previewCategory) {
-            previewCategory.textContent = selectedText("payments-item-category", "سفارش گروهی");
-        }
-        if (previewStatus) {
-            previewStatus.textContent = selectedText("payments-item-status", "غیرفعال");
-        }
-        previewTitle.textContent = title;
-        if (previewShort) {
-            previewShort.textContent = shortDescription;
-        }
-        if (previewPrice) {
-            previewPrice.textContent = money(price || 0);
-        }
-        if (previewMeta) {
-            previewMeta.innerHTML = [
+        if ($("payments-preview-category")) $("payments-preview-category").textContent = selectedText("payments-item-category", "سفارش گروهی");
+        if ($("payments-preview-status")) $("payments-preview-status").textContent = selectedText("payments-item-status", "غیرفعال");
+        if ($("payments-preview-title")) $("payments-preview-title").textContent = title;
+        if ($("payments-preview-short")) $("payments-preview-short").textContent = shortDescription;
+        if ($("payments-preview-price")) $("payments-preview-price").textContent = money(price || 0);
+        if ($("payments-preview-meta")) {
+            $("payments-preview-meta").innerHTML = [
                 "<span><b>ظرفیت</b>" + escapeHtml(capacity ? Number(capacity).toLocaleString("fa-IR") : "نامحدود") + "</span>",
                 "<span><b>حداکثر سفارش</b>" + escapeHtml(Number(maxQuantity).toLocaleString("fa-IR")) + "</span>",
-                "<span><b>مهلت</b>" + escapeHtml(formDeadlineLabel()) + "</span>",
-                "<span><b>مخاطب</b>" + escapeHtml(audience) + "</span>"
+                "<span><b>مهلت</b>" + escapeHtml(readField("payments-item-expires-at") ? formatDateTime(fromDatetimeLocal(readField("payments-item-expires-at")), "بدون مهلت") : "بدون مهلت") + "</span>"
             ].join("");
         }
-        if (previewSpecs) {
-            var visibleSpecs = Array.isArray(specs) ? specs.slice(0, 4) : [];
-            previewSpecs.innerHTML = visibleSpecs.map(function (entry) {
-                return "<span><b>" + escapeHtml(entry && entry.label || "مشخصه") + "</b>" + escapeHtml(entry && entry.value || "—") + "</span>";
-            }).join("");
+        renderHeroUploader();
+        renderGalleryUploader();
+    }
+
+    function resetItemForm() {
+        var form = $("payments-item-form");
+        if (!form) {
+            return;
         }
-        renderImageUploaders();
+        form.reset();
+        writeField("payments-item-id", "");
+        writeField("payments-item-hero-image", "");
+        writeField("payments-item-gallery", "[]");
+        writeField("payments-item-category", "group_order");
+        writeField("payments-item-status", "inactive");
+        writeField("payments-item-max-quantity", "1");
+        writeField("payments-item-audience-note", "دانشجویان دندانپزشکی ورودی ۱۴۰۲");
+        writeField("payments-item-delivery-note", "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود.");
+        writeField("payments-item-support-note", "برای پیگیری سفارش با نماینده یا مالک سایت تماس بگیرید.");
+        writeField("payments-item-specifications", "[]");
+        writeField("payments-item-required-fields", "[]");
+        writeField("payments-item-discount-codes", "[]");
+        writeField("payments-item-reviews", "[]");
+        writeField("payments-item-success-message", "پرداخت شما با موفقیت ثبت شد.");
+        writeField("payments-item-failure-message", "پرداخت شما ناموفق بود.");
+        if ($("payments-item-allow-cancellation")) $("payments-item-allow-cancellation").checked = false;
+        activeItemSection = "basic";
+        syncItemPanels();
+        updateItemPreview();
+    }
+
+    function fillItemForm(itemId) {
+        var item = state.items.find(function (entry) {
+            return Number(entry.id || 0) === Number(itemId || 0);
+        });
+        if (!item) {
+            setFeedback($("payments-item-form-feedback"), "آیتم برای ویرایش پیدا نشد.", "error");
+            return;
+        }
+        writeField("payments-item-id", item.id || "");
+        writeField("payments-item-title", item.title || "");
+        writeField("payments-item-category", item.category || "group_order");
+        writeField("payments-item-slug", item.slug || "");
+        writeField("payments-item-price", String(item.price || ""));
+        writeField("payments-item-status", item.status || "inactive");
+        writeField("payments-item-short-description", item.shortDescription || "");
+        writeField("payments-item-full-description", item.fullDescription || "");
+        writeField("payments-item-hero-image", item.heroImage || "");
+        writeField("payments-item-gallery", prettyJson(item.gallery || []));
+        writeField("payments-item-specifications", prettyJson(item.specifications || []));
+        writeField("payments-item-required-fields", prettyJson(item.requiredFields || []));
+        writeField("payments-item-audience-note", item.audienceNote || "دانشجویان دندانپزشکی ورودی ۱۴۰۲");
+        writeField("payments-item-delivery-note", item.deliveryNote || "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود.");
+        writeField("payments-item-support-note", item.supportNote || "برای پیگیری سفارش با نماینده یا مالک سایت تماس بگیرید.");
+        writeField("payments-item-max-quantity", String(item.maxQuantityPerOrder || 1));
+        writeField("payments-item-discount-codes", prettyJson(item.discountCodes || []));
+        writeField("payments-item-rating-average", item.ratingAverage ? String(item.ratingAverage) : "");
+        writeField("payments-item-rating-count", item.ratingCount ? String(item.ratingCount) : "");
+        writeField("payments-item-reviews", prettyJson(item.reviews || []));
+        writeField("payments-item-success-message", item.successMessage || "پرداخت شما با موفقیت ثبت شد.");
+        writeField("payments-item-failure-message", item.failureMessage || "پرداخت شما ناموفق بود.");
+        writeField("payments-item-starts-at", toDatetimeLocal(item.startsAt));
+        writeField("payments-item-expires-at", toDatetimeLocal(item.expiresAt));
+        writeField("payments-item-capacity", item.capacity == null ? "" : String(item.capacity));
+        if ($("payments-item-allow-cancellation")) $("payments-item-allow-cancellation").checked = !!item.allowCancellation;
+        if ($("payments-open-public-item")) {
+            $("payments-open-public-item").hidden = !item.publicUrl;
+            $("payments-open-public-item").href = item.publicUrl || "#";
+        }
+        updateItemPreview();
     }
 
     function fillShieldSample() {
-        writeField("payments-item-id", "");
+        resetItemForm();
         writeField("payments-item-title", SHIELD_SAMPLE.title);
         writeField("payments-item-category", SHIELD_SAMPLE.category);
         writeField("payments-item-slug", SHIELD_SAMPLE.slug);
@@ -489,633 +1085,18 @@
         writeField("payments-item-reviews", prettyJson(SHIELD_SAMPLE.reviews));
         writeField("payments-item-success-message", SHIELD_SAMPLE.successMessage);
         writeField("payments-item-failure-message", SHIELD_SAMPLE.failureMessage);
-        if (heroFileInput) {
-            heroFileInput.value = "";
-        }
-        if (galleryFileInput) {
-            galleryFileInput.value = "";
-        }
-        if ($("payments-item-allow-cancellation")) {
-            $("payments-item-allow-cancellation").checked = !!SHIELD_SAMPLE.allowCancellation;
-        }
+        if ($("payments-item-allow-cancellation")) $("payments-item-allow-cancellation").checked = !!SHIELD_SAMPLE.allowCancellation;
         updateItemPreview();
-        setFeedback(itemFormFeedback, "نمونه شیلد از منبع دنتی‌پارس داخل فرم آماده شد؛ بعد از ذخیره در کاتالوگ عمومی نمایش داده می‌شود.", "success");
+        setFeedback($("payments-item-form-feedback"), "نمونه داخل فرم قرار گرفت.", "success");
     }
 
-    function absoluteUrl(path) {
-        try {
-            return new URL(String(path || ""), window.location.origin).href;
-        } catch (_error) {
-            return String(path || "");
-        }
-    }
-
-    function statusLabel(status) {
-        switch (String(status || "")) {
-            case "success":
-                return "موفق";
-            case "failed":
-                return "ناموفق";
-            case "canceled":
-                return "لغو شده";
-            case "expired":
-                return "منقضی شده";
-            default:
-                return "در انتظار";
-        }
-    }
-
-    function statusTone(status) {
-        switch (String(status || "")) {
-            case "success":
-                return "ok";
-            case "failed":
-            case "canceled":
-            case "expired":
-                return "danger";
-            default:
-                return "warn";
-        }
-    }
-
-    function itemStateLabel(item) {
-        var state = item && item.state ? item.state : {};
-        return String(state.label || item.status || "نامشخص");
-    }
-
-    function itemCategoryLabel(item) {
-        return String(item && (item.categoryLabel || item.category) || "سفارش گروهی");
-    }
-
-    function itemStateTone(item) {
-        var key = String(item && item.state ? item.state.key || "" : "");
-        if (key === "active") return "ok";
-        if (key === "upcoming" || key === "full") return "warn";
-        return "danger";
-    }
-
-    function gatewayProviderLabel(provider) {
-        switch (String(provider || "").trim().toLowerCase()) {
-            case "zibal":
-                return "درگاه زیبال";
-            case "zarinpal":
-                return "درگاه زرین‌پال";
-            case "mock":
-                return "درگاه آزمایشی";
-            default:
-                return "درگاه آنلاین";
-        }
-    }
-
-    function gatewayPublicLabel(provider) {
-        switch (String(provider || "").trim().toLowerCase()) {
-            case "mock":
-                return "پرداخت آزمایشی";
-            case "zibal":
-            case "zarinpal":
-            default:
-                return "پرداخت آنلاین";
-        }
-    }
-
-    function gatewayById(id) {
-        var gatewayId = Number(id || 0);
-        if (!gatewayId) {
-            return null;
-        }
-        return state.gateways.find(function (gateway) {
-            return Number(gateway && gateway.id || 0) === gatewayId;
-        }) || null;
-    }
-
-    function syncGatewayPayload(payload) {
-        var bundle = null;
-        if (payload && payload.gateways && !Array.isArray(payload.gateways) && typeof payload.gateways === "object" && Array.isArray(payload.gateways.gateways)) {
-            bundle = payload.gateways;
-        } else if (payload && Array.isArray(payload.gateways)) {
-            bundle = payload;
-        }
-        if (!bundle) {
-            return;
-        }
-        state.gatewaySettings = bundle;
-        state.gateways = Array.isArray(bundle.gateways) ? bundle.gateways : [];
-        renderGateways();
-    }
-
-    function formatDateTime(value, fallback) {
-        var raw = String(value || "").trim();
-        if (!raw) {
-            return fallback || "—";
-        }
-        var parsed = new Date(raw);
-        if (!Number.isFinite(parsed.getTime())) {
-            return raw;
-        }
-        return parsed.toLocaleString("fa-IR-u-ca-persian", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: false
+    function syncItemPanels() {
+        document.querySelectorAll("[data-payment-item-section]").forEach(function (button) {
+            button.classList.toggle("is-active", String(button.dataset.paymentItemSection || "") === activeItemSection);
         });
-    }
-
-    function normalizeDigits(value) {
-        return String(value || "")
-            .replace(/[\u06F0-\u06F9]/g, function (ch) {
-                return String("\u06F0\u06F1\u06F2\u06F3\u06F4\u06F5\u06F6\u06F7\u06F8\u06F9".indexOf(ch));
-            })
-            .replace(/[\u0660-\u0669]/g, function (ch) {
-                return String("\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669".indexOf(ch));
-            });
-    }
-
-    function slugifyLatin(value) {
-        return String(value || "")
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/^-+|-+$/g, "")
-            .slice(0, 80);
-    }
-
-    function toDatetimeLocal(value) {
-        var raw = String(value || "").trim();
-        if (!raw) {
-            return "";
-        }
-        var parsed = new Date(raw);
-        if (!Number.isFinite(parsed.getTime())) {
-            return "";
-        }
-        var year = parsed.getFullYear();
-        var month = String(parsed.getMonth() + 1).padStart(2, "0");
-        var day = String(parsed.getDate()).padStart(2, "0");
-        var hours = String(parsed.getHours()).padStart(2, "0");
-        var minutes = String(parsed.getMinutes()).padStart(2, "0");
-        return year + "-" + month + "-" + day + "T" + hours + ":" + minutes;
-    }
-
-    function fromDatetimeLocal(value) {
-        var raw = String(value || "").trim();
-        if (!raw) {
-            return "";
-        }
-        if (raw.length === 16) {
-            return raw.replace("T", " ") + ":00";
-        }
-        return raw.replace("T", " ");
-    }
-
-    function prettyJson(value) {
-        try {
-            return JSON.stringify(value == null ? {} : value, null, 2);
-        } catch (_error) {
-            return "{}";
-        }
-    }
-
-    function isOwner() {
-        return !!(state.currentUser && state.currentUser.isOwner);
-    }
-
-    function isPaymentsSurfaceOpen() {
-        if (ownerConsole) {
-            return !ownerConsole.hidden;
-        }
-        return !!(panel && panel.dataset && panel.dataset.surface === "payments");
-    }
-
-    function setOwnerConsoleVisible(visible) {
-        if (ownerConsole) {
-            ownerConsole.hidden = !visible;
-        }
-    }
-
-    function openPaymentTab(name) {
-        var target = String(name || "overview").trim() || "overview";
-        var matched = false;
-        tabPanels.forEach(function (node) {
-            var active = String(node.dataset.paymentTabPanel || "") === target;
-            node.hidden = !active;
-            matched = matched || active;
+        document.querySelectorAll("[data-payment-item-panel]").forEach(function (panel) {
+            panel.hidden = String(panel.dataset.paymentItemPanel || "") !== activeItemSection;
         });
-        if (!matched) {
-            target = "overview";
-            tabPanels.forEach(function (node) {
-                node.hidden = String(node.dataset.paymentTabPanel || "") !== target;
-            });
-        }
-        tabButtons.forEach(function (button) {
-            var active = String(button.dataset.paymentTab || "") === target;
-            button.classList.toggle("is-active", active);
-            button.setAttribute("aria-selected", active ? "true" : "false");
-        });
-        if (target === "orders" && isOwner()) {
-            loadOrders(true);
-        }
-    }
-
-    function setPaymentStep(step) {
-        var next = Math.max(1, Math.min(3, Number(step) || 1));
-        activeStep = next;
-        stepPanels.forEach(function (node) {
-            node.hidden = Number(node.dataset.paymentStepPanel || 0) !== activeStep;
-        });
-        stepButtons.forEach(function (button) {
-            var active = Number(button.dataset.paymentStep || 0) === activeStep;
-            button.classList.toggle("is-active", active);
-            button.setAttribute("aria-selected", active ? "true" : "false");
-        });
-        if (stepPrevButton) {
-            stepPrevButton.hidden = activeStep <= 1;
-        }
-        if (stepNextButton) {
-            stepNextButton.hidden = activeStep >= 3;
-        }
-        if (saveButton) {
-            saveButton.hidden = activeStep < 3;
-        }
-        if (stepTitle) {
-            stepTitle.textContent = activeStep === 1
-                ? "مرحله ۱: عنوان، توضیح و تصویر"
-                : (activeStep === 2 ? "مرحله ۲: قیمت، دسته، ظرفیت و زمان" : "مرحله ۳: تحویل، لینک و گزینه‌های تکمیلی");
-        }
-    }
-
-    function validateCurrentStep() {
-        if (activeStep === 1 && !$("payments-item-title").value.trim()) {
-            setFeedback(itemFormFeedback, "برای رفتن به مرحله بعد، عنوان آیتم را وارد کن.", "error");
-            $("payments-item-title").focus();
-            return false;
-        }
-        if (activeStep === 2) {
-            var priceValue = normalizeDigits($("payments-item-price").value).replace(/\D+/g, "");
-            if (!priceValue || Number(priceValue) <= 0) {
-                setFeedback(itemFormFeedback, "برای رفتن به مرحله بعد، قیمت معتبر وارد کن.", "error");
-                $("payments-item-price").focus();
-                return false;
-            }
-        }
-        setFeedback(itemFormFeedback, "", "");
-        return true;
-    }
-
-    function currentFilters() {
-        return {
-            itemId: filterItem ? String(filterItem.value || "0") : "0",
-            status: filterStatus ? String(filterStatus.value || "all") : "all",
-            dateFrom: filterDateFrom ? String(filterDateFrom.value || "") : "",
-            dateTo: filterDateTo ? String(filterDateTo.value || "") : "",
-            query: filterQuery ? String(filterQuery.value || "").trim() : ""
-        };
-    }
-
-    function updateRowMeta(summary) {
-        if (!rowMeta || !summary) {
-            return;
-        }
-        rowMeta.textContent = [
-            "موفق " + Number(summary.totalSuccess || 0).toLocaleString("fa-IR"),
-            "دریافتی " + money(summary.totalReceived || 0)
-        ].join(" • ");
-    }
-
-    function renderSummary(summary) {
-        if (!summaryRoot) {
-            return;
-        }
-        if (!summary) {
-            summaryRoot.innerHTML = summaryCard("پرداخت", "—", "آمار ماژول خرید هنوز بارگذاری نشده است.");
-            return;
-        }
-        summaryRoot.innerHTML = [
-            summaryCard("آیتم فعال", String(Number(summary.activeItems || 0).toLocaleString("fa-IR")), "از " + String(Number(summary.totalItems || 0).toLocaleString("fa-IR")) + " آیتم ثبت‌شده", (summary.activeItems || 0) > 0 ? "ok" : "warn"),
-            summaryCard("دریافتی کل", money(summary.totalReceived || 0), "مجموع پرداخت‌های verify شده", (summary.totalReceived || 0) > 0 ? "ok" : ""),
-            summaryCard("پرداخت موفق", String(Number(summary.totalSuccess || 0).toLocaleString("fa-IR")), "تعداد تراکنش‌های تاییدشده", (summary.totalSuccess || 0) > 0 ? "ok" : ""),
-            summaryCard("در انتظار", String(Number(summary.totalPending || 0).toLocaleString("fa-IR")), "سفارش‌های ساخته‌شده و در حال بررسی", (summary.totalPending || 0) > 0 ? "warn" : ""),
-            summaryCard("ناموفق", String((Number(summary.totalFailed || 0) + Number(summary.totalCanceled || 0) + Number(summary.totalExpired || 0)).toLocaleString("fa-IR")), "ناموفق، لغوشده یا منقضی", ((summary.totalFailed || 0) + (summary.totalCanceled || 0) + (summary.totalExpired || 0)) > 0 ? "danger" : ""),
-            summaryCard("اعلان نخوانده", String(Number(summary.unreadNotifications || 0).toLocaleString("fa-IR")), "اعلان‌های مالی جدید", (summary.unreadNotifications || 0) > 0 ? "warn" : "ok")
-        ].join("");
-        updateRowMeta(summary);
-    }
-
-    function renderNotifications() {
-        if (!notificationsRoot) {
-            return;
-        }
-        if (!state.notifications.length) {
-            notificationsRoot.innerHTML = '<div class="owner-empty">اعلان مالی ثبت نشده است.</div>';
-            return;
-        }
-        notificationsRoot.innerHTML = state.notifications.map(function (note) {
-            var read = !!String(note.read_at || "").trim();
-            return [
-                '<article class="payments-note' + (read ? "" : " is-unread") + '">',
-                '  <div class="payments-note__head">',
-                '    <strong>' + escapeHtml(note.title || "اعلان مالی") + "</strong>",
-                '    <span>' + escapeHtml(formatDateTime(note.created_at, "—")) + "</span>",
-                "  </div>",
-                '  <p>' + escapeHtml(note.body || "—") + "</p>",
-                '  <div class="payments-note__actions">',
-                note.related_order_id ? '<button class="shell-action-btn" type="button" data-payment-order-detail="' + escapeHtml(note.related_order_id) + '">جزئیات تراکنش</button>' : "",
-                read ? '<span class="payments-note__state">خوانده شده</span>' : '<button class="shell-action-btn" type="button" data-payment-read-note="' + escapeHtml(note.id) + '">خواندم</button>',
-                "  </div>",
-                "</article>"
-            ].join("");
-        }).join("");
-    }
-
-    function populateFilterItems() {
-        if (!filterItem) {
-            return;
-        }
-        var current = String(filterItem.value || "0");
-        var options = ['<option value="0">همه آیتم‌ها</option>'];
-        state.items.forEach(function (item) {
-            options.push('<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.title || "بدون عنوان") + "</option>");
-        });
-        filterItem.innerHTML = options.join("");
-        filterItem.value = current;
-    }
-
-    function renderItems() {
-        if (!itemsRoot) {
-            return;
-        }
-        if (!state.items.length) {
-            itemsRoot.innerHTML = '<div class="owner-empty">هنوز آیتمی برای کاتالوگ خرید یا ثبت‌نام ساخته نشده است.</div>';
-            return;
-        }
-        itemsRoot.innerHTML = state.items.map(function (item) {
-            var publicUrl = absoluteUrl(item.publicUrl || "");
-            return [
-                '<article class="payments-item-card">',
-                '  <div class="payments-item-card__head">',
-                '    <div>',
-                '      <span class="payments-pill payments-pill--' + escapeHtml(itemStateTone(item)) + '">' + escapeHtml(itemStateLabel(item)) + "</span>",
-                '      <h4>' + escapeHtml(item.title || "بدون عنوان") + "</h4>",
-                '      <p>' + escapeHtml(itemCategoryLabel(item)) + ' • <span dir="ltr">' + escapeHtml(item.slug || "") + "</span></p>",
-                "    </div>",
-                '    <strong>' + escapeHtml(money(item.price || 0)) + "</strong>",
-                "  </div>",
-                '  <div class="payments-item-card__meta">',
-                '    <span>لینک عمومی: <a href="' + escapeHtml(publicUrl || "#") + '" target="_blank" rel="noopener">' + escapeHtml(publicUrl || "—") + "</a></span>",
-                '    <span>فروخته‌شده: ' + escapeHtml(String(Number(item.soldCount || 0).toLocaleString("fa-IR"))) + "</span>",
-                '    <span>مهلت: ' + escapeHtml(formatDateTime(item.expiresAt, "بدون مهلت")) + "</span>",
-                '    <span>حداکثر تعداد هر سفارش: ' + escapeHtml(String(Number(item.maxQuantityPerOrder || 1).toLocaleString("fa-IR"))) + "</span>",
-                '    <span>لغو توسط خریدار: ' + (item.allowCancellation ? "فعال" : "غیرفعال") + "</span>",
-                "  </div>",
-                '  <div class="payments-item-card__actions">',
-                '    <button class="shell-action-btn shell-action-btn-primary" type="button" data-payment-edit-item="' + escapeHtml(item.id) + '">ویرایش</button>',
-                '    <button class="shell-action-btn" type="button" data-payment-copy-link="' + escapeHtml(publicUrl || "") + '">کپی لینک</button>',
-                '    <button class="shell-action-btn" type="button" data-payment-toggle-item="' + escapeHtml(item.id) + '" data-payment-enabled="' + (item.status === "active" ? "0" : "1") + '">' + (item.status === "active" ? "غیرفعال‌کردن" : "فعال‌کردن") + "</button>",
-                '    <button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-delete-item="' + escapeHtml(item.id) + '">حذف</button>',
-                "  </div>",
-                "</article>"
-            ].join("");
-        }).join("");
-    }
-
-    function renderGateways() {
-        if (!gatewaysRoot) {
-            return;
-        }
-        if (!state.gateways.length) {
-            gatewaysRoot.innerHTML = '<div class="owner-empty">هنوز درگاه پرداختی اضافه نشده است. اولین درگاه را از فرم بالا ثبت کن.</div>';
-            return;
-        }
-        gatewaysRoot.innerHTML = state.gateways.map(function (gateway) {
-            var configured = !!gateway.isConfigured;
-            var enabled = !!gateway.isEnabled;
-            var provider = String(gateway.provider || "");
-            var statusText = !enabled ? "غیرفعال" : (configured ? "فعال" : "نیازمند کلید");
-            var statusTone = !enabled ? "warn" : (configured ? "ok" : "danger");
-            return [
-                '<article class="payments-item-card payments-gateway-card">',
-                '  <div class="payments-item-card__head">',
-                '    <div>',
-                '      <span class="payments-pill payments-pill--' + escapeHtml(statusTone) + '">' + escapeHtml(statusText) + "</span>",
-                '      <h4>' + escapeHtml(gateway.label || "پرداخت آنلاین") + "</h4>",
-                '      <p>' + escapeHtml(gateway.providerLabel || gatewayProviderLabel(provider)) + ' • <span dir="ltr">' + escapeHtml(gateway.key || "") + "</span></p>",
-                "    </div>",
-                gateway.isDefault ? '<strong>پیش‌فرض</strong>' : '<strong>درگاه</strong>',
-                "  </div>",
-                '  <div class="payments-item-card__meta">',
-                '    <span>نوع: ' + escapeHtml(gatewayProviderLabel(provider)) + "</span>",
-                '    <span>وضعیت کلید: ' + (configured ? "ثبت شده" : "ثبت نشده") + "</span>",
-                '    <span>ایجاد: ' + escapeHtml(formatDateTime(gateway.createdAt, "—")) + "</span>",
-                '    <span>آخرین ویرایش: ' + escapeHtml(formatDateTime(gateway.updatedAt, "—")) + "</span>",
-                "  </div>",
-                '  <div class="payments-item-card__actions">',
-                '    <button class="shell-action-btn shell-action-btn-primary" type="button" data-payment-edit-gateway="' + escapeHtml(gateway.id) + '">ویرایش</button>',
-                '    <button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-delete-gateway="' + escapeHtml(gateway.id) + '">حذف درگاه</button>',
-                "  </div>",
-                "</article>"
-            ].join("");
-        }).join("");
-    }
-
-    function renderOrdersSummary(summary) {
-        if (!ordersSummaryRoot) {
-            return;
-        }
-        if (!summary) {
-            ordersSummaryRoot.innerHTML = "";
-            return;
-        }
-        ordersSummaryRoot.innerHTML = [
-            summaryCard("نمایش‌شده", String(Number(summary.totalOrders || 0).toLocaleString("fa-IR")), "تعداد تراکنش‌های خروجی فعلی"),
-            summaryCard("موفق", String(Number(summary.totalSuccess || 0).toLocaleString("fa-IR")), "پرداخت تاییدشده در این فیلتر", (summary.totalSuccess || 0) > 0 ? "ok" : ""),
-            summaryCard("دریافتی", money(summary.totalReceived || 0), "جمع مبالغ verify شده", (summary.totalReceived || 0) > 0 ? "ok" : ""),
-            summaryCard("در انتظار", String(Number(summary.totalPending || 0).toLocaleString("fa-IR")), "نیازمند callback/verify", (summary.totalPending || 0) > 0 ? "warn" : "")
-        ].join("");
-    }
-
-    function renderOrders() {
-        if (!ordersRoot) {
-            return;
-        }
-        if (!state.orders.length) {
-            ordersRoot.innerHTML = '<div class="owner-empty">تراکنشی با این فیلتر پیدا نشد.</div>';
-            return;
-        }
-        ordersRoot.innerHTML = state.orders.map(function (order) {
-            return [
-                '<article class="payments-order-card' + (state.selectedOrderId === Number(order.id) ? " is-active" : "") + '">',
-                '  <div class="payments-order-card__head">',
-                '    <div>',
-                '      <span class="payments-pill payments-pill--' + escapeHtml(statusTone(order.status)) + '">' + escapeHtml(statusLabel(order.status)) + "</span>",
-                '      <h4>' + escapeHtml(order.payerName || "بدون نام") + "</h4>",
-                '      <p>' + escapeHtml(order.itemTitle || "آیتم نامشخص") + "</p>",
-                "    </div>",
-                '    <strong>' + escapeHtml(money(order.amount || 0)) + "</strong>",
-                "  </div>",
-                '  <div class="payments-order-card__meta">',
-                '    <span>موبایل: ' + escapeHtml(order.payerPhone || "—") + "</span>",
-                '    <span>authority: ' + escapeHtml(order.authority || "—") + "</span>",
-                '    <span>ref id: ' + escapeHtml(order.refId || "—") + "</span>",
-                '    <span>ثبت: ' + escapeHtml(formatDateTime(order.createdAt, "—")) + "</span>",
-                "  </div>",
-                '  <div class="payments-order-card__actions">',
-                '    <button class="shell-action-btn shell-action-btn-primary" type="button" data-payment-order-detail="' + escapeHtml(order.id) + '">جزئیات</button>',
-                order.publicToken ? '<a class="shell-action-btn" href="/buy/result/?orderToken=' + encodeURIComponent(String(order.publicToken)) + '" target="_blank" rel="noopener">صفحه نتیجه</a>' : "",
-                "  </div>",
-                "</article>"
-            ].join("");
-        }).join("");
-    }
-
-    function renderOrderDetail(order, snapshot) {
-        if (!orderDetailRoot) {
-            return;
-        }
-        if (!order) {
-            orderDetailRoot.innerHTML = '<div class="owner-empty">برای دیدن جزئیات، یکی از تراکنش‌ها را انتخاب کن.</div>';
-            return;
-        }
-        var extras = order.extraFormData && typeof order.extraFormData === "object"
-            ? Object.keys(order.extraFormData).map(function (key) {
-                return '<div class="payments-detail-row"><span>' + escapeHtml(key) + '</span><strong>' + escapeHtml(order.extraFormData[key]) + "</strong></div>";
-            }).join("")
-            : "";
-        orderDetailRoot.innerHTML = [
-            '<div class="payments-detail-grid">',
-            '  <div class="payments-detail-row"><span>پرداخت‌کننده</span><strong>' + escapeHtml(order.payerName || "—") + "</strong></div>",
-            '  <div class="payments-detail-row"><span>شماره موبایل</span><strong>' + escapeHtml(order.payerPhone || "—") + "</strong></div>",
-            '  <div class="payments-detail-row"><span>شماره دانشجویی</span><strong>' + escapeHtml(order.payerStudentNumber || "—") + "</strong></div>",
-            '  <div class="payments-detail-row"><span>وضعیت</span><strong>' + escapeHtml(statusLabel(order.status)) + "</strong></div>",
-            '  <div class="payments-detail-row"><span>تعداد</span><strong>' + escapeHtml(Number(order.quantity || 1).toLocaleString("fa-IR")) + "</strong></div>",
-            '  <div class="payments-detail-row"><span>جمع قبل از تخفیف</span><strong>' + escapeHtml(money(order.subtotal || order.amount || 0)) + "</strong></div>",
-            '  <div class="payments-detail-row"><span>کد/مبلغ تخفیف</span><strong>' + escapeHtml((order.discountCode || "—") + " / " + money(order.discountAmount || 0)) + "</strong></div>",
-            '  <div class="payments-detail-row"><span>مبلغ نهایی</span><strong>' + escapeHtml(money(order.amount || 0)) + "</strong></div>",
-            '  <div class="payments-detail-row"><span>درگاه</span><strong>' + escapeHtml(order.gateway || "—") + "</strong></div>",
-            '  <div class="payments-detail-row"><span>authority</span><strong>' + escapeHtml(order.authority || "—") + "</strong></div>",
-            '  <div class="payments-detail-row"><span>ref id</span><strong>' + escapeHtml(order.refId || "—") + "</strong></div>",
-            '  <div class="payments-detail-row"><span>ثبت سفارش</span><strong>' + escapeHtml(formatDateTime(order.createdAt, "—")) + "</strong></div>",
-            '  <div class="payments-detail-row"><span>تایید نهایی</span><strong>' + escapeHtml(formatDateTime(order.verifiedAt, "—")) + "</strong></div>",
-            extras,
-            "</div>",
-            '<div class="payments-item-card__actions payments-order-admin-actions">',
-            order.status === "pending" ? '<button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-status-update="' + escapeHtml(order.id) + '" data-payment-next-status="canceled">لغو سفارش</button>' : "",
-            order.status !== "pending" && order.status !== "success" ? '<button class="shell-action-btn" type="button" data-payment-status-update="' + escapeHtml(order.id) + '" data-payment-next-status="pending">بازگردانی به در انتظار</button>' : "",
-            "</div>",
-            '<div class="payments-code-block">',
-            "  <h5>اسنپ‌شات پاسخ درگاه</h5>",
-            "  <pre>" + escapeHtml(prettyJson(snapshot || {})) + "</pre>",
-            "</div>"
-        ].join("");
-    }
-
-    function resetItemForm() {
-        if (!itemForm) {
-            return;
-        }
-        itemForm.reset();
-        $("payments-item-id").value = "";
-        $("payments-item-hero-image").value = "";
-        $("payments-item-category").value = "group_order";
-        $("payments-item-max-quantity").value = "1";
-        $("payments-item-audience-note").value = "دانشجویان دندانپزشکی ورودی ۱۴۰۲";
-        $("payments-item-delivery-note").value = "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود.";
-        $("payments-item-support-note").value = "برای پیگیری سفارش با نماینده یا مالک سایت تماس بگیرید.";
-        $("payments-item-allow-cancellation").checked = false;
-        $("payments-item-gallery").value = "[]";
-        $("payments-item-specifications").value = "[]";
-        $("payments-item-required-fields").value = "[]";
-        $("payments-item-discount-codes").value = "[]";
-        $("payments-item-rating-average").value = "";
-        $("payments-item-rating-count").value = "";
-        $("payments-item-reviews").value = "[]";
-        $("payments-item-success-message").value = "پرداخت شما با موفقیت ثبت شد.";
-        $("payments-item-failure-message").value = "پرداخت شما ناموفق بود.";
-        if (heroFileInput) {
-            heroFileInput.value = "";
-        }
-        if (galleryFileInput) {
-            galleryFileInput.value = "";
-        }
-        setFeedback(itemFormFeedback, "", "");
-        setPaymentStep(1);
-        updateItemPreview();
-    }
-
-    function fillItemForm(itemId) {
-        var item = state.items.find(function (entry) {
-            return Number(entry.id) === Number(itemId);
-        });
-        if (!item) {
-            return;
-        }
-        $("payments-item-id").value = item.id || "";
-        $("payments-item-title").value = item.title || "";
-        $("payments-item-category").value = item.category || "group_order";
-        $("payments-item-slug").value = item.slug || "";
-        $("payments-item-price").value = String(item.price || "");
-        $("payments-item-status").value = item.status || "inactive";
-        $("payments-item-short-description").value = item.shortDescription || "";
-        $("payments-item-full-description").value = item.fullDescription || "";
-        $("payments-item-hero-image").value = item.heroImage || "";
-        $("payments-item-gallery").value = prettyJson(item.gallery || []);
-        $("payments-item-specifications").value = prettyJson(item.specifications || []);
-        $("payments-item-required-fields").value = prettyJson(item.requiredFields || []);
-        $("payments-item-audience-note").value = item.audienceNote || "دانشجویان دندانپزشکی ورودی ۱۴۰۲";
-        $("payments-item-delivery-note").value = item.deliveryNote || "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود.";
-        $("payments-item-support-note").value = item.supportNote || "برای پیگیری سفارش با نماینده یا مالک سایت تماس بگیرید.";
-        $("payments-item-allow-cancellation").checked = !!item.allowCancellation;
-        $("payments-item-max-quantity").value = String(item.maxQuantityPerOrder || 1);
-        $("payments-item-discount-codes").value = prettyJson(item.discountCodes || []);
-        $("payments-item-rating-average").value = item.ratingAverage ? String(item.ratingAverage) : "";
-        $("payments-item-rating-count").value = item.ratingCount ? String(item.ratingCount) : "";
-        $("payments-item-reviews").value = prettyJson(item.reviews || []);
-        $("payments-item-success-message").value = item.successMessage || "پرداخت شما با موفقیت ثبت شد.";
-        $("payments-item-failure-message").value = item.failureMessage || "پرداخت شما ناموفق بود.";
-        $("payments-item-starts-at").value = toDatetimeLocal(item.startsAt);
-        $("payments-item-expires-at").value = toDatetimeLocal(item.expiresAt);
-        $("payments-item-capacity").value = item.capacity == null ? "" : String(item.capacity);
-        if (heroFileInput) {
-            heroFileInput.value = "";
-        }
-        if (galleryFileInput) {
-            galleryFileInput.value = "";
-        }
-        setFeedback(itemFormFeedback, "حالت ویرایش برای «" + (item.title || "آیتم") + "» فعال شد.", "success");
-        openPaymentTab("item");
-        setPaymentStep(1);
-        updateItemPreview();
-        if (ownerConsole) {
-            ownerConsole.scrollIntoView({ behavior: "smooth", block: "start" });
-        } else {
-            window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-    }
-
-    function renderDashboard() {
-        renderItems();
-        renderGateways();
-        renderNotifications();
-        populateFilterItems();
-    }
-
-    function upsertItemInState(item) {
-        if (!item || typeof item !== "object") {
-            return;
-        }
-        var itemId = Number(item.id || 0);
-        if (!itemId) {
-            return;
-        }
-        var index = state.items.findIndex(function (entry) {
-            return Number(entry.id || 0) === itemId;
-        });
-        if (index >= 0) {
-            state.items[index] = item;
-        } else {
-            state.items.unshift(item);
-        }
-        renderItems();
-        populateFilterItems();
     }
 
     async function uploadPaymentImage(file) {
@@ -1128,7 +1109,6 @@
         if (Number(file.size || 0) > 5 * 1024 * 1024) {
             throw new Error("حجم تصویر باید کمتر از ۵ مگابایت باشد.");
         }
-
         var body = new FormData();
         body.append("image", file);
         var response = await requestFormData("ownerUploadImage", body);
@@ -1144,357 +1124,332 @@
     async function uploadSelectedImagesBeforeSave() {
         var heroImage = safeImageUrl(readField("payments-item-hero-image"));
         var gallery = galleryValues();
+        var heroFileInput = $("payments-item-hero-file");
+        var galleryFileInput = $("payments-item-gallery-files");
         var heroFile = selectedFile(heroFileInput);
         var galleryFiles = selectedFiles(galleryFileInput);
-
         if (heroFile) {
-            setFeedback(itemFormFeedback, "در حال آپلود تصویر اصلی کالا...", "", true);
+            setFeedback($("payments-item-form-feedback"), "در حال آپلود تصویر اصلی کالا...", "", true);
             var storedHero = await uploadPaymentImage(heroFile);
             heroImage = storedHero.url;
             writeField("payments-item-hero-image", heroImage);
-            if (heroFileInput) {
-                heroFileInput.value = "";
-            }
+            heroFileInput.value = "";
         }
-
         if (galleryFiles.length) {
-            setFeedback(itemFormFeedback, "در حال آپلود تصاویر گالری...", "", true);
+            setFeedback($("payments-item-form-feedback"), "در حال آپلود تصاویر گالری...", "", true);
             for (var index = 0; index < galleryFiles.length; index += 1) {
-                var storedGalleryImage = await uploadPaymentImage(galleryFiles[index]);
-                gallery.push(storedGalleryImage.url);
+                var storedGallery = await uploadPaymentImage(galleryFiles[index]);
+                gallery.push(storedGallery.url);
             }
-            if (galleryFileInput) {
-                galleryFileInput.value = "";
-            }
+            galleryFileInput.value = "";
         }
-
         gallery = Array.from(new Set(gallery.filter(Boolean)));
         writeGalleryValues(gallery);
         if (!heroImage && gallery.length) {
             heroImage = gallery[0];
             writeField("payments-item-hero-image", heroImage);
         }
-        renderImageUploaders();
         updateItemPreview();
-
-        return {
-            heroImage: heroImage,
-            gallery: gallery
-        };
-    }
-
-    async function loadDashboard(silent) {
-        if (!isOwner() || state.loadingDashboard) {
-            return;
-        }
-        state.loadingDashboard = true;
-        if (!silent) {
-            setFeedback(feedbackNode, "در حال دریافت آمار پرداخت‌ها...", "", true);
-            renderSummary(null);
-        }
-
-        try {
-            var response = await request("ownerDashboard", {}, "GET");
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-                return;
-            }
-            if (!response || !response.success) {
-                setFeedback(feedbackNode, (response && response.error) || "دریافت آمار پرداخت انجام نشد.", "error");
-                return;
-            }
-
-            state.dashboardLoaded = true;
-            state.items = Array.isArray(response.items) ? response.items : [];
-            syncGatewayPayload(response);
-            state.notifications = Array.isArray(response.notifications) ? response.notifications : [];
-            renderSummary(response.summary || {});
-            renderDashboard();
-            setFeedback(feedbackNode, "آمار و آیتم‌های پرداخت به‌روزرسانی شد.", "success");
-        } finally {
-            state.loadingDashboard = false;
-        }
-    }
-
-    async function loadOrders(silent) {
-        if (!isOwner() || state.loadingOrders) {
-            return;
-        }
-        state.loadingOrders = true;
-        if (!silent) {
-            ordersRoot.innerHTML = '<div class="owner-empty">در حال دریافت تراکنش‌ها...</div>';
-        }
-
-        try {
-            var response = await request("ownerOrders", currentFilters(), "GET");
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-                return;
-            }
-            if (!response || !response.success) {
-                ordersRoot.innerHTML = '<div class="owner-empty">دریافت تراکنش‌ها انجام نشد.</div>';
-                setFeedback(feedbackNode, (response && response.error) || "دریافت تراکنش‌ها انجام نشد.", "error");
-                return;
-            }
-            state.orders = Array.isArray(response.orders) ? response.orders : [];
-            renderOrdersSummary(response.filteredSummary || response.summary || null);
-            renderOrders();
-        } finally {
-            state.loadingOrders = false;
-        }
-    }
-
-    async function loadOrderDetail(orderId) {
-        if (!isOwner() || !orderId) {
-            return;
-        }
-        state.selectedOrderId = Number(orderId) || 0;
-        renderOrders();
-        orderDetailRoot.innerHTML = '<div class="owner-empty">در حال دریافت جزئیات تراکنش...</div>';
-
-        var response = await request("ownerOrderDetails", { id: orderId }, "GET");
-        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-            return;
-        }
-        if (!response || !response.success || !response.order) {
-            renderOrderDetail(null, null);
-            setFeedback(feedbackNode, (response && response.error) || "دریافت جزئیات تراکنش انجام نشد.", "error");
-            return;
-        }
-        renderOrderDetail(response.order, response.gatewaySnapshot || {});
+        return { heroImage: heroImage, gallery: gallery };
     }
 
     async function saveItem(event) {
         event.preventDefault();
-        if (!isOwner()) {
-            return;
-        }
-
-        var titleValue = $("payments-item-title").value.trim();
-        var priceValue = normalizeDigits($("payments-item-price").value).replace(/\D+/g, "");
+        var formFeedback = $("payments-item-form-feedback");
+        var titleValue = readField("payments-item-title");
+        var priceValue = normalizeDigits(readField("payments-item-price")).replace(/\D+/g, "");
         if (!titleValue) {
-            setFeedback(itemFormFeedback, "عنوان آیتم الزامی است.", "error");
+            setFeedback(formFeedback, "عنوان آیتم الزامی است.", "error");
             $("payments-item-title").focus();
             return;
         }
         if (!priceValue || Number(priceValue) <= 0) {
-            setFeedback(itemFormFeedback, "قیمت برای درگاه باید بیشتر از صفر باشد.", "error");
+            setFeedback(formFeedback, "قیمت واحد باید بیشتر از صفر باشد.", "error");
             $("payments-item-price").focus();
             return;
         }
-
         var uploadedImages;
         try {
             uploadedImages = await uploadSelectedImagesBeforeSave();
         } catch (error) {
-            setFeedback(itemFormFeedback, (error && error.message) || "آپلود تصویر انجام نشد.", "error");
+            setFeedback(formFeedback, (error && error.message) || "آپلود تصویر انجام نشد.", "error");
             return;
         }
-        if (!uploadedImages || !uploadedImages.heroImage) {
-            setFeedback(itemFormFeedback, "تصویر اصلی کالا الزامی است. تصویر را از دستگاه آپلود کن.", "error");
-            if (heroFileInput) {
-                heroFileInput.focus();
-            }
+        if (!uploadedImages.heroImage) {
+            setFeedback(formFeedback, "تصویر اصلی کالا الزامی است.", "error");
+            activeItemSection = "media";
+            syncItemPanels();
             return;
         }
 
-        setFeedback(itemFormFeedback, "در حال ذخیره آیتم کاتالوگ...", "", true);
         var payload = {
-            id: $("payments-item-id").value || "",
+            id: readField("payments-item-id"),
             title: titleValue,
-            category: $("payments-item-category").value,
-            slug: $("payments-item-slug").value.trim(),
+            category: readField("payments-item-category"),
+            slug: readField("payments-item-slug"),
             price: priceValue,
-            status: $("payments-item-status").value,
-            shortDescription: $("payments-item-short-description").value.trim(),
-            fullDescription: $("payments-item-full-description").value.trim(),
+            status: readField("payments-item-status"),
+            shortDescription: readField("payments-item-short-description"),
+            fullDescription: readField("payments-item-full-description"),
             heroImage: uploadedImages.heroImage,
             gallery: prettyJson(uploadedImages.gallery || []),
-            specifications: $("payments-item-specifications").value.trim() || "[]",
-            requiredFields: $("payments-item-required-fields").value.trim() || "[]",
-            audienceNote: $("payments-item-audience-note").value.trim(),
-            deliveryNote: $("payments-item-delivery-note").value.trim(),
-            supportNote: $("payments-item-support-note").value.trim(),
-            allowCancellation: $("payments-item-allow-cancellation").checked ? "1" : "0",
-            maxQuantityPerOrder: normalizeDigits($("payments-item-max-quantity").value).replace(/\D+/g, "") || "1",
-            discountCodes: $("payments-item-discount-codes").value.trim() || "[]",
-            ratingAverage: normalizeDigits($("payments-item-rating-average").value).replace(/[^0-9.]+/g, ""),
-            ratingCount: normalizeDigits($("payments-item-rating-count").value).replace(/\D+/g, ""),
-            reviews: $("payments-item-reviews").value.trim() || "[]",
-            successMessage: $("payments-item-success-message").value.trim(),
-            failureMessage: $("payments-item-failure-message").value.trim(),
-            startsAt: fromDatetimeLocal($("payments-item-starts-at").value),
-            expiresAt: fromDatetimeLocal($("payments-item-expires-at").value),
-            capacity: normalizeDigits($("payments-item-capacity").value).replace(/\D+/g, "")
+            specifications: readField("payments-item-specifications") || "[]",
+            requiredFields: readField("payments-item-required-fields") || "[]",
+            audienceNote: readField("payments-item-audience-note"),
+            deliveryNote: readField("payments-item-delivery-note"),
+            supportNote: readField("payments-item-support-note"),
+            allowCancellation: $("payments-item-allow-cancellation") && $("payments-item-allow-cancellation").checked ? "1" : "0",
+            maxQuantityPerOrder: normalizeDigits(readField("payments-item-max-quantity")).replace(/\D+/g, "") || "1",
+            discountCodes: readField("payments-item-discount-codes") || "[]",
+            ratingAverage: normalizeDigits(readField("payments-item-rating-average")).replace(/[^0-9.]+/g, ""),
+            ratingCount: normalizeDigits(readField("payments-item-rating-count")).replace(/\D+/g, ""),
+            reviews: readField("payments-item-reviews") || "[]",
+            successMessage: readField("payments-item-success-message"),
+            failureMessage: readField("payments-item-failure-message"),
+            startsAt: fromDatetimeLocal(readField("payments-item-starts-at")),
+            expiresAt: fromDatetimeLocal(readField("payments-item-expires-at")),
+            capacity: normalizeDigits(readField("payments-item-capacity")).replace(/\D+/g, "")
         };
-
-        if (!payload.slug && payload.title) {
+        if (!payload.slug) {
             payload.slug = slugifyLatin(payload.title);
         }
-
-        if (!payload.id && payload.slug) {
-            var matchedItem = state.items.find(function (entry) {
-                return String(entry.slug || "").trim().toLowerCase() === String(payload.slug || "").trim().toLowerCase();
-            });
-            if (matchedItem && Number(matchedItem.id || 0) > 0) {
-                payload.id = String(matchedItem.id || "");
-            }
-        }
-
+        setFeedback(formFeedback, "در حال ذخیره آیتم...", "", true);
         var response = await request("ownerSaveItem", payload, "POST");
         if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
             return;
         }
         if (!response || !response.success || !response.item) {
-            setFeedback(itemFormFeedback, (response && response.error) || "ذخیره آیتم انجام نشد.", "error");
+            setFeedback(formFeedback, (response && response.error) || "ذخیره آیتم انجام نشد.", "error");
             return;
         }
-
-        upsertItemInState(response.item);
-        setFeedback(itemFormFeedback, response.message || "آیتم کاتالوگ ذخیره شد.", "success");
-        fillItemForm(response.item.id);
         await loadDashboard(true);
-        await loadOrders(true);
+        setFeedback(formFeedback, response.message || "آیتم ذخیره شد.", "success");
+        if (mode !== "edit") {
+            window.location.href = "/buy/manage/items/edit/?id=" + encodeURIComponent(String(response.item.id || ""));
+        } else {
+            fillItemForm(response.item.id);
+        }
     }
 
     async function toggleItem(itemId, enabled) {
-        if (!isOwner()) {
-            return;
-        }
         setFeedback(feedbackNode, enabled ? "در حال فعال‌سازی آیتم..." : "در حال غیرفعال‌سازی آیتم...", "", true);
         var response = await request("ownerToggleItem", { id: itemId, enabled: enabled ? "1" : "0" }, "POST");
-        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-            return;
-        }
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) return;
         if (!response || !response.success) {
             setFeedback(feedbackNode, (response && response.error) || "تغییر وضعیت آیتم انجام نشد.", "error");
             return;
         }
-        if (response.item) {
-            upsertItemInState(response.item);
-        }
-        setFeedback(feedbackNode, response.message || "وضعیت آیتم به‌روزرسانی شد.", "success");
         await loadDashboard(true);
-        await loadOrders(true);
+        renderPage();
+        setFeedback(feedbackNode, response.message || "وضعیت آیتم به‌روزرسانی شد.", "success");
     }
 
     async function deleteItem(itemId) {
-        if (!isOwner() || !itemId) {
-            return;
-        }
         var item = state.items.find(function (entry) {
-            return Number(entry && entry.id || 0) === Number(itemId);
+            return Number(entry.id || 0) === Number(itemId || 0);
         });
         var title = item && item.title ? item.title : "این آیتم";
-        if (!window.confirm("آیتم «" + title + "» از کاتالوگ خرید حذف شود؟ سوابق سفارش‌های قبلی حفظ می‌شود.")) {
+        if (!window.confirm("آیتم «" + title + "» از کاتالوگ حذف شود؟ سوابق سفارش‌های قبلی حفظ می‌شود.")) {
             return;
         }
-        setFeedback(feedbackNode, "در حال حذف آیتم از کاتالوگ...", "", true);
+        setFeedback(feedbackNode, "در حال حذف آیتم...", "", true);
         var response = await request("ownerDeleteItem", { id: itemId }, "POST");
-        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-            return;
-        }
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) return;
         if (!response || !response.success) {
             setFeedback(feedbackNode, (response && response.error) || "حذف آیتم انجام نشد.", "error");
             return;
         }
-        state.items = state.items.filter(function (entry) {
-            return Number(entry && entry.id || 0) !== Number(itemId);
-        });
-        if ($("payments-item-id") && Number($("payments-item-id").value || 0) === Number(itemId)) {
-            resetItemForm();
-        }
-        renderItems();
-        populateFilterItems();
-        setFeedback(feedbackNode, response.message || "آیتم حذف شد.", "success");
         await loadDashboard(true);
-        await loadOrders(true);
+        renderPage();
+        setFeedback(feedbackNode, response.message || "آیتم حذف شد.", "success");
+    }
+
+    function renderGatewaysPage() {
+        setHead("درگاه", "مدیریت درگاه‌ها", "لیست درگاه‌ها از فرم ساخت و ویرایش جداست؛ حذف درگاه هم همینجا در دسترس است.");
+        setActions([
+            '<a class="shell-action-btn shell-action-btn-primary" href="/buy/manage/gateways/new/">درگاه جدید</a>',
+            '<button class="shell-action-btn" type="button" data-payment-refresh>به‌روزرسانی</button>'
+        ].join(""));
+        root.innerHTML = '<div id="payments-gateways-list" class="payments-items-grid buy-manage-list"></div>';
+        renderGatewaysList();
+    }
+
+    function renderGatewaysList() {
+        var node = $("payments-gateways-list");
+        if (!node) {
+            return;
+        }
+        if (!state.gateways.length) {
+            node.innerHTML = '<div class="owner-empty">هنوز درگاه پرداختی اضافه نشده است.</div>';
+            return;
+        }
+        node.innerHTML = state.gateways.map(function (gateway) {
+            var configured = !!gateway.isConfigured;
+            var enabled = !!gateway.isEnabled;
+            var provider = String(gateway.provider || "");
+            var statusText = !enabled ? "غیرفعال" : (configured ? "فعال" : "نیازمند کلید");
+            var tone = !enabled ? "warn" : (configured ? "ok" : "danger");
+            return [
+                '<article class="payments-item-card payments-gateway-card buy-manage-row">',
+                '  <div class="payments-item-card__head">',
+                '    <div>',
+                '      <span class="payments-pill payments-pill--' + escapeHtml(tone) + '">' + escapeHtml(statusText) + "</span>",
+                '      <h4>' + escapeHtml(gateway.label || "پرداخت آنلاین") + "</h4>",
+                '      <p>' + escapeHtml(gateway.providerLabel || gatewayProviderLabel(provider)) + ' • <span dir="ltr">' + escapeHtml(gateway.key || "") + "</span></p>",
+                "    </div>",
+                gateway.isDefault ? '<strong>پیش‌فرض</strong>' : '<strong>درگاه</strong>',
+                "  </div>",
+                '  <div class="payments-item-card__meta">',
+                '    <span>نوع: ' + escapeHtml(gatewayProviderLabel(provider)) + "</span>",
+                '    <span>وضعیت کلید: ' + (configured ? "ثبت شده" : "ثبت نشده") + "</span>",
+                '    <span>آخرین ویرایش: ' + escapeHtml(formatDateTime(gateway.updatedAt, "—")) + "</span>",
+                "  </div>",
+                '  <div class="payments-item-card__actions">',
+                '    <a class="shell-action-btn shell-action-btn-primary" href="/buy/manage/gateways/edit/?id=' + encodeURIComponent(String(gateway.id || "")) + '">ویرایش</a>',
+                '    <button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-delete-gateway="' + escapeHtml(gateway.id) + '">حذف درگاه</button>',
+                "  </div>",
+                "</article>"
+            ].join("");
+        }).join("");
+    }
+
+    function gatewayFormHtml() {
+        return [
+            '<form id="payments-gateway-form" class="payments-filter-grid payments-filter-grid--refined buy-manage-gateway-form" novalidate>',
+            '  <input id="payments-gateway-id" type="hidden">',
+            '  <nav class="buy-manage-subtabs" aria-label="بخش‌های فرم درگاه">',
+            '    <button class="' + (activeGatewaySection === "main" ? "is-active" : "") + '" type="button" data-payment-gateway-section="main">اطلاعات اصلی</button>',
+            '    <button class="' + (activeGatewaySection === "advanced" ? "is-active" : "") + '" type="button" data-payment-gateway-section="advanced">URLهای پیشرفته</button>',
+            "  </nav>",
+            '  <section class="buy-manage-panel" data-payment-gateway-panel="main"' + (activeGatewaySection === "main" ? "" : " hidden") + '>',
+            '    <div class="payments-filter-row"><label for="payments-gateway-provider">نوع درگاه</label><select id="payments-gateway-provider"><option value="zibal">زیبال</option><option value="zarinpal">زرین‌پال</option><option value="mock">آزمایشی</option></select></div>',
+            '    <div class="payments-filter-row"><label for="payments-gateway-key">کلید داخلی</label><input id="payments-gateway-key" type="text" dir="ltr" maxlength="60" placeholder="zibal-main" data-latin-digits="true"></div>',
+            '    <div class="payments-filter-row"><label for="payments-gateway-label">عنوان دکمه پرداخت</label><input id="payments-gateway-label" type="text" maxlength="80" placeholder="پرداخت آنلاین"></div>',
+            '    <div class="payments-filter-row"><label for="payments-gateway-provider-label">نام نمایشی درگاه</label><input id="payments-gateway-provider-label" type="text" maxlength="120" placeholder="درگاه زیبال"></div>',
+            '    <div class="payments-filter-row payments-filter-row--full"><label for="payments-gateway-merchant">Merchant یا API Key</label><input id="payments-gateway-merchant" type="text" dir="ltr" maxlength="260" autocomplete="off" data-latin-digits="true"></div>',
+            switchGateway("payments-gateway-enabled", "درگاه فعال باشد", "درگاه فعال و کامل در مرحله پرداخت نمایش داده می‌شود.", true),
+            switchGateway("payments-gateway-default", "درگاه پیش‌فرض باشد", "اگر چند درگاه فعال باشد، این گزینه اول انتخاب می‌شود.", false),
+            "  </section>",
+            '  <section class="buy-manage-panel" data-payment-gateway-panel="advanced"' + (activeGatewaySection === "advanced" ? "" : " hidden") + '>',
+            '    <div class="payments-filter-row payments-filter-row--full"><label for="payments-gateway-request-url">Request URL</label><input id="payments-gateway-request-url" type="url" dir="ltr" maxlength="420" data-latin-digits="true"></div>',
+            '    <div class="payments-filter-row payments-filter-row--full"><label for="payments-gateway-verify-url">Verify URL</label><input id="payments-gateway-verify-url" type="url" dir="ltr" maxlength="420" data-latin-digits="true"></div>',
+            '    <div class="payments-filter-row payments-filter-row--full"><label for="payments-gateway-start-url">Start URL</label><input id="payments-gateway-start-url" type="url" dir="ltr" maxlength="420" data-latin-digits="true"></div>',
+            "  </section>",
+            '  <div class="payments-inline-actions buy-manage-savebar">',
+            '    <a class="shell-action-btn" href="/buy/manage/gateways/">بازگشت به لیست</a>',
+            '    <button class="shell-action-btn shell-action-btn-primary" type="submit">ذخیره درگاه</button>',
+            "  </div>",
+            "</form>"
+        ].join("");
+    }
+
+    function switchGateway(id, title, help, checked) {
+        return [
+            '<label class="payments-switch payments-filter-row--full" for="' + escapeHtml(id) + '">',
+            '  <input id="' + escapeHtml(id) + '" type="checkbox"' + (checked ? " checked" : "") + '>',
+            '  <span><strong>' + escapeHtml(title) + "</strong><small>" + escapeHtml(help) + "</small></span>",
+            "</label>"
+        ].join("");
+    }
+
+    function renderGatewayFormPage() {
+        var isEdit = mode === "edit";
+        setHead(isEdit ? "ویرایش درگاه" : "درگاه جدید", isEdit ? "ویرایش درگاه پرداخت" : "ساخت درگاه پرداخت", "فرم درگاه از لیست جداست تا credential و وضعیت‌ها واضح بمانند.");
+        setActions('<a class="shell-action-btn" href="/buy/manage/gateways/">لیست درگاه‌ها</a>');
+        root.innerHTML = gatewayFormHtml();
+        if (isEdit) {
+            fillGatewayForm(Number(readParam("id") || 0));
+        } else {
+            resetGatewayForm();
+        }
+    }
+
+    function gatewayById(id) {
+        var gatewayId = Number(id || 0);
+        return state.gateways.find(function (gateway) {
+            return Number(gateway.id || 0) === gatewayId;
+        }) || null;
     }
 
     function resetGatewayForm() {
-        if (!gatewayForm) {
-            return;
-        }
-        gatewayForm.reset();
-        if (gatewayIdInput) gatewayIdInput.value = "";
-        if (gatewayProviderInput) gatewayProviderInput.value = "zibal";
-        if (gatewayKeyInput) gatewayKeyInput.value = "";
-        if (gatewayLabelInput) gatewayLabelInput.value = gatewayPublicLabel("zibal");
-        if (gatewayProviderLabelInput) gatewayProviderLabelInput.value = gatewayProviderLabel("zibal");
-        if (gatewayMerchantInput) gatewayMerchantInput.value = "";
-        if (gatewayRequestUrlInput) gatewayRequestUrlInput.value = "";
-        if (gatewayVerifyUrlInput) gatewayVerifyUrlInput.value = "";
-        if (gatewayStartUrlInput) gatewayStartUrlInput.value = "";
-        if (gatewayEnabledInput) gatewayEnabledInput.checked = true;
-        if (gatewayDefaultInput) gatewayDefaultInput.checked = state.gateways.filter(function (entry) { return !!(entry && entry.isEnabled); }).length === 0;
+        if ($("payments-gateway-form")) $("payments-gateway-form").reset();
+        writeField("payments-gateway-id", "");
+        writeField("payments-gateway-provider", "zibal");
+        writeField("payments-gateway-label", gatewayPublicLabel("zibal"));
+        writeField("payments-gateway-provider-label", gatewayProviderLabel("zibal"));
+        if ($("payments-gateway-enabled")) $("payments-gateway-enabled").checked = true;
+        if ($("payments-gateway-default")) $("payments-gateway-default").checked = state.gateways.filter(function (entry) { return !!entry.isEnabled; }).length === 0;
     }
 
     function fillGatewayForm(gatewayId) {
         var gateway = gatewayById(gatewayId);
-        if (!gateway || !gatewayForm) {
+        if (!gateway) {
+            setFeedback(feedbackNode, "درگاه برای ویرایش پیدا نشد.", "error");
             return;
         }
-        if (gatewayIdInput) gatewayIdInput.value = String(gateway.id || "");
-        if (gatewayProviderInput) gatewayProviderInput.value = String(gateway.provider || "zibal");
-        if (gatewayKeyInput) gatewayKeyInput.value = String(gateway.key || "");
-        if (gatewayLabelInput) gatewayLabelInput.value = String(gateway.label || gatewayPublicLabel(gateway.provider));
-        if (gatewayProviderLabelInput) gatewayProviderLabelInput.value = String(gateway.providerLabel || gatewayProviderLabel(gateway.provider));
-        if (gatewayMerchantInput) gatewayMerchantInput.value = String(gateway.merchantId || gateway.apiKey || "");
-        if (gatewayRequestUrlInput) gatewayRequestUrlInput.value = String(gateway.requestUrl || "");
-        if (gatewayVerifyUrlInput) gatewayVerifyUrlInput.value = String(gateway.verifyUrl || "");
-        if (gatewayStartUrlInput) gatewayStartUrlInput.value = String(gateway.startUrl || "");
-        if (gatewayEnabledInput) gatewayEnabledInput.checked = !!gateway.isEnabled;
-        if (gatewayDefaultInput) gatewayDefaultInput.checked = !!gateway.isDefault;
-        setFeedback(feedbackNode, "حالت ویرایش برای درگاه «" + (gateway.label || gateway.key || "پرداخت") + "» فعال شد.", "success");
-        openPaymentTab("gateways");
-        gatewayForm.scrollIntoView({ behavior: "smooth", block: "start" });
+        writeField("payments-gateway-id", gateway.id || "");
+        writeField("payments-gateway-provider", gateway.provider || "zibal");
+        writeField("payments-gateway-key", gateway.key || "");
+        writeField("payments-gateway-label", gateway.label || gatewayPublicLabel(gateway.provider));
+        writeField("payments-gateway-provider-label", gateway.providerLabel || gatewayProviderLabel(gateway.provider));
+        writeField("payments-gateway-merchant", gateway.merchantId || gateway.apiKey || "");
+        writeField("payments-gateway-request-url", gateway.requestUrl || "");
+        writeField("payments-gateway-verify-url", gateway.verifyUrl || "");
+        writeField("payments-gateway-start-url", gateway.startUrl || "");
+        if ($("payments-gateway-enabled")) $("payments-gateway-enabled").checked = !!gateway.isEnabled;
+        if ($("payments-gateway-default")) $("payments-gateway-default").checked = !!gateway.isDefault;
+    }
+
+    function syncGatewayPanels() {
+        document.querySelectorAll("[data-payment-gateway-section]").forEach(function (button) {
+            button.classList.toggle("is-active", String(button.dataset.paymentGatewaySection || "") === activeGatewaySection);
+        });
+        document.querySelectorAll("[data-payment-gateway-panel]").forEach(function (panel) {
+            panel.hidden = String(panel.dataset.paymentGatewayPanel || "") !== activeGatewaySection;
+        });
     }
 
     async function saveGateway(event) {
         event.preventDefault();
-        if (!isOwner() || !gatewayForm) {
-            return;
-        }
-        var provider = String(gatewayProviderInput && gatewayProviderInput.value || "zibal").trim();
-        var credential = String(gatewayMerchantInput && gatewayMerchantInput.value || "").trim();
-        var enabled = gatewayEnabledInput ? gatewayEnabledInput.checked : true;
+        var provider = readField("payments-gateway-provider") || "zibal";
+        var credential = readField("payments-gateway-merchant");
+        var enabled = $("payments-gateway-enabled") ? $("payments-gateway-enabled").checked : true;
         if (enabled && provider !== "mock" && !credential) {
-            setFeedback(feedbackNode, "برای فعال‌سازی این درگاه، Merchant یا API Key را وارد کن.", "error");
-            if (gatewayMerchantInput) gatewayMerchantInput.focus();
+            setFeedback(feedbackNode, "برای فعال‌سازی این درگاه، Merchant یا API Key را وارد کنید.", "error");
+            activeGatewaySection = "main";
+            syncGatewayPanels();
             return;
         }
-
         setFeedback(feedbackNode, "در حال ذخیره درگاه پرداخت...", "", true);
         var response = await request("ownerSaveGateway", {
-            id: gatewayIdInput ? gatewayIdInput.value : "",
+            id: readField("payments-gateway-id"),
             provider: provider,
-            key: gatewayKeyInput ? gatewayKeyInput.value.trim() : "",
-            label: gatewayLabelInput ? gatewayLabelInput.value.trim() : "",
-            providerLabel: gatewayProviderLabelInput ? gatewayProviderLabelInput.value.trim() : "",
+            key: readField("payments-gateway-key"),
+            label: readField("payments-gateway-label"),
+            providerLabel: readField("payments-gateway-provider-label"),
             merchantId: credential,
             apiKey: provider === "mock" ? "" : credential,
-            requestUrl: gatewayRequestUrlInput ? gatewayRequestUrlInput.value.trim() : "",
-            verifyUrl: gatewayVerifyUrlInput ? gatewayVerifyUrlInput.value.trim() : "",
-            startUrl: gatewayStartUrlInput ? gatewayStartUrlInput.value.trim() : "",
+            requestUrl: readField("payments-gateway-request-url"),
+            verifyUrl: readField("payments-gateway-verify-url"),
+            startUrl: readField("payments-gateway-start-url"),
             isEnabled: enabled ? "1" : "0",
-            isDefault: gatewayDefaultInput && gatewayDefaultInput.checked ? "1" : "0"
+            isDefault: $("payments-gateway-default") && $("payments-gateway-default").checked ? "1" : "0"
         }, "POST");
-        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-            return;
-        }
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) return;
         if (!response || !response.success) {
-            setFeedback(feedbackNode, (response && response.error) || "ذخیره درگاه پرداخت انجام نشد.", "error");
+            setFeedback(feedbackNode, (response && response.error) || "ذخیره درگاه انجام نشد.", "error");
             return;
         }
-        syncGatewayPayload(response);
-        if (response.gateway && gatewayIdInput) {
-            gatewayIdInput.value = String(response.gateway.id || "");
+        await loadDashboard(true);
+        setFeedback(feedbackNode, response.message || "درگاه ذخیره شد.", "success");
+        if (mode !== "edit" && response.gateway) {
+            window.location.href = "/buy/manage/gateways/edit/?id=" + encodeURIComponent(String(response.gateway.id || ""));
+        } else if (response.gateway) {
+            fillGatewayForm(response.gateway.id);
         }
-        setFeedback(feedbackNode, response.message || "درگاه پرداخت ذخیره شد.", "success");
     }
 
     async function deleteGateway(gatewayId) {
-        if (!isOwner() || !gatewayId) {
-            return;
-        }
         var gateway = gatewayById(gatewayId);
         var title = gateway && (gateway.label || gateway.key) ? (gateway.label || gateway.key) : "این درگاه";
         if (!window.confirm("درگاه «" + title + "» حذف شود؟ اگر سفارش در انتظار با این درگاه وجود داشته باشد، حذف انجام نمی‌شود.")) {
@@ -1502,384 +1457,402 @@
         }
         setFeedback(feedbackNode, "در حال حذف درگاه پرداخت...", "", true);
         var response = await request("ownerDeleteGateway", { id: gatewayId }, "POST");
-        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-            return;
-        }
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) return;
         if (!response || !response.success) {
-            setFeedback(feedbackNode, (response && response.error) || "حذف درگاه پرداخت انجام نشد.", "error");
+            setFeedback(feedbackNode, (response && response.error) || "حذف درگاه انجام نشد.", "error");
             return;
         }
         syncGatewayPayload(response);
-        if (gatewayIdInput && Number(gatewayIdInput.value || 0) === Number(gatewayId)) {
-            resetGatewayForm();
+        await loadDashboard(true);
+        renderPage();
+        setFeedback(feedbackNode, response.message || "درگاه حذف شد.", "success");
+    }
+
+    function renderOrdersPage() {
+        setHead("سفارش‌ها", "لیست سفارش‌ها", "لیست و فیلترها از جزئیات جدا شده‌اند؛ برای بررسی، وارد صفحه جزئیات همان سفارش شوید.");
+        setActions('<button class="shell-action-btn" type="button" data-payment-refresh-orders>به‌روزرسانی</button>');
+        var itemOptions = ['<option value="0">همه آیتم‌ها</option>'].concat(state.items.map(function (item) {
+            return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.title || "بدون عنوان") + "</option>";
+        }));
+        root.innerHTML = [
+            '<form id="payments-orders-filter-form" class="payments-filter-grid payments-filter-grid--refined buy-manage-orders-filter" novalidate>',
+            '  <div class="payments-filter-row"><label for="payments-filter-item">آیتم</label><select id="payments-filter-item">' + itemOptions.join("") + "</select></div>",
+            '  <div class="payments-filter-row"><label for="payments-filter-status">وضعیت</label><select id="payments-filter-status"><option value="all">همه وضعیت‌ها</option><option value="pending">در انتظار</option><option value="success">موفق</option><option value="failed">ناموفق</option><option value="canceled">لغو شده</option><option value="expired">منقضی شده</option></select></div>',
+            '  <div class="payments-filter-row"><label for="payments-filter-date-from">از تاریخ</label><input id="payments-filter-date-from" type="date"></div>',
+            '  <div class="payments-filter-row"><label for="payments-filter-date-to">تا تاریخ</label><input id="payments-filter-date-to" type="date"></div>',
+            '  <div class="payments-filter-row payments-filter-row--full"><label for="payments-filter-query">جست‌وجو</label><input id="payments-filter-query" type="search" placeholder="نام، شماره، authority یا ref id"></div>',
+            '  <div class="payments-inline-actions"><button class="shell-action-btn shell-action-btn-primary" type="submit">اعمال فیلتر</button><button id="payments-filter-reset" class="shell-action-btn" type="button">حذف فیلتر</button></div>',
+            "</form>",
+            '<div id="payments-orders-summary" class="owner-summary owner-summary--compact"></div>',
+            '<div id="payments-orders-list" class="payments-orders-list buy-manage-list"><div class="owner-empty">در حال دریافت سفارش‌ها...</div></div>'
+        ].join("");
+        $("payments-filter-item").value = state.orderFilters.itemId;
+        $("payments-filter-status").value = state.orderFilters.status;
+        $("payments-filter-date-from").value = state.orderFilters.dateFrom;
+        $("payments-filter-date-to").value = state.orderFilters.dateTo;
+        $("payments-filter-query").value = state.orderFilters.query;
+        renderOrdersSummary();
+        renderOrdersList();
+    }
+
+    function renderOrdersSummary() {
+        var node = $("payments-orders-summary");
+        if (!node) {
+            return;
         }
-        setFeedback(feedbackNode, response.message || "درگاه پرداخت حذف شد.", "success");
+        var summary = state.ordersSummary;
+        if (!summary) {
+            node.innerHTML = "";
+            return;
+        }
+        node.innerHTML = [
+            summaryCard("نمایش‌شده", Number(summary.totalOrders || 0).toLocaleString("fa-IR"), "خروجی فیلتر فعلی"),
+            summaryCard("موفق", Number(summary.totalSuccess || 0).toLocaleString("fa-IR"), "پرداخت تاییدشده", (summary.totalSuccess || 0) > 0 ? "ok" : ""),
+            summaryCard("دریافتی", money(summary.totalReceived || 0), "جمع verify شده", (summary.totalReceived || 0) > 0 ? "ok" : ""),
+            summaryCard("در انتظار", Number(summary.totalPending || 0).toLocaleString("fa-IR"), "نیازمند callback/verify", (summary.totalPending || 0) > 0 ? "warn" : "")
+        ].join("");
+    }
+
+    function renderOrdersList() {
+        var node = $("payments-orders-list");
+        if (!node) {
+            return;
+        }
+        if (!state.orders.length) {
+            node.innerHTML = '<div class="owner-empty">سفارشی با این فیلتر پیدا نشد.</div>';
+            return;
+        }
+        node.innerHTML = state.orders.map(function (order) {
+            return [
+                '<article class="payments-order-card buy-manage-row">',
+                '  <div class="payments-order-card__head">',
+                '    <div><span class="payments-pill payments-pill--' + escapeHtml(statusTone(order.status)) + '">' + escapeHtml(statusLabel(order.status)) + "</span><h4>" + escapeHtml(order.payerName || "بدون نام") + "</h4><p>" + escapeHtml(order.itemTitle || "آیتم نامشخص") + "</p></div>",
+                '    <strong>' + escapeHtml(money(order.amount || 0)) + "</strong>",
+                "  </div>",
+                '  <div class="payments-order-card__meta">',
+                '    <span>تعداد: ' + escapeHtml(Number(order.quantity || 1).toLocaleString("fa-IR")) + "</span>",
+                '    <span>موبایل: ' + escapeHtml(order.payerPhone || "—") + "</span>",
+                '    <span>ثبت: ' + escapeHtml(formatDateTime(order.createdAt, "—")) + "</span>",
+                '    <span>authority: ' + escapeHtml(order.authority || "—") + "</span>",
+                "  </div>",
+                '  <div class="payments-order-card__actions">',
+                '    <a class="shell-action-btn shell-action-btn-primary" href="/buy/manage/orders/detail/?id=' + encodeURIComponent(String(order.id || "")) + '">جزئیات</a>',
+                order.publicToken ? '<a class="shell-action-btn" href="/buy/result/?orderToken=' + encodeURIComponent(String(order.publicToken)) + '" target="_blank" rel="noopener">صفحه نتیجه</a>' : "",
+                "  </div>",
+                "</article>"
+            ].join("");
+        }).join("");
+    }
+
+    function renderOrderDetailPage() {
+        var order = state.currentOrder;
+        var snapshot = state.currentGatewaySnapshot || {};
+        setHead("جزئیات", "جزئیات سفارش #" + (order ? Number(order.id || 0).toLocaleString("fa-IR") : ""), "مبلغ، تعداد، خطوط سبد و وضعیت پرداخت در صفحه مستقل بررسی می‌شود.");
+        setActions([
+            '<a class="shell-action-btn" href="/buy/manage/orders/">بازگشت به سفارش‌ها</a>',
+            order && order.publicToken ? '<a class="shell-action-btn" href="/buy/result/?orderToken=' + encodeURIComponent(String(order.publicToken)) + '" target="_blank" rel="noopener">صفحه نتیجه</a>' : ""
+        ].join(""));
+        if (!order) {
+            root.innerHTML = '<div class="owner-empty">سفارش انتخاب نشده است.</div>';
+            return;
+        }
+        var extras = order.extraFormData && typeof order.extraFormData === "object"
+            ? Object.keys(order.extraFormData).map(function (key) {
+                return '<div class="payments-detail-row"><span>' + escapeHtml(key) + '</span><strong>' + escapeHtml(order.extraFormData[key]) + "</strong></div>";
+            }).join("")
+            : "";
+        var lineRows = Array.isArray(order.cartItems) && order.cartItems.length ? order.cartItems.map(function (line) {
+            return [
+                '<article class="buy-order-line">',
+                '  <div><strong>' + escapeHtml(line.title || line.slug || "آیتم") + '</strong><span dir="ltr">' + escapeHtml(line.slug || "") + "</span></div>",
+                '  <div><span>تعداد</span><strong>' + escapeHtml(Number(line.quantity || 1).toLocaleString("fa-IR")) + "</strong></div>",
+                '  <div><span>قیمت واحد</span><strong>' + escapeHtml(money(line.unitPrice || 0)) + "</strong></div>",
+                '  <div><span>جمع خط</span><strong>' + escapeHtml(money(line.subtotal || 0)) + "</strong></div>",
+                '  <div><span>تخفیف</span><strong>' + escapeHtml(money(line.discountAmount || 0)) + "</strong></div>",
+                '  <div><span>مبلغ نهایی خط</span><strong>' + escapeHtml(money(line.amount || 0)) + "</strong></div>",
+                "</article>"
+            ].join("");
+        }).join("") : "";
+        root.innerHTML = [
+            renderSummary({
+                totalItems: 0,
+                activeItems: 0,
+                totalReceived: order.status === "success" ? order.amount : 0,
+                totalSuccess: order.status === "success" ? 1 : 0,
+                totalPending: order.status === "pending" ? 1 : 0,
+                totalFailed: order.status === "failed" ? 1 : 0,
+                totalCanceled: order.status === "canceled" ? 1 : 0,
+                totalExpired: order.status === "expired" ? 1 : 0,
+                unreadNotifications: 0
+            }),
+            '<section class="owner-block owner-block--payments">',
+            '  <div class="owner-block__head"><h4>اطلاعات سفارش</h4><p>مقادیر مبلغ و تعداد از رکورد ذخیره‌شده سفارش خوانده می‌شود.</p></div>',
+            '  <div class="payments-detail-grid">',
+            detailRow("پرداخت‌کننده", order.payerName || "—"),
+            detailRow("شماره موبایل", order.payerPhone || "—"),
+            detailRow("شماره دانشجویی", order.payerStudentNumber || "—"),
+            detailRow("وضعیت", statusLabel(order.status)),
+            detailRow("تعداد کل", Number(order.quantity || 1).toLocaleString("fa-IR")),
+            detailRow("قیمت واحد", money(order.unitPrice || 0)),
+            detailRow("جمع قبل از تخفیف", money(order.subtotal || order.amount || 0)),
+            detailRow("کد/مبلغ تخفیف", (order.discountCode || "—") + " / " + money(order.discountAmount || 0)),
+            detailRow("مبلغ نهایی", money(order.amount || 0)),
+            detailRow("درگاه", order.gateway || "—"),
+            detailRow("authority", order.authority || "—"),
+            detailRow("ref id", order.refId || "—"),
+            detailRow("ثبت سفارش", formatDateTime(order.createdAt, "—")),
+            detailRow("تایید نهایی", formatDateTime(order.verifiedAt, "—")),
+            extras,
+            "  </div>",
+            '  <div class="payments-item-card__actions payments-order-admin-actions">',
+            order.status === "pending" ? '<button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-status-update="' + escapeHtml(order.id) + '" data-payment-next-status="canceled">لغو سفارش</button>' : "",
+            order.status !== "pending" && order.status !== "success" ? '<button class="shell-action-btn" type="button" data-payment-status-update="' + escapeHtml(order.id) + '" data-payment-next-status="pending">بازگردانی به در انتظار</button>' : "",
+            "  </div>",
+            "</section>",
+            lineRows ? '<section class="owner-block owner-block--payments"><div class="owner-block__head"><h4>خطوط سبد</h4><p>تعداد، قیمت واحد، subtotal و مبلغ نهایی هر آیتم.</p></div><div class="buy-order-lines">' + lineRows + "</div></section>" : "",
+            '<section class="owner-block owner-block--payments"><div class="payments-code-block"><h5>اسنپ‌شات پاسخ درگاه</h5><pre>' + escapeHtml(prettyJson(snapshot || {})) + "</pre></div></section>"
+        ].join("");
+    }
+
+    function detailRow(label, value) {
+        return '<div class="payments-detail-row"><span>' + escapeHtml(label) + '</span><strong>' + escapeHtml(value) + "</strong></div>";
     }
 
     async function updateOrderStatus(orderId, status) {
-        if (!isOwner() || !orderId || !status) {
+        if (!orderId || !status) {
             return;
         }
         setFeedback(feedbackNode, "در حال به‌روزرسانی وضعیت سفارش...", "", true);
         var response = await request("ownerUpdateOrderStatus", { id: orderId, status: status }, "POST");
-        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-            return;
-        }
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) return;
         if (!response || !response.success) {
             setFeedback(feedbackNode, (response && response.error) || "به‌روزرسانی وضعیت سفارش انجام نشد.", "error");
             return;
         }
         setFeedback(feedbackNode, response.message || "وضعیت سفارش به‌روزرسانی شد.", "success");
-        await loadOrders(true);
         await loadOrderDetail(orderId);
     }
 
-    async function markNotificationRead(id, markAll) {
-        if (!isOwner()) {
-            return;
-        }
-        var payload = markAll ? { all: "1" } : { id: id };
-        var response = await request("ownerMarkNotificationRead", payload, "POST");
-        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-            return;
-        }
+    async function markNotificationRead(id) {
+        var response = await request("ownerMarkNotificationRead", { id: id }, "POST");
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) return;
         if (!response || !response.success) {
             setFeedback(feedbackNode, (response && response.error) || "به‌روزرسانی اعلان انجام نشد.", "error");
             return;
         }
         await loadDashboard(true);
-        setFeedback(feedbackNode, markAll ? "همه اعلان‌ها خوانده شدند." : "اعلان به‌عنوان خوانده‌شده ثبت شد.", "success");
+        renderPage();
+        setFeedback(feedbackNode, "اعلان خوانده شد.", "success");
     }
 
     function copyText(value, successText) {
-        var raw = String(value || "").trim();
-        if (!raw) {
+        var clean = String(value || "").trim();
+        if (!clean) {
             setFeedback(feedbackNode, "متنی برای کپی وجود ندارد.", "error");
             return;
         }
-
         if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-            navigator.clipboard.writeText(raw).then(function () {
-                setFeedback(feedbackNode, successText, "success");
+            navigator.clipboard.writeText(clean).then(function () {
+                setFeedback(feedbackNode, successText || "کپی شد.", "success");
             }).catch(function () {
                 setFeedback(feedbackNode, "کپی خودکار انجام نشد.", "error");
             });
             return;
         }
-
         setFeedback(feedbackNode, "مرورگر کپی خودکار را پشتیبانی نمی‌کند.", "error");
     }
 
-    function clearForSignedOut() {
-        state.dashboardLoaded = false;
-        state.currentUser = null;
-        state.items = [];
-        state.gateways = [];
-        state.gatewaySettings = null;
-        state.notifications = [];
-        state.orders = [];
-        state.selectedOrderId = 0;
-        renderSummary(null);
-        renderNotifications();
-        renderItems();
-        renderGateways();
-        renderOrdersSummary(null);
-        renderOrderDetail(null, null);
-        if (ordersRoot) {
-            ordersRoot.innerHTML = '<div class="owner-empty">برای استفاده از این بخش باید با حساب مالک وارد شوی.</div>';
-        }
-        setOwnerConsoleVisible(false);
-        if (rowMeta) {
-            rowMeta.textContent = "تعریف آیتم مشخص، کد تخفیف، سفارش‌ها و اعلان‌های مالی";
+    function renderPage() {
+        syncNav();
+        if (page === "overview") {
+            renderOverviewPage();
+        } else if (page === "items") {
+            renderItemsPage();
+        } else if (page === "item-form") {
+            renderItemFormPage();
+        } else if (page === "gateways") {
+            renderGatewaysPage();
+        } else if (page === "gateway-form") {
+            renderGatewayFormPage();
+        } else if (page === "orders") {
+            renderOrdersPage();
         }
     }
 
-    async function ensureLoaded() {
-        if (!isOwner()) {
+    async function renderInitialPage() {
+        renderLoading("در حال آماده‌سازی مدیریت خرید...");
+        await loadDashboard(true);
+        if (page === "order-detail") {
+            await loadOrderDetail(readParam("id"));
             return;
         }
-        await loadDashboard(!isPaymentsSurfaceOpen());
-        await loadOrders(!isPaymentsSurfaceOpen());
+        renderPage();
+        if (page === "orders") {
+            await loadOrders(true);
+        }
+    }
+
+    function renderGuard(detail) {
+        if (!guard || !app) {
+            return;
+        }
+        var loginUrl = window.Dent1402Auth.loginUrl ? window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search) : "/account/";
+        if (!detail || !detail.loggedIn) {
+            app.hidden = true;
+            guard.hidden = false;
+            guard.innerHTML = [
+                '<div><span class="buy-kicker">ورود لازم است</span><h2>برای مدیریت خرید وارد حساب مالک شوید</h2><p>این بخش فقط با session مشترک سایت و سطح دسترسی مالک باز می‌شود.</p></div>',
+                '<a class="buy-primary-btn" href="' + escapeHtml(loginUrl) + '">ورود به حساب</a>'
+            ].join("");
+            return;
+        }
+        if (!detail.user || !detail.user.isOwner) {
+            app.hidden = true;
+            guard.hidden = false;
+            guard.innerHTML = [
+                '<div><span class="buy-kicker">دسترسی محدود</span><h2>این بخش مخصوص مالک سایت است</h2><p>برای خرید عمومی از کاتالوگ و سبد خرید استفاده کنید.</p></div>',
+                '<a class="buy-secondary-btn" href="/buy/">بازگشت به خرید</a>'
+            ].join("");
+            return;
+        }
+        guard.hidden = true;
+        guard.innerHTML = "";
+        app.hidden = false;
     }
 
     function handleAuthState(detail) {
+        renderGuard(detail);
         if (!detail || !detail.loggedIn || !detail.user || !detail.user.isOwner) {
-            clearForSignedOut();
+            state.currentUser = null;
             return;
         }
         state.currentUser = detail.user;
-        setOwnerConsoleVisible(true);
-        ensureLoaded();
+        if (!state.dashboardLoaded && !state.loadingDashboard) {
+            renderInitialPage();
+        }
     }
 
-    tabButtons.forEach(function (button) {
-        button.addEventListener("click", function () {
-            openPaymentTab(button.dataset.paymentTab || "overview");
-        });
-    });
-
-    stepButtons.forEach(function (button) {
-        button.addEventListener("click", function () {
-            var target = Number(button.dataset.paymentStep || 1);
-            if (target > activeStep && !validateCurrentStep()) {
-                return;
-            }
-            setPaymentStep(target);
-        });
-    });
-
-    if (stepPrevButton) {
-        stepPrevButton.addEventListener("click", function () {
-            setPaymentStep(activeStep - 1);
-        });
-    }
-
-    if (stepNextButton) {
-        stepNextButton.addEventListener("click", function () {
-            if (!validateCurrentStep()) {
-                return;
-            }
-            setPaymentStep(activeStep + 1);
-        });
-    }
-
-    if (itemForm) {
-        itemForm.addEventListener("submit", saveItem);
-        itemForm.addEventListener("input", updateItemPreview);
-        itemForm.addEventListener("change", updateItemPreview);
-    }
-
-    if ($("payments-item-title") && $("payments-item-slug")) {
-        $("payments-item-title").addEventListener("blur", function () {
-            var slugInput = $("payments-item-slug");
-            if (!slugInput || String(slugInput.value || "").trim() !== "") {
-                return;
-            }
-            var candidate = slugifyLatin($("payments-item-title").value);
-            if (candidate) {
-                slugInput.value = candidate;
-                updateItemPreview();
-            }
-        });
-    }
-
-    if (fillShieldSampleButton) {
-        fillShieldSampleButton.addEventListener("click", fillShieldSample);
-    }
-
-    if (filterForm) {
-        filterForm.addEventListener("submit", function (event) {
-            event.preventDefault();
+    root.addEventListener("click", function (event) {
+        var refresh = event.target.closest("[data-payment-refresh]");
+        if (refresh) {
+            loadDashboard(false).then(renderPage);
+            return;
+        }
+        var refreshOrders = event.target.closest("[data-payment-refresh-orders]");
+        if (refreshOrders) {
             loadOrders(false);
-        });
-    }
-
-    if ($("payments-item-reset")) {
-        $("payments-item-reset").addEventListener("click", resetItemForm);
-    }
-
-    if ($("payments-item-reset-top")) {
-        $("payments-item-reset-top").addEventListener("click", resetItemForm);
-    }
-
-    if (heroFileInput) {
-        heroFileInput.addEventListener("change", function () {
-            renderImageUploaders();
-            updateItemPreview();
-        });
-    }
-
-    if (heroClearButton) {
-        heroClearButton.addEventListener("click", function () {
-            if (heroFileInput) {
-                heroFileInput.value = "";
-            }
-            writeField("payments-item-hero-image", "");
-            renderImageUploaders();
-            updateItemPreview();
-        });
-    }
-
-    if (galleryFileInput) {
-        galleryFileInput.addEventListener("change", function () {
-            renderGalleryUploader();
-        });
-    }
-
-    if (galleryList) {
-        galleryList.addEventListener("click", function (event) {
-            var removeButton = event.target.closest("[data-payment-remove-gallery]");
-            if (!removeButton) {
-                return;
-            }
-            var index = Number(removeButton.getAttribute("data-payment-remove-gallery"));
+            return;
+        }
+        var readNote = event.target.closest("[data-payment-read-note]");
+        if (readNote) {
+            markNotificationRead(readNote.getAttribute("data-payment-read-note"));
+            return;
+        }
+        var copyButton = event.target.closest("[data-payment-copy-link]");
+        if (copyButton) {
+            copyText(copyButton.getAttribute("data-payment-copy-link"), "لینک عمومی آیتم کپی شد.");
+            return;
+        }
+        var toggleButton = event.target.closest("[data-payment-toggle-item]");
+        if (toggleButton) {
+            toggleItem(toggleButton.getAttribute("data-payment-toggle-item"), String(toggleButton.getAttribute("data-payment-enabled")) === "1");
+            return;
+        }
+        var deleteButton = event.target.closest("[data-payment-delete-item]");
+        if (deleteButton) {
+            deleteItem(deleteButton.getAttribute("data-payment-delete-item"));
+            return;
+        }
+        var itemSection = event.target.closest("[data-payment-item-section]");
+        if (itemSection) {
+            activeItemSection = String(itemSection.dataset.paymentItemSection || "basic");
+            syncItemPanels();
+            return;
+        }
+        var gatewaySection = event.target.closest("[data-payment-gateway-section]");
+        if (gatewaySection) {
+            activeGatewaySection = String(gatewaySection.dataset.paymentGatewaySection || "main");
+            syncGatewayPanels();
+            return;
+        }
+        var galleryRemove = event.target.closest("[data-payment-remove-gallery]");
+        if (galleryRemove) {
             var values = galleryValues();
+            var index = Number(galleryRemove.getAttribute("data-payment-remove-gallery"));
             if (Number.isFinite(index) && index >= 0) {
                 values.splice(index, 1);
                 writeGalleryValues(values);
-                renderGalleryUploader();
                 updateItemPreview();
             }
-        });
-    }
+            return;
+        }
+        var sample = event.target.closest("[data-payment-fill-sample], #payments-fill-shield-sample");
+        if (sample) {
+            fillShieldSample();
+            return;
+        }
+        var deleteGatewayButton = event.target.closest("[data-payment-delete-gateway]");
+        if (deleteGatewayButton) {
+            deleteGateway(deleteGatewayButton.getAttribute("data-payment-delete-gateway"));
+            return;
+        }
+        var statusButton = event.target.closest("[data-payment-status-update]");
+        if (statusButton) {
+            updateOrderStatus(statusButton.getAttribute("data-payment-status-update"), statusButton.getAttribute("data-payment-next-status"));
+        }
+    });
 
-    if ($("payments-new-item")) {
-        $("payments-new-item").addEventListener("click", function () {
-            resetItemForm();
-            openPaymentTab("item");
-            setPaymentStep(1);
-            setFeedback(itemFormFeedback, "فرم برای افزودن آیتم جدید آماده شد.", "success");
-            if (ownerConsole) {
-                ownerConsole.scrollIntoView({ behavior: "smooth", block: "start" });
-            } else {
-                window.scrollTo({ top: 0, behavior: "smooth" });
-            }
-        });
-    }
+    root.addEventListener("input", function (event) {
+        if (event.target && event.target.id === "payments-items-search") {
+            state.itemQuery = String(event.target.value || "");
+            renderItemsList();
+            return;
+        }
+        if (event.target && event.target.closest("#payments-item-form")) {
+            updateItemPreview();
+        }
+    });
 
-    if ($("payments-reload-dashboard")) {
-        $("payments-reload-dashboard").addEventListener("click", function () {
-            ensureLoaded();
-        });
-    }
+    root.addEventListener("change", function (event) {
+        if (event.target && event.target.id === "payments-items-status-filter") {
+            state.itemStatus = String(event.target.value || "all");
+            renderItemsList();
+            return;
+        }
+        if (event.target && event.target.closest("#payments-item-form")) {
+            updateItemPreview();
+            return;
+        }
+        if (event.target && event.target.id === "payments-gateway-provider") {
+            var provider = readField("payments-gateway-provider") || "zibal";
+            if (!$("payments-gateway-label").value.trim()) $("payments-gateway-label").value = gatewayPublicLabel(provider);
+            if (!$("payments-gateway-provider-label").value.trim()) $("payments-gateway-provider-label").value = gatewayProviderLabel(provider);
+        }
+    });
 
-    if ($("payments-mark-notifications-read")) {
-        $("payments-mark-notifications-read").addEventListener("click", function () {
-            markNotificationRead(0, true);
-        });
-    }
-
-    if ($("payments-filter-reset")) {
-        $("payments-filter-reset").addEventListener("click", function () {
-            if (filterForm) {
-                filterForm.reset();
-            }
+    root.addEventListener("submit", function (event) {
+        if (event.target && event.target.id === "payments-item-form") {
+            saveItem(event);
+            return;
+        }
+        if (event.target && event.target.id === "payments-gateway-form") {
+            saveGateway(event);
+            return;
+        }
+        if (event.target && event.target.id === "payments-orders-filter-form") {
+            event.preventDefault();
+            state.orderFilters = currentFilters();
             loadOrders(false);
-        });
-    }
+        }
+    });
 
-    if (itemsRoot) {
-        itemsRoot.addEventListener("click", function (event) {
-            var editButton = event.target.closest("[data-payment-edit-item]");
-            if (editButton) {
-                fillItemForm(editButton.getAttribute("data-payment-edit-item"));
-                return;
-            }
+    root.addEventListener("click", function (event) {
+        if (event.target && event.target.id === "payments-filter-reset") {
+            state.orderFilters = { itemId: "0", status: "all", dateFrom: "", dateTo: "", query: "" };
+            renderOrdersPage();
+            loadOrders(false);
+        }
+    });
 
-            var copyButton = event.target.closest("[data-payment-copy-link]");
-            if (copyButton) {
-                copyText(copyButton.getAttribute("data-payment-copy-link"), "لینک عمومی آیتم کپی شد.");
-                return;
-            }
-
-            var toggleButton = event.target.closest("[data-payment-toggle-item]");
-            if (toggleButton) {
-                toggleItem(toggleButton.getAttribute("data-payment-toggle-item"), String(toggleButton.getAttribute("data-payment-enabled")) === "1");
-                return;
-            }
-
-            var deleteButton = event.target.closest("[data-payment-delete-item]");
-            if (deleteButton) {
-                deleteItem(deleteButton.getAttribute("data-payment-delete-item"));
-            }
-        });
-    }
-
-    if (gatewayForm) {
-        gatewayForm.addEventListener("submit", saveGateway);
-    }
-
-    if ($("payments-gateway-reset")) {
-        $("payments-gateway-reset").addEventListener("click", function () {
-            resetGatewayForm();
-            setFeedback(feedbackNode, "فرم برای افزودن درگاه جدید آماده شد.", "success");
-        });
-    }
-
-    if (gatewayProviderInput) {
-        gatewayProviderInput.addEventListener("change", function () {
-            var provider = String(gatewayProviderInput.value || "zibal");
-            if (gatewayLabelInput && !String(gatewayLabelInput.value || "").trim()) {
-                gatewayLabelInput.value = gatewayPublicLabel(provider);
-            }
-            if (gatewayProviderLabelInput && !String(gatewayProviderLabelInput.value || "").trim()) {
-                gatewayProviderLabelInput.value = gatewayProviderLabel(provider);
-            }
-            if (gatewayMerchantInput) {
-                gatewayMerchantInput.disabled = provider === "mock";
-                gatewayMerchantInput.placeholder = provider === "mock" ? "برای درگاه آزمایشی لازم نیست" : "Merchant یا API Key";
-            }
-        });
-    }
-
-    if (gatewaysRoot) {
-        gatewaysRoot.addEventListener("click", function (event) {
-            var editGatewayButton = event.target.closest("[data-payment-edit-gateway]");
-            if (editGatewayButton) {
-                fillGatewayForm(editGatewayButton.getAttribute("data-payment-edit-gateway"));
-                return;
-            }
-
-            var deleteGatewayButton = event.target.closest("[data-payment-delete-gateway]");
-            if (deleteGatewayButton) {
-                deleteGateway(deleteGatewayButton.getAttribute("data-payment-delete-gateway"));
-            }
-        });
-    }
-
-    if (notificationsRoot) {
-        notificationsRoot.addEventListener("click", function (event) {
-            var detailButton = event.target.closest("[data-payment-order-detail]");
-            if (detailButton) {
-                openPaymentTab("orders");
-                loadOrderDetail(detailButton.getAttribute("data-payment-order-detail"));
-                return;
-            }
-
-            var readButton = event.target.closest("[data-payment-read-note]");
-            if (readButton) {
-                markNotificationRead(readButton.getAttribute("data-payment-read-note"), false);
-            }
-        });
-    }
-
-    if (ordersRoot) {
-        ordersRoot.addEventListener("click", function (event) {
-            var detailButton = event.target.closest("[data-payment-order-detail]");
-            if (!detailButton) {
-                return;
-            }
-            openPaymentTab("orders");
-            loadOrderDetail(detailButton.getAttribute("data-payment-order-detail"));
-        });
-    }
-
-    if (orderDetailRoot) {
-        orderDetailRoot.addEventListener("click", function (event) {
-            var statusButton = event.target.closest("[data-payment-status-update]");
-            if (!statusButton) {
-                return;
-            }
-            updateOrderStatus(
-                statusButton.getAttribute("data-payment-status-update"),
-                statusButton.getAttribute("data-payment-next-status")
-            );
-        });
-    }
-
-    if (panel && window.MutationObserver) {
-        var observer = new MutationObserver(function () {
-            if (isPaymentsSurfaceOpen() && isOwner()) {
-                ensureLoaded();
-            }
-        });
-        observer.observe(panel, { attributes: true, attributeFilter: ["data-surface"] });
-    }
-
-    resetItemForm();
-    resetGatewayForm();
-    openPaymentTab("overview");
-    setPaymentStep(1);
-    clearForSignedOut();
     window.Dent1402Auth.onChange(handleAuthState);
 })();

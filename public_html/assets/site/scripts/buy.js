@@ -790,6 +790,24 @@
         }
     }
 
+    function initOwnerEntry() {
+        var entry = $("buy-owner-entry");
+        if (!entry || !window.Dent1402Auth || typeof window.Dent1402Auth.getState !== "function") {
+            return;
+        }
+        function sync() {
+            var auth = window.Dent1402Auth.getState();
+            var user = auth && auth.loggedIn ? auth.user : null;
+            entry.hidden = !(user && user.isOwner);
+        }
+        sync();
+        var listen = window.Dent1402Auth.subscribe || window.Dent1402Auth.onChange;
+        if (!entry.dataset.buyOwnerBound && typeof listen === "function") {
+            entry.dataset.buyOwnerBound = "1";
+            listen(sync);
+        }
+    }
+
     function renderRequiredFields(schema) {
         var root = $("buy-extra-fields");
         if (!root) return;
@@ -917,25 +935,51 @@
         }).join("");
     }
 
+    function itemQuantityFallback(defaultQuantity) {
+        var fallback = Math.max(1, Number(defaultQuantity || 1) || 1);
+        var input = $("buy-order-quantity");
+        if (!input) {
+            return fallback;
+        }
+        var raw = normalizeDigits(String(input.value || fallback)).replace(/\D+/g, "");
+        return Math.max(1, Number(raw) || fallback);
+    }
+
+    function localItemQuote(item, quantity) {
+        var unitPrice = Number(item && item.price || 0) || 0;
+        var normalizedQuantity = Math.max(1, Number(quantity || 1) || 1);
+        var subtotal = unitPrice * normalizedQuantity;
+        return {
+            quantity: normalizedQuantity,
+            unitPrice: unitPrice,
+            subtotal: subtotal,
+            discountAmount: 0,
+            amount: subtotal
+        };
+    }
+
     function renderPriceBreakdown(quote, item) {
         var root = $("buy-price-breakdown");
         if (!root || !item) return;
-        var source = quote || {
-            quantity: 1,
-            unitPrice: item.price || 0,
-            subtotal: item.price || 0,
-            discountAmount: 0,
-            amount: item.price || 0
-        };
+        var source = quote || localItemQuote(item, itemQuantityFallback(1));
+        var subtotal = Number(source.subtotal || 0) || 0;
+        var amount = Number(source.amount || 0) || subtotal;
+        var quantity = Math.max(1, Number(source.quantity || 1) || 1);
         var rows = [
             '<div><span>قیمت واحد</span><strong>' + text(money(source.unitPrice || item.price || 0)) + "</strong></div>",
-            '<div><span>تعداد</span><strong>' + text(Number(source.quantity || 1).toLocaleString("fa-IR")) + "</strong></div>"
+            '<div><span>تعداد</span><strong>' + text(quantity.toLocaleString("fa-IR")) + "</strong></div>"
         ];
+        if (quantity > 1 || Number(source.discountAmount || 0) > 0) {
+            rows.push('<div><span>جمع قبل از تخفیف</span><strong>' + text(money(subtotal)) + "</strong></div>");
+        }
         if ($("buy-discount-code") || Number(source.discountAmount || 0) > 0) {
             rows.push('<div><span>تخفیف</span><strong>' + text(money(source.discountAmount || 0)) + "</strong></div>");
         }
-        rows.push('<div class="is-total"><span>مبلغ نهایی</span><strong>' + text(money(source.amount || 0)) + "</strong></div>");
+        rows.push('<div class="is-total"><span>مبلغ نهایی</span><strong>' + text(money(amount)) + "</strong></div>");
         root.innerHTML = rows.join("");
+        if ($("buy-floating-price")) {
+            $("buy-floating-price").textContent = money(amount);
+        }
     }
 
     function openImageModal(url, title) {
@@ -1059,7 +1103,7 @@
         if (!bar || !price || !action || !item) {
             return;
         }
-        price.textContent = money(item.price || 0);
+        price.textContent = money((Number(item.price || 0) || 0) * itemQuantityFallback(1));
         bar.hidden = false;
         action.disabled = !payable || (submit && submit.disabled);
         action.textContent = payable ? "ادامه پرداخت" : "قابل پرداخت نیست";
@@ -1179,6 +1223,7 @@
 
     function initListPage() {
         bindListControls();
+        initOwnerEntry();
         apiGet("listPublicItems", {}).then(function (payload) {
             if (!payload || !payload.success) {
                 state.items = [];
@@ -1899,6 +1944,7 @@
             function refreshQuote(silent) {
                 var quantity = readQuantity();
                 var discountCode = readDiscountCode();
+                quoteState = localItemQuote(item, quantity);
                 renderPriceBreakdown(quoteState, item);
                 if (!payable) {
                     return;
@@ -1912,13 +1958,7 @@
                         if (!silent && discountCode) {
                             setFeedback(feedback, (response && response.error) || "محاسبه کد تخفیف انجام نشد.", "is-error");
                         }
-                        quoteState = {
-                            quantity: quantity,
-                            unitPrice: item.price || 0,
-                            subtotal: (item.price || 0) * quantity,
-                            discountAmount: 0,
-                            amount: (item.price || 0) * quantity
-                        };
+                        quoteState = localItemQuote(item, quantity);
                         renderPriceBreakdown(quoteState, item);
                         return;
                     }
@@ -1928,6 +1968,8 @@
                         setFeedback(feedback, "کد تخفیف روی سفارش اعمال شد.", "is-success");
                     }
                 }).catch(function () {
+                    quoteState = localItemQuote(item, quantity);
+                    renderPriceBreakdown(quoteState, item);
                     if (!silent) {
                         setFeedback(feedback, "محاسبه مبلغ نهایی انجام نشد.", "is-error");
                     }
@@ -1939,6 +1981,12 @@
                 quoteTimer = window.setTimeout(function () {
                     refreshQuote(false);
                 }, 360);
+            }
+
+            function updateLocalQuoteAndSchedule() {
+                quoteState = localItemQuote(item, readQuantity());
+                renderPriceBreakdown(quoteState, item);
+                scheduleQuote();
             }
 
             if (titleNode) titleNode.textContent = item.title || "آیتم سفارش";
@@ -1960,12 +2008,12 @@
             if (quantityInput) {
                 quantityInput.max = String(maxQuantity);
                 quantityInput.value = String(Math.min(maxQuantity, Number(readParam("qty") || "1") || 1));
-                quantityInput.addEventListener("input", scheduleQuote);
-                quantityInput.addEventListener("change", scheduleQuote);
+                quantityInput.addEventListener("input", updateLocalQuoteAndSchedule);
+                quantityInput.addEventListener("change", updateLocalQuoteAndSchedule);
             }
             if (discountInput) {
-                discountInput.addEventListener("input", scheduleQuote);
-                discountInput.addEventListener("change", scheduleQuote);
+                discountInput.addEventListener("input", updateLocalQuoteAndSchedule);
+                discountInput.addEventListener("change", updateLocalQuoteAndSchedule);
                 if (!item.hasDiscountCodes) {
                     discountInput.placeholder = "کد فعالی تعریف نشده";
                 }
@@ -2180,16 +2228,25 @@
                 messageNode.textContent = order.message || "وضعیت پرداخت به‌روزرسانی شد.";
             }
             if (summaryNode) {
+                var resultSubtotal = Number(order.subtotal || 0) || ((Number(order.unitPrice || 0) || 0) * (Number(order.quantity || 1) || 1));
                 var rows = [
-                    { label: "مبلغ نهایی", value: money(order.amount || 0) },
+                    { label: "مبلغ نهایی", value: money(order.amount || 0) }
+                ];
+                if (Number(order.unitPrice || 0) > 0 && !resultCartItems.length) {
+                    rows.push({ label: "قیمت واحد", value: money(order.unitPrice || 0) });
+                }
+                rows.push(
                     { label: "تعداد", value: Number(order.quantity || 1).toLocaleString("fa-IR") },
+                    { label: "جمع قبل از تخفیف", value: money(resultSubtotal || order.amount || 0) }
+                );
+                if (Number(order.discountAmount || 0) > 0) {
+                    rows.push({ label: "تخفیف", value: money(order.discountAmount || 0) });
+                }
+                rows.push(
                     { label: "پرداخت‌کننده", value: order.payerName || "—" },
                     { label: "موبایل", value: order.payerPhone || "—" },
                     { label: "زمان ثبت", value: formatDateTime(order.createdAt, "—") }
-                ];
-                if (Number(order.discountAmount || 0) > 0) {
-                    rows.splice(2, 0, { label: "تخفیف", value: money(order.discountAmount || 0) });
-                }
+                );
                 if (item && item.title) {
                     rows.unshift({ label: "آیتم", value: item.title });
                 }
