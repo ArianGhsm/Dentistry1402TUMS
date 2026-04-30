@@ -435,6 +435,121 @@ body.quiz-page .option-row.user-wrong .option-tag {
     background: color-mix(in srgb, var(--danger-color) 12%, transparent);
 }
 
+body.quiz-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 0;
+    background: var(--bg-body);
+    color: var(--text-primary);
+}
+
+body.quiz-page > .wrapper {
+    width: min(760px, 100%);
+    margin: 0 auto 3rem;
+    padding: 1rem 5% 0;
+}
+
+body.quiz-page .card {
+    border: 1px solid var(--border-color-strong);
+    background: var(--surface);
+    color: var(--text-primary);
+    box-shadow: var(--surface-shadow);
+}
+
+body.quiz-page .title,
+body.quiz-page .result-main h2,
+body.quiz-page #question-text,
+body.quiz-page .summary-question-title,
+body.quiz-page .percent-big {
+    color: var(--text-primary);
+}
+
+body.quiz-page .subtitle,
+body.quiz-page #progress-label,
+body.quiz-page #status,
+body.quiz-page .muted,
+body.quiz-page .summary-label,
+body.quiz-page .percent-label,
+body.quiz-page .explanation {
+    color: var(--text-secondary);
+}
+
+body.quiz-page #question-header {
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+}
+
+body.quiz-page .option {
+    border-color: var(--border-color);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+}
+
+body.quiz-page .option:hover,
+body.quiz-page .option:focus-within {
+    border-color: color-mix(in srgb, var(--accent-color) 34%, transparent);
+    background: var(--surface-solid);
+}
+
+body.quiz-page .option.selected {
+    border-color: color-mix(in srgb, var(--accent-color) 54%, transparent);
+    background: var(--accent-soft);
+}
+
+body.quiz-page .radio-dot {
+    border-color: var(--border-color-strong);
+}
+
+body.quiz-page .option.selected .radio-inner {
+    background: var(--accent-color);
+}
+
+body.quiz-page .buttons-column > button {
+    border-color: var(--border-color-strong);
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+body.quiz-page .buttons-column > button:hover:not(:disabled),
+body.quiz-page .buttons-column > button:focus-visible:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent-color) 34%, transparent);
+    background: var(--surface-solid);
+    box-shadow: var(--surface-shadow);
+}
+
+body.quiz-page #next-btn {
+    border-color: color-mix(in srgb, var(--accent-color) 28%, transparent);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+}
+
+body.quiz-page #submit-btn {
+    border-color: transparent;
+    background: var(--success-color);
+    color: var(--text-on-accent);
+}
+
+body.quiz-page .score-chip {
+    border-color: var(--border-color);
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+}
+
+body.quiz-page .summary-question {
+    border-top-color: var(--border-color);
+}
+
+body.quiz-page .correct {
+    color: var(--success-color);
+}
+
+body.quiz-page .incorrect,
+body.quiz-page .percent-big.bad {
+    color: var(--danger-color);
+}
+
 @media (max-width: 768px) {
     body.hub-page .site-header,
     body.quiz-page .site-header {

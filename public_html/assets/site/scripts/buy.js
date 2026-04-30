@@ -927,12 +927,15 @@
             discountAmount: 0,
             amount: item.price || 0
         };
-        root.innerHTML = [
+        var rows = [
             '<div><span>قیمت واحد</span><strong>' + text(money(source.unitPrice || item.price || 0)) + "</strong></div>",
-            '<div><span>تعداد</span><strong>' + text(Number(source.quantity || 1).toLocaleString("fa-IR")) + "</strong></div>",
-            '<div><span>تخفیف</span><strong>' + text(money(source.discountAmount || 0)) + "</strong></div>",
-            '<div class="is-total"><span>مبلغ نهایی</span><strong>' + text(money(source.amount || 0)) + "</strong></div>"
-        ].join("");
+            '<div><span>تعداد</span><strong>' + text(Number(source.quantity || 1).toLocaleString("fa-IR")) + "</strong></div>"
+        ];
+        if ($("buy-discount-code") || Number(source.discountAmount || 0) > 0) {
+            rows.push('<div><span>تخفیف</span><strong>' + text(money(source.discountAmount || 0)) + "</strong></div>");
+        }
+        rows.push('<div class="is-total"><span>مبلغ نهایی</span><strong>' + text(money(source.amount || 0)) + "</strong></div>");
+        root.innerHTML = rows.join("");
     }
 
     function openImageModal(url, title) {
