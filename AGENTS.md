@@ -32,6 +32,8 @@
 - Deploy نباید باعث wipe/reset/fork/desync داده شود.
 - تنها نسخه داده نباید در فایل‌های deploy-replaced یا temp runtime نگه‌داری شود.
 - هر تغییر در storage/sync/backup/restore/migration/deploy باید continuity تاریخچه پیام و داده را حفظ کند.
+- منبع حقیقت دیتا در زمان deploy، `storage/` روی هاست است؛ قبل از deploy باید از هاست به لپتاپ بکاپ/ mirror شود.
+- جهت sync دیتابیس و state فقط هاست -> لپتاپ است. دیتای موجود روی لپتاپ (`storage/`, `server-only/storage/`, backupها، sessionها، lockها، `.env`) نباید به هاست یا GitHub ارسال شود.
 - داده‌های فرم‌ساز جدید باید در storage مشترک `forms/store.json` بماند و داده‌های قبلی DIS در `dis_request/store.json` یا نظرسنجی‌های قدیمی chat بدون migration صریح حذف/بازنویسی نشوند.
 - داده‌های خرید/سفارش باید در storage مشترک `payments/store.json` بماند و deploy نباید سفارش‌ها، آیتم‌ها، کدهای تخفیف یا تاریخچه پرداخت را reset کند.
 - تصاویر آپلودی کالاهای بخش خرید باید در storage مشترک `payments/uploads/` بمانند و نباید با فایل‌های deploy-replaced یا مسیرهای temp جایگزین شوند.
@@ -98,7 +100,9 @@
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
 - ترتیب اجباری:
-  - local validation -> host deploy -> live health-check -> GitHub sync
+  - host storage backup/mirror -> local validation -> host deploy -> live health-check -> GitHub sync
+- قبل از upload کد، `storage/` هاست باید در `.codex-local/remote-storage/snapshots/` ذخیره و در `server-only/storage/` mirror شود.
+- upload/delete دیتای runtime از لپتاپ به هاست ممنوع است؛ حتی FullSync هم نباید `public_html/.env` یا `public_html/storage/` را آپلود/حذف کند.
 - `git pull` قبل از deploy پیش‌فرض ممنوع است مگر درخواست صریح.
 - override اختیاری:
 ```powershell

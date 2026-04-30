@@ -34,6 +34,11 @@ function chat_store_path(): string
     return dent_storage_path('chat/store.json');
 }
 
+function chat_store_lock_path(): string
+{
+    return dent_storage_path('chat/store.lock');
+}
+
 function chat_legacy_messages_path(): string
 {
     return dent_storage_path('chat/messages.json');
@@ -283,6 +288,44 @@ function chat_ensure_storage(): void
     if (!isset($_SESSION['chat_rate_limit']) || !is_array($_SESSION['chat_rate_limit'])) {
         $_SESSION['chat_rate_limit'] = [];
     }
+}
+
+function chat_acquire_store_lock(): void
+{
+    if (($GLOBALS['chat_store_lock_acquired'] ?? false) === true) {
+        return;
+    }
+
+    dent_ensure_directory(dirname(chat_store_lock_path()));
+    $handle = @fopen(chat_store_lock_path(), 'c');
+    if ($handle === false) {
+        dent_error('Chat storage lock is unavailable.', 503);
+    }
+
+    if (!@flock($handle, LOCK_EX)) {
+        @fclose($handle);
+        dent_error('Chat storage lock is unavailable.', 503);
+    }
+
+    $GLOBALS['chat_store_lock_handle'] = $handle;
+    $GLOBALS['chat_store_lock_acquired'] = true;
+    register_shutdown_function('chat_release_store_lock');
+}
+
+function chat_release_store_lock(): void
+{
+    if (($GLOBALS['chat_store_lock_acquired'] ?? false) !== true) {
+        return;
+    }
+
+    $handle = $GLOBALS['chat_store_lock_handle'] ?? null;
+    if (is_resource($handle)) {
+        @flock($handle, LOCK_UN);
+        @fclose($handle);
+    }
+
+    $GLOBALS['chat_store_lock_handle'] = null;
+    $GLOBALS['chat_store_lock_acquired'] = false;
 }
 
 function chat_clean_conversation_id(?string $value): string
@@ -1935,6 +1978,72 @@ function chat_cleanup_temporary_test_conversations(array &$store): bool
     return true;
 }
 
+function chat_legacy_migration_enabled(): bool
+{
+    return chat_parse_bool(getenv('DENT_CHAT_ALLOW_LEGACY_MIGRATION') ?: false, false);
+}
+
+function chat_has_legacy_store_files(): bool
+{
+    return is_file(chat_legacy_messages_path()) || is_file(chat_legacy_state_path());
+}
+
+function chat_read_store_file(): ?array
+{
+    $path = chat_store_path();
+    if (!is_file($path)) {
+        return null;
+    }
+
+    $raw = @file_get_contents($path);
+    if ($raw === false || trim($raw) === '') {
+        dent_error('Chat canonical store is unreadable.', 503);
+    }
+
+    $decoded = json_decode($raw, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+        dent_error('Chat canonical store is temporarily invalid. Deployment must not fall back to legacy files.', 503);
+    }
+
+    return $decoded;
+}
+
+function chat_write_store_file(array $store): void
+{
+    dent_ensure_directory(dirname(chat_store_path()));
+
+    $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+
+    $store['schemaVersion'] = CHAT_SCHEMA_VERSION;
+    $store['classConversationId'] = CHAT_CLASS_CONVERSATION_ID;
+
+    $json = json_encode($store, $flags);
+    if ($json === false) {
+        dent_error('Chat store JSON encoding failed.', 500);
+    }
+
+    $path = chat_store_path();
+    $tmpPath = $path . '.tmp.' . getmypid() . '.' . str_replace('.', '', uniqid('', true));
+    if (@file_put_contents($tmpPath, $json . PHP_EOL, LOCK_EX) === false) {
+        @unlink($tmpPath);
+        dent_error('Chat store write failed.', 500);
+    }
+    @chmod($tmpPath, 0644);
+
+    if (!@rename($tmpPath, $path)) {
+        if (is_file($path)) {
+            @unlink($path);
+        }
+        if (!@rename($tmpPath, $path)) {
+            @unlink($tmpPath);
+            dent_error('Chat store replace failed.', 500);
+        }
+    }
+}
+
 function chat_migrate_from_legacy_files(): array
 {
     $legacyState = dent_read_json_file(chat_legacy_state_path(), [
@@ -1977,30 +2086,36 @@ function chat_migrate_from_legacy_files(): array
 
 function chat_load_store(): array
 {
-    $rawStore = dent_read_json_file(chat_store_path(), null);
+    chat_acquire_store_lock();
+
+    $rawStore = chat_read_store_file();
     if (!is_array($rawStore)) {
-        $store = chat_migrate_from_legacy_files();
+        if (chat_has_legacy_store_files() && !chat_legacy_migration_enabled()) {
+            dent_error('Chat canonical store is missing and legacy migration is disabled.', 503);
+        }
+
+        $store = chat_has_legacy_store_files()
+            ? chat_migrate_from_legacy_files()
+            : chat_new_store_base();
         chat_save_store($store);
         return $store;
     }
 
     $rawSchemaVersion = max(1, (int) ($rawStore['schemaVersion'] ?? 1));
     $normalized = chat_normalize_store($rawStore);
-    $cleanedUpNonClassConversations = false;
+    $markedNonClassCleanupComplete = false;
     $cleanedUpTemporaryConversations = false;
     $mediaMaintenanceChanged = false;
     $maintenance = is_array($normalized['maintenance'] ?? null)
         ? chat_default_maintenance_state($normalized['maintenance'])
         : chat_default_maintenance_state();
-    $needsNonClassCleanup = $rawSchemaVersion < CHAT_SCHEMA_VERSION
-        || !chat_parse_bool($maintenance['nonClassCleanupDone'] ?? false, false);
-    if ($needsNonClassCleanup) {
-        $cleanedUpNonClassConversations = chat_cleanup_non_class_conversations($normalized);
-        $normalized['maintenance'] = chat_default_maintenance_state([
+    if (!chat_parse_bool($maintenance['nonClassCleanupDone'] ?? false, false)) {
+        $normalized['maintenance'] = chat_default_maintenance_state(array_merge($maintenance, [
             'nonClassCleanupDone' => true,
             'nonClassCleanupAt' => time(),
-        ]);
+        ]));
         $normalized = chat_normalize_store($normalized);
+        $markedNonClassCleanupComplete = true;
     }
     $cleanedUpTemporaryConversations = chat_cleanup_temporary_test_conversations($normalized);
     if ($cleanedUpTemporaryConversations) {
@@ -2020,9 +2135,10 @@ function chat_load_store(): array
     $rawEncoded = json_encode($rawStore, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $normalizedEncoded = json_encode($normalized, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if (
-        $cleanedUpNonClassConversations
+        $markedNonClassCleanupComplete
         || $cleanedUpTemporaryConversations
         || $mediaMaintenanceChanged
+        || $rawSchemaVersion < CHAT_SCHEMA_VERSION
         || $rawEncoded !== $normalizedEncoded
     ) {
         chat_save_store($normalized);
@@ -2033,7 +2149,8 @@ function chat_load_store(): array
 
 function chat_save_store(array $store): void
 {
-    dent_write_json_file(chat_store_path(), $store);
+    chat_acquire_store_lock();
+    chat_write_store_file($store);
 }
 
 function chat_get_conversation(array $store, string $conversationId): ?array
@@ -5400,6 +5517,7 @@ if ($action === 'media') {
         ]);
     }
 
+    chat_release_store_lock();
     chat_stream_attachment_file($attachment, $variant, $download);
 }
 
@@ -6345,8 +6463,20 @@ if ($action === 'sync' || $action === 'fetch') {
     $store = chat_load_store();
 
     $requestedConversationId = chat_clean_conversation_id((string) ($_GET['conversationId'] ?? $_POST['conversationId'] ?? ''));
-    $activeConversationId = chat_pick_active_conversation_id($store, $user, $requestedConversationId);
-    $conversation = chat_require_conversation_for_user($store, $activeConversationId, $user);
+    if ($requestedConversationId !== '') {
+        $activeConversationId = $requestedConversationId;
+        $conversation = chat_require_conversation_for_user($store, $activeConversationId, $user);
+        $studentNumber = chat_actor_student_number($user);
+        if (
+            !(bool) ($conversation['mandatory'] ?? false)
+            && chat_is_conversation_deleted_for_user($store, $activeConversationId, $studentNumber)
+        ) {
+            dent_error('Conversation is not active in your list.', 404);
+        }
+    } else {
+        $activeConversationId = chat_pick_active_conversation_id($store, $user, '');
+        $conversation = chat_require_conversation_for_user($store, $activeConversationId, $user);
+    }
 
     $sinceId = (int) ($_GET['sinceId'] ?? $_POST['sinceId'] ?? 0);
     $full = (string) ($_GET['full'] ?? $_POST['full'] ?? '0') === '1' || $sinceId <= 0;

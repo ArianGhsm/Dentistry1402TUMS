@@ -4899,7 +4899,6 @@
         .map(normalizeMessage)
         .filter(function (message) {
           if (!message) return false;
-          if (!message.conversationId) return true;
           return message.conversationId === state.activeConversationId;
         });
 
@@ -4946,6 +4945,7 @@
     state.activeConversationId = nextId;
 
     if (changed) {
+      clearThreadState();
       state.lastMessageId = 0;
       state.threadAutoStick = true;
       clearReplyTarget();
@@ -5656,7 +5656,7 @@
       state.connectionIssue = false;
 
       var message = normalizeMessage(response.message);
-      if (message && (!message.conversationId || message.conversationId === state.activeConversationId)) {
+      if (message && message.conversationId === state.activeConversationId) {
         appendMessages([message], {
           replaceAll: false,
           forceStick: true,

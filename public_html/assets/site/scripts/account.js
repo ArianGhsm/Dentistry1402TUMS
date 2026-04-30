@@ -450,6 +450,9 @@
         input.addEventListener("input", function () {
             var digits = normalizeDigits(input.value).replace(/\D+/g, "");
             var next = digits;
+            if (input.dataset && input.dataset.phoneInput === "iran") {
+                next = normalizedPhone(next);
+            }
             if (Number.isFinite(maxLength) && maxLength > 0) {
                 next = next.slice(0, maxLength);
             }

@@ -484,7 +484,35 @@
     }
 
     function bindInstallButtons() {
+        var installPromptDismissed = false;
+
+        function currentPwaState() {
+            if (window.Dent1402PWA && typeof window.Dent1402PWA.getState === "function") {
+                return window.Dent1402PWA.getState();
+            }
+            return {
+                installed: false,
+                canInstall: false,
+                isIOS: false
+            };
+        }
+
+        function shouldShowInstallCard(detail) {
+            return !!detail && !detail.installed && !installPromptDismissed && (!!detail.canInstall || !!detail.isIOS);
+        }
+
+        function updateInstallCards(detail) {
+            var visible = shouldShowInstallCard(detail);
+            document.querySelectorAll("[data-install-card]").forEach(function (card) {
+                card.hidden = !visible;
+                card.classList.toggle("is-visible", visible);
+            });
+        }
+
         function updateButtons(detail) {
+            detail = detail || currentPwaState();
+            updateInstallCards(detail);
+
             var buttons = document.querySelectorAll("[data-install-app]");
             buttons.forEach(function (button) {
                 if (detail.installed) {
@@ -512,12 +540,25 @@
         }
 
         document.addEventListener("click", function (event) {
+            var dismissButton = event.target.closest("[data-install-dismiss]");
+            if (dismissButton) {
+                installPromptDismissed = true;
+                updateButtons(currentPwaState());
+                return;
+            }
+
             var button = event.target.closest("[data-install-app]");
             if (!button || !window.Dent1402PWA) {
                 return;
             }
 
-            window.Dent1402PWA.promptInstall();
+            var detail = currentPwaState();
+            window.Dent1402PWA.promptInstall().then(function () {
+                if (detail.canInstall) {
+                    installPromptDismissed = true;
+                    updateButtons(currentPwaState());
+                }
+            });
         });
 
         if (window.Dent1402PWA) {

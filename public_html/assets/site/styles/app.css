@@ -240,6 +240,18 @@ html[data-theme="dark"] body.app-dashboard-page {
     --service-accent: var(--accent-strong);
 }
 
+.home-service-card:nth-child(7) {
+    --service-accent: var(--success-color);
+}
+
+.home-service-card:nth-child(8) {
+    --service-accent: var(--warning-color);
+}
+
+.home-service-card:nth-child(9) {
+    --service-accent: var(--commerce-cta);
+}
+
 .home-service-card__icon {
     width: 68px;
     height: 68px;
@@ -443,31 +455,66 @@ html[data-theme="dark"] body.app-dashboard-page {
 }
 
 .home-promo-card {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: 52px minmax(0, 1fr) auto;
     align-items: center;
-    justify-items: center;
+    justify-items: stretch;
+    gap: 0.62rem;
+    padding: 0.72rem 0.78rem;
+    border-radius: 20px;
     background:
-        linear-gradient(180deg, color-mix(in srgb, var(--commerce-accent-soft) 58%, transparent), transparent 72%),
+        linear-gradient(180deg, color-mix(in srgb, var(--commerce-accent-soft) 42%, transparent), transparent 80%),
         var(--surface);
-    text-align: center;
+    text-align: start;
+}
+
+.home-promo-card[hidden] {
+    display: none;
 }
 
 .home-promo-card__visual {
-    width: 84px;
-    height: 84px;
+    width: 52px;
+    height: 52px;
     overflow: hidden;
-    border-radius: 24px;
+    border-radius: 17px;
     border: 1px solid var(--border-color);
     background: var(--surface-solid);
+    padding: 0.36rem;
 }
 
 .home-promo-card__visual img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    border-radius: 12px;
 }
 
-.home-promo-card .shell-action-btn,
+.home-promo-card__copy {
+    justify-items: start;
+}
+
+.home-promo-card h3 {
+    font-size: 0.9rem;
+}
+
+.home-promo-card p {
+    font-size: 0.74rem;
+    line-height: 1.65;
+}
+
+.home-promo-card__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.42rem;
+    flex-wrap: wrap;
+}
+
+.home-promo-card__actions .shell-action-btn {
+    min-height: 34px;
+    padding: 0.36rem 0.72rem;
+    font-size: 0.76rem;
+}
+
 .home-promo-card .shell-install-hint {
     grid-column: 1 / -1;
 }
@@ -630,13 +677,30 @@ html[data-theme="dark"] body.app-dashboard-page {
     }
 
     .home-promo-card {
-        grid-template-columns: 70px minmax(0, 1fr);
+        grid-template-columns: 46px minmax(0, 1fr);
+        gap: 0.52rem;
     }
 
     .home-promo-card__visual {
-        width: 70px;
-        height: 70px;
-        border-radius: 20px;
+        width: 46px;
+        height: 46px;
+        border-radius: 15px;
+    }
+
+    .home-promo-card__actions {
+        grid-column: 1 / -1;
+        justify-content: stretch;
+    }
+
+    .home-promo-card__actions .shell-action-btn {
+        flex: 1 1 0;
+        justify-content: center;
+        min-height: 32px;
+        padding: 0.3rem 0.58rem;
+    }
+
+    .home-promo-card p {
+        display: none;
     }
 
     .home-resource-strip a {

@@ -9,14 +9,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260430-213618">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260430-213618">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260430-213618">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260430-215939">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260430-215939">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260430-215939">
     <title>پیام‌رسان | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
-    <script src="/assets/site/scripts/theme.js?v=20260430-213618"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260430-213618">
-    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260430-213618">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260430-213618">
+    <script src="/assets/site/scripts/theme.js?v=20260430-215939"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260430-215939">
+    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260430-215939">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260430-215939">
 </head>
 <body class="chat-page" data-shell="off">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -256,12 +256,41 @@
                                 <button class="reply-cancel" type="button" id="reply-cancel">لغو</button>
                             </div>
 
-                            <div class="composer-upload-sheet" id="composer-upload-sheet" hidden>
-                                <button type="button" class="composer-upload-option" data-attach-accept="image/*" data-attach-label="تصویر">تصویر</button>
-                                <button type="button" class="composer-upload-option" data-attach-accept="video/*" data-attach-label="ویدیو">ویدیو</button>
-                                <button type="button" class="composer-upload-option" data-attach-accept="audio/*" data-attach-label="فایل صوتی">صوت</button>
-                                <button type="button" class="composer-upload-option" data-attach-accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.txt,.csv,.zip,.rar,.7z,.tar,.gz,.tgz,.bz2" data-attach-label="سند/فایل">سند</button>
-                                <button type="button" class="composer-upload-option" data-attach-accept="*/*" data-attach-label="هر فایل">همه فایل‌ها</button>
+                            <div class="composer-upload-sheet" id="composer-upload-sheet" hidden aria-label="انتخاب نوع پیوست">
+                                <div class="composer-upload-sheet__head">
+                                    <span class="composer-upload-sheet__title">پیوست</span>
+                                    <span class="composer-upload-sheet__hint">حداکثر ۲۵ MB</span>
+                                </div>
+                                <button type="button" class="composer-upload-option" data-attach-accept="image/*" data-attach-label="تصویر">
+                                    <span class="composer-upload-option__icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none"><path d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v11A2.5 2.5 0 0 1 16.5 20h-9A2.5 2.5 0 0 1 5 17.5v-11Z" stroke="currentColor" stroke-width="1.7"/><path d="m7 16 3.2-3.2a1 1 0 0 1 1.4 0l1.4 1.4 1.5-1.8a1 1 0 0 1 1.5 0L18 15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 8.6h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+                                    </span>
+                                    <span>تصویر</span>
+                                </button>
+                                <button type="button" class="composer-upload-option" data-attach-accept="video/*" data-attach-label="ویدیو">
+                                    <span class="composer-upload-option__icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none"><path d="M5 7.5A2.5 2.5 0 0 1 7.5 5h7A2.5 2.5 0 0 1 17 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 5 16.5v-9Z" stroke="currentColor" stroke-width="1.7"/><path d="m17 10 2.5-1.6c.7-.5 1.5 0 1.5.9v5.4c0 .9-.8 1.4-1.5.9L17 14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </span>
+                                    <span>ویدیو</span>
+                                </button>
+                                <button type="button" class="composer-upload-option" data-attach-accept="audio/*" data-attach-label="فایل صوتی">
+                                    <span class="composer-upload-option__icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none"><path d="M9 18V7.8L18 6v9.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="18" r="2.4" stroke="currentColor" stroke-width="1.7"/><circle cx="16" cy="15.8" r="2.4" stroke="currentColor" stroke-width="1.7"/></svg>
+                                    </span>
+                                    <span>صوت</span>
+                                </button>
+                                <button type="button" class="composer-upload-option" data-attach-accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.txt,.csv,.zip,.rar,.7z,.tar,.gz,.tgz,.bz2" data-attach-label="سند/فایل">
+                                    <span class="composer-upload-option__icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none"><path d="M7 3.8h6.2L18 8.6v11.6H7V3.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M13 4v5h5M9.5 13h5M9.5 16h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </span>
+                                    <span>سند</span>
+                                </button>
+                                <button type="button" class="composer-upload-option" data-attach-accept="*/*" data-attach-label="هر فایل">
+                                    <span class="composer-upload-option__icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M6.8 4h10.4A2.8 2.8 0 0 1 20 6.8v10.4a2.8 2.8 0 0 1-2.8 2.8H6.8A2.8 2.8 0 0 1 4 17.2V6.8A2.8 2.8 0 0 1 6.8 4Z" stroke="currentColor" stroke-width="1.7"/></svg>
+                                    </span>
+                                    <span>همه</span>
+                                </button>
                             </div>
 
                             <div class="composer-uploads" id="composer-uploads" hidden></div>
@@ -640,9 +669,9 @@
         <div class="chat-media-viewer__caption" id="chat-media-viewer-caption"></div>
     </section>
 
-    <script src="/assets/site/scripts/auth.js?v=20260430-213618"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260430-213618"></script>
-    <script src="/assets/site/scripts/chat.js?v=20260430-213618"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260430-213618"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260430-215939"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260430-215939"></script>
+    <script src="/assets/site/scripts/chat.js?v=20260430-215939"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260430-215939"></script>
 </body>
 </html>

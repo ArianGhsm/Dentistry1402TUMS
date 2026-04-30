@@ -6,12 +6,14 @@ param(
     [switch]$SkipPostDeployVerification,
     [switch]$SkipGitHubSync,
     [switch]$PullBeforeDeploy,
+    [switch]$SkipRemoteStorageSync,
     [switch]$AllowProxyPull,
     [switch]$AllowProxyOverBudget,
     [string]$NetworkPath = "auto",
     [string]$HostDeployNetworkPath = "auto",
     [string]$HealthCheckNetworkPath = "auto",
     [string]$GitHubNetworkPath = "auto",
+    [string]$RemoteStoragePath = "storage",
     [string]$LowBandwidthMode = "auto",
     [string]$ProxyEndpoint = "",
     [int]$ProxyBudgetMb = 0,
@@ -350,6 +352,31 @@ function Get-IsoNow() {
     return ([DateTimeOffset]::Now).ToString("yyyy-MM-ddTHH:mm:sszzz")
 }
 
+function Test-ProtectedPublicHtmlRelativePath([string]$relative) {
+    if ([string]::IsNullOrWhiteSpace($relative)) {
+        return $true
+    }
+
+    $normalized = ($relative -replace '\\', '/').TrimStart('/').ToLowerInvariant()
+    if ($normalized -eq "" -or $normalized -eq ".") {
+        return $true
+    }
+
+    if ($normalized -eq ".env" -or $normalized.StartsWith(".env.")) {
+        return $true
+    }
+
+    if ($normalized -eq "storage" -or $normalized.StartsWith("storage/")) {
+        return $true
+    }
+
+    if ($normalized -eq "server-only" -or $normalized.StartsWith("server-only/")) {
+        return $true
+    }
+
+    return $false
+}
+
 function Add-RelativePath([System.Collections.Generic.HashSet[string]]$set, [string]$path) {
     if ([string]::IsNullOrWhiteSpace($path)) {
         return
@@ -362,6 +389,10 @@ function Add-RelativePath([System.Collections.Generic.HashSet[string]]$set, [str
 
     $relative = $normalized.Substring("public_html/".Length)
     if ([string]::IsNullOrWhiteSpace($relative)) {
+        return
+    }
+
+    if (Test-ProtectedPublicHtmlRelativePath -relative $relative) {
         return
     }
 
@@ -438,6 +469,263 @@ function Write-HostDeployState([string]$head, [string]$branch, [string]$finished
     $json = $payload | ConvertTo-Json -Depth 5
     Set-Content -LiteralPath $path -Value $json -Encoding UTF8
     return $path
+}
+
+function Normalize-RemoteStoragePath([string]$path) {
+    $normalized = (($path -replace '\\', '/').Trim()).Trim('/')
+    if ([string]::IsNullOrWhiteSpace($normalized)) {
+        return "storage"
+    }
+    return $normalized
+}
+
+function Join-RemoteRelativePath([string]$left, [string]$right) {
+    $a = (($left -replace '\\', '/').Trim()).Trim('/')
+    $b = (($right -replace '\\', '/').Trim()).Trim('/')
+    if ([string]::IsNullOrWhiteSpace($a)) {
+        return $b
+    }
+    if ([string]::IsNullOrWhiteSpace($b)) {
+        return $a
+    }
+    return "$a/$b"
+}
+
+function Get-FtpUrl([string]$relative, [switch]$Directory) {
+    $clean = (($relative -replace '\\', '/').Trim()).Trim('/')
+    $suffix = ""
+    if (-not [string]::IsNullOrWhiteSpace($clean)) {
+        $suffix = "/" + $clean
+    }
+    if ($Directory -and -not $suffix.EndsWith("/")) {
+        $suffix += "/"
+    }
+    return "ftp://$($config.host)$suffix"
+}
+
+function Get-RemoteDirectoryEntries([string]$remoteRelative) {
+    $url = Get-FtpUrl -relative $remoteRelative -Directory
+    $output = & curl.exe --silent --list-only --user $credentials "$url" 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        return $null
+    }
+
+    $entries = New-Object System.Collections.Generic.List[string]
+    foreach ($line in @($output)) {
+        $entry = ([string]$line).Trim()
+        if ([string]::IsNullOrWhiteSpace($entry) -or $entry -eq "." -or $entry -eq "..") {
+            continue
+        }
+        [void]$entries.Add($entry)
+    }
+    return @($entries)
+}
+
+function Test-RemoteDirectory([string]$remoteRelative) {
+    $entries = Get-RemoteDirectoryEntries -remoteRelative $remoteRelative
+    return $null -ne $entries
+}
+
+function Test-RemoteStorageDataFileName([string]$name) {
+    if ([string]::IsNullOrWhiteSpace($name)) {
+        return $false
+    }
+
+    $leaf = ([string]$name).Trim().ToLowerInvariant()
+    if ($leaf.EndsWith(".lock") -or $leaf.EndsWith(".log") -or $leaf.EndsWith(".tmp")) {
+        return $false
+    }
+
+    foreach ($extension in @(".json", ".csv", ".env", ".key", ".txt")) {
+        if ($leaf.EndsWith($extension)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Test-RemoteStorageSkippedDirectoryName([string]$name) {
+    $leaf = ([string]$name).Trim().ToLowerInvariant()
+    return $leaf -in @("media", "uploads", "originals", "previews", "tmp", "sessions", "backups", "cache")
+}
+
+function Test-RemoteStorageLikelyDirectoryName([string]$name) {
+    if ([string]::IsNullOrWhiteSpace($name)) {
+        return $false
+    }
+
+    $leaf = ([string]$name).Trim()
+    if (Test-RemoteStorageSkippedDirectoryName -name $leaf) {
+        return $false
+    }
+
+    return -not $leaf.Contains(".")
+}
+
+function Assert-PathInside([string]$path, [string]$allowedRoot, [string]$label) {
+    $fullPath = [System.IO.Path]::GetFullPath($path)
+    $fullRoot = [System.IO.Path]::GetFullPath($allowedRoot).TrimEnd('\', '/')
+    if (-not ($fullPath.Equals($fullRoot, [System.StringComparison]::OrdinalIgnoreCase) -or $fullPath.StartsWith($fullRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase))) {
+        throw "$label resolved outside allowed root. Path=$fullPath Root=$fullRoot"
+    }
+    return $fullPath
+}
+
+function Reset-DirectoryFromSource([string]$source, [string]$target, [string]$allowedRoot, [string]$label) {
+    $sourceFull = [System.IO.Path]::GetFullPath($source)
+    if (-not (Test-Path -LiteralPath $sourceFull -PathType Container)) {
+        throw "$label source does not exist: $sourceFull"
+    }
+
+    $targetFull = Assert-PathInside -path $target -allowedRoot $allowedRoot -label $label
+    if (Test-Path -LiteralPath $targetFull) {
+        Remove-Item -LiteralPath $targetFull -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $targetFull -Force | Out-Null
+
+    foreach ($item in @(Get-ChildItem -LiteralPath $sourceFull -Force)) {
+        Copy-Item -LiteralPath $item.FullName -Destination $targetFull -Recurse -Force
+    }
+}
+
+function Download-RemoteStorageFile(
+    [string]$remoteRelative,
+    [string]$remoteRoot,
+    [string]$snapshotRoot,
+    [ref]$fileCount,
+    [ref]$totalBytes
+) {
+    $localRelative = (($remoteRelative -replace '\\', '/').Trim()).Trim('/')
+    $rootPrefix = (($remoteRoot -replace '\\', '/').Trim()).Trim('/')
+    if ($localRelative.Equals($rootPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return
+    }
+    if ($localRelative.StartsWith($rootPrefix + "/", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $localRelative = $localRelative.Substring($rootPrefix.Length + 1)
+    }
+    if ([string]::IsNullOrWhiteSpace($localRelative)) {
+        return
+    }
+
+    $targetPath = Join-Path $snapshotRoot ($localRelative -replace '/', '\')
+    $targetDirectory = Split-Path -Path $targetPath -Parent
+    if (-not (Test-Path -LiteralPath $targetDirectory)) {
+        New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
+    }
+
+    $url = Get-FtpUrl -relative $remoteRelative
+    & curl.exe --fail --silent --show-error --user $credentials -o "$targetPath" "$url"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Remote storage download failed for $remoteRelative"
+    }
+
+    $fileCount.Value = [int]$fileCount.Value + 1
+    try {
+        $totalBytes.Value = [int64]$totalBytes.Value + [int64](Get-Item -LiteralPath $targetPath).Length
+    } catch {
+        $totalBytes.Value = [int64]$totalBytes.Value
+    }
+}
+
+function Download-RemoteStorageDirectory(
+    [string]$remoteRelative,
+    [string]$remoteRoot,
+    [string]$snapshotRoot,
+    [System.Collections.Generic.HashSet[string]]$visited,
+    [ref]$fileCount,
+    [ref]$totalBytes
+) {
+    $normalized = (($remoteRelative -replace '\\', '/').Trim()).Trim('/')
+    if ($visited.Contains($normalized)) {
+        return
+    }
+    [void]$visited.Add($normalized)
+
+    $entries = Get-RemoteDirectoryEntries -remoteRelative $normalized
+    if ($null -eq $entries) {
+        throw "Unable to list remote storage directory: $normalized"
+    }
+
+    foreach ($entry in @($entries)) {
+        $child = Join-RemoteRelativePath -left $normalized -right $entry
+        if (Test-RemoteStorageDataFileName -name $entry) {
+            Download-RemoteStorageFile `
+                -remoteRelative $child `
+                -remoteRoot $remoteRoot `
+                -snapshotRoot $snapshotRoot `
+                -fileCount $fileCount `
+                -totalBytes $totalBytes
+        } elseif (Test-RemoteStorageLikelyDirectoryName -name $entry) {
+            Download-RemoteStorageDirectory `
+                -remoteRelative $child `
+                -remoteRoot $remoteRoot `
+                -snapshotRoot $snapshotRoot `
+                -visited $visited `
+                -fileCount $fileCount `
+                -totalBytes $totalBytes
+        }
+    }
+}
+
+function Sync-RemoteStorageFromHost() {
+    $started = Get-IsoNow
+    if ($SkipRemoteStorageSync) {
+        Write-Warning "Remote storage sync skipped by explicit -SkipRemoteStorageSync override."
+        return [PSCustomObject]@{
+            Status      = "skipped-explicit"
+            StartedAt   = $started
+            FinishedAt  = Get-IsoNow
+            RemotePath  = ""
+            SnapshotPath = ""
+            ActivePath  = ""
+            LatestPath  = ""
+            FileCount   = 0
+            Bytes       = [int64]0
+        }
+    }
+
+    $remoteRoot = Normalize-RemoteStoragePath -path $RemoteStoragePath
+    $snapshotName = ([DateTimeOffset]::Now).ToString("yyyyMMdd-HHmmss")
+    $snapshotPath = Join-Path $projectRoot ".codex-local\remote-storage\snapshots\$snapshotName"
+    $latestPath = Join-Path $projectRoot ".codex-local\remote-storage\latest"
+    $activePath = Join-Path $projectRoot "server-only\storage"
+
+    Write-Host "Step 0/5: download host storage to laptop"
+    Write-Host "Remote storage source: /$remoteRoot"
+    Write-Host "Local storage snapshot: $snapshotPath"
+
+    New-Item -ItemType Directory -Path $snapshotPath -Force | Out-Null
+    $visited = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
+    $fileCountValue = 0
+    $totalBytesValue = [int64]0
+    $fileCount = [ref]$fileCountValue
+    $totalBytes = [ref]$totalBytesValue
+
+    Download-RemoteStorageDirectory `
+        -remoteRelative $remoteRoot `
+        -remoteRoot $remoteRoot `
+        -snapshotRoot $snapshotPath `
+        -visited $visited `
+        -fileCount $fileCount `
+        -totalBytes $totalBytes
+
+    $serverOnlyRoot = Join-Path $projectRoot "server-only"
+    $codexLocalRoot = Join-Path $projectRoot ".codex-local"
+    Reset-DirectoryFromSource -source $snapshotPath -target $activePath -allowedRoot $serverOnlyRoot -label "Active storage mirror"
+    Reset-DirectoryFromSource -source $snapshotPath -target $latestPath -allowedRoot $codexLocalRoot -label "Latest storage backup"
+
+    return [PSCustomObject]@{
+        Status       = "completed"
+        StartedAt    = $started
+        FinishedAt   = Get-IsoNow
+        RemotePath   = "/$remoteRoot"
+        SnapshotPath = $snapshotPath
+        ActivePath   = $activePath
+        LatestPath   = $latestPath
+        FileCount    = [int]$fileCount.Value
+        Bytes        = [int64]$totalBytes.Value
+    }
 }
 
 function Run-Git([string[]]$GitArgs) {
@@ -803,9 +1091,12 @@ function Build-DeployPlan() {
         $files = Get-ChildItem -LiteralPath $localRoot -Recurse -File
         foreach ($file in $files) {
             $relative = $file.FullName.Substring($localRoot.Length).TrimStart('\\') -replace '\\', '/'
+            if (Test-ProtectedPublicHtmlRelativePath -relative $relative) {
+                continue
+            }
             [void]$uploadSet.Add($relative)
         }
-        [void]$notes.Add("Full sync uploads the full laptop public_html tree.")
+        [void]$notes.Add("Full sync uploads the laptop public_html tree except protected runtime/data files.")
 
         return [PSCustomObject]@{
             Mode       = "full-sync (laptop source)"
@@ -872,6 +1163,11 @@ function Build-DeployPlan() {
 }
 
 function Upload-File([string]$relative) {
+    if (Test-ProtectedPublicHtmlRelativePath -relative $relative) {
+        Write-Warning "Skip protected runtime/local-only file: $relative"
+        return
+    }
+
     $source = Join-Path $localRoot ($relative -replace '/', '\\')
     if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
         Write-Warning "Skip upload, file not found locally: $relative"
@@ -893,6 +1189,11 @@ function Upload-File([string]$relative) {
 }
 
 function Delete-RemoteFile([string]$relative) {
+    if (Test-ProtectedPublicHtmlRelativePath -relative $relative) {
+        Write-Warning "Skip protected remote delete: $relative"
+        return
+    }
+
     if ($DryRun) {
         Write-Host "[DryRun] Delete remote $relative"
         return
@@ -1113,6 +1414,17 @@ $versionStampInfo = [PSCustomObject]@{
     Version    = ""
     Command    = ""
 }
+$remoteStorageInfo = [PSCustomObject]@{
+    Status       = "not-run"
+    StartedAt    = ""
+    FinishedAt   = ""
+    RemotePath   = ""
+    SnapshotPath = ""
+    ActivePath   = ""
+    LatestPath   = ""
+    FileCount    = 0
+    Bytes        = [int64]0
+}
 $pullInfo = [PSCustomObject]@{
     Status      = "not-run"
     StartedAt   = ""
@@ -1162,6 +1474,7 @@ $deployStateInfo = [PSCustomObject]@{
 $failureMessage = ""
 
 try {
+    $remoteStorageInfo = Sync-RemoteStorageFromHost
     $pullInfo = Run-OptionalPullBeforeDeploy
     $versionStampInfo = Run-VersionStamp
     $validationInfo = Run-Validation
@@ -1232,6 +1545,9 @@ try {
     }
 } catch {
     $failureMessage = $_.Exception.Message
+    if (-not $remoteStorageInfo.FinishedAt) {
+        $remoteStorageInfo.FinishedAt = Get-IsoNow
+    }
     if (-not $deployInfo.FinishedAt) {
         $deployInfo.FinishedAt = Get-IsoNow
     }
@@ -1248,13 +1564,29 @@ try {
     $runFinishedAt = Get-IsoNow
 
     Write-Host "Deploy completed to $remotePath"
-    Write-Host "Deployment report (laptop-first):"
+    Write-Host "Deployment report (host-storage-first, laptop-code deploy):"
     Write-Host " - Run started at: $($runStartedAt.ToString('yyyy-MM-ddTHH:mm:sszzz'))"
     Write-Host " - Proxy endpoint target: $($script:NetworkPolicy.ProxyEndpoint)"
     Write-Host " - Proxy env detected: $($script:NetworkPolicy.ProxyConfigured)"
     Write-Host " - Low-bandwidth mode enabled: $($script:NetworkPolicy.LowBandwidthEnabled)"
     Write-Host " - Effective network path (global/host/health/github): $($script:NetworkPolicy.GlobalPath)/$($script:NetworkPolicy.HostDeployPath)/$($script:NetworkPolicy.HealthCheckPath)/$($script:NetworkPolicy.GitHubPath)"
     Write-Host " - Proxy budget: $($script:NetworkPolicy.BudgetMb) MB"
+
+    Write-Host " - Remote storage sync status: $($remoteStorageInfo.Status)"
+    if (-not [string]::IsNullOrWhiteSpace($remoteStorageInfo.RemotePath)) {
+        Write-Host " - Remote storage source: $($remoteStorageInfo.RemotePath)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($remoteStorageInfo.SnapshotPath)) {
+        Write-Host " - Remote storage snapshot: $($remoteStorageInfo.SnapshotPath)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($remoteStorageInfo.ActivePath)) {
+        Write-Host " - Active local storage mirror: $($remoteStorageInfo.ActivePath)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($remoteStorageInfo.LatestPath)) {
+        Write-Host " - Latest local storage backup: $($remoteStorageInfo.LatestPath)"
+    }
+    Write-Host " - Remote storage files downloaded: $($remoteStorageInfo.FileCount)"
+    Write-Host " - Remote storage bytes downloaded: $(Format-Bytes -bytes $remoteStorageInfo.Bytes)"
 
     Write-Host " - Validation status: $($validationInfo.Status)"
     if (-not [string]::IsNullOrWhiteSpace($validationInfo.StartedAt)) {

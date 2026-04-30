@@ -8,13 +8,17 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
 
 ## ترتیب اجباری Deploy
+0. دانلود یک‌طرفه‌ی `storage/` از هاست به لپتاپ و mirror در `server-only/storage`
 1. local validation
 2. deploy به `/public_html`
 3. live health-check
 4. GitHub sync
 
 ## رفتار ایمن پیش‌فرض
-- منبع اصلی اطلاعات، فایل های ویندوز بوده و گیتهاب باید همیشه بر اساس آن ها آپدیت شود. اینکه در گیتهاب چه مواردی وجود دارد، مههم نیست. 
+- منبع اصلی کد، فایل‌های ویندوز است؛ منبع اصلی دیتا و دیتابیس، `storage/` روی هاست است.
+- قبل از هر deploy، دیتای هاست در `.codex-local/remote-storage/snapshots/` بکاپ گرفته می‌شود و نسخه‌ی فعال لوکال در `server-only/storage/` فقط از روی هاست mirror می‌شود.
+- جهت sync دیتا فقط هاست -> لپتاپ است. دیتای `storage/`، `server-only/storage/`، بکاپ‌ها، sessionها، lockها و فایل‌های `.env` نباید از لپتاپ به هاست یا GitHub آپلود شوند.
+- GitHub باید بر اساس فایل‌های کد/ظاهر/اسکریپت روی لپتاپ آپدیت شود، نه دیتای runtime.
 - صرفا فایل هایی که تغییر کرده اند باید دپلوی شوند. نیازی به اپلود هرباره همه فایل ها نیست.
 
 ## دستورات مهم
@@ -36,4 +40,5 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullB
 ## ایمنی داده
 - state/runtime باید زیر `server-only/` بماند و commit نشود.
 - `storage/`, `server-only/`, `scripts/` وب‌دیپلوی نمی‌شوند.
+- حتی در `FullSync`، فایل‌های runtime/data مثل `public_html/.env` و `public_html/storage/` از upload/delete محافظت می‌شوند.
 - از deploy دستی و ad-hoc پرهیز شود.
