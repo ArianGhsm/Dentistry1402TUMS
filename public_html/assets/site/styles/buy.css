@@ -1461,6 +1461,27 @@ body.buy-page .site-header {
     line-height: 1.8;
 }
 
+.buy-alert {
+    padding: 0.68rem 0.78rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-muted);
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    line-height: 1.8;
+    text-align: center;
+}
+
+.buy-alert--success {
+    border-color: color-mix(in srgb, var(--success-color) 34%, var(--border-color));
+    background: color-mix(in srgb, var(--success-color) 10%, var(--surface-solid));
+}
+
+.buy-alert--error {
+    border-color: color-mix(in srgb, var(--danger-color) 34%, var(--border-color));
+    background: color-mix(in srgb, var(--danger-color) 9%, var(--surface-solid));
+}
+
 .buy-cart-list {
     display: grid;
     gap: 0.62rem;
@@ -2156,6 +2177,7 @@ body.buy-modal-open {
 .buy-manage-search input,
 .buy-manage-select select,
 .buy-page .payments-filter-grid input,
+.buy-page .payments-filter-grid textarea,
 .buy-page .payments-filter-grid select,
 .buy-page .payments-field input,
 .buy-page .payments-field textarea,
@@ -2177,9 +2199,16 @@ body.buy-modal-open {
     line-height: 1.8;
 }
 
+.buy-page .payments-filter-grid textarea {
+    min-height: 96px;
+    resize: vertical;
+    line-height: 1.8;
+}
+
 .buy-manage-search input:focus,
 .buy-manage-select select:focus,
 .buy-page .payments-filter-grid input:focus,
+.buy-page .payments-filter-grid textarea:focus,
 .buy-page .payments-filter-grid select:focus,
 .buy-page .payments-field input:focus,
 .buy-page .payments-field textarea:focus,
@@ -2964,6 +2993,7 @@ body.buy-modal-open {
     .buy-cart-checkout select,
     .buy-cart-checkout textarea,
     .buy-page .payments-filter-grid input,
+    .buy-page .payments-filter-grid textarea,
     .buy-page .payments-filter-grid select,
     .buy-page .payments-field input,
     .buy-page .payments-field textarea,

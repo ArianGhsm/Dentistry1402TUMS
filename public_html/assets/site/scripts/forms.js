@@ -794,6 +794,15 @@
             if (fieldNeedsOptions(next.type) && next.options.length < 2) {
                 throw new Error("برای پرسش‌های گزینه‌ای حداقل دو گزینه لازم است.");
             }
+            if (next.type === "payment") {
+                next.payment = next.payment || { amount: "", gateway: "" };
+                next.payment.amount = normalizeDigits(String(next.payment.amount || "")).replace(/\D+/g, "");
+                next.payment.gateway = String(next.payment.gateway || "").trim();
+                next.required = !!next.required;
+                if (!next.payment.amount || Number(next.payment.amount) <= 0) {
+                    throw new Error("برای سوال پرداخت باید مبلغ بیشتر از صفر وارد شود.");
+                }
+            }
             return next;
         }).filter(function (field) {
             return field.label;

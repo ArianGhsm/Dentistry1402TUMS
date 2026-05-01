@@ -11,6 +11,7 @@
 
     var params = new URLSearchParams(window.location.search);
     var formId = String(params.get("form") || params.get("formId") || "").trim();
+    var paymentOrderToken = String(params.get("paymentOrderToken") || "").trim();
 
     var boot = $("fill-boot");
     var login = $("fill-login");
@@ -93,6 +94,17 @@
         });
     }
 
+    function paymentApiGet(action, payload) {
+        var query = new URLSearchParams(Object.assign({ action: action }, payload || {}));
+        return fetch("/api/payments_api.php?" + query.toString(), {
+            method: "GET",
+            credentials: "same-origin",
+            headers: { Accept: "application/json" }
+        }).then(parseApiResponse).catch(function () {
+            return { success: false, httpStatus: 0, error: "ارتباط با سرور پرداخت برقرار نشد." };
+        });
+    }
+
     function showStage(name) {
         boot.hidden = name !== "boot";
         login.hidden = name !== "login";
@@ -115,12 +127,28 @@
         feedback.className = "forms-feedback" + (kind ? " is-" + kind : "");
     }
 
+    function escapeHtml(value) {
+        return String(value == null ? "" : value).replace(/[&<>"]/g, function (char) {
+            switch (char) {
+                case "&": return "&amp;";
+                case "<": return "&lt;";
+                case ">": return "&gt;";
+                case "\"": return "&quot;";
+                default: return char;
+            }
+        });
+    }
+
     function normalizeDigits(value) {
         return String(value || "").replace(/[\u06F0-\u06F9\u0660-\u0669]/g, function (char) {
             var code = char.charCodeAt(0);
             if (code >= 0x06F0 && code <= 0x06F9) return String(code - 0x06F0);
             return String(code - 0x0660);
         });
+    }
+
+    function money(value) {
+        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " ریال";
     }
 
     function guestKey() {
@@ -184,6 +212,15 @@
         });
     }
 
+    function paymentGatewayOptions() {
+        var gateways = state.form && state.form.paymentGateways && Array.isArray(state.form.paymentGateways.gateways)
+            ? state.form.paymentGateways.gateways
+            : [];
+        return gateways.filter(function (gateway) {
+            return !!gateway.isEnabled;
+        });
+    }
+
     function renderQuestion(field) {
         var card = document.createElement("section");
         card.className = "forms-card forms-fill-question";
@@ -206,6 +243,73 @@
         card.appendChild(head);
 
         var type = String(field.type || "short_text");
+        if (type === "payment") {
+            var payment = field.payment || {};
+            var status = field.paymentStatus || {};
+            var amount = Number((status && status.amount) || payment.amount || 0);
+            var paid = !!status.paid;
+            var paymentBox = document.createElement("div");
+            paymentBox.className = "forms-payment-box" + (paid ? " is-paid" : "");
+            paymentBox.innerHTML = [
+                '<strong>' + escapeHtml(money(amount)) + "</strong>",
+                paid ? '<p>پرداخت این سوال تایید شده است.</p>' : '<p>برای ثبت پاسخ فرم، ابتدا این مبلغ را پرداخت کنید.</p>'
+            ].join("");
+            card.appendChild(paymentBox);
+            if (paid) {
+                return card;
+            }
+
+            var phoneLabel = document.createElement("label");
+            phoneLabel.className = "forms-field";
+            phoneLabel.innerHTML = "<span>شماره موبایل پرداخت</span>";
+            var phoneInput = document.createElement("input");
+            phoneInput.type = "tel";
+            phoneInput.inputMode = "tel";
+            phoneInput.dir = "ltr";
+            phoneInput.maxLength = 14;
+            phoneInput.setAttribute("data-latin-digits", "true");
+            phoneInput.dataset.paymentPhone = "1";
+            phoneLabel.appendChild(phoneInput);
+            card.appendChild(phoneLabel);
+
+            var gatewayWrap = document.createElement("div");
+            gatewayWrap.className = "forms-payment-gateways";
+            var gateways = paymentGatewayOptions();
+            if (!gateways.length) {
+                var noGateway = document.createElement("p");
+                noGateway.className = "forms-muted";
+                noGateway.textContent = "درگاه فعالی برای پرداخت این سوال وجود ندارد.";
+                gatewayWrap.appendChild(noGateway);
+            } else {
+                gateways.forEach(function (gateway, index) {
+                    var label = document.createElement("label");
+                    label.className = "forms-choice";
+                    var input = document.createElement("input");
+                    input.type = "radio";
+                    input.name = "payment-gateway-" + String(field.id || "");
+                    input.value = String(gateway.key || "");
+                    if (gateway.isDefault || index === 0) input.checked = true;
+                    label.appendChild(input);
+                    var text = document.createElement("span");
+                    text.textContent = String(gateway.label || "پرداخت آنلاین");
+                    label.appendChild(text);
+                    gatewayWrap.appendChild(label);
+                });
+            }
+            card.appendChild(gatewayWrap);
+            var button = document.createElement("button");
+            button.className = "forms-btn forms-btn--primary";
+            button.type = "button";
+            button.dataset.payFieldId = String(field.id || "");
+            button.textContent = "پرداخت";
+            card.appendChild(button);
+            var feedbackNode = document.createElement("div");
+            feedbackNode.className = "forms-feedback";
+            feedbackNode.dataset.paymentFeedback = "1";
+            card.appendChild(feedbackNode);
+            return card;
+        }
+
         if (["single_choice", "multiple_choice", "linear_scale"].indexOf(type) !== -1) {
             var inputType = type === "multiple_choice" ? "checkbox" : "radio";
             (Array.isArray(field.options) ? field.options : []).forEach(function (option) {
@@ -419,6 +523,9 @@
             var type = String(field.type || "short_text");
             var card = fieldsRoot.querySelector('[data-field-id="' + fieldId.replace(/"/g, "") + '"]');
             if (!card) return;
+            if (type === "payment") {
+                return;
+            }
             if (type === "multiple_choice") {
                 answers[fieldId] = Array.prototype.slice.call(card.querySelectorAll("input:checked")).map(function (input) {
                     return String(input.value || "");
@@ -486,12 +593,60 @@
                 throw new Error((response && response.error) || "بارگذاری فرم انجام نشد.");
             }
             renderForm(response);
+            if (paymentOrderToken) {
+                var resultResponse = await paymentApiGet("publicOrderResult", { orderToken: paymentOrderToken });
+                if (resultResponse && resultResponse.success && resultResponse.order) {
+                    setFeedback(String(resultResponse.order.message || ""), resultResponse.order.status === "success" ? "success" : "error");
+                }
+            }
         } catch (error) {
             setFeedback(error && error.message ? error.message : "بارگذاری انجام نشد.", "error");
             showStage("stage");
         } finally {
             state.loading = false;
             refreshBtn.disabled = false;
+        }
+    }
+
+    async function payFormField(button) {
+        if (!state.form || !button) return;
+        var fieldId = String(button.dataset.payFieldId || "");
+        var card = button.closest(".forms-fill-question");
+        var feedbackNode = card ? card.querySelector("[data-payment-feedback]") : null;
+        var phoneInput = card ? card.querySelector("[data-payment-phone]") : null;
+        var gatewayInput = card ? card.querySelector("input[name='payment-gateway-" + fieldId.replace(/"/g, "") + "']:checked") : null;
+        var setPaymentFeedback = function (message, kind) {
+            if (!feedbackNode) return;
+            feedbackNode.textContent = message || "";
+            feedbackNode.className = "forms-feedback" + (kind ? " is-" + kind : "");
+        };
+        button.disabled = true;
+        setPaymentFeedback("در حال ایجاد پرداخت...", "");
+        try {
+            var response = await apiPost("createPayment", {
+                formId: String(state.form.id || formId),
+                fieldId: fieldId,
+                guestKey: guestKey(),
+                payerPhone: normalizeDigits(phoneInput ? phoneInput.value : ""),
+                gateway: gatewayInput ? gatewayInput.value : ""
+            });
+            if (response && response.httpStatus === 401) {
+                loginLink.href = window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search);
+                showStage("login");
+                return;
+            }
+            if (response && response.alreadyPaid) {
+                setPaymentFeedback("این پرداخت قبلا تایید شده است.", "success");
+                await loadForm();
+                return;
+            }
+            if (!response || !response.success || !response.redirectUrl) {
+                throw new Error((response && response.error) || "ایجاد پرداخت انجام نشد.");
+            }
+            window.location.href = response.redirectUrl;
+        } catch (error) {
+            button.disabled = false;
+            setPaymentFeedback(error && error.message ? error.message : "ایجاد پرداخت انجام نشد.", "error");
         }
     }
 
@@ -538,6 +693,12 @@
     });
 
     refreshBtn.addEventListener("click", loadForm);
+    fieldsRoot.addEventListener("click", function (event) {
+        var button = event.target && event.target.closest("[data-pay-field-id]");
+        if (button) {
+            payFormField(button);
+        }
+    });
     formEl.addEventListener("submit", submitForm);
 
     showStage("boot");

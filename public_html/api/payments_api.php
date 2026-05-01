@@ -1114,6 +1114,7 @@ if ($action === 'createCollectionOrder') {
 
     $requestedGateway = payments_gateway_clean((string) ($_POST['gateway'] ?? ''));
     $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    $defaultGateway = payments_gateway_default_enabled_checkout(false);
 
     try {
         $created = payments_with_store_lock(static function (array &$store) use (
@@ -1121,6 +1122,7 @@ if ($action === 'createCollectionOrder') {
             $payerName,
             $payerPhone,
             $requestedGateway,
+            $defaultGateway,
             $enabledGateways,
             $studentNumber
         ): array {
@@ -1142,7 +1144,7 @@ if ($action === 'createCollectionOrder') {
 
             $gateway = $requestedGateway !== '' ? $requestedGateway : payments_gateway_clean((string) ($collection['gateway'] ?? ''));
             if ($gateway === '') {
-                $gateway = payments_gateway_default_enabled_checkout(false);
+                $gateway = $defaultGateway;
             }
             if ($gateway === '' || !in_array($gateway, $enabledGateways, true)) {
                 throw new PaymentsApiException('درگاه پرداخت انتخاب‌شده فعال نیست. لطفا گزینه دیگری را انتخاب کنید.', 422);

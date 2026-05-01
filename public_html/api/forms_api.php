@@ -1983,6 +1983,7 @@ if ($action === 'createPayment') {
         dent_error('هیچ درگاه پرداخت فعالی برای این فرم وجود ندارد.', 503);
     }
     $requestedGateway = payments_gateway_clean((string) ($_POST['gateway'] ?? ''));
+    $defaultGateway = payments_gateway_default_enabled_checkout(false);
     $payerPhone = payments_normalize_phone((string) ($_POST['payerPhone'] ?? ($user['phoneNumber'] ?? '')));
     if ($payerPhone === '' || strlen($payerPhone) < 10 || strlen($payerPhone) > 14) {
         dent_error('شماره موبایل پرداخت‌کننده معتبر نیست.', 422);
@@ -2005,6 +2006,7 @@ if ($action === 'createPayment') {
             $amount,
             $enabledGateways,
             $requestedGateway,
+            $defaultGateway,
             $payerPhone,
             $payerName,
             $studentNumber,
@@ -2024,7 +2026,7 @@ if ($action === 'createPayment') {
 
             $gateway = $requestedGateway !== '' ? $requestedGateway : payments_gateway_clean((string) ($payment['gateway'] ?? ''));
             if ($gateway === '') {
-                $gateway = payments_gateway_default_enabled_checkout(false);
+                $gateway = $defaultGateway;
             }
             if ($gateway === '' || !in_array($gateway, $enabledGateways, true)) {
                 throw new RuntimeException('درگاه پرداخت انتخاب‌شده فعال نیست. لطفا گزینه دیگری را انتخاب کنید.');

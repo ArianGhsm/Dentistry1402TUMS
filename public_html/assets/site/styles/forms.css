@@ -493,6 +493,38 @@ body.forms-page button {
     gap: 0.64rem;
 }
 
+.forms-payment-editor,
+.forms-payment-box,
+.forms-payment-gateways {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.forms-payment-box {
+    padding: 0.72rem;
+    border: 1px solid var(--forms-border);
+    border-radius: 8px;
+    background: var(--forms-surface-solid);
+}
+
+.forms-payment-box strong {
+    color: var(--forms-text);
+    font-size: 1rem;
+    font-weight: 920;
+}
+
+.forms-payment-box p {
+    margin: 0;
+    color: var(--forms-text-soft);
+    font-size: 0.78rem;
+    line-height: 1.8;
+}
+
+.forms-payment-box.is-paid {
+    border-color: rgba(22, 163, 74, 0.34);
+    background: color-mix(in srgb, var(--success-color) 9%, var(--forms-surface-solid));
+}
+
 .forms-choice {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);

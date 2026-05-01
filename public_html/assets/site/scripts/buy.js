@@ -1505,7 +1505,7 @@
                 '    <p>' + text(item.shortDescription || "—") + "</p>",
                 '    <strong>' + text(money(lineAmount)) + "</strong>",
                 '    <div class="buy-cart-quantity" aria-label="تعداد">',
-                '      <button type="button" data-buy-cart-qty="' + text(entry.slug) + '" data-buy-cart-next-qty="' + text(String(Math.max(1, Number(entry.quantity || 1) - 1))) + '">−</button>',
+                '      <button type="button" data-buy-cart-qty="' + text(entry.slug) + '" data-buy-cart-next-qty="' + text(String(Number(entry.quantity || 1) - 1)) + '">−</button>',
                 '      <span>' + text(Number(entry.quantity || 1).toLocaleString("fa-IR")) + "</span>",
                 '      <button type="button" data-buy-cart-qty="' + text(entry.slug) + '" data-buy-cart-next-qty="' + text(String(Math.min(99, Number(entry.quantity || 1) + 1))) + '">＋</button>',
                 "    </div>",
