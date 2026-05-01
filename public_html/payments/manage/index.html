@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>ویرایش آیتم | مدیریت خرید</title>
-    <meta name="description" content="ویرایش آیتم خرید یا ثبت‌نام در نمای مستقل و بخش‌بندی‌شده.">
+    <title>جمع‌آوری هزینه | ورودی ۱۴۰۲ دندانپزشکی</title>
+    <meta name="description" content="تعریف لینک پرداخت مبلغ ثابت و دریافت خروجی پرداخت‌کننده‌ها برای مالک سایت.">
     <meta name="theme-color" content="#eef2f7">
     <link rel="manifest" href="/manifest.webmanifest?v=20260501-103114">
     <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260501-103114">
@@ -15,35 +15,35 @@
     <link rel="stylesheet" href="/assets/site/styles/buy.css?v=20260501-103114">
     <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260501-103114">
 </head>
-<body class="buy-page buy-manage-page" data-buy-page="manage" data-buy-manage-page="item-form" data-buy-manage-mode="edit">
+<body class="buy-page buy-manage-page" data-buy-page="manage" data-buy-manage-page="collections">
     <div class="background-overlay" aria-hidden="true"></div>
     <header class="site-header">
         <div class="logo-area">
             <div class="logo-circle"><img src="/assets/images/logo.png?v=20260422-brand1" alt="لوگوی ورودی ۱۴۰۲ دندانپزشکی"></div>
             <div class="site-info">
-                <h1>ویرایش آیتم</h1>
-                <p>ویرایش متمرکز یک آیتم، جدا از لیست و سوابق خرید</p>
+                <h1>جمع‌آوری هزینه</h1>
+                <p>لینک پرداخت ورودمحور برای هزینه‌های خارج از کاتالوگ خرید</p>
             </div>
         </div>
         <div class="header-actions">
-            <a class="header-link" href="/buy/manage/items/">آیتم‌ها</a>
+            <a class="header-link" href="/account/">حساب</a>
             <a class="header-link" href="/buy/manage/">مدیریت خرید</a>
         </div>
     </header>
     <main class="buy-shell buy-shell--manage">
         <section id="payments-auth-guard" class="buy-manage-guard" aria-live="polite"></section>
         <section id="payments-manage-app" class="buy-manage-app" hidden>
-            <nav class="buy-manage-nav" aria-label="بخش‌های مدیریت خرید">
-                <a href="/buy/manage/" data-manage-nav="overview">مرور</a>
-                <a href="/buy/manage/items/" data-manage-nav="items">آیتم‌ها</a>
+            <nav class="buy-manage-nav" aria-label="بخش‌های مالی">
+                <a href="/payments/manage/" data-manage-nav="collections">جمع‌آوری هزینه</a>
+                <a href="/buy/manage/items/" data-manage-nav="items">آیتم‌های خرید</a>
                 <a href="/buy/manage/gateways/" data-manage-nav="gateways">درگاه‌ها</a>
                 <a href="/buy/manage/orders/" data-manage-nav="orders">سوابق</a>
             </nav>
             <header class="buy-manage-head">
                 <div>
-                    <span id="payments-manage-kicker" class="buy-kicker">ویرایش آیتم</span>
-                    <h2 id="payments-manage-title">ویرایش آیتم خرید</h2>
-                    <p id="payments-manage-description">تنظیمات آیتم انتخاب‌شده در بخش‌های کوتاه و قابل کنترل نمایش داده می‌شود.</p>
+                    <span id="payments-manage-kicker" class="buy-kicker">جمع‌آوری هزینه</span>
+                    <h2 id="payments-manage-title">لینک‌های پرداخت هزینه</h2>
+                    <p id="payments-manage-description">مبلغ ثابت تعریف کنید، لینک بگیرید و فهرست پرداخت‌کننده‌های تاییدشده را خروجی بگیرید.</p>
                 </div>
                 <div id="payments-manage-actions" class="payments-inline-actions"></div>
             </header>

@@ -279,7 +279,8 @@
             required: true,
             options: [],
             rows: [],
-            scale: null
+            scale: null,
+            payment: null
         };
         if (["single_choice", "multiple_choice", "dropdown"].indexOf(field.type) !== -1) {
             field.options = [option("گزینه اول", 1), option("گزینه دوم", 2)];
@@ -293,6 +294,10 @@
             field.options = [1, 2, 3, 4, 5].map(function (value) {
                 return { id: String(value), text: String(value) };
             });
+        }
+        if (field.type === "payment") {
+            field.payment = { amount: "", gateway: "" };
+            field.required = true;
         }
         return field;
     }
@@ -367,6 +372,12 @@
                     minLabel: String(field.scale.minLabel || ""),
                     maxLabel: String(field.scale.maxLabel || "")
                 }
+                : null,
+            payment: field.payment && typeof field.payment === "object"
+                ? {
+                    amount: String(field.payment.amount || ""),
+                    gateway: String(field.payment.gateway || "")
+                }
                 : null
         };
     }
@@ -432,7 +443,8 @@
                 ["number", "عدد"],
                 ["email", "ایمیل"],
                 ["phone", "شماره تماس"],
-                ["url", "لینک"]
+                ["url", "لینک"],
+                ["payment", "پرداخت"]
             ].forEach(function (item) {
                 if (kindInput.value === "poll" && ["single_choice", "multiple_choice"].indexOf(item[0]) === -1) return;
                 var optionEl = document.createElement("option");
@@ -451,6 +463,10 @@
                 }
                 if (field.type === "linear_scale") {
                     field.scale = field.scale || { min: 1, max: 5, minLabel: "", maxLabel: "" };
+                }
+                if (field.type === "payment") {
+                    field.payment = field.payment || { amount: "", gateway: "" };
+                    field.required = true;
                 }
                 renderFieldEditor();
             });
@@ -505,6 +521,9 @@
             }
             if (field.type === "linear_scale") {
                 card.appendChild(renderScaleEditor(field));
+            }
+            if (field.type === "payment") {
+                card.appendChild(renderPaymentEditor(field));
             }
 
             fieldsEditor.appendChild(card);
@@ -630,6 +649,51 @@
             label.appendChild(input);
             wrap.appendChild(label);
         });
+        return wrap;
+    }
+
+    function renderPaymentEditor(field) {
+        var wrap = document.createElement("div");
+        wrap.className = "forms-payment-editor";
+        field.payment = field.payment || { amount: "", gateway: "" };
+
+        var amountWrap = document.createElement("label");
+        amountWrap.className = "forms-field";
+        amountWrap.innerHTML = "<span>مبلغ پرداخت (ریال)</span>";
+        var amountInput = document.createElement("input");
+        amountInput.type = "text";
+        amountInput.inputMode = "numeric";
+        amountInput.dir = "ltr";
+        amountInput.setAttribute("data-latin-digits", "true");
+        amountInput.maxLength = 14;
+        amountInput.value = field.payment.amount || "";
+        amountInput.addEventListener("input", function () {
+            field.payment.amount = normalizeDigits(amountInput.value).replace(/\D+/g, "");
+            amountInput.value = field.payment.amount;
+        });
+        amountWrap.appendChild(amountInput);
+        wrap.appendChild(amountWrap);
+
+        var gatewayWrap = document.createElement("label");
+        gatewayWrap.className = "forms-field";
+        gatewayWrap.innerHTML = "<span>درگاه پیش‌فرض سوال</span>";
+        var gatewayInput = document.createElement("input");
+        gatewayInput.type = "text";
+        gatewayInput.maxLength = 60;
+        gatewayInput.dir = "ltr";
+        gatewayInput.setAttribute("data-latin-digits", "true");
+        gatewayInput.placeholder = "اختیاری؛ اگر خالی باشد کاربر درگاه را انتخاب می‌کند";
+        gatewayInput.value = field.payment.gateway || "";
+        gatewayInput.addEventListener("input", function () {
+            field.payment.gateway = gatewayInput.value.trim();
+        });
+        gatewayWrap.appendChild(gatewayInput);
+        wrap.appendChild(gatewayWrap);
+
+        var note = document.createElement("small");
+        note.className = "forms-muted";
+        note.textContent = "پاسخ این سوال فقط بعد از پرداخت تاییدشده همراه پاسخ فرم ثبت می‌شود.";
+        wrap.appendChild(note);
         return wrap;
     }
 

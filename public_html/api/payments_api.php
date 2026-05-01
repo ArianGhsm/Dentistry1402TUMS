@@ -33,6 +33,26 @@ function payments_api_require_method(array $methods): void
     }
 }
 
+function payments_api_require_public_user(): array
+{
+    return dent_require_user();
+}
+
+function payments_api_user_can_view_order(array $order, array $user): bool
+{
+    if ((string) ($user['role'] ?? 'student') === 'owner') {
+        return true;
+    }
+
+    $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    if ($studentNumber === '') {
+        return false;
+    }
+
+    return $studentNumber === dent_normalize_student_number((string) ($order['user_id'] ?? ''))
+        || $studentNumber === dent_normalize_student_number((string) ($order['payer_student_number'] ?? ''));
+}
+
 function payments_api_absolute_url(string $path): string
 {
     $host = trim((string) ($_SERVER['HTTP_HOST'] ?? ''));
@@ -242,7 +262,13 @@ function payments_api_orders_summary(array $orders): array
         'totalFailed' => 0,
         'totalCanceled' => 0,
         'totalExpired' => 0,
+        'totalAmount' => 0,
         'totalReceived' => 0,
+        'totalPendingAmount' => 0,
+        'totalFailedAmount' => 0,
+        'totalCanceledAmount' => 0,
+        'totalExpiredAmount' => 0,
+        'totalUnfinishedAmount' => 0,
     ];
 
     foreach ($orders as $order) {
@@ -252,32 +278,95 @@ function payments_api_orders_summary(array $orders): array
 
         $summary['totalOrders']++;
         $status = (string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING);
+        $amount = max(0, (int) ($order['amount'] ?? 0));
+        $summary['totalAmount'] += $amount;
         if ($status === PAYMENTS_ORDER_STATUS_SUCCESS) {
             $summary['totalSuccess']++;
-            $summary['totalReceived'] += max(0, (int) ($order['amount'] ?? 0));
+            $summary['totalReceived'] += $amount;
         } elseif ($status === PAYMENTS_ORDER_STATUS_FAILED) {
             $summary['totalFailed']++;
+            $summary['totalFailedAmount'] += $amount;
+            $summary['totalUnfinishedAmount'] += $amount;
         } elseif ($status === PAYMENTS_ORDER_STATUS_CANCELED) {
             $summary['totalCanceled']++;
+            $summary['totalCanceledAmount'] += $amount;
+            $summary['totalUnfinishedAmount'] += $amount;
         } elseif ($status === PAYMENTS_ORDER_STATUS_EXPIRED) {
             $summary['totalExpired']++;
+            $summary['totalExpiredAmount'] += $amount;
+            $summary['totalUnfinishedAmount'] += $amount;
         } else {
             $summary['totalPending']++;
+            $summary['totalPendingAmount'] += $amount;
+            $summary['totalUnfinishedAmount'] += $amount;
         }
     }
 
     return $summary;
 }
 
+function payments_api_owner_order_filters_from(array $source): array
+{
+    return [
+        'itemId' => (int) ($source['itemId'] ?? 0),
+        'status' => dent_clean_text((string) ($source['status'] ?? 'all'), 24),
+        'dateFrom' => dent_clean_text((string) ($source['dateFrom'] ?? ''), 40),
+        'dateTo' => dent_clean_text((string) ($source['dateTo'] ?? ''), 40),
+        'query' => dent_clean_text((string) ($source['query'] ?? ''), 120),
+    ];
+}
+
+function payments_api_order_has_item_id(array $order, int $itemId): bool
+{
+    if ($itemId <= 0) {
+        return true;
+    }
+
+    if ((int) ($order['item_id'] ?? 0) === $itemId) {
+        return true;
+    }
+
+    foreach (payments_normalize_cart_order_items($order['cart_items'] ?? []) as $cartItem) {
+        if ((int) ($cartItem['item_id'] ?? 0) === $itemId) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function payments_api_status_filter_matches(string $orderStatus, string $filterStatus): bool
+{
+    $filter = trim($filterStatus);
+    if ($filter === '' || $filter === 'all') {
+        return true;
+    }
+    if ($filter === 'done') {
+        return $orderStatus === PAYMENTS_ORDER_STATUS_SUCCESS;
+    }
+    if ($filter === 'unfinished' || $filter === 'not_done') {
+        return $orderStatus !== PAYMENTS_ORDER_STATUS_SUCCESS;
+    }
+    if ($filter === 'problem') {
+        return in_array($orderStatus, [
+            PAYMENTS_ORDER_STATUS_FAILED,
+            PAYMENTS_ORDER_STATUS_CANCELED,
+            PAYMENTS_ORDER_STATUS_EXPIRED,
+        ], true);
+    }
+
+    return $orderStatus === $filter;
+}
+
 function payments_api_order_matches_filters(array $order, array $itemById, array $filters): bool
 {
     $filterItemId = max(0, (int) ($filters['itemId'] ?? 0));
-    if ($filterItemId > 0 && (int) ($order['item_id'] ?? 0) !== $filterItemId) {
+    if (!payments_api_order_has_item_id($order, $filterItemId)) {
         return false;
     }
 
     $status = trim((string) ($filters['status'] ?? ''));
-    if ($status !== '' && $status !== 'all' && (string) ($order['status'] ?? '') !== $status) {
+    if (!payments_api_status_filter_matches((string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING), $status)) {
         return false;
     }
 
@@ -309,6 +398,10 @@ function payments_api_order_matches_filters(array $order, array $itemById, array
             (string) ($order['ref_id'] ?? ''),
             is_array($item) ? (string) ($item['title'] ?? '') : '',
         ];
+        foreach (payments_normalize_cart_order_items($order['cart_items'] ?? []) as $cartItem) {
+            $haystacks[] = (string) ($cartItem['title'] ?? '');
+            $haystacks[] = (string) ($cartItem['slug'] ?? '');
+        }
         $found = false;
         foreach ($haystacks as $haystack) {
             if (str_contains(dent_utf8_strtolower((string) $haystack), $query)) {
@@ -327,6 +420,17 @@ function payments_api_order_matches_filters(array $order, array $itemById, array
 function payments_api_redirect_to_result(string $orderToken): void
 {
     $target = PAYMENTS_PUBLIC_RESULT_PATH . '?orderToken=' . rawurlencode($orderToken);
+    $store = payments_read_store();
+    $orderIndex = payments_find_order_index_by_token($store, $orderToken);
+    if ($orderIndex >= 0 && is_array($store['orders'][$orderIndex] ?? null)) {
+        $extra = is_array($store['orders'][$orderIndex]['extra_form_data'] ?? null) ? $store['orders'][$orderIndex]['extra_form_data'] : [];
+        $returnPath = dent_clean_text((string) ($extra['_return_path'] ?? ''), 420);
+        if ($returnPath !== '' && str_starts_with($returnPath, '/') && !str_starts_with($returnPath, '//')) {
+            $separator = str_contains($returnPath, '?') ? '&' : '?';
+            $target = $returnPath . $separator . 'paymentOrderToken=' . rawurlencode($orderToken);
+        }
+    }
+
     header('Location: ' . $target, true, 302);
     exit;
 }
@@ -448,6 +552,98 @@ function payments_api_owner_gateways_payload(array $store): array
         'managed' => (bool) (($store['gatewaySettings']['managed'] ?? false)),
         'gateways' => $gateways,
         'checkout' => payments_api_checkout_gateways_payload(),
+    ];
+}
+
+function payments_api_collection_order_matches(array $order, int $collectionId): bool
+{
+    $extra = is_array($order['extra_form_data'] ?? null) ? $order['extra_form_data'] : [];
+    return (string) ($extra['_source'] ?? '') === 'collection'
+        && (int) ($extra['collection_id'] ?? 0) === $collectionId;
+}
+
+function payments_api_collection_orders(array $store, int $collectionId): array
+{
+    $orders = [];
+    foreach (($store['orders'] ?? []) as $order) {
+        if (!is_array($order) || !payments_api_collection_order_matches($order, $collectionId)) {
+            continue;
+        }
+        $orders[] = $order;
+    }
+
+    usort($orders, static function (array $left, array $right): int {
+        return strcmp((string) ($right['created_at'] ?? ''), (string) ($left['created_at'] ?? ''));
+    });
+    return $orders;
+}
+
+function payments_api_public_collection_order_for_user(array $store, int $collectionId, array $user): ?array
+{
+    $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    if ($studentNumber === '') {
+        return null;
+    }
+
+    foreach (payments_api_collection_orders($store, $collectionId) as $order) {
+        if ((string) ($order['status'] ?? '') !== PAYMENTS_ORDER_STATUS_SUCCESS) {
+            continue;
+        }
+        if (
+            $studentNumber === dent_normalize_student_number((string) ($order['user_id'] ?? ''))
+            || $studentNumber === dent_normalize_student_number((string) ($order['payer_student_number'] ?? ''))
+        ) {
+            return $order;
+        }
+    }
+
+    return null;
+}
+
+function payments_api_owner_collection_payload(array $collection, array $orders = []): array
+{
+    $successOrders = array_values(array_filter($orders, static function (array $order): bool {
+        return (string) ($order['status'] ?? '') === PAYMENTS_ORDER_STATUS_SUCCESS;
+    }));
+    $received = 0;
+    foreach ($successOrders as $order) {
+        $received += max(0, (int) ($order['amount'] ?? 0));
+    }
+
+    return [
+        'id' => (int) ($collection['id'] ?? 0),
+        'token' => (string) ($collection['token'] ?? ''),
+        'title' => (string) ($collection['title'] ?? ''),
+        'description' => (string) ($collection['description'] ?? ''),
+        'amount' => max(0, (int) ($collection['amount'] ?? 0)),
+        'status' => (string) ($collection['status'] ?? PAYMENTS_COLLECTION_STATUS_INACTIVE),
+        'gateway' => (string) ($collection['gateway'] ?? ''),
+        'successMessage' => (string) ($collection['success_message'] ?? ''),
+        'failureMessage' => (string) ($collection['failure_message'] ?? ''),
+        'createdAt' => (string) ($collection['created_at'] ?? ''),
+        'updatedAt' => (string) ($collection['updated_at'] ?? ''),
+        'publicPath' => '/payments/pay/?token=' . rawurlencode((string) ($collection['token'] ?? '')),
+        'publicUrl' => payments_api_absolute_url('/payments/pay/?token=' . rawurlencode((string) ($collection['token'] ?? ''))),
+        'ordersCount' => count($orders),
+        'successCount' => count($successOrders),
+        'receivedAmount' => $received,
+    ];
+}
+
+function payments_api_public_collection_payload(array $collection, ?array $paidOrder = null): array
+{
+    return [
+        'id' => (int) ($collection['id'] ?? 0),
+        'token' => (string) ($collection['token'] ?? ''),
+        'title' => (string) ($collection['title'] ?? ''),
+        'description' => (string) ($collection['description'] ?? ''),
+        'amount' => max(0, (int) ($collection['amount'] ?? 0)),
+        'status' => (string) ($collection['status'] ?? PAYMENTS_COLLECTION_STATUS_INACTIVE),
+        'paymentGateways' => payments_api_checkout_gateways_payload(),
+        'paid' => $paidOrder !== null,
+        'paidOrder' => $paidOrder ? payments_order_public_result_payload($paidOrder, null) : null,
+        'successMessage' => (string) ($collection['success_message'] ?? ''),
+        'failureMessage' => (string) ($collection['failure_message'] ?? ''),
     ];
 }
 
@@ -750,6 +946,7 @@ if ($action === 'ownerUploadImage') {
 
 if ($action === 'listPublicItems') {
     payments_api_require_method(['GET']);
+    payments_api_require_public_user();
     $store = payments_read_store();
 
     $items = [];
@@ -777,6 +974,7 @@ if ($action === 'listPublicItems') {
 
 if ($action === 'publicItem') {
     payments_api_require_method(['GET']);
+    payments_api_require_public_user();
     $slug = payments_clean_slug((string) ($_GET['slug'] ?? ''));
     if ($slug === '') {
         dent_error('شناسه آیتم سفارش معتبر نیست.', 422);
@@ -804,6 +1002,7 @@ if ($action === 'publicItem') {
 
 if ($action === 'quoteOrder') {
     payments_api_require_method(['POST']);
+    payments_api_require_public_user();
 
     $slug = payments_clean_slug((string) ($_POST['slug'] ?? ''));
     if ($slug === '') {
@@ -844,6 +1043,7 @@ if ($action === 'quoteOrder') {
 
 if ($action === 'quoteCart') {
     payments_api_require_method(['POST']);
+    payments_api_require_public_user();
 
     $cartItems = payments_api_parse_cart_items_input($_POST['items'] ?? ($_POST['cartItems'] ?? []));
     $discountCode = dent_clean_text((string) ($_POST['discountCode'] ?? ($_POST['discount_code'] ?? '')), 40);
@@ -862,8 +1062,230 @@ if ($action === 'quoteCart') {
     ]);
 }
 
+if ($action === 'publicCollection') {
+    payments_api_require_method(['GET']);
+    $user = payments_api_require_public_user();
+    $token = payments_clean_collection_token((string) ($_GET['token'] ?? ''));
+    if ($token === '') {
+        dent_error('شناسه لینک پرداخت معتبر نیست.', 422);
+    }
+
+    $store = payments_read_store();
+    $collectionIndex = payments_find_collection_index_by_token($store, $token);
+    if ($collectionIndex < 0) {
+        dent_error('لینک پرداخت پیدا نشد.', 404);
+    }
+    $collection = $store['collections'][$collectionIndex];
+    if ((string) ($collection['status'] ?? '') === PAYMENTS_COLLECTION_STATUS_DELETED) {
+        dent_error('لینک پرداخت پیدا نشد.', 404);
+    }
+
+    $paidOrder = payments_api_public_collection_order_for_user($store, (int) ($collection['id'] ?? 0), $user);
+    dent_json_response([
+        'success' => true,
+        'collection' => payments_api_public_collection_payload($collection, $paidOrder),
+    ]);
+}
+
+if ($action === 'createCollectionOrder') {
+    payments_api_require_method(['POST']);
+    $user = payments_api_require_public_user();
+
+    $token = payments_clean_collection_token((string) ($_POST['token'] ?? ''));
+    if ($token === '') {
+        dent_error('شناسه لینک پرداخت معتبر نیست.', 422);
+    }
+
+    $publicUser = dent_public_user($user);
+    $payerName = dent_clean_text((string) ($_POST['payerName'] ?? ($publicUser['name'] ?? '')), 120);
+    if ($payerName === '') {
+        dent_error('نام پرداخت‌کننده الزامی است.', 422);
+    }
+
+    $payerPhone = payments_normalize_phone((string) ($_POST['payerPhone'] ?? ($user['phoneNumber'] ?? '')));
+    if ($payerPhone === '' || strlen($payerPhone) < 10 || strlen($payerPhone) > 14) {
+        dent_error('شماره موبایل پرداخت‌کننده معتبر نیست.', 422);
+    }
+
+    $enabledGateways = payments_gateway_enabled_checkout_keys(false);
+    if ($enabledGateways === []) {
+        dent_error('هیچ درگاه پرداخت فعالی برای این پرداخت وجود ندارد.', 503);
+    }
+
+    $requestedGateway = payments_gateway_clean((string) ($_POST['gateway'] ?? ''));
+    $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+
+    try {
+        $created = payments_with_store_lock(static function (array &$store) use (
+            $token,
+            $payerName,
+            $payerPhone,
+            $requestedGateway,
+            $enabledGateways,
+            $studentNumber
+        ): array {
+            $collectionIndex = payments_find_collection_index_by_token($store, $token);
+            if ($collectionIndex < 0) {
+                throw new PaymentsApiException('لینک پرداخت پیدا نشد.', 404);
+            }
+            $collection = $store['collections'][$collectionIndex];
+            if ((string) ($collection['status'] ?? '') !== PAYMENTS_COLLECTION_STATUS_ACTIVE) {
+                throw new PaymentsApiException('این لینک پرداخت در حال حاضر فعال نیست.', 422);
+            }
+
+            $alreadyPaid = payments_api_public_collection_order_for_user($store, (int) ($collection['id'] ?? 0), [
+                'studentNumber' => $studentNumber,
+            ]);
+            if ($alreadyPaid !== null) {
+                throw new PaymentsApiException('پرداخت شما برای این هزینه قبلا تایید شده است.', 409);
+            }
+
+            $gateway = $requestedGateway !== '' ? $requestedGateway : payments_gateway_clean((string) ($collection['gateway'] ?? ''));
+            if ($gateway === '') {
+                $gateway = payments_gateway_default_enabled_checkout(false);
+            }
+            if ($gateway === '' || !in_array($gateway, $enabledGateways, true)) {
+                throw new PaymentsApiException('درگاه پرداخت انتخاب‌شده فعال نیست. لطفا گزینه دیگری را انتخاب کنید.', 422);
+            }
+
+            $amount = max(0, (int) ($collection['amount'] ?? 0));
+            if ($amount <= 0) {
+                throw new PaymentsApiException('مبلغ این لینک پرداخت معتبر نیست.', 422);
+            }
+
+            $now = dent_iso_now();
+            $title = (string) ($collection['title'] ?? 'پرداخت هزینه');
+            $order = [
+                'id' => payments_next_order_id($store),
+                'item_id' => 0,
+                'user_id' => $studentNumber,
+                'payer_name' => $payerName,
+                'payer_phone' => $payerPhone,
+                'payer_student_number' => $studentNumber,
+                'extra_form_data' => [
+                    '_source' => 'collection',
+                    'collection_id' => (int) ($collection['id'] ?? 0),
+                    'collection_token' => (string) ($collection['token'] ?? ''),
+                    'collection_title' => $title,
+                    '_return_path' => '/payments/pay/?token=' . rawurlencode((string) ($collection['token'] ?? '')),
+                ],
+                'cart_items' => [[
+                    'item_id' => 0,
+                    'slug' => '',
+                    'title' => $title,
+                    'quantity' => 1,
+                    'unit_price' => $amount,
+                    'subtotal' => $amount,
+                    'discount_code' => '',
+                    'discount_amount' => 0,
+                    'amount' => $amount,
+                    'extra_form_data' => [],
+                ]],
+                'quantity' => 1,
+                'unit_price' => $amount,
+                'subtotal' => $amount,
+                'discount_code' => '',
+                'discount_amount' => 0,
+                'amount' => $amount,
+                'gateway' => $gateway,
+                'authority' => '',
+                'ref_id' => '',
+                'status' => PAYMENTS_ORDER_STATUS_PENDING,
+                'gateway_response_snapshot' => [
+                    'created' => ['at' => $now, 'type' => 'collection'],
+                ],
+                'created_at' => $now,
+                'paid_at' => '',
+                'verified_at' => '',
+                'public_token' => payments_random_token(),
+            ];
+            $store['orders'][] = $order;
+
+            return [
+                'order' => $order,
+                'collection' => $collection,
+            ];
+        });
+    } catch (PaymentsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode());
+    }
+
+    $order = $created['order'];
+    $collection = $created['collection'];
+    $orderToken = (string) ($order['public_token'] ?? '');
+    $callbackUrl = payments_api_absolute_url(
+        '/api/payments_api.php?action=callback&orderToken=' . rawurlencode($orderToken)
+    );
+    $syntheticItem = [
+        'id' => 0,
+        'title' => (string) ($collection['title'] ?? 'پرداخت هزینه'),
+    ];
+
+    $startResult = payments_gateway_start_payment((string) ($order['gateway'] ?? ''), $syntheticItem, $order, [
+        'callbackUrl' => $callbackUrl,
+        'description' => 'پرداخت ' . (string) ($collection['title'] ?? 'هزینه'),
+        'mobile' => $payerPhone,
+        'orderId' => $orderToken,
+    ]);
+
+    payments_log_gateway_event('start-request', [
+        'orderId' => (int) ($order['id'] ?? 0),
+        'gateway' => (string) ($order['gateway'] ?? ''),
+        'result' => $startResult,
+    ]);
+
+    if (!(bool) ($startResult['success'] ?? false)) {
+        payments_with_store_lock(static function (array &$store) use ($order, $startResult): void {
+            $orderIndex = payments_find_order_index_by_id($store, (int) ($order['id'] ?? 0));
+            if ($orderIndex < 0) {
+                return;
+            }
+            $current = $store['orders'][$orderIndex];
+            if ((string) ($current['status'] ?? '') === PAYMENTS_ORDER_STATUS_PENDING) {
+                $current['status'] = PAYMENTS_ORDER_STATUS_FAILED;
+            }
+            $snapshot = is_array($current['gateway_response_snapshot'] ?? null) ? $current['gateway_response_snapshot'] : [];
+            $snapshot['start'] = $startResult;
+            $current['gateway_response_snapshot'] = $snapshot;
+            $store['orders'][$orderIndex] = $current;
+            payments_api_append_order_notification($store, $current, null, false);
+        });
+
+        dent_error((string) ($startResult['error'] ?? 'ایجاد درخواست درگاه پرداخت انجام نشد.'), 503, [
+            'orderToken' => $orderToken,
+        ]);
+    }
+
+    $authority = dent_clean_text((string) ($startResult['authority'] ?? ''), 120);
+    $redirectUrl = dent_clean_text((string) ($startResult['redirectUrl'] ?? ''), 900);
+    if ($redirectUrl === '') {
+        dent_error('لینک انتقال به درگاه پرداخت دریافت نشد.', 500);
+    }
+
+    payments_with_store_lock(static function (array &$store) use ($order, $authority, $startResult): void {
+        $orderIndex = payments_find_order_index_by_id($store, (int) ($order['id'] ?? 0));
+        if ($orderIndex < 0) {
+            return;
+        }
+        $current = $store['orders'][$orderIndex];
+        $current['authority'] = $authority;
+        $snapshot = is_array($current['gateway_response_snapshot'] ?? null) ? $current['gateway_response_snapshot'] : [];
+        $snapshot['start'] = $startResult;
+        $current['gateway_response_snapshot'] = $snapshot;
+        $store['orders'][$orderIndex] = $current;
+    });
+
+    dent_json_response([
+        'success' => true,
+        'orderToken' => $orderToken,
+        'redirectUrl' => $redirectUrl,
+        'resultUrl' => '/payments/pay/?token=' . rawurlencode((string) ($collection['token'] ?? '')) . '&paymentOrderToken=' . rawurlencode($orderToken),
+    ]);
+}
+
 if ($action === 'createCartOrder') {
     payments_api_require_method(['POST']);
+    $requiredUser = payments_api_require_public_user();
 
     $cartItems = payments_api_parse_cart_items_input($_POST['items'] ?? ($_POST['cartItems'] ?? []));
     if ($cartItems === []) {
@@ -907,7 +1329,7 @@ if ($action === 'createCartOrder') {
         dent_error('درگاه پرداخت انتخاب‌شده فعال نیست. لطفا گزینه دیگری را انتخاب کنید.', 422);
     }
 
-    $user = dent_current_user();
+    $user = $requiredUser;
     $userId = $user ? dent_normalize_student_number((string) ($user['studentNumber'] ?? '')) : '';
     if ($payerStudentNumber === '' && $userId !== '') {
         $payerStudentNumber = $userId;
@@ -1084,6 +1506,7 @@ if ($action === 'createCartOrder') {
 
 if ($action === 'createOrder') {
     payments_api_require_method(['POST']);
+    $requiredUser = payments_api_require_public_user();
 
     $slug = payments_clean_slug((string) ($_POST['slug'] ?? ''));
     if ($slug === '') {
@@ -1115,7 +1538,7 @@ if ($action === 'createOrder') {
     if ($gateway === '' || !in_array($gateway, $enabledGateways, true)) {
         dent_error('درگاه پرداخت انتخاب‌شده فعال نیست. لطفا گزینه دیگری را انتخاب کنید.', 422);
     }
-    $user = dent_current_user();
+    $user = $requiredUser;
     $userId = $user ? dent_normalize_student_number((string) ($user['studentNumber'] ?? '')) : '';
     if ($payerStudentNumber === '' && $userId !== '') {
         $payerStudentNumber = $userId;
@@ -1503,6 +1926,7 @@ if ($action === 'callback') {
 
 if ($action === 'publicOrderResult') {
     payments_api_require_method(['GET']);
+    $user = payments_api_require_public_user();
     $orderToken = dent_clean_text((string) ($_GET['orderToken'] ?? ''), 120);
     if ($orderToken === '') {
         dent_error('شناسه سفارش معتبر نیست.', 422);
@@ -1515,6 +1939,9 @@ if ($action === 'publicOrderResult') {
     }
 
     $order = $store['orders'][$orderIndex];
+    if (!payments_api_user_can_view_order($order, $user)) {
+        dent_error('دسترسی به نتیجه این پرداخت مجاز نیست.', 403);
+    }
     $item = null;
     $itemIndex = payments_find_item_index_by_id($store, (int) ($order['item_id'] ?? 0));
     if ($itemIndex >= 0) {
@@ -1595,6 +2022,17 @@ if ($action === 'ownerDashboard') {
         $notifications[] = $notification;
     }
 
+    $collections = [];
+    foreach (($store['collections'] ?? []) as $collection) {
+        if (!is_array($collection) || (string) ($collection['status'] ?? '') === PAYMENTS_COLLECTION_STATUS_DELETED) {
+            continue;
+        }
+        $collections[] = payments_api_owner_collection_payload(
+            $collection,
+            payments_api_collection_orders($store, (int) ($collection['id'] ?? 0))
+        );
+    }
+
     dent_json_response([
         'success' => true,
         'summary' => array_merge($summary, [
@@ -1602,9 +2040,11 @@ if ($action === 'ownerDashboard') {
             'activeItems' => count(array_filter($items, static function (array $item): bool {
                 return (string) ($item['status'] ?? '') === PAYMENTS_ITEM_STATUS_ACTIVE;
             })),
+            'totalCollections' => count($collections),
             'unreadNotifications' => payments_api_notifications_unread_count($notifications),
         ]),
         'items' => $items,
+        'collections' => $collections,
         'recentOrders' => $recentOrders,
         'notifications' => $notifications,
         'gateways' => payments_api_owner_gateways_payload($store),
@@ -1617,6 +2057,229 @@ if ($action === 'ownerGateways') {
 
     $store = payments_read_store();
     dent_json_response(array_merge(['success' => true], payments_api_owner_gateways_payload($store)));
+}
+
+if ($action === 'ownerCollections') {
+    payments_api_require_method(['GET']);
+    dent_require_owner();
+
+    $store = payments_read_store();
+    $collections = [];
+    foreach (($store['collections'] ?? []) as $collection) {
+        if (!is_array($collection) || (string) ($collection['status'] ?? '') === PAYMENTS_COLLECTION_STATUS_DELETED) {
+            continue;
+        }
+        $collections[] = payments_api_owner_collection_payload(
+            $collection,
+            payments_api_collection_orders($store, (int) ($collection['id'] ?? 0))
+        );
+    }
+
+    dent_json_response([
+        'success' => true,
+        'collections' => $collections,
+        'paymentGateways' => payments_api_checkout_gateways_payload(),
+    ]);
+}
+
+if ($action === 'ownerSaveCollection') {
+    payments_api_require_method(['POST']);
+    dent_require_owner();
+
+    $collectionId = max(0, (int) ($_POST['id'] ?? 0));
+    $title = dent_clean_text((string) ($_POST['title'] ?? ''), 160);
+    if ($title === '') {
+        dent_error('عنوان هزینه الزامی است.', 422);
+    }
+
+    $amount = max(0, (int) dent_normalize_digits((string) ($_POST['amount'] ?? '0')));
+    if ($amount <= 0) {
+        dent_error('مبلغ باید بیشتر از صفر باشد.', 422);
+    }
+
+    $status = dent_clean_text((string) ($_POST['status'] ?? PAYMENTS_COLLECTION_STATUS_ACTIVE), 24);
+    if (!in_array($status, [PAYMENTS_COLLECTION_STATUS_ACTIVE, PAYMENTS_COLLECTION_STATUS_INACTIVE], true)) {
+        $status = PAYMENTS_COLLECTION_STATUS_INACTIVE;
+    }
+
+    $gateway = payments_gateway_clean((string) ($_POST['gateway'] ?? ''));
+    $description = dent_clean_text((string) ($_POST['description'] ?? ''), 1200);
+    $successMessage = dent_clean_text((string) ($_POST['successMessage'] ?? ''), 600);
+    $failureMessage = dent_clean_text((string) ($_POST['failureMessage'] ?? ''), 600);
+
+    try {
+        $saved = payments_with_store_lock(static function (array &$store) use (
+            $collectionId,
+            $title,
+            $amount,
+            $status,
+            $gateway,
+            $description,
+            $successMessage,
+            $failureMessage
+        ): array {
+            $now = dent_iso_now();
+            $payload = [
+                'title' => $title,
+                'description' => $description,
+                'amount' => $amount,
+                'status' => $status,
+                'gateway' => $gateway,
+                'success_message' => $successMessage,
+                'failure_message' => $failureMessage,
+                'updated_at' => $now,
+            ];
+
+            if ($collectionId > 0) {
+                $index = payments_find_collection_index_by_id($store, $collectionId);
+                if ($index < 0) {
+                    throw new PaymentsApiException('لینک جمع‌آوری هزینه پیدا نشد.', 404);
+                }
+                $existing = is_array($store['collections'][$index] ?? null) ? $store['collections'][$index] : [];
+                $store['collections'][$index] = array_merge($existing, $payload, [
+                    'id' => (int) ($existing['id'] ?? $collectionId),
+                    'token' => (string) ($existing['token'] ?? payments_random_token(12)),
+                    'created_at' => (string) ($existing['created_at'] ?? $now),
+                ]);
+                return $store['collections'][$index];
+            }
+
+            $payload = array_merge($payload, [
+                'id' => payments_next_collection_id($store),
+                'token' => payments_random_token(12),
+                'created_at' => $now,
+            ]);
+            $store['collections'][] = $payload;
+            return $payload;
+        });
+    } catch (PaymentsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode());
+    }
+
+    dent_json_response([
+        'success' => true,
+        'collection' => payments_api_owner_collection_payload($saved, []),
+        'message' => $collectionId > 0 ? 'لینک جمع‌آوری هزینه ویرایش شد.' : 'لینک جمع‌آوری هزینه ساخته شد.',
+    ]);
+}
+
+if ($action === 'ownerDeleteCollection') {
+    payments_api_require_method(['POST']);
+    dent_require_owner();
+
+    $collectionId = max(0, (int) ($_POST['id'] ?? 0));
+    if ($collectionId <= 0) {
+        dent_error('شناسه لینک جمع‌آوری هزینه معتبر نیست.', 422);
+    }
+
+    try {
+        $deleted = payments_with_store_lock(static function (array &$store) use ($collectionId): array {
+            $index = payments_find_collection_index_by_id($store, $collectionId);
+            if ($index < 0) {
+                throw new PaymentsApiException('لینک جمع‌آوری هزینه پیدا نشد.', 404);
+            }
+            $collection = $store['collections'][$index];
+            $collection['status'] = PAYMENTS_COLLECTION_STATUS_DELETED;
+            $collection['updated_at'] = dent_iso_now();
+            $store['collections'][$index] = $collection;
+            return $collection;
+        });
+    } catch (PaymentsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode());
+    }
+
+    dent_json_response([
+        'success' => true,
+        'collection' => payments_api_owner_collection_payload($deleted, []),
+        'message' => 'لینک جمع‌آوری هزینه حذف شد و سوابق پرداخت آن حفظ شد.',
+    ]);
+}
+
+if ($action === 'ownerCollectionExport') {
+    payments_api_require_method(['GET']);
+    dent_require_owner();
+
+    $collectionId = max(0, (int) ($_GET['id'] ?? 0));
+    $format = strtolower(dent_clean_text((string) ($_GET['format'] ?? 'csv'), 12));
+    if (!in_array($format, ['csv', 'txt', 'json'], true)) {
+        $format = 'csv';
+    }
+    if ($collectionId <= 0) {
+        dent_error('شناسه لینک جمع‌آوری هزینه معتبر نیست.', 422);
+    }
+
+    $store = payments_read_store();
+    $index = payments_find_collection_index_by_id($store, $collectionId);
+    if ($index < 0 || !is_array($store['collections'][$index] ?? null)) {
+        dent_error('لینک جمع‌آوری هزینه پیدا نشد.', 404);
+    }
+    $collection = $store['collections'][$index];
+    $orders = array_values(array_filter(
+        payments_api_collection_orders($store, $collectionId),
+        static fn(array $order): bool => (string) ($order['status'] ?? '') === PAYMENTS_ORDER_STATUS_SUCCESS
+    ));
+
+    $rows = [];
+    $rowNumber = 1;
+    foreach ($orders as $order) {
+        $rows[] = [
+            'row' => $rowNumber,
+            'name' => (string) ($order['payer_name'] ?? ''),
+            'student_number' => (string) ($order['payer_student_number'] ?? ''),
+            'phone' => (string) ($order['payer_phone'] ?? ''),
+            'amount' => max(0, (int) ($order['amount'] ?? 0)),
+            'ref_id' => (string) ($order['ref_id'] ?? ''),
+            'authority' => (string) ($order['authority'] ?? ''),
+            'paid_at' => (string) ($order['paid_at'] ?? ''),
+            'created_at' => (string) ($order['created_at'] ?? ''),
+        ];
+        $rowNumber++;
+    }
+
+    $fileBase = 'dent1402-collection-' . (int) ($collection['id'] ?? 0) . '-' . date('Y-m-d');
+    if ($format === 'json') {
+        header('Content-Disposition: attachment; filename="' . $fileBase . '.json"');
+        dent_json_response([
+            'success' => true,
+            'collection' => payments_api_owner_collection_payload($collection, $orders),
+            'rows' => $rows,
+        ]);
+    }
+
+    if ($format === 'txt') {
+        $lines = [(string) ($collection['title'] ?? ''), str_repeat('=', 32)];
+        foreach ($rows as $row) {
+            $lines[] = implode(' | ', [
+                (string) $row['row'],
+                (string) $row['name'],
+                (string) $row['student_number'],
+                (string) $row['phone'],
+                (string) $row['amount'],
+                (string) $row['ref_id'],
+                (string) $row['paid_at'],
+            ]);
+        }
+        $content = implode("\r\n", $lines);
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $fileBase . '.txt"');
+        header('Content-Length: ' . (string) strlen($content));
+        echo $content;
+        exit;
+    }
+
+    $headers = ['row', 'name', 'student_number', 'phone', 'amount', 'ref_id', 'authority', 'paid_at', 'created_at'];
+    $csv = [implode(',', array_map(static fn(string $cell): string => '"' . str_replace('"', '""', $cell) . '"', $headers))];
+    foreach ($rows as $row) {
+        $csv[] = implode(',', array_map(static function ($cell): string {
+            return '"' . str_replace('"', '""', (string) $cell) . '"';
+        }, array_values($row)));
+    }
+    $content = "\xEF\xBB\xBF" . implode("\r\n", $csv);
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $fileBase . '.csv"');
+    header('Content-Length: ' . (string) strlen($content));
+    echo $content;
+    exit;
 }
 
 if ($action === 'ownerSaveGateway') {
@@ -2094,15 +2757,10 @@ if ($action === 'ownerOrders') {
         $itemById[(int) ($item['id'] ?? 0)] = $item;
     }
 
-    $filters = [
-        'itemId' => (int) ($_GET['itemId'] ?? 0),
-        'status' => dent_clean_text((string) ($_GET['status'] ?? 'all'), 20),
-        'dateFrom' => dent_clean_text((string) ($_GET['dateFrom'] ?? ''), 40),
-        'dateTo' => dent_clean_text((string) ($_GET['dateTo'] ?? ''), 40),
-        'query' => dent_clean_text((string) ($_GET['query'] ?? ''), 120),
-    ];
+    $filters = payments_api_owner_order_filters_from($_GET);
 
     $filteredOrders = [];
+    $filteredRawOrders = [];
     foreach ($store['orders'] as $order) {
         if (!is_array($order)) {
             continue;
@@ -2112,6 +2770,7 @@ if ($action === 'ownerOrders') {
         }
         $item = $itemById[(int) ($order['item_id'] ?? 0)] ?? null;
         $filteredOrders[] = payments_owner_order_payload($order, is_array($item) ? $item : null);
+        $filteredRawOrders[] = $order;
     }
 
     usort($filteredOrders, static function (array $left, array $right): int {
@@ -2122,12 +2781,7 @@ if ($action === 'ownerOrders') {
         'success' => true,
         'filters' => $filters,
         'summary' => payments_api_orders_summary($store['orders']),
-        'filteredSummary' => payments_api_orders_summary(array_map(static function (array $orderPayload): array {
-            return [
-                'status' => $orderPayload['status'] ?? PAYMENTS_ORDER_STATUS_PENDING,
-                'amount' => (int) ($orderPayload['amount'] ?? 0),
-            ];
-        }, $filteredOrders)),
+        'filteredSummary' => payments_api_orders_summary($filteredRawOrders),
         'orders' => $filteredOrders,
     ]);
 }
@@ -2214,6 +2868,109 @@ if ($action === 'ownerUpdateOrderStatus') {
         'success' => true,
         'order' => payments_owner_order_payload($payload['order'], is_array($payload['item'] ?? null) ? $payload['item'] : null),
         'message' => 'وضعیت سفارش به‌روزرسانی شد.',
+    ]);
+}
+
+if ($action === 'ownerDeleteOrder') {
+    payments_api_require_method(['POST']);
+    dent_require_owner();
+
+    $orderId = max(0, (int) ($_POST['id'] ?? 0));
+    if ($orderId <= 0) {
+        dent_error('شناسه سفارش معتبر نیست.', 422);
+    }
+
+    try {
+        $deleted = payments_with_store_lock(static function (array &$store) use ($orderId): array {
+            $orderIndex = payments_find_order_index_by_id($store, $orderId);
+            if ($orderIndex < 0) {
+                throw new PaymentsApiException('سفارش موردنظر پیدا نشد.', 404);
+            }
+
+            $order = is_array($store['orders'][$orderIndex] ?? null) ? $store['orders'][$orderIndex] : [];
+            array_splice($store['orders'], $orderIndex, 1);
+            $store['notifications'] = array_values(array_filter($store['notifications'] ?? [], static function ($notification) use ($orderId): bool {
+                if (!is_array($notification)) {
+                    return false;
+                }
+                return (int) ($notification['related_order_id'] ?? 0) !== $orderId;
+            }));
+
+            return $order;
+        });
+    } catch (PaymentsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode());
+    }
+
+    dent_json_response([
+        'success' => true,
+        'deletedOrderId' => $orderId,
+        'deletedOrder' => payments_owner_order_payload($deleted, null),
+        'message' => 'سفارش از سوابق حذف شد.',
+    ]);
+}
+
+if ($action === 'ownerResetOrderHistory') {
+    payments_api_require_method(['POST']);
+    dent_require_owner();
+
+    $confirmation = trim((string) ($_POST['confirmation'] ?? ''));
+    if ($confirmation !== 'DELETE_FILTERED_HISTORY') {
+        dent_error('تایید حذف سوابق معتبر نیست.', 422);
+    }
+
+    $filters = payments_api_owner_order_filters_from($_POST);
+
+    try {
+        $result = payments_with_store_lock(static function (array &$store) use ($filters): array {
+            $itemById = [];
+            foreach ($store['items'] as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+                $itemById[(int) ($item['id'] ?? 0)] = $item;
+            }
+
+            $deletedIds = [];
+            $keptOrders = [];
+            foreach ($store['orders'] as $order) {
+                if (!is_array($order)) {
+                    continue;
+                }
+                if (payments_api_order_matches_filters($order, $itemById, $filters)) {
+                    $deletedIds[] = (int) ($order['id'] ?? 0);
+                    continue;
+                }
+                $keptOrders[] = $order;
+            }
+
+            $deletedLookup = array_fill_keys($deletedIds, true);
+            $store['orders'] = array_values($keptOrders);
+            $store['notifications'] = array_values(array_filter($store['notifications'] ?? [], static function ($notification) use ($deletedLookup): bool {
+                if (!is_array($notification)) {
+                    return false;
+                }
+                $relatedOrderId = (int) ($notification['related_order_id'] ?? 0);
+                return $relatedOrderId <= 0 || !isset($deletedLookup[$relatedOrderId]);
+            }));
+
+            return [
+                'deletedIds' => $deletedIds,
+                'deletedCount' => count($deletedIds),
+                'remainingCount' => count($store['orders']),
+            ];
+        });
+    } catch (PaymentsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode());
+    }
+
+    dent_json_response([
+        'success' => true,
+        'filters' => $filters,
+        'deletedIds' => $result['deletedIds'],
+        'deletedCount' => $result['deletedCount'],
+        'remainingCount' => $result['remainingCount'],
+        'message' => $result['deletedCount'] > 0 ? 'سوابق فیلترشده حذف شد.' : 'سفارشی برای حذف با این فیلتر وجود نداشت.',
     ]);
 }
 

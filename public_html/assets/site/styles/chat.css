@@ -7996,7 +7996,7 @@ body.chat-page .composer-send {
 }
 
 body.chat-page .chat-mobile-nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
 }
 
 @media (max-width: 980px) {
@@ -8006,7 +8006,7 @@ body.chat-page .chat-mobile-nav {
         bottom: calc(0.42rem + env(safe-area-inset-bottom, 0px)) !important;
         min-height: 64px !important;
         display: grid !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
         border-radius: 22px !important;
         padding: 0.24rem !important;
         background: var(--shell-nav-inner-bg) !important;

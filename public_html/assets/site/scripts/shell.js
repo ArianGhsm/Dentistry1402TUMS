@@ -81,10 +81,13 @@
         var status = authStatus(state);
         var isPending = isAuthTransitioning(status);
         var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
+        var paymentEntry = state.loggedIn
+            ? { href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/", "/payments/"] }
+            : { href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] };
         return [
             { href: "/app/", label: "خانه", icon: "home", active: ["/app/"] },
             { href: "/chat/", label: "چت", icon: "chat", active: ["/chat/"] },
-            { href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/"] },
+            paymentEntry,
             {
                 href: accountHref,
                 label: state.loggedIn ? "حساب" : "ورود",

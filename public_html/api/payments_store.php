@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/bootstrap.php';
 
 if (!defined('PAYMENTS_SCHEMA_VERSION')) {
-    define('PAYMENTS_SCHEMA_VERSION', 2);
+    define('PAYMENTS_SCHEMA_VERSION', 3);
 }
 if (!defined('PAYMENTS_ITEM_STATUS_ACTIVE')) {
     define('PAYMENTS_ITEM_STATUS_ACTIVE', 'active');
@@ -14,6 +14,15 @@ if (!defined('PAYMENTS_ITEM_STATUS_INACTIVE')) {
 }
 if (!defined('PAYMENTS_ITEM_STATUS_DELETED')) {
     define('PAYMENTS_ITEM_STATUS_DELETED', 'deleted');
+}
+if (!defined('PAYMENTS_COLLECTION_STATUS_ACTIVE')) {
+    define('PAYMENTS_COLLECTION_STATUS_ACTIVE', 'active');
+}
+if (!defined('PAYMENTS_COLLECTION_STATUS_INACTIVE')) {
+    define('PAYMENTS_COLLECTION_STATUS_INACTIVE', 'inactive');
+}
+if (!defined('PAYMENTS_COLLECTION_STATUS_DELETED')) {
+    define('PAYMENTS_COLLECTION_STATUS_DELETED', 'deleted');
 }
 if (!defined('PAYMENTS_GATEWAY_ZARINPAL')) {
     define('PAYMENTS_GATEWAY_ZARINPAL', 'zarinpal');
@@ -69,10 +78,12 @@ function payments_default_store(): array
         'nextOrderId' => 1,
         'nextNotificationId' => 1,
         'nextGatewayId' => 1,
+        'nextCollectionId' => 1,
         'gatewaySettings' => [
             'managed' => false,
         ],
         'gateways' => [],
+        'collections' => [],
         'items' => [],
         'orders' => [],
         'notifications' => [],
@@ -218,6 +229,11 @@ function payments_normalize_store(array $store): array
         $gatewaysRaw = [];
     }
 
+    $collectionsRaw = $store['collections'] ?? [];
+    if (!is_array($collectionsRaw)) {
+        $collectionsRaw = [];
+    }
+
     $normalizedItems = [];
     $maxItemId = 0;
     $seenSlugs = [];
@@ -346,14 +362,49 @@ function payments_normalize_store(array $store): array
         return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
     });
 
+    $normalizedCollections = [];
+    $maxCollectionId = 0;
+    $seenCollectionTokens = [];
+    foreach ($collectionsRaw as $seed) {
+        if (!is_array($seed)) {
+            continue;
+        }
+
+        $collection = payments_normalize_collection_record($seed);
+        if ($collection === null) {
+            continue;
+        }
+
+        $collectionId = (int) $collection['id'];
+        $maxCollectionId = max($maxCollectionId, $collectionId);
+
+        $token = (string) ($collection['token'] ?? '');
+        if ($token === '' || isset($seenCollectionTokens[$token])) {
+            $token = payments_random_token(12);
+            while (isset($seenCollectionTokens[$token])) {
+                $token = payments_random_token(12);
+            }
+            $collection['token'] = $token;
+        }
+        $seenCollectionTokens[$token] = true;
+
+        $normalizedCollections[] = $collection;
+    }
+
+    usort($normalizedCollections, static function (array $left, array $right): int {
+        return strcmp((string) ($right['updated_at'] ?? ''), (string) ($left['updated_at'] ?? ''));
+    });
+
     $normalized = [
         'schemaVersion' => PAYMENTS_SCHEMA_VERSION,
         'nextItemId' => max($maxItemId + 1, (int) ($store['nextItemId'] ?? 1), 1),
         'nextOrderId' => max($maxOrderId + 1, (int) ($store['nextOrderId'] ?? 1), 1),
         'nextNotificationId' => max($maxNotificationId + 1, (int) ($store['nextNotificationId'] ?? 1), 1),
         'nextGatewayId' => max($maxGatewayId + 1, (int) ($store['nextGatewayId'] ?? 1), 1),
+        'nextCollectionId' => max($maxCollectionId + 1, (int) ($store['nextCollectionId'] ?? 1), 1),
         'gatewaySettings' => $gatewaySettings,
         'gateways' => $normalizedGateways,
+        'collections' => $normalizedCollections,
         'items' => $normalizedItems,
         'orders' => $normalizedOrders,
         'notifications' => $normalizedNotifications,
@@ -571,6 +622,60 @@ function payments_normalize_gateway_record(array $seed): ?array
         'start_url' => dent_clean_text((string) ($seed['start_url'] ?? ($seed['startUrl'] ?? '')), 420),
         'is_enabled' => $enabled !== false,
         'is_default' => $isDefault === true,
+        'created_at' => payments_normalize_datetime_string((string) ($seed['created_at'] ?? ($seed['createdAt'] ?? $now)), $now),
+        'updated_at' => payments_normalize_datetime_string((string) ($seed['updated_at'] ?? ($seed['updatedAt'] ?? $now)), $now),
+    ];
+}
+
+function payments_clean_collection_token(string $value): string
+{
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    $value = preg_replace('/[^A-Za-z0-9_-]+/', '', $value) ?? '';
+    return substr($value, 0, 80);
+}
+
+function payments_normalize_collection_record(array $seed): ?array
+{
+    $id = (int) ($seed['id'] ?? 0);
+    if ($id <= 0) {
+        return null;
+    }
+
+    $title = dent_clean_text((string) ($seed['title'] ?? ''), 160);
+    if ($title === '') {
+        return null;
+    }
+
+    $amount = max(0, (int) dent_normalize_digits((string) ($seed['amount'] ?? '0')));
+    if ($amount <= 0) {
+        return null;
+    }
+
+    $status = trim((string) ($seed['status'] ?? PAYMENTS_COLLECTION_STATUS_ACTIVE));
+    if (!in_array($status, [PAYMENTS_COLLECTION_STATUS_ACTIVE, PAYMENTS_COLLECTION_STATUS_INACTIVE, PAYMENTS_COLLECTION_STATUS_DELETED], true)) {
+        $status = PAYMENTS_COLLECTION_STATUS_INACTIVE;
+    }
+
+    $token = payments_clean_collection_token((string) ($seed['token'] ?? ''));
+    if ($token === '') {
+        $token = payments_random_token(12);
+    }
+
+    $now = dent_iso_now();
+    return [
+        'id' => $id,
+        'token' => $token,
+        'title' => $title,
+        'description' => dent_clean_text((string) ($seed['description'] ?? ''), 1200),
+        'amount' => $amount,
+        'status' => $status,
+        'gateway' => payments_gateway_key_clean((string) ($seed['gateway'] ?? '')),
+        'success_message' => dent_clean_text((string) ($seed['success_message'] ?? ($seed['successMessage'] ?? '')), 600),
+        'failure_message' => dent_clean_text((string) ($seed['failure_message'] ?? ($seed['failureMessage'] ?? '')), 600),
         'created_at' => payments_normalize_datetime_string((string) ($seed['created_at'] ?? ($seed['createdAt'] ?? $now)), $now),
         'updated_at' => payments_normalize_datetime_string((string) ($seed['updated_at'] ?? ($seed['updatedAt'] ?? $now)), $now),
     ];
@@ -1114,6 +1219,31 @@ function payments_find_order_index_by_token(array $store, string $token): int
     return -1;
 }
 
+function payments_find_collection_index_by_id(array $store, int $collectionId): int
+{
+    foreach ($store['collections'] as $index => $collection) {
+        if ((int) ($collection['id'] ?? 0) === $collectionId) {
+            return (int) $index;
+        }
+    }
+    return -1;
+}
+
+function payments_find_collection_index_by_token(array $store, string $token): int
+{
+    $token = payments_clean_collection_token($token);
+    if ($token === '') {
+        return -1;
+    }
+
+    foreach ($store['collections'] as $index => $collection) {
+        if ((string) ($collection['token'] ?? '') === $token) {
+            return (int) $index;
+        }
+    }
+    return -1;
+}
+
 function payments_next_item_id(array &$store): int
 {
     $next = max(1, (int) ($store['nextItemId'] ?? 1));
@@ -1139,6 +1269,13 @@ function payments_next_gateway_id(array &$store): int
 {
     $next = max(1, (int) ($store['nextGatewayId'] ?? 1));
     $store['nextGatewayId'] = $next + 1;
+    return $next;
+}
+
+function payments_next_collection_id(array &$store): int
+{
+    $next = max(1, (int) ($store['nextCollectionId'] ?? 1));
+    $store['nextCollectionId'] = $next + 1;
     return $next;
 }
 

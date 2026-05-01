@@ -2,6 +2,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/auth_store.php';
+require_once __DIR__ . '/payments_store.php';
+require_once __DIR__ . '/payments_gateway.php';
 
 const FORMS_SCHEMA_VERSION = 1;
 const FORMS_ID_PREFIX = 'frm-';
@@ -177,6 +179,7 @@ function forms_clean_field_type(string $value): string
         'email',
         'phone',
         'url',
+        'payment',
     ];
     return in_array($value, $allowed, true) ? $value : 'short_text';
 }
@@ -248,6 +251,16 @@ function forms_normalize_rows($raw): array
     return $rows;
 }
 
+function forms_normalize_payment_config($raw): array
+{
+    $raw = is_array($raw) ? $raw : [];
+    $amount = max(0, (int) dent_normalize_digits((string) ($raw['amount'] ?? '0')));
+    return [
+        'amount' => $amount,
+        'gateway' => payments_gateway_key_clean((string) ($raw['gateway'] ?? '')),
+    ];
+}
+
 function forms_normalize_field($raw, int $index): ?array
 {
     if (!is_array($raw)) {
@@ -269,6 +282,7 @@ function forms_normalize_field($raw, int $index): ?array
         'options' => [],
         'rows' => [],
         'scale' => null,
+        'payment' => null,
     ];
 
     if (in_array($type, ['single_choice', 'multiple_choice', 'dropdown', 'multiple_choice_grid', 'checkbox_grid'], true)) {
@@ -305,6 +319,15 @@ function forms_normalize_field($raw, int $index): ?array
             'maxLabel' => forms_clean_text($scale['maxLabel'] ?? '', 80),
         ];
         $field['options'] = $options;
+    }
+
+    if ($type === 'payment') {
+        $payment = forms_normalize_payment_config($raw['payment'] ?? []);
+        if ((int) ($payment['amount'] ?? 0) <= 0) {
+            return null;
+        }
+        $field['required'] = forms_parse_bool($raw['required'] ?? true, true);
+        $field['payment'] = $payment;
     }
 
     return $field;
@@ -585,6 +608,35 @@ function forms_absolute_url(string $path): string
     return $origin === '' ? $path : $origin . $path;
 }
 
+function forms_payment_gateways_payload(): array
+{
+    $catalog = payments_gateway_checkout_catalog(false);
+    $defaultKey = payments_gateway_default_enabled_checkout(false);
+    $gateways = [];
+    foreach ($catalog as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $key = payments_gateway_clean((string) ($entry['key'] ?? ''));
+        if ($key === '') {
+            continue;
+        }
+        $gateways[] = [
+            'key' => $key,
+            'label' => dent_clean_text((string) ($entry['label'] ?? ''), 80),
+            'provider' => dent_clean_text((string) ($entry['provider'] ?? ''), 120),
+            'icon' => dent_clean_text((string) ($entry['icon'] ?? ''), 8),
+            'isEnabled' => (bool) ($entry['isEnabled'] ?? false),
+            'isDefault' => (bool) ($entry['isEnabled'] ?? false) && $key === $defaultKey,
+        ];
+    }
+
+    return [
+        'defaultKey' => $defaultKey,
+        'gateways' => $gateways,
+    ];
+}
+
 function forms_share_path(string $formId): string
 {
     return FORMS_SHARE_PATH . '?form=' . urlencode($formId);
@@ -808,6 +860,99 @@ function forms_responses_for_form(array $store, string $formId): array
     return $responses;
 }
 
+function forms_payment_fields(array $form): array
+{
+    return array_values(array_filter((array) ($form['fields'] ?? []), static function ($field): bool {
+        return is_array($field) && (string) ($field['type'] ?? '') === 'payment';
+    }));
+}
+
+function forms_has_payment_fields(array $form): bool
+{
+    return forms_payment_fields($form) !== [];
+}
+
+function forms_payment_order_matches(array $order, string $formId, string $fieldId, string $identityKey): bool
+{
+    $extra = is_array($order['extra_form_data'] ?? null) ? $order['extra_form_data'] : [];
+    return (string) ($extra['_source'] ?? '') === 'form_payment'
+        && (string) ($extra['form_id'] ?? '') === $formId
+        && (string) ($extra['field_id'] ?? '') === $fieldId
+        && (string) ($extra['identity_key'] ?? '') === $identityKey;
+}
+
+function forms_payment_order_for_identity(string $formId, string $fieldId, string $identityKey, bool $successOnly = true): ?array
+{
+    if ($formId === '' || $fieldId === '' || $identityKey === '') {
+        return null;
+    }
+
+    $store = payments_read_store();
+    foreach (($store['orders'] ?? []) as $order) {
+        if (!is_array($order) || !forms_payment_order_matches($order, $formId, $fieldId, $identityKey)) {
+            continue;
+        }
+        if ($successOnly && (string) ($order['status'] ?? '') !== PAYMENTS_ORDER_STATUS_SUCCESS) {
+            continue;
+        }
+        return $order;
+    }
+
+    return null;
+}
+
+function forms_payment_statuses(array $form, ?string $identityKey): array
+{
+    $statuses = [];
+    if ($identityKey === null || $identityKey === '') {
+        return $statuses;
+    }
+    $formId = (string) ($form['id'] ?? '');
+    foreach (forms_payment_fields($form) as $field) {
+        $fieldId = (string) ($field['id'] ?? '');
+        $order = forms_payment_order_for_identity($formId, $fieldId, $identityKey, true);
+        $statuses[$fieldId] = [
+            'paid' => $order !== null,
+            'orderToken' => $order ? (string) ($order['public_token'] ?? '') : '',
+            'refId' => $order ? (string) ($order['ref_id'] ?? '') : '',
+            'amount' => $order ? max(0, (int) ($order['amount'] ?? 0)) : max(0, (int) (($field['payment']['amount'] ?? 0))),
+        ];
+    }
+    return $statuses;
+}
+
+function forms_payment_answer_from_order(array $order): array
+{
+    return [
+        'status' => 'paid',
+        'orderToken' => (string) ($order['public_token'] ?? ''),
+        'refId' => (string) ($order['ref_id'] ?? ''),
+        'amount' => max(0, (int) ($order['amount'] ?? 0)),
+        'paidAt' => (string) ($order['paid_at'] ?? ''),
+    ];
+}
+
+function forms_collect_payment_answers(array $form, string $identityKey): array
+{
+    $answers = [];
+    $formId = (string) ($form['id'] ?? '');
+    foreach (forms_payment_fields($form) as $field) {
+        $fieldId = (string) ($field['id'] ?? '');
+        if ($fieldId === '') {
+            continue;
+        }
+        $order = forms_payment_order_for_identity($formId, $fieldId, $identityKey, true);
+        if ($order === null) {
+            if ((bool) ($field['required'] ?? false)) {
+                dent_error('پرداخت «' . (string) ($field['label'] ?? 'هزینه') . '» قبل از ثبت پاسخ الزامی است.', 422);
+            }
+            continue;
+        }
+        $answers[$fieldId] = forms_payment_answer_from_order($order);
+    }
+    return $answers;
+}
+
 function forms_option_map(array $field): array
 {
     $map = [];
@@ -841,6 +986,10 @@ function forms_normalize_answer(array $field, $raw)
     $type = (string) ($field['type'] ?? 'short_text');
     $required = (bool) ($field['required'] ?? false);
     $label = (string) ($field['label'] ?? 'فیلد');
+
+    if ($type === 'payment') {
+        return '';
+    }
 
     if ($type === 'multiple_choice') {
         $items = [];
@@ -964,6 +1113,9 @@ function forms_collect_answers(array $form, array $source): array
         if ($fieldId === '') {
             continue;
         }
+        if ((string) ($field['type'] ?? '') === 'payment') {
+            continue;
+        }
         $answers[$fieldId] = forms_normalize_answer($field, $rawAnswers[$fieldId] ?? null);
     }
     return $answers;
@@ -1017,6 +1169,14 @@ function forms_answer_display_value(array $field, $answer): string
 {
     if ($answer === null || $answer === '') {
         return '';
+    }
+    if ((string) ($field['type'] ?? '') === 'payment') {
+        if (is_array($answer) && (string) ($answer['status'] ?? '') === 'paid') {
+            $amount = number_format(max(0, (int) ($answer['amount'] ?? 0)));
+            $refId = trim((string) ($answer['refId'] ?? ''));
+            return 'پرداخت شده - ' . $amount . ' ریال' . ($refId !== '' ? ' - ref: ' . $refId : '');
+        }
+        return 'پرداخت نشده';
     }
     $optionMap = forms_option_map($field);
     if (is_array($answer)) {
@@ -1149,6 +1309,19 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
         $canSubmit = false;
     }
 
+    $fieldsPayload = $includeFields ? (array) ($form['fields'] ?? []) : [];
+    $paymentStatuses = $includeFields ? forms_payment_statuses($form, $identityKey) : [];
+    if ($fieldsPayload !== [] && $paymentStatuses !== []) {
+        foreach ($fieldsPayload as $index => $field) {
+            if (!is_array($field) || (string) ($field['type'] ?? '') !== 'payment') {
+                continue;
+            }
+            $fieldId = (string) ($field['id'] ?? '');
+            $field['paymentStatus'] = $paymentStatuses[$fieldId] ?? ['paid' => false, 'orderToken' => '', 'refId' => '', 'amount' => max(0, (int) (($field['payment']['amount'] ?? 0)))];
+            $fieldsPayload[$index] = $field;
+        }
+    }
+
     return [
         'id' => $formId,
         'kind' => (string) ($form['kind'] ?? 'form'),
@@ -1163,7 +1336,8 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
         'sharePath' => forms_share_path($formId),
         'shareUrl' => forms_absolute_url(forms_share_path($formId)),
         'responseCount' => count($responses),
-        'fields' => $includeFields ? (array) ($form['fields'] ?? []) : [],
+        'fields' => $fieldsPayload,
+        'paymentGateways' => $includeFields && forms_has_payment_fields($form) ? forms_payment_gateways_payload() : null,
         'settings' => [
             'audience' => forms_clean_audience((string) ($settings['audience'] ?? 'link')),
             'audienceLabel' => forms_audience_label((string) ($settings['audience'] ?? 'link')),
@@ -1754,10 +1928,238 @@ if ($action === 'get') {
         }
         dent_error('این فرم برای شما فعال نیست.', 403);
     }
+    if ($user === null && forms_has_payment_fields($form)) {
+        dent_error('برای پاسخ به فرم دارای سوال پرداخت باید وارد حساب شوید.', 401, ['loggedOut' => true, 'requiresLogin' => true]);
+    }
     dent_json_response([
         'success' => true,
         'form' => forms_form_payload($store, $form, $user, true),
         'viewer' => forms_user_payload($user),
+    ]);
+}
+
+if ($action === 'createPayment') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد پرداخت فرم نامعتبر است.', 405);
+    }
+
+    $user = dent_require_user();
+    $formStore = forms_load_store();
+    $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
+    $fieldId = trim(strtolower((string) ($_POST['fieldId'] ?? '')));
+    if (preg_match('/^[a-z0-9_-]{3,48}$/', $fieldId) !== 1) {
+        $fieldId = '';
+    }
+    if ($formId === '' || $fieldId === '') {
+        dent_error('شناسه فرم یا سوال پرداخت معتبر نیست.', 422);
+    }
+    $form = $formStore['forms'][$formId] ?? null;
+    if (!is_array($form)) {
+        dent_error('فرم پیدا نشد.', 404);
+    }
+    if (!forms_viewer_can_access($form, $user) || forms_status($form) !== 'open') {
+        dent_error('پرداخت برای این فرم فعال نیست.', 403);
+    }
+
+    $targetField = null;
+    foreach (forms_payment_fields($form) as $field) {
+        if ((string) ($field['id'] ?? '') === $fieldId) {
+            $targetField = $field;
+            break;
+        }
+    }
+    if (!is_array($targetField)) {
+        dent_error('سوال پرداخت پیدا نشد.', 404);
+    }
+
+    $payment = forms_normalize_payment_config($targetField['payment'] ?? []);
+    $amount = max(0, (int) ($payment['amount'] ?? 0));
+    if ($amount <= 0) {
+        dent_error('مبلغ سوال پرداخت معتبر نیست.', 422);
+    }
+
+    $enabledGateways = payments_gateway_enabled_checkout_keys(false);
+    if ($enabledGateways === []) {
+        dent_error('هیچ درگاه پرداخت فعالی برای این فرم وجود ندارد.', 503);
+    }
+    $requestedGateway = payments_gateway_clean((string) ($_POST['gateway'] ?? ''));
+    $payerPhone = payments_normalize_phone((string) ($_POST['payerPhone'] ?? ($user['phoneNumber'] ?? '')));
+    if ($payerPhone === '' || strlen($payerPhone) < 10 || strlen($payerPhone) > 14) {
+        dent_error('شماره موبایل پرداخت‌کننده معتبر نیست.', 422);
+    }
+    $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    $identityKey = forms_identity_key($user, $_POST);
+    $publicUser = dent_public_user($user);
+    $payerName = dent_clean_text((string) ($_POST['payerName'] ?? ($publicUser['name'] ?? '')), 120);
+    if ($payerName === '') {
+        $payerName = $studentNumber;
+    }
+
+    try {
+        $created = payments_with_store_lock(static function (array &$store) use (
+            $form,
+            $formId,
+            $targetField,
+            $fieldId,
+            $payment,
+            $amount,
+            $enabledGateways,
+            $requestedGateway,
+            $payerPhone,
+            $payerName,
+            $studentNumber,
+            $identityKey
+        ): array {
+            foreach (($store['orders'] ?? []) as $order) {
+                if (!is_array($order) || !forms_payment_order_matches($order, $formId, $fieldId, $identityKey)) {
+                    continue;
+                }
+                if ((string) ($order['status'] ?? '') === PAYMENTS_ORDER_STATUS_SUCCESS) {
+                    return [
+                        'alreadyPaid' => true,
+                        'order' => $order,
+                    ];
+                }
+            }
+
+            $gateway = $requestedGateway !== '' ? $requestedGateway : payments_gateway_clean((string) ($payment['gateway'] ?? ''));
+            if ($gateway === '') {
+                $gateway = payments_gateway_default_enabled_checkout(false);
+            }
+            if ($gateway === '' || !in_array($gateway, $enabledGateways, true)) {
+                throw new RuntimeException('درگاه پرداخت انتخاب‌شده فعال نیست. لطفا گزینه دیگری را انتخاب کنید.');
+            }
+
+            $now = dent_iso_now();
+            $title = (string) ($targetField['label'] ?? 'پرداخت فرم');
+            $order = [
+                'id' => payments_next_order_id($store),
+                'item_id' => 0,
+                'user_id' => $studentNumber,
+                'payer_name' => $payerName,
+                'payer_phone' => $payerPhone,
+                'payer_student_number' => $studentNumber,
+                'extra_form_data' => [
+                    '_source' => 'form_payment',
+                    'form_id' => $formId,
+                    'form_title' => (string) ($form['title'] ?? ''),
+                    'field_id' => $fieldId,
+                    'field_label' => $title,
+                    'identity_key' => $identityKey,
+                    '_return_path' => forms_share_path($formId),
+                ],
+                'cart_items' => [[
+                    'item_id' => 0,
+                    'slug' => '',
+                    'title' => $title,
+                    'quantity' => 1,
+                    'unit_price' => $amount,
+                    'subtotal' => $amount,
+                    'discount_code' => '',
+                    'discount_amount' => 0,
+                    'amount' => $amount,
+                    'extra_form_data' => [],
+                ]],
+                'quantity' => 1,
+                'unit_price' => $amount,
+                'subtotal' => $amount,
+                'discount_code' => '',
+                'discount_amount' => 0,
+                'amount' => $amount,
+                'gateway' => $gateway,
+                'authority' => '',
+                'ref_id' => '',
+                'status' => PAYMENTS_ORDER_STATUS_PENDING,
+                'gateway_response_snapshot' => [
+                    'created' => ['at' => $now, 'type' => 'form_payment'],
+                ],
+                'created_at' => $now,
+                'paid_at' => '',
+                'verified_at' => '',
+                'public_token' => payments_random_token(),
+            ];
+            $store['orders'][] = $order;
+            return [
+                'alreadyPaid' => false,
+                'order' => $order,
+            ];
+        });
+    } catch (Throwable $error) {
+        dent_error($error->getMessage(), 422);
+    }
+
+    $order = is_array($created['order'] ?? null) ? $created['order'] : [];
+    if ((bool) ($created['alreadyPaid'] ?? false)) {
+        dent_json_response([
+            'success' => true,
+            'alreadyPaid' => true,
+            'orderToken' => (string) ($order['public_token'] ?? ''),
+        ]);
+    }
+
+    $orderToken = (string) ($order['public_token'] ?? '');
+    $callbackUrl = forms_absolute_url('/api/payments_api.php?action=callback&orderToken=' . rawurlencode($orderToken));
+    $syntheticItem = [
+        'id' => 0,
+        'title' => (string) ($targetField['label'] ?? 'پرداخت فرم'),
+    ];
+    $startResult = payments_gateway_start_payment((string) ($order['gateway'] ?? ''), $syntheticItem, $order, [
+        'callbackUrl' => $callbackUrl,
+        'description' => 'پرداخت ' . (string) ($targetField['label'] ?? 'فرم'),
+        'mobile' => $payerPhone,
+        'orderId' => $orderToken,
+    ]);
+
+    payments_log_gateway_event('start-request', [
+        'orderId' => (int) ($order['id'] ?? 0),
+        'gateway' => (string) ($order['gateway'] ?? ''),
+        'result' => $startResult,
+    ]);
+
+    if (!(bool) ($startResult['success'] ?? false)) {
+        payments_with_store_lock(static function (array &$store) use ($order, $startResult): void {
+            $orderIndex = payments_find_order_index_by_id($store, (int) ($order['id'] ?? 0));
+            if ($orderIndex < 0) {
+                return;
+            }
+            $current = $store['orders'][$orderIndex];
+            if ((string) ($current['status'] ?? '') === PAYMENTS_ORDER_STATUS_PENDING) {
+                $current['status'] = PAYMENTS_ORDER_STATUS_FAILED;
+            }
+            $snapshot = is_array($current['gateway_response_snapshot'] ?? null) ? $current['gateway_response_snapshot'] : [];
+            $snapshot['start'] = $startResult;
+            $current['gateway_response_snapshot'] = $snapshot;
+            $store['orders'][$orderIndex] = $current;
+        });
+        dent_error((string) ($startResult['error'] ?? 'ایجاد درخواست درگاه پرداخت فرم انجام نشد.'), 503, [
+            'orderToken' => $orderToken,
+        ]);
+    }
+
+    $authority = dent_clean_text((string) ($startResult['authority'] ?? ''), 120);
+    $redirectUrl = dent_clean_text((string) ($startResult['redirectUrl'] ?? ''), 900);
+    if ($redirectUrl === '') {
+        dent_error('لینک انتقال به درگاه پرداخت دریافت نشد.', 500);
+    }
+
+    payments_with_store_lock(static function (array &$store) use ($order, $authority, $startResult): void {
+        $orderIndex = payments_find_order_index_by_id($store, (int) ($order['id'] ?? 0));
+        if ($orderIndex < 0) {
+            return;
+        }
+        $current = $store['orders'][$orderIndex];
+        $current['authority'] = $authority;
+        $snapshot = is_array($current['gateway_response_snapshot'] ?? null) ? $current['gateway_response_snapshot'] : [];
+        $snapshot['start'] = $startResult;
+        $current['gateway_response_snapshot'] = $snapshot;
+        $store['orders'][$orderIndex] = $current;
+    });
+
+    dent_json_response([
+        'success' => true,
+        'orderToken' => $orderToken,
+        'redirectUrl' => $redirectUrl,
+        'resultUrl' => forms_share_path($formId) . '&paymentOrderToken=' . rawurlencode($orderToken),
     ]);
 }
 
@@ -1781,6 +2183,9 @@ if ($action === 'submit') {
         }
         dent_error('این فرم برای شما فعال نیست.', 403);
     }
+    if ($user === null && forms_has_payment_fields($form)) {
+        dent_error('برای ثبت پاسخ فرم دارای سوال پرداخت باید وارد حساب شوید.', 401, ['loggedOut' => true, 'requiresLogin' => true]);
+    }
     if (forms_status($form) !== 'open') {
         dent_error('ثبت پاسخ برای این فرم فعال نیست.', 422);
     }
@@ -1799,6 +2204,10 @@ if ($action === 'submit') {
     if (forms_parse_bool($settings['limitOneResponse'] ?? true, true) && $existingResponse !== null && !forms_parse_bool($settings['allowEditResponse'] ?? false, false)) {
         dent_error('برای این شرکت‌کننده قبلاً پاسخ ثبت شده است.', 409);
     }
+    $answers = forms_collect_answers($form, $_POST);
+    foreach (forms_collect_payment_answers($form, $identityKey) as $fieldId => $answer) {
+        $answers[$fieldId] = $answer;
+    }
     $now = time();
     $response = [
         'id' => is_array($existingResponse) ? (string) ($existingResponse['id'] ?? forms_next_id(FORMS_RESPONSE_ID_PREFIX)) : forms_next_id(FORMS_RESPONSE_ID_PREFIX),
@@ -1806,7 +2215,7 @@ if ($action === 'submit') {
         'submittedAt' => is_array($existingResponse) ? (int) ($existingResponse['submittedAt'] ?? $now) : $now,
         'updatedAt' => $now,
         'identity' => forms_identity_payload($user, $_POST),
-        'answers' => forms_collect_answers($form, $_POST),
+        'answers' => $answers,
     ];
     $store['responses'][(string) $response['id']] = $response;
     $form['updatedAt'] = $now;

@@ -254,7 +254,12 @@
 
     function updateCartQuantity(slug, quantity) {
         var clean = String(slug || "").trim();
-        var next = Math.max(1, Math.min(99, Number(quantity) || 1));
+        var raw = Number(quantity);
+        if (!Number.isFinite(raw) || raw < 1) {
+            removeFromCart(clean);
+            return;
+        }
+        var next = Math.max(1, Math.min(99, raw));
         var changed = false;
         var items = cartItems().map(function (entry) {
             if (entry.slug === clean) {
@@ -1221,6 +1226,43 @@
         }
     }
 
+    function showBuyLoginRequired() {
+        var main = document.querySelector("main.buy-shell");
+        if (!main) {
+            return;
+        }
+        var loginUrl = window.Dent1402Auth && typeof window.Dent1402Auth.loginUrl === "function"
+            ? window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search + window.location.hash)
+            : "/account/";
+        main.innerHTML = [
+            '<section class="buy-auth-required">',
+            '  <div>',
+            '    <span class="buy-kicker">ورود لازم است</span>',
+            '    <h2>برای مشاهده و پرداخت خریدها وارد حساب شوید</h2>',
+            '    <p class="buy-muted">کاتالوگ، لینک مستقیم کالا، سبد خرید و نتیجه پرداخت فقط با session مشترک سایت نمایش داده می‌شود.</p>',
+            '  </div>',
+            '  <a class="buy-primary-btn" href="' + text(loginUrl) + '">ورود به حساب</a>',
+            '</section>'
+        ].join("");
+    }
+
+    function startAfterAuth(callback) {
+        var auth = window.Dent1402Auth;
+        if (!auth || typeof auth.ready !== "function") {
+            callback();
+            return;
+        }
+        auth.ready().then(function (detail) {
+            if (!detail || !detail.loggedIn) {
+                showBuyLoginRequired();
+                return;
+            }
+            callback();
+        }).catch(function () {
+            showBuyLoginRequired();
+        });
+    }
+
     function initListPage() {
         bindListControls();
         initOwnerEntry();
@@ -1330,17 +1372,22 @@
 
     function cartStepsHtml(active) {
         var steps = [
-            { key: "cart", label: "سبد" },
-            { key: "discount", label: "تخفیف" },
-            { key: "details", label: "مشخصات" },
-            { key: "gateway", label: "درگاه" }
+            { key: "cart", label: "سبد", meta: "مرور اقلام" },
+            { key: "discount", label: "تخفیف", meta: "محاسبه مبلغ" },
+            { key: "details", label: "مشخصات", meta: "اطلاعات تحویل" },
+            { key: "gateway", label: "پرداخت", meta: "انتخاب درگاه" }
         ];
         var activeIndex = steps.findIndex(function (step) { return step.key === active; });
         return [
             '<nav class="buy-checkout-steps" aria-label="مراحل پرداخت سبد">',
             steps.map(function (step, index) {
                 var stateClass = index === activeIndex ? " is-active" : (index < activeIndex ? " is-done" : "");
-                return '<button class="' + stateClass + '" type="button" data-buy-cart-step="' + text(step.key) + '"><span>' + text(Number(index + 1).toLocaleString("fa-IR")) + "</span><strong>" + text(step.label) + "</strong></button>";
+                return [
+                    '<button class="' + stateClass + '" type="button" data-buy-cart-step="' + text(step.key) + '">',
+                    '  <span>' + text(Number(index + 1).toLocaleString("fa-IR")) + "</span>",
+                    '  <div><strong>' + text(step.label) + "</strong><small>" + text(step.meta) + "</small></div>",
+                    "</button>"
+                ].join("");
             }).join(""),
             "</nav>"
         ].join("");
@@ -1353,9 +1400,10 @@
         var amount = source.amount == null ? (snapshot.subtotal || 0) : Number(source.amount || 0);
         return [
             '<div class="buy-cart-total">',
+            '  <div class="buy-cart-total__head"><span>خلاصه سفارش</span><strong>' + text(Number(quantity).toLocaleString("fa-IR")) + " قلم</strong></div>",
             '  <div><span>جمع آیتم‌ها</span><strong>' + text(money(subtotal)) + "</strong></div>",
-            '  <div><span>تعداد کل</span><strong>' + text(Number(quantity).toLocaleString("fa-IR")) + "</strong></div>",
             '  <div><span>تخفیف</span><strong>' + text(money(source.discountAmount || 0)) + "</strong></div>",
+            '  <div><span>تحویل</span><strong>هماهنگی دانشگاه</strong></div>',
             '  <div class="is-payable"><span>مبلغ قابل پرداخت</span><strong>' + text(money(amount)) + "</strong></div>",
             "</div>"
         ].join("");
@@ -1606,8 +1654,7 @@
         if (active === "cart") {
             stepBody = [
                 '<section class="buy-cart-step">',
-                '  <h3>مرور سبد خرید</h3>',
-                '  <p class="buy-muted">مبلغ کل بر اساس تعداد انتخابی آیتم‌ها محاسبه شده و در مراحل بعد ادامه پیدا می‌کند.</p>',
+                '  <div class="buy-cart-step__head"><span class="buy-kicker">مرحله اول</span><h3>مرور سبد خرید</h3><p class="buy-muted">اقلام، تعداد و مبلغ اولیه را قبل از ورود به اطلاعات پرداخت بررسی کنید.</p></div>',
                 cartSummaryHtml(snapshot),
                 '  <div class="buy-cart-step-actions">',
                 '    <button class="buy-primary-btn" type="button" data-buy-cart-step="discount">ادامه به کد تخفیف</button>',
@@ -1618,8 +1665,7 @@
         } else if (active === "discount") {
             stepBody = [
                 '<form id="buy-cart-discount-form" class="buy-cart-step buy-form" novalidate>',
-                '  <h3>کد تخفیف سبد</h3>',
-                '  <p class="buy-muted">اگر کد تخفیف برای یک یا چند آیتم معتبر باشد، مبلغ کل همینجا دوباره محاسبه می‌شود.</p>',
+                '  <div class="buy-cart-step__head"><span class="buy-kicker">مرحله دوم</span><h3>کد تخفیف سبد</h3><p class="buy-muted">اگر کد تخفیف برای یک یا چند آیتم معتبر باشد، مبلغ کل همینجا دوباره محاسبه می‌شود.</p></div>',
                 '  <label class="buy-form__field"><span>کد تخفیف</span><input id="buy-cart-discount-code" type="text" maxlength="40" autocomplete="off" dir="ltr" data-digit-locale="latin" value="' + text(data.discountCode || "") + '" placeholder="اختیاری"></label>',
                 cartSummaryHtml(snapshot),
                 checkoutFeedbackHtml(),
@@ -1639,8 +1685,7 @@
             }
             stepBody = [
                 '<form id="buy-cart-details-form" class="buy-cart-step buy-form" novalidate>',
-                '  <h3>مشخصات پرداخت‌کننده</h3>',
-                '  <p class="buy-muted">این اطلاعات برای کل سفارش سبد ثبت می‌شود. فیلدهای اختصاصی هر آیتم پایین‌تر آمده است.</p>',
+                '  <div class="buy-cart-step__head"><span class="buy-kicker">مرحله سوم</span><h3>مشخصات پرداخت‌کننده</h3><p class="buy-muted">این اطلاعات برای کل سفارش ثبت می‌شود و تحویل در محدوده اعلام‌شده دانشگاه هماهنگ خواهد شد.</p></div>',
                 '  <label class="buy-form__field"><span>نام و نام خانوادگی *</span><input id="buy-cart-payer-name" type="text" maxlength="120" autocomplete="name" value="' + text(authData.payerName || "") + '"></label>',
                 '  <label class="buy-form__field"><span>شماره موبایل *</span><input id="buy-cart-payer-phone" type="tel" inputmode="numeric" maxlength="14" autocomplete="tel" dir="ltr" data-digit-locale="latin" value="' + text(authData.payerPhone || "") + '" placeholder="09xxxxxxxxx"></label>',
                 '  <label class="buy-form__field"><span>شماره دانشجویی</span><input id="buy-cart-payer-student-number" type="text" inputmode="numeric" maxlength="20" autocomplete="off" dir="ltr" data-digit-locale="latin" value="' + text(authData.payerStudentNumber || "") + '"></label>',
@@ -1656,8 +1701,7 @@
         } else {
             stepBody = [
                 '<form id="buy-cart-gateway-form" class="buy-cart-step buy-form" novalidate>',
-                '  <h3>انتخاب درگاه پرداخت</h3>',
-                '  <p class="buy-muted">درگاه فقط در این مرحله انتخاب می‌شود و مبلغ قابل پرداخت همان جمع نهایی سبد است.</p>',
+                '  <div class="buy-cart-step__head"><span class="buy-kicker">مرحله چهارم</span><h3>انتخاب درگاه پرداخت</h3><p class="buy-muted">درگاه فقط در این مرحله انتخاب می‌شود و مبلغ قابل پرداخت همان جمع نهایی سبد است.</p></div>',
                 cartSummaryHtml(snapshot),
                 renderCartGateways(state.cartGateways || {}),
                 checkoutFeedbackHtml(),
@@ -2298,18 +2342,18 @@
 
     var page = document.body && document.body.dataset ? String(document.body.dataset.buyPage || "") : "";
     if (page === "list") {
-        initListPage();
+        startAfterAuth(initListPage);
         return;
     }
     if (page === "item") {
-        initItemPage();
+        startAfterAuth(initItemPage);
         return;
     }
     if (page === "cart") {
-        initCartPage();
+        startAfterAuth(initCartPage);
         return;
     }
     if (page === "result") {
-        initResultPage();
+        startAfterAuth(initResultPage);
     }
 })();
