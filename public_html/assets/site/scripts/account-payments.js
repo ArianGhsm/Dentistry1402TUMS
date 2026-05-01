@@ -1431,8 +1431,17 @@
         }) || null;
     }
 
+    function collectionSwitch(id, title, help, checked) {
+        return [
+            '<label class="payments-switch payments-filter-row--full" for="' + escapeHtml(id) + '">',
+            '  <input id="' + escapeHtml(id) + '" type="checkbox"' + (checked ? " checked" : "") + '>',
+            '  <span><strong>' + escapeHtml(title) + "</strong><small>" + escapeHtml(help) + "</small></span>",
+            "</label>"
+        ].join("");
+    }
+
     function renderCollectionsPage() {
-        setHead("جمع‌آوری هزینه", "لینک‌های پرداخت هزینه", "برای هزینه‌های خارج از کاتالوگ خرید، مبلغ ثابت تعریف کنید و لینک پرداخت ورودمحور بگیرید.");
+        setHead("جمع‌آوری هزینه", "لینک‌های پرداخت هزینه", "برای هزینه‌های خارج از کاتالوگ خرید، مبلغ ثابت تعریف کنید و اطلاعات لازم پرداخت‌کننده را تنظیم کنید.");
         setActions([
             '<button class="shell-action-btn shell-action-btn-primary" type="button" data-payment-reset-collection>لینک جدید</button>',
             '<button class="shell-action-btn" type="button" data-payment-refresh>به‌روزرسانی</button>'
@@ -1445,6 +1454,10 @@
             '    <div class="payments-filter-row"><label for="payments-collection-amount">مبلغ (ریال)</label><input id="payments-collection-amount" type="text" inputmode="numeric" dir="ltr" data-latin-digits="true" required placeholder="500000"></div>',
             '    <div class="payments-filter-row"><label for="payments-collection-status">وضعیت</label><select id="payments-collection-status"><option value="active">فعال</option><option value="inactive">غیرفعال</option></select></div>',
             '    <div class="payments-filter-row payments-filter-row--full"><label for="payments-collection-gateway">درگاه پیش‌فرض این لینک</label><select id="payments-collection-gateway">' + collectionGatewayOptions("") + "</select></div>",
+            collectionSwitch("payments-collection-allow-guest", "پرداخت بدون ورود فعال باشد", "اگر فعال باشد، افراد مهمان هم می‌توانند از این لینک پرداخت کنند.", false),
+            collectionSwitch("payments-collection-collect-name", "نام و نام خانوادگی در فرم پرداخت گرفته شود", "برای مهمان‌ها به‌صورت پیش‌فرض روشن بماند؛ کاربران واردشده در صورت خاموش بودن از اطلاعات حساب ثبت می‌شوند.", true),
+            collectionSwitch("payments-collection-collect-phone", "شماره موبایل در فرم پرداخت گرفته شود", "اگر خاموش باشد، برای کاربران واردشده شماره ثبت‌شده حساب ذخیره می‌شود و مهمان‌ها شماره وارد نمی‌کنند.", true),
+            collectionSwitch("payments-collection-collect-student", "شماره دانشجویی در فرم پرداخت گرفته شود", "برای هزینه‌هایی که پرداخت‌کننده باید با شماره دانشجویی مشخص شود فعال کنید.", false),
             '    <div class="payments-filter-row payments-filter-row--full"><label for="payments-collection-description">توضیح کوتاه</label><textarea id="payments-collection-description" maxlength="1200" rows="4"></textarea></div>',
             '    <div class="payments-filter-row payments-filter-row--full"><label for="payments-collection-success">پیام پرداخت موفق</label><textarea id="payments-collection-success" maxlength="600" rows="3"></textarea></div>',
             '    <div class="payments-filter-row payments-filter-row--full"><label for="payments-collection-failure">پیام پرداخت ناموفق</label><textarea id="payments-collection-failure" maxlength="600" rows="3"></textarea></div>',
@@ -1476,6 +1489,7 @@
                 '  <div class="payments-item-card__meta">',
                 '    <span>پرداخت موفق: ' + escapeHtml(Number(collection.successCount || 0).toLocaleString("fa-IR")) + "</span>",
                 '    <span>دریافتی: ' + escapeHtml(money(collection.receivedAmount || 0)) + "</span>",
+                '    <span>پرداخت مهمان: ' + (collection.allowGuestPayments ? "فعال" : "غیرفعال") + "</span>",
                 '    <span>لینک: <a href="' + escapeHtml(publicUrl || "#") + '" target="_blank" rel="noopener">' + escapeHtml(publicUrl || "—") + "</a></span>",
                 "  </div>",
                 '  <div class="payments-item-card__actions">',
@@ -1498,6 +1512,10 @@
         if ($("payments-collection-gateway")) {
             $("payments-collection-gateway").innerHTML = collectionGatewayOptions("");
         }
+        if ($("payments-collection-allow-guest")) $("payments-collection-allow-guest").checked = false;
+        if ($("payments-collection-collect-name")) $("payments-collection-collect-name").checked = true;
+        if ($("payments-collection-collect-phone")) $("payments-collection-collect-phone").checked = true;
+        if ($("payments-collection-collect-student")) $("payments-collection-collect-student").checked = false;
         if (clearFeedback !== false) {
             setFeedback(feedbackNode, "", "");
         }
@@ -1516,6 +1534,10 @@
         if ($("payments-collection-gateway")) {
             $("payments-collection-gateway").innerHTML = collectionGatewayOptions(collection.gateway || "");
         }
+        if ($("payments-collection-allow-guest")) $("payments-collection-allow-guest").checked = !!collection.allowGuestPayments;
+        if ($("payments-collection-collect-name")) $("payments-collection-collect-name").checked = collection.collectPayerName !== false;
+        if ($("payments-collection-collect-phone")) $("payments-collection-collect-phone").checked = collection.collectPayerPhone !== false;
+        if ($("payments-collection-collect-student")) $("payments-collection-collect-student").checked = !!collection.collectPayerStudentNumber;
         writeField("payments-collection-description", collection.description || "");
         writeField("payments-collection-success", collection.successMessage || "");
         writeField("payments-collection-failure", collection.failureMessage || "");
@@ -1546,7 +1568,11 @@
             gateway: readField("payments-collection-gateway"),
             description: readField("payments-collection-description"),
             successMessage: readField("payments-collection-success"),
-            failureMessage: readField("payments-collection-failure")
+            failureMessage: readField("payments-collection-failure"),
+            allowGuestPayments: $("payments-collection-allow-guest") && $("payments-collection-allow-guest").checked ? "1" : "0",
+            collectPayerName: $("payments-collection-collect-name") && $("payments-collection-collect-name").checked ? "1" : "0",
+            collectPayerPhone: $("payments-collection-collect-phone") && $("payments-collection-collect-phone").checked ? "1" : "0",
+            collectPayerStudentNumber: $("payments-collection-collect-student") && $("payments-collection-collect-student").checked ? "1" : "0"
         }, "POST");
         if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) return;
         if (!response || !response.success) {
@@ -2348,7 +2374,7 @@
         }
         var copyButton = event.target.closest("[data-payment-copy-link]");
         if (copyButton) {
-            copyText(copyButton.getAttribute("data-payment-copy-link"), "لینک عمومی آیتم کپی شد.");
+            copyText(copyButton.getAttribute("data-payment-copy-link"), "لینک عمومی کپی شد.");
             return;
         }
         var toggleButton = event.target.closest("[data-payment-toggle-item]");

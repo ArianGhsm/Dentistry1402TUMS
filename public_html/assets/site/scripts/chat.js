@@ -5,6 +5,8 @@
     return;
   }
 
+  document.documentElement.classList.add("chat-page-root");
+
   var QUICK_REACTIONS = [
     "\u{1F44D}", "\u2764\uFE0F", "\u{1F602}", "\u{1F525}", "\u{1F44F}",
     "\u{1F62E}", "\u{1F44E}", "\u{1F60D}", "\u{1F914}", "\u{1F389}",
@@ -921,6 +923,56 @@
     var vv = window.visualViewport;
     var delta = Math.max(0, Math.round(window.innerHeight - vv.height));
     return delta >= 140;
+  }
+
+  function installChatOverscrollGuard() {
+    var touchStartY = 0;
+    var activeScroller = null;
+    var scrollerSelector = ".messages, .conversation-list, .chat-modal__body, .chat-info-sheet__body, .chat-options-member-list";
+
+    document.addEventListener("touchstart", function (event) {
+      if (!isMobileViewport() || !event.touches || !event.touches.length) {
+        activeScroller = null;
+        return;
+      }
+      touchStartY = event.touches[0].clientY;
+      activeScroller = event.target && event.target.closest ? event.target.closest(scrollerSelector) : null;
+    }, { passive: true });
+
+    document.addEventListener("touchmove", function (event) {
+      if (!isMobileViewport() || !event.touches || !event.touches.length) {
+        return;
+      }
+
+      var currentY = event.touches[0].clientY;
+      var deltaY = currentY - touchStartY;
+      if (!activeScroller) {
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+        return;
+      }
+
+      var maxScrollTop = Math.max(0, activeScroller.scrollHeight - activeScroller.clientHeight);
+      if (maxScrollTop <= 0) {
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+        return;
+      }
+
+      var atTop = activeScroller.scrollTop <= 0;
+      var atBottom = activeScroller.scrollTop >= maxScrollTop - 1;
+      if ((atTop && deltaY > 0) || (atBottom && deltaY < 0)) {
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+      }
+    }, { passive: false });
+
+    document.addEventListener("touchend", function () {
+      activeScroller = null;
+    }, { passive: true });
   }
 
   function syncFocusedComposerIntoView() {
@@ -6980,6 +7032,7 @@
     syncCurrentUserAvatar();
     updatePollActionVisibility();
     updateFabVisibility();
+    installChatOverscrollGuard();
     bindEvents();
     if (window.matchMedia) {
       var darkMedia = window.matchMedia("(prefers-color-scheme: dark)");

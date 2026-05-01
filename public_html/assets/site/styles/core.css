@@ -271,6 +271,10 @@ select {
     [contenteditable="true"] {
         font-size: 16px !important;
     }
+
+    :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]), textarea, select, [contenteditable="true"], [contenteditable=""]) {
+        font-size: max(16px, 1rem) !important;
+    }
 }
 
 button {
@@ -681,6 +685,8 @@ body.app-shell-hidden {
     padding: 0.5rem 0.65rem calc(0.72rem + env(safe-area-inset-bottom, 0px));
     background: var(--shell-nav-overlay);
     pointer-events: none;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
 }
 
 .shell-bottom-nav__inner {
@@ -760,6 +766,14 @@ body.app-shell-hidden {
     align-items: center;
     justify-content: center;
     box-shadow: var(--shell-nav-badge-shadow);
+}
+
+body.site-keyboard-open .shell-bottom-nav,
+body.site-keyboard-open .buy-floating-bar,
+body.site-keyboard-open .buy-cart-dock {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate3d(0, calc(100% + env(safe-area-inset-bottom, 0px) + 16px), 0);
 }
 
 .shell-drawer-backdrop,

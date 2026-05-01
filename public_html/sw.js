@@ -1,4 +1,4 @@
-const APP_VERSION = "20260501-110238";
+const APP_VERSION = "20260501-111551";
 const STATIC_CACHE = "dent1402-static-" + APP_VERSION;
 
 const STATIC_ASSETS = [

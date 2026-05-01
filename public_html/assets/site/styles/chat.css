@@ -8314,3 +8314,23 @@ body.chat-page .composer-upload-option:focus-visible {
         height: 34px;
     }
 }
+
+html.chat-page-root,
+html.chat-page-root body.chat-page {
+    height: var(--chat-vh, 100dvh);
+    min-height: var(--chat-vh, 100dvh);
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+body.chat-page .conversation-list,
+body.chat-page .messages {
+    overscroll-behavior-y: contain !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y !important;
+}
+
+body.chat-page .msg-item,
+body.chat-page .msg-bubble {
+    touch-action: pan-y !important;
+}

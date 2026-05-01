@@ -665,6 +665,11 @@ function payments_normalize_collection_record(array $seed): ?array
         $token = payments_random_token(12);
     }
 
+    $allowGuestPayments = filter_var($seed['allow_guest_payments'] ?? ($seed['allowGuestPayments'] ?? false), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    $collectPayerName = filter_var($seed['collect_payer_name'] ?? ($seed['collectPayerName'] ?? true), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    $collectPayerPhone = filter_var($seed['collect_payer_phone'] ?? ($seed['collectPayerPhone'] ?? true), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    $collectPayerStudentNumber = filter_var($seed['collect_payer_student_number'] ?? ($seed['collectPayerStudentNumber'] ?? false), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
     $now = dent_iso_now();
     return [
         'id' => $id,
@@ -674,6 +679,10 @@ function payments_normalize_collection_record(array $seed): ?array
         'amount' => $amount,
         'status' => $status,
         'gateway' => payments_gateway_key_clean((string) ($seed['gateway'] ?? '')),
+        'allow_guest_payments' => $allowGuestPayments === true,
+        'collect_payer_name' => $collectPayerName !== false,
+        'collect_payer_phone' => $collectPayerPhone !== false,
+        'collect_payer_student_number' => $collectPayerStudentNumber === true,
         'success_message' => dent_clean_text((string) ($seed['success_message'] ?? ($seed['successMessage'] ?? '')), 600),
         'failure_message' => dent_clean_text((string) ($seed['failure_message'] ?? ($seed['failureMessage'] ?? '')), 600),
         'created_at' => payments_normalize_datetime_string((string) ($seed['created_at'] ?? ($seed['createdAt'] ?? $now)), $now),

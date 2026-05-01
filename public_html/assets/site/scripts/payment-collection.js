@@ -11,6 +11,7 @@
     var paymentOrderToken = String(params.get("paymentOrderToken") || "").trim();
     var state = {
         viewer: null,
+        loggedIn: false,
         collection: null,
         result: null,
         loading: false
@@ -84,6 +85,55 @@
         return String(user.name || "").trim();
     }
 
+    function collectionFlag(collection, key, fallback) {
+        if (!collection || typeof collection !== "object" || collection[key] == null) {
+            return !!fallback;
+        }
+        return !!collection[key];
+    }
+
+    function payerDefaults(collection) {
+        var defaults = collection && collection.payerDefaults && typeof collection.payerDefaults === "object"
+            ? collection.payerDefaults
+            : {};
+        return {
+            name: String(defaults.name || userDisplayName() || "").trim(),
+            phone: normalizeDigits(defaults.phone || "").replace(/\D+/g, ""),
+            studentNumber: normalizeDigits(defaults.studentNumber || "").replace(/\D+/g, "")
+        };
+    }
+
+    function payerFieldHtml(id, label, type, value, attrs) {
+        return [
+            '<label class="payments-field">',
+            '  <span>' + escapeHtml(label) + '</span>',
+            '  <input id="' + escapeHtml(id) + '" type="' + escapeHtml(type || "text") + '" value="' + escapeHtml(value || "") + '" ' + (attrs || "") + ' required>',
+            '</label>'
+        ].join("");
+    }
+
+    function collectionPayerFields(collection) {
+        var defaults = payerDefaults(collection);
+        var rows = [];
+        if (collectionFlag(collection, "collectPayerName", true)) {
+            rows.push(payerFieldHtml("payment-collection-name", "نام و نام خانوادگی", "text", defaults.name, 'maxlength="120" autocomplete="name"'));
+        }
+        if (collectionFlag(collection, "collectPayerPhone", true)) {
+            rows.push(payerFieldHtml("payment-collection-phone", "شماره موبایل", "tel", defaults.phone, 'inputmode="tel" dir="ltr" data-latin-digits="true" maxlength="14" autocomplete="tel" placeholder="09xxxxxxxxx"'));
+        }
+        if (collectionFlag(collection, "collectPayerStudentNumber", false)) {
+            rows.push(payerFieldHtml("payment-collection-student-number", "شماره دانشجویی", "text", defaults.studentNumber, 'inputmode="numeric" dir="ltr" data-latin-digits="true" maxlength="20" autocomplete="off"'));
+        }
+
+        if (!rows.length && state.loggedIn) {
+            return '<div class="buy-alert">مشخصات پرداخت از حساب کاربری شما ثبت می‌شود.</div>';
+        }
+        if (!rows.length) {
+            return '<div class="buy-alert">مالک برای این لینک اطلاعات اضافه‌ای درخواست نکرده است.</div>';
+        }
+        return rows.join("");
+    }
+
     function renderLogin() {
         var loginUrl = window.Dent1402Auth.loginUrl
             ? window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search)
@@ -144,8 +194,7 @@
             resultHtml,
             disabled && !collection.paid ? '<div class="buy-alert buy-alert--error">این لینک پرداخت در حال حاضر فعال نیست.</div>' : "",
             '  <form id="payment-collection-form" class="payment-collection-form" novalidate>',
-            '    <label class="payments-field"><span>نام پرداخت‌کننده</span><input id="payment-collection-name" type="text" maxlength="120" value="' + escapeHtml(userDisplayName()) + '" required></label>',
-            '    <label class="payments-field"><span>شماره موبایل</span><input id="payment-collection-phone" type="tel" inputmode="tel" dir="ltr" data-latin-digits="true" maxlength="14" required></label>',
+            collectionPayerFields(collection),
             '    <div class="payment-collection-gateways">' + gatewayOptions(collection) + "</div>",
             '    <button class="buy-primary-btn" type="submit"' + (disabled ? " disabled" : "") + '>' + (collection.paid ? "پرداخت شده" : "پرداخت") + "</button>",
             '    <div id="payment-collection-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>',
@@ -198,13 +247,17 @@
         var form = event.target;
         var button = form.querySelector("button[type='submit']");
         var selectedGateway = form.querySelector("input[name='collection-gateway']:checked");
+        var nameInput = document.getElementById("payment-collection-name");
+        var phoneInput = document.getElementById("payment-collection-phone");
+        var studentNumberInput = document.getElementById("payment-collection-student-number");
         button.disabled = true;
         setFeedback("در حال انتقال به درگاه پرداخت...", "");
         try {
             var response = await apiPost("createCollectionOrder", {
                 token: token,
-                payerName: String(document.getElementById("payment-collection-name").value || "").trim(),
-                payerPhone: normalizeDigits(document.getElementById("payment-collection-phone").value || ""),
+                payerName: nameInput ? String(nameInput.value || "").trim() : "",
+                payerPhone: phoneInput ? normalizeDigits(phoneInput.value || "") : "",
+                payerStudentNumber: studentNumberInput ? normalizeDigits(studentNumberInput.value || "") : "",
                 gateway: selectedGateway ? selectedGateway.value : ""
             });
             if (response && response.httpStatus === 401) {
@@ -232,11 +285,8 @@
             root.innerHTML = '<div class="buy-empty">در حال بررسی ورود...</div>';
             return;
         }
-        if (!detail.loggedIn) {
-            renderLogin();
-            return;
-        }
-        state.viewer = detail.user || null;
+        state.loggedIn = !!detail.loggedIn;
+        state.viewer = detail.loggedIn ? (detail.user || null) : null;
         loadCollection();
     });
 })();

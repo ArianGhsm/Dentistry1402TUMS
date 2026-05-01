@@ -18,6 +18,7 @@
     var LAUNCH_SPLASH_COLOR_DARK = "#101827";
     var launchSplashMounted = false;
     var launchSplashNode = null;
+    var inputViewportTimer = null;
     var persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
 
     try {
@@ -47,6 +48,87 @@
 
     function launchSplashColor(theme) {
         return theme === "dark" ? LAUNCH_SPLASH_COLOR_DARK : LAUNCH_SPLASH_COLOR_LIGHT;
+    }
+
+    function ensureViewportScaleLock() {
+        var meta = document.querySelector('meta[name="viewport"]');
+        if (!meta) {
+            meta = document.createElement("meta");
+            meta.name = "viewport";
+            (document.head || document.documentElement).appendChild(meta);
+        }
+
+        var content = String(meta.getAttribute("content") || "width=device-width, initial-scale=1.0");
+        var parts = content.split(",").map(function (part) {
+            return part.trim();
+        }).filter(function (part) {
+            return part && !/^(maximum-scale|user-scalable)\s*=/i.test(part);
+        });
+
+        if (!parts.some(function (part) { return /^width\s*=/i.test(part); })) {
+            parts.unshift("width=device-width");
+        }
+        if (!parts.some(function (part) { return /^initial-scale\s*=/i.test(part); })) {
+            parts.push("initial-scale=1.0");
+        }
+
+        parts.push("maximum-scale=1.0");
+        parts.push("user-scalable=no");
+        meta.setAttribute("content", parts.join(", "));
+        meta.dataset.globalScaleLock = "1";
+    }
+
+    function isTextInputElement(node) {
+        if (!node || !node.matches) {
+            return false;
+        }
+
+        return node.matches("textarea, select, [contenteditable='true'], [contenteditable=''], input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='color']):not([type='button']):not([type='submit']):not([type='reset']):not([type='hidden'])");
+    }
+
+    function isTextInputFocused() {
+        return isTextInputElement(document.activeElement);
+    }
+
+    function isSoftKeyboardOpen() {
+        if (!isTextInputFocused()) {
+            return false;
+        }
+
+        var compactViewport = window.matchMedia && window.matchMedia("(max-width: 980px)").matches;
+        var touchPoints = Number(window.navigator.maxTouchPoints || 0);
+        if (!compactViewport && touchPoints < 1) {
+            return false;
+        }
+
+        if (!window.visualViewport) {
+            return compactViewport && touchPoints > 0;
+        }
+
+        var vv = window.visualViewport;
+        var viewportHeight = Math.max(0, Number(vv.height || 0));
+        var viewportOffsetTop = Math.max(0, Number(vv.offsetTop || 0));
+        var layoutHeight = Math.max(0, Number(window.innerHeight || document.documentElement.clientHeight || 0));
+        var hiddenHeight = layoutHeight - (viewportHeight + viewportOffsetTop);
+        return hiddenHeight > 92;
+    }
+
+    function syncInputViewportState() {
+        ensureViewportScaleLock();
+        if (!document.body) {
+            return;
+        }
+        var focused = isTextInputFocused();
+        document.body.classList.toggle("site-input-focus", focused);
+        document.body.classList.toggle("site-keyboard-open", isSoftKeyboardOpen());
+    }
+
+    function queueInputViewportSync() {
+        ensureViewportScaleLock();
+        if (inputViewportTimer) {
+            window.clearTimeout(inputViewportTimer);
+        }
+        inputViewportTimer = window.setTimeout(syncInputViewportState, 34);
     }
 
     function parseVersionFromUrl(rawUrl) {
@@ -598,6 +680,7 @@
         }
     };
 
+    ensureViewportScaleLock();
     applyTheme(resolvedTheme());
     mountLaunchSplash();
 
@@ -612,5 +695,15 @@
         document.addEventListener("DOMContentLoaded", boot, { once: true });
     } else {
         boot();
+    }
+
+    document.addEventListener("focusin", queueInputViewportSync, true);
+    document.addEventListener("focusout", queueInputViewportSync, true);
+    window.addEventListener("resize", queueInputViewportSync, { passive: true });
+    window.addEventListener("orientationchange", queueInputViewportSync, { passive: true });
+    window.addEventListener("pageshow", queueInputViewportSync, { passive: true });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", queueInputViewportSync, { passive: true });
+        window.visualViewport.addEventListener("scroll", queueInputViewportSync, { passive: true });
     }
 })();
