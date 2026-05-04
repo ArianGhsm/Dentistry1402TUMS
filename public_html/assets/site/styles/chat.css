@@ -655,6 +655,11 @@ body.chat-page .background-overlay {
 .messages {
     padding: 1rem 1.08rem 0.85rem;
 }
+    /* Ensure the messages area is an independent scroll container
+       so scrolling works on mobile (touch) and desktop (wheel). */
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 
 @media (min-width: 981px) {
     .messages {
@@ -6090,6 +6095,10 @@ body.chat-page .thread-stream {
 
 body.chat-page .messages {
     padding: 0.78rem 0.68rem 0.94rem !important;
+    /* Ensure the messages pane remains scrollable when running as the chat app shell */
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
 }
 
 body.chat-page .composer {
