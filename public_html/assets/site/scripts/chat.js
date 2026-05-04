@@ -453,6 +453,22 @@
     node.hidden = !!hidden;
   }
 
+  function setThreadUpdating(flag) {
+    if (!threadTitle) return;
+    if (flag) {
+      threadUpdatingCount = Math.max(0, threadUpdatingCount) + 1;
+    } else {
+      threadUpdatingCount = Math.max(0, threadUpdatingCount - 1);
+    }
+    if (threadUpdatingCount > 0) {
+      threadTitle.textContent = "درحال بروزرسانی";
+      threadTitle.dataset.updating = "1";
+    } else {
+      threadTitle.dataset.updating = "";
+      updateThreadHead();
+    }
+  }
+
   function callIf(fn) {
     if (typeof fn === "function") {
       return fn;
@@ -521,6 +537,7 @@
   var threadAvatarFallback = $("thread-avatar-fallback");
   var threadTitle = $("thread-title");
   var threadSubtitle = $("thread-subtitle");
+  var threadUpdatingCount = 0;
 
   var muteBadge = $("mute-badge");
   var pinnedWrap = $("pinned-wrap");
@@ -928,7 +945,7 @@
   function installChatOverscrollGuard() {
     var touchStartY = 0;
     var activeScroller = null;
-    var scrollerSelector = ".messages, .conversation-list, .chat-modal__body, .chat-info-sheet__body, .chat-options-member-list";
+    var scrollerSelector = ".messages, .thread-stream, .conversation-list, .chat-modal__body, .chat-info-sheet__body, .chat-options-member-list";
 
     document.addEventListener("touchstart", function (event) {
       if (!isMobileViewport() || !event.touches || !event.touches.length) {
@@ -936,7 +953,14 @@
         return;
       }
       touchStartY = event.touches[0].clientY;
-      activeScroller = event.target && event.target.closest ? event.target.closest(scrollerSelector) : null;
+
+      // Normalize event.target to an Element in case the touch landed on a text node
+      var targetEl = event.target;
+      if (targetEl && targetEl.nodeType !== 1 && targetEl.parentElement) {
+        targetEl = targetEl.parentElement;
+      }
+
+      activeScroller = targetEl && typeof targetEl.closest === "function" ? targetEl.closest(scrollerSelector) : null;
     }, { passive: true });
 
     document.addEventListener("touchmove", function (event) {
@@ -2442,6 +2466,24 @@
       : visible.join("، ");
   }
 
+  function reactionParticipantsText(message) {
+    if (!message) return "";
+    var map = reactionMap(message);
+    var all = [];
+    map.forEach(function (users) {
+      (Array.isArray(users) ? users : []).forEach(function (u) {
+        if (!u) return;
+        if (all.indexOf(u) === -1) all.push(u);
+      });
+    });
+    if (!all.length) return "";
+    var labels = all.map(function (s) { return studentDisplayName(s); }).filter(Boolean);
+    if (!labels.length) return "";
+    var visible = labels.slice(0, 6);
+    var extra = labels.length - visible.length;
+    return extra > 0 ? (visible.join("، ") + " +" + extra.toLocaleString("fa-IR")) : visible.join("، ");
+  }
+
   function findMessage(messageId) {
     return state.messages.get(Number(messageId)) || null;
   }
@@ -2472,8 +2514,7 @@
   function renderReactions(message) {
     var entries = reactionEntries(message);
     if (!entries.length) return "";
-    return (
-      '<div class="msg-reactions">' +
+    var html = '<div class="msg-reactions">' +
       entries.map(function (entry) {
         var details = reactionDetailsText(entry);
         var title = entry.emoji + " • " + details;
@@ -2484,8 +2525,12 @@
           "</button>"
         );
       }).join("") +
-      "</div>"
-    );
+      "</div>";
+    var participants = reactionParticipantsText(message);
+    if (participants) {
+      html += '<div class="msg-reactions__participants">' + escapeHtml(participants) + '</div>';
+    }
+    return html;
   }
 
   function attachmentMetaText(attachment) {
@@ -4825,12 +4870,14 @@
           return;
         }
         state.pollInFlight = true;
+        setThreadUpdating(true);
         syncConversation({
           forceFull: false,
           includeMembers: state.infoSheetOpen,
           silent: true
         }).catch(function () {}).finally(function () {
           state.pollInFlight = false;
+          setThreadUpdating(false);
           scheduleNextPoll();
         });
       }, clamp(state.pollIntervalMs, MIN_POLL_MS, MAX_POLL_MS));
@@ -4867,6 +4914,7 @@
 
     if (!silent) {
       setConnectionState(forceFull ? "sync" : "live", forceFull ? "در حال همگام‌سازی..." : "در حال دریافت...");
+      setThreadUpdating(true);
     }
 
     try {
@@ -4984,6 +5032,8 @@
         }
       }
       throw error;
+    } finally {
+      if (!silent) setThreadUpdating(false);
     }
   }
 
@@ -6500,6 +6550,51 @@
         if (!button) return;
         setConversationListCategory(button.getAttribute("data-list-filter"));
       });
+
+      // Enable horizontal swipe on mobile to switch conversation filter tabs
+      (function () {
+        var swipeStartX = 0;
+        var swipeStartY = 0;
+        var swipeActive = false;
+        var swipeThreshold = 36; // px
+        var swipeOrder = ["all", "direct", "groups", "unread"];
+
+        conversationFilterTabs.addEventListener("touchstart", function (e) {
+          if (!isMobileViewport() || !e.touches || !e.touches.length) return;
+          swipeStartX = e.touches[0].clientX;
+          swipeStartY = e.touches[0].clientY;
+          swipeActive = true;
+        }, { passive: true });
+
+        conversationFilterTabs.addEventListener("touchmove", function (e) {
+          if (!swipeActive) return;
+          var dx = e.touches[0].clientX - swipeStartX;
+          var dy = e.touches[0].clientY - swipeStartY;
+          // If primarily horizontal, prevent vertical page scroll
+          if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+            if (e.cancelable) e.preventDefault();
+          } else if (Math.abs(dy) > 10) {
+            // Vertical scroll: cancel swipe gesture
+            swipeActive = false;
+          }
+        }, { passive: false });
+
+        conversationFilterTabs.addEventListener("touchend", function (e) {
+          if (!swipeActive) return;
+          var touch = e.changedTouches && e.changedTouches[0];
+          var dx = touch ? (touch.clientX - swipeStartX) : 0;
+          var dy = touch ? (touch.clientY - swipeStartY) : 0;
+          if (Math.abs(dx) > swipeThreshold && Math.abs(dx) > Math.abs(dy)) {
+            var current = normalizeConversationListCategory(state.conversationListCategory) || "all";
+            var idx = swipeOrder.indexOf(current);
+            if (idx === -1) idx = 0;
+            var nextIdx = dx < 0 ? Math.min(swipeOrder.length - 1, idx + 1) : Math.max(0, idx - 1);
+            var next = swipeOrder[nextIdx];
+            if (next !== current) setConversationListCategory(next);
+          }
+          swipeActive = false;
+        }, { passive: true });
+      })();
     }
     if (conversationManageBtn) {
       conversationManageBtn.addEventListener("click", function () {

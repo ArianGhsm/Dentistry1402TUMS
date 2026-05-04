@@ -1802,11 +1802,8 @@
             });
             checkout.addEventListener("input", function (event) {
                 if (event.target && event.target.id === "buy-cart-discount-code") {
+                    // Update stored code but do not auto-apply on input — user must submit the form to apply
                     updateCheckoutData({ discountCode: String(event.target.value || "").trim() });
-                    window.clearTimeout(cartQuoteTimer);
-                    cartQuoteTimer = window.setTimeout(function () {
-                        refreshCartQuote(true);
-                    }, 420);
                     return;
                 }
                 if (event.target && event.target.matches("[data-cart-line-field='true']")) {
@@ -2056,10 +2053,26 @@
                 quantityInput.addEventListener("change", updateLocalQuoteAndSchedule);
             }
             if (discountInput) {
-                discountInput.addEventListener("input", updateLocalQuoteAndSchedule);
-                discountInput.addEventListener("change", updateLocalQuoteAndSchedule);
+                // Do not auto-apply discount on every keystroke — require explicit apply button
+                discountInput.addEventListener("input", function () { setFeedback(feedback, ""); renderPriceBreakdown(localItemQuote(item, readQuantity()), item); });
+                discountInput.addEventListener("change", function () { setFeedback(feedback, ""); });
+
+                var applyBtn = document.createElement('button');
+                applyBtn.type = 'button';
+                applyBtn.id = 'buy-discount-apply';
+                applyBtn.className = 'buy-secondary-btn';
+                applyBtn.textContent = 'اعمال';
+                if (discountInput.parentNode) {
+                    discountInput.parentNode.insertBefore(applyBtn, discountInput.nextSibling);
+                }
+                applyBtn.addEventListener('click', function () {
+                    window.clearTimeout(quoteTimer);
+                    refreshQuote(false);
+                });
+
                 if (!item.hasDiscountCodes) {
                     discountInput.placeholder = "کد فعالی تعریف نشده";
+                    applyBtn.disabled = true;
                 }
             }
             if (timeNode) {

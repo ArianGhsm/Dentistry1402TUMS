@@ -260,9 +260,11 @@ body.chat-page .background-overlay {
 }
 
 .conversation-pane__header h2,
-.thread-head__copy strong {
+.thread-head__copy strong,
+.conversation-item__title {
     font-family: var(--font-accent);
     letter-spacing: -0.02em;
+    text-align: center;
 }
 
 .conversation-pane__header h2 {
@@ -2583,6 +2585,13 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     align-items: center;
     gap: 0.32rem;
     flex-wrap: wrap;
+}
+
+.msg-reactions__participants {
+    margin-top: 0.18rem;
+    color: var(--chat-muted);
+    font-size: 0.72rem;
+    line-height: 1.2;
 }
 
 .msg-reaction {

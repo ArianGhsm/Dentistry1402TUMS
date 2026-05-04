@@ -4353,9 +4353,8 @@ function chat_ensure_direct_conversation(
             $existing['directParticipants'] = $expectedParticipants;
             $existing['memberStudentNumbers'] = $expectedParticipants;
             $existing['admins'] = [];
-            if (dent_normalize_student_number((string) ($existing['createdBy'] ?? '')) === '') {
-                $existing['createdBy'] = dent_normalize_student_number($creatorStudentNumber);
-            }
+            // Direct conversations should not carry a persistent owner
+            $existing['createdBy'] = '';
             $existing['updatedAt'] = time();
             chat_put_conversation($store, $existing);
         }
@@ -4388,7 +4387,8 @@ function chat_ensure_direct_conversation(
         'avatarUrl' => '',
         'createdAt' => $now,
         'updatedAt' => $now,
-        'createdBy' => dent_normalize_student_number($creatorStudentNumber),
+        // Direct conversation: no single owner
+        'createdBy' => '',
         'mandatory' => false,
         'memberStudentNumbers' => $expectedParticipants,
         'directParticipants' => $expectedParticipants,
@@ -6183,9 +6183,6 @@ if ($action === 'messageReceipts') {
 
     $store = chat_load_store();
     $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
-    if (!chat_reaction_allowed_for_conversation($conversation, $emoji)) {
-        dent_error('واکنش انتخاب‌شده در تنظیمات این گفتگو مجاز نیست.', 422);
-    }
     $messages = chat_get_messages($store, $conversationId);
     $index = chat_find_message_index($messages, $messageId);
     if ($index === -1) {
