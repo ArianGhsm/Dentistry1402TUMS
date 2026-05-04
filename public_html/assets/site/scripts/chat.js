@@ -970,11 +970,16 @@
 
       var currentY = event.touches[0].clientY;
       var deltaY = currentY - touchStartY;
+      // If no scroller was found at touchstart, try to locate it on move.
       if (!activeScroller) {
-        if (event.cancelable) {
-          event.preventDefault();
+        var moveTarget = event.target;
+        if (moveTarget && moveTarget.nodeType !== 1 && moveTarget.parentElement) {
+          moveTarget = moveTarget.parentElement;
         }
-        return;
+        activeScroller = moveTarget && typeof moveTarget.closest === "function" ? moveTarget.closest(scrollerSelector) : null;
+        if (!activeScroller) {
+          return;
+        }
       }
 
       var maxScrollTop = Math.max(0, activeScroller.scrollHeight - activeScroller.clientHeight);
@@ -987,6 +992,7 @@
 
       var atTop = activeScroller.scrollTop <= 0;
       var atBottom = activeScroller.scrollTop >= maxScrollTop - 1;
+      // deltaY > 0 means scrolling down (towards bottom)
       if ((atTop && deltaY > 0) || (atBottom && deltaY < 0)) {
         if (event.cancelable) {
           event.preventDefault();
@@ -997,6 +1003,32 @@
     document.addEventListener("touchend", function () {
       activeScroller = null;
     }, { passive: true });
+
+    // Desktop: prevent wheel from bubbling out when over scroll boundaries
+    document.addEventListener("wheel", function (event) {
+      if (!event || event.defaultPrevented) return;
+      var targetEl = event.target;
+      if (targetEl && targetEl.nodeType !== 1 && targetEl.parentElement) {
+        targetEl = targetEl.parentElement;
+      }
+      var scroller = targetEl && typeof targetEl.closest === "function" ? targetEl.closest(scrollerSelector) : null;
+      if (!scroller) return;
+
+      var maxScrollTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+      if (maxScrollTop <= 0) {
+        event.preventDefault();
+        return;
+      }
+
+      var deltaY = event.deltaY || 0;
+      var atTop = scroller.scrollTop <= 0;
+      var atBottom = scroller.scrollTop >= maxScrollTop - 1;
+      // deltaY > 0 -> scrolling down; deltaY < 0 -> scrolling up
+      if ((atTop && deltaY < 0) || (atBottom && deltaY > 0)) {
+        event.preventDefault();
+        return;
+      }
+    }, { passive: false });
   }
 
   function syncFocusedComposerIntoView() {
