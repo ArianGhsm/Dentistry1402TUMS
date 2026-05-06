@@ -454,17 +454,28 @@
   }
 
   function setThreadUpdating(flag) {
-    if (!threadTitle) return;
     if (flag) {
       threadUpdatingCount = Math.max(0, threadUpdatingCount) + 1;
     } else {
       threadUpdatingCount = Math.max(0, threadUpdatingCount - 1);
     }
     if (threadUpdatingCount > 0) {
-      threadTitle.textContent = "درحال بروزرسانی";
-      threadTitle.dataset.updating = "1";
+      if (conversationTitle) {
+        conversationTitle.textContent = "درحال بروزرسانی";
+        conversationTitle.dataset.updating = "1";
+      }
+      if (threadTitle) {
+        threadTitle.textContent = "درحال بروزرسانی";
+        threadTitle.dataset.updating = "1";
+      }
     } else {
-      threadTitle.dataset.updating = "";
+      if (conversationTitle) {
+        conversationTitle.textContent = "گفتگوها";
+        conversationTitle.dataset.updating = "";
+      }
+      if (threadTitle) {
+        threadTitle.dataset.updating = "";
+      }
       updateThreadHead();
     }
   }
@@ -499,6 +510,7 @@
   var logoutBtn = $("logout-btn");
   var refreshBtn = $("refresh-btn");
 
+  var conversationTitle = $("conversation-title");
   var conversationMeta = $("conversation-meta");
   var conversationSearch = $("conversation-search");
   var conversationFilterTabs = $("conversation-filter-tabs");
@@ -801,6 +813,7 @@
       options.body = new URLSearchParams(Object.assign({ action: action }, payload || {}));
     }
 
+    setThreadUpdating(true);
     try {
       var response = await fetch(url, options);
       return parseApiResponse(response);
@@ -811,6 +824,8 @@
         networkError: true,
         httpStatus: 0
       };
+    } finally {
+      setThreadUpdating(false);
     }
   }
 
@@ -1623,6 +1638,22 @@
     };
   }
 
+  function normalizeReactionUsers(raw) {
+    var source = asObject(raw);
+    var result = {};
+    if (!source) return result;
+
+    Object.keys(source).forEach(function (emoji) {
+      var users = Array.isArray(source[emoji]) ? source[emoji] : [];
+      var normalized = users.map(normalizeUser).filter(Boolean);
+      if (normalized.length) {
+        result[emoji] = normalized;
+      }
+    });
+
+    return result;
+  }
+
   function normalizeMessage(raw) {
     var source = asObject(raw);
     if (!source) return null;
@@ -1662,6 +1693,7 @@
       replyTo: source.replyTo != null ? Math.floor(toNumber(source.replyTo, 0)) : null,
       pinned: !!source.pinned,
       reactions: asObject(source.reactions) || {},
+      reactionUsers: normalizeReactionUsers(source.reactionUsers),
       attachments: attachments,
       avatarUrl: normalizeAvatarUrl(source.avatarUrl || profile.avatarUrl || ""),
       about: normalizeSpace(source.about || profile.about || profile.bio || ""),
@@ -2271,7 +2303,19 @@
 
   function updateThreadHead() {
     var conversation = activeConversation();
+    if (threadUpdatingCount > 0) {
+      if (conversationTitle) {
+        conversationTitle.textContent = "درحال بروزرسانی";
+        conversationTitle.dataset.updating = "1";
+      }
+      if (threadTitle) {
+        threadTitle.textContent = "درحال بروزرسانی";
+        threadTitle.dataset.updating = "1";
+      }
+      return;
+    }
     if (!conversation) {
+      if (conversationTitle) conversationTitle.textContent = "گفتگوها";
       if (threadTitle) threadTitle.textContent = "گفت‌وگو";
       if (threadSubtitle) threadSubtitle.textContent = "یک گفت‌وگو را انتخاب کن";
       if (threadAvatar && threadAvatarImage && threadAvatarFallback) {
@@ -2280,6 +2324,7 @@
       return;
     }
 
+    if (conversationTitle) conversationTitle.textContent = "گفتگوها";
     if (threadTitle) threadTitle.textContent = conversation.title;
     if (threadSubtitle) {
       if (conversation.type === "direct" && conversation.peer) {
@@ -2480,14 +2525,30 @@
     return canCurrentUserViewStudentNumbers() ? normalized : "کاربر";
   }
 
-  function reactionDetailsText(entry) {
-    if (!entry || !Array.isArray(entry.users)) return "";
+  function reactionUserLabels(entry, message) {
+    if (!entry || !Array.isArray(entry.users)) return [];
+    var detailedByStudent = new Map();
+    var detailed = message && asObject(message.reactionUsers) && Array.isArray(message.reactionUsers[entry.emoji])
+      ? message.reactionUsers[entry.emoji]
+      : [];
+    detailed.forEach(function (user) {
+      var normalized = normalizeStudentNumber(user && user.studentNumber);
+      if (normalized) detailedByStudent.set(normalized, normalizeSpace(user.name));
+    });
+
     var labels = [];
     entry.users.forEach(function (studentNumber) {
-      var label = studentDisplayName(studentNumber);
+      var normalized = normalizeStudentNumber(studentNumber);
+      var label = (normalized && detailedByStudent.get(normalized)) || studentDisplayName(studentNumber);
       if (!label || labels.indexOf(label) !== -1) return;
       labels.push(label);
     });
+    return labels;
+  }
+
+  function reactionDetailsText(entry, message) {
+    if (!entry || !Array.isArray(entry.users)) return "";
+    var labels = reactionUserLabels(entry, message);
     if (!labels.length) {
       return entry.count.toLocaleString("fa-IR") + " واکنش";
     }
@@ -2500,20 +2561,15 @@
 
   function reactionParticipantsText(message) {
     if (!message) return "";
-    var map = reactionMap(message);
-    var all = [];
-    map.forEach(function (users) {
-      (Array.isArray(users) ? users : []).forEach(function (u) {
-        if (!u) return;
-        if (all.indexOf(u) === -1) all.push(u);
-      });
+    var parts = [];
+    reactionEntries(message).forEach(function (entry) {
+      var labels = reactionUserLabels(entry, message);
+      if (!labels.length) return;
+      var visible = labels.slice(0, 4);
+      var extra = labels.length - visible.length;
+      parts.push(entry.emoji + " " + visible.join("، ") + (extra > 0 ? " +" + extra.toLocaleString("fa-IR") : ""));
     });
-    if (!all.length) return "";
-    var labels = all.map(function (s) { return studentDisplayName(s); }).filter(Boolean);
-    if (!labels.length) return "";
-    var visible = labels.slice(0, 6);
-    var extra = labels.length - visible.length;
-    return extra > 0 ? (visible.join("، ") + " +" + extra.toLocaleString("fa-IR")) : visible.join("، ");
+    return parts.slice(0, 4).join(" • ");
   }
 
   function findMessage(messageId) {
@@ -2548,7 +2604,7 @@
     if (!entries.length) return "";
     var html = '<div class="msg-reactions">' +
       entries.map(function (entry) {
-        var details = reactionDetailsText(entry);
+        var details = reactionDetailsText(entry, message);
         var title = entry.emoji + " • " + details;
         return (
           '<button type="button" class="msg-reaction' + (entry.own ? " is-own" : "") + '" data-reaction-emoji="' + escapeHtml(entry.emoji) + '" title="' + escapeHtml(title) + '" aria-label="' + escapeHtml(title) + '">' +
@@ -6588,35 +6644,63 @@
         var swipeStartX = 0;
         var swipeStartY = 0;
         var swipeActive = false;
-        var swipeThreshold = 36; // px
+        var swipeTracking = false;
+        var swipeThreshold = 42;
         var swipeOrder = ["all", "direct", "groups", "unread"];
+        var swipeTargets = [conversationFilterTabs, conversationList, conversationPane].filter(Boolean);
 
-        conversationFilterTabs.addEventListener("touchstart", function (e) {
+        function resetSwipeVisual(settling) {
+          if (!conversationList) return;
+          conversationList.classList.toggle("is-swipe-settling", !!settling);
+          conversationList.classList.remove("is-swiping");
+          conversationList.style.transform = "";
+          if (settling) {
+            window.setTimeout(function () {
+              if (conversationList) conversationList.classList.remove("is-swipe-settling");
+            }, 190);
+          }
+        }
+
+        function onSwipeStart(e) {
           if (!isMobileViewport() || !e.touches || !e.touches.length) return;
+          var target = e.target && e.target.closest ? e.target.closest("input, textarea, select") : null;
+          if (target) return;
           swipeStartX = e.touches[0].clientX;
           swipeStartY = e.touches[0].clientY;
           swipeActive = true;
-        }, { passive: true });
+          swipeTracking = false;
+          resetSwipeVisual(false);
+        }
 
-        conversationFilterTabs.addEventListener("touchmove", function (e) {
+        function onSwipeMove(e) {
           if (!swipeActive) return;
           var dx = e.touches[0].clientX - swipeStartX;
           var dy = e.touches[0].clientY - swipeStartY;
-          // If primarily horizontal, prevent vertical page scroll
-          if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
-            if (e.cancelable) e.preventDefault();
-          } else if (Math.abs(dy) > 10) {
-            // Vertical scroll: cancel swipe gesture
-            swipeActive = false;
+          if (!swipeTracking && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+            swipeTracking = true;
+            if (conversationList) conversationList.classList.add("is-swiping");
           }
-        }, { passive: false });
+          if (swipeTracking) {
+            if (e.cancelable) e.preventDefault();
+            if (conversationList) {
+              var damped = Math.max(-96, Math.min(96, dx * 0.36));
+              conversationList.style.transform = "translate3d(" + damped.toFixed(1) + "px, 0, 0)";
+            }
+          } else if (Math.abs(dy) > 14) {
+            swipeActive = false;
+            resetSwipeVisual(false);
+          }
+        }
 
-        conversationFilterTabs.addEventListener("touchend", function (e) {
-          if (!swipeActive) return;
+        function onSwipeEnd(e) {
+          if (!swipeActive) {
+            resetSwipeVisual(true);
+            return;
+          }
           var touch = e.changedTouches && e.changedTouches[0];
           var dx = touch ? (touch.clientX - swipeStartX) : 0;
           var dy = touch ? (touch.clientY - swipeStartY) : 0;
-          if (Math.abs(dx) > swipeThreshold && Math.abs(dx) > Math.abs(dy)) {
+          if (swipeTracking && Math.abs(dx) > swipeThreshold && Math.abs(dx) > Math.abs(dy)) {
             var current = normalizeConversationListCategory(state.conversationListCategory) || "all";
             var idx = swipeOrder.indexOf(current);
             if (idx === -1) idx = 0;
@@ -6625,7 +6709,20 @@
             if (next !== current) setConversationListCategory(next);
           }
           swipeActive = false;
-        }, { passive: true });
+          swipeTracking = false;
+          resetSwipeVisual(true);
+        }
+
+        swipeTargets.forEach(function (target) {
+          target.addEventListener("touchstart", onSwipeStart, { passive: true });
+          target.addEventListener("touchmove", onSwipeMove, { passive: false });
+          target.addEventListener("touchend", onSwipeEnd, { passive: true });
+          target.addEventListener("touchcancel", function () {
+            swipeActive = false;
+            swipeTracking = false;
+            resetSwipeVisual(true);
+          }, { passive: true });
+        });
       })();
     }
     if (conversationManageBtn) {

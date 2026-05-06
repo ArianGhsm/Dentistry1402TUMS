@@ -506,7 +506,7 @@
                 '  <span class="buy-gateway-option__badge">' + text(entry.icon || entry.key.toUpperCase()) + "</span>",
                 "</label>"
             ].join("");
-        }).join("");
+        }).join("") + '<div class="buy-alert">پس از پرداخت، روی اتمام پرداخت بزنید و به همین سایت برگردید تا پیام تایید را ببینید.</div>';
 
         function readSelectedInput() {
             return form.querySelector("input[name='buy_gateway']:checked");
@@ -1628,6 +1628,7 @@
                     "</label>"
                 ].join("");
             }).join(""),
+            '<div class="buy-alert">پس از پرداخت، روی اتمام پرداخت بزنید و به همین سایت برگردید تا پیام تایید را ببینید.</div>',
             enabledCount <= 0 ? '<div class="buy-feedback is-error">درگاه فعالی برای پرداخت وجود ندارد.</div>' : "",
             "</div>"
         ].join("");
@@ -1666,7 +1667,7 @@
             stepBody = [
                 '<form id="buy-cart-discount-form" class="buy-cart-step buy-form" novalidate>',
                 '  <div class="buy-cart-step__head"><span class="buy-kicker">مرحله دوم</span><h3>کد تخفیف سبد</h3><p class="buy-muted">اگر کد تخفیف برای یک یا چند آیتم معتبر باشد، مبلغ کل همینجا دوباره محاسبه می‌شود.</p></div>',
-                '  <label class="buy-form__field"><span>کد تخفیف</span><input id="buy-cart-discount-code" type="text" maxlength="40" autocomplete="off" dir="ltr" data-digit-locale="latin" value="' + text(data.discountCode || "") + '" placeholder="اختیاری"></label>',
+                '  <label class="buy-form__field buy-form__field--discount"><span>کد تخفیف</span><span class="buy-discount-apply-row"><input id="buy-cart-discount-code" type="text" maxlength="40" autocomplete="off" dir="ltr" data-digit-locale="latin" value="' + text(data.discountCode || "") + '" placeholder="اختیاری"><button id="buy-cart-discount-apply" class="buy-secondary-btn" type="button">اعمال</button></span></label>',
                 cartSummaryHtml(snapshot),
                 checkoutFeedbackHtml(),
                 '  <div class="buy-cart-step-actions">',
@@ -1794,6 +1795,14 @@
         if (checkout && !checkout.dataset.buyBound) {
             checkout.dataset.buyBound = "1";
             checkout.addEventListener("click", function (event) {
+                var discountApply = event.target.closest("#buy-cart-discount-apply");
+                if (discountApply) {
+                    window.clearTimeout(cartQuoteTimer);
+                    updateCheckoutData({ discountCode: $("buy-cart-discount-code") ? $("buy-cart-discount-code").value.trim() : "" });
+                    refreshCartQuote(false);
+                    return;
+                }
+
                 var stepButton = event.target.closest("[data-buy-cart-step]");
                 if (!stepButton) {
                     return;
@@ -1802,8 +1811,11 @@
             });
             checkout.addEventListener("input", function (event) {
                 if (event.target && event.target.id === "buy-cart-discount-code") {
-                    // Update stored code but do not auto-apply on input — user must submit the form to apply
-                    updateCheckoutData({ discountCode: String(event.target.value || "").trim() });
+                    state.cartQuoteError = "";
+                    var feedback = $("buy-cart-feedback");
+                    if (feedback) {
+                        setFeedback(feedback, "برای محاسبه مبلغ، دکمه اعمال را بزنید.", "");
+                    }
                     return;
                 }
                 if (event.target && event.target.matches("[data-cart-line-field='true']")) {

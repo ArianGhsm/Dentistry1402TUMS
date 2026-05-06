@@ -225,6 +225,52 @@
         });
     }
 
+    function bankNameFromCard(cardNumber) {
+        var digits = normalizeDigits(cardNumber).replace(/\D+/g, "");
+        var prefix6 = digits.slice(0, 6);
+        var prefix4 = digits.slice(0, 4);
+        var banks = {
+            "603799": "بانک ملی ایران",
+            "589210": "بانک سپه",
+            "627648": "بانک توسعه صادرات",
+            "627961": "بانک صنعت و معدن",
+            "603770": "بانک کشاورزی",
+            "628023": "بانک مسکن",
+            "627760": "پست بانک ایران",
+            "502908": "بانک توسعه تعاون",
+            "627412": "بانک اقتصاد نوین",
+            "622106": "بانک پارسیان",
+            "639194": "بانک پارسیان",
+            "627884": "بانک پارسیان",
+            "502229": "بانک پاسارگاد",
+            "639347": "بانک پاسارگاد",
+            "627488": "بانک کارآفرین",
+            "502910": "بانک کارآفرین",
+            "621986": "بانک سامان",
+            "639346": "بانک سینا",
+            "639607": "بانک سرمایه",
+            "636214": "بانک آینده",
+            "502806": "بانک شهر",
+            "502938": "بانک دی",
+            "603769": "بانک صادرات ایران",
+            "610433": "بانک ملت",
+            "991975": "بانک ملت",
+            "627353": "بانک تجارت",
+            "585983": "بانک تجارت",
+            "589463": "بانک رفاه کارگران",
+            "627381": "بانک انصار",
+            "639370": "بانک مهر اقتصاد",
+            "639599": "بانک قوامین",
+            "504172": "بانک رسالت",
+            "636949": "بانک حکمت ایرانیان",
+            "505416": "بانک گردشگری",
+            "505785": "بانک ایران زمین",
+            "606373": "بانک قرض الحسنه مهر ایران",
+            "505801": "موسسه کوثر"
+        };
+        return banks[prefix6] || banks[prefix4] || "";
+    }
+
     function selectedExportColumns() {
         if (!exportColumnsRoot) return [];
         return Array.prototype.slice.call(exportColumnsRoot.querySelectorAll("input[type='checkbox']:checked")).map(function (input) {
@@ -280,7 +326,8 @@
             options: [],
             rows: [],
             scale: null,
-            payment: null
+            payment: null,
+            receiptPayment: null
         };
         if (["single_choice", "multiple_choice", "dropdown"].indexOf(field.type) !== -1) {
             field.options = [option("گزینه اول", 1), option("گزینه دوم", 2)];
@@ -297,6 +344,10 @@
         }
         if (field.type === "payment") {
             field.payment = { amount: "", gateway: "" };
+            field.required = true;
+        }
+        if (field.type === "receipt_payment") {
+            field.receiptPayment = { amount: "", cardNumber: "", cardholder: "", bankName: "" };
             field.required = true;
         }
         return field;
@@ -378,6 +429,14 @@
                     amount: String(field.payment.amount || ""),
                     gateway: String(field.payment.gateway || "")
                 }
+                : null,
+            receiptPayment: field.receiptPayment && typeof field.receiptPayment === "object"
+                ? {
+                    amount: String(field.receiptPayment.amount || ""),
+                    cardNumber: String(field.receiptPayment.cardNumber || ""),
+                    cardholder: String(field.receiptPayment.cardholder || ""),
+                    bankName: String(field.receiptPayment.bankName || "")
+                }
                 : null
         };
     }
@@ -387,18 +446,23 @@
     }
 
     function applyKindRestrictions() {
-        if (kindInput.value === "poll") {
-            if (!state.fields.length) {
-                state.fields = [newField("single_choice", "سؤال نظرسنجی")];
+        if (kindInput.value !== "poll") return;
+        if (!state.fields.length) {
+            state.fields = [newField("single_choice", "سؤال نظرسنجی")];
+        }
+        var choiceField = null;
+        state.fields.forEach(function (field) {
+            if (!choiceField && ["single_choice", "multiple_choice"].indexOf(field.type) !== -1) {
+                choiceField = field;
             }
-            state.fields = [state.fields[0]];
-            if (["single_choice", "multiple_choice"].indexOf(state.fields[0].type) === -1) {
-                state.fields[0].type = "single_choice";
-            }
-            state.fields[0].required = true;
-            if (!state.fields[0].options || state.fields[0].options.length < 2) {
-                state.fields[0].options = [option("گزینه اول", 1), option("گزینه دوم", 2)];
-            }
+        });
+        if (!choiceField) {
+            choiceField = state.fields[0];
+            choiceField.type = "single_choice";
+        }
+        choiceField.required = true;
+        if (!choiceField.options || choiceField.options.length < 2) {
+            choiceField.options = [option("گزینه اول", 1), option("گزینه دوم", 2)];
         }
     }
 
@@ -444,9 +508,9 @@
                 ["email", "ایمیل"],
                 ["phone", "شماره تماس"],
                 ["url", "لینک"],
-                ["payment", "پرداخت"]
+                ["payment", "پرداخت"],
+                ["receipt_payment", "پرداخت با رسید"]
             ].forEach(function (item) {
-                if (kindInput.value === "poll" && ["single_choice", "multiple_choice"].indexOf(item[0]) === -1) return;
                 var optionEl = document.createElement("option");
                 optionEl.value = item[0];
                 optionEl.textContent = item[1];
@@ -468,6 +532,10 @@
                     field.payment = field.payment || { amount: "", gateway: "" };
                     field.required = true;
                 }
+                if (field.type === "receipt_payment") {
+                    field.receiptPayment = field.receiptPayment || { amount: "", cardNumber: "", cardholder: "", bankName: "" };
+                    field.required = true;
+                }
                 renderFieldEditor();
             });
             typeWrap.appendChild(typeSelect);
@@ -477,7 +545,7 @@
             removeBtn.type = "button";
             removeBtn.className = "forms-btn forms-btn--danger";
             removeBtn.textContent = "حذف";
-            removeBtn.hidden = kindInput.value === "poll" || state.fields.length <= 1;
+            removeBtn.hidden = state.fields.length <= 1;
             removeBtn.addEventListener("click", function () {
                 state.fields.splice(index, 1);
                 renderFieldEditor();
@@ -503,7 +571,7 @@
             var requiredInput = document.createElement("input");
             requiredInput.type = "checkbox";
             requiredInput.checked = !!field.required;
-            requiredInput.disabled = kindInput.value === "poll";
+            requiredInput.disabled = false;
             requiredInput.addEventListener("change", function () {
                 field.required = requiredInput.checked;
             });
@@ -524,6 +592,9 @@
             }
             if (field.type === "payment") {
                 card.appendChild(renderPaymentEditor(field));
+            }
+            if (field.type === "receipt_payment") {
+                card.appendChild(renderReceiptPaymentEditor(field));
             }
 
             fieldsEditor.appendChild(card);
@@ -697,6 +768,73 @@
         return wrap;
     }
 
+    function renderReceiptPaymentEditor(field) {
+        var wrap = document.createElement("div");
+        wrap.className = "forms-payment-editor forms-receipt-editor";
+        field.receiptPayment = field.receiptPayment || { amount: "", cardNumber: "", cardholder: "", bankName: "" };
+
+        var amountWrap = document.createElement("label");
+        amountWrap.className = "forms-field";
+        amountWrap.innerHTML = "<span>مبلغ رسید (ریال)</span>";
+        var amountInput = document.createElement("input");
+        amountInput.type = "text";
+        amountInput.inputMode = "numeric";
+        amountInput.dir = "ltr";
+        amountInput.setAttribute("data-latin-digits", "true");
+        amountInput.maxLength = 14;
+        amountInput.value = field.receiptPayment.amount || "";
+        amountInput.addEventListener("input", function () {
+            field.receiptPayment.amount = normalizeDigits(amountInput.value).replace(/\D+/g, "");
+            amountInput.value = field.receiptPayment.amount;
+        });
+        amountWrap.appendChild(amountInput);
+        wrap.appendChild(amountWrap);
+
+        var cardWrap = document.createElement("label");
+        cardWrap.className = "forms-field";
+        cardWrap.innerHTML = "<span>شماره کارت مقصد</span>";
+        var cardInput = document.createElement("input");
+        cardInput.type = "text";
+        cardInput.inputMode = "numeric";
+        cardInput.dir = "ltr";
+        cardInput.setAttribute("data-latin-digits", "true");
+        cardInput.maxLength = 24;
+        cardInput.value = field.receiptPayment.cardNumber || "";
+        cardWrap.appendChild(cardInput);
+        wrap.appendChild(cardWrap);
+
+        var holderWrap = document.createElement("label");
+        holderWrap.className = "forms-field";
+        holderWrap.innerHTML = "<span>نام صاحب کارت</span>";
+        var holderInput = document.createElement("input");
+        holderInput.type = "text";
+        holderInput.maxLength = 120;
+        holderInput.value = field.receiptPayment.cardholder || "";
+        holderInput.addEventListener("input", function () {
+            field.receiptPayment.cardholder = holderInput.value.trim();
+        });
+        holderWrap.appendChild(holderInput);
+        wrap.appendChild(holderWrap);
+
+        var bankNote = document.createElement("small");
+        bankNote.className = "forms-muted";
+        var syncBank = function () {
+            field.receiptPayment.cardNumber = normalizeDigits(cardInput.value).replace(/\D+/g, "");
+            cardInput.value = field.receiptPayment.cardNumber;
+            field.receiptPayment.bankName = bankNameFromCard(field.receiptPayment.cardNumber);
+            bankNote.textContent = field.receiptPayment.bankName ? ("بانک تشخیص داده‌شده: " + field.receiptPayment.bankName) : "پس از وارد کردن شماره کارت، بانک صادرکننده نمایش داده می‌شود.";
+        };
+        cardInput.addEventListener("input", syncBank);
+        syncBank();
+        wrap.appendChild(bankNote);
+
+        var note = document.createElement("small");
+        note.className = "forms-muted";
+        note.textContent = "پرداخت‌کننده برای تکمیل این بخش باید تصویر یا PDF رسید را بارگذاری کند.";
+        wrap.appendChild(note);
+        return wrap;
+    }
+
     function applyTemplate(name) {
         var tpl = name === "dis" ? disTemplate() : (name === "poll" ? pollTemplate() : blankTemplate());
         state.editingId = "";
@@ -803,6 +941,23 @@
                     throw new Error("برای سوال پرداخت باید مبلغ بیشتر از صفر وارد شود.");
                 }
             }
+            if (next.type === "receipt_payment") {
+                next.receiptPayment = next.receiptPayment || { amount: "", cardNumber: "", cardholder: "", bankName: "" };
+                next.receiptPayment.amount = normalizeDigits(String(next.receiptPayment.amount || "")).replace(/\D+/g, "");
+                next.receiptPayment.cardNumber = normalizeDigits(String(next.receiptPayment.cardNumber || "")).replace(/\D+/g, "");
+                next.receiptPayment.cardholder = String(next.receiptPayment.cardholder || "").trim();
+                next.receiptPayment.bankName = bankNameFromCard(next.receiptPayment.cardNumber) || String(next.receiptPayment.bankName || "").trim();
+                next.required = !!next.required;
+                if (!next.receiptPayment.amount || Number(next.receiptPayment.amount) <= 0) {
+                    throw new Error("برای سوال پرداخت با رسید باید مبلغ بیشتر از صفر وارد شود.");
+                }
+                if (next.receiptPayment.cardNumber.length < 16) {
+                    throw new Error("برای سوال پرداخت با رسید باید شماره کارت معتبر وارد شود.");
+                }
+                if (!next.receiptPayment.cardholder) {
+                    throw new Error("برای سوال پرداخت با رسید باید نام صاحب کارت وارد شود.");
+                }
+            }
             return next;
         }).filter(function (field) {
             return field.label;
@@ -869,6 +1024,12 @@
             } catch (error) {
                 reject(error);
             }
+        });
+    }
+
+    function formHasReceiptPayments(form) {
+        return Array.isArray(form && form.fields) && form.fields.some(function (field) {
+            return field && String(field.type || "") === "receipt_payment";
         });
     }
 
@@ -971,6 +1132,14 @@
                 officialA.href = "/api/forms_api.php?action=export&mode=official&formId=" + encodeURIComponent(String(form.id || ""));
                 officialA.textContent = "خروجی رسمی";
                 actions.appendChild(officialA);
+
+                if (formHasReceiptPayments(form)) {
+                    var receiptsA = document.createElement("a");
+                    receiptsA.className = "forms-btn";
+                    receiptsA.href = "/api/forms_api.php?action=exportReceipts&formId=" + encodeURIComponent(String(form.id || ""));
+                    receiptsA.textContent = "ZIP رسیدها";
+                    actions.appendChild(receiptsA);
+                }
 
                 if (form.permissions && form.permissions.canDelete) {
                     var deleteBtn = document.createElement("button");
@@ -1186,9 +1355,6 @@
     });
 
     kindInput.addEventListener("change", function () {
-        if (kindInput.value === "poll" && state.fields.length > 1) {
-            state.fields = [state.fields[0]];
-        }
         if (kindInput.value === "poll") {
             resultVisibilityInput.value = "after-submit";
         }
@@ -1196,10 +1362,6 @@
     });
 
     addFieldBtn.addEventListener("click", function () {
-        if (kindInput.value === "poll") {
-            showToast("نظرسنجی سریع فقط یک پرسش دارد.");
-            return;
-        }
         state.fields.push(newField("short_text", "پرسش جدید"));
         renderFieldEditor();
     });

@@ -2242,6 +2242,78 @@ body.buy-modal-open {
     gap: 0.58rem;
 }
 
+.buy-page .payments-collection-thumb,
+.buy-page .payments-collection-image-preview {
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-muted);
+}
+
+.buy-page .payments-collection-thumb {
+    aspect-ratio: 16 / 9;
+}
+
+.buy-page .payments-collection-thumb img,
+.buy-page .payments-collection-image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.buy-page .payments-collection-image-preview {
+    min-height: 112px;
+    display: grid;
+    place-items: center;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+}
+
+.buy-page .payments-breakdown-strip {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.58rem;
+}
+
+.buy-page .payments-breakdown-group {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-solid);
+    padding: 0.66rem;
+    display: grid;
+    gap: 0.46rem;
+}
+
+.buy-page .payments-breakdown-group h5 {
+    margin: 0;
+    font-size: 0.82rem;
+}
+
+.buy-page .payments-breakdown-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.34rem 0.5rem;
+    align-items: center;
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+}
+
+.buy-page .payments-breakdown-row span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.buy-page .payments-breakdown-row strong {
+    color: var(--text-primary);
+    font-size: 0.78rem;
+}
+
+.buy-page .payments-breakdown-row small {
+    grid-column: 1 / -1;
+}
+
 .buy-page .payments-item-card__head,
 .buy-page .payments-order-card__head,
 .buy-page .payments-note__head {
@@ -2597,6 +2669,25 @@ body.buy-modal-open {
     gap: 0.48rem;
 }
 
+.buy-page .buy-discount-apply-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.buy-page .buy-discount-apply-row .buy-secondary-btn {
+    min-height: 44px;
+    padding-inline: 1rem;
+    white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+    .buy-page .buy-discount-apply-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 .buy-page .payments-discount-row {
     display: grid;
     grid-template-columns: minmax(92px, 0.95fr) minmax(120px, 1.2fr) minmax(96px, 0.9fr) minmax(86px, 0.8fr) minmax(148px, 1.1fr) auto auto;
@@ -2656,6 +2747,21 @@ body.buy-modal-open {
     border-radius: 8px;
     background: var(--commerce-surface);
     box-shadow: var(--surface-shadow);
+}
+
+.payment-collection-media {
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-muted);
+}
+
+.payment-collection-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .payment-collection-card__head {

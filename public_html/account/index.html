@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260504-234329">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260504-234329">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260504-234329">
-    <script src="/assets/site/scripts/theme.js?v=20260504-234329"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260504-234329">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260504-234329">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260504-234329">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260506-090224">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260506-090224">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260506-090224">
+    <script src="/assets/site/scripts/theme.js?v=20260506-090224"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260506-090224">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260506-090224">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260506-090224">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -581,7 +581,14 @@
 
                     <div class="owner-summary" id="owner-summary"></div>
 
-                    <section class="owner-block owner-block--sms">
+                    <nav class="owner-tabs" id="owner-tabs" aria-label="بخش‌های مدیریت مالک">
+                        <button class="owner-tab is-active" type="button" data-owner-tab="users" aria-selected="true">کاربران</button>
+                        <button class="owner-tab" type="button" data-owner-tab="representatives" aria-selected="false">نماینده‌ها</button>
+                        <button class="owner-tab" type="button" data-owner-tab="create" aria-selected="false">ایجاد حساب</button>
+                        <button class="owner-tab" type="button" data-owner-tab="services" aria-selected="false">سرویس‌ها</button>
+                    </nav>
+
+                    <section class="owner-block owner-block--sms owner-tab-panel" data-owner-tab-panel="services">
                         <div class="owner-block__head">
                             <h4>وضعیت سرویس پیامک / OTP</h4>
                             <p>تنظیمات FarazSMS فقط در این سطح مالک مدیریت می‌شود. کلید API در سرور ذخیره می‌شود و در خروجی نمایش داده نمی‌شود.</p>
@@ -623,7 +630,7 @@
                         </form>
                     </section>
 
-                    <section class="owner-block owner-block--media-status">
+                    <section class="owner-block owner-block--media-status owner-tab-panel" data-owner-tab-panel="services">
                         <div class="owner-block__head">
                             <h4>پایش فضای رسانه پیام‌رسان</h4>
                             <p>وضعیت فضای مدیریت‌شده فایل‌های پیام‌رسان و پاکسازی خودکار فایل‌های قدیمی.</p>
@@ -635,7 +642,7 @@
                         </div>
                         <div id="owner-media-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
                     </section>
-                    <div class="owner-toolbar">
+                    <div class="owner-toolbar owner-tab-panel is-active" data-owner-tab-panel="users">
                         <label class="owner-search">
                             <span>جست‌وجوی کاربر</span>
                             <input id="owner-search" type="search" placeholder="نام یا شماره دانشجویی">
@@ -643,7 +650,7 @@
                         <div id="owner-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
                     </div>
 
-                    <section class="owner-block">
+                    <section class="owner-block owner-tab-panel" data-owner-tab-panel="representatives">
                         <div class="owner-block__head">
                             <h4>نماینده‌های فعال</h4>
                             <p>این کاربران در پیام‌رسان دسترسی مدیریت گفت‌وگو دارند.</p>
@@ -651,7 +658,7 @@
                         <div id="representative-list" class="owner-representatives"></div>
                     </section>
 
-                    <section class="owner-block owner-block--create-student">
+                    <section class="owner-block owner-block--create-student owner-tab-panel" data-owner-tab-panel="create">
                         <div class="owner-block__head">
                             <h4>ایجاد دستی دانشجو</h4>
                             <p>ایجاد مستقیم حساب دانشجو با اعتبارسنجی و جلوگیری از تکرار شماره دانشجویی.</p>
@@ -694,12 +701,13 @@
                         </form>
                     </section>
 
-                    <section class="owner-block">
+                    <section class="owner-block owner-tab-panel is-active" data-owner-tab-panel="users">
                         <div class="owner-block__head">
                             <h4>همه کاربران</h4>
                             <p>ارتقا یا لغو نقش نماینده و ورود به صفحه اختصاصی مدیریت هر کاربر.</p>
                         </div>
                         <div id="owner-user-list" class="owner-user-list"></div>
+                        <div id="owner-user-pager" class="owner-user-pager" aria-label="صفحه‌بندی کاربران"></div>
                     </section>
                 </article>
 
@@ -780,9 +788,9 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260504-234329"></script>
-    <script src="/assets/site/scripts/account.js?v=20260506-dis-number"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260504-234329"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260504-234329"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260506-090224"></script>
+    <script src="/assets/site/scripts/account.js?v=20260506-090224"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260506-090224"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260506-090224"></script>
 </body>
 </html>

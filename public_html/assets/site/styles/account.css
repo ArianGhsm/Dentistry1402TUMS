@@ -2517,9 +2517,71 @@ body.account-page:has(#account-panel[data-surface="payments"]) main.account-shel
     font-size: 0.75rem;
 }
 
+.owner-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin: 0.8rem 0 1rem;
+    padding: 0.35rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--surface-muted);
+}
+
+.owner-tab {
+    min-height: 42px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.owner-tab.is-active {
+    background: var(--surface-solid);
+    color: var(--accent-color);
+    box-shadow: var(--surface-shadow);
+}
+
+.owner-tab-panel[hidden] {
+    display: none !important;
+}
+
+.owner-tab-panel.is-active,
+.owner-toolbar.owner-tab-panel.is-active {
+    display: grid;
+}
+
 .owner-user-list {
     display: grid;
     gap: 0.66rem;
+}
+
+.owner-user-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    padding-top: 0.75rem;
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    text-align: center;
+}
+
+.owner-user-pager span {
+    min-width: 0;
+}
+
+@media (max-width: 720px) {
+    .owner-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .owner-user-pager {
+        flex-wrap: wrap;
+    }
 }
 
 .owner-user {

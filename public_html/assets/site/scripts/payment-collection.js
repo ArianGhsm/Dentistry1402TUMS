@@ -183,8 +183,10 @@
             resultHtml = '<div class="buy-alert buy-alert--error">' + escapeHtml(result.message || collection.failureMessage || "پرداخت تایید نشد.") + "</div>";
         }
         var disabled = String(collection.status || "") !== "active" || !!collection.paid;
+        var image = String(collection.imageUrl || "").trim();
         root.innerHTML = [
             '<section class="payment-collection-card">',
+            image ? '<div class="payment-collection-media"><img src="' + escapeHtml(image) + '" alt="' + escapeHtml(collection.title || "تصویر پرداخت") + '"></div>' : "",
             '  <div class="payment-collection-card__head">',
             '    <span class="buy-kicker">پرداخت هزینه</span>',
             '    <h2>' + escapeHtml(collection.title || "پرداخت هزینه") + "</h2>",
@@ -195,6 +197,7 @@
             disabled && !collection.paid ? '<div class="buy-alert buy-alert--error">این لینک پرداخت در حال حاضر فعال نیست.</div>' : "",
             '  <form id="payment-collection-form" class="payment-collection-form" novalidate>',
             collectionPayerFields(collection),
+            '    <div class="buy-alert">پس از پرداخت، روی اتمام پرداخت بزنید و به همین صفحه برگردید تا پیام تایید را ببینید.</div>',
             '    <div class="payment-collection-gateways">' + gatewayOptions(collection) + "</div>",
             '    <button class="buy-primary-btn" type="submit"' + (disabled ? " disabled" : "") + '>' + (collection.paid ? "پرداخت شده" : "پرداخت") + "</button>",
             '    <div id="payment-collection-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>',

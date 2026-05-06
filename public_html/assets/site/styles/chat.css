@@ -654,12 +654,12 @@ body.chat-page .background-overlay {
 
 .messages {
     padding: 1rem 1.08rem 0.85rem;
-}
     /* Ensure the messages area is an independent scroll container
        so scrolling works on mobile (touch) and desktop (wheel). */
     min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+}
 
 @media (min-width: 981px) {
     .messages {
@@ -8351,4 +8351,70 @@ body.chat-page .messages {
 body.chat-page .msg-item,
 body.chat-page .msg-bubble {
     touch-action: pan-y !important;
+}
+
+body.chat-page .conversation-pane__header {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    align-items: center !important;
+}
+
+body.chat-page .conversation-pane__title-block {
+    grid-column: 2;
+    justify-self: center;
+    text-align: center;
+}
+
+body.chat-page .conversation-pane__title-block h2,
+body.chat-page .conversation-pane__title-block p,
+body.chat-page .thread-head__copy,
+body.chat-page .thread-head__copy strong,
+body.chat-page .thread-head__copy span {
+    text-align: center !important;
+}
+
+body.chat-page .thread-head__identity {
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+body.chat-page .messages {
+    justify-content: flex-start !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+}
+
+body.chat-page .messages::before {
+    content: "";
+    flex: 0 0 auto;
+    margin-top: auto;
+}
+
+body.chat-page .msg-item.day-start {
+    position: relative;
+    margin-top: 0.64rem !important;
+    padding-top: 2.2rem !important;
+}
+
+body.chat-page .msg-item.day-start::before {
+    z-index: 2;
+    top: 0.24rem !important;
+    min-height: 26px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.35;
+    box-shadow: 0 8px 20px -16px rgba(17, 34, 57, 0.34);
+    pointer-events: none;
+}
+
+body.chat-page .conversation-list.is-swiping {
+    transition: none !important;
+    will-change: transform;
+}
+
+body.chat-page .conversation-list.is-swipe-settling {
+    transition: transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+    will-change: transform;
 }

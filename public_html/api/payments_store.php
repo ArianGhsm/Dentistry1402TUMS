@@ -676,6 +676,7 @@ function payments_normalize_collection_record(array $seed): ?array
         'token' => $token,
         'title' => $title,
         'description' => dent_clean_text((string) ($seed['description'] ?? ''), 1200),
+        'image_url' => dent_clean_text((string) ($seed['image_url'] ?? ($seed['imageUrl'] ?? '')), 420),
         'amount' => $amount,
         'status' => $status,
         'gateway' => payments_gateway_key_clean((string) ($seed['gateway'] ?? '')),
@@ -1561,6 +1562,14 @@ function payments_owner_order_payload(array $order, ?array $item = null): array
         'paidAt' => (string) ($order['paid_at'] ?? ''),
         'verifiedAt' => (string) ($order['verified_at'] ?? ''),
         'publicToken' => (string) ($order['public_token'] ?? ''),
+        'source' => function_exists('payments_api_order_source_key') ? payments_api_order_source_key($order) : '',
+        'sourceLabel' => function_exists('payments_api_order_source_key') && function_exists('payments_api_order_source_label')
+            ? payments_api_order_source_label(payments_api_order_source_key($order))
+            : '',
+        'paymentMethod' => function_exists('payments_api_order_method_key') ? payments_api_order_method_key($order) : '',
+        'paymentMethodLabel' => function_exists('payments_api_order_method_key') && function_exists('payments_api_order_method_label')
+            ? payments_api_order_method_label(payments_api_order_method_key($order))
+            : '',
     ];
 }
 

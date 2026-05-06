@@ -94,6 +94,19 @@
         });
     }
 
+    function apiPostFormData(action, formData) {
+        formData = formData || new FormData();
+        formData.append("action", action);
+        return fetch("/api/forms_api.php", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { Accept: "application/json" },
+            body: formData
+        }).then(parseApiResponse).catch(function () {
+            return { success: false, httpStatus: 0, error: "ارتباط با سرور برقرار نشد." };
+        });
+    }
+
     function paymentApiGet(action, payload) {
         var query = new URLSearchParams(Object.assign({ action: action }, payload || {}));
         return fetch("/api/payments_api.php?" + query.toString(), {
@@ -145,6 +158,52 @@
             if (code >= 0x06F0 && code <= 0x06F9) return String(code - 0x06F0);
             return String(code - 0x0660);
         });
+    }
+
+    function bankNameFromCard(cardNumber) {
+        var digits = normalizeDigits(cardNumber).replace(/\D+/g, "");
+        var prefix6 = digits.slice(0, 6);
+        var prefix4 = digits.slice(0, 4);
+        var banks = {
+            "603799": "بانک ملی ایران",
+            "589210": "بانک سپه",
+            "627648": "بانک توسعه صادرات",
+            "627961": "بانک صنعت و معدن",
+            "603770": "بانک کشاورزی",
+            "628023": "بانک مسکن",
+            "627760": "پست بانک ایران",
+            "502908": "بانک توسعه تعاون",
+            "627412": "بانک اقتصاد نوین",
+            "622106": "بانک پارسیان",
+            "639194": "بانک پارسیان",
+            "627884": "بانک پارسیان",
+            "502229": "بانک پاسارگاد",
+            "639347": "بانک پاسارگاد",
+            "627488": "بانک کارآفرین",
+            "502910": "بانک کارآفرین",
+            "621986": "بانک سامان",
+            "639346": "بانک سینا",
+            "639607": "بانک سرمایه",
+            "636214": "بانک آینده",
+            "502806": "بانک شهر",
+            "502938": "بانک دی",
+            "603769": "بانک صادرات ایران",
+            "610433": "بانک ملت",
+            "991975": "بانک ملت",
+            "627353": "بانک تجارت",
+            "585983": "بانک تجارت",
+            "589463": "بانک رفاه کارگران",
+            "627381": "بانک انصار",
+            "639370": "بانک مهر اقتصاد",
+            "639599": "بانک قوامین",
+            "504172": "بانک رسالت",
+            "636949": "بانک حکمت ایرانیان",
+            "505416": "بانک گردشگری",
+            "505785": "بانک ایران زمین",
+            "606373": "بانک قرض الحسنه مهر ایران",
+            "505801": "موسسه کوثر"
+        };
+        return banks[prefix6] || banks[prefix4] || "";
     }
 
     function money(value) {
@@ -252,7 +311,7 @@
             paymentBox.className = "forms-payment-box" + (paid ? " is-paid" : "");
             paymentBox.innerHTML = [
                 '<strong>' + escapeHtml(money(amount)) + "</strong>",
-                paid ? '<p>پرداخت این سوال تایید شده است.</p>' : '<p>برای ثبت پاسخ فرم، ابتدا این مبلغ را پرداخت کنید.</p>'
+                paid ? '<p>پرداخت این سوال تایید شده است.</p>' : '<p>برای ثبت پاسخ فرم، ابتدا این مبلغ را پرداخت کنید. پس از پرداخت روی اتمام پرداخت بزنید و به همین صفحه برگردید تا پیام تایید را ببینید.</p>'
             ].join("");
             card.appendChild(paymentBox);
             if (paid) {
@@ -307,6 +366,41 @@
             feedbackNode.className = "forms-feedback";
             feedbackNode.dataset.paymentFeedback = "1";
             card.appendChild(feedbackNode);
+            return card;
+        }
+
+        if (type === "receipt_payment") {
+            var receipt = field.receiptPayment || {};
+            var receiptStatus = field.receiptStatus || {};
+            var receiptAmount = Number((receiptStatus && receiptStatus.amount) || receipt.amount || 0);
+            var cardNumber = normalizeDigits(String(receipt.cardNumber || "")).replace(/\D+/g, "");
+            var bankName = String(receipt.bankName || bankNameFromCard(cardNumber) || "");
+            var uploaded = !!receiptStatus.uploaded;
+            var fileName = String(receiptStatus.originalName || receiptStatus.fileName || "");
+            var receiptBox = document.createElement("div");
+            receiptBox.className = "forms-receipt-payment-box" + (uploaded ? " is-uploaded" : "");
+            receiptBox.innerHTML = [
+                '<div class="forms-receipt-pay-card">',
+                '  <div class="forms-receipt-row"><span>مبلغ</span><strong>' + escapeHtml(money(receiptAmount)) + '</strong><button class="forms-copy-mini" type="button" data-copy-receipt-value="' + escapeHtml(String(receiptAmount || "")) + '" aria-label="کپی مبلغ">⧉</button></div>',
+                '  <div class="forms-receipt-row"><span>شماره کارت</span><strong dir="ltr">' + escapeHtml(cardNumber || "—") + '</strong><button class="forms-copy-mini" type="button" data-copy-receipt-value="' + escapeHtml(cardNumber) + '" aria-label="کپی شماره کارت">⧉</button></div>',
+                '  <div class="forms-receipt-row forms-receipt-row--muted"><span>صاحب کارت</span><strong>' + escapeHtml(receipt.cardholder || "—") + '</strong></div>',
+                '  <div class="forms-receipt-bank">' + escapeHtml(bankName || "بانک صادرکننده پس از شناسایی شماره کارت نمایش داده می‌شود.") + "</div>",
+                "</div>",
+                uploaded ? '<div class="forms-receipt-status">رسید بارگذاری شده است' + (fileName ? (": " + escapeHtml(fileName)) : "") + "</div>" : '<div class="forms-receipt-status">برای تکمیل این بخش، تصویر یا PDF رسید را بارگذاری کنید.</div>'
+            ].join("");
+            card.appendChild(receiptBox);
+
+            var uploadWrap = document.createElement("div");
+            uploadWrap.className = "forms-receipt-upload";
+            uploadWrap.innerHTML = [
+                '<label class="forms-receipt-file">',
+                '  <span>فایل رسید</span>',
+                '  <input type="file" accept="image/*,application/pdf" data-receipt-file="1">',
+                "</label>",
+                '<button class="forms-btn forms-btn--primary" type="button" data-upload-receipt-field-id="' + escapeHtml(String(field.id || "")) + '">' + (uploaded ? "بارگذاری دوباره رسید" : "بارگذاری رسید") + "</button>",
+                '<div class="forms-feedback" data-receipt-feedback="1" aria-live="polite"></div>'
+            ].join("");
+            card.appendChild(uploadWrap);
             return card;
         }
 
@@ -523,7 +617,7 @@
             var type = String(field.type || "short_text");
             var card = fieldsRoot.querySelector('[data-field-id="' + fieldId.replace(/"/g, "") + '"]');
             if (!card) return;
-            if (type === "payment") {
+            if (type === "payment" || type === "receipt_payment") {
                 return;
             }
             if (type === "multiple_choice") {
@@ -579,7 +673,7 @@
         state.loading = true;
         refreshBtn.disabled = true;
         try {
-            var response = await apiGet("get", { form: formId });
+            var response = await apiGet("get", { form: formId, guestKey: guestKey() });
             if (response && response.httpStatus === 401) {
                 loginLink.href = window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search);
                 showStage("login");
@@ -650,6 +744,56 @@
         }
     }
 
+    async function uploadReceipt(button) {
+        if (!state.form || !button) return;
+        var fieldId = String(button.dataset.uploadReceiptFieldId || "");
+        var card = button.closest(".forms-fill-question");
+        var feedbackNode = card ? card.querySelector("[data-receipt-feedback]") : null;
+        var fileInput = card ? card.querySelector("[data-receipt-file]") : null;
+        var setReceiptFeedback = function (message, kind) {
+            if (!feedbackNode) return;
+            feedbackNode.textContent = message || "";
+            feedbackNode.className = "forms-feedback" + (kind ? " is-" + kind : "");
+        };
+        if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+            setReceiptFeedback("فایل رسید را انتخاب کنید.", "error");
+            return;
+        }
+        var body = new FormData();
+        body.append("formId", String(state.form.id || formId));
+        body.append("fieldId", fieldId);
+        body.append("guestKey", guestKey());
+        body.append("guestName", String(guestNameInput.value || "").trim());
+        body.append("guestPhone", normalizeDigits(guestPhoneInput.value || ""));
+        body.append("receipt", fileInput.files[0]);
+        button.disabled = true;
+        setReceiptFeedback("در حال بارگذاری رسید...", "");
+        try {
+            var response = await apiPostFormData("uploadReceipt", body);
+            if (response && response.httpStatus === 401) {
+                loginLink.href = window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search);
+                showStage("login");
+                return;
+            }
+            if (!response || !response.success || !response.receipt) {
+                throw new Error((response && response.error) || "آپلود رسید انجام نشد.");
+            }
+            (Array.isArray(state.form.fields) ? state.form.fields : []).forEach(function (field) {
+                if (String(field.id || "") === fieldId) {
+                    field.receiptStatus = Object.assign({}, response.receipt, {
+                        amount: field.receiptPayment && field.receiptPayment.amount ? field.receiptPayment.amount : 0
+                    });
+                }
+            });
+            renderForm({ form: state.form, viewer: state.viewer });
+            setFeedback(String(response.message || "رسید بارگذاری شد."), "success");
+            showToast("رسید بارگذاری شد.");
+        } catch (error) {
+            button.disabled = false;
+            setReceiptFeedback(error && error.message ? error.message : "آپلود رسید انجام نشد.", "error");
+        }
+    }
+
     async function submitForm(event) {
         event.preventDefault();
         if (!state.form || submitBtn.disabled) return;
@@ -694,6 +838,20 @@
 
     refreshBtn.addEventListener("click", loadForm);
     fieldsRoot.addEventListener("click", function (event) {
+        var copyButton = event.target && event.target.closest("[data-copy-receipt-value]");
+        if (copyButton) {
+            copyText(String(copyButton.getAttribute("data-copy-receipt-value") || "")).then(function () {
+                showToast("کپی شد.");
+            }).catch(function () {
+                showToast("کپی انجام نشد.");
+            });
+            return;
+        }
+        var uploadButton = event.target && event.target.closest("[data-upload-receipt-field-id]");
+        if (uploadButton) {
+            uploadReceipt(uploadButton);
+            return;
+        }
         var button = event.target && event.target.closest("[data-pay-field-id]");
         if (button) {
             payFormField(button);

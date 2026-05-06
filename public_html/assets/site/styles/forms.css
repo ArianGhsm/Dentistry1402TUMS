@@ -525,6 +525,92 @@ body.forms-page button {
     background: color-mix(in srgb, var(--success-color) 9%, var(--forms-surface-solid));
 }
 
+.forms-receipt-payment-box,
+.forms-receipt-upload {
+    display: grid;
+    gap: 0.62rem;
+}
+
+.forms-receipt-pay-card {
+    border: 1px solid color-mix(in srgb, var(--forms-accent) 24%, var(--forms-border));
+    border-radius: 12px;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--forms-accent) 10%, transparent), transparent 54%),
+        var(--forms-surface-solid);
+    padding: 0.72rem;
+    display: grid;
+    gap: 0.52rem;
+}
+
+.forms-receipt-row {
+    display: grid;
+    grid-template-columns: minmax(5rem, auto) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.forms-receipt-row span,
+.forms-receipt-bank,
+.forms-receipt-status {
+    color: var(--forms-text-soft);
+    font-size: 0.78rem;
+    line-height: 1.8;
+}
+
+.forms-receipt-row strong {
+    min-width: 0;
+    color: var(--forms-text);
+    font-size: 0.9rem;
+    font-weight: 850;
+    overflow-wrap: anywhere;
+}
+
+.forms-receipt-row--muted {
+    grid-template-columns: minmax(5rem, auto) minmax(0, 1fr);
+}
+
+.forms-copy-mini {
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--forms-border);
+    border-radius: 8px;
+    background: var(--forms-muted);
+    color: var(--forms-text);
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.forms-copy-mini:hover,
+.forms-copy-mini:focus-visible {
+    border-color: color-mix(in srgb, var(--forms-accent) 42%, var(--forms-border));
+    background: var(--forms-accent-soft);
+}
+
+.forms-receipt-payment-box.is-uploaded .forms-receipt-status {
+    color: var(--forms-success);
+    font-weight: 800;
+}
+
+.forms-receipt-file {
+    border: 1px dashed color-mix(in srgb, var(--forms-accent) 36%, var(--forms-border));
+    border-radius: 12px;
+    background: var(--forms-muted);
+    padding: 0.7rem;
+    display: grid;
+    gap: 0.45rem;
+}
+
+.forms-receipt-file span {
+    color: var(--forms-text-soft);
+    font-size: 0.78rem;
+}
+
+.forms-receipt-file input {
+    width: 100%;
+    min-width: 0;
+}
+
 .forms-choice {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -740,7 +826,8 @@ html[data-theme="dark"] .forms-result-bar {
     .forms-field textarea,
     .forms-field select,
     .forms-card-head select,
-    .forms-share-input {
+    .forms-share-input,
+    .forms-receipt-file input {
         font-size: 16px;
     }
 }

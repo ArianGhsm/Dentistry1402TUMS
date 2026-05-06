@@ -39,6 +39,9 @@
         ordersSummary: null,
         orderFilters: {
             itemId: "0",
+            source: "",
+            method: "",
+            formId: "",
             status: "all",
             dateFrom: "",
             dateTo: "",
@@ -613,6 +616,9 @@
     function currentFilters() {
         return {
             itemId: $("payments-filter-item") ? String($("payments-filter-item").value || "0") : state.orderFilters.itemId,
+            source: $("payments-filter-source") ? String($("payments-filter-source").value || "") : state.orderFilters.source,
+            method: $("payments-filter-method") ? String($("payments-filter-method").value || "") : state.orderFilters.method,
+            formId: $("payments-filter-form") ? String($("payments-filter-form").value || "") : state.orderFilters.formId,
             status: $("payments-filter-status") ? String($("payments-filter-status").value || "all") : state.orderFilters.status,
             dateFrom: $("payments-filter-date-from") ? String($("payments-filter-date-from").value || "") : state.orderFilters.dateFrom,
             dateTo: $("payments-filter-date-to") ? String($("payments-filter-date-to").value || "") : state.orderFilters.dateTo,
@@ -642,6 +648,9 @@
             if (response.filters && typeof response.filters === "object") {
                 state.orderFilters = {
                     itemId: String(response.filters.itemId || "0"),
+                    source: String(response.filters.source || "") === "all" ? "" : String(response.filters.source || ""),
+                    method: String(response.filters.method || "") === "all" ? "" : String(response.filters.method || ""),
+                    formId: String(response.filters.formId || ""),
                     status: String(response.filters.status || "all"),
                     dateFrom: String(response.filters.dateFrom || ""),
                     dateTo: String(response.filters.dateTo || ""),
@@ -702,7 +711,7 @@
             }).join(""),
             "</section>",
             '<section class="owner-block owner-block--payments">',
-            '  <div class="owner-block__head"><h4>اعلان‌های اخیر پرداخت</h4><p>آخرین تغییرات وضعیت سفارش‌ها و پرداخت‌ها.</p></div>',
+            '  <div class="owner-block__head"><div><h4>اعلان‌های اخیر پرداخت</h4><p>آخرین تغییرات وضعیت سفارش‌ها و پرداخت‌ها؛ اعلان‌های خوانده‌نشده بالاتر نمایش داده می‌شوند.</p></div><button class="shell-action-btn" type="button" data-payment-read-all-notes>خواندن همه</button></div>',
             '  <div id="payments-notifications-list" class="payments-notifications-list">',
             notificationsHtml(),
             "  </div>",
@@ -714,7 +723,12 @@
         if (!state.notifications.length) {
             return '<div class="owner-empty">اعلان مالی جدیدی ثبت نشده است.</div>';
         }
-        return state.notifications.slice(0, 12).map(function (note) {
+        return state.notifications.slice().sort(function (a, b) {
+            var aRead = !!String(a.read_at || "").trim();
+            var bRead = !!String(b.read_at || "").trim();
+            if (aRead !== bRead) return aRead ? 1 : -1;
+            return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+        }).slice(0, 12).map(function (note) {
             var read = !!String(note.read_at || "").trim();
             return [
                 '<article class="payments-note' + (read ? "" : " is-unread") + '">',
@@ -1450,9 +1464,11 @@
             '<section class="buy-manage-editor buy-manage-editor--collections">',
             '  <form id="payments-collection-form" class="payments-filter-grid payments-filter-grid--refined buy-manage-gateway-form" novalidate>',
             '    <input id="payments-collection-id" type="hidden">',
+            '    <input id="payments-collection-image" type="hidden">',
             '    <div class="payments-filter-row payments-filter-row--full"><label for="payments-collection-title">عنوان هزینه</label><input id="payments-collection-title" type="text" maxlength="160" required placeholder="مثلا هزینه روپوش یا اردو"></div>',
             '    <div class="payments-filter-row"><label for="payments-collection-amount">مبلغ (ریال)</label><input id="payments-collection-amount" type="text" inputmode="numeric" dir="ltr" data-latin-digits="true" required placeholder="500000"></div>',
             '    <div class="payments-filter-row"><label for="payments-collection-status">وضعیت</label><select id="payments-collection-status"><option value="active">فعال</option><option value="inactive">غیرفعال</option></select></div>',
+            '    <div class="payments-filter-row payments-filter-row--full payments-collection-image-row"><label for="payments-collection-image-file">تصویر اختیاری لینک</label><input id="payments-collection-image-file" type="file" accept="image/jpeg,image/png,image/webp"><div id="payments-collection-image-preview" class="payments-collection-image-preview"><span>بدون تصویر</span></div><small id="payments-collection-image-status">تصویر اختیاری است و در صفحه پرداخت نمایش داده می‌شود.</small></div>',
             '    <div class="payments-filter-row payments-filter-row--full"><label for="payments-collection-gateway">درگاه پیش‌فرض این لینک</label><select id="payments-collection-gateway">' + collectionGatewayOptions("") + "</select></div>",
             collectionSwitch("payments-collection-allow-guest", "پرداخت بدون ورود فعال باشد", "اگر فعال باشد، افراد مهمان هم می‌توانند از این لینک پرداخت کنند.", false),
             collectionSwitch("payments-collection-collect-name", "نام و نام خانوادگی در فرم پرداخت گرفته شود", "برای مهمان‌ها به‌صورت پیش‌فرض روشن بماند؛ کاربران واردشده در صورت خاموش بودن از اطلاعات حساب ثبت می‌شوند.", true),
@@ -1480,8 +1496,10 @@
         node.innerHTML = state.collections.map(function (collection) {
             var publicUrl = absoluteUrl(collection.publicPath || "");
             var enabled = String(collection.status || "") === "active";
+            var image = safeImageUrl(collection.imageUrl || "");
             return [
                 '<article class="payments-item-card buy-manage-row payments-collection-card">',
+                image ? '<div class="payments-collection-thumb"><img src="' + escapeHtml(image) + '" alt="' + escapeHtml(collection.title || "تصویر هزینه") + '"></div>' : "",
                 '  <div class="payments-item-card__head">',
                 '    <div><span class="payments-pill payments-pill--' + (enabled ? "ok" : "warn") + '">' + (enabled ? "فعال" : "غیرفعال") + "</span><h4>" + escapeHtml(collection.title || "هزینه بدون عنوان") + "</h4><p>" + escapeHtml(collection.description || "لینک پرداخت هزینه") + "</p></div>",
                 '    <strong>' + escapeHtml(money(collection.amount || 0)) + "</strong>",
@@ -1505,9 +1523,17 @@
         }).join("");
     }
 
+    function updateCollectionImagePreview() {
+        var node = $("payments-collection-image-preview");
+        if (!node) return;
+        var image = safeImageUrl(readField("payments-collection-image"));
+        node.innerHTML = image ? '<img src="' + escapeHtml(image) + '" alt="تصویر لینک پرداخت">' : "<span>بدون تصویر</span>";
+    }
+
     function resetCollectionForm(clearFeedback) {
         if ($("payments-collection-form")) $("payments-collection-form").reset();
         writeField("payments-collection-id", "");
+        writeField("payments-collection-image", "");
         writeField("payments-collection-status", "active");
         if ($("payments-collection-gateway")) {
             $("payments-collection-gateway").innerHTML = collectionGatewayOptions("");
@@ -1516,6 +1542,8 @@
         if ($("payments-collection-collect-name")) $("payments-collection-collect-name").checked = true;
         if ($("payments-collection-collect-phone")) $("payments-collection-collect-phone").checked = true;
         if ($("payments-collection-collect-student")) $("payments-collection-collect-student").checked = false;
+        updateCollectionImagePreview();
+        if ($("payments-collection-image-status")) $("payments-collection-image-status").textContent = "تصویر اختیاری است و در صفحه پرداخت نمایش داده می‌شود.";
         if (clearFeedback !== false) {
             setFeedback(feedbackNode, "", "");
         }
@@ -1541,6 +1569,8 @@
         writeField("payments-collection-description", collection.description || "");
         writeField("payments-collection-success", collection.successMessage || "");
         writeField("payments-collection-failure", collection.failureMessage || "");
+        writeField("payments-collection-image", collection.imageUrl || "");
+        updateCollectionImagePreview();
         var form = $("payments-collection-form");
         if (form && typeof form.scrollIntoView === "function") {
             form.scrollIntoView({ block: "start", behavior: "smooth" });
@@ -1560,10 +1590,27 @@
             return;
         }
         setFeedback(feedbackNode, "در حال ذخیره لینک پرداخت...", "", true);
+        var imageUrl = safeImageUrl(readField("payments-collection-image"));
+        var imageFileInput = $("payments-collection-image-file");
+        var imageFile = imageFileInput && imageFileInput.files && imageFileInput.files[0] ? imageFileInput.files[0] : null;
+        if (imageFile) {
+            try {
+                setFeedback(feedbackNode, "در حال آپلود تصویر لینک پرداخت...", "", true);
+                var storedImage = await uploadPaymentImage(imageFile);
+                imageUrl = storedImage.url || imageUrl;
+                writeField("payments-collection-image", imageUrl);
+                updateCollectionImagePreview();
+            } catch (error) {
+                setFeedback(feedbackNode, error && error.message ? error.message : "آپلود تصویر انجام نشد.", "error");
+                return;
+            }
+        }
+        setFeedback(feedbackNode, "در حال ذخیره لینک پرداخت...", "", true);
         var response = await request("ownerSaveCollection", {
             id: readField("payments-collection-id"),
             title: title,
             amount: amount,
+            imageUrl: imageUrl,
             status: readField("payments-collection-status") || "active",
             gateway: readField("payments-collection-gateway"),
             description: readField("payments-collection-description"),
@@ -1806,6 +1853,20 @@
         setFeedback(feedbackNode, response.message || "درگاه حذف شد.", "success");
     }
 
+    function breakdownOptions(kind, allLabel, selected) {
+        var breakdowns = state.summary && state.summary.breakdowns && typeof state.summary.breakdowns === "object"
+            ? state.summary.breakdowns
+            : {};
+        var rows = Array.isArray(breakdowns[kind]) ? breakdowns[kind] : (breakdowns[kind] && Array.isArray(breakdowns[kind].items) ? breakdowns[kind].items : []);
+        var selectedKey = String(selected || "");
+        return ['<option value="">' + escapeHtml(allLabel) + "</option>"].concat(rows.map(function (entry) {
+            var key = String(entry.key || "");
+            if (!key) return "";
+            var label = String(entry.label || key) + " (" + Number(entry.successOrders || entry.successCount || 0).toLocaleString("fa-IR") + ")";
+            return '<option value="' + escapeHtml(key) + '"' + (key === selectedKey ? " selected" : "") + '>' + escapeHtml(label) + "</option>";
+        }).filter(Boolean)).join("");
+    }
+
     function renderOrdersPage() {
         setHead("سوابق", "سوابق خرید و خریداران", "سوابق بر اساس پوشه‌های وضعیت، بازه زمانی و آیتم مدیریت می‌شوند؛ خروجی و پاکسازی هم از همین فیلتر انجام می‌شود.");
         setActions([
@@ -1815,11 +1876,17 @@
         var itemOptions = ['<option value="0">همه آیتم‌ها</option>'].concat(state.items.map(function (item) {
             return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.title || "بدون عنوان") + "</option>";
         }));
+        var sourceOptions = breakdownOptions("sources", "همه مسیرهای پرداخت", state.orderFilters.source);
+        var methodOptions = breakdownOptions("methods", "همه روش‌های پرداخت", state.orderFilters.method);
+        var formOptions = breakdownOptions("forms", "همه فرم‌ها", state.orderFilters.formId);
         root.innerHTML = [
             orderFoldersHtml(),
             '<section class="payments-history-panel" aria-label="فیلتر و عملیات سوابق">',
             '<form id="payments-orders-filter-form" class="payments-filter-grid payments-filter-grid--refined buy-manage-orders-filter" novalidate>',
             '  <div class="payments-filter-row"><label for="payments-filter-item">آیتم</label><select id="payments-filter-item">' + itemOptions.join("") + "</select></div>",
+            '  <div class="payments-filter-row"><label for="payments-filter-source">مسیر پرداخت</label><select id="payments-filter-source">' + sourceOptions + "</select></div>",
+            '  <div class="payments-filter-row"><label for="payments-filter-method">روش پرداخت</label><select id="payments-filter-method">' + methodOptions + "</select></div>",
+            '  <div class="payments-filter-row"><label for="payments-filter-form">فرم</label><select id="payments-filter-form">' + formOptions + "</select></div>",
             '  <div class="payments-filter-row"><label for="payments-filter-date-from">از تاریخ</label><input id="payments-filter-date-from" type="date"></div>',
             '  <div class="payments-filter-row"><label for="payments-filter-date-to">تا تاریخ</label><input id="payments-filter-date-to" type="date"></div>',
             '  <div class="payments-filter-row payments-filter-row--full"><label for="payments-filter-query">جست‌وجو</label><input id="payments-filter-query" type="search" placeholder="نام، شماره، authority یا ref id"></div>',
@@ -1839,6 +1906,9 @@
             '<div id="payments-orders-list" class="payments-orders-list buy-manage-list"><div class="owner-empty">در حال دریافت سفارش‌ها...</div></div>'
         ].join("");
         $("payments-filter-item").value = state.orderFilters.itemId;
+        $("payments-filter-source").value = state.orderFilters.source || "";
+        $("payments-filter-method").value = state.orderFilters.method || "";
+        $("payments-filter-form").value = state.orderFilters.formId || "";
         $("payments-filter-date-from").value = state.orderFilters.dateFrom;
         $("payments-filter-date-to").value = state.orderFilters.dateTo;
         $("payments-filter-query").value = state.orderFilters.query;
@@ -1871,6 +1941,28 @@
         ].join("");
     }
 
+    function breakdownGroupHtml(summary, kind, title) {
+        var breakdowns = summary && summary.breakdowns && typeof summary.breakdowns === "object" ? summary.breakdowns : {};
+        var rows = Array.isArray(breakdowns[kind]) ? breakdowns[kind] : (breakdowns[kind] && Array.isArray(breakdowns[kind].items) ? breakdowns[kind].items : []);
+        if (!rows.length) {
+            return "";
+        }
+        return [
+            '<section class="payments-breakdown-group">',
+            '<h5>' + escapeHtml(title) + "</h5>",
+            rows.slice(0, 6).map(function (entry) {
+                return [
+                    '<div class="payments-breakdown-row">',
+                    '<span>' + escapeHtml(entry.label || entry.key || "—") + "</span>",
+                    '<strong>' + escapeHtml(money(entry.receivedAmount || entry.successAmount || 0)) + "</strong>",
+                    '<small>' + escapeHtml(Number(entry.successOrders || entry.successCount || 0).toLocaleString("fa-IR")) + " پرداخت</small>",
+                    "</div>"
+                ].join("");
+            }).join(""),
+            "</section>"
+        ].join("");
+    }
+
     function renderOrdersSummary() {
         var node = $("payments-orders-summary");
         if (!node) {
@@ -1885,7 +1977,13 @@
             summaryCard("نمایش‌شده", Number(summary.totalOrders || 0).toLocaleString("fa-IR"), "خروجی فیلتر فعلی"),
             summaryCard("گردش فیلتر", money(summary.totalAmount || 0), "جمع مبلغ همه وضعیت‌ها"),
             summaryCard("دریافتی", money(summary.totalReceived || 0), "پرداخت‌های تاییدشده", (summary.totalReceived || 0) > 0 ? "ok" : ""),
-            summaryCard("پرداخت‌نشده", money(summary.totalUnfinishedAmount || 0), "در انتظار، ناموفق، لغو یا منقضی", (summary.totalUnfinishedAmount || 0) > 0 ? "warn" : "")
+            summaryCard("پرداخت‌نشده", money(summary.totalUnfinishedAmount || 0), "در انتظار، ناموفق، لغو یا منقضی", (summary.totalUnfinishedAmount || 0) > 0 ? "warn" : ""),
+            '<div class="payments-breakdown-strip">',
+            breakdownGroupHtml(summary, "sources", "تفکیک مسیر"),
+            breakdownGroupHtml(summary, "methods", "تفکیک روش پرداخت"),
+            breakdownGroupHtml(summary, "forms", "تفکیک فرم‌ها"),
+            breakdownGroupHtml(summary, "collections", "تفکیک لینک‌های هزینه"),
+            "</div>"
         ].join("");
     }
 
@@ -1915,6 +2013,8 @@
                 "  </div>",
                 '  <div class="payments-order-card__meta">',
                 '    <span>تعداد: ' + escapeHtml(Number(order.quantity || 1).toLocaleString("fa-IR")) + "</span>",
+                '    <span>مسیر: ' + escapeHtml(order.sourceLabel || order.source || "—") + "</span>",
+                '    <span>روش: ' + escapeHtml(order.paymentMethodLabel || order.paymentMethod || "—") + "</span>",
                 '    <span>موبایل: ' + escapeHtml(order.payerPhone || "—") + "</span>",
                 '    <span>ثبت: ' + escapeHtml(formatDateTime(order.createdAt, "—")) + "</span>",
                 '    <span>authority: ' + escapeHtml(order.authority || "—") + "</span>",
@@ -1922,6 +2022,7 @@
                 '  <div class="payments-order-card__actions">',
                 '    <a class="shell-action-btn shell-action-btn-primary" href="/buy/manage/orders/detail/?id=' + encodeURIComponent(String(order.id || "")) + '">جزئیات</a>',
                 order.publicToken ? '<a class="shell-action-btn" href="/buy/result/?orderToken=' + encodeURIComponent(String(order.publicToken)) + '" target="_blank" rel="noopener">صفحه نتیجه</a>' : "",
+                order.authority && order.status !== "success" ? '<button class="shell-action-btn" type="button" data-payment-verify-order="' + escapeHtml(order.id) + '">استعلام درگاه</button>' : "",
                 '    <button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-delete-order="' + escapeHtml(order.id) + '">حذف از سوابق</button>',
                 "  </div>",
                 "</article>"
@@ -2074,6 +2175,8 @@
             detailRow("شماره موبایل", order.payerPhone || "—"),
             detailRow("شماره دانشجویی", order.payerStudentNumber || "—"),
             detailRow("وضعیت", statusLabel(order.status)),
+            detailRow("مسیر پرداخت", order.sourceLabel || order.source || "—"),
+            detailRow("روش پرداخت", order.paymentMethodLabel || order.paymentMethod || "—"),
             detailRow("تعداد کل", Number(order.quantity || 1).toLocaleString("fa-IR")),
             detailRow("قیمت واحد", money(order.unitPrice || 0)),
             detailRow("جمع قبل از تخفیف", money(order.subtotal || order.amount || 0)),
@@ -2087,6 +2190,7 @@
             extras,
             "  </div>",
             '  <div class="payments-item-card__actions payments-order-admin-actions">',
+            order.authority && order.status !== "success" ? '<button class="shell-action-btn shell-action-btn-primary" type="button" data-payment-verify-order="' + escapeHtml(order.id) + '">استعلام دوباره از درگاه</button>' : "",
             order.status === "pending" ? '<button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-status-update="' + escapeHtml(order.id) + '" data-payment-next-status="canceled">لغو سفارش</button>' : "",
             order.status !== "pending" && order.status !== "success" ? '<button class="shell-action-btn" type="button" data-payment-status-update="' + escapeHtml(order.id) + '" data-payment-next-status="pending">بازگردانی به در انتظار</button>' : "",
             '<button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-delete-order="' + escapeHtml(order.id) + '" data-payment-delete-return="orders">حذف سفارش از سوابق</button>',
@@ -2114,6 +2218,26 @@
         }
         setFeedback(feedbackNode, response.message || "وضعیت سفارش به‌روزرسانی شد.", "success");
         await loadOrderDetail(orderId);
+    }
+
+    async function verifyOrder(orderId) {
+        if (!orderId) {
+            return;
+        }
+        setFeedback(feedbackNode, "در حال استعلام وضعیت پرداخت از درگاه...", "", true);
+        var response = await request("ownerVerifyOrder", { id: orderId }, "POST");
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) return;
+        if (!response || !response.success) {
+            setFeedback(feedbackNode, (response && response.error) || "استعلام درگاه انجام نشد.", "error");
+            return;
+        }
+        await loadDashboard(true);
+        if (page === "order-detail") {
+            await loadOrderDetail(orderId);
+        } else {
+            await loadOrders(true);
+        }
+        setFeedback(feedbackNode, response.message || "استعلام درگاه انجام شد.", "success");
     }
 
     async function deleteOrder(orderId, returnToOrders) {
@@ -2224,7 +2348,8 @@
     }
 
     async function markNotificationRead(id) {
-        var response = await request("ownerMarkNotificationRead", { id: id }, "POST");
+        var payload = String(id || "") === "all" ? { all: "1" } : { id: id };
+        var response = await request("ownerMarkNotificationRead", payload, "POST");
         if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) return;
         if (!response || !response.success) {
             setFeedback(feedbackNode, (response && response.error) || "به‌روزرسانی اعلان انجام نشد.", "error");
@@ -2232,7 +2357,7 @@
         }
         await loadDashboard(true);
         renderPage();
-        setFeedback(feedbackNode, "اعلان خوانده شد.", "success");
+        setFeedback(feedbackNode, String(id || "") === "all" ? "همه اعلان‌های پرداخت خوانده شد." : "اعلان خوانده شد.", "success");
     }
 
     function copyText(value, successText) {
@@ -2340,6 +2465,11 @@
             markNotificationRead(readNote.getAttribute("data-payment-read-note"));
             return;
         }
+        var readAllNotes = event.target.closest("[data-payment-read-all-notes]");
+        if (readAllNotes) {
+            markNotificationRead("all");
+            return;
+        }
         var orderFolder = event.target.closest("[data-payment-order-folder]");
         if (orderFolder) {
             state.orderFilters.status = String(orderFolder.getAttribute("data-payment-order-folder") || "all");
@@ -2370,6 +2500,11 @@
                 deleteOrderButton.getAttribute("data-payment-delete-order"),
                 String(deleteOrderButton.getAttribute("data-payment-delete-return") || "") === "orders"
             );
+            return;
+        }
+        var verifyOrderButton = event.target.closest("[data-payment-verify-order]");
+        if (verifyOrderButton) {
+            verifyOrder(verifyOrderButton.getAttribute("data-payment-verify-order"));
             return;
         }
         var copyButton = event.target.closest("[data-payment-copy-link]");
@@ -2515,7 +2650,7 @@
 
     app.addEventListener("click", function (event) {
         if (event.target && event.target.id === "payments-filter-reset") {
-            state.orderFilters = { itemId: "0", status: "all", dateFrom: "", dateTo: "", query: "" };
+            state.orderFilters = { itemId: "0", source: "", method: "", formId: "", status: "all", dateFrom: "", dateTo: "", query: "" };
             renderOrdersPage();
             loadOrders(false);
         }

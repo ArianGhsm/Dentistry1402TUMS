@@ -884,6 +884,25 @@ function chat_sanitize_reactions($raw): array
     return $normalized;
 }
 
+function chat_reaction_users_payload(array $reactions): array
+{
+    $payload = [];
+    foreach (chat_sanitize_reactions($reactions) as $emoji => $studentNumbers) {
+        $users = [];
+        foreach ($studentNumbers as $studentNumber) {
+            $user = chat_public_user_for_student((string) $studentNumber);
+            if ((string) ($user['studentNumber'] ?? '') !== '') {
+                $users[] = $user;
+            }
+        }
+        if ($users !== []) {
+            $payload[$emoji] = $users;
+        }
+    }
+
+    return $payload;
+}
+
 function chat_normalize_message_record(array $message, string $conversationId): ?array
 {
     $senderStudentNumber = dent_normalize_student_number((string) (
@@ -1234,7 +1253,7 @@ function chat_normalize_conversation_record(string $conversationId, array $conve
         'avatarUrl' => $avatarUrl,
         'createdAt' => $createdAt,
         'updatedAt' => $updatedAt,
-        'createdBy' => $createdBy !== '' ? $createdBy : 'system',
+        'createdBy' => $type === 'direct' ? '' : ($createdBy !== '' ? $createdBy : 'system'),
         'mandatory' => $type === 'class-group' ? true : (bool) ($conversation['mandatory'] ?? false),
         'memberStudentNumbers' => $memberStudentNumbers,
         'directParticipants' => $directParticipants,
@@ -3815,6 +3834,7 @@ function chat_normalize_message_for_client(array $message, ?array $store = null,
         'replyTo' => isset($message['replyTo']) ? (int) $message['replyTo'] : null,
         'pinned' => (bool) ($message['pinned'] ?? false),
         'reactions' => chat_sanitize_reactions($message['reactions'] ?? []),
+        'reactionUsers' => chat_reaction_users_payload($message['reactions'] ?? []),
         'role' => (string) ($sender['role'] ?? 'student'),
         'roleLabel' => (string) ($sender['roleLabel'] ?? dent_role_label('student')),
         'canModerateChat' => (bool) ($sender['canModerateChat'] ?? false),
@@ -4305,9 +4325,7 @@ function chat_try_repair_direct_conversation_for_student(
         ? chat_default_settings($conversation['settings'])
         : chat_default_settings();
 
-    if (dent_normalize_student_number((string) ($conversation['createdBy'] ?? '')) === '') {
-        $conversation['createdBy'] = $studentNumber;
-    }
+    $conversation['createdBy'] = '';
 
     chat_put_conversation($store, $conversation);
     if (!isset($store['messages'][$normalizedConversationId]) || !is_array($store['messages'][$normalizedConversationId])) {

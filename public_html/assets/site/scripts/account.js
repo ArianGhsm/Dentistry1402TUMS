@@ -54,8 +54,11 @@
     var ownerSearch = $("owner-search");
     var ownerSummary = $("owner-summary");
     var ownerFeedback = $("owner-feedback");
+    var ownerTabs = $("owner-tabs");
+    var ownerTabPanels = Array.prototype.slice.call(document.querySelectorAll("[data-owner-tab-panel]"));
     var representativeList = $("representative-list");
     var ownerUserList = $("owner-user-list");
+    var ownerUserPager = $("owner-user-pager");
     var ownerCreateStudentForm = $("owner-create-student-form");
     var ownerStudentFirstName = $("owner-student-first-name");
     var ownerStudentLastName = $("owner-student-last-name");
@@ -184,6 +187,9 @@
         importingGrades: false,
         deletingGradeCourseKey: "",
         resettingGrades: false,
+        activeTab: "users",
+        userPage: 1,
+        userPageSize: 18,
         users: [],
         gradePayloadByStudent: {},
         gradeCourses: [],
@@ -264,6 +270,39 @@
 
     function hasOwnerAccess() {
         return !!(currentUser && currentUser.isOwner);
+    }
+
+    function normalizeOwnerTab(value) {
+        var tab = String(value || "").trim().toLowerCase();
+        return ["users", "representatives", "create", "services"].indexOf(tab) >= 0 ? tab : "users";
+    }
+
+    function updateOwnerTabs() {
+        var active = normalizeOwnerTab(ownerState.activeTab);
+        if (ownerTabs) {
+            Array.prototype.slice.call(ownerTabs.querySelectorAll("[data-owner-tab]")).forEach(function (button) {
+                var selected = normalizeOwnerTab(button.dataset.ownerTab) === active;
+                button.classList.toggle("is-active", selected);
+                button.setAttribute("aria-selected", selected ? "true" : "false");
+            });
+        }
+        ownerTabPanels.forEach(function (panel) {
+            var selected = normalizeOwnerTab(panel.dataset.ownerTabPanel) === active;
+            panel.classList.toggle("is-active", selected);
+            panel.hidden = !selected;
+        });
+    }
+
+    function setOwnerTab(value) {
+        ownerState.activeTab = normalizeOwnerTab(value);
+        updateOwnerTabs();
+    }
+
+    function ownerUserPageSize() {
+        if (window.matchMedia && window.matchMedia("(max-width: 720px)").matches) {
+            return 8;
+        }
+        return Math.max(8, Number(ownerState.userPageSize) || 18);
     }
 
     function accountUserKey(user) {
@@ -2251,15 +2290,21 @@
         var visibleUsers = users.filter(function (user) {
             return userMatchesQuery(user, query);
         });
+        var pageSize = ownerUserPageSize();
+        var pageCount = Math.max(1, Math.ceil(visibleUsers.length / pageSize));
+        ownerState.userPage = Math.max(1, Math.min(pageCount, Number(ownerState.userPage) || 1));
+        var pageStart = (ownerState.userPage - 1) * pageSize;
+        var pageUsers = visibleUsers.slice(pageStart, pageStart + pageSize);
 
         if (!visibleUsers.length) {
             ownerUserList.innerHTML = '<div class="owner-empty">کاربری با این جست‌وجو پیدا نشد.</div>';
+            if (ownerUserPager) ownerUserPager.innerHTML = "";
             renderOwnerUserPanel();
             return;
         }
 
         ownerUserList.innerHTML = "";
-        visibleUsers.forEach(function (user) {
+        pageUsers.forEach(function (user) {
             var studentNumber = String(user.studentNumber || "");
             var busyState = ownerUserBusyState(studentNumber);
             var article = document.createElement("article");
@@ -2306,10 +2351,22 @@
 
             ownerUserList.appendChild(article);
         });
+        if (ownerUserPager) {
+            if (pageCount <= 1) {
+                ownerUserPager.innerHTML = '<span>' + visibleUsers.length.toLocaleString("fa-IR") + " کاربر</span>";
+            } else {
+                ownerUserPager.innerHTML = [
+                    '<button class="shell-action-btn" type="button" data-owner-page="' + String(ownerState.userPage - 1) + '"' + (ownerState.userPage <= 1 ? " disabled" : "") + ">قبلی</button>",
+                    '<span>صفحه ' + ownerState.userPage.toLocaleString("fa-IR") + " از " + pageCount.toLocaleString("fa-IR") + " • " + visibleUsers.length.toLocaleString("fa-IR") + " کاربر</span>",
+                    '<button class="shell-action-btn" type="button" data-owner-page="' + String(ownerState.userPage + 1) + '"' + (ownerState.userPage >= pageCount ? " disabled" : "") + ">بعدی</button>"
+                ].join("");
+            }
+        }
         renderOwnerUserPanel();
     }
 
     function renderOwnerPanel() {
+        updateOwnerTabs();
         renderOwnerSummary(ownerState.users);
         renderOwnerGradeManager();
         renderRepresentatives(ownerState.users);
@@ -2647,6 +2704,7 @@
         ownerSummary.innerHTML = summaryCard("کاربر", "…", "در حال بارگذاری داده‌های حساب‌ها");
         representativeList.innerHTML = '<div class="owner-empty">در حال خواندن نماینده‌ها...</div>';
         ownerUserList.innerHTML = '<div class="owner-empty">در حال خواندن فهرست کاربران...</div>';
+        if (ownerUserPager) ownerUserPager.innerHTML = "";
         if (accountRowOwnerMeta) {
             accountRowOwnerMeta.textContent = "در حال بارگذاری کاربران...";
         }
@@ -3733,6 +3791,9 @@
             ownerState.deletingGradeCourseKey = "";
             ownerState.resettingGrades = false;
             ownerState.campusMarking = false;
+            ownerState.activeTab = "users";
+            ownerState.userPage = 1;
+            updateOwnerTabs();
             resetActivePollShortcut();
             if (accountPhoneNudge) {
                 accountPhoneNudge.hidden = true;
@@ -3806,6 +3867,9 @@
             ownerState.deletingGradeCourseKey = "";
             ownerState.resettingGrades = false;
             ownerState.campusMarking = false;
+            ownerState.activeTab = "users";
+            ownerState.userPage = 1;
+            updateOwnerTabs();
             setCreateStudentBusy(false);
             ownerCreateStudentFeedbackMessage("", "");
             navidState.loaded = false;
@@ -4130,7 +4194,26 @@
 
     if (ownerSearch) {
         ownerSearch.addEventListener("input", function () {
+            ownerState.userPage = 1;
             renderUsers(ownerState.users);
+        });
+    }
+    if (ownerTabs) {
+        ownerTabs.addEventListener("click", function (event) {
+            var button = event.target && event.target.closest ? event.target.closest("[data-owner-tab]") : null;
+            if (!button) return;
+            setOwnerTab(button.dataset.ownerTab);
+        });
+    }
+    if (ownerUserPager) {
+        ownerUserPager.addEventListener("click", function (event) {
+            var button = event.target && event.target.closest ? event.target.closest("[data-owner-page]") : null;
+            if (!button || button.disabled) return;
+            ownerState.userPage = Math.max(1, Number(button.dataset.ownerPage) || 1);
+            renderUsers(ownerState.users);
+            if (ownerUserList && typeof ownerUserList.scrollIntoView === "function") {
+                ownerUserList.scrollIntoView({ block: "start", behavior: "smooth" });
+            }
         });
     }
 

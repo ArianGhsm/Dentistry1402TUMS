@@ -8,6 +8,7 @@ require_once __DIR__ . '/payments_gateway.php';
 const FORMS_SCHEMA_VERSION = 1;
 const FORMS_ID_PREFIX = 'frm-';
 const FORMS_RESPONSE_ID_PREFIX = 'resp-';
+const FORMS_RECEIPT_ID_PREFIX = 'rcpt-';
 const FORMS_SHARE_PATH = '/forms/fill/';
 
 function forms_store_path(): string
@@ -21,7 +22,13 @@ function forms_default_store(): array
         'schemaVersion' => FORMS_SCHEMA_VERSION,
         'forms' => [],
         'responses' => [],
+        'receiptUploads' => [],
     ];
+}
+
+function forms_receipts_dir(): string
+{
+    return dent_storage_path('forms/uploads');
 }
 
 function forms_clean_id(string $value, string $prefix): string
@@ -180,6 +187,7 @@ function forms_clean_field_type(string $value): string
         'phone',
         'url',
         'payment',
+        'receipt_payment',
     ];
     return in_array($value, $allowed, true) ? $value : 'short_text';
 }
@@ -261,6 +269,67 @@ function forms_normalize_payment_config($raw): array
     ];
 }
 
+function forms_bank_name_from_card(string $cardNumber): string
+{
+    $digits = forms_only_digits($cardNumber);
+    $bin = substr($digits, 0, 6);
+    $banks = [
+        '603799' => 'بانک ملی ایران',
+        '589210' => 'بانک سپه',
+        '627648' => 'بانک توسعه صادرات',
+        '627961' => 'بانک صنعت و معدن',
+        '603770' => 'بانک کشاورزی',
+        '628023' => 'بانک مسکن',
+        '627760' => 'پست بانک ایران',
+        '502908' => 'بانک توسعه تعاون',
+        '627412' => 'بانک اقتصاد نوین',
+        '622106' => 'بانک پارسیان',
+        '502229' => 'بانک پاسارگاد',
+        '627488' => 'بانک کارآفرین',
+        '621986' => 'بانک سامان',
+        '639346' => 'بانک سینا',
+        '639607' => 'بانک سرمایه',
+        '502806' => 'بانک شهر',
+        '502938' => 'بانک دی',
+        '603769' => 'بانک صادرات ایران',
+        '610433' => 'بانک ملت',
+        '627353' => 'بانک تجارت',
+        '589463' => 'بانک رفاه کارگران',
+        '627381' => 'بانک انصار',
+        '636214' => 'بانک آینده',
+        '639370' => 'بانک مهر اقتصاد',
+        '505416' => 'بانک گردشگری',
+        '505785' => 'بانک ایران زمین',
+        '636795' => 'بانک مرکزی',
+        '636949' => 'بانک حکمت ایرانیان',
+        '505801' => 'موسسه اعتباری کوثر',
+        '606373' => 'بانک قرض‌الحسنه مهر ایران',
+        '628157' => 'موسسه اعتباری توسعه',
+        '639599' => 'بانک قوامین',
+        '504172' => 'بانک رسالت',
+    ];
+    return $banks[$bin] ?? '';
+}
+
+function forms_normalize_receipt_payment_config($raw): array
+{
+    $raw = is_array($raw) ? $raw : [];
+    $amount = max(0, (int) dent_normalize_digits((string) ($raw['amount'] ?? '0')));
+    $cardNumber = substr(forms_only_digits($raw['cardNumber'] ?? ($raw['card_number'] ?? '')), 0, 19);
+    $cardholder = forms_clean_text($raw['cardholder'] ?? ($raw['cardholderName'] ?? ($raw['card_holder'] ?? '')), 140);
+    $bankName = forms_clean_text($raw['bankName'] ?? ($raw['bank_name'] ?? ''), 120);
+    if ($bankName === '' && $cardNumber !== '') {
+        $bankName = forms_bank_name_from_card($cardNumber);
+    }
+
+    return [
+        'amount' => $amount,
+        'cardNumber' => $cardNumber,
+        'cardholder' => $cardholder,
+        'bankName' => $bankName,
+    ];
+}
+
 function forms_normalize_field($raw, int $index): ?array
 {
     if (!is_array($raw)) {
@@ -283,6 +352,7 @@ function forms_normalize_field($raw, int $index): ?array
         'rows' => [],
         'scale' => null,
         'payment' => null,
+        'receiptPayment' => null,
     ];
 
     if (in_array($type, ['single_choice', 'multiple_choice', 'dropdown', 'multiple_choice_grid', 'checkbox_grid'], true)) {
@@ -330,6 +400,21 @@ function forms_normalize_field($raw, int $index): ?array
         $field['payment'] = $payment;
     }
 
+    if ($type === 'receipt_payment') {
+        $receiptPayment = forms_normalize_receipt_payment_config($raw['receiptPayment'] ?? ($raw['receipt_payment'] ?? []));
+        if ((int) ($receiptPayment['amount'] ?? 0) <= 0) {
+            return null;
+        }
+        if ((string) ($receiptPayment['cardNumber'] ?? '') === '' || strlen((string) ($receiptPayment['cardNumber'] ?? '')) < 16) {
+            return null;
+        }
+        if ((string) ($receiptPayment['cardholder'] ?? '') === '') {
+            return null;
+        }
+        $field['required'] = forms_parse_bool($raw['required'] ?? true, true);
+        $field['receiptPayment'] = $receiptPayment;
+    }
+
     return $field;
 }
 
@@ -359,12 +444,23 @@ function forms_normalize_fields($raw, string $kind): array
     }
 
     if ($kind === 'poll' && $fields !== []) {
-        $first = $fields[0];
-        if (!in_array((string) ($first['type'] ?? ''), ['single_choice', 'multiple_choice'], true)) {
-            $first['type'] = 'single_choice';
+        $hasChoiceQuestion = false;
+        foreach ($fields as $field) {
+            if (in_array((string) ($field['type'] ?? ''), ['single_choice', 'multiple_choice'], true)) {
+                $hasChoiceQuestion = true;
+                break;
+            }
         }
-        $first['required'] = true;
-        $fields = [$first];
+        if (!$hasChoiceQuestion) {
+            $fields[0]['type'] = 'single_choice';
+            $fields[0]['required'] = true;
+            if (count((array) ($fields[0]['options'] ?? [])) < 2) {
+                $fields[0]['options'] = [
+                    ['id' => 'opt-1', 'text' => 'گزینه اول'],
+                    ['id' => 'opt-2', 'text' => 'گزینه دوم'],
+                ];
+            }
+        }
     }
 
     return $fields;
@@ -535,6 +631,55 @@ function forms_normalize_response_record(string $responseId, array $response, ar
     ];
 }
 
+function forms_clean_receipt_stored_path(string $value): string
+{
+    $value = str_replace('\\', '/', trim($value));
+    if ($value === '' || str_contains($value, '..') || str_starts_with($value, '/')) {
+        return '';
+    }
+    return preg_match('/^[a-zA-Z0-9._\/-]{8,220}$/', $value) === 1 ? $value : '';
+}
+
+function forms_normalize_receipt_upload_record(string $receiptId, array $receipt, array $knownFormIds): ?array
+{
+    $receiptId = forms_clean_id($receiptId !== '' ? $receiptId : (string) ($receipt['id'] ?? ''), FORMS_RECEIPT_ID_PREFIX);
+    if ($receiptId === '') {
+        return null;
+    }
+
+    $formId = forms_clean_id((string) ($receipt['formId'] ?? ''), FORMS_ID_PREFIX);
+    if ($formId === '' || !isset($knownFormIds[$formId])) {
+        return null;
+    }
+    $fieldId = trim(strtolower((string) ($receipt['fieldId'] ?? '')));
+    if (preg_match('/^[a-z0-9_-]{3,48}$/', $fieldId) !== 1) {
+        return null;
+    }
+    $identityKey = forms_clean_text($receipt['identityKey'] ?? '', 120);
+    if ($identityKey === '') {
+        return null;
+    }
+    $storedPath = forms_clean_receipt_stored_path((string) ($receipt['storedPath'] ?? ($receipt['stored_path'] ?? '')));
+    if ($storedPath === '') {
+        return null;
+    }
+    $uploadedAt = forms_parse_timestamp($receipt['uploadedAt'] ?? ($receipt['uploaded_at'] ?? null)) ?? time();
+
+    return [
+        'id' => $receiptId,
+        'formId' => $formId,
+        'fieldId' => $fieldId,
+        'identityKey' => $identityKey,
+        'originalName' => forms_clean_text($receipt['originalName'] ?? ($receipt['original_name'] ?? ''), 220),
+        'storedPath' => $storedPath,
+        'mimeType' => forms_clean_text($receipt['mimeType'] ?? ($receipt['mime_type'] ?? 'application/octet-stream'), 120),
+        'size' => max(0, (int) ($receipt['size'] ?? 0)),
+        'uploadedAt' => $uploadedAt,
+        'uploadedBy' => dent_normalize_student_number((string) ($receipt['uploadedBy'] ?? ($receipt['uploaded_by'] ?? ''))),
+        'status' => forms_clean_text($receipt['status'] ?? 'uploaded', 30) ?: 'uploaded',
+    ];
+}
+
 function forms_load_store(): array
 {
     $raw = dent_read_json_file(forms_store_path(), forms_default_store());
@@ -569,13 +714,26 @@ function forms_load_store(): array
         }
     }
 
+    $receiptUploads = [];
+    foreach (($raw['receiptUploads'] ?? ($raw['receipt_uploads'] ?? [])) as $receiptId => $receipt) {
+        if (!is_array($receipt)) {
+            continue;
+        }
+        $normalized = forms_normalize_receipt_upload_record((string) $receiptId, $receipt, $known);
+        if ($normalized !== null) {
+            $receiptUploads[(string) $normalized['id']] = $normalized;
+        }
+    }
+
     uasort($forms, static fn(array $left, array $right): int => (int) ($right['updatedAt'] ?? 0) <=> (int) ($left['updatedAt'] ?? 0));
     uasort($responses, static fn(array $left, array $right): int => (int) ($right['submittedAt'] ?? 0) <=> (int) ($left['submittedAt'] ?? 0));
+    uasort($receiptUploads, static fn(array $left, array $right): int => (int) ($right['uploadedAt'] ?? 0) <=> (int) ($left['uploadedAt'] ?? 0));
 
     return [
         'schemaVersion' => FORMS_SCHEMA_VERSION,
         'forms' => $forms,
         'responses' => $responses,
+        'receiptUploads' => $receiptUploads,
     ];
 }
 
@@ -583,11 +741,13 @@ function forms_save_store(array $store): void
 {
     $forms = is_array($store['forms'] ?? null) ? $store['forms'] : [];
     $responses = is_array($store['responses'] ?? null) ? $store['responses'] : [];
+    $receiptUploads = is_array($store['receiptUploads'] ?? null) ? $store['receiptUploads'] : [];
 
     dent_write_json_file(forms_store_path(), [
         'schemaVersion' => FORMS_SCHEMA_VERSION,
         'forms' => $forms,
         'responses' => $responses,
+        'receiptUploads' => $receiptUploads,
     ]);
 }
 
@@ -872,6 +1032,18 @@ function forms_has_payment_fields(array $form): bool
     return forms_payment_fields($form) !== [];
 }
 
+function forms_receipt_payment_fields(array $form): array
+{
+    return array_values(array_filter((array) ($form['fields'] ?? []), static function ($field): bool {
+        return is_array($field) && (string) ($field['type'] ?? '') === 'receipt_payment';
+    }));
+}
+
+function forms_has_receipt_payment_fields(array $form): bool
+{
+    return forms_receipt_payment_fields($form) !== [];
+}
+
 function forms_payment_order_matches(array $order, string $formId, string $fieldId, string $identityKey): bool
 {
     $extra = is_array($order['extra_form_data'] ?? null) ? $order['extra_form_data'] : [];
@@ -953,6 +1125,107 @@ function forms_collect_payment_answers(array $form, string $identityKey): array
     return $answers;
 }
 
+function forms_receipt_upload_matches(array $receipt, string $formId, string $fieldId, string $identityKey): bool
+{
+    return (string) ($receipt['formId'] ?? '') === $formId
+        && (string) ($receipt['fieldId'] ?? '') === $fieldId
+        && (string) ($receipt['identityKey'] ?? '') === $identityKey
+        && (string) ($receipt['status'] ?? 'uploaded') === 'uploaded';
+}
+
+function forms_receipt_upload_for_identity(array $store, string $formId, string $fieldId, string $identityKey): ?array
+{
+    if ($formId === '' || $fieldId === '' || $identityKey === '') {
+        return null;
+    }
+
+    $latest = null;
+    foreach (($store['receiptUploads'] ?? []) as $receipt) {
+        if (!is_array($receipt) || !forms_receipt_upload_matches($receipt, $formId, $fieldId, $identityKey)) {
+            continue;
+        }
+        if ($latest === null || (int) ($receipt['uploadedAt'] ?? 0) >= (int) ($latest['uploadedAt'] ?? 0)) {
+            $latest = $receipt;
+        }
+    }
+
+    return $latest;
+}
+
+function forms_receipt_public_payload(?array $receipt): array
+{
+    if ($receipt === null) {
+        return [
+            'uploaded' => false,
+            'receiptId' => '',
+            'originalName' => '',
+            'size' => 0,
+            'uploadedAt' => null,
+        ];
+    }
+
+    return [
+        'uploaded' => true,
+        'receiptId' => (string) ($receipt['id'] ?? ''),
+        'originalName' => (string) ($receipt['originalName'] ?? ''),
+        'size' => max(0, (int) ($receipt['size'] ?? 0)),
+        'uploadedAt' => (int) ($receipt['uploadedAt'] ?? 0),
+    ];
+}
+
+function forms_receipt_statuses(array $store, array $form, ?string $identityKey): array
+{
+    $statuses = [];
+    if ($identityKey === null || $identityKey === '') {
+        return $statuses;
+    }
+    $formId = (string) ($form['id'] ?? '');
+    foreach (forms_receipt_payment_fields($form) as $field) {
+        $fieldId = (string) ($field['id'] ?? '');
+        $receipt = forms_receipt_upload_for_identity($store, $formId, $fieldId, $identityKey);
+        $statuses[$fieldId] = forms_receipt_public_payload($receipt);
+    }
+    return $statuses;
+}
+
+function forms_receipt_answer_from_upload(array $receipt, array $field): array
+{
+    $config = forms_normalize_receipt_payment_config($field['receiptPayment'] ?? []);
+    return [
+        'status' => 'uploaded',
+        'receiptId' => (string) ($receipt['id'] ?? ''),
+        'originalName' => (string) ($receipt['originalName'] ?? ''),
+        'mimeType' => (string) ($receipt['mimeType'] ?? ''),
+        'size' => max(0, (int) ($receipt['size'] ?? 0)),
+        'uploadedAt' => (int) ($receipt['uploadedAt'] ?? 0),
+        'amount' => max(0, (int) ($config['amount'] ?? 0)),
+        'cardNumber' => (string) ($config['cardNumber'] ?? ''),
+        'cardholder' => (string) ($config['cardholder'] ?? ''),
+        'bankName' => (string) ($config['bankName'] ?? ''),
+    ];
+}
+
+function forms_collect_receipt_payment_answers(array $store, array $form, string $identityKey): array
+{
+    $answers = [];
+    $formId = (string) ($form['id'] ?? '');
+    foreach (forms_receipt_payment_fields($form) as $field) {
+        $fieldId = (string) ($field['id'] ?? '');
+        if ($fieldId === '') {
+            continue;
+        }
+        $receipt = forms_receipt_upload_for_identity($store, $formId, $fieldId, $identityKey);
+        if ($receipt === null) {
+            if ((bool) ($field['required'] ?? false)) {
+                dent_error('آپلود رسید «' . (string) ($field['label'] ?? 'پرداخت با رسید') . '» قبل از ثبت پاسخ الزامی است.', 422);
+            }
+            continue;
+        }
+        $answers[$fieldId] = forms_receipt_answer_from_upload($receipt, $field);
+    }
+    return $answers;
+}
+
 function forms_option_map(array $field): array
 {
     $map = [];
@@ -987,7 +1260,7 @@ function forms_normalize_answer(array $field, $raw)
     $required = (bool) ($field['required'] ?? false);
     $label = (string) ($field['label'] ?? 'فیلد');
 
-    if ($type === 'payment') {
+    if ($type === 'payment' || $type === 'receipt_payment') {
         return '';
     }
 
@@ -1113,7 +1386,7 @@ function forms_collect_answers(array $form, array $source): array
         if ($fieldId === '') {
             continue;
         }
-        if ((string) ($field['type'] ?? '') === 'payment') {
+        if (in_array((string) ($field['type'] ?? ''), ['payment', 'receipt_payment'], true)) {
             continue;
         }
         $answers[$fieldId] = forms_normalize_answer($field, $rawAnswers[$fieldId] ?? null);
@@ -1178,6 +1451,14 @@ function forms_answer_display_value(array $field, $answer): string
         }
         return 'پرداخت نشده';
     }
+    if ((string) ($field['type'] ?? '') === 'receipt_payment') {
+        if (is_array($answer) && (string) ($answer['status'] ?? '') === 'uploaded') {
+            $amount = number_format(max(0, (int) ($answer['amount'] ?? 0)));
+            $name = trim((string) ($answer['originalName'] ?? ''));
+            return 'رسید آپلود شد - ' . $amount . ' ریال' . ($name !== '' ? ' - ' . $name : '');
+        }
+        return 'رسید آپلود نشده';
+    }
     $optionMap = forms_option_map($field);
     if (is_array($answer)) {
         $type = (string) ($field['type'] ?? '');
@@ -1218,7 +1499,16 @@ function forms_poll_results(array $store, array $form, ?array $viewer, ?string $
     }
 
     $fields = (array) ($form['fields'] ?? []);
-    $field = is_array($fields[0] ?? null) ? $fields[0] : null;
+    $field = null;
+    foreach ($fields as $candidate) {
+        if (!is_array($candidate)) {
+            continue;
+        }
+        if (in_array((string) ($candidate['type'] ?? ''), ['single_choice', 'multiple_choice'], true)) {
+            $field = $candidate;
+            break;
+        }
+    }
     if ($field === null) {
         return ['visible' => false, 'options' => [], 'totalResponses' => 0, 'hiddenReason' => ''];
     }
@@ -1311,6 +1601,7 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
 
     $fieldsPayload = $includeFields ? (array) ($form['fields'] ?? []) : [];
     $paymentStatuses = $includeFields ? forms_payment_statuses($form, $identityKey) : [];
+    $receiptStatuses = $includeFields ? forms_receipt_statuses($store, $form, $identityKey) : [];
     if ($fieldsPayload !== [] && $paymentStatuses !== []) {
         foreach ($fieldsPayload as $index => $field) {
             if (!is_array($field) || (string) ($field['type'] ?? '') !== 'payment') {
@@ -1318,6 +1609,16 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
             }
             $fieldId = (string) ($field['id'] ?? '');
             $field['paymentStatus'] = $paymentStatuses[$fieldId] ?? ['paid' => false, 'orderToken' => '', 'refId' => '', 'amount' => max(0, (int) (($field['payment']['amount'] ?? 0)))];
+            $fieldsPayload[$index] = $field;
+        }
+    }
+    if ($fieldsPayload !== [] && $receiptStatuses !== []) {
+        foreach ($fieldsPayload as $index => $field) {
+            if (!is_array($field) || (string) ($field['type'] ?? '') !== 'receipt_payment') {
+                continue;
+            }
+            $fieldId = (string) ($field['id'] ?? '');
+            $field['receiptStatus'] = $receiptStatuses[$fieldId] ?? forms_receipt_public_payload(null);
             $fieldsPayload[$index] = $field;
         }
     }
@@ -1768,6 +2069,245 @@ function forms_export_xlsx(array $form, array $responses, string $mode = 'respon
     exit;
 }
 
+function forms_receipt_file_path(string $storedPath): string
+{
+    $clean = forms_clean_receipt_stored_path($storedPath);
+    return $clean === '' ? '' : forms_receipts_dir() . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $clean);
+}
+
+function forms_uploaded_receipt_mime(string $tmpName, string $originalName): string
+{
+    $mime = '';
+    if (function_exists('finfo_open')) {
+        $finfo = @finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo) {
+            $detected = @finfo_file($finfo, $tmpName);
+            @finfo_close($finfo);
+            if (is_string($detected)) {
+                $mime = strtolower(trim($detected));
+            }
+        }
+    }
+    if ($mime === '') {
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        $mime = $extension === 'pdf' ? 'application/pdf' : 'application/octet-stream';
+    }
+    return $mime;
+}
+
+function forms_receipt_extension(string $mime, string $originalName): string
+{
+    $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+    if ($mime === 'application/pdf' || $extension === 'pdf') {
+        return 'pdf';
+    }
+    if (in_array($mime, ['image/jpeg', 'image/pjpeg'], true) || in_array($extension, ['jpg', 'jpeg'], true)) {
+        return 'jpg';
+    }
+    if ($mime === 'image/png' || $extension === 'png') {
+        return 'png';
+    }
+    if ($mime === 'image/webp' || $extension === 'webp') {
+        return 'webp';
+    }
+    if ($mime === 'image/gif' || $extension === 'gif') {
+        return 'gif';
+    }
+    return '';
+}
+
+function forms_store_uploaded_receipt_file(array $file, string $receiptId): array
+{
+    $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+    if ($error !== UPLOAD_ERR_OK) {
+        if (in_array($error, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)) {
+            dent_error('حجم فایل از محدودیت تنظیمات سرور بیشتر است.', 422);
+        }
+        dent_error('آپلود فایل رسید انجام نشد. دوباره فایل را انتخاب کنید.', 422);
+    }
+
+    $tmpName = (string) ($file['tmp_name'] ?? '');
+    $size = max(0, (int) ($file['size'] ?? 0));
+    $originalName = forms_clean_text($file['name'] ?? 'receipt', 220);
+    if ($tmpName === '' || !is_uploaded_file($tmpName) || $size <= 0) {
+        dent_error('فایل رسید معتبر نیست.', 422);
+    }
+
+    $mime = forms_uploaded_receipt_mime($tmpName, $originalName);
+    $extension = forms_receipt_extension($mime, $originalName);
+    if ($extension === '') {
+        dent_error('فایل رسید باید تصویر یا PDF باشد.', 422);
+    }
+    if ($extension === 'pdf') {
+        $mime = 'application/pdf';
+    } elseif ($mime === 'application/octet-stream') {
+        $mime = 'image/' . ($extension === 'jpg' ? 'jpeg' : $extension);
+    }
+
+    $period = date('Ym');
+    $dir = forms_receipts_dir() . DIRECTORY_SEPARATOR . $period;
+    dent_ensure_directory($dir);
+    $fileName = $receiptId . '.' . $extension;
+    $target = $dir . DIRECTORY_SEPARATOR . $fileName;
+    if (!move_uploaded_file($tmpName, $target)) {
+        dent_error('ذخیره رسید در فضای پایدار فرم انجام نشد.', 500);
+    }
+    @chmod($target, 0640);
+
+    return [
+        'originalName' => $originalName !== '' ? $originalName : $fileName,
+        'storedPath' => $period . '/' . $fileName,
+        'mimeType' => $mime,
+        'size' => $size,
+    ];
+}
+
+function forms_receipt_payment_order_matches(array $order, string $formId, string $fieldId, string $identityKey): bool
+{
+    $extra = is_array($order['extra_form_data'] ?? null) ? $order['extra_form_data'] : [];
+    return (string) ($extra['_source'] ?? '') === 'form_receipt_payment'
+        && (string) ($extra['form_id'] ?? '') === $formId
+        && (string) ($extra['field_id'] ?? '') === $fieldId
+        && (string) ($extra['identity_key'] ?? '') === $identityKey;
+}
+
+function forms_upsert_receipt_payment_order(array $form, array $field, array $receipt, array $identity): void
+{
+    $formId = (string) ($form['id'] ?? '');
+    $fieldId = (string) ($field['id'] ?? '');
+    $identityKey = (string) ($receipt['identityKey'] ?? '');
+    $config = forms_normalize_receipt_payment_config($field['receiptPayment'] ?? []);
+    $amount = max(0, (int) ($config['amount'] ?? 0));
+    if ($formId === '' || $fieldId === '' || $identityKey === '' || $amount <= 0) {
+        return;
+    }
+
+    payments_with_store_lock(static function (array &$store) use ($form, $field, $receipt, $identity, $formId, $fieldId, $identityKey, $config, $amount): void {
+        $targetIndex = -1;
+        foreach (($store['orders'] ?? []) as $index => $order) {
+            if (is_array($order) && forms_receipt_payment_order_matches($order, $formId, $fieldId, $identityKey)) {
+                $targetIndex = (int) $index;
+                break;
+            }
+        }
+
+        $nowIso = dent_iso_now();
+        $uploadedAt = (int) ($receipt['uploadedAt'] ?? time());
+        $paidAt = date('c', $uploadedAt > 0 ? $uploadedAt : time());
+        $payerName = forms_clean_text($identity['name'] ?? '', 120);
+        $studentNumber = dent_normalize_student_number((string) ($identity['studentNumber'] ?? ''));
+        $payerPhone = payments_normalize_phone((string) ($identity['phone'] ?? ''));
+        $title = (string) ($field['label'] ?? 'پرداخت با رسید');
+        $extra = [
+            '_source' => 'form_receipt_payment',
+            'form_id' => $formId,
+            'form_title' => (string) ($form['title'] ?? ''),
+            'field_id' => $fieldId,
+            'field_label' => $title,
+            'identity_key' => $identityKey,
+            'receipt_id' => (string) ($receipt['id'] ?? ''),
+            'receipt_name' => (string) ($receipt['originalName'] ?? ''),
+            'card_number' => (string) ($config['cardNumber'] ?? ''),
+            'cardholder' => (string) ($config['cardholder'] ?? ''),
+            'bank_name' => (string) ($config['bankName'] ?? ''),
+            '_return_path' => forms_share_path($formId),
+        ];
+        $line = [
+            'item_id' => 0,
+            'slug' => '',
+            'title' => $title,
+            'quantity' => 1,
+            'unit_price' => $amount,
+            'subtotal' => $amount,
+            'discount_code' => '',
+            'discount_amount' => 0,
+            'amount' => $amount,
+            'extra_form_data' => [],
+        ];
+
+        if ($targetIndex >= 0) {
+            $current = is_array($store['orders'][$targetIndex] ?? null) ? $store['orders'][$targetIndex] : [];
+            $current = array_merge($current, [
+                'user_id' => $studentNumber,
+                'payer_name' => $payerName,
+                'payer_phone' => $payerPhone,
+                'payer_student_number' => $studentNumber,
+                'extra_form_data' => $extra,
+                'cart_items' => [$line],
+                'quantity' => 1,
+                'unit_price' => $amount,
+                'subtotal' => $amount,
+                'discount_code' => '',
+                'discount_amount' => 0,
+                'amount' => $amount,
+                'gateway' => 'receipt',
+                'ref_id' => (string) ($receipt['id'] ?? ''),
+                'status' => PAYMENTS_ORDER_STATUS_SUCCESS,
+                'paid_at' => $paidAt,
+                'verified_at' => $nowIso,
+            ]);
+            $snapshot = is_array($current['gateway_response_snapshot'] ?? null) ? $current['gateway_response_snapshot'] : [];
+            $snapshot['receipt_upload'] = [
+                'receiptId' => (string) ($receipt['id'] ?? ''),
+                'at' => $nowIso,
+            ];
+            $current['gateway_response_snapshot'] = $snapshot;
+            $store['orders'][$targetIndex] = $current;
+            return;
+        }
+
+        $store['orders'][] = [
+            'id' => payments_next_order_id($store),
+            'item_id' => 0,
+            'user_id' => $studentNumber,
+            'payer_name' => $payerName,
+            'payer_phone' => $payerPhone,
+            'payer_student_number' => $studentNumber,
+            'extra_form_data' => $extra,
+            'cart_items' => [$line],
+            'quantity' => 1,
+            'unit_price' => $amount,
+            'subtotal' => $amount,
+            'discount_code' => '',
+            'discount_amount' => 0,
+            'amount' => $amount,
+            'gateway' => 'receipt',
+            'authority' => '',
+            'ref_id' => (string) ($receipt['id'] ?? ''),
+            'status' => PAYMENTS_ORDER_STATUS_SUCCESS,
+            'gateway_response_snapshot' => [
+                'created' => ['at' => $nowIso, 'type' => 'form_receipt_payment'],
+                'receipt_upload' => ['receiptId' => (string) ($receipt['id'] ?? ''), 'at' => $nowIso],
+            ],
+            'created_at' => $nowIso,
+            'paid_at' => $paidAt,
+            'verified_at' => $nowIso,
+            'public_token' => payments_random_token(),
+        ];
+    });
+}
+
+function forms_receipt_download_filename(array $receipt): string
+{
+    $extension = strtolower(pathinfo((string) ($receipt['storedPath'] ?? ''), PATHINFO_EXTENSION));
+    if ($extension === '') {
+        $extension = 'bin';
+    }
+    return preg_replace('/[^A-Za-z0-9._-]+/', '-', (string) ($receipt['id'] ?? 'receipt')) . '.' . $extension;
+}
+
+function forms_receipts_for_form(array $store, string $formId): array
+{
+    $receipts = [];
+    foreach (($store['receiptUploads'] ?? []) as $receipt) {
+        if (is_array($receipt) && (string) ($receipt['formId'] ?? '') === $formId && (string) ($receipt['status'] ?? 'uploaded') === 'uploaded') {
+            $receipts[] = $receipt;
+        }
+    }
+    usort($receipts, static fn(array $left, array $right): int => (int) ($right['uploadedAt'] ?? 0) <=> (int) ($left['uploadedAt'] ?? 0));
+    return $receipts;
+}
+
 $action = dent_request_action();
 
 if ($action === 'session') {
@@ -1931,11 +2471,174 @@ if ($action === 'get') {
     if ($user === null && forms_has_payment_fields($form)) {
         dent_error('برای پاسخ به فرم دارای سوال پرداخت باید وارد حساب شوید.', 401, ['loggedOut' => true, 'requiresLogin' => true]);
     }
+    $identityKeyOverride = null;
+    if ($user === null && trim((string) ($_GET['guestKey'] ?? '')) !== '') {
+        $identityKeyOverride = forms_identity_key(null, $_GET);
+    }
     dent_json_response([
         'success' => true,
-        'form' => forms_form_payload($store, $form, $user, true),
+        'form' => forms_form_payload($store, $form, $user, true, $identityKeyOverride),
         'viewer' => forms_user_payload($user),
     ]);
+}
+
+if ($action === 'uploadReceipt') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد آپلود رسید نامعتبر است.', 405);
+    }
+
+    $store = forms_load_store();
+    $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
+    $fieldId = trim(strtolower((string) ($_POST['fieldId'] ?? '')));
+    if (preg_match('/^[a-z0-9_-]{3,48}$/', $fieldId) !== 1) {
+        $fieldId = '';
+    }
+    if ($formId === '' || $fieldId === '') {
+        dent_error('شناسه فرم یا سوال رسید معتبر نیست.', 422);
+    }
+    $form = $store['forms'][$formId] ?? null;
+    if (!is_array($form)) {
+        dent_error('فرم پیدا نشد.', 404);
+    }
+    $user = dent_current_user();
+    if (!forms_viewer_can_access($form, $user)) {
+        if ($user === null && !forms_guest_allowed($form)) {
+            dent_error('برای آپلود رسید باید وارد حساب شوید.', 401, ['loggedOut' => true, 'requiresLogin' => true]);
+        }
+        dent_error('این فرم برای شما فعال نیست.', 403);
+    }
+    if (forms_status($form) !== 'open') {
+        dent_error('آپلود رسید برای این فرم فعال نیست.', 422);
+    }
+
+    $targetField = null;
+    foreach (forms_receipt_payment_fields($form) as $field) {
+        if ((string) ($field['id'] ?? '') === $fieldId) {
+            $targetField = $field;
+            break;
+        }
+    }
+    if (!is_array($targetField)) {
+        dent_error('سوال پرداخت با رسید پیدا نشد.', 404);
+    }
+
+    $file = $_FILES['receipt'] ?? null;
+    if (!is_array($file)) {
+        dent_error('فایل رسید انتخاب نشده است.', 422);
+    }
+
+    $identityKey = forms_identity_key($user, $_POST);
+    if ($identityKey === '') {
+        dent_error('شناسه شرکت‌کننده برای آپلود رسید معتبر نیست.', 422);
+    }
+    $receiptId = forms_next_id(FORMS_RECEIPT_ID_PREFIX);
+    $stored = forms_store_uploaded_receipt_file($file, $receiptId);
+    $receipt = [
+        'id' => $receiptId,
+        'formId' => $formId,
+        'fieldId' => $fieldId,
+        'identityKey' => $identityKey,
+        'originalName' => (string) ($stored['originalName'] ?? ''),
+        'storedPath' => (string) ($stored['storedPath'] ?? ''),
+        'mimeType' => (string) ($stored['mimeType'] ?? 'application/octet-stream'),
+        'size' => max(0, (int) ($stored['size'] ?? 0)),
+        'uploadedAt' => time(),
+        'uploadedBy' => $user !== null ? dent_normalize_student_number((string) ($user['studentNumber'] ?? '')) : '',
+        'status' => 'uploaded',
+    ];
+    $store['receiptUploads'][$receiptId] = $receipt;
+    forms_save_store($store);
+
+    forms_upsert_receipt_payment_order($form, $targetField, $receipt, forms_identity_payload($user, $_POST));
+
+    dent_json_response([
+        'success' => true,
+        'receipt' => forms_receipt_public_payload($receipt),
+        'message' => 'رسید با موفقیت آپلود و پرداخت ثبت شد.',
+    ]);
+}
+
+if ($action === 'downloadReceipt') {
+    if (dent_request_method() !== 'GET') {
+        dent_error('متد دانلود رسید نامعتبر است.', 405);
+    }
+    $user = dent_require_user();
+    $store = forms_load_store();
+    $receiptId = forms_clean_id((string) ($_GET['id'] ?? ''), FORMS_RECEIPT_ID_PREFIX);
+    if ($receiptId === '') {
+        dent_error('شناسه رسید معتبر نیست.', 422);
+    }
+    $receipt = $store['receiptUploads'][$receiptId] ?? null;
+    if (!is_array($receipt)) {
+        dent_error('رسید پیدا نشد.', 404);
+    }
+    $form = $store['forms'][(string) ($receipt['formId'] ?? '')] ?? null;
+    if (!is_array($form) || !forms_can_manage($form, $user)) {
+        dent_error('دسترسی به دانلود رسید مجاز نیست.', 403);
+    }
+    $path = forms_receipt_file_path((string) ($receipt['storedPath'] ?? ''));
+    if ($path === '' || !is_file($path) || !is_readable($path)) {
+        dent_error('فایل رسید در storage پیدا نشد.', 404);
+    }
+    header('Content-Type: ' . (string) ($receipt['mimeType'] ?? 'application/octet-stream'));
+    header('Content-Length: ' . (string) filesize($path));
+    header('Content-Disposition: attachment; filename="' . forms_receipt_download_filename($receipt) . '"');
+    header('Cache-Control: private, no-store');
+    readfile($path);
+    exit;
+}
+
+if ($action === 'exportReceipts') {
+    if (dent_request_method() !== 'GET') {
+        dent_error('متد خروجی رسیدها نامعتبر است.', 405);
+    }
+    $user = dent_require_user();
+    $store = forms_load_store();
+    $formId = forms_clean_id((string) ($_GET['formId'] ?? $_GET['form'] ?? ''), FORMS_ID_PREFIX);
+    if ($formId === '') {
+        dent_error('شناسه فرم معتبر نیست.', 422);
+    }
+    $form = $store['forms'][$formId] ?? null;
+    if (!is_array($form)) {
+        dent_error('فرم پیدا نشد.', 404);
+    }
+    if (!forms_can_manage($form, $user)) {
+        dent_error('دسترسی به خروجی رسیدها مجاز نیست.', 403);
+    }
+
+    $files = [];
+    $manifest = [["receipt_id", "field_id", "original_name", "size", "uploaded_at"]];
+    foreach (forms_receipts_for_form($store, $formId) as $receipt) {
+        $path = forms_receipt_file_path((string) ($receipt['storedPath'] ?? ''));
+        if ($path === '' || !is_file($path) || !is_readable($path)) {
+            continue;
+        }
+        $downloadName = forms_receipt_download_filename($receipt);
+        $files['receipts/' . $downloadName] = (string) file_get_contents($path);
+        $manifest[] = [
+            (string) ($receipt['id'] ?? ''),
+            (string) ($receipt['fieldId'] ?? ''),
+            (string) ($receipt['originalName'] ?? ''),
+            (string) max(0, (int) ($receipt['size'] ?? 0)),
+            (string) date('c', (int) ($receipt['uploadedAt'] ?? time())),
+        ];
+    }
+    if ($files === []) {
+        dent_error('رسیدی برای این فرم ثبت نشده است.', 404);
+    }
+    $csv = implode("\r\n", array_map(static function (array $row): string {
+        return implode(',', array_map(static function (string $cell): string {
+            return '"' . str_replace('"', '""', $cell) . '"';
+        }, $row));
+    }, $manifest));
+    $files['manifest.csv'] = "\xEF\xBB\xBF" . $csv . "\r\n";
+    $binary = forms_build_zip_archive($files);
+    $fileName = preg_replace('/[^A-Za-z0-9._-]+/', '-', $formId) . '-receipts.zip';
+    header('Content-Type: application/zip');
+    header('Content-Disposition: attachment; filename="' . $fileName . '"');
+    header('Content-Length: ' . (string) strlen($binary));
+    echo $binary;
+    exit;
 }
 
 if ($action === 'createPayment') {
@@ -2208,6 +2911,9 @@ if ($action === 'submit') {
     }
     $answers = forms_collect_answers($form, $_POST);
     foreach (forms_collect_payment_answers($form, $identityKey) as $fieldId => $answer) {
+        $answers[$fieldId] = $answer;
+    }
+    foreach (forms_collect_receipt_payment_answers($store, $form, $identityKey) as $fieldId => $answer) {
         $answers[$fieldId] = $answer;
     }
     $now = time();
