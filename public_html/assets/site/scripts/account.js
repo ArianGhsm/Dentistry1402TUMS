@@ -40,6 +40,7 @@
     var accountAvatarImage = $("account-avatar-image");
     var accountAvatarFallback = $("account-avatar-fallback");
     var accountRotation = $("account-rotation");
+    var accountDisNumber = $("account-dis-number");
     var profileAvatarPreview = $("profile-avatar-preview");
     var profileAvatarImage = $("profile-avatar-image");
     var profileAvatarFallback = $("profile-avatar-fallback");
@@ -108,6 +109,7 @@
     var accountInfoRole = $("account-info-role");
     var accountInfoSession = $("account-info-session");
     var accountInfoRotation = $("account-info-rotation");
+    var accountInfoDisNumber = $("account-info-dis-number");
     var accountRowProfileMeta = $("account-row-profile-meta");
     var accountRowInfoMeta = $("account-row-info-meta");
     var accountRowOwnerMeta = $("account-row-owner-meta");
@@ -562,6 +564,10 @@
             return fallback || "";
         }
         return ltrIsolateText(clean);
+    }
+
+    function userDisNumber(user) {
+        return String((user && user.disNumber) || "").trim();
     }
 
     function applyOtpSlots(input, slotsRoot) {
@@ -1279,6 +1285,7 @@
         var aboutText = profileAbout(profile);
         var focusText = profile.focusArea || "";
         var contactText = profile.contactHandle || "";
+        var disNumber = userDisNumber(user);
 
         $("account-role-eyebrow").textContent = roleLabel;
         $("account-name").textContent = user.name || "دانشجو";
@@ -1301,12 +1308,15 @@
         if (accountInfoSession) {
             accountInfoSession.textContent = sessionLabel;
         }
+        if (accountInfoDisNumber) {
+            accountInfoDisNumber.textContent = disNumber || "—";
+        }
 
         if (accountRowProfileMeta) {
             accountRowProfileMeta.textContent = aboutText || focusText || contactText || "ویرایش آواتار، بیو و راه ارتباطی";
         }
         if (accountRowInfoMeta) {
-            accountRowInfoMeta.textContent = [user.studentNumber || "-", roleLabel].join(" • ");
+            accountRowInfoMeta.textContent = [user.studentNumber || "-", roleLabel, disNumber ? ("DIS " + disNumber) : ""].filter(Boolean).join(" • ");
         }
 
         var phone = parsedPhone(user);
@@ -1342,6 +1352,16 @@
             }
         } else if (accountInfoRotation) {
             accountInfoRotation.textContent = "—";
+        }
+
+        if (accountDisNumber) {
+            if (disNumber) {
+                accountDisNumber.hidden = false;
+                accountDisNumber.textContent = "شماره DIS: " + disNumber;
+            } else {
+                accountDisNumber.hidden = true;
+                accountDisNumber.textContent = "";
+            }
         }
     }
 
@@ -1654,6 +1674,7 @@
         var ownerPrivate = user && user.ownerPrivate && typeof user.ownerPrivate === "object" ? user.ownerPrivate : {};
         return String(user.name || "").toLowerCase().indexOf(normalized) !== -1 ||
             String(user.studentNumber || "").indexOf(normalized) !== -1 ||
+            String(user.disNumber || "").indexOf(normalized) !== -1 ||
             String(ownerPrivate.nationalCode || "").indexOf(normalized) !== -1 ||
             String(ownerPrivate.directoryPhoneNumber || "").indexOf(normalized) !== -1;
     }
@@ -1793,6 +1814,11 @@
         return ltrIsolateText(nationalCode);
     }
 
+    function ownerDisNumberMeta(user) {
+        var disNumber = userDisNumber(user);
+        return disNumber ? ltrIsolateText(disNumber) : "—";
+    }
+
     function ownerUserContactPhoneMeta(user) {
         var ownerPrivate = user && user.ownerPrivate && typeof user.ownerPrivate === "object" ? user.ownerPrivate : {};
         var directoryPhone = String(ownerPrivate.directoryPhoneNumber || "").trim();
@@ -1867,6 +1893,10 @@
     function userMeta(user) {
         var parts = [ownerRoleMeta(user)];
         parts.push(ownerRotationMeta(user));
+        var disNumber = userDisNumber(user);
+        if (disNumber) {
+            parts.push("DIS " + disNumber);
+        }
         parts.push(user.hasPhone ? "دارای شماره" : "بدون شماره");
         if (user.hasDirectoryPhone) {
             parts.push("دارای تلفن");
@@ -1880,7 +1910,7 @@
         return parts.join(" • ");
     }
 
-    function buildOwnerMetaCell(label, value) {
+    function buildOwnerMetaCell(label, value, latinDigits) {
         var item = document.createElement("div");
         item.className = "owner-user-meta-item";
 
@@ -1889,6 +1919,9 @@
 
         var content = document.createElement("strong");
         content.textContent = value || "—";
+        if (latinDigits) {
+            content.dataset.latinDigits = "true";
+        }
 
         item.appendChild(title);
         item.appendChild(content);
@@ -1904,6 +1937,7 @@
         metaGrid.className = "owner-user__meta-grid";
         metaGrid.appendChild(buildOwnerMetaCell("\u0646\u0627\u0645", user.name || "\u2014"));
         metaGrid.appendChild(buildOwnerMetaCell("\u0634\u0645\u0627\u0631\u0647 \u062f\u0627\u0646\u0634\u062c\u0648\u06cc\u06cc", studentNumber || "\u2014"));
+        metaGrid.appendChild(buildOwnerMetaCell("\u0634\u0645\u0627\u0631\u0647 DIS", ownerDisNumberMeta(user), true));
         metaGrid.appendChild(buildOwnerMetaCell("\u0646\u0642\u0634", ownerRoleMeta(user)));
         metaGrid.appendChild(buildOwnerMetaCell("\u0631\u0648\u062a\u06cc\u0634\u0646/\u06af\u0631\u0648\u0647", ownerRotationMeta(user)));
         metaGrid.appendChild(buildOwnerMetaCell("\u06a9\u062f \u0645\u0644\u06cc", ownerUserNationalCodeMeta(user)));

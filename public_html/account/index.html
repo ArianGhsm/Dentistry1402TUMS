@@ -154,6 +154,7 @@
                             <h3 id="account-name">-</h3>
                             <p id="account-student-number">شماره دانشجویی: -</p>
                             <p id="account-rotation" class="account-rotation-text" hidden></p>
+                            <p id="account-dis-number" class="account-rotation-text" data-latin-digits="true" hidden></p>
                         </div>
                     </div>
 
@@ -194,7 +195,7 @@
                         </span>
                         <span class="account-list-row__copy">
                             <strong>اطلاعات حساب</strong>
-                            <small id="account-row-info-meta">نام، شماره دانشجویی و سطح دسترسی فقط‌خواندنی</small>
+                            <small id="account-row-info-meta" data-latin-digits="true">نام، شماره دانشجویی و سطح دسترسی فقط‌خواندنی</small>
                         </span>
                         <span class="account-list-row__chevron" aria-hidden="true">‹</span>
                     </button>
@@ -434,6 +435,10 @@
                         <div class="settings-row">
                             <label>روتیشن/گروه</label>
                             <div id="account-info-rotation" class="account-readonly-value">—</div>
+                        </div>
+                        <div class="settings-row">
+                            <label>شماره DIS</label>
+                            <div id="account-info-dis-number" class="account-readonly-value" data-latin-digits="true">—</div>
                         </div>
                     </div>
                 </article>
@@ -776,7 +781,7 @@
     </footer>
 
     <script src="/assets/site/scripts/auth.js?v=20260504-234329"></script>
-    <script src="/assets/site/scripts/account.js?v=20260504-234329"></script>
+    <script src="/assets/site/scripts/account.js?v=20260506-dis-number"></script>
     <script src="/assets/site/scripts/pwa.js?v=20260504-234329"></script>
     <script src="/assets/site/scripts/shell.js?v=20260504-234329"></script>
 </body>
