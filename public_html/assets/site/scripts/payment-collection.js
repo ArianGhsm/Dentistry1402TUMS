@@ -72,6 +72,35 @@
         return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " ریال";
     }
 
+    function collectionReturnUrl() {
+        var origin = window.location.origin || "";
+        return origin + "/payments/pay/?token=" + encodeURIComponent(token);
+    }
+
+    function copyText(value) {
+        var clean = String(value || "").trim();
+        if (!clean) return Promise.reject(new Error("empty"));
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+            return navigator.clipboard.writeText(clean);
+        }
+        return new Promise(function (resolve, reject) {
+            try {
+                var helper = document.createElement("textarea");
+                helper.value = clean;
+                helper.setAttribute("readonly", "");
+                helper.style.position = "fixed";
+                helper.style.opacity = "0";
+                document.body.appendChild(helper);
+                helper.select();
+                document.execCommand("copy");
+                helper.remove();
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
     function normalizeDigits(value) {
         return String(value || "").replace(/[\u06F0-\u06F9\u0660-\u0669]/g, function (char) {
             var code = char.charCodeAt(0);
@@ -177,12 +206,13 @@
         }
         var result = state.result;
         var resultHtml = "";
-        if (collection.paid) {
+        var paid = !!collection.paid || !!(result && result.status === "success");
+        if (paid) {
             resultHtml = '<div class="buy-alert buy-alert--success">' + escapeHtml(collection.successMessage || "پرداخت شما تایید شده است.") + "</div>";
         } else if (result && result.status && result.status !== "success") {
             resultHtml = '<div class="buy-alert buy-alert--error">' + escapeHtml(result.message || collection.failureMessage || "پرداخت تایید نشد.") + "</div>";
         }
-        var disabled = String(collection.status || "") !== "active" || !!collection.paid;
+        var disabled = String(collection.status || "") !== "active" || paid;
         var image = String(collection.imageUrl || "").trim();
         root.innerHTML = [
             '<section class="payment-collection-card">',
@@ -197,9 +227,9 @@
             disabled && !collection.paid ? '<div class="buy-alert buy-alert--error">این لینک پرداخت در حال حاضر فعال نیست.</div>' : "",
             '  <form id="payment-collection-form" class="payment-collection-form" novalidate>',
             collectionPayerFields(collection),
-            '    <div class="buy-alert">پس از پرداخت، روی اتمام پرداخت بزنید و به همین صفحه برگردید تا پیام تایید را ببینید.</div>',
+            '    <div class="payment-collection-return"><span>نشانی بازگشت پس از پرداخت</span><code dir="ltr">' + escapeHtml(collectionReturnUrl()) + '</code><button class="forms-copy-mini" type="button" data-copy-collection-return="' + escapeHtml(collectionReturnUrl()) + '" aria-label="کپی نشانی بازگشت">⧉</button><small>پس از پرداخت، روی اتمام پرداخت بزنید و به همین صفحه برگردید تا پیام تایید را ببینید.</small></div>',
             '    <div class="payment-collection-gateways">' + gatewayOptions(collection) + "</div>",
-            '    <button class="buy-primary-btn" type="submit"' + (disabled ? " disabled" : "") + '>' + (collection.paid ? "پرداخت شده" : "پرداخت") + "</button>",
+            '    <button class="buy-primary-btn" type="submit"' + (disabled ? " disabled" : "") + '>' + (paid ? "پرداخت شده" : "پرداخت") + "</button>",
             '    <div id="payment-collection-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>',
             "  </form>",
             "</section>"
@@ -270,12 +300,25 @@
             if (!response || !response.success || !response.redirectUrl) {
                 throw new Error((response && response.error) || "ایجاد پرداخت انجام نشد.");
             }
-            window.location.href = response.redirectUrl;
+            setFeedback("نشانی بازگشت ثبت شد؛ در حال انتقال به درگاه پرداخت...", "success");
+            window.setTimeout(function () {
+                window.location.href = response.redirectUrl;
+            }, 500);
         } catch (error) {
             button.disabled = false;
             setFeedback(error && error.message ? error.message : "ایجاد پرداخت انجام نشد.", "error");
         }
     }
+
+    root.addEventListener("click", function (event) {
+        var copyButton = event.target && event.target.closest("[data-copy-collection-return]");
+        if (!copyButton) return;
+        copyText(copyButton.getAttribute("data-copy-collection-return")).then(function () {
+            setFeedback("نشانی بازگشت کپی شد.", "success");
+        }).catch(function () {
+            setFeedback("کپی نشانی بازگشت انجام نشد.", "error");
+        });
+    });
 
     root.addEventListener("submit", function (event) {
         if (event.target && event.target.id === "payment-collection-form") {

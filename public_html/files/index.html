@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#eef2f7">
+    <title>مرکز آپلود | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
+    <meta name="description" content="مرکز آپلود شخصی مالک سایت برای ساخت لینک عمومی فایل، مدیریت فایل‌ها و پاکسازی امن storage.">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260507-101332">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260507-101332">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260507-101332">
+    <script src="/assets/site/scripts/theme.js?v=20260507-101332"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260507-101332">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260507-101332">
+    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260507-101332">
+</head>
+<body class="content-tools-page content-tools-page--owner" data-content-tool="files">
+    <div class="background-overlay" aria-hidden="true"></div>
+
+    <main class="ct-shell ct-shell--drive">
+        <header class="ct-drive-topbar">
+            <div class="ct-brand-mark" aria-hidden="true">F</div>
+            <div class="ct-topbar-copy">
+                <span>فضای کاری شخصی</span>
+                <h1>مرکز آپلود</h1>
+            </div>
+            <nav class="ct-topbar-actions" aria-label="مسیرهای ابزار محتوا">
+                <a class="ct-btn ct-btn--ghost" href="/paste/">Pastebin</a>
+                <a class="ct-btn ct-btn--ghost" href="/app/">خانه</a>
+            </nav>
+        </header>
+
+        <section id="ct-auth-guard" class="ct-state-card" aria-live="polite"></section>
+
+        <section id="ct-owner-app" class="ct-drive-layout" hidden>
+            <aside class="ct-side-panel" aria-label="ابزارهای فایل">
+                <button id="ct-upload-pick" class="ct-btn ct-btn--primary ct-btn--wide" type="button">بارگذاری فایل</button>
+                <nav class="ct-side-nav" aria-label="نمای فایل‌ها">
+                    <button class="is-active" type="button" data-ct-file-filter="all">همه فایل‌ها</button>
+                    <button type="button" data-ct-file-filter="image">تصاویر</button>
+                    <button type="button" data-ct-file-filter="pdf">PDF</button>
+                    <button type="button" data-ct-file-filter="text">متن و کد</button>
+                    <button type="button" data-ct-file-filter="audio">صوت</button>
+                    <button type="button" data-ct-file-filter="video">ویدیو</button>
+                </nav>
+                <div id="ct-storage-box" class="ct-storage-box">
+                    <span>فضای استفاده‌شده</span>
+                    <strong>—</strong>
+                    <small>در حال دریافت وضعیت storage</small>
+                </div>
+            </aside>
+
+            <section class="ct-main-panel">
+                <div id="ct-feedback" class="ct-feedback" aria-live="polite"></div>
+
+                <section class="ct-upload-card" aria-labelledby="ct-upload-title">
+                    <div class="ct-section-head">
+                        <div>
+                            <span class="ct-kicker">Upload</span>
+                            <h2 id="ct-upload-title">آپلود فایل و ساخت لینک عمومی</h2>
+                            <p>فایل‌ها فقط در storage مدیریت‌شده همین ابزار ذخیره می‌شوند و لینک خروجی برای هر کسی که لینک را دارد باز است.</p>
+                        </div>
+                        <button id="ct-upload-clear" class="ct-btn" type="button">پاک کردن صف</button>
+                    </div>
+
+                    <form id="ct-upload-form" class="ct-upload-form" novalidate>
+                        <input id="ct-upload-input" type="file" multiple hidden>
+                        <div id="ct-dropzone" class="ct-dropzone" tabindex="0" role="button" aria-label="انتخاب یا رها کردن فایل">
+                            <div class="ct-dropzone__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 16V5M12 5L7.7 9.3M12 5L16.3 9.3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M5 15.6V18A2 2 0 0 0 7 20H17A2 2 0 0 0 19 18V15.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <strong>فایل‌ها را اینجا رها کنید</strong>
+                            <span>یا برای انتخاب تکی/چندتایی کلیک کنید</span>
+                        </div>
+
+                        <div class="ct-grid ct-grid--two">
+                            <label class="ct-field" for="ct-upload-title-input">
+                                <span>عنوان اختیاری</span>
+                                <input id="ct-upload-title-input" type="text" maxlength="180" placeholder="برای فایل یا دسته آپلود">
+                            </label>
+                            <label class="ct-field" for="ct-upload-folder-input">
+                                <span>پوشه/دسته</span>
+                                <input id="ct-upload-folder-input" type="text" maxlength="80" placeholder="مثلا جزوه‌ها">
+                            </label>
+                        </div>
+                        <label class="ct-field" for="ct-upload-description-input">
+                            <span>توضیح کوتاه</span>
+                            <textarea id="ct-upload-description-input" rows="2" maxlength="1200" placeholder="در صفحه عمومی فایل نمایش داده می‌شود"></textarea>
+                        </label>
+                        <div class="ct-grid ct-grid--three">
+                            <label class="ct-field" for="ct-upload-tags-input">
+                                <span>برچسب‌ها</span>
+                                <input id="ct-upload-tags-input" type="text" maxlength="240" placeholder="با ویرگول جدا کنید">
+                            </label>
+                            <label class="ct-field" for="ct-upload-expire-input">
+                                <span>انقضا</span>
+                                <input id="ct-upload-expire-input" type="datetime-local" data-latin-digits="true">
+                            </label>
+                            <label class="ct-field" for="ct-upload-limit-input">
+                                <span>سقف دانلود</span>
+                                <input id="ct-upload-limit-input" type="number" min="0" max="1000000" inputmode="numeric" data-latin-digits="true" placeholder="۰ یعنی نامحدود">
+                            </label>
+                        </div>
+                        <div class="ct-grid ct-grid--two">
+                            <label class="ct-field" for="ct-upload-password-input">
+                                <span>رمز اختیاری لینک</span>
+                                <input id="ct-upload-password-input" type="password" autocomplete="new-password" placeholder="خالی یعنی بدون رمز">
+                            </label>
+                            <label class="ct-field" for="ct-upload-status-input">
+                                <span>وضعیت لینک</span>
+                                <select id="ct-upload-status-input">
+                                    <option value="active">فعال</option>
+                                    <option value="hidden">مخفی</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div id="ct-upload-queue" class="ct-upload-queue"></div>
+                        <button id="ct-upload-submit" class="ct-btn ct-btn--primary" type="submit">شروع آپلود</button>
+                    </form>
+                </section>
+
+                <section class="ct-manager-card" aria-labelledby="ct-files-title">
+                    <div class="ct-section-head">
+                        <div>
+                            <span class="ct-kicker">Files</span>
+                            <h2 id="ct-files-title">مدیریت لینک‌ها</h2>
+                            <p>جست‌وجو، فیلتر، کپی لینک، تغییر وضعیت و حذف امن فایل‌های ثبت‌شده.</p>
+                        </div>
+                        <button id="ct-files-refresh" class="ct-btn" type="button">بازخوانی</button>
+                    </div>
+                    <div class="ct-toolbar">
+                        <input id="ct-files-query" type="search" placeholder="جست‌وجوی نام، عنوان، دسته یا برچسب">
+                        <select id="ct-files-status">
+                            <option value="all">همه وضعیت‌ها</option>
+                            <option value="active">فعال</option>
+                            <option value="hidden">مخفی</option>
+                            <option value="expired">منقضی</option>
+                            <option value="deleted">حذف‌شده</option>
+                        </select>
+                        <select id="ct-files-sort">
+                            <option value="newest">جدیدترین</option>
+                            <option value="oldest">قدیمی‌ترین</option>
+                            <option value="size">حجیم‌ترین</option>
+                            <option value="downloads">بیشترین دانلود</option>
+                        </select>
+                    </div>
+                    <div class="ct-bulkbar">
+                        <span id="ct-files-selected">۰ انتخاب</span>
+                        <button class="ct-btn" type="button" data-ct-bulk-files="activate">فعال‌سازی</button>
+                        <button class="ct-btn" type="button" data-ct-bulk-files="hide">مخفی</button>
+                        <button class="ct-btn ct-btn--danger" type="button" data-ct-bulk-files="delete">حذف لینک</button>
+                        <button class="ct-btn ct-btn--danger" type="button" data-ct-bulk-files="purge">حذف فایل از storage</button>
+                    </div>
+                    <div id="ct-files-list" class="ct-file-list"></div>
+                    <div id="ct-files-pager" class="ct-pager"></div>
+                </section>
+            </section>
+        </section>
+    </main>
+
+    <script src="/assets/site/scripts/auth.js?v=20260507-101332"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260507-101332"></script>
+    <script src="/assets/site/scripts/content-tools.js?v=20260507-101332"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260507-101332"></script>
+</body>
+</html>

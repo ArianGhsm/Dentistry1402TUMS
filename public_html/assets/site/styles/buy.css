@@ -2793,6 +2793,52 @@ body.buy-modal-open {
     font-weight: 940;
 }
 
+.payment-collection-return {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.72rem;
+    border: 1px dashed color-mix(in srgb, var(--accent-color) 34%, var(--border-color));
+    border-radius: 8px;
+    background: var(--surface-muted);
+}
+
+.payment-collection-return span,
+.payment-collection-return small {
+    grid-column: 1 / -1;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.8;
+}
+
+.payment-collection-return code {
+    min-width: 0;
+    color: var(--text-primary);
+    font-size: 0.74rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.buy-page .forms-copy-mini {
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--surface-solid);
+    color: var(--text-primary);
+    display: inline-grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.buy-page .forms-copy-mini:hover,
+.buy-page .forms-copy-mini:focus-visible {
+    border-color: color-mix(in srgb, var(--accent-color) 42%, var(--border-color));
+    background: var(--surface-elevated);
+}
+
 .buy-page .buy-gateway-option {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);

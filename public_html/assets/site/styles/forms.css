@@ -520,6 +520,33 @@ body.forms-page button {
     line-height: 1.8;
 }
 
+.forms-return-note {
+    margin-top: 0.62rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.42rem;
+    align-items: center;
+    padding: 0.58rem;
+    border: 1px dashed color-mix(in srgb, var(--forms-accent) 34%, var(--forms-border));
+    border-radius: 10px;
+    background: var(--forms-muted);
+}
+
+.forms-return-note span {
+    grid-column: 1 / -1;
+    color: var(--forms-text-soft);
+    font-size: 0.76rem;
+}
+
+.forms-return-note code {
+    min-width: 0;
+    color: var(--forms-text);
+    font-size: 0.72rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .forms-payment-box.is-paid {
     border-color: rgba(22, 163, 74, 0.34);
     background: color-mix(in srgb, var(--success-color) 9%, var(--forms-surface-solid));

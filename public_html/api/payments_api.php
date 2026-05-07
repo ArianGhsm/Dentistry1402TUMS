@@ -681,6 +681,182 @@ function payments_api_trigger_notification_hook(array $notification, array $orde
     payments_gateway_http_post_json($webhook, $payload, 8);
 }
 
+function payments_api_order_reconcile_due(array $order, int $now, int $minAgeSeconds, int $cooldownSeconds): bool
+{
+    if ((string) ($order['status'] ?? '') !== PAYMENTS_ORDER_STATUS_PENDING) {
+        return false;
+    }
+    if (payments_api_order_method_key($order) === 'receipt') {
+        return false;
+    }
+    if (max(0, (int) ($order['amount'] ?? 0)) <= 0) {
+        return false;
+    }
+    if (trim((string) ($order['authority'] ?? '')) === '') {
+        return false;
+    }
+
+    $createdAt = payments_timestamp_or_null((string) ($order['created_at'] ?? ''));
+    if ($createdAt !== null && $minAgeSeconds > 0 && ($now - $createdAt) < $minAgeSeconds) {
+        return false;
+    }
+
+    $snapshot = is_array($order['gateway_response_snapshot'] ?? null) ? $order['gateway_response_snapshot'] : [];
+    $auto = is_array($snapshot['auto_reconcile'] ?? null) ? $snapshot['auto_reconcile'] : [];
+    $lastAt = payments_timestamp_or_null((string) ($auto['at'] ?? ''));
+    if ($lastAt !== null && $cooldownSeconds > 0 && ($now - $lastAt) < $cooldownSeconds) {
+        return false;
+    }
+
+    return true;
+}
+
+function payments_api_reconcile_pending_orders(array $options = []): array
+{
+    $limit = max(1, min(60, (int) ($options['limit'] ?? 12)));
+    $minAgeSeconds = max(0, (int) ($options['minAgeSeconds'] ?? 45));
+    $cooldownSeconds = max(0, (int) ($options['cooldownSeconds'] ?? 240));
+    $now = time();
+    $store = payments_read_store();
+    $candidates = [];
+
+    foreach (($store['orders'] ?? []) as $order) {
+        if (!is_array($order) || !payments_api_order_reconcile_due($order, $now, $minAgeSeconds, $cooldownSeconds)) {
+            continue;
+        }
+        $candidates[] = [
+            'id' => (int) ($order['id'] ?? 0),
+            'gateway' => (string) ($order['gateway'] ?? ''),
+            'authority' => dent_clean_text((string) ($order['authority'] ?? ''), 120),
+            'order' => $order,
+        ];
+        if (count($candidates) >= $limit) {
+            break;
+        }
+    }
+
+    $result = [
+        'checked' => 0,
+        'verified' => 0,
+        'changed' => 0,
+        'stillPending' => 0,
+        'errors' => 0,
+    ];
+
+    foreach ($candidates as $candidate) {
+        $orderId = (int) ($candidate['id'] ?? 0);
+        $authority = (string) ($candidate['authority'] ?? '');
+        $gateway = (string) ($candidate['gateway'] ?? '');
+        $order = is_array($candidate['order'] ?? null) ? $candidate['order'] : [];
+        if ($orderId <= 0 || $authority === '' || $order === []) {
+            continue;
+        }
+
+        $result['checked']++;
+        try {
+            $verifyResult = payments_gateway_verify_payment($gateway, $order, [
+                'authority' => $authority,
+                'trackId' => $authority,
+                'status' => 'ok',
+                'autoReconcile' => true,
+            ]);
+            payments_log_gateway_event('auto-reconcile-request', [
+                'orderId' => $orderId,
+                'gateway' => $gateway,
+                'result' => $verifyResult,
+            ]);
+        } catch (Throwable $error) {
+            $result['errors']++;
+            payments_log_gateway_event('auto-reconcile-error', [
+                'orderId' => $orderId,
+                'gateway' => $gateway,
+                'error' => $error->getMessage(),
+            ]);
+            continue;
+        }
+
+        $payload = payments_with_store_lock(static function (array &$store) use ($orderId, $authority, $verifyResult): array {
+            $orderIndex = payments_find_order_index_by_id($store, $orderId);
+            if ($orderIndex < 0 || !is_array($store['orders'][$orderIndex] ?? null)) {
+                return ['applied' => false];
+            }
+
+            $current = $store['orders'][$orderIndex];
+            if ((string) ($current['status'] ?? '') !== PAYMENTS_ORDER_STATUS_PENDING) {
+                return ['applied' => false, 'status' => (string) ($current['status'] ?? '')];
+            }
+
+            $currentAuthority = dent_clean_text((string) ($current['authority'] ?? ''), 120);
+            if ($currentAuthority !== '' && $currentAuthority !== $authority) {
+                return ['applied' => false, 'status' => (string) ($current['status'] ?? '')];
+            }
+            if ($currentAuthority === '') {
+                $current['authority'] = $authority;
+            }
+
+            $previousStatus = (string) ($current['status'] ?? PAYMENTS_ORDER_STATUS_PENDING);
+            $snapshot = is_array($current['gateway_response_snapshot'] ?? null) ? $current['gateway_response_snapshot'] : [];
+            $snapshot['auto_reconcile'] = [
+                'authority' => $authority,
+                'at' => dent_iso_now(),
+                'result' => $verifyResult,
+            ];
+
+            if ((bool) ($verifyResult['verified'] ?? false)) {
+                $current['status'] = PAYMENTS_ORDER_STATUS_SUCCESS;
+                $current['ref_id'] = dent_clean_text((string) ($verifyResult['refId'] ?? ''), 120);
+                if ((string) ($current['paid_at'] ?? '') === '') {
+                    $current['paid_at'] = dent_iso_now();
+                }
+                $current['verified_at'] = dent_iso_now();
+            }
+
+            $current['gateway_response_snapshot'] = $snapshot;
+            $store['orders'][$orderIndex] = $current;
+
+            $item = null;
+            $itemIndex = payments_find_item_index_by_id($store, (int) ($current['item_id'] ?? 0));
+            if ($itemIndex >= 0) {
+                $item = $store['items'][$itemIndex];
+            }
+
+            $notification = null;
+            if ($previousStatus !== (string) ($current['status'] ?? '') && (string) ($current['status'] ?? '') === PAYMENTS_ORDER_STATUS_SUCCESS) {
+                $notification = payments_api_append_order_notification($store, $current, is_array($item) ? $item : null, true);
+            }
+
+            return [
+                'applied' => true,
+                'verified' => (string) ($current['status'] ?? '') === PAYMENTS_ORDER_STATUS_SUCCESS,
+                'changed' => $previousStatus !== (string) ($current['status'] ?? ''),
+                'status' => (string) ($current['status'] ?? ''),
+                'order' => $current,
+                'item' => $item,
+                'notification' => $notification,
+            ];
+        });
+
+        if ((bool) ($payload['verified'] ?? false)) {
+            $result['verified']++;
+        }
+        if ((bool) ($payload['changed'] ?? false)) {
+            $result['changed']++;
+        }
+        if ((string) ($payload['status'] ?? '') === PAYMENTS_ORDER_STATUS_PENDING) {
+            $result['stillPending']++;
+        }
+        if (is_array($payload['notification'] ?? null) && is_array($payload['order'] ?? null)) {
+            payments_api_trigger_notification_hook(
+                $payload['notification'],
+                $payload['order'],
+                is_array($payload['item'] ?? null) ? $payload['item'] : null
+            );
+        }
+    }
+
+    return $result;
+}
+
 function payments_api_checkout_gateways_payload(): array
 {
     $catalog = payments_gateway_checkout_catalog(false);
@@ -2367,6 +2543,11 @@ if ($action === 'ownerDashboard') {
     payments_api_require_method(['GET']);
     dent_require_owner();
 
+    $reconciliation = payments_api_reconcile_pending_orders([
+        'limit' => 8,
+        'minAgeSeconds' => 45,
+        'cooldownSeconds' => 240,
+    ]);
     $store = payments_read_store();
     $itemById = [];
     foreach ($store['items'] as $item) {
@@ -2433,6 +2614,7 @@ if ($action === 'ownerDashboard') {
         'recentOrders' => $recentOrders,
         'notifications' => $notifications,
         'gateways' => payments_api_owner_gateways_payload($store),
+        'reconciliation' => $reconciliation,
     ]);
 }
 
@@ -3147,10 +3329,35 @@ if ($action === 'ownerDeleteItem') {
     ]);
 }
 
+if ($action === 'ownerReconcileOrders') {
+    payments_api_require_method(['POST']);
+    dent_require_owner();
+
+    $limit = max(1, min(60, (int) ($_POST['limit'] ?? 50)));
+    $reconciliation = payments_api_reconcile_pending_orders([
+        'limit' => $limit,
+        'minAgeSeconds' => 0,
+        'cooldownSeconds' => 0,
+    ]);
+
+    dent_json_response([
+        'success' => true,
+        'reconciliation' => $reconciliation,
+        'message' => $reconciliation['verified'] > 0
+            ? 'استعلام گروهی انجام شد و پرداخت‌های تاییدشده به سوابق اضافه شدند.'
+            : 'استعلام گروهی انجام شد؛ پرداخت تاییدشده جدیدی پیدا نشد.',
+    ]);
+}
+
 if ($action === 'ownerOrders') {
     payments_api_require_method(['GET']);
     dent_require_owner();
 
+    $reconciliation = payments_api_reconcile_pending_orders([
+        'limit' => 16,
+        'minAgeSeconds' => 45,
+        'cooldownSeconds' => 240,
+    ]);
     $store = payments_read_store();
     $itemById = [];
     foreach ($store['items'] as $item) {
@@ -3186,6 +3393,7 @@ if ($action === 'ownerOrders') {
         'summary' => payments_api_orders_summary($store['orders']),
         'filteredSummary' => payments_api_orders_summary($filteredRawOrders),
         'orders' => $filteredOrders,
+        'reconciliation' => $reconciliation,
     ]);
 }
 

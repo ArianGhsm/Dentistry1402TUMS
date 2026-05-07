@@ -5,6 +5,7 @@ param(
     [switch]$SkipValidation,
     [switch]$SkipPostDeployVerification,
     [switch]$SkipGitHubSync,
+    [switch]$SkipCompletionSms,
     [switch]$PullBeforeDeploy,
     [switch]$SkipRemoteStorageSync,
     [switch]$AllowProxyPull,
@@ -17,6 +18,7 @@ param(
     [string]$LowBandwidthMode = "auto",
     [string]$ProxyEndpoint = "",
     [int]$ProxyBudgetMb = 0,
+    [string]$CompletionSmsPhone = "09009840305",
     [string]$CommitMessage = "chore: sync deployed laptop state to github",
     [string[]]$HealthCheckUrls = @(
         "https://dentistry1402tums.ir/",
@@ -836,6 +838,59 @@ function Resolve-PythonCommand() {
     return ""
 }
 
+function Resolve-PhpCommand() {
+    $php = Get-Command php -ErrorAction SilentlyContinue
+    if ($null -ne $php) {
+        return [string]$php.Source
+    }
+
+    return ""
+}
+
+function Get-PhpRequiredExtensionArgs([string]$phpPath) {
+    $args = New-Object System.Collections.Generic.List[string]
+    if ([string]::IsNullOrWhiteSpace($phpPath)) {
+        return @($args)
+    }
+
+    $loadedModules = @{}
+    $moduleOutput = & $phpPath -m 2>$null
+    foreach ($line in @($moduleOutput)) {
+        $module = ([string]$line).Trim().ToLowerInvariant()
+        if ($module -ne '') {
+            $loadedModules[$module] = $true
+        }
+    }
+
+    $phpDirectory = Split-Path -Path $phpPath -Parent
+    $extensionDirectory = Join-Path $phpDirectory "ext"
+    if (-not (Test-Path -LiteralPath $extensionDirectory -PathType Container)) {
+        return @($args)
+    }
+
+    $extensionDirectoryAdded = $false
+    foreach ($extension in @("openssl", "curl")) {
+        if ($loadedModules.ContainsKey($extension)) {
+            continue
+        }
+
+        $dllPath = Join-Path $extensionDirectory ("php_$extension.dll")
+        if (-not (Test-Path -LiteralPath $dllPath -PathType Leaf)) {
+            continue
+        }
+
+        if (-not $extensionDirectoryAdded) {
+            [void]$args.Add("-d")
+            [void]$args.Add("extension_dir=$extensionDirectory")
+            $extensionDirectoryAdded = $true
+        }
+        [void]$args.Add("-d")
+        [void]$args.Add("extension=$extension")
+    }
+
+    return @($args)
+}
+
 function Run-VersionStamp() {
     $started = Get-IsoNow
 
@@ -1399,6 +1454,120 @@ function Sync-GitHubFromLaptop() {
     }
 }
 
+function Send-CompletionSms() {
+    $started = Get-IsoNow
+    if ($SkipCompletionSms) {
+        Write-Warning "Completion SMS skipped by explicit -SkipCompletionSms override."
+        return [PSCustomObject]@{
+            Status      = "skipped-explicit"
+            StartedAt   = $started
+            FinishedAt  = Get-IsoNow
+            PhoneMasked = ""
+            Message     = ""
+            Command     = ""
+            ExitCode    = 0
+        }
+    }
+
+    if ($DryRun) {
+        Write-Host "[DryRun] Completion SMS skipped before sending"
+        return [PSCustomObject]@{
+            Status      = "skipped-dry-run"
+            StartedAt   = $started
+            FinishedAt  = Get-IsoNow
+            PhoneMasked = ""
+            Message     = "Dry run skipped before sending."
+            Command     = ""
+            ExitCode    = 0
+        }
+    }
+
+    $scriptPath = Join-Path $projectRoot "scripts\send_deploy_completion_sms.php"
+    if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) {
+        return [PSCustomObject]@{
+            Status      = "failed"
+            StartedAt   = $started
+            FinishedAt  = Get-IsoNow
+            PhoneMasked = ""
+            Message     = "Completion SMS script not found: $scriptPath"
+            Command     = ""
+            ExitCode    = 2
+        }
+    }
+
+    $php = Resolve-PhpCommand
+    if ([string]::IsNullOrWhiteSpace($php)) {
+        return [PSCustomObject]@{
+            Status      = "failed"
+            StartedAt   = $started
+            FinishedAt  = Get-IsoNow
+            PhoneMasked = ""
+            Message     = "PHP is required for completion SMS but no php command was found."
+            Command     = ""
+            ExitCode    = 2
+        }
+    }
+
+    $phpArgs = New-Object System.Collections.Generic.List[string]
+    foreach ($arg in @(Get-PhpRequiredExtensionArgs -phpPath $php)) {
+        [void]$phpArgs.Add([string]$arg)
+    }
+    [void]$phpArgs.Add($scriptPath)
+    [void]$phpArgs.Add("--phone")
+    [void]$phpArgs.Add($CompletionSmsPhone)
+
+    $command = "$php " + (($phpArgs | ForEach-Object {
+        $value = [string]$_
+        if ($value.Contains(" ")) {
+            '"' + $value.Replace('"', '\"') + '"'
+        } else {
+            $value
+        }
+    }) -join " ")
+
+    Write-Host "Final notification: send completion SMS to owner"
+    $output = & $php @phpArgs 2>&1
+    $exitCode = $LASTEXITCODE
+    $lines = @($output) | ForEach-Object { [string]$_ }
+    $jsonLine = @($lines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Last 1)
+    $payload = $null
+    if ($jsonLine.Count -gt 0) {
+        try {
+            $payload = [string]$jsonLine[-1] | ConvertFrom-Json
+        } catch {
+            $payload = $null
+        }
+    }
+
+    $success = $false
+    $phoneMasked = ""
+    $message = ""
+    if ($payload -ne $null) {
+        if ($payload.PSObject.Properties.Name -contains "success") {
+            $success = [bool]$payload.success
+        }
+        if ($payload.PSObject.Properties.Name -contains "phoneMasked") {
+            $phoneMasked = [string]$payload.phoneMasked
+        }
+        if ($payload.PSObject.Properties.Name -contains "message") {
+            $message = [string]$payload.message
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace($message) -and $lines.Count -gt 0) {
+        $message = [string]$lines[-1]
+    }
+
+    return [PSCustomObject]@{
+        Status      = if ($exitCode -eq 0 -and $success) { "completed" } else { "failed" }
+        StartedAt   = $started
+        FinishedAt  = Get-IsoNow
+        PhoneMasked = $phoneMasked
+        Message     = $message
+        Command     = $command
+        ExitCode    = $exitCode
+    }
+}
+
 $validationInfo = [PSCustomObject]@{
     Status     = "not-run"
     StartedAt  = ""
@@ -1467,6 +1636,15 @@ $deployStateInfo = [PSCustomObject]@{
     Head       = ""
     Branch     = ""
     FinishedAt = ""
+}
+$completionSmsInfo = [PSCustomObject]@{
+    Status      = "not-run"
+    StartedAt   = ""
+    FinishedAt  = ""
+    PhoneMasked = ""
+    Message     = ""
+    Command     = ""
+    ExitCode    = 0
 }
 
 $failureMessage = ""
@@ -1541,6 +1719,11 @@ try {
     } else {
         $deployStateInfo.Status = "skipped-no-head"
     }
+
+    $completionSmsInfo = Send-CompletionSms
+    if ($completionSmsInfo.Status -eq "failed") {
+        throw "Completion SMS failed: $($completionSmsInfo.Message)"
+    }
 } catch {
     $failureMessage = $_.Exception.Message
     if (-not $remoteStorageInfo.FinishedAt) {
@@ -1557,6 +1740,9 @@ try {
     }
     if (-not $deployStateInfo.FinishedAt) {
         $deployStateInfo.FinishedAt = Get-IsoNow
+    }
+    if (-not $completionSmsInfo.FinishedAt) {
+        $completionSmsInfo.FinishedAt = Get-IsoNow
     }
 } finally {
     $runFinishedAt = Get-IsoNow
@@ -1676,6 +1862,19 @@ try {
     }
     if (-not [string]::IsNullOrWhiteSpace($deployStateInfo.Head)) {
         Write-Host " - Last successful host deploy HEAD: $($deployStateInfo.Head)"
+    }
+    Write-Host " - Completion SMS status: $($completionSmsInfo.Status)"
+    if (-not [string]::IsNullOrWhiteSpace($completionSmsInfo.StartedAt)) {
+        Write-Host " - Completion SMS started at: $($completionSmsInfo.StartedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($completionSmsInfo.FinishedAt)) {
+        Write-Host " - Completion SMS finished at: $($completionSmsInfo.FinishedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($completionSmsInfo.PhoneMasked)) {
+        Write-Host " - Completion SMS phone: $($completionSmsInfo.PhoneMasked)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($completionSmsInfo.Message)) {
+        Write-Host " - Completion SMS message: $($completionSmsInfo.Message)"
     }
 
     Write-Host " - Run finished at: $runFinishedAt"

@@ -1033,6 +1033,23 @@
         });
     }
 
+    async function editForm(formId) {
+        var cleanId = String(formId || "");
+        if (!cleanId) return;
+        setFeedback("در حال دریافت نسخه کامل فرم برای ویرایش...", "");
+        try {
+            var response = await apiGet("get", { formId: cleanId });
+            if (consumeUnauthorized(response)) return;
+            if (!response || !response.success || !response.form) {
+                throw new Error((response && response.error) || "دریافت فرم برای ویرایش انجام نشد.");
+            }
+            populateBuilder(response.form);
+        } catch (error) {
+            setFeedback(error && error.message ? error.message : "دریافت فرم برای ویرایش انجام نشد.", "error");
+            showToast(error && error.message ? error.message : "دریافت فرم برای ویرایش انجام نشد.");
+        }
+    }
+
     function renderFormsList() {
         updateSummary();
         formsList.innerHTML = "";
@@ -1093,7 +1110,7 @@
                 edit.type = "button";
                 edit.textContent = "ویرایش";
                 edit.addEventListener("click", function () {
-                    populateBuilder(form);
+                    editForm(form.id);
                 });
                 actions.appendChild(edit);
 

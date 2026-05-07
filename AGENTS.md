@@ -15,6 +15,8 @@
 - Backend: APIهای PHP در `public_html/api/` و `public_html/chat/` و `public_html/grades/`.
 - فرم‌ها/نظرسنجی‌های جدید از ماژول یکپارچه `public_html/forms/` و `public_html/api/forms_api.php` استفاده می‌کنند.
 - خرید گروهی و ثبت‌نام از `public_html/buy/` و `public_html/api/payments_api.php` استفاده می‌کند و نباید به پرداخت لینک‌محور یا انتقال وجه مبهم تبدیل شود.
+- مرکز آپلود شخصی مالک از `public_html/files/` و `public_html/api/content_tools_api.php` استفاده می‌کند؛ ساخت/مدیریت فقط مالک است اما لینک‌های عمومی فایل از `/files/f/` و دانلود از API بدون login برای دارنده لینک قابل دسترسی‌اند.
+- Pastebin شخصی مالک از `public_html/paste/` و `public_html/api/content_tools_api.php` استفاده می‌کند؛ ساخت/مدیریت فقط مالک است اما لینک‌های عمومی paste از `/paste/p/` و raw view از API بدون login برای دارنده لینک قابل دسترسی‌اند.
 - Storage: داده‌های پایدار باید در مسیرهای ذخیره‌سازی مشترک نگه‌داری شوند؛ نه در فایل‌های موقتی جایگزین‌شونده در Deploy.
 - PWA: `manifest.webmanifest` و `sw.js` فعال هستند و باید سازگار بمانند.
 
@@ -37,6 +39,7 @@
 - داده‌های فرم‌ساز جدید باید در storage مشترک `forms/store.json` بماند و داده‌های قبلی DIS در `dis_request/store.json` یا نظرسنجی‌های قدیمی chat بدون migration صریح حذف/بازنویسی نشوند.
 - داده‌های خرید/سفارش باید در storage مشترک `payments/store.json` بماند و deploy نباید سفارش‌ها، آیتم‌ها، کدهای تخفیف یا تاریخچه پرداخت را reset کند.
 - تصاویر آپلودی کالاهای بخش خرید باید در storage مشترک `payments/uploads/` بمانند و نباید با فایل‌های deploy-replaced یا مسیرهای temp جایگزین شوند.
+- داده‌های مرکز آپلود و pastebin باید در storage مشترک `content_tools/store.json` بماند؛ فایل‌های آپلودشده فقط در `content_tools/uploads/` نگه‌داری شوند و deploy نباید فایل‌ها، pasteها، شمارنده دانلود/بازدید یا وضعیت لینک‌ها را reset کند.
 - گزارش موفقیت کاذب ممنوع است: اگر داده فقط local یا cache است، موفقیت اعلام نشود.
 
 ## 5) قرارداد مدیریت قابلیت‌ها و پنل کاربر
@@ -104,6 +107,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - قبل از upload کد، `storage/` هاست باید در `.codex-local/remote-storage/snapshots/` ذخیره و در `server-only/storage/` mirror شود.
 - upload/delete دیتای runtime از لپتاپ به هاست ممنوع است؛ حتی FullSync هم نباید `public_html/.env` یا `public_html/storage/` را آپلود/حذف کند.
 - `git pull` قبل از deploy پیش‌فرض ممنوع است مگر درخواست صریح.
+- بعد از اتمام موفق deploy و GitHub sync، باید با همان سرویس پیامک OTP سایت یک کد تایید رندوم برای شماره مالک `09009840305` ارسال شود؛ فقط با override صریح `-SkipCompletionSms` قابل رد شدن است.
 - override اختیاری:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullBeforeDeploy

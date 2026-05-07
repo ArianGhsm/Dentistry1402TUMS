@@ -2256,8 +2256,9 @@ function forms_upsert_receipt_payment_order(array $form, array $field, array $re
             return;
         }
 
+        $orderId = payments_next_order_id($store);
         $store['orders'][] = [
-            'id' => payments_next_order_id($store),
+            'id' => $orderId,
             'item_id' => 0,
             'user_id' => $studentNumber,
             'payer_name' => $payerName,
@@ -2284,6 +2285,13 @@ function forms_upsert_receipt_payment_order(array $form, array $field, array $re
             'verified_at' => $nowIso,
             'public_token' => payments_random_token(),
         ];
+        payments_append_notification(
+            $store,
+            PAYMENTS_NOTIFICATION_TYPE_ORDER_SUCCESS,
+            'پرداخت با رسید فرم',
+            (string) ($form['title'] ?? 'فرم') . ' | ' . $payerName . ' | ' . number_format($amount) . ' ریال',
+            $orderId
+        );
     });
 }
 
@@ -2333,8 +2341,9 @@ if ($action === 'list') {
         if (!is_array($form)) {
             continue;
         }
-        if (forms_can_create($user) || forms_can_manage($form, $user) || forms_viewer_can_access($form, $user)) {
-            $forms[] = forms_form_payload($store, $form, $user, false);
+        $canManage = forms_can_manage($form, $user);
+        if (forms_can_create($user) || $canManage || forms_viewer_can_access($form, $user)) {
+            $forms[] = forms_form_payload($store, $form, $user, $canManage);
         }
     }
     dent_json_response([

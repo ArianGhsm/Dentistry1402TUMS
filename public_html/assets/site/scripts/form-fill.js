@@ -210,6 +210,12 @@
         return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " ریال";
     }
 
+    function formReturnUrl() {
+        var id = String((state.form && state.form.id) || formId || "").trim();
+        var origin = window.location.origin || "";
+        return origin + "/forms/fill/?form=" + encodeURIComponent(id);
+    }
+
     function guestKey() {
         var key = "";
         try {
@@ -311,7 +317,8 @@
             paymentBox.className = "forms-payment-box" + (paid ? " is-paid" : "");
             paymentBox.innerHTML = [
                 '<strong>' + escapeHtml(money(amount)) + "</strong>",
-                paid ? '<p>پرداخت این سوال تایید شده است.</p>' : '<p>برای ثبت پاسخ فرم، ابتدا این مبلغ را پرداخت کنید. پس از پرداخت روی اتمام پرداخت بزنید و به همین صفحه برگردید تا پیام تایید را ببینید.</p>'
+                paid ? '<p>پرداخت این سوال تایید شده است.</p>' : '<p>برای ثبت پاسخ فرم، ابتدا این مبلغ را پرداخت کنید. پس از پرداخت روی اتمام پرداخت بزنید و به همین صفحه برگردید تا پیام تایید را ببینید.</p>',
+                !paid ? '<div class="forms-return-note"><span>نشانی بازگشت پس از پرداخت</span><code dir="ltr">' + escapeHtml(formReturnUrl()) + '</code><button class="forms-copy-mini" type="button" data-copy-receipt-value="' + escapeHtml(formReturnUrl()) + '" aria-label="کپی نشانی بازگشت">⧉</button></div>' : ""
             ].join("");
             card.appendChild(paymentBox);
             if (paid) {
@@ -737,7 +744,10 @@
             if (!response || !response.success || !response.redirectUrl) {
                 throw new Error((response && response.error) || "ایجاد پرداخت انجام نشد.");
             }
-            window.location.href = response.redirectUrl;
+            setPaymentFeedback("نشانی بازگشت ثبت شد؛ در حال انتقال به درگاه پرداخت...", "success");
+            window.setTimeout(function () {
+                window.location.href = response.redirectUrl;
+            }, 500);
         } catch (error) {
             button.disabled = false;
             setPaymentFeedback(error && error.message ? error.message : "ایجاد پرداخت انجام نشد.", "error");

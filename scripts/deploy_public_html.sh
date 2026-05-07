@@ -15,6 +15,7 @@ DRY_RUN=0
 SKIP_VALIDATION=0
 SKIP_POST_DEPLOY_VERIFICATION=0
 SKIP_GITHUB_SYNC=0
+SKIP_COMPLETION_SMS=0
 PULL_BEFORE_DEPLOY=0
 ALLOW_PROXY_PULL=0
 ALLOW_PROXY_OVER_BUDGET=0
@@ -25,6 +26,7 @@ GITHUB_NETWORK_PATH="${DENT_GITHUB_PATH:-auto}"
 LOW_BANDWIDTH_MODE="${DENT_LOW_BANDWIDTH_MODE:-auto}"
 PROXY_ENDPOINT="${DENT_PROXY_ENDPOINT:-127.0.0.1:10808}"
 PROXY_BUDGET_MB="${DENT_PROXY_BUDGET_MB:-10}"
+COMPLETION_SMS_PHONE="${DENT_COMPLETION_SMS_PHONE:-09009840305}"
 COMMIT_MESSAGE="chore: sync deployed laptop state to github"
 HEALTH_CHECK_URLS=("https://dentistry1402tums.ir/" "https://dentistry1402tums.ir/chat/")
 
@@ -36,6 +38,7 @@ while [[ $# -gt 0 ]]; do
     --skip-validation) SKIP_VALIDATION=1; shift ;;
     --skip-post-deploy-verification) SKIP_POST_DEPLOY_VERIFICATION=1; shift ;;
     --skip-github-sync) SKIP_GITHUB_SYNC=1; shift ;;
+    --skip-completion-sms) SKIP_COMPLETION_SMS=1; shift ;;
     --pull-before-deploy) PULL_BEFORE_DEPLOY=1; shift ;;
     --allow-proxy-pull) ALLOW_PROXY_PULL=1; shift ;;
     --allow-proxy-over-budget) ALLOW_PROXY_OVER_BUDGET=1; shift ;;
@@ -85,6 +88,12 @@ while [[ $# -gt 0 ]]; do
       shift
       [[ $# -gt 0 ]] || { echo "Missing value for --commit-message" >&2; exit 1; }
       COMMIT_MESSAGE="$1"
+      shift
+      ;;
+    --completion-sms-phone)
+      shift
+      [[ $# -gt 0 ]] || { echo "Missing value for --completion-sms-phone" >&2; exit 1; }
+      COMPLETION_SMS_PHONE="$1"
       shift
       ;;
     --health-check-url)
@@ -163,6 +172,11 @@ GITHUB_SYNC_STARTED_AT=""
 GITHUB_SYNC_FINISHED_AT=""
 GITHUB_SYNC_BRANCH=""
 GITHUB_SYNC_HEAD=""
+
+COMPLETION_SMS_STATUS="not-run"
+COMPLETION_SMS_STARTED_AT=""
+COMPLETION_SMS_FINISHED_AT=""
+COMPLETION_SMS_MESSAGE=""
 
 CURRENT_BRANCH="$(git -C "$PROJECT_ROOT" rev-parse --abbrev-ref HEAD)"
 
@@ -380,11 +394,91 @@ sync_github() {
   GITHUB_SYNC_FINISHED_AT="$(date -Iseconds)"
 }
 
+completion_sms_php_args() {
+  local php_bin="$1"
+  local php_dir ext_dir modules ext extension_dir_added=0
+  php_dir="$(dirname "$php_bin")"
+  ext_dir="$php_dir/ext"
+  modules="$("$php_bin" -m 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)"
+
+  for ext in openssl curl; do
+    if printf '%s\n' "$modules" | grep -qx "$ext"; then
+      continue
+    fi
+    if [[ ! -f "$ext_dir/php_${ext}.dll" ]]; then
+      continue
+    fi
+    if [[ "$extension_dir_added" -eq 0 ]]; then
+      printf '%s\0%s\0' "-d" "extension_dir=$ext_dir"
+      extension_dir_added=1
+    fi
+    printf '%s\0%s\0' "-d" "extension=$ext"
+  done
+}
+
+send_completion_sms() {
+  COMPLETION_SMS_STARTED_AT="$(date -Iseconds)"
+
+  if [[ "$SKIP_COMPLETION_SMS" -eq 1 ]]; then
+    echo "[Warn] Completion SMS skipped by explicit --skip-completion-sms override."
+    COMPLETION_SMS_STATUS="skipped-explicit"
+    COMPLETION_SMS_FINISHED_AT="$(date -Iseconds)"
+    return 0
+  fi
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    echo "[DryRun] Completion SMS skipped before sending"
+    COMPLETION_SMS_STATUS="skipped-dry-run"
+    COMPLETION_SMS_MESSAGE="Dry run skipped before sending."
+    COMPLETION_SMS_FINISHED_AT="$(date -Iseconds)"
+    return 0
+  fi
+
+  if ! command -v php >/dev/null 2>&1; then
+    COMPLETION_SMS_STATUS="failed"
+    COMPLETION_SMS_MESSAGE="PHP is required for completion SMS but no php command was found."
+    COMPLETION_SMS_FINISHED_AT="$(date -Iseconds)"
+    return 2
+  fi
+
+  local script_path="$PROJECT_ROOT/scripts/send_deploy_completion_sms.php"
+  if [[ ! -f "$script_path" ]]; then
+    COMPLETION_SMS_STATUS="failed"
+    COMPLETION_SMS_MESSAGE="Completion SMS script not found: $script_path"
+    COMPLETION_SMS_FINISHED_AT="$(date -Iseconds)"
+    return 2
+  fi
+
+  local php_bin output exit_code
+  php_bin="$(command -v php)"
+  local -a php_args=()
+  while IFS= read -r -d '' arg; do
+    php_args+=("$arg")
+  done < <(completion_sms_php_args "$php_bin")
+
+  echo "Final notification: send completion SMS to owner"
+  set +e
+  output="$("$php_bin" "${php_args[@]}" "$script_path" --phone "$COMPLETION_SMS_PHONE" 2>&1)"
+  exit_code=$?
+  set -e
+
+  COMPLETION_SMS_MESSAGE="$(printf '%s\n' "$output" | sed '/^[[:space:]]*$/d' | tail -n 1)"
+  if [[ "$exit_code" -eq 0 ]]; then
+    COMPLETION_SMS_STATUS="completed"
+  else
+    COMPLETION_SMS_STATUS="failed"
+  fi
+  COMPLETION_SMS_FINISHED_AT="$(date -Iseconds)"
+  return "$exit_code"
+}
+
 run_validation
 run_optional_pull
 run_deploy
 run_health_checks
 sync_github
+COMPLETION_SMS_FAILURE=0
+send_completion_sms || COMPLETION_SMS_FAILURE=1
 
 RUN_FINISHED_AT="$(date -Iseconds)"
 
@@ -413,4 +507,13 @@ echo " - GitHub sync status: $GITHUB_SYNC_STATUS"
 [[ -n "$GITHUB_SYNC_FINISHED_AT" ]] && echo " - GitHub sync finished at: $GITHUB_SYNC_FINISHED_AT"
 [[ -n "$GITHUB_SYNC_BRANCH" ]] && echo " - GitHub sync branch: $GITHUB_SYNC_BRANCH"
 [[ -n "$GITHUB_SYNC_HEAD" ]] && echo " - GitHub sync HEAD: $GITHUB_SYNC_HEAD"
+echo " - Completion SMS status: $COMPLETION_SMS_STATUS"
+[[ -n "$COMPLETION_SMS_STARTED_AT" ]] && echo " - Completion SMS started at: $COMPLETION_SMS_STARTED_AT"
+[[ -n "$COMPLETION_SMS_FINISHED_AT" ]] && echo " - Completion SMS finished at: $COMPLETION_SMS_FINISHED_AT"
+[[ -n "$COMPLETION_SMS_MESSAGE" ]] && echo " - Completion SMS message: $COMPLETION_SMS_MESSAGE"
 echo " - Run finished at: $RUN_FINISHED_AT"
+
+if [[ "${COMPLETION_SMS_FAILURE:-0}" -ne 0 ]]; then
+  echo "Completion SMS failed: $COMPLETION_SMS_MESSAGE" >&2
+  exit 1
+fi

@@ -606,7 +606,13 @@
             state.notifications = Array.isArray(response.notifications) ? response.notifications : [];
             syncGatewayPayload(response);
             if (!silent) {
-                setFeedback(feedbackNode, "داده‌های مدیریت خرید به‌روزرسانی شد.", "success");
+                var reconciliation = response.reconciliation || {};
+                var verified = Number(reconciliation.verified || 0);
+                setFeedback(
+                    feedbackNode,
+                    verified > 0 ? (verified.toLocaleString("fa-IR") + " پرداخت در انتظار با استعلام درگاه تایید شد.") : "داده‌های مدیریت خرید به‌روزرسانی شد.",
+                    "success"
+                );
             }
         } finally {
             state.loadingDashboard = false;
@@ -644,6 +650,7 @@
                 return;
             }
             state.orders = Array.isArray(response.orders) ? response.orders : [];
+            state.summary = response.summary || state.summary;
             state.ordersSummary = response.filteredSummary || response.summary || null;
             if (response.filters && typeof response.filters === "object") {
                 state.orderFilters = {
@@ -659,6 +666,9 @@
             }
             renderOrdersSummary();
             renderOrdersList();
+            if (!silent && response.reconciliation && Number(response.reconciliation.verified || 0) > 0) {
+                setFeedback(feedbackNode, Number(response.reconciliation.verified || 0).toLocaleString("fa-IR") + " پرداخت pending با استعلام درگاه تایید شد.", "success");
+            }
         } finally {
             state.loadingOrders = false;
         }
@@ -689,6 +699,7 @@
         setActions([
             '<a class="shell-action-btn shell-action-btn-primary" href="/buy/manage/items/new/">آیتم جدید</a>',
             '<a class="shell-action-btn" href="/buy/manage/orders/">سوابق</a>',
+            '<button class="shell-action-btn" type="button" data-payment-reconcile-orders>استعلام pending</button>',
             '<button class="shell-action-btn" type="button" data-payment-refresh>به‌روزرسانی</button>'
         ].join(""));
 
@@ -1870,6 +1881,7 @@
     function renderOrdersPage() {
         setHead("سوابق", "سوابق خرید و خریداران", "سوابق بر اساس پوشه‌های وضعیت، بازه زمانی و آیتم مدیریت می‌شوند؛ خروجی و پاکسازی هم از همین فیلتر انجام می‌شود.");
         setActions([
+            '<button class="shell-action-btn shell-action-btn-primary" type="button" data-payment-reconcile-orders>استعلام گروهی درگاه</button>',
             '<button class="shell-action-btn" type="button" data-payment-export-orders>خروجی CSV</button>',
             '<button class="shell-action-btn" type="button" data-payment-refresh-orders>به‌روزرسانی</button>'
         ].join(""));
@@ -1897,6 +1909,7 @@
             '    <div class="payments-inline-actions">',
             '      <button class="shell-action-btn' + (state.orderView === "orders" ? " shell-action-btn-primary" : "") + '" type="button" data-payment-order-view="orders">کارت‌های سفارش</button>',
             '      <button class="shell-action-btn' + (state.orderView === "buyers" ? " shell-action-btn-primary" : "") + '" type="button" data-payment-order-view="buyers">لیست خریداران آیتم‌ها</button>',
+            '      <button class="shell-action-btn" type="button" data-payment-reconcile-orders>استعلام گروهی درگاه</button>',
             '      <button class="shell-action-btn" type="button" data-payment-export-orders>خروجی CSV</button>',
             '      <button class="shell-action-btn shell-action-btn-danger" type="button" data-payment-reset-orders>ریست سوابق فیلترشده</button>',
             "    </div>",
@@ -2360,6 +2373,29 @@
         setFeedback(feedbackNode, String(id || "") === "all" ? "همه اعلان‌های پرداخت خوانده شد." : "اعلان خوانده شد.", "success");
     }
 
+    async function reconcileOrders() {
+        setFeedback(feedbackNode, "در حال استعلام گروهی پرداخت‌های در انتظار از درگاه...", "", true);
+        var response = await request("ownerReconcileOrders", { limit: "50" }, "POST");
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) return;
+        if (!response || !response.success) {
+            setFeedback(feedbackNode, (response && response.error) || "استعلام گروهی انجام نشد.", "error");
+            return;
+        }
+        var verified = Number(response.reconciliation && response.reconciliation.verified || 0);
+        await loadDashboard(true);
+        if (page === "orders") {
+            renderOrdersPage();
+            await loadOrders(true);
+        } else {
+            renderPage();
+        }
+        setFeedback(
+            feedbackNode,
+            response.message || (verified > 0 ? (verified.toLocaleString("fa-IR") + " پرداخت تایید شد.") : "استعلام گروهی انجام شد."),
+            verified > 0 ? "success" : ""
+        );
+    }
+
     function copyText(value, successText) {
         var clean = String(value || "").trim();
         if (!clean) {
@@ -2468,6 +2504,11 @@
         var readAllNotes = event.target.closest("[data-payment-read-all-notes]");
         if (readAllNotes) {
             markNotificationRead("all");
+            return;
+        }
+        var reconcileButton = event.target.closest("[data-payment-reconcile-orders]");
+        if (reconcileButton) {
+            reconcileOrders();
             return;
         }
         var orderFolder = event.target.closest("[data-payment-order-folder]");
