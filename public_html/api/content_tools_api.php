@@ -58,7 +58,12 @@ function content_api_filter_files(array $files, array $params): array
         if (!is_array($file)) {
             continue;
         }
-        if ($status !== '' && $status !== 'all' && content_public_state($file) !== $status && (string) ($file['status'] ?? '') !== $status) {
+        $publicState = content_public_state($file);
+        if ($status === '' || $status === 'all' || $status === 'available') {
+            if ($publicState === 'deleted') {
+                continue;
+            }
+        } elseif ($publicState !== $status && (string) ($file['status'] ?? '') !== $status) {
             continue;
         }
         if ($folder !== '' && dent_utf8_strtolower((string) ($file['folder'] ?? '')) !== $folder) {
@@ -109,7 +114,12 @@ function content_api_filter_pastes(array $pastes, array $params): array
         if (!is_array($paste)) {
             continue;
         }
-        if ($status !== '' && $status !== 'all' && content_public_state($paste) !== $status && (string) ($paste['status'] ?? '') !== $status) {
+        $publicState = content_public_state($paste);
+        if ($status === '' || $status === 'all' || $status === 'available') {
+            if ($publicState === 'deleted') {
+                continue;
+            }
+        } elseif ($publicState !== $status && (string) ($paste['status'] ?? '') !== $status) {
             continue;
         }
         if ($language !== '' && (string) ($paste['language'] ?? '') !== $language) {

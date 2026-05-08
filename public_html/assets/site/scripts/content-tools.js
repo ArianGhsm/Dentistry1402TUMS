@@ -197,7 +197,7 @@
             files: [],
             selected: {},
             type: "all",
-            status: "all",
+            status: "available",
             sort: "newest",
             query: "",
             page: 1,
@@ -455,6 +455,10 @@
                 return;
             }
             state.selected = {};
+            if (operation === "delete" || operation === "purge") {
+                state.files = state.files.filter(function (item) { return targets.indexOf(item.id) === -1; });
+                renderFiles();
+            }
             setFeedback(feedback, response.message || "عملیات انجام شد.", "success");
             loadDashboard();
             loadFiles(true);
@@ -492,7 +496,7 @@
             state.query = $("ct-files-query-top")
                 ? $("ct-files-query-top").value
                 : ($("ct-files-query") ? $("ct-files-query").value : "");
-            state.status = $("ct-files-status") ? $("ct-files-status").value : "all";
+            state.status = $("ct-files-status") ? $("ct-files-status").value : "available";
             state.sort = $("ct-files-sort") ? $("ct-files-sort").value : "newest";
             state.page = 1;
             loadFiles(false);
@@ -618,7 +622,7 @@
     }
 
     function initPasteOwner() {
-        var state = { ready: false, pastes: [], selected: {}, page: 1, perPage: 20, query: "", status: "all", sort: "newest", currentPublicUrl: "" };
+        var state = { ready: false, pastes: [], selected: {}, page: 1, perPage: 20, query: "", status: "available", sort: "newest", currentPublicUrl: "" };
         var feedback = $("ct-feedback");
 
         function params() {
@@ -797,13 +801,17 @@
                 return;
             }
             state.selected = {};
+            if (operation === "delete") {
+                state.pastes = state.pastes.filter(function (item) { return targets.indexOf(item.id) === -1; });
+                renderPastes();
+            }
             setFeedback(feedback, response.message || "عملیات انجام شد.", "success");
             loadPastes(true);
         }
 
         function syncFilters() {
             state.query = $("ct-pastes-query") ? $("ct-pastes-query").value : "";
-            state.status = $("ct-pastes-status") ? $("ct-pastes-status").value : "all";
+            state.status = $("ct-pastes-status") ? $("ct-pastes-status").value : "available";
             state.sort = $("ct-pastes-sort") ? $("ct-pastes-sort").value : "newest";
             state.page = 1;
             loadPastes(false);

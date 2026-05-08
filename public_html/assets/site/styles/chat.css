@@ -8729,3 +8729,16 @@ body.chat-page .chat-media-viewer__counter {
         inset-inline-end: 0.42rem;
     }
 }
+
+/* Keep chat list avatar/text spacing compact after avatar downscale. */
+body.chat-page .conversation-item__main {
+    grid-template-columns: 40px minmax(0, 1fr) auto !important;
+    column-gap: 0.5rem !important;
+}
+
+@media (max-width: 980px) {
+    body.chat-page .conversation-item__main {
+        grid-template-columns: 40px minmax(0, 1fr) auto !important;
+        column-gap: 0.48rem !important;
+    }
+}
