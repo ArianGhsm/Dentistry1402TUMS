@@ -140,7 +140,9 @@ body.hub-page .notes-card-actions {
     gap: 0.48rem;
 }
 
-body.hub-page .notes-card-delete {
+body.hub-page .notes-card-edit,
+body.hub-page .notes-card-delete,
+body.hub-page .notes-manage-panel__cancel {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -156,12 +158,30 @@ body.hub-page .notes-card-delete {
     transition: transform 0.16s ease, filter 0.16s ease;
 }
 
+body.hub-page .notes-card-edit,
+body.hub-page .notes-manage-panel__cancel {
+    border-color: color-mix(in srgb, var(--accent-color) 30%, var(--border-color-strong));
+    background: color-mix(in srgb, var(--accent-color) 9%, transparent);
+    color: var(--accent-color);
+}
+
+body.hub-page .notes-card-delete {
+    border-color: color-mix(in srgb, var(--danger-color) 34%, var(--border-color-strong));
+    background: color-mix(in srgb, var(--danger-color) 10%, transparent);
+    color: var(--danger-color);
+}
+
+body.hub-page .notes-card-edit:hover,
+body.hub-page .notes-card-edit:focus-visible,
 body.hub-page .notes-card-delete:hover,
-body.hub-page .notes-card-delete:focus-visible {
+body.hub-page .notes-card-delete:focus-visible,
+body.hub-page .notes-manage-panel__cancel:hover,
+body.hub-page .notes-manage-panel__cancel:focus-visible {
     transform: translateY(-1px);
     filter: brightness(1.02);
 }
 
+body.hub-page .notes-card-edit:disabled,
 body.hub-page .notes-card-delete:disabled {
     opacity: 0.7;
     cursor: default;
@@ -377,6 +397,11 @@ body.hub-page .notes-manage-panel__submit {
     min-width: 156px;
 }
 
+body.hub-page .notes-manage-panel__cancel {
+    justify-self: start;
+    min-width: 156px;
+}
+
 body.hub-page .notes-manage-panel__submit:disabled {
     opacity: 0.75;
 }
@@ -429,11 +454,13 @@ body.hub-page .notes-manage-feedback[data-kind="error"] {
         flex: 1 1 0;
     }
 
+    body.hub-page .notes-card-edit,
     body.hub-page .notes-card-delete {
         flex: 1 1 0;
     }
 
-    body.hub-page .notes-manage-panel__submit {
+    body.hub-page .notes-manage-panel__submit,
+    body.hub-page .notes-manage-panel__cancel {
         width: 100%;
     }
 }

@@ -547,7 +547,7 @@ function Test-RemoteStorageDataFileName([string]$name) {
 
 function Test-RemoteStorageSkippedDirectoryName([string]$name) {
     $leaf = ([string]$name).Trim().ToLowerInvariant()
-    return $leaf -in @("uploads", "tmp", "sessions", "backups", "cache")
+    return $leaf -in @("tmp", "sessions", "backups", "cache")
 }
 
 function Test-RemoteStorageLikelyDirectoryName([string]$name) {
@@ -644,6 +644,11 @@ function Download-RemoteStorageDirectory(
 
     $entries = Get-RemoteDirectoryEntries -remoteRelative $normalized
     if ($null -eq $entries) {
+        $leaf = Split-Path -Path $normalized -Leaf
+        if (([string]$leaf).Trim().ToLowerInvariant() -eq "uploads") {
+            Write-Warning "Skip missing or unlistable runtime upload directory during host storage mirror: $normalized"
+            return
+        }
         throw "Unable to list remote storage directory: $normalized"
     }
 

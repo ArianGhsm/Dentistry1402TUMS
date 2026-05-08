@@ -18,8 +18,13 @@
         return;
     }
 
-    var term = Number(document.body.dataset.termNumber || "0");
-    if (!Number.isFinite(term) || term < 5 || term > 12) {
+    var cohort = String(document.body.dataset.notesCohort || "1402");
+    var rawTerm = String(document.body.dataset.termNumber || "");
+    var term = Number(rawTerm || "0");
+    if (cohort !== "1402" && cohort !== "1403") {
+        return;
+    }
+    if (cohort === "1402" && (!Number.isFinite(term) || term < 5 || term > 12)) {
         return;
     }
 
@@ -29,6 +34,7 @@
         loading: false,
         saving: false,
         deletingItemId: 0,
+        editingItemId: 0,
         authKey: ""
     };
 
@@ -55,6 +61,14 @@
         });
     }
 
+    function withContextPayload(payload) {
+        var next = Object.assign({ cohort: cohort }, payload || {});
+        if (cohort === "1402") {
+            next.term = String(term);
+        }
+        return next;
+    }
+
     function request(action, method, payload) {
         var options = {
             method: method,
@@ -63,15 +77,19 @@
                 Accept: "application/json"
             }
         };
-
+        var requestPayload = withContextPayload(payload);
         var url = "/api/notes_api.php?action=" + encodeURIComponent(action);
+
         if (method === "GET") {
-            if (payload && payload.term) {
-                url += "&term=" + encodeURIComponent(String(payload.term));
-            }
+            Object.keys(requestPayload).forEach(function (key) {
+                var value = requestPayload[key];
+                if (value !== undefined && value !== null && String(value) !== "") {
+                    url += "&" + encodeURIComponent(key) + "=" + encodeURIComponent(String(value));
+                }
+            });
         } else {
             options.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
-            options.body = new URLSearchParams(Object.assign({ action: action }, payload || {}));
+            options.body = new URLSearchParams(Object.assign({ action: action }, requestPayload));
         }
 
         return fetch(url, options).then(parseJsonResponse);
@@ -93,7 +111,18 @@
         }
     }
 
+    function findItem(itemId) {
+        var items = state.termData && Array.isArray(state.termData.items) ? state.termData.items : [];
+        for (var index = 0; index < items.length; index += 1) {
+            if (Number(items[index].id || 0) === Number(itemId || 0)) {
+                return items[index];
+            }
+        }
+        return null;
+    }
+
     function buildCard(item) {
+        var itemId = Number(item.id || 0);
         var card = document.createElement("article");
         card.className = "action-card";
         card.dataset.itemId = String(item.id || "");
@@ -136,13 +165,22 @@
         actions.appendChild(button);
 
         if (state.canManage) {
+            var editButton = document.createElement("button");
+            editButton.type = "button";
+            editButton.className = "notes-card-edit";
+            editButton.setAttribute("data-notes-edit", "true");
+            editButton.setAttribute("data-item-id", String(item.id || ""));
+            editButton.textContent = state.editingItemId === itemId ? "در حال ویرایش" : "ویرایش";
+            editButton.disabled = state.saving || state.deletingItemId > 0;
+            actions.appendChild(editButton);
+
             var deleteButton = document.createElement("button");
             deleteButton.type = "button";
             deleteButton.className = "notes-card-delete";
             deleteButton.setAttribute("data-notes-delete", "true");
             deleteButton.setAttribute("data-item-id", String(item.id || ""));
-            deleteButton.textContent = state.deletingItemId === Number(item.id || 0) ? "در حال حذف..." : "حذف";
-            deleteButton.disabled = state.deletingItemId === Number(item.id || 0);
+            deleteButton.textContent = state.deletingItemId === itemId ? "در حال حذف..." : "حذف";
+            deleteButton.disabled = state.deletingItemId === itemId || state.saving || state.editingItemId === itemId;
             actions.appendChild(deleteButton);
         }
 
@@ -151,13 +189,33 @@
         return card;
     }
 
+    function syncEditUi() {
+        if (addSubmit) {
+            if (state.saving) {
+                addSubmit.textContent = state.editingItemId ? "در حال ذخیره..." : "در حال ثبت...";
+            } else {
+                addSubmit.textContent = state.editingItemId ? "ذخیره تغییرات" : "افزودن کارت";
+            }
+            addSubmit.disabled = state.saving;
+        }
+
+        var cancelButton = $("notes-term-cancel-edit");
+        if (cancelButton) {
+            cancelButton.hidden = !state.editingItemId;
+            cancelButton.disabled = state.saving;
+        }
+    }
+
     function renderTerm() {
         var termData = state.termData;
         clearCards();
 
         if (!termData) {
             emptyBox.hidden = false;
-            emptyBox.textContent = "داده‌ای برای این ترم دریافت نشد.";
+            emptyBox.textContent = cohort === "1403"
+                ? "داده‌ای برای این آرشیو دریافت نشد."
+                : "داده‌ای برای این ترم دریافت نشد.";
+            syncEditUi();
             return;
         }
 
@@ -171,7 +229,7 @@
         var items = Array.isArray(termData.items) ? termData.items : [];
         if (!items.length) {
             emptyBox.hidden = false;
-            emptyBox.textContent = termData.emptyMessage || "برای این ترم هنوز منبعی ثبت نشده است.";
+            emptyBox.textContent = termData.emptyMessage || "هنوز منبعی ثبت نشده است.";
         } else {
             emptyBox.hidden = true;
             items.forEach(function (item) {
@@ -182,14 +240,13 @@
         if (managePanel) {
             managePanel.hidden = !state.canManage;
         }
+        syncEditUi();
     }
 
     function setSaving(saving) {
         state.saving = !!saving;
-        if (addSubmit) {
-            addSubmit.disabled = state.saving;
-            addSubmit.textContent = state.saving ? "در حال ثبت..." : "افزودن کارت";
-        }
+        syncEditUi();
+        renderTerm();
     }
 
     function setDeletingItemId(itemId) {
@@ -214,10 +271,12 @@
         var silent = options && options.silent;
         if (!silent) {
             emptyBox.hidden = false;
-            emptyBox.textContent = "در حال دریافت منابع این ترم...";
+            emptyBox.textContent = cohort === "1403"
+                ? "در حال دریافت منابع آرشیو..."
+                : "در حال دریافت منابع این ترم...";
         }
 
-        return request("term", "GET", { term: term }).then(function (payload) {
+        return request("term", "GET", {}).then(function (payload) {
             if (handleUnauthorized(payload)) {
                 state.canManage = false;
                 state.termData = payload.term || state.termData;
@@ -226,11 +285,14 @@
             }
 
             if (!payload || !payload.success || !payload.term) {
-                throw new Error((payload && payload.error) || "دریافت منابع ترم ناموفق بود.");
+                throw new Error((payload && payload.error) || "دریافت منابع ناموفق بود.");
             }
 
             state.termData = payload.term;
             state.canManage = !!payload.canManage;
+            if (state.editingItemId && !findItem(state.editingItemId)) {
+                state.editingItemId = 0;
+            }
             renderTerm();
         }).catch(function (error) {
             emptyBox.hidden = false;
@@ -244,85 +306,179 @@
         });
     }
 
+    function formInputs() {
+        return {
+            badge: $("notes-term-badge"),
+            title: $("notes-term-card-title"),
+            description: $("notes-term-card-description"),
+            buttonLabel: $("notes-term-button-label"),
+            buttonUrl: $("notes-term-button-url")
+        };
+    }
+
+    function readFormPayload() {
+        var inputs = formInputs();
+        return {
+            badge: inputs.badge ? inputs.badge.value : "",
+            title: inputs.title ? inputs.title.value : "",
+            description: inputs.description ? inputs.description.value : "",
+            buttonLabel: inputs.buttonLabel ? inputs.buttonLabel.value : "",
+            buttonUrl: inputs.buttonUrl ? inputs.buttonUrl.value : ""
+        };
+    }
+
+    function clearForm() {
+        var inputs = formInputs();
+        Object.keys(inputs).forEach(function (key) {
+            if (inputs[key]) {
+                inputs[key].value = "";
+            }
+        });
+    }
+
+    function fillForm(item) {
+        var inputs = formInputs();
+        if (inputs.badge) {
+            inputs.badge.value = item.badge || "";
+        }
+        if (inputs.title) {
+            inputs.title.value = item.title || "";
+        }
+        if (inputs.description) {
+            inputs.description.value = item.description || "";
+        }
+        if (inputs.buttonLabel) {
+            inputs.buttonLabel.value = item.buttonLabel || "";
+        }
+        if (inputs.buttonUrl) {
+            inputs.buttonUrl.value = item.buttonUrl || "";
+        }
+    }
+
+    function resetEditMode(keepValues) {
+        state.editingItemId = 0;
+        if (!keepValues) {
+            clearForm();
+        }
+        setFeedback("", "");
+        renderTerm();
+    }
+
+    function startEditing(item) {
+        if (!item) {
+            return;
+        }
+
+        state.editingItemId = Number(item.id || 0);
+        fillForm(item);
+        setFeedback("کارت برای ویرایش آماده شد.", "success");
+        renderTerm();
+
+        var inputs = formInputs();
+        if (inputs.title && typeof inputs.title.focus === "function") {
+            inputs.title.focus();
+        }
+        if (managePanel && typeof managePanel.scrollIntoView === "function") {
+            managePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+
+    function ensureCancelEditButton() {
+        if (!manageForm || !addSubmit || $("notes-term-cancel-edit")) {
+            return;
+        }
+
+        var cancelButton = document.createElement("button");
+        cancelButton.type = "button";
+        cancelButton.id = "notes-term-cancel-edit";
+        cancelButton.className = "notes-manage-panel__cancel";
+        cancelButton.textContent = "انصراف از ویرایش";
+        cancelButton.hidden = true;
+        cancelButton.addEventListener("click", function () {
+            resetEditMode(false);
+        });
+        addSubmit.insertAdjacentElement("afterend", cancelButton);
+    }
+
+    function ensureTermData() {
+        if (!state.termData) {
+            state.termData = {
+                cohort: cohort,
+                term: cohort === "1402" ? term : 0,
+                title: "",
+                description: "",
+                emptyMessage: "",
+                items: []
+            };
+        }
+        if (!Array.isArray(state.termData.items)) {
+            state.termData.items = [];
+        }
+    }
+
+    function applySavedItem(item, isEdit) {
+        ensureTermData();
+        if (!isEdit) {
+            state.termData.items.unshift(item);
+            return;
+        }
+
+        var replaced = false;
+        state.termData.items = state.termData.items.map(function (current) {
+            if (Number(current.id || 0) === Number(item.id || 0)) {
+                replaced = true;
+                return item;
+            }
+            return current;
+        });
+        if (!replaced) {
+            state.termData.items.unshift(item);
+        }
+    }
+
     function bindManageForm() {
         if (!manageForm) {
             return;
         }
 
+        ensureCancelEditButton();
         manageForm.addEventListener("submit", function (event) {
             event.preventDefault();
             if (state.saving) {
                 return;
             }
 
-            var badgeInput = $("notes-term-badge");
-            var titleInput = $("notes-term-card-title");
-            var descInput = $("notes-term-card-description");
-            var buttonLabelInput = $("notes-term-button-label");
-            var buttonUrlInput = $("notes-term-button-url");
-
-            var payload = {
-                term: String(term),
-                badge: badgeInput ? badgeInput.value : "",
-                title: titleInput ? titleInput.value : "",
-                description: descInput ? descInput.value : "",
-                buttonLabel: buttonLabelInput ? buttonLabelInput.value : "",
-                buttonUrl: buttonUrlInput ? buttonUrlInput.value : ""
-            };
-
+            var payload = readFormPayload();
             if (!payload.badge.trim() || !payload.title.trim() || !payload.description.trim() || !payload.buttonLabel.trim() || !payload.buttonUrl.trim()) {
                 setFeedback("همه فیلدها را کامل وارد کنید.", "error");
                 return;
             }
 
+            var isEdit = state.editingItemId > 0;
+            var action = isEdit ? "editItem" : "addItem";
+            if (isEdit) {
+                payload.itemId = String(state.editingItemId);
+            }
+
             setFeedback("", "");
             setSaving(true);
 
-            request("addItem", "POST", payload).then(function (response) {
+            request(action, "POST", payload).then(function (response) {
                 if (handleUnauthorized(response)) {
                     throw new Error("برای مدیریت منابع باید وارد حساب مالک شوید.");
                 }
 
                 if (!response || !response.success || !response.item) {
-                    throw new Error((response && response.error) || "ثبت کارت منبع انجام نشد.");
+                    throw new Error((response && response.error) || "ذخیره کارت منبع انجام نشد.");
                 }
 
-                if (!state.termData) {
-                    state.termData = {
-                        term: term,
-                        title: "",
-                        description: "",
-                        emptyMessage: "",
-                        items: []
-                    };
-                }
-
-                if (!Array.isArray(state.termData.items)) {
-                    state.termData.items = [];
-                }
-
-                state.termData.items.unshift(response.item);
+                applySavedItem(response.item, isEdit);
+                state.editingItemId = 0;
+                clearForm();
                 renderTerm();
-
-                if (titleInput) {
-                    titleInput.value = "";
-                }
-                if (badgeInput) {
-                    badgeInput.value = "";
-                }
-                if (descInput) {
-                    descInput.value = "";
-                }
-                if (buttonLabelInput) {
-                    buttonLabelInput.value = "";
-                }
-                if (buttonUrlInput) {
-                    buttonUrlInput.value = "";
-                }
-
-                setFeedback(response.message || "کارت منبع ثبت شد.", "success");
+                setFeedback(response.message || "کارت منبع ذخیره شد.", "success");
             }).catch(function (error) {
-                setFeedback(error && error.message ? error.message : "ثبت کارت منبع با خطا مواجه شد.", "error");
+                setFeedback(error && error.message ? error.message : "ذخیره کارت منبع با خطا مواجه شد.", "error");
             }).finally(function () {
                 setSaving(false);
             });
@@ -331,7 +487,23 @@
 
     function bindCardActions() {
         cardsContainer.addEventListener("click", function (event) {
+            var editButton = event.target && event.target.closest ? event.target.closest("[data-notes-edit='true']") : null;
             var deleteButton = event.target && event.target.closest ? event.target.closest("[data-notes-delete='true']") : null;
+
+            if (editButton) {
+                if (!state.canManage || state.saving || state.deletingItemId) {
+                    return;
+                }
+
+                var editItemId = Number(editButton.getAttribute("data-item-id") || "0");
+                if (!Number.isFinite(editItemId) || editItemId <= 0) {
+                    return;
+                }
+
+                startEditing(findItem(editItemId));
+                return;
+            }
+
             if (!deleteButton) {
                 return;
             }
@@ -354,7 +526,6 @@
             setDeletingItemId(itemId);
 
             request("deleteItem", "POST", {
-                term: String(term),
                 itemId: String(itemId)
             }).then(function (response) {
                 if (handleUnauthorized(response)) {
@@ -369,6 +540,10 @@
                     state.termData.items = state.termData.items.filter(function (item) {
                         return Number(item.id || 0) !== itemId;
                     });
+                }
+                if (state.editingItemId === itemId) {
+                    state.editingItemId = 0;
+                    clearForm();
                 }
                 renderTerm();
                 setFeedback(response.message || "کارت منبع حذف شد.", "success");

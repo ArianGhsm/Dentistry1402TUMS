@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260508-144202">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260508-144202">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260508-144202">
-    <script src="/assets/site/scripts/theme.js?v=20260508-144202"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260508-144202">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260508-144202">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260508-144202">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260508-145314">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260508-145314">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260508-145314">
+    <script src="/assets/site/scripts/theme.js?v=20260508-145314"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260508-145314">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260508-145314">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260508-145314">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -88,9 +88,7 @@
                         <div class="settings-row">
                             <label for="login-phone-number">شماره موبایل</label>
                             <div class="otp-phone-shell" dir="ltr">
-                                <span class="otp-phone-shell__country" aria-hidden="true">ایران</span>
-                                <span class="otp-phone-shell__prefix" dir="ltr" data-latin-digits="true">+98</span>
-                                <input id="login-phone-number" name="phoneNumber" type="tel" inputmode="tel" autocomplete="tel" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" dir="ltr" data-latin-digits="true" data-phone-input="iran" placeholder="9xxxxxxxxx یا 09xxxxxxxxx">
+                                <input id="login-phone-number" name="tel" type="tel" inputmode="tel" autocomplete="tel" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" maxlength="14" aria-label="شماره موبایل" dir="ltr" data-latin-digits="true" data-phone-input="iran" placeholder="09xxxxxxxxx یا +989xxxxxxxxx">
                             </div>
                         </div>
 
@@ -103,7 +101,7 @@
                             <div class="settings-row">
                                 <label for="login-otp-code">کد تایید</label>
                                 <div id="login-otp-field" class="otp-slot-field" data-otp-field="login">
-                                    <input id="login-otp-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" pattern="[0-9]*" maxlength="6" dir="ltr" data-latin-digits="true" placeholder="کد ۶ رقمی">
+                                    <input id="login-otp-code" name="one-time-code" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" pattern="[0-9۰-۹٠-٩]*" maxlength="6" aria-label="کد تایید پیامکی" dir="ltr" data-latin-digits="true" placeholder="کد ۶ رقمی">
                                     <div id="login-otp-slots" class="otp-slot-field__slots" dir="ltr" aria-hidden="true">
                                         <span class="otp-slot"></span>
                                         <span class="otp-slot"></span>
@@ -513,9 +511,7 @@
                             <div class="settings-row">
                                 <label for="phone-enroll-number">شماره موبایل</label>
                                 <div class="otp-phone-shell" dir="ltr">
-                                    <span class="otp-phone-shell__country" aria-hidden="true">ایران</span>
-                                    <span class="otp-phone-shell__prefix" dir="ltr" data-latin-digits="true">+98</span>
-                                    <input id="phone-enroll-number" name="phoneNumber" type="tel" inputmode="tel" autocomplete="tel" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" dir="ltr" data-latin-digits="true" data-phone-input="iran" placeholder="9xxxxxxxxx یا 09xxxxxxxxx" aria-describedby="phone-enroll-meta">
+                                    <input id="phone-enroll-number" name="tel" type="tel" inputmode="tel" autocomplete="tel" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" maxlength="14" aria-label="شماره موبایل" dir="ltr" data-latin-digits="true" data-phone-input="iran" placeholder="09xxxxxxxxx یا +989xxxxxxxxx" aria-describedby="phone-enroll-meta">
                                 </div>
                             </div>
 
@@ -528,7 +524,7 @@
                                 <div class="settings-row">
                                     <label for="phone-enroll-code">کد تایید</label>
                                     <div id="phone-enroll-otp-field" class="otp-slot-field" data-otp-field="enroll">
-                                        <input id="phone-enroll-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" pattern="[0-9]*" maxlength="6" dir="ltr" data-latin-digits="true" placeholder="کد ۶ رقمی">
+                                        <input id="phone-enroll-code" name="one-time-code" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" pattern="[0-9۰-۹٠-٩]*" maxlength="6" aria-label="کد تایید پیامکی" dir="ltr" data-latin-digits="true" placeholder="کد ۶ رقمی">
                                         <div id="phone-enroll-otp-slots" class="otp-slot-field__slots" dir="ltr" aria-hidden="true">
                                             <span class="otp-slot"></span>
                                             <span class="otp-slot"></span>
@@ -788,9 +784,9 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260508-144202"></script>
-    <script src="/assets/site/scripts/account.js?v=20260508-144202"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260508-144202"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260508-144202"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260508-145314"></script>
+    <script src="/assets/site/scripts/account.js?v=20260508-145314"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260508-145314"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260508-145314"></script>
 </body>
 </html>

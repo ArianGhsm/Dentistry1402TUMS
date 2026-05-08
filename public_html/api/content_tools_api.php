@@ -404,7 +404,8 @@ if ($action === 'publicFile') {
     }
     $state = content_public_state($file);
     if ($state !== 'active' || !content_file_can_download($file)) {
-        dent_json_response(['success' => true, 'file' => content_file_public_payload($file), 'unavailable' => content_api_unavailable_payload('file', !content_file_can_download($file) ? 'limited' : $state)]);
+        $unavailableState = $state !== 'active' ? $state : 'limited';
+        dent_json_response(['success' => true, 'file' => content_file_public_payload($file), 'unavailable' => content_api_unavailable_payload('file', $unavailableState)]);
     }
     if ((string) ($file['passwordHash'] ?? '') !== '' && !content_verify_record_password($file, $password)) {
         dent_json_response(['success' => true, 'file' => content_file_public_payload($file), 'unavailable' => content_api_unavailable_payload('file', 'password')]);

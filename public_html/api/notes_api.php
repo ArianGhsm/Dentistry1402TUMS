@@ -6,7 +6,8 @@ require_once __DIR__ . '/auth_store.php';
 const NOTES_1402_SCHEMA_VERSION = 1;
 const NOTES_1402_MIN_TERM = 5;
 const NOTES_1402_MAX_TERM = 12;
-const NOTES_1402_SEED_BACKFILL_VERSION = 1;
+const NOTES_1402_SEED_BACKFILL_VERSION = 0;
+const NOTES_1403_SCHEMA_VERSION = 1;
 
 function notes_1402_store_path(): string
 {
@@ -16,6 +17,16 @@ function notes_1402_store_path(): string
 function notes_1402_lock_path(): string
 {
     return dent_storage_path('notes/1402_terms.lock');
+}
+
+function notes_1403_store_path(): string
+{
+    return dent_storage_path('notes/1403_archive.json');
+}
+
+function notes_1403_lock_path(): string
+{
+    return dent_storage_path('notes/1403_archive.lock');
 }
 
 function notes_1402_term_template(int $term): array
@@ -129,6 +140,94 @@ function notes_1402_seed_term_5_items(): array
             'description' => 'فایل کامل کتاب.',
             'buttonLabel' => 'دریافت',
             'buttonUrl' => 'https://s5.uupload.ir/files/arianghsm/_lrm_⁨گام%20به%20گام%20با%20پروتز%20پارسیل⁩.pdf',
+        ],
+    ];
+}
+
+function notes_1403_archive_template(): array
+{
+    return [
+        'kicker' => 'ورودی ۱۴۰۳',
+        'title' => 'فایل‌های موجود',
+        'description' => 'کارت‌های منابع این آرشیو از پنل مالک مدیریت می‌شوند.',
+        'emptyMessage' => 'برای آرشیو ۱۴۰۳ هنوز منبعی ثبت نشده است.',
+    ];
+}
+
+function notes_1403_seed_items(): array
+{
+    return [
+        [
+            'id' => 1,
+            'badge' => 'برنامه',
+            'title' => 'برنامه امتحانات پایان‌ترم',
+            'description' => 'برنامه پایان‌ترم.',
+            'buttonLabel' => 'دیدن',
+            'buttonUrl' => 'https://my.uupload.ir/dl/EOwg2LrM',
+        ],
+        [
+            'id' => 2,
+            'badge' => 'نورواناتومی',
+            'title' => 'جزوه جامع نورواناتومی',
+            'description' => 'فایل کامل.',
+            'buttonLabel' => 'دریافت',
+            'buttonUrl' => 'https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20نوروآناتومی.pdf',
+        ],
+        [
+            'id' => 3,
+            'badge' => 'ویروس',
+            'title' => 'جزوه جامع ویروس‌شناسی پایان‌ترم',
+            'description' => 'جزوه پایان‌ترم.',
+            'buttonLabel' => 'دریافت',
+            'buttonUrl' => 'https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20ویروس_شناسی%20پایانترم.pdf',
+        ],
+        [
+            'id' => 4,
+            'badge' => 'ژنتیک',
+            'title' => 'جزوه جامع ژنتیک ۱ تا ۸',
+            'description' => 'جلسه‌های ۱ تا ۸.',
+            'buttonLabel' => 'دریافت',
+            'buttonUrl' => 'https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20ژنتیک%20۱%20تا%20۸.pdf',
+        ],
+        [
+            'id' => 5,
+            'badge' => 'فیزیک پزشکی',
+            'title' => 'جزوه جامع فیزیک پزشکی',
+            'description' => 'به‌جز جلسه ۴.',
+            'buttonLabel' => 'دریافت',
+            'buttonUrl' => 'https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/جزوه%20جامع%20فیزیک%20پزشکی%20بجز%20۴.pdf',
+        ],
+        [
+            'id' => 6,
+            'badge' => 'متون',
+            'title' => 'تفسیر موضوعی قرآن کریم',
+            'description' => 'فایل کامل کتاب.',
+            'buttonLabel' => 'دریافت',
+            'buttonUrl' => 'https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/تفسیر_موضوعی_قرآن_کریم_محمدعلی_رضایی_اصفهانی.pdf',
+        ],
+        [
+            'id' => 7,
+            'badge' => 'انقلاب',
+            'title' => 'کتاب صعود چهل‌ساله',
+            'description' => 'فایل کامل کتاب.',
+            'buttonLabel' => 'دریافت',
+            'buttonUrl' => 'https://s21.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/صعود%20چهل%20ساله%20۲.pdf',
+        ],
+        [
+            'id' => 8,
+            'badge' => 'زبان',
+            'title' => 'مجموعه فایل‌های زبان عمومی',
+            'description' => 'فایل‌های درس.',
+            'buttonLabel' => 'دریافت',
+            'buttonUrl' => 'https://s31.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/زبان%20عمومی/زبان%20عمومی.zip',
+        ],
+        [
+            'id' => 9,
+            'badge' => 'متون',
+            'title' => 'نمونه سؤال متون',
+            'description' => 'فایل نمونه سؤال.',
+            'buttonLabel' => 'دریافت',
+            'buttonUrl' => 'https://s31.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/خلاصه%20و%20نمونه%20سوال%20متون/نمونه%20سوال%20متون.pdf',
         ],
     ];
 }
@@ -410,6 +509,132 @@ function notes_1402_save_store_unlocked(array $store): void
     dent_write_json_file(notes_1402_store_path(), notes_1402_normalize_store($store));
 }
 
+function notes_1403_default_store(): array
+{
+    $archive = notes_1403_archive_template();
+    $archive['items'] = notes_1403_seed_items();
+
+    return [
+        'schemaVersion' => NOTES_1403_SCHEMA_VERSION,
+        'nextItemId' => 10,
+        'archive' => $archive,
+    ];
+}
+
+function notes_1403_ensure_storage(): void
+{
+    dent_ensure_directory(dirname(notes_1403_store_path()));
+    if (!is_file(notes_1403_store_path())) {
+        dent_write_json_file(notes_1403_store_path(), notes_1403_default_store());
+    }
+}
+
+function notes_1403_normalize_store(array $seed): array
+{
+    $defaults = notes_1403_default_store();
+    $archiveSeed = is_array($seed['archive'] ?? null) ? $seed['archive'] : [];
+    $defaultArchive = $defaults['archive'];
+    $itemsSeed = is_array($archiveSeed['items'] ?? null) ? $archiveSeed['items'] : [];
+    $items = [];
+    $maxItemId = 0;
+
+    foreach ($itemsSeed as $itemSeed) {
+        if (!is_array($itemSeed)) {
+            continue;
+        }
+        $item = notes_1402_normalize_item_record($itemSeed);
+        if ($item === null) {
+            continue;
+        }
+        $maxItemId = max($maxItemId, (int) $item['id']);
+        $items[] = $item;
+    }
+
+    usort($items, static function (array $left, array $right): int {
+        return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
+    });
+
+    return [
+        'schemaVersion' => NOTES_1403_SCHEMA_VERSION,
+        'nextItemId' => max(1, (int) ($seed['nextItemId'] ?? 1), $maxItemId + 1),
+        'archive' => [
+            'kicker' => dent_clean_text((string) ($archiveSeed['kicker'] ?? $defaultArchive['kicker']), 80),
+            'title' => dent_clean_text((string) ($archiveSeed['title'] ?? $defaultArchive['title']), 160),
+            'description' => dent_clean_text((string) ($archiveSeed['description'] ?? $defaultArchive['description']), 800),
+            'emptyMessage' => dent_clean_text((string) ($archiveSeed['emptyMessage'] ?? $defaultArchive['emptyMessage']), 400),
+            'items' => $items,
+        ],
+    ];
+}
+
+function notes_1403_load_store_unlocked(): array
+{
+    $raw = dent_read_json_file(notes_1403_store_path(), notes_1403_default_store());
+    if (!is_array($raw)) {
+        $raw = notes_1403_default_store();
+    }
+
+    return notes_1403_normalize_store($raw);
+}
+
+function notes_1403_save_store_unlocked(array $store): void
+{
+    dent_write_json_file(notes_1403_store_path(), notes_1403_normalize_store($store));
+}
+
+function notes_1403_read_store(): array
+{
+    notes_1403_ensure_storage();
+
+    $lock = fopen(notes_1403_lock_path(), 'c+');
+    if ($lock === false) {
+        dent_error('خطا در دسترسی به قفل آرشیو منابع.', 500);
+    }
+
+    $store = notes_1403_default_store();
+    try {
+        if (!flock($lock, LOCK_SH)) {
+            throw new RuntimeException('Unable to acquire notes 1403 shared lock.');
+        }
+
+        $store = notes_1403_load_store_unlocked();
+    } finally {
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+
+    return $store;
+}
+
+/**
+ * @template T
+ * @param callable(array):T $callback
+ * @return T
+ */
+function notes_1403_with_store_lock(callable $callback)
+{
+    notes_1403_ensure_storage();
+
+    $lock = fopen(notes_1403_lock_path(), 'c+');
+    if ($lock === false) {
+        dent_error('خطا در دسترسی به قفل آرشیو منابع.', 500);
+    }
+
+    try {
+        if (!flock($lock, LOCK_EX)) {
+            throw new RuntimeException('Unable to acquire notes 1403 exclusive lock.');
+        }
+
+        $store = notes_1403_load_store_unlocked();
+        $result = $callback($store);
+        notes_1403_save_store_unlocked($store);
+        return $result;
+    } finally {
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+}
+
 function notes_1402_read_store(): array
 {
     notes_1402_ensure_storage();
@@ -473,6 +698,29 @@ function notes_1402_parse_term($raw): int
     return $term;
 }
 
+function notes_parse_cohort($raw): string
+{
+    $cohort = dent_normalize_digits(trim((string) $raw));
+    if ($cohort === '') {
+        return '1402';
+    }
+
+    if (!in_array($cohort, ['1402', '1403'], true)) {
+        dent_error('آرشیو منابع معتبر نیست.', 422);
+    }
+
+    return $cohort;
+}
+
+function notes_require_term_for_cohort(string $cohort, $raw): int
+{
+    if ($cohort !== '1402') {
+        return 0;
+    }
+
+    return notes_1402_parse_term($raw);
+}
+
 function notes_1402_item_payload(array $item): array
 {
     $url = (string) ($item['buttonUrl'] ?? '');
@@ -513,6 +761,29 @@ function notes_1402_term_payload(array $store, int $term): array
     ];
 }
 
+function notes_1403_archive_payload(array $store): array
+{
+    $archive = is_array($store['archive'] ?? null) ? $store['archive'] : notes_1403_archive_template();
+    $items = is_array($archive['items'] ?? null) ? $archive['items'] : [];
+    $itemPayloads = [];
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $itemPayloads[] = notes_1402_item_payload($item);
+    }
+
+    return [
+        'cohort' => '1403',
+        'term' => 0,
+        'kicker' => (string) ($archive['kicker'] ?? ''),
+        'title' => (string) ($archive['title'] ?? ''),
+        'description' => (string) ($archive['description'] ?? ''),
+        'emptyMessage' => (string) ($archive['emptyMessage'] ?? ''),
+        'items' => $itemPayloads,
+    ];
+}
+
 function notes_1402_next_item_id(array &$store): int
 {
     $next = max(1, (int) ($store['nextItemId'] ?? 1));
@@ -538,28 +809,8 @@ function notes_1402_parse_item_id($raw): int
     return $itemId;
 }
 
-$action = dent_request_action();
-
-if ($action === 'term') {
-    notes_1402_require_method(['GET']);
-
-    $term = notes_1402_parse_term($_GET['term'] ?? '');
-    $store = notes_1402_read_store();
-    $viewer = dent_current_user();
-    $isOwner = is_array($viewer) && (($viewer['role'] ?? '') === 'owner');
-
-    dent_json_response([
-        'success' => true,
-        'term' => notes_1402_term_payload($store, $term),
-        'canManage' => $isOwner,
-    ]);
-}
-
-if ($action === 'addItem') {
-    notes_1402_require_method(['POST']);
-    dent_require_owner();
-
-    $term = notes_1402_parse_term($_POST['term'] ?? '');
+function notes_parse_item_fields_from_post(): array
+{
     $badge = dent_clean_text((string) ($_POST['badge'] ?? ''), 70);
     $title = dent_clean_text((string) ($_POST['title'] ?? ''), 180);
     $description = dent_clean_text((string) ($_POST['description'] ?? ''), 600);
@@ -570,38 +821,188 @@ if ($action === 'addItem') {
         dent_error('همه فیلدهای کارت باید کامل و معتبر باشند.', 422);
     }
 
-    $created = notes_1402_with_store_lock(static function (array &$store) use (
-        $term,
-        $badge,
-        $title,
-        $description,
-        $buttonLabel,
-        $buttonUrl
-    ): array {
+    return [
+        'badge' => $badge,
+        'title' => $title,
+        'description' => $description,
+        'buttonLabel' => $buttonLabel,
+        'buttonUrl' => $buttonUrl,
+    ];
+}
+
+function notes_new_item(array &$store, array $fields): array
+{
+    return array_merge($fields, [
+        'id' => notes_1402_next_item_id($store),
+        'createdAt' => dent_iso_now(),
+        'updatedAt' => dent_iso_now(),
+    ]);
+}
+
+function notes_update_item_record(array $current, array $fields): array
+{
+    return array_merge($current, $fields, [
+        'updatedAt' => dent_iso_now(),
+    ]);
+}
+
+function notes_1402_add_item(int $term, array $fields): array
+{
+    return notes_1402_with_store_lock(static function (array &$store) use ($term, $fields): array {
         $termKey = (string) $term;
         if (!isset($store['terms'][$termKey]) || !is_array($store['terms'][$termKey])) {
             $store['terms'][$termKey] = notes_1402_term_template($term);
             $store['terms'][$termKey]['items'] = [];
         }
 
-        $item = [
-            'id' => notes_1402_next_item_id($store),
-            'badge' => $badge,
-            'title' => $title,
-            'description' => $description,
-            'buttonLabel' => $buttonLabel,
-            'buttonUrl' => $buttonUrl,
-            'createdAt' => dent_iso_now(),
-            'updatedAt' => dent_iso_now(),
-        ];
-
         if (!is_array($store['terms'][$termKey]['items'] ?? null)) {
             $store['terms'][$termKey]['items'] = [];
         }
 
+        $item = notes_new_item($store, $fields);
         array_unshift($store['terms'][$termKey]['items'], $item);
         return $item;
     });
+}
+
+function notes_1403_add_item(array $fields): array
+{
+    return notes_1403_with_store_lock(static function (array &$store) use ($fields): array {
+        if (!isset($store['archive']) || !is_array($store['archive'])) {
+            $store['archive'] = notes_1403_archive_template();
+        }
+        if (!is_array($store['archive']['items'] ?? null)) {
+            $store['archive']['items'] = [];
+        }
+
+        $item = notes_new_item($store, $fields);
+        array_unshift($store['archive']['items'], $item);
+        return $item;
+    });
+}
+
+function notes_1402_edit_item(int $term, int $itemId, array $fields): array
+{
+    return notes_1402_with_store_lock(static function (array &$store) use ($term, $itemId, $fields): array {
+        $termKey = (string) $term;
+        if (!is_array($store['terms'][$termKey]['items'] ?? null)) {
+            throw new RuntimeException('item-not-found');
+        }
+
+        foreach ($store['terms'][$termKey]['items'] as $index => $item) {
+            if ((int) ($item['id'] ?? 0) !== $itemId) {
+                continue;
+            }
+
+            $updated = notes_update_item_record(is_array($item) ? $item : [], $fields);
+            $store['terms'][$termKey]['items'][$index] = $updated;
+            return $updated;
+        }
+
+        throw new RuntimeException('item-not-found');
+    });
+}
+
+function notes_1403_edit_item(int $itemId, array $fields): array
+{
+    return notes_1403_with_store_lock(static function (array &$store) use ($itemId, $fields): array {
+        if (!is_array($store['archive']['items'] ?? null)) {
+            throw new RuntimeException('item-not-found');
+        }
+
+        foreach ($store['archive']['items'] as $index => $item) {
+            if ((int) ($item['id'] ?? 0) !== $itemId) {
+                continue;
+            }
+
+            $updated = notes_update_item_record(is_array($item) ? $item : [], $fields);
+            $store['archive']['items'][$index] = $updated;
+            return $updated;
+        }
+
+        throw new RuntimeException('item-not-found');
+    });
+}
+
+function notes_1402_delete_item(int $term, int $itemId): array
+{
+    return notes_1402_with_store_lock(static function (array &$store) use ($term, $itemId): array {
+        $termKey = (string) $term;
+        if (!is_array($store['terms'][$termKey]['items'] ?? null)) {
+            throw new RuntimeException('item-not-found');
+        }
+
+        $items = &$store['terms'][$termKey]['items'];
+        foreach ($items as $index => $item) {
+            if ((int) ($item['id'] ?? 0) !== $itemId) {
+                continue;
+            }
+
+            $deleted = is_array($item) ? $item : [];
+            array_splice($items, $index, 1);
+            return $deleted;
+        }
+
+        throw new RuntimeException('item-not-found');
+    });
+}
+
+function notes_1403_delete_item(int $itemId): array
+{
+    return notes_1403_with_store_lock(static function (array &$store) use ($itemId): array {
+        if (!is_array($store['archive']['items'] ?? null)) {
+            throw new RuntimeException('item-not-found');
+        }
+
+        $items = &$store['archive']['items'];
+        foreach ($items as $index => $item) {
+            if ((int) ($item['id'] ?? 0) !== $itemId) {
+                continue;
+            }
+
+            $deleted = is_array($item) ? $item : [];
+            array_splice($items, $index, 1);
+            return $deleted;
+        }
+
+        throw new RuntimeException('item-not-found');
+    });
+}
+
+$action = dent_request_action();
+
+if ($action === 'term') {
+    notes_1402_require_method(['GET']);
+
+    $cohort = notes_parse_cohort($_GET['cohort'] ?? '1402');
+    $term = notes_require_term_for_cohort($cohort, $_GET['term'] ?? '');
+    $viewer = dent_current_user();
+    $isOwner = is_array($viewer) && (($viewer['role'] ?? '') === 'owner');
+    $termPayload = null;
+
+    if ($cohort === '1403') {
+        $termPayload = notes_1403_archive_payload(notes_1403_read_store());
+    } else {
+        $termPayload = notes_1402_term_payload(notes_1402_read_store(), $term);
+    }
+
+    dent_json_response([
+        'success' => true,
+        'term' => $termPayload,
+        'canManage' => $isOwner,
+    ]);
+}
+
+if ($action === 'addItem') {
+    notes_1402_require_method(['POST']);
+    dent_require_owner();
+
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $term = notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
+    $fields = notes_parse_item_fields_from_post();
+    $created = $cohort === '1403'
+        ? notes_1403_add_item($fields)
+        : notes_1402_add_item($term, $fields);
 
     dent_json_response([
         'success' => true,
@@ -610,33 +1011,46 @@ if ($action === 'addItem') {
     ]);
 }
 
+if ($action === 'editItem') {
+    notes_1402_require_method(['POST']);
+    dent_require_owner();
+
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $term = notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
+    $itemId = notes_1402_parse_item_id($_POST['itemId'] ?? '');
+    $fields = notes_parse_item_fields_from_post();
+
+    try {
+        $updated = $cohort === '1403'
+            ? notes_1403_edit_item($itemId, $fields)
+            : notes_1402_edit_item($term, $itemId, $fields);
+    } catch (RuntimeException $error) {
+        if ($error->getMessage() === 'item-not-found') {
+            dent_error('کارت موردنظر پیدا نشد.', 404);
+        }
+
+        throw $error;
+    }
+
+    dent_json_response([
+        'success' => true,
+        'item' => notes_1402_item_payload($updated),
+        'message' => 'کارت منبع ذخیره شد.',
+    ]);
+}
+
 if ($action === 'deleteItem') {
     notes_1402_require_method(['POST']);
     dent_require_owner();
 
-    $term = notes_1402_parse_term($_POST['term'] ?? '');
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $term = notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
     $itemId = notes_1402_parse_item_id($_POST['itemId'] ?? '');
 
     try {
-        $deleted = notes_1402_with_store_lock(static function (array &$store) use ($term, $itemId): array {
-            $termKey = (string) $term;
-            if (!is_array($store['terms'][$termKey]['items'] ?? null)) {
-                throw new RuntimeException('item-not-found');
-            }
-
-            $items = &$store['terms'][$termKey]['items'];
-            foreach ($items as $index => $item) {
-                if ((int) ($item['id'] ?? 0) !== $itemId) {
-                    continue;
-                }
-
-                $deleted = is_array($item) ? $item : [];
-                array_splice($items, $index, 1);
-                return $deleted;
-            }
-
-            throw new RuntimeException('item-not-found');
-        });
+        $deleted = $cohort === '1403'
+            ? notes_1403_delete_item($itemId)
+            : notes_1402_delete_item($term, $itemId);
     } catch (RuntimeException $error) {
         if ($error->getMessage() === 'item-not-found') {
             dent_error('کارت موردنظر پیدا نشد.', 404);
