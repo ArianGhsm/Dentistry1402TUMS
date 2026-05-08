@@ -127,6 +127,8 @@
   };
   var MAX_MESSAGE_SIZE = 2000;
   var MAX_MEDIA_BYTES = 25 * 1024 * 1024;
+  var INITIAL_MESSAGE_LIMIT = 80;
+  var OLDER_MESSAGE_LIMIT = 60;
   var MIN_POLL_MS = 1000;
   var MAX_POLL_MS = 8000;
   var REACTION_RECENTS_LIMIT = 24;
@@ -325,6 +327,16 @@
     }
   }
 
+  function formatClock(ts) {
+    var n = toNumber(ts, 0);
+    if (!n) return "";
+    try {
+      return new Date(n * 1000).toLocaleTimeString("fa-IR-u-ca-persian", { hour: "2-digit", minute: "2-digit", hour12: false });
+    } catch (error) {
+      return "";
+    }
+  }
+
   function formatDate(ts) {
     var n = toNumber(ts, 0);
     if (!n) return "";
@@ -333,6 +345,12 @@
     } catch (error) {
       return "";
     }
+  }
+
+  function formatDateTime(ts) {
+    var date = formatDate(ts);
+    var clock = formatClock(ts);
+    return [date, clock].filter(Boolean).join(" ");
   }
 
   function dayKeyFromTimestamp(ts) {
@@ -677,6 +695,9 @@
   var mediaViewerMore = $("chat-media-viewer-more");
   var mediaViewerStage = $("chat-media-viewer-stage");
   var mediaViewerCaption = $("chat-media-viewer-caption");
+  var mediaViewerPrev = null;
+  var mediaViewerNext = null;
+  var mediaViewerCounter = null;
 
   var toastEl = $("toast");
   var themeColorMetas = Array.from(document.querySelectorAll('meta[name="theme-color"]'));
@@ -708,6 +729,9 @@
     conversationListCategory: "all",
     messages: new Map(),
     lastMessageId: 0,
+    oldestMessageId: 0,
+    hasMoreBefore: false,
+    olderMessagesLoading: false,
     replyTargetId: null,
     pollingTimer: null,
     pollIntervalMs: 1700,
@@ -742,7 +766,11 @@
     directoryUsers: [],
     directoryLoaded: false,
     pendingAttachments: [],
-    voiceRecorder: null
+    voiceRecorder: null,
+    mediaViewerItems: [],
+    mediaViewerIndex: -1,
+    mediaViewerZoomed: false,
+    mediaViewerPointer: null
   };
   var nativeEmojiPicker = null;
 
@@ -794,9 +822,11 @@
     return payload;
   }
 
-  async function apiRequest(method, action, payload) {
+  async function apiRequest(method, action, payload, options) {
     var normalizedMethod = method === "POST" ? "POST" : "GET";
-    var options = {
+    var opts = asObject(options) || {};
+    var quiet = opts.quiet === true;
+    var requestOptions = {
       method: normalizedMethod,
       credentials: "same-origin",
       headers: {
@@ -809,13 +839,13 @@
       var getParams = new URLSearchParams(Object.assign({ action: action }, payload || {}));
       url += "?" + getParams.toString();
     } else {
-      options.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
-      options.body = new URLSearchParams(Object.assign({ action: action }, payload || {}));
+      requestOptions.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
+      requestOptions.body = new URLSearchParams(Object.assign({ action: action }, payload || {}));
     }
 
-    setThreadUpdating(true);
+    if (!quiet) setThreadUpdating(true);
     try {
-      var response = await fetch(url, options);
+      var response = await fetch(url, requestOptions);
       return parseApiResponse(response);
     } catch (error) {
       return {
@@ -825,16 +855,16 @@
         httpStatus: 0
       };
     } finally {
-      setThreadUpdating(false);
+      if (!quiet) setThreadUpdating(false);
     }
   }
 
-  function apiGet(action, payload) {
-    return apiRequest("GET", action, payload);
+  function apiGet(action, payload, options) {
+    return apiRequest("GET", action, payload, options);
   }
 
-  function apiPost(action, payload) {
-    return apiRequest("POST", action, payload);
+  function apiPost(action, payload, options) {
+    return apiRequest("POST", action, payload, options);
   }
 
   function consumeUnauthorized(payload, fallbackText) {
@@ -1086,6 +1116,16 @@
         button.setAttribute("tabindex", "-1");
       }
     });
+    if (isMobileViewport()) {
+      var activeButton = buttons.find(function (button) {
+        return button.classList.contains("is-active");
+      });
+      if (activeButton && typeof activeButton.scrollIntoView === "function") {
+        try {
+          activeButton.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        } catch (error) {}
+      }
+    }
   }
 
   function setConversationListCategory(value) {
@@ -1923,6 +1963,9 @@
   function clearThreadState() {
     state.messages.clear();
     state.lastMessageId = 0;
+    state.oldestMessageId = 0;
+    state.hasMoreBefore = false;
+    state.olderMessagesLoading = false;
     state.replyTargetId = null;
     state.threadAutoStick = true;
     clearReplyTarget();
@@ -2956,6 +2999,7 @@
   function closeMediaViewer() {
     if (!mediaViewer) return;
     mediaViewer.classList.remove("is-open");
+    mediaViewer.classList.remove("is-zoomed");
     mediaViewer.hidden = true;
     if (mediaViewerMore) {
       mediaViewerMore.hidden = true;
@@ -2963,10 +3007,142 @@
     }
     if (mediaViewerStage) mediaViewerStage.innerHTML = "";
     if (mediaViewerCaption) mediaViewerCaption.textContent = "";
+    if (mediaViewerCounter) mediaViewerCounter.textContent = "";
+    state.mediaViewerItems = [];
+    state.mediaViewerIndex = -1;
+    state.mediaViewerZoomed = false;
+    state.mediaViewerPointer = null;
+  }
+
+  function ensureMediaViewerControls() {
+    if (!mediaViewer) return;
+    if (!mediaViewerPrev) {
+      mediaViewerPrev = document.createElement("button");
+      mediaViewerPrev.type = "button";
+      mediaViewerPrev.className = "chat-media-viewer__nav chat-media-viewer__nav--prev";
+      mediaViewerPrev.setAttribute("aria-label", "\u0631\u0633\u0627\u0646\u0647 \u0642\u0628\u0644\u06cc");
+      mediaViewerPrev.innerHTML = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5L8 12L15 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      mediaViewerPrev.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        stepMediaViewer(-1);
+      });
+      mediaViewer.appendChild(mediaViewerPrev);
+    }
+    if (!mediaViewerNext) {
+      mediaViewerNext = document.createElement("button");
+      mediaViewerNext.type = "button";
+      mediaViewerNext.className = "chat-media-viewer__nav chat-media-viewer__nav--next";
+      mediaViewerNext.setAttribute("aria-label", "\u0631\u0633\u0627\u0646\u0647 \u0628\u0639\u062f\u06cc");
+      mediaViewerNext.innerHTML = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5L16 12L9 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      mediaViewerNext.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        stepMediaViewer(1);
+      });
+      mediaViewer.appendChild(mediaViewerNext);
+    }
+    if (!mediaViewerCounter) {
+      mediaViewerCounter = document.createElement("div");
+      mediaViewerCounter.className = "chat-media-viewer__counter";
+      mediaViewer.appendChild(mediaViewerCounter);
+    }
+  }
+
+  function mediaViewerItemFromNode(node) {
+    if (!node) return null;
+    var kind = normalizeSpace(node.getAttribute("data-media-kind"));
+    var src = toText(node.getAttribute("data-media-src"));
+    var poster = toText(node.getAttribute("data-media-poster"));
+    var caption = normalizeSpace(node.getAttribute("data-media-caption"));
+    if (!src) return null;
+    if (kind !== "video") kind = "image";
+    return {
+      kind: kind,
+      src: src,
+      poster: poster,
+      caption: caption
+    };
+  }
+
+  function collectMediaViewerItems(activeNode) {
+    var nodes = messagesEl
+      ? Array.from(messagesEl.querySelectorAll(".msg-attachment__media-btn[data-media-src]"))
+      : [];
+    var items = nodes.map(mediaViewerItemFromNode).filter(Boolean);
+    var index = nodes.indexOf(activeNode);
+    if (index < 0) index = 0;
+    if (!items.length) {
+      var fallback = mediaViewerItemFromNode(activeNode);
+      if (fallback) {
+        items = [fallback];
+        index = 0;
+      }
+    }
+    return {
+      items: items,
+      index: clamp(index, 0, Math.max(0, items.length - 1))
+    };
+  }
+
+  function renderMediaViewerItem() {
+    if (!mediaViewer || !mediaViewerStage) return;
+    var item = state.mediaViewerItems[state.mediaViewerIndex];
+    if (!item || !item.src) return;
+
+    state.mediaViewerZoomed = false;
+    mediaViewer.classList.remove("is-zoomed");
+
+    mediaViewerStage.innerHTML = item.kind === "video"
+      ? '<video controls autoplay playsinline preload="metadata" src="' + escapeHtml(item.src) + '"' + (item.poster ? ' poster="' + escapeHtml(item.poster) + '"' : "") + "></video>"
+      : '<img src="' + escapeHtml(item.src) + '" decoding="async" alt="' + escapeHtml(item.caption || "\u0631\u0633\u0627\u0646\u0647") + '">';
+    if (mediaViewerMore) {
+      mediaViewerMore.href = item.src;
+      mediaViewerMore.hidden = false;
+    }
+    if (mediaViewerCaption) mediaViewerCaption.textContent = item.caption || "";
+    if (mediaViewerCounter) {
+      mediaViewerCounter.textContent = state.mediaViewerItems.length > 1
+        ? ((state.mediaViewerIndex + 1).toLocaleString("fa-IR") + " / " + state.mediaViewerItems.length.toLocaleString("fa-IR"))
+        : "";
+      mediaViewerCounter.hidden = state.mediaViewerItems.length <= 1;
+    }
+    if (mediaViewerPrev) mediaViewerPrev.hidden = state.mediaViewerItems.length <= 1;
+    if (mediaViewerNext) mediaViewerNext.hidden = state.mediaViewerItems.length <= 1;
+  }
+
+  function stepMediaViewer(delta) {
+    var total = state.mediaViewerItems.length;
+    if (total <= 1) return;
+    var next = state.mediaViewerIndex + (delta < 0 ? -1 : 1);
+    if (next < 0) next = total - 1;
+    if (next >= total) next = 0;
+    state.mediaViewerIndex = next;
+    renderMediaViewerItem();
+  }
+
+  function toggleMediaViewerZoom() {
+    if (!mediaViewer || !mediaViewerStage) return;
+    var item = state.mediaViewerItems[state.mediaViewerIndex];
+    if (!item || item.kind !== "image") return;
+    state.mediaViewerZoomed = !state.mediaViewerZoomed;
+    mediaViewer.classList.toggle("is-zoomed", state.mediaViewerZoomed);
   }
 
   function openMediaViewerFromNode(node) {
     if (!node || !mediaViewer || !mediaViewerStage) return;
+    var payload = collectMediaViewerItems(node);
+    if (payload.items.length) {
+      ensureMediaViewerControls();
+      state.mediaViewerItems = payload.items;
+      state.mediaViewerIndex = payload.index;
+      renderMediaViewerItem();
+      mediaViewer.hidden = false;
+      window.requestAnimationFrame(function () {
+        mediaViewer.classList.add("is-open");
+      });
+      return;
+    }
     var kind = normalizeSpace(node.getAttribute("data-media-kind"));
     var src = toText(node.getAttribute("data-media-src"));
     var poster = toText(node.getAttribute("data-media-poster"));
@@ -2993,7 +3169,7 @@
       name: "کاربر",
       profile: { avatarUrl: "" }
     };
-    var seenAt = entry && entry.seenAt ? (formatDate(entry.seenAt) + " " + formatTime(entry.seenAt)) : "";
+    var seenAt = entry && entry.seenAt ? formatDateTime(entry.seenAt) : "";
     return [
       '<div class="receipt-row">',
       '  <span class="receipt-row__avatar" data-has-avatar="0"><img alt="" hidden><span>' + escapeHtml(avatarLabel(user.name)) + '</span></span>',
@@ -3072,6 +3248,9 @@
     var shouldStick = !!state.threadAutoStick && isThreadNearBottom(56);
     var markNew = !!(options && options.markNew);
     var forceReplace = !!(options && options.replaceAll);
+    var prepend = !!(options && options.prepend);
+    var scrollHeightBefore = prepend ? messagesEl.scrollHeight : 0;
+    var scrollTopBefore = prepend ? messagesEl.scrollTop : 0;
     var existingNodes = new Map();
     var fragment = document.createDocumentFragment();
 
@@ -3079,6 +3258,7 @@
       state.messages.clear();
       messagesEl.innerHTML = "";
       state.lastMessageId = 0;
+      state.oldestMessageId = 0;
     } else {
       Array.from(messagesEl.querySelectorAll(".msg-item[data-mid]")).forEach(function (node) {
         if (!node || !node.dataset || !node.dataset.mid) return;
@@ -3108,8 +3288,15 @@
     });
 
     if (fragment.childNodes.length) {
-      messagesEl.appendChild(fragment);
+      if (prepend && messagesEl.firstChild) {
+        messagesEl.insertBefore(fragment, messagesEl.firstChild);
+      } else {
+        messagesEl.appendChild(fragment);
+      }
     }
+
+    var ordered = messageList();
+    state.oldestMessageId = ordered.length ? ordered[0].id : 0;
 
     updateMessageGroups();
     syncMessageFocus();
@@ -3127,7 +3314,39 @@
       window.requestAnimationFrame(function () {
         scrollToBottom(!!(options && options.smooth));
       });
+    } else if (prepend) {
+      window.requestAnimationFrame(function () {
+        var delta = messagesEl.scrollHeight - scrollHeightBefore;
+        messagesEl.scrollTop = scrollTopBefore + Math.max(0, delta);
+      });
     }
+  }
+
+  function maybeLoadOlderMessages() {
+    if (!messagesEl || state.olderMessagesLoading || !state.hasMoreBefore || !state.activeConversationId) return;
+    if (messagesEl.scrollTop > 96) return;
+    var oldest = Math.max(0, Math.floor(toNumber(state.oldestMessageId, 0)));
+    if (!oldest) {
+      var ordered = messageList();
+      oldest = ordered.length ? Math.max(0, Math.floor(toNumber(ordered[0].id, 0))) : 0;
+      state.oldestMessageId = oldest;
+    }
+    if (oldest <= 1) {
+      state.hasMoreBefore = false;
+      return;
+    }
+
+    state.olderMessagesLoading = true;
+    syncConversation({
+      forceFull: true,
+      beforeId: oldest,
+      messageLimit: OLDER_MESSAGE_LIMIT,
+      includeMembers: false,
+      conversationId: state.activeConversationId,
+      silent: true
+    }).catch(function () {}).finally(function () {
+      state.olderMessagesLoading = false;
+    });
   }
 
   function replaceMessageInDom(message) {
@@ -3727,7 +3946,7 @@
       return;
     }
     infoRecentActions.innerHTML = actions.slice(0, 8).map(function (item) {
-      return '<button type="button" class="chat-recent-action" data-scroll-message="' + escapeHtml(item.messageId || "") + '"><strong>' + escapeHtml(item.label) + '</strong><span>' + escapeHtml(formatDate(item.ts) + " " + formatTime(item.ts)) + '</span></button>';
+      return '<button type="button" class="chat-recent-action" data-scroll-message="' + escapeHtml(item.messageId || "") + '"><strong>' + escapeHtml(item.label) + '</strong><span>' + escapeHtml(formatDateTime(item.ts)) + '</span></button>';
     }).join("");
   }
 
@@ -4232,14 +4451,14 @@
       var list = messageList();
       var pinnedCount = list.filter(function (item) { return !!item.pinned; }).length;
       var lastMessage = list.length ? list[list.length - 1] : null;
-      var createdAtLabel = conversation.createdAt ? (formatDate(conversation.createdAt) + " " + formatTime(conversation.createdAt)) : "نامشخص";
+      var createdAtLabel = conversation.createdAt ? formatDateTime(conversation.createdAt) : "نامشخص";
       var archiveLabel = conversation.viewerState && conversation.viewerState.archived ? "بایگانی‌شده" : "فعال";
       infoStats.innerHTML = [
         '<div class="chat-info-stat"><strong>پیام‌ها</strong><span>' + list.length.toLocaleString("fa-IR") + " پیام</span></div>",
         '<div class="chat-info-stat"><strong>سنجاق‌ها</strong><span>' + pinnedCount.toLocaleString("fa-IR") + " پیام سنجاق‌شده</span></div>",
         '<div class="chat-info-stat"><strong>وضعیت گفتگو</strong><span>' + archiveLabel + "</span></div>",
         '<div class="chat-info-stat"><strong>تاریخ ایجاد</strong><span>' + escapeHtml(createdAtLabel) + "</span></div>",
-        '<div class="chat-info-stat"><strong>آخرین فعالیت</strong><span>' + (lastMessage ? escapeHtml(formatDate(lastMessage.ts) + " " + formatTime(lastMessage.ts)) : "بدون فعالیت") + "</span></div>"
+        '<div class="chat-info-stat"><strong>آخرین فعالیت</strong><span>' + (lastMessage ? escapeHtml(formatDateTime(lastMessage.ts)) : "بدون فعالیت") + "</span></div>"
       ].join("");
     }
     renderInfoContentOverview();
@@ -4958,14 +5177,12 @@
           return;
         }
         state.pollInFlight = true;
-        setThreadUpdating(true);
         syncConversation({
           forceFull: false,
           includeMembers: state.infoSheetOpen,
           silent: true
         }).catch(function () {}).finally(function () {
           state.pollInFlight = false;
-          setThreadUpdating(false);
           scheduleNextPoll();
         });
       }, clamp(state.pollIntervalMs, MIN_POLL_MS, MAX_POLL_MS));
@@ -4981,6 +5198,9 @@
     var forceFull = !!opts.forceFull;
     var includeMembers = !!opts.includeMembers;
     var silent = !!opts.silent;
+    var beforeId = Math.max(0, Math.floor(toNumber(opts.beforeId, 0)));
+    var isOlderPage = beforeId > 0;
+    var messageLimit = Math.max(0, Math.floor(toNumber(opts.messageLimit, forceFull ? INITIAL_MESSAGE_LIMIT : 0)));
 
     var requestedConversationId = normalizeSpace(
       opts.conversationId
@@ -4994,6 +5214,12 @@
       sinceId: String(forceFull ? 0 : Math.max(0, state.lastMessageId)),
       includeMembers: includeMembers ? "1" : "0"
     };
+    if (messageLimit > 0) {
+      requestPayload.limit = String(messageLimit);
+    }
+    if (isOlderPage) {
+      requestPayload.beforeId = String(beforeId);
+    }
     if (requestedConversationId) {
       requestPayload.conversationId = requestedConversationId;
     }
@@ -5006,7 +5232,7 @@
     }
 
     try {
-      var response = await apiGet("sync", requestPayload);
+      var response = await apiGet("sync", requestPayload, { quiet: true });
       if (token !== state.requestToken) {
         return null;
       }
@@ -5090,11 +5316,17 @@
           return message.conversationId === state.activeConversationId;
         });
 
+      var page = asObject(response.messagePage) || {};
+      if (isOlderPage || forceFull || Number(requestPayload.sinceId) <= 0) {
+        state.hasMoreBefore = page.hasMoreBefore === true;
+      }
+
       appendMessages(normalizedMessages, {
-        replaceAll: forceFull || Number(requestPayload.sinceId) <= 0,
-        forceStick: !!opts.forceStick || forceFull,
-        smooth: !forceFull,
-        markNew: !forceFull
+        replaceAll: !isOlderPage && (forceFull || Number(requestPayload.sinceId) <= 0),
+        prepend: isOlderPage,
+        forceStick: !isOlderPage && (!!opts.forceStick || forceFull),
+        smooth: !forceFull && !isOlderPage,
+        markNew: !forceFull && !isOlderPage
       });
 
       updateInfoSheet();
@@ -5137,6 +5369,9 @@
     if (changed) {
       clearThreadState();
       state.lastMessageId = 0;
+      state.oldestMessageId = 0;
+      state.hasMoreBefore = false;
+      state.olderMessagesLoading = false;
       state.threadAutoStick = true;
       clearReplyTarget();
       closeContextMenu();
@@ -5293,6 +5528,9 @@
       state.conversationListCategory = "all";
       state.messages.clear();
       state.lastMessageId = 0;
+      state.oldestMessageId = 0;
+      state.hasMoreBefore = false;
+      state.olderMessagesLoading = false;
       state.directoryUsers = [];
       state.directoryLoaded = false;
       state.pendingForwardMessageId = null;
@@ -6683,7 +6921,7 @@
           if (swipeTracking) {
             if (e.cancelable) e.preventDefault();
             if (conversationList) {
-              var damped = Math.max(-96, Math.min(96, dx * 0.36));
+              var damped = Math.max(-120, Math.min(120, dx * 0.52));
               conversationList.style.transform = "translate3d(" + damped.toFixed(1) + "px, 0, 0)";
             }
           } else if (Math.abs(dy) > 14) {
@@ -6704,7 +6942,7 @@
             var current = normalizeConversationListCategory(state.conversationListCategory) || "all";
             var idx = swipeOrder.indexOf(current);
             if (idx === -1) idx = 0;
-            var nextIdx = dx < 0 ? Math.min(swipeOrder.length - 1, idx + 1) : Math.max(0, idx - 1);
+            var nextIdx = dx < 0 ? Math.max(0, idx - 1) : Math.min(swipeOrder.length - 1, idx + 1);
             var next = swipeOrder[nextIdx];
             if (next !== current) setConversationListCategory(next);
           }
@@ -6984,6 +7222,7 @@
       if (state.contextOpen) closeContextMenu();
       if (state.listContextOpen) closeListContextMenu();
       state.threadAutoStick = isThreadNearBottom(56);
+      maybeLoadOlderMessages();
     });
 
     if (chatTextEl) {
@@ -7078,6 +7317,33 @@
       mediaViewer.addEventListener("click", function (event) {
         if (event.target === mediaViewer) closeMediaViewer();
       });
+      mediaViewer.addEventListener("pointerdown", function (event) {
+        if (event.pointerType === "mouse" && event.button !== 0) return;
+        state.mediaViewerPointer = {
+          id: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+          at: Date.now()
+        };
+      });
+      mediaViewer.addEventListener("pointerup", function (event) {
+        var start = state.mediaViewerPointer;
+        state.mediaViewerPointer = null;
+        if (!start || start.id !== event.pointerId) return;
+        var dx = event.clientX - start.x;
+        var dy = event.clientY - start.y;
+        if (Math.abs(dx) < 52 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
+        stepMediaViewer(dx < 0 ? 1 : -1);
+      });
+      mediaViewer.addEventListener("pointercancel", function () {
+        state.mediaViewerPointer = null;
+      });
+    }
+    if (mediaViewerStage) {
+      mediaViewerStage.addEventListener("dblclick", function (event) {
+        event.preventDefault();
+        toggleMediaViewerZoom();
+      });
     }
 
     if (logoutBtn) {
@@ -7150,11 +7416,17 @@
     }
 
     document.addEventListener("keydown", function (event) {
-      if (event.key !== "Escape") return;
       if (mediaViewer && !mediaViewer.hidden) {
-        closeMediaViewer();
-        return;
+        if (event.key === "Escape") {
+          closeMediaViewer();
+          return;
+        }
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          stepMediaViewer(event.key === "ArrowLeft" ? 1 : -1);
+          return;
+        }
       }
+      if (event.key !== "Escape") return;
       if (composerUploadSheet && !composerUploadSheet.hidden) {
         setUploadSheetOpen(false);
       }

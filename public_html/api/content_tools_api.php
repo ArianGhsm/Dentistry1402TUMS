@@ -187,6 +187,9 @@ function content_api_emit_file_bytes(array $file, string $mode): void
 }
 
 $action = dent_request_action();
+if ($action === '' && dent_request_method() === 'POST' && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0 && $_POST === [] && $_FILES === []) {
+    dent_error('حجم درخواست از سقف فعلی PHP/هاست بیشتر است. سقف ابزار ۲ گیگابایت تنظیم شده، اما ممکن است هاست هنوز مقدار جدید upload_max_filesize/post_max_size را اعمال نکرده باشد.', 413);
+}
 
 if ($action === 'ownerDashboard') {
     content_api_require_method(['GET']);

@@ -6496,17 +6496,43 @@ if ($action === 'sync' || $action === 'fetch') {
     $sinceId = (int) ($_GET['sinceId'] ?? $_POST['sinceId'] ?? 0);
     $full = (string) ($_GET['full'] ?? $_POST['full'] ?? '0') === '1' || $sinceId <= 0;
     $includeMembers = (string) ($_GET['includeMembers'] ?? $_POST['includeMembers'] ?? '1') !== '0';
+    $beforeId = max(0, (int) ($_GET['beforeId'] ?? $_POST['beforeId'] ?? 0));
+    $limit = max(0, min(200, (int) ($_GET['limit'] ?? $_POST['limit'] ?? 0)));
 
     $allMessages = chat_get_messages($store, $activeConversationId);
     $messages = [];
-    if ($full) {
-        $messages = $allMessages;
+    $hasMoreBefore = false;
+    if ($beforeId > 0) {
+        $olderMessages = [];
+        foreach ($allMessages as $message) {
+            if ((int) ($message['id'] ?? 0) < $beforeId) {
+                $olderMessages[] = $message;
+            }
+        }
+        if ($limit > 0 && count($olderMessages) > $limit) {
+            $hasMoreBefore = true;
+            $messages = array_slice($olderMessages, -$limit);
+        } else {
+            $messages = $olderMessages;
+        }
+    } elseif ($full) {
+        if ($limit > 0 && count($allMessages) > $limit) {
+            $hasMoreBefore = true;
+            $messages = array_slice($allMessages, -$limit);
+        } else {
+            $messages = $allMessages;
+        }
     } else {
         foreach ($allMessages as $message) {
             if ((int) ($message['id'] ?? 0) > $sinceId) {
                 $messages[] = $message;
             }
         }
+    }
+    $oldestMessageId = null;
+    if ($messages !== []) {
+        $firstMessage = $messages[0];
+        $oldestMessageId = (int) ($firstMessage['id'] ?? 0);
     }
 
     $lastMessage = chat_last_message($allMessages);
@@ -6531,12 +6557,20 @@ if ($action === 'sync' || $action === 'fetch') {
         'conversation' => chat_conversation_payload($store, $conversation, $user, $includeMembers),
         'conversations' => chat_conversation_summaries_for_user($store, $user),
         'messages' => chat_normalize_messages_for_client($messages, $store, $user),
+        'messagePage' => [
+            'limit' => $limit,
+            'beforeId' => $beforeId,
+            'oldestMessageId' => $oldestMessageId,
+            'hasMoreBefore' => $hasMoreBefore,
+            'returnedCount' => count($messages),
+            'totalCount' => count($allMessages),
+        ],
         'state' => is_array($conversation['settings'] ?? null)
             ? chat_default_settings($conversation['settings'])
             : chat_default_settings(),
         'transport' => [
             'mode' => 'polling',
-            'intervalMs' => 1700,
+            'intervalMs' => 5000,
         ],
         'limitations' => [
             'realtime' => false,

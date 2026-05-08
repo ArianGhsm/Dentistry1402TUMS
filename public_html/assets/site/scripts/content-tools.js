@@ -212,16 +212,27 @@
         var queueNode = $("ct-upload-queue");
         var listNode = $("ct-files-list");
         var pagerNode = $("ct-files-pager");
+        var maxUploadBytes = 2 * 1024 * 1024 * 1024;
 
         function renderStorage(summary) {
             var node = $("ct-storage-box");
             if (!node) return;
-            var used = formatBytes(summary && summary.totalBytes);
-            var remaining = summary && summary.remainingKnown ? formatBytes(summary.remainingBytes) : "نامشخص";
+            var usedBytes = Number(summary && summary.totalBytes || 0);
+            var remainingKnown = !!(summary && summary.remainingKnown);
+            var remainingBytes = Number(summary && summary.remainingBytes || 0);
+            var denominator = remainingKnown ? Math.max(0, usedBytes + remainingBytes) : 0;
+            var percent = denominator > 0 ? Math.max(0, Math.min(100, (usedBytes / denominator) * 100)) : 0;
+            var used = formatBytes(usedBytes);
+            var remaining = remainingKnown ? formatBytes(remainingBytes) : "نامشخص";
+            var totalFiles = Number(summary && summary.totalFiles || 0).toLocaleString("fa-IR");
+            var totalDownloads = Number(summary && summary.downloadCount || 0).toLocaleString("fa-IR");
             node.innerHTML = [
-                "<span>فضای استفاده‌شده</span>",
-                "<strong>" + escapeHtml(used) + "</strong>",
-                "<small>باقی‌مانده هاست: " + escapeHtml(remaining) + "</small>",
+                '<div class="ct-storage-head"><span>فضای ابزار</span><strong>' + escapeHtml(used) + "</strong></div>",
+                '<div class="ct-storage-meter" aria-label="نمودار مصرف storage"><span style="width:' + percent.toFixed(1) + '%"></span></div>',
+                '<div class="ct-storage-stats">',
+                "<small>باقی‌مانده قابل‌خواندن: " + escapeHtml(remaining) + "</small>",
+                "<small>" + escapeHtml(totalFiles) + " فایل · " + escapeHtml(totalDownloads) + " دانلود</small>",
+                "</div>",
                 '<small class="ct-storage-note">' + escapeHtml(summary && summary.notice || "وضعیت storage در دسترس نیست.") + "</small>"
             ].join("");
         }
@@ -242,14 +253,14 @@
             var response = await request("ownerFiles", currentFileParams(), "GET");
             if (consumeUnauthorized(response)) return;
             if (!response || !response.success) {
-                setFeedback(feedback, (response && response.error) || "دریافت فایل‌ها انجام نشد.", "error");
+                if (!silent) setFeedback(feedback, (response && response.error) || "دریافت فایل‌ها انجام نشد.", "error");
                 return;
             }
             renderStorage(response.summary || {});
             state.files = response.page && Array.isArray(response.page.items) ? response.page.items : [];
             state.pageInfo = response.page || { page: 1, pages: 1, total: 0 };
             renderFiles();
-            setFeedback(feedback, "");
+            if (!silent) setFeedback(feedback, "");
         }
 
         async function loadDashboard() {
@@ -292,6 +303,11 @@
                 setFeedback(feedback, "فایلی در صف آپلود نیست.", "error");
                 return;
             }
+            var oversized = queued.filter(function (item) { return Number(item.size || 0) > maxUploadBytes; });
+            if (oversized.length) {
+                setFeedback(feedback, "حجم هر فایل باید حداکثر " + formatBytes(maxUploadBytes) + " باشد.", "error");
+                return;
+            }
             var body = new FormData();
             body.append("action", "ownerUploadFiles");
             queued.forEach(function (item) {
@@ -321,7 +337,12 @@
                 try {
                     response = JSON.parse(xhr.responseText || "{}");
                 } catch (_error) {
-                    response = { success: false, error: "پاسخ آپلود نامعتبر بود." };
+                    response = {
+                        success: false,
+                        error: xhr.status === 413
+                            ? "حجم درخواست از سقف فعلی PHP/هاست بیشتر است. تنظیمات آپلود هاست باید افزایش پیدا کند."
+                            : "پاسخ آپلود نامعتبر بود."
+                    };
                 }
                 response.httpStatus = xhr.status;
                 if (consumeUnauthorized(response)) return;
@@ -468,7 +489,9 @@
         }
 
         function syncFilters() {
-            state.query = $("ct-files-query") ? $("ct-files-query").value : "";
+            state.query = $("ct-files-query-top")
+                ? $("ct-files-query-top").value
+                : ($("ct-files-query") ? $("ct-files-query").value : "");
             state.status = $("ct-files-status") ? $("ct-files-status").value : "all";
             state.sort = $("ct-files-sort") ? $("ct-files-sort").value : "newest";
             state.page = 1;
@@ -523,7 +546,15 @@
         ["ct-files-query", "ct-files-status", "ct-files-sort"].forEach(function (id) {
             var el = $(id);
             if (!el) return;
-            el.addEventListener(id === "ct-files-query" ? "input" : "change", queueFilterSync);
+            el.addEventListener(id === "ct-files-query" ? "input" : "change", function () {
+                if (id === "ct-files-query" && $("ct-files-query-top")) $("ct-files-query-top").value = el.value;
+                queueFilterSync();
+            });
+        });
+        var topQuery = $("ct-files-query-top");
+        if (topQuery) topQuery.addEventListener("input", function () {
+            if ($("ct-files-query")) $("ct-files-query").value = topQuery.value;
+            queueFilterSync();
         });
         var refresh = $("ct-files-refresh");
         if (refresh) refresh.addEventListener("click", function () { loadDashboard(); loadFiles(false); });
@@ -606,21 +637,21 @@
             var response = await request("ownerPastes", params(), "GET");
             if (consumeUnauthorized(response)) return;
             if (!response || !response.success) {
-                setFeedback(feedback, (response && response.error) || "دریافت pasteها انجام نشد.", "error");
+                if (!silent) setFeedback(feedback, (response && response.error) || "دریافت pasteها انجام نشد.", "error");
                 return;
             }
             state.pastes = response.page && Array.isArray(response.page.items) ? response.page.items : [];
             state.pageInfo = response.page || { page: 1, pages: 1, total: 0 };
             renderPasteSummary(response.summary || {});
             renderPastes();
-            setFeedback(feedback, "");
+            if (!silent) setFeedback(feedback, "");
         }
 
         function renderPasteSummary(summary) {
             var node = $("ct-paste-summary");
             if (!node) return;
-            var views = state.pastes.reduce(function (sum, paste) { return sum + Number(paste.viewCount || 0); }, 0);
-            var raw = state.pastes.reduce(function (sum, paste) { return sum + Number(paste.rawViewCount || 0); }, 0);
+            var views = Number(summary && summary.pasteViewCount || 0);
+            var raw = Number(summary && summary.pasteRawViewCount || 0);
             node.innerHTML = [
                 "<article><span>Pasteها</span><strong>" + Number(summary.pasteCount || 0).toLocaleString("fa-IR") + "</strong></article>",
                 "<article><span>بازدید صفحه</span><strong>" + views.toLocaleString("fa-IR") + "</strong></article>",

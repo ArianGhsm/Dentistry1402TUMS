@@ -27,12 +27,12 @@ function ct_paste_h(string $value): string
     <title><?php echo ct_paste_h($title); ?> | Paste</title>
     <meta name="description" content="<?php echo ct_paste_h($description); ?>">
     <meta name="robots" content="noindex,follow">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260507-101332">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260507-101332">
-    <script src="/assets/site/scripts/theme.js?v=20260507-101332"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260507-101332">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260507-101332">
-    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260507-101332">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260508-101753">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260508-101753">
+    <script src="/assets/site/scripts/theme.js?v=20260508-101753"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260508-101753">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260508-101753">
+    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260508-101753">
 </head>
 <body class="content-tools-page content-tools-page--public content-tools-page--public-paste" data-content-tool="public-paste" data-public-token="<?php echo ct_paste_h($token); ?>">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -42,6 +42,7 @@ function ct_paste_h(string $value): string
                 <span class="ct-brand-mark ct-brand-mark--paste" aria-hidden="true">P</span>
                 <span>Paste ورودی ۱۴۰۲</span>
             </a>
+            <span class="ct-theme-slot" data-theme-toggle-slot></span>
         </header>
         <section id="ct-public-root" class="ct-public-card ct-public-card--paste" aria-live="polite">
             <div class="ct-public-loading">
@@ -51,6 +52,6 @@ function ct_paste_h(string $value): string
             </div>
         </section>
     </main>
-    <script src="/assets/site/scripts/content-tools.js?v=20260507-101332"></script>
+    <script src="/assets/site/scripts/content-tools.js?v=20260508-101753"></script>
 </body>
 </html>

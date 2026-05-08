@@ -8,7 +8,7 @@ const CONTENT_FILE_ID_PREFIX = 'uf-';
 const CONTENT_PASTE_ID_PREFIX = 'ps-';
 const CONTENT_FILE_PUBLIC_PATH = '/files/f/';
 const CONTENT_PASTE_PUBLIC_PATH = '/paste/p/';
-const CONTENT_MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+const CONTENT_MAX_UPLOAD_BYTES = 2 * 1024 * 1024 * 1024;
 const CONTENT_MAX_PASTE_CHARS = 500000;
 
 function content_store_path(): string
@@ -161,7 +161,7 @@ function content_next_id(string $prefix): string
 function content_random_token(int $bytes = 10): string
 {
     try {
-        return dent_base64url_encode(random_bytes($bytes));
+        return strtolower(dent_base64url_encode(random_bytes($bytes)));
     } catch (Throwable $error) {
         return substr(hash('sha256', microtime(true) . '|' . mt_rand()), 0, $bytes * 2);
     }
@@ -469,6 +469,12 @@ function content_store_uploaded_file(array $file, array $owner, array $meta = []
 {
     $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
     if ($error !== UPLOAD_ERR_OK) {
+        if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+            dent_error('حجم فایل از سقف فعلی PHP/هاست بیشتر است. سقف ابزار ۲ گیگابایت است، اما تنظیمات هاست هم باید این مقدار را بپذیرد.', 413);
+        }
+        if ($error === UPLOAD_ERR_PARTIAL) {
+            dent_error('آپلود فایل کامل نشد. اتصال یا محدودیت هاست را بررسی کنید.', 422);
+        }
         dent_error('آپلود فایل انجام نشد.', 422);
     }
     $tmpName = (string) ($file['tmp_name'] ?? '');
@@ -477,7 +483,7 @@ function content_store_uploaded_file(array $file, array $owner, array $meta = []
         dent_error('فایل انتخاب‌شده معتبر نیست.', 422);
     }
     if ($size > CONTENT_MAX_UPLOAD_BYTES) {
-        dent_error('حجم هر فایل باید کمتر از ۱۰۰ مگابایت باشد.', 422);
+        dent_error('حجم هر فایل باید حداکثر ۲ گیگابایت باشد.', 422);
     }
 
     $originalName = dent_clean_text((string) ($file['name'] ?? 'file'), 240);
@@ -639,7 +645,7 @@ function content_file_can_download(array $file): bool
 function content_is_previewable_file(array $file): bool
 {
     $mime = strtolower((string) ($file['mimeType'] ?? ''));
-    if (str_starts_with($mime, 'image/') || str_starts_with($mime, 'audio/') || str_starts_with($mime, 'video/')) {
+    if (in_array($mime, ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'video/mp4', 'video/webm'], true)) {
         return true;
     }
     return in_array($mime, ['application/pdf', 'text/plain', 'text/markdown', 'text/csv', 'application/json'], true);
@@ -666,17 +672,38 @@ function content_storage_summary(array $store): array
         $largest[] = $file;
     }
     usort($largest, static fn(array $left, array $right): int => (int) ($right['size'] ?? 0) <=> (int) ($left['size'] ?? 0));
+    $pasteViews = 0;
+    $pasteRawViews = 0;
+    foreach (($store['pastes'] ?? []) as $paste) {
+        if (!is_array($paste)) {
+            continue;
+        }
+        $pasteViews += max(0, (int) ($paste['viewCount'] ?? 0));
+        $pasteRawViews += max(0, (int) ($paste['rawViewCount'] ?? 0));
+    }
 
     $freeBytes = null;
     $totalDiskBytes = null;
     $root = content_uploads_dir();
-    $free = @disk_free_space($root);
-    $total = @disk_total_space($root);
-    if (is_float($free) || is_int($free)) {
-        $freeBytes = max(0, (int) $free);
+    if (function_exists('disk_free_space')) {
+        try {
+            $free = @disk_free_space($root);
+            if (is_float($free) || is_int($free)) {
+                $freeBytes = max(0, (int) $free);
+            }
+        } catch (Throwable $error) {
+            $freeBytes = null;
+        }
     }
-    if (is_float($total) || is_int($total)) {
-        $totalDiskBytes = max(0, (int) $total);
+    if (function_exists('disk_total_space')) {
+        try {
+            $total = @disk_total_space($root);
+            if (is_float($total) || is_int($total)) {
+                $totalDiskBytes = max(0, (int) $total);
+            }
+        } catch (Throwable $error) {
+            $totalDiskBytes = null;
+        }
     }
 
     return [
@@ -685,6 +712,8 @@ function content_storage_summary(array $store): array
         'totalBytes' => $totalBytes,
         'downloadCount' => $downloads,
         'pasteCount' => count($store['pastes'] ?? []),
+        'pasteViewCount' => $pasteViews,
+        'pasteRawViewCount' => $pasteRawViews,
         'storageRoot' => 'content_tools/uploads',
         'remainingBytes' => $freeBytes,
         'diskTotalBytes' => $totalDiskBytes,

@@ -27,12 +27,12 @@ function ct_file_h(string $value): string
     <title><?php echo ct_file_h($title); ?> | لینک فایل</title>
     <meta name="description" content="<?php echo ct_file_h($description); ?>">
     <meta name="robots" content="noindex,follow">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260507-101332">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260507-101332">
-    <script src="/assets/site/scripts/theme.js?v=20260507-101332"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260507-101332">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260507-101332">
-    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260507-101332">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260508-101753">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260508-101753">
+    <script src="/assets/site/scripts/theme.js?v=20260508-101753"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260508-101753">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260508-101753">
+    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260508-101753">
 </head>
 <body class="content-tools-page content-tools-page--public" data-content-tool="public-file" data-public-token="<?php echo ct_file_h($token); ?>">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -42,6 +42,7 @@ function ct_file_h(string $value): string
                 <span class="ct-brand-mark" aria-hidden="true">F</span>
                 <span>فایل‌های ورودی ۱۴۰۲</span>
             </a>
+            <span class="ct-theme-slot" data-theme-toggle-slot></span>
         </header>
         <section id="ct-public-root" class="ct-public-card" aria-live="polite">
             <div class="ct-public-loading">
@@ -51,6 +52,6 @@ function ct_file_h(string $value): string
             </div>
         </section>
     </main>
-    <script src="/assets/site/scripts/content-tools.js?v=20260507-101332"></script>
+    <script src="/assets/site/scripts/content-tools.js?v=20260508-101753"></script>
 </body>
 </html>
