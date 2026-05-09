@@ -876,5 +876,485 @@
         }
     }
 
+    var drxAuth = { checked: false, loading: false, loggedIn: false, user: null };
+    var drxApiUrl = "/dental-residency/api/auth.php";
+
+    routes = [
+        { view: "home", href: "/dental-residency/", label: "منوی اصلی" },
+        { view: "qbank", href: "/dental-residency/qbank/", label: "بانک تست" },
+        { view: "practice", href: "/dental-residency/practice/", label: "آزمون‌ساز" },
+        { view: "dashboard", href: "/dental-residency/dashboard/", label: "داشبورد" },
+        { view: "examHistory", href: "/dental-residency/exam-history/", label: "سوابق" },
+        { view: "schedule", href: "/dental-residency/schedule/", label: "برنامه" },
+        { view: "search", href: "/dental-residency/search/", label: "جستجو" }
+    ];
+
+    function drxMetrics() {
+        var completed = sessions();
+        var correct = completed.reduce(function (sum, session) {
+            return sum + computeResult(session).correct;
+        }, 0);
+        return {
+            points: correct * 12,
+            coins: Math.floor(correct / 12) + (completed.length ? 1 : 0),
+            dailyGoal: Math.min(100, Math.round((correct * 12 / 500) * 100)),
+            sessions: completed.length,
+            bookmarks: bookmarks().length,
+            wrong: Object.keys(wrongNotebook()).length
+        };
+    }
+
+    function drxServiceItems() {
+        return [
+            { title: "بانک تست کشوری", href: "/dental-residency/qbank/?source=national", icon: "KT", text: "مرور درس‌محور و سال‌محور سوالات رزیدنتی دندانپزشکی." },
+            { title: "بانک تست تالیفی", href: "/dental-residency/qbank/?source=custom", icon: "TT", text: "سوالات تمرینی مجاز برای تثبیت مباحث پرتکرار." },
+            { title: "میکرودرسنامه", href: "/dental-residency/notes/", icon: "MD", text: "یادداشت‌ها و خلاصه‌های کوتاه کنار بانک سوال." },
+            { title: "مدومایند", href: "/dental-residency/highlights/", icon: "MM", text: "هایلایت‌ها و نقشه مرور از نکات ذخیره‌شده." },
+            { title: "آزمون‌ساز هوشمند", href: "/dental-residency/practice/", icon: "EX", text: "ساخت آزمون درس‌محور، مروری یا زمان‌دار." },
+            { title: "آزمون‌های تالیفی", href: "/dental-residency/exam-history/", icon: "AZ", text: "سوابق آزمون‌ها و نقطه شروع آزمون‌های جدید." },
+            { title: "دستیار مرور", href: "/dental-residency/wrong-answers/", icon: "RV", text: "مرور فاصله‌دار غلط‌ها، سوالات سخت و نشان‌شده‌ها." },
+            { title: "گزارشات", href: "/dental-residency/dashboard/", icon: "RP", text: "تحلیل دقت، پیشرفت درس‌ها، امتیاز و هدف روزانه." },
+            { title: "برنامه روزانه", href: "/dental-residency/schedule/", icon: "PL", text: "چک‌لیست مطالعه و تست برای آمادگی رزیدنتی." },
+            { title: "جستجو", href: "/dental-residency/search/", icon: "SR", text: "جستجو در سوال، درس، تگ و توضیح نمونه." }
+        ];
+    }
+
+    function drxAccountPill() {
+        var metrics = drxMetrics();
+        if (drxAuth.loggedIn && drxAuth.user) {
+            return [
+                '<a class="drx-account-pill is-logged-in" href="/dental-residency/account/">',
+                '  <span class="drx-account-pill__title">' + escapeHtml(drxAuth.user.phoneMasked || "کاربر رزیدنتی") + "</span>",
+                '  <span class="drx-account-pill__meta">' + escapeHtml(drxAuth.user.roleLabel || "ورود مستقل") + " · " + toFa(metrics.coins) + " کوین</span>",
+                "</a>"
+            ].join("");
+        }
+        return '<a class="drx-account-pill" href="/dental-residency/account/"><span class="drx-account-pill__title">ورود مستقل رزیدنتی</span><span class="drx-account-pill__meta">جدا از حساب Dentistry1402TUMS</span></a>';
+    }
+
+    function drxApi(action, payload) {
+        var body = new FormData();
+        body.append("action", action);
+        Object.keys(payload || {}).forEach(function (key) {
+            body.append(key, payload[key]);
+        });
+        return fetch(drxApiUrl, {
+            method: "POST",
+            body: body,
+            credentials: "same-origin"
+        }).then(function (response) {
+            return response.json().catch(function () {
+                return { success: false, error: "پاسخ سرور قابل خواندن نیست." };
+            }).then(function (json) {
+                if (!response.ok || !json.success) {
+                    throw new Error(json.error || "درخواست انجام نشد.");
+                }
+                return json;
+            });
+        });
+    }
+
+    function drxLoadAuth() {
+        drxAuth.loading = true;
+        return fetch(drxApiUrl + "?action=me", { credentials: "same-origin" })
+            .then(function (response) { return response.json(); })
+            .then(function (json) {
+                drxAuth.checked = true;
+                drxAuth.loggedIn = !!(json && json.loggedIn);
+                drxAuth.user = json && json.user ? json.user : null;
+            }).catch(function () {
+                drxAuth.checked = true;
+                drxAuth.loggedIn = false;
+                drxAuth.user = null;
+            }).finally(function () {
+                drxAuth.loading = false;
+            });
+    }
+
+    layout = function (activeView, content) {
+        var metrics = drxMetrics();
+        app.innerHTML = [
+            '<header class="drx-topbar">',
+            '  <a class="drx-brand" href="/dental-residency/">',
+            '    <span class="drx-brand__mark" aria-hidden="true">DR</span>',
+            '    <span class="drx-brand__copy">',
+            '      <span class="drx-brand__title">Dental Residency</span>',
+            '      <span class="drx-brand__subtitle">بخش مستقل رزیدنتی دندانپزشکی</span>',
+            '    </span>',
+            "  </a>",
+            '  <nav class="drx-nav" aria-label="ناوبری رزیدنتی دندانپزشکی">' + navMarkup(activeView) + "</nav>",
+            '  <div class="drx-top-actions">',
+            '    <button class="drx-icon-btn" type="button" data-action="toggle-theme" title="تغییر تم" aria-label="تغییر تم">☾</button>',
+            '    <span class="drx-score-pill"><strong>' + toFa(metrics.points) + '</strong><small>امتیاز</small></span>',
+            '    <span class="drx-score-pill"><strong>' + toFa(metrics.coins) + '</strong><small>کوین</small></span>',
+            drxAccountPill(),
+            "  </div>",
+            "</header>",
+            '<main class="drx-main">' + content + "</main>",
+            '<p class="drx-footer-note">این بخش از نظر login، session، داده و تنظیمات از Dentistry1402TUMS جداست. محتوای سوالات فعلی نمونه آموزشی و غیررسمی است.</p>'
+        ].join("");
+    };
+
+    renderHome = function () {
+        var stats = subjectStats();
+        var metrics = drxMetrics();
+        var completed = sessions();
+        var latest = completed[0];
+        var latestText = latest ? "آخرین جلسه: " + toFa(computeResult(latest).correct) + " پاسخ درست از " + toFa(latest.questionIds.length) : "هنوز جلسه‌ای ثبت نشده است.";
+        layout("home", [
+            '<section class="drx-hero drx-hero--menu">',
+            '  <div class="drx-hero__copy">',
+            '    <span class="drx-kicker">منوی اصلی رزیدنتی دندانپزشکی</span>',
+            "    <h1>محیط تمرین رزیدنتی دندانپزشکی، جدا از سایت آموزشی ۱۴۰۲</h1>",
+            "    <p>ساختار این بخش از الگوی مدوفست الهام گرفته شده: بانک تست، آزمون‌ساز، مرور، گزارش، برنامه روزانه، یادداشت و جستجو؛ اما هویت و state آن کاملاً ایزوله است.</p>",
+            '    <div class="drx-actions">',
+            '      <a class="drx-btn drx-btn--primary" href="/dental-residency/qbank/">ورود به بانک تست</a>',
+            '      <a class="drx-btn drx-btn--secondary" href="/dental-residency/practice/">ساخت آزمون</a>',
+            '      <a class="drx-btn drx-btn--ghost" href="/dental-residency/account/">ورود پیامکی مستقل</a>',
+            "    </div>",
+            "  </div>",
+            '  <aside class="drx-panel drx-daily-panel">',
+            "    <h2>هدف امروز</h2>",
+            '    <p class="drx-muted">با پاسخ درست امتیاز بگیر، غلط‌ها را وارد مرور کن و تا هدف روزانه پیش برو.</p>',
+            '    <div class="drx-progress drx-progress--thick"><span style="--drx-progress-value:' + metrics.dailyGoal + '%"></span></div>',
+            '    <div class="drx-mini-stats"><span>جلسه ' + toFa(metrics.sessions) + '</span><span>نشان‌شده ' + toFa(metrics.bookmarks) + '</span><span>غلط ' + toFa(metrics.wrong) + "</span></div>",
+            "  </aside>",
+            "</section>",
+            '<section class="drx-service-grid" aria-label="قابلیت‌های رزیدنتی">' + drxServiceItems().map(function (item) {
+                return [
+                    '<a class="drx-service-card" href="' + item.href + '">',
+                    '  <span class="drx-service-card__icon" aria-hidden="true">' + item.icon + "</span>",
+                    '  <strong>' + item.title + "</strong>",
+                    '  <small>' + item.text + "</small>",
+                    "</a>"
+                ].join("");
+            }).join("") + "</section>",
+            '<section class="drx-grid drx-grid--stats" aria-label="آمار سریع">',
+            statCard("سوالات نمونه", toFa(DATA.questions.length), "دیتاست غیررسمی برای تست محصول"),
+            statCard("درس‌ها", toFa(DATA.subjects.length), "طبقه‌بندی رزیدنتی دندانپزشکی"),
+            statCard("جلسه‌ها", toFa(completed.length), "ذخیره در فضای ایزوله مرورگر"),
+            statCard("دقت کلی", completed.length ? formatPercent(computeResult(latest).accuracy) : "۰٪", latestText),
+            "</section>",
+            '<section class="drx-section"><div class="drx-section-head"><h2 class="drx-section-title">پیشرفت درس‌ها</h2><a class="drx-btn drx-btn--ghost" href="/dental-residency/dashboard/">تحلیل کامل</a></div><div class="drx-grid drx-grid--subjects">' + stats.map(function (stat) {
+                return subjectCard(stat, "/dental-residency/qbank/?subject=" + stat.subject.id);
+            }).join("") + "</div></section>"
+        ].join(""));
+        bindCommonActions();
+    };
+
+    renderDashboard = function () {
+        var completed = sessions();
+        var latest = completed[0];
+        var aggregate = latest ? computeResult(latest) : { accuracy: 0, correct: 0, wrong: 0, unanswered: 0, spentSeconds: 0 };
+        var stats = subjectStats();
+        var weak = stats.filter(function (stat) { return stat.seen === 0 || stat.accuracy < 60; }).slice(0, 4);
+        var metrics = drxMetrics();
+        layout("dashboard", [
+            '<section class="drx-panel">',
+            '  <span class="drx-kicker">داشبورد رزیدنتی</span>',
+            '  <h1 class="drx-section-title">خلاصه عملکرد، امتیاز و مسیر مرور</h1>',
+            '  <div class="drx-grid drx-grid--stats">',
+            statCard("امتیاز امروز", toFa(metrics.points), "هدف روزانه ۵۰۰ امتیاز"),
+            statCard("کوین", toFa(metrics.coins), "پاداش تمرین‌های کامل"),
+            statCard("دقت آخرین جلسه", formatPercent(aggregate.accuracy), "شاخص فوری آمادگی"),
+            statCard("دفترچه غلط‌ها", toFa(metrics.wrong), "برای مرور فاصله‌دار"),
+            "  </div>",
+            "</section>",
+            '<section class="drx-section drx-grid drx-grid--cards">',
+            '  <article class="drx-panel"><h2>درس‌های اولویت‌دار</h2>' + (weak.length ? weak.map(function (stat) {
+                return '<p><strong>' + stat.subject.title + '</strong><br><span class="drx-muted">دقت فعلی: ' + formatPercent(stat.accuracy) + " · پیشروی: " + formatPercent(stat.progress) + "</span></p>";
+            }).join("") : '<p class="drx-muted">هنوز ضعف مشخصی ثبت نشده است.</p>') + "</article>",
+            '  <article class="drx-panel"><h2>جلسه‌های اخیر</h2>' + (completed.length ? completed.slice(0, 5).map(function (session) {
+                var result = computeResult(session);
+                return '<p><strong>' + (session.mode === "exam" ? "آزمون زمان‌دار" : "تمرین") + '</strong><br><span class="drx-muted">' + toFa(result.correct) + " درست از " + toFa(result.total) + " · " + formatTime(result.spentSeconds) + "</span></p>";
+            }).join("") : '<p class="drx-muted">هنوز جلسه‌ای ثبت نشده است.</p>') + '<a class="drx-btn drx-btn--ghost" href="/dental-residency/exam-history/">سوابق آزمون</a></article>',
+            '  <article class="drx-panel"><h2>هدف روزانه</h2><p class="drx-muted">پیشروی تا هدف امتیازی امروز.</p><div class="drx-progress drx-progress--thick"><span style="--drx-progress-value:' + metrics.dailyGoal + '%"></span></div><div class="drx-actions"><a class="drx-btn drx-btn--primary" href="/dental-residency/practice/">ادامه تمرین</a></div></article>',
+            "</section>",
+            '<section class="drx-section"><div class="drx-section-head"><h2 class="drx-section-title">پیشرفت درس به درس</h2><a class="drx-btn drx-btn--ghost" href="/dental-residency/qbank/">بانک تست</a></div><div class="drx-grid drx-grid--subjects">' + stats.map(function (stat) {
+                return subjectCard(stat, "/dental-residency/qbank/?subject=" + stat.subject.id);
+            }).join("") + "</div></section>"
+        ].join(""));
+        bindCommonActions();
+    };
+
+    function drxLocalNotes() {
+        return readJson("notes", []);
+    }
+
+    function drxWriteNotes(notes) {
+        writeJson("notes", notes.slice(0, 100));
+    }
+
+    function renderAccount() {
+        layout("account", [
+            '<section class="drx-panel">',
+            '  <span class="drx-kicker">ورود مستقل</span>',
+            '  <h1 class="drx-section-title">حساب رزیدنتی دندانپزشکی</h1>',
+            '  <p class="drx-muted">این ورود، session و user store جدا از حساب اصلی Dentistry1402TUMS دارد.</p>',
+            drxAuth.loggedIn && drxAuth.user ? [
+                '<div class="drx-account-summary">',
+                '<strong>' + escapeHtml(drxAuth.user.phoneMasked || "") + '</strong>',
+                '<span class="drx-muted">' + escapeHtml(drxAuth.user.roleLabel || "") + '</span>',
+                '<button class="drx-btn drx-btn--danger" type="button" data-action="drx-logout">خروج از رزیدنتی</button>',
+                "</div>"
+            ].join("") : [
+                '<form id="drx-login-form" class="drx-form-grid">',
+                '<label class="drx-form-group"><span>شماره موبایل</span><input class="drx-field" name="phoneNumber" inputmode="tel" autocomplete="tel" data-digit-locale="latin" placeholder="09000000000"></label>',
+                '<div class="drx-actions"><button class="drx-btn drx-btn--primary" type="submit">ارسال کد</button></div>',
+                '</form>',
+                '<form id="drx-verify-form" class="drx-form-grid" hidden>',
+                '<label class="drx-form-group"><span>کد تایید</span><input class="drx-field drx-otp-input" name="otpCode" inputmode="numeric" autocomplete="one-time-code" data-digit-locale="latin" maxlength="6"></label>',
+                '<input type="hidden" name="phoneNumber">',
+                '<div class="drx-actions"><button class="drx-btn drx-btn--primary" type="submit">تایید و ورود</button><button class="drx-btn drx-btn--ghost" type="button" data-action="drx-change-phone">تغییر شماره</button></div>',
+                '</form>',
+                '<p id="drx-auth-feedback" class="drx-feedback" role="status"></p>'
+            ].join(""),
+            "</section>"
+        ].join(""));
+        bindCommonActions();
+        bindAccountForms();
+    }
+
+    function bindAccountForms() {
+        var loginForm = document.getElementById("drx-login-form");
+        var verifyForm = document.getElementById("drx-verify-form");
+        var feedback = document.getElementById("drx-auth-feedback");
+        if (!loginForm || !verifyForm || !feedback) {
+            return;
+        }
+        loginForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            var phone = loginForm.elements.phoneNumber.value.trim();
+            feedback.textContent = "در حال ارسال کد...";
+            drxApi("requestOtp", { phoneNumber: phone }).then(function (json) {
+                feedback.textContent = json.message || "کد ارسال شد.";
+                verifyForm.elements.phoneNumber.value = phone;
+                loginForm.hidden = true;
+                verifyForm.hidden = false;
+                verifyForm.elements.otpCode.focus();
+            }).catch(function (error) {
+                feedback.textContent = error.message || "ارسال کد انجام نشد.";
+            });
+        });
+        verifyForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            feedback.textContent = "در حال تایید کد...";
+            drxApi("verifyOtp", {
+                phoneNumber: verifyForm.elements.phoneNumber.value,
+                otpCode: verifyForm.elements.otpCode.value
+            }).then(function (json) {
+                drxAuth.loggedIn = true;
+                drxAuth.user = json.user || null;
+                showToast(json.message || "ورود انجام شد.");
+                renderAccount();
+            }).catch(function (error) {
+                feedback.textContent = error.message || "تایید کد انجام نشد.";
+            });
+        });
+    }
+
+    function renderExamHistory() {
+        var completed = sessions();
+        layout("examHistory", [
+            '<section class="drx-panel"><span class="drx-kicker">سوابق آزمون</span><h1 class="drx-section-title">آزمون‌های فعال و پایان‌یافته</h1><div class="drx-actions"><a class="drx-btn drx-btn--primary" href="/dental-residency/practice/">ساخت آزمون جدید</a></div></section>',
+            '<section class="drx-section drx-grid drx-grid--cards">' + (completed.length ? completed.map(function (session) {
+                var result = computeResult(session);
+                return '<article class="drx-card"><div class="drx-card__head"><h3>' + (session.mode === "exam" ? "آزمون زمان‌دار" : "تمرین") + '</h3><span class="drx-chip">' + formatPercent(result.accuracy) + '</span></div><p class="drx-muted">' + toFa(result.correct) + " درست · " + toFa(result.wrong) + " غلط · " + formatTime(result.spentSeconds) + '</p><a class="drx-btn drx-btn--ghost" href="/dental-residency/review/">مشاهده آخرین کارنامه</a></article>';
+            }).join("") : '<div class="drx-empty"><div><h2>سوابق آزمون خالی است.</h2><p class="drx-muted">یک آزمون‌ساز بساز تا کارنامه اینجا دیده شود.</p></div></div>') + "</section>"
+        ].join(""));
+        bindCommonActions();
+    }
+
+    function renderSchedule() {
+        var rows = [
+            ["صبح", "مرور سریع پاتولوژی، رادیولوژی و درمان ریشه", "۳۰ تست"],
+            ["ظهر", "تحلیل غلط‌ها و ثبت نکات در یادداشت‌ها", "۲۰ دقیقه"],
+            ["عصر", "آزمون زمان‌دار ترکیبی", "۴۰ تست"],
+            ["شب", "مرور فاصله‌دار سوالات نشان‌شده", "۱۵ دقیقه"]
+        ];
+        layout("schedule", [
+            '<section class="drx-panel"><span class="drx-kicker">برنامه روزانه</span><h1 class="drx-section-title">چک‌لیست مطالعه رزیدنتی دندانپزشکی</h1><p class="drx-muted">برنامه نمونه محلی است و بعداً می‌تواند به برنامه‌های قابل مدیریت وصل شود.</p></section>',
+            '<section class="drx-section drx-grid drx-grid--cards">' + rows.map(function (row, index) {
+                return '<article class="drx-card"><span class="drx-chip drx-chip--cyan">' + row[0] + '</span><h3>' + row[1] + '</h3><p class="drx-muted">' + row[2] + '</p><button class="drx-btn drx-btn--ghost" type="button" data-action="schedule-done" data-index="' + index + '">ثبت انجام شد</button></article>';
+            }).join("") + "</section>"
+        ].join(""));
+        bindCommonActions();
+    }
+
+    function renderSearch() {
+        layout("search", [
+            '<section class="drx-panel"><span class="drx-kicker">جستجوی محتوا</span><h1 class="drx-section-title">جستجو در سوال، درس، تگ و توضیح</h1><div class="drx-toolbar"><input class="drx-field" id="drx-global-search" type="search" placeholder="کلمه یا عبارت مورد نظر"><a class="drx-btn drx-btn--ghost" href="/dental-residency/qbank/">بانک تست</a></div></section>',
+            '<section class="drx-section"><div id="drx-global-results" class="drx-grid drx-grid--cards"></div></section>'
+        ].join(""));
+        var input = document.getElementById("drx-global-search");
+        function paint() {
+            var q = input.value.trim().toLowerCase();
+            var list = DATA.questions.filter(function (question) {
+                var subject = subjectById(question.subject);
+                return !q || [question.stem, question.topic, question.explanation, subject.title, question.tags.join(" ")].join(" ").toLowerCase().indexOf(q) !== -1;
+            });
+            document.getElementById("drx-global-results").innerHTML = list.length ? list.map(function (question) {
+                return questionCard(question, true);
+            }).join("") : '<div class="drx-empty"><div><h2>نتیجه‌ای پیدا نشد.</h2><p class="drx-muted">عبارت کوتاه‌تر یا درس دیگری را امتحان کن.</p></div></div>';
+        }
+        input.addEventListener("input", paint);
+        paint();
+        bindCommonActions();
+    }
+
+    function renderNotes() {
+        var notes = drxLocalNotes();
+        layout("notes", [
+            '<section class="drx-panel"><span class="drx-kicker">یادداشت‌ها</span><h1 class="drx-section-title">یادداشت‌های شخصی رزیدنتی</h1><form id="drx-note-form" class="drx-toolbar"><input class="drx-field" name="text" placeholder="نکته کوتاه مطالعه"><button class="drx-btn drx-btn--primary" type="submit">افزودن</button></form></section>',
+            '<section class="drx-section drx-grid drx-grid--cards">' + (notes.length ? notes.map(function (note) {
+                return '<article class="drx-card"><p>' + escapeHtml(note.text) + '</p><span class="drx-muted">' + new Date(note.createdAt).toLocaleDateString("fa-IR") + '</span></article>';
+            }).join("") : '<div class="drx-empty"><div><h2>هنوز یادداشتی ثبت نشده است.</h2><p class="drx-muted">نکته‌های مهم را اینجا جدا از سایت اصلی نگه دار.</p></div></div>') + "</section>"
+        ].join(""));
+        document.getElementById("drx-note-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            var value = event.currentTarget.elements.text.value.trim();
+            if (!value) {
+                return;
+            }
+            notes.unshift({ text: value, createdAt: new Date().toISOString() });
+            drxWriteNotes(notes);
+            showToast("یادداشت ذخیره شد.");
+            renderNotes();
+        });
+        bindCommonActions();
+    }
+
+    function renderHighlights() {
+        var marked = bookmarks().map(questionById).filter(Boolean);
+        layout("highlights", [
+            '<section class="drx-panel"><span class="drx-kicker">هایلایت‌ها</span><h1 class="drx-section-title">نکات برجسته و نقشه مرور</h1><p class="drx-muted">در این نسخه، هایلایت‌ها از سوالات نشان‌شده و توضیح‌های نمونه ساخته می‌شوند.</p></section>',
+            '<section class="drx-section drx-grid drx-grid--cards">' + (marked.length ? marked.map(function (question) {
+                return '<article class="drx-card"><span class="drx-chip">' + subjectById(question.subject).shortTitle + '</span><h3>' + question.topic + '</h3><p>' + escapeHtml(question.explanation) + '</p></article>';
+            }).join("") : '<div class="drx-empty"><div><h2>هایلایتی وجود ندارد.</h2><p class="drx-muted">از بانک تست، سوالات مهم را نشان کن.</p></div></div>') + "</section>"
+        ].join(""));
+        bindCommonActions();
+    }
+
+    function renderSettings() {
+        layout("settings", [
+            '<section class="drx-panel"><span class="drx-kicker">تنظیمات شخصی</span><h1 class="drx-section-title">تنظیمات و پاکسازی state رزیدنتی</h1><p class="drx-muted">این عملیات فقط روی localStorage بخش رزیدنتی اثر دارد و به داده‌های سایت اصلی دست نمی‌زند.</p><div class="drx-actions"><button class="drx-btn drx-btn--danger" type="button" data-action="reset-drx-local">پاکسازی داده محلی رزیدنتی</button></div></section>'
+        ].join(""));
+        bindCommonActions();
+    }
+
+    bindCommonActions = function () {
+        if (app.dataset.drxCommonBound === "1") {
+            return;
+        }
+        app.dataset.drxCommonBound = "1";
+        app.addEventListener("click", function (event) {
+            var target = event.target.closest("[data-action]");
+            if (!target) {
+                return;
+            }
+            var action = target.dataset.action;
+            if (action === "toggle-theme") {
+                document.body.classList.toggle("is-drx-dark");
+                writeJson("theme", document.body.classList.contains("is-drx-dark") ? "dark" : "light");
+            }
+            if (action === "drx-change-phone") {
+                renderAccount();
+            }
+            if (action === "drx-logout") {
+                drxApi("logout", {}).then(function (json) {
+                    drxAuth.loggedIn = false;
+                    drxAuth.user = null;
+                    showToast(json.message || "خارج شدی.");
+                    renderAccount();
+                }).catch(function (error) { showToast(error.message); });
+            }
+            if (action === "reset-drx-local" && window.confirm("همه داده‌های محلی رزیدنتی پاک شود؟")) {
+                ["bookmarks", "wrongAnswers", "sessions", "activeSession", "latestCompletedSession", "notes"].forEach(function (key) {
+                    window.localStorage.removeItem(storageKey(key));
+                });
+                showToast("داده محلی رزیدنتی پاک شد.");
+                renderSettings();
+            }
+            if (action === "schedule-done") {
+                showToast("در برنامه امروز ثبت شد.");
+            }
+            if (action === "toggle-bookmark") {
+                toggleBookmark(target.dataset.id);
+                if (view === "qbank") {
+                    renderQuestionList();
+                } else if (view === "bookmarks") {
+                    renderBookmarks();
+                }
+            }
+            if (action === "start-single") {
+                startSession({ questionIds: [target.dataset.id], mode: "learning" });
+            }
+            if (action === "create-mock") {
+                startSession({
+                    subjects: DATA.subjects.map(function (subject) { return subject.id; }),
+                    count: Math.min(8, DATA.questions.length),
+                    mode: "exam",
+                    order: "balanced"
+                });
+            }
+            if (action === "add-wrong") {
+                addWrongQuestion(target.dataset.id);
+            }
+            if (action === "retry-wrong") {
+                var ids = Object.keys(wrongNotebook()).filter(function (id) { return questionById(id); });
+                startSession({ questionIds: ids, mode: "review" });
+            }
+        });
+    };
+
+    function renderCurrentView() {
+        if (view === "qbank") {
+            renderQbank();
+        } else if (view === "practice") {
+            renderPractice();
+        } else if (view === "session") {
+            renderSession();
+        } else if (view === "review") {
+            renderReview();
+        } else if (view === "dashboard") {
+            renderDashboard();
+        } else if (view === "bookmarks") {
+            renderBookmarks();
+        } else if (view === "wrongAnswers") {
+            renderWrongAnswers();
+        } else if (view === "account") {
+            renderAccount();
+        } else if (view === "examHistory") {
+            renderExamHistory();
+        } else if (view === "schedule") {
+            renderSchedule();
+        } else if (view === "search") {
+            renderSearch();
+        } else if (view === "notes") {
+            renderNotes();
+        } else if (view === "highlights") {
+            renderHighlights();
+        } else if (view === "settings") {
+            renderSettings();
+        } else {
+            renderHome();
+        }
+    }
+
+    init = function () {
+        if (!app) {
+            return;
+        }
+        if (readJson("theme", "light") === "dark") {
+            document.body.classList.add("is-drx-dark");
+        }
+        renderCurrentView();
+        drxLoadAuth().then(function () {
+            if (view !== "session") {
+                renderCurrentView();
+            }
+        });
+    };
+
     init();
 })();

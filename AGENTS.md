@@ -9,6 +9,8 @@
 - مسیرهای اصلی سایت باید کاربرد آموزشی/عملیاتی خود را حفظ کنند: `/app/`, `/grades/`, `/exams/`, `/notes/`, `/resources/`, `/account/`, `/forms/`, `/buy/`.
 - UX تلگرام‌مانند فقط برای `/chat/` و بخش‌های تنظیمات/پروفایل مرتبط با چت مجاز است.
 - هیچ بخش غیرچتی نباید به الگوی پیام‌رسان تبدیل شود.
+- مسیر `/dental-residency/` یک زیرمحصول جدا و ایزوله برای رزیدنتی دندانپزشکی است؛ این بخش از نظر login، session، user store، state، optionها و instructionها نباید با Dentistry1402TUMS قاطی شود.
+- قبل از هر تغییر در `/dental-residency/` باید `public_html/dental-residency/AGENTS.md` خوانده شود. دستورهای داخلی آن بخش بر فایل‌های همان مسیر مقدم است، اما اصول عمومی حفظ UTF-8، کیفیت mobile/desktop، عدم false-success و deploy امن همچنان لازم‌الاجراست.
 
 ## 2) معماری کلان (کل پروژه)
 - Frontend: چندصفحه‌ای (MPA) با HTML/CSS/JS در `public_html/`.
@@ -29,6 +31,7 @@
 - ایجاد auth یا identity موازی برای چت ممنوع است.
 - `chat_api.php` نباید به منبع دوم auth تبدیل شود.
 - `forms_api.php` هم باید از همین auth/session مشترک استفاده کند و نباید identity موازی برای کاربران سایت بسازد؛ فقط برای شرکت‌کننده مهمان، guest identity محدود به همان فرم مجاز است.
+- استثنای صریح: `/dental-residency/` عمداً identity مستقل دارد و باید از `public_html/dental-residency/api/auth.php`، session `drx_residency_session` و storage جدا در `storage/dental_residency/` استفاده کند. این استثنا فقط برای همان مسیر است و نباید به چت، فرم‌ها، حساب اصلی یا بخش‌های دیگر سرایت کند.
 
 ## 4) قرارداد داده پایدار و همگام‌سازی (غیرقابل مذاکره)
 - پیام‌ها، نمرات، حافظه کاربر و هر state پایدار باید بین local + live + deploy target همگام بمانند.
@@ -42,6 +45,7 @@
 - تصاویر آپلودی کالاهای بخش خرید باید در storage مشترک `payments/uploads/` بمانند و نباید با فایل‌های deploy-replaced یا مسیرهای temp جایگزین شوند.
 - داده‌های مرکز آپلود و pastebin باید در storage مشترک `content_tools/store.json` بماند؛ فایل‌های آپلودشده فقط در `content_tools/uploads/` نگه‌داری شوند و deploy نباید فایل‌ها، pasteها، شمارنده دانلود/بازدید یا وضعیت لینک‌ها را reset کند.
 - داده‌های منابع/جزوات قابل مدیریت باید در storage مشترک `notes/` بماند؛ برای ۱۴۰۲ در `notes/1402_terms.json` و برای ۱۴۰۳ در `notes/1403_archive.json`. Deploy نباید کارت‌های اضافه/ویرایش/حذف‌شده مالک را با seed یا HTML قدیمی برگرداند.
+- داده‌های runtime بخش Dental Residency باید در `storage/dental_residency/` بماند و deploy نباید login، OTP state، user store یا پیشرفت کاربران آن بخش را reset کند.
 - seed/backfill فقط هنگام نبود کامل فایل storage مجاز است. بعد از ساخته‌شدن فایل storage، migration یا backfill نباید حذف‌ها و ویرایش‌های مالک را با داده پیش‌فرض جایگزین کند مگر migration صریح و تاییدشده داشته باشد.
 - گزارش موفقیت کاذب ممنوع است: اگر داده فقط local یا cache است، موفقیت اعلام نشود.
 
