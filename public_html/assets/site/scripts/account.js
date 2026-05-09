@@ -804,9 +804,11 @@
         }
         if (loginForm) {
             loginForm.hidden = loginMode !== "password";
+            setFormControlsEnabled(loginForm, loginMode === "password");
         }
         if (loginOtpForm) {
             loginOtpForm.hidden = loginMode !== "otp";
+            setFormControlsEnabled(loginOtpForm, loginMode === "otp");
         }
 
         if (loginMode === "otp") {
@@ -825,6 +827,15 @@
             return;
         }
         loginOtpVerifyGroup.hidden = !visible;
+    }
+
+    function setFormControlsEnabled(form, enabled) {
+        if (!form) {
+            return;
+        }
+        Array.prototype.slice.call(form.elements || []).forEach(function (control) {
+            control.disabled = !enabled;
+        });
     }
 
     function iosLikeDevice() {
@@ -3530,6 +3541,13 @@
             return;
         }
         loginPhoneInput.value = phoneNumber;
+        setLoginOtpVerifyVisible(true);
+        if (loginOtpCodeInput) {
+            loginOtpCodeInput.value = "";
+            loginOtpCodeInput.dispatchEvent(new Event("input", { bubbles: true }));
+            loginOtpCodeInput.focus({ preventScroll: true });
+            startOtpCredentialRead(loginOtpCodeInput);
+        }
         if (loginOtpRequestButton) loginOtpRequestButton.disabled = true;
         setFeedback(loginOtpFeedback, "در حال ارسال کد تایید...", "", true);
         try {
@@ -3539,6 +3557,8 @@
                 if (response && response.cooldownSeconds) {
                     startLoginOtpCooldown(response.cooldownSeconds);
                 }
+                stopOtpCredentialRead();
+                setLoginOtpVerifyVisible(false);
                 setFeedback(loginOtpFeedback, (response && response.error) || "ارسال کد تایید انجام نشد.", "error");
                 return;
             }
@@ -3546,10 +3566,8 @@
             startLoginOtpCooldown(response.cooldownSeconds || 0);
             var masked = ltrMaskedPhone(response && response.phoneMasked, "");
             setFeedback(loginOtpFeedback, (response.message || "کد تایید ارسال شد.") + (masked ? (" (" + masked + ")") : ""), "success");
-            setLoginOtpVerifyVisible(true);
             if (loginOtpCodeInput) {
                 loginOtpCodeInput.focus({ preventScroll: true });
-                startOtpCredentialRead(loginOtpCodeInput);
             }
         } finally {
             updateLoginOtpCooldownUi();
@@ -3589,6 +3607,12 @@
             return;
         }
         phoneEnrollNumber.value = phoneNumber;
+        if (phoneEnrollCode) {
+            phoneEnrollCode.value = "";
+            phoneEnrollCode.dispatchEvent(new Event("input", { bubbles: true }));
+            phoneEnrollCode.focus({ preventScroll: true });
+            startOtpCredentialRead(phoneEnrollCode);
+        }
 
         phoneEnrollFeedbackMessage("در حال ارسال کد تایید...", "", true);
         if (phoneEnrollRequestButton) phoneEnrollRequestButton.disabled = true;
@@ -3602,6 +3626,7 @@
                 if (response && response.cooldownSeconds) {
                     startPhoneEnrollCooldown(response.cooldownSeconds);
                 }
+                stopOtpCredentialRead();
                 phoneEnrollFeedbackMessage((response && response.error) || "ارسال کد تایید انجام نشد.", "error");
                 return;
             }
@@ -3610,7 +3635,6 @@
             phoneEnrollFeedbackMessage((response.message || "کد تایید ارسال شد.") + (masked ? (" (" + masked + ")") : ""), "success");
             if (phoneEnrollCode) {
                 phoneEnrollCode.focus({ preventScroll: true });
-                startOtpCredentialRead(phoneEnrollCode);
             }
         } finally {
             updatePhoneEnrollCooldownUi();
@@ -3627,6 +3651,7 @@
         }
 
         if (phoneEnrollSubmitButton) phoneEnrollSubmitButton.disabled = true;
+        stopOtpCredentialRead();
         phoneEnrollFeedbackMessage("در حال تایید شماره موبایل...", "", true);
         try {
             var response = await window.Dent1402Auth.verifyPhoneEnrollOtp(phoneNumber, otpCode);

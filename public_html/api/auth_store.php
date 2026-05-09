@@ -2000,6 +2000,10 @@ function dent_sms_resolved_config(): array
     if ($domain === '') {
         $domain = dent_clean_text((string) (getenv('DENT_SMS_FARAZ_DOMAIN') ?: ''), 120);
     }
+    if ($domain === '') {
+        $domain = dent_clean_text((string) ($_SERVER['HTTP_HOST'] ?? ''), 120);
+        $domain = preg_replace('/:\d+$/', '', $domain) ?? '';
+    }
     $domain = trim($domain, " \t\n\r\0\x0B/");
 
     $codeParam = dent_clean_text((string) ($sms['codeParam'] ?? ''), 40);
@@ -2128,7 +2132,10 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
         (string) $config['codeParam'] => $otpCode,
     ];
     if (trim((string) $config['domain']) !== '') {
+        $webOtpLine = '@' . (string) $config['domain'] . ' #' . $otpCode;
         $params['domain'] = (string) $config['domain'];
+        $params['webotp'] = $webOtpLine;
+        $params['webOtpLine'] = $webOtpLine;
     }
 
     $payload = [
