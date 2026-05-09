@@ -214,6 +214,7 @@
     var phoneEnrollCooldownUntil = 0;
     var loginOtpCooldownTimer = null;
     var phoneEnrollCooldownTimer = null;
+    var otpCredentialAbortController = null;
     var profileDraftAvatarUrl = "";
     var profileSaving = false;
     var profileAvatarProcessing = false;
@@ -502,6 +503,55 @@
             }
             if (input.value !== next) {
                 input.value = next;
+            }
+        });
+    }
+
+    function stopOtpCredentialRead() {
+        if (!otpCredentialAbortController) {
+            return;
+        }
+        otpCredentialAbortController.abort();
+        otpCredentialAbortController = null;
+    }
+
+    function fillOtpInput(input, value) {
+        if (!input) {
+            return;
+        }
+        var code = normalizeDigits(value).replace(/\D+/g, "").slice(0, 6);
+        if (!code) {
+            return;
+        }
+        input.value = code;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.focus({ preventScroll: true });
+    }
+
+    function startOtpCredentialRead(input) {
+        if (!input || !window.isSecureContext || !("OTPCredential" in window) || !window.AbortController || !navigator.credentials) {
+            return;
+        }
+
+        stopOtpCredentialRead();
+        var controller = new AbortController();
+        otpCredentialAbortController = controller;
+
+        navigator.credentials.get({
+            otp: { transport: ["sms"] },
+            signal: controller.signal
+        }).then(function (credential) {
+            if (otpCredentialAbortController !== controller || !credential || !credential.code) {
+                return;
+            }
+            fillOtpInput(input, credential.code);
+        }).catch(function (error) {
+            if (error && error.name === "AbortError") {
+                return;
+            }
+        }).finally(function () {
+            if (otpCredentialAbortController === controller) {
+                otpCredentialAbortController = null;
             }
         });
     }
@@ -915,6 +965,7 @@
         updateLoginOtpCooldownUi();
         updatePhoneEnrollCooldownUi();
         setLoginOtpVerifyVisible(false);
+        stopOtpCredentialRead();
     }
 
     function avatarLabel(value) {
@@ -3498,6 +3549,7 @@
             setLoginOtpVerifyVisible(true);
             if (loginOtpCodeInput) {
                 loginOtpCodeInput.focus({ preventScroll: true });
+                startOtpCredentialRead(loginOtpCodeInput);
             }
         } finally {
             updateLoginOtpCooldownUi();
@@ -3515,6 +3567,7 @@
         }
 
         if (loginOtpSubmitButton) loginOtpSubmitButton.disabled = true;
+        stopOtpCredentialRead();
         setFeedback(loginOtpFeedback, "در حال ورود با کد تایید...", "", true);
         try {
             var state = await window.Dent1402Auth.loginWithOtp(phoneNumber, otpCode);
@@ -3557,6 +3610,7 @@
             phoneEnrollFeedbackMessage((response.message || "کد تایید ارسال شد.") + (masked ? (" (" + masked + ")") : ""), "success");
             if (phoneEnrollCode) {
                 phoneEnrollCode.focus({ preventScroll: true });
+                startOtpCredentialRead(phoneEnrollCode);
             }
         } finally {
             updatePhoneEnrollCooldownUi();
