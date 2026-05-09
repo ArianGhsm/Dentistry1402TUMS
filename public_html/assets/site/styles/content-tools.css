@@ -1173,8 +1173,30 @@ body.content-tools-page--paste .ct-paste-row {
     background: #0b0f16;
 }
 
+.ct-shell > *,
+.ct-drive-layout,
+.ct-main-panel,
+.ct-paste-layout,
+.ct-drive-topbar,
+.ct-paste-header,
+.ct-side-panel,
+.ct-upload-card,
+.ct-manager-card,
+.ct-section-head,
+.ct-grid,
+.ct-toolbar,
+.ct-form-actions,
+.ct-topbar-actions,
+.ct-bulkbar,
+.ct-file-row,
+.ct-paste-row {
+    min-width: 0;
+    max-width: 100%;
+}
+
 @media (max-width: 980px) {
     .ct-drive-layout {
+        grid-template-columns: minmax(0, 1fr);
         min-height: auto;
     }
 
@@ -1302,27 +1324,23 @@ html[data-theme="light"] body.content-tools-page--owner:not(.content-tools-page-
         gap: 0.56rem;
     }
 
+    .ct-toolbar {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .ct-side-panel {
         padding: 0.58rem;
     }
 
     .ct-side-nav {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.42rem;
-        overflow-x: auto;
-        overscroll-behavior-inline: contain;
-        padding-bottom: 0.1rem;
-        scrollbar-width: none;
-    }
-
-    .ct-side-nav::-webkit-scrollbar {
-        display: none;
     }
 
     .ct-side-nav button {
-        flex: 0 0 auto;
-        min-width: 112px;
-        white-space: nowrap;
+        min-width: 0;
+        white-space: normal;
         text-align: center;
     }
 
@@ -1426,8 +1444,8 @@ html[data-theme="light"] body.content-tools-page--owner:not(.content-tools-page-
         justify-content: stretch;
     }
 
-    .ct-side-nav button {
-        min-width: 104px;
+    .ct-side-nav {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .ct-public-meta {
