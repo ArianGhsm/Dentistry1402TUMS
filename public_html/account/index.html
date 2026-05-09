@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260509-184337">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260509-184337">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260509-184337">
-    <script src="/assets/site/scripts/theme.js?v=20260509-184337"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260509-184337">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260509-184337">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260509-184337">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260509-191447">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260509-191447">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260509-191447">
+    <script src="/assets/site/scripts/theme.js?v=20260509-191447"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260509-191447">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260509-191447">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260509-191447">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -85,11 +85,12 @@
                             <p>کد تایید برایت پیامک می‌شود.</p>
                         </div>
 
-                        <div class="settings-row">
+                        <div class="settings-row auth-field otp-login-step otp-login-step--phone">
                             <label for="login-phone-number">شماره موبایل</label>
                             <div class="otp-phone-shell" dir="ltr">
-                                <input id="login-phone-number" name="phoneNumber" type="tel" inputmode="tel" autocomplete="tel" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="send" maxlength="14" aria-label="شماره موبایل" dir="ltr" data-latin-digits="true" data-phone-input="iran" placeholder="09xxxxxxxxx یا +989xxxxxxxxx">
+                                <input id="login-phone-number" name="phoneNumber" type="tel" inputmode="tel" autocomplete="tel" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="14" pattern="(09[0-9]{9}|\+989[0-9]{9})" aria-label="شماره موبایل" aria-describedby="login-phone-error login-otp-feedback" dir="ltr" data-latin-digits="true" data-phone-input="iran" placeholder="09xxxxxxxxx یا +989xxxxxxxxx">
                             </div>
+                            <p id="login-phone-error" class="auth-field-error" aria-live="polite"></p>
                         </div>
 
                         <div class="account-inline-actions otp-auth-panel__actions otp-auth-panel__actions--request">
@@ -98,10 +99,15 @@
                         </div>
 
                         <div id="login-otp-verify-group" hidden>
+                            <div class="otp-verify-head">
+                                <h4>ورود</h4>
+                                <p id="login-otp-summary">کد تایید ارسال‌شده را وارد کن.</p>
+                                <strong id="login-otp-phone-display" class="otp-verify-phone" dir="ltr"></strong>
+                            </div>
                             <div class="settings-row">
                                 <label for="login-otp-code">کد تایید</label>
                                 <div id="login-otp-field" class="otp-slot-field" data-otp-field="login">
-                                    <input id="login-otp-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" pattern="[0-9۰-۹٠-٩]*" maxlength="6" aria-label="کد تایید پیامکی" dir="ltr" data-latin-digits="true" placeholder="کد ۶ رقمی">
+                                    <input id="login-otp-code" name="one-time-code" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" pattern="[0-9]*" maxlength="6" aria-label="کد تایید ورود" aria-describedby="login-otp-summary login-otp-code-error login-otp-feedback" dir="ltr" data-latin-digits="true" placeholder="کد ۶ رقمی">
                                     <div id="login-otp-slots" class="otp-slot-field__slots" dir="ltr" aria-hidden="true">
                                         <span class="otp-slot"></span>
                                         <span class="otp-slot"></span>
@@ -111,9 +117,11 @@
                                         <span class="otp-slot"></span>
                                     </div>
                                 </div>
+                                <p id="login-otp-code-error" class="auth-field-error" aria-live="polite"></p>
                             </div>
 
-                            <button id="login-otp-submit" class="shell-action-btn shell-action-btn-primary account-submit" type="submit">ورود</button>
+                            <button id="login-otp-submit" class="shell-action-btn shell-action-btn-primary account-submit" type="submit" disabled>ورود به پنل کاربری</button>
+                            <button id="login-otp-edit-phone" class="otp-edit-phone-btn" type="button">ویرایش شماره موبایل</button>
                         </div>
                         <div id="login-otp-feedback" class="account-feedback" aria-live="polite"></div>
                     </form>
@@ -784,9 +792,9 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260509-184337"></script>
-    <script src="/assets/site/scripts/account.js?v=20260509-184337"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260509-184337"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260509-184337"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260509-191447"></script>
+    <script src="/assets/site/scripts/account.js?v=20260509-191447"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260509-191447"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260509-191447"></script>
 </body>
 </html>

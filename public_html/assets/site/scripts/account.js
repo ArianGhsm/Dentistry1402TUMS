@@ -27,8 +27,13 @@
     var loginOtpMeta = $("login-otp-meta");
     var loginOtpVerifyGroup = $("login-otp-verify-group");
     var loginPhoneInput = $("login-phone-number");
+    var loginPhoneError = $("login-phone-error");
     var loginOtpCodeInput = $("login-otp-code");
+    var loginOtpCodeError = $("login-otp-code-error");
     var loginOtpSlots = $("login-otp-slots");
+    var loginOtpSummary = $("login-otp-summary");
+    var loginOtpPhoneDisplay = $("login-otp-phone-display");
+    var loginOtpEditPhoneButton = $("login-otp-edit-phone");
 
     var profileForm = $("profile-form");
     var profileSubmit = $("profile-submit");
@@ -214,6 +219,9 @@
     var phoneEnrollCooldownUntil = 0;
     var loginOtpCooldownTimer = null;
     var phoneEnrollCooldownTimer = null;
+    var loginOtpRequesting = false;
+    var loginOtpSubmitting = false;
+    var loginOtpAutoSubmitQueued = false;
     var otpCredentialAbortController = null;
     var profileDraftAvatarUrl = "";
     var profileSaving = false;
@@ -238,7 +246,7 @@
         document.body.classList.toggle("account-stage-login-active", name === "login");
         document.body.classList.toggle("account-stage-panel-active", name === "panel");
         if (name !== "login") {
-            document.body.classList.remove("account-keyboard-open", "account-login-input-focus");
+            document.body.classList.remove("account-keyboard-open", "account-login-input-focus", "account-login-otp-verify-active");
             return;
         }
         queueLoginViewportSync();
@@ -476,6 +484,9 @@
     function normalizedPhone(value) {
         var digits = normalizeDigits(value).replace(/\D+/g, "");
         if (!digits) return "";
+        if (digits.indexOf("0098") === 0 && digits.length >= 14) {
+            return "0" + digits.slice(4);
+        }
         if (digits.indexOf("98") === 0 && digits.length >= 12) {
             return "0" + digits.slice(2);
         }
@@ -483,6 +494,81 @@
             return "0" + digits;
         }
         return digits;
+    }
+
+    function isValidIranMobile(value) {
+        return /^09\d{9}$/.test(normalizedPhone(value));
+    }
+
+    function loginOtpLength() {
+        if (loginOtpSlots) {
+            var slots = loginOtpSlots.querySelectorAll(".otp-slot").length;
+            if (slots > 0) {
+                return slots;
+            }
+        }
+        var maxLength = loginOtpCodeInput ? Number(loginOtpCodeInput.getAttribute("maxlength")) : 6;
+        return Number.isFinite(maxLength) && maxLength > 0 ? maxLength : 6;
+    }
+
+    function loginOtpCodeValue() {
+        return normalizeDigits(loginOtpCodeInput ? loginOtpCodeInput.value : "").replace(/\D+/g, "").slice(0, loginOtpLength());
+    }
+
+    function setInputInvalid(input, invalid) {
+        if (!input) {
+            return;
+        }
+        input.setAttribute("aria-invalid", invalid ? "true" : "false");
+        var shell = input.closest ? input.closest(".otp-phone-shell, .otp-slot-field") : null;
+        if (shell) {
+            shell.classList.toggle("has-error", invalid);
+        }
+    }
+
+    function setFieldError(input, node, text) {
+        var message = String(text || "").trim();
+        if (node) {
+            node.textContent = message;
+        }
+        setInputInvalid(input, message !== "");
+    }
+
+    function setButtonBusy(button, busy, busyText) {
+        if (!button) {
+            return;
+        }
+        if (!button.dataset.defaultText) {
+            button.dataset.defaultText = button.textContent || "";
+        }
+        button.textContent = busy ? busyText : button.dataset.defaultText;
+        button.setAttribute("aria-busy", busy ? "true" : "false");
+    }
+
+    function focusLoginOtpInput(selectCode) {
+        if (!loginOtpCodeInput) {
+            return;
+        }
+        loginOtpCodeInput.focus({ preventScroll: true });
+        if (selectCode && loginOtpCodeInput.setSelectionRange) {
+            try {
+                loginOtpCodeInput.setSelectionRange(0, loginOtpCodeInput.value.length);
+            } catch (error) {
+                // Some mobile browsers reject selection on managed OTP inputs.
+            }
+        }
+    }
+
+    function updateLoginOtpPhoneDisplay(phoneNumber, maskedPhone) {
+        var visiblePhone = ltrMaskedPhone(maskedPhone || phoneNumber, "");
+        if (loginOtpPhoneDisplay) {
+            loginOtpPhoneDisplay.textContent = visiblePhone;
+        }
+        if (loginOtpSummary) {
+            loginOtpSummary.textContent = visiblePhone
+                ? "کد تایید برای این شماره ارسال شد."
+                : "کد تایید ارسال‌شده را وارد کن.";
+        }
     }
 
     function bindNumericInput(input, maxLength) {
@@ -519,7 +605,8 @@
         if (!input) {
             return;
         }
-        var code = normalizeDigits(value).replace(/\D+/g, "").slice(0, 6);
+        var maxLength = Number(input.getAttribute("maxlength")) || 6;
+        var code = normalizeDigits(value).replace(/\D+/g, "").slice(0, maxLength);
         if (!code) {
             return;
         }
@@ -677,6 +764,7 @@
                 slot.classList.toggle("is-active", index === digits.length && digits.length < slots.length);
             });
             slotsRoot.classList.toggle("is-complete", digits.length === slots.length);
+            slotsRoot.classList.toggle("has-error", input.getAttribute("aria-invalid") === "true");
         };
 
         input.addEventListener("focus", function () {
@@ -688,8 +776,26 @@
             update();
         });
         input.addEventListener("input", update);
+        input.addEventListener("paste", function (event) {
+            var clipboard = event.clipboardData || window.clipboardData;
+            var text = clipboard && clipboard.getData ? clipboard.getData("text") : "";
+            var digits = normalizeDigits(text).replace(/\D+/g, "").slice(0, slots.length);
+            if (!digits) {
+                return;
+            }
+            event.preventDefault();
+            input.value = digits;
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+        });
         slotsRoot.addEventListener("click", function () {
             input.focus({ preventScroll: true });
+            if (input.setSelectionRange) {
+                try {
+                    input.setSelectionRange(input.value.length, input.value.length);
+                } catch (error) {
+                    // The managed input only needs focus; selection can fail on iOS.
+                }
+            }
         });
         update();
     }
@@ -817,8 +923,12 @@
                 loginOtpCodeInput.value = "";
                 loginOtpCodeInput.dispatchEvent(new Event("input", { bubbles: true }));
             }
+            setFieldError(loginPhoneInput, loginPhoneError, "");
+            setFieldError(loginOtpCodeInput, loginOtpCodeError, "");
         }
 
+        updateLoginOtpRequestState();
+        updateLoginOtpSubmitState();
         resetLoginScrollPosition();
     }
 
@@ -827,6 +937,12 @@
             return;
         }
         loginOtpVerifyGroup.hidden = !visible;
+        document.body.classList.toggle("account-login-otp-verify-active", !!visible);
+        if (loginOtpForm) {
+            loginOtpForm.dataset.otpStep = visible ? "verify" : "phone";
+        }
+        updateLoginOtpRequestState();
+        updateLoginOtpSubmitState();
     }
 
     function setFormControlsEnabled(form, enabled) {
@@ -913,17 +1029,39 @@
         }
     }
 
-    function updateLoginOtpCooldownUi() {
+    function isLoginOtpVerifyVisible() {
+        return !!(loginOtpVerifyGroup && !loginOtpVerifyGroup.hidden);
+    }
+
+    function updateLoginOtpRequestState() {
         var left = secondsRemaining(loginOtpCooldownUntil);
         var active = left > 0;
+        var validPhone = loginPhoneInput ? isValidIranMobile(loginPhoneInput.value) : false;
         if (loginOtpRequestButton) {
-            loginOtpRequestButton.disabled = active;
+            loginOtpRequestButton.disabled = loginMode !== "otp" || loginOtpRequesting || active || !validPhone;
+            setButtonBusy(loginOtpRequestButton, loginOtpRequesting, "در حال ارسال...");
         }
         if (loginOtpMeta) {
             loginOtpMeta.textContent = active
                 ? ("ارسال مجدد تا " + formatSeconds(left) + " دیگر")
-                : "ورود پیامکی فقط برای شماره تاییدشده و فعال‌شده امکان دارد.";
+                : (isLoginOtpVerifyVisible()
+                    ? "بعد از تکمیل کد، ورود خودکار انجام می‌شود."
+                    : (validPhone ? "کد تایید برایت پیامک می‌شود." : "شماره را با 09 یا +98 وارد کن."));
         }
+    }
+
+    function updateLoginOtpSubmitState() {
+        var complete = loginOtpCodeValue().length === loginOtpLength();
+        var visible = isLoginOtpVerifyVisible();
+        if (loginOtpSubmitButton) {
+            loginOtpSubmitButton.disabled = loginMode !== "otp" || loginOtpSubmitting || !visible || !complete;
+            setButtonBusy(loginOtpSubmitButton, loginOtpSubmitting, "در حال ورود...");
+        }
+    }
+
+    function updateLoginOtpCooldownUi() {
+        var active = secondsRemaining(loginOtpCooldownUntil) > 0;
+        updateLoginOtpRequestState();
         if (!active) {
             stopLoginOtpCooldownTicker();
         }
@@ -971,11 +1109,16 @@
     function resetOtpUi() {
         loginOtpCooldownUntil = 0;
         phoneEnrollCooldownUntil = 0;
+        loginOtpRequesting = false;
+        loginOtpSubmitting = false;
+        loginOtpAutoSubmitQueued = false;
         stopLoginOtpCooldownTicker();
         stopPhoneEnrollCooldownTicker();
         updateLoginOtpCooldownUi();
         updatePhoneEnrollCooldownUi();
         setLoginOtpVerifyVisible(false);
+        setFieldError(loginPhoneInput, loginPhoneError, "");
+        setFieldError(loginOtpCodeInput, loginOtpCodeError, "");
         stopOtpCredentialRead();
     }
 
@@ -3534,21 +3677,25 @@
     }
 
     async function requestLoginOtpCode() {
+        if (loginOtpRequesting) return;
         if (!loginPhoneInput) return;
         var phoneNumber = normalizedPhone(loginPhoneInput.value);
-        if (!phoneNumber) {
-            setFeedback(loginOtpFeedback, "شماره موبایل معتبر وارد کن.", "error");
+        if (!isValidIranMobile(phoneNumber)) {
+            setFieldError(loginPhoneInput, loginPhoneError, "شماره موبایل معتبر وارد کن.");
+            updateLoginOtpRequestState();
+            loginPhoneInput.focus({ preventScroll: true });
             return;
         }
         loginPhoneInput.value = phoneNumber;
-        setLoginOtpVerifyVisible(true);
+        setFieldError(loginPhoneInput, loginPhoneError, "");
+        setFieldError(loginOtpCodeInput, loginOtpCodeError, "");
+        setLoginOtpVerifyVisible(false);
         if (loginOtpCodeInput) {
             loginOtpCodeInput.value = "";
             loginOtpCodeInput.dispatchEvent(new Event("input", { bubbles: true }));
-            loginOtpCodeInput.focus({ preventScroll: true });
-            startOtpCredentialRead(loginOtpCodeInput);
         }
-        if (loginOtpRequestButton) loginOtpRequestButton.disabled = true;
+        loginOtpRequesting = true;
+        updateLoginOtpRequestState();
         setFeedback(loginOtpFeedback, "در حال ارسال کد تایید...", "", true);
         try {
             var auth = window.Dent1402Auth;
@@ -3564,38 +3711,108 @@
             }
 
             startLoginOtpCooldown(response.cooldownSeconds || 0);
-            var masked = ltrMaskedPhone(response && response.phoneMasked, "");
-            setFeedback(loginOtpFeedback, (response.message || "کد تایید ارسال شد.") + (masked ? (" (" + masked + ")") : ""), "success");
+            updateLoginOtpPhoneDisplay(phoneNumber, response && response.phoneMasked);
+            setLoginOtpVerifyVisible(true);
+            setFeedback(loginOtpFeedback, "", "");
             if (loginOtpCodeInput) {
-                loginOtpCodeInput.focus({ preventScroll: true });
+                focusLoginOtpInput(false);
+                startOtpCredentialRead(loginOtpCodeInput);
             }
         } finally {
+            loginOtpRequesting = false;
             updateLoginOtpCooldownUi();
+            updateLoginOtpSubmitState();
         }
     }
 
     async function submitOtpLogin(event) {
-        event.preventDefault();
+        if (event && event.preventDefault) {
+            event.preventDefault();
+        }
+        if (loginOtpSubmitting) return;
         if (!loginPhoneInput || !loginOtpCodeInput) return;
         var phoneNumber = normalizedPhone(loginPhoneInput.value);
-        var otpCode = normalizeDigits(loginOtpCodeInput.value).replace(/\D+/g, "");
-        if (!phoneNumber || !otpCode) {
-            setFeedback(loginOtpFeedback, "شماره موبایل و کد تایید را کامل وارد کن.", "error");
+        var otpCode = loginOtpCodeValue();
+        var expectedLength = loginOtpLength();
+        if (!isValidIranMobile(phoneNumber)) {
+            setFieldError(loginPhoneInput, loginPhoneError, "شماره موبایل معتبر وارد کن.");
+            setLoginOtpVerifyVisible(false);
+            loginPhoneInput.focus({ preventScroll: true });
+            return;
+        }
+        if (otpCode.length !== expectedLength) {
+            setFieldError(loginOtpCodeInput, loginOtpCodeError, "کد تایید را کامل وارد کن.");
+            updateLoginOtpSubmitState();
+            focusLoginOtpInput(false);
             return;
         }
 
-        if (loginOtpSubmitButton) loginOtpSubmitButton.disabled = true;
+        setFieldError(loginOtpCodeInput, loginOtpCodeError, "");
+        loginOtpSubmitting = true;
+        updateLoginOtpSubmitState();
         stopOtpCredentialRead();
         setFeedback(loginOtpFeedback, "در حال ورود با کد تایید...", "", true);
         try {
             var state = await window.Dent1402Auth.loginWithOtp(phoneNumber, otpCode);
             if (!state || !state.loggedIn) {
+                setFieldError(loginOtpCodeInput, loginOtpCodeError, "کد تایید صحیح نیست یا منقضی شده است.");
                 setFeedback(loginOtpFeedback, (state && state.error) || "ورود با کد تایید انجام نشد.", "error");
+                focusLoginOtpInput(true);
                 return;
             }
             setFeedback(loginOtpFeedback, "ورود با کد تایید انجام شد.", "success");
         } finally {
-            if (loginOtpSubmitButton) loginOtpSubmitButton.disabled = false;
+            loginOtpSubmitting = false;
+            updateLoginOtpSubmitState();
+        }
+    }
+
+    function queueLoginOtpAutoSubmit() {
+        if (loginOtpAutoSubmitQueued || loginOtpSubmitting || !isLoginOtpVerifyVisible()) {
+            return;
+        }
+        if (loginOtpCodeValue().length !== loginOtpLength()) {
+            return;
+        }
+        loginOtpAutoSubmitQueued = true;
+        window.setTimeout(function () {
+            loginOtpAutoSubmitQueued = false;
+            if (!loginOtpSubmitting && isLoginOtpVerifyVisible() && loginOtpCodeValue().length === loginOtpLength()) {
+                submitOtpLogin();
+            }
+        }, 80);
+    }
+
+    function handleLoginOtpCodeInput() {
+        if (!loginOtpCodeInput) {
+            return;
+        }
+        setFieldError(loginOtpCodeInput, loginOtpCodeError, "");
+        updateLoginOtpSubmitState();
+        queueLoginOtpAutoSubmit();
+    }
+
+    function handleLoginPhoneInput() {
+        if (!loginPhoneInput) {
+            return;
+        }
+        if (!loginPhoneInput.value || isValidIranMobile(loginPhoneInput.value)) {
+            setFieldError(loginPhoneInput, loginPhoneError, "");
+        }
+        updateLoginOtpRequestState();
+    }
+
+    function editLoginOtpPhoneNumber() {
+        stopOtpCredentialRead();
+        setLoginOtpVerifyVisible(false);
+        setFieldError(loginOtpCodeInput, loginOtpCodeError, "");
+        if (loginOtpCodeInput) {
+            loginOtpCodeInput.value = "";
+            loginOtpCodeInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        setFeedback(loginOtpFeedback, "", "");
+        if (loginPhoneInput) {
+            loginPhoneInput.focus({ preventScroll: true });
         }
     }
 
@@ -3817,10 +4034,13 @@
         }
 
         if (!detail.loggedIn) {
+            var preserveOtpLoginAttempt = detail.status === "login-error" && loginMode === "otp" && loginOtpSubmitting;
             currentUser = null;
             showStage("login");
             openSurface("hub", { replaceHash: true, preserveScroll: true });
-            resetOtpUi();
+            if (!preserveOtpLoginAttempt) {
+                resetOtpUi();
+            }
             profileDraftAvatarUrl = "";
             updateIdentityAvatars("");
             if (accountRotation) {
@@ -3887,12 +4107,22 @@
             phoneEnrollFeedbackMessage("", "");
             phoneToggleFeedbackMessage("", "");
             phoneManageFeedbackMessage("", "");
-            setFeedback(loginOtpFeedback, "", "");
-            setLoginMode(loginMode);
+            if (preserveOtpLoginAttempt) {
+                updateLoginOtpRequestState();
+                updateLoginOtpSubmitState();
+            } else {
+                setFeedback(loginOtpFeedback, "", "");
+                setLoginMode(loginMode);
+            }
             setInlineFeedback(profileAvatarFeedback, "", "");
             setProfileBusy(false);
             if (detail.status === "login-error" || detail.status === "unauthorized") {
-                setFeedback(loginFeedback, detail.error || "ورود انجام نشد.", "error");
+                if (preserveOtpLoginAttempt) {
+                    setFeedback(loginOtpFeedback, detail.error || "ورود با کد تایید انجام نشد.", "error");
+                    setFeedback(loginFeedback, "", "");
+                } else {
+                    setFeedback(loginFeedback, detail.error || "ورود انجام نشد.", "error");
+                }
             } else {
                 setFeedback(loginFeedback, "", "");
             }
@@ -4007,6 +4237,23 @@
     applyOtpSlots(loginOtpCodeInput, loginOtpSlots);
     applyOtpSlots(phoneEnrollCode, phoneEnrollOtpSlots);
 
+    if (loginPhoneInput) {
+        loginPhoneInput.addEventListener("input", handleLoginPhoneInput);
+        loginPhoneInput.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter") {
+                return;
+            }
+            event.preventDefault();
+            if (isValidIranMobile(loginPhoneInput.value) && !loginOtpRequesting) {
+                requestLoginOtpCode();
+            }
+        });
+    }
+
+    if (loginOtpCodeInput) {
+        loginOtpCodeInput.addEventListener("input", handleLoginOtpCodeInput);
+    }
+
     if (loginMethodPasswordBtn) {
         loginMethodPasswordBtn.addEventListener("click", function () {
             setLoginMode("password");
@@ -4030,6 +4277,10 @@
 
     if (loginOtpForm) {
         loginOtpForm.addEventListener("submit", submitOtpLogin);
+    }
+
+    if (loginOtpEditPhoneButton) {
+        loginOtpEditPhoneButton.addEventListener("click", editLoginOtpPhoneNumber);
     }
 
     [loginForm, loginOtpForm].forEach(function (formNode) {
