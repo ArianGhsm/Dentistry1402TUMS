@@ -44,7 +44,7 @@
 - داده‌های خرید/سفارش باید در storage مشترک `payments/store.json` بماند و deploy نباید سفارش‌ها، آیتم‌ها، کدهای تخفیف یا تاریخچه پرداخت را reset کند.
 - تصاویر آپلودی کالاهای بخش خرید باید در storage مشترک `payments/uploads/` بمانند و نباید با فایل‌های deploy-replaced یا مسیرهای temp جایگزین شوند.
 - داده‌های مرکز آپلود و pastebin باید در storage مشترک `content_tools/store.json` بماند؛ فایل‌های آپلودشده فقط در `content_tools/uploads/` نگه‌داری شوند و deploy نباید فایل‌ها، pasteها، شمارنده دانلود/بازدید یا وضعیت لینک‌ها را reset کند.
-- داده‌های منابع/جزوات قابل مدیریت باید در storage مشترک `notes/` بماند؛ برای ۱۴۰۲ در `notes/1402_terms.json` و برای ۱۴۰۳ در `notes/1403_archive.json`. Deploy نباید کارت‌های اضافه/ویرایش/حذف‌شده مالک را با seed یا HTML قدیمی برگرداند.
+- داده‌های منابع/جزوات قابل مدیریت باید در storage مشترک `notes/` بماند؛ برای ۱۴۰۲ در `notes/1402_terms.json`، برای ۱۴۰۳ در `notes/1403_archive.json` و برای پروتز ۱۴۰۲ در `notes/prosthesis_1402_terms.json`. Deploy نباید کارت‌ها یا ترم‌های اضافه/ویرایش/حذف‌شده مالک یا نماینده پروتز را با seed یا HTML قدیمی برگرداند.
 - داده‌های runtime بخش Dental Residency باید در `storage/dental_residency/` بماند و deploy نباید login، OTP state، user store یا پیشرفت کاربران آن بخش را reset کند.
 - seed/backfill فقط هنگام نبود کامل فایل storage مجاز است. بعد از ساخته‌شدن فایل storage، migration یا backfill نباید حذف‌ها و ویرایش‌های مالک را با داده پیش‌فرض جایگزین کند مگر migration صریح و تاییدشده داشته باشد.
 - گزارش موفقیت کاذب ممنوع است: اگر داده فقط local یا cache است، موفقیت اعلام نشود.

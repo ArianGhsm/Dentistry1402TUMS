@@ -347,7 +347,7 @@ if ($action === 'users') {
         if ($user['hasDirectoryPhone']) {
             $withDirectoryPhoneCount++;
         }
-        if (($user['role'] ?? '') === 'representative') {
+        if (in_array((string) ($user['role'] ?? ''), ['representative', 'prosthesis_representative'], true)) {
             $representativeCount++;
         }
     }
@@ -485,6 +485,7 @@ if ($action === 'createStudent') {
     $lastName = (string) ($_POST['lastName'] ?? '');
     $studentNumber = (string) ($_POST['studentNumber'] ?? '');
     $password = (string) ($_POST['password'] ?? '');
+    $role = (string) ($_POST['role'] ?? 'student');
     $nationalCode = (string) ($_POST['nationalCode'] ?? '');
     $directoryPhoneNumber = (string) ($_POST['directoryPhoneNumber'] ?? '');
     $rotationMode = (string) ($_POST['rotationMode'] ?? 'none');
@@ -498,6 +499,7 @@ if ($action === 'createStudent') {
         $lastName,
         $studentNumber,
         $password,
+        $role,
         $rotationMode,
         $rotationId,
         $groupNumber,

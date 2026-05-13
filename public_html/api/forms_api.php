@@ -807,6 +807,9 @@ function forms_user_payload(?array $user): ?array
     if ($user === null) {
         return null;
     }
+    if (dent_user_is_prosthesis($user)) {
+        return null;
+    }
     $public = dent_public_user($user);
     return [
         'studentNumber' => (string) ($public['studentNumber'] ?? ''),
@@ -816,6 +819,16 @@ function forms_user_payload(?array $user): ?array
         'isOwner' => (bool) ($public['isOwner'] ?? false),
         'isRepresentative' => (bool) ($public['isRepresentative'] ?? false),
     ];
+}
+
+function forms_current_site_user(): ?array
+{
+    $user = dent_current_user();
+    if ($user !== null && dent_user_is_prosthesis($user)) {
+        return null;
+    }
+
+    return $user;
 }
 
 function forms_can_create(?array $user): bool
@@ -2319,7 +2332,7 @@ function forms_receipts_for_form(array $store, string $formId): array
 $action = dent_request_action();
 
 if ($action === 'session') {
-    $user = dent_current_user();
+    $user = forms_current_site_user();
     $store = forms_load_store();
     dent_json_response([
         'success' => true,
@@ -2334,7 +2347,7 @@ if ($action === 'session') {
 }
 
 if ($action === 'list') {
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $store = forms_load_store();
     $forms = [];
     foreach ($store['forms'] as $form) {
@@ -2357,7 +2370,7 @@ if ($action === 'create') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد ساخت فرم نامعتبر است.', 405);
     }
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     if (!forms_can_create($user)) {
         dent_error('ساخت فرم و نظرسنجی فقط برای مالک فعال است.', 403);
     }
@@ -2377,7 +2390,7 @@ if ($action === 'update') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد ویرایش فرم نامعتبر است.', 405);
     }
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
         dent_error('شناسه فرم نامعتبر است.', 422);
@@ -2406,7 +2419,7 @@ if ($action === 'setStatus') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد تغییر وضعیت نامعتبر است.', 405);
     }
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     $status = forms_clean_status((string) ($_POST['status'] ?? 'open'));
     if ($formId === '') {
@@ -2434,7 +2447,7 @@ if ($action === 'delete') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد حذف فرم نامعتبر است.', 405);
     }
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
         dent_error('شناسه فرم نامعتبر است.', 422);
@@ -2470,7 +2483,7 @@ if ($action === 'get') {
     if (!is_array($form)) {
         dent_error('فرم پیدا نشد.', 404);
     }
-    $user = dent_current_user();
+    $user = forms_current_site_user();
     if (!forms_viewer_can_access($form, $user)) {
         if ($user === null && !forms_guest_allowed($form)) {
             dent_error('برای شرکت در این فرم باید وارد حساب شوید.', 401, ['loggedOut' => true, 'requiresLogin' => true]);
@@ -2509,7 +2522,7 @@ if ($action === 'uploadReceipt') {
     if (!is_array($form)) {
         dent_error('فرم پیدا نشد.', 404);
     }
-    $user = dent_current_user();
+    $user = forms_current_site_user();
     if (!forms_viewer_can_access($form, $user)) {
         if ($user === null && !forms_guest_allowed($form)) {
             dent_error('برای آپلود رسید باید وارد حساب شوید.', 401, ['loggedOut' => true, 'requiresLogin' => true]);
@@ -2571,7 +2584,7 @@ if ($action === 'downloadReceipt') {
     if (dent_request_method() !== 'GET') {
         dent_error('متد دانلود رسید نامعتبر است.', 405);
     }
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $store = forms_load_store();
     $receiptId = forms_clean_id((string) ($_GET['id'] ?? ''), FORMS_RECEIPT_ID_PREFIX);
     if ($receiptId === '') {
@@ -2601,7 +2614,7 @@ if ($action === 'exportReceipts') {
     if (dent_request_method() !== 'GET') {
         dent_error('متد خروجی رسیدها نامعتبر است.', 405);
     }
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $store = forms_load_store();
     $formId = forms_clean_id((string) ($_GET['formId'] ?? $_GET['form'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
@@ -2655,7 +2668,7 @@ if ($action === 'createPayment') {
         dent_error('متد پرداخت فرم نامعتبر است.', 405);
     }
 
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $formStore = forms_load_store();
     $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     $fieldId = trim(strtolower((string) ($_POST['fieldId'] ?? '')));
@@ -2890,7 +2903,7 @@ if ($action === 'submit') {
     if (!is_array($form)) {
         dent_error('فرم پیدا نشد.', 404);
     }
-    $user = dent_current_user();
+    $user = forms_current_site_user();
     if (!forms_viewer_can_access($form, $user)) {
         if ($user === null && !forms_guest_allowed($form)) {
             dent_error('برای ثبت پاسخ باید وارد حساب شوید.', 401, ['loggedOut' => true, 'requiresLogin' => true]);
@@ -2948,7 +2961,7 @@ if ($action === 'submit') {
 }
 
 if ($action === 'responses') {
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $store = forms_load_store();
     $formId = forms_clean_id((string) ($_GET['formId'] ?? $_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
@@ -2970,7 +2983,7 @@ if ($action === 'responses') {
 }
 
 if ($action === 'export') {
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $store = forms_load_store();
     $formId = forms_clean_id((string) ($_GET['formId'] ?? $_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {

@@ -144,6 +144,9 @@
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = true;
         });
+        document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
+            node.hidden = false;
+        });
         panel.dataset.authState = errorText ? "unauthorized" : "logged-out";
         status.textContent = "\u0648\u0631\u0648\u062f \u0644\u0627\u0632\u0645 \u0627\u0633\u062a";
         title.textContent = "\u062d\u0633\u0627\u0628 \u0633\u0631\u0627\u0633\u0631\u06cc\u200c\u0627\u062a \u0631\u0627 \u0641\u0639\u0627\u0644 \u06a9\u0646.";
@@ -160,6 +163,9 @@
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = true;
         });
+        document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
+            node.hidden = false;
+        });
         panel.dataset.authState = "session-restoring";
         status.textContent = "\u062f\u0631 \u062d\u0627\u0644 \u0628\u0627\u0632\u06cc\u0627\u0628\u06cc";
         title.textContent = "\u0646\u0634\u0633\u062a \u062d\u0633\u0627\u0628 \u062f\u0631 \u062d\u0627\u0644 \u0622\u0645\u0627\u062f\u0647\u200c\u0633\u0627\u0632\u06cc \u0627\u0633\u062a.";
@@ -174,8 +180,12 @@
 
     function setIdentityLoggedIn(user) {
         var isOwner = !!(user && user.isOwner);
+        var isProsthesis = !!(user && user.isProsthesisStudent);
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = !isOwner;
+        });
+        document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
+            node.hidden = isProsthesis;
         });
         panel.dataset.authState = "logged-in";
         status.textContent = isOwner ? "\u0645\u0627\u0644\u06a9 \u0633\u0627\u0645\u0627\u0646\u0647" : (user.roleLabel || "\u062d\u0633\u0627\u0628 \u0641\u0639\u0627\u0644");

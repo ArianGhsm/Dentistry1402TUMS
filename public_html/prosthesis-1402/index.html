@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>پروتز ۱۴۰۲ | انتخاب ترم</title>
+    <meta name="description" content="آرشیو ترم‌به‌ترم منابع پروتز ۱۴۰۲.">
+    <meta name="theme-color" content="#eef2f7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="پروتز ۱۴۰۲">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260513-194739">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260513-194739">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260513-194739">
+    <script src="/assets/site/scripts/theme.js?v=20260513-194739"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260513-194739">
+    <link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260513-194739">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260513-194739">
+</head>
+<body class="hub-page">
+    <div class="background-overlay" aria-hidden="true"></div>
+
+    <header class="site-header">
+        <div class="logo-area">
+            <div class="logo-circle">
+                <img src="/assets/images/logo.png?v=20260422-brand1" alt="لوگوی رسمی ورودی ۱۴۰۲">
+            </div>
+            <div class="site-info">
+                <h1>پروتز ۱۴۰۲</h1>
+                <p>آرشیو ترم‌به‌ترم منابع پروتز</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="/app/#resources" class="header-link">بازگشت به منابع</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-content">
+            <span class="greeting-pill">پروتز ۱۴۰۲</span>
+            <h2 class="hero-title">ترم موردنظر را انتخاب کن.</h2>
+            <p class="hero-desc">ترم‌های این بخش از پنل همین صفحه ساخته و مدیریت می‌شوند.</p>
+        </section>
+
+        <section class="archive-summary" aria-label="خلاصه آرشیو">
+            <article class="archive-summary__card">
+                <strong>ترم‌های داینامیک</strong>
+                <span>بدون نیاز به ساخت فایل صفحه جدید</span>
+            </article>
+            <article class="archive-summary__card">
+                <strong>مدیریت محدود</strong>
+                <span>مالک و نماینده پروتز</span>
+            </article>
+            <article class="archive-summary__card">
+                <strong>ذخیره پایدار</strong>
+                <span>همگام با storage سایت</span>
+            </article>
+        </section>
+
+        <section class="archive-term">
+            <div class="archive-term__head">
+                <div>
+                    <span class="archive-term__kicker">ترم‌ها</span>
+                    <h3>صفحات پروتز ۱۴۰۲</h3>
+                </div>
+                <p>هر ترم پس از ثبت، صفحه اختصاصی خودش را دارد.</p>
+            </div>
+
+            <div class="cards-container archive-term-list" id="prosthesis-term-list"></div>
+            <p class="archive-empty" id="prosthesis-term-empty">در حال دریافت ترم‌ها...</p>
+        </section>
+
+        <section class="notes-manage-panel" id="prosthesis-term-manage" hidden>
+            <div class="notes-manage-panel__head">
+                <h4>مدیریت ترم پروتز</h4>
+                <p>مالک یا نماینده پروتز می‌تواند ترم اضافه کند یا عنوان و متن ترم‌های موجود را تغییر دهد.</p>
+            </div>
+
+            <form class="notes-manage-panel__form" id="prosthesis-term-form" novalidate>
+                <div class="notes-manage-panel__fields">
+                    <label class="notes-manage-panel__field">
+                        <span>عنوان ترم</span>
+                        <input id="prosthesis-term-title" name="title" type="text" maxlength="160" required placeholder="مثلاً ترم ۱">
+                    </label>
+
+                    <label class="notes-manage-panel__field">
+                        <span>کادر کوچک</span>
+                        <input id="prosthesis-term-kicker" name="kicker" type="text" maxlength="80" placeholder="مثلاً پروتز ۱۴۰۲">
+                    </label>
+
+                    <label class="notes-manage-panel__field notes-manage-panel__field--full">
+                        <span>توضیحات</span>
+                        <textarea id="prosthesis-term-description" name="description" maxlength="800" placeholder="توضیح کوتاه صفحه ترم"></textarea>
+                    </label>
+
+                    <label class="notes-manage-panel__field notes-manage-panel__field--full">
+                        <span>متن حالت خالی</span>
+                        <input id="prosthesis-term-empty-message" name="emptyMessage" type="text" maxlength="400" placeholder="وقتی هنوز کارت منبعی ثبت نشده است">
+                    </label>
+                </div>
+
+                <button class="card-btn notes-manage-panel__submit" id="prosthesis-term-submit" type="submit">افزودن ترم</button>
+                <p class="notes-manage-feedback" id="prosthesis-term-feedback" hidden></p>
+            </form>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>پروتز ۱۴۰۲</p>
+    </footer>
+
+    <script src="/assets/site/scripts/pwa.js?v=20260513-194739"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260513-194739"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260513-194739"></script>
+    <script src="/assets/site/scripts/prosthesis-notes.js?v=20260513-194739"></script>
+</body>
+</html>

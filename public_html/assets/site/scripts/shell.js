@@ -81,13 +81,20 @@
         var status = authStatus(state);
         var isPending = isAuthTransitioning(status);
         var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
-        var paymentEntry = state.loggedIn
+        var isProsthesis = !!(state && state.user && state.user.isProsthesisStudent);
+        var paymentEntry = state.loggedIn && !isProsthesis
             ? { href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/", "/payments/"] }
             : { href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] };
-        return [
+        var items = [
             { href: "/app/", label: "خانه", icon: "home", active: ["/app/"] },
-            { href: "/chat/", label: "چت", icon: "chat", active: ["/chat/"] },
-            paymentEntry,
+        ];
+        if (!isProsthesis) {
+            items.push({ href: "/chat/", label: "چت", icon: "chat", active: ["/chat/"] });
+            items.push(paymentEntry);
+        } else {
+            items.push({ href: "/prosthesis-1402/", label: "پروتز", icon: "exam", active: ["/prosthesis-1402/"] });
+        }
+        items.push(
             {
                 href: accountHref,
                 label: state.loggedIn ? "حساب" : "ورود",
@@ -95,7 +102,8 @@
                 active: ["/account/"],
                 pending: isPending
             }
-        ];
+        );
+        return items;
     }
 
     function ensureBottomNav() {

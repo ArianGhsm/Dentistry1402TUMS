@@ -8,6 +8,7 @@ const NOTES_1402_MIN_TERM = 5;
 const NOTES_1402_MAX_TERM = 12;
 const NOTES_1402_SEED_BACKFILL_VERSION = 0;
 const NOTES_1403_SCHEMA_VERSION = 1;
+const NOTES_PROSTHESIS_1402_SCHEMA_VERSION = 1;
 
 function notes_1402_store_path(): string
 {
@@ -27,6 +28,16 @@ function notes_1403_store_path(): string
 function notes_1403_lock_path(): string
 {
     return dent_storage_path('notes/1403_archive.lock');
+}
+
+function notes_prosthesis_1402_store_path(): string
+{
+    return dent_storage_path('notes/prosthesis_1402_terms.json');
+}
+
+function notes_prosthesis_1402_lock_path(): string
+{
+    return dent_storage_path('notes/prosthesis_1402_terms.lock');
 }
 
 function notes_1402_term_template(int $term): array
@@ -582,6 +593,188 @@ function notes_1403_save_store_unlocked(array $store): void
     dent_write_json_file(notes_1403_store_path(), notes_1403_normalize_store($store));
 }
 
+function notes_prosthesis_1402_default_store(): array
+{
+    return [
+        'schemaVersion' => NOTES_PROSTHESIS_1402_SCHEMA_VERSION,
+        'nextTermId' => 1,
+        'nextItemId' => 1,
+        'terms' => [],
+    ];
+}
+
+function notes_prosthesis_1402_ensure_storage(): void
+{
+    dent_ensure_directory(dirname(notes_prosthesis_1402_store_path()));
+    if (!is_file(notes_prosthesis_1402_store_path())) {
+        dent_write_json_file(notes_prosthesis_1402_store_path(), notes_prosthesis_1402_default_store());
+    }
+}
+
+function notes_prosthesis_1402_parse_term_id($raw): int
+{
+    $termId = (int) dent_normalize_digits((string) $raw);
+    if ($termId <= 0) {
+        dent_error('شناسه ترم پروتز معتبر نیست.', 422);
+    }
+
+    return $termId;
+}
+
+function notes_prosthesis_1402_normalize_term_record(array $seed): ?array
+{
+    $id = max(0, (int) ($seed['id'] ?? 0));
+    if ($id <= 0) {
+        return null;
+    }
+
+    $title = dent_clean_text((string) ($seed['title'] ?? ''), 160);
+    if ($title === '') {
+        return null;
+    }
+
+    $kicker = dent_clean_text((string) ($seed['kicker'] ?? ''), 80);
+    if ($kicker === '') {
+        $kicker = 'پروتز ۱۴۰۲';
+    }
+
+    $description = dent_clean_text((string) ($seed['description'] ?? ''), 800);
+    if ($description === '') {
+        $description = 'منابع این ترم به‌مرور اضافه می‌شوند.';
+    }
+
+    $emptyMessage = dent_clean_text((string) ($seed['emptyMessage'] ?? ''), 400);
+    if ($emptyMessage === '') {
+        $emptyMessage = 'برای این ترم هنوز منبعی ثبت نشده است.';
+    }
+
+    $itemsSeed = is_array($seed['items'] ?? null) ? $seed['items'] : [];
+    $items = [];
+    foreach ($itemsSeed as $itemSeed) {
+        if (!is_array($itemSeed)) {
+            continue;
+        }
+        $item = notes_1402_normalize_item_record($itemSeed);
+        if ($item !== null) {
+            $items[] = $item;
+        }
+    }
+    usort($items, static function (array $left, array $right): int {
+        return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
+    });
+
+    return [
+        'id' => $id,
+        'kicker' => $kicker,
+        'title' => $title,
+        'description' => $description,
+        'emptyMessage' => $emptyMessage,
+        'items' => $items,
+        'createdAt' => (string) ($seed['createdAt'] ?? dent_iso_now()),
+        'updatedAt' => (string) ($seed['updatedAt'] ?? dent_iso_now()),
+    ];
+}
+
+function notes_prosthesis_1402_normalize_store(array $seed): array
+{
+    $termsSeed = is_array($seed['terms'] ?? null) ? $seed['terms'] : [];
+    $terms = [];
+    $maxTermId = 0;
+    $maxItemId = 0;
+
+    foreach ($termsSeed as $termSeed) {
+        if (!is_array($termSeed)) {
+            continue;
+        }
+        $term = notes_prosthesis_1402_normalize_term_record($termSeed);
+        if ($term === null) {
+            continue;
+        }
+        $termId = (int) $term['id'];
+        $maxTermId = max($maxTermId, $termId);
+        foreach ($term['items'] as $item) {
+            $maxItemId = max($maxItemId, (int) ($item['id'] ?? 0));
+        }
+        $terms[(string) $termId] = $term;
+    }
+
+    uasort($terms, static function (array $left, array $right): int {
+        return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
+    });
+
+    return [
+        'schemaVersion' => NOTES_PROSTHESIS_1402_SCHEMA_VERSION,
+        'nextTermId' => max(1, (int) ($seed['nextTermId'] ?? 1), $maxTermId + 1),
+        'nextItemId' => max(1, (int) ($seed['nextItemId'] ?? 1), $maxItemId + 1),
+        'terms' => $terms,
+    ];
+}
+
+function notes_prosthesis_1402_load_store_unlocked(): array
+{
+    $raw = dent_read_json_file(notes_prosthesis_1402_store_path(), notes_prosthesis_1402_default_store());
+    if (!is_array($raw)) {
+        $raw = notes_prosthesis_1402_default_store();
+    }
+
+    return notes_prosthesis_1402_normalize_store($raw);
+}
+
+function notes_prosthesis_1402_save_store_unlocked(array $store): void
+{
+    dent_write_json_file(notes_prosthesis_1402_store_path(), notes_prosthesis_1402_normalize_store($store));
+}
+
+function notes_prosthesis_1402_read_store(): array
+{
+    notes_prosthesis_1402_ensure_storage();
+
+    $lock = fopen(notes_prosthesis_1402_lock_path(), 'c+');
+    if ($lock === false) {
+        dent_error('خطا در دسترسی به قفل آرشیو پروتز.', 500);
+    }
+
+    try {
+        if (!flock($lock, LOCK_SH)) {
+            throw new RuntimeException('Unable to acquire prosthesis notes shared lock.');
+        }
+
+        return notes_prosthesis_1402_load_store_unlocked();
+    } finally {
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+}
+
+/**
+ * @template T
+ * @param callable(array):T $callback
+ * @return T
+ */
+function notes_prosthesis_1402_with_store_lock(callable $callback)
+{
+    notes_prosthesis_1402_ensure_storage();
+
+    $lock = fopen(notes_prosthesis_1402_lock_path(), 'c+');
+    if ($lock === false) {
+        dent_error('خطا در دسترسی به قفل آرشیو پروتز.', 500);
+    }
+
+    try {
+        if (!flock($lock, LOCK_EX)) {
+            throw new RuntimeException('Unable to acquire prosthesis notes exclusive lock.');
+        }
+
+        $store = notes_prosthesis_1402_load_store_unlocked();
+        $result = $callback($store);
+        notes_prosthesis_1402_save_store_unlocked($store);
+        return $result;
+    } finally {
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+}
+
 function notes_1403_read_store(): array
 {
     notes_1403_ensure_storage();
@@ -705,7 +898,7 @@ function notes_parse_cohort($raw): string
         return '1402';
     }
 
-    if (!in_array($cohort, ['1402', '1403'], true)) {
+    if (!in_array($cohort, ['1402', '1403', 'prosthesis-1402'], true)) {
         dent_error('آرشیو منابع معتبر نیست.', 422);
     }
 
@@ -784,10 +977,81 @@ function notes_1403_archive_payload(array $store): array
     ];
 }
 
+function notes_prosthesis_1402_term_payload(array $termRecord): array
+{
+    $items = is_array($termRecord['items'] ?? null) ? $termRecord['items'] : [];
+    $itemPayloads = [];
+    foreach ($items as $item) {
+        if (is_array($item)) {
+            $itemPayloads[] = notes_1402_item_payload($item);
+        }
+    }
+
+    return [
+        'cohort' => 'prosthesis-1402',
+        'term' => (int) ($termRecord['id'] ?? 0),
+        'id' => (int) ($termRecord['id'] ?? 0),
+        'kicker' => (string) ($termRecord['kicker'] ?? ''),
+        'title' => (string) ($termRecord['title'] ?? ''),
+        'description' => (string) ($termRecord['description'] ?? ''),
+        'emptyMessage' => (string) ($termRecord['emptyMessage'] ?? ''),
+        'items' => $itemPayloads,
+        'createdAt' => (string) ($termRecord['createdAt'] ?? ''),
+        'updatedAt' => (string) ($termRecord['updatedAt'] ?? ''),
+    ];
+}
+
+function notes_prosthesis_1402_terms_payload(array $store): array
+{
+    $terms = [];
+    foreach (($store['terms'] ?? []) as $termRecord) {
+        if (is_array($termRecord)) {
+            $terms[] = notes_prosthesis_1402_term_payload($termRecord);
+        }
+    }
+
+    usort($terms, static function (array $left, array $right): int {
+        return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
+    });
+
+    return $terms;
+}
+
+function notes_can_manage_cohort(string $cohort, ?array $viewer): bool
+{
+    if (!is_array($viewer)) {
+        return false;
+    }
+
+    $role = (string) ($viewer['role'] ?? 'student');
+    if ($role === 'owner') {
+        return true;
+    }
+
+    return $cohort === 'prosthesis-1402' && $role === 'prosthesis_representative';
+}
+
+function notes_require_manage_cohort(string $cohort): array
+{
+    $viewer = dent_require_user();
+    if (!notes_can_manage_cohort($cohort, $viewer)) {
+        dent_error('اجازه مدیریت این آرشیو را ندارید.', 403);
+    }
+
+    return $viewer;
+}
+
 function notes_1402_next_item_id(array &$store): int
 {
     $next = max(1, (int) ($store['nextItemId'] ?? 1));
     $store['nextItemId'] = $next + 1;
+    return $next;
+}
+
+function notes_prosthesis_1402_next_term_id(array &$store): int
+{
+    $next = max(1, (int) ($store['nextTermId'] ?? 1));
+    $store['nextTermId'] = $next + 1;
     return $next;
 }
 
@@ -827,6 +1091,25 @@ function notes_parse_item_fields_from_post(): array
         'description' => $description,
         'buttonLabel' => $buttonLabel,
         'buttonUrl' => $buttonUrl,
+    ];
+}
+
+function notes_parse_prosthesis_term_fields_from_post(): array
+{
+    $title = dent_clean_text((string) ($_POST['title'] ?? ''), 160);
+    $kicker = dent_clean_text((string) ($_POST['kicker'] ?? ''), 80);
+    $description = dent_clean_text((string) ($_POST['description'] ?? ''), 800);
+    $emptyMessage = dent_clean_text((string) ($_POST['emptyMessage'] ?? ''), 400);
+
+    if ($title === '') {
+        dent_error('عنوان ترم پروتز الزامی است.', 422);
+    }
+
+    return [
+        'title' => $title,
+        'kicker' => $kicker !== '' ? $kicker : 'پروتز ۱۴۰۲',
+        'description' => $description !== '' ? $description : 'منابع این ترم به‌مرور اضافه می‌شوند.',
+        'emptyMessage' => $emptyMessage !== '' ? $emptyMessage : 'برای این ترم هنوز منبعی ثبت نشده است.',
     ];
 }
 
@@ -881,6 +1164,69 @@ function notes_1403_add_item(array $fields): array
     });
 }
 
+function notes_prosthesis_1402_add_term(array $fields): array
+{
+    return notes_prosthesis_1402_with_store_lock(static function (array &$store) use ($fields): array {
+        $termId = notes_prosthesis_1402_next_term_id($store);
+        $term = array_merge($fields, [
+            'id' => $termId,
+            'items' => [],
+            'createdAt' => dent_iso_now(),
+            'updatedAt' => dent_iso_now(),
+        ]);
+        $store['terms'][(string) $termId] = $term;
+        return $term;
+    });
+}
+
+function notes_prosthesis_1402_edit_term(int $termId, array $fields): array
+{
+    return notes_prosthesis_1402_with_store_lock(static function (array &$store) use ($termId, $fields): array {
+        $termKey = (string) $termId;
+        if (!is_array($store['terms'][$termKey] ?? null)) {
+            throw new RuntimeException('term-not-found');
+        }
+
+        $store['terms'][$termKey] = array_merge($store['terms'][$termKey], $fields, [
+            'id' => $termId,
+            'updatedAt' => dent_iso_now(),
+        ]);
+        return $store['terms'][$termKey];
+    });
+}
+
+function notes_prosthesis_1402_delete_term(int $termId): array
+{
+    return notes_prosthesis_1402_with_store_lock(static function (array &$store) use ($termId): array {
+        $termKey = (string) $termId;
+        if (!is_array($store['terms'][$termKey] ?? null)) {
+            throw new RuntimeException('term-not-found');
+        }
+
+        $deleted = $store['terms'][$termKey];
+        unset($store['terms'][$termKey]);
+        return $deleted;
+    });
+}
+
+function notes_prosthesis_1402_add_item(int $termId, array $fields): array
+{
+    return notes_prosthesis_1402_with_store_lock(static function (array &$store) use ($termId, $fields): array {
+        $termKey = (string) $termId;
+        if (!is_array($store['terms'][$termKey] ?? null)) {
+            throw new RuntimeException('term-not-found');
+        }
+        if (!is_array($store['terms'][$termKey]['items'] ?? null)) {
+            $store['terms'][$termKey]['items'] = [];
+        }
+
+        $item = notes_new_item($store, $fields);
+        array_unshift($store['terms'][$termKey]['items'], $item);
+        $store['terms'][$termKey]['updatedAt'] = dent_iso_now();
+        return $item;
+    });
+}
+
 function notes_1402_edit_item(int $term, int $itemId, array $fields): array
 {
     return notes_1402_with_store_lock(static function (array &$store) use ($term, $itemId, $fields): array {
@@ -917,6 +1263,29 @@ function notes_1403_edit_item(int $itemId, array $fields): array
 
             $updated = notes_update_item_record(is_array($item) ? $item : [], $fields);
             $store['archive']['items'][$index] = $updated;
+            return $updated;
+        }
+
+        throw new RuntimeException('item-not-found');
+    });
+}
+
+function notes_prosthesis_1402_edit_item(int $termId, int $itemId, array $fields): array
+{
+    return notes_prosthesis_1402_with_store_lock(static function (array &$store) use ($termId, $itemId, $fields): array {
+        $termKey = (string) $termId;
+        if (!is_array($store['terms'][$termKey]['items'] ?? null)) {
+            throw new RuntimeException('item-not-found');
+        }
+
+        foreach ($store['terms'][$termKey]['items'] as $index => $item) {
+            if ((int) ($item['id'] ?? 0) !== $itemId) {
+                continue;
+            }
+
+            $updated = notes_update_item_record(is_array($item) ? $item : [], $fields);
+            $store['terms'][$termKey]['items'][$index] = $updated;
+            $store['terms'][$termKey]['updatedAt'] = dent_iso_now();
             return $updated;
         }
 
@@ -969,19 +1338,133 @@ function notes_1403_delete_item(int $itemId): array
     });
 }
 
+function notes_prosthesis_1402_delete_item(int $termId, int $itemId): array
+{
+    return notes_prosthesis_1402_with_store_lock(static function (array &$store) use ($termId, $itemId): array {
+        $termKey = (string) $termId;
+        if (!is_array($store['terms'][$termKey]['items'] ?? null)) {
+            throw new RuntimeException('item-not-found');
+        }
+
+        $items = &$store['terms'][$termKey]['items'];
+        foreach ($items as $index => $item) {
+            if ((int) ($item['id'] ?? 0) !== $itemId) {
+                continue;
+            }
+
+            $deleted = is_array($item) ? $item : [];
+            array_splice($items, $index, 1);
+            $store['terms'][$termKey]['updatedAt'] = dent_iso_now();
+            return $deleted;
+        }
+
+        throw new RuntimeException('item-not-found');
+    });
+}
+
 $action = dent_request_action();
+
+if ($action === 'terms') {
+    notes_1402_require_method(['GET']);
+
+    $cohort = notes_parse_cohort($_GET['cohort'] ?? '1402');
+    if ($cohort !== 'prosthesis-1402') {
+        dent_error('فهرست ترم فقط برای آرشیو پروتز فعال است.', 422);
+    }
+
+    $viewer = dent_current_user();
+    dent_json_response([
+        'success' => true,
+        'terms' => notes_prosthesis_1402_terms_payload(notes_prosthesis_1402_read_store()),
+        'canManage' => notes_can_manage_cohort($cohort, $viewer),
+    ]);
+}
+
+if ($action === 'addTerm') {
+    notes_1402_require_method(['POST']);
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? 'prosthesis-1402');
+    if ($cohort !== 'prosthesis-1402') {
+        dent_error('افزودن ترم فقط برای آرشیو پروتز فعال است.', 422);
+    }
+    notes_require_manage_cohort($cohort);
+
+    $created = notes_prosthesis_1402_add_term(notes_parse_prosthesis_term_fields_from_post());
+    dent_json_response([
+        'success' => true,
+        'term' => notes_prosthesis_1402_term_payload($created),
+        'message' => 'ترم پروتز ثبت شد.',
+    ]);
+}
+
+if ($action === 'editTerm') {
+    notes_1402_require_method(['POST']);
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? 'prosthesis-1402');
+    if ($cohort !== 'prosthesis-1402') {
+        dent_error('ویرایش ترم فقط برای آرشیو پروتز فعال است.', 422);
+    }
+    notes_require_manage_cohort($cohort);
+    $termId = notes_prosthesis_1402_parse_term_id($_POST['term'] ?? '');
+
+    try {
+        $updated = notes_prosthesis_1402_edit_term($termId, notes_parse_prosthesis_term_fields_from_post());
+    } catch (RuntimeException $error) {
+        if ($error->getMessage() === 'term-not-found') {
+            dent_error('ترم موردنظر پیدا نشد.', 404);
+        }
+        throw $error;
+    }
+
+    dent_json_response([
+        'success' => true,
+        'term' => notes_prosthesis_1402_term_payload($updated),
+        'message' => 'ترم پروتز ذخیره شد.',
+    ]);
+}
+
+if ($action === 'deleteTerm') {
+    notes_1402_require_method(['POST']);
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? 'prosthesis-1402');
+    if ($cohort !== 'prosthesis-1402') {
+        dent_error('حذف ترم فقط برای آرشیو پروتز فعال است.', 422);
+    }
+    notes_require_manage_cohort($cohort);
+    $termId = notes_prosthesis_1402_parse_term_id($_POST['term'] ?? '');
+
+    try {
+        $deleted = notes_prosthesis_1402_delete_term($termId);
+    } catch (RuntimeException $error) {
+        if ($error->getMessage() === 'term-not-found') {
+            dent_error('ترم موردنظر پیدا نشد.', 404);
+        }
+        throw $error;
+    }
+
+    dent_json_response([
+        'success' => true,
+        'term' => notes_prosthesis_1402_term_payload($deleted),
+        'message' => 'ترم پروتز حذف شد.',
+    ]);
+}
 
 if ($action === 'term') {
     notes_1402_require_method(['GET']);
 
     $cohort = notes_parse_cohort($_GET['cohort'] ?? '1402');
-    $term = notes_require_term_for_cohort($cohort, $_GET['term'] ?? '');
+    $term = $cohort === 'prosthesis-1402'
+        ? notes_prosthesis_1402_parse_term_id($_GET['term'] ?? '')
+        : notes_require_term_for_cohort($cohort, $_GET['term'] ?? '');
     $viewer = dent_current_user();
-    $isOwner = is_array($viewer) && (($viewer['role'] ?? '') === 'owner');
     $termPayload = null;
 
     if ($cohort === '1403') {
         $termPayload = notes_1403_archive_payload(notes_1403_read_store());
+    } elseif ($cohort === 'prosthesis-1402') {
+        $store = notes_prosthesis_1402_read_store();
+        $termRecord = $store['terms'][(string) $term] ?? null;
+        if (!is_array($termRecord)) {
+            dent_error('ترم موردنظر پیدا نشد.', 404);
+        }
+        $termPayload = notes_prosthesis_1402_term_payload($termRecord);
     } else {
         $termPayload = notes_1402_term_payload(notes_1402_read_store(), $term);
     }
@@ -989,20 +1472,33 @@ if ($action === 'term') {
     dent_json_response([
         'success' => true,
         'term' => $termPayload,
-        'canManage' => $isOwner,
+        'canManage' => notes_can_manage_cohort($cohort, $viewer),
     ]);
 }
 
 if ($action === 'addItem') {
     notes_1402_require_method(['POST']);
-    dent_require_owner();
 
     $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
-    $term = notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
+    notes_require_manage_cohort($cohort);
+    $term = $cohort === 'prosthesis-1402'
+        ? notes_prosthesis_1402_parse_term_id($_POST['term'] ?? '')
+        : notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
     $fields = notes_parse_item_fields_from_post();
-    $created = $cohort === '1403'
-        ? notes_1403_add_item($fields)
-        : notes_1402_add_item($term, $fields);
+    try {
+        if ($cohort === '1403') {
+            $created = notes_1403_add_item($fields);
+        } elseif ($cohort === 'prosthesis-1402') {
+            $created = notes_prosthesis_1402_add_item($term, $fields);
+        } else {
+            $created = notes_1402_add_item($term, $fields);
+        }
+    } catch (RuntimeException $error) {
+        if ($error->getMessage() === 'term-not-found') {
+            dent_error('ترم موردنظر پیدا نشد.', 404);
+        }
+        throw $error;
+    }
 
     dent_json_response([
         'success' => true,
@@ -1013,18 +1509,27 @@ if ($action === 'addItem') {
 
 if ($action === 'editItem') {
     notes_1402_require_method(['POST']);
-    dent_require_owner();
 
     $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
-    $term = notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
+    notes_require_manage_cohort($cohort);
+    $term = $cohort === 'prosthesis-1402'
+        ? notes_prosthesis_1402_parse_term_id($_POST['term'] ?? '')
+        : notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
     $itemId = notes_1402_parse_item_id($_POST['itemId'] ?? '');
     $fields = notes_parse_item_fields_from_post();
 
     try {
-        $updated = $cohort === '1403'
-            ? notes_1403_edit_item($itemId, $fields)
-            : notes_1402_edit_item($term, $itemId, $fields);
+        if ($cohort === '1403') {
+            $updated = notes_1403_edit_item($itemId, $fields);
+        } elseif ($cohort === 'prosthesis-1402') {
+            $updated = notes_prosthesis_1402_edit_item($term, $itemId, $fields);
+        } else {
+            $updated = notes_1402_edit_item($term, $itemId, $fields);
+        }
     } catch (RuntimeException $error) {
+        if ($error->getMessage() === 'term-not-found') {
+            dent_error('ترم موردنظر پیدا نشد.', 404);
+        }
         if ($error->getMessage() === 'item-not-found') {
             dent_error('کارت موردنظر پیدا نشد.', 404);
         }
@@ -1041,17 +1546,26 @@ if ($action === 'editItem') {
 
 if ($action === 'deleteItem') {
     notes_1402_require_method(['POST']);
-    dent_require_owner();
 
     $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
-    $term = notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
+    notes_require_manage_cohort($cohort);
+    $term = $cohort === 'prosthesis-1402'
+        ? notes_prosthesis_1402_parse_term_id($_POST['term'] ?? '')
+        : notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
     $itemId = notes_1402_parse_item_id($_POST['itemId'] ?? '');
 
     try {
-        $deleted = $cohort === '1403'
-            ? notes_1403_delete_item($itemId)
-            : notes_1402_delete_item($term, $itemId);
+        if ($cohort === '1403') {
+            $deleted = notes_1403_delete_item($itemId);
+        } elseif ($cohort === 'prosthesis-1402') {
+            $deleted = notes_prosthesis_1402_delete_item($term, $itemId);
+        } else {
+            $deleted = notes_1402_delete_item($term, $itemId);
+        }
     } catch (RuntimeException $error) {
+        if ($error->getMessage() === 'term-not-found') {
+            dent_error('ترم موردنظر پیدا نشد.', 404);
+        }
         if ($error->getMessage() === 'item-not-found') {
             dent_error('کارت موردنظر پیدا نشد.', 404);
         }

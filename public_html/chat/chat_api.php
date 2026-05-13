@@ -2566,7 +2566,7 @@ function chat_sanitize_message_text(string $value, int $maxLength = 2000): strin
 
 function chat_require_user(): array
 {
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $actorStudentNumber = chat_actor_student_number($user);
     if ($actorStudentNumber === '') {
         dent_error('هویت کاربر نامعتبر است.', 401, ['loggedOut' => true]);

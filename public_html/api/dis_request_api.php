@@ -1146,7 +1146,7 @@ function dis_request_emit_excel(array $dataset): void
 $action = dent_request_action();
 
 if ($action === 'status') {
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $store = dis_request_load_store();
     $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
     $response = $studentNumber !== '' ? dis_request_form_response_for_user($store, $studentNumber) : null;
@@ -1171,7 +1171,7 @@ if ($action === 'submit') {
         dent_error('متد ثبت فرم نامعتبر است.', 405);
     }
 
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $response = dis_request_submit($user, $_POST);
 
     dent_json_response([

@@ -35,7 +35,17 @@ function payments_api_require_method(array $methods): void
 
 function payments_api_require_public_user(): array
 {
-    return dent_require_user();
+    return dent_require_main_site_user();
+}
+
+function payments_api_current_public_user(): ?array
+{
+    $user = dent_current_user();
+    if ($user !== null && dent_user_is_prosthesis($user)) {
+        return null;
+    }
+
+    return $user;
 }
 
 function payments_api_user_can_view_order(array $order, array $user): bool
@@ -1500,7 +1510,7 @@ if ($action === 'quoteCart') {
 
 if ($action === 'publicCollection') {
     payments_api_require_method(['GET']);
-    $user = dent_current_user();
+    $user = payments_api_current_public_user();
     $token = payments_clean_collection_token((string) ($_GET['token'] ?? ''));
     if ($token === '') {
         dent_error('شناسه لینک پرداخت معتبر نیست.', 422);
@@ -1530,7 +1540,7 @@ if ($action === 'publicCollection') {
 
 if ($action === 'createCollectionOrder') {
     payments_api_require_method(['POST']);
-    $user = dent_current_user();
+    $user = payments_api_current_public_user();
 
     $token = payments_clean_collection_token((string) ($_POST['token'] ?? ''));
     if ($token === '') {
@@ -2412,7 +2422,7 @@ if ($action === 'callback') {
 
 if ($action === 'publicOrderResult') {
     payments_api_require_method(['GET']);
-    $user = dent_current_user();
+    $user = payments_api_current_public_user();
     $orderToken = dent_clean_text((string) ($_GET['orderToken'] ?? ''), 120);
     if ($orderToken === '') {
         dent_error('شناسه سفارش معتبر نیست.', 422);

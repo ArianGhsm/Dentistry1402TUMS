@@ -69,6 +69,7 @@
     var ownerStudentLastName = $("owner-student-last-name");
     var ownerStudentNumber = $("owner-student-number");
     var ownerStudentPassword = $("owner-student-password");
+    var ownerStudentRole = $("owner-student-role");
     var ownerStudentRotationMode = $("owner-student-rotation-mode");
     var ownerStudentRotationId = $("owner-student-rotation-id");
     var ownerStudentGroupNumber = $("owner-student-group-number");
@@ -1612,7 +1613,7 @@
     function renderOwnerSummary(users) {
         var totalUsers = users.length;
         var representatives = users.filter(function (user) {
-            return user.role === "representative";
+            return user.role === "representative" || user.role === "prosthesis_representative";
         }).length;
         var withGrades = users.filter(function (user) {
             return user.hasGrades;
@@ -1925,7 +1926,7 @@
 
     function renderRepresentatives(users) {
         var items = users.filter(function (user) {
-            return user.role === "representative";
+            return user.role === "representative" || user.role === "prosthesis_representative";
         });
 
         if (!items.length) {
@@ -1939,7 +1940,7 @@
             article.className = "representative-chip";
             article.innerHTML = [
                 "<strong>" + user.name + "</strong>",
-                "<span>" + user.studentNumber + "</span>"
+                "<span>" + user.studentNumber + " • " + ownerRoleMeta(user) + "</span>"
             ].join("");
             representativeList.appendChild(article);
         });
@@ -2019,12 +2020,19 @@
         if (user.role === "owner") {
             return "مالک اصلی";
         }
+        if (isProsthesisUser(user)) {
+            return user.role === "prosthesis_representative" ? "نماینده پروتز" : "دانشجوی پروتز";
+        }
 
         return user.role === "representative" ? "لغو نماینده" : "ثبت به‌عنوان نماینده";
     }
 
     function isOwnerUser(user) {
         return !!user && user.role === "owner";
+    }
+
+    function isProsthesisUser(user) {
+        return !!user && (user.role === "prosthesis_student" || user.role === "prosthesis_representative" || user.isProsthesisStudent);
     }
 
     function ownerRoleMeta(user) {
@@ -2539,7 +2547,7 @@
             representativeBtn.className = "shell-action-btn" + (user.role === "representative" ? " shell-action-btn-primary" : "");
             representativeBtn.dataset.ownerAction = "toggle-representative";
             representativeBtn.dataset.studentNumber = studentNumber;
-            representativeBtn.disabled = isOwnerUser(user) || busyState.representative || busyState.deletingUser;
+            representativeBtn.disabled = isOwnerUser(user) || isProsthesisUser(user) || busyState.representative || busyState.deletingUser;
             representativeBtn.textContent = busyState.representative ? "در حال ذخیره..." : toggleButtonLabel(user);
             actions.appendChild(representativeBtn);
 
@@ -3588,7 +3596,7 @@
         if (ownerMarkCampusStudentsButton) {
             ownerMarkCampusStudentsButton.disabled = ownerState.creatingStudent || ownerState.campusMarking;
         }
-        [ownerStudentFirstName, ownerStudentLastName, ownerStudentNumber, ownerStudentPassword, ownerStudentRotationMode, ownerStudentRotationId, ownerStudentGroupNumber].forEach(function (node) {
+        [ownerStudentFirstName, ownerStudentLastName, ownerStudentNumber, ownerStudentPassword, ownerStudentRole, ownerStudentRotationMode, ownerStudentRotationId, ownerStudentGroupNumber].forEach(function (node) {
             if (node) {
                 node.disabled = ownerState.creatingStudent;
             }
@@ -3606,6 +3614,7 @@
         var lastName = ownerStudentLastName ? ownerStudentLastName.value.trim() : "";
         var studentNumber = ownerStudentNumber ? ownerStudentNumber.value.trim() : "";
         var password = ownerStudentPassword ? ownerStudentPassword.value.trim() : "";
+        var role = ownerStudentRole ? String(ownerStudentRole.value || "student") : "student";
         var rotationMode = ownerStudentRotationMode ? String(ownerStudentRotationMode.value || "none") : "none";
         var rotationId = ownerStudentRotationId ? String(ownerStudentRotationId.value || "") : "";
         var groupNumber = ownerStudentGroupNumber ? String(ownerStudentGroupNumber.value || "") : "";
@@ -3633,6 +3642,7 @@
                 lastName: lastName,
                 studentNumber: studentNumber,
                 password: password,
+                role: role,
                 rotationMode: rotationMode,
                 rotationId: rotationId,
                 groupNumber: groupNumber

@@ -7,7 +7,7 @@ require_once __DIR__ . '/../api/grades_store.php';
 $action = dent_request_action();
 
 if ($action === 'me') {
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     dent_json_response(dent_build_grades_payload($user));
 }
 

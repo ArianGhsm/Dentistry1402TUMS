@@ -19,12 +19,16 @@
     }
 
     var cohort = String(document.body.dataset.notesCohort || "1402");
-    var rawTerm = String(document.body.dataset.termNumber || "");
+    var searchParams = new URLSearchParams(window.location.search || "");
+    var rawTerm = String(document.body.dataset.termNumber || searchParams.get("term") || "");
     var term = Number(rawTerm || "0");
-    if (cohort !== "1402" && cohort !== "1403") {
+    if (cohort !== "1402" && cohort !== "1403" && cohort !== "prosthesis-1402") {
         return;
     }
     if (cohort === "1402" && (!Number.isFinite(term) || term < 5 || term > 12)) {
+        return;
+    }
+    if (cohort === "prosthesis-1402" && (!Number.isFinite(term) || term <= 0)) {
         return;
     }
 
@@ -63,7 +67,7 @@
 
     function withContextPayload(payload) {
         var next = Object.assign({ cohort: cohort }, payload || {});
-        if (cohort === "1402") {
+        if (cohort === "1402" || cohort === "prosthesis-1402") {
             next.term = String(term);
         }
         return next;
@@ -259,7 +263,7 @@
         if (!auth || typeof auth.handleUnauthorizedPayload !== "function") {
             return false;
         }
-        return auth.handleUnauthorizedPayload(payload, "برای مدیریت منابع باید وارد حساب مالک شوید.");
+        return auth.handleUnauthorizedPayload(payload, "برای مدیریت منابع باید وارد حساب مجاز شوید.");
     }
 
     function loadTerm(options) {
@@ -404,7 +408,7 @@
         if (!state.termData) {
             state.termData = {
                 cohort: cohort,
-                term: cohort === "1402" ? term : 0,
+                term: cohort === "1402" || cohort === "prosthesis-1402" ? term : 0,
                 title: "",
                 description: "",
                 emptyMessage: "",
@@ -465,7 +469,7 @@
 
             request(action, "POST", payload).then(function (response) {
                 if (handleUnauthorized(response)) {
-                    throw new Error("برای مدیریت منابع باید وارد حساب مالک شوید.");
+                    throw new Error("برای مدیریت منابع باید وارد حساب مجاز شوید.");
                 }
 
                 if (!response || !response.success || !response.item) {
@@ -529,7 +533,7 @@
                 itemId: String(itemId)
             }).then(function (response) {
                 if (handleUnauthorized(response)) {
-                    throw new Error("برای مدیریت منابع باید وارد حساب مالک شوید.");
+                    throw new Error("برای مدیریت منابع باید وارد حساب مجاز شوید.");
                 }
 
                 if (!response || !response.success || !response.item) {

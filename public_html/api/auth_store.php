@@ -770,8 +770,8 @@ function dent_normalize_role(?string $role, string $studentNumber): string
     }
 
     $role = trim((string) $role);
-    if ($role === 'representative') {
-        return 'representative';
+    if (in_array($role, ['representative', 'prosthesis_student', 'prosthesis_representative'], true)) {
+        return $role;
     }
 
     return 'student';
@@ -787,6 +787,14 @@ function dent_role_label(string $role): string
         return 'نماینده';
     }
 
+    if ($role === 'prosthesis_representative') {
+        return 'نماینده پروتز';
+    }
+
+    if ($role === 'prosthesis_student') {
+        return 'دانشجوی پروتز';
+    }
+
     return 'دانشجو';
 }
 
@@ -797,6 +805,7 @@ function dent_permissions_for_role(string $role): array
             'moderateChat' => true,
             'manageUsers' => true,
             'manageRepresentatives' => true,
+            'manageProsthesisNotes' => true,
         ];
     }
 
@@ -805,6 +814,16 @@ function dent_permissions_for_role(string $role): array
             'moderateChat' => true,
             'manageUsers' => false,
             'manageRepresentatives' => false,
+            'manageProsthesisNotes' => false,
+        ];
+    }
+
+    if ($role === 'prosthesis_representative') {
+        return [
+            'moderateChat' => false,
+            'manageUsers' => false,
+            'manageRepresentatives' => false,
+            'manageProsthesisNotes' => true,
         ];
     }
 
@@ -812,7 +831,24 @@ function dent_permissions_for_role(string $role): array
         'moderateChat' => false,
         'manageUsers' => false,
         'manageRepresentatives' => false,
+        'manageProsthesisNotes' => false,
     ];
+}
+
+function dent_user_is_prosthesis(array $user): bool
+{
+    $role = dent_normalize_role($user['role'] ?? 'student', (string) ($user['studentNumber'] ?? ''));
+    return $role === 'prosthesis_student' || $role === 'prosthesis_representative';
+}
+
+function dent_require_main_site_user(): array
+{
+    $user = dent_require_user();
+    if (dent_user_is_prosthesis($user)) {
+        dent_error('این حساب به بخش‌های دانشجویی دندانپزشکی دسترسی ندارد.', 403);
+    }
+
+    return $user;
 }
 
 function dent_normalize_user_record($studentNumber, array $user): array
@@ -1153,6 +1189,8 @@ function dent_public_user(array $user): array
         'roleLabel' => dent_role_label($role),
         'isOwner' => $role === 'owner',
         'isRepresentative' => $role === 'representative',
+        'isProsthesisStudent' => $role === 'prosthesis_student' || $role === 'prosthesis_representative',
+        'isProsthesisRepresentative' => $role === 'prosthesis_representative',
         'canModerateChat' => $permissions['moderateChat'],
         'permissions' => $permissions,
         'profile' => [
@@ -1388,6 +1426,14 @@ function dent_list_public_users(bool $includeOwnerPrivate = false): array
             return 1;
         }
 
+        if (($left['role'] ?? '') === 'prosthesis_representative' && ($right['role'] ?? '') === 'prosthesis_student') {
+            return -1;
+        }
+
+        if (($right['role'] ?? '') === 'prosthesis_representative' && ($left['role'] ?? '') === 'prosthesis_student') {
+            return 1;
+        }
+
         return strcasecmp((string) ($left['sortableName'] ?? ''), (string) ($right['sortableName'] ?? ''));
     });
 
@@ -1539,6 +1585,7 @@ function dent_create_student_account(
     string $lastName,
     string $studentNumber,
     string $password,
+    string $role = 'student',
     string $rotationMode = 'none',
     ?int $rotationId = null,
     ?int $groupNumber = null,
@@ -1570,7 +1617,15 @@ function dent_create_student_account(
         dent_error('برای این شماره دانشجویی حسابی وجود دارد.', 409);
     }
 
+    $role = dent_normalize_role($role, $studentNumber);
+    if ($role === 'owner') {
+        dent_error('حساب مالک اصلی از این بخش قابل ساخت نیست.', 422);
+    }
+
     $rotationMode = trim(strtolower($rotationMode));
+    if ($role === 'prosthesis_student' || $role === 'prosthesis_representative') {
+        $rotationMode = 'none';
+    }
     if ($rotationMode === '' || $rotationMode === 'auto' || $rotationMode === 'catalog') {
         $rotationMode = 'none';
     }
@@ -1592,7 +1647,7 @@ function dent_create_student_account(
         'studentNumber' => $studentNumber,
         'name' => $name,
         'passwordHash' => dent_hash_password($password),
-        'role' => 'student',
+        'role' => $role,
         'profile' => dent_default_profile(),
         'nationalCode' => $normalizedNationalCode,
         'directoryPhoneNumber' => $normalizedDirectoryPhone,

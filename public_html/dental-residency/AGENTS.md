@@ -54,3 +54,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - GitHub sync
 
 قبل از upload کد، storage هاست باید mirror شود و هیچ runtime data از لپتاپ به هاست ارسال نشود. فقط فایل‌های تغییرکرده deploy شوند.
+
+## بررسی Medofast برای الهام محصول
+- Medofast فقط به‌عنوان reference رقابتی برای بررسی UX/flow/feature استفاده می‌شود؛ کپی مستقیم متن، سوال، asset، کد، رنگ/شکل اختصاصی یا برندینگ آن ممنوع است.
+- برای سایت‌های ایرانی از جمله Medofast بدون پروکسی وصل شو. اگر env یا مرورگر روی `127.0.0.1:10808` یا هر proxy دیگری است، برای درخواست/مرور Medofast آن را direct/no-proxy کن.
+- اگر برای بررسی صفحه‌های پشت login مدوفست نیاز به ورود بود، با شماره مالک `09009840305` OTP بگیر. بعد از درخواست کد، هر ۱۰ ثانیه فایل `C:\Users\ASUS\Desktop\code.txt` را چک کن تا مالک کد را آنجا بگذارد؛ کد را در repo، لاگ ماندگار یا مستندات ذخیره نکن.

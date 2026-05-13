@@ -8,7 +8,7 @@ require_once __DIR__ . '/navid_service.php';
 $action = dent_request_action();
 
 if ($action === 'feed') {
-    $user = dent_require_user();
+    $user = dent_require_main_site_user();
     $payload = navid_feed_payload(!empty($user['isOwner']) || (($user['role'] ?? '') === 'owner'));
     dent_json_response([
         'success' => true,
