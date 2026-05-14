@@ -19,6 +19,9 @@ param(
     [string]$ProxyEndpoint = "",
     [int]$ProxyBudgetMb = 0,
     [string]$CompletionSmsPhone = "09009840305",
+    [string]$CompletionSmsOwnerStudentNumber = "",
+    [string]$CompletionSmsOwnerPassword = "",
+    [string]$CompletionSmsCredentialPath = ".codex-local\deploy_completion_owner.json",
     [string]$CommitMessage = "chore: sync deployed laptop state to github",
     [string[]]$HealthCheckUrls = @(
         "https://dentistry1402tums.ir/",
@@ -1459,6 +1462,163 @@ function Sync-GitHubFromLaptop() {
     }
 }
 
+function Get-CompletionSmsLiveBaseUrl() {
+    foreach ($candidateUrl in @($HealthCheckUrls)) {
+        if ([string]::IsNullOrWhiteSpace($candidateUrl)) {
+            continue
+        }
+
+        $uri = $null
+        if ([Uri]::TryCreate($candidateUrl.Trim(), [UriKind]::Absolute, [ref]$uri)) {
+            $builder = [System.UriBuilder]::new($uri.Scheme, $uri.Host)
+            if (-not $uri.IsDefaultPort) {
+                $builder.Port = $uri.Port
+            }
+            $builder.Path = ""
+            $builder.Query = ""
+            return $builder.Uri.AbsoluteUri.TrimEnd("/")
+        }
+    }
+
+    return "https://dentistry1402tums.ir"
+}
+
+function Get-CompletionSmsCredentialFilePath() {
+    if ([string]::IsNullOrWhiteSpace($CompletionSmsCredentialPath)) {
+        return ""
+    }
+
+    if ([System.IO.Path]::IsPathRooted($CompletionSmsCredentialPath)) {
+        return $CompletionSmsCredentialPath
+    }
+
+    return Join-Path $projectRoot $CompletionSmsCredentialPath
+}
+
+function Get-CompletionSmsLiveCredentials() {
+    $studentNumber = $CompletionSmsOwnerStudentNumber
+    $password = $CompletionSmsOwnerPassword
+
+    if ([string]::IsNullOrWhiteSpace($studentNumber)) {
+        $studentNumber = [Environment]::GetEnvironmentVariable("DENT_DEPLOY_OWNER_STUDENT_NUMBER")
+    }
+    if ([string]::IsNullOrWhiteSpace($password)) {
+        $password = [Environment]::GetEnvironmentVariable("DENT_DEPLOY_OWNER_PASSWORD")
+    }
+
+    $credentialPath = Get-CompletionSmsCredentialFilePath
+    if (([string]::IsNullOrWhiteSpace($studentNumber) -or [string]::IsNullOrWhiteSpace($password)) -and
+        -not [string]::IsNullOrWhiteSpace($credentialPath) -and
+        (Test-Path -LiteralPath $credentialPath -PathType Leaf)) {
+        try {
+            $credential = Get-Content -LiteralPath $credentialPath -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ([string]::IsNullOrWhiteSpace($studentNumber) -and $credential.PSObject.Properties.Name -contains "studentNumber") {
+                $studentNumber = [string]$credential.studentNumber
+            }
+            if ([string]::IsNullOrWhiteSpace($password) -and $credential.PSObject.Properties.Name -contains "password") {
+                $password = [string]$credential.password
+            }
+        } catch {
+            Write-Warning "Unable to read completion SMS live credential file: $credentialPath"
+        }
+    }
+
+    return [PSCustomObject]@{
+        StudentNumber = $studentNumber
+        Password      = $password
+        Path          = $credentialPath
+    }
+}
+
+function Get-MaskedPhoneForReport([string]$phoneNumber) {
+    $digits = ($phoneNumber -replace '[^\d+]', '')
+    if ($digits.StartsWith("09") -and $digits.Length -eq 11) {
+        return "+98" + $digits.Substring(1, 3) + "***" + $digits.Substring($digits.Length - 2)
+    }
+    if ($digits.StartsWith("+989") -and $digits.Length -ge 13) {
+        return $digits.Substring(0, 6) + "***" + $digits.Substring($digits.Length - 2)
+    }
+    if ($digits.Length -gt 5) {
+        return $digits.Substring(0, 3) + "***" + $digits.Substring($digits.Length - 2)
+    }
+    return ""
+}
+
+function Send-LiveCompletionSms([string]$started) {
+    $baseUrl = Get-CompletionSmsLiveBaseUrl
+    $credentials = Get-CompletionSmsLiveCredentials
+    $phoneMasked = Get-MaskedPhoneForReport -phoneNumber $CompletionSmsPhone
+    $command = "$baseUrl/api/auth_api.php?action=smsHealthCheck"
+
+    if ([string]::IsNullOrWhiteSpace($credentials.StudentNumber) -or [string]::IsNullOrWhiteSpace($credentials.Password)) {
+        return [PSCustomObject]@{
+            Status      = "failed"
+            StartedAt   = $started
+            FinishedAt  = Get-IsoNow
+            PhoneMasked = $phoneMasked
+            Message     = "Live completion SMS credentials are missing. Set DENT_DEPLOY_OWNER_STUDENT_NUMBER/DENT_DEPLOY_OWNER_PASSWORD or create $($credentials.Path)."
+            Command     = $command
+            ExitCode    = 2
+        }
+    }
+
+    Write-Host "Final notification: send completion SMS through live site"
+    try {
+        $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+        $loginUrl = "$baseUrl/api/auth_api.php?action=login"
+        $loginBody = @{
+            studentNumber = [string]$credentials.StudentNumber
+            password      = [string]$credentials.Password
+        }
+        $loginResponse = Invoke-WebRequest -Uri $loginUrl -Method Post -Body $loginBody -WebSession $session -UseBasicParsing -MaximumRedirection 5 -TimeoutSec 45
+        $loginPayload = $loginResponse.Content | ConvertFrom-Json
+        $loginSuccess = $false
+        if ($null -ne $loginPayload -and $loginPayload.PSObject.Properties.Name -contains "success") {
+            $loginSuccess = [bool]$loginPayload.success
+        }
+        if (-not $loginSuccess) {
+            throw "Live owner login failed."
+        }
+
+        $smsBody = @{
+            phoneNumber = $CompletionSmsPhone
+        }
+        $smsResponse = Invoke-WebRequest -Uri $command -Method Post -Body $smsBody -WebSession $session -UseBasicParsing -MaximumRedirection 5 -TimeoutSec 90
+        $payload = $smsResponse.Content | ConvertFrom-Json
+        $success = $false
+        if ($null -ne $payload -and $payload.PSObject.Properties.Name -contains "success") {
+            $success = [bool]$payload.success
+        }
+        $message = ""
+        if ($null -ne $payload -and $payload.PSObject.Properties.Name -contains "message") {
+            $message = [string]$payload.message
+        }
+        if ([string]::IsNullOrWhiteSpace($message)) {
+            $message = if ($success) { "Live completion SMS sent." } else { "Live completion SMS failed." }
+        }
+
+        return [PSCustomObject]@{
+            Status      = if ($success) { "completed" } else { "failed" }
+            StartedAt   = $started
+            FinishedAt  = Get-IsoNow
+            PhoneMasked = $phoneMasked
+            Message     = $message
+            Command     = $command
+            ExitCode    = if ($success) { 0 } else { 1 }
+        }
+    } catch {
+        return [PSCustomObject]@{
+            Status      = "failed"
+            StartedAt   = $started
+            FinishedAt  = Get-IsoNow
+            PhoneMasked = $phoneMasked
+            Message     = $_.Exception.Message
+            Command     = $command
+            ExitCode    = 1
+        }
+    }
+}
+
 function Send-CompletionSms() {
     $started = Get-IsoNow
     if ($SkipCompletionSms) {
@@ -1487,90 +1647,7 @@ function Send-CompletionSms() {
         }
     }
 
-    $scriptPath = Join-Path $projectRoot "scripts\send_deploy_completion_sms.php"
-    if (-not (Test-Path -LiteralPath $scriptPath -PathType Leaf)) {
-        return [PSCustomObject]@{
-            Status      = "failed"
-            StartedAt   = $started
-            FinishedAt  = Get-IsoNow
-            PhoneMasked = ""
-            Message     = "Completion SMS script not found: $scriptPath"
-            Command     = ""
-            ExitCode    = 2
-        }
-    }
-
-    $php = Resolve-PhpCommand
-    if ([string]::IsNullOrWhiteSpace($php)) {
-        return [PSCustomObject]@{
-            Status      = "failed"
-            StartedAt   = $started
-            FinishedAt  = Get-IsoNow
-            PhoneMasked = ""
-            Message     = "PHP is required for completion SMS but no php command was found."
-            Command     = ""
-            ExitCode    = 2
-        }
-    }
-
-    $phpArgs = New-Object System.Collections.Generic.List[string]
-    foreach ($arg in @(Get-PhpRequiredExtensionArgs -phpPath $php)) {
-        [void]$phpArgs.Add([string]$arg)
-    }
-    [void]$phpArgs.Add($scriptPath)
-    [void]$phpArgs.Add("--phone")
-    [void]$phpArgs.Add($CompletionSmsPhone)
-
-    $command = "$php " + (($phpArgs | ForEach-Object {
-        $value = [string]$_
-        if ($value.Contains(" ")) {
-            '"' + $value.Replace('"', '\"') + '"'
-        } else {
-            $value
-        }
-    }) -join " ")
-
-    Write-Host "Final notification: send completion SMS to owner"
-    $output = & $php @phpArgs 2>&1
-    $exitCode = $LASTEXITCODE
-    $lines = @($output) | ForEach-Object { [string]$_ }
-    $jsonLine = @($lines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Last 1)
-    $payload = $null
-    if ($jsonLine.Count -gt 0) {
-        try {
-            $payload = [string]$jsonLine[-1] | ConvertFrom-Json
-        } catch {
-            $payload = $null
-        }
-    }
-
-    $success = $false
-    $phoneMasked = ""
-    $message = ""
-    if ($payload -ne $null) {
-        if ($payload.PSObject.Properties.Name -contains "success") {
-            $success = [bool]$payload.success
-        }
-        if ($payload.PSObject.Properties.Name -contains "phoneMasked") {
-            $phoneMasked = [string]$payload.phoneMasked
-        }
-        if ($payload.PSObject.Properties.Name -contains "message") {
-            $message = [string]$payload.message
-        }
-    }
-    if ([string]::IsNullOrWhiteSpace($message) -and $lines.Count -gt 0) {
-        $message = [string]$lines[-1]
-    }
-
-    return [PSCustomObject]@{
-        Status      = if ($exitCode -eq 0 -and $success) { "completed" } else { "failed" }
-        StartedAt   = $started
-        FinishedAt  = Get-IsoNow
-        PhoneMasked = $phoneMasked
-        Message     = $message
-        Command     = $command
-        ExitCode    = $exitCode
-    }
+    return Send-LiveCompletionSms -started $started
 }
 
 $validationInfo = [PSCustomObject]@{

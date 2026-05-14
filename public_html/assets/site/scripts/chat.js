@@ -37,6 +37,9 @@
     "\u{1F680}", "\u{1F6F8}", "\u{1F6E1}\uFE0F", "\u{1F4E2}", "\u{1F4CC}", "\u{1F4A3}"
   ];
   var REACTIONS = Array.from(new Set(QUICK_REACTIONS.concat(REACTION_LIBRARY)));
+  var pageCohort = document.body && document.body.dataset.chatCohort === "prosthesis-1402"
+    ? "prosthesis-1402"
+    : "main";
   var REACTION_GROUPS = [
     { id: "recent", label: "اخیر", emojis: [] },
     { id: "popular", label: "پرکاربرد", emojis: QUICK_REACTIONS.slice() },
@@ -826,6 +829,7 @@
     var normalizedMethod = method === "POST" ? "POST" : "GET";
     var opts = asObject(options) || {};
     var quiet = opts.quiet === true;
+    var requestPayload = Object.assign({ cohort: pageCohort }, payload || {});
     var requestOptions = {
       method: normalizedMethod,
       credentials: "same-origin",
@@ -836,11 +840,11 @@
     var url = "/chat/chat_api.php";
 
     if (normalizedMethod === "GET") {
-      var getParams = new URLSearchParams(Object.assign({ action: action }, payload || {}));
+      var getParams = new URLSearchParams(Object.assign({ action: action }, requestPayload));
       url += "?" + getParams.toString();
     } else {
       requestOptions.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
-      requestOptions.body = new URLSearchParams(Object.assign({ action: action }, payload || {}));
+      requestOptions.body = new URLSearchParams(Object.assign({ action: action }, requestPayload));
     }
 
     if (!quiet) setThreadUpdating(true);
@@ -5723,6 +5727,7 @@
       var xhr = new XMLHttpRequest();
       var form = new FormData();
       form.append("action", "uploadAttachment");
+      form.append("cohort", pageCohort);
       form.append("conversationId", conversationId);
       form.append("file", file, file.name || "file");
       if (opts.isVoice) {

@@ -1,10 +1,10 @@
 ﻿<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260514-132609">
-<link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260514-132609">
-<link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260514-132609">
-    <link rel="shortcut icon" href="/assets/images/favicon.png?v=20260514-132609">
+<link rel="stylesheet" href="/assets/site/styles/core.css?v=20260515-003612">
+<link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260515-003612">
+<link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260515-003612">
+    <link rel="shortcut icon" href="/assets/images/favicon.png?v=20260515-003612">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>آزمون‌های بیماری‌های سیستمیک ۱ | ورودی ۱۴۰۲ دندانپزشکی</title>
@@ -149,6 +149,30 @@
             align-items: center;
         }
 
+        html body.hub-page .hero-content,
+        html body.hub-page .cards-container,
+        html body.hub-page .action-card,
+        html body.hub-page .card-content {
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        html body.hub-page .cards-container,
+        html body.hub-page .action-card {
+            width: 100%;
+            overflow: hidden;
+        }
+
+        html body.hub-page .hero-title,
+        html body.hub-page .hero-desc,
+        html body.hub-page .card-title,
+        html body.hub-page .card-desc {
+            white-space: normal;
+            overflow-wrap: anywhere;
+            letter-spacing: 0;
+        }
+
         @media (min-width: 992px) {
             main {
                 grid-template-columns: 1fr 1fr;
@@ -289,12 +313,71 @@
             filter: brightness(1.1);
         }
 
+        .card-btn.is-disabled {
+            background: rgba(136, 146, 176, 0.18);
+            color: var(--text-secondary);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .action-card:hover .card-btn.is-disabled {
+            filter: none;
+        }
+
         .card-btn:active {
             transform: scale(0.96);
         }
 
         @media (max-width: 599px) {
-            .card-btn {
+            html body.hub-page main {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1.25rem;
+                width: 100%;
+                max-width: 100vw;
+                box-sizing: border-box;
+                padding: 1rem 0.85rem calc(6rem + env(safe-area-inset-bottom, 0px));
+                overflow-x: hidden;
+            }
+
+            html body.hub-page .hero-content {
+                text-align: center;
+            }
+
+            html body.hub-page .hero-title {
+                font-size: 1.28rem;
+                line-height: 1.7;
+            }
+
+            html body.hub-page .hero-desc {
+                margin-inline: auto;
+            }
+
+            html body.hub-page .card-header {
+                align-items: flex-start;
+                flex-wrap: wrap;
+            }
+
+            html body.hub-page .card-title {
+                flex: 1 1 100%;
+                min-width: 0;
+                font-size: 0.84rem;
+                line-height: 1.65;
+                word-break: break-word;
+            }
+
+            html body.hub-page .card-desc {
+                font-size: 0.76rem;
+                line-height: 1.9;
+                word-break: break-word;
+            }
+
+            html body.hub-page .action-card {
+                padding: 1rem;
+            }
+
+            html body.hub-page .card-btn {
                 width: 100%;
             }
         }
@@ -327,11 +410,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-<link rel="manifest" href="/manifest.webmanifest?v=20260514-132609">
-<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260514-132609">
-    <script src="/assets/site/scripts/theme.js?v=20260514-132609"></script>
-<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260514-132609">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260514-132609">
+<link rel="manifest" href="/manifest.webmanifest?v=20260515-003612">
+<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260515-003612">
+    <script src="/assets/site/scripts/theme.js?v=20260515-003612"></script>
+<link rel="stylesheet" href="/assets/site/styles/content.css?v=20260515-003612">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260515-003612">
 </head>
 <body class="hub-page">
 
@@ -491,9 +574,7 @@
       جلسه هشتم – بیماری‌های خون‌ریزی‌دهنده – استاد شیرازیان
     </p>
   </div>
-  <a href="/exams/systemicdiseases/8" class="card-btn">
-    شروع آزمون جلسه ۸
-  </a>
+  <span class="card-btn is-disabled" aria-disabled="true">در حال آماده‌سازی</span>
 </div>
 
 <!-- جداکننده میان‌ترم / پایان‌ترم -->
@@ -501,11 +582,11 @@
   <div class="card-content">
     <div class="card-header">
       <span class="card-badge">میان‌ترم</span>
-      <h3 class="card-title">پایان بخش اول – جلسات ۱ تا ۸</h3>
+      <h3 class="card-title">بخش اول – جلسات آماده‌شده</h3>
     </div>
     <p class="card-desc">
-      آزمون‌های جلسات ۱ تا ۸ مربوط به مباحث میان‌ترم هستند.
-      از آزمون جلسه ۹ به بعد، مباحث پایان‌ترم درس بیماری‌های سیستمیک ۱ پوشش داده می‌شوند.
+      آزمون‌های آماده‌شده بخش اول تا جلسه ۷ در دسترس هستند.
+      جلسه ۸ و مباحث پایان‌ترم بعد از آماده‌سازی فعال می‌شوند.
     </p>
   </div>
 </div>
@@ -521,9 +602,7 @@
       جلسه نهم – اختلالات هماتولوژیک – استاد شکیب
     </p>
   </div>
-  <a href="/exams/systemicdiseases/9" class="card-btn">
-    شروع آزمون جلسه ۹
-  </a>
+  <span class="card-btn is-disabled" aria-disabled="true">در حال آماده‌سازی</span>
 </div>
 
 <!-- آزمون ۱۰ -->
@@ -537,9 +616,7 @@
       جلسه دهم – اختلالات هماتولوژیک – استاد شکیب
     </p>
   </div>
-  <a href="/exams/systemicdiseases/10" class="card-btn">
-    شروع آزمون جلسه ۱۰
-  </a>
+  <span class="card-btn is-disabled" aria-disabled="true">در حال آماده‌سازی</span>
 </div>
 
 <!-- آزمون ۱۱ -->
@@ -553,9 +630,7 @@
       جلسه یازدهم – ایمنی و آلرژی – استاد موسوی
     </p>
   </div>
-  <a href="/exams/systemicdiseases/11" class="card-btn">
-    شروع آزمون جلسه ۱۱
-  </a>
+  <span class="card-btn is-disabled" aria-disabled="true">در حال آماده‌سازی</span>
 </div>
 
 <!-- آزمون ۱۲ -->
@@ -569,9 +644,7 @@
       جلسه دوازدهم – ایمنی و آلرژی – استاد موسوی
     </p>
   </div>
-  <a href="/exams/systemicdiseases/12" class="card-btn">
-    شروع آزمون جلسه ۱۲
-  </a>
+  <span class="card-btn is-disabled" aria-disabled="true">در حال آماده‌سازی</span>
 </div>
 
 <!-- آزمون ۱۳ -->
@@ -585,9 +658,7 @@
       جلسه سیزدهم – ایمنی و آلرژی – استاد موسوی
     </p>
   </div>
-  <a href="/exams/systemicdiseases/13" class="card-btn">
-    شروع آزمون جلسه ۱۳
-  </a>
+  <span class="card-btn is-disabled" aria-disabled="true">در حال آماده‌سازی</span>
 </div>
 
 <!-- آزمون ۱۴ -->
@@ -601,9 +672,7 @@
       جلسه چهاردهم – بیماری‌های کبد ۱ – استاد پورشهیدی
     </p>
   </div>
-  <a href="/exams/systemicdiseases/14" class="card-btn">
-    شروع آزمون جلسه ۱۴
-  </a>
+  <span class="card-btn is-disabled" aria-disabled="true">در حال آماده‌سازی</span>
 </div>
 
 <!-- آزمون ۱۵ -->
@@ -617,9 +686,7 @@
       جلسه پانزدهم – بیماری‌های کبد ۲ – استاد پورشهیدی
     </p>
   </div>
-  <a href="/exams/systemicdiseases/15" class="card-btn">
-    شروع آزمون جلسه ۱۵
-  </a>
+  <span class="card-btn is-disabled" aria-disabled="true">در حال آماده‌سازی</span>
 </div>
 
 <!-- آزمون ۱۶ -->
@@ -633,9 +700,7 @@
       جلسه شانزدهم – بیماری‌های گوارش ۱ – استاد تنکابنی
     </p>
   </div>
-  <a href="/exams/systemicdiseases/16" class="card-btn">
-    شروع آزمون جلسه ۱۶
-  </a>
+  <span class="card-btn is-disabled" aria-disabled="true">در حال آماده‌سازی</span>
 </div>
 
 <!-- آزمون ۱۷ -->
@@ -649,9 +714,7 @@
       جلسه هفدهم – بیماری‌های گوارش ۲ – استاد پورشهیدی
     </p>
   </div>
-  <a href="/exams/systemicdiseases/17" class="card-btn">
-    شروع آزمون جلسه ۱۷
-  </a>
+  <span class="card-btn is-disabled" aria-disabled="true">در حال آماده‌سازی</span>
 </div>
 
         </section>
@@ -661,16 +724,10 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-<script src="/assets/site/scripts/pwa.js?v=20260514-132609"></script>
-<script src="/assets/site/scripts/auth.js?v=20260514-132609"></script>
-<script src="/assets/site/scripts/shell.js?v=20260514-132609"></script>
+<script src="/assets/site/scripts/pwa.js?v=20260515-003612"></script>
+<script src="/assets/site/scripts/auth.js?v=20260515-003612"></script>
+<script src="/assets/site/scripts/shell.js?v=20260515-003612"></script>
 </body>
 </html>
-
-
-
-
-
-
 
 

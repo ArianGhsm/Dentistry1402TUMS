@@ -7,11 +7,12 @@ require_once __DIR__ . '/../api/grades_store.php';
 $action = dent_request_action();
 
 if ($action === 'me') {
-    $user = dent_require_main_site_user();
+    $user = dent_grades_require_user();
     dent_json_response(dent_build_grades_payload($user));
 }
 
 if ($action === 'ownerCatalog') {
+    dent_grades_require_user();
     dent_require_owner();
 
     dent_json_response([
@@ -25,6 +26,7 @@ if ($action === 'ownerImportGrades') {
         dent_error('متد import نمرات نامعتبر است.', 405);
     }
 
+    dent_grades_require_user();
     dent_require_owner();
 
     $result = null;
@@ -66,6 +68,7 @@ if ($action === 'ownerDeleteGradeCourse') {
         dent_error('متد حذف درس نامعتبر است.', 405);
     }
 
+    dent_grades_require_user();
     dent_require_owner();
     $courseKey = (string) ($_POST['courseKey'] ?? '');
     $result = dent_owner_delete_grade_course($courseKey);
@@ -80,6 +83,7 @@ if ($action === 'ownerResetGradebook') {
         dent_error('متد ریست کارنامه نامعتبر است.', 405);
     }
 
+    dent_grades_require_user();
     dent_require_owner();
     $confirm = trim((string) ($_POST['confirm'] ?? ''));
     if ($confirm !== 'RESET') {

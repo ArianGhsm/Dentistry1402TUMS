@@ -52,6 +52,9 @@
     var ownerDeleteCourseBtn = $("grades-owner-delete-course");
     var ownerResetAllBtn = $("grades-owner-reset-all");
     var ownerFeedback = $("grades-owner-feedback");
+    var pageCohort = document.body && document.body.dataset.gradesCohort === "prosthesis-1402"
+        ? "prosthesis-1402"
+        : "main";
 
     var currentPayload = null;
     var currentStudentNumber = "";
@@ -142,7 +145,8 @@
 
     async function gradesApiRequest(action, method, payload) {
         var requestMethod = method || "GET";
-        var url = "grades_api.php?action=" + encodeURIComponent(action);
+        var requestPayload = Object.assign({ cohort: pageCohort }, payload || {});
+        var url = "/grades/grades_api.php?action=" + encodeURIComponent(action);
         var options = {
             method: requestMethod,
             credentials: "same-origin",
@@ -151,9 +155,12 @@
             }
         };
 
+        if (requestMethod === "GET") {
+            url += "&cohort=" + encodeURIComponent(pageCohort);
+        }
         if (requestMethod !== "GET") {
             options.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
-            options.body = new URLSearchParams(payload || {});
+            options.body = new URLSearchParams(requestPayload);
         }
 
         var response = await fetch(url, options);
@@ -169,7 +176,8 @@
 
     async function gradesApiFormRequest(action, formData) {
         var body = formData instanceof FormData ? formData : new FormData();
-        var response = await fetch("grades_api.php?action=" + encodeURIComponent(action), {
+        body.append("cohort", pageCohort);
+        var response = await fetch("/grades/grades_api.php?action=" + encodeURIComponent(action), {
             method: "POST",
             credentials: "same-origin",
             headers: {
@@ -405,7 +413,7 @@
     }
 
     async function fetchGrades() {
-        var response = await fetch("grades_api.php?action=me", {
+            var response = await fetch("/grades/grades_api.php?action=me&cohort=" + encodeURIComponent(pageCohort), {
             method: "GET",
             credentials: "same-origin",
             headers: {

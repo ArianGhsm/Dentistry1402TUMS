@@ -10,6 +10,7 @@
 - UX تلگرام‌مانند فقط برای `/chat/` و بخش‌های تنظیمات/پروفایل مرتبط با چت مجاز است.
 - هیچ بخش غیرچتی نباید به الگوی پیام‌رسان تبدیل شود.
 - مسیر `/dental-residency/` یک زیرمحصول جدا و ایزوله برای رزیدنتی دندانپزشکی است؛ این بخش از نظر login، session، user store، state، optionها و instructionها نباید با Dentistry1402TUMS قاطی شود.
+- مسیر `/prosthesis-1402/` زیرمحصول ایزوله دانشجوهای پروتز ۱۴۰۲ است؛ auth/session همچنان از حساب سراسری سایت می‌آید اما state چت و نمرات آن باید جدا از دندانپزشکی عمومی نگه‌داری شود. مالک سایت در همه بخش‌های پروتز دسترسی دارد.
 - قبل از هر تغییر در `/dental-residency/` باید `public_html/dental-residency/AGENTS.md` خوانده شود. دستورهای داخلی آن بخش بر فایل‌های همان مسیر مقدم است، اما اصول عمومی حفظ UTF-8، کیفیت mobile/desktop، عدم false-success و deploy امن همچنان لازم‌الاجراست.
 
 ## 2) معماری کلان (کل پروژه)
@@ -45,6 +46,7 @@
 - تصاویر آپلودی کالاهای بخش خرید باید در storage مشترک `payments/uploads/` بمانند و نباید با فایل‌های deploy-replaced یا مسیرهای temp جایگزین شوند.
 - داده‌های مرکز آپلود و pastebin باید در storage مشترک `content_tools/store.json` بماند؛ فایل‌های آپلودشده فقط در `content_tools/uploads/` نگه‌داری شوند و deploy نباید فایل‌ها، pasteها، شمارنده دانلود/بازدید یا وضعیت لینک‌ها را reset کند.
 - داده‌های منابع/جزوات قابل مدیریت باید در storage مشترک `notes/` بماند؛ برای ۱۴۰۲ در `notes/1402_terms.json`، برای ۱۴۰۳ در `notes/1403_archive.json` و برای پروتز ۱۴۰۲ در `notes/prosthesis_1402_terms.json`. Deploy نباید کارت‌ها یا ترم‌های اضافه/ویرایش/حذف‌شده مالک یا نماینده پروتز را با seed یا HTML قدیمی برگرداند.
+- داده‌های چت پروتز باید جدا در `prosthesis_1402/chat/` بماند و داده‌های نمرات پروتز باید جدا در `grades/prosthesis_1402_grades.csv` و `grades/prosthesis_1402_meta.json` بماند؛ deploy نباید این state را با `chat/` یا `grades/grades.csv` دندانپزشکی قاطی یا جایگزین کند.
 - داده‌های runtime بخش Dental Residency باید در `storage/dental_residency/` بماند و deploy نباید login، OTP state، user store یا پیشرفت کاربران آن بخش را reset کند.
 - seed/backfill فقط هنگام نبود کامل فایل storage مجاز است. بعد از ساخته‌شدن فایل storage، migration یا backfill نباید حذف‌ها و ویرایش‌های مالک را با داده پیش‌فرض جایگزین کند مگر migration صریح و تاییدشده داشته باشد.
 - گزارش موفقیت کاذب ممنوع است: اگر داده فقط local یا cache است، موفقیت اعلام نشود.

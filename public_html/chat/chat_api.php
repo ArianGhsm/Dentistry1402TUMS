@@ -24,6 +24,38 @@ const CHAT_POLL_AUDIENCE_ROTATION_2 = 'rotation-2';
 const CHAT_POLL_AUDIENCE_BOTH_ROTATIONS = 'both-rotations';
 const CHAT_BRAND_ASSET_VERSION = '20260422-brand1';
 
+function chat_clean_cohort(?string $value): string
+{
+    $value = trim((string) $value);
+    return $value === 'prosthesis-1402' ? 'prosthesis-1402' : 'main';
+}
+
+function chat_requested_cohort(): string
+{
+    return chat_clean_cohort((string) ($_POST['cohort'] ?? ($_GET['cohort'] ?? '')));
+}
+
+function chat_set_active_cohort(string $cohort): void
+{
+    $GLOBALS['chat_active_cohort'] = chat_clean_cohort($cohort);
+}
+
+function chat_active_cohort(): string
+{
+    return chat_clean_cohort((string) ($GLOBALS['chat_active_cohort'] ?? 'main'));
+}
+
+function chat_is_prosthesis_context(): bool
+{
+    return chat_active_cohort() === 'prosthesis-1402';
+}
+
+function chat_page_url(string $suffix = ''): string
+{
+    $base = chat_is_prosthesis_context() ? '/prosthesis-1402/chat/' : '/chat/';
+    return $base . ltrim($suffix, '/');
+}
+
 function chat_brand_logo_url(): string
 {
     return '/assets/images/logo.png?v=' . CHAT_BRAND_ASSET_VERSION;
@@ -31,11 +63,19 @@ function chat_brand_logo_url(): string
 
 function chat_store_path(): string
 {
+    if (chat_is_prosthesis_context()) {
+        return dent_storage_path('prosthesis_1402/chat/store.json');
+    }
+
     return dent_storage_path('chat/store.json');
 }
 
 function chat_store_lock_path(): string
 {
+    if (chat_is_prosthesis_context()) {
+        return dent_storage_path('prosthesis_1402/chat/store.lock');
+    }
+
     return dent_storage_path('chat/store.lock');
 }
 
@@ -51,6 +91,10 @@ function chat_legacy_state_path(): string
 
 function chat_media_root_path(): string
 {
+    if (chat_is_prosthesis_context()) {
+        return dent_storage_path('prosthesis_1402/chat/media');
+    }
+
     return dent_storage_path('chat/media');
 }
 
@@ -89,6 +133,9 @@ function chat_public_media_url(string $attachmentId, string $variant = CHAT_MEDI
         'attachmentId' => $attachmentId,
         'variant' => $variant === CHAT_MEDIA_VARIANT_PREVIEW ? CHAT_MEDIA_VARIANT_PREVIEW : CHAT_MEDIA_VARIANT_ORIGINAL,
     ];
+    if (chat_is_prosthesis_context()) {
+        $query['cohort'] = 'prosthesis-1402';
+    }
     if ($download) {
         $query['download'] = '1';
     }
@@ -234,12 +281,15 @@ function chat_default_maintenance_state(array $seed = []): array
 function chat_default_class_conversation(array $legacyState = []): array
 {
     $now = time();
+    $isProsthesis = chat_is_prosthesis_context();
 
     return [
         'id' => CHAT_CLASS_CONVERSATION_ID,
         'type' => 'class-group',
-        'title' => 'گفت‌وگوی کلاس',
-        'about' => 'گفت‌وگوی عمومی ورودی ۱۴۰۲. عضویت این گفتگو برای همه دانشجویان اجباری است.',
+        'title' => $isProsthesis ? 'گفت‌وگوی پروتز ۱۴۰۲' : 'گفت‌وگوی کلاس',
+        'about' => $isProsthesis
+            ? 'گفت‌وگوی عمومی پروتز ۱۴۰۲. عضویت این گفتگو برای دانشجوهای پروتز اجباری است.'
+            : 'گفت‌وگوی عمومی ورودی ۱۴۰۲. عضویت این گفتگو برای همه دانشجویان اجباری است.',
         'avatarUrl' => chat_brand_logo_url(),
         'createdAt' => $now,
         'updatedAt' => $now,
@@ -2004,6 +2054,10 @@ function chat_legacy_migration_enabled(): bool
 
 function chat_has_legacy_store_files(): bool
 {
+    if (chat_is_prosthesis_context()) {
+        return false;
+    }
+
     return is_file(chat_legacy_messages_path()) || is_file(chat_legacy_state_path());
 }
 
@@ -2566,7 +2620,20 @@ function chat_sanitize_message_text(string $value, int $maxLength = 2000): strin
 
 function chat_require_user(): array
 {
-    $user = dent_require_main_site_user();
+    $user = dent_require_user();
+    $requestedCohort = chat_requested_cohort();
+    $role = dent_normalize_role((string) ($user['role'] ?? 'student'), (string) ($user['studentNumber'] ?? ''));
+    if ($role === 'owner') {
+        chat_set_active_cohort($requestedCohort);
+    } else {
+        $userCohort = dent_user_is_prosthesis($user) ? 'prosthesis-1402' : 'main';
+        if ($requestedCohort !== 'main' && $requestedCohort !== $userCohort) {
+            dent_error('این پیام‌رسان برای حساب شما فعال نیست.', 403);
+        }
+        chat_set_active_cohort($userCohort);
+    }
+
+    chat_ensure_storage();
     $actorStudentNumber = chat_actor_student_number($user);
     if ($actorStudentNumber === '') {
         dent_error('هویت کاربر نامعتبر است.', 401, ['loggedOut' => true]);
@@ -2579,6 +2646,32 @@ function chat_require_user(): array
     return $user;
 }
 
+function chat_user_belongs_to_active_cohort(array $user): bool
+{
+    $role = dent_normalize_role((string) ($user['role'] ?? 'student'), (string) ($user['studentNumber'] ?? ''));
+    if ($role === 'owner') {
+        return true;
+    }
+
+    return chat_is_prosthesis_context()
+        ? dent_user_is_prosthesis($user)
+        : !dent_user_is_prosthesis($user);
+}
+
+function chat_user_can_moderate_active_cohort(array $user): bool
+{
+    $role = dent_normalize_role((string) ($user['role'] ?? 'student'), (string) ($user['studentNumber'] ?? ''));
+    if ($role === 'owner') {
+        return true;
+    }
+
+    if (chat_is_prosthesis_context()) {
+        return $role === 'prosthesis_representative';
+    }
+
+    return $role === 'representative';
+}
+
 function chat_public_user_payload(array $user): array
 {
     $public = dent_public_user($user);
@@ -2588,7 +2681,9 @@ function chat_public_user_payload(array $user): array
         'name' => (string) ($public['name'] ?? ''),
         'role' => (string) ($public['role'] ?? 'student'),
         'roleLabel' => (string) ($public['roleLabel'] ?? dent_role_label('student')),
-        'canModerateChat' => (bool) ($public['canModerateChat'] ?? false),
+        'isOwner' => (bool) ($public['isOwner'] ?? false),
+        'isRepresentative' => chat_user_can_moderate_active_cohort($user),
+        'canModerateChat' => chat_user_can_moderate_active_cohort($user),
         'profile' => is_array($public['profile'] ?? null) ? $public['profile'] : dent_default_profile(),
         'avatarUrl' => (string) (($public['profile']['avatarUrl'] ?? '') ?: ''),
         'about' => (string) (($public['profile']['about'] ?? ($public['profile']['bio'] ?? '')) ?: ''),
@@ -2637,6 +2732,10 @@ function chat_conversation_member_student_numbers(array $conversation): array
         $users = dent_list_public_users();
         $studentNumbers = [];
         foreach ($users as $user) {
+            $record = dent_get_user_record((string) ($user['studentNumber'] ?? ''));
+            if (!is_array($record) || !chat_user_belongs_to_active_cohort($record)) {
+                continue;
+            }
             $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
             if ($studentNumber !== '') {
                 $studentNumbers[] = $studentNumber;
@@ -2686,11 +2785,11 @@ function chat_can_manage_conversation(array $conversation, array $user): bool
 
     $type = (string) ($conversation['type'] ?? 'group');
     if ($type === 'class-group') {
-        return dent_can_moderate_chat($user);
+        return chat_user_can_moderate_active_cohort($user);
     }
 
     if ($type === 'group') {
-        if (dent_can_moderate_chat($user)) {
+        if (chat_user_can_moderate_active_cohort($user)) {
             return true;
         }
 
@@ -2755,21 +2854,21 @@ function chat_can_send_message(array $conversation, array $user): bool
 function chat_can_create_poll(array $user): bool
 {
     $role = (string) ($user['role'] ?? 'student');
-    if ($role === 'owner' || $role === 'representative') {
+    if ($role === 'owner') {
         return true;
     }
 
-    return !empty($user['isOwner']) || !empty($user['isRepresentative']);
+    return chat_user_can_moderate_active_cohort($user);
 }
 
 function chat_can_view_student_numbers(array $user): bool
 {
     $role = (string) ($user['role'] ?? 'student');
-    if ($role === 'owner' || $role === 'representative') {
+    if ($role === 'owner') {
         return true;
     }
 
-    return !empty($user['isOwner']) || !empty($user['isRepresentative']);
+    return chat_user_can_moderate_active_cohort($user);
 }
 
 function chat_poll_status(array $poll, ?int $now = null): string
@@ -2886,7 +2985,7 @@ function chat_poll_can_manage(array $store, array $poll, array $user): bool
         return true;
     }
 
-    if (dent_can_moderate_chat($user)) {
+    if (chat_user_can_moderate_active_cohort($user)) {
         return true;
     }
 
@@ -3040,7 +3139,7 @@ function chat_poll_option_voters(array $poll): array
 
 function chat_poll_share_url(string $pollId): string
 {
-    return '/chat/';
+    return chat_page_url();
 }
 
 function chat_poll_payload(array $store, array $poll, array $viewer, bool $withVoterLists = true): array
@@ -3726,7 +3825,7 @@ function chat_attachment_access_allowed(array $store, array $attachment, array $
         return false;
     }
 
-    return chat_is_member($conversation, $viewerStudentNumber);
+    return chat_is_member($conversation, $viewerStudentNumber) || chat_user_can_moderate_active_cohort($user);
 }
 
 function chat_safe_download_filename(string $rawName, string $fallbackId): string
@@ -3959,7 +4058,7 @@ function chat_conversation_title_for_user(array $conversation, string $viewerStu
 {
     $type = (string) ($conversation['type'] ?? 'group');
     if ($type === 'class-group') {
-        return 'گفت‌وگوی کلاس';
+        return chat_is_prosthesis_context() ? 'گفت‌وگوی پروتز ۱۴۰۲' : 'گفت‌وگوی کلاس';
     }
 
     if ($type === 'direct') {
@@ -4022,7 +4121,7 @@ function chat_conversation_subtitle_for_user(
 {
     $type = (string) ($conversation['type'] ?? 'group');
     if ($type === 'class-group') {
-        return 'گفت‌وگوی اجباری مشترک کلاس';
+        return chat_is_prosthesis_context() ? 'گفت‌وگوی اجباری پروتز ۱۴۰۲' : 'گفت‌وگوی اجباری مشترک کلاس';
     }
 
     if ($type === 'direct') {
@@ -4091,7 +4190,7 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
         'isMandatory' => $isMandatory,
         'temporary' => chat_parse_bool($conversation['temporary'] ?? false, false),
         'conversationKind' => (string) ($settings['conversationKind'] ?? 'group'),
-        'shareUrl' => '/chat/?conversationId=' . rawurlencode($conversationId),
+        'shareUrl' => chat_page_url('?conversationId=' . rawurlencode($conversationId)),
         'memberCount' => count(chat_conversation_member_student_numbers($conversation)),
         'unreadCount' => chat_unread_count($store, $conversation, $viewerStudentNumber),
         'lastReadMessageId' => chat_last_read_message_id($store, $conversationId, $viewerStudentNumber),
@@ -4171,7 +4270,7 @@ function chat_user_visible_conversation_ids(array &$store, array $user): array
             );
         }
 
-        if (chat_is_member($conversation, $studentNumber)) {
+        if (chat_is_member($conversation, $studentNumber) || chat_user_can_moderate_active_cohort($user)) {
             $isMandatory = (bool) ($conversation['mandatory'] ?? false);
             if (
                 !$isMandatory
@@ -4822,7 +4921,7 @@ function chat_require_conversation_for_user(array &$store, string $conversationI
     }
 
     $isMemberAfterRepair = chat_is_member($conversation, $studentNumber);
-    if (!$isMemberAfterRepair) {
+    if (!$isMemberAfterRepair && !chat_user_can_moderate_active_cohort($user)) {
         dent_error('به این گفت‌وگو دسترسی ندارید.', 403);
     }
 
@@ -5386,7 +5485,7 @@ function chat_list_polls_for_user(array $store, array $user): array
 {
     $polls = [];
     $viewerStudentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
-    $canManageAny = dent_can_moderate_chat($user);
+    $canManageAny = chat_user_can_moderate_active_cohort($user);
 
     foreach ((array) ($store['polls'] ?? []) as $poll) {
         if (!is_array($poll)) {
@@ -5479,6 +5578,8 @@ function chat_delete_poll(array &$store, array $poll): void
 chat_ensure_storage();
 
 $action = dent_request_action();
+chat_set_active_cohort(chat_requested_cohort());
+chat_ensure_storage();
 
 if (in_array($action, ['login', 'logout', 'me'], true)) {
     dent_error('Chat-specific auth actions are deprecated. Use /api/auth_api.php for login/session.', 410, [
@@ -5608,18 +5709,26 @@ if ($action === 'mediaCleanupNow') {
 }
 
 if ($action === 'directory') {
-    chat_require_user();
+    $viewer = chat_require_user();
 
-    $users = dent_list_public_users();
-    foreach ($users as &$user) {
+    $users = [];
+    foreach (dent_list_public_users() as $user) {
+        $record = dent_get_user_record((string) ($user['studentNumber'] ?? ''));
+        if (!is_array($record) || !chat_user_belongs_to_active_cohort($record)) {
+            continue;
+        }
         $profile = is_array($user['profile'] ?? null) ? $user['profile'] : dent_default_profile();
         $user['avatarUrl'] = (string) (($profile['avatarUrl'] ?? '') ?: '');
         $user['about'] = (string) (($profile['about'] ?? ($profile['bio'] ?? '')) ?: '');
+        $user['canModerateChat'] = chat_user_can_moderate_active_cohort($record);
+        $user['isRepresentative'] = chat_user_can_moderate_active_cohort($record) && empty($user['isOwner']);
+        $users[] = $user;
     }
-    unset($user);
 
     dent_json_response([
         'success' => true,
+        'cohort' => chat_active_cohort(),
+        'viewer' => chat_public_user_payload($viewer),
         'users' => $users,
     ]);
 }

@@ -1073,6 +1073,83 @@ function dent_load_legacy_users(): array
     return $normalizedUsers;
 }
 
+function dent_prosthesis_1402_roster(): array
+{
+    return [
+        '40211448012' => ['firstName' => 'امیررضا', 'lastName' => 'آئین باروق', 'representative' => false],
+        '40211448014' => ['firstName' => 'اسماعیل', 'lastName' => 'ابراهیمی', 'representative' => false],
+        '40211448019' => ['firstName' => 'مهتاب', 'lastName' => 'اسماعیلی', 'representative' => true],
+        '40211448010' => ['firstName' => 'سیده ستایش', 'lastName' => 'اسماعیلی شیاده', 'representative' => false],
+        '40211448006' => ['firstName' => 'مجتبی', 'lastName' => 'اشرف', 'representative' => true],
+        '40211448004' => ['firstName' => 'زهرا', 'lastName' => 'بابائی', 'representative' => false],
+        '40211448001' => ['firstName' => 'مهدیه', 'lastName' => 'بیات شهبازی', 'representative' => false],
+        '40211448013' => ['firstName' => 'نرگس', 'lastName' => 'خلیلی', 'representative' => false],
+        '40211448018' => ['firstName' => 'علیرضا', 'lastName' => 'زارع کاریزی', 'representative' => false],
+        '40211448005' => ['firstName' => 'مهدی', 'lastName' => 'عمرانی', 'representative' => false],
+        '40211448007' => ['firstName' => 'ریحانه', 'lastName' => 'قاسمی', 'representative' => false],
+        '40211448015' => ['firstName' => 'سارا', 'lastName' => 'قریب', 'representative' => false],
+        '40211448002' => ['firstName' => 'امیر', 'lastName' => 'کردلو', 'representative' => false],
+        '40211448003' => ['firstName' => 'دلنیا', 'lastName' => 'کریمی سرابشهرک', 'representative' => false],
+        '40211448017' => ['firstName' => 'تینا', 'lastName' => 'کمالی شکیب', 'representative' => false],
+        '40211448008' => ['firstName' => 'امیرحسین', 'lastName' => 'مقدسیان', 'representative' => false, 'preserveExistingRole' => true],
+        '40211448011' => ['firstName' => 'فاطمه', 'lastName' => 'مهدی زاده اردکانی', 'representative' => false],
+        '40211448024' => ['firstName' => 'حمیدرضا', 'lastName' => 'منگلی', 'representative' => false],
+    ];
+}
+
+function dent_apply_prosthesis_1402_roster(array $users): array
+{
+    $changed = false;
+    $now = dent_iso_now();
+
+    foreach (dent_prosthesis_1402_roster() as $studentNumber => $entry) {
+        $studentNumber = dent_normalize_student_number((string) $studentNumber);
+        if ($studentNumber === '') {
+            continue;
+        }
+
+        $firstName = dent_clean_text((string) ($entry['firstName'] ?? ''), 60);
+        $lastName = dent_clean_text((string) ($entry['lastName'] ?? ''), 60);
+        $fullName = trim($firstName . ' ' . $lastName);
+        $targetRole = !empty($entry['representative']) ? 'prosthesis_representative' : 'prosthesis_student';
+
+        if (!isset($users[$studentNumber]) || !is_array($users[$studentNumber])) {
+            $users[$studentNumber] = dent_normalize_user_record($studentNumber, [
+                'studentNumber' => $studentNumber,
+                'name' => $fullName !== '' ? $fullName : $studentNumber,
+                'passwordHash' => dent_hash_password('12345678'),
+                'role' => $targetRole,
+                'profile' => dent_default_profile(),
+                'rotationOverride' => ['mode' => 'none'],
+                'createdAt' => $now,
+                'updatedAt' => $now,
+            ]);
+            $changed = true;
+            continue;
+        }
+
+        if (!empty($entry['preserveExistingRole'])) {
+            continue;
+        }
+
+        $user = $users[$studentNumber];
+        $currentRole = dent_normalize_role((string) ($user['role'] ?? 'student'), $studentNumber);
+        if ($currentRole !== $targetRole) {
+            $user['role'] = $targetRole;
+            $user['updatedAt'] = $now;
+            $users[$studentNumber] = dent_normalize_user_record($studentNumber, $user);
+            $changed = true;
+        }
+    }
+
+    ksort($users, SORT_STRING);
+
+    return [
+        'users' => $users,
+        'changed' => $changed,
+    ];
+}
+
 function dent_load_user_store(): array
 {
     $path = dent_auth_store_path();
@@ -1113,6 +1190,18 @@ function dent_load_user_store(): array
 
     if (!$normalizedUsers) {
         $normalizedUsers = dent_load_legacy_users();
+    }
+
+    $prosthesisRosterResult = dent_apply_prosthesis_1402_roster($normalizedUsers);
+    $normalizedUsers = is_array($prosthesisRosterResult['users'] ?? null)
+        ? $prosthesisRosterResult['users']
+        : $normalizedUsers;
+    if (!empty($prosthesisRosterResult['changed'])) {
+        dent_write_json_file($path, [
+            'schemaVersion' => 1,
+            'ownerStudentNumber' => dent_owner_student_number(),
+            'users' => $normalizedUsers,
+        ]);
     }
 
     return [
@@ -1461,7 +1550,12 @@ function dent_set_representative_status(string $studentNumber, bool $isRepresent
         dent_error('حساب مالک اصلی نمی‌تواند از نقش مالک خارج شود.', 422);
     }
 
-    $user['role'] = $isRepresentative ? 'representative' : 'student';
+    $currentRole = dent_normalize_role((string) ($user['role'] ?? 'student'), $studentNumber);
+    if ($currentRole === 'prosthesis_student' || $currentRole === 'prosthesis_representative') {
+        $user['role'] = $isRepresentative ? 'prosthesis_representative' : 'prosthesis_student';
+    } else {
+        $user['role'] = $isRepresentative ? 'representative' : 'student';
+    }
 
     return dent_persist_user($user);
 }
