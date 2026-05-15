@@ -134,8 +134,6 @@
             items.push({ href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/", "/payments/"] });
         } else {
             items.push({ href: "/prosthesis-1402/chat/", label: "چت", icon: "chat", active: ["/prosthesis-1402/chat/"] });
-            items.push({ href: "/prosthesis-1402/forms/", label: "فرم‌ها", icon: "forms", active: ["/prosthesis-1402/forms/"] });
-            items.push({ href: "/prosthesis-1402/grades/", label: "نمرات", icon: "grades", active: ["/prosthesis-1402/grades/"] });
         }
         items.push(
             {

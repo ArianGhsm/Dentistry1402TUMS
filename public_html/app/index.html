@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260515-100001">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260515-100001">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260515-100001">
-    <script src="/assets/site/scripts/theme.js?v=20260515-100001"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260515-100001">
-    <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260515-100001">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260515-100001">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260515-101731">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260515-101731">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260515-101731">
+    <script src="/assets/site/scripts/theme.js?v=20260515-101731"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260515-101731">
+    <link rel="stylesheet" href="/assets/site/styles/app.css?v=20260515-101731">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260515-101731">
 </head>
 <body class="app-dashboard-page app-dashboard-page--digipay">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -34,6 +34,7 @@
             <div class="home-wallet-card__copy">
                 <span class="home-kicker">صفحه اصلی کلاس</span>
                 <h2 id="app-home-title">خانه کلاس</h2>
+                <p>دسترسی سریع به امکانات و بخش‌های مهم.</p>
                 <a class="home-wallet-card__link" href="#home-services">مشاهده مسیرها</a>
             </div>
             <span class="home-wallet-card__logo" aria-hidden="true">
@@ -49,152 +50,169 @@
 
             <nav class="home-service-grid" aria-label="دسترسی‌های صفحه اصلی">
                 <a class="home-service-card" href="/forms/" data-main-student-only>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>فرم‌ها</strong><small>ثبت و مدیریت فرم‌ها</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <rect x="5.5" y="4.2" width="13" height="15.6" rx="3" stroke="currentColor" stroke-width="1.8"/>
                             <path d="M8.7 9H15.3M8.7 12.2H15.3M8.7 15.4H12.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>فرم‌ها</span>
                 </a>
                 <a class="home-service-card" href="/prosthesis-1402/forms/" data-prosthesis-only hidden>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>فرم‌های پروتز</strong><small>ثبت و مدیریت فرم‌های پروتز</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <rect x="5.5" y="4.2" width="13" height="15.6" rx="3" stroke="currentColor" stroke-width="1.8"/>
                             <path d="M8.7 9H15.3M8.7 12.2H15.3M8.7 15.4H12.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>فرم‌های پروتز</span>
                 </a>
                 <a class="home-service-card" href="/files/" data-owner-only hidden>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>مرکز آپلود</strong><small>ارسال و مدیریت فایل‌ها</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M5.5 7.6A2.6 2.6 0 0 1 8.1 5H11L12.8 6.8H16A2.6 2.6 0 0 1 18.6 9.4V16.4A2.6 2.6 0 0 1 16 19H8A2.6 2.6 0 0 1 5.4 16.4V7.6Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                             <path d="M12 15.4V10.2M12 10.2L9.9 12.3M12 10.2L14.1 12.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </span>
-                    <span>مرکز آپلود</span>
                 </a>
                 <a class="home-service-card" href="/paste/" data-owner-only hidden>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>Pastebin</strong><small>یادداشت‌های سریع و لینک‌دار</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <rect x="5.2" y="4.5" width="13.6" height="15" rx="3" stroke="currentColor" stroke-width="1.8"/>
                             <path d="M8.6 8.7H15.4M8.6 12H15.4M8.6 15.3H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>Pastebin</span>
                 </a>
                 <a class="home-service-card" href="/grades/" data-main-student-only>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>نمرات</strong><small>مشاهده کارنامه و نمرات</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M5 18.5V13.4M12 18.5V9.2M19 18.5V5.5M3.8 19.5H20.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>نمرات</span>
                 </a>
                 <a class="home-service-card" href="/prosthesis-1402/grades/" data-prosthesis-only hidden>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>نمرات پروتز</strong><small>کارنامه جداگانه پروتز</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M5 18.5V13.4M12 18.5V9.2M19 18.5V5.5M3.8 19.5H20.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>نمرات پروتز</span>
                 </a>
                 <a class="home-service-card" href="/exams/" data-main-student-only>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>آزمون‌ها</strong><small>شرکت در آزمون‌های تمرینی</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M7 4.7H17A2 2 0 0 1 19 6.7V19.4L12 16.4L5 19.4V6.7A2 2 0 0 1 7 4.7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                             <path d="M9 9.2H15M9 12.6H13.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>آزمون‌ها</span>
                 </a>
                 <a class="home-service-card" href="/prosthesis-1402/exams/" data-prosthesis-only hidden>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>آزمون‌های پروتز</strong><small>مسیر آزمون‌های پروتز</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M7 4.7H17A2 2 0 0 1 19 6.7V19.4L12 16.4L5 19.4V6.7A2 2 0 0 1 7 4.7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                             <path d="M9 9.2H15M9 12.6H13.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>آزمون‌های پروتز</span>
                 </a>
                 <a class="home-service-card" href="/notes/" data-main-student-only>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>جزوات ۱۴۰۲</strong><small>دسترسی به جزوات سال ۱۴۰۲</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M4.8 7.2A2.2 2.2 0 0 1 7 5H10.1L11.7 6.8H17A2.2 2.2 0 0 1 19.2 9V17A2.2 2.2 0 0 1 17 19.2H7A2.2 2.2 0 0 1 4.8 17V7.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                         </svg>
                     </span>
-                    <span>جزوات ۱۴۰۲</span>
                 </a>
                 <a class="home-service-card" href="/prosthesis-1402/" data-prosthesis-only hidden>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>منابع پروتز</strong><small>ترم‌ها و جزوات پروتز ۱۴۰۲</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M4.8 7.2A2.2 2.2 0 0 1 7 5H10.1L11.7 6.8H17A2.2 2.2 0 0 1 19.2 9V17A2.2 2.2 0 0 1 17 19.2H7A2.2 2.2 0 0 1 4.8 17V7.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                         </svg>
                     </span>
-                    <span>منابع پروتز</span>
                 </a>
                 <a class="home-service-card" href="/notes/1403/" data-main-student-only>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>جزوات ۱۴۰۳</strong><small>دسترسی به جزوات سال ۱۴۰۳</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <rect x="5" y="5.5" width="14" height="14" rx="3" stroke="currentColor" stroke-width="1.8"/>
                             <path d="M8.5 4V7.2M15.5 4V7.2M5.5 10H18.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>جزوات ۱۴۰۳</span>
                 </a>
                 <a class="home-service-card" href="/prosthesis-1402/">
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>پروتز ۱۴۰۲</strong><small>بخش ایزوله دانشجویان پروتز</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M6 6.8A2.8 2.8 0 0 1 8.8 4H15.2A2.8 2.8 0 0 1 18 6.8V17.2A2.8 2.8 0 0 1 15.2 20H8.8A2.8 2.8 0 0 1 6 17.2V6.8Z" stroke="currentColor" stroke-width="1.8"/>
                             <path d="M9 9H15M9 12.2H15M9 15.4H12.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>پروتز ۱۴۰۲</span>
                 </a>
                 <a class="home-service-card" href="/prosthesis-1402/chat/" data-prosthesis-only hidden>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>چت پروتز</strong><small>گفت‌وگوهای پروتز ۱۴۰۲</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M7 18.5L3.8 20L4.7 16.6C3.6 15.3 3 13.7 3 12C3 7.58 7.03 4 12 4C16.97 4 21 7.58 21 12C21 16.42 16.97 20 12 20C10.2 20 8.53 19.53 7 18.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                         </svg>
                     </span>
-                    <span>چت پروتز</span>
                 </a>
                 <a class="home-service-card" href="/navid/" data-main-student-only>
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>مشاهده تکالیف</strong><small>بررسی و پیگیری تکالیف</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M6 6.8A2.8 2.8 0 0 1 8.8 4H15.2A2.8 2.8 0 0 1 18 6.8V17.2A2.8 2.8 0 0 1 15.2 20H8.8A2.8 2.8 0 0 1 6 17.2V6.8Z" stroke="currentColor" stroke-width="1.8"/>
                             <path d="M9.2 8.8H14.8M9.2 12H14.8M9.2 15.2H12.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>مشاهده تکالیف</span>
                 </a>
                 <a class="home-service-card" href="https://navid.tums.ac.ir/" target="_blank" rel="noopener">
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>سامانه نوید</strong><small>ورود به سامانه نوید</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M5.5 18.8V7.2A2.2 2.2 0 0 1 7.7 5H16.3A2.2 2.2 0 0 1 18.5 7.2V18.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                             <path d="M4.2 19H19.8M8.4 9H15.6M8.4 12.2H15.6M8.4 15.4H12.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>سامانه نوید</span>
                 </a>
                 <a class="home-service-card" href="https://foodstu.tums.ac.ir/" target="_blank" rel="noopener">
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>سامانه تغذیه</strong><small>برنامه و اطلاعیه غذا</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M7.2 4.8V11.2A2.8 2.8 0 0 0 10 14V19.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                             <path d="M4.8 4.8V10.8M9.6 4.8V10.8M15.2 5.2V19.2M15.2 5.2C18.1 6.1 19.4 8.4 19.2 11.2C19.1 13.1 17.5 14.4 15.2 14.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </span>
-                    <span>سامانه تغذیه</span>
                 </a>
                 <a class="home-service-card" href="https://sipad.tums.ac.ir/" target="_blank" rel="noopener">
+                    <span class="home-service-card__chevron" aria-hidden="true"></span>
+                    <span class="home-service-card__meta"><strong>سیپاد</strong><small>ورود به سامانه سیپاد</small></span>
                     <span class="home-service-card__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
                             <path d="M6 6.7A2.7 2.7 0 0 1 8.7 4H15.3A2.7 2.7 0 0 1 18 6.7V17.3A2.7 2.7 0 0 1 15.3 20H8.7A2.7 2.7 0 0 1 6 17.3V6.7Z" stroke="currentColor" stroke-width="1.8"/>
                             <path d="M9 8.4H15M9 11.8H15M9 15.2H11.8M14.2 15.2H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span>سیپاد</span>
                 </a>
             </nav>
         </section>
@@ -236,9 +254,9 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/pwa.js?v=20260515-100001"></script>
-    <script src="/assets/site/scripts/auth.js?v=20260515-100001"></script>
-    <script src="/assets/site/scripts/app-home.js?v=20260515-100001"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260515-100001"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260515-101731"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260515-101731"></script>
+    <script src="/assets/site/scripts/app-home.js?v=20260515-101731"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260515-101731"></script>
 </body>
 </html>

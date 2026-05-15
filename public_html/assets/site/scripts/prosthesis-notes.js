@@ -123,26 +123,44 @@
         return "/prosthesis-1402/term/?term=" + encodeURIComponent(String(term.id || ""));
     }
 
-    function buildCard(term) {
-        var termId = Number(term.id || 0);
-        var card = document.createElement("article");
-        card.className = "action-card";
+    function createChevron() {
+        var chevron = document.createElement("span");
+        chevron.className = "action-card__chevron";
+        chevron.setAttribute("aria-hidden", "true");
+        return chevron;
+    }
 
-        var content = document.createElement("div");
+    function createTermVisual(term) {
+        var visual = document.createElement("span");
+        visual.className = "action-card__visual";
+        visual.setAttribute("aria-hidden", "true");
+
+        var label = document.createElement("strong");
+        label.textContent = String(term.id || "؟");
+        visual.appendChild(label);
+        return visual;
+    }
+
+    function createPrimaryLink(term) {
+        var link = document.createElement("a");
+        link.className = "action-card__primary";
+        link.href = termUrl(term);
+
+        var content = document.createElement("span");
         content.className = "card-content";
 
-        var header = document.createElement("div");
+        var header = document.createElement("span");
         header.className = "card-header";
 
         var badge = document.createElement("span");
         badge.className = "card-badge";
         badge.textContent = term.kicker || "پروتز ۱۴۰۲";
 
-        var title = document.createElement("h3");
+        var title = document.createElement("span");
         title.className = "card-title";
         title.textContent = term.title || "ترم بدون عنوان";
 
-        var desc = document.createElement("p");
+        var desc = document.createElement("span");
         desc.className = "card-desc";
         desc.textContent = term.description || "";
 
@@ -150,6 +168,24 @@
         header.appendChild(title);
         content.appendChild(header);
         content.appendChild(desc);
+
+        link.appendChild(createChevron());
+        link.appendChild(content);
+        link.appendChild(createTermVisual(term));
+        return link;
+    }
+
+    function buildCard(term) {
+        var termId = Number(term.id || 0);
+        if (!state.canManage) {
+            var publicCard = createPrimaryLink(term);
+            publicCard.classList.add("action-card", "action-card--link");
+            return publicCard;
+        }
+
+        var card = document.createElement("article");
+        card.className = "action-card";
+        card.appendChild(createPrimaryLink(term));
 
         var actions = document.createElement("div");
         actions.className = "notes-card-actions";
@@ -180,7 +216,6 @@
             actions.appendChild(remove);
         }
 
-        card.appendChild(content);
         card.appendChild(actions);
         return card;
     }

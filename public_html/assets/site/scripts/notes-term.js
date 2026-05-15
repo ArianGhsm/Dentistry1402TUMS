@@ -125,27 +125,50 @@
         return null;
     }
 
-    function buildCard(item) {
-        var itemId = Number(item.id || 0);
-        var card = document.createElement("article");
-        card.className = "action-card";
-        card.dataset.itemId = String(item.id || "");
+    function createChevron() {
+        var chevron = document.createElement("span");
+        chevron.className = "action-card__chevron";
+        chevron.setAttribute("aria-hidden", "true");
+        return chevron;
+    }
 
-        var content = document.createElement("div");
+    function createVisual(kind) {
+        var visual = document.createElement("span");
+        visual.className = "action-card__visual";
+        visual.setAttribute("aria-hidden", "true");
+        if (kind === "link") {
+            visual.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M9.4 14.6L14.6 9.4M10.4 7.2H16.8V13.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 6H7.4A2.4 2.4 0 0 0 5 8.4V16.6A2.4 2.4 0 0 0 7.4 19H15.6A2.4 2.4 0 0 0 18 16.6V16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            return visual;
+        }
+        visual.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M7 4.8H13.1L17.5 9.1V18A2.2 2.2 0 0 1 15.3 20.2H8.7A2.2 2.2 0 0 1 6.5 18V7A2.2 2.2 0 0 1 8.7 4.8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M13 4.8V9.2H17.4" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.4 12.4H14.8M9.4 15.6H13.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+        return visual;
+    }
+
+    function createPrimaryLink(item) {
+        var link = document.createElement("a");
+        link.className = "action-card__primary";
+        link.href = item.buttonUrl || "#";
+        if (item.isExternal) {
+            link.dataset.externalLink = "true";
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+        }
+
+        var content = document.createElement("span");
         content.className = "card-content";
 
-        var header = document.createElement("div");
+        var header = document.createElement("span");
         header.className = "card-header";
 
         var badge = document.createElement("span");
         badge.className = "card-badge";
         badge.textContent = item.badge || "منبع";
 
-        var title = document.createElement("h3");
+        var title = document.createElement("span");
         title.className = "card-title";
         title.textContent = item.title || "بدون عنوان";
 
-        var desc = document.createElement("p");
+        var desc = document.createElement("span");
         desc.className = "card-desc";
         desc.textContent = item.description || "";
 
@@ -154,9 +177,28 @@
         content.appendChild(header);
         content.appendChild(desc);
 
+        link.appendChild(createChevron());
+        link.appendChild(content);
+        link.appendChild(createVisual(item.isExternal ? "link" : "document"));
+        return link;
+    }
+
+    function buildCard(item) {
+        var itemId = Number(item.id || 0);
+        if (!state.canManage) {
+            var publicCard = createPrimaryLink(item);
+            publicCard.classList.add("action-card", "action-card--link");
+            publicCard.dataset.itemId = String(item.id || "");
+            return publicCard;
+        }
+
+        var card = document.createElement("article");
+        card.className = "action-card";
+        card.dataset.itemId = String(item.id || "");
+        card.appendChild(createPrimaryLink(item));
+
         var actions = document.createElement("div");
         actions.className = "notes-card-actions";
-
         var button = document.createElement("a");
         button.className = "card-btn";
         button.href = item.buttonUrl || "#";
@@ -188,7 +230,6 @@
             actions.appendChild(deleteButton);
         }
 
-        card.appendChild(content);
         card.appendChild(actions);
         return card;
     }
