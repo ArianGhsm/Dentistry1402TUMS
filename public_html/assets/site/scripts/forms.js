@@ -9,10 +9,11 @@
         return document.getElementById(id);
     }
 
+    var queryParams = new URLSearchParams(window.location.search);
     var pageCohort = document.body && (
         document.body.dataset.formsCohort === "prosthesis-1402" ||
         (window.location.pathname || "").indexOf("/prosthesis-1402/forms/") === 0
-    ) ? "prosthesis-1402" : "main";
+    ) ? "prosthesis-1402" : (String(queryParams.get("cohort") || "").trim() || "main");
     var formsHomePath = pageCohort === "prosthesis-1402" ? "/prosthesis-1402/forms/" : "/forms/";
 
     var boot = $("forms-boot");
@@ -73,6 +74,7 @@
 
     var state = {
         viewer: null,
+        activeCohort: null,
         canCreate: false,
         forms: [],
         editingId: "",
@@ -222,6 +224,44 @@
         if (!text) return "";
         var date = new Date(text);
         return Number.isFinite(date.getTime()) ? date.toISOString() : "";
+    }
+
+    function activeCohortSupportsRotationGroups() {
+        return !!(state.activeCohort && state.activeCohort.supportsRotationGroups);
+    }
+
+    function syncAudienceOptions(preferredValue) {
+        if (!audienceInput) {
+            return;
+        }
+        var selected = String(preferredValue || audienceInput.value || "link");
+        var options = [
+            { value: "all-users", label: "همه کاربران سایت" },
+            { value: "link", label: "هر کسی که لینک را دارد" }
+        ];
+
+        if (activeCohortSupportsRotationGroups()) {
+            options.push(
+                { value: "rotation-1", label: "فقط روتیشن ۱" },
+                { value: "rotation-2", label: "فقط روتیشن ۲" },
+                { value: "both-rotations", label: "هر دو روتیشن" }
+            );
+        } else if (selected === "rotation-1" || selected === "rotation-2" || selected === "both-rotations") {
+            selected = "all-users";
+        }
+
+        options.push({ value: "custom", label: "فهرست سفارشی" });
+        audienceInput.innerHTML = "";
+        options.forEach(function (item) {
+            var option = document.createElement("option");
+            option.value = item.value;
+            option.textContent = item.label;
+            option.selected = item.value === selected;
+            audienceInput.appendChild(option);
+        });
+        if (!audienceInput.value && audienceInput.options.length) {
+            audienceInput.selectedIndex = 0;
+        }
     }
 
     function normalizeDigits(value) {
@@ -857,7 +897,7 @@
         titleInput.value = tpl.title;
         descriptionInput.value = tpl.description;
         statusInput.value = "open";
-        audienceInput.value = "link";
+        syncAudienceOptions("link");
         resultVisibilityInput.value = tpl.kind === "poll" ? "after-submit" : "manager-only";
         startAtInput.value = "";
         endAtInput.value = "";
@@ -888,7 +928,7 @@
         descriptionInput.value = String(form.description || "");
         statusInput.value = ["draft", "open", "closed"].indexOf(String(form.status || "")) !== -1 ? String(form.status) : "open";
         var settings = form.settings || {};
-        audienceInput.value = String(settings.audience || "link");
+        syncAudienceOptions(String(settings.audience || "link"));
         resultVisibilityInput.value = String(settings.resultVisibility || "after-submit");
         startAtInput.value = toDatetimeLocal(settings.startAt);
         endAtInput.value = toDatetimeLocal(settings.endAt);
@@ -1346,7 +1386,9 @@
             throw new Error((response && response.error) || "آماده‌سازی انجام نشد.");
         }
         state.viewer = response.viewer || null;
+        state.activeCohort = response.activeCohort || (state.viewer && state.viewer.cohort) || null;
         state.canCreate = !!response.canCreate;
+        syncAudienceOptions(audienceInput ? audienceInput.value : "link");
         if (viewerCopy) {
             viewerCopy.textContent = state.viewer
                 ? ((state.canCreate ? "مدیریت فعال برای " : "فرم‌های فعال برای ") + String(state.viewer.name || "کاربر"))

@@ -46,6 +46,7 @@ function dent_default_cohort_catalog(): array
             'siteVariant' => 'main',
             'notesMode' => 'terms',
             'allowRepresentativeManagement' => false,
+            'supportsRotationGroups' => true,
             'sortOrder' => 100,
             'isSeeded' => true,
             'isIsolated' => true,
@@ -59,6 +60,7 @@ function dent_default_cohort_catalog(): array
             'siteVariant' => 'main',
             'notesMode' => 'archive',
             'allowRepresentativeManagement' => true,
+            'supportsRotationGroups' => false,
             'sortOrder' => 110,
             'isSeeded' => true,
             'isIsolated' => true,
@@ -72,6 +74,7 @@ function dent_default_cohort_catalog(): array
             'siteVariant' => 'main',
             'notesMode' => 'archive',
             'allowRepresentativeManagement' => true,
+            'supportsRotationGroups' => false,
             'sortOrder' => 120,
             'isSeeded' => true,
             'isIsolated' => true,
@@ -85,6 +88,7 @@ function dent_default_cohort_catalog(): array
             'siteVariant' => 'prosthesis-legacy',
             'notesMode' => 'terms',
             'allowRepresentativeManagement' => true,
+            'supportsRotationGroups' => false,
             'sortOrder' => 130,
             'isSeeded' => true,
             'isIsolated' => true,
@@ -201,6 +205,7 @@ function dent_normalize_cohort_record(string $key, array $seed): ?array
         'siteVariant' => $siteVariant,
         'notesMode' => $notesMode,
         'allowRepresentativeManagement' => dent_parse_bool($merged['allowRepresentativeManagement'] ?? false, false),
+        'supportsRotationGroups' => dent_parse_bool($merged['supportsRotationGroups'] ?? ($key === dent_primary_cohort_key()), $key === dent_primary_cohort_key()),
         'sortOrder' => max(0, (int) ($merged['sortOrder'] ?? 9999)),
         'isSeeded' => dent_parse_bool($merged['isSeeded'] ?? false, false),
         'isIsolated' => dent_parse_bool($merged['isIsolated'] ?? true, true),
@@ -815,6 +820,10 @@ function dent_rotation_assignment_for_name(string $name): ?array
 
 function dent_user_rotation_assignment(array $user): ?array
 {
+    if (!dent_cohort_supports_rotation_groups(dent_user_cohort_key($user))) {
+        return null;
+    }
+
     $override = dent_normalize_rotation_override($user['rotationOverride'] ?? null);
     $mode = (string) ($override['mode'] ?? 'none');
 
@@ -1069,6 +1078,12 @@ function dent_cohort_allows_representative_management(string $cohortKey): bool
 {
     $record = dent_cohort_record($cohortKey);
     return is_array($record) && !empty($record['allowRepresentativeManagement']);
+}
+
+function dent_cohort_supports_rotation_groups(string $cohortKey): bool
+{
+    $record = dent_cohort_record($cohortKey);
+    return is_array($record) && !empty($record['supportsRotationGroups']);
 }
 
 function dent_role_label(string $role): string
@@ -1632,6 +1647,7 @@ function dent_public_user(array $user): array
             'siteVariant' => (string) ($cohort['siteVariant'] ?? ''),
             'notesMode' => (string) ($cohort['notesMode'] ?? ''),
             'allowRepresentativeManagement' => !empty($cohort['allowRepresentativeManagement']),
+            'supportsRotationGroups' => !empty($cohort['supportsRotationGroups']),
         ],
         'isOwner' => $role === 'owner',
         'isRepresentative' => $role === 'representative',
@@ -2020,6 +2036,7 @@ function dent_cohort_management_payload(array $viewer, array $users): array
             'siteVariant' => (string) ($cohort['siteVariant'] ?? ''),
             'notesMode' => (string) ($cohort['notesMode'] ?? ''),
             'allowRepresentativeManagement' => !empty($cohort['allowRepresentativeManagement']),
+            'supportsRotationGroups' => !empty($cohort['supportsRotationGroups']),
             'permissions' => $permissions,
             'counts' => [
                 'totalUsers' => (int) ($counts['totalUsers'] ?? 0),
@@ -2145,7 +2162,7 @@ function dent_owner_set_user_rotation(
         dent_error('کاربر موردنظر پیدا نشد.', 404);
     }
 
-    if (dent_user_cohort_key($user) !== dent_primary_cohort_key()) {
+    if (!dent_cohort_supports_rotation_groups(dent_user_cohort_key($user))) {
         $user['rotationOverride'] = ['mode' => 'none'];
         return dent_persist_user($user);
     }
@@ -2188,7 +2205,7 @@ function dent_mark_unassigned_students_as_campus(): array
         if ($role !== 'student') {
             continue;
         }
-        if (dent_user_cohort_key($user) !== dent_primary_cohort_key()) {
+        if (!dent_cohort_supports_rotation_groups(dent_user_cohort_key($user))) {
             continue;
         }
 
@@ -2276,6 +2293,7 @@ function dent_create_cohort(array $input): array
         'siteVariant' => $siteVariant,
         'notesMode' => $notesMode,
         'allowRepresentativeManagement' => dent_parse_bool($input['allowRepresentativeManagement'] ?? ($requestedKey !== dent_primary_cohort_key()), $requestedKey !== dent_primary_cohort_key()),
+        'supportsRotationGroups' => dent_parse_bool($input['supportsRotationGroups'] ?? ($requestedKey === dent_primary_cohort_key()), $requestedKey === dent_primary_cohort_key()),
         'sortOrder' => (int) ($input['sortOrder'] ?? (140 + count($store['cohorts']) * 10)),
         'isSeeded' => false,
         'isIsolated' => true,
@@ -2344,7 +2362,7 @@ function dent_create_student_account(
     }
 
     $rotationMode = trim(strtolower($rotationMode));
-    if ($cohortKey !== dent_primary_cohort_key()) {
+    if (!dent_cohort_supports_rotation_groups($cohortKey)) {
         $rotationMode = 'none';
     }
     if ($rotationMode === '' || $rotationMode === 'auto' || $rotationMode === 'catalog') {

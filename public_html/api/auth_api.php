@@ -127,6 +127,7 @@ function dent_management_cohort_cards(array $viewer, array $users): array
             'siteVariant' => (string) ($cohort['siteVariant'] ?? ''),
             'notesMode' => (string) ($cohort['notesMode'] ?? ''),
             'allowRepresentativeManagement' => !empty($cohort['allowRepresentativeManagement']),
+            'supportsRotationGroups' => !empty($cohort['supportsRotationGroups']),
             'permissions' => dent_permissions_for_role((string) ($viewer['role'] ?? 'student'), $cohortKey),
             'counts' => $counts,
         ];
@@ -538,7 +539,7 @@ if ($action === 'users') {
         'cohorts' => $cohortCards,
         'availableCohorts' => dent_visible_cohorts_for_user($viewer),
         'activeCohortKey' => $activeCohortKey,
-        'rotationCatalog' => dent_rotation_group_options(),
+        'rotationCatalog' => dent_cohort_supports_rotation_groups($activeCohortKey) ? dent_rotation_group_options() : [],
         'gradeCourses' => dent_owner_grades_course_catalog(),
         'campusLabel' => 'دانشجوی پردیس',
         'summary' => [

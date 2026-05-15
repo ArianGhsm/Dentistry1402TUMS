@@ -2313,6 +2313,14 @@
         return Array.isArray(ownerState.rotationCatalog) ? ownerState.rotationCatalog : [];
     }
 
+    function ownerCohortSupportsRotationGroups(cohort) {
+        return !!(cohort && cohort.supportsRotationGroups);
+    }
+
+    function ownerUserSupportsRotationGroups(user) {
+        return ownerCohortSupportsRotationGroups(ownerCohortRecordByKey(ownerUserCohortKey(user)));
+    }
+
     function ownerRotationOptions(rotationId) {
         var target = Math.floor(toNumber(rotationId, 0));
         if (!target) {
@@ -2336,6 +2344,9 @@
     }
 
     function ownerRotationMeta(user) {
+        if (!ownerUserSupportsRotationGroups(user)) {
+            return "";
+        }
         var rotation = user && user.rotation && typeof user.rotation === "object" ? user.rotation : {};
         if (rotation && rotation.assigned && rotation.summary) {
             return String(rotation.summary);
@@ -2373,7 +2384,10 @@
 
     function userMeta(user) {
         var parts = [ownerRoleMeta(user)];
-        parts.push(ownerRotationMeta(user));
+        var rotationMeta = ownerRotationMeta(user);
+        if (rotationMeta) {
+            parts.push(rotationMeta);
+        }
         var disNumber = userDisNumber(user);
         if (disNumber) {
             parts.push("DIS " + disNumber);
@@ -2458,6 +2472,7 @@
 
     function buildOwnerUserDetails(user, busyState) {
         var studentNumber = String(user.studentNumber || "");
+        var supportsRotation = ownerUserSupportsRotationGroups(user);
         var details = document.createElement("section");
         details.className = "owner-user__details";
 
@@ -2467,7 +2482,9 @@
         metaGrid.appendChild(buildOwnerMetaCell("\u0634\u0645\u0627\u0631\u0647 \u062f\u0627\u0646\u0634\u062c\u0648\u06cc\u06cc", studentNumber || "\u2014"));
         metaGrid.appendChild(buildOwnerMetaCell("\u0634\u0645\u0627\u0631\u0647 DIS", ownerDisNumberMeta(user), true));
         metaGrid.appendChild(buildOwnerMetaCell("\u0646\u0642\u0634", ownerRoleMeta(user)));
-        metaGrid.appendChild(buildOwnerMetaCell("\u0631\u0648\u062a\u06cc\u0634\u0646/\u06af\u0631\u0648\u0647", ownerRotationMeta(user)));
+        if (supportsRotation) {
+            metaGrid.appendChild(buildOwnerMetaCell("\u0631\u0648\u062a\u06cc\u0634\u0646/\u06af\u0631\u0648\u0647", ownerRotationMeta(user)));
+        }
         metaGrid.appendChild(buildOwnerMetaCell("\u06a9\u062f \u0645\u0644\u06cc", ownerUserNationalCodeMeta(user)));
         metaGrid.appendChild(buildOwnerMetaCell("\u062a\u0644\u0641\u0646", ownerUserContactPhoneMeta(user)));
         details.appendChild(metaGrid);
@@ -2502,101 +2519,103 @@
         passwordCard.appendChild(passwordBtn);
         adminGrid.appendChild(passwordCard);
 
-        var rotationCard = document.createElement("div");
-        rotationCard.className = "owner-user-admin-card";
-        var rotationTitle = document.createElement("div");
-        rotationTitle.className = "owner-user-admin-card__title";
-        rotationTitle.textContent = "\u062a\u062e\u0635\u06cc\u0635 \u0631\u0648\u062a\u06cc\u0634\u0646/\u06af\u0631\u0648\u0647";
-        rotationCard.appendChild(rotationTitle);
+        if (supportsRotation) {
+            var rotationCard = document.createElement("div");
+            rotationCard.className = "owner-user-admin-card";
+            var rotationTitle = document.createElement("div");
+            rotationTitle.className = "owner-user-admin-card__title";
+            rotationTitle.textContent = "\u062a\u062e\u0635\u06cc\u0635 \u0631\u0648\u062a\u06cc\u0634\u0646/\u06af\u0631\u0648\u0647";
+            rotationCard.appendChild(rotationTitle);
 
-        var modeRow = document.createElement("div");
-        modeRow.className = "owner-user-inline-row";
-        var modeSelect = document.createElement("select");
-        modeSelect.className = "owner-user-inline-select";
-        modeSelect.dataset.ownerRotationMode = "true";
-        modeSelect.dataset.studentNumber = studentNumber;
-        modeSelect.disabled = busyState.rotation || busyState.deletingUser;
+            var modeRow = document.createElement("div");
+            modeRow.className = "owner-user-inline-row";
+            var modeSelect = document.createElement("select");
+            modeSelect.className = "owner-user-inline-select";
+            modeSelect.dataset.ownerRotationMode = "true";
+            modeSelect.dataset.studentNumber = studentNumber;
+            modeSelect.disabled = busyState.rotation || busyState.deletingUser;
 
-        var currentMode = ownerRotationMode(user);
-        [
-            { value: "none", label: "\u0628\u062f\u0648\u0646 \u062a\u062e\u0635\u06cc\u0635" },
-            { value: "manual", label: "\u0631\u0648\u062a\u06cc\u0634\u0646/\u06af\u0631\u0648\u0647 \u0645\u0634\u062e\u0635" },
-            { value: "campus", label: "\u062f\u0627\u0646\u0634\u062c\u0648\u06cc \u067e\u0631\u062f\u06cc\u0633" }
-        ].forEach(function (item) {
-            var option = document.createElement("option");
-            option.value = item.value;
-            option.textContent = item.label;
-            option.selected = item.value === currentMode;
-            modeSelect.appendChild(option);
-        });
-        modeRow.appendChild(modeSelect);
-        rotationCard.appendChild(modeRow);
-
-        var currentRotationId = Math.floor(toNumber(user && user.rotation ? user.rotation.rotationId : 0, 0));
-        var currentGroupNumber = Math.floor(toNumber(user && user.rotation ? user.rotation.groupNumber : 0, 0));
-
-        var fieldsRow = document.createElement("div");
-        fieldsRow.className = "owner-user-inline-row owner-user-inline-row--double";
-
-        var rotationSelect = document.createElement("select");
-        rotationSelect.className = "owner-user-inline-select";
-        rotationSelect.dataset.ownerRotationId = "true";
-        rotationSelect.dataset.studentNumber = studentNumber;
-        rotationSelect.disabled = currentMode !== "manual" || busyState.rotation || busyState.deletingUser;
-        [
-            { value: "", label: "\u0627\u0646\u062a\u062e\u0627\u0628 \u0631\u0648\u062a\u06cc\u0634\u0646" },
-            { value: "1", label: "\u0631\u0648\u062a\u06cc\u0634\u0646 \u06f1" },
-            { value: "2", label: "\u0631\u0648\u062a\u06cc\u0634\u0646 \u06f2" }
-        ].forEach(function (item) {
-            var option = document.createElement("option");
-            option.value = item.value;
-            option.textContent = item.label;
-            option.selected = item.value !== "" && Number(item.value) === currentRotationId && currentMode === "manual";
-            rotationSelect.appendChild(option);
-        });
-        if (!rotationSelect.value && currentMode === "manual" && (currentRotationId === 1 || currentRotationId === 2)) {
-            rotationSelect.value = String(currentRotationId);
-        }
-        fieldsRow.appendChild(rotationSelect);
-
-        var groupSelect = document.createElement("select");
-        groupSelect.className = "owner-user-inline-select";
-        groupSelect.dataset.ownerGroupNumber = "true";
-        groupSelect.dataset.studentNumber = studentNumber;
-        groupSelect.disabled = currentMode !== "manual" || busyState.rotation || busyState.deletingUser;
-        var rotationOptions = ownerRotationOptions(currentMode === "manual" ? (rotationSelect.value || currentRotationId) : "");
-        if (!rotationOptions.length) {
-            var emptyOption = document.createElement("option");
-            emptyOption.value = "";
-            emptyOption.textContent = "\u0627\u0628\u062a\u062f\u0627 \u0631\u0648\u062a\u06cc\u0634\u0646 \u0631\u0627 \u0627\u0646\u062a\u062e\u0627\u0628 \u06a9\u0646\u06cc\u062f";
-            emptyOption.selected = true;
-            groupSelect.appendChild(emptyOption);
-        } else {
-            var placeholder = document.createElement("option");
-            placeholder.value = "";
-            placeholder.textContent = "\u0627\u0646\u062a\u062e\u0627\u0628 \u06af\u0631\u0648\u0647";
-            groupSelect.appendChild(placeholder);
-            rotationOptions.forEach(function (item) {
+            var currentMode = ownerRotationMode(user);
+            [
+                { value: "none", label: "\u0628\u062f\u0648\u0646 \u062a\u062e\u0635\u06cc\u0635" },
+                { value: "manual", label: "\u0631\u0648\u062a\u06cc\u0634\u0646/\u06af\u0631\u0648\u0647 \u0645\u0634\u062e\u0635" },
+                { value: "campus", label: "\u062f\u0627\u0646\u0634\u062c\u0648\u06cc \u067e\u0631\u062f\u06cc\u0633" }
+            ].forEach(function (item) {
                 var option = document.createElement("option");
-                option.value = String(item.groupNumber);
-                option.textContent = item.groupLabel + (item.groupTitle ? (" (" + item.groupTitle + ")") : "");
-                option.selected = currentMode === "manual" && Number(item.groupNumber) === currentGroupNumber;
-                groupSelect.appendChild(option);
+                option.value = item.value;
+                option.textContent = item.label;
+                option.selected = item.value === currentMode;
+                modeSelect.appendChild(option);
             });
+            modeRow.appendChild(modeSelect);
+            rotationCard.appendChild(modeRow);
+
+            var currentRotationId = Math.floor(toNumber(user && user.rotation ? user.rotation.rotationId : 0, 0));
+            var currentGroupNumber = Math.floor(toNumber(user && user.rotation ? user.rotation.groupNumber : 0, 0));
+
+            var fieldsRow = document.createElement("div");
+            fieldsRow.className = "owner-user-inline-row owner-user-inline-row--double";
+
+            var rotationSelect = document.createElement("select");
+            rotationSelect.className = "owner-user-inline-select";
+            rotationSelect.dataset.ownerRotationId = "true";
+            rotationSelect.dataset.studentNumber = studentNumber;
+            rotationSelect.disabled = currentMode !== "manual" || busyState.rotation || busyState.deletingUser;
+            [
+                { value: "", label: "\u0627\u0646\u062a\u062e\u0627\u0628 \u0631\u0648\u062a\u06cc\u0634\u0646" },
+                { value: "1", label: "\u0631\u0648\u062a\u06cc\u0634\u0646 \u06f1" },
+                { value: "2", label: "\u0631\u0648\u062a\u06cc\u0634\u0646 \u06f2" }
+            ].forEach(function (item) {
+                var option = document.createElement("option");
+                option.value = item.value;
+                option.textContent = item.label;
+                option.selected = item.value !== "" && Number(item.value) === currentRotationId && currentMode === "manual";
+                rotationSelect.appendChild(option);
+            });
+            if (!rotationSelect.value && currentMode === "manual" && (currentRotationId === 1 || currentRotationId === 2)) {
+                rotationSelect.value = String(currentRotationId);
+            }
+            fieldsRow.appendChild(rotationSelect);
+
+            var groupSelect = document.createElement("select");
+            groupSelect.className = "owner-user-inline-select";
+            groupSelect.dataset.ownerGroupNumber = "true";
+            groupSelect.dataset.studentNumber = studentNumber;
+            groupSelect.disabled = currentMode !== "manual" || busyState.rotation || busyState.deletingUser;
+            var rotationOptions = ownerRotationOptions(currentMode === "manual" ? (rotationSelect.value || currentRotationId) : "");
+            if (!rotationOptions.length) {
+                var emptyOption = document.createElement("option");
+                emptyOption.value = "";
+                emptyOption.textContent = "\u0627\u0628\u062a\u062f\u0627 \u0631\u0648\u062a\u06cc\u0634\u0646 \u0631\u0627 \u0627\u0646\u062a\u062e\u0627\u0628 \u06a9\u0646\u06cc\u062f";
+                emptyOption.selected = true;
+                groupSelect.appendChild(emptyOption);
+            } else {
+                var placeholder = document.createElement("option");
+                placeholder.value = "";
+                placeholder.textContent = "\u0627\u0646\u062a\u062e\u0627\u0628 \u06af\u0631\u0648\u0647";
+                groupSelect.appendChild(placeholder);
+                rotationOptions.forEach(function (item) {
+                    var option = document.createElement("option");
+                    option.value = String(item.groupNumber);
+                    option.textContent = item.groupLabel + (item.groupTitle ? (" (" + item.groupTitle + ")") : "");
+                    option.selected = currentMode === "manual" && Number(item.groupNumber) === currentGroupNumber;
+                    groupSelect.appendChild(option);
+                });
+            }
+            fieldsRow.appendChild(groupSelect);
+            rotationCard.appendChild(fieldsRow);
+
+            var rotationBtn = document.createElement("button");
+            rotationBtn.type = "button";
+            rotationBtn.className = "shell-action-btn";
+            rotationBtn.dataset.ownerAction = "save-rotation";
+            rotationBtn.dataset.studentNumber = studentNumber;
+            rotationBtn.disabled = busyState.rotation || busyState.deletingUser;
+            rotationBtn.textContent = busyState.rotation ? "\u062f\u0631 \u062d\u0627\u0644 \u0630\u062e\u06cc\u0631\u0647..." : "\u0630\u062e\u06cc\u0631\u0647 \u062a\u062e\u0635\u06cc\u0635";
+            rotationCard.appendChild(rotationBtn);
+
+            adminGrid.appendChild(rotationCard);
         }
-        fieldsRow.appendChild(groupSelect);
-        rotationCard.appendChild(fieldsRow);
-
-        var rotationBtn = document.createElement("button");
-        rotationBtn.type = "button";
-        rotationBtn.className = "shell-action-btn";
-        rotationBtn.dataset.ownerAction = "save-rotation";
-        rotationBtn.dataset.studentNumber = studentNumber;
-        rotationBtn.disabled = busyState.rotation || busyState.deletingUser;
-        rotationBtn.textContent = busyState.rotation ? "\u062f\u0631 \u062d\u0627\u0644 \u0630\u062e\u06cc\u0631\u0647..." : "\u0630\u062e\u06cc\u0631\u0647 \u062a\u062e\u0635\u06cc\u0635";
-        rotationCard.appendChild(rotationBtn);
-
-        adminGrid.appendChild(rotationCard);
         details.appendChild(adminGrid);
 
         var actions = document.createElement("div");
@@ -3862,7 +3881,7 @@
         }
 
         var activeCohort = ownerActiveCohortRecord();
-        var supportsRotation = !!(activeCohort && String(activeCohort.key || "") === "dentistry-1402");
+        var supportsRotation = ownerCohortSupportsRotationGroups(activeCohort);
         if (!supportsRotation) {
             ownerStudentRotationMode.value = "none";
             ownerStudentRotationId.value = "";

@@ -18,9 +18,29 @@ function forms_clean_cohort(?string $value): string
     return $value !== '' ? $value : dent_primary_cohort_key();
 }
 
+function forms_resolve_requested_cohort(?string $value): string
+{
+    $cohort = forms_clean_cohort($value);
+    if ($cohort !== dent_primary_cohort_key()) {
+        return $cohort;
+    }
+
+    $user = dent_current_user();
+    if ($user === null) {
+        return $cohort;
+    }
+
+    $userCohort = dent_user_cohort_key($user);
+    if ($userCohort !== '' && !dent_is_prosthesis_cohort_key($userCohort)) {
+        return $userCohort;
+    }
+
+    return $cohort;
+}
+
 function forms_requested_cohort(): string
 {
-    return forms_clean_cohort((string) ($_POST['cohort'] ?? ($_GET['cohort'] ?? '')));
+    return forms_resolve_requested_cohort((string) ($_POST['cohort'] ?? ($_GET['cohort'] ?? '')));
 }
 
 function forms_set_active_cohort(string $cohort): void
@@ -36,6 +56,11 @@ function forms_active_cohort(): string
 function forms_is_prosthesis_context(): bool
 {
     return dent_is_prosthesis_cohort_key(forms_active_cohort());
+}
+
+function forms_cohort_supports_rotation_groups(?string $cohort = null): bool
+{
+    return dent_cohort_supports_rotation_groups(forms_clean_cohort($cohort ?? forms_active_cohort()));
 }
 
 function forms_store_path(): string
@@ -179,6 +204,15 @@ function forms_clean_audience(string $value): string
     $value = trim(strtolower($value));
     $allowed = ['link', 'all-users', 'rotation-1', 'rotation-2', 'both-rotations', 'custom'];
     return in_array($value, $allowed, true) ? $value : 'link';
+}
+
+function forms_normalize_audience_for_cohort(string $audience, ?string $cohort = null): string
+{
+    $audience = forms_clean_audience($audience);
+    if (!forms_cohort_supports_rotation_groups($cohort) && in_array($audience, ['rotation-1', 'rotation-2', 'both-rotations'], true)) {
+        return 'all-users';
+    }
+    return $audience;
 }
 
 function forms_audience_label(string $audience): string
@@ -587,7 +621,8 @@ function forms_normalize_form_record(string $formId, array $form): ?array
     }
 
     $settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
-    $audience = forms_clean_audience((string) ($settings['audience'] ?? ($form['audience'] ?? 'link')));
+    $cohort = forms_clean_cohort((string) ($form['cohort'] ?? 'main'));
+    $audience = forms_normalize_audience_for_cohort((string) ($settings['audience'] ?? ($form['audience'] ?? 'link')), $cohort);
     $allowedStudents = forms_normalize_student_numbers($settings['allowedStudents'] ?? ($form['allowedStudents'] ?? []));
     $managerStudentNumbers = forms_normalize_student_numbers($settings['managerStudentNumbers'] ?? []);
 
@@ -598,8 +633,6 @@ function forms_normalize_form_record(string $formId, array $form): ?array
     if ($startAt !== null && $endAt !== null && $endAt <= $startAt) {
         $endAt = null;
     }
-
-    $cohort = forms_clean_cohort((string) ($form['cohort'] ?? 'main'));
 
     return [
         'id' => $formId,
@@ -944,6 +977,8 @@ function forms_user_payload(?array $user): ?array
         'name' => (string) ($public['name'] ?? ''),
         'role' => (string) ($public['role'] ?? 'student'),
         'roleLabel' => (string) ($public['roleLabel'] ?? ''),
+        'cohortKey' => (string) ($public['cohortKey'] ?? ''),
+        'cohort' => is_array($public['cohort'] ?? null) ? $public['cohort'] : null,
         'isOwner' => (bool) ($public['isOwner'] ?? false),
         'isRepresentative' => (bool) ($public['isRepresentative'] ?? false),
     ];
@@ -1090,7 +1125,7 @@ function forms_user_matches_audience(array $form, array $user): bool
     }
 
     $settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
-    $audience = forms_clean_audience((string) ($settings['audience'] ?? 'link'));
+    $audience = forms_normalize_audience_for_cohort((string) ($settings['audience'] ?? 'link'), forms_form_cohort($form));
     if ($audience === 'link' || $audience === 'all-users') {
         return true;
     }
@@ -1815,8 +1850,8 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
         'fields' => $fieldsPayload,
         'paymentGateways' => $includeFields && forms_has_payment_fields($form) ? forms_payment_gateways_payload() : null,
         'settings' => [
-            'audience' => forms_clean_audience((string) ($settings['audience'] ?? 'link')),
-            'audienceLabel' => forms_audience_label((string) ($settings['audience'] ?? 'link')),
+            'audience' => $audience,
+            'audienceLabel' => forms_audience_label($audience),
             'allowedStudents' => forms_normalize_student_numbers($settings['allowedStudents'] ?? []),
             'allowRepresentativeManage' => forms_parse_bool($settings['allowRepresentativeManage'] ?? false, false),
             'managerStudentNumbers' => forms_normalize_student_numbers($settings['managerStudentNumbers'] ?? []),
@@ -1900,7 +1935,7 @@ function forms_build_form_from_payload(array $payload, array $user, ?array $exis
         'updatedAt' => $now,
         'fields' => $fields,
         'settings' => [
-            'audience' => forms_clean_audience((string) ($settingsRaw['audience'] ?? 'link')),
+            'audience' => forms_normalize_audience_for_cohort((string) ($settingsRaw['audience'] ?? 'link'), $existing !== null ? forms_form_cohort($existing) : forms_active_cohort()),
             'allowedStudents' => forms_normalize_student_numbers($settingsRaw['allowedStudents'] ?? []),
             'allowRepresentativeManage' => forms_parse_bool($settingsRaw['allowRepresentativeManage'] ?? false, false),
             'managerStudentNumbers' => forms_normalize_student_numbers($settingsRaw['managerStudentNumbers'] ?? []),
@@ -2502,11 +2537,20 @@ forms_set_active_cohort(forms_requested_cohort());
 if ($action === 'session') {
     $user = forms_current_site_user();
     $store = forms_load_store();
+    $activeCohort = dent_cohort_record(forms_active_cohort());
     dent_json_response([
         'success' => true,
         'viewer' => forms_user_payload($user),
         'canCreate' => forms_can_create($user),
         'activeCount' => $user !== null ? forms_active_count_for_user($store, $user) : 0,
+        'activeCohort' => $activeCohort === null ? null : [
+            'key' => (string) ($activeCohort['key'] ?? ''),
+            'title' => (string) ($activeCohort['title'] ?? ''),
+            'shortTitle' => (string) ($activeCohort['shortTitle'] ?? ''),
+            'productType' => (string) ($activeCohort['productType'] ?? ''),
+            'year' => (string) ($activeCohort['year'] ?? ''),
+            'supportsRotationGroups' => !empty($activeCohort['supportsRotationGroups']),
+        ],
         'legacyDis' => [
             'publicPath' => '/dis-request/',
             'managePath' => '/dis-request/manage/',
