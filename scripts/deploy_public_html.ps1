@@ -960,8 +960,12 @@ function Run-Validation() {
     }
 
     $scriptPath = Join-Path $projectRoot "scripts\check_text_integrity.py"
+    $smokeScriptPath = Join-Path $projectRoot "scripts\smoke_multi_cohort_pages.py"
     if (-not (Test-Path $scriptPath)) {
         throw "Validation script not found: $scriptPath"
+    }
+    if (-not (Test-Path $smokeScriptPath)) {
+        throw "Smoke validation script not found: $smokeScriptPath"
     }
 
     $python = Resolve-PythonCommand
@@ -976,11 +980,28 @@ function Run-Validation() {
         throw "Validation failed (scripts/check_text_integrity.py). Deployment aborted before host upload."
     }
 
+    $liveCredentials = Get-CompletionSmsLiveCredentials
+    if ([string]::IsNullOrWhiteSpace($liveCredentials.StudentNumber) -or [string]::IsNullOrWhiteSpace($liveCredentials.Password)) {
+        throw "Owner credentials are required for multi-cohort smoke validation. Set DENT_DEPLOY_OWNER_STUDENT_NUMBER / DENT_DEPLOY_OWNER_PASSWORD or populate $($liveCredentials.Path)."
+    }
+
+    $smokeCommand = @(
+        $smokeScriptPath,
+        "--project-root", $projectRoot,
+        "--owner-student-number", $liveCredentials.StudentNumber,
+        "--owner-password", $liveCredentials.Password
+    )
+    Write-Host "Running: $python $($smokeCommand -join ' ')"
+    & $python @smokeCommand
+    if ($LASTEXITCODE -ne 0) {
+        throw "Validation failed (scripts/smoke_multi_cohort_pages.py). Deployment aborted before host upload."
+    }
+
     return [PSCustomObject]@{
         Status     = "completed"
         StartedAt  = $started
         FinishedAt = Get-IsoNow
-        Command    = "$python $scriptPath"
+        Command    = "$python $scriptPath ; $python $($smokeCommand -join ' ')"
     }
 }
 

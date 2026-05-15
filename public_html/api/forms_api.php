@@ -1793,6 +1793,7 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
 {
     $formId = (string) ($form['id'] ?? '');
     $settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
+    $audience = forms_normalize_audience_for_cohort((string) ($settings['audience'] ?? 'link'), forms_form_cohort($form));
     $status = forms_status($form);
     $responses = forms_responses_for_form($store, $formId);
     $identityKey = $identityKeyOverride !== null ? $identityKeyOverride : ($viewer !== null ? forms_identity_key($viewer, []) : null);
