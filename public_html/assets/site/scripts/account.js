@@ -62,11 +62,25 @@
     var ownerSearch = $("owner-search");
     var ownerSummary = $("owner-summary");
     var ownerFeedback = $("owner-feedback");
+    var ownerCohortSummary = $("owner-cohort-summary");
+    var ownerCohortGrid = $("owner-cohort-grid");
+    var ownerCohortSelect = $("owner-cohort-select");
+    var ownerCohortFeedback = $("owner-cohort-feedback");
     var ownerTabs = $("owner-tabs");
     var ownerTabPanels = Array.prototype.slice.call(document.querySelectorAll("[data-owner-tab-panel]"));
     var representativeList = $("representative-list");
     var ownerUserList = $("owner-user-list");
     var ownerUserPager = $("owner-user-pager");
+    var ownerCreateCohortSection = $("owner-create-cohort-section");
+    var ownerCreateCohortForm = $("owner-create-cohort-form");
+    var ownerCohortTitle = $("owner-cohort-title");
+    var ownerCohortShortTitle = $("owner-cohort-short-title");
+    var ownerCohortYear = $("owner-cohort-year");
+    var ownerCohortProductType = $("owner-cohort-product-type");
+    var ownerCohortNotesMode = $("owner-cohort-notes-mode");
+    var ownerCohortAllowRepresentative = $("owner-cohort-allow-representative");
+    var ownerCreateCohortSubmit = $("owner-create-cohort-submit");
+    var ownerCreateCohortFeedback = $("owner-create-cohort-feedback");
     var ownerCreateStudentForm = $("owner-create-student-form");
     var ownerStudentFirstName = $("owner-student-first-name");
     var ownerStudentLastName = $("owner-student-last-name");
@@ -79,6 +93,11 @@
     var ownerCreateStudentSubmit = $("owner-create-student-submit");
     var ownerMarkCampusStudentsButton = $("owner-mark-campus-students");
     var ownerCreateStudentFeedback = $("owner-create-student-feedback");
+    var ownerImportUsersForm = $("owner-import-users-form");
+    var ownerImportUsersDefaultPassword = $("owner-import-users-default-password");
+    var ownerImportUsersText = $("owner-import-users-text");
+    var ownerImportUsersSubmit = $("owner-import-users-submit");
+    var ownerImportUsersFeedback = $("owner-import-users-feedback");
     var ownerGradesCoursesSummary = $("owner-grades-courses-summary");
     var ownerGradesImportForm = $("owner-grades-import-form");
     var ownerGradesImportText = $("owner-grades-import-text");
@@ -183,6 +202,8 @@
     };
     var ownerState = {
         loading: false,
+        creatingCohort: false,
+        importingUsers: false,
         savingStudentNumber: "",
         savingPasswordStudentNumber: "",
         savingRotationStudentNumber: "",
@@ -197,8 +218,12 @@
         deletingGradeCourseKey: "",
         resettingGrades: false,
         activeTab: "users",
+        activeCohortKey: "",
         userPage: 1,
         userPageSize: 18,
+        viewer: null,
+        cohorts: [],
+        availableCohorts: [],
         users: [],
         gradePayloadByStudent: {},
         gradeCourses: [],
@@ -318,6 +343,40 @@
         return !!(currentUser && currentUser.isOwner);
     }
 
+    function hasManagementAccess() {
+        return !!(currentUser && currentUser.permissions && currentUser.permissions.manageCohort);
+    }
+
+    function ownerActiveCohortKey() {
+        return String(ownerState.activeCohortKey || (currentUser && currentUser.cohortKey) || "").trim();
+    }
+
+    function ownerVisibleCohorts() {
+        return Array.isArray(ownerState.cohorts) ? ownerState.cohorts : [];
+    }
+
+    function ownerActiveCohortRecord() {
+        var target = ownerActiveCohortKey();
+        return ownerVisibleCohorts().find(function (cohort) {
+            return String(cohort && cohort.key || "") === target;
+        }) || null;
+    }
+
+    function ownerUserCohortKey(user) {
+        return String(user && user.cohortKey || "").trim();
+    }
+
+    function ownerUsersInActiveCohort(users) {
+        var target = ownerActiveCohortKey();
+        return (Array.isArray(users) ? users : []).filter(function (user) {
+            return !target || ownerUserCohortKey(user) === target;
+        });
+    }
+
+    function ownerCanAccessServices() {
+        return hasOwnerAccess();
+    }
+
     function normalizeOwnerTab(value) {
         var tab = String(value || "").trim().toLowerCase();
         return ["users", "representatives", "create", "services"].indexOf(tab) >= 0 ? tab : "users";
@@ -327,16 +386,28 @@
         var active = normalizeOwnerTab(ownerState.activeTab);
         if (ownerTabs) {
             Array.prototype.slice.call(ownerTabs.querySelectorAll("[data-owner-tab]")).forEach(function (button) {
+                var tabName = normalizeOwnerTab(button.dataset.ownerTab);
+                var available = tabName !== "services" || ownerCanAccessServices();
+                button.hidden = !available;
+                if (!available && active === tabName) {
+                    active = "users";
+                }
                 var selected = normalizeOwnerTab(button.dataset.ownerTab) === active;
                 button.classList.toggle("is-active", selected);
                 button.setAttribute("aria-selected", selected ? "true" : "false");
             });
         }
         ownerTabPanels.forEach(function (panel) {
-            var selected = normalizeOwnerTab(panel.dataset.ownerTabPanel) === active;
+            var panelTab = normalizeOwnerTab(panel.dataset.ownerTabPanel);
+            var available = panelTab !== "services" || ownerCanAccessServices();
+            var selected = panelTab === active && available;
             panel.classList.toggle("is-active", selected);
             panel.hidden = !selected;
         });
+        ownerState.activeTab = active;
+        if (ownerCreateCohortSection) {
+            ownerCreateCohortSection.hidden = !hasOwnerAccess() || active !== "create";
+        }
     }
 
     function setOwnerTab(value) {
@@ -357,7 +428,10 @@
     }
 
     function canOpenSurface(surface) {
-        if (surface === "owner" || surface === "owner-user" || surface === "navid") {
+        if (surface === "owner" || surface === "owner-user") {
+            return hasManagementAccess();
+        }
+        if (surface === "navid") {
             return hasOwnerAccess();
         }
         return true;
@@ -1338,6 +1412,18 @@
         setInlineFeedback(ownerCreateStudentFeedback, text, kind, loading);
     }
 
+    function ownerCreateCohortFeedbackMessage(text, kind, loading) {
+        setInlineFeedback(ownerCreateCohortFeedback, text, kind, loading);
+    }
+
+    function ownerImportUsersFeedbackMessage(text, kind, loading) {
+        setInlineFeedback(ownerImportUsersFeedback, text, kind, loading);
+    }
+
+    function ownerCohortFeedbackMessage(text, kind, loading) {
+        setInlineFeedback(ownerCohortFeedback, text, kind, loading);
+    }
+
     function ownerGradesFeedbackMessage(text, kind, loading) {
         setInlineFeedback(ownerGradesFeedback, text, kind, loading);
     }
@@ -1388,7 +1474,12 @@
     }
 
     function requestUsers() {
-        return fetch("/api/auth_api.php?action=users", {
+        var query = new URLSearchParams({ action: "users" });
+        var cohortKey = ownerActiveCohortKey();
+        if (cohortKey) {
+            query.set("cohort", cohortKey);
+        }
+        return fetch("/api/auth_api.php?" + query.toString(), {
             method: "GET",
             credentials: "same-origin",
             headers: {
@@ -1658,21 +1749,71 @@
         }
     }
 
+    function renderOwnerCohortPicker() {
+        var cohorts = ownerVisibleCohorts();
+        var active = ownerActiveCohortKey();
+        var activeRecord = ownerActiveCohortRecord();
+
+        if (ownerCohortSelect) {
+            ownerCohortSelect.innerHTML = "";
+            cohorts.forEach(function (cohort) {
+                var option = document.createElement("option");
+                option.value = String(cohort.key || "");
+                option.textContent = String(cohort.title || cohort.shortTitle || cohort.key || "ورودی");
+                option.selected = option.value === active;
+                ownerCohortSelect.appendChild(option);
+            });
+            ownerCohortSelect.disabled = ownerState.loading || cohorts.length <= 1;
+        }
+
+        if (ownerCohortGrid) {
+            ownerCohortGrid.innerHTML = "";
+            if (!cohorts.length) {
+                ownerCohortGrid.innerHTML = '<div class="owner-empty">ورودی قابل مدیریتی پیدا نشد.</div>';
+            } else {
+                cohorts.forEach(function (cohort) {
+                    var card = document.createElement("button");
+                    card.type = "button";
+                    card.className = "owner-cohort-card" + (String(cohort.key || "") === active ? " is-active" : "");
+                    card.dataset.cohortKey = String(cohort.key || "");
+                    card.innerHTML = [
+                        "<strong>" + String(cohort.shortTitle || cohort.title || cohort.key || "ورودی") + "</strong>",
+                        "<span>" + String(cohort.description || cohort.title || "") + "</span>",
+                        "<small>" + [
+                            "کاربر " + Math.max(0, Number(cohort.counts && cohort.counts.totalUsers || 0)).toLocaleString("fa-IR"),
+                            "نماینده " + Math.max(0, Number(cohort.counts && cohort.counts.representatives || 0)).toLocaleString("fa-IR")
+                        ].join(" • ") + "</small>"
+                    ].join("");
+                    ownerCohortGrid.appendChild(card);
+                });
+            }
+        }
+
+        if (ownerCohortSummary) {
+            ownerCohortSummary.innerHTML = activeRecord ? [
+                summaryCard("ورودی فعال", String(activeRecord.shortTitle || activeRecord.title || "—"), String(activeRecord.title || ""), "ok"),
+                summaryCard("نوع", activeRecord.productType === "prosthesis" ? "پروتز" : "دندانپزشکی", "جدا از سایر ورودی‌ها"),
+                summaryCard("نماینده", activeRecord.allowRepresentativeManagement ? "مدیر همان ورودی" : "محدود", activeRecord.allowRepresentativeManagement ? "بیشتر ابزارها برای نماینده همان ورودی فعال است" : "فقط مالک مدیریت می‌کند", activeRecord.allowRepresentativeManagement ? "ok" : "warn")
+            ].join("") : "";
+        }
+    }
+
     function renderOwnerSummary(users) {
-        var totalUsers = users.length;
-        var representatives = users.filter(function (user) {
+        var visibleUsers = ownerUsersInActiveCohort(users);
+        var totalUsers = visibleUsers.length;
+        var representatives = visibleUsers.filter(function (user) {
             return user.role === "representative" || user.role === "prosthesis_representative";
         }).length;
-        var withGrades = users.filter(function (user) {
+        var withGrades = visibleUsers.filter(function (user) {
             return user.hasGrades;
         }).length;
-        var withPhone = users.filter(function (user) {
+        var withPhone = visibleUsers.filter(function (user) {
             return !!user.hasPhone;
         }).length;
-        var withNationalCode = users.filter(function (user) {
+        var withNationalCode = visibleUsers.filter(function (user) {
             return !!user.hasNationalCode;
         }).length;
-        var withDirectoryPhone = users.filter(function (user) {
+        var withDirectoryPhone = visibleUsers.filter(function (user) {
             return !!user.hasDirectoryPhone;
         }).length;
 
@@ -1973,7 +2114,7 @@
     }
 
     function renderRepresentatives(users) {
-        var items = users.filter(function (user) {
+        var items = ownerUsersInActiveCohort(users).filter(function (user) {
             return user.role === "representative" || user.role === "prosthesis_representative";
         });
 
@@ -2548,7 +2689,7 @@
 
     function renderUsers(users) {
         var query = ownerSearch.value || "";
-        var visibleUsers = users.filter(function (user) {
+        var visibleUsers = ownerUsersInActiveCohort(users).filter(function (user) {
             return userMatchesQuery(user, query);
         });
         var pageSize = ownerUserPageSize();
@@ -2589,13 +2730,15 @@
 
             var actions = document.createElement("div");
             actions.className = "owner-user__actions";
+            var activeCohort = ownerActiveCohortRecord();
+            var representativeToggleAllowed = hasOwnerAccess() || !!(activeCohort && activeCohort.allowRepresentativeManagement);
 
             var representativeBtn = document.createElement("button");
             representativeBtn.type = "button";
-            representativeBtn.className = "shell-action-btn" + (user.role === "representative" ? " shell-action-btn-primary" : "");
+            representativeBtn.className = "shell-action-btn" + ((user.role === "representative" || user.role === "prosthesis_representative") ? " shell-action-btn-primary" : "");
             representativeBtn.dataset.ownerAction = "toggle-representative";
             representativeBtn.dataset.studentNumber = studentNumber;
-            representativeBtn.disabled = isOwnerUser(user) || isProsthesisUser(user) || busyState.representative || busyState.deletingUser;
+            representativeBtn.disabled = isOwnerUser(user) || !representativeToggleAllowed || busyState.representative || busyState.deletingUser;
             representativeBtn.textContent = busyState.representative ? "در حال ذخیره..." : toggleButtonLabel(user);
             actions.appendChild(representativeBtn);
 
@@ -2627,6 +2770,7 @@
     }
 
     function renderOwnerPanel() {
+        renderOwnerCohortPicker();
         updateOwnerTabs();
         renderOwnerSummary(ownerState.users);
         renderOwnerGradeManager();
@@ -2983,6 +3127,10 @@
             return;
         }
 
+        ownerState.viewer = response.viewer || ownerState.viewer || currentUser;
+        ownerState.cohorts = Array.isArray(response.cohorts) ? response.cohorts : [];
+        ownerState.availableCohorts = Array.isArray(response.availableCohorts) ? response.availableCohorts : [];
+        ownerState.activeCohortKey = String(response.activeCohortKey || ownerState.activeCohortKey || (currentUser && currentUser.cohortKey) || "");
         ownerState.rotationCatalog = Array.isArray(response.rotationCatalog) ? response.rotationCatalog : [];
         ownerState.gradeCourses = Array.isArray(response.gradeCourses) ? response.gradeCourses : [];
         var nextUsers = Array.isArray(response.users) ? response.users : [];
@@ -3000,6 +3148,7 @@
             ownerState.activeUserPanelStudentNumber = "";
         }
         ownerFeedbackMessage("", "");
+        syncOwnerRoleOptions();
         updateCreateStudentGroupOptions();
         renderOwnerPanel();
     }
@@ -3280,6 +3429,10 @@
         if (file) {
             formData.set("gradesFile", file);
         }
+        if (ownerActiveCohortKey()) {
+            formData.set("cohortKey", ownerActiveCohortKey());
+            formData.set("cohort", ownerActiveCohortKey());
+        }
 
         ownerState.importingGrades = true;
         renderOwnerGradeManager();
@@ -3338,7 +3491,7 @@
         ownerGradesFeedbackMessage("در حال حذف درس از کارنامه همه کاربران...", "", true);
 
         try {
-            var response = await request("ownerDeleteGradeCourse", { courseKey: courseKey });
+            var response = await request("ownerDeleteGradeCourse", { courseKey: courseKey, cohortKey: ownerActiveCohortKey(), cohort: ownerActiveCohortKey() });
             if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
                 ownerGradesFeedbackMessage("", "");
                 return;
@@ -3373,7 +3526,7 @@
         ownerGradesFeedbackMessage("در حال ریست کامل کارنامه...", "", true);
 
         try {
-            var response = await request("ownerResetGradebook", { confirm: "RESET" });
+            var response = await request("ownerResetGradebook", { confirm: "RESET", cohortKey: ownerActiveCohortKey(), cohort: ownerActiveCohortKey() });
             if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
                 ownerGradesFeedbackMessage("", "");
                 return;
@@ -3602,6 +3755,12 @@
             return;
         }
 
+        var activeCohort = ownerActiveCohortRecord();
+        var supportsRotation = !!(activeCohort && String(activeCohort.key || "") === "dentistry-1402");
+        if (!supportsRotation) {
+            ownerStudentRotationMode.value = "none";
+            ownerStudentRotationId.value = "";
+        }
         var mode = String(ownerStudentRotationMode.value || "none");
         if (mode !== "manual") {
             ownerStudentRotationId.value = "";
@@ -3632,8 +3791,179 @@
         if (!manual) {
             ownerStudentGroupNumber.value = "";
         }
-        ownerStudentRotationId.disabled = !manual || ownerState.creatingStudent;
-        ownerStudentGroupNumber.disabled = !manual || ownerState.creatingStudent;
+        if (ownerStudentRotationMode) {
+            ownerStudentRotationMode.disabled = ownerState.creatingStudent || !supportsRotation;
+        }
+        ownerStudentRotationId.disabled = !manual || ownerState.creatingStudent || !supportsRotation;
+        ownerStudentGroupNumber.disabled = !manual || ownerState.creatingStudent || !supportsRotation;
+        if (ownerMarkCampusStudentsButton) {
+            ownerMarkCampusStudentsButton.hidden = !supportsRotation;
+        }
+    }
+
+    function syncOwnerRoleOptions() {
+        if (!ownerStudentRole) {
+            return;
+        }
+        var activeCohort = ownerActiveCohortRecord();
+        var isProsthesis = !!(activeCohort && activeCohort.productType === "prosthesis");
+        var allowRepresentative = !!(activeCohort && activeCohort.allowRepresentativeManagement);
+        var current = String(ownerStudentRole.value || "");
+        var options = isProsthesis
+            ? [
+                { value: "prosthesis_student", label: "دانشجوی پروتز" },
+                { value: "prosthesis_representative", label: "نماینده پروتز" }
+            ]
+            : [
+                { value: "student", label: "دانشجو" },
+                { value: "representative", label: "نماینده" }
+            ];
+
+        ownerStudentRole.innerHTML = "";
+        options.forEach(function (item) {
+            if (!allowRepresentative && String(item.value).indexOf("representative") >= 0 && !hasOwnerAccess()) {
+                return;
+            }
+            var option = document.createElement("option");
+            option.value = item.value;
+            option.textContent = item.label;
+            option.selected = item.value === current;
+            ownerStudentRole.appendChild(option);
+        });
+        if (!ownerStudentRole.value && ownerStudentRole.options.length) {
+            ownerStudentRole.selectedIndex = 0;
+        }
+    }
+
+    async function setOwnerActiveCohort(cohortKey) {
+        var next = String(cohortKey || "").trim();
+        if (!next || next === ownerState.activeCohortKey) {
+            return;
+        }
+        ownerState.activeCohortKey = next;
+        ownerState.activeUserPanelStudentNumber = "";
+        ownerState.userPage = 1;
+        ownerCohortFeedbackMessage("در حال بارگذاری ورودی انتخاب‌شده...", "", true);
+        syncOwnerRoleOptions();
+        updateCreateStudentGroupOptions();
+        await loadOwnerUsers();
+        ownerCohortFeedbackMessage("", "");
+    }
+
+    function setCreateCohortBusy(isBusy) {
+        ownerState.creatingCohort = !!isBusy;
+        [ownerCohortTitle, ownerCohortShortTitle, ownerCohortYear, ownerCohortProductType, ownerCohortNotesMode, ownerCohortAllowRepresentative].forEach(function (node) {
+            if (node) {
+                node.disabled = ownerState.creatingCohort;
+            }
+        });
+        if (ownerCreateCohortSubmit) {
+            ownerCreateCohortSubmit.disabled = ownerState.creatingCohort;
+        }
+    }
+
+    async function createCohort(event) {
+        if (event) {
+            event.preventDefault();
+        }
+        if (!ownerCreateCohortForm || ownerState.creatingCohort) {
+            return;
+        }
+
+        var title = ownerCohortTitle ? ownerCohortTitle.value.trim() : "";
+        var shortTitle = ownerCohortShortTitle ? ownerCohortShortTitle.value.trim() : "";
+        var year = ownerCohortYear ? ownerCohortYear.value.trim() : "";
+        if (!title || !year) {
+            ownerCreateCohortFeedbackMessage("عنوان و سال ورودی را کامل کن.", "error");
+            return;
+        }
+
+        setCreateCohortBusy(true);
+        ownerCreateCohortFeedbackMessage("در حال ساخت ورودی جدید...", "", true);
+        try {
+            var response = await request("createCohort", {
+                title: title,
+                shortTitle: shortTitle,
+                year: year,
+                productType: ownerCohortProductType ? ownerCohortProductType.value : "dentistry",
+                notesMode: ownerCohortNotesMode ? ownerCohortNotesMode.value : "archive",
+                allowRepresentativeManagement: ownerCohortAllowRepresentative && ownerCohortAllowRepresentative.checked ? "1" : "0"
+            });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                ownerCreateCohortFeedbackMessage("", "");
+                return;
+            }
+            if (!response || !response.success || !response.cohort) {
+                ownerCreateCohortFeedbackMessage((response && response.error) || "ساخت ورودی انجام نشد.", "error");
+                return;
+            }
+
+            ownerCreateCohortForm.reset();
+            ownerCreateCohortFeedbackMessage(response.message || "ورودی جدید ساخته شد.", "success");
+            ownerState.activeCohortKey = String(response.cohort.key || ownerState.activeCohortKey || "");
+            await loadOwnerUsers();
+        } finally {
+            setCreateCohortBusy(false);
+        }
+    }
+
+    function setImportUsersBusy(isBusy) {
+        ownerState.importingUsers = !!isBusy;
+        [ownerImportUsersDefaultPassword, ownerImportUsersText].forEach(function (node) {
+            if (node) {
+                node.disabled = ownerState.importingUsers;
+            }
+        });
+        if (ownerImportUsersSubmit) {
+            ownerImportUsersSubmit.disabled = ownerState.importingUsers;
+        }
+    }
+
+    async function importCohortUsers(event) {
+        if (event) {
+            event.preventDefault();
+        }
+        if (!ownerImportUsersForm || ownerState.importingUsers) {
+            return;
+        }
+
+        var importText = ownerImportUsersText ? ownerImportUsersText.value.trim() : "";
+        var defaultPassword = ownerImportUsersDefaultPassword ? ownerImportUsersDefaultPassword.value.trim() : "";
+        if (!importText) {
+            ownerImportUsersFeedbackMessage("متن ورود گروهی را وارد کن.", "error");
+            return;
+        }
+        if (!defaultPassword || defaultPassword.length < 6) {
+            ownerImportUsersFeedbackMessage("رمز پیش‌فرض باید حداقل ۶ کاراکتر باشد.", "error");
+            return;
+        }
+
+        setImportUsersBusy(true);
+        ownerImportUsersFeedbackMessage("در حال ساخت گروهی کاربران...", "", true);
+        try {
+            var response = await request("importCohortUsers", {
+                cohortKey: ownerActiveCohortKey(),
+                cohort: ownerActiveCohortKey(),
+                defaultPassword: defaultPassword,
+                importText: importText
+            });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                ownerImportUsersFeedbackMessage("", "");
+                return;
+            }
+            if (!response || !response.success) {
+                ownerImportUsersFeedbackMessage((response && response.error) || "ورود گروهی انجام نشد.", "error");
+                return;
+            }
+
+            if (ownerImportUsersText) {
+                ownerImportUsersText.value = "";
+            }
+            ownerImportUsersFeedbackMessage((response.message || "ورود گروهی انجام شد.") + " " + Number(response.count || 0).toLocaleString("fa-IR") + " کاربر.", "success");
+            await loadOwnerUsers();
+        } finally {
+            setImportUsersBusy(false);
+        }
     }
 
     function setCreateStudentBusy(isBusy) {
@@ -3666,6 +3996,12 @@
         var rotationMode = ownerStudentRotationMode ? String(ownerStudentRotationMode.value || "none") : "none";
         var rotationId = ownerStudentRotationId ? String(ownerStudentRotationId.value || "") : "";
         var groupNumber = ownerStudentGroupNumber ? String(ownerStudentGroupNumber.value || "") : "";
+        var cohortKey = ownerActiveCohortKey();
+
+        if (!cohortKey) {
+            ownerCreateStudentFeedbackMessage("ابتدا یک ورودی فعال انتخاب کن.", "error");
+            return;
+        }
 
         if (!firstName || !lastName || !studentNumber || !password) {
             ownerCreateStudentFeedbackMessage("همه فیلدها را کامل وارد کن.", "error");
@@ -3690,6 +4026,8 @@
                 lastName: lastName,
                 studentNumber: studentNumber,
                 password: password,
+                cohortKey: cohortKey,
+                cohort: cohortKey,
                 role: role,
                 rotationMode: rotationMode,
                 rotationId: rotationId,
@@ -4146,10 +4484,13 @@
             ownerState.loadingGradesStudentNumber = "";
             ownerState.savingGradeKey = "";
             ownerState.importingGrades = false;
+            ownerState.importingUsers = false;
+            ownerState.creatingCohort = false;
             ownerState.deletingGradeCourseKey = "";
             ownerState.resettingGrades = false;
             ownerState.campusMarking = false;
             ownerState.activeTab = "users";
+            ownerState.activeCohortKey = "";
             ownerState.userPage = 1;
             updateOwnerTabs();
             resetActivePollShortcut();
@@ -4200,21 +4541,30 @@
 
         loadActivePollShortcut(detail.user);
 
-        if (detail.user.isOwner) {
+        if (hasManagementAccess()) {
             if (ownerHubSection) {
                 ownerHubSection.hidden = false;
             }
             if (!ownerState.users.length && !ownerState.loading) {
                 loadOwnerUsers();
             } else {
+                syncOwnerRoleOptions();
+                updateCreateStudentGroupOptions();
                 renderOwnerPanel();
             }
-            loadOwnerSmsStatus();
-            loadOwnerMediaStatus();
-            if (!navidState.loaded && !navidState.loading) {
-                loadNavidOwnerStatus();
+            if (detail.user.isOwner) {
+                loadOwnerSmsStatus();
+                loadOwnerMediaStatus();
+                if (!navidState.loaded && !navidState.loading) {
+                    loadNavidOwnerStatus();
+                } else {
+                    navidRenderOwnerStatus(navidState.ownerStatus);
+                }
             } else {
-                navidRenderOwnerStatus(navidState.ownerStatus);
+                smsState.status = null;
+                mediaState.status = null;
+                renderOwnerSmsStatus(null);
+                renderOwnerMediaStatus(null);
             }
         } else {
             if (ownerHubSection) {
@@ -4233,10 +4583,13 @@
             ownerState.loadingGradesStudentNumber = "";
             ownerState.savingGradeKey = "";
             ownerState.importingGrades = false;
+            ownerState.importingUsers = false;
+            ownerState.creatingCohort = false;
             ownerState.deletingGradeCourseKey = "";
             ownerState.resettingGrades = false;
             ownerState.campusMarking = false;
             ownerState.activeTab = "users";
+            ownerState.activeCohortKey = "";
             ownerState.userPage = 1;
             updateOwnerTabs();
             setCreateStudentBusy(false);
@@ -4766,6 +5119,14 @@
         ownerCreateStudentForm.addEventListener("submit", createStudentAccount);
     }
 
+    if (ownerCreateCohortForm) {
+        ownerCreateCohortForm.addEventListener("submit", createCohort);
+    }
+
+    if (ownerImportUsersForm) {
+        ownerImportUsersForm.addEventListener("submit", importCohortUsers);
+    }
+
     if (ownerGradesImportForm) {
         ownerGradesImportForm.addEventListener("submit", importOwnerGrades);
     }
@@ -4794,6 +5155,23 @@
 
     if (ownerStudentRotationId) {
         ownerStudentRotationId.addEventListener("change", updateCreateStudentGroupOptions);
+    }
+
+    if (ownerCohortSelect) {
+        ownerCohortSelect.addEventListener("change", function () {
+            setOwnerActiveCohort(ownerCohortSelect.value);
+        });
+    }
+
+    if (ownerCohortGrid) {
+        ownerCohortGrid.addEventListener("click", function (event) {
+            var button = event.target && event.target.closest ? event.target.closest("[data-cohort-key]") : null;
+            if (!button) {
+                return;
+            }
+            event.preventDefault();
+            setOwnerActiveCohort(button.dataset.cohortKey || "");
+        });
     }
 
     if (ownerMarkCampusStudentsButton) {
@@ -4829,6 +5207,7 @@
     }
 
     updateCreateStudentGroupOptions();
+    syncOwnerRoleOptions();
     setLoginMode("otp");
     resetOtpUi();
     window.Dent1402Auth.onChange(handleAuthState);

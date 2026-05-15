@@ -14,8 +14,8 @@ const FORMS_PROSTHESIS_SHARE_PATH = '/prosthesis-1402/forms/fill/';
 
 function forms_clean_cohort(?string $value): string
 {
-    $value = trim((string) $value);
-    return $value === 'prosthesis-1402' ? 'prosthesis-1402' : 'main';
+    $value = dent_clean_cohort_key((string) $value);
+    return $value !== '' ? $value : dent_primary_cohort_key();
 }
 
 function forms_requested_cohort(): string
@@ -30,12 +30,12 @@ function forms_set_active_cohort(string $cohort): void
 
 function forms_active_cohort(): string
 {
-    return forms_clean_cohort((string) ($GLOBALS['forms_active_cohort'] ?? 'main'));
+    return forms_clean_cohort((string) ($GLOBALS['forms_active_cohort'] ?? dent_primary_cohort_key()));
 }
 
 function forms_is_prosthesis_context(): bool
 {
-    return forms_active_cohort() === 'prosthesis-1402';
+    return dent_is_prosthesis_cohort_key(forms_active_cohort());
 }
 
 function forms_store_path(): string
@@ -46,7 +46,7 @@ function forms_store_path(): string
 function forms_legacy_store_paths(): array
 {
     return [
-        'prosthesis-1402' => dent_storage_path('forms/prosthesis_1402_store.json'),
+        dent_prosthesis_legacy_cohort_key() => dent_storage_path('forms/prosthesis_1402_store.json'),
     ];
 }
 
@@ -63,8 +63,11 @@ function forms_default_store(): array
 function forms_receipts_dir(?string $cohort = null): string
 {
     $cohort = forms_clean_cohort($cohort ?? forms_active_cohort());
-    if ($cohort === 'prosthesis-1402') {
+    if ($cohort === dent_prosthesis_legacy_cohort_key()) {
         return dent_storage_path('forms/prosthesis_1402_uploads');
+    }
+    if ($cohort !== dent_primary_cohort_key()) {
+        return dent_storage_path('forms/' . dent_cohort_storage_slug($cohort) . '_uploads');
     }
     return dent_storage_path('forms/uploads');
 }
@@ -889,8 +892,16 @@ function forms_payment_gateways_payload(): array
 
 function forms_share_path_for_cohort(string $cohort, string $formId): string
 {
-    $basePath = forms_clean_cohort($cohort) === 'prosthesis-1402' ? FORMS_PROSTHESIS_SHARE_PATH : FORMS_SHARE_PATH;
-    return $basePath . '?form=' . urlencode($formId);
+    $cleanCohort = forms_clean_cohort($cohort);
+    if ($cleanCohort === dent_prosthesis_legacy_cohort_key()) {
+        return FORMS_PROSTHESIS_SHARE_PATH . '?form=' . urlencode($formId);
+    }
+
+    $path = FORMS_SHARE_PATH . '?form=' . urlencode($formId);
+    if ($cleanCohort !== dent_primary_cohort_key()) {
+        $path .= '&cohort=' . urlencode($cleanCohort);
+    }
+    return $path;
 }
 
 function forms_form_cohort(array $form): string
@@ -916,9 +927,7 @@ function forms_user_matches_context(array $user): bool
         return true;
     }
 
-    return forms_is_prosthesis_context()
-        ? dent_user_is_prosthesis($user)
-        : !dent_user_is_prosthesis($user);
+    return dent_user_cohort_key($user) === forms_active_cohort();
 }
 
 function forms_user_payload(?array $user): ?array
@@ -968,7 +977,12 @@ function forms_can_create(?array $user): bool
     if ($role === 'owner' || !empty($user['isOwner'])) {
         return true;
     }
-    return forms_is_prosthesis_context() && $role === 'prosthesis_representative';
+
+    if (!forms_user_matches_context($user)) {
+        return false;
+    }
+
+    return (bool) dent_permissions_for_role($role, forms_active_cohort())['manageForms'];
 }
 
 function forms_is_representative(array $user): bool
@@ -2529,7 +2543,7 @@ if ($action === 'create') {
     }
     $user = forms_require_context_user();
     if (!forms_can_create($user)) {
-        dent_error(forms_is_prosthesis_context() ? 'ساخت فرم پروتز فقط برای مالک یا نماینده پروتز فعال است.' : 'ساخت فرم و نظرسنجی فقط برای مالک فعال است.', 403);
+        dent_error('ساخت فرم و نظرسنجی فقط برای مالک یا مدیر مجاز همان ورودی فعال است.', 403);
     }
     $store = forms_load_store();
     $form = forms_build_form_from_payload(forms_request_payload(), $user, null);

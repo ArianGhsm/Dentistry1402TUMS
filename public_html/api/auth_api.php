@@ -41,6 +41,174 @@ function dent_owner_dis_request_private_index(): array
     return $index;
 }
 
+function dent_management_visible_users(array $viewer, bool $includeOwnerPrivate = false): array
+{
+    $role = dent_normalize_role((string) ($viewer['role'] ?? 'student'), (string) ($viewer['studentNumber'] ?? ''));
+    $viewerCohortKey = dent_user_cohort_key($viewer);
+    $store = dent_load_user_store();
+    $visible = [];
+
+    foreach (($store['users'] ?? []) as $studentNumber => $rawUser) {
+        if (!is_array($rawUser)) {
+            continue;
+        }
+
+        $rawUser['studentNumber'] = (string) ($rawUser['studentNumber'] ?? $studentNumber);
+        $targetCohortKey = dent_user_cohort_key($rawUser);
+        if ($role !== 'owner' && $targetCohortKey !== $viewerCohortKey) {
+            continue;
+        }
+
+        $public = dent_public_user($rawUser);
+        if ($includeOwnerPrivate) {
+            $public['ownerPrivate'] = dent_owner_private_user_fields($rawUser);
+        }
+        $public['sortableName'] = trim((string) ($rawUser['name'] ?? $studentNumber));
+        $public['_cohortKey'] = $targetCohortKey;
+        $visible[] = $public;
+    }
+
+    usort($visible, static function (array $left, array $right): int {
+        if (($left['role'] ?? '') === 'owner' && ($right['role'] ?? '') !== 'owner') {
+            return -1;
+        }
+        if (($right['role'] ?? '') === 'owner' && ($left['role'] ?? '') !== 'owner') {
+            return 1;
+        }
+        if (($left['_cohortKey'] ?? '') !== ($right['_cohortKey'] ?? '')) {
+            return strcmp((string) ($left['_cohortKey'] ?? ''), (string) ($right['_cohortKey'] ?? ''));
+        }
+        return strcasecmp((string) ($left['sortableName'] ?? ''), (string) ($right['sortableName'] ?? ''));
+    });
+
+    foreach ($visible as &$user) {
+        unset($user['sortableName'], $user['_cohortKey']);
+    }
+    unset($user);
+
+    return $visible;
+}
+
+function dent_management_cohort_cards(array $viewer, array $users): array
+{
+    $cards = [];
+    foreach (dent_visible_cohorts_for_user($viewer) as $cohort) {
+        $cohortKey = (string) ($cohort['key'] ?? '');
+        $counts = [
+            'totalUsers' => 0,
+            'representatives' => 0,
+            'withNationalCode' => 0,
+            'withDirectoryPhone' => 0,
+        ];
+
+        foreach ($users as $user) {
+            if ((string) ($user['cohortKey'] ?? '') !== $cohortKey) {
+                continue;
+            }
+            $counts['totalUsers']++;
+            if (in_array((string) ($user['role'] ?? ''), ['representative', 'prosthesis_representative'], true)) {
+                $counts['representatives']++;
+            }
+            if (!empty($user['hasNationalCode'])) {
+                $counts['withNationalCode']++;
+            }
+            if (!empty($user['hasDirectoryPhone'])) {
+                $counts['withDirectoryPhone']++;
+            }
+        }
+
+        $cards[] = [
+            'key' => $cohortKey,
+            'title' => (string) ($cohort['title'] ?? ''),
+            'shortTitle' => (string) ($cohort['shortTitle'] ?? ''),
+            'description' => (string) ($cohort['description'] ?? ''),
+            'productType' => (string) ($cohort['productType'] ?? ''),
+            'year' => (string) ($cohort['year'] ?? ''),
+            'siteVariant' => (string) ($cohort['siteVariant'] ?? ''),
+            'notesMode' => (string) ($cohort['notesMode'] ?? ''),
+            'allowRepresentativeManagement' => !empty($cohort['allowRepresentativeManagement']),
+            'permissions' => dent_permissions_for_role((string) ($viewer['role'] ?? 'student'), $cohortKey),
+            'counts' => $counts,
+        ];
+    }
+
+    return $cards;
+}
+
+function dent_import_role_from_label(string $value, string $cohortKey): string
+{
+    $normalized = dent_force_utf8(trim($value));
+    $normalized = str_replace(['ي', 'ك'], ['ی', 'ک'], $normalized);
+    $normalized = preg_replace('/\s+/u', '', $normalized) ?? '';
+    if ($normalized === '' || in_array($normalized, ['student', 'دانشجو'], true)) {
+        return dent_is_prosthesis_cohort_key($cohortKey) ? 'prosthesis_student' : 'student';
+    }
+
+    if (in_array($normalized, ['representative', 'نماینده'], true)) {
+        return dent_is_prosthesis_cohort_key($cohortKey) ? 'prosthesis_representative' : 'representative';
+    }
+
+    dent_error('نقش واردشده فقط باید دانشجو یا نماینده باشد.', 422);
+}
+
+function dent_parse_import_user_rows(string $text, string $cohortKey): array
+{
+    $rows = preg_split('/\r\n|\r|\n/u', $text) ?: [];
+    $entries = [];
+
+    foreach ($rows as $index => $row) {
+        $line = trim((string) $row);
+        if ($line === '') {
+            continue;
+        }
+
+        $parts = preg_split('/\s*[,\x{060C}]\s*/u', $line) ?: [];
+        if (count($parts) < 4) {
+            if ($index === 0 && preg_match('/شماره/u', $line) === 1) {
+                continue;
+            }
+            dent_error('هر خط ورودی باید چهار ستون نام، نام خانوادگی، شماره دانشجویی و نقش داشته باشد.', 422);
+        }
+
+        $firstName = trim((string) ($parts[0] ?? ''));
+        $lastName = trim((string) ($parts[1] ?? ''));
+        $studentNumber = trim((string) ($parts[2] ?? ''));
+        $roleLabel = trim((string) ($parts[3] ?? ''));
+
+        if ($index === 0 && preg_match('/نام/u', $firstName) === 1 && preg_match('/شماره/u', $studentNumber) === 1) {
+            continue;
+        }
+
+        $entries[] = [
+            'firstName' => $firstName,
+            'lastName' => $lastName,
+            'studentNumber' => $studentNumber,
+            'role' => dent_import_role_from_label($roleLabel, $cohortKey),
+        ];
+    }
+
+    return $entries;
+}
+
+function dent_management_grade_roster_by_cohort(array $users): array
+{
+    $cohorts = [];
+    foreach ($users as $user) {
+        $cohortKey = dent_requested_cohort_key((string) ($user['cohortKey'] ?? ''));
+        if ($cohortKey !== '') {
+            $cohorts[$cohortKey] = true;
+        }
+    }
+
+    $rosters = [];
+    foreach (array_keys($cohorts) as $cohortKey) {
+        dent_grades_set_active_cohort($cohortKey);
+        $rosters[$cohortKey] = dent_grade_roster_index();
+    }
+
+    return $rosters;
+}
+
 $action = dent_request_action();
 
 if ($action === 'login') {
@@ -94,6 +262,7 @@ if ($action === 'me') {
         'loggedIn' => true,
         'status' => dent_auth_status($user),
         'user' => dent_public_user($user),
+        'availableCohorts' => dent_visible_cohorts_for_user($user),
     ]);
 }
 
@@ -262,7 +431,7 @@ if ($action === 'dismissPhoneNudge') {
 }
 
 if ($action === 'smsStatus') {
-    dent_require_owner();
+    $viewer = dent_require_cohort_manager(dent_requested_cohort_key());
 
     dent_json_response([
         'success' => true,
@@ -275,7 +444,7 @@ if ($action === 'saveSmsConfig') {
         dent_error('متد ذخیره تنظیمات پیامک نامعتبر است.', 405);
     }
 
-    dent_require_owner();
+    $viewer = dent_require_user();
     $status = dent_save_sms_owner_config([
         'enabled' => $_POST['enabled'] ?? '0',
         'apiKey' => $_POST['apiKey'] ?? '',
@@ -298,7 +467,7 @@ if ($action === 'smsHealthCheck') {
         dent_error('متد بررسی سلامت پیامک نامعتبر است.', 405);
     }
 
-    dent_require_owner();
+    $viewer = dent_require_user();
     $phoneNumber = (string) ($_POST['phoneNumber'] ?? ($_GET['phoneNumber'] ?? ''));
     $health = dent_sms_health_check($phoneNumber === '' ? null : $phoneNumber);
 
@@ -310,10 +479,14 @@ if ($action === 'smsHealthCheck') {
 }
 
 if ($action === 'users') {
-    dent_require_owner();
+    $viewer = dent_require_user();
+    $activeCohortKey = dent_resolve_accessible_cohort($viewer, dent_requested_cohort_key());
+    if (!dent_user_has_cohort_management_access($viewer, $activeCohortKey)) {
+        dent_error('این بخش فقط برای مالک یا نماینده مجاز همان ورودی فعال است.', 403);
+    }
 
-    $users = dent_list_public_users(true);
-    $gradeRoster = dent_grade_roster_index();
+    $users = dent_management_visible_users($viewer, true);
+    $gradeRosters = dent_management_grade_roster_by_cohort($users);
     $disPrivateIndex = dent_owner_dis_request_private_index();
     $representativeCount = 0;
     $withNationalCodeCount = 0;
@@ -321,7 +494,9 @@ if ($action === 'users') {
 
     foreach ($users as &$user) {
         $studentNumber = (string) ($user['studentNumber'] ?? '');
-        $hasGrades = isset($gradeRoster[$studentNumber]);
+        $userCohortKey = dent_requested_cohort_key((string) ($user['cohortKey'] ?? ''));
+        $cohortGradeRoster = is_array($gradeRosters[$userCohortKey] ?? null) ? $gradeRosters[$userCohortKey] : [];
+        $hasGrades = isset($cohortGradeRoster[$studentNumber]);
         $user['hasGrades'] = $hasGrades;
         $phone = is_array($user['phone'] ?? null) ? $user['phone'] : [];
         $user['hasPhone'] = !empty($phone['hasNumber']);
@@ -353,9 +528,16 @@ if ($action === 'users') {
     }
     unset($user);
 
+    $cohortCards = dent_management_cohort_cards($viewer, $users);
+    dent_grades_set_active_cohort($activeCohortKey);
+
     dent_json_response([
         'success' => true,
+        'viewer' => dent_public_user($viewer),
         'users' => $users,
+        'cohorts' => $cohortCards,
+        'availableCohorts' => dent_visible_cohorts_for_user($viewer),
+        'activeCohortKey' => $activeCohortKey,
         'rotationCatalog' => dent_rotation_group_options(),
         'gradeCourses' => dent_owner_grades_course_catalog(),
         'campusLabel' => 'دانشجوی پردیس',
@@ -374,7 +556,7 @@ if ($action === 'ownerUserGrades') {
         dent_error('متد دریافت کارنامه کاربر نامعتبر است.', 405);
     }
 
-    dent_require_owner();
+    $viewer = dent_require_user();
 
     $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? ($_GET['studentNumber'] ?? ''));
     if ($studentNumber === '') {
@@ -386,6 +568,8 @@ if ($action === 'ownerUserGrades') {
         dent_error('کاربر موردنظر پیدا نشد.', 404);
     }
 
+    dent_require_manage_target_user($viewer, $studentNumber);
+    dent_grades_set_active_cohort(dent_user_cohort_key($user));
     $grades = dent_owner_grades_payload($studentNumber, (string) ($user['name'] ?? ''));
 
     dent_json_response([
@@ -400,10 +584,10 @@ if ($action === 'setRepresentative') {
         dent_error('متد تغییر نماینده نامعتبر است.', 405);
     }
 
-    dent_require_owner();
-
+    $viewer = dent_require_user();
     $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
     $representative = (string) ($_POST['representative'] ?? '0') === '1';
+    dent_require_manage_target_user($viewer, $studentNumber);
     $updatedUser = dent_set_representative_status($studentNumber, $representative);
 
     dent_json_response([
@@ -418,10 +602,10 @@ if ($action === 'ownerSetUserPassword') {
         dent_error('متد تغییر رمز کاربر نامعتبر است.', 405);
     }
 
-    dent_require_owner();
-
+    $viewer = dent_require_user();
     $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
     $newPassword = (string) ($_POST['newPassword'] ?? '');
+    dent_require_manage_target_user($viewer, $studentNumber);
     $updatedUser = dent_owner_set_user_password($studentNumber, $newPassword);
 
     dent_json_response([
@@ -436,9 +620,9 @@ if ($action === 'ownerSetUserRotation') {
         dent_error('متد تنظیم روتیشن/گروه کاربر نامعتبر است.', 405);
     }
 
-    dent_require_owner();
-
+    $viewer = dent_require_user();
     $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
+    dent_require_manage_target_user($viewer, $studentNumber);
     $rotationMode = (string) ($_POST['rotationMode'] ?? 'none');
     $rotationIdRaw = $_POST['rotationId'] ?? null;
     $groupNumberRaw = $_POST['groupNumber'] ?? null;
@@ -479,12 +663,12 @@ if ($action === 'createStudent') {
         dent_error('متد ایجاد حساب دانشجو نامعتبر است.', 405);
     }
 
-    dent_require_owner();
-
     $firstName = (string) ($_POST['firstName'] ?? '');
     $lastName = (string) ($_POST['lastName'] ?? '');
     $studentNumber = (string) ($_POST['studentNumber'] ?? '');
     $password = (string) ($_POST['password'] ?? '');
+    $cohortKey = dent_requested_cohort_key((string) ($_POST['cohortKey'] ?? dent_requested_cohort_key()));
+    dent_require_cohort_manager($cohortKey);
     $role = (string) ($_POST['role'] ?? 'student');
     $nationalCode = (string) ($_POST['nationalCode'] ?? '');
     $directoryPhoneNumber = (string) ($_POST['directoryPhoneNumber'] ?? '');
@@ -499,6 +683,7 @@ if ($action === 'createStudent') {
         $lastName,
         $studentNumber,
         $password,
+        $cohortKey,
         $role,
         $rotationMode,
         $rotationId,
@@ -514,12 +699,75 @@ if ($action === 'createStudent') {
     ]);
 }
 
+if ($action === 'createCohort') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد ساخت ورودی جدید نامعتبر است.', 405);
+    }
+
+    dent_require_owner();
+    $created = dent_create_cohort([
+        'key' => $_POST['key'] ?? '',
+        'title' => $_POST['title'] ?? '',
+        'shortTitle' => $_POST['shortTitle'] ?? '',
+        'description' => $_POST['description'] ?? '',
+        'productType' => $_POST['productType'] ?? 'dentistry',
+        'year' => $_POST['year'] ?? '',
+        'notesMode' => $_POST['notesMode'] ?? '',
+        'allowRepresentativeManagement' => $_POST['allowRepresentativeManagement'] ?? '1',
+        'sortOrder' => $_POST['sortOrder'] ?? '',
+    ]);
+
+    dent_json_response([
+        'success' => true,
+        'cohort' => $created,
+        'message' => 'ورودی جدید ساخته شد.',
+    ]);
+}
+
+if ($action === 'importCohortUsers') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد ورود گروهی کاربران نامعتبر است.', 405);
+    }
+
+    $cohortKey = dent_requested_cohort_key((string) ($_POST['cohortKey'] ?? ''));
+    dent_require_cohort_manager($cohortKey);
+
+    $importText = trim((string) ($_POST['importText'] ?? ''));
+    if ($importText === '') {
+        dent_error('متن ورود گروهی کاربران خالی است.', 422);
+    }
+
+    $defaultPassword = trim((string) ($_POST['defaultPassword'] ?? ''));
+    if ($defaultPassword === '') {
+        $defaultPassword = '12345678';
+    }
+
+    $createdUsers = [];
+    foreach (dent_parse_import_user_rows($importText, $cohortKey) as $entry) {
+        $createdUsers[] = dent_public_user(dent_create_student_account(
+            (string) ($entry['firstName'] ?? ''),
+            (string) ($entry['lastName'] ?? ''),
+            (string) ($entry['studentNumber'] ?? ''),
+            $defaultPassword,
+            $cohortKey,
+            (string) ($entry['role'] ?? 'student')
+        ));
+    }
+
+    dent_json_response([
+        'success' => true,
+        'createdUsers' => $createdUsers,
+        'count' => count($createdUsers),
+        'message' => 'ورود گروهی کاربران انجام شد.',
+    ]);
+}
+
 if ($action === 'ownerSetUserGrade') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد ثبت نمره کاربر نامعتبر است.', 405);
     }
 
-    dent_require_owner();
+    $viewer = dent_require_user();
 
     $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
     if ($studentNumber === '') {
@@ -533,6 +781,8 @@ if ($action === 'ownerSetUserGrade') {
         dent_error('کاربر موردنظر پیدا نشد.', 404);
     }
 
+    dent_require_manage_target_user($viewer, $studentNumber);
+    dent_grades_set_active_cohort(dent_user_cohort_key($user));
     $grades = dent_owner_set_grade($studentNumber, $columnIndex, $gradeValue, (string) ($user['name'] ?? ''));
     $updatedUser = dent_get_user_record($studentNumber);
     $publicUser = $updatedUser ? dent_public_user($updatedUser) : dent_public_user($user);
@@ -552,7 +802,9 @@ if ($action === 'ownerImportGrades') {
         dent_error('متد import نمرات نامعتبر است.', 405);
     }
 
-    dent_require_owner();
+    $cohortKey = dent_requested_cohort_key((string) ($_POST['cohortKey'] ?? dent_requested_cohort_key()));
+    dent_require_cohort_manager($cohortKey);
+    dent_grades_set_active_cohort($cohortKey);
 
     $result = null;
     $file = $_FILES['gradesFile'] ?? null;
@@ -594,7 +846,9 @@ if ($action === 'ownerDeleteGradeCourse') {
         dent_error('متد حذف درس نامعتبر است.', 405);
     }
 
-    dent_require_owner();
+    $cohortKey = dent_requested_cohort_key((string) ($_POST['cohortKey'] ?? dent_requested_cohort_key()));
+    dent_require_cohort_manager($cohortKey);
+    dent_grades_set_active_cohort($cohortKey);
     $courseKey = (string) ($_POST['courseKey'] ?? '');
     $result = dent_owner_delete_grade_course($courseKey);
 
@@ -609,7 +863,9 @@ if ($action === 'ownerResetGradebook') {
         dent_error('متد ریست کارنامه نامعتبر است.', 405);
     }
 
-    dent_require_owner();
+    $cohortKey = dent_requested_cohort_key((string) ($_POST['cohortKey'] ?? dent_requested_cohort_key()));
+    dent_require_cohort_manager($cohortKey);
+    dent_grades_set_active_cohort($cohortKey);
     $confirm = trim((string) ($_POST['confirm'] ?? ''));
     if ($confirm !== 'RESET') {
         dent_error('برای ریست کامل کارنامه تایید معتبر ارسال نشده است.', 422);
@@ -627,9 +883,11 @@ if ($action === 'ownerRemoveUserPhone') {
         dent_error('متد حذف شماره کاربر نامعتبر است.', 405);
     }
 
-    dent_require_owner();
+    $viewer = dent_require_user();
     $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
+    dent_require_manage_target_user($viewer, $studentNumber);
     $updatedUser = dent_owner_remove_user_phone($studentNumber);
+    dent_grades_set_active_cohort(dent_user_cohort_key($updatedUser));
     $publicUser = dent_public_user($updatedUser);
     $publicUser['hasPhone'] = !empty(($publicUser['phone'] ?? [])['hasNumber']);
     $gradeRoster = dent_grade_roster_index();
@@ -647,13 +905,19 @@ if ($action === 'ownerDeleteStudent') {
         dent_error('متد حذف دانشجو نامعتبر است.', 405);
     }
 
-    dent_require_owner();
+    $viewer = dent_require_user();
 
     $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
     if ($studentNumber === '') {
         dent_error('شماره دانشجویی نامعتبر است.', 422);
     }
 
+    $targetUser = dent_get_user_record($studentNumber);
+    if ($targetUser === null) {
+        dent_error('کاربر موردنظر پیدا نشد.', 404);
+    }
+    dent_require_manage_target_user($viewer, $studentNumber);
+    dent_grades_set_active_cohort(dent_user_cohort_key($targetUser));
     dent_owner_delete_student_account($studentNumber);
     dent_owner_remove_grades_row($studentNumber);
 

@@ -26,8 +26,8 @@ const CHAT_BRAND_ASSET_VERSION = '20260422-brand1';
 
 function chat_clean_cohort(?string $value): string
 {
-    $value = trim((string) $value);
-    return $value === 'prosthesis-1402' ? 'prosthesis-1402' : 'main';
+    $value = dent_clean_cohort_key((string) $value);
+    return $value !== '' ? $value : dent_primary_cohort_key();
 }
 
 function chat_requested_cohort(): string
@@ -42,18 +42,41 @@ function chat_set_active_cohort(string $cohort): void
 
 function chat_active_cohort(): string
 {
-    return chat_clean_cohort((string) ($GLOBALS['chat_active_cohort'] ?? 'main'));
+    return chat_clean_cohort((string) ($GLOBALS['chat_active_cohort'] ?? dent_primary_cohort_key()));
 }
 
 function chat_is_prosthesis_context(): bool
 {
-    return chat_active_cohort() === 'prosthesis-1402';
+    return dent_is_prosthesis_cohort_key(chat_active_cohort());
+}
+
+function chat_active_cohort_record(): array
+{
+    return dent_cohort_record(chat_active_cohort());
+}
+
+function chat_active_cohort_title(): string
+{
+    $record = chat_active_cohort_record();
+    $title = trim((string) ($record['shortTitle'] ?? ($record['title'] ?? '')));
+    return $title !== '' ? $title : 'کلاس';
 }
 
 function chat_page_url(string $suffix = ''): string
 {
-    $base = chat_is_prosthesis_context() ? '/prosthesis-1402/chat/' : '/chat/';
-    return $base . ltrim($suffix, '/');
+    $cohortKey = chat_active_cohort();
+    if ($cohortKey === dent_prosthesis_legacy_cohort_key()) {
+        $base = '/prosthesis-1402/chat/';
+        return $base . ltrim($suffix, '/');
+    }
+
+    $base = '/chat/';
+    if ($cohortKey === dent_primary_cohort_key()) {
+        return $base . ltrim($suffix, '/');
+    }
+
+    $query = http_build_query(['cohort' => $cohortKey]);
+    return $base . ($suffix !== '' ? ltrim($suffix, '/') : '') . ($suffix !== '' ? '&' : '?') . $query;
 }
 
 function chat_brand_logo_url(): string
@@ -63,20 +86,28 @@ function chat_brand_logo_url(): string
 
 function chat_store_path(): string
 {
-    if (chat_is_prosthesis_context()) {
+    $cohortKey = chat_active_cohort();
+    if ($cohortKey === dent_prosthesis_legacy_cohort_key()) {
         return dent_storage_path('prosthesis_1402/chat/store.json');
     }
+    if ($cohortKey === dent_primary_cohort_key()) {
+        return dent_storage_path('chat/store.json');
+    }
 
-    return dent_storage_path('chat/store.json');
+    return dent_storage_path('chat/' . dent_cohort_storage_slug($cohortKey) . '_store.json');
 }
 
 function chat_store_lock_path(): string
 {
-    if (chat_is_prosthesis_context()) {
+    $cohortKey = chat_active_cohort();
+    if ($cohortKey === dent_prosthesis_legacy_cohort_key()) {
         return dent_storage_path('prosthesis_1402/chat/store.lock');
     }
+    if ($cohortKey === dent_primary_cohort_key()) {
+        return dent_storage_path('chat/store.lock');
+    }
 
-    return dent_storage_path('chat/store.lock');
+    return dent_storage_path('chat/' . dent_cohort_storage_slug($cohortKey) . '_store.lock');
 }
 
 function chat_legacy_messages_path(): string
@@ -91,11 +122,15 @@ function chat_legacy_state_path(): string
 
 function chat_media_root_path(): string
 {
-    if (chat_is_prosthesis_context()) {
+    $cohortKey = chat_active_cohort();
+    if ($cohortKey === dent_prosthesis_legacy_cohort_key()) {
         return dent_storage_path('prosthesis_1402/chat/media');
     }
+    if ($cohortKey === dent_primary_cohort_key()) {
+        return dent_storage_path('chat/media');
+    }
 
-    return dent_storage_path('chat/media');
+    return dent_storage_path('chat/' . dent_cohort_storage_slug($cohortKey) . '_media');
 }
 
 function chat_media_originals_path(): string
@@ -2626,8 +2661,8 @@ function chat_require_user(): array
     if ($role === 'owner') {
         chat_set_active_cohort($requestedCohort);
     } else {
-        $userCohort = dent_user_is_prosthesis($user) ? 'prosthesis-1402' : 'main';
-        if ($requestedCohort !== 'main' && $requestedCohort !== $userCohort) {
+        $userCohort = dent_user_cohort_key($user);
+        if ($requestedCohort !== dent_primary_cohort_key() && $requestedCohort !== $userCohort) {
             dent_error('این پیام‌رسان برای حساب شما فعال نیست.', 403);
         }
         chat_set_active_cohort($userCohort);
@@ -2653,23 +2688,12 @@ function chat_user_belongs_to_active_cohort(array $user): bool
         return true;
     }
 
-    return chat_is_prosthesis_context()
-        ? dent_user_is_prosthesis($user)
-        : !dent_user_is_prosthesis($user);
+    return dent_user_cohort_key($user) === chat_active_cohort();
 }
 
 function chat_user_can_moderate_active_cohort(array $user): bool
 {
-    $role = dent_normalize_role((string) ($user['role'] ?? 'student'), (string) ($user['studentNumber'] ?? ''));
-    if ($role === 'owner') {
-        return true;
-    }
-
-    if (chat_is_prosthesis_context()) {
-        return $role === 'prosthesis_representative';
-    }
-
-    return $role === 'representative';
+    return dent_can_moderate_chat($user, chat_active_cohort());
 }
 
 function chat_public_user_payload(array $user): array
@@ -4068,7 +4092,7 @@ function chat_conversation_title_for_user(array $conversation, string $viewerStu
 {
     $type = (string) ($conversation['type'] ?? 'group');
     if ($type === 'class-group') {
-        return chat_is_prosthesis_context() ? 'گفت‌وگوی پروتز ۱۴۰۲' : 'گفت‌وگوی کلاس';
+        return 'گفت‌وگوی ' . chat_active_cohort_title();
     }
 
     if ($type === 'direct') {
@@ -4131,7 +4155,7 @@ function chat_conversation_subtitle_for_user(
 {
     $type = (string) ($conversation['type'] ?? 'group');
     if ($type === 'class-group') {
-        return chat_is_prosthesis_context() ? 'گفت‌وگوی اجباری پروتز ۱۴۰۲' : 'گفت‌وگوی اجباری مشترک کلاس';
+        return 'گفت‌وگوی اجباری ' . chat_active_cohort_title();
     }
 
     if ($type === 'direct') {

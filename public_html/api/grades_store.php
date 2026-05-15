@@ -1,12 +1,12 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/auth_store.php';
 
 function dent_grades_clean_cohort(?string $value): string
 {
-    $value = trim((string) $value);
-    return $value === 'prosthesis-1402' ? 'prosthesis-1402' : 'main';
+    $value = dent_clean_cohort_key((string) $value);
+    return $value !== '' ? $value : dent_primary_cohort_key();
 }
 
 function dent_grades_requested_cohort(): string
@@ -21,47 +21,44 @@ function dent_grades_set_active_cohort(string $cohort): void
 
 function dent_grades_active_cohort(): string
 {
-    return dent_grades_clean_cohort((string) ($GLOBALS['dent_grades_active_cohort'] ?? 'main'));
+    return dent_grades_clean_cohort((string) ($GLOBALS['dent_grades_active_cohort'] ?? dent_primary_cohort_key()));
 }
 
 function dent_grades_store_path(): string
 {
-    if (dent_grades_active_cohort() === 'prosthesis-1402') {
+    $cohortKey = dent_grades_active_cohort();
+    if ($cohortKey === dent_prosthesis_legacy_cohort_key()) {
         return dent_storage_path('grades/prosthesis_1402_grades.csv');
     }
+    if ($cohortKey === dent_primary_cohort_key()) {
+        return dent_storage_path('grades/grades.csv');
+    }
 
-    return dent_storage_path('grades/grades.csv');
+    return dent_storage_path('grades/' . dent_cohort_storage_slug($cohortKey) . '_grades.csv');
 }
 
 function dent_grades_meta_path(): string
 {
-    if (dent_grades_active_cohort() === 'prosthesis-1402') {
+    $cohortKey = dent_grades_active_cohort();
+    if ($cohortKey === dent_prosthesis_legacy_cohort_key()) {
         return dent_storage_path('grades/prosthesis_1402_meta.json');
     }
+    if ($cohortKey === dent_primary_cohort_key()) {
+        return dent_storage_path('grades/meta.json');
+    }
 
-    return dent_storage_path('grades/meta.json');
+    return dent_storage_path('grades/' . dent_cohort_storage_slug($cohortKey) . '_meta.json');
 }
 
 function dent_grades_require_user(): array
 {
     $user = dent_require_user();
     $requestedCohort = dent_grades_requested_cohort();
-    $role = dent_normalize_role((string) ($user['role'] ?? 'student'), (string) ($user['studentNumber'] ?? ''));
+    $activeCohort = dent_resolve_accessible_cohort($user, $requestedCohort);
 
-    if ($role === 'owner') {
-        dent_grades_set_active_cohort($requestedCohort);
-        return $user;
-    }
-
-    $userCohort = dent_user_is_prosthesis($user) ? 'prosthesis-1402' : 'main';
-    if ($requestedCohort !== 'main' && $requestedCohort !== $userCohort) {
-        dent_error('این کارنامه برای حساب شما فعال نیست.', 403);
-    }
-
-    dent_grades_set_active_cohort($userCohort);
+    dent_grades_set_active_cohort($activeCohort);
     return $user;
 }
-
 function dent_grades_prosthesis_roster_rows(): array
 {
     $rows = [];
@@ -87,10 +84,34 @@ function dent_grades_prosthesis_roster_rows(): array
 
 function dent_grades_missing_source(): array
 {
-    if (dent_grades_active_cohort() === 'prosthesis-1402') {
+    $cohortKey = dent_grades_active_cohort();
+    if ($cohortKey === dent_prosthesis_legacy_cohort_key()) {
         return [
             'header' => ['StudentID', 'Name'],
             'rows' => dent_grades_prosthesis_roster_rows(),
+            'idIndex' => 0,
+            'nameIndex' => 1,
+            'gradeColumns' => [],
+            'statsAccumulator' => [],
+        ];
+    }
+
+    if ($cohortKey !== dent_primary_cohort_key()) {
+        $store = dent_load_user_store();
+        $rows = [];
+        foreach (($store['users'] ?? []) as $studentNumber => $user) {
+            if (!is_array($user) || dent_user_cohort_key($user) !== $cohortKey) {
+                continue;
+            }
+            $rows[] = [
+                dent_normalize_student_number((string) ($user['studentNumber'] ?? $studentNumber)),
+                trim((string) ($user['name'] ?? $studentNumber)),
+            ];
+        }
+
+        return [
+            'header' => ['StudentID', 'Name'],
+            'rows' => $rows,
             'idIndex' => 0,
             'nameIndex' => 1,
             'gradeColumns' => [],
@@ -186,7 +207,7 @@ function dent_grade_course_label_parts(string $label): array
     $label = trim(ltrim($label, "\xEF\xBB\xBF"));
     $maxScore = null;
 
-    if (preg_match('/^(.*?)\s*[\(（]\s*از\s*([0-9۰-۹٠-٩.,٫٬]+)\s*[\)）]\s*$/u', $label, $matches) === 1) {
+    if (preg_match('/^(.*?)\s*[\((]\s*از\s*([0-9۰-۹٠-٩.,٫٬]+)\s*[\))]\s*$/u', $label, $matches) === 1) {
         $label = trim((string) $matches[1]);
         $maxScore = dent_parse_grade_score((string) $matches[2]);
     } elseif (preg_match('/^(.*?)\s*[,،]\s*([0-9۰-۹٠-٩.,٫٬]+)\s*$/u', $label, $matches) === 1) {
@@ -313,7 +334,7 @@ function dent_read_grades_source(bool $strict = true): array
         if (!$strict) {
             return dent_grades_missing_source();
         }
-        if (dent_grades_active_cohort() === 'prosthesis-1402') {
+        if (dent_grades_active_cohort() !== dent_primary_cohort_key()) {
             $source = dent_grades_missing_source();
             dent_write_grades_source($source['header'], $source['rows']);
             return $source;

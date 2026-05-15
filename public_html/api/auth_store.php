@@ -395,16 +395,16 @@ function dent_normalize_national_code(?string $value): string
 function dent_to_fa_digits(string $value): string
 {
     return strtr($value, [
-        '0' => '۰',
-        '1' => '۱',
-        '2' => '۲',
-        '3' => '۳',
-        '4' => '۴',
-        '5' => '۵',
-        '6' => '۶',
-        '7' => '۷',
-        '8' => '۸',
-        '9' => '۹',
+        '0' => 'Û°',
+        '1' => 'Û±',
+        '2' => 'Û²',
+        '3' => 'Û³',
+        '4' => 'Û´',
+        '5' => 'Ûµ',
+        '6' => 'Û¶',
+        '7' => 'Û·',
+        '8' => 'Û¸',
+        '9' => 'Û¹',
     ]);
 }
 
@@ -2137,6 +2137,11 @@ function dent_owner_set_user_rotation(
         dent_error('کاربر موردنظر پیدا نشد.', 404);
     }
 
+    if (dent_user_cohort_key($user) !== dent_primary_cohort_key()) {
+        $user['rotationOverride'] = ['mode' => 'none'];
+        return dent_persist_user($user);
+    }
+
     $rotationMode = trim(strtolower($rotationMode));
     if ($rotationMode === '' || $rotationMode === 'auto' || $rotationMode === 'catalog') {
         $rotationMode = 'none';
@@ -2173,6 +2178,9 @@ function dent_mark_unassigned_students_as_campus(): array
 
         $role = dent_normalize_role((string) ($user['role'] ?? 'student'), (string) $studentNumber);
         if ($role !== 'student') {
+            continue;
+        }
+        if (dent_user_cohort_key($user) !== dent_primary_cohort_key()) {
             continue;
         }
 
@@ -2214,11 +2222,74 @@ function dent_mark_unassigned_students_as_campus(): array
     ];
 }
 
+function dent_create_cohort(array $input): array
+{
+    $store = dent_load_user_store();
+    $productType = strtolower(trim((string) ($input['productType'] ?? 'dentistry')));
+    if (!in_array($productType, ['dentistry', 'prosthesis'], true)) {
+        $productType = 'dentistry';
+    }
+
+    $year = dent_normalize_digits((string) ($input['year'] ?? ''));
+    $requestedKey = dent_clean_cohort_key((string) ($input['key'] ?? ''));
+    if ($requestedKey === '') {
+        if ($year === '') {
+            dent_error('برای ساخت ورودی جدید، سال یا کد ورودی لازم است.', 422);
+        }
+        $requestedKey = $productType . '-' . $year;
+    }
+
+    if (isset($store['cohorts'][$requestedKey])) {
+        dent_error('برای این کد ورودی قبلا رکوردی ثبت شده است.', 409);
+    }
+
+    $title = dent_clean_text((string) ($input['title'] ?? ''), 140);
+    if ($title === '') {
+        $title = dent_default_cohort_title($requestedKey);
+    }
+
+    $shortTitle = dent_clean_text((string) ($input['shortTitle'] ?? ''), 80);
+    if ($shortTitle === '') {
+        $shortTitle = dent_default_cohort_short_title($requestedKey);
+    }
+
+    $siteVariant = $requestedKey === dent_prosthesis_legacy_cohort_key() ? 'prosthesis-legacy' : 'main';
+    $notesMode = trim((string) ($input['notesMode'] ?? ($productType === 'prosthesis' ? 'terms' : 'archive')));
+    if (!in_array($notesMode, ['terms', 'archive'], true)) {
+        $notesMode = 'archive';
+    }
+
+    $record = dent_normalize_cohort_record($requestedKey, [
+        'title' => $title,
+        'shortTitle' => $shortTitle,
+        'description' => (string) ($input['description'] ?? ''),
+        'productType' => $productType,
+        'year' => $year,
+        'siteVariant' => $siteVariant,
+        'notesMode' => $notesMode,
+        'allowRepresentativeManagement' => dent_parse_bool($input['allowRepresentativeManagement'] ?? ($requestedKey !== dent_primary_cohort_key()), $requestedKey !== dent_primary_cohort_key()),
+        'sortOrder' => (int) ($input['sortOrder'] ?? (140 + count($store['cohorts']) * 10)),
+        'isSeeded' => false,
+        'isIsolated' => true,
+        'createdAt' => dent_iso_now(),
+        'updatedAt' => dent_iso_now(),
+    ]);
+
+    if ($record === null) {
+        dent_error('ساخت ورودی جدید انجام نشد.', 422);
+    }
+
+    $store['cohorts'][$record['key']] = $record;
+    dent_save_user_store($store);
+    return $record;
+}
+
 function dent_create_student_account(
     string $firstName,
     string $lastName,
     string $studentNumber,
     string $password,
+    string $cohortKey = '',
     string $role = 'student',
     string $rotationMode = 'none',
     ?int $rotationId = null,
@@ -2251,13 +2322,21 @@ function dent_create_student_account(
         dent_error('برای این شماره دانشجویی حسابی وجود دارد.', 409);
     }
 
+    $cohortKey = dent_clean_cohort_key($cohortKey);
+    if ($cohortKey === '') {
+        $cohortKey = dent_primary_cohort_key();
+    }
+    if (!isset($store['cohorts'][$cohortKey])) {
+        dent_error('ورودی انتخاب‌شده پیدا نشد.', 404);
+    }
+
     $role = dent_normalize_role($role, $studentNumber);
     if ($role === 'owner') {
         dent_error('حساب مالک اصلی از این بخش قابل ساخت نیست.', 422);
     }
 
     $rotationMode = trim(strtolower($rotationMode));
-    if ($role === 'prosthesis_student' || $role === 'prosthesis_representative') {
+    if ($cohortKey !== dent_primary_cohort_key()) {
         $rotationMode = 'none';
     }
     if ($rotationMode === '' || $rotationMode === 'auto' || $rotationMode === 'catalog') {
@@ -2282,6 +2361,7 @@ function dent_create_student_account(
         'name' => $name,
         'passwordHash' => dent_hash_password($password),
         'role' => $role,
+        'cohortKey' => $cohortKey,
         'profile' => dent_default_profile(),
         'nationalCode' => $normalizedNationalCode,
         'directoryPhoneNumber' => $normalizedDirectoryPhone,

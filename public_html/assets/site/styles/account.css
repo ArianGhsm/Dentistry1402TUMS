@@ -1691,6 +1691,16 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
     gap: 0.72rem;
 }
 
+.owner-block--cohort-shell,
+.owner-block--import-users {
+    padding: 0.82rem;
+    border-radius: 18px;
+    border: 1px solid var(--border-color);
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 7%, transparent), transparent 48%),
+        var(--surface-muted);
+}
+
 .owner-block--sms,
 .owner-block--media-status {
     margin-top: 0.2rem;
@@ -1751,6 +1761,41 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
     border-radius: 16px;
     border: 1px solid var(--border-color);
     background: var(--surface-solid);
+}
+
+.owner-cohort-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.6rem;
+}
+
+.owner-cohort-card {
+    width: 100%;
+    padding: 0.9rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+    color: inherit;
+    text-align: right;
+    display: grid;
+    gap: 0.24rem;
+    cursor: pointer;
+    transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.owner-cohort-card span,
+.owner-cohort-card small {
+    color: var(--text-secondary);
+}
+
+.owner-cohort-card.is-active {
+    border-color: color-mix(in srgb, var(--accent-color) 38%, var(--border-color));
+    box-shadow: var(--surface-shadow);
+    transform: translateY(-1px);
+}
+
+.owner-search--cohort {
+    width: min(360px, 100%);
 }
 
 .owner-grade-course-tools label {
