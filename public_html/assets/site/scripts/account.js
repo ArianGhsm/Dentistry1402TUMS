@@ -597,7 +597,7 @@
     }
 
     function updateLoginOtpPhoneDisplay(phoneNumber, maskedPhone) {
-        var visiblePhone = ltrMaskedPhone(maskedPhone || phoneNumber, "");
+        var visiblePhone = ltrMaskedPhone(toPersianDigits(maskedPhone || phoneNumber), "");
         if (loginOtpPhoneDisplay) {
             loginOtpPhoneDisplay.textContent = visiblePhone;
         }
@@ -628,6 +628,17 @@
                 input.value = next;
             }
         });
+    }
+
+    function setNumericDisplayValue(input, value) {
+        if (!input) {
+            return;
+        }
+        var next = String(value || "");
+        if (input.dataset && input.dataset.displayDigits === "persian") {
+            next = toPersianDigits(next);
+        }
+        input.value = next;
     }
 
     function stopOtpCredentialRead() {
@@ -1084,7 +1095,7 @@
                 ? ("ارسال مجدد تا " + formatSeconds(left) + " دیگر")
                 : (isLoginOtpVerifyVisible()
                     ? "بعد از تکمیل کد، ورود خودکار انجام می‌شود."
-                    : (validPhone ? "کد تایید برایت پیامک می‌شود." : "شماره را با 09 یا +98 وارد کن."));
+                    : (validPhone ? "کد تایید برایت پیامک می‌شود." : ""));
         }
     }
 
@@ -3733,7 +3744,7 @@
             loginPhoneInput.focus({ preventScroll: true });
             return;
         }
-        loginPhoneInput.value = phoneNumber;
+        setNumericDisplayValue(loginPhoneInput, phoneNumber);
         setFieldError(loginPhoneInput, loginPhoneError, "");
         setFieldError(loginOtpCodeInput, loginOtpCodeError, "");
         setLoginOtpVerifyVisible(false);
@@ -3870,7 +3881,7 @@
             phoneEnrollFeedbackMessage("شماره موبایل معتبر وارد کن.", "error");
             return;
         }
-        phoneEnrollNumber.value = phoneNumber;
+        setNumericDisplayValue(phoneEnrollNumber, phoneNumber);
         if (phoneEnrollCode) {
             phoneEnrollCode.value = "";
             phoneEnrollCode.dispatchEvent(new Event("input", { bubbles: true }));

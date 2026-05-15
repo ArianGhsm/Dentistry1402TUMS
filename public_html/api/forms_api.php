@@ -40,10 +40,14 @@ function forms_is_prosthesis_context(): bool
 
 function forms_store_path(): string
 {
-    if (forms_is_prosthesis_context()) {
-        return dent_storage_path('forms/prosthesis_1402_store.json');
-    }
     return dent_storage_path('forms/store.json');
+}
+
+function forms_legacy_store_paths(): array
+{
+    return [
+        'prosthesis-1402' => dent_storage_path('forms/prosthesis_1402_store.json'),
+    ];
 }
 
 function forms_default_store(): array
@@ -56,9 +60,10 @@ function forms_default_store(): array
     ];
 }
 
-function forms_receipts_dir(): string
+function forms_receipts_dir(?string $cohort = null): string
 {
-    if (forms_is_prosthesis_context()) {
+    $cohort = forms_clean_cohort($cohort ?? forms_active_cohort());
+    if ($cohort === 'prosthesis-1402') {
         return dent_storage_path('forms/prosthesis_1402_uploads');
     }
     return dent_storage_path('forms/uploads');
@@ -591,8 +596,11 @@ function forms_normalize_form_record(string $formId, array $form): ?array
         $endAt = null;
     }
 
+    $cohort = forms_clean_cohort((string) ($form['cohort'] ?? 'main'));
+
     return [
         'id' => $formId,
+        'cohort' => $cohort,
         'kind' => $kind,
         'title' => $title,
         'description' => forms_clean_text($form['description'] ?? '', 1400),
@@ -673,7 +681,7 @@ function forms_clean_receipt_stored_path(string $value): string
     return preg_match('/^[a-zA-Z0-9._\/-]{8,220}$/', $value) === 1 ? $value : '';
 }
 
-function forms_normalize_receipt_upload_record(string $receiptId, array $receipt, array $knownFormIds): ?array
+function forms_normalize_receipt_upload_record(string $receiptId, array $receipt, array $knownForms): ?array
 {
     $receiptId = forms_clean_id($receiptId !== '' ? $receiptId : (string) ($receipt['id'] ?? ''), FORMS_RECEIPT_ID_PREFIX);
     if ($receiptId === '') {
@@ -681,7 +689,8 @@ function forms_normalize_receipt_upload_record(string $receiptId, array $receipt
     }
 
     $formId = forms_clean_id((string) ($receipt['formId'] ?? ''), FORMS_ID_PREFIX);
-    if ($formId === '' || !isset($knownFormIds[$formId])) {
+    $form = ($formId !== '' && isset($knownForms[$formId]) && is_array($knownForms[$formId])) ? $knownForms[$formId] : null;
+    if ($formId === '' || $form === null) {
         return null;
     }
     $fieldId = trim(strtolower((string) ($receipt['fieldId'] ?? '')));
@@ -700,6 +709,7 @@ function forms_normalize_receipt_upload_record(string $receiptId, array $receipt
 
     return [
         'id' => $receiptId,
+        'cohort' => forms_clean_cohort((string) ($receipt['cohort'] ?? forms_form_cohort($form))),
         'formId' => $formId,
         'fieldId' => $fieldId,
         'identityKey' => $identityKey,
@@ -715,46 +725,87 @@ function forms_normalize_receipt_upload_record(string $receiptId, array $receipt
 
 function forms_load_store(): array
 {
-    $raw = dent_read_json_file(forms_store_path(), forms_default_store());
-    if (!is_array($raw)) {
-        $raw = forms_default_store();
+    $sources = [];
+    $sources[] = ['raw' => dent_read_json_file(forms_store_path(), forms_default_store()), 'fallbackCohort' => null];
+    foreach (forms_legacy_store_paths() as $cohort => $path) {
+        if (!is_file($path)) {
+            continue;
+        }
+        $sources[] = ['raw' => dent_read_json_file($path, forms_default_store()), 'fallbackCohort' => forms_clean_cohort($cohort)];
     }
 
     $forms = [];
-    foreach (($raw['forms'] ?? []) as $formId => $form) {
-        if (!is_array($form)) {
-            continue;
-        }
-        $normalized = forms_normalize_form_record((string) $formId, $form);
-        if ($normalized !== null) {
-            $forms[(string) $normalized['id']] = $normalized;
+    $needsSharedBackfill = false;
+    foreach ($sources as $source) {
+        $raw = is_array($source['raw'] ?? null) ? $source['raw'] : forms_default_store();
+        $fallbackCohort = is_string($source['fallbackCohort'] ?? null) ? $source['fallbackCohort'] : null;
+        foreach (($raw['forms'] ?? []) as $formId => $form) {
+            if (!is_array($form)) {
+                continue;
+            }
+            if ($fallbackCohort !== null && trim((string) ($form['cohort'] ?? '')) === '') {
+                $form['cohort'] = $fallbackCohort;
+            }
+            $normalized = forms_normalize_form_record((string) $formId, $form);
+            if ($normalized === null) {
+                continue;
+            }
+            $existing = $forms[(string) $normalized['id']] ?? null;
+            if ($fallbackCohort !== null && (!is_array($existing) || (int) ($normalized['updatedAt'] ?? 0) > (int) ($existing['updatedAt'] ?? 0))) {
+                $needsSharedBackfill = true;
+            }
+            if (!is_array($existing) || (int) ($normalized['updatedAt'] ?? 0) > (int) ($existing['updatedAt'] ?? 0)) {
+                $forms[(string) $normalized['id']] = $normalized;
+            }
         }
     }
 
-    $known = [];
-    foreach ($forms as $formId => $_form) {
-        $known[$formId] = true;
-    }
+    $knownForms = $forms;
 
     $responses = [];
-    foreach (($raw['responses'] ?? []) as $responseId => $response) {
-        if (!is_array($response)) {
-            continue;
-        }
-        $normalized = forms_normalize_response_record((string) $responseId, $response, $known);
-        if ($normalized !== null) {
-            $responses[(string) $normalized['id']] = $normalized;
+    foreach ($sources as $source) {
+        $raw = is_array($source['raw'] ?? null) ? $source['raw'] : forms_default_store();
+        $fallbackCohort = is_string($source['fallbackCohort'] ?? null) ? $source['fallbackCohort'] : null;
+        foreach (($raw['responses'] ?? []) as $responseId => $response) {
+            if (!is_array($response)) {
+                continue;
+            }
+            $normalized = forms_normalize_response_record((string) $responseId, $response, $knownForms);
+            if ($normalized === null) {
+                continue;
+            }
+            $existing = $responses[(string) $normalized['id']] ?? null;
+            if ($fallbackCohort !== null && (!is_array($existing) || (int) ($normalized['updatedAt'] ?? 0) > (int) ($existing['updatedAt'] ?? 0))) {
+                $needsSharedBackfill = true;
+            }
+            if (!is_array($existing) || (int) ($normalized['updatedAt'] ?? 0) > (int) ($existing['updatedAt'] ?? 0)) {
+                $responses[(string) $normalized['id']] = $normalized;
+            }
         }
     }
 
     $receiptUploads = [];
-    foreach (($raw['receiptUploads'] ?? ($raw['receipt_uploads'] ?? [])) as $receiptId => $receipt) {
-        if (!is_array($receipt)) {
-            continue;
-        }
-        $normalized = forms_normalize_receipt_upload_record((string) $receiptId, $receipt, $known);
-        if ($normalized !== null) {
-            $receiptUploads[(string) $normalized['id']] = $normalized;
+    foreach ($sources as $source) {
+        $raw = is_array($source['raw'] ?? null) ? $source['raw'] : forms_default_store();
+        $fallbackCohort = is_string($source['fallbackCohort'] ?? null) ? $source['fallbackCohort'] : null;
+        foreach (($raw['receiptUploads'] ?? ($raw['receipt_uploads'] ?? [])) as $receiptId => $receipt) {
+            if (!is_array($receipt)) {
+                continue;
+            }
+            if ($fallbackCohort !== null && trim((string) ($receipt['cohort'] ?? '')) === '') {
+                $receipt['cohort'] = $fallbackCohort;
+            }
+            $normalized = forms_normalize_receipt_upload_record((string) $receiptId, $receipt, $knownForms);
+            if ($normalized === null) {
+                continue;
+            }
+            $existing = $receiptUploads[(string) $normalized['id']] ?? null;
+            if ($fallbackCohort !== null && (!is_array($existing) || (int) ($normalized['uploadedAt'] ?? 0) > (int) ($existing['uploadedAt'] ?? 0))) {
+                $needsSharedBackfill = true;
+            }
+            if (!is_array($existing) || (int) ($normalized['uploadedAt'] ?? 0) > (int) ($existing['uploadedAt'] ?? 0)) {
+                $receiptUploads[(string) $normalized['id']] = $normalized;
+            }
         }
     }
 
@@ -762,12 +813,18 @@ function forms_load_store(): array
     uasort($responses, static fn(array $left, array $right): int => (int) ($right['submittedAt'] ?? 0) <=> (int) ($left['submittedAt'] ?? 0));
     uasort($receiptUploads, static fn(array $left, array $right): int => (int) ($right['uploadedAt'] ?? 0) <=> (int) ($left['uploadedAt'] ?? 0));
 
-    return [
+    $store = [
         'schemaVersion' => FORMS_SCHEMA_VERSION,
         'forms' => $forms,
         'responses' => $responses,
         'receiptUploads' => $receiptUploads,
     ];
+
+    if ($needsSharedBackfill) {
+        forms_save_store($store);
+    }
+
+    return $store;
 }
 
 function forms_save_store(array $store): void
@@ -830,10 +887,26 @@ function forms_payment_gateways_payload(): array
     ];
 }
 
-function forms_share_path(string $formId): string
+function forms_share_path_for_cohort(string $cohort, string $formId): string
 {
-    $basePath = forms_is_prosthesis_context() ? FORMS_PROSTHESIS_SHARE_PATH : FORMS_SHARE_PATH;
+    $basePath = forms_clean_cohort($cohort) === 'prosthesis-1402' ? FORMS_PROSTHESIS_SHARE_PATH : FORMS_SHARE_PATH;
     return $basePath . '?form=' . urlencode($formId);
+}
+
+function forms_form_cohort(array $form): string
+{
+    return forms_clean_cohort((string) ($form['cohort'] ?? 'main'));
+}
+
+function forms_form_matches_active_cohort(array $form): bool
+{
+    return forms_form_cohort($form) === forms_active_cohort();
+}
+
+function forms_share_path(string $formId, ?array $form = null): string
+{
+    $cohort = $form !== null ? forms_form_cohort($form) : forms_active_cohort();
+    return forms_share_path_for_cohort($cohort, $formId);
 }
 
 function forms_user_matches_context(array $user): bool
@@ -879,7 +952,7 @@ function forms_current_site_user(): ?array
 
 function forms_require_context_user(): array
 {
-    $user = forms_require_context_user();
+    $user = dent_require_user();
     if (!forms_user_matches_context($user)) {
         dent_error('این بخش برای این حساب فعال نیست.', 403);
     }
@@ -912,6 +985,9 @@ function forms_can_manage(array $form, ?array $user): bool
     if ($user === null) {
         return false;
     }
+    if (!forms_form_matches_active_cohort($form)) {
+        return false;
+    }
     if (forms_can_create($user)) {
         return true;
     }
@@ -932,6 +1008,9 @@ function forms_can_manage(array $form, ?array $user): bool
 function forms_can_delete(array $form, ?array $user): bool
 {
     if ($user === null) {
+        return false;
+    }
+    if (!forms_form_matches_active_cohort($form)) {
         return false;
     }
     $role = (string) ($user['role'] ?? 'student');
@@ -1026,6 +1105,9 @@ function forms_guest_allowed(array $form): bool
 
 function forms_viewer_can_access(array $form, ?array $user): bool
 {
+    if (!forms_form_matches_active_cohort($form)) {
+        return false;
+    }
     if ($user !== null && forms_user_matches_audience($form, $user)) {
         return true;
     }
@@ -1703,7 +1785,7 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
 
     return [
         'id' => $formId,
-        'cohort' => forms_active_cohort(),
+        'cohort' => forms_form_cohort($form),
         'kind' => (string) ($form['kind'] ?? 'form'),
         'kindLabel' => forms_kind_label((string) ($form['kind'] ?? 'form')),
         'title' => (string) ($form['title'] ?? ''),
@@ -1713,8 +1795,8 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
         'createdBy' => (string) ($form['createdBy'] ?? ''),
         'createdAt' => (int) ($form['createdAt'] ?? 0),
         'updatedAt' => (int) ($form['updatedAt'] ?? 0),
-        'sharePath' => forms_share_path($formId),
-        'shareUrl' => forms_absolute_url(forms_share_path($formId)),
+        'sharePath' => forms_share_path($formId, $form),
+        'shareUrl' => forms_absolute_url(forms_share_path($formId, $form)),
         'responseCount' => count($responses),
         'fields' => $fieldsPayload,
         'paymentGateways' => $includeFields && forms_has_payment_fields($form) ? forms_payment_gateways_payload() : null,
@@ -1794,6 +1876,7 @@ function forms_build_form_from_payload(array $payload, array $user, ?array $exis
 
     return [
         'id' => $formId,
+        'cohort' => $existing !== null ? forms_form_cohort($existing) : forms_active_cohort(),
         'kind' => $kind,
         'title' => $title,
         'description' => forms_clean_text($payload['description'] ?? ($existing['description'] ?? ''), 1400),
@@ -2148,10 +2231,14 @@ function forms_export_xlsx(array $form, array $responses, string $mode = 'respon
     exit;
 }
 
-function forms_receipt_file_path(string $storedPath): string
+function forms_receipt_file_path(array $receipt): string
 {
-    $clean = forms_clean_receipt_stored_path($storedPath);
-    return $clean === '' ? '' : forms_receipts_dir() . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $clean);
+    $clean = forms_clean_receipt_stored_path((string) ($receipt['storedPath'] ?? ''));
+    if ($clean === '') {
+        return '';
+    }
+    $cohort = forms_clean_cohort((string) ($receipt['cohort'] ?? 'main'));
+    return forms_receipts_dir($cohort) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $clean);
 }
 
 function forms_uploaded_receipt_mime(string $tmpName, string $originalName): string
@@ -2195,7 +2282,7 @@ function forms_receipt_extension(string $mime, string $originalName): string
     return '';
 }
 
-function forms_store_uploaded_receipt_file(array $file, string $receiptId): array
+function forms_store_uploaded_receipt_file(array $file, string $receiptId, ?string $cohort = null): array
 {
     $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
     if ($error !== UPLOAD_ERR_OK) {
@@ -2224,7 +2311,7 @@ function forms_store_uploaded_receipt_file(array $file, string $receiptId): arra
     }
 
     $period = date('Ym');
-    $dir = forms_receipts_dir() . DIRECTORY_SEPARATOR . $period;
+    $dir = forms_receipts_dir($cohort) . DIRECTORY_SEPARATOR . $period;
     dent_ensure_directory($dir);
     $fileName = $receiptId . '.' . $extension;
     $target = $dir . DIRECTORY_SEPARATOR . $fileName;
@@ -2289,7 +2376,7 @@ function forms_upsert_receipt_payment_order(array $form, array $field, array $re
             'card_number' => (string) ($config['cardNumber'] ?? ''),
             'cardholder' => (string) ($config['cardholder'] ?? ''),
             'bank_name' => (string) ($config['bankName'] ?? ''),
-            '_return_path' => forms_share_path($formId),
+            '_return_path' => forms_share_path($formId, $form),
         ];
         $line = [
             'item_id' => 0,
@@ -2419,6 +2506,9 @@ if ($action === 'list') {
     $forms = [];
     foreach ($store['forms'] as $form) {
         if (!is_array($form)) {
+            continue;
+        }
+        if (!forms_form_matches_active_cohort($form)) {
             continue;
         }
         $canManage = forms_can_manage($form, $user);
@@ -2621,9 +2711,10 @@ if ($action === 'uploadReceipt') {
         dent_error('شناسه شرکت‌کننده برای آپلود رسید معتبر نیست.', 422);
     }
     $receiptId = forms_next_id(FORMS_RECEIPT_ID_PREFIX);
-    $stored = forms_store_uploaded_receipt_file($file, $receiptId);
+    $stored = forms_store_uploaded_receipt_file($file, $receiptId, forms_form_cohort($form));
     $receipt = [
         'id' => $receiptId,
+        'cohort' => forms_form_cohort($form),
         'formId' => $formId,
         'fieldId' => $fieldId,
         'identityKey' => $identityKey,
@@ -2665,7 +2756,7 @@ if ($action === 'downloadReceipt') {
     if (!is_array($form) || !forms_can_manage($form, $user)) {
         dent_error('دسترسی به دانلود رسید مجاز نیست.', 403);
     }
-    $path = forms_receipt_file_path((string) ($receipt['storedPath'] ?? ''));
+    $path = forms_receipt_file_path($receipt);
     if ($path === '' || !is_file($path) || !is_readable($path)) {
         dent_error('فایل رسید در storage پیدا نشد.', 404);
     }
@@ -2698,7 +2789,7 @@ if ($action === 'exportReceipts') {
     $files = [];
     $manifest = [["receipt_id", "field_id", "original_name", "size", "uploaded_at"]];
     foreach (forms_receipts_for_form($store, $formId) as $receipt) {
-        $path = forms_receipt_file_path((string) ($receipt['storedPath'] ?? ''));
+        $path = forms_receipt_file_path($receipt);
         if ($path === '' || !is_file($path) || !is_readable($path)) {
             continue;
         }
@@ -2840,7 +2931,7 @@ if ($action === 'createPayment') {
                     'field_id' => $fieldId,
                     'field_label' => $title,
                     'identity_key' => $identityKey,
-                    '_return_path' => forms_share_path($formId),
+                    '_return_path' => forms_share_path($formId, $form),
                 ],
                 'cart_items' => [[
                     'item_id' => 0,
@@ -2953,7 +3044,7 @@ if ($action === 'createPayment') {
         'success' => true,
         'orderToken' => $orderToken,
         'redirectUrl' => $redirectUrl,
-        'resultUrl' => forms_share_path($formId) . '&paymentOrderToken=' . rawurlencode($orderToken),
+        'resultUrl' => forms_share_path($formId, $form) . '&paymentOrderToken=' . rawurlencode($orderToken),
     ]);
 }
 

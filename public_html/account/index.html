@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260515-145857">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260515-145857">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260515-145857">
-    <script src="/assets/site/scripts/theme.js?v=20260515-145857"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260515-145857">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260515-145857">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260515-145857">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260515-150917">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260515-150917">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260515-150917">
+    <script src="/assets/site/scripts/theme.js?v=20260515-150917"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260515-150917">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260515-150917">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260515-150917">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -88,14 +88,18 @@
                         <div class="settings-row auth-field otp-login-step otp-login-step--phone">
                             <label for="login-phone-number">شماره موبایل</label>
                             <div class="otp-phone-shell" dir="ltr">
-                                <input id="login-phone-number" name="phoneNumber" type="tel" inputmode="tel" autocomplete="tel" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="14" pattern="(09[0-9]{9}|\+989[0-9]{9})" aria-label="شماره موبایل" aria-describedby="login-phone-error login-otp-feedback" dir="ltr" data-latin-digits="true" data-phone-input="iran" placeholder="09xxxxxxxxx یا +989xxxxxxxxx">
+                                <span class="otp-phone-shell__country" aria-hidden="true">
+                                    <span class="otp-phone-shell__flag">🇮🇷</span>
+                                    <span class="otp-phone-shell__prefix">+۹۸</span>
+                                </span>
+                                <input id="login-phone-number" name="tel" type="tel" inputmode="numeric" autocomplete="tel-national" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="14" pattern="(09[0-9۰-۹]{9}|9[0-9۰-۹]{9}|\+989[0-9۰-۹]{9})" aria-label="شماره موبایل" aria-describedby="login-phone-error login-otp-feedback" dir="ltr" data-phone-input="iran" data-display-digits="persian" placeholder="">
                             </div>
                             <p id="login-phone-error" class="auth-field-error" aria-live="polite"></p>
                         </div>
 
                         <div class="account-inline-actions otp-auth-panel__actions otp-auth-panel__actions--request">
                             <button id="login-otp-request" class="shell-action-btn shell-action-btn-primary" type="button">ارسال کد</button>
-                            <span id="login-otp-meta" class="account-inline-meta">فقط شماره‌های تاییدشده امکان ورود پیامکی دارند.</span>
+                            <span id="login-otp-meta" class="account-inline-meta"></span>
                         </div>
 
                         <div id="login-otp-verify-group" hidden>
@@ -800,9 +804,9 @@
         <p id="account-footer-brand">ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260515-145857"></script>
-    <script src="/assets/site/scripts/account.js?v=20260515-145857"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260515-145857"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260515-145857"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260515-150917"></script>
+    <script src="/assets/site/scripts/account.js?v=20260515-150917"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260515-150917"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260515-150917"></script>
 </body>
 </html>
