@@ -10,9 +10,9 @@
     var LAUNCH_SPLASH_LEAVING_CLASS = "dent-launch-splash--leaving";
     var LAUNCH_SPLASH_STYLE_ID = "dent1402-launch-splash-style";
     var LAUNCH_SPLASH_NODE_ID = "dent1402-launch-splash";
-    var LAUNCH_SPLASH_MIN_VISIBLE_MS = 420;
-    var LAUNCH_SPLASH_MAX_VISIBLE_MS = 840;
-    var LAUNCH_SPLASH_FADE_MS = 160;
+    var LAUNCH_SPLASH_MIN_VISIBLE_MS = 280;
+    var LAUNCH_SPLASH_MAX_VISIBLE_MS = 560;
+    var LAUNCH_SPLASH_FADE_MS = 140;
     var LAUNCH_SPLASH_LOGO_URL = "/assets/images/logo.png?v=20260422-brand1";
     var LAUNCH_SPLASH_COLOR_LIGHT = "#f2f3f5";
     var LAUNCH_SPLASH_COLOR_DARK = "#101827";
@@ -20,6 +20,36 @@
     var launchSplashNode = null;
     var inputViewportTimer = null;
     var persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
+    var CRITICAL_ACCENT_FONTS = [
+        "/fonts/AbarHigh-Regular.woff2",
+        "/fonts/AbarHigh-Bold.woff2",
+        "/fonts/AbarHigh-ExtraBold.woff2",
+        "/fonts/AbarHigh-Black.woff2"
+    ];
+
+    function ensureCriticalAccentFontPreloads() {
+        var head = document.head || document.documentElement;
+        if (!head) {
+            return;
+        }
+
+        CRITICAL_ACCENT_FONTS.forEach(function (fontUrl) {
+            if (head.querySelector('link[rel="preload"][href="' + fontUrl + '"]')) {
+                return;
+            }
+
+            var link = document.createElement("link");
+            link.rel = "preload";
+            link.as = "font";
+            link.type = "font/woff2";
+            link.href = fontUrl;
+            link.crossOrigin = "anonymous";
+            link.setAttribute("fetchpriority", "high");
+            head.appendChild(link);
+        });
+    }
+
+    ensureCriticalAccentFontPreloads();
 
     try {
         var stored = window.localStorage.getItem(STORAGE_KEY);

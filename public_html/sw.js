@@ -1,4 +1,4 @@
-const APP_VERSION = "20260515-153134";
+const APP_VERSION = "20260515-153912";
 const STATIC_CACHE = "dent1402-static-" + APP_VERSION;
 
 const STATIC_ASSETS = [
@@ -14,9 +14,11 @@ const STATIC_ASSETS = [
   "/assets/icons/icon-maskable-192.png?v=" + APP_VERSION,
   "/assets/icons/icon-maskable-512.png?v=" + APP_VERSION,
   "/assets/icons/apple-touch-icon.png?v=" + APP_VERSION,
-  "/fonts/AbarHigh-Regular.ttf",
-  "/fonts/AbarHigh-SemiBold.ttf",
-  "/fonts/AbarHigh-Bold.ttf",
+  "/fonts/AbarHigh-Regular.woff2",
+  "/fonts/AbarHigh-SemiBold.woff2",
+  "/fonts/AbarHigh-Bold.woff2",
+  "/fonts/AbarHigh-ExtraBold.woff2",
+  "/fonts/AbarHigh-Black.woff2",
   "/fonts/YekanBakh-VF.woff2",
   "/fonts/YekanBakh-VF.woff"
 ];
