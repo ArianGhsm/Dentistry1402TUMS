@@ -12,6 +12,11 @@
     var params = new URLSearchParams(window.location.search);
     var formId = String(params.get("form") || params.get("formId") || "").trim();
     var paymentOrderToken = String(params.get("paymentOrderToken") || "").trim();
+    var pageCohort = document.body && (
+        document.body.dataset.formsCohort === "prosthesis-1402" ||
+        (window.location.pathname || "").indexOf("/prosthesis-1402/forms/") === 0
+    ) ? "prosthesis-1402" : "main";
+    var fillPath = pageCohort === "prosthesis-1402" ? "/prosthesis-1402/forms/fill/" : "/forms/fill/";
 
     var boot = $("fill-boot");
     var login = $("fill-login");
@@ -69,7 +74,7 @@
     }
 
     function apiGet(action, paramsObj) {
-        var query = new URLSearchParams(Object.assign({ action: action }, paramsObj || {}));
+        var query = new URLSearchParams(Object.assign({ action: action, cohort: pageCohort }, paramsObj || {}));
         return fetch("/api/forms_api.php?" + query.toString(), {
             method: "GET",
             credentials: "same-origin",
@@ -80,7 +85,7 @@
     }
 
     function apiPost(action, payload) {
-        var body = new URLSearchParams(Object.assign({ action: action }, payload || {}));
+        var body = new URLSearchParams(Object.assign({ action: action, cohort: pageCohort }, payload || {}));
         return fetch("/api/forms_api.php", {
             method: "POST",
             credentials: "same-origin",
@@ -97,6 +102,7 @@
     function apiPostFormData(action, formData) {
         formData = formData || new FormData();
         formData.append("action", action);
+        formData.append("cohort", pageCohort);
         return fetch("/api/forms_api.php", {
             method: "POST",
             credentials: "same-origin",
@@ -213,16 +219,16 @@
     function formReturnUrl() {
         var id = String((state.form && state.form.id) || formId || "").trim();
         var origin = window.location.origin || "";
-        return origin + "/forms/fill/?form=" + encodeURIComponent(id);
+        return origin + fillPath + "?form=" + encodeURIComponent(id);
     }
 
     function guestKey() {
         var key = "";
         try {
-            key = localStorage.getItem("dent1402_forms_guest_key") || "";
+            key = localStorage.getItem("dent1402_forms_guest_key_" + pageCohort) || "";
             if (!key) {
                 key = "guest-" + Date.now().toString(36) + "-" + Math.floor(Math.random() * 1000000).toString(36);
-                localStorage.setItem("dent1402_forms_guest_key", key);
+                localStorage.setItem("dent1402_forms_guest_key_" + pageCohort, key);
             }
         } catch (_error) {
             key = "guest-" + Date.now().toString(36) + "-" + Math.floor(Math.random() * 1000000).toString(36);

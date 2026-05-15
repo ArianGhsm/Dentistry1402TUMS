@@ -10,9 +10,39 @@ const FORMS_ID_PREFIX = 'frm-';
 const FORMS_RESPONSE_ID_PREFIX = 'resp-';
 const FORMS_RECEIPT_ID_PREFIX = 'rcpt-';
 const FORMS_SHARE_PATH = '/forms/fill/';
+const FORMS_PROSTHESIS_SHARE_PATH = '/prosthesis-1402/forms/fill/';
+
+function forms_clean_cohort(?string $value): string
+{
+    $value = trim((string) $value);
+    return $value === 'prosthesis-1402' ? 'prosthesis-1402' : 'main';
+}
+
+function forms_requested_cohort(): string
+{
+    return forms_clean_cohort((string) ($_POST['cohort'] ?? ($_GET['cohort'] ?? '')));
+}
+
+function forms_set_active_cohort(string $cohort): void
+{
+    $GLOBALS['forms_active_cohort'] = forms_clean_cohort($cohort);
+}
+
+function forms_active_cohort(): string
+{
+    return forms_clean_cohort((string) ($GLOBALS['forms_active_cohort'] ?? 'main'));
+}
+
+function forms_is_prosthesis_context(): bool
+{
+    return forms_active_cohort() === 'prosthesis-1402';
+}
 
 function forms_store_path(): string
 {
+    if (forms_is_prosthesis_context()) {
+        return dent_storage_path('forms/prosthesis_1402_store.json');
+    }
     return dent_storage_path('forms/store.json');
 }
 
@@ -28,6 +58,9 @@ function forms_default_store(): array
 
 function forms_receipts_dir(): string
 {
+    if (forms_is_prosthesis_context()) {
+        return dent_storage_path('forms/prosthesis_1402_uploads');
+    }
     return dent_storage_path('forms/uploads');
 }
 
@@ -799,7 +832,20 @@ function forms_payment_gateways_payload(): array
 
 function forms_share_path(string $formId): string
 {
-    return FORMS_SHARE_PATH . '?form=' . urlencode($formId);
+    $basePath = forms_is_prosthesis_context() ? FORMS_PROSTHESIS_SHARE_PATH : FORMS_SHARE_PATH;
+    return $basePath . '?form=' . urlencode($formId);
+}
+
+function forms_user_matches_context(array $user): bool
+{
+    $role = (string) ($user['role'] ?? 'student');
+    if ($role === 'owner' || !empty($user['isOwner'])) {
+        return true;
+    }
+
+    return forms_is_prosthesis_context()
+        ? dent_user_is_prosthesis($user)
+        : !dent_user_is_prosthesis($user);
 }
 
 function forms_user_payload(?array $user): ?array
@@ -807,7 +853,7 @@ function forms_user_payload(?array $user): ?array
     if ($user === null) {
         return null;
     }
-    if (dent_user_is_prosthesis($user)) {
+    if (!forms_user_matches_context($user)) {
         return null;
     }
     $public = dent_public_user($user);
@@ -824,10 +870,19 @@ function forms_user_payload(?array $user): ?array
 function forms_current_site_user(): ?array
 {
     $user = dent_current_user();
-    if ($user !== null && dent_user_is_prosthesis($user)) {
+    if ($user !== null && !forms_user_matches_context($user)) {
         return null;
     }
 
+    return $user;
+}
+
+function forms_require_context_user(): array
+{
+    $user = forms_require_context_user();
+    if (!forms_user_matches_context($user)) {
+        dent_error('این بخش برای این حساب فعال نیست.', 403);
+    }
     return $user;
 }
 
@@ -837,12 +892,18 @@ function forms_can_create(?array $user): bool
         return false;
     }
     $role = (string) ($user['role'] ?? 'student');
-    return $role === 'owner' || !empty($user['isOwner']);
+    if ($role === 'owner' || !empty($user['isOwner'])) {
+        return true;
+    }
+    return forms_is_prosthesis_context() && $role === 'prosthesis_representative';
 }
 
 function forms_is_representative(array $user): bool
 {
     $role = (string) ($user['role'] ?? 'student');
+    if (forms_is_prosthesis_context()) {
+        return $role === 'prosthesis_representative' || !empty($user['isProsthesisRepresentative']);
+    }
     return $role === 'representative' || !empty($user['isRepresentative']);
 }
 
@@ -870,7 +931,11 @@ function forms_can_manage(array $form, ?array $user): bool
 
 function forms_can_delete(array $form, ?array $user): bool
 {
-    return forms_can_create($user);
+    if ($user === null) {
+        return false;
+    }
+    $role = (string) ($user['role'] ?? 'student');
+    return $role === 'owner' || !empty($user['isOwner']);
 }
 
 function forms_status(array $form, ?int $now = null): string
@@ -1638,6 +1703,7 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
 
     return [
         'id' => $formId,
+        'cohort' => forms_active_cohort(),
         'kind' => (string) ($form['kind'] ?? 'form'),
         'kindLabel' => forms_kind_label((string) ($form['kind'] ?? 'form')),
         'title' => (string) ($form['title'] ?? ''),
@@ -2330,6 +2396,7 @@ function forms_receipts_for_form(array $store, string $formId): array
 }
 
 $action = dent_request_action();
+forms_set_active_cohort(forms_requested_cohort());
 
 if ($action === 'session') {
     $user = forms_current_site_user();
@@ -2347,7 +2414,7 @@ if ($action === 'session') {
 }
 
 if ($action === 'list') {
-    $user = dent_require_main_site_user();
+    $user = forms_require_context_user();
     $store = forms_load_store();
     $forms = [];
     foreach ($store['forms'] as $form) {
@@ -2370,9 +2437,9 @@ if ($action === 'create') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد ساخت فرم نامعتبر است.', 405);
     }
-    $user = dent_require_main_site_user();
+    $user = forms_require_context_user();
     if (!forms_can_create($user)) {
-        dent_error('ساخت فرم و نظرسنجی فقط برای مالک فعال است.', 403);
+        dent_error(forms_is_prosthesis_context() ? 'ساخت فرم پروتز فقط برای مالک یا نماینده پروتز فعال است.' : 'ساخت فرم و نظرسنجی فقط برای مالک فعال است.', 403);
     }
     $store = forms_load_store();
     $form = forms_build_form_from_payload(forms_request_payload(), $user, null);
@@ -2390,7 +2457,7 @@ if ($action === 'update') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد ویرایش فرم نامعتبر است.', 405);
     }
-    $user = dent_require_main_site_user();
+    $user = forms_require_context_user();
     $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
         dent_error('شناسه فرم نامعتبر است.', 422);
@@ -2419,7 +2486,7 @@ if ($action === 'setStatus') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد تغییر وضعیت نامعتبر است.', 405);
     }
-    $user = dent_require_main_site_user();
+    $user = forms_require_context_user();
     $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     $status = forms_clean_status((string) ($_POST['status'] ?? 'open'));
     if ($formId === '') {
@@ -2447,7 +2514,7 @@ if ($action === 'delete') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد حذف فرم نامعتبر است.', 405);
     }
-    $user = dent_require_main_site_user();
+    $user = forms_require_context_user();
     $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
         dent_error('شناسه فرم نامعتبر است.', 422);
@@ -2584,7 +2651,7 @@ if ($action === 'downloadReceipt') {
     if (dent_request_method() !== 'GET') {
         dent_error('متد دانلود رسید نامعتبر است.', 405);
     }
-    $user = dent_require_main_site_user();
+    $user = forms_require_context_user();
     $store = forms_load_store();
     $receiptId = forms_clean_id((string) ($_GET['id'] ?? ''), FORMS_RECEIPT_ID_PREFIX);
     if ($receiptId === '') {
@@ -2614,7 +2681,7 @@ if ($action === 'exportReceipts') {
     if (dent_request_method() !== 'GET') {
         dent_error('متد خروجی رسیدها نامعتبر است.', 405);
     }
-    $user = dent_require_main_site_user();
+    $user = forms_require_context_user();
     $store = forms_load_store();
     $formId = forms_clean_id((string) ($_GET['formId'] ?? $_GET['form'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
@@ -2668,7 +2735,7 @@ if ($action === 'createPayment') {
         dent_error('متد پرداخت فرم نامعتبر است.', 405);
     }
 
-    $user = dent_require_main_site_user();
+    $user = forms_require_context_user();
     $formStore = forms_load_store();
     $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     $fieldId = trim(strtolower((string) ($_POST['fieldId'] ?? '')));
@@ -2961,7 +3028,7 @@ if ($action === 'submit') {
 }
 
 if ($action === 'responses') {
-    $user = dent_require_main_site_user();
+    $user = forms_require_context_user();
     $store = forms_load_store();
     $formId = forms_clean_id((string) ($_GET['formId'] ?? $_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
@@ -2983,7 +3050,7 @@ if ($action === 'responses') {
 }
 
 if ($action === 'export') {
-    $user = dent_require_main_site_user();
+    $user = forms_require_context_user();
     $store = forms_load_store();
     $formId = forms_clean_id((string) ($_GET['formId'] ?? $_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {

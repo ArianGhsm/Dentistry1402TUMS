@@ -17,6 +17,9 @@
     var loginForm = $("login-form");
     var loginSubmit = $("login-submit");
     var loginFeedback = $("login-feedback");
+    var loginCopy = $("account-login-copy");
+    var authBrand = $("account-auth-brand");
+    var accountFooterBrand = $("account-footer-brand");
     var loginMethodSwitch = $("login-method-switch");
     var loginMethodPasswordBtn = $("login-method-password");
     var loginMethodOtpBtn = $("login-method-otp");
@@ -228,6 +231,39 @@
     var profileSaving = false;
     var profileAvatarProcessing = false;
     var loginViewportTickTimer = null;
+
+    function isProsthesisUser(user) {
+        return !!(user && user.isProsthesisStudent);
+    }
+
+    function loginContextIsProsthesis() {
+        return String(pendingReturnTo || "").indexOf("/prosthesis-1402/") === 0;
+    }
+
+    function applyAccountBranding(user) {
+        var isProsthesis = isProsthesisUser(user) || (!user && loginContextIsProsthesis());
+        var shortBrand = isProsthesis ? "ورودی ۱۴۰۲ پروتز" : "ورودی ۱۴۰۲";
+        var fullBrand = isProsthesis ? "ورودی ۱۴۰۲ پروتز تهران" : "ورودی ۱۴۰۲ دندانپزشکی تهران";
+        if (authBrand) {
+            authBrand.textContent = shortBrand;
+        }
+        if (accountFooterBrand) {
+            accountFooterBrand.textContent = fullBrand;
+        }
+        document.title = isProsthesis
+            ? "حساب کاربری | ورودی ۱۴۰۲ پروتز"
+            : "حساب کاربری | ورودی ۱۴۰۲ دندانپزشکی";
+    }
+
+    function syncLoginHeading() {
+        if (!loginCopy) {
+            return;
+        }
+        loginCopy.textContent = loginMode === "otp"
+            ? "شماره موبایل خود را وارد کنید."
+            : "شماره دانشجویی و رمز عبور خود را وارد کنید.";
+    }
+
     function safeReturnTo(value) {
         if (!value || typeof value !== "string") {
             return "";
@@ -898,6 +934,7 @@
 
     function setLoginMode(mode) {
         loginMode = mode === "otp" ? "otp" : "password";
+        syncLoginHeading();
 
         if (loginMethodPasswordBtn) {
             var passwordActive = loginMode === "password";
@@ -4046,6 +4083,7 @@
         if (!detail.loggedIn) {
             var preserveOtpLoginAttempt = detail.status === "login-error" && loginMode === "otp" && loginOtpSubmitting;
             currentUser = null;
+            applyAccountBranding(null);
             showStage("login");
             openSurface("hub", { replaceHash: true, preserveScroll: true });
             if (!preserveOtpLoginAttempt) {
@@ -4140,6 +4178,7 @@
         }
 
         currentUser = detail.user;
+        applyAccountBranding(detail.user);
         renderIdentity(detail.user);
         applyPhoneDetailsFromCurrentUser();
         showStage("panel");

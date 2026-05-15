@@ -31,6 +31,35 @@
     var navidLoadedFor = "";
     var navidLoadToken = 0;
     var navidLoading = false;
+    var appHeaderTitle = document.querySelector(".site-header .site-info h1");
+    var appFooterTitle = document.querySelector(".site-footer p");
+    var homeKicker = document.querySelector(".home-kicker");
+    var homeTitle = $("app-home-title");
+    var homeServicesTitle = $("home-services-title");
+
+    function applyBranding(isProsthesis) {
+        var brand = isProsthesis ? "ورودی ۱۴۰۲ پروتز تهران" : "ورودی ۱۴۰۲ دندانپزشکی تهران";
+        if (appHeaderTitle) {
+            appHeaderTitle.textContent = brand;
+        }
+        if (appFooterTitle) {
+            appFooterTitle.textContent = brand;
+        }
+        if (homeKicker) {
+            homeKicker.textContent = isProsthesis ? "صفحه اصلی پروتز" : "صفحه اصلی کلاس";
+        }
+        if (homeTitle) {
+            homeTitle.textContent = isProsthesis ? "خانه پروتز" : "خانه کلاس";
+        }
+        if (homeServicesTitle) {
+            homeServicesTitle.textContent = isProsthesis ? "بخش‌های اصلی پروتز" : "بخش‌های اصلی سایت";
+        }
+        if (document.title) {
+            document.title = isProsthesis
+                ? "خانه دانشجو | ورودی ۱۴۰۲ پروتز"
+                : "خانه دانشجو | ورودی ۱۴۰۲ دندانپزشکی";
+        }
+    }
 
     function consumeUnauthorized(response, fallbackText) {
         var auth = window.Dent1402Auth && typeof window.Dent1402Auth === "object"
@@ -141,11 +170,15 @@
     }
 
     function setIdentityLoggedOut(errorText) {
+        applyBranding(false);
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = true;
         });
         document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
             node.hidden = false;
+        });
+        document.querySelectorAll("[data-prosthesis-only]").forEach(function (node) {
+            node.hidden = true;
         });
         panel.dataset.authState = errorText ? "unauthorized" : "logged-out";
         status.textContent = "\u0648\u0631\u0648\u062f \u0644\u0627\u0632\u0645 \u0627\u0633\u062a";
@@ -160,11 +193,15 @@
     }
 
     function setIdentityBoot(message) {
+        applyBranding(false);
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = true;
         });
         document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
             node.hidden = false;
+        });
+        document.querySelectorAll("[data-prosthesis-only]").forEach(function (node) {
+            node.hidden = true;
         });
         panel.dataset.authState = "session-restoring";
         status.textContent = "\u062f\u0631 \u062d\u0627\u0644 \u0628\u0627\u0632\u06cc\u0627\u0628\u06cc";
@@ -181,24 +218,30 @@
     function setIdentityLoggedIn(user) {
         var isOwner = !!(user && user.isOwner);
         var isProsthesis = !!(user && user.isProsthesisStudent);
+        applyBranding(isProsthesis);
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = !isOwner;
         });
         document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
             node.hidden = isProsthesis;
         });
+        document.querySelectorAll("[data-prosthesis-only]").forEach(function (node) {
+            node.hidden = !isProsthesis;
+        });
         panel.dataset.authState = "logged-in";
         status.textContent = isOwner ? "\u0645\u0627\u0644\u06a9 \u0633\u0627\u0645\u0627\u0646\u0647" : (user.roleLabel || "\u062d\u0633\u0627\u0628 \u0641\u0639\u0627\u0644");
         title.textContent = (user.name || "\u062f\u0627\u0646\u0634\u062c\u0648") + "\u060c \u062e\u0648\u0634 \u0628\u0631\u06af\u0634\u062a\u06cc.";
         desc.textContent = isOwner
             ? "\u062f\u0633\u062a\u0631\u0633\u06cc \u0645\u062f\u06cc\u0631\u06cc\u062a\u06cc \u0641\u0639\u0627\u0644 \u0627\u0633\u062a \u0648 \u0627\u0632 \u0647\u0645\u06cc\u0646\u200c\u062c\u0627 \u0645\u06cc\u200c\u062a\u0648\u0627\u0646\u06cc \u0686\u062a\u060c \u0646\u0645\u0627\u06cc\u0646\u062f\u0647\u200c\u0647\u0627 \u0648 \u062d\u0633\u0627\u0628\u200c\u0647\u0627 \u0631\u0627 \u0645\u062f\u06cc\u0631\u06cc\u062a \u06a9\u0646\u06cc."
-            : "\u0647\u0648\u06cc\u062a\u062a \u062f\u0631 \u0686\u062a\u060c \u0646\u0645\u0631\u0627\u062a \u0648 \u062d\u0633\u0627\u0628 \u06a9\u0627\u0631\u0628\u0631\u06cc \u0647\u0645\u06af\u0627\u0645 \u0627\u0633\u062a \u0648 \u0644\u0627\u0632\u0645 \u0646\u06cc\u0633\u062a \u0647\u0631 \u0635\u0641\u062d\u0647 \u062c\u062f\u0627\u06af\u0627\u0646\u0647 \u0648\u0627\u0631\u062f \u0634\u0648\u06cc.";
+            : (isProsthesis
+                ? "\u0647\u0648\u06cc\u062a\u062a \u062f\u0631 \u0686\u062a\u060c \u0641\u0631\u0645\u200c\u0647\u0627\u060c \u0646\u0645\u0631\u0627\u062a \u0648 \u0645\u0646\u0627\u0628\u0639 \u067e\u0631\u0648\u062a\u0632 \u0628\u0647\u200c\u0635\u0648\u0631\u062a \u062c\u062f\u0627 \u0646\u06af\u0647\u200c\u062f\u0627\u0631\u06cc \u0645\u06cc\u200c\u0634\u0648\u062f."
+                : "\u0647\u0648\u06cc\u062a\u062a \u062f\u0631 \u0686\u062a\u060c \u0646\u0645\u0631\u0627\u062a \u0648 \u062d\u0633\u0627\u0628 \u06a9\u0627\u0631\u0628\u0631\u06cc \u0647\u0645\u06af\u0627\u0645 \u0627\u0633\u062a \u0648 \u0644\u0627\u0632\u0645 \u0646\u06cc\u0633\u062a \u0647\u0631 \u0635\u0641\u062d\u0647 \u062c\u062f\u0627\u06af\u0627\u0646\u0647 \u0648\u0627\u0631\u062f \u0634\u0648\u06cc.");
         meta.textContent = "\u0634\u0645\u0627\u0631\u0647 \u062f\u0627\u0646\u0634\u062c\u0648\u06cc\u06cc: " + (user.studentNumber || "-");
         ownerBadge.hidden = !isOwner;
         primaryAction.textContent = isOwner ? "\u067e\u0646\u0644 \u062d\u0633\u0627\u0628 \u0648 \u0645\u062f\u06cc\u0631\u06cc\u062a" : "\u062d\u0633\u0627\u0628 \u06a9\u0627\u0631\u0628\u0631\u06cc";
         primaryAction.href = "/account/";
-        secondaryAction.textContent = "\u0646\u0645\u0631\u0627\u062a \u0645\u0646";
-        secondaryAction.href = "/grades/";
+        secondaryAction.textContent = isProsthesis ? "\u0646\u0645\u0631\u0627\u062a \u067e\u0631\u0648\u062a\u0632" : "\u0646\u0645\u0631\u0627\u062a \u0645\u0646";
+        secondaryAction.href = isProsthesis ? "/prosthesis-1402/grades/" : "/grades/";
     }
 
     function navidSetState(state) {

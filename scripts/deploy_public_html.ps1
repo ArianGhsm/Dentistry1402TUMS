@@ -648,8 +648,9 @@ function Download-RemoteStorageDirectory(
     $entries = Get-RemoteDirectoryEntries -remoteRelative $normalized
     if ($null -eq $entries) {
         $leaf = Split-Path -Path $normalized -Leaf
-        if (([string]$leaf).Trim().ToLowerInvariant() -eq "uploads") {
-            Write-Warning "Skip missing or unlistable runtime upload directory during host storage mirror: $normalized"
+        $optionalRuntimeDirectories = @("uploads", "previews", "originals", "thumbs", "thumbnails", "tmp", "temp")
+        if ($optionalRuntimeDirectories -contains ([string]$leaf).Trim().ToLowerInvariant()) {
+            Write-Warning "Skip missing or unlistable optional runtime directory during host storage mirror: $normalized"
             return
         }
         throw "Unable to list remote storage directory: $normalized"

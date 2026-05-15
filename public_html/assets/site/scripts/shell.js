@@ -38,8 +38,16 @@
     function isActive(item) {
         var path = currentPath();
         return item.active.some(function (prefix) {
+            if (item.exact) {
+                return path === prefix;
+            }
             return path === prefix || path.indexOf(prefix) === 0;
         });
+    }
+
+    function useDynamicBranding() {
+        var path = currentPath();
+        return path.indexOf("/prosthesis-1402/") !== 0 && path.indexOf("/dental-residency/") !== 0;
     }
 
     function authState() {
@@ -77,22 +85,57 @@
             : "";
     }
 
+    function isProsthesisState(state) {
+        return !!(state && state.user && state.user.isProsthesisStudent);
+    }
+
+    function brandName(state) {
+        return isProsthesisState(state) ? "ورودی ۱۴۰۲ پروتز تهران" : "ورودی ۱۴۰۲ دندانپزشکی تهران";
+    }
+
+    function prosthesisRedirectTarget(path) {
+        if (path.indexOf("/prosthesis-1402/") === 0 || path.indexOf("/dental-residency/") === 0) {
+            return "";
+        }
+
+        if (path === "/chat/") {
+            return "/prosthesis-1402/chat/";
+        }
+        if (path === "/forms/") {
+            return "/prosthesis-1402/forms/";
+        }
+        if (path === "/forms/fill/") {
+            return "/prosthesis-1402/forms/fill/";
+        }
+        if (path === "/grades/") {
+            return "/prosthesis-1402/grades/";
+        }
+        if (path === "/exams/") {
+            return "/prosthesis-1402/exams/";
+        }
+
+        return "";
+    }
+
     function navItems(state) {
         var status = authStatus(state);
         var isPending = isAuthTransitioning(status);
         var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
-        var isProsthesis = !!(state && state.user && state.user.isProsthesisStudent);
-        var paymentEntry = state.loggedIn && !isProsthesis
-            ? { href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/", "/payments/"] }
-            : { href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] };
-        var items = [
-            { href: "/app/", label: "خانه", icon: "home", active: ["/app/"] },
-        ];
+        var isProsthesis = isProsthesisState(state);
+        var items = [{
+            href: isProsthesis ? "/prosthesis-1402/" : "/app/",
+            label: "خانه",
+            icon: "home",
+            active: [isProsthesis ? "/prosthesis-1402/" : "/app/"],
+            exact: true
+        }];
         if (!isProsthesis) {
             items.push({ href: "/chat/", label: "چت", icon: "chat", active: ["/chat/"] });
-            items.push(paymentEntry);
+            items.push({ href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/", "/payments/"] });
         } else {
-            items.push({ href: "/prosthesis-1402/", label: "پروتز", icon: "exam", active: ["/prosthesis-1402/"] });
+            items.push({ href: "/prosthesis-1402/chat/", label: "چت", icon: "chat", active: ["/prosthesis-1402/chat/"] });
+            items.push({ href: "/prosthesis-1402/forms/", label: "فرم‌ها", icon: "forms", active: ["/prosthesis-1402/forms/"] });
+            items.push({ href: "/prosthesis-1402/grades/", label: "نمرات", icon: "grades", active: ["/prosthesis-1402/grades/"] });
         }
         items.push(
             {
@@ -104,6 +147,40 @@
             }
         );
         return items;
+    }
+
+    function applyBranding(state) {
+        if (!useDynamicBranding()) {
+            return;
+        }
+        var brand = brandName(state);
+        var pageTitle = document.title || "";
+        if (pageTitle.indexOf("ورودی ۱۴۰۲ دندانپزشکی تهران") !== -1) {
+            document.title = pageTitle.replace(/ورودی ۱۴۰۲ دندانپزشکی تهران/g, brand);
+        } else if (pageTitle.indexOf("ورودی ۱۴۰۲ دندانپزشکی") !== -1) {
+            document.title = pageTitle.replace(/ورودی ۱۴۰۲ دندانپزشکی/g, isProsthesisState(state) ? "ورودی ۱۴۰۲ پروتز" : "ورودی ۱۴۰۲ دندانپزشکی");
+        }
+
+        document.querySelectorAll(".site-header .site-info h1, .site-footer p").forEach(function (node) {
+            if (node) {
+                node.textContent = brand;
+            }
+        });
+    }
+
+    function maybeRedirectProsthesis(state) {
+        if (!isProsthesisState(state)) {
+            return false;
+        }
+
+        var path = currentPath();
+        var target = prosthesisRedirectTarget(path);
+        if (!target || target === path) {
+            return false;
+        }
+
+        window.location.replace(target + window.location.search + window.location.hash);
+        return true;
     }
 
     function ensureBottomNav() {
@@ -261,7 +338,9 @@
                 title = document.createElement("h1");
                 siteInfo.insertBefore(title, siteInfo.firstChild);
             }
-            title.textContent = "ورودی ۱۴۰۲ دندانپزشکی تهران";
+            if (useDynamicBranding()) {
+                title.textContent = brandName(authState());
+            }
 
             siteInfo.querySelectorAll("p").forEach(function (node) {
                 node.remove();
@@ -582,6 +661,10 @@
     }
 
     function syncAuthUi(state) {
+        if (maybeRedirectProsthesis(state)) {
+            return;
+        }
+        applyBranding(state);
         syncAuthLinks(state);
         renderBottomNav(state);
         syncPollEntry(state);

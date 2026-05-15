@@ -9,6 +9,12 @@
         return document.getElementById(id);
     }
 
+    var pageCohort = document.body && (
+        document.body.dataset.formsCohort === "prosthesis-1402" ||
+        (window.location.pathname || "").indexOf("/prosthesis-1402/forms/") === 0
+    ) ? "prosthesis-1402" : "main";
+    var formsHomePath = pageCohort === "prosthesis-1402" ? "/prosthesis-1402/forms/" : "/forms/";
+
     var boot = $("forms-boot");
     var login = $("forms-login");
     var app = $("forms-app");
@@ -97,7 +103,7 @@
     }
 
     function apiGet(action, params) {
-        var query = new URLSearchParams(Object.assign({ action: action }, params || {}));
+        var query = new URLSearchParams(Object.assign({ action: action, cohort: pageCohort }, params || {}));
         return fetch("/api/forms_api.php?" + query.toString(), {
             method: "GET",
             credentials: "same-origin",
@@ -110,6 +116,7 @@
     function apiPost(action, payload) {
         var body = new URLSearchParams();
         body.append("action", action);
+        body.append("cohort", pageCohort);
         Object.keys(payload || {}).forEach(function (key) {
             body.append(key, payload[key]);
         });
@@ -303,6 +310,11 @@
             includeAllFields: exportAllFieldsInput ? !!exportAllFieldsInput.checked : true,
             fieldIds: String(exportFieldIdsInput && exportFieldIdsInput.value || "").split(/[\s,،;]+/).filter(Boolean)
         };
+    }
+
+    function formsApiHref(action, params) {
+        var query = new URLSearchParams(Object.assign({ action: action, cohort: pageCohort }, params || {}));
+        return "/api/forms_api.php?" + query.toString();
     }
 
     function uniqueFieldId() {
@@ -836,6 +848,9 @@
     }
 
     function applyTemplate(name) {
+        if (pageCohort === "prosthesis-1402" && name === "dis") {
+            name = "blank";
+        }
         var tpl = name === "dis" ? disTemplate() : (name === "poll" ? pollTemplate() : blankTemplate());
         state.editingId = "";
         kindInput.value = tpl.kind;
@@ -1134,26 +1149,26 @@
 
                 var exportA = document.createElement("a");
                 exportA.className = "forms-btn";
-                exportA.href = "/api/forms_api.php?action=export&mode=responses&formId=" + encodeURIComponent(String(form.id || ""));
+                exportA.href = formsApiHref("export", { mode: "responses", formId: String(form.id || "") });
                 exportA.textContent = "Excel پاسخ‌ها";
                 actions.appendChild(exportA);
 
                 var summaryA = document.createElement("a");
                 summaryA.className = "forms-btn";
-                summaryA.href = "/api/forms_api.php?action=export&mode=summary&formId=" + encodeURIComponent(String(form.id || ""));
+                summaryA.href = formsApiHref("export", { mode: "summary", formId: String(form.id || "") });
                 summaryA.textContent = "خلاصه Excel";
                 actions.appendChild(summaryA);
 
                 var officialA = document.createElement("a");
                 officialA.className = "forms-btn";
-                officialA.href = "/api/forms_api.php?action=export&mode=official&formId=" + encodeURIComponent(String(form.id || ""));
+                officialA.href = formsApiHref("export", { mode: "official", formId: String(form.id || "") });
                 officialA.textContent = "خروجی رسمی";
                 actions.appendChild(officialA);
 
                 if (formHasReceiptPayments(form)) {
                     var receiptsA = document.createElement("a");
                     receiptsA.className = "forms-btn";
-                    receiptsA.href = "/api/forms_api.php?action=exportReceipts&formId=" + encodeURIComponent(String(form.id || ""));
+                    receiptsA.href = formsApiHref("exportReceipts", { formId: String(form.id || "") });
                     receiptsA.textContent = "ZIP رسیدها";
                     actions.appendChild(receiptsA);
                 }
@@ -1295,7 +1310,7 @@
         responsesTitle.textContent = form && form.title ? "پاسخ‌ها: " + form.title : "پاسخ‌ها";
         if (form && form.id) {
             exportLink.hidden = false;
-            exportLink.href = "/api/forms_api.php?action=export&mode=responses&formId=" + encodeURIComponent(String(form.id));
+            exportLink.href = formsApiHref("export", { mode: "responses", formId: String(form.id) });
         } else {
             exportLink.hidden = true;
             exportLink.removeAttribute("href");
@@ -1339,7 +1354,7 @@
         }
         if (!state.viewer) {
             if (loginLink) {
-                loginLink.href = window.Dent1402Auth.loginUrl("/forms/");
+                loginLink.href = window.Dent1402Auth.loginUrl(formsHomePath);
             }
             showStage("login");
             return;
@@ -1366,6 +1381,13 @@
             setTab(tab.getAttribute("data-forms-tab") || "list");
         });
     });
+
+    if (pageCohort === "prosthesis-1402") {
+        var disTemplateOption = templateInput ? templateInput.querySelector('option[value="dis"]') : null;
+        if (disTemplateOption) {
+            disTemplateOption.remove();
+        }
+    }
 
     templateInput.addEventListener("change", function () {
         applyTemplate(templateInput.value);
