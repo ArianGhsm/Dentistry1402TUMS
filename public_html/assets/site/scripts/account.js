@@ -62,6 +62,8 @@
     var ownerSearch = $("owner-search");
     var ownerSummary = $("owner-summary");
     var ownerFeedback = $("owner-feedback");
+    var ownerToolbarTitle = $("owner-toolbar-title");
+    var ownerToolbarMeta = $("owner-toolbar-meta");
     var ownerCohortSummary = $("owner-cohort-summary");
     var ownerCohortGrid = $("owner-cohort-grid");
     var ownerCohortSelect = $("owner-cohort-select");
@@ -654,6 +656,25 @@
         }
         button.textContent = busy ? busyText : button.dataset.defaultText;
         button.setAttribute("aria-busy", busy ? "true" : "false");
+    }
+
+    function escapeHtml(value) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
+            switch (char) {
+                case "&":
+                    return "&amp;";
+                case "<":
+                    return "&lt;";
+                case ">":
+                    return "&gt;";
+                case '"':
+                    return "&quot;";
+                case "'":
+                    return "&#39;";
+                default:
+                    return char;
+            }
+        });
     }
 
     function focusLoginOtpInput(selectCode) {
@@ -2115,7 +2136,7 @@
 
     function renderRepresentatives(users) {
         var items = ownerUsersInActiveCohort(users).filter(function (user) {
-            return user.role === "representative" || user.role === "prosthesis_representative";
+            return isRepresentativeRole(user.role);
         });
 
         if (!items.length) {
@@ -2127,9 +2148,21 @@
         items.forEach(function (user) {
             var article = document.createElement("article");
             article.className = "representative-chip";
+            var rotationMeta = ownerRotationMeta(user);
+            var helperMeta = [user.studentNumber || "—", ownerRoleMeta(user)];
+            if (rotationMeta && rotationMeta !== "بدون روتیشن/گروه") {
+                helperMeta.push(rotationMeta);
+            }
             article.innerHTML = [
-                "<strong>" + user.name + "</strong>",
-                "<span>" + user.studentNumber + " • " + ownerRoleMeta(user) + "</span>"
+                '<div class="representative-chip__head">',
+                "  <strong>" + escapeHtml(user.name || "دانشجو") + "</strong>",
+                '  <span class="owner-badge owner-badge--ok">دسترسی مدیریتی فعال</span>',
+                "</div>",
+                '<span class="representative-chip__meta">' + escapeHtml(helperMeta.join(" • ")) + "</span>",
+                '<div class="representative-chip__stats">',
+                "  " + buildOwnerBadge(user.hasGrades ? "دارای نمرات" : "بدون نمرات", user.hasGrades ? "ok" : "warn"),
+                "  " + buildOwnerBadge(user.hasPhone ? "شماره تاییدشده" : "شماره ثبت نشده", user.hasPhone ? "ok" : "warn"),
+                "</div>"
             ].join("");
             representativeList.appendChild(article);
         });
@@ -2209,8 +2242,11 @@
         if (user.role === "owner") {
             return "مالک اصلی";
         }
-        if (isProsthesisUser(user)) {
-            return user.role === "prosthesis_representative" ? "نماینده پروتز" : "دانشجوی پروتز";
+        if (user.role === "prosthesis_representative") {
+            return "لغو نماینده پروتز";
+        }
+        if (user.role === "prosthesis_student" || user.isProsthesisStudent) {
+            return "ثبت به‌عنوان نماینده پروتز";
         }
 
         return user.role === "representative" ? "لغو نماینده" : "ثبت به‌عنوان نماینده";
@@ -2218,6 +2254,10 @@
 
     function isOwnerUser(user) {
         return !!user && user.role === "owner";
+    }
+
+    function isRepresentativeRole(role) {
+        return role === "representative" || role === "prosthesis_representative";
     }
 
     function isProsthesisUser(user) {
@@ -2349,6 +2389,53 @@
             parts.push("دارای نمرات");
         }
         return parts.join(" • ");
+    }
+
+    function ownerCohortRecordByKey(cohortKey) {
+        var target = String(cohortKey || "").trim();
+        if (!target) {
+            return null;
+        }
+        return ownerVisibleCohorts().find(function (cohort) {
+            return String(cohort && cohort.key || "") === target;
+        }) || null;
+    }
+
+    function ownerCohortLabelForUser(user) {
+        var cohort = ownerCohortRecordByKey(ownerUserCohortKey(user));
+        if (!cohort) {
+            return "";
+        }
+        return String(cohort.shortTitle || cohort.title || cohort.key || "").trim();
+    }
+
+    function buildOwnerBadge(label, tone) {
+        var text = String(label || "").trim();
+        if (!text) {
+            return "";
+        }
+        var toneClass = String(tone || "").trim();
+        return '<span class="owner-badge' + (toneClass ? (' owner-badge--' + toneClass) : "") + '">' + escapeHtml(text) + "</span>";
+    }
+
+    function renderOwnerToolbarMeta(users) {
+        var activeCohort = ownerActiveCohortRecord();
+        var visibleUsers = ownerUsersInActiveCohort(users);
+        var representativeCount = visibleUsers.filter(function (user) {
+            return isRepresentativeRole(user.role);
+        }).length;
+        if (ownerToolbarTitle) {
+            ownerToolbarTitle.textContent = activeCohort
+                ? ("کاربران " + String(activeCohort.shortTitle || activeCohort.title || "ورودی فعال"))
+                : "کاربران ورودی فعال";
+        }
+        if (ownerToolbarMeta) {
+            ownerToolbarMeta.textContent = [
+                visibleUsers.length.toLocaleString("fa-IR") + " کاربر",
+                representativeCount.toLocaleString("fa-IR") + " نماینده",
+                activeCohort && activeCohort.productType === "prosthesis" ? "محیط ایزوله پروتز" : "محیط اصلی دندانپزشکی"
+            ].join(" • ");
+        }
     }
 
     function buildOwnerMetaCell(label, value, latinDigits) {
@@ -2692,6 +2779,7 @@
         var visibleUsers = ownerUsersInActiveCohort(users).filter(function (user) {
             return userMatchesQuery(user, query);
         });
+        renderOwnerToolbarMeta(users);
         var pageSize = ownerUserPageSize();
         var pageCount = Math.max(1, Math.ceil(visibleUsers.length / pageSize));
         ownerState.userPage = Math.max(1, Math.min(pageCount, Number(ownerState.userPage) || 1));
@@ -2721,11 +2809,28 @@
             strong.textContent = user.name || "دانشجو";
             var number = document.createElement("span");
             number.textContent = studentNumber || "—";
+            var status = document.createElement("div");
+            status.className = "owner-user__status";
+            status.innerHTML = [
+                buildOwnerBadge(ownerRoleMeta(user), isRepresentativeRole(user.role) ? "ok" : "accent"),
+                buildOwnerBadge(ownerRotationMeta(user), ownerRotationMeta(user) === "بدون روتیشن/گروه" ? "warn" : ""),
+                ownerCohortLabelForUser(user) ? buildOwnerBadge(ownerCohortLabelForUser(user), "soft") : "",
+                buildOwnerBadge(user.hasGrades ? "دارای نمرات" : "بدون نمرات", user.hasGrades ? "ok" : "warn")
+            ].join("");
             var meta = document.createElement("small");
             meta.textContent = userMeta(user);
+            var quickMeta = document.createElement("div");
+            quickMeta.className = "owner-user__meta-strip";
+            quickMeta.innerHTML = [
+                buildOwnerBadge(user.hasPhone ? "شماره تاییدشده" : "بدون شماره", user.hasPhone ? "ok" : "warn"),
+                buildOwnerBadge(user.hasDirectoryPhone ? "تلفن تماس دارد" : "تلفن تماس ندارد"),
+                buildOwnerBadge(user.hasNationalCode ? "کدملی ثبت شده" : "بدون کدملی")
+            ].join("");
             copy.appendChild(strong);
             copy.appendChild(number);
+            copy.appendChild(status);
             copy.appendChild(meta);
+            copy.appendChild(quickMeta);
             head.appendChild(copy);
 
             var actions = document.createElement("div");
@@ -2735,7 +2840,7 @@
 
             var representativeBtn = document.createElement("button");
             representativeBtn.type = "button";
-            representativeBtn.className = "shell-action-btn" + ((user.role === "representative" || user.role === "prosthesis_representative") ? " shell-action-btn-primary" : "");
+            representativeBtn.className = "shell-action-btn" + (isRepresentativeRole(user.role) ? " shell-action-btn-primary" : "");
             representativeBtn.dataset.ownerAction = "toggle-representative";
             representativeBtn.dataset.studentNumber = studentNumber;
             representativeBtn.disabled = isOwnerUser(user) || !representativeToggleAllowed || busyState.representative || busyState.deletingUser;
@@ -2774,6 +2879,7 @@
         updateOwnerTabs();
         renderOwnerSummary(ownerState.users);
         renderOwnerGradeManager();
+        renderOwnerToolbarMeta(ownerState.users);
         renderRepresentatives(ownerState.users);
         renderUsers(ownerState.users);
         renderOwnerUserPanel();
@@ -4979,7 +5085,7 @@
             if (user.role === "owner") {
                 return;
             }
-            setRepresentative(studentNumber, user.role !== "representative");
+            setRepresentative(studentNumber, !isRepresentativeRole(user.role));
             return;
         }
 

@@ -1427,6 +1427,7 @@ function dent_apply_prosthesis_1402_roster(array $users): array
 {
     $changed = false;
     $now = dent_iso_now();
+    $prosthesisCohortKey = dent_prosthesis_legacy_cohort_key();
 
     foreach (dent_prosthesis_1402_roster() as $studentNumber => $entry) {
         $studentNumber = dent_normalize_student_number((string) $studentNumber);
@@ -1445,6 +1446,7 @@ function dent_apply_prosthesis_1402_roster(array $users): array
                 'name' => $fullName !== '' ? $fullName : $studentNumber,
                 'passwordHash' => dent_hash_password('12345678'),
                 'role' => $targetRole,
+                'cohortKey' => $prosthesisCohortKey,
                 'profile' => dent_default_profile(),
                 'rotationOverride' => ['mode' => 'none'],
                 'createdAt' => $now,
@@ -1454,14 +1456,20 @@ function dent_apply_prosthesis_1402_roster(array $users): array
             continue;
         }
 
-        if (!empty($entry['preserveExistingRole'])) {
-            continue;
+        $user = $users[$studentNumber];
+        $userChanged = false;
+        if (dent_user_cohort_key($user) !== $prosthesisCohortKey) {
+            $user['cohortKey'] = $prosthesisCohortKey;
+            $userChanged = true;
         }
 
-        $user = $users[$studentNumber];
         $currentRole = dent_normalize_role((string) ($user['role'] ?? 'student'), $studentNumber);
-        if ($currentRole !== $targetRole) {
+        if (empty($entry['preserveExistingRole']) && $currentRole !== $targetRole) {
             $user['role'] = $targetRole;
+            $userChanged = true;
+        }
+
+        if ($userChanged) {
             $user['updatedAt'] = $now;
             $users[$studentNumber] = dent_normalize_user_record($studentNumber, $user);
             $changed = true;
