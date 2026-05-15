@@ -8,6 +8,241 @@ function dent_owner_student_number(): string
     return '40211272003';
 }
 
+function dent_primary_cohort_key(): string
+{
+    return 'dentistry-1402';
+}
+
+function dent_prosthesis_legacy_cohort_key(): string
+{
+    return 'prosthesis-1402';
+}
+
+function dent_clean_cohort_key(?string $value): string
+{
+    $value = dent_force_utf8((string) $value);
+    $value = trim(strtolower($value));
+    if ($value === '' || $value === 'main' || $value === '1402') {
+        return dent_primary_cohort_key();
+    }
+    if ($value === 'prosthesis' || $value === 'prosthesis1402') {
+        return dent_prosthesis_legacy_cohort_key();
+    }
+
+    $value = preg_replace('/[^a-z0-9\-_]+/u', '-', $value) ?? '';
+    $value = trim((string) preg_replace('/-{2,}/', '-', str_replace('_', '-', $value)), '-');
+    return $value;
+}
+
+function dent_default_cohort_catalog(): array
+{
+    return [
+        dent_primary_cohort_key() => [
+            'title' => 'دندانپزشکی ۱۴۰۲',
+            'shortTitle' => 'دندان ۱۴۰۲',
+            'description' => 'ورودی اصلی دندانپزشکی با مسیرهای سراسری سایت.',
+            'productType' => 'dentistry',
+            'year' => '1402',
+            'siteVariant' => 'main',
+            'notesMode' => 'terms',
+            'allowRepresentativeManagement' => false,
+            'sortOrder' => 100,
+            'isSeeded' => true,
+            'isIsolated' => true,
+        ],
+        'dentistry-1403' => [
+            'title' => 'دندانپزشکی ۱۴۰۳',
+            'shortTitle' => 'دندان ۱۴۰۳',
+            'description' => 'ورودی ایزوله برای دانشجویان دندانپزشکی ۱۴۰۳.',
+            'productType' => 'dentistry',
+            'year' => '1403',
+            'siteVariant' => 'main',
+            'notesMode' => 'archive',
+            'allowRepresentativeManagement' => true,
+            'sortOrder' => 110,
+            'isSeeded' => true,
+            'isIsolated' => true,
+        ],
+        'dentistry-1404' => [
+            'title' => 'دندانپزشکی ۱۴۰۴',
+            'shortTitle' => 'دندان ۱۴۰۴',
+            'description' => 'ورودی ایزوله برای دانشجویان دندانپزشکی ۱۴۰۴.',
+            'productType' => 'dentistry',
+            'year' => '1404',
+            'siteVariant' => 'main',
+            'notesMode' => 'archive',
+            'allowRepresentativeManagement' => true,
+            'sortOrder' => 120,
+            'isSeeded' => true,
+            'isIsolated' => true,
+        ],
+        dent_prosthesis_legacy_cohort_key() => [
+            'title' => 'پروتز ۱۴۰۲',
+            'shortTitle' => 'پروتز ۱۴۰۲',
+            'description' => 'زیرمحصول ایزوله پروتز ۱۴۰۲ با مسیرهای اختصاصی خودش.',
+            'productType' => 'prosthesis',
+            'year' => '1402',
+            'siteVariant' => 'prosthesis-legacy',
+            'notesMode' => 'terms',
+            'allowRepresentativeManagement' => true,
+            'sortOrder' => 130,
+            'isSeeded' => true,
+            'isIsolated' => true,
+        ],
+    ];
+}
+
+function dent_cohort_storage_slug(string $cohortKey): string
+{
+    $clean = dent_clean_cohort_key($cohortKey);
+    if ($clean === '') {
+        return 'cohort';
+    }
+
+    return str_replace('-', '_', $clean);
+}
+
+function dent_default_cohort_title(string $key): string
+{
+    $key = dent_clean_cohort_key($key);
+    $defaults = dent_default_cohort_catalog();
+    if (isset($defaults[$key]['title'])) {
+        return (string) $defaults[$key]['title'];
+    }
+
+    $parts = array_values(array_filter(explode('-', $key), static function ($part): bool {
+        return trim((string) $part) !== '';
+    }));
+    if (!$parts) {
+        return 'ورودی جدید';
+    }
+
+    $year = '';
+    $labelParts = [];
+    foreach ($parts as $part) {
+        if (preg_match('/^\d{4}$/', $part) === 1) {
+            $year = $part;
+            continue;
+        }
+        $labelParts[] = $part;
+    }
+
+    $product = implode(' ', $labelParts);
+    if ($product === 'dentistry') {
+        $product = 'دندانپزشکی';
+    } elseif ($product === 'prosthesis') {
+        $product = 'پروتز';
+    } elseif ($product === '') {
+        $product = 'ورودی';
+    }
+
+    return trim($product . ' ' . dent_to_fa_digits($year));
+}
+
+function dent_default_cohort_short_title(string $key): string
+{
+    $key = dent_clean_cohort_key($key);
+    $defaults = dent_default_cohort_catalog();
+    if (isset($defaults[$key]['shortTitle'])) {
+        return (string) $defaults[$key]['shortTitle'];
+    }
+
+    return dent_default_cohort_title($key);
+}
+
+function dent_normalize_cohort_record(string $key, array $seed): ?array
+{
+    $key = dent_clean_cohort_key($key !== '' ? $key : (string) ($seed['key'] ?? ''));
+    if ($key === '') {
+        return null;
+    }
+
+    $defaultSeed = dent_default_cohort_catalog()[$key] ?? [];
+    $merged = array_merge($defaultSeed, $seed);
+
+    $productType = strtolower(trim((string) ($merged['productType'] ?? 'dentistry')));
+    if (!in_array($productType, ['dentistry', 'prosthesis'], true)) {
+        $productType = 'dentistry';
+    }
+
+    $siteVariant = trim((string) ($merged['siteVariant'] ?? 'main'));
+    if ($siteVariant !== 'prosthesis-legacy') {
+        $siteVariant = 'main';
+    }
+
+    $notesMode = trim((string) ($merged['notesMode'] ?? 'archive'));
+    if (!in_array($notesMode, ['terms', 'archive'], true)) {
+        $notesMode = 'archive';
+    }
+
+    $title = dent_clean_text((string) ($merged['title'] ?? dent_default_cohort_title($key)), 140);
+    if ($title === '') {
+        $title = dent_default_cohort_title($key);
+    }
+
+    $shortTitle = dent_clean_text((string) ($merged['shortTitle'] ?? dent_default_cohort_short_title($key)), 80);
+    if ($shortTitle === '') {
+        $shortTitle = $title;
+    }
+
+    $description = dent_clean_text((string) ($merged['description'] ?? ''), 240);
+    $year = dent_normalize_digits((string) ($merged['year'] ?? ''));
+    if ($year === '' && preg_match('/(\d{4})$/', $key, $matches) === 1) {
+        $year = (string) $matches[1];
+    }
+
+    return [
+        'key' => $key,
+        'title' => $title,
+        'shortTitle' => $shortTitle,
+        'description' => $description,
+        'productType' => $productType,
+        'year' => $year,
+        'siteVariant' => $siteVariant,
+        'notesMode' => $notesMode,
+        'allowRepresentativeManagement' => dent_parse_bool($merged['allowRepresentativeManagement'] ?? false, false),
+        'sortOrder' => max(0, (int) ($merged['sortOrder'] ?? 9999)),
+        'isSeeded' => dent_parse_bool($merged['isSeeded'] ?? false, false),
+        'isIsolated' => dent_parse_bool($merged['isIsolated'] ?? true, true),
+        'createdAt' => trim((string) ($merged['createdAt'] ?? dent_iso_now())),
+        'updatedAt' => trim((string) ($merged['updatedAt'] ?? dent_iso_now())),
+    ];
+}
+
+function dent_normalize_cohort_catalog(array $seed): array
+{
+    $catalog = [];
+    foreach (dent_default_cohort_catalog() as $key => $record) {
+        $normalized = dent_normalize_cohort_record((string) $key, is_array($record) ? $record : []);
+        if ($normalized !== null) {
+            $catalog[$normalized['key']] = $normalized;
+        }
+    }
+
+    foreach ($seed as $key => $record) {
+        if (!is_array($record)) {
+            continue;
+        }
+
+        $normalized = dent_normalize_cohort_record((string) $key, $record);
+        if ($normalized === null) {
+            continue;
+        }
+
+        $catalog[$normalized['key']] = array_merge($catalog[$normalized['key']] ?? [], $normalized);
+    }
+
+    uasort($catalog, static function (array $left, array $right): int {
+        $orderCompare = (int) ($left['sortOrder'] ?? 9999) <=> (int) ($right['sortOrder'] ?? 9999);
+        if ($orderCompare !== 0) {
+            return $orderCompare;
+        }
+        return strcmp((string) ($left['key'] ?? ''), (string) ($right['key'] ?? ''));
+    });
+
+    return $catalog;
+}
+
 function dent_dis_number_index(): array
 {
     return [
@@ -777,6 +1012,65 @@ function dent_normalize_role(?string $role, string $studentNumber): string
     return 'student';
 }
 
+function dent_default_user_cohort_key(string $studentNumber, string $role): string
+{
+    if ($studentNumber === dent_owner_student_number()) {
+        return '';
+    }
+
+    if (in_array($role, ['prosthesis_student', 'prosthesis_representative'], true)) {
+        return dent_prosthesis_legacy_cohort_key();
+    }
+
+    return dent_primary_cohort_key();
+}
+
+function dent_cohort_catalog(): array
+{
+    $store = dent_load_user_store();
+    return is_array($store['cohorts'] ?? null) ? $store['cohorts'] : dent_normalize_cohort_catalog([]);
+}
+
+function dent_cohort_record(string $cohortKey): ?array
+{
+    $clean = dent_clean_cohort_key($cohortKey);
+    if ($clean === '') {
+        return null;
+    }
+
+    $catalog = dent_cohort_catalog();
+    return is_array($catalog[$clean] ?? null) ? $catalog[$clean] : null;
+}
+
+function dent_cohort_exists(string $cohortKey): bool
+{
+    return dent_cohort_record($cohortKey) !== null;
+}
+
+function dent_user_cohort_key(array $user): string
+{
+    $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    $role = dent_normalize_role((string) ($user['role'] ?? 'student'), $studentNumber);
+    $cohortKey = dent_clean_cohort_key((string) ($user['cohortKey'] ?? ''));
+    if ($cohortKey === '') {
+        $cohortKey = dent_default_user_cohort_key($studentNumber, $role);
+    }
+
+    return $cohortKey;
+}
+
+function dent_is_prosthesis_cohort_key(string $cohortKey): bool
+{
+    $record = dent_cohort_record($cohortKey);
+    return is_array($record) && (string) ($record['productType'] ?? '') === 'prosthesis';
+}
+
+function dent_cohort_allows_representative_management(string $cohortKey): bool
+{
+    $record = dent_cohort_record($cohortKey);
+    return is_array($record) && !empty($record['allowRepresentativeManagement']);
+}
+
 function dent_role_label(string $role): string
 {
     if ($role === 'owner') {
@@ -798,32 +1092,49 @@ function dent_role_label(string $role): string
     return 'دانشجو';
 }
 
-function dent_permissions_for_role(string $role): array
+function dent_permissions_for_role(string $role, ?string $cohortKey = null): array
 {
+    $cohortKey = dent_clean_cohort_key($cohortKey ?? '');
+    $cohortManagedByRepresentative = $cohortKey !== ''
+        && $cohortKey !== dent_primary_cohort_key()
+        && dent_cohort_allows_representative_management($cohortKey);
+
     if ($role === 'owner') {
         return [
             'moderateChat' => true,
             'manageUsers' => true,
             'manageRepresentatives' => true,
             'manageProsthesisNotes' => true,
+            'manageCohort' => true,
+            'manageForms' => true,
+            'manageNotes' => true,
+            'manageGrades' => true,
         ];
     }
 
     if ($role === 'representative') {
         return [
             'moderateChat' => true,
-            'manageUsers' => false,
-            'manageRepresentatives' => false,
+            'manageUsers' => $cohortManagedByRepresentative,
+            'manageRepresentatives' => $cohortManagedByRepresentative,
             'manageProsthesisNotes' => false,
+            'manageCohort' => $cohortManagedByRepresentative,
+            'manageForms' => $cohortManagedByRepresentative,
+            'manageNotes' => $cohortManagedByRepresentative,
+            'manageGrades' => $cohortManagedByRepresentative,
         ];
     }
 
     if ($role === 'prosthesis_representative') {
         return [
-            'moderateChat' => false,
-            'manageUsers' => false,
-            'manageRepresentatives' => false,
+            'moderateChat' => true,
+            'manageUsers' => true,
+            'manageRepresentatives' => true,
             'manageProsthesisNotes' => true,
+            'manageCohort' => true,
+            'manageForms' => true,
+            'manageNotes' => true,
+            'manageGrades' => true,
         ];
     }
 
@@ -832,11 +1143,20 @@ function dent_permissions_for_role(string $role): array
         'manageUsers' => false,
         'manageRepresentatives' => false,
         'manageProsthesisNotes' => false,
+        'manageCohort' => false,
+        'manageForms' => false,
+        'manageNotes' => false,
+        'manageGrades' => false,
     ];
 }
 
 function dent_user_is_prosthesis(array $user): bool
 {
+    $cohortKey = dent_user_cohort_key($user);
+    if ($cohortKey !== '') {
+        return dent_is_prosthesis_cohort_key($cohortKey);
+    }
+
     $role = dent_normalize_role($user['role'] ?? 'student', (string) ($user['studentNumber'] ?? ''));
     return $role === 'prosthesis_student' || $role === 'prosthesis_representative';
 }
@@ -854,6 +1174,11 @@ function dent_require_main_site_user(): array
 function dent_normalize_user_record($studentNumber, array $user): array
 {
     $studentNumber = dent_normalize_student_number($studentNumber);
+    $role = dent_normalize_role($user['role'] ?? 'student', $studentNumber);
+    $cohortKey = dent_clean_cohort_key((string) ($user['cohortKey'] ?? ''));
+    if ($cohortKey === '') {
+        $cohortKey = dent_default_user_cohort_key($studentNumber, $role);
+    }
     $profile = $user['profile'] ?? [];
     $rotationOverride = dent_normalize_rotation_override($user['rotationOverride'] ?? null);
     $defaults = dent_default_profile();
@@ -911,7 +1236,8 @@ function dent_normalize_user_record($studentNumber, array $user): array
         'studentNumber' => $studentNumber,
         'name' => $name,
         'passwordHash' => (string) ($user['passwordHash'] ?? ''),
-        'role' => dent_normalize_role($user['role'] ?? 'student', $studentNumber),
+        'role' => $role,
+        'cohortKey' => $cohortKey,
         'profile' => [
             'about' => $about,
             'bio' => $bio,
@@ -1154,18 +1480,24 @@ function dent_load_user_store(): array
 {
     $path = dent_auth_store_path();
     $store = dent_read_json_file($path, [
-        'schemaVersion' => 1,
+        'schemaVersion' => 2,
         'ownerStudentNumber' => dent_owner_student_number(),
+        'cohorts' => dent_default_cohort_catalog(),
         'users' => [],
     ]);
 
     if (!is_array($store)) {
         $store = [
-            'schemaVersion' => 1,
+            'schemaVersion' => 2,
             'ownerStudentNumber' => dent_owner_student_number(),
+            'cohorts' => dent_default_cohort_catalog(),
             'users' => [],
         ];
     }
+
+    $rawCohorts = is_array($store['cohorts'] ?? null) ? $store['cohorts'] : [];
+    $cohorts = dent_normalize_cohort_catalog($rawCohorts);
+    $cohortChanged = json_encode($rawCohorts, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !== json_encode($cohorts, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
     $users = $store['users'] ?? [];
     if (!is_array($users)) {
@@ -1196,17 +1528,19 @@ function dent_load_user_store(): array
     $normalizedUsers = is_array($prosthesisRosterResult['users'] ?? null)
         ? $prosthesisRosterResult['users']
         : $normalizedUsers;
-    if (!empty($prosthesisRosterResult['changed'])) {
+    if ($cohortChanged || !empty($prosthesisRosterResult['changed'])) {
         dent_write_json_file($path, [
-            'schemaVersion' => 1,
+            'schemaVersion' => 2,
             'ownerStudentNumber' => dent_owner_student_number(),
+            'cohorts' => $cohorts,
             'users' => $normalizedUsers,
         ]);
     }
 
     return [
-        'schemaVersion' => 1,
+        'schemaVersion' => 2,
         'ownerStudentNumber' => dent_owner_student_number(),
+        'cohorts' => $cohorts,
         'users' => $normalizedUsers,
     ];
 }
@@ -1235,8 +1569,9 @@ function dent_save_user_store(array $store): void
     ksort($normalizedUsers, SORT_STRING);
 
     dent_write_json_file(dent_auth_store_path(), [
-        'schemaVersion' => 1,
+        'schemaVersion' => 2,
         'ownerStudentNumber' => dent_owner_student_number(),
+        'cohorts' => dent_normalize_cohort_catalog(is_array($store['cohorts'] ?? null) ? $store['cohorts'] : []),
         'users' => $normalizedUsers,
     ]);
 }
@@ -1255,7 +1590,9 @@ function dent_get_user_record($studentNumber): ?array
 function dent_public_user(array $user): array
 {
     $role = dent_normalize_role($user['role'] ?? 'student', (string) ($user['studentNumber'] ?? ''));
-    $permissions = dent_permissions_for_role($role);
+    $cohortKey = dent_user_cohort_key($user);
+    $cohort = $cohortKey !== '' ? dent_cohort_record($cohortKey) : null;
+    $permissions = dent_permissions_for_role($role, $cohortKey);
     $rotation = dent_user_rotation_assignment($user);
     $rotationSource = $rotation !== null ? (string) ($rotation['source'] ?? 'catalog') : 'none';
     $rotationPayload = [
@@ -1276,9 +1613,21 @@ function dent_public_user(array $user): array
         'name' => (string) ($user['name'] ?? ''),
         'role' => $role,
         'roleLabel' => dent_role_label($role),
+        'cohortKey' => $cohortKey,
+        'cohort' => $cohort === null ? null : [
+            'key' => (string) ($cohort['key'] ?? ''),
+            'title' => (string) ($cohort['title'] ?? ''),
+            'shortTitle' => (string) ($cohort['shortTitle'] ?? ''),
+            'description' => (string) ($cohort['description'] ?? ''),
+            'productType' => (string) ($cohort['productType'] ?? ''),
+            'year' => (string) ($cohort['year'] ?? ''),
+            'siteVariant' => (string) ($cohort['siteVariant'] ?? ''),
+            'notesMode' => (string) ($cohort['notesMode'] ?? ''),
+            'allowRepresentativeManagement' => !empty($cohort['allowRepresentativeManagement']),
+        ],
         'isOwner' => $role === 'owner',
         'isRepresentative' => $role === 'representative',
-        'isProsthesisStudent' => $role === 'prosthesis_student' || $role === 'prosthesis_representative',
+        'isProsthesisStudent' => dent_user_is_prosthesis($user),
         'isProsthesisRepresentative' => $role === 'prosthesis_representative',
         'canModerateChat' => $permissions['moderateChat'],
         'permissions' => $permissions,
@@ -1360,9 +1709,67 @@ function dent_require_owner(): array
     return $user;
 }
 
+function dent_requested_cohort_key(?string $fallback = null): string
+{
+    $raw = $_POST['cohort'] ?? ($_GET['cohort'] ?? ($fallback ?? dent_primary_cohort_key()));
+    $key = dent_clean_cohort_key((string) $raw);
+    return $key !== '' ? $key : dent_primary_cohort_key();
+}
+
+function dent_resolve_accessible_cohort(array $user, ?string $requested = null): string
+{
+    $requestedKey = dent_clean_cohort_key($requested ?? dent_requested_cohort_key());
+    $userRole = dent_normalize_role((string) ($user['role'] ?? 'student'), (string) ($user['studentNumber'] ?? ''));
+    $userCohortKey = dent_user_cohort_key($user);
+
+    if ($userRole === 'owner') {
+        if ($requestedKey !== '' && dent_cohort_exists($requestedKey)) {
+            return $requestedKey;
+        }
+        return dent_primary_cohort_key();
+    }
+
+    if ($requestedKey !== '' && $requestedKey !== $userCohortKey) {
+        dent_error('این ورودی برای حساب شما فعال نیست.', 403);
+    }
+
+    return $userCohortKey;
+}
+
+function dent_user_has_cohort_management_access(array $user, ?string $cohortKey = null): bool
+{
+    $role = dent_normalize_role((string) ($user['role'] ?? 'student'), (string) ($user['studentNumber'] ?? ''));
+    if ($role === 'owner') {
+        return true;
+    }
+
+    $targetCohortKey = dent_clean_cohort_key($cohortKey ?? dent_user_cohort_key($user));
+    if ($targetCohortKey === '' || $targetCohortKey !== dent_user_cohort_key($user)) {
+        return false;
+    }
+
+    return (bool) dent_permissions_for_role($role, $targetCohortKey)['manageCohort'];
+}
+
+function dent_require_cohort_manager(?string $cohortKey = null): array
+{
+    $user = dent_require_user();
+    $resolvedCohortKey = dent_resolve_accessible_cohort($user, $cohortKey);
+    if (!dent_user_has_cohort_management_access($user, $resolvedCohortKey)) {
+        dent_error('مدیریت این ورودی فقط برای مالک یا نماینده مجاز همان ورودی فعال است.', 403);
+    }
+
+    return $user;
+}
+
+function dent_target_user_belongs_to_cohort(array $user, string $cohortKey): bool
+{
+    return dent_user_cohort_key($user) === dent_clean_cohort_key($cohortKey);
+}
+
 function dent_can_moderate_chat(array $user): bool
 {
-    return (bool) dent_permissions_for_role((string) ($user['role'] ?? 'student'))['moderateChat'];
+    return (bool) dent_permissions_for_role((string) ($user['role'] ?? 'student'), dent_user_cohort_key($user))['moderateChat'];
 }
 
 function dent_verify_credentials(string $studentNumber, string $password): ?array
@@ -1484,6 +1891,138 @@ function dent_change_user_password(array $user, string $currentPassword, string 
     return dent_persist_user($user);
 }
 
+function dent_sorted_cohort_records(array $cohorts): array
+{
+    $items = array_values($cohorts);
+    usort($items, static function (array $left, array $right): int {
+        $orderCompare = (int) ($left['sortOrder'] ?? 9999) <=> (int) ($right['sortOrder'] ?? 9999);
+        if ($orderCompare !== 0) {
+            return $orderCompare;
+        }
+
+        return strcmp((string) ($left['key'] ?? ''), (string) ($right['key'] ?? ''));
+    });
+
+    return $items;
+}
+
+function dent_visible_cohorts_for_user(array $viewer): array
+{
+    $catalog = dent_cohort_catalog();
+    $role = dent_normalize_role((string) ($viewer['role'] ?? 'student'), (string) ($viewer['studentNumber'] ?? ''));
+    if ($role === 'owner') {
+        return dent_sorted_cohort_records($catalog);
+    }
+
+    $cohortKey = dent_user_cohort_key($viewer);
+    $record = $cohortKey !== '' ? dent_cohort_record($cohortKey) : null;
+    return $record === null ? [] : [$record];
+}
+
+function dent_user_can_manage_target_user(array $viewer, array $targetUser): bool
+{
+    $viewerRole = dent_normalize_role((string) ($viewer['role'] ?? 'student'), (string) ($viewer['studentNumber'] ?? ''));
+    if ($viewerRole === 'owner') {
+        return true;
+    }
+
+    if (!dent_user_has_cohort_management_access($viewer, dent_user_cohort_key($viewer))) {
+        return false;
+    }
+
+    $targetRole = dent_normalize_role((string) ($targetUser['role'] ?? 'student'), (string) ($targetUser['studentNumber'] ?? ''));
+    if ($targetRole === 'owner') {
+        return false;
+    }
+
+    return dent_target_user_belongs_to_cohort($targetUser, dent_user_cohort_key($viewer));
+}
+
+function dent_require_manage_target_user(array $viewer, string $studentNumber): array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی نامعتبر است.', 422);
+    }
+
+    $targetUser = dent_get_user_record($studentNumber);
+    if ($targetUser === null) {
+        dent_error('کاربر موردنظر پیدا نشد.', 404);
+    }
+
+    if (!dent_user_can_manage_target_user($viewer, $targetUser)) {
+        dent_error('این حساب در محدوده مدیریتی شما نیست.', 403);
+    }
+
+    return $targetUser;
+}
+
+function dent_cohort_user_counts(array $users): array
+{
+    $counts = [];
+    foreach ($users as $user) {
+        if (!is_array($user)) {
+            continue;
+        }
+
+        $cohortKey = dent_user_cohort_key($user);
+        if ($cohortKey === '') {
+            continue;
+        }
+
+        if (!isset($counts[$cohortKey])) {
+            $counts[$cohortKey] = [
+                'totalUsers' => 0,
+                'representatives' => 0,
+            ];
+        }
+
+        $counts[$cohortKey]['totalUsers']++;
+        $role = dent_normalize_role((string) ($user['role'] ?? 'student'), (string) ($user['studentNumber'] ?? ''));
+        if (in_array($role, ['representative', 'prosthesis_representative'], true)) {
+            $counts[$cohortKey]['representatives']++;
+        }
+    }
+
+    return $counts;
+}
+
+function dent_cohort_management_payload(array $viewer, array $users): array
+{
+    $visibleCohorts = dent_visible_cohorts_for_user($viewer);
+    $userCounts = dent_cohort_user_counts(array_map(static function ($user) {
+        return is_array($user['raw'] ?? null) ? $user['raw'] : [];
+    }, $users));
+    $payload = [];
+
+    foreach ($visibleCohorts as $cohort) {
+        $key = (string) ($cohort['key'] ?? '');
+        $permissions = dent_permissions_for_role(
+            dent_normalize_role((string) ($viewer['role'] ?? 'student'), (string) ($viewer['studentNumber'] ?? '')),
+            $key
+        );
+        $counts = $userCounts[$key] ?? ['totalUsers' => 0, 'representatives' => 0];
+        $payload[] = [
+            'key' => $key,
+            'title' => (string) ($cohort['title'] ?? ''),
+            'shortTitle' => (string) ($cohort['shortTitle'] ?? ''),
+            'description' => (string) ($cohort['description'] ?? ''),
+            'productType' => (string) ($cohort['productType'] ?? ''),
+            'year' => (string) ($cohort['year'] ?? ''),
+            'siteVariant' => (string) ($cohort['siteVariant'] ?? ''),
+            'notesMode' => (string) ($cohort['notesMode'] ?? ''),
+            'allowRepresentativeManagement' => !empty($cohort['allowRepresentativeManagement']),
+            'permissions' => $permissions,
+            'counts' => [
+                'totalUsers' => (int) ($counts['totalUsers'] ?? 0),
+                'representatives' => (int) ($counts['representatives'] ?? 0),
+            ],
+        ];
+    }
+
+    return $payload;
+}
+
 function dent_list_public_users(bool $includeOwnerPrivate = false): array
 {
     $store = dent_load_user_store();
@@ -1551,7 +2090,8 @@ function dent_set_representative_status(string $studentNumber, bool $isRepresent
     }
 
     $currentRole = dent_normalize_role((string) ($user['role'] ?? 'student'), $studentNumber);
-    if ($currentRole === 'prosthesis_student' || $currentRole === 'prosthesis_representative') {
+    $cohortKey = dent_user_cohort_key($user);
+    if (dent_is_prosthesis_cohort_key($cohortKey) || $currentRole === 'prosthesis_student' || $currentRole === 'prosthesis_representative') {
         $user['role'] = $isRepresentative ? 'prosthesis_representative' : 'prosthesis_student';
     } else {
         $user['role'] = $isRepresentative ? 'representative' : 'student';
@@ -2866,7 +3406,7 @@ function dent_sms_health_check(?string $phoneNumber = null): array
         dent_error('شماره موبایل تست نامعتبر است.', 422);
     }
 
-    $testCode = str_pad((string) random_int(0, 99999), 5, '0', STR_PAD_LEFT);
+    $testCode = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     $sendResult = dent_sms_send_pattern($normalizedPhone, $testCode);
     dent_sms_health_store_update((bool) ($sendResult['success'] ?? false), (string) ($sendResult['message'] ?? ''));
     return [

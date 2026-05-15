@@ -3,9 +3,11 @@
         return;
     }
 
-    var CURRENT_VERSION = "20260515-153912";
+    var CURRENT_VERSION = "20260515-154516";
     var VERSION_ENDPOINT = "/app-version.json";
     var SERVICE_WORKER_ENDPOINT = "/sw.js";
+    var UPDATE_ACK_STORAGE_KEY = "dent1402-pwa-update-ack-version";
+    var UPDATE_AUTO_STORAGE_KEY = "dent1402-pwa-update-auto-version";
     var UPDATE_CHECK_MIN_INTERVAL = 5000;
     var UPDATE_CHECK_INTERVAL = 30000;
 
@@ -18,6 +20,7 @@
     var bannerReloadBtn = null;
     var bannerDismissBtn = null;
     var reloadAfterControllerChange = false;
+    var updateApplyInFlight = false;
 
     var state = {
         installed: isStandaloneMode(),
@@ -30,6 +33,34 @@
         updateAvailable: false,
         updateDismissed: false
     };
+
+    function readStorage(key) {
+        try {
+            return String(window.localStorage.getItem(key) || "");
+        } catch (_error) {
+            return "";
+        }
+    }
+
+    function writeStorage(key, value) {
+        try {
+            if (!value) {
+                window.localStorage.removeItem(key);
+                return;
+            }
+            window.localStorage.setItem(key, String(value));
+        } catch (_error) {
+            // Ignore storage failures.
+        }
+    }
+
+    function acknowledgedVersion() {
+        return normalizeVersion(readStorage(UPDATE_ACK_STORAGE_KEY));
+    }
+
+    function autoApplyVersion() {
+        return normalizeVersion(readStorage(UPDATE_AUTO_STORAGE_KEY));
+    }
 
     function isStandaloneMode() {
         return !!(
@@ -56,7 +87,8 @@
     }
 
     function shouldShowUpdateBanner() {
-        return !!state.updateAvailable && !state.updateDismissed;
+        return !!state.updateAvailable
+            && (updateApplyInFlight || acknowledgedVersion() !== state.latestVersion);
     }
 
     function notify() {
@@ -130,7 +162,15 @@
 
         if (bannerReloadBtn) {
             bannerReloadBtn.addEventListener("click", function () {
+                if (updateApplyInFlight) {
+                    return;
+                }
+                updateApplyInFlight = true;
+                writeStorage(UPDATE_ACK_STORAGE_KEY, state.latestVersion);
+                writeStorage(UPDATE_AUTO_STORAGE_KEY, state.latestVersion);
+                renderUpdateBanner();
                 applyUpdate().catch(function () {
+                    updateApplyInFlight = false;
                     window.location.reload();
                 });
             });
@@ -138,7 +178,7 @@
 
         if (bannerDismissBtn) {
             bannerDismissBtn.addEventListener("click", function () {
-                state.updateDismissed = true;
+                writeStorage(UPDATE_ACK_STORAGE_KEY, state.latestVersion);
                 renderUpdateBanner();
             });
         }
@@ -160,6 +200,26 @@
             return;
         }
 
+        if (updateApplyInFlight) {
+            bannerMessageEl.textContent = "به‌روزرسانی در حال آماده‌سازی است و به محض آماده‌شدن، یک‌بار اعمال می‌شود.";
+            if (bannerReloadBtn) {
+                bannerReloadBtn.disabled = true;
+                bannerReloadBtn.textContent = "در حال آماده‌سازی...";
+            }
+            if (bannerDismissBtn) {
+                bannerDismissBtn.disabled = true;
+            }
+            return;
+        }
+
+        if (bannerReloadBtn) {
+            bannerReloadBtn.disabled = false;
+            bannerReloadBtn.textContent = "به‌روزرسانی";
+        }
+        if (bannerDismissBtn) {
+            bannerDismissBtn.disabled = false;
+        }
+
         if (state.latestVersion && state.latestVersion !== state.currentVersion) {
             bannerMessageEl.textContent = "برای دریافت آخرین تغییرات، وب‌اپ را یک‌بار به‌روزرسانی کن.";
             return;
@@ -174,6 +234,17 @@
         state.updateAvailable = !!hasWaitingWorker || normalizedLatest !== state.currentVersion;
         if (!state.updateAvailable) {
             state.updateDismissed = false;
+            updateApplyInFlight = false;
+            writeStorage(UPDATE_ACK_STORAGE_KEY, "");
+            writeStorage(UPDATE_AUTO_STORAGE_KEY, "");
+        } else if (hasWaitingWorker && autoApplyVersion() === normalizedLatest && !reloadAfterControllerChange) {
+            window.setTimeout(function () {
+                applyUpdate().catch(function () {
+                    updateApplyInFlight = false;
+                    notify();
+                });
+            }, 0);
+            return;
         }
         notify();
     }
@@ -317,8 +388,9 @@
                     return { outcome: "reloading" };
                 }
 
-                window.location.reload();
-                return { outcome: "reloading" };
+                updateApplyInFlight = true;
+                notify();
+                return { outcome: "waiting" };
             });
         });
     }

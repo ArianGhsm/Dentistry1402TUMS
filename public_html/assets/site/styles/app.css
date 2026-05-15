@@ -1170,26 +1170,19 @@ body.app-dashboard-page main {
     align-items: center;
     gap: 0.88rem;
     padding: 0.96rem 1rem;
-    text-align: right;
+    text-align: center;
 }
 
 .home-wallet-card__copy {
     grid-area: copy;
-    justify-items: start;
+    justify-items: center;
     gap: 0.22rem;
-    text-align: right;
+    text-align: center;
 }
 
 .home-wallet-card h2 {
     font-size: 1.24rem;
     line-height: 1.35;
-}
-
-.home-wallet-card p {
-    max-width: none;
-    font-size: 0.78rem;
-    line-height: 1.65;
-    text-align: right;
 }
 
 .home-wallet-card__link {

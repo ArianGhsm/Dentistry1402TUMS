@@ -46,10 +46,10 @@
             appFooterTitle.textContent = brand;
         }
         if (homeKicker) {
-            homeKicker.textContent = isProsthesis ? "صفحه اصلی پروتز" : "صفحه اصلی کلاس";
+            homeKicker.textContent = "صفحه اصلی سایت";
         }
         if (homeTitle) {
-            homeTitle.textContent = isProsthesis ? "خانه پروتز" : "خانه کلاس";
+            homeTitle.textContent = "خانه سایت";
         }
         if (homeServicesTitle) {
             homeServicesTitle.textContent = isProsthesis ? "مسیرهای اصلی پروتز" : "بخش‌های اصلی سایت";
