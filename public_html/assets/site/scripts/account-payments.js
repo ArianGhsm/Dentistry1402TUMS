@@ -2453,10 +2453,13 @@
         if (!detail || !detail.loggedIn) {
             app.hidden = true;
             guard.hidden = false;
-            guard.innerHTML = [
-                '<div><span class="buy-kicker">ورود لازم است</span><h2>برای مدیریت خرید وارد حساب مالک شوید</h2><p>این بخش فقط با session مشترک سایت و سطح دسترسی مالک باز می‌شود.</p></div>',
-                '<a class="buy-primary-btn" href="' + escapeHtml(loginUrl) + '">ورود به حساب</a>'
-            ].join("");
+            guard.innerHTML = window.Dent1402Auth.renderLoginRequiredGuard({
+                loginHref: loginUrl,
+                fallbackHref: "/buy/",
+                primaryClass: "buy-primary-btn",
+                secondaryClass: "buy-secondary-btn"
+            });
+            window.Dent1402Auth.enhanceLoginGuards(guard);
             return;
         }
         if (!detail.user || !detail.user.isOwner) {

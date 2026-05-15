@@ -9,14 +9,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260515-163454">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260515-163454">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260515-163454">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260515-171707">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260515-171707">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260515-171707">
     <title>پیام‌رسان | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
-    <script src="/assets/site/scripts/theme.js?v=20260515-163454"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260515-163454">
-    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260515-163454">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260515-163454">
+    <script src="/assets/site/scripts/theme.js?v=20260515-171707"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260515-171707">
+    <link rel="stylesheet" href="/assets/site/styles/chat.css?v=20260515-171707">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260515-171707">
 </head>
 <body class="chat-page" data-shell="off">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -53,16 +53,14 @@
                 </div>
             </section>
 
-            <section id="login-box" class="chat-login-panel" hidden>
-                <div class="chat-login-head">
-                    <span class="chat-login-kicker">ورود</span>
-                    <h2 class="chat-login-title">برای استفاده از پیام‌رسان وارد حساب خودت شو.</h2>
-                    <p class="chat-login-text">احراز هویت پیام‌رسان مستقیماً از سامانه مشترک سایت می‌آید و حساب جداگانه‌ای ندارد.</p>
-                </div>
+            <section id="login-box" class="chat-login-panel site-login-guard" hidden data-auth-guard data-auth-guard-home="/app/">
+                <span class="site-login-guard__eyebrow">ورود لازم است</span>
+                <h2 class="site-login-guard__title">برای مشاهده این بخش باید وارد حساب شوید</h2>
+                <p class="site-login-guard__text">برای حفظ حقوق دانشجویان، برای مشاهده این بخش باید وارد حساب کاربری خود در سایت شوید. می توانید از سایر بخش های سایت که نیاز به ورود ندارند، استفاده کنید.</p>
 
-                <div class="chat-guard-actions">
+                <div class="site-login-guard__actions chat-guard-actions">
                     <a class="chat-login-btn" href="/account/?returnTo=%2Fchat%2F">ورود به حساب کاربری</a>
-                    <a class="chat-secondary-link" href="/account/">مدیریت حساب</a>
+                    <a class="chat-secondary-link" data-auth-guard-back data-auth-guard-home="/app/" href="/app/">برگشت به خانه</a>
                 </div>
 
                 <div id="msg" class="login-feedback" aria-live="polite"></div>
@@ -675,9 +673,9 @@
         <div class="chat-media-viewer__caption" id="chat-media-viewer-caption"></div>
     </section>
 
-    <script src="/assets/site/scripts/auth.js?v=20260515-163454"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260515-163454"></script>
-    <script src="/assets/site/scripts/chat.js?v=20260515-163454"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260515-163454"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260515-171707"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260515-171707"></script>
+    <script src="/assets/site/scripts/chat.js?v=20260515-171707"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260515-171707"></script>
 </body>
 </html>

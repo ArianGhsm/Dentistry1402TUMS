@@ -167,14 +167,13 @@
         var loginUrl = window.Dent1402Auth.loginUrl
             ? window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search)
             : "/account/";
-        root.innerHTML = [
-            '<section class="buy-auth-required">',
-            '  <span class="buy-kicker">ورود لازم است</span>',
-            "  <h2>برای مشاهده و پرداخت این هزینه وارد حساب خود شوید</h2>",
-            "  <p>پس از ورود، وضعیت پرداخت با حساب شما ثبت می‌شود.</p>",
-            '  <a class="buy-primary-btn" href="' + escapeHtml(loginUrl) + '">ورود به حساب</a>',
-            "</section>"
-        ].join("");
+        root.innerHTML = '<section class="buy-auth-required">' + window.Dent1402Auth.renderLoginRequiredGuard({
+            loginHref: loginUrl,
+            fallbackHref: "/buy/",
+            primaryClass: "buy-primary-btn",
+            secondaryClass: "buy-secondary-btn"
+        }) + "</section>";
+        window.Dent1402Auth.enhanceLoginGuards(root);
     }
 
     function gatewayOptions(collection) {

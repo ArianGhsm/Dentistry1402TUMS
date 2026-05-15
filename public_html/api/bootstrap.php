@@ -237,6 +237,29 @@ function dent_storage_path(string $relativePath): string
     return DENT_STORAGE_ROOT . DIRECTORY_SEPARATOR . $trimmed;
 }
 
+function dent_parse_bool($value, bool $default = false): bool
+{
+    if (is_bool($value)) {
+        return $value;
+    }
+    if (is_int($value) || is_float($value)) {
+        return ((int) $value) !== 0;
+    }
+
+    $text = trim(strtolower((string) $value));
+    if ($text === '') {
+        return $default;
+    }
+    if (in_array($text, ['1', 'true', 'yes', 'on'], true)) {
+        return true;
+    }
+    if (in_array($text, ['0', 'false', 'no', 'off'], true)) {
+        return false;
+    }
+
+    return $default;
+}
+
 function dent_ensure_directory(string $directory): void
 {
     if (is_dir($directory)) {

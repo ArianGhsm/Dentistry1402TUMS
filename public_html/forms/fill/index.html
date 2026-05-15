@@ -8,14 +8,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="فرم">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260515-163454">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260515-163454">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260515-163454">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260515-171707">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260515-171707">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260515-171707">
     <title>فرم | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
-    <script src="/assets/site/scripts/theme.js?v=20260515-163454"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260515-163454">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260515-163454">
-    <link rel="stylesheet" href="/assets/site/styles/forms.css?v=20260515-163454">
+    <script src="/assets/site/scripts/theme.js?v=20260515-171707"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260515-171707">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260515-171707">
+    <link rel="stylesheet" href="/assets/site/styles/forms.css?v=20260515-171707">
 </head>
 <body class="forms-page forms-page--fill">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -35,12 +35,13 @@
             <p>چند لحظه صبر کنید.</p>
         </section>
 
-        <section id="fill-login" class="forms-card forms-state-card" hidden>
-            <h2>برای شرکت در این فرم وارد حساب شوید</h2>
-            <p>این فرم برای مهمان‌ها فعال نیست.</p>
-            <div class="forms-actions">
-                <a id="fill-login-link" class="forms-btn forms-btn--primary" href="/account/">ورود</a>
-                <a class="forms-btn" href="/account/">حساب</a>
+        <section id="fill-login" class="forms-card forms-state-card site-login-guard" hidden data-auth-guard data-auth-guard-home="/app/">
+            <span class="site-login-guard__eyebrow">ورود لازم است</span>
+            <h2 class="site-login-guard__title">برای مشاهده این بخش باید وارد حساب شوید</h2>
+            <p class="site-login-guard__text">برای حفظ حقوق دانشجویان، برای مشاهده این بخش باید وارد حساب کاربری خود در سایت شوید. می توانید از سایر بخش های سایت که نیاز به ورود ندارند، استفاده کنید.</p>
+            <div class="site-login-guard__actions forms-actions">
+                <a id="fill-login-link" class="forms-btn forms-btn--primary" href="/account/">ورود به حساب کاربری</a>
+                <a class="forms-btn" data-auth-guard-back data-auth-guard-home="/app/" href="/app/">برگشت به خانه</a>
             </div>
         </section>
 
@@ -119,9 +120,9 @@
 
     <div id="fill-toast" class="forms-toast" aria-live="polite"></div>
 
-    <script src="/assets/site/scripts/auth.js?v=20260515-163454"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260515-163454"></script>
-    <script src="/assets/site/scripts/form-fill.js?v=20260515-163454"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260515-163454"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260515-171707"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260515-171707"></script>
+    <script src="/assets/site/scripts/form-fill.js?v=20260515-171707"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260515-171707"></script>
 </body>
 </html>

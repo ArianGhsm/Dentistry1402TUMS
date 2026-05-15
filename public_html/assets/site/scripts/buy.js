@@ -1234,16 +1234,13 @@
         var loginUrl = window.Dent1402Auth && typeof window.Dent1402Auth.loginUrl === "function"
             ? window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search + window.location.hash)
             : "/account/";
-        main.innerHTML = [
-            '<section class="buy-auth-required">',
-            '  <div>',
-            '    <span class="buy-kicker">ورود لازم است</span>',
-            '    <h2>برای مشاهده و پرداخت خریدها وارد حساب شوید</h2>',
-            '    <p class="buy-muted">کاتالوگ، لینک مستقیم کالا، سبد خرید و نتیجه پرداخت فقط با session مشترک سایت نمایش داده می‌شود.</p>',
-            '  </div>',
-            '  <a class="buy-primary-btn" href="' + text(loginUrl) + '">ورود به حساب</a>',
-            '</section>'
-        ].join("");
+        main.innerHTML = '<section class="buy-auth-required">' + window.Dent1402Auth.renderLoginRequiredGuard({
+            loginHref: loginUrl,
+            fallbackHref: "/buy/",
+            primaryClass: "buy-primary-btn",
+            secondaryClass: "buy-secondary-btn"
+        }) + "</section>";
+        window.Dent1402Auth.enhanceLoginGuards(main);
     }
 
     function startAfterAuth(callback) {

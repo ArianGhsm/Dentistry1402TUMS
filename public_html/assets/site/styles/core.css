@@ -1013,6 +1013,63 @@ body.site-keyboard-open .buy-cart-dock {
     display: none;
 }
 
+.site-login-guard {
+    width: min(100%, 34rem);
+    margin-inline: auto;
+    padding: clamp(1.35rem, 3vw, 1.9rem);
+    border: 1px solid var(--border-color);
+    border-radius: calc(var(--radius-lg) + 4px);
+    background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--surface-solid) 92%, transparent),
+        color-mix(in srgb, var(--surface) 100%, transparent)
+    );
+    box-shadow: var(--surface-shadow);
+    text-align: center;
+}
+
+.site-login-guard__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2rem;
+    padding: 0.38rem 0.9rem;
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--accent-color);
+    font-size: 0.84rem;
+    font-weight: 780;
+}
+
+.site-login-guard__title {
+    margin: 0.9rem 0 0;
+    font-family: var(--font-accent);
+    font-size: clamp(1.45rem, 2vw, 1.9rem);
+    line-height: 1.45;
+    color: var(--text-primary);
+}
+
+.site-login-guard__text {
+    max-width: 30rem;
+    margin: 0.85rem auto 0;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.95;
+}
+
+.site-login-guard__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.35rem;
+}
+
+.site-login-guard__actions > a,
+.site-login-guard__actions > button {
+    min-width: min(100%, 13.5rem);
+}
+
 @media (max-width: 768px) {
     .site-header {
         align-items: center;
@@ -1106,6 +1163,32 @@ body.site-keyboard-open .buy-cart-dock {
 
     .page-shell {
         padding-top: 1rem;
+    }
+
+    .site-login-guard {
+        width: 100%;
+        padding: 1.2rem 1rem;
+        border-radius: calc(var(--radius-lg) + 2px);
+    }
+
+    .site-login-guard__title {
+        font-size: 1.34rem;
+    }
+
+    .site-login-guard__text {
+        font-size: 0.95rem;
+        line-height: 1.85;
+    }
+
+    .site-login-guard__actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .site-login-guard__actions > a,
+    .site-login-guard__actions > button {
+        width: 100%;
+        min-width: 0;
     }
 }
 

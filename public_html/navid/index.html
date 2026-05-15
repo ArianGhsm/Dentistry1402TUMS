@@ -8,13 +8,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260515-163454">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260515-163454">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260515-163454">
-    <script src="/assets/site/scripts/theme.js?v=20260515-163454"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260515-163454">
-    <link rel="stylesheet" href="/assets/site/styles/navid.css?v=20260515-163454">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260515-163454">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260515-171707">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260515-171707">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260515-171707">
+    <script src="/assets/site/scripts/theme.js?v=20260515-171707"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260515-171707">
+    <link rel="stylesheet" href="/assets/site/styles/navid.css?v=20260515-171707">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260515-171707">
 </head>
 <body class="navid-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -42,12 +42,13 @@
         </section>
 
         <section id="navid-auth-stage" class="navid-auth-stage" hidden>
-            <div class="navid-auth-card">
-                <h3>برای دیدن تکالیف نوید وارد حساب شو</h3>
-                <p>این بخش از نشست سراسری سایت استفاده می‌کند و ورود جداگانه ندارد.</p>
-                <div class="navid-auth-actions">
-                    <a id="navid-login-link" class="shell-action-btn shell-action-btn-primary" href="/account/">ورود به حساب</a>
-                    <a class="shell-action-btn" href="/account/">مدیریت حساب</a>
+            <div class="navid-auth-card site-login-guard" data-auth-guard data-auth-guard-home="/app/">
+                <span class="site-login-guard__eyebrow">ورود لازم است</span>
+                <h3 class="site-login-guard__title">برای مشاهده این بخش باید وارد حساب شوید</h3>
+                <p class="site-login-guard__text">برای حفظ حقوق دانشجویان، برای مشاهده این بخش باید وارد حساب کاربری خود در سایت شوید. می توانید از سایر بخش های سایت که نیاز به ورود ندارند، استفاده کنید.</p>
+                <div class="site-login-guard__actions navid-auth-actions">
+                    <a id="navid-login-link" class="shell-action-btn shell-action-btn-primary" href="/account/">ورود به حساب کاربری</a>
+                    <a class="shell-action-btn" data-auth-guard-back data-auth-guard-home="/app/" href="/app/">برگشت به خانه</a>
                 </div>
                 <div id="navid-auth-feedback" class="navid-feedback" aria-live="polite"></div>
             </div>
@@ -128,9 +129,9 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260515-163454"></script>
-    <script src="/assets/site/scripts/navid-page.js?v=20260515-163454"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260515-163454"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260515-163454"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260515-171707"></script>
+    <script src="/assets/site/scripts/navid-page.js?v=20260515-171707"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260515-171707"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260515-171707"></script>
 </body>
 </html>

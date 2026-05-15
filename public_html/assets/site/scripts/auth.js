@@ -109,6 +109,105 @@
         return "/account/?returnTo=" + encodeURIComponent(target);
     }
 
+    function escapeHtml(value) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
+            switch (char) {
+                case "&":
+                    return "&amp;";
+                case "<":
+                    return "&lt;";
+                case ">":
+                    return "&gt;";
+                case '"':
+                    return "&quot;";
+                default:
+                    return "&#39;";
+            }
+        });
+    }
+
+    function guardFallbackHref(fallbackHref) {
+        var value = typeof fallbackHref === "string" ? fallbackHref.trim() : "";
+        return value || "/app/";
+    }
+
+    function sameOriginReferrerPath() {
+        var current = currentReturnTo();
+        try {
+            if (!document.referrer) {
+                return "";
+            }
+            var referrer = new URL(document.referrer, window.location.origin);
+            if (referrer.origin !== window.location.origin) {
+                return "";
+            }
+            var path = (referrer.pathname || "/") + (referrer.search || "") + (referrer.hash || "");
+            return path && path !== current ? path : "";
+        } catch (_error) {
+            return "";
+        }
+    }
+
+    function guardBackHref(fallbackHref) {
+        return sameOriginReferrerPath() || guardFallbackHref(fallbackHref);
+    }
+
+    function guardBackLabel(fallbackHref) {
+        return sameOriginReferrerPath() ? "برگشت به بخش قبلی" : "برگشت به خانه";
+    }
+
+    function enhanceLoginGuards(root) {
+        var scope = root && typeof root.querySelectorAll === "function" ? root : document;
+        Array.prototype.slice.call(scope.querySelectorAll("[data-auth-guard-back]")).forEach(function (node) {
+            var parentGuard = node.closest ? node.closest("[data-auth-guard]") : null;
+            var fallbackHref = node.getAttribute("data-auth-guard-home")
+                || (parentGuard ? parentGuard.getAttribute("data-auth-guard-home") : "")
+                || "/app/";
+            node.setAttribute("href", guardBackHref(fallbackHref));
+            node.textContent = guardBackLabel(fallbackHref);
+            if (node.dataset.authGuardBackBound === "true") {
+                return;
+            }
+            node.dataset.authGuardBackBound = "true";
+            node.addEventListener("click", function (event) {
+                if (!sameOriginReferrerPath()) {
+                    return;
+                }
+                event.preventDefault();
+                window.history.back();
+            });
+        });
+    }
+
+    function renderLoginRequiredGuard(options) {
+        var settings = options || {};
+        var fallbackHref = guardFallbackHref(settings.fallbackHref);
+        var loginHref = typeof settings.loginHref === "string" && settings.loginHref.trim()
+            ? settings.loginHref.trim()
+            : loginUrl(typeof settings.returnTo === "string" && settings.returnTo.trim() ? settings.returnTo.trim() : currentReturnTo());
+        var actionsClass = typeof settings.actionsClass === "string" && settings.actionsClass.trim()
+            ? " " + settings.actionsClass.trim()
+            : "";
+        var primaryClass = typeof settings.primaryClass === "string" && settings.primaryClass.trim()
+            ? settings.primaryClass.trim()
+            : "shell-action-btn shell-action-btn-primary";
+        var secondaryClass = typeof settings.secondaryClass === "string" && settings.secondaryClass.trim()
+            ? settings.secondaryClass.trim()
+            : "shell-action-btn";
+
+        return [
+            '<div class="site-login-guard" data-auth-guard data-auth-guard-home="' + escapeHtml(fallbackHref) + '">',
+            '  <span class="site-login-guard__eyebrow">ورود لازم است</span>',
+            '  <h2 class="site-login-guard__title">برای مشاهده این بخش باید وارد حساب شوید</h2>',
+            '  <p class="site-login-guard__text">برای حفظ حقوق دانشجویان، برای مشاهده این بخش باید وارد حساب کاربری خود در سایت شوید. می توانید از سایر بخش های سایت که نیاز به ورود ندارند، استفاده کنید.</p>',
+            '  <div class="site-login-guard__actions' + actionsClass + '">',
+            '    <a class="' + escapeHtml(primaryClass) + '" href="' + escapeHtml(loginHref) + '">ورود به حساب کاربری</a>',
+            '    <a class="' + escapeHtml(secondaryClass) + '" data-auth-guard-back data-auth-guard-home="' + escapeHtml(fallbackHref) + '" href="' + escapeHtml(guardBackHref(fallbackHref)) + '">' + escapeHtml(guardBackLabel(fallbackHref)) + '</a>',
+            '  </div>',
+            '</div>'
+        ].join("");
+    }
+
     async function request(action, method, payload) {
         var requestMethod = method || "GET";
         var url = "/api/auth_api.php";
@@ -425,8 +524,20 @@
         onChange: onChange,
         patchCurrentUser: patchCurrentUser,
         loginUrl: loginUrl,
-        currentReturnTo: currentReturnTo
+        currentReturnTo: currentReturnTo,
+        guardBackHref: guardBackHref,
+        guardBackLabel: guardBackLabel,
+        enhanceLoginGuards: enhanceLoginGuards,
+        renderLoginRequiredGuard: renderLoginRequiredGuard
     };
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", function () {
+            enhanceLoginGuards(document);
+        }, { once: true });
+    } else {
+        enhanceLoginGuards(document);
+    }
 
     emit();
     bootstrap(false);

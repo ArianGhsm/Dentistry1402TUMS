@@ -167,11 +167,14 @@
             if (!detail.loggedIn) {
                 app.hidden = true;
                 guard.hidden = false;
-                guard.innerHTML = [
-                    "<h2>ورود مالک لازم است</h2>",
-                    "<p>ساخت و مدیریت لینک‌ها فقط با حساب مالک سایت امکان دارد.</p>",
-                    '<a class="ct-btn ct-btn--primary" href="' + escapeHtml(loginUrl) + '">ورود به حساب</a>'
-                ].join("");
+                guard.innerHTML = window.Dent1402Auth.renderLoginRequiredGuard({
+                    loginHref: loginUrl,
+                    fallbackHref: "/app/",
+                    actionsClass: "ct-auth-guard__actions",
+                    primaryClass: "ct-btn ct-btn--primary",
+                    secondaryClass: "ct-btn"
+                });
+                window.Dent1402Auth.enhanceLoginGuards(guard);
                 return;
             }
             if (!detail.user || !detail.user.isOwner) {
