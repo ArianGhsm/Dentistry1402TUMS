@@ -113,6 +113,9 @@
         if (path === "/exams/") {
             return "/prosthesis-1402/exams/";
         }
+        if (path === "/notes/") {
+            return "/prosthesis-1402/";
+        }
 
         return "";
     }
@@ -123,10 +126,10 @@
         var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
         var isProsthesis = isProsthesisState(state);
         var items = [{
-            href: isProsthesis ? "/prosthesis-1402/" : "/app/",
+            href: "/app/",
             label: "خانه",
             icon: "home",
-            active: [isProsthesis ? "/prosthesis-1402/" : "/app/"],
+            active: ["/app/"],
             exact: true
         }];
         if (!isProsthesis) {

@@ -2799,6 +2799,15 @@ function chat_can_manage_conversation(array $conversation, array $user): bool
     return false;
 }
 
+function chat_user_can_view_without_membership(array $conversation, array $user): bool
+{
+    if ((string) ($conversation['type'] ?? 'group') === 'direct') {
+        return false;
+    }
+
+    return chat_user_can_moderate_active_cohort($user);
+}
+
 function chat_can_pin_message(array $conversation, array $user): bool
 {
     $type = (string) ($conversation['type'] ?? 'group');
@@ -3825,7 +3834,8 @@ function chat_attachment_access_allowed(array $store, array $attachment, array $
         return false;
     }
 
-    return chat_is_member($conversation, $viewerStudentNumber) || chat_user_can_moderate_active_cohort($user);
+    return chat_is_member($conversation, $viewerStudentNumber)
+        || chat_user_can_view_without_membership($conversation, $user);
 }
 
 function chat_safe_download_filename(string $rawName, string $fallbackId): string
@@ -4270,7 +4280,7 @@ function chat_user_visible_conversation_ids(array &$store, array $user): array
             );
         }
 
-        if (chat_is_member($conversation, $studentNumber) || chat_user_can_moderate_active_cohort($user)) {
+        if (chat_is_member($conversation, $studentNumber) || chat_user_can_view_without_membership($conversation, $user)) {
             $isMandatory = (bool) ($conversation['mandatory'] ?? false);
             if (
                 !$isMandatory
@@ -4921,7 +4931,7 @@ function chat_require_conversation_for_user(array &$store, string $conversationI
     }
 
     $isMemberAfterRepair = chat_is_member($conversation, $studentNumber);
-    if (!$isMemberAfterRepair && !chat_user_can_moderate_active_cohort($user)) {
+    if (!$isMemberAfterRepair && !chat_user_can_view_without_membership($conversation, $user)) {
         dent_error('به این گفت‌وگو دسترسی ندارید.', 403);
     }
 
