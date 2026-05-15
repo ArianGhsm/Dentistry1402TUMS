@@ -52,7 +52,7 @@
             homeTitle.textContent = isProsthesis ? "خانه پروتز" : "خانه کلاس";
         }
         if (homeServicesTitle) {
-            homeServicesTitle.textContent = isProsthesis ? "بخش‌های اصلی پروتز" : "بخش‌های اصلی سایت";
+            homeServicesTitle.textContent = isProsthesis ? "مسیرهای اصلی پروتز" : "بخش‌های اصلی سایت";
         }
         if (document.title) {
             document.title = isProsthesis

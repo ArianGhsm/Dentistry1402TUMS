@@ -1157,3 +1157,290 @@ html[data-theme="dark"] body.app-dashboard-page {
         height: 24px;
     }
 }
+
+/* Grouped home shortcuts */
+body.app-dashboard-page main {
+    width: min(920px, calc(100vw - 1.4rem));
+}
+
+.home-wallet-card {
+    min-height: 136px;
+    grid-template-columns: minmax(0, 1fr) 78px;
+    grid-template-areas: "copy logo";
+    align-items: center;
+    gap: 0.88rem;
+    padding: 0.96rem 1rem;
+    text-align: right;
+}
+
+.home-wallet-card__copy {
+    grid-area: copy;
+    justify-items: start;
+    gap: 0.22rem;
+    text-align: right;
+}
+
+.home-wallet-card h2 {
+    font-size: 1.24rem;
+    line-height: 1.35;
+}
+
+.home-wallet-card p {
+    max-width: none;
+    font-size: 0.78rem;
+    line-height: 1.65;
+    text-align: right;
+}
+
+.home-wallet-card__link {
+    margin-top: 0.12rem;
+    font-size: 0.82rem;
+}
+
+.home-wallet-card__logo {
+    grid-area: logo;
+    order: 0;
+    width: 78px;
+    height: 78px;
+    padding: 0.52rem;
+    border-radius: 23px;
+}
+
+.home-services-panel {
+    gap: 0.88rem;
+    padding: 0.94rem;
+    text-align: center;
+}
+
+.home-section-head {
+    gap: 0.18rem;
+}
+
+.home-section-head h3 {
+    font-size: 1.02rem;
+}
+
+.home-service-groups {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.home-service-group {
+    min-width: 0;
+    display: grid;
+    gap: 0.56rem;
+    padding: 0.82rem;
+    border-radius: 24px;
+    border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 52%, transparent), transparent 78%),
+        color-mix(in srgb, var(--surface-solid) 92%, transparent);
+}
+
+.home-service-group__head {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+}
+
+.home-service-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.56rem;
+}
+
+.home-service-link {
+    --service-accent: var(--accent-color);
+    position: relative;
+    min-width: 0;
+    min-height: 72px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.62rem;
+    padding: 0.74rem 0.82rem;
+    border-radius: 20px;
+    border: 1px solid color-mix(in srgb, var(--service-accent) 14%, var(--border-color));
+    background: color-mix(in srgb, var(--service-accent) 4%, var(--surface-solid));
+    box-shadow: 0 12px 24px -24px rgba(17, 30, 54, 0.16);
+    direction: rtl;
+    text-align: right;
+    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+
+.home-service-link:nth-child(4n + 2) {
+    --service-accent: var(--success-color);
+}
+
+.home-service-link:nth-child(4n + 3) {
+    --service-accent: var(--commerce-cta);
+}
+
+.home-service-link:nth-child(4n) {
+    --service-accent: var(--warning-color);
+}
+
+.home-service-link::after {
+    content: "\2039";
+    color: color-mix(in srgb, var(--service-accent) 54%, var(--text-tertiary));
+    font-size: 1.16rem;
+    line-height: 1;
+}
+
+.home-service-link:hover,
+.home-service-link:focus-visible {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--service-accent) 28%, var(--border-color));
+    background: color-mix(in srgb, var(--service-accent) 7%, var(--surface-solid));
+    box-shadow: 0 16px 28px -24px color-mix(in srgb, var(--service-accent) 24%, #000);
+}
+
+.home-service-link__icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 16px;
+    background:
+        radial-gradient(circle at 28% 20%, color-mix(in srgb, var(--text-on-accent) 78%, transparent), transparent 34%),
+        color-mix(in srgb, var(--service-accent) 10%, var(--surface-solid));
+    box-shadow: 0 12px 24px -22px color-mix(in srgb, var(--service-accent) 40%, #000);
+    color: color-mix(in srgb, var(--service-accent) 84%, var(--text-primary));
+}
+
+.home-service-link__icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.home-service-link__meta {
+    min-width: 0;
+    display: grid;
+    gap: 0.06rem;
+}
+
+.home-service-link__meta strong,
+.home-service-link__meta small {
+    display: block;
+}
+
+.home-service-link__meta strong {
+    font-size: 0.92rem;
+    line-height: 1.45;
+    font-weight: 860;
+}
+
+.home-service-link__meta small {
+    color: var(--text-secondary);
+    font-size: 0.68rem;
+    line-height: 1.55;
+}
+
+@media (max-width: 820px) {
+    body.app-dashboard-page main {
+        width: min(560px, calc(100vw - 1.2rem));
+        padding-inline: max(0.62rem, 2.4vw);
+    }
+
+    .home-wallet-card {
+        min-height: 128px;
+        grid-template-columns: minmax(0, 1fr) 70px;
+        padding: 0.88rem 0.9rem;
+    }
+
+    .home-wallet-card h2 {
+        font-size: 1.14rem;
+    }
+
+    .home-wallet-card p {
+        font-size: 0.74rem;
+    }
+
+    .home-wallet-card__logo {
+        width: 70px;
+        height: 70px;
+        border-radius: 21px;
+    }
+
+    .home-service-group {
+        padding: 0.74rem;
+    }
+
+    .home-service-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 430px) {
+    body.app-dashboard-page main {
+        width: min(100vw - 1rem, 100%);
+        padding-inline: 0.5rem;
+    }
+
+    .home-wallet-card {
+        min-height: 120px;
+        grid-template-columns: minmax(0, 1fr) 62px;
+        gap: 0.68rem;
+        padding: 0.82rem 0.84rem;
+    }
+
+    .home-wallet-card h2 {
+        font-size: 1.06rem;
+    }
+
+    .home-wallet-card p {
+        font-size: 0.7rem;
+        line-height: 1.55;
+    }
+
+    .home-wallet-card__link {
+        font-size: 0.76rem;
+    }
+
+    .home-wallet-card__logo {
+        width: 62px;
+        height: 62px;
+        border-radius: 18px;
+    }
+
+    .home-services-panel {
+        padding: 0.84rem;
+    }
+
+    .home-service-group {
+        gap: 0.48rem;
+        padding: 0.64rem;
+        border-radius: 20px;
+    }
+
+    .home-service-strip {
+        gap: 0.48rem;
+    }
+
+    .home-service-link {
+        min-height: 66px;
+        gap: 0.48rem;
+        padding: 0.68rem 0.72rem;
+    }
+
+    .home-service-link__icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+    }
+
+    .home-service-link__icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .home-service-link__meta strong {
+        font-size: 0.84rem;
+    }
+
+    .home-service-link__meta small {
+        font-size: 0.62rem;
+        line-height: 1.45;
+    }
+}
