@@ -22,7 +22,6 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - GitHub باید بر اساس فایل‌های کد/ظاهر/اسکریپت روی لپتاپ آپدیت شود، نه دیتای runtime.
 - صرفا فایل هایی که تغییر کرده اند باید دپلوی شوند. نیازی به اپلود هرباره همه فایل ها نیست.
 - صفحات منابع/جزوات فقط shell کد هستند. کارت‌های قابل مدیریت منابع باید از storage و API خوانده شوند، از جمله `notes/1402_terms.json` و `notes/1403_archive.json`.
-- بخش `public_html/dental-residency/` یک زیرمحصول ایزوله است. runtime آن زیر `storage/dental_residency/` می‌ماند و deploy نباید login/session/user store یا پیشرفت آن را reset یا با داده لوکال overwrite کند.
 
 ## دستورات مهم
 Dry run:

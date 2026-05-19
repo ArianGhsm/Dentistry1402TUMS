@@ -264,7 +264,19 @@
     }
 
     function loginContextIsProsthesis() {
-        return String(pendingReturnTo || "").indexOf("/prosthesis-1402/") === 0;
+        var returnTo = String(pendingReturnTo || "");
+        if (returnTo.indexOf("/prosthesis-1402/") === 0) {
+            return true;
+        }
+        try {
+            var target = new URL(returnTo, window.location.origin);
+            if (target.pathname.indexOf("/prosthesis-1402/") === 0) {
+                return true;
+            }
+            return String(target.searchParams.get("cohort") || "").trim().toLowerCase() === "prosthesis-1402";
+        } catch (_error) {
+            return false;
+        }
     }
 
     function applyAccountBranding(user) {

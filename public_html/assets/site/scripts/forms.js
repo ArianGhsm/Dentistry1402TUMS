@@ -9,12 +9,13 @@
         return document.getElementById(id);
     }
 
-    var queryParams = new URLSearchParams(window.location.search);
-    var pageCohort = document.body && (
-        document.body.dataset.formsCohort === "prosthesis-1402" ||
-        (window.location.pathname || "").indexOf("/prosthesis-1402/forms/") === 0
-    ) ? "prosthesis-1402" : (String(queryParams.get("cohort") || "").trim() || "main");
-    var formsHomePath = pageCohort === "prosthesis-1402" ? "/prosthesis-1402/forms/" : "/forms/";
+    var authApi = window.Dent1402Auth && typeof window.Dent1402Auth === "object" ? window.Dent1402Auth : null;
+    var pageCohort = authApi && typeof authApi.resolvePageCohort === "function"
+        ? authApi.resolvePageCohort("formsCohort")
+        : "main";
+    var formsHomePath = authApi && typeof authApi.appendCohortQuery === "function"
+        ? authApi.appendCohortQuery("/forms/", pageCohort)
+        : "/forms/";
 
     var boot = $("forms-boot");
     var login = $("forms-login");

@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     "use strict";
 
     var shellDisabled = !!(document.body && document.body.dataset.shell === "off");
@@ -14,6 +14,20 @@
         lastFetchedAt: 0
     };
     var POLL_COUNT_TTL_MS = 45000;
+
+    function authApi() {
+        return window.Dent1402Auth && typeof window.Dent1402Auth === "object"
+            ? window.Dent1402Auth
+            : null;
+    }
+
+    function scopedPath(path, cohortKey) {
+        var auth = authApi();
+        if (auth && typeof auth.appendCohortQuery === "function") {
+            return auth.appendCohortQuery(path, cohortKey);
+        }
+        return path;
+    }
 
     function icon(name) {
         var icons = {
@@ -46,8 +60,7 @@
     }
 
     function useDynamicBranding() {
-        var path = currentPath();
-        return path.indexOf("/prosthesis-1402/") !== 0 && path.indexOf("/dental-residency/") !== 0;
+        return true;
     }
 
     function authState() {
@@ -94,27 +107,23 @@
     }
 
     function prosthesisRedirectTarget(path) {
-        if (path.indexOf("/prosthesis-1402/") === 0 || path.indexOf("/dental-residency/") === 0) {
-            return "";
-        }
-
         if (path === "/chat/") {
-            return "/prosthesis-1402/chat/";
+            return scopedPath("/chat/", "prosthesis-1402");
         }
         if (path === "/forms/") {
-            return "/prosthesis-1402/forms/";
+            return scopedPath("/forms/", "prosthesis-1402");
         }
         if (path === "/forms/fill/") {
-            return "/prosthesis-1402/forms/fill/";
+            return scopedPath("/forms/fill/", "prosthesis-1402");
         }
         if (path === "/grades/") {
-            return "/prosthesis-1402/grades/";
+            return scopedPath("/grades/", "prosthesis-1402");
         }
         if (path === "/exams/") {
-            return "/prosthesis-1402/exams/";
+            return scopedPath("/exams/", "prosthesis-1402");
         }
         if (path === "/notes/") {
-            return "/prosthesis-1402/";
+            return scopedPath("/notes/", "prosthesis-1402");
         }
 
         return "";
@@ -136,7 +145,7 @@
             items.push({ href: "/chat/", label: "چت", icon: "chat", active: ["/chat/"] });
             items.push({ href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/", "/payments/"] });
         } else {
-            items.push({ href: "/prosthesis-1402/chat/", label: "چت", icon: "chat", active: ["/prosthesis-1402/chat/"] });
+            items.push({ href: scopedPath("/chat/", "prosthesis-1402"), label: "چت", icon: "chat", active: ["/chat/"] });
         }
         items.push(
             {
@@ -176,11 +185,12 @@
 
         var path = currentPath();
         var target = prosthesisRedirectTarget(path);
-        if (!target || target === path) {
+        var current = path + (window.location.search || "") + (window.location.hash || "");
+        if (!target || target === current) {
             return false;
         }
 
-        window.location.replace(target + window.location.search + window.location.hash);
+        window.location.replace(target + (window.location.hash || ""));
         return true;
     }
 

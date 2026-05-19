@@ -27,12 +27,12 @@ function ct_paste_h(string $value): string
     <title><?php echo ct_paste_h($title); ?> | Paste</title>
     <meta name="description" content="<?php echo ct_paste_h($description); ?>">
     <meta name="robots" content="noindex,follow">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260516-094028">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260516-094028">
-    <script src="/assets/site/scripts/theme.js?v=20260516-094028"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260516-094028">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260516-094028">
-    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260516-094028">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260520-015523">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260520-015523">
+    <script src="/assets/site/scripts/theme.js?v=20260520-015523"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260520-015523">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260520-015523">
+    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260520-015523">
 </head>
 <body class="content-tools-page content-tools-page--public content-tools-page--public-paste" data-content-tool="public-paste" data-public-token="<?php echo ct_paste_h($token); ?>">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -52,6 +52,6 @@ function ct_paste_h(string $value): string
             </div>
         </section>
     </main>
-    <script src="/assets/site/scripts/content-tools.js?v=20260516-094028"></script>
+    <script src="/assets/site/scripts/content-tools.js?v=20260520-015523"></script>
 </body>
 </html>

@@ -109,6 +109,57 @@
         return "/account/?returnTo=" + encodeURIComponent(target);
     }
 
+    function normalizeCohortKey(value) {
+        var clean = String(value == null ? "" : value).trim().toLowerCase();
+        if (!clean || clean === "main" || clean === "1402") {
+            return "main";
+        }
+        if (clean === "prosthesis" || clean === "prosthesis1402") {
+            return "prosthesis-1402";
+        }
+
+        clean = clean
+            .replace(/[^a-z0-9\-_]+/g, "-")
+            .replace(/_+/g, "-")
+            .replace(/-+/g, "-")
+            .replace(/^-|-$/g, "");
+
+        return clean || "main";
+    }
+
+    function resolvePageCohort(datasetKey) {
+        var datasetValue = "";
+        if (document.body && document.body.dataset && datasetKey) {
+            datasetValue = String(document.body.dataset[datasetKey] || "").trim();
+        }
+        if (datasetValue) {
+            return normalizeCohortKey(datasetValue);
+        }
+
+        var query = new URLSearchParams(window.location.search || "");
+        var queryValue = String(query.get("cohort") || "").trim();
+        if (queryValue) {
+            return normalizeCohortKey(queryValue);
+        }
+
+        var path = String(window.location.pathname || "");
+        if (path.indexOf("/prosthesis-1402/") === 0) {
+            return "prosthesis-1402";
+        }
+
+        return "main";
+    }
+
+    function appendCohortQuery(path, cohortKey) {
+        var basePath = String(path || "").trim() || "/";
+        var normalized = normalizeCohortKey(cohortKey);
+        if (normalized === "main") {
+            return basePath;
+        }
+
+        return basePath + (basePath.indexOf("?") === -1 ? "?" : "&") + "cohort=" + encodeURIComponent(normalized);
+    }
+
     function escapeHtml(value) {
         return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
             switch (char) {
@@ -524,6 +575,9 @@
         onChange: onChange,
         patchCurrentUser: patchCurrentUser,
         loginUrl: loginUrl,
+        normalizeCohortKey: normalizeCohortKey,
+        resolvePageCohort: resolvePageCohort,
+        appendCohortQuery: appendCohortQuery,
         currentReturnTo: currentReturnTo,
         guardBackHref: guardBackHref,
         guardBackLabel: guardBackLabel,

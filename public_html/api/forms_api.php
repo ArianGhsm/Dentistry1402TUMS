@@ -10,7 +10,6 @@ const FORMS_ID_PREFIX = 'frm-';
 const FORMS_RESPONSE_ID_PREFIX = 'resp-';
 const FORMS_RECEIPT_ID_PREFIX = 'rcpt-';
 const FORMS_SHARE_PATH = '/forms/fill/';
-const FORMS_PROSTHESIS_SHARE_PATH = '/prosthesis-1402/forms/fill/';
 
 function forms_clean_cohort(?string $value): string
 {
@@ -926,10 +925,6 @@ function forms_payment_gateways_payload(): array
 function forms_share_path_for_cohort(string $cohort, string $formId): string
 {
     $cleanCohort = forms_clean_cohort($cohort);
-    if ($cleanCohort === dent_prosthesis_legacy_cohort_key()) {
-        return FORMS_PROSTHESIS_SHARE_PATH . '?form=' . urlencode($formId);
-    }
-
     $path = FORMS_SHARE_PATH . '?form=' . urlencode($formId);
     if ($cleanCohort !== dent_primary_cohort_key()) {
         $path .= '&cohort=' . urlencode($cleanCohort);

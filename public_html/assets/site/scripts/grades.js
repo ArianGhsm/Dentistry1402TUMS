@@ -52,8 +52,9 @@
     var ownerDeleteCourseBtn = $("grades-owner-delete-course");
     var ownerResetAllBtn = $("grades-owner-reset-all");
     var ownerFeedback = $("grades-owner-feedback");
-    var pageCohort = document.body && document.body.dataset.gradesCohort === "prosthesis-1402"
-        ? "prosthesis-1402"
+    var authApi = window.Dent1402Auth && typeof window.Dent1402Auth === "object" ? window.Dent1402Auth : null;
+    var pageCohort = authApi && typeof authApi.resolvePageCohort === "function"
+        ? authApi.resolvePageCohort("gradesCohort")
         : "main";
 
     var currentPayload = null;

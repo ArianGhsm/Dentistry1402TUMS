@@ -48,8 +48,18 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  RewriteRule ^dental-residency(?:/.*)?$ - [G,L]
+
   RewriteRule ^booklets/?$ /notes/ [R=301,L,NE]
   RewriteRule ^booklets/index\.html$ /notes/ [R=301,L,NE]
   RewriteRule ^booklets1403/?$ /notes/1403/ [R=301,L,NE]
   RewriteRule ^booklets1403/index\.html$ /notes/1403/ [R=301,L,NE]
+
+  RewriteRule ^prosthesis-1402(?:/index\.html)?$ /notes/?cohort=prosthesis-1402 [R=301,L,NE,QSA]
+  RewriteRule ^prosthesis-1402/chat(?:/index\.html)?/?$ /chat/?cohort=prosthesis-1402 [R=301,L,NE,QSA]
+  RewriteRule ^prosthesis-1402/forms/fill(?:/index\.html)?/?$ /forms/fill/?cohort=prosthesis-1402 [R=301,L,NE,QSA]
+  RewriteRule ^prosthesis-1402/forms(?:/index\.html)?/?$ /forms/?cohort=prosthesis-1402 [R=301,L,NE,QSA]
+  RewriteRule ^prosthesis-1402/grades(?:/index\.html)?/?$ /grades/?cohort=prosthesis-1402 [R=301,L,NE,QSA]
+  RewriteRule ^prosthesis-1402/exams(?:/index\.html)?/?$ /exams/?cohort=prosthesis-1402 [R=301,L,NE,QSA]
+  RewriteRule ^prosthesis-1402/term(?:/index\.html)?/?$ /notes/term/?cohort=prosthesis-1402 [R=301,L,NE,QSA]
 </IfModule>

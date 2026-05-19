@@ -9,14 +9,16 @@
         return document.getElementById(id);
     }
 
+    var authApi = window.Dent1402Auth && typeof window.Dent1402Auth === "object" ? window.Dent1402Auth : null;
     var params = new URLSearchParams(window.location.search);
     var formId = String(params.get("form") || params.get("formId") || "").trim();
     var paymentOrderToken = String(params.get("paymentOrderToken") || "").trim();
-    var pageCohort = document.body && (
-        document.body.dataset.formsCohort === "prosthesis-1402" ||
-        (window.location.pathname || "").indexOf("/prosthesis-1402/forms/") === 0
-    ) ? "prosthesis-1402" : "main";
-    var fillPath = pageCohort === "prosthesis-1402" ? "/prosthesis-1402/forms/fill/" : "/forms/fill/";
+    var pageCohort = authApi && typeof authApi.resolvePageCohort === "function"
+        ? authApi.resolvePageCohort("formsCohort")
+        : "main";
+    var fillPath = authApi && typeof authApi.appendCohortQuery === "function"
+        ? authApi.appendCohortQuery("/forms/fill/", pageCohort)
+        : "/forms/fill/";
 
     var boot = $("fill-boot");
     var login = $("fill-login");

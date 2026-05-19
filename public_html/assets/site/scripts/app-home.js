@@ -27,6 +27,9 @@
     var navidSyncText = $("home-navid-sync");
     var navidUpdates = $("home-navid-updates");
     var navidAssignments = $("home-navid-assignments");
+    var authApi = window.Dent1402Auth && typeof window.Dent1402Auth === "object"
+        ? window.Dent1402Auth
+        : null;
 
     var navidLoadedFor = "";
     var navidLoadToken = 0;
@@ -241,7 +244,9 @@
         primaryAction.textContent = isOwner ? "\u067e\u0646\u0644 \u062d\u0633\u0627\u0628 \u0648 \u0645\u062f\u06cc\u0631\u06cc\u062a" : "\u062d\u0633\u0627\u0628 \u06a9\u0627\u0631\u0628\u0631\u06cc";
         primaryAction.href = "/account/";
         secondaryAction.textContent = isProsthesis ? "\u0646\u0645\u0631\u0627\u062a \u067e\u0631\u0648\u062a\u0632" : "\u0646\u0645\u0631\u0627\u062a \u0645\u0646";
-        secondaryAction.href = isProsthesis ? "/prosthesis-1402/grades/" : "/grades/";
+        secondaryAction.href = isProsthesis && authApi && typeof authApi.appendCohortQuery === "function"
+            ? authApi.appendCohortQuery("/grades/", "prosthesis-1402")
+            : "/grades/";
     }
 
     function navidSetState(state) {

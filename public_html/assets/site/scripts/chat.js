@@ -37,9 +37,8 @@
     "\u{1F680}", "\u{1F6F8}", "\u{1F6E1}\uFE0F", "\u{1F4E2}", "\u{1F4CC}", "\u{1F4A3}"
   ];
   var REACTIONS = Array.from(new Set(QUICK_REACTIONS.concat(REACTION_LIBRARY)));
-  var pageCohort = document.body && document.body.dataset.chatCohort === "prosthesis-1402"
-    ? "prosthesis-1402"
-    : "main";
+  var pageCohort = "main";
+  var chatHomePath = "/chat/";
   var REACTION_GROUPS = [
     { id: "recent", label: "اخیر", emojis: [] },
     { id: "popular", label: "پرکاربرد", emojis: QUICK_REACTIONS.slice() },
@@ -146,9 +145,33 @@
     return document.getElementById(id);
   }
 
+  function authApi() {
+    return asObject(window.Dent1402Auth);
+  }
+
+  function resolvePageCohort() {
+    var auth = authApi();
+    if (auth && typeof auth.resolvePageCohort === "function") {
+      return auth.resolvePageCohort("chatCohort");
+    }
+    return "main";
+  }
+
+  function scopedChatPath(path) {
+    var auth = authApi();
+    var basePath = String(path || "").trim() || "/chat/";
+    if (auth && typeof auth.appendCohortQuery === "function") {
+      return auth.appendCohortQuery(basePath, pageCohort);
+    }
+    return basePath;
+  }
+
   function asObject(value) {
     return value && typeof value === "object" && !Array.isArray(value) ? value : null;
   }
+
+  pageCohort = resolvePageCohort();
+  chatHomePath = scopedChatPath("/chat/");
 
   function toText(value) {
     return String(value == null ? "" : value);
@@ -728,6 +751,7 @@
     activeConversationId: "",
     conversations: [],
     conversationsById: new Map(),
+    conversationListVersion: "",
     conversationFilter: "",
     conversationListCategory: "all",
     messages: new Map(),
@@ -778,7 +802,7 @@
   var nativeEmojiPicker = null;
 
   function safeAuthApi() {
-    return asObject(window.Dent1402Auth);
+    return authApi();
   }
 
   async function parseApiResponse(response) {
@@ -3785,7 +3809,7 @@
   async function copyConversationLink() {
     var conversation = activeConversation();
     if (!conversation) return;
-    var path = conversation.shareUrl || ("/chat/?conversationId=" + encodeURIComponent(conversation.id));
+    var path = conversation.shareUrl || (chatHomePath + (chatHomePath.indexOf("?") === -1 ? "?" : "&") + "conversationId=" + encodeURIComponent(conversation.id));
     var link = window.location.origin + path;
     try {
       if (navigator.clipboard && window.isSecureContext) {
@@ -4096,7 +4120,7 @@
       '    <span>لینک دعوت گفتگو از صفحه اطلاعات قابل کپی است.</span>',
       '  </label>',
       '</div>',
-      '<div class="chat-options-link"><span>' + escapeHtml(window.location.origin + (conversation.shareUrl || ("/chat/?conversationId=" + encodeURIComponent(conversation.id)))) + '</span><button type="button" data-options-copy-link>کپی</button></div>',
+      '<div class="chat-options-link"><span>' + escapeHtml(window.location.origin + (conversation.shareUrl || (chatHomePath + (chatHomePath.indexOf("?") === -1 ? "?" : "&") + "conversationId=" + encodeURIComponent(conversation.id)))) + '</span><button type="button" data-options-copy-link>کپی</button></div>',
       '<div class="chat-modal__footer chat-modal__footer--split chat-options-footer">',
       '  <button class="chat-modal-secondary-btn" type="button" data-options-cancel>انصراف</button>',
       '  <button class="chat-login-btn" type="button" data-options-save-type>ذخیره نوع گروه</button>',
@@ -5218,6 +5242,9 @@
       sinceId: String(forceFull ? 0 : Math.max(0, state.lastMessageId)),
       includeMembers: includeMembers ? "1" : "0"
     };
+    if (!forceFull && state.conversationListVersion) {
+      requestPayload.conversationListVersion = state.conversationListVersion;
+    }
     if (messageLimit > 0) {
       requestPayload.limit = String(messageLimit);
     }
@@ -5257,10 +5284,15 @@
         }
       }
 
+      if (typeof response.conversationListVersion === "string" && response.conversationListVersion) {
+        state.conversationListVersion = response.conversationListVersion;
+      }
+
+      var hasConversationList = !!(response && Object.prototype.hasOwnProperty.call(response, "conversations"));
       var incomingConversations = (Array.isArray(response.conversations) ? response.conversations : [])
         .map(normalizeConversation)
         .filter(Boolean);
-      if (incomingConversations.length) {
+      if (hasConversationList) {
         replaceConversations(incomingConversations);
       } else {
         rebuildConversationsFromMap();
@@ -5442,6 +5474,7 @@
     state.activeConversationId = "";
     state.conversations = [];
     state.conversationsById.clear();
+    state.conversationListVersion = "";
     state.conversationFilter = "";
     state.conversationListCategory = "all";
     state.messages.clear();
@@ -5492,9 +5525,9 @@
     if (accountBtn) {
       var auth = safeAuthApi();
       if (auth && typeof auth.loginUrl === "function") {
-        accountBtn.href = auth.loginUrl("/chat/");
+        accountBtn.href = auth.loginUrl(window.location.pathname + window.location.search);
       } else {
-        accountBtn.href = "/account/?returnTo=%2Fchat%2F";
+        accountBtn.href = "/account/?returnTo=" + encodeURIComponent(window.location.pathname + window.location.search);
       }
     }
 
@@ -5528,6 +5561,7 @@
       state.activeConversationId = state.initialConversationId || "";
       state.conversations = [];
       state.conversationsById.clear();
+      state.conversationListVersion = "";
       state.conversationFilter = "";
       state.conversationListCategory = "all";
       state.messages.clear();

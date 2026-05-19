@@ -13,13 +13,22 @@
     var manageForm = $("notes-term-form");
     var manageFeedback = $("notes-term-feedback");
     var addSubmit = $("notes-term-submit");
+    var backLink = $("notes-term-back-link");
 
     if (!cardsContainer || !emptyBox) {
         return;
     }
 
-    var cohort = String(document.body.dataset.notesCohort || "1402");
     var searchParams = new URLSearchParams(window.location.search || "");
+    var authApi = window.Dent1402Auth && typeof window.Dent1402Auth === "object" ? window.Dent1402Auth : null;
+    var cohort = authApi && typeof authApi.resolvePageCohort === "function"
+        ? authApi.resolvePageCohort("notesCohort")
+        : String(document.body.dataset.notesCohort || searchParams.get("cohort") || "1402");
+    if (cohort === "main" || cohort === "dentistry-1402") {
+        cohort = "1402";
+    } else if (cohort === "dentistry-1403") {
+        cohort = "1403";
+    }
     var rawTerm = String(document.body.dataset.termNumber || searchParams.get("term") || "");
     var term = Number(rawTerm || "0");
     if (cohort !== "1402" && cohort !== "1403" && cohort !== "prosthesis-1402") {
@@ -30,6 +39,13 @@
     }
     if (cohort === "prosthesis-1402" && (!Number.isFinite(term) || term <= 0)) {
         return;
+    }
+    if (backLink && cohort !== "1402") {
+        if (authApi && typeof authApi.appendCohortQuery === "function") {
+            backLink.href = authApi.appendCohortQuery("/notes/", cohort);
+        } else {
+            backLink.href = "/notes/?cohort=" + encodeURIComponent(cohort);
+        }
     }
 
     var state = {

@@ -65,18 +65,32 @@ function chat_active_cohort_title(): string
 function chat_page_url(string $suffix = ''): string
 {
     $cohortKey = chat_active_cohort();
-    if ($cohortKey === dent_prosthesis_legacy_cohort_key()) {
-        $base = '/prosthesis-1402/chat/';
-        return $base . ltrim($suffix, '/');
-    }
-
     $base = '/chat/';
-    if ($cohortKey === dent_primary_cohort_key()) {
-        return $base . ltrim($suffix, '/');
+    $query = [];
+    if ($cohortKey !== dent_primary_cohort_key()) {
+        $query['cohort'] = $cohortKey;
     }
 
-    $query = http_build_query(['cohort' => $cohortKey]);
-    return $base . ($suffix !== '' ? ltrim($suffix, '/') : '') . ($suffix !== '' ? '&' : '?') . $query;
+    $suffix = (string) $suffix;
+    if ($suffix === '') {
+        return $query === [] ? $base : ($base . '?' . http_build_query($query));
+    }
+
+    if (strncmp($suffix, '?', 1) === 0) {
+        parse_str(substr($suffix, 1), $suffixQuery);
+        if (!is_array($suffixQuery)) {
+            $suffixQuery = [];
+        }
+        $suffixQuery = array_merge($suffixQuery, $query);
+        return $base . '?' . http_build_query($suffixQuery);
+    }
+
+    $path = $base . ltrim($suffix, '/');
+    if ($query === []) {
+        return $path;
+    }
+
+    return $path . (str_contains($path, '?') ? '&' : '?') . http_build_query($query);
 }
 
 function chat_brand_logo_url(): string
@@ -168,8 +182,8 @@ function chat_public_media_url(string $attachmentId, string $variant = CHAT_MEDI
         'attachmentId' => $attachmentId,
         'variant' => $variant === CHAT_MEDIA_VARIANT_PREVIEW ? CHAT_MEDIA_VARIANT_PREVIEW : CHAT_MEDIA_VARIANT_ORIGINAL,
     ];
-    if (chat_is_prosthesis_context()) {
-        $query['cohort'] = 'prosthesis-1402';
+    if (chat_active_cohort() !== dent_primary_cohort_key()) {
+        $query['cohort'] = chat_active_cohort();
     }
     if ($download) {
         $query['download'] = '1';
@@ -2716,6 +2730,8 @@ function chat_public_user_payload(array $user): array
 
 function chat_public_user_for_student($studentNumber): array
 {
+    static $cache = [];
+
     $studentNumber = dent_normalize_student_number($studentNumber);
     if ($studentNumber === '') {
         return [
@@ -2731,9 +2747,13 @@ function chat_public_user_for_student($studentNumber): array
         ];
     }
 
+    if (isset($cache[$studentNumber])) {
+        return $cache[$studentNumber];
+    }
+
     $user = dent_get_user_record($studentNumber);
     if ($user === null) {
-        return [
+        $cache[$studentNumber] = [
             'studentNumber' => $studentNumber,
             'username' => $studentNumber,
             'name' => dent_role_label('student'),
@@ -2744,9 +2764,11 @@ function chat_public_user_for_student($studentNumber): array
             'avatarUrl' => '',
             'about' => '',
         ];
+        return $cache[$studentNumber];
     }
 
-    return chat_public_user_payload($user);
+    $cache[$studentNumber] = chat_public_user_payload($user);
+    return $cache[$studentNumber];
 }
 
 function chat_conversation_member_student_numbers(array $conversation): array
@@ -4375,6 +4397,42 @@ function chat_conversation_summaries_for_user(array &$store, array $user): array
     });
 
     return $summaries;
+}
+
+function chat_conversation_list_version_for_user(array &$store, array $user): string
+{
+    $studentNumber = chat_actor_student_number($user);
+    $visibleIds = chat_user_visible_conversation_ids($store, $user);
+    sort($visibleIds, SORT_STRING);
+
+    $signature = [];
+    foreach ($visibleIds as $conversationId) {
+        $conversation = chat_get_conversation($store, $conversationId);
+        if ($conversation === null) {
+            continue;
+        }
+
+        $messages = chat_get_messages($store, $conversationId);
+        $lastMessage = chat_last_message($messages);
+        $lastMessageId = $lastMessage !== null ? (int) ($lastMessage['id'] ?? 0) : 0;
+        $readState = chat_read_state($store, $conversationId, $studentNumber);
+
+        $signature[] = [
+            'id' => (string) $conversationId,
+            'updatedAt' => (int) ($conversation['updatedAt'] ?? 0),
+            'lastMessageId' => $lastMessageId,
+            'lastReadMessageId' => max(0, (int) ($readState['lastReadMessageId'] ?? 0)),
+            'pinned' => (bool) ($readState['pinned'] ?? false),
+            'pinnedAt' => isset($readState['pinnedAt']) ? (int) $readState['pinnedAt'] : 0,
+            'archived' => (bool) ($readState['archived'] ?? false),
+            'archivedAt' => isset($readState['archivedAt']) ? (int) $readState['archivedAt'] : 0,
+            'deleted' => (bool) ($readState['deleted'] ?? false),
+            'notificationsMuted' => (bool) ($readState['notificationsMuted'] ?? false),
+            'mandatory' => (bool) ($conversation['mandatory'] ?? false),
+        ];
+    }
+
+    return hash('sha256', json_encode($signature, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '[]');
 }
 
 function chat_pick_active_conversation_id(array &$store, array $user, string $requestedConversationId): string
@@ -6641,6 +6699,7 @@ if ($action === 'sync' || $action === 'fetch') {
     $includeMembers = (string) ($_GET['includeMembers'] ?? $_POST['includeMembers'] ?? '1') !== '0';
     $beforeId = max(0, (int) ($_GET['beforeId'] ?? $_POST['beforeId'] ?? 0));
     $limit = max(0, min(200, (int) ($_GET['limit'] ?? $_POST['limit'] ?? 0)));
+    $clientConversationListVersion = trim((string) ($_GET['conversationListVersion'] ?? $_POST['conversationListVersion'] ?? ''));
 
     $allMessages = chat_get_messages($store, $activeConversationId);
     $messages = [];
@@ -6694,11 +6753,14 @@ if ($action === 'sync' || $action === 'fetch') {
         chat_save_store($store);
     }
 
-    dent_json_response([
+    $conversationListVersion = chat_conversation_list_version_for_user($store, $user);
+    $includeConversationList = $full || $clientConversationListVersion === '' || $clientConversationListVersion !== $conversationListVersion;
+
+    $response = [
         'success' => true,
         'conversationId' => $activeConversationId,
         'conversation' => chat_conversation_payload($store, $conversation, $user, $includeMembers),
-        'conversations' => chat_conversation_summaries_for_user($store, $user),
+        'conversationListVersion' => $conversationListVersion,
         'messages' => chat_normalize_messages_for_client($messages, $store, $user),
         'messagePage' => [
             'limit' => $limit,
@@ -6721,7 +6783,13 @@ if ($action === 'sync' || $action === 'fetch') {
             'deliveryReceipts' => false,
             'storage' => 'json-file',
         ],
-    ]);
+    ];
+
+    if ($includeConversationList) {
+        $response['conversations'] = chat_conversation_summaries_for_user($store, $user);
+    }
+
+    dent_json_response($response);
 }
 
 if ($action === 'send') {

@@ -381,6 +381,42 @@ function dent_auth_store_seed_payload(): array
     ];
 }
 
+function dent_auth_store_runtime_cache(?array $nextStore = null, bool $replace = false, bool $clear = false): ?array
+{
+    static $cachedStore = null;
+    static $cachedSignature = '';
+
+    $signature = static function (): string {
+        $path = dent_auth_store_path();
+        clearstatcache(false, $path);
+        if (!is_file($path)) {
+            return 'missing';
+        }
+
+        $mtime = @filemtime($path);
+        $size = @filesize($path);
+        return ($mtime === false ? 'unknown' : (string) $mtime) . '|' . ($size === false ? 'unknown' : (string) $size);
+    };
+
+    if ($clear) {
+        $cachedStore = null;
+        $cachedSignature = '';
+        return null;
+    }
+
+    if ($replace) {
+        $cachedStore = $nextStore;
+        $cachedSignature = $signature();
+    }
+
+    if ($cachedStore !== null && $cachedSignature !== $signature()) {
+        $cachedStore = null;
+        $cachedSignature = '';
+    }
+
+    return $cachedStore;
+}
+
 function dent_decode_auth_store_snapshot(string $path): ?array
 {
     if (!is_file($path)) {
@@ -449,6 +485,7 @@ function dent_write_auth_store_payload(array $payload, bool $refreshBackup = tru
     }
 
     $writeSnapshot($path, $json . PHP_EOL);
+    dent_auth_store_runtime_cache(null, false, true);
 }
 
 function dent_public_html_path(string $relativePath): string
@@ -1586,6 +1623,11 @@ function dent_apply_prosthesis_1402_roster(array $users): array
 
 function dent_load_user_store(): array
 {
+    $cachedStore = dent_auth_store_runtime_cache();
+    if (is_array($cachedStore)) {
+        return $cachedStore;
+    }
+
     $path = dent_auth_store_path();
     $backupPath = dent_auth_store_backup_path();
     $seedPayload = dent_auth_store_seed_payload();
@@ -1677,12 +1719,15 @@ function dent_load_user_store(): array
         ], !$restoredFromBackup);
     }
 
-    return [
+    $result = [
         'schemaVersion' => 2,
         'ownerStudentNumber' => dent_owner_student_number(),
         'cohorts' => $cohorts,
         'users' => $normalizedUsers,
     ];
+
+    dent_auth_store_runtime_cache($result, true);
+    return $result;
 }
 
 function dent_save_user_store(array $store): void
@@ -1708,12 +1753,15 @@ function dent_save_user_store(array $store): void
 
     ksort($normalizedUsers, SORT_STRING);
 
-    dent_write_auth_store_payload([
+    $nextStore = [
         'schemaVersion' => 2,
         'ownerStudentNumber' => dent_owner_student_number(),
         'cohorts' => dent_normalize_cohort_catalog(is_array($store['cohorts'] ?? null) ? $store['cohorts'] : []),
         'users' => $normalizedUsers,
-    ]);
+    ];
+
+    dent_write_auth_store_payload($nextStore);
+    dent_auth_store_runtime_cache($nextStore, true);
 }
 
 function dent_get_user_record($studentNumber): ?array
