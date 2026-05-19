@@ -715,14 +715,16 @@ body.hub-page .cards-container[data-grid="two"] {
 
 body.hub-page .archive-term-list.cards-container,
 body.hub-page.notes-term-page .cards-container,
-body.hub-page #prosthesis-term-list.cards-container {
+body.hub-page #prosthesis-term-list.cards-container,
+body.hub-page .cards-container[data-layout="rows"] {
     grid-template-columns: 1fr;
     gap: 0.68rem;
 }
 
 body.hub-page .archive-term-list .action-card,
 body.hub-page.notes-term-page .action-card,
-body.hub-page #prosthesis-term-list .action-card {
+body.hub-page #prosthesis-term-list .action-card,
+body.hub-page .cards-container[data-layout="rows"] .action-card {
     min-height: 112px;
     border-radius: 22px;
 }
@@ -732,7 +734,9 @@ body.hub-page.notes-term-page .action-card--link,
 body.hub-page .archive-term-list .action-card__primary,
 body.hub-page.notes-term-page .action-card__primary,
 body.hub-page #prosthesis-term-list .action-card__primary,
-body.hub-page #prosthesis-term-list .action-card--link {
+body.hub-page #prosthesis-term-list .action-card--link,
+body.hub-page .cards-container[data-layout="rows"] .action-card__primary,
+body.hub-page .cards-container[data-layout="rows"] .action-card--link {
     min-height: 112px;
     grid-template-columns: 18px minmax(0, 1fr) 60px;
     gap: 0.74rem;
@@ -741,7 +745,8 @@ body.hub-page #prosthesis-term-list .action-card--link {
 
 body.hub-page .archive-term-list .card-content,
 body.hub-page.notes-term-page .card-content,
-body.hub-page #prosthesis-term-list .card-content {
+body.hub-page #prosthesis-term-list .card-content,
+body.hub-page .cards-container[data-layout="rows"] .card-content {
     justify-items: start;
     text-align: right;
     gap: 0.1rem;
@@ -749,21 +754,24 @@ body.hub-page #prosthesis-term-list .card-content {
 
 body.hub-page .archive-term-list .card-header,
 body.hub-page.notes-term-page .card-header,
-body.hub-page #prosthesis-term-list .card-header {
+body.hub-page #prosthesis-term-list .card-header,
+body.hub-page .cards-container[data-layout="rows"] .card-header {
     justify-items: start;
     gap: 0.18rem;
 }
 
 body.hub-page .archive-term-list .card-title,
 body.hub-page.notes-term-page .card-title,
-body.hub-page #prosthesis-term-list .card-title {
+body.hub-page #prosthesis-term-list .card-title,
+body.hub-page .cards-container[data-layout="rows"] .card-title {
     font-size: 0.96rem;
     line-height: 1.45;
 }
 
 body.hub-page .archive-term-list .card-desc,
 body.hub-page.notes-term-page .card-desc,
-body.hub-page #prosthesis-term-list .card-desc {
+body.hub-page #prosthesis-term-list .card-desc,
+body.hub-page .cards-container[data-layout="rows"] .card-desc {
     justify-self: start;
     max-width: none;
     color: var(--text-tertiary);
@@ -773,7 +781,8 @@ body.hub-page #prosthesis-term-list .card-desc {
 
 body.hub-page .archive-term-list .card-badge,
 body.hub-page.notes-term-page .card-badge,
-body.hub-page #prosthesis-term-list .card-badge {
+body.hub-page #prosthesis-term-list .card-badge,
+body.hub-page .cards-container[data-layout="rows"] .card-badge {
     min-height: 24px;
     padding: 0 0.58rem;
     font-size: 0.66rem;
@@ -781,20 +790,23 @@ body.hub-page #prosthesis-term-list .card-badge {
 
 body.hub-page .archive-term-list .action-card__visual,
 body.hub-page.notes-term-page .action-card__visual,
-body.hub-page #prosthesis-term-list .action-card__visual {
+body.hub-page #prosthesis-term-list .action-card__visual,
+body.hub-page .cards-container[data-layout="rows"] .action-card__visual {
     width: 58px;
     height: 58px;
     border-radius: 18px;
 }
 
 body.hub-page .archive-term-list .action-card__visual strong,
-body.hub-page #prosthesis-term-list .action-card__visual strong {
+body.hub-page #prosthesis-term-list .action-card__visual strong,
+body.hub-page .cards-container[data-layout="rows"] .action-card__visual strong {
     font-size: 1.22rem;
 }
 
 body.hub-page .archive-term-list .action-card__chevron,
 body.hub-page.notes-term-page .action-card__chevron,
-body.hub-page #prosthesis-term-list .action-card__chevron {
+body.hub-page #prosthesis-term-list .action-card__chevron,
+body.hub-page .cards-container[data-layout="rows"] .action-card__chevron {
     font-size: 1.24rem;
 }
 
@@ -826,7 +838,9 @@ body.hub-page .quick-access-section .action-card__visual {
     body.hub-page .archive-term-list .action-card__primary,
     body.hub-page.notes-term-page .action-card__primary,
     body.hub-page #prosthesis-term-list .action-card__primary,
-    body.hub-page #prosthesis-term-list .action-card--link {
+    body.hub-page #prosthesis-term-list .action-card--link,
+    body.hub-page .cards-container[data-layout="rows"] .action-card__primary,
+    body.hub-page .cards-container[data-layout="rows"] .action-card--link {
         grid-template-columns: 16px minmax(0, 1fr) 54px;
         min-height: 104px;
         padding: 0.78rem 0.84rem;
@@ -834,7 +848,8 @@ body.hub-page .quick-access-section .action-card__visual {
 
     body.hub-page .archive-term-list .action-card__visual,
     body.hub-page.notes-term-page .action-card__visual,
-    body.hub-page #prosthesis-term-list .action-card__visual {
+    body.hub-page #prosthesis-term-list .action-card__visual,
+    body.hub-page .cards-container[data-layout="rows"] .action-card__visual {
         width: 54px;
         height: 54px;
         border-radius: 17px;
@@ -843,6 +858,7 @@ body.hub-page .quick-access-section .action-card__visual {
     body.hub-page .archive-term-list .card-title,
     body.hub-page.notes-term-page .card-title,
     body.hub-page #prosthesis-term-list .card-title,
+    body.hub-page .cards-container[data-layout="rows"] .card-title,
     body.hub-page .quick-access-section .card-title {
         font-size: 0.9rem;
     }
@@ -850,6 +866,7 @@ body.hub-page .quick-access-section .action-card__visual {
     body.hub-page .archive-term-list .card-desc,
     body.hub-page.notes-term-page .card-desc,
     body.hub-page #prosthesis-term-list .card-desc,
+    body.hub-page .cards-container[data-layout="rows"] .card-desc,
     body.hub-page .quick-access-section .card-desc {
         font-size: 0.68rem;
     }
