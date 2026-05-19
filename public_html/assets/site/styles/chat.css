@@ -60,6 +60,7 @@ body.chat-page .background-overlay {
     max-width: 1540px;
     padding: calc(1rem + env(safe-area-inset-top, 0px)) 0.9rem calc(1rem + var(--chat-shell-offset));
     gap: 0.9rem;
+    contain: layout paint style;
 }
 
 .chat-app::before {
@@ -1400,6 +1401,7 @@ body.chat-page * {
     display: grid;
     grid-template-rows: minmax(0, 1fr);
     overflow: hidden;
+    contain: layout paint;
 }
 
 .chat-login-panel,
@@ -1410,6 +1412,7 @@ body.chat-page * {
     background: var(--chat-surface);
     box-shadow: 0 24px 52px -36px rgba(22, 42, 70, 0.22);
     backdrop-filter: blur(18px);
+    contain: layout paint;
 }
 
 .chat-login-panel {
@@ -1532,6 +1535,7 @@ body.chat-page * {
     border: 1px solid var(--chat-border);
     background: var(--chat-pane-bg);
     overflow: hidden;
+    contain: layout paint;
 }
 
 .conversation-pane {

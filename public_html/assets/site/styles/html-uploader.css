@@ -1,6 +1,6 @@
 body.html-uploader-page {
     --hu-bg: var(--bg-body);
-    --hu-surface: rgba(255, 255, 255, 0.9);
+    --hu-surface: var(--surface);
     --hu-surface-solid: var(--surface-solid);
     --hu-surface-muted: var(--surface-muted);
     --hu-border: var(--border-color);

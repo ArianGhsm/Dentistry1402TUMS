@@ -80,6 +80,15 @@
         return theme === "dark" ? LAUNCH_SPLASH_COLOR_DARK : LAUNCH_SPLASH_COLOR_LIGHT;
     }
 
+    function currentPath() {
+        var path = window.location && window.location.pathname ? String(window.location.pathname) : "/";
+        return path || "/";
+    }
+
+    function isChatLaunchRoute() {
+        return /^\/chat(?:\/|$)/i.test(currentPath());
+    }
+
     function ensureViewportScaleLock() {
         var meta = document.querySelector('meta[name="viewport"]');
         if (!meta) {
@@ -242,6 +251,10 @@
     }
 
     function shouldShowLaunchSplash() {
+        if (isChatLaunchRoute()) {
+            return false;
+        }
+
         var navType = navigationType();
         if (navType === "reload") {
             return true;
