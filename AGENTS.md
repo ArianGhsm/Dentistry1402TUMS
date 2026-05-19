@@ -18,6 +18,7 @@
 - خرید گروهی و ثبت‌نام از `public_html/buy/` و `public_html/api/payments_api.php` استفاده می‌کند و نباید به پرداخت لینک‌محور یا انتقال وجه مبهم تبدیل شود.
 - مرکز آپلود شخصی مالک از `public_html/files/` و `public_html/api/content_tools_api.php` استفاده می‌کند؛ ساخت/مدیریت فقط مالک است اما لینک‌های عمومی فایل از `/files/f/` و دانلود از API بدون login برای دارنده لینک قابل دسترسی‌اند.
 - Pastebin شخصی مالک از `public_html/paste/` و `public_html/api/content_tools_api.php` استفاده می‌کند؛ ساخت/مدیریت فقط مالک است اما لینک‌های عمومی paste از `/paste/p/` و raw view از API بدون login برای دارنده لینک قابل دسترسی‌اند.
+- آپلودر HTML موقت از `public_html/html-uploader/` و `public_html/api/html_uploader_api.php` استفاده می‌کند؛ هر دارنده‌ی لینک uploader می‌تواند فایل HTML تک‌فایلی آپلود کند و خروجی عمومی آن از `/html/p/` فقط با لینک مستقیم باز می‌شود. صفحه‌های HTML آپلودشده باید با sandbox/CSP ایزوله سرو شوند و نباید به session یا origin اصلی سایت دسترسی هم‌ارز بگیرند.
 - آرشیو منابع/جزواتی که از داخل سایت قابل افزودن، ویرایش یا حذف است از `public_html/notes/` و `public_html/api/notes_api.php` استفاده می‌کند؛ HTML صفحات فقط shell نمایشی است و کارت‌های منابع نباید به‌عنوان state قابل مدیریت داخل HTML ثابت نگه‌داری شوند.
 - Storage: داده‌های پایدار باید در مسیرهای ذخیره‌سازی مشترک نگه‌داری شوند؛ نه در فایل‌های موقتی جایگزین‌شونده در Deploy.
 - PWA: `manifest.webmanifest` و `sw.js` فعال هستند و باید سازگار بمانند.
@@ -42,6 +43,7 @@
 - داده‌های خرید/سفارش باید در storage مشترک `payments/store.json` بماند و deploy نباید سفارش‌ها، آیتم‌ها، کدهای تخفیف یا تاریخچه پرداخت را reset کند.
 - تصاویر آپلودی کالاهای بخش خرید باید در storage مشترک `payments/uploads/` بمانند و نباید با فایل‌های deploy-replaced یا مسیرهای temp جایگزین شوند.
 - داده‌های مرکز آپلود و pastebin باید در storage مشترک `content_tools/store.json` بماند؛ فایل‌های آپلودشده فقط در `content_tools/uploads/` نگه‌داری شوند و deploy نباید فایل‌ها، pasteها، شمارنده دانلود/بازدید یا وضعیت لینک‌ها را reset کند.
+- داده‌های آپلودر HTML باید در storage مشترک `html_uploader/store.json` بماند و فایل‌های HTML فقط در `html_uploader/pages/` نگه‌داری شوند؛ deploy نباید لینک‌ها، فایل‌ها، شمارنده بازدید یا وضعیت فعال/مخفی/حذف‌شده‌ی آن‌ها را reset کند.
 - داده‌های منابع/جزوات قابل مدیریت باید در storage مشترک `notes/` بماند؛ برای ۱۴۰۲ در `notes/1402_terms.json`، برای ۱۴۰۳ در `notes/1403_archive.json` و برای پروتز ۱۴۰۲ در `notes/prosthesis_1402_terms.json`. Deploy نباید کارت‌ها یا ترم‌های اضافه/ویرایش/حذف‌شده مالک یا نماینده پروتز را با seed یا HTML قدیمی برگرداند.
 - داده‌های چت پروتز باید جدا در `prosthesis_1402/chat/` بماند و داده‌های نمرات پروتز باید جدا در `grades/prosthesis_1402_grades.csv` و `grades/prosthesis_1402_meta.json` بماند؛ deploy نباید این state را با `chat/` یا `grades/grades.csv` دندانپزشکی قاطی یا جایگزین کند.
 - seed/backfill فقط هنگام نبود کامل فایل storage مجاز است. بعد از ساخته‌شدن فایل storage، migration یا backfill نباید حذف‌ها و ویرایش‌های مالک را با داده پیش‌فرض جایگزین کند مگر migration صریح و تاییدشده داشته باشد.

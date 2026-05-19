@@ -634,6 +634,10 @@ body.has-app-shell {
     padding-bottom: var(--shell-nav-content-reserve);
 }
 
+body.has-app-shell[data-shell-reserve="self"] {
+    padding-bottom: 0;
+}
+
 body.app-shell-hidden {
     padding-bottom: 0;
 }
@@ -692,6 +696,7 @@ body.app-shell-hidden {
     pointer-events: none;
     transform: translate3d(0, 0, 0);
     will-change: transform;
+    contain: layout paint style;
 }
 
 .shell-bottom-nav__inner {
@@ -707,6 +712,7 @@ body.app-shell-hidden {
     box-shadow: 0 24px 54px -38px rgba(17, 30, 54, 0.22);
     backdrop-filter: blur(16px);
     pointer-events: auto;
+    contain: layout paint;
 }
 
 .shell-bottom-nav__link {

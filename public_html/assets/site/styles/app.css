@@ -1,7 +1,7 @@
 body.app-dashboard-page main {
     width: min(920px, 100%);
     margin: 0 auto;
-    padding: 0.86rem max(0.78rem, 3.4vw) calc(var(--shell-nav-offset) + 1rem);
+    padding: 0.86rem max(0.78rem, 3.4vw) calc(1rem + env(safe-area-inset-bottom, 0px));
     display: grid;
     gap: 0.86rem;
     align-content: start;
@@ -1230,6 +1230,21 @@ body.app-dashboard-page main {
         color-mix(in srgb, var(--surface-solid) 92%, transparent);
 }
 
+.home-service-group,
+.home-promo-card,
+.portal-panel--identity {
+    contain: layout paint;
+}
+
+@supports (content-visibility: auto) {
+    .home-service-group,
+    .home-promo-card,
+    .portal-panel--identity {
+        content-visibility: auto;
+        contain-intrinsic-size: 1px 260px;
+    }
+}
+
 .home-service-group__head {
     display: grid;
     justify-items: center;
@@ -1635,6 +1650,18 @@ body.app-dashboard-page > :not(.background-overlay):not(.home-background-aura) {
 .home-promo-card,
 .portal-panel--identity {
     background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce), (max-width: 430px) {
+    .home-background-aura__lines,
+    .home-background-aura__dots {
+        display: none;
+    }
+
+    .home-background-aura__shape,
+    .home-background-aura__glow {
+        filter: blur(40px);
+    }
 }
 
 @media (max-width: 820px) {

@@ -27,14 +27,14 @@ function ct_paste_h(string $value): string
     <title><?php echo ct_paste_h($title); ?> | Paste</title>
     <meta name="description" content="<?php echo ct_paste_h($description); ?>">
     <meta name="robots" content="noindex,follow">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260520-025133">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260520-025133">
-    <script src="/assets/site/scripts/theme.js?v=20260520-025133"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260520-025133">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260520-025133">
-    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260520-025133">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260520-030500">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260520-030500">
+    <script src="/assets/site/scripts/theme.js?v=20260520-030500"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260520-030500">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260520-030500">
+    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260520-030500">
 </head>
-<body class="content-tools-page content-tools-page--public content-tools-page--public-paste" data-content-tool="public-paste" data-public-token="<?php echo ct_paste_h($token); ?>">
+<body class="content-tools-page content-tools-page--public content-tools-page--public-paste" data-content-tool="public-paste" data-public-token="<?php echo ct_paste_h($token); ?>" data-shell-header="off" data-shell-reserve="self">
     <div class="background-overlay" aria-hidden="true"></div>
     <main class="ct-public-shell ct-public-shell--paste">
         <header class="ct-public-header">
@@ -52,6 +52,7 @@ function ct_paste_h(string $value): string
             </div>
         </section>
     </main>
-    <script src="/assets/site/scripts/content-tools.js?v=20260520-025133"></script>
+    <script src="/assets/site/scripts/content-tools.js?v=20260520-030500"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260520-030500"></script>
 </body>
 </html>

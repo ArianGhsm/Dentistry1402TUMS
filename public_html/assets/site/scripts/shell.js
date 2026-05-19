@@ -2,10 +2,12 @@
     "use strict";
 
     var shellDisabled = !!(document.body && document.body.dataset.shell === "off");
+    var shellHeaderDisabled = !!(document.body && document.body.dataset.shellHeader === "off");
     var modal = null;
     var modalBackdrop = null;
     var pendingExternal = null;
     var navInner = null;
+    var navSignature = "";
     var authLinkSeeded = false;
     var pollNavState = {
         pending: false,
@@ -216,10 +218,30 @@
         }
 
         ensureBottomNav();
-        navInner.innerHTML = "";
         var items = navItems(state);
+        var signature = JSON.stringify({
+            status: authStatus(state),
+            path: currentPath(),
+            items: items.map(function (item) {
+                return {
+                    href: item.href,
+                    label: item.label,
+                    icon: item.icon,
+                    active: !!isActive(item),
+                    pending: !!item.pending,
+                    badgeCount: Number(item.badgeCount || 0)
+                };
+            })
+        });
+        if (signature === navSignature) {
+            return;
+        }
+        navSignature = signature;
+        navInner.textContent = "";
         navInner.style.setProperty("--nav-count", String(items.length));
         navInner.dataset.authStatus = authStatus(state);
+
+        var fragment = document.createDocumentFragment();
 
         items.forEach(function (item) {
             var link = document.createElement("a");
@@ -243,8 +265,9 @@
             iconHtml += "</span>";
 
             link.innerHTML = iconHtml + '<span class="shell-bottom-nav__label">' + item.label + "</span>";
-            navInner.appendChild(link);
+            fragment.appendChild(link);
         });
+        navInner.appendChild(fragment);
     }
 
     function themeIconMarkup(targetTheme) {
@@ -294,7 +317,7 @@
     }
 
     function createMinimalSiteHeader() {
-        if (document.querySelector(".site-header") || shellDisabled) {
+        if (document.querySelector(".site-header") || shellDisabled || shellHeaderDisabled) {
             return;
         }
 
@@ -321,6 +344,9 @@
     }
 
     function normalizeSiteHeader() {
+        if (shellHeaderDisabled) {
+            return;
+        }
         createMinimalSiteHeader();
 
         document.querySelectorAll(".site-header").forEach(function (header) {
@@ -518,6 +544,7 @@
     }
 
     function openExternalModal(anchor) {
+        createModal();
         pendingExternal = {
             href: anchor.href,
             target: anchor.target
@@ -677,7 +704,6 @@
         }
         applyBranding(state);
         syncAuthLinks(state);
-        renderBottomNav(state);
         syncPollEntry(state);
     }
 
@@ -687,7 +713,6 @@
             document.body.classList.add("app-shell-hidden");
         }
 
-        createModal();
         bindExternalLinks();
         bindInstallButtons();
         normalizeSiteHeader();
