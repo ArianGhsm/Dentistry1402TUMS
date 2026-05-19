@@ -1434,3 +1434,337 @@ body.app-dashboard-page main {
         line-height: 1.45;
     }
 }
+
+body.app-dashboard-page {
+    --home-aura-base-start: #f7faff;
+    --home-aura-base-end: #eef4ff;
+    --home-aura-glow-primary: rgba(59, 130, 246, 0.1);
+    --home-aura-glow-secondary: rgba(16, 185, 129, 0.07);
+    --home-aura-glow-accent: rgba(139, 92, 246, 0.055);
+    --home-aura-shape-primary: rgba(59, 130, 246, 0.08);
+    --home-aura-shape-secondary: rgba(16, 185, 129, 0.045);
+    --home-aura-shape-accent: rgba(139, 92, 246, 0.05);
+    --home-aura-line: rgba(37, 99, 235, 0.09);
+    --home-aura-dot: rgba(37, 99, 235, 0.07);
+    --home-aura-grid: rgba(37, 99, 235, 0.032);
+    --home-aura-grid-accent: rgba(16, 185, 129, 0.018);
+    background:
+        linear-gradient(180deg, var(--home-aura-base-start) 0%, var(--home-aura-base-end) 100%);
+    position: relative;
+    isolation: isolate;
+}
+
+html[data-theme="dark"] body.app-dashboard-page {
+    --home-aura-base-start: #07111f;
+    --home-aura-base-end: #0b1424;
+    --home-aura-glow-primary: rgba(59, 130, 246, 0.16);
+    --home-aura-glow-secondary: rgba(34, 211, 238, 0.09);
+    --home-aura-glow-accent: rgba(99, 102, 241, 0.11);
+    --home-aura-shape-primary: rgba(59, 130, 246, 0.12);
+    --home-aura-shape-secondary: rgba(34, 211, 238, 0.065);
+    --home-aura-shape-accent: rgba(99, 102, 241, 0.08);
+    --home-aura-line: rgba(147, 197, 253, 0.1);
+    --home-aura-dot: rgba(96, 165, 250, 0.09);
+    --home-aura-grid: rgba(147, 197, 253, 0.05);
+    --home-aura-grid-accent: rgba(34, 211, 238, 0.024);
+    background:
+        linear-gradient(180deg, var(--home-aura-base-start) 0%, var(--home-aura-base-end) 100%);
+}
+
+.app-dashboard-page .background-overlay {
+    z-index: -3;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--home-aura-base-start) 94%, #fff) 0%, color-mix(in srgb, var(--home-aura-base-end) 98%, #fff) 100%);
+    opacity: 0.88;
+}
+
+html[data-theme="dark"] .app-dashboard-page .background-overlay {
+    opacity: 0.92;
+}
+
+body.app-dashboard-page > :not(.background-overlay):not(.home-background-aura) {
+    position: relative;
+    z-index: 1;
+}
+
+.home-background-aura,
+.home-background-aura * {
+    pointer-events: none;
+}
+
+.home-background-aura {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    overflow: clip;
+}
+
+.home-background-aura__grid,
+.home-background-aura__shape,
+.home-background-aura__glow,
+.home-background-aura__lines,
+.home-background-aura__dots {
+    position: absolute;
+}
+
+.home-background-aura__grid {
+    inset: 0;
+    background:
+        repeating-linear-gradient(90deg, transparent 0 39px, var(--home-aura-grid) 39px 40px),
+        repeating-linear-gradient(180deg, transparent 0 39px, var(--home-aura-grid) 39px 40px),
+        linear-gradient(180deg, transparent 0%, var(--home-aura-grid-accent) 100%);
+    opacity: 0.42;
+    -webkit-mask-image: radial-gradient(circle at 50% 44%, transparent 0 20%, rgba(0, 0, 0, 0.4) 56%, rgba(0, 0, 0, 0.84) 100%);
+    mask-image: radial-gradient(circle at 50% 44%, transparent 0 20%, rgba(0, 0, 0, 0.4) 56%, rgba(0, 0, 0, 0.84) 100%);
+}
+
+.home-background-aura__shape {
+    filter: blur(56px);
+    opacity: 0.88;
+}
+
+.home-background-aura__shape--top {
+    top: -8rem;
+    right: -10rem;
+    width: clamp(20rem, 44vw, 34rem);
+    height: clamp(18rem, 36vw, 28rem);
+    border-radius: 41% 59% 58% 42% / 50% 36% 64% 50%;
+    background:
+        radial-gradient(circle at 38% 36%, var(--home-aura-shape-primary) 0%, transparent 68%);
+    transform: rotate(-12deg);
+}
+
+.home-background-aura__shape--side {
+    top: 28%;
+    left: -12rem;
+    width: clamp(18rem, 34vw, 27rem);
+    height: clamp(20rem, 40vw, 30rem);
+    border-radius: 56% 44% 40% 60% / 44% 54% 46% 56%;
+    background:
+        radial-gradient(circle at 58% 46%, var(--home-aura-shape-secondary) 0%, transparent 70%);
+    transform: rotate(18deg);
+}
+
+.home-background-aura__shape--bottom {
+    right: -8rem;
+    bottom: -10rem;
+    width: clamp(20rem, 38vw, 30rem);
+    height: clamp(18rem, 34vw, 26rem);
+    border-radius: 48% 52% 60% 40% / 42% 44% 56% 58%;
+    background:
+        radial-gradient(circle at 42% 42%, var(--home-aura-shape-accent) 0%, transparent 72%);
+    transform: rotate(-16deg);
+}
+
+.home-background-aura__glow {
+    border-radius: 999px;
+    filter: blur(64px);
+}
+
+.home-background-aura__glow--hero {
+    top: 5.75rem;
+    left: 50%;
+    width: clamp(18rem, 40vw, 31rem);
+    height: clamp(15rem, 32vw, 24rem);
+    background: radial-gradient(circle, var(--home-aura-glow-primary) 0%, transparent 72%);
+    transform: translateX(-34%);
+}
+
+.home-background-aura__glow--services {
+    top: clamp(16rem, 42vh, 22rem);
+    left: 50%;
+    width: clamp(17rem, 34vw, 26rem);
+    height: clamp(14rem, 30vw, 22rem);
+    background: radial-gradient(circle, var(--home-aura-glow-secondary) 0%, transparent 74%);
+    transform: translateX(6%);
+}
+
+.home-background-aura__glow--resource {
+    bottom: 1.5rem;
+    left: 50%;
+    width: clamp(16rem, 34vw, 24rem);
+    height: clamp(14rem, 28vw, 20rem);
+    background: radial-gradient(circle, var(--home-aura-glow-accent) 0%, transparent 74%);
+    transform: translateX(-18%);
+}
+
+.home-background-aura__lines {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    color: var(--home-aura-line);
+    overflow: visible;
+}
+
+.home-background-aura__lines path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.15;
+    stroke-linecap: round;
+    opacity: 1;
+}
+
+.home-background-aura__lines path:nth-child(2),
+.home-background-aura__lines path:nth-child(4) {
+    stroke-width: 0.88;
+    opacity: 0.78;
+}
+
+.home-background-aura__dots {
+    width: 14rem;
+    height: 14rem;
+    background-image: radial-gradient(circle, var(--home-aura-dot) 1.2px, transparent 1.5px);
+    background-size: 18px 18px;
+    opacity: 0.74;
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.38) 54%, transparent 78%);
+    mask-image: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.38) 54%, transparent 78%);
+}
+
+.home-background-aura__dots--top {
+    top: 5rem;
+    right: -2rem;
+}
+
+.home-background-aura__dots--bottom {
+    bottom: 2.4rem;
+    left: -2.4rem;
+}
+
+.home-wallet-card,
+.home-services-panel,
+.home-promo-card,
+.portal-panel--identity {
+    background-clip: padding-box;
+}
+
+@media (max-width: 820px) {
+    .home-background-aura__grid {
+        opacity: 0.34;
+    }
+
+    .home-background-aura__shape--top {
+        top: -7rem;
+        right: -11rem;
+    }
+
+    .home-background-aura__shape--side {
+        top: 22%;
+        left: -13rem;
+    }
+
+    .home-background-aura__shape--bottom {
+        right: -10rem;
+        bottom: -11rem;
+    }
+
+    .home-background-aura__glow--hero {
+        top: 6.4rem;
+        width: clamp(16rem, 62vw, 24rem);
+        transform: translateX(-28%);
+    }
+
+    .home-background-aura__glow--services {
+        top: 18rem;
+        width: clamp(15rem, 58vw, 22rem);
+        transform: translateX(14%);
+    }
+
+    .home-background-aura__glow--resource {
+        bottom: 2rem;
+        width: clamp(14rem, 56vw, 20rem);
+        transform: translateX(-8%);
+    }
+
+    .home-background-aura__dots {
+        width: 11rem;
+        height: 11rem;
+        opacity: 0.6;
+    }
+
+    .home-background-aura__dots--top {
+        top: 4.8rem;
+        right: -2.5rem;
+    }
+
+    .home-background-aura__dots--bottom {
+        bottom: 4rem;
+        left: -2.8rem;
+    }
+}
+
+@media (max-width: 430px) {
+    .home-background-aura__grid {
+        opacity: 0.26;
+        background:
+            repeating-linear-gradient(90deg, transparent 0 31px, var(--home-aura-grid) 31px 32px),
+            repeating-linear-gradient(180deg, transparent 0 31px, var(--home-aura-grid) 31px 32px),
+            linear-gradient(180deg, transparent 0%, var(--home-aura-grid-accent) 100%);
+    }
+
+    .home-background-aura__shape--top {
+        top: -7rem;
+        right: -12rem;
+        width: 20rem;
+        height: 17rem;
+    }
+
+    .home-background-aura__shape--side {
+        top: 19%;
+        left: -13rem;
+        width: 18rem;
+        height: 23rem;
+    }
+
+    .home-background-aura__shape--bottom {
+        right: -11rem;
+        bottom: -9rem;
+        width: 18rem;
+        height: 16rem;
+    }
+
+    .home-background-aura__glow {
+        filter: blur(58px);
+    }
+
+    .home-background-aura__glow--hero {
+        top: 6.9rem;
+        width: 15.5rem;
+        height: 13.5rem;
+        transform: translateX(-18%);
+    }
+
+    .home-background-aura__glow--services {
+        top: 15.8rem;
+        width: 14rem;
+        height: 13rem;
+        transform: translateX(22%);
+    }
+
+    .home-background-aura__glow--resource {
+        bottom: 2.5rem;
+        width: 13rem;
+        height: 12rem;
+        transform: translateX(6%);
+    }
+
+    .home-background-aura__lines {
+        opacity: 0.9;
+    }
+
+    .home-background-aura__dots {
+        width: 8.5rem;
+        height: 8.5rem;
+        background-size: 15px 15px;
+        opacity: 0.48;
+    }
+
+    .home-background-aura__dots--top {
+        top: 4.9rem;
+        right: -1.8rem;
+    }
+
+    .home-background-aura__dots--bottom {
+        bottom: 5.6rem;
+        left: -1.8rem;
+    }
+}
