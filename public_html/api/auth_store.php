@@ -2565,6 +2565,142 @@ function dent_create_student_account(
     return $store['users'][$studentNumber];
 }
 
+function dent_owner_sync_cohort_users(string $cohortKey, array $entries, string $defaultPassword, bool $replaceExisting = false): array
+{
+    $cohortKey = dent_clean_cohort_key($cohortKey);
+    if ($cohortKey === '') {
+        dent_error('ورودی انتخاب‌شده نامعتبر است.', 422);
+    }
+
+    $defaultPassword = dent_normalize_digits($defaultPassword);
+    if (dent_utf8_strlen($defaultPassword) < 6) {
+        dent_error('رمز پیش‌فرض باید حداقل ۶ کاراکتر باشد.', 422);
+    }
+
+    $store = dent_load_user_store();
+    if (!isset($store['cohorts'][$cohortKey])) {
+        dent_error('ورودی انتخاب‌شده پیدا نشد.', 404);
+    }
+
+    $users = is_array($store['users'] ?? null) ? $store['users'] : [];
+    $incomingStudentNumbers = [];
+    $createdUsers = [];
+    $updatedUsers = [];
+    $removedUsers = [];
+    $removedUsersForCleanup = [];
+    $removedStudentNumbers = [];
+    $now = dent_iso_now();
+
+    foreach ($entries as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+
+        $studentNumber = dent_normalize_student_number((string) ($entry['studentNumber'] ?? ''));
+        if ($studentNumber === '') {
+            dent_error('شماره دانشجویی نامعتبر است.', 422);
+        }
+        if (isset($incomingStudentNumbers[$studentNumber])) {
+            dent_error('شماره دانشجویی ' . $studentNumber . ' در فایل/متن import تکراری است.', 422);
+        }
+
+        $firstName = dent_clean_text((string) ($entry['firstName'] ?? ''), 60);
+        $lastName = dent_clean_text((string) ($entry['lastName'] ?? ''), 60);
+        if ($firstName === '' || $lastName === '') {
+            dent_error('نام و نام خانوادگی برای شماره دانشجویی ' . $studentNumber . ' کامل نیست.', 422);
+        }
+
+        $role = dent_normalize_role((string) ($entry['role'] ?? 'student'), $studentNumber);
+        if ($role === 'owner') {
+            dent_error('حساب مالک از این مسیر قابل import نیست.', 422);
+        }
+
+        $fullName = trim($firstName . ' ' . $lastName);
+        $incomingStudentNumbers[$studentNumber] = true;
+
+        if (isset($users[$studentNumber]) && is_array($users[$studentNumber])) {
+            $existing = $users[$studentNumber];
+            $existingCohortKey = dent_user_cohort_key($existing);
+            if ($existingCohortKey !== $cohortKey) {
+                if (!$replaceExisting) {
+                    dent_error('شماره دانشجویی ' . $studentNumber . ' در ورودی دیگری ثبت شده است.', 409);
+                }
+                if (dent_is_prosthesis_cohort_key($existingCohortKey) !== dent_is_prosthesis_cohort_key($cohortKey)) {
+                    dent_error('شماره دانشجویی ' . $studentNumber . ' در زیرمحصول دیگری ثبت شده است.', 409);
+                }
+            } elseif (!$replaceExisting) {
+                dent_error('برای این شماره دانشجویی حسابی وجود دارد.', 409);
+            }
+
+            $existing['name'] = $fullName;
+            $existing['role'] = $role;
+            $existing['cohortKey'] = $cohortKey;
+            $existing['passwordHash'] = dent_hash_password($defaultPassword);
+            $existing['updatedAt'] = $now;
+            $users[$studentNumber] = dent_normalize_user_record($studentNumber, $existing);
+            $updatedUsers[] = dent_public_user($users[$studentNumber]);
+            continue;
+        }
+
+        $users[$studentNumber] = dent_normalize_user_record($studentNumber, [
+            'studentNumber' => $studentNumber,
+            'name' => $fullName,
+            'passwordHash' => dent_hash_password($defaultPassword),
+            'role' => $role,
+            'cohortKey' => $cohortKey,
+            'profile' => dent_default_profile(),
+            'rotationOverride' => ['mode' => 'none'],
+            'createdAt' => $now,
+            'updatedAt' => $now,
+        ]);
+        $createdUsers[] = dent_public_user($users[$studentNumber]);
+    }
+
+    if ($replaceExisting) {
+        foreach ($users as $studentNumber => $user) {
+            if (!is_array($user) || dent_user_cohort_key($user) !== $cohortKey) {
+                continue;
+            }
+            if (isset($incomingStudentNumbers[$studentNumber])) {
+                continue;
+            }
+            if ($studentNumber === dent_owner_student_number()) {
+                continue;
+            }
+
+            $removedUsers[] = dent_public_user($user);
+            $removedUsersForCleanup[(string) $studentNumber] = $user;
+            $removedStudentNumbers[] = (string) $studentNumber;
+            unset($users[$studentNumber]);
+        }
+    }
+
+    ksort($users, SORT_STRING);
+    $store['users'] = $users;
+    dent_save_user_store($store);
+
+    foreach ($removedStudentNumbers as $studentNumber) {
+        $normalizedStudentNumber = dent_normalize_student_number((string) $studentNumber);
+        if ($normalizedStudentNumber === '') {
+            continue;
+        }
+        $removedUser = is_array($removedUsersForCleanup[$normalizedStudentNumber] ?? null) ? $removedUsersForCleanup[$normalizedStudentNumber] : [];
+        $removedPhone = dent_normalize_phone_number((string) ($removedUser['phoneNumber'] ?? ''));
+        dent_clear_phone_related_otp_records($normalizedStudentNumber, $removedPhone);
+    }
+
+    return [
+        'createdUsers' => $createdUsers,
+        'updatedUsers' => $updatedUsers,
+        'removedUsers' => $removedUsers,
+        'removedStudentNumbers' => $removedStudentNumbers,
+        'count' => count($createdUsers) + count($updatedUsers),
+        'createdCount' => count($createdUsers),
+        'updatedCount' => count($updatedUsers),
+        'removedCount' => count($removedUsers),
+    ];
+}
+
 function dent_owner_remove_user_phone(string $studentNumber): array
 {
     $studentNumber = dent_normalize_student_number($studentNumber);

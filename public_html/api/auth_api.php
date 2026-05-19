@@ -191,6 +191,250 @@ function dent_parse_import_user_rows(string $text, string $cohortKey): array
     return $entries;
 }
 
+function dent_import_user_split_text_row_v2(string $line): array
+{
+    if (str_contains($line, "\t")) {
+        $parts = preg_split('/\t+/u', $line) ?: [];
+    } else {
+        $parts = preg_split('/\s*[,;\x{060C}]\s*/u', $line) ?: [];
+    }
+
+    $normalized = [];
+    foreach ($parts as $part) {
+        $normalized[] = trim((string) $part);
+    }
+    while ($normalized !== [] && end($normalized) === '') {
+        array_pop($normalized);
+    }
+
+    return $normalized;
+}
+
+function dent_import_user_normalize_row_v2(array $row): array
+{
+    $normalized = [];
+    foreach ($row as $cell) {
+        $normalized[] = trim((string) $cell);
+    }
+    while ($normalized !== [] && end($normalized) === '') {
+        array_pop($normalized);
+    }
+
+    return $normalized;
+}
+
+function dent_import_user_header_map_v2(array $parts): ?array
+{
+    $header = dent_import_user_normalize_row_v2($parts);
+    $fullNameIndex = dent_find_header_index($header, ['نام و نام خانوادگی', 'نام کامل', 'fullname', 'full name']);
+    $firstNameIndex = dent_find_header_index($header, ['نام', 'first name', 'firstname', 'given name', 'givenname']);
+    $lastNameIndex = dent_find_header_index($header, ['نام خانوادگی', 'last name', 'lastname', 'family name', 'familyname', 'surname']);
+    $studentNumberIndex = dent_find_header_index($header, ['شماره دانشجویی', 'شماره', 'student number', 'student id', 'studentid']);
+    $roleIndex = dent_find_header_index($header, ['نقش', 'role']);
+
+    if ($fullNameIndex === null && $firstNameIndex === null && $lastNameIndex === null && $studentNumberIndex === null && $roleIndex === null) {
+        return null;
+    }
+
+    return [
+        'fullNameIndex' => $fullNameIndex,
+        'firstNameIndex' => $firstNameIndex,
+        'lastNameIndex' => $lastNameIndex,
+        'studentNumberIndex' => $studentNumberIndex,
+        'roleIndex' => $roleIndex,
+    ];
+}
+
+function dent_import_user_name_parts_v2(string $fullName, int $rowNumber): array
+{
+    $fullName = dent_clean_text($fullName, 120);
+    if ($fullName === '') {
+        dent_error('نام ردیف ' . $rowNumber . ' خالی است.', 422);
+    }
+
+    $tokens = preg_split('/\s+/u', $fullName) ?: [];
+    $tokens = array_values(array_filter($tokens, static function ($token): bool {
+        return trim((string) $token) !== '';
+    }));
+    if (count($tokens) < 2) {
+        dent_error('نام کامل ردیف ' . $rowNumber . ' باید حداقل دو بخش داشته باشد.', 422);
+    }
+
+    return [
+        'firstName' => (string) $tokens[0],
+        'lastName' => implode(' ', array_slice($tokens, 1)),
+    ];
+}
+
+function dent_import_user_entry_from_full_name_v2(string $fullName, string $studentNumber, string $roleLabel, string $cohortKey, int $rowNumber): array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی ردیف ' . $rowNumber . ' نامعتبر است.', 422);
+    }
+
+    $nameParts = dent_import_user_name_parts_v2($fullName, $rowNumber);
+
+    return [
+        'firstName' => $nameParts['firstName'],
+        'lastName' => $nameParts['lastName'],
+        'studentNumber' => $studentNumber,
+        'role' => dent_import_role_from_label($roleLabel, $cohortKey),
+    ];
+}
+
+function dent_import_user_entry_from_name_columns_v2(string $firstName, string $lastName, string $studentNumber, string $roleLabel, string $cohortKey, int $rowNumber): array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی ردیف ' . $rowNumber . ' نامعتبر است.', 422);
+    }
+
+    $firstName = dent_clean_text($firstName, 60);
+    $lastName = dent_clean_text($lastName, 60);
+    if ($firstName === '' || $lastName === '') {
+        dent_error('نام و نام خانوادگی ردیف ' . $rowNumber . ' کامل نیست.', 422);
+    }
+
+    return [
+        'firstName' => $firstName,
+        'lastName' => $lastName,
+        'studentNumber' => $studentNumber,
+        'role' => dent_import_role_from_label($roleLabel, $cohortKey),
+    ];
+}
+
+function dent_parse_import_user_row_v2(array $parts, string $cohortKey, ?array $headerMap, int $rowNumber): ?array
+{
+    $parts = dent_import_user_normalize_row_v2($parts);
+    if ($parts === []) {
+        return null;
+    }
+
+    if ($headerMap !== null) {
+        $studentNumberIndex = $headerMap['studentNumberIndex'];
+        $fullNameIndex = $headerMap['fullNameIndex'];
+        $firstNameIndex = $headerMap['firstNameIndex'];
+        $lastNameIndex = $headerMap['lastNameIndex'];
+        $roleIndex = $headerMap['roleIndex'];
+
+        $studentNumber = $studentNumberIndex === null ? '' : (string) ($parts[$studentNumberIndex] ?? '');
+        if ($studentNumber === '') {
+            return null;
+        }
+        $roleLabel = $roleIndex === null ? '' : (string) ($parts[$roleIndex] ?? '');
+
+        if ($fullNameIndex !== null) {
+            return dent_import_user_entry_from_full_name_v2(
+                (string) ($parts[$fullNameIndex] ?? ''),
+                $studentNumber,
+                $roleLabel,
+                $cohortKey,
+                $rowNumber
+            );
+        }
+        if ($firstNameIndex === null || $lastNameIndex === null) {
+            dent_error('ستون‌های نام کاربران برای import کامل نیست.', 422);
+        }
+
+        return dent_import_user_entry_from_name_columns_v2(
+            (string) ($parts[$firstNameIndex] ?? ''),
+            (string) ($parts[$lastNameIndex] ?? ''),
+            $studentNumber,
+            $roleLabel,
+            $cohortKey,
+            $rowNumber
+        );
+    }
+
+    if (count($parts) === 1) {
+        return null;
+    }
+
+    if (count($parts) >= 4) {
+        return dent_import_user_entry_from_name_columns_v2(
+            (string) ($parts[0] ?? ''),
+            (string) ($parts[1] ?? ''),
+            (string) ($parts[2] ?? ''),
+            (string) ($parts[3] ?? ''),
+            $cohortKey,
+            $rowNumber
+        );
+    }
+
+    if (count($parts) === 3) {
+        $first = (string) ($parts[0] ?? '');
+        $second = (string) ($parts[1] ?? '');
+        $third = (string) ($parts[2] ?? '');
+        if (dent_normalize_student_number($second) !== '') {
+            return dent_import_user_entry_from_full_name_v2($first, $second, $third, $cohortKey, $rowNumber);
+        }
+        if (dent_normalize_student_number($first) !== '') {
+            return dent_import_user_entry_from_full_name_v2($second, $first, $third, $cohortKey, $rowNumber);
+        }
+        if (dent_normalize_student_number($third) !== '') {
+            return dent_import_user_entry_from_name_columns_v2($first, $second, $third, '', $cohortKey, $rowNumber);
+        }
+    }
+
+    if (count($parts) === 2) {
+        $first = (string) ($parts[0] ?? '');
+        $second = (string) ($parts[1] ?? '');
+        if (dent_normalize_student_number($second) !== '') {
+            return dent_import_user_entry_from_full_name_v2($first, $second, '', $cohortKey, $rowNumber);
+        }
+        if (dent_normalize_student_number($first) !== '') {
+            return dent_import_user_entry_from_full_name_v2($second, $first, '', $cohortKey, $rowNumber);
+        }
+    }
+
+    dent_error('فرمت ردیف ' . $rowNumber . ' برای import کاربران نامعتبر است.', 422);
+}
+
+function dent_parse_import_user_tabular_rows_v2(array $rows, string $cohortKey): array
+{
+    $entries = [];
+    $headerMap = null;
+
+    foreach ($rows as $index => $row) {
+        $parts = is_array($row)
+            ? dent_import_user_normalize_row_v2($row)
+            : dent_import_user_split_text_row_v2(trim((string) $row));
+        if ($parts === []) {
+            continue;
+        }
+
+        if ($headerMap === null) {
+            $headerMap = dent_import_user_header_map_v2($parts);
+            if ($headerMap !== null) {
+                continue;
+            }
+        }
+
+        $entry = dent_parse_import_user_row_v2($parts, $cohortKey, $headerMap, $index + 1);
+        if ($entry !== null) {
+            $entries[] = $entry;
+        }
+    }
+
+    if ($entries === []) {
+        dent_error('هیچ ردیف معتبر کاربری برای import پیدا نشد.', 422);
+    }
+
+    return $entries;
+}
+
+function dent_parse_import_user_rows_v2(string $text, string $cohortKey): array
+{
+    $rows = preg_split('/\r\n|\r|\n/u', $text) ?: [];
+    return dent_parse_import_user_tabular_rows_v2($rows, $cohortKey);
+}
+
+function dent_parse_import_user_rows_from_xlsx_v2(string $path, string $cohortKey): array
+{
+    return dent_parse_import_user_tabular_rows_v2(dent_xlsx_read_rows($path), $cohortKey);
+}
+
 function dent_management_grade_roster_by_cohort(array $users): array
 {
     $cohorts = [];
@@ -726,6 +970,69 @@ if ($action === 'createCohort') {
 }
 
 if ($action === 'importCohortUsers') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد ورود گروهی کاربران نامعتبر است.', 405);
+    }
+
+    $cohortKey = dent_requested_cohort_key((string) ($_POST['cohortKey'] ?? ''));
+    dent_require_cohort_manager($cohortKey);
+
+    $entries = [];
+    $file = $_FILES['usersFile'] ?? null;
+    if (is_array($file) && (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        if ((int) ($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+            dent_error('آپلود فایل کاربران انجام نشد.', 422);
+        }
+
+        $tmpName = (string) ($file['tmp_name'] ?? '');
+        $originalName = (string) ($file['name'] ?? '');
+        if ($tmpName === '' || !is_uploaded_file($tmpName)) {
+            dent_error('فایل کاربران نامعتبر است.', 422);
+        }
+
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        if ($extension === 'xlsx') {
+            $entries = dent_parse_import_user_rows_from_xlsx_v2($tmpName, $cohortKey);
+        } else {
+            $content = file_get_contents($tmpName);
+            if ($content === false) {
+                dent_error('خواندن فایل کاربران انجام نشد.', 422);
+            }
+            $entries = dent_parse_import_user_rows_v2($content, $cohortKey);
+        }
+    }
+
+    $importText = trim((string) ($_POST['importText'] ?? ''));
+    if ($entries === [] && $importText === '') {
+        dent_error('متن یا فایل ورود گروهی کاربران خالی است.', 422);
+    }
+    if ($entries === []) {
+        $entries = dent_parse_import_user_rows_v2($importText, $cohortKey);
+    }
+
+    $defaultPassword = trim((string) ($_POST['defaultPassword'] ?? ''));
+    if ($defaultPassword === '') {
+        $defaultPassword = '12345678';
+    }
+
+    $replaceExisting = dent_parse_bool($_POST['replaceExisting'] ?? false, false);
+    $result = dent_owner_sync_cohort_users($cohortKey, $entries, $defaultPassword, $replaceExisting);
+    dent_grades_set_active_cohort($cohortKey);
+    foreach (($result['removedStudentNumbers'] ?? []) as $removedStudentNumber) {
+        dent_owner_remove_grades_row((string) $removedStudentNumber);
+    }
+
+    dent_json_response([
+        'success' => true,
+        'count' => (int) ($result['count'] ?? 0),
+        'createdCount' => (int) ($result['createdCount'] ?? 0),
+        'updatedCount' => (int) ($result['updatedCount'] ?? 0),
+        'removedCount' => (int) ($result['removedCount'] ?? 0),
+        'message' => $replaceExisting ? 'همگام‌سازی کامل کاربران ورودی انجام شد.' : 'ورود گروهی کاربران انجام شد.',
+    ]);
+}
+
+if ($action === 'importCohortUsersV1Legacy') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد ورود گروهی کاربران نامعتبر است.', 405);
     }

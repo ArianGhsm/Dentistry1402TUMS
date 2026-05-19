@@ -960,7 +960,7 @@ function dent_xlsx_shared_strings(?string $xml): array
     if ($xml === null || trim($xml) === '') {
         return [];
     }
-    $doc = @simplexml_load_string($xml);
+    $doc = dent_xlsx_load_xml($xml);
     if (!$doc) {
         return [];
     }
@@ -978,6 +978,24 @@ function dent_xlsx_shared_strings(?string $xml): array
     }
 
     return $strings;
+}
+
+function dent_xlsx_load_xml(?string $xml): ?SimpleXMLElement
+{
+    if ($xml === null || trim($xml) === '') {
+        return null;
+    }
+
+    $clean = preg_replace('/^\xEF\xBB\xBF/u', '', $xml) ?? $xml;
+    $clean = preg_replace('/(<\/?)[A-Za-z0-9_]+:/', '$1', $clean) ?? $clean;
+    $clean = preg_replace('/\s+xmlns:[A-Za-z0-9_]+="[^"]*"/', '', $clean) ?? $clean;
+
+    $previous = libxml_use_internal_errors(true);
+    $doc = @simplexml_load_string($clean);
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+
+    return $doc ?: null;
 }
 
 function dent_xlsx_first_sheet_path(array $zip): string
@@ -1025,7 +1043,7 @@ function dent_xlsx_read_rows(string $path): array
     }
 
     $sharedStrings = dent_xlsx_shared_strings(dent_zip_extract_entry($zip, 'xl/sharedStrings.xml'));
-    $doc = @simplexml_load_string($sheetXml);
+    $doc = dent_xlsx_load_xml($sheetXml);
     if (!$doc) {
         dent_error('خواندن محتوای Excel انجام نشد.', 422);
     }

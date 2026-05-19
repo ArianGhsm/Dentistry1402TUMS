@@ -98,6 +98,7 @@
     var ownerImportUsersForm = $("owner-import-users-form");
     var ownerImportUsersDefaultPassword = $("owner-import-users-default-password");
     var ownerImportUsersText = $("owner-import-users-text");
+    var ownerImportUsersFile = $("owner-import-users-file");
     var ownerImportUsersSubmit = $("owner-import-users-submit");
     var ownerImportUsersFeedback = $("owner-import-users-feedback");
     var ownerGradesCoursesSummary = $("owner-grades-courses-summary");
@@ -4046,7 +4047,7 @@
 
     function setImportUsersBusy(isBusy) {
         ownerState.importingUsers = !!isBusy;
-        [ownerImportUsersDefaultPassword, ownerImportUsersText].forEach(function (node) {
+        [ownerImportUsersDefaultPassword, ownerImportUsersText, ownerImportUsersFile].forEach(function (node) {
             if (node) {
                 node.disabled = ownerState.importingUsers;
             }
@@ -4065,9 +4066,10 @@
         }
 
         var importText = ownerImportUsersText ? ownerImportUsersText.value.trim() : "";
+        var importFile = ownerImportUsersFile && ownerImportUsersFile.files ? ownerImportUsersFile.files[0] : null;
         var defaultPassword = ownerImportUsersDefaultPassword ? ownerImportUsersDefaultPassword.value.trim() : "";
-        if (!importText) {
-            ownerImportUsersFeedbackMessage("متن ورود گروهی را وارد کن.", "error");
+        if (!importText && !importFile) {
+            ownerImportUsersFeedbackMessage("متن یا فایل ورود گروهی را وارد کن.", "error");
             return;
         }
         if (!defaultPassword || defaultPassword.length < 6) {
@@ -4078,12 +4080,25 @@
         setImportUsersBusy(true);
         ownerImportUsersFeedbackMessage("در حال ساخت گروهی کاربران...", "", true);
         try {
-            var response = await request("importCohortUsers", {
-                cohortKey: ownerActiveCohortKey(),
-                cohort: ownerActiveCohortKey(),
-                defaultPassword: defaultPassword,
-                importText: importText
-            });
+            var response;
+            if (importFile) {
+                var formData = new FormData();
+                formData.set("cohortKey", ownerActiveCohortKey());
+                formData.set("cohort", ownerActiveCohortKey());
+                formData.set("defaultPassword", defaultPassword);
+                if (importText) {
+                    formData.set("importText", importText);
+                }
+                formData.set("usersFile", importFile);
+                response = await requestFormData("importCohortUsers", formData);
+            } else {
+                response = await request("importCohortUsers", {
+                    cohortKey: ownerActiveCohortKey(),
+                    cohort: ownerActiveCohortKey(),
+                    defaultPassword: defaultPassword,
+                    importText: importText
+                });
+            }
             if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
                 ownerImportUsersFeedbackMessage("", "");
                 return;
@@ -4095,6 +4110,9 @@
 
             if (ownerImportUsersText) {
                 ownerImportUsersText.value = "";
+            }
+            if (ownerImportUsersFile) {
+                ownerImportUsersFile.value = "";
             }
             ownerImportUsersFeedbackMessage((response.message || "ورود گروهی انجام شد.") + " " + Number(response.count || 0).toLocaleString("fa-IR") + " کاربر.", "success");
             await loadOwnerUsers();
