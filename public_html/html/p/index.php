@@ -22,11 +22,11 @@ function html_uploader_render_state_page(string $title, string $message, int $st
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex,nofollow">
     <title><?php echo html_uploader_h($title); ?></title>
-    <link rel="manifest" href="/manifest.webmanifest?v=20260520-154606">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260520-154606">
-    <script src="/assets/site/scripts/theme.js?v=20260520-154606"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260520-154606">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260520-154606">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260520-161118">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260520-161118">
+    <script src="/assets/site/scripts/theme.js?v=20260520-161118"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260520-161118">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260520-161118">
     <style>
         body { min-height: 100vh; display: grid; place-items: center; padding: 1rem; background: var(--bg-body); }
         .html-public-state { width: min(34rem, 100%); padding: 1.2rem; border-radius: 24px; border: 1px solid var(--border-color); background: var(--surface); box-shadow: var(--surface-shadow); text-align: center; }

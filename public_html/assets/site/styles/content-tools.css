@@ -713,6 +713,32 @@ body.content-tools-page a {
     overflow: hidden;
 }
 
+.ct-handoff-notice {
+    display: grid;
+    gap: 0.38rem;
+    margin-block: 0.48rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--ct-border-strong);
+    border-radius: 18px;
+    background:
+        linear-gradient(180deg, rgba(245, 158, 11, 0.1), transparent),
+        var(--ct-surface-solid);
+}
+
+.ct-handoff-notice strong,
+.ct-handoff-notice p {
+    margin: 0;
+}
+
+.ct-handoff-notice p {
+    color: var(--ct-text-soft);
+    line-height: 1.8;
+}
+
+.ct-handoff-notice--preview {
+    margin-block-start: 0;
+}
+
 .ct-preview img,
 .ct-preview video {
     width: 100%;

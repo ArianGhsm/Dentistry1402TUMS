@@ -164,6 +164,37 @@
         return password ? ("&password=" + encodeURIComponent(password)) : "";
     }
 
+    function isIOSDevice() {
+        var userAgent = String(window.navigator.userAgent || "").toLowerCase();
+        if (/iphone|ipad|ipod/.test(userAgent)) {
+            return true;
+        }
+        return userAgent.indexOf("mac") !== -1 && Number(window.navigator.maxTouchPoints || 0) > 1;
+    }
+
+    function isStandaloneMode() {
+        return !!(
+            window.navigator.standalone === true ||
+            (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
+        );
+    }
+
+    function shouldUseIosSafariHandoff() {
+        return isIOSDevice() && isStandaloneMode();
+    }
+
+    function buildSafariHandoffUrl(targetUrl) {
+        try {
+            var parsed = new URL(String(targetUrl || ""), window.location.href);
+            if (!/^https?:$/i.test(parsed.protocol)) {
+                return "";
+            }
+            return "x-safari-" + parsed.protocol + "//" + parsed.host + parsed.pathname + parsed.search + parsed.hash;
+        } catch (_error) {
+            return "";
+        }
+    }
+
     function initOwnerGuard(onReady) {
         var guard = $("ct-auth-guard");
         var app = $("ct-owner-app");
@@ -958,6 +989,18 @@
             }
             var mime = String(file.mimeType || "").toLowerCase();
             var src = previewUrl + passwordSuffix(currentPassword);
+            if (shouldUseIosSafariHandoff() && mime === "application/pdf") {
+                var pdfHandoffUrl = buildSafariHandoffUrl(src);
+                return [
+                    '<div class="ct-handoff-notice ct-handoff-notice--preview">',
+                    "  <strong>\u067e\u06cc\u0634\u200c\u0646\u0645\u0627\u06cc\u0634 PDF \u062f\u0631 \u0648\u0628\u200c\u0627\u067e iPhone \u0628\u0647 \u0635\u0648\u0631\u062a \u062f\u0627\u062e\u0644\u06cc \u063a\u06cc\u0631\u0641\u0639\u0627\u0644 \u0627\u0633\u062a</strong>",
+                    "  <p>\u0628\u0631\u0627\u06cc \u062c\u0644\u0648\u06af\u06cc\u0631\u06cc \u0627\u0632 \u06af\u06cc\u0631 \u06a9\u0631\u062f\u0646 \u0635\u0641\u062d\u0647\u060c PDF \u0631\u0627 \u062f\u0631 Safari \u0628\u0627\u0632 \u06a9\u0646\u06cc\u062f.</p>",
+                    '  <div class="ct-preview-actions">',
+                    '    <a class="ct-btn" href="' + escapeHtml(pdfHandoffUrl || src) + '">\u0628\u0627\u0632 \u06a9\u0631\u062f\u0646 PDF \u062f\u0631 Safari</a>',
+                    "  </div>",
+                    "</div>"
+                ].join("");
+            }
             if (mime.indexOf("image/") === 0) return '<div class="ct-preview"><img src="' + escapeHtml(src) + '" alt="' + escapeHtml(file.originalName || "file") + '"></div>';
             if (mime.indexOf("video/") === 0) return '<div class="ct-preview"><video src="' + escapeHtml(src) + '" controls playsinline></video></div>';
             if (mime.indexOf("audio/") === 0) return '<div class="ct-preview"><audio src="' + escapeHtml(src) + '" controls></audio></div>';
@@ -967,6 +1010,8 @@
 
         function renderFile(file, previewUrl) {
             var downloadUrl = String(file.downloadUrl || "") + passwordSuffix(currentPassword);
+            var safariDownloadUrl = shouldUseIosSafariHandoff() ? buildSafariHandoffUrl(downloadUrl) : "";
+            var handoffRequired = safariDownloadUrl !== "";
             root.innerHTML = [
                 '<div class="ct-public-file-head">',
                 '  <div class="ct-public-file-icon" aria-hidden="true">' + escapeHtml(fileKind(file)) + "</div>",
@@ -988,6 +1033,32 @@
                 "</div>",
                 renderPreview(file, previewUrl)
             ].join("");
+            var actions = root.querySelector(".ct-public-actions");
+            if (handoffRequired && actions) {
+                var notice = document.createElement("div");
+                notice.className = "ct-handoff-notice";
+                notice.innerHTML = [
+                    "<strong>\u062f\u0627\u0646\u0644\u0648\u062f \u062f\u0627\u062e\u0644 \u0648\u0628\u200c\u0627\u067e iPhone \u0645\u0645\u06a9\u0646 \u0627\u0633\u062a \u0635\u0641\u062d\u0647 \u0631\u0627 \u06af\u06cc\u0631 \u0628\u06cc\u0646\u062f\u0627\u0632\u062f</strong>",
+                    "<p>\u0627\u06cc\u0646 \u062f\u06a9\u0645\u0647 \u0641\u0627\u06cc\u0644 \u0631\u0627 \u062f\u0631 Safari \u0628\u0627\u0632 \u0645\u06cc\u200c\u06a9\u0646\u062f \u062a\u0627 \u062f\u0627\u0646\u0644\u0648\u062f \u062f\u0631 \u0645\u0631\u0648\u0631\u06af\u0631 \u0627\u0646\u062c\u0627\u0645 \u0634\u0648\u062f.</p>"
+                ].join("");
+                actions.parentNode.insertBefore(notice, actions);
+
+                var downloadAction = actions.querySelector("a.ct-btn--primary");
+                if (downloadAction) {
+                    downloadAction.href = safariDownloadUrl;
+                    downloadAction.textContent = "\u0628\u0627\u0632 \u06a9\u0631\u062f\u0646 \u062f\u0631 Safari \u0648 \u062f\u0627\u0646\u0644\u0648\u062f";
+                }
+
+                var copyDownload = document.createElement("button");
+                copyDownload.type = "button";
+                copyDownload.id = "ct-public-copy-download";
+                copyDownload.className = "ct-btn";
+                copyDownload.textContent = "\u06a9\u067e\u06cc \u0644\u06cc\u0646\u06a9 \u0645\u0633\u062a\u0642\u06cc\u0645";
+                copyDownload.addEventListener("click", function () {
+                    copyText(downloadUrl, function () {});
+                });
+                actions.appendChild(copyDownload);
+            }
             var copy = $("ct-public-copy");
             if (copy) copy.addEventListener("click", function () {
                 copyText(window.location.href, function () {});
