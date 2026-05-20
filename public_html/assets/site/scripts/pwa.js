@@ -3,13 +3,14 @@
         return;
     }
 
-    var CURRENT_VERSION = "20260520-081903";
+    var CURRENT_VERSION = "20260520-082340";
     var VERSION_ENDPOINT = "/app-version.json";
     var SERVICE_WORKER_ENDPOINT = "/sw.js";
     var UPDATE_ACK_STORAGE_KEY = "dent1402-pwa-update-ack-version";
     var UPDATE_AUTO_STORAGE_KEY = "dent1402-pwa-update-auto-version";
     var UPDATE_CHECK_MIN_INTERVAL = 5000;
     var UPDATE_CHECK_INTERVAL = 30000;
+    var UPDATE_APPLY_RELOAD_FALLBACK_MS = 1800;
 
     var standaloneQuery = window.matchMedia ? window.matchMedia("(display-mode: standalone)") : null;
     var lastVersionCheckAt = 0;
@@ -21,6 +22,7 @@
     var bannerDismissBtn = null;
     var reloadAfterControllerChange = false;
     var updateApplyInFlight = false;
+    var updateReloadTimer = 0;
 
     var state = {
         installed: isStandaloneMode(),
@@ -108,6 +110,22 @@
                 // Keep online recovery silent.
             });
         }
+    }
+
+    function clearUpdateReloadTimer() {
+        if (!updateReloadTimer) {
+            return;
+        }
+        window.clearTimeout(updateReloadTimer);
+        updateReloadTimer = 0;
+    }
+
+    function scheduleUpdateReload(delayMs) {
+        clearUpdateReloadTimer();
+        updateReloadTimer = window.setTimeout(function () {
+            updateReloadTimer = 0;
+            window.location.reload();
+        }, Math.max(0, Number(delayMs) || 0));
     }
 
     function ensureBannerStyle() {
@@ -235,6 +253,7 @@
         if (!state.updateAvailable) {
             state.updateDismissed = false;
             updateApplyInFlight = false;
+            clearUpdateReloadTimer();
             writeStorage(UPDATE_ACK_STORAGE_KEY, "");
             writeStorage(UPDATE_AUTO_STORAGE_KEY, "");
         } else if (hasWaitingWorker && autoApplyVersion() === normalizedLatest && !reloadAfterControllerChange) {
@@ -355,7 +374,7 @@
 
     function applyUpdate() {
         if (!("serviceWorker" in navigator)) {
-            window.location.reload();
+            scheduleUpdateReload(80);
             return Promise.resolve({ outcome: "reloading" });
         }
 
@@ -368,11 +387,7 @@
             if (waitingWorker) {
                 reloadAfterControllerChange = true;
                 waitingWorker.postMessage({ type: "SKIP_WAITING" });
-                window.setTimeout(function () {
-                    if (reloadAfterControllerChange) {
-                        window.location.reload();
-                    }
-                }, 1800);
+                scheduleUpdateReload(UPDATE_APPLY_RELOAD_FALLBACK_MS);
                 return { outcome: "reloading" };
             }
 
@@ -380,17 +395,19 @@
                 if (registrationRef && registrationRef.waiting) {
                     reloadAfterControllerChange = true;
                     registrationRef.waiting.postMessage({ type: "SKIP_WAITING" });
-                    window.setTimeout(function () {
-                        if (reloadAfterControllerChange) {
-                            window.location.reload();
-                        }
-                    }, 1800);
+                    scheduleUpdateReload(UPDATE_APPLY_RELOAD_FALLBACK_MS);
                     return { outcome: "reloading" };
                 }
 
-                updateApplyInFlight = true;
+                if (state.latestVersion !== state.currentVersion) {
+                    scheduleUpdateReload(220);
+                    return { outcome: "reloading-fallback" };
+                }
+
+                updateApplyInFlight = false;
+                clearUpdateReloadTimer();
                 notify();
-                return { outcome: "waiting" };
+                return { outcome: "noop" };
             });
         });
     }
@@ -467,6 +484,7 @@
         navigator.serviceWorker.addEventListener("controllerchange", function () {
             if (reloadAfterControllerChange) {
                 reloadAfterControllerChange = false;
+                clearUpdateReloadTimer();
                 window.location.reload();
             }
         });

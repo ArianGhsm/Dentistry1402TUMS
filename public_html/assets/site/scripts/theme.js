@@ -784,8 +784,7 @@
         var hardwareConcurrency = Number(window.navigator.hardwareConcurrency || 0);
         return !!(
             (connection && connection.saveData) ||
-            (deviceMemory > 0 && deviceMemory <= 4) ||
-            (hardwareConcurrency > 0 && hardwareConcurrency <= 4)
+            (deviceMemory > 0 && deviceMemory <= 2 && hardwareConcurrency > 0 && hardwareConcurrency <= 4)
         );
     }
 
