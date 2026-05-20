@@ -8,6 +8,10 @@
         return document.getElementById(id);
     }
 
+    var siteApi = window.Dent1402Site && typeof window.Dent1402Site === "object"
+        ? window.Dent1402Site
+        : null;
+
     function escapeHtml(value) {
         return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
             switch (char) {
@@ -39,6 +43,9 @@
     }
 
     function formatDate(value, fallback) {
+        if (siteApi && typeof siteApi.formatDateTime === "function") {
+            return siteApi.formatDateTime(value, fallback);
+        }
         var raw = String(value || "").trim();
         if (!raw) return fallback || "—";
         var parsed = new Date(raw);
@@ -89,6 +96,9 @@
             options.body = new URLSearchParams(Object.assign({ action: action }, payload || {}));
         }
         return fetch(url, options).then(function (response) {
+            if (siteApi && typeof siteApi.parseJsonResponse === "function") {
+                return siteApi.parseJsonResponse(response);
+            }
             return response.json().catch(function () {
                 return { success: false, error: "پاسخ نامعتبر از سرور دریافت شد." };
             }).then(function (data) {
@@ -140,6 +150,9 @@
     }
 
     function consumeUnauthorized(payload, fallbackText) {
+        if (siteApi && typeof siteApi.consumeUnauthorized === "function") {
+            return !!siteApi.consumeUnauthorized(payload, fallbackText || "نشست شما منقضی شده است.");
+        }
         if (!window.Dent1402Auth || !payload) return false;
         if (typeof window.Dent1402Auth.handleUnauthorizedPayload === "function") {
             return !!window.Dent1402Auth.handleUnauthorizedPayload(payload, fallbackText || "نشست شما منقضی شده است.");

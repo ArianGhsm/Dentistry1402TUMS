@@ -53,6 +53,7 @@
     var ownerResetAllBtn = $("grades-owner-reset-all");
     var ownerFeedback = $("grades-owner-feedback");
     var authApi = window.Dent1402Auth && typeof window.Dent1402Auth === "object" ? window.Dent1402Auth : null;
+    var siteApi = window.Dent1402Site && typeof window.Dent1402Site === "object" ? window.Dent1402Site : null;
     var pageCohort = authApi && typeof authApi.resolvePageCohort === "function"
         ? authApi.resolvePageCohort("gradesCohort")
         : "main";
@@ -144,6 +145,21 @@
         ].join("");
     }
 
+    function parseJsonResponse(response) {
+        if (siteApi && typeof siteApi.parseJsonResponse === "function") {
+            return siteApi.parseJsonResponse(response);
+        }
+        return response.json().catch(function () {
+            return {
+                success: false,
+                error: "پاسخ نامعتبر از سرور دریافت شد."
+            };
+        }).then(function (payload) {
+            payload.httpStatus = response.status;
+            return payload;
+        });
+    }
+
     async function gradesApiRequest(action, method, payload) {
         var requestMethod = method || "GET";
         var requestPayload = Object.assign({ cohort: pageCohort }, payload || {});
@@ -165,14 +181,7 @@
         }
 
         var response = await fetch(url, options);
-        var data = await response.json().catch(function () {
-            return {
-                success: false,
-                error: "پاسخ نامعتبر از سرور دریافت شد."
-            };
-        });
-        data.httpStatus = response.status;
-        return data;
+        return parseJsonResponse(response);
     }
 
     async function gradesApiFormRequest(action, formData) {
@@ -186,14 +195,7 @@
             },
             body: body
         });
-        var data = await response.json().catch(function () {
-            return {
-                success: false,
-                error: "پاسخ نامعتبر از سرور دریافت شد."
-            };
-        });
-        data.httpStatus = response.status;
-        return data;
+        return parseJsonResponse(response);
     }
 
     function summaryCards(result) {
@@ -414,7 +416,7 @@
     }
 
     async function fetchGrades() {
-            var response = await fetch("/grades/grades_api.php?action=me&cohort=" + encodeURIComponent(pageCohort), {
+        var response = await fetch("/grades/grades_api.php?action=me&cohort=" + encodeURIComponent(pageCohort), {
             method: "GET",
             credentials: "same-origin",
             headers: {
@@ -422,16 +424,13 @@
             }
         });
 
-        var payload = await response.json().catch(function () {
-            return {
-                error: "پاسخ نامعتبر از سرور دریافت شد."
-            };
-        });
-        payload.httpStatus = response.status;
-        return payload;
+        return parseJsonResponse(response);
     }
 
     function consumeUnauthorized(response, fallbackText) {
+        if (siteApi && typeof siteApi.consumeUnauthorized === "function") {
+            return !!siteApi.consumeUnauthorized(response, fallbackText || "نشست شما منقضی شده است. دوباره وارد شوید.");
+        }
         var auth = window.Dent1402Auth && typeof window.Dent1402Auth === "object"
             ? window.Dent1402Auth
             : null;

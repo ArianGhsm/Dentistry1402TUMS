@@ -125,7 +125,8 @@ def run_smoke_session(args: argparse.Namespace) -> None:
                 )
 
             pages = [
-                "/notes/term-6/",
+                "/notes/",
+                "/notes/term/?term=6",
                 "/notes/1403/",
                 "/notes/?cohort=prosthesis-1402",
                 "/notes/term/?cohort=prosthesis-1402&term=1",

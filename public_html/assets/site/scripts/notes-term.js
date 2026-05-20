@@ -21,6 +21,7 @@
 
     var searchParams = new URLSearchParams(window.location.search || "");
     var authApi = window.Dent1402Auth && typeof window.Dent1402Auth === "object" ? window.Dent1402Auth : null;
+    var siteApi = window.Dent1402Site && typeof window.Dent1402Site === "object" ? window.Dent1402Site : null;
     var cohort = authApi && typeof authApi.resolvePageCohort === "function"
         ? authApi.resolvePageCohort("notesCohort")
         : String(document.body.dataset.notesCohort || searchParams.get("cohort") || "1402");
@@ -70,6 +71,9 @@
     }
 
     function parseJsonResponse(response) {
+        if (siteApi && typeof siteApi.parseJsonResponse === "function") {
+            return siteApi.parseJsonResponse(response);
+        }
         return response.json().catch(function () {
             return {
                 success: false,
@@ -316,6 +320,9 @@
     }
 
     function handleUnauthorized(payload) {
+        if (siteApi && typeof siteApi.consumeUnauthorized === "function") {
+            return !!siteApi.consumeUnauthorized(payload, "برای مدیریت منابع باید وارد حساب مجاز شوید.");
+        }
         var auth = window.Dent1402Auth;
         if (!auth || typeof auth.handleUnauthorizedPayload !== "function") {
             return false;

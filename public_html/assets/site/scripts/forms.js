@@ -10,6 +10,7 @@
     }
 
     var authApi = window.Dent1402Auth && typeof window.Dent1402Auth === "object" ? window.Dent1402Auth : null;
+    var siteApi = window.Dent1402Site && typeof window.Dent1402Site === "object" ? window.Dent1402Site : null;
     var pageCohort = authApi && typeof authApi.resolvePageCohort === "function"
         ? authApi.resolvePageCohort("formsCohort")
         : "main";
@@ -85,6 +86,9 @@
     };
 
     function parseApiResponse(response) {
+        if (siteApi && typeof siteApi.parseJsonResponse === "function") {
+            return siteApi.parseJsonResponse(response, response.status >= 500 ? "خطای داخلی سرور رخ داد." : "پاسخ نامعتبر از سرور دریافت شد.");
+        }
         return response.text().then(function (text) {
             var payload = null;
             if (text) {
@@ -141,6 +145,9 @@
     }
 
     function consumeUnauthorized(payload) {
+        if (siteApi && typeof siteApi.consumeUnauthorized === "function") {
+            return !!siteApi.consumeUnauthorized(payload, "نشست شما منقضی شده است.");
+        }
         var auth = safeAuthApi();
         if (auth && typeof auth.handleUnauthorizedPayload === "function") {
             try {
@@ -266,6 +273,9 @@
     }
 
     function normalizeDigits(value) {
+        if (siteApi && typeof siteApi.normalizeDigits === "function") {
+            return siteApi.normalizeDigits(value);
+        }
         return String(value || "").replace(/[\u06F0-\u06F9\u0660-\u0669]/g, function (char) {
             var code = char.charCodeAt(0);
             if (code >= 0x06F0 && code <= 0x06F9) return String(code - 0x06F0);

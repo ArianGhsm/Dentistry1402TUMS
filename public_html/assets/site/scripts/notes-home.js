@@ -1,17 +1,37 @@
 (function () {
     "use strict";
 
-    var authApi = window.Dent1402Auth && typeof window.Dent1402Auth === "object" ? window.Dent1402Auth : null;
-    var pageCohort = authApi && typeof authApi.resolvePageCohort === "function"
-        ? authApi.resolvePageCohort("notesCohort")
-        : "1402";
-
-    if (pageCohort !== "prosthesis-1402") {
-        return;
-    }
-
     function $(id) {
         return document.getElementById(id);
+    }
+
+    function authApi() {
+        return window.Dent1402Auth && typeof window.Dent1402Auth === "object"
+            ? window.Dent1402Auth
+            : null;
+    }
+
+    function siteApi() {
+        return window.Dent1402Site && typeof window.Dent1402Site === "object"
+            ? window.Dent1402Site
+            : null;
+    }
+
+    function resolveCohort() {
+        var auth = authApi();
+        var cohort = auth && typeof auth.resolvePageCohort === "function"
+            ? auth.resolvePageCohort("notesCohort")
+            : String(document.body && document.body.dataset ? document.body.dataset.notesCohort || "" : "").trim();
+
+        if (!cohort || cohort === "main" || cohort === "dentistry-1402") {
+            return "1402";
+        }
+        return cohort;
+    }
+
+    var pageCohort = resolveCohort();
+    if (pageCohort !== "1402" && pageCohort !== "prosthesis-1402") {
+        return;
     }
 
     var list = $("notes-home-list");
@@ -35,13 +55,54 @@
     }
 
     var state = {
-        terms: [],
+        authKey: "",
         canManage: false,
+        deletingTermId: 0,
+        editingTermId: 0,
+        loadError: "",
         loading: false,
         saving: false,
-        deletingTermId: 0,
-        editingTermId: 0
+        terms: []
     };
+
+    function manageSupported() {
+        return pageCohort === "prosthesis-1402";
+    }
+
+    function homeCanManage() {
+        return manageSupported() && state.canManage;
+    }
+
+    function toFaDigits(value) {
+        return String(value == null ? "" : value).replace(/\d/g, function (digit) {
+            return ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"][Number(digit)] || digit;
+        });
+    }
+
+    function parseJsonResponse(response) {
+        var site = siteApi();
+        if (site && typeof site.parseJsonResponse === "function") {
+            return site.parseJsonResponse(response);
+        }
+        return response.json().catch(function () {
+            return { success: false, error: "پاسخ نامعتبر از سرور دریافت شد." };
+        }).then(function (payload) {
+            payload.httpStatus = response.status;
+            return payload;
+        });
+    }
+
+    function consumeUnauthorized(payload, fallbackText) {
+        var site = siteApi();
+        if (site && typeof site.consumeUnauthorized === "function") {
+            return !!site.consumeUnauthorized(payload, fallbackText || "نشست شما منقضی شده است.");
+        }
+        var auth = authApi();
+        if (auth && typeof auth.handleUnauthorizedPayload === "function") {
+            return !!auth.handleUnauthorizedPayload(payload, fallbackText || "نشست شما منقضی شده است.");
+        }
+        return !!(payload && (payload.loggedOut || payload.httpStatus === 401));
+    }
 
     function request(action, method, payload) {
         var options = {
@@ -49,13 +110,14 @@
             credentials: "same-origin",
             headers: { Accept: "application/json" }
         };
-        var data = Object.assign({ cohort: "prosthesis-1402" }, payload || {});
+        var data = Object.assign({ cohort: pageCohort }, payload || {});
         var url = "/api/notes_api.php?action=" + encodeURIComponent(action);
 
         if (method === "GET") {
             Object.keys(data).forEach(function (key) {
-                if (String(data[key] || "") !== "") {
-                    url += "&" + encodeURIComponent(key) + "=" + encodeURIComponent(String(data[key]));
+                var value = data[key];
+                if (value !== undefined && value !== null && String(value) !== "") {
+                    url += "&" + encodeURIComponent(key) + "=" + encodeURIComponent(String(value));
                 }
             });
         } else {
@@ -63,29 +125,89 @@
             options.body = new URLSearchParams(Object.assign({ action: action }, data));
         }
 
-        return fetch(url, options).then(function (response) {
-            return response.json().catch(function () {
-                return { success: false, error: "پاسخ نامعتبر از سرور دریافت شد." };
-            }).then(function (result) {
-                result.httpStatus = response.status;
-                return result;
-            });
-        });
+        return fetch(url, options).then(parseJsonResponse);
     }
 
-    function setFeedback(text, kind) {
-        if (!feedback) return;
-        feedback.textContent = text || "";
-        feedback.dataset.kind = kind || "";
-        feedback.hidden = !text;
+    function authSnapshotKey() {
+        var auth = authApi();
+        if (!auth || typeof auth.getState !== "function") {
+            return "anon";
+        }
+        var snapshot = auth.getState();
+        var studentNumber = snapshot && snapshot.user && snapshot.user.studentNumber
+            ? String(snapshot.user.studentNumber)
+            : "";
+        return String(snapshot && snapshot.status ? snapshot.status : "unknown") + ":" + studentNumber;
+    }
+
+    function applyPageCopy() {
+        var isProsthesis = pageCohort === "prosthesis-1402";
+        if (heading) {
+            heading.textContent = isProsthesis ? "آرشیو منابع پروتز ۱۴۰۲" : "آرشیو منابع ورودی ۱۴۰۲";
+        }
+        if (subheading) {
+            subheading.textContent = isProsthesis ? "هر ترم در صفحه جداگانه" : "ترم‌ها از storage مشترک بارگذاری می‌شوند";
+        }
+        if (backLink) {
+            backLink.href = "/app/";
+            backLink.textContent = isProsthesis ? "بازگشت به خانه پروتز" : "بازگشت به خانه";
+        }
+        if (kicker) {
+            kicker.textContent = isProsthesis ? "آرشیو پروتز ۱۴۰۲" : "آرشیو ۱۴۰۲";
+        }
+        if (title) {
+            title.textContent = isProsthesis
+                ? "ترم موردنظر را برای دیدن جزوات و منابع انتخاب کن."
+                : "ترم موردنظر را برای دیدن آرشیو منابع انتخاب کن.";
+        }
+        if (sectionKicker) {
+            sectionKicker.textContent = "ترم‌ها";
+        }
+        if (sectionTitle) {
+            sectionTitle.textContent = isProsthesis ? "صفحات مستقل ترمی پروتز ۱۴۰۲" : "صفحات مستقل ترمی ۱۴۰۲";
+        }
+        if (sectionCopy) {
+            sectionCopy.textContent = isProsthesis
+                ? "این فهرست از storage پروتز خوانده می‌شود و مدیریت آن در همین صفحه انجام می‌شود."
+                : "این فهرست مستقیم از storage مشترک خوانده می‌شود و دیگر به کارت‌های ثابت داخل HTML وابسته نیست.";
+        }
+        if (footer) {
+            footer.textContent = isProsthesis ? "ورودی ۱۴۰۲ پروتز تهران" : "ورودی ۱۴۰۲ دندانپزشکی تهران";
+        }
+        document.title = isProsthesis
+            ? "آرشیو جزوات پروتز ۱۴۰۲ | انتخاب ترم"
+            : "آرشیو منابع ۱۴۰۲ | انتخاب ترم";
+    }
+
+    function termId(term) {
+        return Number(term && (term.id || term.term) || 0);
     }
 
     function termUrl(term) {
-        var base = "/notes/term/?term=" + encodeURIComponent(String(term.id || ""));
-        if (authApi && typeof authApi.appendCohortQuery === "function") {
-            return authApi.appendCohortQuery(base, "prosthesis-1402");
+        var id = termId(term);
+        var site = siteApi();
+        var auth = authApi();
+        var base = site && typeof site.buildUrl === "function"
+            ? site.buildUrl("/notes/term/", { term: String(id) })
+            : "/notes/term/?term=" + encodeURIComponent(String(id));
+
+        if (pageCohort !== "1402") {
+            if (auth && typeof auth.appendCohortQuery === "function") {
+                return auth.appendCohortQuery(base, pageCohort);
+            }
+            return base + "&cohort=" + encodeURIComponent(pageCohort);
         }
-        return base + "&cohort=prosthesis-1402";
+
+        return base;
+    }
+
+    function setFeedback(text, kind) {
+        if (!feedback) {
+            return;
+        }
+        feedback.textContent = text || "";
+        feedback.dataset.kind = kind || "";
+        feedback.hidden = !text;
     }
 
     function inputs() {
@@ -100,24 +222,10 @@
     function clearForm() {
         var nodes = inputs();
         Object.keys(nodes).forEach(function (key) {
-            if (nodes[key]) nodes[key].value = "";
+            if (nodes[key]) {
+                nodes[key].value = "";
+            }
         });
-    }
-
-    function readPayload() {
-        var nodes = inputs();
-        return {
-            title: nodes.title ? nodes.title.value.trim() : "",
-            kicker: nodes.kicker ? nodes.kicker.value.trim() : "",
-            description: nodes.description ? nodes.description.value.trim() : "",
-            emptyMessage: nodes.emptyMessage ? nodes.emptyMessage.value.trim() : ""
-        };
-    }
-
-    function findTerm(termId) {
-        return state.terms.filter(function (term) {
-            return Number(term.id || 0) === Number(termId || 0);
-        })[0] || null;
     }
 
     function fillForm(term) {
@@ -128,19 +236,37 @@
         if (nodes.emptyMessage) nodes.emptyMessage.value = term.emptyMessage || "";
     }
 
+    function readPayload() {
+        var nodes = inputs();
+        return {
+            title: nodes.title ? String(nodes.title.value || "").trim() : "",
+            kicker: nodes.kicker ? String(nodes.kicker.value || "").trim() : "",
+            description: nodes.description ? String(nodes.description.value || "").trim() : "",
+            emptyMessage: nodes.emptyMessage ? String(nodes.emptyMessage.value || "").trim() : ""
+        };
+    }
+
+    function findTerm(termIdValue) {
+        return state.terms.filter(function (term) {
+            return termId(term) === Number(termIdValue || 0);
+        })[0] || null;
+    }
+
     function setEditing(term) {
-        state.editingTermId = term ? Number(term.id || 0) : 0;
-        if (term) {
-            fillForm(term);
-            setFeedback("ترم برای ویرایش آماده شد.", "success");
-            if (manage && typeof manage.scrollIntoView === "function") {
-                manage.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
-        } else {
+        state.editingTermId = term ? termId(term) : 0;
+        if (!term) {
             clearForm();
             setFeedback("", "");
+            render();
+            return;
         }
+
+        fillForm(term);
+        setFeedback("ترم برای ویرایش آماده شد.", "success");
         render();
+        if (manage && typeof manage.scrollIntoView === "function") {
+            manage.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
     }
 
     function createChevron() {
@@ -163,11 +289,11 @@
 
         var badge = document.createElement("span");
         badge.className = "card-badge";
-        badge.textContent = term.kicker || "پروتز ۱۴۰۲";
+        badge.textContent = term.kicker || "ترم";
 
-        var titleEl = document.createElement("span");
-        titleEl.className = "card-title";
-        titleEl.textContent = term.title || "ترم بدون عنوان";
+        var titleNode = document.createElement("span");
+        titleNode.className = "card-title";
+        titleNode.textContent = term.title || "ترم بدون عنوان";
 
         var desc = document.createElement("span");
         desc.className = "card-desc";
@@ -176,10 +302,10 @@
         var visual = document.createElement("span");
         visual.className = "action-card__visual";
         visual.setAttribute("aria-hidden", "true");
-        visual.innerHTML = "<strong>" + String(term.id || "?") + "</strong>";
+        visual.innerHTML = "<strong>" + toFaDigits(termId(term) || "?") + "</strong>";
 
         header.appendChild(badge);
-        header.appendChild(titleEl);
+        header.appendChild(titleNode);
         content.appendChild(header);
         content.appendChild(desc);
 
@@ -190,13 +316,13 @@
     }
 
     function buildCard(term) {
-        var termId = Number(term.id || 0);
-        if (!state.canManage) {
+        if (!homeCanManage()) {
             var publicCard = createPrimaryLink(term);
             publicCard.classList.add("action-card", "action-card--link");
             return publicCard;
         }
 
+        var id = termId(term);
         var card = document.createElement("article");
         card.className = "action-card";
         card.appendChild(createPrimaryLink(term));
@@ -214,8 +340,8 @@
         edit.type = "button";
         edit.className = "notes-card-edit";
         edit.dataset.termEdit = "true";
-        edit.dataset.termId = String(termId);
-        edit.textContent = state.editingTermId === termId ? "در حال ویرایش" : "ویرایش";
+        edit.dataset.termId = String(id);
+        edit.textContent = state.editingTermId === id ? "در حال ویرایش" : "ویرایش";
         edit.disabled = state.saving || state.deletingTermId > 0;
         actions.appendChild(edit);
 
@@ -223,33 +349,22 @@
         remove.type = "button";
         remove.className = "notes-card-delete";
         remove.dataset.termDelete = "true";
-        remove.dataset.termId = String(termId);
-        remove.textContent = state.deletingTermId === termId ? "در حال حذف..." : "حذف";
-        remove.disabled = state.saving || state.deletingTermId === termId;
+        remove.dataset.termId = String(id);
+        remove.textContent = state.deletingTermId === id ? "در حال حذف..." : "حذف";
+        remove.disabled = state.saving || state.deletingTermId === id;
         actions.appendChild(remove);
 
         card.appendChild(actions);
         return card;
     }
 
-    function applyProsthesisCopy() {
-        if (heading) heading.textContent = "آرشیو منابع پروتز ۱۴۰۲";
-        if (subheading) subheading.textContent = "هر ترم در صفحه‌ای جداگانه";
-        if (backLink) backLink.href = "/app/";
-        if (backLink) backLink.textContent = "بازگشت به خانه پروتز";
-        if (kicker) kicker.textContent = "آرشیو پروتز ۱۴۰۲";
-        if (title) title.textContent = "ترم موردنظر را برای دیدن جزوات و منابع انتخاب کن.";
-        if (sectionKicker) sectionKicker.textContent = "ترم‌ها";
-        if (sectionTitle) sectionTitle.textContent = "صفحات مستقل ترمی پروتز ۱۴۰۲";
-        if (sectionCopy) sectionCopy.textContent = "این لیست از storage خوانده می‌شود و به shell جداگانه وابسته نیست.";
-        if (footer) footer.textContent = "پروتز ۱۴۰۲";
-        document.title = "آرشیو جزوات پروتز ۱۴۰۲ | انتخاب ترم";
-    }
-
     function render() {
-        applyProsthesisCopy();
+        applyPageCopy();
         list.innerHTML = "";
-        if (manage) manage.hidden = !state.canManage;
+
+        if (manage) {
+            manage.hidden = !homeCanManage();
+        }
         if (submit) {
             submit.disabled = state.saving;
             submit.textContent = state.saving
@@ -259,7 +374,17 @@
 
         if (!state.terms.length) {
             empty.hidden = false;
-            empty.textContent = state.loading ? "در حال دریافت ترم‌های پروتز..." : "هنوز ترمی برای پروتز ۱۴۰۲ ثبت نشده است.";
+            if (state.loading) {
+                empty.textContent = "در حال دریافت ترم‌ها...";
+                return;
+            }
+            if (state.loadError) {
+                empty.textContent = state.loadError;
+                return;
+            }
+            empty.textContent = pageCohort === "prosthesis-1402"
+                ? "هنوز ترمی برای پروتز ۱۴۰۲ ثبت نشده است."
+                : "هنوز ترمی برای این آرشیو ثبت نشده است.";
             return;
         }
 
@@ -269,19 +394,40 @@
         });
     }
 
-    function loadTerms() {
+    function loadTerms(options) {
+        if (state.loading) {
+            return Promise.resolve();
+        }
+
         state.loading = true;
-        render();
+        state.loadError = "";
+        if (!(options && options.silent)) {
+            render();
+        }
+
         return request("terms", "GET", {}).then(function (payload) {
+            if (consumeUnauthorized(payload, "نشست شما منقضی شده است.")) {
+                state.canManage = false;
+                render();
+                return;
+            }
             if (!payload || !payload.success) {
                 throw new Error((payload && payload.error) || "دریافت ترم‌ها ناموفق بود.");
             }
+
             state.terms = Array.isArray(payload.terms) ? payload.terms : [];
-            state.canManage = !!payload.canManage;
+            state.canManage = manageSupported() && !!payload.canManage;
+            if (state.editingTermId && !findTerm(state.editingTermId)) {
+                state.editingTermId = 0;
+                clearForm();
+            }
+            render();
         }).catch(function (error) {
-            empty.hidden = false;
-            empty.textContent = error && error.message ? error.message : "دریافت ترم‌ها با خطا مواجه شد.";
+            state.loadError = error && error.message ? error.message : "دریافت ترم‌ها با خطا مواجه شد.";
             state.canManage = false;
+            if (manage) {
+                manage.hidden = true;
+            }
         }).finally(function () {
             state.loading = false;
             render();
@@ -290,10 +436,11 @@
 
     function saveTerm(event) {
         event.preventDefault();
-        if (state.saving) return;
+        if (!homeCanManage() || state.saving) {
+            return;
+        }
 
         var payload = readPayload();
-        var editingTermId = state.editingTermId;
         if (!payload.title) {
             setFeedback("عنوان ترم را وارد کن.", "error");
             return;
@@ -301,18 +448,25 @@
 
         state.saving = true;
         render();
-        var action = editingTermId ? "updateTerm" : "createTerm";
-        if (editingTermId) {
-            payload.termId = String(editingTermId);
+
+        var editingId = state.editingTermId;
+        var action = editingId ? "editTerm" : "addTerm";
+        if (editingId) {
+            payload.term = String(editingId);
         }
 
         request(action, "POST", payload).then(function (response) {
+            if (consumeUnauthorized(response, "برای مدیریت این آرشیو باید وارد حساب مجاز شوید.")) {
+                throw new Error("برای مدیریت این آرشیو باید وارد حساب مجاز شوید.");
+            }
             if (!response || !response.success) {
                 throw new Error((response && response.error) || "ذخیره ترم انجام نشد.");
             }
-            setEditing(null);
-            setFeedback(editingTermId ? "ترم ویرایش شد." : "ترم جدید اضافه شد.", "success");
-            return loadTerms();
+
+            state.editingTermId = 0;
+            clearForm();
+            setFeedback(editingId ? "ترم ویرایش شد." : "ترم جدید اضافه شد.", "success");
+            return loadTerms({ silent: true });
         }).catch(function (error) {
             setFeedback(error && error.message ? error.message : "ذخیره ترم انجام نشد.", "error");
         }).finally(function () {
@@ -321,26 +475,37 @@
         });
     }
 
-    function deleteTerm(termId) {
-        var term = findTerm(termId);
-        if (!term || state.deletingTermId > 0) {
+    function deleteTerm(termValue) {
+        if (!homeCanManage() || state.deletingTermId > 0) {
+            return;
+        }
+
+        var id = Number(termValue || 0);
+        var term = findTerm(id);
+        if (!term) {
             return;
         }
         if (!window.confirm("این ترم حذف شود؟")) {
             return;
         }
 
-        state.deletingTermId = termId;
+        state.deletingTermId = id;
         render();
-        request("deleteTerm", "POST", { termId: String(termId) }).then(function (response) {
+
+        request("deleteTerm", "POST", { term: String(id) }).then(function (response) {
+            if (consumeUnauthorized(response, "برای مدیریت این آرشیو باید وارد حساب مجاز شوید.")) {
+                throw new Error("برای مدیریت این آرشیو باید وارد حساب مجاز شوید.");
+            }
             if (!response || !response.success) {
                 throw new Error((response && response.error) || "حذف ترم انجام نشد.");
             }
-            if (state.editingTermId === termId) {
-                setEditing(null);
+
+            if (state.editingTermId === id) {
+                state.editingTermId = 0;
+                clearForm();
             }
             setFeedback("ترم حذف شد.", "success");
-            return loadTerms();
+            return loadTerms({ silent: true });
         }).catch(function (error) {
             setFeedback(error && error.message ? error.message : "حذف ترم انجام نشد.", "error");
         }).finally(function () {
@@ -349,23 +514,61 @@
         });
     }
 
-    if (form) {
+    function bindForm() {
+        if (!form) {
+            return;
+        }
         form.addEventListener("submit", saveTerm);
     }
 
-    list.addEventListener("click", function (event) {
-        var editButton = event.target.closest("[data-term-edit]");
-        if (editButton) {
+    function bindList() {
+        list.addEventListener("click", function (event) {
+            var editButton = event.target.closest("[data-term-edit]");
+            if (editButton) {
+                event.preventDefault();
+                if (!homeCanManage()) {
+                    return;
+                }
+                setEditing(findTerm(Number(editButton.getAttribute("data-term-id") || 0)));
+                return;
+            }
+
+            var deleteButton = event.target.closest("[data-term-delete]");
+            if (!deleteButton) {
+                return;
+            }
+
             event.preventDefault();
-            setEditing(findTerm(Number(editButton.getAttribute("data-term-id") || 0)));
+            if (!homeCanManage()) {
+                return;
+            }
+            deleteTerm(Number(deleteButton.getAttribute("data-term-id") || 0));
+        });
+    }
+
+    function watchAuthChanges() {
+        var auth = authApi();
+        if (!auth || typeof auth.onChange !== "function") {
             return;
         }
-        var deleteButton = event.target.closest("[data-term-delete]");
-        if (deleteButton) {
-            event.preventDefault();
-            deleteTerm(Number(deleteButton.getAttribute("data-term-id") || 0));
-        }
-    });
 
-    loadTerms();
+        auth.onChange(function () {
+            var nextKey = authSnapshotKey();
+            if (nextKey === state.authKey) {
+                return;
+            }
+            state.authKey = nextKey;
+            loadTerms({ silent: true });
+        });
+    }
+
+    function boot() {
+        state.authKey = authSnapshotKey();
+        bindForm();
+        bindList();
+        watchAuthChanges();
+        loadTerms({ silent: false });
+    }
+
+    boot();
 })();

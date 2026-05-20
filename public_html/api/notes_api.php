@@ -945,13 +945,25 @@ function notes_1402_term_payload(array $store, int $term): array
     }
 
     return [
+        'cohort' => '1402',
         'term' => $term,
+        'id' => $term,
         'kicker' => (string) ($termRecord['kicker'] ?? ''),
         'title' => (string) ($termRecord['title'] ?? ''),
         'description' => (string) ($termRecord['description'] ?? ''),
         'emptyMessage' => (string) ($termRecord['emptyMessage'] ?? ''),
         'items' => $itemPayloads,
     ];
+}
+
+function notes_1402_terms_payload(array $store): array
+{
+    $terms = [];
+    for ($term = NOTES_1402_MIN_TERM; $term <= NOTES_1402_MAX_TERM; $term++) {
+        $terms[] = notes_1402_term_payload($store, $term);
+    }
+
+    return $terms;
 }
 
 function notes_1403_archive_payload(array $store): array
@@ -1368,15 +1380,18 @@ if ($action === 'terms') {
     notes_1402_require_method(['GET']);
 
     $cohort = notes_parse_cohort($_GET['cohort'] ?? '1402');
-    if ($cohort !== 'prosthesis-1402') {
-        dent_error('فهرست ترم فقط برای آرشیو پروتز فعال است.', 422);
+    if ($cohort === '1403') {
+        dent_error('فهرست ترم برای آرشیو ۱۴۰۳ فعال نیست.', 422);
     }
 
     $viewer = dent_current_user();
+    $terms = $cohort === 'prosthesis-1402'
+        ? notes_prosthesis_1402_terms_payload(notes_prosthesis_1402_read_store())
+        : notes_1402_terms_payload(notes_1402_read_store());
     dent_json_response([
         'success' => true,
-        'terms' => notes_prosthesis_1402_terms_payload(notes_prosthesis_1402_read_store()),
-        'canManage' => notes_can_manage_cohort($cohort, $viewer),
+        'terms' => $terms,
+        'canManage' => $cohort === 'prosthesis-1402' && notes_can_manage_cohort($cohort, $viewer),
     ]);
 }
 

@@ -5,6 +5,9 @@
     var CART_KEY = "dent1402_buy_cart_items";
     var CHECKOUT_KEY = "dent1402_buy_checkout";
     var MARKET_LOCATION = "دانشکده دندانپزشکی تهران";
+    var siteApi = window.Dent1402Site && typeof window.Dent1402Site === "object"
+        ? window.Dent1402Site
+        : null;
     var state = {
         items: [],
         query: "",
@@ -23,6 +26,9 @@
     }
 
     function parseJsonResponse(response) {
+        if (siteApi && typeof siteApi.parseJsonResponse === "function") {
+            return siteApi.parseJsonResponse(response);
+        }
         return response.json().catch(function () {
             return {
                 success: false,
@@ -60,6 +66,9 @@
     }
 
     function normalizeDigits(value) {
+        if (siteApi && typeof siteApi.normalizeDigits === "function") {
+            return siteApi.normalizeDigits(value);
+        }
         return String(value || "")
             .replace(/[\u06F0-\u06F9]/g, function (ch) {
                 return String("\u06F0\u06F1\u06F2\u06F3\u06F4\u06F5\u06F6\u06F7\u06F8\u06F9".indexOf(ch));
@@ -70,6 +79,9 @@
     }
 
     function normalizePhone(value) {
+        if (siteApi && typeof siteApi.normalizePhone === "function") {
+            return siteApi.normalizePhone(value);
+        }
         var digits = normalizeDigits(value).replace(/\D+/g, "");
         if (!digits) return "";
         if (digits.indexOf("0098") === 0) {
@@ -101,6 +113,9 @@
     }
 
     function formatDateTime(value, fallback) {
+        if (siteApi && typeof siteApi.formatDateTime === "function") {
+            return siteApi.formatDateTime(value, fallback);
+        }
         var raw = String(value || "").trim();
         if (!raw) {
             return fallback || "—";

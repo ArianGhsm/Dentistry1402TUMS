@@ -532,6 +532,92 @@
         return true;
     }
 
+    function parseJsonResponse(response, invalidMessage) {
+        return response.text().then(function (text) {
+            var payload = null;
+            if (text) {
+                try {
+                    payload = JSON.parse(text);
+                } catch (_error) {
+                    payload = null;
+                }
+            }
+
+            if (!payload || typeof payload !== "object") {
+                payload = {
+                    success: false,
+                    error: invalidMessage || "پاسخ نامعتبر از سرور دریافت شد."
+                };
+            }
+
+            payload.httpStatus = response.status;
+            return payload;
+        });
+    }
+
+    function normalizeDigits(value) {
+        return String(value || "")
+            .replace(/[\u06F0-\u06F9]/g, function (char) {
+                return String(char.charCodeAt(0) - 0x06F0);
+            })
+            .replace(/[\u0660-\u0669]/g, function (char) {
+                return String(char.charCodeAt(0) - 0x0660);
+            });
+    }
+
+    function normalizePhone(value) {
+        var digits = normalizeDigits(value).replace(/\D+/g, "");
+        if (!digits) {
+            return "";
+        }
+        if (digits.indexOf("0098") === 0) {
+            digits = digits.slice(4);
+        } else if (digits.indexOf("98") === 0) {
+            digits = digits.slice(2);
+        }
+        if (digits.length === 10 && digits.charAt(0) === "9") {
+            digits = "0" + digits;
+        }
+        return digits;
+    }
+
+    function formatDateTime(value, fallback) {
+        var raw = String(value || "").trim();
+        if (!raw) {
+            return fallback || "—";
+        }
+
+        var parsed = new Date(raw);
+        if (!Number.isFinite(parsed.getTime())) {
+            return raw;
+        }
+
+        return parsed.toLocaleString("fa-IR-u-ca-persian", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+        });
+    }
+
+    function buildUrl(path, params) {
+        var url = new URL(String(path || "/"), window.location.origin);
+        Object.keys(params || {}).forEach(function (key) {
+            var value = params[key];
+            if (value === undefined || value === null) {
+                return;
+            }
+            var clean = String(value).trim();
+            if (clean === "") {
+                return;
+            }
+            url.searchParams.set(key, clean);
+        });
+        return url.pathname + url.search + url.hash;
+    }
+
     function onChange(listener) {
         if (typeof listener !== "function") {
             return function () {};
@@ -584,6 +670,17 @@
         enhanceLoginGuards: enhanceLoginGuards,
         renderLoginRequiredGuard: renderLoginRequiredGuard
     };
+
+    window.Dent1402Site = Object.assign({}, window.Dent1402Site || {}, {
+        buildUrl: buildUrl,
+        cohortPath: appendCohortQuery,
+        consumeUnauthorized: handleUnauthorizedPayload,
+        escapeHtml: escapeHtml,
+        formatDateTime: formatDateTime,
+        normalizeDigits: normalizeDigits,
+        normalizePhone: normalizePhone,
+        parseJsonResponse: parseJsonResponse
+    });
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", function () {
