@@ -11,7 +11,14 @@ function dent_grades_clean_cohort(?string $value): string
 
 function dent_grades_requested_cohort(): string
 {
-    return dent_grades_clean_cohort((string) ($_POST['cohort'] ?? ($_GET['cohort'] ?? '')));
+    if (array_key_exists('cohort', $_POST)) {
+        return dent_clean_cohort_key((string) $_POST['cohort']);
+    }
+    if (array_key_exists('cohort', $_GET)) {
+        return dent_clean_cohort_key((string) $_GET['cohort']);
+    }
+
+    return '';
 }
 
 function dent_grades_set_active_cohort(string $cohort): void
@@ -54,7 +61,9 @@ function dent_grades_require_user(): array
 {
     $user = dent_require_user();
     $requestedCohort = dent_grades_requested_cohort();
-    $activeCohort = dent_resolve_accessible_cohort($user, $requestedCohort);
+    $activeCohort = $requestedCohort !== ''
+        ? dent_resolve_accessible_cohort($user, $requestedCohort)
+        : dent_user_cohort_key($user);
 
     dent_grades_set_active_cohort($activeCohort);
     return $user;

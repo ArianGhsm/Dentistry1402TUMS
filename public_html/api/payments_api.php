@@ -92,6 +92,24 @@ function payments_api_decode_json_assoc(string $value): ?array
     return $decoded;
 }
 
+function payments_api_clean_return_path($raw, string $fallback = ''): string
+{
+    $path = trim((string) $raw);
+    if ($path === '') {
+        return $fallback;
+    }
+
+    if (!str_starts_with($path, '/') || str_starts_with($path, '//')) {
+        return $fallback;
+    }
+
+    if (preg_match('/[\r\n]/', $path) === 1) {
+        return $fallback;
+    }
+
+    return dent_clean_text($path, 420);
+}
+
 function payments_api_parse_required_fields_input($raw): array
 {
     if (is_array($raw)) {
@@ -1600,6 +1618,10 @@ if ($action === 'createCollectionOrder') {
     $requestedGateway = payments_gateway_clean((string) ($_POST['gateway'] ?? ''));
     $studentNumber = dent_normalize_student_number((string) ($payerDefaults['studentNumber'] ?? ''));
     $defaultGateway = payments_gateway_default_enabled_checkout(false);
+    $returnPath = payments_api_clean_return_path(
+        $_POST['returnPath'] ?? ($_POST['return_path'] ?? ''),
+        '/payments/pay/?token=' . rawurlencode((string) ($previewCollection['token'] ?? ''))
+    );
 
     try {
         $created = payments_with_store_lock(static function (array &$store) use (
@@ -1611,7 +1633,8 @@ if ($action === 'createCollectionOrder') {
             $enabledGateways,
             $studentNumber,
             $payerStudentNumber,
-            $user
+            $user,
+            $returnPath
         ): array {
             $collectionIndex = payments_find_collection_index_by_token($store, $token);
             if ($collectionIndex < 0) {
@@ -1663,7 +1686,7 @@ if ($action === 'createCollectionOrder') {
                     'collection_id' => (int) ($collection['id'] ?? 0),
                     'collection_token' => (string) ($collection['token'] ?? ''),
                     'collection_title' => $title,
-                    '_return_path' => '/payments/pay/?token=' . rawurlencode((string) ($collection['token'] ?? '')),
+                    '_return_path' => $returnPath,
                 ],
                 'cart_items' => [[
                     'item_id' => 0,
@@ -1775,7 +1798,7 @@ if ($action === 'createCollectionOrder') {
         'success' => true,
         'orderToken' => $orderToken,
         'redirectUrl' => $redirectUrl,
-        'resultUrl' => '/payments/pay/?token=' . rawurlencode((string) ($collection['token'] ?? '')) . '&paymentOrderToken=' . rawurlencode($orderToken),
+        'resultUrl' => $returnPath . (str_contains($returnPath, '?') ? '&' : '?') . 'paymentOrderToken=' . rawurlencode($orderToken),
     ]);
 }
 

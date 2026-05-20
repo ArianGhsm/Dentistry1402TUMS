@@ -31,7 +31,10 @@
     var authStage = $("auth-stage");
     var loadingStage = $("grades-loading");
     var dashboard = $("grades-dashboard");
+    var authCard = $("auth-card");
+    var authTitle = $("grades-auth-title");
     var authMessage = $("msg");
+    var authDescription = authCard ? authCard.querySelector(".site-login-guard__text") : null;
     var dashboardFeedback = $("dashboard-feedback");
     var gradesCountLabel = $("grades-count-label");
     var gradesList = $("grades-list");
@@ -54,9 +57,69 @@
     var ownerFeedback = $("grades-owner-feedback");
     var authApi = window.Dent1402Auth && typeof window.Dent1402Auth === "object" ? window.Dent1402Auth : null;
     var siteApi = window.Dent1402Site && typeof window.Dent1402Site === "object" ? window.Dent1402Site : null;
-    var pageCohort = authApi && typeof authApi.resolvePageCohort === "function"
-        ? authApi.resolvePageCohort("gradesCohort")
-        : "main";
+    function normalizeCohortKey(value) {
+        if (authApi && typeof authApi.normalizeCohortKey === "function") {
+            return authApi.normalizeCohortKey(value);
+        }
+
+        var clean = String(value == null ? "" : value).trim().toLowerCase();
+        if (!clean || clean === "main" || clean === "1402" || clean === "dentistry-1402") {
+            return "main";
+        }
+        if (clean === "prosthesis" || clean === "prosthesis1402") {
+            return "prosthesis-1402";
+        }
+
+        clean = clean
+            .replace(/[^a-z0-9\-_]+/g, "-")
+            .replace(/_+/g, "-")
+            .replace(/-+/g, "-")
+            .replace(/^-|-$/g, "");
+
+        return clean || "main";
+    }
+
+    function resolveInitialPageCohort() {
+        var datasetValue = "";
+        if (document.body && document.body.dataset) {
+            datasetValue = String(document.body.dataset.gradesCohort || "").trim();
+        }
+        if (datasetValue) {
+            return {
+                cohort: normalizeCohortKey(datasetValue),
+                explicit: true
+            };
+        }
+
+        var query = new URLSearchParams(window.location.search || "");
+        var queryValue = String(query.get("cohort") || "").trim();
+        if (queryValue) {
+            return {
+                cohort: normalizeCohortKey(queryValue),
+                explicit: true
+            };
+        }
+
+        var path = String(window.location.pathname || "");
+        if (path.indexOf("/prosthesis-1402/") === 0) {
+            return {
+                cohort: "prosthesis-1402",
+                explicit: true
+            };
+        }
+
+        return {
+            cohort: "main",
+            explicit: false
+        };
+    }
+
+    var initialPageCohort = resolveInitialPageCohort();
+    var pageCohort = initialPageCohort.cohort;
+    var pageCohortExplicit = initialPageCohort.explicit;
+    var defaultAuthTitle = authTitle ? authTitle.textContent : "";
+    var defaultAuthDescription = authDescription ? authDescription.textContent : "";
+    var defaultAccountEntryLabel = accountEntryLink ? accountEntryLink.textContent : "";
 
     var currentPayload = null;
     var currentStudentNumber = "";
@@ -70,12 +133,80 @@
         resetting: false
     };
 
+    function userCohort(user) {
+        if (!user) {
+            return "";
+        }
+        return normalizeCohortKey(user.cohortKey || "");
+    }
+
+    function requestCohort() {
+        if (pageCohortExplicit) {
+            return pageCohort;
+        }
+
+        var activeUserCohort = userCohort(currentUser);
+        return activeUserCohort || pageCohort;
+    }
+
+    function syncImplicitPageCohortFromUser(user) {
+        if (pageCohortExplicit) {
+            return;
+        }
+
+        var activeUserCohort = userCohort(user);
+        if (!activeUserCohort || activeUserCohort === "main" || activeUserCohort === pageCohort) {
+            return;
+        }
+
+        pageCohort = activeUserCohort;
+        if (!window.history || typeof window.history.replaceState !== "function") {
+            return;
+        }
+
+        try {
+            var nextUrl = new URL(window.location.href);
+            nextUrl.searchParams.set("cohort", activeUserCohort);
+            window.history.replaceState(window.history.state, "", nextUrl.pathname + nextUrl.search + nextUrl.hash);
+        } catch (_error) {
+            // Ignore URL sync failures and keep using the resolved cohort in requests.
+        }
+    }
+
     function setState(state) {
         flow.dataset.authState = state;
 
         authStage.hidden = state !== "signed-out" && state !== "unauthorized";
         loadingStage.hidden = state !== "restoring" && state !== "loading";
         dashboard.hidden = state !== "ready" && state !== "empty";
+    }
+
+    function resetAuthGuardCopy() {
+        if (authTitle) {
+            authTitle.textContent = defaultAuthTitle;
+        }
+        if (authDescription) {
+            authDescription.textContent = defaultAuthDescription;
+        }
+        if (accountEntryLink) {
+            accountEntryLink.textContent = defaultAccountEntryLabel;
+            accountEntryLink.href = window.Dent1402Auth.loginUrl();
+        }
+    }
+
+    function showAccessDeniedState(message) {
+        setState("unauthorized");
+        if (authTitle) {
+            authTitle.textContent = "دسترسی این ورودی برای حساب شما فعال نیست";
+        }
+        if (authDescription) {
+            authDescription.textContent = message || "برای این حساب فقط بخش نمرات همان ورودی خودت قابل نمایش است.";
+        }
+        if (accountEntryLink) {
+            accountEntryLink.textContent = "رفتن به حساب کاربری";
+            accountEntryLink.href = "/account/";
+        }
+        setAuthMessage("", "", false);
     }
 
     function setAuthMessage(text, kind, loading) {
@@ -162,7 +293,8 @@
 
     async function gradesApiRequest(action, method, payload) {
         var requestMethod = method || "GET";
-        var requestPayload = Object.assign({ cohort: pageCohort }, payload || {});
+        var effectiveCohort = requestCohort();
+        var requestPayload = Object.assign({}, payload || {});
         var url = "/grades/grades_api.php?action=" + encodeURIComponent(action);
         var options = {
             method: requestMethod,
@@ -172,8 +304,12 @@
             }
         };
 
-        if (requestMethod === "GET") {
-            url += "&cohort=" + encodeURIComponent(pageCohort);
+        if (effectiveCohort) {
+            requestPayload.cohort = effectiveCohort;
+        }
+
+        if (requestMethod === "GET" && effectiveCohort) {
+            url += "&cohort=" + encodeURIComponent(effectiveCohort);
         }
         if (requestMethod !== "GET") {
             options.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
@@ -186,7 +322,10 @@
 
     async function gradesApiFormRequest(action, formData) {
         var body = formData instanceof FormData ? formData : new FormData();
-        body.append("cohort", pageCohort);
+        var effectiveCohort = requestCohort();
+        if (effectiveCohort) {
+            body.set("cohort", effectiveCohort);
+        }
         var response = await fetch("/grades/grades_api.php?action=" + encodeURIComponent(action), {
             method: "POST",
             credentials: "same-origin",
@@ -408,6 +547,7 @@
     }
 
     function ensureSignedOutState(errorText) {
+        resetAuthGuardCopy();
         setState(errorText ? "unauthorized" : "signed-out");
         setAuthMessage(errorText || "برای دیدن کارنامه، اول وارد حساب کاربری شو.", errorText ? "error" : "", false);
         if (accountEntryLink) {
@@ -416,7 +556,12 @@
     }
 
     async function fetchGrades() {
-        var response = await fetch("/grades/grades_api.php?action=me&cohort=" + encodeURIComponent(pageCohort), {
+        var effectiveCohort = requestCohort();
+        var url = "/grades/grades_api.php?action=me";
+        if (effectiveCohort) {
+            url += "&cohort=" + encodeURIComponent(effectiveCohort);
+        }
+        var response = await fetch(url, {
             method: "GET",
             credentials: "same-origin",
             headers: {
@@ -650,6 +795,10 @@
             var result = await fetchGrades();
 
             if (!result || result.error) {
+                if (result && result.httpStatus === 403) {
+                    showAccessDeniedState((result && result.error) || "برای این حساب فقط نمرات همان ورودی فعال است.");
+                    return;
+                }
                 if (consumeUnauthorized(result, "نشست شما منقضی شده است. دوباره وارد شوید.")) {
                     ensureSignedOutState("نشست شما منقضی شده است. دوباره وارد شوید.");
                     return;
@@ -713,6 +862,7 @@
         }
 
         currentUser = detail.user;
+        syncImplicitPageCohortFromUser(detail.user);
         currentStudentNumber = detail.user.studentNumber || "";
         renderOwnerManager();
         if (isCurrentUserOwner() && !ownerState.loaded && !ownerState.loading) {

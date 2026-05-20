@@ -1,0 +1,291 @@
+body.exam-payment-page {
+    min-height: 100vh;
+}
+
+.exam-payment-main {
+    width: min(1120px, 100%);
+    margin: 0 auto;
+    padding: 1.4rem 5% calc(2rem + env(safe-area-inset-bottom, 0px));
+}
+
+.exam-payment-shell {
+    display: grid;
+    gap: 1rem;
+    align-items: start;
+}
+
+.exam-payment-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border-color-strong);
+    border-radius: 30px;
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--accent-soft) 78%, transparent) 0%, transparent 44%),
+        radial-gradient(circle at bottom left, color-mix(in srgb, var(--commerce-accent-soft) 72%, transparent) 0%, transparent 42%),
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 96%, transparent), color-mix(in srgb, var(--surface) 96%, transparent));
+    box-shadow: var(--surface-shadow-strong);
+}
+
+.exam-payment-card__inner,
+.exam-payment-panel {
+    padding: 1.2rem;
+}
+
+.exam-payment-head {
+    text-align: center;
+}
+
+.exam-payment-kicker,
+.exam-payment-chip,
+.exam-payment-user,
+.exam-payment-feature__index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--surface-muted) 90%, transparent);
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    font-weight: 820;
+}
+
+.exam-payment-title {
+    margin: 0.95rem 0 0;
+    color: var(--text-primary);
+    font-family: var(--font-accent);
+    font-size: clamp(2rem, 4.2vw, 3.1rem);
+    line-height: 1.2;
+    font-weight: 900;
+    text-wrap: balance;
+}
+
+.exam-payment-copy {
+    margin: 0.8rem auto 0;
+    width: min(720px, 100%);
+    color: var(--text-secondary);
+    font-size: 0.97rem;
+    line-height: 2;
+}
+
+.exam-payment-price {
+    margin: 1.15rem auto 0;
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 1.35rem;
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--surface-solid) 94%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-color) 18%, transparent);
+    box-shadow: 0 18px 38px -30px rgba(17, 30, 54, 0.32);
+}
+
+.exam-payment-price strong {
+    color: var(--text-primary);
+    font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+    line-height: 1.1;
+    font-weight: 920;
+}
+
+.exam-payment-price span {
+    color: var(--text-tertiary);
+    font-size: 0.82rem;
+}
+
+.exam-payment-headline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 0.9rem;
+}
+
+.exam-payment-action {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.2rem;
+}
+
+.exam-payment-btn {
+    appearance: none;
+    border: 0;
+    min-height: 54px;
+    padding: 0.9rem 1.4rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, var(--commerce-accent) 0%, var(--accent-color) 100%);
+    color: var(--text-on-accent);
+    box-shadow: 0 22px 36px -22px rgba(24, 53, 103, 0.38);
+    font: inherit;
+    font-size: 0.98rem;
+    font-weight: 880;
+    cursor: pointer;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-fast) var(--motion-ease-standard),
+        opacity var(--motion-fast) var(--motion-ease-standard);
+}
+
+.exam-payment-btn:hover,
+.exam-payment-btn:focus-visible {
+    transform: translateY(-1px);
+}
+
+.exam-payment-btn[disabled] {
+    cursor: wait;
+    opacity: 0.72;
+    transform: none;
+}
+
+.exam-payment-subactions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 0.9rem;
+}
+
+.exam-payment-link {
+    color: var(--accent-strong);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 760;
+}
+
+.exam-payment-feedback {
+    min-height: 24px;
+    margin-top: 0.85rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+}
+
+.exam-payment-feedback.is-success {
+    color: var(--success-color);
+}
+
+.exam-payment-feedback.is-error {
+    color: var(--danger-color);
+}
+
+.exam-payment-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.exam-payment-panel {
+    border: 1px solid var(--border-color-strong);
+    border-radius: 26px;
+    background: var(--surface);
+    box-shadow: var(--surface-shadow);
+}
+
+.exam-payment-panel__title {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 860;
+}
+
+.exam-payment-panel__copy {
+    margin: 0.6rem 0 0;
+    color: var(--text-secondary);
+    line-height: 1.95;
+    font-size: 0.9rem;
+}
+
+.exam-payment-user {
+    margin-top: 0.9rem;
+}
+
+.exam-payment-features {
+    display: grid;
+    gap: 0.8rem;
+    margin-top: 1rem;
+}
+
+.exam-payment-feature {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.8rem;
+    align-items: start;
+    padding: 0.95rem;
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
+    border: 1px solid var(--border-color);
+}
+
+.exam-payment-feature p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.95;
+}
+
+.exam-payment-result {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--surface-solid) 92%, transparent);
+    border: 1px solid var(--border-color);
+}
+
+.exam-payment-result.is-success {
+    border-color: color-mix(in srgb, var(--success-color) 22%, transparent);
+    background: color-mix(in srgb, var(--success-color) 8%, var(--surface-solid));
+}
+
+.exam-payment-result.is-error {
+    border-color: color-mix(in srgb, var(--danger-color) 24%, transparent);
+    background: color-mix(in srgb, var(--danger-color) 8%, var(--surface-solid));
+}
+
+.exam-payment-result h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 880;
+}
+
+.exam-payment-result p {
+    margin: 0.55rem 0 0;
+    color: var(--text-secondary);
+    line-height: 1.95;
+    font-size: 0.9rem;
+}
+
+.exam-payment-login {
+    margin-top: 1rem;
+}
+
+@media (min-width: 920px) {
+    .exam-payment-shell {
+        grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.95fr);
+    }
+
+    .exam-payment-side {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        min-width: 0;
+        position: sticky;
+        top: calc(84px + env(safe-area-inset-top, 0px));
+    }
+}
+
+@media (max-width: 640px) {
+    .exam-payment-main {
+        padding-inline: 1rem;
+    }
+
+    .exam-payment-card,
+    .exam-payment-panel {
+        border-radius: 24px;
+    }
+}

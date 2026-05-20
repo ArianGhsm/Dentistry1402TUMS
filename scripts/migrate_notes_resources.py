@@ -28,6 +28,7 @@ DEFAULT_OWNER_LOGIN = {
 }
 MANIFEST_DIR_NAME = "_migration"
 MANIFEST_FILE_NAME = "resource_manifest.json"
+INVALID_FILENAME_CHARS = '<>:"/\\|?*'
 
 PERSIAN_DIGITS = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
 KNOWN_DIRECT_FILE_EXTENSIONS = {
@@ -75,6 +76,7 @@ CONTENT_TYPE_EXTENSION_OVERRIDES = {
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
     "application/vnd.ms-excel": ".xls",
 }
+FTP_TIMEOUT_SECONDS = 7200
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -110,6 +112,17 @@ def sanitize_ascii_segment(value: str, fallback: str) -> str:
 
 def build_relative_dir(cohort: str, section_slug: str) -> str:
     return f"{cohort}/{section_slug}".replace("\\", "/")
+
+
+def sanitize_display_filename(value: str, fallback: str) -> str:
+    text = str(value or "").replace("\r", " ").replace("\n", " ")
+    text = re.sub(r"\s+", " ", text).strip()
+    if not text:
+        text = fallback
+    text = "".join("_" if char in INVALID_FILENAME_CHARS else char for char in text)
+    text = re.sub(r"[\x00-\x1f]", "", text).strip()
+    text = text.rstrip(". ").strip()
+    return text or fallback
 
 
 def make_entry(
@@ -207,11 +220,13 @@ def collect_entries() -> list[dict[str, Any]]:
 
 
 def build_manifest(backup_root: Path) -> dict[str, Any]:
-    return {
+    manifest = {
         "generatedAt": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         "backupRoot": str(backup_root),
         "entries": collect_entries(),
     }
+    sync_manifest_storage_names(manifest, backup_root)
+    return manifest
 
 
 def manifest_path(backup_root: Path) -> Path:
@@ -284,10 +299,69 @@ def guess_extension(content_type: str, filename_hint: str, final_url: str) -> st
     return guessed or ".bin"
 
 
-def make_storage_name(entry: dict[str, Any], extension: str) -> str:
+def entry_extension(entry: dict[str, Any]) -> str:
+    storage_name = str(entry.get("storageName", "")).strip()
+    if storage_name:
+        suffix = Path(storage_name).suffix
+        if suffix:
+            return suffix
+    backup_path = str(entry.get("backupAbsolutePath", "")).strip()
+    if backup_path:
+        suffix = Path(backup_path).suffix
+        if suffix:
+            return suffix
+    final_url = str(entry.get("finalUrl", "")).strip()
+    if final_url:
+        suffix = Path(urllib.parse.urlparse(final_url).path).suffix
+        if suffix:
+            return suffix
+    old_url = str(entry.get("oldUrl", "")).strip()
+    if old_url:
+        suffix = Path(urllib.parse.urlparse(old_url).path).suffix
+        if suffix:
+            return suffix
+    content_type = str(entry.get("contentType", "")).strip()
+    if content_type:
+        return guess_extension(content_type, "", final_url or old_url)
+    return ""
+
+
+def legacy_numeric_storage_name(entry: dict[str, Any], extension: str) -> str:
     cohort_slug = sanitize_ascii_segment(entry["cohort"], "cohort")
     section_slug = sanitize_ascii_segment(entry["sectionSlug"], "section")
     return f"resource-{cohort_slug}-{section_slug}-{int(entry['itemId']):04d}{extension}"
+
+
+def build_backup_paths(entry: dict[str, Any], backup_root: Path) -> tuple[str, str]:
+    relative_path = str((Path(entry["relativeDir"]) / entry["storageName"]).as_posix())
+    absolute_path = str((backup_root / Path(relative_path)).resolve())
+    return relative_path, absolute_path
+
+
+def sync_manifest_storage_names(manifest: dict[str, Any], backup_root: Path) -> None:
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for entry in manifest["entries"]:
+        grouped.setdefault(str(entry["relativeDir"]), []).append(entry)
+
+    for entries in grouped.values():
+        used_names: set[str] = set()
+        for entry in sorted(entries, key=lambda item: (int(item.get("itemId") or 0), str(item.get("title") or ""))):
+            extension = entry_extension(entry)
+            fallback = f"resource-{int(entry.get('itemId') or 0)}"
+            base_name = sanitize_display_filename(str(entry.get("title") or ""), fallback)
+            candidate = base_name + extension if extension else base_name
+            unique_name = candidate
+            index = 2
+            while unique_name.casefold() in used_names:
+                alt_base = f"{base_name} ({index})"
+                unique_name = alt_base + extension if extension else alt_base
+                index += 1
+            used_names.add(unique_name.casefold())
+            entry["storageName"] = unique_name
+            if extension:
+                relative_path, absolute_path = build_backup_paths(entry, backup_root)
+                entry["backupRelativePath"] = relative_path
+                entry["backupAbsolutePath"] = absolute_path
 
 
 def should_skip_html_response(content_type: str, candidate_name: str, final_url: str) -> bool:
@@ -323,7 +397,12 @@ def download_entry(opener: urllib.request.OpenerDirector, backup_root: Path, ent
             content_disposition = response.headers.get("Content-Disposition", "")
             source_filename = parse_content_disposition_filename(content_disposition)
             extension = guess_extension(content_type, source_filename, final_url)
-            storage_name = make_storage_name(entry, extension)
+            entry["contentType"] = content_type
+            entry["sourceFilename"] = source_filename
+            if not str(entry.get("storageName", "")).strip() or not entry_extension(entry):
+                entry["storageName"] = sanitize_display_filename(str(entry.get("title") or ""), f"resource-{int(entry.get('itemId') or 0)}") + extension
+            sync_manifest_storage_names({"entries": [entry]}, backup_root)
+            storage_name = entry["storageName"]
             relative_path = Path(entry["relativeDir"]) / storage_name
             absolute_path = backup_root / relative_path
             absolute_path.parent.mkdir(parents=True, exist_ok=True)
@@ -369,6 +448,19 @@ def download_entry(opener: urllib.request.OpenerDirector, backup_root: Path, ent
                     handle.write(chunk)
                     digest.update(chunk)
                     total += len(chunk)
+            if total <= 0:
+                temp_path.unlink(missing_ok=True)
+                update_entry_status(
+                    entry,
+                    downloadStatus="error",
+                    error="empty-file",
+                    finalUrl=final_url,
+                    contentType=content_type,
+                    sourceFilename=source_filename,
+                    storageName=storage_name,
+                    backupRelativePath=str(relative_path).replace("\\", "/"),
+                )
+                return
             temp_path.replace(absolute_path)
 
             update_entry_status(
@@ -392,6 +484,38 @@ def download_entry(opener: urllib.request.OpenerDirector, backup_root: Path, ent
         update_entry_status(entry, downloadStatus="error", error="timeout")
     except OSError as error:
         update_entry_status(entry, downloadStatus="error", error=str(error))
+
+
+def rename_local_files(manifest: dict[str, Any], backup_root: Path) -> None:
+    sync_manifest_storage_names(manifest, backup_root)
+    for entry in manifest["entries"]:
+        desired_relative, desired_absolute = build_backup_paths(entry, backup_root)
+        desired_path = Path(desired_absolute)
+        current_path = desired_path
+        if not current_path.exists():
+            extension = entry_extension(entry)
+            legacy_name = legacy_numeric_storage_name(entry, extension) if extension else ""
+            if legacy_name:
+                legacy_path = backup_root / entry["relativeDir"] / legacy_name
+                if legacy_path.exists():
+                    current_path = legacy_path
+
+        if not current_path.exists():
+            entry["backupRelativePath"] = desired_relative
+            entry["backupAbsolutePath"] = desired_absolute
+            continue
+
+        if current_path.resolve() == desired_path.resolve():
+            entry["backupRelativePath"] = desired_relative
+            entry["backupAbsolutePath"] = desired_absolute
+            continue
+
+        desired_path.parent.mkdir(parents=True, exist_ok=True)
+        if desired_path.exists():
+            raise RuntimeError(f"Cannot rename {current_path} to {desired_path}: destination already exists.")
+        current_path.rename(desired_path)
+        entry["backupRelativePath"] = desired_relative
+        entry["backupAbsolutePath"] = desired_absolute
 
 
 def load_secret(path: Path) -> dict[str, Any]:
@@ -430,45 +554,96 @@ def ftp_store_file(ftp: FTP, local_path: Path, remote_dir: str, remote_name: str
         ftp.cwd(root)
 
 
-def upload_manifest_entries(manifest: dict[str, Any], secret: dict[str, Any]) -> None:
+def build_public_url(public_domain: str, relative_dir: str, storage_name: str) -> str:
+    return "https://" + public_domain.rstrip("/") + "/" + relative_dir.strip("/") + "/" + urllib.parse.quote(storage_name)
+
+
+def remote_file_size(ftp: FTP, remote_path: str) -> int | None:
+    try:
+        size = ftp.size("/" + remote_path.strip("/"))
+    except ftp_errors:
+        return None
+    if size is None:
+        return None
+    try:
+        return int(size)
+    except (TypeError, ValueError):
+        return None
+
+
+def secret_connection_settings(secret: dict[str, Any]) -> tuple[str, str, str, str, str]:
     domain = str(secret.get("domain", "")).strip()
+    ftp_host = str(secret.get("ftpHost", "")).strip() or domain
+    public_domain = str(secret.get("publicDomain", "")).strip() or domain
+    remote_base_dir = str(secret.get("remoteBaseDir", "")).strip().strip("/")
     username = str(secret.get("username", "")).strip()
     password = str(secret.get("password", "")).strip()
-    if not domain or not username or not password:
+    if not ftp_host or not public_domain or not username or not password:
         raise RuntimeError("Download-host credentials are incomplete.")
+    return ftp_host, public_domain, remote_base_dir, username, password
 
-    ensure_host_resolves(domain)
-    ftp = FTP()
-    ftp.connect(domain, 21, timeout=60)
+
+def upload_single_entry(entry: dict[str, Any], secret: dict[str, Any]) -> None:
+    if str(entry.get("uploadStatus", "")).strip().lower() == "skipped":
+        return
+    ftp_host, public_domain, remote_base_dir, username, password = secret_connection_settings(secret)
+    if entry.get("downloadStatus") != "downloaded":
+        if entry.get("downloadStatus") == "skipped":
+            entry["uploadStatus"] = "skipped"
+        return
+
+    local_path = Path(str(entry.get("backupAbsolutePath", "")).strip())
+    storage_name = str(entry.get("storageName", "")).strip()
+    relative_dir = str(entry.get("relativeDir", "")).strip()
+    if not local_path.is_file() or not storage_name or not relative_dir:
+        entry["uploadStatus"] = "error"
+        entry["error"] = "missing-local-file"
+        return
+    if local_path.stat().st_size <= 0:
+        entry["uploadStatus"] = "error"
+        entry["error"] = "empty-local-file"
+        return
+
+    ensure_host_resolves(ftp_host)
+    ftp = FTP(timeout=FTP_TIMEOUT_SECONDS)
+    ftp.connect(ftp_host, 21, timeout=FTP_TIMEOUT_SECONDS)
     ftp.login(username, password)
     ftp.set_pasv(True)
     try:
-        for entry in manifest["entries"]:
-            if entry.get("downloadStatus") != "downloaded":
-                if entry.get("downloadStatus") == "skipped":
-                    entry["uploadStatus"] = "skipped"
-                continue
-            local_path = Path(str(entry.get("backupAbsolutePath", "")).strip())
-            storage_name = str(entry.get("storageName", "")).strip()
-            relative_dir = str(entry.get("relativeDir", "")).strip()
-            if not local_path.is_file() or not storage_name or not relative_dir:
-                entry["uploadStatus"] = "error"
-                entry["error"] = "missing-local-file"
-                continue
-
-            ftp_store_file(ftp, local_path, relative_dir, storage_name)
-            public_url = "https://" + domain.rstrip("/") + "/" + relative_dir.strip("/") + "/" + urllib.parse.quote(storage_name)
+        target_dir = "/".join(part for part in [remote_base_dir, relative_dir.strip("/")] if part)
+        remote_path = "/".join(part for part in [target_dir.strip("/"), storage_name] if part)
+        existing_size = remote_file_size(ftp, remote_path)
+        if existing_size == local_path.stat().st_size:
             update_entry_status(
                 entry,
                 uploadStatus="uploaded",
-                uploadedUrl=public_url,
+                uploadedUrl=build_public_url(public_domain, relative_dir, storage_name),
                 uploadedAt=time.strftime("%Y-%m-%dT%H:%M:%S%z"),
             )
+            return
+        ftp_store_file(ftp, local_path, target_dir, storage_name)
+        update_entry_status(
+            entry,
+            uploadStatus="uploaded",
+            uploadedUrl=build_public_url(public_domain, relative_dir, storage_name),
+            uploadedAt=time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        )
     finally:
         try:
             ftp.quit()
         except ftp_errors:
             ftp.close()
+
+
+def upload_manifest_entries(manifest: dict[str, Any], secret: dict[str, Any]) -> None:
+    for entry in manifest["entries"]:
+        if entry.get("uploadStatus") == "uploaded":
+            continue
+        try:
+            upload_single_entry(entry, secret)
+        except Exception as error:
+            entry["uploadStatus"] = "error"
+            entry["error"] = str(error)
 
 
 def request_json(
@@ -559,7 +734,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Backup, upload, and relink notes/resources assets.")
     parser.add_argument(
         "action",
-        choices=["inventory", "download", "upload", "update-live"],
+        choices=["inventory", "download", "rename-local", "upload", "update-live"],
         help="Operation to run.",
     )
     parser.add_argument(
@@ -590,6 +765,7 @@ def main() -> int:
     backup_root = Path(args.backup_root)
     backup_root.mkdir(parents=True, exist_ok=True)
     manifest, manifest_file = load_or_build_manifest(backup_root, refresh=args.refresh_manifest)
+    sync_manifest_storage_names(manifest, backup_root)
 
     if args.action == "inventory":
         save_manifest(backup_root, manifest)
@@ -603,14 +779,32 @@ def main() -> int:
             if entry.get("downloadStatus") == "downloaded":
                 continue
             download_entry(opener, backup_root, entry)
+            sync_manifest_storage_names(manifest, backup_root)
             save_manifest(backup_root, manifest)
+        print(f"Manifest: {manifest_file}")
+        print_summary(manifest)
+        return 0
+
+    if args.action == "rename-local":
+        rename_local_files(manifest, backup_root)
+        sync_manifest_storage_names(manifest, backup_root)
+        save_manifest(backup_root, manifest)
         print(f"Manifest: {manifest_file}")
         print_summary(manifest)
         return 0
 
     if args.action == "upload":
         secret = load_secret(Path(args.secret_path))
-        upload_manifest_entries(manifest, secret)
+        sync_manifest_storage_names(manifest, backup_root)
+        for entry in manifest["entries"]:
+            if entry.get("uploadStatus") == "uploaded":
+                continue
+            try:
+                upload_single_entry(entry, secret)
+            except Exception as error:
+                entry["uploadStatus"] = "error"
+                entry["error"] = str(error)
+            save_manifest(backup_root, manifest)
         save_manifest(backup_root, manifest)
         print(f"Manifest: {manifest_file}")
         print_summary(manifest)
