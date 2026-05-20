@@ -1497,7 +1497,7 @@ html[data-theme="dark"] .app-dashboard-page .background-overlay {
     opacity: 0.92;
 }
 
-body.app-dashboard-page > :not(.background-overlay):not(.home-background-aura) {
+body.app-dashboard-page > :not(.background-overlay):not(.home-background-aura):not(.shell-bottom-nav) {
     position: relative;
     z-index: 1;
 }
