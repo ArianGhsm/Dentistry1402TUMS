@@ -10,21 +10,24 @@
     var LAUNCH_SPLASH_LEAVING_CLASS = "dent-launch-splash--leaving";
     var LAUNCH_SPLASH_STYLE_ID = "dent1402-launch-splash-style";
     var LAUNCH_SPLASH_NODE_ID = "dent1402-launch-splash";
-    var LAUNCH_SPLASH_MIN_VISIBLE_MS = 280;
-    var LAUNCH_SPLASH_MAX_VISIBLE_MS = 560;
-    var LAUNCH_SPLASH_FADE_MS = 140;
+    var LAUNCH_SPLASH_MIN_VISIBLE_MS = 160;
+    var LAUNCH_SPLASH_MAX_VISIBLE_MS = 320;
+    var LAUNCH_SPLASH_FADE_MS = 110;
     var LAUNCH_SPLASH_LOGO_URL = "/assets/images/logo.png?v=20260422-brand1";
     var LAUNCH_SPLASH_COLOR_LIGHT = "#f2f3f5";
     var LAUNCH_SPLASH_COLOR_DARK = "#101827";
     var launchSplashMounted = false;
     var launchSplashNode = null;
-    var inputViewportTimer = null;
+    var inputViewportFrame = 0;
+    var inputViewportSignature = "";
+    var digitLocalizationQueue = [];
+    var digitLocalizationScheduled = false;
+    var DIGIT_LOCALIZATION_FALLBACK_DELAY_MS = 36;
+    var DIGIT_LOCALIZATION_BUDGET_MS = 12;
     var persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
     var CRITICAL_ACCENT_FONTS = [
-        "/fonts/AbarHigh-Regular.woff2",
         "/fonts/AbarHigh-Bold.woff2",
-        "/fonts/AbarHigh-ExtraBold.woff2",
-        "/fonts/AbarHigh-Black.woff2"
+        "/fonts/AbarHigh-ExtraBold.woff2"
     ];
 
     function ensureCriticalAccentFontPreloads() {
@@ -158,16 +161,24 @@
             return;
         }
         var focused = isTextInputFocused();
+        var keyboardOpen = isSoftKeyboardOpen();
+        var signature = (focused ? "1" : "0") + ":" + (keyboardOpen ? "1" : "0");
+        if (signature === inputViewportSignature) {
+            return;
+        }
+        inputViewportSignature = signature;
         document.body.classList.toggle("site-input-focus", focused);
-        document.body.classList.toggle("site-keyboard-open", isSoftKeyboardOpen());
+        document.body.classList.toggle("site-keyboard-open", keyboardOpen);
     }
 
     function queueInputViewportSync() {
-        ensureViewportScaleLock();
-        if (inputViewportTimer) {
-            window.clearTimeout(inputViewportTimer);
+        if (inputViewportFrame) {
+            return;
         }
-        inputViewportTimer = window.setTimeout(syncInputViewportState, 34);
+        inputViewportFrame = window.requestAnimationFrame(function () {
+            inputViewportFrame = 0;
+            syncInputViewportState();
+        });
     }
 
     function parseVersionFromUrl(rawUrl) {
@@ -256,10 +267,6 @@
         }
 
         var navType = navigationType();
-        if (navType === "reload") {
-            return true;
-        }
-
         if (navType === "back_forward") {
             return false;
         }
@@ -580,12 +587,60 @@
         }
     }
 
+    function digitLocalizationShouldYield(startedAt, deadline) {
+        if (deadline && typeof deadline.timeRemaining === "function") {
+            return deadline.timeRemaining() <= 2;
+        }
+        return (Date.now() - startedAt) >= DIGIT_LOCALIZATION_BUDGET_MS;
+    }
+
+    function flushDigitLocalizationQueue(deadline) {
+        digitLocalizationScheduled = false;
+        var startedAt = Date.now();
+
+        while (digitLocalizationQueue.length) {
+            localizeDigits(digitLocalizationQueue.shift());
+            if (digitLocalizationQueue.length && digitLocalizationShouldYield(startedAt, deadline)) {
+                break;
+            }
+        }
+
+        if (digitLocalizationQueue.length) {
+            scheduleDigitLocalization();
+        }
+    }
+
+    function scheduleDigitLocalization() {
+        if (digitLocalizationScheduled) {
+            return;
+        }
+
+        digitLocalizationScheduled = true;
+        if (typeof window.requestIdleCallback === "function") {
+            window.requestIdleCallback(flushDigitLocalizationQueue, { timeout: 160 });
+            return;
+        }
+
+        window.setTimeout(function () {
+            flushDigitLocalizationQueue(null);
+        }, DIGIT_LOCALIZATION_FALLBACK_DELAY_MS);
+    }
+
+    function queueDigitLocalization(root) {
+        if (!root || digitLocalizationQueue.indexOf(root) !== -1) {
+            return;
+        }
+
+        digitLocalizationQueue.push(root);
+        scheduleDigitLocalization();
+    }
+
     function startDigitLocalization() {
         if (!document.body) {
             return;
         }
 
-        localizeDigits(document.body);
+        queueDigitLocalization(document.body);
 
         if (!window.MutationObserver || digitObserver) {
             return;
@@ -594,18 +649,18 @@
         digitObserver = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
                 if (mutation.type === "characterData") {
-                    localizeTextNode(mutation.target);
+                    queueDigitLocalization(mutation.target && mutation.target.parentElement ? mutation.target.parentElement : mutation.target);
                     return;
                 }
 
                 if (mutation.type === "attributes" && mutation.target && mutation.target.nodeType === Node.ELEMENT_NODE) {
-                    localizeAttribute(mutation.target, mutation.attributeName || "");
+                    queueDigitLocalization(mutation.target);
                     return;
                 }
 
                 if (mutation.type === "childList") {
                     mutation.addedNodes.forEach(function (node) {
-                        localizeDigits(node);
+                        queueDigitLocalization(node);
                     });
                 }
             });
@@ -723,14 +778,31 @@
         }
     };
 
+    function prefersLitePerformanceMode() {
+        var connection = window.navigator.connection || window.navigator.mozConnection || window.navigator.webkitConnection || null;
+        var deviceMemory = Number(window.navigator.deviceMemory || 0);
+        var hardwareConcurrency = Number(window.navigator.hardwareConcurrency || 0);
+        return !!(
+            (connection && connection.saveData) ||
+            (deviceMemory > 0 && deviceMemory <= 4) ||
+            (hardwareConcurrency > 0 && hardwareConcurrency <= 4)
+        );
+    }
+
+    function applyPerformanceMode() {
+        document.documentElement.dataset.performanceMode = prefersLitePerformanceMode() ? "lite" : "default";
+    }
+
     ensureViewportScaleLock();
     applyTheme(resolvedTheme());
+    applyPerformanceMode();
     mountLaunchSplash();
 
     function boot() {
         injectButtons();
         syncButtons();
         startDigitLocalization();
+        queueInputViewportSync();
         notify();
     }
 

@@ -140,6 +140,8 @@
     "audio/ogg;codecs=opus",
     "audio/mp4"
   ];
+  var viewportRefreshFrame = 0;
+  var viewportRefreshNeedsComposerSync = false;
 
   function $(id) {
     return document.getElementById(id);
@@ -1013,6 +1015,23 @@
     var vv = window.visualViewport;
     var delta = Math.max(0, Math.round(window.innerHeight - vv.height));
     return delta >= 140;
+  }
+
+  function queueViewportRefresh(syncComposerIntoView) {
+    viewportRefreshNeedsComposerSync = viewportRefreshNeedsComposerSync || !!syncComposerIntoView;
+    if (viewportRefreshFrame) {
+      return;
+    }
+
+    viewportRefreshFrame = window.requestAnimationFrame(function () {
+      var shouldSyncComposer = viewportRefreshNeedsComposerSync;
+      viewportRefreshFrame = 0;
+      viewportRefreshNeedsComposerSync = false;
+      applyViewportHeight();
+      if (shouldSyncComposer) {
+        syncFocusedComposerIntoView();
+      }
+    });
   }
 
   function installChatOverscrollGuard() {
@@ -7493,10 +7512,9 @@
     });
 
     window.addEventListener("resize", function () {
-      applyViewportHeight();
+      queueViewportRefresh(true);
       if (isKeyboardViewportShift()) {
         updateMobileNav();
-        syncFocusedComposerIntoView();
         return;
       }
       if (!isMobileViewport()) {
@@ -7525,13 +7543,11 @@
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", function () {
-        applyViewportHeight();
-        syncFocusedComposerIntoView();
-      });
+        queueViewportRefresh(true);
+      }, { passive: true });
       window.visualViewport.addEventListener("scroll", function () {
-        applyViewportHeight();
-        syncFocusedComposerIntoView();
-      });
+        queueViewportRefresh(true);
+      }, { passive: true });
     }
 
     window.addEventListener("focus", function () {
