@@ -27,12 +27,12 @@ function ct_file_h(string $value): string
     <title><?php echo ct_file_h($title); ?> | لینک فایل</title>
     <meta name="description" content="<?php echo ct_file_h($description); ?>">
     <meta name="robots" content="noindex,follow">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260520-161118">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260520-161118">
-    <script src="/assets/site/scripts/theme.js?v=20260520-161118"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260520-161118">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260520-161118">
-    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260520-161118">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260520-164112">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260520-164112">
+    <script src="/assets/site/scripts/theme.js?v=20260520-164112"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260520-164112">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260520-164112">
+    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260520-164112">
 </head>
 <body class="content-tools-page content-tools-page--public" data-content-tool="public-file" data-public-token="<?php echo ct_file_h($token); ?>" data-shell-header="off" data-shell-reserve="self">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -52,7 +52,7 @@ function ct_file_h(string $value): string
             </div>
         </section>
     </main>
-    <script src="/assets/site/scripts/content-tools.js?v=20260520-161118"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260520-161118"></script>
+    <script src="/assets/site/scripts/content-tools.js?v=20260520-164112"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260520-164112"></script>
 </body>
 </html>
