@@ -1652,7 +1652,7 @@ body.app-dashboard-page > :not(.background-overlay):not(.home-background-aura):n
     background-clip: padding-box;
 }
 
-@media (prefers-reduced-motion: reduce), (max-width: 430px) {
+@media (prefers-reduced-motion: reduce) {
     .home-background-aura__lines,
     .home-background-aura__dots {
         display: none;
@@ -1721,7 +1721,7 @@ body.app-dashboard-page > :not(.background-overlay):not(.home-background-aura):n
 
 @media (max-width: 430px) {
     .home-background-aura__grid {
-        opacity: 0.26;
+        opacity: 0.3;
         background:
             repeating-linear-gradient(90deg, transparent 0 31px, var(--home-aura-grid) 31px 32px),
             repeating-linear-gradient(180deg, transparent 0 31px, var(--home-aura-grid) 31px 32px),
@@ -1775,14 +1775,14 @@ body.app-dashboard-page > :not(.background-overlay):not(.home-background-aura):n
     }
 
     .home-background-aura__lines {
-        opacity: 0.9;
+        opacity: 0.78;
     }
 
     .home-background-aura__dots {
         width: 8.5rem;
         height: 8.5rem;
         background-size: 15px 15px;
-        opacity: 0.48;
+        opacity: 0.42;
     }
 
     .home-background-aura__dots--top {
