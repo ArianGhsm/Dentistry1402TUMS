@@ -2,14 +2,17 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/auth_store.php';
+require_once __DIR__ . '/content_tools_download_host.php';
 
-const CONTENT_TOOLS_SCHEMA_VERSION = 1;
+const CONTENT_TOOLS_SCHEMA_VERSION = 2;
 const CONTENT_FILE_ID_PREFIX = 'uf-';
 const CONTENT_PASTE_ID_PREFIX = 'ps-';
 const CONTENT_FILE_PUBLIC_PATH = '/files/f/';
 const CONTENT_PASTE_PUBLIC_PATH = '/paste/p/';
 const CONTENT_MAX_UPLOAD_BYTES = 2 * 1024 * 1024 * 1024;
 const CONTENT_MAX_PASTE_CHARS = 500000;
+const CONTENT_FILE_STORAGE_LOCAL = 'local';
+const CONTENT_FILE_STORAGE_DOWNLOAD_HOST = 'download-host';
 
 function content_store_path(): string
 {
@@ -300,6 +303,60 @@ function content_absolute_url(string $path): string
     return ($secure ? 'https://' : 'http://') . $host . $path;
 }
 
+function content_clean_storage_driver($value): string
+{
+    $value = trim(strtolower((string) $value));
+    if ($value === CONTENT_FILE_STORAGE_DOWNLOAD_HOST) {
+        return CONTENT_FILE_STORAGE_DOWNLOAD_HOST;
+    }
+    return CONTENT_FILE_STORAGE_LOCAL;
+}
+
+function content_clean_remote_relative_path($value): string
+{
+    $value = trim(str_replace('\\', '/', (string) $value));
+    $value = preg_replace('#/+#', '/', $value) ?? '';
+    $value = trim($value, '/');
+    if ($value === '') {
+        return '';
+    }
+
+    $segments = [];
+    foreach (explode('/', $value) as $segment) {
+        $segment = trim($segment);
+        if ($segment === '' || $segment === '.' || $segment === '..') {
+            continue;
+        }
+        if (preg_match('/[\x00-\x1f]/u', $segment) === 1) {
+            continue;
+        }
+        $segments[] = $segment;
+    }
+
+    return implode('/', $segments);
+}
+
+function content_file_storage_driver(array $file): string
+{
+    $driver = content_clean_storage_driver($file['storageDriver'] ?? '');
+    if ($driver === CONTENT_FILE_STORAGE_DOWNLOAD_HOST) {
+        return $driver;
+    }
+
+    $remotePath = content_clean_remote_relative_path($file['remoteRelativePath'] ?? '');
+    $remoteUrl = trim((string) ($file['remotePublicUrl'] ?? ''));
+    if ($remotePath !== '' || $remoteUrl !== '') {
+        return CONTENT_FILE_STORAGE_DOWNLOAD_HOST;
+    }
+
+    return CONTENT_FILE_STORAGE_LOCAL;
+}
+
+function content_file_is_remote(array $file): bool
+{
+    return content_file_storage_driver($file) === CONTENT_FILE_STORAGE_DOWNLOAD_HOST;
+}
+
 function content_normalize_file_record(string $key, array $record): ?array
 {
     $id = content_clean_id((string) ($record['id'] ?? $key), CONTENT_FILE_ID_PREFIX);
@@ -310,13 +367,31 @@ function content_normalize_file_record(string $key, array $record): ?array
     if ($token === '') {
         $token = substr($id . '-' . content_random_token(8), 0, 72);
     }
-    $storedName = basename(str_replace('\\', '/', (string) ($record['storedName'] ?? '')));
-    if ($storedName === '' || preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{8,220}$/', $storedName) !== 1) {
-        return null;
+    $storageDriver = content_file_storage_driver($record);
+    $storedName = '';
+    if ($storageDriver === CONTENT_FILE_STORAGE_LOCAL) {
+        $storedName = basename(str_replace('\\', '/', (string) ($record['storedName'] ?? '')));
+        if ($storedName === '' || preg_match('/^[A-Za-z0-9][A-Za-z0-9._-]{8,220}$/', $storedName) !== 1) {
+            return null;
+        }
+    }
+    $remoteRelativePath = '';
+    $remotePublicUrl = '';
+    if ($storageDriver === CONTENT_FILE_STORAGE_DOWNLOAD_HOST) {
+        $remoteRelativePath = content_clean_remote_relative_path($record['remoteRelativePath'] ?? '');
+        $remotePublicUrl = trim((string) ($record['remotePublicUrl'] ?? ''));
+        if ($remoteRelativePath === '' && $remotePublicUrl === '') {
+            return null;
+        }
+        if ($remotePublicUrl === '' && $remoteRelativePath !== '' && content_download_host_is_enabled()) {
+            $remotePublicUrl = content_download_host_public_url($remoteRelativePath);
+        }
     }
     $originalName = dent_clean_text((string) ($record['originalName'] ?? $storedName), 240);
     if ($originalName === '') {
-        $originalName = $storedName;
+        $originalName = $storageDriver === CONTENT_FILE_STORAGE_DOWNLOAD_HOST
+            ? basename($remoteRelativePath !== '' ? $remoteRelativePath : 'file')
+            : $storedName;
     }
     $createdAt = trim((string) ($record['createdAt'] ?? dent_iso_now()));
     $updatedAt = trim((string) ($record['updatedAt'] ?? $createdAt));
@@ -325,6 +400,9 @@ function content_normalize_file_record(string $key, array $record): ?array
         'token' => $token,
         'originalName' => $originalName,
         'storedName' => $storedName,
+        'storageDriver' => $storageDriver,
+        'remoteRelativePath' => $remoteRelativePath,
+        'remotePublicUrl' => $remotePublicUrl,
         'size' => max(0, (int) ($record['size'] ?? 0)),
         'mimeType' => dent_clean_text((string) ($record['mimeType'] ?? 'application/octet-stream'), 120),
         'extension' => strtolower(preg_replace('/[^a-z0-9]+/', '', (string) ($record['extension'] ?? pathinfo($originalName, PATHINFO_EXTENSION))) ?? ''),
@@ -538,9 +616,68 @@ function content_store_uploaded_file(array $file, array $owner, array $meta = []
     ];
 }
 
+function content_build_download_host_file_record(array $upload, array $owner, array $meta = []): array
+{
+    $relativePath = content_clean_remote_relative_path($upload['relativePath'] ?? '');
+    if ($relativePath === '') {
+        dent_error('مسیر فایل روی هاست دانلود معتبر نیست.', 422);
+    }
+
+    $remotePublicUrl = trim((string) ($upload['publicUrl'] ?? ''));
+    if ($remotePublicUrl === '') {
+        $remotePublicUrl = content_download_host_public_url($relativePath);
+    }
+
+    $originalName = dent_clean_text((string) ($upload['originalName'] ?? $upload['name'] ?? basename($relativePath)), 240);
+    if ($originalName === '') {
+        $originalName = basename($relativePath);
+    }
+    $mimeType = dent_clean_text((string) ($upload['mimeType'] ?? 'application/octet-stream'), 120);
+    if ($mimeType === '') {
+        $mimeType = 'application/octet-stream';
+    }
+    $extension = strtolower(preg_replace('/[^a-z0-9]+/', '', (string) ($upload['extension'] ?? pathinfo($originalName, PATHINFO_EXTENSION))) ?? '');
+    $size = max(0, (int) ($upload['sizeBytes'] ?? $upload['size'] ?? 0));
+
+    $now = dent_iso_now();
+    return [
+        'id' => content_next_id(CONTENT_FILE_ID_PREFIX),
+        'token' => content_random_token(10),
+        'originalName' => $originalName,
+        'storedName' => '',
+        'storageDriver' => CONTENT_FILE_STORAGE_DOWNLOAD_HOST,
+        'remoteRelativePath' => $relativePath,
+        'remotePublicUrl' => $remotePublicUrl,
+        'size' => $size,
+        'mimeType' => $mimeType,
+        'extension' => $extension,
+        'title' => dent_clean_text((string) ($meta['title'] ?? ''), 180),
+        'description' => dent_clean_text((string) ($meta['description'] ?? ''), 1200),
+        'tags' => content_clean_tag_list($meta['tags'] ?? ''),
+        'folder' => dent_clean_text((string) ($meta['folder'] ?? ''), 80),
+        'status' => content_clean_status((string) ($meta['status'] ?? 'active')),
+        'createdAt' => $now,
+        'updatedAt' => $now,
+        'uploadedBy' => dent_normalize_student_number((string) ($owner['studentNumber'] ?? '')),
+        'downloadCount' => 0,
+        'lastDownloadedAt' => '',
+        'expiresAt' => content_parse_expires_at($meta['expiresAt'] ?? ''),
+        'passwordHash' => content_hash_password((string) ($meta['password'] ?? '')),
+        'downloadLimit' => content_normalize_download_limit($meta['downloadLimit'] ?? 0),
+        'deletedAt' => '',
+        'purgedAt' => '',
+    ];
+}
+
 function content_file_public_payload(array $file, bool $owner = false): array
 {
     $token = (string) ($file['token'] ?? '');
+    $storageDriver = content_file_storage_driver($file);
+    $remoteRelativePath = content_clean_remote_relative_path($file['remoteRelativePath'] ?? '');
+    $remotePublicUrl = trim((string) ($file['remotePublicUrl'] ?? ''));
+    if ($remotePublicUrl === '' && $storageDriver === CONTENT_FILE_STORAGE_DOWNLOAD_HOST && $remoteRelativePath !== '' && content_download_host_is_enabled()) {
+        $remotePublicUrl = content_download_host_public_url($remoteRelativePath);
+    }
     $payload = [
         'id' => (string) ($file['id'] ?? ''),
         'token' => $token,
@@ -560,11 +697,15 @@ function content_file_public_payload(array $file, bool $owner = false): array
         'downloadCount' => max(0, (int) ($file['downloadCount'] ?? 0)),
         'downloadLimit' => max(0, (int) ($file['downloadLimit'] ?? 0)),
         'hasPassword' => (string) ($file['passwordHash'] ?? '') !== '',
+        'storageDriver' => $storageDriver,
         'publicUrl' => content_absolute_url(content_file_public_url($token)),
         'downloadUrl' => content_absolute_url(content_file_download_url($token)),
+        'directUrl' => $storageDriver === CONTENT_FILE_STORAGE_DOWNLOAD_HOST ? $remotePublicUrl : '',
     ];
     if ($owner) {
         $payload['storedName'] = (string) ($file['storedName'] ?? '');
+        $payload['remoteRelativePath'] = $remoteRelativePath;
+        $payload['remotePublicUrl'] = $remotePublicUrl;
         $payload['lastDownloadedAt'] = (string) ($file['lastDownloadedAt'] ?? '');
         $payload['deletedAt'] = (string) ($file['deletedAt'] ?? '');
         $payload['purgedAt'] = (string) ($file['purgedAt'] ?? '');
@@ -630,6 +771,56 @@ function content_find_paste_by_token(array $store, string $token): ?array
     return null;
 }
 
+function content_file_remote_path(array $file): string
+{
+    return content_clean_remote_relative_path($file['remoteRelativePath'] ?? '');
+}
+
+function content_file_has_remote_path(array $file, string $relativePath): bool
+{
+    if (!content_file_is_remote($file)) {
+        return false;
+    }
+    return content_file_remote_path($file) === content_clean_remote_relative_path($relativePath);
+}
+
+function content_file_is_in_remote_directory(array $file, string $directoryPath): bool
+{
+    if (!content_file_is_remote($file)) {
+        return false;
+    }
+    $directoryPath = content_clean_remote_relative_path($directoryPath);
+    if ($directoryPath === '') {
+        return false;
+    }
+    $remotePath = content_file_remote_path($file);
+    return $remotePath !== '' && str_starts_with($remotePath, $directoryPath . '/');
+}
+
+function content_file_mark_deleted(array $file, bool $purged = false): array
+{
+    $file['status'] = 'deleted';
+    $file['deletedAt'] = trim((string) ($file['deletedAt'] ?? '')) !== '' ? (string) $file['deletedAt'] : dent_iso_now();
+    if ($purged) {
+        $file['purgedAt'] = dent_iso_now();
+    }
+    $file['updatedAt'] = dent_iso_now();
+    return $file;
+}
+
+function content_file_with_remote_path(array $file, string $relativePath): array
+{
+    $relativePath = content_clean_remote_relative_path($relativePath);
+    $file['storageDriver'] = CONTENT_FILE_STORAGE_DOWNLOAD_HOST;
+    $file['remoteRelativePath'] = $relativePath;
+    $file['remotePublicUrl'] = $relativePath !== '' ? content_download_host_public_url($relativePath) : '';
+    if ($relativePath !== '') {
+        $file['originalName'] = dent_clean_text((string) ($file['originalName'] ?? basename($relativePath)), 240) ?: basename($relativePath);
+    }
+    $file['updatedAt'] = dent_iso_now();
+    return $file;
+}
+
 function content_file_can_download(array $file): bool
 {
     if (content_public_state($file) !== 'active') {
@@ -657,12 +848,19 @@ function content_storage_summary(array $store): array
     $activeFiles = 0;
     $totalBytes = 0;
     $downloads = 0;
+    $remoteFiles = 0;
+    $localFiles = 0;
     $largest = [];
     foreach (($store['files'] ?? []) as $file) {
         if (!is_array($file)) {
             continue;
         }
         $totalFiles++;
+        if (content_file_is_remote($file)) {
+            $remoteFiles++;
+        } else {
+            $localFiles++;
+        }
         if (content_public_state($file) === 'active') {
             $activeFiles++;
         }
@@ -682,28 +880,38 @@ function content_storage_summary(array $store): array
         $pasteRawViews += max(0, (int) ($paste['rawViewCount'] ?? 0));
     }
 
+    $downloadHostEnabled = content_download_host_is_enabled();
     $freeBytes = null;
     $totalDiskBytes = null;
-    $root = content_uploads_dir();
-    if (function_exists('disk_free_space')) {
-        try {
-            $free = @disk_free_space($root);
-            if (is_float($free) || is_int($free)) {
-                $freeBytes = max(0, (int) $free);
+    if ($localFiles > 0) {
+        $root = content_uploads_dir();
+        if (function_exists('disk_free_space')) {
+            try {
+                $free = @disk_free_space($root);
+                if (is_float($free) || is_int($free)) {
+                    $freeBytes = max(0, (int) $free);
+                }
+            } catch (Throwable $error) {
+                $freeBytes = null;
             }
-        } catch (Throwable $error) {
-            $freeBytes = null;
+        }
+        if (function_exists('disk_total_space')) {
+            try {
+                $total = @disk_total_space($root);
+                if (is_float($total) || is_int($total)) {
+                    $totalDiskBytes = max(0, (int) $total);
+                }
+            } catch (Throwable $error) {
+                $totalDiskBytes = null;
+            }
         }
     }
-    if (function_exists('disk_total_space')) {
-        try {
-            $total = @disk_total_space($root);
-            if (is_float($total) || is_int($total)) {
-                $totalDiskBytes = max(0, (int) $total);
-            }
-        } catch (Throwable $error) {
-            $totalDiskBytes = null;
-        }
+
+    $notice = $downloadHostEnabled
+        ? 'فایل‌های جدید آپلودسنتر روی هاست دانلود سایت نگه‌داری می‌شوند و لینک مستقیم آن‌ها از همان هاست سرو می‌شود.'
+        : 'هاست دانلود هنوز برای آپلودسنتر فعال نشده است و فقط فایل‌های قدیمی local قابل مشاهده هستند.';
+    if ($localFiles > 0 && $downloadHostEnabled) {
+        $notice .= ' بخشی از لینک‌های قدیمی همچنان روی storage محلی سایت باقی مانده‌اند.';
     }
 
     return [
@@ -711,14 +919,17 @@ function content_storage_summary(array $store): array
         'activeFiles' => $activeFiles,
         'totalBytes' => $totalBytes,
         'downloadCount' => $downloads,
+        'remoteFiles' => $remoteFiles,
+        'localFiles' => $localFiles,
+        'downloadHostEnabled' => $downloadHostEnabled,
         'pasteCount' => count($store['pastes'] ?? []),
         'pasteViewCount' => $pasteViews,
         'pasteRawViewCount' => $pasteRawViews,
-        'storageRoot' => 'content_tools/uploads',
+        'storageRoot' => $downloadHostEnabled ? content_download_host_public_base_url() : 'content_tools/uploads',
         'remainingBytes' => $freeBytes,
         'diskTotalBytes' => $totalDiskBytes,
         'remainingKnown' => $freeBytes !== null,
-        'notice' => 'فایل‌ها در storage مدیریت‌شده سایت نگه‌داری می‌شوند و فضای هاست دائمی تضمین‌شده نیست؛ نسخه‌های مهم را بیرون از سایت هم نگه دارید.',
+        'notice' => $notice,
         'largestFiles' => array_map(static fn(array $file): array => content_file_public_payload($file, true), array_slice($largest, 0, 5)),
     ];
 }

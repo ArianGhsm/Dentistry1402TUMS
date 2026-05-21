@@ -42,7 +42,7 @@
 - داده‌های فرم‌ساز جدید باید در storage مشترک `forms/store.json` بماند و داده‌های قبلی DIS در `dis_request/store.json` یا نظرسنجی‌های قدیمی chat بدون migration صریح حذف/بازنویسی نشوند.
 - داده‌های خرید/سفارش باید در storage مشترک `payments/store.json` بماند و deploy نباید سفارش‌ها، آیتم‌ها، کدهای تخفیف یا تاریخچه پرداخت را reset کند.
 - تصاویر آپلودی کالاهای بخش خرید باید در storage مشترک `payments/uploads/` بمانند و نباید با فایل‌های deploy-replaced یا مسیرهای temp جایگزین شوند.
-- داده‌های مرکز آپلود و pastebin باید در storage مشترک `content_tools/store.json` بماند؛ فایل‌های آپلودشده فقط در `content_tools/uploads/` نگه‌داری شوند و deploy نباید فایل‌ها، pasteها، شمارنده دانلود/بازدید یا وضعیت لینک‌ها را reset کند.
+- داده‌های مرکز آپلود و pastebin باید در storage مشترک `content_tools/store.json` بماند؛ metadata لینک‌ها و وضعیت فایل‌ها در همین storage نگه‌داری می‌شود و deploy نباید فایل‌ها، pasteها، شمارنده دانلود/بازدید یا وضعیت لینک‌ها را reset کند. باینری فایل‌های جدیدِ مرکز آپلود باید از workflow مشترک `/files/` و `content_tools_api.php` روی هاست دانلود ذخیره شوند و `content_tools/uploads/` فقط برای فایل‌های legacy/local fallback باقی می‌ماند.
 - داده‌های آپلودر HTML باید در storage مشترک `html_uploader/store.json` بماند و فایل‌های HTML فقط در `html_uploader/pages/` نگه‌داری شوند؛ deploy نباید لینک‌ها، فایل‌ها، شمارنده بازدید یا وضعیت فعال/مخفی/حذف‌شده‌ی آن‌ها را reset کند.
 - داده‌های منابع/جزوات قابل مدیریت باید در storage مشترک `notes/` بماند؛ برای ۱۴۰۲ در `notes/1402_terms.json`، برای ۱۴۰۳ در `notes/1403_archive.json` و برای پروتز ۱۴۰۲ در `notes/prosthesis_1402_terms.json`. Deploy نباید کارت‌ها یا ترم‌های اضافه/ویرایش/حذف‌شده مالک یا نماینده پروتز را با seed یا HTML قدیمی برگرداند.
 - داده‌های چت پروتز باید جدا در `prosthesis_1402/chat/` بماند و داده‌های نمرات پروتز باید جدا در `grades/prosthesis_1402_grades.csv` و `grades/prosthesis_1402_meta.json` بماند؛ deploy نباید این state را با `chat/` یا `grades/grades.csv` دندانپزشکی قاطی یا جایگزین کند.
@@ -50,12 +50,12 @@
 - گزارش موفقیت کاذب ممنوع است: اگر داده فقط local یا cache است، موفقیت اعلام نشود.
 
 ## 4.1) قرارداد هاست دانلود منابع
-- هاست دانلود جداگانه‌ی سایت فقط برای منابع/جزوات و فایل‌های حجیم آموزشی است؛ نه برای چت، دیتابیس، session، storage اصلی سایت یا state عملیاتی.
+- هاست دانلود جداگانه‌ی سایت برای منابع/جزوات، فایل‌های حجیم آموزشی و فایل‌های مرکز آپلود مالک استفاده می‌شود؛ نه برای چت، دیتابیس، session، storage اصلی سایت یا state عملیاتی.
 - دامنه‌ی هاست دانلود منابع: `dl.dentistry1402tums.ir`
 - هاست فنی/FTP/cPanel این سرویس فعلاً `cpdl1.mihanbank.com` روی پورت `21` برای FTP و `2082` برای cPanel است و ممکن است قبل از resolve شدن دامنه‌ی عمومی، از همین host استفاده شود.
 - مسیر وب قابل‌انتشار این هاست دانلود از `public_html/` سرو می‌شود؛ بنابراین upload فایل‌های resource باید داخل `public_html/` همین اکانت انجام شود، نه ریشه‌ی home.
 - مشخصات دسترسی هاست دانلود باید فقط از فایل محلیِ ignoreشده‌ی `.codex-local/mihan-download-host.json` خوانده شود تا secret وارد Git نشود.
-- استفاده از هاست دانلود فقط برای مسیرها/داده‌های مرتبط با `notes/resources` مجاز است و باید محدود به لینک فایل‌های resource باشد.
+- استفاده از هاست دانلود برای مسیرها/داده‌های مرتبط با `notes/resources` و باینری فایل‌های `files/upload-center` مجاز است. metadata و state عملیاتی این دو قابلیت باید همچنان در storage اصلی سایت بماند.
 - `chat`, `grades`, `forms`, `payments`, `content_tools`, `html_uploader`, `paste`, احراز هویت، دیتابیس و هر state پایدار دیگر نباید به هاست دانلود منتقل شوند.
 - قبل از هر upload به هاست دانلود، باید از همه‌ی فایل‌های منبعِ قابل‌انتقال یک بکاپ محلی منظم در `D:\Arian's Documents\Lessons-Works-Projects\AI-Dev\DL-Dentistry1402TUMS` ساخته/به‌روزرسانی شود.
 - ساختار بکاپ محلی و ساختار آپلود روی هاست دانلود باید cohort-driven و مطابق چینش سایت باشد؛ حداقل با تفکیک `1402`, `1403`, `prosthesis-1402` و term/archive مناسب.

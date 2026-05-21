@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/content_tools_store.php';
+require_once __DIR__ . '/content_tools_download_host.php';
 
 function content_api_require_method(array $methods): void
 {
@@ -176,8 +177,123 @@ function content_api_unavailable_payload(string $kind, string $state = 'missing'
     ];
 }
 
+function content_api_download_host_meta_payload(): array
+{
+    return [
+        'enabled' => content_download_host_is_enabled(),
+        'baseUrl' => content_download_host_public_base_url(),
+    ];
+}
+
+function content_api_delete_local_file_blob(array $file): void
+{
+    if (content_file_is_remote($file)) {
+        return;
+    }
+    $path = content_upload_file_path((string) ($file['storedName'] ?? ''));
+    if ($path !== '' && is_file($path)) {
+        @unlink($path);
+    }
+}
+
+function content_api_sync_remote_file_path(array &$store, string $fromPath, string $toPath): int
+{
+    $fromPath = content_clean_remote_relative_path($fromPath);
+    $toPath = content_clean_remote_relative_path($toPath);
+    if ($fromPath === '' || $toPath === '' || $fromPath === $toPath) {
+        return 0;
+    }
+
+    $changed = 0;
+    foreach (($store['files'] ?? []) as $id => $file) {
+        if (!is_array($file) || !content_file_has_remote_path($file, $fromPath)) {
+            continue;
+        }
+        $store['files'][$id] = content_file_with_remote_path($file, $toPath);
+        $changed++;
+    }
+
+    return $changed;
+}
+
+function content_api_sync_remote_directory_path(array &$store, string $fromDirectory, string $toDirectory): int
+{
+    $fromDirectory = content_clean_remote_relative_path($fromDirectory);
+    $toDirectory = content_clean_remote_relative_path($toDirectory);
+    if ($fromDirectory === '' || $toDirectory === '' || $fromDirectory === $toDirectory) {
+        return 0;
+    }
+
+    $prefix = $fromDirectory . '/';
+    $changed = 0;
+    foreach (($store['files'] ?? []) as $id => $file) {
+        if (!is_array($file) || !content_file_is_in_remote_directory($file, $fromDirectory)) {
+            continue;
+        }
+        $currentPath = content_file_remote_path($file);
+        $nextPath = $toDirectory . '/' . substr($currentPath, strlen($prefix));
+        $store['files'][$id] = content_file_with_remote_path($file, $nextPath);
+        $changed++;
+    }
+
+    return $changed;
+}
+
+function content_api_mark_remote_file_deleted(array &$store, string $relativePath, bool $purged = true): int
+{
+    $relativePath = content_clean_remote_relative_path($relativePath);
+    if ($relativePath === '') {
+        return 0;
+    }
+
+    $changed = 0;
+    foreach (($store['files'] ?? []) as $id => $file) {
+        if (!is_array($file) || !content_file_has_remote_path($file, $relativePath)) {
+            continue;
+        }
+        $store['files'][$id] = content_file_mark_deleted($file, $purged);
+        $changed++;
+    }
+
+    return $changed;
+}
+
+function content_api_mark_remote_directory_deleted(array &$store, string $relativeDirectory, bool $purged = true): int
+{
+    $relativeDirectory = content_clean_remote_relative_path($relativeDirectory);
+    if ($relativeDirectory === '') {
+        return 0;
+    }
+
+    $changed = 0;
+    foreach (($store['files'] ?? []) as $id => $file) {
+        if (!is_array($file) || !content_file_is_in_remote_directory($file, $relativeDirectory)) {
+            continue;
+        }
+        $store['files'][$id] = content_file_mark_deleted($file, $purged);
+        $changed++;
+    }
+
+    return $changed;
+}
+
 function content_api_emit_file_bytes(array $file, string $mode): void
 {
+    if (content_file_is_remote($file)) {
+        $remoteUrl = trim((string) ($file['remotePublicUrl'] ?? ''));
+        if ($remoteUrl === '' && ($path = content_file_remote_path($file)) !== '') {
+            $remoteUrl = content_download_host_public_url($path);
+        }
+        if ($remoteUrl === '') {
+            dent_error('لینک فایل روی هاست دانلود در دسترس نیست.', 404);
+        }
+        if ($mode === 'preview') {
+            $file['remotePublicUrl'] = $remoteUrl;
+            content_download_host_proxy_preview($file);
+        }
+        header('Location: ' . $remoteUrl, true, 302);
+        exit;
+    }
     $path = content_upload_file_path((string) ($file['storedName'] ?? ''));
     if ($path === '' || !is_file($path) || !is_readable($path)) {
         dent_error('فایل در storage پیدا نشد.', 404);
@@ -372,9 +488,16 @@ if ($action === 'ownerBulkFiles') {
                 $file['deletedAt'] = $file['deletedAt'] ?: dent_iso_now();
             }
             if ($operation === 'purge') {
-                $path = content_upload_file_path((string) ($file['storedName'] ?? ''));
-                if ($path !== '' && is_file($path)) {
-                    @unlink($path);
+                if (content_file_is_remote($file)) {
+                    $relativePath = content_file_remote_path($file);
+                    if ($relativePath !== '') {
+                        content_download_host_delete_entry($relativePath, 'file', true);
+                    }
+                } else {
+                    $path = content_upload_file_path((string) ($file['storedName'] ?? ''));
+                    if ($path !== '' && is_file($path)) {
+                        @unlink($path);
+                    }
                 }
                 $file['purgedAt'] = dent_iso_now();
                 $purged++;
@@ -390,6 +513,240 @@ if ($action === 'ownerBulkFiles') {
         'success' => true,
         'result' => $result,
         'message' => 'عملیات گروهی فایل‌ها انجام شد.',
+    ]);
+}
+
+if ($action === 'ownerDownloadHostBrowse') {
+    content_api_require_method(['GET']);
+    dent_require_owner();
+    if (!content_download_host_is_enabled()) {
+        dent_error('هاست دانلود برای آپلودسنتر فعال نیست.', 503);
+    }
+    $path = content_download_host_normalize_relative_path((string) ($_GET['path'] ?? ''));
+    $browse = content_download_host_browse($path);
+    $store = content_read_store();
+    dent_json_response([
+        'success' => true,
+        'downloadHost' => content_api_download_host_meta_payload(),
+        'summary' => content_storage_summary($store),
+        'browser' => $browse,
+    ]);
+}
+
+if ($action === 'ownerDownloadHostUpload') {
+    content_api_require_method(['POST']);
+    $owner = dent_require_owner();
+    if (!content_download_host_is_enabled()) {
+        dent_error('هاست دانلود برای آپلودسنتر فعال نیست.', 503);
+    }
+
+    $files = $_FILES['files'] ?? ($_FILES['file'] ?? null);
+    if (!is_array($files)) {
+        dent_error('فایلی برای آپلود انتخاب نشده است.', 422);
+    }
+
+    $normalizedFiles = [];
+    if (is_array($files['name'] ?? null)) {
+        foreach ($files['name'] as $index => $name) {
+            $normalizedFiles[] = [
+                'name' => $name,
+                'type' => $files['type'][$index] ?? '',
+                'tmp_name' => $files['tmp_name'][$index] ?? '',
+                'error' => $files['error'][$index] ?? UPLOAD_ERR_NO_FILE,
+                'size' => $files['size'][$index] ?? 0,
+            ];
+        }
+    } else {
+        $normalizedFiles[] = $files;
+    }
+    if ($normalizedFiles === []) {
+        dent_error('فایلی برای آپلود انتخاب نشده است.', 422);
+    }
+
+    $targetPath = content_download_host_normalize_relative_path((string) ($_POST['targetPath'] ?? ''));
+    $meta = [
+        'title' => $_POST['title'] ?? '',
+        'description' => $_POST['description'] ?? '',
+        'tags' => $_POST['tags'] ?? '',
+        'folder' => $_POST['folder'] ?? '',
+        'status' => $_POST['status'] ?? 'active',
+        'expiresAt' => $_POST['expiresAt'] ?? '',
+        'password' => $_POST['password'] ?? '',
+        'downloadLimit' => $_POST['downloadLimit'] ?? 0,
+    ];
+
+    $preparedUploads = [];
+    try {
+        foreach ($normalizedFiles as $file) {
+            if (!is_array($file)) {
+                continue;
+            }
+            $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+            if ($error !== UPLOAD_ERR_OK) {
+                if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+                    dent_error('حجم فایل از سقف فعلی PHP/هاست بیشتر است. سقف ابزار ۲ گیگابایت است، اما تنظیمات هاست هم باید این مقدار را بپذیرد.', 413);
+                }
+                if ($error === UPLOAD_ERR_PARTIAL) {
+                    dent_error('آپلود فایل کامل نشد. اتصال یا محدودیت هاست را بررسی کنید.', 422);
+                }
+                dent_error('آپلود فایل انجام نشد.', 422);
+            }
+
+            $tmpName = (string) ($file['tmp_name'] ?? '');
+            $size = max(0, (int) ($file['size'] ?? 0));
+            if ($tmpName === '' || !is_uploaded_file($tmpName) || $size <= 0) {
+                dent_error('فایل انتخاب‌شده معتبر نیست.', 422);
+            }
+            if ($size > CONTENT_MAX_UPLOAD_BYTES) {
+                dent_error('حجم هر فایل باید حداکثر ۲ گیگابایت باشد.', 422);
+            }
+
+            $originalName = dent_clean_text((string) ($file['name'] ?? 'file'), 240);
+            if ($originalName === '') {
+                $originalName = 'file';
+            }
+            $extension = strtolower(preg_replace('/[^a-z0-9]+/', '', pathinfo($originalName, PATHINFO_EXTENSION)) ?? '');
+            if (!content_extension_allowed($extension)) {
+                dent_error('این پسوند برای آپلود عمومی مجاز نیست.', 422);
+            }
+            $mime = content_detect_mime($tmpName, $originalName);
+            if (!content_mime_allowed($mime)) {
+                dent_error('نوع فایل برای آپلود عمومی مجاز نیست.', 422);
+            }
+
+            $upload = content_download_host_upload_file($targetPath, [
+                'tmp_name' => $tmpName,
+                'name' => $originalName,
+                'type' => $mime,
+            ], $originalName);
+            $upload['originalName'] = $originalName;
+            $upload['mimeType'] = $mime;
+            $upload['extension'] = $extension;
+            $preparedUploads[] = $upload;
+        }
+
+        $uploaded = content_with_store_lock(static function (array &$store) use ($preparedUploads, $owner, $meta): array {
+            $created = [];
+            foreach ($preparedUploads as $upload) {
+                if (!is_array($upload)) {
+                    continue;
+                }
+                $record = content_build_download_host_file_record($upload, $owner, $meta);
+                $store['files'][(string) $record['id']] = $record;
+                $created[] = $record;
+            }
+            return $created;
+        });
+    } catch (Throwable $error) {
+        foreach ($preparedUploads as $upload) {
+            if (!is_array($upload)) {
+                continue;
+            }
+            $relativePath = content_clean_remote_relative_path($upload['relativePath'] ?? '');
+            if ($relativePath === '') {
+                continue;
+            }
+            try {
+                content_download_host_delete_entry($relativePath, 'file', true);
+            } catch (Throwable $_deleteError) {
+            }
+        }
+        dent_error($error->getMessage(), 422);
+    }
+
+    if (($uploaded ?? []) === []) {
+        dent_error('هیچ فایلی ذخیره نشد.', 422);
+    }
+
+    content_audit_log('owner-download-host-upload', [
+        'count' => count($uploaded),
+        'targetPath' => $targetPath,
+        'by' => dent_normalize_student_number((string) ($owner['studentNumber'] ?? '')),
+    ]);
+    dent_json_response([
+        'success' => true,
+        'downloadHost' => content_api_download_host_meta_payload(),
+        'targetPath' => $targetPath,
+        'files' => array_map(static fn(array $file): array => content_file_public_payload($file, true), $uploaded),
+        'message' => count($uploaded) . ' فایل روی هاست دانلود ذخیره شد.',
+    ]);
+}
+
+if ($action === 'ownerDownloadHostCreateDir') {
+    content_api_require_method(['POST']);
+    dent_require_owner();
+    if (!content_download_host_is_enabled()) {
+        dent_error('هاست دانلود برای آپلودسنتر فعال نیست.', 503);
+    }
+    $parentPath = content_download_host_normalize_relative_path((string) ($_POST['parentPath'] ?? ''));
+    $name = (string) ($_POST['name'] ?? '');
+    $entry = content_download_host_create_dir($parentPath, $name);
+    content_audit_log('owner-download-host-create-dir', ['path' => $entry['relativePath'] ?? '']);
+    dent_json_response([
+        'success' => true,
+        'downloadHost' => content_api_download_host_meta_payload(),
+        'entry' => $entry,
+        'message' => 'پوشه جدید ساخته شد.',
+    ]);
+}
+
+if ($action === 'ownerDownloadHostRenameEntry') {
+    content_api_require_method(['POST']);
+    dent_require_owner();
+    if (!content_download_host_is_enabled()) {
+        dent_error('هاست دانلود برای آپلودسنتر فعال نیست.', 503);
+    }
+    $path = content_download_host_normalize_relative_path((string) ($_POST['path'] ?? ''));
+    $type = trim(strtolower((string) ($_POST['type'] ?? 'file'))) === 'dir' ? 'dir' : 'file';
+    $newName = (string) ($_POST['newName'] ?? '');
+    $renamed = content_download_host_rename_entry($path, $newName);
+    $syncedLinks = content_with_store_lock(static function (array &$store) use ($type, $renamed): int {
+        if ($type === 'dir') {
+            return content_api_sync_remote_directory_path($store, (string) ($renamed['previousPath'] ?? ''), (string) ($renamed['relativePath'] ?? ''));
+        }
+        return content_api_sync_remote_file_path($store, (string) ($renamed['previousPath'] ?? ''), (string) ($renamed['relativePath'] ?? ''));
+    });
+    content_audit_log('owner-download-host-rename-entry', [
+        'type' => $type,
+        'from' => $renamed['previousPath'] ?? '',
+        'to' => $renamed['relativePath'] ?? '',
+        'syncedLinks' => $syncedLinks,
+    ]);
+    dent_json_response([
+        'success' => true,
+        'downloadHost' => content_api_download_host_meta_payload(),
+        'entry' => $renamed,
+        'syncedLinks' => $syncedLinks,
+        'message' => 'نام فایل یا پوشه به‌روزرسانی شد.',
+    ]);
+}
+
+if ($action === 'ownerDownloadHostDeleteEntry') {
+    content_api_require_method(['POST']);
+    dent_require_owner();
+    if (!content_download_host_is_enabled()) {
+        dent_error('هاست دانلود برای آپلودسنتر فعال نیست.', 503);
+    }
+    $path = content_download_host_normalize_relative_path((string) ($_POST['path'] ?? ''));
+    $type = trim(strtolower((string) ($_POST['type'] ?? 'file'))) === 'dir' ? 'dir' : 'file';
+    $deleted = content_download_host_delete_entry($path, $type, true);
+    $syncedLinks = content_with_store_lock(static function (array &$store) use ($type, $path): int {
+        if ($type === 'dir') {
+            return content_api_mark_remote_directory_deleted($store, $path, true);
+        }
+        return content_api_mark_remote_file_deleted($store, $path, true);
+    });
+    content_audit_log('owner-download-host-delete-entry', [
+        'type' => $type,
+        'path' => $path,
+        'syncedLinks' => $syncedLinks,
+    ]);
+    dent_json_response([
+        'success' => true,
+        'downloadHost' => content_api_download_host_meta_payload(),
+        'entry' => $deleted,
+        'syncedLinks' => $syncedLinks,
+        'message' => 'ورودی انتخابی حذف شد.',
     ]);
 }
 
