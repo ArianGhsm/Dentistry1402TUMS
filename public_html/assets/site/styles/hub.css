@@ -736,6 +736,81 @@ body.hub-page .notes-host-tools__actions {
     gap: 0.56rem;
 }
 
+body.hub-page .notes-host-progress {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.82rem 0.88rem;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--accent-color) 18%, var(--border-color));
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 5%, transparent), transparent 72%),
+        var(--surface-solid);
+}
+
+body.hub-page .notes-host-progress[data-phase="done"] {
+    border-color: color-mix(in srgb, var(--success-color) 24%, var(--border-color));
+}
+
+body.hub-page .notes-host-progress[data-phase="error"] {
+    border-color: color-mix(in srgb, var(--danger-color) 24%, var(--border-color));
+}
+
+body.hub-page .notes-host-progress__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+body.hub-page .notes-host-progress__head strong,
+body.hub-page .notes-host-progress__head span {
+    display: block;
+}
+
+body.hub-page .notes-host-progress__head strong {
+    font-size: 0.84rem;
+    font-weight: 900;
+}
+
+body.hub-page .notes-host-progress__head span {
+    color: var(--accent-strong);
+    font-size: 0.8rem;
+    font-weight: 860;
+}
+
+body.hub-page .notes-host-progress[data-phase="done"] .notes-host-progress__head span {
+    color: var(--success-color);
+}
+
+body.hub-page .notes-host-progress[data-phase="error"] .notes-host-progress__head span {
+    color: var(--danger-color);
+}
+
+body.hub-page .notes-host-progress__track {
+    overflow: hidden;
+    height: 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-color) 10%, var(--surface-solid));
+}
+
+body.hub-page .notes-host-progress__track span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent-color), var(--success-color));
+    transition: width 0.18s ease;
+}
+
+body.hub-page .notes-host-progress__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.42rem 0.58rem;
+    color: var(--text-secondary);
+    font-size: 0.73rem;
+    line-height: 1.8;
+}
+
 body.hub-page .notes-manage-feedback {
     margin: 0;
     font-size: 0.78rem;
@@ -780,7 +855,9 @@ body.hub-page .notes-manage-feedback[data-kind="error"] {
     }
 
     body.hub-page .notes-host-tools__head,
-    body.hub-page .notes-host-tools__grid {
+    body.hub-page .notes-host-tools__grid,
+    body.hub-page .notes-host-progress__head,
+    body.hub-page .notes-host-progress__stats {
         grid-template-columns: 1fr;
     }
 

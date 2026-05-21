@@ -221,9 +221,14 @@ function dent_exams_api_paid_order_summary(?array $order): ?array
     ];
 }
 
+function dent_exams_api_is_owner(?array $user): bool
+{
+    return is_array($user) && (string) ($user['role'] ?? '') === 'owner';
+}
+
 function dent_exams_api_course_access(?array $user, array $setting, ?array $collection, array $paymentsStore): array
 {
-    $isOwner = is_array($user) && (string) ($user['role'] ?? '') === 'owner';
+    $isOwner = dent_exams_api_is_owner($user);
     $mode = (string) ($setting['paymentMode'] ?? 'free');
     $isPaidCourse = $mode === 'paid';
     $paidOrder = dent_exams_api_user_paid_order($paymentsStore, max(0, (int) ($setting['collectionId'] ?? 0)), $user);
@@ -326,11 +331,13 @@ function dent_exams_api_course_summary_payload(
     array $access,
     ?array $collection,
     array $paymentsStore,
-    bool $includeExams = false
+    bool $includeExams = false,
+    ?array $viewer = null
 ): array {
     $courseSlug = (string) ($course['slug'] ?? '');
     $paymentPath = '/exams/pay/?course=' . rawurlencode($courseSlug);
     $requestedCohort = dent_requested_cohort_key();
+    $viewerIsOwner = dent_exams_api_is_owner($viewer);
     if ($requestedCohort !== '') {
         $paymentPath .= '&cohort=' . rawurlencode($requestedCohort);
     }
@@ -390,11 +397,12 @@ function dent_exams_api_course_summary_payload(
                 return dent_exams_api_resolve_exam_question_count($exam);
             }, is_array($course['exams'] ?? null) ? $course['exams'] : [])),
             'totalOrders' => $collectionStats['totalOrders'],
-            'successCount' => $collectionStats['successCount'],
+            'successCount' => $viewerIsOwner ? $collectionStats['successCount'] : null,
             'receivedAmount' => $collectionStats['receivedAmount'],
+            'showApprovedAccessCount' => $viewerIsOwner,
         ],
         'ownerSettings' => [
-            'canManage' => is_array(dent_current_user()) && (string) ((dent_current_user())['role'] ?? '') === 'owner',
+            'canManage' => $viewerIsOwner,
             'updatedAt' => (string) ($setting['updatedAt'] ?? ''),
         ],
         'exams' => $exams,
@@ -544,7 +552,7 @@ function dent_exams_api_current_course_summary(string $catalogKey, string $cours
     $paymentsStore = payments_read_store();
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
     $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
-    return dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $collection, $paymentsStore, true);
+    return dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $collection, $paymentsStore, true, $user);
 }
 
 $action = dent_clean_text((string) ($_REQUEST['action'] ?? ''), 60);
@@ -571,7 +579,7 @@ if ($action === 'catalog') {
         $paymentsStore = payments_read_store();
         $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
         $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
-        $courses[] = dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $collection, $paymentsStore, false);
+        $courses[] = dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $collection, $paymentsStore, false, $user);
     }
 
     dent_json_response([
@@ -631,7 +639,7 @@ if ($action === 'exam') {
     $paymentsStore = payments_read_store();
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
     $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
-    $coursePayload = dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $collection, $paymentsStore, false);
+    $coursePayload = dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $collection, $paymentsStore, false, $user);
 
     if (!(bool) ($access['hasAccess'] ?? false)) {
         if ((bool) ($access['requiresLogin'] ?? false)) {

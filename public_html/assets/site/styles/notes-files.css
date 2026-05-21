@@ -132,13 +132,55 @@ body.notes-files-page .ndh-upload-queue {
     gap: 0.54rem;
 }
 
+body.notes-files-page .ndh-upload-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.58rem;
+}
+
+body.notes-files-page .ndh-upload-stat {
+    display: grid;
+    gap: 0.18rem;
+    padding: 0.72rem 0.78rem;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--accent-color) 14%, var(--border-color));
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 6%, transparent), transparent 70%),
+        var(--surface-solid);
+}
+
+body.notes-files-page .ndh-upload-stat strong,
+body.notes-files-page .ndh-upload-stat small {
+    display: block;
+}
+
+body.notes-files-page .ndh-upload-stat strong {
+    font-size: 0.9rem;
+    font-weight: 880;
+}
+
+body.notes-files-page .ndh-upload-stat small {
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+}
+
 body.notes-files-page .ndh-upload-item {
     display: grid;
-    gap: 0.26rem;
+    gap: 0.48rem;
     padding: 0.74rem 0.8rem;
     border-radius: 18px;
     border: 1px solid color-mix(in srgb, var(--accent-color) 12%, var(--border-color));
-    background: color-mix(in srgb, var(--accent-color) 4%, var(--surface-solid));
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 5%, transparent), transparent 72%),
+        color-mix(in srgb, var(--accent-color) 4%, var(--surface-solid));
+}
+
+body.notes-files-page .ndh-upload-item[data-state="done"] {
+    border-color: color-mix(in srgb, var(--success-color) 24%, var(--border-color));
+}
+
+body.notes-files-page .ndh-upload-item[data-state="error"] {
+    border-color: color-mix(in srgb, var(--danger-color) 26%, var(--border-color));
 }
 
 body.notes-files-page .ndh-upload-item strong,
@@ -155,9 +197,37 @@ body.notes-files-page .ndh-upload-item small {
     font-size: 0.74rem;
 }
 
+body.notes-files-page .ndh-upload-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+body.notes-files-page .ndh-upload-state {
+    min-height: 30px;
+    padding: 0.34rem 0.68rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-color) 10%, var(--surface-solid));
+    color: var(--accent-strong);
+    font-size: 0.72rem;
+    font-weight: 860;
+    white-space: nowrap;
+}
+
+body.notes-files-page .ndh-upload-item[data-state="done"] .ndh-upload-state {
+    background: color-mix(in srgb, var(--success-color) 10%, var(--surface-solid));
+    color: color-mix(in srgb, var(--success-color) 86%, var(--text-primary));
+}
+
+body.notes-files-page .ndh-upload-item[data-state="error"] .ndh-upload-state {
+    background: color-mix(in srgb, var(--danger-color) 10%, var(--surface-solid));
+    color: color-mix(in srgb, var(--danger-color) 86%, var(--text-primary));
+}
+
 body.notes-files-page .ndh-upload-progress {
     overflow: hidden;
-    height: 7px;
+    height: 8px;
     border-radius: 999px;
     background: color-mix(in srgb, var(--accent-color) 10%, var(--surface-solid));
 }
@@ -168,6 +238,41 @@ body.notes-files-page .ndh-upload-progress span {
     border-radius: inherit;
     background: linear-gradient(90deg, var(--accent-color), var(--success-color));
     transition: width 0.18s ease;
+}
+
+body.notes-files-page .ndh-upload-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.34rem 0.62rem;
+    color: var(--text-secondary);
+    font-size: 0.73rem;
+}
+
+body.notes-files-page .ndh-upload-stats span {
+    min-width: 0;
+}
+
+body.notes-files-page .ndh-upload-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.42rem;
+}
+
+body.notes-files-page .ndh-upload-actions button,
+body.notes-files-page .ndh-upload-actions a {
+    min-height: 34px;
+    padding: 0.4rem 0.7rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
+    color: var(--text-primary);
+    font-size: 0.74rem;
+    font-weight: 800;
+}
+
+body.notes-files-page .ndh-upload-actions .is-danger {
+    color: var(--danger-color);
+    border-color: color-mix(in srgb, var(--danger-color) 22%, var(--border-color));
 }
 
 body.notes-files-page .ndh-panel--toolbar {
@@ -372,6 +477,10 @@ body.notes-files-page .ndh-entry-actions a:focus-visible {
     body.notes-files-page .ndh-panel--toolbar {
         grid-template-columns: 1fr;
     }
+
+    body.notes-files-page .ndh-upload-summary {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 720px) {
@@ -392,6 +501,18 @@ body.notes-files-page .ndh-entry-actions a:focus-visible {
     body.notes-files-page .ndh-entry-actions a,
     body.notes-files-page .ndh-path-actions > * {
         flex: 1 1 0;
+        width: 100%;
+        text-align: center;
+    }
+
+    body.notes-files-page .ndh-upload-top,
+    body.notes-files-page .ndh-upload-stats {
+        grid-template-columns: 1fr;
+    }
+
+    body.notes-files-page .ndh-upload-state,
+    body.notes-files-page .ndh-upload-actions button,
+    body.notes-files-page .ndh-upload-actions a {
         width: 100%;
         text-align: center;
     }

@@ -126,6 +126,29 @@
         };
     }
 
+    function canViewApprovedAccessCount(course) {
+        return !!(course && course.stats && course.stats.showApprovedAccessCount);
+    }
+
+    function syncOwnerOnlyStatsVisibility(course) {
+        if (!root || canViewApprovedAccessCount(course)) {
+            return;
+        }
+
+        var approvedMeta = root.querySelector(".exams-paywall .exams-card-actions .exams-session-meta");
+        if (approvedMeta && approvedMeta.parentNode) {
+            approvedMeta.parentNode.removeChild(approvedMeta);
+        }
+
+        var summaryCards = root.querySelectorAll(".exams-summary-grid .exams-stat");
+        if (summaryCards.length > 2) {
+            var approvedCard = summaryCards[summaryCards.length - 1];
+            if (approvedCard && approvedCard.parentNode) {
+                approvedCard.parentNode.removeChild(approvedCard);
+            }
+        }
+    }
+
     function feedbackHtml() {
         if (!state.feedback) {
             return '<div class="exams-feedback"></div>';
@@ -270,6 +293,7 @@
             "  </div>",
             "</section>"
         ].join("");
+        syncOwnerOnlyStatsVisibility(course);
     }
 
     function setLoading() {

@@ -340,6 +340,27 @@ function notes_1402_item_signature(array $item): string
     return $title . '|' . $buttonUrl;
 }
 
+function notes_repair_fa_digit_mojibake(string $value): string
+{
+    static $map = null;
+    if (!is_array($map)) {
+        $map = [
+            hex2bin('c39bc2b0') => '۰',
+            hex2bin('c39bc2b1') => '۱',
+            hex2bin('c39bc2b2') => '۲',
+            hex2bin('c39bc2b3') => '۳',
+            hex2bin('c39bc2b4') => '۴',
+            hex2bin('c39bc2b5') => '۵',
+            hex2bin('c39bc2b6') => '۶',
+            hex2bin('c39bc2b7') => '۷',
+            hex2bin('c39bc2b8') => '۸',
+            hex2bin('c39bc2b9') => '۹',
+        ];
+    }
+
+    return strtr($value, $map);
+}
+
 function notes_1402_needs_term_5_seed_backfill(array $seed): bool
 {
     $backfillVersion = (int) ($seed['seedBackfillVersion'] ?? 0);
@@ -576,12 +597,17 @@ function notes_1402_normalize_store(array $seed): array
             return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
         });
 
+        $kicker = notes_repair_fa_digit_mojibake((string) ($termSeed['kicker'] ?? $defaultTerm['kicker']));
+        $title = notes_repair_fa_digit_mojibake((string) ($termSeed['title'] ?? $defaultTerm['title']));
+        $description = notes_repair_fa_digit_mojibake((string) ($termSeed['description'] ?? $defaultTerm['description']));
+        $emptyMessage = notes_repair_fa_digit_mojibake((string) ($termSeed['emptyMessage'] ?? $defaultTerm['emptyMessage']));
+
         $normalizedTerms[$termKey] = [
             'term' => $term,
-            'kicker' => dent_clean_text((string) ($termSeed['kicker'] ?? $defaultTerm['kicker']), 80),
-            'title' => dent_clean_text((string) ($termSeed['title'] ?? $defaultTerm['title']), 160),
-            'description' => dent_clean_text((string) ($termSeed['description'] ?? $defaultTerm['description']), 800),
-            'emptyMessage' => dent_clean_text((string) ($termSeed['emptyMessage'] ?? $defaultTerm['emptyMessage']), 400),
+            'kicker' => dent_clean_text($kicker, 80),
+            'title' => dent_clean_text($title, 160),
+            'description' => dent_clean_text($description, 800),
+            'emptyMessage' => dent_clean_text($emptyMessage, 400),
             'items' => $items,
         ];
     }
@@ -666,12 +692,17 @@ function notes_fixed_terms_normalize_store(
             return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
         });
 
+        $kicker = notes_repair_fa_digit_mojibake((string) ($termSeed['kicker'] ?? $defaultTerm['kicker']));
+        $title = notes_repair_fa_digit_mojibake((string) ($termSeed['title'] ?? $defaultTerm['title']));
+        $description = notes_repair_fa_digit_mojibake((string) ($termSeed['description'] ?? $defaultTerm['description']));
+        $emptyMessage = notes_repair_fa_digit_mojibake((string) ($termSeed['emptyMessage'] ?? $defaultTerm['emptyMessage']));
+
         $normalizedTerms[$termKey] = [
             'term' => $term,
-            'kicker' => dent_clean_text((string) ($termSeed['kicker'] ?? $defaultTerm['kicker']), 80),
-            'title' => dent_clean_text((string) ($termSeed['title'] ?? $defaultTerm['title']), 160),
-            'description' => dent_clean_text((string) ($termSeed['description'] ?? $defaultTerm['description']), 800),
-            'emptyMessage' => dent_clean_text((string) ($termSeed['emptyMessage'] ?? $defaultTerm['emptyMessage']), 400),
+            'kicker' => dent_clean_text($kicker, 80),
+            'title' => dent_clean_text($title, 160),
+            'description' => dent_clean_text($description, 800),
+            'emptyMessage' => dent_clean_text($emptyMessage, 400),
             'items' => $items,
         ];
     }

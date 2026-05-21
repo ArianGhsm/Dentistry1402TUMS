@@ -943,6 +943,27 @@ function Get-CommitInfoAtPath([string]$repoPath, [string]$Revision) {
     }
 }
 
+function Format-CommandFailureDetail($commandOutput, [string]$fallback = "") {
+    $lines = @()
+    foreach ($entry in @($commandOutput)) {
+        $text = ([string]$entry).Trim()
+        if ([string]::IsNullOrWhiteSpace($text)) {
+            continue
+        }
+        $lines += $text
+    }
+
+    if ($lines.Count -eq 0) {
+        return ([string]$fallback).Trim()
+    }
+
+    $snippet = ($lines | Select-Object -First 8) -join " | "
+    if ($lines.Count -gt 8) {
+        $snippet += " | ..."
+    }
+    return $snippet
+}
+
 function Assert-CleanWorkingTree() {
     $status = & git -C $projectRoot status --porcelain --untracked-files=all
     if ($LASTEXITCODE -ne 0) {
@@ -1560,7 +1581,7 @@ function New-GitHubSyncWorktree([string]$remoteName, [string]$branchName, [strin
     $hasRemoteBranch = $false
     $baseRef = $fallbackRef
 
-    & git -C $projectRoot fetch --no-tags --quiet $remoteName $branchName 2>$null
+    $fetchOutput = & git -C $projectRoot fetch --no-tags --quiet $remoteName $branchName 2>&1
     if ($LASTEXITCODE -eq 0) {
         $remoteRef = "refs/remotes/$remoteName/$branchName"
         & git -C $projectRoot show-ref --verify --quiet $remoteRef 2>$null
@@ -1569,7 +1590,8 @@ function New-GitHubSyncWorktree([string]$remoteName, [string]$branchName, [strin
             $hasRemoteBranch = $true
         }
     } elseif ([string]::IsNullOrWhiteSpace([string]$fallbackRef)) {
-        throw "GitHub sync fetch failed for $remoteName/$branchName."
+        $fetchDetail = Format-CommandFailureDetail -commandOutput $fetchOutput -fallback "No stderr output."
+        throw "GitHub sync fetch failed for $remoteName/$branchName. $fetchDetail"
     }
 
     if ([string]::IsNullOrWhiteSpace($baseRef)) {
@@ -1578,9 +1600,10 @@ function New-GitHubSyncWorktree([string]$remoteName, [string]$branchName, [strin
 
     Remove-GitHubSyncWorktree -path $worktreePath
 
-    & git -C $projectRoot worktree add --quiet --force --detach $worktreePath $baseRef 2>$null
+    $worktreeAddOutput = & git -C $projectRoot worktree add --quiet --force --detach $worktreePath $baseRef 2>&1
     if ($LASTEXITCODE -ne 0) {
-        throw "GitHub sync could not create the temporary worktree at $worktreePath."
+        $worktreeDetail = Format-CommandFailureDetail -commandOutput $worktreeAddOutput -fallback "No stderr output."
+        throw "GitHub sync could not create the temporary worktree at $worktreePath. $worktreeDetail"
     }
 
     return [PSCustomObject]@{
@@ -1831,6 +1854,7 @@ function Sync-GitHubFromLaptop([object]$GitHubPlan) {
     $pushCommand = ""
     for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
         $worktree = $null
+        $pushDetail = ""
         try {
             $worktree = New-GitHubSyncWorktree -remoteName $target.RemoteName -branchName $target.BranchName -fallbackRef $sourceHead
             Apply-GitHubSyncPlanToWorktree -repoPath $worktree.Path -uploadList $uploadList -deleteList $deleteList
@@ -1864,21 +1888,23 @@ function Sync-GitHubFromLaptop([object]$GitHubPlan) {
             if ($worktree.HasRemoteBranch) {
                 $pushCommand = "git push $($target.RemoteName) $pushSpec"
                 if ($hasStagedChanges) {
-                    & git -C $worktree.Path push --quiet $target.RemoteName $pushSpec 2>$null
+                    $pushOutput = & git -C $worktree.Path push --quiet $target.RemoteName $pushSpec 2>&1
+                    $pushDetail = Format-CommandFailureDetail -commandOutput $pushOutput -fallback "No stderr output."
                 }
             } else {
                 $pushCommand = "git push -u $($target.RemoteName) $pushSpec"
                 if ($hasStagedChanges) {
-                    & git -C $worktree.Path push --quiet -u $target.RemoteName $pushSpec 2>$null
+                    $pushOutput = & git -C $worktree.Path push --quiet -u $target.RemoteName $pushSpec 2>&1
+                    $pushDetail = Format-CommandFailureDetail -commandOutput $pushOutput -fallback "No stderr output."
                 }
             }
 
             if ($hasStagedChanges -and $LASTEXITCODE -ne 0) {
                 if ($attempt -lt $maxAttempts) {
-                    Write-Warning "GitHub sync push failed on attempt $attempt. Retrying on top of the latest remote branch."
+                    Write-Warning "GitHub sync push failed on attempt $attempt. $pushDetail Retrying on top of the latest remote branch."
                     continue
                 }
-                throw "GitHub sync push failed after successful host deploy/verification."
+                throw "GitHub sync push failed after successful host deploy/verification. $pushDetail"
             }
 
             $headAfterSync = Run-GitSingleAtPath -repoPath $worktree.Path -GitArgs @("rev-parse", "HEAD")
@@ -2030,6 +2056,7 @@ $githubSyncInfo = [PSCustomObject]@{
     HeadCommit        = $null
     PushCommand       = ""
     EstimatedPushBytes = [int64]0
+    Notes             = @()
 }
 $deployStateInfo = [PSCustomObject]@{
     Status     = "not-updated"
@@ -2042,6 +2069,7 @@ $deployStateInfo = [PSCustomObject]@{
 }
 
 $failureMessage = ""
+$nonBlockingFailureMessage = ""
 
 try {
     $remoteStorageInfo = Sync-RemoteStorageFromHost
@@ -2144,6 +2172,8 @@ try {
     }
 } catch {
     $failureMessage = $_.Exception.Message
+    $hostDeploySucceeded = ([string]$deployInfo.Status) -eq "completed"
+    $liveVerified = ([string]$verificationInfo.Status) -eq "completed"
     if (-not $remoteStorageInfo.FinishedAt) {
         $remoteStorageInfo.FinishedAt = Get-IsoNow
     }
@@ -2169,6 +2199,19 @@ try {
         $deployStateInfo.Path = $statePath
         $deployStateInfo.Status = "updated-github-failed"
         $deployStateInfo.GitHubStatus = "failed"
+    }
+    if (
+        $hostDeploySucceeded `
+        -and $liveVerified `
+        -and -not [string]::IsNullOrWhiteSpace($failureMessage) `
+        -and $failureMessage.ToLowerInvariant().Contains("github sync")
+    ) {
+        $nonBlockingFailureMessage = $failureMessage
+        $failureMessage = ""
+        $githubSyncInfo.Status = "failed-after-live-success"
+        $githubNotes = @($githubSyncInfo.Notes)
+        $githubNotes += "Host deploy and live health-check succeeded; GitHub sync failed and should be retried separately."
+        $githubSyncInfo | Add-Member -NotePropertyName Notes -NotePropertyValue $githubNotes -Force
     }
 } finally {
     $runFinishedAt = Get-IsoNow
@@ -2284,6 +2327,9 @@ try {
     Write-Host " - Estimated push bytes: $(Format-Bytes -bytes $githubSyncInfo.EstimatedPushBytes)"
     foreach ($note in @($githubSyncInfo.Notes)) {
         Write-Host "   * $note"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($nonBlockingFailureMessage)) {
+        Write-Warning "Live deploy succeeded but GitHub sync failed: $nonBlockingFailureMessage"
     }
     Write-Host " - Host deploy state record: $($deployStateInfo.Status)"
     if (-not [string]::IsNullOrWhiteSpace($deployStateInfo.Path)) {
