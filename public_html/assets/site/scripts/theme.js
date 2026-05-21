@@ -16,10 +16,12 @@
     var LAUNCH_SPLASH_LOGO_URL = "/assets/images/logo.png?v=20260422-brand1";
     var LAUNCH_SPLASH_COLOR_LIGHT = "#f2f3f5";
     var LAUNCH_SPLASH_COLOR_DARK = "#101827";
+    var FALLBACK_NAV_DURATION_MS = 220;
     var launchSplashMounted = false;
     var launchSplashNode = null;
     var inputViewportFrame = 0;
     var inputViewportSignature = "";
+    var fallbackNavLeaving = false;
     var digitLocalizationQueue = [];
     var digitLocalizationScheduled = false;
     var DIGIT_LOCALIZATION_FALLBACK_DELAY_MS = 36;
@@ -247,6 +249,132 @@
             window.navigator.standalone === true ||
             (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)
         );
+    }
+
+    function isIosBrowser() {
+        var ua = window.navigator && window.navigator.userAgent ? String(window.navigator.userAgent) : "";
+        var platform = window.navigator && window.navigator.platform ? String(window.navigator.platform) : "";
+        var touchPoints = Number(window.navigator && window.navigator.maxTouchPoints || 0);
+        return /iP(hone|ad|od)/i.test(ua) || (platform === "MacIntel" && touchPoints > 1);
+    }
+
+    function prefersReducedMotion() {
+        return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    }
+
+    function supportsCrossDocumentViewTransitions() {
+        return typeof document.startViewTransition === "function" && !isIosBrowser();
+    }
+
+    function fallbackNavigationAnimationsEnabled() {
+        return !supportsCrossDocumentViewTransitions() && !prefersReducedMotion();
+    }
+
+    function applyNavigationAnimationMode() {
+        document.documentElement.dataset.navAnimations = fallbackNavigationAnimationsEnabled() ? "fallback" : "native";
+    }
+
+    function setFallbackNavigationPhase(phase) {
+        document.documentElement.dataset.navPhase = phase;
+    }
+
+    function finalizeFallbackNavigationEnter() {
+        if (!fallbackNavigationAnimationsEnabled()) {
+            setFallbackNavigationPhase("ready");
+            return;
+        }
+
+        window.requestAnimationFrame(function () {
+            window.requestAnimationFrame(function () {
+                if (!fallbackNavLeaving) {
+                    setFallbackNavigationPhase("ready");
+                }
+            });
+        });
+    }
+
+    function primeFallbackNavigationPhase() {
+        applyNavigationAnimationMode();
+        if (!fallbackNavigationAnimationsEnabled() || navigationType() === "back_forward") {
+            setFallbackNavigationPhase("ready");
+            return;
+        }
+
+        setFallbackNavigationPhase("enter");
+    }
+
+    function isEligiblePageTransitionLink(link) {
+        if (!link || !link.href) {
+            return false;
+        }
+        if (link.target && link.target !== "_self") {
+            return false;
+        }
+        if (link.hasAttribute("download") || link.dataset.noPageTransition === "true" || link.dataset.noPageTransition === "1") {
+            return false;
+        }
+
+        var rawHref = String(link.getAttribute("href") || "").trim();
+        if (!rawHref || rawHref.charAt(0) === "#") {
+            return false;
+        }
+        if (/^(?:mailto|tel|javascript):/i.test(rawHref)) {
+            return false;
+        }
+
+        try {
+            var url = new URL(link.href, window.location.href);
+            if (url.origin !== window.location.origin) {
+                return false;
+            }
+            if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) {
+                return false;
+            }
+        } catch (error) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function installFallbackNavigationHandlers() {
+        if (!fallbackNavigationAnimationsEnabled()) {
+            setFallbackNavigationPhase("ready");
+            return;
+        }
+
+        finalizeFallbackNavigationEnter();
+
+        document.addEventListener("click", function (event) {
+            if (fallbackNavLeaving || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                return;
+            }
+
+            var target = event.target;
+            if (!target || !target.closest) {
+                return;
+            }
+
+            var link = target.closest("a[href]");
+            if (!isEligiblePageTransitionLink(link)) {
+                return;
+            }
+
+            fallbackNavLeaving = true;
+            event.preventDefault();
+            setFallbackNavigationPhase("leave");
+
+            window.setTimeout(function () {
+                window.location.href = link.href;
+            }, FALLBACK_NAV_DURATION_MS);
+        }, true);
+
+        window.addEventListener("pageshow", function (event) {
+            fallbackNavLeaving = false;
+            if (event && event.persisted) {
+                setFallbackNavigationPhase("ready");
+            }
+        }, { passive: true });
     }
 
     function isSameOriginReferrer() {
@@ -794,12 +922,14 @@
 
     ensureViewportScaleLock();
     applyTheme(resolvedTheme());
+    primeFallbackNavigationPhase();
     applyPerformanceMode();
     mountLaunchSplash();
 
     function boot() {
         injectButtons();
         syncButtons();
+        installFallbackNavigationHandlers();
         startDigitLocalization();
         queueInputViewportSync();
         notify();
