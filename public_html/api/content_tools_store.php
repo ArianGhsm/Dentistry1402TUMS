@@ -842,8 +842,10 @@ function content_is_previewable_file(array $file): bool
     return in_array($mime, ['application/pdf', 'text/plain', 'text/markdown', 'text/csv', 'application/json'], true);
 }
 
-function content_storage_summary(array $store): array
+function content_storage_summary(array $store, array $options = []): array
 {
+    $includeHostUsage = !empty($options['includeHostUsage']);
+    $forceHostUsageRefresh = !empty($options['forceHostUsageRefresh']);
     $totalFiles = 0;
     $activeFiles = 0;
     $totalBytes = 0;
@@ -883,6 +885,12 @@ function content_storage_summary(array $store): array
     $downloadHostEnabled = content_download_host_is_enabled();
     $freeBytes = null;
     $totalDiskBytes = null;
+    $hostUsage = [
+        'enabled' => $downloadHostEnabled,
+        'available' => false,
+        'baseUrl' => $downloadHostEnabled ? content_download_host_public_base_url() : '',
+        'rootPath' => '',
+    ];
     if ($localFiles > 0) {
         $root = content_uploads_dir();
         if (function_exists('disk_free_space')) {
@@ -907,11 +915,33 @@ function content_storage_summary(array $store): array
         }
     }
 
+    if ($downloadHostEnabled && $includeHostUsage) {
+        try {
+            $hostUsage = content_download_host_usage_summary($forceHostUsageRefresh);
+            if (($hostUsage['available'] ?? false) === true) {
+                $freeBytes = isset($hostUsage['remainingBytes']) ? max(0, (int) $hostUsage['remainingBytes']) : $freeBytes;
+                $totalDiskBytes = isset($hostUsage['limitBytes']) ? max(0, (int) $hostUsage['limitBytes']) : $totalDiskBytes;
+            }
+        } catch (Throwable $error) {
+            $hostUsage = [
+                'enabled' => true,
+                'available' => false,
+                'baseUrl' => content_download_host_public_base_url(),
+                'rootPath' => '',
+                'error' => 'host_usage_unavailable',
+            ];
+        }
+    }
+
     $notice = $downloadHostEnabled
         ? 'فایل‌های جدید آپلودسنتر روی هاست دانلود سایت نگه‌داری می‌شوند و لینک مستقیم آن‌ها از همان هاست سرو می‌شود.'
         : 'هاست دانلود هنوز برای آپلودسنتر فعال نشده است و فقط فایل‌های قدیمی local قابل مشاهده هستند.';
     if ($localFiles > 0 && $downloadHostEnabled) {
         $notice .= ' بخشی از لینک‌های قدیمی همچنان روی storage محلی سایت باقی مانده‌اند.';
+    }
+    if (($hostUsage['available'] ?? false) === true) {
+        $notice .= ' اسکن ریشه دانلودهاست ' . max(0, (int) ($hostUsage['fileCount'] ?? 0)) . ' فایل و '
+            . max(0, (int) ($hostUsage['directoryCount'] ?? 0)) . ' پوشه را نشان می‌دهد.';
     }
 
     return [
@@ -929,6 +959,7 @@ function content_storage_summary(array $store): array
         'remainingBytes' => $freeBytes,
         'diskTotalBytes' => $totalDiskBytes,
         'remainingKnown' => $freeBytes !== null,
+        'hostUsage' => $hostUsage,
         'notice' => $notice,
         'largestFiles' => array_map(static fn(array $file): array => content_file_public_payload($file, true), array_slice($largest, 0, 5)),
     ];

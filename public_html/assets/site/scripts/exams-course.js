@@ -99,6 +99,15 @@
         });
     }
 
+    function formatPercent(value) {
+        var numeric = Math.max(0, Number(value) || 0);
+        var hasFraction = Math.abs(numeric - Math.round(numeric)) > 0.001;
+        return numeric.toLocaleString("fa-IR", {
+            minimumFractionDigits: hasFraction ? 1 : 0,
+            maximumFractionDigits: 1
+        }) + "٪";
+    }
+
     function loginHref() {
         if (window.Dent1402Auth && typeof window.Dent1402Auth.loginUrl === "function") {
             return window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search);
@@ -138,14 +147,6 @@
         var approvedMeta = root.querySelector(".exams-paywall .exams-card-actions .exams-session-meta");
         if (approvedMeta && approvedMeta.parentNode) {
             approvedMeta.parentNode.removeChild(approvedMeta);
-        }
-
-        var summaryCards = root.querySelectorAll(".exams-summary-grid .exams-stat");
-        if (summaryCards.length > 2) {
-            var approvedCard = summaryCards[summaryCards.length - 1];
-            if (approvedCard && approvedCard.parentNode) {
-                approvedCard.parentNode.removeChild(approvedCard);
-            }
         }
     }
 
@@ -241,18 +242,48 @@
     }
 
     function sessionCardHtml(session) {
+        var copy = session && session.description
+            ? String(session.description)
+            : (session.isLocked
+                ? "برای دیدن سوال‌ها باید دسترسی این درس را فعال کنید."
+                : "قبل از شروع، بین حالت سنجشی و آموزشی انتخاب می‌کنی و بعد وارد همان آزمون می‌شوی.");
+        var actionLabel = session.isLocked
+            ? "پرداخت و فعال‌سازی"
+            : (session && session.ctaLabel ? String(session.ctaLabel) : "انتخاب حالت و شروع");
+        var actionHref = session && session.href ? String(session.href) : "";
+        var actionHtml = actionHref
+            ? '<a class="exam-btn ' + (session.isLocked ? "exam-btn--ghost" : "exam-btn--primary") + '" href="' + escapeHtml(actionHref) + '">' + escapeHtml(actionLabel) + "</a>"
+            : '<button class="exam-btn exam-btn--ghost" type="button" disabled>' + escapeHtml(actionLabel) + "</button>";
+        var viewerProgress = session && session.viewerProgress ? session.viewerProgress : null;
+        var assessmentReport = viewerProgress && viewerProgress.assessmentReport ? viewerProgress.assessmentReport : null;
+        var progressHtml = "";
+        if (assessmentReport || (viewerProgress && viewerProgress.flagsCount)) {
+            progressHtml = [
+                '<div class="exam-session-progress">',
+                assessmentReport ? '<span class="exam-session-progress-stat">کارنامه: ' + escapeHtml(formatPercent(assessmentReport.percent || 0)) + "</span>" : "",
+                assessmentReport ? '<span class="exam-session-progress-stat">صحیح: ' + escapeHtml((Math.max(0, Number(assessmentReport.correct || 0))).toLocaleString("fa-IR")) + "</span>" : "",
+                assessmentReport ? '<span class="exam-session-progress-stat">ثبت: ' + escapeHtml(formatDateTime(assessmentReport.submittedAt, "—")) + "</span>" : "",
+                viewerProgress && viewerProgress.flagsCount ? '<span class="exam-session-progress-stat">نشان‌دار: ' + escapeHtml((Math.max(0, Number(viewerProgress.flagsCount || 0))).toLocaleString("fa-IR")) + "</span>" : "",
+                '</div>'
+            ].join("");
+        }
         return [
             '<article class="exams-card exam-session-card' + (session.isLocked ? " is-locked" : "") + '">',
             '  <div class="exam-session-card__top">',
             '    <div>',
             '      <span class="exams-kicker">' + escapeHtml(session.label || "") + "</span>",
             '      <h3 class="exam-session-title">' + escapeHtml(session.title || "") + "</h3>",
-            '      <p class="exam-session-copy">' + escapeHtml(session.isLocked ? "برای دیدن سوال‌ها باید دسترسی این درس را فعال کنید." : "آزمون را شروع کنید و در پایان نتیجه و پاسخ تشریحی را ببینید.") + "</p>",
+            '      <p class="exam-session-copy">' + escapeHtml(copy) + "</p>",
+            '      <div class="exam-session-modes">',
+            '        <span class="exams-session-meta">سنجشی + کارنامه</span>',
+            '        <span class="exams-session-meta">آموزشی + پاسخ فوری</span>',
+            "      </div>",
+                     progressHtml,
             "    </div>",
             '    <span class="exam-session-card__count">' + escapeHtml((Math.max(0, Number(session.questionCount || 0))).toLocaleString("fa-IR") + " سوال") + "</span>",
             "  </div>",
             '  <div class="exam-session-actions">',
-            '    <a class="exam-btn ' + (session.isLocked ? "exam-btn--ghost" : "exam-btn--primary") + '" href="' + escapeHtml(session.href || session.path || "#") + '">' + escapeHtml(session.isLocked ? "پرداخت و فعال‌سازی" : "ورود به آزمون") + "</a>",
+                     actionHtml,
             "  </div>",
             "</article>"
         ].join("");
@@ -267,13 +298,18 @@
 
         var status = statusMeta(course);
         var sessions = Array.isArray(course.exams) ? course.exams : [];
+        var viewerAveragePercent = course.stats && course.stats.viewerAveragePercent;
         root.innerHTML = [
             '<section class="exams-card exams-hero">',
             '  <span class="exams-kicker">' + escapeHtml(course.badge || "") + "</span>",
             '  <div class="exams-panel-head">',
             '    <div style="flex:1 1 320px;">',
             '      <h2 class="exams-course-title">' + escapeHtml(course.heroTitle || course.title || "") + "</h2>",
-            '      <p class="exams-course-description">' + escapeHtml(course.heroDescription || "") + "</p>",
+            '      <p class="exams-course-description">' + escapeHtml(course.heroDescription || "برای هر جلسه قبل از شروع می‌توانی بین دو حالت سنجشی و آموزشی انتخاب کنی.") + "</p>",
+            '      <div class="exam-session-modes exam-session-modes--hero">',
+            '        <span class="exams-session-meta">سنجشی: همه سوالات + کارنامه</span>',
+            '        <span class="exams-session-meta">آموزشی: سوال‌به‌سوال + پاسخ فوری</span>',
+            "      </div>",
             "    </div>",
             '    <span class="' + escapeHtml(status.className) + '">' + escapeHtml(status.label) + "</span>",
             "  </div>",
@@ -281,7 +317,10 @@
             '<section class="exams-summary-grid">',
             '  <article class="exams-card exams-stat"><dt>آزمون‌های فعال</dt><dd>' + escapeHtml((Math.max(0, Number(course.stats && course.stats.examCount || 0))).toLocaleString("fa-IR")) + "</dd></article>",
             '  <article class="exams-card exams-stat"><dt>مجموع سوال‌ها</dt><dd>' + escapeHtml((Math.max(0, Number(course.stats && course.stats.questionCount || 0))).toLocaleString("fa-IR")) + "</dd></article>",
-            '  <article class="exams-card exams-stat"><dt>دسترسی‌های تاییدشده</dt><dd>' + escapeHtml((Math.max(0, Number(course.stats && course.stats.successCount || 0))).toLocaleString("fa-IR")) + "</dd></article>",
+            viewerAveragePercent !== null && viewerAveragePercent !== undefined
+                ? '  <article class="exams-card exams-stat"><dt>میانگین کارنامه‌های تو</dt><dd>' + escapeHtml(formatPercent(viewerAveragePercent)) + "</dd></article>"
+                : '  <article class="exams-card exams-stat"><dt>جلسه‌های کارنامه‌دار</dt><dd>' + escapeHtml((Math.max(0, Number(course.stats && course.stats.completedAssessmentCount || 0))).toLocaleString("fa-IR")) + "</dd></article>",
+            '  <article class="exams-card exams-stat"><dt>سوال‌های نشان‌دار تو</dt><dd>' + escapeHtml((Math.max(0, Number(course.stats && course.stats.flaggedQuestionsCount || 0))).toLocaleString("fa-IR")) + "</dd></article>",
             "</section>",
             '<section class="exams-course-layout">',
             '  <div class="exams-course-main">',

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/exams_radiology2_overrides.php';
+require_once __DIR__ . '/exams_endotorabinejad_overrides.php';
 
 function dent_exams_bank(): array
 {
@@ -17190,5 +17191,6 @@ JSON;
         return [];
     }
 
+    $bank = dent_exams_apply_endotorabinejad_catalog_overrides($bank);
     return dent_exams_apply_radiology2_overrides($bank);
 }

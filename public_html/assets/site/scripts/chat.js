@@ -700,6 +700,10 @@
   var reactionNativeBtn = $("reaction-native-btn");
   var reactionTabs = $("reaction-tabs");
   var reactionGrid = $("reaction-grid");
+  var reactionDetailsModal = $("reaction-details-modal");
+  var reactionDetailsModalClose = $("reaction-details-modal-close");
+  var reactionDetailsModalTitle = $("reaction-details-modal-title");
+  var reactionDetailsList = $("reaction-details-list");
   var editModal = $("edit-modal");
   var editModalClose = $("edit-modal-close");
   var editCancelBtn = $("edit-cancel");
@@ -784,12 +788,16 @@
     reactionCategory: "recent",
     recentReactions: [],
     reactionUsage: new Map(),
+    reactionDetailsRequestToken: 0,
     pendingEditMessageId: null,
     conversationOptionsMode: "",
     confirmDialog: null,
     connectionIssue: false,
     showArchivedConversations: false,
     threadAutoStick: true,
+    autoReadTimer: null,
+    autoReadConversationId: "",
+    autoReadMessageId: 0,
     initialConversationId: normalizeSpace(new URLSearchParams(window.location.search).get("conversationId")),
     groupMemberSelection: new Set(),
     directoryUsers: [],
@@ -1725,22 +1733,6 @@
     };
   }
 
-  function normalizeReactionUsers(raw) {
-    var source = asObject(raw);
-    var result = {};
-    if (!source) return result;
-
-    Object.keys(source).forEach(function (emoji) {
-      var users = Array.isArray(source[emoji]) ? source[emoji] : [];
-      var normalized = users.map(normalizeUser).filter(Boolean);
-      if (normalized.length) {
-        result[emoji] = normalized;
-      }
-    });
-
-    return result;
-  }
-
   function normalizeMessage(raw) {
     var source = asObject(raw);
     if (!source) return null;
@@ -1780,7 +1772,6 @@
       replyTo: source.replyTo != null ? Math.floor(toNumber(source.replyTo, 0)) : null,
       pinned: !!source.pinned,
       reactions: asObject(source.reactions) || {},
-      reactionUsers: normalizeReactionUsers(source.reactionUsers),
       attachments: attachments,
       avatarUrl: normalizeAvatarUrl(source.avatarUrl || profile.avatarUrl || ""),
       about: normalizeSpace(source.about || profile.about || profile.bio || ""),
@@ -2615,51 +2606,9 @@
     return canCurrentUserViewStudentNumbers() ? normalized : "کاربر";
   }
 
-  function reactionUserLabels(entry, message) {
-    if (!entry || !Array.isArray(entry.users)) return [];
-    var detailedByStudent = new Map();
-    var detailed = message && asObject(message.reactionUsers) && Array.isArray(message.reactionUsers[entry.emoji])
-      ? message.reactionUsers[entry.emoji]
-      : [];
-    detailed.forEach(function (user) {
-      var normalized = normalizeStudentNumber(user && user.studentNumber);
-      if (normalized) detailedByStudent.set(normalized, normalizeSpace(user.name));
-    });
-
-    var labels = [];
-    entry.users.forEach(function (studentNumber) {
-      var normalized = normalizeStudentNumber(studentNumber);
-      var label = (normalized && detailedByStudent.get(normalized)) || studentDisplayName(studentNumber);
-      if (!label || labels.indexOf(label) !== -1) return;
-      labels.push(label);
-    });
-    return labels;
-  }
-
-  function reactionDetailsText(entry, message) {
-    if (!entry || !Array.isArray(entry.users)) return "";
-    var labels = reactionUserLabels(entry, message);
-    if (!labels.length) {
-      return entry.count.toLocaleString("fa-IR") + " واکنش";
-    }
-    var visible = labels.slice(0, 3);
-    var extra = labels.length - visible.length;
-    return extra > 0
-      ? (visible.join("، ") + " +" + extra.toLocaleString("fa-IR"))
-      : visible.join("، ");
-  }
-
-  function reactionParticipantsText(message) {
-    if (!message) return "";
-    var parts = [];
-    reactionEntries(message).forEach(function (entry) {
-      var labels = reactionUserLabels(entry, message);
-      if (!labels.length) return;
-      var visible = labels.slice(0, 4);
-      var extra = labels.length - visible.length;
-      parts.push(entry.emoji + " " + visible.join("، ") + (extra > 0 ? " +" + extra.toLocaleString("fa-IR") : ""));
-    });
-    return parts.slice(0, 4).join(" • ");
+  function reactionCountLabel(entry) {
+    if (!entry) return "";
+    return entry.count.toLocaleString("fa-IR") + " واکنش";
   }
 
   function findMessage(messageId) {
@@ -2692,10 +2641,9 @@
   function renderReactions(message) {
     var entries = reactionEntries(message);
     if (!entries.length) return "";
-    var html = '<div class="msg-reactions">' +
+    return '<div class="msg-reactions">' +
       entries.map(function (entry) {
-        var details = reactionDetailsText(entry, message);
-        var title = entry.emoji + " • " + details;
+        var title = entry.emoji + " • " + reactionCountLabel(entry);
         return (
           '<button type="button" class="msg-reaction' + (entry.own ? " is-own" : "") + '" data-reaction-emoji="' + escapeHtml(entry.emoji) + '" title="' + escapeHtml(title) + '" aria-label="' + escapeHtml(title) + '">' +
           "<span>" + escapeHtml(entry.emoji) + "</span>" +
@@ -2704,11 +2652,83 @@
         );
       }).join("") +
       "</div>";
-    var participants = reactionParticipantsText(message);
-    if (participants) {
-      html += '<div class="msg-reactions__participants">' + escapeHtml(participants) + '</div>';
+  }
+
+  function bindReactionButton(button, message) {
+    if (!button || !message) return;
+    var emoji = normalizeSpace(button.getAttribute("data-reaction-emoji"));
+    if (!emoji) return;
+
+    var holdTimer = null;
+    var holdOpened = false;
+    var lastDetailsOpenAt = 0;
+    var startX = 0;
+    var startY = 0;
+
+    function clearHoldTimer() {
+      if (holdTimer) {
+        window.clearTimeout(holdTimer);
+        holdTimer = null;
+      }
     }
-    return html;
+
+    function openDetails(event) {
+      var now = Date.now();
+      if ((now - lastDetailsOpenAt) < 220) return;
+      lastDetailsOpenAt = now;
+      holdOpened = true;
+      clearHoldTimer();
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      openReactionDetailsModal(message, emoji);
+    }
+
+    button.addEventListener("contextmenu", function (event) {
+      openDetails(event);
+    });
+
+    button.addEventListener("pointerdown", function (event) {
+      if (event.button != null && event.button !== 0) return;
+      startX = event.clientX;
+      startY = event.clientY;
+      holdOpened = false;
+      clearHoldTimer();
+      holdTimer = window.setTimeout(function () {
+        openDetails(event);
+      }, event.pointerType === "mouse" ? 420 : 360);
+    });
+
+    button.addEventListener("pointermove", function (event) {
+      if (!holdTimer) return;
+      var deltaX = Math.abs(event.clientX - startX);
+      var deltaY = Math.abs(event.clientY - startY);
+      if (deltaX > 8 || deltaY > 8) {
+        clearHoldTimer();
+      }
+    });
+
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function (eventName) {
+      button.addEventListener(eventName, clearHoldTimer);
+    });
+
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (holdOpened) {
+        holdOpened = false;
+        return;
+      }
+      toggleReaction(message, emoji);
+    });
+
+    button.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      event.stopPropagation();
+      toggleReaction(message, emoji);
+    });
   }
 
   function attachmentMetaText(attachment) {
@@ -2893,13 +2913,7 @@
 
     var bubble = row.querySelector(".msg-bubble");
     Array.from(row.querySelectorAll("[data-reaction-emoji]")).forEach(function (button) {
-      button.addEventListener("click", function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        var emoji = normalizeSpace(button.getAttribute("data-reaction-emoji"));
-        if (!emoji) return;
-        toggleReaction(message, emoji);
-      });
+      bindReactionButton(button, message);
     });
     Array.from(row.querySelectorAll("[data-reply-id]")).forEach(function (button) {
       button.addEventListener("click", function (event) {
@@ -3241,6 +3255,72 @@
       var fallback = row.querySelector(".receipt-row__avatar span");
       renderAvatar(avatar, image, fallback, user.profile && user.profile.avatarUrl, user.name);
     });
+  }
+
+  function normalizeReactionDetailEntry(raw) {
+    var source = asObject(raw);
+    if (!source) return null;
+    var user = normalizeUser(source.user);
+    if (!user) return null;
+    return {
+      user: user,
+      reactedAt: source.reactedAt != null ? Math.floor(toNumber(source.reactedAt, 0)) : null
+    };
+  }
+
+  function renderReactionDetailRow(entry, emoji) {
+    var normalized = normalizeReactionDetailEntry(entry);
+    if (!normalized) return "";
+    var reactedAt = normalized.reactedAt ? formatDateTime(normalized.reactedAt) : "";
+    return [
+      '<div class="receipt-row reaction-detail-row">',
+      '  <span class="receipt-row__avatar" data-has-avatar="0"><img alt="" hidden><span>' + escapeHtml(avatarLabel(normalized.user.name)) + '</span></span>',
+      '  <span class="receipt-row__copy">',
+      '    <strong>' + escapeHtml(normalized.user.name) + '</strong>',
+      '    <small>' + escapeHtml(reactedAt || "زمان ثبت نشده") + '</small>',
+      '  </span>',
+      '  <span class="receipt-row__state reaction-detail-row__emoji">' + escapeHtml(emoji) + '</span>',
+      '</div>'
+    ].join("");
+  }
+
+  async function openReactionDetailsModal(message, emoji) {
+    var normalizedEmoji = normalizeSpace(emoji);
+    if (!message || !normalizedEmoji || !reactionDetailsModal || !reactionDetailsList) return;
+    var requestToken = ++state.reactionDetailsRequestToken;
+    if (reactionDetailsModalTitle) {
+      reactionDetailsModalTitle.textContent = "افراد واکنش‌داده به " + normalizedEmoji;
+    }
+    openModal(reactionDetailsModal, "reaction-details");
+    reactionDetailsList.innerHTML = '<div class="chat-picker-empty">در حال دریافت فهرست واکنش‌ها...</div>';
+    setModalBusy("reaction-details", true);
+    try {
+      var response = await apiGet("messageReactions", {
+        conversationId: state.activeConversationId,
+        messageId: String(message.id),
+        emoji: normalizedEmoji
+      });
+      if (requestToken !== state.reactionDetailsRequestToken) {
+        return;
+      }
+      ensureSuccessResponse(response, "فهرست واکنش‌ها دریافت نشد.");
+      var reactions = asObject(response.reactions) || {};
+      var entries = Array.isArray(reactions[normalizedEmoji]) ? reactions[normalizedEmoji].map(normalizeReactionDetailEntry).filter(Boolean) : [];
+      if (!entries.length) {
+        reactionDetailsList.innerHTML = '<div class="chat-picker-empty">هنوز برای این واکنش کسی ثبت نشده است.</div>';
+        return;
+      }
+      reactionDetailsList.innerHTML = '<div class="receipt-section"><strong>' + escapeHtml(reactionCountLabel({ count: entries.length })) + '</strong>' + entries.map(function (entry) {
+        return renderReactionDetailRow(entry, normalizedEmoji);
+      }).join("") + '</div>';
+      hydrateReceiptAvatars(reactionDetailsList, entries, 0);
+    } catch (error) {
+      reactionDetailsList.innerHTML = '<div class="chat-picker-empty">' + escapeHtml(error && error.message ? error.message : "فهرست واکنش‌ها دریافت نشد.") + '</div>';
+    } finally {
+      if (requestToken === state.reactionDetailsRequestToken) {
+        setModalBusy("reaction-details", false);
+      }
+    }
   }
 
   async function openReceiptsModal(message) {
@@ -4663,6 +4743,7 @@
     if (key === "group") return groupModal;
     if (key === "forward") return forwardModal;
     if (key === "reaction") return reactionModal;
+    if (key === "reaction-details") return reactionDetailsModal;
     if (key === "edit") return editModal;
     if (key === "conversation-options") return conversationOptionsModal;
     if (key === "confirm") return confirmModal;
@@ -4715,7 +4796,7 @@
       modalBackdrop.classList.remove("is-open");
       modalBackdrop.hidden = true;
     }
-    [dmModal, groupModal, forwardModal, reactionModal, editModal, conversationOptionsModal, confirmModal, receiptsModal].forEach(function (node) {
+    [dmModal, groupModal, forwardModal, reactionModal, reactionDetailsModal, editModal, conversationOptionsModal, confirmModal, receiptsModal].forEach(function (node) {
       if (!node) return;
       node.classList.remove("is-open");
       node.classList.remove("is-busy");
@@ -4740,6 +4821,15 @@
       if (reactionSearch) reactionSearch.value = "";
       if (reactionTabs) reactionTabs.innerHTML = "";
       if (reactionGrid) reactionGrid.innerHTML = "";
+    }
+    if (hadOpenModal && closingKey === "reaction-details") {
+      state.reactionDetailsRequestToken += 1;
+      if (reactionDetailsModalTitle) {
+        reactionDetailsModalTitle.textContent = "فهرست واکنش‌ها";
+      }
+      if (reactionDetailsList) {
+        reactionDetailsList.innerHTML = "";
+      }
     }
     if (hadOpenModal && closingKey === "edit") {
       state.pendingEditMessageId = null;
@@ -5238,6 +5328,47 @@
     scheduleNextPoll();
   }
 
+  function clearAutoReadTimer() {
+    if (state.autoReadTimer) {
+      window.clearTimeout(state.autoReadTimer);
+      state.autoReadTimer = null;
+    }
+    state.autoReadConversationId = "";
+    state.autoReadMessageId = 0;
+  }
+
+  function scheduleAutoMarkRead() {
+    clearAutoReadTimer();
+    var conversation = activeConversation();
+    if (!conversation || !conversation.permissions || !conversation.permissions.canMarkRead) {
+      return;
+    }
+    var targetMessageId = Math.max(0, Math.floor(toNumber(conversation.lastMessage && conversation.lastMessage.id, 0)));
+    var currentRead = Math.max(0, Math.floor(toNumber(conversation.lastReadMessageId, 0)));
+    if (targetMessageId <= 0 || targetMessageId <= currentRead) {
+      return;
+    }
+    state.autoReadConversationId = conversation.id;
+    state.autoReadMessageId = targetMessageId;
+    state.autoReadTimer = window.setTimeout(function () {
+      var conversationId = state.autoReadConversationId;
+      var messageId = state.autoReadMessageId;
+      clearAutoReadTimer();
+      if (!conversationId || messageId <= 0) return;
+      var latestConversation = state.conversationsById.get(conversationId);
+      if (!latestConversation) return;
+      var latestRead = Math.max(0, Math.floor(toNumber(latestConversation.lastReadMessageId, 0)));
+      var latestLastMessageId = Math.max(0, Math.floor(toNumber(latestConversation.lastMessage && latestConversation.lastMessage.id, 0)));
+      if (latestLastMessageId <= latestRead || latestLastMessageId !== messageId) return;
+      setConversationReadStateById(conversationId, true, {
+        silentToast: true,
+        skipSync: true
+      }).catch(function () {
+        // no-op
+      });
+    }, 120);
+  }
+
   async function syncConversation(options) {
     if (!state.me.loggedIn) return null;
 
@@ -5386,6 +5517,9 @@
 
       updateInfoSheet();
       updateComposerState();
+      if (!isOlderPage) {
+        scheduleAutoMarkRead();
+      }
 
       if (!silent || hadConnectionIssue) {
         setConnectionState("live", "متصل");
@@ -5422,6 +5556,7 @@
     state.activeConversationId = nextId;
 
     if (changed) {
+      clearAutoReadTimer();
       clearThreadState();
       state.lastMessageId = 0;
       state.oldestMessageId = 0;
@@ -5512,10 +5647,12 @@
     state.threadAutoStick = true;
     state.recentReactions = [];
     state.reactionUsage = new Map();
+    state.reactionDetailsRequestToken += 1;
     state.pendingAttachments = [];
     nativeEmojiPicker = null;
 
     stopPolling();
+    clearAutoReadTimer();
     resetVoiceRecorder();
     setUploadSheetOpen(false);
     renderComposerUploads();
@@ -5596,7 +5733,9 @@
       state.confirmDialog = null;
       state.connectionIssue = false;
       state.showArchivedConversations = false;
+      state.reactionDetailsRequestToken += 1;
       state.pendingAttachments = [];
+      clearAutoReadTimer();
       setUploadSheetOpen(false);
       renderComposerUploads();
       resetVoiceRecorder();
@@ -7157,6 +7296,7 @@
     if (groupModalClose) groupModalClose.addEventListener("click", closeModal);
     if (forwardModalClose) forwardModalClose.addEventListener("click", closeModal);
     if (reactionModalClose) reactionModalClose.addEventListener("click", closeModal);
+    if (reactionDetailsModalClose) reactionDetailsModalClose.addEventListener("click", closeModal);
     if (receiptsModalClose) receiptsModalClose.addEventListener("click", closeModal);
     if (editModalClose) editModalClose.addEventListener("click", closeModal);
     if (editCancelBtn) editCancelBtn.addEventListener("click", closeModal);

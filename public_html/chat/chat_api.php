@@ -983,19 +983,145 @@ function chat_sanitize_reactions($raw): array
     return $normalized;
 }
 
-function chat_reaction_users_payload(array $reactions): array
+function chat_parse_reaction_timestamp($value): ?int
 {
-    $payload = [];
-    foreach (chat_sanitize_reactions($reactions) as $emoji => $studentNumbers) {
-        $users = [];
+    if ($value === null) {
+        return null;
+    }
+
+    if (is_int($value) || is_float($value)) {
+        $ts = (int) $value;
+        return $ts > 0 ? $ts : null;
+    }
+
+    $text = trim((string) $value);
+    if ($text === '') {
+        return null;
+    }
+
+    if (preg_match('/^\d+$/', $text) === 1) {
+        $ts = (int) $text;
+        return $ts > 0 ? $ts : null;
+    }
+
+    $parsed = strtotime($text);
+    if ($parsed === false) {
+        return null;
+    }
+
+    return $parsed > 0 ? $parsed : null;
+}
+
+function chat_sanitize_reaction_meta($raw, array $reactions): array
+{
+    if (!is_array($raw) || $reactions === []) {
+        return [];
+    }
+
+    $normalized = [];
+
+    foreach ($reactions as $emoji => $studentNumbers) {
+        $rawBucket = is_array($raw[$emoji] ?? null) ? $raw[$emoji] : [];
+        $timestampsByStudent = [];
+
+        foreach ($rawBucket as $key => $value) {
+            $studentNumber = '';
+            $timestamp = null;
+
+            if (is_array($value)) {
+                $studentNumber = dent_normalize_student_number((string) ($value['studentNumber'] ?? $value['username'] ?? $key));
+                $timestamp = chat_parse_reaction_timestamp($value['reactedAt'] ?? $value['ts'] ?? $value['timestamp'] ?? null);
+            } else {
+                $studentNumber = dent_normalize_student_number((string) $key);
+                $timestamp = chat_parse_reaction_timestamp($value);
+            }
+
+            if ($studentNumber === '' || $timestamp === null) {
+                continue;
+            }
+
+            $timestampsByStudent[$studentNumber] = $timestamp;
+        }
+
+        $bucket = [];
         foreach ($studentNumbers as $studentNumber) {
-            $user = chat_public_user_for_student((string) $studentNumber);
-            if ((string) ($user['studentNumber'] ?? '') !== '') {
-                $users[] = $user;
+            if (isset($timestampsByStudent[$studentNumber])) {
+                $bucket[$studentNumber] = $timestampsByStudent[$studentNumber];
             }
         }
+
+        if ($bucket !== []) {
+            $normalized[$emoji] = $bucket;
+        }
+    }
+
+    return $normalized;
+}
+
+function chat_reaction_records(array $message): array
+{
+    $reactions = chat_sanitize_reactions($message['reactions'] ?? []);
+    $meta = chat_sanitize_reaction_meta($message['reactionMeta'] ?? [], $reactions);
+    $fallbackTs = max(0, (int) ($message['ts'] ?? 0));
+    $records = [];
+
+    foreach ($reactions as $emoji => $studentNumbers) {
+        $bucket = [];
+        foreach ($studentNumbers as $studentNumber) {
+            $bucket[] = [
+                'studentNumber' => $studentNumber,
+                'reactedAt' => $meta[$emoji][$studentNumber] ?? ($fallbackTs > 0 ? $fallbackTs : null),
+            ];
+        }
+
+        if ($bucket !== []) {
+            $records[$emoji] = $bucket;
+        }
+    }
+
+    return $records;
+}
+
+function chat_reaction_details_payload(array $message, string $emoji = ''): array
+{
+    $payload = [];
+    $filterEmoji = chat_sanitize_emoji($emoji);
+
+    foreach (chat_reaction_records($message) as $reactionEmoji => $records) {
+        if ($filterEmoji !== '' && $reactionEmoji !== $filterEmoji) {
+            continue;
+        }
+
+        $users = [];
+        foreach ($records as $record) {
+            $studentNumber = dent_normalize_student_number((string) ($record['studentNumber'] ?? ''));
+            if ($studentNumber === '') {
+                continue;
+            }
+
+            $user = chat_public_user_for_student($studentNumber);
+            $users[] = [
+                'studentNumber' => $studentNumber,
+                'reactedAt' => chat_parse_reaction_timestamp($record['reactedAt'] ?? null),
+                'user' => $user,
+            ];
+        }
+
+        usort($users, static function (array $left, array $right): int {
+            $leftTs = (int) ($left['reactedAt'] ?? 0);
+            $rightTs = (int) ($right['reactedAt'] ?? 0);
+            if ($leftTs !== $rightTs) {
+                return $rightTs <=> $leftTs;
+            }
+
+            return strcasecmp(
+                (string) (($left['user']['name'] ?? '') ?: ($left['studentNumber'] ?? '')),
+                (string) (($right['user']['name'] ?? '') ?: ($right['studentNumber'] ?? ''))
+            );
+        });
+
         if ($users !== []) {
-            $payload[$emoji] = $users;
+            $payload[$reactionEmoji] = $users;
         }
     }
 
@@ -1059,6 +1185,8 @@ function chat_normalize_message_record(array $message, string $conversationId): 
         $replyTo = null;
     }
 
+    $reactions = chat_sanitize_reactions($message['reactions'] ?? []);
+
     return [
         'id' => $id,
         'conversationId' => $conversationId,
@@ -1068,7 +1196,8 @@ function chat_normalize_message_record(array $message, string $conversationId): 
         'editedAt' => $editedAt,
         'replyTo' => $replyTo,
         'pinned' => (bool) ($message['pinned'] ?? false),
-        'reactions' => chat_sanitize_reactions($message['reactions'] ?? []),
+        'reactions' => $reactions,
+        'reactionMeta' => chat_sanitize_reaction_meta($message['reactionMeta'] ?? [], $reactions),
         'kind' => $kind,
         'pollId' => $kind === 'poll' ? $pollId : '',
         'attachmentIds' => $attachmentIds,
@@ -3989,7 +4118,6 @@ function chat_normalize_message_for_client(array $message, ?array $store = null,
         'replyTo' => isset($message['replyTo']) ? (int) $message['replyTo'] : null,
         'pinned' => (bool) ($message['pinned'] ?? false),
         'reactions' => chat_sanitize_reactions($message['reactions'] ?? []),
-        'reactionUsers' => chat_reaction_users_payload($message['reactions'] ?? []),
         'role' => (string) ($sender['role'] ?? 'student'),
         'roleLabel' => (string) ($sender['roleLabel'] ?? dent_role_label('student')),
         'canModerateChat' => (bool) ($sender['canModerateChat'] ?? false),
@@ -6414,6 +6542,36 @@ if ($action === 'messageReceipts') {
     ]);
 }
 
+if ($action === 'messageReactions') {
+    $user = chat_require_user();
+    $conversationId = chat_clean_conversation_id((string) ($_GET['conversationId'] ?? $_POST['conversationId'] ?? CHAT_CLASS_CONVERSATION_ID));
+    $messageId = (int) ($_GET['messageId'] ?? $_POST['messageId'] ?? $_GET['id'] ?? $_POST['id'] ?? 0);
+    $emoji = chat_sanitize_emoji((string) ($_GET['emoji'] ?? $_POST['emoji'] ?? ''));
+
+    if ($conversationId === '' || $messageId <= 0 || $emoji === '') {
+        dent_error('شناسه پیام، گفتگو یا واکنش نامعتبر است.', 422);
+    }
+
+    $store = chat_load_store();
+    chat_require_conversation_for_user($store, $conversationId, $user);
+    $messages = chat_get_messages($store, $conversationId);
+    $index = chat_find_message_index($messages, $messageId);
+    if ($index === -1) {
+        dent_error('پیام پیدا نشد.', 404);
+    }
+
+    $details = chat_reaction_details_payload($messages[$index], $emoji);
+
+    dent_json_response([
+        'success' => true,
+        'messageId' => $messageId,
+        'emoji' => $emoji,
+        'reactions' => [
+            $emoji => array_values($details[$emoji] ?? []),
+        ],
+    ]);
+}
+
 if ($action === 'setMemberTag') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد تنظیم تگ عضو نامعتبر است.', 405);
@@ -6738,20 +6896,6 @@ if ($action === 'sync' || $action === 'fetch') {
     }
 
     $lastMessage = chat_last_message($allMessages);
-    $latestMessageId = $lastMessage !== null ? (int) ($lastMessage['id'] ?? 0) : null;
-    $readChanged = false;
-    if ($latestMessageId !== null && $latestMessageId > 0) {
-        $readChanged = chat_mark_read(
-            $store,
-            $activeConversationId,
-            (string) ($user['studentNumber'] ?? ''),
-            $latestMessageId
-        );
-    }
-
-    if ($readChanged) {
-        chat_save_store($store);
-    }
 
     $conversationListVersion = chat_conversation_list_version_for_user($store, $user);
     $includeConversationList = $full || $clientConversationListVersion === '' || $clientConversationListVersion !== $conversationListVersion;
@@ -6973,6 +7117,7 @@ if ($action === 'react') {
 
     $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
     $reactions = chat_sanitize_reactions($messages[$index]['reactions'] ?? []);
+    $reactionMeta = chat_sanitize_reaction_meta($messages[$index]['reactionMeta'] ?? [], $reactions);
     $emojiUsers = isset($reactions[$emoji]) && is_array($reactions[$emoji]) ? $reactions[$emoji] : [];
 
     if (in_array($studentNumber, $emojiUsers, true)) {
@@ -6980,18 +7125,28 @@ if ($action === 'react') {
             $emojiUsers,
             static fn($value): bool => dent_normalize_student_number((string) $value) !== $studentNumber
         ));
+        if (isset($reactionMeta[$emoji][$studentNumber])) {
+            unset($reactionMeta[$emoji][$studentNumber]);
+        }
     } else {
         $emojiUsers[] = $studentNumber;
         sort($emojiUsers, SORT_STRING);
+        if (!isset($reactionMeta[$emoji]) || !is_array($reactionMeta[$emoji])) {
+            $reactionMeta[$emoji] = [];
+        }
+        $reactionMeta[$emoji][$studentNumber] = time();
     }
 
     if ($emojiUsers === []) {
         unset($reactions[$emoji]);
+        unset($reactionMeta[$emoji]);
     } else {
         $reactions[$emoji] = $emojiUsers;
+        $reactionMeta[$emoji] = chat_sanitize_reaction_meta([$emoji => $reactionMeta[$emoji] ?? []], [$emoji => $emojiUsers])[$emoji] ?? [];
     }
 
     $messages[$index]['reactions'] = $reactions;
+    $messages[$index]['reactionMeta'] = chat_sanitize_reaction_meta($reactionMeta, $reactions);
     chat_put_messages($store, $conversationId, $messages);
     chat_save_store($store);
 

@@ -109,6 +109,183 @@ function content_download_host_browse(string $relativePath): array
     ];
 }
 
+function content_download_host_stats_cache_path(): string
+{
+    return DENT_TMP_ROOT . DIRECTORY_SEPARATOR . 'content_tools' . DIRECTORY_SEPARATOR . 'download_host_stats.json';
+}
+
+function content_download_host_read_stats_cache(bool $allowStale = false, int $ttlSeconds = 120): ?array
+{
+    $path = content_download_host_stats_cache_path();
+    if (!is_file($path) || !is_readable($path)) {
+        return null;
+    }
+
+    $raw = @file_get_contents($path);
+    if (!is_string($raw) || trim($raw) === '') {
+        return null;
+    }
+
+    $decoded = json_decode($raw, true);
+    if (!is_array($decoded)) {
+        return null;
+    }
+
+    $cachedAt = max(0, (int) ($decoded['cachedAtUnix'] ?? 0));
+    if (!$allowStale && $cachedAt > 0 && (time() - $cachedAt) > max(5, $ttlSeconds)) {
+        return null;
+    }
+
+    return $decoded;
+}
+
+function content_download_host_write_stats_cache(array $stats): void
+{
+    $path = content_download_host_stats_cache_path();
+    dent_ensure_directory(dirname($path));
+    $json = json_encode($stats, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    if (!is_string($json) || $json === '') {
+        return;
+    }
+
+    @file_put_contents($path, $json);
+}
+
+function content_download_host_parse_numeric_value($value): ?int
+{
+    if (is_int($value) || is_float($value)) {
+        return max(0, (int) round((float) $value));
+    }
+
+    $raw = trim((string) $value);
+    if ($raw === '' || $raw === '∞' || $raw === '&infin;') {
+        return null;
+    }
+
+    if (!is_numeric($raw)) {
+        return null;
+    }
+
+    return max(0, (int) round((float) $raw));
+}
+
+function content_download_host_disk_usage_snapshot(): array
+{
+    $result = notes_download_host_execute_api2('getdiskinfo', []);
+    $rows = is_array($result['data'] ?? null) ? $result['data'] : [];
+    $row = is_array($rows[0] ?? null) ? $rows[0] : [];
+
+    $usedBytes = content_download_host_parse_numeric_value($row['spaceused'] ?? null);
+    $limitBytes = content_download_host_parse_numeric_value($row['spacelimit'] ?? null);
+    $remainingBytes = content_download_host_parse_numeric_value($row['spaceremain'] ?? null);
+    $uploadRemainingBytes = content_download_host_parse_numeric_value($row['file_upload_remain'] ?? null);
+    $inodeUsed = content_download_host_parse_numeric_value($row['filesused'] ?? null);
+    $inodeLimit = content_download_host_parse_numeric_value($row['fileslimit'] ?? null);
+    $usagePercent = null;
+    if (($usedBytes ?? 0) > 0 && ($limitBytes ?? 0) > 0) {
+        $usagePercent = round(min(100, ($usedBytes / $limitBytes) * 100), 1);
+    }
+
+    return [
+        'usedBytes' => $usedBytes,
+        'limitBytes' => $limitBytes,
+        'remainingBytes' => $remainingBytes,
+        'uploadRemainingBytes' => $uploadRemainingBytes,
+        'inodeUsed' => $inodeUsed,
+        'inodeLimit' => $inodeLimit,
+        'usagePercent' => $usagePercent,
+    ];
+}
+
+function content_download_host_tree_usage_snapshot(): array
+{
+    $queue = [''];
+    $visited = [];
+    $fileCount = 0;
+    $directoryCount = 0;
+    $totalBytes = 0;
+
+    while ($queue !== []) {
+        $relativePath = array_shift($queue);
+        if (!is_string($relativePath) || isset($visited[$relativePath])) {
+            continue;
+        }
+        $visited[$relativePath] = true;
+
+        $entries = content_download_host_list_dir($relativePath);
+        foreach ($entries as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $entryType = trim(strtolower((string) ($entry['type'] ?? 'file')));
+            if ($entryType === 'dir') {
+                $directoryCount++;
+                $childPath = content_download_host_normalize_relative_path((string) ($entry['relativePath'] ?? ''));
+                if ($childPath !== '' && !isset($visited[$childPath])) {
+                    $queue[] = $childPath;
+                }
+                continue;
+            }
+
+            $fileCount++;
+            $totalBytes += max(0, (int) ($entry['sizeBytes'] ?? 0));
+        }
+    }
+
+    return [
+        'fileCount' => $fileCount,
+        'directoryCount' => $directoryCount,
+        'entryCount' => $fileCount + $directoryCount,
+        'managedBytes' => $totalBytes,
+        'scannedDirectories' => max(1, count($visited)),
+    ];
+}
+
+function content_download_host_usage_summary(bool $forceRefresh = false, int $ttlSeconds = 120): array
+{
+    if (!content_download_host_is_enabled()) {
+        return [
+            'enabled' => false,
+            'available' => false,
+            'baseUrl' => '',
+            'rootPath' => '',
+        ];
+    }
+
+    if (!$forceRefresh) {
+        $cached = content_download_host_read_stats_cache(false, $ttlSeconds);
+        if (is_array($cached)) {
+            return $cached;
+        }
+    }
+
+    $stale = content_download_host_read_stats_cache(true, PHP_INT_MAX);
+    try {
+        $snapshot = array_merge(
+            [
+                'enabled' => true,
+                'available' => true,
+                'baseUrl' => content_download_host_public_base_url(),
+                'rootPath' => '',
+                'generatedAt' => dent_iso_now(),
+                'cachedAtUnix' => time(),
+            ],
+            content_download_host_disk_usage_snapshot(),
+            content_download_host_tree_usage_snapshot()
+        );
+        content_download_host_write_stats_cache($snapshot);
+        return $snapshot;
+    } catch (Throwable $error) {
+        if (is_array($stale)) {
+            $stale['stale'] = true;
+            $stale['refreshError'] = 'refresh_failed';
+            return $stale;
+        }
+        throw $error;
+    }
+}
+
 function content_download_host_ensure_dir(string $relativeDir): string
 {
     $normalized = content_download_host_normalize_relative_path($relativeDir);

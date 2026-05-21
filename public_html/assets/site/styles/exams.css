@@ -181,6 +181,42 @@ body.exams-page {
     font-size: 0.9rem;
 }
 
+.exam-card-modes,
+.exam-session-modes,
+.exam-session-progress {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.exam-card-modes,
+.exam-session-modes {
+    margin-top: 0.8rem;
+}
+
+.exam-session-modes--hero {
+    justify-content: flex-start;
+}
+
+.exam-session-progress {
+    margin-top: 0.75rem;
+}
+
+.exam-session-progress-stat {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    padding: 0.34rem 0.76rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--surface-muted) 88%, transparent);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 780;
+}
+
 .exams-status-pill--free {
     color: var(--success-color);
     background: color-mix(in srgb, var(--success-color) 12%, var(--surface-solid));

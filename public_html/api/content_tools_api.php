@@ -533,6 +533,23 @@ if ($action === 'ownerDownloadHostBrowse') {
     ]);
 }
 
+if ($action === 'ownerDownloadHostSummary') {
+    content_api_require_method(['GET']);
+    dent_require_owner();
+    if (!content_download_host_is_enabled()) {
+        dent_error('هاست دانلود برای آپلودسنتر فعال نیست.', 503);
+    }
+    $store = content_read_store();
+    dent_json_response([
+        'success' => true,
+        'downloadHost' => content_api_download_host_meta_payload(),
+        'summary' => content_storage_summary($store, [
+            'includeHostUsage' => true,
+            'forceHostUsageRefresh' => content_api_bool($_GET['refresh'] ?? false),
+        ]),
+    ]);
+}
+
 if ($action === 'ownerDownloadHostUpload') {
     content_api_require_method(['POST']);
     $owner = dent_require_owner();

@@ -2596,13 +2596,6 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     flex-wrap: wrap;
 }
 
-.msg-reactions__participants {
-    margin-top: 0.18rem;
-    color: var(--chat-muted);
-    font-size: 0.72rem;
-    line-height: 1.2;
-}
-
 .msg-reaction {
     display: inline-flex;
     align-items: center;
@@ -7705,6 +7698,11 @@ body.chat-page .receipt-row__state {
 
 body.chat-page .receipt-row__state.is-seen {
     color: var(--chat-bale-green);
+}
+
+body.chat-page .reaction-detail-row__emoji {
+    font-size: 1.05rem;
+    line-height: 1;
 }
 
 body.chat-page .chat-options-stack {
