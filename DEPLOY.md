@@ -20,6 +20,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - این mirror شامل فایل‌های upload شده‌ی runtime هم هست؛ مسیرهای موقتی مثل `tmp`، `sessions`، `backups` و `cache` جزو منبع حقیقت deploy نیستند.
 - جهت sync دیتا فقط هاست -> لپتاپ است. دیتای `storage/`، `server-only/storage/`، بکاپ‌ها، sessionها، lockها و فایل‌های `.env` نباید از لپتاپ به هاست یا GitHub آپلود شوند.
 - GitHub باید بر اساس فایل‌های کد/ظاهر/اسکریپت روی لپتاپ آپدیت شود، نه دیتای runtime.
+- مرحله‌ی GitHub sync باید روی worktree موقتِ مبتنی بر آخرین upstream انجام شود؛ نه با `git add -A` روی workspace اصلی. این کار باعث می‌شود اختلاف branch محلی با `origin/main` یا dirty بودن workspace، deploy را روی push گیر ندهد.
 - صرفا فایل هایی که تغییر کرده اند باید دپلوی شوند. نیازی به اپلود هرباره همه فایل ها نیست.
 - صفحات منابع/جزوات فقط shell کد هستند. کارت‌های قابل مدیریت منابع باید از storage و API خوانده شوند، از جمله `notes/1402_terms.json` و `notes/1403_archive.json`.
 

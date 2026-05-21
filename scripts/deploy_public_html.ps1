@@ -5,7 +5,6 @@ param(
     [switch]$SkipValidation,
     [switch]$SkipPostDeployVerification,
     [switch]$SkipGitHubSync,
-    [switch]$SkipCompletionSms,
     [switch]$PullBeforeDeploy,
     [switch]$SkipRemoteStorageSync,
     [switch]$AllowProxyPull,
@@ -18,10 +17,9 @@ param(
     [string]$LowBandwidthMode = "auto",
     [string]$ProxyEndpoint = "",
     [int]$ProxyBudgetMb = 0,
-    [string]$CompletionSmsPhone = "09009840305",
-    [string]$CompletionSmsOwnerStudentNumber = "",
-    [string]$CompletionSmsOwnerPassword = "",
-    [string]$CompletionSmsCredentialPath = ".codex-local\deploy_completion_owner.json",
+    [string]$OwnerStudentNumber = "",
+    [string]$OwnerPassword = "",
+    [string]$OwnerCredentialPath = ".codex-local\deploy_owner.json",
     [string]$CommitMessage = "chore: sync deployed laptop state to github",
     [string[]]$HealthCheckUrls = @(
         "https://dentistry1402tums.ir/",
@@ -404,6 +402,76 @@ function Add-RelativePath([System.Collections.Generic.HashSet[string]]$set, [str
     [void]$set.Add($relative)
 }
 
+function Test-ProtectedGitHubRelativePath([string]$relative) {
+    if ([string]::IsNullOrWhiteSpace($relative)) {
+        return $true
+    }
+
+    $normalized = ($relative -replace '\\', '/').TrimStart('/').ToLowerInvariant()
+    if ($normalized -eq "" -or $normalized -eq ".") {
+        return $true
+    }
+
+    if ($normalized -eq ".git" -or $normalized.StartsWith(".git/")) {
+        return $true
+    }
+    if ($normalized -eq ".codex-local" -or $normalized.StartsWith(".codex-local/")) {
+        return $true
+    }
+    if ($normalized -eq ".env" -or $normalized.StartsWith(".env.")) {
+        return $true
+    }
+    if ($normalized -eq ".vscode" -or $normalized.StartsWith(".vscode/")) {
+        return $true
+    }
+    if ($normalized -eq "sftp.json" -or $normalized -eq "settings.json") {
+        return $true
+    }
+    if ($normalized -eq "storage" -or $normalized.StartsWith("storage/")) {
+        return $true
+    }
+    if ($normalized -eq "public_html/.env" -or $normalized.StartsWith("public_html/.env.")) {
+        return $true
+    }
+    if ($normalized -eq "public_html/storage" -or $normalized.StartsWith("public_html/storage/")) {
+        return $true
+    }
+    if ($normalized -eq "server-only/storage" -or $normalized.StartsWith("server-only/storage/")) {
+        return $true
+    }
+    if ($normalized -eq "server-only/sessions" -or $normalized.StartsWith("server-only/sessions/")) {
+        return $true
+    }
+    if ($normalized -eq "server-only/backups" -or $normalized.StartsWith("server-only/backups/")) {
+        return $true
+    }
+    if ($normalized -eq "server-only/tmp" -or $normalized.StartsWith("server-only/tmp/")) {
+        return $true
+    }
+    if ($normalized -eq "server-only/locks" -or $normalized.StartsWith("server-only/locks/")) {
+        return $true
+    }
+
+    return $false
+}
+
+function Add-GitHubRelativePath([System.Collections.Generic.HashSet[string]]$set, [string]$path) {
+    if ([string]::IsNullOrWhiteSpace($path)) {
+        return
+    }
+
+    $normalized = ($path -replace '\\', '/').Trim().TrimStart('/')
+    if ([string]::IsNullOrWhiteSpace($normalized)) {
+        return
+    }
+
+    if (Test-ProtectedGitHubRelativePath -relative $normalized) {
+        return
+    }
+
+    [void]$set.Add($normalized)
+}
+
 function Assert-GitAvailable() {
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
         throw "Git is required for deployment and GitHub sync."
@@ -430,6 +498,8 @@ function Read-HostDeployState() {
         $head = ""
         $branch = ""
         $finishedAt = ""
+        $gitHubHead = ""
+        $gitHubStatus = ""
         if ($null -ne $parsed.PSObject.Properties["Head"]) {
             $head = [string]$parsed.Head
         }
@@ -439,12 +509,20 @@ function Read-HostDeployState() {
         if ($null -ne $parsed.PSObject.Properties["FinishedAt"]) {
             $finishedAt = [string]$parsed.FinishedAt
         }
+        if ($null -ne $parsed.PSObject.Properties["GitHubHead"]) {
+            $gitHubHead = [string]$parsed.GitHubHead
+        }
+        if ($null -ne $parsed.PSObject.Properties["GitHubStatus"]) {
+            $gitHubStatus = [string]$parsed.GitHubStatus
+        }
 
         return [PSCustomObject]@{
             Path       = $path
             Head       = $head
             Branch     = $branch
             FinishedAt = $finishedAt
+            GitHubHead = $gitHubHead
+            GitHubStatus = $gitHubStatus
         }
     } catch {
         Write-Warning "Host deploy state is unreadable at $path. A fresh state will be recorded after success."
@@ -452,7 +530,7 @@ function Read-HostDeployState() {
     }
 }
 
-function Write-HostDeployState([string]$head, [string]$branch, [string]$finishedAt) {
+function Write-HostDeployState([string]$head, [string]$branch, [string]$finishedAt, [string]$gitHubHead = "", [string]$gitHubStatus = "") {
     if ([string]::IsNullOrWhiteSpace($head)) {
         return ""
     }
@@ -467,6 +545,8 @@ function Write-HostDeployState([string]$head, [string]$branch, [string]$finished
         Head       = $head
         Branch     = $branch
         FinishedAt = $finishedAt
+        GitHubHead = $gitHubHead
+        GitHubStatus = $gitHubStatus
         RecordedAt = Get-IsoNow
         RemotePath = $remotePath
     }
@@ -821,6 +901,48 @@ function Get-CommitInfo([string]$Revision) {
     }
 }
 
+function Run-GitSingleAtPath([string]$repoPath, [string[]]$GitArgs) {
+    $output = & git -C $repoPath @GitArgs
+    if ($LASTEXITCODE -ne 0) {
+        throw "Git command failed: git -C $repoPath $($GitArgs -join ' ')"
+    }
+
+    $lines = @([string[]]$output)
+    if ($lines.Count -eq 0) {
+        return ""
+    }
+
+    return [string]$lines[0]
+}
+
+function Get-CommitInfoAtPath([string]$repoPath, [string]$Revision) {
+    if ([string]::IsNullOrWhiteSpace($Revision)) {
+        return $null
+    }
+
+    $line = Run-GitSingleAtPath -repoPath $repoPath -GitArgs @("show", "-s", "--format=%H%x09%cI%x09%aI%x09%s", $Revision)
+    if ([string]::IsNullOrWhiteSpace($line)) {
+        return $null
+    }
+
+    $parts = $line -split "`t", 4
+    if ($parts.Count -lt 3) {
+        return $null
+    }
+
+    $subject = ""
+    if ($parts.Count -ge 4) {
+        $subject = [string]$parts[3]
+    }
+
+    return [PSCustomObject]@{
+        Hash       = [string]$parts[0]
+        CommitTime = [string]$parts[1]
+        AuthorTime = [string]$parts[2]
+        Subject    = $subject
+    }
+}
+
 function Assert-CleanWorkingTree() {
     $status = & git -C $projectRoot status --porcelain --untracked-files=all
     if ($LASTEXITCODE -ne 0) {
@@ -994,9 +1116,11 @@ function Run-Validation() {
         throw "Validation failed (scripts/check_auth_store_resilience.php). Deployment aborted before host upload."
     }
 
-    $liveCredentials = Get-CompletionSmsLiveCredentials
+    $liveCredentials = Get-DeployOwnerCredentials
     if ([string]::IsNullOrWhiteSpace($liveCredentials.StudentNumber) -or [string]::IsNullOrWhiteSpace($liveCredentials.Password)) {
-        throw "Owner credentials are required for multi-cohort smoke validation. Set DENT_DEPLOY_OWNER_STUDENT_NUMBER / DENT_DEPLOY_OWNER_PASSWORD or populate $($liveCredentials.Path)."
+        $credentialHints = @($liveCredentials.Paths | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $hintText = if ($credentialHints.Count -gt 0) { $credentialHints -join ", " } else { "the configured owner credential path" }
+        throw "Owner credentials are required for multi-cohort smoke validation. Set DENT_DEPLOY_OWNER_STUDENT_NUMBER / DENT_DEPLOY_OWNER_PASSWORD or populate one of these files: $hintText"
     }
 
     $smokeCommand = @(
@@ -1183,6 +1307,10 @@ function Build-DeployPlan() {
     $uploadSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
     $deleteSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
     $notes = New-Object System.Collections.Generic.List[string]
+    $currentHead = ""
+
+    Assert-GitAvailable
+    $currentHead = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
 
     if ($FullSync) {
         $files = Get-ChildItem -LiteralPath $localRoot -Recurse -File
@@ -1199,14 +1327,12 @@ function Build-DeployPlan() {
             Mode       = "full-sync (laptop source)"
             UploadList = @($uploadSet) | Sort-Object
             DeleteList = @($deleteSet) | Sort-Object
+            SourceHead = $currentHead
             Notes      = @($notes)
         }
     }
 
-    Assert-GitAvailable
-
     $upstream = Try-GetUpstreamBranch
-    $currentHead = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
     if (-not [string]::IsNullOrWhiteSpace($upstream)) {
         $counts = Run-GitSingle -GitArgs @("rev-list", "--left-right", "--count", "@{upstream}...HEAD")
         $parts = $counts -split "\s+"
@@ -1255,7 +1381,246 @@ function Build-DeployPlan() {
         Mode       = "local-delta (laptop source)"
         UploadList = @($uploadSet) | Sort-Object
         DeleteList = @($deleteSet) | Sort-Object
+        SourceHead = $currentHead
         Notes      = @($notes)
+    }
+}
+
+function Collect-GitHubRangeDelta([System.Collections.Generic.HashSet[string]]$uploadSet, [System.Collections.Generic.HashSet[string]]$deleteSet, [string]$rangeSpec) {
+    if ([string]::IsNullOrWhiteSpace($rangeSpec)) {
+        return
+    }
+
+    $trackedChanges = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=ACMRTUXB", $rangeSpec)
+    foreach ($path in $trackedChanges) {
+        Add-GitHubRelativePath -set $uploadSet -path $path
+    }
+
+    $trackedDeletes = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=D", $rangeSpec)
+    foreach ($path in $trackedDeletes) {
+        Add-GitHubRelativePath -set $deleteSet -path $path
+    }
+
+    $renames = Run-Git -GitArgs @("diff", "--name-status", "--diff-filter=R", $rangeSpec)
+    foreach ($line in $renames) {
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+
+        $parts = $line -split "`t"
+        if ($parts.Count -lt 3) {
+            continue
+        }
+
+        Add-GitHubRelativePath -set $deleteSet -path $parts[1]
+        Add-GitHubRelativePath -set $uploadSet -path $parts[2]
+    }
+}
+
+function Collect-GitHubWorkingTreeDelta([System.Collections.Generic.HashSet[string]]$uploadSet, [System.Collections.Generic.HashSet[string]]$deleteSet) {
+    $trackedChanges = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=ACMRTUXB", "HEAD")
+    foreach ($path in $trackedChanges) {
+        Add-GitHubRelativePath -set $uploadSet -path $path
+    }
+
+    $trackedDeletes = Run-Git -GitArgs @("diff", "--name-only", "--diff-filter=D", "HEAD")
+    foreach ($path in $trackedDeletes) {
+        Add-GitHubRelativePath -set $deleteSet -path $path
+    }
+
+    $renames = Run-Git -GitArgs @("diff", "--name-status", "--diff-filter=R", "HEAD")
+    foreach ($line in $renames) {
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+
+        $parts = $line -split "`t"
+        if ($parts.Count -lt 3) {
+            continue
+        }
+
+        Add-GitHubRelativePath -set $deleteSet -path $parts[1]
+        Add-GitHubRelativePath -set $uploadSet -path $parts[2]
+    }
+
+    $untracked = Run-Git -GitArgs @("ls-files", "--others", "--exclude-standard")
+    foreach ($path in $untracked) {
+        Add-GitHubRelativePath -set $uploadSet -path $path
+    }
+}
+
+function Build-GitHubSyncPlan([string]$upstream) {
+    $uploadSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+    $deleteSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+    $notes = New-Object System.Collections.Generic.List[string]
+    $currentHead = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
+
+    if (-not [string]::IsNullOrWhiteSpace($upstream)) {
+        $divergence = Get-GitAheadBehind -upstream $upstream
+        if ($divergence.Ahead -gt 0) {
+            Collect-GitHubRangeDelta -uploadSet $uploadSet -deleteSet $deleteSet -rangeSpec "$upstream..HEAD"
+            [void]$notes.Add("Included committed local code delta ahead of $upstream (ahead=$($divergence.Ahead)).")
+        }
+        if ($divergence.Behind -gt 0) {
+            [void]$notes.Add("Local branch is behind $upstream by $($divergence.Behind) commit(s); GitHub sync will replay local delta on top of the latest remote branch.")
+        }
+    } else {
+        [void]$notes.Add("No upstream branch configured; GitHub sync will stage the current local code delta only.")
+    }
+
+    Collect-GitHubWorkingTreeDelta -uploadSet $uploadSet -deleteSet $deleteSet
+    [void]$notes.Add("Included staged/unstaged/untracked local code changes.")
+
+    foreach ($path in @($deleteSet)) {
+        if ($uploadSet.Contains($path)) {
+            [void]$deleteSet.Remove($path)
+        }
+    }
+
+    return [PSCustomObject]@{
+        Mode       = "repo-code-delta (laptop source)"
+        UploadList = @($uploadSet) | Sort-Object
+        DeleteList = @($deleteSet) | Sort-Object
+        SourceHead = $currentHead
+        Upstream   = $upstream
+        Notes      = @($notes)
+    }
+}
+
+function Resolve-GitHubSyncTarget([string]$currentBranch, [string]$upstream) {
+    $remoteName = "origin"
+    $branchName = $currentBranch
+
+    $normalizedUpstream = ([string]$upstream).Trim()
+    if (-not [string]::IsNullOrWhiteSpace($normalizedUpstream) -and $normalizedUpstream.Contains("/")) {
+        $parts = $normalizedUpstream.Split("/", 2)
+        if ($parts.Count -ge 2) {
+            $remoteName = $parts[0]
+            $branchName = $parts[1]
+        }
+    }
+
+    return [PSCustomObject]@{
+        RemoteName = $remoteName
+        BranchName = $branchName
+    }
+}
+
+function Get-GitHubSyncWorktreePath([string]$branchName) {
+    $safeBranch = ([string]$branchName).Trim()
+    if ([string]::IsNullOrWhiteSpace($safeBranch)) {
+        $safeBranch = "default"
+    }
+    $safeBranch = $safeBranch -replace '[^A-Za-z0-9._-]', '-'
+    return Join-Path $env:TEMP ("dent1402-github-sync-" + $safeBranch)
+}
+
+function Remove-GitHubSyncWorktree([string]$path) {
+    if ([string]::IsNullOrWhiteSpace($path)) {
+        return
+    }
+
+    $normalizedPath = [System.IO.Path]::GetFullPath($path)
+    $registered = $false
+    $worktreeList = & git -C $projectRoot worktree list --porcelain 2>$null
+    foreach ($line in @($worktreeList)) {
+        $text = [string]$line
+        if (-not $text.StartsWith("worktree ")) {
+            continue
+        }
+
+        $listedPath = $text.Substring("worktree ".Length).Trim()
+        if ([string]::IsNullOrWhiteSpace($listedPath)) {
+            continue
+        }
+
+        if ([System.IO.Path]::GetFullPath($listedPath).Equals($normalizedPath, [System.StringComparison]::OrdinalIgnoreCase)) {
+            $registered = $true
+            break
+        }
+    }
+
+    if ($registered) {
+        & git -C $projectRoot worktree remove --force $path 2>$null
+    }
+    if (Test-Path -LiteralPath $path) {
+        Remove-Item -LiteralPath $path -Recurse -Force
+    }
+}
+
+function New-GitHubSyncWorktree([string]$remoteName, [string]$branchName, [string]$fallbackRef) {
+    if ([string]::IsNullOrWhiteSpace($remoteName)) {
+        throw "GitHub sync requires a remote name."
+    }
+    if ([string]::IsNullOrWhiteSpace($branchName)) {
+        throw "GitHub sync requires a target branch name."
+    }
+
+    $worktreePath = Get-GitHubSyncWorktreePath -branchName $branchName
+    $hasRemoteBranch = $false
+    $baseRef = $fallbackRef
+
+    & git -C $projectRoot fetch --no-tags --quiet $remoteName $branchName 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        $remoteRef = "refs/remotes/$remoteName/$branchName"
+        & git -C $projectRoot show-ref --verify --quiet $remoteRef 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            $baseRef = "$remoteName/$branchName"
+            $hasRemoteBranch = $true
+        }
+    } elseif ([string]::IsNullOrWhiteSpace([string]$fallbackRef)) {
+        throw "GitHub sync fetch failed for $remoteName/$branchName."
+    }
+
+    if ([string]::IsNullOrWhiteSpace($baseRef)) {
+        throw "GitHub sync could not determine a base revision for the temporary worktree."
+    }
+
+    Remove-GitHubSyncWorktree -path $worktreePath
+
+    & git -C $projectRoot worktree add --quiet --force --detach $worktreePath $baseRef 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        throw "GitHub sync could not create the temporary worktree at $worktreePath."
+    }
+
+    return [PSCustomObject]@{
+        Path            = $worktreePath
+        BaseRef         = $baseRef
+        RemoteName      = $remoteName
+        BranchName      = $branchName
+        HasRemoteBranch = $hasRemoteBranch
+    }
+}
+
+function Apply-GitHubSyncPlanToWorktree([string]$repoPath, [string[]]$uploadList, [string[]]$deleteList) {
+    foreach ($relative in @($uploadList)) {
+        if ([string]::IsNullOrWhiteSpace($relative)) {
+            continue
+        }
+
+        $sourcePath = Join-Path $projectRoot ($relative -replace '/', '\')
+        if (-not (Test-Path -LiteralPath $sourcePath -PathType Leaf)) {
+            continue
+        }
+
+        $targetPath = Join-Path $repoPath ($relative -replace '/', '\')
+        $targetDirectory = Split-Path -Path $targetPath -Parent
+        if (-not [string]::IsNullOrWhiteSpace($targetDirectory) -and -not (Test-Path -LiteralPath $targetDirectory)) {
+            New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
+        }
+
+        Copy-Item -LiteralPath $sourcePath -Destination $targetPath -Force
+    }
+
+    foreach ($relative in @($deleteList)) {
+        if ([string]::IsNullOrWhiteSpace($relative)) {
+            continue
+        }
+
+        $targetPath = Join-Path $repoPath ($relative -replace '/', '\')
+        if (Test-Path -LiteralPath $targetPath) {
+            Remove-Item -LiteralPath $targetPath -Recurse -Force
+        }
     }
 }
 
@@ -1370,7 +1735,7 @@ function Run-PostDeployVerification() {
     }
 }
 
-function Sync-GitHubFromLaptop() {
+function Sync-GitHubFromLaptop([object]$GitHubPlan) {
     $started = Get-IsoNow
 
     if ($DryRun) {
@@ -1385,6 +1750,7 @@ function Sync-GitHubFromLaptop() {
             HeadCommit    = $null
             PushCommand   = ""
             EstimatedPushBytes = [int64]0
+            Notes         = @()
         }
     }
 
@@ -1400,6 +1766,7 @@ function Sync-GitHubFromLaptop() {
             HeadCommit    = $null
             PushCommand   = ""
             EstimatedPushBytes = [int64]0
+            Notes         = @()
         }
     }
 
@@ -1412,128 +1779,155 @@ function Sync-GitHubFromLaptop() {
 
     Write-Host "Step 5/5: sync GitHub from deployed laptop state"
 
-    & git -C $projectRoot add -A
-    if ($LASTEXITCODE -ne 0) {
-        throw "git add -A failed before GitHub sync."
-    }
-
-    & git -C $projectRoot diff --cached --quiet --exit-code
-    $hasStagedChanges = $false
-    if ($LASTEXITCODE -eq 1) {
-        $hasStagedChanges = $true
-    } elseif ($LASTEXITCODE -ne 0) {
-        throw "Unable to determine staged changes before commit."
-    }
-
-    $createdCommit = ""
-    if ($hasStagedChanges) {
-        & git -C $projectRoot commit -m $CommitMessage
-        if ($LASTEXITCODE -ne 0) {
-            throw "git commit failed during GitHub sync."
-        }
-        $createdCommit = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
-        Write-Host "Created commit: $createdCommit"
-    } else {
-        Write-Host "No new local changes to commit; push will sync existing local commits if needed."
-    }
-
     $upstream = Try-GetUpstreamBranch
-    $pushCommand = ""
-    $estimatedPushBytes = [int64]0
+    if ($null -eq $GitHubPlan) {
+        $GitHubPlan = Build-GitHubSyncPlan -upstream $upstream
+    }
 
-    if ([string]::IsNullOrWhiteSpace($upstream)) {
-        if ($script:NetworkPolicy.StrictGitHub -and -not $AllowProxyOverBudget) {
-            throw "Proxy low-bandwidth mode cannot estimate first push size (no upstream). Use direct path or rerun with -AllowProxyOverBudget."
-        }
-        if ($script:NetworkPolicy.StrictGitHub -and $AllowProxyOverBudget) {
-            Write-Warning "Proxy low-bandwidth mode: first push size is unknown, continuing due to explicit override."
-        }
-        $pushCommand = "git push -u origin $currentBranch"
-        & git -C $projectRoot push -u origin $currentBranch
-    } else {
-        $divergence = Get-GitAheadBehind -upstream $upstream
-        if ($divergence.Ahead -le 0) {
-            Write-Host "No local commits ahead of $upstream; skipping push."
-            $headAfterSyncNoop = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
-            $headCommitNoop = Get-CommitInfo -Revision $headAfterSyncNoop
+    $uploadList = @($GitHubPlan.UploadList)
+    $deleteList = @($GitHubPlan.DeleteList)
+    $notes = @($GitHubPlan.Notes)
+    $estimatedPushBytes = Get-FileBytesFromRelativeList -rootPath $projectRoot -relativeList $uploadList
+    if ($script:NetworkPolicy.StrictGitHub -and $estimatedPushBytes -gt 0) {
+        Assert-ProxyBudget -stepName "GitHub sync push" -estimatedBytes $estimatedPushBytes -budgetMb $script:NetworkPolicy.BudgetMb -allowOverBudget:$AllowProxyOverBudget
+    }
+
+    $target = Resolve-GitHubSyncTarget -currentBranch $currentBranch -upstream $upstream
+    $sourceHead = ""
+    if ($null -ne $GitHubPlan.PSObject.Properties["SourceHead"]) {
+        $sourceHead = [string]$GitHubPlan.SourceHead
+    }
+    if ([string]::IsNullOrWhiteSpace($sourceHead)) {
+        $sourceHead = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
+    }
+
+    if ($uploadList.Count -eq 0 -and $deleteList.Count -eq 0) {
+        $worktree = $null
+        try {
+            $worktree = New-GitHubSyncWorktree -remoteName $target.RemoteName -branchName $target.BranchName -fallbackRef $sourceHead
+            $headAfterSyncNoop = Run-GitSingleAtPath -repoPath $worktree.Path -GitArgs @("rev-parse", "HEAD")
+            $headCommitNoop = Get-CommitInfoAtPath -repoPath $worktree.Path -Revision $headAfterSyncNoop
+            Write-Host "No repo code delta detected for GitHub sync; skipping push."
             return [PSCustomObject]@{
                 Status            = "completed-noop"
                 StartedAt         = $started
                 FinishedAt        = Get-IsoNow
-                CurrentBranch     = $currentBranch
-                CreatedCommit     = $createdCommit
+                CurrentBranch     = $target.BranchName
+                CreatedCommit     = ""
                 HeadAfterSync     = $headAfterSyncNoop
                 HeadCommit        = $headCommitNoop
-                PushCommand       = "skipped(no-ahead)"
+                PushCommand       = "skipped(no-code-delta)"
                 EstimatedPushBytes = [int64]0
+                Notes             = $notes
+            }
+        } finally {
+            if ($worktree -ne $null) {
+                Remove-GitHubSyncWorktree -path $worktree.Path
             }
         }
-
-        $estimatedPushBytes = Get-EstimatedBytesForGitRange -rangeSpec "$upstream..HEAD"
-        if ($script:NetworkPolicy.StrictGitHub) {
-            Assert-ProxyBudget -stepName "GitHub sync push" -estimatedBytes $estimatedPushBytes -budgetMb $script:NetworkPolicy.BudgetMb -allowOverBudget:$AllowProxyOverBudget
-        }
-
-        $pushCommand = "git push"
-        & git -C $projectRoot push
     }
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "GitHub push failed after successful host deploy/verification. Deployed host state is intact; sync to GitHub must be resolved manually."
-    }
+    $maxAttempts = 2
+    $pushCommand = ""
+    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+        $worktree = $null
+        try {
+            $worktree = New-GitHubSyncWorktree -remoteName $target.RemoteName -branchName $target.BranchName -fallbackRef $sourceHead
+            Apply-GitHubSyncPlanToWorktree -repoPath $worktree.Path -uploadList $uploadList -deleteList $deleteList
 
-    $headAfterSync = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
-    $headCommit = Get-CommitInfo -Revision $headAfterSync
-
-    return [PSCustomObject]@{
-        Status            = "completed"
-        StartedAt         = $started
-        FinishedAt        = Get-IsoNow
-        CurrentBranch     = $currentBranch
-        CreatedCommit     = $createdCommit
-        HeadAfterSync     = $headAfterSync
-        HeadCommit        = $headCommit
-        PushCommand       = $pushCommand
-        EstimatedPushBytes = $estimatedPushBytes
-    }
-}
-
-function Get-CompletionSmsLiveBaseUrl() {
-    foreach ($candidateUrl in @($HealthCheckUrls)) {
-        if ([string]::IsNullOrWhiteSpace($candidateUrl)) {
-            continue
-        }
-
-        $uri = $null
-        if ([Uri]::TryCreate($candidateUrl.Trim(), [UriKind]::Absolute, [ref]$uri)) {
-            $builder = [System.UriBuilder]::new($uri.Scheme, $uri.Host)
-            if (-not $uri.IsDefaultPort) {
-                $builder.Port = $uri.Port
+            & git -C $worktree.Path add -A -- .
+            if ($LASTEXITCODE -ne 0) {
+                throw "git add failed inside the temporary GitHub sync worktree."
             }
-            $builder.Path = ""
-            $builder.Query = ""
-            return $builder.Uri.AbsoluteUri.TrimEnd("/")
+
+            & git -C $worktree.Path diff --cached --quiet --exit-code
+            $hasStagedChanges = $false
+            if ($LASTEXITCODE -eq 1) {
+                $hasStagedChanges = $true
+            } elseif ($LASTEXITCODE -ne 0) {
+                throw "Unable to determine staged changes inside the temporary GitHub sync worktree."
+            }
+
+            $createdCommit = ""
+            if ($hasStagedChanges) {
+                & git -C $worktree.Path commit -m $CommitMessage
+                if ($LASTEXITCODE -ne 0) {
+                    throw "git commit failed inside the temporary GitHub sync worktree."
+                }
+                $createdCommit = Run-GitSingleAtPath -repoPath $worktree.Path -GitArgs @("rev-parse", "HEAD")
+                Write-Host "Created GitHub sync commit: $createdCommit"
+            } else {
+                Write-Host "GitHub sync worktree already matches the latest remote branch after overlay; skipping push."
+            }
+
+            $pushSpec = "HEAD:refs/heads/$($target.BranchName)"
+            if ($worktree.HasRemoteBranch) {
+                $pushCommand = "git push $($target.RemoteName) $pushSpec"
+                if ($hasStagedChanges) {
+                    & git -C $worktree.Path push --quiet $target.RemoteName $pushSpec 2>$null
+                }
+            } else {
+                $pushCommand = "git push -u $($target.RemoteName) $pushSpec"
+                if ($hasStagedChanges) {
+                    & git -C $worktree.Path push --quiet -u $target.RemoteName $pushSpec 2>$null
+                }
+            }
+
+            if ($hasStagedChanges -and $LASTEXITCODE -ne 0) {
+                if ($attempt -lt $maxAttempts) {
+                    Write-Warning "GitHub sync push failed on attempt $attempt. Retrying on top of the latest remote branch."
+                    continue
+                }
+                throw "GitHub sync push failed after successful host deploy/verification."
+            }
+
+            $headAfterSync = Run-GitSingleAtPath -repoPath $worktree.Path -GitArgs @("rev-parse", "HEAD")
+            $headCommit = Get-CommitInfoAtPath -repoPath $worktree.Path -Revision $headAfterSync
+
+            return [PSCustomObject]@{
+                Status            = if ($hasStagedChanges) { "completed" } else { "completed-noop" }
+                StartedAt         = $started
+                FinishedAt        = Get-IsoNow
+                CurrentBranch     = $target.BranchName
+                CreatedCommit     = $createdCommit
+                HeadAfterSync     = $headAfterSync
+                HeadCommit        = $headCommit
+                PushCommand       = if ($hasStagedChanges) { $pushCommand } else { "skipped(remote-already-matched)" }
+                EstimatedPushBytes = $estimatedPushBytes
+                Notes             = $notes
+            }
+        } finally {
+            if ($worktree -ne $null) {
+                Remove-GitHubSyncWorktree -path $worktree.Path
+            }
         }
     }
 
-    return "https://dentistry1402tums.ir"
+    throw "GitHub sync exhausted its automatic retry budget after successful host deploy/verification."
 }
 
-function Get-CompletionSmsCredentialFilePath() {
-    if ([string]::IsNullOrWhiteSpace($CompletionSmsCredentialPath)) {
-        return ""
+function Get-OwnerCredentialFilePaths() {
+    $paths = New-Object System.Collections.Generic.List[string]
+
+    if (-not [string]::IsNullOrWhiteSpace($OwnerCredentialPath)) {
+        if ([System.IO.Path]::IsPathRooted($OwnerCredentialPath)) {
+            [void]$paths.Add($OwnerCredentialPath)
+        } else {
+            [void]$paths.Add((Join-Path $projectRoot $OwnerCredentialPath))
+        }
     }
 
-    if ([System.IO.Path]::IsPathRooted($CompletionSmsCredentialPath)) {
-        return $CompletionSmsCredentialPath
+    $legacyPath = Join-Path $projectRoot ".codex-local\deploy_completion_owner.json"
+    if (-not ($paths.Contains($legacyPath))) {
+        [void]$paths.Add($legacyPath)
     }
 
-    return Join-Path $projectRoot $CompletionSmsCredentialPath
+    return @($paths | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
 }
 
-function Get-CompletionSmsLiveCredentials() {
-    $studentNumber = $CompletionSmsOwnerStudentNumber
-    $password = $CompletionSmsOwnerPassword
+function Get-DeployOwnerCredentials() {
+    $studentNumber = $OwnerStudentNumber
+    $password = $OwnerPassword
 
     if ([string]::IsNullOrWhiteSpace($studentNumber)) {
         $studentNumber = [Environment]::GetEnvironmentVariable("DENT_DEPLOY_OWNER_STUDENT_NUMBER")
@@ -1542,148 +1936,37 @@ function Get-CompletionSmsLiveCredentials() {
         $password = [Environment]::GetEnvironmentVariable("DENT_DEPLOY_OWNER_PASSWORD")
     }
 
-    $credentialPath = Get-CompletionSmsCredentialFilePath
-    if (([string]::IsNullOrWhiteSpace($studentNumber) -or [string]::IsNullOrWhiteSpace($password)) -and
-        -not [string]::IsNullOrWhiteSpace($credentialPath) -and
-        (Test-Path -LiteralPath $credentialPath -PathType Leaf)) {
-        try {
-            $credential = Get-Content -LiteralPath $credentialPath -Raw -Encoding UTF8 | ConvertFrom-Json
-            if ([string]::IsNullOrWhiteSpace($studentNumber) -and $credential.PSObject.Properties.Name -contains "studentNumber") {
-                $studentNumber = [string]$credential.studentNumber
+    $credentialPaths = @(Get-OwnerCredentialFilePaths)
+    if ([string]::IsNullOrWhiteSpace($studentNumber) -or [string]::IsNullOrWhiteSpace($password)) {
+        foreach ($credentialPath in $credentialPaths) {
+            if ([string]::IsNullOrWhiteSpace($credentialPath) -or -not (Test-Path -LiteralPath $credentialPath -PathType Leaf)) {
+                continue
             }
-            if ([string]::IsNullOrWhiteSpace($password) -and $credential.PSObject.Properties.Name -contains "password") {
-                $password = [string]$credential.password
+
+            try {
+                $credential = Get-Content -LiteralPath $credentialPath -Raw -Encoding UTF8 | ConvertFrom-Json
+                if ([string]::IsNullOrWhiteSpace($studentNumber) -and $credential.PSObject.Properties.Name -contains "studentNumber") {
+                    $studentNumber = [string]$credential.studentNumber
+                }
+                if ([string]::IsNullOrWhiteSpace($password) -and $credential.PSObject.Properties.Name -contains "password") {
+                    $password = [string]$credential.password
+                }
+            } catch {
+                Write-Warning "Unable to read owner credential file: $credentialPath"
             }
-        } catch {
-            Write-Warning "Unable to read completion SMS live credential file: $credentialPath"
+
+            if (-not [string]::IsNullOrWhiteSpace($studentNumber) -and -not [string]::IsNullOrWhiteSpace($password)) {
+                break
+            }
         }
     }
 
     return [PSCustomObject]@{
         StudentNumber = $studentNumber
         Password      = $password
-        Path          = $credentialPath
+        Paths         = $credentialPaths
+        PrimaryPath   = if ($credentialPaths.Count -gt 0) { $credentialPaths[0] } else { "" }
     }
-}
-
-function Get-MaskedPhoneForReport([string]$phoneNumber) {
-    $digits = ($phoneNumber -replace '[^\d+]', '')
-    if ($digits.StartsWith("09") -and $digits.Length -eq 11) {
-        return "+98" + $digits.Substring(1, 3) + "***" + $digits.Substring($digits.Length - 2)
-    }
-    if ($digits.StartsWith("+989") -and $digits.Length -ge 13) {
-        return $digits.Substring(0, 6) + "***" + $digits.Substring($digits.Length - 2)
-    }
-    if ($digits.Length -gt 5) {
-        return $digits.Substring(0, 3) + "***" + $digits.Substring($digits.Length - 2)
-    }
-    return ""
-}
-
-function Send-LiveCompletionSms([string]$started) {
-    $baseUrl = Get-CompletionSmsLiveBaseUrl
-    $credentials = Get-CompletionSmsLiveCredentials
-    $phoneMasked = Get-MaskedPhoneForReport -phoneNumber $CompletionSmsPhone
-    $command = "$baseUrl/api/auth_api.php?action=smsHealthCheck"
-
-    if ([string]::IsNullOrWhiteSpace($credentials.StudentNumber) -or [string]::IsNullOrWhiteSpace($credentials.Password)) {
-        return [PSCustomObject]@{
-            Status      = "failed"
-            StartedAt   = $started
-            FinishedAt  = Get-IsoNow
-            PhoneMasked = $phoneMasked
-            Message     = "Live completion SMS credentials are missing. Set DENT_DEPLOY_OWNER_STUDENT_NUMBER/DENT_DEPLOY_OWNER_PASSWORD or create $($credentials.Path)."
-            Command     = $command
-            ExitCode    = 2
-        }
-    }
-
-    Write-Host "Final notification: send completion SMS through live site"
-    try {
-        $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-        $loginUrl = "$baseUrl/api/auth_api.php?action=login"
-        $loginBody = @{
-            studentNumber = [string]$credentials.StudentNumber
-            password      = [string]$credentials.Password
-        }
-        $loginResponse = Invoke-WebRequest -Uri $loginUrl -Method Post -Body $loginBody -WebSession $session -UseBasicParsing -MaximumRedirection 5 -TimeoutSec 45
-        $loginPayload = $loginResponse.Content | ConvertFrom-Json
-        $loginSuccess = $false
-        if ($null -ne $loginPayload -and $loginPayload.PSObject.Properties.Name -contains "success") {
-            $loginSuccess = [bool]$loginPayload.success
-        }
-        if (-not $loginSuccess) {
-            throw "Live owner login failed."
-        }
-
-        $smsBody = @{
-            phoneNumber = $CompletionSmsPhone
-        }
-        $smsResponse = Invoke-WebRequest -Uri $command -Method Post -Body $smsBody -WebSession $session -UseBasicParsing -MaximumRedirection 5 -TimeoutSec 90
-        $payload = $smsResponse.Content | ConvertFrom-Json
-        $success = $false
-        if ($null -ne $payload -and $payload.PSObject.Properties.Name -contains "success") {
-            $success = [bool]$payload.success
-        }
-        $message = ""
-        if ($null -ne $payload -and $payload.PSObject.Properties.Name -contains "message") {
-            $message = [string]$payload.message
-        }
-        if ([string]::IsNullOrWhiteSpace($message)) {
-            $message = if ($success) { "Live completion SMS sent." } else { "Live completion SMS failed." }
-        }
-
-        return [PSCustomObject]@{
-            Status      = if ($success) { "completed" } else { "failed" }
-            StartedAt   = $started
-            FinishedAt  = Get-IsoNow
-            PhoneMasked = $phoneMasked
-            Message     = $message
-            Command     = $command
-            ExitCode    = if ($success) { 0 } else { 1 }
-        }
-    } catch {
-        return [PSCustomObject]@{
-            Status      = "failed"
-            StartedAt   = $started
-            FinishedAt  = Get-IsoNow
-            PhoneMasked = $phoneMasked
-            Message     = $_.Exception.Message
-            Command     = $command
-            ExitCode    = 1
-        }
-    }
-}
-
-function Send-CompletionSms() {
-    $started = Get-IsoNow
-    if ($SkipCompletionSms) {
-        Write-Warning "Completion SMS skipped by explicit -SkipCompletionSms override."
-        return [PSCustomObject]@{
-            Status      = "skipped-explicit"
-            StartedAt   = $started
-            FinishedAt  = Get-IsoNow
-            PhoneMasked = ""
-            Message     = ""
-            Command     = ""
-            ExitCode    = 0
-        }
-    }
-
-    if ($DryRun) {
-        Write-Host "[DryRun] Completion SMS skipped before sending"
-        return [PSCustomObject]@{
-            Status      = "skipped-dry-run"
-            StartedAt   = $started
-            FinishedAt  = Get-IsoNow
-            PhoneMasked = ""
-            Message     = "Dry run skipped before sending."
-            Command     = ""
-            ExitCode    = 0
-        }
-    }
-
-    return Send-LiveCompletionSms -started $started
 }
 
 $validationInfo = [PSCustomObject]@{
@@ -1754,15 +2037,8 @@ $deployStateInfo = [PSCustomObject]@{
     Head       = ""
     Branch     = ""
     FinishedAt = ""
-}
-$completionSmsInfo = [PSCustomObject]@{
-    Status      = "not-run"
-    StartedAt   = ""
-    FinishedAt  = ""
-    PhoneMasked = ""
-    Message     = ""
-    Command     = ""
-    ExitCode    = 0
+    GitHubHead = ""
+    GitHubStatus = ""
 }
 
 $failureMessage = ""
@@ -1777,6 +2053,11 @@ try {
     $plan = Build-DeployPlan
     $uploadList = @($plan.UploadList)
     $deleteList = @($plan.DeleteList)
+    $deploySourceHead = ""
+    if ($null -ne $plan.PSObject.Properties["SourceHead"]) {
+        $deploySourceHead = [string]$plan.SourceHead
+    }
+    $deploySourceBranch = Run-GitSingle -GitArgs @("rev-parse", "--abbrev-ref", "HEAD")
 
     $deployInfo.Mode = [string]$plan.Mode
     $deployInfo.UploadCount = $uploadList.Count
@@ -1822,25 +2103,44 @@ try {
     $deployInfo.FinishedAt = Get-IsoNow
 
     $verificationInfo = Run-PostDeployVerification
-    $githubSyncInfo = Sync-GitHubFromLaptop
 
-    if ($githubSyncInfo.HeadCommit -ne $null -and -not [string]::IsNullOrWhiteSpace([string]$githubSyncInfo.HeadCommit.Hash)) {
+    if (-not $DryRun -and -not [string]::IsNullOrWhiteSpace($deploySourceHead)) {
         $statePath = Write-HostDeployState `
-            -head ([string]$githubSyncInfo.HeadCommit.Hash) `
-            -branch ([string]$githubSyncInfo.CurrentBranch) `
-            -finishedAt ([string]$deployInfo.FinishedAt)
-        $deployStateInfo.Status = "updated"
+            -head $deploySourceHead `
+            -branch $deploySourceBranch `
+            -finishedAt ([string]$deployInfo.FinishedAt) `
+            -gitHubStatus "pending"
+        $deployStateInfo.Status = "updated-pending-github"
         $deployStateInfo.Path = $statePath
-        $deployStateInfo.Head = [string]$githubSyncInfo.HeadCommit.Hash
-        $deployStateInfo.Branch = [string]$githubSyncInfo.CurrentBranch
+        $deployStateInfo.Head = $deploySourceHead
+        $deployStateInfo.Branch = $deploySourceBranch
         $deployStateInfo.FinishedAt = [string]$deployInfo.FinishedAt
-    } else {
-        $deployStateInfo.Status = "skipped-no-head"
+        $deployStateInfo.GitHubStatus = "pending"
     }
 
-    $completionSmsInfo = Send-CompletionSms
-    if ($completionSmsInfo.Status -eq "failed") {
-        throw "Completion SMS failed: $($completionSmsInfo.Message)"
+    $githubPlan = Build-GitHubSyncPlan -upstream (Try-GetUpstreamBranch)
+    $githubSyncInfo = Sync-GitHubFromLaptop -GitHubPlan $githubPlan
+
+    if (-not $DryRun -and -not [string]::IsNullOrWhiteSpace($deploySourceHead)) {
+        $gitHubHead = ""
+        if ($githubSyncInfo.HeadCommit -ne $null -and -not [string]::IsNullOrWhiteSpace([string]$githubSyncInfo.HeadCommit.Hash)) {
+            $gitHubHead = [string]$githubSyncInfo.HeadCommit.Hash
+        }
+        $statePath = Write-HostDeployState `
+            -head $deploySourceHead `
+            -branch $deploySourceBranch `
+            -finishedAt ([string]$deployInfo.FinishedAt) `
+            -gitHubHead $gitHubHead `
+            -gitHubStatus ([string]$githubSyncInfo.Status)
+        $deployStateInfo.Status = "updated"
+        $deployStateInfo.Path = $statePath
+        $deployStateInfo.Head = $deploySourceHead
+        $deployStateInfo.Branch = $deploySourceBranch
+        $deployStateInfo.FinishedAt = [string]$deployInfo.FinishedAt
+        $deployStateInfo.GitHubHead = $gitHubHead
+        $deployStateInfo.GitHubStatus = [string]$githubSyncInfo.Status
+    } elseif (-not $DryRun) {
+        $deployStateInfo.Status = "skipped-no-head"
     }
 } catch {
     $failureMessage = $_.Exception.Message
@@ -1859,8 +2159,16 @@ try {
     if (-not $deployStateInfo.FinishedAt) {
         $deployStateInfo.FinishedAt = Get-IsoNow
     }
-    if (-not $completionSmsInfo.FinishedAt) {
-        $completionSmsInfo.FinishedAt = Get-IsoNow
+    if ($deployStateInfo.Status -eq "updated-pending-github" -and -not [string]::IsNullOrWhiteSpace($deployStateInfo.Path) -and -not [string]::IsNullOrWhiteSpace($deployStateInfo.Head)) {
+        $statePath = Write-HostDeployState `
+            -head ([string]$deployStateInfo.Head) `
+            -branch ([string]$deployStateInfo.Branch) `
+            -finishedAt ([string]$deployStateInfo.FinishedAt) `
+            -gitHubHead ([string]$deployStateInfo.GitHubHead) `
+            -gitHubStatus "failed"
+        $deployStateInfo.Path = $statePath
+        $deployStateInfo.Status = "updated-github-failed"
+        $deployStateInfo.GitHubStatus = "failed"
     }
 } finally {
     $runFinishedAt = Get-IsoNow
@@ -1974,6 +2282,9 @@ try {
         Write-Host " - Push command: $($githubSyncInfo.PushCommand)"
     }
     Write-Host " - Estimated push bytes: $(Format-Bytes -bytes $githubSyncInfo.EstimatedPushBytes)"
+    foreach ($note in @($githubSyncInfo.Notes)) {
+        Write-Host "   * $note"
+    }
     Write-Host " - Host deploy state record: $($deployStateInfo.Status)"
     if (-not [string]::IsNullOrWhiteSpace($deployStateInfo.Path)) {
         Write-Host " - Host deploy state path: $($deployStateInfo.Path)"
@@ -1981,18 +2292,11 @@ try {
     if (-not [string]::IsNullOrWhiteSpace($deployStateInfo.Head)) {
         Write-Host " - Last successful host deploy HEAD: $($deployStateInfo.Head)"
     }
-    Write-Host " - Completion SMS status: $($completionSmsInfo.Status)"
-    if (-not [string]::IsNullOrWhiteSpace($completionSmsInfo.StartedAt)) {
-        Write-Host " - Completion SMS started at: $($completionSmsInfo.StartedAt)"
+    if (-not [string]::IsNullOrWhiteSpace($deployStateInfo.GitHubHead)) {
+        Write-Host " - Last recorded GitHub sync HEAD: $($deployStateInfo.GitHubHead)"
     }
-    if (-not [string]::IsNullOrWhiteSpace($completionSmsInfo.FinishedAt)) {
-        Write-Host " - Completion SMS finished at: $($completionSmsInfo.FinishedAt)"
-    }
-    if (-not [string]::IsNullOrWhiteSpace($completionSmsInfo.PhoneMasked)) {
-        Write-Host " - Completion SMS phone: $($completionSmsInfo.PhoneMasked)"
-    }
-    if (-not [string]::IsNullOrWhiteSpace($completionSmsInfo.Message)) {
-        Write-Host " - Completion SMS message: $($completionSmsInfo.Message)"
+    if (-not [string]::IsNullOrWhiteSpace($deployStateInfo.GitHubStatus)) {
+        Write-Host " - Last recorded GitHub sync status: $($deployStateInfo.GitHubStatus)"
     }
 
     Write-Host " - Run finished at: $runFinishedAt"
