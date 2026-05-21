@@ -59,6 +59,7 @@
         if (cohort) {
             query.set("cohort", cohort);
         }
+        query.set("_t", String(Date.now()));
         return query;
     }
 
@@ -137,6 +138,7 @@
         renderLoading();
         fetch("/api/exams_api.php?" + queryWithCohort().toString(), {
             method: "GET",
+            cache: "no-store",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
         }).then(parseJson).then(function (payload) {

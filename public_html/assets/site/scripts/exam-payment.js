@@ -61,8 +61,10 @@
 
     function examsGet(action, payload) {
         var query = new URLSearchParams(withCohort(Object.assign({ action: action }, payload || {})));
+        query.set("_t", String(Date.now()));
         return fetch("/api/exams_api.php?" + query.toString(), {
             method: "GET",
+            cache: "no-store",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
         }).then(parseJson);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/auth_store.php';
 require_once __DIR__ . '/exams_store.php';
 require_once __DIR__ . '/payments_store.php';
+require_once __DIR__ . '/exams_radiology2_overrides.php';
 
 final class DentExamsApiException extends RuntimeException
 {
@@ -26,6 +27,52 @@ final class DentExamsApiException extends RuntimeException
     {
         return $this->payload;
     }
+}
+
+function dent_exams_api_apply_runtime_exam_override(string $courseSlug, array $exam): array
+{
+    if ($courseSlug !== 'radiology2' || !function_exists('dent_exams_radiology2_overrides')) {
+        return $exam;
+    }
+
+    $slug = trim((string) ($exam['slug'] ?? ''));
+    if ($slug === '') {
+        return $exam;
+    }
+
+    $overrides = dent_exams_radiology2_overrides();
+    $override = $overrides[$slug] ?? null;
+    if (!is_array($override)) {
+        return $exam;
+    }
+
+    foreach ($override as $key => $value) {
+        $exam[$key] = $value;
+    }
+
+    if (is_array($exam['questions'] ?? null)) {
+        $exam['questionCount'] = count($exam['questions']);
+    }
+
+    return $exam;
+}
+
+function dent_exams_api_apply_runtime_course_override(array $course): array
+{
+    $courseSlug = dent_exams_clean_course_slug((string) ($course['slug'] ?? ''));
+    if ($courseSlug === '' || !is_array($course['exams'] ?? null)) {
+        return $course;
+    }
+
+    $nextExams = [];
+    foreach ($course['exams'] as $exam) {
+        $nextExams[] = is_array($exam)
+            ? dent_exams_api_apply_runtime_exam_override($courseSlug, $exam)
+            : $exam;
+    }
+    $course['exams'] = $nextExams;
+
+    return $course;
 }
 
 function dent_exams_api_require_method(array $methods): void
@@ -493,7 +540,7 @@ function dent_exams_api_resolve_course_setting(
 function dent_exams_api_current_course_summary(string $catalogKey, string $courseSlug): array
 {
     $user = dent_current_user();
-    $course = dent_exams_api_course_or_fail($catalogKey, $courseSlug);
+    $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
     $examsStore = dent_exams_read_store();
     $paymentsStore = payments_read_store();
     $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, $courseSlug, $course);
@@ -573,8 +620,8 @@ if ($action === 'exam') {
     }
 
     try {
-        $course = dent_exams_api_course_or_fail($catalogKey, $courseSlug);
-        $exam = dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug);
+        $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
+        $exam = dent_exams_api_apply_runtime_exam_override($courseSlug, dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
     }
