@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/auth_store.php';
+require_once __DIR__ . '/notes_download_host.php';
 
 const NOTES_1402_SCHEMA_VERSION = 1;
 const NOTES_1402_MIN_TERM = 5;
@@ -1106,6 +1107,63 @@ function notes_parse_item_fields_from_post(): array
     ];
 }
 
+function notes_download_host_scope_root_for_cohort(string $cohort): string
+{
+    if ($cohort === '1403') {
+        return '1403';
+    }
+    if ($cohort === 'prosthesis-1402') {
+        return 'prosthesis-1402';
+    }
+
+    return '1402';
+}
+
+function notes_download_host_scope_for_viewer(string $cohort, array $viewer): ?string
+{
+    $role = (string) ($viewer['role'] ?? 'student');
+    if ($role === 'owner') {
+        return null;
+    }
+
+    return notes_download_host_scope_root_for_cohort($cohort);
+}
+
+function notes_download_host_manager_url(string $defaultPath, string $cohort): string
+{
+    $query = [];
+    if ($defaultPath !== '') {
+        $query['path'] = $defaultPath;
+    }
+    if ($cohort !== '') {
+        $query['cohort'] = $cohort;
+    }
+
+    return '/notes/files/' . ($query === [] ? '' : ('?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986)));
+}
+
+function notes_download_host_term_payload(string $cohort, int $term, array $termPayload, ?array $viewer): array
+{
+    $isEnabled = notes_download_host_is_enabled();
+    $canManage = notes_can_manage_cohort($cohort, $viewer);
+    $role = is_array($viewer) ? (string) ($viewer['role'] ?? 'student') : 'guest';
+    $defaultRelativeDir = notes_download_host_default_relative_dir(
+        $cohort,
+        $cohort === '1403' ? 0 : $term,
+        (string) ($termPayload['title'] ?? '')
+    );
+
+    return [
+        'enabled' => $isEnabled,
+        'publicBaseUrl' => notes_download_host_public_base_url(),
+        'defaultRelativeDir' => $defaultRelativeDir,
+        'scopeRoot' => notes_download_host_scope_root_for_cohort($cohort),
+        'canUpload' => $canManage && $isEnabled,
+        'canManageAllRoots' => $role === 'owner' && $isEnabled,
+        'managerUrl' => notes_download_host_manager_url($defaultRelativeDir, $cohort),
+    ];
+}
+
 function notes_parse_prosthesis_term_fields_from_post(): array
 {
     $title = dent_clean_text((string) ($_POST['title'] ?? ''), 160);
@@ -1488,6 +1546,114 @@ if ($action === 'term') {
         'success' => true,
         'term' => $termPayload,
         'canManage' => notes_can_manage_cohort($cohort, $viewer),
+        'downloadHost' => notes_download_host_term_payload($cohort, $term, $termPayload, $viewer),
+    ]);
+}
+
+if ($action === 'downloadHostBrowse') {
+    notes_1402_require_method(['GET']);
+    $viewer = dent_require_user();
+    $cohort = notes_parse_cohort($_GET['cohort'] ?? '');
+    if ($cohort === '') {
+        $cohort = '1402';
+    }
+    if (!notes_can_manage_cohort($cohort, $viewer)) {
+        dent_error('اجازه مدیریت فایل‌های منابع را ندارید.', 403);
+    }
+
+    $scopeRoot = notes_download_host_scope_for_viewer($cohort, $viewer);
+    $path = trim((string) ($_GET['path'] ?? ''));
+    if ($path === '' && $scopeRoot !== null) {
+        $path = $scopeRoot;
+    }
+
+    $payload = notes_download_host_browse($path, $scopeRoot);
+    dent_json_response([
+        'success' => true,
+        'browse' => $payload,
+        'downloadHost' => [
+            'enabled' => notes_download_host_is_enabled(),
+            'publicBaseUrl' => notes_download_host_public_base_url(),
+            'scopeRoot' => $scopeRoot,
+            'canManageAllRoots' => (string) ($viewer['role'] ?? '') === 'owner',
+        ],
+    ]);
+}
+
+if ($action === 'downloadHostUpload') {
+    notes_1402_require_method(['POST']);
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $viewer = notes_require_manage_cohort($cohort);
+    $scopeRoot = notes_download_host_scope_for_viewer($cohort, $viewer);
+    $relativeDir = trim((string) ($_POST['path'] ?? $_POST['relativeDir'] ?? ''));
+    if ($relativeDir === '') {
+        $term = $cohort === 'prosthesis-1402'
+            ? notes_prosthesis_1402_parse_term_id($_POST['term'] ?? '1')
+            : notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
+        $relativeDir = notes_download_host_default_relative_dir($cohort, $term, trim((string) ($_POST['termTitle'] ?? '')));
+    }
+
+    if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {
+        dent_error('فایل برای آپلود ارسال نشد.', 422);
+    }
+
+    $desiredName = trim((string) ($_POST['fileName'] ?? ''));
+    $uploaded = notes_download_host_upload_file($relativeDir, $_FILES['file'], $desiredName, $scopeRoot);
+    dent_json_response([
+        'success' => true,
+        'file' => $uploaded,
+        'message' => $uploaded['message'] ?? 'فایل روی هاست دانلود ذخیره شد.',
+    ]);
+}
+
+if ($action === 'downloadHostCreateDir') {
+    notes_1402_require_method(['POST']);
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $viewer = notes_require_manage_cohort($cohort);
+    $scopeRoot = notes_download_host_scope_for_viewer($cohort, $viewer);
+    $parentPath = trim((string) ($_POST['path'] ?? ''));
+    if ($parentPath === '' && $scopeRoot !== null) {
+        $parentPath = $scopeRoot;
+    }
+    $created = notes_download_host_create_dir($parentPath, (string) ($_POST['name'] ?? ''), $scopeRoot);
+    dent_json_response([
+        'success' => true,
+        'entry' => $created,
+        'message' => 'پوشه جدید روی هاست دانلود ساخته شد.',
+    ]);
+}
+
+if ($action === 'downloadHostRenameEntry') {
+    notes_1402_require_method(['POST']);
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $viewer = notes_require_manage_cohort($cohort);
+    $scopeRoot = notes_download_host_scope_for_viewer($cohort, $viewer);
+    $renamed = notes_download_host_rename_entry(
+        (string) ($_POST['path'] ?? ''),
+        (string) ($_POST['name'] ?? ''),
+        $scopeRoot
+    );
+    dent_json_response([
+        'success' => true,
+        'entry' => $renamed,
+        'message' => 'نام فایل یا پوشه تغییر کرد.',
+    ]);
+}
+
+if ($action === 'downloadHostDeleteEntry') {
+    notes_1402_require_method(['POST']);
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $viewer = notes_require_manage_cohort($cohort);
+    $scopeRoot = notes_download_host_scope_for_viewer($cohort, $viewer);
+    $deleted = notes_download_host_delete_entry(
+        (string) ($_POST['path'] ?? ''),
+        (string) ($_POST['entryType'] ?? 'file'),
+        $scopeRoot
+    );
+    dent_json_response([
+        'success' => true,
+        'entry' => $deleted,
+        'message' => 'آیتم انتخابی از هاست دانلود حذف شد.',
     ]);
 }
 
