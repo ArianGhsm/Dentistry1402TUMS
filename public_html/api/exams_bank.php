@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/exams_radiology2_overrides.php';
+
 function dent_exams_bank(): array
 {
     static $bank = null;
@@ -17184,5 +17186,9 @@ function dent_exams_bank(): array
 JSON;
 
     $bank = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-    return is_array($bank) ? $bank : [];
+    if (!is_array($bank)) {
+        return [];
+    }
+
+    return dent_exams_apply_radiology2_overrides($bank);
 }
