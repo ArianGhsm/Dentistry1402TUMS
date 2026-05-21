@@ -5,6 +5,29 @@
     var body = document.body;
     var courseSlug = body && body.dataset ? String(body.dataset.examsCourse || "").trim() : "";
     var examSlug = body && body.dataset ? String(body.dataset.examsExam || "").trim() : "";
+    var assetVersionQuery = (function () {
+        var src = "";
+        var currentScript = document.currentScript;
+        if (currentScript && typeof currentScript.src === "string" && currentScript.src) {
+            src = currentScript.src;
+        }
+        if (!src) {
+            var bootstrapScripts = document.querySelectorAll('script[src*="/assets/site/scripts/exam-bootstrap.js"]');
+            if (bootstrapScripts.length > 0) {
+                src = bootstrapScripts[bootstrapScripts.length - 1].src || "";
+            }
+        }
+        if (!src) {
+            return "";
+        }
+        try {
+            var url = new URL(src, window.location.href);
+            var version = String(url.searchParams.get("v") || "").trim();
+            return version ? "?v=" + encodeURIComponent(version) : "";
+        } catch (_error) {
+            return "";
+        }
+    }());
     if (!appRoot || !courseSlug || !examSlug) {
         return;
     }
@@ -126,7 +149,7 @@
         document.body.appendChild(node);
 
         var script = document.createElement("script");
-        script.src = "/assets/site/scripts/exam-quiz.js?v=20260521-211049";
+        script.src = "/assets/site/scripts/exam-quiz.js" + assetVersionQuery;
         document.body.appendChild(script);
     }
 
