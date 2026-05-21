@@ -31,29 +31,20 @@ final class DentExamsApiException extends RuntimeException
 
 function dent_exams_api_apply_runtime_exam_override(string $courseSlug, array $exam): array
 {
-    if ($courseSlug !== 'radiology2' || !function_exists('dent_exams_radiology2_overrides')) {
-        return $exam;
+    if ($courseSlug === 'radiology2' && function_exists('dent_exams_radiology2_overrides')) {
+        $slug = trim((string) ($exam['slug'] ?? ''));
+        if ($slug !== '') {
+            $overrides = dent_exams_radiology2_overrides();
+            $override = $overrides[$slug] ?? null;
+            if (is_array($override)) {
+                foreach ($override as $key => $value) {
+                    $exam[$key] = $value;
+                }
+            }
+        }
     }
 
-    $slug = trim((string) ($exam['slug'] ?? ''));
-    if ($slug === '') {
-        return $exam;
-    }
-
-    $overrides = dent_exams_radiology2_overrides();
-    $override = $overrides[$slug] ?? null;
-    if (!is_array($override)) {
-        return $exam;
-    }
-
-    foreach ($override as $key => $value) {
-        $exam[$key] = $value;
-    }
-
-    if (is_array($exam['questions'] ?? null)) {
-        $exam['questionCount'] = count($exam['questions']);
-    }
-
+    $exam['questionCount'] = dent_exams_api_resolve_exam_question_count($exam);
     return $exam;
 }
 
@@ -73,6 +64,16 @@ function dent_exams_api_apply_runtime_course_override(array $course): array
     $course['exams'] = $nextExams;
 
     return $course;
+}
+
+function dent_exams_api_resolve_exam_question_count(array $exam): int
+{
+    $questions = $exam['questions'] ?? null;
+    if (is_array($questions)) {
+        return count($questions);
+    }
+
+    return max(0, (int) ($exam['questionCount'] ?? 0));
 }
 
 function dent_exams_api_require_method(array $methods): void
@@ -346,7 +347,7 @@ function dent_exams_api_course_summary_payload(
                 'slug' => (string) ($exam['slug'] ?? ''),
                 'label' => (string) ($exam['label'] ?? ''),
                 'title' => (string) ($exam['title'] ?? ''),
-                'questionCount' => max(0, (int) ($exam['questionCount'] ?? count(is_array($exam['questions'] ?? null) ? $exam['questions'] : []))),
+                'questionCount' => dent_exams_api_resolve_exam_question_count($exam),
                 'path' => $examPath,
                 'href' => $access['hasAccess'] ? $examPath : $paymentPath,
                 'isLocked' => !$access['hasAccess'] && (bool) ($access['isPaidCourse'] ?? false),
@@ -386,11 +387,7 @@ function dent_exams_api_course_summary_payload(
                 if (!is_array($exam)) {
                     return 0;
                 }
-                $questionCount = max(0, (int) ($exam['questionCount'] ?? 0));
-                if ($questionCount > 0) {
-                    return $questionCount;
-                }
-                return count(is_array($exam['questions'] ?? null) ? $exam['questions'] : []);
+                return dent_exams_api_resolve_exam_question_count($exam);
             }, is_array($course['exams'] ?? null) ? $course['exams'] : [])),
             'totalOrders' => $collectionStats['totalOrders'],
             'successCount' => $collectionStats['successCount'],
@@ -569,6 +566,7 @@ if ($action === 'catalog') {
         if (!is_array($course)) {
             continue;
         }
+        $course = dent_exams_api_apply_runtime_course_override($course);
         $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, (string) $courseSlug, $course);
         $paymentsStore = payments_read_store();
         $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
