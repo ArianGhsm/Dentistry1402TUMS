@@ -125,7 +125,7 @@
         document.body.appendChild(node);
 
         var script = document.createElement("script");
-        script.src = "/assets/site/scripts/exam-quiz.js?v=20260520-164112";
+        script.src = "/assets/site/scripts/exam-quiz.js?v=20260521-185500";
         document.body.appendChild(script);
     }
 

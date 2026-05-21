@@ -54,18 +54,6 @@
         appRoot.innerHTML = [
             '<div class="background-overlay" aria-hidden="true"></div>',
             '<div class="exam-shell">',
-            '  <header class="site-header exam-site-header">',
-            '    <div class="logo-area">',
-            '      <div class="logo-circle">',
-            '        <img src="/assets/images/logo.png?v=20260422-brand1" alt="لوگوی ورودی ۱۴۰۲">',
-            "      </div>",
-            '      <div class="site-info">',
-            "        <h1></h1>",
-            "        <p></p>",
-            "      </div>",
-            "    </div>",
-            '    <div class="badge-unofficial"></div>',
-            "  </header>",
             '  <main class="exam-main">',
             '    <section class="exam-panel exam-hero">',
             '      <div class="exam-hero-top">',
@@ -178,9 +166,6 @@
     }
 
     function hydrateStaticCopy() {
-        appRoot.querySelector(".site-info h1").textContent = exam.siteTitle;
-        appRoot.querySelector(".site-info p").textContent = exam.siteSubtitle;
-        appRoot.querySelector(".badge-unofficial").textContent = exam.siteBadge;
         appRoot.querySelector(".exam-back-link").setAttribute("href", exam.backHref);
         appRoot.querySelector(".exam-back-label").textContent = exam.backLabel;
         appRoot.querySelector(".exam-eyebrow").textContent = exam.eyebrow;

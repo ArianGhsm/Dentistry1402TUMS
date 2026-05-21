@@ -4,13 +4,6 @@ body.quiz-page .exam-shell {
     flex-direction: column;
 }
 
-body.quiz-page .exam-site-header {
-    position: sticky;
-    top: 0;
-    z-index: 60;
-    backdrop-filter: blur(18px);
-}
-
 body.quiz-page main.exam-main {
     width: min(1240px, 100%);
     margin: 0 auto;
@@ -623,7 +616,7 @@ body.quiz-page .exam-empty-state p {
 
     body.quiz-page .exam-sidebar {
         position: sticky;
-        top: calc(88px + env(safe-area-inset-top, 0px));
+        top: calc(72px + env(safe-area-inset-top, 0px));
     }
 }
 
