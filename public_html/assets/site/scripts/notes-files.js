@@ -395,6 +395,9 @@
                 actions.push('<a href="' + escapeHtml(item.publicUrl) + '" target="_blank" rel="noopener noreferrer">لینک مستقیم</a>');
                 actions.push('<button type="button" data-copy-link="' + escapeHtml(item.publicUrl) + '">کپی لینک</button>');
             }
+            if (item.status === "uploading" || item.status === "finalizing") {
+                actions.push('<button class="is-danger" type="button" data-remove-upload="' + escapeHtml(item.id) + '">لغو آپلود</button>');
+            }
             if (item.status !== "uploading" && item.status !== "finalizing") {
                 actions.push('<button class="is-danger" type="button" data-remove-upload="' + escapeHtml(item.id) + '">حذف از صف</button>');
             }
@@ -553,13 +556,23 @@
                 error: "",
                 publicUrl: "",
                 relativePath: "",
-                completedAt: ""
+                completedAt: "",
+                xhr: null,
+                canceled: false
             });
         });
         renderUploadQueue();
     }
 
     function removeUploadItem(itemId) {
+        var active = state.uploadItems.filter(function (item) {
+            return item.id === itemId && (item.status === "uploading" || item.status === "finalizing");
+        })[0] || null;
+        if (active && active.xhr) {
+            active.canceled = true;
+            active.xhr.abort();
+            return;
+        }
         state.uploadItems = state.uploadItems.filter(function (item) {
             return item.id !== itemId;
         });
@@ -577,6 +590,7 @@
             item.publicUrl = "";
             item.relativePath = "";
             item.completedAt = "";
+            item.canceled = false;
             renderUploadQueue();
 
             var formData = new FormData();
@@ -588,6 +602,7 @@
 
             var startedAt = Date.now();
             var xhr = new XMLHttpRequest();
+            item.xhr = xhr;
             xhr.open("POST", "/api/notes_api.php?action=downloadHostUpload", true);
             xhr.withCredentials = true;
             xhr.setRequestHeader("Accept", "application/json");
@@ -628,6 +643,7 @@
                 } catch (_error) {
                     response = { success: false, error: "پاسخ آپلود معتبر نبود." };
                 }
+                item.xhr = null;
                 response.httpStatus = xhr.status;
 
                 if (response && (response.loggedOut || response.httpStatus === 401)) {
@@ -663,6 +679,7 @@
             };
 
             xhr.onerror = function () {
+                item.xhr = null;
                 item.status = "error";
                 item.error = "ارتباط آپلود قطع شد.";
                 item.speedBps = 0;
@@ -672,8 +689,9 @@
             };
 
             xhr.onabort = function () {
+                item.xhr = null;
                 item.status = "error";
-                item.error = "آپلود توسط مرورگر متوقف شد.";
+                item.error = item.canceled ? "آپلود توسط کاربر لغو شد." : "آپلود توسط مرورگر متوقف شد.";
                 item.speedBps = 0;
                 item.etaSeconds = NaN;
                 renderUploadQueue();
@@ -707,14 +725,20 @@
         var chain = Promise.resolve();
         var successCount = 0;
         var failedCount = 0;
+        var canceledCount = 0;
         pending.forEach(function (item) {
             chain = chain.then(function () {
                 return uploadItem(item).then(function () {
                     successCount += 1;
                 }).catch(function (error) {
-                    failedCount += 1;
+                    var canceled = error && /لغو/.test(String(error.message || ""));
+                    if (canceled) {
+                        canceledCount += 1;
+                    } else {
+                        failedCount += 1;
+                    }
                     if (error && error.message) {
-                        setFeedback(error.message, "error");
+                        setFeedback(error.message, canceled ? "" : "error");
                     }
                 });
             });
@@ -732,6 +756,8 @@
                     successCount.toLocaleString("fa-IR") + " فایل آپلود شد و " + failedCount.toLocaleString("fa-IR") + " فایل خطا داشت.",
                     "success"
                 );
+            } else if (canceledCount > 0) {
+                setFeedback("آپلود فایل از طرف کاربر لغو شد.", "");
             } else if (failedCount > 0) {
                 setFeedback("هیچ فایلی با موفقیت آپلود نشد.", "error");
             }

@@ -76,6 +76,16 @@ function dent_exams_api_resolve_exam_question_count(array $exam): int
     return max(0, (int) ($exam['questionCount'] ?? 0));
 }
 
+function dent_exams_api_exam_is_attemptable(array $exam): bool
+{
+    if (array_key_exists('attemptable', $exam)) {
+        return (bool) $exam['attemptable'];
+    }
+
+    $questions = $exam['questions'] ?? null;
+    return is_array($questions) && count($questions) > 0;
+}
+
 function dent_exams_api_exam_counts_toward_stats(array $exam): bool
 {
     if (!array_key_exists('countsTowardStats', $exam)) {
@@ -98,6 +108,7 @@ function dent_exams_api_course_stats(array $course): array
 {
     $examCount = 0;
     $questionCount = 0;
+    $directAttemptableExamCount = 0;
 
     foreach (is_array($course['exams'] ?? null) ? $course['exams'] : [] as $exam) {
         if (!is_array($exam) || !dent_exams_api_exam_counts_toward_stats($exam)) {
@@ -106,11 +117,15 @@ function dent_exams_api_course_stats(array $course): array
 
         $examCount++;
         $questionCount += dent_exams_api_resolve_exam_question_count($exam);
+        if (dent_exams_api_exam_is_attemptable($exam)) {
+            $directAttemptableExamCount++;
+        }
     }
 
     return [
         'examCount' => $examCount,
         'questionCount' => $questionCount,
+        'directAttemptableExamCount' => $directAttemptableExamCount,
     ];
 }
 
@@ -727,26 +742,32 @@ function dent_exams_api_course_summary_payload(
 
             $examPath = (string) ($exam['path'] ?? '');
             $examSlug = (string) ($exam['slug'] ?? '');
-            $viewerProgress = dent_exams_api_exam_progress_payload($examsStore, $catalogKey, $courseSlug, $examSlug, $viewer);
-            $assessmentReport = is_array($viewerProgress['assessmentReport'] ?? null)
+            $isAttemptable = dent_exams_api_exam_is_attemptable($exam);
+            $viewerProgress = $isAttemptable
+                ? dent_exams_api_exam_progress_payload($examsStore, $catalogKey, $courseSlug, $examSlug, $viewer)
+                : null;
+            $assessmentReport = $isAttemptable && is_array($viewerProgress['assessmentReport'] ?? null)
                 ? $viewerProgress['assessmentReport']
                 : null;
-            if ($assessmentReport !== null) {
+            if ($isAttemptable && $assessmentReport !== null) {
                 $completedAssessmentCount++;
                 $viewerPercents[] = dent_exams_normalize_percent($assessmentReport['percent'] ?? 0);
             }
-            $flaggedQuestionsCount += max(0, (int) ($viewerProgress['flagsCount'] ?? 0));
+            if ($isAttemptable) {
+                $flaggedQuestionsCount += max(0, (int) ($viewerProgress['flagsCount'] ?? 0));
+            }
             $exams[] = [
                 'slug' => $examSlug,
                 'label' => (string) ($exam['label'] ?? ''),
                 'title' => (string) ($exam['title'] ?? ''),
                 'description' => (string) ($exam['description'] ?? ''),
+                'attemptable' => $isAttemptable,
                 'ctaLabel' => (string) ($exam['ctaLabel'] ?? 'انتخاب حالت و شروع'),
                 'questionCount' => dent_exams_api_resolve_exam_question_count($exam),
                 'path' => $examPath,
                 'href' => $access['hasAccess'] ? $examPath : $paymentPath,
                 'isLocked' => !$access['hasAccess'] && (bool) ($access['isPaidCourse'] ?? false),
-                'modes' => dent_exams_api_mode_definitions(),
+                'modes' => $isAttemptable ? dent_exams_api_mode_definitions() : [],
                 'viewerProgress' => $viewerProgress,
             ];
         }
@@ -778,9 +799,11 @@ function dent_exams_api_course_summary_payload(
         'collectionToken' => $collection ? (string) ($collection['token'] ?? '') : '',
         'collectionStatus' => $collection ? (string) ($collection['status'] ?? '') : '',
         'access' => $access,
+        'supportsDirectAttemptableExams' => ($courseStats['directAttemptableExamCount'] ?? 0) > 0,
         'stats' => [
             'examCount' => $courseStats['examCount'],
             'questionCount' => $courseStats['questionCount'],
+            'directAttemptableExamCount' => $courseStats['directAttemptableExamCount'] ?? 0,
             'totalOrders' => $collectionStats['totalOrders'],
             'successCount' => $viewerIsOwner ? $collectionStats['successCount'] : null,
             'receivedAmount' => $collectionStats['receivedAmount'],
@@ -1041,6 +1064,12 @@ if ($action === 'exam') {
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
     $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
     $coursePayload = dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $examsStore, $collection, $paymentsStore, false, $user);
+    if (!dent_exams_api_exam_is_attemptable($exam)) {
+        dent_error('این بخش آزمون مستقیمی ندارد. از گزینه «مشاهده بخش» وارد زیرمجموعه‌های آن شوید.', 422, [
+            'course' => $coursePayload,
+            'entryPath' => (string) ($exam['path'] ?? ''),
+        ]);
+    }
 
     if (!(bool) ($access['hasAccess'] ?? false)) {
         if ((bool) ($access['requiresLogin'] ?? false)) {

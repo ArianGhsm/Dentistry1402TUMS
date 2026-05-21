@@ -136,6 +136,8 @@ body.content-tools-page--files-center {
 .ctf-summary-card strong {
     font-size: 1rem;
     font-weight: 950;
+    line-height: 1.45;
+    word-break: break-word;
 }
 
 .ctf-path-bar {

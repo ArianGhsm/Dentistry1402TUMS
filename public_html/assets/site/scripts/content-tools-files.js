@@ -29,6 +29,15 @@
         return Number(value || 0).toLocaleString("fa-IR");
     }
 
+    function formatDecimal(value, digits) {
+        var number = Number(value);
+        if (!Number.isFinite(number)) return "\u2014";
+        return number.toLocaleString("fa-IR", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: typeof digits === "number" ? digits : 1
+        });
+    }
+
     function formatBytes(value) {
         var bytes = Number(value || 0);
         if (!Number.isFinite(bytes) || bytes <= 0) return "۰ بایت";
@@ -110,6 +119,16 @@
         if (!value) return "ریشه آپلودسنتر";
         var parts = value.split("/");
         return parts[parts.length - 1] || value;
+    }
+
+    function summaryCardMarkup(label, valueId, smallId, copy) {
+        return [
+            '<article class="ctf-summary-card">',
+            '  <span>' + escapeHtml(label) + '</span>',
+            '  <strong id="' + escapeHtml(valueId) + '">\u2014</strong>',
+            '  <small id="' + escapeHtml(smallId) + '">' + escapeHtml(copy) + '</small>',
+            '</article>'
+        ].join("");
     }
 
     function typeMatches(file, type) {
@@ -268,6 +287,7 @@
         var browserRefresh = $("ctf-browser-refresh");
         var browserCreateFolder = $("ctf-create-folder");
         var breadcrumbs = $("ctf-breadcrumbs");
+        var summaryGrid = $("ctf-summary-grid");
         var currentPathLabel = $("ctf-current-path");
         var currentFolderLabel = $("ctf-current-folder");
         var destinationLabel = $("ctf-upload-destination");
@@ -330,25 +350,95 @@
             if (status) status.value = "active";
         }
 
+        function ensureSummaryCards() {
+            if (!summaryGrid || summaryGrid.dataset.ready === "true") return;
+            summaryGrid.innerHTML = [
+                summaryCardMarkup("حجم مصرف‌شده کل هاست", "ctf-summary-host-used", "ctf-summary-host-used-meta", "از کل سهم فضای هاست"),
+                summaryCardMarkup("حجم باقی‌مانده کل هاست", "ctf-summary-host-free", "ctf-summary-host-free-meta", "فضای آزاد برای آپلودهای بعدی"),
+                summaryCardMarkup("تعداد کل فایل‌های هاست", "ctf-summary-host-files", "ctf-summary-host-files-meta", "در ریشه و زیرپوشه‌های Upload Center"),
+                summaryCardMarkup("تعداد کل پوشه‌های هاست", "ctf-summary-host-folders", "ctf-summary-host-folders-meta", "همه پوشه‌های قابل مرور و مدیریت"),
+                summaryCardMarkup("لینک‌ها و فایل‌های ثبت‌شده", "ctf-summary-files", "ctf-summary-files-meta", "تفکیک فایل‌های ریموت، لوکال و لینک‌های فعال"),
+                summaryCardMarkup("حجم فایل‌های ثبت‌شده", "ctf-summary-size", "ctf-summary-size-meta", "جمع فایل‌های شناخته‌شده در استور"),
+                summaryCardMarkup("پایه هاست دانلود", "ctf-summary-host", "ctf-summary-host-meta", "ریشه‌ی انتشار و مقصد اصلی فایل‌های جدید")
+            ].join("");
+            summaryGrid.dataset.ready = "true";
+        }
+
         function updateSummary(summary) {
-            state.summary = summary || {};
+            ensureSummaryCards();
+            state.summary = Object.assign({}, state.summary || {}, summary || {});
+            var hostUsage = state.summary.hostUsage && typeof state.summary.hostUsage === "object"
+                ? state.summary.hostUsage
+                : {};
+            var hostAvailable = hostUsage.available === true;
             var totalFiles = $("ctf-summary-files");
+            var totalFilesMeta = $("ctf-summary-files-meta");
             var totalSize = $("ctf-summary-size");
-            var totalLinks = $("ctf-summary-links");
+            var totalSizeMeta = $("ctf-summary-size-meta");
+            var emptyMetric = "\u2014";
             var hostBase = $("ctf-summary-host");
+            var hostBaseMeta = $("ctf-summary-host-meta");
+            var hostUsed = $("ctf-summary-host-used");
+            var hostUsedMeta = $("ctf-summary-host-used-meta");
+            var hostFree = $("ctf-summary-host-free");
+            var hostFreeMeta = $("ctf-summary-host-free-meta");
+            var hostFiles = $("ctf-summary-host-files");
+            var hostFilesMeta = $("ctf-summary-host-files-meta");
+            var hostFolders = $("ctf-summary-host-folders");
+            var hostFoldersMeta = $("ctf-summary-host-folders-meta");
+            if (hostUsed) {
+                hostUsed.textContent = hostAvailable && hostUsage.usedBytes != null ? formatBytes(hostUsage.usedBytes) : emptyMetric;
+            }
+            if (hostUsedMeta) {
+                hostUsedMeta.textContent = hostAvailable && hostUsage.limitBytes != null
+                    ? ("\u0627\u0632 " + formatBytes(hostUsage.limitBytes) + " \u06a9\u0644 \u0641\u0636\u0627" + (hostUsage.usagePercent != null ? (" \u2022 " + formatDecimal(hostUsage.usagePercent, 1) + "\u066a \u0645\u0635\u0631\u0641") : ""))
+                    : "\u0622\u0645\u0627\u0631 \u0644\u062d\u0638\u0647\u200c\u0627\u06cc \u0647\u0627\u0633\u062a \u062f\u0631 \u0627\u06cc\u0646 \u0644\u062d\u0638\u0647 \u062f\u0631 \u062f\u0633\u062a\u0631\u0633 \u0646\u06cc\u0633\u062a";
+            }
+            if (hostFree) {
+                hostFree.textContent = hostAvailable && hostUsage.remainingBytes != null ? formatBytes(hostUsage.remainingBytes) : emptyMetric;
+            }
+            if (hostFreeMeta) {
+                hostFreeMeta.textContent = hostAvailable && hostUsage.uploadRemainingBytes != null
+                    ? ("\u062d\u062f\u0627\u06a9\u062b\u0631 \u0622\u067e\u0644\u0648\u062f \u0628\u0627\u0642\u06cc\u200c\u0645\u0627\u0646\u062f\u0647: " + formatBytes(hostUsage.uploadRemainingBytes))
+                    : "\u0645\u0627\u0646\u062f\u0647 \u0627\u0632 quota \u06a9\u0644 \u0647\u0627\u0633\u062a";
+            }
+            if (hostFiles) {
+                hostFiles.textContent = hostAvailable ? formatNumber(hostUsage.fileCount || 0) : emptyMetric;
+            }
+            if (hostFilesMeta) {
+                hostFilesMeta.textContent = hostAvailable
+                    ? (formatBytes(hostUsage.managedBytes || 0) + " \u062f\u0631 \u062f\u0631\u062e\u062a \u0641\u0627\u06cc\u0644\u06cc \u0631\u06cc\u0634\u0647")
+                    : "\u0634\u0645\u0627\u0631\u0634 \u0641\u0627\u06cc\u0644\u200c\u0647\u0627 \u062f\u0631 \u062f\u0633\u062a\u0631\u0633 \u0646\u06cc\u0633\u062a";
+            }
+            if (hostFolders) {
+                hostFolders.textContent = hostAvailable ? formatNumber(hostUsage.directoryCount || 0) : emptyMetric;
+            }
+            if (hostFoldersMeta) {
+                hostFoldersMeta.textContent = hostAvailable
+                    ? (formatNumber(hostUsage.entryCount || 0) + " \u0648\u0631\u0648\u062f\u06cc \u062f\u0631 \u0645\u062c\u0645\u0648\u0639 \u2022 " + formatNumber(hostUsage.scannedDirectories || 0) + " \u0645\u0633\u06cc\u0631 \u0627\u0633\u06a9\u0646 \u0634\u062f")
+                    : "\u0622\u0645\u0627\u0631 \u067e\u0648\u0634\u0647\u200c\u0647\u0627 \u062f\u0631 \u062f\u0633\u062a\u0631\u0633 \u0646\u06cc\u0633\u062a";
+            }
             if (totalFiles) {
                 totalFiles.textContent = formatNumber(state.summary.totalFiles || 0);
+            }
+            if (totalFilesMeta) {
+                totalFilesMeta.textContent = formatNumber(state.summary.remoteFiles || 0) + " ریموت / "
+                    + formatNumber(state.summary.localFiles || 0) + " لوکال • "
+                    + formatNumber(state.summary.activeFiles || 0) + " فعال";
             }
             if (totalSize) {
                 totalSize.textContent = formatBytes(state.summary.totalBytes || 0);
             }
-            if (totalLinks) {
-                var remote = formatNumber(state.summary.remoteFiles || 0);
-                var local = formatNumber(state.summary.localFiles || 0);
-                totalLinks.textContent = remote + " ریموت / " + local + " لوکال";
+            if (totalSizeMeta) {
+                totalSizeMeta.textContent = formatNumber(state.summary.downloadCount || 0) + " دانلود ثبت‌شده";
             }
             if (hostBase) {
-                hostBase.textContent = String(state.summary.storageRoot || state.downloadHost.baseUrl || "—");
+                hostBase.textContent = String(state.summary.storageRoot || state.downloadHost.baseUrl || emptyMetric);
+            }
+            if (hostBaseMeta) {
+                hostBaseMeta.textContent = hostAvailable && hostUsage.generatedAt
+                    ? ((hostUsage.stale ? "آخرین اسکن کش‌شده: " : "آخرین اسکن: ") + formatDate(hostUsage.generatedAt, "اکنون"))
+                    : "ریشه‌ی انتشار و مقصد اصلی فایل‌های جدید";
             }
             var notice = $("ctf-summary-notice");
             if (notice) {
@@ -432,6 +522,21 @@
                 ].join("");
                 browserEntries.appendChild(article);
             });
+        }
+
+        async function loadHostSummary(forceRefresh, silent) {
+            var response = await request("ownerDownloadHostSummary", {
+                refresh: forceRefresh ? "1" : ""
+            }, "GET");
+            if (consumeUnauthorized(response)) return;
+            if (!response || !response.success) {
+                if (!silent) {
+                    setFeedback(feedback, (response && response.error) || "آمار کامل هاست خوانده نشد.", "error");
+                }
+                return;
+            }
+            state.downloadHost = response.downloadHost || state.downloadHost || {};
+            updateSummary(response.summary || {});
         }
 
         async function loadBrowser(path, silent) {
@@ -523,6 +628,9 @@
                 if (item.directUrl) {
                     actions.push('<a class="ct-btn" href="' + escapeHtml(item.directUrl) + '" target="_blank" rel="noopener">لینک مستقیم</a>');
                 }
+                if (item.status === "uploading" || item.status === "finalizing") {
+                    actions.push('<button class="ct-btn ct-btn--danger" type="button" data-remove-queue="' + escapeHtml(item.id) + '">لغو آپلود</button>');
+                }
                 if (item.status === "queued" || item.status === "error" || item.status === "done") {
                     actions.push('<button class="ct-btn ct-btn--danger" type="button" data-remove-queue="' + escapeHtml(item.id) + '">حذف از صف</button>');
                 }
@@ -555,13 +663,23 @@
                     publicUrl: "",
                     directUrl: "",
                     remotePath: "",
-                    error: ""
+                    error: "",
+                    xhr: null,
+                    canceled: false
                 });
             });
             renderQueue();
         }
 
         function removeQueueItem(id) {
+            var active = state.queue.filter(function (item) {
+                return item.id === id && (item.status === "uploading" || item.status === "finalizing");
+            })[0] || null;
+            if (active && active.xhr) {
+                active.canceled = true;
+                active.xhr.abort();
+                return;
+            }
             state.queue = state.queue.filter(function (item) { return item.id !== id; });
             renderQueue();
         }
@@ -587,10 +705,12 @@
                 item.speedBps = 0;
                 item.etaSeconds = NaN;
                 item.error = "";
+                item.canceled = false;
                 renderQueue();
 
                 var startedAt = Date.now();
                 var xhr = new XMLHttpRequest();
+                item.xhr = xhr;
                 xhr.open("POST", "/api/content_tools_api.php", true);
                 xhr.withCredentials = true;
                 xhr.setRequestHeader("Accept", "application/json");
@@ -625,6 +745,7 @@
                     } catch (_error) {
                         response = { success: false, error: "پاسخ آپلود معتبر نبود." };
                     }
+                    item.xhr = null;
                     response.httpStatus = xhr.status;
                     if (consumeUnauthorized(response)) {
                         reject(new Error("unauthorized"));
@@ -653,8 +774,19 @@
                 };
 
                 xhr.onerror = function () {
+                    item.xhr = null;
                     item.status = "error";
                     item.error = "ارتباط آپلود قطع شد.";
+                    item.speedBps = 0;
+                    item.etaSeconds = NaN;
+                    renderQueue();
+                    reject(new Error(item.error));
+                };
+
+                xhr.onabort = function () {
+                    item.xhr = null;
+                    item.status = "error";
+                    item.error = item.canceled ? "آپلود توسط کاربر لغو شد." : "آپلود توسط مرورگر متوقف شد.";
                     item.speedBps = 0;
                     item.etaSeconds = NaN;
                     renderQueue();
@@ -676,19 +808,26 @@
             submitButton.disabled = true;
             setFeedback(feedback, "آپلود روی هاست دانلود شروع شد...", "");
             var successCount = 0;
+            var canceledCount = 0;
             for (var i = 0; i < pending.length; i += 1) {
                 try {
                     await uploadItem(pending[i]);
                     successCount += 1;
-                } catch (_error) {
+                } catch (error) {
+                    if (error && /لغو/.test(String(error.message || ""))) {
+                        canceledCount += 1;
+                    }
                 }
             }
             state.uploadBusy = false;
             submitButton.disabled = false;
             await loadBrowser(currentUploadPath(), true);
+            await loadHostSummary(true, true);
             await loadLinks(true);
             if (successCount > 0) {
                 setFeedback(feedback, successCount.toLocaleString("fa-IR") + " فایل با موفقیت روی هاست دانلود ثبت شد.", "success");
+            } else if (canceledCount > 0) {
+                setFeedback(feedback, "آپلود فایل از طرف کاربر لغو شد.", "");
             } else {
                 setFeedback(feedback, "هیچ فایلی با موفقیت آپلود نشد.", "error");
             }
@@ -802,6 +941,9 @@
             state.linkSelected = {};
             setFeedback(feedback, response.message || "عملیات انجام شد.", "success");
             await loadBrowser(currentUploadPath(), true);
+            if (operation === "delete" || operation === "purge") {
+                await loadHostSummary(true, true);
+            }
             await loadLinks(true);
         }
 
@@ -852,6 +994,7 @@
             }
             setFeedback(feedback, response.message || "پوشه جدید ساخته شد.", "success");
             await loadBrowser(currentUploadPath(), true);
+            await loadHostSummary(true, true);
         }
 
         async function renameEntry(path, type) {
@@ -892,6 +1035,7 @@
             }
             setFeedback(feedback, response.message || "ورودی حذف شد.", "success");
             await loadBrowser(currentUploadPath(), true);
+            await loadHostSummary(true, true);
             await loadLinks(true);
         }
 
@@ -1089,6 +1233,7 @@
 
         renderQueue();
         updateDestinationUi();
+        loadHostSummary(false, true);
         loadBrowser("", true);
         loadLinks(true);
     }

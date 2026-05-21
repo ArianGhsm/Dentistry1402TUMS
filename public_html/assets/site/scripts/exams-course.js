@@ -242,11 +242,14 @@
     }
 
     function sessionCardHtml(session) {
+        var isAttemptable = !!(session && session.attemptable);
         var copy = session && session.description
             ? String(session.description)
             : (session.isLocked
                 ? "برای دیدن سوال‌ها باید دسترسی این درس را فعال کنید."
-                : "قبل از شروع، بین حالت سنجشی و آموزشی انتخاب می‌کنی و بعد وارد همان آزمون می‌شوی.");
+                : (isAttemptable
+                    ? "قبل از شروع، بین حالت سنجشی و آموزشی انتخاب می‌کنی و بعد وارد همان آزمون می‌شوی."
+                    : "برای ورود به زیرمجموعه یا وضعیت همین بخش از دکمه پایین استفاده کن."));
         var actionLabel = session.isLocked
             ? "پرداخت و فعال‌سازی"
             : (session && session.ctaLabel ? String(session.ctaLabel) : "انتخاب حالت و شروع");
@@ -254,7 +257,7 @@
         var actionHtml = actionHref
             ? '<a class="exam-btn ' + (session.isLocked ? "exam-btn--ghost" : "exam-btn--primary") + '" href="' + escapeHtml(actionHref) + '">' + escapeHtml(actionLabel) + "</a>"
             : '<button class="exam-btn exam-btn--ghost" type="button" disabled>' + escapeHtml(actionLabel) + "</button>";
-        var viewerProgress = session && session.viewerProgress ? session.viewerProgress : null;
+        var viewerProgress = isAttemptable && session && session.viewerProgress ? session.viewerProgress : null;
         var assessmentReport = viewerProgress && viewerProgress.assessmentReport ? viewerProgress.assessmentReport : null;
         var progressHtml = "";
         if (assessmentReport || (viewerProgress && viewerProgress.flagsCount)) {
@@ -267,6 +270,14 @@
                 '</div>'
             ].join("");
         }
+        var modesHtml = isAttemptable
+            ? [
+                '<div class="exam-session-modes">',
+                '  <span class="exams-session-meta">سنجشی + کارنامه</span>',
+                '  <span class="exams-session-meta">آموزشی + پاسخ فوری</span>',
+                "</div>"
+            ].join("")
+            : "";
         return [
             '<article class="exams-card exam-session-card' + (session.isLocked ? " is-locked" : "") + '">',
             '  <div class="exam-session-card__top">',
@@ -274,10 +285,7 @@
             '      <span class="exams-kicker">' + escapeHtml(session.label || "") + "</span>",
             '      <h3 class="exam-session-title">' + escapeHtml(session.title || "") + "</h3>",
             '      <p class="exam-session-copy">' + escapeHtml(copy) + "</p>",
-            '      <div class="exam-session-modes">',
-            '        <span class="exams-session-meta">سنجشی + کارنامه</span>',
-            '        <span class="exams-session-meta">آموزشی + پاسخ فوری</span>',
-            "      </div>",
+                     modesHtml,
                      progressHtml,
             "    </div>",
             '    <span class="exam-session-card__count">' + escapeHtml((Math.max(0, Number(session.questionCount || 0))).toLocaleString("fa-IR") + " سوال") + "</span>",
@@ -299,17 +307,17 @@
         var status = statusMeta(course);
         var sessions = Array.isArray(course.exams) ? course.exams : [];
         var viewerAveragePercent = course.stats && course.stats.viewerAveragePercent;
+        var supportsDirectAttemptableExams = !!(course && course.supportsDirectAttemptableExams);
         root.innerHTML = [
             '<section class="exams-card exams-hero">',
             '  <span class="exams-kicker">' + escapeHtml(course.badge || "") + "</span>",
             '  <div class="exams-panel-head">',
             '    <div style="flex:1 1 320px;">',
             '      <h2 class="exams-course-title">' + escapeHtml(course.heroTitle || course.title || "") + "</h2>",
-            '      <p class="exams-course-description">' + escapeHtml(course.heroDescription || "برای هر جلسه قبل از شروع می‌توانی بین دو حالت سنجشی و آموزشی انتخاب کنی.") + "</p>",
-            '      <div class="exam-session-modes exam-session-modes--hero">',
-            '        <span class="exams-session-meta">سنجشی: همه سوالات + کارنامه</span>',
-            '        <span class="exams-session-meta">آموزشی: سوال‌به‌سوال + پاسخ فوری</span>',
-            "      </div>",
+            '      <p class="exams-course-description">' + escapeHtml(course.heroDescription || (supportsDirectAttemptableExams ? "برای هر جلسه قبل از شروع می‌توانی بین دو حالت سنجشی و آموزشی انتخاب کنی." : "برای ورود به زیربخش‌ها یا جلسه‌های این درس از ردیف‌های پایین استفاده کن.")) + "</p>",
+            supportsDirectAttemptableExams
+                ? '      <div class="exam-session-modes exam-session-modes--hero"><span class="exams-session-meta">سنجشی: همه سوالات + کارنامه</span><span class="exams-session-meta">آموزشی: سوال‌به‌سوال + پاسخ فوری</span></div>'
+                : "",
             "    </div>",
             '    <span class="' + escapeHtml(status.className) + '">' + escapeHtml(status.label) + "</span>",
             "  </div>",

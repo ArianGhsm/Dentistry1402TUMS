@@ -89,6 +89,8 @@
         authKey: "",
         downloadHost: null,
         uploadBusy: false,
+        uploadXhr: null,
+        uploadCancelRequested: false,
         downloadHostPathTouched: false,
         uploadProgress: {
             visible: false,
@@ -521,6 +523,7 @@
             fileInput: $("notes-host-file"),
             pickButton: $("notes-host-pick"),
             uploadButton: $("notes-host-upload"),
+            cancelButton: $("notes-host-cancel"),
             fileMeta: $("notes-host-file-meta"),
             progress: $("notes-host-progress"),
             progressLabel: $("notes-host-progress-label"),
@@ -714,6 +717,16 @@
         }
 
         var ui = hostUi();
+        if (ui.uploadButton && !ui.cancelButton) {
+            var cancelButton = document.createElement("button");
+            cancelButton.id = "notes-host-cancel";
+            cancelButton.type = "button";
+            cancelButton.className = "notes-card-delete";
+            cancelButton.hidden = true;
+            cancelButton.textContent = "لغو آپلود";
+            ui.uploadButton.insertAdjacentElement("afterend", cancelButton);
+            ui = hostUi();
+        }
         if (ui.pickButton && ui.fileInput) {
             ui.pickButton.addEventListener("click", function () {
                 if (!state.uploadBusy) {
@@ -734,6 +747,14 @@
         }
         if (ui.uploadButton) {
             ui.uploadButton.addEventListener("click", uploadSelectedHostFile);
+        }
+        if (ui.cancelButton) {
+            ui.cancelButton.addEventListener("click", function () {
+                if (state.uploadXhr) {
+                    state.uploadCancelRequested = true;
+                    state.uploadXhr.abort();
+                }
+            });
         }
         renderHostProgress();
     }
@@ -760,6 +781,10 @@
         if (ui.uploadButton) {
             ui.uploadButton.disabled = state.uploadBusy || !info.enabled || !info.canUpload;
             ui.uploadButton.textContent = state.uploadBusy ? "در حال آپلود..." : "آپلود به هاست دانلود";
+        }
+        if (ui.cancelButton) {
+            ui.cancelButton.hidden = !state.uploadBusy;
+            ui.cancelButton.disabled = !state.uploadBusy || !state.uploadXhr;
         }
         if (ui.pickButton) {
             ui.pickButton.disabled = state.uploadBusy || !info.enabled || !info.canUpload;
@@ -832,6 +857,8 @@
 
         var startedAt = Date.now();
         var xhr = new XMLHttpRequest();
+        state.uploadCancelRequested = false;
+        state.uploadXhr = xhr;
         xhr.open("POST", "/api/notes_api.php?action=downloadHostUpload", true);
         xhr.withCredentials = true;
         xhr.setRequestHeader("Accept", "application/json");
@@ -877,6 +904,8 @@
             } catch (_error) {
                 response = { success: false, error: "پاسخ آپلود معتبر نبود." };
             }
+            state.uploadXhr = null;
+            state.uploadCancelRequested = false;
             response.httpStatus = xhr.status;
 
             if (handleUnauthorized(response)) {
@@ -932,6 +961,8 @@
         };
 
         xhr.onerror = function () {
+            state.uploadXhr = null;
+            state.uploadCancelRequested = false;
             state.uploadProgress.phase = "error";
             state.uploadProgress.speedBps = 0;
             state.uploadProgress.etaSeconds = NaN;
@@ -942,13 +973,16 @@
         };
 
         xhr.onabort = function () {
+            var canceledByUser = state.uploadCancelRequested;
+            state.uploadXhr = null;
+            state.uploadCancelRequested = false;
             state.uploadProgress.phase = "error";
             state.uploadProgress.speedBps = 0;
             state.uploadProgress.etaSeconds = NaN;
             renderHostProgress();
             state.uploadBusy = false;
             syncDownloadHostUi();
-            setHostStatus("آپلود فایل توسط مرورگر متوقف شد.", "error");
+            setHostStatus(canceledByUser ? "آپلود فایل از طرف کاربر لغو شد." : "آپلود فایل توسط مرورگر متوقف شد.", canceledByUser ? "" : "error");
         };
 
         xhr.send(payload);

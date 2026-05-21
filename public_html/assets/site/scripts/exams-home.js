@@ -106,6 +106,18 @@
         root.innerHTML = catalog.courses.map(function (course) {
             var status = statusMeta(course);
             var viewerAverage = course.stats && course.stats.viewerAveragePercent;
+            var supportsDirectAttemptableExams = !!(course && course.supportsDirectAttemptableExams);
+            var modesHtml = supportsDirectAttemptableExams
+                ? [
+                    '  <div class="exam-card-modes">',
+                    '    <span class="exams-session-meta">سنجشی: کارنامه و رتبه</span>',
+                    '    <span class="exams-session-meta">آموزشی: پاسخ فوری</span>',
+                    viewerAverage !== null && viewerAverage !== undefined
+                        ? '<span class="exams-session-meta">میانگین تو: ' + escapeHtml(formatPercent(viewerAverage)) + "</span>"
+                        : "",
+                    "  </div>"
+                ].join("")
+                : '  <div class="exam-card-modes"><span class="exams-session-meta">ورود مرحله‌ای به بخش‌ها و جلسه‌های این درس</span></div>';
             return [
                 '<article class="exams-card exam-card">',
                 '  <div class="exam-card__top">',
@@ -115,14 +127,8 @@
                 "    </div>",
                 '    <span class="' + escapeHtml(status.className) + '">' + escapeHtml(status.label) + "</span>",
                 "  </div>",
-                '  <p class="exam-card__desc">' + escapeHtml(course.cardDescription || course.heroDescription || "برای هر جلسه می‌توانی بین حالت سنجشی و آموزشی انتخاب کنی.") + "</p>",
-                '  <div class="exam-card-modes">',
-                '    <span class="exams-session-meta">سنجشی: کارنامه و رتبه</span>',
-                '    <span class="exams-session-meta">آموزشی: پاسخ فوری</span>',
-                viewerAverage !== null && viewerAverage !== undefined
-                    ? '<span class="exams-session-meta">میانگین تو: ' + escapeHtml(formatPercent(viewerAverage)) + "</span>"
-                    : "",
-                "  </div>",
+                '  <p class="exam-card__desc">' + escapeHtml(course.cardDescription || course.heroDescription || (supportsDirectAttemptableExams ? "برای هر جلسه می‌توانی بین حالت سنجشی و آموزشی انتخاب کنی." : "برای مشاهده بخش‌ها و جلسه‌های این درس وارد صفحه آن شو.")) + "</p>",
+                     modesHtml,
                 '  <div class="exams-card-actions">',
                 '    <a class="exam-btn exam-btn--primary" href="' + escapeHtml(course.path || "/exams/") + '">ورود به صفحه درس</a>',
                 '    <span class="exams-session-meta">' + escapeHtml((Math.max(0, Number(course.stats && course.stats.examCount || 0))).toLocaleString("fa-IR") + " آزمون") + "</span>",
