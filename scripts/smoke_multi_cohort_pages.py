@@ -99,7 +99,11 @@ def run_smoke_session(args: argparse.Namespace) -> None:
         try:
             wait_for_server(base_url)
             cookie_jar = http.cookiejar.CookieJar()
-            opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
+            # Force direct localhost access on Windows setups that export a global proxy.
+            opener = urllib.request.build_opener(
+                urllib.request.ProxyHandler({}),
+                urllib.request.HTTPCookieProcessor(cookie_jar),
+            )
 
             login_payload = request_json(
                 opener,

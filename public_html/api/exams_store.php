@@ -200,14 +200,31 @@ function dent_exams_normalize_course_setting(array $value): array
     ];
 }
 
-function dent_exams_default_course_setting(): array
+function dent_exams_default_course_setting(?array $course = null): array
 {
+    $paymentMode = trim(strtolower((string) ($course['defaultPaymentMode'] ?? 'free')));
+    if (!in_array($paymentMode, ['free', 'paid'], true)) {
+        $paymentMode = 'free';
+    }
+
+    $amount = max(0, (int) dent_normalize_digits((string) ($course['defaultAmount'] ?? 0)));
+
     return [
-        'paymentMode' => 'free',
-        'amount' => 0,
+        'paymentMode' => $paymentMode,
+        'amount' => $amount,
         'collectionId' => 0,
         'updatedAt' => dent_iso_now(),
     ];
+}
+
+function dent_exams_course_default_setting(string $catalogKey, string $courseSlug): array
+{
+    $course = dent_exams_course($catalogKey, $courseSlug);
+    if (!is_array($course)) {
+        return dent_exams_default_course_setting();
+    }
+
+    return dent_exams_default_course_setting($course);
 }
 
 function dent_exams_catalogs(): array
@@ -289,10 +306,14 @@ function dent_exams_course_setting(array $store, string $catalogKey, string $cou
 {
     $courseKey = dent_exams_course_key($catalogKey, $courseSlug);
     if ($courseKey === '') {
-        return dent_exams_default_course_setting();
+        return dent_exams_course_default_setting($catalogKey, $courseSlug);
     }
 
     $settings = $store['courseSettings'] ?? [];
-    $current = is_array($settings[$courseKey] ?? null) ? $settings[$courseKey] : [];
+    $current = $settings[$courseKey] ?? null;
+    if (!is_array($current)) {
+        return dent_exams_course_default_setting($catalogKey, $courseSlug);
+    }
+
     return dent_exams_normalize_course_setting($current);
 }
