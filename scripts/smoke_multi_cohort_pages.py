@@ -117,7 +117,7 @@ def run_smoke_session(args: argparse.Namespace) -> None:
             if not login_payload.get("success") or not login_payload.get("loggedIn"):
                 raise RuntimeError(f"Owner login failed in smoke test: {login_payload}")
 
-            cohorts = ["dentistry-1402", "dentistry-1403", "prosthesis-1402"]
+            cohorts = ["dentistry-1402", "dentistry-1403", "dentistry-1404", "prosthesis-1402"]
             for cohort in cohorts:
                 request_status_ok(
                     opener,
@@ -131,7 +131,12 @@ def run_smoke_session(args: argparse.Namespace) -> None:
             pages = [
                 "/notes/",
                 "/notes/term/?term=6",
+                "/notes/?cohort=dentistry-1403",
+                "/notes/term/?cohort=dentistry-1403&term=3",
                 "/notes/1403/",
+                "/notes/?cohort=dentistry-1404",
+                "/notes/term/?cohort=dentistry-1404&term=1",
+                "/notes/1404/",
                 "/notes/?cohort=prosthesis-1402",
                 "/notes/term/?cohort=prosthesis-1402&term=1",
             ]

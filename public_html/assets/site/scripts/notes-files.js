@@ -34,6 +34,8 @@
         requestedCohort = "1402";
     } else if (requestedCohort === "dentistry-1403") {
         requestedCohort = "1403";
+    } else if (requestedCohort === "dentistry-1404") {
+        requestedCohort = "1404";
     }
 
     var state = {
@@ -44,11 +46,12 @@
         breadcrumbs: [],
         entries: [],
         filteredEntries: [],
-        roots: ["1402", "1403", "prosthesis-1402"],
+        roots: ["1402", "1403", "1404", "prosthesis-1402"],
         uploadItems: [],
         searchQuery: "",
         scopeCohort: requestedCohort,
-        downloadHost: null
+        downloadHost: null,
+        missingDirectory: false
     };
 
     function authSnapshotKey() {
@@ -79,6 +82,61 @@
             payload.httpStatus = response.status;
             return payload;
         });
+    }
+
+    function formatNumber(value) {
+        return Number(value || 0).toLocaleString("fa-IR");
+    }
+
+    function formatBytes(value) {
+        var bytes = Number(value || 0);
+        if (!Number.isFinite(bytes) || bytes <= 0) {
+            return "۰ بایت";
+        }
+
+        var units = ["بایت", "KB", "MB", "GB", "TB"];
+        var index = 0;
+        while (bytes >= 1024 && index < units.length - 1) {
+            bytes = bytes / 1024;
+            index += 1;
+        }
+
+        var fixed = bytes >= 10 || index === 0
+            ? Math.round(bytes)
+            : Math.round(bytes * 10) / 10;
+        return String(fixed)
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            .replace(/\d/g, function (digit) {
+                return "۰۱۲۳۴۵۶۷۸۹"[digit];
+            }) + " " + units[index];
+    }
+
+    function formatSpeed(value) {
+        var bps = Number(value || 0);
+        if (!Number.isFinite(bps) || bps <= 0) {
+            return "—";
+        }
+        return formatBytes(bps) + "/ث";
+    }
+
+    function formatEta(seconds) {
+        var value = Number(seconds);
+        if (!Number.isFinite(value) || value < 0) {
+            return "—";
+        }
+        if (value < 60) {
+            return Math.max(1, Math.round(value)).toLocaleString("fa-IR") + " ثانیه";
+        }
+
+        var minutes = Math.floor(value / 60);
+        var remain = Math.round(value % 60);
+        if (minutes < 60) {
+            return minutes.toLocaleString("fa-IR") + " دقیقه" + (remain ? " و " + remain.toLocaleString("fa-IR") + " ثانیه" : "");
+        }
+
+        var hours = Math.floor(minutes / 60);
+        minutes = minutes % 60;
+        return hours.toLocaleString("fa-IR") + " ساعت" + (minutes ? " و " + minutes.toLocaleString("fa-IR") + " دقیقه" : "");
     }
 
     function request(action, method, payload) {
@@ -251,36 +309,110 @@
         });
     }
 
-    function uploadMeta(item) {
+    function queueStateLabel(item) {
         if (item.status === "uploading") {
             return "در حال انتقال";
+        }
+        if (item.status === "finalizing") {
+            return "ثبت روی هاست";
         }
         if (item.status === "done") {
             return "تکمیل شد";
         }
         if (item.status === "error") {
-            return item.error || "با خطا مواجه شد";
+            return "با خطا مواجه شد";
         }
         return "آماده ارسال";
     }
 
+    function queueProgressPercent(item) {
+        var value = Number(item.progress || 0);
+        if (!Number.isFinite(value)) {
+            return 0;
+        }
+        return Math.max(0, Math.min(100, value));
+    }
+
+    function uploadQueueStats() {
+        var total = state.uploadItems.length;
+        var done = state.uploadItems.filter(function (item) {
+            return item.status === "done";
+        }).length;
+        var active = state.uploadItems.filter(function (item) {
+            return item.status === "uploading" || item.status === "finalizing";
+        }).length;
+        var totalBytes = state.uploadItems.reduce(function (sum, item) {
+            return sum + Number(item.size || 0);
+        }, 0);
+        var transferredBytes = state.uploadItems.reduce(function (sum, item) {
+            return sum + Number(item.uploadedBytes || 0);
+        }, 0);
+
+        return {
+            total: total,
+            done: done,
+            active: active,
+            totalBytes: totalBytes,
+            transferredBytes: transferredBytes
+        };
+    }
+
     function renderUploadQueue() {
-        uploadQueue.innerHTML = "";
         if (!state.uploadItems.length) {
             uploadQueue.innerHTML = '<p class="archive-empty">هنوز فایلی برای آپلود انتخاب نشده است.</p>';
             return;
         }
 
+        var stats = uploadQueueStats();
+        var markup = [
+            '<div class="ndh-upload-summary">',
+            '  <article class="ndh-upload-stat"><strong>' + escapeHtml(formatNumber(stats.total)) + '</strong><small>فایل در صف</small></article>',
+            '  <article class="ndh-upload-stat"><strong>' + escapeHtml(formatBytes(stats.transferredBytes)) + '</strong><small>حجم منتقل‌شده</small></article>',
+            '  <article class="ndh-upload-stat"><strong>' + escapeHtml(stats.active ? (formatNumber(stats.active) + " فعال") : (stats.done ? (formatNumber(stats.done) + " کامل") : "آماده")) + '</strong><small>وضعیت فعلی</small></article>',
+            "</div>"
+        ];
+
         state.uploadItems.forEach(function (item) {
-            var article = document.createElement("article");
-            article.className = "ndh-upload-item";
-            article.innerHTML = [
-                "<strong>" + escapeHtml(item.file.name) + "</strong>",
-                "<small>" + escapeHtml(uploadMeta(item)) + "</small>",
-                '<div class="ndh-upload-progress"><span style="width:' + String(Math.max(4, item.progress || 0)) + '%"></span></div>'
-            ].join("");
-            uploadQueue.appendChild(article);
+            var progress = queueProgressPercent(item);
+            var statsLine = [
+                '<span>انتقال: ' + escapeHtml(formatBytes(item.uploadedBytes || 0)) + ' / ' + escapeHtml(formatBytes(item.size || 0)) + '</span>',
+                '<span>پیشرفت: ' + escapeHtml(Math.round(progress).toLocaleString("fa-IR")) + '%</span>',
+                '<span>سرعت: ' + escapeHtml(formatSpeed(item.speedBps)) + '</span>',
+                '<span>زمان باقی‌مانده: ' + escapeHtml(formatEta(item.etaSeconds)) + '</span>'
+            ];
+
+            if (item.status === "done") {
+                statsLine[0] = '<span>حجم: ' + escapeHtml(formatBytes(item.size || 0)) + '</span>';
+                statsLine[2] = '<span>مسیر: ' + escapeHtml(item.relativePath || state.currentPath || "/") + '</span>';
+                statsLine[3] = '<span>اتمام: ' + escapeHtml(formatDate(item.completedAt || "")) + '</span>';
+            } else if (item.status === "error") {
+                statsLine[2] = '<span>خطا: ' + escapeHtml(item.error || "خطای نامشخص") + '</span>';
+                statsLine[3] = '<span>ارسال‌شده: ' + escapeHtml(formatBytes(item.uploadedBytes || 0)) + '</span>';
+            }
+
+            var actions = [];
+            if (item.publicUrl) {
+                actions.push('<a href="' + escapeHtml(item.publicUrl) + '" target="_blank" rel="noopener noreferrer">لینک مستقیم</a>');
+                actions.push('<button type="button" data-copy-link="' + escapeHtml(item.publicUrl) + '">کپی لینک</button>');
+            }
+            if (item.status !== "uploading" && item.status !== "finalizing") {
+                actions.push('<button class="is-danger" type="button" data-remove-upload="' + escapeHtml(item.id) + '">حذف از صف</button>');
+            }
+
+            markup.push([
+                '<article class="ndh-upload-item" data-state="' + escapeHtml(item.status || "queued") + '">',
+                '  <div class="ndh-upload-top">',
+                '    <strong>' + escapeHtml(item.file.name) + '</strong>',
+                '    <span class="ndh-upload-state">' + escapeHtml(queueStateLabel(item)) + '</span>',
+                '  </div>',
+                '  <div class="ndh-upload-progress"><span style="width:' + progress.toFixed(1) + '%"></span></div>',
+                '  <div class="ndh-upload-stats">' + statsLine.join("") + '</div>',
+                actions.length ? ('<div class="ndh-upload-actions">' + actions.join("") + '</div>') : "",
+                "</article>"
+            ].join(""));
         });
+
+        uploadQueue.innerHTML = markup.join("");
     }
 
     function entryMeta(entry) {
@@ -306,13 +438,17 @@
         renderRoots();
         renderBreadcrumbs();
         entriesRoot.innerHTML = "";
-        currentPathLabel.textContent = state.currentPath || "ریشه منابع";
+        currentPathLabel.textContent = state.currentPath
+            ? (state.currentPath + (state.missingDirectory ? " • هنوز ساخته نشده" : ""))
+            : "ریشه منابع";
 
         if (!state.filteredEntries.length) {
             empty.hidden = false;
             empty.textContent = state.loading
                 ? "در حال دریافت فایل‌ها..."
-                : "در این پوشه هنوز فایل یا پوشه‌ای وجود ندارد.";
+                : (state.missingDirectory
+                    ? "این پوشه هنوز روی هاست دانلود ساخته نشده است. با اولین آپلود فایل یا ساخت زیرپوشه، مسیر به‌صورت خودکار ایجاد می‌شود."
+                    : "در این پوشه هنوز فایل یا پوشه‌ای وجود ندارد.");
             return;
         }
 
@@ -382,10 +518,20 @@
             state.currentPath = String(payload.browse.currentPath || "");
             state.breadcrumbs = Array.isArray(payload.browse.breadcrumbs) ? payload.browse.breadcrumbs : [];
             state.entries = Array.isArray(payload.browse.entries) ? payload.browse.entries : [];
+            state.missingDirectory = !!(payload.browse && payload.browse.missingDirectory);
             showApp();
             updateUrl();
             renderEntries();
+            if (state.missingDirectory) {
+                setFeedback(
+                    payload.browse.notice || "این پوشه هنوز ساخته نشده است و با اولین آپلود یا ساخت زیرپوشه ایجاد می‌شود.",
+                    ""
+                );
+            } else if (!(options && options.silent)) {
+                setFeedback("", "");
+            }
         }).catch(function (error) {
+            state.missingDirectory = false;
             setGuard("error", "خطا در ارتباط با هاست دانلود", error && error.message ? error.message : "فایل‌منیجر با خطا مواجه شد.");
         }).finally(function () {
             state.loading = false;
@@ -398,12 +544,144 @@
             state.uploadItems.push({
                 id: Math.random().toString(36).slice(2),
                 file: file,
+                size: Number(file.size || 0),
                 status: "queued",
-                progress: 6,
-                error: ""
+                progress: 0,
+                uploadedBytes: 0,
+                speedBps: 0,
+                etaSeconds: NaN,
+                error: "",
+                publicUrl: "",
+                relativePath: "",
+                completedAt: ""
             });
         });
         renderUploadQueue();
+    }
+
+    function removeUploadItem(itemId) {
+        state.uploadItems = state.uploadItems.filter(function (item) {
+            return item.id !== itemId;
+        });
+        renderUploadQueue();
+    }
+
+    function uploadItem(item) {
+        return new Promise(function (resolve, reject) {
+            item.status = "uploading";
+            item.progress = 0;
+            item.uploadedBytes = 0;
+            item.speedBps = 0;
+            item.etaSeconds = NaN;
+            item.error = "";
+            item.publicUrl = "";
+            item.relativePath = "";
+            item.completedAt = "";
+            renderUploadQueue();
+
+            var formData = new FormData();
+            formData.append("path", state.currentPath);
+            if (state.scopeCohort) {
+                formData.append("cohort", state.scopeCohort);
+            }
+            formData.append("file", item.file, item.file.name);
+
+            var startedAt = Date.now();
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/api/notes_api.php?action=downloadHostUpload", true);
+            xhr.withCredentials = true;
+            xhr.setRequestHeader("Accept", "application/json");
+
+            xhr.upload.onprogress = function (event) {
+                if (!event.lengthComputable) {
+                    return;
+                }
+
+                var loaded = Number(event.loaded || 0);
+                var total = Number(event.total || item.size || 0);
+                var elapsed = Math.max(0.25, (Date.now() - startedAt) / 1000);
+                var speed = loaded / elapsed;
+                item.uploadedBytes = loaded;
+                item.progress = total > 0 ? (loaded / total) * 100 : item.progress;
+                item.speedBps = speed;
+                item.etaSeconds = speed > 0 && total > loaded ? (total - loaded) / speed : 0;
+                if (item.progress >= 99.9) {
+                    item.status = "finalizing";
+                    item.etaSeconds = 0;
+                }
+                renderUploadQueue();
+            };
+
+            xhr.upload.onload = function () {
+                item.uploadedBytes = Number(item.size || item.uploadedBytes || 0);
+                item.progress = 100;
+                item.status = "finalizing";
+                item.speedBps = 0;
+                item.etaSeconds = 0;
+                renderUploadQueue();
+            };
+
+            xhr.onload = function () {
+                var response = {};
+                try {
+                    response = JSON.parse(xhr.responseText || "{}");
+                } catch (_error) {
+                    response = { success: false, error: "پاسخ آپلود معتبر نبود." };
+                }
+                response.httpStatus = xhr.status;
+
+                if (response && (response.loggedOut || response.httpStatus === 401)) {
+                    setGuard("login", "نیاز به ورود", "برای استفاده از فایل‌منیجر منابع باید وارد حساب مجاز شوید.", loginUrl(), "ورود");
+                    reject(new Error("نشست شما منقضی شده است."));
+                    return;
+                }
+                if (response && response.httpStatus === 403) {
+                    setGuard("forbidden", "دسترسی مجاز نیست", response.error || "این بخش فقط برای حساب‌های مجاز فعال است.");
+                    reject(new Error(response.error || "اجازه آپلود فایل در این بخش را ندارید."));
+                    return;
+                }
+                if (!response || !response.success || !response.file) {
+                    item.status = "error";
+                    item.error = (response && response.error) || "آپلود فایل کامل نشد.";
+                    item.speedBps = 0;
+                    item.etaSeconds = NaN;
+                    renderUploadQueue();
+                    reject(new Error(item.error));
+                    return;
+                }
+
+                item.status = "done";
+                item.progress = 100;
+                item.uploadedBytes = Number(item.size || item.uploadedBytes || 0);
+                item.speedBps = 0;
+                item.etaSeconds = 0;
+                item.publicUrl = String(response.file.publicUrl || "");
+                item.relativePath = String(response.file.relativePath || response.file.relativeDir || state.currentPath || "");
+                item.completedAt = new Date().toISOString();
+                renderUploadQueue();
+                resolve(response);
+            };
+
+            xhr.onerror = function () {
+                item.status = "error";
+                item.error = "ارتباط آپلود قطع شد.";
+                item.speedBps = 0;
+                item.etaSeconds = NaN;
+                renderUploadQueue();
+                reject(new Error(item.error));
+            };
+
+            xhr.onabort = function () {
+                item.status = "error";
+                item.error = "آپلود توسط مرورگر متوقف شد.";
+                item.speedBps = 0;
+                item.etaSeconds = NaN;
+                renderUploadQueue();
+                reject(new Error(item.error));
+            };
+
+            xhr.send(formData);
+        });
     }
 
     function uploadPendingFiles() {
@@ -427,38 +705,36 @@
         setFeedback("آپلود فایل‌ها به هاست دانلود شروع شد.", "");
 
         var chain = Promise.resolve();
+        var successCount = 0;
+        var failedCount = 0;
         pending.forEach(function (item) {
             chain = chain.then(function () {
-                item.status = "uploading";
-                item.progress = 18;
-                item.error = "";
-                renderUploadQueue();
-
-                var formData = new FormData();
-                formData.append("path", state.currentPath);
-                formData.append("file", item.file);
-                return requestFormData("downloadHostUpload", formData).then(function (response) {
-                    if (!response || !response.success || !response.file) {
-                        throw new Error((response && response.error) || "آپلود فایل کامل نشد.");
-                    }
-                    item.status = "done";
-                    item.progress = 100;
-                    renderUploadQueue();
-                    setFeedback("فایل‌ها روی هاست دانلود به‌روزرسانی شدند.", "success");
-                    return loadBrowse(state.currentPath, { silent: true });
+                return uploadItem(item).then(function () {
+                    successCount += 1;
                 }).catch(function (error) {
-                    item.status = "error";
-                    item.progress = 100;
-                    item.error = error && error.message ? error.message : "آپلود فایل با خطا مواجه شد.";
-                    renderUploadQueue();
-                    setFeedback(item.error, "error");
+                    failedCount += 1;
+                    if (error && error.message) {
+                        setFeedback(error.message, "error");
+                    }
                 });
             });
         });
 
-        chain.finally(function () {
+        chain.then(function () {
+            return loadBrowse(state.currentPath, { silent: true });
+        }).finally(function () {
             state.busy = false;
             uploadSubmit.disabled = false;
+            if (successCount > 0 && failedCount === 0) {
+                setFeedback(successCount.toLocaleString("fa-IR") + " فایل با موفقیت روی هاست دانلود ثبت شد.", "success");
+            } else if (successCount > 0) {
+                setFeedback(
+                    successCount.toLocaleString("fa-IR") + " فایل آپلود شد و " + failedCount.toLocaleString("fa-IR") + " فایل خطا داشت.",
+                    "success"
+                );
+            } else if (failedCount > 0) {
+                setFeedback("هیچ فایلی با موفقیت آپلود نشد.", "error");
+            }
         });
     }
 
@@ -575,6 +851,19 @@
 
         if (uploadSubmit) {
             uploadSubmit.addEventListener("click", uploadPendingFiles);
+        }
+        if (uploadQueue) {
+            uploadQueue.addEventListener("click", function (event) {
+                var removeButton = event.target && event.target.closest ? event.target.closest("[data-remove-upload]") : null;
+                var copyButton = event.target && event.target.closest ? event.target.closest("[data-copy-link]") : null;
+                if (removeButton) {
+                    removeUploadItem(removeButton.getAttribute("data-remove-upload") || "");
+                    return;
+                }
+                if (copyButton) {
+                    copyLink(copyButton.getAttribute("data-copy-link") || "");
+                }
+            });
         }
 
         if (createFolderButton) {

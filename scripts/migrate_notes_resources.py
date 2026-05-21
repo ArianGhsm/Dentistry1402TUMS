@@ -83,6 +83,12 @@ def load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def load_json_if_exists(path: Path) -> dict[str, Any] | None:
+    if not path.is_file():
+        return None
+    return load_json(path)
+
+
 def dump_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -159,61 +165,93 @@ def make_entry(
     }
 
 
-def collect_entries() -> list[dict[str, Any]]:
-    entries: list[dict[str, Any]] = []
-
-    store_1402 = load_json(NOTES_STORAGE_ROOT / "1402_terms.json")
-    for term_key, term_record in sorted((store_1402.get("terms") or {}).items(), key=lambda item: int(item[0])):
-        term_number = int(term_key)
-        section_slug = f"term-{term_number:02d}"
-        for item in term_record.get("items") or []:
-            if not isinstance(item, dict):
-                continue
-            entries.append(
-                make_entry(
-                    cohort="1402",
-                    api_term=term_number,
-                    section_slug=section_slug,
-                    item=item,
-                    source_store="notes/1402_terms.json",
-                    term_title=str(term_record.get("title", "")).strip(),
-                )
-            )
-
-    store_1403 = load_json(NOTES_STORAGE_ROOT / "1403_archive.json")
-    archive = store_1403.get("archive") or {}
-    for item in archive.get("items") or []:
-        if not isinstance(item, dict):
-            continue
-        entries.append(
-            make_entry(
-                cohort="1403",
-                api_term=0,
-                section_slug="archive",
-                item=item,
-                source_store="notes/1403_archive.json",
-                term_title=str(archive.get("title", "")).strip(),
-            )
-        )
-
-    store_prosthesis = load_json(NOTES_STORAGE_ROOT / "prosthesis_1402_terms.json")
-    for term_key, term_record in sorted((store_prosthesis.get("terms") or {}).items(), key=lambda item: int(item[0])):
+def append_term_store_entries(
+    entries: list[dict[str, Any]],
+    *,
+    cohort: str,
+    store: dict[str, Any],
+    source_store: str,
+    visible_term_from_title: bool = False,
+) -> None:
+    for term_key, term_record in sorted((store.get("terms") or {}).items(), key=lambda item: int(item[0])):
         internal_term_id = int(term_key)
-        visible_term_number = extract_visible_term_number(str(term_record.get("title", "")), internal_term_id)
+        term_title = str(term_record.get("title", "")).strip()
+        visible_term_number = (
+            extract_visible_term_number(term_title, internal_term_id)
+            if visible_term_from_title
+            else internal_term_id
+        )
         section_slug = f"term-{visible_term_number:02d}"
         for item in term_record.get("items") or []:
             if not isinstance(item, dict):
                 continue
             entries.append(
                 make_entry(
-                    cohort="prosthesis-1402",
+                    cohort=cohort,
                     api_term=internal_term_id,
                     section_slug=section_slug,
                     item=item,
-                    source_store="notes/prosthesis_1402_terms.json",
-                    term_title=str(term_record.get("title", "")).strip(),
+                    source_store=source_store,
+                    term_title=term_title,
                 )
             )
+
+
+def collect_entries() -> list[dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+
+    store_1402 = load_json_if_exists(NOTES_STORAGE_ROOT / "1402_terms.json")
+    if store_1402:
+        append_term_store_entries(
+            entries,
+            cohort="1402",
+            store=store_1402,
+            source_store="notes/1402_terms.json",
+        )
+
+    store_1403 = load_json_if_exists(NOTES_STORAGE_ROOT / "1403_terms.json")
+    if store_1403:
+        append_term_store_entries(
+            entries,
+            cohort="1403",
+            store=store_1403,
+            source_store="notes/1403_terms.json",
+        )
+    else:
+        legacy_1403 = load_json_if_exists(NOTES_STORAGE_ROOT / "1403_archive.json")
+        archive = (legacy_1403 or {}).get("archive") or {}
+        for item in archive.get("items") or []:
+            if not isinstance(item, dict):
+                continue
+            entries.append(
+                make_entry(
+                    cohort="1403",
+                    api_term=3,
+                    section_slug="term-03",
+                    item=item,
+                    source_store="notes/1403_archive.json",
+                    term_title=str(archive.get("title", "")).strip(),
+                )
+            )
+
+    store_1404 = load_json_if_exists(NOTES_STORAGE_ROOT / "1404_terms.json")
+    if store_1404:
+        append_term_store_entries(
+            entries,
+            cohort="1404",
+            store=store_1404,
+            source_store="notes/1404_terms.json",
+        )
+
+    store_prosthesis = load_json_if_exists(NOTES_STORAGE_ROOT / "prosthesis_1402_terms.json")
+    if store_prosthesis:
+        append_term_store_entries(
+            entries,
+            cohort="prosthesis-1402",
+            store=store_prosthesis,
+            source_store="notes/prosthesis_1402_terms.json",
+            visible_term_from_title=True,
+        )
 
     entries.sort(key=lambda item: (item["cohort"], item["relativeDir"], item["itemId"]))
     return entries

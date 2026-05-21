@@ -22,23 +22,53 @@
     var searchParams = new URLSearchParams(window.location.search || "");
     var authApi = window.Dent1402Auth && typeof window.Dent1402Auth === "object" ? window.Dent1402Auth : null;
     var siteApi = window.Dent1402Site && typeof window.Dent1402Site === "object" ? window.Dent1402Site : null;
+
+    function normalizeNotesCohort(value) {
+        var clean = String(value == null ? "" : value).trim();
+        if (!clean || clean === "main" || clean === "1402" || clean === "dentistry-1402") {
+            return "1402";
+        }
+        if (clean === "1403" || clean === "dentistry-1403") {
+            return "1403";
+        }
+        if (clean === "1404" || clean === "dentistry-1404") {
+            return "1404";
+        }
+        if (clean === "prosthesis-1402") {
+            return "prosthesis-1402";
+        }
+        return clean;
+    }
+
+    function isValidTermForCohort(cohortKey, value) {
+        if (!Number.isFinite(value)) {
+            return false;
+        }
+        if (cohortKey === "1402") {
+            return value >= 5 && value <= 12;
+        }
+        if (cohortKey === "1403") {
+            return value >= 3 && value <= 12;
+        }
+        if (cohortKey === "1404") {
+            return value >= 1 && value <= 12;
+        }
+        if (cohortKey === "prosthesis-1402") {
+            return value > 0;
+        }
+        return false;
+    }
+
     var cohort = authApi && typeof authApi.resolvePageCohort === "function"
         ? authApi.resolvePageCohort("notesCohort")
         : String(document.body.dataset.notesCohort || searchParams.get("cohort") || "1402");
-    if (cohort === "main" || cohort === "dentistry-1402") {
-        cohort = "1402";
-    } else if (cohort === "dentistry-1403") {
-        cohort = "1403";
-    }
+    cohort = normalizeNotesCohort(cohort);
     var rawTerm = String(document.body.dataset.termNumber || searchParams.get("term") || "");
     var term = Number(rawTerm || "0");
-    if (cohort !== "1402" && cohort !== "1403" && cohort !== "prosthesis-1402") {
+    if (["1402", "1403", "1404", "prosthesis-1402"].indexOf(cohort) === -1) {
         return;
     }
-    if (cohort === "1402" && (!Number.isFinite(term) || term < 5 || term > 12)) {
-        return;
-    }
-    if (cohort === "prosthesis-1402" && (!Number.isFinite(term) || term <= 0)) {
+    if (!isValidTermForCohort(cohort, term)) {
         return;
     }
     if (backLink && cohort !== "1402") {
@@ -59,7 +89,17 @@
         authKey: "",
         downloadHost: null,
         uploadBusy: false,
-        downloadHostPathTouched: false
+        downloadHostPathTouched: false,
+        uploadProgress: {
+            visible: false,
+            phase: "idle",
+            progress: 0,
+            transferredBytes: 0,
+            totalBytes: 0,
+            speedBps: 0,
+            etaSeconds: NaN,
+            completedAt: ""
+        }
     };
 
     function authSnapshotKey() {
@@ -96,9 +136,60 @@
         });
     }
 
+    function formatBytes(value) {
+        var bytes = Number(value || 0);
+        if (!Number.isFinite(bytes) || bytes <= 0) {
+            return "۰ بایت";
+        }
+
+        var units = ["بایت", "KB", "MB", "GB", "TB"];
+        var index = 0;
+        while (bytes >= 1024 && index < units.length - 1) {
+            bytes = bytes / 1024;
+            index += 1;
+        }
+
+        var fixed = bytes >= 10 || index === 0
+            ? Math.round(bytes)
+            : Math.round(bytes * 10) / 10;
+        return String(fixed)
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+            .replace(/\d/g, function (digit) {
+                return "۰۱۲۳۴۵۶۷۸۹"[digit];
+            }) + " " + units[index];
+    }
+
+    function formatSpeed(value) {
+        var bps = Number(value || 0);
+        if (!Number.isFinite(bps) || bps <= 0) {
+            return "—";
+        }
+        return formatBytes(bps) + "/ث";
+    }
+
+    function formatEta(seconds) {
+        var value = Number(seconds);
+        if (!Number.isFinite(value) || value < 0) {
+            return "—";
+        }
+        if (value < 60) {
+            return Math.max(1, Math.round(value)).toLocaleString("fa-IR") + " ثانیه";
+        }
+
+        var minutes = Math.floor(value / 60);
+        var remain = Math.round(value % 60);
+        if (minutes < 60) {
+            return minutes.toLocaleString("fa-IR") + " دقیقه" + (remain ? " و " + remain.toLocaleString("fa-IR") + " ثانیه" : "");
+        }
+
+        var hours = Math.floor(minutes / 60);
+        minutes = minutes % 60;
+        return hours.toLocaleString("fa-IR") + " ساعت" + (minutes ? " و " + minutes.toLocaleString("fa-IR") + " دقیقه" : "");
+    }
+
     function withContextPayload(payload) {
         var next = Object.assign({ cohort: cohort }, payload || {});
-        if (cohort === "1402" || cohort === "prosthesis-1402") {
+        if (cohort === "1402" || cohort === "1403" || cohort === "1404" || cohort === "prosthesis-1402") {
             next.term = String(term);
         }
         return next;
@@ -369,7 +460,7 @@
         if (!state.termData) {
             state.termData = {
                 cohort: cohort,
-                term: cohort === "1402" || cohort === "prosthesis-1402" ? term : 0,
+                term: term,
                 title: "",
                 description: "",
                 emptyMessage: "",
@@ -431,9 +522,100 @@
             pickButton: $("notes-host-pick"),
             uploadButton: $("notes-host-upload"),
             fileMeta: $("notes-host-file-meta"),
+            progress: $("notes-host-progress"),
+            progressLabel: $("notes-host-progress-label"),
+            progressPercent: $("notes-host-progress-percent"),
+            progressBar: $("notes-host-progress-bar"),
+            progressSize: $("notes-host-progress-size"),
+            progressSpeed: $("notes-host-progress-speed"),
+            progressEta: $("notes-host-progress-eta"),
             status: $("notes-host-status"),
             preview: $("notes-host-preview")
         };
+    }
+
+    function hostProgressLabel() {
+        switch (state.uploadProgress.phase) {
+            case "queued":
+                return "آماده برای آپلود";
+            case "uploading":
+                return "در حال انتقال";
+            case "finalizing":
+                return "در حال ثبت روی هاست";
+            case "done":
+                return "آپلود کامل شد";
+            case "error":
+                return "آپلود با خطا متوقف شد";
+            default:
+                return "وضعیت آپلود";
+        }
+    }
+
+    function resetHostProgress(visible) {
+        state.uploadProgress = {
+            visible: !!visible,
+            phase: visible ? "queued" : "idle",
+            progress: 0,
+            transferredBytes: 0,
+            totalBytes: 0,
+            speedBps: 0,
+            etaSeconds: NaN,
+            completedAt: ""
+        };
+    }
+
+    function primeHostProgress(file) {
+        state.uploadProgress = {
+            visible: !!file,
+            phase: file ? "queued" : "idle",
+            progress: 0,
+            transferredBytes: 0,
+            totalBytes: Number(file && file.size || 0),
+            speedBps: 0,
+            etaSeconds: NaN,
+            completedAt: ""
+        };
+    }
+
+    function renderHostProgress() {
+        var ui = hostUi();
+        if (!ui.progress) {
+            return;
+        }
+
+        var snapshot = state.uploadProgress || {};
+        ui.progress.hidden = !snapshot.visible;
+        ui.progress.dataset.phase = snapshot.phase || "idle";
+        if (ui.progress.hidden) {
+            return;
+        }
+
+        var progress = Math.max(0, Math.min(100, Number(snapshot.progress || 0)));
+        if (ui.progressLabel) {
+            ui.progressLabel.textContent = hostProgressLabel();
+        }
+        if (ui.progressPercent) {
+            ui.progressPercent.textContent = Math.round(progress).toLocaleString("fa-IR") + "%";
+        }
+        if (ui.progressBar) {
+            ui.progressBar.style.width = progress.toFixed(1) + "%";
+        }
+        if (ui.progressSize) {
+            ui.progressSize.textContent = "انتقال: " + formatBytes(snapshot.transferredBytes || 0) + " / " + formatBytes(snapshot.totalBytes || 0);
+        }
+        if (ui.progressSpeed) {
+            ui.progressSpeed.textContent = snapshot.phase === "done"
+                ? "سرعت نهایی: " + formatSpeed(snapshot.speedBps)
+                : "سرعت: " + formatSpeed(snapshot.speedBps);
+        }
+        if (ui.progressEta) {
+            ui.progressEta.textContent = snapshot.phase === "done"
+                ? ("اتمام: " + (snapshot.completedAt ? new Intl.DateTimeFormat("fa-IR", {
+                    dateStyle: "short",
+                    timeStyle: "short"
+                }).format(new Date(snapshot.completedAt)) : "اکنون"))
+                : "زمان باقی‌مانده: " + formatEta(snapshot.etaSeconds);
+        }
     }
 
     function setHostStatus(text, kind, previewUrl) {
@@ -470,8 +652,7 @@
             ui.fileMeta.textContent = "هنوز فایلی برای آپلود انتخاب نشده است.";
             return;
         }
-        var sizeLabel = Math.max(1, Math.round(Number(file.size || 0) / 1024));
-        ui.fileMeta.textContent = file.name + " • " + String(sizeLabel) + " KB";
+        ui.fileMeta.textContent = file.name + " • " + formatBytes(file.size || 0);
     }
 
     function ensureDownloadHostUi() {
@@ -510,6 +691,18 @@
             '<div class="notes-host-tools__actions">',
             '  <button id="notes-host-upload" class="card-btn" type="button">آپلود به هاست دانلود</button>',
             '</div>',
+            '<section id="notes-host-progress" class="notes-host-progress" hidden>',
+            '  <div class="notes-host-progress__head">',
+            '    <strong id="notes-host-progress-label">آماده برای آپلود</strong>',
+            '    <span id="notes-host-progress-percent">۰٪</span>',
+            '  </div>',
+            '  <div class="notes-host-progress__track"><span id="notes-host-progress-bar"></span></div>',
+            '  <div class="notes-host-progress__stats">',
+            '    <span id="notes-host-progress-size">انتقال: ۰ بایت / ۰ بایت</span>',
+            '    <span id="notes-host-progress-speed">سرعت: —</span>',
+            '    <span id="notes-host-progress-eta">زمان باقی‌مانده: —</span>',
+            '  </div>',
+            '</section>',
             '<p id="notes-host-status" class="notes-manage-feedback" hidden></p>',
             '<a id="notes-host-preview" class="notes-host-tools__preview" href="#" target="_blank" rel="noopener noreferrer" hidden></a>'
         ].join("");
@@ -529,6 +722,8 @@
             });
             ui.fileInput.addEventListener("change", function () {
                 syncSelectedHostFileMeta();
+                primeHostProgress(selectedHostFile());
+                renderHostProgress();
                 setHostStatus("", "");
             });
         }
@@ -540,6 +735,7 @@
         if (ui.uploadButton) {
             ui.uploadButton.addEventListener("click", uploadSelectedHostFile);
         }
+        renderHostProgress();
     }
 
     function syncDownloadHostUi() {
@@ -574,6 +770,7 @@
         if (ui.pathInput) {
             ui.pathInput.disabled = state.uploadBusy || !info.enabled || !info.canUpload;
         }
+        renderHostProgress();
 
         if (!info.enabled) {
             setHostStatus("تنظیمات هاست دانلود روی این سرور هنوز کامل نشده است.", "error");
@@ -609,7 +806,7 @@
 
         var payload = new FormData();
         payload.append("cohort", cohort);
-        if (cohort === "1402" || cohort === "prosthesis-1402") {
+        if (cohort === "1402" || cohort === "1403" || cohort === "1404" || cohort === "prosthesis-1402") {
             payload.append("term", String(term));
         }
         payload.append("path", pathValue);
@@ -619,15 +816,87 @@
         payload.append("file", file);
 
         state.uploadBusy = true;
+        state.uploadProgress = {
+            visible: true,
+            phase: "uploading",
+            progress: 0,
+            transferredBytes: 0,
+            totalBytes: Number(file.size || 0),
+            speedBps: 0,
+            etaSeconds: NaN,
+            completedAt: ""
+        };
         syncDownloadHostUi();
         setHostStatus("فایل در حال انتقال به هاست دانلود است...", "");
+        renderHostProgress();
 
-        requestFormData("downloadHostUpload", payload).then(function (response) {
+        var startedAt = Date.now();
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/notes_api.php?action=downloadHostUpload", true);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader("Accept", "application/json");
+
+        xhr.upload.onprogress = function (event) {
+            if (!event.lengthComputable) {
+                return;
+            }
+
+            var loaded = Number(event.loaded || 0);
+            var total = Number(event.total || file.size || 0);
+            var elapsed = Math.max(0.25, (Date.now() - startedAt) / 1000);
+            var speed = loaded / elapsed;
+            state.uploadProgress.visible = true;
+            state.uploadProgress.phase = "uploading";
+            state.uploadProgress.transferredBytes = loaded;
+            state.uploadProgress.totalBytes = total;
+            state.uploadProgress.progress = total > 0 ? (loaded / total) * 100 : state.uploadProgress.progress;
+            state.uploadProgress.speedBps = speed;
+            state.uploadProgress.etaSeconds = speed > 0 && total > loaded ? (total - loaded) / speed : 0;
+            if (state.uploadProgress.progress >= 99.9) {
+                state.uploadProgress.phase = "finalizing";
+                state.uploadProgress.etaSeconds = 0;
+            }
+            renderHostProgress();
+        };
+
+        xhr.upload.onload = function () {
+            state.uploadProgress.visible = true;
+            state.uploadProgress.phase = "finalizing";
+            state.uploadProgress.progress = 100;
+            state.uploadProgress.transferredBytes = Number(file.size || state.uploadProgress.transferredBytes || 0);
+            state.uploadProgress.totalBytes = Number(file.size || state.uploadProgress.totalBytes || 0);
+            state.uploadProgress.speedBps = 0;
+            state.uploadProgress.etaSeconds = 0;
+            renderHostProgress();
+        };
+
+        xhr.onload = function () {
+            var response = {};
+            try {
+                response = JSON.parse(xhr.responseText || "{}");
+            } catch (_error) {
+                response = { success: false, error: "پاسخ آپلود معتبر نبود." };
+            }
+            response.httpStatus = xhr.status;
+
             if (handleUnauthorized(response)) {
-                throw new Error("برای مدیریت منابع باید وارد حساب مجاز شوید.");
+                state.uploadProgress.phase = "error";
+                state.uploadProgress.etaSeconds = NaN;
+                renderHostProgress();
+                setHostStatus("برای مدیریت منابع باید وارد حساب مجاز شوید.", "error");
+                state.uploadBusy = false;
+                syncDownloadHostUi();
+                return;
             }
             if (!response || !response.success || !response.file) {
-                throw new Error((response && response.error) || "آپلود فایل روی هاست دانلود انجام نشد.");
+                state.uploadProgress.phase = "error";
+                state.uploadProgress.speedBps = 0;
+                state.uploadProgress.etaSeconds = NaN;
+                renderHostProgress();
+                state.uploadBusy = false;
+                syncDownloadHostUi();
+                setHostStatus((response && response.error) || "آپلود فایل روی هاست دانلود انجام نشد.", "error");
+                return;
             }
 
             var inputs = formInputs();
@@ -646,14 +915,43 @@
             if (ui.nameInput) {
                 ui.nameInput.value = "";
             }
+
+            state.uploadProgress.visible = true;
+            state.uploadProgress.phase = "done";
+            state.uploadProgress.progress = 100;
+            state.uploadProgress.transferredBytes = Number(file.size || state.uploadProgress.transferredBytes || 0);
+            state.uploadProgress.totalBytes = Number(file.size || state.uploadProgress.totalBytes || 0);
+            state.uploadProgress.speedBps = 0;
+            state.uploadProgress.etaSeconds = 0;
+            state.uploadProgress.completedAt = new Date().toISOString();
             syncSelectedHostFileMeta();
+            renderHostProgress();
             setHostStatus(response.message || "فایل روی هاست دانلود ذخیره شد و لینک مستقیم آن روی کارت قرار گرفت.", "success", response.file.publicUrl || "");
-        }).catch(function (error) {
-            setHostStatus(error && error.message ? error.message : "آپلود فایل با خطا مواجه شد.", "error");
-        }).finally(function () {
             state.uploadBusy = false;
             syncDownloadHostUi();
-        });
+        };
+
+        xhr.onerror = function () {
+            state.uploadProgress.phase = "error";
+            state.uploadProgress.speedBps = 0;
+            state.uploadProgress.etaSeconds = NaN;
+            renderHostProgress();
+            state.uploadBusy = false;
+            syncDownloadHostUi();
+            setHostStatus("ارتباط آپلود با خطا قطع شد.", "error");
+        };
+
+        xhr.onabort = function () {
+            state.uploadProgress.phase = "error";
+            state.uploadProgress.speedBps = 0;
+            state.uploadProgress.etaSeconds = NaN;
+            renderHostProgress();
+            state.uploadBusy = false;
+            syncDownloadHostUi();
+            setHostStatus("آپلود فایل توسط مرورگر متوقف شد.", "error");
+        };
+
+        xhr.send(payload);
     }
 
     function renderTerm() {
@@ -662,9 +960,7 @@
 
         if (!termData) {
             emptyBox.hidden = false;
-            emptyBox.textContent = cohort === "1403"
-                ? "داده‌ای برای این آرشیو دریافت نشد."
-                : "داده‌ای برای این ترم دریافت نشد.";
+            emptyBox.textContent = "داده‌ای برای این ترم دریافت نشد.";
             syncEditUi();
             syncDownloadHostUi();
             return;
@@ -715,9 +1011,7 @@
         var silent = options && options.silent;
         if (!silent) {
             emptyBox.hidden = false;
-            emptyBox.textContent = cohort === "1403"
-                ? "در حال دریافت منابع آرشیو..."
-                : "در حال دریافت منابع این ترم...";
+            emptyBox.textContent = "در حال دریافت منابع این ترم...";
         }
 
         return request("term", "GET", {}).then(function (payload) {

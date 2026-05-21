@@ -17,20 +17,33 @@
             : null;
     }
 
+    function normalizeNotesCohort(value) {
+        var cohort = String(value == null ? "" : value).trim();
+        if (!cohort || cohort === "main" || cohort === "1402" || cohort === "dentistry-1402") {
+            return "1402";
+        }
+        if (cohort === "1403" || cohort === "dentistry-1403") {
+            return "1403";
+        }
+        if (cohort === "1404" || cohort === "dentistry-1404") {
+            return "1404";
+        }
+        if (cohort === "prosthesis-1402") {
+            return "prosthesis-1402";
+        }
+        return cohort;
+    }
+
     function resolveCohort() {
         var auth = authApi();
         var cohort = auth && typeof auth.resolvePageCohort === "function"
             ? auth.resolvePageCohort("notesCohort")
             : String(document.body && document.body.dataset ? document.body.dataset.notesCohort || "" : "").trim();
-
-        if (!cohort || cohort === "main" || cohort === "dentistry-1402") {
-            return "1402";
-        }
-        return cohort;
+        return normalizeNotesCohort(cohort);
     }
 
     var pageCohort = resolveCohort();
-    if (pageCohort !== "1402" && pageCohort !== "prosthesis-1402") {
+    if (["1402", "1403", "1404", "prosthesis-1402"].indexOf(pageCohort) === -1) {
         return;
     }
 
@@ -71,6 +84,16 @@
 
     function homeCanManage() {
         return manageSupported() && state.canManage;
+    }
+
+    function cohortYearLabel() {
+        if (pageCohort === "1403") {
+            return "۱۴۰۳";
+        }
+        if (pageCohort === "1404") {
+            return "۱۴۰۴";
+        }
+        return "۱۴۰۲";
     }
 
     function toFaDigits(value) {
@@ -142,18 +165,19 @@
 
     function applyPageCopy() {
         var isProsthesis = pageCohort === "prosthesis-1402";
+        var yearLabel = cohortYearLabel();
         if (heading) {
-            heading.textContent = isProsthesis ? "آرشیو منابع پروتز ۱۴۰۲" : "آرشیو منابع ورودی ۱۴۰۲";
+            heading.textContent = isProsthesis ? "آرشیو منابع پروتز ۱۴۰۲" : ("آرشیو منابع ورودی " + yearLabel);
         }
         if (subheading) {
-            subheading.textContent = isProsthesis ? "هر ترم در صفحه جداگانه" : "ترم‌ها از storage مشترک بارگذاری می‌شوند";
+            subheading.textContent = isProsthesis ? "هر ترم در صفحه جداگانه" : "هر ترم در صفحه جداگانه";
         }
         if (backLink) {
             backLink.href = "/app/";
             backLink.textContent = isProsthesis ? "بازگشت به خانه پروتز" : "بازگشت به خانه";
         }
         if (kicker) {
-            kicker.textContent = isProsthesis ? "آرشیو پروتز ۱۴۰۲" : "آرشیو ۱۴۰۲";
+            kicker.textContent = isProsthesis ? "آرشیو پروتز ۱۴۰۲" : ("آرشیو " + yearLabel);
         }
         if (title) {
             title.textContent = isProsthesis
@@ -164,7 +188,9 @@
             sectionKicker.textContent = "ترم‌ها";
         }
         if (sectionTitle) {
-            sectionTitle.textContent = isProsthesis ? "صفحات مستقل ترمی پروتز ۱۴۰۲" : "صفحات مستقل ترمی ۱۴۰۲";
+            sectionTitle.textContent = isProsthesis
+                ? "صفحات مستقل ترمی پروتز ۱۴۰۲"
+                : ("صفحات مستقل ترمی " + yearLabel);
         }
         if (sectionCopy) {
             sectionCopy.textContent = isProsthesis
@@ -172,11 +198,11 @@
                 : "این فهرست مستقیم از storage مشترک خوانده می‌شود و دیگر به کارت‌های ثابت داخل HTML وابسته نیست.";
         }
         if (footer) {
-            footer.textContent = isProsthesis ? "ورودی ۱۴۰۲ پروتز تهران" : "ورودی ۱۴۰۲ دندانپزشکی تهران";
+            footer.textContent = isProsthesis ? "ورودی ۱۴۰۲ پروتز تهران" : ("ورودی " + yearLabel + " دندانپزشکی تهران");
         }
         document.title = isProsthesis
             ? "آرشیو جزوات پروتز ۱۴۰۲ | انتخاب ترم"
-            : "آرشیو منابع ۱۴۰۲ | انتخاب ترم";
+            : ("آرشیو منابع " + yearLabel + " | انتخاب ترم");
     }
 
     function termId(term) {

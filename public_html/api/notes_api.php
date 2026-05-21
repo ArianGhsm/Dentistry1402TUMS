@@ -9,6 +9,11 @@ const NOTES_1402_MIN_TERM = 5;
 const NOTES_1402_MAX_TERM = 12;
 const NOTES_1402_SEED_BACKFILL_VERSION = 0;
 const NOTES_1403_SCHEMA_VERSION = 1;
+const NOTES_1403_MIN_TERM = 3;
+const NOTES_1403_MAX_TERM = 12;
+const NOTES_1404_SCHEMA_VERSION = 1;
+const NOTES_1404_MIN_TERM = 1;
+const NOTES_1404_MAX_TERM = 12;
 const NOTES_PROSTHESIS_1402_SCHEMA_VERSION = 1;
 
 function notes_1402_store_path(): string
@@ -23,12 +28,32 @@ function notes_1402_lock_path(): string
 
 function notes_1403_store_path(): string
 {
-    return dent_storage_path('notes/1403_archive.json');
+    return dent_storage_path('notes/1403_terms.json');
 }
 
 function notes_1403_lock_path(): string
 {
+    return dent_storage_path('notes/1403_terms.lock');
+}
+
+function notes_1403_legacy_store_path(): string
+{
+    return dent_storage_path('notes/1403_archive.json');
+}
+
+function notes_1403_legacy_lock_path(): string
+{
     return dent_storage_path('notes/1403_archive.lock');
+}
+
+function notes_1404_store_path(): string
+{
+    return dent_storage_path('notes/1404_terms.json');
+}
+
+function notes_1404_lock_path(): string
+{
+    return dent_storage_path('notes/1404_terms.lock');
 }
 
 function notes_prosthesis_1402_store_path(): string
@@ -241,6 +266,70 @@ function notes_1403_seed_items(): array
             'buttonLabel' => 'دریافت',
             'buttonUrl' => 'https://s31.uupload.ir/files/arianghsm/جزوات%20دندانپزشکی%201403/خلاصه%20و%20نمونه%20سوال%20متون/نمونه%20سوال%20متون.pdf',
         ],
+    ];
+}
+
+function notes_fixed_terms_term_template(int $term, string $cohortLabel, int $startingTerm): array
+{
+    $termFa = dent_to_fa_digits((string) $term);
+    if ($term === $startingTerm) {
+        return [
+            'term' => $term,
+            'kicker' => 'ترم ' . $termFa,
+            'title' => 'فایل‌های فعلی آرشیو',
+            'description' => 'همه منابع فعلی ' . $cohortLabel . ' فعلاً در این ترم قرار گرفته‌اند.',
+            'emptyMessage' => 'برای ترم ' . $termFa . ' هنوز منبعی ثبت نشده است.',
+        ];
+    }
+
+    return [
+        'term' => $term,
+        'kicker' => 'ترم ' . $termFa,
+        'title' => 'آرشیو منابع ترم ' . $termFa,
+        'description' => 'منابع این ترم به‌مرور اضافه می‌شوند.',
+        'emptyMessage' => 'منابع ترم ' . $termFa . ' هنوز ثبت نشده است.',
+    ];
+}
+
+function notes_1403_term_template(int $term): array
+{
+    return notes_fixed_terms_term_template($term, 'ورودی ۱۴۰۳', NOTES_1403_MIN_TERM);
+}
+
+function notes_1404_term_template(int $term): array
+{
+    return notes_fixed_terms_term_template($term, 'ورودی ۱۴۰۴', NOTES_1404_MIN_TERM);
+}
+
+/**
+ * @param array<int, array<int, mixed>> $seedItemsByTerm
+ */
+function notes_fixed_terms_default_store(
+    int $schemaVersion,
+    int $minTerm,
+    int $maxTerm,
+    callable $templateFn,
+    array $seedItemsByTerm = []
+): array {
+    $terms = [];
+    $maxItemId = 0;
+    for ($term = $minTerm; $term <= $maxTerm; $term++) {
+        $template = $templateFn($term);
+        $items = is_array($seedItemsByTerm[$term] ?? null) ? $seedItemsByTerm[$term] : [];
+        $template['items'] = $items;
+        foreach ($items as $itemSeed) {
+            if (!is_array($itemSeed)) {
+                continue;
+            }
+            $maxItemId = max($maxItemId, (int) ($itemSeed['id'] ?? 0));
+        }
+        $terms[(string) $term] = $template;
+    }
+
+    return [
+        'schemaVersion' => $schemaVersion,
+        'nextItemId' => max(1, $maxItemId + 1),
+        'terms' => $terms,
     ];
 }
 
@@ -523,60 +612,145 @@ function notes_1402_save_store_unlocked(array $store): void
 
 function notes_1403_default_store(): array
 {
-    $archive = notes_1403_archive_template();
-    $archive['items'] = notes_1403_seed_items();
+    return notes_fixed_terms_default_store(
+        NOTES_1403_SCHEMA_VERSION,
+        NOTES_1403_MIN_TERM,
+        NOTES_1403_MAX_TERM,
+        'notes_1403_term_template',
+        [NOTES_1403_MIN_TERM => notes_1403_seed_items()]
+    );
+}
+
+function notes_1404_default_store(): array
+{
+    return notes_fixed_terms_default_store(
+        NOTES_1404_SCHEMA_VERSION,
+        NOTES_1404_MIN_TERM,
+        NOTES_1404_MAX_TERM,
+        'notes_1404_term_template'
+    );
+}
+
+function notes_fixed_terms_normalize_store(
+    array $seed,
+    int $schemaVersion,
+    int $minTerm,
+    int $maxTerm,
+    callable $templateFn
+): array {
+    $defaults = notes_fixed_terms_default_store($schemaVersion, $minTerm, $maxTerm, $templateFn);
+    $termsSeed = is_array($seed['terms'] ?? null) ? $seed['terms'] : [];
+    $normalizedTerms = [];
+    $maxItemId = 0;
+
+    for ($term = $minTerm; $term <= $maxTerm; $term++) {
+        $termKey = (string) $term;
+        $defaultTerm = $defaults['terms'][$termKey];
+        $termSeed = is_array($termsSeed[$termKey] ?? null) ? $termsSeed[$termKey] : [];
+        $itemsSeed = is_array($termSeed['items'] ?? null) ? $termSeed['items'] : [];
+        $items = [];
+
+        foreach ($itemsSeed as $itemSeed) {
+            if (!is_array($itemSeed)) {
+                continue;
+            }
+            $item = notes_1402_normalize_item_record($itemSeed);
+            if ($item === null) {
+                continue;
+            }
+            $maxItemId = max($maxItemId, (int) $item['id']);
+            $items[] = $item;
+        }
+
+        usort($items, static function (array $left, array $right): int {
+            return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
+        });
+
+        $normalizedTerms[$termKey] = [
+            'term' => $term,
+            'kicker' => dent_clean_text((string) ($termSeed['kicker'] ?? $defaultTerm['kicker']), 80),
+            'title' => dent_clean_text((string) ($termSeed['title'] ?? $defaultTerm['title']), 160),
+            'description' => dent_clean_text((string) ($termSeed['description'] ?? $defaultTerm['description']), 800),
+            'emptyMessage' => dent_clean_text((string) ($termSeed['emptyMessage'] ?? $defaultTerm['emptyMessage']), 400),
+            'items' => $items,
+        ];
+    }
 
     return [
-        'schemaVersion' => NOTES_1403_SCHEMA_VERSION,
-        'nextItemId' => 10,
-        'archive' => $archive,
+        'schemaVersion' => $schemaVersion,
+        'nextItemId' => max(1, (int) ($seed['nextItemId'] ?? 1), $maxItemId + 1),
+        'terms' => $normalizedTerms,
     ];
+}
+
+function notes_1403_normalize_store(array $seed): array
+{
+    return notes_fixed_terms_normalize_store(
+        $seed,
+        NOTES_1403_SCHEMA_VERSION,
+        NOTES_1403_MIN_TERM,
+        NOTES_1403_MAX_TERM,
+        'notes_1403_term_template'
+    );
+}
+
+function notes_1404_normalize_store(array $seed): array
+{
+    return notes_fixed_terms_normalize_store(
+        $seed,
+        NOTES_1404_SCHEMA_VERSION,
+        NOTES_1404_MIN_TERM,
+        NOTES_1404_MAX_TERM,
+        'notes_1404_term_template'
+    );
+}
+
+function notes_1403_migrate_legacy_store(array $legacy): array
+{
+    $store = notes_fixed_terms_default_store(
+        NOTES_1403_SCHEMA_VERSION,
+        NOTES_1403_MIN_TERM,
+        NOTES_1403_MAX_TERM,
+        'notes_1403_term_template'
+    );
+
+    $archive = is_array($legacy['archive'] ?? null) ? $legacy['archive'] : [];
+    $termKey = (string) NOTES_1403_MIN_TERM;
+    $termSeed = $store['terms'][$termKey] ?? notes_1403_term_template(NOTES_1403_MIN_TERM);
+    $termSeed['kicker'] = dent_clean_text((string) ($archive['kicker'] ?? $termSeed['kicker']), 80);
+    $termSeed['title'] = dent_clean_text((string) ($archive['title'] ?? $termSeed['title']), 160);
+    $termSeed['description'] = dent_clean_text((string) ($archive['description'] ?? $termSeed['description']), 800);
+    $termSeed['emptyMessage'] = dent_clean_text((string) ($archive['emptyMessage'] ?? $termSeed['emptyMessage']), 400);
+    $termSeed['items'] = is_array($archive['items'] ?? null) ? $archive['items'] : [];
+    $store['terms'][$termKey] = $termSeed;
+
+    return notes_1403_normalize_store($store);
 }
 
 function notes_1403_ensure_storage(): void
 {
     dent_ensure_directory(dirname(notes_1403_store_path()));
-    if (!is_file(notes_1403_store_path())) {
-        dent_write_json_file(notes_1403_store_path(), notes_1403_default_store());
+    if (is_file(notes_1403_store_path())) {
+        return;
     }
+
+    $seed = notes_1403_default_store();
+    if (is_file(notes_1403_legacy_store_path())) {
+        $legacy = dent_read_json_file(notes_1403_legacy_store_path(), []);
+        if (is_array($legacy)) {
+            $seed = notes_1403_migrate_legacy_store($legacy);
+        }
+    }
+
+    dent_write_json_file(notes_1403_store_path(), $seed);
 }
 
-function notes_1403_normalize_store(array $seed): array
+function notes_1404_ensure_storage(): void
 {
-    $defaults = notes_1403_default_store();
-    $archiveSeed = is_array($seed['archive'] ?? null) ? $seed['archive'] : [];
-    $defaultArchive = $defaults['archive'];
-    $itemsSeed = is_array($archiveSeed['items'] ?? null) ? $archiveSeed['items'] : [];
-    $items = [];
-    $maxItemId = 0;
-
-    foreach ($itemsSeed as $itemSeed) {
-        if (!is_array($itemSeed)) {
-            continue;
-        }
-        $item = notes_1402_normalize_item_record($itemSeed);
-        if ($item === null) {
-            continue;
-        }
-        $maxItemId = max($maxItemId, (int) $item['id']);
-        $items[] = $item;
+    dent_ensure_directory(dirname(notes_1404_store_path()));
+    if (!is_file(notes_1404_store_path())) {
+        dent_write_json_file(notes_1404_store_path(), notes_1404_default_store());
     }
-
-    usort($items, static function (array $left, array $right): int {
-        return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
-    });
-
-    return [
-        'schemaVersion' => NOTES_1403_SCHEMA_VERSION,
-        'nextItemId' => max(1, (int) ($seed['nextItemId'] ?? 1), $maxItemId + 1),
-        'archive' => [
-            'kicker' => dent_clean_text((string) ($archiveSeed['kicker'] ?? $defaultArchive['kicker']), 80),
-            'title' => dent_clean_text((string) ($archiveSeed['title'] ?? $defaultArchive['title']), 160),
-            'description' => dent_clean_text((string) ($archiveSeed['description'] ?? $defaultArchive['description']), 800),
-            'emptyMessage' => dent_clean_text((string) ($archiveSeed['emptyMessage'] ?? $defaultArchive['emptyMessage']), 400),
-            'items' => $items,
-        ],
-    ];
 }
 
 function notes_1403_load_store_unlocked(): array
@@ -592,6 +766,21 @@ function notes_1403_load_store_unlocked(): array
 function notes_1403_save_store_unlocked(array $store): void
 {
     dent_write_json_file(notes_1403_store_path(), notes_1403_normalize_store($store));
+}
+
+function notes_1404_load_store_unlocked(): array
+{
+    $raw = dent_read_json_file(notes_1404_store_path(), notes_1404_default_store());
+    if (!is_array($raw)) {
+        $raw = notes_1404_default_store();
+    }
+
+    return notes_1404_normalize_store($raw);
+}
+
+function notes_1404_save_store_unlocked(array $store): void
+{
+    dent_write_json_file(notes_1404_store_path(), notes_1404_normalize_store($store));
 }
 
 function notes_prosthesis_1402_default_store(): array
@@ -829,6 +1018,59 @@ function notes_1403_with_store_lock(callable $callback)
     }
 }
 
+function notes_1404_read_store(): array
+{
+    notes_1404_ensure_storage();
+
+    $lock = fopen(notes_1404_lock_path(), 'c+');
+    if ($lock === false) {
+        dent_error('خطا در دسترسی به قفل آرشیو منابع.', 500);
+    }
+
+    $store = notes_1404_default_store();
+    try {
+        if (!flock($lock, LOCK_SH)) {
+            throw new RuntimeException('Unable to acquire notes 1404 shared lock.');
+        }
+
+        $store = notes_1404_load_store_unlocked();
+    } finally {
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+
+    return $store;
+}
+
+/**
+ * @template T
+ * @param callable(array):T $callback
+ * @return T
+ */
+function notes_1404_with_store_lock(callable $callback)
+{
+    notes_1404_ensure_storage();
+
+    $lock = fopen(notes_1404_lock_path(), 'c+');
+    if ($lock === false) {
+        dent_error('خطا در دسترسی به قفل آرشیو منابع.', 500);
+    }
+
+    try {
+        if (!flock($lock, LOCK_EX)) {
+            throw new RuntimeException('Unable to acquire notes 1404 exclusive lock.');
+        }
+
+        $store = notes_1404_load_store_unlocked();
+        $result = $callback($store);
+        notes_1404_save_store_unlocked($store);
+        return $result;
+    } finally {
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+}
+
 function notes_1402_read_store(): array
 {
     notes_1402_ensure_storage();
@@ -899,7 +1141,7 @@ function notes_parse_cohort($raw): string
         return '1402';
     }
 
-    if (!in_array($cohort, ['1402', '1403', 'prosthesis-1402'], true)) {
+    if (!in_array($cohort, ['1402', '1403', '1404', 'prosthesis-1402'], true)) {
         dent_error('آرشیو منابع معتبر نیست.', 422);
     }
 
@@ -908,11 +1150,27 @@ function notes_parse_cohort($raw): string
 
 function notes_require_term_for_cohort(string $cohort, $raw): int
 {
-    if ($cohort !== '1402') {
-        return 0;
+    if ($cohort === '1402') {
+        return notes_1402_parse_term($raw);
     }
 
-    return notes_1402_parse_term($raw);
+    if ($cohort === '1403') {
+        $term = (int) dent_normalize_digits((string) $raw);
+        if ($term < NOTES_1403_MIN_TERM || $term > NOTES_1403_MAX_TERM) {
+            dent_error('شماره ترم معتبر نیست.', 422);
+        }
+        return $term;
+    }
+
+    if ($cohort === '1404') {
+        $term = (int) dent_normalize_digits((string) $raw);
+        if ($term < NOTES_1404_MIN_TERM || $term > NOTES_1404_MAX_TERM) {
+            dent_error('شماره ترم معتبر نیست.', 422);
+        }
+        return $term;
+    }
+
+    return 0;
 }
 
 function notes_1402_item_payload(array $item): array
@@ -967,10 +1225,10 @@ function notes_1402_terms_payload(array $store): array
     return $terms;
 }
 
-function notes_1403_archive_payload(array $store): array
+function notes_fixed_terms_term_payload(string $cohort, array $store, int $term, callable $templateFn): array
 {
-    $archive = is_array($store['archive'] ?? null) ? $store['archive'] : notes_1403_archive_template();
-    $items = is_array($archive['items'] ?? null) ? $archive['items'] : [];
+    $termRecord = $store['terms'][(string) $term] ?? $templateFn($term);
+    $items = is_array($termRecord['items'] ?? null) ? $termRecord['items'] : [];
     $itemPayloads = [];
     foreach ($items as $item) {
         if (!is_array($item)) {
@@ -980,14 +1238,45 @@ function notes_1403_archive_payload(array $store): array
     }
 
     return [
-        'cohort' => '1403',
-        'term' => 0,
-        'kicker' => (string) ($archive['kicker'] ?? ''),
-        'title' => (string) ($archive['title'] ?? ''),
-        'description' => (string) ($archive['description'] ?? ''),
-        'emptyMessage' => (string) ($archive['emptyMessage'] ?? ''),
+        'cohort' => $cohort,
+        'term' => $term,
+        'id' => $term,
+        'kicker' => (string) ($termRecord['kicker'] ?? ''),
+        'title' => (string) ($termRecord['title'] ?? ''),
+        'description' => (string) ($termRecord['description'] ?? ''),
+        'emptyMessage' => (string) ($termRecord['emptyMessage'] ?? ''),
         'items' => $itemPayloads,
     ];
+}
+
+function notes_1403_term_payload(array $store, int $term): array
+{
+    return notes_fixed_terms_term_payload('1403', $store, $term, 'notes_1403_term_template');
+}
+
+function notes_1404_term_payload(array $store, int $term): array
+{
+    return notes_fixed_terms_term_payload('1404', $store, $term, 'notes_1404_term_template');
+}
+
+function notes_1403_terms_payload(array $store): array
+{
+    $terms = [];
+    for ($term = NOTES_1403_MIN_TERM; $term <= NOTES_1403_MAX_TERM; $term++) {
+        $terms[] = notes_1403_term_payload($store, $term);
+    }
+
+    return $terms;
+}
+
+function notes_1404_terms_payload(array $store): array
+{
+    $terms = [];
+    for ($term = NOTES_1404_MIN_TERM; $term <= NOTES_1404_MAX_TERM; $term++) {
+        $terms[] = notes_1404_term_payload($store, $term);
+    }
+
+    return $terms;
 }
 
 function notes_prosthesis_1402_term_payload(array $termRecord): array
@@ -1041,7 +1330,15 @@ function notes_can_manage_cohort(string $cohort, ?array $viewer): bool
         return true;
     }
 
-    return $cohort === 'prosthesis-1402' && $role === 'prosthesis_representative';
+    $targetCohortKey = $cohort === '1402'
+        ? dent_primary_cohort_key()
+        : ($cohort === 'prosthesis-1402' ? dent_prosthesis_legacy_cohort_key() : ('dentistry-' . $cohort));
+
+    if (dent_user_cohort_key($viewer) !== dent_clean_cohort_key($targetCohortKey)) {
+        return false;
+    }
+
+    return !empty(dent_permissions_for_role($role, $targetCohortKey)['manageNotes']);
 }
 
 function notes_require_manage_cohort(string $cohort): array
@@ -1109,8 +1406,8 @@ function notes_parse_item_fields_from_post(): array
 
 function notes_download_host_scope_root_for_cohort(string $cohort): string
 {
-    if ($cohort === '1403') {
-        return '1403';
+    if ($cohort === '1403' || $cohort === '1404') {
+        return $cohort;
     }
     if ($cohort === 'prosthesis-1402') {
         return 'prosthesis-1402';
@@ -1149,7 +1446,7 @@ function notes_download_host_term_payload(string $cohort, int $term, array $term
     $role = is_array($viewer) ? (string) ($viewer['role'] ?? 'student') : 'guest';
     $defaultRelativeDir = notes_download_host_default_relative_dir(
         $cohort,
-        $cohort === '1403' ? 0 : $term,
+        $term,
         (string) ($termPayload['title'] ?? '')
     );
 
@@ -1218,20 +1515,35 @@ function notes_1402_add_item(int $term, array $fields): array
     });
 }
 
-function notes_1403_add_item(array $fields): array
+function notes_fixed_terms_add_item(string $cohort, int $term, array $fields): array
 {
-    return notes_1403_with_store_lock(static function (array &$store) use ($fields): array {
-        if (!isset($store['archive']) || !is_array($store['archive'])) {
-            $store['archive'] = notes_1403_archive_template();
+    $withLock = $cohort === '1403' ? 'notes_1403_with_store_lock' : 'notes_1404_with_store_lock';
+    $template = $cohort === '1403' ? 'notes_1403_term_template' : 'notes_1404_term_template';
+
+    return $withLock(static function (array &$store) use ($term, $fields, $template): array {
+        $termKey = (string) $term;
+        if (!isset($store['terms'][$termKey]) || !is_array($store['terms'][$termKey])) {
+            $store['terms'][$termKey] = $template($term);
+            $store['terms'][$termKey]['items'] = [];
         }
-        if (!is_array($store['archive']['items'] ?? null)) {
-            $store['archive']['items'] = [];
+        if (!is_array($store['terms'][$termKey]['items'] ?? null)) {
+            $store['terms'][$termKey]['items'] = [];
         }
 
         $item = notes_new_item($store, $fields);
-        array_unshift($store['archive']['items'], $item);
+        array_unshift($store['terms'][$termKey]['items'], $item);
         return $item;
     });
+}
+
+function notes_1403_add_item(int $term, array $fields): array
+{
+    return notes_fixed_terms_add_item('1403', $term, $fields);
+}
+
+function notes_1404_add_item(int $term, array $fields): array
+{
+    return notes_fixed_terms_add_item('1404', $term, $fields);
 }
 
 function notes_prosthesis_1402_add_term(array $fields): array
@@ -1319,25 +1631,38 @@ function notes_1402_edit_item(int $term, int $itemId, array $fields): array
     });
 }
 
-function notes_1403_edit_item(int $itemId, array $fields): array
+function notes_fixed_terms_edit_item(string $cohort, int $term, int $itemId, array $fields): array
 {
-    return notes_1403_with_store_lock(static function (array &$store) use ($itemId, $fields): array {
-        if (!is_array($store['archive']['items'] ?? null)) {
+    $withLock = $cohort === '1403' ? 'notes_1403_with_store_lock' : 'notes_1404_with_store_lock';
+
+    return $withLock(static function (array &$store) use ($term, $itemId, $fields): array {
+        $termKey = (string) $term;
+        if (!is_array($store['terms'][$termKey]['items'] ?? null)) {
             throw new RuntimeException('item-not-found');
         }
 
-        foreach ($store['archive']['items'] as $index => $item) {
+        foreach ($store['terms'][$termKey]['items'] as $index => $item) {
             if ((int) ($item['id'] ?? 0) !== $itemId) {
                 continue;
             }
 
             $updated = notes_update_item_record(is_array($item) ? $item : [], $fields);
-            $store['archive']['items'][$index] = $updated;
+            $store['terms'][$termKey]['items'][$index] = $updated;
             return $updated;
         }
 
         throw new RuntimeException('item-not-found');
     });
+}
+
+function notes_1403_edit_item(int $term, int $itemId, array $fields): array
+{
+    return notes_fixed_terms_edit_item('1403', $term, $itemId, $fields);
+}
+
+function notes_1404_edit_item(int $term, int $itemId, array $fields): array
+{
+    return notes_fixed_terms_edit_item('1404', $term, $itemId, $fields);
 }
 
 function notes_prosthesis_1402_edit_item(int $termId, int $itemId, array $fields): array
@@ -1386,14 +1711,17 @@ function notes_1402_delete_item(int $term, int $itemId): array
     });
 }
 
-function notes_1403_delete_item(int $itemId): array
+function notes_fixed_terms_delete_item(string $cohort, int $term, int $itemId): array
 {
-    return notes_1403_with_store_lock(static function (array &$store) use ($itemId): array {
-        if (!is_array($store['archive']['items'] ?? null)) {
+    $withLock = $cohort === '1403' ? 'notes_1403_with_store_lock' : 'notes_1404_with_store_lock';
+
+    return $withLock(static function (array &$store) use ($term, $itemId): array {
+        $termKey = (string) $term;
+        if (!is_array($store['terms'][$termKey]['items'] ?? null)) {
             throw new RuntimeException('item-not-found');
         }
 
-        $items = &$store['archive']['items'];
+        $items = &$store['terms'][$termKey]['items'];
         foreach ($items as $index => $item) {
             if ((int) ($item['id'] ?? 0) !== $itemId) {
                 continue;
@@ -1406,6 +1734,16 @@ function notes_1403_delete_item(int $itemId): array
 
         throw new RuntimeException('item-not-found');
     });
+}
+
+function notes_1403_delete_item(int $term, int $itemId): array
+{
+    return notes_fixed_terms_delete_item('1403', $term, $itemId);
+}
+
+function notes_1404_delete_item(int $term, int $itemId): array
+{
+    return notes_fixed_terms_delete_item('1404', $term, $itemId);
 }
 
 function notes_prosthesis_1402_delete_item(int $termId, int $itemId): array
@@ -1438,18 +1776,20 @@ if ($action === 'terms') {
     notes_1402_require_method(['GET']);
 
     $cohort = notes_parse_cohort($_GET['cohort'] ?? '1402');
-    if ($cohort === '1403') {
-        dent_error('فهرست ترم برای آرشیو ۱۴۰۳ فعال نیست.', 422);
-    }
-
     $viewer = dent_current_user();
-    $terms = $cohort === 'prosthesis-1402'
-        ? notes_prosthesis_1402_terms_payload(notes_prosthesis_1402_read_store())
-        : notes_1402_terms_payload(notes_1402_read_store());
+    if ($cohort === 'prosthesis-1402') {
+        $terms = notes_prosthesis_1402_terms_payload(notes_prosthesis_1402_read_store());
+    } elseif ($cohort === '1403') {
+        $terms = notes_1403_terms_payload(notes_1403_read_store());
+    } elseif ($cohort === '1404') {
+        $terms = notes_1404_terms_payload(notes_1404_read_store());
+    } else {
+        $terms = notes_1402_terms_payload(notes_1402_read_store());
+    }
     dent_json_response([
         'success' => true,
         'terms' => $terms,
-        'canManage' => $cohort === 'prosthesis-1402' && notes_can_manage_cohort($cohort, $viewer),
+        'canManage' => notes_can_manage_cohort($cohort, $viewer),
     ]);
 }
 
@@ -1530,7 +1870,9 @@ if ($action === 'term') {
     $termPayload = null;
 
     if ($cohort === '1403') {
-        $termPayload = notes_1403_archive_payload(notes_1403_read_store());
+        $termPayload = notes_1403_term_payload(notes_1403_read_store(), $term);
+    } elseif ($cohort === '1404') {
+        $termPayload = notes_1404_term_payload(notes_1404_read_store(), $term);
     } elseif ($cohort === 'prosthesis-1402') {
         $store = notes_prosthesis_1402_read_store();
         $termRecord = $store['terms'][(string) $term] ?? null;
@@ -1668,7 +2010,9 @@ if ($action === 'addItem') {
     $fields = notes_parse_item_fields_from_post();
     try {
         if ($cohort === '1403') {
-            $created = notes_1403_add_item($fields);
+            $created = notes_1403_add_item($term, $fields);
+        } elseif ($cohort === '1404') {
+            $created = notes_1404_add_item($term, $fields);
         } elseif ($cohort === 'prosthesis-1402') {
             $created = notes_prosthesis_1402_add_item($term, $fields);
         } else {
@@ -1701,7 +2045,9 @@ if ($action === 'editItem') {
 
     try {
         if ($cohort === '1403') {
-            $updated = notes_1403_edit_item($itemId, $fields);
+            $updated = notes_1403_edit_item($term, $itemId, $fields);
+        } elseif ($cohort === '1404') {
+            $updated = notes_1404_edit_item($term, $itemId, $fields);
         } elseif ($cohort === 'prosthesis-1402') {
             $updated = notes_prosthesis_1402_edit_item($term, $itemId, $fields);
         } else {
@@ -1737,7 +2083,9 @@ if ($action === 'deleteItem') {
 
     try {
         if ($cohort === '1403') {
-            $deleted = notes_1403_delete_item($itemId);
+            $deleted = notes_1403_delete_item($term, $itemId);
+        } elseif ($cohort === '1404') {
+            $deleted = notes_1404_delete_item($term, $itemId);
         } elseif ($cohort === 'prosthesis-1402') {
             $deleted = notes_prosthesis_1402_delete_item($term, $itemId);
         } else {

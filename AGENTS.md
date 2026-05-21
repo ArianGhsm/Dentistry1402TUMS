@@ -44,7 +44,7 @@
 - تصاویر آپلودی کالاهای بخش خرید باید در storage مشترک `payments/uploads/` بمانند و نباید با فایل‌های deploy-replaced یا مسیرهای temp جایگزین شوند.
 - داده‌های مرکز آپلود و pastebin باید در storage مشترک `content_tools/store.json` بماند؛ metadata لینک‌ها و وضعیت فایل‌ها در همین storage نگه‌داری می‌شود و deploy نباید فایل‌ها، pasteها، شمارنده دانلود/بازدید یا وضعیت لینک‌ها را reset کند. باینری فایل‌های جدیدِ مرکز آپلود باید از workflow مشترک `/files/` و `content_tools_api.php` روی هاست دانلود ذخیره شوند و `content_tools/uploads/` فقط برای فایل‌های legacy/local fallback باقی می‌ماند.
 - داده‌های آپلودر HTML باید در storage مشترک `html_uploader/store.json` بماند و فایل‌های HTML فقط در `html_uploader/pages/` نگه‌داری شوند؛ deploy نباید لینک‌ها، فایل‌ها، شمارنده بازدید یا وضعیت فعال/مخفی/حذف‌شده‌ی آن‌ها را reset کند.
-- داده‌های منابع/جزوات قابل مدیریت باید در storage مشترک `notes/` بماند؛ برای ۱۴۰۲ در `notes/1402_terms.json`، برای ۱۴۰۳ در `notes/1403_archive.json` و برای پروتز ۱۴۰۲ در `notes/prosthesis_1402_terms.json`. Deploy نباید کارت‌ها یا ترم‌های اضافه/ویرایش/حذف‌شده مالک یا نماینده پروتز را با seed یا HTML قدیمی برگرداند.
+- داده‌های منابع/جزوات قابل مدیریت باید در storage مشترک `notes/` بماند؛ برای ۱۴۰۲ در `notes/1402_terms.json`، برای ۱۴۰۳ در `notes/1403_terms.json`، برای ۱۴۰۴ در `notes/1404_terms.json` و برای پروتز ۱۴۰۲ در `notes/prosthesis_1402_terms.json`. Deploy نباید کارت‌ها یا ترم‌های اضافه/ویرایش/حذف‌شده مالک یا نماینده مجاز همان cohort را با seed یا HTML قدیمی برگرداند.
 - داده‌های چت پروتز باید جدا در `prosthesis_1402/chat/` بماند و داده‌های نمرات پروتز باید جدا در `grades/prosthesis_1402_grades.csv` و `grades/prosthesis_1402_meta.json` بماند؛ deploy نباید این state را با `chat/` یا `grades/grades.csv` دندانپزشکی قاطی یا جایگزین کند.
 - seed/backfill فقط هنگام نبود کامل فایل storage مجاز است. بعد از ساخته‌شدن فایل storage، migration یا backfill نباید حذف‌ها و ویرایش‌های مالک را با داده پیش‌فرض جایگزین کند مگر migration صریح و تاییدشده داشته باشد.
 - گزارش موفقیت کاذب ممنوع است: اگر داده فقط local یا cache است، موفقیت اعلام نشود.
@@ -150,7 +150,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - قبل از upload کد، `storage/` هاست باید در `.codex-local/remote-storage/snapshots/` ذخیره و در `server-only/storage/` mirror شود.
 - upload/delete دیتای runtime از لپتاپ به هاست ممنوع است؛ حتی FullSync هم نباید `public_html/.env` یا `public_html/storage/` را آپلود/حذف کند.
 - `git pull` قبل از deploy پیش‌فرض ممنوع است مگر درخواست صریح.
-- بعد از اتمام موفق deploy و GitHub sync، باید با همان سرویس پیامک OTP سایت یک کد تایید رندوم برای شماره مالک `09009840305` ارسال شود؛ فقط با override صریح `-SkipCompletionSms` قابل رد شدن است.
+- بعد از اتمام موفق deploy هیچ مرحله‌ی پیامکی اجرا نمی‌شود. credential مالک فقط برای smoke validation چندورودی و login تستی مجاز است؛ نه برای اعلان پایان deploy.
 - override اختیاری:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullBeforeDeploy

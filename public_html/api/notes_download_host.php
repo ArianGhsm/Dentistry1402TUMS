@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-const NOTES_DOWNLOAD_HOST_ALLOWED_ROOTS = ['1402', '1403', 'prosthesis-1402'];
+const NOTES_DOWNLOAD_HOST_ALLOWED_ROOTS = ['1402', '1403', '1404', 'prosthesis-1402'];
 const NOTES_DOWNLOAD_HOST_SECRET_FILE = 'mihan_download_host.json';
 
 function notes_download_host_allowed_roots(): array
@@ -215,8 +215,8 @@ function notes_download_host_visible_term_number_from_title(string $title, int $
 
 function notes_download_host_default_relative_dir(string $cohort, int $term = 0, string $termTitle = ''): string
 {
-    if ($cohort === '1403') {
-        return '1403/archive';
+    if ($cohort === '1403' || $cohort === '1404') {
+        return $cohort . '/term-' . str_pad((string) max(1, $term), 2, '0', STR_PAD_LEFT);
     }
 
     if ($cohort === 'prosthesis-1402') {
@@ -302,7 +302,66 @@ function notes_download_host_decode_json_response(array $response, string $fallb
     return $decoded;
 }
 
-function notes_download_host_execute_uapi(string $operation, array $query = []): array
+function notes_download_host_error_message_from_response(array $decoded, string $fallbackMessage = 'عملیات هاست دانلود ناموفق بود.'): string
+{
+    $errors = $decoded['errors'] ?? [];
+    if (is_array($errors) && $errors !== []) {
+        $parts = array_values(array_filter(array_map(static function ($value): string {
+            return trim((string) $value);
+        }, $errors), static function (string $value): bool {
+            return $value !== '';
+        }));
+        if ($parts !== []) {
+            return implode(' | ', $parts);
+        }
+    }
+
+    $messages = $decoded['messages'] ?? [];
+    if (is_array($messages) && $messages !== []) {
+        $parts = array_values(array_filter(array_map(static function ($value): string {
+            return trim((string) $value);
+        }, $messages), static function (string $value): bool {
+            return $value !== '';
+        }));
+        if ($parts !== []) {
+            return implode(' | ', $parts);
+        }
+    }
+
+    return $fallbackMessage;
+}
+
+function notes_download_host_is_missing_directory_error_message(string $message): bool
+{
+    $normalized = dent_utf8_strtolower(trim($message));
+    if ($normalized === '') {
+        return false;
+    }
+
+    $mentionsDirectory = strpos($normalized, 'directory') !== false
+        || strpos($normalized, 'folder') !== false
+        || strpos($normalized, 'path') !== false;
+    if (!$mentionsDirectory) {
+        return false;
+    }
+
+    return strpos($normalized, 'does not exist') !== false
+        || strpos($normalized, 'not exist') !== false
+        || strpos($normalized, 'not found') !== false
+        || strpos($normalized, 'no such file') !== false
+        || strpos($normalized, 'failed to opendir') !== false
+        || strpos($normalized, 'cannot access') !== false
+        || strpos($normalized, "can't access") !== false;
+}
+
+function notes_download_host_is_missing_directory_response(array $decoded): bool
+{
+    return notes_download_host_is_missing_directory_error_message(
+        notes_download_host_error_message_from_response($decoded, '')
+    );
+}
+
+function notes_download_host_execute_uapi(string $operation, array $query = [], bool $allowFailure = false): array
 {
     $secret = notes_download_host_load_secret();
     if (!is_array($secret)) {
@@ -316,9 +375,8 @@ function notes_download_host_execute_uapi(string $operation, array $query = []):
 
     $response = notes_download_host_http_request('GET', $url, notes_download_host_http_headers($secret));
     $decoded = notes_download_host_decode_json_response($response, 'پاسخ نامعتبر از هاست دانلود دریافت شد.');
-    if ((int) ($decoded['status'] ?? 0) !== 1) {
-        $errors = $decoded['errors'] ?? [];
-        $message = is_array($errors) && $errors !== [] ? implode(' | ', array_map('strval', $errors)) : 'عملیات هاست دانلود ناموفق بود.';
+    if ((int) ($decoded['status'] ?? 0) !== 1 && !$allowFailure) {
+        $message = notes_download_host_error_message_from_response($decoded);
         dent_error($message, 502);
     }
 
@@ -541,13 +599,26 @@ function notes_download_host_browse(string $relativePath, ?string $scopeRoot = n
             'currentPath' => '',
             'entries' => $entries,
             'breadcrumbs' => notes_download_host_breadcrumbs(''),
+            'missingDirectory' => false,
         ];
     }
 
     $response = notes_download_host_execute_uapi('Fileman/list_files', [
         'dir' => notes_download_host_abs_path_from_relative($normalized),
         'include_mime' => '1',
-    ]);
+    ], true);
+    if ((int) ($response['status'] ?? 0) !== 1) {
+        if (notes_download_host_is_missing_directory_response($response)) {
+            return [
+                'currentPath' => $normalized,
+                'entries' => [],
+                'breadcrumbs' => notes_download_host_breadcrumbs($normalized),
+                'missingDirectory' => true,
+                'notice' => 'این پوشه هنوز روی هاست دانلود ساخته نشده است. با اولین آپلود فایل یا ساخت زیرپوشه، مسیر به‌صورت خودکار ایجاد می‌شود.',
+            ];
+        }
+        dent_error(notes_download_host_error_message_from_response($response), 502);
+    }
     $items = is_array($response['data'] ?? null) ? $response['data'] : [];
     $entries = [];
     foreach ($items as $item) {
@@ -562,6 +633,7 @@ function notes_download_host_browse(string $relativePath, ?string $scopeRoot = n
         'currentPath' => $normalized,
         'entries' => $entries,
         'breadcrumbs' => notes_download_host_breadcrumbs($normalized),
+        'missingDirectory' => false,
     ];
 }
 
