@@ -1,10 +1,13 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . '/exams_radiology2_level2_data.php';
+
 function dent_exams_apply_radiology2_overrides(array $bank): array
 {
     $overrides = dent_exams_radiology2_overrides();
-    $exams = &$bank['catalogs']['shared']['courses']['radiology2']['exams'];
+    $course = &$bank['catalogs']['shared']['courses']['radiology2'];
+    $exams = &$course['exams'];
 
     if (is_array($exams)) {
         foreach ($exams as &$exam) {
@@ -22,6 +25,10 @@ function dent_exams_apply_radiology2_overrides(array $bank): array
             }
         }
         unset($exam);
+    }
+
+    if (is_array($course)) {
+        $course = dent_exams_radiology2_apply_level2_exams($course);
     }
 
     return dent_exams_sync_question_counts($bank);
