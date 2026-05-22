@@ -92,6 +92,35 @@
         }) + "٪";
     }
 
+    function compactText(value, fallback, maxLength) {
+        var text = String(value || "").replace(/\s+/g, " ").trim();
+        if (!text) {
+            text = String(fallback || "").trim();
+        }
+        if (!text || !maxLength || text.length <= maxLength) {
+            return text;
+        }
+
+        var sentence = text.split(/[.!؟]/)[0].trim();
+        if (sentence && sentence.length <= maxLength) {
+            return sentence;
+        }
+
+        return text.slice(0, Math.max(0, maxLength - 1)).trim() + "…";
+    }
+
+    function cleanCourseTitle(value) {
+        return String(value || "")
+            .replace(/^آزمون[\s‌]*های[\s‌]+/u, "")
+            .replace(/^آزمون[\s‌]+/u, "")
+            .trim();
+    }
+
+    function accentClassName(index) {
+        var accents = ["is-accent-a", "is-accent-b", "is-accent-c", "is-accent-d"];
+        return accents[Math.abs(Number(index) || 0) % accents.length];
+    }
+
     function statusMeta(course) {
         var access = course && course.access ? course.access : {};
         if (course && course.paymentMode === "paid" && access.hasAccess) {
@@ -141,22 +170,26 @@
 
     function heroHtml(catalog) {
         var summary = catalogStats(catalog);
+        var description = compactText(
+            catalog.description,
+            "درس موردنظرت را انتخاب کن تا جلسه‌ها و کارنامه همان درس را ببینی.",
+            84
+        );
         return [
             '<section class="exams-card exams-home-hero">',
             '  <div class="exams-home-hero__copy">',
             '    <span class="exams-kicker">لیست درس‌ها و آزمون‌ها</span>',
             '    <h2 class="exams-title">' + escapeHtml(catalog.title || "آزمون‌ها") + "</h2>",
-            '    <p class="exams-description">' + escapeHtml(catalog.description || "درس موردنظر را انتخاب کن؛ انتخاب حالت آزمون داخل صفحه هر جلسه انجام می‌شود.") + "</p>",
+            '    <p class="exams-description">' + escapeHtml(description) + "</p>",
             '    <div class="exams-home-hero__meta">',
-            '      <span class="exams-session-meta">ورود به هر درس، لیست جلسه‌های همان درس را باز می‌کند.</span>',
-            '      <span class="exams-session-meta">انتخاب حالت آزمون داخل صفحه هر جلسه انجام می‌شود.</span>',
+            '      <span class="exams-session-meta">شروع و انتخاب حالت داخل صفحه هر جلسه انجام می‌شود.</span>',
             "    </div>",
             "  </div>",
             '  <div class="exams-home-hero__stats">',
                  heroStat("درس", formatValue(summary.courseCount)),
-                 heroStat("جلسه / بخش", formatValue(summary.examCount)),
-                 heroStat("کل سوال", formatValue(summary.questionCount)),
-                 heroStat("کارنامه ثبت‌شده", formatValue(summary.completedCount), summary.completedCount ? "is-accent" : ""),
+                 heroStat("جلسه", formatValue(summary.examCount)),
+                 heroStat("سوال", formatValue(summary.questionCount)),
+                 heroStat("کارنامه", formatValue(summary.completedCount), summary.completedCount ? "is-accent" : ""),
             "  </div>",
             "</section>"
         ].join("");
@@ -185,31 +218,38 @@
         };
     }
 
-    function courseCardHtml(course) {
+    function courseCardHtml(course, index) {
         var status = statusMeta(course);
         var action = courseAction(course);
         var averageValue = course.stats && course.stats.viewerAveragePercent !== null && course.stats.viewerAveragePercent !== undefined
             ? formatPercent(course.stats.viewerAveragePercent)
             : "—";
         var itemLabel = course.supportsDirectAttemptableExams ? "جلسه" : "بخش";
+        var title = cleanCourseTitle(course.title || "") || String(course.title || "").trim();
+        var description = compactText(
+            course.cardDescription || course.heroDescription,
+            "ورود به این درس، لیست جلسه‌ها و گزارش عملکردت را باز می‌کند.",
+            72
+        );
+        var accentClass = accentClassName(index);
 
         return [
-            '<article class="exams-card exam-course-card">',
+            '<article class="exams-card exam-course-card ' + accentClass + '">',
             '  <div class="exam-course-card__top">',
             '    <div class="exam-course-card__copy">',
             '      <div class="exam-course-card__eyebrow-row">',
             '        <span class="exams-kicker">' + escapeHtml(course.badge || "") + "</span>",
             '        <span class="' + escapeHtml(status.className) + '">' + escapeHtml(status.label) + "</span>",
             "      </div>",
-            '      <h3 class="exam-course-card__title">' + escapeHtml(course.title || "") + "</h3>",
-            '      <p class="exam-course-card__desc">' + escapeHtml(course.cardDescription || course.heroDescription || "ورود به این درس، لیست جلسه‌ها و گزارش عملکردت را نشان می‌دهد.") + "</p>",
+            '      <h3 class="exam-course-card__title">' + escapeHtml(title) + "</h3>",
+            '      <p class="exam-course-card__desc">' + escapeHtml(description) + "</p>",
             "    </div>",
             '    <a class="exam-btn exam-btn--primary" href="' + escapeHtml(action.href) + '">' + escapeHtml(action.label) + "</a>",
             "  </div>",
             '  <div class="exam-course-card__stats">',
             '    <div class="exam-course-stat"><span>تعداد ' + escapeHtml(itemLabel) + '</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.examCount || 0)) + "</strong></div>",
-            '    <div class="exam-course-stat"><span>کل سوالات</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.questionCount || 0)) + "</strong></div>",
-            '    <div class="exam-course-stat"><span>کارنامه ثبت‌شده</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.completedAssessmentCount || 0)) + "</strong></div>",
+            '    <div class="exam-course-stat"><span>کل سوال</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.questionCount || 0)) + "</strong></div>",
+            '    <div class="exam-course-stat"><span>کارنامه</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.completedAssessmentCount || 0)) + "</strong></div>",
             '    <div class="exam-course-stat"><span>میانگین تو</span><strong>' + escapeHtml(averageValue) + "</strong></div>",
             "  </div>",
             "</article>"
@@ -226,7 +266,9 @@
         root.innerHTML = [
             heroHtml(catalog),
             '<section class="exams-catalog-list">',
-            catalog.courses.map(courseCardHtml).join(""),
+            catalog.courses.map(function (course, index) {
+                return courseCardHtml(course, index);
+            }).join(""),
             "</section>"
         ].join("");
     }
