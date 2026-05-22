@@ -299,6 +299,7 @@
                 stateResolver: assessmentNavState,
                 emptyLabel: "نمایش خالی شده است."
             }),
+            renderAssessmentDraftCompactPanel(totals, visibleIndexes.length),
             visibleIndexes.length ? [
                 '<div class="exam-stage-body">',
                 renderAssessmentDraftQuestionCard(currentIndex),
@@ -339,6 +340,7 @@
                 stateResolver: assessmentNavState,
                 emptyLabel: "در این فیلتر سوالی باقی نمانده است."
             }),
+            renderAssessmentReportCompactPanel(report),
             visibleIndexes.length ? [
                 '<div class="exam-stage-body exam-stage-body--report">',
                 renderAssessmentReportQuestionCard(currentIndex, report),
@@ -378,6 +380,7 @@
                 stateResolver: learningNavState,
                 emptyLabel: "هنوز سوال نشان‌داری برای این نما وجود ندارد."
             }),
+            renderLearningCompactPanel(stats, currentIndex),
             visibleIndexes.length ? [
                 '<div class="exam-stage-body">',
                 renderLearningQuestionCard(currentIndex),
@@ -464,9 +467,9 @@
             }).join(""),
             "  </div>",
             '  <div class="exam-question-actions">',
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">سوال قبلی</button>",
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + escapeHtml(isFlagged(questionIndex) ? "حذف نشان" : "نشان‌دار کن") + "</button>",
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="assessment-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">سوال بعدی</button>",
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">" + renderResponsiveLabel("\u0633\u0648\u0627\u0644 \u0642\u0628\u0644\u06cc", "\u0642\u0628\u0644\u06cc") + "</button>",
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + renderResponsiveLabel(isFlagged(questionIndex) ? "\u062d\u0630\u0641 \u0646\u0634\u0627\u0646" : "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631 \u06a9\u0646", isFlagged(questionIndex) ? "\u062d\u0630\u0641" : "\u0646\u0634\u0627\u0646") + "</button>",
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="assessment-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">" + renderResponsiveLabel("\u0633\u0648\u0627\u0644 \u0628\u0639\u062f\u06cc", "\u0628\u0639\u062f\u06cc") + "</button>",
             "  </div>",
             "</article>"
         ].join("");
@@ -490,9 +493,9 @@
             "  </div>",
             question.explanation ? '<div class="exam-answer-card"><span class="exam-answer-card__label">پاسخ تشریحی</span><div class="exam-answer-card__copy">' + richTextHtml(question.explanation) + "</div></div>" : "",
             '  <div class="exam-question-actions">',
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">سوال قبلی</button>",
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + escapeHtml(isFlagged(questionIndex) ? "حذف نشان" : "نشان‌دار کن") + "</button>",
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="assessment-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">سوال بعدی</button>",
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">" + renderResponsiveLabel("\u0633\u0648\u0627\u0644 \u0642\u0628\u0644\u06cc", "\u0642\u0628\u0644\u06cc") + "</button>",
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + renderResponsiveLabel(isFlagged(questionIndex) ? "\u062d\u0630\u0641 \u0646\u0634\u0627\u0646" : "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631 \u06a9\u0646", isFlagged(questionIndex) ? "\u062d\u0630\u0641" : "\u0646\u0634\u0627\u0646") + "</button>",
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="assessment-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">" + renderResponsiveLabel("\u0633\u0648\u0627\u0644 \u0628\u0639\u062f\u06cc", "\u0628\u0639\u062f\u06cc") + "</button>",
             "  </div>",
             "</article>"
         ].join("");
@@ -516,9 +519,9 @@
             "  </div>",
             revealed ? renderLearningFeedback(question, selectedIndex, questionIndex) : '<div class="exam-note-card">یکی از گزینه‌ها را انتخاب کن تا پاسخ صحیح و توضیح همان سوال نمایش داده شود.</div>',
             '  <div class="exam-question-actions">',
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">سوال قبلی</button>",
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + escapeHtml(isFlagged(questionIndex) ? "حذف نشان" : "نشان‌دار کن") + "</button>",
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="learning-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">سوال بعدی</button>",
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">" + renderResponsiveLabel("\u0633\u0648\u0627\u0644 \u0642\u0628\u0644\u06cc", "\u0642\u0628\u0644\u06cc") + "</button>",
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + renderResponsiveLabel(isFlagged(questionIndex) ? "\u062d\u0630\u0641 \u0646\u0634\u0627\u0646" : "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631 \u06a9\u0646", isFlagged(questionIndex) ? "\u062d\u0630\u0641" : "\u0646\u0634\u0627\u0646") + "</button>",
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="learning-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">" + renderResponsiveLabel("\u0633\u0648\u0627\u0644 \u0628\u0639\u062f\u06cc", "\u0628\u0639\u062f\u06cc") + "</button>",
             "  </div>",
             "</article>"
         ].join("");
@@ -614,17 +617,127 @@
             '  <div class="exam-side-section">',
             '    <span class="exam-side-title">فیلتر نمایش</span>',
             '    <div class="exam-filter-pills">',
-            renderLearningFilterButton("all", "همه", exam.questions.length),
-            renderLearningFilterButton("flagged", "نشان‌دار", state.flags.size),
+            renderLearningFilterButton("all", "\u0647\u0645\u0647", exam.questions.length),
+            renderLearningFilterButton("flagged", "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631", state.flags.size),
             "    </div>",
             '    <p class="exam-side-copy">در این نما ' + escapeHtml(formatValue(visibleCount)) + ' سوال قابل جابه‌جایی است.</p>',
             "  </div>",
             '  <div class="exam-side-section exam-side-section--actions">',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-jump-unanswered"' + (stats.unanswered <= 0 ? " disabled" : "") + ">اولین سوال بی‌پاسخ</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-learning-progress">شروع دوباره آموزشی</button>',
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">رفتن به سنجشی</button>',
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0631\u0641\u062a\u0646 \u0628\u0647 \u0633\u0646\u062c\u0634\u06cc</button>',
             "  </div>",
             "</aside>"
+        ].join("");
+    }
+
+    function renderAssessmentDraftCompactPanel(totals, visibleCount) {
+        return [
+            '<section class="exam-compact-panel exam-compact-panel--assessment" aria-label="' + escapeHtml("\u062e\u0644\u0627\u0635\u0647 \u062d\u0627\u0644\u062a \u0633\u0646\u062c\u0634\u06cc") + '">',
+            '  <div class="exam-compact-toolbar">',
+            '    <div class="exam-compact-summary">',
+            renderCompactMetric("\u0628\u0627\u0642\u06cc", formatValue(totals.unanswered), totals.unanswered ? "warning" : "success"),
+            renderCompactMetric("\u0646\u0634\u0627\u0646", formatValue(state.flags.size), state.flags.size ? "flagged" : "neutral"),
+            "    </div>",
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="submit-assessment"' + (state.assessment.submitting ? " disabled" : "") + ">" + escapeHtml(state.assessment.submitting ? "\u062f\u0631 \u062d\u0627\u0644 \u062b\u0628\u062a..." : "\u062b\u0628\u062a \u0633\u0646\u062c\u0634\u06cc") + "</button>",
+            '    <details class="exam-compact-tools">',
+            '      <summary class="exam-compact-tools__summary">\u0627\u0628\u0632\u0627\u0631\u0647\u0627</summary>',
+            '      <div class="exam-compact-tools__body">',
+            '        <div class="exam-compact-stats">',
+            renderCompactMetric("\u06a9\u0644", formatValue(exam.questions.length), "accent"),
+            renderCompactMetric("\u067e\u0627\u0633\u062e", formatValue(totals.answered), totals.answered ? "success" : "neutral"),
+            renderCompactMetric("\u0628\u06cc\u200c\u067e\u0627\u0633\u062e", formatValue(totals.unanswered), totals.unanswered ? "warning" : "success"),
+            renderCompactMetric("\u0646\u0634\u0627\u0646", formatValue(state.flags.size), state.flags.size ? "flagged" : "neutral"),
+            "        </div>",
+            '        <div class="exam-compact-filter-row"><div class="exam-filter-pills">' + renderAssessmentFilterButtons(false) + "</div></div>",
+            '        <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-first-unanswered"' + (totals.unanswered <= 0 ? " disabled" : "") + ">\u0627\u0648\u0644\u06cc\u0646 \u0628\u06cc\u200c\u067e\u0627\u0633\u062e</button>",
+            '        <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-assessment-draft">\u067e\u0627\u06a9 \u06a9\u0631\u062f\u0646 \u067e\u0627\u0633\u062e\u200c\u0647\u0627</button>',
+            '        <span class="exam-compact-note">\u062f\u0631 \u0627\u06cc\u0646 \u0646\u0645\u0627 ' + escapeHtml(formatValue(visibleCount)) + ' \u0633\u0648\u0627\u0644 \u0642\u0627\u0628\u0644 \u0645\u0631\u0648\u0631 \u0627\u0633\u062a.</span>',
+            "      </div>",
+            "    </details>",
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function renderAssessmentReportCompactPanel(report) {
+        return [
+            '<section class="exam-compact-panel exam-compact-panel--report" aria-label="' + escapeHtml("\u062e\u0644\u0627\u0635\u0647 \u06a9\u0627\u0631\u0646\u0627\u0645\u0647") + '">',
+            '  <div class="exam-compact-toolbar">',
+            '    <div class="exam-compact-summary">',
+            renderCompactMetric("\u062f\u0631\u0635\u062f", formatPercent(report.percent), "accent"),
+            renderCompactMetric("\u0635\u062d\u06cc\u062d", formatValue(report.correct), "success"),
+            "    </div>",
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="set-mode" data-mode="learning">\u0622\u0645\u0648\u0632\u0634\u06cc</button>',
+            '    <details class="exam-compact-tools">',
+            '      <summary class="exam-compact-tools__summary">\u06a9\u0627\u0631\u0646\u0627\u0645\u0647</summary>',
+            '      <div class="exam-compact-tools__body">',
+            '        <div class="exam-compact-report-hero">',
+            '          <div class="exam-compact-report-hero__copy">',
+            '            <span class="exam-compact-report-hero__label">\u06a9\u0627\u0631\u0646\u0627\u0645\u0647 \u0630\u062e\u06cc\u0631\u0647\u200c\u0634\u062f\u0647</span>',
+            '            <span class="exam-compact-report-hero__meta">' + escapeHtml(formatDateTime(report.submittedAt)) + "</span>",
+            "          </div>",
+            '          <strong class="exam-compact-report-hero__value">' + escapeHtml(formatPercent(report.percent)) + "</strong>",
+            "        </div>",
+            '        <div class="exam-compact-stats">',
+            renderCompactMetric("\u0635\u062d\u06cc\u062d", formatValue(report.correct), "success"),
+            renderCompactMetric("\u063a\u0644\u0637", formatValue(report.wrong), report.wrong ? "danger" : "neutral"),
+            renderCompactMetric("\u0628\u06cc\u200c\u067e\u0627\u0633\u062e", formatValue(report.unanswered), report.unanswered ? "warning" : "neutral"),
+            renderCompactMetric("\u0646\u0634\u0627\u0646", formatValue(state.flags.size), state.flags.size ? "flagged" : "neutral"),
+            "        </div>",
+            '        <div class="exam-compact-filter-row"><div class="exam-filter-pills">' + renderAssessmentFilterButtons(true) + "</div></div>",
+            '        <button class="exam-btn exam-btn--danger" type="button" data-action="reset-assessment-report">\u0631\u06cc\u0633\u062a \u06a9\u0627\u0631\u0646\u0627\u0645\u0647</button>',
+            "      </div>",
+            "    </details>",
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function renderLearningCompactPanel(stats, currentIndex) {
+        return [
+            '<section class="exam-compact-panel exam-compact-panel--learning" aria-label="' + escapeHtml("\u062e\u0644\u0627\u0635\u0647 \u062d\u0627\u0644\u062a \u0622\u0645\u0648\u0632\u0634\u06cc") + '">',
+            '  <div class="exam-compact-toolbar">',
+            '    <div class="exam-compact-summary">',
+            renderCompactMetric("\u062c\u0627\u0631\u06cc", formatValue(currentIndex + 1), "accent"),
+            renderCompactMetric("\u062d\u0644", formatValue(stats.answered), stats.answered ? "success" : "neutral"),
+            "    </div>",
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0633\u0646\u062c\u0634\u06cc</button>',
+            '    <details class="exam-compact-tools">',
+            '      <summary class="exam-compact-tools__summary">\u0627\u0628\u0632\u0627\u0631\u0647\u0627</summary>',
+            '      <div class="exam-compact-tools__body">',
+            '        <div class="exam-compact-stats">',
+            renderCompactMetric("\u062d\u0644\u200c\u0634\u062f\u0647", formatValue(stats.answered), stats.answered ? "success" : "neutral"),
+            renderCompactMetric("\u0628\u0627\u0642\u06cc", formatValue(stats.unanswered), stats.unanswered ? "warning" : "success"),
+            renderCompactMetric("\u0646\u0634\u0627\u0646", formatValue(state.flags.size), state.flags.size ? "flagged" : "neutral"),
+            renderCompactMetric("\u062c\u0627\u0631\u06cc", formatValue(currentIndex + 1), "accent"),
+            "        </div>",
+            '        <div class="exam-compact-filter-row"><div class="exam-filter-pills">',
+            renderLearningFilterButton("all", "\u0647\u0645\u0647", exam.questions.length),
+            renderLearningFilterButton("flagged", "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631", state.flags.size),
+            "        </div></div>",
+            '        <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-jump-unanswered"' + (stats.unanswered <= 0 ? " disabled" : "") + ">\u0627\u0648\u0644\u06cc\u0646 \u0628\u06cc\u200c\u067e\u0627\u0633\u062e</button>",
+            '        <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-learning-progress">\u0634\u0631\u0648\u0639 \u062f\u0648\u0628\u0627\u0631\u0647</button>',
+            "      </div>",
+            "    </details>",
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function renderCompactMetric(label, value, tone) {
+        return [
+            '<article class="exam-compact-metric' + (tone ? " is-" + escapeHtml(tone) : "") + '">',
+            '  <span class="exam-compact-metric__label">' + escapeHtml(label) + "</span>",
+            '  <strong class="exam-compact-metric__value">' + escapeHtml(value) + "</strong>",
+            "</article>"
+        ].join("");
+    }
+
+    function renderResponsiveLabel(fullLabel, compactLabel) {
+        return [
+            '<span class="exam-label exam-label--full">' + escapeHtml(fullLabel) + "</span>",
+            '<span class="exam-label exam-label--compact">' + escapeHtml(compactLabel) + "</span>"
         ].join("");
     }
 
@@ -711,12 +824,12 @@
 
     function renderLearningFeedback(question, selectedIndex, questionIndex) {
         var isCorrect = selectedIndex === question.correctIndex;
+        var briefCopy = '  <p class="exam-answer-card__copy">' + escapeHtml("پاسخ صحیح این سوال گزینه " + optionLetter(question.correctIndex) + " است.") + "</p>";
 
         return [
             '<div class="exam-answer-card' + (isCorrect ? " is-correct" : " is-warning") + '">',
             '  <span class="exam-answer-card__label">' + escapeHtml(isCorrect ? "پاسخ تو درست بود" : "پاسخ صحیح مشخص شد") + "</span>",
-            '  <p class="exam-answer-card__copy">پاسخ صحیح این سوال گزینه ' + escapeHtml(optionLetter(question.correctIndex)) + " است.</p>",
-            question.explanation ? '<div class="exam-answer-card__body">' + richTextHtml(question.explanation) + "</div>" : "",
+            question.explanation ? '<div class="exam-answer-card__body">' + richTextHtml(question.explanation) + "</div>" : briefCopy,
             isFlagged(questionIndex) ? '<span class="exam-answer-card__hint">این سوال نشان‌دار شده و بعداً سریع پیدایش می‌کنی.</span>' : "",
             "</div>"
         ].join("");
