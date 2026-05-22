@@ -446,3 +446,173 @@ body.exams-page {
         grid-template-columns: 1fr;
     }
 }
+
+/* Minimal pass for the exams directory: fewer visual blocks, same actions. */
+.exams-main {
+    padding-top: 1rem;
+}
+
+.exams-stack {
+    gap: 0.78rem;
+}
+
+.exams-card {
+    border-radius: 22px;
+    box-shadow: 0 14px 34px -30px rgba(19, 35, 62, 0.22);
+}
+
+.exams-hero {
+    padding: 1rem;
+}
+
+.exams-hero::before,
+.exams-hero::after {
+    display: none;
+}
+
+.exams-kicker,
+.exams-status-pill,
+.exams-stat dt,
+.exams-owner-chip,
+.exams-session-meta,
+.exam-session-progress-stat {
+    min-height: 28px;
+    padding: 0.25rem 0.68rem;
+    font-size: 0.72rem;
+}
+
+.exams-title,
+.exams-course-title,
+.exams-paywall-title {
+    font-size: clamp(1.38rem, 3vw, 2.25rem);
+    line-height: 1.38;
+}
+
+.exams-description,
+.exams-course-description,
+.exams-paywall-copy,
+.exams-empty,
+.exams-inline-note,
+.exam-card__desc,
+.exam-session-copy {
+    font-size: 0.86rem;
+    line-height: 1.82;
+}
+
+.exam-card,
+.exams-paywall,
+.exams-owner-panel,
+.exam-session-card {
+    padding: 0.88rem;
+}
+
+.exam-card-modes,
+.exam-session-modes,
+.exam-session-progress {
+    gap: 0.42rem;
+}
+
+.exams-card-actions,
+.exams-owner-actions,
+.exam-session-actions {
+    gap: 0.52rem;
+    margin-top: 0.78rem;
+}
+
+.exam-btn {
+    min-height: 40px;
+    border-radius: 14px;
+    padding: 0.56rem 0.9rem;
+    font-size: 0.86rem;
+}
+
+.exams-quick-stats {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.7rem;
+}
+
+.exams-summary-grid {
+    gap: 0.64rem;
+}
+
+.exams-stat {
+    padding: 0.74rem;
+}
+
+.exams-stat dd {
+    margin-top: 0.28rem;
+    font-size: 1rem;
+}
+
+@media (min-width: 760px) {
+    .exam-card,
+    .exam-session-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.7rem 1rem;
+        align-items: center;
+    }
+
+    .exam-card__top,
+    .exam-session-card__top {
+        grid-column: 1 / -1;
+    }
+
+    .exam-card-modes,
+    .exam-session-modes,
+    .exam-session-progress {
+        grid-column: 1;
+    }
+
+    .exams-card-actions,
+    .exam-session-actions {
+        grid-column: 2;
+        grid-row: 2;
+        margin-top: 0;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 640px) {
+    .exams-main {
+        padding-top: 0.78rem;
+        padding-inline: 0.78rem;
+    }
+
+    .exams-hero {
+        text-align: right;
+    }
+
+    .exams-description,
+    .exams-course-description {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    .exams-panel-head {
+        gap: 0.52rem;
+    }
+
+    .exam-card__title,
+    .exam-session-title,
+    .exams-panel-title {
+        font-size: 0.98rem;
+    }
+
+    .exam-card-modes,
+    .exam-session-modes {
+        margin-top: 0.55rem;
+    }
+
+    .exams-card-actions,
+    .exam-session-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+}

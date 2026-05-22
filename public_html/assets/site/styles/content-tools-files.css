@@ -487,3 +487,223 @@ body.content-tools-page--files-center {
         flex: 1 1 10rem;
     }
 }
+
+/* Minimal owner upload center: keep tools available without crowding the first view. */
+.ctf-shell,
+.ctf-app {
+    gap: 0.72rem;
+}
+
+.ctf-hero,
+.ctf-browser-card,
+.ctf-upload-card,
+.ctf-links-card {
+    border-radius: 22px;
+    box-shadow: 0 14px 34px -30px rgba(19, 35, 62, 0.22);
+}
+
+.ctf-hero {
+    padding: 0.92rem;
+}
+
+.ctf-hero::before,
+.ctf-hero::after {
+    display: none;
+}
+
+.ctf-hero-copy h1,
+.ctf-browser-copy h2,
+.ctf-upload-head h2,
+.ctf-links-head h2 {
+    font-size: 0.98rem;
+}
+
+.ctf-hero-copy p,
+.ctf-browser-copy p,
+.ctf-upload-head p,
+.ctf-links-head p,
+.ctf-path-copy small,
+.ctf-link-meta small {
+    font-size: 0.76rem;
+    line-height: 1.72;
+}
+
+.ctf-summary-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.58rem;
+}
+
+.ctf-summary-primary,
+.ctf-summary-detail-grid {
+    display: grid;
+    gap: 0.58rem;
+}
+
+.ctf-summary-primary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ctf-summary-detail-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.ctf-summary-card {
+    border-radius: 16px;
+    padding: 0.68rem;
+}
+
+.ctf-summary-card span,
+.ctf-summary-card small {
+    font-size: 0.7rem;
+}
+
+.ctf-summary-card strong {
+    font-size: 0.92rem;
+}
+
+.ctf-summary-details,
+.ctf-advanced-options {
+    border: 1px solid color-mix(in srgb, var(--ct-border) 84%, transparent);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--ct-surface-solid) 74%, transparent);
+    padding: 0.72rem;
+}
+
+.ctf-summary-details summary,
+.ctf-advanced-options summary {
+    color: var(--ct-text);
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 900;
+    list-style-position: inside;
+}
+
+.ctf-summary-details[open] summary,
+.ctf-advanced-options[open] summary {
+    margin-bottom: 0.72rem;
+}
+
+.ctf-advanced-options__body {
+    display: grid;
+    gap: 0.62rem;
+}
+
+.ctf-workspace {
+    gap: 0.72rem;
+}
+
+.ctf-browser-card,
+.ctf-upload-card,
+.ctf-links-card {
+    padding: 0.86rem;
+    gap: 0.72rem;
+}
+
+.ctf-upload-kpis {
+    gap: 0.46rem;
+}
+
+.ctf-upload-kpis article {
+    border-radius: 14px;
+    padding: 0.58rem;
+}
+
+.ctf-entries {
+    gap: 0.58rem;
+}
+
+.ctf-entry,
+.ctf-link-row,
+.ctf-queue-item {
+    border-radius: 18px;
+    padding: 0.68rem;
+}
+
+.ctf-entry-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+}
+
+.ctf-link-actions .ct-btn,
+.ctf-entry-actions .ct-btn {
+    min-height: 36px;
+    padding: 0.44rem 0.64rem;
+}
+
+@media (max-width: 1080px) {
+    .ctf-summary-primary,
+    .ctf-summary-detail-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 780px) {
+    .ctf-shell {
+        padding-inline: 0.78rem;
+    }
+
+    .ctf-upload-card {
+        order: -1;
+    }
+
+    .ctf-summary-primary,
+    .ctf-summary-detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ctf-hero-head,
+    .ctf-browser-head,
+    .ctf-links-head {
+        gap: 0.52rem;
+    }
+
+    .ctf-hero-copy p,
+    .ctf-browser-copy p,
+    .ctf-links-head p {
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .ctf-upload-head p {
+        display: none;
+    }
+
+    .ctf-links-card .ct-toolbar,
+    .ct-bulkbar {
+        gap: 0.48rem;
+    }
+
+    .ctf-entry {
+        gap: 0.48rem;
+    }
+
+    .ctf-entry-actions,
+    .ctf-link-actions {
+        display: grid;
+        gap: 0.36rem;
+        justify-content: stretch;
+    }
+
+    .ctf-entry-actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .ctf-link-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ctf-entry-actions .ct-btn,
+    .ctf-browser-actions .ct-btn,
+    .ctf-link-actions .ct-btn,
+    .ctf-link-actions a {
+        width: auto;
+        min-height: 34px;
+        padding: 0.34rem 0.38rem;
+        font-size: 0.76rem;
+        flex: initial;
+    }
+}

@@ -7,14 +7,14 @@
     <meta name="theme-color" content="#eef2f7">
     <title>مرکز آپلود | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
     <meta name="description" content="مرکز آپلود شخصی مالک برای آپلود مستقیم روی هاست دانلود، مدیریت فولدری فایل‌ها و ساخت لینک عمومی امن.">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260521-215900">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260521-215900">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260521-215900">
-    <script src="/assets/site/scripts/theme.js?v=20260521-215900"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260521-215900">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260521-215900">
-    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260521-215900">
-    <link rel="stylesheet" href="/assets/site/styles/content-tools-files.css?v=20260521-215900">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260522-044354">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260522-044354">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260522-044354">
+    <script src="/assets/site/scripts/theme.js?v=20260522-044354"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260522-044354">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260522-044354">
+    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260522-044354">
+    <link rel="stylesheet" href="/assets/site/styles/content-tools-files.css?v=20260522-044354">
 </head>
 <body class="content-tools-page content-tools-page--owner content-tools-page--files-center">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -136,65 +136,70 @@
                             <span>یا برای انتخاب چندفایل و شروع صف آپلود کلیک کنید</span>
                         </div>
 
-                        <div class="ct-grid ct-grid--two">
-                            <label class="ct-field" for="ct-upload-title-input">
-                                <span>عنوان اختیاری</span>
-                                <input id="ct-upload-title-input" type="text" maxlength="180" placeholder="برای فایل یا دسته فایل‌ها">
-                            </label>
-                            <label class="ct-field" for="ct-upload-folder-input">
-                                <span>برچسب نمایشی</span>
-                                <input id="ct-upload-folder-input" type="text" maxlength="80" placeholder="اختیاری؛ مثلا رادیولوژی">
-                            </label>
-                        </div>
+                        <details class="ctf-advanced-options">
+                            <summary>تنظیمات اختیاری لینک و نمایش</summary>
+                            <div class="ctf-advanced-options__body">
+                                <div class="ct-grid ct-grid--two">
+                                    <label class="ct-field" for="ct-upload-title-input">
+                                        <span>عنوان اختیاری</span>
+                                        <input id="ct-upload-title-input" type="text" maxlength="180" placeholder="برای فایل یا دسته فایل‌ها">
+                                    </label>
+                                    <label class="ct-field" for="ct-upload-folder-input">
+                                        <span>برچسب نمایشی</span>
+                                        <input id="ct-upload-folder-input" type="text" maxlength="80" placeholder="اختیاری؛ مثلا رادیولوژی">
+                                    </label>
+                                </div>
 
-                        <label class="ct-field" for="ct-upload-description-input">
-                            <span>توضیح کوتاه</span>
-                            <textarea id="ct-upload-description-input" rows="2" maxlength="1200" placeholder="در صفحه عمومی فایل نمایش داده می‌شود"></textarea>
-                        </label>
+                                <label class="ct-field" for="ct-upload-description-input">
+                                    <span>توضیح کوتاه</span>
+                                    <textarea id="ct-upload-description-input" rows="2" maxlength="1200" placeholder="در صفحه عمومی فایل نمایش داده می‌شود"></textarea>
+                                </label>
 
-                        <div class="ct-grid ct-grid--three">
-                            <label class="ct-field" for="ct-upload-tags-input">
-                                <span>برچسب‌ها</span>
-                                <input id="ct-upload-tags-input" type="text" maxlength="240" placeholder="با ویرگول جدا کنید">
-                            </label>
-                            <label class="ct-field" for="ct-upload-expire-input">
-                                <span>انقضا</span>
-                                <input id="ct-upload-expire-input" type="datetime-local" data-latin-digits="true">
-                            </label>
-                            <label class="ct-field" for="ct-upload-limit-input">
-                                <span>سقف دانلود</span>
-                                <input id="ct-upload-limit-input" type="number" min="0" max="1000000" inputmode="numeric" data-latin-digits="true" placeholder="۰ یعنی نامحدود">
-                            </label>
-                        </div>
+                                <div class="ct-grid ct-grid--three">
+                                    <label class="ct-field" for="ct-upload-tags-input">
+                                        <span>برچسب‌ها</span>
+                                        <input id="ct-upload-tags-input" type="text" maxlength="240" placeholder="با ویرگول جدا کنید">
+                                    </label>
+                                    <label class="ct-field" for="ct-upload-expire-input">
+                                        <span>انقضا</span>
+                                        <input id="ct-upload-expire-input" type="datetime-local" data-latin-digits="true">
+                                    </label>
+                                    <label class="ct-field" for="ct-upload-limit-input">
+                                        <span>سقف دانلود</span>
+                                        <input id="ct-upload-limit-input" type="number" min="0" max="1000000" inputmode="numeric" data-latin-digits="true" placeholder="۰ یعنی نامحدود">
+                                    </label>
+                                </div>
 
-                        <div class="ct-grid ct-grid--two">
-                            <label class="ct-field" for="ct-upload-password-input">
-                                <span>رمز اختیاری لینک</span>
-                                <input id="ct-upload-password-input" type="password" autocomplete="new-password" placeholder="خالی یعنی بدون رمز">
-                            </label>
-                            <label class="ct-field" for="ct-upload-status-input">
-                                <span>وضعیت لینک</span>
-                                <select id="ct-upload-status-input">
-                                    <option value="active">فعال</option>
-                                    <option value="hidden">مخفی</option>
-                                </select>
-                            </label>
-                        </div>
+                                <div class="ct-grid ct-grid--two">
+                                    <label class="ct-field" for="ct-upload-password-input">
+                                        <span>رمز اختیاری لینک</span>
+                                        <input id="ct-upload-password-input" type="password" autocomplete="new-password" placeholder="خالی یعنی بدون رمز">
+                                    </label>
+                                    <label class="ct-field" for="ct-upload-status-input">
+                                        <span>وضعیت لینک</span>
+                                        <select id="ct-upload-status-input">
+                                            <option value="active">فعال</option>
+                                            <option value="hidden">مخفی</option>
+                                        </select>
+                                    </label>
+                                </div>
 
-                        <div class="ctf-upload-kpis">
-                            <article>
-                                <small>حجم منتقل‌شده</small>
-                                <strong id="ctf-queue-transferred">۰ / ۰</strong>
-                            </article>
-                            <article>
-                                <small>روش ذخیره</small>
-                                <strong>هاست دانلود</strong>
-                            </article>
-                            <article>
-                                <small>نوع صف</small>
-                                <strong>زنده و مرحله‌ای</strong>
-                            </article>
-                        </div>
+                                <div class="ctf-upload-kpis">
+                                    <article>
+                                        <small>حجم منتقل‌شده</small>
+                                        <strong id="ctf-queue-transferred">۰ / ۰</strong>
+                                    </article>
+                                    <article>
+                                        <small>روش ذخیره</small>
+                                        <strong>هاست دانلود</strong>
+                                    </article>
+                                    <article>
+                                        <small>نوع صف</small>
+                                        <strong>زنده و مرحله‌ای</strong>
+                                    </article>
+                                </div>
+                            </div>
+                        </details>
 
                         <div id="ct-upload-queue" class="ctf-queue-list" aria-live="polite"></div>
 
@@ -255,9 +260,9 @@
         </section>
     </main>
 
-    <script src="/assets/site/scripts/auth.js?v=20260521-215900"></script>
-    <script src="/assets/site/scripts/content-tools-files.js?v=20260521-215900"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260521-215900"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260521-215900"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260522-044354"></script>
+    <script src="/assets/site/scripts/content-tools-files.js?v=20260522-044354"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260522-044354"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260522-044354"></script>
 </body>
 </html>

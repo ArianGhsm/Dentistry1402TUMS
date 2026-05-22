@@ -322,13 +322,13 @@
             '    <span class="' + escapeHtml(status.className) + '">' + escapeHtml(status.label) + "</span>",
             "  </div>",
             "</section>",
-            '<section class="exams-summary-grid">',
-            '  <article class="exams-card exams-stat"><dt>آزمون‌های فعال</dt><dd>' + escapeHtml((Math.max(0, Number(course.stats && course.stats.examCount || 0))).toLocaleString("fa-IR")) + "</dd></article>",
-            '  <article class="exams-card exams-stat"><dt>مجموع سوال‌ها</dt><dd>' + escapeHtml((Math.max(0, Number(course.stats && course.stats.questionCount || 0))).toLocaleString("fa-IR")) + "</dd></article>",
+            '<section class="exams-card exams-quick-stats" aria-label="خلاصه درس">',
+            '  <span class="exams-session-meta">آزمون‌ها: ' + escapeHtml((Math.max(0, Number(course.stats && course.stats.examCount || 0))).toLocaleString("fa-IR")) + "</span>",
+            '  <span class="exams-session-meta">سوال‌ها: ' + escapeHtml((Math.max(0, Number(course.stats && course.stats.questionCount || 0))).toLocaleString("fa-IR")) + "</span>",
             viewerAveragePercent !== null && viewerAveragePercent !== undefined
-                ? '  <article class="exams-card exams-stat"><dt>میانگین کارنامه‌های تو</dt><dd>' + escapeHtml(formatPercent(viewerAveragePercent)) + "</dd></article>"
-                : '  <article class="exams-card exams-stat"><dt>جلسه‌های کارنامه‌دار</dt><dd>' + escapeHtml((Math.max(0, Number(course.stats && course.stats.completedAssessmentCount || 0))).toLocaleString("fa-IR")) + "</dd></article>",
-            '  <article class="exams-card exams-stat"><dt>سوال‌های نشان‌دار تو</dt><dd>' + escapeHtml((Math.max(0, Number(course.stats && course.stats.flaggedQuestionsCount || 0))).toLocaleString("fa-IR")) + "</dd></article>",
+                ? '  <span class="exams-session-meta">میانگین تو: ' + escapeHtml(formatPercent(viewerAveragePercent)) + "</span>"
+                : '  <span class="exams-session-meta">کارنامه‌دار: ' + escapeHtml((Math.max(0, Number(course.stats && course.stats.completedAssessmentCount || 0))).toLocaleString("fa-IR")) + "</span>",
+            '  <span class="exams-session-meta">نشان‌دار: ' + escapeHtml((Math.max(0, Number(course.stats && course.stats.flaggedQuestionsCount || 0))).toLocaleString("fa-IR")) + "</span>",
             "</section>",
             '<section class="exams-course-layout">',
             '  <div class="exams-course-main">',

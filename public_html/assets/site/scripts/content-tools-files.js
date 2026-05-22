@@ -353,13 +353,20 @@
         function ensureSummaryCards() {
             if (!summaryGrid || summaryGrid.dataset.ready === "true") return;
             summaryGrid.innerHTML = [
-                summaryCardMarkup("حجم مصرف‌شده کل هاست", "ctf-summary-host-used", "ctf-summary-host-used-meta", "از کل سهم فضای هاست"),
+                '<div class="ctf-summary-primary">',
                 summaryCardMarkup("حجم باقی‌مانده کل هاست", "ctf-summary-host-free", "ctf-summary-host-free-meta", "فضای آزاد برای آپلودهای بعدی"),
+                summaryCardMarkup("لینک‌ها و فایل‌های ثبت‌شده", "ctf-summary-files", "ctf-summary-files-meta", "تفکیک فایل‌های ریموت، لوکال و لینک‌های فعال"),
+                summaryCardMarkup("پایه هاست دانلود", "ctf-summary-host", "ctf-summary-host-meta", "ریشه‌ی انتشار و مقصد اصلی فایل‌های جدید"),
+                "</div>",
+                '<details class="ctf-summary-details">',
+                "<summary>جزئیات آمار هاست و storage</summary>",
+                '<div class="ctf-summary-detail-grid">',
+                summaryCardMarkup("حجم مصرف‌شده کل هاست", "ctf-summary-host-used", "ctf-summary-host-used-meta", "از کل سهم فضای هاست"),
                 summaryCardMarkup("تعداد کل فایل‌های هاست", "ctf-summary-host-files", "ctf-summary-host-files-meta", "در ریشه و زیرپوشه‌های Upload Center"),
                 summaryCardMarkup("تعداد کل پوشه‌های هاست", "ctf-summary-host-folders", "ctf-summary-host-folders-meta", "همه پوشه‌های قابل مرور و مدیریت"),
-                summaryCardMarkup("لینک‌ها و فایل‌های ثبت‌شده", "ctf-summary-files", "ctf-summary-files-meta", "تفکیک فایل‌های ریموت، لوکال و لینک‌های فعال"),
                 summaryCardMarkup("حجم فایل‌های ثبت‌شده", "ctf-summary-size", "ctf-summary-size-meta", "جمع فایل‌های شناخته‌شده در استور"),
-                summaryCardMarkup("پایه هاست دانلود", "ctf-summary-host", "ctf-summary-host-meta", "ریشه‌ی انتشار و مقصد اصلی فایل‌های جدید")
+                "</div>",
+                "</details>"
             ].join("");
             summaryGrid.dataset.ready = "true";
         }

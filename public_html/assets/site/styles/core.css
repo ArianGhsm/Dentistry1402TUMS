@@ -119,10 +119,10 @@
     --radius-md: 16px;
     --radius-sm: 12px;
     --radius-pill: 999px;
-    --motion-fast: 160ms;
-    --motion-base: 220ms;
-    --motion-slow: 320ms;
-    --motion-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --motion-fast: 140ms;
+    --motion-base: 240ms;
+    --motion-slow: 360ms;
+    --motion-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
     --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
     --shell-nav-offset: calc(104px + env(safe-area-inset-bottom, 0px));
     --shell-nav-content-reserve: calc(var(--shell-nav-offset) + 0.5rem);
@@ -398,7 +398,7 @@ button {
 @keyframes site-view-fade-in {
     from {
         opacity: 0;
-        transform: translateY(8px) scale(0.995);
+        transform: translateY(4px);
     }
 
     to {
@@ -414,8 +414,8 @@ button {
     }
 
     to {
-        opacity: 0.98;
-        transform: translateY(-4px) scale(1.003);
+        opacity: 0.96;
+        transform: translateY(-2px);
     }
 }
 
@@ -1339,13 +1339,13 @@ html[data-performance-mode="lite"] .shell-modal-backdrop {
 
 @media (max-width: 980px), (pointer: coarse) {
     body::before {
-        opacity: 0.92;
+        opacity: 0.84;
     }
 
     body::after {
         inset: -4% -10%;
         background-size: 28rem 28rem, 24rem 24rem, 16px 16px, auto, auto;
-        opacity: 0.5;
+        opacity: 0.32;
     }
 
     .site-header {
@@ -1511,7 +1511,7 @@ html[data-performance-mode="lite"] .shell-modal-backdrop {
 @media (max-width: 430px) {
     body::after {
         background-size: 22rem 22rem, 18rem 18rem, 15px 15px, auto, auto;
-        opacity: 0.4;
+        opacity: 0.24;
     }
 
     .site-header {

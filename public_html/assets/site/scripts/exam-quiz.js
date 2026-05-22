@@ -116,12 +116,15 @@
     }
 
     function renderModeRail() {
+        var isCompact = !!state.mode;
         return [
-            '<section class="exam-panel exam-mode-rail">',
+            '<section class="exam-panel exam-mode-rail' + (isCompact ? " is-compact" : "") + '">',
             '  <div class="exam-mode-rail__copy">',
             '    <span class="exam-kicker">نحوه شرکت در آزمون</span>',
-            '    <h2 class="exam-section-title">قبل از شروع، حالت مناسب را انتخاب کن.</h2>',
-            '    <p class="exam-section-copy">دو مسیر مستقل برای همین آزمون فعال است: سنجشی برای کارنامه و رتبه، آموزشی برای پاسخ فوری و مرور قدم‌به‌قدم.</p>',
+            isCompact ? "" : '    <h2 class="exam-section-title">قبل از شروع، حالت مناسب را انتخاب کن.</h2>',
+            isCompact
+                ? '    <p class="exam-section-copy">حالت فعال را همین‌جا عوض کن.</p>'
+                : '    <p class="exam-section-copy">دو مسیر مستقل برای همین آزمون فعال است: سنجشی برای کارنامه و رتبه، آموزشی برای پاسخ فوری و مرور قدم‌به‌قدم.</p>',
             "  </div>",
             '  <div class="exam-mode-switch">',
             renderModeRailButton(null, "انتخاب حالت"),
@@ -268,7 +271,7 @@
         }
 
         return [
-            '<section class="exam-panel exam-summary-panel">',
+            '<section class="exam-panel exam-summary-panel exam-summary-panel--compact">',
             '  <div class="exam-summary-panel__head">',
             '    <div>',
             '      <span class="exam-kicker">' + escapeHtml(report ? "کارنامه ذخیره‌شده" : "آماده ثبت") + "</span>",
@@ -409,13 +412,11 @@
             renderSidebarStat("نشان‌دار", state.flags.size),
             "  </div>",
             "</div>",
-            '<div class="exam-sidebar-section">',
-            '  <div class="exam-sidebar-head">',
-            '    <h3 class="exam-sidebar-title">جهش سریع</h3>',
-            '    <span class="exam-sidebar-note">برای رفتن مستقیم به هر سوال روی شماره آن بزن.</span>',
-            "  </div>",
+            '<details class="exam-sidebar-section exam-sidebar-details">',
+            '  <summary>جهش سریع به سوال‌ها</summary>',
+            '  <span class="exam-sidebar-note">برای رفتن مستقیم به هر سوال روی شماره آن بزن.</span>',
             '  <div class="exam-nav-grid">' + renderJumpButtons(exam.questions.length) + "</div>",
-            "</div>"
+            "</details>"
         ].join("");
     }
 
@@ -439,7 +440,7 @@
     function renderLearningSummary(stats, currentIndex) {
         var question = exam.questions[currentIndex];
         return [
-            '<section class="exam-panel exam-summary-panel">',
+            '<section class="exam-panel exam-summary-panel exam-summary-panel--compact">',
             '  <div class="exam-summary-panel__head">',
             '    <div>',
             '      <span class="exam-kicker">حالت آموزشی</span>',
@@ -545,13 +546,11 @@
             renderSidebarStat("جاری", currentIndex + 1),
             "  </div>",
             "</div>",
-            '<div class="exam-sidebar-section">',
-            '  <div class="exam-sidebar-head">',
-            '    <h3 class="exam-sidebar-title">جهش سریع</h3>',
-            '    <span class="exam-sidebar-note">شماره‌ها وضعیت پاسخ‌دهی و نشان‌دار بودن را نشان می‌دهند.</span>',
-            "  </div>",
+            '<details class="exam-sidebar-section exam-sidebar-details">',
+            '  <summary>جهش سریع به سوال‌ها</summary>',
+            '  <span class="exam-sidebar-note">شماره‌ها وضعیت پاسخ‌دهی و نشان‌دار بودن را نشان می‌دهند.</span>',
             '  <div class="exam-nav-grid">' + renderLearningJumpButtons(visibleIndexes, currentIndex) + "</div>",
-            "</div>"
+            "</details>"
         ].join("");
     }
 
