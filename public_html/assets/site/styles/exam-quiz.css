@@ -1015,6 +1015,10 @@ body.quiz-page .exam-compact-toolbar {
     align-items: center;
 }
 
+body.quiz-page .exam-compact-toolbar--report {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
 body.quiz-page .exam-compact-summary {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1150,6 +1154,22 @@ body.quiz-page .exam-compact-tools__body {
     display: grid;
     gap: 0.38rem;
     padding: 0 0.52rem 0.52rem;
+}
+
+body.quiz-page .exam-compact-tools__body--inline {
+    position: static;
+    inset: auto;
+    width: 100%;
+    margin-top: 0.42rem;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.quiz-page .exam-compact-tools__body--report .exam-btn {
+    width: 100%;
 }
 
 body.quiz-page .exam-compact-tools__body .exam-btn {
@@ -1338,13 +1358,15 @@ body.quiz-page .exam-empty-card .exam-btn {
     }
 
     body.quiz-page .exam-stage--session .exam-stage-head {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 0.42rem;
     }
 
     body.quiz-page .exam-stage--session .exam-stage-head__main {
-        flex: 0 1 auto;
+        width: 100%;
+        justify-content: flex-start;
     }
 
     body.quiz-page .exam-stage--session .exam-stage-head__copy {
@@ -1352,13 +1374,23 @@ body.quiz-page .exam-empty-card .exam-btn {
     }
 
     body.quiz-page .exam-stage--session .exam-stage-head__aside {
-        width: auto;
+        width: 100%;
         align-items: stretch;
     }
 
     body.quiz-page .exam-stage--session .exam-mode-pills--compact {
-        width: auto;
-        min-width: 150px;
+        width: 100%;
+        min-width: 0;
+    }
+
+    body.quiz-page .exam-stage--session .exam-back-link {
+        max-width: 124px;
+        min-width: 0;
+        padding-inline: 0.56rem;
+    }
+
+    body.quiz-page .exam-stage--session .exam-back-link .exam-label--compact {
+        white-space: nowrap;
     }
 
     body.quiz-page .exam-stage--session .exam-kicker,
@@ -1431,8 +1463,12 @@ body.quiz-page .exam-empty-card .exam-btn {
     }
 
     body.quiz-page .exam-compact-toolbar {
-        grid-template-columns: minmax(0, 0.82fr) minmax(108px, 1fr) auto;
+        grid-template-columns: minmax(0, 0.82fr) minmax(104px, 1fr) auto;
         gap: 0.32rem;
+    }
+
+    body.quiz-page .exam-compact-toolbar--report {
+        grid-template-columns: minmax(0, 1fr) minmax(96px, auto);
     }
 
     body.quiz-page .exam-compact-summary .exam-compact-metric__label {
@@ -1464,6 +1500,17 @@ body.quiz-page .exam-empty-card .exam-btn {
             var(--exam-panel-bg);
         box-shadow: 0 24px 40px -28px color-mix(in srgb, var(--exam-shadow-ambient) 88%, transparent);
         z-index: 4;
+    }
+
+    body.quiz-page .exam-compact-tools__body--inline {
+        position: static;
+        inset: auto;
+        width: 100%;
+        padding: 0;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        margin-top: 0.46rem;
     }
 
     body.quiz-page .exam-compact-tools:not([open]) .exam-compact-tools__body {
