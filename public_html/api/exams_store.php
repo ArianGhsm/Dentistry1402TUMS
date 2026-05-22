@@ -5,7 +5,7 @@ require_once __DIR__ . '/auth_store.php';
 require_once __DIR__ . '/exams_bank.php';
 
 if (!defined('DENT_EXAMS_SCHEMA_VERSION')) {
-    define('DENT_EXAMS_SCHEMA_VERSION', 2);
+    define('DENT_EXAMS_SCHEMA_VERSION', 3);
 }
 
 function dent_exams_store_path(): string
@@ -379,6 +379,23 @@ function dent_exams_default_exam_record(): array
     return [
         'flagsByUser' => [],
         'reportsByUser' => [],
+        'activityByUser' => [],
+    ];
+}
+
+function dent_exams_normalize_exam_activity(array $value): array
+{
+    $lastMode = trim(strtolower((string) ($value['lastMode'] ?? ($value['last_mode'] ?? 'view'))));
+    if (!in_array($lastMode, ['view', 'assessment', 'learning'], true)) {
+        $lastMode = 'view';
+    }
+
+    return [
+        'lastMode' => $lastMode,
+        'updatedAt' => dent_exams_normalize_datetime_string(
+            (string) ($value['updatedAt'] ?? ($value['updated_at'] ?? dent_iso_now())),
+            dent_iso_now()
+        ),
     ];
 }
 
@@ -416,9 +433,26 @@ function dent_exams_normalize_exam_record(array $value): array
     }
     ksort($normalizedReports);
 
+    $activityRaw = $value['activityByUser'] ?? ($value['activity_by_user'] ?? []);
+    if (!is_array($activityRaw)) {
+        $activityRaw = [];
+    }
+
+    $normalizedActivity = [];
+    foreach ($activityRaw as $participantKey => $activity) {
+        $cleanParticipant = dent_exams_clean_participant_key((string) $participantKey);
+        if ($cleanParticipant === '' || !is_array($activity)) {
+            continue;
+        }
+
+        $normalizedActivity[$cleanParticipant] = dent_exams_normalize_exam_activity($activity);
+    }
+    ksort($normalizedActivity);
+
     return [
         'flagsByUser' => $normalizedFlags,
         'reportsByUser' => $normalizedReports,
+        'activityByUser' => $normalizedActivity,
     ];
 }
 
@@ -568,4 +602,16 @@ function dent_exams_reports_by_user(array $store, string $catalogKey, string $co
     $record = dent_exams_record($store, $catalogKey, $courseSlug, $examSlug);
     $reports = $record['reportsByUser'] ?? [];
     return is_array($reports) ? $reports : [];
+}
+
+function dent_exams_activity_for_user(array $store, string $catalogKey, string $courseSlug, string $examSlug, string $participantKey): ?array
+{
+    $cleanParticipant = dent_exams_clean_participant_key($participantKey);
+    if ($cleanParticipant === '') {
+        return null;
+    }
+
+    $record = dent_exams_record($store, $catalogKey, $courseSlug, $examSlug);
+    $activity = $record['activityByUser'][$cleanParticipant] ?? null;
+    return is_array($activity) ? dent_exams_normalize_exam_activity($activity) : null;
 }

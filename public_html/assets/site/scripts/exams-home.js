@@ -14,7 +14,7 @@
     };
 
     function escapeHtml(value) {
-        return String(value == null ? "" : value).replace(/[&<>"]/g, function (char) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
             switch (char) {
                 case "&":
                     return "&amp;";
@@ -22,10 +22,10 @@
                     return "&lt;";
                 case ">":
                     return "&gt;";
-                case '"':
+                case "\"":
                     return "&quot;";
                 default:
-                    return char;
+                    return "&#39;";
             }
         });
     }
@@ -48,6 +48,22 @@
         });
     }
 
+    function appendCohortPath(path) {
+        var target = String(path || "").trim();
+        var cohort = String(params.get("cohort") || "").trim();
+        if (!target || !cohort || /(?:\?|&)cohort=/.test(target)) {
+            return target;
+        }
+        return target + (target.indexOf("?") === -1 ? "?" : "&") + "cohort=" + encodeURIComponent(cohort);
+    }
+
+    function loginHref() {
+        if (window.Dent1402Auth && typeof window.Dent1402Auth.loginUrl === "function") {
+            return window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search);
+        }
+        return "/account/";
+    }
+
     function apiGet(action, payload) {
         var query = new URLSearchParams(Object.assign({ action: action }, payload || {}));
         var cohort = String(params.get("cohort") || "").trim();
@@ -63,8 +79,8 @@
         }).then(parseJson);
     }
 
-    function formatQuestions(value) {
-        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR") + " سوال";
+    function formatValue(value) {
+        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR");
     }
 
     function formatPercent(value) {
@@ -86,7 +102,7 @@
         }
         if (course && course.paymentMode === "paid") {
             return {
-                label: course.amountLabel || "پولی",
+                label: access.requiresLogin ? "نیاز به ورود" : (course.amountLabel || "پولی"),
                 className: "exams-status-pill exams-status-pill--paid"
             };
         }
@@ -96,6 +112,110 @@
         };
     }
 
+    function catalogStats(catalog) {
+        var summary = {
+            courseCount: 0,
+            examCount: 0,
+            questionCount: 0,
+            completedCount: 0
+        };
+
+        (catalog && Array.isArray(catalog.courses) ? catalog.courses : []).forEach(function (course) {
+            summary.courseCount += 1;
+            summary.examCount += Math.max(0, Number(course.stats && course.stats.examCount || 0));
+            summary.questionCount += Math.max(0, Number(course.stats && course.stats.questionCount || 0));
+            summary.completedCount += Math.max(0, Number(course.stats && course.stats.completedAssessmentCount || 0));
+        });
+
+        return summary;
+    }
+
+    function heroStat(label, value, accentClass) {
+        return [
+            '<div class="exams-summary-stat' + (accentClass ? " " + accentClass : "") + '">',
+            '  <span class="exams-summary-stat__label">' + escapeHtml(label) + "</span>",
+            '  <strong class="exams-summary-stat__value">' + escapeHtml(value) + "</strong>",
+            "</div>"
+        ].join("");
+    }
+
+    function heroHtml(catalog) {
+        var summary = catalogStats(catalog);
+        return [
+            '<section class="exams-card exams-home-hero">',
+            '  <div class="exams-home-hero__copy">',
+            '    <span class="exams-kicker">لیست درس‌ها و آزمون‌ها</span>',
+            '    <h2 class="exams-title">' + escapeHtml(catalog.title || "آزمون‌ها") + "</h2>",
+            '    <p class="exams-description">' + escapeHtml(catalog.description || "درس موردنظر را انتخاب کن؛ انتخاب حالت آزمون داخل صفحه هر جلسه انجام می‌شود.") + "</p>",
+            '    <div class="exams-home-hero__meta">',
+            '      <span class="exams-session-meta">ورود به هر درس، لیست جلسه‌های همان درس را باز می‌کند.</span>',
+            '      <span class="exams-session-meta">انتخاب حالت آزمون داخل صفحه هر جلسه انجام می‌شود.</span>',
+            "    </div>",
+            "  </div>",
+            '  <div class="exams-home-hero__stats">',
+                 heroStat("درس", formatValue(summary.courseCount)),
+                 heroStat("جلسه / بخش", formatValue(summary.examCount)),
+                 heroStat("کل سوال", formatValue(summary.questionCount)),
+                 heroStat("کارنامه ثبت‌شده", formatValue(summary.completedCount), summary.completedCount ? "is-accent" : ""),
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function courseAction(course) {
+        var access = course && course.access ? course.access : {};
+        var directLabel = course && course.supportsDirectAttemptableExams ? "مشاهده جلسه‌ها" : "مشاهده بخش‌ها";
+
+        if (course && course.paymentMode === "paid" && !access.hasAccess) {
+            if (access.requiresLogin) {
+                return {
+                    label: "ورود برای ادامه",
+                    href: loginHref()
+                };
+            }
+            return {
+                label: access.canPurchase ? "فعال‌سازی و ورود" : "مشاهده درس",
+                href: access.canPurchase ? appendCohortPath(course.paymentPath || course.path || "/exams/") : appendCohortPath(course.path || "/exams/")
+            };
+        }
+
+        return {
+            label: directLabel,
+            href: appendCohortPath(course.path || "/exams/")
+        };
+    }
+
+    function courseCardHtml(course) {
+        var status = statusMeta(course);
+        var action = courseAction(course);
+        var averageValue = course.stats && course.stats.viewerAveragePercent !== null && course.stats.viewerAveragePercent !== undefined
+            ? formatPercent(course.stats.viewerAveragePercent)
+            : "—";
+        var itemLabel = course.supportsDirectAttemptableExams ? "جلسه" : "بخش";
+
+        return [
+            '<article class="exams-card exam-course-card">',
+            '  <div class="exam-course-card__top">',
+            '    <div class="exam-course-card__copy">',
+            '      <div class="exam-course-card__eyebrow-row">',
+            '        <span class="exams-kicker">' + escapeHtml(course.badge || "") + "</span>",
+            '        <span class="' + escapeHtml(status.className) + '">' + escapeHtml(status.label) + "</span>",
+            "      </div>",
+            '      <h3 class="exam-course-card__title">' + escapeHtml(course.title || "") + "</h3>",
+            '      <p class="exam-course-card__desc">' + escapeHtml(course.cardDescription || course.heroDescription || "ورود به این درس، لیست جلسه‌ها و گزارش عملکردت را نشان می‌دهد.") + "</p>",
+            "    </div>",
+            '    <a class="exam-btn exam-btn--primary" href="' + escapeHtml(action.href) + '">' + escapeHtml(action.label) + "</a>",
+            "  </div>",
+            '  <div class="exam-course-card__stats">',
+            '    <div class="exam-course-stat"><span>تعداد ' + escapeHtml(itemLabel) + '</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.examCount || 0)) + "</strong></div>",
+            '    <div class="exam-course-stat"><span>کل سوالات</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.questionCount || 0)) + "</strong></div>",
+            '    <div class="exam-course-stat"><span>کارنامه ثبت‌شده</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.completedAssessmentCount || 0)) + "</strong></div>",
+            '    <div class="exam-course-stat"><span>میانگین تو</span><strong>' + escapeHtml(averageValue) + "</strong></div>",
+            "  </div>",
+            "</article>"
+        ].join("");
+    }
+
     function renderCatalog() {
         var catalog = state.catalog;
         if (!catalog || !Array.isArray(catalog.courses) || !catalog.courses.length) {
@@ -103,40 +223,12 @@
             return;
         }
 
-        root.innerHTML = catalog.courses.map(function (course) {
-            var status = statusMeta(course);
-            var viewerAverage = course.stats && course.stats.viewerAveragePercent;
-            var supportsDirectAttemptableExams = !!(course && course.supportsDirectAttemptableExams);
-            var modesHtml = supportsDirectAttemptableExams
-                ? [
-                    '  <div class="exam-card-modes">',
-                    '    <span class="exams-session-meta">سنجشی: کارنامه و رتبه</span>',
-                    '    <span class="exams-session-meta">آموزشی: پاسخ فوری</span>',
-                    viewerAverage !== null && viewerAverage !== undefined
-                        ? '<span class="exams-session-meta">میانگین تو: ' + escapeHtml(formatPercent(viewerAverage)) + "</span>"
-                        : "",
-                    "  </div>"
-                ].join("")
-                : '  <div class="exam-card-modes"><span class="exams-session-meta">ورود مرحله‌ای به بخش‌ها و جلسه‌های این درس</span></div>';
-            return [
-                '<article class="exams-card exam-card">',
-                '  <div class="exam-card__top">',
-                '    <div>',
-                '      <span class="exams-kicker">' + escapeHtml(course.badge || "") + "</span>",
-                '      <h3 class="exam-card__title">' + escapeHtml(course.title || "") + "</h3>",
-                "    </div>",
-                '    <span class="' + escapeHtml(status.className) + '">' + escapeHtml(status.label) + "</span>",
-                "  </div>",
-                '  <p class="exam-card__desc">' + escapeHtml(course.cardDescription || course.heroDescription || (supportsDirectAttemptableExams ? "برای هر جلسه می‌توانی بین حالت سنجشی و آموزشی انتخاب کنی." : "برای مشاهده بخش‌ها و جلسه‌های این درس وارد صفحه آن شو.")) + "</p>",
-                     modesHtml,
-                '  <div class="exams-card-actions">',
-                '    <a class="exam-btn exam-btn--primary" href="' + escapeHtml(course.path || "/exams/") + '">ورود به صفحه درس</a>',
-                '    <span class="exams-session-meta">' + escapeHtml((Math.max(0, Number(course.stats && course.stats.examCount || 0))).toLocaleString("fa-IR") + " آزمون") + "</span>",
-                '    <span class="exams-session-meta">' + escapeHtml(formatQuestions(course.stats && course.stats.questionCount || 0)) + "</span>",
-                "  </div>",
-                "</article>"
-            ].join("");
-        }).join("");
+        root.innerHTML = [
+            heroHtml(catalog),
+            '<section class="exams-catalog-list">',
+            catalog.courses.map(courseCardHtml).join(""),
+            "</section>"
+        ].join("");
     }
 
     function setLoading() {

@@ -398,6 +398,48 @@ function dent_exams_api_report_summary_payload(
     ];
 }
 
+function dent_exams_api_normalize_activity_mode(string $value): string
+{
+    $mode = trim(strtolower($value));
+    if (!in_array($mode, ['view', 'assessment', 'learning'], true)) {
+        return 'view';
+    }
+
+    return $mode;
+}
+
+function dent_exams_api_timestamp_value(string $value): int
+{
+    $trimmed = trim($value);
+    if ($trimmed === '') {
+        return 0;
+    }
+
+    $parsed = strtotime($trimmed);
+    return $parsed === false ? 0 : $parsed;
+}
+
+function dent_exams_api_latest_datetime(array $values): string
+{
+    $latestValue = '';
+    $latestTs = 0;
+
+    foreach ($values as $value) {
+        $raw = trim((string) $value);
+        if ($raw === '') {
+            continue;
+        }
+
+        $timestamp = dent_exams_api_timestamp_value($raw);
+        if ($timestamp >= $latestTs) {
+            $latestTs = $timestamp;
+            $latestValue = $raw;
+        }
+    }
+
+    return $latestValue;
+}
+
 function dent_exams_api_exam_progress_payload(
     array $store,
     string $catalogKey,
@@ -412,11 +454,27 @@ function dent_exams_api_exam_progress_payload(
 
     $flags = dent_exams_flags_for_user($store, $catalogKey, $courseSlug, $examSlug, $participantKey);
     $report = dent_exams_report_for_user($store, $catalogKey, $courseSlug, $examSlug, $participantKey);
+    $activity = dent_exams_activity_for_user($store, $catalogKey, $courseSlug, $examSlug, $participantKey);
+    $lastActivityAt = is_array($activity) ? (string) ($activity['updatedAt'] ?? '') : '';
+    $lastMode = is_array($activity) ? dent_exams_api_normalize_activity_mode((string) ($activity['lastMode'] ?? 'view')) : '';
+    $lastAttemptAt = dent_exams_api_latest_datetime([
+        $lastActivityAt,
+        is_array($report) ? (string) ($report['updatedAt'] ?? ($report['submittedAt'] ?? '')) : '',
+    ]);
+    $hasActivity = $lastActivityAt !== '';
+    $statusKey = is_array($report)
+        ? 'completed'
+        : (($hasActivity || count($flags) > 0) ? 'in-progress' : 'not-started');
 
     return [
         'flagsCount' => count($flags),
         'hasFlags' => count($flags) > 0,
+        'hasActivity' => $hasActivity,
         'hasAssessmentReport' => is_array($report),
+        'lastMode' => $lastMode,
+        'lastActivityAt' => $lastActivityAt,
+        'lastAttemptAt' => $lastAttemptAt,
+        'statusKey' => $statusKey,
         'assessmentReport' => is_array($report)
             ? dent_exams_api_report_summary_payload($store, $catalogKey, $courseSlug, $examSlug, $participantKey, $report)
             : null,
@@ -1125,13 +1183,15 @@ if ($action === 'saveFlags') {
     $flaggedIndexes = array_values(array_filter($requestedIndexes, static function (int $index) use ($questionCount): bool {
         return $index >= 0 && $index < $questionCount;
     }));
+    $activityMode = dent_exams_api_normalize_activity_mode((string) ($_POST['mode'] ?? 'view'));
+    $touchedAt = dent_iso_now();
     $participantKey = dent_exams_api_viewer_key($user);
     $examKey = dent_exams_exam_key($catalogKey, $courseSlug, $examSlug);
     if ($participantKey === '' || $examKey === '') {
         dent_error('امکان ثبت نشان‌دارهای این آزمون وجود ندارد.', 422);
     }
 
-    dent_exams_with_store_lock(static function (array &$store) use ($examKey, $participantKey, $flaggedIndexes): void {
+    dent_exams_with_store_lock(static function (array &$store) use ($examKey, $participantKey, $flaggedIndexes, $activityMode, $touchedAt): void {
         $records = is_array($store['examRecords'] ?? null) ? $store['examRecords'] : [];
         $record = dent_exams_normalize_exam_record(is_array($records[$examKey] ?? null) ? $records[$examKey] : []);
         if ($flaggedIndexes) {
@@ -1139,6 +1199,10 @@ if ($action === 'saveFlags') {
         } else {
             unset($record['flagsByUser'][$participantKey]);
         }
+        $record['activityByUser'][$participantKey] = [
+            'lastMode' => $activityMode,
+            'updatedAt' => $touchedAt,
+        ];
 
         $store['examRecords'][$examKey] = $record;
     });
@@ -1147,6 +1211,60 @@ if ($action === 'saveFlags') {
         'success' => true,
         'flaggedQuestionIndexes' => $flaggedIndexes,
         'message' => 'نشان‌دارهای این آزمون ذخیره شد.',
+    ]);
+}
+
+if ($action === 'touchExamActivity') {
+    dent_exams_api_require_method(['POST']);
+
+    $user = dent_require_user();
+    $courseSlug = dent_exams_clean_course_slug((string) ($_POST['course'] ?? ''));
+    $examSlug = dent_exams_clean_exam_slug((string) ($_POST['exam'] ?? ''));
+    if ($courseSlug === '' || $examSlug === '') {
+        dent_error('Invalid exam identifier.', 422);
+    }
+
+    try {
+        $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
+        dent_exams_api_apply_runtime_exam_override($courseSlug, dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
+    } catch (DentExamsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode(), $error->payload());
+    }
+
+    $examsStore = dent_exams_read_store();
+    $paymentsStore = payments_read_store();
+    $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, $courseSlug, $course);
+    $paymentsStore = payments_read_store();
+    $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
+    $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
+    if (!(bool) ($access['hasAccess'] ?? false)) {
+        dent_error('Access is required to track exam activity.', 403);
+    }
+
+    $participantKey = dent_exams_api_viewer_key($user);
+    $examKey = dent_exams_exam_key($catalogKey, $courseSlug, $examSlug);
+    if ($participantKey === '' || $examKey === '') {
+        dent_error('Cannot track exam activity.', 422);
+    }
+
+    $activityMode = dent_exams_api_normalize_activity_mode((string) ($_POST['mode'] ?? 'view'));
+    $touchedAt = dent_iso_now();
+
+    dent_exams_with_store_lock(static function (array &$store) use ($examKey, $participantKey, $activityMode, $touchedAt): void {
+        $records = is_array($store['examRecords'] ?? null) ? $store['examRecords'] : [];
+        $record = dent_exams_normalize_exam_record(is_array($records[$examKey] ?? null) ? $records[$examKey] : []);
+        $record['activityByUser'][$participantKey] = [
+            'lastMode' => $activityMode,
+            'updatedAt' => $touchedAt,
+        ];
+        $store['examRecords'][$examKey] = $record;
+    });
+
+    $freshStore = dent_exams_read_store();
+    dent_json_response([
+        'success' => true,
+        'activity' => dent_exams_activity_for_user($freshStore, $catalogKey, $courseSlug, $examSlug, $participantKey),
+        'viewerProgress' => dent_exams_api_exam_progress_payload($freshStore, $catalogKey, $courseSlug, $examSlug, $user),
     ]);
 }
 
@@ -1204,10 +1322,14 @@ if ($action === 'submitAssessment') {
         dent_error('امکان ثبت کارنامه این آزمون وجود ندارد.', 422);
     }
 
-    dent_exams_with_store_lock(static function (array &$store) use ($examKey, $participantKey, $report): void {
+    dent_exams_with_store_lock(static function (array &$store) use ($examKey, $participantKey, $report, $submittedAt): void {
         $records = is_array($store['examRecords'] ?? null) ? $store['examRecords'] : [];
         $record = dent_exams_normalize_exam_record(is_array($records[$examKey] ?? null) ? $records[$examKey] : []);
         $record['reportsByUser'][$participantKey] = dent_exams_normalize_assessment_report($report);
+        $record['activityByUser'][$participantKey] = [
+            'lastMode' => 'assessment',
+            'updatedAt' => $submittedAt,
+        ];
         $store['examRecords'][$examKey] = $record;
     });
 
@@ -1263,6 +1385,10 @@ if ($action === 'resetAssessment') {
         $records = is_array($store['examRecords'] ?? null) ? $store['examRecords'] : [];
         $record = dent_exams_normalize_exam_record(is_array($records[$examKey] ?? null) ? $records[$examKey] : []);
         unset($record['reportsByUser'][$participantKey]);
+        $record['activityByUser'][$participantKey] = [
+            'lastMode' => 'assessment',
+            'updatedAt' => dent_iso_now(),
+        ];
         $store['examRecords'][$examKey] = $record;
     });
 
