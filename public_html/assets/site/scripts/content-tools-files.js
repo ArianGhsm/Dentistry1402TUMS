@@ -339,6 +339,8 @@
         var linksList = $("ct-files-list");
         var linksPager = $("ct-files-pager");
         var settingsDisclosure = $("ctf-settings-card");
+        var compactSettingsMedia = window.matchMedia("(max-width: 780px)");
+        var lastCompactSettings = null;
 
         var state = {
             summary: {},
@@ -367,14 +369,11 @@
 
         function syncSettingsDisclosure() {
             if (!settingsDisclosure) return;
-            if (window.matchMedia("(max-width: 780px)").matches) {
-                if (settingsDisclosure.dataset.mobileInitialized !== "true") {
-                    settingsDisclosure.open = false;
-                    settingsDisclosure.dataset.mobileInitialized = "true";
-                }
-                return;
+            var isCompact = compactSettingsMedia.matches;
+            if (lastCompactSettings === null || lastCompactSettings !== isCompact) {
+                settingsDisclosure.open = !isCompact;
             }
-            settingsDisclosure.open = true;
+            lastCompactSettings = isCompact;
         }
 
         function currentUploadFolderMeta() {
@@ -1310,14 +1309,11 @@
                 loadLinks(true);
             });
         }
-        if (settingsDisclosure) {
-            settingsDisclosure.addEventListener("toggle", function () {
-                if (window.matchMedia("(max-width: 780px)").matches) {
-                    settingsDisclosure.dataset.mobileInitialized = "true";
-                }
-            });
+        if (typeof compactSettingsMedia.addEventListener === "function") {
+            compactSettingsMedia.addEventListener("change", syncSettingsDisclosure);
+        } else if (typeof compactSettingsMedia.addListener === "function") {
+            compactSettingsMedia.addListener(syncSettingsDisclosure);
         }
-        window.addEventListener("resize", syncSettingsDisclosure, { passive: true });
         syncSettingsDisclosure();
 
         renderQueue();
