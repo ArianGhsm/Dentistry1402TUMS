@@ -93,6 +93,18 @@
         });
     }
 
+    function hasHostUsageMetrics(hostUsage) {
+        if (!hostUsage || typeof hostUsage !== "object") return false;
+        return hostUsage.usedBytes != null
+            || hostUsage.remainingBytes != null
+            || hostUsage.limitBytes != null
+            || hostUsage.fileCount != null
+            || hostUsage.directoryCount != null
+            || hostUsage.entryCount != null
+            || hostUsage.managedBytes != null
+            || hostUsage.generatedAt;
+    }
+
     function stateLabel(state) {
         switch (String(state || "")) {
             case "active": return "فعال";
@@ -121,10 +133,38 @@
         return parts[parts.length - 1] || value;
     }
 
-    function summaryCardMarkup(label, valueId, smallId, copy) {
+    function summaryIconMarkup(kind) {
+        var path = "";
+        switch (String(kind || "")) {
+            case "files":
+                path = '<path d="M7 5.75h6.3l3 3V18.25a1.75 1.75 0 0 1-1.75 1.75h-7.8A1.75 1.75 0 0 1 5 18.25V7.5A1.75 1.75 0 0 1 6.75 5.75Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/><path d="M13.2 5.75V9.1h3.1" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>';
+                break;
+            case "links":
+                path = '<path d="M8.2 12.8l-1.45 1.45a3.05 3.05 0 0 0 4.32 4.32l2.4-2.4a3.05 3.05 0 0 0 0-4.32M15.8 11.2l1.45-1.45a3.05 3.05 0 0 0-4.32-4.32l-2.4 2.4a3.05 3.05 0 0 0 0 4.32M9.7 14.3l4.6-4.6" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>';
+                break;
+            case "size":
+                path = '<path d="M10 5.6A6.9 6.9 0 1 0 16.4 10H10V5.6Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/><path d="M12.1 3.9A6.9 6.9 0 0 1 18.1 9.9H12.1V3.9Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>';
+                break;
+            case "space":
+                path = '<path d="M6.25 8.15 10 6l3.75 2.15L10 10.3 6.25 8.15Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/><path d="M6.25 11.95 10 14.1l3.75-2.15M6.25 15.75 10 17.9l3.75-2.15" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>';
+                break;
+            case "path":
+                path = '<path d="M4.9 17.4V7.7A1.7 1.7 0 0 1 6.6 6h3.15l1.35 1.35h4.3a1.7 1.7 0 0 1 1.7 1.7v8.35a1.7 1.7 0 0 1-1.7 1.7H6.6a1.7 1.7 0 0 1-1.7-1.7Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/>';
+                break;
+            default:
+                path = '<path d="M10 4.35 15.65 7.6v4.8c0 3.1-2.2 5.95-5.65 6.8-3.45-.85-5.65-3.7-5.65-6.8V7.6L10 4.35Z" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"/><path d="M10 8.3v4.5M7.75 10.55H12.25" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/>';
+                break;
+        }
+        return '<span class="ctf-summary-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none">' + path + '</svg></span>';
+    }
+
+    function summaryCardMarkup(label, valueId, smallId, copy, kind) {
         return [
-            '<article class="ctf-summary-card">',
-            '  <span>' + escapeHtml(label) + '</span>',
+            '<article class="ctf-summary-card ctf-summary-card--' + escapeHtml(kind || "summary") + '">',
+            '  <div class="ctf-summary-card-head">',
+            '    <span>' + escapeHtml(label) + '</span>',
+                 summaryIconMarkup(kind),
+            "  </div>",
             '  <strong id="' + escapeHtml(valueId) + '">\u2014</strong>',
             '  <small id="' + escapeHtml(smallId) + '">' + escapeHtml(copy) + '</small>',
             '</article>'
@@ -238,12 +278,14 @@
         authApi.onChange(function (detail) {
             var loginUrl = authApi.loginUrl ? authApi.loginUrl(window.location.pathname + window.location.search) : "/account/";
             if (!detail || detail.status === "session-restoring" || detail.status === "logging-out") {
+                document.body.classList.remove("ctf-ready");
                 app.hidden = true;
                 guard.hidden = false;
                 guard.innerHTML = "<h2>در حال بررسی حساب</h2><p>وضعیت نشست مشترک سایت خوانده می‌شود.</p>";
                 return;
             }
             if (!detail.loggedIn) {
+                document.body.classList.remove("ctf-ready");
                 app.hidden = true;
                 guard.hidden = false;
                 guard.innerHTML = authApi.renderLoginRequiredGuard({
@@ -257,6 +299,7 @@
                 return;
             }
             if (!detail.user || !detail.user.isOwner) {
+                document.body.classList.remove("ctf-ready");
                 app.hidden = true;
                 guard.hidden = false;
                 guard.innerHTML = [
@@ -266,6 +309,7 @@
                 ].join("");
                 return;
             }
+            document.body.classList.add("ctf-ready");
             guard.hidden = true;
             guard.innerHTML = "";
             app.hidden = false;
@@ -289,10 +333,12 @@
         var breadcrumbs = $("ctf-breadcrumbs");
         var summaryGrid = $("ctf-summary-grid");
         var currentPathLabel = $("ctf-current-path");
+        var browserCurrentPathLabel = $("ctf-browser-current-path");
         var currentFolderLabel = $("ctf-current-folder");
         var destinationLabel = $("ctf-upload-destination");
         var linksList = $("ct-files-list");
         var linksPager = $("ct-files-pager");
+        var settingsDisclosure = $("ctf-settings-card");
 
         var state = {
             summary: {},
@@ -317,6 +363,18 @@
 
         function currentUploadPath() {
             return String(state.browserPath || "");
+        }
+
+        function syncSettingsDisclosure() {
+            if (!settingsDisclosure) return;
+            if (window.matchMedia("(max-width: 780px)").matches) {
+                if (settingsDisclosure.dataset.mobileInitialized !== "true") {
+                    settingsDisclosure.open = false;
+                    settingsDisclosure.dataset.mobileInitialized = "true";
+                }
+                return;
+            }
+            settingsDisclosure.open = true;
         }
 
         function currentUploadFolderMeta() {
@@ -353,83 +411,70 @@
         function ensureSummaryCards() {
             if (!summaryGrid || summaryGrid.dataset.ready === "true") return;
             summaryGrid.innerHTML = [
-                '<div class="ctf-summary-primary">',
-                summaryCardMarkup("حجم باقی‌مانده کل هاست", "ctf-summary-host-free", "ctf-summary-host-free-meta", "فضای آزاد برای آپلودهای بعدی"),
-                summaryCardMarkup("لینک‌ها و فایل‌های ثبت‌شده", "ctf-summary-files", "ctf-summary-files-meta", "تفکیک فایل‌های ریموت، لوکال و لینک‌های فعال"),
-                summaryCardMarkup("پایه هاست دانلود", "ctf-summary-host", "ctf-summary-host-meta", "ریشه‌ی انتشار و مقصد اصلی فایل‌های جدید"),
-                "</div>",
-                '<details class="ctf-summary-details">',
-                "<summary>جزئیات آمار هاست و storage</summary>",
-                '<div class="ctf-summary-detail-grid">',
-                summaryCardMarkup("حجم مصرف‌شده کل هاست", "ctf-summary-host-used", "ctf-summary-host-used-meta", "از کل سهم فضای هاست"),
-                summaryCardMarkup("تعداد کل فایل‌های هاست", "ctf-summary-host-files", "ctf-summary-host-files-meta", "در ریشه و زیرپوشه‌های Upload Center"),
-                summaryCardMarkup("تعداد کل پوشه‌های هاست", "ctf-summary-host-folders", "ctf-summary-host-folders-meta", "همه پوشه‌های قابل مرور و مدیریت"),
-                summaryCardMarkup("حجم فایل‌های ثبت‌شده", "ctf-summary-size", "ctf-summary-size-meta", "جمع فایل‌های شناخته‌شده در استور"),
-                "</div>",
-                "</details>"
+                summaryCardMarkup("تعداد کل فایل‌ها", "ctf-summary-host-files", "ctf-summary-host-files-meta", "اسکن واقعی ریشه Upload Center", "files"),
+                summaryCardMarkup("مجموع لینک‌های ثبت‌شده", "ctf-summary-links", "ctf-summary-links-meta", "همه رکوردهای فایل عمومی", "links"),
+                summaryCardMarkup("حجم مدیریت‌شده", "ctf-summary-size", "ctf-summary-size-meta", "جمع فایل‌های شناخته‌شده در استور", "size"),
+                summaryCardMarkup("باقی‌مانده هاست", "ctf-summary-host-free", "ctf-summary-host-free-meta", "فضای آزاد برای آپلودهای بعدی", "space"),
+                summaryCardMarkup("مسیر مقصد آپلودسنتر", "ctf-summary-target", "ctf-summary-target-meta", "مقصد فعلی Live Upload", "path"),
+                summaryCardMarkup("پایه هاست دانلود", "ctf-summary-host", "ctf-summary-host-meta", "ریشه انتشار فایل‌های جدید", "host")
             ].join("");
             summaryGrid.dataset.ready = "true";
         }
 
         function updateSummary(summary) {
             ensureSummaryCards();
-            state.summary = Object.assign({}, state.summary || {}, summary || {});
+            var previousSummary = state.summary && typeof state.summary === "object" ? state.summary : {};
+            var previousHostUsage = previousSummary.hostUsage && typeof previousSummary.hostUsage === "object"
+                ? previousSummary.hostUsage
+                : null;
+            var nextSummary = Object.assign({}, previousSummary, summary || {});
+            var incomingHostUsage = summary && summary.hostUsage && typeof summary.hostUsage === "object"
+                ? summary.hostUsage
+                : null;
+            if (incomingHostUsage) {
+                if (previousHostUsage && hasHostUsageMetrics(previousHostUsage) && !hasHostUsageMetrics(incomingHostUsage)) {
+                    nextSummary.hostUsage = Object.assign({}, previousHostUsage, incomingHostUsage, {
+                        available: previousHostUsage.available === true ? true : incomingHostUsage.available
+                    });
+                } else {
+                    nextSummary.hostUsage = Object.assign({}, previousHostUsage || {}, incomingHostUsage);
+                }
+            } else if (previousHostUsage) {
+                nextSummary.hostUsage = previousHostUsage;
+            }
+            state.summary = nextSummary;
             var hostUsage = state.summary.hostUsage && typeof state.summary.hostUsage === "object"
                 ? state.summary.hostUsage
                 : {};
             var hostAvailable = hostUsage.available === true;
-            var totalFiles = $("ctf-summary-files");
-            var totalFilesMeta = $("ctf-summary-files-meta");
+            var emptyMetric = "\u2014";
+            var totalLinks = $("ctf-summary-links");
+            var totalLinksMeta = $("ctf-summary-links-meta");
             var totalSize = $("ctf-summary-size");
             var totalSizeMeta = $("ctf-summary-size-meta");
-            var emptyMetric = "\u2014";
             var hostBase = $("ctf-summary-host");
             var hostBaseMeta = $("ctf-summary-host-meta");
-            var hostUsed = $("ctf-summary-host-used");
-            var hostUsedMeta = $("ctf-summary-host-used-meta");
             var hostFree = $("ctf-summary-host-free");
             var hostFreeMeta = $("ctf-summary-host-free-meta");
             var hostFiles = $("ctf-summary-host-files");
             var hostFilesMeta = $("ctf-summary-host-files-meta");
-            var hostFolders = $("ctf-summary-host-folders");
-            var hostFoldersMeta = $("ctf-summary-host-folders-meta");
-            if (hostUsed) {
-                hostUsed.textContent = hostAvailable && hostUsage.usedBytes != null ? formatBytes(hostUsage.usedBytes) : emptyMetric;
-            }
-            if (hostUsedMeta) {
-                hostUsedMeta.textContent = hostAvailable && hostUsage.limitBytes != null
-                    ? ("\u0627\u0632 " + formatBytes(hostUsage.limitBytes) + " \u06a9\u0644 \u0641\u0636\u0627" + (hostUsage.usagePercent != null ? (" \u2022 " + formatDecimal(hostUsage.usagePercent, 1) + "\u066a \u0645\u0635\u0631\u0641") : ""))
-                    : "\u0622\u0645\u0627\u0631 \u0644\u062d\u0638\u0647\u200c\u0627\u06cc \u0647\u0627\u0633\u062a \u062f\u0631 \u0627\u06cc\u0646 \u0644\u062d\u0638\u0647 \u062f\u0631 \u062f\u0633\u062a\u0631\u0633 \u0646\u06cc\u0633\u062a";
-            }
-            if (hostFree) {
-                hostFree.textContent = hostAvailable && hostUsage.remainingBytes != null ? formatBytes(hostUsage.remainingBytes) : emptyMetric;
-            }
-            if (hostFreeMeta) {
-                hostFreeMeta.textContent = hostAvailable && hostUsage.uploadRemainingBytes != null
-                    ? ("\u062d\u062f\u0627\u06a9\u062b\u0631 \u0622\u067e\u0644\u0648\u062f \u0628\u0627\u0642\u06cc\u200c\u0645\u0627\u0646\u062f\u0647: " + formatBytes(hostUsage.uploadRemainingBytes))
-                    : "\u0645\u0627\u0646\u062f\u0647 \u0627\u0632 quota \u06a9\u0644 \u0647\u0627\u0633\u062a";
-            }
+            var targetPath = $("ctf-summary-target");
+            var targetPathMeta = $("ctf-summary-target-meta");
             if (hostFiles) {
-                hostFiles.textContent = hostAvailable ? formatNumber(hostUsage.fileCount || 0) : emptyMetric;
+                hostFiles.textContent = hostAvailable
+                    ? formatNumber(hostUsage.fileCount || 0)
+                    : formatNumber(state.summary.remoteFiles || 0);
             }
             if (hostFilesMeta) {
                 hostFilesMeta.textContent = hostAvailable
-                    ? (formatBytes(hostUsage.managedBytes || 0) + " \u062f\u0631 \u062f\u0631\u062e\u062a \u0641\u0627\u06cc\u0644\u06cc \u0631\u06cc\u0634\u0647")
-                    : "\u0634\u0645\u0627\u0631\u0634 \u0641\u0627\u06cc\u0644\u200c\u0647\u0627 \u062f\u0631 \u062f\u0633\u062a\u0631\u0633 \u0646\u06cc\u0633\u062a";
+                    ? (formatNumber(hostUsage.directoryCount || 0) + " پوشه • " + formatNumber(hostUsage.entryCount || 0) + " ورودی")
+                    : "شمارش پوشه‌ها و فایل‌های ریشه در دسترس نیست";
             }
-            if (hostFolders) {
-                hostFolders.textContent = hostAvailable ? formatNumber(hostUsage.directoryCount || 0) : emptyMetric;
+            if (totalLinks) {
+                totalLinks.textContent = formatNumber(state.summary.totalFiles || 0);
             }
-            if (hostFoldersMeta) {
-                hostFoldersMeta.textContent = hostAvailable
-                    ? (formatNumber(hostUsage.entryCount || 0) + " \u0648\u0631\u0648\u062f\u06cc \u062f\u0631 \u0645\u062c\u0645\u0648\u0639 \u2022 " + formatNumber(hostUsage.scannedDirectories || 0) + " \u0645\u0633\u06cc\u0631 \u0627\u0633\u06a9\u0646 \u0634\u062f")
-                    : "\u0622\u0645\u0627\u0631 \u067e\u0648\u0634\u0647\u200c\u0647\u0627 \u062f\u0631 \u062f\u0633\u062a\u0631\u0633 \u0646\u06cc\u0633\u062a";
-            }
-            if (totalFiles) {
-                totalFiles.textContent = formatNumber(state.summary.totalFiles || 0);
-            }
-            if (totalFilesMeta) {
-                totalFilesMeta.textContent = formatNumber(state.summary.remoteFiles || 0) + " ریموت / "
+            if (totalLinksMeta) {
+                totalLinksMeta.textContent = formatNumber(state.summary.remoteFiles || 0) + " ریموت / "
                     + formatNumber(state.summary.localFiles || 0) + " لوکال • "
                     + formatNumber(state.summary.activeFiles || 0) + " فعال";
             }
@@ -437,27 +482,55 @@
                 totalSize.textContent = formatBytes(state.summary.totalBytes || 0);
             }
             if (totalSizeMeta) {
-                totalSizeMeta.textContent = formatNumber(state.summary.downloadCount || 0) + " دانلود ثبت‌شده";
+                totalSizeMeta.textContent = (hostAvailable && hostUsage.usedBytes != null
+                    ? ("مصرف هاست " + formatBytes(hostUsage.usedBytes))
+                    : "مجموع فایل‌های شناخته‌شده")
+                    + " • " + formatNumber(state.summary.downloadCount || 0) + " دانلود";
+            }
+            if (hostFree) {
+                hostFree.textContent = hostAvailable && hostUsage.remainingBytes != null ? formatBytes(hostUsage.remainingBytes) : emptyMetric;
+            }
+            if (hostFreeMeta) {
+                hostFreeMeta.textContent = hostAvailable && hostUsage.limitBytes != null
+                    ? ("از " + formatBytes(hostUsage.limitBytes) + " کل فضا"
+                        + (hostUsage.uploadRemainingBytes != null ? (" • سقف آپلود بعدی " + formatBytes(hostUsage.uploadRemainingBytes)) : ""))
+                    : "مانده از quota کل هاست";
+            }
+            if (targetPath) {
+                targetPath.textContent = currentUploadPath() || "/";
+            }
+            if (targetPathMeta) {
+                targetPathMeta.textContent = folderName(currentUploadPath()) + " • مقصد انتخاب‌شده برای Live Upload";
             }
             if (hostBase) {
                 hostBase.textContent = String(state.summary.storageRoot || state.downloadHost.baseUrl || emptyMetric);
             }
             if (hostBaseMeta) {
-                hostBaseMeta.textContent = hostAvailable && hostUsage.generatedAt
-                    ? ((hostUsage.stale ? "آخرین اسکن کش‌شده: " : "آخرین اسکن: ") + formatDate(hostUsage.generatedAt, "اکنون"))
-                    : "ریشه‌ی انتشار و مقصد اصلی فایل‌های جدید";
+                hostBaseMeta.textContent = (state.summary.localFiles > 0 ? "هاست دانلود + فایل‌های legacy local" : "هاست دانلود")
+                    + (hostAvailable && hostUsage.generatedAt
+                        ? (" • " + (hostUsage.stale ? "اسکن کش‌شده" : "آخرین اسکن") + " " + formatDate(hostUsage.generatedAt, "اکنون"))
+                        : "");
             }
             var notice = $("ctf-summary-notice");
             if (notice) {
-                notice.textContent = String(state.summary.notice || "");
+                if (hostAvailable && hostUsage.usedBytes != null && hostUsage.remainingBytes != null) {
+                    notice.textContent = "مصرف هاست " + formatBytes(hostUsage.usedBytes) + " • باقی‌مانده " + formatBytes(hostUsage.remainingBytes);
+                } else {
+                    notice.textContent = String(state.summary.notice || "");
+                }
             }
         }
 
         function updateDestinationUi() {
             var path = currentUploadPath();
             if (currentPathLabel) currentPathLabel.textContent = path || "ریشه آپلودسنتر";
+            if (browserCurrentPathLabel) browserCurrentPathLabel.textContent = path || "/";
             if (currentFolderLabel) currentFolderLabel.textContent = folderName(path);
             if (destinationLabel) destinationLabel.value = path || "/";
+            var summaryTarget = $("ctf-summary-target");
+            var summaryTargetMeta = $("ctf-summary-target-meta");
+            if (summaryTarget) summaryTarget.textContent = path || "/";
+            if (summaryTargetMeta) summaryTargetMeta.textContent = folderName(path) + " • مقصد انتخاب‌شده برای Live Upload";
         }
 
         function renderBreadcrumbs(items) {
@@ -906,7 +979,7 @@
                     '  <div class="ctf-link-meta">',
                     '    <strong>' + escapeHtml(file.title || file.originalName || "فایل") + '</strong>',
                     '    <div class="ctf-link-meta-line">' + meta + '</div>',
-                    '    <small>' + escapeHtml(file.publicUrl || "") + '</small>',
+                    '    <small class="ctf-link-url">' + escapeHtml(file.publicUrl || "") + '</small>',
                     '  </div>',
                     '  <div class="ctf-link-actions">' + actions + '</div>',
                     '</article>'
@@ -1237,6 +1310,15 @@
                 loadLinks(true);
             });
         }
+        if (settingsDisclosure) {
+            settingsDisclosure.addEventListener("toggle", function () {
+                if (window.matchMedia("(max-width: 780px)").matches) {
+                    settingsDisclosure.dataset.mobileInitialized = "true";
+                }
+            });
+        }
+        window.addEventListener("resize", syncSettingsDisclosure, { passive: true });
+        syncSettingsDisclosure();
 
         renderQueue();
         updateDestinationUi();

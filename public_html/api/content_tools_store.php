@@ -891,6 +891,16 @@ function content_storage_summary(array $store, array $options = []): array
         'baseUrl' => $downloadHostEnabled ? content_download_host_public_base_url() : '',
         'rootPath' => '',
     ];
+    if ($downloadHostEnabled && !$includeHostUsage && function_exists('content_download_host_read_stats_cache')) {
+        $cachedHostUsage = content_download_host_read_stats_cache(true, PHP_INT_MAX);
+        if (is_array($cachedHostUsage)) {
+            $hostUsage = $cachedHostUsage;
+            if (($hostUsage['available'] ?? false) === true) {
+                $freeBytes = isset($hostUsage['remainingBytes']) ? max(0, (int) $hostUsage['remainingBytes']) : $freeBytes;
+                $totalDiskBytes = isset($hostUsage['limitBytes']) ? max(0, (int) $hostUsage['limitBytes']) : $totalDiskBytes;
+            }
+        }
+    }
     if ($localFiles > 0) {
         $root = content_uploads_dir();
         if (function_exists('disk_free_space')) {

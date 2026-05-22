@@ -7,16 +7,16 @@
     <meta name="theme-color" content="#eef2f7">
     <title>مرکز آپلود | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
     <meta name="description" content="مرکز آپلود شخصی مالک برای آپلود مستقیم روی هاست دانلود، مدیریت فولدری فایل‌ها و ساخت لینک عمومی امن.">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260522-161354">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260522-161354">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260522-161354">
-    <script src="/assets/site/scripts/theme.js?v=20260522-161354"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260522-161354">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260522-161354">
-    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260522-161354">
-    <link rel="stylesheet" href="/assets/site/styles/content-tools-files.css?v=20260522-161354">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260522-191952">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260522-191952">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260522-191952">
+    <script src="/assets/site/scripts/theme.js?v=20260522-191952"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260522-191952">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260522-191952">
+    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260522-191952">
+    <link rel="stylesheet" href="/assets/site/styles/content-tools-files.css?v=20260522-191952">
 </head>
-<body class="content-tools-page content-tools-page--owner content-tools-page--files-center">
+<body class="content-tools-page content-tools-page--owner content-tools-page--files-center" data-shell-reserve="self">
     <div class="background-overlay" aria-hidden="true"></div>
 
     <main class="ct-shell ct-shell--drive ctf-shell">
@@ -74,56 +74,60 @@
                         <p>فایل‌ها را انتخاب کنید، مقصد را از Browser تعیین کنید و وضعیت واقعی انتقال را لحظه‌به‌لحظه ببینید.</p>
                     </div>
 
-                    <div class="ctf-destination-wrap">
-                        <span>مقصد فعلی آپلود</span>
-                        <input id="ctf-upload-destination" class="ctf-destination" type="text" readonly value="/">
-                    </div>
-
-                    <div class="ctf-upload-kpis">
-                        <article>
-                            <small>پوشه مقصد</small>
-                            <strong id="ctf-current-folder">ریشه آپلودسنتر</strong>
-                        </article>
-                        <article>
-                            <small>فایل‌های صف</small>
-                            <strong id="ctf-queue-files">۰</strong>
-                        </article>
-                        <article>
-                            <small>وضعیت انتقال</small>
-                            <strong id="ctf-queue-active">آماده</strong>
-                        </article>
-                    </div>
-
                     <form id="ct-upload-form" class="ct-upload-form" novalidate>
                         <input id="ct-upload-input" type="file" multiple hidden>
 
                         <div class="ctf-upload-stage">
-                            <div id="ct-dropzone" class="ct-dropzone" tabindex="0" role="button" aria-label="انتخاب یا رها کردن فایل">
-                                <div class="ct-dropzone__icon" aria-hidden="true">
-                                    <svg viewBox="0 0 24 24" fill="none">
-                                        <path d="M12 16V5M12 5L7.7 9.3M12 5L16.3 9.3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
-                                        <path d="M5 15.6V18A2 2 0 0 0 7 20H17A2 2 0 0 0 19 18V15.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path>
-                                    </svg>
+                            <div class="ctf-upload-stage-primary">
+                                <div id="ct-dropzone" class="ct-dropzone" tabindex="0" role="button" aria-label="انتخاب یا رها کردن فایل">
+                                    <div class="ct-dropzone__icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <path d="M12 16V5M12 5L7.7 9.3M12 5L16.3 9.3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path>
+                                            <path d="M5 15.6V18A2 2 0 0 0 7 20H17A2 2 0 0 0 19 18V15.6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"></path>
+                                        </svg>
+                                    </div>
+                                    <strong>فایل‌ها را اینجا رها کنید</strong>
+                                    <span>یا برای انتخاب چندفایل و شروع صف آپلود کلیک کنید</span>
                                 </div>
-                                <strong>فایل‌ها را اینجا رها کنید</strong>
-                                <span>یا برای انتخاب چندفایل و شروع صف آپلود کلیک کنید</span>
+
+                                <div class="ct-form-actions">
+                                    <button id="ct-upload-submit" class="ct-btn ct-btn--primary" type="button">شروع آپلود</button>
+                                    <button id="ct-upload-clear" class="ct-btn ct-btn--ghost" type="button">پاک‌کردن صف</button>
+                                    <button id="ct-upload-pick" class="ct-btn" type="button">افزودن فایل</button>
+                                </div>
                             </div>
 
-                            <section class="ctf-upload-queue-shell" aria-label="صف فایل‌های در انتظار آپلود">
-                                <div class="ctf-upload-queue-head">
-                                    <strong>فایل‌های صف</strong>
-                                    <small>وضعیت هر فایل، سرعت، زمان باقی‌مانده و لینک خروجی بعد از ثبت اینجا نمایش داده می‌شود.</small>
+                            <div class="ctf-upload-stage-side">
+                                <div class="ctf-destination-wrap">
+                                    <span>مقصد فعلی آپلود</span>
+                                    <input id="ctf-upload-destination" class="ctf-destination" type="text" readonly value="/">
                                 </div>
-                                <div class="ctf-queue-scroll">
-                                    <div id="ct-upload-queue" class="ctf-queue-list" aria-live="polite"></div>
-                                </div>
-                            </section>
-                        </div>
 
-                        <div class="ct-form-actions">
-                            <button id="ct-upload-submit" class="ct-btn ct-btn--primary" type="button">شروع آپلود</button>
-                            <button id="ct-upload-clear" class="ct-btn ct-btn--ghost" type="button">پاک‌کردن صف</button>
-                            <button id="ct-upload-pick" class="ct-btn" type="button">افزودن فایل</button>
+                                <div class="ctf-upload-kpis ctf-upload-kpis--stack">
+                                    <article>
+                                        <small>پوشه مقصد</small>
+                                        <strong id="ctf-current-folder">ریشه آپلودسنتر</strong>
+                                    </article>
+                                    <article>
+                                        <small>فایل‌های صف</small>
+                                        <strong id="ctf-queue-files">۰</strong>
+                                    </article>
+                                    <article>
+                                        <small>وضعیت انتقال</small>
+                                        <strong id="ctf-queue-active">آماده</strong>
+                                    </article>
+                                </div>
+
+                                <section class="ctf-upload-queue-shell" aria-label="صف فایل‌های در انتظار آپلود">
+                                    <div class="ctf-upload-queue-head">
+                                        <strong>فایل‌های صف</strong>
+                                        <small>وضعیت هر فایل، سرعت، زمان باقی‌مانده و لینک خروجی بعد از ثبت اینجا نمایش داده می‌شود.</small>
+                                    </div>
+                                    <div class="ctf-queue-scroll">
+                                        <div id="ct-upload-queue" class="ctf-queue-list" aria-live="polite"></div>
+                                    </div>
+                                </section>
+                            </div>
                         </div>
                     </form>
                 </aside>
@@ -207,14 +211,16 @@
                     <div id="ct-files-pager" class="ct-pager"></div>
                 </section>
 
-                <aside class="ctf-settings-card" aria-labelledby="ctf-settings-title">
-                    <div class="ctf-settings-head">
-                        <div class="ctf-settings-copy">
-                            <span class="ct-kicker">Link Settings</span>
-                            <h2 id="ctf-settings-title">تنظیمات اختیاری لینک و نمایش</h2>
-                            <p>برای لینک‌های عمومی فایل‌های تازه‌بارگذاری‌شده اعمال می‌شود و هیچ‌کدام از گزینه‌های فعلی حذف نشده‌اند.</p>
+                <details class="ctf-settings-card" id="ctf-settings-card" aria-labelledby="ctf-settings-title">
+                    <summary class="ctf-settings-summary">
+                        <div class="ctf-settings-head">
+                            <div class="ctf-settings-copy">
+                                <span class="ct-kicker">Link Settings</span>
+                                <h2 id="ctf-settings-title">تنظیمات اختیاری لینک و نمایش</h2>
+                                <p>برای لینک‌های عمومی فایل‌های تازه‌بارگذاری‌شده اعمال می‌شود و هیچ‌کدام از گزینه‌های فعلی حذف نشده‌اند.</p>
+                            </div>
                         </div>
-                    </div>
+                    </summary>
 
                     <div class="ctf-settings-scroll">
                         <div class="ct-grid ct-grid--two">
@@ -277,14 +283,14 @@
                             </article>
                         </div>
                     </div>
-                </aside>
+                </details>
             </section>
         </section>
     </main>
 
-    <script src="/assets/site/scripts/auth.js?v=20260522-161354"></script>
-    <script src="/assets/site/scripts/content-tools-files.js?v=20260522-161354"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260522-161354"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260522-161354"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260522-191952"></script>
+    <script src="/assets/site/scripts/content-tools-files.js?v=20260522-191952"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260522-191952"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260522-191952"></script>
 </body>
 </html>
