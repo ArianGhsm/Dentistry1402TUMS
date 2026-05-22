@@ -6,29 +6,29 @@ require_once __DIR__ . '/exams_radiology2_level2_data.php';
 function dent_exams_apply_radiology2_overrides(array $bank): array
 {
     $overrides = dent_exams_radiology2_overrides();
-    $course = &$bank['catalogs']['shared']['courses']['radiology2'];
-    $exams = &$course['exams'];
-
-    if (is_array($exams)) {
-        foreach ($exams as &$exam) {
+    $course = $bank['catalogs']['shared']['courses']['radiology2'] ?? null;
+    if (is_array($course)) {
+        $exams = is_array($course['exams'] ?? null) ? $course['exams'] : [];
+        foreach ($exams as $index => $exam) {
             if (!is_array($exam)) {
                 continue;
             }
 
             $slug = trim((string) ($exam['slug'] ?? ''));
-            if ($slug === '' || !isset($overrides[$slug]) || !is_array($overrides[$slug])) {
+            $override = $overrides[$slug] ?? null;
+            if ($slug === '' || !is_array($override)) {
                 continue;
             }
 
-            foreach ($overrides[$slug] as $key => $value) {
+            foreach ($override as $key => $value) {
                 $exam[$key] = $value;
             }
+            $exams[$index] = $exam;
         }
-        unset($exam);
-    }
 
-    if (is_array($course)) {
+        $course['exams'] = $exams;
         $course = dent_exams_radiology2_apply_level2_exams($course);
+        $bank['catalogs']['shared']['courses']['radiology2'] = $course;
     }
 
     return dent_exams_sync_question_counts($bank);
@@ -41,19 +41,19 @@ function dent_exams_sync_question_counts(array $bank): array
         return $bank;
     }
 
-    foreach ($catalogs as &$catalog) {
-        $courses = &$catalog['courses'];
+    foreach ($catalogs as $catalogKey => $catalog) {
+        $courses = $catalog['courses'] ?? null;
         if (!is_array($courses)) {
             continue;
         }
 
-        foreach ($courses as &$course) {
-            $exams = &$course['exams'];
+        foreach ($courses as $courseSlug => $course) {
+            $exams = $course['exams'] ?? null;
             if (!is_array($exams)) {
                 continue;
             }
 
-            foreach ($exams as &$exam) {
+            foreach ($exams as $examIndex => $exam) {
                 if (!is_array($exam)) {
                     continue;
                 }
@@ -64,12 +64,16 @@ function dent_exams_sync_question_counts(array $bank): array
                 }
 
                 $exam['questionCount'] = count($questions);
+                $exams[$examIndex] = $exam;
             }
-            unset($exam);
+            $course['exams'] = $exams;
+            $courses[$courseSlug] = $course;
         }
-        unset($course);
+        $catalog['courses'] = $courses;
+        $catalogs[$catalogKey] = $catalog;
     }
-    unset($catalog);
+
+    $bank['catalogs'] = $catalogs;
 
     return $bank;
 }

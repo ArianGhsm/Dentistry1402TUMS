@@ -17196,5 +17196,7 @@ JSON;
     if (function_exists('dent_exams_apply_endotorabinejad_catalog_overrides')) {
         $bank = dent_exams_apply_endotorabinejad_catalog_overrides($bank);
     }
-    return dent_exams_apply_radiology2_overrides($bank);
+
+    $bank = dent_exams_apply_radiology2_overrides($bank);
+    return $bank;
 }

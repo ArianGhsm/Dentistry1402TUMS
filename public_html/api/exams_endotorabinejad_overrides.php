@@ -5,7 +5,7 @@ require_once __DIR__ . '/exams_endotorabinejad_data.php';
 
 function dent_exams_apply_endotorabinejad_catalog_overrides(array $bank): array
 {
-    $courses = &$bank['catalogs']['shared']['courses'];
+    $courses = $bank['catalogs']['shared']['courses'] ?? null;
     if (!is_array($courses)) {
         return $bank;
     }
@@ -32,7 +32,7 @@ function dent_exams_apply_endotorabinejad_catalog_overrides(array $bank): array
     $rebuilt['endotorabinejad-1-5'] = $endoCourses['endotorabinejad-1-5'];
     $rebuilt['endotorabinejad-6-10'] = $endoCourses['endotorabinejad-6-10'];
     $rebuilt['endotorabinejad-11-15'] = $endoCourses['endotorabinejad-11-15'];
-    $courses = $rebuilt;
+    $bank['catalogs']['shared']['courses'] = $rebuilt;
 
     return $bank;
 }
