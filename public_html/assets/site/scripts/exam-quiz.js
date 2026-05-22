@@ -69,6 +69,9 @@
     window.setTimeout(scheduleLayoutSync, 520);
 
     function renderFailure(message) {
+        document.body.classList.add("quiz-stage-active");
+        var fallbackBackHref = exam && exam.backHref ? exam.backHref : "/exams/";
+        var fallbackBackLabel = exam && exam.backLabel ? exam.backLabel : "بازگشت";
         appRoot.innerHTML = [
             '<div class="background-overlay" aria-hidden="true"></div>',
             '<div class="exam-shell">',
@@ -77,9 +80,9 @@
             '      <div class="exam-stage-scaler">',
             '        <div class="exam-stage-canvas">',
             '          <section class="exam-panel exam-stage exam-stage--message">',
-            '            <a class="back-btn exam-back-link" href="' + escapeHtml(exam.backHref || "/exams/") + '">',
+            '            <a class="back-btn exam-back-link" href="' + escapeHtml(fallbackBackHref) + '">',
             '              <span class="back-icon" aria-hidden="true">←</span>',
-            '              <span>' + escapeHtml(exam.backLabel || "بازگشت") + "</span>",
+            '              <span>' + escapeHtml(fallbackBackLabel) + "</span>",
             "            </a>",
             '            <div class="exam-message-card">',
             "              <h1>خطا در بارگذاری آزمون</h1>",
@@ -96,6 +99,7 @@
     }
 
     function render() {
+        document.body.classList.add("quiz-stage-active");
         appRoot.innerHTML = [
             '<div class="background-overlay" aria-hidden="true"></div>',
             '<div class="exam-shell">',
@@ -462,7 +466,7 @@
             '  <div class="exam-question-actions">',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">سوال قبلی</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + escapeHtml(isFlagged(questionIndex) ? "حذف نشان" : "نشان‌دار کن") + "</button>",
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="assessment-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">سوال بعدی</button>',
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="assessment-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">سوال بعدی</button>",
             "  </div>",
             "</article>"
         ].join("");
@@ -486,9 +490,9 @@
             "  </div>",
             question.explanation ? '<div class="exam-answer-card"><span class="exam-answer-card__label">پاسخ تشریحی</span><div class="exam-answer-card__copy">' + richTextHtml(question.explanation) + "</div></div>" : "",
             '  <div class="exam-question-actions">',
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">سوال قبلی</button>',
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">سوال قبلی</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + escapeHtml(isFlagged(questionIndex) ? "حذف نشان" : "نشان‌دار کن") + "</button>",
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="assessment-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">سوال بعدی</button>',
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="assessment-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">سوال بعدی</button>",
             "  </div>",
             "</article>"
         ].join("");
@@ -512,9 +516,9 @@
             "  </div>",
             revealed ? renderLearningFeedback(question, selectedIndex, questionIndex) : '<div class="exam-note-card">یکی از گزینه‌ها را انتخاب کن تا پاسخ صحیح و توضیح همان سوال نمایش داده شود.</div>',
             '  <div class="exam-question-actions">',
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">سوال قبلی</button>',
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">سوال قبلی</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + escapeHtml(isFlagged(questionIndex) ? "حذف نشان" : "نشان‌دار کن") + "</button>",
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="learning-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">سوال بعدی</button>',
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="learning-next"' + (currentPosition >= visibleIndexes.length - 1 ? " disabled" : "") + ">سوال بعدی</button>",
             "  </div>",
             "</article>"
         ].join("");
@@ -550,7 +554,7 @@
             '    <p class="exam-side-copy">در حال نمایش ' + escapeHtml(formatValue(visibleCount)) + ' سوال از این نما هستی.</p>',
             "  </div>",
             '  <div class="exam-side-section exam-side-section--actions">',
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-first-unanswered"' + (totals.unanswered <= 0 ? " disabled" : "") + ">اولین سوال بی‌پاسخ</button>',
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-first-unanswered"' + (totals.unanswered <= 0 ? " disabled" : "") + ">اولین سوال بی‌پاسخ</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-assessment-draft">پاک‌کردن پاسخ‌ها</button>',
             '    <button class="exam-btn exam-btn--primary" type="button" data-action="submit-assessment"' + (state.assessment.submitting ? " disabled" : "") + ">" + escapeHtml(state.assessment.submitting ? "در حال ثبت..." : "ثبت آزمون") + "</button>",
             "  </div>",
@@ -616,7 +620,7 @@
             '    <p class="exam-side-copy">در این نما ' + escapeHtml(formatValue(visibleCount)) + ' سوال قابل جابه‌جایی است.</p>',
             "  </div>",
             '  <div class="exam-side-section exam-side-section--actions">',
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-jump-unanswered"' + (stats.unanswered <= 0 ? " disabled" : "") + ">اولین سوال بی‌پاسخ</button>',
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-jump-unanswered"' + (stats.unanswered <= 0 ? " disabled" : "") + ">اولین سوال بی‌پاسخ</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-learning-progress">شروع دوباره آموزشی</button>',
             '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">رفتن به سنجشی</button>',
             "  </div>",
