@@ -45,6 +45,7 @@
     var activityTrackedMode = "";
     var layoutFrame = 0;
     var delayedLayoutTimer = 0;
+    var BIDI_LTR_RUN_RE = /[\p{Script=Latin}0-9][\p{Script=Latin}0-9/%&+_.:=,\-]*(?:\s+[\p{Script=Latin}0-9][\p{Script=Latin}0-9/%&+_.:=,\-]*)*/gu;
 
     state.assessment.answers = clampAnswers(state.assessment.answers, exam.questions);
     state.learning.answers = clampAnswers(state.learning.answers, exam.questions);
@@ -1888,6 +1889,24 @@
         return "/account/";
     }
 
+    function bidiAwareHtml(text) {
+        var source = String(text || "");
+        var htmlParts = [];
+        var lastIndex = 0;
+        var match;
+
+        while ((match = BIDI_LTR_RUN_RE.exec(source)) !== null) {
+            var offset = match.index;
+            htmlParts.push(escapeHtml(source.slice(lastIndex, offset)).replace(/\n/g, "<br>"));
+            htmlParts.push('<bdi dir="ltr" class="exam-bidi-ltr">' + escapeHtml(match[0]) + "</bdi>");
+            lastIndex = offset + match[0].length;
+        }
+
+        htmlParts.push(escapeHtml(source.slice(lastIndex)).replace(/\n/g, "<br>"));
+        BIDI_LTR_RUN_RE.lastIndex = 0;
+        return htmlParts.join("");
+    }
+
     function richTextHtml(text) {
         return String(text || "")
             .split(/(\*\*[^*]+\*\*)/g)
@@ -1896,9 +1915,9 @@
                     return "";
                 }
                 if (part.indexOf("**") === 0 && part.lastIndexOf("**") === part.length - 2) {
-                    return "<strong>" + escapeHtml(part.slice(2, -2)).replace(/\n/g, "<br>") + "</strong>";
+                    return "<strong>" + bidiAwareHtml(part.slice(2, -2)) + "</strong>";
                 }
-                return escapeHtml(part).replace(/\n/g, "<br>");
+                return bidiAwareHtml(part);
             })
             .join("");
     }

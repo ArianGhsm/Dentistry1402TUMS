@@ -388,6 +388,23 @@ body.quiz-page .exam-question-rail__meta span {
     font-size: 0.9rem;
 }
 
+body.quiz-page .exam-question-text,
+body.quiz-page .exam-option-copy,
+body.quiz-page .exam-note-card,
+body.quiz-page .exam-answer-card__copy,
+body.quiz-page .exam-answer-card__body {
+    direction: rtl;
+    unicode-bidi: isolate;
+}
+
+body.quiz-page .exam-bidi-ltr {
+    direction: ltr;
+    unicode-bidi: isolate;
+    display: inline-block;
+    max-inline-size: 100%;
+    vertical-align: baseline;
+}
+
 body.quiz-page .exam-stage-subtitle {
     text-align: center;
     max-width: 62ch;
@@ -841,7 +858,7 @@ body.quiz-page .exam-question-state {
 body.quiz-page .exam-question-text {
     font-size: clamp(1.02rem, 1.55vw, 1.32rem);
     line-height: 1.82;
-    text-align: center;
+    text-align: right;
 }
 
 body.quiz-page .exam-question-text strong,
@@ -900,7 +917,7 @@ body.quiz-page .exam-option-copy {
     font-size: 0.92rem;
     font-weight: 760;
     line-height: 1.75;
-    text-align: center;
+    text-align: right;
 }
 
 body.quiz-page .exam-option-tag {
@@ -964,11 +981,13 @@ body.quiz-page .exam-answer-card.is-warning {
 body.quiz-page .exam-answer-card__copy {
     color: var(--exam-text-soft);
     font-weight: 760;
+    text-align: right;
 }
 
 body.quiz-page .exam-answer-card__body {
     color: var(--exam-text-soft);
     font-size: 0.86rem;
+    text-align: right;
 }
 
 body.quiz-page .exam-answer-card__hint {
@@ -979,7 +998,7 @@ body.quiz-page .exam-answer-card__hint {
 body.quiz-page .exam-note-card {
     color: var(--exam-text-muted);
     font-size: 0.85rem;
-    text-align: center;
+    text-align: right;
 }
 
 body.quiz-page .exam-question-actions {

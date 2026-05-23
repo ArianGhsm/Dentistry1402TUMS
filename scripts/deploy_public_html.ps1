@@ -1104,12 +1104,16 @@ function Run-Validation() {
 
     $scriptPath = Join-Path $projectRoot "scripts\check_text_integrity.py"
     $authResilienceScriptPath = Join-Path $projectRoot "scripts\check_auth_store_resilience.php"
+    $examQualityScriptPath = Join-Path $projectRoot "scripts\check_exam_content_quality.php"
     $smokeScriptPath = Join-Path $projectRoot "scripts\smoke_multi_cohort_pages.py"
     if (-not (Test-Path $scriptPath)) {
         throw "Validation script not found: $scriptPath"
     }
     if (-not (Test-Path $authResilienceScriptPath)) {
         throw "Auth resilience validation script not found: $authResilienceScriptPath"
+    }
+    if (-not (Test-Path $examQualityScriptPath)) {
+        throw "Exam quality validation script not found: $examQualityScriptPath"
     }
     if (-not (Test-Path $smokeScriptPath)) {
         throw "Smoke validation script not found: $smokeScriptPath"
@@ -1137,6 +1141,12 @@ function Run-Validation() {
         throw "Validation failed (scripts/check_auth_store_resilience.php). Deployment aborted before host upload."
     }
 
+    Write-Host "Running: $($php.Source) $examQualityScriptPath"
+    & $php.Source $examQualityScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Validation failed (scripts/check_exam_content_quality.php). Deployment aborted before host upload."
+    }
+
     $liveCredentials = Get-DeployOwnerCredentials
     if ([string]::IsNullOrWhiteSpace($liveCredentials.StudentNumber) -or [string]::IsNullOrWhiteSpace($liveCredentials.Password)) {
         $credentialHints = @($liveCredentials.Paths | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -1160,7 +1170,7 @@ function Run-Validation() {
         Status     = "completed"
         StartedAt  = $started
         FinishedAt = Get-IsoNow
-        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $python $($smokeCommand -join ' ')"
+        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $($php.Source) $examQualityScriptPath ; $python $($smokeCommand -join ' ')"
     }
 }
 

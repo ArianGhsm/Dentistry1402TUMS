@@ -5,6 +5,9 @@ require_once __DIR__ . '/exams_radiology2_overrides.php';
 if (is_file(__DIR__ . '/exams_endotorabinejad_overrides.php')) {
     require_once __DIR__ . '/exams_endotorabinejad_overrides.php';
 }
+if (is_file(__DIR__ . '/exams_radiology2_whitepharoah_overrides.php')) {
+    require_once __DIR__ . '/exams_radiology2_whitepharoah_overrides.php';
+}
 
 function dent_exams_bank(): array
 {
@@ -17195,6 +17198,9 @@ JSON;
 
     if (function_exists('dent_exams_apply_endotorabinejad_catalog_overrides')) {
         $bank = dent_exams_apply_endotorabinejad_catalog_overrides($bank);
+    }
+    if (function_exists('dent_exams_apply_radiology2_whitepharoah_catalog_overrides')) {
+        $bank = dent_exams_apply_radiology2_whitepharoah_catalog_overrides($bank);
     }
 
     $bank = dent_exams_apply_radiology2_overrides($bank);

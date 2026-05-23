@@ -773,6 +773,14 @@ html[data-theme="light"] .exams-toolbar-card {
     min-width: 0;
 }
 
+.exam-session-card {
+    min-block-size: 244px;
+}
+
+.exam-session-card__body {
+    min-block-size: 100%;
+}
+
 .exam-session-card__stats {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -810,6 +818,7 @@ html[data-theme="light"] .exams-toolbar-card {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    min-inline-size: 7.2rem;
     min-height: 34px;
     padding: 0.38rem 0.74rem;
     border-radius: 15px;
