@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 const NOTES_DOWNLOAD_HOST_ALLOWED_ROOTS = ['1402', '1403', '1404', 'prosthesis-1402'];
 const NOTES_DOWNLOAD_HOST_SECRET_FILE = 'mihan_download_host.json';
+const NOTES_DOWNLOAD_HOST_STREAM_CONNECT_TIMEOUT_SECONDS = 300;
+const NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS = 14400;
+const NOTES_DOWNLOAD_HOST_STREAM_CHUNK_BYTES = 4 * 1024 * 1024;
 
 function notes_download_host_allowed_roots(): array
 {
@@ -116,6 +119,36 @@ function notes_download_host_public_base_url(): string
     }
 
     return 'https://' . trim((string) $secret['publicDomain'], '/');
+}
+
+function notes_download_host_prepare_long_transfer(): void
+{
+    @ignore_user_abort(true);
+    if (function_exists('set_time_limit')) {
+        @set_time_limit(0);
+    }
+    @ini_set('max_execution_time', '0');
+    @ini_set('default_socket_timeout', (string) NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS);
+    if (function_exists('dent_release_session_lock')) {
+        dent_release_session_lock();
+    }
+}
+
+function notes_download_host_socket_write_all($socket, string $payload, string $phaseLabel): void
+{
+    $offset = 0;
+    $length = strlen($payload);
+    while ($offset < $length) {
+        $written = @fwrite($socket, substr($payload, $offset));
+        if (!is_int($written) || $written <= 0) {
+            $meta = is_resource($socket) ? stream_get_meta_data($socket) : [];
+            if (!empty($meta['timed_out'])) {
+                dent_error($phaseLabel . ' به‌خاطر timeout شبکه کامل نشد.', 504);
+            }
+            dent_error($phaseLabel . ' به‌خاطر قطع ارتباط شبکه کامل نشد.', 502);
+        }
+        $offset += $written;
+    }
 }
 
 function notes_download_host_normalize_relative_path(string $path): string
@@ -741,6 +774,8 @@ function notes_download_host_parse_upload_response(string $raw): array
 
 function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath, string $remoteName, string $mimeType): array
 {
+    notes_download_host_prepare_long_transfer();
+
     $secret = notes_download_host_load_secret();
     if (!is_array($secret)) {
         dent_error('تنظیمات هاست دانلود روی سرور فعال نیست.', 503);
@@ -756,7 +791,7 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
         $socketPrefix . $secret['host'] . ':' . $socketPort,
         $errno,
         $errstr,
-        120,
+        NOTES_DOWNLOAD_HOST_STREAM_CONNECT_TIMEOUT_SECONDS,
         STREAM_CLIENT_CONNECT,
         stream_context_create([
             'ssl' => [
@@ -770,6 +805,8 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
     if (!is_resource($socket)) {
         dent_error('اتصال امن به هاست دانلود برقرار نشد: ' . trim($errstr), 502);
     }
+    stream_set_timeout($socket, NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS);
+    @stream_set_write_buffer($socket, 0);
 
     $boundary = '----DentNotesBoundary' . bin2hex(random_bytes(12));
     $prefix = '';
@@ -795,8 +832,8 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
         '',
     ];
 
-    fwrite($socket, implode("\r\n", $headers));
-    fwrite($socket, $prefix);
+    notes_download_host_socket_write_all($socket, implode("\r\n", $headers), 'ارسال هدر آپلود به هاست دانلود');
+    notes_download_host_socket_write_all($socket, $prefix, 'شروع انتقال فایل به هاست دانلود');
 
     $file = fopen($tmpPath, 'rb');
     if ($file === false) {
@@ -806,12 +843,12 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
 
     try {
         while (!feof($file)) {
-            $chunk = fread($file, 1024 * 1024);
+            $chunk = fread($file, NOTES_DOWNLOAD_HOST_STREAM_CHUNK_BYTES);
             if ($chunk === false) {
                 throw new RuntimeException('stream-read-failed');
             }
             if ($chunk !== '') {
-                fwrite($socket, $chunk);
+                notes_download_host_socket_write_all($socket, $chunk, 'ارسال فایل به هاست دانلود');
             }
         }
     } catch (RuntimeException $error) {
@@ -821,11 +858,15 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
     }
 
     fclose($file);
-    fwrite($socket, $suffix);
+    notes_download_host_socket_write_all($socket, $suffix, 'پایان‌بندی آپلود روی هاست دانلود');
 
-    stream_set_timeout($socket, 120);
+    stream_set_timeout($socket, NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS);
     $response = stream_get_contents($socket);
+    $meta = stream_get_meta_data($socket);
     fclose($socket);
+    if (!empty($meta['timed_out'])) {
+        dent_error('پاسخ نهایی هاست دانلود برای این فایل در زمان مجاز نرسید. timeout سمت سرور یا شبکه را بررسی کنید.', 504);
+    }
     if (!is_string($response) || trim($response) === '') {
         dent_error('پاسخ آپلود از هاست دانلود دریافت نشد.', 502);
     }

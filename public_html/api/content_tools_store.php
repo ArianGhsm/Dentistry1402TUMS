@@ -9,7 +9,8 @@ const CONTENT_FILE_ID_PREFIX = 'uf-';
 const CONTENT_PASTE_ID_PREFIX = 'ps-';
 const CONTENT_FILE_PUBLIC_PATH = '/files/f/';
 const CONTENT_PASTE_PUBLIC_PATH = '/paste/p/';
-const CONTENT_MAX_UPLOAD_BYTES = 2 * 1024 * 1024 * 1024;
+const CONTENT_MAX_UPLOAD_BYTES = 20 * 1024 * 1024 * 1024;
+const CONTENT_MAX_UPLOAD_LABEL = '۲۰ گیگابایت';
 const CONTENT_MAX_PASTE_CHARS = 500000;
 const CONTENT_FILE_STORAGE_LOCAL = 'local';
 const CONTENT_FILE_STORAGE_DOWNLOAD_HOST = 'download-host';
@@ -548,7 +549,7 @@ function content_store_uploaded_file(array $file, array $owner, array $meta = []
     $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
     if ($error !== UPLOAD_ERR_OK) {
         if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
-            dent_error('حجم فایل از سقف فعلی PHP/هاست بیشتر است. سقف ابزار ۲ گیگابایت است، اما تنظیمات هاست هم باید این مقدار را بپذیرد.', 413);
+            dent_error('حجم فایل از سقف فعلی PHP/هاست بیشتر است. سقف ابزار ' . CONTENT_MAX_UPLOAD_LABEL . ' است، اما تنظیمات هاست هم باید این مقدار را بپذیرد.', 413);
         }
         if ($error === UPLOAD_ERR_PARTIAL) {
             dent_error('آپلود فایل کامل نشد. اتصال یا محدودیت هاست را بررسی کنید.', 422);
@@ -561,7 +562,7 @@ function content_store_uploaded_file(array $file, array $owner, array $meta = []
         dent_error('فایل انتخاب‌شده معتبر نیست.', 422);
     }
     if ($size > CONTENT_MAX_UPLOAD_BYTES) {
-        dent_error('حجم هر فایل باید حداکثر ۲ گیگابایت باشد.', 422);
+        dent_error('حجم هر فایل باید حداکثر ' . CONTENT_MAX_UPLOAD_LABEL . ' باشد.', 422);
     }
 
     $originalName = dent_clean_text((string) ($file['name'] ?? 'file'), 240);

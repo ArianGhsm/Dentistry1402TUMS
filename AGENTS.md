@@ -128,6 +128,7 @@
 - از semantic tokenهای `public_html/assets/site/styles/core.css` استفاده شود.
 - انیمیشن‌ها و transitionهای جدید باید تا حد ممکن از motion tokenهای shared در `core.css` استفاده کنند و برای `prefers-reduced-motion` و `data-performance-mode="lite"` fallback مناسب داشته باشند؛ duration و easing پراکنده و hardcode فقط در استثنای موجه.
 - از hardcode رنگ reusable روشن‌محور خودداری شود.
+- صفحه‌ها و routeهای جدید، مخصوصاً ابزارهای مالک/آپلود/مدیریتی، باید برای هر دو تم `light` و `dark` با tokenهای shared طراحی شوند؛ ساختن surfaceهای dark-only یا light-only با رنگ‌های ثابت در route shared مجاز نیست مگر استثناء صریح و تاییدشده وجود داشته باشد.
 - patch موضعی dark-mode با `!important` فقط در صورت اجبار.
 - درصورت تغییر زبان طراحی و UI، فایل های semantic token هم آپدیت شوند.
 - وقتی قابلیت/آپشن جدید بر اساس پرامپت یا نیاز اجرایی اضافه می‌شود، متن UI نباید خود پرامپت، چرایی داخلی یا توضیح کار به Codex را برای کاربران سایت بازگو کند؛ فقط عنوان، label و راهنمای کوتاه کاربرمحور نمایش داده شود.

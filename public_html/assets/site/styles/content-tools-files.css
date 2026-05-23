@@ -3,6 +3,107 @@ body.content-tools-page--files-center {
     --ctf-radius: 28px;
     --ctf-radius-lg: 32px;
     --ctf-radius-sm: 20px;
+    --ctf-page-bg: var(--bg-body-strong);
+    --ctf-page-aura-1: rgba(43, 109, 243, 0.14);
+    --ctf-page-aura-2: rgba(16, 185, 129, 0.1);
+    --ctf-page-aura-3: rgba(14, 165, 233, 0.08);
+    --ctf-overlay-aura-1: rgba(43, 109, 243, 0.1);
+    --ctf-overlay-aura-2: rgba(16, 185, 129, 0.08);
+    --ctf-overlay-base:
+        linear-gradient(180deg, rgba(252, 253, 255, 0.94), rgba(245, 248, 253, 0.95), rgba(237, 243, 252, 0.96));
+    --ctf-card-bg:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--surface) 96%, rgba(255, 255, 255, 0.78)),
+            color-mix(in srgb, var(--surface-strong) 94%, rgba(237, 243, 252, 0.84)));
+    --ctf-card-bg-strong:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--surface-solid) 97%, rgba(255, 255, 255, 0.82)),
+            color-mix(in srgb, var(--surface-strong) 95%, rgba(237, 243, 252, 0.88)));
+    --ctf-card-border: color-mix(in srgb, var(--border-color-strong) 78%, rgba(255, 255, 255, 0.34));
+    --ctf-card-shadow: 0 24px 54px -38px rgba(24, 42, 73, 0.18);
+    --ctf-soft-text: var(--text-secondary);
+    --ctf-strong-text: var(--text-primary);
+    --ctf-kicker: color-mix(in srgb, var(--accent-color) 72%, #234169);
+    --ctf-divider-glow: color-mix(in srgb, var(--accent-color) 28%, transparent);
+    --ctf-accent-2: color-mix(in srgb, var(--accent-color) 72%, #7a90d0);
+    --ctf-btn-bg:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--surface-solid) 98%, rgba(255, 255, 255, 0.82)),
+            color-mix(in srgb, var(--surface-strong) 94%, rgba(237, 243, 252, 0.9)));
+    --ctf-btn-border: color-mix(in srgb, var(--border-color-strong) 82%, rgba(255, 255, 255, 0.34));
+    --ctf-btn-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        0 14px 30px -24px rgba(24, 42, 73, 0.16);
+    --ctf-btn-hover-border: color-mix(in srgb, var(--accent-color) 36%, var(--ctf-btn-border));
+    --ctf-btn-hover-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.82),
+        0 18px 34px -24px rgba(43, 109, 243, 0.22);
+    --ctf-btn-primary-border: color-mix(in srgb, var(--accent-color) 42%, transparent);
+    --ctf-btn-primary-bg: linear-gradient(135deg, #2b6df3 0%, #5a9bff 52%, #5d8dff 100%);
+    --ctf-btn-primary-text: var(--text-on-accent);
+    --ctf-btn-primary-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        0 18px 36px -24px rgba(43, 109, 243, 0.42);
+    --ctf-btn-ghost-bg:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--surface-muted) 94%, rgba(247, 250, 252, 0.84)),
+            color-mix(in srgb, var(--surface-strong) 90%, rgba(237, 243, 252, 0.86)));
+    --ctf-btn-ghost-text: var(--text-primary);
+    --ctf-btn-danger-border: color-mix(in srgb, var(--danger-color) 28%, transparent);
+    --ctf-btn-danger-bg:
+        linear-gradient(180deg,
+            rgba(199, 83, 94, 0.09),
+            rgba(199, 83, 94, 0.16));
+    --ctf-btn-danger-text: var(--danger-color);
+    --ctf-surface-toolbar: color-mix(in srgb, var(--surface) 95%, rgba(243, 247, 252, 0.8));
+    --ctf-surface-panel: color-mix(in srgb, var(--surface-solid) 95%, rgba(247, 250, 252, 0.82));
+    --ctf-surface-panel-strong: color-mix(in srgb, var(--surface-strong) 92%, rgba(237, 243, 252, 0.84));
+    --ctf-surface-field:
+        linear-gradient(180deg,
+            color-mix(in srgb, var(--surface-solid) 96%, rgba(255, 255, 255, 0.78)),
+            color-mix(in srgb, var(--surface-strong) 92%, rgba(237, 243, 252, 0.86)));
+    --ctf-surface-dropzone:
+        radial-gradient(circle at top, rgba(43, 109, 243, 0.13), transparent 55%),
+        linear-gradient(145deg, rgba(43, 109, 243, 0.08), rgba(18, 119, 111, 0.08)),
+        color-mix(in srgb, var(--surface) 94%, rgba(247, 250, 252, 0.8));
+    --ctf-surface-dropzone-active:
+        radial-gradient(circle at top, rgba(43, 109, 243, 0.18), transparent 55%),
+        linear-gradient(145deg, rgba(43, 109, 243, 0.12), rgba(18, 119, 111, 0.12)),
+        color-mix(in srgb, var(--surface) 96%, rgba(243, 247, 252, 0.84));
+    --ctf-dropzone-border: rgba(43, 109, 243, 0.28);
+    --ctf-dropzone-border-active: rgba(43, 109, 243, 0.44);
+    --ctf-icon-bg: rgba(43, 109, 243, 0.1);
+    --ctf-icon-text: color-mix(in srgb, var(--accent-color) 74%, #2753a2);
+    --ctf-pill-bg: rgba(43, 109, 243, 0.1);
+    --ctf-pill-text: color-mix(in srgb, var(--accent-color) 74%, #24456f);
+    --ctf-meter-track: rgba(122, 143, 176, 0.18);
+    --ctf-meter-fill: linear-gradient(90deg, #49c7ff, #548fff 55%, #6372ff 100%);
+    --ctf-link-text: color-mix(in srgb, var(--accent-color) 76%, #285cae);
+    --ctf-arrow-color: color-mix(in srgb, var(--text-primary) 76%, var(--accent-color) 24%);
+    --ctf-status-upload-bg: rgba(43, 109, 243, 0.11);
+    --ctf-status-upload-text: color-mix(in srgb, var(--accent-color) 74%, #285cae);
+    --ctf-status-done-bg: rgba(21, 143, 99, 0.12);
+    --ctf-status-done-text: var(--success-color);
+    --ctf-status-error-bg: rgba(199, 83, 94, 0.12);
+    --ctf-status-error-text: var(--danger-color);
+    --ctf-empty-bg: rgba(43, 109, 243, 0.05);
+    --ctf-scrollbar-thumb: rgba(43, 109, 243, 0.2);
+    background:
+        radial-gradient(circle at 14% 0%, var(--ctf-page-aura-1), transparent 26rem),
+        radial-gradient(circle at 88% 8%, var(--ctf-page-aura-2), transparent 28rem),
+        radial-gradient(circle at 50% 100%, var(--ctf-page-aura-3), transparent 36rem),
+        var(--ctf-page-bg);
+}
+
+html[data-theme="dark"] body.content-tools-page--files-center {
+    --ctf-page-bg: #0a0f18;
+    --ctf-page-aura-1: rgba(78, 222, 255, 0.11);
+    --ctf-page-aura-2: rgba(113, 125, 255, 0.16);
+    --ctf-page-aura-3: rgba(38, 88, 167, 0.12);
+    --ctf-overlay-aura-1: rgba(72, 214, 255, 0.08);
+    --ctf-overlay-aura-2: rgba(106, 122, 255, 0.14);
+    --ctf-overlay-base:
+        linear-gradient(180deg, rgba(9, 13, 22, 0.98), rgba(13, 18, 29, 0.98));
     --ctf-card-bg:
         linear-gradient(180deg, rgba(18, 27, 41, 0.92), rgba(12, 18, 29, 0.96));
     --ctf-card-bg-strong:
@@ -11,19 +112,75 @@ body.content-tools-page--files-center {
     --ctf-card-shadow: 0 28px 64px -46px rgba(2, 6, 14, 0.94);
     --ctf-soft-text: rgba(210, 221, 242, 0.74);
     --ctf-strong-text: #f4f7ff;
+    --ctf-kicker: #6cb6ff;
+    --ctf-divider-glow: rgba(130, 193, 255, 0.42);
     --ctf-accent-2: #7f9dff;
+    --ctf-btn-bg:
+        linear-gradient(180deg, rgba(42, 51, 71, 0.96), rgba(23, 30, 43, 0.98));
+    --ctf-btn-border: rgba(136, 160, 201, 0.16);
+    --ctf-btn-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 16px 34px -28px rgba(0, 0, 0, 0.9);
+    --ctf-btn-hover-border: rgba(118, 180, 255, 0.34);
+    --ctf-btn-hover-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.07),
+        0 18px 38px -26px rgba(43, 100, 208, 0.56);
+    --ctf-btn-primary-border: rgba(96, 185, 255, 0.34);
+    --ctf-btn-primary-bg: linear-gradient(135deg, #68d5ff 0%, #5d9fff 52%, #6b6fff 100%);
+    --ctf-btn-primary-text: #08101c;
+    --ctf-btn-primary-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 22px 40px -24px rgba(93, 125, 255, 0.82);
+    --ctf-btn-ghost-bg:
+        linear-gradient(180deg, rgba(34, 44, 62, 0.94), rgba(23, 30, 43, 0.98));
+    --ctf-btn-ghost-text: #ebf2ff;
+    --ctf-btn-danger-border: rgba(255, 132, 149, 0.18);
+    --ctf-btn-danger-bg:
+        linear-gradient(180deg, rgba(84, 39, 53, 0.9), rgba(56, 28, 38, 0.96));
+    --ctf-btn-danger-text: #ffd8df;
+    --ctf-surface-toolbar: rgba(23, 30, 43, 0.72);
+    --ctf-surface-panel: rgba(26, 34, 49, 0.92);
+    --ctf-surface-panel-strong: rgba(32, 40, 58, 0.92);
+    --ctf-surface-field:
+        linear-gradient(180deg, rgba(36, 45, 64, 0.96), rgba(24, 31, 45, 0.98));
+    --ctf-surface-dropzone:
+        radial-gradient(circle at top, rgba(111, 153, 255, 0.14), transparent 55%),
+        linear-gradient(145deg, rgba(48, 102, 232, 0.08), rgba(23, 132, 111, 0.08)),
+        rgba(32, 40, 58, 0.9);
+    --ctf-surface-dropzone-active:
+        radial-gradient(circle at top, rgba(111, 153, 255, 0.18), transparent 55%),
+        linear-gradient(145deg, rgba(48, 102, 232, 0.12), rgba(23, 132, 111, 0.12)),
+        rgba(32, 40, 58, 0.92);
+    --ctf-dropzone-border: rgba(102, 149, 255, 0.4);
+    --ctf-dropzone-border-active: rgba(116, 175, 255, 0.64);
+    --ctf-icon-bg: rgba(24, 31, 46, 0.96);
+    --ctf-icon-text: #7fb1ff;
+    --ctf-pill-bg: rgba(71, 118, 255, 0.13);
+    --ctf-pill-text: #8cc1ff;
+    --ctf-meter-track: rgba(57, 67, 92, 0.9);
+    --ctf-meter-fill: linear-gradient(90deg, #62d7ff, #658fff 55%, #6a72ff 100%);
+    --ctf-link-text: #a6d5ff;
+    --ctf-arrow-color: #d5e1ff;
+    --ctf-status-upload-bg: rgba(67, 121, 255, 0.14);
+    --ctf-status-upload-text: #89c2ff;
+    --ctf-status-done-bg: rgba(94, 213, 158, 0.14);
+    --ctf-status-done-text: var(--ct-success);
+    --ctf-status-error-bg: rgba(199, 83, 94, 0.14);
+    --ctf-status-error-text: var(--ct-danger);
+    --ctf-empty-bg: rgba(20, 26, 38, 0.7);
+    --ctf-scrollbar-thumb: rgba(103, 148, 255, 0.22);
     background:
-        radial-gradient(circle at 14% 0%, rgba(78, 222, 255, 0.11), transparent 26rem),
-        radial-gradient(circle at 88% 8%, rgba(113, 125, 255, 0.16), transparent 28rem),
-        radial-gradient(circle at 50% 100%, rgba(38, 88, 167, 0.12), transparent 36rem),
-        #0a0f18;
+        radial-gradient(circle at 14% 0%, var(--ctf-page-aura-1), transparent 26rem),
+        radial-gradient(circle at 88% 8%, var(--ctf-page-aura-2), transparent 28rem),
+        radial-gradient(circle at 50% 100%, var(--ctf-page-aura-3), transparent 36rem),
+        var(--ctf-page-bg);
 }
 
 body.content-tools-page--files-center .background-overlay {
     background:
-        radial-gradient(circle at 12% 4%, rgba(72, 214, 255, 0.08), transparent 20rem),
-        radial-gradient(circle at 88% 10%, rgba(106, 122, 255, 0.14), transparent 22rem),
-        linear-gradient(180deg, rgba(9, 13, 22, 0.98), rgba(13, 18, 29, 0.98));
+        radial-gradient(circle at 12% 4%, var(--ctf-overlay-aura-1), transparent 20rem),
+        radial-gradient(circle at 88% 10%, var(--ctf-overlay-aura-2), transparent 22rem),
+        var(--ctf-overlay-base);
     opacity: 1;
 }
 
@@ -61,7 +218,7 @@ body.content-tools-page--files-center .background-overlay {
     position: absolute;
     inset: 0 0 auto;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(130, 193, 255, 0.42), transparent);
+    background: linear-gradient(90deg, transparent, var(--ctf-divider-glow), transparent);
     pointer-events: none;
 }
 
@@ -158,7 +315,7 @@ body.content-tools-page--files-center .background-overlay {
     align-items: center;
     gap: 0.4rem;
     margin-bottom: 0.18rem;
-    color: #6cb6ff;
+    color: var(--ctf-kicker);
     font-size: 0.78rem;
     font-weight: 900;
     letter-spacing: 0.01em;
@@ -210,14 +367,11 @@ body.content-tools-page--files-center .background-overlay {
 .ctf-app button.ct-btn,
 .ctf-app a.ct-btn {
     min-height: 42px;
-    border: 1px solid rgba(136, 160, 201, 0.16);
+    border: 1px solid var(--ctf-btn-border);
     border-radius: 16px;
-    background:
-        linear-gradient(180deg, rgba(42, 51, 71, 0.96), rgba(23, 30, 43, 0.98));
+    background: var(--ctf-btn-bg);
     color: var(--ctf-strong-text);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.05),
-        0 16px 34px -28px rgba(0, 0, 0, 0.9);
+    box-shadow: var(--ctf-btn-shadow);
     transition:
         transform 0.18s ease,
         border-color 0.18s ease,
@@ -230,35 +384,28 @@ body.content-tools-page--files-center .background-overlay {
 .ctf-breadcrumbs button:hover,
 .ctf-breadcrumbs button:focus-visible {
     transform: translateY(-1px);
-    border-color: rgba(118, 180, 255, 0.34);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.07),
-        0 18px 38px -26px rgba(43, 100, 208, 0.56);
+    border-color: var(--ctf-btn-hover-border);
+    box-shadow: var(--ctf-btn-hover-shadow);
 }
 
 .ctf-app .ct-btn--primary,
 .ctf-app .ct-btn.is-active,
 .ctf-app #ct-upload-submit {
-    border-color: rgba(96, 185, 255, 0.34);
-    background:
-        linear-gradient(135deg, #68d5ff 0%, #5d9fff 52%, #6b6fff 100%);
-    color: #08101c;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.2),
-        0 22px 40px -24px rgba(93, 125, 255, 0.82);
+    border-color: var(--ctf-btn-primary-border);
+    background: var(--ctf-btn-primary-bg);
+    color: var(--ctf-btn-primary-text);
+    box-shadow: var(--ctf-btn-primary-shadow);
 }
 
 .ctf-app .ct-btn--ghost {
-    background:
-        linear-gradient(180deg, rgba(34, 44, 62, 0.94), rgba(23, 30, 43, 0.98));
-    color: #ebf2ff;
+    background: var(--ctf-btn-ghost-bg);
+    color: var(--ctf-btn-ghost-text);
 }
 
 .ctf-app .ct-btn--danger {
-    border-color: rgba(255, 132, 149, 0.18);
-    background:
-        linear-gradient(180deg, rgba(84, 39, 53, 0.9), rgba(56, 28, 38, 0.96));
-    color: #ffd8df;
+    border-color: var(--ctf-btn-danger-border);
+    background: var(--ctf-btn-danger-bg);
+    color: var(--ctf-btn-danger-text);
 }
 
 .ctf-app .ct-btn[disabled],
@@ -301,8 +448,8 @@ body.content-tools-page--files-center .background-overlay {
     flex: 0 0 auto;
     display: inline-grid;
     place-items: center;
-    color: #a9ccff;
-    background: linear-gradient(180deg, rgba(94, 125, 255, 0.18), rgba(69, 213, 255, 0.08));
+    color: var(--ctf-pill-text);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--ctf-pill-bg) 92%, transparent), rgba(69, 213, 255, 0.08));
 }
 
 .ctf-summary-icon svg {
@@ -347,8 +494,8 @@ body.content-tools-page--files-center .background-overlay {
     align-items: center;
     padding: 0.82rem 0.92rem;
     border-radius: 22px;
-    border: 1px solid rgba(128, 150, 188, 0.14);
-    background: rgba(26, 35, 51, 0.9);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 88%, transparent);
+    background: var(--ctf-surface-panel-strong);
 }
 
 .ctf-path-copy {
@@ -363,8 +510,8 @@ body.content-tools-page--files-center .background-overlay {
     min-height: 40px;
     padding: 0.36rem 0.82rem;
     border-radius: 999px;
-    color: #8cc1ff;
-    background: rgba(71, 118, 255, 0.13);
+    color: var(--ctf-pill-text);
+    background: var(--ctf-pill-bg);
     font-size: 0.82rem;
     font-weight: 900;
     overflow: auto hidden;
@@ -441,9 +588,8 @@ body.content-tools-page--files-center .background-overlay {
     width: 100%;
     min-height: 46px;
     border-radius: 16px;
-    border: 1px solid rgba(128, 150, 188, 0.16);
-    background:
-        linear-gradient(180deg, rgba(36, 45, 64, 0.96), rgba(24, 31, 45, 0.98));
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 92%, transparent);
+    background: var(--ctf-surface-field);
     color: var(--ctf-strong-text);
     padding: 0.66rem 0.8rem;
     font-size: 1rem;
@@ -461,7 +607,7 @@ body.content-tools-page--files-center .background-overlay {
 
 .ctf-app input::placeholder,
 .ctf-app textarea::placeholder {
-    color: rgba(201, 213, 237, 0.42);
+    color: color-mix(in srgb, var(--ctf-soft-text) 56%, transparent);
 }
 
 .ctf-app .ct-field {
@@ -497,8 +643,8 @@ body.content-tools-page--files-center .background-overlay {
     gap: 0.08rem;
     padding: 0.66rem 0.72rem;
     border-radius: 18px;
-    border: 1px solid rgba(128, 150, 188, 0.14);
-    background: rgba(32, 40, 58, 0.9);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 88%, transparent);
+    background: var(--ctf-surface-panel-strong);
 }
 
 .ctf-upload-kpis strong {
@@ -530,25 +676,19 @@ body.content-tools-page--files-center .background-overlay {
 
 .ct-dropzone {
     min-height: 13rem;
-    border: 1.5px dashed rgba(102, 149, 255, 0.4);
+    border: 1.5px dashed var(--ctf-dropzone-border);
     border-radius: 26px;
-    background:
-        radial-gradient(circle at top, rgba(111, 153, 255, 0.14), transparent 55%),
-        linear-gradient(145deg, rgba(48, 102, 232, 0.08), rgba(23, 132, 111, 0.08)),
-        rgba(32, 40, 58, 0.9);
+    background: var(--ctf-surface-dropzone);
 }
 
 .ct-dropzone.is-dragover {
-    border-color: rgba(116, 175, 255, 0.64);
-    background:
-        radial-gradient(circle at top, rgba(111, 153, 255, 0.18), transparent 55%),
-        linear-gradient(145deg, rgba(48, 102, 232, 0.12), rgba(23, 132, 111, 0.12)),
-        rgba(32, 40, 58, 0.92);
+    border-color: var(--ctf-dropzone-border-active);
+    background: var(--ctf-surface-dropzone-active);
 }
 
 .ct-dropzone__icon {
-    color: #7fb1ff;
-    background: rgba(24, 31, 46, 0.96);
+    color: var(--ctf-icon-text);
+    background: var(--ctf-icon-bg);
 }
 
 .ct-dropzone strong {
@@ -565,8 +705,8 @@ body.content-tools-page--files-center .background-overlay {
     gap: 0.6rem;
     padding: 0.78rem;
     border-radius: 24px;
-    border: 1px solid rgba(128, 150, 188, 0.14);
-    background: rgba(32, 40, 58, 0.9);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 88%, transparent);
+    background: var(--ctf-surface-panel-strong);
 }
 
 .ctf-upload-queue-head {
@@ -614,8 +754,8 @@ body.content-tools-page--files-center .background-overlay {
     display: grid;
     gap: 0.54rem;
     border-radius: 20px;
-    border: 1px solid rgba(128, 150, 188, 0.14);
-    background: rgba(26, 34, 49, 0.92);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 88%, transparent);
+    background: var(--ctf-surface-panel);
 }
 
 .ctf-queue-item[data-state="done"] {
@@ -640,31 +780,31 @@ body.content-tools-page--files-center .background-overlay {
     padding: 0.14rem 0.56rem;
     border-radius: 999px;
     color: var(--ctf-soft-text);
-    background: rgba(55, 66, 92, 0.9);
+    background: color-mix(in srgb, var(--ctf-surface-panel-strong) 94%, transparent);
     font-size: 0.72rem;
     font-weight: 860;
 }
 
 .ctf-queue-item[data-state="uploading"] .ctf-queue-state,
 .ctf-queue-item[data-state="finalizing"] .ctf-queue-state {
-    color: #89c2ff;
-    background: rgba(67, 121, 255, 0.14);
+    color: var(--ctf-status-upload-text);
+    background: var(--ctf-status-upload-bg);
 }
 
 .ctf-queue-item[data-state="done"] .ctf-queue-state {
-    color: var(--ct-success);
-    background: rgba(94, 213, 158, 0.14);
+    color: var(--ctf-status-done-text);
+    background: var(--ctf-status-done-bg);
 }
 
 .ctf-queue-item[data-state="error"] .ctf-queue-state {
-    color: var(--ct-danger);
-    background: rgba(199, 83, 94, 0.14);
+    color: var(--ctf-status-error-text);
+    background: var(--ctf-status-error-bg);
 }
 
 .ctf-queue-meter {
     height: 10px;
     border-radius: 999px;
-    background: rgba(57, 67, 92, 0.9);
+    background: var(--ctf-meter-track);
     overflow: hidden;
 }
 
@@ -672,7 +812,7 @@ body.content-tools-page--files-center .background-overlay {
     display: block;
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, #62d7ff, #658fff 55%, #6a72ff 100%);
+    background: var(--ctf-meter-fill);
     transition: width 0.16s ease;
 }
 
@@ -695,8 +835,8 @@ body.content-tools-page--files-center .background-overlay {
     align-items: center;
     padding: 0.22rem;
     border-radius: 22px;
-    border: 1px solid rgba(128, 150, 188, 0.12);
-    background: rgba(23, 30, 43, 0.72);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 76%, transparent);
+    background: var(--ctf-surface-toolbar);
 }
 
 .ctf-toolbar-chip {
@@ -706,8 +846,8 @@ body.content-tools-page--files-center .background-overlay {
     gap: 0.04rem;
     padding: 0.46rem 0.72rem;
     border-radius: 18px;
-    border: 1px solid rgba(128, 150, 188, 0.14);
-    background: rgba(32, 40, 58, 0.92);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 88%, transparent);
+    background: var(--ctf-surface-panel-strong);
 }
 
 .ctf-toolbar-chip strong {
@@ -729,9 +869,9 @@ body.content-tools-page--files-center .background-overlay {
 .ctf-breadcrumbs button {
     min-height: 38px;
     padding: 0.36rem 0.74rem;
-    border: 1px solid rgba(128, 150, 188, 0.14);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 88%, transparent);
     border-radius: 999px;
-    background: rgba(32, 40, 58, 0.92);
+    background: var(--ctf-surface-panel-strong);
     color: var(--ctf-soft-text);
     font-size: 0.76rem;
     font-weight: 880;
@@ -741,8 +881,8 @@ body.content-tools-page--files-center .background-overlay {
 .ctf-breadcrumbs button.is-active,
 .ctf-breadcrumbs button:hover,
 .ctf-breadcrumbs button:focus-visible {
-    border-color: rgba(100, 152, 255, 0.3);
-    color: #8fc4ff;
+    border-color: color-mix(in srgb, var(--accent-color) 30%, transparent);
+    color: var(--ctf-pill-text);
 }
 
 .ctf-browser-scroll,
@@ -765,14 +905,14 @@ body.content-tools-page--files-center .background-overlay {
     display: grid;
     gap: 0.66rem;
     border-radius: 22px;
-    border: 1px solid rgba(128, 150, 188, 0.14);
-    background: rgba(32, 40, 58, 0.92);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 88%, transparent);
+    background: var(--ctf-surface-panel-strong);
 }
 
 .ctf-entry[data-type="dir"] {
     background:
-        linear-gradient(180deg, rgba(104, 132, 189, 0.12), transparent),
-        rgba(32, 40, 58, 0.92);
+        linear-gradient(180deg, color-mix(in srgb, var(--accent-color) 14%, transparent), transparent),
+        var(--ctf-surface-panel-strong);
 }
 
 .ctf-entry-main {
@@ -788,8 +928,8 @@ body.content-tools-page--files-center .background-overlay {
     display: grid;
     place-items: center;
     flex: 0 0 auto;
-    color: #8ec5ff;
-    background: rgba(74, 104, 170, 0.22);
+    color: var(--ctf-icon-text);
+    background: color-mix(in srgb, var(--ctf-pill-bg) 92%, transparent);
     font-size: 0.78rem;
     font-weight: 950;
 }
@@ -830,8 +970,8 @@ body.content-tools-page--files-center .background-overlay {
     grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 10rem));
     padding: 0.22rem;
     border-radius: 22px;
-    border: 1px solid rgba(128, 150, 188, 0.12);
-    background: rgba(23, 30, 43, 0.72);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 76%, transparent);
+    background: var(--ctf-surface-toolbar);
 }
 
 .ctf-links-card .ct-bulkbar {
@@ -841,8 +981,8 @@ body.content-tools-page--files-center .background-overlay {
     flex-wrap: wrap;
     padding: 0.22rem;
     border-radius: 22px;
-    border: 1px solid rgba(128, 150, 188, 0.12);
-    background: rgba(23, 30, 43, 0.72);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 76%, transparent);
+    background: var(--ctf-surface-toolbar);
 }
 
 .ctf-links-card .ct-bulkbar span {
@@ -858,8 +998,8 @@ body.content-tools-page--files-center .background-overlay {
     gap: 0.7rem;
     align-items: start;
     border-radius: 22px;
-    border: 1px solid rgba(128, 150, 188, 0.14);
-    background: rgba(32, 40, 58, 0.92);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 88%, transparent);
+    background: var(--ctf-surface-panel-strong);
 }
 
 .ctf-link-row .ct-file-select {
@@ -884,17 +1024,17 @@ body.content-tools-page--files-center .background-overlay {
     min-height: 28px;
     padding: 0.12rem 0.54rem;
     border-radius: 999px;
-    border: 1px solid rgba(128, 150, 188, 0.1);
-    background: rgba(16, 22, 34, 0.5);
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 72%, transparent);
+    background: color-mix(in srgb, var(--ctf-surface-panel) 88%, transparent);
 }
 
 .ctf-link-url {
     overflow: auto hidden;
     padding: 0.42rem 0.54rem;
     border-radius: 14px;
-    border: 1px solid rgba(128, 150, 188, 0.12);
-    background: rgba(23, 30, 43, 0.94);
-    color: #a6d5ff;
+    border: 1px solid color-mix(in srgb, var(--ctf-card-border) 76%, transparent);
+    background: var(--ctf-surface-panel);
+    color: var(--ctf-link-text);
 }
 
 .ctf-link-actions {
@@ -926,7 +1066,7 @@ body.content-tools-page--files-center .background-overlay {
     inset-inline-start: 1rem;
     inset-block-start: 50%;
     transform: translateY(-50%);
-    color: #d5e1ff;
+    color: var(--ctf-arrow-color);
     font-size: 1rem;
     line-height: 1;
     transition: transform 0.18s ease;
@@ -979,14 +1119,14 @@ body.content-tools-page--files-center .background-overlay {
 .ctf-app .ct-file-select {
     inline-size: 18px;
     block-size: 18px;
-    accent-color: #63baff;
+    accent-color: var(--accent-color);
 }
 
 .ctf-app .ct-empty {
     padding: 1rem;
     border-radius: 18px;
-    border: 1px dashed rgba(128, 150, 188, 0.18);
-    background: rgba(20, 26, 38, 0.7);
+    border: 1px dashed color-mix(in srgb, var(--ctf-card-border) 92%, transparent);
+    background: var(--ctf-empty-bg);
     color: var(--ctf-soft-text);
     text-align: center;
 }
@@ -1015,7 +1155,7 @@ body.content-tools-page--files-center .background-overlay {
 .ctf-path-badge::-webkit-scrollbar-thumb,
 .ctf-toolbar-chip strong::-webkit-scrollbar-thumb,
 .ctf-link-url::-webkit-scrollbar-thumb {
-    background: rgba(103, 148, 255, 0.22);
+    background: var(--ctf-scrollbar-thumb);
     border-radius: 999px;
 }
 

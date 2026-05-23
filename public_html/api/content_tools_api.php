@@ -26,6 +26,17 @@ function content_api_bool($value): bool
     return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === true;
 }
 
+function content_api_prepare_long_upload_request(): void
+{
+    @ignore_user_abort(true);
+    if (function_exists('set_time_limit')) {
+        @set_time_limit(0);
+    }
+    @ini_set('max_execution_time', '0');
+    @ini_set('default_socket_timeout', '14400');
+    dent_release_session_lock();
+}
+
 function content_api_sort_records(array $records, string $sort): array
 {
     $sort = trim(strtolower($sort));
@@ -314,7 +325,7 @@ function content_api_emit_file_bytes(array $file, string $mode): void
 
 $action = dent_request_action();
 if ($action === '' && dent_request_method() === 'POST' && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0 && $_POST === [] && $_FILES === []) {
-    dent_error('حجم درخواست از سقف فعلی PHP/هاست بیشتر است. سقف ابزار ۲ گیگابایت تنظیم شده، اما ممکن است هاست هنوز مقدار جدید upload_max_filesize/post_max_size را اعمال نکرده باشد.', 413);
+    dent_error('حجم درخواست از سقف فعلی PHP/هاست بیشتر است. سقف ابزار ' . CONTENT_MAX_UPLOAD_LABEL . ' تنظیم شده، اما ممکن است هاست هنوز مقدار جدید upload_max_filesize/post_max_size را اعمال نکرده باشد.', 413);
 }
 
 if ($action === 'ownerDashboard') {
@@ -332,6 +343,7 @@ if ($action === 'ownerDashboard') {
 if ($action === 'ownerUploadFiles') {
     content_api_require_method(['POST']);
     $owner = dent_require_owner();
+    content_api_prepare_long_upload_request();
     $files = $_FILES['files'] ?? ($_FILES['file'] ?? null);
     if (!is_array($files)) {
         dent_error('فایلی برای آپلود انتخاب نشده است.', 422);
@@ -553,6 +565,7 @@ if ($action === 'ownerDownloadHostSummary') {
 if ($action === 'ownerDownloadHostUpload') {
     content_api_require_method(['POST']);
     $owner = dent_require_owner();
+    content_api_prepare_long_upload_request();
     if (!content_download_host_is_enabled()) {
         dent_error('هاست دانلود برای آپلودسنتر فعال نیست.', 503);
     }
@@ -601,7 +614,7 @@ if ($action === 'ownerDownloadHostUpload') {
             $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
             if ($error !== UPLOAD_ERR_OK) {
                 if ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
-                    dent_error('حجم فایل از سقف فعلی PHP/هاست بیشتر است. سقف ابزار ۲ گیگابایت است، اما تنظیمات هاست هم باید این مقدار را بپذیرد.', 413);
+                    dent_error('حجم فایل از سقف فعلی PHP/هاست بیشتر است. سقف ابزار ' . CONTENT_MAX_UPLOAD_LABEL . ' است، اما تنظیمات هاست هم باید این مقدار را بپذیرد.', 413);
                 }
                 if ($error === UPLOAD_ERR_PARTIAL) {
                     dent_error('آپلود فایل کامل نشد. اتصال یا محدودیت هاست را بررسی کنید.', 422);
@@ -615,7 +628,7 @@ if ($action === 'ownerDownloadHostUpload') {
                 dent_error('فایل انتخاب‌شده معتبر نیست.', 422);
             }
             if ($size > CONTENT_MAX_UPLOAD_BYTES) {
-                dent_error('حجم هر فایل باید حداکثر ۲ گیگابایت باشد.', 422);
+                dent_error('حجم هر فایل باید حداکثر ' . CONTENT_MAX_UPLOAD_LABEL . ' باشد.', 422);
             }
 
             $originalName = dent_clean_text((string) ($file['name'] ?? 'file'), 240);

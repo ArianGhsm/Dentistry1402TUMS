@@ -1105,6 +1105,7 @@ function Run-Validation() {
     $scriptPath = Join-Path $projectRoot "scripts\check_text_integrity.py"
     $authResilienceScriptPath = Join-Path $projectRoot "scripts\check_auth_store_resilience.php"
     $examQualityScriptPath = Join-Path $projectRoot "scripts\check_exam_content_quality.php"
+    $uploadConfigScriptPath = Join-Path $projectRoot "scripts\check_upload_pipeline_config.php"
     $smokeScriptPath = Join-Path $projectRoot "scripts\smoke_multi_cohort_pages.py"
     if (-not (Test-Path $scriptPath)) {
         throw "Validation script not found: $scriptPath"
@@ -1114,6 +1115,9 @@ function Run-Validation() {
     }
     if (-not (Test-Path $examQualityScriptPath)) {
         throw "Exam quality validation script not found: $examQualityScriptPath"
+    }
+    if (-not (Test-Path $uploadConfigScriptPath)) {
+        throw "Upload pipeline validation script not found: $uploadConfigScriptPath"
     }
     if (-not (Test-Path $smokeScriptPath)) {
         throw "Smoke validation script not found: $smokeScriptPath"
@@ -1147,6 +1151,12 @@ function Run-Validation() {
         throw "Validation failed (scripts/check_exam_content_quality.php). Deployment aborted before host upload."
     }
 
+    Write-Host "Running: $($php.Source) $uploadConfigScriptPath"
+    & $php.Source $uploadConfigScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Validation failed (scripts/check_upload_pipeline_config.php). Deployment aborted before host upload."
+    }
+
     $liveCredentials = Get-DeployOwnerCredentials
     if ([string]::IsNullOrWhiteSpace($liveCredentials.StudentNumber) -or [string]::IsNullOrWhiteSpace($liveCredentials.Password)) {
         $credentialHints = @($liveCredentials.Paths | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
@@ -1170,7 +1180,7 @@ function Run-Validation() {
         Status     = "completed"
         StartedAt  = $started
         FinishedAt = Get-IsoNow
-        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $($php.Source) $examQualityScriptPath ; $python $($smokeCommand -join ' ')"
+        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $($php.Source) $examQualityScriptPath ; $($php.Source) $uploadConfigScriptPath ; $python $($smokeCommand -join ' ')"
     }
 }
 

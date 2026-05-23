@@ -791,6 +791,7 @@
                 var xhr = new XMLHttpRequest();
                 item.xhr = xhr;
                 xhr.open("POST", "/api/content_tools_api.php", true);
+                xhr.timeout = 0;
                 xhr.withCredentials = true;
                 xhr.setRequestHeader("Accept", "application/json");
 
@@ -855,7 +856,19 @@
                 xhr.onerror = function () {
                     item.xhr = null;
                     item.status = "error";
-                    item.error = "ارتباط آپلود قطع شد.";
+                    item.error = item.progress >= 99
+                        ? "ارتباط با سرور هنگام نهایی‌سازی آپلود قطع شد. timeout یا ارتباط هاست را دوباره بررسی کنید."
+                        : "ارتباط آپلود در میانه انتقال قطع شد.";
+                    item.speedBps = 0;
+                    item.etaSeconds = NaN;
+                    renderQueue();
+                    reject(new Error(item.error));
+                };
+
+                xhr.ontimeout = function () {
+                    item.xhr = null;
+                    item.status = "error";
+                    item.error = "زمان انتظار آپلود تمام شد. برای فایل‌های حجیم دوباره امتحان کنید.";
                     item.speedBps = 0;
                     item.etaSeconds = NaN;
                     renderQueue();
