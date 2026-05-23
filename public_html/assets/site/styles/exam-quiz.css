@@ -195,10 +195,12 @@ body.quiz-page .exam-back-link:focus-visible {
 body.quiz-page .exam-shell .exam-stage-shell {
     flex: 1 1 auto;
     min-height: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    overscroll-behavior: contain;
 }
 
 body.quiz-page .exam-stage-scaler {

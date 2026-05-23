@@ -1552,8 +1552,22 @@
             return;
         }
 
-        var scale = Math.min(1, availableWidth / canvasWidth, availableHeight / canvasHeight);
+        var overflowAllowance = stageHeightAllowanceRatio();
+        var heightBudget = availableHeight * overflowAllowance;
+        var widthScale = availableWidth / canvasWidth;
+        var heightScale = heightBudget / canvasHeight;
+        var scale = Math.min(1, widthScale, heightScale);
         scaler.style.setProperty("--exam-stage-scale", String(scale));
+    }
+
+    function stageHeightAllowanceRatio() {
+        if (window.innerWidth <= 680) {
+            return 1.45;
+        }
+        if (window.innerWidth <= 960) {
+            return 1.3;
+        }
+        return 1.18;
     }
 
     function railWindowSize() {
