@@ -119,11 +119,14 @@
     --radius-md: 16px;
     --radius-sm: 12px;
     --radius-pill: 999px;
-    --motion-fast: 140ms;
-    --motion-base: 240ms;
-    --motion-slow: 360ms;
+    --motion-fast: 160ms;
+    --motion-base: 280ms;
+    --motion-slow: 420ms;
+    --motion-xslow: 560ms;
     --motion-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+    --motion-ease-soft: cubic-bezier(0.2, 0.88, 0.24, 1);
     --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+    --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
     --shell-nav-offset: calc(104px + env(safe-area-inset-bottom, 0px));
     --shell-nav-content-reserve: calc(var(--shell-nav-offset) + 0.5rem);
     --font-main: "YekanBakh", "Yekan", "IRANSans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -276,6 +279,7 @@ html[data-theme="dark"] {
 html {
     scroll-behavior: smooth;
     scroll-padding-bottom: var(--shell-nav-content-reserve);
+    scrollbar-gutter: stable;
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
@@ -295,6 +299,7 @@ body {
     isolation: isolate;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    transition: color var(--motion-base) var(--motion-ease-soft);
 }
 
 body::before,
@@ -303,6 +308,9 @@ body::after {
     position: fixed;
     inset: 0;
     pointer-events: none;
+    transition:
+        opacity var(--motion-slow) var(--motion-ease-soft),
+        filter var(--motion-slow) var(--motion-ease-soft);
 }
 
 body::before {
@@ -350,6 +358,11 @@ img {
 a {
     color: inherit;
     text-decoration: none;
+}
+
+:where(a[href], button, input:not([type="hidden"]), textarea, select, summary, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--accent-color) 42%, transparent);
+    outline-offset: 3px;
 }
 
 :where(a[href], button, input[type="button"], input[type="submit"], input[type="reset"], summary, [role="button"]) {
@@ -496,6 +509,7 @@ ol {
     z-index: -5;
     background: var(--background-overlay);
     opacity: 0.96;
+    transition: opacity var(--motion-slow) var(--motion-ease-soft);
 }
 
 .site-header {
@@ -512,6 +526,10 @@ ol {
     border-bottom: 1px solid var(--border-color);
     box-shadow: 0 12px 32px -30px rgba(17, 30, 54, 0.28);
     backdrop-filter: blur(18px);
+    transition:
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft),
+        background-color var(--motion-base) var(--motion-ease-soft);
 }
 
 .logo-area {
@@ -687,7 +705,10 @@ html[data-theme="dark"] .logo-circle {
     font-size: 0.78rem;
     font-weight: 780;
     white-space: nowrap;
-    transition: color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+    transition:
+        color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard),
+        transform var(--motion-fast) var(--motion-ease-standard);
 }
 
 .site-top-nav a:hover,
@@ -714,7 +735,11 @@ html[data-theme="dark"] .logo-circle {
     font-size: 0.82rem;
     font-weight: 760;
     box-shadow: 0 8px 20px -22px rgba(17, 30, 54, 0.16);
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft);
 }
 
 .header-link:hover,
@@ -842,7 +867,12 @@ body.app-shell-hidden {
     background: var(--surface);
     color: var(--text-primary);
     font-weight: 760;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft),
+        opacity var(--motion-fast) var(--motion-ease-standard);
 }
 
 .shell-action-btn:hover,
@@ -885,6 +915,9 @@ body.app-shell-hidden {
     transform: translate3d(0, 0, 0);
     will-change: transform;
     contain: layout paint style;
+    transition:
+        opacity var(--motion-base) var(--motion-ease-soft),
+        transform var(--motion-base) var(--motion-ease-soft);
 }
 
 .shell-bottom-nav__inner {
@@ -901,6 +934,10 @@ body.app-shell-hidden {
     backdrop-filter: blur(16px);
     pointer-events: auto;
     contain: layout paint;
+    transition:
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft),
+        background-color var(--motion-base) var(--motion-ease-soft);
 }
 
 .shell-bottom-nav__link {
@@ -913,7 +950,10 @@ body.app-shell-hidden {
     gap: 0.28rem;
     border-radius: 18px;
     color: var(--text-tertiary);
-    transition: background 0.2s ease, color 0.2s ease, transform 0.16s ease;
+    transition:
+        background var(--motion-fast) var(--motion-ease-standard),
+        color var(--motion-fast) var(--motion-ease-standard),
+        transform var(--motion-fast) var(--motion-ease-standard);
 }
 
 .shell-bottom-nav__link:hover,
@@ -984,7 +1024,7 @@ body.site-keyboard-open .buy-cart-dock {
     backdrop-filter: blur(6px);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--motion-base) var(--motion-ease-soft);
 }
 
 .shell-drawer-backdrop.is-open,
@@ -1008,7 +1048,10 @@ body.site-keyboard-open .buy-cart-dock {
     transform: translateY(16px) scale(0.98);
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.22s ease, opacity 0.22s ease;
+    transition:
+        transform var(--motion-slow) var(--motion-ease-soft),
+        opacity var(--motion-base) var(--motion-ease-soft),
+        box-shadow var(--motion-base) var(--motion-ease-soft);
 }
 
 .shell-drawer.is-open {
@@ -1077,7 +1120,10 @@ body.site-keyboard-open .buy-cart-dock {
     background: var(--surface-muted);
     border: 1px solid rgba(127, 145, 165, 0.14);
     color: var(--text-primary);
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard);
 }
 
 .shell-drawer__link:hover,
@@ -1107,7 +1153,10 @@ body.site-keyboard-open .buy-cart-dock {
     transform: translateY(16px) scale(0.98);
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.22s ease, opacity 0.22s ease;
+    transition:
+        transform var(--motion-slow) var(--motion-ease-soft),
+        opacity var(--motion-base) var(--motion-ease-soft),
+        box-shadow var(--motion-base) var(--motion-ease-soft);
 }
 
 .shell-modal.is-open {
@@ -1169,7 +1218,12 @@ body.site-keyboard-open .buy-cart-dock {
     background: var(--surface);
     color: var(--text-primary);
     box-shadow: 0 10px 22px -22px rgba(17, 30, 54, 0.18);
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease, color 0.16s ease;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft),
+        color var(--motion-fast) var(--motion-ease-standard);
 }
 
 .theme-toggle-btn:hover,

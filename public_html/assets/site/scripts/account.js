@@ -1119,22 +1119,18 @@
     }
 
     function setViewportScaleLock(active) {
-        if (!iosLikeDevice()) {
-            return;
-        }
         var meta = document.querySelector('meta[name="viewport"]');
         if (!meta) {
             return;
         }
         var base = meta.dataset.baseViewportContent || meta.getAttribute("content") || "";
         if (!meta.dataset.baseViewportContent) {
-            meta.dataset.baseViewportContent = base.replace(/,\s*maximum-scale=1\b/g, "").trim();
+            meta.dataset.baseViewportContent = base
+                .replace(/,\s*maximum-scale=1\b/g, "")
+                .replace(/,\s*user-scalable=no\b/g, "")
+                .trim();
         }
-        if (active) {
-            meta.setAttribute("content", meta.dataset.baseViewportContent + ", maximum-scale=1");
-        } else {
-            meta.setAttribute("content", meta.dataset.baseViewportContent);
-        }
+        meta.setAttribute("content", meta.dataset.baseViewportContent);
     }
 
     function isLoginInputElement(node) {

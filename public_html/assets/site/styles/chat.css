@@ -2272,7 +2272,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
 }
 
 .msg-item.is-new {
-    animation: chat-message-in 0.24s ease;
+    animation: chat-message-in var(--motion-base) var(--motion-ease-soft);
 }
 
 .msg-row {
@@ -2300,7 +2300,9 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     background: linear-gradient(160deg, #97a9bc, #75889d);
     overflow: hidden;
     position: relative;
-    transition: opacity 0.16s ease, transform 0.16s ease;
+    transition:
+        opacity var(--motion-fast) var(--motion-ease-standard),
+        transform var(--motion-fast) var(--motion-ease-standard);
 }
 
 .msg-avatar__img {
@@ -2853,7 +2855,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     border-radius: 50%;
     background: var(--chat-danger);
     box-shadow: 0 0 0 0 rgba(199, 83, 94, 0.44);
-    animation: composer-voice-pulse 1.2s ease infinite;
+    animation: composer-voice-pulse 1.45s var(--motion-ease-soft) infinite;
 }
 
 .composer-voice__timer {
@@ -2880,12 +2882,15 @@ body.chat-page.chat-selection-mode .conversation-item__select {
 
 @keyframes composer-voice-pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(199, 83, 94, 0.38);
+        transform: scale(0.92);
+        box-shadow: 0 0 0 0 rgba(199, 83, 94, 0.34);
     }
-    70% {
-        box-shadow: 0 0 0 8px rgba(199, 83, 94, 0);
+    48% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(199, 83, 94, 0);
     }
     100% {
+        transform: scale(0.92);
         box-shadow: 0 0 0 0 rgba(199, 83, 94, 0);
     }
 }
@@ -3171,7 +3176,9 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     transform: translateX(100%);
     opacity: 0;
     pointer-events: none;
-    transition: transform 0.24s ease, opacity 0.24s ease;
+    transition:
+        transform var(--motion-slow) var(--motion-ease-soft),
+        opacity var(--motion-base) var(--motion-ease-soft);
     overflow: auto;
     overscroll-behavior: contain;
 }
@@ -3255,7 +3262,10 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     text-decoration: none;
     text-align: center;
     padding-inline: 0.56rem;
-    transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+    transition:
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard),
+        transform var(--motion-fast) var(--motion-ease-standard);
 }
 
 .chat-info-sheet__link:hover,
@@ -3982,7 +3992,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
 @keyframes chat-message-in {
     from {
         opacity: 0;
-        transform: translateY(8px);
+        transform: translateY(10px) scale(0.995);
     }
 
     to {

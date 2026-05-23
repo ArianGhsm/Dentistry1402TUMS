@@ -104,6 +104,7 @@
   - `direction: rtl`
   - `unicode-bidi: isolate`
 - برای جلوگیری از زوم خودکار iOS/موبایل، همه‌ی `input`/`textarea`/`select`/`contenteditable` های قابل فوکوس باید در موبایل حداقل `16px` فونت داشته باشند؛ قانون مرکزی `core.css` نباید با CSS صفحه شکسته شود.
+- قفل‌کردن zoom سراسری با `maximum-scale=1` یا `user-scalable=no` برای کل سایت مجاز نیست مگر نیاز اجرایی استثنایی و تاییدشده وجود داشته باشد؛ راه‌حل پیش‌فرض برای iOS همان رعایت حداقل `16px` در ورودی‌هاست.
 - بعد از هر ویرایش متن UI/CSS باید اجرا شود:
   - `python scripts/check_text_integrity.py`
 
@@ -125,6 +126,7 @@
 
 ## 10) قرارداد تم و استایل
 - از semantic tokenهای `public_html/assets/site/styles/core.css` استفاده شود.
+- انیمیشن‌ها و transitionهای جدید باید تا حد ممکن از motion tokenهای shared در `core.css` استفاده کنند و برای `prefers-reduced-motion` و `data-performance-mode="lite"` fallback مناسب داشته باشند؛ duration و easing پراکنده و hardcode فقط در استثنای موجه.
 - از hardcode رنگ reusable روشن‌محور خودداری شود.
 - patch موضعی dark-mode با `!important` فقط در صورت اجبار.
 - درصورت تغییر زبان طراحی و UI، فایل های semantic token هم آپدیت شوند.

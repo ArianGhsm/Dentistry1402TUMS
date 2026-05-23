@@ -1654,6 +1654,59 @@ body.app-dashboard-page > :not(.background-overlay):not(.home-background-aura):n
     background-clip: padding-box;
 }
 
+.home-wallet-card,
+.home-services-panel,
+.home-promo-card,
+.portal-panel--identity,
+.portal-panel--navid,
+.home-resource-dock,
+.home-service-group {
+    transition:
+        transform var(--motion-base) var(--motion-ease-soft),
+        box-shadow var(--motion-base) var(--motion-ease-soft),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-base) var(--motion-ease-soft);
+}
+
+.home-wallet-card__logo,
+.home-service-card__icon,
+.home-service-link__icon,
+.home-promo-card__visual,
+.portal-navid-meta span {
+    transition:
+        transform var(--motion-base) var(--motion-ease-soft),
+        box-shadow var(--motion-base) var(--motion-ease-soft),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-base) var(--motion-ease-soft);
+}
+
+.home-service-card,
+.home-service-link {
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft);
+}
+
+@media (hover: hover) {
+    .home-wallet-card:hover,
+    .home-promo-card:hover,
+    .portal-panel--identity:hover,
+    .portal-panel--navid:hover,
+    .home-resource-dock:hover,
+    .home-service-group:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--surface-shadow-strong);
+    }
+
+    .home-wallet-card:hover .home-wallet-card__logo,
+    .home-service-card:hover .home-service-card__icon,
+    .home-service-link:hover .home-service-link__icon {
+        transform: translateY(-1px);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .home-background-aura__lines,
     .home-background-aura__dots {
@@ -1668,13 +1721,22 @@ body.app-dashboard-page > :not(.background-overlay):not(.home-background-aura):n
 
 html[data-performance-mode="lite"] .home-background-aura__lines,
 html[data-performance-mode="lite"] .home-background-aura__dots {
-    opacity: 0.34;
+    display: none;
 }
 
 html[data-performance-mode="lite"] .home-background-aura__shape,
 html[data-performance-mode="lite"] .home-background-aura__glow {
     filter: blur(40px);
     opacity: 0.74;
+}
+
+html[data-performance-mode="lite"] .home-wallet-card,
+html[data-performance-mode="lite"] .home-services-panel,
+html[data-performance-mode="lite"] .home-promo-card,
+html[data-performance-mode="lite"] .portal-panel--identity,
+html[data-performance-mode="lite"] .portal-panel--navid,
+html[data-performance-mode="lite"] .home-resource-dock {
+    backdrop-filter: none;
 }
 
 @media (max-width: 980px), (pointer: coarse) {
