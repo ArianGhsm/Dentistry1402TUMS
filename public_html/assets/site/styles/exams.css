@@ -1,5 +1,16 @@
 body.exams-page {
     min-height: 100vh;
+    --exams-hero-stat-1: #2f6fff;
+    --exams-hero-stat-2: #213657;
+    --exams-hero-stat-3: #177ea8;
+    --exams-hero-stat-4: #148a67;
+}
+
+html[data-theme="dark"] body.exams-page {
+    --exams-hero-stat-1: #7fb0ff;
+    --exams-hero-stat-2: #f2f6ff;
+    --exams-hero-stat-3: #8fd8ff;
+    --exams-hero-stat-4: #67d8b3;
 }
 
 .exams-main {
@@ -228,22 +239,22 @@ html[data-theme="light"] .exams-course-hero {
 
 .exams-home-hero__stats .exams-summary-stat:nth-child(1) .exams-summary-stat__value,
 .exams-course-hero__stats .exams-summary-stat:nth-child(1) .exams-summary-stat__value {
-    color: #7fb0ff;
+    color: var(--exams-hero-stat-1);
 }
 
 .exams-home-hero__stats .exams-summary-stat:nth-child(2) .exams-summary-stat__value,
 .exams-course-hero__stats .exams-summary-stat:nth-child(2) .exams-summary-stat__value {
-    color: #f2f6ff;
+    color: var(--exams-hero-stat-2);
 }
 
 .exams-home-hero__stats .exams-summary-stat:nth-child(3) .exams-summary-stat__value,
 .exams-course-hero__stats .exams-summary-stat:nth-child(3) .exams-summary-stat__value {
-    color: #8fd8ff;
+    color: var(--exams-hero-stat-3);
 }
 
 .exams-home-hero__stats .exams-summary-stat:nth-child(4) .exams-summary-stat__value,
 .exams-course-hero__stats .exams-summary-stat:nth-child(4) .exams-summary-stat__value {
-    color: #67d8b3;
+    color: var(--exams-hero-stat-4);
 }
 
 .exams-course-hero__lead {
@@ -509,17 +520,22 @@ html[data-theme="light"] .exams-course-hero {
     font-size: 0.8rem;
 }
 
-.exams-filter-chip:hover,
 .exams-filter-chip:focus-visible,
-.exams-filter-launch:hover,
 .exams-filter-launch:focus-visible,
-.exam-btn:hover,
 .exam-btn:focus-visible,
-.exam-session-card__link:hover,
 .exam-session-card__link:focus-visible,
-.exams-owner-shell__summary:hover,
 .exams-owner-shell__summary:focus-visible {
     transform: translateY(-1px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .exams-filter-chip:hover,
+    .exams-filter-launch:hover,
+    .exam-btn:hover,
+    .exam-session-card__link:hover,
+    .exams-owner-shell__summary:hover {
+        transform: translateY(-1px);
+    }
 }
 
 .exams-filter-chip.is-active {
@@ -1056,6 +1072,41 @@ html[data-theme="light"] .exams-toolbar-card {
     text-align: center;
     justify-content: center;
     align-items: center;
+}
+
+html[data-performance-mode="lite"] .exams-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: var(--surface-shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .exams-filter-launch,
+    .exams-filter-chip,
+    .exam-btn,
+    .exam-session-card__link,
+    .exams-owner-shell__summary,
+    .exams-owner-input {
+        transition: none;
+    }
+
+    .exams-filter-chip:focus-visible,
+    .exams-filter-launch:focus-visible,
+    .exam-btn:focus-visible,
+    .exam-session-card__link:focus-visible,
+    .exams-owner-shell__summary:focus-visible {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    .exams-filter-chip:hover,
+    .exams-filter-launch:hover,
+    .exam-btn:hover,
+    .exam-session-card__link:hover,
+    .exams-owner-shell__summary:hover {
+        transform: none;
+    }
 }
 
 @media (min-width: 780px) {

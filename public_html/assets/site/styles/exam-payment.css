@@ -131,9 +131,14 @@ body.exam-payment-page {
         opacity var(--motion-fast) var(--motion-ease-standard);
 }
 
-.exam-payment-btn:hover,
 .exam-payment-btn:focus-visible {
     transform: translateY(-1px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .exam-payment-btn:hover {
+        transform: translateY(-1px);
+    }
 }
 
 .exam-payment-btn[disabled] {
@@ -262,6 +267,27 @@ body.exam-payment-page {
 
 .exam-payment-login {
     margin-top: 1rem;
+}
+
+html[data-performance-mode="lite"] .exam-payment-card,
+html[data-performance-mode="lite"] .exam-payment-panel {
+    box-shadow: var(--surface-shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .exam-payment-btn {
+        transition: none;
+    }
+
+    .exam-payment-btn:focus-visible {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    .exam-payment-btn:hover {
+        transform: none;
+    }
 }
 
 @media (min-width: 920px) {

@@ -610,19 +610,24 @@ body.quiz-page .exam-option:disabled {
     box-shadow: none;
 }
 
-body.quiz-page .exam-mode-pill:hover,
 body.quiz-page .exam-mode-pill:focus-visible,
-body.quiz-page .exam-filter-pill:hover,
 body.quiz-page .exam-filter-pill:focus-visible,
-body.quiz-page .exam-btn:hover:not(:disabled),
 body.quiz-page .exam-btn:focus-visible,
-body.quiz-page .exam-rail__nav:hover:not(:disabled),
 body.quiz-page .exam-rail__nav:focus-visible,
-body.quiz-page .exam-rail__pill:hover,
 body.quiz-page .exam-rail__pill:focus-visible,
-body.quiz-page .exam-option:hover:not(:disabled),
 body.quiz-page .exam-option:focus-visible {
     transform: translateY(-1px);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body.quiz-page .exam-mode-pill:hover,
+    body.quiz-page .exam-filter-pill:hover,
+    body.quiz-page .exam-btn:hover:not(:disabled),
+    body.quiz-page .exam-rail__nav:hover:not(:disabled),
+    body.quiz-page .exam-rail__pill:hover,
+    body.quiz-page .exam-option:hover:not(:disabled) {
+        transform: translateY(-1px);
+    }
 }
 
 body.quiz-page .exam-mode-pill:focus-visible,
@@ -633,6 +638,44 @@ body.quiz-page .exam-rail__pill:focus-visible,
 body.quiz-page .exam-option:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px rgba(91, 133, 255, 0.14);
+}
+
+html[data-performance-mode="lite"] body.quiz-page .exam-panel {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: 0 18px 40px -30px var(--exam-shadow-ambient);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.quiz-page .exam-stage-scaler,
+    body.quiz-page .exam-mode-pill,
+    body.quiz-page .exam-filter-pill,
+    body.quiz-page .exam-btn,
+    body.quiz-page .exam-rail__nav,
+    body.quiz-page .exam-rail__pill,
+    body.quiz-page .exam-option {
+        transition: none;
+    }
+
+    body.quiz-page .exam-mode-pill:focus-visible,
+    body.quiz-page .exam-filter-pill:focus-visible,
+    body.quiz-page .exam-btn:focus-visible,
+    body.quiz-page .exam-rail__nav:focus-visible,
+    body.quiz-page .exam-rail__pill:focus-visible,
+    body.quiz-page .exam-option:focus-visible {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) and (hover: hover) and (pointer: fine) {
+    body.quiz-page .exam-mode-pill:hover,
+    body.quiz-page .exam-filter-pill:hover,
+    body.quiz-page .exam-btn:hover:not(:disabled),
+    body.quiz-page .exam-rail__nav:hover:not(:disabled),
+    body.quiz-page .exam-rail__pill:hover,
+    body.quiz-page .exam-option:hover:not(:disabled) {
+        transform: none;
+    }
 }
 
 body.quiz-page .exam-question-rail {

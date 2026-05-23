@@ -18,7 +18,10 @@
         feedbackKind: "",
         query: "",
         filter: "all",
-        filtersOpen: false
+        filtersOpen: false,
+        renderFrame: 0,
+        scrollRestoreFrame: 0,
+        scrollRestoreTimer: 0
     };
 
     var FILTERS = [
@@ -615,8 +618,82 @@
         return '<div class="exams-card exams-empty">' + escapeHtml(message) + "</div>";
     }
 
-    function renderCourse() {
+    function captureCourseUiSnapshot() {
+        var shell = root.querySelector(".exams-course-shell");
+        if (!shell) {
+            return null;
+        }
+
+        var scrollNode = root.querySelector(".exams-course-scroll");
+        var searchInput = root.querySelector("#exams-session-search");
+        var ownerShell = root.querySelector(".exams-owner-shell");
+        var activeElement = document.activeElement;
+        var searchHasFocus = !!searchInput && activeElement === searchInput;
+
+        return {
+            scrollTop: scrollNode ? scrollNode.scrollTop : 0,
+            searchHasFocus: searchHasFocus,
+            searchSelectionStart: searchHasFocus && typeof searchInput.selectionStart === "number" ? searchInput.selectionStart : null,
+            searchSelectionEnd: searchHasFocus && typeof searchInput.selectionEnd === "number" ? searchInput.selectionEnd : null,
+            ownerPanelOpen: !!(ownerShell && ownerShell.open)
+        };
+    }
+
+    function restoreCourseUiSnapshot(snapshot) {
+        if (!snapshot) {
+            return;
+        }
+
+        if (state.scrollRestoreFrame) {
+            window.cancelAnimationFrame(state.scrollRestoreFrame);
+            state.scrollRestoreFrame = 0;
+        }
+        if (state.scrollRestoreTimer) {
+            window.clearTimeout(state.scrollRestoreTimer);
+            state.scrollRestoreTimer = 0;
+        }
+
+        var ownerShell = root.querySelector(".exams-owner-shell");
+        if (ownerShell && snapshot.ownerPanelOpen && !state.saving && !state.feedback) {
+            ownerShell.open = true;
+        }
+
+        var searchInput = root.querySelector("#exams-session-search");
+        if (searchInput && snapshot.searchHasFocus) {
+            try {
+                searchInput.focus({ preventScroll: true });
+            } catch (_error) {
+                searchInput.focus();
+            }
+            if (typeof searchInput.setSelectionRange === "function"
+                && typeof snapshot.searchSelectionStart === "number"
+                && typeof snapshot.searchSelectionEnd === "number") {
+                searchInput.setSelectionRange(snapshot.searchSelectionStart, snapshot.searchSelectionEnd);
+            }
+        }
+
+        var scrollNode = root.querySelector(".exams-course-scroll");
+        if (scrollNode) {
+            var targetScrollTop = Math.max(0, Number(snapshot.scrollTop) || 0);
+            scrollNode.scrollTop = targetScrollTop;
+            state.scrollRestoreFrame = window.requestAnimationFrame(function () {
+                state.scrollRestoreFrame = 0;
+                if (root.contains(scrollNode)) {
+                    scrollNode.scrollTop = targetScrollTop;
+                }
+            });
+            state.scrollRestoreTimer = window.setTimeout(function () {
+                state.scrollRestoreTimer = 0;
+                if (root.contains(scrollNode)) {
+                    scrollNode.scrollTop = targetScrollTop;
+                }
+            }, 90);
+        }
+    }
+
+    function renderCourse(options) {
         var course = state.course;
+        var uiSnapshot = options && options.preserveUi ? captureCourseUiSnapshot() : null;
         if (!course) {
             root.innerHTML = emptyStateHtml("اطلاعات این درس در دسترس نیست.");
             return;
@@ -647,13 +724,34 @@
             "  </div>",
             "</section>"
         ].join("");
+
+        restoreCourseUiSnapshot(uiSnapshot);
+    }
+
+    function scheduleCourseRender() {
+        if (state.renderFrame) {
+            window.cancelAnimationFrame(state.renderFrame);
+        }
+
+        state.renderFrame = window.requestAnimationFrame(function () {
+            state.renderFrame = 0;
+            renderCourse({ preserveUi: true });
+        });
     }
 
     function setLoading() {
+        if (state.renderFrame) {
+            window.cancelAnimationFrame(state.renderFrame);
+            state.renderFrame = 0;
+        }
         root.innerHTML = '<div class="exams-card exams-loading">در حال بارگذاری این درس...</div>';
     }
 
     function setError(message) {
+        if (state.renderFrame) {
+            window.cancelAnimationFrame(state.renderFrame);
+            state.renderFrame = 0;
+        }
         root.innerHTML = emptyStateHtml(message || "بارگذاری انجام نشد.");
     }
 
@@ -681,7 +779,7 @@
         var toggleButton = event.target.closest("[data-filter-toggle]");
         if (toggleButton) {
             state.filtersOpen = !state.filtersOpen;
-            renderCourse();
+            scheduleCourseRender();
             return;
         }
 
@@ -693,7 +791,7 @@
         if (window.innerWidth <= 640) {
             state.filtersOpen = false;
         }
-        renderCourse();
+        scheduleCourseRender();
     });
 
     root.addEventListener("input", function (event) {
@@ -702,7 +800,7 @@
             return;
         }
         state.query = String(target.value || "");
-        renderCourse();
+        scheduleCourseRender();
     });
 
     root.addEventListener("submit", function (event) {
@@ -722,7 +820,7 @@
         state.saving = true;
         state.feedback = "";
         state.feedbackKind = "";
-        renderCourse();
+        renderCourse({ preserveUi: true });
 
         apiPost("ownerSaveCourseAccess", {
             course: courseSlug,
@@ -735,14 +833,12 @@
             state.course = payload.course;
             state.feedback = payload.message || "تنظیمات ذخیره شد.";
             state.feedbackKind = "success";
-            renderCourse();
         }).catch(function (error) {
             state.feedback = error && error.message ? error.message : "ذخیره تنظیمات انجام نشد.";
             state.feedbackKind = "error";
-            renderCourse();
         }).finally(function () {
             state.saving = false;
-            renderCourse();
+            renderCourse({ preserveUi: true });
         });
     });
 
