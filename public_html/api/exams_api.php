@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/auth_store.php';
 require_once __DIR__ . '/exams_store.php';
 require_once __DIR__ . '/payments_store.php';
-require_once __DIR__ . '/exams_radiology2_overrides.php';
+require_once __DIR__ . '/exams_modules.php';
 
 final class DentExamsApiException extends RuntimeException
 {
@@ -29,36 +29,22 @@ final class DentExamsApiException extends RuntimeException
     }
 }
 
-function dent_exams_api_apply_runtime_exam_override(string $courseSlug, array $exam): array
+function dent_exams_api_apply_runtime_exam_override(array $exam): array
 {
-    if ($courseSlug === 'radiology2' && function_exists('dent_exams_radiology2_overrides')) {
-        $slug = trim((string) ($exam['slug'] ?? ''));
-        if ($slug !== '') {
-            $overrides = dent_exams_radiology2_overrides();
-            $override = $overrides[$slug] ?? null;
-            if (is_array($override)) {
-                foreach ($override as $key => $value) {
-                    $exam[$key] = $value;
-                }
-            }
-        }
-    }
-
     $exam['questionCount'] = dent_exams_api_resolve_exam_question_count($exam);
     return $exam;
 }
 
 function dent_exams_api_apply_runtime_course_override(array $course): array
 {
-    $courseSlug = dent_exams_clean_course_slug((string) ($course['slug'] ?? ''));
-    if ($courseSlug === '' || !is_array($course['exams'] ?? null)) {
+    if (!is_array($course['exams'] ?? null)) {
         return $course;
     }
 
     $nextExams = [];
     foreach ($course['exams'] as $exam) {
         $nextExams[] = is_array($exam)
-            ? dent_exams_api_apply_runtime_exam_override($courseSlug, $exam)
+            ? dent_exams_api_apply_runtime_exam_override($exam)
             : $exam;
     }
     $course['exams'] = $nextExams;
@@ -1109,7 +1095,7 @@ if ($action === 'exam') {
 
     try {
         $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
-        $exam = dent_exams_api_apply_runtime_exam_override($courseSlug, dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
+        $exam = dent_exams_api_apply_runtime_exam_override(dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
     }
@@ -1163,7 +1149,7 @@ if ($action === 'saveFlags') {
 
     try {
         $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
-        $exam = dent_exams_api_apply_runtime_exam_override($courseSlug, dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
+        $exam = dent_exams_api_apply_runtime_exam_override(dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
     }
@@ -1221,12 +1207,12 @@ if ($action === 'touchExamActivity') {
     $courseSlug = dent_exams_clean_course_slug((string) ($_POST['course'] ?? ''));
     $examSlug = dent_exams_clean_exam_slug((string) ($_POST['exam'] ?? ''));
     if ($courseSlug === '' || $examSlug === '') {
-        dent_error('Invalid exam identifier.', 422);
+        dent_error('شناسه آزمون معتبر نیست.', 422);
     }
 
     try {
         $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
-        dent_exams_api_apply_runtime_exam_override($courseSlug, dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
+        dent_exams_api_apply_runtime_exam_override(dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
     }
@@ -1238,13 +1224,13 @@ if ($action === 'touchExamActivity') {
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
     $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
     if (!(bool) ($access['hasAccess'] ?? false)) {
-        dent_error('Access is required to track exam activity.', 403);
+        dent_error('برای ثبت فعالیت این آزمون باید ابتدا به آن دسترسی داشته باشید.', 403);
     }
 
     $participantKey = dent_exams_api_viewer_key($user);
     $examKey = dent_exams_exam_key($catalogKey, $courseSlug, $examSlug);
     if ($participantKey === '' || $examKey === '') {
-        dent_error('Cannot track exam activity.', 422);
+        dent_error('امکان ثبت فعالیت این آزمون وجود ندارد.', 422);
     }
 
     $activityMode = dent_exams_api_normalize_activity_mode((string) ($_POST['mode'] ?? 'view'));
@@ -1280,7 +1266,7 @@ if ($action === 'submitAssessment') {
 
     try {
         $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
-        $exam = dent_exams_api_apply_runtime_exam_override($courseSlug, dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
+        $exam = dent_exams_api_apply_runtime_exam_override(dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
     }
