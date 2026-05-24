@@ -1,0 +1,506 @@
+<?php
+declare(strict_types=1);
+
+function dent_dentistry_curriculum_category_titles(): array
+{
+    return [
+        'theory' => 'واحدهای نظری',
+        'preclinic' => 'مبانی / پری‌کلینیک‌ها',
+        'practical' => 'واحدهای عملی / بخش‌ها',
+        'workshop' => 'واحدهای کارگاهی',
+    ];
+}
+
+function dent_dentistry_curriculum_terms(): array
+{
+    static $terms = null;
+    if (is_array($terms)) {
+        return $terms;
+    }
+
+    $titles = dent_dentistry_curriculum_category_titles();
+
+    $terms = [
+        [
+            'number' => 4,
+            'label' => 'ترم ۴',
+            'categories' => [
+                [
+                    'key' => 'theory',
+                    'title' => $titles['theory'],
+                    'units' => [
+                        ['key' => 'radiology-theory-1', 'title' => 'رادیو نظری ۱'],
+                        ['key' => 'tooth-tissue-health-disease', 'title' => 'بافت دندان در سلامت و بیماری'],
+                        ['key' => 'anatomy-morphology-theory', 'title' => 'آناتومی و مورفولوژی نظری'],
+                        ['key' => 'specialized-language-1-2', 'title' => 'زبان تخصصی ۱ و ۲'],
+                    ],
+                ],
+                [
+                    'key' => 'preclinic',
+                    'title' => $titles['preclinic'],
+                    'units' => [
+                        ['key' => 'morphology-preclinic', 'title' => 'پری‌کلینیک مورفولوژی'],
+                    ],
+                ],
+            ],
+        ],
+        [
+            'number' => 5,
+            'label' => 'ترم ۵',
+            'categories' => [
+                [
+                    'key' => 'theory',
+                    'title' => $titles['theory'],
+                    'units' => [
+                        [
+                            'key' => 'radiology-theory-2',
+                            'title' => 'رادیو نظری ۲',
+                            'aliases' => ['رادیولوژی نظری ۲', 'نمونه سوالات رادیولوژی نظری ۲'],
+                            'examCourseSlugs' => ['radiology2', 'radiology2-whitepharoah'],
+                        ],
+                        ['key' => 'oral-health-theory-1', 'title' => 'سلامت دهان نظری ۱'],
+                        [
+                            'key' => 'systemic-diseases-1',
+                            'title' => 'بیماری‌های سیستمیک ۱',
+                            'aliases' => ['جزوات بیماری‌های سیستمیک', 'سیستمیک'],
+                            'examCourseSlugs' => ['systemicdiseases'],
+                        ],
+                        ['key' => 'surgery-theory-1', 'title' => 'جراحی نظری ۱'],
+                        ['key' => 'pulp-periapical-complex', 'title' => 'کمپلکس پالپ و پری‌اپیکال'],
+                        ['key' => 'ethics-communication', 'title' => 'اخلاق و مهارت‌های ارتباطی'],
+                        [
+                            'key' => 'pharmacology',
+                            'title' => 'فارماکولوژی',
+                            'aliases' => ['جزوات فارماکولوژی'],
+                            'examCourseSlugs' => ['pharmacology'],
+                        ],
+                        ['key' => 'restorative-foundations-theory', 'title' => 'تئوری مبانی ترمیمی'],
+                    ],
+                ],
+                [
+                    'key' => 'preclinic',
+                    'title' => $titles['preclinic'],
+                    'units' => [
+                        ['key' => 'restorative-preclinic', 'title' => 'پری‌کلینیک ترمیمی'],
+                        [
+                            'key' => 'complete-partial-prosthesis-preclinic',
+                            'title' => 'پری‌کلینیک پروتز کامل و پارسیل',
+                            'aliases' => [
+                                'کتاب گام‌به‌گام با پروتز پارسیل',
+                                'مبانی پروتز کامل عملی',
+                                'مبانی پروتز پارسیل عملی',
+                            ],
+                            'examCourseSlugs' => ['completeprosthesis', 'partialprosthesis'],
+                        ],
+                    ],
+                ],
+                [
+                    'key' => 'practical',
+                    'title' => $titles['practical'],
+                    'units' => [
+                        ['key' => 'radiology-practical-1', 'title' => 'رادیو عملی ۱'],
+                        ['key' => 'infection-control', 'title' => 'کنترل عفونت'],
+                        ['key' => 'local-anesthesia', 'title' => 'بی‌حسی موضعی'],
+                    ],
+                ],
+            ],
+        ],
+        [
+            'number' => 6,
+            'label' => 'ترم ۶',
+            'categories' => [
+                [
+                    'key' => 'theory',
+                    'title' => $titles['theory'],
+                    'units' => [
+                        ['key' => 'dental-materials-foundations', 'title' => 'مبانی مواد دندانی'],
+                        ['key' => 'diagnostics-1-2', 'title' => 'تشخیصی ۱ و ۲'],
+                        ['key' => 'complete-foundations-theory', 'title' => 'مبانی کامل نظری'],
+                        ['key' => 'restorative-theory-1', 'title' => 'ترمیمی نظری ۱'],
+                        ['key' => 'medical-emergencies', 'title' => 'فوریت‌های پزشکی'],
+                        ['key' => 'gerontology-term-6', 'title' => 'سالمندشناسی'],
+                        ['key' => 'equipment-ergonomics', 'title' => 'تجهیزات دندان‌پزشکی و ارگونومی'],
+                        ['key' => 'research-methods-1-theory', 'title' => 'روش تحقیق ۱'],
+                        ['key' => 'specialized-language-3-4', 'title' => 'زبان تخصصی ۳ و ۴'],
+                    ],
+                ],
+                [
+                    'key' => 'preclinic',
+                    'title' => $titles['preclinic'],
+                    'units' => [
+                        ['key' => 'endo-preclinic-1', 'title' => 'پری‌کلینیک اندو ۱'],
+                    ],
+                ],
+                [
+                    'key' => 'practical',
+                    'title' => $titles['practical'],
+                    'units' => [
+                        ['key' => 'radiology-practical-2', 'title' => 'رادیو عملی ۲'],
+                        ['key' => 'restorative-practical-1', 'title' => 'ترمیمی عملی ۱'],
+                        ['key' => 'oral-health-practical-1', 'title' => 'سلامت دهان عملی ۱'],
+                        ['key' => 'surgery-practical-1', 'title' => 'جراحی عملی ۱'],
+                        ['key' => 'complete-prosthesis-practical-1', 'title' => 'پروتز کامل عملی ۱'],
+                        ['key' => 'equipment-practical', 'title' => 'تجهیزات'],
+                    ],
+                ],
+                [
+                    'key' => 'workshop',
+                    'title' => $titles['workshop'],
+                    'units' => [
+                        ['key' => 'research-methods-1-workshop', 'title' => 'روش تحقیق ۱'],
+                    ],
+                ],
+            ],
+        ],
+        [
+            'number' => 7,
+            'label' => 'ترم ۷',
+            'categories' => [
+                [
+                    'key' => 'theory',
+                    'title' => $titles['theory'],
+                    'units' => [
+                        ['key' => 'perio-theory-1', 'title' => 'پریو نظری ۱'],
+                        ['key' => 'diagnostics-3', 'title' => 'تشخیصی ۳'],
+                        ['key' => 'ent', 'title' => 'گوش و حلق و بینی'],
+                        ['key' => 'ortho-theory-1', 'title' => 'ارتو نظری ۱'],
+                        ['key' => 'partial-foundations-theory', 'title' => 'مبانی پارسیل نظری'],
+                        [
+                            'key' => 'endo-theory-1',
+                            'title' => 'اندو نظری ۱',
+                            'aliases' => ['اندو ترابی‌نژاد'],
+                            'examCourseSlugs' => ['endotorabinejad'],
+                        ],
+                        ['key' => 'research-methods-2-theory', 'title' => 'روش تحقیق ۲'],
+                        ['key' => 'oral-health-theory-2', 'title' => 'سلامت دهان نظری ۲'],
+                    ],
+                ],
+                [
+                    'key' => 'preclinic',
+                    'title' => $titles['preclinic'],
+                    'units' => [
+                        ['key' => 'endo-preclinic-2', 'title' => 'پری‌کلینیک اندو ۲'],
+                    ],
+                ],
+                [
+                    'key' => 'practical',
+                    'title' => $titles['practical'],
+                    'units' => [
+                        ['key' => 'disease-practical-1', 'title' => 'بیماری عملی ۱'],
+                        ['key' => 'restorative-practical-2', 'title' => 'ترمیمی عملی ۲'],
+                        ['key' => 'oral-health-practical-2', 'title' => 'سلامت دهان عملی ۲'],
+                        ['key' => 'path-practical-1', 'title' => 'پاتو عملی ۱'],
+                        ['key' => 'partial-prosthesis-practical-1', 'title' => 'پروتز پارسیل عملی ۱'],
+                        ['key' => 'surgery-practical-2', 'title' => 'جراحی عملی ۲'],
+                    ],
+                ],
+                [
+                    'key' => 'workshop',
+                    'title' => $titles['workshop'],
+                    'units' => [
+                        ['key' => 'research-methods-2-workshop', 'title' => 'روش تحقیق ۲'],
+                    ],
+                ],
+            ],
+        ],
+        [
+            'number' => 8,
+            'label' => 'ترم ۸',
+            'categories' => [
+                [
+                    'key' => 'theory',
+                    'title' => $titles['theory'],
+                    'units' => [
+                        ['key' => 'endo-theory-2', 'title' => 'اندو نظری ۲'],
+                        ['key' => 'advanced-prosthodontics-theory-1', 'title' => 'پروتز پیشرفته نظری ۱'],
+                        ['key' => 'systemic-diseases-2', 'title' => 'بیماری‌های سیستمیک ۲'],
+                        ['key' => 'diagnostics-4', 'title' => 'تشخیصی ۴'],
+                        ['key' => 'perio-theory-2', 'title' => 'پریو نظری ۲'],
+                        ['key' => 'ortho-theory-2', 'title' => 'ارتو نظری ۲'],
+                        ['key' => 'fixed-prosthesis-foundations', 'title' => 'مبانی پروتز ثابت'],
+                    ],
+                ],
+                [
+                    'key' => 'preclinic',
+                    'title' => $titles['preclinic'],
+                    'units' => [
+                        ['key' => 'fixed-prosthesis-preclinic', 'title' => 'پری‌کلینیک پروتز ثابت'],
+                    ],
+                ],
+                [
+                    'key' => 'practical',
+                    'title' => $titles['practical'],
+                    'units' => [
+                        ['key' => 'disease-practical-2', 'title' => 'بیماری عملی ۲'],
+                        ['key' => 'partial-practical-2', 'title' => 'پارسیل عملی ۲'],
+                        ['key' => 'perio-practical-1', 'title' => 'پریو عملی ۱'],
+                        ['key' => 'ortho-practical-1', 'title' => 'ارتو عملی ۱'],
+                        ['key' => 'endo-practical-1', 'title' => 'اندو عملی ۱'],
+                    ],
+                ],
+                [
+                    'key' => 'workshop',
+                    'title' => $titles['workshop'],
+                    'units' => [
+                        ['key' => 'thesis-1', 'title' => 'رساله پایان‌نامه ۱'],
+                    ],
+                ],
+            ],
+        ],
+        [
+            'number' => 9,
+            'label' => 'ترم ۹',
+            'categories' => [
+                [
+                    'key' => 'theory',
+                    'title' => $titles['theory'],
+                    'units' => [
+                        ['key' => 'radiology-theory-3', 'title' => 'رادیو نظری ۳'],
+                        ['key' => 'pediatric-theory-1', 'title' => 'کودکان نظری ۱'],
+                        ['key' => 'diagnostics-5', 'title' => 'تشخیصی ۵'],
+                        ['key' => 'complete-edentulism-treatment', 'title' => 'درمان بیماران با بی‌دندانی کامل'],
+                        ['key' => 'applied-dental-materials-theory', 'title' => 'مواد دندانی کاربردی'],
+                        ['key' => 'ortho-theory-3', 'title' => 'ارتو نظری ۳'],
+                    ],
+                ],
+                [
+                    'key' => 'preclinic',
+                    'title' => $titles['preclinic'],
+                    'units' => [
+                        ['key' => 'pediatric-preclinic', 'title' => 'پری‌کلینیک کودکان'],
+                    ],
+                ],
+                [
+                    'key' => 'practical',
+                    'title' => $titles['practical'],
+                    'units' => [
+                        ['key' => 'radiology-practical-3', 'title' => 'رادیو عملی ۳'],
+                        ['key' => 'complete-prosthesis-practical-2', 'title' => 'پروتز کامل عملی ۲'],
+                        ['key' => 'endo-practical-2', 'title' => 'اندو عملی ۲'],
+                        ['key' => 'fixed-practical-1', 'title' => 'پروتز ثابت عملی ۱'],
+                        ['key' => 'ortho-practical-2', 'title' => 'ارتو عملی ۲'],
+                        ['key' => 'perio-practical-2', 'title' => 'پریو عملی ۲'],
+                        ['key' => 'rotary-endo', 'title' => 'روتاری اندو'],
+                    ],
+                ],
+                [
+                    'key' => 'workshop',
+                    'title' => $titles['workshop'],
+                    'units' => [
+                        ['key' => 'applied-dental-materials-workshop', 'title' => 'مواد دندانی کاربردی'],
+                        ['key' => 'thesis-2', 'title' => 'رساله پایان‌نامه ۲'],
+                    ],
+                ],
+            ],
+        ],
+        [
+            'number' => 10,
+            'label' => 'ترم ۱۰',
+            'categories' => [
+                [
+                    'key' => 'theory',
+                    'title' => $titles['theory'],
+                    'units' => [
+                        ['key' => 'oral-maxillofacial-anomalies', 'title' => 'ناهنجاری‌های دهان و فک و صورت'],
+                        ['key' => 'pediatric-theory-2', 'title' => 'کودکان نظری ۲'],
+                        ['key' => 'surgery-theory-2', 'title' => 'جراحی نظری ۲'],
+                        ['key' => 'psychiatric-disorders', 'title' => 'بیماری‌های روانی'],
+                        ['key' => 'perio-theory-3', 'title' => 'پریو نظری ۳'],
+                        ['key' => 'advanced-prosthodontics-theory-2', 'title' => 'پروتز پیشرفته نظری ۲'],
+                        ['key' => 'quality-management-clinical-excellence', 'title' => 'مدیریت کیفیت و تعالی خدمات بالینی'],
+                        ['key' => 'restorative-theory-2', 'title' => 'ترمیمی نظری ۲'],
+                        ['key' => 'pain-pharmacology', 'title' => 'درد و داروشناسی'],
+                    ],
+                ],
+                [
+                    'key' => 'practical',
+                    'title' => $titles['practical'],
+                    'units' => [
+                        ['key' => 'pediatric-practical-2', 'title' => 'کودکان عملی ۲'],
+                        ['key' => 'fixed-practical-2', 'title' => 'ثابت عملی ۲'],
+                        ['key' => 'endo-practical-3', 'title' => 'اندو عملی ۳'],
+                        ['key' => 'surgery-practical-3', 'title' => 'جراحی عملی ۳'],
+                        ['key' => 'restorative-practical-3', 'title' => 'ترمیمی عملی ۳'],
+                        ['key' => 'ortho-practical-3', 'title' => 'ارتو عملی ۳'],
+                        ['key' => 'perio-practical-3', 'title' => 'پریو عملی ۳'],
+                        ['key' => 'trauma-practical-2', 'title' => 'آسیب عملی ۲'],
+                        ['key' => 'surgery-restorative-long-3', 'title' => 'جراحی و ترمیمی عملی ۳ لانگ'],
+                    ],
+                ],
+            ],
+        ],
+        [
+            'number' => 11,
+            'label' => 'ترم ۱۱',
+            'categories' => [
+                [
+                    'key' => 'theory',
+                    'title' => $titles['theory'],
+                    'units' => [
+                        ['key' => 'traumatology', 'title' => 'تروماتولوژی'],
+                        ['key' => 'tmj-occlusion-theory', 'title' => 'مفصل گیجگاهی فکی و اکلوژن'],
+                        ['key' => 'implant-theory', 'title' => 'ایمپلنت نظری'],
+                        ['key' => 'gerontology-term-11', 'title' => 'سالمندشناسی'],
+                        ['key' => 'scientific-writing', 'title' => 'نگارش علمی'],
+                    ],
+                ],
+                [
+                    'key' => 'practical',
+                    'title' => $titles['practical'],
+                    'units' => [
+                        ['key' => 'disease-practical-3', 'title' => 'بیماری عملی ۳'],
+                        ['key' => 'surgery-practical-4', 'title' => 'جراحی عملی ۴'],
+                        ['key' => 'perio-practical-4', 'title' => 'پریو عملی ۴'],
+                        ['key' => 'ortho-practical-4', 'title' => 'ارتو عملی ۴'],
+                        ['key' => 'pediatric-practical-3', 'title' => 'کودکان عملی ۳'],
+                        ['key' => 'systemic-3', 'title' => 'سیستمیک ۳'],
+                        ['key' => 'oral-health-practical-4', 'title' => 'سلامت عملی ۴'],
+                        ['key' => 'comprehensive-treatment-1', 'title' => 'درمان جامع ۱'],
+                        ['key' => 'tmj-occlusion-practical', 'title' => 'مفصل گیجگاهی فکی و اکلوژن'],
+                    ],
+                ],
+            ],
+        ],
+        [
+            'number' => 12,
+            'label' => 'ترم ۱۲',
+            'categories' => [
+                [
+                    'key' => 'preclinic',
+                    'title' => $titles['preclinic'],
+                    'units' => [
+                        ['key' => 'bleaching-preclinic', 'title' => 'پری‌کلینیک بلیچینگ'],
+                    ],
+                ],
+                [
+                    'key' => 'practical',
+                    'title' => $titles['practical'],
+                    'units' => [
+                        ['key' => 'implant-practical', 'title' => 'ایمپلنت عملی'],
+                        ['key' => 'advanced-prosthodontics-practical', 'title' => 'پروتز پیشرفته عملی'],
+                        ['key' => 'systemic-4', 'title' => 'سیستمیک ۴'],
+                        ['key' => 'comprehensive-treatment-2', 'title' => 'درمان جامع ۲'],
+                        ['key' => 'bleaching', 'title' => 'بلیچینگ'],
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    return $terms;
+}
+
+function dent_dentistry_curriculum_unit_index(): array
+{
+    static $index = null;
+    if (is_array($index)) {
+        return $index;
+    }
+
+    $index = [];
+    foreach (dent_dentistry_curriculum_terms() as $term) {
+        $termNumber = max(0, (int) ($term['number'] ?? 0));
+        $termLabel = (string) ($term['label'] ?? '');
+        foreach (($term['categories'] ?? []) as $category) {
+            if (!is_array($category)) {
+                continue;
+            }
+
+            $categoryKey = trim(strtolower((string) ($category['key'] ?? '')));
+            $categoryTitle = (string) ($category['title'] ?? '');
+            foreach (($category['units'] ?? []) as $unit) {
+                if (!is_array($unit)) {
+                    continue;
+                }
+
+                $unitKey = trim(strtolower((string) ($unit['key'] ?? '')));
+                if ($unitKey === '') {
+                    continue;
+                }
+
+                $normalizedUnit = $unit;
+                $normalizedUnit['key'] = $unitKey;
+                $normalizedUnit['termNumber'] = $termNumber;
+                $normalizedUnit['termLabel'] = $termLabel;
+                $normalizedUnit['categoryKey'] = $categoryKey;
+                $normalizedUnit['categoryTitle'] = $categoryTitle;
+                $normalizedUnit['aliases'] = array_values(array_filter(
+                    is_array($unit['aliases'] ?? null) ? $unit['aliases'] : [],
+                    static function ($value): bool {
+                        return is_string($value) && trim($value) !== '';
+                    }
+                ));
+                $normalizedUnit['examCourseSlugs'] = array_values(array_filter(
+                    is_array($unit['examCourseSlugs'] ?? null) ? $unit['examCourseSlugs'] : [],
+                    static function ($value): bool {
+                        return is_string($value) && trim($value) !== '';
+                    }
+                ));
+
+                $index[$unitKey] = $normalizedUnit;
+            }
+        }
+    }
+
+    return $index;
+}
+
+function dent_dentistry_curriculum_find_unit(string $unitKey): ?array
+{
+    $cleanKey = trim(strtolower($unitKey));
+    if ($cleanKey === '') {
+        return null;
+    }
+
+    $index = dent_dentistry_curriculum_unit_index();
+    $unit = $index[$cleanKey] ?? null;
+    return is_array($unit) ? $unit : null;
+}
+
+function dent_dentistry_curriculum_exam_course_unit_index(): array
+{
+    static $index = null;
+    if (is_array($index)) {
+        return $index;
+    }
+
+    $index = [];
+    foreach (dent_dentistry_curriculum_unit_index() as $unit) {
+        if (!is_array($unit)) {
+            continue;
+        }
+
+        foreach (($unit['examCourseSlugs'] ?? []) as $courseSlug) {
+            $cleanSlug = trim(strtolower((string) $courseSlug));
+            if ($cleanSlug === '') {
+                continue;
+            }
+
+            $cleanSlug = preg_replace('/[^a-z0-9_-]+/', '', $cleanSlug) ?? '';
+            if ($cleanSlug === '') {
+                continue;
+            }
+
+            $index[$cleanSlug] = $unit;
+        }
+    }
+
+    return $index;
+}
+
+function dent_dentistry_curriculum_find_unit_by_exam_course_slug(string $courseSlug): ?array
+{
+    $cleanSlug = trim(strtolower($courseSlug));
+    if ($cleanSlug === '') {
+        return null;
+    }
+
+    $cleanSlug = preg_replace('/[^a-z0-9_-]+/', '', $cleanSlug) ?? '';
+    if ($cleanSlug === '') {
+        return null;
+    }
+
+    $index = dent_dentistry_curriculum_exam_course_unit_index();
+    $unit = $index[$cleanSlug] ?? null;
+    return is_array($unit) ? $unit : null;
+}

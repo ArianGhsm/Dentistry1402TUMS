@@ -163,6 +163,48 @@
         return '<span class="exams-course-hero__art" aria-hidden="true"><span></span><span></span><span></span></span>';
     }
 
+    function curriculumBackHref(course) {
+        var meta = course && course.curriculum ? course.curriculum : null;
+        if (!meta || !meta.termNumber) {
+            return "";
+        }
+
+        var target = "/exams/?term=" + encodeURIComponent(String(meta.termNumber));
+        if (meta.unitHasMultipleCollections && meta.unitKey) {
+            target += "&unit=" + encodeURIComponent(String(meta.unitKey));
+        }
+        return appendCohortPath(target);
+    }
+
+    function curriculumContextHtml(course) {
+        var meta = course && course.curriculum ? course.curriculum : null;
+        if (!meta) {
+            return "";
+        }
+
+        var items = [];
+        if (meta.termLabel) {
+            items.push('<span class="exams-session-meta">' + escapeHtml(meta.termLabel) + "</span>");
+        }
+        if (meta.categoryTitle) {
+            items.push('<span class="exams-session-meta">' + escapeHtml(meta.categoryTitle) + "</span>");
+        }
+        if (meta.unitTitle && String(meta.unitTitle).trim() !== String(course.title || "").trim()) {
+            items.push('<span class="exams-session-meta">' + escapeHtml(meta.unitTitle) + "</span>");
+        }
+
+        var backHref = curriculumBackHref(course);
+        if (backHref) {
+            items.push('<a class="exam-btn exam-btn--ghost exams-inline-back" href="' + escapeHtml(backHref) + '">بازگشت به ساختار</a>');
+        }
+
+        if (!items.length) {
+            return "";
+        }
+
+        return '<div class="exams-course-hero__context">' + items.join("") + "</div>";
+    }
+
     function compactText(value, fallback, maxLength) {
         var text = String(value || "").replace(/\s+/g, " ").trim();
         if (!text) {
@@ -440,6 +482,7 @@
             "      </div>",
             '      <h2 class="exams-course-title">' + escapeHtml(heroTitle) + "</h2>",
             '      <p class="exams-course-description">' + escapeHtml(heroDescription) + "</p>",
+                     curriculumContextHtml(course),
             "    </div>",
             '    <div class="exams-course-hero__count">',
             '      <span class="exams-course-hero__count-label">کل ' + escapeHtml(itemNoun) + "</span>",

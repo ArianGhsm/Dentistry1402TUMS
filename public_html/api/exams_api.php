@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/auth_store.php';
+require_once __DIR__ . '/dentistry_curriculum.php';
 require_once __DIR__ . '/exams_store.php';
 require_once __DIR__ . '/payments_store.php';
 require_once __DIR__ . '/exams_modules.php';
@@ -88,6 +89,267 @@ function dent_exams_api_course_is_catalog_visible(array $course): bool
     }
 
     return (bool) $course['visibleOnCatalog'];
+}
+
+function dent_exams_api_course_curriculum_meta(string $courseSlug): ?array
+{
+    $unit = dent_dentistry_curriculum_find_unit_by_exam_course_slug($courseSlug);
+    if ($unit === null) {
+        return null;
+    }
+
+    $courseSlugs = array_values(array_filter(
+        is_array($unit['examCourseSlugs'] ?? null) ? $unit['examCourseSlugs'] : [],
+        static function ($value): bool {
+            return is_string($value) && trim($value) !== '';
+        }
+    ));
+
+    return [
+        'termNumber' => max(0, (int) ($unit['termNumber'] ?? 0)),
+        'termLabel' => (string) ($unit['termLabel'] ?? ''),
+        'categoryKey' => (string) ($unit['categoryKey'] ?? ''),
+        'categoryTitle' => (string) ($unit['categoryTitle'] ?? ''),
+        'unitKey' => (string) ($unit['key'] ?? ''),
+        'unitTitle' => (string) ($unit['title'] ?? ''),
+        'unitAliases' => array_values(array_filter(
+            is_array($unit['aliases'] ?? null) ? $unit['aliases'] : [],
+            static function ($value): bool {
+                return is_string($value) && trim($value) !== '';
+            }
+        )),
+        'unitCourseCount' => count($courseSlugs),
+        'unitCourseSlugs' => $courseSlugs,
+        'unitHasMultipleCollections' => count($courseSlugs) > 1,
+    ];
+}
+
+function dent_exams_api_collection_stats_aggregate(array $collections): array
+{
+    $courseCount = 0;
+    $examCount = 0;
+    $questionCount = 0;
+    $completedAssessmentCount = 0;
+    $flaggedQuestionsCount = 0;
+    $weightedViewerPercent = 0.0;
+    $viewerPercentWeight = 0;
+
+    foreach ($collections as $collection) {
+        if (!is_array($collection)) {
+            continue;
+        }
+
+        $stats = is_array($collection['stats'] ?? null) ? $collection['stats'] : [];
+        $completed = max(0, (int) ($stats['completedAssessmentCount'] ?? 0));
+
+        $courseCount++;
+        $examCount += max(0, (int) ($stats['examCount'] ?? 0));
+        $questionCount += max(0, (int) ($stats['questionCount'] ?? 0));
+        $completedAssessmentCount += $completed;
+        $flaggedQuestionsCount += max(0, (int) ($stats['flaggedQuestionsCount'] ?? 0));
+
+        if (array_key_exists('viewerAveragePercent', $stats) && $stats['viewerAveragePercent'] !== null) {
+            $weight = $completed > 0 ? $completed : 1;
+            $weightedViewerPercent += dent_exams_normalize_percent($stats['viewerAveragePercent']) * $weight;
+            $viewerPercentWeight += $weight;
+        }
+    }
+
+    return [
+        'courseCount' => $courseCount,
+        'examCount' => $examCount,
+        'questionCount' => $questionCount,
+        'completedAssessmentCount' => $completedAssessmentCount,
+        'flaggedQuestionsCount' => $flaggedQuestionsCount,
+        'viewerAveragePercent' => $viewerPercentWeight > 0
+            ? round($weightedViewerPercent / $viewerPercentWeight, 1)
+            : null,
+    ];
+}
+
+function dent_exams_api_curriculum_unit_payload(array $unit, array $coursePayloadLookup): array
+{
+    $collections = [];
+    $seenCourseSlugs = [];
+
+    foreach ((is_array($unit['examCourseSlugs'] ?? null) ? $unit['examCourseSlugs'] : []) as $courseSlug) {
+        $cleanSlug = dent_exams_clean_course_slug((string) $courseSlug);
+        if ($cleanSlug === '' || isset($seenCourseSlugs[$cleanSlug])) {
+            continue;
+        }
+
+        $seenCourseSlugs[$cleanSlug] = true;
+        if (is_array($coursePayloadLookup[$cleanSlug] ?? null)) {
+            $collections[] = $coursePayloadLookup[$cleanSlug];
+        }
+    }
+
+    $stats = dent_exams_api_collection_stats_aggregate($collections);
+    $courseTitles = array_values(array_filter(array_map(static function (array $collection): string {
+        return trim((string) ($collection['title'] ?? ''));
+    }, $collections)));
+    $collectionCount = count($collections);
+    $statusKey = $collectionCount <= 0
+        ? 'empty'
+        : ($collectionCount === 1 ? 'available' : 'multi');
+    $entryMode = $collectionCount <= 0
+        ? 'none'
+        : ($collectionCount === 1 ? 'direct' : 'collections');
+
+    if ($collectionCount <= 0) {
+        $description = 'هنوز آزمونی برای این واحد ثبت نشده است.';
+    } elseif ($collectionCount === 1) {
+        $description = trim((string) ($collections[0]['cardDescription'] ?? ''));
+        if ($description === '') {
+            $description = 'آزمون‌های این واحد از همین مسیر در دسترس هستند.';
+        }
+    } elseif ($courseTitles) {
+        $previewTitles = array_slice($courseTitles, 0, 2);
+        $description = 'در این واحد فعلاً ' . $collectionCount . ' مجموعه آزمونی ثبت شده: '
+            . implode('، ', $previewTitles)
+            . (count($courseTitles) > count($previewTitles) ? ' و ...' : '') . '.';
+    } else {
+        $description = 'چند مجموعه آزمونی برای این واحد ثبت شده است.';
+    }
+
+    return [
+        'key' => (string) ($unit['key'] ?? ''),
+        'title' => (string) ($unit['title'] ?? ''),
+        'aliases' => array_values(array_filter(
+            is_array($unit['aliases'] ?? null) ? $unit['aliases'] : [],
+            static function ($value): bool {
+                return is_string($value) && trim($value) !== '';
+            }
+        )),
+        'termNumber' => max(0, (int) ($unit['termNumber'] ?? 0)),
+        'termLabel' => (string) ($unit['termLabel'] ?? ''),
+        'categoryKey' => (string) ($unit['categoryKey'] ?? ''),
+        'categoryTitle' => (string) ($unit['categoryTitle'] ?? ''),
+        'statusKey' => $statusKey,
+        'statusLabel' => $collectionCount <= 0
+            ? 'بدون آزمون'
+            : ($collectionCount === 1 ? 'دارای آزمون' : 'چند مجموعه'),
+        'entryMode' => $entryMode,
+        'entryLabel' => $collectionCount <= 0
+            ? 'هنوز فعال نشده'
+            : ($collectionCount === 1 ? 'مشاهده آزمون‌ها' : 'مشاهده مجموعه‌ها'),
+        'entryHref' => $collectionCount === 1
+            ? (string) ($collections[0]['path'] ?? '')
+            : '',
+        'description' => $description,
+        'collectionTitles' => $courseTitles,
+        'stats' => $stats,
+        'collections' => $collections,
+    ];
+}
+
+function dent_exams_api_curriculum_payload(array $coursePayloadLookup): array
+{
+    $terms = [];
+    $catalogStats = [
+        'termCount' => 0,
+        'availableTermCount' => 0,
+        'unitCount' => 0,
+        'availableUnitCount' => 0,
+        'courseCount' => 0,
+        'examCount' => 0,
+        'questionCount' => 0,
+        'completedAssessmentCount' => 0,
+    ];
+
+    foreach (dent_dentistry_curriculum_terms() as $term) {
+        if (!is_array($term)) {
+            continue;
+        }
+
+        $termCategories = [];
+        $termStats = [
+            'unitCount' => 0,
+            'availableUnitCount' => 0,
+            'courseCount' => 0,
+            'examCount' => 0,
+            'questionCount' => 0,
+            'completedAssessmentCount' => 0,
+        ];
+
+        foreach ((is_array($term['categories'] ?? null) ? $term['categories'] : []) as $category) {
+            if (!is_array($category)) {
+                continue;
+            }
+
+            $units = [];
+            $categoryStats = [
+                'unitCount' => 0,
+                'availableUnitCount' => 0,
+                'courseCount' => 0,
+                'examCount' => 0,
+                'questionCount' => 0,
+                'completedAssessmentCount' => 0,
+            ];
+
+            foreach ((is_array($category['units'] ?? null) ? $category['units'] : []) as $unit) {
+                if (!is_array($unit)) {
+                    continue;
+                }
+
+                $unitPayload = dent_exams_api_curriculum_unit_payload(
+                    array_merge($unit, [
+                        'termNumber' => max(0, (int) ($term['number'] ?? 0)),
+                        'termLabel' => (string) ($term['label'] ?? ''),
+                        'categoryKey' => (string) ($category['key'] ?? ''),
+                        'categoryTitle' => (string) ($category['title'] ?? ''),
+                    ]),
+                    $coursePayloadLookup
+                );
+                $stats = is_array($unitPayload['stats'] ?? null) ? $unitPayload['stats'] : [];
+
+                $categoryStats['unitCount']++;
+                $categoryStats['availableUnitCount'] += $unitPayload['statusKey'] === 'empty' ? 0 : 1;
+                $categoryStats['courseCount'] += max(0, (int) ($stats['courseCount'] ?? 0));
+                $categoryStats['examCount'] += max(0, (int) ($stats['examCount'] ?? 0));
+                $categoryStats['questionCount'] += max(0, (int) ($stats['questionCount'] ?? 0));
+                $categoryStats['completedAssessmentCount'] += max(0, (int) ($stats['completedAssessmentCount'] ?? 0));
+                $units[] = $unitPayload;
+            }
+
+            $termStats['unitCount'] += $categoryStats['unitCount'];
+            $termStats['availableUnitCount'] += $categoryStats['availableUnitCount'];
+            $termStats['courseCount'] += $categoryStats['courseCount'];
+            $termStats['examCount'] += $categoryStats['examCount'];
+            $termStats['questionCount'] += $categoryStats['questionCount'];
+            $termStats['completedAssessmentCount'] += $categoryStats['completedAssessmentCount'];
+
+            $termCategories[] = [
+                'key' => (string) ($category['key'] ?? ''),
+                'title' => (string) ($category['title'] ?? ''),
+                'stats' => $categoryStats,
+                'units' => $units,
+            ];
+        }
+
+        $catalogStats['termCount']++;
+        $catalogStats['availableTermCount'] += $termStats['availableUnitCount'] > 0 ? 1 : 0;
+        $catalogStats['unitCount'] += $termStats['unitCount'];
+        $catalogStats['availableUnitCount'] += $termStats['availableUnitCount'];
+        $catalogStats['courseCount'] += $termStats['courseCount'];
+        $catalogStats['examCount'] += $termStats['examCount'];
+        $catalogStats['questionCount'] += $termStats['questionCount'];
+        $catalogStats['completedAssessmentCount'] += $termStats['completedAssessmentCount'];
+
+        $terms[] = [
+            'number' => max(0, (int) ($term['number'] ?? 0)),
+            'label' => (string) ($term['label'] ?? ''),
+            'stats' => $termStats,
+            'categories' => $termCategories,
+        ];
+    }
+
+    return [
+        'title' => 'آزمون‌ها بر اساس ترم و واحد',
+        'description' => 'ابتدا ترم را انتخاب کن، بعد از داخل دسته واحدها وارد مجموعه آزمون هر درس شو.',
+        'stats' => $catalogStats,
+        'terms' => $terms,
+    ];
 }
 
 function dent_exams_api_course_stats(array $course): array
@@ -842,6 +1104,7 @@ function dent_exams_api_course_summary_payload(
         'collectionId' => max(0, (int) ($setting['collectionId'] ?? 0)),
         'collectionToken' => $collection ? (string) ($collection['token'] ?? '') : '',
         'collectionStatus' => $collection ? (string) ($collection['status'] ?? '') : '',
+        'curriculum' => dent_exams_api_course_curriculum_meta($courseSlug),
         'access' => $access,
         'supportsDirectAttemptableExams' => ($courseStats['directAttemptableExamCount'] ?? 0) > 0,
         'stats' => [
@@ -1024,13 +1287,11 @@ if ($action === 'catalog') {
     $user = dent_current_user();
     $examsStore = dent_exams_read_store();
     $paymentsStore = payments_read_store();
+    $coursePayloadLookup = [];
     $courseRows = [];
     $courseIndex = 0;
     foreach (($catalog['courses'] ?? []) as $courseSlug => $course) {
         if (!is_array($course)) {
-            continue;
-        }
-        if (!dent_exams_api_course_is_catalog_visible($course)) {
             continue;
         }
         $course = dent_exams_api_apply_runtime_course_override($course);
@@ -1038,9 +1299,16 @@ if ($action === 'catalog') {
         $paymentsStore = payments_read_store();
         $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
         $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
+        $payload = dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $examsStore, $collection, $paymentsStore, false, $user);
+        $coursePayloadLookup[dent_exams_clean_course_slug((string) $courseSlug)] = $payload;
+
+        if (!dent_exams_api_course_is_catalog_visible($course)) {
+            continue;
+        }
+
         $courseRows[] = [
             'sortIndex' => $courseIndex++,
-            'payload' => dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $examsStore, $collection, $paymentsStore, false, $user),
+            'payload' => $payload,
         ];
     }
     usort($courseRows, static function (array $left, array $right): int {
@@ -1057,6 +1325,7 @@ if ($action === 'catalog') {
             'requestedCohort' => dent_requested_cohort_key(),
             'title' => (string) ($catalog['title'] ?? 'آزمون‌ها'),
             'description' => (string) ($catalog['description'] ?? ''),
+            'curriculum' => dent_exams_api_curriculum_payload($coursePayloadLookup),
             'courses' => $courses,
         ],
         'viewer' => $user ? dent_public_user($user) : null,
