@@ -328,6 +328,235 @@ function navid_extract_anti_forgery_token(string $html): string
     return '';
 }
 
+function navid_function_available(string $name): bool
+{
+    if (!function_exists($name)) {
+        return false;
+    }
+
+    $disabled = array_filter(array_map('trim', explode(',', (string) ini_get('disable_functions'))));
+    return !in_array($name, $disabled, true);
+}
+
+function navid_process_tmp_dir(): string
+{
+    $dir = DENT_TMP_ROOT . DIRECTORY_SEPARATOR . 'navid-process';
+    dent_ensure_directory($dir);
+    return $dir;
+}
+
+function navid_cleanup_temp_paths(array $paths): void
+{
+    foreach ($paths as $path) {
+        if (!is_string($path) || $path === '') {
+            continue;
+        }
+        @unlink($path);
+    }
+}
+
+function navid_run_process_via_wrapper(string $command, string $stdin, string $cwd): array
+{
+    if (!navid_function_available('exec') && !navid_function_available('shell_exec')) {
+        return [
+            'runnerAvailable' => false,
+            'method' => 'none',
+            'exit' => null,
+            'stdout' => '',
+            'stderr' => '',
+            'error' => 'process_unavailable',
+        ];
+    }
+
+    $tmpDir = navid_process_tmp_dir();
+    $token = bin2hex(random_bytes(8));
+    $stdinPath = $tmpDir . DIRECTORY_SEPARATOR . $token . '.stdin';
+    $stdoutPath = $tmpDir . DIRECTORY_SEPARATOR . $token . '.stdout';
+    $stderrPath = $tmpDir . DIRECTORY_SEPARATOR . $token . '.stderr';
+    $exitPath = $tmpDir . DIRECTORY_SEPARATOR . $token . '.exit';
+    $wrapperPath = $tmpDir . DIRECTORY_SEPARATOR . $token . (DIRECTORY_SEPARATOR === '\\' ? '.cmd' : '.sh');
+    $paths = [$stdinPath, $stdoutPath, $stderrPath, $exitPath, $wrapperPath];
+
+    try {
+        file_put_contents($stdinPath, $stdin, LOCK_EX);
+
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $wrapper = "@echo off\r\n"
+                . "cd /d \"" . str_replace('"', '""', $cwd) . "\" || (echo 111 > \"" . str_replace('"', '""', $exitPath) . "\" & exit /b 111)\r\n"
+                . $command . " < \"" . str_replace('"', '""', $stdinPath) . "\" > \"" . str_replace('"', '""', $stdoutPath) . "\" 2> \"" . str_replace('"', '""', $stderrPath) . "\"\r\n"
+                . "set EXITCODE=%ERRORLEVEL%\r\n"
+                . "> \"" . str_replace('"', '""', $exitPath) . "\" echo %EXITCODE%\r\n"
+                . "exit /b %EXITCODE%\r\n";
+            file_put_contents($wrapperPath, $wrapper, LOCK_EX);
+            $runnerCommand = 'cmd /V:OFF /C ' . escapeshellarg($wrapperPath);
+        } else {
+            $wrapper = "#!/bin/sh\n"
+                . 'cd ' . escapeshellarg($cwd) . " || { printf '%s' 111 > " . escapeshellarg($exitPath) . "; exit 111; }\n"
+                . $command . ' < ' . escapeshellarg($stdinPath) . ' > ' . escapeshellarg($stdoutPath) . ' 2> ' . escapeshellarg($stderrPath) . "\n"
+                . "status=$?\n"
+                . "printf '%s' \"$status\" > " . escapeshellarg($exitPath) . "\n"
+                . "exit \"$status\"\n";
+            file_put_contents($wrapperPath, $wrapper, LOCK_EX);
+            @chmod($wrapperPath, 0700);
+            $runnerCommand = '/bin/sh ' . escapeshellarg($wrapperPath);
+        }
+
+        $method = navid_function_available('exec') ? 'exec' : 'shell_exec';
+        $exit = null;
+        $stderr = '';
+        if ($method === 'exec') {
+            $ignored = [];
+            $exitCode = 0;
+            @exec($runnerCommand, $ignored, $exitCode);
+            $exit = $exitCode;
+        } else {
+            try {
+                @shell_exec($runnerCommand);
+            } catch (Throwable $exception) {
+                $stderr = $exception->getMessage();
+            }
+        }
+
+        $stdout = is_file($stdoutPath) ? (string) file_get_contents($stdoutPath) : '';
+        $stderr .= is_file($stderrPath) ? (string) file_get_contents($stderrPath) : '';
+        if (is_file($exitPath)) {
+            $exitText = trim((string) file_get_contents($exitPath));
+            if ($exitText !== '' && preg_match('/^-?\d+$/', $exitText) === 1) {
+                $exit = (int) $exitText;
+            }
+        }
+        if ($exit === null) {
+            $exit = 0;
+        }
+
+        return [
+            'runnerAvailable' => true,
+            'method' => $method,
+            'exit' => $exit,
+            'stdout' => $stdout,
+            'stderr' => $stderr,
+            'error' => '',
+        ];
+    } finally {
+        navid_cleanup_temp_paths($paths);
+    }
+}
+
+function navid_run_process(string $command, string $stdin = '', ?string $cwd = null): array
+{
+    $cwd = $cwd && trim($cwd) !== '' ? $cwd : DENT_PROJECT_ROOT;
+
+    if (navid_function_available('proc_open')) {
+        try {
+            $descriptor = [
+                0 => ['pipe', 'r'],
+                1 => ['pipe', 'w'],
+                2 => ['pipe', 'w'],
+            ];
+            $process = @proc_open($command, $descriptor, $pipes, $cwd);
+            if (is_resource($process)) {
+                fwrite($pipes[0], $stdin);
+                fclose($pipes[0]);
+
+                $stdout = stream_get_contents($pipes[1]);
+                fclose($pipes[1]);
+                $stderr = stream_get_contents($pipes[2]);
+                fclose($pipes[2]);
+
+                $exit = proc_close($process);
+                return [
+                    'runnerAvailable' => true,
+                    'method' => 'proc_open',
+                    'exit' => $exit,
+                    'stdout' => (string) $stdout,
+                    'stderr' => (string) $stderr,
+                    'error' => '',
+                ];
+            }
+        } catch (Throwable $exception) {
+            $fallback = navid_run_process_via_wrapper($command, $stdin, $cwd);
+            if (!empty($fallback['runnerAvailable'])) {
+                return $fallback;
+            }
+
+            return [
+                'runnerAvailable' => false,
+                'method' => 'proc_open',
+                'exit' => null,
+                'stdout' => '',
+                'stderr' => $exception->getMessage(),
+                'error' => 'process_unavailable',
+            ];
+        }
+    }
+
+    return navid_run_process_via_wrapper($command, $stdin, $cwd);
+}
+
+function navid_python_candidates(): array
+{
+    $configured = trim((string) getenv('DENT_NAVID_PYTHON_BIN'));
+    $candidates = [];
+    if ($configured !== '') {
+        $candidates[] = $configured;
+    }
+    $candidates[] = 'python';
+    $candidates[] = 'python3';
+
+    $normalized = [];
+    foreach ($candidates as $candidate) {
+        $candidate = trim((string) $candidate);
+        if ($candidate === '' || in_array($candidate, $normalized, true)) {
+            continue;
+        }
+        $normalized[] = $candidate;
+    }
+
+    return $normalized;
+}
+
+function navid_process_is_missing_command(array $result): bool
+{
+    $exit = $result['exit'] ?? null;
+    if (is_int($exit) && in_array($exit, [127, 9009], true)) {
+        return true;
+    }
+
+    $stderr = strtolower(trim((string) ($result['stderr'] ?? '')));
+    if ($stderr === '') {
+        return false;
+    }
+
+    return str_contains($stderr, 'not found')
+        || str_contains($stderr, 'no such file')
+        || str_contains($stderr, 'is not recognized');
+}
+
+function navid_run_python_script(string $scriptPath, string $stdin = ''): array
+{
+    $lastResult = [
+        'runnerAvailable' => false,
+        'method' => 'none',
+        'exit' => null,
+        'stdout' => '',
+        'stderr' => '',
+        'error' => 'process_unavailable',
+        'python' => '',
+    ];
+
+    foreach (navid_python_candidates() as $python) {
+        $command = escapeshellcmd($python) . ' ' . escapeshellarg($scriptPath);
+        $result = navid_run_process($command, $stdin, DENT_PROJECT_ROOT);
+        $result['python'] = $python;
+        $lastResult = $result;
+        if (empty($result['runnerAvailable']) || !navid_process_is_missing_command($result)) {
+            return $result;
+        }
+    }
+
+    return $lastResult;
+}
+
 function navid_solve_captcha_python(string $captchaBase64): string
 {
     $scriptPath = DENT_PROJECT_ROOT . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'navid_captcha_ocr.py';
@@ -335,33 +564,24 @@ function navid_solve_captcha_python(string $captchaBase64): string
         return '';
     }
 
-    $python = trim((string) (getenv('DENT_NAVID_PYTHON_BIN') ?: 'python'));
-    if ($python === '') {
-        $python = 'python';
-    }
-
-    $cmd = escapeshellcmd($python) . ' ' . escapeshellarg($scriptPath);
-    $descriptor = [
-        0 => ['pipe', 'r'],
-        1 => ['pipe', 'w'],
-        2 => ['pipe', 'w'],
-    ];
-    $process = @proc_open($cmd, $descriptor, $pipes, DENT_PROJECT_ROOT);
-    if (!is_resource($process)) {
+    $result = navid_run_python_script($scriptPath, $captchaBase64);
+    if (empty($result['runnerAvailable'])) {
+        navid_log('warning', 'captcha_solver_runner_unavailable', [
+            'stderr' => trim((string) ($result['stderr'] ?? '')),
+        ]);
         return '';
     }
 
-    fwrite($pipes[0], $captchaBase64);
-    fclose($pipes[0]);
-
-    $stdout = stream_get_contents($pipes[1]);
-    fclose($pipes[1]);
-    $stderr = stream_get_contents($pipes[2]);
-    fclose($pipes[2]);
-
-    $exit = proc_close($process);
+    $stdout = (string) ($result['stdout'] ?? '');
+    $stderr = (string) ($result['stderr'] ?? '');
+    $exit = (int) ($result['exit'] ?? 0);
     if ($exit !== 0) {
-        navid_log('warning', 'captcha_solver_failed', ['exit' => $exit, 'stderr' => trim((string) $stderr)]);
+        navid_log('warning', 'captcha_solver_failed', [
+            'exit' => $exit,
+            'python' => (string) ($result['python'] ?? ''),
+            'runner' => (string) ($result['method'] ?? ''),
+            'stderr' => trim($stderr),
+        ]);
         return '';
     }
 
@@ -376,8 +596,8 @@ function navid_solve_captcha_python(string $captchaBase64): string
 
 function navid_python_bin(): string
 {
-    $python = trim((string) (getenv('DENT_NAVID_PYTHON_BIN') ?: 'python'));
-    return $python !== '' ? $python : 'python';
+    $candidates = navid_python_candidates();
+    return $candidates[0] ?? 'python';
 }
 
 function navid_browser_bridge_path(): string
@@ -396,40 +616,32 @@ function navid_browser_bridge(array $payload): array
         ];
     }
 
-    $python = navid_python_bin();
-    $cmd = escapeshellcmd($python) . ' ' . escapeshellarg($scriptPath);
-    $descriptor = [
-        0 => ['pipe', 'r'],
-        1 => ['pipe', 'w'],
-        2 => ['pipe', 'w'],
-    ];
-    $process = @proc_open($cmd, $descriptor, $pipes, DENT_PROJECT_ROOT);
-    if (!is_resource($process)) {
-        return [
-            'success' => false,
-            'error' => 'bridge_start_failed',
-            'message' => 'اجرای helper مرورگر نوید ممکن نشد.',
-        ];
-    }
-
     $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
     if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
         $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
     }
     $encoded = json_encode($payload, $flags);
-    fwrite($pipes[0], $encoded === false ? '{}' : $encoded);
-    fclose($pipes[0]);
+    $result = navid_run_python_script($scriptPath, $encoded === false ? '{}' : $encoded);
+    if (empty($result['runnerAvailable'])) {
+        navid_log('error', 'browser_bridge_runner_unavailable', [
+            'stderr' => substr(trim((string) ($result['stderr'] ?? '')), 0, 1500),
+        ]);
+        return [
+            'success' => false,
+            'error' => 'bridge_process_unavailable',
+            'message' => 'اجرای helper مرورگر نوید روی این سرور در دسترس نیست.',
+        ];
+    }
 
-    $stdout = stream_get_contents($pipes[1]);
-    fclose($pipes[1]);
-    $stderr = stream_get_contents($pipes[2]);
-    fclose($pipes[2]);
-
-    $exit = proc_close($process);
+    $stdout = (string) ($result['stdout'] ?? '');
+    $stderr = (string) ($result['stderr'] ?? '');
+    $exit = (int) ($result['exit'] ?? 0);
     $decoded = json_decode((string) $stdout, true);
     if (!is_array($decoded)) {
         navid_log('error', 'browser_bridge_invalid_json', [
             'exit' => $exit,
+            'python' => (string) ($result['python'] ?? ''),
+            'runner' => (string) ($result['method'] ?? ''),
             'stdout' => substr(trim((string) $stdout), 0, 1500),
             'stderr' => substr(trim((string) $stderr), 0, 1500),
         ]);
@@ -443,6 +655,8 @@ function navid_browser_bridge(array $payload): array
     if ($exit !== 0 && empty($decoded['success'])) {
         navid_log('error', 'browser_bridge_exit_nonzero', [
             'exit' => $exit,
+            'python' => (string) ($result['python'] ?? ''),
+            'runner' => (string) ($result['method'] ?? ''),
             'error' => $decoded['error'] ?? '',
             'message' => $decoded['message'] ?? '',
             'stderr' => substr(trim((string) $stderr), 0, 1500),
@@ -467,6 +681,18 @@ function navid_store_manual_challenge(array &$store, array $browserResult): void
         'captchaDataUri' => $captchaDataUri,
     ];
     navid_set_challenge($store, $challenge);
+}
+
+function navid_browser_error_supports_http_fallback(string $errorCode): bool
+{
+    return in_array($errorCode, [
+        'bridge_missing',
+        'bridge_start_failed',
+        'bridge_process_unavailable',
+        'bridge_invalid_response',
+        'playwright_unavailable',
+        'bridge_exception',
+    ], true);
 }
 
 function navid_sync_store_from_browser_result(array &$store, array $browserResult, string $loginUrl, float $startedAt): array
@@ -1594,6 +1820,16 @@ function navid_sync_browser(bool $force = false): array
         if (empty($browserResult['success'])) {
             $errorCode = (string) ($browserResult['error'] ?? '');
             $message = (string) ($browserResult['message'] ?? 'ورود نوید انجام نشد.');
+            if (navid_browser_error_supports_http_fallback($errorCode)) {
+                navid_log('warning', 'sync_browser_http_fallback', [
+                    'error' => $errorCode,
+                    'message' => $message,
+                ]);
+                flock($lock, LOCK_UN);
+                fclose($lock);
+                $lock = null;
+                return navid_sync($force);
+            }
             $store['state']['lastError'] = $message;
             $store['state']['consecutiveFailures'] = (int) ($store['state']['consecutiveFailures'] ?? 0) + 1;
             $store['state']['lastFailedCourses'] = 0;
@@ -1650,13 +1886,22 @@ function navid_sync_browser(bool $force = false): array
 
         return navid_sync_store_from_browser_result($store, $browserResult, $loginUrl, $startedAt);
     } catch (Throwable $exception) {
+        navid_log('error', 'sync_browser_exception', ['type' => get_class($exception), 'message' => $exception->getMessage()]);
+        flock($lock, LOCK_UN);
+        fclose($lock);
+        $lock = null;
+        try {
+            return navid_sync($force);
+        } catch (Throwable $fallbackException) {
+            navid_log('error', 'sync_http_fallback_exception', ['type' => get_class($fallbackException), 'message' => $fallbackException->getMessage()]);
+        }
+
         $store['state']['lastError'] = 'خطای داخلی همگام‌سازی نوید.';
         $store['state']['consecutiveFailures'] = (int) ($store['state']['consecutiveFailures'] ?? 0) + 1;
         $store['state']['lastFailedCourses'] = 0;
         $store['state']['lastResult'] = 'exception';
         $store['state']['lastSyncDurationMs'] = (int) round((microtime(true) - $startedAt) * 1000);
         navid_save_store($store);
-        navid_log('error', 'sync_browser_exception', ['type' => get_class($exception), 'message' => $exception->getMessage()]);
 
         return [
             'success' => false,
@@ -1665,8 +1910,10 @@ function navid_sync_browser(bool $force = false): array
             'ownerStatus' => navid_build_owner_status($store),
         ];
     } finally {
-        flock($lock, LOCK_UN);
-        fclose($lock);
+        if (is_resource($lock)) {
+            flock($lock, LOCK_UN);
+            fclose($lock);
+        }
     }
 }
 
@@ -1856,6 +2103,14 @@ function navid_create_captcha_challenge_browser(): array
         'loginUrl' => $loginUrl,
     ]);
     if (empty($browserResult['success'])) {
+        $errorCode = (string) ($browserResult['error'] ?? '');
+        if (navid_browser_error_supports_http_fallback($errorCode)) {
+            navid_log('warning', 'challenge_browser_http_fallback', [
+                'error' => $errorCode,
+                'message' => (string) ($browserResult['message'] ?? ''),
+            ]);
+            return navid_create_captcha_challenge();
+        }
         dent_error((string) ($browserResult['message'] ?? 'دریافت کپچای نوید انجام نشد.'), 502);
     }
 
@@ -1889,6 +2144,9 @@ function navid_complete_captcha_challenge_browser(string $captchaCode): array
     if (!is_array($challenge)) {
         dent_error('چالش کپچای فعالی وجود ندارد.', 422);
     }
+    if (is_array($challenge['cookies'] ?? null) && !is_array($challenge['storageState'] ?? null)) {
+        return navid_complete_captcha_challenge($captchaCode);
+    }
 
     $expiresAt = strtotime((string) ($challenge['expiresAt'] ?? ''));
     if ($expiresAt !== false && $expiresAt < time()) {
@@ -1918,6 +2176,13 @@ function navid_complete_captcha_challenge_browser(string $captchaCode): array
 
     if (empty($browserResult['success'])) {
         $errorCode = (string) ($browserResult['error'] ?? '');
+        if (navid_browser_error_supports_http_fallback($errorCode)) {
+            navid_log('warning', 'challenge_complete_http_fallback', [
+                'error' => $errorCode,
+                'message' => (string) ($browserResult['message'] ?? ''),
+            ]);
+            return navid_complete_captcha_challenge($captchaCode);
+        }
         if ($errorCode === 'captcha_invalid') {
             navid_store_manual_challenge($store, $browserResult);
             $store['state']['requiresReconnect'] = true;
