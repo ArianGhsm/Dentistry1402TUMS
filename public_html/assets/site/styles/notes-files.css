@@ -1,7 +1,7 @@
 body.notes-files-page .ndh-main-shell {
     width: min(1160px, 100%);
     margin: 0 auto;
-    padding: 1rem max(0.84rem, 3.6vw) 0;
+    padding: 1rem max(0.84rem, 3.6vw) calc(var(--shell-nav-content-reserve) + 0.78rem);
     display: grid;
     gap: 1rem;
 }

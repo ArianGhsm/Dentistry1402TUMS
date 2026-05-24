@@ -1140,7 +1140,8 @@ html[data-performance-mode="lite"] .exams-card {
 
 @media (max-width: 860px) {
     body.exams-page[data-exams-course] {
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 
     body.exams-page[data-exams-course].has-app-shell {
@@ -1148,23 +1149,21 @@ html[data-performance-mode="lite"] .exams-card {
     }
 
     body.exams-page[data-exams-course] .exams-main {
-        display: flex;
-        height: calc(100dvh - (58px + env(safe-area-inset-top, 0px)) - var(--shell-nav-offset));
-        min-height: calc(100vh - (58px + env(safe-area-inset-top, 0px)) - var(--shell-nav-offset));
-        padding-bottom: 0.8rem;
+        display: block;
+        height: auto;
+        min-height: 0;
+        padding-bottom: calc(var(--shell-nav-content-reserve) + 0.8rem);
     }
 
     body.exams-page[data-exams-course] #exams-course-root,
     body.exams-page[data-exams-course] .exams-course-shell {
-        flex: 1 1 auto;
         min-height: 0;
     }
 
     body.exams-page[data-exams-course] .exams-course-scroll {
-        flex: 1 1 auto;
         min-height: 0;
-        overflow: auto;
-        padding-inline-end: 0.08rem;
+        overflow: visible;
+        padding-inline-end: 0;
         scrollbar-width: thin;
     }
 }

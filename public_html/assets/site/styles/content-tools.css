@@ -40,7 +40,7 @@ body.content-tools-page a {
 .ct-shell {
     width: min(1240px, 100%);
     margin: 0 auto;
-    padding: calc(0.72rem + env(safe-area-inset-top, 0px)) 0.72rem calc(5rem + env(safe-area-inset-bottom, 0px));
+    padding: calc(0.72rem + env(safe-area-inset-top, 0px)) 0.72rem calc(var(--shell-nav-content-reserve) + 0.72rem);
     display: grid;
     gap: 0.72rem;
 }
@@ -614,7 +614,7 @@ body.content-tools-page a {
 .ct-public-shell {
     width: min(920px, 100%);
     margin: 0 auto;
-    padding: calc(0.72rem + env(safe-area-inset-top, 0px)) 0.72rem calc(4rem + env(safe-area-inset-bottom, 0px));
+    padding: calc(0.72rem + env(safe-area-inset-top, 0px)) 0.72rem calc(var(--shell-nav-content-reserve) + 0.56rem);
 }
 
 .ct-public-shell--paste {
