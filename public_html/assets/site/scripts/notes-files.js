@@ -41,6 +41,8 @@
     var state = {
         authKey: "",
         loading: false,
+        browseRequestSeq: 0,
+        activeBrowseRequestSeq: 0,
         busy: false,
         currentPath: "",
         breadcrumbs: [],
@@ -441,6 +443,7 @@
         renderRoots();
         renderBreadcrumbs();
         entriesRoot.innerHTML = "";
+        var fragment = document.createDocumentFragment();
         currentPathLabel.textContent = state.currentPath
             ? (state.currentPath + (state.missingDirectory ? " • هنوز ساخته نشده" : ""))
             : "ریشه منابع";
@@ -482,15 +485,15 @@
                 '</div>',
                 '<div class="ndh-entry-actions">' + actions.join("") + '</div>'
             ].join("");
-            entriesRoot.appendChild(article);
+            fragment.appendChild(article);
         });
+        entriesRoot.appendChild(fragment);
     }
 
     function loadBrowse(path, options) {
-        if (state.loading) {
-            return Promise.resolve();
-        }
-
+        var requestSeq = state.browseRequestSeq + 1;
+        state.browseRequestSeq = requestSeq;
+        state.activeBrowseRequestSeq = requestSeq;
         state.loading = true;
         renderEntries();
         if (!(options && options.silent)) {
@@ -505,6 +508,9 @@
         return request("downloadHostBrowse", "GET", {
             path: nextPath
         }).then(function (payload) {
+            if (requestSeq !== state.activeBrowseRequestSeq) {
+                return;
+            }
             if (payload && (payload.loggedOut || payload.httpStatus === 401)) {
                 setGuard("login", "نیاز به ورود", "برای استفاده از فایل‌منیجر منابع باید وارد حساب مجاز شوید.", loginUrl(), "ورود");
                 return;
@@ -534,9 +540,15 @@
                 setFeedback("", "");
             }
         }).catch(function (error) {
+            if (requestSeq !== state.activeBrowseRequestSeq) {
+                return;
+            }
             state.missingDirectory = false;
             setGuard("error", "خطا در ارتباط با هاست دانلود", error && error.message ? error.message : "فایل‌منیجر با خطا مواجه شد.");
         }).finally(function () {
+            if (requestSeq !== state.activeBrowseRequestSeq) {
+                return;
+            }
             state.loading = false;
             renderEntries();
         });

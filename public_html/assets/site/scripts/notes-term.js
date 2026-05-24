@@ -83,6 +83,7 @@
         termData: null,
         canManage: false,
         loading: false,
+        manageExpanded: false,
         saving: false,
         deletingItemId: 0,
         editingItemId: 0,
@@ -243,6 +244,49 @@
         manageFeedback.textContent = text || "";
         manageFeedback.dataset.kind = kind || "";
         manageFeedback.hidden = !text;
+    }
+
+    function ensureManageToggle() {
+        if (!managePanel || !managePanel.firstElementChild) {
+            return null;
+        }
+        var existing = $("notes-term-manage-toggle");
+        if (existing) {
+            return existing;
+        }
+        var toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.id = "notes-term-manage-toggle";
+        toggle.className = "notes-manage-panel__toggle";
+        toggle.addEventListener("click", function () {
+            state.manageExpanded = !state.manageExpanded;
+            renderTerm();
+        });
+        managePanel.firstElementChild.appendChild(toggle);
+        return toggle;
+    }
+
+    function syncManagePanel() {
+        if (!managePanel) {
+            return;
+        }
+        if (managePanel.hidden) {
+            if (manageForm) {
+                manageForm.hidden = true;
+            }
+            return;
+        }
+        var toggle = ensureManageToggle();
+        var expanded = !!state.manageExpanded;
+        managePanel.dataset.collapsed = expanded ? "false" : "true";
+        if (toggle) {
+            toggle.textContent = expanded ? "بستن مدیریت منابع" : "باز کردن مدیریت منابع";
+            toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+            toggle.setAttribute("aria-controls", "notes-term-form");
+        }
+        if (manageForm) {
+            manageForm.hidden = !expanded;
+        }
     }
 
     function clearCards() {
@@ -428,6 +472,7 @@
         }
 
         state.editingItemId = Number(item.id || 0);
+        state.manageExpanded = true;
         fillForm(item);
         setFeedback("کارت برای ویرایش آماده شد.", "success");
         renderTerm();
@@ -991,11 +1036,13 @@
     function renderTerm() {
         var termData = state.termData;
         clearCards();
+        var fragment = document.createDocumentFragment();
 
         if (!termData) {
             emptyBox.hidden = false;
             emptyBox.textContent = "داده‌ای برای این ترم دریافت نشد.";
             syncEditUi();
+            syncManagePanel();
             syncDownloadHostUi();
             return;
         }
@@ -1014,14 +1061,16 @@
         } else {
             emptyBox.hidden = true;
             items.forEach(function (item) {
-                cardsContainer.appendChild(buildCard(item));
+                fragment.appendChild(buildCard(item));
             });
+            cardsContainer.appendChild(fragment);
         }
 
         if (managePanel) {
             managePanel.hidden = !state.canManage;
         }
         syncEditUi();
+        syncManagePanel();
         syncDownloadHostUi();
     }
 
@@ -1108,6 +1157,8 @@
 
             var payload = readFormPayload();
             if (!payload.badge.trim() || !payload.title.trim() || !payload.description.trim() || !payload.buttonLabel.trim() || !payload.buttonUrl.trim()) {
+                state.manageExpanded = true;
+                syncManagePanel();
                 setFeedback("همه فیلدهای کارت را کامل وارد کنید.", "error");
                 return;
             }
@@ -1118,6 +1169,7 @@
                 payload.itemId = String(state.editingItemId);
             }
 
+            state.manageExpanded = true;
             setFeedback("", "");
             setSaving(true);
 
@@ -1132,10 +1184,12 @@
 
                 applySavedItem(response.item, isEdit);
                 state.editingItemId = 0;
+                state.manageExpanded = true;
                 clearForm();
                 renderTerm();
                 setFeedback(response.message || "کارت منبع ذخیره شد.", "success");
             }).catch(function (error) {
+                state.manageExpanded = true;
                 setFeedback(error && error.message ? error.message : "ذخیره کارت منبع با خطا مواجه شد.", "error");
             }).finally(function () {
                 setSaving(false);
@@ -1180,6 +1234,7 @@
                 return;
             }
 
+            state.manageExpanded = true;
             setFeedback("", "");
             setDeletingItemId(itemId);
 
@@ -1203,9 +1258,11 @@
                     state.editingItemId = 0;
                     clearForm();
                 }
+                state.manageExpanded = true;
                 renderTerm();
                 setFeedback(response.message || "کارت منبع حذف شد.", "success");
             }).catch(function (error) {
+                state.manageExpanded = true;
                 setFeedback(error && error.message ? error.message : "حذف کارت با خطا مواجه شد.", "error");
             }).finally(function () {
                 setDeletingItemId(0);

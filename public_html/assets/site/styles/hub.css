@@ -565,6 +565,12 @@ body.hub-page .notes-manage-panel {
     backdrop-filter: blur(14px);
 }
 
+body.hub-page .notes-manage-panel[data-collapsed="true"] {
+    gap: 0.72rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
 body.hub-page .notes-manage-panel__head h4 {
     margin: 0;
     font-size: 1rem;
@@ -576,6 +582,22 @@ body.hub-page .notes-manage-panel__head p {
     color: var(--text-secondary);
     font-size: 0.82rem;
     line-height: 1.85;
+}
+
+body.hub-page .notes-manage-panel__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+    min-height: 38px;
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid color-mix(in srgb, var(--accent-color) 26%, var(--border-color-strong));
+    background: color-mix(in srgb, var(--accent-color) 8%, var(--surface-solid));
+    color: var(--accent-strong);
+    font-size: 0.77rem;
+    font-weight: 860;
+    transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
 }
 
 body.hub-page .notes-manage-panel__form {
@@ -639,6 +661,22 @@ body.hub-page .notes-manage-panel__cancel {
 
 body.hub-page .notes-manage-panel__submit:disabled {
     opacity: 0.75;
+}
+
+html[data-performance-mode="lite"] body.hub-page .archive-term-list.cards-container,
+html[data-performance-mode="lite"] body.hub-page.notes-term-page .cards-container,
+html[data-performance-mode="lite"] body.hub-page .cards-container[data-layout="rows"],
+html[data-performance-mode="lite"] body.hub-page .notes-manage-panel,
+html[data-performance-mode="lite"] body.hub-page .notes-host-tools,
+html[data-performance-mode="lite"] body.hub-page .archive-empty {
+    backdrop-filter: none;
+    box-shadow: var(--surface-shadow);
+}
+
+html[data-performance-mode="lite"] body.hub-page .archive-term-list .action-card__visual,
+html[data-performance-mode="lite"] body.hub-page.notes-term-page .action-card__visual,
+html[data-performance-mode="lite"] body.hub-page .cards-container[data-layout="rows"] .action-card__visual {
+    box-shadow: none;
 }
 
 body.hub-page .notes-host-tools {
@@ -874,7 +912,8 @@ body.hub-page .notes-manage-feedback[data-kind="error"] {
 
     body.hub-page .notes-manage-panel__submit,
     body.hub-page .notes-manage-panel__cancel,
-    body.hub-page .notes-host-tools__preview {
+    body.hub-page .notes-host-tools__preview,
+    body.hub-page .notes-manage-panel__toggle {
         width: 100%;
     }
 }
@@ -1054,6 +1093,59 @@ body.hub-page .quick-access-section .action-card__visual {
 @media (max-width: 380px) {
     body.hub-page .quick-access-section .cards-container {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (hover: none), (pointer: coarse) {
+    body.hub-page .archive-term-list .action-card:hover,
+    body.hub-page.notes-term-page .action-card:hover,
+    body.hub-page .cards-container[data-layout="rows"] .action-card:hover,
+    body.hub-page .notes-card-edit:hover,
+    body.hub-page .notes-card-delete:hover,
+    body.hub-page .notes-manage-panel__cancel:hover,
+    body.hub-page .notes-manage-panel__toggle:hover,
+    body.hub-page .card-btn:hover,
+    body.hub-page .archive-term-nav a:hover {
+        transform: none;
+        filter: none;
+        box-shadow: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.hub-page .archive-term-list .action-card,
+    body.hub-page.notes-term-page .action-card,
+    body.hub-page .cards-container[data-layout="rows"] .action-card,
+    body.hub-page .card-btn,
+    body.hub-page .notes-card-edit,
+    body.hub-page .notes-card-delete,
+    body.hub-page .notes-manage-panel__cancel,
+    body.hub-page .notes-manage-panel__toggle,
+    body.hub-page .archive-term-nav a,
+    body.hub-page .notes-host-progress__track span {
+        transition: none;
+    }
+
+    body.hub-page .archive-term-list .action-card:hover,
+    body.hub-page .archive-term-list .action-card:focus-within,
+    body.hub-page.notes-term-page .action-card:hover,
+    body.hub-page.notes-term-page .action-card:focus-within,
+    body.hub-page .cards-container[data-layout="rows"] .action-card:hover,
+    body.hub-page .cards-container[data-layout="rows"] .action-card:focus-within,
+    body.hub-page .notes-card-edit:hover,
+    body.hub-page .notes-card-edit:focus-visible,
+    body.hub-page .notes-card-delete:hover,
+    body.hub-page .notes-card-delete:focus-visible,
+    body.hub-page .notes-manage-panel__cancel:hover,
+    body.hub-page .notes-manage-panel__cancel:focus-visible,
+    body.hub-page .notes-manage-panel__toggle:hover,
+    body.hub-page .notes-manage-panel__toggle:focus-visible,
+    body.hub-page .card-btn:hover,
+    body.hub-page .card-btn:focus-visible,
+    body.hub-page .archive-term-nav a:hover,
+    body.hub-page .archive-term-nav a:focus-visible {
+        transform: none;
+        filter: none;
     }
 }
 

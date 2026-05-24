@@ -74,6 +74,7 @@
         editingTermId: 0,
         loadError: "",
         loading: false,
+        manageExpanded: false,
         saving: false,
         terms: []
     };
@@ -236,6 +237,49 @@
         feedback.hidden = !text;
     }
 
+    function ensureManageToggle() {
+        if (!manage || !manage.firstElementChild) {
+            return null;
+        }
+        var existing = $("notes-home-manage-toggle");
+        if (existing) {
+            return existing;
+        }
+        var toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.id = "notes-home-manage-toggle";
+        toggle.className = "notes-manage-panel__toggle";
+        toggle.addEventListener("click", function () {
+            state.manageExpanded = !state.manageExpanded;
+            render();
+        });
+        manage.firstElementChild.appendChild(toggle);
+        return toggle;
+    }
+
+    function syncManagePanel() {
+        if (!manage) {
+            return;
+        }
+        if (manage.hidden) {
+            if (form) {
+                form.hidden = true;
+            }
+            return;
+        }
+        var toggle = ensureManageToggle();
+        var expanded = !!state.manageExpanded;
+        manage.dataset.collapsed = expanded ? "false" : "true";
+        if (toggle) {
+            toggle.textContent = expanded ? "بستن مدیریت ترم‌ها" : "باز کردن مدیریت ترم‌ها";
+            toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+            toggle.setAttribute("aria-controls", "notes-home-form");
+        }
+        if (form) {
+            form.hidden = !expanded;
+        }
+    }
+
     function inputs() {
         return {
             title: $("notes-home-term-title"),
@@ -288,6 +332,7 @@
         }
 
         fillForm(term);
+        state.manageExpanded = true;
         setFeedback("ترم برای ویرایش آماده شد.", "success");
         render();
         if (manage && typeof manage.scrollIntoView === "function") {
@@ -387,10 +432,12 @@
     function render() {
         applyPageCopy();
         list.innerHTML = "";
+        var fragment = document.createDocumentFragment();
 
         if (manage) {
             manage.hidden = !homeCanManage();
         }
+        syncManagePanel();
         if (submit) {
             submit.disabled = state.saving;
             submit.textContent = state.saving
@@ -416,8 +463,9 @@
 
         empty.hidden = true;
         state.terms.forEach(function (term) {
-            list.appendChild(buildCard(term));
+            fragment.appendChild(buildCard(term));
         });
+        list.appendChild(fragment);
     }
 
     function loadTerms(options) {
@@ -468,11 +516,14 @@
 
         var payload = readPayload();
         if (!payload.title) {
+            state.manageExpanded = true;
+            syncManagePanel();
             setFeedback("عنوان ترم را وارد کن.", "error");
             return;
         }
 
         state.saving = true;
+        state.manageExpanded = true;
         render();
 
         var editingId = state.editingTermId;
@@ -490,10 +541,12 @@
             }
 
             state.editingTermId = 0;
+            state.manageExpanded = true;
             clearForm();
             setFeedback(editingId ? "ترم ویرایش شد." : "ترم جدید اضافه شد.", "success");
             return loadTerms({ silent: true });
         }).catch(function (error) {
+            state.manageExpanded = true;
             setFeedback(error && error.message ? error.message : "ذخیره ترم انجام نشد.", "error");
         }).finally(function () {
             state.saving = false;
@@ -516,6 +569,7 @@
         }
 
         state.deletingTermId = id;
+        state.manageExpanded = true;
         render();
 
         request("deleteTerm", "POST", { term: String(id) }).then(function (response) {
@@ -530,9 +584,11 @@
                 state.editingTermId = 0;
                 clearForm();
             }
+            state.manageExpanded = true;
             setFeedback("ترم حذف شد.", "success");
             return loadTerms({ silent: true });
         }).catch(function (error) {
+            state.manageExpanded = true;
             setFeedback(error && error.message ? error.message : "حذف ترم انجام نشد.", "error");
         }).finally(function () {
             state.deletingTermId = 0;
