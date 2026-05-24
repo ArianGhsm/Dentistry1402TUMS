@@ -108,7 +108,12 @@ body.forms-page button {
     padding: 0.5rem 0.78rem;
     font-size: 0.78rem;
     font-weight: 850;
-    transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease, opacity 0.16s ease;
+    transition:
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard),
+        transform var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft),
+        opacity var(--motion-fast) var(--motion-ease-standard);
 }
 
 .forms-icon-btn {
@@ -292,6 +297,10 @@ body.forms-page button {
     color: var(--forms-text);
     padding: 0.56rem 0.72rem;
     font-size: 0.82rem;
+    transition:
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft),
+        background-color var(--motion-base) var(--motion-ease-soft);
 }
 
 .forms-field textarea {
@@ -447,6 +456,7 @@ body.forms-page button {
     color: var(--forms-text-soft);
     font-size: 0.72rem;
     line-height: 1.8;
+    overflow-wrap: anywhere;
 }
 
 .forms-response-card {
@@ -461,6 +471,7 @@ body.forms-page button {
 .forms-response-card h3 {
     margin: 0;
     font-size: 0.88rem;
+    overflow-wrap: anywhere;
 }
 
 .forms-answer-grid {
@@ -486,6 +497,7 @@ body.forms-page button {
 .forms-answer strong {
     font-size: 0.78rem;
     line-height: 1.8;
+    overflow-wrap: anywhere;
 }
 
 .forms-fill-question {
@@ -765,7 +777,9 @@ body.forms-page button {
     text-align: center;
     padding: 0.64rem 0.9rem;
     font-size: 0.78rem;
-    transition: opacity 0.16s ease, transform 0.16s ease;
+    transition:
+        opacity var(--motion-fast) var(--motion-ease-standard),
+        transform var(--motion-fast) var(--motion-ease-standard);
 }
 
 .forms-toast.is-show {
@@ -786,6 +800,54 @@ html[data-theme="dark"] .forms-card--accent {
 
 html[data-theme="dark"] .forms-result-bar {
     background: rgba(114, 169, 255, 0.18);
+}
+
+html[data-performance-mode="lite"] body.forms-page .forms-topbar,
+html[data-performance-mode="lite"] body.forms-page .forms-card,
+html[data-performance-mode="lite"] body.forms-page .forms-tabs button,
+html[data-performance-mode="lite"] body.forms-page .forms-metric {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: var(--surface-shadow);
+}
+
+@media (hover: none), (pointer: coarse) {
+    .forms-btn:hover,
+    .forms-btn:focus-visible,
+    .forms-icon-btn:hover,
+    .forms-icon-btn:focus-visible,
+    .forms-tabs button:hover,
+    .forms-tabs button:focus-visible,
+    .forms-copy-mini:hover,
+    .forms-copy-mini:focus-visible {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .forms-btn,
+    .forms-icon-btn,
+    .forms-tabs button,
+    .forms-field input,
+    .forms-field textarea,
+    .forms-field select,
+    .forms-card-head select,
+    .forms-share-input,
+    .forms-toast,
+    .forms-copy-mini {
+        transition: none;
+    }
+
+    .forms-btn:hover,
+    .forms-btn:focus-visible,
+    .forms-icon-btn:hover,
+    .forms-icon-btn:focus-visible,
+    .forms-tabs button:hover,
+    .forms-tabs button:focus-visible,
+    .forms-copy-mini:hover,
+    .forms-copy-mini:focus-visible {
+        transform: none;
+    }
 }
 
 @media (max-width: 860px) {
@@ -818,6 +880,12 @@ html[data-theme="dark"] .forms-result-bar {
 
     .forms-submit-card {
         display: grid;
+    }
+
+    .forms-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
     }
 
     .forms-actions .forms-btn,

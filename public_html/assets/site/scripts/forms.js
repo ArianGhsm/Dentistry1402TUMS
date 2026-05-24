@@ -82,7 +82,9 @@
         editingId: "",
         fields: [],
         toastTimer: 0,
-        loading: false
+        loadFormsRequestId: 0,
+        loadResponsesRequestId: 0,
+        editRequestId: 0
     };
 
     function parseApiResponse(response) {
@@ -532,6 +534,7 @@
     function renderFieldEditor() {
         applyKindRestrictions();
         fieldsEditor.innerHTML = "";
+        var fragment = document.createDocumentFragment();
         state.fields.forEach(function (field, index) {
             var card = document.createElement("article");
             card.className = "forms-field-card";
@@ -660,8 +663,9 @@
                 card.appendChild(renderReceiptPaymentEditor(field));
             }
 
-            fieldsEditor.appendChild(card);
+            fragment.appendChild(card);
         });
+        fieldsEditor.appendChild(fragment);
     }
 
     function renderOptionsEditor(field) {
@@ -1102,15 +1106,23 @@
     async function editForm(formId) {
         var cleanId = String(formId || "");
         if (!cleanId) return;
+        var requestId = state.editRequestId + 1;
+        state.editRequestId = requestId;
         setFeedback("در حال دریافت نسخه کامل فرم برای ویرایش...", "");
         try {
             var response = await apiGet("get", { formId: cleanId });
+            if (requestId !== state.editRequestId) {
+                return;
+            }
             if (consumeUnauthorized(response)) return;
             if (!response || !response.success || !response.form) {
                 throw new Error((response && response.error) || "دریافت فرم برای ویرایش انجام نشد.");
             }
             populateBuilder(response.form);
         } catch (error) {
+            if (requestId !== state.editRequestId) {
+                return;
+            }
             setFeedback(error && error.message ? error.message : "دریافت فرم برای ویرایش انجام نشد.", "error");
             showToast(error && error.message ? error.message : "دریافت فرم برای ویرایش انجام نشد.");
         }
@@ -1120,6 +1132,7 @@
         updateSummary();
         formsList.innerHTML = "";
         formsEmpty.hidden = state.forms.length > 0;
+        var fragment = document.createDocumentFragment();
         state.forms.forEach(function (form) {
             var item = document.createElement("article");
             item.className = "forms-item";
@@ -1237,15 +1250,20 @@
             }
 
             item.appendChild(actions);
-            formsList.appendChild(item);
+            fragment.appendChild(item);
         });
+        formsList.appendChild(fragment);
     }
 
     async function loadForms() {
-        if (state.loading) return;
-        state.loading = true;
+        var requestId = state.loadFormsRequestId + 1;
+        state.loadFormsRequestId = requestId;
+        reloadBtn.disabled = true;
         try {
             var response = await apiGet("list");
+            if (requestId !== state.loadFormsRequestId) {
+                return;
+            }
             if (consumeUnauthorized(response)) return;
             if (!response || !response.success) {
                 throw new Error((response && response.error) || "بارگذاری فرم‌ها انجام نشد.");
@@ -1254,9 +1272,14 @@
             state.canCreate = !!response.canCreate;
             renderFormsList();
         } catch (error) {
+            if (requestId !== state.loadFormsRequestId) {
+                return;
+            }
             showToast(error && error.message ? error.message : "بارگذاری انجام نشد.");
         } finally {
-            state.loading = false;
+            if (requestId === state.loadFormsRequestId) {
+                reloadBtn.disabled = false;
+            }
         }
     }
 
@@ -1341,8 +1364,13 @@
     }
 
     async function loadResponses(formId) {
+        var requestId = state.loadResponsesRequestId + 1;
+        state.loadResponsesRequestId = requestId;
         try {
             var response = await apiGet("responses", { formId: String(formId || "") });
+            if (requestId !== state.loadResponsesRequestId) {
+                return;
+            }
             if (consumeUnauthorized(response)) return;
             if (!response || !response.success) {
                 throw new Error((response && response.error) || "دریافت پاسخ‌ها انجام نشد.");
@@ -1350,6 +1378,9 @@
             renderResponses(response.form || null, response.responses || []);
             setTab("responses");
         } catch (error) {
+            if (requestId !== state.loadResponsesRequestId) {
+                return;
+            }
             showToast(error && error.message ? error.message : "دریافت پاسخ‌ها انجام نشد.");
         }
     }
@@ -1366,6 +1397,7 @@
             exportLink.hidden = true;
             exportLink.removeAttribute("href");
         }
+        var fragment = document.createDocumentFragment();
         responses.forEach(function (response) {
             var card = document.createElement("article");
             card.className = "forms-response-card";
@@ -1387,8 +1419,9 @@
                 grid.appendChild(item);
             });
             card.appendChild(grid);
-            responsesList.appendChild(card);
+            fragment.appendChild(card);
         });
+        responsesList.appendChild(fragment);
     }
 
     async function loadSession() {

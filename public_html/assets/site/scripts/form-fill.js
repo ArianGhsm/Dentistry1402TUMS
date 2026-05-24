@@ -51,7 +51,7 @@
         viewer: null,
         form: null,
         toastTimer: 0,
-        loading: false
+        loadRequestId: 0
     };
 
     function parseApiResponse(response) {
@@ -564,6 +564,7 @@
         var total = Number(results.totalResponses || 0);
         resultsTotal.textContent = total.toLocaleString("fa-IR") + " پاسخ";
         resultsNote.textContent = "";
+        var fragment = document.createDocumentFragment();
         (Array.isArray(results.options) ? results.options : []).forEach(function (option) {
             var item = document.createElement("div");
             item.className = "forms-results-item";
@@ -582,8 +583,9 @@
             fill.style.width = Math.max(0, Math.min(100, Number(option.percent || 0))) + "%";
             bar.appendChild(fill);
             item.appendChild(bar);
-            resultsList.appendChild(item);
+            fragment.appendChild(item);
         });
+        resultsList.appendChild(fragment);
     }
 
     function renderForm(payload) {
@@ -610,9 +612,11 @@
         guestPhoneInput.closest(".forms-field").hidden = !(isGuest && !!settings.collectGuestPhone);
 
         fieldsRoot.innerHTML = "";
+        var fragment = document.createDocumentFragment();
         (Array.isArray(form.fields) ? form.fields : []).forEach(function (field) {
-            fieldsRoot.appendChild(renderQuestion(field));
+            fragment.appendChild(renderQuestion(field));
         });
+        fieldsRoot.appendChild(fragment);
 
         submitBtn.disabled = !(form.permissions && form.permissions.canSubmit);
         if (submitBtn.disabled) {
@@ -684,11 +688,14 @@
             showStage("not-found");
             return;
         }
-        if (state.loading) return;
-        state.loading = true;
+        var requestId = state.loadRequestId + 1;
+        state.loadRequestId = requestId;
         refreshBtn.disabled = true;
         try {
             var response = await apiGet("get", { form: formId, guestKey: guestKey() });
+            if (requestId !== state.loadRequestId) {
+                return;
+            }
             if (response && response.httpStatus === 401) {
                 loginLink.href = window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search);
                 showStage("login");
@@ -704,16 +711,23 @@
             renderForm(response);
             if (paymentOrderToken) {
                 var resultResponse = await paymentApiGet("publicOrderResult", { orderToken: paymentOrderToken });
+                if (requestId !== state.loadRequestId) {
+                    return;
+                }
                 if (resultResponse && resultResponse.success && resultResponse.order) {
                     setFeedback(String(resultResponse.order.message || ""), resultResponse.order.status === "success" ? "success" : "error");
                 }
             }
         } catch (error) {
+            if (requestId !== state.loadRequestId) {
+                return;
+            }
             setFeedback(error && error.message ? error.message : "بارگذاری انجام نشد.", "error");
             showStage("stage");
         } finally {
-            state.loading = false;
-            refreshBtn.disabled = false;
+            if (requestId === state.loadRequestId) {
+                refreshBtn.disabled = false;
+            }
         }
     }
 

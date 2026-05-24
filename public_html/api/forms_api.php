@@ -2286,6 +2286,15 @@ function forms_receipt_file_path(array $receipt): string
     return forms_receipts_dir($cohort) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $clean);
 }
 
+function forms_delete_receipt_file(array $receipt): void
+{
+    $path = forms_receipt_file_path($receipt);
+    if ($path === '' || !is_file($path)) {
+        return;
+    }
+    @unlink($path);
+}
+
 function forms_uploaded_receipt_mime(string $tmpName, string $originalName): string
 {
     $mime = '';
@@ -2675,6 +2684,12 @@ if ($action === 'delete') {
     foreach ($store['responses'] as $responseId => $response) {
         if (is_array($response) && (string) ($response['formId'] ?? '') === $formId) {
             unset($store['responses'][$responseId]);
+        }
+    }
+    foreach ($store['receiptUploads'] as $receiptId => $receipt) {
+        if (is_array($receipt) && (string) ($receipt['formId'] ?? '') === $formId) {
+            forms_delete_receipt_file($receipt);
+            unset($store['receiptUploads'][$receiptId]);
         }
     }
     forms_save_store($store);

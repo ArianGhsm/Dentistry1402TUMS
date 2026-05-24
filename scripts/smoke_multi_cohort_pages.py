@@ -118,17 +118,58 @@ def run_smoke_session(args: argparse.Namespace) -> None:
                 raise RuntimeError(f"Owner login failed in smoke test: {login_payload}")
 
             cohorts = ["dentistry-1402", "dentistry-1403", "dentistry-1404", "prosthesis-1402"]
+            forms_by_cohort: dict[str, list[dict]] = {}
             for cohort in cohorts:
                 request_status_ok(
                     opener,
                     base_url + f"/api/forms_api.php?action=session&cohort={urllib.parse.quote(cohort)}",
                 )
-                request_status_ok(
+                list_payload = request_json(
                     opener,
                     base_url + f"/api/forms_api.php?action=list&cohort={urllib.parse.quote(cohort)}",
                 )
+                if not list_payload.get("success"):
+                    raise RuntimeError(f"Forms list failed for {cohort}: {list_payload}")
+                forms = list_payload.get("forms")
+                forms_by_cohort[cohort] = forms if isinstance(forms, list) else []
+
+                first_form = forms_by_cohort[cohort][0] if forms_by_cohort[cohort] else None
+                if isinstance(first_form, dict) and first_form.get("id"):
+                    get_payload = request_json(
+                        opener,
+                        base_url
+                        + f"/api/forms_api.php?action=get&cohort={urllib.parse.quote(cohort)}&form={urllib.parse.quote(str(first_form['id']))}",
+                    )
+                    if not get_payload.get("success"):
+                        raise RuntimeError(f"Forms get failed for {cohort}: {get_payload}")
+
+                manageable_form = next(
+                    (
+                        form
+                        for form in forms_by_cohort[cohort]
+                        if isinstance(form, dict)
+                        and form.get("id")
+                        and isinstance(form.get("permissions"), dict)
+                        and form["permissions"].get("canManage")
+                    ),
+                    None,
+                )
+                if manageable_form is not None:
+                    responses_payload = request_json(
+                        opener,
+                        base_url
+                        + f"/api/forms_api.php?action=responses&cohort={urllib.parse.quote(cohort)}&formId={urllib.parse.quote(str(manageable_form['id']))}",
+                    )
+                    if not responses_payload.get("success"):
+                        raise RuntimeError(f"Forms responses failed for {cohort}: {responses_payload}")
 
             pages = [
+                "/forms/",
+                "/forms/fill/",
+                "/forms/?cohort=dentistry-1403",
+                "/forms/?cohort=dentistry-1404",
+                "/forms/?cohort=prosthesis-1402",
+                "/forms/fill/?cohort=prosthesis-1402",
                 "/notes/",
                 "/notes/term/?term=6",
                 "/notes/?cohort=dentistry-1403",
