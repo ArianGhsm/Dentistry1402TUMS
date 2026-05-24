@@ -1534,40 +1534,12 @@
     }
 
     function syncStageScale() {
-        var shell = appRoot.querySelector(".exam-stage-shell");
         var scaler = appRoot.querySelector(".exam-stage-scaler");
-        var canvas = appRoot.querySelector(".exam-stage-canvas");
-        if (!shell || !scaler || !canvas) {
+        if (!scaler) {
             return;
         }
 
         scaler.style.setProperty("--exam-stage-scale", "1");
-
-        var availableWidth = shell.clientWidth;
-        var availableHeight = shell.clientHeight;
-        var canvasWidth = canvas.scrollWidth;
-        var canvasHeight = canvas.scrollHeight;
-
-        if (!availableWidth || !availableHeight || !canvasWidth || !canvasHeight) {
-            return;
-        }
-
-        var overflowAllowance = stageHeightAllowanceRatio();
-        var heightBudget = availableHeight * overflowAllowance;
-        var widthScale = availableWidth / canvasWidth;
-        var heightScale = heightBudget / canvasHeight;
-        var scale = Math.min(1, widthScale, heightScale);
-        scaler.style.setProperty("--exam-stage-scale", String(scale));
-    }
-
-    function stageHeightAllowanceRatio() {
-        if (window.innerWidth <= 680) {
-            return 1.45;
-        }
-        if (window.innerWidth <= 960) {
-            return 1.3;
-        }
-        return 1.18;
     }
 
     function railWindowSize() {

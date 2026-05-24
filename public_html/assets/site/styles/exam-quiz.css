@@ -85,7 +85,8 @@ html[data-theme="dark"] body.quiz-page {
 
 body.quiz-page.quiz-stage-active,
 body.quiz-page.quiz-stage-active.has-app-shell {
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     padding-bottom: 0;
 }
 
@@ -95,7 +96,8 @@ body.quiz-page [data-exam-app] * {
 }
 
 body.quiz-page .exam-main {
-    width: min(100%, var(--exam-frame-max));
+    width: 100%;
+    max-width: none;
     margin: 0 auto;
     padding: clamp(0.55rem, 1.45vw, 0.95rem) clamp(0.5rem, 1.75vw, 0.95rem) calc(clamp(0.55rem, 1.45vw, 0.95rem) + env(safe-area-inset-bottom, 0px));
     min-width: 0;
@@ -105,40 +107,29 @@ body.quiz-page .exam-main {
 
 body.quiz-page .exam-shell {
     min-height: var(--exam-shell-usable-height);
-    height: var(--exam-shell-usable-height);
+    height: auto;
 }
 
 body.quiz-page .exam-shell .exam-main {
     min-height: 100%;
-    height: 100%;
-    display: flex;
+    height: auto;
+    display: block;
 }
 
 body.quiz-page .exam-panel {
     position: relative;
-    overflow: hidden;
-    border: 1px solid var(--exam-line-strong);
-    border-radius: 30px;
-    background:
-        linear-gradient(180deg, var(--exam-panel-top), var(--exam-panel-bottom)),
-        var(--exam-panel-bg);
-    box-shadow:
-        0 28px 64px -42px var(--exam-shadow-ambient),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(22px);
-    -webkit-backdrop-filter: blur(22px);
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 body.quiz-page .exam-panel::before,
 body.quiz-page .exam-stage::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-        radial-gradient(circle at top right, var(--exam-highlight-a), transparent 32%),
-        radial-gradient(circle at bottom left, var(--exam-highlight-b), transparent 28%);
-    opacity: 0.9;
+    content: none;
 }
 
 body.quiz-page .exam-empty-state,
@@ -193,23 +184,19 @@ body.quiz-page .exam-back-link:focus-visible {
 }
 
 body.quiz-page .exam-shell .exam-stage-shell {
-    flex: 1 1 auto;
     min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    overscroll-behavior: contain;
+    overflow: visible;
+    display: block;
+    overscroll-behavior: auto;
 }
 
 body.quiz-page .exam-stage-scaler {
     width: 100%;
-    max-width: var(--exam-frame-max);
-    transform: scale(var(--exam-stage-scale));
+    max-width: none;
+    transform: none;
     transform-origin: top center;
-    transition: transform var(--motion-base) var(--motion-ease-standard);
-    will-change: transform;
+    transition: none;
+    will-change: auto;
 }
 
 body.quiz-page .exam-stage-canvas {
@@ -219,11 +206,11 @@ body.quiz-page .exam-stage-canvas {
 
 body.quiz-page .exam-stage {
     position: relative;
-    min-height: 100%;
+    min-height: auto;
     display: grid;
     grid-template-rows: auto auto minmax(0, 1fr);
     gap: 0.82rem;
-    padding: clamp(0.8rem, 1.6vw, 1.05rem);
+    padding: clamp(0.65rem, 1.55vw, 1.1rem) 0;
     color: var(--exam-text);
 }
 
@@ -1381,8 +1368,7 @@ body.quiz-page .exam-empty-card .exam-btn {
 
     body.quiz-page .exam-stage {
         gap: 0.62rem;
-        padding: 0.68rem;
-        border-radius: 26px;
+        padding: 0.68rem 0;
         grid-template-rows: auto auto auto minmax(0, 1fr);
     }
 
@@ -1762,7 +1748,7 @@ body.quiz-page .exam-empty-card .exam-btn {
 @media (max-height: 860px) {
     body.quiz-page .exam-stage {
         gap: 0.68rem;
-        padding: 0.74rem;
+        padding: 0.74rem 0;
     }
 
     body.quiz-page .exam-session-card,
@@ -1784,7 +1770,7 @@ body.quiz-page .exam-empty-card .exam-btn {
 @media (max-height: 740px) {
     body.quiz-page .exam-stage {
         gap: 0.58rem;
-        padding: 0.64rem;
+        padding: 0.64rem 0;
     }
 
     body.quiz-page .exam-kicker,
