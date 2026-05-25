@@ -14,6 +14,10 @@
     var manageFeedback = $("notes-term-feedback");
     var addSubmit = $("notes-term-submit");
     var backLink = $("notes-term-back-link");
+    var heroKicker = document.querySelector(".hero-content .greeting-pill");
+    var sectionLead = document.querySelector("#notes-term-section .archive-term__head p");
+    var manageHeading = managePanel ? managePanel.querySelector(".notes-manage-panel__head h4") : null;
+    var manageLead = managePanel ? managePanel.querySelector(".notes-manage-panel__head p") : null;
 
     if (!cardsContainer || !emptyBox) {
         return;
@@ -45,7 +49,7 @@
             return false;
         }
         if (cohortKey === "1402") {
-            return value >= 5 && value <= 12;
+            return value >= 4 && value <= 12;
         }
         if (cohortKey === "1403") {
             return value >= 3 && value <= 12;
@@ -65,23 +69,18 @@
     cohort = normalizeNotesCohort(cohort);
     var rawTerm = String(document.body.dataset.termNumber || searchParams.get("term") || "");
     var term = Number(rawTerm || "0");
+    var requestedUnitKey = String(searchParams.get("unit") || "").trim().toLowerCase();
     if (["1402", "1403", "1404", "prosthesis-1402"].indexOf(cohort) === -1) {
         return;
     }
     if (!isValidTermForCohort(cohort, term)) {
         return;
     }
-    if (backLink && cohort !== "1402") {
-        if (authApi && typeof authApi.appendCohortQuery === "function") {
-            backLink.href = authApi.appendCohortQuery("/notes/", cohort);
-        } else {
-            backLink.href = "/notes/?cohort=" + encodeURIComponent(cohort);
-        }
-    }
 
     var state = {
         termData: null,
         canManage: false,
+        loadError: "",
         loading: false,
         manageExpanded: false,
         saving: false,
@@ -104,6 +103,118 @@
             completedAt: ""
         }
     };
+
+    function isCurriculumCohort() {
+        return cohort === "1402" || cohort === "1403" || cohort === "1404";
+    }
+
+    function isUnitMode() {
+        return isCurriculumCohort() && requestedUnitKey !== "";
+    }
+
+    function toFaDigits(value) {
+        return String(value == null ? "" : value).replace(/\d/g, function (digit) {
+            return ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"][Number(digit)] || digit;
+        });
+    }
+
+    function cohortHomePath() {
+        if (cohort === "1403") {
+            return "/notes/1403/";
+        }
+        if (cohort === "1404") {
+            return "/notes/1404/";
+        }
+        return "/notes/";
+    }
+
+    function buildContextUrl(pathname, termValue, unitKey) {
+        var url = new URL(pathname, window.location.origin);
+        if (Number(termValue || 0) > 0) {
+            url.searchParams.set("term", String(termValue));
+        }
+        if (unitKey) {
+            url.searchParams.set("unit", unitKey);
+        }
+        if (cohort !== "1402") {
+            url.searchParams.set("cohort", cohort);
+        }
+        return url.pathname + (url.search || "");
+    }
+
+    function homeUrl(termValue, unitKey) {
+        return buildContextUrl(cohortHomePath(), termValue, unitKey);
+    }
+
+    function resolveItemStorageTerm(item) {
+        var value = Number(item && item.storageTerm ? item.storageTerm : term);
+        if (!Number.isFinite(value) || value <= 0) {
+            return term;
+        }
+        return value;
+    }
+
+    function applyPagePresentation(termData) {
+        var data = termData && typeof termData === "object" ? termData : {};
+        var mode = String(data.mode || "");
+        var displayTerm = Number(data.termNumber || data.term || term || 0);
+        var displayTermLabel = data.termLabel || ("ترم " + toFaDigits(displayTerm));
+        var isCurriculumUnit = mode === "curriculum-unit" || isUnitMode();
+        var isLegacyTerm = isCurriculumCohort() && !isCurriculumUnit && displayTerm > 0 && displayTerm < 4;
+
+        if (document.body) {
+            if (isCurriculumCohort()) {
+                document.body.classList.add("notes-curriculum-page");
+            }
+            document.body.dataset.notesView = isCurriculumUnit ? "unit" : (isLegacyTerm ? "legacy-term" : "term");
+        }
+
+        if (heroKicker) {
+            heroKicker.textContent = isCurriculumUnit
+                ? (data.categoryTitle || displayTermLabel)
+                : (data.kicker || displayTermLabel);
+        }
+
+        if (sectionLead) {
+            if (isCurriculumUnit) {
+                sectionLead.textContent = "منابع این واحد در همین صفحه نمایش داده می‌شوند و اگر کارت قدیمی‌تری هم به این درس تعلق داشته باشد، باز هم اینجا دیده می‌شود.";
+            } else if (isLegacyTerm) {
+                sectionLead.textContent = "این آرشیو هنوز خارج از ساختار اصلی ترم‌های ۴ تا ۱۲ نگه‌داری می‌شود تا هیچ منبع فعلی از دسترس خارج نشود.";
+            } else if (isCurriculumCohort()) {
+                sectionLead.textContent = "منابع این ترم از دل ساختار دانشکده نمایش داده می‌شوند و از همین صفحه هم قابل مدیریت هستند.";
+            } else {
+                sectionLead.textContent = "کارت‌های این ترم از سرور بارگذاری می‌شوند و مدیریت آن‌ها فقط از طریق پنل همین صفحه انجام می‌شود.";
+            }
+        }
+
+        if (manageHeading) {
+            manageHeading.textContent = isCurriculumUnit
+                ? "مدیریت منابع این واحد"
+                : "مدیریت کارت‌های این ترم";
+        }
+        if (manageLead) {
+            manageLead.textContent = isCurriculumUnit
+                ? "کارت جدیدی که اینجا ثبت شود، به همین واحد وصل می‌شود و در صفحه عمومی همین درس نمایش داده خواهد شد."
+                : "مالک یا مدیر مجاز می‌تواند کارت جدید اضافه کند، کارت‌های موجود را ویرایش کند یا حذف کند.";
+        }
+
+        if (backLink) {
+            if (isCurriculumCohort()) {
+                backLink.href = isCurriculumUnit ? homeUrl(displayTerm, "") : homeUrl(0, "");
+                backLink.textContent = isCurriculumUnit
+                    ? ("بازگشت به " + displayTermLabel)
+                    : "بازگشت به همه ترم‌ها";
+            } else if (cohort !== "1402") {
+                if (authApi && typeof authApi.appendCohortQuery === "function") {
+                    backLink.href = authApi.appendCohortQuery("/notes/", cohort);
+                } else {
+                    backLink.href = "/notes/?cohort=" + encodeURIComponent(cohort);
+                }
+            }
+        }
+
+        document.title = (data.title || displayTermLabel) + " | آرشیو منابع";
+    }
 
     function authSnapshotKey() {
         var auth = window.Dent1402Auth;
@@ -193,7 +304,16 @@
     function withContextPayload(payload) {
         var next = Object.assign({ cohort: cohort }, payload || {});
         if (cohort === "1402" || cohort === "1403" || cohort === "1404" || cohort === "prosthesis-1402") {
-            next.term = String(term);
+            var payloadTerm = Number(next.term || term);
+            next.term = String(Number.isFinite(payloadTerm) && payloadTerm > 0 ? payloadTerm : term);
+        }
+        if (isCurriculumCohort() && requestedUnitKey) {
+            if (next.unit === undefined) {
+                next.unit = requestedUnitKey;
+            }
+            if (next.unitKey === undefined) {
+                next.unitKey = requestedUnitKey;
+            }
         }
         return next;
     }
@@ -874,17 +994,6 @@
             return;
         }
 
-        var payload = new FormData();
-        payload.append("cohort", cohort);
-        if (cohort === "1402" || cohort === "1403" || cohort === "1404" || cohort === "prosthesis-1402") {
-            payload.append("term", String(term));
-        }
-        payload.append("path", pathValue);
-        if (ui.nameInput && String(ui.nameInput.value || "").trim()) {
-            payload.append("fileName", String(ui.nameInput.value || "").trim());
-        }
-        payload.append("file", file);
-
         state.uploadBusy = true;
         state.uploadProgress = {
             visible: true,
@@ -904,9 +1013,18 @@
         var xhr = new XMLHttpRequest();
         state.uploadCancelRequested = false;
         state.uploadXhr = xhr;
-        xhr.open("POST", "/api/notes_api.php?action=downloadHostUpload", true);
+        var requestUrl = "/api/notes_api.php?action=downloadHostUpload"
+            + "&cohort=" + encodeURIComponent(cohort)
+            + "&term=" + encodeURIComponent(String(term))
+            + "&path=" + encodeURIComponent(pathValue);
+        if (ui.nameInput && String(ui.nameInput.value || "").trim()) {
+            requestUrl += "&fileName=" + encodeURIComponent(String(ui.nameInput.value || "").trim());
+        }
+        xhr.open("POST", requestUrl, true);
         xhr.withCredentials = true;
         xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("Content-Type", file && file.type ? file.type : "application/octet-stream");
+        xhr.setRequestHeader("X-Dent-Upload-Name", encodeURIComponent((ui.nameInput && String(ui.nameInput.value || "").trim()) || file.name || "file"));
 
         xhr.upload.onprogress = function (event) {
             if (!event.lengthComputable) {
@@ -1030,17 +1148,22 @@
             setHostStatus(canceledByUser ? "آپلود فایل از طرف کاربر لغو شد." : "آپلود فایل توسط مرورگر متوقف شد.", canceledByUser ? "" : "error");
         };
 
-        xhr.send(payload);
+        xhr.send(file);
     }
 
     function renderTerm() {
         var termData = state.termData;
         clearCards();
         var fragment = document.createDocumentFragment();
+        applyPagePresentation(termData || {
+            termNumber: term,
+            termLabel: "ترم " + toFaDigits(term),
+            mode: isUnitMode() ? "curriculum-unit" : ""
+        });
 
         if (!termData) {
             emptyBox.hidden = false;
-            emptyBox.textContent = "داده‌ای برای این ترم دریافت نشد.";
+            emptyBox.textContent = state.loadError || "داده‌ای برای این ترم دریافت نشد.";
             syncEditUi();
             syncManagePanel();
             syncDownloadHostUi();
@@ -1096,6 +1219,7 @@
             emptyBox.hidden = false;
             emptyBox.textContent = "در حال دریافت منابع این ترم...";
         }
+        state.loadError = "";
 
         return request("term", "GET", {}).then(function (payload) {
             if (handleUnauthorized(payload)) {
@@ -1112,19 +1236,21 @@
 
             state.termData = payload.term;
             state.canManage = !!payload.canManage;
+            state.loadError = "";
             state.downloadHost = payload.downloadHost || null;
             if (state.editingItemId && !findItem(state.editingItemId)) {
                 state.editingItemId = 0;
             }
             renderTerm();
         }).catch(function (error) {
-            emptyBox.hidden = false;
-            emptyBox.textContent = error && error.message ? error.message : "دریافت منابع با خطا مواجه شد.";
+            state.termData = null;
+            state.loadError = error && error.message ? error.message : "دریافت منابع با خطا مواجه شد.";
             state.canManage = false;
             state.downloadHost = null;
             if (managePanel) {
                 managePanel.hidden = true;
             }
+            renderTerm();
         }).finally(function () {
             state.loading = false;
         });
@@ -1166,7 +1292,9 @@
             var isEdit = state.editingItemId > 0;
             var action = isEdit ? "editItem" : "addItem";
             if (isEdit) {
+                var editingItem = findItem(state.editingItemId);
                 payload.itemId = String(state.editingItemId);
+                payload.term = String(resolveItemStorageTerm(editingItem));
             }
 
             state.manageExpanded = true;
@@ -1239,7 +1367,8 @@
             setDeletingItemId(itemId);
 
             request("deleteItem", "POST", {
-                itemId: String(itemId)
+                itemId: String(itemId),
+                term: String(resolveItemStorageTerm(findItem(itemId)))
             }).then(function (response) {
                 if (handleUnauthorized(response)) {
                     throw new Error("برای مدیریت منابع باید وارد حساب مجاز شوید.");

@@ -164,6 +164,596 @@
         return String(snapshot && snapshot.status ? snapshot.status : "unknown") + ":" + studentNumber;
     }
 
+    function dentalHomeBasePath() {
+        if (pageCohort === "1403") {
+            return "/notes/1403/";
+        }
+        if (pageCohort === "1404") {
+            return "/notes/1404/";
+        }
+        return "/notes/";
+    }
+
+    function dentalManagePath() {
+        return "/notes/term/";
+    }
+
+    function dentalRequestedTerm() {
+        var params = new URLSearchParams(window.location.search || "");
+        var value = Number(params.get("term") || "0");
+        return Number.isFinite(value) ? value : 0;
+    }
+
+    function dentalRequestedUnitKey() {
+        return String(new URLSearchParams(window.location.search || "").get("unit") || "").trim().toLowerCase();
+    }
+
+    function dentalBuildUrl(pathname, termValue, unitKey) {
+        var url = new URL(pathname, window.location.origin);
+        if (termValue > 0) {
+            url.searchParams.set("term", String(termValue));
+        }
+        if (unitKey) {
+            url.searchParams.set("unit", unitKey);
+        }
+        if (pageCohort !== "1402") {
+            url.searchParams.set("cohort", pageCohort);
+        }
+        return url.pathname + (url.search || "");
+    }
+
+    function dentalHomeUrl(termValue, unitKey) {
+        return dentalBuildUrl(dentalHomeBasePath(), termValue, unitKey);
+    }
+
+    function dentalManageUrl(termValue, unitKey) {
+        return dentalBuildUrl(dentalManagePath(), termValue, unitKey);
+    }
+
+    function dentalBodyMode(mode) {
+        if (!document.body) {
+            return;
+        }
+        document.body.classList.add("notes-curriculum-page");
+        document.body.dataset.notesView = mode || "";
+    }
+
+    function dentalYearLabel() {
+        return toFaDigits(pageCohort);
+    }
+
+    function dentalResetList() {
+        list.innerHTML = "";
+        empty.hidden = true;
+    }
+
+    function dentalShowEmpty(message) {
+        list.innerHTML = "";
+        empty.hidden = false;
+        empty.textContent = message || "داده‌ای برای نمایش پیدا نشد.";
+    }
+
+    function dentalSectionText(kickerText, titleText, copyText) {
+        if (sectionKicker) {
+            sectionKicker.textContent = kickerText || "";
+        }
+        if (sectionTitle) {
+            sectionTitle.textContent = titleText || "";
+        }
+        if (sectionCopy) {
+            sectionCopy.textContent = copyText || "";
+        }
+    }
+
+    function dentalApplyBaseCopy() {
+        var yearLabel = dentalYearLabel();
+        if (heading) {
+            heading.textContent = "آرشیو منابع ورودی " + yearLabel;
+        }
+        if (subheading) {
+            subheading.textContent = "چینش ترم، دسته و واحد";
+        }
+        if (backLink) {
+            backLink.href = pageCohort === "1402" ? "/app/#resources" : "/app/";
+            backLink.textContent = pageCohort === "1402" ? "بازگشت به منابع" : "بازگشت به خانه";
+        }
+        if (kicker) {
+            kicker.textContent = "آرشیو " + yearLabel;
+        }
+        if (footer) {
+            footer.textContent = "ورودی " + yearLabel + " دندانپزشکی تهران";
+        }
+    }
+
+    function dentalCreate(tagName, className, text) {
+        var node = document.createElement(tagName);
+        if (className) {
+            node.className = className;
+        }
+        if (text !== undefined && text !== null) {
+            node.textContent = text;
+        }
+        return node;
+    }
+
+    function dentalCreateStat(labelText, valueText) {
+        var stat = dentalCreate("div", "notes-summary-stat");
+        stat.appendChild(dentalCreate("span", "notes-summary-stat__label", labelText));
+        stat.appendChild(dentalCreate("strong", "notes-summary-stat__value", valueText));
+        return stat;
+    }
+
+    function dentalAppendSummary(stats) {
+        var shell = dentalCreate("section", "notes-summary-shell");
+        var grid = dentalCreate("div", "notes-summary-grid");
+        grid.appendChild(dentalCreateStat("ترم", toFaDigits(stats.termCount || 0)));
+        grid.appendChild(dentalCreateStat("واحد فعال", toFaDigits(stats.availableUnitCount || 0)));
+        grid.appendChild(dentalCreateStat("منبع", toFaDigits(stats.itemCount || 0)));
+        shell.appendChild(grid);
+        list.appendChild(shell);
+    }
+
+    function dentalCreateChip(text, className) {
+        return dentalCreate("span", className || "notes-chip", text);
+    }
+
+    function dentalCreateActionLink(label, href, muted) {
+        var link = dentalCreate("a", muted ? "notes-link-btn notes-link-btn--muted" : "notes-link-btn", label);
+        if (muted) {
+            link.removeAttribute("href");
+            link.setAttribute("aria-disabled", "true");
+            link.tabIndex = -1;
+        } else {
+            link.href = href;
+        }
+        return link;
+    }
+
+    function dentalAppendTermCards(curriculum) {
+        var terms = Array.isArray(curriculum && curriculum.terms) ? curriculum.terms : [];
+        var grid = dentalCreate("div", "notes-term-grid");
+
+        terms.forEach(function (term) {
+            var card = dentalCreate("article", "notes-term-card");
+            var link = dentalCreate("a", "notes-term-card__link");
+            link.href = dentalHomeUrl(Number(term.number || 0), "");
+
+            var head = dentalCreate("div", "notes-term-card__head");
+            head.appendChild(dentalCreateChip(term.label || "ترم", "notes-chip notes-chip--term"));
+            head.appendChild(dentalCreate("h3", "notes-term-card__title", term.label || "ترم"));
+
+            var desc = dentalCreate(
+                "p",
+                "notes-term-card__desc",
+                Number((term.stats && term.stats.availableUnitCount) || 0) > 0
+                    ? ("از " + toFaDigits((term.stats && term.stats.unitCount) || 0) + " واحد این ترم، "
+                        + toFaDigits((term.stats && term.stats.availableUnitCount) || 0) + " واحد فعلاً منبع دارد.")
+                    : "ساختار این ترم آماده است ولی هنوز منبعی برای آن ثبت نشده است."
+            );
+
+            var preview = dentalCreate("div", "notes-term-card__preview");
+            var previewUnits = Array.isArray(term.previewUnits) ? term.previewUnits : [];
+            if (previewUnits.length) {
+                previewUnits.slice(0, 4).forEach(function (titleText) {
+                    preview.appendChild(dentalCreateChip(titleText, "notes-chip"));
+                });
+            } else {
+                preview.appendChild(dentalCreateChip("بدون منبع", "notes-chip notes-chip--soft"));
+            }
+
+            var stats = dentalCreate("div", "notes-term-card__stats");
+            stats.appendChild(dentalCreateStat("واحد", toFaDigits((term.stats && term.stats.unitCount) || 0)));
+            stats.appendChild(dentalCreateStat("فعال", toFaDigits((term.stats && term.stats.availableUnitCount) || 0)));
+            stats.appendChild(dentalCreateStat("منبع", toFaDigits((term.stats && term.stats.itemCount) || 0)));
+
+            link.appendChild(head);
+            link.appendChild(desc);
+            link.appendChild(preview);
+            link.appendChild(stats);
+            link.appendChild(dentalCreateActionLink("ورود به ترم", link.href, false));
+            card.appendChild(link);
+            grid.appendChild(card);
+        });
+
+        list.appendChild(grid);
+    }
+
+    function dentalAppendLegacyTerms(curriculum) {
+        var extraTerms = Array.isArray(curriculum && curriculum.extraTerms) ? curriculum.extraTerms : [];
+        if (!extraTerms.length) {
+            return;
+        }
+
+        var shell = dentalCreate("section", "notes-legacy-shell");
+        var head = dentalCreate("div", "notes-legacy-shell__head");
+        head.appendChild(dentalCreateChip("آرشیوهای دیگر", "notes-chip notes-chip--term"));
+        head.appendChild(dentalCreate("h3", "notes-legacy-shell__title", "منابع خارج از ساختار ۴ تا ۱۲"));
+        head.appendChild(dentalCreate("p", "notes-legacy-shell__desc", "منابع قدیمی‌تر یا عمومی که هنوز بیرون از ساختار دانشکده نگه‌داری می‌شوند."));
+        shell.appendChild(head);
+
+        var grid = dentalCreate("div", "notes-term-grid");
+        extraTerms.forEach(function (termData) {
+            var card = dentalCreate("article", "notes-term-card notes-term-card--legacy");
+            var link = dentalCreate("a", "notes-term-card__link");
+            link.href = dentalHomeUrl(Number(termData.term || 0), "");
+            card.appendChild(link);
+
+            var headRow = dentalCreate("div", "notes-term-card__head");
+            headRow.appendChild(dentalCreateChip("ترم " + toFaDigits(termData.term || 0), "notes-chip notes-chip--soft"));
+            headRow.appendChild(dentalCreate("h3", "notes-term-card__title", termData.title || "آرشیو"));
+            link.appendChild(headRow);
+            link.appendChild(dentalCreate("p", "notes-term-card__desc", termData.description || ""));
+
+            var stats = dentalCreate("div", "notes-term-card__stats");
+            stats.appendChild(dentalCreateStat("منبع", toFaDigits(termData.itemCount || 0)));
+            link.appendChild(stats);
+            link.appendChild(dentalCreateActionLink("ورود به آرشیو", link.href, false));
+            grid.appendChild(card);
+        });
+
+        shell.appendChild(grid);
+        list.appendChild(shell);
+    }
+
+    function dentalFindMainTerm(curriculum, termNumber) {
+        var terms = Array.isArray(curriculum && curriculum.terms) ? curriculum.terms : [];
+        for (var index = 0; index < terms.length; index += 1) {
+            if (Number(terms[index].number || 0) === Number(termNumber || 0)) {
+                return terms[index];
+            }
+        }
+        return null;
+    }
+
+    function dentalFindLegacyTerm(curriculum, termNumber) {
+        var terms = Array.isArray(curriculum && curriculum.extraTerms) ? curriculum.extraTerms : [];
+        for (var index = 0; index < terms.length; index += 1) {
+            if (Number(terms[index].term || 0) === Number(termNumber || 0)) {
+                return terms[index];
+            }
+        }
+        return null;
+    }
+
+    function dentalAppendOverviewActions(termNumber, canManage) {
+        var actions = dentalCreate("div", "notes-inline-actions");
+        actions.appendChild(dentalCreateActionLink("بازگشت به همه ترم‌ها", dentalHomeUrl(0, ""), false));
+        if (canManage && termNumber > 0) {
+            actions.appendChild(dentalCreateActionLink("مدیریت این ترم", dentalManageUrl(termNumber, ""), false));
+        }
+        list.appendChild(actions);
+    }
+
+    function dentalAppendTermOverview(termData) {
+        var categories = Array.isArray(termData && termData.categories) ? termData.categories : [];
+        categories.forEach(function (category) {
+            var section = dentalCreate("section", "notes-group-card");
+            var head = dentalCreate("div", "notes-group-card__head");
+            head.appendChild(dentalCreateChip(category.title || "", "notes-chip notes-chip--term"));
+            head.appendChild(dentalCreate("h3", "notes-group-card__title", category.title || ""));
+            head.appendChild(dentalCreate("p", "notes-group-card__desc", "واحد موردنظر را از بین این دسته انتخاب کن."));
+            section.appendChild(head);
+
+            var unitList = dentalCreate("div", "notes-unit-list");
+            var units = Array.isArray(category.units) ? category.units : [];
+            units.forEach(function (unit) {
+                var unitCard = dentalCreate("article", "notes-unit-card");
+                var cardHead = dentalCreate("div", "notes-unit-card__head");
+                cardHead.appendChild(dentalCreateChip(unit.statusLabel || "", unit.itemCount > 0 ? "notes-chip notes-chip--ok" : "notes-chip notes-chip--soft"));
+                cardHead.appendChild(dentalCreate("h4", "notes-unit-card__title", unit.title || "واحد"));
+                unitCard.appendChild(cardHead);
+                unitCard.appendChild(dentalCreate("p", "notes-unit-card__desc", unit.description || ""));
+
+                var preview = dentalCreate("div", "notes-unit-card__preview");
+                var previewTitles = Array.isArray(unit.previewTitles) ? unit.previewTitles : [];
+                if (previewTitles.length) {
+                    previewTitles.slice(0, 3).forEach(function (titleText) {
+                        preview.appendChild(dentalCreateChip(titleText, "notes-chip"));
+                    });
+                } else {
+                    preview.appendChild(dentalCreateChip("هنوز منبعی ندارد", "notes-chip notes-chip--soft"));
+                }
+                unitCard.appendChild(preview);
+
+                var stats = dentalCreate("div", "notes-unit-card__stats");
+                stats.appendChild(dentalCreateStat("منبع", toFaDigits(unit.itemCount || 0)));
+                unitCard.appendChild(stats);
+                unitCard.appendChild(dentalCreateActionLink(
+                    unit.itemCount > 0 ? "دیدن منابع" : "ورود به واحد",
+                    dentalHomeUrl(Number(termData.number || 0), unit.key || ""),
+                    false
+                ));
+                unitList.appendChild(unitCard);
+            });
+            section.appendChild(unitList);
+            list.appendChild(section);
+        });
+    }
+
+    function dentalAppendResourceActions(termData, canManage, unitKey) {
+        var termNumber = Number(termData.term || termData.termNumber || 0);
+        var actions = dentalCreate("div", "notes-inline-actions");
+        actions.appendChild(dentalCreateActionLink("بازگشت به همه ترم‌ها", dentalHomeUrl(0, ""), false));
+        if (termNumber > 0) {
+            actions.appendChild(dentalCreateActionLink("بازگشت به " + (termData.termLabel || ("ترم " + toFaDigits(termNumber))), dentalHomeUrl(termNumber, ""), false));
+        }
+        if (canManage) {
+            actions.appendChild(dentalCreateActionLink("مدیریت منابع این واحد", dentalManageUrl(termNumber, unitKey || ""), false));
+        }
+        list.appendChild(actions);
+    }
+
+    function dentalAppendResourceCards(termData) {
+        var items = Array.isArray(termData && termData.items) ? termData.items : [];
+        if (!items.length) {
+            dentalShowEmpty(termData.emptyMessage || "برای این بخش هنوز منبعی ثبت نشده است.");
+            return;
+        }
+
+        var wrap = dentalCreate("div", "notes-resource-list");
+        items.forEach(function (item) {
+            var card = dentalCreate("article", "notes-resource-card");
+            var head = dentalCreate("div", "notes-resource-card__head");
+            head.appendChild(dentalCreateChip(item.badge || "منبع", "notes-chip notes-chip--term"));
+            head.appendChild(dentalCreate("h3", "notes-resource-card__title", item.title || "بدون عنوان"));
+            card.appendChild(head);
+            card.appendChild(dentalCreate("p", "notes-resource-card__desc", item.description || ""));
+
+            var meta = dentalCreate("div", "notes-resource-card__meta");
+            if (item.curriculum && item.curriculum.termNumber) {
+                meta.appendChild(dentalCreateChip(item.curriculum.categoryTitle || "", "notes-chip"));
+            }
+            if (item.storageTerm) {
+                meta.appendChild(dentalCreateChip("ذخیره در ترم " + toFaDigits(item.storageTerm), "notes-chip notes-chip--soft"));
+            }
+            card.appendChild(meta);
+
+            var action = dentalCreateActionLink(item.buttonLabel || "دریافت", item.buttonUrl || "#", false);
+            action.classList.add("notes-resource-card__action");
+            if (item.isExternal) {
+                action.target = "_blank";
+                action.rel = "noopener noreferrer";
+            }
+            card.appendChild(action);
+            wrap.appendChild(card);
+        });
+        list.appendChild(wrap);
+    }
+
+    function dentalRenderCurriculumHome(curriculum) {
+        dentalBodyMode("terms");
+        dentalApplyBaseCopy();
+        if (title) {
+            title.textContent = "ترم موردنظر را برای دیدن منابع انتخاب کن.";
+        }
+        dentalSectionText(
+            "ترم‌های دانشکده",
+            "چینش منابع بر اساس ترم و واحد",
+            "ابتدا ترم را انتخاب کن، بعد از داخل دسته‌ها وارد واحد هر درس شو."
+        );
+        document.title = "آرشیو منابع " + dentalYearLabel() + " | ساختار ترم و واحد";
+        dentalResetList();
+        dentalAppendSummary((curriculum && curriculum.stats) || {});
+        dentalAppendTermCards(curriculum);
+        dentalAppendLegacyTerms(curriculum);
+    }
+
+    function dentalRenderTermOverview(curriculum, termData) {
+        dentalBodyMode("term");
+        dentalApplyBaseCopy();
+        if (title) {
+            title.textContent = termData.label || ("ترم " + toFaDigits(termData.number || 0));
+        }
+        dentalSectionText(
+            "واحدهای همین ترم",
+            termData.label || "ترم",
+            "واحد موردنظرت را از بین دسته‌های همین ترم انتخاب کن."
+        );
+        if (backLink) {
+            backLink.href = dentalHomeUrl(0, "");
+            backLink.textContent = "بازگشت به همه ترم‌ها";
+        }
+        document.title = (termData.label || "ترم") + " | آرشیو منابع " + dentalYearLabel();
+        dentalResetList();
+        dentalAppendSummary({
+            termCount: 1,
+            availableUnitCount: (termData.stats && termData.stats.availableUnitCount) || 0,
+            itemCount: (termData.stats && termData.stats.itemCount) || 0
+        });
+        dentalAppendOverviewActions(Number(termData.number || 0), !!dentalState.canManage);
+        dentalAppendTermOverview(termData);
+    }
+
+    function dentalRenderLegacyTerm(termData) {
+        dentalBodyMode("legacy-term");
+        dentalApplyBaseCopy();
+        if (title) {
+            title.textContent = termData.title || ("ترم " + toFaDigits(termData.term || 0));
+        }
+        dentalSectionText(
+            "آرشیو خارج از ساختار",
+            termData.title || "آرشیو",
+            termData.description || "این آرشیو هنوز خارج از ساختار اصلی ۴ تا ۱۲ نگه‌داری می‌شود."
+        );
+        if (backLink) {
+            backLink.href = dentalHomeUrl(0, "");
+            backLink.textContent = "بازگشت به همه ترم‌ها";
+        }
+        document.title = (termData.title || "آرشیو") + " | آرشیو منابع " + dentalYearLabel();
+        dentalResetList();
+        dentalAppendResourceActions(termData, !!dentalState.canManage, "");
+        dentalAppendResourceCards(termData);
+    }
+
+    function dentalRenderUnitDetail(termData) {
+        dentalBodyMode("unit");
+        dentalApplyBaseCopy();
+        if (title) {
+            title.textContent = termData.title || "منابع واحد";
+        }
+        dentalSectionText(
+            termData.categoryTitle || "منابع این واحد",
+            termData.title || "منابع این واحد",
+            termData.description || "منابع این واحد از همین بخش در دسترس هستند."
+        );
+        if (backLink) {
+            backLink.href = dentalHomeUrl(Number(termData.term || termData.termNumber || 0), "");
+            backLink.textContent = "بازگشت به " + (termData.termLabel || ("ترم " + toFaDigits(termData.term || 0)));
+        }
+        document.title = (termData.title || "منابع واحد") + " | آرشیو منابع " + dentalYearLabel();
+        dentalResetList();
+        dentalAppendResourceActions(termData, !!dentalState.canManage, termData.unitKey || "");
+        dentalAppendResourceCards(termData);
+    }
+
+    function dentalRenderError(message) {
+        dentalBodyMode("error");
+        dentalApplyBaseCopy();
+        if (title) {
+            title.textContent = "منابع این بخش پیدا نشد.";
+        }
+        dentalSectionText("خطا", "امکان نمایش منابع وجود ندارد", message || "در دریافت داده‌ها خطایی رخ داد.");
+        dentalShowEmpty(message || "در دریافت داده‌ها خطایی رخ داد.");
+    }
+
+    var dentalState = {
+        authKey: "",
+        canManage: false,
+        curriculum: null,
+        unitDetail: null,
+        loading: false
+    };
+
+    function dentalRenderFromState() {
+        var requestedTerm = dentalRequestedTerm();
+        var requestedUnitKey = dentalRequestedUnitKey();
+        if (requestedUnitKey) {
+            if (dentalState.unitDetail) {
+                dentalRenderUnitDetail(dentalState.unitDetail);
+                return;
+            }
+            if (!dentalState.loading) {
+                dentalRenderError("واحد انتخاب‌شده برای این ترم پیدا نشد.");
+            }
+            return;
+        }
+
+        if (!dentalState.curriculum) {
+            if (!dentalState.loading) {
+                dentalRenderError("ساختار منابع این ورودی در دسترس نیست.");
+            }
+            return;
+        }
+
+        if (!requestedTerm) {
+            dentalRenderCurriculumHome(dentalState.curriculum);
+            return;
+        }
+
+        var mainTerm = dentalFindMainTerm(dentalState.curriculum, requestedTerm);
+        if (mainTerm) {
+            dentalRenderTermOverview(dentalState.curriculum, mainTerm);
+            return;
+        }
+
+        var legacyTerm = dentalFindLegacyTerm(dentalState.curriculum, requestedTerm);
+        if (legacyTerm) {
+            dentalRenderLegacyTerm(legacyTerm);
+            return;
+        }
+
+        dentalRenderError("ترم انتخاب‌شده برای این ورودی پیدا نشد.");
+    }
+
+    function dentalLoadHomeData() {
+        if (dentalState.loading) {
+            return Promise.resolve();
+        }
+        dentalState.loading = true;
+        dentalState.curriculum = null;
+        dentalState.unitDetail = null;
+        dentalShowEmpty("در حال دریافت ساختار منابع...");
+        return request("terms", "GET", {}).then(function (payload) {
+            if (consumeUnauthorized(payload, "نشست شما منقضی شده است.")) {
+                dentalState.canManage = false;
+            }
+            if (!payload || !payload.success || !payload.curriculum) {
+                throw new Error((payload && payload.error) || "دریافت ساختار منابع ناموفق بود.");
+            }
+            dentalState.curriculum = payload.curriculum;
+            dentalState.canManage = !!payload.canManage;
+            dentalRenderFromState();
+        }).catch(function (error) {
+            dentalRenderError(error && error.message ? error.message : "دریافت ساختار منابع با خطا مواجه شد.");
+        }).finally(function () {
+            dentalState.loading = false;
+        });
+    }
+
+    function dentalLoadUnitDetail() {
+        if (dentalState.loading) {
+            return Promise.resolve();
+        }
+        dentalState.loading = true;
+        dentalState.unitDetail = null;
+        dentalShowEmpty("در حال دریافت منابع این واحد...");
+        return request("term", "GET", {
+            term: String(dentalRequestedTerm() || 0),
+            unit: dentalRequestedUnitKey()
+        }).then(function (payload) {
+            if (consumeUnauthorized(payload, "نشست شما منقضی شده است.")) {
+                dentalState.canManage = false;
+            }
+            if (!payload || !payload.success || !payload.term) {
+                throw new Error((payload && payload.error) || "دریافت منابع این واحد ناموفق بود.");
+            }
+            dentalState.unitDetail = payload.term;
+            dentalState.canManage = !!payload.canManage;
+            dentalRenderFromState();
+        }).catch(function (error) {
+            dentalRenderError(error && error.message ? error.message : "دریافت منابع این واحد با خطا مواجه شد.");
+        }).finally(function () {
+            dentalState.loading = false;
+        });
+    }
+
+    function dentalWatchAuthChanges() {
+        var auth = authApi();
+        if (!auth || typeof auth.onChange !== "function") {
+            return;
+        }
+        auth.onChange(function () {
+            var nextKey = authSnapshotKey();
+            if (nextKey === dentalState.authKey) {
+                return;
+            }
+            dentalState.authKey = nextKey;
+            if (dentalRequestedUnitKey()) {
+                dentalLoadUnitDetail();
+                return;
+            }
+            dentalLoadHomeData();
+        });
+    }
+
+    function bootDentalCurriculumHome() {
+        if (manage) {
+            manage.hidden = true;
+        }
+        dentalState.authKey = authSnapshotKey();
+        dentalWatchAuthChanges();
+        if (dentalRequestedUnitKey()) {
+            dentalLoadUnitDetail();
+            return;
+        }
+        dentalLoadHomeData();
+    }
+
+    if (pageCohort !== "prosthesis-1402") {
+        bootDentalCurriculumHome();
+        return;
+    }
+
     function applyPageCopy() {
         var isProsthesis = pageCohort === "prosthesis-1402";
         var yearLabel = cohortYearLabel();

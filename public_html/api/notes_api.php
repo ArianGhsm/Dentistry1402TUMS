@@ -2,10 +2,11 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/auth_store.php';
+require_once __DIR__ . '/dentistry_curriculum.php';
 require_once __DIR__ . '/notes_download_host.php';
 
 const NOTES_1402_SCHEMA_VERSION = 1;
-const NOTES_1402_MIN_TERM = 5;
+const NOTES_1402_MIN_TERM = 4;
 const NOTES_1402_MAX_TERM = 12;
 const NOTES_1402_SEED_BACKFILL_VERSION = 0;
 const NOTES_1403_SCHEMA_VERSION = 1;
@@ -340,6 +341,18 @@ function notes_1402_item_signature(array $item): string
     return $title . '|' . $buttonUrl;
 }
 
+function notes_1402_item_signature_from_seed(array $item): string
+{
+    $normalized = notes_1402_normalize_item_record($item);
+    if (is_array($normalized)) {
+        return notes_1402_item_signature($normalized);
+    }
+
+    $title = dent_utf8_strtolower(trim((string) ($item['title'] ?? '')));
+    $buttonUrl = trim((string) ($item['buttonUrl'] ?? ''));
+    return $title . '|' . $buttonUrl;
+}
+
 function notes_repair_fa_digit_mojibake(string $value): string
 {
     static $map = null;
@@ -472,6 +485,112 @@ function notes_1402_apply_term_5_seed_backfill(array $seed): array
     return $seed;
 }
 
+function notes_1402_pulp_periapical_fix_aliases(): array
+{
+    static $aliases = null;
+    if (is_array($aliases)) {
+        return $aliases;
+    }
+
+    $unit = dent_dentistry_curriculum_find_unit('pulp-periapical-complex');
+    if (!is_array($unit)) {
+        $aliases = [];
+        return $aliases;
+    }
+
+    $aliases = notes_curriculum_unit_search_aliases($unit);
+    return $aliases;
+}
+
+function notes_1402_item_matches_pulp_periapical_fix(array $item): bool
+{
+    $storedUnitKey = trim(strtolower((string) ($item['unitKey'] ?? '')));
+    if ($storedUnitKey === 'pulp-periapical-complex' || $storedUnitKey === 'endo-theory-1') {
+        return true;
+    }
+
+    $haystack = notes_curriculum_normalize_text(implode(' ', [
+        (string) ($item['title'] ?? ''),
+        (string) ($item['badge'] ?? ''),
+        (string) ($item['description'] ?? ''),
+        (string) ($item['buttonUrl'] ?? ''),
+    ]));
+    if ($haystack === '') {
+        return false;
+    }
+
+    foreach (notes_1402_pulp_periapical_fix_aliases() as $alias) {
+        if ($alias !== '' && strpos($haystack, $alias) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function notes_1402_apply_pulp_periapical_curriculum_fix(array $seed): array
+{
+    if (!isset($seed['terms']) || !is_array($seed['terms'])) {
+        return $seed;
+    }
+
+    $terms = $seed['terms'];
+    if (!isset($terms['5']) || !is_array($terms['5'])) {
+        $terms['5'] = notes_1402_term_template(5);
+    }
+
+    $term5 = $terms['5'];
+    $term5Items = is_array($term5['items'] ?? null) ? $term5['items'] : [];
+    $term5Signatures = [];
+    $normalizedTerm5Items = [];
+
+    foreach ($term5Items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        if (notes_1402_item_matches_pulp_periapical_fix($item)) {
+            $item['unitKey'] = 'pulp-periapical-complex';
+        }
+        $term5Signatures[notes_1402_item_signature_from_seed($item)] = true;
+        $normalizedTerm5Items[] = $item;
+    }
+
+    foreach ($terms as $termKey => $termRecord) {
+        if ((string) $termKey === '5' || !is_array($termRecord)) {
+            continue;
+        }
+
+        $items = is_array($termRecord['items'] ?? null) ? $termRecord['items'] : [];
+        $keptItems = [];
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            if (!notes_1402_item_matches_pulp_periapical_fix($item)) {
+                $keptItems[] = $item;
+                continue;
+            }
+
+            $item['unitKey'] = 'pulp-periapical-complex';
+            $signature = notes_1402_item_signature_from_seed($item);
+            if (!isset($term5Signatures[$signature])) {
+                $term5Signatures[$signature] = true;
+                $normalizedTerm5Items[] = $item;
+            }
+        }
+
+        $termRecord['items'] = $keptItems;
+        $terms[$termKey] = $termRecord;
+    }
+
+    $term5['items'] = $normalizedTerm5Items;
+    $terms['5'] = $term5;
+    $seed['terms'] = $terms;
+
+    return $seed;
+}
+
 function notes_1402_default_store(): array
 {
     $terms = [];
@@ -550,6 +669,11 @@ function notes_1402_normalize_item_record(array $seed): ?array
     $description = dent_clean_text((string) ($seed['description'] ?? ''), 600);
     $buttonLabel = dent_clean_text((string) ($seed['buttonLabel'] ?? ''), 70);
     $buttonUrl = notes_1402_normalize_url((string) ($seed['buttonUrl'] ?? ''));
+    $unitKey = trim(strtolower((string) ($seed['unitKey'] ?? '')));
+    if ($unitKey !== '') {
+        $unit = dent_dentistry_curriculum_find_unit($unitKey);
+        $unitKey = is_array($unit) ? (string) ($unit['key'] ?? '') : '';
+    }
 
     if ($badge === '' || $title === '' || $description === '' || $buttonLabel === '' || $buttonUrl === '') {
         return null;
@@ -562,6 +686,7 @@ function notes_1402_normalize_item_record(array $seed): ?array
         'description' => $description,
         'buttonLabel' => $buttonLabel,
         'buttonUrl' => $buttonUrl,
+        'unitKey' => $unitKey,
         'createdAt' => (string) ($seed['createdAt'] ?? dent_iso_now()),
         'updatedAt' => (string) ($seed['updatedAt'] ?? dent_iso_now()),
     ];
@@ -627,6 +752,7 @@ function notes_1402_load_store_unlocked(): array
         $raw = notes_1402_default_store();
     }
     $raw = notes_1402_apply_term_5_seed_backfill($raw);
+    $raw = notes_1402_apply_pulp_periapical_curriculum_fix($raw);
 
     return notes_1402_normalize_store($raw);
 }
@@ -1208,6 +1334,7 @@ function notes_1402_item_payload(array $item): array
 {
     $url = (string) ($item['buttonUrl'] ?? '');
     $isExternal = !str_starts_with($url, '/');
+    $unitKey = trim(strtolower((string) ($item['unitKey'] ?? '')));
 
     return [
         'id' => (int) ($item['id'] ?? 0),
@@ -1217,22 +1344,146 @@ function notes_1402_item_payload(array $item): array
         'buttonLabel' => (string) ($item['buttonLabel'] ?? ''),
         'buttonUrl' => $url,
         'isExternal' => $isExternal,
+        'unitKey' => $unitKey,
         'createdAt' => (string) ($item['createdAt'] ?? ''),
         'updatedAt' => (string) ($item['updatedAt'] ?? ''),
     ];
+}
+
+function notes_curriculum_primary_term_numbers(): array
+{
+    static $numbers = null;
+    if (is_array($numbers)) {
+        return $numbers;
+    }
+
+    $numbers = array_values(array_map(
+        static function (array $term): int {
+            return max(0, (int) ($term['number'] ?? 0));
+        },
+        array_filter(dent_dentistry_curriculum_terms(), 'is_array')
+    ));
+
+    return $numbers;
+}
+
+function notes_is_curriculum_cohort(string $cohort): bool
+{
+    return $cohort === '1402' || $cohort === '1403' || $cohort === '1404';
+}
+
+function notes_curriculum_normalize_text(string $value): string
+{
+    $normalized = dent_normalize_digits(trim($value));
+    $normalized = preg_replace('/\s+/u', ' ', $normalized) ?? $normalized;
+    return dent_utf8_strtolower($normalized);
+}
+
+function notes_curriculum_unit_search_aliases(array $unit): array
+{
+    $aliases = [];
+    $candidates = array_merge(
+        [(string) ($unit['title'] ?? '')],
+        is_array($unit['aliases'] ?? null) ? $unit['aliases'] : [],
+        is_array($unit['resourceAliases'] ?? null) ? $unit['resourceAliases'] : []
+    );
+
+    foreach ($candidates as $candidate) {
+        $normalized = notes_curriculum_normalize_text((string) $candidate);
+        if ($normalized === '') {
+            continue;
+        }
+        $aliases[$normalized] = true;
+    }
+
+    return array_keys($aliases);
+}
+
+function notes_curriculum_meta_from_unit(array $unit): array
+{
+    return [
+        'termNumber' => max(0, (int) ($unit['termNumber'] ?? 0)),
+        'termLabel' => (string) ($unit['termLabel'] ?? ''),
+        'categoryKey' => (string) ($unit['categoryKey'] ?? ''),
+        'categoryTitle' => (string) ($unit['categoryTitle'] ?? ''),
+        'unitKey' => (string) ($unit['key'] ?? ''),
+        'unitTitle' => (string) ($unit['title'] ?? ''),
+    ];
+}
+
+function notes_curriculum_item_match_meta(array $item): ?array
+{
+    $storedUnitKey = trim(strtolower((string) ($item['unitKey'] ?? '')));
+    if ($storedUnitKey !== '') {
+        $storedUnit = dent_dentistry_curriculum_find_unit($storedUnitKey);
+        if (is_array($storedUnit)) {
+            return notes_curriculum_meta_from_unit($storedUnit);
+        }
+    }
+
+    $titleText = notes_curriculum_normalize_text((string) ($item['title'] ?? ''));
+    $badgeText = notes_curriculum_normalize_text((string) ($item['badge'] ?? ''));
+    $descriptionText = notes_curriculum_normalize_text((string) ($item['description'] ?? ''));
+    $haystack = trim($titleText . ' ' . $badgeText . ' ' . $descriptionText);
+
+    $bestUnit = null;
+    $bestScore = 0;
+    foreach (dent_dentistry_curriculum_unit_index() as $unit) {
+        if (!is_array($unit)) {
+            continue;
+        }
+
+        foreach (notes_curriculum_unit_search_aliases($unit) as $alias) {
+            $score = 0;
+            $aliasLength = dent_utf8_strlen($alias);
+            if ($titleText !== '' && strpos($titleText, $alias) !== false) {
+                $score = max($score, 420 + $aliasLength);
+            }
+            if ($badgeText !== '' && strpos($badgeText, $alias) !== false) {
+                $score = max($score, 320 + $aliasLength);
+            }
+            if ($descriptionText !== '' && strpos($descriptionText, $alias) !== false) {
+                $score = max($score, 180 + $aliasLength);
+            }
+            if ($haystack !== '' && strpos($haystack, $alias) !== false) {
+                $score = max($score, 90 + $aliasLength);
+            }
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $bestUnit = $unit;
+            }
+        }
+    }
+
+    return is_array($bestUnit) ? notes_curriculum_meta_from_unit($bestUnit) : null;
+}
+
+function notes_curriculum_item_payload(array $item, int $storageTerm): array
+{
+    $payload = notes_1402_item_payload($item);
+    $payload['storageTerm'] = $storageTerm;
+    $payload['curriculum'] = notes_curriculum_item_match_meta($item);
+    return $payload;
+}
+
+function notes_term_item_payloads(array $items, int $storageTerm): array
+{
+    $payloads = [];
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $payloads[] = notes_curriculum_item_payload($item, $storageTerm);
+    }
+
+    return $payloads;
 }
 
 function notes_1402_term_payload(array $store, int $term): array
 {
     $termRecord = $store['terms'][(string) $term] ?? notes_1402_term_template($term);
     $items = is_array($termRecord['items'] ?? null) ? $termRecord['items'] : [];
-    $itemPayloads = [];
-    foreach ($items as $item) {
-        if (!is_array($item)) {
-            continue;
-        }
-        $itemPayloads[] = notes_1402_item_payload($item);
-    }
+    $itemPayloads = notes_term_item_payloads($items, $term);
 
     return [
         'cohort' => '1402',
@@ -1260,13 +1511,7 @@ function notes_fixed_terms_term_payload(string $cohort, array $store, int $term,
 {
     $termRecord = $store['terms'][(string) $term] ?? $templateFn($term);
     $items = is_array($termRecord['items'] ?? null) ? $termRecord['items'] : [];
-    $itemPayloads = [];
-    foreach ($items as $item) {
-        if (!is_array($item)) {
-            continue;
-        }
-        $itemPayloads[] = notes_1402_item_payload($item);
-    }
+    $itemPayloads = notes_term_item_payloads($items, $term);
 
     return [
         'cohort' => $cohort,
@@ -1310,20 +1555,433 @@ function notes_1404_terms_payload(array $store): array
     return $terms;
 }
 
-function notes_prosthesis_1402_term_payload(array $termRecord): array
+function notes_curriculum_build_uncategorized_unit_key(int $termNumber): string
 {
-    $items = is_array($termRecord['items'] ?? null) ? $termRecord['items'] : [];
-    $itemPayloads = [];
-    foreach ($items as $item) {
-        if (is_array($item)) {
-            $itemPayloads[] = notes_1402_item_payload($item);
+    return 'uncategorized-term-' . max(0, $termNumber);
+}
+
+function notes_curriculum_is_uncategorized_unit_key(string $unitKey): bool
+{
+    return preg_match('/^uncategorized-term-\d+$/', $unitKey) === 1;
+}
+
+function notes_curriculum_uncategorized_term_from_key(string $unitKey): int
+{
+    if (preg_match('/^uncategorized-term-(\d+)$/', $unitKey, $matches) !== 1) {
+        return 0;
+    }
+
+    return max(0, (int) ($matches[1] ?? 0));
+}
+
+function notes_curriculum_sort_items(array $items): array
+{
+    usort($items, static function (array $left, array $right): int {
+        $updatedComparison = strcmp((string) ($right['updatedAt'] ?? ''), (string) ($left['updatedAt'] ?? ''));
+        if ($updatedComparison !== 0) {
+            return $updatedComparison;
+        }
+
+        return (int) ($right['id'] ?? 0) <=> (int) ($left['id'] ?? 0);
+    });
+
+    return $items;
+}
+
+function notes_curriculum_unit_summary_payload(array $unit, array $items): array
+{
+    $sortedItems = notes_curriculum_sort_items($items);
+    $itemCount = count($sortedItems);
+    $previewTitles = array_values(array_slice(array_map(
+        static function (array $item): string {
+            return (string) ($item['title'] ?? '');
+        },
+        $sortedItems
+    ), 0, 3));
+    $storageTerms = array_values(array_unique(array_map(
+        static function (array $item): int {
+            return max(0, (int) ($item['storageTerm'] ?? 0));
+        },
+        $sortedItems
+    )));
+
+    return [
+        'key' => (string) ($unit['key'] ?? ''),
+        'title' => (string) ($unit['title'] ?? ''),
+        'aliases' => is_array($unit['aliases'] ?? null) ? array_values($unit['aliases']) : [],
+        'termNumber' => max(0, (int) ($unit['termNumber'] ?? 0)),
+        'termLabel' => (string) ($unit['termLabel'] ?? ''),
+        'categoryKey' => (string) ($unit['categoryKey'] ?? ''),
+        'categoryTitle' => (string) ($unit['categoryTitle'] ?? ''),
+        'statusKey' => $itemCount > 0 ? 'available' : 'empty',
+        'statusLabel' => $itemCount > 0 ? 'دارای منبع' : 'بدون منبع',
+        'itemCount' => $itemCount,
+        'storageTerms' => $storageTerms,
+        'previewTitles' => $previewTitles,
+        'description' => $itemCount > 0
+            ? ('در حال حاضر ' . dent_to_fa_digits((string) $itemCount) . ' منبع برای این واحد ثبت شده است.')
+            : 'هنوز منبعی برای این واحد ثبت نشده است.',
+    ];
+}
+
+function notes_curriculum_uncategorized_unit_summary_payload(int $termNumber, array $items): array
+{
+    $sortedItems = notes_curriculum_sort_items($items);
+    $itemCount = count($sortedItems);
+    $termLabel = 'ترم ' . dent_to_fa_digits((string) $termNumber);
+
+    return [
+        'key' => notes_curriculum_build_uncategorized_unit_key($termNumber),
+        'title' => 'آرشیو دسته‌بندی‌نشده',
+        'aliases' => [],
+        'termNumber' => $termNumber,
+        'termLabel' => $termLabel,
+        'categoryKey' => 'archive',
+        'categoryTitle' => 'آرشیو دسته‌بندی‌نشده',
+        'statusKey' => $itemCount > 0 ? 'available' : 'empty',
+        'statusLabel' => $itemCount > 0 ? 'دارای منبع' : 'بدون منبع',
+        'itemCount' => $itemCount,
+        'storageTerms' => [$termNumber],
+        'previewTitles' => array_values(array_slice(array_map(
+            static function (array $item): string {
+                return (string) ($item['title'] ?? '');
+            },
+            $sortedItems
+        ), 0, 3)),
+        'description' => 'این منابع هنوز به واحد مشخصی متصل نشده‌اند.',
+    ];
+}
+
+function notes_term_payload_for_cohort(string $cohort, array $store, int $term): array
+{
+    if ($cohort === '1403') {
+        return notes_1403_term_payload($store, $term);
+    }
+    if ($cohort === '1404') {
+        return notes_1404_term_payload($store, $term);
+    }
+
+    return notes_1402_term_payload($store, $term);
+}
+
+function notes_curriculum_store_for_cohort(string $cohort): array
+{
+    if ($cohort === '1403') {
+        return notes_1403_read_store();
+    }
+    if ($cohort === '1404') {
+        return notes_1404_read_store();
+    }
+    if ($cohort === 'prosthesis-1402') {
+        return notes_prosthesis_1402_read_store();
+    }
+
+    return notes_1402_read_store();
+}
+
+function notes_curriculum_extra_terms_payload(string $cohort, array $store): array
+{
+    $primaryLookup = array_fill_keys(notes_curriculum_primary_term_numbers(), true);
+    $termsSeed = is_array($store['terms'] ?? null) ? $store['terms'] : [];
+    $extra = [];
+
+    foreach ($termsSeed as $termKey => $termRecord) {
+        if (!is_array($termRecord)) {
+            continue;
+        }
+
+        $termNumber = max(0, (int) ($termRecord['term'] ?? $termKey));
+        if ($termNumber <= 0 || isset($primaryLookup[$termNumber])) {
+            continue;
+        }
+
+        $payload = notes_term_payload_for_cohort($cohort, $store, $termNumber);
+        $itemCount = is_array($payload['items'] ?? null) ? count($payload['items']) : 0;
+        if ($itemCount <= 0) {
+            continue;
+        }
+
+        $payload['kind'] = 'legacy-term';
+        $payload['itemCount'] = $itemCount;
+        $extra[] = $payload;
+    }
+
+    usort($extra, static function (array $left, array $right): int {
+        return max(0, (int) ($left['term'] ?? 0)) <=> max(0, (int) ($right['term'] ?? 0));
+    });
+
+    return $extra;
+}
+
+function notes_curriculum_payload(string $cohort, array $store): array
+{
+    $itemsByUnit = [];
+    $uncategorizedByTerm = [];
+    $primaryLookup = array_fill_keys(notes_curriculum_primary_term_numbers(), true);
+    $termsSeed = is_array($store['terms'] ?? null) ? $store['terms'] : [];
+
+    foreach ($termsSeed as $termKey => $termRecord) {
+        if (!is_array($termRecord)) {
+            continue;
+        }
+
+        $storageTerm = max(0, (int) ($termRecord['term'] ?? $termKey));
+        $items = is_array($termRecord['items'] ?? null) ? $termRecord['items'] : [];
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $payload = notes_curriculum_item_payload($item, $storageTerm);
+            $curriculum = is_array($payload['curriculum'] ?? null) ? $payload['curriculum'] : null;
+            if (is_array($curriculum) && isset($primaryLookup[(int) ($curriculum['termNumber'] ?? 0)])) {
+                $unitKey = (string) ($curriculum['unitKey'] ?? '');
+                if ($unitKey !== '') {
+                    $itemsByUnit[$unitKey][] = $payload;
+                    continue;
+                }
+            }
+
+            if (isset($primaryLookup[$storageTerm])) {
+                $uncategorizedByTerm[$storageTerm][] = $payload;
+            }
         }
     }
 
+    $terms = [];
+    $catalogStats = [
+        'termCount' => 0,
+        'availableTermCount' => 0,
+        'unitCount' => 0,
+        'availableUnitCount' => 0,
+        'itemCount' => 0,
+    ];
+
+    foreach (dent_dentistry_curriculum_terms() as $term) {
+        if (!is_array($term)) {
+            continue;
+        }
+
+        $termNumber = max(0, (int) ($term['number'] ?? 0));
+        $termCategories = [];
+        $termStats = [
+            'unitCount' => 0,
+            'availableUnitCount' => 0,
+            'itemCount' => 0,
+        ];
+        $previewUnits = [];
+
+        foreach ((is_array($term['categories'] ?? null) ? $term['categories'] : []) as $category) {
+            if (!is_array($category)) {
+                continue;
+            }
+
+            $units = [];
+            $categoryStats = [
+                'unitCount' => 0,
+                'availableUnitCount' => 0,
+                'itemCount' => 0,
+            ];
+
+            foreach ((is_array($category['units'] ?? null) ? $category['units'] : []) as $unit) {
+                if (!is_array($unit)) {
+                    continue;
+                }
+
+                $unitKey = trim(strtolower((string) ($unit['key'] ?? '')));
+                if ($unitKey === '') {
+                    continue;
+                }
+
+                $normalizedUnit = dent_dentistry_curriculum_find_unit($unitKey);
+                if (!is_array($normalizedUnit)) {
+                    continue;
+                }
+
+                $summary = notes_curriculum_unit_summary_payload(
+                    $normalizedUnit,
+                    is_array($itemsByUnit[$unitKey] ?? null) ? $itemsByUnit[$unitKey] : []
+                );
+                $units[] = $summary;
+
+                $categoryStats['unitCount']++;
+                $termStats['unitCount']++;
+                $catalogStats['unitCount']++;
+                if ($summary['itemCount'] > 0) {
+                    $categoryStats['availableUnitCount']++;
+                    $termStats['availableUnitCount']++;
+                    $catalogStats['availableUnitCount']++;
+                    $previewUnits[] = $summary['title'];
+                }
+                $categoryStats['itemCount'] += max(0, (int) ($summary['itemCount'] ?? 0));
+                $termStats['itemCount'] += max(0, (int) ($summary['itemCount'] ?? 0));
+                $catalogStats['itemCount'] += max(0, (int) ($summary['itemCount'] ?? 0));
+            }
+
+            $termCategories[] = [
+                'key' => (string) ($category['key'] ?? ''),
+                'title' => (string) ($category['title'] ?? ''),
+                'stats' => $categoryStats,
+                'units' => $units,
+            ];
+        }
+
+        if (is_array($uncategorizedByTerm[$termNumber] ?? null) && $uncategorizedByTerm[$termNumber] !== []) {
+            $archiveSummary = notes_curriculum_uncategorized_unit_summary_payload(
+                $termNumber,
+                $uncategorizedByTerm[$termNumber]
+            );
+            $termCategories[] = [
+                'key' => 'archive',
+                'title' => 'آرشیو دسته‌بندی‌نشده',
+                'stats' => [
+                    'unitCount' => 1,
+                    'availableUnitCount' => $archiveSummary['itemCount'] > 0 ? 1 : 0,
+                    'itemCount' => max(0, (int) $archiveSummary['itemCount']),
+                ],
+                'units' => [$archiveSummary],
+            ];
+
+            $termStats['unitCount']++;
+            $catalogStats['unitCount']++;
+            if ($archiveSummary['itemCount'] > 0) {
+                $termStats['availableUnitCount']++;
+                $catalogStats['availableUnitCount']++;
+                $previewUnits[] = $archiveSummary['title'];
+            }
+            $termStats['itemCount'] += max(0, (int) $archiveSummary['itemCount']);
+            $catalogStats['itemCount'] += max(0, (int) $archiveSummary['itemCount']);
+        }
+
+        $catalogStats['termCount']++;
+        if ($termStats['availableUnitCount'] > 0) {
+            $catalogStats['availableTermCount']++;
+        }
+
+        $terms[] = [
+            'number' => $termNumber,
+            'label' => (string) ($term['label'] ?? ''),
+            'stats' => $termStats,
+            'previewUnits' => array_values(array_slice($previewUnits, 0, 4)),
+            'categories' => $termCategories,
+        ];
+    }
+
+    return [
+        'title' => 'منابع بر اساس ترم و واحد',
+        'description' => 'ابتدا ترم را انتخاب کن، بعد از داخل دسته‌ها وارد واحد هر درس شو.',
+        'stats' => $catalogStats,
+        'terms' => $terms,
+        'extraTerms' => notes_curriculum_extra_terms_payload($cohort, $store),
+    ];
+}
+
+function notes_curriculum_unit_term_payload(string $cohort, int $termNumber, string $unitKey, array $store): array
+{
+    $cleanUnitKey = trim(strtolower($unitKey));
+    if ($cleanUnitKey === '') {
+        dent_error('واحد انتخاب‌شده معتبر نیست.', 422);
+    }
+
+    $items = [];
+    $termLabel = 'ترم ' . dent_to_fa_digits((string) $termNumber);
+    $categoryKey = 'archive';
+    $categoryTitle = 'آرشیو دسته‌بندی‌نشده';
+    $unitTitle = 'آرشیو دسته‌بندی‌نشده';
+
+    if (notes_curriculum_is_uncategorized_unit_key($cleanUnitKey)) {
+        $uncategorizedTerm = notes_curriculum_uncategorized_term_from_key($cleanUnitKey);
+        if ($uncategorizedTerm !== $termNumber) {
+            dent_error('واحد انتخاب‌شده برای این ترم معتبر نیست.', 404);
+        }
+
+        $termRecord = is_array($store['terms'][(string) $termNumber] ?? null) ? $store['terms'][(string) $termNumber] : [];
+        foreach ((is_array($termRecord['items'] ?? null) ? $termRecord['items'] : []) as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $payload = notes_curriculum_item_payload($item, $termNumber);
+            if (is_array($payload['curriculum'] ?? null)) {
+                continue;
+            }
+            $items[] = $payload;
+        }
+    } else {
+        $unit = dent_dentistry_curriculum_find_unit($cleanUnitKey);
+        if (!is_array($unit) || max(0, (int) ($unit['termNumber'] ?? 0)) !== $termNumber) {
+            dent_error('واحد انتخاب‌شده برای این ترم پیدا نشد.', 404);
+        }
+
+        $termLabel = (string) ($unit['termLabel'] ?? $termLabel);
+        $categoryKey = (string) ($unit['categoryKey'] ?? '');
+        $categoryTitle = (string) ($unit['categoryTitle'] ?? '');
+        $unitTitle = (string) ($unit['title'] ?? '');
+
+        $termsSeed = is_array($store['terms'] ?? null) ? $store['terms'] : [];
+        foreach ($termsSeed as $storageTermKey => $termRecord) {
+            if (!is_array($termRecord)) {
+                continue;
+            }
+
+            $storageTerm = max(0, (int) ($termRecord['term'] ?? $storageTermKey));
+            foreach ((is_array($termRecord['items'] ?? null) ? $termRecord['items'] : []) as $item) {
+                if (!is_array($item)) {
+                    continue;
+                }
+
+                $payload = notes_curriculum_item_payload($item, $storageTerm);
+                $curriculum = is_array($payload['curriculum'] ?? null) ? $payload['curriculum'] : null;
+                if (!is_array($curriculum) || (string) ($curriculum['unitKey'] ?? '') !== $cleanUnitKey) {
+                    continue;
+                }
+                $items[] = $payload;
+            }
+        }
+    }
+
+    $sortedItems = notes_curriculum_sort_items($items);
+    $sourceTerms = array_values(array_unique(array_map(
+        static function (array $item): int {
+            return max(0, (int) ($item['storageTerm'] ?? 0));
+        },
+        $sortedItems
+    )));
+
+    return [
+        'cohort' => $cohort,
+        'term' => $termNumber,
+        'id' => $termNumber,
+        'kicker' => $termLabel,
+        'title' => $unitTitle,
+        'description' => $sortedItems === []
+            ? 'هنوز منبعی برای این واحد ثبت نشده است.'
+            : ('در حال حاضر ' . dent_to_fa_digits((string) count($sortedItems)) . ' منبع برای این واحد در دسترس است.'),
+        'emptyMessage' => 'برای این واحد هنوز منبعی ثبت نشده است.',
+        'items' => $sortedItems,
+        'mode' => 'curriculum-unit',
+        'unitKey' => $cleanUnitKey,
+        'unitTitle' => $unitTitle,
+        'termNumber' => $termNumber,
+        'termLabel' => $termLabel,
+        'categoryKey' => $categoryKey,
+        'categoryTitle' => $categoryTitle,
+        'stats' => [
+            'itemCount' => count($sortedItems),
+            'sourceTerms' => $sourceTerms,
+        ],
+    ];
+}
+
+function notes_prosthesis_1402_term_payload(array $termRecord): array
+{
+    $items = is_array($termRecord['items'] ?? null) ? $termRecord['items'] : [];
+    $termId = (int) ($termRecord['id'] ?? 0);
+    $itemPayloads = notes_term_item_payloads($items, $termId);
+
     return [
         'cohort' => 'prosthesis-1402',
-        'term' => (int) ($termRecord['id'] ?? 0),
-        'id' => (int) ($termRecord['id'] ?? 0),
+        'term' => $termId,
+        'id' => $termId,
         'kicker' => (string) ($termRecord['kicker'] ?? ''),
         'title' => (string) ($termRecord['title'] ?? ''),
         'description' => (string) ($termRecord['description'] ?? ''),
@@ -1421,6 +2079,14 @@ function notes_parse_item_fields_from_post(): array
     $description = dent_clean_text((string) ($_POST['description'] ?? ''), 600);
     $buttonLabel = dent_clean_text((string) ($_POST['buttonLabel'] ?? ''), 70);
     $buttonUrl = notes_1402_normalize_url((string) ($_POST['buttonUrl'] ?? ''));
+    $unitKey = trim(strtolower((string) ($_POST['unitKey'] ?? '')));
+    if ($unitKey !== '') {
+        $unit = dent_dentistry_curriculum_find_unit($unitKey);
+        if (!is_array($unit)) {
+            dent_error('واحد انتخاب‌شده معتبر نیست.', 422);
+        }
+        $unitKey = (string) ($unit['key'] ?? '');
+    }
 
     if ($badge === '' || $title === '' || $description === '' || $buttonLabel === '' || $buttonUrl === '') {
         dent_error('همه فیلدهای کارت باید کامل و معتبر باشند.', 422);
@@ -1432,6 +2098,7 @@ function notes_parse_item_fields_from_post(): array
         'description' => $description,
         'buttonLabel' => $buttonLabel,
         'buttonUrl' => $buttonUrl,
+        'unitKey' => $unitKey,
     ];
 }
 
@@ -1801,6 +2468,15 @@ function notes_prosthesis_1402_delete_item(int $termId, int $itemId): array
     });
 }
 
+function notes_item_response_payload(string $cohort, array $item, int $storageTerm): array
+{
+    if ($cohort === 'prosthesis-1402') {
+        return notes_1402_item_payload($item);
+    }
+
+    return notes_curriculum_item_payload($item, $storageTerm);
+}
+
 $action = dent_request_action();
 
 if ($action === 'terms') {
@@ -1808,18 +2484,20 @@ if ($action === 'terms') {
 
     $cohort = notes_parse_cohort($_GET['cohort'] ?? '1402');
     $viewer = dent_current_user();
+    $store = notes_curriculum_store_for_cohort($cohort);
     if ($cohort === 'prosthesis-1402') {
-        $terms = notes_prosthesis_1402_terms_payload(notes_prosthesis_1402_read_store());
+        $terms = notes_prosthesis_1402_terms_payload($store);
     } elseif ($cohort === '1403') {
-        $terms = notes_1403_terms_payload(notes_1403_read_store());
+        $terms = notes_1403_terms_payload($store);
     } elseif ($cohort === '1404') {
-        $terms = notes_1404_terms_payload(notes_1404_read_store());
+        $terms = notes_1404_terms_payload($store);
     } else {
-        $terms = notes_1402_terms_payload(notes_1402_read_store());
+        $terms = notes_1402_terms_payload($store);
     }
     dent_json_response([
         'success' => true,
         'terms' => $terms,
+        'curriculum' => notes_is_curriculum_cohort($cohort) ? notes_curriculum_payload($cohort, $store) : null,
         'canManage' => notes_can_manage_cohort($cohort, $viewer),
     ]);
 }
@@ -1898,21 +2576,20 @@ if ($action === 'term') {
         ? notes_prosthesis_1402_parse_term_id($_GET['term'] ?? '')
         : notes_require_term_for_cohort($cohort, $_GET['term'] ?? '');
     $viewer = dent_current_user();
+    $store = notes_curriculum_store_for_cohort($cohort);
     $termPayload = null;
+    $requestedUnitKey = trim(strtolower((string) ($_GET['unit'] ?? '')));
 
-    if ($cohort === '1403') {
-        $termPayload = notes_1403_term_payload(notes_1403_read_store(), $term);
-    } elseif ($cohort === '1404') {
-        $termPayload = notes_1404_term_payload(notes_1404_read_store(), $term);
-    } elseif ($cohort === 'prosthesis-1402') {
-        $store = notes_prosthesis_1402_read_store();
+    if ($cohort === 'prosthesis-1402') {
         $termRecord = $store['terms'][(string) $term] ?? null;
         if (!is_array($termRecord)) {
             dent_error('ترم موردنظر پیدا نشد.', 404);
         }
         $termPayload = notes_prosthesis_1402_term_payload($termRecord);
+    } elseif (notes_is_curriculum_cohort($cohort) && $requestedUnitKey !== '') {
+        $termPayload = notes_curriculum_unit_term_payload($cohort, $term, $requestedUnitKey, $store);
     } else {
-        $termPayload = notes_1402_term_payload(notes_1402_read_store(), $term);
+        $termPayload = notes_term_payload_for_cohort($cohort, $store, $term);
     }
 
     dent_json_response([
@@ -1955,22 +2632,45 @@ if ($action === 'downloadHostBrowse') {
 
 if ($action === 'downloadHostUpload') {
     notes_1402_require_method(['POST']);
-    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $uploadParams = array_merge($_GET, $_POST);
+    $cohort = notes_parse_cohort($uploadParams['cohort'] ?? '1402');
     $viewer = notes_require_manage_cohort($cohort);
     $scopeRoot = notes_download_host_scope_for_viewer($cohort, $viewer);
-    $relativeDir = trim((string) ($_POST['path'] ?? $_POST['relativeDir'] ?? ''));
+    $relativeDir = trim((string) ($uploadParams['path'] ?? $uploadParams['relativeDir'] ?? ''));
     if ($relativeDir === '') {
         $term = $cohort === 'prosthesis-1402'
-            ? notes_prosthesis_1402_parse_term_id($_POST['term'] ?? '1')
-            : notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
-        $relativeDir = notes_download_host_default_relative_dir($cohort, $term, trim((string) ($_POST['termTitle'] ?? '')));
+            ? notes_prosthesis_1402_parse_term_id($uploadParams['term'] ?? '1')
+            : notes_require_term_for_cohort($cohort, $uploadParams['term'] ?? '');
+        $relativeDir = notes_download_host_default_relative_dir($cohort, $term, trim((string) ($uploadParams['termTitle'] ?? '')));
+    }
+
+    if (!isset($_FILES['file']) && max(0, (int) notes_download_host_request_header('Content-Length')) > 0) {
+        $contentLength = max(0, (int) notes_download_host_request_header('Content-Length'));
+        $desiredName = trim((string) ($uploadParams['fileName'] ?? notes_download_host_decode_header_value(notes_download_host_request_header('X-Dent-Upload-Name'))));
+        $mimeType = trim((string) strtok(notes_download_host_request_header('Content-Type'), ';'));
+        $stream = fopen('php://input', 'rb');
+        if ($stream === false) {
+            dent_error('Upload stream could not be opened.', 422);
+        }
+
+        try {
+            $uploaded = notes_download_host_upload_stream($relativeDir, $stream, $contentLength, $desiredName, $mimeType, $scopeRoot);
+        } finally {
+            fclose($stream);
+        }
+
+        dent_json_response([
+            'success' => true,
+            'file' => $uploaded,
+            'message' => $uploaded['message'] ?? 'File was saved on the download host.',
+        ]);
     }
 
     if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {
         dent_error('فایل برای آپلود ارسال نشد.', 422);
     }
 
-    $desiredName = trim((string) ($_POST['fileName'] ?? ''));
+    $desiredName = trim((string) ($uploadParams['fileName'] ?? ''));
     $uploaded = notes_download_host_upload_file($relativeDir, $_FILES['file'], $desiredName, $scopeRoot);
     dent_json_response([
         'success' => true,
@@ -2058,7 +2758,7 @@ if ($action === 'addItem') {
 
     dent_json_response([
         'success' => true,
-        'item' => notes_1402_item_payload($created),
+        'item' => notes_item_response_payload($cohort, $created, $term),
         'message' => 'کارت منبع جدید با موفقیت ثبت شد.',
     ]);
 }
@@ -2097,7 +2797,7 @@ if ($action === 'editItem') {
 
     dent_json_response([
         'success' => true,
-        'item' => notes_1402_item_payload($updated),
+        'item' => notes_item_response_payload($cohort, $updated, $term),
         'message' => 'کارت منبع ذخیره شد.',
     ]);
 }
@@ -2135,7 +2835,7 @@ if ($action === 'deleteItem') {
 
     dent_json_response([
         'success' => true,
-        'item' => notes_1402_item_payload($deleted),
+        'item' => notes_item_response_payload($cohort, $deleted, $term),
         'message' => 'کارت منبع حذف شد.',
     ]);
 }

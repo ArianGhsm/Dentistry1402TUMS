@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#eef2f7">
-    <meta http-equiv="refresh" content="0;url=/app/#resources">
     <title>انتقال منابع | ورودی ۱۴۰۲</title>
-    <script src="/assets/site/scripts/theme.js?v=20260524-175558"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260524-175558">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260524-175558">
+    <script src="/assets/site/scripts/theme.js?v=20260524-191320"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260524-191320">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260524-191320">
     <style>
         body.redirect-page {
             min-height: 100vh;
@@ -27,10 +26,44 @@
         }
     </style>
     <script>
-        window.location.replace("/app/#resources");
+        (function () {
+            function normalizeCohort(value) {
+                var clean = String(value == null ? "" : value).trim().toLowerCase();
+                if (!clean || clean === "main" || clean === "1402" || clean === "dentistry-1402") {
+                    return "1402";
+                }
+                if (clean === "1403" || clean === "dentistry-1403") {
+                    return "1403";
+                }
+                if (clean === "1404" || clean === "dentistry-1404") {
+                    return "1404";
+                }
+                if (clean === "prosthesis-1402") {
+                    return "prosthesis-1402";
+                }
+                return clean;
+            }
+
+            function resolveTarget() {
+                var query = new URLSearchParams(window.location.search || "");
+                var cohort = normalizeCohort(query.get("cohort"));
+                if (cohort === "1403") {
+                    return "/notes/1403/";
+                }
+                if (cohort === "1404") {
+                    return "/notes/1404/";
+                }
+                if (cohort === "prosthesis-1402") {
+                    return "/notes/?cohort=prosthesis-1402";
+                }
+                return "/notes/";
+            }
+
+            window.location.replace(resolveTarget());
+        })();
     </script>
 </head>
 <body class="redirect-page" data-shell="off">
-    <p>صفحه منابع به خانه منتقل شد. اگر انتقال خودکار انجام نشد، <a href="/app/#resources">اینجا بزن</a>.</p>
+    <p>صفحه منابع به آرشیو جدید منتقل شد. اگر انتقال خودکار انجام نشد، <a href="/notes/">اینجا بزن</a>.</p>
 </body>
 </html>

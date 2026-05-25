@@ -56,6 +56,7 @@ function dent_dentistry_curriculum_terms(): array
                             'key' => 'radiology-theory-2',
                             'title' => 'رادیو نظری ۲',
                             'aliases' => ['رادیولوژی نظری ۲', 'نمونه سوالات رادیولوژی نظری ۲'],
+                            'resourceAliases' => ['جزوات رادیولوژی نظری ۲'],
                             'examCourseSlugs' => ['radiology2', 'radiology2-whitepharoah'],
                         ],
                         ['key' => 'oral-health-theory-1', 'title' => 'سلامت دهان نظری ۱'],
@@ -63,18 +64,39 @@ function dent_dentistry_curriculum_terms(): array
                             'key' => 'systemic-diseases-1',
                             'title' => 'بیماری‌های سیستمیک ۱',
                             'aliases' => ['جزوات بیماری‌های سیستمیک', 'سیستمیک'],
+                            'resourceAliases' => ['جزوات بیماری های سیستمیک'],
                             'examCourseSlugs' => ['systemicdiseases'],
                         ],
                         ['key' => 'surgery-theory-1', 'title' => 'جراحی نظری ۱'],
-                        ['key' => 'pulp-periapical-complex', 'title' => 'کمپلکس پالپ و پری‌اپیکال'],
-                        ['key' => 'ethics-communication', 'title' => 'اخلاق و مهارت‌های ارتباطی'],
+                        [
+                            'key' => 'pulp-periapical-complex',
+                            'title' => 'کمپلکس پالپ و پری‌اپیکال',
+                            'aliases' => ['اندو ترابی‌نژاد'],
+                            'resourceAliases' => [
+                                'جزوات کمپلکس پالپ و پری‌اپیکال',
+                                'ترابی‌نژاد',
+                                'ترابی نژاد 2021',
+                                'cdr ترابی‌نژاد',
+                            ],
+                            'examCourseSlugs' => ['endotorabinejad'],
+                        ],
+                        [
+                            'key' => 'ethics-communication',
+                            'title' => 'اخلاق و مهارت‌های ارتباطی',
+                            'resourceAliases' => ['اخلاق پزشکی'],
+                        ],
                         [
                             'key' => 'pharmacology',
                             'title' => 'فارماکولوژی',
                             'aliases' => ['جزوات فارماکولوژی'],
+                            'resourceAliases' => ['فارماکولوژی'],
                             'examCourseSlugs' => ['pharmacology'],
                         ],
-                        ['key' => 'restorative-foundations-theory', 'title' => 'تئوری مبانی ترمیمی'],
+                        [
+                            'key' => 'restorative-foundations-theory',
+                            'title' => 'تئوری مبانی ترمیمی',
+                            'resourceAliases' => ['آرت اند ساینس', 'art and science'],
+                        ],
                     ],
                 ],
                 [
@@ -116,10 +138,18 @@ function dent_dentistry_curriculum_terms(): array
                         ['key' => 'dental-materials-foundations', 'title' => 'مبانی مواد دندانی'],
                         ['key' => 'diagnostics-1-2', 'title' => 'تشخیصی ۱ و ۲'],
                         ['key' => 'complete-foundations-theory', 'title' => 'مبانی کامل نظری'],
-                        ['key' => 'restorative-theory-1', 'title' => 'ترمیمی نظری ۱'],
+                        [
+                            'key' => 'restorative-theory-1',
+                            'title' => 'ترمیمی نظری ۱',
+                            'resourceAliases' => ['سامیت', 'summitt'],
+                        ],
                         ['key' => 'medical-emergencies', 'title' => 'فوریت‌های پزشکی'],
                         ['key' => 'gerontology-term-6', 'title' => 'سالمندشناسی'],
-                        ['key' => 'equipment-ergonomics', 'title' => 'تجهیزات دندان‌پزشکی و ارگونومی'],
+                        [
+                            'key' => 'equipment-ergonomics',
+                            'title' => 'تجهیزات دندان‌پزشکی و ارگونومی',
+                            'resourceAliases' => ['تمامی پاور های تجهیزات', 'تجهیزات و ارگونومی'],
+                        ],
                         ['key' => 'research-methods-1-theory', 'title' => 'روش تحقیق ۱'],
                         ['key' => 'specialized-language-3-4', 'title' => 'زبان تخصصی ۳ و ۴'],
                     ],
@@ -165,12 +195,7 @@ function dent_dentistry_curriculum_terms(): array
                         ['key' => 'ent', 'title' => 'گوش و حلق و بینی'],
                         ['key' => 'ortho-theory-1', 'title' => 'ارتو نظری ۱'],
                         ['key' => 'partial-foundations-theory', 'title' => 'مبانی پارسیل نظری'],
-                        [
-                            'key' => 'endo-theory-1',
-                            'title' => 'اندو نظری ۱',
-                            'aliases' => ['اندو ترابی‌نژاد'],
-                            'examCourseSlugs' => ['endotorabinejad'],
-                        ],
+                        ['key' => 'endo-theory-1', 'title' => 'اندو نظری ۱'],
                         ['key' => 'research-methods-2-theory', 'title' => 'روش تحقیق ۲'],
                         ['key' => 'oral-health-theory-2', 'title' => 'سلامت دهان نظری ۲'],
                     ],
@@ -426,6 +451,12 @@ function dent_dentistry_curriculum_unit_index(): array
                 $normalizedUnit['categoryTitle'] = $categoryTitle;
                 $normalizedUnit['aliases'] = array_values(array_filter(
                     is_array($unit['aliases'] ?? null) ? $unit['aliases'] : [],
+                    static function ($value): bool {
+                        return is_string($value) && trim($value) !== '';
+                    }
+                ));
+                $normalizedUnit['resourceAliases'] = array_values(array_filter(
+                    is_array($unit['resourceAliases'] ?? null) ? $unit['resourceAliases'] : [],
                     static function ($value): bool {
                         return is_string($value) && trim($value) !== '';
                     }
