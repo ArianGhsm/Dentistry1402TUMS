@@ -6832,6 +6832,34 @@ if ($action === 'addMembers') {
     ]);
 }
 
+if ($action === 'navSummary') {
+    $user = chat_require_user();
+    dent_release_session_lock();
+    $store = chat_load_store();
+    $conversations = chat_conversation_summaries_for_user($store, $user);
+    $unreadCount = 0;
+    $activeCount = 0;
+    foreach ($conversations as $conversation) {
+        if (!is_array($conversation)) {
+            continue;
+        }
+        $viewerState = is_array($conversation['viewerState'] ?? null) ? $conversation['viewerState'] : [];
+        if (!empty($viewerState['archived'])) {
+            continue;
+        }
+        $activeCount++;
+        $unreadCount += max(0, (int) ($conversation['unreadCount'] ?? 0));
+    }
+
+    dent_json_response([
+        'success' => true,
+        'summary' => [
+            'unreadCount' => $unreadCount,
+            'activeConversationCount' => $activeCount,
+        ],
+    ]);
+}
+
 if ($action === 'sync' || $action === 'fetch') {
     $user = chat_require_user();
     $store = chat_load_store();

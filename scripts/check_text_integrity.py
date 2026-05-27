@@ -26,6 +26,7 @@ TEXT_EXTENSIONS = {
 }
 
 SKIP_DIR_NAMES = {".git", "fonts", "icons", "images"}
+DEFAULT_TARGETS = ("public_html", "scripts", "AGENTS.md", "DEPLOY.md")
 QUESTION_MARK_RE = re.compile(r"\?{4,}")
 ARABIC_RE = re.compile(r"[\u0600-\u06FF]")
 MOJIBAKE_PAIR_RE = re.compile(r"[\u00D8\u00D9\u00DA\u00DB][\u0080-\u00FF]")
@@ -37,6 +38,7 @@ BROKEN_FA_TOKEN_RE = re.compile(
 BROKEN_FA_PHRASE_RE = re.compile(r"Ø¯Ø± Ø­Ø§(?!Ù„)")
 UNSAFE_BIDI_PLAINTEXT_RE = re.compile(r"unicode-bidi\s*:\s*plaintext\b", re.IGNORECASE)
 UNSAFE_BIDI_ALLOW_MARKER = "rtl-bidi-allow-plaintext"
+MOJIBAKE_ALLOW_MARKER = "text-integrity-allow-mojibake"
 
 
 def iter_text_files(root: Path) -> list[Path]:
@@ -85,6 +87,8 @@ def scan_file(path: Path) -> list[tuple[int, str, str]]:
         return issues
 
     for line_no, line in enumerate(text.splitlines(), 1):
+        if MOJIBAKE_ALLOW_MARKER in line:
+            continue
         if QUESTION_MARK_RE.search(line):
             issues.append((line_no, "question-marks", line.strip()))
         elif looks_like_mojibake(line):
@@ -102,7 +106,7 @@ def scan_file(path: Path) -> list[tuple[int, str, str]]:
 
 def resolve_targets(repo_root: Path, raw_targets: list[str]) -> list[Path]:
     if not raw_targets:
-        return [repo_root / "public_html"]
+        return [repo_root / target for target in DEFAULT_TARGETS]
 
     targets: list[Path] = []
     for raw in raw_targets:

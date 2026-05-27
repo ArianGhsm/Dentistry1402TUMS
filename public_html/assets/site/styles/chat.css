@@ -3909,11 +3909,33 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    position: relative;
     gap: 0.04rem;
     font-size: 0.58rem;
     font-weight: 810;
     text-decoration: none;
     transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.chat-mobile-nav__badge {
+    position: absolute;
+    top: 0.36rem;
+    inset-inline-start: 50%;
+    transform: translateX(-0.2rem);
+    min-width: 18px;
+    height: 18px;
+    padding: 0 0.28rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-color);
+    color: var(--accent-contrast);
+    font-size: 0.58rem;
+    font-weight: 860;
+    line-height: 1;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+    pointer-events: none;
 }
 
 .chat-mobile-nav__item svg {

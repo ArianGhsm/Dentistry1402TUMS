@@ -317,18 +317,22 @@
             var card = dentalCreate("article", "notes-term-card");
             var link = dentalCreate("a", "notes-term-card__link");
             link.href = dentalHomeUrl(Number(term.number || 0), "");
+            var availableUnitCount = Number((term.stats && term.stats.availableUnitCount) || 0);
+            var itemCount = Number((term.stats && term.stats.itemCount) || 0);
 
             var head = dentalCreate("div", "notes-term-card__head");
-            head.appendChild(dentalCreateChip(term.label || "ترم", "notes-chip notes-chip--term"));
+            head.appendChild(dentalCreateChip(
+                itemCount > 0 ? "دارای منبع" : "بدون منبع",
+                itemCount > 0 ? "notes-chip notes-chip--term" : "notes-chip notes-chip--soft"
+            ));
             head.appendChild(dentalCreate("h3", "notes-term-card__title", term.label || "ترم"));
 
             var desc = dentalCreate(
                 "p",
                 "notes-term-card__desc",
-                Number((term.stats && term.stats.availableUnitCount) || 0) > 0
-                    ? ("از " + toFaDigits((term.stats && term.stats.unitCount) || 0) + " واحد این ترم، "
-                        + toFaDigits((term.stats && term.stats.availableUnitCount) || 0) + " واحد فعلاً منبع دارد.")
-                    : "ساختار این ترم آماده است ولی هنوز منبعی برای آن ثبت نشده است."
+                availableUnitCount > 0
+                    ? "برای دیدن واحدها و منابع همین ترم وارد شو."
+                    : "ساختار این ترم آماده است اما هنوز منبع فعالی ندارد."
             );
 
             var preview = dentalCreate("div", "notes-term-card__preview");
@@ -343,8 +347,8 @@
 
             var stats = dentalCreate("div", "notes-term-card__stats");
             stats.appendChild(dentalCreateStat("واحد", toFaDigits((term.stats && term.stats.unitCount) || 0)));
-            stats.appendChild(dentalCreateStat("فعال", toFaDigits((term.stats && term.stats.availableUnitCount) || 0)));
-            stats.appendChild(dentalCreateStat("منبع", toFaDigits((term.stats && term.stats.itemCount) || 0)));
+            stats.appendChild(dentalCreateStat("فعال", toFaDigits(availableUnitCount)));
+            stats.appendChild(dentalCreateStat("منبع", toFaDigits(itemCount)));
 
             link.appendChild(head);
             link.appendChild(desc);

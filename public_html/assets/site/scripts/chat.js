@@ -188,6 +188,128 @@
       .replace(/'/g, "&#039;");
   }
 
+  function formatNavBadgeCount(value) {
+    var count = Math.max(0, Math.floor(toNumber(value, 0)));
+    if (count <= 0) return "";
+    if (count > 9) return "۹+";
+    return count.toLocaleString("fa-IR");
+  }
+
+  function setChatNavBadge(node, count, label) {
+    if (!node) return;
+    var text = formatNavBadgeCount(count);
+    node.hidden = !text;
+    node.textContent = text;
+    if (text) {
+      node.setAttribute("aria-label", label || "مورد جدید");
+    } else {
+      node.removeAttribute("aria-label");
+    }
+  }
+
+  function syncMobileNavLinks() {
+    if (chatNavHome) {
+      chatNavHome.href = scopedChatPath("/app/");
+    }
+    if (chatNavExams) {
+      chatNavExams.href = scopedChatPath("/exams/");
+    }
+    if (chatNavSettings) {
+      chatNavSettings.href = scopedChatPath("/account/");
+    }
+  }
+
+  function activeUnreadConversationCount() {
+    return state.conversations.reduce(function (count, conversation) {
+      if (!conversation) return count;
+      if (conversation.viewerState && conversation.viewerState.archived) {
+        return count;
+      }
+      return count + Math.max(0, Math.floor(toNumber(conversation.unreadCount, 0)));
+    }, 0);
+  }
+
+  function emitGlobalUnreadBadge(kind, count) {
+    window.dispatchEvent(new CustomEvent("dent1402:" + kind + "-change", {
+      detail: {
+        unreadCount: Math.max(0, Math.floor(toNumber(count, 0)))
+      }
+    }));
+  }
+
+  function updateChatNavBadges() {
+    var unreadCount = state.me.loggedIn ? activeUnreadConversationCount() : 0;
+    setChatNavBadge(chatNavListBadge, unreadCount, "پیام خوانده‌نشده");
+    setChatNavBadge(chatNavSettingsBadge, state.me.loggedIn ? navBadgeState.notificationsUnread : 0, "اعلان خوانده‌نشده");
+    emitGlobalUnreadBadge("chat-unread", unreadCount);
+  }
+
+  function shouldRefreshNotificationBadgeSummary() {
+    if (!state.me.loggedIn) {
+      return false;
+    }
+    var userKey = normalizeStudentNumber(state.me.studentNumber);
+    var now = Date.now();
+    if (userKey !== navBadgeState.notificationsLastUserKey) {
+      return true;
+    }
+    return (now - navBadgeState.notificationsLastFetchedAt) > NAV_BADGE_TTL_MS;
+  }
+
+  async function loadNotificationBadgeSummary(force) {
+    if (!state.me.loggedIn) {
+      navBadgeState.notificationsUnread = 0;
+      navBadgeState.notificationsLastUserKey = "";
+      navBadgeState.notificationsLastFetchedAt = 0;
+      updateChatNavBadges();
+      return;
+    }
+    if (navBadgeState.notificationsPending) {
+      return;
+    }
+
+    var userKey = normalizeStudentNumber(state.me.studentNumber);
+    if (!force && !shouldRefreshNotificationBadgeSummary()) {
+      updateChatNavBadges();
+      return;
+    }
+
+    navBadgeState.notificationsPending = true;
+    try {
+      var response = await fetch("/api/notifications_api.php?action=summary", {
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json"
+        }
+      }).then(function (res) {
+        return res.json().catch(function () {
+          return {
+            success: false,
+            error: "پاسخ نامعتبر از سرور دریافت شد."
+          };
+        }).then(function (payload) {
+          payload.httpStatus = res.status;
+          return payload;
+        });
+      });
+      if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        return;
+      }
+      if (!response || response.success !== true) {
+        return;
+      }
+      navBadgeState.notificationsUnread = Math.max(0, Math.floor(toNumber(response.summary && response.summary.unreadCount, 0)));
+      navBadgeState.notificationsLastUserKey = userKey;
+      navBadgeState.notificationsLastFetchedAt = Date.now();
+      updateChatNavBadges();
+      emitGlobalUnreadBadge("notifications", navBadgeState.notificationsUnread);
+    } catch (_error) {
+      // Keep the last known notification count on transient failures.
+    } finally {
+      navBadgeState.notificationsPending = false;
+    }
+  }
+
   function normalizeSpace(value) {
     return toText(value).replace(/\s+/g, " ").trim();
   }
@@ -583,11 +705,14 @@
   var mobileNewChatFab = $("mobile-new-chat-fab");
   var chatMobileNav = $("chat-mobile-nav");
   var chatNavList = $("chat-nav-list");
+  var chatNavListBadge = $("chat-nav-list-badge");
   var chatNavCompose = $("chat-nav-compose");
   var chatNavGroup = $("chat-nav-group");
   var chatNavPolls = null;
   var chatNavHome = $("chat-nav-home");
+  var chatNavExams = $("chat-nav-exams");
   var chatNavSettings = $("chat-nav-settings");
+  var chatNavSettingsBadge = $("chat-nav-settings-badge");
 
   var threadInfoTrigger = $("thread-info-trigger");
   var threadAvatar = $("thread-avatar");
@@ -809,6 +934,13 @@
     mediaViewerZoomed: false,
     mediaViewerPointer: null
   };
+  var navBadgeState = {
+    notificationsUnread: 0,
+    notificationsPending: false,
+    notificationsLastUserKey: "",
+    notificationsLastFetchedAt: 0
+  };
+  var NAV_BADGE_TTL_MS = 45000;
   var nativeEmojiPicker = null;
 
   function safeAuthApi() {
@@ -2380,6 +2512,7 @@
     updateConversationFilterTabs();
     updateConversationMeta();
     updateThreadPlaceholderUi();
+    updateChatNavBadges();
   }
 
   function updateThreadHead() {
@@ -5696,6 +5829,12 @@
     updatePollActionVisibility();
     updateFabVisibility();
     updateMobileNav();
+    navBadgeState.notificationsUnread = 0;
+    navBadgeState.notificationsPending = false;
+    navBadgeState.notificationsLastUserKey = "";
+    navBadgeState.notificationsLastFetchedAt = 0;
+    syncMobileNavLinks();
+    updateChatNavBadges();
     syncThemeColor();
   }
 
@@ -5754,6 +5893,9 @@
     if (logoutBtn) logoutBtn.hidden = false;
     if (refreshBtn) refreshBtn.hidden = false;
     if (accountBtn) accountBtn.href = "/account/";
+    syncMobileNavLinks();
+    updateChatNavBadges();
+    loadNotificationBadgeSummary(true);
 
     syncCurrentUserAvatar();
     updatePollActionVisibility();
@@ -7693,11 +7835,21 @@
     window.addEventListener("focus", function () {
       if (!state.me.loggedIn) return;
       syncConversation({ forceFull: false, includeMembers: state.infoSheetOpen, silent: true }).catch(function () {});
+      loadNotificationBadgeSummary(false);
     });
 
     document.addEventListener("visibilitychange", function () {
       if (document.hidden || !state.me.loggedIn) return;
       syncConversation({ forceFull: false, includeMembers: state.infoSheetOpen, silent: true }).catch(function () {});
+      loadNotificationBadgeSummary(false);
+    });
+
+    window.addEventListener("dent1402:notifications-change", function (event) {
+      var detail = event && event.detail ? event.detail : {};
+      navBadgeState.notificationsLastUserKey = normalizeStudentNumber(state.me && state.me.studentNumber);
+      navBadgeState.notificationsLastFetchedAt = Date.now();
+      navBadgeState.notificationsUnread = Math.max(0, Math.floor(toNumber(detail.unreadCount, 0)));
+      updateChatNavBadges();
     });
   }
 
@@ -7721,6 +7873,7 @@
     updatePinnedUi();
     updateMuteUi({ muted: false });
     syncCurrentUserAvatar();
+    syncMobileNavLinks();
     updatePollActionVisibility();
     updateFabVisibility();
     installChatOverscrollGuard();

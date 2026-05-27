@@ -1007,6 +1007,77 @@ body.app-shell-hidden {
     box-shadow: var(--shell-nav-badge-shadow);
 }
 
+.shell-notification-banner {
+    position: fixed;
+    inset-inline: clamp(0.72rem, 2.6vw, 1rem);
+    top: calc(env(safe-area-inset-top, 0px) + 0.72rem);
+    z-index: 320;
+    width: min(680px, calc(100vw - 1.44rem));
+    margin-inline: auto;
+    display: grid;
+    gap: 0.82rem;
+    padding: 0.94rem 1rem;
+    border-radius: 24px;
+    border: 1px solid var(--border-color-strong);
+    background:
+        linear-gradient(135deg, var(--accent-soft) 0%, var(--commerce-accent-soft) 100%),
+        var(--surface-solid);
+    color: var(--text-primary);
+    box-shadow: var(--surface-shadow-strong);
+    backdrop-filter: blur(18px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-12px);
+    transition:
+        opacity var(--motion-fast) var(--motion-ease-standard),
+        transform var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft);
+}
+
+.shell-notification-banner.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.shell-notification-banner__copy {
+    display: grid;
+    gap: 0.22rem;
+}
+
+.shell-notification-banner__eyebrow {
+    font-size: 0.72rem;
+    font-weight: 840;
+    line-height: 1.4;
+    color: var(--accent-strong);
+}
+
+.shell-notification-banner__title {
+    font-size: 0.96rem;
+    font-weight: 900;
+    line-height: 1.5;
+}
+
+.shell-notification-banner__body {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.8;
+}
+
+.shell-notification-banner__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.shell-notification-banner__actions .shell-action-btn {
+    min-height: 40px;
+    padding-inline: 0.92rem;
+}
+
 body.site-keyboard-open .shell-bottom-nav,
 body.site-keyboard-open .buy-floating-bar,
 body.site-keyboard-open .buy-cart-dock {
@@ -1019,7 +1090,7 @@ body.site-keyboard-open .buy-cart-dock {
 .shell-modal-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 260;
+    z-index: 340;
     background: var(--overlay-backdrop);
     backdrop-filter: blur(6px);
     opacity: 0;
@@ -1140,19 +1211,21 @@ body.site-keyboard-open .buy-cart-dock {
 
 .shell-modal {
     position: fixed;
-    inset-inline: 1rem;
-    inset-block-end: var(--shell-nav-offset);
-    z-index: 280;
+    top: 50%;
+    left: 50%;
+    z-index: 350;
     width: min(420px, calc(100vw - 2rem));
-    margin: 0 auto;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem);
     padding: 1rem;
     border-radius: 26px;
     border: 1px solid rgba(127, 145, 165, 0.16);
     background: var(--surface-solid);
     box-shadow: 0 36px 72px -42px rgba(17, 30, 54, 0.34);
-    transform: translateY(16px) scale(0.98);
+    transform: translate(-50%, calc(-50% + 16px)) scale(0.98);
     opacity: 0;
     pointer-events: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     transition:
         transform var(--motion-slow) var(--motion-ease-soft),
         opacity var(--motion-base) var(--motion-ease-soft),
@@ -1160,7 +1233,7 @@ body.site-keyboard-open .buy-cart-dock {
 }
 
 .shell-modal.is-open {
-    transform: translateY(0) scale(1);
+    transform: translate(-50%, -50%) scale(1);
     opacity: 1;
     pointer-events: auto;
 }
@@ -1196,6 +1269,7 @@ body.site-keyboard-open .buy-cart-dock {
     display: flex;
     gap: 0.6rem;
     flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .shell-install-hint {
@@ -1373,7 +1447,8 @@ body.site-keyboard-open .buy-cart-dock {
 
 html[data-performance-mode="lite"] .site-header,
 html[data-performance-mode="lite"] .site-login-guard,
-html[data-performance-mode="lite"] .shell-bottom-nav__inner {
+html[data-performance-mode="lite"] .shell-bottom-nav__inner,
+html[data-performance-mode="lite"] .shell-notification-banner {
     backdrop-filter: none;
 }
 
@@ -1631,6 +1706,23 @@ html[data-performance-mode="lite"] .shell-modal-backdrop {
     .shell-bottom-nav__label {
         font-size: 0.66rem;
     }
+
+    .shell-notification-banner {
+        inset-inline: 0.72rem;
+        width: auto;
+        padding: 0.82rem 0.86rem;
+        border-radius: 20px;
+        gap: 0.72rem;
+    }
+
+    .shell-notification-banner__actions {
+        justify-content: stretch;
+    }
+
+    .shell-notification-banner__actions .shell-action-btn {
+        flex: 1 1 0;
+        justify-content: center;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1650,6 +1742,10 @@ html[data-performance-mode="lite"] .shell-modal-backdrop {
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
+    }
+
+    .shell-notification-banner {
+        transform: none;
     }
 
 }

@@ -789,6 +789,10 @@ body.hub-page .notes-host-progress[data-phase="done"] {
     border-color: color-mix(in srgb, var(--success-color) 24%, var(--border-color));
 }
 
+body.hub-page .notes-host-progress[data-phase="waiting"] {
+    border-color: color-mix(in srgb, var(--warning-color) 24%, var(--border-color));
+}
+
 body.hub-page .notes-host-progress[data-phase="error"] {
     border-color: color-mix(in srgb, var(--danger-color) 24%, var(--border-color));
 }
@@ -818,6 +822,10 @@ body.hub-page .notes-host-progress__head span {
 
 body.hub-page .notes-host-progress[data-phase="done"] .notes-host-progress__head span {
     color: var(--success-color);
+}
+
+body.hub-page .notes-host-progress[data-phase="waiting"] .notes-host-progress__head span {
+    color: color-mix(in srgb, var(--warning-color) 86%, var(--text-primary));
 }
 
 body.hub-page .notes-host-progress[data-phase="error"] .notes-host-progress__head span {
@@ -945,6 +953,10 @@ body.hub-page #prosthesis-term-list .action-card,
 body.hub-page .cards-container[data-layout="rows"] .action-card {
     min-height: 112px;
     border-radius: 22px;
+    border-color: color-mix(in srgb, var(--card-accent) 16%, var(--border-color));
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--card-accent) 5%, var(--surface-solid)), var(--surface));
+    box-shadow: 0 18px 34px -30px color-mix(in srgb, var(--card-accent) 26%, #000);
 }
 
 body.hub-page .archive-term-list .action-card--link,
@@ -992,7 +1004,7 @@ body.hub-page #prosthesis-term-list .card-desc,
 body.hub-page .cards-container[data-layout="rows"] .card-desc {
     justify-self: start;
     max-width: none;
-    color: var(--text-tertiary);
+    color: color-mix(in srgb, var(--card-accent) 16%, var(--text-secondary));
     font-size: 0.72rem;
     line-height: 1.65;
 }
@@ -1003,6 +1015,8 @@ body.hub-page #prosthesis-term-list .card-badge,
 body.hub-page .cards-container[data-layout="rows"] .card-badge {
     min-height: 24px;
     padding: 0 0.58rem;
+    background: color-mix(in srgb, var(--card-accent) 10%, var(--surface-solid));
+    color: color-mix(in srgb, var(--card-accent) 88%, var(--text-primary));
     font-size: 0.66rem;
 }
 
@@ -1013,6 +1027,11 @@ body.hub-page .cards-container[data-layout="rows"] .action-card__visual {
     width: 58px;
     height: 58px;
     border-radius: 18px;
+    border-color: color-mix(in srgb, var(--card-accent) 28%, var(--border-color));
+    background:
+        radial-gradient(circle at 28% 20%, color-mix(in srgb, var(--text-on-accent) 72%, transparent), transparent 34%),
+        linear-gradient(160deg, color-mix(in srgb, var(--card-accent) 13%, var(--surface-solid)), color-mix(in srgb, var(--card-accent) 4%, var(--surface-solid)));
+    box-shadow: 0 16px 30px -24px color-mix(in srgb, var(--card-accent) 40%, #000);
 }
 
 body.hub-page .archive-term-list .action-card__visual strong,
@@ -1109,6 +1128,16 @@ body.hub-page .quick-access-section .action-card__visual {
         transform: none;
         filter: none;
         box-shadow: none;
+    }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body.hub-page .archive-term-list .action-card:hover,
+    body.hub-page.notes-term-page .action-card:hover,
+    body.hub-page .cards-container[data-layout="rows"] .action-card:hover {
+        border-color: color-mix(in srgb, var(--card-accent) 24%, var(--border-color));
+        background: color-mix(in srgb, var(--card-accent) 7%, var(--surface));
+        box-shadow: 0 22px 38px -30px color-mix(in srgb, var(--card-accent) 34%, #000);
     }
 }
 

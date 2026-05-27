@@ -47,13 +47,35 @@ if ($action === 'saveConfig') {
     ]);
 }
 
+if ($action === 'importBrowserSnapshot') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد درون‌ریزی اسنپ‌شات نوید نامعتبر است.', 405);
+    }
+    dent_require_owner();
+
+    $raw = (string) ($_POST['browserResultJson'] ?? '');
+    $decoded = json_decode($raw, true);
+    if (!is_array($decoded)) {
+        dent_error('اسنپ‌شات نوید نامعتبر است.', 422);
+    }
+
+    $result = navid_import_browser_snapshot($decoded);
+    dent_json_response([
+        'success' => !empty($result['success']),
+        'status' => (string) ($result['status'] ?? ''),
+        'message' => (string) ($result['message'] ?? ''),
+        'summary' => $result['summary'] ?? null,
+        'ownerStatus' => $result['ownerStatus'] ?? navid_build_owner_status(navid_load_store()),
+    ]);
+}
+
 if ($action === 'syncNow') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد همگام‌سازی نوید نامعتبر است.', 405);
     }
     dent_require_owner();
 
-    $result = navid_sync_browser(true);
+    $result = navid_sync_auto(true);
     dent_json_response([
         'success' => !empty($result['success']),
         'status' => (string) ($result['status'] ?? ''),

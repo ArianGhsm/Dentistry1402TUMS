@@ -89,6 +89,11 @@
         authKey: "",
         downloadHost: null,
         uploadBusy: false,
+        uploadRetryPending: false,
+        uploadRetryTimer: 0,
+        uploadRetryCount: 0,
+        uploadTask: null,
+        uploadNetworkBound: false,
         uploadXhr: null,
         uploadCancelRequested: false,
         downloadHostPathTouched: false,
@@ -299,6 +304,18 @@
         var hours = Math.floor(minutes / 60);
         minutes = minutes % 60;
         return hours.toLocaleString("fa-IR") + " ساعت" + (minutes ? " و " + minutes.toLocaleString("fa-IR") + " دقیقه" : "");
+    }
+
+    function formatPercent(value) {
+        var number = Number(value);
+        if (!Number.isFinite(number)) {
+            number = 0;
+        }
+        return toFaDigits(Math.max(0, Math.min(100, Math.round(number))));
+    }
+
+    function isOffline() {
+        return typeof navigator !== "undefined" && navigator && navigator.onLine === false;
     }
 
     function withContextPayload(payload) {
@@ -702,6 +719,63 @@
         };
     }
 
+    function clearHostUploadRetryTimer() {
+        if (!state.uploadRetryTimer) {
+            return;
+        }
+        window.clearTimeout(state.uploadRetryTimer);
+        state.uploadRetryTimer = 0;
+    }
+
+    function hasPendingHostUploadRetry() {
+        return !!(state.uploadRetryPending && state.uploadTask && state.uploadTask.file);
+    }
+
+    function hostUploadRetryDelayMs() {
+        var attempts = Math.max(1, Number(state.uploadRetryCount || 0));
+        if (attempts <= 1) {
+            return 4000;
+        }
+        if (attempts === 2) {
+            return 7000;
+        }
+        if (attempts === 3) {
+            return 12000;
+        }
+        return 20000;
+    }
+
+    function hostUploadWaitingMessage() {
+        if (isOffline()) {
+            return "اتصال اینترنت قطع شده است. فایل در صف می‌ماند و بعد از برگشت اتصال خودکار دوباره تلاش می‌شود.";
+        }
+        if (Number(state.uploadProgress && state.uploadProgress.progress || 0) >= 99) {
+            return "ارتباط در مرحله نهایی‌سازی قطع شد. به محض پایدار شدن اتصال، آپلود خودکار دوباره تلاش می‌شود.";
+        }
+        return "ارتباط آپلود دچار اختلال شد. بعد از پایدار شدن اتصال، آپلود خودکار دوباره تلاش می‌شود.";
+    }
+
+    function resetHostUploadRetryState() {
+        clearHostUploadRetryTimer();
+        state.uploadRetryPending = false;
+        state.uploadRetryCount = 0;
+        state.uploadTask = null;
+    }
+
+    function scheduleHostUploadResume(delayMs) {
+        clearHostUploadRetryTimer();
+        if (!hasPendingHostUploadRetry()) {
+            return;
+        }
+        state.uploadRetryTimer = window.setTimeout(function () {
+            state.uploadRetryTimer = 0;
+            if (state.uploadBusy || !hasPendingHostUploadRetry()) {
+                return;
+            }
+            uploadSelectedHostFile(true);
+        }, Math.max(1200, Number(delayMs || 0)));
+    }
+
     function hostProgressLabel() {
         switch (state.uploadProgress.phase) {
             case "queued":
@@ -710,6 +784,8 @@
                 return "در حال انتقال";
             case "finalizing":
                 return "در حال ثبت روی هاست";
+            case "waiting":
+                return "در انتظار تلاش خودکار";
             case "done":
                 return "آپلود کامل شد";
             case "error":
@@ -720,6 +796,7 @@
     }
 
     function resetHostProgress(visible) {
+        resetHostUploadRetryState();
         state.uploadProgress = {
             visible: !!visible,
             phase: visible ? "queued" : "idle",
@@ -733,6 +810,10 @@
     }
 
     function primeHostProgress(file) {
+        clearHostUploadRetryTimer();
+        state.uploadRetryPending = false;
+        state.uploadRetryCount = 0;
+        state.uploadTask = null;
         state.uploadProgress = {
             visible: !!file,
             phase: file ? "queued" : "idle",
@@ -763,7 +844,7 @@
             ui.progressLabel.textContent = hostProgressLabel();
         }
         if (ui.progressPercent) {
-            ui.progressPercent.textContent = Math.round(progress).toLocaleString("fa-IR") + "%";
+            ui.progressPercent.textContent = formatPercent(progress) + "%";
         }
         if (ui.progressBar) {
             ui.progressBar.style.width = progress.toFixed(1) + "%";
@@ -782,7 +863,9 @@
                     dateStyle: "short",
                     timeStyle: "short"
                 }).format(new Date(snapshot.completedAt)) : "اکنون"))
-                : "زمان باقی‌مانده: " + formatEta(snapshot.etaSeconds);
+                : (snapshot.phase === "waiting"
+                    ? "تلاش دوباره: به‌محض برگشت اتصال، آپلود خودکار دوباره انجام می‌شود."
+                    : "زمان باقی‌مانده: " + formatEta(snapshot.etaSeconds));
         }
     }
 
@@ -911,15 +994,43 @@
             });
         }
         if (ui.uploadButton) {
-            ui.uploadButton.addEventListener("click", uploadSelectedHostFile);
+            ui.uploadButton.addEventListener("click", function () {
+                uploadSelectedHostFile(false);
+            });
         }
         if (ui.cancelButton) {
             ui.cancelButton.addEventListener("click", function () {
                 if (state.uploadXhr) {
                     state.uploadCancelRequested = true;
                     state.uploadXhr.abort();
+                    return;
+                }
+                if (state.uploadRetryPending) {
+                    resetHostUploadRetryState();
+                    state.uploadProgress.phase = "error";
+                    state.uploadProgress.speedBps = 0;
+                    state.uploadProgress.etaSeconds = NaN;
+                    renderHostProgress();
+                    syncDownloadHostUi();
+                    setHostStatus("آپلود فایل از طرف کاربر لغو شد.", "");
                 }
             });
+        }
+        if (!state.uploadNetworkBound) {
+            window.addEventListener("offline", function () {
+                if (!(state.uploadBusy || state.uploadRetryPending)) {
+                    return;
+                }
+                setHostStatus("اتصال اینترنت قطع شد. فایل در صف می‌ماند و بعد از برگشت اتصال خودکار دوباره تلاش می‌شود.", "");
+            });
+            window.addEventListener("online", function () {
+                if (!hasPendingHostUploadRetry()) {
+                    return;
+                }
+                setHostStatus("اتصال برگشت. آپلود فایل خودکار دوباره تلاش می‌شود.", "");
+                scheduleHostUploadResume(900);
+            });
+            state.uploadNetworkBound = true;
         }
         renderHostProgress();
     }
@@ -944,21 +1055,24 @@
             ui.pathInput.value = info.defaultRelativeDir;
         }
         if (ui.uploadButton) {
-            ui.uploadButton.disabled = state.uploadBusy || !info.enabled || !info.canUpload;
-            ui.uploadButton.textContent = state.uploadBusy ? "در حال آپلود..." : "آپلود به هاست دانلود";
+            ui.uploadButton.disabled = state.uploadBusy || state.uploadRetryPending || !info.enabled || !info.canUpload;
+            ui.uploadButton.textContent = state.uploadRetryPending
+                ? "در انتظار تلاش دوباره..."
+                : (state.uploadBusy ? "در حال آپلود..." : "آپلود به هاست دانلود");
         }
         if (ui.cancelButton) {
-            ui.cancelButton.hidden = !state.uploadBusy;
-            ui.cancelButton.disabled = !state.uploadBusy || !state.uploadXhr;
+            ui.cancelButton.hidden = !(state.uploadBusy || state.uploadRetryPending);
+            ui.cancelButton.disabled = !(state.uploadXhr || state.uploadRetryPending);
+            ui.cancelButton.textContent = state.uploadRetryPending ? "لغو انتظار" : "لغو آپلود";
         }
         if (ui.pickButton) {
-            ui.pickButton.disabled = state.uploadBusy || !info.enabled || !info.canUpload;
+            ui.pickButton.disabled = state.uploadBusy || state.uploadRetryPending || !info.enabled || !info.canUpload;
         }
         if (ui.nameInput) {
-            ui.nameInput.disabled = state.uploadBusy || !info.enabled || !info.canUpload;
+            ui.nameInput.disabled = state.uploadBusy || state.uploadRetryPending || !info.enabled || !info.canUpload;
         }
         if (ui.pathInput) {
-            ui.pathInput.disabled = state.uploadBusy || !info.enabled || !info.canUpload;
+            ui.pathInput.disabled = state.uploadBusy || state.uploadRetryPending || !info.enabled || !info.canUpload;
         }
         renderHostProgress();
 
@@ -975,39 +1089,80 @@
         }
     }
 
-    function uploadSelectedHostFile() {
+    function uploadSelectedHostFile(resumeOnly) {
         var info = state.downloadHost || {};
         var ui = hostUi();
         if (!info.enabled || !info.canUpload) {
+            if (resumeOnly) {
+                state.uploadBusy = false;
+                resetHostUploadRetryState();
+                syncDownloadHostUi();
+            }
             setHostStatus("آپلود مستقیم برای این صفحه فعال نیست.", "error");
             return;
         }
 
-        var file = selectedHostFile();
-        var pathValue = ui.pathInput ? String(ui.pathInput.value || "").trim() : "";
-        if (!file) {
-            setHostStatus("ابتدا فایل موردنظر را انتخاب کنید.", "error");
-            return;
+        var task = resumeOnly ? state.uploadTask : null;
+        if (!task) {
+            var file = selectedHostFile();
+            var pathValue = ui.pathInput ? String(ui.pathInput.value || "").trim() : "";
+            var fileName = ui.nameInput ? String(ui.nameInput.value || "").trim() : "";
+            if (!file) {
+                setHostStatus("ابتدا فایل موردنظر را انتخاب کنید.", "error");
+                return;
+            }
+            if (!pathValue) {
+                setHostStatus("پوشه مقصد روی هاست دانلود را مشخص کنید.", "error");
+                return;
+            }
+            task = {
+                file: file,
+                pathValue: pathValue,
+                fileName: fileName
+            };
+            state.uploadTask = task;
+            state.uploadRetryCount = 0;
         }
-        if (!pathValue) {
-            setHostStatus("پوشه مقصد روی هاست دانلود را مشخص کنید.", "error");
+        if (!task || !task.file) {
+            setHostStatus("فایل انتخاب‌شده برای ادامه آپلود در دسترس نیست.", "error");
+            state.uploadBusy = false;
+            resetHostUploadRetryState();
+            syncDownloadHostUi();
             return;
         }
 
+        clearHostUploadRetryTimer();
+        state.uploadRetryPending = false;
         state.uploadBusy = true;
         state.uploadProgress = {
             visible: true,
             phase: "uploading",
             progress: 0,
             transferredBytes: 0,
-            totalBytes: Number(file.size || 0),
+            totalBytes: Number(task.file.size || 0),
             speedBps: 0,
             etaSeconds: NaN,
             completedAt: ""
         };
         syncDownloadHostUi();
-        setHostStatus("فایل در حال انتقال به هاست دانلود است...", "");
+        setHostStatus(resumeOnly ? "اتصال برگشت و آپلود دوباره تلاش شد..." : "فایل در حال انتقال به هاست دانلود است...", "");
         renderHostProgress();
+
+        function moveUploadToWaiting(message) {
+            state.uploadXhr = null;
+            state.uploadCancelRequested = false;
+            state.uploadBusy = false;
+            state.uploadRetryPending = true;
+            state.uploadRetryCount = Math.max(0, Number(state.uploadRetryCount || 0)) + 1;
+            state.uploadProgress.visible = true;
+            state.uploadProgress.phase = "waiting";
+            state.uploadProgress.speedBps = 0;
+            state.uploadProgress.etaSeconds = NaN;
+            renderHostProgress();
+            syncDownloadHostUi();
+            setHostStatus(message || hostUploadWaitingMessage(), "");
+            scheduleHostUploadResume(isOffline() ? 2500 : hostUploadRetryDelayMs());
+        }
 
         var startedAt = Date.now();
         var xhr = new XMLHttpRequest();
@@ -1016,15 +1171,15 @@
         var requestUrl = "/api/notes_api.php?action=downloadHostUpload"
             + "&cohort=" + encodeURIComponent(cohort)
             + "&term=" + encodeURIComponent(String(term))
-            + "&path=" + encodeURIComponent(pathValue);
-        if (ui.nameInput && String(ui.nameInput.value || "").trim()) {
-            requestUrl += "&fileName=" + encodeURIComponent(String(ui.nameInput.value || "").trim());
+            + "&path=" + encodeURIComponent(task.pathValue);
+        if (task.fileName) {
+            requestUrl += "&fileName=" + encodeURIComponent(task.fileName);
         }
         xhr.open("POST", requestUrl, true);
         xhr.withCredentials = true;
         xhr.setRequestHeader("Accept", "application/json");
-        xhr.setRequestHeader("Content-Type", file && file.type ? file.type : "application/octet-stream");
-        xhr.setRequestHeader("X-Dent-Upload-Name", encodeURIComponent((ui.nameInput && String(ui.nameInput.value || "").trim()) || file.name || "file"));
+        xhr.setRequestHeader("Content-Type", task.file && task.file.type ? task.file.type : "application/octet-stream");
+        xhr.setRequestHeader("X-Dent-Upload-Name", encodeURIComponent(task.fileName || task.file.name || "file"));
 
         xhr.upload.onprogress = function (event) {
             if (!event.lengthComputable) {
@@ -1032,7 +1187,7 @@
             }
 
             var loaded = Number(event.loaded || 0);
-            var total = Number(event.total || file.size || 0);
+            var total = Number(event.total || task.file.size || 0);
             var elapsed = Math.max(0.25, (Date.now() - startedAt) / 1000);
             var speed = loaded / elapsed;
             state.uploadProgress.visible = true;
@@ -1053,8 +1208,8 @@
             state.uploadProgress.visible = true;
             state.uploadProgress.phase = "finalizing";
             state.uploadProgress.progress = 100;
-            state.uploadProgress.transferredBytes = Number(file.size || state.uploadProgress.transferredBytes || 0);
-            state.uploadProgress.totalBytes = Number(file.size || state.uploadProgress.totalBytes || 0);
+            state.uploadProgress.transferredBytes = Number(task.file.size || state.uploadProgress.transferredBytes || 0);
+            state.uploadProgress.totalBytes = Number(task.file.size || state.uploadProgress.totalBytes || 0);
             state.uploadProgress.speedBps = 0;
             state.uploadProgress.etaSeconds = 0;
             renderHostProgress();
@@ -1072,6 +1227,7 @@
             response.httpStatus = xhr.status;
 
             if (handleUnauthorized(response)) {
+                resetHostUploadRetryState();
                 state.uploadProgress.phase = "error";
                 state.uploadProgress.etaSeconds = NaN;
                 renderHostProgress();
@@ -1081,6 +1237,7 @@
                 return;
             }
             if (!response || !response.success || !response.file) {
+                resetHostUploadRetryState();
                 state.uploadProgress.phase = "error";
                 state.uploadProgress.speedBps = 0;
                 state.uploadProgress.etaSeconds = NaN;
@@ -1099,7 +1256,7 @@
                 inputs.buttonLabel.value = "دانلود";
             }
             if (ui.pathInput) {
-                ui.pathInput.value = response.file.relativeDir || pathValue;
+                ui.pathInput.value = response.file.relativeDir || task.pathValue;
             }
             if (ui.fileInput) {
                 ui.fileInput.value = "";
@@ -1111,8 +1268,8 @@
             state.uploadProgress.visible = true;
             state.uploadProgress.phase = "done";
             state.uploadProgress.progress = 100;
-            state.uploadProgress.transferredBytes = Number(file.size || state.uploadProgress.transferredBytes || 0);
-            state.uploadProgress.totalBytes = Number(file.size || state.uploadProgress.totalBytes || 0);
+            state.uploadProgress.transferredBytes = Number(task.file.size || state.uploadProgress.transferredBytes || 0);
+            state.uploadProgress.totalBytes = Number(task.file.size || state.uploadProgress.totalBytes || 0);
             state.uploadProgress.speedBps = 0;
             state.uploadProgress.etaSeconds = 0;
             state.uploadProgress.completedAt = new Date().toISOString();
@@ -1120,35 +1277,33 @@
             renderHostProgress();
             setHostStatus(response.message || "فایل روی هاست دانلود ذخیره شد و لینک مستقیم آن روی کارت قرار گرفت.", "success", response.file.publicUrl || "");
             state.uploadBusy = false;
+            resetHostUploadRetryState();
             syncDownloadHostUi();
         };
 
         xhr.onerror = function () {
-            state.uploadXhr = null;
-            state.uploadCancelRequested = false;
-            state.uploadProgress.phase = "error";
-            state.uploadProgress.speedBps = 0;
-            state.uploadProgress.etaSeconds = NaN;
-            renderHostProgress();
-            state.uploadBusy = false;
-            syncDownloadHostUi();
-            setHostStatus("ارتباط آپلود با خطا قطع شد.", "error");
+            moveUploadToWaiting(hostUploadWaitingMessage());
         };
 
         xhr.onabort = function () {
             var canceledByUser = state.uploadCancelRequested;
             state.uploadXhr = null;
             state.uploadCancelRequested = false;
-            state.uploadProgress.phase = "error";
-            state.uploadProgress.speedBps = 0;
-            state.uploadProgress.etaSeconds = NaN;
-            renderHostProgress();
-            state.uploadBusy = false;
-            syncDownloadHostUi();
-            setHostStatus(canceledByUser ? "آپلود فایل از طرف کاربر لغو شد." : "آپلود فایل توسط مرورگر متوقف شد.", canceledByUser ? "" : "error");
+            if (canceledByUser) {
+                state.uploadBusy = false;
+                resetHostUploadRetryState();
+                state.uploadProgress.phase = "error";
+                state.uploadProgress.speedBps = 0;
+                state.uploadProgress.etaSeconds = NaN;
+                renderHostProgress();
+                syncDownloadHostUi();
+                setHostStatus("آپلود فایل از طرف کاربر لغو شد.", "");
+                return;
+            }
+            moveUploadToWaiting(hostUploadWaitingMessage());
         };
 
-        xhr.send(file);
+        xhr.send(task.file);
     }
 
     function renderTerm() {

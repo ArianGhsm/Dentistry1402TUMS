@@ -762,6 +762,10 @@ body.content-tools-page--files-center .background-overlay {
     border-color: color-mix(in srgb, var(--ct-success) 34%, rgba(128, 150, 188, 0.16));
 }
 
+.ctf-queue-item[data-state="waiting"] {
+    border-color: color-mix(in srgb, var(--warning-color) 34%, rgba(128, 150, 188, 0.16));
+}
+
 .ctf-queue-item[data-state="error"] {
     border-color: color-mix(in srgb, var(--ct-danger) 34%, rgba(128, 150, 188, 0.16));
 }
@@ -789,6 +793,11 @@ body.content-tools-page--files-center .background-overlay {
 .ctf-queue-item[data-state="finalizing"] .ctf-queue-state {
     color: var(--ctf-status-upload-text);
     background: var(--ctf-status-upload-bg);
+}
+
+.ctf-queue-item[data-state="waiting"] .ctf-queue-state {
+    color: color-mix(in srgb, var(--warning-color) 86%, var(--ctf-strong-text));
+    background: color-mix(in srgb, var(--warning-color) 12%, var(--ctf-surface-panel-strong));
 }
 
 .ctf-queue-item[data-state="done"] .ctf-queue-state {

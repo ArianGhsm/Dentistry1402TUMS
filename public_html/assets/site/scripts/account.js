@@ -149,6 +149,13 @@
     var accountRowOwnerMeta = $("account-row-owner-meta");
     var accountRowNavidMeta = $("account-row-navid-meta");
     var accountRowPhoneMeta = $("account-row-phone-meta");
+    var accountRowNotificationsMeta = $("account-row-notifications-meta");
+    var accountNavidAlertCard = $("account-navid-alert-card");
+    var accountNotificationAlertKind = $("account-notification-alert-kind");
+    var accountNavidAlertTime = $("account-navid-alert-time");
+    var accountNavidAlertTitle = $("account-navid-alert-title");
+    var accountNavidAlertBody = $("account-navid-alert-body");
+    var accountNavidAlertLink = $("account-navid-alert-link");
     var surfaceOpeners = Array.prototype.slice.call(document.querySelectorAll("[data-open-surface]"));
     var surfaceBackButtons = Array.prototype.slice.call(document.querySelectorAll("[data-surface-back]"));
     var surfacePanels = Array.prototype.slice.call(document.querySelectorAll(".account-surface-panel[data-surface]"));
@@ -193,6 +200,27 @@
     var ownerMediaRefreshButton = $("owner-media-refresh");
     var ownerMediaCleanupButton = $("owner-media-cleanup");
     var ownerMediaFeedback = $("owner-media-feedback");
+    var notificationsSummary = $("notifications-summary");
+    var notificationsPrefsCard = $("notifications-prefs-card");
+    var notificationsNavidAlertsToggle = $("notifications-navid-alerts");
+    var notificationsPrefsSaveButton = $("notifications-prefs-save");
+    var notificationsPrefsHint = $("notifications-prefs-hint");
+    var notificationsManagerCard = $("notifications-manager-card");
+    var notificationsBroadcastForm = $("notifications-broadcast-form");
+    var notificationsTargetSelect = $("notifications-target");
+    var notificationsTitleInput = $("notifications-title");
+    var notificationsBodyInput = $("notifications-body");
+    var notificationsCtaLabelInput = $("notifications-cta-label");
+    var notificationsCtaHrefInput = $("notifications-cta-href");
+    var notificationsScheduleInput = $("notifications-schedule-at");
+    var notificationsSendSmsInput = $("notifications-send-sms");
+    var notificationsBroadcastSubmit = $("notifications-broadcast-submit");
+    var notificationsManagerFeedback = $("notifications-manager-feedback");
+    var notificationsRefreshButton = $("notifications-refresh");
+    var notificationsMarkAllButton = $("notifications-mark-all");
+    var notificationsFeedback = $("notifications-feedback");
+    var notificationsEmpty = $("notifications-empty");
+    var notificationsList = $("notifications-list");
 
     var redirectedAfterLogin = false;
     var pendingReturnTo = safeReturnTo(new URLSearchParams(window.location.search).get("returnTo"));
@@ -245,6 +273,24 @@
     var mediaState = {
         loading: false,
         status: null
+    };
+    var notificationsState = {
+        loading: false,
+        requestToken: 0,
+        loadedForUserKey: "",
+        summary: null,
+        preview: null,
+        preferences: null,
+        manager: null,
+        items: [],
+        savingPrefs: false,
+        markingAll: false,
+        broadcasting: false,
+        markingIds: {},
+        audienceById: {},
+        audienceLoadingIds: {},
+        expandedAudienceId: "",
+        deletingId: ""
     };
     var loginMode = "otp";
     var loginOtpCooldownUntil = 0;
@@ -347,6 +393,7 @@
             case "phone":
             case "owner":
             case "owner-user":
+            case "notifications":
             case "navid":
                 return name;
             default:
@@ -541,6 +588,10 @@
 
         if (!opts.preserveScroll) {
             window.scrollTo(0, 0);
+        }
+
+        if (target === "notifications" && currentUser) {
+            loadNotifications(true);
         }
     }
 
@@ -1619,6 +1670,884 @@
         }
 
         return false;
+    }
+
+    function notificationsUserKey() {
+        return accountUserKey(currentUser);
+    }
+
+    function notificationsGet(action, params) {
+        var query = new URLSearchParams(Object.assign({ action: action }, params || {}));
+        return fetch("/api/notifications_api.php?" + query.toString(), {
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json"
+            }
+        }).then(function (response) {
+            return response.json().catch(function () {
+                return {
+                    success: false,
+                    error: "پاسخ نامعتبر از سرور دریافت شد."
+                };
+            }).then(function (data) {
+                data.httpStatus = response.status;
+                return data;
+            });
+        });
+    }
+
+    function notificationsPost(action, payload) {
+        return fetch("/api/notifications_api.php", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "Accept": "application/json"
+            },
+            body: new URLSearchParams(Object.assign({ action: action }, payload || {}))
+        }).then(function (response) {
+            return response.json().catch(function () {
+                return {
+                    success: false,
+                    error: "پاسخ نامعتبر از سرور دریافت شد."
+                };
+            }).then(function (data) {
+                data.httpStatus = response.status;
+                return data;
+            });
+        });
+    }
+
+    function notificationsResetState() {
+        notificationsState.loading = false;
+        notificationsState.requestToken = 0;
+        notificationsState.loadedForUserKey = "";
+        notificationsState.summary = null;
+        notificationsState.preview = null;
+        notificationsState.preferences = null;
+        notificationsState.manager = null;
+        notificationsState.items = [];
+        notificationsState.savingPrefs = false;
+        notificationsState.markingAll = false;
+        notificationsState.broadcasting = false;
+        notificationsState.markingIds = {};
+        notificationsState.audienceById = {};
+        notificationsState.audienceLoadingIds = {};
+        notificationsState.expandedAudienceId = "";
+        notificationsState.deletingId = "";
+    }
+
+    function notificationsDispatchSummary(summary) {
+        var unreadCount = Math.max(0, Math.floor(toNumber(summary && summary.unreadCount, 0)));
+        window.dispatchEvent(new CustomEvent("dent1402:notifications-change", {
+            detail: {
+                unreadCount: unreadCount,
+                preview: notificationsState.preview || null
+            }
+        }));
+    }
+
+    function notificationsLatestUnreadItemFromItems() {
+        return notificationsState.items.find(function (item) {
+            return !!(item && item.unread);
+        }) || null;
+    }
+
+    function notificationsLatestUnreadItem() {
+        return notificationsLatestUnreadItemFromItems() || (
+            notificationsState.preview && notificationsState.preview.unread !== false
+                ? notificationsState.preview
+                : null
+        );
+    }
+
+    function notificationsSyncPreview() {
+        var previewFromItems = notificationsLatestUnreadItemFromItems();
+        if (previewFromItems) {
+            notificationsState.preview = previewFromItems;
+            return;
+        }
+        if (!notificationsState.preview || notificationsState.preview.unread === false) {
+            notificationsState.preview = null;
+        }
+    }
+
+    function notificationsKindLabel(item) {
+        return item && item.kind === "navid-assignment" ? "تکلیف نوید" : "اعلان ورودی";
+    }
+
+    function notificationsItemDisplayAt(item) {
+        if (!item || typeof item !== "object") {
+            return "—";
+        }
+        return formatJalaliDateTime(
+            item.scheduled ? (item.publishAt || item.effectiveAt || item.createdAt) : (item.effectiveAt || item.createdAt),
+            "—"
+        );
+    }
+
+    function notificationsPrimaryState(item) {
+        if (item && item.scheduled) {
+            return {
+                text: "زمان‌بندی‌شده",
+                className: " is-scheduled"
+            };
+        }
+        if (item && item.unread) {
+            return {
+                text: "خوانده‌نشده",
+                className: " is-unread"
+            };
+        }
+        return {
+            text: "خوانده‌شده",
+            className: ""
+        };
+    }
+
+    function notificationsSmsStatusLabel(sms) {
+        var status = String(sms && sms.status || "");
+        if (!sms || !sms.requested) {
+            return "";
+        }
+        if (status === "pending") return "SMS در صف";
+        if (status === "sending") return "در حال SMS";
+        if (status === "sent") return "SMS ارسال شد";
+        if (status === "partial") return "SMS ناقص";
+        if (status === "failed") return "SMS ناموفق";
+        return "SMS فعال";
+    }
+
+    function notificationsAudienceSummaryText(summary) {
+        var total = Math.max(0, Math.floor(toNumber(summary && summary.recipientCount, 0)));
+        var viewed = Math.max(0, Math.floor(toNumber(summary && summary.viewedCount, 0)));
+        if (total <= 0) {
+            return "";
+        }
+        return viewed.toLocaleString("fa-IR") + " از " + total.toLocaleString("fa-IR") + " دیده‌اند";
+    }
+
+    function notificationsSmsDetailText(sms) {
+        if (!sms || !sms.requested) {
+            return "برای این اعلان، ارسال پیامک فعال نبود.";
+        }
+
+        var eligible = Math.max(0, Math.floor(toNumber(sms.eligibleCount, 0)));
+        var sent = Math.max(0, Math.floor(toNumber(sms.sentCount, 0)));
+        var skipped = Math.max(0, Math.floor(toNumber(sms.skippedCount, 0)));
+        var statusLabel = notificationsSmsStatusLabel(sms) || "SMS";
+        var parts = [statusLabel];
+        if (eligible > 0) {
+            parts.push("دارای شماره تاییدشده: " + eligible.toLocaleString("fa-IR"));
+        }
+        if (sent > 0) {
+            parts.push("ثبت‌شده: " + sent.toLocaleString("fa-IR"));
+        }
+        if (skipped > 0) {
+            parts.push("بدون شماره تاییدشده: " + skipped.toLocaleString("fa-IR"));
+        }
+        if (sms.lastMessage) {
+            parts.push(String(sms.lastMessage));
+        }
+        return parts.join(" • ");
+    }
+
+    function notificationsAudienceEntryHtml(entry, includeReadAt) {
+        var meta = [
+            "شماره دانشجویی: " + escapeHtml(String(entry && entry.studentNumber || "—")),
+            escapeHtml(String(entry && entry.roleLabel || "دانشجو")),
+            escapeHtml(String(entry && entry.cohortLabel || "—"))
+        ];
+        if (entry && entry.hasVerifiedPhone && entry.phoneMasked) {
+            meta.push("شماره تاییدشده: " + escapeHtml(String(entry.phoneMasked)));
+        } else {
+            meta.push("شماره تاییدشده ندارد");
+        }
+        if (includeReadAt && entry && entry.readAt) {
+            meta.unshift("خوانده در " + escapeHtml(formatJalaliDateTime(entry.readAt, "—")));
+        }
+
+        return [
+            '<li class="account-notification-audience__item">',
+            '  <strong>' + escapeHtml(String(entry && entry.name || "کاربر")) + "</strong>",
+            '  <span>' + meta.join(" • ") + "</span>",
+            "</li>"
+        ].join("");
+    }
+
+    function notificationsAudienceColumnHtml(title, items, emptyText, includeReadAt) {
+        var list = Array.isArray(items) ? items : [];
+        return [
+            '<section class="account-notification-audience__column">',
+            '  <div class="account-notification-audience__column-head">',
+            '    <strong>' + escapeHtml(title) + "</strong>",
+            '    <span>' + list.length.toLocaleString("fa-IR") + "</span>",
+            "  </div>",
+            list.length
+                ? ('  <ul class="account-notification-audience__list">' + list.map(function (entry) {
+                    return notificationsAudienceEntryHtml(entry, includeReadAt);
+                }).join("") + "</ul>")
+                : ('  <p class="account-notification-audience__empty">' + escapeHtml(emptyText) + "</p>"),
+            "</section>"
+        ].join("");
+    }
+
+    function notificationsAudiencePanelHtml(item) {
+        var id = String(item && item.id || "");
+        var managerMeta = item && item.manager && typeof item.manager === "object" ? item.manager : {};
+        if (!managerMeta.canInspectAudience) {
+            return "";
+        }
+
+        var open = notificationsState.expandedAudienceId === id;
+        var loading = !!notificationsState.audienceLoadingIds[id];
+        var payload = notificationsState.audienceById[id] && typeof notificationsState.audienceById[id] === "object"
+            ? notificationsState.audienceById[id]
+            : null;
+        var summary = payload && payload.summary ? payload.summary : (managerMeta.audienceSummary || {});
+        var sms = payload && payload.sms ? payload.sms : (item && item.sms ? item.sms : {});
+        var viewed = payload && Array.isArray(payload.viewed) ? payload.viewed : [];
+        var pending = payload && Array.isArray(payload.pending) ? payload.pending : [];
+        var recipientCount = Math.max(0, Math.floor(toNumber(summary && summary.recipientCount, 0)));
+        var viewedCount = Math.max(0, Math.floor(toNumber(summary && summary.viewedCount, 0)));
+        var pendingCount = Math.max(0, Math.floor(toNumber(summary && summary.pendingCount, 0)));
+        var verifiedPhoneCount = Math.max(0, Math.floor(toNumber(summary && summary.verifiedPhoneCount, 0)));
+
+        return [
+            '<section class="account-notification-audience"' + (open ? "" : " hidden") + ' data-notification-audience-panel="' + escapeHtml(id) + '">',
+            '  <div class="account-notification-audience__stats">',
+            '    <div class="account-notification-audience__stat"><strong>' + recipientCount.toLocaleString("fa-IR") + '</strong><span>مخاطب</span></div>',
+            '    <div class="account-notification-audience__stat"><strong>' + viewedCount.toLocaleString("fa-IR") + '</strong><span>دیده‌اند</span></div>',
+            '    <div class="account-notification-audience__stat"><strong>' + pendingCount.toLocaleString("fa-IR") + '</strong><span>ندیده‌اند</span></div>',
+            '    <div class="account-notification-audience__stat"><strong>' + verifiedPhoneCount.toLocaleString("fa-IR") + '</strong><span>شماره تاییدشده</span></div>',
+            "  </div>",
+            '  <p class="account-notification-audience__sms">' + escapeHtml(notificationsSmsDetailText(sms)) + "</p>",
+            loading
+                ? '  <p class="account-notification-audience__hint">در حال دریافت وضعیت مشاهده‌کنندگان...</p>'
+                : payload
+                    ? ('  <div class="account-notification-audience__columns">'
+                        + notificationsAudienceColumnHtml("دیده‌اند", viewed, "هنوز کسی این اعلان را نخوانده است.", true)
+                        + notificationsAudienceColumnHtml("ندیده‌اند", pending, "همه مخاطبان این اعلان را دیده‌اند.", false)
+                        + "</div>")
+                    : '  <p class="account-notification-audience__hint">برای دریافت لیست کامل، دکمه وضعیت مشاهده را باز کن.</p>',
+            "</section>"
+        ].join("");
+    }
+
+    function notificationsHubMetaText() {
+        var summary = notificationsState.summary || {};
+        var manager = notificationsState.manager || {};
+        var unreadCount = Math.max(0, Math.floor(toNumber(summary.unreadCount, 0)));
+        var scheduledCount = Math.max(0, Math.floor(toNumber(summary.scheduledCount, 0)));
+        if (notificationsState.loading) {
+            return "در حال دریافت اعلان‌های این حساب...";
+        }
+        if (unreadCount > 0) {
+            var latestTitle = String(summary.latestTitle || "").trim();
+            return unreadCount.toLocaleString("fa-IR") + " اعلان خوانده‌نشده" + (latestTitle ? (" • آخرین مورد: " + latestTitle) : "");
+        }
+
+        if (notificationsState.loadedForUserKey) {
+            if (manager.canBroadcast && scheduledCount > 0) {
+                return scheduledCount.toLocaleString("fa-IR") + " اعلان زمان‌بندی‌شده در صف انتشار است.";
+            }
+            return "در حال حاضر اعلان خوانده‌نشده‌ای برای این حساب ثبت نشده است.";
+        }
+
+        return "اعلان‌های نوید و پیام‌های ارسال‌شده برای این حساب در همین بخش نمایش داده می‌شوند.";
+    }
+
+    function renderNotificationsHub() {
+        if (accountRowNotificationsMeta) {
+            accountRowNotificationsMeta.textContent = notificationsHubMetaText();
+        }
+
+        if (!accountNavidAlertCard) {
+            return;
+        }
+
+        var preview = notificationsLatestUnreadItem();
+        accountNavidAlertCard.hidden = !preview;
+        if (!preview) {
+            return;
+        }
+
+        if (accountNotificationAlertKind) {
+            accountNotificationAlertKind.textContent = notificationsKindLabel(preview);
+        }
+        if (accountNavidAlertTime) {
+            accountNavidAlertTime.textContent = formatJalaliDateTime(preview.effectiveAt || preview.createdAt, "—");
+        }
+        if (accountNavidAlertTitle) {
+            accountNavidAlertTitle.textContent = preview.title || (preview.kind === "navid-assignment" ? "تکلیف جدید نوید" : "اعلان جدید");
+        }
+        if (accountNavidAlertBody) {
+            accountNavidAlertBody.textContent = preview.body || (preview.kind === "navid-assignment"
+                ? "برای دیدن جزئیات، بخش تکالیف نوید را باز کن."
+                : "برای دیدن جزئیات، اعلان را باز کن.");
+        }
+        if (accountNavidAlertLink) {
+            accountNavidAlertLink.href = String(preview.ctaHref || "/account/#notifications");
+            accountNavidAlertLink.dataset.notificationId = String(preview.id || "");
+            accountNavidAlertLink.textContent = String(preview.ctaLabel || (preview.kind === "navid-assignment" ? "مشاهده تکالیف" : "مشاهده اعلان"));
+        }
+    }
+
+    function renderNotificationsSurface() {
+        var summary = notificationsState.summary || {};
+        var preferences = notificationsState.preferences || {};
+        var manager = notificationsState.manager || {};
+        var items = Array.isArray(notificationsState.items) ? notificationsState.items : [];
+
+        if (notificationsSummary) {
+            var cards = [
+                summaryCard("خوانده‌نشده", String(Math.max(0, Math.floor(toNumber(summary.unreadCount, 0))).toLocaleString("fa-IR")), "اعلان‌هایی که هنوز باز یا خوانده نشده‌اند", Math.max(0, Math.floor(toNumber(summary.unreadCount, 0))) > 0 ? "warn" : "ok"),
+                summaryCard(manager.canBroadcast ? "فعال" : "کل قابل‌نمایش", String(Math.max(0, Math.floor(toNumber(summary.visibleCount, 0))).toLocaleString("fa-IR")), manager.canBroadcast ? "اعلان‌هایی که همین حالا برای کاربران مقصد قابل‌دیدن‌اند" : "همه اعلان‌هایی که برای این حساب قابل مشاهده‌اند"),
+                summaryCard("اعلان مدیریتی", String(Math.max(0, Math.floor(toNumber(summary.announcementCount, 0))).toLocaleString("fa-IR")), "پیام‌های ارسالی مالک یا نماینده‌ها"),
+                summaryCard("نوید", String(Math.max(0, Math.floor(toNumber(summary.navidCount, 0))).toLocaleString("fa-IR")), "اعلان‌های تکلیف جدید نوید")
+            ];
+            if (manager.canBroadcast || Math.max(0, Math.floor(toNumber(summary.scheduledCount, 0))) > 0) {
+                cards.splice(2, 0, summaryCard("زمان‌بندی‌شده", String(Math.max(0, Math.floor(toNumber(summary.scheduledCount, 0))).toLocaleString("fa-IR")), "اعلان‌هایی که هنوز به زمان انتشارشان نرسیده‌ایم"));
+            }
+            notificationsSummary.innerHTML = cards.join("");
+        }
+
+        if (notificationsPrefsCard) {
+            var canToggle = !!preferences.canToggleNavidAssignmentAlerts;
+            notificationsPrefsCard.hidden = !canToggle;
+            if (notificationsNavidAlertsToggle) {
+                notificationsNavidAlertsToggle.checked = !!preferences.navidAssignmentAlerts;
+                notificationsNavidAlertsToggle.disabled = notificationsState.savingPrefs;
+            }
+            if (notificationsPrefsSaveButton) {
+                notificationsPrefsSaveButton.disabled = notificationsState.savingPrefs;
+            }
+            if (notificationsPrefsHint) {
+                notificationsPrefsHint.textContent = canToggle
+                    ? "وقتی تکلیف جدیدی در نوید بیاید، در حساب کاربری به شما اطلاع داده می‌شود."
+                    : "";
+            }
+        }
+
+        if (notificationsManagerCard) {
+            var canBroadcast = !!manager.canBroadcast;
+            notificationsManagerCard.hidden = !canBroadcast;
+            if (notificationsTargetSelect && canBroadcast) {
+                var currentTarget = String(notificationsTargetSelect.value || "");
+                var options = Array.isArray(manager.targets) ? manager.targets : [];
+                notificationsTargetSelect.innerHTML = options.map(function (target) {
+                    var key = String(target && target.key || "");
+                    return '<option value="' + escapeHtml(key) + '">' + escapeHtml(String(target && target.label || key || "مقصد")) + "</option>";
+                }).join("");
+                notificationsTargetSelect.value = options.some(function (target) {
+                    return String(target && target.key || "") === currentTarget;
+                }) ? currentTarget : String(manager.defaultTargetKey || (options[0] && options[0].key) || "");
+                notificationsTargetSelect.disabled = notificationsState.broadcasting;
+            }
+            if (notificationsBroadcastSubmit) {
+                notificationsBroadcastSubmit.disabled = notificationsState.broadcasting;
+            }
+            if (notificationsTitleInput) notificationsTitleInput.disabled = notificationsState.broadcasting;
+            if (notificationsBodyInput) notificationsBodyInput.disabled = notificationsState.broadcasting;
+            if (notificationsCtaLabelInput) notificationsCtaLabelInput.disabled = notificationsState.broadcasting;
+            if (notificationsCtaHrefInput) notificationsCtaHrefInput.disabled = notificationsState.broadcasting;
+            if (notificationsScheduleInput) notificationsScheduleInput.disabled = notificationsState.broadcasting;
+            if (notificationsSendSmsInput) notificationsSendSmsInput.disabled = notificationsState.broadcasting;
+        }
+
+        if (notificationsRefreshButton) {
+            notificationsRefreshButton.disabled = notificationsState.loading;
+        }
+        if (notificationsMarkAllButton) {
+            notificationsMarkAllButton.disabled = notificationsState.markingAll || Math.max(0, Math.floor(toNumber(summary.unreadCount, 0))) <= 0;
+        }
+        if (notificationsEmpty) {
+            notificationsEmpty.hidden = items.length > 0 || notificationsState.loading;
+        }
+        if (!notificationsList) {
+            return;
+        }
+
+        notificationsList.innerHTML = items.map(function (item) {
+            var id = String(item && item.id || "");
+            var displayAt = notificationsItemDisplayAt(item);
+            var body = escapeHtml(String(item && item.body || "")).replace(/\r?\n/g, "<br>");
+            var unread = !!(item && item.unread);
+            var marking = !!notificationsState.markingIds[id];
+            var ctaHref = String(item && item.ctaHref || "");
+            var ctaLabel = String(item && item.ctaLabel || "مشاهده");
+            var deleting = notificationsState.deletingId === id;
+            var managerMeta = item && item.manager && typeof item.manager === "object" ? item.manager : {};
+            var audienceSummary = managerMeta.audienceSummary || {};
+            var stateBadge = notificationsPrimaryState(item);
+            var sms = item && item.sms ? item.sms : {};
+            var smsLabel = notificationsSmsStatusLabel(sms);
+            var canInspect = !!managerMeta.canInspectAudience;
+            var canDelete = !!managerMeta.canDelete;
+            var audienceOpen = notificationsState.expandedAudienceId === id;
+            var audienceLoading = !!notificationsState.audienceLoadingIds[id];
+            var scheduledBadge = item && item.scheduled
+                ? '<span class="account-notification-item__badge is-scheduled">انتشار: ' + escapeHtml(displayAt) + "</span>"
+                : "";
+            var audienceBadgeText = notificationsAudienceSummaryText(audienceSummary);
+            return [
+                '<article class="account-notification-item' + (unread ? " is-unread" : "") + (item && item.scheduled ? " is-scheduled" : "") + '" data-tone="' + escapeHtml(String(item && item.tone || "accent")) + '" data-notification-id="' + escapeHtml(id) + '">',
+                '  <div class="account-notification-item__head">',
+                '    <div class="account-notification-item__eyebrow">' + escapeHtml(notificationsKindLabel(item)) + "</div>",
+                '    <span class="account-notification-item__time">' + escapeHtml(displayAt) + "</span>",
+                "  </div>",
+                '  <h4 class="account-notification-item__title">' + escapeHtml(String(item && item.title || "بدون عنوان")) + "</h4>",
+                '  <div class="account-notification-item__meta">',
+                '    <span class="account-notification-item__badge' + stateBadge.className + '">' + escapeHtml(stateBadge.text) + "</span>",
+                '    <span class="account-notification-item__badge">' + escapeHtml(String(item && item.senderLabel || "اعلان سیستمی")) + "</span>",
+                '    <span class="account-notification-item__badge">' + escapeHtml(String(item && item.targetLabel || "این حساب")) + "</span>",
+                scheduledBadge,
+                audienceBadgeText ? ('    <span class="account-notification-item__badge">' + escapeHtml(audienceBadgeText) + "</span>") : "",
+                smsLabel ? ('    <span class="account-notification-item__badge">' + escapeHtml(smsLabel) + "</span>") : "",
+                "  </div>",
+                '  <p class="account-notification-item__body">' + body + "</p>",
+                '  <div class="account-notification-item__actions">',
+                ctaHref
+                    ? ('    <a class="shell-action-btn shell-action-btn-primary" href="' + escapeHtml(ctaHref) + '" data-notification-cta="true" data-notification-id="' + escapeHtml(id) + '">' + escapeHtml(ctaLabel) + "</a>")
+                    : "",
+                !item.scheduled && unread
+                    ? ('    <button class="shell-action-btn" type="button" data-notification-mark="' + escapeHtml(id) + '"' + (marking ? " disabled" : "") + ">" + (marking ? "در حال ثبت..." : "خواندم") + "</button>")
+                    : "",
+                canInspect
+                    ? ('    <button class="shell-action-btn" type="button" data-notification-audience-toggle="' + escapeHtml(id) + '"' + (audienceLoading ? " disabled" : "") + ">" + (audienceOpen ? "بستن وضعیت" : "وضعیت مشاهده") + "</button>")
+                    : "",
+                canDelete
+                    ? ('    <button class="shell-action-btn shell-action-btn-danger" type="button" data-notification-delete="' + escapeHtml(id) + '"' + (deleting ? " disabled" : "") + ">" + (deleting ? "در حال حذف..." : "حذف اعلان") + "</button>")
+                    : "",
+                "  </div>",
+                notificationsAudiencePanelHtml(item),
+                "</article>"
+            ].join("");
+        }).join("");
+    }
+
+    function renderNotificationsUi() {
+        renderNotificationsHub();
+        renderNotificationsSurface();
+    }
+
+    function applyNotificationsPayload(payload) {
+        var data = payload && typeof payload === "object" ? payload : {};
+        notificationsState.summary = data.summary && typeof data.summary === "object" ? data.summary : null;
+        notificationsState.preview = data.preview && typeof data.preview === "object" ? data.preview : null;
+        notificationsState.preferences = data.preferences && typeof data.preferences === "object" ? data.preferences : null;
+        notificationsState.manager = data.manager && typeof data.manager === "object" ? data.manager : null;
+        notificationsState.items = Array.isArray(data.items) ? data.items : [];
+        if (notificationsState.expandedAudienceId && !notificationsState.items.some(function (item) {
+            return String(item && item.id || "") === notificationsState.expandedAudienceId;
+        })) {
+            notificationsState.expandedAudienceId = "";
+        }
+        notificationsSyncPreview();
+        renderNotificationsUi();
+        notificationsDispatchSummary(notificationsState.summary);
+    }
+
+    function loadNotifications(force) {
+        var userKey = notificationsUserKey();
+        if (!userKey) {
+            notificationsResetState();
+            renderNotificationsUi();
+            return Promise.resolve(null);
+        }
+
+        if (notificationsState.loading && !force) {
+            return Promise.resolve(null);
+        }
+        if (!force && notificationsState.loadedForUserKey === userKey && notificationsState.items.length) {
+            renderNotificationsUi();
+            return Promise.resolve(null);
+        }
+
+        notificationsState.loading = true;
+        notificationsState.loadedForUserKey = userKey;
+        var requestToken = ++notificationsState.requestToken;
+        setInlineFeedback(notificationsFeedback, "در حال دریافت اعلان‌ها...", "", true);
+        renderNotificationsUi();
+        return notificationsGet("list", { limit: 60 }).then(function (response) {
+            if (requestToken !== notificationsState.requestToken) {
+                return null;
+            }
+            notificationsState.loading = false;
+            if (consumeUnauthorized(response, "نشست شما برای خواندن اعلان‌ها منقضی شده است.")) {
+                notificationsResetState();
+                renderNotificationsUi();
+                return null;
+            }
+            if (!response || response.success !== true || !response.data) {
+                setInlineFeedback(notificationsFeedback, (response && response.error) || "خواندن اعلان‌ها انجام نشد.", "error");
+                renderNotificationsUi();
+                return null;
+            }
+
+            setInlineFeedback(notificationsFeedback, "", "");
+            applyNotificationsPayload(response.data);
+            return response.data;
+        }).catch(function () {
+            if (requestToken !== notificationsState.requestToken) {
+                return null;
+            }
+            notificationsState.loading = false;
+            setInlineFeedback(notificationsFeedback, "اتصال برای دریافت اعلان‌ها برقرار نشد.", "error");
+            renderNotificationsUi();
+            return null;
+        });
+    }
+
+    function updateNotificationsReadState(ids, unread) {
+        var idSet = {};
+        (Array.isArray(ids) ? ids : []).forEach(function (id) {
+            var key = String(id || "").trim();
+            if (key) {
+                idSet[key] = true;
+            }
+        });
+
+        notificationsState.items = notificationsState.items.map(function (item) {
+            var itemId = String(item && item.id || "");
+            if (!idSet[itemId]) {
+                return item;
+            }
+            return Object.assign({}, item, { unread: !!unread });
+        });
+        notificationsSyncPreview();
+    }
+
+    function markNotificationsRead(ids) {
+        var cleanIds = (Array.isArray(ids) ? ids : []).map(function (id) {
+            return String(id || "").trim();
+        }).filter(Boolean);
+        if (!cleanIds.length) {
+            return Promise.resolve(null);
+        }
+
+        cleanIds.forEach(function (id) {
+            notificationsState.markingIds[id] = true;
+        });
+        renderNotificationsUi();
+
+        return notificationsPost("markRead", { idsJson: JSON.stringify(cleanIds) }).then(function (response) {
+            cleanIds.forEach(function (id) {
+                delete notificationsState.markingIds[id];
+            });
+            if (consumeUnauthorized(response, "نشست شما برای ثبت خواندن اعلان‌ها منقضی شده است.")) {
+                notificationsResetState();
+                renderNotificationsUi();
+                return null;
+            }
+            if (!response || response.success !== true) {
+                setInlineFeedback(notificationsFeedback, (response && response.error) || "ثبت خواندن اعلان انجام نشد.", "error");
+                renderNotificationsUi();
+                return null;
+            }
+
+            notificationsState.summary = response.summary || notificationsState.summary;
+            if (response.preferences) {
+                notificationsState.preferences = response.preferences;
+            }
+            if (Object.prototype.hasOwnProperty.call(response, "preview")) {
+                notificationsState.preview = response.preview && typeof response.preview === "object"
+                    ? response.preview
+                    : null;
+            }
+            updateNotificationsReadState(cleanIds, false);
+            setInlineFeedback(notificationsFeedback, "", "");
+            renderNotificationsUi();
+            notificationsDispatchSummary(notificationsState.summary);
+            return response;
+        }).catch(function () {
+            cleanIds.forEach(function (id) {
+                delete notificationsState.markingIds[id];
+            });
+            setInlineFeedback(notificationsFeedback, "اتصال برای ثبت خواندن اعلان برقرار نشد.", "error");
+            renderNotificationsUi();
+            return null;
+        });
+    }
+
+    function markAllNotificationsRead() {
+        if (notificationsState.markingAll) {
+            return Promise.resolve(null);
+        }
+
+        notificationsState.markingAll = true;
+        setInlineFeedback(notificationsFeedback, "در حال ثبت خواندن همه اعلان‌ها...", "", true);
+        renderNotificationsUi();
+        return notificationsPost("markAllRead", {}).then(function (response) {
+            notificationsState.markingAll = false;
+            if (consumeUnauthorized(response, "نشست شما برای ثبت خواندن اعلان‌ها منقضی شده است.")) {
+                notificationsResetState();
+                renderNotificationsUi();
+                return null;
+            }
+            if (!response || response.success !== true) {
+                setInlineFeedback(notificationsFeedback, (response && response.error) || "ثبت خواندن همه اعلان‌ها انجام نشد.", "error");
+                renderNotificationsUi();
+                return null;
+            }
+
+            notificationsState.summary = response.summary || notificationsState.summary;
+            if (response.preferences) {
+                notificationsState.preferences = response.preferences;
+            }
+            if (Object.prototype.hasOwnProperty.call(response, "preview")) {
+                notificationsState.preview = response.preview && typeof response.preview === "object"
+                    ? response.preview
+                    : null;
+            }
+            notificationsState.items = notificationsState.items.map(function (item) {
+                return Object.assign({}, item, { unread: false });
+            });
+            notificationsSyncPreview();
+            setInlineFeedback(notificationsFeedback, "همه اعلان‌ها خوانده‌شده ثبت شدند.", "success");
+            renderNotificationsUi();
+            notificationsDispatchSummary(notificationsState.summary);
+            return response;
+        }).catch(function () {
+            notificationsState.markingAll = false;
+            setInlineFeedback(notificationsFeedback, "اتصال برای ثبت خواندن همه اعلان‌ها برقرار نشد.", "error");
+            renderNotificationsUi();
+            return null;
+        });
+    }
+
+    function saveNotificationsPreferences() {
+        if (!notificationsNavidAlertsToggle || notificationsState.savingPrefs) {
+            return Promise.resolve(null);
+        }
+
+        notificationsState.savingPrefs = true;
+        setInlineFeedback(notificationsFeedback, "در حال ذخیره تنظیمات اعلان...", "", true);
+        renderNotificationsUi();
+        return notificationsPost("savePrefs", {
+            navidAssignmentAlerts: notificationsNavidAlertsToggle.checked ? "1" : "0"
+        }).then(function (response) {
+            notificationsState.savingPrefs = false;
+            if (consumeUnauthorized(response, "نشست شما برای ذخیره تنظیمات اعلان منقضی شده است.")) {
+                notificationsResetState();
+                renderNotificationsUi();
+                return null;
+            }
+            if (!response || response.success !== true) {
+                setInlineFeedback(notificationsFeedback, (response && response.error) || "ذخیره تنظیمات اعلان انجام نشد.", "error");
+                renderNotificationsUi();
+                return null;
+            }
+
+            notificationsState.preferences = response.preferences || notificationsState.preferences;
+            notificationsState.summary = response.summary || notificationsState.summary;
+            setInlineFeedback(notificationsFeedback, "تنظیمات اعلان ذخیره شد.", "success");
+            loadNotifications(true);
+            return response;
+        }).catch(function () {
+            notificationsState.savingPrefs = false;
+            setInlineFeedback(notificationsFeedback, "اتصال برای ذخیره تنظیمات اعلان برقرار نشد.", "error");
+            renderNotificationsUi();
+            return null;
+        });
+    }
+
+    function loadNotificationAudience(id, force) {
+        var notificationId = String(id || "").trim();
+        if (!notificationId) {
+            return Promise.resolve(null);
+        }
+        if (notificationsState.audienceLoadingIds[notificationId]) {
+            return Promise.resolve(null);
+        }
+        if (!force && notificationsState.audienceById[notificationId]) {
+            notificationsState.expandedAudienceId = notificationId;
+            renderNotificationsUi();
+            return Promise.resolve(notificationsState.audienceById[notificationId]);
+        }
+
+        notificationsState.expandedAudienceId = notificationId;
+        notificationsState.audienceLoadingIds[notificationId] = true;
+        renderNotificationsUi();
+        return notificationsGet("audience", { id: notificationId }).then(function (response) {
+            delete notificationsState.audienceLoadingIds[notificationId];
+            if (consumeUnauthorized(response, "نشست شما برای خواندن وضعیت اعلان منقضی شده است.")) {
+                notificationsResetState();
+                renderNotificationsUi();
+                return null;
+            }
+            if (!response || response.success !== true || !response.data) {
+                setInlineFeedback(notificationsFeedback, (response && response.error) || "خواندن وضعیت این اعلان انجام نشد.", "error");
+                renderNotificationsUi();
+                return null;
+            }
+
+            notificationsState.audienceById[notificationId] = response.data;
+            notificationsState.items = notificationsState.items.map(function (item) {
+                if (String(item && item.id || "") !== notificationId) {
+                    return item;
+                }
+                var nextManager = Object.assign({}, item && item.manager || {});
+                if (response.data.summary) {
+                    nextManager.audienceSummary = response.data.summary;
+                }
+                return Object.assign({}, item, { manager: nextManager });
+            });
+            setInlineFeedback(notificationsFeedback, "", "");
+            renderNotificationsUi();
+            return response.data;
+        }).catch(function () {
+            delete notificationsState.audienceLoadingIds[notificationId];
+            setInlineFeedback(notificationsFeedback, "اتصال برای خواندن وضعیت مشاهده‌کنندگان برقرار نشد.", "error");
+            renderNotificationsUi();
+            return null;
+        });
+    }
+
+    function toggleNotificationAudience(id) {
+        var notificationId = String(id || "").trim();
+        if (!notificationId) {
+            return;
+        }
+        if (notificationsState.expandedAudienceId === notificationId) {
+            notificationsState.expandedAudienceId = "";
+            renderNotificationsUi();
+            return;
+        }
+        loadNotificationAudience(notificationId, false);
+    }
+
+    function deleteNotification(id) {
+        var notificationId = String(id || "").trim();
+        if (!notificationId || notificationsState.deletingId === notificationId) {
+            return Promise.resolve(null);
+        }
+
+        var item = notificationsState.items.find(function (candidate) {
+            return String(candidate && candidate.id || "") === notificationId;
+        }) || null;
+        var title = String(item && item.title || "این اعلان");
+        if (!window.confirm("اعلان \"" + title + "\" حذف شود؟ این کار برای همه مخاطبان همان اعلان اعمال می‌شود.")) {
+            return Promise.resolve(null);
+        }
+
+        notificationsState.deletingId = notificationId;
+        setInlineFeedback(notificationsFeedback, "در حال حذف اعلان...", "", true);
+        renderNotificationsUi();
+        return notificationsPost("delete", { id: notificationId }).then(function (response) {
+            notificationsState.deletingId = "";
+            if (consumeUnauthorized(response, "نشست شما برای حذف اعلان منقضی شده است.")) {
+                notificationsResetState();
+                renderNotificationsUi();
+                return null;
+            }
+            if (!response || response.success !== true) {
+                setInlineFeedback(notificationsFeedback, (response && response.error) || "حذف اعلان انجام نشد.", "error");
+                renderNotificationsUi();
+                return null;
+            }
+
+            var deletedId = String(response.deletedId || notificationId);
+            notificationsState.items = notificationsState.items.filter(function (entry) {
+                return String(entry && entry.id || "") !== deletedId;
+            });
+            delete notificationsState.audienceById[deletedId];
+            delete notificationsState.audienceLoadingIds[deletedId];
+            if (notificationsState.expandedAudienceId === deletedId) {
+                notificationsState.expandedAudienceId = "";
+            }
+            notificationsState.summary = response.summary || notificationsState.summary;
+            notificationsState.manager = response.manager || notificationsState.manager;
+            if (response.preferences) {
+                notificationsState.preferences = response.preferences;
+            }
+            if (Object.prototype.hasOwnProperty.call(response, "preview")) {
+                notificationsState.preview = response.preview && typeof response.preview === "object"
+                    ? response.preview
+                    : null;
+            }
+            notificationsSyncPreview();
+            setInlineFeedback(notificationsFeedback, response.message || "اعلان حذف شد.", "success");
+            renderNotificationsUi();
+            notificationsDispatchSummary(notificationsState.summary);
+            return response;
+        }).catch(function () {
+            notificationsState.deletingId = "";
+            setInlineFeedback(notificationsFeedback, "اتصال برای حذف اعلان برقرار نشد.", "error");
+            renderNotificationsUi();
+            return null;
+        });
+    }
+
+    function submitNotificationsBroadcast() {
+        if (!notificationsBroadcastForm || notificationsState.broadcasting) {
+            return Promise.resolve(null);
+        }
+
+        var payload = {
+            targetKey: (notificationsTargetSelect && notificationsTargetSelect.value.trim()) || "",
+            title: (notificationsTitleInput && notificationsTitleInput.value.trim()) || "",
+            body: (notificationsBodyInput && notificationsBodyInput.value.trim()) || "",
+            ctaLabel: (notificationsCtaLabelInput && notificationsCtaLabelInput.value.trim()) || "",
+            ctaHref: (notificationsCtaHrefInput && notificationsCtaHrefInput.value.trim()) || "",
+            scheduleAt: (notificationsScheduleInput && notificationsScheduleInput.value.trim()) || "",
+            sendSms: notificationsSendSmsInput && notificationsSendSmsInput.checked ? "1" : "0"
+        };
+
+        notificationsState.broadcasting = true;
+        setFeedback(notificationsManagerFeedback, payload.scheduleAt ? "در حال زمان‌بندی اعلان..." : "در حال ارسال اعلان...", "", true);
+        renderNotificationsUi();
+        return notificationsPost("broadcast", payload).then(function (response) {
+            notificationsState.broadcasting = false;
+            if (consumeUnauthorized(response, "نشست شما برای ارسال اعلان منقضی شده است.")) {
+                notificationsResetState();
+                renderNotificationsUi();
+                return null;
+            }
+            if (!response || response.success !== true) {
+                setFeedback(notificationsManagerFeedback, (response && response.error) || "ارسال اعلان انجام نشد.", "error");
+                renderNotificationsUi();
+                return null;
+            }
+
+            notificationsState.manager = response.manager || notificationsState.manager;
+            notificationsState.summary = response.summary || notificationsState.summary;
+            if (response.notification) {
+                notificationsState.items = [response.notification].concat(notificationsState.items.filter(function (item) {
+                    return String(item && item.id || "") !== String(response.notification.id || "");
+                })).slice(0, 60);
+            }
+            notificationsSyncPreview();
+            if (notificationsTitleInput) notificationsTitleInput.value = "";
+            if (notificationsBodyInput) notificationsBodyInput.value = "";
+            if (notificationsCtaLabelInput) notificationsCtaLabelInput.value = "";
+            if (notificationsCtaHrefInput) notificationsCtaHrefInput.value = "";
+            if (notificationsScheduleInput) notificationsScheduleInput.value = "";
+            if (notificationsSendSmsInput) notificationsSendSmsInput.checked = false;
+            setFeedback(notificationsManagerFeedback, response.message || "اعلان ثبت شد.", "success");
+            renderNotificationsUi();
+            notificationsDispatchSummary(notificationsState.summary);
+            return response;
+        }).catch(function () {
+            notificationsState.broadcasting = false;
+            setFeedback(notificationsManagerFeedback, "اتصال برای ارسال اعلان برقرار نشد.", "error");
+            renderNotificationsUi();
+            return null;
+        });
+    }
+
+    function handleNotificationCtaNavigation(event, notificationId, href) {
+        var targetHref = String(href || "").trim();
+        if (!targetHref) {
+            return;
+        }
+        if (event && event.preventDefault) {
+            event.preventDefault();
+        }
+        markNotificationsRead([notificationId]).finally(function () {
+            window.location.href = targetHref;
+        });
     }
 
     function renderActivePollShortcut(user, count) {
@@ -4619,6 +5548,12 @@
             if (accountRowPhoneMeta) {
                 accountRowPhoneMeta.textContent = "ثبت شماره موبایل، تایید با OTP و فعال‌سازی مسیر دوم ورود";
             }
+            if (accountRowNotificationsMeta) {
+                accountRowNotificationsMeta.textContent = "اعلان‌های نوید و پیام‌های ارسال‌شده برای این حساب در همین بخش نمایش داده می‌شوند.";
+            }
+            if (accountNavidAlertCard) {
+                accountNavidAlertCard.hidden = true;
+            }
             if (ownerHubSection) {
                 ownerHubSection.hidden = true;
             }
@@ -4658,6 +5593,10 @@
             phoneEnrollFeedbackMessage("", "");
             phoneToggleFeedbackMessage("", "");
             phoneManageFeedbackMessage("", "");
+            notificationsResetState();
+            renderNotificationsUi();
+            setInlineFeedback(notificationsFeedback, "", "");
+            setFeedback(notificationsManagerFeedback, "", "");
             if (preserveOtpLoginAttempt) {
                 updateLoginOtpRequestState();
                 updateLoginOtpSubmitState();
@@ -4689,6 +5628,12 @@
         setProfileBusy(false);
         setFeedback(profileFeedback, "", "");
         setFeedback(securityFeedback, "", "");
+        setInlineFeedback(notificationsFeedback, "", "");
+        setFeedback(notificationsManagerFeedback, "", "");
+        if (accountRowNotificationsMeta) {
+            accountRowNotificationsMeta.textContent = "در حال دریافت اعلان‌های این حساب...";
+        }
+        loadNotifications(false);
 
         loadActivePollShortcut(detail.user);
 
@@ -4785,6 +5730,70 @@
             openSurface("hub", { replaceHash: true });
         });
     });
+
+    if (accountNavidAlertLink) {
+        accountNavidAlertLink.addEventListener("click", function (event) {
+            handleNotificationCtaNavigation(event, accountNavidAlertLink.dataset.notificationId, accountNavidAlertLink.href);
+        });
+    }
+
+    if (notificationsRefreshButton) {
+        notificationsRefreshButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            loadNotifications(true);
+        });
+    }
+
+    if (notificationsMarkAllButton) {
+        notificationsMarkAllButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            markAllNotificationsRead();
+        });
+    }
+
+    if (notificationsPrefsSaveButton) {
+        notificationsPrefsSaveButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            saveNotificationsPreferences();
+        });
+    }
+
+    if (notificationsBroadcastForm) {
+        notificationsBroadcastForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            submitNotificationsBroadcast();
+        });
+    }
+
+    if (notificationsList) {
+        notificationsList.addEventListener("click", function (event) {
+            var markButton = event.target && event.target.closest ? event.target.closest("[data-notification-mark]") : null;
+            if (markButton) {
+                event.preventDefault();
+                markNotificationsRead([markButton.dataset.notificationMark]);
+                return;
+            }
+
+            var audienceButton = event.target && event.target.closest ? event.target.closest("[data-notification-audience-toggle]") : null;
+            if (audienceButton) {
+                event.preventDefault();
+                toggleNotificationAudience(audienceButton.getAttribute("data-notification-audience-toggle"));
+                return;
+            }
+
+            var deleteButton = event.target && event.target.closest ? event.target.closest("[data-notification-delete]") : null;
+            if (deleteButton) {
+                event.preventDefault();
+                deleteNotification(deleteButton.getAttribute("data-notification-delete"));
+                return;
+            }
+
+            var ctaLink = event.target && event.target.closest ? event.target.closest("[data-notification-cta]") : null;
+            if (ctaLink) {
+                handleNotificationCtaNavigation(event, ctaLink.dataset.notificationId, ctaLink.getAttribute("href"));
+            }
+        });
+    }
 
     window.addEventListener("hashchange", function () {
         if (!stagePanel || stagePanel.hidden) {

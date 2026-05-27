@@ -3369,6 +3369,173 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
     ];
 }
 
+function dent_sms_send_simple(array $phoneNumbers, string $messageText): array
+{
+    $config = dent_sms_resolved_config();
+    $cleanText = dent_clean_text($messageText, 480);
+
+    if (!(bool) $config['enabled']) {
+        dent_sms_log('send_simple_blocked', ['reason' => 'disabled']);
+        return ['success' => false, 'message' => 'سرویس پیامکی غیرفعال است.'];
+    }
+    if (trim((string) $config['apiKey']) === '') {
+        dent_sms_log('send_simple_blocked', ['reason' => 'missing_api_key']);
+        return ['success' => false, 'message' => 'کلید API سرویس پیامکی تنظیم نشده است.'];
+    }
+    if (trim((string) $config['senderLine']) === '') {
+        dent_sms_log('send_simple_blocked', ['reason' => 'missing_sender']);
+        return ['success' => false, 'message' => 'لاین/شماره ارسال پیامک تنظیم نشده است.'];
+    }
+    if ($cleanText === '') {
+        return ['success' => false, 'message' => 'متن پیامک خالی است.'];
+    }
+    if (!function_exists('curl_init')) {
+        return ['success' => false, 'message' => 'cURL روی سرور فعال نیست.'];
+    }
+
+    $recipients = [];
+    foreach ($phoneNumbers as $phoneNumber) {
+        $providerPhone = dent_sms_provider_recipient_number(dent_normalize_phone_number((string) $phoneNumber));
+        if ($providerPhone === '') {
+            continue;
+        }
+        $recipients[$providerPhone] = true;
+    }
+
+    if (!$recipients) {
+        return ['success' => false, 'message' => 'هیچ شماره موبایل معتبری برای ارسال پیامک پیدا نشد.'];
+    }
+
+    $payload = [
+        'text' => $cleanText,
+        'line_number' => (string) $config['senderLine'],
+        'recipients' => array_keys($recipients),
+        'number_format' => 'english',
+    ];
+
+    $attempts = 3;
+    $raw = '';
+    $httpCode = 0;
+    $curlError = '';
+    $decoded = null;
+
+    for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+        dent_sms_log('send_simple_attempt', [
+            'attempt' => $attempt,
+            'recipientCount' => count($payload['recipients']),
+            'sender' => (string) $config['senderLine'],
+        ]);
+
+        $ch = curl_init('https://api.iranpayamak.com/ws/v1/sms/simple');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_CONNECTTIMEOUT => 8,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/json',
+                'Content-Type: application/json',
+                'Api-Key: ' . (string) $config['apiKey'],
+            ],
+            CURLOPT_POSTFIELDS => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        $raw = is_string($response) ? $response : '';
+        $decoded = $raw !== '' ? json_decode($raw, true) : null;
+
+        $temporaryFailure = $curlError !== '' || $httpCode >= 500;
+        if (!$temporaryFailure) {
+            break;
+        }
+        if ($attempt < $attempts) {
+            usleep(250000 * $attempt);
+            continue;
+        }
+    }
+
+    if ($raw === '') {
+        dent_sms_log('send_simple_failed', [
+            'reason' => 'empty_response',
+            'httpStatus' => $httpCode,
+            'curlError' => dent_clean_text($curlError, 160),
+        ]);
+        return [
+            'success' => false,
+            'message' => $curlError !== '' ? ('خطای ارتباط با سرویس پیامک: ' . $curlError) : 'پاسخی از سرویس پیامکی دریافت نشد.',
+            'httpStatus' => $httpCode,
+        ];
+    }
+
+    if (!is_array($decoded)) {
+        dent_sms_log('send_simple_failed', [
+            'reason' => 'invalid_json',
+            'httpStatus' => $httpCode,
+        ]);
+        if ($httpCode >= 500) {
+            return ['success' => false, 'message' => 'سرویس پیامکی موقتاً در دسترس نیست.', 'httpStatus' => $httpCode];
+        }
+        $brief = dent_clean_text(trim(strip_tags($raw)), 120);
+        $detail = $brief !== '' ? (' جزئیات: ' . $brief) : '';
+        return ['success' => false, 'message' => 'پاسخ سرویس پیامکی نامعتبر است.' . $detail, 'httpStatus' => $httpCode];
+    }
+
+    $statusRaw = strtolower(trim((string) ($decoded['status'] ?? '')));
+    $ok = $statusRaw === 'success';
+    $messageCode = dent_clean_text((string) ($decoded['code'] ?? ''), 40);
+    $message = '';
+    $rawMessage = $decoded['messages'] ?? ($decoded['message'] ?? '');
+    if (is_string($rawMessage)) {
+        $message = dent_clean_text($rawMessage, 220);
+    } elseif (is_array($rawMessage)) {
+        foreach ($rawMessage as $messageItem) {
+            if (is_string($messageItem)) {
+                $message = dent_clean_text($messageItem, 220);
+                if ($message !== '') {
+                    break;
+                }
+                continue;
+            }
+            if (!is_array($messageItem)) {
+                continue;
+            }
+            foreach ($messageItem as $nestedMessage) {
+                if (!is_string($nestedMessage)) {
+                    continue;
+                }
+                $message = dent_clean_text($nestedMessage, 220);
+                if ($message !== '') {
+                    break 2;
+                }
+            }
+        }
+    }
+    if ($message === '') {
+        $message = $ok ? 'ارسال انجام شد.' : 'ارسال پیامک انجام نشد.';
+    }
+    if (!$ok && $httpCode >= 500) {
+        $message = 'سرویس پیامکی موقتاً در دسترس نیست.';
+    }
+
+    dent_sms_log($ok ? 'send_simple_ok' : 'send_simple_failed', [
+        'httpStatus' => $httpCode,
+        'messageCode' => $messageCode,
+        'providerMessage' => $message,
+        'recipientCount' => count($payload['recipients']),
+    ]);
+
+    return [
+        'success' => $ok,
+        'message' => $message,
+        'httpStatus' => $httpCode,
+        'messageCode' => $messageCode,
+    ];
+}
+
 function dent_otp_ttl_seconds(): int
 {
     return 180;

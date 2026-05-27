@@ -26,13 +26,26 @@
     var feedback = $("navid-feedback");
     var syncNowButton = $("navid-sync-now");
 
-    var countAssignments = $("navid-count-assignments");
+    var countAssignmentsHero = $("navid-count-assignments");
+    var countAssignmentsStatus = $("navid-count-assignments-status");
     var countUpdates = $("navid-count-updates");
     var lastCheck = $("navid-last-check");
     var sessionState = $("navid-session-state");
+    var countCoursesHero = $("navid-count-courses");
+    var countCoursesStatus = $("navid-count-courses-status");
+    var nextDeadlineHero = $("navid-next-deadline");
+    var nextDeadlineStatus = $("navid-next-deadline-status");
 
     var ownerBox = $("navid-owner-box");
     var ownerCards = $("navid-owner-status-cards");
+    var ownerToggleButton = $("navid-owner-toggle");
+    var assignmentsPanel = $("navid-assignments-panel");
+    var updatesPanel = $("navid-updates-panel");
+    var assignmentsMoreButton = $("navid-assignments-more");
+    var updatesMoreButton = $("navid-updates-more");
+    var viewAssignmentsCount = $("navid-view-assignments-count");
+    var viewUpdatesCount = $("navid-view-updates-count");
+    var contentViewButtons = Array.prototype.slice.call(document.querySelectorAll("[data-navid-view]"));
 
     var updatesList = $("navid-updates-list");
     var assignmentsList = $("navid-assignments-list");
@@ -41,6 +54,15 @@
     var currentUserKey = "";
     var loadingFeed = false;
     var feedTicket = 0;
+    var hasLoadedFeed = false;
+    var currentContentView = "assignments";
+    var currentAssignments = [];
+    var currentUpdates = [];
+    var assignmentsExpanded = false;
+    var updatesExpanded = false;
+    var ownerExpanded = false;
+    var ASSIGNMENTS_PREVIEW_COUNT = 1;
+    var UPDATES_PREVIEW_COUNT = 3;
 
     function consumeUnauthorized(response, fallbackText) {
         var auth = window.Dent1402Auth && typeof window.Dent1402Auth === "object"
@@ -57,7 +79,7 @@
                 return !!auth.handleUnauthorizedPayload(response, message);
             }
         } catch (_error) {
-            // Ignore stale auth surface mismatch and continue fallback.
+            // Ignore auth surface mismatches and continue fallback.
         }
 
         if (response && (response.loggedOut || response.httpStatus === 401)) {
@@ -71,7 +93,7 @@
     }
 
     function safeText(value) {
-        return String(value == null ? "" : value).replace(/[&<>"]/g, function (char) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
             switch (char) {
                 case "&":
                     return "&amp;";
@@ -81,27 +103,57 @@
                     return "&gt;";
                 case "\"":
                     return "&quot;";
+                case "'":
+                    return "&#39;";
                 default:
                     return char;
             }
         });
     }
 
+    function safeAttr(value) {
+        return safeText(value);
+    }
+
+    function normalizeInlineText(value) {
+        return String(value || "")
+            .replace(/\u00a0/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function normalizeMultilineText(value) {
+        return String(value || "")
+            .replace(/\u00a0/g, " ")
+            .replace(/\r\n?/g, "\n")
+            .replace(/[ \t]+\n/g, "\n")
+            .replace(/\n{3,}/g, "\n\n")
+            .trim();
+    }
+
+    function safeMultilineHtml(value) {
+        var text = normalizeMultilineText(value);
+        if (!text) {
+            return "";
+        }
+        return safeText(text).replace(/\n/g, "<br>");
+    }
+
     function snippet(value, maxLength) {
-        var clean = String(value || "").replace(/\s+/g, " ").trim();
+        var clean = normalizeInlineText(value);
         if (!clean) {
             return "";
         }
         if (clean.length <= maxLength) {
             return clean;
         }
-        return clean.slice(0, maxLength - 1).trim() + "\u2026";
+        return clean.slice(0, Math.max(0, maxLength - 1)).trim() + "…";
     }
 
     function formatDate(value, fallback) {
         var raw = String(value || "").trim();
         if (!raw) {
-            return fallback || "\u2014";
+            return fallback || "—";
         }
 
         var parsed = new Date(raw);
@@ -119,53 +171,115 @@
         });
     }
 
+    function formatDateOrLabel(primary, fallbackDate, fallbackText) {
+        var label = normalizeInlineText(primary);
+        if (label) {
+            return label;
+        }
+        return formatDate(fallbackDate, fallbackText || "—");
+    }
+
+    function parseDate(value) {
+        var raw = String(value || "").trim();
+        if (!raw) {
+            return null;
+        }
+
+        var parsed = new Date(raw);
+        if (!Number.isFinite(parsed.getTime())) {
+            return null;
+        }
+        return parsed;
+    }
+
+    function deadlineInfo(item) {
+        var parsed = parseDate(item && item.endDateIso);
+        var label = formatDateOrLabel(item && item.endDateShamsi, item && item.endDateIso, "نامشخص");
+        var now = Date.now();
+        var tone = "accent";
+        var stateLabel = "در جریان";
+
+        if (!parsed) {
+            return {
+                label: label,
+                tone: "muted",
+                stateLabel: "بدون مهلت دقیق",
+                date: null,
+                time: Number.POSITIVE_INFINITY
+            };
+        }
+
+        var diffMs = parsed.getTime() - now;
+        if (diffMs < 0) {
+            tone = "danger";
+            stateLabel = "مهلت گذشته";
+        } else if (diffMs <= 24 * 60 * 60 * 1000) {
+            tone = "danger";
+            stateLabel = "مهلت امروز";
+        } else if (diffMs <= 3 * 24 * 60 * 60 * 1000) {
+            tone = "warning";
+            stateLabel = "نزدیک به ددلاین";
+        } else {
+            tone = "success";
+            stateLabel = "زمان کافی";
+        }
+
+        return {
+            label: label,
+            tone: tone,
+            stateLabel: stateLabel,
+            date: parsed,
+            time: parsed.getTime()
+        };
+    }
+
     function resultLabel(result) {
         switch (result) {
             case "ok":
-                return "\u067e\u0627\u06cc\u062f\u0627\u0631";
+                return "پایدار";
             case "partial":
-                return "\u0646\u0627\u0642\u0635";
+                return "ناقص";
             case "running":
-                return "\u062f\u0631 \u062d\u0627\u0644 \u0627\u062c\u0631\u0627";
+                return "در حال اجرا";
             case "config-updated":
-                return "\u062a\u0646\u0638\u06cc\u0645\u0627\u062a \u0628\u0647\u200c\u0631\u0648\u0632 \u0634\u062f";
+                return "تنظیمات به‌روز شد";
             case "credentials-missing":
-                return "\u0627\u0639\u062a\u0628\u0627\u0631 \u062b\u0628\u062a \u0646\u0634\u062f\u0647";
+                return "اعتبار ثبت نشده";
             case "credentials-invalid":
-                return "\u0627\u0639\u062a\u0628\u0627\u0631 \u0646\u0627\u0645\u0639\u062a\u0628\u0631";
+                return "اعتبار نامعتبر";
             case "reconnect-required":
-                return "\u0646\u06cc\u0627\u0632\u0645\u0646\u062f \u0627\u062a\u0635\u0627\u0644 \u0645\u062c\u062f\u062f";
+                return "نیازمند اتصال مجدد";
             case "login-failed":
-                return "\u062e\u0637\u0627\u06cc \u0648\u0631\u0648\u062f";
+                return "خطای ورود";
             case "dashboard-failed":
-                return "\u062e\u0637\u0627\u06cc \u062f\u0627\u0634\u0628\u0648\u0631\u062f";
+                return "خطای داشبورد";
             case "exception":
-                return "\u062e\u0637\u0627\u06cc \u062f\u0627\u062e\u0644\u06cc";
+                return "خطای داخلی";
             case "skipped":
-                return "\u0628\u062f\u0648\u0646 \u0646\u06cc\u0627\u0632 \u0628\u0647 \u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc";
+                return "به‌روز";
             case "already-running":
-                return "\u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u062f\u0631 \u062d\u0627\u0644 \u0627\u0646\u062c\u0627\u0645";
+                return "همگام‌سازی در حال انجام";
             case "lock-failed":
-                return "\u062e\u0637\u0627\u06cc \u0642\u0641\u0644 \u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc";
+                return "خطای قفل";
             case "disabled":
-                return "\u063a\u06cc\u0631\u0641\u0639\u0627\u0644";
+                return "غیرفعال";
             default:
-                return "\u0646\u0627\u0645\u0634\u062e\u0635";
+                return "نامشخص";
         }
     }
 
     function actionRequiredLabel(action) {
         switch (String(action || "")) {
             case "save-credentials":
-                return "\u062b\u0628\u062a \u0627\u0639\u062a\u0628\u0627\u0631 \u0646\u0648\u06cc\u062f";
+                return "ثبت اعتبار نوید";
             case "update-credentials":
-                return "\u0628\u0647\u200c\u0631\u0648\u0632\u0631\u0633\u0627\u0646\u06cc \u0627\u0639\u062a\u0628\u0627\u0631 \u0646\u0648\u06cc\u062f";
+                return "به‌روزرسانی اعتبار";
             case "manual-reconnect":
-                return "\u0627\u062a\u0635\u0627\u0644 \u0645\u062c\u062f\u062f \u0628\u0627 \u06a9\u067e\u0686\u0627";
+                return "اتصال مجدد با کپچا";
             case "disabled":
-                return "\u063a\u06cc\u0631\u0641\u0639\u0627\u0644";
+                return "غیرفعال";
             default:
-                return "\u0647\u06cc\u0686";
+                return "هیچ";
         }
     }
 
@@ -199,6 +313,86 @@
         container.innerHTML = '<div class="navid-empty">' + safeText(message) + "</div>";
     }
 
+    function setText(node, value) {
+        if (!node) {
+            return;
+        }
+        node.textContent = value;
+    }
+
+    function setMirroredText(nodes, value) {
+        nodes.forEach(function (node) {
+            setText(node, value);
+        });
+    }
+
+    function normalizeContentView(value) {
+        return String(value || "").toLowerCase() === "updates" ? "updates" : "assignments";
+    }
+
+    function syncContentView() {
+        currentContentView = normalizeContentView(currentContentView);
+        flow.dataset.contentView = currentContentView;
+
+        if (assignmentsPanel) {
+            assignmentsPanel.hidden = currentContentView !== "assignments";
+        }
+        if (updatesPanel) {
+            updatesPanel.hidden = currentContentView !== "updates";
+        }
+
+        contentViewButtons.forEach(function (button) {
+            var active = normalizeContentView(button.getAttribute("data-navid-view")) === currentContentView;
+            button.classList.toggle("is-active", active);
+            button.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+    }
+
+    function setContentView(nextView) {
+        currentContentView = normalizeContentView(nextView);
+        syncContentView();
+    }
+
+    function uniqueCourseCount(assignments) {
+        var seen = Object.create(null);
+        var count = 0;
+        (Array.isArray(assignments) ? assignments : []).forEach(function (item) {
+            var key = String(item && (item.courseTemplateId || item.courseTitle || ""));
+            if (!key || seen[key]) {
+                return;
+            }
+            seen[key] = true;
+            count += 1;
+        });
+        return count;
+    }
+
+    function findNearestDeadline(assignments) {
+        var nearest = null;
+        (Array.isArray(assignments) ? assignments : []).forEach(function (item) {
+            var info = deadlineInfo(item);
+            if (!info.date) {
+                return;
+            }
+            if (!nearest || info.time < nearest.info.time) {
+                nearest = {
+                    item: item,
+                    info: info
+                };
+            }
+        });
+        return nearest;
+    }
+
+    function ownerCard(label, value) {
+        return [
+            '<article class="navid-owner-card">',
+            '  <span>' + safeText(label) + "</span>",
+            '  <strong>' + safeText(value) + "</strong>",
+            "</article>"
+        ].join("");
+    }
+
     function renderOwnerStatus(ownerStatus) {
         var isOwner = !!(currentUser && currentUser.isOwner);
         if (!ownerBox || !ownerCards) {
@@ -208,6 +402,7 @@
         if (!isOwner || !ownerStatus || typeof ownerStatus !== "object") {
             ownerBox.hidden = true;
             ownerCards.innerHTML = "";
+            ownerExpanded = false;
             return;
         }
 
@@ -217,101 +412,229 @@
         var session = ownerStatus.session || {};
         var actionRequired = state.actionRequired || "none";
         var snapshotCounts = ownerStatus.snapshotCounts || {};
-        var failedCourses = Math.max(0, Math.floor(Number(state.lastFailedCourses != null ? state.lastFailedCourses : snapshotCounts.failedCourses) || 0));
+        var failedCourses = Math.max(0, Math.floor(Number(
+            state.lastFailedCourses != null ? state.lastFailedCourses : snapshotCounts.failedCourses
+        ) || 0));
 
-        var cards = [
-            {
-                label: "\u0646\u062a\u06cc\u062c\u0647 \u0622\u062e\u0631",
-                value: resultLabel(state.lastResult || "")
-            },
-            {
-                label: "\u0622\u062e\u0631\u06cc\u0646 \u0645\u0648\u0641\u0642",
-                value: formatDate(state.lastSuccessAt, "\u2014")
-            },
-            {
-                label: "\u062e\u0637\u0627\u06cc \u0627\u062e\u06cc\u0631",
-                value: state.lastError ? snippet(state.lastError, 90) : "\u0628\u062f\u0648\u0646 \u062e\u0637\u0627"
-            },
-            {
-                label: "\u0648\u0636\u0639\u06cc\u062a \u0646\u0634\u0633\u062a",
-                value: session.status || "\u2014"
-            },
-            {
-                label: "\u0627\u0642\u062f\u0627\u0645 \u0644\u0627\u0632\u0645",
-                value: actionRequiredLabel(actionRequired)
-            },
-            {
-                label: "\u062f\u0631\u0648\u0633 \u0646\u0627\u0645\u0648\u0641\u0642",
-                value: failedCourses.toLocaleString("fa-IR")
-            },
-            {
-                label: "\u062d\u0633\u0627\u0628 \u0630\u062e\u06cc\u0631\u0647\u200c\u0634\u062f\u0647",
-                value: config.hasCredentials ? (config.usernameMasked || "\u062b\u0628\u062a \u0634\u062f\u0647") : "\u062b\u0628\u062a \u0646\u0634\u062f\u0647"
+        ownerCards.innerHTML = [
+            ownerCard("نتیجه آخر", resultLabel(state.lastResult || "")),
+            ownerCard("آخرین موفق", formatDate(state.lastSuccessAt, "—")),
+            ownerCard("وضعیت نشست", session.status || "—"),
+            ownerCard("اقدام لازم", actionRequiredLabel(actionRequired)),
+            ownerCard("درس‌های ناموفق", failedCourses.toLocaleString("fa-IR")),
+            ownerCard(
+                "اعتبار ذخیره‌شده",
+                config.hasCredentials ? (config.usernameMasked || "ثبت شده") : "ثبت نشده"
+            )
+        ].join("");
+        syncOwnerPanel();
+    }
+
+    function syncOwnerPanel() {
+        if (!ownerBox || !ownerCards) {
+            return;
+        }
+        ownerBox.dataset.collapsed = ownerExpanded ? "false" : "true";
+        ownerCards.hidden = !ownerExpanded;
+        if (ownerToggleButton) {
+            ownerToggleButton.textContent = ownerExpanded ? "بستن جزئیات مالک" : "باز کردن جزئیات مالک";
+            ownerToggleButton.setAttribute("aria-expanded", ownerExpanded ? "true" : "false");
+            if (!ownerExpanded) {
+                ownerToggleButton.textContent = "\u062C\u0632\u0626\u06CC\u0627\u062A \u0645\u0627\u0644\u06A9";
             }
-        ];
-
-        ownerCards.innerHTML = cards.map(function (card) {
-            return [
-                '<article class="navid-owner-card">',
-                "  <span>" + safeText(card.label) + "</span>",
-                "  <strong>" + safeText(card.value) + "</strong>",
-                "</article>"
-            ].join("");
-        }).join("");
+        }
     }
 
-    function renderUpdates(updates) {
-        if (!updatesList) {
-            return;
-        }
+    function buildUpdateCard(item) {
+        var eventType = String(item && item.eventType || "").toLowerCase() === "updated"
+            ? "ویرایش تکلیف"
+            : "تکلیف جدید";
+        var updateClass = String(item && item.eventType || "").toLowerCase() === "updated"
+            ? " navid-update--updated"
+            : "";
+        var course = snippet(item && item.courseTitle, 120) || "درس نامشخص";
+        var detectedAt = formatDate(item && item.detectedAt, "زمان تشخیص نامشخص");
+        var deadline = formatDateOrLabel(item && item.endDateShamsi, item && item.endDateIso, "نامشخص");
+        var createdAt = formatDateOrLabel(item && item.proposeDate, item && item.sourceUpdatedAt, "نامشخص");
+        var description = snippet(item && item.descriptionText, 260) || "برای این تغییر توضیح متنی ثبت نشده است.";
 
-        var list = Array.isArray(updates) ? updates.slice(0, 24) : [];
-        if (!list.length) {
-            renderEmpty(updatesList, "\u0628\u0647\u200c\u0631\u0648\u0632\u0631\u0633\u0627\u0646\u06cc \u062c\u062f\u06cc\u062f\u06cc \u0628\u0631\u0627\u06cc \u062a\u06a9\u0627\u0644\u06cc\u0641 \u062b\u0628\u062a \u0646\u0634\u062f\u0647 \u0627\u0633\u062a.");
-            return;
-        }
-
-        updatesList.innerHTML = list.map(function (item) {
-            var eventType = String(item.eventType || "").toLowerCase() === "updated"
-                ? "\u0648\u06cc\u0631\u0627\u06cc\u0634 \u062a\u06a9\u0644\u06cc\u0641"
-                : "\u062a\u06a9\u0644\u06cc\u0641 \u062c\u062f\u06cc\u062f";
-            var titleText = snippet(item.title, 140) || "\u0628\u062f\u0648\u0646 \u0639\u0646\u0648\u0627\u0646";
-            var course = snippet(item.courseTitle, 90) || "\u062f\u0631\u0633 \u0646\u0627\u0645\u0634\u062e\u0635";
-            var detectedAt = formatDate(item.detectedAt, "\u0632\u0645\u0627\u0646 \u062a\u0634\u062e\u06cc\u0635 \u0646\u0627\u0645\u0634\u062e\u0635");
-            return [
-                '<article class="navid-item">',
-                '  <h4 class="navid-item__title">' + safeText(eventType + ": " + titleText) + "</h4>",
-                '  <p class="navid-item__meta">' + safeText(course + " • " + detectedAt) + "</p>",
-                "</article>"
-            ].join("");
-        }).join("");
+        return [
+            '<article class="navid-update' + updateClass + '">',
+            '  <div class="navid-update__head">',
+            '    <span class="navid-badge">' + safeText(eventType) + "</span>",
+            '    <span class="navid-update__time">' + safeText(detectedAt) + "</span>",
+            "  </div>",
+            '  <h4 class="navid-update__title">' + safeText(snippet(item && item.title, 160) || "بدون عنوان") + "</h4>",
+            '  <div class="navid-update__meta">',
+            '    <div><span class="navid-update__meta-label">درس</span><div class="navid-update__meta-value">' + safeText(course) + "</div></div>",
+            '    <div><span class="navid-update__meta-label">تاریخ ایجاد</span><div class="navid-update__meta-value">' + safeText(createdAt) + "</div></div>",
+            '    <div><span class="navid-update__meta-label">مهلت ارسال</span><div class="navid-update__meta-value">' + safeText(deadline) + "</div></div>",
+            "  </div>",
+            '  <p class="navid-update__desc">' + safeText(description) + "</p>",
+            "</article>"
+        ].join("");
     }
 
-    function renderAssignments(assignments) {
+    function buildFileChip(file) {
+        if (!file || typeof file !== "object") {
+            return "";
+        }
+
+        var name = normalizeInlineText(file.name) || "فایل بدون نام";
+        var metaParts = [];
+        if (file.extension) {
+            metaParts.push(String(file.extension).toUpperCase());
+        }
+        if (Number(file.size) > 0) {
+            metaParts.push(Number(file.size).toLocaleString("fa-IR") + " بایت");
+        }
+        var meta = metaParts.length ? metaParts.join(" • ") : "پیوست نوید";
+        var url = String(file.url || "").trim();
+
+        if (!url) {
+            return [
+                '<div class="navid-file-chip">',
+                '  <span class="navid-file-chip__name">' + safeText(name) + "</span>",
+                '  <span class="navid-file-chip__meta">' + safeText(meta) + "</span>",
+                "</div>"
+            ].join("");
+        }
+
+        return [
+            '<a class="navid-file-chip" href="' + safeAttr(url) + '" target="_blank" rel="noopener noreferrer">',
+            '  <span class="navid-file-chip__name">' + safeText(name) + "</span>",
+            '  <span class="navid-file-chip__meta">' + safeText(meta) + "</span>",
+            "</a>"
+        ].join("");
+    }
+
+    function buildAssignmentCard(item) {
+        var info = deadlineInfo(item);
+        var toneClass = info.tone === "danger"
+            ? " navid-assignment--danger"
+            : info.tone === "warning"
+                ? " navid-assignment--warning"
+                : info.tone === "success"
+                    ? " navid-assignment--success"
+                    : "";
+        var course = snippet(item && item.courseTitle, 120) || "درس نامشخص";
+        var title = snippet(item && item.title, 220) || "بدون عنوان";
+        var createdAt = formatDateOrLabel(item && item.proposeDate, item && item.sourceUpdatedAt, "نامشخص");
+        var deadline = info.label;
+        var descriptionText = normalizeMultilineText(item && item.descriptionText);
+        var description = safeMultilineHtml(descriptionText) || "برای این تکلیف توضیحی ثبت نشده است.";
+        var hasLongDescription = descriptionText.length > 140;
+        var files = Array.isArray(item && item.files) ? item.files : [];
+        var fileCountLabel = files.length
+            ? (files.length.toLocaleString("fa-IR") + " فایل")
+            : "بدون پیوست";
+        var attachmentsHtml = files.length
+            ? [
+                '<section class="navid-assignment__section">',
+                '  <div class="navid-assignment__section-head">',
+                '    <span class="navid-assignment__section-label">پیوست‌های تکلیف</span>',
+                '    <span class="navid-badge navid-badge--muted">' + safeText(fileCountLabel) + "</span>",
+                "  </div>",
+                '  <div class="navid-file-list" data-files-list hidden>' + files.map(buildFileChip).join("") + "</div>",
+                '  <button class="navid-inline-toggle" type="button" data-files-toggle aria-expanded="false">نمایش فایل‌ها</button>',
+                "</section>"
+            ].join("")
+            : "";
+
+        return [
+            '<article class="navid-assignment' + toneClass + '">',
+            '  <div class="navid-assignment__head">',
+            '    <div class="navid-assignment__badges">',
+            '      <span class="navid-badge">' + safeText(course) + "</span>",
+            '      <span class="navid-badge navid-badge--' + safeText(info.tone) + '">' + safeText(info.stateLabel) + "</span>",
+            "    </div>",
+            "  </div>",
+            '  <h4 class="navid-assignment__title">' + safeText(title) + "</h4>",
+            '  <div class="navid-assignment__meta">',
+            '    <div class="navid-field"><span class="navid-field__label">تاریخ ایجاد تکلیف</span><strong class="navid-field__value">' + safeText(createdAt) + "</strong></div>",
+            '    <div class="navid-field"><span class="navid-field__label">مهلت ارسال تکلیف</span><strong class="navid-field__value">' + safeText(deadline) + "</strong></div>",
+            "  </div>",
+            '  <section class="navid-assignment__section">',
+            '    <div class="navid-assignment__section-head">',
+            '      <span class="navid-assignment__section-label">متن تکلیف</span>',
+            '      <span class="navid-badge navid-badge--muted">' + safeText(fileCountLabel) + "</span>",
+            "    </div>",
+            '    <div class="navid-assignment__description">',
+            '      <div class="navid-assignment__description-copy' + (hasLongDescription ? ' is-collapsed' : '') + '">' + description + "</div>",
+            hasLongDescription
+                ? '      <button class="navid-inline-toggle" type="button" data-desc-toggle aria-expanded="false">نمایش کامل</button>'
+                : "",
+            "    </div>",
+            "  </section>",
+            attachmentsHtml,
+            "</article>"
+        ].join("");
+    }
+
+    function syncAssignmentsPreview() {
         if (!assignmentsList) {
             return;
         }
 
-        var list = Array.isArray(assignments) ? assignments.slice(0, 120) : [];
+        var list = currentAssignments.slice();
         if (!list.length) {
-            renderEmpty(assignmentsList, "\u062a\u06a9\u0644\u06cc\u0641 \u0641\u0639\u0627\u0644\u06cc \u062f\u0631 \u0646\u0648\u06cc\u062f \u067e\u06cc\u062f\u0627 \u0646\u0634\u062f.");
+            renderEmpty(assignmentsList, "فعلاً تکلیف فعالی در خروجی نوید پیدا نشد.");
+            if (assignmentsMoreButton) {
+                assignmentsMoreButton.hidden = true;
+            }
             return;
         }
 
-        assignmentsList.innerHTML = list.map(function (item) {
-            var titleText = snippet(item.title, 140) || "\u0628\u062f\u0648\u0646 \u0639\u0646\u0648\u0627\u0646";
-            var course = snippet(item.courseTitle, 90) || "\u062f\u0631\u0633 \u0646\u0627\u0645\u0634\u062e\u0635";
-            var deadline = item.endDateShamsi || formatDate(item.endDateIso, "\u0645\u0647\u0644\u062a \u0646\u0627\u0645\u0634\u062e\u0635");
-            var description = snippet(item.descriptionText, 440) || "\u0628\u0631\u0627\u06cc \u0627\u06cc\u0646 \u062a\u06a9\u0644\u06cc\u0641 \u062a\u0648\u0636\u06cc\u062d\u06cc \u062b\u0628\u062a \u0646\u0634\u062f\u0647 \u0627\u0633\u062a.";
-            var filesCount = Array.isArray(item.files) ? item.files.length : 0;
-            return [
-                '<article class="navid-item">',
-                '  <h4 class="navid-item__title">' + safeText(titleText) + "</h4>",
-                '  <p class="navid-item__meta">' + safeText(course + " • مهلت: " + deadline + " • فایل پیوست: " + filesCount) + "</p>",
-                '  <p class="navid-item__desc">' + safeText(description) + "</p>",
-                "</article>"
-            ].join("");
-        }).join("");
+        var visible = assignmentsExpanded ? list : list.slice(0, ASSIGNMENTS_PREVIEW_COUNT);
+        assignmentsList.innerHTML = visible.map(buildAssignmentCard).join("");
+
+        if (assignmentsMoreButton) {
+            var hiddenCount = Math.max(0, list.length - visible.length);
+            assignmentsMoreButton.hidden = list.length <= ASSIGNMENTS_PREVIEW_COUNT;
+            assignmentsMoreButton.textContent = assignmentsExpanded
+                ? "جمع‌کردن فهرست تکالیف"
+                : ("نمایش " + hiddenCount.toLocaleString("fa-IR") + " تکلیف دیگر");
+            assignmentsMoreButton.setAttribute("aria-expanded", assignmentsExpanded ? "true" : "false");
+        }
+    }
+
+    function syncUpdatesPreview() {
+        if (!updatesList) {
+            return;
+        }
+
+        var list = currentUpdates.slice();
+        if (!list.length) {
+            renderEmpty(updatesList, "هنوز تغییر تازه‌ای برای تکالیف در نوید ثبت نشده است.");
+            if (updatesMoreButton) {
+                updatesMoreButton.hidden = true;
+            }
+            return;
+        }
+
+        var visible = updatesExpanded ? list : list.slice(0, UPDATES_PREVIEW_COUNT);
+        updatesList.innerHTML = visible.map(buildUpdateCard).join("");
+
+        if (updatesMoreButton) {
+            var hiddenCount = Math.max(0, list.length - visible.length);
+            updatesMoreButton.hidden = list.length <= UPDATES_PREVIEW_COUNT;
+            updatesMoreButton.textContent = updatesExpanded
+                ? "جمع‌کردن آپدیت‌ها"
+                : ("نمایش " + hiddenCount.toLocaleString("fa-IR") + " آپدیت دیگر");
+            updatesMoreButton.setAttribute("aria-expanded", updatesExpanded ? "true" : "false");
+        }
+    }
+
+    function renderUpdates(updates) {
+        currentUpdates = Array.isArray(updates) ? updates.slice(0, 12) : [];
+        updatesExpanded = false;
+        syncUpdatesPreview();
+    }
+
+    function renderAssignments(assignments) {
+        currentAssignments = Array.isArray(assignments) ? assignments.slice(0, 120) : [];
+        assignmentsExpanded = false;
+        syncAssignmentsPreview();
     }
 
     function renderFeed(data) {
@@ -324,91 +647,104 @@
         var actionRequired = String(publicStatus.actionRequired || "");
         var publicLastError = snippet(publicStatus.lastError, 180);
         var failedCourses = Math.max(0, Math.floor(Number(publicStatus.lastFailedCourses) || 0));
+        var assignmentCountText = assignments.length.toLocaleString("fa-IR");
+        var courseCountText = uniqueCourseCount(assignments).toLocaleString("fa-IR");
+        var nearestDeadline = findNearestDeadline(assignments);
+        var nearestDeadlineText = nearestDeadline
+            ? (snippet(nearestDeadline.item.courseTitle, 48) + " • " + nearestDeadline.info.label)
+            : "فعلاً مهلت فعالی نیست";
+        var updateCountText = updates.length.toLocaleString("fa-IR");
 
-        if (countAssignments) {
-            countAssignments.textContent = assignments.length.toLocaleString("fa-IR");
-        }
-        if (countUpdates) {
-            countUpdates.textContent = updates.length.toLocaleString("fa-IR");
-        }
-        if (lastCheck) {
-            lastCheck.textContent = formatDate(publicStatus.lastSuccessAt || publicStatus.lastSyncAt, "\u2014");
+        setMirroredText([countAssignmentsHero, countAssignmentsStatus], assignmentCountText);
+        setMirroredText([countCoursesHero, countCoursesStatus], courseCountText);
+        setMirroredText([nextDeadlineHero, nextDeadlineStatus], nearestDeadlineText);
+        setText(countUpdates, updateCountText);
+        setText(lastCheck, formatDate(publicStatus.lastSuccessAt || publicStatus.lastSyncAt, "—"));
+        setText(viewAssignmentsCount, assignmentCountText);
+        setText(viewUpdatesCount, updateCountText);
+
+        if (!assignments.length && updates.length && currentContentView !== "updates") {
+            setContentView("updates");
+        } else if (assignments.length && currentContentView !== "assignments") {
+            syncContentView();
         }
 
         if (!enabled) {
-            if (statusTitle) {
-                statusTitle.textContent = "\u06cc\u06a9\u067e\u0627\u0631\u0686\u0647\u200c\u0633\u0627\u0632\u06cc \u0646\u0648\u06cc\u062f \u063a\u06cc\u0631\u0641\u0639\u0627\u0644 \u0627\u0633\u062a";
-            }
-            if (statusDesc) {
-                statusDesc.textContent = "\u0641\u0639\u0627\u0644\u200c\u0633\u0627\u0632\u06cc \u0648 \u062a\u0646\u0638\u06cc\u0645 \u0627\u062a\u0635\u0627\u0644 \u0631\u0627 \u0627\u0632 \u067e\u0646\u0644 \u062d\u0633\u0627\u0628 \u0627\u0646\u062c\u0627\u0645 \u0628\u062f\u0647.";
-            }
-            if (sessionState) {
-                sessionState.textContent = "\u063a\u06cc\u0631\u0641\u0639\u0627\u0644";
-            }
-            setDashboardFeedback("\u062e\u0631\u0648\u062c\u06cc \u0646\u0648\u06cc\u062f \u067e\u0633 \u0627\u0632 \u0641\u0639\u0627\u0644\u200c\u0633\u0627\u0632\u06cc \u0646\u0645\u0627\u06cc\u0634 \u062f\u0627\u062f\u0647 \u0645\u06cc\u200c\u0634\u0648\u062f.", "");
+            setText(statusTitle, "یکپارچه‌سازی نوید غیرفعال است");
+            setText(statusDesc, "فعالسازی و ثبت تنظیمات اتصال را از پنل حساب انجام بده.");
+            setText(sessionState, "غیرفعال");
+            setDashboardFeedback("خروجی نوید بعد از فعال‌سازی و ثبت اعتبار نمایش داده می‌شود.", "");
             renderOwnerStatus(ownerStatus);
             renderUpdates([]);
             renderAssignments([]);
             return;
         }
 
-        var result = resultLabel(publicStatus.lastResult || "");
-        if (statusTitle) {
-            statusTitle.textContent = "\u0648\u0636\u0639\u06cc\u062a \u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc: " + result;
-        }
-        if (statusDesc) {
-            if (actionRequired === "save-credentials" || publicStatus.credentialsMissing) {
-                statusDesc.textContent = currentUser && currentUser.isOwner
-                    ? "\u0646\u0627\u0645 \u06a9\u0627\u0631\u0628\u0631\u06cc \u0648 \u0631\u0645\u0632 \u0646\u0648\u06cc\u062f \u062b\u0628\u062a \u0646\u0634\u062f\u0647 \u0627\u0633\u062a. \u0627\u0632 \u067e\u0646\u0644 \u062d\u0633\u0627\u0628 \u0627\u0639\u062a\u0628\u0627\u0631 \u0631\u0627 \u0630\u062e\u06cc\u0631\u0647 \u06a9\u0646."
-                    : "\u0627\u062a\u0635\u0627\u0644 \u0646\u0648\u06cc\u062f \u0647\u0646\u0648\u0632 \u062a\u06a9\u0645\u06cc\u0644 \u0646\u0634\u062f\u0647 \u0627\u0633\u062a \u0648 \u0646\u06cc\u0627\u0632 \u0628\u0647 \u062b\u0628\u062a \u0627\u0639\u062a\u0628\u0627\u0631 \u062a\u0648\u0633\u0637 \u0645\u062f\u06cc\u0631 \u062f\u0627\u0631\u062f.";
-            } else if (actionRequired === "update-credentials" || publicStatus.credentialsInvalid) {
-                statusDesc.textContent = currentUser && currentUser.isOwner
-                    ? "\u0627\u0639\u062a\u0628\u0627\u0631 \u0630\u062e\u06cc\u0631\u0647\u200c\u0634\u062f\u0647 \u0646\u0648\u06cc\u062f \u0646\u0627\u0645\u0639\u062a\u0628\u0631 \u0627\u0633\u062a. \u062f\u0631 \u067e\u0646\u0644 \u062d\u0633\u0627\u0628 \u0646\u0627\u0645 \u06a9\u0627\u0631\u0628\u0631\u06cc/\u0631\u0645\u0632 \u0631\u0627 \u0628\u0647\u200c\u0631\u0648\u0632 \u06a9\u0646."
-                    : "\u0627\u062a\u0635\u0627\u0644 \u0646\u0648\u06cc\u062f \u0646\u06cc\u0627\u0632 \u0628\u0647 \u0628\u0647\u200c\u0631\u0648\u0632\u0631\u0633\u0627\u0646\u06cc \u0627\u0639\u062a\u0628\u0627\u0631 \u062a\u0648\u0633\u0637 \u0645\u062f\u06cc\u0631 \u062f\u0627\u0631\u062f.";
-            } else if (actionRequired === "manual-reconnect" || publicStatus.requiresReconnect) {
-                statusDesc.textContent = currentUser && currentUser.isOwner
-                    ? "\u0646\u0634\u0633\u062a \u0646\u0648\u06cc\u062f \u0646\u06cc\u0627\u0632 \u0628\u0647 \u0627\u062a\u0635\u0627\u0644 \u0645\u062c\u062f\u062f \u0628\u0627 \u06a9\u067e\u0686\u0627 \u062f\u0627\u0631\u062f."
-                    : "\u0628\u0631\u0627\u06cc \u0628\u0647\u200c\u0631\u0648\u0632\u0631\u0633\u0627\u0646\u06cc \u062e\u0631\u0648\u062c\u06cc \u0646\u0648\u06cc\u062f\u060c \u0645\u062f\u06cc\u0631 \u0628\u0627\u06cc\u062f \u0627\u062a\u0635\u0627\u0644 \u0645\u062c\u062f\u062f \u0627\u0646\u062c\u0627\u0645 \u062f\u0647\u062f.";
-            } else if (publicStatus.lastResult === "partial") {
-                statusDesc.textContent = failedCourses > 0
-                    ? ("\u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u0646\u0627\u0642\u0635 \u0628\u0648\u062f\u061b " + failedCourses.toLocaleString("fa-IR") + " \u062f\u0631\u0633 \u062f\u0631\u06cc\u0627\u0641\u062a \u0646\u0634\u062f.")
-                    : "\u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u0646\u0627\u0642\u0635 \u0628\u0648\u062f \u0648 \u062e\u0631\u0648\u062c\u06cc \u062a\u0627\u06cc\u06cc\u062f \u0646\u0634\u062f.";
-            } else if (publicLastError) {
-                statusDesc.textContent = publicLastError;
-            } else {
-                statusDesc.textContent = "\u062a\u06a9\u0627\u0644\u06cc\u0641 \u0641\u0639\u0644\u06cc \u0648 \u0622\u062e\u0631\u06cc\u0646 \u0628\u0647\u200c\u0631\u0648\u0632\u0631\u0633\u0627\u0646\u06cc\u200c\u0647\u0627 \u0628\u0627 \u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u0633\u0631\u0648\u0631 \u0646\u0645\u0627\u06cc\u0634 \u062f\u0627\u062f\u0647 \u0645\u06cc\u200c\u0634\u0648\u062f.";
-            }
+        setText(statusTitle, "وضعیت همگام‌سازی: " + resultLabel(publicStatus.lastResult || ""));
+
+        if (actionRequired === "save-credentials" || publicStatus.credentialsMissing) {
+            setText(
+                statusDesc,
+                currentUser && currentUser.isOwner
+                    ? "نام کاربری و رمز نوید هنوز ثبت نشده است. آن را از پنل حساب ذخیره کن."
+                    : "اتصال نوید هنوز توسط مدیر کامل نشده و نیاز به ثبت اعتبار دارد."
+            );
+        } else if (actionRequired === "update-credentials" || publicStatus.credentialsInvalid) {
+            setText(
+                statusDesc,
+                currentUser && currentUser.isOwner
+                    ? "اعتبار ذخیره‌شده‌ی نوید نامعتبر شده است و باید از پنل حساب به‌روزرسانی شود."
+                    : "اتصال نوید نیاز به به‌روزرسانی اعتبار توسط مدیر دارد."
+            );
+        } else if (actionRequired === "manual-reconnect" || publicStatus.requiresReconnect) {
+            setText(
+                statusDesc,
+                currentUser && currentUser.isOwner
+                    ? "نشست نوید نیاز به reconnect دستی دارد تا همگام‌سازی دوباره پایدار شود."
+                    : "برای تازه شدن خروجی نوید، مدیر باید اتصال را دوباره برقرار کند."
+            );
+        } else if (publicStatus.lastResult === "partial") {
+            setText(
+                statusDesc,
+                failedCourses > 0
+                    ? ("همگام‌سازی ناقص بود و " + failedCourses.toLocaleString("fa-IR") + " درس کامل دریافت نشد.")
+                    : "همگام‌سازی ناقص بود و بخشی از خروجی تایید نشد."
+            );
+        } else if (publicLastError) {
+            setText(statusDesc, publicLastError);
+        } else {
+            setText(statusDesc, "تکالیف فعال، توضیحات آن‌ها و آخرین تغییرات از آخرین sync موفق نوید نمایش داده می‌شود.");
         }
 
-        if (sessionState) {
-            if (ownerStatus && ownerStatus.session) {
-                sessionState.textContent = ownerStatus.session.status || "\u2014";
-            } else if (actionRequired === "save-credentials" || publicStatus.credentialsMissing) {
-                sessionState.textContent = "\u0628\u062f\u0648\u0646 \u0627\u0639\u062a\u0628\u0627\u0631";
-            } else if (actionRequired === "update-credentials" || publicStatus.credentialsInvalid) {
-                sessionState.textContent = "\u0627\u0639\u062a\u0628\u0627\u0631 \u0646\u0627\u0645\u0639\u062a\u0628\u0631";
-            } else if (publicStatus.lastResult === "partial") {
-                sessionState.textContent = "\u0646\u0627\u0642\u0635";
-            } else {
-                sessionState.textContent = publicStatus.requiresReconnect ? "\u0646\u06cc\u0627\u0632 \u0628\u0647 \u0627\u062a\u0635\u0627\u0644 \u0645\u062c\u062f\u062f" : "\u0641\u0639\u0627\u0644";
-            }
+        if (ownerStatus && ownerStatus.session) {
+            setText(sessionState, ownerStatus.session.status || "—");
+        } else if (actionRequired === "save-credentials" || publicStatus.credentialsMissing) {
+            setText(sessionState, "بدون اعتبار");
+        } else if (actionRequired === "update-credentials" || publicStatus.credentialsInvalid) {
+            setText(sessionState, "اعتبار نامعتبر");
+        } else if (actionRequired === "manual-reconnect" || publicStatus.requiresReconnect) {
+            setText(sessionState, "نیازمند reconnect");
+        } else if (publicStatus.lastResult === "partial") {
+            setText(sessionState, "ناقص");
+        } else {
+            setText(sessionState, "فعال");
         }
 
         if (actionRequired === "save-credentials" || publicStatus.credentialsMissing) {
-            setDashboardFeedback("\u0627\u0639\u062a\u0628\u0627\u0631 \u0648\u0631\u0648\u062f \u0646\u0648\u06cc\u062f \u062b\u0628\u062a \u0646\u0634\u062f\u0647 \u0627\u0633\u062a.", "error");
+            setDashboardFeedback("اعتبار ورود نوید هنوز ثبت نشده است.", "error");
         } else if (actionRequired === "update-credentials" || publicStatus.credentialsInvalid) {
-            setDashboardFeedback("\u0646\u0627\u0645 \u06a9\u0627\u0631\u0628\u0631\u06cc \u06cc\u0627 \u0631\u0645\u0632 \u0646\u0648\u06cc\u062f \u0646\u0627\u0645\u0639\u062a\u0628\u0631 \u0627\u0633\u062a.", "error");
+            setDashboardFeedback("نام کاربری یا رمز نوید نامعتبر است و باید اصلاح شود.", "error");
         } else if (actionRequired === "manual-reconnect" || publicStatus.requiresReconnect) {
-            setDashboardFeedback("\u0627\u062a\u0635\u0627\u0644 \u0646\u0648\u06cc\u062f \u0646\u06cc\u0627\u0632 \u0628\u0647 \u0628\u0627\u0632\u0627\u062a\u0635\u0627\u0644 \u062f\u0633\u062a\u06cc \u0648 \u06a9\u067e\u0686\u0627 \u062f\u0627\u0631\u062f.", "error");
+            setDashboardFeedback("اتصال نوید نیاز به reconnect دستی و عبور از کپچا دارد.", "error");
         } else if (publicStatus.lastResult === "partial") {
             setDashboardFeedback(
                 failedCourses > 0
-                    ? ("\u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u0646\u0627\u0642\u0635 \u0628\u0648\u062f\u061b " + failedCourses.toLocaleString("fa-IR") + " \u062f\u0631\u0633 \u062f\u0631\u06cc\u0627\u0641\u062a \u0646\u0634\u062f.")
-                    : "\u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u0646\u0627\u0642\u0635 \u0627\u0633\u062a.",
+                    ? ("همگام‌سازی ناقص بود؛ " + failedCourses.toLocaleString("fa-IR") + " درس کامل خوانده نشد.")
+                    : "همگام‌سازی ناقص است.",
                 "error"
             );
         } else if (publicStatus.lastResult === "ok" || publicStatus.lastResult === "skipped" || publicStatus.lastResult === "already-running") {
-            setDashboardFeedback("\u0627\u0637\u0644\u0627\u0639\u0627\u062a \u0646\u0648\u06cc\u062f \u0628\u0647\u200c\u0631\u0648\u0632 \u0634\u062f.", "success");
+            setDashboardFeedback("اطلاعات نوید با آخرین sync موفق نمایش داده می‌شود.", "success");
         } else if (publicLastError) {
             setDashboardFeedback(publicLastError, "error");
         } else {
@@ -469,8 +805,13 @@
 
         loadingFeed = true;
         var ticket = ++feedTicket;
-        setFlowState("loading");
-        setDashboardFeedback("", "");
+        var inlineRefresh = hasLoadedFeed && dashboard && !dashboard.hidden;
+        if (inlineRefresh) {
+            setDashboardFeedback("در حال به‌روزرسانی خروجی نوید...", "");
+        } else {
+            setFlowState("loading");
+            setDashboardFeedback("", "");
+        }
 
         try {
             var response = await apiGet("feed");
@@ -478,32 +819,39 @@
                 return;
             }
 
-            if (consumeUnauthorized(response, "\u0646\u0634\u0633\u062a \u0634\u0645\u0627 \u0645\u0646\u0642\u0636\u06cc \u0634\u062f.")) {
+            if (consumeUnauthorized(response, "نشست شما منقضی شد.")) {
                 currentUser = null;
                 currentUserKey = "";
+                hasLoadedFeed = false;
                 setFlowState("unauthorized");
-                setAuthFeedback("\u0646\u0634\u0633\u062a \u0634\u0645\u0627 \u0645\u0646\u0642\u0636\u06cc \u0634\u062f. \u062f\u0648\u0628\u0627\u0631\u0647 \u0648\u0627\u0631\u062f \u0634\u0648.", "error");
+                setAuthFeedback("نشست شما منقضی شد. دوباره وارد شو.", "error");
                 return;
             }
 
             if (!response || !response.success || !response.data) {
                 setFlowState("ready");
-                setDashboardFeedback((response && response.error) || "\u062f\u0631\u06cc\u0627\u0641\u062a \u0627\u0637\u0644\u0627\u0639\u0627\u062a \u0646\u0648\u06cc\u062f \u0627\u0646\u062c\u0627\u0645 \u0646\u0634\u062f.", "error");
-                renderUpdates([]);
-                renderAssignments([]);
+                setDashboardFeedback((response && response.error) || "دریافت اطلاعات نوید انجام نشد.", "error");
+                if (!inlineRefresh) {
+                    renderUpdates([]);
+                    renderAssignments([]);
+                }
                 return;
             }
 
             renderFeed(response.data);
+            hasLoadedFeed = true;
             setFlowState("ready");
         } catch (error) {
             if (ticket !== feedTicket) {
                 return;
             }
+
             setFlowState("ready");
-            setDashboardFeedback((error && error.message) || "\u062f\u0631\u06cc\u0627\u0641\u062a \u0627\u0637\u0644\u0627\u0639\u0627\u062a \u0646\u0648\u06cc\u062f \u0628\u0627 \u062e\u0637\u0627 \u0645\u062a\u0648\u0642\u0641 \u0634\u062f.", "error");
-            renderUpdates([]);
-            renderAssignments([]);
+            setDashboardFeedback((error && error.message) || "دریافت اطلاعات نوید با خطا متوقف شد.", "error");
+            if (!inlineRefresh) {
+                renderUpdates([]);
+                renderAssignments([]);
+            }
         } finally {
             if (ticket === feedTicket) {
                 loadingFeed = false;
@@ -517,22 +865,25 @@
         }
 
         syncNowButton.disabled = true;
-        setDashboardFeedback("\u062f\u0631 \u062d\u0627\u0644 \u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u0641\u0648\u0631\u06cc \u0646\u0648\u06cc\u062f...", "");
+        setDashboardFeedback("در حال همگام‌سازی فوری نوید...", "");
 
         try {
             var response = await apiPost("syncNow", {});
-            if (consumeUnauthorized(response, "\u0646\u0634\u0633\u062a \u0634\u0645\u0627 \u0645\u0646\u0642\u0636\u06cc \u0634\u062f.")) {
+            if (consumeUnauthorized(response, "نشست شما منقضی شد.")) {
                 currentUser = null;
                 currentUserKey = "";
                 setFlowState("unauthorized");
-                setAuthFeedback("\u0646\u0634\u0633\u062a \u0634\u0645\u0627 \u0645\u0646\u0642\u0636\u06cc \u0634\u062f. \u062f\u0648\u0628\u0627\u0631\u0647 \u0648\u0627\u0631\u062f \u0634\u0648.", "error");
+                setAuthFeedback("نشست شما منقضی شد. دوباره وارد شو.", "error");
                 return;
             }
 
             if (!response || !response.success) {
-                setDashboardFeedback((response && response.message) || (response && response.error) || "\u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u0641\u0648\u0631\u06cc \u0646\u0627\u0645\u0648\u0641\u0642 \u0628\u0648\u062f.", "error");
+                setDashboardFeedback(
+                    (response && response.message) || (response && response.error) || "همگام‌سازی فوری ناموفق بود.",
+                    "error"
+                );
             } else {
-                setDashboardFeedback(response.message || "\u0647\u0645\u06af\u0627\u0645\u200c\u0633\u0627\u0632\u06cc \u0641\u0648\u0631\u06cc \u0627\u0646\u062c\u0627\u0645 \u0634\u062f.", "success");
+                setDashboardFeedback(response.message || "همگام‌سازی فوری انجام شد.", "success");
             }
         } finally {
             syncNowButton.disabled = false;
@@ -540,10 +891,90 @@
         }
     }
 
+    function handleAssignmentListClick(event) {
+        if (!assignmentsList) {
+            return;
+        }
+        var button = event.target && event.target.closest ? event.target.closest("[data-desc-toggle]") : null;
+        if (!button) {
+            return;
+        }
+        var wrapper = button.closest(".navid-assignment__description");
+        if (!wrapper) {
+            return;
+        }
+        var copy = wrapper.querySelector(".navid-assignment__description-copy");
+        if (!copy) {
+            return;
+        }
+        var expanded = button.getAttribute("aria-expanded") === "true";
+        if (expanded) {
+            copy.classList.add("is-collapsed");
+            button.setAttribute("aria-expanded", "false");
+            button.textContent = "نمایش کامل";
+        } else {
+            copy.classList.remove("is-collapsed");
+            button.setAttribute("aria-expanded", "true");
+            button.textContent = "جمع کردن متن";
+        }
+    }
+
+    function handleAssignmentFilesToggle(event) {
+        if (!assignmentsList) {
+            return;
+        }
+        var button = event.target && event.target.closest ? event.target.closest("[data-files-toggle]") : null;
+        if (!button) {
+            return;
+        }
+        var section = button.closest(".navid-assignment__section");
+        if (!section) {
+            return;
+        }
+        var filesList = section.querySelector("[data-files-list]");
+        if (!filesList) {
+            return;
+        }
+        var expanded = button.getAttribute("aria-expanded") === "true";
+        if (expanded) {
+            filesList.hidden = true;
+            button.setAttribute("aria-expanded", "false");
+            button.textContent = "نمایش فایل‌ها";
+        } else {
+            filesList.hidden = false;
+            button.setAttribute("aria-expanded", "true");
+            button.textContent = "بستن فایل‌ها";
+        }
+    }
+
+    function handleContentViewClick(event) {
+        var button = event.target && event.target.closest ? event.target.closest("[data-navid-view]") : null;
+        if (!button) {
+            return;
+        }
+        setContentView(button.getAttribute("data-navid-view"));
+    }
+
+    function handleMoreAssignments() {
+        assignmentsExpanded = !assignmentsExpanded;
+        syncAssignmentsPreview();
+    }
+
+    function handleMoreUpdates() {
+        updatesExpanded = !updatesExpanded;
+        syncUpdatesPreview();
+    }
+
+    function handleOwnerToggle() {
+        ownerExpanded = !ownerExpanded;
+        syncOwnerPanel();
+    }
+
     function handleAuth(detail) {
         if (detail.status === "session-restoring" || detail.status === "logging-out") {
             currentUser = null;
             currentUserKey = "";
+            hasLoadedFeed = false;
             setFlowState("restoring");
             setAuthFeedback("", "");
             return;
@@ -552,11 +983,12 @@
         if (!detail.loggedIn || !detail.user) {
             currentUser = null;
             currentUserKey = "";
+            hasLoadedFeed = false;
             setFlowState(detail.status === "unauthorized" ? "unauthorized" : "signed-out");
             setAuthFeedback(
                 detail.status === "unauthorized"
-                    ? (detail.error || "\u0646\u0634\u0633\u062a \u0634\u0645\u0627 \u0645\u0646\u0642\u0636\u06cc \u0634\u062f.")
-                    : "\u0628\u0631\u0627\u06cc \u062f\u0633\u062a\u0631\u0633\u06cc \u0628\u0647 \u062e\u0631\u0648\u062c\u06cc \u0646\u0648\u06cc\u062f \u0648\u0627\u0631\u062f \u062d\u0633\u0627\u0628 \u0634\u0648.",
+                    ? (detail.error || "نشست شما منقضی شد.")
+                    : "برای دسترسی به خروجی نوید وارد حساب شو.",
                 detail.status === "unauthorized" ? "error" : ""
             );
             if (loginLink) {
@@ -582,6 +1014,29 @@
     if (syncNowButton) {
         syncNowButton.addEventListener("click", syncNow);
     }
+
+    if (assignmentsList) {
+        assignmentsList.addEventListener("click", handleAssignmentListClick);
+        assignmentsList.addEventListener("click", handleAssignmentFilesToggle);
+    }
+
+    contentViewButtons.forEach(function (button) {
+        button.addEventListener("click", handleContentViewClick);
+    });
+
+    if (assignmentsMoreButton) {
+        assignmentsMoreButton.addEventListener("click", handleMoreAssignments);
+    }
+
+    if (updatesMoreButton) {
+        updatesMoreButton.addEventListener("click", handleMoreUpdates);
+    }
+
+    if (ownerToggleButton) {
+        ownerToggleButton.addEventListener("click", handleOwnerToggle);
+    }
+
+    syncContentView();
 
     window.Dent1402Auth.onChange(handleAuth);
 })();

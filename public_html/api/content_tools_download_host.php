@@ -376,6 +376,34 @@ function content_download_host_upload_file(string $relativeDir, array $file, str
     ];
 }
 
+function content_download_host_upload_stream(string $relativeDir, $sourceStream, int $sourceSize, string $desiredName = '', string $mimeType = ''): array
+{
+    if (!is_resource($sourceStream)) {
+        dent_error('Upload stream is invalid.', 422);
+    }
+    if ($sourceSize <= 0) {
+        dent_error('Upload size is invalid.', 422);
+    }
+
+    $normalizedDir = content_download_host_normalize_relative_path($relativeDir);
+    $targetAbsDir = content_download_host_ensure_dir($normalizedDir);
+    $finalName = content_download_host_unique_file_name($normalizedDir, $desiredName);
+    $upload = notes_download_host_stream_upload_from_stream($targetAbsDir, $sourceStream, $sourceSize, $finalName, $mimeType);
+    $finalRelativePath = trim(($normalizedDir === '' ? '' : ($normalizedDir . '/')) . $finalName, '/');
+    $bytes = max(0, (int) ($upload['size'] ?? $sourceSize));
+
+    return [
+        'name' => $finalName,
+        'relativeDir' => $normalizedDir,
+        'relativePath' => $finalRelativePath,
+        'sizeBytes' => $bytes,
+        'sizeLabel' => notes_download_host_human_size($bytes),
+        'mimeType' => $mimeType,
+        'publicUrl' => content_download_host_public_url($finalRelativePath),
+        'message' => trim((string) ($upload['reason'] ?? 'File was saved on the download host.')),
+    ];
+}
+
 function content_download_host_create_dir(string $parentRelativePath, string $directoryName): array
 {
     $parent = content_download_host_normalize_relative_path($parentRelativePath);

@@ -179,6 +179,10 @@ body.notes-files-page .ndh-upload-item[data-state="done"] {
     border-color: color-mix(in srgb, var(--success-color) 24%, var(--border-color));
 }
 
+body.notes-files-page .ndh-upload-item[data-state="waiting"] {
+    border-color: color-mix(in srgb, var(--warning-color) 26%, var(--border-color));
+}
+
 body.notes-files-page .ndh-upload-item[data-state="error"] {
     border-color: color-mix(in srgb, var(--danger-color) 26%, var(--border-color));
 }
@@ -218,6 +222,11 @@ body.notes-files-page .ndh-upload-state {
 body.notes-files-page .ndh-upload-item[data-state="done"] .ndh-upload-state {
     background: color-mix(in srgb, var(--success-color) 10%, var(--surface-solid));
     color: color-mix(in srgb, var(--success-color) 86%, var(--text-primary));
+}
+
+body.notes-files-page .ndh-upload-item[data-state="waiting"] .ndh-upload-state {
+    background: color-mix(in srgb, var(--warning-color) 10%, var(--surface-solid));
+    color: color-mix(in srgb, var(--warning-color) 86%, var(--text-primary));
 }
 
 body.notes-files-page .ndh-upload-item[data-state="error"] .ndh-upload-state {

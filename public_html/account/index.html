@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260524-175558">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260524-175558">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260524-175558">
-    <script src="/assets/site/scripts/theme.js?v=20260524-175558"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260524-175558">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260524-175558">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260524-175558">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260527-092409">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260527-092409">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260527-092409">
+    <script src="/assets/site/scripts/theme.js?v=20260527-092409"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260527-092409">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260527-092409">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260527-092409">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -284,6 +284,30 @@
                         </span>
                         <span class="account-list-row__chevron" aria-hidden="true">‹</span>
                     </a>
+                </section>
+
+                <section class="account-list-group account-list-group--notifications" aria-label="اعلان‌ها و پیام‌ها">
+                    <h3 class="account-list-group__title">اعلان‌ها و پیام‌ها</h3>
+                    <p class="account-list-group__hint">اعلان‌های نوید، پیام‌های مدیریتی و اطلاعیه‌های ورودی را از همین‌جا پیگیری کن.</p>
+                    <article id="account-navid-alert-card" class="account-notice-card" hidden>
+                        <div class="account-notice-card__head">
+                            <span id="account-notification-alert-kind" class="account-notice-card__eyebrow">اعلان جدید</span>
+                            <span id="account-navid-alert-time" class="account-notice-card__time">—</span>
+                        </div>
+                        <strong id="account-navid-alert-title">اعلان جدیدی ثبت شده است</strong>
+                        <p id="account-navid-alert-body">برای دیدن جزئیات، اعلان را باز کن.</p>
+                        <a id="account-navid-alert-link" class="shell-action-btn shell-action-btn-primary" href="/account/#notifications">مشاهده اعلان</a>
+                    </article>
+                    <button class="account-list-row account-list-row--notifications" type="button" data-open-surface="notifications">
+                        <span class="account-list-row__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M12 4.5a4.6 4.6 0 0 0-4.6 4.6v2.2c0 .8-.2 1.5-.6 2.2l-1.1 2a1 1 0 0 0 .9 1.5h10.8a1 1 0 0 0 .9-1.5l-1.1-2c-.4-.7-.6-1.4-.6-2.2V9.1A4.6 4.6 0 0 0 12 4.5Z"></path><path d="M9.8 18.5a2.2 2.2 0 0 0 4.4 0"></path></svg>
+                        </span>
+                        <span class="account-list-row__copy">
+                            <strong>اعلان‌ها</strong>
+                            <small id="account-row-notifications-meta">اعلان‌های نوید و پیام‌های ارسال‌شده برای این حساب در همین بخش نمایش داده می‌شوند.</small>
+                        </span>
+                        <span class="account-list-row__chevron" aria-hidden="true">‹</span>
+                    </button>
                 </section>
 
                 <section class="account-list-group account-list-group--shortcuts" aria-label="میانبرها">
@@ -576,6 +600,87 @@
                             <div id="phone-toggle-feedback" class="account-feedback" aria-live="polite"></div>
                         </section>
                     </div>
+                </article>
+                <article class="account-card account-surface-panel" data-surface="notifications" hidden>
+                    <header class="account-surface-head">
+                        <button class="shell-action-btn account-surface-back" type="button" data-surface-back>بازگشت</button>
+                        <div class="account-surface-head__copy">
+                            <span class="account-section-kicker">اعلان‌ها</span>
+                            <h3>پیگیری اطلاعیه‌ها و تکالیف جدید</h3>
+                            <p>اعلان‌های نوید، پیام‌های ارسالی مدیران و اطلاعیه‌های ورودی در این بخش جمع می‌شوند.</p>
+                        </div>
+                    </header>
+
+                    <div id="notifications-summary" class="owner-summary owner-summary--compact"></div>
+
+                    <section id="notifications-prefs-card" class="owner-block account-notifications-card" hidden>
+                        <div class="owner-block__head">
+                            <h4>تنظیمات اعلان نوید</h4>
+                            <p>فقط برای دانشجویان ورودی ۱۴۰۲ دندانپزشکی فعال است.</p>
+                        </div>
+                        <label class="phone-toggle-row account-notifications-toggle" for="notifications-navid-alerts">
+                            <span>
+                                <strong>اعلان تکلیف جدید نوید</strong>
+                                <small id="notifications-prefs-hint">وقتی تکلیف جدیدی در نوید بیاید، در حساب کاربری به شما اطلاع داده می‌شود.</small>
+                            </span>
+                            <input id="notifications-navid-alerts" type="checkbox">
+                        </label>
+                        <div class="phone-action-row">
+                            <button id="notifications-prefs-save" class="shell-action-btn" type="button">ذخیره تنظیمات اعلان</button>
+                        </div>
+                    </section>
+
+                    <section id="notifications-manager-card" class="owner-block account-notifications-card" hidden>
+                        <div class="owner-block__head">
+                            <h4>ارسال اعلان به کاربران</h4>
+                            <p>مالک می‌تواند برای همه ورودی‌ها اعلان بفرستد و نماینده فقط برای ورودی خودش.</p>
+                        </div>
+                        <form id="notifications-broadcast-form" class="account-form" novalidate>
+                            <label for="notifications-target">مقصد اعلان</label>
+                            <select id="notifications-target"></select>
+
+                            <label for="notifications-title">عنوان اعلان</label>
+                            <input id="notifications-title" type="text" maxlength="180" placeholder="مثلاً اطلاعیه کلاس یا یادآوری مهم">
+
+                            <label for="notifications-body">متن اعلان</label>
+                            <textarea id="notifications-body" rows="5" maxlength="4000" placeholder="پیام یا توضیح مورد نظر را برای همه کاربران مقصد بنویس."></textarea>
+
+                            <label for="notifications-cta-label">متن دکمه مشاهده</label>
+                            <input id="notifications-cta-label" type="text" maxlength="80" placeholder="مثلاً مشاهده فرم یا رفتن به منابع">
+
+                            <label for="notifications-cta-href">مسیر دکمه مشاهده</label>
+                            <input id="notifications-cta-href" type="text" maxlength="220" dir="ltr" data-latin-digits="true" placeholder="/forms/ یا /notes/term/?term=5">
+
+                            <label for="notifications-schedule-at">زمان انتشار</label>
+                            <input id="notifications-schedule-at" type="datetime-local" dir="ltr" data-latin-digits="true">
+                            <small class="account-field-hint">اگر خالی بماند، اعلان بلافاصله ثبت می‌شود. اعلان زمان‌بندی‌شده تا زمان انتشار فقط برای مدیران همان اعلان نمایش مدیریتی دارد.</small>
+
+                            <label class="phone-toggle-row account-notifications-toggle" for="notifications-send-sms">
+                                <span>
+                                    <strong>ارسال پیامک همزمان</strong>
+                                    <small>متن کوتاه اعلان برای کاربرانی که شماره تاییدشده دارند هم ارسال می‌شود.</small>
+                                </span>
+                                <input id="notifications-send-sms" type="checkbox">
+                            </label>
+
+                            <button id="notifications-broadcast-submit" class="shell-action-btn shell-action-btn-primary" type="submit">ارسال اعلان</button>
+                            <div id="notifications-manager-feedback" class="account-feedback" aria-live="polite"></div>
+                        </form>
+                    </section>
+
+                    <section class="owner-block account-notifications-card account-notifications-card--feed" aria-label="فهرست اعلان‌ها">
+                        <div class="owner-block__head">
+                            <h4>فهرست اعلان‌ها</h4>
+                            <p>اعلان‌های فعال برای کاربران نمایش داده می‌شوند و اعلان‌های زمان‌بندی‌شده فقط برای مدیران همان اعلان در همین فهرست دیده می‌شوند.</p>
+                        </div>
+                        <div class="account-inline-actions">
+                            <button id="notifications-refresh" class="shell-action-btn" type="button">بروزرسانی</button>
+                            <button id="notifications-mark-all" class="shell-action-btn" type="button">خواندن همه</button>
+                        </div>
+                        <div id="notifications-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
+                        <div id="notifications-empty" class="account-empty-state" hidden>اعلانی برای این حساب پیدا نشد.</div>
+                        <div id="notifications-list" class="account-notifications-list"></div>
+                    </section>
                 </article>
                 <article id="owner-panel" class="account-card account-surface-panel" data-surface="owner" hidden>
                     <header class="account-surface-head">
@@ -911,9 +1016,9 @@
         <p id="account-footer-brand">ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260524-175558"></script>
-    <script src="/assets/site/scripts/account.js?v=20260524-175558"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260524-175558"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260524-175558"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260527-092409"></script>
+    <script src="/assets/site/scripts/account.js?v=20260527-092409"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260527-092409"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260527-092409"></script>
 </body>
 </html>

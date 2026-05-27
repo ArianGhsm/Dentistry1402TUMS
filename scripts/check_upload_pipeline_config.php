@@ -42,12 +42,38 @@ function requireRegexValue(string $contents, string $pattern, string $label, arr
     return isset($matches[1]) ? (int) $matches[1] : null;
 }
 
+function jsHasRawBodyUpload(string $contents, string $headerName, string $sendPattern): bool
+{
+    if (strpos($contents, $headerName) === false) {
+        return false;
+    }
+
+    return preg_match($sendPattern, $contents) === 1;
+}
+
 $publicIniPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . '.user.ini';
 $apiIniPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . '.user.ini';
 $storePath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'content_tools_store.php';
 $downloadHostPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'notes_download_host.php';
+$contentToolsApiPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'content_tools_api.php';
+$contentToolsDownloadHostPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'content_tools_download_host.php';
+$notesApiPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'notes_api.php';
+$contentToolsFilesJsPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'content-tools-files.js';
+$notesFilesJsPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'notes-files.js';
+$notesTermJsPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'notes-term.js';
 
-foreach ([$publicIniPath, $apiIniPath, $storePath, $downloadHostPath] as $requiredPath) {
+foreach ([
+    $publicIniPath,
+    $apiIniPath,
+    $storePath,
+    $downloadHostPath,
+    $contentToolsApiPath,
+    $contentToolsDownloadHostPath,
+    $notesApiPath,
+    $contentToolsFilesJsPath,
+    $notesFilesJsPath,
+    $notesTermJsPath,
+] as $requiredPath) {
     if (!is_file($requiredPath)) {
         $errors[] = 'Missing required file: ' . $requiredPath;
     }
@@ -109,6 +135,40 @@ if ($errors === []) {
     );
     if (($streamTimeout ?? 0) < $minimumLongTimeout) {
         $errors[] = 'NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS is below ' . $minimumLongTimeout . '.';
+    }
+
+    if (strpos($downloadHostContents, 'function notes_download_host_stream_upload_from_stream(') === false) {
+        $errors[] = 'notes_download_host_stream_upload_from_stream helper is missing.';
+    }
+
+    $contentToolsDownloadHostContents = (string) file_get_contents($contentToolsDownloadHostPath);
+    if (strpos($contentToolsDownloadHostContents, 'function content_download_host_upload_stream(') === false) {
+        $errors[] = 'content_download_host_upload_stream helper is missing.';
+    }
+
+    $contentToolsApiContents = (string) file_get_contents($contentToolsApiPath);
+    if (strpos($contentToolsApiContents, "notes_download_host_request_header('X-Dent-Upload-Meta')") === false) {
+        $errors[] = 'content_tools_api raw upload header handling is missing.';
+    }
+
+    $notesApiContents = (string) file_get_contents($notesApiPath);
+    if (strpos($notesApiContents, "notes_download_host_request_header('X-Dent-Upload-Name')") === false) {
+        $errors[] = 'notes_api raw upload header handling is missing.';
+    }
+
+    $contentToolsFilesJsContents = (string) file_get_contents($contentToolsFilesJsPath);
+    if (!jsHasRawBodyUpload($contentToolsFilesJsContents, 'X-Dent-Upload-Meta', '/xhr\.send\(\s*item\.file\s*\)/')) {
+        $errors[] = 'content-tools-files.js is not configured for raw body upload.';
+    }
+
+    $notesFilesJsContents = (string) file_get_contents($notesFilesJsPath);
+    if (!jsHasRawBodyUpload($notesFilesJsContents, 'X-Dent-Upload-Name', '/xhr\.send\(\s*item\.file\s*\)/')) {
+        $errors[] = 'notes-files.js is not configured for raw body upload.';
+    }
+
+    $notesTermJsContents = (string) file_get_contents($notesTermJsPath);
+    if (!jsHasRawBodyUpload($notesTermJsContents, 'X-Dent-Upload-Name', '/xhr\.send\(\s*(?:file|task\.file)\s*\)/')) {
+        $errors[] = 'notes-term.js is not configured for raw body upload.';
     }
 }
 

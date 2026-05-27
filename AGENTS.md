@@ -56,6 +56,7 @@
 - مسیر وب قابل‌انتشار این هاست دانلود از `public_html/` سرو می‌شود؛ بنابراین upload فایل‌های resource باید داخل `public_html/` همین اکانت انجام شود، نه ریشه‌ی home.
 - مشخصات دسترسی هاست دانلود باید فقط از فایل محلیِ ignoreشده‌ی `.codex-local/mihan-download-host.json` خوانده شود تا secret وارد Git نشود.
 - استفاده از هاست دانلود برای مسیرها/داده‌های مرتبط با `notes/resources` و باینری فایل‌های `files/upload-center` مجاز است. metadata و state عملیاتی این دو قابلیت باید همچنان در storage اصلی سایت بماند.
+- برای آپلودهای جدید `notes/resources` و `files/upload-center`، مسیر پیش‌فرض باید stream/raw-body محور باشد تا فایل روی هاست اصلی در staging موقت مبتنی بر `$_FILES` یا storage محلی معطل/کپی نشود؛ بعد از رسیدن progress کاربر به `100%` نباید یک مرحله‌ی طولانیِ server-side copy تازه شروع شود مگر fallback اضطراری و موقت.
 - `chat`, `grades`, `forms`, `payments`, `content_tools`, `html_uploader`, `paste`, احراز هویت، دیتابیس و هر state پایدار دیگر نباید به هاست دانلود منتقل شوند.
 - قبل از هر upload به هاست دانلود، باید از همه‌ی فایل‌های منبعِ قابل‌انتقال یک بکاپ محلی منظم در `D:\Arian's Documents\Lessons-Works-Projects\AI-Dev\DL-Dentistry1402TUMS` ساخته/به‌روزرسانی شود.
 - ساختار بکاپ محلی و ساختار آپلود روی هاست دانلود باید cohort-driven و مطابق چینش سایت باشد؛ حداقل با تفکیک `1402`, `1403`, `prosthesis-1402` و term/archive مناسب.
@@ -69,6 +70,10 @@
 - اگر قابلیت جدید به سطح کاربر مربوط است، کنترل مشاهده/ویرایش/حذف آن باید در پنل اختصاصی همان کاربر برای مالک اضافه شود؛ نه فقط در لیست کلی یا API خام.
 - عملیات مدیریتی سراسری هر قابلیت باید در صفحه همان قابلیت انجام شود؛ پنل کاربر فقط محل مدیریت داده همان کاربر است. مثلا import/delete/reset گروهی نمرات در `/grades/` است، نه در پنل حساب کاربر.
 - قابلیت‌های گروهی یا پرخطر مثل import، حذف سراسری یا reset باید end-state قابل مشاهده، تایید صریح و پیام موفقیت غیرکاذب داشته باشند.
+- اعلان‌های کاربرمحور، پیام‌های سراسری/ورودی‌محور و آلارم‌های قابلیت‌هایی مثل نوید باید از ماژول shared اعلان‌ها (`public_html/api/notifications_api.php` و `public_html/api/notifications_store.php`) عبور کنند؛ اعلان ad-hoc و صفحه‌محور که state خوانده‌/نخوانده را خارج از این مسیر نگه دارد مجاز نیست.
+- اگر اعلان shared قابلیت زمان‌بندی، پیامک، حذف سراسری یا وضعیت مشاهده‌کنندگان/ندیده‌ها بگیرد، همین stateها هم باید در همان storage و API مشترک اعلان‌ها بمانند و برای SMS فقط از سرویس/تنظیمات مشترک `auth_store` استفاده شود؛ queue یا read-state موازی برای هر صفحه/قابلیت مجاز نیست.
+- در صفحه عمومی نوید، چون داده‌ها از اکانت مالک sync می‌شوند، هیچ وضعیت شخصی/مالک‌محورِ ارسال یا پاسخ تکلیف نباید به کاربران نمایش داده شود؛ فقط فیلدهای مشترک مثل تاریخ ایجاد، مهلت، متن توضیحات، پیوست‌ها و خلاصه تغییرات مجازند.
+- هر قابلیت اعلان‌محور جدید باید علاوه بر لیست جزئیات، بازتاب واضح در UI مشترک هم داشته باشد: حداقل unread counter در ناوبری مرتبط و یک preview/banner کوتاه برای آخرین مورد خوانده‌نشده؛ صرف ذخیره شدن رکورد اعلان در backend کافی نیست.
 
 ## 6) قرارداد کوتاهی صفحه و تقسیم جریان‌ها
 - هیچ صفحه‌ای نباید به یک صفحه بسیار بلند، اسکرول‌محور و انباشته از همه گزینه‌ها تبدیل شود.
@@ -134,6 +139,7 @@
 - درصورت تغییر زبان طراحی و UI، فایل های semantic token هم آپدیت شوند.
 - وقتی قابلیت/آپشن جدید بر اساس پرامپت یا نیاز اجرایی اضافه می‌شود، متن UI نباید خود پرامپت، چرایی داخلی یا توضیح کار به Codex را برای کاربران سایت بازگو کند؛ فقط عنوان، label و راهنمای کوتاه کاربرمحور نمایش داده شود.
 - بخش‌ها و کامپوننت‌های جدید سایت باید در کانتینر اصلی وسط‌چین باشند و متن‌های عنوانی/توضیحی آن‌ها به‌صورت پیش‌فرض وسط‌چین باشد، مگر اینکه ماهیت فرم، جدول یا لیست عملیاتی خلاف آن را لازم کند.
+- ناوبری پایین shared سایت در مسیرهای عمومی/آموزشی باید بر چهار ورودی اصلی `خانه`، `چت`، `آزمون‌ها` و `حساب` تکیه کند؛ `خرید` در bottom-nav shared جایگاه ثابت ندارد و اگر route یا کارت خانه‌ای به آزمون‌ها در bottom-nav منتقل شد، خانه نباید همان ورودی را دوباره به‌صورت ردیف مستقل تکرار کند مگر با درخواست صریح.
 - در `/exams/` و صفحه هر درس آزمون، فهرست‌ها باید row-based/ردیفی بمانند؛ یعنی هم لیست درس‌ها و هم لیست جلسات هر درس باید به‌صورت ردیف‌های عمودی یک‌ستونه نمایش داده شوند و نباید بدون درخواست صریح به grid چندستونه یا کارت‌های پراکنده تبدیل شوند.
 - هر آزمون یا درس جدیدی که بعداً به بخش `exams` اضافه می‌شود باید از همان shell/shared template/API موجود استفاده کند؛ سوال‌ها نباید داخل HTML عمومی embed شوند، gate دسترسی/پرداخت باید shared و data-driven بماند، و title/meta/label/layout آن باید با الگوی آزمون‌های قبلی هم‌خوان بماند مگر استثناء صریح گفته شود.
 - هر ماژول یا دیتاست جدید آزمون باید فقط از مسیر registry مشترک `public_html/api/exams_modules.php` به سیستم وصل شود؛ hardcode کردن require/hook درس‌محور در چند فایل مثل `exams_bank.php` و `exams_api.php` مجاز نیست.
@@ -142,13 +148,47 @@
 - صفحه جلسه آزمون باید page-surface باشد نه یک outer card بزرگ؛ کارت‌بودن اگر لازم است فقط در سکشن‌ها و بلوک‌های داخلی بیاید، نه به‌صورت یک پنل سراسری دور کل session stage.
 - روی موبایل در `exams`، nested scroll تمام‌قد فقط وقتی مجاز است که واقعاً لازم و از نظر دسترسی آخرین آیتم‌ها زیر bottom-nav کامل تست شده باشد؛ در غیر این صورت page scroll عادی ترجیح دارد.
 
+## 10.1) قرارداد واقعیت Production و کانسدریشن سراسری هر تغییر
+- هیچ قابلیت، باگ‌فیکس، ریفکتور یا patch ظاهری فقط با دید UI یا فقط با جواب گرفتن از یک endpoint تمام‌شده محسوب نمی‌شود؛ هر تغییر باید در همه لایه‌های مرتبطِ واقعی production بررسی شود.
+- این لایه‌ها `relevance-based` هستند، نه بهانه‌ای برای بازنویسی بی‌ربط؛ اگر change واقعاً یک لایه را درگیر نمی‌کند، باید همان‌جا صریح تشخیص داده شود و به refactor یا guard مصنوعیِ بی‌فایده تبدیل نشود.
+- قبل از شروع هر تغییر، باید حداقل این‌ها برای خودت روشن باشد: منبع حقیقت داده، actorها و roleها، routeها و APIهای درگیر، stateهای `loading/empty/error/success`، failure mode محتمل، و اثر change روی deploy/cache/versioning.
+- اگر یک تغییر فایل shared، shell، auth، storage، API مشترک، utility مشترک، design token یا route مشترک را لمس می‌کند، باید مثل تغییر production با ریسک رگرسیون بالا با آن رفتار شود؛ نه مثل patch موقت و موضعی.
+- `Frontend / UX`: هر قابلیت جدید باید روی mobile و desktop، light و dark، RTL، safe-area، bottom-nav، keyboard/focus، `prefers-reduced-motion` و `performance-mode=lite` در صورت relevance بررسی شود و stateهای خالی، loading، error و success واضح و کاربرفهم داشته باشد.
+- `APIs & Backend Logic`: هر endpoint یا action جدید باید validation و normalization ورودی، auth و permission backend، shape پاسخ پایدار، error message قابل‌استفاده و رفتار مشخص در timeout/failure داشته باشد؛ reliance صرف به کنترل UI مجاز نیست.
+- `Database & Storage`: قبل از افزودن هر state جدید، source of truth آن باید روشن باشد؛ state پایدار نباید داخل HTML ثابت، cache موقت، فایل deploy-replaced یا متغیر runtime بی‌دوام نگه‌داری شود و write path باید تا حد ممکن در برابر overwrite/race/partial-write محافظه‌کار باشد.
+- `Auth & Permissions`: هیچ دسترسی‌ای فقط با مخفی‌کردن دکمه یا شرط frontend امن فرض نمی‌شود؛ owner، representative، student، guest و cohort boundary باید در backend enforce شوند و دسترسی بین ورودی‌ها/کاربرها به‌صورت پیش‌فرض deny باشد مگر اجازه‌ی صریح.
+- `Hosting & Deployment`: هر تغییری که route، asset، storage contract، upload flow یا dependency عملیاتی را تغییر می‌دهد باید از نظر deploy continuity، backup/mirror، live health-check و ریسک reset شدن state بررسی شود؛ fixی که فقط local سالم است کامل محسوب نمی‌شود.
+- `Cloud / External Services`: هر اتصال به سرویس بیرونی یا upstream باید با فرض قطع‌شدن، timeout، تغییر markup/response و محدودیت شبکه طراحی شود؛ fallback، retry محدود، حفظ آخرین state معتبر و پیام خطای غیرکاذب از موفقیت‌نمایی مهم‌تر است.
+- `CI/CD & Version Control`: هر تغییری که قرارداد رفتاری، workflow، اصول طراحی یا dependency اجرایی را عوض می‌کند باید در فایل‌های instruction/doc/script مرتبط هم منعکس شود؛ رفتار جدید بدون آپدیت مستندات پروژه کامل نیست.
+- `Security & Isolation`: escape/sanitize متن و ورودی کاربر، عدم نشت secret به Git، sandbox بودن HTML/file public، least-privilege بودن لینک‌های عمومی و ندادن جزئیات حساس خطا به کاربر نهایی باید در تمام فیچرها رعایت شود.
+- `Rate Limiting / Abuse`: login، sync، upload، broadcast، create/delete، submit و هر action قابل‌سوءاستفاده باید حداقل از نظر throttle، debounce، lock، nonce، duplicate-submit guard یا محدودیت scope بررسی شود؛ نبود rate limiter سراسری بهانه‌ی رها کردن abuse guard نیست.
+- `Caching / CDN`: هر cache جدید باید strategy و invalidation مشخص داشته باشد؛ اگر route یا asset به stale cache حساس است، versioning یا busting آن باید جزئی از change باشد و hard-refresh راه‌حل رسمی مشکل محسوب نمی‌شود.
+- `Load / Performance / Scaling`: در shared routeها نباید query، rerender، layout thrash، payload سنگین یا loop پرهزینه بی‌دلیل اضافه شود؛ پیاده‌سازی باید با رشد داده و cohortهای بیشتر هم degrade معقول داشته باشد، نه فقط روی dataset کوچک فعلی.
+- `Error Tracking & Logs`: failureهای مهم باید لاگ/trace کافی برای عیب‌یابی واقعی بگذارند، اما بدون نشت secret یا داده حساس؛ `catch` خاموش یا پیام generic فقط وقتی مجاز است که fallback واقعی و قابل‌اعتماد وجود داشته باشد.
+- `Availability & Recovery`: اگر sync/import/upload/upstream در میانه راه fail شد، سیستم باید تا حد ممکن آخرین state سالم را نگه دارد، destructive reset نکند و مسیر recovery روشن داشته باشد؛ پاک‌کردن data سالم برای شروع دوباره، راه‌حل پیش‌فرض نیست.
+- `Validation Design`: هر validation یا guard جدیدی که برای enforce این اصول اضافه می‌شود باید تا حد ممکن deterministic، local-first، کم‌نویز، کم‌هزینه و low-false-positive باشد؛ check شکننده، مبهم، خیلی کند یا وابسته به شرایط ناپایدار production نباید بی‌محابا blocker پیش‌فرض deploy شود.
+- `Definition of Done`: قبل از اعلام `completed` باید لایه‌های relevant از این بخش یا واقعاً verify شده باشند، یا صریحاً در گزارش نهایی گفته شود چرا برای آن change قابل‌اعمال نبوده‌اند.
+
+## 10.2) چک‌لیست اجباری قبل از بستن هر قابلیت یا تغییر
+- باید روشن باشد source of truth این تغییر کجاست و آیا deploy یا migration می‌تواند آن را reset، fork یا desync کند یا نه.
+- باید سناریوی `loading / empty / error / success` و false-success آن flow بررسی شده باشد و toast یا banner موفقیت با end-state واقعی هماهنگ باشد.
+- باید مشخص باشد چه roleها و چه cohortهایی مجاز به read/write این قابلیت هستند و همین منطق در backend تست یا حداقل بررسی صریح شده باشد.
+- باید روی mobile و desktop، و هرجا relevant است روی light/dark، RTL، safe-area و overlap با bottom-nav retest انجام شود.
+- باید اگر route shared یا API shared لمس شده، حداقل regression اصلی بخش‌های متاثر هم retest شود و فقط به «احتمالاً نمی‌شکند» اکتفا نشود.
+- باید اگر asset، cache، service worker یا HTML route cache-sensitive تغییر کرده، versioning/invalidation مناسب هم انجام شده باشد.
+- باید اگر change به upload، sync، import، external service، storage write یا عملیات زمان‌بر مربوط است، timeout، retry، cleanup و recovery path آن هم بررسی شده باشد.
+- باید اگر change شامل متن UI، اصول طراحی یا workflow اجرایی است، فایل‌های `md` و instruction مرتبط هم همگام به‌روزرسانی شوند.
+- validation سراسری قبل از deploy باید علاوه بر smoke و text-integrity، یک audit قراردادیِ دستورالعمل‌ها هم داشته باشد تا مواردی مثل zoom-lock، shell-off اشتباه، asset versioning، bypass شدن registry آزمون و خاموش‌شدن guardهای upload/shared nav زودتر fail شوند.
+- هر audit یا check جدیدی که به deploy اضافه می‌شود باید اول از نظر نویز، سرعت، deterministic بودن، نیاز نداشتن به مداخله دستی، و عدم حساسیت به upstream/DNS/captcha/تغییرات volatile سنجیده شود؛ اگر این شرط‌ها را ندارد، باید advisory/post-deploy بماند نه blocker پیش‌فرض.
+- checkهای blocker deploy باید ترجیحاً یا local باشند یا روی contractهای shared و پایدار تکیه کنند؛ dependency به سرویس بیرونی، داده زنده، یا UI volatile فقط وقتی blocker شود که خود change دقیقاً همان integration را دست زده باشد و failure آن واقعاً نشانه خرابی release باشد.
+
 ## 11) Workflow اجباری اجرای کار
 1. وضعیت مخزن را بررسی کنید (`git status` + فایل‌های مرتبط).
 2. مسئله را روی desktop/mobile بازتولید کنید.
-3. رفتار واقعی شبکه و state را بررسی کنید.
-4. اصلاح scoped اعمال کنید.
-5. retest کامل همان flow + سناریوهای وابسته + regression بخش‌های متاثر روی desktop/mobile.
-6. وضعیت را دقیق گزارش کنید: `completed` / `partial` / `blocked`.
+3. رفتار واقعی شبکه، state و لایه‌های درگیرِ change مثل API، storage، auth، cache، deploy و dependencyهای بیرونی را بررسی کنید.
+4. اصلاح scoped اعمال کنید؛ بدون بازنویسی بی‌مورد لایه‌هایی که به change ربط ندارند و بدون ساختن guard/checkی که بیش از خود change ریسک و پیچیدگی بیاورد.
+5. retest کامل همان flow + سناریوهای وابسته + regression بخش‌های متاثر روی desktop/mobile و هر لایه‌ی relevant از بخش `10.1` و `10.2`.
+6. وضعیت را دقیق گزارش کنید: `completed` / `partial` / `blocked`، و اگر بخشی از لایه‌های relevant verify نشده‌اند یا عمداً scope نشده‌اند، صریحاً ذکر کنید.
 7. Deploy پیش‌فرض انجام شود مگر کاربر صراحتاً منع کند.
 
 ## 12) Deploy پیش‌فرض
@@ -157,6 +197,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
 - ترتیب اجباری:
   - host storage backup/mirror -> local validation -> host deploy -> live health-check -> GitHub sync
+- local validation پیش‌فرض باید پایدار، سریع و کم‌نویز بماند؛ اضافه‌کردن check جدیدی که مرتب false-fail می‌دهد یا به شرایط ناپایدار بیرونی وابسته است بدون کنترل scope و پایداری مجاز نیست.
 - قبل از upload کد، `storage/` هاست باید در `.codex-local/remote-storage/snapshots/` ذخیره و در `server-only/storage/` mirror شود.
 - upload/delete دیتای runtime از لپتاپ به هاست ممنوع است؛ حتی FullSync هم نباید `public_html/.env` یا `public_html/storage/` را آپلود/حذف کند.
 - `git pull` قبل از deploy پیش‌فرض ممنوع است مگر درخواست صریح.

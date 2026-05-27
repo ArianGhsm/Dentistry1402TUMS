@@ -163,13 +163,82 @@ def run_smoke_session(args: argparse.Namespace) -> None:
                     if not responses_payload.get("success"):
                         raise RuntimeError(f"Forms responses failed for {cohort}: {responses_payload}")
 
+            notifications_summary = request_json(
+                opener,
+                base_url + "/api/notifications_api.php?action=summary",
+            )
+            if not notifications_summary.get("success"):
+                raise RuntimeError(f"Notifications summary failed: {notifications_summary}")
+
+            notifications_list = request_json(
+                opener,
+                base_url + "/api/notifications_api.php?action=list",
+            )
+            if not notifications_list.get("success"):
+                raise RuntimeError(f"Notifications list failed: {notifications_list}")
+
+            chat_summary = request_json(
+                opener,
+                base_url + "/chat/chat_api.php?action=navSummary",
+            )
+            if not chat_summary.get("success"):
+                raise RuntimeError(f"Chat nav summary failed: {chat_summary}")
+
+            navid_feed = request_json(
+                opener,
+                base_url + "/api/navid_api.php?action=feed",
+            )
+            if not navid_feed.get("success"):
+                raise RuntimeError(f"Navid feed failed: {navid_feed}")
+
+            owner_dashboard = request_json(
+                opener,
+                base_url + "/api/content_tools_api.php?action=ownerDashboard",
+            )
+            if not owner_dashboard.get("success"):
+                raise RuntimeError(f"Content tools owner dashboard failed: {owner_dashboard}")
+
+            owner_pastes = request_json(
+                opener,
+                base_url + "/api/content_tools_api.php?action=ownerPastes",
+            )
+            if not owner_pastes.get("success"):
+                raise RuntimeError(f"Owner pastes failed: {owner_pastes}")
+
+            exams_catalog = request_json(
+                opener,
+                base_url + "/api/exams_api.php?action=catalog",
+            )
+            if not exams_catalog.get("success"):
+                raise RuntimeError(f"Exams catalog failed: {exams_catalog}")
+
+            prosthesis_exams_catalog = request_json(
+                opener,
+                base_url + "/api/exams_api.php?action=catalog&cohort=prosthesis-1402",
+            )
+            if not prosthesis_exams_catalog.get("success"):
+                raise RuntimeError(f"Prosthesis exams catalog failed: {prosthesis_exams_catalog}")
+
             pages = [
+                "/app/",
+                "/account/",
+                "/chat/",
+                "/exams/",
+                "/exams/radiology2/",
+                "/exams/radiology2/1/",
                 "/forms/",
                 "/forms/fill/",
                 "/forms/?cohort=dentistry-1403",
                 "/forms/?cohort=dentistry-1404",
                 "/forms/?cohort=prosthesis-1402",
                 "/forms/fill/?cohort=prosthesis-1402",
+                "/resources/",
+                "/buy/",
+                "/navid/",
+                "/files/",
+                "/paste/",
+                "/notes/files/",
+                "/html-uploader/",
                 "/notes/",
                 "/notes/term/?term=6",
                 "/notes/?cohort=dentistry-1403",
@@ -205,7 +274,7 @@ def main() -> int:
     for _attempt in range(3):
         try:
             run_smoke_session(args)
-            print("OK: multi-cohort forms/resources smoke test passed.")
+            print("OK: multi-cohort shared-routes smoke test passed.")
             return 0
         except Exception as exc:
             last_error = exc

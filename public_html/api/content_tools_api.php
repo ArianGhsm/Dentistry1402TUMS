@@ -37,6 +37,26 @@ function content_api_prepare_long_upload_request(): void
     dent_release_session_lock();
 }
 
+function content_api_decode_upload_meta_header(string $raw): array
+{
+    $raw = trim($raw);
+    if ($raw === '') {
+        return [];
+    }
+
+    $decoded = dent_base64url_decode($raw);
+    if ($decoded === '') {
+        dent_error('Upload metadata is invalid.', 422);
+    }
+
+    $payload = json_decode($decoded, true);
+    if (!is_array($payload)) {
+        dent_error('Upload metadata is invalid.', 422);
+    }
+
+    return $payload;
+}
+
 function content_api_sort_records(array $records, string $sort): array
 {
     $sort = trim(strtolower($sort));
@@ -568,6 +588,111 @@ if ($action === 'ownerDownloadHostUpload') {
     content_api_prepare_long_upload_request();
     if (!content_download_host_is_enabled()) {
         dent_error('هاست دانلود برای آپلودسنتر فعال نیست.', 503);
+    }
+
+    $rawHeaderMeta = content_api_decode_upload_meta_header(notes_download_host_request_header('X-Dent-Upload-Meta'));
+    if (!isset($_FILES['files']) && !isset($_FILES['file'])) {
+        $contentLength = max(0, (int) notes_download_host_request_header('Content-Length'));
+        if ($contentLength <= 0) {
+            dent_error('No upload file was provided.', 422);
+        }
+        if ($contentLength > CONTENT_MAX_UPLOAD_BYTES) {
+            dent_error('Each file must be at most ' . CONTENT_MAX_UPLOAD_LABEL . '.', 422);
+        }
+
+        $targetPath = content_download_host_normalize_relative_path((string) ($rawHeaderMeta['targetPath'] ?? ''));
+        $meta = [
+            'title' => $rawHeaderMeta['title'] ?? '',
+            'description' => $rawHeaderMeta['description'] ?? '',
+            'tags' => $rawHeaderMeta['tags'] ?? '',
+            'folder' => $rawHeaderMeta['folder'] ?? '',
+            'status' => $rawHeaderMeta['status'] ?? 'active',
+            'expiresAt' => $rawHeaderMeta['expiresAt'] ?? '',
+            'password' => $rawHeaderMeta['password'] ?? '',
+            'downloadLimit' => $rawHeaderMeta['downloadLimit'] ?? 0,
+        ];
+
+        $originalName = dent_clean_text(
+            (string) ($rawHeaderMeta['fileName'] ?? notes_download_host_decode_header_value(notes_download_host_request_header('X-Dent-Upload-Name'))),
+            240
+        );
+        if ($originalName === '') {
+            $originalName = 'file';
+        }
+
+        $extension = strtolower(preg_replace('/[^a-z0-9]+/', '', pathinfo($originalName, PATHINFO_EXTENSION)) ?? '');
+        if (!content_extension_allowed($extension)) {
+            dent_error('This file extension is not allowed for upload.', 422);
+        }
+
+        $mime = strtolower(trim((string) strtok(notes_download_host_request_header('Content-Type'), ';')));
+        if ($mime === '') {
+            $mime = 'application/octet-stream';
+        }
+        if (!content_mime_allowed($mime)) {
+            dent_error('This file type is not allowed for upload.', 422);
+        }
+
+        $preparedUploads = [];
+        $stream = fopen('php://input', 'rb');
+        if ($stream === false) {
+            dent_error('Upload stream could not be opened.', 422);
+        }
+
+        try {
+            $upload = content_download_host_upload_stream($targetPath, $stream, $contentLength, $originalName, $mime);
+            $upload['originalName'] = $originalName;
+            $upload['mimeType'] = $mime;
+            $upload['extension'] = $extension;
+            $preparedUploads[] = $upload;
+
+            $uploaded = content_with_store_lock(static function (array &$store) use ($preparedUploads, $owner, $meta): array {
+                $created = [];
+                foreach ($preparedUploads as $preparedUpload) {
+                    if (!is_array($preparedUpload)) {
+                        continue;
+                    }
+                    $record = content_build_download_host_file_record($preparedUpload, $owner, $meta);
+                    $store['files'][(string) $record['id']] = $record;
+                    $created[] = $record;
+                }
+                return $created;
+            });
+        } catch (Throwable $error) {
+            foreach ($preparedUploads as $preparedUpload) {
+                if (!is_array($preparedUpload)) {
+                    continue;
+                }
+                $relativePath = content_clean_remote_relative_path($preparedUpload['relativePath'] ?? '');
+                if ($relativePath === '') {
+                    continue;
+                }
+                try {
+                    content_download_host_delete_entry($relativePath, 'file', true);
+                } catch (Throwable $_deleteError) {
+                }
+            }
+            dent_error($error->getMessage(), 422);
+        } finally {
+            fclose($stream);
+        }
+
+        if (($uploaded ?? []) === []) {
+            dent_error('No file was saved.', 422);
+        }
+
+        content_audit_log('owner-download-host-upload', [
+            'count' => count($uploaded),
+            'targetPath' => $targetPath,
+            'by' => dent_normalize_student_number((string) ($owner['studentNumber'] ?? '')),
+        ]);
+        dent_json_response([
+            'success' => true,
+            'downloadHost' => content_api_download_host_meta_payload(),
+            'targetPath' => $targetPath,
+            'files' => array_map(static fn(array $file): array => content_file_public_payload($file, true), $uploaded),
+            'message' => count($uploaded) . ' file(s) saved on the download host.',
+        ]);
     }
 
     $files = $_FILES['files'] ?? ($_FILES['file'] ?? null);

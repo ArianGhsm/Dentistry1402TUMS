@@ -394,15 +394,14 @@
         var availableCount = Math.max(0, Number(stats.availableUnitCount || 0));
         var preview = termPreview(term);
         var description = availableCount > 0
-            ? "از " + formatValue(stats.unitCount || 0) + " واحد این ترم، " + formatValue(availableCount) + " واحد الان آزمون دارد."
-            : "ساختار این ترم آماده است ولی هنوز آزمونی برای آن ثبت نشده.";
+            ? "برای دیدن واحدها و آزمون‌های همین ترم وارد شو."
+            : "ساختار این ترم آماده است اما هنوز آزمون فعالی ندارد.";
 
         return [
             '<article class="exams-card exams-term-card ' + accentClassName(index) + '">',
             '  <button class="exams-term-card__link" type="button" data-open-term="' + escapeHtml(term.number) + '">',
             '    <div class="exams-term-card__head">',
             '      <div class="exams-term-card__copy">',
-            '        <span class="exams-kicker">' + escapeHtml(term.label || "") + "</span>",
             '        <h3 class="exam-course-card__title">' + escapeHtml(term.label || "") + "</h3>",
             '        <p class="exam-course-card__desc">' + escapeHtml(description) + "</p>",
             "      </div>",
@@ -420,7 +419,7 @@
             '      <div class="exam-course-stat"><span>سوال</span><strong>' + escapeHtml(formatValue(stats.questionCount || 0)) + "</strong></div>",
             "    </div>",
             '    <div class="exams-term-card__footer">',
-            '      <span class="exam-btn exam-btn--ghost">ورود به ترم</span>',
+            '      <span class="exam-btn exam-btn--ghost">مشاهده</span>',
             "    </div>",
             "  </button>",
             "</article>"

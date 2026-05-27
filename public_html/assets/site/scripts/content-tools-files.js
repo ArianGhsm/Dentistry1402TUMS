@@ -75,6 +75,22 @@
         return hours.toLocaleString("fa-IR") + " ساعت" + (minutes ? " و " + minutes.toLocaleString("fa-IR") + " دقیقه" : "");
     }
 
+    function formatPercent(value) {
+        var number = Number(value);
+        if (!Number.isFinite(number)) number = 0;
+        return formatNumber(Math.max(0, Math.min(100, Math.round(number))));
+    }
+
+    function isOffline() {
+        return typeof navigator !== "undefined" && navigator && navigator.onLine === false;
+    }
+
+    function createUploadSignal(code, message) {
+        var error = new Error(message || code || "upload");
+        error.code = code || "upload";
+        return error;
+    }
+
     function formatDate(value, fallback) {
         if (siteApi && typeof siteApi.formatDateTime === "function") {
             return siteApi.formatDateTime(value, fallback);
@@ -351,6 +367,7 @@
             browserLoading: false,
             queue: [],
             uploadBusy: false,
+            uploadResumeTimer: 0,
             queueCounter: 1,
             links: [],
             linkStatus: "available",
@@ -365,6 +382,20 @@
 
         function currentUploadPath() {
             return String(state.browserPath || "");
+        }
+
+        function encodeBase64Url(value) {
+            var text = String(value == null ? "" : value);
+            var binary = "";
+            if (window.TextEncoder) {
+                var bytes = new TextEncoder().encode(text);
+                for (var index = 0; index < bytes.length; index += 1) {
+                    binary += String.fromCharCode(bytes[index]);
+                }
+            } else {
+                binary = unescape(encodeURIComponent(text));
+            }
+            return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
         }
 
         function syncSettingsDisclosure() {
@@ -640,6 +671,7 @@
 
         function queueStateLabel(item) {
             switch (item.status) {
+                case "waiting": return "در انتظار تلاش خودکار";
                 case "uploading": return "در حال انتقال";
                 case "finalizing": return "ثبت روی هاست";
                 case "done": return "تکمیل شد";
@@ -657,12 +689,14 @@
             var total = state.queue.length;
             var done = state.queue.filter(function (item) { return item.status === "done"; }).length;
             var uploading = state.queue.filter(function (item) { return item.status === "uploading" || item.status === "finalizing"; }).length;
+            var waiting = state.queue.filter(function (item) { return item.status === "waiting"; }).length;
             var totalBytes = state.queue.reduce(function (sum, item) { return sum + Number(item.size || 0); }, 0);
             var uploadedBytes = state.queue.reduce(function (sum, item) { return sum + (Number(item.size || 0) * queueProgressPercent(item) / 100); }, 0);
             return {
                 total: total,
                 done: done,
                 uploading: uploading,
+                waiting: waiting,
                 totalBytes: totalBytes,
                 uploadedBytes: uploadedBytes
             };
@@ -675,7 +709,61 @@
             var active = $("ctf-queue-active");
             if (files) files.textContent = formatNumber(stats.total);
             if (transferred) transferred.textContent = formatBytes(stats.uploadedBytes) + " / " + formatBytes(stats.totalBytes);
-            if (active) active.textContent = stats.uploading ? (formatNumber(stats.uploading) + " در حال انتقال") : (stats.done ? (formatNumber(stats.done) + " تکمیل‌شده") : "آماده");
+            if (active) active.textContent = stats.uploading
+                ? (formatNumber(stats.uploading) + " در حال انتقال")
+                : (stats.waiting
+                    ? (formatNumber(stats.waiting) + " در انتظار اتصال")
+                    : (stats.done ? (formatNumber(stats.done) + " تکمیل‌شده") : "آماده"));
+        }
+
+        function clearQueueResumeTimer() {
+            if (!state.uploadResumeTimer) return;
+            window.clearTimeout(state.uploadResumeTimer);
+            state.uploadResumeTimer = 0;
+        }
+
+        function hasQueueWaitingItems() {
+            return state.queue.some(function (item) { return item.status === "waiting"; });
+        }
+
+        function queueRetryDelayMs(item) {
+            var attempts = Math.max(1, Number(item && item.retryCount || 0));
+            if (attempts <= 1) return 4000;
+            if (attempts === 2) return 7000;
+            if (attempts === 3) return 12000;
+            return 20000;
+        }
+
+        function queueWaitingMessage(item) {
+            if (isOffline()) {
+                return "اتصال اینترنت قطع شده است. این فایل در صف می‌ماند و بعد از برگشت اتصال خودکار دوباره تلاش می‌شود.";
+            }
+            if (queueProgressPercent(item) >= 99) {
+                return "ارتباط در مرحله نهایی‌سازی قطع شد. به محض پایدار شدن اتصال، آپلود خودکار دوباره تلاش می‌شود.";
+            }
+            return "ارتباط آپلود دچار اختلال شد. بعد از پایدار شدن اتصال، آپلود خودکار دوباره تلاش می‌شود.";
+        }
+
+        function scheduleQueueResume(delayMs) {
+            clearQueueResumeTimer();
+            if (!hasQueueWaitingItems()) return;
+            state.uploadResumeTimer = window.setTimeout(function () {
+                state.uploadResumeTimer = 0;
+                if (state.uploadBusy || !hasQueueWaitingItems()) return;
+                uploadQueue(true);
+            }, Math.max(1200, Number(delayMs || 0)));
+        }
+
+        function markQueueItemWaiting(item, message) {
+            item.xhr = null;
+            item.status = "waiting";
+            item.error = message;
+            item.speedBps = 0;
+            item.etaSeconds = NaN;
+            item.retryCount = Math.max(0, Number(item.retryCount || 0)) + 1;
+            renderQueue();
+            scheduleQueueResume(isOffline() ? 2500 : queueRetryDelayMs(item));
+            return createUploadSignal("waiting", message);
         }
 
         function renderQueue() {
@@ -688,13 +776,17 @@
             queueNode.innerHTML = state.queue.map(function (item) {
                 var stats = [
                     '<span>حجم: ' + escapeHtml(formatBytes(item.size)) + '</span>',
-                    '<span>پیشرفت: ' + escapeHtml(queueProgressPercent(item).toFixed(0).toLocaleString("fa-IR")) + '%</span>',
+                    '<span>پیشرفت: ' + escapeHtml(formatPercent(queueProgressPercent(item))) + '%</span>',
                     '<span>سرعت: ' + escapeHtml(formatSpeed(item.speedBps)) + '</span>',
                     '<span>زمان باقی‌مانده: ' + escapeHtml(formatEta(item.etaSeconds)) + '</span>'
                 ];
                 if (item.status === "done") {
-                    stats[2] = '<span>مسیر: ' + escapeHtml(item.remotePath || currentUploadPath() || "/") + '</span>';
+                    stats[2] = '<span>مسیر: ' + escapeHtml(item.remotePath || item.targetPath || currentUploadPath() || "/") + '</span>';
                     stats[3] = '<span>اتمام: ' + escapeHtml(formatDate(item.completedAt || "", "اکنون")) + '</span>';
+                }
+                if (item.status === "waiting") {
+                    stats[2] = '<span>وضعیت: ' + escapeHtml(item.error || queueWaitingMessage(item)) + '</span>';
+                    stats[3] = '<span>تلاش دوباره: به‌محض برگشت اتصال، خودکار دوباره انجام می‌شود.</span>';
                 }
                 if (item.status === "error") {
                     stats[2] = '<span>خطا: ' + escapeHtml(item.error || "خطای نامشخص") + '</span>';
@@ -709,6 +801,9 @@
                 }
                 if (item.status === "uploading" || item.status === "finalizing") {
                     actions.push('<button class="ct-btn ct-btn--danger" type="button" data-remove-queue="' + escapeHtml(item.id) + '">لغو آپلود</button>');
+                }
+                if (item.status === "waiting") {
+                    actions.push('<button class="ct-btn ct-btn--danger" type="button" data-remove-queue="' + escapeHtml(item.id) + '">حذف از صف</button>');
                 }
                 if (item.status === "queued" || item.status === "error" || item.status === "done") {
                     actions.push('<button class="ct-btn ct-btn--danger" type="button" data-remove-queue="' + escapeHtml(item.id) + '">حذف از صف</button>');
@@ -744,7 +839,10 @@
                     remotePath: "",
                     error: "",
                     xhr: null,
-                    canceled: false
+                    canceled: false,
+                    retryCount: 0,
+                    targetPath: "",
+                    uploadMeta: null
                 });
             });
             renderQueue();
@@ -760,24 +858,29 @@
                 return;
             }
             state.queue = state.queue.filter(function (item) { return item.id !== id; });
+            if (!hasQueueWaitingItems()) {
+                clearQueueResumeTimer();
+            }
             renderQueue();
         }
 
         function clearQueue() {
             if (state.uploadBusy) return;
             state.queue = state.queue.filter(function (item) { return item.status === "uploading" || item.status === "finalizing"; });
+            if (!hasQueueWaitingItems()) {
+                clearQueueResumeTimer();
+            }
             renderQueue();
         }
 
         function uploadItem(item) {
             return new Promise(function (resolve, reject) {
-                var meta = uploadMetaPayload();
-                var body = new FormData();
-                body.append("action", "ownerDownloadHostUpload");
-                body.append("file", item.file, item.name);
-                Object.keys(meta).forEach(function (key) {
-                    body.append(key, meta[key] == null ? "" : meta[key]);
-                });
+                var meta = item.uploadMeta && typeof item.uploadMeta === "object"
+                    ? Object.assign({}, item.uploadMeta)
+                    : uploadMetaPayload();
+                meta.fileName = item.name || (item.file && item.file.name) || "file";
+                item.uploadMeta = Object.assign({}, meta);
+                item.targetPath = String(meta.targetPath || item.targetPath || currentUploadPath() || "");
 
                 item.status = "uploading";
                 item.progress = 0;
@@ -790,10 +893,13 @@
                 var startedAt = Date.now();
                 var xhr = new XMLHttpRequest();
                 item.xhr = xhr;
-                xhr.open("POST", "/api/content_tools_api.php", true);
+                xhr.open("POST", "/api/content_tools_api.php?action=ownerDownloadHostUpload", true);
                 xhr.timeout = 0;
                 xhr.withCredentials = true;
                 xhr.setRequestHeader("Accept", "application/json");
+                xhr.setRequestHeader("Content-Type", item.file && item.file.type ? item.file.type : "application/octet-stream");
+                xhr.setRequestHeader("X-Dent-Upload-Name", encodeURIComponent(meta.fileName));
+                xhr.setRequestHeader("X-Dent-Upload-Meta", encodeBase64Url(JSON.stringify(meta)));
 
                 xhr.upload.onprogress = function (event) {
                     if (!event.lengthComputable) return;
@@ -848,74 +954,88 @@
                     item.etaSeconds = 0;
                     item.publicUrl = uploaded && uploaded.publicUrl ? String(uploaded.publicUrl) : "";
                     item.directUrl = uploaded && uploaded.directUrl ? String(uploaded.directUrl) : "";
-                    item.remotePath = uploaded && uploaded.remoteRelativePath ? String(uploaded.remoteRelativePath) : currentUploadPath();
+                    item.remotePath = uploaded && uploaded.remoteRelativePath ? String(uploaded.remoteRelativePath) : item.targetPath;
                     renderQueue();
                     resolve(response);
                 };
 
                 xhr.onerror = function () {
-                    item.xhr = null;
-                    item.status = "error";
-                    item.error = item.progress >= 99
-                        ? "ارتباط با سرور هنگام نهایی‌سازی آپلود قطع شد. timeout یا ارتباط هاست را دوباره بررسی کنید."
-                        : "ارتباط آپلود در میانه انتقال قطع شد.";
-                    item.speedBps = 0;
-                    item.etaSeconds = NaN;
-                    renderQueue();
-                    reject(new Error(item.error));
+                    reject(markQueueItemWaiting(item, queueWaitingMessage(item)));
                 };
 
                 xhr.ontimeout = function () {
-                    item.xhr = null;
-                    item.status = "error";
-                    item.error = "زمان انتظار آپلود تمام شد. برای فایل‌های حجیم دوباره امتحان کنید.";
-                    item.speedBps = 0;
-                    item.etaSeconds = NaN;
-                    renderQueue();
-                    reject(new Error(item.error));
+                    reject(markQueueItemWaiting(item, "اتصال آپلود به مشکل خورد. به‌محض پایدار شدن اتصال، دوباره خودکار تلاش می‌شود."));
                 };
 
                 xhr.onabort = function () {
                     item.xhr = null;
-                    item.status = "error";
-                    item.error = item.canceled ? "آپلود توسط کاربر لغو شد." : "آپلود توسط مرورگر متوقف شد.";
-                    item.speedBps = 0;
-                    item.etaSeconds = NaN;
-                    renderQueue();
-                    reject(new Error(item.error));
+                    if (item.canceled) {
+                        item.status = "error";
+                        item.error = "آپلود توسط کاربر لغو شد.";
+                        item.speedBps = 0;
+                        item.etaSeconds = NaN;
+                        renderQueue();
+                        reject(createUploadSignal("canceled", item.error));
+                        return;
+                    }
+                    reject(markQueueItemWaiting(item, queueWaitingMessage(item)));
                 };
 
-                xhr.send(body);
+                xhr.send(item.file);
             });
         }
 
-        async function uploadQueue() {
+        async function uploadQueue(autoResume) {
             if (state.uploadBusy) return;
-            var pending = state.queue.filter(function (item) { return item.status === "queued"; });
+            clearQueueResumeTimer();
+            var pending = state.queue.filter(function (item) {
+                return item.status === "queued" || item.status === "waiting";
+            });
             if (!pending.length) {
-                setFeedback(feedback, "فایلی برای شروع آپلود در صف نیست.", "error");
+                if (!autoResume) {
+                    setFeedback(feedback, "فایلی برای شروع آپلود در صف نیست.", "error");
+                }
                 return;
             }
             state.uploadBusy = true;
             submitButton.disabled = true;
-            setFeedback(feedback, "آپلود روی هاست دانلود شروع شد...", "");
+            if (!autoResume) {
+                setFeedback(feedback, "آپلود روی هاست دانلود شروع شد...", "");
+            }
             var successCount = 0;
             var canceledCount = 0;
+            var waitingCount = 0;
             for (var i = 0; i < pending.length; i += 1) {
                 try {
                     await uploadItem(pending[i]);
                     successCount += 1;
                 } catch (error) {
-                    if (error && /لغو/.test(String(error.message || ""))) {
+                    if (error && error.code === "waiting") {
+                        waitingCount += 1;
+                        break;
+                    }
+                    if (error && (error.code === "canceled" || /لغو/.test(String(error.message || "")))) {
                         canceledCount += 1;
                     }
                 }
             }
             state.uploadBusy = false;
             submitButton.disabled = false;
-            await loadBrowser(currentUploadPath(), true);
-            await loadHostSummary(true, true);
-            await loadLinks(true);
+            if (successCount > 0) {
+                await loadBrowser(currentUploadPath(), true);
+                await loadHostSummary(true, true);
+                await loadLinks(true);
+            }
+            if (waitingCount > 0) {
+                setFeedback(
+                    feedback,
+                    successCount > 0
+                        ? (successCount.toLocaleString("fa-IR") + " فایل آپلود شد و بقیه بعد از برگشت اتصال خودکار دوباره تلاش می‌شوند.")
+                        : "اتصال آپلود دچار اختلال شد. فایل‌ها در صف می‌مانند و بعد از برگشت اینترنت خودکار دوباره تلاش می‌شود.",
+                    ""
+                );
+                return;
+            }
             if (successCount > 0) {
                 setFeedback(feedback, successCount.toLocaleString("fa-IR") + " فایل با موفقیت روی هاست دانلود ثبت شد.", "success");
             } else if (canceledCount > 0) {
@@ -1180,6 +1300,15 @@
                 uploadQueue();
             });
         }
+        window.addEventListener("offline", function () {
+            if (!state.uploadBusy) return;
+            setFeedback(feedback, "اتصال اینترنت قطع شد. آپلودها در صف می‌مانند و بعد از برگشت اتصال خودکار دوباره تلاش می‌شوند.", "");
+        });
+        window.addEventListener("online", function () {
+            if (!hasQueueWaitingItems()) return;
+            setFeedback(feedback, "اتصال برگشت. آپلود فایل‌ها خودکار دوباره تلاش می‌شوند.", "");
+            scheduleQueueResume(900);
+        });
         if (queueNode) {
             queueNode.addEventListener("click", function (event) {
                 var copyNode = event.target.closest("[data-copy]");

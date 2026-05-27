@@ -15,12 +15,56 @@
         lastUserKey: "",
         lastFetchedAt: 0
     };
+    var navBadgeState = {
+        pending: false,
+        chatCount: 0,
+        notificationCount: 0,
+        lastUserKey: "",
+        lastFetchedAt: 0
+    };
+    var notificationBanner = {
+        root: null,
+        eyebrow: null,
+        title: null,
+        body: null,
+        primary: null,
+        dismiss: null
+    };
+    var notificationBannerState = {
+        userKey: "",
+        preview: null
+    };
     var POLL_COUNT_TTL_MS = 45000;
+    var NAV_BADGE_TTL_MS = 45000;
+    var NOTIFICATION_BANNER_DISMISS_KEY = "dent1402-shell-notification-banner-dismissed";
 
     function authApi() {
         return window.Dent1402Auth && typeof window.Dent1402Auth === "object"
             ? window.Dent1402Auth
             : null;
+    }
+
+    function readSessionValue(key) {
+        try {
+            return window.sessionStorage ? String(window.sessionStorage.getItem(key) || "") : "";
+        } catch (_error) {
+            return "";
+        }
+    }
+
+    function writeSessionValue(key, value) {
+        try {
+            if (!window.sessionStorage) {
+                return;
+            }
+            if (value) {
+                window.sessionStorage.setItem(key, String(value));
+            } else {
+                window.sessionStorage.removeItem(key);
+            }
+        } catch (_error) {
+            // Ignore storage failures.
+        }
     }
 
     function scopedPath(path, cohortKey) {
@@ -136,6 +180,8 @@
         var isPending = isAuthTransitioning(status);
         var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
         var isProsthesis = isProsthesisState(state);
+        var chatBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.chatCount || 0)) : 0;
+        var accountBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.notificationCount || 0)) : 0;
         var items = [{
             href: "/app/",
             label: "خانه",
@@ -144,10 +190,25 @@
             exact: true
         }];
         if (!isProsthesis) {
-            items.push({ href: "/chat/", label: "چت", icon: "chat", active: ["/chat/"] });
-            items.push({ href: "/buy/", label: "خرید", icon: "buy", active: ["/buy/", "/payments/"] });
+            items.push({
+                href: "/chat/",
+                label: "چت",
+                icon: "chat",
+                active: ["/chat/"],
+                badgeCount: chatBadgeCount,
+                badgeAriaLabel: "پیام خوانده‌نشده"
+            });
+            items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
         } else {
-            items.push({ href: scopedPath("/chat/", "prosthesis-1402"), label: "چت", icon: "chat", active: ["/chat/"] });
+            items.push({
+                href: scopedPath("/chat/", "prosthesis-1402"),
+                label: "چت",
+                icon: "chat",
+                active: ["/chat/"],
+                badgeCount: chatBadgeCount,
+                badgeAriaLabel: "پیام خوانده‌نشده"
+            });
+            items.push({ href: scopedPath("/exams/", "prosthesis-1402"), label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
         }
         items.push(
             {
@@ -155,7 +216,9 @@
                 label: state.loggedIn ? "حساب" : "ورود",
                 icon: "account",
                 active: ["/account/"],
-                pending: isPending
+                pending: isPending,
+                badgeCount: accountBadgeCount,
+                badgeAriaLabel: "اعلان خوانده‌نشده"
             }
         );
         return items;
@@ -260,7 +323,8 @@
                 var countText = item.badgeCount > 9 ? "۹+" : String(item.badgeCount).replace(/\d/g, function (digit) {
                     return ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"][Number(digit)] || digit;
                 });
-                iconHtml += '<span class="shell-bottom-nav__badge" aria-label="نظرسنجی فعال">' + countText + "</span>";
+                var badgeLabel = item.badgeAriaLabel || (item.label + " جدید");
+                iconHtml += '<span class="shell-bottom-nav__badge" aria-label="' + badgeLabel + '">' + countText + "</span>";
             }
             iconHtml += "</span>";
 
@@ -452,6 +516,164 @@
         });
     }
 
+    function notificationPreviewKey(key, preview) {
+        var id = preview && preview.id ? String(preview.id) : "";
+        return key && id ? (key + ":" + id) : "";
+    }
+
+    function notificationBannerDismissedKey() {
+        return readSessionValue(NOTIFICATION_BANNER_DISMISS_KEY);
+    }
+
+    function notificationBannerDefaultHref(preview) {
+        if (preview && preview.kind === "navid-assignment") {
+            return "/navid/";
+        }
+        return "/account/#notifications";
+    }
+
+    function notificationBannerDefaultLabel(preview) {
+        if (preview && preview.kind === "navid-assignment") {
+            return "مشاهده تکالیف";
+        }
+        return "مشاهده اعلان";
+    }
+
+    function notificationBannerKindLabel(preview) {
+        return preview && preview.kind === "navid-assignment" ? "تکلیف جدید نوید" : "اعلان جدید";
+    }
+
+    function ensureNotificationBanner() {
+        if (notificationBanner.root || !document.body) {
+            return notificationBanner.root;
+        }
+
+        var banner = document.createElement("section");
+        banner.className = "shell-notification-banner";
+        banner.hidden = true;
+        banner.setAttribute("aria-live", "polite");
+        banner.innerHTML = [
+            '<div class="shell-notification-banner__copy">',
+            '  <span class="shell-notification-banner__eyebrow"></span>',
+            '  <strong class="shell-notification-banner__title"></strong>',
+            '  <p class="shell-notification-banner__body"></p>',
+            "</div>",
+            '<div class="shell-notification-banner__actions">',
+            '  <button type="button" class="shell-action-btn shell-notification-banner__dismiss">بعداً</button>',
+            '  <a class="shell-action-btn shell-action-btn-primary shell-notification-banner__primary" href="/account/#notifications">مشاهده اعلان</a>',
+            "</div>"
+        ].join("");
+
+        document.body.appendChild(banner);
+        notificationBanner.root = banner;
+        notificationBanner.eyebrow = banner.querySelector(".shell-notification-banner__eyebrow");
+        notificationBanner.title = banner.querySelector(".shell-notification-banner__title");
+        notificationBanner.body = banner.querySelector(".shell-notification-banner__body");
+        notificationBanner.primary = banner.querySelector(".shell-notification-banner__primary");
+        notificationBanner.dismiss = banner.querySelector(".shell-notification-banner__dismiss");
+
+        if (notificationBanner.dismiss) {
+            notificationBanner.dismiss.addEventListener("click", function () {
+                var key = notificationPreviewKey(notificationBannerState.userKey, notificationBannerState.preview);
+                writeSessionValue(NOTIFICATION_BANNER_DISMISS_KEY, key);
+                renderNotificationBanner(authState());
+            });
+        }
+
+        if (notificationBanner.primary) {
+            notificationBanner.primary.addEventListener("click", function (event) {
+                var href = notificationBanner.primary.getAttribute("href") || "/account/#notifications";
+                var notificationId = notificationBanner.primary.dataset.notificationId || "";
+                var dismissKey = notificationPreviewKey(notificationBannerState.userKey, notificationBannerState.preview);
+                event.preventDefault();
+                writeSessionValue(NOTIFICATION_BANNER_DISMISS_KEY, dismissKey);
+                markNotificationReadFromShell(notificationId).finally(function () {
+                    window.location.href = href;
+                });
+            });
+        }
+
+        return notificationBanner.root;
+    }
+
+    function renderNotificationBanner(state) {
+        var banner = ensureNotificationBanner();
+        if (!banner) {
+            return;
+        }
+
+        var preview = notificationBannerState.preview;
+        var key = notificationPreviewKey(notificationBannerState.userKey || userKey(state), preview);
+        var dismissedKey = notificationBannerDismissedKey();
+        var isNotificationsSurfaceOpen = currentPath() === "/account/" && (window.location.hash || "") === "#notifications";
+        var visible = !!(state && state.loggedIn && preview && key && dismissedKey !== key && !isNotificationsSurfaceOpen);
+
+        banner.hidden = !visible;
+        banner.classList.toggle("is-visible", visible);
+        if (!visible) {
+            return;
+        }
+
+        if (notificationBanner.eyebrow) {
+            notificationBanner.eyebrow.textContent = notificationBannerKindLabel(preview);
+        }
+        if (notificationBanner.title) {
+            notificationBanner.title.textContent = String(preview.title || (preview.kind === "navid-assignment" ? "تکلیف جدید نوید" : "اعلان جدید"));
+        }
+        if (notificationBanner.body) {
+            notificationBanner.body.textContent = String(preview.body || (preview.kind === "navid-assignment"
+                ? "برای دیدن جزئیات، بخش تکالیف نوید را باز کن."
+                : "برای دیدن جزئیات، اعلان را باز کن."));
+        }
+        if (notificationBanner.primary) {
+            notificationBanner.primary.textContent = String(preview.ctaLabel || notificationBannerDefaultLabel(preview));
+            notificationBanner.primary.href = String(preview.ctaHref || notificationBannerDefaultHref(preview));
+            notificationBanner.primary.dataset.notificationId = String(preview.id || "");
+        }
+    }
+
+    function setNotificationBannerPreview(preview, state) {
+        notificationBannerState.userKey = userKey(state);
+        notificationBannerState.preview = preview && typeof preview === "object" ? preview : null;
+        renderNotificationBanner(state);
+    }
+
+    function markNotificationReadFromShell(id) {
+        var notificationId = String(id || "").trim();
+        if (!notificationId) {
+            return Promise.resolve(null);
+        }
+
+        return window.fetch("/api/notifications_api.php?action=markRead", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                Accept: "application/json"
+            },
+            body: new URLSearchParams({
+                idsJson: JSON.stringify([notificationId])
+            })
+        }).then(parseJsonResponse).then(function (payload) {
+            var state = authState();
+            if (consumeUnauthorized(payload, "نشست شما برای خواندن اعلان‌ها منقضی شده است.")) {
+                resetNavBadgeState();
+                setNotificationBannerPreview(null, state);
+                renderBottomNav(state);
+                return null;
+            }
+            if (!payload || payload.success !== true) {
+                return null;
+            }
+            updateNavBadgeState(navBadgeState.chatCount, payload.summary && payload.summary.unreadCount, userKey(state));
+            setNotificationBannerPreview(payload.preview || null, state);
+            renderBottomNav(state);
+            return payload;
+        }).catch(function () {
+            return null;
+        });
+    }
+
     function consumeUnauthorized(payload, fallbackText) {
         var auth = window.Dent1402Auth;
         var message = fallbackText || "نشست شما منقضی شده است.";
@@ -503,13 +725,137 @@
         pollNavState.lastUserKey = "";
     }
 
-    function syncPollEntry(state) {
-        if (shellDisabled) {
+    function shouldRefetchNavBadges(state) {
+        if (!state.loggedIn) {
+            return false;
+        }
+
+        var key = userKey(state);
+        var now = Date.now();
+        if (key !== navBadgeState.lastUserKey) {
+            return true;
+        }
+        return (now - navBadgeState.lastFetchedAt) > NAV_BADGE_TTL_MS;
+    }
+
+    function updateNavBadgeState(chatCount, notificationCount, key) {
+        navBadgeState.chatCount = Math.max(0, Number(chatCount) || 0);
+        navBadgeState.notificationCount = Math.max(0, Number(notificationCount) || 0);
+        navBadgeState.lastFetchedAt = Date.now();
+        navBadgeState.lastUserKey = key || "";
+    }
+
+    function resetNavBadgeState() {
+        navBadgeState.pending = false;
+        navBadgeState.chatCount = 0;
+        navBadgeState.notificationCount = 0;
+        navBadgeState.lastFetchedAt = 0;
+        navBadgeState.lastUserKey = "";
+        notificationBannerState.userKey = "";
+        notificationBannerState.preview = null;
+    }
+
+    function applyNavBadgeEvent(kind, count) {
+        var state = authState();
+        if (!state.loggedIn) {
+            resetNavBadgeState();
+            renderBottomNav(state);
+            renderNotificationBanner(state);
             return;
         }
 
-        resetPollCountState();
+        var key = userKey(state);
+        if (key !== navBadgeState.lastUserKey) {
+            navBadgeState.chatCount = 0;
+            navBadgeState.notificationCount = 0;
+        }
+        navBadgeState.lastUserKey = key;
+        navBadgeState.lastFetchedAt = Date.now();
+        if (kind === "chat") {
+            navBadgeState.chatCount = Math.max(0, Number(count) || 0);
+        } else if (kind === "notifications") {
+            navBadgeState.notificationCount = Math.max(0, Number(count) || 0);
+        }
         renderBottomNav(state);
+        renderNotificationBanner(state);
+    }
+
+    function fetchNavBadgeSummary(state) {
+        if (!state.loggedIn || navBadgeState.pending) {
+            return;
+        }
+
+        var key = userKey(state);
+        if (key !== navBadgeState.lastUserKey) {
+            navBadgeState.chatCount = 0;
+            navBadgeState.notificationCount = 0;
+            navBadgeState.lastUserKey = key;
+            setNotificationBannerPreview(null, state);
+            renderBottomNav(state);
+        }
+
+        navBadgeState.pending = true;
+        Promise.all([
+            window.fetch("/api/notifications_api.php?action=summary", {
+                credentials: "same-origin",
+                headers: {
+                    Accept: "application/json"
+                }
+            }).then(parseJsonResponse),
+            window.fetch("/chat/chat_api.php?action=navSummary", {
+                credentials: "same-origin",
+                headers: {
+                    Accept: "application/json"
+                }
+            }).then(parseJsonResponse)
+        ]).then(function (results) {
+            var notificationsPayload = results[0] || {};
+            var chatPayload = results[1] || {};
+            if (
+                consumeUnauthorized(notificationsPayload, "نشست شما برای خواندن اعلان‌ها منقضی شده است.")
+                || consumeUnauthorized(chatPayload, "نشست شما برای خواندن پیام‌ها منقضی شده است.")
+            ) {
+                resetNavBadgeState();
+                renderBottomNav(authState());
+                renderNotificationBanner(authState());
+                return;
+            }
+
+            if (!notificationsPayload.success || !chatPayload.success) {
+                return;
+            }
+
+            updateNavBadgeState(
+                chatPayload.summary && chatPayload.summary.unreadCount,
+                notificationsPayload.summary && notificationsPayload.summary.unreadCount,
+                key
+            );
+            setNotificationBannerPreview(notificationsPayload.preview || null, authState());
+            renderBottomNav(authState());
+        }).catch(function () {
+            // Keep the last known counts on transient failures.
+        }).finally(function () {
+            navBadgeState.pending = false;
+        });
+    }
+
+    function syncPollEntry(state) {
+        resetPollCountState();
+        if (!state.loggedIn) {
+            resetNavBadgeState();
+            if (!shellDisabled) {
+                renderBottomNav(state);
+            }
+            renderNotificationBanner(state);
+            return;
+        }
+        if (!shellDisabled) {
+            renderBottomNav(state);
+        }
+        renderNotificationBanner(state);
+        if (shouldRefetchNavBadges(state)) {
+            fetchNavBadgeSummary(state);
+        }
     }
 
     function createModal() {
@@ -519,6 +865,11 @@
 
         modalBackdrop = document.createElement("div");
         modalBackdrop.className = "shell-modal-backdrop";
+        modalBackdrop.style.position = "fixed";
+        modalBackdrop.style.inset = "0";
+        modalBackdrop.style.zIndex = "340";
+        modalBackdrop.style.opacity = "0";
+        modalBackdrop.style.pointerEvents = "none";
         modalBackdrop.addEventListener("click", closeModal);
 
         modal = document.createElement("div");
@@ -526,6 +877,19 @@
         modal.setAttribute("role", "dialog");
         modal.setAttribute("aria-modal", "true");
         modal.setAttribute("aria-hidden", "true");
+        modal.style.position = "fixed";
+        modal.style.top = "50%";
+        modal.style.left = "50%";
+        modal.style.right = "auto";
+        modal.style.bottom = "auto";
+        modal.style.zIndex = "350";
+        modal.style.width = "min(420px, calc(100vw - 2rem))";
+        modal.style.maxHeight = "calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem)";
+        modal.style.transform = "translate(-50%, calc(-50% + 16px)) scale(0.98)";
+        modal.style.opacity = "0";
+        modal.style.pointerEvents = "none";
+        modal.style.overflowY = "auto";
+        modal.style.webkitOverflowScrolling = "touch";
         modal.innerHTML = [
             '<h2 class="shell-modal__title">خروج از سایت</h2>',
             '<p class="shell-modal__desc">این لینک خارج از سایت باز می‌شود.</p>',
@@ -554,6 +918,11 @@
         modal.classList.add("is-open");
         modalBackdrop.classList.add("is-open");
         modal.setAttribute("aria-hidden", "false");
+        modal.style.opacity = "1";
+        modal.style.pointerEvents = "auto";
+        modal.style.transform = "translate(-50%, -50%) scale(1)";
+        modalBackdrop.style.opacity = "1";
+        modalBackdrop.style.pointerEvents = "auto";
     }
 
     function closeModal() {
@@ -565,6 +934,11 @@
         modal.classList.remove("is-open");
         modalBackdrop.classList.remove("is-open");
         modal.setAttribute("aria-hidden", "true");
+        modal.style.opacity = "0";
+        modal.style.pointerEvents = "none";
+        modal.style.transform = "translate(-50%, calc(-50% + 16px)) scale(0.98)";
+        modalBackdrop.style.opacity = "0";
+        modalBackdrop.style.pointerEvents = "none";
     }
 
     function continueExternal() {
@@ -722,6 +1096,29 @@
         if (window.Dent1402Auth && typeof window.Dent1402Auth.onChange === "function") {
             window.Dent1402Auth.onChange(syncAuthUi);
         }
+
+        window.addEventListener("dent1402:notifications-change", function (event) {
+            var detail = event && event.detail ? event.detail : {};
+            applyNavBadgeEvent("notifications", detail.unreadCount);
+            if (Object.prototype.hasOwnProperty.call(detail, "preview")) {
+                setNotificationBannerPreview(detail.preview || null, authState());
+            }
+        });
+        window.addEventListener("dent1402:chat-unread-change", function (event) {
+            var detail = event && event.detail ? event.detail : {};
+            applyNavBadgeEvent("chat", detail.unreadCount);
+        });
+        window.addEventListener("focus", function () {
+            syncPollEntry(authState());
+        });
+        document.addEventListener("visibilitychange", function () {
+            if (!document.hidden) {
+                syncPollEntry(authState());
+            }
+        });
+        window.setInterval(function () {
+            syncPollEntry(authState());
+        }, NAV_BADGE_TTL_MS);
 
         document.addEventListener("keydown", function (event) {
             if (event.key === "Escape") {

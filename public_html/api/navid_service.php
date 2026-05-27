@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/navid_store.php';
+require_once __DIR__ . '/notifications_store.php';
 
 function navid_normalize_login_url(?string $value): string
 {
@@ -194,7 +195,8 @@ function navid_http_request(string $method, string $url, array $options = []): a
 
     $headers = [
         'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'Accept: application/json, text/plain, */*',
+        'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,application/json;q=0.8,*/*;q=0.7',
+        'Accept-Language: fa-IR,fa;q=0.9,en-US;q=0.7,en;q=0.6',
     ];
     if ($origin !== '') {
         $headers[] = 'Origin: ' . $origin;
@@ -247,11 +249,18 @@ function navid_http_request(string $method, string $url, array $options = []): a
     curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($curl, CURLOPT_FOLLOWLOCATION, false);
-    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, min(12, $timeout));
+    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, min(25, $timeout));
     curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
     curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($curl, CURLOPT_ENCODING, '');
     curl_setopt($curl, CURLOPT_PROXY, '');
+    if (defined('CURL_IPRESOLVE_V4')) {
+        curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+    }
+    $resolveEntries = navid_curl_resolve_entries($url);
+    if ($resolveEntries !== [] && defined('CURLOPT_RESOLVE')) {
+        curl_setopt($curl, CURLOPT_RESOLVE, $resolveEntries);
+    }
 
     if (defined('CURLSSLOPT_NO_REVOKE')) {
         @curl_setopt($curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NO_REVOKE);
@@ -278,6 +287,8 @@ function navid_http_request(string $method, string $url, array $options = []): a
 
     $jsonPayload = $options['json'] ?? null;
     $formPayload = $options['form'] ?? null;
+    $rawBodyProvided = array_key_exists('body', $options);
+    $rawBody = $rawBodyProvided ? (string) ($options['body'] ?? '') : null;
     if (is_array($jsonPayload)) {
         $headers[] = 'Content-Type: application/json;charset=UTF-8';
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
@@ -287,6 +298,12 @@ function navid_http_request(string $method, string $url, array $options = []): a
         $headers[] = 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8';
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query($formPayload));
+    } elseif ($rawBodyProvided) {
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $rawBody);
+    } elseif (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+        $headers[] = 'Content-Length: 0';
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, '');
     }
 
     $body = curl_exec($curl);
@@ -311,6 +328,30 @@ function navid_http_request(string $method, string $url, array $options = []): a
     ];
 }
 
+function navid_curl_resolve_entries(string $url): array
+{
+    $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+    if ($host !== 'navid.tums.ac.ir') {
+        return [];
+    }
+
+    $raw = trim((string) getenv('DENT_NAVID_RESOLVE_ENTRIES'));
+    if ($raw === '') {
+        return [];
+    }
+
+    $entries = [];
+    foreach (preg_split('/[\r\n,]+/', $raw) ?: [] as $entry) {
+        $resolved = trim((string) $entry);
+        if ($resolved === '') {
+            continue;
+        }
+        $entries[] = $resolved;
+    }
+
+    return $entries;
+}
+
 function navid_decode_json_response(array $response): ?array
 {
     $decoded = json_decode((string) ($response['body'] ?? ''), true);
@@ -322,10 +363,66 @@ function navid_decode_json_response(array $response): ?array
 
 function navid_extract_anti_forgery_token(string $html): string
 {
-    if (preg_match('/name="__RequestVerificationToken"[^>]*value="([^"]+)"/i', $html, $matches) === 1) {
+    if (preg_match('/name=["\']__RequestVerificationToken["\'][^>]*value=["\']([^"\']+)["\']/i', $html, $matches) === 1) {
         return trim((string) ($matches[1] ?? ''));
     }
     return '';
+}
+
+function navid_response_header_value(array $headers, string $name): string
+{
+    $needle = strtolower($name) . ':';
+    foreach (array_reverse($headers) as $headerLine) {
+        if (!is_string($headerLine)) {
+            continue;
+        }
+        $trimmed = trim($headerLine);
+        if (strtolower(substr($trimmed, 0, strlen($needle))) !== $needle) {
+            continue;
+        }
+        return trim(substr($trimmed, strlen($needle)));
+    }
+
+    return '';
+}
+
+function navid_fetch_login_page(string $loginUrl): array
+{
+    $currentUrl = navid_normalize_login_url($loginUrl);
+    $cookies = [];
+    $lastResponse = [
+        'ok' => false,
+        'status' => 0,
+        'body' => '',
+        'headers' => [],
+        'cookies' => [],
+        'error' => '',
+        'effectiveUrl' => $currentUrl,
+    ];
+
+    for ($attempt = 0; $attempt < 4; $attempt++) {
+        $response = navid_http_request('GET', $currentUrl, [
+            'cookies' => $cookies,
+        ]);
+        $cookies = navid_merge_cookies($cookies, $response['cookies'] ?? []);
+        $response['cookies'] = $cookies;
+        $response['effectiveUrl'] = $currentUrl;
+        $lastResponse = $response;
+
+        $status = (int) ($response['status'] ?? 0);
+        if ($status < 300 || $status >= 400) {
+            return $response;
+        }
+
+        $location = navid_response_header_value(is_array($response['headers'] ?? null) ? $response['headers'] : [], 'Location');
+        if ($location === '') {
+            return $response;
+        }
+
+        $currentUrl = navid_absolute_url(navid_origin_from_login_url($currentUrl), $location);
+    }
+
+    return $lastResponse;
 }
 
 function navid_function_available(string $name): bool
@@ -545,7 +642,7 @@ function navid_run_python_script(string $scriptPath, string $stdin = ''): array
     ];
 
     foreach (navid_python_candidates() as $python) {
-        $command = escapeshellcmd($python) . ' ' . escapeshellarg($scriptPath);
+        $command = navid_shell_quote_command($python) . ' ' . navid_shell_quote_argument($scriptPath);
         $result = navid_run_process($command, $stdin, DENT_PROJECT_ROOT);
         $result['python'] = $python;
         $lastResult = $result;
@@ -598,6 +695,24 @@ function navid_python_bin(): string
 {
     $candidates = navid_python_candidates();
     return $candidates[0] ?? 'python';
+}
+
+function navid_shell_quote_argument(string $value): string
+{
+    if (navid_function_available('escapeshellarg')) {
+        return escapeshellarg($value);
+    }
+
+    if (DIRECTORY_SEPARATOR === '\\') {
+        return '"' . str_replace('"', '""', $value) . '"';
+    }
+
+    return "'" . str_replace("'", "'\"'\"'", $value) . "'";
+}
+
+function navid_shell_quote_command(string $value): string
+{
+    return navid_shell_quote_argument(trim($value));
 }
 
 function navid_browser_bridge_path(): string
@@ -681,6 +796,131 @@ function navid_store_manual_challenge(array &$store, array $browserResult): void
         'captchaDataUri' => $captchaDataUri,
     ];
     navid_set_challenge($store, $challenge);
+}
+
+function navid_challenge_is_active(?array $challenge): bool
+{
+    if (!is_array($challenge)) {
+        return false;
+    }
+
+    $expiresAt = strtotime((string) ($challenge['expiresAt'] ?? ''));
+    return $expiresAt === false || $expiresAt >= time();
+}
+
+function navid_build_fresh_http_manual_challenge(string $loginUrl): ?array
+{
+    $first = navid_fetch_login_page($loginUrl);
+    if (!$first['ok'] || (int) ($first['status'] ?? 0) < 200 || (int) ($first['status'] ?? 0) >= 400) {
+        return null;
+    }
+
+    $cookies = navid_merge_cookies([], $first['cookies'] ?? []);
+    $resolvedLoginUrl = navid_normalize_login_url((string) ($first['effectiveUrl'] ?? $loginUrl));
+    $token = navid_extract_anti_forgery_token((string) ($first['body'] ?? ''));
+    if ($token === '') {
+        return null;
+    }
+
+    return navid_build_http_manual_challenge($resolvedLoginUrl, $token, $cookies, false);
+}
+
+function navid_build_http_manual_challenge(string $loginUrl, string $requestToken, array $cookies, bool $allowFreshFallback = true): ?array
+{
+    $token = trim($requestToken);
+    if ($token === '') {
+        return null;
+    }
+
+    $captcha = navid_get_captcha_image($cookies, $loginUrl);
+    $mergedCookies = navid_merge_cookies($cookies, $captcha['cookies'] ?? []);
+    $captchaDataUri = '';
+    if (!empty($captcha['success']) && !empty($captcha['data'])) {
+        $captchaDataUri = 'data:' . ($captcha['contentType'] ?? 'image/png') . ';base64,' . $captcha['data'];
+    }
+
+    if ($captchaDataUri === '' && $allowFreshFallback) {
+        $freshChallenge = navid_build_fresh_http_manual_challenge($loginUrl);
+        if (is_array($freshChallenge)) {
+            return $freshChallenge;
+        }
+    }
+
+    return [
+        'createdAt' => dent_iso_now(),
+        'expiresAt' => date('c', time() + 10 * 60),
+        'loginUrl' => navid_normalize_login_url($loginUrl),
+        'requestVerificationToken' => $token,
+        'cookies' => $mergedCookies,
+        'captchaDataUri' => $captchaDataUri,
+    ];
+}
+
+function navid_prepare_http_manual_challenge(array &$store, string $preferredLoginUrl = ''): ?array
+{
+    $challenge = navid_get_challenge($store);
+    if (navid_challenge_is_active($challenge) && trim((string) ($challenge['captchaDataUri'] ?? '')) !== '') {
+        return $challenge;
+    }
+
+    $loginUrl = trim($preferredLoginUrl);
+    if ($loginUrl === '') {
+        $loginUrl = (string) (($challenge['loginUrl'] ?? '') ?: ($store['config']['loginUrl'] ?? ''));
+    }
+    $loginUrl = navid_normalize_login_url($loginUrl);
+
+    $freshChallenge = navid_build_fresh_http_manual_challenge($loginUrl);
+    if (!is_array($freshChallenge)) {
+        return null;
+    }
+    if (trim((string) ($freshChallenge['captchaDataUri'] ?? '')) === '') {
+        return $freshChallenge;
+    }
+
+    navid_set_challenge($store, $freshChallenge);
+    $store['session']['status'] = 'challenge';
+    return $freshChallenge;
+}
+
+function navid_finalize_http_manual_challenge(
+    string $loginUrl,
+    string $requestToken,
+    array $cookies,
+    string $fallbackCaptchaDataUri = ''
+): ?array {
+    $challenge = navid_build_http_manual_challenge($loginUrl, $requestToken, $cookies);
+    if (!is_array($challenge)) {
+        if (trim($fallbackCaptchaDataUri) === '') {
+            return null;
+        }
+        return [
+            'createdAt' => dent_iso_now(),
+            'expiresAt' => date('c', time() + 10 * 60),
+            'loginUrl' => navid_normalize_login_url($loginUrl),
+            'requestVerificationToken' => trim($requestToken),
+            'cookies' => $cookies,
+            'captchaDataUri' => trim($fallbackCaptchaDataUri),
+        ];
+    }
+
+    if (trim((string) ($challenge['captchaDataUri'] ?? '')) === '' && trim($fallbackCaptchaDataUri) !== '') {
+        $challenge['captchaDataUri'] = trim($fallbackCaptchaDataUri);
+        $challenge['cookies'] = navid_merge_cookies($cookies, is_array($challenge['cookies'] ?? null) ? $challenge['cookies'] : []);
+    }
+
+    return $challenge;
+}
+
+function navid_reconnect_required_response(array $store, string $message): array
+{
+    $challenge = navid_get_challenge($store);
+    return [
+        'success' => false,
+        'status' => 'reconnect-required',
+        'message' => $message,
+        'captchaDataUri' => is_array($challenge) ? (string) ($challenge['captchaDataUri'] ?? '') : '',
+        'ownerStatus' => navid_build_owner_status($store),
+    ];
 }
 
 function navid_browser_error_supports_http_fallback(string $errorCode): bool
@@ -781,6 +1021,7 @@ function navid_sync_store_from_browser_result(array &$store, array $browserResul
                 'eventId' => 'navid-' . str_replace(':', '-', $assignmentKey) . '-' . time(),
             ]);
             navid_add_update_if_new($store, $event);
+            notifications_enqueue_navid_assignment($assignment);
             $newEvents++;
             continue;
         }
@@ -953,9 +1194,7 @@ function navid_attempt_login(array &$store): array
         ];
     }
 
-    $first = navid_http_request('GET', $loginUrl, [
-        'headers' => ['X-Requested-With: XMLHttpRequest'],
-    ]);
+    $first = navid_fetch_login_page($loginUrl);
     if (!$first['ok'] || (int) ($first['status'] ?? 0) < 200 || (int) ($first['status'] ?? 0) >= 400) {
         return [
             'success' => false,
@@ -966,6 +1205,7 @@ function navid_attempt_login(array &$store): array
     }
 
     $cookies = navid_merge_cookies([], $first['cookies'] ?? []);
+    $loginUrl = navid_normalize_login_url((string) ($first['effectiveUrl'] ?? $loginUrl));
     $token = navid_extract_anti_forgery_token((string) ($first['body'] ?? ''));
     if ($token === '') {
         return [
@@ -977,12 +1217,14 @@ function navid_attempt_login(array &$store): array
     }
 
     $captchaStrategy = (string) ($config['captchaStrategy'] ?? 'python_ocr');
+    $lastCaptchaDataUri = '';
     if ($captchaStrategy !== 'python_ocr') {
         return [
             'success' => false,
             'error' => 'captcha_manual_required',
             'message' => 'برای این تنظیمات، اتصال مجدد دستی کپچا لازم است.',
             'cookies' => $cookies,
+            'challenge' => navid_finalize_http_manual_challenge($loginUrl, $token, $cookies),
         ];
     }
 
@@ -992,6 +1234,9 @@ function navid_attempt_login(array &$store): array
         if (empty($captchaResult['success'])) {
             continue;
         }
+        if (!empty($captchaResult['data'])) {
+            $lastCaptchaDataUri = 'data:' . ($captchaResult['contentType'] ?? 'image/png') . ';base64,' . $captchaResult['data'];
+        }
 
         $captchaCode = navid_solve_captcha_python((string) $captchaResult['data']);
         if ($captchaCode === '') {
@@ -1000,6 +1245,7 @@ function navid_attempt_login(array &$store): array
                 'error' => 'captcha_solver_unavailable',
                 'message' => 'حل خودکار کپچا در این سرور در دسترس نیست. اتصال دستی لازم است.',
                 'cookies' => $cookies,
+                'challenge' => navid_finalize_http_manual_challenge($loginUrl, $token, $cookies, $lastCaptchaDataUri),
             ];
         }
 
@@ -1054,6 +1300,7 @@ function navid_attempt_login(array &$store): array
         'error' => 'captcha_retries_exhausted',
         'message' => 'ورود خودکار نوید پس از چند تلاش کپچا موفق نشد.',
         'cookies' => $cookies,
+        'challenge' => navid_finalize_http_manual_challenge($loginUrl, $token, $cookies, $lastCaptchaDataUri),
     ];
 }
 
@@ -1341,6 +1588,198 @@ function navid_sync_action_required(?array $credentials, array $state, bool $ena
     return 'none';
 }
 
+function navid_finish_sync_from_dashboard(
+    array &$store,
+    string $loginUrl,
+    array $cookies,
+    array $dashboard,
+    float $startedAt
+): array {
+    if (empty($dashboard['success']) || !is_array($dashboard['payload'] ?? null)) {
+        $store['state']['lastError'] = 'خواندن داشبورد نوید انجام نشد.';
+        $store['state']['consecutiveFailures'] = (int) ($store['state']['consecutiveFailures'] ?? 0) + 1;
+        $store['state']['lastResult'] = 'dashboard-failed';
+        $store['state']['lastFailedCourses'] = 0;
+        navid_set_session_cookies($store, $cookies);
+        navid_save_store($store);
+        return [
+            'success' => false,
+            'status' => 'dashboard-failed',
+            'message' => 'خواندن داشبورد نوید انجام نشد.',
+            'ownerStatus' => navid_build_owner_status($store),
+        ];
+    }
+
+    $courses = navid_extract_courses((array) $dashboard['payload'], $loginUrl);
+    $currentAssignmentsByKey = [];
+    $courseSnapshot = [];
+    $failedCourses = 0;
+    $previousAssignments = is_array($store['snapshot']['assignments'] ?? null) ? $store['snapshot']['assignments'] : [];
+    $previousCourses = is_array($store['snapshot']['courses'] ?? null) ? $store['snapshot']['courses'] : [];
+
+    foreach ($courses as $course) {
+        $courseTemplateId = (int) ($course['courseTemplateId'] ?? 0);
+        if ($courseTemplateId <= 0) {
+            continue;
+        }
+
+        $assignmentResult = navid_fetch_course_assignments($cookies, $loginUrl, $courseTemplateId);
+        $cookies = navid_merge_cookies($cookies, $assignmentResult['cookies'] ?? []);
+
+        if (empty($assignmentResult['success'])) {
+            $failedCourses++;
+            $preservedKeys = [];
+            $previousCourseSnapshot = is_array($previousCourses[(string) $courseTemplateId] ?? null)
+                ? $previousCourses[(string) $courseTemplateId]
+                : [];
+            $previousKeys = is_array($previousCourseSnapshot['assignmentKeys'] ?? null)
+                ? $previousCourseSnapshot['assignmentKeys']
+                : [];
+            foreach ($previousKeys as $previousKey) {
+                $key = (string) $previousKey;
+                if ($key === '' || !is_array($previousAssignments[$key] ?? null)) {
+                    continue;
+                }
+                $currentAssignmentsByKey[$key] = $previousAssignments[$key];
+                $preservedKeys[] = $key;
+            }
+            $courseSnapshot[(string) $courseTemplateId] = [
+                'courseTemplateId' => $courseTemplateId,
+                'courseTitle' => (string) ($course['courseTitle'] ?? ''),
+                'courseUrl' => (string) ($course['courseUrl'] ?? ''),
+                'assignmentKeys' => $preservedKeys,
+                'assignmentCount' => count($preservedKeys),
+                'lastCheckedAt' => dent_iso_now(),
+                'fetchStatus' => 'failed',
+                'fetchError' => (string) ($assignmentResult['message'] ?? $assignmentResult['error'] ?? 'fetch_failed'),
+            ];
+            continue;
+        }
+
+        $assignmentList = is_array($assignmentResult['assignments'] ?? null) ? $assignmentResult['assignments'] : [];
+        $courseAssignmentKeys = [];
+        foreach ($assignmentList as $rawAssignment) {
+            if (!is_array($rawAssignment)) {
+                continue;
+            }
+
+            $normalized = navid_normalize_assignment($course, $rawAssignment, $loginUrl);
+            if ($normalized === null) {
+                continue;
+            }
+
+            $key = (string) $normalized['assignmentKey'];
+            $courseAssignmentKeys[] = $key;
+            $currentAssignmentsByKey[$key] = $normalized;
+        }
+
+        $courseSnapshot[(string) $courseTemplateId] = [
+            'courseTemplateId' => $courseTemplateId,
+            'courseTitle' => (string) ($course['courseTitle'] ?? ''),
+            'courseUrl' => (string) ($course['courseUrl'] ?? ''),
+            'assignmentKeys' => $courseAssignmentKeys,
+            'assignmentCount' => count($courseAssignmentKeys),
+            'lastCheckedAt' => dent_iso_now(),
+            'fetchStatus' => 'ok',
+            'fetchError' => '',
+        ];
+    }
+
+    $newEvents = 0;
+
+    foreach ($currentAssignmentsByKey as $key => $assignment) {
+        $old = is_array($previousAssignments[$key] ?? null) ? $previousAssignments[$key] : null;
+        if ($old === null) {
+            $event = array_merge($assignment, [
+                'eventType' => 'created',
+                'detectedAt' => dent_iso_now(),
+                'eventId' => 'navid-' . str_replace(':', '-', $key) . '-' . time(),
+            ]);
+            navid_add_update_if_new($store, $event);
+            notifications_enqueue_navid_assignment($assignment);
+            $newEvents++;
+            continue;
+        }
+
+        if ((string) ($old['fingerprint'] ?? '') !== (string) ($assignment['fingerprint'] ?? '')) {
+            $event = array_merge($assignment, [
+                'eventType' => 'updated',
+                'detectedAt' => dent_iso_now(),
+                'eventId' => 'navid-' . str_replace(':', '-', $key) . '-' . time(),
+                'previousEndDateIso' => (string) ($old['endDateIso'] ?? ''),
+                'previousEndDateShamsi' => (string) ($old['endDateShamsi'] ?? ''),
+            ]);
+            navid_add_update_if_new($store, $event);
+            $newEvents++;
+        }
+    }
+
+    $store['snapshot']['courses'] = $courseSnapshot;
+    $store['snapshot']['assignments'] = $currentAssignmentsByKey;
+
+    navid_set_session_cookies($store, $cookies);
+    $store['session']['status'] = 'active';
+    $store['session']['lastValidatedAt'] = dent_iso_now();
+
+    $store['state']['lastFailedCourses'] = $failedCourses;
+    $store['state']['lastSyncDurationMs'] = (int) round((microtime(true) - $startedAt) * 1000);
+    $store['state']['requiresReconnect'] = false;
+    $store['state']['consecutiveFailures'] = 0;
+    if ($failedCourses > 0) {
+        $store['state']['lastResult'] = 'partial';
+        $store['state']['lastError'] = 'برخی دروس نوید در همگام‌سازی آخر دریافت نشدند. تا تکمیل همه دروس، خروجی تایید نمی‌شود.';
+    } else {
+        $store['state']['lastSuccessAt'] = dent_iso_now();
+        $store['state']['lastResult'] = 'ok';
+        $store['state']['lastError'] = '';
+    }
+
+    navid_save_store($store);
+
+    if ($failedCourses > 0) {
+        navid_log('warning', 'sync_partial', [
+            'courses' => count($courses),
+            'assignments' => count($currentAssignmentsByKey),
+            'newEvents' => $newEvents,
+            'failedCourses' => $failedCourses,
+        ]);
+
+        return [
+            'success' => false,
+            'status' => 'partial',
+            'message' => 'همگام‌سازی نوید ناقص بود و بعضی دروس دریافت نشدند.',
+            'summary' => [
+                'coursesChecked' => count($courses),
+                'coursesSucceeded' => max(0, count($courses) - $failedCourses),
+                'assignmentsFetched' => count($currentAssignmentsByKey),
+                'newEvents' => $newEvents,
+                'failedCourses' => $failedCourses,
+            ],
+            'ownerStatus' => navid_build_owner_status($store),
+        ];
+    }
+
+    navid_log('info', 'sync_success', [
+        'courses' => count($courses),
+        'assignments' => count($currentAssignmentsByKey),
+        'newEvents' => $newEvents,
+        'failedCourses' => $failedCourses,
+    ]);
+    return [
+        'success' => true,
+        'status' => 'ok',
+        'message' => 'همگام‌سازی نوید انجام شد.',
+        'summary' => [
+            'coursesChecked' => count($courses),
+            'coursesSucceeded' => max(0, count($courses) - $failedCourses),
+            'assignmentsFetched' => count($currentAssignmentsByKey),
+            'newEvents' => $newEvents,
+            'failedCourses' => $failedCourses,
+        ],
+        'ownerStatus' => navid_build_owner_status($store),
+    ];
+}
+
 function navid_login_failure_meta(string $errorCode): array
 {
     switch ($errorCode) {
@@ -1471,6 +1910,11 @@ function navid_sync(bool $force = false): array
 {
     $store = navid_load_store();
     $config = is_array($store['config'] ?? null) ? $store['config'] : [];
+    $hadSessionCookies = count(navid_get_session_cookies($store)) > 0;
+    $hadBrowserState = is_array(navid_get_session_browser_state($store));
+    $hadSuccessfulSnapshot = trim((string) ($store['state']['lastSuccessAt'] ?? '')) !== ''
+        && !empty($store['snapshot']['assignments']);
+    $hadReusableSession = $hadSuccessfulSnapshot && ($hadSessionCookies || $hadBrowserState);
 
     if (empty($config['enabled'])) {
         return [
@@ -1514,6 +1958,19 @@ function navid_sync(bool $force = false): array
 
     $startedAt = microtime(true);
     $loginUrl = navid_normalize_login_url((string) ($config['loginUrl'] ?? ''));
+
+    if (!empty($store['state']['requiresReconnect'])) {
+        $challenge = navid_prepare_http_manual_challenge($store, $loginUrl);
+        if (is_array($challenge) && trim((string) ($challenge['captchaDataUri'] ?? '')) !== '') {
+            navid_save_store($store);
+            $message = trim((string) ($store['state']['lastError'] ?? ''));
+            if ($message === '') {
+                $message = 'برای ادامه اتصال نوید، کپچا را وارد کن.';
+            }
+            return navid_reconnect_required_response($store, $message);
+        }
+    }
+
     $cookies = navid_get_session_cookies($store);
     $dashboard = navid_fetch_dashboard_payload($cookies, $loginUrl);
     $cookies = navid_merge_cookies($cookies, $dashboard['cookies'] ?? []);
@@ -1529,17 +1986,51 @@ function navid_sync(bool $force = false): array
                 $store['state']['lastError'] = (string) ($login['message'] ?? 'ورود نوید انجام نشد.');
                 $store['state']['consecutiveFailures'] = (int) ($store['state']['consecutiveFailures'] ?? 0) + 1;
                 $loginErrorCode = (string) ($login['error'] ?? '');
+                if ($hadReusableSession && in_array($loginErrorCode, ['login_page_unreachable', 'token_not_found'], true)) {
+                    $store['state']['requiresReconnect'] = false;
+                    $store['state']['lastResult'] = 'upstream-unreachable';
+                    $store['state']['lastFailedCourses'] = 0;
+                    $store['state']['lastSyncDurationMs'] = (int) round((microtime(true) - $startedAt) * 1000);
+                    navid_clear_challenge($store);
+                    navid_log('warning', 'sync_upstream_unreachable_preserved', [
+                        'error' => $loginErrorCode,
+                        'message' => $login['message'] ?? '',
+                    ]);
+                    navid_save_store($store);
+                    return [
+                        'success' => false,
+                        'status' => 'upstream-unreachable',
+                        'message' => 'در این لحظه دسترسی پایدار به نوید برقرار نشد؛ آخرین همگام‌سازی موفق حفظ شد.',
+                        'ownerStatus' => navid_build_owner_status($store),
+                    ];
+                }
                 $loginFailureMeta = navid_login_failure_meta($loginErrorCode);
                 $store['state']['requiresReconnect'] = !empty($loginFailureMeta['requiresReconnect']);
                 $store['state']['lastResult'] = (string) ($loginFailureMeta['status'] ?? 'login-failed');
                 $store['state']['lastFailedCourses'] = 0;
                 navid_clear_session_cookies($store);
+                $challengePayload = is_array($login['challenge'] ?? null) ? $login['challenge'] : null;
+                if (!empty($store['state']['requiresReconnect'])
+                    && (!is_array($challengePayload) || trim((string) ($challengePayload['captchaDataUri'] ?? '')) === '')
+                ) {
+                    $preparedChallenge = navid_prepare_http_manual_challenge($store, $loginUrl);
+                    if (is_array($preparedChallenge) && trim((string) ($preparedChallenge['captchaDataUri'] ?? '')) !== '') {
+                        $challengePayload = $preparedChallenge;
+                    }
+                }
+                if ($challengePayload !== null && !empty($store['state']['requiresReconnect'])) {
+                    navid_set_challenge($store, $challengePayload);
+                    $store['session']['status'] = 'challenge';
+                } else {
+                    navid_clear_challenge($store);
+                }
                 navid_log('error', 'sync_login_failed', ['error' => $login['error'] ?? '', 'message' => $login['message'] ?? '']);
                 navid_save_store($store);
                 return [
                     'success' => false,
                     'status' => (string) ($loginFailureMeta['status'] ?? 'login-failed'),
                     'message' => (string) ($login['message'] ?? 'ورود نوید انجام نشد.'),
+                    'captchaDataUri' => (string) (($challengePayload['captchaDataUri'] ?? '') ?: ''),
                     'ownerStatus' => navid_build_owner_status($store),
                 ];
             }
@@ -1654,6 +2145,7 @@ function navid_sync(bool $force = false): array
                     'eventId' => 'navid-' . str_replace(':', '-', $key) . '-' . time(),
                 ]);
                 navid_add_update_if_new($store, $event);
+                notifications_enqueue_navid_assignment($assignment);
                 $newEvents++;
                 continue;
             }
@@ -1802,6 +2294,22 @@ function navid_sync_browser(bool $force = false): array
 
     $startedAt = microtime(true);
     $loginUrl = navid_normalize_login_url((string) ($config['loginUrl'] ?? ''));
+
+    if (!empty($store['state']['requiresReconnect'])) {
+        $challenge = navid_prepare_http_manual_challenge($store, $loginUrl);
+        if (is_array($challenge) && trim((string) ($challenge['captchaDataUri'] ?? '')) !== '') {
+            navid_save_store($store);
+            flock($lock, LOCK_UN);
+            fclose($lock);
+            $lock = null;
+            $message = trim((string) ($store['state']['lastError'] ?? ''));
+            if ($message === '') {
+                $message = 'برای ادامه اتصال نوید، کپچا را وارد کن.';
+            }
+            return navid_reconnect_required_response($store, $message);
+        }
+    }
+
     $store['state']['lastSyncAt'] = dent_iso_now();
     $store['state']['lastResult'] = 'running';
     $store['state']['lastFailedCourses'] = 0;
@@ -1917,6 +2425,17 @@ function navid_sync_browser(bool $force = false): array
     }
 }
 
+function navid_sync_auto(bool $force = false): array
+{
+    $store = navid_load_store();
+    $browserState = navid_get_session_browser_state($store);
+    if (is_array($browserState) && !empty($browserState['cookies'])) {
+        return navid_sync_browser($force);
+    }
+
+    return navid_sync($force);
+}
+
 function navid_update_config(array $input): array
 {
     $store = navid_load_store();
@@ -1986,14 +2505,13 @@ function navid_create_captcha_challenge(): array
     $store = navid_load_store();
     $loginUrl = navid_normalize_login_url((string) ($store['config']['loginUrl'] ?? ''));
 
-    $first = navid_http_request('GET', $loginUrl, [
-        'headers' => ['X-Requested-With: XMLHttpRequest'],
-    ]);
+    $first = navid_fetch_login_page($loginUrl);
     if (!$first['ok'] || (int) ($first['status'] ?? 0) >= 400 || (int) ($first['status'] ?? 0) < 200) {
         dent_error('صفحه ورود نوید در دسترس نیست.', 502);
     }
 
     $cookies = navid_merge_cookies([], $first['cookies'] ?? []);
+    $loginUrl = navid_normalize_login_url((string) ($first['effectiveUrl'] ?? $loginUrl));
     $token = navid_extract_anti_forgery_token((string) ($first['body'] ?? ''));
     if ($token === '') {
         dent_error('توکن امنیتی نوید پیدا نشد.', 502);
@@ -2020,6 +2538,32 @@ function navid_create_captcha_challenge(): array
         'message' => 'کپچا دریافت شد.',
         'captchaDataUri' => 'data:' . ($captcha['contentType'] ?? 'image/png') . ';base64,' . $captcha['data'],
         'expiresAt' => (string) $challenge['expiresAt'],
+        'ownerStatus' => navid_build_owner_status($store),
+    ];
+}
+
+function navid_create_captcha_challenge_direct(): array
+{
+    $store = navid_load_store();
+    $challenge = navid_prepare_http_manual_challenge($store);
+    if (!is_array($challenge)) {
+        dent_error('دریافت کپچای نوید انجام نشد.', 502);
+    }
+    if (trim((string) ($challenge['captchaDataUri'] ?? '')) === '') {
+        dent_error('تصویر کپچای نوید در دسترس نیست. دوباره تلاش کن.', 502);
+    }
+
+    $store['state']['requiresReconnect'] = true;
+    $store['state']['lastResult'] = 'reconnect-required';
+    $store['state']['lastError'] = '';
+    $store['session']['status'] = 'challenge';
+    navid_save_store($store);
+
+    return [
+        'success' => true,
+        'message' => 'کپچا دریافت شد.',
+        'captchaDataUri' => (string) ($challenge['captchaDataUri'] ?? ''),
+        'expiresAt' => (string) ($challenge['expiresAt'] ?? ''),
         'ownerStatus' => navid_build_owner_status($store),
     ];
 }
@@ -2081,10 +2625,17 @@ function navid_complete_captcha_challenge(string $captchaCode): array
         $mergedCookies = navid_merge_cookies($mergedCookies, $final['cookies'] ?? []);
     }
 
+    $dashboard = navid_fetch_dashboard_payload($mergedCookies, $loginUrl);
+    $mergedCookies = navid_merge_cookies($mergedCookies, $dashboard['cookies'] ?? []);
+
     navid_set_session_cookies($store, $mergedCookies);
     navid_clear_challenge($store);
     $store['state']['requiresReconnect'] = false;
     $store['state']['lastError'] = '';
+    if (!empty($dashboard['success']) && is_array($dashboard['payload'] ?? null)) {
+        $store['session']['status'] = 'active';
+        $store['session']['lastValidatedAt'] = dent_iso_now();
+    }
     navid_save_store($store);
 
     return [
@@ -2109,7 +2660,7 @@ function navid_create_captcha_challenge_browser(): array
                 'error' => $errorCode,
                 'message' => (string) ($browserResult['message'] ?? ''),
             ]);
-            return navid_create_captcha_challenge();
+            return navid_create_captcha_challenge_direct();
         }
         dent_error((string) ($browserResult['message'] ?? 'دریافت کپچای نوید انجام نشد.'), 502);
     }
@@ -2216,13 +2767,35 @@ function navid_complete_captcha_challenge_browser(string $captchaCode): array
     return navid_sync_store_from_browser_result($store, $browserResult, $loginUrl, microtime(true));
 }
 
+function navid_import_browser_snapshot(array $browserResult): array
+{
+    if (empty($browserResult['success'])) {
+        dent_error('اسنپ‌شات نوید معتبر نیست.', 422);
+    }
+
+    $storageState = is_array($browserResult['storageState'] ?? null) ? $browserResult['storageState'] : null;
+    $courses = is_array($browserResult['courses'] ?? null) ? $browserResult['courses'] : null;
+    if ($storageState === null || $courses === null) {
+        dent_error('داده‌ی اسنپ‌شات نوید ناقص است.', 422);
+    }
+
+    $store = navid_load_store();
+    $config = is_array($store['config'] ?? null) ? $store['config'] : [];
+    $loginUrl = navid_normalize_login_url((string) ($config['loginUrl'] ?? ''));
+    $store['state']['lastSyncAt'] = dent_iso_now();
+    $store['state']['lastResult'] = 'running';
+    $store['state']['lastFailedCourses'] = 0;
+
+    return navid_sync_store_from_browser_result($store, $browserResult, $loginUrl, microtime(true));
+}
+
 function navid_feed_payload(bool $ownerView): array
 {
     $store = navid_load_store();
 
     // Opportunistic sync when due; this keeps data fresh even without explicit owner action.
     if (navid_sync_due($store)) {
-        navid_sync_browser(false);
+        navid_sync_auto(false);
         $store = navid_load_store();
     }
 

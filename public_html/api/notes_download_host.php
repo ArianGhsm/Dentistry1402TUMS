@@ -7,6 +7,50 @@ const NOTES_DOWNLOAD_HOST_STREAM_CONNECT_TIMEOUT_SECONDS = 300;
 const NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS = 14400;
 const NOTES_DOWNLOAD_HOST_STREAM_CHUNK_BYTES = 4 * 1024 * 1024;
 
+function notes_download_host_request_header(string $name): string
+{
+    $normalized = strtoupper(str_replace('-', '_', trim($name)));
+    if ($normalized === '') {
+        return '';
+    }
+
+    if ($normalized === 'CONTENT_TYPE' && isset($_SERVER['CONTENT_TYPE'])) {
+        return trim((string) $_SERVER['CONTENT_TYPE']);
+    }
+    if ($normalized === 'CONTENT_LENGTH' && isset($_SERVER['CONTENT_LENGTH'])) {
+        return trim((string) $_SERVER['CONTENT_LENGTH']);
+    }
+
+    $serverKey = str_starts_with($normalized, 'HTTP_') ? $normalized : ('HTTP_' . $normalized);
+    if (isset($_SERVER[$serverKey])) {
+        return trim((string) $_SERVER[$serverKey]);
+    }
+
+    if (function_exists('getallheaders')) {
+        $headers = getallheaders();
+        if (is_array($headers)) {
+            foreach ($headers as $headerName => $headerValue) {
+                if (strtoupper(str_replace('-', '_', (string) $headerName)) !== $normalized) {
+                    continue;
+                }
+                return trim((string) $headerValue);
+            }
+        }
+    }
+
+    return '';
+}
+
+function notes_download_host_decode_header_value(string $value): string
+{
+    $trimmed = trim($value);
+    if ($trimmed === '') {
+        return '';
+    }
+
+    return dent_force_utf8(rawurldecode($trimmed));
+}
+
 function notes_download_host_allowed_roots(): array
 {
     return NOTES_DOWNLOAD_HOST_ALLOWED_ROOTS;
@@ -772,8 +816,125 @@ function notes_download_host_parse_upload_response(string $raw): array
     return $upload;
 }
 
+function notes_download_host_stream_upload_from_stream(string $targetAbsDir, $sourceStream, int $sourceSize, string $remoteName, string $mimeType): array
+{
+    notes_download_host_prepare_long_transfer();
+    if (!is_resource($sourceStream)) {
+        dent_error('جریان فایل برای آپلود روی هاست دانلود معتبر نیست.', 422);
+    }
+    if ($sourceSize <= 0) {
+        dent_error('حجم فایل برای آپلود روی هاست دانلود معتبر نیست.', 422);
+    }
+
+    $secret = notes_download_host_load_secret();
+    if (!is_array($secret)) {
+        dent_error('تنظیمات هاست دانلود روی سرور فعال نیست.', 503);
+    }
+
+    $scheme = (string) ($secret['scheme'] ?? 'http') === 'https' ? 'https' : 'http';
+    $socketPrefix = $scheme === 'https' ? 'ssl://' : 'tcp://';
+    $socketPort = $scheme === 'https'
+        ? (int) ($secret['cpanelSecurePort'] ?? 2083)
+        : (int) ($secret['cpanelPort'] ?? 2082);
+
+    $socket = @stream_socket_client(
+        $socketPrefix . $secret['host'] . ':' . $socketPort,
+        $errno,
+        $errstr,
+        NOTES_DOWNLOAD_HOST_STREAM_CONNECT_TIMEOUT_SECONDS,
+        STREAM_CLIENT_CONNECT,
+        stream_context_create([
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true,
+                'SNI_enabled' => true,
+            ],
+        ])
+    );
+    if (!is_resource($socket)) {
+        dent_error('اتصال امن به هاست دانلود برقرار نشد: ' . trim($errstr), 502);
+    }
+    stream_set_timeout($socket, NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS);
+    @stream_set_write_buffer($socket, 0);
+
+    $boundary = '----DentNotesBoundary' . bin2hex(random_bytes(12));
+    $prefix = '';
+    $prefix .= '--' . $boundary . "\r\n";
+    $prefix .= 'Content-Disposition: form-data; name="dir"' . "\r\n\r\n";
+    $prefix .= $targetAbsDir . "\r\n";
+    $prefix .= '--' . $boundary . "\r\n";
+    $prefix .= 'Content-Disposition: form-data; name="file-1"; filename="' . addslashes($remoteName) . '"' . "\r\n";
+    $prefix .= 'Content-Type: ' . ($mimeType !== '' ? $mimeType : 'application/octet-stream') . "\r\n\r\n";
+    $suffix = "\r\n--" . $boundary . "--\r\n";
+    $contentLength = strlen($prefix) + $sourceSize + strlen($suffix);
+
+    $headers = [
+        'POST /execute/Fileman/upload_files HTTP/1.1',
+        'Host: ' . $secret['host'],
+        'Authorization: Basic ' . base64_encode((string) $secret['username'] . ':' . (string) $secret['password']),
+        'User-Agent: Dentistry1402TUMS-NotesDownloadHost/1.0',
+        'Accept: application/json',
+        'Content-Type: multipart/form-data; boundary=' . $boundary,
+        'Content-Length: ' . $contentLength,
+        'Connection: close',
+        '',
+        '',
+    ];
+
+    notes_download_host_socket_write_all($socket, implode("\r\n", $headers), 'ارسال هدر آپلود به هاست دانلود');
+    notes_download_host_socket_write_all($socket, $prefix, 'شروع انتقال فایل به هاست دانلود');
+
+    try {
+        $remaining = $sourceSize;
+        while ($remaining > 0) {
+            $chunk = fread($sourceStream, min(NOTES_DOWNLOAD_HOST_STREAM_CHUNK_BYTES, $remaining));
+            if ($chunk === false || $chunk === '') {
+                throw new RuntimeException('stream-read-failed');
+            }
+            $remaining -= strlen($chunk);
+            notes_download_host_socket_write_all($socket, $chunk, 'ارسال فایل به هاست دانلود');
+        }
+    } catch (RuntimeException $error) {
+        fclose($socket);
+        dent_error('ارسال فایل به هاست دانلود کامل نشد.', 502);
+    }
+
+    notes_download_host_socket_write_all($socket, $suffix, 'پایان‌بندی آپلود روی هاست دانلود');
+
+    stream_set_timeout($socket, NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS);
+    $response = stream_get_contents($socket);
+    $meta = stream_get_meta_data($socket);
+    fclose($socket);
+    if (!empty($meta['timed_out'])) {
+        dent_error('پاسخ نهایی هاست دانلود برای این فایل در زمان مجاز نرسید. timeout سمت سرور یا شبکه را بررسی کنید.', 504);
+    }
+    if (!is_string($response) || trim($response) === '') {
+        dent_error('پاسخ آپلود از هاست دانلود دریافت نشد.', 502);
+    }
+
+    return notes_download_host_parse_upload_response($response);
+}
+
 function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath, string $remoteName, string $mimeType): array
 {
+    $file = fopen($tmpPath, 'rb');
+    if ($file === false) {
+        dent_error('خواندن فایل آپلودی امکان‌پذیر نیست.', 422);
+    }
+
+    try {
+        return notes_download_host_stream_upload_from_stream(
+            $targetAbsDir,
+            $file,
+            max(0, (int) (filesize($tmpPath) ?: 0)),
+            $remoteName,
+            $mimeType
+        );
+    } finally {
+        fclose($file);
+    }
+
     notes_download_host_prepare_long_transfer();
 
     $secret = notes_download_host_load_secret();
@@ -872,6 +1033,35 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
     }
 
     return notes_download_host_parse_upload_response($response);
+}
+
+function notes_download_host_upload_stream(string $relativeDir, $sourceStream, int $sourceSize, string $desiredName = '', string $mimeType = '', ?string $scopeRoot = null): array
+{
+    if (!is_resource($sourceStream)) {
+        dent_error('جریان فایل برای آپلود معتبر نیست.', 422);
+    }
+    if ($sourceSize <= 0) {
+        dent_error('حجم فایل برای آپلود معتبر نیست.', 422);
+    }
+
+    $targetAbsDir = notes_download_host_ensure_dir($relativeDir, $scopeRoot);
+    $finalName = notes_download_host_unique_file_name($relativeDir, $desiredName);
+    $upload = notes_download_host_stream_upload_from_stream($targetAbsDir, $sourceStream, $sourceSize, $finalName, $mimeType);
+
+    $relativePath = trim($relativeDir, '/') . '/' . $finalName;
+    $relativePath = trim($relativePath, '/');
+    $bytes = max(0, (int) ($upload['size'] ?? $sourceSize));
+
+    return [
+        'name' => $finalName,
+        'relativeDir' => notes_download_host_normalize_relative_path($relativeDir),
+        'relativePath' => $relativePath,
+        'sizeBytes' => $bytes,
+        'sizeLabel' => notes_download_host_human_size($bytes),
+        'mimeType' => $mimeType,
+        'publicUrl' => notes_download_host_public_url($relativePath),
+        'message' => trim((string) ($upload['reason'] ?? 'فایل روی هاست دانلود ذخیره شد.')),
+    ];
 }
 
 function notes_download_host_upload_file(string $relativeDir, array $file, string $desiredName = '', ?string $scopeRoot = null): array

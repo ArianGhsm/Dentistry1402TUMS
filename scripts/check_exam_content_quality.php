@@ -5,7 +5,7 @@ require_once __DIR__ . '/../public_html/api/exams_store.php';
 
 restore_exception_handler();
 
-const EXAM_TEXT_MOJIBAKE_RE = '/(?:Ã˜|Ã™|Ã¢â‚¬|Ã¯Â»Â¿|ï¿½)/u';
+const EXAM_TEXT_MOJIBAKE_RE = '/(?:Ã˜|Ã™|Ã¢â‚¬|Ã¯Â»Â¿|ï¿½)/u'; // text-integrity-allow-mojibake
 const EXAM_TEXT_PRESENTATION_FORMS_RE = '/[\x{FB50}-\x{FDFF}\x{FE70}-\x{FEFF}]/u';
 const EXAM_TEXT_HTML_RE = '/<\s*\/?\s*(?:strong|br|div|span|p|ul|ol|li|em|b|i|small|sub|sup|a|img|section|article|h[1-6])(?:\s+[^>]*)?>/iu';
 const EXAM_TEXT_ARTIFACT_RE = '/(?:'
