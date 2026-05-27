@@ -1904,7 +1904,13 @@
     }
 
     function notificationsKindLabel(item) {
-        return item && item.kind === "navid-assignment" ? "تکلیف نوید" : "اعلان ورودی";
+        if (item && item.kind === "navid-assignment") {
+            return "نوید";
+        }
+        if (item && item.source === "deploy") {
+            return "استقرار";
+        }
+        return "اعلان";
     }
 
     function notificationsItemDisplayAt(item) {
@@ -1920,18 +1926,18 @@
     function notificationsPrimaryState(item) {
         if (item && item.scheduled) {
             return {
-                text: "زمان‌بندی‌شده",
+                text: "زمان‌بندی",
                 className: " is-scheduled"
             };
         }
         if (item && item.unread) {
             return {
-                text: "خوانده‌نشده",
+                text: "جدید",
                 className: " is-unread"
             };
         }
         return {
-            text: "خوانده‌شده",
+            text: "",
             className: ""
         };
     }
@@ -1956,6 +1962,30 @@
             return "";
         }
         return viewed.toLocaleString("fa-IR") + " از " + total.toLocaleString("fa-IR") + " دیده‌اند";
+    }
+
+    function notificationsRowMetaText(item) {
+        var parts = [];
+        var senderLabel = String(item && item.senderLabel || "").trim();
+        var targetLabel = String(item && item.targetLabel || "").trim();
+        if (senderLabel) {
+            parts.push(senderLabel);
+        }
+        if (targetLabel && targetLabel !== "همه ورودی‌ها") {
+            parts.push(targetLabel);
+        }
+        return parts.join(" • ");
+    }
+
+    function notificationsFooterNoteText(item, audienceText) {
+        var parts = [];
+        if (item && item.scheduled) {
+            parts.push("انتشار: " + notificationsItemDisplayAt(item));
+        }
+        if (audienceText) {
+            parts.push(audienceText);
+        }
+        return parts.join(" • ");
     }
 
     function notificationsSmsDetailText(sms) {
@@ -2072,21 +2102,21 @@
         var unreadCount = Math.max(0, Math.floor(toNumber(summary.unreadCount, 0)));
         var scheduledCount = Math.max(0, Math.floor(toNumber(summary.scheduledCount, 0)));
         if (notificationsState.loading) {
-            return "در حال دریافت اعلان‌های این حساب...";
+            return "در حال دریافت اعلان‌ها...";
         }
         if (unreadCount > 0) {
             var latestTitle = String(summary.latestTitle || "").trim();
-            return unreadCount.toLocaleString("fa-IR") + " اعلان خوانده‌نشده" + (latestTitle ? (" • آخرین مورد: " + latestTitle) : "");
+            return unreadCount.toLocaleString("fa-IR") + " اعلان جدید" + (latestTitle ? (" • آخرین مورد: " + latestTitle) : "");
         }
 
         if (notificationsState.loadedForUserKey) {
             if (manager.canBroadcast && scheduledCount > 0) {
                 return scheduledCount.toLocaleString("fa-IR") + " اعلان زمان‌بندی‌شده در صف انتشار است.";
             }
-            return "در حال حاضر اعلان خوانده‌نشده‌ای برای این حساب ثبت نشده است.";
+            return "فعلاً اعلان خوانده‌نشده‌ای برای این حساب ثبت نشده است.";
         }
 
-        return "اعلان‌های نوید و پیام‌های ارسال‌شده برای این حساب در همین بخش نمایش داده می‌شوند.";
+        return "آخرین اعلان‌های این حساب در همین بخش نمایش داده می‌شوند.";
     }
 
     function renderNotificationsHub() {
@@ -2136,13 +2166,13 @@
 
         if (notificationsSummary) {
             var cards = [
-                summaryCard("خوانده‌نشده", String(Math.max(0, Math.floor(toNumber(summary.unreadCount, 0))).toLocaleString("fa-IR")), "اعلان‌هایی که هنوز باز یا خوانده نشده‌اند", Math.max(0, Math.floor(toNumber(summary.unreadCount, 0))) > 0 ? "warn" : "ok"),
-                summaryCard(manager.canBroadcast ? "فعال" : "کل قابل‌نمایش", String(Math.max(0, Math.floor(toNumber(summary.visibleCount, 0))).toLocaleString("fa-IR")), manager.canBroadcast ? "اعلان‌هایی که همین حالا برای کاربران مقصد قابل‌دیدن‌اند" : "همه اعلان‌هایی که برای این حساب قابل مشاهده‌اند"),
-                summaryCard("اعلان مدیریتی", String(Math.max(0, Math.floor(toNumber(summary.announcementCount, 0))).toLocaleString("fa-IR")), "پیام‌های ارسالی مالک یا نماینده‌ها"),
-                summaryCard("نوید", String(Math.max(0, Math.floor(toNumber(summary.navidCount, 0))).toLocaleString("fa-IR")), "اعلان‌های تکلیف جدید نوید")
+                summaryCard("جدید", String(Math.max(0, Math.floor(toNumber(summary.unreadCount, 0))).toLocaleString("fa-IR")), "مواردی که هنوز باز نشده‌اند", Math.max(0, Math.floor(toNumber(summary.unreadCount, 0))) > 0 ? "warn" : "ok"),
+                summaryCard(manager.canBroadcast ? "در فید" : "قابل‌نمایش", String(Math.max(0, Math.floor(toNumber(summary.visibleCount, 0))).toLocaleString("fa-IR")), manager.canBroadcast ? "اعلان‌های فعالی که همین حالا دیده می‌شوند" : "اعلان‌هایی که این حساب می‌بیند"),
+                summaryCard("اعلان", String(Math.max(0, Math.floor(toNumber(summary.announcementCount, 0))).toLocaleString("fa-IR")), "پیام‌های مدیریتی و اطلاعیه‌ها"),
+                summaryCard("نوید", String(Math.max(0, Math.floor(toNumber(summary.navidCount, 0))).toLocaleString("fa-IR")), "اعلان‌های تکلیف")
             ];
             if (manager.canBroadcast || Math.max(0, Math.floor(toNumber(summary.scheduledCount, 0))) > 0) {
-                cards.splice(2, 0, summaryCard("زمان‌بندی‌شده", String(Math.max(0, Math.floor(toNumber(summary.scheduledCount, 0))).toLocaleString("fa-IR")), "اعلان‌هایی که هنوز به زمان انتشارشان نرسیده‌ایم"));
+                cards.splice(2, 0, summaryCard("در صف", String(Math.max(0, Math.floor(toNumber(summary.scheduledCount, 0))).toLocaleString("fa-IR")), "اعلان‌های منتظر زمان انتشار"));
             }
             notificationsSummary.innerHTML = cards.join("");
         }
@@ -2234,40 +2264,56 @@
             var audienceOpen = notificationsState.expandedAudienceId === id;
             var audienceLoading = !!notificationsState.audienceLoadingIds[id];
             var audiencePanelId = "notification-audience-" + id;
-            var scheduledBadge = item && item.scheduled
-                ? '<span class="account-notification-item__badge is-scheduled">انتشار: ' + escapeHtml(displayAt) + "</span>"
-                : "";
             var audienceBadgeText = notificationsAudienceSummaryText(audienceSummary);
+            var metaText = notificationsRowMetaText(item);
+            var footerNote = notificationsFooterNoteText(item, audienceBadgeText);
+            var signals = [];
+            var actions = [];
+
+            if (stateBadge.text) {
+                signals.push('<span class="account-notification-item__badge' + stateBadge.className + '">' + escapeHtml(stateBadge.text) + "</span>");
+            }
+            if (smsLabel) {
+                signals.push('<span class="account-notification-item__badge">' + escapeHtml(smsLabel) + "</span>");
+            }
+
+            if (ctaHref) {
+                actions.push('<a class="shell-action-btn shell-action-btn-primary" href="' + escapeHtml(ctaHref) + '" data-notification-cta="true" data-notification-id="' + escapeHtml(id) + '">' + escapeHtml(ctaLabel) + "</a>");
+            }
+            if (!item.scheduled && unread) {
+                actions.push('<button class="shell-action-btn" type="button" data-notification-mark="' + escapeHtml(id) + '"' + (marking ? " disabled" : "") + ">" + (marking ? "در حال ثبت..." : "خواندم") + "</button>");
+            }
+            if (canInspect) {
+                actions.push('<button class="shell-action-btn" type="button" data-notification-audience-toggle="' + escapeHtml(id) + '" aria-expanded="' + (audienceOpen ? "true" : "false") + '" aria-controls="' + escapeHtml(audiencePanelId) + '"' + (audienceLoading ? " disabled" : "") + ">" + (audienceOpen ? "بستن مخاطب‌ها" : "مخاطب‌ها") + "</button>");
+            }
+            if (canDelete) {
+                actions.push('<button class="shell-action-btn shell-action-btn-danger" type="button" data-notification-delete="' + escapeHtml(id) + '"' + (deleting ? " disabled" : "") + ">" + (deleting ? "در حال حذف..." : "حذف") + "</button>");
+            }
+
             return [
                 '<article class="account-notification-item' + (unread ? " is-unread" : "") + (item && item.scheduled ? " is-scheduled" : "") + '" data-tone="' + escapeHtml(String(item && item.tone || "accent")) + '" data-notification-id="' + escapeHtml(id) + '">',
+                '  <div class="account-notification-item__topline">',
+                '    <span class="account-notification-item__eyebrow">' + escapeHtml(notificationsKindLabel(item)) + "</span>",
+                signals.length
+                    ? ('    <div class="account-notification-item__signals">' + signals.join("") + "</div>")
+                    : "",
+                "  </div>",
                 '  <div class="account-notification-item__head">',
-                '    <div class="account-notification-item__eyebrow">' + escapeHtml(notificationsKindLabel(item)) + "</div>",
+                '    <div class="account-notification-item__copy">',
+                '      <h4 class="account-notification-item__title">' + escapeHtml(String(item && item.title || "بدون عنوان")) + "</h4>",
+                metaText
+                    ? ('      <p class="account-notification-item__meta-line">' + escapeHtml(metaText) + "</p>")
+                    : "",
+                "    </div>",
                 '    <span class="account-notification-item__time">' + escapeHtml(displayAt) + "</span>",
                 "  </div>",
-                '  <h4 class="account-notification-item__title">' + escapeHtml(String(item && item.title || "بدون عنوان")) + "</h4>",
-                '  <div class="account-notification-item__meta">',
-                '    <span class="account-notification-item__badge' + stateBadge.className + '">' + escapeHtml(stateBadge.text) + "</span>",
-                '    <span class="account-notification-item__badge">' + escapeHtml(String(item && item.senderLabel || "اعلان سیستمی")) + "</span>",
-                '    <span class="account-notification-item__badge">' + escapeHtml(String(item && item.targetLabel || "این حساب")) + "</span>",
-                scheduledBadge,
-                audienceBadgeText ? ('    <span class="account-notification-item__badge">' + escapeHtml(audienceBadgeText) + "</span>") : "",
-                smsLabel ? ('    <span class="account-notification-item__badge">' + escapeHtml(smsLabel) + "</span>") : "",
-                "  </div>",
                 notificationsBodyHtml(item),
-                '  <div class="account-notification-item__actions">',
-                ctaHref
-                    ? ('    <a class="shell-action-btn shell-action-btn-primary" href="' + escapeHtml(ctaHref) + '" data-notification-cta="true" data-notification-id="' + escapeHtml(id) + '">' + escapeHtml(ctaLabel) + "</a>")
+                footerNote
+                    ? ('  <p class="account-notification-item__note">' + escapeHtml(footerNote) + "</p>")
                     : "",
-                !item.scheduled && unread
-                    ? ('    <button class="shell-action-btn" type="button" data-notification-mark="' + escapeHtml(id) + '"' + (marking ? " disabled" : "") + ">" + (marking ? "در حال ثبت..." : "خواندم") + "</button>")
+                actions.length
+                    ? ('  <div class="account-notification-item__actions">' + actions.join("") + "</div>")
                     : "",
-                canInspect
-                    ? ('    <button class="shell-action-btn" type="button" data-notification-audience-toggle="' + escapeHtml(id) + '" aria-expanded="' + (audienceOpen ? "true" : "false") + '" aria-controls="' + escapeHtml(audiencePanelId) + '"' + (audienceLoading ? " disabled" : "") + ">" + (audienceOpen ? "بستن وضعیت" : "وضعیت مشاهده") + "</button>")
-                    : "",
-                canDelete
-                    ? ('    <button class="shell-action-btn shell-action-btn-danger" type="button" data-notification-delete="' + escapeHtml(id) + '"' + (deleting ? " disabled" : "") + ">" + (deleting ? "در حال حذف..." : "حذف اعلان") + "</button>")
-                    : "",
-                "  </div>",
                 notificationsAudiencePanelHtml(Object.assign({}, item, { audiencePanelId: audiencePanelId })),
                 "</article>"
             ].join("");

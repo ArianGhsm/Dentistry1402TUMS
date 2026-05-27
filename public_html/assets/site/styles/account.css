@@ -670,16 +670,19 @@ body.account-page.account-stage-login-active .auth-brand strong {
 }
 
 .account-notice-card {
+    position: relative;
     display: grid;
-    gap: 0.5rem;
+    gap: 0.58rem;
     margin: 0 0.92rem 0.72rem;
-    padding: 0.82rem 0.88rem;
-    border-radius: 16px;
+    padding: 0.92rem 0.94rem;
+    border-radius: 20px;
     border: 1px solid rgba(92, 106, 224, 0.22);
     background:
-        linear-gradient(180deg, rgba(92, 106, 224, 0.14), rgba(92, 106, 224, 0.05)),
+        radial-gradient(circle at 100% 0, rgba(92, 106, 224, 0.18), transparent 42%),
+        linear-gradient(180deg, rgba(92, 106, 224, 0.14), rgba(92, 106, 224, 0.04)),
         var(--surface-solid);
-    box-shadow: 0 18px 34px -34px rgba(26, 38, 92, 0.38);
+    box-shadow: 0 24px 42px -40px rgba(26, 38, 92, 0.44);
+    overflow: hidden;
 }
 
 .account-notice-card__head {
@@ -738,18 +741,22 @@ body.account-page.account-stage-login-active .auth-brand strong {
 }
 
 .account-notifications-compose {
+    position: relative;
     border: 1px solid rgba(127, 145, 165, 0.18);
-    border-radius: 18px;
+    border-radius: 22px;
     background:
-        linear-gradient(180deg, rgba(43, 109, 243, 0.05), rgba(43, 109, 243, 0.015)),
+        radial-gradient(circle at 100% 0, rgba(43, 109, 243, 0.12), transparent 38%),
+        linear-gradient(180deg, rgba(43, 109, 243, 0.06), rgba(43, 109, 243, 0.015)),
         var(--surface-solid);
+    box-shadow: 0 20px 38px -42px rgba(17, 30, 54, 0.34);
+    overflow: hidden;
 }
 
 .account-notifications-compose__summary {
     list-style: none;
     display: grid;
-    gap: 0.18rem;
-    padding: 0.84rem 0.9rem;
+    gap: 0.22rem;
+    padding: 0.92rem 0.96rem;
     cursor: pointer;
 }
 
@@ -771,7 +778,11 @@ body.account-page.account-stage-login-active .auth-brand strong {
 }
 
 .account-notifications-compose[open] {
-    box-shadow: 0 16px 30px -32px rgba(17, 30, 54, 0.26);
+    box-shadow: 0 20px 36px -38px rgba(17, 30, 54, 0.3);
+}
+
+.account-notifications-compose[open] .account-notifications-compose__summary {
+    border-bottom: 1px solid rgba(127, 145, 165, 0.16);
 }
 
 .account-notifications-form {
@@ -811,23 +822,24 @@ body.account-page.account-stage-login-active .auth-brand strong {
 
 .account-notifications-filter {
     appearance: none;
-    min-height: 34px;
-    padding: 0.24rem 0.72rem;
+    min-height: 36px;
+    padding: 0.26rem 0.78rem;
     border-radius: var(--radius-pill);
     border: 1px solid rgba(127, 145, 165, 0.2);
-    background: var(--surface-solid);
+    background: var(--surface-muted);
     color: var(--text-secondary);
     font: inherit;
     font-size: 0.74rem;
     font-weight: 820;
     cursor: pointer;
-    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
 }
 
 .account-notifications-filter.is-active {
     border-color: rgba(43, 109, 243, 0.24);
     background: rgba(43, 109, 243, 0.12);
     color: var(--accent-strong);
+    transform: translateY(-1px);
 }
 
 .account-field-hint {
@@ -850,45 +862,86 @@ body.account-page.account-stage-login-active .auth-brand strong {
 
 .account-notifications-list {
     display: grid;
-    gap: 0.78rem;
+    gap: 0.7rem;
 }
 
 .account-notification-item {
+    --notification-accent: #3f6ce8;
+    --notification-accent-soft: rgba(63, 108, 232, 0.12);
+    --notification-border: rgba(127, 145, 165, 0.22);
     position: relative;
     display: grid;
-    gap: 0.62rem;
-    padding: 0.92rem;
-    border-radius: 18px;
-    border: 1px solid rgba(127, 145, 165, 0.22);
-    background: var(--surface-solid);
-    box-shadow: 0 18px 34px -36px rgba(17, 30, 54, 0.32);
+    gap: 0.68rem;
+    padding: 0.94rem 0.96rem;
+    padding-inline-start: 1.12rem;
+    border-radius: 22px;
+    border: 1px solid var(--notification-border);
+    background:
+        radial-gradient(circle at 100% 0, var(--notification-accent-soft), transparent 38%),
+        var(--surface-solid);
+    box-shadow: 0 22px 40px -40px rgba(17, 30, 54, 0.34);
+    overflow: hidden;
+}
+
+.account-notification-item::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.82rem;
+    inset-inline-start: 0.66rem;
+    width: 4px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--notification-accent), rgba(63, 108, 232, 0.2));
 }
 
 .account-notification-item.is-unread {
-    border-color: rgba(43, 109, 243, 0.3);
+    border-color: rgba(43, 109, 243, 0.28);
     box-shadow:
         0 0 0 1px rgba(43, 109, 243, 0.08),
-        0 18px 34px -36px rgba(17, 30, 54, 0.32);
+        0 22px 40px -40px rgba(17, 30, 54, 0.34);
 }
 
 .account-notification-item.is-scheduled {
-    border-style: dashed;
-    border-color: rgba(194, 129, 29, 0.38);
+    --notification-accent: #c2811d;
+    --notification-accent-soft: rgba(194, 129, 29, 0.12);
+    --notification-border: rgba(194, 129, 29, 0.34);
     background:
-        linear-gradient(180deg, rgba(194, 129, 29, 0.08), rgba(194, 129, 29, 0.02)),
+        radial-gradient(circle at 100% 0, rgba(194, 129, 29, 0.16), transparent 40%),
+        linear-gradient(180deg, rgba(194, 129, 29, 0.06), rgba(194, 129, 29, 0.015)),
         var(--surface-solid);
 }
 
 .account-notification-item[data-tone="warn"] {
-    border-color: rgba(197, 147, 52, 0.28);
+    --notification-accent: #c59334;
+    --notification-accent-soft: rgba(197, 147, 52, 0.12);
+    --notification-border: rgba(197, 147, 52, 0.28);
 }
 
 .account-notification-item[data-tone="ok"] {
-    border-color: rgba(21, 143, 99, 0.26);
+    --notification-accent: #168861;
+    --notification-accent-soft: rgba(22, 136, 97, 0.12);
+    --notification-border: rgba(21, 143, 99, 0.26);
 }
 
 .account-notification-item[data-tone="danger"] {
-    border-color: rgba(198, 88, 100, 0.28);
+    --notification-accent: #c65864;
+    --notification-accent-soft: rgba(198, 88, 100, 0.12);
+    --notification-border: rgba(198, 88, 100, 0.28);
+}
+
+.account-notification-item__topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.64rem;
+    flex-wrap: wrap;
+}
+
+.account-notification-item__signals {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.38rem;
 }
 
 .account-notification-item__head {
@@ -896,40 +949,46 @@ body.account-page.account-stage-login-active .auth-brand strong {
     align-items: flex-start;
     justify-content: space-between;
     gap: 0.7rem;
-    flex-wrap: wrap;
+}
+
+.account-notification-item__copy {
+    min-width: 0;
+    display: grid;
+    gap: 0.22rem;
 }
 
 .account-notification-item__title {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 0.96rem;
     font-weight: 900;
-    line-height: 1.75;
+    line-height: 1.7;
 }
 
-.account-notification-item__meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
+.account-notification-item__meta-line {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    line-height: 1.85;
 }
 
 .account-notification-item__body {
     margin: 0;
     color: var(--text-secondary);
-    font-size: 0.8rem;
-    line-height: 1.95;
+    font-size: 0.81rem;
+    line-height: 1.9;
     white-space: pre-line;
 }
 
 .account-notification-item__body-shell {
     display: grid;
-    gap: 0.46rem;
+    gap: 0.44rem;
 }
 
 .account-notification-item__body-preview {
     cursor: pointer;
     color: var(--text-secondary);
     font-size: 0.8rem;
-    line-height: 1.95;
+    line-height: 1.9;
 }
 
 .account-notification-item__body-preview::-webkit-details-marker {
@@ -937,7 +996,7 @@ body.account-page.account-stage-login-active .auth-brand strong {
 }
 
 .account-notification-item__body-preview::after {
-    content: "نمایش متن کامل";
+    content: "متن کامل";
     display: inline-flex;
     align-items: center;
     margin-inline-start: 0.56rem;
@@ -947,7 +1006,17 @@ body.account-page.account-stage-login-active .auth-brand strong {
 }
 
 .account-notification-item__body-shell[open] .account-notification-item__body-preview::after {
-    content: "بستن متن";
+    content: "بستن";
+}
+
+.account-notification-item__note {
+    margin: 0;
+    padding: 0.62rem 0.72rem;
+    border-radius: 16px;
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    line-height: 1.85;
 }
 
 .account-notification-item__actions {
@@ -982,7 +1051,7 @@ body.account-page.account-stage-login-active .auth-brand strong {
     display: grid;
     gap: 0.68rem;
     padding: 0.8rem;
-    border-radius: 16px;
+    border-radius: 18px;
     border: 1px solid rgba(127, 145, 165, 0.18);
     background: var(--surface-muted);
 }
@@ -1073,6 +1142,15 @@ body.account-page.account-stage-login-active .auth-brand strong {
 
     .account-notifications-form-actions .shell-action-btn {
         width: 100%;
+    }
+
+    .account-notification-item__head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .account-notification-item__time {
+        align-self: flex-start;
     }
 
     .account-notification-audience__stats,
@@ -3627,6 +3705,7 @@ html[data-theme="dark"] body.account-page .account-list-row--notifications {
 html[data-theme="dark"] body.account-page .account-notice-card {
     border-color: rgba(126, 142, 255, 0.24);
     background:
+        radial-gradient(circle at 100% 0, rgba(126, 142, 255, 0.2), transparent 42%),
         linear-gradient(180deg, rgba(108, 123, 244, 0.2), rgba(20, 29, 48, 0.9)),
         var(--surface-solid);
 }
@@ -3636,6 +3715,12 @@ html[data-theme="dark"] body.account-page .account-notification-item__eyebrow {
     border-color: rgba(126, 142, 255, 0.22);
     background: rgba(126, 142, 255, 0.16);
     color: #c0c8ff;
+}
+
+html[data-theme="dark"] body.account-page .account-notification-item {
+    background:
+        radial-gradient(circle at 100% 0, var(--notification-accent-soft), transparent 40%),
+        rgba(12, 19, 31, 0.94);
 }
 
 html[data-theme="dark"] body.account-page .account-notification-item__badge {
@@ -3658,6 +3743,7 @@ html[data-theme="dark"] body.account-page .account-notification-item__badge.is-s
 html[data-theme="dark"] body.account-page .account-notifications-compose {
     border-color: rgba(124, 145, 168, 0.24);
     background:
+        radial-gradient(circle at 100% 0, rgba(126, 142, 255, 0.18), transparent 38%),
         linear-gradient(180deg, rgba(73, 125, 255, 0.14), rgba(12, 19, 31, 0.92)),
         rgba(12, 19, 31, 0.94);
 }
@@ -3676,6 +3762,11 @@ html[data-theme="dark"] body.account-page .account-notifications-filter.is-activ
 
 html[data-theme="dark"] body.account-page .account-notification-item__body-preview::after {
     color: #9dccff;
+}
+
+html[data-theme="dark"] body.account-page .account-notification-item__note,
+html[data-theme="dark"] body.account-page .account-notification-audience {
+    background: rgba(17, 26, 41, 0.94);
 }
 
 html[data-theme="dark"] body.account-page .account-list-row--polls-active {

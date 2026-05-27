@@ -3,12 +3,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/auth_store.php';
 
-const DENT_NOTIFICATIONS_SCHEMA_VERSION = 2;
+const DENT_NOTIFICATIONS_SCHEMA_VERSION = 3;
 const DENT_NOTIFICATION_ID_PREFIX = 'nt-';
 const DENT_NOTIFICATION_KIND_ANNOUNCEMENT = 'announcement';
 const DENT_NOTIFICATION_KIND_NAVID_ASSIGNMENT = 'navid-assignment';
 const DENT_NOTIFICATION_TARGET_ALL = 'all';
 const DENT_NOTIFICATION_TARGET_COHORT = 'cohort';
+const DENT_NOTIFICATION_TARGET_USER = 'user';
 const DENT_NOTIFICATION_STATUS_ACTIVE = 'active';
 const DENT_NOTIFICATION_STATUS_SCHEDULED = 'scheduled';
 const DENT_NOTIFICATION_SMS_STATUS_NONE = 'none';
@@ -134,7 +135,7 @@ function notifications_clean_kind(?string $value): string
 function notifications_clean_target(?string $value): string
 {
     $target = trim((string) $value);
-    return in_array($target, [DENT_NOTIFICATION_TARGET_ALL, DENT_NOTIFICATION_TARGET_COHORT], true)
+    return in_array($target, [DENT_NOTIFICATION_TARGET_ALL, DENT_NOTIFICATION_TARGET_COHORT, DENT_NOTIFICATION_TARGET_USER], true)
         ? $target
         : DENT_NOTIFICATION_TARGET_ALL;
 }
@@ -312,11 +313,22 @@ function notifications_normalize_record(string $key, array $record): ?array
 
     $target = notifications_clean_target((string) ($record['target'] ?? ''));
     $cohortKey = '';
+    $targetStudentNumber = '';
     if ($target === DENT_NOTIFICATION_TARGET_COHORT) {
         $cohortKey = dent_clean_cohort_key((string) ($record['cohortKey'] ?? ''));
         if ($cohortKey === '' || !dent_cohort_exists($cohortKey)) {
             return null;
         }
+    } elseif ($target === DENT_NOTIFICATION_TARGET_USER) {
+        $targetStudentNumber = dent_normalize_student_number((string) ($record['targetStudentNumber'] ?? ($record['studentNumber'] ?? '')));
+        if ($targetStudentNumber === '') {
+            return null;
+        }
+        $targetUser = dent_get_user_record($targetStudentNumber);
+        if ($targetUser === null) {
+            return null;
+        }
+        $cohortKey = dent_user_cohort_key($targetUser);
     }
 
     $ctaHref = notifications_clean_cta_href((string) ($record['ctaHref'] ?? ''));
@@ -370,6 +382,7 @@ function notifications_normalize_record(string $key, array $record): ?array
         'tone' => notifications_clean_tone((string) ($record['tone'] ?? '')),
         'target' => $target,
         'cohortKey' => $cohortKey,
+        'targetStudentNumber' => $targetStudentNumber,
         'source' => dent_clean_text((string) ($record['source'] ?? 'manager'), 40),
         'sourceKey' => dent_clean_text((string) ($record['sourceKey'] ?? ''), 220),
         'ctaLabel' => $ctaLabel,
@@ -592,11 +605,24 @@ function notifications_record_matches_user(array $record, array $user): bool
         return false;
     }
 
+    $target = (string) ($record['target'] ?? DENT_NOTIFICATION_TARGET_ALL);
+    if ($target === DENT_NOTIFICATION_TARGET_USER) {
+        $targetStudentNumber = dent_normalize_student_number((string) ($record['targetStudentNumber'] ?? ''));
+        if ($targetStudentNumber === '') {
+            return false;
+        }
+
+        if (notifications_user_is_owner($user)) {
+            return true;
+        }
+
+        return dent_normalize_student_number((string) ($user['studentNumber'] ?? '')) === $targetStudentNumber;
+    }
+
     if (notifications_user_is_owner($user)) {
         return true;
     }
 
-    $target = (string) ($record['target'] ?? DENT_NOTIFICATION_TARGET_ALL);
     if ($target === DENT_NOTIFICATION_TARGET_ALL) {
         return true;
     }
@@ -624,6 +650,21 @@ function notifications_record_visible_to_user(array $record, array $user, array 
 function notifications_target_label(array $record): string
 {
     $target = (string) ($record['target'] ?? DENT_NOTIFICATION_TARGET_ALL);
+    if ($target === DENT_NOTIFICATION_TARGET_USER) {
+        $targetStudentNumber = dent_normalize_student_number((string) ($record['targetStudentNumber'] ?? ''));
+        if ($targetStudentNumber === dent_owner_student_number()) {
+            return 'فقط مالک';
+        }
+
+        $targetUser = $targetStudentNumber !== '' ? dent_get_user_record($targetStudentNumber) : null;
+        $targetName = trim((string) ($targetUser['name'] ?? ''));
+        if ($targetName !== '') {
+            return 'فقط ' . $targetName;
+        }
+
+        return 'دریافت‌کننده مستقیم';
+    }
+
     if ($target === DENT_NOTIFICATION_TARGET_COHORT) {
         $cohort = dent_cohort_record((string) ($record['cohortKey'] ?? ''));
         return (string) ($cohort['title'] ?? ($record['cohortKey'] ?? 'ورودی'));
@@ -647,10 +688,11 @@ function notifications_sender_label(array $record): string
     return $role !== '' ? $role : 'اعلان سیستمی';
 }
 
-function notifications_snapshot_recipients_for_target(string $target, string $cohortKey = ''): array
+function notifications_snapshot_recipients_for_target(string $target, string $cohortKey = '', string $targetStudentNumber = ''): array
 {
     $userStore = dent_load_user_store();
     $recipients = [];
+    $targetStudentNumber = dent_normalize_student_number($targetStudentNumber);
 
     foreach (($userStore['users'] ?? []) as $user) {
         if (!is_array($user)) {
@@ -658,11 +700,19 @@ function notifications_snapshot_recipients_for_target(string $target, string $co
         }
 
         $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
-        if ($studentNumber === '' || $studentNumber === dent_owner_student_number()) {
+        if ($studentNumber === '') {
             continue;
         }
 
         $userCohortKey = dent_user_cohort_key($user);
+        if ($target === DENT_NOTIFICATION_TARGET_USER) {
+            if ($targetStudentNumber === '' || $studentNumber !== $targetStudentNumber) {
+                continue;
+            }
+        } elseif ($studentNumber === dent_owner_student_number()) {
+            continue;
+        }
+
         if ($target === DENT_NOTIFICATION_TARGET_COHORT && $userCohortKey !== $cohortKey) {
             continue;
         }
@@ -687,7 +737,8 @@ function notifications_record_recipients(array $record): array
 
     return notifications_snapshot_recipients_for_target(
         (string) ($record['target'] ?? DENT_NOTIFICATION_TARGET_ALL),
-        (string) ($record['cohortKey'] ?? '')
+        (string) ($record['cohortKey'] ?? ''),
+        (string) ($record['targetStudentNumber'] ?? '')
     );
 }
 
@@ -1404,6 +1455,118 @@ function notifications_create_broadcast(array $viewer, array $payload): array
         : $record;
 
     return $latestRecord;
+}
+
+function notifications_build_owner_deploy_notice_body(string $version, string $deployedAt, string $branch = '', string $deployHead = ''): string
+{
+    $lines = [
+        'استقرار جدید سایت با موفقیت انجام شد.',
+        'نسخه: ' . $version,
+        'زمان دقیق deploy: ' . $deployedAt,
+    ];
+
+    $branch = trim($branch);
+    if ($branch !== '') {
+        $lines[] = 'شاخه: ' . $branch;
+    }
+
+    $deployHead = trim($deployHead);
+    if ($deployHead !== '') {
+        $lines[] = 'HEAD: ' . substr($deployHead, 0, 12);
+    }
+
+    return implode("\n", $lines);
+}
+
+function notifications_create_owner_deploy_notice(array $viewer, array $payload): array
+{
+    if (!notifications_user_is_owner($viewer)) {
+        dent_error('ثبت اعلان استقرار فقط برای مالک سامانه مجاز است.', 403);
+    }
+
+    $version = dent_clean_text((string) ($payload['version'] ?? ''), 80);
+    $deployedAt = notifications_normalize_iso_datetime((string) ($payload['deployedAt'] ?? ''));
+    $branch = dent_clean_text((string) ($payload['branch'] ?? ''), 120);
+    $deployHead = dent_clean_text((string) ($payload['deployHead'] ?? ''), 80);
+
+    if ($version === '') {
+        dent_error('نسخه استقرار برای اعلان مالک نامعتبر است.', 422);
+    }
+    if ($deployedAt === '') {
+        dent_error('زمان استقرار برای اعلان مالک نامعتبر است.', 422);
+    }
+
+    $recipientStudentNumber = dent_owner_student_number();
+    $recipients = notifications_snapshot_recipients_for_target(
+        DENT_NOTIFICATION_TARGET_USER,
+        '',
+        $recipientStudentNumber
+    );
+    if (!$recipients) {
+        dent_error('گیرنده اعلان استقرار مالک پیدا نشد.', 500);
+    }
+
+    $title = dent_clean_text((string) ($payload['title'] ?? ''), 180);
+    if ($title === '') {
+        $title = 'استقرار نسخه ' . $version . ' انجام شد';
+    }
+
+    $body = dent_clean_text((string) ($payload['body'] ?? ''), 4000);
+    if ($body === '') {
+        $body = notifications_build_owner_deploy_notice_body($version, $deployedAt, $branch, $deployHead);
+    }
+
+    $record = notifications_with_store_lock(static function (array &$store) use (
+        $title,
+        $body,
+        $version,
+        $deployedAt,
+        $branch,
+        $deployHead,
+        $recipientStudentNumber,
+        $recipients
+    ): array {
+        $id = notifications_generate_id();
+        $record = notifications_normalize_record($id, [
+            'id' => $id,
+            'kind' => DENT_NOTIFICATION_KIND_ANNOUNCEMENT,
+            'title' => $title,
+            'body' => $body,
+            'tone' => 'ok',
+            'target' => DENT_NOTIFICATION_TARGET_USER,
+            'targetStudentNumber' => $recipientStudentNumber,
+            'source' => 'deploy',
+            'sourceKey' => 'deploy:' . $version . ':' . $deployedAt,
+            'createdAt' => $deployedAt,
+            'publishAt' => $deployedAt,
+            'releasedAt' => $deployedAt,
+            'status' => DENT_NOTIFICATION_STATUS_ACTIVE,
+            'createdByStudentNumber' => $recipientStudentNumber,
+            'createdByName' => 'استقرار خودکار',
+            'createdByRole' => 'سیستم',
+            'meta' => [
+                'version' => $version,
+                'deployedAt' => $deployedAt,
+                'branch' => $branch,
+                'deployHead' => $deployHead,
+            ],
+            'recipients' => $recipients,
+            'sendSms' => false,
+            'smsStatus' => DENT_NOTIFICATION_SMS_STATUS_NONE,
+        ]);
+        if ($record === null) {
+            dent_error('اعلان استقرار مالک قابل ذخیره‌سازی نبود.', 500);
+        }
+
+        $store['notifications'][$record['id']] = $record;
+        return $record;
+    });
+
+    $latestStore = notifications_read_store();
+    $recordId = (string) ($record['id'] ?? '');
+    return is_array($latestStore['notifications'][$recordId] ?? null)
+        ? $latestStore['notifications'][$recordId]
+        : $record;
 }
 
 function notifications_audience_payload(array $viewer, string $notificationId): array

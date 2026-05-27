@@ -40,7 +40,7 @@ if ($action === '') {
     $action = 'summary';
 }
 
-if (in_array($action, ['summary', 'list', 'markRead', 'markAllRead', 'savePrefs', 'broadcast', 'audience', 'delete'], true)) {
+if (in_array($action, ['summary', 'list', 'markRead', 'markAllRead', 'savePrefs', 'broadcast', 'deployNotice', 'audience', 'delete'], true)) {
     notifications_process_due_queue();
 }
 
@@ -146,6 +146,37 @@ if ($action === 'broadcast') {
         'message' => notifications_record_is_scheduled($latestRecord)
             ? 'اعلان زمان‌بندی شد.'
             : 'اعلان برای کاربران مقصد ثبت شد.',
+        'summary' => notifications_summary_for_user($store, $viewer),
+        'preview' => notifications_latest_unread_payload_for_user($store, $viewer),
+        'notification' => notifications_public_payload($latestRecord, $viewer, $store),
+        'manager' => notifications_manager_payload($viewer),
+    ]);
+}
+
+if ($action === 'deployNotice') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد ثبت اعلان استقرار نامعتبر است.', 405);
+    }
+
+    $viewer = dent_require_owner();
+    dent_release_session_lock();
+    $record = notifications_create_owner_deploy_notice($viewer, [
+        'version' => (string) ($_POST['version'] ?? ''),
+        'deployedAt' => (string) ($_POST['deployedAt'] ?? ''),
+        'branch' => (string) ($_POST['branch'] ?? ''),
+        'deployHead' => (string) ($_POST['deployHead'] ?? ''),
+        'title' => (string) ($_POST['title'] ?? ''),
+        'body' => (string) ($_POST['body'] ?? ''),
+    ]);
+    $store = notifications_read_store();
+    $recordId = (string) ($record['id'] ?? '');
+    $latestRecord = is_array($store['notifications'][$recordId] ?? null)
+        ? $store['notifications'][$recordId]
+        : $record;
+
+    dent_json_response([
+        'success' => true,
+        'message' => 'اعلان استقرار برای مالک ثبت شد.',
         'summary' => notifications_summary_for_user($store, $viewer),
         'preview' => notifications_latest_unread_payload_for_user($store, $viewer),
         'notification' => notifications_public_payload($latestRecord, $viewer, $store),

@@ -2025,6 +2025,161 @@ function Get-DeployOwnerCredentials() {
     }
 }
 
+function Resolve-PrimarySiteBaseUrl() {
+    foreach ($candidateUrl in @($HealthCheckUrls)) {
+        if ([string]::IsNullOrWhiteSpace($candidateUrl)) {
+            continue
+        }
+
+        $uri = $null
+        if ([Uri]::TryCreate($candidateUrl.Trim(), [UriKind]::Absolute, [ref]$uri)) {
+            return $uri.GetLeftPart([System.UriPartial]::Authority)
+        }
+    }
+
+    return "https://dentistry1402tums.ir"
+}
+
+function Get-WebExceptionResponseBody($exception) {
+    if ($null -eq $exception -or $null -eq $exception.Response) {
+        return ""
+    }
+
+    try {
+        $stream = $exception.Response.GetResponseStream()
+        if ($null -eq $stream) {
+            return ""
+        }
+
+        $reader = New-Object System.IO.StreamReader($stream)
+        try {
+            return $reader.ReadToEnd()
+        } finally {
+            $reader.Dispose()
+        }
+    } catch {
+        return ""
+    }
+}
+
+function Invoke-SiteFormJsonRequest(
+    [string]$Uri,
+    [hashtable]$Body,
+    [string]$Label,
+    $Session = $null
+) {
+    $invokeArgs = @{
+        Uri                = $Uri
+        Method             = "Post"
+        Body               = $Body
+        MaximumRedirection = 3
+        TimeoutSec         = 30
+        UseBasicParsing    = $true
+    }
+    if ($null -ne $Session) {
+        $invokeArgs.WebSession = $Session
+    }
+
+    try {
+        $response = Invoke-WebRequest @invokeArgs
+    } catch {
+        $responseBody = Get-WebExceptionResponseBody $_.Exception
+        $message = if ([string]::IsNullOrWhiteSpace($responseBody)) {
+            $_.Exception.Message
+        } else {
+            $responseBody
+        }
+        throw "$Label request failed. $message"
+    }
+
+    try {
+        return ($response.Content | ConvertFrom-Json -ErrorAction Stop)
+    } catch {
+        throw "$Label returned non-JSON response."
+    }
+}
+
+function Send-OwnerDeployNotice(
+    [string]$Version,
+    [string]$DeployedAt,
+    [string]$Branch,
+    [string]$DeployHead
+) {
+    $started = Get-IsoNow
+    if ($DryRun) {
+        Write-Host "[DryRun] Skip owner deploy notification"
+        return [PSCustomObject]@{
+            Status         = "skipped-dry-run"
+            StartedAt      = $started
+            FinishedAt     = Get-IsoNow
+            SiteBaseUrl    = ""
+            NotificationId = ""
+            Version        = $Version
+            Message        = ""
+        }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($Version)) {
+        throw "Owner deploy notification requires the active PWA version."
+    }
+    if ([string]::IsNullOrWhiteSpace($DeployedAt)) {
+        throw "Owner deploy notification requires the exact deploy timestamp."
+    }
+
+    $liveCredentials = Get-DeployOwnerCredentials
+    if ([string]::IsNullOrWhiteSpace($liveCredentials.StudentNumber) -or [string]::IsNullOrWhiteSpace($liveCredentials.Password)) {
+        $credentialHints = @($liveCredentials.Paths | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $hintText = if ($credentialHints.Count -gt 0) { $credentialHints -join ", " } else { "the configured owner credential path" }
+        throw "Owner credentials are required to send the post-deploy owner notification. Set DENT_DEPLOY_OWNER_STUDENT_NUMBER / DENT_DEPLOY_OWNER_PASSWORD or populate one of these files: $hintText"
+    }
+
+    $siteBaseUrl = Resolve-PrimarySiteBaseUrl
+    $loginUrl = "$siteBaseUrl/api/auth_api.php?action=login"
+    $noticeUrl = "$siteBaseUrl/api/notifications_api.php?action=deployNotice"
+    $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+
+    Write-Host "Step 4.5/5: send owner deploy notification"
+    $loginResponse = Invoke-SiteFormJsonRequest `
+        -Uri $loginUrl `
+        -Body @{
+            studentNumber = [string]$liveCredentials.StudentNumber
+            password      = [string]$liveCredentials.Password
+        } `
+        -Label "Owner login for deploy notification" `
+        -Session $session
+    if (-not [bool]$loginResponse.success -or -not [bool]$loginResponse.loggedIn) {
+        throw "Owner login for deploy notification did not complete successfully."
+    }
+
+    $noticeResponse = Invoke-SiteFormJsonRequest `
+        -Uri $noticeUrl `
+        -Body @{
+            version    = [string]$Version
+            deployedAt = [string]$DeployedAt
+            branch     = [string]$Branch
+            deployHead = [string]$DeployHead
+        } `
+        -Label "Owner deploy notification" `
+        -Session $session
+    if (-not [bool]$noticeResponse.success) {
+        $errorMessage = [string]$noticeResponse.error
+        if ([string]::IsNullOrWhiteSpace($errorMessage)) {
+            $errorMessage = "unknown error"
+        }
+        throw "Owner deploy notification was rejected. $errorMessage"
+    }
+
+    return [PSCustomObject]@{
+        Status         = "completed"
+        StartedAt      = $started
+        FinishedAt     = Get-IsoNow
+        SiteBaseUrl    = $siteBaseUrl
+        NotificationId = [string]$noticeResponse.notification.id
+        Version        = [string]$Version
+        Message        = [string]$noticeResponse.message
+    }
+}
+
 $validationInfo = [PSCustomObject]@{
     Status     = "not-run"
     StartedAt  = ""
@@ -2097,6 +2252,15 @@ $deployStateInfo = [PSCustomObject]@{
     GitHubHead = ""
     GitHubStatus = ""
 }
+$ownerNoticeInfo = [PSCustomObject]@{
+    Status         = "not-run"
+    StartedAt      = ""
+    FinishedAt     = ""
+    SiteBaseUrl    = ""
+    NotificationId = ""
+    Version        = ""
+    Message        = ""
+}
 
 $failureMessage = ""
 $nonBlockingFailureMessage = ""
@@ -2161,6 +2325,11 @@ try {
     $deployInfo.FinishedAt = Get-IsoNow
 
     $verificationInfo = Run-PostDeployVerification
+    $ownerNoticeInfo = Send-OwnerDeployNotice `
+        -Version ([string]$versionStampInfo.Version) `
+        -DeployedAt ([string]$deployInfo.FinishedAt) `
+        -Branch ([string]$deploySourceBranch) `
+        -DeployHead ([string]$deploySourceHead)
 
     if (-not $DryRun -and -not [string]::IsNullOrWhiteSpace($deploySourceHead)) {
         $statePath = Write-HostDeployState `
@@ -2215,6 +2384,9 @@ try {
     }
     if (-not $githubSyncInfo.FinishedAt) {
         $githubSyncInfo.FinishedAt = Get-IsoNow
+    }
+    if (-not $ownerNoticeInfo.FinishedAt) {
+        $ownerNoticeInfo.FinishedAt = Get-IsoNow
     }
     if (-not $deployStateInfo.FinishedAt) {
         $deployStateInfo.FinishedAt = Get-IsoNow
@@ -2331,6 +2503,26 @@ try {
     }
     if (-not [string]::IsNullOrWhiteSpace($verificationInfo.FinishedAt)) {
         Write-Host " - Verification finished at: $($verificationInfo.FinishedAt)"
+    }
+
+    Write-Host " - Owner deploy notification status: $($ownerNoticeInfo.Status)"
+    if (-not [string]::IsNullOrWhiteSpace($ownerNoticeInfo.StartedAt)) {
+        Write-Host " - Owner deploy notification started at: $($ownerNoticeInfo.StartedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ownerNoticeInfo.FinishedAt)) {
+        Write-Host " - Owner deploy notification finished at: $($ownerNoticeInfo.FinishedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ownerNoticeInfo.Version)) {
+        Write-Host " - Owner deploy notification version: $($ownerNoticeInfo.Version)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ownerNoticeInfo.NotificationId)) {
+        Write-Host " - Owner deploy notification id: $($ownerNoticeInfo.NotificationId)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ownerNoticeInfo.SiteBaseUrl)) {
+        Write-Host " - Owner deploy notification site: $($ownerNoticeInfo.SiteBaseUrl)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ownerNoticeInfo.Message)) {
+        Write-Host " - Owner deploy notification message: $($ownerNoticeInfo.Message)"
     }
 
     Write-Host " - GitHub sync status: $($githubSyncInfo.Status)"
