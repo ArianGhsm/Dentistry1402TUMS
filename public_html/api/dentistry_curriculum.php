@@ -31,7 +31,12 @@ function dent_dentistry_curriculum_terms(): array
                     'units' => [
                         ['key' => 'radiology-theory-1', 'title' => 'رادیو نظری ۱'],
                         ['key' => 'tooth-tissue-health-disease', 'title' => 'بافت دندان در سلامت و بیماری'],
-                        ['key' => 'anatomy-morphology-theory', 'title' => 'آناتومی و مورفولوژی نظری'],
+                        [
+                            'key' => 'anatomy-morphology-theory',
+                            'title' => 'آناتومی و مورفولوژی نظری',
+                            'aliases' => ['مورفولوژی', 'آناتومی و مورفولوژی'],
+                            'examCourseSlugs' => ['morphology'],
+                        ],
                         ['key' => 'specialized-language-1-2', 'title' => 'زبان تخصصی ۱ و ۲'],
                     ],
                 ],
