@@ -3,7 +3,7 @@
         return;
     }
 
-    var CURRENT_VERSION = "20260527-122931";
+    var CURRENT_VERSION = "20260527-155923";
     var VERSION_ENDPOINT = "/app-version.json";
     var SERVICE_WORKER_ENDPOINT = "/sw.js";
     var UPDATE_ACK_STORAGE_KEY = "dent1402-pwa-update-ack-version";

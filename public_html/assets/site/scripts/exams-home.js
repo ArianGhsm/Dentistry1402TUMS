@@ -227,7 +227,7 @@
         }
 
         return [
-            '<article class="catalog-simple-row">',
+            '<article class="catalog-simple-row' + (config.rowClassName ? " " + escapeHtml(config.rowClassName) : "") + '">',
             interactiveOpen,
             '  <div class="catalog-simple-row__body">',
             (config.eyebrow || config.status)
@@ -241,6 +241,9 @@
                 ? '    <p class="catalog-simple-row__meta">' + escapeHtml(config.meta) + "</p>"
                 : "",
             "  </div>",
+            '  <span class="catalog-simple-row__visual' + (config.visualMuted ? " is-muted" : "") + '" aria-hidden="true">'
+                + (config.visualLabel ? "<strong>" + escapeHtml(config.visualLabel) + "</strong>" : "")
+                + "</span>",
             '  <div class="catalog-simple-row__tail">',
             config.actionLabel
                 ? '<span class="catalog-simple-row__action' + (showChevron ? "" : " is-muted") + '">' + escapeHtml(config.actionLabel) + "</span>"
@@ -311,33 +314,6 @@
             label: directLabel,
             href: appendCohortPath(course.path || "/exams/")
         };
-    }
-
-    function catalogStats(catalog) {
-        var summary = {
-            courseCount: 0,
-            examCount: 0,
-            questionCount: 0,
-            completedCount: 0
-        };
-
-        (catalog && Array.isArray(catalog.courses) ? catalog.courses : []).forEach(function (course) {
-            summary.courseCount += 1;
-            summary.examCount += Math.max(0, Number(course.stats && course.stats.examCount || 0));
-            summary.questionCount += Math.max(0, Number(course.stats && course.stats.questionCount || 0));
-            summary.completedCount += Math.max(0, Number(course.stats && course.stats.completedAssessmentCount || 0));
-        });
-
-        return summary;
-    }
-
-    function heroStat(label, value, accentClass) {
-        return [
-            '<div class="exams-summary-stat' + (accentClass ? " " + accentClass : "") + '">',
-            '  <span class="exams-summary-stat__label">' + escapeHtml(label) + "</span>",
-            '  <strong class="exams-summary-stat__value">' + escapeHtml(value) + "</strong>",
-            "</div>"
-        ].join("");
     }
 
     function curriculum() {
@@ -428,7 +404,6 @@
 
     function homeHeroHtml() {
         var payload = curriculum();
-        var summary = payload && payload.stats ? payload.stats : catalogStats(state.catalog);
         var description = compactText(
             payload && payload.description,
             "اول ترم را انتخاب کن، بعد از داخل دسته واحدها وارد آزمون‌های هر درس شو.",
@@ -437,12 +412,7 @@
         return simpleHeroHtml({
             eyebrow: "آزمون‌ها",
             title: (state.catalog && state.catalog.title) || "آزمون‌ها",
-            meta: joinMetaParts([
-                formatValue(summary.termCount || curriculumTerms().length) + " ترم",
-                formatValue(summary.availableUnitCount || 0) + " واحد فعال",
-                formatValue(summary.courseCount || 0) + " مجموعه",
-                description
-            ])
+            meta: description
         });
     }
 
@@ -475,22 +445,24 @@
         var stats = term && term.stats ? term.stats : {};
         var availableCount = Math.max(0, Number(stats.availableUnitCount || 0));
         var preview = termPreview(term);
-        var meta = joinMetaParts([
-            formatValue(stats.unitCount || 0) + " واحد",
-            formatValue(stats.courseCount || 0) + " مجموعه",
-            formatValue(stats.examCount || 0) + " جلسه",
-            preview.length ? preview.join(" | ") : ""
-        ]);
+        var isEmpty = availableCount <= 0;
+        var meta = compactText(
+            preview.length ? preview.join(" • ") : "",
+            isEmpty ? "هنوز آزمونی برای این ترم ثبت نشده است." : "برای دیدن درس‌های این ترم وارد شو.",
+            88
+        );
 
         return simpleRowHtml({
             type: "button",
             attrs: ' data-open-term="' + escapeHtml(term.number) + '"',
             eyebrow: "ترم",
-            status: availableCount > 0 ? "دارای آزمون" : "بدون آزمون",
-            statusMuted: availableCount <= 0,
+            status: isEmpty ? "بدون آزمون" : "",
+            statusMuted: isEmpty,
             title: term.label || "",
             meta: meta,
-            actionLabel: "ورود"
+            rowClassName: accentClassName(index) + (isEmpty ? " is-empty" : ""),
+            visualLabel: formatValue(term.number || (index + 1)),
+            visualMuted: isEmpty
         });
     }
 
@@ -511,7 +483,6 @@
     }
 
     function sectionHeroHtml(term, unit) {
-        var stats = unit && unit.stats ? unit.stats : (term && term.stats ? term.stats : {});
         var title = unit ? unit.title : (term && term.label) || "آزمون‌ها";
         var description = unit
             ? compactText(unit.description, "یکی از مجموعه‌های همین واحد را باز کن تا جلسه‌ها را ببینی.", 80)
@@ -522,14 +493,7 @@
         return simpleHeroHtml({
             eyebrow: unit ? (unit.categoryTitle || "مجموعه آزمون‌ها") : "واحدهای همین ترم",
             title: title,
-            meta: joinMetaParts([
-                unit
-                    ? formatValue(stats.courseCount || 0) + " مجموعه"
-                    : formatValue(stats.unitCount || 0) + " واحد",
-                formatValue(stats.examCount || 0) + " جلسه",
-                formatValue(stats.questionCount || 0) + " سوال",
-                description
-            ]),
+            meta: description,
             actionsHtml: [
                 '<button class="exam-btn exam-btn--ghost" type="button" data-go-home="true">بازگشت به ترم‌ها</button>',
                 unit
@@ -565,28 +529,29 @@
     }
 
     function unitCardHtml(unit, index) {
-        var stats = unit && unit.stats ? unit.stats : {};
         var note = unit && unit.collectionTitles && unit.collectionTitles.length > 1
             ? unit.collectionTitles.join(" | ")
             : "";
         var action = unitActionConfig(unit);
-        var meta = joinMetaParts([
-            formatValue(stats.courseCount || 0) + " مجموعه",
-            formatValue(stats.examCount || 0) + " جلسه",
-            formatValue(stats.questionCount || 0) + " سوال",
-            note || compactText(unit.description, "", 64)
-        ]);
+        var isEmpty = cleanUnitKey(unit && unit.statusKey) === "empty";
+        var meta = compactText(
+            note || unit.description || "",
+            isEmpty ? "هنوز آزمونی برای این درس ثبت نشده است." : "برای دیدن آزمون‌های این درس وارد شو.",
+            78
+        );
 
         return simpleRowHtml({
             type: action.type,
             attrs: action.attrs || "",
             href: action.href || "",
             eyebrow: unit.categoryTitle || "واحد",
-            status: unit.statusLabel || "",
-            statusMuted: cleanUnitKey(unit && unit.statusKey) === "empty",
+            status: isEmpty ? (unit.statusLabel || "بدون آزمون") : "",
+            statusMuted: isEmpty,
             title: unit.title || "",
             meta: meta,
-            actionLabel: action.actionLabel
+            rowClassName: accentClassName(index) + (isEmpty ? " is-empty" : ""),
+            visualLabel: formatValue(index + 1),
+            visualMuted: isEmpty
         });
     }
 
@@ -603,10 +568,7 @@
         return simpleGroupHtml({
             eyebrow: "دسته",
             title: category.title || "",
-            meta: joinMetaParts([
-                formatValue(category.stats && category.stats.availableUnitCount || 0) + " واحد فعال",
-                formatValue(units.length) + " ردیف"
-            ])
+            meta: ""
         }, units.map(function (unit, index) {
             return unitCardHtml(unit, index);
         }).join(""));
@@ -628,21 +590,22 @@
         var status = statusMeta(course);
         var action = courseAction(course);
         var title = cleanCourseTitle(course.title || "") || String(course.title || "").trim();
-        var meta = joinMetaParts([
-            formatValue(course.stats && course.stats.examCount || 0) + " جلسه",
-            formatValue(course.stats && course.stats.questionCount || 0) + " سوال",
-            formatValue(course.stats && course.stats.completedAssessmentCount || 0) + " کارنامه",
-            compactText(course.cardDescription || course.heroDescription, "", 64)
-        ]);
+        var meta = compactText(
+            course.cardDescription || course.heroDescription || "",
+            "برای دیدن جلسه‌های این مجموعه وارد شو.",
+            80
+        );
+        var statusText = status.label === "رایگان" ? "" : status.label;
 
         return simpleRowHtml({
             type: "link",
             href: action.href,
             eyebrow: course.badge || "مجموعه",
-            status: status.label,
+            status: statusText,
             title: title,
             meta: meta,
-            actionLabel: action.label
+            rowClassName: accentClassName(index),
+            visualLabel: formatValue(index + 1)
         });
     }
 

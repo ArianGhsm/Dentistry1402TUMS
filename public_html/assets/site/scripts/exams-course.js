@@ -112,6 +112,12 @@
         return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR");
     }
 
+    function toFaDigitsText(value) {
+        return String(value == null ? "" : value).replace(/\d/g, function (digit) {
+            return ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"][Number(digit)] || digit;
+        });
+    }
+
     function formatCount(value, noun) {
         return formatValue(value) + " " + noun;
     }
@@ -133,15 +139,6 @@
             minute: "2-digit",
             hour12: false
         });
-    }
-
-    function formatPercent(value) {
-        var numeric = Math.max(0, Number(value) || 0);
-        var hasFraction = Math.abs(numeric - Math.round(numeric)) > 0.001;
-        return numeric.toLocaleString("fa-IR", {
-            minimumFractionDigits: hasFraction ? 1 : 0,
-            maximumFractionDigits: 1
-        }) + "٪";
     }
 
     function loginHref() {
@@ -289,7 +286,7 @@
     function simpleRowHtml(options) {
         var config = options || {};
         return [
-            '<article class="catalog-simple-row">',
+            '<article class="catalog-simple-row' + (config.rowClassName ? " " + escapeHtml(config.rowClassName) : "") + '">',
             '  <a class="catalog-simple-row__link" href="' + escapeHtml(config.href || "#") + '">',
             '    <div class="catalog-simple-row__body">',
             (config.eyebrow || config.status)
@@ -303,6 +300,9 @@
                 ? '      <p class="catalog-simple-row__meta">' + escapeHtml(config.meta) + "</p>"
                 : "",
             "    </div>",
+            '    <span class="catalog-simple-row__visual' + (config.visualMuted ? " is-muted" : "") + '" aria-hidden="true">'
+                + (config.visualLabel ? "<strong>" + escapeHtml(config.visualLabel) + "</strong>" : "")
+                + "</span>",
             '    <div class="catalog-simple-row__tail">',
             config.actionLabel
                 ? '<span class="catalog-simple-row__action">' + escapeHtml(config.actionLabel) + "</span>"
@@ -484,60 +484,20 @@
         return item.status.key === state.filter;
     }
 
-    function latestAttemptLabel(items) {
-        var latestRaw = "";
-        var latestTime = 0;
-
-        items.forEach(function (item) {
-            var raw = String(item.lastAttemptAt || "").trim();
-            if (!raw) {
-                return;
-            }
-            var parsed = new Date(raw);
-            var timestamp = Number.isFinite(parsed.getTime()) ? parsed.getTime() : 0;
-            if (timestamp >= latestTime) {
-                latestTime = timestamp;
-                latestRaw = raw;
-            }
-        });
-
-        return latestRaw ? formatDateTime(latestRaw, "—") : "";
-    }
-
-    function summaryStat(label, value, accentClass) {
-        return [
-            '<div class="exams-summary-stat' + (accentClass ? " " + accentClass : "") + '">',
-            '  <span class="exams-summary-stat__label">' + escapeHtml(label) + "</span>",
-            '  <strong class="exams-summary-stat__value">' + escapeHtml(value) + "</strong>",
-            "</div>"
-        ].join("");
-    }
-
-    function summaryHtml(course, items) {
+    function summaryHtml(course) {
         var access = statusMeta(course);
-        var itemNoun = courseItemNoun(course);
-        var averageValue = course.stats && course.stats.viewerAveragePercent !== null && course.stats.viewerAveragePercent !== undefined
-            ? formatPercent(course.stats.viewerAveragePercent)
-            : "—";
-        var latestAttempt = latestAttemptLabel(items);
         var heroTitle = cleanCourseTitle(course.title || course.heroTitle || "") || String(course.title || course.heroTitle || "").trim();
         var heroDescription = compactText(
             course.heroDescription,
             "آزمون هر جلسه و سطح دوم را از همین‌جا می‌بینی.",
-            46
+            72
         );
-        var heroKicker = itemNoun === "بخش" ? "انتخاب بخش" : "انتخاب جلسه";
+        var heroKicker = courseItemNoun(course) === "بخش" ? "انتخاب بخش" : "انتخاب جلسه";
 
         return simpleHeroHtml({
             eyebrow: heroKicker,
             title: heroTitle,
-            meta: joinMetaParts([
-                formatValue(course.stats && course.stats.examCount || 0) + " " + itemNoun,
-                formatValue(course.stats && course.stats.questionCount || 0) + " سوال",
-                formatValue(course.stats && course.stats.completedAssessmentCount || 0) + " کارنامه",
-                averageValue !== "—" ? "میانگین تو " + averageValue : "",
-                latestAttempt ? "آخرین شرکت " + latestAttempt : heroDescription
-            ]),
+            meta: heroDescription,
             secondaryHtml: [
                 '<span class="' + escapeHtml(access.className) + '">' + escapeHtml(access.label) + "</span>",
                 curriculumContextHtml(course)
@@ -664,27 +624,42 @@
         ].join("");
     }
 
+    function sessionMetaText(item) {
+        if (item.status.key === "completed") {
+            return "کارنامه و مرور پاسخ‌ها داخل همین جلسه باز می‌شود.";
+        }
+        if (item.status.key === "in-progress") {
+            return "ادامه پاسخ‌گویی از همین جلسه انجام می‌شود.";
+        }
+        if (item.status.key === "not-started") {
+            return "شروع آزمون از داخل همین جلسه انجام می‌شود.";
+        }
+        return compactText(item.status.hint || "", "", 74);
+    }
+
+    function sessionVisualLabel(item, index) {
+        var raw = String(item && item.label || "").trim();
+        var match = raw.match(/\d+(?:\s*[-/]\s*\d+)*/);
+        if (match && match[0]) {
+            return toFaDigitsText(match[0].replace(/\s+/g, ""));
+        }
+        return formatValue(index + 1);
+    }
+
     function sessionCardHtml(item, index) {
-        var resultLabel = item.report ? formatPercent(item.report.percent || 0) : "—";
-        var lastAttemptLabel = item.lastAttemptAt
-            ? formatDateTime(item.lastAttemptAt, "—")
-            : (item.status.key === "not-started" ? "هنوز ثبت نشده" : "—");
-        var meta = joinMetaParts([
-            formatValue(item.questionCount) + " سوال",
-            item.report ? "نتیجه " + resultLabel : "",
-            item.flagsCount > 0 ? formatValue(item.flagsCount) + " نشان‌دار" : "",
-            lastAttemptLabel !== "—" ? "آخرین شرکت " + lastAttemptLabel : "",
-            (!item.report && item.status.hint) ? compactText(item.status.hint, "", 68) : ""
-        ]);
+        var isLocked = item.status.key === "locked";
+        var meta = sessionMetaText(item);
 
         return simpleRowHtml({
             href: item.status.actionHref,
             eyebrow: item.label || "جلسه",
             status: item.status.label,
-            statusMuted: item.status.key === "locked",
+            statusMuted: isLocked,
             title: item.title,
             meta: meta,
-            actionLabel: item.status.actionLabel
+            rowClassName: accentClassName(index) + (isLocked ? " is-empty" : ""),
+            visualLabel: sessionVisualLabel(item, index),
+            visualMuted: isLocked
         });
     }
 
@@ -784,7 +759,7 @@
         root.innerHTML = [
             '<section class="exams-course-shell">',
             '  <div class="exams-course-head">',
-                     summaryHtml(course, items),
+                     summaryHtml(course),
             "  </div>",
             '  <div class="exams-course-scroll">',
                      toolbarHtml(items),

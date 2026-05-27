@@ -326,6 +326,60 @@
         }).join(" • ");
     }
 
+    function dentalAccentClassName(index) {
+        var accents = ["is-accent-a", "is-accent-b", "is-accent-c", "is-accent-d"];
+        return accents[Math.abs(Number(index) || 0) % accents.length];
+    }
+
+    function dentalRowClassName(index, isEmpty) {
+        return dentalAccentClassName(index) + (isEmpty ? " is-empty" : "");
+    }
+
+    function dentalPreviewText(parts, fallback, maxLength) {
+        var preview = parts.filter(function (part) {
+            return !!String(part || "").trim();
+        }).slice(0, 3).join(" • ");
+        return dentalCompactText(preview, fallback, maxLength || 86);
+    }
+
+    function dentalTermPreview(term) {
+        var titles = [];
+        var categories = Array.isArray(term && term.categories) ? term.categories : [];
+
+        categories.forEach(function (category) {
+            (Array.isArray(category && category.units) ? category.units : []).forEach(function (unit) {
+                if (titles.length >= 3) {
+                    return;
+                }
+                if (Number(unit && unit.itemCount || 0) <= 0) {
+                    return;
+                }
+                var nextTitle = String(unit && unit.title || "").trim();
+                if (nextTitle) {
+                    titles.push(nextTitle);
+                }
+            });
+        });
+
+        if (titles.length) {
+            return titles;
+        }
+
+        categories.forEach(function (category) {
+            (Array.isArray(category && category.units) ? category.units : []).forEach(function (unit) {
+                if (titles.length >= 3) {
+                    return;
+                }
+                var nextTitle = String(unit && unit.title || "").trim();
+                if (nextTitle) {
+                    titles.push(nextTitle);
+                }
+            });
+        });
+
+        return titles;
+    }
+
     function dentalAppendSimpleGroupHead(section, eyebrowText, titleText, metaText) {
         var head = dentalCreate("div", "catalog-simple-group__head");
         if (eyebrowText) {
@@ -340,7 +394,7 @@
 
     function dentalCreateSimpleRow(options) {
         var config = options || {};
-        var article = dentalCreate("article", "catalog-simple-row");
+        var article = dentalCreate("article", "catalog-simple-row" + (config.rowClassName ? " " + config.rowClassName : ""));
         var link = dentalCreate("a", "catalog-simple-row__link");
         link.href = config.href || "#";
         if (config.external) {
@@ -370,6 +424,13 @@
         }
         link.appendChild(body);
 
+        var visual = dentalCreate("span", "catalog-simple-row__visual" + (config.visualMuted ? " is-muted" : ""));
+        visual.setAttribute("aria-hidden", "true");
+        if (config.visualLabel) {
+            visual.appendChild(dentalCreate("strong", "", config.visualLabel));
+        }
+        link.appendChild(visual);
+
         var tail = dentalCreate("div", "catalog-simple-row__tail");
         if (config.actionLabel) {
             tail.appendChild(dentalCreate("span", "catalog-simple-row__action", config.actionLabel));
@@ -384,21 +445,23 @@
         var terms = Array.isArray(curriculum && curriculum.terms) ? curriculum.terms : [];
         var grid = dentalCreate("div", "catalog-simple-stack");
 
-        terms.forEach(function (term) {
-            var availableUnitCount = Number((term.stats && term.stats.availableUnitCount) || 0);
+        terms.forEach(function (term, index) {
             var itemCount = Number((term.stats && term.stats.itemCount) || 0);
+            var preview = dentalTermPreview(term);
             grid.appendChild(dentalCreateSimpleRow({
                 href: dentalHomeUrl(Number(term.number || 0), ""),
                 eyebrow: "ترم",
-                status: itemCount > 0 ? "دارای منبع" : "بدون منبع",
+                status: itemCount > 0 ? "" : "بدون منبع",
                 statusMuted: itemCount <= 0,
                 title: term.label || "ترم",
-                meta: dentalMetaText([
-                    toFaDigits((term.stats && term.stats.unitCount) || 0) + " واحد",
-                    toFaDigits(availableUnitCount) + " فعال",
-                    toFaDigits(itemCount) + " منبع"
-                ]),
-                actionLabel: "ورود"
+                meta: dentalPreviewText(
+                    preview,
+                    itemCount > 0 ? "برای دیدن واحدهای این ترم وارد شو." : "هنوز منبعی برای این ترم ثبت نشده است.",
+                    88
+                ),
+                rowClassName: dentalRowClassName(index, itemCount <= 0),
+                visualLabel: toFaDigits(term.number || (index + 1)),
+                visualMuted: itemCount <= 0
             }));
         });
 
@@ -424,13 +487,16 @@
             grid.appendChild(dentalCreateSimpleRow({
                 href: dentalHomeUrl(Number(termData.term || 0), ""),
                 eyebrow: "آرشیو",
-                status: "ترم " + toFaDigits(termData.term || 0),
+                status: "",
                 title: termData.title || "آرشیو",
-                meta: dentalMetaText([
-                    dentalCompactText(termData.description || "", "", 86),
-                    toFaDigits(termData.itemCount || 0) + " منبع"
-                ]),
-                actionLabel: "ورود"
+                meta: dentalCompactText(
+                    termData.description || "",
+                    "آرشیو این ترم در صفحه بعدی باز می‌شود.",
+                    88
+                ),
+                rowClassName: dentalRowClassName(termData.term || 0, Number(termData.itemCount || 0) <= 0),
+                visualLabel: toFaDigits(termData.term || "?"),
+                visualMuted: Number(termData.itemCount || 0) <= 0
             }));
         });
 
@@ -475,26 +541,27 @@
                 section,
                 "دسته",
                 category.title || "",
-                dentalMetaText([
-                    toFaDigits((category.stats && category.stats.availableUnitCount) || 0) + " واحد فعال",
-                    toFaDigits((category.stats && category.stats.itemCount) || 0) + " منبع"
-                ])
+                ""
             );
 
             var unitList = dentalCreate("div", "catalog-simple-stack");
             var units = Array.isArray(category.units) ? category.units : [];
-            units.forEach(function (unit) {
+            units.forEach(function (unit, index) {
+                var isEmpty = Number(unit && unit.itemCount || 0) <= 0;
                 unitList.appendChild(dentalCreateSimpleRow({
                     href: dentalHomeUrl(Number(termData.number || 0), unit.key || ""),
                     eyebrow: category.title || "واحد",
-                    status: unit.statusLabel || "",
-                    statusMuted: unit.itemCount <= 0,
+                    status: isEmpty ? (unit.statusLabel || "بدون منبع") : "",
+                    statusMuted: isEmpty,
                     title: unit.title || "واحد",
-                    meta: dentalMetaText([
-                        dentalCompactText(unit.description || "", "", 74),
-                        toFaDigits(unit.itemCount || 0) + " منبع"
-                    ]),
-                    actionLabel: unit.itemCount > 0 ? "منابع" : "ورود"
+                    meta: dentalCompactText(
+                        unit.description || "",
+                        isEmpty ? "هنوز منبعی برای این درس ثبت نشده است." : "برای دیدن منابع این درس وارد شو.",
+                        76
+                    ),
+                    rowClassName: dentalRowClassName(index, isEmpty),
+                    visualLabel: toFaDigits(index + 1),
+                    visualMuted: isEmpty
                 }));
             });
             section.appendChild(unitList);
@@ -523,19 +590,20 @@
         }
 
         var wrap = dentalCreate("div", "catalog-simple-stack");
-        items.forEach(function (item) {
+        items.forEach(function (item, index) {
             wrap.appendChild(dentalCreateSimpleRow({
                 href: item.buttonUrl || "#",
                 external: !!item.isExternal,
                 eyebrow: item.badge || "منبع",
-                status: item.curriculum && item.curriculum.categoryTitle ? item.curriculum.categoryTitle : "",
+                status: "",
                 title: item.title || "بدون عنوان",
                 meta: dentalCompactText(
                     item.description || "",
                     "لینک این منبع از همین ردیف باز می‌شود.",
                     108
                 ),
-                actionLabel: item.buttonLabel || "دریافت"
+                rowClassName: dentalRowClassName(index, false),
+                visualLabel: toFaDigits(index + 1)
             }));
         });
         list.appendChild(wrap);
