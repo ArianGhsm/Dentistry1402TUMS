@@ -737,12 +737,97 @@ body.account-page.account-stage-login-active .auth-brand strong {
     gap: 0.82rem;
 }
 
+.account-notifications-compose {
+    border: 1px solid rgba(127, 145, 165, 0.18);
+    border-radius: 18px;
+    background:
+        linear-gradient(180deg, rgba(43, 109, 243, 0.05), rgba(43, 109, 243, 0.015)),
+        var(--surface-solid);
+}
+
+.account-notifications-compose__summary {
+    list-style: none;
+    display: grid;
+    gap: 0.18rem;
+    padding: 0.84rem 0.9rem;
+    cursor: pointer;
+}
+
+.account-notifications-compose__summary::-webkit-details-marker {
+    display: none;
+}
+
+.account-notifications-compose__summary strong {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 860;
+    line-height: 1.6;
+}
+
+.account-notifications-compose__summary span {
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    line-height: 1.85;
+}
+
+.account-notifications-compose[open] {
+    box-shadow: 0 16px 30px -32px rgba(17, 30, 54, 0.26);
+}
+
+.account-notifications-form {
+    padding: 0 0.9rem 0.9rem;
+}
+
+.account-notifications-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.72rem;
+}
+
+.account-notifications-form-field {
+    display: grid;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.account-notifications-form-actions {
+    display: grid;
+    gap: 0.52rem;
+}
+
 .account-notifications-card--feed {
     align-content: start;
 }
 
 .account-notifications-toggle strong {
     display: block;
+}
+
+.account-notifications-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.44rem;
+}
+
+.account-notifications-filter {
+    appearance: none;
+    min-height: 34px;
+    padding: 0.24rem 0.72rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(127, 145, 165, 0.2);
+    background: var(--surface-solid);
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 820;
+    cursor: pointer;
+    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.account-notifications-filter.is-active {
+    border-color: rgba(43, 109, 243, 0.24);
+    background: rgba(43, 109, 243, 0.12);
+    color: var(--accent-strong);
 }
 
 .account-field-hint {
@@ -833,6 +918,36 @@ body.account-page.account-stage-login-active .auth-brand strong {
     font-size: 0.8rem;
     line-height: 1.95;
     white-space: pre-line;
+}
+
+.account-notification-item__body-shell {
+    display: grid;
+    gap: 0.46rem;
+}
+
+.account-notification-item__body-preview {
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.95;
+}
+
+.account-notification-item__body-preview::-webkit-details-marker {
+    display: none;
+}
+
+.account-notification-item__body-preview::after {
+    content: "نمایش متن کامل";
+    display: inline-flex;
+    align-items: center;
+    margin-inline-start: 0.56rem;
+    color: var(--accent-strong);
+    font-size: 0.72rem;
+    font-weight: 820;
+}
+
+.account-notification-item__body-shell[open] .account-notification-item__body-preview::after {
+    content: "بستن متن";
 }
 
 .account-notification-item__actions {
@@ -952,6 +1067,14 @@ body.account-page.account-stage-login-active .auth-brand strong {
 }
 
 @media (max-width: 760px) {
+    .account-notifications-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .account-notifications-form-actions .shell-action-btn {
+        width: 100%;
+    }
+
     .account-notification-audience__stats,
     .account-notification-audience__columns {
         grid-template-columns: minmax(0, 1fr);
@@ -3530,6 +3653,29 @@ html[data-theme="dark"] body.account-page .account-notification-item__badge.is-s
     border-color: rgba(214, 161, 74, 0.3);
     background: rgba(214, 161, 74, 0.16);
     color: #ffd492;
+}
+
+html[data-theme="dark"] body.account-page .account-notifications-compose {
+    border-color: rgba(124, 145, 168, 0.24);
+    background:
+        linear-gradient(180deg, rgba(73, 125, 255, 0.14), rgba(12, 19, 31, 0.92)),
+        rgba(12, 19, 31, 0.94);
+}
+
+html[data-theme="dark"] body.account-page .account-notifications-filter {
+    border-color: rgba(124, 145, 168, 0.26);
+    background: rgba(17, 26, 41, 0.94);
+    color: #b7c5d8;
+}
+
+html[data-theme="dark"] body.account-page .account-notifications-filter.is-active {
+    border-color: rgba(126, 142, 255, 0.24);
+    background: rgba(126, 142, 255, 0.16);
+    color: #c0c8ff;
+}
+
+html[data-theme="dark"] body.account-page .account-notification-item__body-preview::after {
+    color: #9dccff;
 }
 
 html[data-theme="dark"] body.account-page .account-list-row--polls-active {

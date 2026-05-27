@@ -206,6 +206,7 @@
     var notificationsPrefsSaveButton = $("notifications-prefs-save");
     var notificationsPrefsHint = $("notifications-prefs-hint");
     var notificationsManagerCard = $("notifications-manager-card");
+    var notificationsComposeShell = $("notifications-compose-shell");
     var notificationsBroadcastForm = $("notifications-broadcast-form");
     var notificationsTargetSelect = $("notifications-target");
     var notificationsTitleInput = $("notifications-title");
@@ -218,6 +219,7 @@
     var notificationsManagerFeedback = $("notifications-manager-feedback");
     var notificationsRefreshButton = $("notifications-refresh");
     var notificationsMarkAllButton = $("notifications-mark-all");
+    var notificationsFilters = $("notifications-filters");
     var notificationsFeedback = $("notifications-feedback");
     var notificationsEmpty = $("notifications-empty");
     var notificationsList = $("notifications-list");
@@ -283,6 +285,7 @@
         preferences: null,
         manager: null,
         items: [],
+        activeFilter: "all",
         savingPrefs: false,
         markingAll: false,
         broadcasting: false,
@@ -1728,6 +1731,7 @@
         notificationsState.preferences = null;
         notificationsState.manager = null;
         notificationsState.items = [];
+        notificationsState.activeFilter = "all";
         notificationsState.savingPrefs = false;
         notificationsState.markingAll = false;
         notificationsState.broadcasting = false;
@@ -1771,6 +1775,132 @@
         if (!notificationsState.preview || notificationsState.preview.unread === false) {
             notificationsState.preview = null;
         }
+    }
+
+    function notificationsApplyResponseMeta(response) {
+        if (!response || typeof response !== "object") {
+            return;
+        }
+        notificationsState.summary = response.summary || notificationsState.summary;
+        if (response.preferences) {
+            notificationsState.preferences = response.preferences;
+        }
+        if (response.manager) {
+            notificationsState.manager = response.manager;
+        }
+        if (Object.prototype.hasOwnProperty.call(response, "preview")) {
+            notificationsState.preview = response.preview && typeof response.preview === "object"
+                ? response.preview
+                : null;
+        }
+    }
+
+    function notificationsCompactText(value, fallback, maxLength) {
+        var text = String(value || "").replace(/\s+/g, " ").trim();
+        if (!text) {
+            text = String(fallback || "").trim();
+        }
+        if (!text || !maxLength || text.length <= maxLength) {
+            return text;
+        }
+        return text.slice(0, Math.max(0, maxLength - 1)).trim() + "…";
+    }
+
+    function notificationsItemIsManaged(item) {
+        var managerMeta = item && item.manager && typeof item.manager === "object" ? item.manager : {};
+        return !!(managerMeta.canInspectAudience || managerMeta.canDelete);
+    }
+
+    function notificationsMatchesFilter(item, filterKey) {
+        var key = String(filterKey || "all");
+        if (key === "unread") {
+            return !!(item && item.unread && !item.scheduled);
+        }
+        if (key === "navid") {
+            return !!(item && item.kind === "navid-assignment");
+        }
+        if (key === "scheduled") {
+            return !!(item && item.scheduled);
+        }
+        if (key === "manager") {
+            return notificationsItemIsManaged(item);
+        }
+        return true;
+    }
+
+    function notificationsFilterConfigs(items) {
+        var list = Array.isArray(items) ? items : [];
+        var configs = [
+            { key: "all", label: "همه", count: list.length },
+            { key: "unread", label: "خوانده‌نشده", count: list.filter(function (item) { return notificationsMatchesFilter(item, "unread"); }).length },
+            { key: "navid", label: "نوید", count: list.filter(function (item) { return notificationsMatchesFilter(item, "navid"); }).length },
+            { key: "manager", label: "مدیریتی", count: list.filter(function (item) { return notificationsMatchesFilter(item, "manager"); }).length },
+            { key: "scheduled", label: "زمان‌بندی", count: list.filter(function (item) { return notificationsMatchesFilter(item, "scheduled"); }).length }
+        ];
+
+        return configs.filter(function (config) {
+            return config.key === "all" || config.count > 0;
+        });
+    }
+
+    function notificationsNormalizeActiveFilter(items) {
+        var available = notificationsFilterConfigs(items).map(function (config) {
+            return config.key;
+        });
+        if (available.indexOf(notificationsState.activeFilter) === -1) {
+            notificationsState.activeFilter = "all";
+        }
+        return notificationsState.activeFilter;
+    }
+
+    function notificationsFilteredItems(items) {
+        var list = Array.isArray(items) ? items : [];
+        var filterKey = notificationsNormalizeActiveFilter(list);
+        return list.filter(function (item) {
+            return notificationsMatchesFilter(item, filterKey);
+        });
+    }
+
+    function notificationsBodyHtml(item) {
+        var text = String(item && item.body || "").trim();
+        if (!text) {
+            return "";
+        }
+
+        var bodyHtml = escapeHtml(text).replace(/\r?\n/g, "<br>");
+        var isLong = text.length > 220 || text.indexOf("\n") >= 0;
+        if (!isLong) {
+            return '<p class="account-notification-item__body">' + bodyHtml + "</p>";
+        }
+
+        return [
+            '<details class="account-notification-item__body-shell">',
+            '  <summary class="account-notification-item__body-preview">' + escapeHtml(notificationsCompactText(text, "", 180)) + "</summary>",
+            '  <p class="account-notification-item__body">' + bodyHtml + "</p>",
+            "</details>"
+        ].join("");
+    }
+
+    function notificationsValidateBroadcastPayload(payload) {
+        var data = payload && typeof payload === "object" ? payload : {};
+        if (!String(data.targetKey || "").trim()) {
+            return "مقصد اعلان را انتخاب کن.";
+        }
+        if (!String(data.title || "").trim() && !String(data.body || "").trim()) {
+            return "عنوان یا متن اعلان را وارد کن.";
+        }
+        if (String(data.ctaLabel || "").trim() && !String(data.ctaHref || "").trim()) {
+            return "وقتی متن دکمه را وارد می‌کنی، مسیر آن را هم مشخص کن.";
+        }
+        var href = String(data.ctaHref || "").trim();
+        if (href && (!/^\/(?!\/)/.test(href))) {
+            return "مسیر دکمه باید با / شروع شود.";
+        }
+        var scheduleAt = String(data.scheduleAt || "").trim();
+        if (scheduleAt && Number.isNaN(new Date(scheduleAt).getTime())) {
+            return "زمان انتشار معتبر نیست.";
+        }
+        return "";
     }
 
     function notificationsKindLabel(item) {
@@ -1895,6 +2025,7 @@
 
     function notificationsAudiencePanelHtml(item) {
         var id = String(item && item.id || "");
+        var panelId = String(item && item.audiencePanelId || ("notification-audience-" + id));
         var managerMeta = item && item.manager && typeof item.manager === "object" ? item.manager : {};
         if (!managerMeta.canInspectAudience) {
             return "";
@@ -1915,7 +2046,7 @@
         var verifiedPhoneCount = Math.max(0, Math.floor(toNumber(summary && summary.verifiedPhoneCount, 0)));
 
         return [
-            '<section class="account-notification-audience"' + (open ? "" : " hidden") + ' data-notification-audience-panel="' + escapeHtml(id) + '">',
+            '<section id="' + escapeHtml(panelId) + '" class="account-notification-audience"' + (open ? "" : " hidden") + ' data-notification-audience-panel="' + escapeHtml(id) + '">',
             '  <div class="account-notification-audience__stats">',
             '    <div class="account-notification-audience__stat"><strong>' + recipientCount.toLocaleString("fa-IR") + '</strong><span>مخاطب</span></div>',
             '    <div class="account-notification-audience__stat"><strong>' + viewedCount.toLocaleString("fa-IR") + '</strong><span>دیده‌اند</span></div>',
@@ -1999,6 +2130,9 @@
         var preferences = notificationsState.preferences || {};
         var manager = notificationsState.manager || {};
         var items = Array.isArray(notificationsState.items) ? notificationsState.items : [];
+        var filterConfigs = notificationsFilterConfigs(items);
+        var filteredItems = notificationsFilteredItems(items);
+        var activeFilter = notificationsState.activeFilter;
 
         if (notificationsSummary) {
             var cards = [
@@ -2048,6 +2182,9 @@
             if (notificationsBroadcastSubmit) {
                 notificationsBroadcastSubmit.disabled = notificationsState.broadcasting;
             }
+            if (notificationsComposeShell) {
+                notificationsComposeShell.classList.toggle("is-busy", notificationsState.broadcasting);
+            }
             if (notificationsTitleInput) notificationsTitleInput.disabled = notificationsState.broadcasting;
             if (notificationsBodyInput) notificationsBodyInput.disabled = notificationsState.broadcasting;
             if (notificationsCtaLabelInput) notificationsCtaLabelInput.disabled = notificationsState.broadcasting;
@@ -2062,17 +2199,26 @@
         if (notificationsMarkAllButton) {
             notificationsMarkAllButton.disabled = notificationsState.markingAll || Math.max(0, Math.floor(toNumber(summary.unreadCount, 0))) <= 0;
         }
+        if (notificationsFilters) {
+            notificationsFilters.hidden = filterConfigs.length <= 1;
+            notificationsFilters.innerHTML = filterConfigs.map(function (config) {
+                var key = String(config && config.key || "all");
+                return '<button class="account-notifications-filter' + (key === activeFilter ? " is-active" : "") + '" type="button" data-notification-filter="' + escapeHtml(key) + '">' + escapeHtml(String(config && config.label || key)) + ' <span>(' + Math.max(0, Math.floor(toNumber(config && config.count, 0))).toLocaleString("fa-IR") + ")</span></button>";
+            }).join("");
+        }
         if (notificationsEmpty) {
-            notificationsEmpty.hidden = items.length > 0 || notificationsState.loading;
+            notificationsEmpty.hidden = filteredItems.length > 0 || notificationsState.loading;
+            notificationsEmpty.textContent = activeFilter === "all"
+                ? "اعلانی برای این حساب پیدا نشد."
+                : "برای این فیلتر، اعلانی پیدا نشد.";
         }
         if (!notificationsList) {
             return;
         }
 
-        notificationsList.innerHTML = items.map(function (item) {
+        notificationsList.innerHTML = filteredItems.map(function (item) {
             var id = String(item && item.id || "");
             var displayAt = notificationsItemDisplayAt(item);
-            var body = escapeHtml(String(item && item.body || "")).replace(/\r?\n/g, "<br>");
             var unread = !!(item && item.unread);
             var marking = !!notificationsState.markingIds[id];
             var ctaHref = String(item && item.ctaHref || "");
@@ -2087,6 +2233,7 @@
             var canDelete = !!managerMeta.canDelete;
             var audienceOpen = notificationsState.expandedAudienceId === id;
             var audienceLoading = !!notificationsState.audienceLoadingIds[id];
+            var audiencePanelId = "notification-audience-" + id;
             var scheduledBadge = item && item.scheduled
                 ? '<span class="account-notification-item__badge is-scheduled">انتشار: ' + escapeHtml(displayAt) + "</span>"
                 : "";
@@ -2106,7 +2253,7 @@
                 audienceBadgeText ? ('    <span class="account-notification-item__badge">' + escapeHtml(audienceBadgeText) + "</span>") : "",
                 smsLabel ? ('    <span class="account-notification-item__badge">' + escapeHtml(smsLabel) + "</span>") : "",
                 "  </div>",
-                '  <p class="account-notification-item__body">' + body + "</p>",
+                notificationsBodyHtml(item),
                 '  <div class="account-notification-item__actions">',
                 ctaHref
                     ? ('    <a class="shell-action-btn shell-action-btn-primary" href="' + escapeHtml(ctaHref) + '" data-notification-cta="true" data-notification-id="' + escapeHtml(id) + '">' + escapeHtml(ctaLabel) + "</a>")
@@ -2115,13 +2262,13 @@
                     ? ('    <button class="shell-action-btn" type="button" data-notification-mark="' + escapeHtml(id) + '"' + (marking ? " disabled" : "") + ">" + (marking ? "در حال ثبت..." : "خواندم") + "</button>")
                     : "",
                 canInspect
-                    ? ('    <button class="shell-action-btn" type="button" data-notification-audience-toggle="' + escapeHtml(id) + '"' + (audienceLoading ? " disabled" : "") + ">" + (audienceOpen ? "بستن وضعیت" : "وضعیت مشاهده") + "</button>")
+                    ? ('    <button class="shell-action-btn" type="button" data-notification-audience-toggle="' + escapeHtml(id) + '" aria-expanded="' + (audienceOpen ? "true" : "false") + '" aria-controls="' + escapeHtml(audiencePanelId) + '"' + (audienceLoading ? " disabled" : "") + ">" + (audienceOpen ? "بستن وضعیت" : "وضعیت مشاهده") + "</button>")
                     : "",
                 canDelete
                     ? ('    <button class="shell-action-btn shell-action-btn-danger" type="button" data-notification-delete="' + escapeHtml(id) + '"' + (deleting ? " disabled" : "") + ">" + (deleting ? "در حال حذف..." : "حذف اعلان") + "</button>")
                     : "",
                 "  </div>",
-                notificationsAudiencePanelHtml(item),
+                notificationsAudiencePanelHtml(Object.assign({}, item, { audiencePanelId: audiencePanelId })),
                 "</article>"
             ].join("");
         }).join("");
@@ -2139,6 +2286,28 @@
         notificationsState.preferences = data.preferences && typeof data.preferences === "object" ? data.preferences : null;
         notificationsState.manager = data.manager && typeof data.manager === "object" ? data.manager : null;
         notificationsState.items = Array.isArray(data.items) ? data.items : [];
+        var validIds = {};
+        notificationsState.items.forEach(function (item) {
+            var id = String(item && item.id || "").trim();
+            if (id) {
+                validIds[id] = true;
+            }
+        });
+        Object.keys(notificationsState.audienceById).forEach(function (id) {
+            if (!validIds[id]) {
+                delete notificationsState.audienceById[id];
+            }
+        });
+        Object.keys(notificationsState.audienceLoadingIds).forEach(function (id) {
+            if (!validIds[id]) {
+                delete notificationsState.audienceLoadingIds[id];
+            }
+        });
+        Object.keys(notificationsState.markingIds).forEach(function (id) {
+            if (!validIds[id]) {
+                delete notificationsState.markingIds[id];
+            }
+        });
         if (notificationsState.expandedAudienceId && !notificationsState.items.some(function (item) {
             return String(item && item.id || "") === notificationsState.expandedAudienceId;
         })) {
@@ -2247,15 +2416,7 @@
                 return null;
             }
 
-            notificationsState.summary = response.summary || notificationsState.summary;
-            if (response.preferences) {
-                notificationsState.preferences = response.preferences;
-            }
-            if (Object.prototype.hasOwnProperty.call(response, "preview")) {
-                notificationsState.preview = response.preview && typeof response.preview === "object"
-                    ? response.preview
-                    : null;
-            }
+            notificationsApplyResponseMeta(response);
             updateNotificationsReadState(cleanIds, false);
             setInlineFeedback(notificationsFeedback, "", "");
             renderNotificationsUi();
@@ -2292,15 +2453,7 @@
                 return null;
             }
 
-            notificationsState.summary = response.summary || notificationsState.summary;
-            if (response.preferences) {
-                notificationsState.preferences = response.preferences;
-            }
-            if (Object.prototype.hasOwnProperty.call(response, "preview")) {
-                notificationsState.preview = response.preview && typeof response.preview === "object"
-                    ? response.preview
-                    : null;
-            }
+            notificationsApplyResponseMeta(response);
             notificationsState.items = notificationsState.items.map(function (item) {
                 return Object.assign({}, item, { unread: false });
             });
@@ -2340,8 +2493,7 @@
                 return null;
             }
 
-            notificationsState.preferences = response.preferences || notificationsState.preferences;
-            notificationsState.summary = response.summary || notificationsState.summary;
+            notificationsApplyResponseMeta(response);
             setInlineFeedback(notificationsFeedback, "تنظیمات اعلان ذخیره شد.", "success");
             loadNotifications(true);
             return response;
@@ -2457,16 +2609,7 @@
             if (notificationsState.expandedAudienceId === deletedId) {
                 notificationsState.expandedAudienceId = "";
             }
-            notificationsState.summary = response.summary || notificationsState.summary;
-            notificationsState.manager = response.manager || notificationsState.manager;
-            if (response.preferences) {
-                notificationsState.preferences = response.preferences;
-            }
-            if (Object.prototype.hasOwnProperty.call(response, "preview")) {
-                notificationsState.preview = response.preview && typeof response.preview === "object"
-                    ? response.preview
-                    : null;
-            }
+            notificationsApplyResponseMeta(response);
             notificationsSyncPreview();
             setInlineFeedback(notificationsFeedback, response.message || "اعلان حذف شد.", "success");
             renderNotificationsUi();
@@ -2494,8 +2637,19 @@
             scheduleAt: (notificationsScheduleInput && notificationsScheduleInput.value.trim()) || "",
             sendSms: notificationsSendSmsInput && notificationsSendSmsInput.checked ? "1" : "0"
         };
+        var validationError = notificationsValidateBroadcastPayload(payload);
+        if (validationError) {
+            if (notificationsComposeShell) {
+                notificationsComposeShell.open = true;
+            }
+            setFeedback(notificationsManagerFeedback, validationError, "error");
+            return Promise.resolve(null);
+        }
 
         notificationsState.broadcasting = true;
+        if (notificationsComposeShell) {
+            notificationsComposeShell.open = true;
+        }
         setFeedback(notificationsManagerFeedback, payload.scheduleAt ? "در حال زمان‌بندی اعلان..." : "در حال ارسال اعلان...", "", true);
         renderNotificationsUi();
         return notificationsPost("broadcast", payload).then(function (response) {
@@ -2511,12 +2665,12 @@
                 return null;
             }
 
-            notificationsState.manager = response.manager || notificationsState.manager;
-            notificationsState.summary = response.summary || notificationsState.summary;
+            notificationsApplyResponseMeta(response);
             if (response.notification) {
                 notificationsState.items = [response.notification].concat(notificationsState.items.filter(function (item) {
                     return String(item && item.id || "") !== String(response.notification.id || "");
                 })).slice(0, 60);
+                notificationsState.activeFilter = response.notification.scheduled ? "scheduled" : "all";
             }
             notificationsSyncPreview();
             if (notificationsTitleInput) notificationsTitleInput.value = "";
@@ -2525,12 +2679,19 @@
             if (notificationsCtaHrefInput) notificationsCtaHrefInput.value = "";
             if (notificationsScheduleInput) notificationsScheduleInput.value = "";
             if (notificationsSendSmsInput) notificationsSendSmsInput.checked = false;
-            setFeedback(notificationsManagerFeedback, response.message || "اعلان ثبت شد.", "success");
+            if (notificationsComposeShell) {
+                notificationsComposeShell.open = false;
+            }
+            setFeedback(notificationsManagerFeedback, "", "");
+            setInlineFeedback(notificationsFeedback, response.message || "اعلان ثبت شد.", "success");
             renderNotificationsUi();
             notificationsDispatchSummary(notificationsState.summary);
             return response;
         }).catch(function () {
             notificationsState.broadcasting = false;
+            if (notificationsComposeShell) {
+                notificationsComposeShell.open = true;
+            }
             setFeedback(notificationsManagerFeedback, "اتصال برای ارسال اعلان برقرار نشد.", "error");
             renderNotificationsUi();
             return null;
@@ -5762,6 +5923,18 @@
         notificationsBroadcastForm.addEventListener("submit", function (event) {
             event.preventDefault();
             submitNotificationsBroadcast();
+        });
+    }
+
+    if (notificationsFilters) {
+        notificationsFilters.addEventListener("click", function (event) {
+            var button = event.target && event.target.closest ? event.target.closest("[data-notification-filter]") : null;
+            if (!button) {
+                return;
+            }
+            event.preventDefault();
+            notificationsState.activeFilter = String(button.getAttribute("data-notification-filter") || "all").trim() || "all";
+            renderNotificationsUi();
         });
     }
 

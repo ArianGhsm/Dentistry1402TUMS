@@ -309,54 +309,97 @@
         return link;
     }
 
+    function dentalCompactText(value, fallback, maxLength) {
+        var text = String(value || "").replace(/\s+/g, " ").trim();
+        if (!text) {
+            text = String(fallback || "").trim();
+        }
+        if (!text || !maxLength || text.length <= maxLength) {
+            return text;
+        }
+        return text.slice(0, Math.max(0, maxLength - 1)).trim() + "…";
+    }
+
+    function dentalMetaText(parts) {
+        return parts.filter(function (part) {
+            return !!String(part || "").trim();
+        }).join(" • ");
+    }
+
+    function dentalAppendSimpleGroupHead(section, eyebrowText, titleText, metaText) {
+        var head = dentalCreate("div", "catalog-simple-group__head");
+        if (eyebrowText) {
+            head.appendChild(dentalCreate("span", "catalog-simple-group__eyebrow", eyebrowText));
+        }
+        head.appendChild(dentalCreate("h3", "catalog-simple-group__title", titleText || ""));
+        if (metaText) {
+            head.appendChild(dentalCreate("p", "catalog-simple-group__meta", metaText));
+        }
+        section.appendChild(head);
+    }
+
+    function dentalCreateSimpleRow(options) {
+        var config = options || {};
+        var article = dentalCreate("article", "catalog-simple-row");
+        var link = dentalCreate("a", "catalog-simple-row__link");
+        link.href = config.href || "#";
+        if (config.external) {
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+        }
+
+        var body = dentalCreate("div", "catalog-simple-row__body");
+        if (config.eyebrow || config.status) {
+            var topline = dentalCreate("div", "catalog-simple-row__topline");
+            if (config.eyebrow) {
+                topline.appendChild(dentalCreate("span", "catalog-simple-row__eyebrow", config.eyebrow));
+            }
+            if (config.status) {
+                topline.appendChild(dentalCreate(
+                    "span",
+                    "catalog-simple-row__status" + (config.statusMuted ? " is-muted" : ""),
+                    config.status
+                ));
+            }
+            body.appendChild(topline);
+        }
+
+        body.appendChild(dentalCreate("h3", "catalog-simple-row__title", config.title || ""));
+        if (config.meta) {
+            body.appendChild(dentalCreate("p", "catalog-simple-row__meta", config.meta));
+        }
+        link.appendChild(body);
+
+        var tail = dentalCreate("div", "catalog-simple-row__tail");
+        if (config.actionLabel) {
+            tail.appendChild(dentalCreate("span", "catalog-simple-row__action", config.actionLabel));
+        }
+        tail.appendChild(dentalCreate("span", "catalog-simple-row__chevron", "‹"));
+        link.appendChild(tail);
+        article.appendChild(link);
+        return article;
+    }
+
     function dentalAppendTermCards(curriculum) {
         var terms = Array.isArray(curriculum && curriculum.terms) ? curriculum.terms : [];
-        var grid = dentalCreate("div", "notes-term-grid");
+        var grid = dentalCreate("div", "catalog-simple-stack");
 
         terms.forEach(function (term) {
-            var card = dentalCreate("article", "notes-term-card");
-            var link = dentalCreate("a", "notes-term-card__link");
-            link.href = dentalHomeUrl(Number(term.number || 0), "");
             var availableUnitCount = Number((term.stats && term.stats.availableUnitCount) || 0);
             var itemCount = Number((term.stats && term.stats.itemCount) || 0);
-
-            var head = dentalCreate("div", "notes-term-card__head");
-            head.appendChild(dentalCreateChip(
-                itemCount > 0 ? "دارای منبع" : "بدون منبع",
-                itemCount > 0 ? "notes-chip notes-chip--term" : "notes-chip notes-chip--soft"
-            ));
-            head.appendChild(dentalCreate("h3", "notes-term-card__title", term.label || "ترم"));
-
-            var desc = dentalCreate(
-                "p",
-                "notes-term-card__desc",
-                availableUnitCount > 0
-                    ? "برای دیدن واحدها و منابع همین ترم وارد شو."
-                    : "ساختار این ترم آماده است اما هنوز منبع فعالی ندارد."
-            );
-
-            var preview = dentalCreate("div", "notes-term-card__preview");
-            var previewUnits = Array.isArray(term.previewUnits) ? term.previewUnits : [];
-            if (previewUnits.length) {
-                previewUnits.slice(0, 4).forEach(function (titleText) {
-                    preview.appendChild(dentalCreateChip(titleText, "notes-chip"));
-                });
-            } else {
-                preview.appendChild(dentalCreateChip("بدون منبع", "notes-chip notes-chip--soft"));
-            }
-
-            var stats = dentalCreate("div", "notes-term-card__stats");
-            stats.appendChild(dentalCreateStat("واحد", toFaDigits((term.stats && term.stats.unitCount) || 0)));
-            stats.appendChild(dentalCreateStat("فعال", toFaDigits(availableUnitCount)));
-            stats.appendChild(dentalCreateStat("منبع", toFaDigits(itemCount)));
-
-            link.appendChild(head);
-            link.appendChild(desc);
-            link.appendChild(preview);
-            link.appendChild(stats);
-            link.appendChild(dentalCreateActionLink("ورود به ترم", link.href, false));
-            card.appendChild(link);
-            grid.appendChild(card);
+            grid.appendChild(dentalCreateSimpleRow({
+                href: dentalHomeUrl(Number(term.number || 0), ""),
+                eyebrow: "ترم",
+                status: itemCount > 0 ? "دارای منبع" : "بدون منبع",
+                statusMuted: itemCount <= 0,
+                title: term.label || "ترم",
+                meta: dentalMetaText([
+                    toFaDigits((term.stats && term.stats.unitCount) || 0) + " واحد",
+                    toFaDigits(availableUnitCount) + " فعال",
+                    toFaDigits(itemCount) + " منبع"
+                ]),
+                actionLabel: "ورود"
+            }));
         });
 
         list.appendChild(grid);
@@ -368,31 +411,27 @@
             return;
         }
 
-        var shell = dentalCreate("section", "notes-legacy-shell");
-        var head = dentalCreate("div", "notes-legacy-shell__head");
-        head.appendChild(dentalCreateChip("آرشیوهای دیگر", "notes-chip notes-chip--term"));
-        head.appendChild(dentalCreate("h3", "notes-legacy-shell__title", "منابع خارج از ساختار ۴ تا ۱۲"));
-        head.appendChild(dentalCreate("p", "notes-legacy-shell__desc", "منابع قدیمی‌تر یا عمومی که هنوز بیرون از ساختار دانشکده نگه‌داری می‌شوند."));
-        shell.appendChild(head);
+        var shell = dentalCreate("section", "catalog-simple-group");
+        dentalAppendSimpleGroupHead(
+            shell,
+            "آرشیوهای دیگر",
+            "منابع خارج از ساختار ۴ تا ۱۲",
+            "منابع قدیمی‌تر یا عمومی که هنوز بیرون از ساختار دانشکده نگه‌داری می‌شوند."
+        );
 
-        var grid = dentalCreate("div", "notes-term-grid");
+        var grid = dentalCreate("div", "catalog-simple-stack");
         extraTerms.forEach(function (termData) {
-            var card = dentalCreate("article", "notes-term-card notes-term-card--legacy");
-            var link = dentalCreate("a", "notes-term-card__link");
-            link.href = dentalHomeUrl(Number(termData.term || 0), "");
-            card.appendChild(link);
-
-            var headRow = dentalCreate("div", "notes-term-card__head");
-            headRow.appendChild(dentalCreateChip("ترم " + toFaDigits(termData.term || 0), "notes-chip notes-chip--soft"));
-            headRow.appendChild(dentalCreate("h3", "notes-term-card__title", termData.title || "آرشیو"));
-            link.appendChild(headRow);
-            link.appendChild(dentalCreate("p", "notes-term-card__desc", termData.description || ""));
-
-            var stats = dentalCreate("div", "notes-term-card__stats");
-            stats.appendChild(dentalCreateStat("منبع", toFaDigits(termData.itemCount || 0)));
-            link.appendChild(stats);
-            link.appendChild(dentalCreateActionLink("ورود به آرشیو", link.href, false));
-            grid.appendChild(card);
+            grid.appendChild(dentalCreateSimpleRow({
+                href: dentalHomeUrl(Number(termData.term || 0), ""),
+                eyebrow: "آرشیو",
+                status: "ترم " + toFaDigits(termData.term || 0),
+                title: termData.title || "آرشیو",
+                meta: dentalMetaText([
+                    dentalCompactText(termData.description || "", "", 86),
+                    toFaDigits(termData.itemCount || 0) + " منبع"
+                ]),
+                actionLabel: "ورود"
+            }));
         });
 
         shell.appendChild(grid);
@@ -431,43 +470,32 @@
     function dentalAppendTermOverview(termData) {
         var categories = Array.isArray(termData && termData.categories) ? termData.categories : [];
         categories.forEach(function (category) {
-            var section = dentalCreate("section", "notes-group-card");
-            var head = dentalCreate("div", "notes-group-card__head");
-            head.appendChild(dentalCreateChip(category.title || "", "notes-chip notes-chip--term"));
-            head.appendChild(dentalCreate("h3", "notes-group-card__title", category.title || ""));
-            head.appendChild(dentalCreate("p", "notes-group-card__desc", "واحد موردنظر را از بین این دسته انتخاب کن."));
-            section.appendChild(head);
+            var section = dentalCreate("section", "catalog-simple-group");
+            dentalAppendSimpleGroupHead(
+                section,
+                "دسته",
+                category.title || "",
+                dentalMetaText([
+                    toFaDigits((category.stats && category.stats.availableUnitCount) || 0) + " واحد فعال",
+                    toFaDigits((category.stats && category.stats.itemCount) || 0) + " منبع"
+                ])
+            );
 
-            var unitList = dentalCreate("div", "notes-unit-list");
+            var unitList = dentalCreate("div", "catalog-simple-stack");
             var units = Array.isArray(category.units) ? category.units : [];
             units.forEach(function (unit) {
-                var unitCard = dentalCreate("article", "notes-unit-card");
-                var cardHead = dentalCreate("div", "notes-unit-card__head");
-                cardHead.appendChild(dentalCreateChip(unit.statusLabel || "", unit.itemCount > 0 ? "notes-chip notes-chip--ok" : "notes-chip notes-chip--soft"));
-                cardHead.appendChild(dentalCreate("h4", "notes-unit-card__title", unit.title || "واحد"));
-                unitCard.appendChild(cardHead);
-                unitCard.appendChild(dentalCreate("p", "notes-unit-card__desc", unit.description || ""));
-
-                var preview = dentalCreate("div", "notes-unit-card__preview");
-                var previewTitles = Array.isArray(unit.previewTitles) ? unit.previewTitles : [];
-                if (previewTitles.length) {
-                    previewTitles.slice(0, 3).forEach(function (titleText) {
-                        preview.appendChild(dentalCreateChip(titleText, "notes-chip"));
-                    });
-                } else {
-                    preview.appendChild(dentalCreateChip("هنوز منبعی ندارد", "notes-chip notes-chip--soft"));
-                }
-                unitCard.appendChild(preview);
-
-                var stats = dentalCreate("div", "notes-unit-card__stats");
-                stats.appendChild(dentalCreateStat("منبع", toFaDigits(unit.itemCount || 0)));
-                unitCard.appendChild(stats);
-                unitCard.appendChild(dentalCreateActionLink(
-                    unit.itemCount > 0 ? "دیدن منابع" : "ورود به واحد",
-                    dentalHomeUrl(Number(termData.number || 0), unit.key || ""),
-                    false
-                ));
-                unitList.appendChild(unitCard);
+                unitList.appendChild(dentalCreateSimpleRow({
+                    href: dentalHomeUrl(Number(termData.number || 0), unit.key || ""),
+                    eyebrow: category.title || "واحد",
+                    status: unit.statusLabel || "",
+                    statusMuted: unit.itemCount <= 0,
+                    title: unit.title || "واحد",
+                    meta: dentalMetaText([
+                        dentalCompactText(unit.description || "", "", 74),
+                        toFaDigits(unit.itemCount || 0) + " منبع"
+                    ]),
+                    actionLabel: unit.itemCount > 0 ? "منابع" : "ورود"
+                }));
             });
             section.appendChild(unitList);
             list.appendChild(section);
@@ -494,32 +522,21 @@
             return;
         }
 
-        var wrap = dentalCreate("div", "notes-resource-list");
+        var wrap = dentalCreate("div", "catalog-simple-stack");
         items.forEach(function (item) {
-            var card = dentalCreate("article", "notes-resource-card");
-            var head = dentalCreate("div", "notes-resource-card__head");
-            head.appendChild(dentalCreateChip(item.badge || "منبع", "notes-chip notes-chip--term"));
-            head.appendChild(dentalCreate("h3", "notes-resource-card__title", item.title || "بدون عنوان"));
-            card.appendChild(head);
-            card.appendChild(dentalCreate("p", "notes-resource-card__desc", item.description || ""));
-
-            var meta = dentalCreate("div", "notes-resource-card__meta");
-            if (item.curriculum && item.curriculum.termNumber) {
-                meta.appendChild(dentalCreateChip(item.curriculum.categoryTitle || "", "notes-chip"));
-            }
-            if (item.storageTerm) {
-                meta.appendChild(dentalCreateChip("ذخیره در ترم " + toFaDigits(item.storageTerm), "notes-chip notes-chip--soft"));
-            }
-            card.appendChild(meta);
-
-            var action = dentalCreateActionLink(item.buttonLabel || "دریافت", item.buttonUrl || "#", false);
-            action.classList.add("notes-resource-card__action");
-            if (item.isExternal) {
-                action.target = "_blank";
-                action.rel = "noopener noreferrer";
-            }
-            card.appendChild(action);
-            wrap.appendChild(card);
+            wrap.appendChild(dentalCreateSimpleRow({
+                href: item.buttonUrl || "#",
+                external: !!item.isExternal,
+                eyebrow: item.badge || "منبع",
+                status: item.curriculum && item.curriculum.categoryTitle ? item.curriculum.categoryTitle : "",
+                title: item.title || "بدون عنوان",
+                meta: dentalCompactText(
+                    item.description || "",
+                    "لینک این منبع از همین ردیف باز می‌شود.",
+                    108
+                ),
+                actionLabel: item.buttonLabel || "دریافت"
+            }));
         });
         list.appendChild(wrap);
     }
@@ -537,7 +554,6 @@
         );
         document.title = "آرشیو منابع " + dentalYearLabel() + " | ساختار ترم و واحد";
         dentalResetList();
-        dentalAppendSummary((curriculum && curriculum.stats) || {});
         dentalAppendTermCards(curriculum);
         dentalAppendLegacyTerms(curriculum);
     }
@@ -559,11 +575,6 @@
         }
         document.title = (termData.label || "ترم") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
-        dentalAppendSummary({
-            termCount: 1,
-            availableUnitCount: (termData.stats && termData.stats.availableUnitCount) || 0,
-            itemCount: (termData.stats && termData.stats.itemCount) || 0
-        });
         dentalAppendOverviewActions(Number(termData.number || 0), !!dentalState.canManage);
         dentalAppendTermOverview(termData);
     }

@@ -257,6 +257,63 @@
         return accents[Math.abs(Number(index) || 0) % accents.length];
     }
 
+    function joinMetaParts(parts) {
+        return parts.filter(function (part) {
+            return !!String(part || "").trim();
+        }).join(" • ");
+    }
+
+    function simpleHeroHtml(options) {
+        var config = options || {};
+        return [
+            '<section class="catalog-simple-hero">',
+            config.actionsHtml
+                ? '  <div class="catalog-simple-hero__actions">' + config.actionsHtml + "</div>"
+                : "",
+            '  <div class="catalog-simple-hero__copy">',
+            config.eyebrow
+                ? '    <span class="catalog-simple-hero__eyebrow">' + escapeHtml(config.eyebrow) + "</span>"
+                : "",
+            '    <h2 class="catalog-simple-hero__title">' + escapeHtml(config.title || "") + "</h2>",
+            config.meta
+                ? '    <p class="catalog-simple-hero__meta">' + escapeHtml(config.meta) + "</p>"
+                : "",
+            config.secondaryHtml
+                ? '    <div class="catalog-simple-hero__secondary">' + config.secondaryHtml + "</div>"
+                : "",
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function simpleRowHtml(options) {
+        var config = options || {};
+        return [
+            '<article class="catalog-simple-row">',
+            '  <a class="catalog-simple-row__link" href="' + escapeHtml(config.href || "#") + '">',
+            '    <div class="catalog-simple-row__body">',
+            (config.eyebrow || config.status)
+                ? '      <div class="catalog-simple-row__topline">'
+                    + (config.eyebrow ? '<span class="catalog-simple-row__eyebrow">' + escapeHtml(config.eyebrow) + "</span>" : "")
+                    + (config.status ? '<span class="catalog-simple-row__status' + (config.statusMuted ? " is-muted" : "") + '">' + escapeHtml(config.status) + "</span>" : "")
+                    + "</div>"
+                : "",
+            '      <h3 class="catalog-simple-row__title">' + escapeHtml(config.title || "") + "</h3>",
+            config.meta
+                ? '      <p class="catalog-simple-row__meta">' + escapeHtml(config.meta) + "</p>"
+                : "",
+            "    </div>",
+            '    <div class="catalog-simple-row__tail">',
+            config.actionLabel
+                ? '<span class="catalog-simple-row__action">' + escapeHtml(config.actionLabel) + "</span>"
+                : "",
+            '      <span class="catalog-simple-row__chevron">‹</span>',
+            "    </div>",
+            "  </a>",
+            "</article>"
+        ].join("");
+    }
+
     function statusMeta(course) {
         var access = course && course.access ? course.access : {};
         if (course && course.paymentMode === "paid" && access.hasAccess) {
@@ -471,37 +528,21 @@
         );
         var heroKicker = itemNoun === "بخش" ? "انتخاب بخش" : "انتخاب جلسه";
 
-        return [
-            '<section class="exams-card exams-course-hero">',
-            '  <div class="exams-course-hero__lead">',
-                 layersIcon(),
-            '    <div class="exams-course-hero__copy">',
-            '      <div class="exams-course-hero__topline">',
-            '        <span class="exams-kicker">' + escapeHtml(heroKicker) + "</span>",
-            '        <span class="' + escapeHtml(access.className) + '">' + escapeHtml(access.label) + "</span>",
-            "      </div>",
-            '      <h2 class="exams-course-title">' + escapeHtml(heroTitle) + "</h2>",
-            '      <p class="exams-course-description">' + escapeHtml(heroDescription) + "</p>",
-                     curriculumContextHtml(course),
-            "    </div>",
-            '    <div class="exams-course-hero__count">',
-            '      <span class="exams-course-hero__count-label">کل ' + escapeHtml(itemNoun) + "</span>",
-            '      <strong>' + escapeHtml(formatValue(course.stats && course.stats.examCount || 0)) + "</strong>",
-            "    </div>",
-            "  </div>",
-            '  <div class="exams-course-hero__stats">',
-                 summaryStat("سوال", formatValue(course.stats && course.stats.questionCount || 0)),
-                 summaryStat("کارنامه", formatValue(course.stats && course.stats.completedAssessmentCount || 0)),
-                 summaryStat("میانگین تو", averageValue, averageValue !== "—" ? "is-accent" : ""),
-                 summaryStat("نشان‌دار", formatValue(course.stats && course.stats.flaggedQuestionsCount || 0)),
-            "  </div>",
-            '  <div class="exams-course-hero__footer">',
-            latestAttempt
-                ? '<span class="exams-session-meta">آخرین شرکت: ' + escapeHtml(latestAttempt) + "</span>"
-                : '<span class="exams-session-meta">شروع داخل صفحه هر جلسه انجام می‌شود.</span>',
-            "  </div>",
-            "</section>"
-        ].join("");
+        return simpleHeroHtml({
+            eyebrow: heroKicker,
+            title: heroTitle,
+            meta: joinMetaParts([
+                formatValue(course.stats && course.stats.examCount || 0) + " " + itemNoun,
+                formatValue(course.stats && course.stats.questionCount || 0) + " سوال",
+                formatValue(course.stats && course.stats.completedAssessmentCount || 0) + " کارنامه",
+                averageValue !== "—" ? "میانگین تو " + averageValue : "",
+                latestAttempt ? "آخرین شرکت " + latestAttempt : heroDescription
+            ]),
+            secondaryHtml: [
+                '<span class="' + escapeHtml(access.className) + '">' + escapeHtml(access.label) + "</span>",
+                curriculumContextHtml(course)
+            ].filter(Boolean).join("")
+        });
     }
 
     function toolbarHtml(items) {
@@ -628,33 +669,23 @@
         var lastAttemptLabel = item.lastAttemptAt
             ? formatDateTime(item.lastAttemptAt, "—")
             : (item.status.key === "not-started" ? "هنوز ثبت نشده" : "—");
-        var accentClass = accentClassName(index);
+        var meta = joinMetaParts([
+            formatValue(item.questionCount) + " سوال",
+            item.report ? "نتیجه " + resultLabel : "",
+            item.flagsCount > 0 ? formatValue(item.flagsCount) + " نشان‌دار" : "",
+            lastAttemptLabel !== "—" ? "آخرین شرکت " + lastAttemptLabel : "",
+            (!item.report && item.status.hint) ? compactText(item.status.hint, "", 68) : ""
+        ]);
 
-        return [
-            '<article class="exams-card exam-session-card is-' + escapeHtml(item.status.key) + ' ' + accentClass + '">',
-            '  <a class="exam-session-card__link" href="' + escapeHtml(item.status.actionHref) + '">',
-            '    <span class="exam-session-card__icon" aria-hidden="true"></span>',
-            '    <div class="exam-session-card__body">',
-            '      <div class="exam-session-card__head">',
-            '        <div class="exam-session-card__title-wrap">',
-            '          <span class="exam-session-card__eyebrow">' + escapeHtml(item.label || "جلسه") + "</span>",
-            '          <h3 class="exam-session-title">' + escapeHtml(item.title) + "</h3>",
-            "        </div>",
-            '        <span class="' + escapeHtml(item.status.className) + '">' + escapeHtml(item.status.label) + "</span>",
-            "      </div>",
-            '      <div class="exam-session-card__stats">',
-            '        <div class="exam-session-stat"><span>سوال</span><strong>' + escapeHtml(formatValue(item.questionCount)) + "</strong></div>",
-            '        <div class="exam-session-stat"><span>نتیجه</span><strong>' + escapeHtml(resultLabel) + "</strong></div>",
-            '        <div class="exam-session-stat"><span>نشان‌دار</span><strong>' + escapeHtml(formatValue(item.flagsCount)) + "</strong></div>",
-            '        <div class="exam-session-stat exam-session-stat--wide"><span>آخرین شرکت</span><strong>' + escapeHtml(lastAttemptLabel) + "</strong></div>",
-            "      </div>",
-            '      <div class="exam-session-card__footer">',
-            '        <span class="exam-session-card__action">' + escapeHtml(item.status.actionLabel) + "</span>",
-            "      </div>",
-            "    </div>",
-            "  </a>",
-            "</article>"
-        ].join("");
+        return simpleRowHtml({
+            href: item.status.actionHref,
+            eyebrow: item.label || "جلسه",
+            status: item.status.label,
+            statusMuted: item.status.key === "locked",
+            title: item.title,
+            meta: meta,
+            actionLabel: item.status.actionLabel
+        });
     }
 
     function emptyStateHtml(message) {
@@ -758,7 +789,7 @@
             '  <div class="exams-course-scroll">',
                      toolbarHtml(items),
             filteredItems.length
-                ? '<section class="exams-session-list">' + filteredItems.map(function (item, index) {
+                ? '<section class="catalog-simple-stack">' + filteredItems.map(function (item, index) {
                     return sessionCardHtml(item, index);
                 }).join("") + "</section>"
                 : emptyStateHtml("برای این جستجو یا فیلتر، جلسه‌ای پیدا نشد."),

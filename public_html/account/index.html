@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260527-092409">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260527-092409">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260527-092409">
-    <script src="/assets/site/scripts/theme.js?v=20260527-092409"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260527-092409">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260527-092409">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260527-092409">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260527-122931">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260527-122931">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260527-122931">
+    <script src="/assets/site/scripts/theme.js?v=20260527-122931"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260527-122931">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260527-122931">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260527-122931">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -635,37 +635,55 @@
                             <h4>ارسال اعلان به کاربران</h4>
                             <p>مالک می‌تواند برای همه ورودی‌ها اعلان بفرستد و نماینده فقط برای ورودی خودش.</p>
                         </div>
-                        <form id="notifications-broadcast-form" class="account-form" novalidate>
-                            <label for="notifications-target">مقصد اعلان</label>
-                            <select id="notifications-target"></select>
+                        <details id="notifications-compose-shell" class="account-notifications-compose">
+                            <summary class="account-notifications-compose__summary">
+                                <strong>اعلان جدید</strong>
+                                <span>عنوان، متن، لینک، زمان‌بندی و SMS را فقط هنگام نیاز باز کن.</span>
+                            </summary>
+                            <form id="notifications-broadcast-form" class="account-form account-notifications-form" novalidate>
+                                <div class="account-notifications-form-grid">
+                                    <div class="account-notifications-form-field">
+                                        <label for="notifications-target">مقصد اعلان</label>
+                                        <select id="notifications-target"></select>
+                                    </div>
+                                    <div class="account-notifications-form-field">
+                                        <label for="notifications-schedule-at">زمان انتشار</label>
+                                        <input id="notifications-schedule-at" type="datetime-local" dir="ltr" data-latin-digits="true">
+                                        <small class="account-field-hint">اگر خالی بماند، اعلان بلافاصله ثبت می‌شود. اعلان زمان‌بندی‌شده تا زمان انتشار فقط برای مدیران همان اعلان نمایش مدیریتی دارد.</small>
+                                    </div>
+                                </div>
 
-                            <label for="notifications-title">عنوان اعلان</label>
-                            <input id="notifications-title" type="text" maxlength="180" placeholder="مثلاً اطلاعیه کلاس یا یادآوری مهم">
+                                <label for="notifications-title">عنوان اعلان</label>
+                                <input id="notifications-title" type="text" maxlength="180" placeholder="مثلاً اطلاعیه کلاس یا یادآوری مهم">
 
-                            <label for="notifications-body">متن اعلان</label>
-                            <textarea id="notifications-body" rows="5" maxlength="4000" placeholder="پیام یا توضیح مورد نظر را برای همه کاربران مقصد بنویس."></textarea>
+                                <label for="notifications-body">متن اعلان</label>
+                                <textarea id="notifications-body" rows="5" maxlength="4000" placeholder="پیام یا توضیح مورد نظر را برای همه کاربران مقصد بنویس."></textarea>
 
-                            <label for="notifications-cta-label">متن دکمه مشاهده</label>
-                            <input id="notifications-cta-label" type="text" maxlength="80" placeholder="مثلاً مشاهده فرم یا رفتن به منابع">
+                                <div class="account-notifications-form-grid">
+                                    <div class="account-notifications-form-field">
+                                        <label for="notifications-cta-label">متن دکمه مشاهده</label>
+                                        <input id="notifications-cta-label" type="text" maxlength="80" placeholder="مثلاً مشاهده فرم یا رفتن به منابع">
+                                    </div>
+                                    <div class="account-notifications-form-field">
+                                        <label for="notifications-cta-href">مسیر دکمه مشاهده</label>
+                                        <input id="notifications-cta-href" type="text" maxlength="220" dir="ltr" data-latin-digits="true" placeholder="/forms/ یا /notes/term/?term=5">
+                                    </div>
+                                </div>
 
-                            <label for="notifications-cta-href">مسیر دکمه مشاهده</label>
-                            <input id="notifications-cta-href" type="text" maxlength="220" dir="ltr" data-latin-digits="true" placeholder="/forms/ یا /notes/term/?term=5">
+                                <label class="phone-toggle-row account-notifications-toggle" for="notifications-send-sms">
+                                    <span>
+                                        <strong>ارسال پیامک همزمان</strong>
+                                        <small>متن کوتاه اعلان برای کاربرانی که شماره تاییدشده دارند هم ارسال می‌شود.</small>
+                                    </span>
+                                    <input id="notifications-send-sms" type="checkbox">
+                                </label>
 
-                            <label for="notifications-schedule-at">زمان انتشار</label>
-                            <input id="notifications-schedule-at" type="datetime-local" dir="ltr" data-latin-digits="true">
-                            <small class="account-field-hint">اگر خالی بماند، اعلان بلافاصله ثبت می‌شود. اعلان زمان‌بندی‌شده تا زمان انتشار فقط برای مدیران همان اعلان نمایش مدیریتی دارد.</small>
-
-                            <label class="phone-toggle-row account-notifications-toggle" for="notifications-send-sms">
-                                <span>
-                                    <strong>ارسال پیامک همزمان</strong>
-                                    <small>متن کوتاه اعلان برای کاربرانی که شماره تاییدشده دارند هم ارسال می‌شود.</small>
-                                </span>
-                                <input id="notifications-send-sms" type="checkbox">
-                            </label>
-
-                            <button id="notifications-broadcast-submit" class="shell-action-btn shell-action-btn-primary" type="submit">ارسال اعلان</button>
-                            <div id="notifications-manager-feedback" class="account-feedback" aria-live="polite"></div>
-                        </form>
+                                <div class="account-notifications-form-actions">
+                                    <button id="notifications-broadcast-submit" class="shell-action-btn shell-action-btn-primary" type="submit">ارسال اعلان</button>
+                                    <div id="notifications-manager-feedback" class="account-feedback" aria-live="polite"></div>
+                                </div>
+                            </form>
+                        </details>
                     </section>
 
                     <section class="owner-block account-notifications-card account-notifications-card--feed" aria-label="فهرست اعلان‌ها">
@@ -677,6 +695,7 @@
                             <button id="notifications-refresh" class="shell-action-btn" type="button">بروزرسانی</button>
                             <button id="notifications-mark-all" class="shell-action-btn" type="button">خواندن همه</button>
                         </div>
+                        <div id="notifications-filters" class="account-notifications-filters" hidden></div>
                         <div id="notifications-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
                         <div id="notifications-empty" class="account-empty-state" hidden>اعلانی برای این حساب پیدا نشد.</div>
                         <div id="notifications-list" class="account-notifications-list"></div>
@@ -1016,9 +1035,9 @@
         <p id="account-footer-brand">ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260527-092409"></script>
-    <script src="/assets/site/scripts/account.js?v=20260527-092409"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260527-092409"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260527-092409"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260527-122931"></script>
+    <script src="/assets/site/scripts/account.js?v=20260527-122931"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260527-122931"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260527-122931"></script>
 </body>
 </html>

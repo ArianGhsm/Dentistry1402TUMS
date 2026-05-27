@@ -179,6 +179,97 @@
         return accents[Math.abs(Number(index) || 0) % accents.length];
     }
 
+    function joinMetaParts(parts) {
+        return parts.filter(function (part) {
+            return !!String(part || "").trim();
+        }).join(" • ");
+    }
+
+    function simpleHeroHtml(options) {
+        var config = options || {};
+        return [
+            '<section class="catalog-simple-hero">',
+            config.actionsHtml
+                ? '  <div class="catalog-simple-hero__actions">' + config.actionsHtml + "</div>"
+                : "",
+            '  <div class="catalog-simple-hero__copy">',
+            config.eyebrow
+                ? '    <span class="catalog-simple-hero__eyebrow">' + escapeHtml(config.eyebrow) + "</span>"
+                : "",
+            '    <h2 class="catalog-simple-hero__title">' + escapeHtml(config.title || "") + "</h2>",
+            config.meta
+                ? '    <p class="catalog-simple-hero__meta">' + escapeHtml(config.meta) + "</p>"
+                : "",
+            config.secondaryHtml
+                ? '    <div class="catalog-simple-hero__secondary">' + config.secondaryHtml + "</div>"
+                : "",
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function simpleRowHtml(options) {
+        var config = options || {};
+        var interactiveOpen = "";
+        var interactiveClose = "";
+        var showChevron = true;
+
+        if (config.type === "button") {
+            interactiveOpen = '<button class="catalog-simple-row__button" type="button"' + (config.attrs || "") + ">";
+            interactiveClose = "</button>";
+        } else if (config.type === "static") {
+            interactiveOpen = '<div class="catalog-simple-row__static">';
+            interactiveClose = "</div>";
+            showChevron = false;
+        } else {
+            interactiveOpen = '<a class="catalog-simple-row__link" href="' + escapeHtml(config.href || "#") + '">';
+            interactiveClose = "</a>";
+        }
+
+        return [
+            '<article class="catalog-simple-row">',
+            interactiveOpen,
+            '  <div class="catalog-simple-row__body">',
+            (config.eyebrow || config.status)
+                ? '    <div class="catalog-simple-row__topline">'
+                    + (config.eyebrow ? '<span class="catalog-simple-row__eyebrow">' + escapeHtml(config.eyebrow) + "</span>" : "")
+                    + (config.status ? '<span class="catalog-simple-row__status' + (config.statusMuted ? " is-muted" : "") + '">' + escapeHtml(config.status) + "</span>" : "")
+                    + "</div>"
+                : "",
+            '    <h3 class="catalog-simple-row__title">' + escapeHtml(config.title || "") + "</h3>",
+            config.meta
+                ? '    <p class="catalog-simple-row__meta">' + escapeHtml(config.meta) + "</p>"
+                : "",
+            "  </div>",
+            '  <div class="catalog-simple-row__tail">',
+            config.actionLabel
+                ? '<span class="catalog-simple-row__action' + (showChevron ? "" : " is-muted") + '">' + escapeHtml(config.actionLabel) + "</span>"
+                : "",
+            showChevron ? '<span class="catalog-simple-row__chevron">‹</span>' : "",
+            "  </div>",
+            interactiveClose,
+            "</article>"
+        ].join("");
+    }
+
+    function simpleGroupHtml(options, rowsHtml) {
+        var config = options || {};
+        return [
+            '<section class="catalog-simple-group">',
+            '  <div class="catalog-simple-group__head">',
+            config.eyebrow
+                ? '    <span class="catalog-simple-group__eyebrow">' + escapeHtml(config.eyebrow) + "</span>"
+                : "",
+            '    <h3 class="catalog-simple-group__title">' + escapeHtml(config.title || "") + "</h3>",
+            config.meta
+                ? '    <p class="catalog-simple-group__meta">' + escapeHtml(config.meta) + "</p>"
+                : "",
+            "  </div>",
+            '  <div class="catalog-simple-stack">' + (rowsHtml || "") + "</div>",
+            "</section>"
+        ].join("");
+    }
+
     function statusMeta(course) {
         var access = course && course.access ? course.access : {};
         if (course && course.paymentMode === "paid" && access.hasAccess) {
@@ -343,25 +434,16 @@
             "اول ترم را انتخاب کن، بعد از داخل دسته واحدها وارد آزمون‌های هر درس شو.",
             96
         );
-
-        return [
-            '<section class="exams-card exams-home-hero">',
-            '  <div class="exams-home-hero__copy">',
-            '    <span class="exams-kicker">ترم‌بندی آزمون‌ها</span>',
-            '    <h2 class="exams-title">' + escapeHtml((state.catalog && state.catalog.title) || "آزمون‌ها") + "</h2>",
-            '    <p class="exams-description">' + escapeHtml(description) + "</p>",
-            '    <div class="exams-home-hero__meta">',
-            '      <span class="exams-session-meta">چینش صفحه بر اساس ترم و ساختار واقعی دانشکده انجام شده است.</span>',
-            "    </div>",
-            "  </div>",
-            '  <div class="exams-home-hero__stats">',
-                 heroStat("ترم", formatValue(summary.termCount || curriculumTerms().length)),
-                 heroStat("واحد فعال", formatValue(summary.availableUnitCount || 0)),
-                 heroStat("مجموعه", formatValue(summary.courseCount || 0)),
-                 heroStat("سوال", formatValue(summary.questionCount || 0)),
-            "  </div>",
-            "</section>"
-        ].join("");
+        return simpleHeroHtml({
+            eyebrow: "آزمون‌ها",
+            title: (state.catalog && state.catalog.title) || "آزمون‌ها",
+            meta: joinMetaParts([
+                formatValue(summary.termCount || curriculumTerms().length) + " ترم",
+                formatValue(summary.availableUnitCount || 0) + " واحد فعال",
+                formatValue(summary.courseCount || 0) + " مجموعه",
+                description
+            ])
+        });
     }
 
     function termPreview(term) {
@@ -393,37 +475,23 @@
         var stats = term && term.stats ? term.stats : {};
         var availableCount = Math.max(0, Number(stats.availableUnitCount || 0));
         var preview = termPreview(term);
-        var description = availableCount > 0
-            ? "برای دیدن واحدها و آزمون‌های همین ترم وارد شو."
-            : "ساختار این ترم آماده است اما هنوز آزمون فعالی ندارد.";
+        var meta = joinMetaParts([
+            formatValue(stats.unitCount || 0) + " واحد",
+            formatValue(stats.courseCount || 0) + " مجموعه",
+            formatValue(stats.examCount || 0) + " جلسه",
+            preview.length ? preview.join(" | ") : ""
+        ]);
 
-        return [
-            '<article class="exams-card exams-term-card ' + accentClassName(index) + '">',
-            '  <button class="exams-term-card__link" type="button" data-open-term="' + escapeHtml(term.number) + '">',
-            '    <div class="exams-term-card__head">',
-            '      <div class="exams-term-card__copy">',
-            '        <h3 class="exam-course-card__title">' + escapeHtml(term.label || "") + "</h3>",
-            '        <p class="exam-course-card__desc">' + escapeHtml(description) + "</p>",
-            "      </div>",
-            '      <span class="exams-term-card__badge">' + escapeHtml(availableCount > 0 ? "دارای آزمون" : "بدون آزمون") + "</span>",
-            "    </div>",
-            preview.length
-                ? '    <div class="exams-term-card__preview">' + preview.map(function (title) {
-                    return '<span>' + escapeHtml(title) + "</span>";
-                }).join("") + "</div>"
-                : "",
-            '    <div class="exams-term-card__stats">',
-            '      <div class="exam-course-stat"><span>واحد</span><strong>' + escapeHtml(formatValue(stats.unitCount || 0)) + "</strong></div>",
-            '      <div class="exam-course-stat"><span>مجموعه</span><strong>' + escapeHtml(formatValue(stats.courseCount || 0)) + "</strong></div>",
-            '      <div class="exam-course-stat"><span>جلسه</span><strong>' + escapeHtml(formatValue(stats.examCount || 0)) + "</strong></div>",
-            '      <div class="exam-course-stat"><span>سوال</span><strong>' + escapeHtml(formatValue(stats.questionCount || 0)) + "</strong></div>",
-            "    </div>",
-            '    <div class="exams-term-card__footer">',
-            '      <span class="exam-btn exam-btn--ghost">مشاهده</span>',
-            "    </div>",
-            "  </button>",
-            "</article>"
-        ].join("");
+        return simpleRowHtml({
+            type: "button",
+            attrs: ' data-open-term="' + escapeHtml(term.number) + '"',
+            eyebrow: "ترم",
+            status: availableCount > 0 ? "دارای آزمون" : "بدون آزمون",
+            statusMuted: availableCount <= 0,
+            title: term.label || "",
+            meta: meta,
+            actionLabel: "ورود"
+        });
     }
 
     function termGridHtml() {
@@ -434,7 +502,7 @@
 
         return [
             homeHeroHtml(),
-            '<section class="exams-term-grid">',
+            '<section class="catalog-simple-stack">',
             terms.map(function (term, index) {
                 return termCardHtml(term, index);
             }).join(""),
@@ -445,151 +513,137 @@
     function sectionHeroHtml(term, unit) {
         var stats = unit && unit.stats ? unit.stats : (term && term.stats ? term.stats : {});
         var title = unit ? unit.title : (term && term.label) || "آزمون‌ها";
-        var kicker = unit ? (unit.categoryTitle || "مجموعه آزمون‌ها") : "واحدهای همین ترم";
         var description = unit
-            ? compactText(unit.description, "یکی از مجموعه‌های همین واحد را باز کن تا جلسه‌ها را ببینی.", 88)
+            ? compactText(unit.description, "یکی از مجموعه‌های همین واحد را باز کن تا جلسه‌ها را ببینی.", 80)
             : ((term && term.stats && Number(term.stats.availableUnitCount || 0) > 0)
-                ? "واحد موردنظرت را از بین دسته‌های همین ترم انتخاب کن."
-                : "ساختار این ترم کامل شده اما هنوز آزمونی به واحدهای آن وصل نشده است.");
+                ? "واحد موردنظرت را از بین ردیف‌های همین ترم انتخاب کن."
+                : "ساختار این ترم ثبت شده اما هنوز آزمونی به آن وصل نشده است.");
 
-        return [
-            '<section class="exams-card exams-home-hero exams-home-hero--section">',
-            '  <div class="exams-home-hero__copy">',
-            '    <div class="exams-home-hero__actions">',
-            '      <button class="exam-btn exam-btn--ghost" type="button" data-go-home="true">بازگشت به ترم‌ها</button>',
-            unit
-                ? '<button class="exam-btn exam-btn--ghost" type="button" data-back-term="' + escapeHtml(term && term.number) + '">بازگشت به ' + escapeHtml(term && term.label || "") + "</button>"
-                : "",
-            "    </div>",
-            '    <span class="exams-kicker">' + escapeHtml(kicker) + "</span>",
-            '    <h2 class="exams-title">' + escapeHtml(title) + "</h2>",
-            '    <p class="exams-description">' + escapeHtml(description) + "</p>",
-            unit && unit.collectionTitles && unit.collectionTitles.length
-                ? '    <div class="exams-home-hero__meta"><span class="exams-session-meta">' + escapeHtml(unit.collectionTitles.join(" | ")) + "</span></div>"
-                : "",
-            "  </div>",
-            '  <div class="exams-home-hero__stats">',
-            unit
-                ? heroStat("مجموعه", formatValue(stats.courseCount || 0))
-                : heroStat("واحد", formatValue(stats.unitCount || 0)),
-            '    ' + heroStat("جلسه", formatValue(stats.examCount || 0)),
-            '    ' + heroStat("سوال", formatValue(stats.questionCount || 0)),
-            '    ' + heroStat("فعال", formatValue(unit ? stats.courseCount || 0 : stats.availableUnitCount || 0)),
-            "  </div>",
-            "</section>"
-        ].join("");
+        return simpleHeroHtml({
+            eyebrow: unit ? (unit.categoryTitle || "مجموعه آزمون‌ها") : "واحدهای همین ترم",
+            title: title,
+            meta: joinMetaParts([
+                unit
+                    ? formatValue(stats.courseCount || 0) + " مجموعه"
+                    : formatValue(stats.unitCount || 0) + " واحد",
+                formatValue(stats.examCount || 0) + " جلسه",
+                formatValue(stats.questionCount || 0) + " سوال",
+                description
+            ]),
+            actionsHtml: [
+                '<button class="exam-btn exam-btn--ghost" type="button" data-go-home="true">بازگشت به ترم‌ها</button>',
+                unit
+                    ? '<button class="exam-btn exam-btn--ghost" type="button" data-back-term="' + escapeHtml(term && term.number) + '">بازگشت به ' + escapeHtml(term && term.label || "") + "</button>"
+                    : ""
+            ].filter(Boolean).join(""),
+            secondaryHtml: unit && unit.collectionTitles && unit.collectionTitles.length
+                ? '<span class="exams-session-meta">' + escapeHtml(unit.collectionTitles.join(" | ")) + "</span>"
+                : ""
+        });
     }
 
-    function unitActionHtml(unit) {
+    function unitActionConfig(unit) {
         var entryMode = cleanUnitKey(unit && unit.entryMode);
         if (entryMode === "direct") {
-            return '<a class="exam-btn exam-btn--primary" href="' + escapeHtml(appendCohortPath(unit.entryHref || "/exams/")) + '">' + escapeHtml(unit.entryLabel || "مشاهده آزمون‌ها") + "</a>";
+            return {
+                type: "link",
+                href: appendCohortPath(unit.entryHref || "/exams/"),
+                actionLabel: unit.entryLabel || "ورود"
+            };
         }
         if (entryMode === "collections") {
-            return '<button class="exam-btn exam-btn--primary" type="button" data-open-unit="' + escapeHtml(unit.key || "") + '">' + escapeHtml(unit.entryLabel || "مشاهده مجموعه‌ها") + "</button>";
+            return {
+                type: "button",
+                attrs: ' data-open-unit="' + escapeHtml(unit.key || "") + '"',
+                actionLabel: unit.entryLabel || "ورود"
+            };
         }
-        return '<span class="exam-btn exam-btn--muted" aria-disabled="true">هنوز آزمونی ندارد</span>';
+        return {
+            type: "static",
+            actionLabel: "بدون آزمون"
+        };
     }
 
     function unitCardHtml(unit, index) {
         var stats = unit && unit.stats ? unit.stats : {};
-        var statusClass = unit && unit.statusKey === "empty"
-            ? "exams-status-pill exams-status-pill--paid"
-            : (unit && unit.statusKey === "multi"
-                ? "exams-status-pill exams-status-pill--unlocked"
-                : "exams-status-pill exams-status-pill--free");
         var note = unit && unit.collectionTitles && unit.collectionTitles.length > 1
             ? unit.collectionTitles.join(" | ")
             : "";
+        var action = unitActionConfig(unit);
+        var meta = joinMetaParts([
+            formatValue(stats.courseCount || 0) + " مجموعه",
+            formatValue(stats.examCount || 0) + " جلسه",
+            formatValue(stats.questionCount || 0) + " سوال",
+            note || compactText(unit.description, "", 64)
+        ]);
 
-        return [
-            '<article class="exams-card exams-unit-card exam-course-card ' + accentClassName(index) + '">',
-            '  <div class="exams-unit-card__head">',
-            '    <div class="exams-unit-card__copy">',
-            '      <div class="exam-course-card__eyebrow-row">',
-            '        <span class="exams-kicker">' + escapeHtml(unit.categoryTitle || "") + "</span>",
-            '        <span class="' + escapeHtml(statusClass) + '">' + escapeHtml(unit.statusLabel || "") + "</span>",
-            "      </div>",
-            '      <h3 class="exam-course-card__title">' + escapeHtml(unit.title || "") + "</h3>",
-            '      <p class="exam-course-card__desc">' + escapeHtml(unit.description || "") + "</p>",
-            note
-                ? '      <p class="exams-unit-card__note">' + escapeHtml(note) + "</p>"
-                : "",
-            "    </div>",
-            '    <div class="exams-unit-card__action">' + unitActionHtml(unit) + "</div>",
-            "  </div>",
-            '  <div class="exam-course-card__stats">',
-            '    <div class="exam-course-stat"><span>مجموعه</span><strong>' + escapeHtml(formatValue(stats.courseCount || 0)) + "</strong></div>",
-            '    <div class="exam-course-stat"><span>جلسه</span><strong>' + escapeHtml(formatValue(stats.examCount || 0)) + "</strong></div>",
-            '    <div class="exam-course-stat"><span>سوال</span><strong>' + escapeHtml(formatValue(stats.questionCount || 0)) + "</strong></div>",
-            '    <div class="exam-course-stat"><span>کارنامه</span><strong>' + escapeHtml(formatValue(stats.completedAssessmentCount || 0)) + "</strong></div>",
-            "  </div>",
-            "</article>"
-        ].join("");
+        return simpleRowHtml({
+            type: action.type,
+            attrs: action.attrs || "",
+            href: action.href || "",
+            eyebrow: unit.categoryTitle || "واحد",
+            status: unit.statusLabel || "",
+            statusMuted: cleanUnitKey(unit && unit.statusKey) === "empty",
+            title: unit.title || "",
+            meta: meta,
+            actionLabel: action.actionLabel
+        });
     }
 
     function categoryCardHtml(category) {
         var units = Array.isArray(category && category.units) ? category.units : [];
-        return [
-            '<section class="exams-card exams-group-card">',
-            '  <div class="exams-group-card__head">',
-            '    <div>',
-            '      <span class="exams-kicker">' + escapeHtml(category.title || "") + "</span>",
-            '      <h3 class="exams-panel-title">' + escapeHtml(category.title || "") + "</h3>",
-            "    </div>",
-            '    <span class="exams-session-meta">' + escapeHtml(formatValue(category.stats && category.stats.availableUnitCount || 0)) + " واحد فعال</span>",
-            "  </div>",
-            units.length
-                ? '<div class="exams-unit-list">' + units.map(function (unit, index) {
-                    return unitCardHtml(unit, index);
-                }).join("") + "</div>"
-                : '<div class="exams-empty">هنوز واحدی برای این دسته ثبت نشده است.</div>',
-            "</section>"
-        ].join("");
+        if (!units.length) {
+            return simpleGroupHtml({
+                eyebrow: "دسته",
+                title: category.title || "",
+                meta: "هنوز واحدی برای این دسته ثبت نشده است."
+            }, "");
+        }
+
+        return simpleGroupHtml({
+            eyebrow: "دسته",
+            title: category.title || "",
+            meta: joinMetaParts([
+                formatValue(category.stats && category.stats.availableUnitCount || 0) + " واحد فعال",
+                formatValue(units.length) + " ردیف"
+            ])
+        }, units.map(function (unit, index) {
+            return unitCardHtml(unit, index);
+        }).join(""));
     }
 
     function termDetailHtml(term) {
         var categories = Array.isArray(term && term.categories) ? term.categories : [];
         return [
             sectionHeroHtml(term, null),
+            '<section class="catalog-simple-stack">',
             categories.map(function (category) {
                 return categoryCardHtml(category);
-            }).join("")
+            }).join(""),
+            "</section>"
         ].join("");
     }
 
     function courseCardHtml(course, index) {
         var status = statusMeta(course);
         var action = courseAction(course);
-        var accentClass = accentClassName(index);
         var title = cleanCourseTitle(course.title || "") || String(course.title || "").trim();
-        var description = compactText(
-            course.cardDescription || course.heroDescription,
-            "ورود به این مجموعه، جلسه‌ها و گزارش عملکردت را باز می‌کند.",
-            76
-        );
+        var meta = joinMetaParts([
+            formatValue(course.stats && course.stats.examCount || 0) + " جلسه",
+            formatValue(course.stats && course.stats.questionCount || 0) + " سوال",
+            formatValue(course.stats && course.stats.completedAssessmentCount || 0) + " کارنامه",
+            compactText(course.cardDescription || course.heroDescription, "", 64)
+        ]);
 
-        return [
-            '<article class="exams-card exam-course-card ' + accentClass + '">',
-            '  <div class="exam-course-card__top">',
-            '    <div class="exam-course-card__copy">',
-            '      <div class="exam-course-card__eyebrow-row">',
-            '        <span class="exams-kicker">' + escapeHtml(course.badge || "") + "</span>",
-            '        <span class="' + escapeHtml(status.className) + '">' + escapeHtml(status.label) + "</span>",
-            "      </div>",
-            '      <h3 class="exam-course-card__title">' + escapeHtml(title) + "</h3>",
-            '      <p class="exam-course-card__desc">' + escapeHtml(description) + "</p>",
-            "    </div>",
-            '    <a class="exam-btn exam-btn--primary" href="' + escapeHtml(action.href) + '">' + escapeHtml(action.label) + "</a>",
-            "  </div>",
-            '  <div class="exam-course-card__stats">',
-            '    <div class="exam-course-stat"><span>جلسه</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.examCount || 0)) + "</strong></div>",
-            '    <div class="exam-course-stat"><span>سوال</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.questionCount || 0)) + "</strong></div>",
-            '    <div class="exam-course-stat"><span>کارنامه</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.completedAssessmentCount || 0)) + "</strong></div>",
-            '    <div class="exam-course-stat"><span>نشان‌دار</span><strong>' + escapeHtml(formatValue(course.stats && course.stats.flaggedQuestionsCount || 0)) + "</strong></div>",
-            "  </div>",
-            "</article>"
-        ].join("");
+        return simpleRowHtml({
+            type: "link",
+            href: action.href,
+            eyebrow: course.badge || "مجموعه",
+            status: status.label,
+            title: title,
+            meta: meta,
+            actionLabel: action.label
+        });
     }
 
     function unitCollectionsHtml(term, unit) {
@@ -597,7 +651,7 @@
         return [
             sectionHeroHtml(term, unit),
             collections.length
-                ? '<section class="exams-catalog-list">' + collections.map(function (course, index) {
+                ? '<section class="catalog-simple-stack">' + collections.map(function (course, index) {
                     return courseCardHtml(course, index);
                 }).join("") + "</section>"
                 : '<div class="exams-card exams-empty">برای این واحد هنوز مجموعه‌ای ثبت نشده است.</div>'
@@ -614,7 +668,7 @@
 
         root.innerHTML = [
             homeHeroHtml(),
-            '<section class="exams-catalog-list">',
+            '<section class="catalog-simple-stack">',
             courses.map(function (course, index) {
                 return courseCardHtml(course, index);
             }).join(""),

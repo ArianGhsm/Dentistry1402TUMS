@@ -71,6 +71,7 @@ if ($action === 'markRead') {
     }
 
     $user = dent_require_user();
+    dent_release_session_lock();
     $ids = notifications_parse_ids_input($_POST['ids'] ?? ($_POST['idsJson'] ?? []));
     $summary = notifications_mark_read($user, $ids);
     $store = notifications_read_store();
@@ -88,6 +89,7 @@ if ($action === 'markAllRead') {
     }
 
     $user = dent_require_user();
+    dent_release_session_lock();
     $summary = notifications_mark_all_read($user);
     $store = notifications_read_store();
     dent_json_response([
@@ -104,6 +106,7 @@ if ($action === 'savePrefs') {
     }
 
     $user = dent_require_user();
+    dent_release_session_lock();
     $preferences = notifications_save_preferences($user, [
         'navidAssignmentAlerts' => $_POST['navidAssignmentAlerts'] ?? null,
     ]);
@@ -122,6 +125,7 @@ if ($action === 'broadcast') {
     }
 
     $viewer = dent_require_user();
+    dent_release_session_lock();
     $record = notifications_create_broadcast($viewer, [
         'targetKey' => (string) ($_POST['targetKey'] ?? ''),
         'title' => (string) ($_POST['title'] ?? ''),
@@ -167,6 +171,7 @@ if ($action === 'delete') {
     }
 
     $viewer = dent_require_user();
+    dent_release_session_lock();
     $deleted = notifications_delete_record($viewer, (string) ($_POST['id'] ?? ''));
     $store = notifications_read_store();
     dent_json_response([
