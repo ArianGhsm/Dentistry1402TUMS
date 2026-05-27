@@ -83,7 +83,11 @@ body.app-dashboard-page main {
     font-size: inherit;
     font-weight: inherit;
     line-height: inherit;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft);
 }
 
 .home-service-card:nth-child(6n + 2) {
@@ -532,7 +536,10 @@ html[data-theme="dark"] body.app-dashboard-page {
     background: color-mix(in srgb, var(--service-accent) 6%, var(--surface-solid));
     color: var(--service-accent);
     box-shadow: 0 12px 28px -26px color-mix(in srgb, var(--service-accent) 42%, #000);
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    transition:
+        transform var(--motion-base) var(--motion-ease-soft),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-base) var(--motion-ease-soft);
 }
 
 .home-service-card__icon svg {
@@ -823,7 +830,10 @@ html[data-theme="dark"] body.app-dashboard-page {
     color: var(--text-primary);
     font-size: 0.78rem;
     font-weight: 820;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard);
 }
 
 .home-resource-strip a:hover,
@@ -1273,7 +1283,11 @@ body.app-dashboard-page main {
     box-shadow: 0 12px 24px -24px rgba(17, 30, 54, 0.16);
     direction: rtl;
     text-align: right;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft);
 }
 
 .home-service-link:nth-child(4n + 2) {

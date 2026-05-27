@@ -119,10 +119,10 @@
     --radius-md: 16px;
     --radius-sm: 12px;
     --radius-pill: 999px;
-    --motion-fast: 160ms;
-    --motion-base: 280ms;
-    --motion-slow: 420ms;
-    --motion-xslow: 560ms;
+    --motion-fast: 180ms;
+    --motion-base: 320ms;
+    --motion-slow: 460ms;
+    --motion-xslow: 620ms;
     --motion-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
     --motion-ease-soft: cubic-bezier(0.2, 0.88, 0.24, 1);
     --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
@@ -460,8 +460,8 @@ textarea {
         body.hub-page .action-card__primary
     ) {
         transition:
-            transform 120ms var(--motion-ease-standard),
-            opacity 120ms ease,
+            transform var(--motion-fast) var(--motion-ease-standard),
+            opacity var(--motion-fast) var(--motion-ease-standard),
             box-shadow var(--motion-fast) var(--motion-ease-standard),
             background var(--motion-fast) var(--motion-ease-standard),
             color var(--motion-fast) var(--motion-ease-standard),
@@ -1463,7 +1463,12 @@ html[data-performance-mode="lite"] body::after {
 
 html[data-performance-mode="lite"] .shell-drawer-backdrop,
 html[data-performance-mode="lite"] .shell-modal-backdrop {
-    backdrop-filter: blur(2px);
+    backdrop-filter: none;
+}
+
+html[data-performance-mode="lite"] .shell-drawer,
+html[data-performance-mode="lite"] .shell-modal {
+    box-shadow: 0 28px 56px -40px rgba(17, 30, 54, 0.28);
 }
 
 @media (max-width: 980px), (pointer: coarse) {
@@ -2141,6 +2146,11 @@ html[data-theme="dark"] .catalog-simple-row__visual {
     }
 
     .shell-notification-banner {
+        transform: none;
+    }
+
+    .shell-drawer,
+    .shell-modal {
         transform: none;
     }
 

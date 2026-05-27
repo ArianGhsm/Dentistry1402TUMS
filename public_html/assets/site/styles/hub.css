@@ -76,7 +76,11 @@ body.hub-page .action-card {
     backdrop-filter: blur(14px);
     overflow: hidden;
     padding: 0;
-    transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    transition:
+        transform var(--motion-base) var(--motion-ease-soft),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft),
+        background var(--motion-base) var(--motion-ease-soft);
 }
 
 body.hub-page .action-card:last-child,
@@ -297,7 +301,7 @@ body.hub-page .action-card {
     border-bottom: 1px solid var(--border-color);
     background: transparent;
     box-shadow: none;
-    transition: transform 0.16s ease;
+    transition: transform var(--motion-fast) var(--motion-ease-standard);
 }
 
 body.hub-page .action-card:last-child {
@@ -366,7 +370,10 @@ body.hub-page .card-btn {
     font-size: 0.78rem;
     font-weight: 840;
     box-shadow: var(--btn-shadow);
-    transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        filter var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft);
 }
 
 body.hub-page .notes-card-actions {
@@ -390,7 +397,9 @@ body.hub-page .notes-manage-panel__cancel {
     color: var(--danger-color);
     font-size: 0.76rem;
     font-weight: 830;
-    transition: transform 0.16s ease, filter 0.16s ease;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        filter var(--motion-fast) var(--motion-ease-standard);
 }
 
 body.hub-page .notes-card-edit,
@@ -479,7 +488,10 @@ body.hub-page .archive-term-nav a {
     color: var(--text-primary);
     font-size: 0.78rem;
     font-weight: 820;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        border-color var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard);
 }
 
 body.hub-page .archive-term-nav a:hover,
@@ -597,7 +609,10 @@ body.hub-page .notes-manage-panel__toggle {
     color: var(--accent-strong);
     font-size: 0.77rem;
     font-weight: 860;
-    transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+    transition:
+        transform var(--motion-fast) var(--motion-ease-standard),
+        filter var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft);
 }
 
 body.hub-page .notes-manage-panel__form {
@@ -845,7 +860,7 @@ body.hub-page .notes-host-progress__track span {
     height: 100%;
     border-radius: inherit;
     background: linear-gradient(90deg, var(--accent-color), var(--success-color));
-    transition: width 0.18s ease;
+    transition: width var(--motion-base) var(--motion-ease-soft);
 }
 
 body.hub-page .notes-host-progress__stats {
