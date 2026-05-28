@@ -979,6 +979,40 @@ body.account-page.account-stage-login-active .auth-brand strong {
     white-space: pre-line;
 }
 
+.account-notification-item__deploy-summary {
+    display: grid;
+    gap: 0.62rem;
+}
+
+.account-notification-item__deploy-grid {
+    display: grid;
+    gap: 0.52rem;
+}
+
+.account-notification-item__deploy-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    padding: 0.58rem 0.7rem;
+    border-radius: 16px;
+    background: var(--surface-muted);
+}
+
+.account-notification-item__deploy-label {
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    line-height: 1.7;
+}
+
+.account-notification-item__deploy-value {
+    color: var(--text-primary);
+    font-size: 0.79rem;
+    font-weight: 880;
+    line-height: 1.7;
+    text-align: end;
+}
+
 .account-notification-item__body-shell {
     display: grid;
     gap: 0.44rem;
@@ -1151,6 +1185,15 @@ body.account-page.account-stage-login-active .auth-brand strong {
 
     .account-notification-item__time {
         align-self: flex-start;
+    }
+
+    .account-notification-item__deploy-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .account-notification-item__deploy-value {
+        text-align: start;
     }
 
     .account-notification-audience__stats,
@@ -3766,6 +3809,10 @@ html[data-theme="dark"] body.account-page .account-notification-item__body-previ
 
 html[data-theme="dark"] body.account-page .account-notification-item__note,
 html[data-theme="dark"] body.account-page .account-notification-audience {
+    background: rgba(17, 26, 41, 0.94);
+}
+
+html[data-theme="dark"] body.account-page .account-notification-item__deploy-row {
     background: rgba(17, 26, 41, 0.94);
 }
 

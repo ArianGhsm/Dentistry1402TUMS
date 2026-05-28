@@ -915,7 +915,7 @@
         return Number.isFinite(parsed.getTime()) ? parsed : null;
     }
 
-    function formatJalaliDateTime(value, fallback) {
+    function formatJalaliDateTime(value, fallback, includeSeconds) {
         var raw = String(value == null ? "" : value).trim();
         if (!raw) {
             return fallback || "—";
@@ -932,6 +932,7 @@
             day: "2-digit",
             hour: "2-digit",
             minute: "2-digit",
+            second: includeSeconds ? "2-digit" : undefined,
             hour12: false
         });
     }
@@ -1862,6 +1863,11 @@
     }
 
     function notificationsBodyHtml(item) {
+        var deployBody = notificationsDeployBodyHtml(item);
+        if (deployBody) {
+            return deployBody;
+        }
+
         var text = String(item && item.body || "").trim();
         if (!text) {
             return "";
@@ -1901,6 +1907,138 @@
             return "زمان انتشار معتبر نیست.";
         }
         return "";
+    }
+
+    function notificationsDeployMeta(item) {
+        if (!item || item.source !== "deploy") {
+            return null;
+        }
+
+        var meta = item.meta && typeof item.meta === "object" ? item.meta : {};
+        var body = String(item.body || "");
+        var title = String(item.title || "");
+        var version = String(meta.version || "").trim();
+        var deployedAt = String(meta.deployedAt || item.effectiveAt || item.createdAt || "").trim();
+        var branch = String(meta.branch || "").trim();
+        var deployHead = String(meta.deployHead || "").trim();
+
+        if (!version) {
+            var titleMatch = title.match(/\b(\d{8}-\d{6})\b/);
+            if (titleMatch && titleMatch[1]) {
+                version = titleMatch[1];
+            }
+        }
+        if (!version) {
+            var bodyVersionMatch = body.match(/^نسخه(?: منتشرشده)?:\s*(.+)$/m);
+            if (bodyVersionMatch && bodyVersionMatch[1]) {
+                version = bodyVersionMatch[1].trim();
+            }
+        }
+        if (!branch) {
+            var branchMatch = body.match(/^شاخه(?: استقرار)?:\s*(.+)$/m);
+            if (branchMatch && branchMatch[1]) {
+                branch = branchMatch[1].trim();
+            }
+        }
+        if (!deployHead) {
+            var headMatch = body.match(/^(?:HEAD|کد استقرار):\s*(.+)$/mi);
+            if (headMatch && headMatch[1]) {
+                deployHead = headMatch[1].trim();
+            }
+        }
+        if (!deployedAt) {
+            var timeMatch = body.match(/^زمان(?: دقیق)?(?: deploy| استقرار)?:\s*(.+)$/m);
+            if (timeMatch && timeMatch[1]) {
+                deployedAt = timeMatch[1].trim();
+            }
+        }
+
+        return {
+            version: version,
+            deployedAt: deployedAt,
+            branch: branch,
+            deployHead: deployHead
+        };
+    }
+
+    function notificationsDeploySummaryRows(item) {
+        var meta = notificationsDeployMeta(item);
+        if (!meta) {
+            return [];
+        }
+
+        var rows = [];
+        if (meta.version) {
+            rows.push({
+                label: "نسخه",
+                value: toPersianDigits(meta.version),
+                latin: false
+            });
+        }
+        if (meta.deployedAt) {
+            rows.push({
+                label: "زمان استقرار",
+                value: formatJalaliDateTime(meta.deployedAt, "—", true),
+                latin: false
+            });
+        }
+        if (meta.branch) {
+            rows.push({
+                label: "شاخه",
+                value: meta.branch,
+                latin: true
+            });
+        }
+        if (meta.deployHead) {
+            rows.push({
+                label: "کد استقرار",
+                value: String(meta.deployHead).slice(0, 12),
+                latin: true
+            });
+        }
+        return rows;
+    }
+
+    function notificationsDeployPreviewText(item) {
+        var meta = notificationsDeployMeta(item);
+        if (!meta) {
+            return "";
+        }
+
+        var parts = [];
+        if (meta.version) {
+            parts.push("نسخه " + toPersianDigits(meta.version));
+        }
+        if (meta.deployedAt) {
+            parts.push("در " + formatJalaliDateTime(meta.deployedAt, "—", true));
+        }
+        if (!parts.length) {
+            return "گزارش استقرار جدید سایت ثبت شد.";
+        }
+        return parts.join(" ") + " روی سایت منتشر شد.";
+    }
+
+    function notificationsDeployBodyHtml(item) {
+        var rows = notificationsDeploySummaryRows(item);
+        if (!item || item.source !== "deploy" || !rows.length) {
+            return "";
+        }
+
+        return [
+            '<div class="account-notification-item__deploy-summary">',
+            '  <p class="account-notification-item__body">استقرار جدید سایت با موفقیت ثبت شد.</p>',
+            '  <div class="account-notification-item__deploy-grid">',
+            rows.map(function (row) {
+                return [
+                    '    <div class="account-notification-item__deploy-row">',
+                    '      <span class="account-notification-item__deploy-label">' + escapeHtml(String(row.label || "")) + "</span>",
+                    '      <strong class="account-notification-item__deploy-value"' + (row.latin ? ' dir="ltr" data-latin-digits="true"' : "") + ">" + escapeHtml(String(row.value || "")) + "</strong>",
+                    "    </div>"
+                ].join("");
+            }).join(""),
+            "  </div>",
+            "</div>"
+        ].join("");
     }
 
     function notificationsKindLabel(item) {
@@ -1965,6 +2103,10 @@
     }
 
     function notificationsRowMetaText(item) {
+        if (item && item.source === "deploy") {
+            return "گزارش خودکار استقرار سایت";
+        }
+
         var parts = [];
         var senderLabel = String(item && item.senderLabel || "").trim();
         var targetLabel = String(item && item.targetLabel || "").trim();
@@ -2144,9 +2286,11 @@
             accountNavidAlertTitle.textContent = preview.title || (preview.kind === "navid-assignment" ? "تکلیف جدید نوید" : "اعلان جدید");
         }
         if (accountNavidAlertBody) {
-            accountNavidAlertBody.textContent = preview.body || (preview.kind === "navid-assignment"
+            accountNavidAlertBody.textContent = preview.source === "deploy"
+                ? (notificationsDeployPreviewText(preview) || "گزارش استقرار جدید سایت ثبت شد.")
+                : (preview.body || (preview.kind === "navid-assignment"
                 ? "برای دیدن جزئیات، بخش تکالیف نوید را باز کن."
-                : "برای دیدن جزئیات، اعلان را باز کن.");
+                : "برای دیدن جزئیات، اعلان را باز کن."));
         }
         if (accountNavidAlertLink) {
             accountNavidAlertLink.href = String(preview.ctaHref || "/account/#notifications");

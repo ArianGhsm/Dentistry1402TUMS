@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/auth_store.php';
 
-const DENT_NOTIFICATIONS_SCHEMA_VERSION = 3;
+const DENT_NOTIFICATIONS_SCHEMA_VERSION = 4;
 const DENT_NOTIFICATION_ID_PREFIX = 'nt-';
 const DENT_NOTIFICATION_KIND_ANNOUNCEMENT = 'announcement';
 const DENT_NOTIFICATION_KIND_NAVID_ASSIGNMENT = 'navid-assignment';
@@ -196,7 +196,104 @@ function notifications_timestamp(?string $value): int
     return $timestamp === false ? 0 : (int) $timestamp;
 }
 
-function notifications_clean_meta(array $meta): array
+function notifications_parse_deploy_source_key(?string $value): array
+{
+    $sourceKey = trim((string) $value);
+    if ($sourceKey === '') {
+        return [
+            'version' => '',
+            'deployedAt' => '',
+        ];
+    }
+
+    if (!preg_match('/^deploy:([^:]+):(.+)$/', $sourceKey, $matches)) {
+        return [
+            'version' => '',
+            'deployedAt' => '',
+        ];
+    }
+
+    return [
+        'version' => dent_clean_text((string) ($matches[1] ?? ''), 80),
+        'deployedAt' => notifications_normalize_iso_datetime((string) ($matches[2] ?? '')),
+    ];
+}
+
+function notifications_extract_deploy_body_value(string $body, string $pattern, int $maxLength): string
+{
+    if ($body === '') {
+        return '';
+    }
+
+    if (!preg_match($pattern, $body, $matches)) {
+        return '';
+    }
+
+    return dent_clean_text((string) ($matches[1] ?? ''), $maxLength);
+}
+
+function notifications_hydrate_deploy_meta(array $record, array $meta): array
+{
+    if ((string) ($record['source'] ?? '') !== 'deploy') {
+        return [];
+    }
+
+    $sourceKeyMeta = notifications_parse_deploy_source_key((string) ($record['sourceKey'] ?? ''));
+    $body = (string) ($record['body'] ?? '');
+    $title = (string) ($record['title'] ?? '');
+
+    $version = dent_clean_text((string) ($meta['version'] ?? ''), 80);
+    if ($version === '') {
+        $version = $sourceKeyMeta['version'];
+    }
+    if ($version === '' && preg_match('/\b(\d{8}-\d{6})\b/u', $title, $matches)) {
+        $version = dent_clean_text((string) ($matches[1] ?? ''), 80);
+    }
+    if ($version === '') {
+        $version = notifications_extract_deploy_body_value($body, '/^نسخه(?:\s+منتشرشده)?:\s*(.+)$/mu', 80);
+    }
+
+    $deployedAt = notifications_normalize_iso_datetime((string) ($meta['deployedAt'] ?? ''));
+    if ($deployedAt === '') {
+        $deployedAt = $sourceKeyMeta['deployedAt'];
+    }
+    if ($deployedAt === '') {
+        $deployedAt = notifications_normalize_iso_datetime(
+            notifications_extract_deploy_body_value($body, '/^زمان(?:\s+دقیق)?(?:\s+deploy|\s+استقرار)?:\s*(.+)$/mu', 80)
+        );
+    }
+    if ($deployedAt === '') {
+        $deployedAt = notifications_normalize_iso_datetime((string) ($record['releasedAt'] ?? ($record['publishAt'] ?? ($record['createdAt'] ?? ''))));
+    }
+
+    $branch = dent_clean_text((string) ($meta['branch'] ?? ''), 120);
+    if ($branch === '') {
+        $branch = notifications_extract_deploy_body_value($body, '/^شاخه(?:\s+استقرار)?:\s*(.+)$/mu', 120);
+    }
+
+    $deployHead = dent_clean_text((string) ($meta['deployHead'] ?? ''), 80);
+    if ($deployHead === '') {
+        $deployHead = notifications_extract_deploy_body_value($body, '/^(?:HEAD|کد\s+استقرار):\s*(.+)$/mu', 80);
+    }
+
+    $clean = [];
+    if ($version !== '') {
+        $clean['version'] = $version;
+    }
+    if ($deployedAt !== '') {
+        $clean['deployedAt'] = $deployedAt;
+    }
+    if ($branch !== '') {
+        $clean['branch'] = $branch;
+    }
+    if ($deployHead !== '') {
+        $clean['deployHead'] = $deployHead;
+    }
+
+    return $clean;
+}
+
+function notifications_clean_meta(array $meta, array $record = []): array
 {
     $clean = [];
 
@@ -228,6 +325,13 @@ function notifications_clean_meta(array $meta): array
     $replyStatusName = dent_clean_text((string) ($meta['replyStatusName'] ?? ''), 80);
     if ($replyStatusName !== '') {
         $clean['replyStatusName'] = $replyStatusName;
+    }
+
+    foreach (notifications_hydrate_deploy_meta($record, $meta) as $key => $value) {
+        if ((string) $value === '') {
+            continue;
+        }
+        $clean[$key] = $value;
     }
 
     return $clean;
@@ -394,7 +498,7 @@ function notifications_normalize_record(string $key, array $record): ?array
         'createdByStudentNumber' => dent_normalize_student_number((string) ($record['createdByStudentNumber'] ?? '')),
         'createdByName' => dent_clean_text((string) ($record['createdByName'] ?? ''), 120),
         'createdByRole' => dent_clean_text((string) ($record['createdByRole'] ?? ''), 40),
-        'meta' => notifications_clean_meta(is_array($record['meta'] ?? null) ? $record['meta'] : []),
+        'meta' => notifications_clean_meta(is_array($record['meta'] ?? null) ? $record['meta'] : [], $record),
         'recipients' => notifications_normalize_recipients(is_array($record['recipients'] ?? null) ? $record['recipients'] : []),
         'sendSms' => $sendSms,
         'smsStatus' => notifications_clean_sms_status((string) ($record['smsStatus'] ?? ''), $sendSms),
@@ -677,6 +781,10 @@ function notifications_sender_label(array $record): string
 {
     if ((string) ($record['source'] ?? '') === 'navid') {
         return 'سامانه نوید';
+    }
+
+    if ((string) ($record['source'] ?? '') === 'deploy') {
+        return 'سامانه استقرار سایت';
     }
 
     $name = trim((string) ($record['createdByName'] ?? ''));
@@ -1459,23 +1567,46 @@ function notifications_create_broadcast(array $viewer, array $payload): array
 
 function notifications_build_owner_deploy_notice_body(string $version, string $deployedAt, string $branch = '', string $deployHead = ''): string
 {
+    $deployedLabel = notifications_format_fa_tehran_datetime($deployedAt, true);
     $lines = [
         'استقرار جدید سایت با موفقیت انجام شد.',
-        'نسخه: ' . $version,
-        'زمان دقیق deploy: ' . $deployedAt,
+        'نسخه منتشرشده: ' . dent_to_fa_digits($version),
+        'زمان استقرار: ' . $deployedLabel,
     ];
 
     $branch = trim($branch);
     if ($branch !== '') {
-        $lines[] = 'شاخه: ' . $branch;
+        $lines[] = 'شاخه استقرار: ' . $branch;
     }
 
     $deployHead = trim($deployHead);
     if ($deployHead !== '') {
-        $lines[] = 'HEAD: ' . substr($deployHead, 0, 12);
+        $lines[] = 'کد استقرار: ' . substr($deployHead, 0, 12);
     }
 
     return implode("\n", $lines);
+}
+
+function notifications_format_fa_tehran_datetime(string $value, bool $includeSeconds = false): string
+{
+    $normalized = notifications_normalize_iso_datetime($value);
+    if ($normalized === '') {
+        return dent_to_fa_digits(trim($value));
+    }
+
+    $timestamp = strtotime($normalized);
+    if ($timestamp === false) {
+        return dent_to_fa_digits(trim($value));
+    }
+
+    try {
+        $date = new DateTimeImmutable('@' . $timestamp);
+        $date = $date->setTimezone(new DateTimeZone('Asia/Tehran'));
+        $format = $includeSeconds ? 'Y/m/d ساعت H:i:s' : 'Y/m/d ساعت H:i';
+        return dent_to_fa_digits($date->format($format));
+    } catch (Throwable $error) {
+        return dent_to_fa_digits(trim($value));
+    }
 }
 
 function notifications_create_owner_deploy_notice(array $viewer, array $payload): array
@@ -1508,7 +1639,7 @@ function notifications_create_owner_deploy_notice(array $viewer, array $payload)
 
     $title = dent_clean_text((string) ($payload['title'] ?? ''), 180);
     if ($title === '') {
-        $title = 'استقرار نسخه ' . $version . ' انجام شد';
+        $title = 'استقرار نسخه ' . dent_to_fa_digits($version) . ' انجام شد';
     }
 
     $body = dent_clean_text((string) ($payload['body'] ?? ''), 4000);
