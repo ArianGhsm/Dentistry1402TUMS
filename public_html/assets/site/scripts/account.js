@@ -2130,6 +2130,60 @@
         return parts.join(" • ");
     }
 
+    function notificationsComposeContainer() {
+        if (notificationsComposeShell) {
+            return notificationsComposeShell;
+        }
+        if (notificationsManagerCard && String(notificationsManagerCard.tagName || "").toUpperCase() === "DETAILS") {
+            return notificationsManagerCard;
+        }
+        return null;
+    }
+
+    function notificationsSetComposeOpen(nextOpen) {
+        var shell = notificationsComposeContainer();
+        if (!shell || typeof shell.open !== "boolean") {
+            return;
+        }
+        shell.open = !!nextOpen;
+    }
+
+    function notificationsOverviewPillHtml(label, value, tone) {
+        return [
+            '<span class="account-notifications-overview__pill"' + (tone ? ' data-tone="' + escapeHtml(tone) + '"' : "") + '>',
+            '  <strong>' + escapeHtml(String(value || "—")) + "</strong>",
+            '  <span>' + escapeHtml(String(label || "")) + "</span>",
+            "</span>"
+        ].join("");
+    }
+
+    function notificationsOverviewHtml(summary, manager) {
+        var unreadCount = Math.max(0, Math.floor(toNumber(summary && summary.unreadCount, 0)));
+        var visibleCount = Math.max(0, Math.floor(toNumber(summary && summary.visibleCount, 0)));
+        var announcementCount = Math.max(0, Math.floor(toNumber(summary && summary.announcementCount, 0)));
+        var navidCount = Math.max(0, Math.floor(toNumber(summary && summary.navidCount, 0)));
+        var scheduledCount = Math.max(0, Math.floor(toNumber(summary && summary.scheduledCount, 0)));
+        var latestTitle = String(summary && summary.latestTitle || "").trim();
+        var pills = [
+            notificationsOverviewPillHtml("جدید", unreadCount.toLocaleString("fa-IR"), unreadCount > 0 ? "warn" : "ok"),
+            notificationsOverviewPillHtml(manager && manager.canBroadcast ? "در فید" : "قابل‌نمایش", visibleCount.toLocaleString("fa-IR"), ""),
+            notificationsOverviewPillHtml("اعلان", announcementCount.toLocaleString("fa-IR"), ""),
+            notificationsOverviewPillHtml("نوید", navidCount.toLocaleString("fa-IR"), "")
+        ];
+        if (manager && manager.canBroadcast) {
+            pills.splice(2, 0, notificationsOverviewPillHtml("در صف", scheduledCount.toLocaleString("fa-IR"), scheduledCount > 0 ? "warn" : ""));
+        }
+
+        return [
+            '<p class="account-notifications-overview__lead">' + escapeHtml(
+                latestTitle
+                    ? ("آخرین مورد: " + latestTitle)
+                    : (unreadCount > 0 ? "اعلان‌های جدید شما اینجا جمع می‌شوند." : "فید اعلان‌ها جمع‌وجور شد و جزئیات هر مورد فقط هنگام نیاز باز می‌شود.")
+            ) + "</p>",
+            '<div class="account-notifications-overview__pills">' + pills.join("") + "</div>"
+        ].join("");
+    }
+
     function notificationsSmsDetailText(sms) {
         if (!sms || !sms.requested) {
             return "برای این اعلان، ارسال پیامک فعال نبود.";
@@ -2309,16 +2363,7 @@
         var activeFilter = notificationsState.activeFilter;
 
         if (notificationsSummary) {
-            var cards = [
-                summaryCard("جدید", String(Math.max(0, Math.floor(toNumber(summary.unreadCount, 0))).toLocaleString("fa-IR")), "مواردی که هنوز باز نشده‌اند", Math.max(0, Math.floor(toNumber(summary.unreadCount, 0))) > 0 ? "warn" : "ok"),
-                summaryCard(manager.canBroadcast ? "در فید" : "قابل‌نمایش", String(Math.max(0, Math.floor(toNumber(summary.visibleCount, 0))).toLocaleString("fa-IR")), manager.canBroadcast ? "اعلان‌های فعالی که همین حالا دیده می‌شوند" : "اعلان‌هایی که این حساب می‌بیند"),
-                summaryCard("اعلان", String(Math.max(0, Math.floor(toNumber(summary.announcementCount, 0))).toLocaleString("fa-IR")), "پیام‌های مدیریتی و اطلاعیه‌ها"),
-                summaryCard("نوید", String(Math.max(0, Math.floor(toNumber(summary.navidCount, 0))).toLocaleString("fa-IR")), "اعلان‌های تکلیف")
-            ];
-            if (manager.canBroadcast || Math.max(0, Math.floor(toNumber(summary.scheduledCount, 0))) > 0) {
-                cards.splice(2, 0, summaryCard("در صف", String(Math.max(0, Math.floor(toNumber(summary.scheduledCount, 0))).toLocaleString("fa-IR")), "اعلان‌های منتظر زمان انتشار"));
-            }
-            notificationsSummary.innerHTML = cards.join("");
+            notificationsSummary.innerHTML = notificationsOverviewHtml(summary, manager);
         }
 
         if (notificationsPrefsCard) {
@@ -2356,8 +2401,9 @@
             if (notificationsBroadcastSubmit) {
                 notificationsBroadcastSubmit.disabled = notificationsState.broadcasting;
             }
-            if (notificationsComposeShell) {
-                notificationsComposeShell.classList.toggle("is-busy", notificationsState.broadcasting);
+            var composeContainer = notificationsComposeContainer();
+            if (composeContainer) {
+                composeContainer.classList.toggle("is-busy", notificationsState.broadcasting);
             }
             if (notificationsTitleInput) notificationsTitleInput.disabled = notificationsState.broadcasting;
             if (notificationsBodyInput) notificationsBodyInput.disabled = notificationsState.broadcasting;
@@ -2829,17 +2875,13 @@
         };
         var validationError = notificationsValidateBroadcastPayload(payload);
         if (validationError) {
-            if (notificationsComposeShell) {
-                notificationsComposeShell.open = true;
-            }
+            notificationsSetComposeOpen(true);
             setFeedback(notificationsManagerFeedback, validationError, "error");
             return Promise.resolve(null);
         }
 
         notificationsState.broadcasting = true;
-        if (notificationsComposeShell) {
-            notificationsComposeShell.open = true;
-        }
+        notificationsSetComposeOpen(true);
         setFeedback(notificationsManagerFeedback, payload.scheduleAt ? "در حال زمان‌بندی اعلان..." : "در حال ارسال اعلان...", "", true);
         renderNotificationsUi();
         return notificationsPost("broadcast", payload).then(function (response) {
@@ -2869,9 +2911,7 @@
             if (notificationsCtaHrefInput) notificationsCtaHrefInput.value = "";
             if (notificationsScheduleInput) notificationsScheduleInput.value = "";
             if (notificationsSendSmsInput) notificationsSendSmsInput.checked = false;
-            if (notificationsComposeShell) {
-                notificationsComposeShell.open = false;
-            }
+            notificationsSetComposeOpen(false);
             setFeedback(notificationsManagerFeedback, "", "");
             setInlineFeedback(notificationsFeedback, response.message || "اعلان ثبت شد.", "success");
             renderNotificationsUi();
@@ -2879,9 +2919,7 @@
             return response;
         }).catch(function () {
             notificationsState.broadcasting = false;
-            if (notificationsComposeShell) {
-                notificationsComposeShell.open = true;
-            }
+            notificationsSetComposeOpen(true);
             setFeedback(notificationsManagerFeedback, "اتصال برای ارسال اعلان برقرار نشد.", "error");
             renderNotificationsUi();
             return null;

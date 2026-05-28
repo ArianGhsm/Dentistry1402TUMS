@@ -740,6 +740,113 @@ body.account-page.account-stage-login-active .auth-brand strong {
     gap: 0.82rem;
 }
 
+.account-notifications-shell {
+    display: grid;
+    gap: 0.82rem;
+}
+
+.account-notifications-overview {
+    display: grid;
+    gap: 0.56rem;
+    padding: 0.86rem 0.92rem;
+    border: 1px solid rgba(127, 145, 165, 0.18);
+    border-radius: 20px;
+    background: var(--surface-solid);
+}
+
+.account-notifications-overview__lead {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.9;
+}
+
+.account-notifications-overview__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.46rem;
+}
+
+.account-notifications-overview__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.44rem;
+    min-height: 36px;
+    padding: 0.28rem 0.72rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(127, 145, 165, 0.18);
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+}
+
+.account-notifications-overview__pill strong {
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: 880;
+    line-height: 1.6;
+}
+
+.account-notifications-overview__pill span {
+    font-size: 0.74rem;
+    line-height: 1.8;
+}
+
+.account-notifications-overview__pill[data-tone="warn"] {
+    border-color: rgba(194, 129, 29, 0.24);
+    background: rgba(194, 129, 29, 0.1);
+}
+
+.account-notifications-overview__pill[data-tone="ok"] {
+    border-color: rgba(21, 143, 99, 0.22);
+    background: rgba(21, 143, 99, 0.08);
+}
+
+.account-notifications-disclosure {
+    border: 1px solid rgba(127, 145, 165, 0.18);
+    border-radius: 20px;
+    background: var(--surface-solid);
+    overflow: hidden;
+}
+
+.account-notifications-disclosure.is-busy {
+    opacity: 0.9;
+}
+
+.account-notifications-disclosure__summary {
+    list-style: none;
+    display: grid;
+    gap: 0.18rem;
+    padding: 0.86rem 0.92rem;
+    cursor: pointer;
+}
+
+.account-notifications-disclosure__summary::-webkit-details-marker {
+    display: none;
+}
+
+.account-notifications-disclosure__summary strong {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 860;
+    line-height: 1.6;
+}
+
+.account-notifications-disclosure__summary span {
+    color: var(--text-secondary);
+    font-size: 0.74rem;
+    line-height: 1.85;
+}
+
+.account-notifications-disclosure[open] .account-notifications-disclosure__summary {
+    border-bottom: 1px solid rgba(127, 145, 165, 0.14);
+}
+
+.account-notifications-disclosure__body {
+    display: grid;
+    gap: 0.72rem;
+    padding: 0.84rem 0.92rem 0.92rem;
+}
+
 .account-notifications-compose {
     position: relative;
     border: 1px solid rgba(127, 145, 165, 0.18);
@@ -786,7 +893,7 @@ body.account-page.account-stage-login-active .auth-brand strong {
 }
 
 .account-notifications-form {
-    padding: 0 0.9rem 0.9rem;
+    padding: 0;
 }
 
 .account-notifications-form-grid {
@@ -808,6 +915,10 @@ body.account-page.account-stage-login-active .auth-brand strong {
 
 .account-notifications-card--feed {
     align-content: start;
+    padding: 0.9rem 0.92rem;
+    border: 1px solid rgba(127, 145, 165, 0.18);
+    border-radius: 20px;
+    background: var(--surface-solid);
 }
 
 .account-notifications-toggle strong {
@@ -862,7 +973,7 @@ body.account-page.account-stage-login-active .auth-brand strong {
 
 .account-notifications-list {
     display: grid;
-    gap: 0.7rem;
+    gap: 0.58rem;
 }
 
 .account-notification-item {
@@ -871,43 +982,36 @@ body.account-page.account-stage-login-active .auth-brand strong {
     --notification-border: rgba(127, 145, 165, 0.22);
     position: relative;
     display: grid;
-    gap: 0.68rem;
-    padding: 0.94rem 0.96rem;
-    padding-inline-start: 1.12rem;
-    border-radius: 22px;
+    gap: 0.54rem;
+    padding: 0.82rem 0.88rem;
+    padding-inline-start: 1rem;
+    border-radius: 18px;
     border: 1px solid var(--notification-border);
-    background:
-        radial-gradient(circle at 100% 0, var(--notification-accent-soft), transparent 38%),
-        var(--surface-solid);
-    box-shadow: 0 22px 40px -40px rgba(17, 30, 54, 0.34);
+    background: var(--surface-muted);
+    box-shadow: none;
     overflow: hidden;
 }
 
 .account-notification-item::before {
     content: "";
     position: absolute;
-    inset-block: 0.82rem;
-    inset-inline-start: 0.66rem;
-    width: 4px;
+    inset-block: 0.76rem;
+    inset-inline-start: 0.58rem;
+    width: 3px;
     border-radius: 999px;
     background: linear-gradient(180deg, var(--notification-accent), rgba(63, 108, 232, 0.2));
 }
 
 .account-notification-item.is-unread {
     border-color: rgba(43, 109, 243, 0.28);
-    box-shadow:
-        0 0 0 1px rgba(43, 109, 243, 0.08),
-        0 22px 40px -40px rgba(17, 30, 54, 0.34);
+    box-shadow: 0 0 0 1px rgba(43, 109, 243, 0.06);
 }
 
 .account-notification-item.is-scheduled {
     --notification-accent: #c2811d;
     --notification-accent-soft: rgba(194, 129, 29, 0.12);
     --notification-border: rgba(194, 129, 29, 0.34);
-    background:
-        radial-gradient(circle at 100% 0, rgba(194, 129, 29, 0.16), transparent 40%),
-        linear-gradient(180deg, rgba(194, 129, 29, 0.06), rgba(194, 129, 29, 0.015)),
-        var(--surface-solid);
+    background: rgba(194, 129, 29, 0.06);
 }
 
 .account-notification-item[data-tone="warn"] {
@@ -959,9 +1063,9 @@ body.account-page.account-stage-login-active .auth-brand strong {
 
 .account-notification-item__title {
     margin: 0;
-    font-size: 0.96rem;
-    font-weight: 900;
-    line-height: 1.7;
+    font-size: 0.92rem;
+    font-weight: 860;
+    line-height: 1.65;
 }
 
 .account-notification-item__meta-line {
@@ -974,8 +1078,8 @@ body.account-page.account-stage-login-active .auth-brand strong {
 .account-notification-item__body {
     margin: 0;
     color: var(--text-secondary);
-    font-size: 0.81rem;
-    line-height: 1.9;
+    font-size: 0.78rem;
+    line-height: 1.82;
     white-space: pre-line;
 }
 
@@ -1045,12 +1149,12 @@ body.account-page.account-stage-login-active .auth-brand strong {
 
 .account-notification-item__note {
     margin: 0;
-    padding: 0.62rem 0.72rem;
-    border-radius: 16px;
-    background: var(--surface-muted);
+    padding: 0.52rem 0.62rem;
+    border-radius: 14px;
+    background: rgba(127, 145, 165, 0.08);
     color: var(--text-secondary);
-    font-size: 0.75rem;
-    line-height: 1.85;
+    font-size: 0.73rem;
+    line-height: 1.8;
 }
 
 .account-notification-item__actions {
@@ -1060,7 +1164,7 @@ body.account-page.account-stage-login-active .auth-brand strong {
 }
 
 .account-notification-item__actions .shell-action-btn {
-    min-width: 116px;
+    min-width: 0;
 }
 
 .account-notification-item__badge {
@@ -1083,11 +1187,11 @@ body.account-page.account-stage-login-active .auth-brand strong {
 
 .account-notification-audience {
     display: grid;
-    gap: 0.68rem;
-    padding: 0.8rem;
-    border-radius: 18px;
+    gap: 0.62rem;
+    padding: 0.72rem;
+    border-radius: 16px;
     border: 1px solid rgba(127, 145, 165, 0.18);
-    background: var(--surface-muted);
+    background: rgba(127, 145, 165, 0.06);
 }
 
 .account-notification-audience__stats {
@@ -1158,6 +1262,8 @@ body.account-page.account-stage-login-active .auth-brand strong {
     list-style: none;
     display: grid;
     gap: 0.46rem;
+    max-block-size: 220px;
+    overflow: auto;
 }
 
 .account-notification-audience__item {
@@ -1170,6 +1276,10 @@ body.account-page.account-stage-login-active .auth-brand strong {
 }
 
 @media (max-width: 760px) {
+    .account-notifications-overview__pills {
+        gap: 0.4rem;
+    }
+
     .account-notifications-form-grid {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -1185,6 +1295,12 @@ body.account-page.account-stage-login-active .auth-brand strong {
 
     .account-notification-item__time {
         align-self: flex-start;
+    }
+
+    .account-notifications-disclosure__body,
+    .account-notifications-card--feed,
+    .account-notifications-overview {
+        padding-inline: 0.82rem;
     }
 
     .account-notification-item__deploy-row {
@@ -3761,9 +3877,7 @@ html[data-theme="dark"] body.account-page .account-notification-item__eyebrow {
 }
 
 html[data-theme="dark"] body.account-page .account-notification-item {
-    background:
-        radial-gradient(circle at 100% 0, var(--notification-accent-soft), transparent 40%),
-        rgba(12, 19, 31, 0.94);
+    background: rgba(12, 19, 31, 0.94);
 }
 
 html[data-theme="dark"] body.account-page .account-notification-item__badge {
@@ -3789,6 +3903,18 @@ html[data-theme="dark"] body.account-page .account-notifications-compose {
         radial-gradient(circle at 100% 0, rgba(126, 142, 255, 0.18), transparent 38%),
         linear-gradient(180deg, rgba(73, 125, 255, 0.14), rgba(12, 19, 31, 0.92)),
         rgba(12, 19, 31, 0.94);
+}
+
+html[data-theme="dark"] body.account-page .account-notifications-overview,
+html[data-theme="dark"] body.account-page .account-notifications-disclosure,
+html[data-theme="dark"] body.account-page .account-notifications-card--feed {
+    border-color: rgba(124, 145, 168, 0.22);
+    background: rgba(12, 19, 31, 0.94);
+}
+
+html[data-theme="dark"] body.account-page .account-notifications-overview__pill {
+    border-color: rgba(124, 145, 168, 0.24);
+    background: rgba(17, 26, 41, 0.94);
 }
 
 html[data-theme="dark"] body.account-page .account-notifications-filter {

@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260528-040637">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260528-040637">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260528-040637">
-    <script src="/assets/site/scripts/theme.js?v=20260528-040637"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260528-040637">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260528-040637">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260528-040637">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260528-042804">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260528-042804">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260528-042804">
+    <script src="/assets/site/scripts/theme.js?v=20260528-042804"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260528-042804">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260528-042804">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260528-042804">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -607,40 +607,39 @@
                         <div class="account-surface-head__copy">
                             <span class="account-section-kicker">اعلان‌ها</span>
                             <h3>پیگیری اطلاعیه‌ها و تکالیف جدید</h3>
-                            <p>فید ساده‌ی اعلان‌ها، تکلیف‌های نوید و پیام‌های مدیریتی همین‌جا قرار دارد.</p>
+                            <p>همه اعلان‌ها، تکلیف‌های نوید و پیام‌های مدیریتی در یک فید جمع‌وجور همین‌جا دیده می‌شوند.</p>
                         </div>
                     </header>
 
-                    <div id="notifications-summary" class="owner-summary owner-summary--compact"></div>
+                    <div class="account-notifications-shell">
+                        <div id="notifications-summary" class="account-notifications-overview"></div>
 
-                    <section id="notifications-prefs-card" class="owner-block account-notifications-card" hidden>
-                        <div class="owner-block__head">
-                            <h4>تنظیمات اعلان نوید</h4>
-                            <p>برای همین حساب تعیین می‌کند اعلان تکلیف نوید را ببیند یا نه.</p>
-                        </div>
-                        <label class="phone-toggle-row account-notifications-toggle" for="notifications-navid-alerts">
-                            <span>
-                                <strong>اعلان تکلیف جدید نوید</strong>
-                                <small id="notifications-prefs-hint">وقتی تکلیف جدیدی در نوید بیاید، در حساب کاربری به شما اطلاع داده می‌شود.</small>
-                            </span>
-                            <input id="notifications-navid-alerts" type="checkbox">
-                        </label>
-                        <div class="phone-action-row">
-                            <button id="notifications-prefs-save" class="shell-action-btn" type="button">ذخیره تنظیمات اعلان</button>
-                        </div>
-                    </section>
-
-                    <section id="notifications-manager-card" class="owner-block account-notifications-card" hidden>
-                        <div class="owner-block__head">
-                            <h4>ارسال اعلان</h4>
-                            <p>مالک برای همه ورودی‌ها و نماینده فقط برای ورودی خودش اعلان ثبت می‌کند.</p>
-                        </div>
-                        <details id="notifications-compose-shell" class="account-notifications-compose">
-                            <summary class="account-notifications-compose__summary">
-                                <strong>اعلان تازه</strong>
-                                <span>عنوان، متن، زمان‌بندی و SMS فقط هنگام نیاز باز می‌شوند.</span>
+                        <details id="notifications-prefs-card" class="account-notifications-disclosure" hidden>
+                            <summary class="account-notifications-disclosure__summary">
+                                <strong>تنظیمات نوید</strong>
+                                <span>نمایش یا عدم نمایش اعلان تکلیف‌های نوید برای همین حساب</span>
                             </summary>
-                            <form id="notifications-broadcast-form" class="account-form account-notifications-form" novalidate>
+                            <div class="account-notifications-disclosure__body">
+                                <label class="phone-toggle-row account-notifications-toggle" for="notifications-navid-alerts">
+                                    <span>
+                                        <strong>اعلان تکلیف جدید نوید</strong>
+                                        <small id="notifications-prefs-hint">وقتی تکلیف جدیدی در نوید بیاید، در حساب کاربری به شما اطلاع داده می‌شود.</small>
+                                    </span>
+                                    <input id="notifications-navid-alerts" type="checkbox">
+                                </label>
+                                <div class="phone-action-row">
+                                    <button id="notifications-prefs-save" class="shell-action-btn" type="button">ذخیره تنظیمات</button>
+                                </div>
+                            </div>
+                        </details>
+
+                        <details id="notifications-manager-card" class="account-notifications-disclosure" hidden>
+                            <summary class="account-notifications-disclosure__summary">
+                                <strong>ارسال اعلان</strong>
+                                <span>اعلان سریع، زمان‌بندی و SMS فقط وقتی لازم باشد باز می‌شوند.</span>
+                            </summary>
+                            <div class="account-notifications-disclosure__body">
+                                <form id="notifications-broadcast-form" class="account-form account-notifications-form" novalidate>
                                 <div class="account-notifications-form-grid">
                                     <div class="account-notifications-form-field">
                                         <label for="notifications-target">مقصد اعلان</label>
@@ -682,24 +681,25 @@
                                     <button id="notifications-broadcast-submit" class="shell-action-btn shell-action-btn-primary" type="submit">ارسال اعلان</button>
                                     <div id="notifications-manager-feedback" class="account-feedback" aria-live="polite"></div>
                                 </div>
-                            </form>
+                                </form>
+                            </div>
                         </details>
-                    </section>
 
-                    <section class="owner-block account-notifications-card account-notifications-card--feed" aria-label="فهرست اعلان‌ها">
-                        <div class="owner-block__head">
-                            <h4>فهرست اعلان‌ها</h4>
-                            <p>هر اعلان به‌صورت یک ردیف ساده نمایش داده می‌شود و جزئیات فقط هنگام نیاز باز می‌شوند.</p>
-                        </div>
-                        <div class="account-inline-actions">
-                            <button id="notifications-refresh" class="shell-action-btn" type="button">بروزرسانی</button>
-                            <button id="notifications-mark-all" class="shell-action-btn" type="button">خواندن همه</button>
-                        </div>
-                        <div id="notifications-filters" class="account-notifications-filters" hidden></div>
-                        <div id="notifications-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
-                        <div id="notifications-empty" class="account-empty-state" hidden>اعلانی برای این حساب پیدا نشد.</div>
-                        <div id="notifications-list" class="account-notifications-list"></div>
-                    </section>
+                        <section class="account-notifications-card account-notifications-card--feed" aria-label="فهرست اعلان‌ها">
+                            <div class="owner-block__head">
+                                <h4>فید اعلان‌ها</h4>
+                                <p>هر مورد به‌صورت یک ردیف کوتاه نمایش داده می‌شود و جزئیات فقط موقع نیاز باز می‌شوند.</p>
+                            </div>
+                            <div class="account-inline-actions">
+                                <button id="notifications-refresh" class="shell-action-btn" type="button">بروزرسانی</button>
+                                <button id="notifications-mark-all" class="shell-action-btn" type="button">خواندن همه</button>
+                            </div>
+                            <div id="notifications-filters" class="account-notifications-filters" hidden></div>
+                            <div id="notifications-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
+                            <div id="notifications-empty" class="account-empty-state" hidden>اعلانی برای این حساب پیدا نشد.</div>
+                            <div id="notifications-list" class="account-notifications-list"></div>
+                        </section>
+                    </div>
                 </article>
                 <article id="owner-panel" class="account-card account-surface-panel" data-surface="owner" hidden>
                     <header class="account-surface-head">
@@ -1035,9 +1035,9 @@
         <p id="account-footer-brand">ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260528-040637"></script>
-    <script src="/assets/site/scripts/account.js?v=20260528-040637"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260528-040637"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260528-040637"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260528-042804"></script>
+    <script src="/assets/site/scripts/account.js?v=20260528-042804"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260528-042804"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260528-042804"></script>
 </body>
 </html>
