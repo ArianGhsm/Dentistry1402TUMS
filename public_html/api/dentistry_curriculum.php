@@ -89,7 +89,6 @@ function dent_dentistry_curriculum_terms(): array
                                 'ترابی نژاد 2021',
                                 'cdr ترابی‌نژاد',
                             ],
-                            'examCourseSlugs' => ['endotorabinejad'],
                         ],
                         [
                             'key' => 'ethics-communication',
@@ -169,7 +168,12 @@ function dent_dentistry_curriculum_terms(): array
                     'key' => 'preclinic',
                     'title' => $titles['preclinic'],
                     'units' => [
-                        ['key' => 'endo-preclinic-1', 'title' => 'پری‌کلینیک اندو ۱'],
+                        [
+                            'key' => 'endo-preclinic-1',
+                            'title' => 'پری‌کلینیک اندو ۱',
+                            'aliases' => ['اندو ترابی‌نژاد', 'ترابی‌نژاد'],
+                            'examCourseSlugs' => ['endotorabinejad'],
+                        ],
                     ],
                 ],
                 [
