@@ -2145,7 +2145,8 @@ function notes_download_host_term_payload(string $cohort, int $term, array $term
     $defaultRelativeDir = notes_download_host_default_relative_dir(
         $cohort,
         $term,
-        (string) ($termPayload['title'] ?? '')
+        (string) ($termPayload['title'] ?? ''),
+        $termPayload
     );
 
     return [
@@ -2157,6 +2158,27 @@ function notes_download_host_term_payload(string $cohort, int $term, array $term
         'canManageAllRoots' => $role === 'owner' && $isEnabled,
         'managerUrl' => notes_download_host_manager_url($defaultRelativeDir, $cohort),
     ];
+}
+
+function notes_download_host_default_relative_dir_from_request(string $cohort, int $term, array $params, array $store): string
+{
+    $requestedUnitKey = trim(strtolower((string) ($params['unitKey'] ?? $params['unit'] ?? '')));
+    if ($requestedUnitKey !== '' && notes_is_curriculum_cohort($cohort)) {
+        $termPayload = notes_curriculum_unit_term_payload($cohort, $term, $requestedUnitKey, $store);
+        return notes_download_host_default_relative_dir(
+            $cohort,
+            $term,
+            (string) ($termPayload['title'] ?? ''),
+            $termPayload
+        );
+    }
+
+    $termTitle = trim((string) ($params['termTitle'] ?? ''));
+    if ($termTitle === '') {
+        $termPayload = notes_term_payload_for_cohort($cohort, $store, $term);
+        $termTitle = (string) ($termPayload['title'] ?? '');
+    }
+    return notes_download_host_default_relative_dir($cohort, $term, $termTitle);
 }
 
 function notes_parse_prosthesis_term_fields_from_post(): array
@@ -2641,7 +2663,8 @@ if ($action === 'downloadHostUpload') {
         $term = $cohort === 'prosthesis-1402'
             ? notes_prosthesis_1402_parse_term_id($uploadParams['term'] ?? '1')
             : notes_require_term_for_cohort($cohort, $uploadParams['term'] ?? '');
-        $relativeDir = notes_download_host_default_relative_dir($cohort, $term, trim((string) ($uploadParams['termTitle'] ?? '')));
+        $store = notes_curriculum_store_for_cohort($cohort);
+        $relativeDir = notes_download_host_default_relative_dir_from_request($cohort, $term, $uploadParams, $store);
     }
 
     if (!isset($_FILES['file']) && max(0, (int) notes_download_host_request_header('Content-Length')) > 0) {
@@ -2676,6 +2699,29 @@ if ($action === 'downloadHostUpload') {
         'success' => true,
         'file' => $uploaded,
         'message' => $uploaded['message'] ?? 'فایل روی هاست دانلود ذخیره شد.',
+    ]);
+}
+
+if ($action === 'downloadHostEnsureDir') {
+    notes_1402_require_method(['POST']);
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $viewer = notes_require_manage_cohort($cohort);
+    $scopeRoot = notes_download_host_scope_for_viewer($cohort, $viewer);
+    $targetPath = trim((string) ($_POST['path'] ?? ''));
+    if ($targetPath === '') {
+        $term = $cohort === 'prosthesis-1402'
+            ? notes_prosthesis_1402_parse_term_id($_POST['term'] ?? '1')
+            : notes_require_term_for_cohort($cohort, $_POST['term'] ?? '');
+        $store = notes_curriculum_store_for_cohort($cohort);
+        $targetPath = notes_download_host_default_relative_dir_from_request($cohort, $term, $_POST, $store);
+    }
+    $normalized = notes_download_host_normalize_relative_path($targetPath);
+    notes_download_host_ensure_dir($normalized, $scopeRoot);
+    dent_json_response([
+        'success' => true,
+        'path' => $normalized,
+        'publicUrl' => notes_download_host_public_url($normalized),
+        'message' => 'پوشه مقصد روی هاست دانلود آماده شد.',
     ]);
 }
 

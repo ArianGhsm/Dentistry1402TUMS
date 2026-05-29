@@ -9,14 +9,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۳">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260528-042804">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260528-042804">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260528-042804">
-    <script src="/assets/site/scripts/theme.js?v=20260528-042804"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260528-042804">
-    <link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260528-042804">
-    <link rel="stylesheet" href="/assets/site/styles/notes.css?v=20260528-042804">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260528-042804">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260529-173111">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260529-173111">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260529-173111">
+    <script src="/assets/site/scripts/theme.js?v=20260529-173111"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260529-173111">
+    <link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260529-173111">
+    <link rel="stylesheet" href="/assets/site/styles/notes.css?v=20260529-173111">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260529-173111">
 </head>
 <body class="hub-page" data-notes-cohort="1403">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -53,6 +53,45 @@
 
             <div class="cards-container archive-term-list" id="notes-home-list" data-layout="rows"></div>
             <p class="archive-empty" id="notes-home-empty">در حال دریافت ترم‌ها...</p>
+        </section>
+
+        <section class="notes-manage-panel" id="notes-home-unit-manage" hidden>
+            <div class="notes-manage-panel__head">
+                <h4 id="notes-home-unit-manage-heading">افزودن منبع این واحد</h4>
+                <p id="notes-home-unit-manage-copy">مالک یا نماینده مجاز می‌تواند منبع همین واحد را از همین صفحه ثبت کند.</p>
+            </div>
+
+            <form class="notes-manage-panel__form" id="notes-home-unit-form" novalidate>
+                <div class="notes-manage-panel__fields">
+                    <label class="notes-manage-panel__field">
+                        <span>کادر کوچک</span>
+                        <input id="notes-home-unit-badge" name="badge" type="text" maxlength="70" required placeholder="مثلاً جزوه">
+                    </label>
+
+                    <label class="notes-manage-panel__field">
+                        <span>عنوان</span>
+                        <input id="notes-home-unit-title-input" name="title" type="text" maxlength="180" required placeholder="عنوان منبع این واحد">
+                    </label>
+
+                    <label class="notes-manage-panel__field notes-manage-panel__field--full">
+                        <span>توضیحات</span>
+                        <textarea id="notes-home-unit-description" name="description" maxlength="600" required placeholder="توضیح کوتاه درباره منبع"></textarea>
+                    </label>
+
+                    <label class="notes-manage-panel__field">
+                        <span>نام دکمه</span>
+                        <input id="notes-home-unit-button-label" name="buttonLabel" type="text" maxlength="70" required placeholder="مثلاً دریافت">
+                    </label>
+
+                    <label class="notes-manage-panel__field">
+                        <span>لینک دکمه</span>
+                        <input id="notes-home-unit-button-url" name="buttonUrl" type="url" maxlength="900" required placeholder="با انتخاب فایل یا آپلود خودکار پر می‌شود">
+                    </label>
+                </div>
+
+                <button class="card-btn notes-manage-panel__submit" id="notes-home-unit-submit" type="submit">افزودن منبع همین واحد</button>
+                <p class="notes-manage-feedback" id="notes-home-unit-feedback" hidden></p>
+            </form>
         </section>
 
         <section class="notes-manage-panel" id="notes-home-manage" hidden>
@@ -94,11 +133,10 @@
         <p id="notes-home-footer">ورودی ۱۴۰۳ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/pwa.js?v=20260528-042804"></script>
-    <script src="/assets/site/scripts/auth.js?v=20260528-042804"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260528-042804"></script>
-    <script src="/assets/site/scripts/notes-home.js?v=20260528-042804"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260529-173111"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260529-173111"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260529-173111"></script>
+    <script src="/assets/site/scripts/notes-host-picker.js?v=20260529-173111"></script>
+    <script src="/assets/site/scripts/notes-home.js?v=20260529-173111"></script>
 </body>
 </html>
-
-

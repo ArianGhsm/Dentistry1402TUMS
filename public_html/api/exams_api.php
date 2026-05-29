@@ -805,6 +805,25 @@ function dent_exams_api_absolute_url(string $path): string
     return ($isSecure ? 'https://' : 'http://') . $host . $path;
 }
 
+function dent_exams_api_parse_discount_codes_input($raw): array
+{
+    if (is_array($raw)) {
+        return dent_exams_normalize_discount_codes($raw);
+    }
+
+    $text = trim((string) $raw);
+    if ($text === '') {
+        return [];
+    }
+
+    $decoded = json_decode($text, true);
+    if (!is_array($decoded)) {
+        dent_error('فرمت کدهای تخفیف معتبر نیست. JSON معتبر وارد کنید.', 422);
+    }
+
+    return dent_exams_normalize_discount_codes($decoded);
+}
+
 function dent_exams_api_collection_for_setting(array $paymentsStore, array $setting): ?array
 {
     $collectionId = max(0, (int) ($setting['collectionId'] ?? 0));
@@ -895,6 +914,70 @@ function dent_exams_api_collection_stats(array $paymentsStore, int $collectionId
         'successCount' => $successCount,
         'receivedAmount' => $receivedAmount,
     ];
+}
+
+function dent_exams_api_collection_discount_usage_map(array $paymentsStore, int $collectionId): array
+{
+    $usage = [];
+    foreach (dent_exams_api_collection_orders($paymentsStore, $collectionId) as $order) {
+        if ((string) ($order['status'] ?? '') !== PAYMENTS_ORDER_STATUS_SUCCESS) {
+            continue;
+        }
+
+        $code = payments_normalize_discount_code_text((string) ($order['discount_code'] ?? ''));
+        if ($code === '') {
+            continue;
+        }
+
+        $usage[$code] = max(0, (int) ($usage[$code] ?? 0)) + 1;
+    }
+
+    ksort($usage);
+    return $usage;
+}
+
+function dent_exams_api_owner_discount_codes_payload(array $setting, array $usageMap): array
+{
+    $payload = [];
+    foreach (dent_exams_normalize_discount_codes($setting['discountCodes'] ?? []) as $code) {
+        $normalizedCode = (string) ($code['code'] ?? '');
+        $maxUses = array_key_exists('maxUses', $code) ? $code['maxUses'] : null;
+        $usedCount = max(0, (int) ($usageMap[$normalizedCode] ?? 0));
+
+        $payload[] = [
+            'code' => $normalizedCode,
+            'label' => (string) ($code['label'] ?? ''),
+            'type' => (string) ($code['type'] ?? 'fixed'),
+            'amount' => max(0, (int) ($code['amount'] ?? 0)),
+            'maxUses' => is_int($maxUses) ? $maxUses : null,
+            'studentNumber' => dent_normalize_student_number((string) ($code['studentNumber'] ?? '')),
+            'expiresAt' => (string) ($code['expiresAt'] ?? ''),
+            'isEnabled' => !array_key_exists('isEnabled', $code) || (bool) $code['isEnabled'],
+            'usedCount' => $usedCount,
+            'remainingUses' => is_int($maxUses) ? max(0, $maxUses - $usedCount) : null,
+        ];
+    }
+
+    return $payload;
+}
+
+function dent_exams_api_collection_discount_codes_payload(array $setting): array
+{
+    $payload = [];
+    foreach (dent_exams_normalize_discount_codes($setting['discountCodes'] ?? []) as $code) {
+        $payload[] = [
+            'code' => (string) ($code['code'] ?? ''),
+            'label' => (string) ($code['label'] ?? ''),
+            'type' => (string) ($code['type'] ?? 'fixed'),
+            'amount' => max(0, (int) ($code['amount'] ?? 0)),
+            'max_uses' => is_int($code['maxUses'] ?? null) ? (int) $code['maxUses'] : null,
+            'student_number' => dent_normalize_student_number((string) ($code['studentNumber'] ?? '')),
+            'expires_at' => (string) ($code['expiresAt'] ?? ''),
+            'is_enabled' => !array_key_exists('isEnabled', $code) || (bool) $code['isEnabled'],
+        ];
+    }
+
+    return $payload;
 }
 
 function dent_exams_api_paid_order_summary(?array $order): ?array
@@ -1079,7 +1162,10 @@ function dent_exams_api_course_summary_payload(
         }
     }
 
-    $collectionStats = dent_exams_api_collection_stats($paymentsStore, max(0, (int) ($setting['collectionId'] ?? 0)));
+    $collectionId = max(0, (int) ($setting['collectionId'] ?? 0));
+    $collectionStats = dent_exams_api_collection_stats($paymentsStore, $collectionId);
+    $discountCodes = dent_exams_normalize_discount_codes($setting['discountCodes'] ?? []);
+    $discountUsageMap = $viewerIsOwner ? dent_exams_api_collection_discount_usage_map($paymentsStore, $collectionId) : [];
 
     return [
         'catalogKey' => $catalogKey,
@@ -1101,9 +1187,12 @@ function dent_exams_api_course_summary_payload(
         'paymentMode' => (string) ($setting['paymentMode'] ?? 'free'),
         'amount' => max(0, (int) ($setting['amount'] ?? 0)),
         'amountLabel' => dent_exams_api_money((int) ($setting['amount'] ?? 0)),
-        'collectionId' => max(0, (int) ($setting['collectionId'] ?? 0)),
+        'collectionId' => $collectionId,
         'collectionToken' => $collection ? (string) ($collection['token'] ?? '') : '',
         'collectionStatus' => $collection ? (string) ($collection['status'] ?? '') : '',
+        'discounts' => [
+            'hasCodes' => $discountCodes !== [],
+        ],
         'curriculum' => dent_exams_api_course_curriculum_meta($courseSlug),
         'access' => $access,
         'supportsDirectAttemptableExams' => ($courseStats['directAttemptableExamCount'] ?? 0) > 0,
@@ -1122,6 +1211,7 @@ function dent_exams_api_course_summary_payload(
         'ownerSettings' => [
             'canManage' => $viewerIsOwner,
             'updatedAt' => (string) ($setting['updatedAt'] ?? ''),
+            'discountCodes' => $viewerIsOwner ? dent_exams_api_owner_discount_codes_payload($setting, $discountUsageMap) : [],
         ],
         'exams' => $exams,
     ];
@@ -1162,6 +1252,7 @@ function dent_exams_api_collection_base_payload(array $course, array $setting, ?
         'description' => (string) ($course['paymentDescription'] ?? ''),
         'image_url' => '',
         'amount' => $amount,
+        'discount_codes' => dent_exams_api_collection_discount_codes_payload($setting),
         'status' => $mode === 'paid' ? PAYMENTS_COLLECTION_STATUS_ACTIVE : PAYMENTS_COLLECTION_STATUS_INACTIVE,
         'gateway' => '',
         'allow_guest_payments' => false,
@@ -1684,10 +1775,14 @@ if ($action === 'ownerSaveCourseAccess') {
 
     $currentStore = dent_exams_read_store();
     $currentSetting = dent_exams_course_setting($currentStore, $catalogKey, $courseSlug);
+    $discountCodes = array_key_exists('discountCodes', $_POST) || array_key_exists('discount_codes', $_POST)
+        ? dent_exams_api_parse_discount_codes_input($_POST['discountCodes'] ?? ($_POST['discount_codes'] ?? []))
+        : dent_exams_normalize_discount_codes($currentSetting['discountCodes'] ?? []);
     $nextSetting = [
         'paymentMode' => $rawMode,
         'amount' => $amount,
         'collectionId' => max(0, (int) ($currentSetting['collectionId'] ?? 0)),
+        'discountCodes' => $discountCodes,
         'updatedAt' => dent_iso_now(),
     ];
     $collectionId = dent_exams_api_sync_collection($catalogKey, $courseSlug, $course, $nextSetting);

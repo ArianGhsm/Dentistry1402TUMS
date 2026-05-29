@@ -473,7 +473,6 @@
         }
 
         return [
-            homeHeroHtml(),
             '<section class="catalog-simple-stack">',
             terms.map(function (term, index) {
                 return termCardHtml(term, index);
@@ -630,7 +629,6 @@
         }
 
         root.innerHTML = [
-            homeHeroHtml(),
             '<section class="catalog-simple-stack">',
             courses.map(function (course, index) {
                 return courseCardHtml(course, index);

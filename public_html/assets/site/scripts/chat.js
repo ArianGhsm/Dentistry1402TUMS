@@ -886,6 +886,8 @@
     conversationFilter: "",
     conversationListCategory: "all",
     messages: new Map(),
+    messageOrderCache: [],
+    messageOrderDirty: true,
     lastMessageId: 0,
     oldestMessageId: 0,
     hasMoreBefore: false,
@@ -919,6 +921,7 @@
     confirmDialog: null,
     connectionIssue: false,
     showArchivedConversations: false,
+    conversationListRenderKey: "",
     threadAutoStick: true,
     autoReadTimer: null,
     autoReadConversationId: "",
@@ -2122,16 +2125,27 @@
     return state.conversationsById.get(state.activeConversationId) || null;
   }
 
+  function invalidateMessageListCache() {
+    state.messageOrderDirty = true;
+    state.messageOrderCache = [];
+  }
+
   function messageList() {
+    if (!state.messageOrderDirty) {
+      return state.messageOrderCache.slice();
+    }
     var list = Array.from(state.messages.values());
     list.sort(function (a, b) {
       return a.id - b.id;
     });
-    return list;
+    state.messageOrderCache = list;
+    state.messageOrderDirty = false;
+    return list.slice();
   }
 
   function clearThreadState() {
     state.messages.clear();
+    invalidateMessageListCache();
     state.lastMessageId = 0;
     state.oldestMessageId = 0;
     state.hasMoreBefore = false;
@@ -2428,17 +2442,18 @@
   function filteredConversations() {
     var q = normalizeSpace(state.conversationFilter).toLowerCase();
     var qDigits = normalizeSpace(normalizeDigits(state.conversationFilter)).toLowerCase();
+    var activeLoadedMessageText = "";
+    if (q && state.activeConversationId && state.messages.size) {
+      activeLoadedMessageText = messageList().map(function (message) {
+        return messagePreviewText(message);
+      }).join(" ");
+    }
     return state.conversations.filter(function (conversation) {
       if (!conversationMatchesListCategory(conversation)) {
         return false;
       }
       if (!q) return true;
-      var loadedMessageText = "";
-      if (conversation.id === state.activeConversationId && state.messages.size) {
-        loadedMessageText = Array.from(state.messages.values()).map(function (message) {
-          return messagePreviewText(message);
-        }).join(" ");
-      }
+      var loadedMessageText = conversation.id === state.activeConversationId ? activeLoadedMessageText : "";
       var hay = [
         conversation.title,
         conversation.subtitle,
@@ -2454,14 +2469,52 @@
 
   function renderConversationList() {
     if (!conversationList) return;
-    conversationList.innerHTML = "";
     var list = filteredConversations();
     var buckets = splitConversationBuckets(list);
     var hasQuery = !!normalizeSpace(state.conversationFilter);
     var hasCategory = normalizeConversationListCategory(state.conversationListCategory) !== "all";
     var activeList = buckets.active;
     var archivedList = buckets.archived;
+    var showArchived = state.showArchivedConversations || hasQuery || hasCategory;
     var hasAny = activeList.length > 0 || archivedList.length > 0;
+    var listRenderKey = [
+      state.activeConversationId,
+      state.listSelectionMode ? "1" : "0",
+      normalizeSpace(state.conversationFilter),
+      normalizeConversationListCategory(state.conversationListCategory),
+      showArchived ? "1" : "0",
+      hasQuery ? [state.activeConversationId, state.messages.size, state.lastMessageId, state.oldestMessageId].join(":") : "",
+      list.map(function (conversation) {
+        var last = conversation && conversation.lastMessage ? conversation.lastMessage : null;
+        return [
+          conversation.id,
+          conversation.title,
+          conversation.subtitle,
+          conversation.unreadCount,
+          conversation.lastReadMessageId,
+          conversation.updatedAt,
+          last ? last.id : 0,
+          last ? last.delivery : "",
+          last ? snippet(messagePreviewText(last), 48) : "",
+          conversation.viewerState && conversation.viewerState.pinned ? 1 : 0,
+          conversation.viewerState && conversation.viewerState.archived ? 1 : 0,
+          conversation.settings && conversation.settings.muted ? 1 : 0,
+          state.selectedConversationIds.has(conversation.id) ? 1 : 0
+        ].join(":");
+      }).join("|")
+    ].join("||");
+
+    if (listRenderKey === state.conversationListRenderKey) {
+      updateSelectionUi();
+      updateConversationFilterTabs();
+      updateConversationMeta();
+      updateThreadPlaceholderUi();
+      updateChatNavBadges();
+      return;
+    }
+
+    state.conversationListRenderKey = listRenderKey;
+    conversationList.innerHTML = "";
     setHidden(conversationEmpty, hasAny);
 
     if (conversationEmpty && !hasAny) {
@@ -2470,16 +2523,17 @@
         : "هنوز گفتگویی پیدا نشد.";
     }
 
+    var fragment = document.createDocumentFragment();
     if (activeList.length) {
       activeList.forEach(function (conversation) {
-        conversationList.appendChild(renderConversationItem(conversation));
+        fragment.appendChild(renderConversationItem(conversation));
       });
     }
 
     if (archivedList.length) {
       var archivedToggle = document.createElement("button");
       archivedToggle.type = "button";
-      archivedToggle.className = "conversation-archive-toggle" + (state.showArchivedConversations || hasQuery || hasCategory ? " is-open" : "");
+      archivedToggle.className = "conversation-archive-toggle" + (showArchived ? " is-open" : "");
       archivedToggle.innerHTML = [
         '<span>گفتگوهای بایگانی‌شده</span>',
         '<strong>' + archivedList.length.toLocaleString("fa-IR") + "</strong>"
@@ -2488,14 +2542,16 @@
         state.showArchivedConversations = !state.showArchivedConversations;
         renderConversationList();
       });
-      conversationList.appendChild(archivedToggle);
+      fragment.appendChild(archivedToggle);
 
-      if (state.showArchivedConversations || hasQuery || hasCategory) {
+      if (showArchived) {
         archivedList.forEach(function (conversation) {
-          conversationList.appendChild(renderConversationItem(conversation));
+          fragment.appendChild(renderConversationItem(conversation));
         });
       }
     }
+
+    conversationList.appendChild(fragment);
 
     if (state.modalOpen === "forward") {
       renderForwardList();
@@ -3516,6 +3572,7 @@
 
     if (forceReplace) {
       state.messages.clear();
+      invalidateMessageListCache();
       messagesEl.innerHTML = "";
       state.lastMessageId = 0;
       state.oldestMessageId = 0;
@@ -3530,6 +3587,7 @@
       if (!message || message.id <= 0) return;
       state.lastMessageId = Math.max(state.lastMessageId, message.id);
       state.messages.set(message.id, message);
+      state.messageOrderDirty = true;
 
       var nextNode = renderMessage(message);
       bindMediaAutoStick(nextNode);
@@ -3612,6 +3670,7 @@
   function replaceMessageInDom(message) {
     if (!message || !messagesEl) return;
     state.messages.set(message.id, message);
+    invalidateMessageListCache();
     var existing = messagesEl.querySelector('[data-mid="' + message.id + '"]');
     if (existing) {
       var nextNode = renderMessage(message);
@@ -3628,6 +3687,7 @@
     if (!messagesEl) return;
     var numericId = Number(messageId);
     state.messages.delete(numericId);
+    invalidateMessageListCache();
     var existing = messagesEl.querySelector('[data-mid="' + numericId + '"]');
     if (existing) existing.remove();
     updateMessageGroups();
@@ -5761,10 +5821,12 @@
     state.activeConversationId = "";
     state.conversations = [];
     state.conversationsById.clear();
+    state.conversationListRenderKey = "";
     state.conversationListVersion = "";
     state.conversationFilter = "";
     state.conversationListCategory = "all";
     state.messages.clear();
+    invalidateMessageListCache();
     state.lastMessageId = 0;
     state.replyTargetId = null;
     state.directoryUsers = [];
@@ -5856,10 +5918,12 @@
       state.activeConversationId = state.initialConversationId || "";
       state.conversations = [];
       state.conversationsById.clear();
+      state.conversationListRenderKey = "";
       state.conversationListVersion = "";
       state.conversationFilter = "";
       state.conversationListCategory = "all";
       state.messages.clear();
+      invalidateMessageListCache();
       state.lastMessageId = 0;
       state.oldestMessageId = 0;
       state.hasMoreBefore = false;

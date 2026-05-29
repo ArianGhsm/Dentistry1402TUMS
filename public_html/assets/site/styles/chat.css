@@ -6619,6 +6619,14 @@ body.chat-page .chat-mobile-nav__item.is-active {
     }
 }
 
+html[data-performance-mode="lite"] body.chat-page .messages {
+    scroll-behavior: auto;
+}
+
+html[data-performance-mode="lite"] body.chat-page .msg-item.is-new {
+    animation: none;
+}
+
 /* Bale-style flat chat shell. Keep this final so earlier redesign layers cannot collapse mobile. */
 body.chat-page {
     --chat-bale-line: color-mix(in srgb, var(--border-color) 78%, transparent);

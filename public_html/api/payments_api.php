@@ -1070,6 +1070,8 @@ function payments_api_owner_collection_payload(array $collection, array $orders 
         'description' => (string) ($collection['description'] ?? ''),
         'imageUrl' => (string) ($collection['image_url'] ?? ''),
         'amount' => max(0, (int) ($collection['amount'] ?? 0)),
+        'discountCodes' => payments_normalize_collection_discount_codes($collection['discount_codes'] ?? []),
+        'hasDiscountCodes' => payments_normalize_collection_discount_codes($collection['discount_codes'] ?? []) !== [],
         'status' => (string) ($collection['status'] ?? PAYMENTS_COLLECTION_STATUS_INACTIVE),
         'gateway' => (string) ($collection['gateway'] ?? ''),
         'allowGuestPayments' => payments_api_collection_allows_guest($collection),
@@ -1097,6 +1099,7 @@ function payments_api_public_collection_payload(array $collection, ?array $paidO
         'description' => (string) ($collection['description'] ?? ''),
         'imageUrl' => (string) ($collection['image_url'] ?? ''),
         'amount' => max(0, (int) ($collection['amount'] ?? 0)),
+        'hasDiscountCodes' => payments_normalize_collection_discount_codes($collection['discount_codes'] ?? []) !== [],
         'status' => (string) ($collection['status'] ?? PAYMENTS_COLLECTION_STATUS_INACTIVE),
         'allowGuestPayments' => payments_api_collection_allows_guest($collection),
         'collectPayerName' => payments_api_collection_collects($collection, 'name'),
@@ -1108,6 +1111,114 @@ function payments_api_public_collection_payload(array $collection, ?array $paidO
         'paidOrder' => $paidOrder ? payments_order_public_result_payload($paidOrder, null) : null,
         'successMessage' => (string) ($collection['success_message'] ?? ''),
         'failureMessage' => (string) ($collection['failure_message'] ?? ''),
+    ];
+}
+
+function payments_api_collection_discount_usage_count(array $orders, string $discountCode): int
+{
+    $normalizedCode = payments_normalize_discount_code_text($discountCode);
+    if ($normalizedCode === '') {
+        return 0;
+    }
+
+    $count = 0;
+    foreach ($orders as $order) {
+        if (!is_array($order) || (string) ($order['status'] ?? '') !== PAYMENTS_ORDER_STATUS_SUCCESS) {
+            continue;
+        }
+        if (payments_normalize_discount_code_text((string) ($order['discount_code'] ?? '')) !== $normalizedCode) {
+            continue;
+        }
+        $count++;
+    }
+
+    return $count;
+}
+
+function payments_api_collection_quote(
+    array $collection,
+    array $orders = [],
+    string $discountCode = '',
+    string $studentNumber = ''
+): array {
+    $subtotal = max(0, (int) ($collection['amount'] ?? 0));
+    if ($subtotal <= 0) {
+        throw new PaymentsApiException('مبلغ این لینک پرداخت معتبر نیست.', 422);
+    }
+
+    $normalizedCode = payments_normalize_discount_code_text($discountCode);
+    $normalizedStudentNumber = dent_normalize_student_number($studentNumber);
+    $discountAmount = 0;
+    $discountLabel = '';
+    $discountApplied = false;
+    $discountValid = $normalizedCode === '';
+    $maxUses = null;
+    $usedCount = 0;
+
+    if ($normalizedCode !== '') {
+        $matchedCode = null;
+        foreach (payments_normalize_collection_discount_codes($collection['discount_codes'] ?? []) as $code) {
+            if ((string) ($code['code'] ?? '') === $normalizedCode) {
+                $matchedCode = $code;
+                break;
+            }
+        }
+
+        if (!is_array($matchedCode)) {
+            throw new PaymentsApiException('کد تخفیف معتبر یا فعالی برای این آزمون پیدا نشد.', 422);
+        }
+        if (!(bool) ($matchedCode['is_enabled'] ?? true)) {
+            throw new PaymentsApiException('این کد تخفیف غیرفعال شده است.', 422);
+        }
+
+        $expiresAt = payments_timestamp_or_null((string) ($matchedCode['expires_at'] ?? ''));
+        if ($expiresAt !== null && $expiresAt <= time()) {
+            throw new PaymentsApiException('مهلت استفاده از این کد تخفیف به پایان رسیده است.', 422);
+        }
+
+        $restrictedStudentNumber = dent_normalize_student_number((string) ($matchedCode['student_number'] ?? ''));
+        if ($restrictedStudentNumber !== '') {
+            if ($normalizedStudentNumber === '') {
+                throw new PaymentsApiException('این کد فقط برای یک شماره دانشجویی مشخص فعال است.', 422);
+            }
+            if ($restrictedStudentNumber !== $normalizedStudentNumber) {
+                throw new PaymentsApiException('این کد برای شماره دانشجویی شما فعال نیست.', 422);
+            }
+        }
+
+        $maxUses = payments_normalize_positive_int_nullable($matchedCode['max_uses'] ?? null, 1000000);
+        $usedCount = $maxUses !== null
+            ? payments_api_collection_discount_usage_count($orders, $normalizedCode)
+            : 0;
+        if ($maxUses !== null && $usedCount >= $maxUses) {
+            throw new PaymentsApiException('ظرفیت استفاده از این کد تخفیف تکمیل شده است.', 409);
+        }
+
+        $discountValid = true;
+        $discountApplied = true;
+        $discountLabel = (string) ($matchedCode['label'] ?? '');
+        if ((string) ($matchedCode['type'] ?? 'fixed') === 'percent') {
+            $discountAmount = (int) floor($subtotal * ((int) ($matchedCode['amount'] ?? 0)) / 100);
+        } else {
+            $discountAmount = (int) ($matchedCode['amount'] ?? 0);
+        }
+    }
+
+    $discountAmount = max(0, min($subtotal, $discountAmount));
+    $amount = max(0, $subtotal - $discountAmount);
+
+    return [
+        'subtotal' => $subtotal,
+        'discountCode' => $discountApplied ? $normalizedCode : '',
+        'discountLabel' => $discountLabel,
+        'discountAmount' => $discountAmount,
+        'discountApplied' => $discountApplied,
+        'discountValid' => $discountValid,
+        'amount' => $amount,
+        'maxUses' => $maxUses,
+        'usedCount' => $discountApplied ? $usedCount : 0,
+        'remainingUses' => $discountApplied && $maxUses !== null ? max(0, $maxUses - $usedCount) : null,
+        'restrictedStudentNumber' => $discountApplied ? dent_normalize_student_number((string) $normalizedStudentNumber) : '',
     ];
 }
 
@@ -1556,6 +1667,52 @@ if ($action === 'publicCollection') {
     ]);
 }
 
+if ($action === 'quoteCollection') {
+    payments_api_require_method(['POST']);
+    $user = payments_api_current_public_user();
+
+    $token = payments_clean_collection_token((string) ($_POST['token'] ?? ''));
+    if ($token === '') {
+        dent_error('شناسه لینک پرداخت معتبر نیست.', 422);
+    }
+
+    $store = payments_read_store();
+    $collectionIndex = payments_find_collection_index_by_token($store, $token);
+    if ($collectionIndex < 0 || !is_array($store['collections'][$collectionIndex] ?? null)) {
+        dent_error('لینک پرداخت پیدا نشد.', 404);
+    }
+
+    $collection = $store['collections'][$collectionIndex];
+    if ((string) ($collection['status'] ?? '') !== PAYMENTS_COLLECTION_STATUS_ACTIVE) {
+        dent_error('این لینک پرداخت در حال حاضر فعال نیست.', 422);
+    }
+    if ($user === null && !payments_api_collection_allows_guest($collection)) {
+        dent_error('نیاز به ورود به حساب کاربری است.', 401, ['loggedOut' => true]);
+    }
+
+    $payerDefaults = payments_api_collection_payer_defaults($user);
+    $payerStudentNumber = dent_normalize_student_number((string) ($_POST['payerStudentNumber'] ?? ''));
+    if ($payerStudentNumber === '') {
+        $payerStudentNumber = dent_normalize_student_number((string) ($payerDefaults['studentNumber'] ?? ''));
+    }
+
+    try {
+        $quote = payments_api_collection_quote(
+            $collection,
+            payments_api_collection_orders($store, (int) ($collection['id'] ?? 0)),
+            (string) ($_POST['discountCode'] ?? ($_POST['discount_code'] ?? '')),
+            $payerStudentNumber
+        );
+    } catch (PaymentsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode());
+    }
+
+    dent_json_response([
+        'success' => true,
+        'quote' => $quote,
+    ]);
+}
+
 if ($action === 'createCollectionOrder') {
     payments_api_require_method(['POST']);
     $user = payments_api_current_public_user();
@@ -1610,8 +1767,9 @@ if ($action === 'createCollectionOrder') {
         dent_error('شماره دانشجویی پرداخت‌کننده الزامی است.', 422);
     }
 
+    $discountCode = payments_normalize_discount_code_text((string) ($_POST['discountCode'] ?? ($_POST['discount_code'] ?? '')));
     $enabledGateways = payments_gateway_enabled_checkout_keys(false);
-    if ($enabledGateways === []) {
+    if ($enabledGateways === [] && $discountCode === '') {
         dent_error('هیچ درگاه پرداخت فعالی برای این پرداخت وجود ندارد.', 503);
     }
 
@@ -1633,6 +1791,7 @@ if ($action === 'createCollectionOrder') {
             $enabledGateways,
             $studentNumber,
             $payerStudentNumber,
+            $discountCode,
             $user,
             $returnPath
         ): array {
@@ -1658,21 +1817,26 @@ if ($action === 'createCollectionOrder') {
                 }
             }
 
+            $quote = payments_api_collection_quote(
+                $collection,
+                payments_api_collection_orders($store, (int) ($collection['id'] ?? 0)),
+                $discountCode,
+                $dedupeStudentNumber
+            );
+            $amount = max(0, (int) ($quote['amount'] ?? 0));
             $gateway = $requestedGateway !== '' ? $requestedGateway : payments_gateway_clean((string) ($collection['gateway'] ?? ''));
             if ($gateway === '') {
                 $gateway = $defaultGateway;
             }
-            if ($gateway === '' || !in_array($gateway, $enabledGateways, true)) {
+            if ($amount > 0 && ($gateway === '' || !in_array($gateway, $enabledGateways, true))) {
                 throw new PaymentsApiException('درگاه پرداخت انتخاب‌شده فعال نیست. لطفا گزینه دیگری را انتخاب کنید.', 422);
-            }
-
-            $amount = max(0, (int) ($collection['amount'] ?? 0));
-            if ($amount <= 0) {
-                throw new PaymentsApiException('مبلغ این لینک پرداخت معتبر نیست.', 422);
             }
 
             $now = dent_iso_now();
             $title = (string) ($collection['title'] ?? 'پرداخت هزینه');
+            if ($amount <= 0) {
+                $gateway = 'discount';
+            }
             $order = [
                 'id' => payments_next_order_id($store),
                 'item_id' => 0,
@@ -1686,6 +1850,7 @@ if ($action === 'createCollectionOrder') {
                     'collection_id' => (int) ($collection['id'] ?? 0),
                     'collection_token' => (string) ($collection['token'] ?? ''),
                     'collection_title' => $title,
+                    'discount_label' => (string) ($quote['discountLabel'] ?? ''),
                     '_return_path' => $returnPath,
                 ],
                 'cart_items' => [[
@@ -1693,36 +1858,41 @@ if ($action === 'createCollectionOrder') {
                     'slug' => '',
                     'title' => $title,
                     'quantity' => 1,
-                    'unit_price' => $amount,
-                    'subtotal' => $amount,
-                    'discount_code' => '',
-                    'discount_amount' => 0,
+                    'unit_price' => (int) ($quote['subtotal'] ?? 0),
+                    'subtotal' => (int) ($quote['subtotal'] ?? 0),
+                    'discount_code' => (string) ($quote['discountCode'] ?? ''),
+                    'discount_amount' => (int) ($quote['discountAmount'] ?? 0),
                     'amount' => $amount,
                     'extra_form_data' => [],
                 ]],
                 'quantity' => 1,
-                'unit_price' => $amount,
-                'subtotal' => $amount,
-                'discount_code' => '',
-                'discount_amount' => 0,
+                'unit_price' => (int) ($quote['subtotal'] ?? 0),
+                'subtotal' => (int) ($quote['subtotal'] ?? 0),
+                'discount_code' => (string) ($quote['discountCode'] ?? ''),
+                'discount_amount' => (int) ($quote['discountAmount'] ?? 0),
                 'amount' => $amount,
                 'gateway' => $gateway,
                 'authority' => '',
                 'ref_id' => '',
-                'status' => PAYMENTS_ORDER_STATUS_PENDING,
+                'status' => $amount > 0 ? PAYMENTS_ORDER_STATUS_PENDING : PAYMENTS_ORDER_STATUS_SUCCESS,
                 'gateway_response_snapshot' => [
-                    'created' => ['at' => $now, 'type' => 'collection'],
+                    'created' => ['at' => $now, 'type' => $amount > 0 ? 'collection' : 'collection-discount'],
                 ],
                 'created_at' => $now,
-                'paid_at' => '',
-                'verified_at' => '',
+                'paid_at' => $amount > 0 ? '' : $now,
+                'verified_at' => $amount > 0 ? '' : $now,
                 'public_token' => payments_random_token(),
             ];
             $store['orders'][] = $order;
+            $notification = null;
+            if ((string) ($order['status'] ?? '') === PAYMENTS_ORDER_STATUS_SUCCESS) {
+                $notification = payments_api_append_order_notification($store, $order, null, true);
+            }
 
             return [
                 'order' => $order,
                 'collection' => $collection,
+                'notification' => $notification,
             ];
         });
     } catch (PaymentsApiException $error) {
@@ -1732,6 +1902,23 @@ if ($action === 'createCollectionOrder') {
     $order = $created['order'];
     $collection = $created['collection'];
     $orderToken = (string) ($order['public_token'] ?? '');
+    $resultUrl = $returnPath . (str_contains($returnPath, '?') ? '&' : '?') . 'paymentOrderToken=' . rawurlencode($orderToken);
+    if (is_array($created['notification'] ?? null)) {
+        payments_api_trigger_notification_hook(
+            $created['notification'],
+            $order,
+            null
+        );
+    }
+    if ((string) ($order['status'] ?? '') === PAYMENTS_ORDER_STATUS_SUCCESS) {
+        dent_json_response([
+            'success' => true,
+            'orderToken' => $orderToken,
+            'redirectUrl' => $resultUrl,
+            'resultUrl' => $resultUrl,
+            'order' => payments_order_public_result_payload($order, null),
+        ]);
+    }
     $callbackUrl = payments_api_absolute_url(
         '/api/payments_api.php?action=callback&orderToken=' . rawurlencode($orderToken)
     );
@@ -1798,7 +1985,7 @@ if ($action === 'createCollectionOrder') {
         'success' => true,
         'orderToken' => $orderToken,
         'redirectUrl' => $redirectUrl,
-        'resultUrl' => $returnPath . (str_contains($returnPath, '?') ? '&' : '?') . 'paymentOrderToken=' . rawurlencode($orderToken),
+        'resultUrl' => $resultUrl,
     ]);
 }
 

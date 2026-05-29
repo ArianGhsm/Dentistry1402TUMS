@@ -29,7 +29,13 @@ function dent_dentistry_curriculum_terms(): array
                     'key' => 'theory',
                     'title' => $titles['theory'],
                     'units' => [
-                        ['key' => 'radiology-theory-1', 'title' => 'رادیو نظری ۱'],
+                        [
+                            'key' => 'radiology-theory-1',
+                            'title' => 'رادیو نظری ۱',
+                            'aliases' => ['رادیولوژی نظری ۱', 'نمونه سوالات رادیولوژی نظری ۱'],
+                            'resourceAliases' => ['جزوات رادیولوژی نظری ۱'],
+                            'examCourseSlugs' => ['radiology1'],
+                        ],
                         ['key' => 'tooth-tissue-health-disease', 'title' => 'بافت دندان در سلامت و بیماری'],
                         [
                             'key' => 'anatomy-morphology-theory',

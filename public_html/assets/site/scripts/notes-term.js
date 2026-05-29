@@ -70,6 +70,7 @@
     var rawTerm = String(document.body.dataset.termNumber || searchParams.get("term") || "");
     var term = Number(rawTerm || "0");
     var requestedUnitKey = String(searchParams.get("unit") || "").trim().toLowerCase();
+    var manageRequested = /^(1|true|open)$/i.test(String(searchParams.get("manage") || searchParams.get("add") || "").trim());
     if (["1402", "1403", "1404", "prosthesis-1402"].indexOf(cohort) === -1) {
         return;
     }
@@ -83,30 +84,14 @@
         loadError: "",
         loading: false,
         manageExpanded: false,
+        manageInitialApplied: false,
+        manageFocusPending: false,
         saving: false,
         deletingItemId: 0,
         editingItemId: 0,
         authKey: "",
         downloadHost: null,
-        uploadBusy: false,
-        uploadRetryPending: false,
-        uploadRetryTimer: 0,
-        uploadRetryCount: 0,
-        uploadTask: null,
-        uploadNetworkBound: false,
-        uploadXhr: null,
-        uploadCancelRequested: false,
-        downloadHostPathTouched: false,
-        uploadProgress: {
-            visible: false,
-            phase: "idle",
-            progress: 0,
-            transferredBytes: 0,
-            totalBytes: 0,
-            speedBps: 0,
-            etaSeconds: NaN,
-            completedAt: ""
-        }
+        uploadBusy: false
     };
 
     function isCurriculumCohort() {
@@ -426,6 +411,23 @@
         }
     }
 
+    function focusManagePanelIfNeeded() {
+        if (!state.manageFocusPending || !managePanel || managePanel.hidden || !state.canManage) {
+            return;
+        }
+
+        state.manageFocusPending = false;
+        if (typeof managePanel.scrollIntoView === "function") {
+            managePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        var inputs = formInputs();
+        var focusTarget = inputs.title || inputs.badge || null;
+        if (focusTarget && typeof focusTarget.focus === "function") {
+            focusTarget.focus();
+        }
+    }
+
     function clearCards() {
         while (cardsContainer.firstChild) {
             cardsContainer.removeChild(cardsContainer.firstChild);
@@ -583,6 +585,9 @@
                 inputs[key].value = "";
             }
         });
+        if (hostTools && typeof hostTools.resetLinkMode === "function") {
+            hostTools.resetLinkMode();
+        }
     }
 
     function fillForm(item) {
@@ -592,6 +597,9 @@
         if (inputs.description) inputs.description.value = item.description || "";
         if (inputs.buttonLabel) inputs.buttonLabel.value = item.buttonLabel || "";
         if (inputs.buttonUrl) inputs.buttonUrl.value = item.buttonUrl || "";
+        if (hostTools && typeof hostTools.syncFromInput === "function") {
+            hostTools.syncFromInput();
+        }
     }
 
     function resetEditMode(keepValues) {
@@ -696,614 +704,41 @@
             .replace(/'/g, "&#39;");
     }
 
-    function hostUi() {
-        return {
-            shell: $("notes-host-tools"),
-            managerLink: $("notes-host-manager-link"),
-            pathInput: $("notes-host-path"),
-            nameInput: $("notes-host-name"),
-            fileInput: $("notes-host-file"),
-            pickButton: $("notes-host-pick"),
-            uploadButton: $("notes-host-upload"),
-            cancelButton: $("notes-host-cancel"),
-            fileMeta: $("notes-host-file-meta"),
-            progress: $("notes-host-progress"),
-            progressLabel: $("notes-host-progress-label"),
-            progressPercent: $("notes-host-progress-percent"),
-            progressBar: $("notes-host-progress-bar"),
-            progressSize: $("notes-host-progress-size"),
-            progressSpeed: $("notes-host-progress-speed"),
-            progressEta: $("notes-host-progress-eta"),
-            status: $("notes-host-status"),
-            preview: $("notes-host-preview")
-        };
-    }
-
-    function clearHostUploadRetryTimer() {
-        if (!state.uploadRetryTimer) {
-            return;
-        }
-        window.clearTimeout(state.uploadRetryTimer);
-        state.uploadRetryTimer = 0;
-    }
-
-    function hasPendingHostUploadRetry() {
-        return !!(state.uploadRetryPending && state.uploadTask && state.uploadTask.file);
-    }
-
-    function hostUploadRetryDelayMs() {
-        var attempts = Math.max(1, Number(state.uploadRetryCount || 0));
-        if (attempts <= 1) {
-            return 4000;
-        }
-        if (attempts === 2) {
-            return 7000;
-        }
-        if (attempts === 3) {
-            return 12000;
-        }
-        return 20000;
-    }
-
-    function hostUploadWaitingMessage() {
-        if (isOffline()) {
-            return "اتصال اینترنت قطع شده است. فایل در صف می‌ماند و بعد از برگشت اتصال خودکار دوباره تلاش می‌شود.";
-        }
-        if (Number(state.uploadProgress && state.uploadProgress.progress || 0) >= 99) {
-            return "ارتباط در مرحله نهایی‌سازی قطع شد. به محض پایدار شدن اتصال، آپلود خودکار دوباره تلاش می‌شود.";
-        }
-        return "ارتباط آپلود دچار اختلال شد. بعد از پایدار شدن اتصال، آپلود خودکار دوباره تلاش می‌شود.";
-    }
-
-    function resetHostUploadRetryState() {
-        clearHostUploadRetryTimer();
-        state.uploadRetryPending = false;
-        state.uploadRetryCount = 0;
-        state.uploadTask = null;
-    }
-
-    function scheduleHostUploadResume(delayMs) {
-        clearHostUploadRetryTimer();
-        if (!hasPendingHostUploadRetry()) {
-            return;
-        }
-        state.uploadRetryTimer = window.setTimeout(function () {
-            state.uploadRetryTimer = 0;
-            if (state.uploadBusy || !hasPendingHostUploadRetry()) {
-                return;
-            }
-            uploadSelectedHostFile(true);
-        }, Math.max(1200, Number(delayMs || 0)));
-    }
-
-    function hostProgressLabel() {
-        switch (state.uploadProgress.phase) {
-            case "queued":
-                return "آماده برای آپلود";
-            case "uploading":
-                return "در حال انتقال";
-            case "finalizing":
-                return "در حال ثبت روی هاست";
-            case "waiting":
-                return "در انتظار تلاش خودکار";
-            case "done":
-                return "آپلود کامل شد";
-            case "error":
-                return "آپلود با خطا متوقف شد";
-            default:
-                return "وضعیت آپلود";
-        }
-    }
-
-    function resetHostProgress(visible) {
-        resetHostUploadRetryState();
-        state.uploadProgress = {
-            visible: !!visible,
-            phase: visible ? "queued" : "idle",
-            progress: 0,
-            transferredBytes: 0,
-            totalBytes: 0,
-            speedBps: 0,
-            etaSeconds: NaN,
-            completedAt: ""
-        };
-    }
-
-    function primeHostProgress(file) {
-        clearHostUploadRetryTimer();
-        state.uploadRetryPending = false;
-        state.uploadRetryCount = 0;
-        state.uploadTask = null;
-        state.uploadProgress = {
-            visible: !!file,
-            phase: file ? "queued" : "idle",
-            progress: 0,
-            transferredBytes: 0,
-            totalBytes: Number(file && file.size || 0),
-            speedBps: 0,
-            etaSeconds: NaN,
-            completedAt: ""
-        };
-    }
-
-    function renderHostProgress() {
-        var ui = hostUi();
-        if (!ui.progress) {
-            return;
-        }
-
-        var snapshot = state.uploadProgress || {};
-        ui.progress.hidden = !snapshot.visible;
-        ui.progress.dataset.phase = snapshot.phase || "idle";
-        if (ui.progress.hidden) {
-            return;
-        }
-
-        var progress = Math.max(0, Math.min(100, Number(snapshot.progress || 0)));
-        if (ui.progressLabel) {
-            ui.progressLabel.textContent = hostProgressLabel();
-        }
-        if (ui.progressPercent) {
-            ui.progressPercent.textContent = formatPercent(progress) + "%";
-        }
-        if (ui.progressBar) {
-            ui.progressBar.style.width = progress.toFixed(1) + "%";
-        }
-        if (ui.progressSize) {
-            ui.progressSize.textContent = "انتقال: " + formatBytes(snapshot.transferredBytes || 0) + " / " + formatBytes(snapshot.totalBytes || 0);
-        }
-        if (ui.progressSpeed) {
-            ui.progressSpeed.textContent = snapshot.phase === "done"
-                ? "سرعت نهایی: " + formatSpeed(snapshot.speedBps)
-                : "سرعت: " + formatSpeed(snapshot.speedBps);
-        }
-        if (ui.progressEta) {
-            ui.progressEta.textContent = snapshot.phase === "done"
-                ? ("اتمام: " + (snapshot.completedAt ? new Intl.DateTimeFormat("fa-IR", {
-                    dateStyle: "short",
-                    timeStyle: "short"
-                }).format(new Date(snapshot.completedAt)) : "اکنون"))
-                : (snapshot.phase === "waiting"
-                    ? "تلاش دوباره: به‌محض برگشت اتصال، آپلود خودکار دوباره انجام می‌شود."
-                    : "زمان باقی‌مانده: " + formatEta(snapshot.etaSeconds));
-        }
-    }
-
-    function setHostStatus(text, kind, previewUrl) {
-        var ui = hostUi();
-        if (ui.status) {
-            ui.status.textContent = text || "";
-            ui.status.dataset.kind = kind || "";
-            ui.status.hidden = !text;
-        }
-        if (ui.preview) {
-            ui.preview.hidden = !previewUrl;
-            if (previewUrl) {
-                ui.preview.href = previewUrl;
-                ui.preview.textContent = "باز کردن لینک مستقیم فایل";
-            } else {
-                ui.preview.removeAttribute("href");
-                ui.preview.textContent = "";
-            }
-        }
-    }
-
-    function selectedHostFile() {
-        var ui = hostUi();
-        return ui.fileInput && ui.fileInput.files && ui.fileInput.files[0] ? ui.fileInput.files[0] : null;
-    }
-
-    function syncSelectedHostFileMeta() {
-        var ui = hostUi();
-        if (!ui.fileMeta) {
-            return;
-        }
-        var file = selectedHostFile();
-        if (!file) {
-            ui.fileMeta.textContent = "هنوز فایلی برای آپلود انتخاب نشده است.";
-            return;
-        }
-        ui.fileMeta.textContent = file.name + " • " + formatBytes(file.size || 0);
-    }
+    var hostTools = null;
 
     function ensureDownloadHostUi() {
-        if (!manageForm || $("notes-host-tools")) {
+        if (hostTools || !manageForm || !window.Dent1402NotesHostPicker || typeof window.Dent1402NotesHostPicker.create !== "function") {
             return;
         }
-
-        var shell = document.createElement("section");
-        shell.className = "notes-host-tools";
-        shell.id = "notes-host-tools";
-        shell.innerHTML = [
-            '<div class="notes-host-tools__head">',
-            '  <div>',
-            '    <span class="notes-host-tools__eyebrow">هاست دانلود</span>',
-            '    <strong>آپلود مستقیم فایل روی هاست دانلود منابع</strong>',
-            '    <p>اگر فایل را همین‌جا آپلود کنی، لینک دکمه به‌صورت خودکار در فیلد لینک بالا قرار می‌گیرد و همان فایل داخل ساختار پوشه‌ای منابع ذخیره می‌شود.</p>',
-            '  </div>',
-            '  <a id="notes-host-manager-link" class="notes-host-tools__manager" href="/notes/files/">فایل‌منیجر فولدری</a>',
-            '</div>',
-            '<div class="notes-host-tools__grid">',
-            '  <label class="notes-manage-panel__field notes-manage-panel__field--full">',
-            '    <span>پوشه مقصد روی هاست دانلود</span>',
-            '    <input id="notes-host-path" type="text" maxlength="240" placeholder="مثلاً 1402/term-06">',
-            '  </label>',
-            '  <label class="notes-manage-panel__field">',
-            '    <span>نام فایل نهایی (اختیاری)</span>',
-            '    <input id="notes-host-name" type="text" maxlength="200" placeholder="مثلاً جزوه اندو ۱.pdf">',
-            '  </label>',
-            '  <div class="notes-host-tools__picker">',
-            '    <span>فایل</span>',
-            '    <input id="notes-host-file" type="file" hidden>',
-            '    <button id="notes-host-pick" class="notes-card-edit" type="button">انتخاب فایل</button>',
-            '    <small id="notes-host-file-meta">هنوز فایلی برای آپلود انتخاب نشده است.</small>',
-            '  </div>',
-            '</div>',
-            '<div class="notes-host-tools__actions">',
-            '  <button id="notes-host-upload" class="card-btn" type="button">آپلود به هاست دانلود</button>',
-            '</div>',
-            '<section id="notes-host-progress" class="notes-host-progress" hidden>',
-            '  <div class="notes-host-progress__head">',
-            '    <strong id="notes-host-progress-label">آماده برای آپلود</strong>',
-            '    <span id="notes-host-progress-percent">۰٪</span>',
-            '  </div>',
-            '  <div class="notes-host-progress__track"><span id="notes-host-progress-bar"></span></div>',
-            '  <div class="notes-host-progress__stats">',
-            '    <span id="notes-host-progress-size">انتقال: ۰ بایت / ۰ بایت</span>',
-            '    <span id="notes-host-progress-speed">سرعت: —</span>',
-            '    <span id="notes-host-progress-eta">زمان باقی‌مانده: —</span>',
-            '  </div>',
-            '</section>',
-            '<p id="notes-host-status" class="notes-manage-feedback" hidden></p>',
-            '<a id="notes-host-preview" class="notes-host-tools__preview" href="#" target="_blank" rel="noopener noreferrer" hidden></a>'
-        ].join("");
-
-        if (addSubmit) {
-            addSubmit.insertAdjacentElement("beforebegin", shell);
-        } else {
-            manageForm.appendChild(shell);
-        }
-
-        var ui = hostUi();
-        if (ui.uploadButton && !ui.cancelButton) {
-            var cancelButton = document.createElement("button");
-            cancelButton.id = "notes-host-cancel";
-            cancelButton.type = "button";
-            cancelButton.className = "notes-card-delete";
-            cancelButton.hidden = true;
-            cancelButton.textContent = "لغو آپلود";
-            ui.uploadButton.insertAdjacentElement("afterend", cancelButton);
-            ui = hostUi();
-        }
-        if (ui.pickButton && ui.fileInput) {
-            ui.pickButton.addEventListener("click", function () {
-                if (!state.uploadBusy) {
-                    ui.fileInput.click();
-                }
-            });
-            ui.fileInput.addEventListener("change", function () {
-                syncSelectedHostFileMeta();
-                primeHostProgress(selectedHostFile());
-                renderHostProgress();
-                setHostStatus("", "");
-            });
-        }
-        if (ui.pathInput) {
-            ui.pathInput.addEventListener("input", function () {
-                state.downloadHostPathTouched = true;
-            });
-        }
-        if (ui.uploadButton) {
-            ui.uploadButton.addEventListener("click", function () {
-                uploadSelectedHostFile(false);
-            });
-        }
-        if (ui.cancelButton) {
-            ui.cancelButton.addEventListener("click", function () {
-                if (state.uploadXhr) {
-                    state.uploadCancelRequested = true;
-                    state.uploadXhr.abort();
-                    return;
-                }
-                if (state.uploadRetryPending) {
-                    resetHostUploadRetryState();
-                    state.uploadProgress.phase = "error";
-                    state.uploadProgress.speedBps = 0;
-                    state.uploadProgress.etaSeconds = NaN;
-                    renderHostProgress();
-                    syncDownloadHostUi();
-                    setHostStatus("آپلود فایل از طرف کاربر لغو شد.", "");
-                }
-            });
-        }
-        if (!state.uploadNetworkBound) {
-            window.addEventListener("offline", function () {
-                if (!(state.uploadBusy || state.uploadRetryPending)) {
-                    return;
-                }
-                setHostStatus("اتصال اینترنت قطع شد. فایل در صف می‌ماند و بعد از برگشت اتصال خودکار دوباره تلاش می‌شود.", "");
-            });
-            window.addEventListener("online", function () {
-                if (!hasPendingHostUploadRetry()) {
-                    return;
-                }
-                setHostStatus("اتصال برگشت. آپلود فایل خودکار دوباره تلاش می‌شود.", "");
-                scheduleHostUploadResume(900);
-            });
-            state.uploadNetworkBound = true;
-        }
-        renderHostProgress();
+        hostTools = window.Dent1402NotesHostPicker.create({
+            prefix: "notes-term-host",
+            manageForm: manageForm,
+            insertBeforeNode: addSubmit || null,
+            request: request,
+            handleUnauthorized: handleUnauthorized,
+            getTerm: function () {
+                return term;
+            },
+            getCohort: function () {
+                return cohort;
+            },
+            getContext: function () {
+                return state.termData || null;
+            },
+            linkInput: formInputs().buttonUrl,
+            buttonLabelInput: formInputs().buttonLabel
+        });
     }
 
     function syncDownloadHostUi() {
         ensureDownloadHostUi();
-        var ui = hostUi();
-        if (!ui.shell) {
+        if (!hostTools) {
             return;
         }
-
-        ui.shell.hidden = !state.canManage;
-        if (!state.canManage) {
-            return;
-        }
-
-        var info = state.downloadHost || {};
-        if (ui.managerLink) {
-            ui.managerLink.href = info.managerUrl || "/notes/files/";
-        }
-        if (ui.pathInput && !state.downloadHostPathTouched && info.defaultRelativeDir) {
-            ui.pathInput.value = info.defaultRelativeDir;
-        }
-        if (ui.uploadButton) {
-            ui.uploadButton.disabled = state.uploadBusy || state.uploadRetryPending || !info.enabled || !info.canUpload;
-            ui.uploadButton.textContent = state.uploadRetryPending
-                ? "در انتظار تلاش دوباره..."
-                : (state.uploadBusy ? "در حال آپلود..." : "آپلود به هاست دانلود");
-        }
-        if (ui.cancelButton) {
-            ui.cancelButton.hidden = !(state.uploadBusy || state.uploadRetryPending);
-            ui.cancelButton.disabled = !(state.uploadXhr || state.uploadRetryPending);
-            ui.cancelButton.textContent = state.uploadRetryPending ? "لغو انتظار" : "لغو آپلود";
-        }
-        if (ui.pickButton) {
-            ui.pickButton.disabled = state.uploadBusy || state.uploadRetryPending || !info.enabled || !info.canUpload;
-        }
-        if (ui.nameInput) {
-            ui.nameInput.disabled = state.uploadBusy || state.uploadRetryPending || !info.enabled || !info.canUpload;
-        }
-        if (ui.pathInput) {
-            ui.pathInput.disabled = state.uploadBusy || state.uploadRetryPending || !info.enabled || !info.canUpload;
-        }
-        renderHostProgress();
-
-        if (!info.enabled) {
-            setHostStatus("تنظیمات هاست دانلود روی این سرور هنوز کامل نشده است.", "error");
-            return;
-        }
-        if (!info.canUpload) {
-            setHostStatus("آپلود مستقیم برای این حساب در این صفحه فعال نیست.", "error");
-            return;
-        }
-        if (!state.uploadBusy && (!ui.status || ui.status.hidden || !ui.status.textContent)) {
-            setHostStatus("آپلود در همین بخش انجام می‌شود و لینک مستقیم فایل به‌صورت خودکار روی کارت قرار می‌گیرد.", "");
-        }
-    }
-
-    function uploadSelectedHostFile(resumeOnly) {
-        var info = state.downloadHost || {};
-        var ui = hostUi();
-        if (!info.enabled || !info.canUpload) {
-            if (resumeOnly) {
-                state.uploadBusy = false;
-                resetHostUploadRetryState();
-                syncDownloadHostUi();
-            }
-            setHostStatus("آپلود مستقیم برای این صفحه فعال نیست.", "error");
-            return;
-        }
-
-        var task = resumeOnly ? state.uploadTask : null;
-        if (!task) {
-            var file = selectedHostFile();
-            var pathValue = ui.pathInput ? String(ui.pathInput.value || "").trim() : "";
-            var fileName = ui.nameInput ? String(ui.nameInput.value || "").trim() : "";
-            if (!file) {
-                setHostStatus("ابتدا فایل موردنظر را انتخاب کنید.", "error");
-                return;
-            }
-            if (!pathValue) {
-                setHostStatus("پوشه مقصد روی هاست دانلود را مشخص کنید.", "error");
-                return;
-            }
-            task = {
-                file: file,
-                pathValue: pathValue,
-                fileName: fileName
-            };
-            state.uploadTask = task;
-            state.uploadRetryCount = 0;
-        }
-        if (!task || !task.file) {
-            setHostStatus("فایل انتخاب‌شده برای ادامه آپلود در دسترس نیست.", "error");
-            state.uploadBusy = false;
-            resetHostUploadRetryState();
-            syncDownloadHostUi();
-            return;
-        }
-
-        clearHostUploadRetryTimer();
-        state.uploadRetryPending = false;
-        state.uploadBusy = true;
-        state.uploadProgress = {
-            visible: true,
-            phase: "uploading",
-            progress: 0,
-            transferredBytes: 0,
-            totalBytes: Number(task.file.size || 0),
-            speedBps: 0,
-            etaSeconds: NaN,
-            completedAt: ""
-        };
-        syncDownloadHostUi();
-        setHostStatus(resumeOnly ? "اتصال برگشت و آپلود دوباره تلاش شد..." : "فایل در حال انتقال به هاست دانلود است...", "");
-        renderHostProgress();
-
-        function moveUploadToWaiting(message) {
-            state.uploadXhr = null;
-            state.uploadCancelRequested = false;
-            state.uploadBusy = false;
-            state.uploadRetryPending = true;
-            state.uploadRetryCount = Math.max(0, Number(state.uploadRetryCount || 0)) + 1;
-            state.uploadProgress.visible = true;
-            state.uploadProgress.phase = "waiting";
-            state.uploadProgress.speedBps = 0;
-            state.uploadProgress.etaSeconds = NaN;
-            renderHostProgress();
-            syncDownloadHostUi();
-            setHostStatus(message || hostUploadWaitingMessage(), "");
-            scheduleHostUploadResume(isOffline() ? 2500 : hostUploadRetryDelayMs());
-        }
-
-        var startedAt = Date.now();
-        var xhr = new XMLHttpRequest();
-        state.uploadCancelRequested = false;
-        state.uploadXhr = xhr;
-        var requestUrl = "/api/notes_api.php?action=downloadHostUpload"
-            + "&cohort=" + encodeURIComponent(cohort)
-            + "&term=" + encodeURIComponent(String(term))
-            + "&path=" + encodeURIComponent(task.pathValue);
-        if (task.fileName) {
-            requestUrl += "&fileName=" + encodeURIComponent(task.fileName);
-        }
-        xhr.open("POST", requestUrl, true);
-        xhr.withCredentials = true;
-        xhr.setRequestHeader("Accept", "application/json");
-        xhr.setRequestHeader("Content-Type", task.file && task.file.type ? task.file.type : "application/octet-stream");
-        xhr.setRequestHeader("X-Dent-Upload-Name", encodeURIComponent(task.fileName || task.file.name || "file"));
-
-        xhr.upload.onprogress = function (event) {
-            if (!event.lengthComputable) {
-                return;
-            }
-
-            var loaded = Number(event.loaded || 0);
-            var total = Number(event.total || task.file.size || 0);
-            var elapsed = Math.max(0.25, (Date.now() - startedAt) / 1000);
-            var speed = loaded / elapsed;
-            state.uploadProgress.visible = true;
-            state.uploadProgress.phase = "uploading";
-            state.uploadProgress.transferredBytes = loaded;
-            state.uploadProgress.totalBytes = total;
-            state.uploadProgress.progress = total > 0 ? (loaded / total) * 100 : state.uploadProgress.progress;
-            state.uploadProgress.speedBps = speed;
-            state.uploadProgress.etaSeconds = speed > 0 && total > loaded ? (total - loaded) / speed : 0;
-            if (state.uploadProgress.progress >= 99.9) {
-                state.uploadProgress.phase = "finalizing";
-                state.uploadProgress.etaSeconds = 0;
-            }
-            renderHostProgress();
-        };
-
-        xhr.upload.onload = function () {
-            state.uploadProgress.visible = true;
-            state.uploadProgress.phase = "finalizing";
-            state.uploadProgress.progress = 100;
-            state.uploadProgress.transferredBytes = Number(task.file.size || state.uploadProgress.transferredBytes || 0);
-            state.uploadProgress.totalBytes = Number(task.file.size || state.uploadProgress.totalBytes || 0);
-            state.uploadProgress.speedBps = 0;
-            state.uploadProgress.etaSeconds = 0;
-            renderHostProgress();
-        };
-
-        xhr.onload = function () {
-            var response = {};
-            try {
-                response = JSON.parse(xhr.responseText || "{}");
-            } catch (_error) {
-                response = { success: false, error: "پاسخ آپلود معتبر نبود." };
-            }
-            state.uploadXhr = null;
-            state.uploadCancelRequested = false;
-            response.httpStatus = xhr.status;
-
-            if (handleUnauthorized(response)) {
-                resetHostUploadRetryState();
-                state.uploadProgress.phase = "error";
-                state.uploadProgress.etaSeconds = NaN;
-                renderHostProgress();
-                setHostStatus("برای مدیریت منابع باید وارد حساب مجاز شوید.", "error");
-                state.uploadBusy = false;
-                syncDownloadHostUi();
-                return;
-            }
-            if (!response || !response.success || !response.file) {
-                resetHostUploadRetryState();
-                state.uploadProgress.phase = "error";
-                state.uploadProgress.speedBps = 0;
-                state.uploadProgress.etaSeconds = NaN;
-                renderHostProgress();
-                state.uploadBusy = false;
-                syncDownloadHostUi();
-                setHostStatus((response && response.error) || "آپلود فایل روی هاست دانلود انجام نشد.", "error");
-                return;
-            }
-
-            var inputs = formInputs();
-            if (inputs.buttonUrl) {
-                inputs.buttonUrl.value = response.file.publicUrl || "";
-            }
-            if (inputs.buttonLabel && !String(inputs.buttonLabel.value || "").trim()) {
-                inputs.buttonLabel.value = "دانلود";
-            }
-            if (ui.pathInput) {
-                ui.pathInput.value = response.file.relativeDir || task.pathValue;
-            }
-            if (ui.fileInput) {
-                ui.fileInput.value = "";
-            }
-            if (ui.nameInput) {
-                ui.nameInput.value = "";
-            }
-
-            state.uploadProgress.visible = true;
-            state.uploadProgress.phase = "done";
-            state.uploadProgress.progress = 100;
-            state.uploadProgress.transferredBytes = Number(task.file.size || state.uploadProgress.transferredBytes || 0);
-            state.uploadProgress.totalBytes = Number(task.file.size || state.uploadProgress.totalBytes || 0);
-            state.uploadProgress.speedBps = 0;
-            state.uploadProgress.etaSeconds = 0;
-            state.uploadProgress.completedAt = new Date().toISOString();
-            syncSelectedHostFileMeta();
-            renderHostProgress();
-            setHostStatus(response.message || "فایل روی هاست دانلود ذخیره شد و لینک مستقیم آن روی کارت قرار گرفت.", "success", response.file.publicUrl || "");
-            state.uploadBusy = false;
-            resetHostUploadRetryState();
-            syncDownloadHostUi();
-        };
-
-        xhr.onerror = function () {
-            moveUploadToWaiting(hostUploadWaitingMessage());
-        };
-
-        xhr.onabort = function () {
-            var canceledByUser = state.uploadCancelRequested;
-            state.uploadXhr = null;
-            state.uploadCancelRequested = false;
-            if (canceledByUser) {
-                state.uploadBusy = false;
-                resetHostUploadRetryState();
-                state.uploadProgress.phase = "error";
-                state.uploadProgress.speedBps = 0;
-                state.uploadProgress.etaSeconds = NaN;
-                renderHostProgress();
-                syncDownloadHostUi();
-                setHostStatus("آپلود فایل از طرف کاربر لغو شد.", "");
-                return;
-            }
-            moveUploadToWaiting(hostUploadWaitingMessage());
-        };
-
-        xhr.send(task.file);
+        hostTools.sync({
+            canManage: state.canManage,
+            info: state.downloadHost || null
+        });
     }
 
     function renderTerm() {
@@ -1350,6 +785,7 @@
         syncEditUi();
         syncManagePanel();
         syncDownloadHostUi();
+        focusManagePanelIfNeeded();
     }
 
     function setSaving(saving) {
@@ -1393,6 +829,14 @@
             state.canManage = !!payload.canManage;
             state.loadError = "";
             state.downloadHost = payload.downloadHost || null;
+            if (state.canManage && manageRequested) {
+                state.manageExpanded = true;
+                state.manageFocusPending = true;
+            }
+            if (state.canManage && isUnitMode() && !state.manageInitialApplied) {
+                state.manageExpanded = true;
+                state.manageInitialApplied = true;
+            }
             if (state.editingItemId && !findItem(state.editingItemId)) {
                 state.editingItemId = 0;
             }
@@ -1402,6 +846,7 @@
             state.loadError = error && error.message ? error.message : "دریافت منابع با خطا مواجه شد.";
             state.canManage = false;
             state.downloadHost = null;
+            state.manageFocusPending = false;
             if (managePanel) {
                 managePanel.hidden = true;
             }
@@ -1437,7 +882,13 @@
             }
 
             var payload = readFormPayload();
-            if (!payload.badge.trim() || !payload.title.trim() || !payload.description.trim() || !payload.buttonLabel.trim() || !payload.buttonUrl.trim()) {
+            if (!payload.buttonUrl.trim()) {
+                state.manageExpanded = true;
+                syncManagePanel();
+                setFeedback("لینک کارت هنوز تنظیم نشده است. یک فایل موجود را انتخاب کن یا فایل تازه‌ای روی هاست دانلود آپلود کن.", "error");
+                return;
+            }
+            if (!payload.badge.trim() || !payload.title.trim() || !payload.description.trim() || !payload.buttonLabel.trim()) {
                 state.manageExpanded = true;
                 syncManagePanel();
                 setFeedback("همه فیلدهای کارت را کامل وارد کنید.", "error");

@@ -39,6 +39,22 @@
     var ownerBox = $("navid-owner-box");
     var ownerCards = $("navid-owner-status-cards");
     var ownerToggleButton = $("navid-owner-toggle");
+    var ownerJumpButton = $("navid-owner-jump");
+    var ownerDetails = $("navid-owner-details");
+    var ownerConfigForm = $("navid-owner-config-form");
+    var ownerLoginUrlInput = $("navid-owner-login-url");
+    var ownerSyncIntervalInput = $("navid-owner-sync-interval");
+    var ownerCaptchaStrategyInput = $("navid-owner-captcha-strategy");
+    var ownerUsernameInput = $("navid-owner-username");
+    var ownerPasswordInput = $("navid-owner-password");
+    var ownerSaveConfigButton = $("navid-owner-save-config");
+    var ownerRefreshStatusButton = $("navid-owner-refresh-status");
+    var ownerConfigFeedback = $("navid-owner-config-feedback");
+    var ownerGetCaptchaButton = $("navid-owner-get-captcha");
+    var ownerCompleteReconnectButton = $("navid-owner-complete-reconnect");
+    var ownerCaptchaImage = $("navid-owner-captcha-image");
+    var ownerCaptchaCodeInput = $("navid-owner-captcha-code");
+    var ownerReconnectFeedback = $("navid-owner-reconnect-feedback");
     var assignmentsPanel = $("navid-assignments-panel");
     var updatesPanel = $("navid-updates-panel");
     var assignmentsMoreButton = $("navid-assignments-more");
@@ -61,6 +77,10 @@
     var assignmentsExpanded = false;
     var updatesExpanded = false;
     var ownerExpanded = false;
+    var ownerStatusState = {
+        loaded: false,
+        ownerStatus: null
+    };
     var ASSIGNMENTS_PREVIEW_COUNT = 1;
     var UPDATES_PREVIEW_COUNT = 3;
 
@@ -306,6 +326,27 @@
         feedback.textContent = text || "";
     }
 
+    function setInlineFeedback(node, text, kind, loading) {
+        if (!node) {
+            return;
+        }
+        node.className = "navid-feedback navid-feedback--inline" + (kind ? " " + kind : "");
+        node.textContent = text || "";
+        if (loading) {
+            node.dataset.loading = "true";
+        } else {
+            node.removeAttribute("data-loading");
+        }
+    }
+
+    function setOwnerConfigFeedback(text, kind, loading) {
+        setInlineFeedback(ownerConfigFeedback, text, kind, loading);
+    }
+
+    function setOwnerReconnectFeedback(text, kind, loading) {
+        setInlineFeedback(ownerReconnectFeedback, text, kind, loading);
+    }
+
     function renderEmpty(container, message) {
         if (!container) {
             return;
@@ -393,28 +434,76 @@
         ].join("");
     }
 
+    function ownerStatusData(status) {
+        return status && typeof status === "object" ? status : {};
+    }
+
+    function syncOwnerChallengeVisual(ownerStatus, explicitCaptchaDataUri) {
+        if (!ownerCaptchaImage) {
+            return;
+        }
+
+        var currentStatus = ownerStatusData(ownerStatus);
+        var state = currentStatus.state || {};
+        var challengeActive = !!state.hasActiveChallenge;
+        var captchaDataUri = String(explicitCaptchaDataUri || state.captchaDataUri || "").trim();
+
+        if (challengeActive && captchaDataUri) {
+            ownerCaptchaImage.hidden = false;
+            ownerCaptchaImage.src = captchaDataUri;
+            return;
+        }
+
+        ownerCaptchaImage.hidden = true;
+        ownerCaptchaImage.removeAttribute("src");
+    }
+
+    function syncOwnerControls(ownerStatus, explicitCaptchaDataUri) {
+        var currentStatus = ownerStatusData(ownerStatus);
+        var config = currentStatus.config || {};
+        if (ownerLoginUrlInput) {
+            ownerLoginUrlInput.value = config.loginUrl || "";
+        }
+        if (ownerSyncIntervalInput) {
+            ownerSyncIntervalInput.value = String(config.syncIntervalMinutes || 30);
+        }
+        if (ownerCaptchaStrategyInput) {
+            ownerCaptchaStrategyInput.value = config.captchaStrategy || "python_ocr";
+        }
+        syncOwnerChallengeVisual(currentStatus, explicitCaptchaDataUri);
+    }
+
     function renderOwnerStatus(ownerStatus) {
         var isOwner = !!(currentUser && currentUser.isOwner);
         if (!ownerBox || !ownerCards) {
             return;
         }
 
-        if (!isOwner || !ownerStatus || typeof ownerStatus !== "object") {
+        if (!isOwner) {
             ownerBox.hidden = true;
             ownerCards.innerHTML = "";
             ownerExpanded = false;
+            ownerStatusState.loaded = false;
+            ownerStatusState.ownerStatus = null;
+            syncOwnerPanel();
             return;
         }
 
+        var currentStatus = ownerStatusData(ownerStatus);
         ownerBox.hidden = false;
-        var state = ownerStatus.state || {};
-        var config = ownerStatus.config || {};
-        var session = ownerStatus.session || {};
+        var state = currentStatus.state || {};
+        var config = currentStatus.config || {};
+        var session = currentStatus.session || {};
         var actionRequired = state.actionRequired || "none";
-        var snapshotCounts = ownerStatus.snapshotCounts || {};
+        var snapshotCounts = currentStatus.snapshotCounts || {};
         var failedCourses = Math.max(0, Math.floor(Number(
             state.lastFailedCourses != null ? state.lastFailedCourses : snapshotCounts.failedCourses
         ) || 0));
+        if (!ownerStatusState.loaded) {
+            ownerExpanded = actionRequired !== "none" || !!state.hasActiveChallenge;
+        }
+        ownerStatusState.loaded = true;
+        ownerStatusState.ownerStatus = currentStatus;
 
         ownerCards.innerHTML = [
             ownerCard("نتیجه آخر", resultLabel(state.lastResult || "")),
@@ -427,6 +516,7 @@
                 config.hasCredentials ? (config.usernameMasked || "ثبت شده") : "ثبت نشده"
             )
         ].join("");
+        syncOwnerControls(currentStatus, "");
         syncOwnerPanel();
     }
 
@@ -435,13 +525,15 @@
             return;
         }
         ownerBox.dataset.collapsed = ownerExpanded ? "false" : "true";
-        ownerCards.hidden = !ownerExpanded;
+        if (ownerDetails) {
+            ownerDetails.hidden = !ownerExpanded;
+        }
         if (ownerToggleButton) {
-            ownerToggleButton.textContent = ownerExpanded ? "بستن جزئیات مالک" : "باز کردن جزئیات مالک";
+            ownerToggleButton.textContent = ownerExpanded ? "بستن تنظیمات مالک" : "باز کردن تنظیمات مالک";
             ownerToggleButton.setAttribute("aria-expanded", ownerExpanded ? "true" : "false");
-            if (!ownerExpanded) {
-                ownerToggleButton.textContent = "\u062C\u0632\u0626\u06CC\u0627\u062A \u0645\u0627\u0644\u06A9";
-            }
+        }
+        if (ownerJumpButton) {
+            ownerJumpButton.hidden = !(currentUser && currentUser.isOwner);
         }
     }
 
@@ -671,7 +763,7 @@
 
         if (!enabled) {
             setText(statusTitle, "یکپارچه‌سازی نوید غیرفعال است");
-            setText(statusDesc, "فعالسازی و ثبت تنظیمات اتصال را از پنل حساب انجام بده.");
+            setText(statusDesc, "فعالسازی و ثبت تنظیمات اتصال را از همین بخش مدیریت مالک انجام بده.");
             setText(sessionState, "غیرفعال");
             setDashboardFeedback("خروجی نوید بعد از فعال‌سازی و ثبت اعتبار نمایش داده می‌شود.", "");
             renderOwnerStatus(ownerStatus);
@@ -686,14 +778,14 @@
             setText(
                 statusDesc,
                 currentUser && currentUser.isOwner
-                    ? "نام کاربری و رمز نوید هنوز ثبت نشده است. آن را از پنل حساب ذخیره کن."
+                    ? "نام کاربری و رمز نوید هنوز ثبت نشده است. آن را از تنظیمات مالک همین صفحه ذخیره کن."
                     : "اتصال نوید هنوز توسط مدیر کامل نشده و نیاز به ثبت اعتبار دارد."
             );
         } else if (actionRequired === "update-credentials" || publicStatus.credentialsInvalid) {
             setText(
                 statusDesc,
                 currentUser && currentUser.isOwner
-                    ? "اعتبار ذخیره‌شده‌ی نوید نامعتبر شده است و باید از پنل حساب به‌روزرسانی شود."
+                    ? "اعتبار ذخیره‌شده‌ی نوید نامعتبر شده است و باید از تنظیمات مالک همین صفحه به‌روزرسانی شود."
                     : "اتصال نوید نیاز به به‌روزرسانی اعتبار توسط مدیر دارد."
             );
         } else if (actionRequired === "manual-reconnect" || publicStatus.requiresReconnect) {
@@ -798,6 +890,139 @@
         });
     }
 
+    function focusOwnerPanel() {
+        if (!ownerBox) {
+            return;
+        }
+        ownerExpanded = true;
+        syncOwnerPanel();
+        if (typeof ownerBox.scrollIntoView === "function") {
+            ownerBox.scrollIntoView({ block: "start", behavior: "smooth" });
+        }
+    }
+
+    async function saveOwnerConfig(event) {
+        event.preventDefault();
+        if (!currentUser || !currentUser.isOwner || !ownerConfigForm) {
+            return;
+        }
+
+        var payload = {
+            enabled: "1",
+            loginUrl: (ownerLoginUrlInput && ownerLoginUrlInput.value.trim()) || "",
+            syncIntervalMinutes: (ownerSyncIntervalInput && ownerSyncIntervalInput.value.trim()) || "30",
+            captchaStrategy: (ownerCaptchaStrategyInput && ownerCaptchaStrategyInput.value) || "python_ocr",
+            username: (ownerUsernameInput && ownerUsernameInput.value.trim()) || "",
+            password: (ownerPasswordInput && ownerPasswordInput.value.trim()) || ""
+        };
+
+        setOwnerConfigFeedback("در حال ذخیره تنظیمات نوید...", "", true);
+        if (ownerSaveConfigButton) {
+            ownerSaveConfigButton.disabled = true;
+        }
+        if (syncNowButton) {
+            syncNowButton.disabled = true;
+        }
+
+        try {
+            var response = await apiPost("saveConfig", payload);
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                setOwnerConfigFeedback("", "");
+                return;
+            }
+
+            if (!response || !response.success) {
+                setOwnerConfigFeedback((response && response.error) || "ذخیره تنظیمات نوید انجام نشد.", "error");
+                return;
+            }
+
+            ownerStatusState.ownerStatus = response.ownerStatus || ownerStatusState.ownerStatus;
+            renderOwnerStatus(ownerStatusState.ownerStatus);
+            setOwnerConfigFeedback(response.message || "تنظیمات نوید ذخیره شد.", "success");
+            if (ownerPasswordInput) {
+                ownerPasswordInput.value = "";
+            }
+            if (ownerUsernameInput) {
+                ownerUsernameInput.value = "";
+            }
+            await loadFeed();
+        } finally {
+            if (ownerSaveConfigButton) {
+                ownerSaveConfigButton.disabled = false;
+            }
+            if (syncNowButton) {
+                syncNowButton.disabled = false;
+            }
+        }
+    }
+
+    async function loadOwnerCaptchaChallenge() {
+        if (!currentUser || !currentUser.isOwner || !ownerGetCaptchaButton) {
+            return;
+        }
+
+        ownerGetCaptchaButton.disabled = true;
+        setOwnerReconnectFeedback("در حال دریافت کپچای نوید...", "", true);
+        focusOwnerPanel();
+        try {
+            var response = await apiPost("captchaChallenge", {});
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                setOwnerReconnectFeedback("", "");
+                return;
+            }
+
+            if (!response || !response.success || !response.captchaDataUri) {
+                setOwnerReconnectFeedback((response && response.error) || "دریافت کپچا انجام نشد.", "error");
+                return;
+            }
+
+            ownerStatusState.ownerStatus = response.ownerStatus || ownerStatusState.ownerStatus;
+            renderOwnerStatus(ownerStatusState.ownerStatus);
+            syncOwnerChallengeVisual(ownerStatusState.ownerStatus, response.captchaDataUri);
+            setOwnerReconnectFeedback("کپچا آماده شد. کد را وارد کن و اتصال مجدد را بزن.", "success");
+        } finally {
+            ownerGetCaptchaButton.disabled = false;
+        }
+    }
+
+    async function completeOwnerReconnect() {
+        if (!currentUser || !currentUser.isOwner || !ownerCompleteReconnectButton) {
+            return;
+        }
+
+        var captchaCode = (ownerCaptchaCodeInput && ownerCaptchaCodeInput.value.trim()) || "";
+        if (!captchaCode) {
+            setOwnerReconnectFeedback("کد کپچا را وارد کن.", "error");
+            return;
+        }
+
+        ownerCompleteReconnectButton.disabled = true;
+        setOwnerReconnectFeedback("در حال اتصال مجدد نوید...", "", true);
+        try {
+            var response = await apiPost("completeReconnect", { captchaCode: captchaCode });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                setOwnerReconnectFeedback("", "");
+                return;
+            }
+
+            if (!response || !response.success) {
+                setOwnerReconnectFeedback((response && response.error) || "اتصال مجدد نوید انجام نشد.", "error");
+                return;
+            }
+
+            ownerStatusState.ownerStatus = response.ownerStatus || ownerStatusState.ownerStatus;
+            renderOwnerStatus(ownerStatusState.ownerStatus);
+            syncOwnerChallengeVisual(ownerStatusState.ownerStatus, response && response.captchaDataUri);
+            setOwnerReconnectFeedback(response.message || "اتصال مجدد نوید انجام شد.", "success");
+            if (ownerCaptchaCodeInput) {
+                ownerCaptchaCodeInput.value = "";
+            }
+            await loadFeed();
+        } finally {
+            ownerCompleteReconnectButton.disabled = false;
+        }
+    }
+
     async function loadFeed() {
         if (loadingFeed || !currentUser) {
             return;
@@ -866,6 +1091,9 @@
 
         syncNowButton.disabled = true;
         setDashboardFeedback("در حال همگام‌سازی فوری نوید...", "");
+        if (ownerSaveConfigButton) {
+            ownerSaveConfigButton.disabled = true;
+        }
 
         try {
             var response = await apiPost("syncNow", {});
@@ -885,8 +1113,20 @@
             } else {
                 setDashboardFeedback(response.message || "همگام‌سازی فوری انجام شد.", "success");
             }
+            ownerStatusState.ownerStatus = response && response.ownerStatus ? response.ownerStatus : ownerStatusState.ownerStatus;
+            renderOwnerStatus(ownerStatusState.ownerStatus);
+            if (!response || !response.success) {
+                syncOwnerChallengeVisual(ownerStatusState.ownerStatus, response && response.captchaDataUri);
+                if (response && response.captchaDataUri) {
+                    setOwnerReconnectFeedback("کپچای نوید آماده است. کد را وارد کن و اتصال مجدد را بزن.", "error");
+                    focusOwnerPanel();
+                }
+            }
         } finally {
             syncNowButton.disabled = false;
+            if (ownerSaveConfigButton) {
+                ownerSaveConfigButton.disabled = false;
+            }
             await loadFeed();
         }
     }
@@ -970,13 +1210,23 @@
         syncOwnerPanel();
     }
 
+    function handleOwnerJump() {
+        focusOwnerPanel();
+    }
+
     function handleAuth(detail) {
         if (detail.status === "session-restoring" || detail.status === "logging-out") {
             currentUser = null;
             currentUserKey = "";
             hasLoadedFeed = false;
+            ownerStatusState.loaded = false;
+            ownerStatusState.ownerStatus = null;
+            ownerExpanded = false;
             setFlowState("restoring");
             setAuthFeedback("", "");
+            setOwnerConfigFeedback("", "");
+            setOwnerReconnectFeedback("", "");
+            renderOwnerStatus(null);
             return;
         }
 
@@ -984,6 +1234,9 @@
             currentUser = null;
             currentUserKey = "";
             hasLoadedFeed = false;
+            ownerStatusState.loaded = false;
+            ownerStatusState.ownerStatus = null;
+            ownerExpanded = false;
             setFlowState(detail.status === "unauthorized" ? "unauthorized" : "signed-out");
             setAuthFeedback(
                 detail.status === "unauthorized"
@@ -994,6 +1247,9 @@
             if (loginLink) {
                 loginLink.href = window.Dent1402Auth.loginUrl("/navid/");
             }
+            setOwnerConfigFeedback("", "");
+            setOwnerReconnectFeedback("", "");
+            renderOwnerStatus(null);
             return;
         }
 
@@ -1005,6 +1261,9 @@
         if (syncNowButton) {
             syncNowButton.hidden = !detail.user.isOwner;
         }
+        if (ownerJumpButton) {
+            ownerJumpButton.hidden = !detail.user.isOwner;
+        }
 
         if (changed || !dashboard || dashboard.hidden) {
             loadFeed();
@@ -1013,6 +1272,10 @@
 
     if (syncNowButton) {
         syncNowButton.addEventListener("click", syncNow);
+    }
+
+    if (ownerJumpButton) {
+        ownerJumpButton.addEventListener("click", handleOwnerJump);
     }
 
     if (assignmentsList) {
@@ -1034,6 +1297,33 @@
 
     if (ownerToggleButton) {
         ownerToggleButton.addEventListener("click", handleOwnerToggle);
+    }
+
+    if (ownerConfigForm) {
+        ownerConfigForm.addEventListener("submit", saveOwnerConfig);
+    }
+
+    if (ownerRefreshStatusButton) {
+        ownerRefreshStatusButton.addEventListener("click", function () {
+            loadFeed();
+        });
+    }
+
+    if (ownerGetCaptchaButton) {
+        ownerGetCaptchaButton.addEventListener("click", loadOwnerCaptchaChallenge);
+    }
+
+    if (ownerCompleteReconnectButton) {
+        ownerCompleteReconnectButton.addEventListener("click", completeOwnerReconnect);
+    }
+
+    if (ownerCaptchaCodeInput) {
+        ownerCaptchaCodeInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                completeOwnerReconnect();
+            }
+        });
     }
 
     syncContentView();

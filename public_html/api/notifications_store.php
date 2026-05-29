@@ -1570,8 +1570,8 @@ function notifications_build_owner_deploy_notice_body(string $version, string $d
     $deployedLabel = notifications_format_fa_tehran_datetime($deployedAt, true);
     $lines = [
         'استقرار جدید سایت با موفقیت انجام شد.',
-        'نسخه منتشرشده: ' . dent_to_fa_digits($version),
-        'زمان استقرار: ' . $deployedLabel,
+        'نسخه فعال: ' . dent_to_fa_digits($version),
+        'زمان استقرار (ایران): ' . $deployedLabel,
     ];
 
     $branch = trim($branch);
@@ -1585,6 +1585,41 @@ function notifications_build_owner_deploy_notice_body(string $version, string $d
     }
 
     return implode("\n", $lines);
+}
+
+function notifications_gregorian_to_jalali(int $gregorianYear, int $gregorianMonth, int $gregorianDay): array
+{
+    $monthDaySums = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+    $jalaliYear = $gregorianYear <= 1600 ? 0 : 979;
+    $normalizedYear = $gregorianYear <= 1600 ? $gregorianYear - 621 : $gregorianYear - 1600;
+    $leapAdjustedYear = $gregorianMonth > 2 ? $normalizedYear + 1 : $normalizedYear;
+    $days = (365 * $normalizedYear)
+        + intdiv($leapAdjustedYear + 3, 4)
+        - intdiv($leapAdjustedYear + 99, 100)
+        + intdiv($leapAdjustedYear + 399, 400)
+        - 80
+        + $gregorianDay
+        + $monthDaySums[$gregorianMonth - 1];
+
+    $jalaliYear += 33 * intdiv($days, 12053);
+    $days %= 12053;
+    $jalaliYear += 4 * intdiv($days, 1461);
+    $days %= 1461;
+
+    if ($days > 365) {
+        $jalaliYear += intdiv($days - 1, 365);
+        $days = ($days - 1) % 365;
+    }
+
+    if ($days < 186) {
+        $jalaliMonth = 1 + intdiv($days, 31);
+        $jalaliDay = 1 + ($days % 31);
+    } else {
+        $jalaliMonth = 7 + intdiv($days - 186, 30);
+        $jalaliDay = 1 + (($days - 186) % 30);
+    }
+
+    return [$jalaliYear, $jalaliMonth, $jalaliDay];
 }
 
 function notifications_format_fa_tehran_datetime(string $value, bool $includeSeconds = false): string
@@ -1602,8 +1637,30 @@ function notifications_format_fa_tehran_datetime(string $value, bool $includeSec
     try {
         $date = new DateTimeImmutable('@' . $timestamp);
         $date = $date->setTimezone(new DateTimeZone('Asia/Tehran'));
-        $format = $includeSeconds ? 'Y/m/d ساعت H:i:s' : 'Y/m/d ساعت H:i';
-        return dent_to_fa_digits($date->format($format));
+        [$jalaliYear, $jalaliMonth, $jalaliDay] = notifications_gregorian_to_jalali(
+            (int) $date->format('Y'),
+            (int) $date->format('n'),
+            (int) $date->format('j')
+        );
+        $timeLabel = $includeSeconds
+            ? sprintf(
+                '%04d/%02d/%02d ساعت %02d:%02d:%02d',
+                $jalaliYear,
+                $jalaliMonth,
+                $jalaliDay,
+                (int) $date->format('H'),
+                (int) $date->format('i'),
+                (int) $date->format('s')
+            )
+            : sprintf(
+                '%04d/%02d/%02d ساعت %02d:%02d',
+                $jalaliYear,
+                $jalaliMonth,
+                $jalaliDay,
+                (int) $date->format('H'),
+                (int) $date->format('i')
+            );
+        return dent_to_fa_digits($timeLabel);
     } catch (Throwable $error) {
         return dent_to_fa_digits(trim($value));
     }
@@ -1639,7 +1696,7 @@ function notifications_create_owner_deploy_notice(array $viewer, array $payload)
 
     $title = dent_clean_text((string) ($payload['title'] ?? ''), 180);
     if ($title === '') {
-        $title = 'استقرار نسخه ' . dent_to_fa_digits($version) . ' انجام شد';
+        $title = 'استقرار جدید سایت انجام شد';
     }
 
     $body = dent_clean_text((string) ($payload['body'] ?? ''), 4000);

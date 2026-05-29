@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260528-042804">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260528-042804">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260528-042804">
-    <script src="/assets/site/scripts/theme.js?v=20260528-042804"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260528-042804">
-    <link rel="stylesheet" href="/assets/site/styles/navid.css?v=20260528-042804">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260528-042804">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260529-173111">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260529-173111">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260529-173111">
+    <script src="/assets/site/scripts/theme.js?v=20260529-173111"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260529-173111">
+    <link rel="stylesheet" href="/assets/site/styles/navid.css?v=20260529-173111">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260529-173111">
 </head>
 <body class="navid-page" data-shell-reserve="self">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -113,7 +113,7 @@
                     </div>
                     <div class="navid-status-head__actions">
                         <button id="navid-sync-now" class="shell-action-btn shell-action-btn-primary" type="button" hidden>همگام‌سازی فوری</button>
-                        <a class="shell-action-btn" href="/account/">تنظیمات اتصال</a>
+                        <button id="navid-owner-jump" class="shell-action-btn" type="button" hidden>تنظیمات مالک</button>
                     </div>
                 </div>
 
@@ -151,12 +151,63 @@
                 <div class="navid-owner-head">
                     <div>
                         <span class="navid-panel__kicker">مدیریت مالک</span>
-                        <h3>وضعیت پایداری اتصال نوید</h3>
+                        <h3>مدیریت یکپارچه‌سازی نوید</h3>
                     </div>
-                    <p>اگر نشست منقضی شد یا اتصال ناقص شد، از صفحه حساب reconnect را انجام بده تا این فهرست تازه بماند.</p>
-                    <button id="navid-owner-toggle" class="shell-action-btn" type="button" aria-expanded="false">جزئیات مالک</button>
+                    <p>اعتبار ورود، فاصله همگام‌سازی و reconnect کپچا از همین بخش مدیریت می‌شود.</p>
+                    <button id="navid-owner-toggle" class="shell-action-btn" type="button" aria-expanded="false">باز کردن تنظیمات مالک</button>
                 </div>
                 <div id="navid-owner-status-cards" class="navid-owner-status-cards"></div>
+                <div id="navid-owner-details" class="navid-owner-details" hidden>
+                    <form id="navid-owner-config-form" class="navid-owner-form" novalidate>
+                        <div class="navid-owner-form-grid">
+                            <label class="navid-owner-field" for="navid-owner-login-url">
+                                <span>آدرس ورود نوید</span>
+                                <input id="navid-owner-login-url" type="url" placeholder="https://navid.tums.ac.ir/account/loginsipadservice">
+                            </label>
+                            <label class="navid-owner-field" for="navid-owner-sync-interval">
+                                <span>فاصله بررسی (دقیقه)</span>
+                                <input id="navid-owner-sync-interval" type="number" min="5" max="720" step="5" value="30" inputmode="numeric" data-latin-digits="true">
+                            </label>
+                            <label class="navid-owner-field" for="navid-owner-captcha-strategy">
+                                <span>استراتژی کپچا</span>
+                                <select id="navid-owner-captcha-strategy">
+                                    <option value="python_ocr">OCR خودکار (در صورت پشتیبانی سرور)</option>
+                                    <option value="manual_challenge">اتصال مجدد دستی با کپچا</option>
+                                </select>
+                            </label>
+                            <label class="navid-owner-field" for="navid-owner-username">
+                                <span>نام کاربری نوید</span>
+                                <input id="navid-owner-username" type="text" inputmode="numeric" autocomplete="off" placeholder="مثلاً 40211272003" data-latin-digits="true">
+                            </label>
+                            <label class="navid-owner-field navid-owner-field--full" for="navid-owner-password">
+                                <span>رمز نوید</span>
+                                <input id="navid-owner-password" type="password" autocomplete="new-password" placeholder="برای تغییر وارد کن؛ برای حفظ مقدار قبلی خالی بگذار">
+                            </label>
+                        </div>
+                        <div class="navid-owner-actions">
+                            <button id="navid-owner-save-config" class="shell-action-btn shell-action-btn-primary" type="submit">ذخیره تنظیمات نوید</button>
+                            <button id="navid-owner-refresh-status" class="shell-action-btn" type="button">بازخوانی وضعیت</button>
+                        </div>
+                        <div id="navid-owner-config-feedback" class="navid-feedback navid-feedback--inline" aria-live="polite"></div>
+                    </form>
+
+                    <section class="navid-owner-reconnect" aria-label="اتصال مجدد دستی نوید">
+                        <div class="navid-panel__head">
+                            <div>
+                                <span class="navid-panel__kicker">اتصال مجدد</span>
+                                <h3>reconnect دستی با کپچا</h3>
+                            </div>
+                            <p>اگر نشست نوید منقضی شد یا همگام‌سازی به کپچا رسید، از این بخش چالش جدید بگیر و اتصال را کامل کن.</p>
+                        </div>
+                        <div class="navid-owner-reconnect__row">
+                            <button id="navid-owner-get-captcha" class="shell-action-btn" type="button">دریافت کپچا</button>
+                            <input id="navid-owner-captcha-code" type="text" maxlength="8" placeholder="کد کپچا" data-latin-digits="true">
+                            <button id="navid-owner-complete-reconnect" class="shell-action-btn shell-action-btn-primary" type="button">اتصال مجدد</button>
+                        </div>
+                        <img id="navid-owner-captcha-image" class="navid-captcha-image" alt="کپچای نوید" hidden>
+                        <div id="navid-owner-reconnect-feedback" class="navid-feedback navid-feedback--inline" aria-live="polite"></div>
+                    </section>
+                </div>
             </section>
 
             <section class="navid-panel navid-panel--switcher">
@@ -213,10 +264,9 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260528-042804"></script>
-    <script src="/assets/site/scripts/navid-page.js?v=20260528-042804"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260528-042804"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260528-042804"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260529-173111"></script>
+    <script src="/assets/site/scripts/navid-page.js?v=20260529-173111"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260529-173111"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260529-173111"></script>
 </body>
 </html>
-

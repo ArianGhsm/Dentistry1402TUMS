@@ -40,12 +40,12 @@ function dent_exams_apply_endotorabinejad_catalog_overrides(array $bank): array
 function dent_exams_endotorabinejad_course_map(): array
 {
     $questionBank = dent_exams_endotorabinejad_exam_bank();
-    $finalBlockQuestionCount = 0;
-    foreach ($questionBank as $exam) {
-        if (is_array($exam)) {
-            $finalBlockQuestionCount += max(0, (int) ($exam['questionCount'] ?? 0));
-        }
-    }
+    $initialBlockExams = dent_exams_endotorabinejad_filter_exams($questionBank, 1, 5);
+    $middleBlockExams = dent_exams_endotorabinejad_filter_exams($questionBank, 6, 10);
+    $finalBlockExams = dent_exams_endotorabinejad_filter_exams($questionBank, 11, 15);
+    $initialBlockQuestionCount = dent_exams_endotorabinejad_total_questions($initialBlockExams);
+    $middleBlockQuestionCount = dent_exams_endotorabinejad_total_questions($middleBlockExams);
+    $finalBlockQuestionCount = dent_exams_endotorabinejad_total_questions($finalBlockExams);
 
     return [
         'endotorabinejad' => [
@@ -53,13 +53,13 @@ function dent_exams_endotorabinejad_course_map(): array
             'title' => 'کمپلکس پالپ و پری‌اپیکال | ترابی‌نژاد',
             'shortTitle' => 'ترابی‌نژاد',
             'badge' => '۳ بخش',
-            'cardDescription' => 'آزمون‌های مرجع ترابی‌نژاد برای واحد «کمپلکس پالپ و پری‌اپیکال» در سه بازهٔ جدا از همین صفحه در دسترس است.',
+            'cardDescription' => 'آزمون‌های مرجع ترابی‌نژاد برای واحد «کمپلکس پالپ و پری‌اپیکال» در سه بازهٔ پنج‌فصلی ارائه می‌شود و هر سه بازه اکنون فعال هستند.',
             'heroTitle' => 'بخش‌بندی آزمون‌های کمپلکس پالپ و پری‌اپیکال',
-            'heroDescription' => 'این مجموعه مربوط به واحد «کمپلکس پالپ و پری‌اپیکال» است و در سه بازهٔ پنج‌فصلی مدیریت می‌شود. فصول ۱۱ تا ۱۵ اکنون با آزمون‌های کامل در دسترس هستند.',
+            'heroDescription' => 'این مجموعه مربوط به واحد «کمپلکس پالپ و پری‌اپیکال» است و در سه بازهٔ پنج‌فصلی مدیریت می‌شود. برای هر فصل دو آزمون نیمهٔ اول و نیمهٔ دوم آماده شده و اکنون هر سه بازه با مجموع ۳۰ آزمون کامل در دسترس هستند.',
             'path' => '/exams/endotorabinejad/',
             'paymentTitle' => 'بخش‌بندی آزمون‌های کمپلکس پالپ و پری‌اپیکال',
             'paymentDescription' => 'برای هر بازهٔ پنج‌فصلیِ این واحد از همین‌جا وارد بخش مربوطه شوید؛ خرید هر بخش از همان صفحه انجام می‌شود.',
-            'paymentSuccessMessage' => 'این صفحه صرفاً برای هدایت به بخش‌های مختلف آزمون‌های کمپلکس پالپ و پری‌اپیکال است.',
+            'paymentSuccessMessage' => 'این صفحه فقط برای هدایت به بخش‌های مختلف آزمون‌های کمپلکس پالپ و پری‌اپیکال است.',
             'paymentFailureMessage' => 'برای فعال‌سازی هر بازه از صفحهٔ همان بخش استفاده کنید.',
             'defaultPaymentMode' => 'free',
             'defaultAmount' => 0,
@@ -67,19 +67,19 @@ function dent_exams_endotorabinejad_course_map(): array
                 [
                     'slug' => 'chapters-1-5',
                     'path' => '/exams/endotorabinejad/1-5/',
-                    'questionCount' => 0,
+                    'questionCount' => $initialBlockQuestionCount,
                     'label' => 'فصول ۱ تا ۵',
-                    'title' => 'بخش فصول ۱ تا ۵',
-                    'description' => 'این بازه به‌زودی بارگذاری می‌شود. خرید و وضعیت دسترسی آن از صفحهٔ همین بخش انجام می‌شود.',
+                    'title' => '۱۰ آزمون برای فصول ۱ تا ۵',
+                    'description' => 'برای هر فصل دو آزمون نیمهٔ اول و نیمهٔ دوم آماده شده است و این بازه با یک خرید ۳۰ هزارتومانی فعال می‌شود.',
                     'ctaLabel' => 'مشاهده بخش',
                 ],
                 [
                     'slug' => 'chapters-6-10',
                     'path' => '/exams/endotorabinejad/6-10/',
-                    'questionCount' => 0,
+                    'questionCount' => $middleBlockQuestionCount,
                     'label' => 'فصول ۶ تا ۱۰',
-                    'title' => 'بخش فصول ۶ تا ۱۰',
-                    'description' => 'این بازه هم به‌زودی بارگذاری می‌شود و مثل سایر بخش‌ها به‌صورت مستقل مدیریت خواهد شد.',
+                    'title' => '۱۰ آزمون برای فصول ۶ تا ۱۰',
+                    'description' => 'برای هر فصل دو آزمون نیمهٔ اول و نیمهٔ دوم آماده شده است و این بازه با یک خرید ۳۰ هزارتومانی فعال می‌شود.',
                     'ctaLabel' => 'مشاهده بخش',
                 ],
                 [
@@ -88,7 +88,7 @@ function dent_exams_endotorabinejad_course_map(): array
                     'questionCount' => $finalBlockQuestionCount,
                     'label' => 'فصول ۱۱ تا ۱۵',
                     'title' => '۱۰ آزمون برای فصول ۱۱ تا ۱۵',
-                    'description' => 'برای هر فصل دو آزمون نیمهٔ اول و نیمهٔ دوم آماده شده است و این بازه به‌صورت یک درس ۳۰ هزارتومانی فعال می‌شود.',
+                    'description' => 'برای هر فصل دو آزمون نیمهٔ اول و نیمهٔ دوم آماده شده است و این بازه با یک خرید ۳۰ هزارتومانی فعال می‌شود.',
                     'ctaLabel' => 'مشاهده بخش',
                 ],
             ],
@@ -98,58 +98,36 @@ function dent_exams_endotorabinejad_course_map(): array
             'visibleOnCatalog' => false,
             'title' => 'ترابی‌نژاد - فصول ۱ تا ۵',
             'shortTitle' => 'فصول ۱ تا ۵',
-            'badge' => 'بزودی',
-            'cardDescription' => 'بخش فصول ۱ تا ۵ مرجع ترابی‌نژاد برای واحد کمپلکس پالپ و پری‌اپیکال.',
+            'badge' => '۱۰ آزمون',
+            'cardDescription' => 'برای هر فصل دو آزمون نیمهٔ اول و نیمهٔ دوم بر اساس فایل جدید ترابی‌نژاد آماده شده است.',
             'heroTitle' => 'ترابی‌نژاد - فصول ۱ تا ۵',
-            'heroDescription' => 'این بازه مربوط به واحد کمپلکس پالپ و پری‌اپیکال است و به‌صورت یک بخش مستقل با هزینهٔ ۳۰ هزارتومان مدیریت می‌شود. محتوای آزمون‌های این بخش به‌زودی بارگذاری خواهد شد.',
+            'heroDescription' => 'این بازه مربوط به واحد کمپلکس پالپ و پری‌اپیکال است، شامل ۵ فصل است و برای هر فصل دو آزمون ۵۰ سوالی آماده شده است. دسترسی این مجموعه با یک خرید ۳۰ هزارتومانی فعال می‌شود.',
             'path' => '/exams/endotorabinejad/1-5/',
             'paymentTitle' => 'دسترسی به فصول ۱ تا ۵ ترابی‌نژاد',
-            'paymentDescription' => 'با فعال‌سازی این بخش، دسترسی همین حساب به محتوای فصول ۱ تا ۵ ترابی‌نژاد برای واحد کمپلکس پالپ و پری‌اپیکال باز می‌شود. آزمون‌های این بازه به‌زودی بارگذاری خواهند شد.',
-            'paymentSuccessMessage' => 'پرداخت شما برای بخش فصول ۱ تا ۵ ثبت شد. پس از انتشار آزمون‌ها، از همین صفحه در دسترس خواهند بود.',
+            'paymentDescription' => 'با یک بار پرداخت، همهٔ آزمون‌های فصول ۱ تا ۵ ترابی‌نژاد برای واحد کمپلکس پالپ و پری‌اپیکال روی همین حساب فعال می‌شود.',
+            'paymentSuccessMessage' => 'پرداخت شما تایید شد و همهٔ آزمون‌های فصول ۱ تا ۵ ترابی‌نژاد برای این حساب باز شد.',
             'paymentFailureMessage' => 'پرداخت این بخش تایید نشد. در صورت کسر وجه، نتیجه را دوباره از همین صفحه بررسی کنید.',
             'defaultPaymentMode' => 'paid',
             'defaultAmount' => 300000,
-            'exams' => [
-                [
-                    'slug' => 'coming-soon-1-5',
-                    'path' => '',
-                    'questionCount' => 0,
-                    'label' => 'فصول ۱ تا ۵',
-                    'title' => 'بخش فصول ۱ تا ۵ به‌زودی بارگذاری می‌شود',
-                    'description' => 'پس از انتشار آزمون‌های این بازه، از همین صفحه قابل دسترسی خواهد بود.',
-                    'ctaLabel' => 'بزودی بارگذاری می‌شود',
-                    'countsTowardStats' => false,
-                ],
-            ],
+            'exams' => $initialBlockExams,
         ],
         'endotorabinejad-6-10' => [
             'slug' => 'endotorabinejad-6-10',
             'visibleOnCatalog' => false,
             'title' => 'ترابی‌نژاد - فصول ۶ تا ۱۰',
             'shortTitle' => 'فصول ۶ تا ۱۰',
-            'badge' => 'بزودی',
-            'cardDescription' => 'بخش فصول ۶ تا ۱۰ مرجع ترابی‌نژاد برای واحد کمپلکس پالپ و پری‌اپیکال.',
+            'badge' => '۱۰ آزمون',
+            'cardDescription' => 'برای هر فصل دو آزمون نیمهٔ اول و نیمهٔ دوم بر اساس دیتاست جدید ترابی‌نژاد آماده شده است.',
             'heroTitle' => 'ترابی‌نژاد - فصول ۶ تا ۱۰',
-            'heroDescription' => 'این بازه هم مربوط به واحد کمپلکس پالپ و پری‌اپیکال است و به‌صورت یک بخش مستقل با هزینهٔ ۳۰ هزارتومان فعال می‌شود و آزمون‌هایش به‌زودی اضافه خواهند شد.',
+            'heroDescription' => 'این بازه مربوط به واحد کمپلکس پالپ و پری‌اپیکال است، شامل ۵ فصل است و برای هر فصل دو آزمون ۵۰ سوالی آماده شده است. دسترسی این مجموعه با یک خرید ۳۰ هزارتومانی فعال می‌شود.',
             'path' => '/exams/endotorabinejad/6-10/',
             'paymentTitle' => 'دسترسی به فصول ۶ تا ۱۰ ترابی‌نژاد',
-            'paymentDescription' => 'با فعال‌سازی این بخش، دسترسی همین حساب به محتوای فصول ۶ تا ۱۰ ترابی‌نژاد برای واحد کمپلکس پالپ و پری‌اپیکال باز می‌شود. آزمون‌های این بازه به‌زودی بارگذاری خواهند شد.',
-            'paymentSuccessMessage' => 'پرداخت شما برای بخش فصول ۶ تا ۱۰ ثبت شد. پس از انتشار آزمون‌ها، از همین صفحه در دسترس خواهند بود.',
+            'paymentDescription' => 'با یک بار پرداخت، همهٔ آزمون‌های فصول ۶ تا ۱۰ ترابی‌نژاد برای واحد کمپلکس پالپ و پری‌اپیکال روی همین حساب فعال می‌شود.',
+            'paymentSuccessMessage' => 'پرداخت شما تایید شد و همهٔ آزمون‌های فصول ۶ تا ۱۰ ترابی‌نژاد برای این حساب باز شد.',
             'paymentFailureMessage' => 'پرداخت این بخش تایید نشد. در صورت کسر وجه، نتیجه را دوباره از همین صفحه بررسی کنید.',
             'defaultPaymentMode' => 'paid',
             'defaultAmount' => 300000,
-            'exams' => [
-                [
-                    'slug' => 'coming-soon-6-10',
-                    'path' => '',
-                    'questionCount' => 0,
-                    'label' => 'فصول ۶ تا ۱۰',
-                    'title' => 'بخش فصول ۶ تا ۱۰ به‌زودی بارگذاری می‌شود',
-                    'description' => 'پس از انتشار آزمون‌های این بازه، از همین صفحه قابل دسترسی خواهد بود.',
-                    'ctaLabel' => 'بزودی بارگذاری می‌شود',
-                    'countsTowardStats' => false,
-                ],
-            ],
+            'exams' => $middleBlockExams,
         ],
         'endotorabinejad-11-15' => [
             'slug' => 'endotorabinejad-11-15',
@@ -157,7 +135,7 @@ function dent_exams_endotorabinejad_course_map(): array
             'title' => 'ترابی‌نژاد - فصول ۱۱ تا ۱۵',
             'shortTitle' => 'فصول ۱۱ تا ۱۵',
             'badge' => '۱۰ آزمون',
-            'cardDescription' => 'برای هر فصل دو آزمون نیمهٔ اول و نیمهٔ دوم آماده شده است.',
+            'cardDescription' => 'برای هر فصل دو آزمون نیمهٔ اول و نیمهٔ دوم بر اساس فایل جدید ترابی‌نژاد آماده شده است.',
             'heroTitle' => 'ترابی‌نژاد - فصول ۱۱ تا ۱۵',
             'heroDescription' => 'این بازه مربوط به واحد کمپلکس پالپ و پری‌اپیکال است، شامل ۵ فصل است و برای هر فصل دو آزمون ۵۰ سوالی آماده شده است. دسترسی این مجموعه با یک خرید ۳۰ هزارتومانی فعال می‌شود.',
             'path' => '/exams/endotorabinejad/11-15/',
@@ -167,7 +145,72 @@ function dent_exams_endotorabinejad_course_map(): array
             'paymentFailureMessage' => 'پرداخت این بخش تایید نشد. در صورت کسر وجه، نتیجه را دوباره از همین صفحه بررسی کنید.',
             'defaultPaymentMode' => 'paid',
             'defaultAmount' => 300000,
-            'exams' => array_values($questionBank),
+            'exams' => $finalBlockExams,
         ],
     ];
+}
+
+function dent_exams_endotorabinejad_filter_exams(array $questionBank, int $fromChapter, int $toChapter): array
+{
+    $filtered = [];
+    foreach ($questionBank as $slug => $exam) {
+        if (!is_array($exam)) {
+            continue;
+        }
+
+        $examSlug = (string) ($exam['slug'] ?? $slug);
+        $chapter = dent_exams_endotorabinejad_chapter_from_slug($examSlug);
+        if ($chapter < $fromChapter || $chapter > $toChapter) {
+            continue;
+        }
+
+        $filtered[] = $exam;
+    }
+
+    usort($filtered, static function (array $left, array $right): int {
+        return dent_exams_endotorabinejad_compare_exam_order(
+            (string) ($left['slug'] ?? ''),
+            (string) ($right['slug'] ?? '')
+        );
+    });
+
+    return array_values($filtered);
+}
+
+function dent_exams_endotorabinejad_total_questions(array $exams): int
+{
+    $total = 0;
+    foreach ($exams as $exam) {
+        if (!is_array($exam)) {
+            continue;
+        }
+        $total += max(0, (int) ($exam['questionCount'] ?? 0));
+    }
+    return $total;
+}
+
+function dent_exams_endotorabinejad_chapter_from_slug(string $slug): int
+{
+    [$chapter] = dent_exams_endotorabinejad_slug_parts($slug);
+    return $chapter;
+}
+
+function dent_exams_endotorabinejad_compare_exam_order(string $leftSlug, string $rightSlug): int
+{
+    [$leftChapter, $leftHalf] = dent_exams_endotorabinejad_slug_parts($leftSlug);
+    [$rightChapter, $rightHalf] = dent_exams_endotorabinejad_slug_parts($rightSlug);
+
+    if ($leftChapter !== $rightChapter) {
+        return $leftChapter <=> $rightChapter;
+    }
+
+    return $leftHalf <=> $rightHalf;
+}
+
+function dent_exams_endotorabinejad_slug_parts(string $slug): array
+{
+    $parts = explode('-', trim($slug));
+    $chapter = isset($parts[0]) ? (int) $parts[0] : 0;
+    $half = isset($parts[1]) ? (int) $parts[1] : 0;
+    return [$chapter, $half];
 }

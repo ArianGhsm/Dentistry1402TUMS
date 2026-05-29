@@ -21,6 +21,7 @@
     var inputViewportFrame = 0;
     var inputViewportSignature = "";
     var digitLocalizationQueue = [];
+    var digitLocalizationQueuedRoots = typeof WeakSet === "function" ? new WeakSet() : null;
     var digitLocalizationScheduled = false;
     var DIGIT_LOCALIZATION_FALLBACK_DELAY_MS = 36;
     var DIGIT_LOCALIZATION_BUDGET_MS = 12;
@@ -293,7 +294,7 @@
             "html[data-theme=\"dark\"]." + LAUNCH_SPLASH_CLASS + ",html[data-theme=\"dark\"]." + LAUNCH_SPLASH_CLASS + " body{background:#101827!important;}",
             "#" + LAUNCH_SPLASH_NODE_ID + "{position:fixed;inset:0;z-index:10020;display:grid;grid-template-rows:1fr auto auto;justify-items:center;align-items:center;padding:clamp(2rem,6vh,4rem) 1.4rem calc(1.8rem + env(safe-area-inset-bottom,0px));background:#f2f3f5;color:#111827;opacity:1;pointer-events:none;transition:opacity var(--motion-fast,180ms) var(--motion-ease-soft,cubic-bezier(0.2,0.88,0.24,1));}",
             "html[data-theme=\"dark\"] #" + LAUNCH_SPLASH_NODE_ID + "{background:#101827;color:#edf3ff;}",
-            "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__center{align-self:center;display:grid;justify-items:center;gap:1.1rem;transform:translateY(7vh);transition:transform var(--motion-base,320ms) var(--motion-ease-soft,cubic-bezier(0.2,0.88,0.24,1)),opacity var(--motion-fast,180ms) var(--motion-ease-soft,cubic-bezier(0.2,0.88,0.24,1));}",
+            "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__center{align-self:center;display:grid;justify-items:center;gap:1.1rem;transform:translateY(4vh);transition:transform var(--motion-base,320ms) var(--motion-ease-soft,cubic-bezier(0.2,0.88,0.24,1)),opacity var(--motion-fast,180ms) var(--motion-ease-soft,cubic-bezier(0.2,0.88,0.24,1));}",
             "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__mark{width:clamp(92px,22vw,124px);height:clamp(92px,22vw,124px);display:grid;place-items:center;border-radius:28px;background:rgba(255,255,255,0.72);border:1px solid rgba(127,145,165,0.12);box-shadow:0 18px 44px -34px rgba(17,30,54,0.32);overflow:hidden;}",
             "html[data-theme=\"dark\"] #" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__mark{background:rgba(245,249,255,0.9);border-color:rgba(124,145,168,0.16);box-shadow:0 20px 48px -34px rgba(0,0,0,0.6);}",
             "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__mark img{width:82%;height:82%;object-fit:contain;border-radius:20px;}",
@@ -304,7 +305,7 @@
             "html[data-theme=\"dark\"] #" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__brand{color:rgba(237,243,255,0.8);}",
             "#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__build{display:none;}",
             "html." + LAUNCH_SPLASH_CLASS + "." + LAUNCH_SPLASH_LEAVING_CLASS + " #" + LAUNCH_SPLASH_NODE_ID + "{opacity:0;}",
-            "html." + LAUNCH_SPLASH_CLASS + "." + LAUNCH_SPLASH_LEAVING_CLASS + " #" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__center{opacity:0;transform:translateY(7vh) scale(0.985);}",
+            "html." + LAUNCH_SPLASH_CLASS + "." + LAUNCH_SPLASH_LEAVING_CLASS + " #" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__center{opacity:0;transform:translateY(4vh) scale(0.992);}",
             "@keyframes dentLaunchProgress{0%{transform:scaleX(0.08);opacity:0.68;}100%{transform:scaleX(1);opacity:1;}}",
             "html[data-performance-mode=\"lite\"] #" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__mark{box-shadow:none;border-color:rgba(127,145,165,0.18);}",
             "@media (prefers-reduced-motion: reduce){#" + LAUNCH_SPLASH_NODE_ID + ",#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__center{transition-duration:0.01ms;transform:none;}#" + LAUNCH_SPLASH_NODE_ID + " .dent-launch-splash__progress span{animation-duration:0.01ms;}}"
@@ -523,6 +524,10 @@
         return false;
     }
 
+    function shouldStartDigitLocalization() {
+        return !shouldSkipDigitLocalization(document.body);
+    }
+
     function localizeTextNode(node) {
         if (!node || node.nodeType !== Node.TEXT_NODE) {
             return;
@@ -562,6 +567,9 @@
         }
 
         if (root.nodeType === Node.ELEMENT_NODE) {
+            if (shouldSkipDigitLocalization(root)) {
+                return;
+            }
             localizeAttribute(root, "placeholder");
             localizeAttribute(root, "title");
             localizeAttribute(root, "aria-label");
@@ -598,9 +606,14 @@
     function flushDigitLocalizationQueue(deadline) {
         digitLocalizationScheduled = false;
         var startedAt = Date.now();
+        var nextRoot = null;
 
         while (digitLocalizationQueue.length) {
-            localizeDigits(digitLocalizationQueue.shift());
+            nextRoot = digitLocalizationQueue.shift();
+            if (digitLocalizationQueuedRoots && nextRoot && typeof digitLocalizationQueuedRoots.delete === "function") {
+                digitLocalizationQueuedRoots.delete(nextRoot);
+            }
+            localizeDigits(nextRoot);
             if (digitLocalizationQueue.length && digitLocalizationShouldYield(startedAt, deadline)) {
                 break;
             }
@@ -628,7 +641,16 @@
     }
 
     function queueDigitLocalization(root) {
-        if (!root || digitLocalizationQueue.indexOf(root) !== -1) {
+        if (!root) {
+            return;
+        }
+
+        if (digitLocalizationQueuedRoots) {
+            if (digitLocalizationQueuedRoots.has(root)) {
+                return;
+            }
+            digitLocalizationQueuedRoots.add(root);
+        } else if (digitLocalizationQueue.indexOf(root) !== -1) {
             return;
         }
 
@@ -637,7 +659,7 @@
     }
 
     function startDigitLocalization() {
-        if (!document.body) {
+        if (!document.body || !shouldStartDigitLocalization()) {
             return;
         }
 
@@ -650,12 +672,12 @@
         digitObserver = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
                 if (mutation.type === "characterData") {
-                    queueDigitLocalization(mutation.target && mutation.target.parentElement ? mutation.target.parentElement : mutation.target);
+                    localizeTextNode(mutation.target);
                     return;
                 }
 
                 if (mutation.type === "attributes" && mutation.target && mutation.target.nodeType === Node.ELEMENT_NODE) {
-                    queueDigitLocalization(mutation.target);
+                    localizeAttribute(mutation.target, mutation.attributeName);
                     return;
                 }
 

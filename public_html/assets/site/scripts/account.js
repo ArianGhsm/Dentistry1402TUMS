@@ -138,8 +138,6 @@
     var accountPhoneNudgeOpen = $("account-phone-nudge-open");
     var accountPhoneNudgeDismiss = $("account-phone-nudge-dismiss");
     var ownerHubSection = $("account-owner-section");
-    var accountActivePollsRow = $("account-active-polls-row");
-    var accountActivePollsMeta = $("account-active-polls-meta");
     var accountInfoRole = $("account-info-role");
     var accountInfoSession = $("account-info-session");
     var accountInfoRotation = $("account-info-rotation");
@@ -228,11 +226,6 @@
     var pendingReturnTo = safeReturnTo(new URLSearchParams(window.location.search).get("returnTo"));
     var activeSurface = "hub";
     var currentUser = null;
-    var pollShortcutState = {
-        loading: false,
-        lastUserKey: "",
-        count: 0
-    };
     var ownerState = {
         loading: false,
         creatingCohort: false,
@@ -397,7 +390,6 @@
             case "owner":
             case "owner-user":
             case "notifications":
-            case "navid":
                 return name;
             default:
                 return "hub";
@@ -495,9 +487,6 @@
     function canOpenSurface(surface) {
         if (surface === "owner" || surface === "owner-user") {
             return hasManagementAccess();
-        }
-        if (surface === "navid") {
-            return hasOwnerAccess();
         }
         return true;
     }
@@ -1583,26 +1572,6 @@
         });
     }
 
-    function requestActivePolls() {
-        return fetch("/api/forms_api.php?action=session", {
-            method: "GET",
-            credentials: "same-origin",
-            headers: {
-                "Accept": "application/json"
-            }
-        }).then(function (response) {
-            return response.json().catch(function () {
-                return {
-                    success: false,
-                    error: "پاسخ نامعتبر از سرور دریافت شد."
-                };
-            }).then(function (data) {
-                data.httpStatus = response.status;
-                return data;
-            });
-        });
-    }
-
     function navidGet(action) {
         return fetch("/api/navid_api.php?action=" + encodeURIComponent(action), {
             method: "GET",
@@ -1929,7 +1898,7 @@
             }
         }
         if (!version) {
-            var bodyVersionMatch = body.match(/^نسخه(?: منتشرشده)?:\s*(.+)$/m);
+            var bodyVersionMatch = body.match(/^نسخه(?: منتشرشده| فعال)?:\s*(.+)$/m);
             if (bodyVersionMatch && bodyVersionMatch[1]) {
                 version = bodyVersionMatch[1].trim();
             }
@@ -1947,7 +1916,7 @@
             }
         }
         if (!deployedAt) {
-            var timeMatch = body.match(/^زمان(?: دقیق)?(?: deploy| استقرار)?:\s*(.+)$/m);
+            var timeMatch = body.match(/^زمان(?: دقیق)?(?: deploy| استقرار)?(?: \(ایران\))?:\s*(.+)$/m);
             if (timeMatch && timeMatch[1]) {
                 deployedAt = timeMatch[1].trim();
             }
@@ -2936,77 +2905,6 @@
         }
         markNotificationsRead([notificationId]).finally(function () {
             window.location.href = targetHref;
-        });
-    }
-
-    function renderActivePollShortcut(user, count) {
-        if (!accountActivePollsRow) {
-            return;
-        }
-
-        var total = Math.max(0, Math.floor(toNumber(count, 0)));
-        var show = total > 0;
-        accountActivePollsRow.hidden = !show;
-
-        if (accountActivePollsMeta) {
-            if (show) {
-                accountActivePollsMeta.textContent = total.toLocaleString("fa-IR") + " فرم فعال برای شما در دسترس است.";
-            } else {
-                accountActivePollsMeta.textContent = "در حال حاضر فرم فعالی برای این حساب وجود ندارد.";
-            }
-        }
-    }
-
-    function resetActivePollShortcut() {
-        pollShortcutState.loading = false;
-        pollShortcutState.lastUserKey = "";
-        pollShortcutState.count = 0;
-        renderActivePollShortcut(null, 0);
-    }
-
-    function loadActivePollShortcut(user) {
-        var userKey = accountUserKey(user);
-        if (!userKey || pollShortcutState.loading) {
-            return;
-        }
-
-        if (pollShortcutState.lastUserKey === userKey) {
-            renderActivePollShortcut(user, pollShortcutState.count);
-            return;
-        }
-
-        pollShortcutState.loading = true;
-        requestActivePolls().then(function (response) {
-            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-                resetActivePollShortcut();
-                return;
-            }
-
-            if (!response || !response.success) {
-                if (response && response.captchaDataUri && navidCaptchaImage) {
-                    navidCaptchaImage.hidden = false;
-                    navidCaptchaImage.src = response.captchaDataUri;
-                }
-                if (response && response.ownerStatus) {
-                    navidState.ownerStatus = response.ownerStatus;
-                    navidRenderOwnerStatus(navidState.ownerStatus);
-                }
-                pollShortcutState.lastUserKey = userKey;
-                pollShortcutState.count = 0;
-                renderActivePollShortcut(user, 0);
-                return;
-            }
-
-            var count = toNumber(response.activeCount, 0);
-            pollShortcutState.lastUserKey = userKey;
-            pollShortcutState.count = Math.max(0, Math.floor(count));
-            renderActivePollShortcut(user, pollShortcutState.count);
-        }).catch(function () {
-            pollShortcutState.lastUserKey = userKey;
-            pollShortcutState.count = 0;
-            renderActivePollShortcut(user, 0);
-        }).finally(function () {
-            pollShortcutState.loading = false;
         });
     }
 
@@ -5968,7 +5866,6 @@
             ownerState.activeCohortKey = "";
             ownerState.userPage = 1;
             updateOwnerTabs();
-            resetActivePollShortcut();
             if (accountPhoneNudge) {
                 accountPhoneNudge.hidden = true;
             }
@@ -6024,8 +5921,6 @@
         }
         loadNotifications(false);
 
-        loadActivePollShortcut(detail.user);
-
         if (hasManagementAccess()) {
             if (ownerHubSection) {
                 ownerHubSection.hidden = false;
@@ -6040,11 +5935,6 @@
             if (detail.user.isOwner) {
                 loadOwnerSmsStatus();
                 loadOwnerMediaStatus();
-                if (!navidState.loaded && !navidState.loading) {
-                    loadNavidOwnerStatus();
-                } else {
-                    navidRenderOwnerStatus(navidState.ownerStatus);
-                }
             } else {
                 smsState.status = null;
                 mediaState.status = null;
@@ -6079,18 +5969,13 @@
             updateOwnerTabs();
             setCreateStudentBusy(false);
             ownerCreateStudentFeedbackMessage("", "");
-            navidState.loaded = false;
-            navidState.ownerStatus = null;
-            navidRenderOwnerStatus(null);
-            navidFeedbackMessage("", "");
-            navidReconnectMessage("", "");
             smsState.status = null;
             mediaState.status = null;
             renderOwnerSmsStatus(null);
             renderOwnerMediaStatus(null);
             ownerSmsFeedbackMessage("", "");
             ownerMediaFeedbackMessage("", "");
-            if (activeSurface === "owner" || activeSurface === "owner-user" || activeSurface === "navid") {
+            if (activeSurface === "owner" || activeSurface === "owner-user") {
                 openSurface("hub", { replaceHash: true, preserveScroll: true });
             }
         }

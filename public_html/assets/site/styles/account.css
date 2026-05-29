@@ -633,11 +633,6 @@ body.account-page.account-stage-login-active .auth-brand strong {
     --row-icon-color: #805919;
 }
 
-.account-list-row--admin-polls {
-    --row-icon-bg: rgba(186, 133, 54, 0.16);
-    --row-icon-color: #805919;
-}
-
 .account-list-row--chat {
     --row-icon-bg: rgba(43, 109, 243, 0.16);
 }
@@ -650,11 +645,6 @@ body.account-page.account-stage-login-active .auth-brand strong {
 .account-list-row--navid-link {
     --row-icon-bg: rgba(98, 114, 228, 0.15);
     --row-icon-color: #4a57c0;
-}
-
-.account-list-row--polls-active {
-    --row-icon-bg: rgba(43, 109, 243, 0.14);
-    --row-icon-color: #2f5de0;
 }
 
 .account-list-group--notifications {
@@ -3837,8 +3827,7 @@ html[data-theme="dark"] body.account-page .account-list-row--security {
 
 html[data-theme="dark"] body.account-page .account-list-row--admin-tools,
 html[data-theme="dark"] body.account-page .account-list-row--admin-navid,
-html[data-theme="dark"] body.account-page .account-list-row--admin-payments,
-html[data-theme="dark"] body.account-page .account-list-row--admin-polls {
+html[data-theme="dark"] body.account-page .account-list-row--admin-payments {
     --row-icon-color: #f2cb8a;
 }
 
@@ -3940,10 +3929,6 @@ html[data-theme="dark"] body.account-page .account-notification-audience {
 
 html[data-theme="dark"] body.account-page .account-notification-item__deploy-row {
     background: rgba(17, 26, 41, 0.94);
-}
-
-html[data-theme="dark"] body.account-page .account-list-row--polls-active {
-    --row-icon-color: #8fa8ff;
 }
 
 html[data-theme="dark"] body.account-page .account-phone-nudge {

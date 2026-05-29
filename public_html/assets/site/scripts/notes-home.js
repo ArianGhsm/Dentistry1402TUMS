@@ -53,6 +53,12 @@
     var form = $("notes-home-form");
     var feedback = $("notes-home-feedback");
     var submit = $("notes-home-submit");
+    var unitManagePanel = $("notes-home-unit-manage");
+    var unitManageForm = $("notes-home-unit-form");
+    var unitManageFeedback = $("notes-home-unit-feedback");
+    var unitManageSubmit = $("notes-home-unit-submit");
+    var unitManageHeading = $("notes-home-unit-manage-heading");
+    var unitManageLead = $("notes-home-unit-manage-copy");
     var heading = $("notes-home-heading");
     var subheading = $("notes-home-subheading");
     var backLink = $("notes-home-back-link");
@@ -207,7 +213,18 @@
     }
 
     function dentalManageUrl(termValue, unitKey) {
-        return dentalBuildUrl(dentalManagePath(), termValue, unitKey);
+        var url = new URL(dentalManagePath(), window.location.origin);
+        if (termValue > 0) {
+            url.searchParams.set("term", String(termValue));
+        }
+        if (unitKey) {
+            url.searchParams.set("unit", unitKey);
+        }
+        url.searchParams.set("manage", "1");
+        if (pageCohort !== "1402") {
+            url.searchParams.set("cohort", pageCohort);
+        }
+        return url.pathname + (url.search || "");
     }
 
     function dentalBodyMode(mode) {
@@ -227,8 +244,10 @@
         empty.hidden = true;
     }
 
-    function dentalShowEmpty(message) {
-        list.innerHTML = "";
+    function dentalShowEmpty(message, preserveList) {
+        if (!preserveList) {
+            list.innerHTML = "";
+        }
         empty.hidden = false;
         empty.textContent = message || "داده‌ای برای نمایش پیدا نشد.";
     }
@@ -577,15 +596,19 @@
             actions.appendChild(dentalCreateActionLink("بازگشت به " + (termData.termLabel || ("ترم " + toFaDigits(termNumber))), dentalHomeUrl(termNumber, ""), false));
         }
         if (canManage) {
-            actions.appendChild(dentalCreateActionLink("مدیریت منابع این واحد", dentalManageUrl(termNumber, unitKey || ""), false));
+            actions.appendChild(dentalCreateActionLink(unitKey ? "مدیریت کامل این واحد" : "مدیریت کامل این آرشیو", dentalManageUrl(termNumber, unitKey || ""), false));
         }
         list.appendChild(actions);
     }
 
-    function dentalAppendResourceCards(termData) {
+    function dentalAppendResourceCards(termData, canManage) {
         var items = Array.isArray(termData && termData.items) ? termData.items : [];
         if (!items.length) {
-            dentalShowEmpty(termData.emptyMessage || "برای این بخش هنوز منبعی ثبت نشده است.");
+            var emptyMessage = termData.emptyMessage || "برای این بخش هنوز منبعی ثبت نشده است.";
+            if (canManage && termData && termData.unitKey) {
+                emptyMessage = "برای این واحد هنوز منبعی ثبت نشده است. فرم افزودن سریع همین پایین آماده است.";
+            }
+            dentalShowEmpty(emptyMessage, true);
             return;
         }
 
@@ -612,6 +635,7 @@
     function dentalRenderCurriculumHome(curriculum) {
         dentalBodyMode("terms");
         dentalApplyBaseCopy();
+        dentalState.downloadHost = null;
         if (title) {
             title.textContent = "ترم موردنظر را برای دیدن منابع انتخاب کن.";
         }
@@ -624,11 +648,13 @@
         dentalResetList();
         dentalAppendTermCards(curriculum);
         dentalAppendLegacyTerms(curriculum);
+        dentalSyncUnitManagePanel(null);
     }
 
     function dentalRenderTermOverview(curriculum, termData) {
         dentalBodyMode("term");
         dentalApplyBaseCopy();
+        dentalState.downloadHost = null;
         if (title) {
             title.textContent = termData.label || ("ترم " + toFaDigits(termData.number || 0));
         }
@@ -645,11 +671,13 @@
         dentalResetList();
         dentalAppendOverviewActions(Number(termData.number || 0), !!dentalState.canManage);
         dentalAppendTermOverview(termData);
+        dentalSyncUnitManagePanel(null);
     }
 
     function dentalRenderLegacyTerm(termData) {
         dentalBodyMode("legacy-term");
         dentalApplyBaseCopy();
+        dentalState.downloadHost = null;
         if (title) {
             title.textContent = termData.title || ("ترم " + toFaDigits(termData.term || 0));
         }
@@ -665,7 +693,8 @@
         document.title = (termData.title || "آرشیو") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
         dentalAppendResourceActions(termData, !!dentalState.canManage, "");
-        dentalAppendResourceCards(termData);
+        dentalAppendResourceCards(termData, !!dentalState.canManage);
+        dentalSyncUnitManagePanel(null);
     }
 
     function dentalRenderUnitDetail(termData) {
@@ -686,17 +715,20 @@
         document.title = (termData.title || "منابع واحد") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
         dentalAppendResourceActions(termData, !!dentalState.canManage, termData.unitKey || "");
-        dentalAppendResourceCards(termData);
+        dentalAppendResourceCards(termData, !!dentalState.canManage);
+        dentalSyncUnitManagePanel(termData);
     }
 
     function dentalRenderError(message) {
         dentalBodyMode("error");
         dentalApplyBaseCopy();
+        dentalState.downloadHost = null;
         if (title) {
             title.textContent = "منابع این بخش پیدا نشد.";
         }
         dentalSectionText("خطا", "امکان نمایش منابع وجود ندارد", message || "در دریافت داده‌ها خطایی رخ داد.");
         dentalShowEmpty(message || "در دریافت داده‌ها خطایی رخ داد.");
+        dentalSyncUnitManagePanel(null);
     }
 
     var dentalState = {
@@ -704,8 +736,193 @@
         canManage: false,
         curriculum: null,
         unitDetail: null,
-        loading: false
+        downloadHost: null,
+        loading: false,
+        unitSaving: false
     };
+
+    var unitHostTools = null;
+
+    function dentalUnitManageInputs() {
+        return {
+            badge: $("notes-home-unit-badge"),
+            title: $("notes-home-unit-title-input"),
+            description: $("notes-home-unit-description"),
+            buttonLabel: $("notes-home-unit-button-label"),
+            buttonUrl: $("notes-home-unit-button-url")
+        };
+    }
+
+    function dentalSetUnitManageFeedback(text, kind) {
+        if (!unitManageFeedback) {
+            return;
+        }
+        unitManageFeedback.textContent = text || "";
+        unitManageFeedback.dataset.kind = kind || "";
+        unitManageFeedback.hidden = !text;
+    }
+
+    function dentalClearUnitManageForm() {
+        var inputs = dentalUnitManageInputs();
+        Object.keys(inputs).forEach(function (key) {
+            if (inputs[key]) {
+                inputs[key].value = "";
+            }
+        });
+        if (unitHostTools && typeof unitHostTools.resetLinkMode === "function") {
+            unitHostTools.resetLinkMode();
+        }
+    }
+
+    function dentalReadUnitManagePayload() {
+        var inputs = dentalUnitManageInputs();
+        return {
+            badge: inputs.badge ? String(inputs.badge.value || "").trim() : "",
+            title: inputs.title ? String(inputs.title.value || "").trim() : "",
+            description: inputs.description ? String(inputs.description.value || "").trim() : "",
+            buttonLabel: inputs.buttonLabel ? String(inputs.buttonLabel.value || "").trim() : "",
+            buttonUrl: inputs.buttonUrl ? String(inputs.buttonUrl.value || "").trim() : ""
+        };
+    }
+
+    function dentalSyncUnitManagePanel(termData) {
+        if (!unitManagePanel) {
+            return;
+        }
+
+        var visible = !!(termData && termData.unitKey && dentalState.canManage);
+        unitManagePanel.hidden = !visible;
+        dentalSyncUnitHostTools(visible);
+        if (!visible) {
+            return;
+        }
+
+        var unitTitle = String(termData.title || "این واحد").trim() || "این واحد";
+        if (unitManageHeading) {
+            unitManageHeading.textContent = "افزودن منبع برای " + unitTitle;
+        }
+        if (unitManageLead) {
+            unitManageLead.textContent = "این فرم سریع فقط به همین واحد وصل می‌شود و کارت ثبت‌شده بلافاصله در همین صفحه دیده خواهد شد.";
+        }
+        if (unitManageSubmit) {
+            unitManageSubmit.disabled = !!dentalState.unitSaving;
+            unitManageSubmit.textContent = dentalState.unitSaving ? "در حال افزودن..." : "افزودن منبع همین واحد";
+        }
+    }
+
+    function ensureDentalUnitHostTools() {
+        if (unitHostTools || !unitManageForm || !window.Dent1402NotesHostPicker || typeof window.Dent1402NotesHostPicker.create !== "function") {
+            return;
+        }
+        unitHostTools = window.Dent1402NotesHostPicker.create({
+            prefix: "notes-home-unit-host",
+            manageForm: unitManageForm,
+            insertBeforeNode: unitManageSubmit || null,
+            request: request,
+            handleUnauthorized: function (payload, fallbackText) {
+                return consumeUnauthorized(payload, fallbackText);
+            },
+            getTerm: function () {
+                var detail = dentalState.unitDetail || {};
+                return Number(detail.term || detail.termNumber || dentalRequestedTerm() || 0);
+            },
+            getCohort: function () {
+                return pageCohort;
+            },
+            getContext: function () {
+                return dentalState.unitDetail || null;
+            },
+            linkInput: dentalUnitManageInputs().buttonUrl,
+            buttonLabelInput: dentalUnitManageInputs().buttonLabel
+        });
+    }
+
+    function dentalSyncUnitHostTools(canManage) {
+        ensureDentalUnitHostTools();
+        if (!unitHostTools) {
+            return;
+        }
+        unitHostTools.sync({
+            canManage: !!canManage,
+            info: dentalState.downloadHost || null
+        });
+    }
+
+    function dentalApplyCreatedUnitItem(item) {
+        if (!dentalState.unitDetail) {
+            return;
+        }
+        var nextId = Number(item && item.id || 0);
+        var items = Array.isArray(dentalState.unitDetail.items) ? dentalState.unitDetail.items.slice() : [];
+        items = items.filter(function (entry) {
+            return Number(entry && entry.id || 0) !== nextId;
+        });
+        items.unshift(item);
+        dentalState.unitDetail.items = items;
+    }
+
+    function dentalSubmitUnitManageForm(event) {
+        event.preventDefault();
+        if (!unitManageForm || dentalState.unitSaving || !dentalState.canManage || !dentalState.unitDetail) {
+            return;
+        }
+
+        var payload = dentalReadUnitManagePayload();
+        if (!payload.buttonUrl) {
+            dentalSetUnitManageFeedback("لینک منبع هنوز تنظیم نشده است. یک فایل موجود را انتخاب کن یا فایل جدیدی روی هاست دانلود آپلود کن.", "error");
+            return;
+        }
+        if (!payload.badge || !payload.title || !payload.description || !payload.buttonLabel) {
+            dentalSetUnitManageFeedback("همه فیلدهای منبع را کامل وارد کن.", "error");
+            return;
+        }
+
+        var termData = dentalState.unitDetail;
+        var termNumber = Number(termData.term || termData.termNumber || dentalRequestedTerm() || 0);
+        var unitKey = String(termData.unitKey || dentalRequestedUnitKey() || "").trim().toLowerCase();
+        if (!termNumber || !unitKey) {
+            dentalSetUnitManageFeedback("تشخیص واحد این صفحه ممکن نشد.", "error");
+            return;
+        }
+
+        dentalState.unitSaving = true;
+        dentalSyncUnitManagePanel(termData);
+        dentalSetUnitManageFeedback("", "");
+
+        request("addItem", "POST", {
+            term: String(termNumber),
+            unitKey: unitKey,
+            badge: payload.badge,
+            title: payload.title,
+            description: payload.description,
+            buttonLabel: payload.buttonLabel,
+            buttonUrl: payload.buttonUrl
+        }).then(function (response) {
+            if (consumeUnauthorized(response, "برای افزودن منبع این واحد باید وارد حساب مجاز شوی.")) {
+                throw new Error("برای افزودن منبع این واحد باید وارد حساب مجاز شوی.");
+            }
+            if (!response || !response.success || !response.item) {
+                throw new Error((response && response.error) || "ثبت منبع این واحد انجام نشد.");
+            }
+
+            dentalApplyCreatedUnitItem(response.item);
+            dentalClearUnitManageForm();
+            dentalRenderFromState();
+            dentalSetUnitManageFeedback(response.message || "منبع این واحد ثبت شد.", "success");
+        }).catch(function (error) {
+            dentalSetUnitManageFeedback(error && error.message ? error.message : "افزودن منبع این واحد با خطا مواجه شد.", "error");
+        }).finally(function () {
+            dentalState.unitSaving = false;
+            dentalSyncUnitManagePanel(dentalState.unitDetail || termData);
+        });
+    }
+
+    function dentalBindUnitManageForm() {
+        if (!unitManageForm) {
+            return;
+        }
+        unitManageForm.addEventListener("submit", dentalSubmitUnitManageForm);
+    }
 
     function dentalRenderFromState() {
         var requestedTerm = dentalRequestedTerm();
@@ -755,7 +972,10 @@
         dentalState.loading = true;
         dentalState.curriculum = null;
         dentalState.unitDetail = null;
+        dentalState.downloadHost = null;
         dentalShowEmpty("در حال دریافت ساختار منابع...");
+        dentalSetUnitManageFeedback("", "");
+        dentalSyncUnitManagePanel(null);
         return request("terms", "GET", {}).then(function (payload) {
             if (consumeUnauthorized(payload, "نشست شما منقضی شده است.")) {
                 dentalState.canManage = false;
@@ -779,7 +999,10 @@
         }
         dentalState.loading = true;
         dentalState.unitDetail = null;
+        dentalState.downloadHost = null;
         dentalShowEmpty("در حال دریافت منابع این واحد...");
+        dentalSetUnitManageFeedback("", "");
+        dentalSyncUnitManagePanel(null);
         return request("term", "GET", {
             term: String(dentalRequestedTerm() || 0),
             unit: dentalRequestedUnitKey()
@@ -792,8 +1015,10 @@
             }
             dentalState.unitDetail = payload.term;
             dentalState.canManage = !!payload.canManage;
+            dentalState.downloadHost = payload.downloadHost || null;
             dentalRenderFromState();
         }).catch(function (error) {
+            dentalState.downloadHost = null;
             dentalRenderError(error && error.message ? error.message : "دریافت منابع این واحد با خطا مواجه شد.");
         }).finally(function () {
             dentalState.loading = false;
@@ -823,6 +1048,7 @@
         if (manage) {
             manage.hidden = true;
         }
+        dentalBindUnitManageForm();
         dentalState.authKey = authSnapshotKey();
         dentalWatchAuthChanges();
         if (dentalRequestedUnitKey()) {

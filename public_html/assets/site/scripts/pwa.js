@@ -3,7 +3,7 @@
         return;
     }
 
-    var CURRENT_VERSION = "20260528-042804";
+    var CURRENT_VERSION = "20260529-173111";
     var VERSION_ENDPOINT = "/app-version.json";
     var SERVICE_WORKER_ENDPOINT = "/sw.js";
     var UPDATE_ACK_STORAGE_KEY = "dent1402-pwa-update-ack-version";
@@ -23,6 +23,7 @@
     var reloadAfterControllerChange = false;
     var updateApplyInFlight = false;
     var updateReloadTimer = 0;
+    var periodicCheckTimer = 0;
 
     var state = {
         installed: isStandaloneMode(),
@@ -105,11 +106,17 @@
     function updateOnlineState() {
         state.isOffline = !window.navigator.onLine;
         notify();
-        if (!state.isOffline) {
+        if (state.isOffline) {
+            clearPeriodicChecks();
+            return;
+        }
+
+        if (!document.hidden) {
             checkForUpdates(true).catch(function () {
                 // Keep online recovery silent.
             });
         }
+        schedulePeriodicChecks(UPDATE_CHECK_INTERVAL);
     }
 
     function clearUpdateReloadTimer() {
@@ -118,6 +125,18 @@
         }
         window.clearTimeout(updateReloadTimer);
         updateReloadTimer = 0;
+    }
+
+    function clearPeriodicChecks() {
+        if (!periodicCheckTimer) {
+            return;
+        }
+        window.clearTimeout(periodicCheckTimer);
+        periodicCheckTimer = 0;
+    }
+
+    function canRunPeriodicChecks() {
+        return !state.isOffline && !document.hidden;
     }
 
     function scheduleUpdateReload(delayMs) {
@@ -430,15 +449,20 @@
         return Promise.resolve({ outcome: "unavailable" });
     }
 
-    function schedulePeriodicChecks() {
-        if (window.__dent1402PwaCheckTimer) {
-            window.clearInterval(window.__dent1402PwaCheckTimer);
+    function schedulePeriodicChecks(delayMs) {
+        clearPeriodicChecks();
+        if (!("serviceWorker" in navigator) || !canRunPeriodicChecks()) {
+            return;
         }
-        window.__dent1402PwaCheckTimer = window.setInterval(function () {
+
+        periodicCheckTimer = window.setTimeout(function () {
+            periodicCheckTimer = 0;
             checkForUpdates(false).catch(function () {
                 // Keep the periodic check quiet.
+            }).finally(function () {
+                schedulePeriodicChecks(UPDATE_CHECK_INTERVAL);
             });
-        }, UPDATE_CHECK_INTERVAL);
+        }, Math.max(UPDATE_CHECK_MIN_INTERVAL, Number(delayMs) || UPDATE_CHECK_INTERVAL));
     }
 
     window.Dent1402PWA = {
@@ -497,7 +521,7 @@
             checkForUpdates(true).catch(function () {
                 // Keep initial registration silent in production.
             });
-            schedulePeriodicChecks();
+            schedulePeriodicChecks(UPDATE_CHECK_INTERVAL);
         } else {
             fetchLatestVersion().then(function (latestVersion) {
                 setVersionState(latestVersion, false);
@@ -511,21 +535,25 @@
         checkForUpdates(false).catch(function () {
             // Silence focus refresh failures.
         });
+        schedulePeriodicChecks(UPDATE_CHECK_INTERVAL);
     });
 
     window.addEventListener("pageshow", function () {
         checkForUpdates(false).catch(function () {
             // Silence bfcache refresh failures.
         });
+        schedulePeriodicChecks(UPDATE_CHECK_INTERVAL);
     });
 
     document.addEventListener("visibilitychange", function () {
         if (document.hidden) {
+            clearPeriodicChecks();
             return;
         }
         checkForUpdates(false).catch(function () {
             // Silence visibility refresh failures.
         });
+        schedulePeriodicChecks(UPDATE_CHECK_INTERVAL);
     });
 
     if (!document.body) {

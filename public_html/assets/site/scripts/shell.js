@@ -730,6 +730,10 @@
             return false;
         }
 
+        if (window.navigator && window.navigator.onLine === false) {
+            return false;
+        }
+
         var key = userKey(state);
         var now = Date.now();
         if (key !== navBadgeState.lastUserKey) {
@@ -782,6 +786,10 @@
 
     function fetchNavBadgeSummary(state) {
         if (!state.loggedIn || navBadgeState.pending) {
+            return;
+        }
+
+        if (window.navigator && window.navigator.onLine === false) {
             return;
         }
 
@@ -1111,12 +1119,18 @@
         window.addEventListener("focus", function () {
             syncPollEntry(authState());
         });
+        window.addEventListener("online", function () {
+            syncPollEntry(authState());
+        });
         document.addEventListener("visibilitychange", function () {
             if (!document.hidden) {
                 syncPollEntry(authState());
             }
         });
         window.setInterval(function () {
+            if (document.hidden || (window.navigator && window.navigator.onLine === false)) {
+                return;
+            }
             syncPollEntry(authState());
         }, NAV_BADGE_TTL_MS);
 

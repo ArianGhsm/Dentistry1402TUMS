@@ -350,6 +350,75 @@ body.navid-page main.navid-flow {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.navid-owner-details,
+.navid-owner-form,
+.navid-owner-reconnect {
+    display: grid;
+    gap: 0.78rem;
+}
+
+.navid-owner-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.72rem;
+}
+
+.navid-owner-field {
+    display: grid;
+    gap: 0.38rem;
+}
+
+.navid-owner-field--full {
+    grid-column: 1 / -1;
+}
+
+.navid-owner-field span {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.75;
+}
+
+.navid-owner-field input,
+.navid-owner-field select,
+.navid-owner-reconnect__row input {
+    min-height: 52px;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--surface-solid) 88%, var(--surface));
+    color: var(--text-primary);
+    padding: 0.84rem 0.92rem;
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.5;
+    transition:
+        border-color var(--motion-duration-base) var(--motion-ease-soft),
+        box-shadow var(--motion-duration-base) var(--motion-ease-soft),
+        background-color var(--motion-duration-base) var(--motion-ease-soft);
+}
+
+.navid-owner-field input:focus,
+.navid-owner-field select:focus,
+.navid-owner-reconnect__row input:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--accent-color) 42%, var(--border-color));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 14%, transparent);
+}
+
+.navid-owner-actions,
+.navid-owner-reconnect__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.58rem;
+}
+
+.navid-owner-reconnect {
+    padding: 0.82rem;
+    border-radius: 24px;
+    border: 1px solid color-mix(in srgb, var(--accent-color) 12%, var(--border-color));
+    background: color-mix(in srgb, var(--surface-solid) 84%, var(--accent-color) 4%);
+}
+
 .navid-feedback {
     min-height: 1.4rem;
     color: var(--text-secondary);
@@ -909,6 +978,14 @@ html[data-theme="dark"] body.navid-page .navid-skeleton::after {
         gap: 0.55rem;
     }
 
+    .navid-owner-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .navid-owner-field--full {
+        grid-column: auto;
+    }
+
     .navid-status-card,
     .navid-owner-card {
         min-height: 68px;
@@ -926,10 +1003,6 @@ html[data-theme="dark"] body.navid-page .navid-skeleton::after {
     .navid-panel--assignments .navid-panel__head,
     .navid-status-head {
         gap: 0.55rem;
-    }
-
-    .navid-owner-head > div {
-        display: none;
     }
 
     #navid-owner-toggle {
@@ -957,6 +1030,17 @@ html[data-theme="dark"] body.navid-page .navid-skeleton::after {
     .navid-panel--switcher,
     .navid-panel--assignments {
         gap: 0.68rem;
+    }
+
+    .navid-owner-actions .shell-action-btn,
+    .navid-owner-reconnect__row .shell-action-btn,
+    .navid-owner-reconnect__row input {
+        width: 100%;
+    }
+
+    .navid-owner-reconnect {
+        padding: 0.72rem;
+        border-radius: 20px;
     }
 
     .navid-status-head__actions,

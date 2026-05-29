@@ -290,7 +290,7 @@ function notes_download_host_visible_term_number_from_title(string $title, int $
     return max(1, $fallback);
 }
 
-function notes_download_host_default_relative_dir(string $cohort, int $term = 0, string $termTitle = ''): string
+function notes_download_host_term_relative_dir(string $cohort, int $term = 0, string $termTitle = ''): string
 {
     if ($cohort === '1403' || $cohort === '1404') {
         return $cohort . '/term-' . str_pad((string) max(1, $term), 2, '0', STR_PAD_LEFT);
@@ -302,6 +302,56 @@ function notes_download_host_default_relative_dir(string $cohort, int $term = 0,
     }
 
     return '1402/term-' . str_pad((string) max(1, $term), 2, '0', STR_PAD_LEFT);
+}
+
+function notes_download_host_path_segment(string $value, string $fallback): string
+{
+    $clean = preg_replace('/[^a-z0-9\-]+/i', '-', dent_normalize_digits(trim($value))) ?? '';
+    $clean = trim($clean, '-');
+    if ($clean === '') {
+        return $fallback;
+    }
+    return strtolower($clean);
+}
+
+function notes_download_host_unit_relative_dir(
+    string $baseDir,
+    string $unitKey = '',
+    string $categoryKey = '',
+    string $unitTitle = ''
+): string {
+    $baseDir = notes_download_host_normalize_relative_path($baseDir);
+    if ($baseDir === '') {
+        return '';
+    }
+
+    $normalizedUnitKey = trim(strtolower($unitKey));
+    if ($normalizedUnitKey === '' || preg_match('/^uncategorized-term-\d+$/', $normalizedUnitKey) === 1) {
+        return $baseDir . '/uncategorized';
+    }
+
+    $categorySegment = notes_download_host_path_segment($categoryKey, 'units');
+    $unitSegment = notes_download_host_path_segment($normalizedUnitKey !== '' ? $normalizedUnitKey : $unitTitle, 'unit');
+    return $baseDir . '/' . $categorySegment . '/' . $unitSegment;
+}
+
+function notes_download_host_default_relative_dir(
+    string $cohort,
+    int $term = 0,
+    string $termTitle = '',
+    ?array $termPayload = null
+): string {
+    $baseDir = notes_download_host_term_relative_dir($cohort, $term, $termTitle);
+    if (!is_array($termPayload) || (string) ($termPayload['mode'] ?? '') !== 'curriculum-unit') {
+        return $baseDir;
+    }
+
+    return notes_download_host_unit_relative_dir(
+        $baseDir,
+        (string) ($termPayload['unitKey'] ?? ''),
+        (string) ($termPayload['categoryKey'] ?? ''),
+        (string) ($termPayload['unitTitle'] ?? $termPayload['title'] ?? '')
+    );
 }
 
 function notes_download_host_http_headers(array $secret): array

@@ -678,6 +678,7 @@ function payments_normalize_collection_record(array $seed): ?array
         'description' => dent_clean_text((string) ($seed['description'] ?? ''), 1200),
         'image_url' => dent_clean_text((string) ($seed['image_url'] ?? ($seed['imageUrl'] ?? '')), 420),
         'amount' => $amount,
+        'discount_codes' => payments_normalize_collection_discount_codes($seed['discount_codes'] ?? ($seed['discountCodes'] ?? [])),
         'status' => $status,
         'gateway' => payments_gateway_key_clean((string) ($seed['gateway'] ?? '')),
         'allow_guest_payments' => $allowGuestPayments === true,
@@ -1044,8 +1045,7 @@ function payments_normalize_discount_codes($value): array
             continue;
         }
 
-        $rawCode = dent_clean_text((string) ($code['code'] ?? ''), 40);
-        $rawCode = strtoupper(preg_replace('/\s+/u', '', $rawCode) ?? '');
+        $rawCode = payments_normalize_discount_code_text((string) ($code['code'] ?? ''));
         if ($rawCode === '' || isset($seen[$rawCode])) {
             continue;
         }
@@ -1072,6 +1072,80 @@ function payments_normalize_discount_codes($value): array
             'is_enabled' => !array_key_exists('isEnabled', $code) || (bool) $code['isEnabled'],
         ];
         $seen[$rawCode] = true;
+        if (count($normalized) >= 30) {
+            break;
+        }
+    }
+
+    return $normalized;
+}
+
+function payments_normalize_discount_code_text(string $value): string
+{
+    $value = dent_clean_text($value, 40);
+    if ($value === '') {
+        return '';
+    }
+
+    return strtoupper(preg_replace('/\s+/u', '', $value) ?? '');
+}
+
+function payments_normalize_collection_discount_codes($value): array
+{
+    $codes = [];
+    if (is_array($value)) {
+        $codes = $value;
+    } elseif (is_string($value)) {
+        $trimmed = trim($value);
+        if ($trimmed !== '') {
+            $decoded = json_decode($trimmed, true);
+            if (is_array($decoded)) {
+                $codes = $decoded;
+            }
+        }
+    }
+
+    $normalized = [];
+    $seen = [];
+    foreach ($codes as $code) {
+        if (!is_array($code)) {
+            continue;
+        }
+
+        $rawCode = payments_normalize_discount_code_text((string) ($code['code'] ?? ''));
+        if ($rawCode === '' || isset($seen[$rawCode])) {
+            continue;
+        }
+
+        $type = trim(strtolower((string) ($code['type'] ?? 'fixed')));
+        if (!in_array($type, ['fixed', 'percent'], true)) {
+            $type = 'fixed';
+        }
+
+        $amount = max(0, (int) dent_normalize_digits((string) ($code['amount'] ?? 0)));
+        if ($amount <= 0) {
+            continue;
+        }
+        if ($type === 'percent') {
+            $amount = min(95, $amount);
+        }
+
+        $maxUses = payments_normalize_positive_int_nullable($code['max_uses'] ?? ($code['maxUses'] ?? null), 1000000);
+        $isEnabledRaw = $code['is_enabled'] ?? ($code['isEnabled'] ?? true);
+        $isEnabled = filter_var($isEnabledRaw, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        $normalized[] = [
+            'code' => $rawCode,
+            'type' => $type,
+            'amount' => $amount,
+            'label' => dent_clean_text((string) ($code['label'] ?? ''), 120),
+            'expires_at' => payments_normalize_datetime_string((string) ($code['expires_at'] ?? ($code['expiresAt'] ?? '')), ''),
+            'is_enabled' => $isEnabled !== false,
+            'max_uses' => $maxUses,
+            'student_number' => dent_normalize_student_number((string) ($code['student_number'] ?? ($code['studentNumber'] ?? ''))),
+        ];
+        $seen[$rawCode] = true;
+
         if (count($normalized) >= 30) {
             break;
         }
@@ -1460,7 +1534,7 @@ function payments_calculate_item_quote(array $item, int $quantity, string $disco
     $quantity = max(1, min($maxQuantity, $quantity));
     $unitPrice = max(0, (int) ($item['price'] ?? 0));
     $subtotal = $unitPrice * $quantity;
-    $normalizedCode = strtoupper(preg_replace('/\s+/u', '', dent_clean_text($discountCode, 40)) ?? '');
+    $normalizedCode = payments_normalize_discount_code_text($discountCode);
     $discountAmount = 0;
     $discountLabel = '';
     $discountApplied = false;

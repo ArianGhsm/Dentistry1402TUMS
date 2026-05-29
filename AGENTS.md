@@ -189,12 +189,14 @@
 4. اصلاح scoped اعمال کنید؛ بدون بازنویسی بی‌مورد لایه‌هایی که به change ربط ندارند و بدون ساختن guard/checkی که بیش از خود change ریسک و پیچیدگی بیاورد.
 5. retest کامل همان flow + سناریوهای وابسته + regression بخش‌های متاثر روی desktop/mobile و هر لایه‌ی relevant از بخش `10.1` و `10.2`.
 6. وضعیت را دقیق گزارش کنید: `completed` / `partial` / `blocked`، و اگر بخشی از لایه‌های relevant verify نشده‌اند یا عمداً scope نشده‌اند، صریحاً ذکر کنید.
-7. Deploy پیش‌فرض انجام شود مگر کاربر صراحتاً منع کند.
+7. بعد از هر پرامپت/کار انجام‌شده، Deploy پیش‌فرض باید قبل از پاسخ نهایی اجرا شود مگر کاربر صراحتاً همان نوبت منع کند.
+8. وضعیت `completed` فقط وقتی مجاز است که deploy canonical، live health-check و اعلان داخل سایت برای مالک همگی موفق شده باشند؛ اگر deploy یا اعلان به هر دلیل fail/skip شد، خروجی کار `blocked` یا `partial` است و نباید موفقیت کامل گزارش شود.
 
 ## 12) Deploy پیش‌فرض
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
+- این مرحله بخشی از definition of done هر کار است: بعد از اصلاح، تست و قبل از پاسخ نهایی باید اجرا شود، نه اینکه به حافظه یا پیگیری دستی موکول شود.
 - ترتیب اجباری:
   - host storage backup/mirror -> local validation -> host deploy -> live health-check -> GitHub sync
 - local validation پیش‌فرض باید پایدار، سریع و کم‌نویز بماند؛ اضافه‌کردن check جدیدی که مرتب false-fail می‌دهد یا به شرایط ناپایدار بیرونی وابسته است بدون کنترل scope و پایداری مجاز نیست.

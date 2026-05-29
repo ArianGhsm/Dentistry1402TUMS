@@ -21,6 +21,7 @@ function dent_exams_bootstrap_modules(): void
     $bootstrapped = true;
 
     require_once __DIR__ . '/exams_radiology2_overrides.php';
+    dent_exams_require_optional_module('exams_radiology1_overrides.php');
     dent_exams_require_optional_module('exams_morphology_overrides.php');
     dent_exams_require_optional_module('exams_endotorabinejad_overrides.php');
     dent_exams_require_optional_module('exams_radiology2_whitepharoah_overrides.php');
@@ -29,6 +30,7 @@ function dent_exams_bootstrap_modules(): void
 function dent_exams_registered_catalog_override_callbacks(): array
 {
     return [
+        'dent_exams_apply_radiology1_catalog_overrides',
         'dent_exams_apply_morphology_catalog_overrides',
         'dent_exams_apply_endotorabinejad_catalog_overrides',
         'dent_exams_apply_radiology2_whitepharoah_catalog_overrides',

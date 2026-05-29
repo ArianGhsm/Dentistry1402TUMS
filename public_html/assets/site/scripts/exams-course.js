@@ -16,6 +16,7 @@
         viewer: null,
         feedback: "",
         feedbackKind: "",
+        ownerDraft: null,
         query: "",
         filter: "all",
         filtersOpen: false,
@@ -139,6 +140,37 @@
             minute: "2-digit",
             hour12: false
         });
+    }
+
+    function toDatetimeLocal(value) {
+        var raw = String(value || "").trim();
+        if (!raw) {
+            return "";
+        }
+        var parsed = new Date(raw);
+        if (!Number.isFinite(parsed.getTime())) {
+            return "";
+        }
+        var pad = function (input) {
+            return String(input).padStart(2, "0");
+        };
+        return [
+            parsed.getFullYear(),
+            pad(parsed.getMonth() + 1),
+            pad(parsed.getDate())
+        ].join("-") + "T" + [pad(parsed.getHours()), pad(parsed.getMinutes())].join(":");
+    }
+
+    function fromDatetimeLocal(value) {
+        var raw = String(value || "").trim();
+        if (!raw) {
+            return "";
+        }
+        var parsed = new Date(raw);
+        if (!Number.isFinite(parsed.getTime())) {
+            return "";
+        }
+        return parsed.toISOString();
     }
 
     function loginHref() {
@@ -586,13 +618,135 @@
         return '<div class="exams-feedback is-' + escapeHtml(state.feedbackKind || "") + '">' + escapeHtml(state.feedback) + "</div>";
     }
 
+    function cloneOwnerDiscountCode(entry) {
+        var source = entry && typeof entry === "object" ? entry : {};
+        return {
+            code: String(source.code || ""),
+            label: String(source.label || ""),
+            type: source.type === "percent" ? "percent" : "fixed",
+            amount: source.amount == null ? "" : String(source.amount),
+            maxUses: source.maxUses == null ? "" : String(source.maxUses),
+            studentNumber: String(source.studentNumber || ""),
+            expiresAt: String(source.expiresAt || ""),
+            isEnabled: source.isEnabled !== false,
+            usedCount: Math.max(0, Number(source.usedCount) || 0),
+            remainingUses: source.remainingUses == null ? null : Math.max(0, Number(source.remainingUses) || 0)
+        };
+    }
+
+    function buildOwnerDraft(course) {
+        var ownerSettings = course && course.ownerSettings ? course.ownerSettings : {};
+        return {
+            paymentMode: String(course && course.paymentMode || "free") === "paid" ? "paid" : "free",
+            amount: String(course && course.amount != null ? course.amount : ""),
+            discountCodes: Array.isArray(ownerSettings.discountCodes)
+                ? ownerSettings.discountCodes.map(cloneOwnerDiscountCode)
+                : []
+        };
+    }
+
+    function resolveOwnerDraft(course) {
+        if (!state.ownerDraft) {
+            state.ownerDraft = buildOwnerDraft(course);
+        }
+        return state.ownerDraft;
+    }
+
+    function ownerDiscountUsageText(entry) {
+        var parts = [];
+        var usedCount = Math.max(0, Number(entry && entry.usedCount) || 0);
+        if (usedCount > 0) {
+            parts.push("مصرف: " + formatValue(usedCount));
+        }
+        if (entry && entry.remainingUses != null) {
+            parts.push("باقی‌مانده: " + formatValue(entry.remainingUses));
+        } else if (entry && entry.maxUses) {
+            parts.push("سقف مصرف: " + formatValue(entry.maxUses));
+        }
+        if (entry && entry.studentNumber) {
+            parts.push("اختصاصی برای " + entry.studentNumber);
+        }
+        if (entry && entry.expiresAt) {
+            parts.push("انقضا: " + formatDateTime(entry.expiresAt, "—"));
+        }
+        return parts.join(" | ");
+    }
+
+    function ownerDiscountRowHtml(entry, index) {
+        var type = entry && entry.type === "percent" ? "percent" : "fixed";
+        var usageText = ownerDiscountUsageText(entry);
+        return [
+            '<article class="exams-owner-discount-row" data-exams-discount-row>',
+            '  <label class="exams-owner-label"><span>کد</span><input class="exams-owner-input" data-discount-code type="text" dir="ltr" data-latin-digits="true" maxlength="40" value="' + escapeHtml(entry.code || "") + '" placeholder="EXAM10"></label>',
+            '  <label class="exams-owner-label"><span>عنوان</span><input class="exams-owner-input" data-discount-label type="text" maxlength="120" value="' + escapeHtml(entry.label || "") + '" placeholder="تخفیف این درس"></label>',
+            '  <label class="exams-owner-label"><span>نوع</span><select class="exams-owner-input" data-discount-type><option value="fixed"' + (type === "fixed" ? " selected" : "") + '>مبلغ ثابت</option><option value="percent"' + (type === "percent" ? " selected" : "") + '>درصد</option></select></label>',
+            '  <label class="exams-owner-label"><span>مقدار</span><input class="exams-owner-input" data-discount-amount type="text" inputmode="numeric" dir="ltr" data-latin-digits="true" value="' + escapeHtml(String(entry.amount || "")) + '" placeholder="' + (type === "percent" ? "10" : "30000") + '"></label>',
+            '  <label class="exams-owner-label"><span>سقف مصرف</span><input class="exams-owner-input" data-discount-max-uses type="text" inputmode="numeric" dir="ltr" data-latin-digits="true" value="' + escapeHtml(String(entry.maxUses || "")) + '" placeholder="اختیاری"></label>',
+            '  <label class="exams-owner-label"><span>شماره دانشجویی اختصاصی</span><input class="exams-owner-input" data-discount-student-number type="text" inputmode="numeric" dir="ltr" data-latin-digits="true" value="' + escapeHtml(entry.studentNumber || "") + '" placeholder="اختیاری"></label>',
+            '  <label class="exams-owner-label"><span>انقضا</span><input class="exams-owner-input" data-discount-expires type="datetime-local" value="' + escapeHtml(toDatetimeLocal(entry.expiresAt || "")) + '"></label>',
+            '  <label class="exams-owner-discount-toggle"><input data-discount-enabled type="checkbox"' + (entry.isEnabled ? " checked" : "") + '><span>فعال</span></label>',
+            '  <button class="exam-btn exam-btn--ghost exams-owner-discount-remove" type="button" data-exams-remove-discount="' + escapeHtml(String(index)) + '">حذف</button>',
+            usageText ? '<p class="exams-owner-discount-meta">' + escapeHtml(usageText) + "</p>" : "",
+            "</article>"
+        ].join("");
+    }
+
+    function readOwnerDiscountRows(form) {
+        return Array.prototype.slice.call(form.querySelectorAll("[data-exams-discount-row]")).map(function (row) {
+            return {
+                code: row.querySelector("[data-discount-code]") ? row.querySelector("[data-discount-code]").value : "",
+                label: row.querySelector("[data-discount-label]") ? row.querySelector("[data-discount-label]").value : "",
+                type: row.querySelector("[data-discount-type]") ? row.querySelector("[data-discount-type]").value : "fixed",
+                amount: row.querySelector("[data-discount-amount]") ? row.querySelector("[data-discount-amount]").value : "",
+                maxUses: row.querySelector("[data-discount-max-uses]") ? row.querySelector("[data-discount-max-uses]").value : "",
+                studentNumber: row.querySelector("[data-discount-student-number]") ? row.querySelector("[data-discount-student-number]").value : "",
+                expiresAt: row.querySelector("[data-discount-expires]") ? fromDatetimeLocal(row.querySelector("[data-discount-expires]").value) : "",
+                isEnabled: row.querySelector("[data-discount-enabled]") ? row.querySelector("[data-discount-enabled]").checked : true
+            };
+        });
+    }
+
+    function syncOwnerDraftFromForm(form) {
+        if (!form) {
+            return state.ownerDraft;
+        }
+        var amountInput = form.querySelector("#exams-owner-amount");
+        var modeInput = form.querySelector("input[name='paymentMode']:checked");
+        state.ownerDraft = {
+            paymentMode: modeInput ? modeInput.value : "free",
+            amount: String(amountInput && amountInput.value || ""),
+            discountCodes: readOwnerDiscountRows(form)
+        };
+        return state.ownerDraft;
+    }
+
+    function nextOwnerDiscountCode() {
+        var draft = state.ownerDraft && Array.isArray(state.ownerDraft.discountCodes)
+            ? state.ownerDraft.discountCodes
+            : [];
+        return {
+            code: "EXAM" + String(draft.length + 1),
+            label: "",
+            type: "percent",
+            amount: "10",
+            maxUses: "",
+            studentNumber: "",
+            expiresAt: "",
+            isEnabled: true,
+            usedCount: 0,
+            remainingUses: null
+        };
+    }
+
     function ownerPanelHtml(course) {
         if (!course || !course.ownerSettings || !course.ownerSettings.canManage) {
             return "";
         }
 
-        var isPaid = String(course.paymentMode || "free") === "paid";
+        var draft = resolveOwnerDraft(course);
+        var isPaid = String(draft.paymentMode || "free") === "paid";
         var openAttr = state.feedback || state.saving ? " open" : "";
+        var discountCodes = Array.isArray(draft.discountCodes) ? draft.discountCodes : [];
 
         return [
             '<details class="exams-card exams-owner-shell"' + openAttr + ">",
@@ -612,8 +766,19 @@
             "      </div>",
             '      <label class="exams-owner-label">',
             "        <span>هزینه این درس</span>",
-            '        <input class="exams-owner-input" id="exams-owner-amount" name="amount" type="text" inputmode="numeric" dir="ltr" data-latin-digits="true" value="' + escapeHtml(String(course.amount || "")) + '" placeholder="مثلاً 300000">',
+            '        <input class="exams-owner-input" id="exams-owner-amount" name="amount" type="text" inputmode="numeric" dir="ltr" data-latin-digits="true" value="' + escapeHtml(String(draft.amount || "")) + '" placeholder="مثلاً 300000">',
             "      </label>",
+            '      <section class="exams-owner-section">',
+            '        <div class="exams-owner-section__head">',
+            '          <div><h4>کدهای تخفیف</h4><p>برای این درس می‌توانی تخفیف درصدی یا مبلغ ثابت بسازی، سقف مصرف بگذاری و آن را فقط برای یک شماره دانشجویی فعال کنی.</p></div>',
+            '          <button class="exam-btn exam-btn--ghost" type="button" data-exams-add-discount>افزودن کد</button>',
+            "        </div>",
+            '        <div class="exams-owner-discount-list">' + (discountCodes.length
+                ? discountCodes.map(function (entry, index) {
+                    return ownerDiscountRowHtml(cloneOwnerDiscountCode(entry), index);
+                }).join("")
+                : '<div class="exams-owner-discount-empty">هنوز کد تخفیفی برای این درس ثبت نشده است.</div>') + "</div>",
+            "      </section>",
             '      <div class="exams-owner-actions">',
             '        <button class="exam-btn exam-btn--primary" type="submit"' + (state.saving ? " disabled" : "") + '>' + (state.saving ? "در حال ذخیره..." : "ذخیره تنظیمات") + "</button>",
             "      </div>",
@@ -815,6 +980,7 @@
                 throw new Error((payload && payload.error) || "بارگذاری این درس انجام نشد.");
             }
             state.course = payload.course;
+            state.ownerDraft = null;
             state.viewer = payload.viewer || null;
             renderCourse();
         }).catch(function (error) {
@@ -825,6 +991,37 @@
     }
 
     root.addEventListener("click", function (event) {
+        var addDiscountButton = event.target.closest("[data-exams-add-discount]");
+        if (addDiscountButton) {
+            var ownerFormForAdd = root.querySelector("#exams-owner-form");
+            if (ownerFormForAdd) {
+                syncOwnerDraftFromForm(ownerFormForAdd);
+            }
+            if (!state.ownerDraft) {
+                state.ownerDraft = buildOwnerDraft(state.course);
+            }
+            state.ownerDraft.discountCodes.push(nextOwnerDiscountCode());
+            renderCourse({ preserveUi: true });
+            return;
+        }
+
+        var removeDiscountButton = event.target.closest("[data-exams-remove-discount]");
+        if (removeDiscountButton) {
+            var ownerFormForRemove = root.querySelector("#exams-owner-form");
+            if (ownerFormForRemove) {
+                syncOwnerDraftFromForm(ownerFormForRemove);
+            }
+            if (!state.ownerDraft || !Array.isArray(state.ownerDraft.discountCodes)) {
+                return;
+            }
+            var discountIndex = Number(removeDiscountButton.getAttribute("data-exams-remove-discount"));
+            if (Number.isFinite(discountIndex) && discountIndex >= 0) {
+                state.ownerDraft.discountCodes.splice(discountIndex, 1);
+                renderCourse({ preserveUi: true });
+            }
+            return;
+        }
+
         var toggleButton = event.target.closest("[data-filter-toggle]");
         if (toggleButton) {
             state.filtersOpen = !state.filtersOpen;
@@ -845,11 +1042,21 @@
 
     root.addEventListener("input", function (event) {
         var target = event.target;
+        if (target && target.closest("#exams-owner-form")) {
+            syncOwnerDraftFromForm(target.closest("#exams-owner-form"));
+        }
         if (!target || target.id !== "exams-session-search") {
             return;
         }
         state.query = String(target.value || "");
         scheduleCourseRender();
+    });
+
+    root.addEventListener("change", function (event) {
+        var target = event.target;
+        if (target && target.closest("#exams-owner-form")) {
+            syncOwnerDraftFromForm(target.closest("#exams-owner-form"));
+        }
     });
 
     root.addEventListener("submit", function (event) {
@@ -863,9 +1070,8 @@
         }
 
         var form = event.target;
-        var amountInput = form.querySelector("#exams-owner-amount");
-        var modeInput = form.querySelector("input[name='paymentMode']:checked");
-        var amountValue = String((amountInput && amountInput.value) || "").replace(/[^\d]/g, "");
+        var draft = syncOwnerDraftFromForm(form) || buildOwnerDraft(state.course);
+        var amountValue = String(draft.amount || "").replace(/[^\d]/g, "");
         state.saving = true;
         state.feedback = "";
         state.feedbackKind = "";
@@ -873,13 +1079,15 @@
 
         apiPost("ownerSaveCourseAccess", {
             course: courseSlug,
-            paymentMode: modeInput ? modeInput.value : "free",
-            amount: amountValue
+            paymentMode: draft.paymentMode || "free",
+            amount: amountValue,
+            discountCodes: JSON.stringify(Array.isArray(draft.discountCodes) ? draft.discountCodes : [])
         }).then(function (payload) {
             if (!payload || !payload.success || !payload.course) {
                 throw new Error((payload && payload.error) || "ذخیره تنظیمات انجام نشد.");
             }
             state.course = payload.course;
+            state.ownerDraft = null;
             state.feedback = payload.message || "تنظیمات ذخیره شد.";
             state.feedbackKind = "success";
         }).catch(function (error) {

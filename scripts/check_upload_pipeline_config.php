@@ -60,6 +60,7 @@ $contentToolsDownloadHostPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_htm
 $notesApiPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'notes_api.php';
 $contentToolsFilesJsPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'content-tools-files.js';
 $notesFilesJsPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'notes-files.js';
+$notesHostPickerJsPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'notes-host-picker.js';
 $notesTermJsPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'assets' . DIRECTORY_SEPARATOR . 'site' . DIRECTORY_SEPARATOR . 'scripts' . DIRECTORY_SEPARATOR . 'notes-term.js';
 
 foreach ([
@@ -72,6 +73,7 @@ foreach ([
     $notesApiPath,
     $contentToolsFilesJsPath,
     $notesFilesJsPath,
+    $notesHostPickerJsPath,
     $notesTermJsPath,
 ] as $requiredPath) {
     if (!is_file($requiredPath)) {
@@ -166,8 +168,25 @@ if ($errors === []) {
         $errors[] = 'notes-files.js is not configured for raw body upload.';
     }
 
+    $notesHostPickerJsContents = (string) file_get_contents($notesHostPickerJsPath);
+    $notesHostPickerHasRawUpload = jsHasRawBodyUpload(
+        $notesHostPickerJsContents,
+        'X-Dent-Upload-Name',
+        '/xhr\.send\(\s*(?:file|task\.file)\s*\)/'
+    );
+    if (!$notesHostPickerHasRawUpload) {
+        $errors[] = 'notes-host-picker.js is not configured for raw body upload.';
+    }
+
     $notesTermJsContents = (string) file_get_contents($notesTermJsPath);
-    if (!jsHasRawBodyUpload($notesTermJsContents, 'X-Dent-Upload-Name', '/xhr\.send\(\s*(?:file|task\.file)\s*\)/')) {
+    $notesTermUsesRawUpload = jsHasRawBodyUpload(
+        $notesTermJsContents,
+        'X-Dent-Upload-Name',
+        '/xhr\.send\(\s*(?:file|task\.file)\s*\)/'
+    );
+    $notesTermDelegatesToHostPicker = strpos($notesTermJsContents, 'Dent1402NotesHostPicker') !== false
+        && strpos($notesTermJsContents, '.create({') !== false;
+    if (!$notesTermUsesRawUpload && !($notesTermDelegatesToHostPicker && $notesHostPickerHasRawUpload)) {
         $errors[] = 'notes-term.js is not configured for raw body upload.';
     }
 }

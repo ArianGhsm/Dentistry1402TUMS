@@ -8,6 +8,10 @@ Deploy رسمی پروژه فقط از مسیر اسکریپت canonical انج�
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
 
+## Definition of Done
+- بعد از هر پرامپت/کاری که روی پروژه انجام می‌شود، deploy canonical باید قبل از پاسخ نهایی اجرا شود مگر کاربر صراحتاً همان نوبت منع کند.
+- کار فقط وقتی `completed` محسوب می‌شود که deploy، live health-check و اعلان داخل سایت برای مالک موفق شده باشند؛ fail/skip شدن deploy یا اعلان باید صریحاً `blocked` یا `partial` گزارش شود.
+
 ## ترتیب اجباری Deploy
 0. دانلود یک‌طرفه‌ی `storage/` از هاست به لپتاپ و mirror در `server-only/storage`
 1. local validation
@@ -19,6 +23,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - منبع اصلی کد، فایل‌های ویندوز است؛ منبع اصلی دیتا و دیتابیس، `storage/` روی هاست است.
 - قبل از هر deploy، دیتای هاست در `.codex-local/remote-storage/snapshots/` بکاپ گرفته می‌شود و نسخه‌ی فعال لوکال در `server-only/storage/` فقط از روی هاست mirror می‌شود.
 - این mirror شامل فایل‌های upload شده‌ی runtime هم هست؛ مسیرهای موقتی مثل `tmp`، `sessions`، `backups` و `cache` جزو منبع حقیقت deploy نیستند.
+- نبودن دایرکتوری‌های اختیاریِ runtime مثل media preview/original/upload rootها نباید mirror را fail کند؛ فقط stateهای واقعی مثل `store.json` و storageهای اصلی blocker هستند.
 - جهت sync دیتا فقط هاست -> لپتاپ است. دیتای `storage/`، `server-only/storage/`، بکاپ‌ها، sessionها، lockها و فایل‌های `.env` نباید از لپتاپ به هاست یا GitHub آپلود شوند.
 - GitHub باید بر اساس فایل‌های کد/ظاهر/اسکریپت روی لپتاپ آپدیت شود، نه دیتای runtime.
 - مرحله‌ی GitHub sync باید روی worktree موقتِ مبتنی بر آخرین upstream انجام شود؛ نه با `git add -A` روی workspace اصلی. این کار باعث می‌شود اختلاف branch محلی با `origin/main` یا dirty بودن workspace، deploy را روی push گیر ندهد.
@@ -49,3 +54,4 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullB
 - حتی در `FullSync`، فایل‌های runtime/data مثل `public_html/.env` و `public_html/storage/` از upload/delete محافظت می‌شوند.
 - deploy نباید seed یا HTML ثابت را جایگزین کارت‌های منابعی کند که مالک در سایت اضافه، ویرایش یا حذف کرده است.
 - از deploy دستی و ad-hoc پرهیز شود.
+- عملیات FTP canonical باید retry محدود و خودکار برای timeout/connection error داشته باشد تا خطاهای گذرای شبکه کل deploy را بی‌دلیل fail نکنند.

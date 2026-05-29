@@ -21,6 +21,8 @@
     var primaryAction = $("home-identity-primary");
     var secondaryAction = $("home-identity-secondary");
     var ownerBadge = $("home-owner-badge");
+    var homeFormsPrimaryMeta = $("home-forms-primary-meta");
+    var homeFormsProsthesisMeta = $("home-forms-prosthesis-meta");
 
     var navidPanel = $("home-navid-panel");
     var navidStateText = $("home-navid-state");
@@ -34,6 +36,13 @@
     var navidLoadedFor = "";
     var navidLoadToken = 0;
     var navidLoading = false;
+    var formsSessionState = {
+        loading: false,
+        requestToken: 0,
+        lastUserKey: "",
+        cohortKey: "",
+        count: 0
+    };
     var appHeaderTitle = document.querySelector(".site-header .site-info h1");
     var appFooterTitle = document.querySelector(".site-footer p");
     var homeKicker = document.querySelector(".home-kicker");
@@ -139,6 +148,111 @@
         });
     }
 
+    function setHomeFormsMetaText(text) {
+        var value = String(text || "فرم و نظرسنجی");
+        if (homeFormsPrimaryMeta) {
+            homeFormsPrimaryMeta.textContent = value;
+        }
+        if (homeFormsProsthesisMeta) {
+            homeFormsProsthesisMeta.textContent = value;
+        }
+    }
+
+    function resetHomeFormsMeta() {
+        formsSessionState.loading = false;
+        formsSessionState.requestToken += 1;
+        formsSessionState.lastUserKey = "";
+        formsSessionState.cohortKey = "";
+        formsSessionState.count = 0;
+        setHomeFormsMetaText("فرم و نظرسنجی");
+    }
+
+    function renderHomeFormsCount(count) {
+        var total = Math.max(0, Math.floor(Number(count) || 0));
+        formsSessionState.count = total;
+        if (total > 0) {
+            setHomeFormsMetaText("تعداد " + total.toLocaleString("fa-IR") + " فرم برای شما فعال است");
+            return;
+        }
+        setHomeFormsMetaText("در حال حاضر فرم فعالی برای شما نیست");
+    }
+
+    function formsSessionUrl(cohortKey) {
+        var baseUrl = "/api/forms_api.php?action=session";
+        var cleanCohort = String(cohortKey || "").trim() || "main";
+        if (authApi && typeof authApi.appendCohortQuery === "function") {
+            return authApi.appendCohortQuery(baseUrl, cleanCohort);
+        }
+        if (cleanCohort === "main") {
+            return baseUrl;
+        }
+        return baseUrl + "&cohort=" + encodeURIComponent(cleanCohort);
+    }
+
+    function requestFormsSession(cohortKey) {
+        return fetch(formsSessionUrl(cohortKey), {
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+                Accept: "application/json"
+            }
+        }).then(function (response) {
+            return response.json().catch(function () {
+                return {
+                    success: false,
+                    error: "پاسخ نامعتبر از سرور دریافت شد."
+                };
+            }).then(function (data) {
+                data.httpStatus = response.status;
+                return data;
+            });
+        });
+    }
+
+    async function loadHomeFormsCount(user) {
+        var userKey = String(user && user.studentNumber ? user.studentNumber : "").trim();
+        var cohortKey = String(user && user.cohortKey ? user.cohortKey : "main").trim() || "main";
+        if (!userKey || formsSessionState.loading) {
+            return;
+        }
+
+        if (formsSessionState.lastUserKey === userKey && formsSessionState.cohortKey === cohortKey) {
+            renderHomeFormsCount(formsSessionState.count);
+            return;
+        }
+
+        formsSessionState.loading = true;
+        formsSessionState.lastUserKey = userKey;
+        formsSessionState.cohortKey = cohortKey;
+        var ticket = ++formsSessionState.requestToken;
+        setHomeFormsMetaText("در حال بررسی فرم‌های فعال...");
+
+        try {
+            var response = await requestFormsSession(cohortKey);
+            if (ticket !== formsSessionState.requestToken) {
+                return;
+            }
+            if (consumeUnauthorized(response, "نشست شما به پایان رسید.")) {
+                resetHomeFormsMeta();
+                return;
+            }
+            if (!response || !response.success) {
+                renderHomeFormsCount(0);
+                return;
+            }
+            renderHomeFormsCount(response.activeCount);
+        } catch (_error) {
+            if (ticket !== formsSessionState.requestToken) {
+                return;
+            }
+            renderHomeFormsCount(0);
+        } finally {
+            if (ticket === formsSessionState.requestToken) {
+                formsSessionState.loading = false;
+            }
+        }
+    }
+
     function navidResultLabel(result) {
         switch (result) {
             case "ok":
@@ -174,6 +288,7 @@
 
     function setIdentityLoggedOut(errorText) {
         applyBranding(false);
+        resetHomeFormsMeta();
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = true;
         });
@@ -197,6 +312,7 @@
 
     function setIdentityBoot(message) {
         applyBranding(false);
+        resetHomeFormsMeta();
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = true;
         });
@@ -547,6 +663,7 @@
         }
 
         setIdentityLoggedIn(detail.user);
+        loadHomeFormsCount(detail.user);
         var userKey = String(detail.user.studentNumber || "_logged");
         if (userKey !== navidLoadedFor) {
             loadNavidFeed(detail.user);

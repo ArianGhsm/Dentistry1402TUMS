@@ -5,6 +5,7 @@ param(
     [switch]$SkipValidation,
     [switch]$SkipPostDeployVerification,
     [switch]$SkipGitHubSync,
+    [switch]$SkipVersionStamp,
     [switch]$PullBeforeDeploy,
     [switch]$SkipRemoteStorageSync,
     [switch]$AllowProxyPull,
@@ -45,6 +46,34 @@ $remotePath = "/" + ($config.remotePath.TrimStart('/'))
 $ftpBase = "ftp://$($config.host)$remotePath"
 $credentials = "$($config.username):$($config.password)"
 $runStartedAt = [DateTimeOffset]::Now
+$script:SharedProjectRoot = $null
+
+function Get-SharedProjectRoot() {
+    if (-not [string]::IsNullOrWhiteSpace([string]$script:SharedProjectRoot)) {
+        return [string]$script:SharedProjectRoot
+    }
+
+    $resolvedRoot = $projectRoot
+    $commonDirOutput = & git -C $projectRoot rev-parse --git-common-dir 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        $commonDir = ([string]($commonDirOutput | Select-Object -First 1)).Trim()
+        if (-not [string]::IsNullOrWhiteSpace($commonDir)) {
+            if (-not [System.IO.Path]::IsPathRooted($commonDir)) {
+                $commonDir = Join-Path $projectRoot $commonDir
+            }
+            try {
+                $commonDir = (Resolve-Path -LiteralPath $commonDir).Path
+                if ((Split-Path -Path $commonDir -Leaf) -eq ".git") {
+                    $resolvedRoot = Split-Path -Path $commonDir -Parent
+                }
+            } catch {
+            }
+        }
+    }
+
+    $script:SharedProjectRoot = $resolvedRoot
+    return $resolvedRoot
+}
 
 function Normalize-NetworkPath([string]$value) {
     $normalized = ([string]$value).Trim().ToLowerInvariant()
@@ -224,6 +253,24 @@ function Format-Bytes([int64]$bytes) {
         return ("{0:N2} KB" -f ($bytes / 1KB))
     }
     return ("{0:N2} MB" -f ($bytes / 1MB))
+}
+
+function Get-ActivePwaVersion() {
+    $versionFile = Join-Path $projectRoot "public_html\app-version.json"
+    if (-not (Test-Path -LiteralPath $versionFile -PathType Leaf)) {
+        return ""
+    }
+
+    try {
+        $payload = Get-Content -LiteralPath $versionFile -Raw | ConvertFrom-Json
+        $version = [string]($payload.version)
+        if (-not [string]::IsNullOrWhiteSpace($version)) {
+            return $version.Trim()
+        }
+    } catch {
+    }
+
+    return ""
 }
 
 function Get-FileBytesFromRelativeList([string]$rootPath, [string[]]$relativeList) {
@@ -479,7 +526,7 @@ function Assert-GitAvailable() {
 }
 
 function Get-HostDeployStatePath() {
-    return Join-Path $projectRoot ".codex-local\deploy\host_last_deploy.json"
+    return Join-Path (Get-SharedProjectRoot) ".codex-local\deploy\host_last_deploy.json"
 }
 
 function Read-HostDeployState() {
@@ -588,15 +635,75 @@ function Get-FtpUrl([string]$relative, [switch]$Directory) {
     return "ftp://$($config.host)$suffix"
 }
 
+function Test-CurlRetryableExitCode([int]$exitCode) {
+    return $exitCode -in @(5, 6, 7, 12, 13, 18, 28, 35, 47, 52, 55, 56)
+}
+
+function Invoke-CurlCommand(
+    [string[]]$Arguments,
+    [string]$Operation,
+    [switch]$AllowFailure
+) {
+    $maxAttempts = 10
+    $lastOutput = @()
+    $lastExitCode = 0
+
+    for ($attempt = 1; $attempt -le $maxAttempts; $attempt += 1) {
+        $effectiveArguments = @("--connect-timeout", "30", "--max-time", "1800") + @($Arguments)
+        $previousErrorActionPreference = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = "Continue"
+            $output = & curl.exe @effectiveArguments 2>&1
+        } finally {
+            $ErrorActionPreference = $previousErrorActionPreference
+        }
+        $exitCode = $LASTEXITCODE
+        $lastOutput = @($output)
+        $lastExitCode = $exitCode
+
+        if ($exitCode -eq 0) {
+            return [PSCustomObject]@{
+                Success  = $true
+                Output   = @($output)
+                ExitCode = $exitCode
+            }
+        }
+
+        $retryable = Test-CurlRetryableExitCode -exitCode $exitCode
+        if ($retryable -and $attempt -lt $maxAttempts) {
+            $delaySeconds = [Math]::Min(30, (3 * $attempt) + 2)
+            Write-Warning "$Operation failed on attempt $attempt/$maxAttempts (curl exit $exitCode). Retrying in $delaySeconds second(s)."
+            Start-Sleep -Seconds $delaySeconds
+            continue
+        }
+
+        break
+    }
+
+    if ($AllowFailure) {
+        return [PSCustomObject]@{
+            Success  = $false
+            Output   = $lastOutput
+            ExitCode = $lastExitCode
+        }
+    }
+
+    $detail = Format-CommandFailureDetail -commandOutput $lastOutput -fallback "curl exit code $lastExitCode"
+    throw "$Operation failed: $detail"
+}
+
 function Get-RemoteDirectoryEntries([string]$remoteRelative) {
     $url = Get-FtpUrl -relative $remoteRelative -Directory
-    $output = & curl.exe --silent --list-only --user $credentials "$url" 2>$null
-    if ($LASTEXITCODE -ne 0) {
+    $result = Invoke-CurlCommand `
+        -Arguments @("--silent", "--list-only", "--user", $credentials, $url) `
+        -Operation "List remote directory $remoteRelative" `
+        -AllowFailure
+    if (-not $result.Success) {
         return $null
     }
 
     $entries = New-Object System.Collections.Generic.List[string]
-    foreach ($line in @($output)) {
+    foreach ($line in @($result.Output)) {
         $entry = ([string]$line).Trim()
         if ([string]::IsNullOrWhiteSpace($entry) -or $entry -eq "." -or $entry -eq "..") {
             continue
@@ -644,6 +751,32 @@ function Test-RemoteStorageLikelyDirectoryName([string]$name) {
     }
 
     return -not $leaf.Contains(".")
+}
+
+function Test-OptionalRemoteStorageDirectory([string]$remoteRelative) {
+    $normalized = (($remoteRelative -replace '\\', '/').Trim()).Trim('/').ToLowerInvariant()
+    if ([string]::IsNullOrWhiteSpace($normalized)) {
+        return $false
+    }
+
+    $leaf = Split-Path -Path $normalized -Leaf
+    if ($leaf -in @("uploads", "previews", "originals", "thumbs", "thumbnails", "tmp", "temp")) {
+        return $true
+    }
+
+    if ($leaf.EndsWith("_media")) {
+        return $true
+    }
+
+    if ($normalized -eq "storage/prosthesis_1402/chat/media") {
+        return $true
+    }
+
+    if ($normalized -match '^storage/chat/[^/]+_media/(previews|originals|thumbs|thumbnails)$') {
+        return $true
+    }
+
+    return $false
 }
 
 function Assert-PathInside([string]$path, [string]$allowedRoot, [string]$label) {
@@ -698,10 +831,9 @@ function Download-RemoteStorageFile(
     }
 
     $url = Get-FtpUrl -relative $remoteRelative
-    & curl.exe --fail --silent --show-error --user $credentials -o "$targetPath" "$url"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Remote storage download failed for $remoteRelative"
-    }
+    Invoke-CurlCommand `
+        -Arguments @("--fail", "--silent", "--show-error", "--user", $credentials, "-o", "$targetPath", $url) `
+        -Operation "Download remote storage file $remoteRelative" | Out-Null
 
     $fileCount.Value = [int]$fileCount.Value + 1
     try {
@@ -727,9 +859,7 @@ function Download-RemoteStorageDirectory(
 
     $entries = Get-RemoteDirectoryEntries -remoteRelative $normalized
     if ($null -eq $entries) {
-        $leaf = Split-Path -Path $normalized -Leaf
-        $optionalRuntimeDirectories = @("uploads", "previews", "originals", "thumbs", "thumbnails", "tmp", "temp")
-        if ($optionalRuntimeDirectories -contains ([string]$leaf).Trim().ToLowerInvariant()) {
+        if (Test-OptionalRemoteStorageDirectory -remoteRelative $normalized) {
             Write-Warning "Skip missing or unlistable optional runtime directory during host storage mirror: $normalized"
             return
         }
@@ -840,12 +970,36 @@ function Run-GitSingle([string[]]$GitArgs) {
 }
 
 function Try-GetUpstreamBranch() {
-    $upstream = & git -C $projectRoot rev-parse --abbrev-ref --symbolic-full-name "@{upstream}" 2>$null
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace([string]$upstream)) {
+    $currentBranch = ""
+    try {
+        $currentBranch = Run-GitSingle -GitArgs @("rev-parse", "--abbrev-ref", "HEAD")
+    } catch {
         return ""
     }
 
-    return [string]$upstream
+    if ([string]::IsNullOrWhiteSpace($currentBranch) -or $currentBranch -eq "HEAD") {
+        return ""
+    }
+
+    $remoteName = & git -C $projectRoot config --get "branch.$currentBranch.remote" 2>$null
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace([string]$remoteName)) {
+        return ""
+    }
+
+    $mergeRef = & git -C $projectRoot config --get "branch.$currentBranch.merge" 2>$null
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace([string]$mergeRef)) {
+        return ""
+    }
+
+    $mergeRefName = ([string]$mergeRef).Trim()
+    if ($mergeRefName.StartsWith("refs/heads/")) {
+        $mergeRefName = $mergeRefName.Substring("refs/heads/".Length)
+    }
+    if ([string]::IsNullOrWhiteSpace($mergeRefName)) {
+        return ""
+    }
+
+    return ("{0}/{1}" -f ([string]$remoteName).Trim(), $mergeRefName)
 }
 
 function Test-GitCommitExists([string]$Revision) {
@@ -1052,7 +1206,18 @@ function Run-VersionStamp() {
             Status     = "skipped-dry-run"
             StartedAt  = $started
             FinishedAt = Get-IsoNow
-            Version    = ""
+            Version    = Get-ActivePwaVersion
+            Command    = ""
+        }
+    }
+
+    if ($SkipVersionStamp) {
+        Write-Warning "PWA version stamp skipped by explicit -SkipVersionStamp override."
+        return [PSCustomObject]@{
+            Status     = "skipped-explicit"
+            StartedAt  = $started
+            FinishedAt = Get-IsoNow
+            Version    = Get-ActivePwaVersion
             Command    = ""
         }
     }
@@ -1079,6 +1244,9 @@ function Run-VersionStamp() {
             $version = $Matches[1].Trim()
             break
         }
+    }
+    if ([string]::IsNullOrWhiteSpace($version)) {
+        $version = Get-ActivePwaVersion
     }
 
     return [PSCustomObject]@{
@@ -1697,10 +1865,9 @@ function Upload-File([string]$relative) {
     }
 
     Write-Host "Uploading $relative"
-    & curl.exe --silent --show-error --ftp-create-dirs --user $credentials -T "$source" "$target"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Upload failed for $relative"
-    }
+    Invoke-CurlCommand `
+        -Arguments @("--silent", "--show-error", "--ftp-create-dirs", "--user", $credentials, "-T", "$source", $target) `
+        -Operation "Upload $relative" | Out-Null
 }
 
 function Delete-RemoteFile([string]$relative) {
@@ -1715,10 +1882,9 @@ function Delete-RemoteFile([string]$relative) {
     }
 
     Write-Host "Deleting remote $relative"
-    & curl.exe --silent --show-error --user $credentials --quote "DELE $remotePath/$relative" "ftp://$($config.host)/"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Remote delete failed for $relative"
-    }
+    Invoke-CurlCommand `
+        -Arguments @("--silent", "--show-error", "--user", $credentials, "--quote", "DELE $remotePath/$relative", "ftp://$($config.host)/") `
+        -Operation "Delete remote $relative" | Out-Null
 }
 
 function Invoke-HealthCheck([string]$url) {
@@ -1964,16 +2130,21 @@ function Sync-GitHubFromLaptop([object]$GitHubPlan) {
 
 function Get-OwnerCredentialFilePaths() {
     $paths = New-Object System.Collections.Generic.List[string]
+    $sharedRoot = Get-SharedProjectRoot
 
     if (-not [string]::IsNullOrWhiteSpace($OwnerCredentialPath)) {
         if ([System.IO.Path]::IsPathRooted($OwnerCredentialPath)) {
             [void]$paths.Add($OwnerCredentialPath)
         } else {
             [void]$paths.Add((Join-Path $projectRoot $OwnerCredentialPath))
+            $sharedCredentialPath = Join-Path $sharedRoot $OwnerCredentialPath
+            if (-not ($paths.Contains($sharedCredentialPath))) {
+                [void]$paths.Add($sharedCredentialPath)
+            }
         }
     }
 
-    $legacyPath = Join-Path $projectRoot ".codex-local\deploy_completion_owner.json"
+    $legacyPath = Join-Path $sharedRoot ".codex-local\deploy_completion_owner.json"
     if (-not ($paths.Contains($legacyPath))) {
         [void]$paths.Add($legacyPath)
     }
@@ -2119,6 +2290,13 @@ function Send-OwnerDeployNotice(
         }
     }
 
+    if ([string]::IsNullOrWhiteSpace($Version)) {
+        $Version = Get-ActivePwaVersion
+    }
+    if ([string]::IsNullOrWhiteSpace($Version) -and -not [string]::IsNullOrWhiteSpace($DeployHead)) {
+        $shortHead = $DeployHead.Substring(0, [Math]::Min(12, $DeployHead.Length))
+        $Version = "manual-$shortHead"
+    }
     if ([string]::IsNullOrWhiteSpace($Version)) {
         throw "Owner deploy notification requires the active PWA version."
     }
@@ -2317,7 +2495,9 @@ try {
         if ($DryRun) {
             Write-Host "[DryRun] Delete remote .vscode directory"
         } else {
-            & curl.exe --silent --show-error --user $credentials --quote "RMD $remotePath/.vscode" "ftp://$($config.host)/"
+            Invoke-CurlCommand `
+                -Arguments @("--silent", "--show-error", "--user", $credentials, "--quote", "RMD $remotePath/.vscode", "ftp://$($config.host)/") `
+                -Operation "Delete remote .vscode directory" | Out-Null
         }
     }
 

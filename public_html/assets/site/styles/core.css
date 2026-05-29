@@ -373,7 +373,7 @@ a {
 ::view-transition-old(root),
 ::view-transition-new(root) {
     animation-duration: var(--motion-base);
-    animation-timing-function: var(--motion-ease-standard);
+    animation-timing-function: var(--motion-ease-soft);
 }
 
 ::view-transition-old(root) {
@@ -411,7 +411,7 @@ button {
 @keyframes site-view-fade-in {
     from {
         opacity: 0;
-        transform: translateY(4px);
+        transform: translateY(2px);
     }
 
     to {
@@ -427,8 +427,8 @@ button {
     }
 
     to {
-        opacity: 0.96;
-        transform: translateY(-2px);
+        opacity: 0.98;
+        transform: translateY(-1px);
     }
 }
 
@@ -488,7 +488,7 @@ textarea {
         body.hub-page .action-card--link,
         body.hub-page .action-card__primary
     ):active {
-        transform: scale(0.985);
+        transform: scale(0.992);
     }
 }
 
@@ -1452,13 +1452,25 @@ html[data-performance-mode="lite"] .shell-notification-banner {
     backdrop-filter: none;
 }
 
+html[data-performance-mode="lite"] ::view-transition-old(root),
+html[data-performance-mode="lite"] ::view-transition-new(root) {
+    animation-duration: 0.01ms;
+}
+
 html[data-performance-mode="lite"] body::before {
     opacity: 0.84;
     filter: none;
+    transition-duration: var(--motion-fast);
 }
 
 html[data-performance-mode="lite"] body::after {
-    opacity: 0.28;
+    opacity: 0.22;
+    transition-duration: var(--motion-fast);
+}
+
+html[data-performance-mode="lite"] .background-overlay {
+    opacity: 0.78;
+    transition-duration: var(--motion-fast);
 }
 
 html[data-performance-mode="lite"] .shell-drawer-backdrop,

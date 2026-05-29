@@ -5,7 +5,7 @@ require_once __DIR__ . '/auth_store.php';
 require_once __DIR__ . '/exams_bank.php';
 
 if (!defined('DENT_EXAMS_SCHEMA_VERSION')) {
-    define('DENT_EXAMS_SCHEMA_VERSION', 3);
+    define('DENT_EXAMS_SCHEMA_VERSION', 4);
 }
 
 function dent_exams_store_path(): string
@@ -241,6 +241,85 @@ function dent_exams_exam_key(string $catalogKey, string $courseSlug, string $exa
     return $cleanCatalog . ':' . $cleanCourse . ':' . $cleanExam;
 }
 
+function dent_exams_clean_discount_code(string $value): string
+{
+    $value = dent_clean_text($value, 40);
+    if ($value === '') {
+        return '';
+    }
+
+    return strtoupper(preg_replace('/\s+/u', '', $value) ?? '');
+}
+
+function dent_exams_normalize_discount_codes($value): array
+{
+    $codes = [];
+    if (is_array($value)) {
+        $codes = $value;
+    } elseif (is_string($value)) {
+        $trimmed = trim($value);
+        if ($trimmed !== '') {
+            $decoded = json_decode($trimmed, true);
+            if (is_array($decoded)) {
+                $codes = $decoded;
+            }
+        }
+    }
+
+    $normalized = [];
+    $seen = [];
+    foreach ($codes as $code) {
+        if (!is_array($code)) {
+            continue;
+        }
+
+        $rawCode = dent_exams_clean_discount_code((string) ($code['code'] ?? ''));
+        if ($rawCode === '' || isset($seen[$rawCode])) {
+            continue;
+        }
+
+        $type = trim(strtolower((string) ($code['type'] ?? 'fixed')));
+        if (!in_array($type, ['fixed', 'percent'], true)) {
+            $type = 'fixed';
+        }
+
+        $amount = max(0, (int) dent_normalize_digits((string) ($code['amount'] ?? 0)));
+        if ($amount <= 0) {
+            continue;
+        }
+        if ($type === 'percent') {
+            $amount = min(95, $amount);
+        }
+
+        $maxUsesRaw = $code['maxUses'] ?? ($code['max_uses'] ?? null);
+        $maxUses = null;
+        if ($maxUsesRaw !== null && $maxUsesRaw !== '') {
+            $maxUses = max(1, min(1000000, (int) dent_normalize_digits((string) $maxUsesRaw)));
+        }
+
+        $enabledRaw = $code['isEnabled'] ?? ($code['is_enabled'] ?? true);
+        $enabled = filter_var($enabledRaw, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        $normalized[] = [
+            'code' => $rawCode,
+            'label' => dent_clean_text((string) ($code['label'] ?? ''), 120),
+            'type' => $type,
+            'amount' => $amount,
+            'maxUses' => $maxUses,
+            'studentNumber' => dent_normalize_student_number((string) ($code['studentNumber'] ?? ($code['student_number'] ?? ''))),
+            'expiresAt' => dent_exams_normalize_datetime_string((string) ($code['expiresAt'] ?? ($code['expires_at'] ?? '')), ''),
+            'isEnabled' => $enabled !== false,
+        ];
+        $seen[$rawCode] = true;
+
+        if (count($normalized) >= 30) {
+            break;
+        }
+    }
+
+    return $normalized;
+}
+
 function dent_exams_normalize_course_setting(array $value): array
 {
     $paymentMode = trim(strtolower((string) ($value['paymentMode'] ?? ($value['payment_mode'] ?? 'free'))));
@@ -252,6 +331,7 @@ function dent_exams_normalize_course_setting(array $value): array
         'paymentMode' => $paymentMode,
         'amount' => max(0, (int) dent_normalize_digits((string) ($value['amount'] ?? 0))),
         'collectionId' => max(0, (int) ($value['collectionId'] ?? ($value['collection_id'] ?? 0))),
+        'discountCodes' => dent_exams_normalize_discount_codes($value['discountCodes'] ?? ($value['discount_codes'] ?? [])),
         'updatedAt' => dent_exams_normalize_datetime_string((string) ($value['updatedAt'] ?? ($value['updated_at'] ?? dent_iso_now())), dent_iso_now()),
     ];
 }
@@ -269,6 +349,7 @@ function dent_exams_default_course_setting(?array $course = null): array
         'paymentMode' => $paymentMode,
         'amount' => $amount,
         'collectionId' => 0,
+        'discountCodes' => dent_exams_normalize_discount_codes($course['defaultDiscountCodes'] ?? []),
         'updatedAt' => dent_iso_now(),
     ];
 }

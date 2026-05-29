@@ -1219,6 +1219,94 @@ html[data-theme="light"] .exams-toolbar-card {
     box-shadow: 0 0 0 4px var(--focus-ring-soft);
 }
 
+.exams-owner-section {
+    display: grid;
+    gap: 0.8rem;
+    padding: 0.9rem;
+    border-radius: 22px;
+    border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
+    background: color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+.exams-owner-section__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.exams-owner-section__head h4,
+.exams-owner-section__head p {
+    margin: 0;
+}
+
+.exams-owner-section__head h4 {
+    color: var(--text-primary);
+    font-size: 0.96rem;
+    font-weight: 860;
+}
+
+.exams-owner-section__head p,
+.exams-owner-discount-empty,
+.exams-owner-discount-meta {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.9;
+}
+
+.exams-owner-discount-list {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.exams-owner-discount-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.72rem;
+    padding: 0.88rem;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--border-color) 90%, transparent);
+    background: color-mix(in srgb, var(--surface-solid) 86%, transparent);
+}
+
+.exams-owner-discount-row .exams-owner-label {
+    gap: 0.34rem;
+}
+
+.exams-owner-discount-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.45rem;
+    min-height: 48px;
+    color: var(--text-primary);
+    font-weight: 760;
+}
+
+.exams-owner-discount-remove {
+    justify-self: flex-end;
+}
+
+.exams-owner-discount-meta {
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+@media (max-width: 680px) {
+    .exams-owner-section__head {
+        flex-direction: column;
+    }
+
+    .exams-owner-discount-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .exams-owner-discount-remove {
+        justify-self: stretch;
+    }
+}
+
 .exams-feedback {
     min-height: 22px;
     color: var(--text-secondary);
