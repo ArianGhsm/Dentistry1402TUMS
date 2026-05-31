@@ -1116,6 +1116,175 @@ html[data-theme="light"] .exams-toolbar-card {
     white-space: normal;
 }
 
+.exams-reference-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(137, 158, 224, 0.28);
+    border-radius: 22px;
+    background:
+        linear-gradient(180deg, rgba(23, 30, 50, 0.82), rgba(13, 18, 32, 0.88)),
+        rgba(14, 20, 34, 0.86);
+    box-shadow:
+        0 18px 46px -34px rgba(0, 0, 0, 0.72),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.catalog-simple-stack:has(> .exams-reference-card) {
+    gap: 1rem;
+}
+
+.exams-reference-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at top right, rgba(122, 148, 255, 0.14), transparent 44%),
+        radial-gradient(circle at bottom left, rgba(45, 190, 214, 0.08), transparent 42%);
+    pointer-events: none;
+}
+
+.exams-reference-card__link,
+.exams-reference-card__button,
+.exams-reference-card__static {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 100%;
+    gap: 0.84rem;
+    padding: 1rem;
+    color: inherit;
+    text-decoration: none;
+}
+
+.exams-reference-card__button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    text-align: inherit;
+    cursor: pointer;
+}
+
+.exams-reference-card__topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+}
+
+.exams-reference-card__pill,
+.exams-reference-card__status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+    padding: 0.2rem 0.62rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(151, 170, 230, 0.24);
+    background: rgba(105, 129, 210, 0.14);
+    color: rgba(235, 240, 255, 0.9);
+    font-size: 0.72rem;
+    font-weight: 850;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.exams-reference-card__status {
+    color: rgba(180, 217, 255, 0.94);
+    background: rgba(72, 126, 255, 0.14);
+}
+
+.exams-reference-card__status.is-muted {
+    color: rgba(211, 216, 232, 0.72);
+    background: rgba(148, 163, 184, 0.12);
+}
+
+.exams-reference-card__title-fa,
+.exams-reference-card__title-en {
+    margin: 0;
+    text-align: center;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    unicode-bidi: isolate;
+}
+
+.exams-reference-card__title-fa {
+    color: rgba(250, 252, 255, 0.96);
+    font-size: clamp(1.15rem, 1rem + 0.8vw, 1.48rem);
+    font-weight: 900;
+    line-height: 1.75;
+}
+
+.exams-reference-card__divider {
+    width: min(100%, 34rem);
+    height: 1px;
+    margin: 0.08rem auto;
+    background: rgba(170, 180, 220, 0.25);
+}
+
+.exams-reference-card__title-en {
+    direction: ltr;
+    color: rgba(194, 202, 235, 0.88);
+    font-family: "DentTimesClassic", "Times New Roman", Times, serif;
+    font-size: clamp(0.98rem, 0.92rem + 0.34vw, 1.15rem);
+    font-weight: 700;
+    line-height: 1.48;
+}
+
+.exams-reference-card__meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.48rem;
+    padding-top: 0.84rem;
+    border-top: 1px solid rgba(170, 180, 220, 0.16);
+}
+
+.exams-reference-card__meta-item {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0.16rem 0.52rem;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.055);
+    color: rgba(223, 229, 248, 0.78);
+    font-size: 0.74rem;
+    font-weight: 760;
+    line-height: 1.45;
+}
+
+html[data-theme="light"] .exams-reference-card {
+    border-color: rgba(126, 145, 210, 0.22);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.93), rgba(245, 248, 255, 0.9)),
+        rgba(250, 252, 255, 0.92);
+    box-shadow: 0 16px 42px -34px rgba(30, 54, 104, 0.42);
+}
+
+html[data-theme="light"] .exams-reference-card__title-fa {
+    color: var(--text-primary);
+}
+
+html[data-theme="light"] .exams-reference-card__title-en {
+    color: color-mix(in srgb, var(--accent-strong) 58%, var(--text-secondary));
+}
+
+html[data-theme="light"] .exams-reference-card__pill,
+html[data-theme="light"] .exams-reference-card__status {
+    color: var(--accent-strong);
+    background: color-mix(in srgb, var(--accent-soft) 74%, transparent);
+}
+
+html[data-theme="light"] .exams-reference-card__status.is-muted,
+html[data-theme="light"] .exams-reference-card__meta-item {
+    color: var(--text-secondary);
+}
+
 .exams-access-card,
 .exams-owner-shell {
     display: flex;

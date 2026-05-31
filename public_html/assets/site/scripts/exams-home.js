@@ -873,7 +873,7 @@
         ].join("");
     }
 
-    function referenceMeta(reference) {
+    function referenceMetaParts(reference) {
         var collections = Array.isArray(reference && reference.collections) ? reference.collections : [];
         var parts = [];
         if (reference && reference.editionLabel) {
@@ -889,7 +889,11 @@
         } else {
             parts.push("آزمون فعال ندارد");
         }
-        return joinMetaParts(parts);
+        return parts;
+    }
+
+    function referenceMeta(reference) {
+        return joinMetaParts(referenceMetaParts(reference));
     }
 
     function referenceActionConfig(reference) {
@@ -937,6 +941,49 @@
             visualMuted: isEmpty,
             actionLabel: action.actionLabel || ""
         });
+    }
+
+    function referenceCardHtml(reference, index) {
+        var action = referenceActionConfig(reference);
+        var isEmpty = cleanUnitKey(reference && reference.statusKey) === "empty";
+        var persianTitle = String(reference && (reference.title || reference.titleFa || reference.fa) || "").trim();
+        var sourceTitle = String(reference && (reference.sourceTitle || reference.englishTitle || reference.titleEn || reference.en || reference.reference || reference.source) || "").trim();
+        var statusLabel = isEmpty ? "بدون آزمون" : "دارای آزمون";
+        var metaParts = referenceMetaParts(reference).map(function (part) {
+            return '<span class="exams-reference-card__meta-item">' + escapeHtml(part) + "</span>";
+        }).join("");
+        var interactiveOpen = "";
+        var interactiveClose = "";
+
+        if (action.type === "button") {
+            interactiveOpen = '<button class="exams-reference-card__button" type="button"' + (action.attrs || "") + ">";
+            interactiveClose = "</button>";
+        } else if (action.type === "static") {
+            interactiveOpen = '<div class="exams-reference-card__static">';
+            interactiveClose = "</div>";
+        } else {
+            interactiveOpen = '<a class="exams-reference-card__link" href="' + escapeHtml(action.href || "#") + '">';
+            interactiveClose = "</a>";
+        }
+
+        return [
+            '<article class="exams-reference-card ' + escapeHtml(accentClassName(index)) + (isEmpty ? " is-empty" : "") + '">',
+            interactiveOpen,
+            '  <div class="exams-reference-card__topline">',
+            '    <span class="exams-reference-card__pill">رفرنس</span>',
+            '    <span class="exams-reference-card__status' + (isEmpty ? " is-muted" : "") + '">' + escapeHtml(statusLabel) + "</span>",
+            "  </div>",
+            '  <h3 class="exams-reference-card__title-fa">' + escapeHtml(persianTitle) + "</h3>",
+            '  <div class="exams-reference-card__divider" aria-hidden="true"></div>',
+            sourceTitle
+                ? '  <p class="exams-reference-card__title-en" dir="ltr" lang="en">' + escapeHtml(sourceTitle) + "</p>"
+                : "",
+            metaParts
+                ? '  <div class="exams-reference-card__meta">' + metaParts + "</div>"
+                : "",
+            interactiveClose,
+            "</article>"
+        ].join("");
     }
 
     function referenceListHeroHtml(specialty) {
