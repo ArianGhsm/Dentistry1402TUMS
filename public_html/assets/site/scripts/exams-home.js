@@ -231,6 +231,14 @@
             query.set("cohort", cohort);
         }
         query.set("_t", String(Date.now()));
+        if (window.Dent1402Site && typeof window.Dent1402Site.fetchJsonWithTimeout === "function") {
+            return window.Dent1402Site.fetchJsonWithTimeout("/api/exams_api.php?" + query.toString(), {
+                method: "GET",
+                cache: "no-store",
+                credentials: "same-origin",
+                headers: { Accept: "application/json" }
+            }, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت فهرست آزمون‌ها با تاخیر پاسخ داد.");
+        }
         return fetch("/api/exams_api.php?" + query.toString(), {
             method: "GET",
             cache: "no-store",
@@ -1157,10 +1165,30 @@
     }
 
     function setLoading() {
+        if (window.Dent1402Site && typeof window.Dent1402Site.renderAsyncState === "function") {
+            window.Dent1402Site.renderAsyncState(root, {
+                kind: "loading",
+                title: "در حال بارگذاری آزمون‌ها",
+                copy: "فهرست آزمون‌ها در حال دریافت است.",
+                retryLabel: "بازخوانی",
+                onRetry: load
+            });
+            return;
+        }
         root.innerHTML = '<div class="exams-card exams-loading">در حال بارگذاری آزمون‌ها...</div>';
     }
 
     function setError(message) {
+        if (window.Dent1402Site && typeof window.Dent1402Site.renderAsyncState === "function") {
+            window.Dent1402Site.renderAsyncState(root, {
+                kind: "error",
+                title: "بارگذاری آزمون‌ها انجام نشد",
+                copy: message || "آزمون‌ها فعلاً قابل دریافت نیستند.",
+                retryLabel: "بازخوانی",
+                onRetry: load
+            });
+            return;
+        }
         root.innerHTML = '<div class="exams-card exams-empty">' + escapeHtml(message || "بارگذاری انجام نشد.") + "</div>";
     }
 

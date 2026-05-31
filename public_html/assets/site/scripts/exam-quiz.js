@@ -40,7 +40,12 @@
         flagsSync: { saving: false, queued: false, timer: 0 },
         assessment: restoreAssessmentState(assessmentDraftKey, exam.questions.length, initialReport),
         learning: restoreLearningState(learningDraftKey, exam.questions.length),
-        layout: { chooserHintExpanded: false }
+        layout: {
+            chooserHintExpanded: false,
+            activeSheet: "",
+            sheetMode: "",
+            navigatorOffset: { assessment: 0, learning: 0 }
+        }
     };
     var activityTrackedMode = "";
     var layoutFrame = 0;
@@ -58,7 +63,7 @@
 
     appRoot.addEventListener("click", handleClick);
     appRoot.addEventListener("change", handleChange);
-    window.addEventListener("beforeunload", flushFlagSync);
+    window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("resize", scheduleLayoutSync);
     window.addEventListener("orientationchange", scheduleLayoutSync);
     window.addEventListener("load", scheduleLayoutSync);
@@ -109,6 +114,7 @@
             '      <div class="exam-stage-scaler">',
             '        <div class="exam-stage-canvas">',
             !state.mode || !isModeStarted(state.mode) ? renderLaunchStage() : renderActiveStage(),
+            renderActiveSheet(),
             "        </div>",
             "      </div>",
             "    </section>",
@@ -166,13 +172,10 @@
             '          <span class="exam-launch-panel__eyebrow">انتخاب حالت</span>',
             '          <h2 class="exam-launch-panel__title">' + escapeHtml(previewTitle) + "</h2>",
             "        </div>",
-            '        <div class="exam-mode-pills">',
-            renderModePill("assessment", "سنجشی", !state.mode),
-            renderModePill("learning", "آموزشی", !state.mode),
-            "        </div>",
             "      </div>",
             '      <p class="exam-launch-panel__copy">' + escapeHtml(previewCopy) + "</p>",
             previewStats.length ? '<div class="exam-mini-stats">' + previewStats.join("") + "</div>" : "",
+            '      <div class="exam-mode-card-grid">' + renderModeCards() + "</div>",
             state.layout.chooserHintExpanded
                 ? '<div class="exam-note-card">در حالت سنجشی همه سوال‌ها با کارنامه، رتبه و ذخیره نتیجه اجرا می‌شود. در حالت آموزشی پس از هر پاسخ، جواب درست و توضیح همان سوال را می‌بینی.</div>'
                 : "",
@@ -202,50 +205,88 @@
     }
 
     function renderLaunchActions() {
-        var currentMode = state.mode;
-        var report = state.assessment.report;
-        var assessmentStats = report ? reportTotals(report) : assessmentDraftTotals();
-        var learningStats = learningTotals();
-
-        if (!currentMode) {
-            return [
-                '  <div class="exam-launch-actions">',
-                '    <button class="exam-btn exam-btn--primary" type="button" disabled>ابتدا حالت آزمون را انتخاب کن</button>',
-                '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-chooser-hint">تفاوت دو حالت</button>',
-                "  </div>"
-            ].join("");
-        }
-
-        if (currentMode === "assessment" && !exam.viewerState.canPersist) {
-            return [
-                '  <div class="exam-launch-actions">',
-                '    <a class="exam-btn exam-btn--primary" href="' + escapeHtml(loginHref()) + '">ورود برای حالت سنجشی</a>',
-                '    <button class="exam-btn exam-btn--ghost" type="button" data-action="set-mode" data-mode="learning">رفتن به حالت آموزشی</button>',
-                "  </div>"
-            ].join("");
-        }
-
-        var primaryLabel = "";
-        if (currentMode === "assessment") {
-            if (report) {
-                primaryLabel = "مشاهده کارنامه سنجشی";
-            } else if (assessmentStats.answered > 0) {
-                primaryLabel = "ادامه آزمون سنجشی";
-            } else {
-                primaryLabel = "شروع آزمون سنجشی";
-            }
-        } else if (learningStats.answered > 0) {
-            primaryLabel = "ادامه آزمون آموزشی";
-        } else {
-            primaryLabel = "شروع آزمون آموزشی";
-        }
-
         return [
             '  <div class="exam-launch-actions">',
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="start-mode"' + (currentMode ? ' data-mode="' + escapeHtml(currentMode) + '"' : "") + ">" + escapeHtml(primaryLabel) + "</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-chooser-hint">' + escapeHtml(state.layout.chooserHintExpanded ? "بستن توضیح" : "تفاوت دو حالت") + "</button>",
+            state.mode
+                ? '    <button class="exam-btn exam-btn--primary" type="button" data-action="start-mode" data-mode="' + escapeHtml(state.mode) + '">' + escapeHtml(modePrimaryActionLabel(state.mode)) + "</button>"
+                : '    <button class="exam-btn exam-btn--primary" type="button" disabled>یکی از کارت‌ها را انتخاب کن</button>',
             "  </div>"
         ].join("");
+    }
+
+    function renderModeCards() {
+        return ["assessment", "learning"].map(function (mode) {
+            var definition = modeDefinition(mode);
+            var summary = modeSummary(mode);
+            var selected = state.mode === mode;
+            var locked = mode === "assessment" && !exam.viewerState.canPersist;
+
+            return [
+                '<article class="exam-mode-card' + (selected ? " is-selected" : "") + (locked ? " is-locked" : "") + '">',
+                '  <div class="exam-mode-card__top">',
+                '    <div class="exam-mode-card__copy">',
+                '      <span class="exam-mode-card__eyebrow">' + escapeHtml(definition.tagline || "حالت آزمون") + "</span>",
+                '      <h3 class="exam-mode-card__title">' + escapeHtml(definition.title) + "</h3>",
+                '      <p class="exam-mode-card__description">' + escapeHtml(definition.description || "") + "</p>",
+                "    </div>",
+                '    <span class="exam-mode-card__badge' + (selected ? " is-active" : "") + '">' + escapeHtml(selected ? "انتخاب‌شده" : locked ? "نیاز به ورود" : "آماده") + "</span>",
+                "  </div>",
+                '  <div class="exam-mode-card__stats">',
+                renderModeSummaryStat("وضعیت", summary.statusLabel),
+                renderModeSummaryStat("پیشرفت", summary.progressLabel),
+                renderModeSummaryStat("آخرین سوال", summary.positionLabel),
+                "  </div>",
+                summary.savedLabel ? '  <div class="exam-mode-card__footer-note">' + escapeHtml(summary.savedLabel) + "</div>" : "",
+                '  <div class="exam-mode-card__actions">',
+                locked
+                    ? '    <a class="exam-btn exam-btn--primary" href="' + escapeHtml(loginHref()) + '">ورود برای سنجشی</a>'
+                    : '    <button class="exam-btn exam-btn--primary" type="button" data-action="start-mode" data-mode="' + escapeHtml(mode) + '">' + escapeHtml(modePrimaryActionLabel(mode)) + "</button>",
+                '    <button class="exam-btn exam-btn--ghost" type="button" data-action="set-mode" data-mode="' + escapeHtml(mode) + '">' + escapeHtml(selected ? "در حال نمایش" : "انتخاب این حالت") + "</button>",
+                "  </div>",
+                "</article>"
+            ].join("");
+        }).join("");
+    }
+
+    function renderModeSummaryStat(label, value) {
+        return [
+            '<span class="exam-mode-card__stat">',
+            '  <strong>' + escapeHtml(value) + "</strong>",
+            '  <span>' + escapeHtml(label) + "</span>",
+            "</span>"
+        ].join("");
+    }
+
+    function modePrimaryActionLabel(mode) {
+        var summary = modeSummary(mode);
+        if (mode === "assessment" && summary.hasReport) {
+            return "مشاهده کارنامه";
+        }
+        return summary.canResume ? "ادامه از آخرین وضعیت" : "شروع از ابتدا";
+    }
+
+    function modeSummary(mode) {
+        var progress = mode === "assessment" ? state.assessment : state.learning;
+        var totals = mode === "assessment"
+            ? (progress.report ? reportTotals(progress.report) : assessmentDraftTotals())
+            : learningTotals();
+        var answered = mode === "assessment" && progress.report
+            ? exam.questions.length - totals.unanswered
+            : totals.answered;
+        var report = mode === "assessment" ? progress.report : null;
+        var currentIndex = Math.min(exam.questions.length, Math.max(0, (progress.currentQuestionIndex || 0) + 1));
+        var canResume = Boolean(progress.started && (answered > 0 || currentIndex > 1 || state.flags.size > 0 || report));
+        return {
+            canResume: canResume,
+            hasReport: Boolean(report),
+            statusLabel: report ? "کارنامه ثبت‌شده" : (canResume ? "در حال انجام" : "شروع‌نشده"),
+            progressLabel: formatValue(answered) + " از " + formatValue(exam.questions.length),
+            positionLabel: formatValue(currentIndex || 1),
+            savedLabel: report
+                ? "ثبت نهایی: " + formatDateTime(report.submittedAt || report.updatedAt)
+                : lastSavedLabel(mode)
+        };
     }
 
     function renderModePill(mode, label, ghostWhenEmpty) {
@@ -291,7 +332,17 @@
                 statusText: state.flagsSync.saving ? "در حال ذخیره نشان‌دارها..." : state.feedback.text,
                 statusKind: state.flagsSync.saving ? "neutral" : state.feedback.kind
             }),
+            renderSessionProgress({
+                mode: "assessment",
+                answered: totals.answered,
+                unanswered: totals.unanswered,
+                flagged: state.flags.size,
+                currentIndex: currentIndex,
+                total: exam.questions.length,
+                filterLabel: assessmentFilterLabel(state.assessment.filter)
+            }),
             renderQuestionRail({
+                mode: "assessment",
                 visibleIndexes: visibleIndexes,
                 currentIndex: currentIndex,
                 prevAction: "assessment-prev",
@@ -332,7 +383,20 @@
                 statusText: state.feedback.text,
                 statusKind: state.feedback.kind
             }),
+            renderSessionProgress({
+                mode: "assessment-report",
+                answered: exam.questions.length - totals.unanswered,
+                unanswered: totals.unanswered,
+                flagged: state.flags.size,
+                currentIndex: currentIndex,
+                total: exam.questions.length,
+                filterLabel: assessmentFilterLabel(state.assessment.filter),
+                percent: report.percent,
+                correct: totals.correct,
+                wrong: totals.wrong
+            }),
             renderQuestionRail({
+                mode: "assessment",
                 visibleIndexes: visibleIndexes,
                 currentIndex: currentIndex,
                 prevAction: "assessment-prev",
@@ -372,7 +436,17 @@
                 statusText: state.feedback.text,
                 statusKind: state.feedback.kind
             }),
+            renderSessionProgress({
+                mode: "learning",
+                answered: stats.answered,
+                unanswered: stats.unanswered,
+                flagged: state.flags.size,
+                currentIndex: currentIndex,
+                total: exam.questions.length,
+                filterLabel: learningFilterLabel(state.learning.filter)
+            }),
             renderQuestionRail({
+                mode: "learning",
                 visibleIndexes: visibleIndexes,
                 currentIndex: currentIndex,
                 prevAction: "learning-prev",
@@ -389,6 +463,54 @@
                 "</div>"
             ].join("") : renderStageEmptyState("هنوز سوالی در این فیلتر باقی نمانده است."),
             "</section>"
+        ].join("");
+    }
+
+    function renderSessionProgress(config) {
+        var total = Math.max(1, Number(config.total || exam.questions.length || 1));
+        var answered = Math.max(0, Number(config.answered || 0));
+        var percent = config.mode === "assessment-report"
+            ? Math.max(0, Math.min(100, Number(config.percent || 0)))
+            : Math.round((answered / total) * 100);
+        var legend = [
+            renderProgressLegendItem("پاسخ‌داده", formatValue(answered), "success"),
+            renderProgressLegendItem("بی‌پاسخ", formatValue(config.unanswered || 0), config.unanswered ? "warning" : "neutral"),
+            renderProgressLegendItem("نشان‌دار", formatValue(config.flagged || 0), config.flagged ? "flagged" : "neutral")
+        ];
+
+        if (config.mode === "assessment-report") {
+            legend.unshift(renderProgressLegendItem("صحیح", formatValue(config.correct || 0), "success"));
+            legend.splice(2, 0, renderProgressLegendItem("غلط", formatValue(config.wrong || 0), config.wrong ? "danger" : "neutral"));
+        }
+
+        return [
+            '<section class="exam-progress-card" aria-label="' + escapeHtml("وضعیت فعلی آزمون") + '">',
+            '  <div class="exam-progress-card__top">',
+            '    <div class="exam-progress-card__copy">',
+            '      <strong>' + escapeHtml(config.mode === "assessment-report" ? "خلاصه نتیجه" : "پیشرفت فعلی") + "</strong>",
+            '      <span>' + escapeHtml("سوال " + formatValue((config.currentIndex || 0) + 1) + " از " + formatValue(total) + " • " + (config.filterLabel || "همه سوال‌ها")) + "</span>",
+            "    </div>",
+            '    <div class="exam-progress-card__aside">',
+            '      <span class="exam-progress-card__percent">' + escapeHtml(formatPercent(percent)) + "</span>",
+            (state.mode === "assessment" || state.mode === "learning") && lastSavedLabel(state.mode)
+                ? '      <span class="exam-progress-card__saved">' + escapeHtml(lastSavedLabel(state.mode)) + "</span>"
+                : "",
+            "    </div>",
+            "  </div>",
+            '  <div class="exam-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + escapeHtml(String(percent)) + '" aria-label="' + escapeHtml("پیشرفت آزمون") + '">',
+            '    <span class="exam-progress-track__fill" style="width:' + escapeHtml(String(percent)) + '%"></span>',
+            "  </div>",
+            '  <div class="exam-progress-legend">' + legend.join("") + "</div>",
+            "</section>"
+        ].join("");
+    }
+
+    function renderProgressLegendItem(label, value, tone) {
+        return [
+            '<span class="exam-progress-chip' + (tone ? " is-" + escapeHtml(tone) : "") + '">',
+            '  <strong>' + escapeHtml(value) + "</strong>",
+            '  <span>' + escapeHtml(label) + "</span>",
+            "</span>"
         ].join("");
     }
 
@@ -442,6 +564,7 @@
             '    <div class="exam-question-rail__meta">',
             '      <strong>' + escapeHtml("شماره سوال") + "</strong>",
             '      <span>' + escapeHtml(indexes.length ? ("نمایش " + formatValue(currentPosition + 1) + " از " + formatValue(indexes.length)) : config.emptyLabel) + "</span>",
+            '      <button class="exam-rail__browse" type="button" data-action="open-sheet" data-sheet="navigator" data-mode="' + escapeHtml(config.mode || state.mode || "assessment") + '">فهرست سوال‌ها</button>',
             "    </div>",
             '    <div class="exam-question-rail__bar">',
             '      <button class="exam-rail__nav" type="button" data-action="' + escapeHtml(config.prevAction) + '"' + (indexes.length < 2 || currentPosition <= 0 ? " disabled" : "") + ">قبلی</button>",
@@ -558,6 +681,8 @@
             '    <p class="exam-side-copy">در حال نمایش ' + escapeHtml(formatValue(visibleCount)) + ' سوال از این نما هستی.</p>',
             "  </div>",
             '  <div class="exam-side-section exam-side-section--actions">',
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="save-progress" data-mode="assessment">ذخیره موقت</button>',
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="open-sheet" data-sheet="navigator" data-mode="assessment">فهرست سوال‌ها</button>',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-first-unanswered"' + (totals.unanswered <= 0 ? " disabled" : "") + ">اولین سوال بی‌پاسخ</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-assessment-draft">پاک‌کردن پاسخ‌ها</button>',
             '    <button class="exam-btn exam-btn--primary" type="button" data-action="submit-assessment"' + (state.assessment.submitting ? " disabled" : "") + ">" + escapeHtml(state.assessment.submitting ? "در حال ثبت..." : "ثبت آزمون") + "</button>",
@@ -596,6 +721,7 @@
             '    <div class="exam-filter-pills">' + renderAssessmentFilterButtons(true) + "</div>",
             "  </div>",
             '  <div class="exam-side-section exam-side-section--actions">',
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="open-sheet" data-sheet="navigator" data-mode="assessment">فهرست سوال‌ها</button>',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="set-mode" data-mode="learning">رفتن به آموزشی</button>',
             '    <button class="exam-btn exam-btn--danger" type="button" data-action="reset-assessment-report">ریست کارنامه</button>',
             "  </div>",
@@ -624,6 +750,8 @@
             '    <p class="exam-side-copy">در این نما ' + escapeHtml(formatValue(visibleCount)) + ' سوال قابل جابه‌جایی است.</p>',
             "  </div>",
             '  <div class="exam-side-section exam-side-section--actions">',
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="save-progress" data-mode="learning">ذخیره موقت</button>',
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="open-sheet" data-sheet="navigator" data-mode="learning">فهرست سوال‌ها</button>',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-jump-unanswered"' + (stats.unanswered <= 0 ? " disabled" : "") + ">اولین سوال بی‌پاسخ</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-learning-progress">شروع دوباره آموزشی</button>',
             '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0631\u0641\u062a\u0646 \u0628\u0647 \u0633\u0646\u062c\u0634\u06cc</button>',
@@ -651,6 +779,9 @@
             renderCompactMetric("\u0646\u0634\u0627\u0646", formatValue(state.flags.size), state.flags.size ? "flagged" : "neutral"),
             "        </div>",
             '        <div class="exam-compact-filter-row"><div class="exam-filter-pills">' + renderAssessmentFilterButtons(false) + "</div></div>",
+            '        <button class="exam-btn exam-btn--ghost" type="button" data-action="save-progress" data-mode="assessment">ذخیره موقت</button>',
+            '        <button class="exam-btn exam-btn--ghost" type="button" data-action="open-sheet" data-sheet="filters" data-mode="assessment">فیلترها</button>',
+            '        <button class="exam-btn exam-btn--ghost" type="button" data-action="open-sheet" data-sheet="navigator" data-mode="assessment">فهرست سوال‌ها</button>',
             '        <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-first-unanswered"' + (totals.unanswered <= 0 ? " disabled" : "") + ">\u0627\u0648\u0644\u06cc\u0646 \u0628\u06cc\u200c\u067e\u0627\u0633\u062e</button>",
             '        <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-assessment-draft">\u067e\u0627\u06a9 \u06a9\u0631\u062f\u0646 \u067e\u0627\u0633\u062e\u200c\u0647\u0627</button>',
             '        <span class="exam-compact-note">\u062f\u0631 \u0627\u06cc\u0646 \u0646\u0645\u0627 ' + escapeHtml(formatValue(visibleCount)) + ' \u0633\u0648\u0627\u0644 \u0642\u0627\u0628\u0644 \u0645\u0631\u0648\u0631 \u0627\u0633\u062a.</span>',
@@ -686,6 +817,8 @@
             renderCompactMetric("\u0646\u0634\u0627\u0646", formatValue(state.flags.size), state.flags.size ? "flagged" : "neutral"),
             "    </div>",
             '    <div class="exam-compact-filter-row"><div class="exam-filter-pills">' + renderAssessmentFilterButtons(true) + "</div></div>",
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="open-sheet" data-sheet="filters" data-mode="assessment">فیلترها</button>',
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="open-sheet" data-sheet="navigator" data-mode="assessment">فهرست سوال‌ها</button>',
             '    <button class="exam-btn exam-btn--danger" type="button" data-action="reset-assessment-report">\u0631\u06cc\u0633\u062a \u06a9\u0627\u0631\u0646\u0627\u0645\u0647</button>',
             "  </div>",
             "</section>"
@@ -714,6 +847,9 @@
             renderLearningFilterButton("all", "\u0647\u0645\u0647", exam.questions.length),
             renderLearningFilterButton("flagged", "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631", state.flags.size),
             "        </div></div>",
+            '        <button class="exam-btn exam-btn--ghost" type="button" data-action="save-progress" data-mode="learning">ذخیره موقت</button>',
+            '        <button class="exam-btn exam-btn--ghost" type="button" data-action="open-sheet" data-sheet="filters" data-mode="learning">فیلترها</button>',
+            '        <button class="exam-btn exam-btn--ghost" type="button" data-action="open-sheet" data-sheet="navigator" data-mode="learning">فهرست سوال‌ها</button>',
             '        <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-jump-unanswered"' + (stats.unanswered <= 0 ? " disabled" : "") + ">\u0627\u0648\u0644\u06cc\u0646 \u0628\u06cc\u200c\u067e\u0627\u0633\u062e</button>",
             '        <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-learning-progress">\u0634\u0631\u0648\u0639 \u062f\u0648\u0628\u0627\u0631\u0647</button>',
             "      </div>",
@@ -860,7 +996,97 @@
         ].join("");
     }
 
+    function renderActiveSheet() {
+        if (!state.layout.activeSheet) {
+            return "";
+        }
+        if (state.layout.activeSheet === "filters") {
+            return renderFilterSheet(state.layout.sheetMode || state.mode || "assessment");
+        }
+        if (state.layout.activeSheet === "navigator") {
+            return renderNavigatorSheet(state.layout.sheetMode || state.mode || "assessment");
+        }
+        return "";
+    }
+
+    function renderFilterSheet(mode) {
+        var isLearning = mode === "learning";
+        return [
+            '<div class="exam-sheet-backdrop" data-action="close-sheet"></div>',
+            '<section class="exam-sheet exam-sheet--filters" role="dialog" aria-modal="true" aria-label="' + escapeHtml("فیلتر سوال‌ها") + '">',
+            '  <div class="exam-sheet__handle" aria-hidden="true"></div>',
+            '  <div class="exam-sheet__head">',
+            '    <div><strong>فیلتر سوال‌ها</strong><span>' + escapeHtml(isLearning ? "نمایش سریع سوال‌های آموزشی" : "صحیح، غلط، بی‌پاسخ و نشان‌دار") + "</span></div>",
+            '    <button class="exam-sheet__close" type="button" data-action="close-sheet">بستن</button>',
+            "  </div>",
+            '  <div class="exam-sheet__body">',
+            '    <div class="exam-sheet__chips">' + (
+                isLearning
+                    ? [
+                        renderLearningFilterButton("all", "همه", exam.questions.length),
+                        renderLearningFilterButton("flagged", "نشان‌دار", state.flags.size)
+                    ].join("")
+                    : renderAssessmentFilterButtons(Boolean(state.assessment.report))
+            ) + "</div>",
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
+    function renderNavigatorSheet(mode) {
+        var isLearning = mode === "learning";
+        var visibleIndexes = isLearning ? learningVisibleIndexes() : assessmentVisibleIndexes(state.assessment.filter);
+        var currentIndex = isLearning ? ensureLearningIndex(visibleIndexes) : ensureAssessmentIndex(visibleIndexes);
+        var currentPosition = Math.max(0, visibleIndexes.indexOf(currentIndex));
+        var pageSize = navigatorChunkSize();
+        var start = alignNavigatorOffset(mode, currentPosition, visibleIndexes.length, pageSize);
+        var chunk = visibleIndexes.slice(start, start + pageSize);
+        var stateFn = isLearning ? learningNavState : assessmentNavState;
+        var jumpAction = isLearning ? "learning-goto" : "jump-to-question";
+
+        return [
+            '<div class="exam-sheet-backdrop" data-action="close-sheet"></div>',
+            '<section class="exam-sheet exam-sheet--navigator" role="dialog" aria-modal="true" aria-label="' + escapeHtml("فهرست سوال‌ها") + '">',
+            '  <div class="exam-sheet__handle" aria-hidden="true"></div>',
+            '  <div class="exam-sheet__head">',
+            '    <div><strong>فهرست سوال‌ها</strong><span>' + escapeHtml("نمایش سبک " + formatValue(chunk.length) + " سوال از " + formatValue(visibleIndexes.length)) + "</span></div>",
+            '    <button class="exam-sheet__close" type="button" data-action="close-sheet">بستن</button>',
+            "  </div>",
+            '  <div class="exam-sheet__body">',
+            '    <div class="exam-sheet__summary">',
+            renderProgressLegendItem("جاری", formatValue(currentIndex + 1), "accent"),
+            renderProgressLegendItem("فیلتر", isLearning ? learningFilterLabel(state.learning.filter) : assessmentFilterLabel(state.assessment.filter), "neutral"),
+            renderProgressLegendItem("نشان", formatValue(state.flags.size), state.flags.size ? "flagged" : "neutral"),
+            "    </div>",
+            '    <div class="exam-sheet__grid">' + chunk.map(function (index) {
+                return [
+                    '<button class="exam-sheet__pill' + (index === currentIndex ? " is-active" : "") + (isFlagged(index) ? " is-flagged" : "") + '" type="button" data-action="' + escapeHtml(jumpAction) + '" data-question-index="' + escapeHtml(String(index)) + '" data-state="' + escapeHtml(stateFn(index)) + '">',
+                    '  <strong>' + escapeHtml(formatValue(index + 1)) + "</strong>",
+                    '  <span>' + escapeHtml(assessmentStateLabel(stateFn(index))) + "</span>",
+                    "</button>"
+                ].join("");
+            }).join("") + "</div>",
+            '    <div class="exam-sheet__footer">',
+            "      <button class=\"exam-btn exam-btn--ghost\" type=\"button\" data-action=\"navigator-prev-chunk\" data-mode=\"" + escapeHtml(mode) + "\"" + (start <= 0 ? " disabled" : "") + ">بخش قبلی</button>",
+            '      <span class="exam-sheet__footer-copy">' + escapeHtml("بخش " + formatValue(Math.floor(start / pageSize) + 1) + " از " + formatValue(Math.max(1, Math.ceil(visibleIndexes.length / pageSize)))) + "</span>",
+            "      <button class=\"exam-btn exam-btn--ghost\" type=\"button\" data-action=\"navigator-next-chunk\" data-mode=\"" + escapeHtml(mode) + "\"" + (start + pageSize >= visibleIndexes.length ? " disabled" : "") + ">بخش بعدی</button>",
+            "    </div>",
+            "  </div>",
+            "</section>"
+        ].join("");
+    }
+
     function handleClick(event) {
+        var linkNode = event.target.closest("a.exam-back-link");
+        if (linkNode && !linkNode.hasAttribute("data-action")) {
+            if (!confirmExitIfNeeded()) {
+                event.preventDefault();
+                return;
+            }
+            flushFlagSync();
+            return;
+        }
+
         var actionNode = event.target.closest("[data-action]");
         if (!actionNode) {
             return;
@@ -884,14 +1110,38 @@
             render();
             return;
         }
+        if (action === "open-sheet") {
+            openSheet(String(actionNode.getAttribute("data-sheet") || ""), normalizeMode(actionNode.getAttribute("data-mode")) || state.mode || "assessment");
+            return;
+        }
+        if (action === "close-sheet") {
+            closeSheet();
+            render();
+            return;
+        }
+        if (action === "navigator-prev-chunk") {
+            shiftNavigatorChunk(normalizeMode(actionNode.getAttribute("data-mode")) || state.mode || "assessment", -1);
+            return;
+        }
+        if (action === "navigator-next-chunk") {
+            shiftNavigatorChunk(normalizeMode(actionNode.getAttribute("data-mode")) || state.mode || "assessment", 1);
+            return;
+        }
         if (action === "toggle-flag") {
             toggleFlag(parseIndex(actionNode.getAttribute("data-question-index")));
+            return;
+        }
+        if (action === "save-progress") {
+            saveTemporaryProgress(normalizeMode(actionNode.getAttribute("data-mode")) || state.mode);
             return;
         }
         if (action === "assessment-filter") {
             state.assessment.filter = String(actionNode.getAttribute("data-filter") || "all");
             ensureAssessmentIndex(assessmentVisibleIndexes(state.assessment.filter));
             persistAssessmentState();
+            if (window.innerWidth <= 680 && state.layout.activeSheet === "filters") {
+                closeSheet();
+            }
             render();
             return;
         }
@@ -899,6 +1149,9 @@
             state.learning.filter = String(actionNode.getAttribute("data-filter") || "all");
             ensureLearningIndex(learningVisibleIndexes());
             persistLearningState();
+            if (window.innerWidth <= 680 && state.layout.activeSheet === "filters") {
+                closeSheet();
+            }
             render();
             return;
         }
@@ -942,10 +1195,12 @@
         }
         if (action === "jump-to-question") {
             jumpToAssessmentQuestion(parseIndex(actionNode.getAttribute("data-question-index")));
+            closeSheet();
             return;
         }
         if (action === "learning-goto") {
             jumpToLearningQuestion(parseIndex(actionNode.getAttribute("data-question-index")));
+            closeSheet();
             return;
         }
         if (action === "learning-next") {
@@ -979,6 +1234,7 @@
 
     function setMode(mode) {
         state.mode = mode;
+        closeSheet();
         clearFeedback();
         syncModeInUrl();
         render();
@@ -991,6 +1247,7 @@
         }
 
         state.mode = normalizedMode;
+        closeSheet();
         clearFeedback();
         if (normalizedMode === "assessment") {
             state.assessment.started = true;
@@ -1064,6 +1321,7 @@
         state.assessment.filter = "all";
         state.assessment.currentQuestionIndex = 0;
         state.assessment.started = true;
+        state.assessment.savedAt = "";
         clearFeedback();
         persistAssessmentState();
         render();
@@ -1102,6 +1360,7 @@
             state.assessment.submitting = false;
             state.assessment.currentQuestionIndex = 0;
             state.assessment.started = true;
+            state.assessment.savedAt = payload.report.submittedAt || new Date().toISOString();
             setFeedback("success", payload.message || "کارنامه این آزمون ذخیره شد.");
             persistAssessmentState();
             render();
@@ -1135,6 +1394,7 @@
             state.assessment.filter = "all";
             state.assessment.currentQuestionIndex = 0;
             state.assessment.started = true;
+            state.assessment.savedAt = "";
             setFeedback("success", payload.message || "کارنامه این آزمون ریست شد.");
             persistAssessmentState();
             render();
@@ -1154,6 +1414,7 @@
         state.learning.currentQuestionIndex = 0;
         state.learning.filter = "all";
         state.learning.started = true;
+        state.learning.savedAt = "";
         clearFeedback();
         persistLearningState();
         render();
@@ -1386,6 +1647,31 @@
         }
     }
 
+    function saveTemporaryProgress(mode) {
+        var normalizedMode = normalizeMode(mode);
+        if (!normalizedMode) {
+            return;
+        }
+
+        var savedAt = new Date().toISOString();
+        if (normalizedMode === "assessment") {
+            state.assessment.started = true;
+            state.assessment.savedAt = savedAt;
+            persistAssessmentState();
+        } else {
+            state.learning.started = true;
+            state.learning.savedAt = savedAt;
+            persistLearningState();
+        }
+
+        if (state.flagsSync.queued && exam.viewerState.canPersist) {
+            flushFlagSync();
+        }
+
+        setFeedback("success", "آخرین وضعیت این آزمون موقتاً ذخیره شد.");
+        render();
+    }
+
     function persistAssessmentState() {
         try {
             window.sessionStorage.setItem(assessmentDraftKey, JSON.stringify({
@@ -1393,7 +1679,8 @@
                 startedAt: state.assessment.startedAt,
                 filter: state.assessment.filter,
                 currentQuestionIndex: state.assessment.currentQuestionIndex,
-                started: state.assessment.started
+                started: state.assessment.started,
+                savedAt: state.assessment.savedAt || ""
             }));
         } catch (_error) {
             return;
@@ -1407,7 +1694,8 @@
                 revealed: state.learning.revealed,
                 currentQuestionIndex: state.learning.currentQuestionIndex,
                 filter: state.learning.filter,
-                started: state.learning.started
+                started: state.learning.started,
+                savedAt: state.learning.savedAt || ""
             }));
         } catch (_error) {
             return;
@@ -1651,6 +1939,113 @@
         });
     }
 
+    function handleBeforeUnload(event) {
+        flushFlagSync();
+        if (!shouldWarnBeforeExit()) {
+            return;
+        }
+
+        event.preventDefault();
+        event.returnValue = "";
+    }
+
+    function shouldWarnBeforeExit() {
+        var assessmentSummary = modeSummary("assessment");
+        var learningSummary = modeSummary("learning");
+        var hasAssessmentDraft = !state.assessment.report && assessmentSummary.canResume;
+        var hasLearningDraft = learningSummary.canResume;
+        return hasAssessmentDraft || hasLearningDraft || state.flagsSync.queued;
+    }
+
+    function confirmExitIfNeeded() {
+        if (!shouldWarnBeforeExit()) {
+            return true;
+        }
+        return window.confirm("آخرین وضعیت این آزمون هنوز باز است. اگر خارج شوی، ادامه را بعداً از همین‌جا برمی‌داری. مطمئنی می‌خواهی خارج شوی؟");
+    }
+
+    function openSheet(sheetName, mode) {
+        var normalizedMode = normalizeMode(mode) || state.mode || "assessment";
+        if (sheetName !== "filters" && sheetName !== "navigator") {
+            return;
+        }
+
+        state.layout.activeSheet = sheetName;
+        state.layout.sheetMode = normalizedMode;
+        if (sheetName === "navigator") {
+            alignNavigatorOffsetToCurrent(normalizedMode);
+        }
+        render();
+    }
+
+    function closeSheet() {
+        state.layout.activeSheet = "";
+        state.layout.sheetMode = "";
+    }
+
+    function navigatorChunkSize() {
+        if (window.innerWidth <= 520) {
+            return 12;
+        }
+        if (window.innerWidth <= 820) {
+            return 15;
+        }
+        return 24;
+    }
+
+    function alignNavigatorOffset(mode, currentPosition, totalLength, pageSize) {
+        var normalizedMode = normalizeMode(mode) || "assessment";
+        var maxStart = Math.max(0, totalLength - pageSize);
+        var stored = clampNavigatorOffset(state.layout.navigatorOffset[normalizedMode], maxStart);
+        var current = Math.max(0, Number(currentPosition || 0));
+
+        if (current < stored || current >= stored + pageSize) {
+            stored = Math.floor(current / pageSize) * pageSize;
+        }
+
+        stored = clampNavigatorOffset(stored, maxStart);
+        state.layout.navigatorOffset[normalizedMode] = stored;
+        return stored;
+    }
+
+    function alignNavigatorOffsetToCurrent(mode) {
+        var normalizedMode = normalizeMode(mode) || "assessment";
+        var visibleIndexes = normalizedMode === "learning"
+            ? learningVisibleIndexes()
+            : assessmentVisibleIndexes(state.assessment.filter);
+        var currentIndex = normalizedMode === "learning"
+            ? ensureLearningIndex(visibleIndexes)
+            : ensureAssessmentIndex(visibleIndexes);
+        var currentPosition = Math.max(0, visibleIndexes.indexOf(currentIndex));
+        alignNavigatorOffset(normalizedMode, currentPosition, visibleIndexes.length, navigatorChunkSize());
+    }
+
+    function shiftNavigatorChunk(mode, step) {
+        var normalizedMode = normalizeMode(mode) || "assessment";
+        var visibleIndexes = normalizedMode === "learning"
+            ? learningVisibleIndexes()
+            : assessmentVisibleIndexes(state.assessment.filter);
+        var pageSize = navigatorChunkSize();
+        var maxStart = Math.max(0, visibleIndexes.length - pageSize);
+        var nextOffset = clampNavigatorOffset(
+            Number(state.layout.navigatorOffset[normalizedMode] || 0) + (Number(step || 0) * pageSize),
+            maxStart
+        );
+        state.layout.navigatorOffset[normalizedMode] = nextOffset;
+        render();
+    }
+
+    function clampNavigatorOffset(value, maxStart) {
+        var numeric = Number(value || 0);
+        if (!Number.isFinite(numeric) || numeric < 0) {
+            return 0;
+        }
+        if (numeric > maxStart) {
+            return maxStart;
+        }
+        return numeric;
+    }
+
     function withCohort(payload) {
         var next = Object.assign({}, payload || {});
         if (cohortKey) {
@@ -1753,7 +2148,8 @@
             report: report,
             submitting: false,
             currentQuestionIndex: 0,
-            started: false
+            started: false,
+            savedAt: ""
         };
 
         try {
@@ -1769,6 +2165,7 @@
             empty.filter = normalizeAssessmentFilter(saved.filter);
             empty.currentQuestionIndex = clampIndex(saved.currentQuestionIndex, totalQuestions);
             empty.started = Boolean(saved.started);
+            empty.savedAt = normalizeText(saved.savedAt);
         } catch (_error) {
             return empty;
         }
@@ -1782,7 +2179,8 @@
             revealed: createFalseArray(totalQuestions),
             currentQuestionIndex: 0,
             filter: "all",
-            started: false
+            started: false,
+            savedAt: ""
         };
 
         try {
@@ -1796,6 +2194,7 @@
             empty.currentQuestionIndex = clampIndex(saved.currentQuestionIndex, totalQuestions);
             empty.filter = normalizeLearningFilter(saved.filter);
             empty.started = Boolean(saved.started);
+            empty.savedAt = normalizeText(saved.savedAt);
         } catch (_error) {
             return empty;
         }
@@ -1866,6 +2265,38 @@
     function normalizeMode(value) {
         var mode = String(value || "").trim().toLowerCase();
         return mode === "assessment" || mode === "learning" ? mode : null;
+    }
+
+    function assessmentFilterLabel(filter) {
+        switch (normalizeAssessmentFilter(filter)) {
+            case "answered":
+                return "پاسخ‌داده";
+            case "unanswered":
+                return "بی‌پاسخ";
+            case "flagged":
+                return "نشان‌دار";
+            case "correct":
+                return "صحیح";
+            case "wrong":
+                return "غلط";
+            default:
+                return "همه سؤال‌ها";
+        }
+    }
+
+    function learningFilterLabel(filter) {
+        return normalizeLearningFilter(filter) === "flagged" ? "نشان‌دار" : "همه سؤال‌ها";
+    }
+
+    function lastSavedLabel(mode) {
+        var normalizedMode = normalizeMode(mode);
+        if (normalizedMode === "assessment" && state.assessment.savedAt) {
+            return "ذخیره موقت: " + formatDateTime(state.assessment.savedAt);
+        }
+        if (normalizedMode === "learning" && state.learning.savedAt) {
+            return "ذخیره موقت: " + formatDateTime(state.learning.savedAt);
+        }
+        return "";
     }
 
     function loginHref() {

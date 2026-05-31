@@ -308,6 +308,19 @@
         authStage.hidden = state !== "signed-out" && state !== "unauthorized";
         loadingStage.hidden = state !== "restoring" && state !== "loading";
         dashboard.hidden = state === "signed-out" || state === "unauthorized" || state === "restoring" || state === "loading";
+        if (loadingStage && !loadingStage.hidden && window.Dent1402Site && typeof window.Dent1402Site.renderAsyncState === "function") {
+            window.Dent1402Site.renderAsyncState(loadingStage, {
+                kind: "loading",
+                title: state === "restoring" ? "در حال بازیابی نشست نوید" : "در حال بارگذاری خروجی نوید",
+                copy: state === "restoring"
+                    ? "نشست نوید در حال بازیابی است."
+                    : "خروجی‌ها و وضعیت اتصال در حال دریافت هستند.",
+                retryLabel: "تلاش دوباره",
+                onRetry: loadFeed
+            });
+        } else if (loadingStage && !loadingStage.hidden) {
+            loadingStage.innerHTML = "";
+        }
     }
 
     function setAuthFeedback(text, kind) {
@@ -324,6 +337,20 @@
         }
         feedback.className = "navid-feedback navid-feedback--inline" + (kind ? " " + kind : "");
         feedback.textContent = text || "";
+    }
+
+    function showFeedError(message) {
+        setFlowState("loading");
+        if (loadingStage && window.Dent1402Site && typeof window.Dent1402Site.renderAsyncState === "function") {
+            window.Dent1402Site.renderAsyncState(loadingStage, {
+                kind: "error",
+                title: "بارگذاری خروجی نوید انجام نشد",
+                copy: message || "داده‌های نوید فعلاً قابل دریافت نیستند.",
+                retryLabel: "بازخوانی",
+                onRetry: loadFeed
+            });
+        }
+        setDashboardFeedback(message || "دریافت اطلاعات نوید با خطا متوقف شد.", "error");
     }
 
     function setInlineFeedback(node, text, kind, loading) {
@@ -849,6 +876,15 @@
     }
 
     function apiGet(action) {
+        if (window.Dent1402Site && typeof window.Dent1402Site.fetchJsonWithTimeout === "function") {
+            return window.Dent1402Site.fetchJsonWithTimeout("/api/navid_api.php?action=" + encodeURIComponent(action), {
+                method: "GET",
+                credentials: "same-origin",
+                headers: {
+                    Accept: "application/json"
+                }
+            }, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت وضعیت نوید با تاخیر پاسخ داد.");
+        }
         return fetch("/api/navid_api.php?action=" + encodeURIComponent(action), {
             method: "GET",
             credentials: "same-origin",
@@ -869,6 +905,17 @@
     }
 
     function apiPost(action, payload) {
+        if (window.Dent1402Site && typeof window.Dent1402Site.fetchJsonWithTimeout === "function") {
+            return window.Dent1402Site.fetchJsonWithTimeout("/api/navid_api.php", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                    Accept: "application/json"
+                },
+                body: new URLSearchParams(Object.assign({ action: action }, payload || {}))
+            }, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت یا ذخیره تنظیمات نوید با تاخیر پاسخ داد.");
+        }
         return fetch("/api/navid_api.php", {
             method: "POST",
             credentials: "same-origin",
@@ -1054,8 +1101,7 @@
             }
 
             if (!response || !response.success || !response.data) {
-                setFlowState("ready");
-                setDashboardFeedback((response && response.error) || "دریافت اطلاعات نوید انجام نشد.", "error");
+                showFeedError((response && response.error) || "دریافت اطلاعات نوید انجام نشد.");
                 if (!inlineRefresh) {
                     renderUpdates([]);
                     renderAssignments([]);
@@ -1070,9 +1116,7 @@
             if (ticket !== feedTicket) {
                 return;
             }
-
-            setFlowState("ready");
-            setDashboardFeedback((error && error.message) || "دریافت اطلاعات نوید با خطا متوقف شد.", "error");
+            showFeedError((error && error.message) || "دریافت اطلاعات نوید با خطا متوقف شد.");
             if (!inlineRefresh) {
                 renderUpdates([]);
                 renderAssignments([]);

@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260601-015332">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260601-015332">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260601-015332">
-    <script src="/assets/site/scripts/theme.js?v=20260601-015332"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260601-015332">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260601-015332">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260601-015332">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260601-022736">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260601-022736">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260601-022736">
+    <script src="/assets/site/scripts/theme.js?v=20260601-022736"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260601-022736">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260601-022736">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260601-022736">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -50,6 +50,7 @@
                     <span class="loader-dot"></span>
                     <span id="account-boot-text">در حال بازیابی نشست...</span>
                 </div>
+                <button id="account-boot-retry" class="shell-action-btn shell-action-btn-primary" type="button" hidden>تلاش دوباره</button>
             </div>
         </section>
 
@@ -295,7 +296,7 @@
                     </button>
                 </section>
 
-                <section id="account-owner-section" class="account-list-group account-list-group--admin" aria-label="ابزارهای مدیریت" hidden>
+                <section id="account-owner-section" class="account-list-group account-list-group--admin" aria-label="ابزارهای مدیریت" hidden data-required-permission="owner">
                     <h3 class="account-list-group__title">ابزارهای مدیریت ورودی</h3>
                     <p class="account-list-group__hint">برای مالک و نماینده‌های مجاز هر ورودی، فقط در محدوده همان ورودی</p>
                     <button class="account-list-row account-list-row--admin-tools" type="button" data-open-surface="owner">
@@ -612,7 +613,7 @@
                             </div>
                         </details>
 
-                        <details id="notifications-manager-card" class="account-notifications-disclosure" hidden>
+                        <details id="notifications-manager-card" class="account-notifications-disclosure" hidden data-required-permission="owner">
                             <summary class="account-notifications-disclosure__summary">
                                 <strong>ارسال اعلان</strong>
                                 <span>اعلان سریع، زمان‌بندی و SMS فقط وقتی لازم باشد باز می‌شوند.</span>
@@ -680,7 +681,7 @@
                         </section>
                     </div>
                 </article>
-                <article id="owner-panel" class="account-card account-surface-panel" data-surface="owner" hidden>
+                <article id="owner-panel" class="account-card account-surface-panel" data-surface="owner" hidden data-required-permission="owner">
                     <header class="account-surface-head">
                         <button class="shell-action-btn account-surface-back" type="button" data-surface-back>بازگشت</button>
                         <div class="account-surface-head__copy">
@@ -937,7 +938,7 @@
                     </section>
                 </article>
 
-                <article id="owner-user-panel" class="account-card account-surface-panel" data-surface="owner-user" hidden>
+                <article id="owner-user-panel" class="account-card account-surface-panel" data-surface="owner-user" hidden data-required-permission="owner">
                     <header class="account-surface-head">
                         <button id="owner-user-panel-back" class="shell-action-btn account-surface-back" type="button">بازگشت</button>
                         <div class="account-surface-head__copy">
@@ -962,9 +963,9 @@
         <p id="account-footer-brand">ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260601-015332"></script>
-    <script src="/assets/site/scripts/account.js?v=20260601-015332"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260601-015332"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260601-015332"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260601-022736"></script>
+    <script src="/assets/site/scripts/account.js?v=20260601-022736"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260601-022736"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260601-022736"></script>
 </body>
 </html>

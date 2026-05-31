@@ -343,6 +343,10 @@
             options.body = new URLSearchParams(Object.assign({ action: action }, requestPayload));
         }
 
+        if (siteApi && typeof siteApi.fetchJsonWithTimeout === "function") {
+            return siteApi.fetchJsonWithTimeout(url, options, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت منابع با تاخیر پاسخ داد.");
+        }
+
         return fetch(url, options).then(parseJsonResponse);
     }
 
@@ -753,7 +757,29 @@
 
         if (!termData) {
             emptyBox.hidden = false;
-            emptyBox.textContent = state.loadError || "داده‌ای برای این ترم دریافت نشد.";
+            if (state.loading && siteApi && typeof siteApi.renderAsyncState === "function") {
+                siteApi.renderAsyncState(emptyBox, {
+                    kind: "loading",
+                    title: "در حال دریافت منابع این ترم",
+                    copy: "منابع این ترم در حال بارگذاری هستند.",
+                    retryLabel: "بازخوانی",
+                    onRetry: function () {
+                        loadTerm({ silent: false });
+                    }
+                });
+            } else if (state.loadError && siteApi && typeof siteApi.renderAsyncState === "function") {
+                siteApi.renderAsyncState(emptyBox, {
+                    kind: "error",
+                    title: "بارگذاری منابع انجام نشد",
+                    copy: state.loadError,
+                    retryLabel: "بازخوانی",
+                    onRetry: function () {
+                        loadTerm({ silent: false });
+                    }
+                });
+            } else {
+                emptyBox.textContent = state.loadError || "داده‌ای برای این ترم دریافت نشد.";
+            }
             syncEditUi();
             syncManagePanel();
             syncDownloadHostUi();
@@ -807,8 +833,20 @@
         state.loading = true;
         var silent = options && options.silent;
         if (!silent) {
-            emptyBox.hidden = false;
-            emptyBox.textContent = "در حال دریافت منابع این ترم...";
+            if (siteApi && typeof siteApi.renderAsyncState === "function") {
+                siteApi.renderAsyncState(emptyBox, {
+                    kind: "loading",
+                    title: "در حال دریافت منابع این ترم",
+                    copy: "منابع این ترم در حال بارگذاری هستند.",
+                    retryLabel: "بازخوانی",
+                    onRetry: function () {
+                        loadTerm({ silent: false });
+                    }
+                });
+            } else {
+                emptyBox.hidden = false;
+                emptyBox.textContent = "در حال دریافت منابع این ترم...";
+            }
         }
         state.loadError = "";
 
@@ -849,6 +887,17 @@
             state.manageFocusPending = false;
             if (managePanel) {
                 managePanel.hidden = true;
+            }
+            if (!silent && siteApi && typeof siteApi.renderAsyncState === "function") {
+                siteApi.renderAsyncState(emptyBox, {
+                    kind: "error",
+                    title: "بارگذاری منابع انجام نشد",
+                    copy: state.loadError,
+                    retryLabel: "بازخوانی",
+                    onRetry: function () {
+                        loadTerm({ silent: false });
+                    }
+                });
             }
             renderTerm();
         }).finally(function () {

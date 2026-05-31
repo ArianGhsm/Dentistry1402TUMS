@@ -13,6 +13,7 @@
     var stageLogin = $("account-login");
     var stagePanel = $("account-panel");
     var bootText = $("account-boot-text");
+    var bootRetry = $("account-boot-retry");
 
     var loginForm = $("login-form");
     var loginSubmit = $("login-submit");
@@ -737,8 +738,13 @@
         }
     }
 
-    function setBootText(text) {
-        bootText.textContent = text;
+    function setBootText(text, showRetry) {
+        if (bootText) {
+            bootText.textContent = text;
+        }
+        if (bootRetry) {
+            bootRetry.hidden = !showRetry;
+        }
     }
 
     function setFeedback(node, text, kind, loading) {
@@ -6173,7 +6179,7 @@
 
     function handleAuthState(detail) {
         if (detail.status === "session-restoring") {
-            setBootText("در حال بازیابی نشست...");
+            setBootText("در حال بازیابی نشست...", false);
             showStage("boot");
             return;
         }
@@ -6185,7 +6191,13 @@
         }
 
         if (detail.status === "logging-out") {
-            setBootText("در حال خروج از حساب...");
+            setBootText("در حال خروج از حساب...", false);
+            showStage("boot");
+            return;
+        }
+
+        if (detail.status === "logged-out" && detail.error) {
+            setBootText(detail.error, true);
             showStage("boot");
             return;
         }
@@ -7086,5 +7098,11 @@
     syncOwnerRoleOptions();
     setLoginMode("otp");
     resetOtpUi();
+    if (bootRetry) {
+        bootRetry.addEventListener("click", function () {
+            setBootText("در حال بازیابی نشست...", false);
+            window.Dent1402Auth.bootstrap(true);
+        });
+    }
     window.Dent1402Auth.onChange(handleAuthState);
 })();
