@@ -332,6 +332,7 @@ function dent_exams_normalize_course_setting(array $value): array
         'amount' => max(0, (int) dent_normalize_digits((string) ($value['amount'] ?? 0))),
         'collectionId' => max(0, (int) ($value['collectionId'] ?? ($value['collection_id'] ?? 0))),
         'discountCodes' => dent_exams_normalize_discount_codes($value['discountCodes'] ?? ($value['discount_codes'] ?? [])),
+        'paymentGroupVersion' => max(0, (int) ($value['paymentGroupVersion'] ?? ($value['payment_group_version'] ?? 0))),
         'updatedAt' => dent_exams_normalize_datetime_string((string) ($value['updatedAt'] ?? ($value['updated_at'] ?? dent_iso_now())), dent_iso_now()),
     ];
 }
@@ -350,6 +351,7 @@ function dent_exams_default_course_setting(?array $course = null): array
         'amount' => $amount,
         'collectionId' => 0,
         'discountCodes' => dent_exams_normalize_discount_codes($course['defaultDiscountCodes'] ?? []),
+        'paymentGroupVersion' => 0,
         'updatedAt' => dent_iso_now(),
     ];
 }

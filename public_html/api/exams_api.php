@@ -91,6 +91,79 @@ function dent_exams_api_course_is_catalog_visible(array $course): bool
     return (bool) $course['visibleOnCatalog'];
 }
 
+function dent_exams_api_payment_binding_slug(string $catalogKey, string $courseSlug, ?array $course = null): string
+{
+    $cleanCourseSlug = dent_exams_clean_course_slug($courseSlug);
+    $resolvedCourse = is_array($course) ? $course : dent_exams_course($catalogKey, $cleanCourseSlug);
+    if (!is_array($resolvedCourse)) {
+        return $cleanCourseSlug;
+    }
+
+    $bindingSlug = dent_exams_clean_course_slug((string) ($resolvedCourse['paymentGroupSlug'] ?? ''));
+    if ($bindingSlug === '') {
+        return $cleanCourseSlug;
+    }
+
+    return dent_exams_course($catalogKey, $bindingSlug) !== null
+        ? $bindingSlug
+        : $cleanCourseSlug;
+}
+
+function dent_exams_api_payment_binding_course(string $catalogKey, string $courseSlug, ?array $course = null): array
+{
+    $cleanCourseSlug = dent_exams_clean_course_slug($courseSlug);
+    $resolvedCourse = is_array($course) ? $course : dent_exams_course($catalogKey, $cleanCourseSlug);
+    if (!is_array($resolvedCourse)) {
+        return [];
+    }
+
+    $bindingSlug = dent_exams_api_payment_binding_slug($catalogKey, $cleanCourseSlug, $resolvedCourse);
+    if ($bindingSlug === '' || $bindingSlug === $cleanCourseSlug) {
+        return $resolvedCourse;
+    }
+
+    $bindingCourse = dent_exams_course($catalogKey, $bindingSlug);
+    return is_array($bindingCourse) ? $bindingCourse : $resolvedCourse;
+}
+
+function dent_exams_api_payment_group_version(array $course): int
+{
+    return max(0, (int) ($course['paymentGroupVersion'] ?? 0));
+}
+
+function dent_exams_api_payment_legacy_course_slugs(string $catalogKey, array $course): array
+{
+    $slugs = [];
+    $seen = [];
+
+    foreach ((is_array($course['paymentLegacyCourseSlugs'] ?? null) ? $course['paymentLegacyCourseSlugs'] : []) as $legacySlug) {
+        $cleanSlug = dent_exams_clean_course_slug((string) $legacySlug);
+        if ($cleanSlug === '' || isset($seen[$cleanSlug])) {
+            continue;
+        }
+        if (dent_exams_course($catalogKey, $cleanSlug) === null) {
+            continue;
+        }
+
+        $seen[$cleanSlug] = true;
+        $slugs[] = $cleanSlug;
+    }
+
+    return $slugs;
+}
+
+function dent_exams_api_merge_discount_codes(array ...$lists): array
+{
+    $merged = [];
+    foreach ($lists as $list) {
+        foreach ($list as $code) {
+            $merged[] = $code;
+        }
+    }
+
+    return dent_exams_normalize_discount_codes($merged);
+}
+
 function dent_exams_api_course_curriculum_meta(string $courseSlug): ?array
 {
     $unit = dent_dentistry_curriculum_find_unit_by_exam_course_slug($courseSlug);
@@ -1055,6 +1128,175 @@ function dent_exams_api_collection_discount_usage_map(array $paymentsStore, int 
     return $usage;
 }
 
+function dent_exams_api_setting_collection_ids(array $setting): array
+{
+    $ids = [];
+    $seen = [];
+    $candidates = array_merge(
+        [max(0, (int) ($setting['collectionId'] ?? 0))],
+        is_array($setting['legacyCollectionIds'] ?? null) ? $setting['legacyCollectionIds'] : []
+    );
+
+    foreach ($candidates as $candidate) {
+        $collectionId = max(0, (int) $candidate);
+        if ($collectionId <= 0 || isset($seen[$collectionId])) {
+            continue;
+        }
+
+        $seen[$collectionId] = true;
+        $ids[] = $collectionId;
+    }
+
+    return $ids;
+}
+
+function dent_exams_api_user_paid_order_for_any(array $paymentsStore, array $collectionIds, ?array $user): ?array
+{
+    foreach ($collectionIds as $collectionId) {
+        $paidOrder = dent_exams_api_user_paid_order($paymentsStore, max(0, (int) $collectionId), $user);
+        if ($paidOrder !== null) {
+            return $paidOrder;
+        }
+    }
+
+    return null;
+}
+
+function dent_exams_api_collection_stats_for_ids(array $paymentsStore, array $collectionIds): array
+{
+    $stats = [
+        'totalOrders' => 0,
+        'successCount' => 0,
+        'receivedAmount' => 0,
+    ];
+
+    foreach ($collectionIds as $collectionId) {
+        $collectionStats = dent_exams_api_collection_stats($paymentsStore, max(0, (int) $collectionId));
+        $stats['totalOrders'] += max(0, (int) ($collectionStats['totalOrders'] ?? 0));
+        $stats['successCount'] += max(0, (int) ($collectionStats['successCount'] ?? 0));
+        $stats['receivedAmount'] += max(0, (int) ($collectionStats['receivedAmount'] ?? 0));
+    }
+
+    return $stats;
+}
+
+function dent_exams_api_collection_discount_usage_map_for_ids(array $paymentsStore, array $collectionIds): array
+{
+    $usage = [];
+
+    foreach ($collectionIds as $collectionId) {
+        foreach (dent_exams_api_collection_discount_usage_map($paymentsStore, max(0, (int) $collectionId)) as $code => $count) {
+            $normalizedCode = payments_normalize_discount_code_text((string) $code);
+            if ($normalizedCode === '') {
+                continue;
+            }
+
+            $usage[$normalizedCode] = max(0, (int) ($usage[$normalizedCode] ?? 0)) + max(0, (int) $count);
+        }
+    }
+
+    ksort($usage);
+    return $usage;
+}
+
+function dent_exams_api_migrate_payment_group_setting(
+    array $examsStore,
+    string $catalogKey,
+    string $courseSlug,
+    array $course,
+    array $setting
+): array {
+    $targetVersion = dent_exams_api_payment_group_version($course);
+    $currentVersion = max(0, (int) ($setting['paymentGroupVersion'] ?? 0));
+    if ($targetVersion <= 0 || $currentVersion >= $targetVersion) {
+        return [
+            'setting' => $setting,
+            'changed' => false,
+        ];
+    }
+
+    $nextSetting = $setting;
+    $nextSetting['paymentGroupVersion'] = $targetVersion;
+
+    $legacySlugs = dent_exams_api_payment_legacy_course_slugs($catalogKey, $course);
+    $legacySettings = [];
+    foreach ($legacySlugs as $legacySlug) {
+        $legacySettings[] = dent_exams_course_setting($examsStore, $catalogKey, $legacySlug);
+    }
+
+    $desiredMode = trim(strtolower((string) ($course['defaultPaymentMode'] ?? 'free')));
+    if (!in_array($desiredMode, ['free', 'paid'], true)) {
+        $desiredMode = 'free';
+    }
+    $desiredAmount = max(0, (int) dent_normalize_digits((string) ($course['defaultAmount'] ?? 0)));
+
+    $legacyHasPaymentState = false;
+    $legacyCollectionId = 0;
+    $legacyDiscountLists = [];
+    foreach ($legacySettings as $legacySetting) {
+        if ((string) ($legacySetting['paymentMode'] ?? 'free') === 'paid' || max(0, (int) ($legacySetting['collectionId'] ?? 0)) > 0) {
+            $legacyHasPaymentState = true;
+        }
+
+        if ($legacyCollectionId <= 0) {
+            $legacyCollectionId = max(0, (int) ($legacySetting['collectionId'] ?? 0));
+        }
+        $legacyDiscountLists[] = dent_exams_normalize_discount_codes($legacySetting['discountCodes'] ?? []);
+    }
+
+    if ($legacyHasPaymentState && $desiredMode === 'paid') {
+        $nextSetting['paymentMode'] = 'paid';
+        if (max(0, (int) ($nextSetting['amount'] ?? 0)) <= 0) {
+            $nextSetting['amount'] = $desiredAmount;
+        }
+        if (max(0, (int) ($nextSetting['collectionId'] ?? 0)) <= 0 && $legacyCollectionId > 0) {
+            $nextSetting['collectionId'] = $legacyCollectionId;
+        }
+        $nextSetting['discountCodes'] = dent_exams_api_merge_discount_codes(
+            dent_exams_normalize_discount_codes($nextSetting['discountCodes'] ?? []),
+            ...$legacyDiscountLists
+        );
+    }
+
+    if ((string) ($nextSetting['paymentMode'] ?? 'free') === 'paid' && max(0, (int) ($nextSetting['amount'] ?? 0)) <= 0) {
+        $nextSetting['amount'] = $desiredAmount;
+    }
+
+    $normalizedCurrent = dent_exams_normalize_course_setting($setting);
+    $normalizedNext = dent_exams_normalize_course_setting($nextSetting);
+
+    return [
+        'setting' => $normalizedNext,
+        'changed' => $normalizedNext !== $normalizedCurrent,
+    ];
+}
+
+function dent_exams_api_setting_with_legacy_collection_ids(
+    array $examsStore,
+    string $catalogKey,
+    array $course,
+    array $setting
+): array {
+    $nextSetting = $setting;
+    $primaryCollectionId = max(0, (int) ($setting['collectionId'] ?? 0));
+    $legacyCollectionIds = [];
+    $seen = [];
+
+    foreach (dent_exams_api_payment_legacy_course_slugs($catalogKey, $course) as $legacySlug) {
+        $legacySetting = dent_exams_course_setting($examsStore, $catalogKey, $legacySlug);
+        $legacyCollectionId = max(0, (int) ($legacySetting['collectionId'] ?? 0));
+        if ($legacyCollectionId <= 0 || $legacyCollectionId === $primaryCollectionId || isset($seen[$legacyCollectionId])) {
+            continue;
+        }
+
+        $seen[$legacyCollectionId] = true;
+        $legacyCollectionIds[] = $legacyCollectionId;
+    }
+
+    $nextSetting['legacyCollectionIds'] = $legacyCollectionIds;
+    return $nextSetting;
+}
+
 function dent_exams_api_owner_discount_codes_payload(array $setting, array $usageMap): array
 {
     $payload = [];
@@ -1125,7 +1367,11 @@ function dent_exams_api_course_access(?array $user, array $setting, ?array $coll
     $isOwner = dent_exams_api_is_owner($user);
     $mode = (string) ($setting['paymentMode'] ?? 'free');
     $isPaidCourse = $mode === 'paid';
-    $paidOrder = dent_exams_api_user_paid_order($paymentsStore, max(0, (int) ($setting['collectionId'] ?? 0)), $user);
+    $paidOrder = dent_exams_api_user_paid_order_for_any(
+        $paymentsStore,
+        dent_exams_api_setting_collection_ids($setting),
+        $user
+    );
     $isProsthesis = is_array($user) && dent_user_is_prosthesis($user);
 
     if ($isOwner) {
@@ -1282,9 +1528,12 @@ function dent_exams_api_course_summary_payload(
     }
 
     $collectionId = max(0, (int) ($setting['collectionId'] ?? 0));
-    $collectionStats = dent_exams_api_collection_stats($paymentsStore, $collectionId);
+    $collectionIds = dent_exams_api_setting_collection_ids($setting);
+    $collectionStats = dent_exams_api_collection_stats_for_ids($paymentsStore, $collectionIds);
     $discountCodes = dent_exams_normalize_discount_codes($setting['discountCodes'] ?? []);
-    $discountUsageMap = $viewerIsOwner ? dent_exams_api_collection_discount_usage_map($paymentsStore, $collectionId) : [];
+    $discountUsageMap = $viewerIsOwner
+        ? dent_exams_api_collection_discount_usage_map_for_ids($paymentsStore, $collectionIds)
+        : [];
 
     return [
         'catalogKey' => $catalogKey,
@@ -1307,6 +1556,9 @@ function dent_exams_api_course_summary_payload(
         'amount' => max(0, (int) ($setting['amount'] ?? 0)),
         'amountLabel' => dent_exams_api_money((int) ($setting['amount'] ?? 0)),
         'collectionId' => $collectionId,
+        'legacyCollectionIds' => array_values(array_map(static function ($value): int {
+            return max(0, (int) $value);
+        }, is_array($setting['legacyCollectionIds'] ?? null) ? $setting['legacyCollectionIds'] : [])),
         'collectionToken' => $collection ? (string) ($collection['token'] ?? '') : '',
         'collectionStatus' => $collection ? (string) ($collection['status'] ?? '') : '',
         'discounts' => [
@@ -1447,25 +1699,44 @@ function dent_exams_api_resolve_course_setting(
     string $courseSlug,
     array $course
 ): array {
-    $setting = dent_exams_course_setting($examsStore, $catalogKey, $courseSlug);
+    $paymentCourseSlug = dent_exams_api_payment_binding_slug($catalogKey, $courseSlug, $course);
+    $paymentCourse = dent_exams_api_payment_binding_course($catalogKey, $courseSlug, $course);
+    $setting = dent_exams_course_setting($examsStore, $catalogKey, $paymentCourseSlug);
+
+    $migration = dent_exams_api_migrate_payment_group_setting(
+        $examsStore,
+        $catalogKey,
+        $paymentCourseSlug,
+        $paymentCourse,
+        $setting
+    );
+    $setting = is_array($migration['setting'] ?? null) ? $migration['setting'] : $setting;
+    $settingChanged = !empty($migration['changed']);
+    if ($settingChanged) {
+        $setting['updatedAt'] = dent_iso_now();
+        dent_exams_api_persist_course_setting($catalogKey, $paymentCourseSlug, $setting);
+    }
+
+    $setting = dent_exams_api_setting_with_legacy_collection_ids($examsStore, $catalogKey, $paymentCourse, $setting);
     if ((string) ($setting['paymentMode'] ?? 'free') !== 'paid') {
         return $setting;
     }
 
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
-    if ($collection !== null) {
+    if ($collection !== null && !$settingChanged) {
         return $setting;
     }
 
     $nextSetting = $setting;
     $nextSetting['updatedAt'] = dent_iso_now();
-    $collectionId = dent_exams_api_sync_collection($catalogKey, $courseSlug, $course, $nextSetting);
+    $collectionId = dent_exams_api_sync_collection($catalogKey, $paymentCourseSlug, $paymentCourse, $nextSetting);
     if ($collectionId <= 0) {
         return $setting;
     }
 
     $nextSetting['collectionId'] = $collectionId;
-    dent_exams_api_persist_course_setting($catalogKey, $courseSlug, $nextSetting);
+    dent_exams_api_persist_course_setting($catalogKey, $paymentCourseSlug, $nextSetting);
+    $nextSetting = dent_exams_api_setting_with_legacy_collection_ids($examsStore, $catalogKey, $paymentCourse, $nextSetting);
 
     return $nextSetting;
 }
@@ -1893,8 +2164,11 @@ if ($action === 'ownerSaveCourseAccess') {
         dent_error('برای درس پولی باید مبلغ معتبر ثبت شود.', 422);
     }
 
+    $paymentCourseSlug = dent_exams_api_payment_binding_slug($catalogKey, $courseSlug, $course);
+    $paymentCourse = dent_exams_api_payment_binding_course($catalogKey, $courseSlug, $course);
+    $paymentGroupVersion = dent_exams_api_payment_group_version($paymentCourse);
     $currentStore = dent_exams_read_store();
-    $currentSetting = dent_exams_course_setting($currentStore, $catalogKey, $courseSlug);
+    $currentSetting = dent_exams_course_setting($currentStore, $catalogKey, $paymentCourseSlug);
     $discountCodes = array_key_exists('discountCodes', $_POST) || array_key_exists('discount_codes', $_POST)
         ? dent_exams_api_parse_discount_codes_input($_POST['discountCodes'] ?? ($_POST['discount_codes'] ?? []))
         : dent_exams_normalize_discount_codes($currentSetting['discountCodes'] ?? []);
@@ -1903,15 +2177,16 @@ if ($action === 'ownerSaveCourseAccess') {
         'amount' => $amount,
         'collectionId' => max(0, (int) ($currentSetting['collectionId'] ?? 0)),
         'discountCodes' => $discountCodes,
+        'paymentGroupVersion' => $paymentGroupVersion,
         'updatedAt' => dent_iso_now(),
     ];
-    $collectionId = dent_exams_api_sync_collection($catalogKey, $courseSlug, $course, $nextSetting);
+    $collectionId = dent_exams_api_sync_collection($catalogKey, $paymentCourseSlug, $paymentCourse, $nextSetting);
     if ($collectionId > 0) {
         $nextSetting['collectionId'] = $collectionId;
     }
 
-    dent_exams_with_store_lock(static function (array &$store) use ($catalogKey, $courseSlug, $nextSetting): void {
-        $courseKey = dent_exams_course_key($catalogKey, $courseSlug);
+    dent_exams_with_store_lock(static function (array &$store) use ($catalogKey, $paymentCourseSlug, $nextSetting): void {
+        $courseKey = dent_exams_course_key($catalogKey, $paymentCourseSlug);
         if ($courseKey === '') {
             throw new DentExamsApiException('شناسه داخلی درس معتبر نیست.', 422);
         }

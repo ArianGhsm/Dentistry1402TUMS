@@ -25,6 +25,7 @@ function dent_exams_bootstrap_modules(): void
     dent_exams_require_optional_module('exams_morphology_overrides.php');
     dent_exams_require_optional_module('exams_endotorabinejad_overrides.php');
     dent_exams_require_optional_module('exams_radiology2_whitepharoah_overrides.php');
+    dent_exams_require_optional_module('exams_term6_reference_overrides.php');
 }
 
 function dent_exams_registered_catalog_override_callbacks(): array
@@ -34,6 +35,7 @@ function dent_exams_registered_catalog_override_callbacks(): array
         'dent_exams_apply_morphology_catalog_overrides',
         'dent_exams_apply_endotorabinejad_catalog_overrides',
         'dent_exams_apply_radiology2_whitepharoah_catalog_overrides',
+        'dent_exams_apply_term6_reference_catalog_overrides',
         'dent_exams_apply_radiology2_overrides',
     ];
 }
