@@ -594,6 +594,50 @@ if ($action === 'verifyLoginOtp') {
     ]);
 }
 
+if ($action === 'requestExternalSignupOtp') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد درخواست کد ثبت‌نام نامعتبر است.', 405);
+    }
+
+    $result = dent_request_external_signup_otp(
+        (string) ($_POST['firstName'] ?? ''),
+        (string) ($_POST['lastName'] ?? ''),
+        (string) ($_POST['phoneNumber'] ?? ''),
+        (string) ($_POST['password'] ?? '')
+    );
+
+    dent_json_response([
+        'success' => true,
+        'message' => 'کد تایید ثبت‌نام پیامکی ارسال شد.',
+        'phoneMasked' => (string) ($result['phoneMasked'] ?? ''),
+        'username' => (string) ($result['username'] ?? ''),
+        'cooldownSeconds' => (int) ($result['cooldownSeconds'] ?? 0),
+        'expiresInSeconds' => (int) ($result['expiresInSeconds'] ?? 0),
+    ]);
+}
+
+if ($action === 'verifyExternalSignupOtp') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد تکمیل ثبت‌نام نامعتبر است.', 405);
+    }
+
+    $loggedInUser = dent_verify_external_signup_otp(
+        (string) ($_POST['firstName'] ?? ''),
+        (string) ($_POST['lastName'] ?? ''),
+        (string) ($_POST['phoneNumber'] ?? ''),
+        (string) ($_POST['password'] ?? ''),
+        (string) ($_POST['otpCode'] ?? ($_POST['code'] ?? ''))
+    );
+
+    dent_json_response([
+        'success' => true,
+        'loggedIn' => true,
+        'status' => 'logged-in',
+        'user' => $loggedInUser,
+        'message' => 'ثبت‌نام تکمیل شد.',
+    ]);
+}
+
 if ($action === 'requestPhoneEnrollOtp') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد درخواست تایید شماره نامعتبر است.', 405);

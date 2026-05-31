@@ -1557,6 +1557,21 @@ body.account-page.account-stage-login-active .auth-brand strong {
     font-size: 0.75rem;
 }
 
+.external-signup-form {
+    animation: accountAuthEnter 0.2s ease both;
+}
+
+.external-signup-panel,
+.external-signup-grid,
+.external-signup-verify {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.external-signup-verify .shell-action-btn {
+    min-height: 48px;
+}
+
 .otp-phone-shell {
     direction: ltr;
     position: relative;

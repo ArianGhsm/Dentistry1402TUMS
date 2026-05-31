@@ -2799,8 +2799,12 @@ function chat_sanitize_message_text(string $value, int $maxLength = 2000): strin
 function chat_require_user(): array
 {
     $user = dent_require_user();
-    $requestedCohort = chat_requested_cohort();
     $role = dent_normalize_role((string) ($user['role'] ?? 'student'), (string) ($user['studentNumber'] ?? ''));
+    if (function_exists('dent_user_is_external_exam_role') && dent_user_is_external_exam_role($role)) {
+        dent_error('چت فقط برای دانشجویان دارای شماره دانشجویی فعال است.', 403);
+    }
+
+    $requestedCohort = chat_requested_cohort();
     if ($role === 'owner') {
         chat_set_active_cohort($requestedCohort);
     } else {

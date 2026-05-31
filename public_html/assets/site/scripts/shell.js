@@ -82,6 +82,7 @@
             forms: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="4" width="14" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 9H15.5M8.5 12.3H15.5M8.5 15.6H12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
             exam: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4.5H17A2 2 0 0 1 19 6.5V19.5L12 16.5L5 19.5V6.5A2 2 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 9H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 12.5H13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
             grades: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 18.5V13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 18.5V9.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M19 18.5V5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3.5 19.5H20.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+            resources: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5.5 5.5H18.5A1.5 1.5 0 0 1 20 7V18.5A1.5 1.5 0 0 1 18.5 20H7A2 2 0 0 1 5 18V6A.5.5 0 0 1 5.5 5.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 5.5V17.5A2.5 2.5 0 0 0 10.5 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M11 9H16.5M11 12.5H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
             buy: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7.2A2.2 2.2 0 0 1 6.2 5h11.6A2.2 2.2 0 0 1 20 7.2v9.6a2.2 2.2 0 0 1-2.2 2.2H6.2A2.2 2.2 0 0 1 4 16.8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 9.4h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 14.2h3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M14.7 14.2h1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
             polls: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4.5V12L18.5 15.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 20A8 8 0 1 1 20 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
             account: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12.25A3.75 3.75 0 1 0 12 4.75A3.75 3.75 0 0 0 12 12.25Z" stroke="currentColor" stroke-width="1.8"/><path d="M5 19.25C5.93 16.74 8.48 15 12 15C15.52 15 18.07 16.74 19 19.25" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
@@ -148,6 +149,13 @@
         return !!(state && state.user && state.user.isProsthesisStudent);
     }
 
+    function canUseChatState(state) {
+        if (!state || !state.loggedIn || !state.user) {
+            return false;
+        }
+        return state.user.canUseChat !== false && !state.user.isExternalExamUser;
+    }
+
     function brandName(state) {
         return isProsthesisState(state) ? "ورودی ۱۴۰۲ پروتز تهران" : "ورودی ۱۴۰۲ دندانپزشکی تهران";
     }
@@ -182,14 +190,25 @@
         var isProsthesis = isProsthesisState(state);
         var chatBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.chatCount || 0)) : 0;
         var accountBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.notificationCount || 0)) : 0;
-        var items = [{
-            href: "/app/",
-            label: "خانه",
-            icon: "home",
-            active: ["/app/"],
-            exact: true
-        }];
-        if (!isProsthesis) {
+        var items = [];
+        if (state.loggedIn) {
+            items.push({
+                href: "/app/",
+                label: "خانه",
+                icon: "home",
+                active: ["/app/"],
+                exact: true
+            });
+        } else {
+            items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
+        }
+
+        if (!canUseChatState(state)) {
+            if (state.loggedIn) {
+                items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
+            }
+            items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
+        } else if (!isProsthesis) {
             items.push({
                 href: "/chat/",
                 label: "چت",

@@ -1136,7 +1136,7 @@ function dent_normalize_role(?string $role, string $studentNumber): string
     }
 
     $role = trim((string) $role);
-    if (in_array($role, ['representative', 'prosthesis_student', 'prosthesis_representative'], true)) {
+    if (in_array($role, ['representative', 'prosthesis_student', 'prosthesis_representative', 'external_exam_user'], true)) {
         return $role;
     }
 
@@ -1227,6 +1227,11 @@ function dent_role_label(string $role): string
     }
 
     return 'دانشجو';
+}
+
+function dent_user_is_external_exam_role(string $role): bool
+{
+    return $role === 'external_exam_user';
 }
 
 function dent_permissions_for_role(string $role, ?string $cohortKey = null): array
@@ -1800,7 +1805,7 @@ function dent_public_user(array $user): array
         'disNumber' => dent_dis_number_for_student((string) ($user['studentNumber'] ?? '')),
         'name' => (string) ($user['name'] ?? ''),
         'role' => $role,
-        'roleLabel' => dent_role_label($role),
+        'roleLabel' => dent_user_is_external_exam_role($role) ? 'کاربر آزمون' : dent_role_label($role),
         'cohortKey' => $cohortKey,
         'cohort' => $cohort === null ? null : [
             'key' => (string) ($cohort['key'] ?? ''),
@@ -1816,6 +1821,8 @@ function dent_public_user(array $user): array
         ],
         'isOwner' => $role === 'owner',
         'isRepresentative' => $role === 'representative',
+        'isExternalExamUser' => dent_user_is_external_exam_role($role),
+        'canUseChat' => !dent_user_is_external_exam_role($role),
         'isProsthesisStudent' => dent_user_is_prosthesis($user),
         'isProsthesisRepresentative' => $role === 'prosthesis_representative',
         'canModerateChat' => $permissions['moderateChat'],
@@ -2946,6 +2953,51 @@ function dent_mask_phone_number(string $phoneNumber): string
     return $head . '***' . $tail;
 }
 
+function dent_phone_username_from_normalized(string $phoneNumber): string
+{
+    $normalized = dent_normalize_phone_number($phoneNumber);
+    if ($normalized === '') {
+        return '';
+    }
+
+    return '0' . substr($normalized, 3);
+}
+
+function dent_validate_external_signup_input(string $firstName, string $lastName, string $phoneNumber, string $password): array
+{
+    $firstName = dent_clean_text($firstName, 60);
+    $lastName = dent_clean_text($lastName, 80);
+    $normalizedPhone = dent_normalize_phone_number($phoneNumber);
+    $password = dent_normalize_digits($password);
+
+    if ($firstName === '' || $lastName === '') {
+        dent_error('نام و نام خانوادگی را کامل وارد کن.', 422);
+    }
+    if ($normalizedPhone === '') {
+        dent_error('شماره موبایل معتبر وارد کن.', 422);
+    }
+    if (dent_utf8_strlen($password) < 6) {
+        dent_error('رمز عبور باید حداقل ۶ کاراکتر باشد.', 422);
+    }
+
+    $username = dent_phone_username_from_normalized($normalizedPhone);
+    if ($username === '' || !str_starts_with($username, '09') || strlen($username) !== 11) {
+        dent_error('شماره موبایل برای ساخت نام کاربری معتبر نیست.', 422);
+    }
+    if (dent_get_user_record($username) !== null || dent_phone_number_in_use($normalizedPhone, $username)) {
+        dent_error('با این شماره موبایل قبلاً حساب ساخته شده است. از ورود با موبایل استفاده کن.', 409);
+    }
+
+    return [
+        'firstName' => $firstName,
+        'lastName' => $lastName,
+        'name' => trim($firstName . ' ' . $lastName),
+        'phoneNumber' => $normalizedPhone,
+        'username' => $username,
+        'password' => $password,
+    ];
+}
+
 function dent_user_phone_ready_for_otp(array $user): bool
 {
     $phoneNumber = dent_normalize_phone_number((string) ($user['phoneNumber'] ?? ''));
@@ -3809,6 +3861,48 @@ function dent_request_phone_enrollment_otp(array $user, string $phoneNumber): ar
     }
 
     return $result;
+}
+
+function dent_request_external_signup_otp(string $firstName, string $lastName, string $phoneNumber, string $password): array
+{
+    $input = dent_validate_external_signup_input($firstName, $lastName, $phoneNumber, $password);
+    $result = dent_issue_otp_for_phone('external-signup', (string) $input['phoneNumber'], (string) $input['username']);
+    if (!(bool) ($result['success'] ?? false)) {
+        dent_error((string) ($result['error'] ?? 'ارسال کد تایید انجام نشد.'), (int) ($result['statusCode'] ?? 422), $result);
+    }
+
+    return array_merge($result, [
+        'phoneMasked' => dent_mask_phone_number((string) $input['phoneNumber']),
+        'username' => (string) $input['username'],
+    ]);
+}
+
+function dent_verify_external_signup_otp(string $firstName, string $lastName, string $phoneNumber, string $password, string $otpCode): array
+{
+    $input = dent_validate_external_signup_input($firstName, $lastName, $phoneNumber, $password);
+    $verify = dent_verify_otp_for_phone('external-signup', (string) $input['phoneNumber'], $otpCode, (string) $input['username']);
+    if (!(bool) ($verify['success'] ?? false)) {
+        dent_error((string) ($verify['error'] ?? 'تایید شماره موبایل انجام نشد.'), (int) ($verify['statusCode'] ?? 422), $verify);
+    }
+
+    $now = dent_iso_now();
+    $user = dent_persist_user([
+        'studentNumber' => (string) $input['username'],
+        'name' => (string) $input['name'],
+        'passwordHash' => dent_hash_password((string) $input['password']),
+        'role' => 'external_exam_user',
+        'cohortKey' => dent_primary_cohort_key(),
+        'profile' => dent_default_profile(),
+        'phoneNumber' => (string) $input['phoneNumber'],
+        'phoneVerifiedAt' => $now,
+        'phoneLoginEnabled' => true,
+        'phoneNudgeDismissedAt' => '',
+        'rotationOverride' => ['mode' => 'none'],
+        'createdAt' => $now,
+        'updatedAt' => $now,
+    ]);
+
+    return dent_login_user($user);
 }
 
 function dent_verify_phone_enrollment_otp(array $user, string $phoneNumber, string $otpCode): array

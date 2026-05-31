@@ -433,6 +433,37 @@
         return snapshot();
     }
 
+    async function requestExternalSignupOtp(payload) {
+        return request("requestExternalSignupOtp", "POST", payload || {});
+    }
+
+    async function completeExternalSignup(payload) {
+        setState({
+            status: STATUS.LOGGING_IN,
+            loggedIn: false,
+            user: null,
+            error: ""
+        });
+
+        var response = await request("verifyExternalSignupOtp", "POST", payload || {});
+
+        if (response && response.success && response.loggedIn && response.user) {
+            applyAuthenticatedState(response);
+            resolveReady();
+            return snapshot();
+        }
+
+        setState({
+            status: STATUS.LOGIN_ERROR,
+            loggedIn: false,
+            user: null,
+            error: (response && response.error) || "Signup failed."
+        });
+
+        resolveReady();
+        return snapshot();
+    }
+
     async function requestPhoneEnrollOtp(phoneNumber) {
         return request("requestPhoneEnrollOtp", "POST", {
             phoneNumber: phoneNumber
@@ -642,6 +673,8 @@
         login: login,
         requestLoginOtp: requestLoginOtp,
         loginWithOtp: loginWithOtp,
+        requestExternalSignupOtp: requestExternalSignupOtp,
+        completeExternalSignup: completeExternalSignup,
         logout: logout,
         requestPhoneEnrollOtp: requestPhoneEnrollOtp,
         verifyPhoneEnrollOtp: verifyPhoneEnrollOtp,
