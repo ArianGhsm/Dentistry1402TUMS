@@ -9,7 +9,6 @@ param(
     [switch]$PullBeforeDeploy,
     [switch]$SkipRemoteStorageSync,
     [switch]$AllowProxyPull,
-    [switch]$AllowProxyOverBudget,
     [string]$NetworkPath = "auto",
     [string]$HostDeployNetworkPath = "auto",
     [string]$HealthCheckNetworkPath = "auto",
@@ -17,7 +16,6 @@ param(
     [string]$RemoteStoragePath = "storage",
     [string]$LowBandwidthMode = "auto",
     [string]$ProxyEndpoint = "",
-    [int]$ProxyBudgetMb = 0,
     [string]$OwnerStudentNumber = "",
     [string]$OwnerPassword = "",
     [string]$OwnerCredentialPath = ".codex-local\deploy_owner.json",
@@ -89,18 +87,6 @@ function Normalize-LowBandwidthMode([string]$value) {
         return $normalized
     }
     return "auto"
-}
-
-function Parse-PositiveInt([string]$value, [int]$fallback) {
-    if ([string]::IsNullOrWhiteSpace($value)) {
-        return $fallback
-    }
-
-    $parsed = 0
-    if ([int]::TryParse($value.Trim(), [ref]$parsed) -and $parsed -gt 0) {
-        return $parsed
-    }
-    return $fallback
 }
 
 function Get-ProxyEnvValues() {
@@ -295,38 +281,11 @@ function Get-FileBytesFromRelativeList([string]$rootPath, [string[]]$relativeLis
     return $total
 }
 
-function Get-ProxyBudgetBytes([int]$budgetMb) {
-    return [int64]$budgetMb * 1MB
-}
-
-function Assert-ProxyBudget([string]$stepName, [int64]$estimatedBytes, [int]$budgetMb, [switch]$allowOverBudget) {
-    $budgetBytes = Get-ProxyBudgetBytes -budgetMb $budgetMb
-    if ($estimatedBytes -le $budgetBytes) {
-        return
-    }
-
-    $estimatedReadable = Format-Bytes -bytes $estimatedBytes
-    $budgetReadable = Format-Bytes -bytes $budgetBytes
-    if ($allowOverBudget) {
-        Write-Warning "$stepName exceeds proxy budget ($estimatedReadable > $budgetReadable) but continuing due to explicit override."
-        return
-    }
-
-    throw "$stepName exceeds proxy budget ($estimatedReadable > $budgetReadable). Use direct path, reduce scope, or rerun with -AllowProxyOverBudget."
-}
-
 if ([string]::IsNullOrWhiteSpace($ProxyEndpoint)) {
     $ProxyEndpoint = [Environment]::GetEnvironmentVariable("DENT_PROXY_ENDPOINT")
 }
 if ([string]::IsNullOrWhiteSpace($ProxyEndpoint)) {
     $ProxyEndpoint = "127.0.0.1:10808"
-}
-
-if ($ProxyBudgetMb -le 0) {
-    $ProxyBudgetMb = Parse-PositiveInt -value ([Environment]::GetEnvironmentVariable("DENT_PROXY_BUDGET_MB")) -fallback 10
-}
-if ($ProxyBudgetMb -le 0) {
-    $ProxyBudgetMb = 10
 }
 
 $remoteHost = Get-HostNameFromTarget -target $config.host
@@ -387,7 +346,6 @@ if ($lowBandwidthMode -eq "off") {
 $script:NetworkPolicy = [PSCustomObject]@{
     ProxyEndpoint        = $ProxyEndpoint
     ProxyConfigured      = $proxyConfigured
-    BudgetMb             = $ProxyBudgetMb
     GlobalPath           = $globalPath
     HostDeployPath       = $hostDeployPath
     HealthCheckPath      = $healthCheckPath
@@ -2007,9 +1965,6 @@ function Sync-GitHubFromLaptop([object]$GitHubPlan) {
     $deleteList = @($GitHubPlan.DeleteList)
     $notes = @($GitHubPlan.Notes)
     $estimatedPushBytes = Get-FileBytesFromRelativeList -rootPath $projectRoot -relativeList $uploadList
-    if ($script:NetworkPolicy.StrictGitHub -and $estimatedPushBytes -gt 0) {
-        Assert-ProxyBudget -stepName "GitHub sync push" -estimatedBytes $estimatedPushBytes -budgetMb $script:NetworkPolicy.BudgetMb -allowOverBudget:$AllowProxyOverBudget
-    }
 
     $target = Resolve-GitHubSyncTarget -currentBranch $currentBranch -upstream $upstream
     $sourceHead = ""
@@ -2465,14 +2420,6 @@ try {
     $deployInfo.EstimatedUploadBytes = Get-FileBytesFromRelativeList -rootPath $localRoot -relativeList $uploadList
     $deployInfo.Notes = @($plan.Notes)
 
-    if ($script:NetworkPolicy.StrictHostDeploy -and $deployInfo.EstimatedUploadBytes -gt 0) {
-        Assert-ProxyBudget `
-            -stepName "Host deploy upload" `
-            -estimatedBytes $deployInfo.EstimatedUploadBytes `
-            -budgetMb $script:NetworkPolicy.BudgetMb `
-            -allowOverBudget:$AllowProxyOverBudget
-    }
-
     if ($uploadList.Count -eq 0 -and $deleteList.Count -eq 0) {
         Write-Host "Step 3/5: deploy to host"
         Write-Host "No local delta detected under public_html. Nothing to deploy."
@@ -2605,7 +2552,6 @@ try {
     Write-Host " - Proxy env detected: $($script:NetworkPolicy.ProxyConfigured)"
     Write-Host " - Low-bandwidth mode enabled: $($script:NetworkPolicy.LowBandwidthEnabled)"
     Write-Host " - Effective network path (global/host/health/github): $($script:NetworkPolicy.GlobalPath)/$($script:NetworkPolicy.HostDeployPath)/$($script:NetworkPolicy.HealthCheckPath)/$($script:NetworkPolicy.GitHubPath)"
-    Write-Host " - Proxy budget: $($script:NetworkPolicy.BudgetMb) MB"
 
     Write-Host " - Remote storage sync status: $($remoteStorageInfo.Status)"
     if (-not [string]::IsNullOrWhiteSpace($remoteStorageInfo.RemotePath)) {

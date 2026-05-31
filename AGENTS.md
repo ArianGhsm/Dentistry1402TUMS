@@ -203,6 +203,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - قبل از upload کد، `storage/` هاست باید در `.codex-local/remote-storage/snapshots/` ذخیره و در `server-only/storage/` mirror شود.
 - upload/delete دیتای runtime از لپتاپ به هاست ممنوع است؛ حتی FullSync هم نباید `public_html/.env` یا `public_html/storage/` را آپلود/حذف کند.
 - `git pull` قبل از deploy پیش‌فرض ممنوع است مگر درخواست صریح.
+- deploy و GitHub sync نباید به سقف حجمی/proxy budget وابسته باشند؛ budget حجمی نباید blocker دپلوی باشد.
 - بعد از اتمام موفق deploy هیچ مرحله‌ی پیامکی اجرا نمی‌شود. اما در هر deploy موفق باید یک اعلان داخل سایت فقط برای مالک از مسیر shared اعلان‌ها ثبت شود و نسخه‌ی فعال + تاریخ و زمان دقیق deploy را داخل خود اعلان ذکر کند.
 - credential مالک برای smoke validation چندورودی، login تستی و ثبت همین اعلان deploy مجاز است؛ برای ارسال پیامک یا workflowهای ad-hoc دیگر مجاز نیست.
 - override اختیاری:

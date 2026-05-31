@@ -18,14 +18,12 @@ SKIP_GITHUB_SYNC=0
 SKIP_COMPLETION_SMS=0
 PULL_BEFORE_DEPLOY=0
 ALLOW_PROXY_PULL=0
-ALLOW_PROXY_OVER_BUDGET=0
 NETWORK_PATH="${DENT_NETWORK_PATH:-auto}"
 HOST_DEPLOY_NETWORK_PATH="${DENT_HOST_DEPLOY_PATH:-auto}"
 HEALTH_CHECK_NETWORK_PATH="${DENT_HEALTHCHECK_PATH:-auto}"
 GITHUB_NETWORK_PATH="${DENT_GITHUB_PATH:-auto}"
 LOW_BANDWIDTH_MODE="${DENT_LOW_BANDWIDTH_MODE:-auto}"
 PROXY_ENDPOINT="${DENT_PROXY_ENDPOINT:-127.0.0.1:10808}"
-PROXY_BUDGET_MB="${DENT_PROXY_BUDGET_MB:-10}"
 COMPLETION_SMS_PHONE="${DENT_COMPLETION_SMS_PHONE:-09009840305}"
 COMMIT_MESSAGE="chore: sync deployed laptop state to github"
 HEALTH_CHECK_URLS=("https://dentistry1402tums.ir/" "https://dentistry1402tums.ir/chat/")
@@ -41,7 +39,6 @@ while [[ $# -gt 0 ]]; do
     --skip-completion-sms) SKIP_COMPLETION_SMS=1; shift ;;
     --pull-before-deploy) PULL_BEFORE_DEPLOY=1; shift ;;
     --allow-proxy-pull) ALLOW_PROXY_PULL=1; shift ;;
-    --allow-proxy-over-budget) ALLOW_PROXY_OVER_BUDGET=1; shift ;;
     --network-path)
       shift
       [[ $# -gt 0 ]] || { echo "Missing value for --network-path" >&2; exit 1; }
@@ -76,12 +73,6 @@ while [[ $# -gt 0 ]]; do
       shift
       [[ $# -gt 0 ]] || { echo "Missing value for --proxy-endpoint" >&2; exit 1; }
       PROXY_ENDPOINT="$1"
-      shift
-      ;;
-    --proxy-budget-mb)
-      shift
-      [[ $# -gt 0 ]] || { echo "Missing value for --proxy-budget-mb" >&2; exit 1; }
-      PROXY_BUDGET_MB="$1"
       shift
       ;;
     --commit-message)
