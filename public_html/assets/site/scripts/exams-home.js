@@ -10,8 +10,11 @@
         loading: false,
         catalog: null,
         viewer: null,
+        mode: "",
         termNumber: 0,
-        unitKey: ""
+        unitKey: "",
+        specialtyKey: "",
+        referenceKey: ""
     };
 
     function escapeHtml(value) {
@@ -65,46 +68,112 @@
         return String(value || "").trim().toLowerCase();
     }
 
+    function cleanViewMode(value) {
+        var clean = String(value || "").trim().toLowerCase();
+        return clean === "term" || clean === "reference" ? clean : "";
+    }
+
+    function cleanReferenceKey(value) {
+        return String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9_-]+/g, "");
+    }
+
     function readViewFromLocation() {
         var params = currentParams();
+        var termNumber = readTermNumber(params.get("term"));
+        var unitKey = cleanUnitKey(params.get("unit"));
+        var specialtyKey = cleanReferenceKey(params.get("specialty"));
+        var referenceKey = cleanReferenceKey(params.get("ref"));
+        var mode = cleanViewMode(params.get("mode"));
+
+        if (termNumber > 0 || unitKey) {
+            mode = "term";
+        } else if ((specialtyKey || referenceKey) && mode !== "term") {
+            mode = "reference";
+        }
+
         return {
-            termNumber: readTermNumber(params.get("term")),
-            unitKey: cleanUnitKey(params.get("unit"))
+            mode: mode,
+            termNumber: termNumber,
+            unitKey: unitKey,
+            specialtyKey: specialtyKey,
+            referenceKey: referenceKey
         };
     }
 
     function applyLocationView() {
         var nextView = readViewFromLocation();
+        state.mode = nextView.mode;
         state.termNumber = nextView.termNumber;
         state.unitKey = nextView.unitKey;
+        state.specialtyKey = nextView.specialtyKey;
+        state.referenceKey = nextView.referenceKey;
     }
 
-    function buildViewSearch(termNumber, unitKey) {
+    function buildViewSearch(view) {
+        var nextView = view || {};
         var params = currentParams();
-        if (termNumber > 0) {
-            params.set("term", String(termNumber));
-        } else {
-            params.delete("term");
+        var mode = cleanViewMode(nextView.mode);
+        var termNumber = readTermNumber(nextView.termNumber);
+        var unitKey = cleanUnitKey(nextView.unitKey);
+        var specialtyKey = cleanReferenceKey(nextView.specialtyKey);
+        var referenceKey = cleanReferenceKey(nextView.referenceKey);
+
+        params.delete("mode");
+        params.delete("term");
+        params.delete("unit");
+        params.delete("specialty");
+        params.delete("ref");
+
+        if (mode) {
+            params.set("mode", mode);
         }
-        if (unitKey) {
-            params.set("unit", unitKey);
-        } else {
-            params.delete("unit");
+        if (mode === "term" && termNumber > 0) {
+            params.set("term", String(termNumber));
+            if (unitKey) {
+                params.set("unit", unitKey);
+            }
+        }
+        if (mode === "reference") {
+            if (specialtyKey) {
+                params.set("specialty", specialtyKey);
+            }
+            if (referenceKey) {
+                params.set("ref", referenceKey);
+            }
         }
         return params.toString();
     }
 
-    function commitView(termNumber, unitKey, replace) {
-        var nextTerm = readTermNumber(termNumber);
-        var nextUnitKey = cleanUnitKey(unitKey);
+    function commitState(nextView, replace) {
+        var mode = cleanViewMode(nextView && nextView.mode);
+        var nextTerm = mode === "term" ? readTermNumber(nextView && nextView.termNumber) : 0;
+        var nextUnitKey = mode === "term" ? cleanUnitKey(nextView && nextView.unitKey) : "";
+        var nextSpecialtyKey = mode === "reference" ? cleanReferenceKey(nextView && nextView.specialtyKey) : "";
+        var nextReferenceKey = mode === "reference" ? cleanReferenceKey(nextView && nextView.referenceKey) : "";
+
         if (nextTerm <= 0) {
             nextUnitKey = "";
         }
+        if (!nextSpecialtyKey) {
+            nextReferenceKey = "";
+        }
 
+        state.mode = mode;
         state.termNumber = nextTerm;
         state.unitKey = nextUnitKey;
+        state.specialtyKey = nextSpecialtyKey;
+        state.referenceKey = nextReferenceKey;
 
-        var search = buildViewSearch(nextTerm, nextUnitKey);
+        var search = buildViewSearch({
+            mode: state.mode,
+            termNumber: state.termNumber,
+            unitKey: state.unitKey,
+            specialtyKey: state.specialtyKey,
+            referenceKey: state.referenceKey
+        });
         var target = window.location.pathname + (search ? "?" + search : "");
         if (replace) {
             window.history.replaceState({}, "", target);
@@ -113,6 +182,30 @@
         }
 
         render();
+    }
+
+    function commitHome(replace) {
+        commitState({ mode: "" }, replace);
+    }
+
+    function commitMode(mode, replace) {
+        commitState({ mode: cleanViewMode(mode) }, replace);
+    }
+
+    function commitView(termNumber, unitKey, replace) {
+        commitState({
+            mode: "term",
+            termNumber: termNumber,
+            unitKey: unitKey
+        }, replace);
+    }
+
+    function commitReferenceView(specialtyKey, referenceKey, replace) {
+        commitState({
+            mode: "reference",
+            specialtyKey: specialtyKey,
+            referenceKey: referenceKey
+        }, replace);
     }
 
     function appendCohortPath(path) {
@@ -240,6 +333,9 @@
             config.meta
                 ? '    <p class="catalog-simple-row__meta">' + escapeHtml(config.meta) + "</p>"
                 : "",
+            config.extraHtml
+                ? '    <div class="catalog-simple-row__extra">' + config.extraHtml + "</div>"
+                : "",
             "  </div>",
             '  <span class="catalog-simple-row__visual' + (config.visualMuted ? " is-muted" : "") + '" aria-hidden="true">'
                 + (config.visualLabel ? "<strong>" + escapeHtml(config.visualLabel) + "</strong>" : "")
@@ -327,6 +423,39 @@
         return payload && Array.isArray(payload.terms) ? payload.terms : [];
     }
 
+    function referenceCatalog() {
+        return state.catalog && state.catalog.referenceCatalog && typeof state.catalog.referenceCatalog === "object"
+            ? state.catalog.referenceCatalog
+            : null;
+    }
+
+    function referenceSpecialties() {
+        var payload = referenceCatalog();
+        return payload && Array.isArray(payload.specialties) ? payload.specialties : [];
+    }
+
+    function findReferenceSpecialty(specialtyKey) {
+        var cleanKey = cleanReferenceKey(specialtyKey);
+        var specialties = referenceSpecialties();
+        for (var index = 0; index < specialties.length; index += 1) {
+            if (cleanReferenceKey(specialties[index] && specialties[index].key) === cleanKey) {
+                return specialties[index];
+            }
+        }
+        return null;
+    }
+
+    function findReferenceInSpecialty(specialty, referenceKey) {
+        var cleanKey = cleanReferenceKey(referenceKey);
+        var references = Array.isArray(specialty && specialty.references) ? specialty.references : [];
+        for (var index = 0; index < references.length; index += 1) {
+            if (cleanReferenceKey(references[index] && references[index].key) === cleanKey) {
+                return references[index];
+            }
+        }
+        return null;
+    }
+
     function findTerm(termNumber) {
         var cleanNumber = readTermNumber(termNumber);
         var terms = curriculumTerms();
@@ -369,51 +498,134 @@
         return findUnitInTerm(term, state.unitKey);
     }
 
+    function selectedReferenceSpecialty() {
+        if (!state.specialtyKey) {
+            return null;
+        }
+        return findReferenceSpecialty(state.specialtyKey);
+    }
+
+    function selectedReference() {
+        var specialty = selectedReferenceSpecialty();
+        if (!specialty || !state.referenceKey) {
+            return null;
+        }
+        return findReferenceInSpecialty(specialty, state.referenceKey);
+    }
+
     function normalizeViewState(replaceHistory) {
-        var terms = curriculumTerms();
-        if (!terms.length) {
+        state.mode = cleanViewMode(state.mode);
+
+        if (!state.mode) {
             state.termNumber = 0;
             state.unitKey = "";
+            state.specialtyKey = "";
+            state.referenceKey = "";
             return;
         }
 
-        var term = selectedTerm();
-        if (!term) {
-            if (state.termNumber > 0 || state.unitKey) {
+        if (state.mode === "term") {
+            var terms = curriculumTerms();
+            if (!terms.length) {
+                commitHome(replaceHistory);
+                return;
+            }
+
+            var term = selectedTerm();
+            if (!term && state.termNumber > 0) {
                 state.termNumber = 0;
                 state.unitKey = "";
                 if (replaceHistory) {
                     commitView(0, "", true);
                 }
+                return;
+            }
+
+            if (!state.unitKey) {
+                return;
+            }
+
+            var unit = selectedUnit();
+            if (!unit || cleanUnitKey(unit.entryMode) !== "collections") {
+                state.unitKey = "";
+                if (replaceHistory) {
+                    commitView(state.termNumber, "", true);
+                }
             }
             return;
         }
 
-        if (!state.unitKey) {
+        if (state.mode === "reference") {
+            var specialties = referenceSpecialties();
+            if (!specialties.length) {
+                commitHome(replaceHistory);
+                return;
+            }
+
+            var specialty = selectedReferenceSpecialty();
+            if (!specialty && state.specialtyKey) {
+                state.specialtyKey = "";
+                state.referenceKey = "";
+                if (replaceHistory) {
+                    commitReferenceView("", "", true);
+                }
+                return;
+            }
+
+            if (!state.referenceKey) {
+                return;
+            }
+
+            var reference = selectedReference();
+            if (!reference) {
+                state.referenceKey = "";
+                if (replaceHistory) {
+                    commitReferenceView(state.specialtyKey, "", true);
+                }
+            }
             return;
         }
 
-        var unit = selectedUnit();
-        if (!unit || cleanUnitKey(unit.entryMode) !== "collections") {
-            state.unitKey = "";
-            if (replaceHistory) {
-                commitView(state.termNumber, "", true);
-            }
-        }
+        commitHome(replaceHistory);
     }
 
     function homeHeroHtml() {
-        var payload = curriculum();
         var description = compactText(
-            payload && payload.description,
-            "اول ترم را انتخاب کن، بعد از داخل دسته واحدها وارد آزمون‌های هر درس شو.",
+            state.catalog && state.catalog.description,
+            "مسیر ورود به آزمون‌ها را انتخاب کن.",
             96
         );
         return simpleHeroHtml({
             eyebrow: "آزمون‌ها",
-            title: (state.catalog && state.catalog.title) || "آزمون‌ها",
+            title: "از کدام مسیر وارد می‌شوی؟",
             meta: description
         });
+    }
+
+    function modeChoiceHtml(mode, index) {
+        var isReference = mode === "reference";
+        return simpleRowHtml({
+            type: "button",
+            attrs: ' data-open-mode="' + escapeHtml(mode) + '"',
+            eyebrow: "مسیر ورود",
+            title: isReference ? "رفرنس‌محور" : "ترم‌محور",
+            meta: isReference
+                ? "اول تخصص را انتخاب کن، بعد رفرنس‌ها و آزمون‌های وصل‌شده را ببین."
+                : "از ترم‌ها و واحدهای دانشگاهی وارد آزمون‌های همان درس شو.",
+            rowClassName: accentClassName(index),
+            visualLabel: isReference ? "رف" : "ترم",
+            actionLabel: "انتخاب"
+        });
+    }
+
+    function modeChooserHtml() {
+        return [
+            homeHeroHtml(),
+            '<section class="catalog-simple-stack">',
+            modeChoiceHtml("reference", 0),
+            modeChoiceHtml("term", 1),
+            "</section>"
+        ].join("");
     }
 
     function termPreview(term) {
@@ -473,9 +685,85 @@
         }
 
         return [
+            simpleHeroHtml({
+                eyebrow: "ترم‌محور",
+                title: "آزمون‌ها بر اساس ترم",
+                meta: "ترم را انتخاب کن و از داخل واحدهای همان ترم وارد آزمون‌ها شو.",
+                actionsHtml: '<button class="exam-btn exam-btn--ghost" type="button" data-go-home="true">بازگشت به انتخاب مسیر</button>'
+            }),
             '<section class="catalog-simple-stack">',
             terms.map(function (term, index) {
                 return termCardHtml(term, index);
+            }).join(""),
+            "</section>"
+        ].join("");
+    }
+
+    function specialtyPreview(specialty) {
+        var titles = [];
+        (Array.isArray(specialty && specialty.references) ? specialty.references : []).forEach(function (reference) {
+            if (reference && reference.statusKey !== "empty") {
+                titles.push(String(reference.title || "").trim());
+            }
+        });
+
+        if (!titles.length) {
+            (Array.isArray(specialty && specialty.references) ? specialty.references : []).forEach(function (reference) {
+                if (titles.length < 2) {
+                    titles.push(String(reference.title || "").trim());
+                }
+            });
+        }
+
+        return titles.slice(0, 2);
+    }
+
+    function specialtyCardHtml(specialty, index) {
+        var stats = specialty && specialty.stats ? specialty.stats : {};
+        var referenceCount = Math.max(0, Number(stats.referenceCount || 0));
+        var availableCount = Math.max(0, Number(stats.availableReferenceCount || 0));
+        var preview = specialtyPreview(specialty);
+        var meta = compactText(
+            preview.length ? preview.join(" • ") : "",
+            availableCount > 0
+                ? "رفرنس‌های این تخصص را ببین و وارد آزمون‌های فعال شو."
+                : "رفرنس این تخصص ثبت شده اما هنوز آزمونی به آن وصل نشده است.",
+            88
+        );
+
+        return simpleRowHtml({
+            type: "button",
+            attrs: ' data-open-specialty="' + escapeHtml(specialty.key || "") + '"',
+            eyebrow: "تخصص",
+            status: availableCount > 0
+                ? formatValue(availableCount) + " رفرنس فعال"
+                : "بدون آزمون",
+            statusMuted: availableCount <= 0,
+            title: specialty.title || "",
+            meta: referenceCount > 0 ? meta : "هنوز رفرنسی برای این تخصص ثبت نشده است.",
+            rowClassName: accentClassName(index) + (availableCount <= 0 ? " is-empty" : ""),
+            visualLabel: formatValue(index + 1),
+            visualMuted: availableCount <= 0
+        });
+    }
+
+    function referenceSpecialtyGridHtml() {
+        var specialties = referenceSpecialties();
+        if (!specialties.length) {
+            return '<div class="exams-card exams-empty">فهرست رفرنس‌ها هنوز برای این بخش ثبت نشده است.</div>';
+        }
+
+        var payload = referenceCatalog();
+        return [
+            simpleHeroHtml({
+                eyebrow: "رفرنس‌محور",
+                title: (payload && payload.title) || "آزمون‌ها بر اساس رفرنس",
+                meta: (payload && payload.description) || "ابتدا تخصص را انتخاب کن و بعد وارد رفرنس‌ها شو.",
+                actionsHtml: '<button class="exam-btn exam-btn--ghost" type="button" data-go-home="true">بازگشت به انتخاب مسیر</button>'
+            }),
+            '<section class="catalog-simple-stack">',
+            specialties.map(function (specialty, index) {
+                return specialtyCardHtml(specialty, index);
             }).join(""),
             "</section>"
         ].join("");
@@ -494,7 +782,7 @@
             title: title,
             meta: description,
             actionsHtml: [
-                '<button class="exam-btn exam-btn--ghost" type="button" data-go-home="true">بازگشت به ترم‌ها</button>',
+                '<button class="exam-btn exam-btn--ghost" type="button" data-open-mode="term">بازگشت به ترم‌ها</button>',
                 unit
                     ? '<button class="exam-btn exam-btn--ghost" type="button" data-back-term="' + escapeHtml(term && term.number) + '">بازگشت به ' + escapeHtml(term && term.label || "") + "</button>"
                     : ""
@@ -585,6 +873,126 @@
         ].join("");
     }
 
+    function referenceMeta(reference) {
+        var collections = Array.isArray(reference && reference.collections) ? reference.collections : [];
+        var parts = [];
+        if (reference && reference.editionLabel) {
+            parts.push(reference.editionLabel);
+        }
+        if (reference && Number(reference.year || 0) > 0) {
+            parts.push("سال " + formatValue(reference.year));
+        }
+        if (collections.length > 1) {
+            parts.push(formatValue(collections.length) + " مجموعه آزمون");
+        } else if (collections.length === 1) {
+            parts.push("دارای آزمون فعال");
+        } else {
+            parts.push("آزمون فعال ندارد");
+        }
+        return joinMetaParts(parts);
+    }
+
+    function referenceActionConfig(reference) {
+        var entryMode = cleanUnitKey(reference && reference.entryMode);
+        if (entryMode === "direct") {
+            return {
+                type: "link",
+                href: appendCohortPath(reference.entryHref || "/exams/"),
+                actionLabel: reference.entryLabel || "مشاهده آزمون‌ها"
+            };
+        }
+        if (entryMode === "collections") {
+            return {
+                type: "button",
+                attrs: ' data-open-reference="' + escapeHtml(reference.key || "") + '"',
+                actionLabel: reference.entryLabel || "مشاهده مجموعه‌ها"
+            };
+        }
+        return {
+            type: "static",
+            actionLabel: "بدون آزمون"
+        };
+    }
+
+    function referenceCardHtml(reference, index) {
+        var action = referenceActionConfig(reference);
+        var isEmpty = cleanUnitKey(reference && reference.statusKey) === "empty";
+        var sourceTitle = String(reference && reference.sourceTitle || "").trim();
+        var sourceHtml = sourceTitle
+            ? '<span class="exams-reference-source" dir="ltr" lang="en">' + escapeHtml(sourceTitle) + "</span>"
+            : "";
+
+        return simpleRowHtml({
+            type: action.type,
+            attrs: action.attrs || "",
+            href: action.href || "",
+            eyebrow: "رفرنس",
+            status: isEmpty ? (reference.statusLabel || "بدون آزمون") : "",
+            statusMuted: isEmpty,
+            title: reference.title || "",
+            meta: referenceMeta(reference),
+            extraHtml: sourceHtml,
+            rowClassName: accentClassName(index) + (isEmpty ? " is-empty" : ""),
+            visualLabel: formatValue(index + 1),
+            visualMuted: isEmpty,
+            actionLabel: action.actionLabel || ""
+        });
+    }
+
+    function referenceListHeroHtml(specialty) {
+        var stats = specialty && specialty.stats ? specialty.stats : {};
+        var meta = joinMetaParts([
+            formatValue(stats.referenceCount || 0) + " رفرنس",
+            formatValue(stats.availableReferenceCount || 0) + " رفرنس دارای آزمون"
+        ]);
+
+        return simpleHeroHtml({
+            eyebrow: "رفرنس‌های تخصص",
+            title: specialty && specialty.title || "رفرنس‌ها",
+            meta: meta,
+            actionsHtml: [
+                '<button class="exam-btn exam-btn--ghost" type="button" data-open-mode="reference">بازگشت به تخصص‌ها</button>',
+                '<button class="exam-btn exam-btn--ghost" type="button" data-go-home="true">انتخاب مسیر دیگر</button>'
+            ].join("")
+        });
+    }
+
+    function referenceListHtml(specialty) {
+        var references = Array.isArray(specialty && specialty.references) ? specialty.references : [];
+        return [
+            referenceListHeroHtml(specialty),
+            references.length
+                ? '<section class="catalog-simple-stack">' + references.map(function (reference, index) {
+                    return referenceCardHtml(reference, index);
+                }).join("") + "</section>"
+                : '<div class="exams-card exams-empty">برای این تخصص هنوز رفرنسی ثبت نشده است.</div>'
+        ].join("");
+    }
+
+    function referenceCollectionsHtml(specialty, reference) {
+        var collections = Array.isArray(reference && reference.collections) ? reference.collections : [];
+        var sourceTitle = String(reference && reference.sourceTitle || "").trim();
+        return [
+            simpleHeroHtml({
+                eyebrow: specialty && specialty.title || "رفرنس",
+                title: reference && reference.title || "آزمون‌های رفرنس",
+                meta: referenceMeta(reference),
+                actionsHtml: [
+                    '<button class="exam-btn exam-btn--ghost" type="button" data-back-specialty="' + escapeHtml(specialty && specialty.key || "") + '">بازگشت به رفرنس‌ها</button>',
+                    '<button class="exam-btn exam-btn--ghost" type="button" data-open-mode="reference">بازگشت به تخصص‌ها</button>'
+                ].join(""),
+                secondaryHtml: sourceTitle
+                    ? '<span class="exams-reference-source exams-reference-source--hero" dir="ltr" lang="en">' + escapeHtml(sourceTitle) + "</span>"
+                    : ""
+            }),
+            collections.length
+                ? '<section class="catalog-simple-stack">' + collections.map(function (course, index) {
+                    return courseCardHtml(course, index);
+                }).join("") + "</section>"
+                : '<div class="exams-card exams-empty">برای این رفرنس هنوز آزمونی ثبت نشده است.</div>'
+        ].join("");
+    }
+
     function courseCardHtml(course, index) {
         var status = statusMeta(course);
         var action = courseAction(course);
@@ -651,7 +1059,31 @@
 
         normalizeViewState(false);
 
-        if (!state.termNumber) {
+        if (!state.mode) {
+            root.innerHTML = modeChooserHtml();
+            return;
+        }
+
+        if (state.mode === "reference") {
+            var specialty = selectedReferenceSpecialty();
+            if (!specialty) {
+                root.innerHTML = referenceSpecialtyGridHtml();
+                return;
+            }
+
+            if (state.referenceKey) {
+                var reference = selectedReference();
+                if (reference) {
+                    root.innerHTML = referenceCollectionsHtml(specialty, reference);
+                    return;
+                }
+            }
+
+            root.innerHTML = referenceListHtml(specialty);
+            return;
+        }
+
+        if (state.mode !== "term" || !state.termNumber) {
             root.innerHTML = termGridHtml();
             return;
         }
@@ -708,7 +1140,14 @@
         var homeButton = event.target.closest("[data-go-home]");
         if (homeButton) {
             event.preventDefault();
-            commitView(0, "", false);
+            commitHome(false);
+            return;
+        }
+
+        var modeButton = event.target.closest("[data-open-mode]");
+        if (modeButton) {
+            event.preventDefault();
+            commitMode(modeButton.getAttribute("data-open-mode"), false);
             return;
         }
 
@@ -730,6 +1169,27 @@
         if (unitButton) {
             event.preventDefault();
             commitView(state.termNumber, unitButton.getAttribute("data-open-unit"), false);
+            return;
+        }
+
+        var specialtyButton = event.target.closest("[data-open-specialty]");
+        if (specialtyButton) {
+            event.preventDefault();
+            commitReferenceView(specialtyButton.getAttribute("data-open-specialty"), "", false);
+            return;
+        }
+
+        var referenceButton = event.target.closest("[data-open-reference]");
+        if (referenceButton) {
+            event.preventDefault();
+            commitReferenceView(state.specialtyKey, referenceButton.getAttribute("data-open-reference"), false);
+            return;
+        }
+
+        var backSpecialtyButton = event.target.closest("[data-back-specialty]");
+        if (backSpecialtyButton) {
+            event.preventDefault();
+            commitReferenceView(backSpecialtyButton.getAttribute("data-back-specialty"), "", false);
         }
     });
 

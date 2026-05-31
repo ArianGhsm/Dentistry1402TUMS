@@ -11,6 +11,200 @@ function dent_dentistry_curriculum_category_titles(): array
     ];
 }
 
+function dent_dentistry_exam_reference_specialties(): array
+{
+    return [
+        [
+            'key' => 'endodontics',
+            'title' => 'اندودانتیکس',
+            'references' => [
+                [
+                    'key' => 'torabinejad-endodontics-principles-practice-2021',
+                    'title' => 'اصول و درمان اندودانتیکس',
+                    'sourceTitle' => 'Torabinejad M, Fouad AF, Shabahang S. Endodontics: Principles and Practice',
+                    'year' => 2021,
+                    'editionLabel' => 'ویرایش ششم',
+                    'courseSlugs' => ['endotorabinejad'],
+                ],
+            ],
+        ],
+        [
+            'key' => 'oral-medicine',
+            'title' => 'بیماری‌های دهان و فک و صورت',
+            'references' => [
+                [
+                    'key' => 'burkets-oral-medicine-2021',
+                    'title' => 'طب دهان برکت',
+                    'sourceTitle' => "Glick M. Burket's Oral Medicine",
+                    'year' => 2021,
+                    'editionLabel' => 'ویرایش سیزدهم',
+                    'courseSlugs' => [],
+                ],
+                [
+                    'key' => 'dental-management-medically-compromised-patient-2024',
+                    'title' => 'مدیریت دندان‌پزشکی بیمار دارای ملاحظات پزشکی',
+                    'sourceTitle' => 'Falace DA, Little J. Dental Management in the Medically Compromised Patient',
+                    'year' => 2024,
+                    'editionLabel' => 'ویرایش دهم',
+                    'courseSlugs' => [],
+                ],
+            ],
+        ],
+        [
+            'key' => 'periodontics',
+            'title' => 'پریودانتیکس',
+            'references' => [
+                [
+                    'key' => 'carranzas-clinical-periodontology-2023',
+                    'title' => 'پریودنتولوژی بالینی کارانزا',
+                    'sourceTitle' => "Carranza's Clinical Periodontology",
+                    'year' => 2023,
+                    'editionLabel' => 'ویرایش چهاردهم',
+                    'courseSlugs' => [],
+                ],
+            ],
+        ],
+        [
+            'key' => 'pediatric-dentistry',
+            'title' => 'دندان‌پزشکی کودکان',
+            'references' => [
+                [
+                    'key' => 'mcdonald-avery-dentistry-child-adolescent-2021',
+                    'title' => 'دندان‌پزشکی کودک و نوجوان مک‌دونالد و اوری',
+                    'sourceTitle' => "McDonald J. and Avery's Dentistry for the Child and Adolescent",
+                    'year' => 2021,
+                    'editionLabel' => 'ویرایش یازدهم',
+                    'courseSlugs' => [],
+                ],
+            ],
+        ],
+        [
+            'key' => 'oral-radiology',
+            'title' => 'رادیولوژی دهان و فک و صورت',
+            'references' => [
+                [
+                    'key' => 'white-pharoah-oral-radiology-2019',
+                    'title' => 'رادیولوژی دهان؛ اصول و تفسیر',
+                    'sourceTitle' => 'White SC, Pharoah MJ. Oral Radiology, Principles and Interpretation',
+                    'year' => 2019,
+                    'editionLabel' => 'ویرایش هشتم',
+                    'courseSlugs' => [],
+                ],
+            ],
+        ],
+        [
+            'key' => 'prosthodontics',
+            'title' => 'پروتزهای دندانی',
+            'references' => [
+                [
+                    'key' => 'shillingburg-fundamentals-fixed-prosthodontics-2012',
+                    'title' => 'مبانی پروتز ثابت شیلینگبرگ',
+                    'sourceTitle' => 'Schillingberg HT. Fundamentals of Fixed Prosthodontics',
+                    'year' => 2012,
+                    'editionLabel' => 'ویرایش چهارم',
+                    'courseSlugs' => [],
+                ],
+                [
+                    'key' => 'mccracken-removable-partial-prosthodontics-2016',
+                    'title' => 'پروتز پارسیل متحرک مک‌کراکن',
+                    'sourceTitle' => "Carr AB. McCracken's Removable Partial Prosthodontics",
+                    'year' => 2016,
+                    'editionLabel' => 'ویرایش سیزدهم',
+                    'courseSlugs' => [],
+                ],
+                [
+                    'key' => 'rosentiel-contemporary-fixed-prosthodontics-2023',
+                    'title' => 'پروتز ثابت معاصر روزنستیل',
+                    'sourceTitle' => 'Rosentiel S.F. Contemporary Fixed Prosthodontics',
+                    'year' => 2023,
+                    'editionLabel' => 'ویرایش ششم',
+                    'courseSlugs' => [],
+                ],
+                [
+                    'key' => 'zarb-prosthodontic-treatment-edentulous-patients-2013',
+                    'title' => 'درمان پروتز بیماران بی‌دندان زارب و هابکرک',
+                    'sourceTitle' => 'Zarb G, Hobkirk J. Prosthodontic Treatment for Edentulous Patients',
+                    'year' => 2013,
+                    'editionLabel' => 'ویرایش سیزدهم',
+                    'courseSlugs' => [],
+                ],
+            ],
+        ],
+        [
+            'key' => 'oral-surgery',
+            'title' => 'جراحی دهان و فک و صورت',
+            'references' => [
+                [
+                    'key' => 'hupp-contemporary-oral-maxillofacial-surgery-2019',
+                    'title' => 'جراحی دهان و فک و صورت معاصر',
+                    'sourceTitle' => 'Contemporary Oral and Maxillofacial Surgery, James Hupp',
+                    'year' => 2019,
+                    'editionLabel' => 'ویرایش هفتم',
+                    'courseSlugs' => [],
+                ],
+                [
+                    'key' => 'malamed-handbook-local-anesthesia-2019',
+                    'title' => 'راهنمای بی‌حسی موضعی مالامد',
+                    'sourceTitle' => 'Malamed S. Handbook of Local Anesthesia',
+                    'year' => 2019,
+                    'editionLabel' => 'ویرایش هفتم',
+                    'courseSlugs' => [],
+                ],
+            ],
+        ],
+        [
+            'key' => 'operative-dentistry',
+            'title' => 'دندان‌پزشکی ترمیمی',
+            'references' => [
+                [
+                    'key' => 'ritter-sturdevants-art-science-operative-dentistry-2018',
+                    'title' => 'هنر و علم دندان‌پزشکی ترمیمی استردوانت',
+                    'sourceTitle' => "Andre Ritter. Sturdevant's Art and Science of Operative Dentistry",
+                    'year' => 2018,
+                    'editionLabel' => 'ویرایش هفتم',
+                    'courseSlugs' => [],
+                ],
+                [
+                    'key' => 'summits-fundamentals-operative-dentistry-2013',
+                    'title' => 'مبانی دندان‌پزشکی ترمیمی سامیت',
+                    'sourceTitle' => "Summit's Fundamentals of Operative Dentistry: A Contemporary Approach",
+                    'year' => 2013,
+                    'editionLabel' => 'ویرایش چهارم',
+                    'courseSlugs' => [],
+                ],
+            ],
+        ],
+        [
+            'key' => 'oral-pathology',
+            'title' => 'آسیب‌شناسی دهان و فک و صورت',
+            'references' => [
+                [
+                    'key' => 'neville-oral-maxillofacial-pathology-2024',
+                    'title' => 'آسیب‌شناسی دهان و فک و صورت نویل',
+                    'sourceTitle' => 'Neville B, Damm DD. Oral and Maxillofacial Pathology',
+                    'year' => 2024,
+                    'editionLabel' => 'ویرایش پنجم',
+                    'courseSlugs' => [],
+                ],
+            ],
+        ],
+        [
+            'key' => 'orthodontics',
+            'title' => 'ارتودانتیکس',
+            'references' => [
+                [
+                    'key' => 'proffit-contemporary-orthodontics-2019',
+                    'title' => 'ارتودنسی معاصر پروفیت',
+                    'sourceTitle' => 'Contemporary Orthodontics. William R. Proffit',
+                    'year' => 2019,
+                    'editionLabel' => 'ویرایش ششم',
+                    'courseSlugs' => [],
+                ],
+            ],
+        ],
+    ];
+}
+
 function dent_dentistry_curriculum_terms(): array
 {
     static $terms = null;

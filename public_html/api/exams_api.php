@@ -352,6 +352,125 @@ function dent_exams_api_curriculum_payload(array $coursePayloadLookup): array
     ];
 }
 
+function dent_exams_api_reference_payload(array $reference, array $coursePayloadLookup): array
+{
+    $collections = [];
+    $seenCourseSlugs = [];
+
+    foreach ((is_array($reference['courseSlugs'] ?? null) ? $reference['courseSlugs'] : []) as $courseSlug) {
+        $cleanSlug = dent_exams_clean_course_slug((string) $courseSlug);
+        if ($cleanSlug === '' || isset($seenCourseSlugs[$cleanSlug])) {
+            continue;
+        }
+
+        $seenCourseSlugs[$cleanSlug] = true;
+        if (is_array($coursePayloadLookup[$cleanSlug] ?? null)) {
+            $collections[] = $coursePayloadLookup[$cleanSlug];
+        }
+    }
+
+    $collectionCount = count($collections);
+    $statusKey = $collectionCount <= 0
+        ? 'empty'
+        : ($collectionCount === 1 ? 'available' : 'multi');
+    $courseTitles = array_values(array_filter(array_map(static function (array $collection): string {
+        return trim((string) ($collection['title'] ?? ''));
+    }, $collections)));
+
+    return [
+        'key' => (string) ($reference['key'] ?? ''),
+        'title' => (string) ($reference['title'] ?? ''),
+        'sourceTitle' => (string) ($reference['sourceTitle'] ?? ''),
+        'year' => max(0, (int) ($reference['year'] ?? 0)),
+        'editionLabel' => (string) ($reference['editionLabel'] ?? ''),
+        'statusKey' => $statusKey,
+        'statusLabel' => $collectionCount <= 0
+            ? 'بدون آزمون'
+            : ($collectionCount === 1 ? 'دارای آزمون' : 'چند مجموعه'),
+        'entryMode' => $collectionCount <= 0
+            ? 'none'
+            : ($collectionCount === 1 ? 'direct' : 'collections'),
+        'entryLabel' => $collectionCount <= 0
+            ? 'هنوز فعال نشده'
+            : ($collectionCount === 1 ? 'مشاهده آزمون‌ها' : 'مشاهده مجموعه‌ها'),
+        'entryHref' => $collectionCount === 1
+            ? (string) ($collections[0]['path'] ?? '')
+            : '',
+        'collectionTitles' => $courseTitles,
+        'stats' => dent_exams_api_collection_stats_aggregate($collections),
+        'collections' => $collections,
+    ];
+}
+
+function dent_exams_api_reference_catalog_payload(array $coursePayloadLookup): array
+{
+    $specialties = [];
+    $catalogStats = [
+        'specialtyCount' => 0,
+        'referenceCount' => 0,
+        'availableReferenceCount' => 0,
+        'courseCount' => 0,
+        'examCount' => 0,
+        'questionCount' => 0,
+        'completedAssessmentCount' => 0,
+    ];
+
+    foreach (dent_dentistry_exam_reference_specialties() as $specialty) {
+        if (!is_array($specialty)) {
+            continue;
+        }
+
+        $references = [];
+        $specialtyStats = [
+            'referenceCount' => 0,
+            'availableReferenceCount' => 0,
+            'courseCount' => 0,
+            'examCount' => 0,
+            'questionCount' => 0,
+            'completedAssessmentCount' => 0,
+        ];
+
+        foreach ((is_array($specialty['references'] ?? null) ? $specialty['references'] : []) as $reference) {
+            if (!is_array($reference)) {
+                continue;
+            }
+
+            $referencePayload = dent_exams_api_reference_payload($reference, $coursePayloadLookup);
+            $referenceStats = is_array($referencePayload['stats'] ?? null) ? $referencePayload['stats'] : [];
+
+            $specialtyStats['referenceCount']++;
+            $specialtyStats['availableReferenceCount'] += $referencePayload['statusKey'] === 'empty' ? 0 : 1;
+            $specialtyStats['courseCount'] += max(0, (int) ($referenceStats['courseCount'] ?? 0));
+            $specialtyStats['examCount'] += max(0, (int) ($referenceStats['examCount'] ?? 0));
+            $specialtyStats['questionCount'] += max(0, (int) ($referenceStats['questionCount'] ?? 0));
+            $specialtyStats['completedAssessmentCount'] += max(0, (int) ($referenceStats['completedAssessmentCount'] ?? 0));
+            $references[] = $referencePayload;
+        }
+
+        $catalogStats['specialtyCount']++;
+        $catalogStats['referenceCount'] += $specialtyStats['referenceCount'];
+        $catalogStats['availableReferenceCount'] += $specialtyStats['availableReferenceCount'];
+        $catalogStats['courseCount'] += $specialtyStats['courseCount'];
+        $catalogStats['examCount'] += $specialtyStats['examCount'];
+        $catalogStats['questionCount'] += $specialtyStats['questionCount'];
+        $catalogStats['completedAssessmentCount'] += $specialtyStats['completedAssessmentCount'];
+
+        $specialties[] = [
+            'key' => (string) ($specialty['key'] ?? ''),
+            'title' => (string) ($specialty['title'] ?? ''),
+            'stats' => $specialtyStats,
+            'references' => $references,
+        ];
+    }
+
+    return [
+        'title' => 'آزمون‌ها بر اساس رفرنس',
+        'description' => 'ابتدا تخصص را انتخاب کن؛ بعد رفرنس‌های همان تخصص و آزمون‌های وصل‌شده به هر رفرنس را ببین.',
+        'stats' => $catalogStats,
+        'specialties' => $specialties,
+    ];
+}
+
 function dent_exams_api_course_stats(array $course): array
 {
     $examCount = 0;
@@ -1417,6 +1536,7 @@ if ($action === 'catalog') {
             'title' => (string) ($catalog['title'] ?? 'آزمون‌ها'),
             'description' => (string) ($catalog['description'] ?? ''),
             'curriculum' => dent_exams_api_curriculum_payload($coursePayloadLookup),
+            'referenceCatalog' => dent_exams_api_reference_catalog_payload($coursePayloadLookup),
             'courses' => $courses,
         ],
         'viewer' => $user ? dent_public_user($user) : null,
