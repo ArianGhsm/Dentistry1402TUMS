@@ -96,8 +96,8 @@ body.quiz-page [data-exam-app] * {
 }
 
 body.quiz-page .exam-main {
-    width: 100%;
-    max-width: none;
+    width: min(var(--exam-frame-max), 100%);
+    max-width: var(--exam-frame-max);
     margin: 0 auto;
     padding: clamp(0.55rem, 1.45vw, 0.95rem) clamp(0.5rem, 1.75vw, 0.95rem) calc(clamp(0.55rem, 1.45vw, 0.95rem) + var(--shell-nav-content-reserve));
     min-width: 0;

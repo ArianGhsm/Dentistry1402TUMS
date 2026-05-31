@@ -72,6 +72,44 @@
         return "/account/";
     }
 
+    function appendCohortPath(path) {
+        var target = String(path || "").trim();
+        var cohort = String(params.get("cohort") || "").trim();
+        if (!target || !cohort || /(?:\?|&)cohort=/.test(target)) {
+            return target;
+        }
+        return target + (target.indexOf("?") === -1 ? "?" : "&") + "cohort=" + encodeURIComponent(cohort);
+    }
+
+    function defaultBackHref() {
+        var path = String(window.location.pathname || "").trim();
+        if (!path) {
+            return appendCohortPath("/exams/");
+        }
+
+        var normalized = path.endsWith("/") ? path.slice(0, -1) : path;
+        var separatorIndex = normalized.lastIndexOf("/");
+        if (separatorIndex <= 0) {
+            return appendCohortPath("/exams/");
+        }
+
+        return appendCohortPath(normalized.slice(0, separatorIndex + 1));
+    }
+
+    function renderActions(primaryLabel, primaryHref, secondaryLabel, secondaryHref) {
+        var parts = [];
+        if (primaryLabel && primaryHref) {
+            parts.push('<a class="exam-btn exam-btn--primary" href="' + escapeHtml(primaryHref) + '">' + escapeHtml(primaryLabel) + "</a>");
+        }
+        if (secondaryLabel && secondaryHref) {
+            parts.push('<a class="exam-btn exam-btn--ghost" href="' + escapeHtml(secondaryHref) + '">' + escapeHtml(secondaryLabel) + "</a>");
+        }
+        if (!parts.length) {
+            return "";
+        }
+        return '<div class="exam-side-section exam-side-section--actions">' + parts.join("") + "</div>";
+    }
+
     function queryWithCohort() {
         var query = new URLSearchParams({
             action: "exam",
@@ -86,43 +124,70 @@
         return query;
     }
 
-    function renderShell(title, copy, extraHtml) {
+    function renderShell(options) {
+        var config = options || {};
+        var title = String(config.title || "").trim();
+        var copy = String(config.copy || "").trim();
+        var eyebrow = String(config.eyebrow || "").trim();
+        var extraHtml = String(config.extraHtml || "").trim();
+        var backHref = String(config.backHref || "").trim();
+        var backLabel = String(config.backLabel || "بازگشت").trim();
+
+        document.body.classList.add("quiz-stage-active");
         appRoot.innerHTML = [
             '<div class="background-overlay" aria-hidden="true"></div>',
-            '<main class="exam-main">',
-            '  <section class="exam-panel exam-empty-state">',
-            '    <h1>' + escapeHtml(title) + "</h1>",
-            '    <p>' + escapeHtml(copy) + "</p>",
-                 extraHtml || "",
-            "  </section>",
-            "</main>"
+            '<div class="exam-shell">',
+            '  <main class="exam-main">',
+            '    <section class="exam-stage-shell">',
+            '      <div class="exam-stage-scaler">',
+            '        <div class="exam-stage-canvas">',
+            '          <section class="exam-panel exam-stage exam-stage--message">',
+            backHref
+                ? '            <a class="back-btn exam-back-link" href="' + escapeHtml(backHref) + '"><span class="back-icon" aria-hidden="true">←</span><span>' + escapeHtml(backLabel) + "</span></a>"
+                : "",
+            '            <div class="exam-message-card">',
+            eyebrow ? '              <span class="exam-kicker">' + escapeHtml(eyebrow) + "</span>" : "",
+            '              <h1>' + escapeHtml(title) + "</h1>",
+            '              <p>' + escapeHtml(copy) + "</p>",
+            "            </div>",
+            extraHtml ? '            <div class="exam-empty-card">' + extraHtml + "</div>" : "",
+            "          </section>",
+            "        </div>",
+            "      </div>",
+            "    </section>",
+            "  </main>",
+            "</div>"
         ].join("");
     }
 
     function renderLoading() {
-        renderShell("در حال بارگذاری آزمون", "دسترسی و داده‌های آزمون در حال بررسی است.");
+        renderShell({
+            title: "در حال بارگذاری آزمون",
+            copy: "دسترسی و داده‌های آزمون در حال بررسی است.",
+            eyebrow: "در حال همگام‌سازی"
+        });
     }
 
     function renderFailure(message) {
-        renderShell("بارگذاری آزمون انجام نشد", message || "این آزمون فعلا در دسترس نیست.", '<a class="back-btn" href="/exams/">بازگشت به آزمون‌ها</a>');
+        renderShell({
+            title: "بارگذاری آزمون انجام نشد",
+            copy: message || "این آزمون فعلا در دسترس نیست.",
+            eyebrow: "خطا",
+            backHref: defaultBackHref(),
+            backLabel: "بازگشت",
+            extraHtml: renderActions("بازگشت به آزمون‌ها", appendCohortPath("/exams/"), "بازگشت به بخش قبلی", defaultBackHref())
+        });
     }
 
     function renderLogin() {
-        var guard = "";
-        if (window.Dent1402Auth && typeof window.Dent1402Auth.renderLoginRequiredGuard === "function") {
-            guard = window.Dent1402Auth.renderLoginRequiredGuard({
-                loginHref: loginHref(),
-                fallbackHref: "/exams/",
-                primaryClass: "back-btn",
-                secondaryClass: "back-btn"
-            });
-        } else {
-            guard = '<a class="back-btn" href="' + escapeHtml(loginHref()) + '">ورود به حساب</a>';
-        }
-        renderShell("نیاز به ورود", "برای مشاهده سوال‌های این آزمون باید ابتدا وارد حساب کاربری خود شوید.", guard);
-        if (window.Dent1402Auth && typeof window.Dent1402Auth.enhanceLoginGuards === "function") {
-            window.Dent1402Auth.enhanceLoginGuards(appRoot);
-        }
+        renderShell({
+            title: "نیاز به ورود",
+            copy: "برای مشاهده سوال‌های این آزمون باید ابتدا وارد حساب کاربری خود شوید.",
+            eyebrow: "ورود لازم است",
+            backHref: defaultBackHref(),
+            backLabel: "بازگشت",
+            extraHtml: renderActions("ورود به حساب", loginHref(), "بازگشت به بخش قبلی", defaultBackHref())
+        });
     }
 
     function renderPaywall(course) {
@@ -130,10 +195,22 @@
         var copy = course && course.paymentDescription
             ? course.paymentDescription
             : "برای مشاهده سوال‌های این درس، ابتدا باید دسترسی آن را فعال کنید.";
-        var button = course && course.paymentPath
-            ? '<a class="back-btn" href="' + escapeHtml(course.paymentPath) + '">ورود به صفحه پرداخت این درس</a>'
-            : '<a class="back-btn" href="/exams/">بازگشت به آزمون‌ها</a>';
-        renderShell(title, copy, button);
+        var paymentHref = course && course.paymentPath
+            ? appendCohortPath(course.paymentPath)
+            : appendCohortPath("/exams/");
+        renderShell({
+            title: title,
+            copy: copy,
+            eyebrow: "دسترسی این درس",
+            backHref: defaultBackHref(),
+            backLabel: "بازگشت",
+            extraHtml: renderActions(
+                course && course.paymentPath ? "ورود به صفحه پرداخت این درس" : "بازگشت به آزمون‌ها",
+                paymentHref,
+                "بازگشت به بخش قبلی",
+                defaultBackHref()
+            )
+        });
     }
 
     function mountExam(exam) {

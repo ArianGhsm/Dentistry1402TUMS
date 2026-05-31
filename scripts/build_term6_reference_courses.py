@@ -1265,7 +1265,10 @@ def quiz_shell_html(title: str, description: str, course_slug: str, exam_slug: s
             </section>
         </main>
     </noscript>
+    <script src="/assets/site/scripts/auth.js{version_suffix}"></script>
     <script src="/assets/site/scripts/exam-bootstrap.js{version_suffix}"></script>
+    <script src="/assets/site/scripts/pwa.js{version_suffix}"></script>
+    <script src="/assets/site/scripts/shell.js{version_suffix}"></script>
 </body>
 </html>
 """

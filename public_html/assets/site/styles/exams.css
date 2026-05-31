@@ -734,6 +734,9 @@ html[data-theme="light"] .exams-course-hero {
 .exams-course-shell,
 .exams-course-head,
 .exams-course-scroll,
+.exams-course-layout,
+.exams-course-primary,
+.exams-course-secondary,
 .exams-session-list {
     display: flex;
     flex-direction: column;
@@ -745,6 +748,19 @@ html[data-theme="light"] .exams-course-hero {
 .exams-course-scroll > *,
 .exams-session-list > * {
     flex: 0 0 auto;
+}
+
+.exams-course-layout.has-secondary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+}
+
+@media (min-width: 1040px) {
+    .exams-course-layout.has-secondary {
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+        gap: 0.82rem;
+    }
 }
 
 .exam-course-card,

@@ -920,6 +920,15 @@
         var filteredItems = items.filter(function (item) {
             return matchesQuery(item) && matchesFilter(item);
         });
+        var primaryHtml = filteredItems.length
+            ? '<section class="catalog-simple-stack">' + filteredItems.map(function (item, index) {
+                return sessionCardHtml(item, index);
+            }).join("") + "</section>"
+            : emptyStateHtml("برای این جستجو یا فیلتر، جلسه‌ای پیدا نشد.");
+        var secondaryHtml = [
+            paywallHtml(course),
+            ownerPanelHtml(course)
+        ].filter(Boolean).join("");
 
         root.innerHTML = [
             '<section class="exams-course-shell">',
@@ -928,13 +937,14 @@
             "  </div>",
             '  <div class="exams-course-scroll">',
                      toolbarHtml(items),
-            filteredItems.length
-                ? '<section class="catalog-simple-stack">' + filteredItems.map(function (item, index) {
-                    return sessionCardHtml(item, index);
-                }).join("") + "</section>"
-                : emptyStateHtml("برای این جستجو یا فیلتر، جلسه‌ای پیدا نشد."),
-                     paywallHtml(course),
-                     ownerPanelHtml(course),
+            '    <section class="exams-course-layout' + (secondaryHtml ? ' has-secondary' : '') + '">',
+            '      <div class="exams-course-primary">',
+                         primaryHtml,
+            "      </div>",
+            secondaryHtml
+                ? '      <aside class="exams-course-secondary">' + secondaryHtml + "</aside>"
+                : "",
+            "    </section>",
             "  </div>",
             "</section>"
         ].join("");

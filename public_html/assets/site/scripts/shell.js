@@ -188,6 +188,8 @@
         var isPending = isAuthTransitioning(status);
         var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
         var isProsthesis = isProsthesisState(state);
+        var path = currentPath();
+        var usePrimaryExamNav = !state.loggedIn && (path === "/exams/" || path.indexOf("/exams/") === 0);
         var chatBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.chatCount || 0)) : 0;
         var accountBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.notificationCount || 0)) : 0;
         var items = [];
@@ -199,11 +201,17 @@
                 active: ["/app/"],
                 exact: true
             });
+        } else if (usePrimaryExamNav) {
+            items.push({ href: "/", label: "خانه", icon: "home", active: ["/"], exact: true });
+            items.push({ href: "/chat/", label: "چت", icon: "chat", active: ["/chat/"] });
+            items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
         } else {
             items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
         }
 
-        if (!canUseChatState(state)) {
+        if (!state.loggedIn && usePrimaryExamNav) {
+            // Public exams pages keep the shared four-entry navigation.
+        } else if (!canUseChatState(state)) {
             if (state.loggedIn) {
                 items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
             }
