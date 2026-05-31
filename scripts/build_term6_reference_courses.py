@@ -1381,7 +1381,7 @@ def build_course_map(root: Path, desktop_root: Path) -> tuple[dict[str, dict], l
                     subcourses.append(existing_subcourse)
                     course_map[subcourse_slug] = existing_subcourse
                     summary_lines.append(
-                        f"{config.course_slug}/{spec.range_slug}: reused existing site data"
+                        f"WARNING: {config.course_slug}/{spec.range_slug}: source file missing; reused existing site data"
                     )
                     continue
                 raise FileNotFoundError(f"Missing source file: {source_path}")
