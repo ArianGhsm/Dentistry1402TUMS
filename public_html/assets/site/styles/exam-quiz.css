@@ -258,6 +258,67 @@ body.quiz-page .exam-stage-head__aside {
     flex: 0 0 auto;
 }
 
+body.quiz-page .exam-stage-head--session {
+    display: grid;
+    gap: 0.8rem;
+}
+
+body.quiz-page .exam-session-topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+body.quiz-page .exam-session-topbar__aside {
+    display: grid;
+    justify-items: end;
+    gap: 0.55rem;
+    flex: 1 1 260px;
+    min-width: min(100%, 18rem);
+}
+
+body.quiz-page .exam-session-hero {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: 0.58rem;
+    padding: clamp(0.9rem, 2vw, 1.2rem);
+    border: 1px solid var(--exam-line);
+    border-radius: 26px;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--exam-card-top) 88%, transparent), color-mix(in srgb, var(--exam-card-bottom) 96%, transparent)),
+        var(--exam-card-bg);
+    box-shadow:
+        0 22px 44px -34px color-mix(in srgb, var(--exam-shadow-ambient) 78%, transparent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    text-align: center;
+}
+
+body.quiz-page .exam-back-link--session {
+    justify-content: flex-start;
+    max-width: min(100%, 28rem);
+    min-height: 42px;
+    padding: 0.56rem 0.9rem;
+    border-radius: 18px;
+    white-space: normal;
+}
+
+body.quiz-page .exam-back-link--session .exam-label--full,
+body.quiz-page .exam-back-link--session .exam-label--compact {
+    white-space: normal;
+    text-wrap: balance;
+}
+
+body.quiz-page .exam-stage--session .exam-stage-title--compact,
+body.quiz-page .exam-stage--session .exam-stage-subtitle--compact,
+body.quiz-page .exam-stage--session .exam-meta-strip--session {
+    text-align: center;
+    justify-content: center;
+}
+
 body.quiz-page .exam-kicker,
 body.quiz-page .exam-meta-chip,
 body.quiz-page .exam-mini-stat,
@@ -1324,6 +1385,17 @@ body.quiz-page .exam-empty-card .exam-btn {
         flex-direction: column;
     }
 
+    body.quiz-page .exam-session-topbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.quiz-page .exam-session-topbar__aside {
+        justify-items: stretch;
+        min-width: 0;
+        width: 100%;
+    }
+
     body.quiz-page .exam-stage-head__aside {
         align-items: stretch;
         width: 100%;
@@ -1407,55 +1479,40 @@ body.quiz-page .exam-empty-card .exam-btn {
         font-size: 0.76rem;
     }
 
-    body.quiz-page .exam-stage--session .exam-stage-head {
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-start;
-        gap: 0.42rem;
-    }
-
-    body.quiz-page .exam-stage--session .exam-stage-head__main {
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    body.quiz-page .exam-stage--session .exam-stage-head__copy {
-        display: none;
-    }
-
-    body.quiz-page .exam-stage--session .exam-stage-head__aside {
-        width: 100%;
-        align-items: stretch;
-    }
-
     body.quiz-page .exam-stage--session .exam-mode-pills--compact {
         width: 100%;
         min-width: 0;
     }
 
-    body.quiz-page .exam-stage--session .exam-back-link {
-        max-width: 124px;
+    body.quiz-page .exam-stage--session .exam-session-hero {
+        gap: 0.5rem;
+        padding: 0.82rem 0.78rem 0.9rem;
+    }
+
+    body.quiz-page .exam-stage--session .exam-back-link--session {
+        width: 100%;
+        max-width: none;
         min-width: 0;
-        padding-inline: 0.56rem;
+        padding-inline: 0.72rem;
     }
 
-    body.quiz-page .exam-stage--session .exam-back-link .exam-label--compact {
-        white-space: nowrap;
-    }
-
-    body.quiz-page .exam-stage--session .exam-kicker,
-    body.quiz-page .exam-stage--session .exam-stage-subtitle--compact,
-    body.quiz-page .exam-stage--session .exam-meta-strip--session {
-        display: none;
+    body.quiz-page .exam-stage--session .exam-session-topbar__aside {
+        width: 100%;
+        justify-items: stretch;
     }
 
     body.quiz-page .exam-stage-title--compact {
         font-size: 1.04rem;
         line-height: 1.42;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
-        overflow: hidden;
+    }
+
+    body.quiz-page .exam-stage--session .exam-stage-subtitle--compact {
+        font-size: 0.84rem;
+        line-height: 1.8;
+    }
+
+    body.quiz-page .exam-stage--session .exam-meta-strip--session {
+        display: flex;
     }
 
     body.quiz-page .exam-mode-pills,

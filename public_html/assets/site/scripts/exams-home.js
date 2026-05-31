@@ -243,6 +243,10 @@
         return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR");
     }
 
+    function formatPlainValue(value) {
+        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR", { useGrouping: false });
+    }
+
     function compactText(value, fallback, maxLength) {
         var text = String(value || "").replace(/\s+/g, " ").trim();
         if (!text) {
@@ -880,7 +884,7 @@
             parts.push(reference.editionLabel);
         }
         if (reference && Number(reference.year || 0) > 0) {
-            parts.push("سال " + formatValue(reference.year));
+            parts.push("سال " + formatPlainValue(reference.year));
         }
         if (collections.length > 1) {
             parts.push(formatValue(collections.length) + " مجموعه آزمون");

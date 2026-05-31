@@ -48,6 +48,42 @@
     var homeKicker = document.querySelector(".home-kicker");
     var homeTitle = $("app-home-title");
     var homeServicesTitle = $("home-services-title");
+    var homeServiceGroups = Array.prototype.slice.call(document.querySelectorAll("[data-home-group]"));
+
+    function isExternalSiteUser(user) {
+        var role = String(user && user.role ? user.role : "").trim().toLowerCase();
+        var cohortKey = String(user && user.cohortKey ? user.cohortKey : "").trim().toLowerCase();
+        return role === "external_exam_user" || cohortKey === "site-users";
+    }
+
+    function setHomeGroupVisibility(user) {
+        var isOwner = !!(user && user.isOwner);
+        var isProsthesis = !!(user && user.isProsthesisStudent);
+        var isExternal = isExternalSiteUser(user);
+
+        homeServiceGroups.forEach(function (group) {
+            var key = String(group.getAttribute("data-home-group") || "").trim();
+            var visible = true;
+
+            if (key === "owner") {
+                visible = isOwner;
+            } else if (isExternal) {
+                visible = key === "university";
+            }
+
+            group.hidden = !visible;
+        });
+
+        document.querySelectorAll("[data-owner-only]").forEach(function (node) {
+            node.hidden = !isOwner;
+        });
+        document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
+            node.hidden = isProsthesis || isExternal;
+        });
+        document.querySelectorAll("[data-prosthesis-only]").forEach(function (node) {
+            node.hidden = !isProsthesis;
+        });
+    }
 
     function applyBranding(isProsthesis) {
         var brand = isProsthesis ? "ورودی ۱۴۰۲ پروتز تهران" : "ورودی ۱۴۰۲ دندانپزشکی تهران";
@@ -289,15 +325,7 @@
     function setIdentityLoggedOut(errorText) {
         applyBranding(false);
         resetHomeFormsMeta();
-        document.querySelectorAll("[data-owner-only]").forEach(function (node) {
-            node.hidden = true;
-        });
-        document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
-            node.hidden = false;
-        });
-        document.querySelectorAll("[data-prosthesis-only]").forEach(function (node) {
-            node.hidden = true;
-        });
+        setHomeGroupVisibility(null);
         panel.dataset.authState = errorText ? "unauthorized" : "logged-out";
         status.textContent = "\u0648\u0631\u0648\u062f \u0644\u0627\u0632\u0645 \u0627\u0633\u062a";
         title.textContent = "\u062d\u0633\u0627\u0628 \u0633\u0631\u0627\u0633\u0631\u06cc\u200c\u0627\u062a \u0631\u0627 \u0641\u0639\u0627\u0644 \u06a9\u0646.";
@@ -313,15 +341,7 @@
     function setIdentityBoot(message) {
         applyBranding(false);
         resetHomeFormsMeta();
-        document.querySelectorAll("[data-owner-only]").forEach(function (node) {
-            node.hidden = true;
-        });
-        document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
-            node.hidden = false;
-        });
-        document.querySelectorAll("[data-prosthesis-only]").forEach(function (node) {
-            node.hidden = true;
-        });
+        setHomeGroupVisibility(null);
         panel.dataset.authState = "session-restoring";
         status.textContent = "\u062f\u0631 \u062d\u0627\u0644 \u0628\u0627\u0632\u06cc\u0627\u0628\u06cc";
         title.textContent = "\u0646\u0634\u0633\u062a \u062d\u0633\u0627\u0628 \u062f\u0631 \u062d\u0627\u0644 \u0622\u0645\u0627\u062f\u0647\u200c\u0633\u0627\u0632\u06cc \u0627\u0633\u062a.";
@@ -337,32 +357,33 @@
     function setIdentityLoggedIn(user) {
         var isOwner = !!(user && user.isOwner);
         var isProsthesis = !!(user && user.isProsthesisStudent);
+        var isExternal = isExternalSiteUser(user);
         applyBranding(isProsthesis);
-        document.querySelectorAll("[data-owner-only]").forEach(function (node) {
-            node.hidden = !isOwner;
-        });
-        document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
-            node.hidden = isProsthesis;
-        });
-        document.querySelectorAll("[data-prosthesis-only]").forEach(function (node) {
-            node.hidden = !isProsthesis;
-        });
+        setHomeGroupVisibility(user);
         panel.dataset.authState = "logged-in";
         status.textContent = isOwner ? "\u0645\u0627\u0644\u06a9 \u0633\u0627\u0645\u0627\u0646\u0647" : (user.roleLabel || "\u062d\u0633\u0627\u0628 \u0641\u0639\u0627\u0644");
         title.textContent = (user.name || "\u062f\u0627\u0646\u0634\u062c\u0648") + "\u060c \u062e\u0648\u0634 \u0628\u0631\u06af\u0634\u062a\u06cc.";
         desc.textContent = isOwner
             ? "\u062f\u0633\u062a\u0631\u0633\u06cc \u0645\u062f\u06cc\u0631\u06cc\u062a\u06cc \u0641\u0639\u0627\u0644 \u0627\u0633\u062a \u0648 \u0627\u0632 \u0647\u0645\u06cc\u0646\u200c\u062c\u0627 \u0645\u06cc\u200c\u062a\u0648\u0627\u0646\u06cc \u0686\u062a\u060c \u0646\u0645\u0627\u06cc\u0646\u062f\u0647\u200c\u0647\u0627 \u0648 \u062d\u0633\u0627\u0628\u200c\u0647\u0627 \u0631\u0627 \u0645\u062f\u06cc\u0631\u06cc\u062a \u06a9\u0646\u06cc."
-            : (isProsthesis
+            : (isExternal
+                ? "\u0627\u06cc\u0646 \u062d\u0633\u0627\u0628 \u0645\u0648\u0628\u0627\u06cc\u0644\u06cc \u0628\u0631\u0627\u06cc \u062f\u0633\u062a\u0631\u0633\u06cc \u0633\u0631\u06cc\u0639 \u0628\u0647 \u0644\u06cc\u0646\u06a9\u200c\u0647\u0627 \u0648 \u0633\u0627\u06cc\u062a\u200c\u0647\u0627\u06cc \u062f\u0627\u0646\u0634\u06af\u0627\u0647 \u0641\u0639\u0627\u0644 \u0634\u062f\u0647 \u0627\u0633\u062a."
+                : (isProsthesis
                 ? "\u0647\u0648\u06cc\u062a\u062a \u062f\u0631 \u0686\u062a\u060c \u0641\u0631\u0645\u200c\u0647\u0627\u060c \u0646\u0645\u0631\u0627\u062a \u0648 \u0645\u0646\u0627\u0628\u0639 \u067e\u0631\u0648\u062a\u0632 \u0628\u0647\u200c\u0635\u0648\u0631\u062a \u062c\u062f\u0627 \u0646\u06af\u0647\u200c\u062f\u0627\u0631\u06cc \u0645\u06cc\u200c\u0634\u0648\u062f."
-                : "\u0647\u0648\u06cc\u062a\u062a \u062f\u0631 \u0686\u062a\u060c \u0646\u0645\u0631\u0627\u062a \u0648 \u062d\u0633\u0627\u0628 \u06a9\u0627\u0631\u0628\u0631\u06cc \u0647\u0645\u06af\u0627\u0645 \u0627\u0633\u062a \u0648 \u0644\u0627\u0632\u0645 \u0646\u06cc\u0633\u062a \u0647\u0631 \u0635\u0641\u062d\u0647 \u062c\u062f\u0627\u06af\u0627\u0646\u0647 \u0648\u0627\u0631\u062f \u0634\u0648\u06cc.");
-        meta.textContent = "\u0634\u0645\u0627\u0631\u0647 \u062f\u0627\u0646\u0634\u062c\u0648\u06cc\u06cc: " + (user.studentNumber || "-");
+                : "\u0647\u0648\u06cc\u062a\u062a \u062f\u0631 \u0686\u062a\u060c \u0646\u0645\u0631\u0627\u062a \u0648 \u062d\u0633\u0627\u0628 \u06a9\u0627\u0631\u0628\u0631\u06cc \u0647\u0645\u06af\u0627\u0645 \u0627\u0633\u062a \u0648 \u0644\u0627\u0632\u0645 \u0646\u06cc\u0633\u062a \u0647\u0631 \u0635\u0641\u062d\u0647 \u062c\u062f\u0627\u06af\u0627\u0646\u0647 \u0648\u0627\u0631\u062f \u0634\u0648\u06cc."));
+        meta.textContent = isExternal
+            ? "\u0648\u0631\u0648\u062f \u0648 \u062b\u0628\u062a\u200c\u0646\u0627\u0645 \u0627\u06cc\u0646 \u062d\u0633\u0627\u0628 \u0628\u0627 \u0634\u0645\u0627\u0631\u0647 \u0645\u0648\u0628\u0627\u06cc\u0644 \u0627\u0646\u062c\u0627\u0645 \u0634\u062f\u0647 \u0627\u0633\u062a."
+            : "\u0634\u0645\u0627\u0631\u0647 \u062f\u0627\u0646\u0634\u062c\u0648\u06cc\u06cc: " + (user.studentNumber || "-");
         ownerBadge.hidden = !isOwner;
         primaryAction.textContent = isOwner ? "\u067e\u0646\u0644 \u062d\u0633\u0627\u0628 \u0648 \u0645\u062f\u06cc\u0631\u06cc\u062a" : "\u062d\u0633\u0627\u0628 \u06a9\u0627\u0631\u0628\u0631\u06cc";
         primaryAction.href = "/account/";
-        secondaryAction.textContent = isProsthesis ? "\u0646\u0645\u0631\u0627\u062a \u067e\u0631\u0648\u062a\u0632" : "\u0646\u0645\u0631\u0627\u062a \u0645\u0646";
-        secondaryAction.href = isProsthesis && authApi && typeof authApi.appendCohortQuery === "function"
-            ? authApi.appendCohortQuery("/grades/", "prosthesis-1402")
-            : "/grades/";
+        secondaryAction.textContent = isExternal
+            ? "\u0633\u0627\u06cc\u062a\u200c\u0647\u0627\u06cc \u062f\u0627\u0646\u0634\u06af\u0627\u0647"
+            : (isProsthesis ? "\u0646\u0645\u0631\u0627\u062a \u067e\u0631\u0648\u062a\u0632" : "\u0646\u0645\u0631\u0627\u062a \u0645\u0646");
+        secondaryAction.href = isExternal
+            ? "#home-services"
+            : (isProsthesis && authApi && typeof authApi.appendCohortQuery === "function"
+                ? authApi.appendCohortQuery("/grades/", "prosthesis-1402")
+                : "/grades/");
     }
 
     function navidSetState(state) {

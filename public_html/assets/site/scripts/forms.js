@@ -26,6 +26,7 @@
     var formsCount = $("forms-count");
     var formsOpenCount = $("forms-open-count");
     var formsResponseCount = $("forms-response-count");
+    var formsResponseMetric = formsResponseCount ? formsResponseCount.closest(".forms-metric") : null;
     var tabs = Array.prototype.slice.call(document.querySelectorAll("[data-forms-tab]"));
     var panels = {
         builder: $("forms-builder-panel"),
@@ -1065,13 +1066,29 @@
         var total = state.forms.length;
         var open = 0;
         var responses = 0;
+        var showManageMetrics = state.forms.some(function (form) {
+            return !!(form && form.permissions && form.permissions.canManage);
+        });
         state.forms.forEach(function (form) {
             if (form.status === "open") open++;
-            responses += Number(form.responseCount || 0);
+            if (form && form.permissions && form.permissions.canManage) {
+                responses += Number(form.responseCount || 0);
+            }
         });
         formsCount.textContent = total.toLocaleString("fa-IR");
         formsOpenCount.textContent = open.toLocaleString("fa-IR");
         formsResponseCount.textContent = responses.toLocaleString("fa-IR");
+        if (formsResponseMetric) {
+            formsResponseMetric.hidden = !showManageMetrics;
+        }
+        tabs.forEach(function (tab) {
+            if (tab.getAttribute("data-forms-tab") === "responses") {
+                tab.hidden = !showManageMetrics;
+            }
+        });
+        if (!showManageMetrics && panels.responses && !panels.responses.hidden) {
+            setTab("list");
+        }
     }
 
     function copyText(value) {
@@ -1145,12 +1162,17 @@
             copy.appendChild(title);
             var meta = document.createElement("p");
             meta.className = "forms-item__meta";
-            meta.textContent = [
-                String(form.kindLabel || "فرم"),
-                String(form.statusLabel || "نامشخص"),
-                "پاسخ‌ها: " + Number(form.responseCount || 0).toLocaleString("fa-IR"),
-                "دسترسی: " + String(form.settings && form.settings.audienceLabel ? form.settings.audienceLabel : "")
-            ].filter(Boolean).join(" • ");
+            meta.textContent = (form.permissions && form.permissions.canManage
+                ? [
+                    String(form.kindLabel || "فرم"),
+                    String(form.statusLabel || "نامشخص"),
+                    "پاسخ‌ها: " + Number(form.responseCount || 0).toLocaleString("fa-IR"),
+                    "دسترسی: " + String(form.settings && form.settings.audienceLabel ? form.settings.audienceLabel : "")
+                ]
+                : [
+                    String(form.kindLabel || "فرم")
+                ]
+            ).filter(Boolean).join(" • ");
             copy.appendChild(meta);
             head.appendChild(copy);
             var chip = document.createElement("span");

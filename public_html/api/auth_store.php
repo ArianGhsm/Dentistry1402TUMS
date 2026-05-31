@@ -18,6 +18,11 @@ function dent_prosthesis_legacy_cohort_key(): string
     return 'prosthesis-1402';
 }
 
+function dent_external_site_users_cohort_key(): string
+{
+    return 'site-users';
+}
+
 function dent_clean_cohort_key(?string $value): string
 {
     $value = dent_force_utf8((string) $value);
@@ -27,6 +32,9 @@ function dent_clean_cohort_key(?string $value): string
     }
     if ($value === 'prosthesis' || $value === 'prosthesis1402') {
         return dent_prosthesis_legacy_cohort_key();
+    }
+    if ($value === 'siteusers' || $value === 'site-users' || $value === 'external-users' || $value === 'external') {
+        return dent_external_site_users_cohort_key();
     }
 
     $value = preg_replace('/[^a-z0-9\-_]+/u', '-', $value) ?? '';
@@ -90,6 +98,20 @@ function dent_default_cohort_catalog(): array
             'allowRepresentativeManagement' => true,
             'supportsRotationGroups' => false,
             'sortOrder' => 130,
+            'isSeeded' => true,
+            'isIsolated' => true,
+        ],
+        dent_external_site_users_cohort_key() => [
+            'title' => 'کاربران عادی سایت',
+            'shortTitle' => 'کاربران عادی',
+            'description' => 'کاربران عمومی سایت که با شماره موبایل ثبت‌نام می‌کنند و به آزمون‌ها و پرداخت دسترسی دارند.',
+            'productType' => 'site-users',
+            'year' => '',
+            'siteVariant' => 'main',
+            'notesMode' => 'none',
+            'allowRepresentativeManagement' => false,
+            'supportsRotationGroups' => false,
+            'sortOrder' => 140,
             'isSeeded' => true,
             'isIsolated' => true,
         ],
@@ -1153,6 +1175,10 @@ function dent_default_user_cohort_key(string $studentNumber, string $role): stri
         return dent_prosthesis_legacy_cohort_key();
     }
 
+    if (dent_user_is_external_exam_role($role)) {
+        return dent_external_site_users_cohort_key();
+    }
+
     return dent_primary_cohort_key();
 }
 
@@ -1185,6 +1211,9 @@ function dent_user_cohort_key(array $user): string
     $cohortKey = dent_clean_cohort_key((string) ($user['cohortKey'] ?? ''));
     if ($cohortKey === '') {
         $cohortKey = dent_default_user_cohort_key($studentNumber, $role);
+    }
+    if (dent_user_is_external_exam_role($role)) {
+        $cohortKey = dent_external_site_users_cohort_key();
     }
 
     return $cohortKey;
@@ -1805,7 +1834,7 @@ function dent_public_user(array $user): array
         'disNumber' => dent_dis_number_for_student((string) ($user['studentNumber'] ?? '')),
         'name' => (string) ($user['name'] ?? ''),
         'role' => $role,
-        'roleLabel' => dent_user_is_external_exam_role($role) ? 'کاربر آزمون' : dent_role_label($role),
+        'roleLabel' => dent_user_is_external_exam_role($role) ? 'کاربر عادی سایت' : dent_role_label($role),
         'cohortKey' => $cohortKey,
         'cohort' => $cohort === null ? null : [
             'key' => (string) ($cohort['key'] ?? ''),
@@ -2963,7 +2992,7 @@ function dent_phone_username_from_normalized(string $phoneNumber): string
     return '0' . substr($normalized, 3);
 }
 
-function dent_validate_external_signup_input(string $firstName, string $lastName, string $phoneNumber, string $password): array
+function dent_validate_external_signup_input(string $firstName, string $lastName, string $phoneNumber, string $password, string $passwordConfirm = ''): array
 {
     $firstName = dent_clean_text($firstName, 60);
     $lastName = dent_clean_text($lastName, 80);
@@ -2978,6 +3007,12 @@ function dent_validate_external_signup_input(string $firstName, string $lastName
     }
     if (dent_utf8_strlen($password) < 6) {
         dent_error('رمز عبور باید حداقل ۶ کاراکتر باشد.', 422);
+    }
+    if ($passwordConfirm === '') {
+        dent_error('تکرار رمز عبور را وارد کن.', 422);
+    }
+    if ($passwordConfirm !== '' && !hash_equals($password, dent_normalize_digits($passwordConfirm))) {
+        dent_error('تکرار رمز عبور با رمز عبور یکسان نیست.', 422);
     }
 
     $username = dent_phone_username_from_normalized($normalizedPhone);
@@ -3863,9 +3898,9 @@ function dent_request_phone_enrollment_otp(array $user, string $phoneNumber): ar
     return $result;
 }
 
-function dent_request_external_signup_otp(string $firstName, string $lastName, string $phoneNumber, string $password): array
+function dent_request_external_signup_otp(string $firstName, string $lastName, string $phoneNumber, string $password, string $passwordConfirm = ''): array
 {
-    $input = dent_validate_external_signup_input($firstName, $lastName, $phoneNumber, $password);
+    $input = dent_validate_external_signup_input($firstName, $lastName, $phoneNumber, $password, $passwordConfirm);
     $result = dent_issue_otp_for_phone('external-signup', (string) $input['phoneNumber'], (string) $input['username']);
     if (!(bool) ($result['success'] ?? false)) {
         dent_error((string) ($result['error'] ?? 'ارسال کد تایید انجام نشد.'), (int) ($result['statusCode'] ?? 422), $result);
@@ -3877,9 +3912,9 @@ function dent_request_external_signup_otp(string $firstName, string $lastName, s
     ]);
 }
 
-function dent_verify_external_signup_otp(string $firstName, string $lastName, string $phoneNumber, string $password, string $otpCode): array
+function dent_verify_external_signup_otp(string $firstName, string $lastName, string $phoneNumber, string $password, string $passwordConfirm, string $otpCode): array
 {
-    $input = dent_validate_external_signup_input($firstName, $lastName, $phoneNumber, $password);
+    $input = dent_validate_external_signup_input($firstName, $lastName, $phoneNumber, $password, $passwordConfirm);
     $verify = dent_verify_otp_for_phone('external-signup', (string) $input['phoneNumber'], $otpCode, (string) $input['username']);
     if (!(bool) ($verify['success'] ?? false)) {
         dent_error((string) ($verify['error'] ?? 'تایید شماره موبایل انجام نشد.'), (int) ($verify['statusCode'] ?? 422), $verify);
@@ -3891,7 +3926,7 @@ function dent_verify_external_signup_otp(string $firstName, string $lastName, st
         'name' => (string) $input['name'],
         'passwordHash' => dent_hash_password((string) $input['password']),
         'role' => 'external_exam_user',
-        'cohortKey' => dent_primary_cohort_key(),
+        'cohortKey' => dent_external_site_users_cohort_key(),
         'profile' => dent_default_profile(),
         'phoneNumber' => (string) $input['phoneNumber'],
         'phoneVerifiedAt' => $now,

@@ -1049,6 +1049,45 @@ function forms_can_manage(array $form, ?array $user): bool
     return forms_is_representative($user) && forms_parse_bool($settings['allowRepresentativeManage'] ?? false, false);
 }
 
+function forms_user_can_view_inactive(array $form, ?array $user): bool
+{
+    if ($user === null || !forms_form_matches_active_cohort($form)) {
+        return false;
+    }
+
+    return (string) ($user['role'] ?? '') === 'owner' || !empty($user['isOwner']);
+}
+
+function forms_user_can_list_form(array $form, ?array $user): bool
+{
+    if (!forms_form_matches_active_cohort($form)) {
+        return false;
+    }
+
+    if (forms_status($form) !== 'open' && !forms_user_can_view_inactive($form, $user)) {
+        return false;
+    }
+
+    return forms_can_create($user) || forms_can_manage($form, $user) || forms_viewer_can_access($form, $user);
+}
+
+function forms_user_can_open_form(array $form, ?array $user): bool
+{
+    if (!forms_form_matches_active_cohort($form)) {
+        return false;
+    }
+
+    if (forms_user_can_view_inactive($form, $user)) {
+        return true;
+    }
+
+    if (forms_status($form) !== 'open') {
+        return false;
+    }
+
+    return forms_can_manage($form, $user) || forms_viewer_can_access($form, $user);
+}
+
 function forms_can_delete(array $form, ?array $user): bool
 {
     if ($user === null) {
@@ -1790,6 +1829,7 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
     $settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
     $audience = forms_normalize_audience_for_cohort((string) ($settings['audience'] ?? 'link'), forms_form_cohort($form));
     $status = forms_status($form);
+    $canManage = forms_can_manage($form, $viewer);
     $responses = forms_responses_for_form($store, $formId);
     $identityKey = $identityKeyOverride !== null ? $identityKeyOverride : ($viewer !== null ? forms_identity_key($viewer, []) : null);
     $alreadySubmitted = $identityKey !== null && $identityKey !== ''
@@ -1828,6 +1868,27 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
         }
     }
 
+    $settingsPayload = [
+        'allowGuest' => forms_parse_bool($settings['allowGuest'] ?? false, false),
+        'collectGuestName' => forms_parse_bool($settings['collectGuestName'] ?? true, true),
+        'collectGuestPhone' => forms_parse_bool($settings['collectGuestPhone'] ?? false, false),
+        'limitOneResponse' => forms_parse_bool($settings['limitOneResponse'] ?? true, true),
+        'allowEditResponse' => forms_parse_bool($settings['allowEditResponse'] ?? false, false),
+        'allowCreatorSubmit' => forms_parse_bool($settings['allowCreatorSubmit'] ?? true, true),
+        'resultVisibility' => forms_clean_result_visibility((string) ($settings['resultVisibility'] ?? 'after-submit')),
+        'startAt' => forms_parse_timestamp($settings['startAt'] ?? null),
+        'endAt' => forms_parse_timestamp($settings['endAt'] ?? null),
+    ];
+    if ($canManage) {
+        $settingsPayload['audience'] = $audience;
+        $settingsPayload['audienceLabel'] = forms_audience_label($audience);
+        $settingsPayload['allowedStudents'] = forms_normalize_student_numbers($settings['allowedStudents'] ?? []);
+        $settingsPayload['allowRepresentativeManage'] = forms_parse_bool($settings['allowRepresentativeManage'] ?? false, false);
+        $settingsPayload['managerStudentNumbers'] = forms_normalize_student_numbers($settings['managerStudentNumbers'] ?? []);
+        $settingsPayload['anonymousResponses'] = forms_parse_bool($settings['anonymousResponses'] ?? false, false);
+        $settingsPayload['export'] = forms_normalize_export_settings($settings['export'] ?? []);
+    }
+
     return [
         'id' => $formId,
         'cohort' => forms_form_cohort($form),
@@ -1842,29 +1903,12 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
         'updatedAt' => (int) ($form['updatedAt'] ?? 0),
         'sharePath' => forms_share_path($formId, $form),
         'shareUrl' => forms_absolute_url(forms_share_path($formId, $form)),
-        'responseCount' => count($responses),
+        'responseCount' => $canManage ? count($responses) : null,
         'fields' => $fieldsPayload,
         'paymentGateways' => $includeFields && forms_has_payment_fields($form) ? forms_payment_gateways_payload() : null,
-        'settings' => [
-            'audience' => $audience,
-            'audienceLabel' => forms_audience_label($audience),
-            'allowedStudents' => forms_normalize_student_numbers($settings['allowedStudents'] ?? []),
-            'allowRepresentativeManage' => forms_parse_bool($settings['allowRepresentativeManage'] ?? false, false),
-            'managerStudentNumbers' => forms_normalize_student_numbers($settings['managerStudentNumbers'] ?? []),
-            'allowGuest' => forms_parse_bool($settings['allowGuest'] ?? false, false),
-            'collectGuestName' => forms_parse_bool($settings['collectGuestName'] ?? true, true),
-            'collectGuestPhone' => forms_parse_bool($settings['collectGuestPhone'] ?? false, false),
-            'limitOneResponse' => forms_parse_bool($settings['limitOneResponse'] ?? true, true),
-            'allowEditResponse' => forms_parse_bool($settings['allowEditResponse'] ?? false, false),
-            'allowCreatorSubmit' => forms_parse_bool($settings['allowCreatorSubmit'] ?? true, true),
-            'anonymousResponses' => forms_parse_bool($settings['anonymousResponses'] ?? false, false),
-            'export' => forms_normalize_export_settings($settings['export'] ?? []),
-            'resultVisibility' => forms_clean_result_visibility((string) ($settings['resultVisibility'] ?? 'after-submit')),
-            'startAt' => forms_parse_timestamp($settings['startAt'] ?? null),
-            'endAt' => forms_parse_timestamp($settings['endAt'] ?? null),
-        ],
+        'settings' => $settingsPayload,
         'permissions' => [
-            'canManage' => forms_can_manage($form, $viewer),
+            'canManage' => $canManage,
             'canDelete' => forms_can_delete($form, $viewer),
             'canCreate' => forms_can_create($viewer),
             'canSubmit' => $canSubmit,
@@ -2575,7 +2619,7 @@ if ($action === 'list') {
             continue;
         }
         $canManage = forms_can_manage($form, $user);
-        if (forms_can_create($user) || $canManage || forms_viewer_can_access($form, $user)) {
+        if (forms_user_can_list_form($form, $user)) {
             $forms[] = forms_form_payload($store, $form, $user, $canManage);
         }
     }
@@ -2710,7 +2754,7 @@ if ($action === 'get') {
         dent_error('فرم پیدا نشد.', 404);
     }
     $user = forms_current_site_user();
-    if (!forms_viewer_can_access($form, $user)) {
+    if (!forms_user_can_open_form($form, $user)) {
         if ($user === null && !forms_guest_allowed($form)) {
             dent_error('برای شرکت در این فرم باید وارد حساب شوید.', 401, ['loggedOut' => true, 'requiresLogin' => true]);
         }

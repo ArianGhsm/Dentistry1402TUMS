@@ -30,8 +30,30 @@ final class DentExamsApiException extends RuntimeException
     }
 }
 
-function dent_exams_api_apply_runtime_exam_override(array $exam): array
+function dent_exams_api_apply_runtime_exam_override(
+    array $exam,
+    string $catalogKey = '',
+    string $courseSlug = '',
+    bool $hydrateQuestions = false
+): array
 {
+    if (
+        $hydrateQuestions
+        && !is_array($exam['questions'] ?? null)
+        && $catalogKey !== ''
+        && $courseSlug !== ''
+        && function_exists('dent_exams_term6_reference_runtime_exam_payload')
+    ) {
+        $runtimeExam = dent_exams_term6_reference_runtime_exam_payload(
+            $catalogKey,
+            $courseSlug,
+            (string) ($exam['slug'] ?? '')
+        );
+        if (is_array($runtimeExam)) {
+            $exam = array_replace($exam, $runtimeExam);
+        }
+    }
+
     $exam['questionCount'] = dent_exams_api_resolve_exam_question_count($exam);
     return $exam;
 }
@@ -45,7 +67,12 @@ function dent_exams_api_apply_runtime_course_override(array $course): array
     $nextExams = [];
     foreach ($course['exams'] as $exam) {
         $nextExams[] = is_array($exam)
-            ? dent_exams_api_apply_runtime_exam_override($exam)
+            ? dent_exams_api_apply_runtime_exam_override(
+                $exam,
+                '',
+                (string) ($course['slug'] ?? ''),
+                false
+            )
             : $exam;
     }
     $course['exams'] = $nextExams;
@@ -1846,7 +1873,12 @@ if ($action === 'exam') {
 
     try {
         $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
-        $exam = dent_exams_api_apply_runtime_exam_override(dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
+        $exam = dent_exams_api_apply_runtime_exam_override(
+            dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug),
+            $catalogKey,
+            $courseSlug,
+            true
+        );
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
     }
@@ -1900,7 +1932,12 @@ if ($action === 'saveFlags') {
 
     try {
         $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
-        $exam = dent_exams_api_apply_runtime_exam_override(dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
+        $exam = dent_exams_api_apply_runtime_exam_override(
+            dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug),
+            $catalogKey,
+            $courseSlug,
+            true
+        );
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
     }
@@ -1963,7 +2000,12 @@ if ($action === 'touchExamActivity') {
 
     try {
         $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
-        dent_exams_api_apply_runtime_exam_override(dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
+        dent_exams_api_apply_runtime_exam_override(
+            dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug),
+            $catalogKey,
+            $courseSlug,
+            true
+        );
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
     }
@@ -2017,7 +2059,12 @@ if ($action === 'submitAssessment') {
 
     try {
         $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
-        $exam = dent_exams_api_apply_runtime_exam_override(dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug));
+        $exam = dent_exams_api_apply_runtime_exam_override(
+            dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug),
+            $catalogKey,
+            $courseSlug,
+            true
+        );
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
     }

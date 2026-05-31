@@ -603,7 +603,8 @@ if ($action === 'requestExternalSignupOtp') {
         (string) ($_POST['firstName'] ?? ''),
         (string) ($_POST['lastName'] ?? ''),
         (string) ($_POST['phoneNumber'] ?? ''),
-        (string) ($_POST['password'] ?? '')
+        (string) ($_POST['password'] ?? ''),
+        (string) ($_POST['passwordConfirm'] ?? $_POST['confirmPassword'] ?? '')
     );
 
     dent_json_response([
@@ -626,6 +627,7 @@ if ($action === 'verifyExternalSignupOtp') {
         (string) ($_POST['lastName'] ?? ''),
         (string) ($_POST['phoneNumber'] ?? ''),
         (string) ($_POST['password'] ?? ''),
+        (string) ($_POST['passwordConfirm'] ?? $_POST['confirmPassword'] ?? ''),
         (string) ($_POST['otpCode'] ?? ($_POST['code'] ?? ''))
     );
 

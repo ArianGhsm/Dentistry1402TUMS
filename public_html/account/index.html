@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260531-182908">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260531-182908">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260531-182908">
-    <script src="/assets/site/scripts/theme.js?v=20260531-182908"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260531-182908">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260531-182908">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260531-182908">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260601-003218">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260601-003218">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260601-003218">
+    <script src="/assets/site/scripts/theme.js?v=20260601-003218"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260601-003218">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260601-003218">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260601-003218">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -130,9 +130,73 @@
                         <div id="login-otp-feedback" class="account-feedback" aria-live="polite"></div>
                     </form>
 
+                    <form id="external-signup-form" class="account-form external-signup-form" novalidate autocomplete="on" hidden>
+                        <div class="otp-auth-panel external-signup-panel">
+                            <div class="otp-auth-panel__hero">
+                                <h4>ثبت‌نام</h4>
+                                <p>برای کاربران عادی سایت، شماره موبایل نام کاربری حساب خواهد بود.</p>
+                            </div>
+
+                            <div class="external-signup-grid external-signup-step--details">
+                                <label for="external-signup-first-name">نام</label>
+                                <input id="external-signup-first-name" name="firstName" type="text" autocomplete="given-name" required>
+
+                                <label for="external-signup-last-name">نام خانوادگی</label>
+                                <input id="external-signup-last-name" name="lastName" type="text" autocomplete="family-name" required>
+
+                                <label for="external-signup-phone">شماره موبایل</label>
+                                <div class="otp-phone-shell" dir="ltr">
+                                    <span class="otp-phone-shell__country" aria-hidden="true">
+                                        <span class="otp-phone-shell__flag">🇮🇷</span>
+                                        <span class="otp-phone-shell__prefix">+۹۸</span>
+                                    </span>
+                                    <input id="external-signup-phone" name="phoneNumber" type="tel" inputmode="numeric" autocomplete="tel-national" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="14" pattern="(09[0-9۰-۹]{9}|9[0-9۰-۹]{9}|\+989[0-9۰-۹]{9})" aria-label="شماره موبایل" aria-describedby="external-signup-feedback" dir="ltr" data-phone-input="iran" data-display-digits="persian" placeholder="">
+                                </div>
+
+                                <label for="external-signup-password">رمز عبور</label>
+                                <input id="external-signup-password" name="password" type="password" autocomplete="new-password" minlength="6" required>
+
+                                <label for="external-signup-password-confirm">تکرار رمز عبور</label>
+                                <input id="external-signup-password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="6" required>
+                            </div>
+
+                            <div class="otp-auth-panel__actions otp-auth-panel__actions--request">
+                                <button class="shell-action-btn shell-action-btn-primary" id="external-signup-request" type="button">ارسال کد تایید</button>
+                                <p class="account-inline-meta" id="external-signup-meta"></p>
+                            </div>
+
+                            <div class="external-signup-verify" id="external-signup-verify-group" hidden>
+                                <div class="otp-verify-head">
+                                    <h4>ثبت‌نام</h4>
+                                    <p id="external-signup-summary">کد تایید ارسال‌شده را وارد کن.</p>
+                                    <strong id="external-signup-phone-display" class="otp-verify-phone" dir="ltr"></strong>
+                                </div>
+                                <div class="settings-row">
+                                    <label for="external-signup-otp-code">کد تایید</label>
+                                    <div id="external-signup-otp-field" class="otp-slot-field" data-otp-field="external-signup">
+                                        <input id="external-signup-otp-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" pattern="[0-9]*" maxlength="6" aria-label="کد تایید ثبت‌نام" aria-describedby="external-signup-summary external-signup-feedback" dir="ltr" data-latin-digits="true" placeholder="کد ۶ رقمی">
+                                        <div id="external-signup-otp-slots" class="otp-slot-field__slots" dir="ltr" aria-hidden="true">
+                                            <span class="otp-slot"></span>
+                                            <span class="otp-slot"></span>
+                                            <span class="otp-slot"></span>
+                                            <span class="otp-slot"></span>
+                                            <span class="otp-slot"></span>
+                                            <span class="otp-slot"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="shell-action-btn shell-action-btn-primary account-submit" id="external-signup-submit" type="submit" disabled>تکمیل ثبت‌نام</button>
+                                <button id="external-signup-edit-phone" class="otp-edit-phone-btn" type="button">ویرایش اطلاعات</button>
+                            </div>
+                            <p class="account-feedback" id="external-signup-feedback" role="status" aria-live="polite"></p>
+                        </div>
+                    </form>
+
                     <div class="login-method-switch" id="login-method-switch" role="tablist" aria-label="روش ورود">
                         <button id="login-method-password" class="login-method-btn is-active" type="button" data-login-method="password" role="tab" aria-selected="true">ورود با رمزعبور</button>
                         <button id="login-method-otp" class="login-method-btn" type="button" data-login-method="otp" role="tab" aria-selected="false">ورود با موبایل</button>
+                        <button id="login-method-signup" class="login-method-btn" type="button" data-login-method="signup" role="tab" aria-selected="false">ثبت‌نام</button>
                     </div>
                     <a class="account-login-home" href="/app/">برگشت به خانه</a>
                 </section>
@@ -898,9 +962,9 @@
         <p id="account-footer-brand">ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260531-182908"></script>
-    <script src="/assets/site/scripts/account.js?v=20260531-182908"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260531-182908"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260531-182908"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260601-003218"></script>
+    <script src="/assets/site/scripts/account.js?v=20260601-003218"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260601-003218"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260601-003218"></script>
 </body>
 </html>
