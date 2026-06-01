@@ -547,6 +547,24 @@ function Assert-GitAvailable() {
     }
 }
 
+function Invoke-GitCommandCapture([string]$repoPath, [string[]]$GitArgs) {
+    $previousErrorActionPreference = $ErrorActionPreference
+    $output = @()
+    $exitCode = 0
+    try {
+        $ErrorActionPreference = "Continue"
+        $output = & git -C $repoPath @GitArgs 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousErrorActionPreference
+    }
+
+    return [PSCustomObject]@{
+        Output   = @($output)
+        ExitCode = [int]$exitCode
+    }
+}
+
 function Get-HostDeployStatePath() {
     return Join-Path (Get-SharedProjectRoot) ".codex-local\deploy\host_last_deploy.json"
 }
@@ -1313,16 +1331,30 @@ function Sync-RemoteStorageFromHost() {
 }
 
 function Run-Git([string[]]$GitArgs) {
-    $output = & git -C $projectRoot @GitArgs
-    if ($LASTEXITCODE -ne 0) {
-        throw "Git command failed: git -C $projectRoot $($GitArgs -join ' ')"
+    $gitResult = Invoke-GitCommandCapture -repoPath $projectRoot -GitArgs $GitArgs
+    if ($gitResult.ExitCode -ne 0) {
+        $detail = Format-CommandFailureDetail -commandOutput $gitResult.Output -fallback "No stderr output."
+        throw "Git command failed: git -C $projectRoot $($GitArgs -join ' '). $detail"
     }
 
-    if ($null -eq $output) {
+    $stdoutLines = New-Object System.Collections.Generic.List[string]
+    foreach ($entry in @($gitResult.Output)) {
+        if ($entry -is [System.Management.Automation.ErrorRecord]) {
+            continue
+        }
+
+        $text = [string]$entry
+        if ($null -eq $text) {
+            continue
+        }
+        [void]$stdoutLines.Add($text)
+    }
+
+    if ($stdoutLines.Count -eq 0) {
         return @()
     }
 
-    return @([string[]]$output)
+    return @($stdoutLines.ToArray())
 }
 
 function Run-GitSingle([string[]]$GitArgs) {
@@ -1421,12 +1453,19 @@ function Get-CommitInfo([string]$Revision) {
 }
 
 function Run-GitSingleAtPath([string]$repoPath, [string[]]$GitArgs) {
-    $output = & git -C $repoPath @GitArgs
-    if ($LASTEXITCODE -ne 0) {
-        throw "Git command failed: git -C $repoPath $($GitArgs -join ' ')"
+    $gitResult = Invoke-GitCommandCapture -repoPath $repoPath -GitArgs $GitArgs
+    if ($gitResult.ExitCode -ne 0) {
+        $detail = Format-CommandFailureDetail -commandOutput $gitResult.Output -fallback "No stderr output."
+        throw "Git command failed: git -C $repoPath $($GitArgs -join ' '). $detail"
     }
 
-    $lines = @([string[]]$output)
+    $lines = @()
+    foreach ($entry in @($gitResult.Output)) {
+        if ($entry -is [System.Management.Automation.ErrorRecord]) {
+            continue
+        }
+        $lines += [string]$entry
+    }
     if ($lines.Count -eq 0) {
         return ""
     }
@@ -2159,10 +2198,10 @@ function New-GitHubSyncWorktree([string]$remoteName, [string]$branchName, [strin
     $hasRemoteBranch = $false
     $baseRef = $fallbackRef
 
-    $fetchOutput = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.GitHubPath -ScriptBlock {
-        & git -C $projectRoot fetch --no-tags --quiet $remoteName $branchName 2>&1
+    $fetchResult = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.GitHubPath -ScriptBlock {
+        Invoke-GitCommandCapture -repoPath $projectRoot -GitArgs @("fetch", "--no-tags", "--quiet", $remoteName, $branchName)
     }
-    if ($LASTEXITCODE -eq 0) {
+    if ($fetchResult.ExitCode -eq 0) {
         $remoteRef = "refs/remotes/$remoteName/$branchName"
         & git -C $projectRoot show-ref --verify --quiet $remoteRef 2>$null
         if ($LASTEXITCODE -eq 0) {
@@ -2170,7 +2209,7 @@ function New-GitHubSyncWorktree([string]$remoteName, [string]$branchName, [strin
             $hasRemoteBranch = $true
         }
     } elseif ([string]::IsNullOrWhiteSpace([string]$fallbackRef)) {
-        $fetchDetail = Format-CommandFailureDetail -commandOutput $fetchOutput -fallback "No stderr output."
+        $fetchDetail = Format-CommandFailureDetail -commandOutput $fetchResult.Output -fallback "No stderr output."
         throw "GitHub sync fetch failed for $remoteName/$branchName. $fetchDetail"
     }
 
@@ -2180,9 +2219,9 @@ function New-GitHubSyncWorktree([string]$remoteName, [string]$branchName, [strin
 
     Remove-GitHubSyncWorktree -path $worktreePath
 
-    $worktreeAddOutput = & git -C $projectRoot worktree add --quiet --force --detach $worktreePath $baseRef 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        $worktreeDetail = Format-CommandFailureDetail -commandOutput $worktreeAddOutput -fallback "No stderr output."
+    $worktreeAddResult = Invoke-GitCommandCapture -repoPath $projectRoot -GitArgs @("worktree", "add", "--quiet", "--force", "--detach", $worktreePath, $baseRef)
+    if ($worktreeAddResult.ExitCode -ne 0) {
+        $worktreeDetail = Format-CommandFailureDetail -commandOutput $worktreeAddResult.Output -fallback "No stderr output."
         throw "GitHub sync could not create the temporary worktree at $worktreePath. $worktreeDetail"
     }
 
@@ -2436,24 +2475,27 @@ function Sync-GitHubFromLaptop([object]$GitHubPlan) {
             $worktree = New-GitHubSyncWorktree -remoteName $target.RemoteName -branchName $target.BranchName -fallbackRef $sourceHead
             Apply-GitHubSyncPlanToWorktree -repoPath $worktree.Path -uploadList $uploadList -deleteList $deleteList
 
-            & git -C $worktree.Path add -A -- .
-            if ($LASTEXITCODE -ne 0) {
-                throw "git add failed inside the temporary GitHub sync worktree."
+            $gitAddResult = Invoke-GitCommandCapture -repoPath $worktree.Path -GitArgs @("add", "-A", "--", ".")
+            if ($gitAddResult.ExitCode -ne 0) {
+                $gitAddDetail = Format-CommandFailureDetail -commandOutput $gitAddResult.Output -fallback "No stderr output."
+                throw "git add failed inside the temporary GitHub sync worktree. $gitAddDetail"
             }
 
-            & git -C $worktree.Path diff --cached --quiet --exit-code
+            $diffProbeResult = Invoke-GitCommandCapture -repoPath $worktree.Path -GitArgs @("diff", "--cached", "--quiet", "--exit-code")
             $hasStagedChanges = $false
-            if ($LASTEXITCODE -eq 1) {
+            if ($diffProbeResult.ExitCode -eq 1) {
                 $hasStagedChanges = $true
-            } elseif ($LASTEXITCODE -ne 0) {
-                throw "Unable to determine staged changes inside the temporary GitHub sync worktree."
+            } elseif ($diffProbeResult.ExitCode -ne 0) {
+                $diffProbeDetail = Format-CommandFailureDetail -commandOutput $diffProbeResult.Output -fallback "No stderr output."
+                throw "Unable to determine staged changes inside the temporary GitHub sync worktree. $diffProbeDetail"
             }
 
             $createdCommit = ""
             if ($hasStagedChanges) {
-                & git -C $worktree.Path commit -m $CommitMessage
-                if ($LASTEXITCODE -ne 0) {
-                    throw "git commit failed inside the temporary GitHub sync worktree."
+                $gitCommitResult = Invoke-GitCommandCapture -repoPath $worktree.Path -GitArgs @("commit", "-m", $CommitMessage)
+                if ($gitCommitResult.ExitCode -ne 0) {
+                    $gitCommitDetail = Format-CommandFailureDetail -commandOutput $gitCommitResult.Output -fallback "No stderr output."
+                    throw "git commit failed inside the temporary GitHub sync worktree. $gitCommitDetail"
                 }
                 $createdCommit = Run-GitSingleAtPath -repoPath $worktree.Path -GitArgs @("rev-parse", "HEAD")
                 Write-Host "Created GitHub sync commit: $createdCommit"
@@ -2465,22 +2507,22 @@ function Sync-GitHubFromLaptop([object]$GitHubPlan) {
             if ($worktree.HasRemoteBranch) {
                 $pushCommand = "git push $($target.RemoteName) $pushSpec"
                 if ($hasStagedChanges) {
-                    $pushOutput = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.GitHubPath -ScriptBlock {
-                        & git -C $worktree.Path push --quiet $target.RemoteName $pushSpec 2>&1
+                    $pushResult = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.GitHubPath -ScriptBlock {
+                        Invoke-GitCommandCapture -repoPath $worktree.Path -GitArgs @("push", "--quiet", $target.RemoteName, $pushSpec)
                     }
-                    $pushDetail = Format-CommandFailureDetail -commandOutput $pushOutput -fallback "No stderr output."
+                    $pushDetail = Format-CommandFailureDetail -commandOutput $pushResult.Output -fallback "No stderr output."
                 }
             } else {
                 $pushCommand = "git push -u $($target.RemoteName) $pushSpec"
                 if ($hasStagedChanges) {
-                    $pushOutput = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.GitHubPath -ScriptBlock {
-                        & git -C $worktree.Path push --quiet -u $target.RemoteName $pushSpec 2>&1
+                    $pushResult = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.GitHubPath -ScriptBlock {
+                        Invoke-GitCommandCapture -repoPath $worktree.Path -GitArgs @("push", "--quiet", "-u", $target.RemoteName, $pushSpec)
                     }
-                    $pushDetail = Format-CommandFailureDetail -commandOutput $pushOutput -fallback "No stderr output."
+                    $pushDetail = Format-CommandFailureDetail -commandOutput $pushResult.Output -fallback "No stderr output."
                 }
             }
 
-            if ($hasStagedChanges -and $LASTEXITCODE -ne 0) {
+            if ($hasStagedChanges -and $pushResult.ExitCode -ne 0) {
                 if ($attempt -lt $maxAttempts) {
                     Write-Warning "GitHub sync push failed on attempt $attempt. $pushDetail Retrying on top of the latest remote branch."
                     continue
