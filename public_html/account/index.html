@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260601-022736">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260601-022736">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260601-022736">
-    <script src="/assets/site/scripts/theme.js?v=20260601-022736"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260601-022736">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260601-022736">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260601-022736">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260601-161433">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260601-161433">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260601-161433">
+    <script src="/assets/site/scripts/theme.js?v=20260601-161433"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260601-161433">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260601-161433">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260601-161433">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -743,7 +743,12 @@
                         </form>
                     </section>
 
-                    <section class="owner-block owner-block--sms owner-tab-panel" data-owner-tab-panel="services">
+                    <details class="owner-block owner-block--sms owner-tab-panel site-disclosure" data-owner-tab-panel="services" open>
+                        <summary class="site-disclosure__summary">
+                            <strong>وضعیت سرویس پیامک / OTP</strong>
+                            <span>تنظیمات FarazSMS و آزمون ارسال</span>
+                        </summary>
+                        <div class="site-disclosure__body">
                         <div class="owner-block__head">
                             <h4>وضعیت سرویس پیامک / OTP</h4>
                             <p>تنظیمات FarazSMS فقط در این سطح مالک مدیریت می‌شود. کلید API در سرور ذخیره می‌شود و در خروجی نمایش داده نمی‌شود.</p>
@@ -783,9 +788,15 @@
                             </div>
                             <div id="owner-sms-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
                         </form>
-                    </section>
+                        </div>
+                    </details>
 
-                    <section class="owner-block owner-block--media-status owner-tab-panel" data-owner-tab-panel="services">
+                    <details class="owner-block owner-block--media-status owner-tab-panel site-disclosure" data-owner-tab-panel="services">
+                        <summary class="site-disclosure__summary">
+                            <strong>پایش فضای رسانه پیام‌رسان</strong>
+                            <span>وضعیت فایل‌ها و پاکسازی خودکار</span>
+                        </summary>
+                        <div class="site-disclosure__body">
                         <div class="owner-block__head">
                             <h4>پایش فضای رسانه پیام‌رسان</h4>
                             <p>وضعیت فضای مدیریت‌شده فایل‌های پیام‌رسان و پاکسازی خودکار فایل‌های قدیمی.</p>
@@ -796,7 +807,8 @@
                             <button id="owner-media-cleanup" class="shell-action-btn" type="button">اجرای پاکسازی فوری</button>
                         </div>
                         <div id="owner-media-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
-                    </section>
+                        </div>
+                    </details>
                     <div class="owner-toolbar owner-tab-panel is-active" data-owner-tab-panel="users">
                         <div class="owner-toolbar__meta">
                             <strong id="owner-toolbar-title">کاربران ورودی فعال</strong>
@@ -963,9 +975,9 @@
         <p id="account-footer-brand">ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260601-022736"></script>
-    <script src="/assets/site/scripts/account.js?v=20260601-022736"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260601-022736"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260601-022736"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260601-161433"></script>
+    <script src="/assets/site/scripts/account.js?v=20260601-161433"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260601-161433"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260601-161433"></script>
 </body>
 </html>

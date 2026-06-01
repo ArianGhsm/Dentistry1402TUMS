@@ -34,6 +34,17 @@
 
     var params = new URLSearchParams(window.location.search);
     var started = false;
+    var BOOTSTRAP_TIMEOUT_MS = 14000;
+
+    appRoot.addEventListener("click", function (event) {
+        var retryButton = event.target.closest("[data-exam-bootstrap-action='retry']");
+        if (!retryButton) {
+            return;
+        }
+        event.preventDefault();
+        started = false;
+        loadExam();
+    });
 
     function escapeHtml(value) {
         return String(value == null ? "" : value).replace(/[&<>"]/g, function (char) {
@@ -143,7 +154,7 @@
             '        <div class="exam-stage-canvas">',
             '          <section class="exam-panel exam-stage exam-stage--message">',
             backHref
-                ? '            <a class="back-btn exam-back-link" href="' + escapeHtml(backHref) + '"><span class="back-icon" aria-hidden="true">←</span><span>' + escapeHtml(backLabel) + "</span></a>"
+                ? '            <a class="back-btn exam-back-link" href="' + escapeHtml(backHref) + '" aria-label="' + escapeHtml(backLabel) + '"><span class="back-icon" aria-hidden="true">←</span><span>' + escapeHtml(backLabel) + "</span></a>"
                 : "",
             '            <div class="exam-message-card">',
             eyebrow ? '              <span class="exam-kicker">' + escapeHtml(eyebrow) + "</span>" : "",
@@ -164,18 +175,42 @@
         renderShell({
             title: "در حال بارگذاری آزمون",
             copy: "دسترسی و داده‌های آزمون در حال بررسی است.",
-            eyebrow: "در حال همگام‌سازی"
+            eyebrow: "در حال همگام‌سازی",
+            extraHtml: [
+                '<div class="exam-busy-card exam-busy-card--bootstrap">',
+                '  <span class="exam-kicker">آماده‌سازی</span>',
+                '  <strong class="exam-busy-card__title">در حال واکشی سوال‌ها و وضعیت آزمون...</strong>',
+                '  <div class="exam-busy-card__skeleton">',
+                '    <span class="exam-skeleton exam-skeleton--line"></span>',
+                '    <span class="exam-skeleton exam-skeleton--line is-short"></span>',
+                '    <div class="exam-skeleton-grid">',
+                '      <span class="exam-skeleton exam-skeleton--tile"></span>',
+                '      <span class="exam-skeleton exam-skeleton--tile"></span>',
+                '      <span class="exam-skeleton exam-skeleton--tile"></span>',
+                "    </div>",
+                "  </div>",
+                "</div>"
+            ].join("")
         });
     }
 
     function renderFailure(message) {
+        var hint = !navigator.onLine
+            ? "اتصال اینترنت قطع یا بسیار ضعیف است. بعد از پایدارشدن شبکه دوباره تلاش کن."
+            : message;
         renderShell({
             title: "بارگذاری آزمون انجام نشد",
-            copy: message || "این آزمون فعلا در دسترس نیست.",
+            copy: hint || "این آزمون فعلا در دسترس نیست.",
             eyebrow: "خطا",
             backHref: defaultBackHref(),
             backLabel: "بازگشت",
-            extraHtml: renderActions("بازگشت به آزمون‌ها", appendCohortPath("/exams/"), "بازگشت به بخش قبلی", defaultBackHref())
+            extraHtml: [
+                '<div class="exam-side-section exam-side-section--actions">',
+                '  <button class="exam-btn exam-btn--primary" type="button" data-exam-bootstrap-action="retry">تلاش دوباره</button>',
+                '  <a class="exam-btn exam-btn--ghost" href="' + escapeHtml(appendCohortPath("/exams/")) + '">بازگشت به آزمون‌ها</a>',
+                '  <a class="exam-btn exam-btn--ghost" href="' + escapeHtml(defaultBackHref()) + '">بازگشت به بخش قبلی</a>',
+                "</div>"
+            ].join("")
         });
     }
 
@@ -230,18 +265,42 @@
         document.body.appendChild(script);
     }
 
+    function fetchWithTimeout(url, options) {
+        if (typeof AbortController !== "function") {
+            return fetch(url, options).then(parseJson);
+        }
+
+        var controller = new AbortController();
+        var timer = window.setTimeout(function () {
+            controller.abort();
+        }, BOOTSTRAP_TIMEOUT_MS);
+        var requestOptions = Object.assign({}, options || {}, { signal: controller.signal });
+
+        return fetch(url, requestOptions).then(parseJson).catch(function (error) {
+            if (error && error.name === "AbortError") {
+                throw new Error("بارگذاری آزمون بیشتر از حد انتظار طول کشید. دوباره تلاش کن.");
+            }
+            if ((typeof navigator !== "undefined" && navigator.onLine === false) || (error && error.name === "TypeError")) {
+                throw new Error("ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کن و دوباره تلاش کن.");
+            }
+            throw error;
+        }).finally(function () {
+            window.clearTimeout(timer);
+        });
+    }
+
     function loadExam() {
         if (started) {
             return;
         }
         started = true;
         renderLoading();
-        fetch("/api/exams_api.php?" + queryWithCohort().toString(), {
+        fetchWithTimeout("/api/exams_api.php?" + queryWithCohort().toString(), {
             method: "GET",
             cache: "no-store",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
-        }).then(parseJson).then(function (payload) {
+        }).then(function (payload) {
             if (payload && payload.success && payload.exam) {
                 mountExam(payload.exam);
                 return;

@@ -63,6 +63,17 @@
         return false;
     }
 
+    function setBackLink(href, text) {
+        if (!backLink) {
+            return;
+        }
+        var label = String(text || "").trim() || "بازگشت";
+        backLink.href = href;
+        backLink.textContent = label;
+        backLink.setAttribute("aria-label", label);
+        backLink.setAttribute("title", label);
+    }
+
     var cohort = authApi && typeof authApi.resolvePageCohort === "function"
         ? authApi.resolvePageCohort("notesCohort")
         : String(document.body.dataset.notesCohort || searchParams.get("cohort") || "1402");
@@ -190,15 +201,15 @@
 
         if (backLink) {
             if (isCurriculumCohort()) {
-                backLink.href = isCurriculumUnit ? homeUrl(displayTerm, "") : homeUrl(0, "");
-                backLink.textContent = isCurriculumUnit
-                    ? ("بازگشت به " + displayTermLabel)
-                    : "بازگشت به همه ترم‌ها";
+                setBackLink(
+                    isCurriculumUnit ? homeUrl(displayTerm, "") : homeUrl(0, ""),
+                    isCurriculumUnit ? ("بازگشت به " + displayTermLabel) : "بازگشت به همه ترم‌ها"
+                );
             } else if (cohort !== "1402") {
                 if (authApi && typeof authApi.appendCohortQuery === "function") {
-                    backLink.href = authApi.appendCohortQuery("/notes/", cohort);
+                    setBackLink(authApi.appendCohortQuery("/notes/", cohort), "بازگشت به منابع");
                 } else {
-                    backLink.href = "/notes/?cohort=" + encodeURIComponent(cohort);
+                    setBackLink("/notes/?cohort=" + encodeURIComponent(cohort), "بازگشت به منابع");
                 }
             }
         }

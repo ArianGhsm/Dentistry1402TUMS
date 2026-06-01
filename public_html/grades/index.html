@@ -8,13 +8,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260601-022736">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260601-022736">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260601-022736">
-    <script src="/assets/site/scripts/theme.js?v=20260601-022736"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260601-022736">
-    <link rel="stylesheet" href="/assets/site/styles/grades.css?v=20260601-022736">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260601-022736">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260601-161433">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260601-161433">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260601-161433">
+    <script src="/assets/site/scripts/theme.js?v=20260601-161433"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260601-161433">
+    <link rel="stylesheet" href="/assets/site/styles/grades.css?v=20260601-161433">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260601-161433">
 </head>
 <body class="grades-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -101,39 +101,51 @@
                 <div id="grades-owner-summary" class="grades-owner-summary"></div>
 
                 <div class="grades-owner-tools">
-                    <form id="grades-owner-import-form" class="grades-owner-tool grades-owner-import-form" novalidate>
-                        <div class="grades-owner-tool__head">
-                            <h4>Import دستی یا فایل</h4>
-                            <p>متن را با خط اول نام درس و سقف نمره وارد کن، یا فایل متنی/Excel بده.</p>
+                    <details class="site-disclosure grades-owner-tool grades-owner-import-form" open>
+                        <summary class="site-disclosure__summary">
+                            <strong>Import نمرات</strong>
+                            <span>ورود متنی یا فایل Excel</span>
+                        </summary>
+                        <div class="site-disclosure__body">
+                            <div class="grades-owner-tool__head">
+                                <h4>Import دستی یا فایل</h4>
+                                <p>متن را با خط اول نام درس و سقف نمره وارد کن، یا فایل متنی/Excel بده.</p>
+                            </div>
+
+                            <label for="grades-owner-import-text">Import متنی</label>
+                            <textarea id="grades-owner-import-text" rows="7" placeholder="پروتز کامل نظری, 10&#10;40211272003, 6.5&#10;40211272004, 7.4"></textarea>
+
+                            <label for="grades-owner-import-file">فایل متنی یا Excel</label>
+                            <input id="grades-owner-import-file" type="file" accept=".txt,.csv,.xlsx,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+
+                            <p class="grades-owner-hint">Excel: ردیف اول ستون اول نام درس، ستون سوم سقف نمره؛ از ردیف دوم ستون اول شماره دانشجویی و ستون دوم نمره.</p>
+
+                            <button id="grades-owner-import-submit" class="primary-btn" type="submit">Import نمرات</button>
                         </div>
+                    </details>
 
-                        <label for="grades-owner-import-text">Import متنی</label>
-                        <textarea id="grades-owner-import-text" rows="7" placeholder="پروتز کامل نظری, 10&#10;40211272003, 6.5&#10;40211272004, 7.4"></textarea>
+                    <details class="site-disclosure grades-owner-tool grades-owner-danger-zone">
+                        <summary class="site-disclosure__summary">
+                            <strong>حذف و ریست سراسری</strong>
+                            <span>عملیات حساس روی همه کارنامه‌ها</span>
+                        </summary>
+                        <div class="site-disclosure__body">
+                            <div class="grades-owner-tool__head">
+                                <h4>حذف و ریست سراسری</h4>
+                                <p>این عملیات روی کارنامه همه کاربران اعمال می‌شود و بعد از پایان، همینجا وضعیت جدید را می‌بینی.</p>
+                            </div>
 
-                        <label for="grades-owner-import-file">فایل متنی یا Excel</label>
-                        <input id="grades-owner-import-file" type="file" accept=".txt,.csv,.xlsx,text/plain,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                            <label for="grades-owner-course-select">درس ثبت‌شده</label>
+                            <select id="grades-owner-course-select">
+                                <option value="">درسی ثبت نشده است</option>
+                            </select>
 
-                        <p class="grades-owner-hint">Excel: ردیف اول ستون اول نام درس، ستون سوم سقف نمره؛ از ردیف دوم ستون اول شماره دانشجویی و ستون دوم نمره.</p>
-
-                        <button id="grades-owner-import-submit" class="primary-btn" type="submit">Import نمرات</button>
-                    </form>
-
-                    <div class="grades-owner-tool grades-owner-danger-zone">
-                        <div class="grades-owner-tool__head">
-                            <h4>حذف و ریست سراسری</h4>
-                            <p>این عملیات روی کارنامه همه کاربران اعمال می‌شود و بعد از پایان، همینجا وضعیت جدید را می‌بینی.</p>
+                            <div class="grades-owner-danger-actions">
+                                <button id="grades-owner-delete-course" class="secondary-btn secondary-btn-danger" type="button">حذف کامل درس از همه کارنامه‌ها</button>
+                                <button id="grades-owner-reset-all" class="secondary-btn secondary-btn-danger" type="button">ریست کامل کارنامه</button>
+                            </div>
                         </div>
-
-                        <label for="grades-owner-course-select">درس ثبت‌شده</label>
-                        <select id="grades-owner-course-select">
-                            <option value="">درسی ثبت نشده است</option>
-                        </select>
-
-                        <div class="grades-owner-danger-actions">
-                            <button id="grades-owner-delete-course" class="secondary-btn secondary-btn-danger" type="button">حذف کامل درس از همه کارنامه‌ها</button>
-                            <button id="grades-owner-reset-all" class="secondary-btn secondary-btn-danger" type="button">ریست کامل کارنامه</button>
-                        </div>
-                    </div>
+                    </details>
                 </div>
 
                 <div id="grades-owner-feedback" class="grades-status-banner" hidden aria-live="polite"></div>
@@ -157,10 +169,9 @@
         <p>ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260601-022736"></script>
-    <script src="/assets/site/scripts/grades.js?v=20260601-022736"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260601-022736"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260601-022736"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260601-161433"></script>
+    <script src="/assets/site/scripts/grades.js?v=20260601-161433"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260601-161433"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260601-161433"></script>
 </body>
 </html>
-

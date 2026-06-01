@@ -24,6 +24,10 @@
         scrollRestoreFrame: 0,
         scrollRestoreTimer: 0
     };
+    var REQUEST_TIMEOUT_MS = 20000;
+    var SEARCH_RENDER_DEBOUNCE_MS = 72;
+    var searchRenderTimer = 0;
+    var courseSessionCache = null;
 
     var FILTERS = [
         { key: "all", label: "همه" },
@@ -68,6 +72,31 @@
         });
     }
 
+    function fetchWithTimeout(url, options, timeoutMs) {
+        var waitMs = Number(timeoutMs || REQUEST_TIMEOUT_MS);
+        if (waitMs <= 0 || typeof AbortController !== "function") {
+            return fetch(url, options).then(parseJson);
+        }
+
+        var controller = new AbortController();
+        var timer = window.setTimeout(function () {
+            controller.abort();
+        }, waitMs);
+        var requestOptions = Object.assign({}, options || {}, { signal: controller.signal });
+
+        return fetch(url, requestOptions).then(parseJson).catch(function (error) {
+            if (error && error.name === "AbortError") {
+                throw new Error("دریافت اطلاعات این درس بیشتر از حد انتظار طول کشید. دوباره تلاش کن.");
+            }
+            if ((typeof navigator !== "undefined" && navigator.onLine === false) || (error && error.name === "TypeError")) {
+                throw new Error("ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کن و دوباره تلاش کن.");
+            }
+            throw error;
+        }).finally(function () {
+            window.clearTimeout(timer);
+        });
+    }
+
     function withCohort(payload) {
         var next = Object.assign({}, payload || {});
         var cohort = String(params.get("cohort") || "").trim();
@@ -89,16 +118,24 @@
     function apiGet(action, payload) {
         var query = new URLSearchParams(withCohort(Object.assign({ action: action }, payload || {})));
         query.set("_t", String(Date.now()));
-        return fetch("/api/exams_api.php?" + query.toString(), {
+        if (window.Dent1402Site && typeof window.Dent1402Site.fetchJsonWithTimeout === "function") {
+            return window.Dent1402Site.fetchJsonWithTimeout("/api/exams_api.php?" + query.toString(), {
+                method: "GET",
+                cache: "no-store",
+                credentials: "same-origin",
+                headers: { Accept: "application/json" }
+            }, REQUEST_TIMEOUT_MS, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت اطلاعات این درس با تاخیر پاسخ داد.");
+        }
+        return fetchWithTimeout("/api/exams_api.php?" + query.toString(), {
             method: "GET",
             cache: "no-store",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
-        }).then(parseJson);
+        });
     }
 
     function apiPost(action, payload) {
-        return fetch("/api/exams_api.php", {
+        return fetchWithTimeout("/api/exams_api.php", {
             method: "POST",
             credentials: "same-origin",
             headers: {
@@ -106,7 +143,7 @@
                 Accept: "application/json"
             },
             body: new URLSearchParams(withCohort(Object.assign({ action: action }, payload || {})))
-        }).then(parseJson);
+        });
     }
 
     function formatValue(value) {
@@ -498,22 +535,79 @@
         return counts;
     }
 
-    function matchesQuery(item) {
-        var query = String(state.query || "").trim().toLowerCase();
-        if (!query) {
-            return true;
+    function normalizeSessionFilter(filterKey) {
+        var normalized = String(filterKey || "").trim().toLowerCase();
+        for (var index = 0; index < FILTERS.length; index++) {
+            if (FILTERS[index].key === normalized) {
+                return normalized;
+            }
         }
-        return item.searchable.indexOf(query) !== -1;
+        return "all";
     }
 
-    function matchesFilter(item) {
-        if (state.filter === "all") {
+    function matchesSessionQuery(item, normalizedQuery) {
+        if (!normalizedQuery) {
             return true;
         }
-        if (state.filter === "flagged") {
+        return item.searchable.indexOf(normalizedQuery) !== -1;
+    }
+
+    function matchesSessionFilter(item, filterKey) {
+        if (filterKey === "all") {
+            return true;
+        }
+        if (filterKey === "flagged") {
             return item.flagsCount > 0;
         }
-        return item.status.key === state.filter;
+        return item.status.key === filterKey;
+    }
+
+    function invalidateCourseSessionCollection() {
+        courseSessionCache = null;
+    }
+
+    function getCourseSessionCollection() {
+        if (!state.course) {
+            return {
+                sessionItems: [],
+                filterCounts: {
+                    all: 0,
+                    completed: 0,
+                    "in-progress": 0,
+                    "not-started": 0,
+                    flagged: 0
+                }
+            };
+        }
+        if (courseSessionCache && courseSessionCache.course === state.course) {
+            return courseSessionCache;
+        }
+
+        var rawSessions = Array.isArray(state.course.exams) ? state.course.exams : [];
+        var sessionItems = rawSessions.map(function (session) {
+            return createSessionModel(session, state.course);
+        });
+        courseSessionCache = {
+            course: state.course,
+            sessionItems: sessionItems,
+            filterCounts: filterCounts(sessionItems)
+        };
+        return courseSessionCache;
+    }
+
+    function buildVisibleSessionCollection() {
+        var collection = getCourseSessionCollection();
+        var normalizedQuery = String(state.query || "").trim().toLowerCase();
+        var activeFilter = normalizeSessionFilter(state.filter);
+        var filteredSessionItems = collection.sessionItems.filter(function (item) {
+            return matchesSessionQuery(item, normalizedQuery) && matchesSessionFilter(item, activeFilter);
+        });
+
+        return {
+            sessionItems: collection.sessionItems,
+            filterCounts: collection.filterCounts,
+            filteredSessionItems: filteredSessionItems
+        };
     }
 
     function summaryHtml(course) {
@@ -537,8 +631,8 @@
         });
     }
 
-    function toolbarHtml(items) {
-        var counts = filterCounts(items);
+    function toolbarHtml(sessionCollection) {
+        var counts = sessionCollection && sessionCollection.filterCounts ? sessionCollection.filterCounts : filterCounts([]);
         return [
             '<section class="exams-card exams-toolbar-card">',
             '  <div class="exams-toolbar-row">',
@@ -913,15 +1007,10 @@
             return;
         }
 
-        var rawSessions = Array.isArray(course.exams) ? course.exams : [];
-        var items = rawSessions.map(function (session) {
-            return createSessionModel(session, course);
-        });
-        var filteredItems = items.filter(function (item) {
-            return matchesQuery(item) && matchesFilter(item);
-        });
-        var primaryHtml = filteredItems.length
-            ? '<section class="catalog-simple-stack">' + filteredItems.map(function (item, index) {
+        var sessionCollection = buildVisibleSessionCollection();
+        var filteredSessionItems = sessionCollection.filteredSessionItems;
+        var primaryHtml = filteredSessionItems.length
+            ? '<section class="catalog-simple-stack">' + filteredSessionItems.map(function (item, index) {
                 return sessionCardHtml(item, index);
             }).join("") + "</section>"
             : emptyStateHtml("برای این جستجو یا فیلتر، جلسه‌ای پیدا نشد.");
@@ -936,7 +1025,7 @@
                      summaryHtml(course),
             "  </div>",
             '  <div class="exams-course-scroll">',
-                     toolbarHtml(items),
+                     toolbarHtml(sessionCollection),
             '    <section class="exams-course-layout' + (secondaryHtml ? ' has-secondary' : '') + '">',
             '      <div class="exams-course-primary">',
                          primaryHtml,
@@ -964,17 +1053,45 @@
     }
 
     function setLoading() {
+        if (searchRenderTimer) {
+            window.clearTimeout(searchRenderTimer);
+            searchRenderTimer = 0;
+        }
         if (state.renderFrame) {
             window.cancelAnimationFrame(state.renderFrame);
             state.renderFrame = 0;
+        }
+        if (window.Dent1402Site && typeof window.Dent1402Site.renderAsyncState === "function") {
+            window.Dent1402Site.renderAsyncState(root, {
+                kind: "loading",
+                title: "در حال بارگذاری این درس",
+                copy: "جلسه‌ها و وضعیت دسترسی این درس در حال دریافت است.",
+                retryLabel: "بازخوانی",
+                onRetry: load
+            });
+            return;
         }
         root.innerHTML = '<div class="exams-card exams-loading">در حال بارگذاری این درس...</div>';
     }
 
     function setError(message) {
+        if (searchRenderTimer) {
+            window.clearTimeout(searchRenderTimer);
+            searchRenderTimer = 0;
+        }
         if (state.renderFrame) {
             window.cancelAnimationFrame(state.renderFrame);
             state.renderFrame = 0;
+        }
+        if (window.Dent1402Site && typeof window.Dent1402Site.renderAsyncState === "function") {
+            window.Dent1402Site.renderAsyncState(root, {
+                kind: "error",
+                title: "بارگذاری این درس انجام نشد",
+                copy: message || "اطلاعات این درس فعلاً در دسترس نیست.",
+                retryLabel: "بازخوانی",
+                onRetry: load
+            });
+            return;
         }
         root.innerHTML = emptyStateHtml(message || "بارگذاری انجام نشد.");
     }
@@ -992,6 +1109,7 @@
             state.course = payload.course;
             state.ownerDraft = null;
             state.viewer = payload.viewer || null;
+            invalidateCourseSessionCollection();
             renderCourse();
         }).catch(function (error) {
             setError(error && error.message ? error.message : "بارگذاری انجام نشد.");
@@ -1043,7 +1161,7 @@
         if (!filterButton) {
             return;
         }
-        state.filter = String(filterButton.getAttribute("data-session-filter") || "all");
+        state.filter = normalizeSessionFilter(filterButton.getAttribute("data-session-filter") || "all");
         if (window.innerWidth <= 640) {
             state.filtersOpen = false;
         }
@@ -1059,7 +1177,13 @@
             return;
         }
         state.query = String(target.value || "");
-        scheduleCourseRender();
+        if (searchRenderTimer) {
+            window.clearTimeout(searchRenderTimer);
+        }
+        searchRenderTimer = window.setTimeout(function () {
+            searchRenderTimer = 0;
+            scheduleCourseRender();
+        }, SEARCH_RENDER_DEBOUNCE_MS);
     });
 
     root.addEventListener("change", function (event) {
@@ -1098,6 +1222,7 @@
             }
             state.course = payload.course;
             state.ownerDraft = null;
+            invalidateCourseSessionCollection();
             state.feedback = payload.message || "تنظیمات ذخیره شد.";
             state.feedbackKind = "success";
         }).catch(function (error) {

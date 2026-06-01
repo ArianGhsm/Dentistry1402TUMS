@@ -93,6 +93,17 @@
         return manageSupported() && state.canManage;
     }
 
+    function setBackLink(href, text) {
+        if (!backLink) {
+            return;
+        }
+        var label = String(text || "").trim() || "بازگشت";
+        backLink.href = href;
+        backLink.textContent = label;
+        backLink.setAttribute("aria-label", label);
+        backLink.setAttribute("title", label);
+    }
+
     function cohortYearLabel() {
         if (pageCohort === "1403") {
             return "۱۴۰۳";
@@ -295,8 +306,7 @@
             subheading.textContent = "چینش ترم، دسته و واحد";
         }
         if (backLink) {
-            backLink.href = pageCohort === "1402" ? "/app/#resources" : "/app/";
-            backLink.textContent = pageCohort === "1402" ? "بازگشت به منابع" : "بازگشت به خانه";
+            setBackLink(pageCohort === "1402" ? "/app/#resources" : "/app/", pageCohort === "1402" ? "بازگشت به منابع" : "بازگشت به خانه");
         }
         if (kicker) {
             kicker.textContent = "آرشیو " + yearLabel;
@@ -686,8 +696,7 @@
             "واحد موردنظرت را از بین دسته‌های همین ترم انتخاب کن."
         );
         if (backLink) {
-            backLink.href = dentalHomeUrl(0, "");
-            backLink.textContent = "بازگشت به همه ترم‌ها";
+            setBackLink(dentalHomeUrl(0, ""), "بازگشت به همه ترم‌ها");
         }
         document.title = (termData.label || "ترم") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
@@ -709,8 +718,7 @@
             termData.description || "این آرشیو هنوز خارج از ساختار اصلی ۴ تا ۱۲ نگه‌داری می‌شود."
         );
         if (backLink) {
-            backLink.href = dentalHomeUrl(0, "");
-            backLink.textContent = "بازگشت به همه ترم‌ها";
+            setBackLink(dentalHomeUrl(0, ""), "بازگشت به همه ترم‌ها");
         }
         document.title = (termData.title || "آرشیو") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
@@ -731,8 +739,7 @@
             termData.description || "منابع این واحد از همین بخش در دسترس هستند."
         );
         if (backLink) {
-            backLink.href = dentalHomeUrl(Number(termData.term || termData.termNumber || 0), "");
-            backLink.textContent = "بازگشت به " + (termData.termLabel || ("ترم " + toFaDigits(termData.term || 0)));
+            setBackLink(dentalHomeUrl(Number(termData.term || termData.termNumber || 0), ""), "بازگشت به " + (termData.termLabel || ("ترم " + toFaDigits(termData.term || 0))));
         }
         document.title = (termData.title || "منابع واحد") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
@@ -1002,7 +1009,7 @@
         dentalState.curriculum = null;
         dentalState.unitDetail = null;
         dentalState.downloadHost = null;
-        dentalShowEmpty("در حال دریافت ساختار منابع...");
+        dentalRenderState("loading", "در حال دریافت ساختار منابع", "ساختار منابع این ورودی در حال بارگذاری است.", dentalReloadCurrentData);
         dentalSetUnitManageFeedback("", "");
         dentalSyncUnitManagePanel(null);
         return request("terms", "GET", {}).then(function (payload) {
@@ -1029,7 +1036,7 @@
         dentalState.loading = true;
         dentalState.unitDetail = null;
         dentalState.downloadHost = null;
-        dentalShowEmpty("در حال دریافت منابع این واحد...");
+        dentalRenderState("loading", "در حال دریافت منابع این واحد", "منابع این واحد در حال بارگذاری هستند.", dentalReloadCurrentData);
         dentalSetUnitManageFeedback("", "");
         dentalSyncUnitManagePanel(null);
         return request("term", "GET", {
@@ -1102,8 +1109,7 @@
             subheading.textContent = isProsthesis ? "هر ترم در صفحه جداگانه" : "هر ترم در صفحه جداگانه";
         }
         if (backLink) {
-            backLink.href = "/app/";
-            backLink.textContent = isProsthesis ? "بازگشت به خانه پروتز" : "بازگشت به خانه";
+            setBackLink("/app/", isProsthesis ? "بازگشت به خانه پروتز" : "بازگشت به خانه");
         }
         if (kicker) {
             kicker.textContent = isProsthesis ? "آرشیو پروتز ۱۴۰۲" : ("آرشیو " + yearLabel);

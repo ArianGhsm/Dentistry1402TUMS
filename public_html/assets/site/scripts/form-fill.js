@@ -24,6 +24,7 @@
     var login = $("fill-login");
     var notFound = $("fill-not-found");
     var stage = $("fill-stage");
+    var backLink = $("fill-back-link");
     var loginLink = $("fill-login-link");
     var refreshBtn = $("fill-refresh");
     var topTitle = $("fill-top-title");
@@ -146,6 +147,17 @@
     function setFeedback(text, kind) {
         feedback.textContent = text || "";
         feedback.className = "forms-feedback" + (kind ? " is-" + kind : "");
+    }
+
+    function setBackLink(href, text) {
+        if (!backLink) {
+            return;
+        }
+        var label = String(text || "").trim() || "بازگشت";
+        backLink.href = href || "/forms/";
+        backLink.textContent = label;
+        backLink.setAttribute("aria-label", label);
+        backLink.setAttribute("title", label);
     }
 
     function escapeHtml(value) {
@@ -690,6 +702,7 @@
         }
         var requestId = state.loadRequestId + 1;
         state.loadRequestId = requestId;
+        setBackLink(formsHomePath, "بازگشت به فرم‌ها");
         refreshBtn.disabled = true;
         try {
             var response = await apiGet("get", { form: formId, guestKey: guestKey() });
@@ -892,6 +905,7 @@
     formEl.addEventListener("submit", submitForm);
 
     showStage("boot");
+    setBackLink(formsHomePath, "بازگشت به فرم‌ها");
     window.Dent1402Auth.onChange(function (detail) {
         if (detail && (detail.status === "session-restoring" || detail.status === "logging-out")) {
             showStage("boot");

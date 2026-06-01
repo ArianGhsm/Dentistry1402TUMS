@@ -847,6 +847,8 @@ function dent_exams_api_report_summary_payload(
     $normalizedReport = dent_exams_normalize_assessment_report($report);
     $ranking = dent_exams_api_report_ranking($store, $catalogKey, $courseSlug, $examSlug, $participantKey);
     $average = dent_exams_api_user_average($store, $catalogKey, $participantKey);
+    $participantCount = max(0, (int) ($ranking['participantCount'] ?? 0));
+    $showComparisons = $participantCount >= 10;
 
     return [
         'totalQuestions' => max(0, (int) ($normalizedReport['totalQuestions'] ?? 0)),
@@ -857,11 +859,11 @@ function dent_exams_api_report_summary_payload(
         'startedAt' => (string) ($normalizedReport['startedAt'] ?? ''),
         'submittedAt' => (string) ($normalizedReport['submittedAt'] ?? ''),
         'updatedAt' => (string) ($normalizedReport['updatedAt'] ?? ''),
-        'participantCount' => max(0, (int) ($ranking['participantCount'] ?? 0)),
+        'participantCount' => $participantCount,
         'rank' => !empty($ranking['showRank']) ? (int) ($ranking['rank'] ?? 0) : null,
         'showRank' => !empty($ranking['showRank']),
         'overallCompletedExams' => max(0, (int) ($average['completedCount'] ?? 0)),
-        'overallAveragePercent' => array_key_exists('averagePercent', $average) ? $average['averagePercent'] : null,
+        'overallAveragePercent' => $showComparisons && array_key_exists('averagePercent', $average) ? $average['averagePercent'] : null,
     ];
 }
 

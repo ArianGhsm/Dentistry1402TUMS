@@ -2402,6 +2402,21 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
     background: var(--surface-muted);
 }
 
+details.owner-block--sms.site-disclosure,
+details.owner-block--media-status.site-disclosure {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+details.owner-block--sms.site-disclosure > .site-disclosure__body,
+details.owner-block--media-status.site-disclosure > .site-disclosure__body {
+    padding-top: 0.76rem;
+    padding-inline: 0;
+    padding-bottom: 0;
+}
+
 .owner-block--create-student {
     padding: 0.82rem;
     border-radius: 18px;
