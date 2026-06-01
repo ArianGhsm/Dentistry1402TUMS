@@ -18,6 +18,7 @@
     var loginForm = $("login-form");
     var loginSubmit = $("login-submit");
     var loginFeedback = $("login-feedback");
+    var loginTitle = $("account-login-title");
     var loginCopy = $("account-login-copy");
     var authBrand = $("account-auth-brand");
     var accountFooterBrand = $("account-footer-brand");
@@ -489,8 +490,16 @@
             return;
         }
         if (loginMode === "signup") {
+            if (loginTitle) {
+                loginTitle.textContent = "ثبت‌نام";
+            }
             loginCopy.textContent = "نام، موبایل و رمز عبور را وارد کن تا با کد تایید ثبت نام کامل شود.";
             return;
+        }
+        if (loginTitle) {
+            loginTitle.textContent = loginMode === "otp"
+                ? "ورود با شماره موبایل"
+                : "ورود با رمز عبور";
         }
         loginCopy.textContent = loginMode === "otp"
             ? "شماره موبایل خود را وارد کنید."

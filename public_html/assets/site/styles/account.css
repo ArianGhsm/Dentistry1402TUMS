@@ -1458,33 +1458,57 @@ body.account-page.account-stage-login-active .auth-brand strong {
 }
 
 .login-method-switch {
-    display: flex;
-    justify-content: center;
-    margin-top: 0.48rem;
+    display: grid;
+    gap: 0.46rem;
+    margin-top: 0.64rem;
 }
 
 .login-method-btn {
     appearance: none;
-    border: 0;
-    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 46px;
+    padding: 0.42rem 0.9rem;
+    border: 1px solid rgba(43, 109, 243, 0.18);
+    border-radius: 16px;
+    background: rgba(43, 109, 243, 0.04);
     color: var(--accent-strong);
-    border-radius: 0;
-    min-height: 28px;
-    padding: 0.1rem 0.32rem;
-    font-size: 1.04rem;
-    font-weight: 820;
+    font-size: 0.94rem;
+    font-weight: 860;
     cursor: pointer;
     text-decoration: none;
-    transition: color 0.16s ease, opacity 0.16s ease, transform 0.14s ease;
+    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.14s ease, box-shadow 0.16s ease;
 }
 
 .login-method-btn:hover,
 .login-method-btn:focus-visible {
-    color: var(--accent-color);
+    background: rgba(43, 109, 243, 0.08);
+    border-color: rgba(43, 109, 243, 0.3);
+    box-shadow: 0 12px 24px -20px rgba(37, 99, 235, 0.32);
 }
 
 .login-method-btn.is-active {
     display: none;
+}
+
+#login-method-signup {
+    order: -1;
+    border-color: rgba(13, 148, 136, 0.18);
+    background:
+        linear-gradient(180deg, rgba(13, 148, 136, 0.12), rgba(13, 148, 136, 0.05)),
+        var(--surface-solid);
+    color: #0f766e;
+}
+
+#login-method-signup:hover,
+#login-method-signup:focus-visible {
+    background:
+        linear-gradient(180deg, rgba(13, 148, 136, 0.16), rgba(13, 148, 136, 0.08)),
+        var(--surface-solid);
+    border-color: rgba(13, 148, 136, 0.28);
+    box-shadow: 0 12px 24px -20px rgba(13, 148, 136, 0.28);
 }
 
 .account-form label,
@@ -4976,21 +5000,24 @@ body.account-page.account-stage-login-active #account-login .account-inline-meta
 }
 
 body.account-page.account-stage-login-active .login-method-switch {
-    margin-top: 0.42rem;
+    margin-top: 0.66rem;
 }
 
 body.account-page.account-stage-login-active .login-method-btn,
 body.account-page.account-stage-login-active .otp-edit-phone-btn {
     appearance: none;
     min-height: 38px;
-    border: 0;
-    background: transparent;
     color: #1d4ed8;
     font: inherit;
     font-size: 0.92rem;
     font-weight: 860;
     cursor: pointer;
     text-decoration: none;
+}
+
+body.account-page.account-stage-login-active .login-method-btn {
+    min-height: 48px;
+    border-radius: 18px;
 }
 
 body.account-page.account-stage-login-active .otp-edit-phone-btn {
@@ -5000,12 +5027,21 @@ body.account-page.account-stage-login-active .otp-edit-phone-btn {
 
 body.account-page.account-stage-login-active .account-login-home {
     min-height: 46px;
-    margin-top: 0.34rem;
+    margin-top: 0.46rem;
     border-radius: 18px;
     border-color: rgba(37, 99, 235, 0.14);
     background: rgba(37, 99, 235, 0.06);
     color: #1d4ed8;
     font-size: 0.92rem;
+}
+
+body.account-page.account-stage-login-active .otp-auth-panel__hero h4,
+body.account-page.account-stage-login-active .otp-verify-head h4 {
+    display: none;
+}
+
+body.account-page.account-stage-login-active .otp-auth-panel__hero {
+    padding-top: 0;
 }
 
 html[data-theme="dark"] body.account-page.account-stage-login-active {
@@ -5029,6 +5065,26 @@ html[data-theme="dark"] body.account-page.account-stage-login-active .account-ca
 html[data-theme="dark"] body.account-page.account-stage-login-active .account-card--auth .account-card__head h3,
 html[data-theme="dark"] body.account-page.account-stage-login-active .otp-verify-head h4 {
     color: #edf5ff;
+}
+
+html[data-theme="dark"] body.account-page.account-stage-login-active .login-method-btn {
+    border-color: rgba(96, 165, 250, 0.16);
+    background: rgba(37, 99, 235, 0.08);
+    color: #8fb8ff;
+}
+
+html[data-theme="dark"] body.account-page.account-stage-login-active .login-method-btn:hover,
+html[data-theme="dark"] body.account-page.account-stage-login-active .login-method-btn:focus-visible {
+    border-color: rgba(96, 165, 250, 0.28);
+    background: rgba(37, 99, 235, 0.12);
+}
+
+html[data-theme="dark"] body.account-page.account-stage-login-active #login-method-signup {
+    border-color: rgba(45, 212, 191, 0.16);
+    background:
+        linear-gradient(180deg, rgba(13, 148, 136, 0.18), rgba(13, 148, 136, 0.08)),
+        rgba(15, 23, 42, 0.96);
+    color: #7ae7d9;
 }
 
 html[data-theme="dark"] body.account-page.account-stage-login-active .account-card--auth .account-card__head p,
