@@ -242,14 +242,42 @@ build_deploy_plan() {
     return
   fi
 
-  local upstream=""
-  upstream="$(git -C "$PROJECT_ROOT" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
-  if [[ -n "$upstream" ]]; then
-    local divergence ahead
-    divergence="$(git -C "$PROJECT_ROOT" rev-list --left-right --count '@{upstream}...HEAD')"
-    ahead="${divergence##* }"
-    if [[ "$ahead" -gt 0 ]]; then
-      collect_range_delta '@{upstream}..HEAD'
+  local current_head last_deploy_state_path last_deploy_head host_state_used=0
+  current_head="$(git -C "$PROJECT_ROOT" rev-parse HEAD)"
+  last_deploy_state_path="$PROJECT_ROOT/.codex-local/deploy/host_last_deploy.json"
+  last_deploy_head=""
+  if [[ -f "$last_deploy_state_path" ]] && command -v python3 >/dev/null 2>&1; then
+    last_deploy_head="$(python3 - <<'PY' "$last_deploy_state_path"
+import json, sys
+path = sys.argv[1]
+try:
+    with open(path, 'r', encoding='utf-8-sig') as fh:
+        data = json.load(fh)
+    print((data.get('Head') or '').strip())
+except Exception:
+    print('')
+PY
+)"
+  fi
+  if [[ -n "$last_deploy_head" ]] && git -C "$PROJECT_ROOT" cat-file -e "${last_deploy_head}^{commit}" 2>/dev/null; then
+    if [[ "$last_deploy_head" == "$current_head" ]]; then
+      host_state_used=1
+    elif git -C "$PROJECT_ROOT" merge-base --is-ancestor "$last_deploy_head" "$current_head" 2>/dev/null; then
+      collect_range_delta "${last_deploy_head}..${current_head}"
+      host_state_used=1
+    fi
+  fi
+
+  if [[ "$host_state_used" -eq 0 ]]; then
+    local upstream=""
+    upstream="$(git -C "$PROJECT_ROOT" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
+    if [[ -n "$upstream" ]]; then
+      local divergence ahead
+      divergence="$(git -C "$PROJECT_ROOT" rev-list --left-right --count '@{upstream}...HEAD')"
+      ahead="${divergence##* }"
+      if [[ "$ahead" -gt 0 ]]; then
+        collect_range_delta '@{upstream}..HEAD'
+      fi
     fi
   fi
 

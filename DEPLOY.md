@@ -28,8 +28,12 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - GitHub باید بر اساس فایل‌های کد/ظاهر/اسکریپت روی لپتاپ آپدیت شود، نه دیتای runtime.
 - مرحله‌ی GitHub sync باید روی worktree موقتِ مبتنی بر آخرین upstream انجام شود؛ نه با `git add -A` روی workspace اصلی. این کار باعث می‌شود اختلاف branch محلی با `origin/main` یا dirty بودن workspace، deploy را روی push گیر ندهد.
 - صرفا فایل هایی که تغییر کرده اند باید دپلوی شوند. نیازی به اپلود هرباره همه فایل ها نیست.
+- delta deploy باید علاوه بر `git diff` با manifest آخرین محتوای deploy‌شده روی همین لپتاپ فیلتر شود؛ یعنی اگر فایلی هنوز در worktree dirty است اما همان محتوا قبلاً deploy شده، دوباره upload نشود.
+- اگر `HEAD` فعلی همان آخرین `host deploy` موفق است، اختلاف `upstream..HEAD` نباید دوباره وارد plan شود؛ در این حالت فقط delta بعد از آخرین deploy موفق و تغییرات واقعی worktree مجازند.
+- به‌محض موفقیت deploy روی هاست و health-check زنده، state و manifest لوکال باید قبل از notification/GitHub sync ثبت شوند تا failureهای مرحله‌های بعدی باعث تکرار uploadهای قبلاً deploy‌شده نشوند.
 - هیچ سقف حجمی/proxy budget نباید deploy یا GitHub sync را متوقف کند؛ اگر مسیر شبکه در دسترس است، deploy باید ادامه پیدا کند.
 - بعد از health-check موفق، اسکریپت باید با login واقعی مالک یک اعلان داخل سایت فقط برای مالک ثبت کند که نسخه‌ی فعال و زمان دقیق deploy را ذکر می‌کند.
+- اگر در rerun هیچ delta جدیدی زیر `public_html/` روی هاست deploy نشود، owner notification نباید دوباره ارسال شود؛ retryهای repair فقط باید مرحله‌های باقی‌مانده مثل GitHub sync را ادامه دهند.
 - اعلان completion deploy فقط داخل سایت ثبت می‌شود؛ پیامک یا کانال اعلان موازی برای آن مجاز نیست.
 - صفحات منابع/جزوات فقط shell کد هستند. کارت‌های قابل مدیریت منابع باید از storage و API خوانده شوند، از جمله `notes/1402_terms.json`، `notes/1403_terms.json`، `notes/1404_terms.json` و `notes/prosthesis_1402_terms.json`.
 
@@ -47,6 +51,11 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -FullS
 pre-deploy pull (فقط با درخواست صریح):
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullBeforeDeploy
+```
+
+retry سبک برای تکمیل GitHub sync بعد از live deploy موفق:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipRemoteStorageSync -SkipValidation -SkipPostDeployVerification -SkipVersionStamp -SkipOwnerDeployNotification -HostDeployNetworkPath direct -HealthCheckNetworkPath direct -GitHubNetworkPath proxy
 ```
 
 ## ایمنی داده

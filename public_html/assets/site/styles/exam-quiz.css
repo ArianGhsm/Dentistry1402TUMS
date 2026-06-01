@@ -201,7 +201,7 @@ body.quiz-page .exam-stage-scaler {
 
 body.quiz-page .exam-stage-canvas {
     width: 100%;
-    min-height: 100%;
+    min-height: 0;
 }
 
 body.quiz-page .exam-stage {
@@ -212,6 +212,11 @@ body.quiz-page .exam-stage {
     gap: 0.82rem;
     padding: clamp(0.65rem, 1.55vw, 1.1rem) 0;
     color: var(--exam-text);
+}
+
+body.quiz-page .exam-stage--session {
+    grid-template-rows: auto;
+    align-content: start;
 }
 
 body.quiz-page .exam-stage--launch,
@@ -2646,6 +2651,11 @@ body.quiz-page .exam-sheet__footer {
         gap: 0.62rem;
         padding: 0.68rem 0;
         grid-template-rows: auto auto auto minmax(0, 1fr);
+    }
+
+    body.quiz-page .exam-stage--session {
+        gap: 0.54rem;
+        grid-template-rows: auto;
     }
 
     body.quiz-page .exam-stage--launch,

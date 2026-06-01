@@ -180,7 +180,9 @@ def check_shared_nav_contracts(repo_root: Path) -> list[tuple[Path, int, str, st
 
     shell_path = repo_root / "public_html" / "assets" / "site" / "scripts" / "shell.js"
     shell_text = read_text(shell_path)
-    if 'label: "آزمون‌ها"' not in shell_text or 'href: "/exams/"' not in shell_text:
+    has_exams_label = 'label: "آزمون‌ها"' in shell_text
+    has_exams_href = 'sharedNavHref("/exams/", state)' in shell_text or 'href: "/exams/"' in shell_text
+    if not has_exams_label or not has_exams_href:
         issues.append(issue(shell_path.relative_to(repo_root), 0, "missing-exams-bottom-nav", "shell.js navItems must expose /exams/."))
     if 'label: "خرید"' in shell_text:
         issues.append(issue(shell_path.relative_to(repo_root), 0, "forbidden-buy-bottom-nav", 'Shared shell nav must not expose "خرید".'))

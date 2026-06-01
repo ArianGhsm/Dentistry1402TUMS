@@ -183,61 +183,42 @@
         return "";
     }
 
+    function sharedNavHref(path, state) {
+        var target = String(path || "").trim() || "/";
+        if (isProsthesisState(state)) {
+            return scopedPath(target, "prosthesis-1402");
+        }
+        return appendCurrentCohort(target);
+    }
+
     function navItems(state) {
         var status = authStatus(state);
         var isPending = isAuthTransitioning(status);
         var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
-        var isProsthesis = isProsthesisState(state);
-        var path = currentPath();
-        var usePrimaryExamNav = !state.loggedIn && (path === "/exams/" || path.indexOf("/exams/") === 0);
-        var chatBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.chatCount || 0)) : 0;
+        var chatBadgeCount = state.loggedIn && canUseChatState(state) ? Math.max(0, Number(navBadgeState.chatCount || 0)) : 0;
         var accountBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.notificationCount || 0)) : 0;
-        var items = [];
-        if (state.loggedIn) {
-            items.push({
-                href: "/app/",
+        return [
+            {
+                href: sharedNavHref("/app/", state),
                 label: "خانه",
                 icon: "home",
                 active: ["/app/"],
                 exact: true
-            });
-        } else if (usePrimaryExamNav) {
-            items.push({ href: "/", label: "خانه", icon: "home", active: ["/"], exact: true });
-            items.push({ href: "/chat/", label: "چت", icon: "chat", active: ["/chat/"] });
-            items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
-        } else {
-            items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
-        }
-
-        if (!state.loggedIn && usePrimaryExamNav) {
-            // Public exams pages keep the shared four-entry navigation.
-        } else if (!canUseChatState(state)) {
-            if (state.loggedIn) {
-                items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
-            }
-            items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
-        } else if (!isProsthesis) {
-            items.push({
-                href: "/chat/",
+            },
+            {
+                href: sharedNavHref("/chat/", state),
                 label: "چت",
                 icon: "chat",
                 active: ["/chat/"],
                 badgeCount: chatBadgeCount,
                 badgeAriaLabel: "پیام خوانده‌نشده"
-            });
-            items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
-        } else {
-            items.push({
-                href: scopedPath("/chat/", "prosthesis-1402"),
-                label: "چت",
-                icon: "chat",
-                active: ["/chat/"],
-                badgeCount: chatBadgeCount,
-                badgeAriaLabel: "پیام خوانده‌نشده"
-            });
-            items.push({ href: scopedPath("/exams/", "prosthesis-1402"), label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
-        }
-        items.push(
+            },
+            {
+                href: sharedNavHref("/exams/", state),
+                label: "آزمون‌ها",
+                icon: "exam",
+                active: ["/exams/"]
+            },
             {
                 href: accountHref,
                 label: state.loggedIn ? "حساب" : "ورود",
@@ -247,8 +228,7 @@
                 badgeCount: accountBadgeCount,
                 badgeAriaLabel: "اعلان خوانده‌نشده"
             }
-        );
-        return items;
+        ];
     }
 
     function applyBranding(state) {

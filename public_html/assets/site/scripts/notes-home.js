@@ -288,12 +288,15 @@
     function dentalSectionText(kickerText, titleText, copyText) {
         if (sectionKicker) {
             sectionKicker.textContent = kickerText || "";
+            sectionKicker.hidden = !kickerText;
         }
         if (sectionTitle) {
             sectionTitle.textContent = titleText || "";
+            sectionTitle.hidden = !titleText;
         }
         if (sectionCopy) {
             sectionCopy.textContent = copyText || "";
+            sectionCopy.hidden = !copyText;
         }
     }
 
@@ -668,14 +671,7 @@
         dentalBodyMode("terms");
         dentalApplyBaseCopy();
         dentalState.downloadHost = null;
-        if (title) {
-            title.textContent = "ترم موردنظر را برای دیدن منابع انتخاب کن.";
-        }
-        dentalSectionText(
-            "ترم‌های دانشکده",
-            "چینش منابع بر اساس ترم و واحد",
-            "ابتدا ترم را انتخاب کن، بعد از داخل دسته‌ها وارد واحد هر درس شو."
-        );
+        dentalSectionText("ترم‌ها", "فهرست ترم‌ها", "");
         document.title = "آرشیو منابع " + dentalYearLabel() + " | ساختار ترم و واحد";
         dentalResetList();
         dentalAppendTermCards(curriculum);

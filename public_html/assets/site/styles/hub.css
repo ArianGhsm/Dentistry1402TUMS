@@ -119,7 +119,7 @@ body.hub-page .action-card__chevron {
 }
 
 body.hub-page .action-card__chevron::before {
-    content: "\2039";
+    content: "\2190";
 }
 
 body.hub-page .card-content {

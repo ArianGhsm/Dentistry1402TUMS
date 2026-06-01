@@ -122,7 +122,7 @@ body.app-dashboard-page main {
 }
 
 .home-service-card__chevron::before {
-    content: "\2039";
+    content: "\2190";
 }
 
 .home-service-card__meta {
@@ -1303,7 +1303,7 @@ body.app-dashboard-page main {
 }
 
 .home-service-link::after {
-    content: "\2039";
+    content: "\2190";
     color: color-mix(in srgb, var(--service-accent) 54%, var(--text-tertiary));
     font-size: 1.16rem;
     line-height: 1;

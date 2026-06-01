@@ -5,6 +5,7 @@ param(
     [switch]$SkipValidation,
     [switch]$SkipPostDeployVerification,
     [switch]$SkipGitHubSync,
+    [switch]$SkipOwnerDeployNotification,
     [switch]$SkipVersionStamp,
     [switch]$PullBeforeDeploy,
     [switch]$SkipRemoteStorageSync,
@@ -356,6 +357,69 @@ $script:NetworkPolicy = [PSCustomObject]@{
     StrictGitHub         = ($lowBandwidthEnabled -and $githubPath -eq "proxy")
 }
 
+function Get-ProxyUriForPath([string]$pathChoice) {
+    if ([string]::IsNullOrWhiteSpace($pathChoice) -or $pathChoice -ne "proxy") {
+        return ""
+    }
+
+    $endpoint = [string]$script:NetworkPolicy.ProxyEndpoint
+    if ([string]::IsNullOrWhiteSpace($endpoint)) {
+        return ""
+    }
+
+    $trimmed = $endpoint.Trim()
+    if ($trimmed -match '^[a-z]+://') {
+        return $trimmed
+    }
+    return "http://$trimmed"
+}
+
+function Invoke-WithNetworkPath(
+    [string]$PathChoice,
+    [scriptblock]$ScriptBlock
+) {
+    $proxyKeys = @(
+        "HTTP_PROXY",
+        "HTTPS_PROXY",
+        "ALL_PROXY",
+        "FTP_PROXY",
+        "http_proxy",
+        "https_proxy",
+        "all_proxy",
+        "ftp_proxy",
+        "NO_PROXY",
+        "no_proxy"
+    )
+
+    $saved = @{}
+    foreach ($key in $proxyKeys) {
+        $saved[$key] = [Environment]::GetEnvironmentVariable($key)
+    }
+
+    try {
+        if ($PathChoice -eq "direct") {
+            foreach ($key in @("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "FTP_PROXY", "http_proxy", "https_proxy", "all_proxy", "ftp_proxy")) {
+                [Environment]::SetEnvironmentVariable($key, $null)
+            }
+            [Environment]::SetEnvironmentVariable("NO_PROXY", "*")
+            [Environment]::SetEnvironmentVariable("no_proxy", "*")
+        } elseif ($PathChoice -eq "proxy") {
+            $proxyUri = Get-ProxyUriForPath -pathChoice $PathChoice
+            foreach ($key in @("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "FTP_PROXY", "http_proxy", "https_proxy", "all_proxy", "ftp_proxy")) {
+                [Environment]::SetEnvironmentVariable($key, $proxyUri)
+            }
+            [Environment]::SetEnvironmentVariable("NO_PROXY", $null)
+            [Environment]::SetEnvironmentVariable("no_proxy", $null)
+        }
+
+        return & $ScriptBlock
+    } finally {
+        foreach ($key in $proxyKeys) {
+            [Environment]::SetEnvironmentVariable($key, $saved[$key])
+        }
+    }
+}
+
 function Get-IsoNow() {
     return ([DateTimeOffset]::Now).ToString("yyyy-MM-ddTHH:mm:sszzz")
 }
@@ -487,6 +551,10 @@ function Get-HostDeployStatePath() {
     return Join-Path (Get-SharedProjectRoot) ".codex-local\deploy\host_last_deploy.json"
 }
 
+function Get-HostDeployManifestPath() {
+    return Join-Path (Get-SharedProjectRoot) ".codex-local\deploy\host_last_deploy_manifest.json"
+}
+
 function Read-HostDeployState() {
     $path = Get-HostDeployStatePath
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
@@ -561,6 +629,167 @@ function Write-HostDeployState([string]$head, [string]$branch, [string]$finished
     return $path
 }
 
+function Get-LocalPublicHtmlFileHash([string]$relativePath) {
+    if ([string]::IsNullOrWhiteSpace($relativePath)) {
+        return ""
+    }
+
+    $normalized = ($relativePath -replace '/', '\').TrimStart('\')
+    $fullPath = Join-Path $localRoot $normalized
+    if (-not (Test-Path -LiteralPath $fullPath -PathType Leaf)) {
+        return ""
+    }
+
+    try {
+        return ([string](Get-FileHash -LiteralPath $fullPath -Algorithm SHA256 -ErrorAction Stop).Hash).Trim().ToLowerInvariant()
+    } catch {
+        return ""
+    }
+}
+
+function Read-HostDeployManifest() {
+    $path = Get-HostDeployManifestPath
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        return $null
+    }
+
+    try {
+        $raw = Get-Content -LiteralPath $path -Raw -ErrorAction Stop
+        if ([string]::IsNullOrWhiteSpace($raw)) {
+            return $null
+        }
+
+        $parsed = $raw | ConvertFrom-Json -ErrorAction Stop
+        $map = New-Object 'System.Collections.Generic.Dictionary[string,string]' ([System.StringComparer]::Ordinal)
+        $filesNode = $null
+        if ($null -ne $parsed.PSObject.Properties["Files"]) {
+            $filesNode = $parsed.Files
+        }
+        if ($null -eq $filesNode) {
+            return $null
+        }
+
+        foreach ($property in $filesNode.PSObject.Properties) {
+            $relative = [string]$property.Name
+            if ([string]::IsNullOrWhiteSpace($relative)) {
+                continue
+            }
+
+            $hashValue = ""
+            $entry = $property.Value
+            if ($entry -is [string]) {
+                $hashValue = [string]$entry
+            } elseif ($null -ne $entry -and $null -ne $entry.PSObject.Properties["Hash"]) {
+                $hashValue = [string]$entry.Hash
+            }
+
+            $hashValue = $hashValue.Trim().ToLowerInvariant()
+            if ([string]::IsNullOrWhiteSpace($hashValue)) {
+                continue
+            }
+
+            $map[$relative] = $hashValue
+        }
+
+        return [PSCustomObject]@{
+            Path  = $path
+            Files = $map
+        }
+    } catch {
+        Write-Warning "Host deploy manifest is unreadable at $path. Content-based delta filtering will be skipped for this run."
+        return $null
+    }
+}
+
+function Write-HostDeployManifest() {
+    $path = Get-HostDeployManifestPath
+    $directory = Split-Path -Path $path -Parent
+    if (-not (Test-Path -LiteralPath $directory)) {
+        New-Item -ItemType Directory -Path $directory -Force | Out-Null
+    }
+
+    $files = [ordered]@{}
+    $items = Get-ChildItem -LiteralPath $localRoot -Recurse -File
+    foreach ($item in $items) {
+        $relative = $item.FullName.Substring($localRoot.Length).TrimStart('\') -replace '\\', '/'
+        if (Test-ProtectedPublicHtmlRelativePath -relative $relative) {
+            continue
+        }
+
+        $hash = Get-LocalPublicHtmlFileHash -relativePath $relative
+        if ([string]::IsNullOrWhiteSpace($hash)) {
+            continue
+        }
+
+        $files[$relative] = [ordered]@{
+            Hash   = $hash
+            Length = [int64]$item.Length
+        }
+    }
+
+    $payload = [ordered]@{
+        GeneratedAt = Get-IsoNow
+        SourceHead  = (Run-GitSingle -GitArgs @("rev-parse", "HEAD"))
+        Files       = $files
+    }
+
+    $json = $payload | ConvertTo-Json -Depth 6
+    Set-Content -LiteralPath $path -Value $json -Encoding UTF8
+    return $path
+}
+
+function Filter-DeployDeltaAgainstLastManifest(
+    [System.Collections.Generic.HashSet[string]]$uploadSet,
+    [System.Collections.Generic.HashSet[string]]$deleteSet,
+    $manifest
+) {
+    if ($null -eq $manifest -or $null -eq $manifest.Files) {
+    return [PSCustomObject]@{
+            UploadsSkipped  = 0
+            DeletesSkipped  = 0
+        }
+    }
+
+    $files = $manifest.Files
+    $uploadsSkipped = 0
+    $deletesSkipped = 0
+
+    foreach ($relative in @($uploadSet)) {
+        $localHash = Get-LocalPublicHtmlFileHash -relativePath $relative
+        if ([string]::IsNullOrWhiteSpace($localHash)) {
+            continue
+        }
+
+        $deployedHash = ""
+        if ($files.ContainsKey($relative)) {
+            $deployedHash = [string]$files[$relative]
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($deployedHash) -and $deployedHash -eq $localHash) {
+            [void]$uploadSet.Remove($relative)
+            $uploadsSkipped += 1
+        }
+    }
+
+    foreach ($relative in @($deleteSet)) {
+        $fullPath = Join-Path $localRoot ($relative -replace '/', '\')
+        if (Test-Path -LiteralPath $fullPath -PathType Leaf) {
+            [void]$deleteSet.Remove($relative)
+            $deletesSkipped += 1
+            continue
+        }
+        if (-not $files.ContainsKey($relative)) {
+            [void]$deleteSet.Remove($relative)
+            $deletesSkipped += 1
+        }
+    }
+
+    return [PSCustomObject]@{
+        UploadsSkipped  = $uploadsSkipped
+        DeletesSkipped  = $deletesSkipped
+    }
+}
+
 function Normalize-RemoteStoragePath([string]$path) {
     $normalized = (($path -replace '\\', '/').Trim()).Trim('/')
     if ([string]::IsNullOrWhiteSpace($normalized)) {
@@ -607,11 +836,22 @@ function Invoke-CurlCommand(
     $lastExitCode = 0
 
     for ($attempt = 1; $attempt -le $maxAttempts; $attempt += 1) {
-        $effectiveArguments = @("--connect-timeout", "30", "--max-time", "1800") + @($Arguments)
+        $effectiveArguments = @("--connect-timeout", "30", "--max-time", "1800")
+        if ($script:NetworkPolicy.HostDeployPath -eq "direct") {
+            $effectiveArguments += @("--noproxy", "*")
+        } elseif ($script:NetworkPolicy.HostDeployPath -eq "proxy") {
+            $proxyUri = Get-ProxyUriForPath -pathChoice "proxy"
+            if (-not [string]::IsNullOrWhiteSpace($proxyUri)) {
+                $effectiveArguments += @("--proxy", $proxyUri)
+            }
+        }
+        $effectiveArguments += @($Arguments)
         $previousErrorActionPreference = $ErrorActionPreference
         try {
             $ErrorActionPreference = "Continue"
-            $output = & curl.exe @effectiveArguments 2>&1
+            $output = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.HostDeployPath -ScriptBlock {
+                & curl.exe @effectiveArguments 2>&1
+            }
         } finally {
             $ErrorActionPreference = $previousErrorActionPreference
         }
@@ -668,7 +908,95 @@ function Get-RemoteDirectoryEntries([string]$remoteRelative) {
         }
         [void]$entries.Add($entry)
     }
-    return @($entries)
+    return $entries.ToArray()
+}
+
+function Convert-RemoteListTimestamp([string]$monthToken, [string]$dayToken, [string]$timeOrYearToken) {
+    $monthMap = @{
+        "jan" = 1; "feb" = 2; "mar" = 3; "apr" = 4; "may" = 5; "jun" = 6;
+        "jul" = 7; "aug" = 8; "sep" = 9; "oct" = 10; "nov" = 11; "dec" = 12
+    }
+
+    $monthKey = ([string]$monthToken).Trim().ToLowerInvariant()
+    if (-not $monthMap.ContainsKey($monthKey)) {
+        return $null
+    }
+    $monthNumber = [int]$monthMap[$monthKey]
+
+    $day = 0
+    if (-not [int]::TryParse(([string]$dayToken).Trim(), [ref]$day)) {
+        return $null
+    }
+
+    $year = [DateTime]::Now.Year
+    $hour = 0
+    $minute = 0
+    $timeToken = ([string]$timeOrYearToken).Trim()
+    if ($timeToken -match '^\d{1,2}:\d{2}$') {
+        $parts = $timeToken.Split(':')
+        $hour = [int]$parts[0]
+        $minute = [int]$parts[1]
+    } elseif ($timeToken -match '^\d{4}$') {
+        $year = [int]$timeToken
+    } else {
+        return $null
+    }
+
+    try {
+        $candidate = Get-Date -Year $year -Month $monthNumber -Day $day -Hour $hour -Minute $minute -Second 0
+        if ($timeToken -match '^\d{1,2}:\d{2}$' -and $candidate -gt (Get-Date).AddDays(1)) {
+            $candidate = $candidate.AddYears(-1)
+        }
+        return $candidate
+    } catch {
+        return $null
+    }
+}
+
+function Get-RemoteDirectoryListing([string]$remoteRelative) {
+    $url = Get-FtpUrl -relative $remoteRelative -Directory
+    $result = Invoke-CurlCommand `
+        -Arguments @("--silent", "--user", $credentials, $url) `
+        -Operation "List remote directory details $remoteRelative" `
+        -AllowFailure
+    if (-not $result.Success) {
+        return $null
+    }
+
+    $entries = New-Object System.Collections.Generic.List[object]
+    foreach ($line in @($result.Output)) {
+        $entry = ([string]$line).Trim()
+        if ([string]::IsNullOrWhiteSpace($entry) -or $entry -eq "." -or $entry -eq "..") {
+            continue
+        }
+
+        if ($entry -notmatch '^(?<type>[d\-])[\w\-]{9}\s+\d+\s+\S+\s+\S+\s+(?<size>\d+)\s+(?<month>\w{3})\s+(?<day>\d{1,2})\s+(?<timeyear>\d{1,2}:\d{2}|\d{4})\s+(?<name>.+)$') {
+            continue
+        }
+
+        $name = ([string]$Matches["name"]).Trim()
+        if ([string]::IsNullOrWhiteSpace($name) -or $name -eq "." -or $name -eq "..") {
+            continue
+        }
+
+        $lastModified = Convert-RemoteListTimestamp `
+            -monthToken $Matches["month"] `
+            -dayToken $Matches["day"] `
+            -timeOrYearToken $Matches["timeyear"]
+
+        $entries.Add([PSCustomObject]@{
+            Name         = $name
+            IsDirectory  = ($Matches["type"] -eq "d")
+            Size         = [int64]$Matches["size"]
+            LastModified = $lastModified
+        }) | Out-Null
+    }
+
+    if ($entries.Count -eq 0) {
+        return $null
+    }
+
+    return $entries.ToArray()
 }
 
 function Test-RemoteDirectory([string]$remoteRelative) {
@@ -767,8 +1095,12 @@ function Download-RemoteStorageFile(
     [string]$remoteRelative,
     [string]$remoteRoot,
     [string]$snapshotRoot,
+    [string]$seedRoot,
+    [int64]$RemoteSize = -1,
+    $RemoteLastModified = $null,
     [ref]$fileCount,
-    [ref]$totalBytes
+    [ref]$totalBytes,
+    [ref]$reusedCount
 ) {
     $localRelative = (($remoteRelative -replace '\\', '/').Trim()).Trim('/')
     $rootPrefix = (($remoteRoot -replace '\\', '/').Trim()).Trim('/')
@@ -788,16 +1120,49 @@ function Download-RemoteStorageFile(
         New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
     }
 
+    $seedPath = ""
+    if (-not [string]::IsNullOrWhiteSpace($seedRoot)) {
+        $seedPath = Join-Path $seedRoot ($localRelative -replace '/', '\')
+    }
+
+    $reused = $false
+    if (-not [string]::IsNullOrWhiteSpace($seedPath) -and (Test-Path -LiteralPath $seedPath -PathType Leaf)) {
+        try {
+            $seedInfo = Get-Item -LiteralPath $seedPath -ErrorAction Stop
+            $sizeMatches = ($RemoteSize -lt 0 -or [int64]$seedInfo.Length -eq $RemoteSize)
+            $timeMatches = $true
+            if ($null -ne $RemoteLastModified -and $RemoteLastModified -is [datetime]) {
+                $deltaMinutes = [Math]::Abs(($seedInfo.LastWriteTime - [datetime]$RemoteLastModified).TotalMinutes)
+                $timeMatches = $deltaMinutes -lt 1.1
+            }
+
+            if ($sizeMatches -and $timeMatches) {
+                Copy-Item -LiteralPath $seedPath -Destination $targetPath -Force
+                if ($null -ne $RemoteLastModified -and $RemoteLastModified -is [datetime]) {
+                    (Get-Item -LiteralPath $targetPath).LastWriteTime = [datetime]$RemoteLastModified
+                }
+                $reused = $true
+                $reusedCount.Value = [int]$reusedCount.Value + 1
+            }
+        } catch {
+            $reused = $false
+        }
+    }
+
     $url = Get-FtpUrl -relative $remoteRelative
-    Invoke-CurlCommand `
-        -Arguments @("--fail", "--silent", "--show-error", "--user", $credentials, "-o", "$targetPath", $url) `
-        -Operation "Download remote storage file $remoteRelative" | Out-Null
+    if (-not $reused) {
+        Invoke-CurlCommand `
+            -Arguments @("--fail", "--silent", "--show-error", "--remote-time", "--user", $credentials, "-o", "$targetPath", $url) `
+            -Operation "Download remote storage file $remoteRelative" | Out-Null
+    }
 
     $fileCount.Value = [int]$fileCount.Value + 1
-    try {
-        $totalBytes.Value = [int64]$totalBytes.Value + [int64](Get-Item -LiteralPath $targetPath).Length
-    } catch {
-        $totalBytes.Value = [int64]$totalBytes.Value
+    if (-not $reused) {
+        try {
+            $totalBytes.Value = [int64]$totalBytes.Value + [int64](Get-Item -LiteralPath $targetPath).Length
+        } catch {
+            $totalBytes.Value = [int64]$totalBytes.Value
+        }
     }
 }
 
@@ -805,15 +1170,47 @@ function Download-RemoteStorageDirectory(
     [string]$remoteRelative,
     [string]$remoteRoot,
     [string]$snapshotRoot,
+    [string]$seedRoot,
     [System.Collections.Generic.HashSet[string]]$visited,
     [ref]$fileCount,
-    [ref]$totalBytes
+    [ref]$totalBytes,
+    [ref]$reusedCount
 ) {
     $normalized = (($remoteRelative -replace '\\', '/').Trim()).Trim('/')
     if ($visited.Contains($normalized)) {
         return
     }
     [void]$visited.Add($normalized)
+
+    $detailedEntries = Get-RemoteDirectoryListing -remoteRelative $normalized
+    if ($null -ne $detailedEntries) {
+        foreach ($entry in @($detailedEntries)) {
+            $child = Join-RemoteRelativePath -left $normalized -right $entry.Name
+            if ($entry.IsDirectory) {
+                Download-RemoteStorageDirectory `
+                    -remoteRelative $child `
+                    -remoteRoot $remoteRoot `
+                    -snapshotRoot $snapshotRoot `
+                    -seedRoot $seedRoot `
+                    -visited $visited `
+                    -fileCount $fileCount `
+                    -totalBytes $totalBytes `
+                    -reusedCount $reusedCount
+            } else {
+                Download-RemoteStorageFile `
+                    -remoteRelative $child `
+                    -remoteRoot $remoteRoot `
+                    -snapshotRoot $snapshotRoot `
+                    -seedRoot $seedRoot `
+                    -RemoteSize ([int64]$entry.Size) `
+                    -RemoteLastModified $entry.LastModified `
+                    -fileCount $fileCount `
+                    -totalBytes $totalBytes `
+                    -reusedCount $reusedCount
+            }
+        }
+        return
+    }
 
     $entries = Get-RemoteDirectoryEntries -remoteRelative $normalized
     if ($null -eq $entries) {
@@ -831,16 +1228,20 @@ function Download-RemoteStorageDirectory(
                 -remoteRelative $child `
                 -remoteRoot $remoteRoot `
                 -snapshotRoot $snapshotRoot `
+                -seedRoot $seedRoot `
                 -fileCount $fileCount `
-                -totalBytes $totalBytes
+                -totalBytes $totalBytes `
+                -reusedCount $reusedCount
         } elseif (Test-RemoteStorageLikelyDirectoryName -name $entry) {
             Download-RemoteStorageDirectory `
                 -remoteRelative $child `
                 -remoteRoot $remoteRoot `
                 -snapshotRoot $snapshotRoot `
+                -seedRoot $seedRoot `
                 -visited $visited `
                 -fileCount $fileCount `
-                -totalBytes $totalBytes
+                -totalBytes $totalBytes `
+                -reusedCount $reusedCount
         }
     }
 }
@@ -859,6 +1260,7 @@ function Sync-RemoteStorageFromHost() {
             LatestPath  = ""
             FileCount   = 0
             Bytes       = [int64]0
+            ReusedFiles = 0
         }
     }
 
@@ -876,16 +1278,20 @@ function Sync-RemoteStorageFromHost() {
     $visited = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
     $fileCountValue = 0
     $totalBytesValue = [int64]0
+    $reusedCountValue = 0
     $fileCount = [ref]$fileCountValue
     $totalBytes = [ref]$totalBytesValue
+    $reusedCount = [ref]$reusedCountValue
 
     Download-RemoteStorageDirectory `
         -remoteRelative $remoteRoot `
         -remoteRoot $remoteRoot `
         -snapshotRoot $snapshotPath `
+        -seedRoot $latestPath `
         -visited $visited `
         -fileCount $fileCount `
-        -totalBytes $totalBytes
+        -totalBytes $totalBytes `
+        -reusedCount $reusedCount
 
     $serverOnlyRoot = Join-Path $projectRoot "server-only"
     $codexLocalRoot = Join-Path $projectRoot ".codex-local"
@@ -902,6 +1308,7 @@ function Sync-RemoteStorageFromHost() {
         LatestPath   = $latestPath
         FileCount    = [int]$fileCount.Value
         Bytes        = [int64]$totalBytes.Value
+        ReusedFiles  = [int]$reusedCount.Value
     }
 }
 
@@ -1353,7 +1760,9 @@ function Run-OptionalPullBeforeDeploy() {
 
     Write-Host "Step 2/5: optional git pull --ff-only (explicit override)"
     Write-Host "Git pull started at: $started"
-    & git -C $projectRoot pull --ff-only
+    Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.GitHubPath -ScriptBlock {
+        & git -C $projectRoot pull --ff-only
+    } | Out-Null
     if ($LASTEXITCODE -ne 0) {
         throw "git pull --ff-only failed under -PullBeforeDeploy override."
     }
@@ -1485,9 +1894,14 @@ function Build-DeployPlan() {
     $deleteSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
     $notes = New-Object System.Collections.Generic.List[string]
     $currentHead = ""
+    $lastDeployManifest = $null
+    $lastDeployState = $null
+    $canUseHostStateDelta = $false
 
     Assert-GitAvailable
     $currentHead = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
+    $lastDeployManifest = Read-HostDeployManifest
+    $lastDeployState = Read-HostDeployState
 
     if ($FullSync) {
         $files = Get-ChildItem -LiteralPath $localRoot -Recurse -File
@@ -1509,33 +1923,15 @@ function Build-DeployPlan() {
         }
     }
 
-    $upstream = Try-GetUpstreamBranch
-    if (-not [string]::IsNullOrWhiteSpace($upstream)) {
-        $counts = Run-GitSingle -GitArgs @("rev-list", "--left-right", "--count", "@{upstream}...HEAD")
-        $parts = $counts -split "\s+"
-        if ($parts.Count -ge 2) {
-            $behind = [int]$parts[0]
-            $ahead = [int]$parts[1]
-            if ($ahead -gt 0) {
-                Collect-GitRangeDelta -uploadSet $uploadSet -deleteSet $deleteSet -rangeSpec "@{upstream}..HEAD"
-                [void]$notes.Add("Included committed local delta ahead of $upstream (ahead=$ahead).")
-            }
-            if ($behind -gt 0) {
-                [void]$notes.Add("Local branch is behind $upstream by $behind commit(s); deploy still uses laptop state.")
-            }
-        }
-    } else {
-        [void]$notes.Add("No upstream branch configured; deploying local tracked/untracked workspace delta only.")
-    }
-
-    $lastDeployState = Read-HostDeployState
     if ($null -ne $lastDeployState -and -not [string]::IsNullOrWhiteSpace($lastDeployState.Head)) {
         $lastHead = $lastDeployState.Head
         if (-not (Test-GitCommitExists -Revision $lastHead)) {
             [void]$notes.Add("Last successful host deploy head '$lastHead' is no longer available locally.")
         } elseif ($lastHead -eq $currentHead) {
-            [void]$notes.Add("Current HEAD already matches last successful host deploy state.")
+            $canUseHostStateDelta = $true
+            [void]$notes.Add("Current HEAD already matches last successful host deploy state; committed history delta is skipped.")
         } elseif (Test-GitCommitAncestor -Ancestor $lastHead -Descendant $currentHead) {
+            $canUseHostStateDelta = $true
             Collect-GitRangeDelta -uploadSet $uploadSet -deleteSet $deleteSet -rangeSpec "$lastHead..$currentHead"
             [void]$notes.Add("Included committed public_html delta since last successful host deploy ($lastHead..$currentHead).")
         } else {
@@ -1545,8 +1941,34 @@ function Build-DeployPlan() {
         [void]$notes.Add("No previous successful host deploy state was found; fallback deploy-state delta is skipped.")
     }
 
+    if (-not $canUseHostStateDelta) {
+        $upstream = Try-GetUpstreamBranch
+        if (-not [string]::IsNullOrWhiteSpace($upstream)) {
+            $counts = Run-GitSingle -GitArgs @("rev-list", "--left-right", "--count", "@{upstream}...HEAD")
+            $parts = $counts -split "\s+"
+            if ($parts.Count -ge 2) {
+                $behind = [int]$parts[0]
+                $ahead = [int]$parts[1]
+                if ($ahead -gt 0) {
+                    Collect-GitRangeDelta -uploadSet $uploadSet -deleteSet $deleteSet -rangeSpec "@{upstream}..HEAD"
+                    [void]$notes.Add("Fallback included committed local delta ahead of $upstream (ahead=$ahead) because no usable host deploy state delta was available.")
+                }
+                if ($behind -gt 0) {
+                    [void]$notes.Add("Local branch is behind $upstream by $behind commit(s); deploy still uses laptop state.")
+                }
+            }
+        } else {
+            [void]$notes.Add("No upstream branch configured; deploying local tracked/untracked workspace delta only.")
+        }
+    }
+
     Collect-WorkingTreeDelta -uploadSet $uploadSet -deleteSet $deleteSet
     [void]$notes.Add("Included staged/unstaged/untracked local workspace changes.")
+
+    $manifestFilter = Filter-DeployDeltaAgainstLastManifest -uploadSet $uploadSet -deleteSet $deleteSet -manifest $lastDeployManifest
+    if ($manifestFilter.UploadsSkipped -gt 0) {
+        [void]$notes.Add("Skipped $($manifestFilter.UploadsSkipped) candidate upload(s) because their content already matches the last deployed host manifest.")
+    }
 
     foreach ($path in @($deleteSet)) {
         if ($uploadSet.Contains($path)) {
@@ -1737,7 +2159,9 @@ function New-GitHubSyncWorktree([string]$remoteName, [string]$branchName, [strin
     $hasRemoteBranch = $false
     $baseRef = $fallbackRef
 
-    $fetchOutput = & git -C $projectRoot fetch --no-tags --quiet $remoteName $branchName 2>&1
+    $fetchOutput = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.GitHubPath -ScriptBlock {
+        & git -C $projectRoot fetch --no-tags --quiet $remoteName $branchName 2>&1
+    }
     if ($LASTEXITCODE -eq 0) {
         $remoteRef = "refs/remotes/$remoteName/$branchName"
         & git -C $projectRoot show-ref --verify --quiet $remoteRef 2>$null
@@ -1853,7 +2277,9 @@ function Invoke-HealthCheck([string]$url) {
     Write-Host "Health check: $url"
 
     try {
-        $response = Invoke-WebRequest -Uri $url -Method Get -MaximumRedirection 5 -TimeoutSec 30 -UseBasicParsing
+        $response = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.HealthCheckPath -ScriptBlock {
+            Invoke-WebRequest -Uri $url -Method Get -MaximumRedirection 5 -TimeoutSec 30 -UseBasicParsing
+        }
     } catch {
         throw "Health check request failed for '$url'. $($_.Exception.Message)"
     }
@@ -2039,13 +2465,17 @@ function Sync-GitHubFromLaptop([object]$GitHubPlan) {
             if ($worktree.HasRemoteBranch) {
                 $pushCommand = "git push $($target.RemoteName) $pushSpec"
                 if ($hasStagedChanges) {
-                    $pushOutput = & git -C $worktree.Path push --quiet $target.RemoteName $pushSpec 2>&1
+                    $pushOutput = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.GitHubPath -ScriptBlock {
+                        & git -C $worktree.Path push --quiet $target.RemoteName $pushSpec 2>&1
+                    }
                     $pushDetail = Format-CommandFailureDetail -commandOutput $pushOutput -fallback "No stderr output."
                 }
             } else {
                 $pushCommand = "git push -u $($target.RemoteName) $pushSpec"
                 if ($hasStagedChanges) {
-                    $pushOutput = & git -C $worktree.Path push --quiet -u $target.RemoteName $pushSpec 2>&1
+                    $pushOutput = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.GitHubPath -ScriptBlock {
+                        & git -C $worktree.Path push --quiet -u $target.RemoteName $pushSpec 2>&1
+                    }
                     $pushDetail = Format-CommandFailureDetail -commandOutput $pushOutput -fallback "No stderr output."
                 }
             }
@@ -2207,7 +2637,9 @@ function Invoke-SiteFormJsonRequest(
     }
 
     try {
-        $response = Invoke-WebRequest @invokeArgs
+        $response = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.HealthCheckPath -ScriptBlock {
+            Invoke-WebRequest @invokeArgs
+        }
     } catch {
         $responseBody = Get-WebExceptionResponseBody $_.Exception
         $message = if ([string]::IsNullOrWhiteSpace($responseBody)) {
@@ -2313,6 +2745,23 @@ function Send-OwnerDeployNotice(
     }
 }
 
+function Get-OwnerDeployNoticeSkipResult([string]$status, [string]$message, [string]$version = "") {
+    $started = Get-IsoNow
+    if (-not [string]::IsNullOrWhiteSpace($message)) {
+        Write-Host $message
+    }
+
+    return [PSCustomObject]@{
+        Status         = $status
+        StartedAt      = $started
+        FinishedAt     = Get-IsoNow
+        SiteBaseUrl    = ""
+        NotificationId = ""
+        Version        = [string]$version
+        Message        = [string]$message
+    }
+}
+
 $validationInfo = [PSCustomObject]@{
     Status     = "not-run"
     StartedAt  = ""
@@ -2336,6 +2785,7 @@ $remoteStorageInfo = [PSCustomObject]@{
     LatestPath   = ""
     FileCount    = 0
     Bytes        = [int64]0
+    ReusedFiles  = 0
 }
 $pullInfo = [PSCustomObject]@{
     Status      = "not-run"
@@ -2452,11 +2902,6 @@ try {
     $deployInfo.FinishedAt = Get-IsoNow
 
     $verificationInfo = Run-PostDeployVerification
-    $ownerNoticeInfo = Send-OwnerDeployNotice `
-        -Version ([string]$versionStampInfo.Version) `
-        -DeployedAt ([string]$deployInfo.FinishedAt) `
-        -Branch ([string]$deploySourceBranch) `
-        -DeployHead ([string]$deploySourceHead)
 
     if (-not $DryRun -and -not [string]::IsNullOrWhiteSpace($deploySourceHead)) {
         $statePath = Write-HostDeployState `
@@ -2470,6 +2915,25 @@ try {
         $deployStateInfo.Branch = $deploySourceBranch
         $deployStateInfo.FinishedAt = [string]$deployInfo.FinishedAt
         $deployStateInfo.GitHubStatus = "pending"
+        Write-HostDeployManifest | Out-Null
+    }
+
+    if ($SkipOwnerDeployNotification) {
+        $ownerNoticeInfo = Get-OwnerDeployNoticeSkipResult `
+            -status "skipped-explicit" `
+            -message "Step 4.5/5 skipped by explicit -SkipOwnerDeployNotification override." `
+            -version ([string]$versionStampInfo.Version)
+    } elseif ($uploadList.Count -eq 0 -and $deleteList.Count -eq 0) {
+        $ownerNoticeInfo = Get-OwnerDeployNoticeSkipResult `
+            -status "skipped-no-host-delta" `
+            -message "Step 4.5/5 skipped because no public_html delta was deployed to host." `
+            -version ([string]$versionStampInfo.Version)
+    } else {
+        $ownerNoticeInfo = Send-OwnerDeployNotice `
+            -Version ([string]$versionStampInfo.Version) `
+            -DeployedAt ([string]$deployInfo.FinishedAt) `
+            -Branch ([string]$deploySourceBranch) `
+            -DeployHead ([string]$deploySourceHead)
     }
 
     $githubPlan = Build-GitHubSyncPlan -upstream (Try-GetUpstreamBranch)
@@ -2493,11 +2957,21 @@ try {
         $deployStateInfo.FinishedAt = [string]$deployInfo.FinishedAt
         $deployStateInfo.GitHubHead = $gitHubHead
         $deployStateInfo.GitHubStatus = [string]$githubSyncInfo.Status
+        Write-HostDeployManifest | Out-Null
     } elseif (-not $DryRun) {
         $deployStateInfo.Status = "skipped-no-head"
     }
 } catch {
     $failureMessage = $_.Exception.Message
+    if ($null -ne $_.InvocationInfo -and -not [string]::IsNullOrWhiteSpace([string]$_.InvocationInfo.PositionMessage)) {
+        $failureMessage += " | " + ([string]$_.InvocationInfo.PositionMessage).Trim()
+    }
+    if (-not [string]::IsNullOrWhiteSpace([string]$_.ScriptStackTrace)) {
+        $stackPreview = (([string]$_.ScriptStackTrace) -split "(\r?\n)+" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 3) -join " <- "
+        if (-not [string]::IsNullOrWhiteSpace($stackPreview)) {
+            $failureMessage += " | stack: $stackPreview"
+        }
+    }
     $hostDeploySucceeded = ([string]$deployInfo.Status) -eq "completed"
     $liveVerified = ([string]$verificationInfo.Status) -eq "completed"
     if (-not $remoteStorageInfo.FinishedAt) {
@@ -2567,6 +3041,7 @@ try {
         Write-Host " - Latest local storage backup: $($remoteStorageInfo.LatestPath)"
     }
     Write-Host " - Remote storage files downloaded: $($remoteStorageInfo.FileCount)"
+    Write-Host " - Remote storage files reused from last mirror: $($remoteStorageInfo.ReusedFiles)"
     Write-Host " - Remote storage bytes downloaded: $(Format-Bytes -bytes $remoteStorageInfo.Bytes)"
 
     Write-Host " - Validation status: $($validationInfo.Status)"
