@@ -204,7 +204,7 @@
             report ? renderLaunchSubmissionNotice(report) : "",
             '      <div class="exam-mode-card-grid">' + renderModeCards() + "</div>",
             state.layout.chooserHintExpanded
-                ? '<div class="exam-note-card">در حالت سنجشی همه سوال‌ها با کارنامه، رتبه و ذخیره نتیجه اجرا می‌شود. در حالت آموزشی پس از هر پاسخ، جواب درست و توضیح همان سوال را می‌بینی.</div>'
+                ? '<div class="exam-note-card">سنجشی برای ثبت نتیجه و کارنامه است. آموزشی بعد از هر پاسخ، جواب درست و توضیح را همان‌جا نشان می‌دهد.</div>'
                 : "",
             renderLaunchActions(),
             "    </section>",
@@ -247,7 +247,7 @@
     function renderLaunchActions() {
         return [
             '  <div class="exam-launch-actions">',
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-chooser-hint">' + escapeHtml(state.layout.chooserHintExpanded ? "بستن توضیح" : "تفاوت دو حالت") + "</button>",
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-chooser-hint">' + escapeHtml(state.layout.chooserHintExpanded ? "بستن راهنما" : "راهنمای حالت‌ها") + "</button>",
             state.mode
                 ? '    <button class="exam-btn exam-btn--primary" type="button" data-action="start-mode" data-mode="' + escapeHtml(state.mode) + '">' + escapeHtml(modePrimaryActionLabel(state.mode)) + "</button>"
                 : '    <button class="exam-btn exam-btn--primary" type="button" disabled>یکی از کارت‌ها را انتخاب کن</button>',
@@ -280,9 +280,8 @@
                 summary.savedLabel ? '  <div class="exam-mode-card__footer-note">' + escapeHtml(summary.savedLabel) + "</div>" : "",
                 '  <div class="exam-mode-card__actions">',
                 locked
-                    ? '    <a class="exam-btn exam-btn--primary" href="' + escapeHtml(loginHref()) + '">ورود برای سنجشی</a>'
-                    : '    <button class="exam-btn exam-btn--primary" type="button" data-action="start-mode" data-mode="' + escapeHtml(mode) + '">' + escapeHtml(modePrimaryActionLabel(mode)) + "</button>",
-                '    <button class="exam-btn exam-btn--ghost" type="button" data-action="set-mode" data-mode="' + escapeHtml(mode) + '">' + escapeHtml(selected ? "در حال نمایش" : "انتخاب این حالت") + "</button>",
+                    ? '    <a class="exam-btn exam-btn--ghost" href="' + escapeHtml(loginHref()) + '">ورود برای سنجشی</a>'
+                    : '    <button class="exam-btn ' + (selected ? "exam-btn--primary" : "exam-btn--ghost") + '" type="button" data-action="set-mode" data-mode="' + escapeHtml(mode) + '">' + escapeHtml(selected ? "این حالت انتخاب شده" : "انتخاب این حالت") + "</button>",
                 "  </div>",
                 "</article>"
             ].join("");
