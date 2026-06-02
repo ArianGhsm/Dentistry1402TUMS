@@ -190,6 +190,7 @@
 5. retest کامل همان flow + سناریوهای وابسته + regression بخش‌های متاثر روی desktop/mobile و هر لایه‌ی relevant از بخش `10.1` و `10.2`.
 6. وضعیت را دقیق گزارش کنید: `completed` / `partial` / `blocked`، و اگر بخشی از لایه‌های relevant verify نشده‌اند یا عمداً scope نشده‌اند، صریحاً ذکر کنید.
 7. بعد از هر پرامپت/کار انجام‌شده، Deploy پیش‌فرض باید قبل از پاسخ نهایی اجرا شود مگر کاربر صراحتاً همان نوبت منع کند.
+7.1. بعد از deploy و قبل از پاسخ نهایی، باید `python .\scripts\check_host_deploy_freshness.py` هم پاس شود؛ اگر این check drift بین `public_html/` فعلی و آخرین manifest دیپلوی‌شده را نشان داد، پاسخ نهایی کامل مجاز نیست.
 8. وضعیت `completed` فقط وقتی مجاز است که deploy canonical، live health-check و اعلان داخل سایت برای مالک همگی موفق شده باشند؛ اگر deploy یا اعلان به هر دلیل fail/skip شد، خروجی کار `blocked` یا `partial` است و نباید موفقیت کامل گزارش شود.
 
 ## 12) Deploy پیش‌فرض
@@ -197,6 +198,11 @@
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
 - این مرحله بخشی از definition of done هر کار است: بعد از اصلاح، تست و قبل از پاسخ نهایی باید اجرا شود، نه اینکه به حافظه یا پیگیری دستی موکول شود.
+- بعد از اتمام deploy، این command هم guard اجباری قبل از پاسخ نهایی است:
+```powershell
+python .\scripts\check_host_deploy_freshness.py
+```
+- این check باید `host_last_deploy.json` و `host_last_deploy_manifest.json` را با درخت فعلی `public_html/` تطبیق دهد؛ اگر هر فایل جدید/ویرایش/حذف‌نشده‌ای بعد از deploy باقی مانده باشد، کار هنوز done نیست.
 - ترتیب اجباری:
   - host storage backup/mirror -> local validation -> host deploy -> live health-check -> GitHub sync
 - local validation پیش‌فرض باید پایدار، سریع و کم‌نویز بماند؛ اضافه‌کردن check جدیدی که مرتب false-fail می‌دهد یا به شرایط ناپایدار بیرونی وابسته است بدون کنترل scope و پایداری مجاز نیست.

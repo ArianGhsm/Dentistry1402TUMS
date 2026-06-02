@@ -10,6 +10,10 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 
 ## Definition of Done
 - بعد از هر پرامپت/کاری که روی پروژه انجام می‌شود، deploy canonical باید قبل از پاسخ نهایی اجرا شود مگر کاربر صراحتاً همان نوبت منع کند.
+- بعد از deploy و قبل از پاسخ نهایی، این guard هم باید پاس شود تا معلوم باشد `public_html/` بعد از آخرین host deploy دوباره تغییر نکرده است:
+```powershell
+python .\scripts\check_host_deploy_freshness.py
+```
 - کار فقط وقتی `completed` محسوب می‌شود که deploy، live health-check و اعلان داخل سایت برای مالک موفق شده باشند؛ fail/skip شدن deploy یا اعلان باید صریحاً `blocked` یا `partial` گزارش شود.
 
 ## ترتیب اجباری Deploy
