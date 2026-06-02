@@ -1879,7 +1879,7 @@ if ($action === 'exam') {
             dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug),
             $catalogKey,
             $courseSlug,
-            true
+            false
         );
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
@@ -1893,7 +1893,11 @@ if ($action === 'exam') {
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
     $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
     $coursePayload = dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $examsStore, $collection, $paymentsStore, false, $user);
-    if (!dent_exams_api_exam_is_attemptable($exam)) {
+    if ((bool) ($access['hasAccess'] ?? false)) {
+        $exam = dent_exams_api_apply_runtime_exam_override($exam, $catalogKey, $courseSlug, true);
+    }
+
+    if ((bool) ($access['hasAccess'] ?? false) && !dent_exams_api_exam_is_attemptable($exam)) {
         dent_error('این بخش آزمون مستقیمی ندارد. از گزینه «مشاهده بخش» وارد زیرمجموعه‌های آن شوید.', 422, [
             'course' => $coursePayload,
             'entryPath' => (string) ($exam['path'] ?? ''),
@@ -1938,7 +1942,7 @@ if ($action === 'saveFlags') {
             dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug),
             $catalogKey,
             $courseSlug,
-            true
+            false
         );
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
@@ -2006,7 +2010,7 @@ if ($action === 'touchExamActivity') {
             dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug),
             $catalogKey,
             $courseSlug,
-            true
+            false
         );
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
@@ -2065,7 +2069,7 @@ if ($action === 'submitAssessment') {
             dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug),
             $catalogKey,
             $courseSlug,
-            true
+            false
         );
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
@@ -2081,6 +2085,7 @@ if ($action === 'submitAssessment') {
         dent_error('برای ثبت کارنامه باید ابتدا به این آزمون دسترسی داشته باشید.', 403);
     }
 
+    $exam = dent_exams_api_apply_runtime_exam_override($exam, $catalogKey, $courseSlug, true);
     $questions = is_array($exam['questions'] ?? null) ? $exam['questions'] : [];
     if (!$questions) {
         dent_error('برای این آزمون هنوز سوالی ثبت نشده است.', 422);

@@ -608,20 +608,21 @@ html[data-theme="dark"] .logo-circle {
 }
 
 .site-header.site-header--minimal {
-    display: grid;
-    grid-template-columns: minmax(40px, auto) minmax(0, 1fr) minmax(40px, auto);
-    justify-content: stretch;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0;
     min-height: calc(56px + env(safe-area-inset-top, 0px));
     padding: calc(0.42rem + env(safe-area-inset-top, 0px)) max(0.88rem, calc((100vw - 1180px) / 2 + 1rem)) 0.42rem;
 }
 
 .site-header--minimal .logo-area {
-    grid-column: 2;
-    justify-self: stretch;
+    flex: 1 1 auto;
+    min-width: 0;
     width: 100%;
+    justify-content: center;
     gap: 0;
+    padding-inline: 3rem;
     text-align: center;
 }
 
@@ -649,9 +650,10 @@ html[data-theme="dark"] .logo-circle {
 }
 
 .site-header--minimal .header-actions {
-    grid-column: 1;
-    justify-self: start;
-    align-self: center;
+    position: absolute;
+    inset-block-start: calc(50% + (env(safe-area-inset-top, 0px) / 2));
+    inset-inline-start: max(0.88rem, calc((100vw - 1180px) / 2 + 1rem));
+    transform: translateY(-50%);
     width: 40px;
     max-width: none;
     gap: 0;
@@ -1679,6 +1681,10 @@ html[data-performance-mode="lite"] .shell-modal {
 
     .site-header--minimal .site-info h1 {
         font-size: 0.92rem;
+    }
+
+    .site-header--minimal .logo-area {
+        padding-inline: 2.55rem;
     }
 
     .logo-area {
