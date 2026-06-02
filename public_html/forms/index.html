@@ -8,21 +8,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="فرم‌ها">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260602-024746">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260602-024746">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260602-024746">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260602-082542">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260602-082542">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260602-082542">
     <title>فرم‌ها و نظرسنجی‌ها | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
-    <script src="/assets/site/scripts/theme.js?v=20260602-024746"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260602-024746">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260602-024746">
-    <link rel="stylesheet" href="/assets/site/styles/forms.css?v=20260602-024746">
+    <script src="/assets/site/scripts/theme.js?v=20260602-082542"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260602-082542">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260602-082542">
+    <link rel="stylesheet" href="/assets/site/styles/forms.css?v=20260602-082542">
 </head>
 <body class="forms-page">
     <div class="background-overlay" aria-hidden="true"></div>
 
     <main class="forms-shell">
         <header class="forms-topbar">
-            <a class="forms-icon-btn forms-icon-btn--text" href="/account/" aria-label="بازگشت به حساب">بازگشت به حساب</a>
+            <a class="forms-icon-btn" href="/account/" aria-label="بازگشت به حساب">‹</a>
             <div class="forms-topbar__copy">
                 <h1>فرم‌ها و نظرسنجی‌ها</h1>
                 <p id="forms-viewer-copy">در حال آماده‌سازی...</p>
@@ -62,12 +62,12 @@
             </section>
 
             <nav class="forms-tabs" aria-label="نمای ماژول فرم">
-                <button class="is-active" type="button" data-forms-tab="builder" hidden data-required-permission="manageForms">ساخت فرم</button>
-                <button type="button" data-forms-tab="list">فهرست فرم‌ها</button>
-                <button type="button" data-forms-tab="responses" hidden data-required-permission="manageForms">پاسخ‌ها و خروجی</button>
+                <button class="is-active" type="button" data-forms-tab="builder">ساخت</button>
+                <button type="button" data-forms-tab="list">لیست</button>
+                <button type="button" data-forms-tab="responses">پاسخ‌ها</button>
             </nav>
 
-            <section id="forms-builder-panel" class="forms-panel" hidden data-required-permission="manageForms">
+            <section id="forms-builder-panel" class="forms-panel">
                 <form id="forms-builder" class="forms-builder" novalidate>
                     <section class="forms-card forms-card--accent">
                         <div class="forms-card-head">
@@ -245,7 +245,7 @@
                         </div>
                         <div class="forms-actions">
                             <a class="forms-btn" href="/dis-request/">فرم عمومی</a>
-                            <a class="forms-btn forms-btn--primary" href="/dis-request/manage/" hidden data-required-permission="manageForms">مدیریت DIS</a>
+                            <a class="forms-btn forms-btn--primary" href="/dis-request/manage/">مدیریت DIS</a>
                         </div>
                     </div>
                     <p class="forms-muted">داده‌ها و خروجی‌های قبلی DIS در مسیر قبلی باقی مانده‌اند.</p>
@@ -264,7 +264,7 @@
                 </section>
             </section>
 
-            <section id="forms-responses-panel" class="forms-panel" hidden data-required-permission="manageForms">
+            <section id="forms-responses-panel" class="forms-panel" hidden>
                 <section class="forms-card">
                     <div class="forms-card-head">
                         <div>
@@ -273,7 +273,7 @@
                         </div>
                         <div class="forms-actions">
                             <a id="forms-export-link" class="forms-btn forms-btn--primary" href="#" hidden>Excel</a>
-                            <button id="forms-close-responses" class="forms-btn" type="button">بازگشت به فهرست فرم‌ها</button>
+                            <button id="forms-close-responses" class="forms-btn" type="button">بستن</button>
                         </div>
                     </div>
                     <div id="forms-responses-empty" class="forms-empty">از لیست، یک فرم را برای مشاهده پاسخ‌ها باز کنید.</div>
@@ -285,9 +285,11 @@
 
     <div id="forms-toast" class="forms-toast" aria-live="polite"></div>
 
-    <script src="/assets/site/scripts/auth.js?v=20260602-024746"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260602-024746"></script>
-    <script src="/assets/site/scripts/forms.js?v=20260602-024746"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260602-024746"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260602-082542"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260602-082542"></script>
+    <script src="/assets/site/scripts/forms.js?v=20260602-082542"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260602-082542"></script>
 </body>
 </html>
+
+

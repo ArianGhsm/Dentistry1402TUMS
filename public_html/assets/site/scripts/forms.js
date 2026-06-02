@@ -26,7 +26,6 @@
     var formsCount = $("forms-count");
     var formsOpenCount = $("forms-open-count");
     var formsResponseCount = $("forms-response-count");
-    var formsResponseMetric = formsResponseCount ? formsResponseCount.closest(".forms-metric") : null;
     var tabs = Array.prototype.slice.call(document.querySelectorAll("[data-forms-tab]"));
     var panels = {
         builder: $("forms-builder-panel"),
@@ -114,13 +113,6 @@
 
     function apiGet(action, params) {
         var query = new URLSearchParams(Object.assign({ action: action, cohort: pageCohort }, params || {}));
-        if (siteApi && typeof siteApi.fetchJsonWithTimeout === "function") {
-            return siteApi.fetchJsonWithTimeout("/api/forms_api.php?" + query.toString(), {
-                method: "GET",
-                credentials: "same-origin",
-                headers: { Accept: "application/json" }
-            }, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت داده‌های فرم‌ها با تاخیر پاسخ داد.");
-        }
         return fetch("/api/forms_api.php?" + query.toString(), {
             method: "GET",
             credentials: "same-origin",
@@ -137,17 +129,6 @@
         Object.keys(payload || {}).forEach(function (key) {
             body.append(key, payload[key]);
         });
-        if (siteApi && typeof siteApi.fetchJsonWithTimeout === "function") {
-            return siteApi.fetchJsonWithTimeout("/api/forms_api.php", {
-                method: "POST",
-                credentials: "same-origin",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                    Accept: "application/json"
-                },
-                body: body
-            }, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "ارتباط با سرور هنگام دریافت یا ذخیره فرم‌ها با تاخیر پاسخ داد.");
-        }
         return fetch("/api/forms_api.php", {
             method: "POST",
             credentials: "same-origin",
@@ -202,26 +183,6 @@
         boot.hidden = name !== "boot";
         login.hidden = name !== "login";
         app.hidden = name !== "app";
-    }
-
-    function renderBootState(kind, title, message, onRetry) {
-        if (!boot) {
-            return;
-        }
-
-        if (siteApi && typeof siteApi.renderAsyncState === "function") {
-            siteApi.renderAsyncState(boot, {
-                kind: kind || "loading",
-                title: title || "در حال آماده‌سازی",
-                copy: message || "وضعیت حساب و ماژول بررسی می‌شود.",
-                retryLabel: "تلاش دوباره",
-                onRetry: onRetry || null
-            });
-            return;
-        }
-
-        boot.innerHTML = "";
-        boot.hidden = false;
     }
 
     function setTab(name) {
@@ -1104,29 +1065,13 @@
         var total = state.forms.length;
         var open = 0;
         var responses = 0;
-        var showManageMetrics = state.forms.some(function (form) {
-            return !!(form && form.permissions && form.permissions.canManage);
-        });
         state.forms.forEach(function (form) {
             if (form.status === "open") open++;
-            if (form && form.permissions && form.permissions.canManage) {
-                responses += Number(form.responseCount || 0);
-            }
+            responses += Number(form.responseCount || 0);
         });
         formsCount.textContent = total.toLocaleString("fa-IR");
         formsOpenCount.textContent = open.toLocaleString("fa-IR");
         formsResponseCount.textContent = responses.toLocaleString("fa-IR");
-        if (formsResponseMetric) {
-            formsResponseMetric.hidden = !showManageMetrics;
-        }
-        tabs.forEach(function (tab) {
-            if (tab.getAttribute("data-forms-tab") === "responses") {
-                tab.hidden = !showManageMetrics;
-            }
-        });
-        if (!showManageMetrics && panels.responses && !panels.responses.hidden) {
-            setTab("list");
-        }
     }
 
     function copyText(value) {
@@ -1200,17 +1145,12 @@
             copy.appendChild(title);
             var meta = document.createElement("p");
             meta.className = "forms-item__meta";
-            meta.textContent = (form.permissions && form.permissions.canManage
-                ? [
-                    String(form.kindLabel || "فرم"),
-                    String(form.statusLabel || "نامشخص"),
-                    "پاسخ‌ها: " + Number(form.responseCount || 0).toLocaleString("fa-IR"),
-                    "دسترسی: " + String(form.settings && form.settings.audienceLabel ? form.settings.audienceLabel : "")
-                ]
-                : [
-                    String(form.kindLabel || "فرم")
-                ]
-            ).filter(Boolean).join(" • ");
+            meta.textContent = [
+                String(form.kindLabel || "فرم"),
+                String(form.statusLabel || "نامشخص"),
+                "پاسخ‌ها: " + Number(form.responseCount || 0).toLocaleString("fa-IR"),
+                "دسترسی: " + String(form.settings && form.settings.audienceLabel ? form.settings.audienceLabel : "")
+            ].filter(Boolean).join(" • ");
             copy.appendChild(meta);
             head.appendChild(copy);
             var chip = document.createElement("span");
@@ -1335,18 +1275,7 @@
             if (requestId !== state.loadFormsRequestId) {
                 return;
             }
-            if (formsEmpty && siteApi && typeof siteApi.renderAsyncState === "function") {
-                siteApi.renderAsyncState(formsEmpty, {
-                    kind: "error",
-                    title: "بارگذاری فرم‌ها انجام نشد",
-                    copy: error && error.message ? error.message : "لیست فرم‌ها موقتاً در دسترس نیست.",
-                    retryLabel: "بازخوانی",
-                    onRetry: loadForms
-                });
-                formsEmpty.hidden = false;
-            } else {
-                showToast(error && error.message ? error.message : "بارگذاری انجام نشد.");
-            }
+            showToast(error && error.message ? error.message : "بارگذاری انجام نشد.");
         } finally {
             if (requestId === state.loadFormsRequestId) {
                 reloadBtn.disabled = false;
@@ -1452,20 +1381,7 @@
             if (requestId !== state.loadResponsesRequestId) {
                 return;
             }
-            if (responsesEmpty && siteApi && typeof siteApi.renderAsyncState === "function") {
-                siteApi.renderAsyncState(responsesEmpty, {
-                    kind: "error",
-                    title: "بارگذاری پاسخ‌ها انجام نشد",
-                    copy: error && error.message ? error.message : "پاسخ‌ها فعلاً در دسترس نیستند.",
-                    retryLabel: "بازخوانی",
-                    onRetry: function () {
-                        loadResponses(formId);
-                    }
-                });
-                responsesEmpty.hidden = false;
-            } else {
-                showToast(error && error.message ? error.message : "دریافت پاسخ‌ها انجام نشد.");
-            }
+            showToast(error && error.message ? error.message : "دریافت پاسخ‌ها انجام نشد.");
         }
     }
 
@@ -1509,47 +1425,41 @@
     }
 
     async function loadSession() {
-        renderBootState("loading", "در حال آماده‌سازی فرم‌ها", "وضعیت حساب و ماژول فرم بررسی می‌شود.", loadSession);
-        try {
-            var response = await apiGet("session");
-            if (!response || !response.success) {
-                throw new Error((response && response.error) || "آماده‌سازی انجام نشد.");
-            }
-            state.viewer = response.viewer || null;
-            state.activeCohort = response.activeCohort || (state.viewer && state.viewer.cohort) || null;
-            state.canCreate = !!response.canCreate;
-            syncAudienceOptions(audienceInput ? audienceInput.value : "link");
-            if (viewerCopy) {
-                viewerCopy.textContent = state.viewer
-                    ? ((state.canCreate ? "مدیریت فعال برای " : "فرم‌های فعال برای ") + String(state.viewer.name || "کاربر"))
-                    : "برای مدیریت فرم‌ها وارد شوید.";
-            }
-            if (!state.viewer) {
-                if (loginLink) {
-                    loginLink.href = window.Dent1402Auth.loginUrl(formsHomePath);
-                }
-                showStage("login");
-                return;
-            }
-            showStage("app");
-            if (!state.canCreate) {
-                panels.builder.hidden = true;
-                tabs.forEach(function (tab) {
-                    if (tab.getAttribute("data-forms-tab") === "builder") {
-                        tab.hidden = true;
-                    }
-                });
-                setTab("list");
-            } else {
-                tabs.forEach(function (tab) { tab.hidden = false; });
-                panels.builder.hidden = false;
-                setTab((new URLSearchParams(window.location.search).get("tab")) || "builder");
-            }
-            await loadForms();
-        } catch (error) {
-            renderBootState("error", "بارگذاری فرم‌ها انجام نشد", error && error.message ? error.message : "وضعیت فرم‌ها موقتاً قابل دریافت نیست.", loadSession);
-            showStage("boot");
+        var response = await apiGet("session");
+        if (!response || !response.success) {
+            throw new Error((response && response.error) || "آماده‌سازی انجام نشد.");
         }
+        state.viewer = response.viewer || null;
+        state.activeCohort = response.activeCohort || (state.viewer && state.viewer.cohort) || null;
+        state.canCreate = !!response.canCreate;
+        syncAudienceOptions(audienceInput ? audienceInput.value : "link");
+        if (viewerCopy) {
+            viewerCopy.textContent = state.viewer
+                ? ((state.canCreate ? "مدیریت فعال برای " : "فرم‌های فعال برای ") + String(state.viewer.name || "کاربر"))
+                : "برای مدیریت فرم‌ها وارد شوید.";
+        }
+        if (!state.viewer) {
+            if (loginLink) {
+                loginLink.href = window.Dent1402Auth.loginUrl(formsHomePath);
+            }
+            showStage("login");
+            return;
+        }
+        showStage("app");
+        if (!state.canCreate) {
+            panels.builder.hidden = true;
+            tabs.forEach(function (tab) {
+                if (tab.getAttribute("data-forms-tab") === "builder") {
+                    tab.hidden = true;
+                }
+            });
+            setTab("list");
+        } else {
+            tabs.forEach(function (tab) { tab.hidden = false; });
+            panels.builder.hidden = false;
+            setTab((new URLSearchParams(window.location.search).get("tab")) || "builder");
+        }
+        await loadForms();
     }
 
     tabs.forEach(function (tab) {
@@ -1593,11 +1503,9 @@
     });
 
     applyTemplate("blank");
-    renderBootState("loading", "در حال آماده‌سازی فرم‌ها", "وضعیت حساب و ماژول فرم بررسی می‌شود.");
     showStage("boot");
     window.Dent1402Auth.onChange(function (detail) {
         if (detail && (detail.status === "session-restoring" || detail.status === "logging-out")) {
-            renderBootState("loading", "در حال آماده‌سازی فرم‌ها", "وضعیت حساب و ماژول فرم بررسی می‌شود.");
             showStage("boot");
             return;
         }

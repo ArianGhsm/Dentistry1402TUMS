@@ -83,7 +83,6 @@
         listeners.slice().forEach(function (listener) {
             listener(detail);
         });
-        syncRequiredPermissionVisibility(document, detail.user);
     }
 
     function setState(nextState) {
@@ -159,183 +158,6 @@
         }
 
         return basePath + (basePath.indexOf("?") === -1 ? "?" : "&") + "cohort=" + encodeURIComponent(normalized);
-    }
-
-    function requestWithTimeout(url, options, timeoutMs, timeoutMessage) {
-        var timeout = Math.max(1000, Number(timeoutMs || 15000));
-        var fallbackMessage = timeoutMessage || "پاسخ سرور با تاخیر دریافت شد. دوباره تلاش کن.";
-
-        if (typeof window.AbortController === "function") {
-            var controller = new AbortController();
-            var timer = window.setTimeout(function () {
-                controller.abort();
-            }, timeout);
-
-            var requestOptions = Object.assign({}, options || {}, { signal: controller.signal });
-            return fetch(url, requestOptions).catch(function (error) {
-                if (error && (error.name === "AbortError" || error.code === 20)) {
-                    throw new Error(fallbackMessage);
-                }
-                throw error;
-            }).finally(function () {
-                window.clearTimeout(timer);
-            });
-        }
-
-        return new Promise(function (resolve, reject) {
-            var settled = false;
-            var timer = window.setTimeout(function () {
-                if (settled) {
-                    return;
-                }
-                settled = true;
-                reject(new Error(fallbackMessage));
-            }, timeout);
-
-            fetch(url, options || {}).then(function (response) {
-                if (settled) {
-                    return;
-                }
-                settled = true;
-                window.clearTimeout(timer);
-                resolve(response);
-            }).catch(function (error) {
-                if (settled) {
-                    return;
-                }
-                settled = true;
-                window.clearTimeout(timer);
-                reject(error);
-            });
-        });
-    }
-
-    function buildAsyncState(options) {
-        var settings = options || {};
-        var kind = String(settings.kind || "loading").trim();
-        var title = String(settings.title || "").trim();
-        var copy = String(settings.copy || "").trim();
-        var retryLabel = String(settings.retryLabel || "تلاش دوباره").trim();
-        var secondaryLabel = String(settings.secondaryLabel || "").trim();
-        var secondaryHref = String(settings.secondaryHref || "").trim();
-        var node = document.createElement("div");
-        node.className = "site-async-state" + (kind ? " is-" + kind : "");
-
-        var loader = document.createElement("div");
-        loader.className = "site-async-state__loader loader";
-        loader.setAttribute("aria-hidden", "true");
-        loader.innerHTML = '<span class="loader-dot"></span><span class="loader-dot"></span><span class="loader-dot"></span>';
-        node.appendChild(loader);
-
-        if (title) {
-            var titleNode = document.createElement("h3");
-            titleNode.className = "site-async-state__title";
-            titleNode.textContent = title;
-            node.appendChild(titleNode);
-        }
-
-        if (copy) {
-            var copyNode = document.createElement("p");
-            copyNode.className = "site-async-state__copy";
-            copyNode.textContent = copy;
-            node.appendChild(copyNode);
-        }
-
-        var actions = [];
-        if (typeof settings.onRetry === "function") {
-            var retryButton = document.createElement("button");
-            retryButton.className = "shell-action-btn shell-action-btn-primary";
-            retryButton.type = "button";
-            retryButton.textContent = retryLabel || "تلاش دوباره";
-            retryButton.addEventListener("click", function () {
-                settings.onRetry();
-            });
-            actions.push(retryButton);
-        }
-
-        if (secondaryLabel && secondaryHref) {
-            var link = document.createElement("a");
-            link.className = "shell-action-btn";
-            link.href = secondaryHref;
-            link.textContent = secondaryLabel;
-            actions.push(link);
-        }
-
-        if (actions.length) {
-            var actionsNode = document.createElement("div");
-            actionsNode.className = "site-async-state__actions";
-            actions.forEach(function (item) {
-                actionsNode.appendChild(item);
-            });
-            node.appendChild(actionsNode);
-        }
-
-        return node;
-    }
-
-    function renderAsyncState(target, options) {
-        if (!target) {
-            return null;
-        }
-
-        while (target.firstChild) {
-            target.removeChild(target.firstChild);
-        }
-
-        var node = buildAsyncState(options);
-        target.appendChild(node);
-        return node;
-    }
-
-    function fetchJsonWithTimeout(url, options, timeoutMs, invalidMessage, timeoutMessage) {
-        return requestWithTimeout(url, options, timeoutMs, timeoutMessage).then(function (response) {
-            return parseJsonResponse(response, invalidMessage);
-        });
-    }
-
-    function userHasRequiredPermission(user, permissionName) {
-        var required = String(permissionName || "").trim();
-        if (!required) {
-            return true;
-        }
-
-        if (!user) {
-            return false;
-        }
-
-        if (user.isOwner) {
-            return true;
-        }
-
-        if (required === "owner") {
-            return !!user.isOwner;
-        }
-
-        var permissions = user.permissions && typeof user.permissions === "object" ? user.permissions : {};
-        return !!permissions[required];
-    }
-
-    function syncRequiredPermissionVisibility(root, user) {
-        var scope = root && typeof root.querySelectorAll === "function" ? root : document;
-        var nodes = scope.querySelectorAll("[data-required-permission], [data-owner-only]");
-        Array.prototype.forEach.call(nodes, function (node) {
-            var requiredPermission = String(node.getAttribute("data-required-permission") || "").trim();
-            if (!requiredPermission && node.hasAttribute("data-owner-only")) {
-                requiredPermission = "owner";
-            }
-
-            var allowed = userHasRequiredPermission(user, requiredPermission);
-            node.hidden = !allowed;
-            if (allowed) {
-                node.removeAttribute("aria-hidden");
-                if (node.hasAttribute("inert")) {
-                    node.removeAttribute("inert");
-                }
-            } else {
-                node.setAttribute("aria-hidden", "true");
-                node.setAttribute("inert", "");
-            }
-        });
     }
 
     function escapeHtml(value) {
@@ -455,7 +277,7 @@
             options.body = new URLSearchParams(Object.assign({ action: action }, payload || {}));
         }
 
-        var response = await requestWithTimeout(url, options, 20000, "بازیابی نشست یا ورود با تاخیر پاسخ داد. دوباره تلاش کن.");
+        var response = await fetch(url, options);
         var data = {};
 
         try {
@@ -535,7 +357,7 @@
             resolveReady();
             return snapshot();
         }).catch(function () {
-            applyLoggedOutState(STATUS.LOGGED_OUT, "بازیابی نشست با خطا مواجه شد. دوباره تلاش کن.");
+            applyLoggedOutState(STATUS.LOGGED_OUT, "Session restore failed.");
             resolveReady();
             return snapshot();
         }).finally(function () {
@@ -875,12 +697,6 @@
         normalizeCohortKey: normalizeCohortKey,
         resolvePageCohort: resolvePageCohort,
         appendCohortQuery: appendCohortQuery,
-        requestWithTimeout: requestWithTimeout,
-        fetchJsonWithTimeout: fetchJsonWithTimeout,
-        buildAsyncState: buildAsyncState,
-        renderAsyncState: renderAsyncState,
-        userHasRequiredPermission: userHasRequiredPermission,
-        syncRequiredPermissionVisibility: syncRequiredPermissionVisibility,
         currentReturnTo: currentReturnTo,
         guardBackHref: guardBackHref,
         guardBackLabel: guardBackLabel,

@@ -16,7 +16,6 @@
         specialtyKey: "",
         referenceKey: ""
     };
-    var REQUEST_TIMEOUT_MS = 20000;
 
     function escapeHtml(value) {
         return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
@@ -50,31 +49,6 @@
             }
             payload.httpStatus = response.status;
             return payload;
-        });
-    }
-
-    function fetchWithTimeout(url, options, timeoutMs) {
-        var waitMs = Number(timeoutMs || REQUEST_TIMEOUT_MS);
-        if (waitMs <= 0 || typeof AbortController !== "function") {
-            return fetch(url, options).then(parseJson);
-        }
-
-        var controller = new AbortController();
-        var timer = window.setTimeout(function () {
-            controller.abort();
-        }, waitMs);
-        var requestOptions = Object.assign({}, options || {}, { signal: controller.signal });
-
-        return fetch(url, requestOptions).then(parseJson).catch(function (error) {
-            if (error && error.name === "AbortError") {
-                throw new Error("دریافت فهرست آزمون‌ها بیشتر از حد انتظار طول کشید. دوباره تلاش کن.");
-            }
-            if ((typeof navigator !== "undefined" && navigator.onLine === false) || (error && error.name === "TypeError")) {
-                throw new Error("ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کن و دوباره تلاش کن.");
-            }
-            throw error;
-        }).finally(function () {
-            window.clearTimeout(timer);
         });
     }
 
@@ -257,28 +231,16 @@
             query.set("cohort", cohort);
         }
         query.set("_t", String(Date.now()));
-        if (window.Dent1402Site && typeof window.Dent1402Site.fetchJsonWithTimeout === "function") {
-            return window.Dent1402Site.fetchJsonWithTimeout("/api/exams_api.php?" + query.toString(), {
-                method: "GET",
-                cache: "no-store",
-                credentials: "same-origin",
-                headers: { Accept: "application/json" }
-            }, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت فهرست آزمون‌ها با تاخیر پاسخ داد.");
-        }
-        return fetchWithTimeout("/api/exams_api.php?" + query.toString(), {
+        return fetch("/api/exams_api.php?" + query.toString(), {
             method: "GET",
             cache: "no-store",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
-        });
+        }).then(parseJson);
     }
 
     function formatValue(value) {
         return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR");
-    }
-
-    function formatPlainValue(value) {
-        return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR", { useGrouping: false });
     }
 
     function compactText(value, fallback, maxLength) {
@@ -918,7 +880,7 @@
             parts.push(reference.editionLabel);
         }
         if (reference && Number(reference.year || 0) > 0) {
-            parts.push("سال " + formatPlainValue(reference.year));
+            parts.push("سال " + formatValue(reference.year));
         }
         if (collections.length > 1) {
             parts.push(formatValue(collections.length) + " مجموعه آزمون");
@@ -1191,30 +1153,10 @@
     }
 
     function setLoading() {
-        if (window.Dent1402Site && typeof window.Dent1402Site.renderAsyncState === "function") {
-            window.Dent1402Site.renderAsyncState(root, {
-                kind: "loading",
-                title: "در حال بارگذاری آزمون‌ها",
-                copy: "فهرست آزمون‌ها در حال دریافت است.",
-                retryLabel: "بازخوانی",
-                onRetry: load
-            });
-            return;
-        }
         root.innerHTML = '<div class="exams-card exams-loading">در حال بارگذاری آزمون‌ها...</div>';
     }
 
     function setError(message) {
-        if (window.Dent1402Site && typeof window.Dent1402Site.renderAsyncState === "function") {
-            window.Dent1402Site.renderAsyncState(root, {
-                kind: "error",
-                title: "بارگذاری آزمون‌ها انجام نشد",
-                copy: message || "آزمون‌ها فعلاً قابل دریافت نیستند.",
-                retryLabel: "بازخوانی",
-                onRetry: load
-            });
-            return;
-        }
         root.innerHTML = '<div class="exams-card exams-empty">' + escapeHtml(message || "بارگذاری انجام نشد.") + "</div>";
     }
 

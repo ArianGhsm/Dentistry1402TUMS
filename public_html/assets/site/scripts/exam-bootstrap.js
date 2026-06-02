@@ -34,17 +34,6 @@
 
     var params = new URLSearchParams(window.location.search);
     var started = false;
-    var BOOTSTRAP_TIMEOUT_MS = 14000;
-
-    appRoot.addEventListener("click", function (event) {
-        var retryButton = event.target.closest("[data-exam-bootstrap-action='retry']");
-        if (!retryButton) {
-            return;
-        }
-        event.preventDefault();
-        started = false;
-        loadExam();
-    });
 
     function escapeHtml(value) {
         return String(value == null ? "" : value).replace(/[&<>"]/g, function (char) {
@@ -83,44 +72,6 @@
         return "/account/";
     }
 
-    function appendCohortPath(path) {
-        var target = String(path || "").trim();
-        var cohort = String(params.get("cohort") || "").trim();
-        if (!target || !cohort || /(?:\?|&)cohort=/.test(target)) {
-            return target;
-        }
-        return target + (target.indexOf("?") === -1 ? "?" : "&") + "cohort=" + encodeURIComponent(cohort);
-    }
-
-    function defaultBackHref() {
-        var path = String(window.location.pathname || "").trim();
-        if (!path) {
-            return appendCohortPath("/exams/");
-        }
-
-        var normalized = path.endsWith("/") ? path.slice(0, -1) : path;
-        var separatorIndex = normalized.lastIndexOf("/");
-        if (separatorIndex <= 0) {
-            return appendCohortPath("/exams/");
-        }
-
-        return appendCohortPath(normalized.slice(0, separatorIndex + 1));
-    }
-
-    function renderActions(primaryLabel, primaryHref, secondaryLabel, secondaryHref) {
-        var parts = [];
-        if (primaryLabel && primaryHref) {
-            parts.push('<a class="exam-btn exam-btn--primary" href="' + escapeHtml(primaryHref) + '">' + escapeHtml(primaryLabel) + "</a>");
-        }
-        if (secondaryLabel && secondaryHref) {
-            parts.push('<a class="exam-btn exam-btn--ghost" href="' + escapeHtml(secondaryHref) + '">' + escapeHtml(secondaryLabel) + "</a>");
-        }
-        if (!parts.length) {
-            return "";
-        }
-        return '<div class="exam-side-section exam-side-section--actions">' + parts.join("") + "</div>";
-    }
-
     function queryWithCohort() {
         var query = new URLSearchParams({
             action: "exam",
@@ -135,94 +86,43 @@
         return query;
     }
 
-    function renderShell(options) {
-        var config = options || {};
-        var title = String(config.title || "").trim();
-        var copy = String(config.copy || "").trim();
-        var eyebrow = String(config.eyebrow || "").trim();
-        var extraHtml = String(config.extraHtml || "").trim();
-        var backHref = String(config.backHref || "").trim();
-        var backLabel = String(config.backLabel || "بازگشت").trim();
-
-        document.body.classList.add("quiz-stage-active");
+    function renderShell(title, copy, extraHtml) {
         appRoot.innerHTML = [
             '<div class="background-overlay" aria-hidden="true"></div>',
-            '<div class="exam-shell">',
-            '  <main class="exam-main">',
-            '    <section class="exam-stage-shell">',
-            '      <div class="exam-stage-scaler">',
-            '        <div class="exam-stage-canvas">',
-            '          <section class="exam-panel exam-stage exam-stage--message">',
-            backHref
-                ? '            <a class="back-btn exam-back-link" href="' + escapeHtml(backHref) + '" aria-label="' + escapeHtml(backLabel) + '"><span class="back-icon" aria-hidden="true">←</span><span>' + escapeHtml(backLabel) + "</span></a>"
-                : "",
-            '            <div class="exam-message-card">',
-            eyebrow ? '              <span class="exam-kicker">' + escapeHtml(eyebrow) + "</span>" : "",
-            '              <h1>' + escapeHtml(title) + "</h1>",
-            '              <p>' + escapeHtml(copy) + "</p>",
-            "            </div>",
-            extraHtml ? '            <div class="exam-empty-card">' + extraHtml + "</div>" : "",
-            "          </section>",
-            "        </div>",
-            "      </div>",
-            "    </section>",
-            "  </main>",
-            "</div>"
+            '<main class="exam-main">',
+            '  <section class="exam-panel exam-empty-state">',
+            '    <h1>' + escapeHtml(title) + "</h1>",
+            '    <p>' + escapeHtml(copy) + "</p>",
+                 extraHtml || "",
+            "  </section>",
+            "</main>"
         ].join("");
     }
 
     function renderLoading() {
-        renderShell({
-            title: "در حال بارگذاری آزمون",
-            copy: "دسترسی و داده‌های آزمون در حال بررسی است.",
-            eyebrow: "در حال همگام‌سازی",
-            extraHtml: [
-                '<div class="exam-busy-card exam-busy-card--bootstrap">',
-                '  <span class="exam-kicker">آماده‌سازی</span>',
-                '  <strong class="exam-busy-card__title">در حال واکشی سوال‌ها و وضعیت آزمون...</strong>',
-                '  <div class="exam-busy-card__skeleton">',
-                '    <span class="exam-skeleton exam-skeleton--line"></span>',
-                '    <span class="exam-skeleton exam-skeleton--line is-short"></span>',
-                '    <div class="exam-skeleton-grid">',
-                '      <span class="exam-skeleton exam-skeleton--tile"></span>',
-                '      <span class="exam-skeleton exam-skeleton--tile"></span>',
-                '      <span class="exam-skeleton exam-skeleton--tile"></span>',
-                "    </div>",
-                "  </div>",
-                "</div>"
-            ].join("")
-        });
+        renderShell("در حال بارگذاری آزمون", "دسترسی و داده‌های آزمون در حال بررسی است.");
     }
 
     function renderFailure(message) {
-        var hint = !navigator.onLine
-            ? "اتصال اینترنت قطع یا بسیار ضعیف است. بعد از پایدارشدن شبکه دوباره تلاش کن."
-            : message;
-        renderShell({
-            title: "بارگذاری آزمون انجام نشد",
-            copy: hint || "این آزمون فعلا در دسترس نیست.",
-            eyebrow: "خطا",
-            backHref: defaultBackHref(),
-            backLabel: "بازگشت",
-            extraHtml: [
-                '<div class="exam-side-section exam-side-section--actions">',
-                '  <button class="exam-btn exam-btn--primary" type="button" data-exam-bootstrap-action="retry">تلاش دوباره</button>',
-                '  <a class="exam-btn exam-btn--ghost" href="' + escapeHtml(appendCohortPath("/exams/")) + '">بازگشت به آزمون‌ها</a>',
-                '  <a class="exam-btn exam-btn--ghost" href="' + escapeHtml(defaultBackHref()) + '">بازگشت به بخش قبلی</a>',
-                "</div>"
-            ].join("")
-        });
+        renderShell("بارگذاری آزمون انجام نشد", message || "این آزمون فعلا در دسترس نیست.", '<a class="back-btn" href="/exams/">بازگشت به آزمون‌ها</a>');
     }
 
     function renderLogin() {
-        renderShell({
-            title: "نیاز به ورود",
-            copy: "برای مشاهده سوال‌های این آزمون باید ابتدا وارد حساب کاربری خود شوید.",
-            eyebrow: "ورود لازم است",
-            backHref: defaultBackHref(),
-            backLabel: "بازگشت",
-            extraHtml: renderActions("ورود به حساب", loginHref(), "بازگشت به بخش قبلی", defaultBackHref())
-        });
+        var guard = "";
+        if (window.Dent1402Auth && typeof window.Dent1402Auth.renderLoginRequiredGuard === "function") {
+            guard = window.Dent1402Auth.renderLoginRequiredGuard({
+                loginHref: loginHref(),
+                fallbackHref: "/exams/",
+                primaryClass: "back-btn",
+                secondaryClass: "back-btn"
+            });
+        } else {
+            guard = '<a class="back-btn" href="' + escapeHtml(loginHref()) + '">ورود به حساب</a>';
+        }
+        renderShell("نیاز به ورود", "برای مشاهده سوال‌های این آزمون باید ابتدا وارد حساب کاربری خود شوید.", guard);
+        if (window.Dent1402Auth && typeof window.Dent1402Auth.enhanceLoginGuards === "function") {
+            window.Dent1402Auth.enhanceLoginGuards(appRoot);
+        }
     }
 
     function renderPaywall(course) {
@@ -230,22 +130,10 @@
         var copy = course && course.paymentDescription
             ? course.paymentDescription
             : "برای مشاهده سوال‌های این درس، ابتدا باید دسترسی آن را فعال کنید.";
-        var paymentHref = course && course.paymentPath
-            ? appendCohortPath(course.paymentPath)
-            : appendCohortPath("/exams/");
-        renderShell({
-            title: title,
-            copy: copy,
-            eyebrow: "دسترسی این درس",
-            backHref: defaultBackHref(),
-            backLabel: "بازگشت",
-            extraHtml: renderActions(
-                course && course.paymentPath ? "ورود به صفحه پرداخت این درس" : "بازگشت به آزمون‌ها",
-                paymentHref,
-                "بازگشت به بخش قبلی",
-                defaultBackHref()
-            )
-        });
+        var button = course && course.paymentPath
+            ? '<a class="back-btn" href="' + escapeHtml(course.paymentPath) + '">ورود به صفحه پرداخت این درس</a>'
+            : '<a class="back-btn" href="/exams/">بازگشت به آزمون‌ها</a>';
+        renderShell(title, copy, button);
     }
 
     function mountExam(exam) {
@@ -265,42 +153,18 @@
         document.body.appendChild(script);
     }
 
-    function fetchWithTimeout(url, options) {
-        if (typeof AbortController !== "function") {
-            return fetch(url, options).then(parseJson);
-        }
-
-        var controller = new AbortController();
-        var timer = window.setTimeout(function () {
-            controller.abort();
-        }, BOOTSTRAP_TIMEOUT_MS);
-        var requestOptions = Object.assign({}, options || {}, { signal: controller.signal });
-
-        return fetch(url, requestOptions).then(parseJson).catch(function (error) {
-            if (error && error.name === "AbortError") {
-                throw new Error("بارگذاری آزمون بیشتر از حد انتظار طول کشید. دوباره تلاش کن.");
-            }
-            if ((typeof navigator !== "undefined" && navigator.onLine === false) || (error && error.name === "TypeError")) {
-                throw new Error("ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کن و دوباره تلاش کن.");
-            }
-            throw error;
-        }).finally(function () {
-            window.clearTimeout(timer);
-        });
-    }
-
     function loadExam() {
         if (started) {
             return;
         }
         started = true;
         renderLoading();
-        fetchWithTimeout("/api/exams_api.php?" + queryWithCohort().toString(), {
+        fetch("/api/exams_api.php?" + queryWithCohort().toString(), {
             method: "GET",
             cache: "no-store",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
-        }).then(function (payload) {
+        }).then(parseJson).then(function (payload) {
             if (payload && payload.success && payload.exam) {
                 mountExam(payload.exam);
                 return;

@@ -179,25 +179,6 @@
         authStage.hidden = state !== "signed-out" && state !== "unauthorized";
         loadingStage.hidden = state !== "restoring" && state !== "loading";
         dashboard.hidden = state !== "ready" && state !== "empty";
-        if (loadingStage && !loadingStage.hidden) {
-            if (siteApi && typeof siteApi.renderAsyncState === "function") {
-                siteApi.renderAsyncState(loadingStage, {
-                    kind: state === "restoring" ? "loading" : "loading",
-                    title: state === "restoring" ? "در حال بازیابی نشست" : "در حال بارگذاری کارنامه",
-                    copy: state === "restoring"
-                        ? "نشست حساب در حال بازیابی است."
-                        : "کارنامه و داده‌های مرتبط در حال دریافت هستند.",
-                    retryLabel: "تلاش دوباره",
-                    onRetry: state === "restoring" ? function () {
-                        window.Dent1402Auth.bootstrap(true);
-                    } : loadGrades
-                });
-            } else {
-                loadingStage.textContent = state === "restoring"
-                    ? "در حال بازیابی نشست..."
-                    : "در حال بارگذاری کارنامه...";
-            }
-        }
     }
 
     function resetAuthGuardCopy() {
@@ -276,26 +257,6 @@
         ownerFeedback.className = "grades-status-banner" + (kind ? " " + kind : "");
     }
 
-    function showLoadError(message) {
-        if (loadingStage) {
-            loadingStage.hidden = false;
-            if (siteApi && typeof siteApi.renderAsyncState === "function") {
-                siteApi.renderAsyncState(loadingStage, {
-                    kind: "error",
-                    title: "بارگذاری کارنامه انجام نشد",
-                    copy: message || "کارنامه فعلاً قابل دریافت نیست.",
-                    retryLabel: "بازخوانی",
-                    onRetry: loadGrades
-                });
-            } else {
-                loadingStage.textContent = message || "بارگذاری کارنامه انجام نشد.";
-            }
-        }
-        if (dashboard) {
-            dashboard.hidden = true;
-        }
-    }
-
     function isCurrentUserOwner() {
         return !!(currentUser && currentUser.isOwner);
     }
@@ -355,10 +316,6 @@
             options.body = new URLSearchParams(requestPayload);
         }
 
-        if (siteApi && typeof siteApi.fetchJsonWithTimeout === "function") {
-            return siteApi.fetchJsonWithTimeout(url, options, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت یا ذخیره نمرات با تاخیر پاسخ داد.");
-        }
-
         var response = await fetch(url, options);
         return parseJsonResponse(response);
     }
@@ -369,17 +326,6 @@
         if (effectiveCohort) {
             body.set("cohort", effectiveCohort);
         }
-        if (siteApi && typeof siteApi.fetchJsonWithTimeout === "function") {
-            return siteApi.fetchJsonWithTimeout("/grades/grades_api.php?action=" + encodeURIComponent(action), {
-                method: "POST",
-                credentials: "same-origin",
-                headers: {
-                    "Accept": "application/json"
-                },
-                body: body
-            }, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت یا ذخیره نمرات با تاخیر پاسخ داد.");
-        }
-
         var response = await fetch("/grades/grades_api.php?action=" + encodeURIComponent(action), {
             method: "POST",
             credentials: "same-origin",
@@ -615,16 +561,6 @@
         if (effectiveCohort) {
             url += "&cohort=" + encodeURIComponent(effectiveCohort);
         }
-        if (siteApi && typeof siteApi.fetchJsonWithTimeout === "function") {
-            return siteApi.fetchJsonWithTimeout(url, {
-                method: "GET",
-                credentials: "same-origin",
-                headers: {
-                    "Accept": "application/json"
-                }
-            }, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت کارنامه با تاخیر پاسخ داد.");
-        }
-
         var response = await fetch(url, {
             method: "GET",
             credentials: "same-origin",
@@ -880,7 +816,7 @@
             showDashboardFeedback("کارنامه آماده است.", "success");
         } catch (error) {
             console.error(error);
-            showLoadError(error && error.message ? error.message : "گرفتن نمرات انجام نشد.");
+            ensureSignedOutState(error.message || "گرفتن نمرات انجام نشد.");
         }
     }
 

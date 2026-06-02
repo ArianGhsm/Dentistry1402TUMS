@@ -434,7 +434,7 @@
                 '    <div class="notes-host-browser__actions">',
                 '      <button id="' + id("browser-choose-current") + '" class="card-btn" type="button">انتخاب همین پوشه</button>',
                 '      <button id="' + id("browser-create-folder") + '" class="notes-card-edit" type="button">پوشه جدید</button>',
-                '      <button id="' + id("browser-close") + '" class="notes-card-delete" type="button">بازگشت</button>',
+                '      <button id="' + id("browser-close") + '" class="notes-card-delete" type="button">بستن</button>',
                 '    </div>',
                 '  </div>',
                 '  <div id="' + id("browser-breadcrumbs") + '" class="notes-host-browser__breadcrumbs"></div>',

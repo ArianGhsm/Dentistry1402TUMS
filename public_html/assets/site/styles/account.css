@@ -1458,64 +1458,33 @@ body.account-page.account-stage-login-active .auth-brand strong {
 }
 
 .login-method-switch {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: stretch;
-    gap: 0.46rem;
-    margin-top: 0.64rem;
-    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 0.48rem;
 }
 
 .login-method-btn {
     appearance: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    justify-self: stretch;
-    align-self: stretch;
-    min-height: 46px;
-    padding: 0.42rem 0.9rem;
-    border: 1px solid rgba(43, 109, 243, 0.18);
-    border-radius: 16px;
-    background:
-        linear-gradient(180deg, rgba(43, 109, 243, 0.08), rgba(43, 109, 243, 0.03)),
-        var(--surface-solid);
+    border: 0;
+    background: transparent;
     color: var(--accent-strong);
-    font-size: 0.94rem;
-    font-weight: 860;
+    border-radius: 0;
+    min-height: 28px;
+    padding: 0.1rem 0.32rem;
+    font-size: 1.04rem;
+    font-weight: 820;
     cursor: pointer;
     text-decoration: none;
-    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.14s ease, box-shadow 0.16s ease;
+    transition: color 0.16s ease, opacity 0.16s ease, transform 0.14s ease;
 }
 
 .login-method-btn:hover,
 .login-method-btn:focus-visible {
-    background: rgba(43, 109, 243, 0.08);
-    border-color: rgba(43, 109, 243, 0.3);
-    box-shadow: 0 12px 24px -20px rgba(37, 99, 235, 0.32);
+    color: var(--accent-color);
 }
 
 .login-method-btn.is-active {
     display: none;
-}
-
-#login-method-signup {
-    order: -1;
-    border-color: rgba(13, 148, 136, 0.18);
-    background:
-        linear-gradient(180deg, rgba(13, 148, 136, 0.12), rgba(13, 148, 136, 0.05)),
-        var(--surface-solid);
-    color: #0f766e;
-}
-
-#login-method-signup:hover,
-#login-method-signup:focus-visible {
-    background:
-        linear-gradient(180deg, rgba(13, 148, 136, 0.16), rgba(13, 148, 136, 0.08)),
-        var(--surface-solid);
-    border-color: rgba(13, 148, 136, 0.28);
-    box-shadow: 0 12px 24px -20px rgba(13, 148, 136, 0.28);
 }
 
 .account-form label,
@@ -2431,21 +2400,6 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
     border-radius: 16px;
     border: 1px solid var(--border-color);
     background: var(--surface-muted);
-}
-
-details.owner-block--sms.site-disclosure,
-details.owner-block--media-status.site-disclosure {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-}
-
-details.owner-block--sms.site-disclosure > .site-disclosure__body,
-details.owner-block--media-status.site-disclosure > .site-disclosure__body {
-    padding-top: 0.76rem;
-    padding-inline: 0;
-    padding-bottom: 0;
 }
 
 .owner-block--create-student {
@@ -5007,27 +4961,21 @@ body.account-page.account-stage-login-active #account-login .account-inline-meta
 }
 
 body.account-page.account-stage-login-active .login-method-switch {
-    margin-top: 0.66rem;
-    width: 100%;
+    margin-top: 0.42rem;
 }
 
 body.account-page.account-stage-login-active .login-method-btn,
 body.account-page.account-stage-login-active .otp-edit-phone-btn {
     appearance: none;
     min-height: 38px;
+    border: 0;
+    background: transparent;
     color: #1d4ed8;
     font: inherit;
     font-size: 0.92rem;
     font-weight: 860;
     cursor: pointer;
     text-decoration: none;
-}
-
-body.account-page.account-stage-login-active .login-method-btn {
-    width: 100%;
-    min-height: 46px;
-    border-radius: 18px;
-    box-shadow: 0 14px 28px -24px rgba(37, 99, 235, 0.36);
 }
 
 body.account-page.account-stage-login-active .otp-edit-phone-btn {
@@ -5037,22 +4985,12 @@ body.account-page.account-stage-login-active .otp-edit-phone-btn {
 
 body.account-page.account-stage-login-active .account-login-home {
     min-height: 46px;
-    margin-top: 0.46rem;
+    margin-top: 0.34rem;
     border-radius: 18px;
     border-color: rgba(37, 99, 235, 0.14);
     background: rgba(37, 99, 235, 0.06);
     color: #1d4ed8;
     font-size: 0.92rem;
-    box-shadow: 0 14px 28px -24px rgba(37, 99, 235, 0.32);
-}
-
-body.account-page.account-stage-login-active .otp-auth-panel__hero h4,
-body.account-page.account-stage-login-active .otp-verify-head h4 {
-    display: none;
-}
-
-body.account-page.account-stage-login-active .otp-auth-panel__hero {
-    padding-top: 0;
 }
 
 html[data-theme="dark"] body.account-page.account-stage-login-active {
@@ -5076,26 +5014,6 @@ html[data-theme="dark"] body.account-page.account-stage-login-active .account-ca
 html[data-theme="dark"] body.account-page.account-stage-login-active .account-card--auth .account-card__head h3,
 html[data-theme="dark"] body.account-page.account-stage-login-active .otp-verify-head h4 {
     color: #edf5ff;
-}
-
-html[data-theme="dark"] body.account-page.account-stage-login-active .login-method-btn {
-    border-color: rgba(96, 165, 250, 0.16);
-    background: rgba(37, 99, 235, 0.08);
-    color: #8fb8ff;
-}
-
-html[data-theme="dark"] body.account-page.account-stage-login-active .login-method-btn:hover,
-html[data-theme="dark"] body.account-page.account-stage-login-active .login-method-btn:focus-visible {
-    border-color: rgba(96, 165, 250, 0.28);
-    background: rgba(37, 99, 235, 0.12);
-}
-
-html[data-theme="dark"] body.account-page.account-stage-login-active #login-method-signup {
-    border-color: rgba(45, 212, 191, 0.16);
-    background:
-        linear-gradient(180deg, rgba(13, 148, 136, 0.18), rgba(13, 148, 136, 0.08)),
-        rgba(15, 23, 42, 0.96);
-    color: #7ae7d9;
 }
 
 html[data-theme="dark"] body.account-page.account-stage-login-active .account-card--auth .account-card__head p,

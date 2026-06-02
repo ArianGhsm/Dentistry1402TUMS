@@ -63,17 +63,6 @@
         return false;
     }
 
-    function setBackLink(href, text) {
-        if (!backLink) {
-            return;
-        }
-        var label = String(text || "").trim() || "بازگشت";
-        backLink.href = href;
-        backLink.textContent = label;
-        backLink.setAttribute("aria-label", label);
-        backLink.setAttribute("title", label);
-    }
-
     var cohort = authApi && typeof authApi.resolvePageCohort === "function"
         ? authApi.resolvePageCohort("notesCohort")
         : String(document.body.dataset.notesCohort || searchParams.get("cohort") || "1402");
@@ -201,15 +190,15 @@
 
         if (backLink) {
             if (isCurriculumCohort()) {
-                setBackLink(
-                    isCurriculumUnit ? homeUrl(displayTerm, "") : homeUrl(0, ""),
-                    isCurriculumUnit ? ("بازگشت به " + displayTermLabel) : "بازگشت به همه ترم‌ها"
-                );
+                backLink.href = isCurriculumUnit ? homeUrl(displayTerm, "") : homeUrl(0, "");
+                backLink.textContent = isCurriculumUnit
+                    ? ("بازگشت به " + displayTermLabel)
+                    : "بازگشت به همه ترم‌ها";
             } else if (cohort !== "1402") {
                 if (authApi && typeof authApi.appendCohortQuery === "function") {
-                    setBackLink(authApi.appendCohortQuery("/notes/", cohort), "بازگشت به منابع");
+                    backLink.href = authApi.appendCohortQuery("/notes/", cohort);
                 } else {
-                    setBackLink("/notes/?cohort=" + encodeURIComponent(cohort), "بازگشت به منابع");
+                    backLink.href = "/notes/?cohort=" + encodeURIComponent(cohort);
                 }
             }
         }
@@ -352,10 +341,6 @@
         } else {
             options.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
             options.body = new URLSearchParams(Object.assign({ action: action }, requestPayload));
-        }
-
-        if (siteApi && typeof siteApi.fetchJsonWithTimeout === "function") {
-            return siteApi.fetchJsonWithTimeout(url, options, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت منابع با تاخیر پاسخ داد.");
         }
 
         return fetch(url, options).then(parseJsonResponse);
@@ -768,29 +753,7 @@
 
         if (!termData) {
             emptyBox.hidden = false;
-            if (state.loading && siteApi && typeof siteApi.renderAsyncState === "function") {
-                siteApi.renderAsyncState(emptyBox, {
-                    kind: "loading",
-                    title: "در حال دریافت منابع این ترم",
-                    copy: "منابع این ترم در حال بارگذاری هستند.",
-                    retryLabel: "بازخوانی",
-                    onRetry: function () {
-                        loadTerm({ silent: false });
-                    }
-                });
-            } else if (state.loadError && siteApi && typeof siteApi.renderAsyncState === "function") {
-                siteApi.renderAsyncState(emptyBox, {
-                    kind: "error",
-                    title: "بارگذاری منابع انجام نشد",
-                    copy: state.loadError,
-                    retryLabel: "بازخوانی",
-                    onRetry: function () {
-                        loadTerm({ silent: false });
-                    }
-                });
-            } else {
-                emptyBox.textContent = state.loadError || "داده‌ای برای این ترم دریافت نشد.";
-            }
+            emptyBox.textContent = state.loadError || "داده‌ای برای این ترم دریافت نشد.";
             syncEditUi();
             syncManagePanel();
             syncDownloadHostUi();
@@ -844,20 +807,8 @@
         state.loading = true;
         var silent = options && options.silent;
         if (!silent) {
-            if (siteApi && typeof siteApi.renderAsyncState === "function") {
-                siteApi.renderAsyncState(emptyBox, {
-                    kind: "loading",
-                    title: "در حال دریافت منابع این ترم",
-                    copy: "منابع این ترم در حال بارگذاری هستند.",
-                    retryLabel: "بازخوانی",
-                    onRetry: function () {
-                        loadTerm({ silent: false });
-                    }
-                });
-            } else {
-                emptyBox.hidden = false;
-                emptyBox.textContent = "در حال دریافت منابع این ترم...";
-            }
+            emptyBox.hidden = false;
+            emptyBox.textContent = "در حال دریافت منابع این ترم...";
         }
         state.loadError = "";
 
@@ -898,17 +849,6 @@
             state.manageFocusPending = false;
             if (managePanel) {
                 managePanel.hidden = true;
-            }
-            if (!silent && siteApi && typeof siteApi.renderAsyncState === "function") {
-                siteApi.renderAsyncState(emptyBox, {
-                    kind: "error",
-                    title: "بارگذاری منابع انجام نشد",
-                    copy: state.loadError,
-                    retryLabel: "بازخوانی",
-                    onRetry: function () {
-                        loadTerm({ silent: false });
-                    }
-                });
             }
             renderTerm();
         }).finally(function () {

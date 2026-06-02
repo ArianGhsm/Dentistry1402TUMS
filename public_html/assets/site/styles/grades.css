@@ -454,19 +454,6 @@ body.grades-page .feedback.success {
     align-items: start;
 }
 
-details.grades-owner-tool.site-disclosure {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-}
-
-details.grades-owner-tool.site-disclosure > .site-disclosure__body {
-    padding-top: 0.78rem;
-    padding-inline: 0;
-    padding-bottom: 0;
-}
-
 .grades-owner-tool {
     padding: 0.88rem;
     display: grid;

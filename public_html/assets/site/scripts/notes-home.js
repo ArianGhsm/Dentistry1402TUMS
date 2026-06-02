@@ -93,17 +93,6 @@
         return manageSupported() && state.canManage;
     }
 
-    function setBackLink(href, text) {
-        if (!backLink) {
-            return;
-        }
-        var label = String(text || "").trim() || "بازگشت";
-        backLink.href = href;
-        backLink.textContent = label;
-        backLink.setAttribute("aria-label", label);
-        backLink.setAttribute("title", label);
-    }
-
     function cohortYearLabel() {
         if (pageCohort === "1403") {
             return "۱۴۰۳";
@@ -164,10 +153,6 @@
         } else {
             options.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
             options.body = new URLSearchParams(Object.assign({ action: action }, data));
-        }
-
-        if (siteApi && typeof siteApi.fetchJsonWithTimeout === "function") {
-            return siteApi.fetchJsonWithTimeout(url, options, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت منابع با تاخیر پاسخ داد.");
         }
 
         return fetch(url, options).then(parseJsonResponse);
@@ -267,36 +252,15 @@
         empty.textContent = message || "داده‌ای برای نمایش پیدا نشد.";
     }
 
-    function dentalRenderState(kind, titleText, message, onRetry, preserveList) {
-        if (!preserveList) {
-            list.innerHTML = "";
-        }
-        empty.hidden = false;
-        if (siteApi && typeof siteApi.renderAsyncState === "function") {
-            siteApi.renderAsyncState(empty, {
-                kind: kind || "loading",
-                title: titleText || "",
-                copy: message || "",
-                retryLabel: "بازخوانی",
-                onRetry: onRetry || null
-            });
-            return;
-        }
-        empty.textContent = message || "داده‌ای برای نمایش پیدا نشد.";
-    }
-
     function dentalSectionText(kickerText, titleText, copyText) {
         if (sectionKicker) {
             sectionKicker.textContent = kickerText || "";
-            sectionKicker.hidden = !kickerText;
         }
         if (sectionTitle) {
             sectionTitle.textContent = titleText || "";
-            sectionTitle.hidden = !titleText;
         }
         if (sectionCopy) {
             sectionCopy.textContent = copyText || "";
-            sectionCopy.hidden = !copyText;
         }
     }
 
@@ -309,7 +273,8 @@
             subheading.textContent = "چینش ترم، دسته و واحد";
         }
         if (backLink) {
-            setBackLink(pageCohort === "1402" ? "/app/#resources" : "/app/", pageCohort === "1402" ? "بازگشت به منابع" : "بازگشت به خانه");
+            backLink.href = pageCohort === "1402" ? "/app/#resources" : "/app/";
+            backLink.textContent = pageCohort === "1402" ? "بازگشت به منابع" : "بازگشت به خانه";
         }
         if (kicker) {
             kicker.textContent = "آرشیو " + yearLabel;
@@ -671,7 +636,14 @@
         dentalBodyMode("terms");
         dentalApplyBaseCopy();
         dentalState.downloadHost = null;
-        dentalSectionText("ترم‌ها", "فهرست ترم‌ها", "");
+        if (title) {
+            title.textContent = "ترم موردنظر را برای دیدن منابع انتخاب کن.";
+        }
+        dentalSectionText(
+            "ترم‌های دانشکده",
+            "چینش منابع بر اساس ترم و واحد",
+            "ابتدا ترم را انتخاب کن، بعد از داخل دسته‌ها وارد واحد هر درس شو."
+        );
         document.title = "آرشیو منابع " + dentalYearLabel() + " | ساختار ترم و واحد";
         dentalResetList();
         dentalAppendTermCards(curriculum);
@@ -692,7 +664,8 @@
             "واحد موردنظرت را از بین دسته‌های همین ترم انتخاب کن."
         );
         if (backLink) {
-            setBackLink(dentalHomeUrl(0, ""), "بازگشت به همه ترم‌ها");
+            backLink.href = dentalHomeUrl(0, "");
+            backLink.textContent = "بازگشت به همه ترم‌ها";
         }
         document.title = (termData.label || "ترم") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
@@ -714,7 +687,8 @@
             termData.description || "این آرشیو هنوز خارج از ساختار اصلی ۴ تا ۱۲ نگه‌داری می‌شود."
         );
         if (backLink) {
-            setBackLink(dentalHomeUrl(0, ""), "بازگشت به همه ترم‌ها");
+            backLink.href = dentalHomeUrl(0, "");
+            backLink.textContent = "بازگشت به همه ترم‌ها";
         }
         document.title = (termData.title || "آرشیو") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
@@ -735,20 +709,14 @@
             termData.description || "منابع این واحد از همین بخش در دسترس هستند."
         );
         if (backLink) {
-            setBackLink(dentalHomeUrl(Number(termData.term || termData.termNumber || 0), ""), "بازگشت به " + (termData.termLabel || ("ترم " + toFaDigits(termData.term || 0))));
+            backLink.href = dentalHomeUrl(Number(termData.term || termData.termNumber || 0), "");
+            backLink.textContent = "بازگشت به " + (termData.termLabel || ("ترم " + toFaDigits(termData.term || 0)));
         }
         document.title = (termData.title || "منابع واحد") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
         dentalAppendResourceActions(termData, !!dentalState.canManage, termData.unitKey || "");
         dentalAppendResourceCards(termData, !!dentalState.canManage);
         dentalSyncUnitManagePanel(termData);
-    }
-
-    function dentalReloadCurrentData() {
-        if (isUnitMode()) {
-            return dentalLoadUnitDetail();
-        }
-        return dentalLoadHomeData();
     }
 
     function dentalRenderError(message) {
@@ -759,7 +727,7 @@
             title.textContent = "منابع این بخش پیدا نشد.";
         }
         dentalSectionText("خطا", "امکان نمایش منابع وجود ندارد", message || "در دریافت داده‌ها خطایی رخ داد.");
-        dentalRenderState("error", "بارگذاری منابع انجام نشد", message || "در دریافت داده‌ها خطایی رخ داد.", dentalReloadCurrentData, false);
+        dentalShowEmpty(message || "در دریافت داده‌ها خطایی رخ داد.");
         dentalSyncUnitManagePanel(null);
     }
 
@@ -1005,7 +973,7 @@
         dentalState.curriculum = null;
         dentalState.unitDetail = null;
         dentalState.downloadHost = null;
-        dentalRenderState("loading", "در حال دریافت ساختار منابع", "ساختار منابع این ورودی در حال بارگذاری است.", dentalReloadCurrentData);
+        dentalShowEmpty("در حال دریافت ساختار منابع...");
         dentalSetUnitManageFeedback("", "");
         dentalSyncUnitManagePanel(null);
         return request("terms", "GET", {}).then(function (payload) {
@@ -1032,7 +1000,7 @@
         dentalState.loading = true;
         dentalState.unitDetail = null;
         dentalState.downloadHost = null;
-        dentalRenderState("loading", "در حال دریافت منابع این واحد", "منابع این واحد در حال بارگذاری هستند.", dentalReloadCurrentData);
+        dentalShowEmpty("در حال دریافت منابع این واحد...");
         dentalSetUnitManageFeedback("", "");
         dentalSyncUnitManagePanel(null);
         return request("term", "GET", {
@@ -1105,7 +1073,8 @@
             subheading.textContent = isProsthesis ? "هر ترم در صفحه جداگانه" : "هر ترم در صفحه جداگانه";
         }
         if (backLink) {
-            setBackLink("/app/", isProsthesis ? "بازگشت به خانه پروتز" : "بازگشت به خانه");
+            backLink.href = "/app/";
+            backLink.textContent = isProsthesis ? "بازگشت به خانه پروتز" : "بازگشت به خانه";
         }
         if (kicker) {
             kicker.textContent = isProsthesis ? "آرشیو پروتز ۱۴۰۲" : ("آرشیو " + yearLabel);
@@ -1378,11 +1347,11 @@
         if (!state.terms.length) {
             empty.hidden = false;
             if (state.loading) {
-                dentalRenderState("loading", "در حال دریافت ترم‌ها", "ترم‌های این آرشیو در حال بارگذاری هستند.", loadTerms);
+                empty.textContent = "در حال دریافت ترم‌ها...";
                 return;
             }
             if (state.loadError) {
-                dentalRenderState("error", "بارگذاری ترم‌ها انجام نشد", state.loadError, loadTerms);
+                empty.textContent = state.loadError;
                 return;
             }
             empty.textContent = pageCohort === "prosthesis-1402"
@@ -1406,7 +1375,7 @@
         state.loading = true;
         state.loadError = "";
         if (!(options && options.silent)) {
-            dentalRenderState("loading", "در حال دریافت ترم‌ها", "ترم‌های این آرشیو در حال بارگذاری هستند.", loadTerms);
+            render();
         }
 
         return request("terms", "GET", {}).then(function (payload) {
@@ -1431,9 +1400,6 @@
             state.canManage = false;
             if (manage) {
                 manage.hidden = true;
-            }
-            if (!(options && options.silent)) {
-                dentalRenderState("error", "بارگذاری ترم‌ها انجام نشد", state.loadError, loadTerms);
             }
         }).finally(function () {
             state.loading = false;

@@ -96,9 +96,6 @@
             options.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
             options.body = new URLSearchParams(Object.assign({ action: action }, body || {}));
         }
-        if (window.Dent1402Site && typeof window.Dent1402Site.fetchJsonWithTimeout === "function") {
-            return window.Dent1402Site.fetchJsonWithTimeout(url, options, 20000, "پاسخ نامعتبر از سرور دریافت شد.", "دریافت داده‌های HTML Uploader با تاخیر پاسخ داد.");
-        }
         return fetch(url, options).then(function (response) {
             return response.json().catch(function () {
                 return { success: false, error: "پاسخ نامعتبر از سرور دریافت شد." };
@@ -347,17 +344,7 @@
         ownerState.loading = true;
         var node = $("hu-owner-list");
         if (node) {
-            if (window.Dent1402Site && typeof window.Dent1402Site.renderAsyncState === "function") {
-                window.Dent1402Site.renderAsyncState(node, {
-                    kind: "loading",
-                    title: "در حال دریافت فهرست صفحات HTML",
-                    copy: "صفحات HTML ساخته‌شده در حال بارگذاری هستند.",
-                    retryLabel: "بازخوانی",
-                    onRetry: loadOwnerPages
-                });
-            } else {
-                node.innerHTML = '<p class="hu-owner-empty">در حال دریافت فهرست صفحات HTML...</p>';
-            }
+            node.innerHTML = '<p class="hu-owner-empty">در حال دریافت فهرست صفحات HTML...</p>';
         }
         request("ownerPages", {
             page: 1,
@@ -371,17 +358,7 @@
             }
             if (!response || !response.success) {
                 if (node) {
-                    if (window.Dent1402Site && typeof window.Dent1402Site.renderAsyncState === "function") {
-                        window.Dent1402Site.renderAsyncState(node, {
-                            kind: "error",
-                            title: "بارگذاری صفحات HTML انجام نشد",
-                            copy: (response && response.error) || "فهرست صفحات HTML فعلاً قابل دریافت نیست.",
-                            retryLabel: "بازخوانی",
-                            onRetry: loadOwnerPages
-                        });
-                    } else {
-                        node.innerHTML = '<p class="hu-owner-empty">' + escapeHtml((response && response.error) || "دریافت فهرست صفحات HTML انجام نشد.") + "</p>";
-                    }
+                    node.innerHTML = '<p class="hu-owner-empty">' + escapeHtml((response && response.error) || "دریافت فهرست صفحات HTML انجام نشد.") + "</p>";
                 }
                 return;
             }
@@ -389,17 +366,7 @@
             renderOwnerList(response.page && response.page.items ? response.page.items : []);
         }).catch(function () {
             if (node) {
-                if (window.Dent1402Site && typeof window.Dent1402Site.renderAsyncState === "function") {
-                    window.Dent1402Site.renderAsyncState(node, {
-                        kind: "error",
-                        title: "ارتباط با سرور برقرار نشد",
-                        copy: "دریافت فهرست صفحات HTML با خطا متوقف شد.",
-                        retryLabel: "بازخوانی",
-                        onRetry: loadOwnerPages
-                    });
-                } else {
-                    node.innerHTML = '<p class="hu-owner-empty">در ارتباط با سرور خطا رخ داد.</p>';
-                }
+                node.innerHTML = '<p class="hu-owner-empty">در ارتباط با سرور خطا رخ داد.</p>';
             }
         }).finally(function () {
             ownerState.loading = false;

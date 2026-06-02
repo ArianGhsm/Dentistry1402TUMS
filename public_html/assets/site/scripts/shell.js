@@ -183,42 +183,53 @@
         return "";
     }
 
-    function sharedNavHref(path, state) {
-        var target = String(path || "").trim() || "/";
-        if (isProsthesisState(state)) {
-            return scopedPath(target, "prosthesis-1402");
-        }
-        return appendCurrentCohort(target);
-    }
-
     function navItems(state) {
         var status = authStatus(state);
         var isPending = isAuthTransitioning(status);
         var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
-        var chatBadgeCount = state.loggedIn && canUseChatState(state) ? Math.max(0, Number(navBadgeState.chatCount || 0)) : 0;
+        var isProsthesis = isProsthesisState(state);
+        var chatBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.chatCount || 0)) : 0;
         var accountBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.notificationCount || 0)) : 0;
-        return [
-            {
-                href: sharedNavHref("/app/", state),
+        var items = [];
+        if (state.loggedIn) {
+            items.push({
+                href: "/app/",
                 label: "خانه",
                 icon: "home",
                 active: ["/app/"],
                 exact: true
-            },
-            {
-                href: sharedNavHref("/chat/", state),
+            });
+        } else {
+            items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
+        }
+
+        if (!canUseChatState(state)) {
+            if (state.loggedIn) {
+                items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
+            }
+            items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
+        } else if (!isProsthesis) {
+            items.push({
+                href: "/chat/",
                 label: "چت",
                 icon: "chat",
                 active: ["/chat/"],
                 badgeCount: chatBadgeCount,
                 badgeAriaLabel: "پیام خوانده‌نشده"
-            },
-            {
-                href: sharedNavHref("/exams/", state),
-                label: "آزمون‌ها",
-                icon: "exam",
-                active: ["/exams/"]
-            },
+            });
+            items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
+        } else {
+            items.push({
+                href: scopedPath("/chat/", "prosthesis-1402"),
+                label: "چت",
+                icon: "chat",
+                active: ["/chat/"],
+                badgeCount: chatBadgeCount,
+                badgeAriaLabel: "پیام خوانده‌نشده"
+            });
+            items.push({ href: scopedPath("/exams/", "prosthesis-1402"), label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
+        }
+        items.push(
             {
                 href: accountHref,
                 label: state.loggedIn ? "حساب" : "ورود",
@@ -228,7 +239,8 @@
                 badgeCount: accountBadgeCount,
                 badgeAriaLabel: "اعلان خوانده‌نشده"
             }
-        ];
+        );
+        return items;
     }
 
     function applyBranding(state) {
@@ -477,388 +489,13 @@
 
     function normalizePageTopbars() {
         document.querySelectorAll(".forms-topbar").forEach(function (topbar) {
-            topbar.querySelectorAll("a.forms-icon-btn").forEach(function (node) {
-                var href = String(node.getAttribute("href") || "").trim();
-                var label = String(node.textContent || "").trim();
-                if (!label || label === "‹" || label === "â€¹" || label === "←") {
-                    if (href.indexOf("/forms/fill/") === 0) {
-                        label = "بازگشت به فرم‌ها";
-                    } else if (href.indexOf("/account/") === 0) {
-                        label = "بازگشت به حساب";
-                    } else if (href.indexOf("/app/") === 0) {
-                        label = "بازگشت به خانه";
-                    } else {
-                        label = "بازگشت";
-                    }
-                    node.textContent = label;
-                }
-                node.setAttribute("aria-label", label);
-                node.setAttribute("title", label);
+            topbar.querySelectorAll('a[href="/app/"], a[href="/account/"]').forEach(function (node) {
+                node.remove();
             });
 
             if (!topbar.querySelector(".forms-icon-btn")) {
                 topbar.classList.add("forms-topbar--plain");
-            } else {
-                topbar.classList.remove("forms-topbar--plain");
             }
-        });
-    }
-
-    function normalizePathname(path) {
-        var value = String(path || "").trim();
-        if (!value) {
-            return "/";
-        }
-        try {
-            value = new URL(value, window.location.origin).pathname || "/";
-        } catch (_error) {
-            value = value.split("#")[0].split("?")[0] || "/";
-        }
-        return value.endsWith("/") ? value : value + "/";
-    }
-
-    function currentCohortParam() {
-        try {
-            return String(new URL(window.location.href).searchParams.get("cohort") || "").trim();
-        } catch (_error) {
-            return "";
-        }
-    }
-
-    function appendCurrentCohort(href) {
-        var target = String(href || "").trim();
-        var cohort = currentCohortParam();
-        if (!target || !cohort) {
-            return target;
-        }
-
-        try {
-            var url = new URL(target, window.location.origin);
-            if (url.origin !== window.location.origin || url.searchParams.has("cohort")) {
-                return target;
-            }
-            url.searchParams.set("cohort", cohort);
-            return url.pathname + url.search + url.hash;
-        } catch (_error) {
-            return target;
-        }
-    }
-
-    function safeInternalHref(rawValue) {
-        var value = String(rawValue || "").trim();
-        if (!value) {
-            return "";
-        }
-
-        try {
-            var url = new URL(value, window.location.origin);
-            if (url.origin !== window.location.origin || !url.pathname) {
-                return "";
-            }
-            return url.pathname + url.search + url.hash;
-        } catch (_error) {
-            return "";
-        }
-    }
-
-    function labelForTargetPath(path) {
-        var normalized = normalizePathname(path);
-        if (normalized === "/" || normalized === "/app/") {
-            return "بازگشت به خانه";
-        }
-        if (normalized.indexOf("/account/") === 0) {
-            return "بازگشت به حساب";
-        }
-        if (normalized.indexOf("/forms/") === 0) {
-            return "بازگشت به فرم‌ها";
-        }
-        if (normalized.indexOf("/dis-request/manage/") === 0) {
-            return "بازگشت به مدیریت DIS";
-        }
-        if (normalized.indexOf("/dis-request/") === 0) {
-            return "بازگشت به فرم DIS";
-        }
-        if (normalized.indexOf("/notes/files/") === 0) {
-            return "بازگشت به فایل‌های منابع";
-        }
-        if (normalized.indexOf("/notes/") === 0 || normalized.indexOf("/resources/") === 0) {
-            return "بازگشت به منابع";
-        }
-        if (normalized.indexOf("/grades/") === 0) {
-            return "بازگشت به نمرات";
-        }
-        if (normalized.indexOf("/navid/") === 0) {
-            return "بازگشت به نوید";
-        }
-        if (normalized.indexOf("/files/") === 0) {
-            return "بازگشت به مرکز آپلود";
-        }
-        if (normalized.indexOf("/paste/") === 0) {
-            return "بازگشت به pastebin";
-        }
-        if (normalized.indexOf("/html-uploader/") === 0) {
-            return "بازگشت به HTML Uploader";
-        }
-        if (normalized.indexOf("/buy/manage/orders/") === 0) {
-            return "بازگشت به سفارش‌ها";
-        }
-        if (normalized.indexOf("/buy/manage/items/") === 0) {
-            return "بازگشت به آیتم‌ها";
-        }
-        if (normalized.indexOf("/buy/manage/gateways/") === 0) {
-            return "بازگشت به درگاه‌ها";
-        }
-        if (normalized.indexOf("/buy/manage/") === 0) {
-            return "بازگشت به مدیریت خرید";
-        }
-        if (normalized.indexOf("/payments/manage/") === 0) {
-            return "بازگشت به جمع‌آوری هزینه";
-        }
-        if (normalized.indexOf("/payments/pay/") === 0) {
-            return "بازگشت به خرید";
-        }
-        if (normalized.indexOf("/buy/cart/") === 0) {
-            return "بازگشت به سبد خرید";
-        }
-        if (normalized.indexOf("/buy/") === 0) {
-            return "بازگشت به خرید";
-        }
-        if (normalized.indexOf("/chat/polls/") === 0) {
-            return "بازگشت به نظرسنجی‌ها";
-        }
-        if (normalized.indexOf("/chat/poll/") === 0 || normalized.indexOf("/chat/") === 0) {
-            return "بازگشت به چت";
-        }
-        if (normalized.indexOf("/exams/") === 0) {
-            return "بازگشت به آزمون‌ها";
-        }
-        if (normalized.indexOf("/prosthesis-1402/") === 0) {
-            return "بازگشت به خانه";
-        }
-        return "بازگشت";
-    }
-
-    function inferPathFallback(path) {
-        var normalized = normalizePathname(path);
-        if (normalized === "/" || normalized === "/app/" || normalized === "/index.html/") {
-            return null;
-        }
-        if (normalized.indexOf("/account/") === 0) {
-            return "/app/";
-        }
-        if (normalized.indexOf("/forms/fill/") === 0) {
-            return "/forms/";
-        }
-        if (normalized.indexOf("/forms/") === 0) {
-            return "/app/";
-        }
-        if (normalized.indexOf("/dis-request/manage/") === 0) {
-            return "/forms/";
-        }
-        if (normalized.indexOf("/dis-request/") === 0) {
-            return "/forms/";
-        }
-        if (normalized.indexOf("/notes/files/") === 0) {
-            return "/notes/";
-        }
-        if (normalized.indexOf("/notes/") === 0 || normalized.indexOf("/resources/") === 0) {
-            return "/app/";
-        }
-        if (normalized.indexOf("/grades/") === 0) {
-            return "/app/";
-        }
-        if (normalized.indexOf("/navid/") === 0) {
-            return "/app/";
-        }
-        if (normalized.indexOf("/files/") === 0 || normalized.indexOf("/paste/") === 0 || normalized.indexOf("/html-uploader/") === 0) {
-            return "/app/";
-        }
-        if (normalized.indexOf("/payments/manage/") === 0) {
-            return "/buy/manage/";
-        }
-        if (normalized.indexOf("/payments/pay/") === 0) {
-            return "/buy/";
-        }
-        if (normalized.indexOf("/buy/result/") === 0) {
-            return "/buy/";
-        }
-        if (normalized === "/buy/cart/") {
-            return "/buy/";
-        }
-        if (normalized.indexOf("/buy/cart/gateway/") === 0) {
-            return "/buy/cart/details/";
-        }
-        if (normalized.indexOf("/buy/cart/discount/") === 0 || normalized.indexOf("/buy/cart/details/") === 0) {
-            return "/buy/cart/";
-        }
-        if (normalized === "/buy/manage/") {
-            return "/buy/";
-        }
-        if (normalized === "/buy/manage/orders/") {
-            return "/buy/manage/";
-        }
-        if (normalized.indexOf("/buy/manage/orders/detail/") === 0) {
-            return "/buy/manage/orders/";
-        }
-        if (normalized === "/buy/manage/items/") {
-            return "/buy/manage/";
-        }
-        if (normalized.indexOf("/buy/manage/items/edit/") === 0 || normalized.indexOf("/buy/manage/items/new/") === 0) {
-            return "/buy/manage/items/";
-        }
-        if (normalized === "/buy/manage/gateways/") {
-            return "/buy/manage/";
-        }
-        if (normalized.indexOf("/buy/manage/gateways/edit/") === 0 || normalized.indexOf("/buy/manage/gateways/new/") === 0) {
-            return "/buy/manage/gateways/";
-        }
-        if (normalized.indexOf("/buy/manage/") === 0) {
-            return "/buy/manage/";
-        }
-        if (normalized.indexOf("/buy/item/") === 0 || normalized.indexOf("/buy/") === 0) {
-            return "/buy/";
-        }
-        if (normalized.indexOf("/chat/poll/") === 0 || normalized.indexOf("/chat/polls/") === 0) {
-            return "/chat/";
-        }
-        if (normalized.indexOf("/chat/") === 0) {
-            return "/app/";
-        }
-        if (normalized.indexOf("/exams/") === 0) {
-            if (normalized === "/exams/") {
-                return "/app/";
-            }
-            var trimmed = normalized.slice(0, -1);
-            var separatorIndex = trimmed.lastIndexOf("/");
-            if (separatorIndex > 0) {
-                var parent = trimmed.slice(0, separatorIndex + 1);
-                return parent === "/exams/" ? "/exams/" : parent;
-            }
-            return "/exams/";
-        }
-        if (normalized.indexOf("/prosthesis-1402/") === 0) {
-            return "/app/?cohort=prosthesis-1402";
-        }
-        return "/app/";
-    }
-
-    function resolveNavEscapeConfig() {
-        var body = document.body;
-        var path = currentPath();
-        var explicitHref = body ? safeInternalHref(body.dataset.navEscapeHref) : "";
-        var explicitLabel = body ? String(body.dataset.navEscapeLabel || "").trim() : "";
-        var returnTo = safeInternalHref(new URLSearchParams(window.location.search).get("returnTo"));
-        var selfTarget = window.location.pathname + window.location.search + window.location.hash;
-        var href = "";
-
-        if (explicitHref) {
-            href = explicitHref;
-        } else if (returnTo && returnTo !== selfTarget) {
-            href = returnTo;
-        } else {
-            href = inferPathFallback(path) || "";
-        }
-
-        href = appendCurrentCohort(href);
-        if (!href) {
-            return null;
-        }
-
-        return {
-            href: href,
-            label: explicitLabel || labelForTargetPath(safeInternalHref(href) || href)
-        };
-    }
-
-    function decorateNavEscape(link, href, label) {
-        if (!link) {
-            return;
-        }
-        link.dataset.navEscape = "true";
-        link.href = href;
-        link.setAttribute("aria-label", label);
-        link.setAttribute("title", label);
-
-        var iconNode = link.querySelector(".shell-nav-escape__icon");
-        if (!iconNode) {
-            iconNode = document.createElement("span");
-            iconNode.className = "shell-nav-escape__icon";
-            iconNode.setAttribute("aria-hidden", "true");
-            iconNode.innerHTML = "&#8592;";
-            link.insertBefore(iconNode, link.firstChild);
-        }
-
-        var labelNode = link.querySelector(".shell-nav-escape__label");
-        if (!labelNode) {
-            labelNode = document.createElement("span");
-            labelNode.className = "shell-nav-escape__label";
-            link.appendChild(labelNode);
-        }
-        labelNode.textContent = label;
-    }
-
-    function ensureNavEscapeLink(host, className) {
-        if (!host) {
-            return null;
-        }
-        var link = host.querySelector("[data-nav-escape]");
-        if (link) {
-            return link;
-        }
-        link = document.createElement("a");
-        link.className = className;
-        host.insertBefore(link, host.firstChild);
-        return link;
-    }
-
-    function hasVisibleEscapeAction(host) {
-        if (!host) {
-            return false;
-        }
-        return Array.prototype.some.call(host.querySelectorAll("a, button"), function (node) {
-            if (node.hasAttribute("data-nav-escape") || node.hasAttribute("data-theme-toggle") || node.closest("[data-theme-toggle-slot]")) {
-                return false;
-            }
-            return /(بازگشت|خانه)/.test(String(node.textContent || "").trim());
-        });
-    }
-
-    function syncPageEscapeAction() {
-        var config = resolveNavEscapeConfig();
-        if (!config) {
-            return;
-        }
-
-        document.querySelectorAll(".forms-topbar").forEach(function (topbar) {
-            var existing = topbar.querySelector(".forms-icon-btn");
-            if (existing) {
-                existing.classList.add("shell-nav-escape");
-                decorateNavEscape(existing, config.href, config.label);
-                return;
-            }
-            var link = ensureNavEscapeLink(topbar, "forms-icon-btn forms-icon-btn--text shell-nav-escape");
-            decorateNavEscape(link, config.href, config.label);
-        });
-
-        document.querySelectorAll(".site-header .header-actions").forEach(function (actions) {
-            var link = ensureNavEscapeLink(actions, "header-link shell-nav-escape");
-            decorateNavEscape(link, config.href, config.label);
-        });
-
-        document.querySelectorAll(".ct-topbar-actions, .ctf-hero-actions").forEach(function (actions) {
-            if (hasVisibleEscapeAction(actions)) {
-                return;
-            }
-            var link = ensureNavEscapeLink(actions, "ct-btn ct-btn--ghost shell-nav-escape");
-            decorateNavEscape(link, config.href, config.label);
-        });
-
-        document.querySelectorAll(".hu-header__actions").forEach(function (actions) {
-            if (hasVisibleEscapeAction(actions)) {
-                return;
-            }
-            var link = ensureNavEscapeLink(actions, "hu-btn shell-nav-escape");
-            decorateNavEscape(link, config.href, config.label);
         });
     }
 
@@ -1467,7 +1104,6 @@
             return;
         }
         applyBranding(state);
-        syncPageEscapeAction();
         syncAuthLinks(state);
         syncPollEntry(state);
     }

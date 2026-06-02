@@ -8,14 +8,14 @@
     <meta name="robots" content="noindex,nofollow">
     <title>HTML Uploader | ورودی ۱۴۰۲ دندانپزشکی تهران</title>
     <meta name="description" content="آپلود فایل HTML تک‌فایلی و ساخت لینک موقت برای تست مستقیم روی سایت.">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260602-024746">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260602-024746">
-    <script src="/assets/site/scripts/theme.js?v=20260602-024746"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260602-024746">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260602-024746">
-    <link rel="stylesheet" href="/assets/site/styles/html-uploader.css?v=20260602-024746">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260602-082542">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260602-082542">
+    <script src="/assets/site/scripts/theme.js?v=20260602-082542"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260602-082542">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260602-082542">
+    <link rel="stylesheet" href="/assets/site/styles/html-uploader.css?v=20260602-082542">
 </head>
-<body class="html-uploader-page" data-shell-header="off">
+<body class="html-uploader-page">
     <div class="background-overlay" aria-hidden="true"></div>
 
     <main class="hu-shell">
@@ -105,7 +105,7 @@
             </aside>
         </section>
 
-        <section id="hu-owner-panel" class="hu-card hu-owner-panel" hidden aria-labelledby="hu-owner-title" data-required-permission="owner">
+        <section id="hu-owner-panel" class="hu-card hu-owner-panel" hidden aria-labelledby="hu-owner-title">
             <div class="hu-section-head">
                 <div>
                     <span class="hu-kicker">Owner</span>
@@ -115,39 +115,31 @@
                 <button id="hu-owner-refresh" class="hu-btn" type="button">بازخوانی</button>
             </div>
 
-            <details class="site-disclosure hu-owner-disclosure">
-                <summary class="site-disclosure__summary">
-                    <strong>فیلتر و مرتب‌سازی</strong>
-                    <span>جست‌وجو، وضعیت لینک و ترتیب نمایش</span>
-                </summary>
-                <div class="site-disclosure__body">
-                    <div class="hu-owner-toolbar">
-                        <input id="hu-owner-query" type="search" placeholder="جست‌وجو در عنوان، نام فایل یا توکن">
-                        <select id="hu-owner-status">
-                            <option value="available" selected>همه لینک‌های موجود</option>
-                            <option value="active">فعال</option>
-                            <option value="hidden">مخفی</option>
-                            <option value="expired">منقضی</option>
-                            <option value="deleted">حذف‌شده</option>
-                            <option value="all">همه</option>
-                        </select>
-                        <select id="hu-owner-sort">
-                            <option value="newest" selected>جدیدترین</option>
-                            <option value="oldest">قدیمی‌ترین</option>
-                            <option value="views">بیشترین بازدید</option>
-                        </select>
-                    </div>
-                </div>
-            </details>
+            <div class="hu-owner-toolbar">
+                <input id="hu-owner-query" type="search" placeholder="جست‌وجو در عنوان، نام فایل یا توکن">
+                <select id="hu-owner-status">
+                    <option value="available" selected>همه لینک‌های موجود</option>
+                    <option value="active">فعال</option>
+                    <option value="hidden">مخفی</option>
+                    <option value="expired">منقضی</option>
+                    <option value="deleted">حذف‌شده</option>
+                    <option value="all">همه</option>
+                </select>
+                <select id="hu-owner-sort">
+                    <option value="newest" selected>جدیدترین</option>
+                    <option value="oldest">قدیمی‌ترین</option>
+                    <option value="views">بیشترین بازدید</option>
+                </select>
+            </div>
 
             <div id="hu-owner-summary" class="hu-owner-summary"></div>
             <div id="hu-owner-list" class="hu-owner-list"></div>
         </section>
     </main>
 
-    <script src="/assets/site/scripts/auth.js?v=20260602-024746"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260602-024746"></script>
-    <script src="/assets/site/scripts/html-uploader.js?v=20260602-024746"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260602-024746"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260602-082542"></script>
+    <script src="/assets/site/scripts/html-uploader.js?v=20260602-082542"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260602-082542"></script>
 </body>
 </html>
+

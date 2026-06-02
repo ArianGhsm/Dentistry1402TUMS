@@ -13,12 +13,10 @@
     var stageLogin = $("account-login");
     var stagePanel = $("account-panel");
     var bootText = $("account-boot-text");
-    var bootRetry = $("account-boot-retry");
 
     var loginForm = $("login-form");
     var loginSubmit = $("login-submit");
     var loginFeedback = $("login-feedback");
-    var loginTitle = $("account-login-title");
     var loginCopy = $("account-login-copy");
     var authBrand = $("account-auth-brand");
     var accountFooterBrand = $("account-footer-brand");
@@ -45,12 +43,7 @@
     var externalSignupLastName = $("external-signup-last-name");
     var externalSignupPhone = $("external-signup-phone");
     var externalSignupPassword = $("external-signup-password");
-    var externalSignupPasswordConfirm = $("external-signup-password-confirm");
     var externalSignupOtpCode = $("external-signup-otp-code");
-    var externalSignupOtpSlots = $("external-signup-otp-slots");
-    var externalSignupSummary = $("external-signup-summary");
-    var externalSignupPhoneDisplay = $("external-signup-phone-display");
-    var externalSignupEditPhoneButton = $("external-signup-edit-phone");
     var externalSignupRequestButton = $("external-signup-request");
     var externalSignupSubmitButton = $("external-signup-submit");
     var externalSignupFeedback = $("external-signup-feedback");
@@ -319,7 +312,6 @@
     var loginOtpAutoSubmitQueued = false;
     var externalSignupRequesting = false;
     var externalSignupSubmitting = false;
-    var externalSignupAutoSubmitQueued = false;
     var otpCredentialAbortController = null;
     var profileDraftAvatarUrl = "";
     var profileSaving = false;
@@ -371,12 +363,6 @@
             usernameInput.placeholder = "40211272003 یا 09123456789";
             usernameInput.setAttribute("inputmode", "numeric");
         }
-        if (usernameLabel) {
-            usernameLabel.textContent = "شماره دانشجویی یا موبایل";
-        }
-        if (usernameInput) {
-            usernameInput.placeholder = "40211272003 یا 09123456789";
-        }
         if (!loginMethodSwitch || !loginOtpForm || externalSignupForm) {
             return;
         }
@@ -388,7 +374,6 @@
         loginMethodSignupBtn.setAttribute("role", "tab");
         loginMethodSignupBtn.setAttribute("aria-selected", "false");
         loginMethodSignupBtn.textContent = "ثبت نام آزمون";
-        loginMethodSignupBtn.textContent = "ثبت‌نام";
         loginMethodSwitch.appendChild(loginMethodSignupBtn);
 
         externalSignupForm = document.createElement("form");
@@ -425,59 +410,13 @@
             '  <p class="account-feedback" id="external-signup-feedback" role="status" aria-live="polite"></p>',
             '</div>'
         ].join("");
-        externalSignupForm.innerHTML = [
-            '<div class="otp-auth-panel external-signup-panel">',
-            '  <div class="otp-auth-panel__hero">',
-            '    <h4>ثبت‌نام</h4>',
-            '    <p>برای کاربران عادی سایت، شماره موبایل نام کاربری حساب خواهد بود.</p>',
-            '  </div>',
-            '  <div class="external-signup-grid external-signup-step--details">',
-            '    <label for="external-signup-first-name">نام</label>',
-            '    <input id="external-signup-first-name" name="firstName" type="text" autocomplete="given-name" required>',
-            '    <label for="external-signup-last-name">نام خانوادگی</label>',
-            '    <input id="external-signup-last-name" name="lastName" type="text" autocomplete="family-name" required>',
-            '    <label for="external-signup-phone">شماره موبایل</label>',
-            '    <input id="external-signup-phone" name="phoneNumber" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="09123456789" data-digit-locale="latin" required>',
-            '    <label for="external-signup-password">رمز عبور</label>',
-            '    <input id="external-signup-password" name="password" type="password" autocomplete="new-password" minlength="6" required>',
-            '    <label for="external-signup-password-confirm">تکرار رمز عبور</label>',
-            '    <input id="external-signup-password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="6" required>',
-            '  </div>',
-            '  <div class="otp-auth-panel__actions otp-auth-panel__actions--request">',
-            '    <button class="shell-action-btn shell-action-btn-primary" id="external-signup-request" type="button">ارسال کد تایید</button>',
-            '    <p class="account-inline-meta" id="external-signup-meta"></p>',
-            '  </div>',
-            '  <div class="external-signup-verify" id="external-signup-verify-group" hidden>',
-            '    <div class="otp-verify-head">',
-            '      <h4>تایید شماره موبایل</h4>',
-            '      <p id="external-signup-summary">کد تایید ارسال‌شده را وارد کن.</p>',
-            '      <strong id="external-signup-phone-display" class="otp-verify-phone" dir="ltr"></strong>',
-            '    </div>',
-            '    <div class="settings-row">',
-            '      <label for="external-signup-otp-code">کد تایید</label>',
-            '      <div id="external-signup-otp-field" class="otp-slot-field" data-otp-field="external-signup">',
-            '        <input id="external-signup-otp-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" pattern="[0-9]*" maxlength="6" aria-label="کد تایید ثبت‌نام" aria-describedby="external-signup-summary external-signup-feedback" dir="ltr" data-latin-digits="true" placeholder="کد ۶ رقمی">',
-            '        <div id="external-signup-otp-slots" class="otp-slot-field__slots" dir="ltr" aria-hidden="true"><span class="otp-slot"></span><span class="otp-slot"></span><span class="otp-slot"></span><span class="otp-slot"></span><span class="otp-slot"></span><span class="otp-slot"></span></div>',
-            '      </div>',
-            '    </div>',
-            '    <button class="shell-action-btn shell-action-btn-primary" id="external-signup-submit" type="submit" disabled>تکمیل ثبت‌نام</button>',
-            '    <button id="external-signup-edit-phone" class="otp-edit-phone-btn" type="button">ویرایش اطلاعات</button>',
-            '  </div>',
-            '  <p class="account-feedback" id="external-signup-feedback" role="status" aria-live="polite"></p>',
-            '</div>'
-        ].join("");
         loginMethodSwitch.parentNode.insertBefore(externalSignupForm, loginMethodSwitch);
 
         externalSignupFirstName = $("external-signup-first-name");
         externalSignupLastName = $("external-signup-last-name");
         externalSignupPhone = $("external-signup-phone");
         externalSignupPassword = $("external-signup-password");
-        externalSignupPasswordConfirm = $("external-signup-password-confirm");
         externalSignupOtpCode = $("external-signup-otp-code");
-        externalSignupOtpSlots = $("external-signup-otp-slots");
-        externalSignupSummary = $("external-signup-summary");
-        externalSignupPhoneDisplay = $("external-signup-phone-display");
-        externalSignupEditPhoneButton = $("external-signup-edit-phone");
         externalSignupRequestButton = $("external-signup-request");
         externalSignupSubmitButton = $("external-signup-submit");
         externalSignupFeedback = $("external-signup-feedback");
@@ -490,16 +429,8 @@
             return;
         }
         if (loginMode === "signup") {
-            if (loginTitle) {
-                loginTitle.textContent = "ثبت‌نام";
-            }
             loginCopy.textContent = "نام، موبایل و رمز عبور را وارد کن تا با کد تایید ثبت نام کامل شود.";
             return;
-        }
-        if (loginTitle) {
-            loginTitle.textContent = loginMode === "otp"
-                ? "ورود با شماره موبایل"
-                : "ورود با رمز عبور";
         }
         loginCopy.textContent = loginMode === "otp"
             ? "شماره موبایل خود را وارد کنید."
@@ -747,13 +678,8 @@
         }
     }
 
-    function setBootText(text, showRetry) {
-        if (bootText) {
-            bootText.textContent = text;
-        }
-        if (bootRetry) {
-            bootRetry.hidden = !showRetry;
-        }
+    function setBootText(text) {
+        bootText.textContent = text;
     }
 
     function setFeedback(node, text, kind, loading) {
@@ -849,21 +775,6 @@
         return normalizeDigits(loginOtpCodeInput ? loginOtpCodeInput.value : "").replace(/\D+/g, "").slice(0, loginOtpLength());
     }
 
-    function externalSignupOtpLength() {
-        if (externalSignupOtpSlots) {
-            var slots = externalSignupOtpSlots.querySelectorAll(".otp-slot").length;
-            if (slots > 0) {
-                return slots;
-            }
-        }
-        var maxLength = externalSignupOtpCode ? Number(externalSignupOtpCode.getAttribute("maxlength")) : 6;
-        return Number.isFinite(maxLength) && maxLength > 0 ? maxLength : 6;
-    }
-
-    function externalSignupOtpCodeValue() {
-        return normalizeDigits(externalSignupOtpCode ? externalSignupOtpCode.value : "").replace(/\D+/g, "").slice(0, externalSignupOtpLength());
-    }
-
     function setInputInvalid(input, invalid) {
         if (!input) {
             return;
@@ -934,32 +845,6 @@
         }
         if (loginOtpSummary) {
             loginOtpSummary.textContent = visiblePhone
-                ? "کد تایید برای این شماره ارسال شد."
-                : "کد تایید ارسال‌شده را وارد کن.";
-        }
-    }
-
-    function focusExternalSignupOtpInput(selectCode) {
-        if (!externalSignupOtpCode) {
-            return;
-        }
-        externalSignupOtpCode.focus({ preventScroll: true });
-        if (selectCode && externalSignupOtpCode.setSelectionRange) {
-            try {
-                externalSignupOtpCode.setSelectionRange(0, externalSignupOtpCode.value.length);
-            } catch (error) {
-                // Some mobile browsers reject selection on managed OTP inputs.
-            }
-        }
-    }
-
-    function updateExternalSignupPhoneDisplay(phoneNumber, maskedPhone) {
-        var visiblePhone = ltrMaskedPhone(toPersianDigits(maskedPhone || phoneNumber), "");
-        if (externalSignupPhoneDisplay) {
-            externalSignupPhoneDisplay.textContent = visiblePhone;
-        }
-        if (externalSignupSummary) {
-            externalSignupSummary.textContent = visiblePhone
                 ? "کد تایید برای این شماره ارسال شد."
                 : "کد تایید ارسال‌شده را وارد کن.";
         }
@@ -1508,7 +1393,6 @@
             lastName: externalSignupLastName ? externalSignupLastName.value.trim() : "",
             phoneNumber: externalSignupPhone ? normalizedPhone(externalSignupPhone.value) : "",
             password: externalSignupPassword ? externalSignupPassword.value : "",
-            passwordConfirm: externalSignupPasswordConfirm ? externalSignupPasswordConfirm.value : "",
             otpCode: externalSignupOtpCode ? normalizeDigits(externalSignupOtpCode.value).replace(/\D+/g, "").slice(0, 6) : ""
         };
     }
@@ -1517,12 +1401,8 @@
         if (externalSignupVerifyGroup) {
             externalSignupVerifyGroup.hidden = !visible;
         }
-        if (externalSignupForm) {
-            externalSignupForm.dataset.otpStep = visible ? "verify" : "details";
-        }
         if (!visible && externalSignupOtpCode) {
             externalSignupOtpCode.value = "";
-            externalSignupOtpCode.dispatchEvent(new Event("input", { bubbles: true }));
         }
         updateExternalSignupState();
     }
@@ -1535,14 +1415,13 @@
         var payload = externalSignupPayload();
         var left = secondsRemaining(externalSignupCooldownUntil);
         var coolingDown = left > 0;
-        var passwordsMatch = payload.password !== "" && payload.password === payload.passwordConfirm;
-        var readyForOtp = !!(payload.firstName && payload.lastName && isValidIranMobile(payload.phoneNumber) && payload.password.length >= 6 && passwordsMatch);
+        var readyForOtp = !!(payload.firstName && payload.lastName && isValidIranMobile(payload.phoneNumber) && payload.password.length >= 6);
         if (externalSignupRequestButton) {
             externalSignupRequestButton.disabled = loginMode !== "signup" || externalSignupRequesting || externalSignupSubmitting || coolingDown || !readyForOtp;
             setButtonBusy(externalSignupRequestButton, externalSignupRequesting, "در حال ارسال...");
         }
         if (externalSignupSubmitButton) {
-            externalSignupSubmitButton.disabled = loginMode !== "signup" || externalSignupSubmitting || !isExternalSignupVerifyVisible() || externalSignupOtpCodeValue().length !== externalSignupOtpLength();
+            externalSignupSubmitButton.disabled = loginMode !== "signup" || externalSignupSubmitting || !isExternalSignupVerifyVisible() || payload.otpCode.length !== 6;
             setButtonBusy(externalSignupSubmitButton, externalSignupSubmitting, "در حال ثبت نام...");
         }
         if (externalSignupMeta) {
@@ -1608,7 +1487,6 @@
         loginOtpAutoSubmitQueued = false;
         externalSignupRequesting = false;
         externalSignupSubmitting = false;
-        externalSignupAutoSubmitQueued = false;
         stopLoginOtpCooldownTicker();
         stopExternalSignupCooldownTicker();
         stopPhoneEnrollCooldownTicker();
@@ -5854,13 +5732,6 @@
             return;
         }
 
-        if (payload.password !== payload.passwordConfirm) {
-            setFeedback(externalSignupFeedback, "تکرار رمز عبور با رمز عبور یکسان نیست.", "error");
-            if (externalSignupPasswordConfirm) externalSignupPasswordConfirm.focus({ preventScroll: true });
-            updateExternalSignupState();
-            return;
-        }
-
         if (externalSignupPhone) {
             setNumericDisplayValue(externalSignupPhone, payload.phoneNumber);
         }
@@ -5878,11 +5749,10 @@
                 return;
             }
             startExternalSignupCooldown(response.cooldownSeconds || 0);
-            updateExternalSignupPhoneDisplay(payload.phoneNumber, response && response.phoneMasked);
             setExternalSignupVerifyVisible(true);
             setFeedback(externalSignupFeedback, "", "");
             if (externalSignupOtpCode) {
-                focusExternalSignupOtpInput(false);
+                externalSignupOtpCode.focus({ preventScroll: true });
                 startOtpCredentialRead(externalSignupOtpCode);
             }
         } finally {
@@ -5972,19 +5842,6 @@
         setFeedback(loginOtpFeedback, "", "");
         if (loginPhoneInput) {
             loginPhoneInput.focus({ preventScroll: true });
-        }
-    }
-
-    function editExternalSignupDetails() {
-        stopOtpCredentialRead();
-        setExternalSignupVerifyVisible(false);
-        if (externalSignupOtpCode) {
-            externalSignupOtpCode.value = "";
-            externalSignupOtpCode.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-        setFeedback(externalSignupFeedback, "", "");
-        if (externalSignupFirstName) {
-            externalSignupFirstName.focus({ preventScroll: true });
         }
     }
 
@@ -6188,7 +6045,7 @@
 
     function handleAuthState(detail) {
         if (detail.status === "session-restoring") {
-            setBootText("در حال بازیابی نشست...", false);
+            setBootText("در حال بازیابی نشست...");
             showStage("boot");
             return;
         }
@@ -6200,13 +6057,7 @@
         }
 
         if (detail.status === "logging-out") {
-            setBootText("در حال خروج از حساب...", false);
-            showStage("boot");
-            return;
-        }
-
-        if (detail.status === "logged-out" && detail.error) {
-            setBootText(detail.error, true);
+            setBootText("در حال خروج از حساب...");
             showStage("boot");
             return;
         }
@@ -6512,7 +6363,6 @@
     bindNumericInput(loginOtpCodeInput, 6);
     bindNumericInput(phoneEnrollCode, 6);
     applyOtpSlots(loginOtpCodeInput, loginOtpSlots);
-    applyOtpSlots(externalSignupOtpCode, externalSignupOtpSlots);
     applyOtpSlots(phoneEnrollCode, phoneEnrollOtpSlots);
 
     if (loginPhoneInput) {
@@ -6574,7 +6424,7 @@
 
     if (externalSignupForm) {
         externalSignupForm.addEventListener("submit", submitExternalSignup);
-        [externalSignupFirstName, externalSignupLastName, externalSignupPhone, externalSignupPassword, externalSignupPasswordConfirm, externalSignupOtpCode].forEach(function (input) {
+        [externalSignupFirstName, externalSignupLastName, externalSignupPhone, externalSignupPassword, externalSignupOtpCode].forEach(function (input) {
             if (!input) {
                 return;
             }
@@ -6587,10 +6437,6 @@
 
     if (loginOtpEditPhoneButton) {
         loginOtpEditPhoneButton.addEventListener("click", editLoginOtpPhoneNumber);
-    }
-
-    if (externalSignupEditPhoneButton) {
-        externalSignupEditPhoneButton.addEventListener("click", editExternalSignupDetails);
     }
 
     [loginForm, loginOtpForm, externalSignupForm].forEach(function (formNode) {
@@ -7107,11 +6953,5 @@
     syncOwnerRoleOptions();
     setLoginMode("otp");
     resetOtpUi();
-    if (bootRetry) {
-        bootRetry.addEventListener("click", function () {
-            setBootText("در حال بازیابی نشست...", false);
-            window.Dent1402Auth.bootstrap(true);
-        });
-    }
     window.Dent1402Auth.onChange(handleAuthState);
 })();

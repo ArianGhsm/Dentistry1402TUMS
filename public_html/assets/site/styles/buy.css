@@ -125,13 +125,6 @@ body.buy-page .site-header {
     transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
 }
 
-.buy-icon-btn--text {
-    width: auto;
-    min-width: 42px;
-    padding-inline: 0.78rem;
-    font-size: 0.78rem;
-}
-
 .buy-icon-btn:hover,
 .buy-icon-btn:focus-visible {
     color: var(--commerce-accent-strong);
