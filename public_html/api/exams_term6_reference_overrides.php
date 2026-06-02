@@ -1,11 +1,58 @@
 <?php
 declare(strict_types=1);
 
+function dent_exams_term6_reference_memory_limit_bytes(string $value): ?int
+{
+    $value = trim($value);
+    if ($value === '' || $value === '-1') {
+        return null;
+    }
+
+    if (preg_match('/^(\d+)([KMG]?)$/i', $value, $matches) !== 1) {
+        return null;
+    }
+
+    $bytes = (int) $matches[1];
+    switch (strtoupper((string) ($matches[2] ?? ''))) {
+        case 'G':
+            $bytes *= 1024;
+            // fall through
+        case 'M':
+            $bytes *= 1024;
+            // fall through
+        case 'K':
+            $bytes *= 1024;
+            break;
+    }
+
+    return $bytes;
+}
+
+function dent_exams_term6_reference_raise_memory_limit(string $target = '512M'): void
+{
+    if (!function_exists('ini_get') || !function_exists('ini_set')) {
+        return;
+    }
+
+    $targetBytes = dent_exams_term6_reference_memory_limit_bytes($target);
+    if ($targetBytes === null) {
+        return;
+    }
+
+    $currentBytes = dent_exams_term6_reference_memory_limit_bytes((string) ini_get('memory_limit'));
+    if ($currentBytes !== null && $currentBytes >= $targetBytes) {
+        return;
+    }
+
+    @ini_set('memory_limit', $target);
+}
+
 function dent_exams_term6_reference_catalog_course_map_lazy(): array
 {
     static $loaded = false;
     if (!$loaded) {
         $loaded = true;
+        dent_exams_term6_reference_raise_memory_limit();
         require_once __DIR__ . '/exams_term6_reference_catalog_data.php';
     }
 
@@ -19,6 +66,7 @@ function dent_exams_term6_reference_course_map_lazy(): array
     static $loaded = false;
     if (!$loaded) {
         $loaded = true;
+        dent_exams_term6_reference_raise_memory_limit();
         require_once __DIR__ . '/exams_term6_reference_data.php';
     }
 
