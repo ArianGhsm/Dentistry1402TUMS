@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/auth_store.php';
+require_once __DIR__ . '/analytics_store.php';
 require_once __DIR__ . '/grades_store.php';
 
 function dent_owner_dis_request_private_index(): array
@@ -473,11 +474,14 @@ if ($action === 'login') {
         dent_error('شماره دانشجویی یا رمز عبور اشتباه است.', 401, ['loggedOut' => true]);
     }
 
+    $publicUser = dent_login_user($user);
+    analytics_record_login($user, 'password');
+
     dent_json_response([
         'success' => true,
         'loggedIn' => true,
         'status' => dent_auth_status($user),
-        'user' => dent_login_user($user),
+        'user' => $publicUser,
     ]);
 }
 
@@ -584,6 +588,7 @@ if ($action === 'verifyLoginOtp') {
     $phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
     $otpCode = (string) ($_POST['otpCode'] ?? ($_POST['code'] ?? ''));
     $loggedInUser = dent_verify_login_otp($phoneNumber, $otpCode);
+    analytics_record_login($loggedInUser, 'otp');
 
     dent_json_response([
         'success' => true,
@@ -630,6 +635,7 @@ if ($action === 'verifyExternalSignupOtp') {
         (string) ($_POST['passwordConfirm'] ?? $_POST['confirmPassword'] ?? ''),
         (string) ($_POST['otpCode'] ?? ($_POST['code'] ?? ''))
     );
+    analytics_record_login($loggedInUser, 'external-signup');
 
     dent_json_response([
         'success' => true,

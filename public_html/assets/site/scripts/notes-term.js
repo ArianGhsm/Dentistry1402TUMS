@@ -467,6 +467,8 @@
         var link = document.createElement("a");
         link.className = "action-card__primary";
         link.href = item.buttonUrl || "#";
+        link.dataset.analyticsDownload = "notes-resource";
+        link.dataset.analyticsLabel = item.title || item.badge || "منبع";
         if (item.isExternal) {
             link.dataset.externalLink = "true";
             link.target = "_blank";
@@ -522,6 +524,8 @@
         button.className = "card-btn";
         button.href = item.buttonUrl || "#";
         button.textContent = item.buttonLabel || "باز کردن";
+        button.dataset.analyticsDownload = "notes-resource";
+        button.dataset.analyticsLabel = item.title || item.buttonLabel || "منبع";
         if (item.isExternal) {
             button.dataset.externalLink = "true";
             button.target = "_blank";

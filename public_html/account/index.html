@@ -9,13 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260602-173317">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260602-173317">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260602-173317">
-    <script src="/assets/site/scripts/theme.js?v=20260602-173317"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260602-173317">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260602-173317">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260602-173317">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260602-202422">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260602-202422">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260602-202422">
+    <script src="/assets/site/scripts/theme.js?v=20260602-202422"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260602-202422">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260602-202422">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260602-202422">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -648,6 +648,7 @@
                         <button class="owner-tab is-active" type="button" data-owner-tab="users" aria-selected="true">کاربران</button>
                         <button class="owner-tab" type="button" data-owner-tab="representatives" aria-selected="false">نماینده‌ها</button>
                         <button class="owner-tab" type="button" data-owner-tab="create" aria-selected="false">افزودن</button>
+                        <button class="owner-tab" type="button" data-owner-tab="stats" aria-selected="false">آمار</button>
                         <button class="owner-tab" type="button" data-owner-tab="services" aria-selected="false">سرویس‌ها</button>
                     </nav>
 
@@ -866,6 +867,96 @@
                         </form>
                     </section>
 
+                    <section class="owner-block owner-block--stats owner-tab-panel" data-owner-tab-panel="stats">
+                        <div class="owner-block__head">
+                            <h4>داشبورد آماری سراسری سایت</h4>
+                            <p>این تب در سطح کل سایت کار می‌کند و فقط به ورودی فعال محدود نیست؛ بازدیدها، ورودها، دانلودها و پربازدیدترین صفحه‌ها را یک‌جا نشان می‌دهد.</p>
+                        </div>
+                        <div class="owner-stats-toolbar">
+                            <div class="owner-stats-toolbar__meta">
+                                <strong>نمای کلی ۱۴ روز و ۳۰ روز اخیر</strong>
+                                <span id="owner-stats-meta">آخرین snapshot هنوز بارگذاری نشده است.</span>
+                            </div>
+                            <button id="owner-stats-refresh" class="shell-action-btn" type="button">به‌روزرسانی آمار</button>
+                        </div>
+                        <div id="owner-stats-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
+                        <div id="owner-stats-overview" class="owner-summary owner-summary--stats"></div>
+
+                        <div class="owner-stats-grid">
+                            <section class="owner-stats-panel">
+                                <div class="owner-stats-panel__head">
+                                    <h5>روند بازدید روزانه</h5>
+                                    <p>تعداد page viewهای ثبت‌شده در ۱۴ روز اخیر</p>
+                                </div>
+                                <div id="owner-stats-chart-visits" class="owner-stats-chart"></div>
+                            </section>
+
+                            <section class="owner-stats-panel">
+                                <div class="owner-stats-panel__head">
+                                    <h5>روند ورود روزانه</h5>
+                                    <p>ورودهای موفق با رمز، OTP و ثبت‌نام آزمون</p>
+                                </div>
+                                <div id="owner-stats-chart-logins" class="owner-stats-chart"></div>
+                            </section>
+
+                            <section class="owner-stats-panel">
+                                <div class="owner-stats-panel__head">
+                                    <h5>روند دانلود روزانه</h5>
+                                    <p>کلیک‌های دانلود/منبع ثبت‌شده در ۱۴ روز اخیر</p>
+                                </div>
+                                <div id="owner-stats-chart-downloads" class="owner-stats-chart"></div>
+                            </section>
+
+                            <section class="owner-stats-panel">
+                                <div class="owner-stats-panel__head">
+                                    <h5>ورودی‌ها و کاربران</h5>
+                                    <p>تعداد کاربر و نماینده در هر ورودی، به‌همراه activity اخیر</p>
+                                </div>
+                                <div id="owner-stats-cohorts" class="owner-stats-table"></div>
+                            </section>
+
+                            <section class="owner-stats-panel">
+                                <div class="owner-stats-panel__head">
+                                    <h5>پربازدیدترین بخش‌ها</h5>
+                                    <p>توزیع کلی بازدید بر اساس خانواده مسیرها</p>
+                                </div>
+                                <div id="owner-stats-families" class="owner-stats-bars"></div>
+                            </section>
+
+                            <section class="owner-stats-panel">
+                                <div class="owner-stats-panel__head">
+                                    <h5>روش‌های ورود</h5>
+                                    <p>سهم هر مسیر login در کل ورودهای ثبت‌شده</p>
+                                </div>
+                                <div id="owner-stats-methods" class="owner-stats-bars"></div>
+                            </section>
+
+                            <section class="owner-stats-panel owner-stats-panel--wide">
+                                <div class="owner-stats-panel__head">
+                                    <h5>پربازدیدترین صفحه‌ها</h5>
+                                    <p>صفحه‌هایی که بیشترین بازدید تجمعی را گرفته‌اند</p>
+                                </div>
+                                <div id="owner-stats-pages" class="owner-stats-table"></div>
+                            </section>
+
+                            <section class="owner-stats-panel owner-stats-panel--wide">
+                                <div class="owner-stats-panel__head">
+                                    <h5>پرتکرارترین دانلودها / منبع‌ها</h5>
+                                    <p>خروجی‌های پرکلیک به‌همراه مسیر مبدا و زمان آخرین استفاده</p>
+                                </div>
+                                <div id="owner-stats-downloads" class="owner-stats-table"></div>
+                            </section>
+
+                            <section class="owner-stats-panel owner-stats-panel--wide">
+                                <div class="owner-stats-panel__head">
+                                    <h5>شاخص‌های ماژول‌های محتوا</h5>
+                                    <p>ترکیب آمار shared از فایل‌سنتر، paste و HTML uploader</p>
+                                </div>
+                                <div id="owner-stats-references" class="owner-summary owner-summary--compact"></div>
+                            </section>
+                        </div>
+                    </section>
+
                     <section class="owner-block owner-tab-panel is-active" data-owner-tab-panel="users">
                         <div class="owner-block__head">
                             <h4>کاربران ورودی فعال</h4>
@@ -901,9 +992,9 @@
         <p id="account-footer-brand">ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260602-173317"></script>
-    <script src="/assets/site/scripts/account.js?v=20260602-173317"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260602-173317"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260602-173317"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260602-202422"></script>
+    <script src="/assets/site/scripts/account.js?v=20260602-202422"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260602-202422"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260602-202422"></script>
 </body>
 </html>

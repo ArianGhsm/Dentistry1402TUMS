@@ -416,6 +416,12 @@
         var article = dentalCreate("article", "catalog-simple-row" + (config.rowClassName ? " " + config.rowClassName : ""));
         var link = dentalCreate("a", "catalog-simple-row__link");
         link.href = config.href || "#";
+        if (config.analyticsDownload) {
+            link.dataset.analyticsDownload = config.analyticsDownload;
+        }
+        if (config.analyticsLabel) {
+            link.dataset.analyticsLabel = config.analyticsLabel;
+        }
         if (config.external) {
             link.target = "_blank";
             link.rel = "noopener noreferrer";
@@ -625,6 +631,8 @@
                     "لینک این منبع از همین ردیف باز می‌شود.",
                     108
                 ),
+                analyticsDownload: "notes-resource",
+                analyticsLabel: item.title || item.badge || "منبع",
                 rowClassName: dentalRowClassName(index, false),
                 visualLabel: toFaDigits(index + 1)
             }));

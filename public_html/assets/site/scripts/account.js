@@ -113,6 +113,19 @@
     var ownerImportUsersFile = $("owner-import-users-file");
     var ownerImportUsersSubmit = $("owner-import-users-submit");
     var ownerImportUsersFeedback = $("owner-import-users-feedback");
+    var ownerStatsRefreshButton = $("owner-stats-refresh");
+    var ownerStatsFeedback = $("owner-stats-feedback");
+    var ownerStatsMeta = $("owner-stats-meta");
+    var ownerStatsOverview = $("owner-stats-overview");
+    var ownerStatsVisitsChart = $("owner-stats-chart-visits");
+    var ownerStatsLoginsChart = $("owner-stats-chart-logins");
+    var ownerStatsDownloadsChart = $("owner-stats-chart-downloads");
+    var ownerStatsFamilies = $("owner-stats-families");
+    var ownerStatsPages = $("owner-stats-pages");
+    var ownerStatsDownloads = $("owner-stats-downloads");
+    var ownerStatsCohorts = $("owner-stats-cohorts");
+    var ownerStatsMethods = $("owner-stats-methods");
+    var ownerStatsReferences = $("owner-stats-references");
     var ownerGradesCoursesSummary = $("owner-grades-courses-summary");
     var ownerGradesImportForm = $("owner-grades-import-form");
     var ownerGradesImportText = $("owner-grades-import-text");
@@ -273,6 +286,11 @@
         syncing: false,
         loaded: false,
         ownerStatus: null
+    };
+    var ownerAnalyticsState = {
+        loading: false,
+        loaded: false,
+        dashboard: null
     };
     var smsState = {
         loading: false,
@@ -526,9 +544,13 @@
         return hasOwnerAccess();
     }
 
+    function ownerCanAccessStats() {
+        return hasOwnerAccess();
+    }
+
     function normalizeOwnerTab(value) {
         var tab = String(value || "").trim().toLowerCase();
-        return ["users", "representatives", "create", "services"].indexOf(tab) >= 0 ? tab : "users";
+        return ["users", "representatives", "create", "stats", "services"].indexOf(tab) >= 0 ? tab : "users";
     }
 
     function updateOwnerTabs() {
@@ -536,7 +558,12 @@
         if (ownerTabs) {
             Array.prototype.slice.call(ownerTabs.querySelectorAll("[data-owner-tab]")).forEach(function (button) {
                 var tabName = normalizeOwnerTab(button.dataset.ownerTab);
-                var available = tabName !== "services" || ownerCanAccessServices();
+                var available = true;
+                if (tabName === "services") {
+                    available = ownerCanAccessServices();
+                } else if (tabName === "stats") {
+                    available = ownerCanAccessStats();
+                }
                 button.hidden = !available;
                 if (!available && active === tabName) {
                     active = "users";
@@ -548,7 +575,12 @@
         }
         ownerTabPanels.forEach(function (panel) {
             var panelTab = normalizeOwnerTab(panel.dataset.ownerTabPanel);
-            var available = panelTab !== "services" || ownerCanAccessServices();
+            var available = true;
+            if (panelTab === "services") {
+                available = ownerCanAccessServices();
+            } else if (panelTab === "stats") {
+                available = ownerCanAccessStats();
+            }
             var selected = panelTab === active && available;
             panel.classList.toggle("is-active", selected);
             panel.hidden = !selected;
@@ -562,6 +594,9 @@
     function setOwnerTab(value) {
         ownerState.activeTab = normalizeOwnerTab(value);
         updateOwnerTabs();
+        if (ownerState.activeTab === "stats" && hasOwnerAccess()) {
+            loadOwnerAnalytics(false);
+        }
     }
 
     function ownerUserPageSize() {
@@ -1684,6 +1719,10 @@
         setInlineFeedback(ownerGradesFeedback, text, kind, loading);
     }
 
+    function ownerStatsFeedbackMessage(text, kind, loading) {
+        setInlineFeedback(ownerStatsFeedback, text, kind, loading);
+    }
+
     function request(action, payload) {
         return fetch("/api/auth_api.php", {
             method: "POST",
@@ -1736,6 +1775,27 @@
             query.set("cohort", cohortKey);
         }
         return fetch("/api/auth_api.php?" + query.toString(), {
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json"
+            }
+        }).then(function (response) {
+            return response.json().catch(function () {
+                return {
+                    success: false,
+                    error: "پاسخ نامعتبر از سرور دریافت شد."
+                };
+            }).then(function (data) {
+                data.httpStatus = response.status;
+                return data;
+            });
+        });
+    }
+
+    function analyticsGet(action, payload) {
+        var query = new URLSearchParams(Object.assign({ action: action }, payload || {}));
+        return fetch("/api/analytics_api.php?" + query.toString(), {
             method: "GET",
             credentials: "same-origin",
             headers: {
@@ -3284,6 +3344,286 @@
         ].join("");
     }
 
+    function ownerStatsMetric(value) {
+        return Math.max(0, Number(value || 0)).toLocaleString("fa-IR");
+    }
+
+    function ownerStatsEmptyMarkup(text) {
+        return '<div class="owner-stats-empty">' + escapeHtml(text || "داده‌ای برای نمایش وجود ندارد.") + "</div>";
+    }
+
+    function ownerStatsShortPath(value) {
+        var text = String(value || "").trim();
+        if (text.length <= 54) {
+            return text;
+        }
+        return text.slice(0, 26) + "…" + text.slice(-24);
+    }
+
+    function renderOwnerStatsOverview(dashboard) {
+        if (!ownerStatsOverview) {
+            return;
+        }
+        if (!dashboard || !dashboard.totals) {
+            ownerStatsOverview.innerHTML = ownerStatsEmptyMarkup("هنوز آماری برای نمایش ثبت نشده است.");
+            return;
+        }
+
+        var totals = dashboard.totals || {};
+        ownerStatsOverview.innerHTML = [
+            summaryCard("کل کاربران", ownerStatsMetric(totals.totalUsers), "تعداد فعلی حساب‌های ثبت‌شده در کل سایت", "ok"),
+            summaryCard("بازدید امروز", ownerStatsMetric(totals.pageViewsToday), "page viewهای ثبت‌شده از ابتدای امروز", totals.pageViewsToday > 0 ? "ok" : ""),
+            summaryCard("بازدید ۳۰ روز", ownerStatsMetric(totals.pageViews30d), "مجموع بازدیدهای ثبت‌شده در ۳۰ روز اخیر"),
+            summaryCard("ورود امروز", ownerStatsMetric(totals.loginsToday), "ورودهای موفق امروز از همه مسیرهای login", totals.loginsToday > 0 ? "ok" : ""),
+            summaryCard("ورود ۳۰ روز", ownerStatsMetric(totals.logins30d), "مجموع loginهای موفق در ۳۰ روز اخیر"),
+            summaryCard("دانلود ۳۰ روز", ownerStatsMetric(totals.downloads30d), "کلیک‌های دانلود/منبع ثبت‌شده در ۳۰ روز اخیر", totals.downloads30d > 0 ? "ok" : ""),
+            summaryCard("بازدیدکننده یکتا", ownerStatsMetric(totals.uniqueVisitors30d), "تعداد visitor یکتای ۳۰ روز اخیر"),
+            summaryCard("فایل‌سنتر / HTML", ownerStatsMetric((totals.contentToolsDownloads || 0) + (totals.htmlPageViews || 0)), "دانلودهای فایل‌سنتر + بازدید صفحه‌های HTML uploader", "warn")
+        ].join("");
+    }
+
+    function renderOwnerStatsChart(node, series, fallbackText) {
+        if (!node) {
+            return;
+        }
+        var points = Array.isArray(series) ? series : [];
+        if (!points.length) {
+            node.innerHTML = ownerStatsEmptyMarkup(fallbackText || "آماری برای این بازه وجود ندارد.");
+            return;
+        }
+
+        var maxValue = 0;
+        points.forEach(function (item) {
+            maxValue = Math.max(maxValue, Math.max(0, Number(item && item.value || 0)));
+        });
+        if (!maxValue) {
+            node.innerHTML = ownerStatsEmptyMarkup(fallbackText || "در این بازه هنوز مقداری ثبت نشده است.");
+            return;
+        }
+
+        node.innerHTML = [
+            '<div class="owner-stats-chart__bars">',
+            points.map(function (item) {
+                var value = Math.max(0, Number(item && item.value || 0));
+                var ratio = maxValue > 0 ? Math.max(8, Math.round((value / maxValue) * 100)) : 0;
+                return [
+                    '<div class="owner-stats-chart__item" title="' + escapeHtml(String(item.fullLabel || item.label || "")) + " • " + escapeHtml(ownerStatsMetric(value)) + '">',
+                    '  <span class="owner-stats-chart__bar"><i style="height:' + ratio + '%"></i></span>',
+                    '  <strong>' + escapeHtml(ownerStatsMetric(value)) + '</strong>',
+                    '  <small>' + escapeHtml(String(item.label || "")) + '</small>',
+                    "</div>"
+                ].join("");
+            }).join(""),
+            "</div>"
+        ].join("");
+    }
+
+    function renderOwnerStatsBars(node, items, valueKey, emptyText) {
+        if (!node) {
+            return;
+        }
+        var rows = Array.isArray(items) ? items.filter(function (item) {
+            return item && Number(item[valueKey] || 0) > 0;
+        }) : [];
+        if (!rows.length) {
+            node.innerHTML = ownerStatsEmptyMarkup(emptyText || "داده‌ای برای این بخش وجود ندارد.");
+            return;
+        }
+
+        var maxValue = 0;
+        rows.forEach(function (item) {
+            maxValue = Math.max(maxValue, Math.max(0, Number(item[valueKey] || 0)));
+        });
+
+        node.innerHTML = rows.map(function (item) {
+            var value = Math.max(0, Number(item[valueKey] || 0));
+            var ratio = maxValue > 0 ? Math.max(6, Math.round((value / maxValue) * 100)) : 0;
+            return [
+                '<div class="owner-stats-bar-row">',
+                '  <div class="owner-stats-bar-row__top">',
+                '    <strong>' + escapeHtml(String(item.label || item.title || item.key || "بدون عنوان")) + '</strong>',
+                '    <span>' + escapeHtml(ownerStatsMetric(value)) + '</span>',
+                "  </div>",
+                '  <div class="owner-stats-bar-row__track"><i style="width:' + ratio + '%"></i></div>',
+                '  <small>' + escapeHtml(String(item.meta || "")) + '</small>',
+                "</div>"
+            ].join("");
+        }).join("");
+    }
+
+    function renderOwnerStatsSimpleTable(node, columns, rows, emptyText) {
+        if (!node) {
+            return;
+        }
+        if (!Array.isArray(rows) || !rows.length) {
+            node.innerHTML = ownerStatsEmptyMarkup(emptyText || "جدولی برای نمایش وجود ندارد.");
+            return;
+        }
+
+        var head = [
+            '<div class="owner-stats-table__row owner-stats-table__row--head" style="--owner-stats-columns:' + columns.length + ';">',
+            columns.map(function (column) {
+                return '<span>' + escapeHtml(column.label) + "</span>";
+            }).join(""),
+            "</div>"
+        ].join("");
+
+        var body = rows.map(function (row) {
+            return [
+                '<div class="owner-stats-table__row" style="--owner-stats-columns:' + columns.length + ';">',
+                columns.map(function (column) {
+                    var rendered = typeof column.render === "function" ? column.render(row) : row[column.key];
+                    return '<span>' + rendered + "</span>";
+                }).join(""),
+                "</div>"
+            ].join("");
+        }).join("");
+
+        node.innerHTML = head + body;
+    }
+
+    function renderOwnerStatsTables(dashboard) {
+        var totals = dashboard && dashboard.totals ? dashboard.totals : {};
+        renderOwnerStatsBars(ownerStatsFamilies, (dashboard && dashboard.families || []).map(function (item) {
+            return {
+                label: item.label || item.key || "",
+                views: item.views || 0,
+                meta: "دانلود " + ownerStatsMetric(item.downloads || 0)
+            };
+        }), "views", "هنوز خانواده مسیر پربازدیدی ثبت نشده است.");
+
+        renderOwnerStatsBars(ownerStatsMethods, (dashboard && dashboard.loginMethods || []).map(function (item) {
+            return {
+                label: item.label || item.key || "",
+                count: item.count || 0,
+                meta: "سهم از کل ورودها"
+            };
+        }), "count", "هنوز login methodای ثبت نشده است.");
+
+        renderOwnerStatsSimpleTable(ownerStatsPages, [
+            {
+                label: "صفحه",
+                render: function (row) {
+                    var title = String(row.title || "").trim();
+                    var path = ownerStatsShortPath(row.path || "");
+                    return '<strong>' + escapeHtml(title || path || "بدون عنوان") + '</strong><small>' + escapeHtml(path) + "</small>";
+                }
+            },
+            {
+                label: "بخش",
+                render: function (row) {
+                    return escapeHtml(String(row.familyLabel || row.family || ""));
+                }
+            },
+            {
+                label: "بازدید",
+                render: function (row) {
+                    return escapeHtml(ownerStatsMetric(row.views || 0));
+                }
+            },
+            {
+                label: "آخرین بازدید",
+                render: function (row) {
+                    return escapeHtml(formatJalaliDateTime(row.lastViewedAt, "—"));
+                }
+            }
+        ], dashboard && dashboard.topPages || [], "هنوز صفحه پربازدیدی ثبت نشده است.");
+
+        renderOwnerStatsSimpleTable(ownerStatsDownloads, [
+            {
+                label: "منبع / فایل",
+                render: function (row) {
+                    var label = String(row.label || row.href || "بدون عنوان");
+                    var href = String(row.href || "").trim();
+                    if (href) {
+                        return '<strong>' + escapeHtml(label) + '</strong><small dir="ltr">' + escapeHtml(ownerStatsShortPath(href)) + "</small>";
+                    }
+                    return '<strong>' + escapeHtml(label) + "</strong>";
+                }
+            },
+            {
+                label: "مبدا",
+                render: function (row) {
+                    return escapeHtml(String(row.sourceLabel || row.sourceFamily || ""));
+                }
+            },
+            {
+                label: "تعداد",
+                render: function (row) {
+                    return escapeHtml(ownerStatsMetric(row.count || 0));
+                }
+            },
+            {
+                label: "آخرین استفاده",
+                render: function (row) {
+                    return escapeHtml(formatJalaliDateTime(row.lastAt, "—"));
+                }
+            }
+        ], dashboard && dashboard.topDownloads || [], "هنوز دانلود/منبعی برای آمار ثبت نشده است.");
+
+        renderOwnerStatsSimpleTable(ownerStatsCohorts, [
+            {
+                label: "ورودی",
+                render: function (row) {
+                    return '<strong>' + escapeHtml(String(row.shortTitle || row.title || row.key || "")) + '</strong><small>' + escapeHtml(String(row.title || "")) + "</small>";
+                }
+            },
+            {
+                label: "کاربر",
+                render: function (row) {
+                    return escapeHtml(ownerStatsMetric(row.totalUsers || 0));
+                }
+            },
+            {
+                label: "نماینده",
+                render: function (row) {
+                    return escapeHtml(ownerStatsMetric(row.representatives || 0));
+                }
+            },
+            {
+                label: "بازدید ۳۰ روز",
+                render: function (row) {
+                    return escapeHtml(ownerStatsMetric(row.pageViews30d || 0));
+                }
+            },
+            {
+                label: "ورود ۳۰ روز",
+                render: function (row) {
+                    return escapeHtml(ownerStatsMetric(row.logins30d || 0));
+                }
+            }
+        ], dashboard && dashboard.cohorts || [], "هنوز داده cohort-driven برای نمایش وجود ندارد.");
+
+        if (ownerStatsReferences) {
+            ownerStatsReferences.innerHTML = [
+                summaryCard("دانلود فایل‌سنتر", ownerStatsMetric(totals.contentToolsDownloads || 0), "شمارنده backend ماژول فایل‌سنتر", totals.contentToolsDownloads > 0 ? "ok" : ""),
+                summaryCard("بازدید paste", ownerStatsMetric((totals.pasteViews || 0) + (totals.pasteRawViews || 0)), "view و raw-view در ماژول paste"),
+                summaryCard("بازدید HTML", ownerStatsMetric(totals.htmlPageViews || 0), "viewCount صفحه‌های public HTML uploader", totals.htmlPageViews > 0 ? "warn" : ""),
+                summaryCard("دانلود ثبت‌شده جدید", ownerStatsMetric(totals.downloads || 0), "downloadهایی که از tracker جدید جمع شده‌اند", totals.downloads > 0 ? "ok" : "")
+            ].join("");
+        }
+    }
+
+    function renderOwnerAnalytics() {
+        var dashboard = ownerAnalyticsState.dashboard;
+        if (ownerStatsMeta) {
+            ownerStatsMeta.textContent = dashboard && dashboard.generatedAt
+                ? ("آخرین به‌روزرسانی: " + formatJalaliDateTime(dashboard.generatedAt, "—", true))
+                : "آخرین snapshot هنوز بارگذاری نشده است.";
+        }
+
+        renderOwnerStatsOverview(dashboard);
+        renderOwnerStatsChart(ownerStatsVisitsChart, dashboard && dashboard.charts ? dashboard.charts.pageViews14d : [], "هنوز بازدید روزانه‌ای ثبت نشده است.");
+        renderOwnerStatsChart(ownerStatsLoginsChart, dashboard && dashboard.charts ? dashboard.charts.logins14d : [], "هنوز ورود روزانه‌ای ثبت نشده است.");
+        renderOwnerStatsChart(ownerStatsDownloadsChart, dashboard && dashboard.charts ? dashboard.charts.downloads14d : [], "هنوز دانلود روزانه‌ای ثبت نشده است.");
+        renderOwnerStatsTables(dashboard);
+
+        if (ownerStatsRefreshButton) {
+            ownerStatsRefreshButton.disabled = ownerAnalyticsState.loading;
+            ownerStatsRefreshButton.textContent = ownerAnalyticsState.loading ? "در حال به‌روزرسانی..." : "به‌روزرسانی آمار";
+        }
+    }
+
     function formatBytes(bytes) {
         var size = Math.max(0, Math.floor(toNumber(bytes, 0)));
         if (!size) return "0 B";
@@ -4317,6 +4657,47 @@
         renderRepresentatives(ownerState.users);
         renderUsers(ownerState.users);
         renderOwnerUserPanel();
+        renderOwnerAnalytics();
+        if (ownerState.activeTab === "stats" && hasOwnerAccess() && !ownerAnalyticsState.loading && !ownerAnalyticsState.loaded) {
+            loadOwnerAnalytics(false);
+        }
+    }
+
+    async function loadOwnerAnalytics(force) {
+        if (!ownerCanAccessStats() || !ownerStatsOverview) {
+            return;
+        }
+        if (ownerAnalyticsState.loading) {
+            return;
+        }
+        if (ownerAnalyticsState.loaded && ownerAnalyticsState.dashboard && !force) {
+            renderOwnerAnalytics();
+            return;
+        }
+
+        ownerAnalyticsState.loading = true;
+        ownerStatsFeedbackMessage("در حال بارگذاری آمار سایت...", "", true);
+        renderOwnerAnalytics();
+
+        var response = await analyticsGet("ownerDashboard");
+        ownerAnalyticsState.loading = false;
+
+        if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+            ownerStatsFeedbackMessage("", "");
+            renderOwnerAnalytics();
+            return;
+        }
+
+        if (!response || !response.success || !response.dashboard) {
+            ownerStatsFeedbackMessage((response && response.error) || "آمار سایت خوانده نشد.", "error");
+            renderOwnerAnalytics();
+            return;
+        }
+
+        ownerAnalyticsState.dashboard = response.dashboard;
+        ownerAnalyticsState.loaded = true;
+        ownerStatsFeedbackMessage("", "");
+        renderOwnerAnalytics();
     }
     function navidStatusResultLabel(result) {
         switch (result) {
@@ -6140,6 +6521,9 @@
             ownerState.activeTab = "users";
             ownerState.activeCohortKey = "";
             ownerState.userPage = 1;
+            ownerAnalyticsState.loading = false;
+            ownerAnalyticsState.loaded = false;
+            ownerAnalyticsState.dashboard = null;
             updateOwnerTabs();
             if (accountPhoneNudge) {
                 accountPhoneNudge.hidden = true;
@@ -6180,6 +6564,11 @@
             return;
         }
 
+        if (!currentUser || currentUser.studentNumber !== detail.user.studentNumber) {
+            ownerAnalyticsState.loading = false;
+            ownerAnalyticsState.loaded = false;
+            ownerAnalyticsState.dashboard = null;
+        }
         currentUser = detail.user;
         applyAccountBranding(detail.user);
         renderIdentity(detail.user);
@@ -6711,6 +7100,14 @@
             setOwnerTab(button.dataset.ownerTab);
         });
     }
+
+    if (ownerStatsRefreshButton) {
+        ownerStatsRefreshButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            loadOwnerAnalytics(true);
+        });
+    }
+
     if (ownerUserPager) {
         ownerUserPager.addEventListener("click", function (event) {
             var button = event.target && event.target.closest ? event.target.closest("[data-owner-page]") : null;

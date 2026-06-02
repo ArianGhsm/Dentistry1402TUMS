@@ -30,6 +30,16 @@
         "/fonts/AbarHigh-Bold.woff2",
         "/fonts/AbarHigh-ExtraBold.woff2"
     ];
+    var ANALYTICS_ENDPOINT = "/api/analytics_api.php";
+    var ANALYTICS_VISITOR_STORAGE_KEY = "dent1402-analytics-visitor-id";
+    var ANALYTICS_VISIT_STORAGE_KEY = "dent1402-analytics-visit-id";
+    var analyticsInitialPageTracked = false;
+    var analyticsDownloadSignature = "";
+    var analyticsDownloadAt = 0;
+    var analyticsDownloadDomains = {
+        "dl.dentistry1402tums.ir": true
+    };
+    var analyticsDownloadExtensions = /\.(pdf|zip|rar|7z|docx?|xlsx?|xls|pptx?|ppt|csv|txt|epub|mp3|mp4|png|jpe?g|webp|gif)$/i;
 
     function ensureCriticalAccentFontPreloads() {
         var head = document.head || document.documentElement;
@@ -259,6 +269,343 @@
         } catch (error) {
             return false;
         }
+    }
+
+    function analyticsStorageAvailable(storageName) {
+        try {
+            return !!window[storageName];
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function analyticsReadStorage(storageName, key) {
+        if (!analyticsStorageAvailable(storageName)) {
+            return "";
+        }
+        try {
+            return String(window[storageName].getItem(key) || "");
+        } catch (error) {
+            return "";
+        }
+    }
+
+    function analyticsWriteStorage(storageName, key, value) {
+        if (!analyticsStorageAvailable(storageName)) {
+            return;
+        }
+        try {
+            window[storageName].setItem(key, String(value || ""));
+        } catch (error) {
+            // Ignore quota and privacy-mode failures.
+        }
+    }
+
+    function analyticsRandomId(prefix) {
+        var entropy = "";
+        if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+            var bytes = new Uint8Array(8);
+            window.crypto.getRandomValues(bytes);
+            entropy = Array.prototype.map.call(bytes, function (byte) {
+                return byte.toString(16).padStart(2, "0");
+            }).join("");
+        } else {
+            entropy = Math.random().toString(16).slice(2) + Date.now().toString(16);
+        }
+        return prefix + "-" + entropy.slice(0, 16);
+    }
+
+    function analyticsVisitorId() {
+        var existing = analyticsReadStorage("localStorage", ANALYTICS_VISITOR_STORAGE_KEY);
+        if (existing) {
+            return existing;
+        }
+        var created = analyticsRandomId("visitor");
+        analyticsWriteStorage("localStorage", ANALYTICS_VISITOR_STORAGE_KEY, created);
+        return created;
+    }
+
+    function analyticsVisitId() {
+        var existing = analyticsReadStorage("sessionStorage", ANALYTICS_VISIT_STORAGE_KEY);
+        if (existing) {
+            return existing;
+        }
+        var created = analyticsRandomId("visit");
+        analyticsWriteStorage("sessionStorage", ANALYTICS_VISIT_STORAGE_KEY, created);
+        return created;
+    }
+
+    function analyticsPagePath() {
+        var path = window.location && window.location.pathname ? String(window.location.pathname) : "/";
+        var query = window.location && window.location.search ? String(window.location.search) : "";
+        return (path || "/") + query;
+    }
+
+    function analyticsNormalizedCohort(value) {
+        var clean = String(value == null ? "" : value).trim().toLowerCase();
+        if (!clean || clean === "main" || clean === "1402" || clean === "dentistry-1402") {
+            return clean ? "dentistry-1402" : "";
+        }
+        if (clean === "1403" || clean === "dentistry-1403") {
+            return "dentistry-1403";
+        }
+        if (clean === "1404" || clean === "dentistry-1404") {
+            return "dentistry-1404";
+        }
+        if (clean === "site-users" || clean === "siteusers" || clean === "external" || clean === "external-users") {
+            return "site-users";
+        }
+        if (clean === "prosthesis-1402" || clean === "prosthesis1402") {
+            return "prosthesis-1402";
+        }
+        return clean;
+    }
+
+    function analyticsResolveCohort(snapshot) {
+        if (snapshot && snapshot.user && snapshot.user.cohortKey) {
+            return analyticsNormalizedCohort(snapshot.user.cohortKey);
+        }
+
+        var params = new URLSearchParams(window.location.search || "");
+        var fromQuery = analyticsNormalizedCohort(params.get("cohort") || "");
+        if (fromQuery) {
+            return fromQuery;
+        }
+
+        var body = document.body && document.body.dataset ? document.body.dataset : {};
+        var candidates = [
+            body.cohort,
+            body.cohortKey,
+            body.notesCohort,
+            body.chatCohort,
+            body.examsCohort
+        ];
+        for (var index = 0; index < candidates.length; index += 1) {
+            var normalized = analyticsNormalizedCohort(candidates[index]);
+            if (normalized) {
+                return normalized;
+            }
+        }
+
+        var path = currentPath();
+        if (path.indexOf("/notes/1403/") === 0) {
+            return "dentistry-1403";
+        }
+        if (path.indexOf("/notes/1404/") === 0) {
+            return "dentistry-1404";
+        }
+        return "";
+    }
+
+    function analyticsSnapshot() {
+        var auth = window.Dent1402Auth && typeof window.Dent1402Auth === "object" ? window.Dent1402Auth : null;
+        var state = auth && typeof auth.getState === "function" ? auth.getState() : null;
+        var loggedIn = !!(state && state.loggedIn && state.user);
+        return {
+            status: state && state.status ? String(state.status) : "unknown",
+            loggedIn: loggedIn,
+            user: loggedIn ? state.user : null,
+            cohort: analyticsResolveCohort(state || null)
+        };
+    }
+
+    function analyticsAuthPending(snapshot) {
+        var status = snapshot && snapshot.status ? String(snapshot.status) : "";
+        return status === "session-restoring" || status === "logging-in" || status === "logging-out";
+    }
+
+    function analyticsPageFamily(path) {
+        var cleanPath = String(path || analyticsPagePath()).split("?")[0] || "/";
+        var segments = cleanPath.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
+        var head = segments.length ? String(segments[0]).toLowerCase() : "home";
+        switch (head) {
+            case "":
+                return "home";
+            case "app":
+            case "account":
+            case "chat":
+            case "exams":
+            case "notes":
+            case "forms":
+            case "grades":
+            case "resources":
+            case "files":
+            case "paste":
+            case "navid":
+                return head;
+            case "buy":
+            case "payments":
+                return "buy";
+            case "html":
+            case "html-uploader":
+                return "html";
+            default:
+                return head || "other";
+        }
+    }
+
+    function analyticsBuildFormData(action, payload) {
+        var formData = new FormData();
+        formData.append("action", action);
+        Object.keys(payload || {}).forEach(function (key) {
+            var value = payload[key];
+            if (value === undefined || value === null || value === "") {
+                return;
+            }
+            formData.append(key, String(value));
+        });
+        return formData;
+    }
+
+    function analyticsSend(action, payload) {
+        var formData = analyticsBuildFormData(action, payload || {});
+        if (navigator.sendBeacon) {
+            try {
+                var sent = navigator.sendBeacon(ANALYTICS_ENDPOINT, formData);
+                if (sent) {
+                    return Promise.resolve(true);
+                }
+            } catch (error) {
+                // Fall through to fetch keepalive.
+            }
+        }
+
+        var body = new URLSearchParams();
+        body.set("action", action);
+        Object.keys(payload || {}).forEach(function (key) {
+            var value = payload[key];
+            if (value === undefined || value === null || value === "") {
+                return;
+            }
+            body.set(key, String(value));
+        });
+        return fetch(ANALYTICS_ENDPOINT, {
+            method: "POST",
+            credentials: "same-origin",
+            keepalive: true,
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "Accept": "application/json"
+            },
+            body: body
+        }).catch(function () {
+            return false;
+        });
+    }
+
+    function analyticsTrackPageView(extraPayload) {
+        var snapshot = analyticsSnapshot();
+        var payload = Object.assign({
+            path: analyticsPagePath(),
+            title: document.title || "",
+            cohort: snapshot.cohort,
+            visitorId: analyticsVisitorId(),
+            visitId: analyticsVisitId()
+        }, extraPayload || {});
+        return analyticsSend("trackPageView", payload);
+    }
+
+    function analyticsIsDownloadLike(anchor, url) {
+        if (!anchor || !url) {
+            return false;
+        }
+        if (anchor.dataset && anchor.dataset.analyticsDownload) {
+            return true;
+        }
+        if (anchor.hasAttribute("download")) {
+            return true;
+        }
+        if (url.pathname.indexOf("/api/content_tools_api.php") === 0 && /(?:^|&)action=downloadfile/i.test(url.search.slice(1))) {
+            return false;
+        }
+        if (url.pathname.indexOf("/files/f/") === 0) {
+            return false;
+        }
+        if (analyticsDownloadDomains[url.hostname.toLowerCase()]) {
+            return true;
+        }
+        return analyticsDownloadExtensions.test(url.pathname || "");
+    }
+
+    function analyticsTrackDownload(anchor, explicitPayload) {
+        var payload = explicitPayload || {};
+        var href = payload.href || (anchor && anchor.href) || "";
+        if (!href) {
+            return Promise.resolve(false);
+        }
+
+        var snapshot = analyticsSnapshot();
+        var label = payload.label;
+        if (!label && anchor) {
+            label = (anchor.dataset && anchor.dataset.analyticsLabel) || anchor.getAttribute("aria-label") || anchor.textContent || "";
+        }
+        label = String(label || "").replace(/\s+/g, " ").trim();
+
+        var sourcePath = payload.sourcePath || analyticsPagePath();
+        var sourceFamily = payload.sourceFamily || analyticsPageFamily(sourcePath);
+        var signature = [href, label, sourcePath].join("|");
+        if (signature === analyticsDownloadSignature && Date.now() - analyticsDownloadAt < 1500) {
+            return Promise.resolve(false);
+        }
+        analyticsDownloadSignature = signature;
+        analyticsDownloadAt = Date.now();
+
+        return analyticsSend("trackDownload", {
+            href: href,
+            label: label || "منبع",
+            sourcePath: sourcePath,
+            sourceFamily: sourceFamily,
+            cohort: payload.cohort || snapshot.cohort
+        });
+    }
+
+    function bindAnalyticsDownloadTracking() {
+        document.addEventListener("click", function (event) {
+            var anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+            if (!anchor) {
+                return;
+            }
+
+            var resolvedUrl;
+            try {
+                resolvedUrl = new URL(anchor.href, window.location.origin);
+            } catch (error) {
+                return;
+            }
+
+            if (!analyticsIsDownloadLike(anchor, resolvedUrl)) {
+                return;
+            }
+
+            analyticsTrackDownload(anchor);
+        }, true);
+    }
+
+    function scheduleInitialAnalyticsTracking() {
+        if (analyticsInitialPageTracked) {
+            return;
+        }
+
+        var attempts = 0;
+        function attempt(force) {
+            if (analyticsInitialPageTracked) {
+                return;
+            }
+            attempts += 1;
+            var snapshot = analyticsSnapshot();
+            if (!force && analyticsAuthPending(snapshot) && attempts < 6) {
+                window.setTimeout(function () {
+                    attempt(false);
+                }, 180);
+                return;
+            }
+            analyticsInitialPageTracked = true;
+            analyticsTrackPageView();
+        }
+
+        window.setTimeout(function () {
+            attempt(false);
+        }, 220);
     }
 
     function shouldShowLaunchSplash() {
@@ -806,6 +1153,14 @@
         }
     };
 
+    window.Dent1402Analytics = {
+        trackPageView: analyticsTrackPageView,
+        trackDownload: function (payload) {
+            return analyticsTrackDownload(null, payload || {});
+        },
+        getSnapshot: analyticsSnapshot
+    };
+
     function prefersLitePerformanceMode() {
         var connection = window.navigator.connection || window.navigator.mozConnection || window.navigator.webkitConnection || null;
         var deviceMemory = Number(window.navigator.deviceMemory || 0);
@@ -830,6 +1185,8 @@
         syncButtons();
         startDigitLocalization();
         queueInputViewportSync();
+        bindAnalyticsDownloadTracking();
+        scheduleInitialAnalyticsTracking();
         notify();
     }
 
