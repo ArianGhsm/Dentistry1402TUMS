@@ -1723,7 +1723,7 @@ function dent_exams_api_persist_course_setting(string $catalogKey, string $cours
 
 function dent_exams_api_resolve_course_setting(
     array $examsStore,
-    array $paymentsStore,
+    array &$paymentsStore,
     string $catalogKey,
     string $courseSlug,
     array $course
@@ -1766,6 +1766,7 @@ function dent_exams_api_resolve_course_setting(
     $nextSetting['collectionId'] = $collectionId;
     dent_exams_api_persist_course_setting($catalogKey, $paymentCourseSlug, $nextSetting);
     $nextSetting = dent_exams_api_setting_with_legacy_collection_ids($examsStore, $catalogKey, $paymentCourse, $nextSetting);
+    $paymentsStore = payments_read_store();
 
     return $nextSetting;
 }
@@ -1777,7 +1778,6 @@ function dent_exams_api_current_course_summary(string $catalogKey, string $cours
     $examsStore = dent_exams_read_store();
     $paymentsStore = payments_read_store();
     $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, $courseSlug, $course);
-    $paymentsStore = payments_read_store();
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
     $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
     return dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $examsStore, $collection, $paymentsStore, true, $user);
@@ -1806,7 +1806,6 @@ if ($action === 'catalog') {
         }
         $course = dent_exams_api_apply_runtime_course_override($course);
         $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, (string) $courseSlug, $course);
-        $paymentsStore = payments_read_store();
         $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
         $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
         $payload = dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $examsStore, $collection, $paymentsStore, false, $user);
@@ -1889,7 +1888,6 @@ if ($action === 'exam') {
     $examsStore = dent_exams_read_store();
     $paymentsStore = payments_read_store();
     $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, $courseSlug, $course);
-    $paymentsStore = payments_read_store();
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
     $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
     $coursePayload = dent_exams_api_course_summary_payload($catalogKey, $course, $setting, $access, $examsStore, $collection, $paymentsStore, false, $user);
@@ -1951,7 +1949,6 @@ if ($action === 'saveFlags') {
     $examsStore = dent_exams_read_store();
     $paymentsStore = payments_read_store();
     $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, $courseSlug, $course);
-    $paymentsStore = payments_read_store();
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
     $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
     if (!(bool) ($access['hasAccess'] ?? false)) {
@@ -2019,7 +2016,6 @@ if ($action === 'touchExamActivity') {
     $examsStore = dent_exams_read_store();
     $paymentsStore = payments_read_store();
     $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, $courseSlug, $course);
-    $paymentsStore = payments_read_store();
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
     $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
     if (!(bool) ($access['hasAccess'] ?? false)) {
@@ -2078,7 +2074,6 @@ if ($action === 'submitAssessment') {
     $examsStore = dent_exams_read_store();
     $paymentsStore = payments_read_store();
     $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, $courseSlug, $course);
-    $paymentsStore = payments_read_store();
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
     $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
     if (!(bool) ($access['hasAccess'] ?? false)) {
@@ -2159,7 +2154,6 @@ if ($action === 'resetAssessment') {
     $examsStore = dent_exams_read_store();
     $paymentsStore = payments_read_store();
     $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, $courseSlug, $course);
-    $paymentsStore = payments_read_store();
     $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
     $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
     if (!(bool) ($access['hasAccess'] ?? false)) {
