@@ -3,17 +3,21 @@
 Deploy رسمی پروژه فقط از مسیر اسکریپت canonical انجام شود.
 خطای بسیار تکرار شده: با دپلوی کردن، بعضی صفحات به نسخه های قبلی که ربطی به دپلوی و تاغییرات فعلی هم نداشت باز میگردند! نگذار این خطا رخ دهد.
 
-## دستور اصلی
+## دستور نهایی بستن کار
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1
+```
+
+این wrapper فقط یک alias است و در نهایت همان `scripts/deploy_public_html.ps1` را با release-completion guard داخلی اجرا می‌کند.
+
+## دستور canonical deploy
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ```
 
 ## Definition of Done
 - بعد از هر پرامپت/کاری که روی پروژه انجام می‌شود، deploy canonical باید قبل از پاسخ نهایی اجرا شود مگر کاربر صراحتاً همان نوبت منع کند.
-- بعد از deploy و قبل از پاسخ نهایی، این guard هم باید پاس شود تا معلوم باشد `public_html/` بعد از آخرین host deploy دوباره تغییر نکرده است:
-```powershell
-python .\scripts\check_host_deploy_freshness.py
-```
+- command نهایی بالا دیگر نباید به deploy خام ختم شود؛ اسکریپت canonical حالا freshness guard را هم داخل همان run اجرا می‌کند و اگر `public_html/` بعد از آخرین host deploy drift داشته باشد non-zero fail می‌شود.
 - کار فقط وقتی `completed` محسوب می‌شود که deploy، live health-check و اعلان داخل سایت برای مالک موفق شده باشند؛ fail/skip شدن deploy یا اعلان باید صریحاً `blocked` یا `partial` گزارش شود.
 
 ## ترتیب اجباری Deploy
@@ -46,6 +50,7 @@ Dry run:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRun
 ```
+این dry-run باید version-stamp واقعی را preview کند؛ اگر run واقعی قرار است صدها فایل cache-sensitive را rewrite کند، dry-run هم باید همان delta را نشان دهد.
 
 Full sync (فقط در نیاز صریح):
 ```powershell
@@ -60,6 +65,11 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullB
 retry سبک برای تکمیل GitHub sync بعد از live deploy موفق:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipRemoteStorageSync -SkipValidation -SkipPostDeployVerification -SkipVersionStamp -SkipOwnerDeployNotification -HostDeployNetworkPath direct -HealthCheckNetworkPath direct -GitHubNetworkPath proxy
+```
+
+audit دستی اختیاری بعد از هر deploy:
+```powershell
+python .\scripts\check_host_deploy_freshness.py
 ```
 
 ## ایمنی داده

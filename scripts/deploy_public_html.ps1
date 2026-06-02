@@ -1646,30 +1646,36 @@ function Get-PhpRequiredExtensionArgs([string]$phpPath) {
     return @($args)
 }
 
-function Run-VersionStamp() {
+function Parse-VersionStampOutput($output, [string]$fallbackVersion = "") {
+    $version = ""
+    $changedFiles = New-Object System.Collections.Generic.List[string]
+
+    foreach ($line in @($output)) {
+        $text = [string]$line
+        if ($text -match "^STAMP_VERSION=(.+)$") {
+            $version = $Matches[1].Trim()
+            continue
+        }
+        if ($text -match "^STAMP_FILE=(.+)$") {
+            $relative = $Matches[1].Trim()
+            if (-not [string]::IsNullOrWhiteSpace($relative)) {
+                [void]$changedFiles.Add($relative)
+            }
+        }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($version)) {
+        $version = $fallbackVersion
+    }
+
+    return [PSCustomObject]@{
+        Version     = $version
+        ChangedFiles = @($changedFiles)
+    }
+}
+
+function Run-VersionStamp([bool]$ShouldRunVersionStamp = $true) {
     $started = Get-IsoNow
-
-    if ($DryRun) {
-        Write-Host "[DryRun] Skip PWA version stamp"
-        return [PSCustomObject]@{
-            Status     = "skipped-dry-run"
-            StartedAt  = $started
-            FinishedAt = Get-IsoNow
-            Version    = Get-ActivePwaVersion
-            Command    = ""
-        }
-    }
-
-    if ($SkipVersionStamp) {
-        Write-Warning "PWA version stamp skipped by explicit -SkipVersionStamp override."
-        return [PSCustomObject]@{
-            Status     = "skipped-explicit"
-            StartedAt  = $started
-            FinishedAt = Get-IsoNow
-            Version    = Get-ActivePwaVersion
-            Command    = ""
-        }
-    }
 
     $scriptPath = Join-Path $projectRoot "scripts\stamp_pwa_version.py"
     if (-not (Test-Path $scriptPath)) {
@@ -1681,29 +1687,79 @@ function Run-VersionStamp() {
         throw "Python is required for PWA version stamping but no python/python3 command was found."
     }
 
+    if (-not $ShouldRunVersionStamp) {
+        $skipMessage = "PWA version stamp skipped because no current public_html delta requires a new cache version."
+        if ($DryRun) {
+            Write-Host "[DryRun] $skipMessage"
+            return [PSCustomObject]@{
+                Status      = "skipped-no-delta"
+                StartedAt   = $started
+                FinishedAt  = Get-IsoNow
+                Version     = Get-ActivePwaVersion
+                Command     = ""
+                ChangedFiles = @()
+            }
+        }
+
+        Write-Host $skipMessage
+        return [PSCustomObject]@{
+            Status      = "skipped-no-delta"
+            StartedAt   = $started
+            FinishedAt  = Get-IsoNow
+            Version     = Get-ActivePwaVersion
+            Command     = ""
+            ChangedFiles = @()
+        }
+    }
+
+    if ($DryRun) {
+        Write-Host "[DryRun] Preview PWA version stamp"
+        $previewOutput = & $python $scriptPath --dry-run
+        if ($LASTEXITCODE -ne 0) {
+            throw "PWA version stamp preview failed (scripts/stamp_pwa_version.py --dry-run)."
+        }
+        $previewInfo = Parse-VersionStampOutput -output $previewOutput -fallbackVersion (Get-ActivePwaVersion)
+        return [PSCustomObject]@{
+            Status      = "previewed-dry-run"
+            StartedAt  = $started
+            FinishedAt = Get-IsoNow
+            Version     = $previewInfo.Version
+            Command     = "$python $scriptPath --dry-run"
+            ChangedFiles = @($previewInfo.ChangedFiles)
+        }
+    }
+
+    if ($SkipVersionStamp) {
+        Write-Warning "PWA version stamp skipped by explicit -SkipVersionStamp override."
+        return [PSCustomObject]@{
+            Status      = "skipped-explicit"
+            StartedAt   = $started
+            FinishedAt  = Get-IsoNow
+            Version     = Get-ActivePwaVersion
+            Command     = ""
+            ChangedFiles = @()
+        }
+    }
+
     Write-Host "Refreshing PWA version stamp"
     $output = & $python $scriptPath
     if ($LASTEXITCODE -ne 0) {
         throw "PWA version stamp failed (scripts/stamp_pwa_version.py)."
     }
 
-    $version = ""
-    foreach ($line in @($output)) {
-        if ([string]$line -match "^STAMP_VERSION=(.+)$") {
-            $version = $Matches[1].Trim()
-            break
-        }
-    }
+    $stampInfo = Parse-VersionStampOutput -output $output -fallbackVersion (Get-ActivePwaVersion)
+    $version = [string]$stampInfo.Version
     if ([string]::IsNullOrWhiteSpace($version)) {
         $version = Get-ActivePwaVersion
     }
 
     return [PSCustomObject]@{
-        Status     = "completed"
-        StartedAt  = $started
-        FinishedAt = Get-IsoNow
-        Version    = $version
-        Command    = "$python $scriptPath"
+        Status      = "completed"
+        StartedAt   = $started
+        FinishedAt  = Get-IsoNow
+        Version     = $version
+        Command     = "$python $scriptPath"
+        ChangedFiles = @($stampInfo.ChangedFiles)
     }
 }
 
@@ -2160,14 +2216,43 @@ function Build-GitHubSyncPlan([string]$upstream) {
         }
     }
 
+    $pathScope = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+    foreach ($path in @($uploadSet)) {
+        if (-not [string]::IsNullOrWhiteSpace([string]$path)) {
+            [void]$pathScope.Add([string]$path)
+        }
+    }
+    foreach ($path in @($deleteSet)) {
+        if (-not [string]::IsNullOrWhiteSpace([string]$path)) {
+            [void]$pathScope.Add([string]$path)
+        }
+    }
+
     return [PSCustomObject]@{
         Mode       = "repo-code-delta (laptop source)"
         UploadList = @($uploadSet) | Sort-Object
         DeleteList = @($deleteSet) | Sort-Object
+        PathScope  = @($pathScope) | Sort-Object
         SourceHead = $currentHead
         Upstream   = $upstream
         Notes      = @($notes)
     }
+}
+
+function Get-GitHubStagePathList([string[]]$pathScope) {
+    $stageSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+    foreach ($path in @($pathScope)) {
+        $normalized = ([string]$path).Trim().TrimStart('/')
+        if ([string]::IsNullOrWhiteSpace($normalized)) {
+            continue
+        }
+        if (Test-ProtectedGitHubRelativePath -relative $normalized) {
+            continue
+        }
+        [void]$stageSet.Add($normalized)
+    }
+
+    return @($stageSet) | Sort-Object
 }
 
 function Resolve-GitHubSyncTarget([string]$currentBranch, [string]$upstream) {
@@ -2422,6 +2507,67 @@ function Run-PostDeployVerification() {
     }
 }
 
+function Invoke-ReleaseCompletionGuard([object]$DeployInfo, [object]$VerificationInfo, [object]$OwnerNoticeInfo, [object]$GitHubSyncInfo) {
+    $started = Get-IsoNow
+
+    if ($DryRun) {
+        Write-Host "[DryRun] Step 6/6 skipped: release completion guard"
+        return [PSCustomObject]@{
+            Status     = "skipped-dry-run"
+            StartedAt  = $started
+            FinishedAt = Get-IsoNow
+            Command    = ""
+            Notes      = @()
+        }
+    }
+
+    $python = Resolve-PythonCommand
+    if ([string]::IsNullOrWhiteSpace($python)) {
+        throw "Python is required for the release completion guard but no python/python3 command was found."
+    }
+
+    $freshnessScriptPath = Join-Path $projectRoot "scripts\check_host_deploy_freshness.py"
+    if (-not (Test-Path $freshnessScriptPath)) {
+        throw "Release completion guard script not found: $freshnessScriptPath"
+    }
+
+    Write-Host "Step 6/6: release completion guard"
+
+    if ([string]$DeployInfo.Status -ne "completed") {
+        throw "Release completion guard failed: host deploy status is '$([string]$DeployInfo.Status)'."
+    }
+    if ([string]$VerificationInfo.Status -ne "completed") {
+        throw "Release completion guard failed: live post-deploy verification status is '$([string]$VerificationInfo.Status)'."
+    }
+    $gitHubStatus = [string]$GitHubSyncInfo.Status
+    if ($gitHubStatus -notin @("completed", "completed-noop")) {
+        throw "Release completion guard failed: GitHub sync status is '$gitHubStatus'."
+    }
+
+    $ownerNoticeStatus = [string]$OwnerNoticeInfo.Status
+    $hasHostDelta = (($DeployInfo.UploadCount -as [int]) -gt 0) -or (($DeployInfo.DeleteCount -as [int]) -gt 0)
+    if ($hasHostDelta) {
+        if ($ownerNoticeStatus -ne "completed") {
+            throw "Release completion guard failed: owner deploy notification status is '$ownerNoticeStatus' despite a real host delta."
+        }
+    } elseif ($ownerNoticeStatus -notin @("completed", "skipped-no-host-delta")) {
+        throw "Release completion guard failed: owner deploy notification status is '$ownerNoticeStatus'."
+    }
+
+    $output = & $python $freshnessScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Release completion guard failed (scripts/check_host_deploy_freshness.py)."
+    }
+
+    return [PSCustomObject]@{
+        Status     = "completed"
+        StartedAt  = $started
+        FinishedAt = Get-IsoNow
+        Command    = "$python $freshnessScriptPath"
+        Notes      = @($output)
+    }
+}
+
 function Sync-GitHubFromLaptop([object]$GitHubPlan) {
     $started = Get-IsoNow
 
@@ -2473,6 +2619,12 @@ function Sync-GitHubFromLaptop([object]$GitHubPlan) {
 
     $uploadList = @($GitHubPlan.UploadList)
     $deleteList = @($GitHubPlan.DeleteList)
+    $pathScope = @()
+    if ($null -ne $GitHubPlan.PSObject.Properties["PathScope"]) {
+        $pathScope = @($GitHubPlan.PathScope)
+    } else {
+        $pathScope = @($uploadList + $deleteList)
+    }
     $notes = @($GitHubPlan.Notes)
     $estimatedPushBytes = Get-FileBytesFromRelativeList -rootPath $projectRoot -relativeList $uploadList
 
@@ -2520,7 +2672,14 @@ function Sync-GitHubFromLaptop([object]$GitHubPlan) {
             $worktree = New-GitHubSyncWorktree -remoteName $target.RemoteName -branchName $target.BranchName -fallbackRef $sourceHead
             Apply-GitHubSyncPlanToWorktree -repoPath $worktree.Path -uploadList $uploadList -deleteList $deleteList
 
-            $gitAddResult = Invoke-GitCommandCapture -repoPath $worktree.Path -GitArgs @("add", "-A", "--", ".")
+            $stagePaths = @(Get-GitHubStagePathList -pathScope $pathScope)
+            if ($stagePaths.Count -eq 0) {
+                throw "GitHub sync plan resolved to an empty stage scope after filtering protected paths."
+            }
+
+            $gitAddArgs = @("add", "-A", "--")
+            $gitAddArgs += $stagePaths
+            $gitAddResult = Invoke-GitCommandCapture -repoPath $worktree.Path -GitArgs $gitAddArgs
             if ($gitAddResult.ExitCode -ne 0) {
                 $gitAddDetail = Format-CommandFailureDetail -commandOutput $gitAddResult.Output -fallback "No stderr output."
                 throw "git add failed inside the temporary GitHub sync worktree. $gitAddDetail"
@@ -2913,6 +3072,7 @@ $githubSyncInfo = [PSCustomObject]@{
     EstimatedPushBytes = [int64]0
     Notes             = @()
 }
+$githubPlanInfo = $null
 $deployStateInfo = [PSCustomObject]@{
     Status     = "not-updated"
     Path       = ""
@@ -2931,6 +3091,13 @@ $ownerNoticeInfo = [PSCustomObject]@{
     Version        = ""
     Message        = ""
 }
+$releaseGuardInfo = [PSCustomObject]@{
+    Status     = "not-run"
+    StartedAt  = ""
+    FinishedAt = ""
+    Command    = ""
+    Notes      = @()
+}
 
 $failureMessage = ""
 $nonBlockingFailureMessage = ""
@@ -2938,13 +3105,57 @@ $nonBlockingFailureMessage = ""
 try {
     $remoteStorageInfo = Sync-RemoteStorageFromHost
     $pullInfo = Run-OptionalPullBeforeDeploy
-    $versionStampInfo = Run-VersionStamp
+    $preVersionPlan = Build-DeployPlan
+    $shouldRunVersionStamp = $FullSync -or @($preVersionPlan.UploadList).Count -gt 0 -or @($preVersionPlan.DeleteList).Count -gt 0
+    $versionStampInfo = Run-VersionStamp -ShouldRunVersionStamp:$shouldRunVersionStamp
     $validationInfo = Run-Validation
 
     $deployInfo.StartedAt = Get-IsoNow
-    $plan = Build-DeployPlan
+    if ($shouldRunVersionStamp) {
+        $plan = Build-DeployPlan
+    } else {
+        $plan = $preVersionPlan
+    }
     $uploadList = @($plan.UploadList)
     $deleteList = @($plan.DeleteList)
+    if ($DryRun -and $versionStampInfo.PSObject.Properties["ChangedFiles"] -ne $null) {
+        $previewUploadSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+        foreach ($relative in @($uploadList)) {
+            if (-not [string]::IsNullOrWhiteSpace([string]$relative)) {
+                [void]$previewUploadSet.Add([string]$relative)
+            }
+        }
+        foreach ($relative in @($versionStampInfo.ChangedFiles)) {
+            $normalized = [string]$relative
+            if ([string]::IsNullOrWhiteSpace($normalized)) {
+                continue
+            }
+            if (Test-ProtectedPublicHtmlRelativePath -relative $normalized) {
+                continue
+            }
+            [void]$previewUploadSet.Add($normalized)
+        }
+
+        $previewDeleteSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+        foreach ($relative in @($deleteList)) {
+            $normalized = [string]$relative
+            if ([string]::IsNullOrWhiteSpace($normalized)) {
+                continue
+            }
+            if ($previewUploadSet.Contains($normalized)) {
+                continue
+            }
+            [void]$previewDeleteSet.Add($normalized)
+        }
+
+        $uploadList = @($previewUploadSet) | Sort-Object
+        $deleteList = @($previewDeleteSet) | Sort-Object
+        if (@($versionStampInfo.ChangedFiles).Count -gt 0) {
+            $dryRunNotes = @($plan.Notes)
+            $dryRunNotes += "Dry run preview included $(@($versionStampInfo.ChangedFiles).Count) file(s) that the real PWA version stamp would rewrite before deploy."
+            $plan | Add-Member -NotePropertyName Notes -NotePropertyValue $dryRunNotes -Force
+        }
+    }
     $deploySourceHead = ""
     if ($null -ne $plan.PSObject.Properties["SourceHead"]) {
         $deploySourceHead = [string]$plan.SourceHead
@@ -2956,6 +3167,7 @@ try {
     $deployInfo.DeleteCount = $deleteList.Count
     $deployInfo.EstimatedUploadBytes = Get-FileBytesFromRelativeList -rootPath $localRoot -relativeList $uploadList
     $deployInfo.Notes = @($plan.Notes)
+    $githubPlanInfo = Build-GitHubSyncPlan -upstream (Try-GetUpstreamBranch)
 
     if ($uploadList.Count -eq 0 -and $deleteList.Count -eq 0) {
         Write-Host "Step 3/5: deploy to host"
@@ -3023,8 +3235,7 @@ try {
             -DeployHead ([string]$deploySourceHead)
     }
 
-    $githubPlan = Build-GitHubSyncPlan -upstream (Try-GetUpstreamBranch)
-    $githubSyncInfo = Sync-GitHubFromLaptop -GitHubPlan $githubPlan
+    $githubSyncInfo = Sync-GitHubFromLaptop -GitHubPlan $githubPlanInfo
 
     if (-not $DryRun -and -not [string]::IsNullOrWhiteSpace($deploySourceHead)) {
         $gitHubHead = ""
@@ -3048,6 +3259,12 @@ try {
     } elseif (-not $DryRun) {
         $deployStateInfo.Status = "skipped-no-head"
     }
+
+    $releaseGuardInfo = Invoke-ReleaseCompletionGuard `
+        -DeployInfo $deployInfo `
+        -VerificationInfo $verificationInfo `
+        -OwnerNoticeInfo $ownerNoticeInfo `
+        -GitHubSyncInfo $githubSyncInfo
 } catch {
     $failureMessage = $_.Exception.Message
     if ($null -ne $_.InvocationInfo -and -not [string]::IsNullOrWhiteSpace([string]$_.InvocationInfo.PositionMessage)) {
@@ -3253,6 +3470,19 @@ try {
     }
     if (-not [string]::IsNullOrWhiteSpace($deployStateInfo.GitHubStatus)) {
         Write-Host " - Last recorded GitHub sync status: $($deployStateInfo.GitHubStatus)"
+    }
+    Write-Host " - Release completion guard status: $($releaseGuardInfo.Status)"
+    if (-not [string]::IsNullOrWhiteSpace($releaseGuardInfo.StartedAt)) {
+        Write-Host " - Release completion guard started at: $($releaseGuardInfo.StartedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($releaseGuardInfo.FinishedAt)) {
+        Write-Host " - Release completion guard finished at: $($releaseGuardInfo.FinishedAt)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($releaseGuardInfo.Command)) {
+        Write-Host " - Release completion guard command: $($releaseGuardInfo.Command)"
+    }
+    foreach ($note in @($releaseGuardInfo.Notes)) {
+        Write-Host "   * $note"
     }
 
     Write-Host " - Run finished at: $runFinishedAt"

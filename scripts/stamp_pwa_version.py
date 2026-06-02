@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import argparse
 import json
 import re
-import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -37,10 +37,21 @@ ASSET_VERSION_PATTERNS = [
 ]
 
 
-def build_version() -> str:
-    if len(sys.argv) > 1 and sys.argv[1].strip():
-        return sys.argv[1].strip()
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Stamp or preview the shared PWA version across public_html.")
+    parser.add_argument("version", nargs="?", help="Optional explicit version token.")
+    parser.add_argument("--dry-run", action="store_true", help="Preview changed files without writing them.")
+    return parser.parse_args()
+
+
+def build_version(explicit_version: str | None) -> str:
+    if explicit_version and explicit_version.strip():
+        return explicit_version.strip()
     return datetime.now().astimezone().strftime("%Y%m%d-%H%M%S")
+
+
+def relative_path(path: Path) -> str:
+    return str(path.relative_to(ROOT)).replace("\\", "/")
 
 
 def replace_all(text: str, patterns: list[tuple[re.Pattern[str], object]], version: str) -> str:
@@ -63,15 +74,16 @@ def stamp_asset_versions(text: str, version: str) -> str:
     return updated
 
 
-def write_text_if_changed(path: Path, text: str, changed: list[str]) -> None:
+def record_changed_text(path: Path, updated_text: str, changed: list[str], dry_run: bool) -> None:
     original = path.read_text(encoding="utf-8")
-    if original == text:
+    if original == updated_text:
         return
-    path.write_text(text, encoding="utf-8", newline="\n")
-    changed.append(str(path.relative_to(ROOT)).replace("\\", "/"))
+    if not dry_run:
+        path.write_text(updated_text, encoding="utf-8", newline="\n")
+    changed.append(relative_path(path))
 
 
-def stamp_html(version: str, changed: list[str]) -> None:
+def stamp_html(version: str, changed: list[str], dry_run: bool) -> None:
     for path in PUBLIC_ROOT.rglob("*"):
         if path.suffix.lower() not in HTML_SUFFIXES or not path.is_file():
             continue
@@ -79,11 +91,12 @@ def stamp_html(version: str, changed: list[str]) -> None:
         updated = replace_all(original, HTML_PATTERNS, version)
         updated = stamp_asset_versions(updated, version)
         if updated != original:
-            path.write_text(updated, encoding="utf-8", newline="\n")
-            changed.append(str(path.relative_to(ROOT)).replace("\\", "/"))
+            if not dry_run:
+                path.write_text(updated, encoding="utf-8", newline="\n")
+            changed.append(relative_path(path))
 
 
-def stamp_script_versions(version: str, changed: list[str]) -> None:
+def stamp_script_versions(version: str, changed: list[str], dry_run: bool) -> None:
     pwa_path = PUBLIC_ROOT / "assets" / "site" / "scripts" / "pwa.js"
     pwa_text = pwa_path.read_text(encoding="utf-8")
     pwa_text = re.sub(
@@ -92,7 +105,7 @@ def stamp_script_versions(version: str, changed: list[str]) -> None:
         pwa_text,
         count=1,
     )
-    write_text_if_changed(pwa_path, pwa_text, changed)
+    record_changed_text(pwa_path, pwa_text, changed, dry_run)
 
     sw_path = PUBLIC_ROOT / "sw.js"
     sw_text = sw_path.read_text(encoding="utf-8")
@@ -102,10 +115,10 @@ def stamp_script_versions(version: str, changed: list[str]) -> None:
         sw_text,
         count=1,
     )
-    write_text_if_changed(sw_path, sw_text, changed)
+    record_changed_text(sw_path, sw_text, changed, dry_run)
 
 
-def stamp_manifest(version: str, changed: list[str]) -> None:
+def stamp_manifest(version: str, changed: list[str], dry_run: bool) -> None:
     manifest_path = PUBLIC_ROOT / "manifest.webmanifest"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     icons = manifest.get("icons", [])
@@ -122,14 +135,10 @@ def stamp_manifest(version: str, changed: list[str]) -> None:
         if "purpose" in icons[index] and "maskable" in str(icons[index]["purpose"]):
             icons[index]["purpose"] = "any maskable"
     updated = json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
-    existing = manifest_path.read_text(encoding="utf-8")
-    if existing == updated:
-        return
-    manifest_path.write_text(updated, encoding="utf-8", newline="\n")
-    changed.append(str(manifest_path.relative_to(ROOT)).replace("\\", "/"))
+    record_changed_text(manifest_path, updated, changed, dry_run)
 
 
-def stamp_app_version_file(version: str, changed: list[str]) -> None:
+def stamp_app_version_file(version: str, changed: list[str], dry_run: bool) -> None:
     payload = {
         "version": version,
         "generatedAt": datetime.now().astimezone().isoformat(timespec="seconds"),
@@ -139,18 +148,20 @@ def stamp_app_version_file(version: str, changed: list[str]) -> None:
     existing = path.read_text(encoding="utf-8") if path.exists() else ""
     if existing == updated:
         return
-    path.write_text(updated, encoding="utf-8", newline="\n")
-    changed.append(str(path.relative_to(ROOT)).replace("\\", "/"))
+    if not dry_run:
+        path.write_text(updated, encoding="utf-8", newline="\n")
+    changed.append(relative_path(path))
 
 
 def main() -> int:
-    version = build_version()
+    args = parse_args()
+    version = build_version(args.version)
     changed: list[str] = []
 
-    stamp_html(version, changed)
-    stamp_script_versions(version, changed)
-    stamp_manifest(version, changed)
-    stamp_app_version_file(version, changed)
+    stamp_html(version, changed, args.dry_run)
+    stamp_script_versions(version, changed, args.dry_run)
+    stamp_manifest(version, changed, args.dry_run)
+    stamp_app_version_file(version, changed, args.dry_run)
 
     print(f"STAMP_VERSION={version}")
     print(f"STAMP_CHANGED={len(changed)}")
