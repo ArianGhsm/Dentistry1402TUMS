@@ -28,11 +28,13 @@
         title: null,
         body: null,
         primary: null,
-        dismiss: null
+        dismiss: null,
+        markRead: null
     };
     var notificationBannerState = {
         userKey: "",
-        preview: null
+        preview: null,
+        markingId: ""
     };
     var POLL_COUNT_TTL_MS = 45000;
     var NAV_BADGE_TTL_MS = 45000;
@@ -578,8 +580,11 @@
             '  <p class="shell-notification-banner__body"></p>',
             "</div>",
             '<div class="shell-notification-banner__actions">',
-            '  <button type="button" class="shell-action-btn shell-notification-banner__dismiss">بعداً</button>',
-            '  <a class="shell-action-btn shell-action-btn-primary shell-notification-banner__primary" href="/account/#notifications">مشاهده اعلان</a>',
+            '  <div class="shell-notification-banner__actions-main">',
+            '    <button type="button" class="shell-action-btn shell-notification-banner__dismiss">بعداً</button>',
+            '    <a class="shell-action-btn shell-action-btn-primary shell-notification-banner__primary" href="/account/#notifications">مشاهده اعلان</a>',
+            "  </div>",
+            '  <button type="button" class="shell-action-btn shell-notification-banner__mark-read">علامت زده به عنوان خوانده شده</button>',
             "</div>"
         ].join("");
 
@@ -590,9 +595,13 @@
         notificationBanner.body = banner.querySelector(".shell-notification-banner__body");
         notificationBanner.primary = banner.querySelector(".shell-notification-banner__primary");
         notificationBanner.dismiss = banner.querySelector(".shell-notification-banner__dismiss");
+        notificationBanner.markRead = banner.querySelector(".shell-notification-banner__mark-read");
 
         if (notificationBanner.dismiss) {
             notificationBanner.dismiss.addEventListener("click", function () {
+                if (notificationBannerState.markingId) {
+                    return;
+                }
                 var key = notificationPreviewKey(notificationBannerState.userKey, notificationBannerState.preview);
                 writeSessionValue(NOTIFICATION_BANNER_DISMISS_KEY, key);
                 renderNotificationBanner(authState());
@@ -601,6 +610,10 @@
 
         if (notificationBanner.primary) {
             notificationBanner.primary.addEventListener("click", function (event) {
+                if (notificationBannerState.markingId) {
+                    event.preventDefault();
+                    return;
+                }
                 var href = notificationBanner.primary.getAttribute("href") || "/account/#notifications";
                 var notificationId = notificationBanner.primary.dataset.notificationId || "";
                 var dismissKey = notificationPreviewKey(notificationBannerState.userKey, notificationBannerState.preview);
@@ -608,6 +621,22 @@
                 writeSessionValue(NOTIFICATION_BANNER_DISMISS_KEY, dismissKey);
                 markNotificationReadFromShell(notificationId).finally(function () {
                     window.location.href = href;
+                });
+            });
+        }
+
+        if (notificationBanner.markRead) {
+            notificationBanner.markRead.addEventListener("click", function () {
+                var notificationId = String(notificationBanner.markRead.dataset.notificationId || "").trim();
+                if (!notificationId || notificationBannerState.markingId === notificationId) {
+                    return;
+                }
+
+                notificationBannerState.markingId = notificationId;
+                renderNotificationBanner(authState());
+                markNotificationReadFromShell(notificationId).finally(function () {
+                    notificationBannerState.markingId = "";
+                    renderNotificationBanner(authState());
                 });
             });
         }
@@ -626,9 +655,12 @@
         var dismissedKey = notificationBannerDismissedKey();
         var isNotificationsSurfaceOpen = currentPath() === "/account/" && (window.location.hash || "") === "#notifications";
         var visible = !!(state && state.loggedIn && preview && key && dismissedKey !== key && !isNotificationsSurfaceOpen);
+        var previewId = String(preview && preview.id || "").trim();
+        var isMarking = !!(previewId && notificationBannerState.markingId === previewId);
 
         banner.hidden = !visible;
         banner.classList.toggle("is-visible", visible);
+        banner.classList.toggle("is-marking", isMarking);
         if (!visible) {
             return;
         }
@@ -647,7 +679,12 @@
         if (notificationBanner.primary) {
             notificationBanner.primary.textContent = String(preview.ctaLabel || notificationBannerDefaultLabel(preview));
             notificationBanner.primary.href = String(preview.ctaHref || notificationBannerDefaultHref(preview));
-            notificationBanner.primary.dataset.notificationId = String(preview.id || "");
+            notificationBanner.primary.dataset.notificationId = previewId;
+        }
+        if (notificationBanner.markRead) {
+            notificationBanner.markRead.dataset.notificationId = previewId;
+            notificationBanner.markRead.disabled = !previewId || isMarking;
+            notificationBanner.markRead.textContent = isMarking ? "در حال ثبت..." : "علامت زده به عنوان خوانده شده";
         }
     }
 

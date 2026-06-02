@@ -166,6 +166,7 @@
     var accountNavidAlertTitle = $("account-navid-alert-title");
     var accountNavidAlertBody = $("account-navid-alert-body");
     var accountNavidAlertLink = $("account-navid-alert-link");
+    var accountNavidAlertMarkRead = $("account-navid-alert-mark-read");
     var surfaceOpeners = Array.prototype.slice.call(document.querySelectorAll("[data-open-surface]"));
     var surfaceBackButtons = Array.prototype.slice.call(document.querySelectorAll("[data-surface-back]"));
     var surfacePanels = Array.prototype.slice.call(document.querySelectorAll(".account-surface-panel[data-surface]"));
@@ -2500,6 +2501,14 @@
             accountNavidAlertLink.href = String(preview.ctaHref || "/account/#notifications");
             accountNavidAlertLink.dataset.notificationId = String(preview.id || "");
             accountNavidAlertLink.textContent = String(preview.ctaLabel || (preview.kind === "navid-assignment" ? "مشاهده تکالیف" : "مشاهده اعلان"));
+        }
+        if (accountNavidAlertMarkRead) {
+            var previewId = String(preview.id || "").trim();
+            var isMarking = !!notificationsState.markingIds[previewId];
+            accountNavidAlertMarkRead.hidden = !previewId || preview.unread === false;
+            accountNavidAlertMarkRead.disabled = isMarking;
+            accountNavidAlertMarkRead.dataset.notificationMark = previewId;
+            accountNavidAlertMarkRead.textContent = isMarking ? "در حال ثبت..." : "علامت زده به عنوان خوانده شده";
         }
     }
 
@@ -6274,6 +6283,17 @@
     if (accountNavidAlertLink) {
         accountNavidAlertLink.addEventListener("click", function (event) {
             handleNotificationCtaNavigation(event, accountNavidAlertLink.dataset.notificationId, accountNavidAlertLink.href);
+        });
+    }
+
+    if (accountNavidAlertMarkRead) {
+        accountNavidAlertMarkRead.addEventListener("click", function (event) {
+            var notificationId = String(accountNavidAlertMarkRead.dataset.notificationMark || "").trim();
+            if (!notificationId) {
+                return;
+            }
+            event.preventDefault();
+            markNotificationsRead([notificationId]);
         });
     }
 
