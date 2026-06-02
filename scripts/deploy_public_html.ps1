@@ -206,22 +206,65 @@ function Test-NoProxyBypass([string]$hostName) {
     return $false
 }
 
+function Test-PreferDirectIranianHost([string]$hostName) {
+    if ([string]::IsNullOrWhiteSpace($hostName)) {
+        return $false
+    }
+
+    $subject = $hostName.Trim().ToLowerInvariant()
+    if ([string]::IsNullOrWhiteSpace($subject)) {
+        return $false
+    }
+
+    if ($subject -eq "localhost" -or $subject -eq "127.0.0.1" -or $subject -eq "::1") {
+        return $true
+    }
+
+    if ($subject.EndsWith(".ir")) {
+        return $true
+    }
+
+    $directHosts = @(
+        "185.94.99.231",
+        "cpdl1.mihanbank.com",
+        "dentistry1402tums.ir",
+        "www.dentistry1402tums.ir",
+        "dl.dentistry1402tums.ir"
+    )
+
+    foreach ($directHost in $directHosts) {
+        $rule = $directHost.Trim().ToLowerInvariant()
+        if ([string]::IsNullOrWhiteSpace($rule)) {
+            continue
+        }
+        if ($subject -eq $rule -or $subject.EndsWith("." + $rule)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
 function Resolve-EffectiveNetworkPath(
     [string]$preferred,
     [string]$envOverride,
     [string]$targetHost,
     [bool]$proxyConfigured,
-    [string]$fallback = "auto"
+    [string]$fallback = "auto",
+    [bool]$preferDirectTarget = $false
 ) {
     $choice = Normalize-NetworkPath -value $preferred
     if ($choice -eq "auto" -and -not [string]::IsNullOrWhiteSpace($envOverride)) {
         $choice = Normalize-NetworkPath -value $envOverride
     }
-    if ($choice -eq "auto") {
-        $choice = Normalize-NetworkPath -value $fallback
-    }
     if ($choice -in @("direct", "proxy")) {
         return $choice
+    }
+    if ($choice -eq "auto" -and $preferDirectTarget -and (Test-PreferDirectIranianHost -hostName $targetHost)) {
+        return "direct"
+    }
+    if ($choice -eq "auto") {
+        $choice = Normalize-NetworkPath -value $fallback
     }
     if (-not $proxyConfigured) {
         return "direct"
@@ -315,14 +358,16 @@ $hostDeployPath = Resolve-EffectiveNetworkPath `
     -envOverride ([Environment]::GetEnvironmentVariable("DENT_HOST_DEPLOY_PATH")) `
     -targetHost $remoteHost `
     -proxyConfigured $proxyConfigured `
-    -fallback $globalPath
+    -fallback $globalPath `
+    -preferDirectTarget $true
 
 $healthCheckPath = Resolve-EffectiveNetworkPath `
     -preferred $HealthCheckNetworkPath `
     -envOverride ([Environment]::GetEnvironmentVariable("DENT_HEALTHCHECK_PATH")) `
     -targetHost $healthHost `
     -proxyConfigured $proxyConfigured `
-    -fallback $globalPath
+    -fallback $globalPath `
+    -preferDirectTarget $true
 
 $githubPath = Resolve-EffectiveNetworkPath `
     -preferred $GitHubNetworkPath `
