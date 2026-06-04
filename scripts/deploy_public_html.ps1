@@ -1658,6 +1658,9 @@ function Parse-VersionStampOutput($output, [string]$fallbackVersion = "") {
         }
         if ($text -match "^STAMP_FILE=(.+)$") {
             $relative = $Matches[1].Trim()
+            if ($relative.StartsWith("public_html/")) {
+                $relative = $relative.Substring("public_html/".Length)
+            }
             if (-not [string]::IsNullOrWhiteSpace($relative)) {
                 [void]$changedFiles.Add($relative)
             }

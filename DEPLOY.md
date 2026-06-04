@@ -38,6 +38,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - صرفا فایل هایی که تغییر کرده اند باید دپلوی شوند. نیازی به اپلود هرباره همه فایل ها نیست.
 - delta deploy باید علاوه بر `git diff` با manifest آخرین محتوای deploy‌شده روی همین لپتاپ فیلتر شود؛ یعنی اگر فایلی هنوز در worktree dirty است اما همان محتوا قبلاً deploy شده، دوباره upload نشود.
 - اگر `HEAD` فعلی همان آخرین `host deploy` موفق است، اختلاف `upstream..HEAD` نباید دوباره وارد plan شود؛ در این حالت فقط delta بعد از آخرین deploy موفق و تغییرات واقعی worktree مجازند.
+- PWA version stamp دیگر نباید `HTML/PHP`های کل سایت را فقط برای تغییر `?v=` rewrite کند. cache-busting فایل‌های shared از این به بعد با revalidate header روی `css/js` و stamp محدود به `pwa.js`, `sw.js`, `manifest.webmanifest`, `app-version.json` انجام می‌شود.
 - به‌محض موفقیت deploy روی هاست و health-check زنده، state و manifest لوکال باید قبل از notification/GitHub sync ثبت شوند تا failureهای مرحله‌های بعدی باعث تکرار uploadهای قبلاً deploy‌شده نشوند.
 - هیچ سقف حجمی/proxy budget نباید deploy یا GitHub sync را متوقف کند؛ اگر مسیر شبکه در دسترس است، deploy باید ادامه پیدا کند.
 - بعد از health-check موفق، اسکریپت باید با login واقعی مالک یک اعلان داخل سایت فقط برای مالک ثبت کند که نسخه‌ی فعال و زمان دقیق deploy را ذکر می‌کند.
@@ -51,6 +52,7 @@ Dry run:
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRun
 ```
 این dry-run باید version-stamp واقعی را preview کند؛ اگر run واقعی قرار است صدها فایل cache-sensitive را rewrite کند، dry-run هم باید همان delta را نشان دهد.
+در حالت عادی بعد از اصلاح pipeline، preview version-stamp نباید از چند فایل shared بیشتر شود مگر این‌که واقعاً asset-url یا HTMLهای سراسری را خودت تغییر داده باشی.
 
 Full sync (فقط در نیاز صریح):
 ```powershell

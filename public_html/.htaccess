@@ -30,7 +30,11 @@
     Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
   </FilesMatch>
 
-  <FilesMatch "^(?!sw\.js$).*\.(css|js|png|jpg|jpeg|gif|svg|webp|woff2|woff)$">
+  <FilesMatch "^(?!sw\.js$).*\.(css|js)$">
+    Header set Cache-Control "public, no-cache, max-age=0, must-revalidate"
+  </FilesMatch>
+
+  <FilesMatch "^(?!sw\.js$).*\.(png|jpg|jpeg|gif|svg|webp|woff2|woff)$">
     Header set Cache-Control "public, max-age=2592000, immutable"
   </FilesMatch>
 </IfModule>
