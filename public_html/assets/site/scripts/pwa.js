@@ -3,7 +3,7 @@
         return;
     }
 
-    var CURRENT_VERSION = "20260602-202422";
+    var CURRENT_VERSION = "20260604-161209";
     var VERSION_ENDPOINT = "/app-version.json";
     var SERVICE_WORKER_ENDPOINT = "/sw.js";
     var UPDATE_ACK_STORAGE_KEY = "dent1402-pwa-update-ack-version";
@@ -287,6 +287,41 @@
             return;
         }
         notify();
+        maybeAutoApplyUpdate();
+    }
+
+    function shouldAutoApplyUpdate() {
+        if (!state.updateAvailable || state.isOffline || updateApplyInFlight || reloadAfterControllerChange) {
+            return false;
+        }
+
+        if (!state.latestVersion || state.latestVersion === state.currentVersion) {
+            return false;
+        }
+
+        if (document.hidden) {
+            return false;
+        }
+
+        return autoApplyVersion() !== state.latestVersion;
+    }
+
+    function maybeAutoApplyUpdate() {
+        if (!shouldAutoApplyUpdate()) {
+            return;
+        }
+
+        updateApplyInFlight = true;
+        writeStorage(UPDATE_AUTO_STORAGE_KEY, state.latestVersion);
+        renderUpdateBanner();
+
+        window.setTimeout(function () {
+            applyUpdate().catch(function () {
+                updateApplyInFlight = false;
+                writeStorage(UPDATE_AUTO_STORAGE_KEY, "");
+                notify();
+            });
+        }, 120);
     }
 
     function parseVersionPayload(payload) {
