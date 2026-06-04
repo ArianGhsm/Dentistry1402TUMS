@@ -170,6 +170,8 @@
     var accountRowProfileMeta = $("account-row-profile-meta");
     var accountRowInfoMeta = $("account-row-info-meta");
     var accountRowOwnerMeta = $("account-row-owner-meta");
+    var accountOwnerStatsShortcut = $("account-owner-stats-shortcut");
+    var accountRowOwnerStatsMeta = $("account-row-owner-stats-meta");
     var accountRowNavidMeta = $("account-row-navid-meta");
     var accountRowPhoneMeta = $("account-row-phone-meta");
     var accountRowNotificationsMeta = $("account-row-notifications-meta");
@@ -3348,6 +3350,33 @@
         return Math.max(0, Number(value || 0)).toLocaleString("fa-IR");
     }
 
+    function syncOwnerStatsShortcut() {
+        if (accountOwnerStatsShortcut) {
+            accountOwnerStatsShortcut.hidden = !hasOwnerAccess();
+        }
+        if (!accountRowOwnerStatsMeta) {
+            return;
+        }
+        if (!hasOwnerAccess()) {
+            accountRowOwnerStatsMeta.textContent = "بازدیدها، ورودها، دانلودها و نمودارهای مدیریتی کل سایت";
+            return;
+        }
+        var totals = ownerAnalyticsState.dashboard && ownerAnalyticsState.dashboard.totals ? ownerAnalyticsState.dashboard.totals : null;
+        if (totals) {
+            accountRowOwnerStatsMeta.textContent = [
+                "بازدید ۳۰ روز " + ownerStatsMetric(totals.pageViews30d),
+                "ورود ۳۰ روز " + ownerStatsMetric(totals.logins30d),
+                "کاربر " + ownerStatsMetric(totals.totalUsers)
+            ].join(" • ");
+            return;
+        }
+        if (ownerAnalyticsState.loading) {
+            accountRowOwnerStatsMeta.textContent = "در حال آماده‌سازی snapshot آمار سایت...";
+            return;
+        }
+        accountRowOwnerStatsMeta.textContent = "بازدیدها، ورودها، دانلودها و نمودارهای مدیریتی کل سایت";
+    }
+
     function ownerStatsEmptyMarkup(text) {
         return '<div class="owner-stats-empty">' + escapeHtml(text || "داده‌ای برای نمایش وجود ندارد.") + "</div>";
     }
@@ -3606,6 +3635,7 @@
 
     function renderOwnerAnalytics() {
         var dashboard = ownerAnalyticsState.dashboard;
+        syncOwnerStatsShortcut();
         if (ownerStatsMeta) {
             ownerStatsMeta.textContent = dashboard && dashboard.generatedAt
                 ? ("آخرین به‌روزرسانی: " + formatJalaliDateTime(dashboard.generatedAt, "—", true))
@@ -6525,6 +6555,7 @@
             ownerAnalyticsState.loaded = false;
             ownerAnalyticsState.dashboard = null;
             updateOwnerTabs();
+            syncOwnerStatsShortcut();
             if (accountPhoneNudge) {
                 accountPhoneNudge.hidden = true;
             }
@@ -6570,6 +6601,7 @@
             ownerAnalyticsState.dashboard = null;
         }
         currentUser = detail.user;
+        syncOwnerStatsShortcut();
         applyAccountBranding(detail.user);
         renderIdentity(detail.user);
         applyPhoneDetailsFromCurrentUser();
@@ -6631,6 +6663,7 @@
             ownerState.activeCohortKey = "";
             ownerState.userPage = 1;
             updateOwnerTabs();
+            syncOwnerStatsShortcut();
             setCreateStudentBusy(false);
             ownerCreateStudentFeedbackMessage("", "");
             smsState.status = null;
@@ -6650,6 +6683,7 @@
     surfaceOpeners.forEach(function (node) {
         node.addEventListener("click", function (event) {
             var target = normalizeSurfaceName(node.dataset.openSurface);
+            var ownerTabTarget = target === "owner" ? normalizeOwnerTab(node.dataset.ownerTabTarget) : "";
             if (target === "hub") {
                 return;
             }
@@ -6659,6 +6693,9 @@
                 return;
             }
             openSurface(target, { replaceHash: false });
+            if (target === "owner" && ownerTabTarget) {
+                setOwnerTab(ownerTabTarget);
+            }
         });
     });
 
