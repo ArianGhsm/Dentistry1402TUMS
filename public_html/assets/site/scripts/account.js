@@ -3647,24 +3647,45 @@
         }
 
         var maxValue = 0;
+        var peakIndex = 0;
+        var lastActiveIndex = -1;
         points.forEach(function (item) {
-            maxValue = Math.max(maxValue, Math.max(0, Number(item && item.value || 0)));
+            var value = Math.max(0, Number(item && item.value || 0));
+            if (value >= maxValue) {
+                maxValue = value;
+                peakIndex = points.indexOf(item);
+            }
+            if (value > 0) {
+                lastActiveIndex = points.indexOf(item);
+            }
         });
         if (!maxValue) {
             node.innerHTML = ownerStatsEmptyMarkup(fallbackText || "در این بازه هنوز مقداری ثبت نشده است.");
             return;
         }
 
+        var lastIndex = Math.max(0, points.length - 1);
+        var labelStep = points.length <= 7 ? 1 : (points.length <= 10 ? 2 : 3);
+
         node.innerHTML = [
             '<div class="owner-stats-chart__bars">',
-            points.map(function (item) {
+            points.map(function (item, index) {
                 var value = Math.max(0, Number(item && item.value || 0));
-                var ratio = maxValue > 0 ? Math.max(8, Math.round((value / maxValue) * 100)) : 0;
+                var ratio = value > 0 && maxValue > 0 ? Math.max(10, Math.round((value / maxValue) * 100)) : 0;
+                var isFocus = index === peakIndex || (lastActiveIndex >= 0 && index === lastActiveIndex);
+                var showValue = value > 0 && (isFocus || value / maxValue >= 0.38);
+                var showTick = index === 0 || index === lastIndex || index === peakIndex || index % labelStep === 0;
+                var rawLabel = String(item && item.label || "").trim();
+                var tickLabel = rawLabel;
+                if (rawLabel.indexOf("/") >= 0) {
+                    var segments = rawLabel.split("/");
+                    tickLabel = String(segments[segments.length - 1] || rawLabel).trim();
+                }
                 return [
-                    '<div class="owner-stats-chart__item" title="' + escapeHtml(String(item.fullLabel || item.label || "")) + " • " + escapeHtml(ownerStatsMetric(value)) + '">',
+                    '<div class="owner-stats-chart__item' + (isFocus ? " owner-stats-chart__item--focus" : "") + (value <= 0 ? " owner-stats-chart__item--empty" : "") + '" title="' + escapeHtml(String(item.fullLabel || item.label || "")) + " • " + escapeHtml(ownerStatsMetric(value)) + '">',
+                    '  <span class="owner-stats-chart__value' + (showValue ? "" : " owner-stats-chart__value--ghost") + '">' + (showValue ? escapeHtml(ownerStatsMetric(value)) : "&nbsp;") + '</span>',
                     '  <span class="owner-stats-chart__bar"><i style="height:' + ratio + '%"></i></span>',
-                    '  <strong>' + escapeHtml(ownerStatsMetric(value)) + '</strong>',
-                    '  <small>' + escapeHtml(String(item.label || "")) + '</small>',
+                    '  <small class="owner-stats-chart__tick' + (showTick ? " is-visible" : "") + '">' + escapeHtml(tickLabel) + '</small>',
                     "</div>"
                 ].join("");
             }).join(""),
