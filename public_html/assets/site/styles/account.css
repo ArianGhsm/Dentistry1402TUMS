@@ -5776,3 +5776,447 @@ html[data-theme="dark"] body.account-page.account-stage-login-active #login-otp-
         align-content: start;
     }
 }
+
+#owner-panel .account-surface-head__copy,
+#owner-user-panel .account-surface-head__copy {
+    gap: 0.3rem;
+}
+
+#owner-panel .account-surface-head__copy h3,
+#owner-user-panel .account-surface-head__copy h3 {
+    font-family: var(--font-accent);
+}
+
+#owner-panel .account-surface-head__copy p,
+#owner-user-panel .account-surface-head__copy p {
+    max-width: 60ch;
+    margin-inline: auto;
+}
+
+#owner-summary,
+#owner-cohort-summary,
+#owner-grades-courses-summary,
+#owner-sms-status,
+#owner-media-status,
+#owner-user-panel-summary {
+    gap: 0.5rem;
+}
+
+#owner-summary {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+#owner-cohort-summary,
+#owner-grades-courses-summary,
+#owner-sms-status,
+#owner-media-status,
+#owner-user-panel-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+#owner-summary .owner-summary-card,
+#owner-cohort-summary .owner-summary-card,
+#owner-grades-courses-summary .owner-summary-card,
+#owner-sms-status .owner-summary-card,
+#owner-media-status .owner-summary-card,
+#owner-user-panel-summary .owner-summary-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 88px;
+    padding: 0.76rem 0.82rem;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--border-color-strong) 74%, transparent);
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 94%, transparent), color-mix(in srgb, var(--surface) 98%, transparent)),
+        color-mix(in srgb, var(--surface) 98%, transparent);
+    box-shadow: 0 18px 34px -30px rgba(16, 28, 48, 0.42);
+}
+
+#owner-summary .owner-summary-card::before,
+#owner-cohort-summary .owner-summary-card::before,
+#owner-grades-courses-summary .owner-summary-card::before,
+#owner-sms-status .owner-summary-card::before,
+#owner-media-status .owner-summary-card::before,
+#owner-user-panel-summary .owner-summary-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, color-mix(in srgb, var(--accent-soft) 84%, transparent) 0%, transparent 46%);
+    opacity: 0.72;
+    pointer-events: none;
+}
+
+#owner-summary .owner-summary-card span,
+#owner-summary .owner-summary-card strong,
+#owner-summary .owner-summary-card small,
+#owner-cohort-summary .owner-summary-card span,
+#owner-cohort-summary .owner-summary-card strong,
+#owner-cohort-summary .owner-summary-card small,
+#owner-grades-courses-summary .owner-summary-card span,
+#owner-grades-courses-summary .owner-summary-card strong,
+#owner-grades-courses-summary .owner-summary-card small,
+#owner-sms-status .owner-summary-card span,
+#owner-sms-status .owner-summary-card strong,
+#owner-sms-status .owner-summary-card small,
+#owner-media-status .owner-summary-card span,
+#owner-media-status .owner-summary-card strong,
+#owner-media-status .owner-summary-card small,
+#owner-user-panel-summary .owner-summary-card span,
+#owner-user-panel-summary .owner-summary-card strong,
+#owner-user-panel-summary .owner-summary-card small {
+    position: relative;
+    z-index: 1;
+}
+
+#owner-summary .owner-summary-card span,
+#owner-cohort-summary .owner-summary-card span,
+#owner-grades-courses-summary .owner-summary-card span,
+#owner-sms-status .owner-summary-card span,
+#owner-media-status .owner-summary-card span,
+#owner-user-panel-summary .owner-summary-card span {
+    font-size: 0.71rem;
+    font-weight: 820;
+}
+
+#owner-summary .owner-summary-card strong,
+#owner-cohort-summary .owner-summary-card strong,
+#owner-grades-courses-summary .owner-summary-card strong,
+#owner-sms-status .owner-summary-card strong,
+#owner-media-status .owner-summary-card strong,
+#owner-user-panel-summary .owner-summary-card strong {
+    font-family: var(--font-accent);
+    font-size: 1.04rem;
+    line-height: 1.35;
+}
+
+#owner-summary .owner-summary-card small,
+#owner-cohort-summary .owner-summary-card small,
+#owner-grades-courses-summary .owner-summary-card small,
+#owner-sms-status .owner-summary-card small,
+#owner-media-status .owner-summary-card small,
+#owner-user-panel-summary .owner-summary-card small {
+    font-size: 0.72rem;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+#owner-panel .owner-block--cohort-shell,
+#owner-panel .owner-block--grades-manager,
+#owner-panel .owner-block--create-student,
+#owner-panel .owner-block--sms,
+#owner-panel .owner-block--media-status,
+#owner-panel .owner-block[data-owner-tab-panel="representatives"],
+#owner-panel .owner-toolbar {
+    border-radius: 22px;
+    border: 1px solid color-mix(in srgb, var(--border-color-strong) 72%, transparent);
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 94%, transparent), color-mix(in srgb, var(--surface) 98%, transparent)),
+        color-mix(in srgb, var(--surface) 98%, transparent);
+    box-shadow: 0 20px 36px -32px rgba(16, 28, 48, 0.42);
+}
+
+#owner-panel .owner-block__head h4 {
+    font-family: var(--font-accent);
+    font-size: 1rem;
+}
+
+#owner-panel .owner-block__head p {
+    max-width: 58ch;
+    font-size: 0.77rem;
+    line-height: 1.72;
+}
+
+#owner-panel .owner-cohort-grid {
+    grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
+    gap: 0.48rem;
+}
+
+#owner-panel .owner-cohort-card {
+    min-height: 88px;
+    padding: 0.74rem 0.78rem;
+    border-radius: 16px;
+    gap: 0.2rem;
+    box-shadow: none;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 95%, transparent), color-mix(in srgb, var(--surface) 98%, transparent)),
+        color-mix(in srgb, var(--surface) 98%, transparent);
+}
+
+#owner-panel .owner-cohort-card strong {
+    font-family: var(--font-accent);
+    font-size: 0.96rem;
+}
+
+#owner-panel .owner-cohort-card span,
+#owner-panel .owner-cohort-card small {
+    font-size: 0.72rem;
+    line-height: 1.55;
+}
+
+#owner-panel .owner-cohort-card small {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+}
+
+#owner-panel .owner-cohort-card.is-active {
+    transform: none;
+    box-shadow: 0 18px 34px -28px rgba(16, 28, 48, 0.44);
+}
+
+#owner-panel .owner-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.34rem;
+    margin: 0.74rem 0 0.86rem;
+    padding: 0.24rem;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--border-color) 88%, transparent);
+    background: color-mix(in srgb, var(--surface-muted) 86%, transparent);
+    box-shadow: none;
+    scrollbar-width: none;
+}
+
+#owner-panel .owner-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+#owner-panel .owner-tab {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0.12rem 0.88rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 830;
+}
+
+#owner-panel .owner-tab.is-active {
+    border-color: color-mix(in srgb, var(--accent-color) 26%, var(--border-color));
+    background: color-mix(in srgb, var(--surface-solid) 95%, transparent);
+    box-shadow: 0 14px 24px -22px rgba(16, 28, 48, 0.44);
+}
+
+#owner-panel .owner-toolbar {
+    margin-top: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, auto);
+    gap: 0.72rem;
+    align-items: end;
+    padding: 0.78rem 0.84rem;
+}
+
+#owner-panel .owner-toolbar__meta {
+    gap: 0.18rem;
+}
+
+#owner-panel .owner-toolbar__meta strong {
+    font-family: var(--font-accent);
+    font-size: 1rem;
+}
+
+#owner-panel .owner-toolbar__meta span {
+    font-size: 0.76rem;
+    line-height: 1.65;
+}
+
+#owner-panel .owner-search {
+    gap: 0.34rem;
+}
+
+#owner-panel .owner-search span {
+    font-size: 0.72rem;
+    font-weight: 820;
+}
+
+#owner-panel .owner-user-list,
+#owner-panel .owner-representatives {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.52rem;
+    max-height: min(50vh, 560px);
+    overflow: auto;
+    padding-inline-end: 0.18rem;
+    scrollbar-gutter: stable;
+}
+
+#owner-panel .owner-user-list {
+    scroll-behavior: smooth;
+}
+
+#owner-panel .owner-user,
+#owner-panel .representative-chip {
+    padding: 0.76rem 0.8rem;
+    border-radius: 18px;
+    gap: 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--border-color-strong) 74%, transparent);
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 95%, transparent), color-mix(in srgb, var(--surface) 98%, transparent)),
+        color-mix(in srgb, var(--surface) 98%, transparent);
+    box-shadow: 0 18px 30px -28px rgba(16, 28, 48, 0.44);
+}
+
+#owner-panel .owner-user.is-active-panel {
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--accent-soft) 68%, transparent), color-mix(in srgb, var(--surface-solid) 98%, transparent)),
+        color-mix(in srgb, var(--surface) 98%, transparent);
+}
+
+#owner-panel .owner-user__copy {
+    gap: 0.18rem;
+}
+
+#owner-panel .owner-user__copy strong,
+#owner-panel .representative-chip__head strong {
+    font-family: var(--font-accent);
+    font-size: 0.98rem;
+    line-height: 1.4;
+}
+
+#owner-panel .owner-user__copy span,
+#owner-panel .representative-chip__meta {
+    font-size: 0.77rem;
+}
+
+#owner-panel .owner-user__copy small {
+    font-size: 0.74rem;
+    line-height: 1.6;
+}
+
+#owner-panel .owner-user__status,
+#owner-panel .owner-user__meta-strip,
+#owner-panel .representative-chip__stats {
+    gap: 0.28rem;
+}
+
+#owner-panel .owner-badge,
+#owner-user-panel .owner-badge {
+    min-height: 26px;
+    padding: 0.12rem 0.58rem;
+    font-size: 0.68rem;
+}
+
+#owner-panel .owner-user__actions {
+    gap: 0.32rem;
+    align-self: center;
+}
+
+#owner-panel .owner-user__actions .shell-action-btn {
+    min-height: 38px;
+    padding: 0.42rem 0.78rem;
+    border-radius: 12px;
+    white-space: normal;
+    line-height: 1.45;
+    text-align: center;
+    justify-content: center;
+}
+
+#owner-user-panel .owner-user-panel-body {
+    gap: 0.58rem;
+}
+
+#owner-user-panel .owner-user__details {
+    padding: 0.72rem 0.78rem;
+    border-radius: 16px;
+    background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 95%, transparent), color-mix(in srgb, var(--surface) 98%, transparent)),
+        color-mix(in srgb, var(--surface) 98%, transparent);
+}
+
+#owner-user-panel .owner-user__meta-grid,
+#owner-user-panel .owner-user__admin-grid {
+    gap: 0.4rem;
+}
+
+@media (max-width: 920px) {
+    #owner-panel .owner-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    #owner-panel .owner-user__head {
+        grid-template-columns: 1fr;
+    }
+
+    #owner-panel .owner-user__actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 820px) {
+    #owner-summary,
+    #owner-cohort-summary,
+    #owner-grades-courses-summary,
+    #owner-sms-status,
+    #owner-media-status,
+    #owner-user-panel-summary {
+        grid-template-columns: none;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(148px, 1fr);
+        overflow-x: auto;
+        padding-bottom: 0.08rem;
+        scrollbar-width: none;
+    }
+
+    #owner-summary::-webkit-scrollbar,
+    #owner-cohort-summary::-webkit-scrollbar,
+    #owner-grades-courses-summary::-webkit-scrollbar,
+    #owner-sms-status::-webkit-scrollbar,
+    #owner-media-status::-webkit-scrollbar,
+    #owner-user-panel-summary::-webkit-scrollbar {
+        display: none;
+    }
+
+    #owner-panel .owner-cohort-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    #owner-panel .owner-block--cohort-shell,
+    #owner-panel .owner-block--grades-manager,
+    #owner-panel .owner-block--create-student,
+    #owner-panel .owner-block--sms,
+    #owner-panel .owner-block--media-status,
+    #owner-panel .owner-block[data-owner-tab-panel="representatives"],
+    #owner-panel .owner-toolbar {
+        padding: 0.76rem;
+        border-radius: 20px;
+    }
+
+    #owner-summary .owner-summary-card,
+    #owner-cohort-summary .owner-summary-card,
+    #owner-grades-courses-summary .owner-summary-card,
+    #owner-sms-status .owner-summary-card,
+    #owner-media-status .owner-summary-card,
+    #owner-user-panel-summary .owner-summary-card {
+        min-height: 82px;
+        padding: 0.7rem 0.74rem;
+    }
+
+    #owner-panel .owner-user-list,
+    #owner-panel .owner-representatives {
+        max-height: min(52vh, 480px);
+    }
+
+    #owner-panel .owner-user__actions {
+        width: 100%;
+    }
+
+    #owner-panel .owner-user__actions .shell-action-btn {
+        flex: 1 1 calc(50% - 0.16rem);
+    }
+}
+
+@media (max-width: 480px) {
+    #owner-summary,
+    #owner-cohort-summary,
+    #owner-grades-courses-summary,
+    #owner-sms-status,
+    #owner-media-status,
+    #owner-user-panel-summary {
+        grid-auto-columns: minmax(136px, 1fr);
+    }
+}

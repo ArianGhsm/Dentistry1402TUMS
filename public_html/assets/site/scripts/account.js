@@ -3518,9 +3518,9 @@
 
         if (ownerCohortSummary) {
             ownerCohortSummary.innerHTML = activeRecord ? [
-                summaryCard("ورودی فعال", String(activeRecord.shortTitle || activeRecord.title || "—"), String(activeRecord.title || ""), "ok"),
-                summaryCard("نوع", activeRecord.productType === "prosthesis" ? "پروتز" : "دندانپزشکی", "جدا از سایر ورودی‌ها"),
-                summaryCard("نماینده", activeRecord.allowRepresentativeManagement ? "مدیر همان ورودی" : "محدود", activeRecord.allowRepresentativeManagement ? "بیشتر ابزارها برای نماینده همان ورودی فعال است" : "فقط مالک مدیریت می‌کند", activeRecord.allowRepresentativeManagement ? "ok" : "warn")
+                summaryCard("فعال", String(activeRecord.shortTitle || activeRecord.title || "—"), String(activeRecord.title || ""), "ok"),
+                summaryCard("نوع", activeRecord.productType === "prosthesis" ? "پروتز" : "دندانپزشکی", "محیط ایزوله همین ورودی"),
+                summaryCard("دسترسی", activeRecord.allowRepresentativeManagement ? "نماینده فعال" : "فقط مالک", activeRecord.allowRepresentativeManagement ? "ابزارهای اصلی برای نماینده همین ورودی باز است" : "مدیریت فقط در سطح مالک انجام می‌شود", activeRecord.allowRepresentativeManagement ? "ok" : "warn")
             ].join("") : "";
         }
     }
@@ -3537,28 +3537,24 @@
         var withPhone = visibleUsers.filter(function (user) {
             return !!user.hasPhone;
         }).length;
-        var withNationalCode = visibleUsers.filter(function (user) {
-            return !!user.hasNationalCode;
-        }).length;
-        var withDirectoryPhone = visibleUsers.filter(function (user) {
-            return !!user.hasDirectoryPhone;
+        var readyProfiles = visibleUsers.filter(function (user) {
+            return !!user.hasNationalCode && !!user.hasDirectoryPhone;
         }).length;
 
         ownerSummary.innerHTML = [
-            summaryCard("کاربر", totalUsers.toLocaleString("fa-IR"), "کل حساب‌های تعریف‌شده"),
-            summaryCard("نماینده", representatives.toLocaleString("fa-IR"), "افراد دارای دسترسی گفت‌وگو"),
-            summaryCard("دارای شماره", withPhone.toLocaleString("fa-IR"), "کاربرهایی که شماره ورود پیامکی ثبت‌شده دارند"),
-            summaryCard("دارای تلفن", withDirectoryPhone.toLocaleString("fa-IR"), "کاربرهایی که تلفن تماس برای مدیریت دارند"),
-            summaryCard("دارای کدملی", withNationalCode.toLocaleString("fa-IR"), "کاربرهایی که کدملی ثبت‌شده دارند"),
-            summaryCard("دارای نمره", withGrades.toLocaleString("fa-IR"), "کاربرهایی که در فایل نمرات رکورد دارند")
+            summaryCard("کاربر", totalUsers.toLocaleString("fa-IR"), "کل حساب‌های همین ورودی"),
+            summaryCard("نماینده", representatives.toLocaleString("fa-IR"), "دسترسی مدیریتی فعال در این ورودی"),
+            summaryCard("ورود پیامکی", withPhone.toLocaleString("fa-IR"), "شماره تاییدشده برای login"),
+            summaryCard("پروفایل کامل", readyProfiles.toLocaleString("fa-IR"), "دارای کدملی و تلفن تماس"),
+            summaryCard("کارنامه", withGrades.toLocaleString("fa-IR"), "رکورد نمره برای حداقل یک درس", withGrades > 0 ? "ok" : "warn")
         ].join("");
 
         if (accountRowOwnerMeta) {
             accountRowOwnerMeta.textContent = [
                 "کاربر " + totalUsers.toLocaleString("fa-IR"),
                 "نماینده " + representatives.toLocaleString("fa-IR"),
-                "کدملی " + withNationalCode.toLocaleString("fa-IR"),
-                "تلفن " + withDirectoryPhone.toLocaleString("fa-IR"),
+                "شماره " + withPhone.toLocaleString("fa-IR"),
+                "پروفایل کامل " + readyProfiles.toLocaleString("fa-IR"),
                 "درس " + ownerState.gradeCourses.length.toLocaleString("fa-IR")
             ].join(" \u2022 ");
         }
@@ -4406,16 +4402,6 @@
         if (disNumber) {
             parts.push("DIS " + disNumber);
         }
-        parts.push(user.hasPhone ? "دارای شماره" : "بدون شماره");
-        if (user.hasDirectoryPhone) {
-            parts.push("دارای تلفن");
-        }
-        if (user.hasNationalCode) {
-            parts.push("دارای کدملی");
-        }
-        if (user.hasGrades) {
-            parts.push("دارای نمرات");
-        }
         return parts.join(" • ");
     }
 
@@ -4847,17 +4833,16 @@
             status.innerHTML = [
                 buildOwnerBadge(ownerRoleMeta(user), isRepresentativeRole(user.role) ? "ok" : "accent"),
                 buildOwnerBadge(ownerRotationMeta(user), ownerRotationMeta(user) === "بدون روتیشن/گروه" ? "warn" : ""),
-                ownerCohortLabelForUser(user) ? buildOwnerBadge(ownerCohortLabelForUser(user), "soft") : "",
                 buildOwnerBadge(user.hasGrades ? "دارای نمرات" : "بدون نمرات", user.hasGrades ? "ok" : "warn")
             ].join("");
             var meta = document.createElement("small");
             meta.textContent = userMeta(user);
             var quickMeta = document.createElement("div");
             quickMeta.className = "owner-user__meta-strip";
+            var identityReady = !!user.hasNationalCode && !!user.hasDirectoryPhone;
             quickMeta.innerHTML = [
-                buildOwnerBadge(user.hasPhone ? "شماره تاییدشده" : "بدون شماره", user.hasPhone ? "ok" : "warn"),
-                buildOwnerBadge(user.hasDirectoryPhone ? "تلفن تماس دارد" : "تلفن تماس ندارد"),
-                buildOwnerBadge(user.hasNationalCode ? "کدملی ثبت شده" : "بدون کدملی")
+                buildOwnerBadge(user.hasPhone ? "OTP فعال" : "بدون OTP", user.hasPhone ? "ok" : "warn"),
+                buildOwnerBadge(identityReady ? "پروفایل کامل" : "پروفایل ناقص", identityReady ? "soft" : "warn")
             ].join("");
             copy.appendChild(strong);
             copy.appendChild(number);
@@ -4885,7 +4870,7 @@
             panelBtn.className = "shell-action-btn";
             panelBtn.dataset.ownerAction = "open-user-panel";
             panelBtn.dataset.studentNumber = studentNumber;
-            panelBtn.textContent = "پنل کاربر";
+            panelBtn.textContent = "جزئیات";
             actions.appendChild(panelBtn);
 
             head.appendChild(actions);
