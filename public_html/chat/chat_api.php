@@ -3091,6 +3091,261 @@ function chat_last_message(array $messages): ?array
     return $messages[count($messages) - 1];
 }
 
+function chat_message_day_key(int $timestamp): string
+{
+    $timestamp = $timestamp > 0 ? $timestamp : time();
+    return date('Y-m-d', $timestamp);
+}
+
+function chat_conversation_day_index(array $messages): array
+{
+    $days = [];
+    foreach ($messages as $message) {
+        if (!is_array($message)) {
+            continue;
+        }
+
+        $messageId = (int) ($message['id'] ?? 0);
+        $timestamp = (int) ($message['ts'] ?? 0);
+        if ($messageId <= 0 || $timestamp <= 0) {
+            continue;
+        }
+
+        $dayKey = chat_message_day_key($timestamp);
+        if (!isset($days[$dayKey]) || !is_array($days[$dayKey])) {
+            $days[$dayKey] = [
+                'key' => $dayKey,
+                'ts' => $timestamp,
+                'messageId' => $messageId,
+                'count' => 0,
+            ];
+        }
+
+        $days[$dayKey]['count'] = max(0, (int) ($days[$dayKey]['count'] ?? 0)) + 1;
+    }
+
+    return array_values($days);
+}
+
+function chat_first_unread_message_id(array $store, string $conversationId, string $studentNumber): int
+{
+    $conversationId = chat_clean_conversation_id($conversationId);
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($conversationId === '' || $studentNumber === '') {
+        return 0;
+    }
+
+    $messages = chat_get_messages($store, $conversationId);
+    if ($messages === []) {
+        return 0;
+    }
+
+    $lastReadMessageId = chat_last_read_message_id($store, $conversationId, $studentNumber);
+    foreach ($messages as $message) {
+        if (!is_array($message)) {
+            continue;
+        }
+
+        $messageId = (int) ($message['id'] ?? 0);
+        if ($messageId <= $lastReadMessageId) {
+            continue;
+        }
+
+        if (dent_normalize_student_number((string) ($message['senderStudentNumber'] ?? '')) === $studentNumber) {
+            continue;
+        }
+
+        return $messageId;
+    }
+
+    return 0;
+}
+
+function chat_search_contains(string $haystack, string $needle): bool
+{
+    $haystack = dent_clean_text($haystack, 6000);
+    $needle = dent_clean_text($needle, 240);
+    if ($haystack === '' || $needle === '') {
+        return false;
+    }
+
+    if (function_exists('mb_stripos')) {
+        return mb_stripos($haystack, $needle, 0, 'UTF-8') !== false;
+    }
+
+    return stripos($haystack, $needle) !== false;
+}
+
+function chat_search_excerpt_fragment(string $text, string $query, int $radius = 42): string
+{
+    $clean = dent_clean_text($text, 360);
+    if ($clean === '') {
+        return '';
+    }
+
+    $query = dent_clean_text($query, 180);
+    $radius = max(18, min(120, $radius));
+
+    if (
+        $query !== ''
+        && function_exists('mb_stripos')
+        && function_exists('mb_substr')
+        && function_exists('mb_strlen')
+    ) {
+        $position = mb_stripos($clean, $query, 0, 'UTF-8');
+        if ($position !== false) {
+            $queryLength = max(1, mb_strlen($query, 'UTF-8'));
+            $excerptLength = min(140, max(52, ($radius * 2) + $queryLength + 10));
+            $start = max(0, $position - (int) floor($radius * 0.75));
+            $excerpt = mb_substr($clean, $start, $excerptLength, 'UTF-8');
+            if ($start > 0) {
+                $excerpt = '...' . $excerpt;
+            }
+            if (($start + $excerptLength) < mb_strlen($clean, 'UTF-8')) {
+                $excerpt .= '...';
+            }
+            return $excerpt;
+        }
+    }
+
+    if ($query !== '') {
+        $position = stripos($clean, $query);
+        if ($position !== false) {
+            $excerptLength = min(140, max(52, ($radius * 2) + strlen($query) + 10));
+            $start = max(0, $position - (int) floor($radius * 0.75));
+            $excerpt = substr($clean, $start, $excerptLength);
+            if ($start > 0) {
+                $excerpt = '...' . $excerpt;
+            }
+            if (($start + $excerptLength) < strlen($clean)) {
+                $excerpt .= '...';
+            }
+            return $excerpt;
+        }
+    }
+
+    if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+        if (mb_strlen($clean, 'UTF-8') > 140) {
+            return mb_substr($clean, 0, 140, 'UTF-8') . '...';
+        }
+        return $clean;
+    }
+
+    return strlen($clean) > 140 ? (substr($clean, 0, 140) . '...') : $clean;
+}
+
+function chat_message_search_text(array $message, array $store): string
+{
+    $parts = [];
+
+    $sender = chat_public_user_for_student((string) ($message['senderStudentNumber'] ?? ''));
+    $senderName = dent_clean_text((string) ($sender['name'] ?? ''), 120);
+    if ($senderName !== '') {
+        $parts[] = $senderName;
+    }
+
+    $text = dent_clean_text((string) ($message['text'] ?? ''), 2000);
+    if ($text !== '') {
+        $parts[] = $text;
+    }
+
+    foreach (chat_message_attachments_payload($message, $store) as $attachment) {
+        if (!is_array($attachment)) {
+            continue;
+        }
+        $name = dent_clean_text((string) ($attachment['name'] ?? ''), 180);
+        if ($name !== '') {
+            $parts[] = $name;
+        }
+    }
+
+    return dent_clean_text(implode(' ', array_values(array_unique($parts))), 4000);
+}
+
+function chat_message_search_excerpt(array $message, array $store, string $query): string
+{
+    $candidates = [];
+
+    $text = dent_clean_text((string) ($message['text'] ?? ''), 320);
+    if ($text !== '' && !in_array($text, ['Attachment', 'Poll'], true)) {
+        $candidates[] = $text;
+    }
+
+    $attachmentNames = [];
+    foreach (chat_message_attachments_payload($message, $store) as $attachment) {
+        if (!is_array($attachment)) {
+            continue;
+        }
+        $name = dent_clean_text((string) ($attachment['name'] ?? ''), 160);
+        if ($name !== '') {
+            $attachmentNames[] = $name;
+        }
+    }
+    if ($attachmentNames !== []) {
+        $candidates[] = dent_clean_text(implode(' • ', $attachmentNames), 320);
+    }
+
+    foreach ($candidates as $candidate) {
+        if ($candidate !== '' && chat_search_contains($candidate, $query)) {
+            return chat_search_excerpt_fragment($candidate, $query);
+        }
+    }
+
+    if ($candidates !== []) {
+        return chat_search_excerpt_fragment((string) $candidates[0], $query);
+    }
+
+    return match ((string) ($message['kind'] ?? 'text')) {
+        'voice' => 'پیام صوتی',
+        'poll' => 'نظرسنجی',
+        default => 'پیام',
+    };
+}
+
+function chat_message_search_results(array $store, array $messages, string $query, int $limit = 80): array
+{
+    $query = dent_clean_text($query, 180);
+    $limit = max(1, min(200, $limit));
+    if ($query === '' || $messages === []) {
+        return [];
+    }
+
+    $results = [];
+    for ($index = count($messages) - 1; $index >= 0; $index--) {
+        $message = is_array($messages[$index] ?? null) ? $messages[$index] : null;
+        if ($message === null) {
+            continue;
+        }
+
+        $messageId = (int) ($message['id'] ?? 0);
+        $timestamp = (int) ($message['ts'] ?? 0);
+        if ($messageId <= 0 || $timestamp <= 0) {
+            continue;
+        }
+
+        $searchText = chat_message_search_text($message, $store);
+        if ($searchText === '' || !chat_search_contains($searchText, $query)) {
+            continue;
+        }
+
+        $sender = chat_public_user_for_student((string) ($message['senderStudentNumber'] ?? ''));
+        $results[] = [
+            'messageId' => $messageId,
+            'ts' => $timestamp,
+            'senderName' => (string) ($sender['name'] ?? dent_role_label('student')),
+            'excerpt' => chat_message_search_excerpt($message, $store, $query),
+            'kind' => (string) ($message['kind'] ?? 'text'),
+            'dayKey' => chat_message_day_key($timestamp),
+        ];
+
+        if (count($results) >= $limit) {
+            break;
+        }
+    }
+
+    return $results;
+}
+
 function chat_latest_pinned_message(array $messages): ?array
 {
     $pinned = null;
@@ -7035,6 +7290,111 @@ if ($action === 'deleteConversation') {
     ]);
 }
 
+if ($action === 'threadNavigator') {
+    $user = chat_require_user();
+    $conversationId = chat_clean_conversation_id((string) ($_GET['conversationId'] ?? $_POST['conversationId'] ?? CHAT_CLASS_CONVERSATION_ID));
+    if ($conversationId === '') {
+        dent_error('شناسه گفتگو نامعتبر است.', 422);
+    }
+
+    $store = chat_load_store();
+    $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
+    $studentNumber = chat_actor_student_number($user);
+    if (
+        !(bool) ($conversation['mandatory'] ?? false)
+        && chat_is_conversation_deleted_for_user($store, $conversationId, $studentNumber)
+    ) {
+        dent_error('Conversation is not active in your list.', 404);
+    }
+
+    $messages = chat_get_messages($store, $conversationId);
+    dent_json_response([
+        'success' => true,
+        'navigator' => [
+            'conversationId' => $conversationId,
+            'firstUnreadMessageId' => chat_first_unread_message_id($store, $conversationId, $studentNumber),
+            'days' => chat_conversation_day_index($messages),
+        ],
+    ]);
+}
+
+if ($action === 'messageSearch') {
+    $user = chat_require_user();
+    $conversationId = chat_clean_conversation_id((string) ($_GET['conversationId'] ?? $_POST['conversationId'] ?? CHAT_CLASS_CONVERSATION_ID));
+    if ($conversationId === '') {
+        dent_error('شناسه گفتگو نامعتبر است.', 422);
+    }
+
+    $store = chat_load_store();
+    $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
+    $studentNumber = chat_actor_student_number($user);
+    if (
+        !(bool) ($conversation['mandatory'] ?? false)
+        && chat_is_conversation_deleted_for_user($store, $conversationId, $studentNumber)
+    ) {
+        dent_error('Conversation is not active in your list.', 404);
+    }
+
+    $query = dent_clean_text((string) ($_GET['q'] ?? $_POST['q'] ?? ''), 180);
+    $limit = max(1, min(120, (int) ($_GET['limit'] ?? $_POST['limit'] ?? 60)));
+    $messages = chat_get_messages($store, $conversationId);
+    dent_json_response([
+        'success' => true,
+        'results' => $query !== '' ? chat_message_search_results($store, $messages, $query, $limit) : [],
+    ]);
+}
+
+if ($action === 'threadContext') {
+    $user = chat_require_user();
+    $conversationId = chat_clean_conversation_id((string) ($_GET['conversationId'] ?? $_POST['conversationId'] ?? CHAT_CLASS_CONVERSATION_ID));
+    $messageId = (int) ($_GET['messageId'] ?? $_POST['messageId'] ?? $_GET['id'] ?? $_POST['id'] ?? 0);
+    if ($conversationId === '' || $messageId <= 0) {
+        dent_error('شناسه پیام یا گفتگو نامعتبر است.', 422);
+    }
+
+    $store = chat_load_store();
+    $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
+    $studentNumber = chat_actor_student_number($user);
+    if (
+        !(bool) ($conversation['mandatory'] ?? false)
+        && chat_is_conversation_deleted_for_user($store, $conversationId, $studentNumber)
+    ) {
+        dent_error('Conversation is not active in your list.', 404);
+    }
+
+    $before = max(0, min(120, (int) ($_GET['before'] ?? $_POST['before'] ?? 40)));
+    $after = max(0, min(120, (int) ($_GET['after'] ?? $_POST['after'] ?? 18)));
+    $messages = chat_get_messages($store, $conversationId);
+    $index = chat_find_message_index($messages, $messageId);
+    if ($index === -1) {
+        dent_error('پیام پیدا نشد.', 404);
+    }
+
+    $start = max(0, $index - $before);
+    $end = min(count($messages) - 1, $index + $after);
+    $slice = array_slice($messages, $start, ($end - $start) + 1);
+    $oldestMessage = $slice !== [] ? $slice[0] : null;
+    $latestMessage = $slice !== [] ? $slice[count($slice) - 1] : null;
+
+    dent_json_response([
+        'success' => true,
+        'conversationId' => $conversationId,
+        'targetMessageId' => $messageId,
+        'messages' => chat_normalize_messages_for_client($slice, $store, $user),
+        'messagePage' => [
+            'before' => $before,
+            'after' => $after,
+            'oldestMessageId' => $oldestMessage !== null ? (int) ($oldestMessage['id'] ?? 0) : 0,
+            'latestMessageId' => $latestMessage !== null ? (int) ($latestMessage['id'] ?? 0) : 0,
+            'hasMoreBefore' => $start > 0,
+            'hasMoreAfter' => $end < (count($messages) - 1),
+            'returnedCount' => count($slice),
+            'totalCount' => count($messages),
+            'firstUnreadMessageId' => chat_first_unread_message_id($store, $conversationId, $studentNumber),
+        ],
+    ]);
+}
+
 if ($action === 'markRead') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد به‌روزرسانی خوانده‌شدن نامعتبر است.', 405);
@@ -7649,6 +8009,7 @@ if ($action === 'sync' || $action === 'fetch') {
         $activeConversationId = chat_pick_active_conversation_id($store, $user, '');
         $conversation = chat_require_conversation_for_user($store, $activeConversationId, $user);
     }
+    $viewerStudentNumber = chat_actor_student_number($user);
 
     $sinceId = (int) ($_GET['sinceId'] ?? $_POST['sinceId'] ?? 0);
     $full = (string) ($_GET['full'] ?? $_POST['full'] ?? '0') === '1' || $sinceId <= 0;
@@ -7709,9 +8070,11 @@ if ($action === 'sync' || $action === 'fetch') {
             'limit' => $limit,
             'beforeId' => $beforeId,
             'oldestMessageId' => $oldestMessageId,
+            'latestMessageId' => (int) ($lastMessage['id'] ?? 0),
             'hasMoreBefore' => $hasMoreBefore,
             'returnedCount' => count($messages),
             'totalCount' => count($allMessages),
+            'firstUnreadMessageId' => chat_first_unread_message_id($store, $activeConversationId, $viewerStudentNumber),
         ],
         'state' => is_array($conversation['settings'] ?? null)
             ? chat_default_settings($conversation['settings'])

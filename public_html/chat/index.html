@@ -222,6 +222,12 @@
                                         <path d="M4.5 10.2L12 4L19.5 10.2V19.2H14.2V13.8H9.8V19.2H4.5V10.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                                     </svg>
                                 </a>
+                                <button id="thread-search-toggle" class="chat-top-btn" type="button" aria-label="جستجو در گفتگو">
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <circle cx="11" cy="11" r="6.8" stroke="currentColor" stroke-width="1.8"/>
+                                        <path d="M16.2 16.2 20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                    </svg>
+                                </button>
                                 <button id="refresh-btn" class="chat-top-btn" type="button" aria-label="بازخوانی">
                                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                         <path d="M20 12A8 8 0 1 1 17.66 6.34" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
@@ -243,6 +249,30 @@
                                 <span class="chat-pinned-strip__action" id="pinned-action-label">رفتن به پیام</span>
                             </button>
                         </div>
+
+                        <section class="thread-search-panel" id="thread-search-panel" hidden aria-label="جستجو و پیمایش گفتگو">
+                            <div class="thread-search-panel__row">
+                                <label class="thread-search-panel__field" for="thread-search-input">
+                                    <input id="thread-search-input" type="search" placeholder="جستجو در همین گفتگو...">
+                                </label>
+                                <button class="thread-search-panel__close" id="thread-search-close" type="button">بستن</button>
+                            </div>
+                            <div class="thread-search-panel__row thread-search-panel__row--tools">
+                                <button class="thread-search-panel__btn" id="thread-search-prev" type="button">قبلی</button>
+                                <span class="thread-search-panel__count" id="thread-search-count">جستجو در گفتگو</span>
+                                <button class="thread-search-panel__btn" id="thread-search-next" type="button">بعدی</button>
+                                <button class="thread-search-panel__btn thread-search-panel__btn--accent" id="thread-jump-unread-btn" type="button">اولین خوانده‌نشده</button>
+                            </div>
+                            <div class="thread-search-panel__row thread-search-panel__row--tools">
+                                <label class="thread-search-panel__select" for="thread-day-select">
+                                    <select id="thread-day-select">
+                                        <option value="">انتخاب روز</option>
+                                    </select>
+                                </label>
+                                <button class="thread-search-panel__btn" id="thread-jump-day-btn" type="button">رفتن به تاریخ</button>
+                            </div>
+                            <button class="thread-search-panel__preview" id="thread-search-preview" type="button" hidden></button>
+                        </section>
 
                         <div class="thread-stream">
                             <div class="stream-state" id="stream-state" hidden></div>
@@ -299,8 +329,13 @@
                             <div class="composer-uploads" id="composer-uploads" hidden></div>
 
                             <div class="composer-voice" id="composer-voice" hidden>
-                                <span class="composer-voice__dot" aria-hidden="true"></span>
-                                <span class="composer-voice__timer" id="composer-voice-timer" data-digit-locale="latin">00:00</span>
+                                <div class="composer-voice__topline">
+                                    <span class="composer-voice__dot" aria-hidden="true"></span>
+                                    <span class="composer-voice__timer" id="composer-voice-timer" data-digit-locale="latin">00:00</span>
+                                    <span class="composer-voice__lock-chip" id="composer-voice-lock-chip" hidden>قفل شد</span>
+                                </div>
+                                <div class="composer-voice__wave" id="composer-voice-wave" aria-hidden="true"></div>
+                                <div class="composer-voice__hint" id="composer-voice-hint">برای قفل به بالا بکش، برای لغو به چپ بکش.</div>
                                 <div class="composer-voice__actions">
                                     <button type="button" class="shell-action-btn" id="voice-cancel-btn">لغو</button>
                                     <button type="button" class="shell-action-btn" id="voice-stop-btn">توقف</button>
@@ -699,4 +734,3 @@
     <script src="/assets/site/scripts/pwa.js?v=20260604-161209"></script>
 </body>
 </html>
-

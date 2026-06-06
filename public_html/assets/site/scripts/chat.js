@@ -44,6 +44,14 @@
   var CHAT_TYPING_IDLE_MS = 3400;
   var CHAT_TYPING_REFRESH_MS = 2200;
   var CHAT_STREAM_RETRY_MS = 1600;
+  var THREAD_SEARCH_DEBOUNCE_MS = 220;
+  var THREAD_SEARCH_RESULT_LIMIT = 80;
+  var THREAD_CONTEXT_BEFORE_LIMIT = 36;
+  var THREAD_CONTEXT_AFTER_LIMIT = 24;
+  var VOICE_GESTURE_CANCEL_PX = 84;
+  var VOICE_GESTURE_LOCK_PX = 72;
+  var VOICE_WAVE_BAR_COUNT = 24;
+  var VOICE_PLAYBACK_SPEEDS = [1, 1.5, 2];
   var pageCohort = "main";
   var chatHomePath = "/chat/";
   var REACTION_GROUPS = [
@@ -644,6 +652,43 @@
     return String(mins).padStart(2, "0") + ":" + String(secs).padStart(2, "0");
   }
 
+  function voiceSpeedLabel(rate) {
+    var normalized = Math.max(1, toNumber(rate, 1));
+    return (Math.round(normalized * 10) / 10).toLocaleString("fa-IR") + "x";
+  }
+
+  function stableHashSeed(value) {
+    var text = toText(value);
+    var hash = 0;
+    for (var i = 0; i < text.length; i += 1) {
+      hash = ((hash << 5) - hash) + text.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash) || 1;
+  }
+
+  function seededWaveformSamples(seed, count) {
+    var total = Math.max(6, Math.floor(toNumber(count, 0)));
+    var stateSeed = stableHashSeed(seed);
+    var samples = [];
+    for (var i = 0; i < total; i += 1) {
+      stateSeed = (stateSeed * 1664525 + 1013904223) >>> 0;
+      var noise = (stateSeed / 4294967295);
+      var swing = 0.28 + (Math.sin((i + 1) * 0.62 + noise * 2.8) * 0.22);
+      samples.push(clamp(0.22 + noise * 0.56 + swing, 0.2, 0.96));
+    }
+    return samples;
+  }
+
+  function renderWaveBarsMarkup(samples, className) {
+    var bars = Array.isArray(samples) ? samples : [];
+    var barClass = className || "msg-voice-note__bar";
+    return bars.map(function (sample) {
+      var height = Math.round(clamp(toNumber(sample, 0.4), 0.14, 1) * 1000) / 10;
+      return '<span class="' + escapeHtml(barClass) + '" style="--voice-bar-height:' + height + '%"></span>';
+    }).join("");
+  }
+
   function normalizeAttachmentCategory(value) {
     var category = normalizeSpace(value).toLowerCase();
     if (
@@ -833,6 +878,17 @@
   var threadAvatarFallback = $("thread-avatar-fallback");
   var threadTitle = $("thread-title");
   var threadSubtitle = $("thread-subtitle");
+  var threadSearchToggle = $("thread-search-toggle");
+  var threadSearchPanel = $("thread-search-panel");
+  var threadSearchInput = $("thread-search-input");
+  var threadSearchClose = $("thread-search-close");
+  var threadSearchPrev = $("thread-search-prev");
+  var threadSearchNext = $("thread-search-next");
+  var threadSearchCount = $("thread-search-count");
+  var threadSearchPreview = $("thread-search-preview");
+  var threadDaySelect = $("thread-day-select");
+  var threadJumpDayBtn = $("thread-jump-day-btn");
+  var threadJumpUnreadBtn = $("thread-jump-unread-btn");
   var threadUpdatingCount = 0;
 
   var muteBadge = $("mute-badge");
@@ -850,6 +906,9 @@
   var composerUploads = $("composer-uploads");
   var composerVoice = $("composer-voice");
   var composerVoiceTimer = $("composer-voice-timer");
+  var composerVoiceWave = $("composer-voice-wave");
+  var composerVoiceHint = $("composer-voice-hint");
+  var composerVoiceLockChip = $("composer-voice-lock-chip");
   var voiceCancelBtn = $("voice-cancel-btn");
   var voiceStopBtn = $("voice-stop-btn");
   var voiceSendBtn = $("voice-send-btn");
@@ -1011,6 +1070,7 @@
     hasMoreBefore: false,
     olderMessagesLoading: false,
     replyTargetId: null,
+    unreadDividerMessageId: 0,
     pollingTimer: null,
     pollIntervalMs: 1700,
     pollInFlight: false,
@@ -1041,6 +1101,15 @@
     showArchivedConversations: false,
     conversationListRenderKey: "",
     threadAutoStick: true,
+    threadSearchOpen: false,
+    threadSearchQuery: "",
+    threadSearchResults: [],
+    threadSearchIndex: -1,
+    threadSearchRequestToken: 0,
+    threadSearchDebounceTimer: null,
+    threadNavigatorConversationId: "",
+    threadNavigatorDays: [],
+    threadNavigatorFirstUnreadMessageId: 0,
     autoReadTimer: null,
     autoReadConversationId: "",
     autoReadMessageId: 0,
@@ -1050,6 +1119,8 @@
     directoryLoaded: false,
     pendingAttachments: [],
     voiceRecorder: null,
+    voiceGesture: null,
+    activeVoiceNoteId: "",
     mediaViewerItems: [],
     mediaViewerIndex: -1,
     mediaViewerZoomed: false,
@@ -2746,11 +2817,15 @@
     state.oldestMessageId = 0;
     state.hasMoreBefore = false;
     state.olderMessagesLoading = false;
+    state.unreadDividerMessageId = 0;
     state.replyTargetId = null;
     state.threadAutoStick = true;
+    pauseAllVoiceNotes();
+    resetThreadSearchState({ keepPanel: false, keepNavigator: false });
     clearReplyTarget();
     if (messagesEl) messagesEl.innerHTML = "";
     showStreamState("empty", "گفت‌وگو خالی است", "برای شروع گفت‌وگو، یک پیام بفرست.");
+    updateThreadSearchUi();
   }
 
   function setThreadVisible(visible) {
@@ -3186,6 +3261,7 @@
         threadTitle.textContent = "درحال بروزرسانی";
         threadTitle.dataset.updating = "1";
       }
+      updateThreadSearchUi();
       return;
     }
     if (!conversation) {
@@ -3196,6 +3272,7 @@
         renderAvatar(threadAvatar, threadAvatarImage, threadAvatarFallback, "", "?");
         setPresenceBadge(threadAvatar, null);
       }
+      updateThreadSearchUi();
       return;
     }
 
@@ -3215,6 +3292,7 @@
       renderAvatar(threadAvatar, threadAvatarImage, threadAvatarFallback, conversation.avatarUrl, conversation.title);
       setPresenceBadge(threadAvatar, conversation);
     }
+    updateThreadSearchUi();
   }
 
   function updatePinnedUi() {
@@ -3555,6 +3633,32 @@
     return "";
   }
 
+  function renderVoiceAttachment(attachment) {
+    var duration = Math.max(0, Math.floor(toNumber(attachment && attachment.durationSeconds, 0)));
+    var bars = renderWaveBarsMarkup(
+      seededWaveformSamples((attachment && attachment.id) || (attachment && attachment.url) || "voice", VOICE_WAVE_BAR_COUNT),
+      "msg-voice-note__bar"
+    );
+    var downloadUrl = attachment && (attachment.downloadUrl || attachment.url) ? (attachment.downloadUrl || attachment.url) : "";
+    return [
+      '<article class="msg-voice-note' + (attachment && attachment.available ? "" : " is-unavailable") + '" data-voice-id="' + escapeHtml(attachment && attachment.id) + '" data-voice-duration="' + duration + '">',
+      attachment && attachment.available && attachment.url ? ('  <audio class="msg-voice-note__audio" preload="metadata" src="' + escapeHtml(attachment.url) + '"></audio>') : "",
+      '  <button type="button" class="msg-voice-note__play"' + (attachment && attachment.available ? "" : ' disabled aria-disabled="true"') + ' aria-label="پخش پیام صوتی">',
+      '    <span class="msg-voice-note__play-icon msg-voice-note__play-icon--play" aria-hidden="true"></span>',
+      "  </button>",
+      '  <div class="msg-voice-note__body">',
+      '    <div class="msg-voice-note__wave">' + bars + "</div>",
+      '    <div class="msg-voice-note__meta">',
+      '      <span class="msg-voice-note__time" data-digit-locale="latin">' + escapeHtml(formatDuration(duration)) + "</span>",
+      '      <button type="button" class="msg-voice-note__speed"' + (attachment && attachment.available ? "" : ' disabled aria-disabled="true"') + '>' + escapeHtml(voiceSpeedLabel(1)) + "</button>",
+      downloadUrl ? ('      <a class="msg-voice-note__download" href="' + escapeHtml(downloadUrl) + '" target="_blank" rel="noopener">دانلود</a>') : "",
+      attachment && !attachment.available ? '      <span class="msg-voice-note__state">فایل صوتی اصلی فعلاً در دسترس نیست.</span>' : "",
+      "    </div>",
+      "  </div>",
+      "</article>"
+    ].join("");
+  }
+
   function messageLinks(text) {
     var raw = toText(text);
     var matches = raw.match(/https?:\/\/[^\s<>"']+/ig) || [];
@@ -3585,6 +3689,9 @@
 
   function renderAttachment(attachment) {
     if (!attachment) return "";
+    if (attachment.category === "voice") {
+      return renderVoiceAttachment(attachment);
+    }
     var stateText = "";
     if (!attachment.available) {
       stateText = attachment.category === "voice"
@@ -3623,6 +3730,111 @@
     var attachments = Array.isArray(message && message.attachments) ? message.attachments : [];
     if (!attachments.length) return "";
     return '<div class="msg-attachments">' + attachments.map(renderAttachment).join("") + "</div>";
+  }
+
+  function syncVoiceNoteUi(note, audio) {
+    if (!note) return;
+    var playBtn = note.querySelector(".msg-voice-note__play");
+    var playIcon = note.querySelector(".msg-voice-note__play-icon");
+    var timeNode = note.querySelector(".msg-voice-note__time");
+    var duration = Math.max(
+      toNumber(audio && audio.duration, 0),
+      toNumber(note.getAttribute("data-voice-duration"), 0)
+    );
+    var current = Math.max(0, toNumber(audio && audio.currentTime, 0));
+    var fraction = duration > 0 ? clamp(current / duration, 0, 1) : 0;
+    var playedBars = Math.round(fraction * VOICE_WAVE_BAR_COUNT);
+    note.classList.toggle("is-playing", !!(audio && !audio.paused && !audio.ended));
+    Array.from(note.querySelectorAll(".msg-voice-note__bar")).forEach(function (bar, index) {
+      bar.classList.toggle("is-played", index < playedBars);
+    });
+    if (playBtn) {
+      playBtn.setAttribute("aria-label", audio && !audio.paused && !audio.ended ? "توقف پیام صوتی" : "پخش پیام صوتی");
+    }
+    if (playIcon) {
+      playIcon.classList.toggle("msg-voice-note__play-icon--pause", !!(audio && !audio.paused && !audio.ended));
+      playIcon.classList.toggle("msg-voice-note__play-icon--play", !(audio && !audio.paused && !audio.ended));
+    }
+    if (timeNode) {
+      if (audio && !audio.paused && duration > 0) {
+        timeNode.textContent = formatDuration(current) + " / " + formatDuration(duration);
+      } else {
+        timeNode.textContent = formatDuration(duration);
+      }
+    }
+  }
+
+  function pauseAllVoiceNotes(exceptId) {
+    var keepId = normalizeSpace(exceptId);
+    if (!messagesEl) return;
+    Array.from(messagesEl.querySelectorAll(".msg-voice-note")).forEach(function (note) {
+      var noteId = normalizeSpace(note.getAttribute("data-voice-id"));
+      var audio = note.querySelector(".msg-voice-note__audio");
+      if (!audio || noteId === keepId) return;
+      try {
+        audio.pause();
+      } catch (_error) {}
+      audio.currentTime = 0;
+      syncVoiceNoteUi(note, audio);
+    });
+    if (!keepId) {
+      state.activeVoiceNoteId = "";
+    }
+  }
+
+  function bindVoiceNote(note) {
+    if (!note) return;
+    var audio = note.querySelector(".msg-voice-note__audio");
+    var playBtn = note.querySelector(".msg-voice-note__play");
+    var speedBtn = note.querySelector(".msg-voice-note__speed");
+    if (!audio || !playBtn) return;
+    if (note.__voiceBound) {
+      syncVoiceNoteUi(note, audio);
+      return;
+    }
+    note.__voiceBound = true;
+    note.dataset.speedIndex = "0";
+    audio.preload = "metadata";
+    audio.playbackRate = VOICE_PLAYBACK_SPEEDS[0];
+    syncVoiceNoteUi(note, audio);
+
+    var sync = function () {
+      syncVoiceNoteUi(note, audio);
+    };
+
+    ["play", "pause", "timeupdate", "loadedmetadata", "ended", "ratechange"].forEach(function (eventName) {
+      audio.addEventListener(eventName, sync);
+    });
+    audio.addEventListener("play", function () {
+      var noteId = normalizeSpace(note.getAttribute("data-voice-id"));
+      pauseAllVoiceNotes(noteId);
+      state.activeVoiceNoteId = noteId;
+      syncVoiceNoteUi(note, audio);
+    });
+    audio.addEventListener("ended", function () {
+      state.activeVoiceNoteId = "";
+      audio.currentTime = 0;
+      syncVoiceNoteUi(note, audio);
+    });
+
+    playBtn.addEventListener("click", function () {
+      if (audio.paused || audio.ended) {
+        audio.play().catch(function () {});
+      } else {
+        audio.pause();
+      }
+    });
+
+    if (speedBtn) {
+      speedBtn.addEventListener("click", function () {
+        var currentIndex = Math.max(0, Math.floor(toNumber(note.dataset.speedIndex, 0)));
+        var nextIndex = (currentIndex + 1) % VOICE_PLAYBACK_SPEEDS.length;
+        note.dataset.speedIndex = String(nextIndex);
+        audio.playbackRate = VOICE_PLAYBACK_SPEEDS[nextIndex];
+        speedBtn.textContent = voiceSpeedLabel(audio.playbackRate);
+        syncVoiceNoteUi(note, audio);
+      });
+    }
   }
 
   function messageClass(message) {
@@ -3729,6 +3941,7 @@
         openMediaViewerFromNode(button);
       });
     });
+    Array.from(row.querySelectorAll(".msg-voice-note")).forEach(bindVoiceNote);
     var deliveryNode = row.querySelector(".msg-delivery");
     if (deliveryNode && ownMessage) {
       deliveryNode.classList.add("msg-delivery-btn");
@@ -3788,6 +4001,31 @@
     });
   }
 
+  function renderUnreadDivider() {
+    if (!messagesEl) return;
+    Array.from(messagesEl.querySelectorAll(".msg-unread-divider")).forEach(function (node) {
+      node.remove();
+    });
+    var markerId = Math.max(0, Math.floor(toNumber(state.unreadDividerMessageId, 0)));
+    if (!markerId) return;
+    var target = messagesEl.querySelector('[data-mid="' + markerId + '"]');
+    if (!target) return;
+    var divider = document.createElement("div");
+    divider.className = "msg-unread-divider";
+    divider.innerHTML = '<span>پیام‌های خوانده‌نشده</span>';
+    messagesEl.insertBefore(divider, target);
+  }
+
+  function focusMessageHighlight(messageId, durationMs) {
+    state.contextAnchorMessageId = Number(messageId) || null;
+    syncMessageFocus();
+    window.setTimeout(function () {
+      if (state.contextAnchorMessageId !== Number(messageId)) return;
+      state.contextAnchorMessageId = null;
+      syncMessageFocus();
+    }, Math.max(900, Math.floor(toNumber(durationMs, 1800))));
+  }
+
   function syncMessageFocus() {
     if (!messagesEl) return;
     var anchor = state.contextAnchorMessageId;
@@ -3841,17 +4079,281 @@
     });
   }
 
-  function scrollToMessage(messageId) {
+  function scrollToMessage(messageId, options) {
     if (!messagesEl || !messageId) return;
     var node = messagesEl.querySelector('[data-mid="' + Number(messageId) + '"]');
     if (!node) return;
-    node.scrollIntoView({ behavior: "smooth", block: "center" });
-    state.contextAnchorMessageId = Number(messageId);
-    syncMessageFocus();
-    window.setTimeout(function () {
-      state.contextAnchorMessageId = null;
-      syncMessageFocus();
-    }, 1400);
+    var opts = asObject(options) || {};
+    node.scrollIntoView({ behavior: opts.behavior || "smooth", block: opts.block || "center" });
+    focusMessageHighlight(messageId, opts.durationMs || 1800);
+  }
+
+  function normalizeThreadDayItem(raw) {
+    var source = asObject(raw) || {};
+    var messageId = Math.max(0, Math.floor(toNumber(source.messageId, 0)));
+    if (!messageId) return null;
+    return {
+      key: normalizeSpace(source.key || ""),
+      ts: Math.max(0, Math.floor(toNumber(source.ts, 0))),
+      messageId: messageId,
+      count: Math.max(0, Math.floor(toNumber(source.count, 0)))
+    };
+  }
+
+  function normalizeThreadSearchResult(raw) {
+    var source = asObject(raw) || {};
+    var messageId = Math.max(0, Math.floor(toNumber(source.messageId, 0)));
+    if (!messageId) return null;
+    return {
+      messageId: messageId,
+      ts: Math.max(0, Math.floor(toNumber(source.ts, 0))),
+      senderName: normalizeSpace(source.senderName || source.name || "کاربر"),
+      excerpt: normalizeSpace(source.excerpt || source.text || ""),
+      kind: normalizeSpace(source.kind || "text"),
+      dayKey: normalizeSpace(source.dayKey || "")
+    };
+  }
+
+  function currentThreadSearchResult() {
+    if (!Array.isArray(state.threadSearchResults) || !state.threadSearchResults.length) return null;
+    var index = clamp(Math.floor(toNumber(state.threadSearchIndex, 0)), 0, state.threadSearchResults.length - 1);
+    return state.threadSearchResults[index] || null;
+  }
+
+  function resetThreadSearchState(options) {
+    var opts = asObject(options) || {};
+    if (state.threadSearchDebounceTimer) {
+      window.clearTimeout(state.threadSearchDebounceTimer);
+      state.threadSearchDebounceTimer = null;
+    }
+    state.threadSearchRequestToken += 1;
+    state.threadSearchQuery = "";
+    state.threadSearchResults = [];
+    state.threadSearchIndex = -1;
+    if (!opts.keepNavigator) {
+      state.threadNavigatorConversationId = "";
+      state.threadNavigatorDays = [];
+      state.threadNavigatorFirstUnreadMessageId = 0;
+    }
+    if (!opts.keepPanel) {
+      state.threadSearchOpen = false;
+    }
+    if (threadSearchInput && !opts.keepInputValue) {
+      threadSearchInput.value = "";
+    }
+  }
+
+  function renderThreadDayOptions() {
+    if (!threadDaySelect) return;
+    var previousValue = normalizeSpace(threadDaySelect.value);
+    var days = Array.isArray(state.threadNavigatorDays) ? state.threadNavigatorDays.slice() : [];
+    threadDaySelect.innerHTML = ['<option value="">انتخاب روز</option>'].concat(days.map(function (day) {
+      var countText = day.count > 0 ? (" • " + day.count.toLocaleString("fa-IR") + " پیام") : "";
+      var label = formatDate(day.ts) || day.key || "روز";
+      return '<option value="' + escapeHtml(String(day.messageId)) + '">' + escapeHtml(label + countText) + "</option>";
+    })).join("");
+    if (previousValue && threadDaySelect.querySelector('option[value="' + previousValue + '"]')) {
+      threadDaySelect.value = previousValue;
+    }
+  }
+
+  function updateThreadSearchUi() {
+    var hasConversation = !!activeConversation();
+    if (threadSearchToggle) {
+      threadSearchToggle.disabled = !hasConversation;
+      threadSearchToggle.classList.toggle("is-active", !!(state.threadSearchOpen && hasConversation));
+    }
+    if (!threadSearchPanel) return;
+    threadSearchPanel.hidden = !(state.threadSearchOpen && hasConversation);
+    if (!state.threadSearchOpen || !hasConversation) {
+      return;
+    }
+    var hasResults = Array.isArray(state.threadSearchResults) && state.threadSearchResults.length > 0;
+    var selected = currentThreadSearchResult();
+    if (threadSearchPrev) threadSearchPrev.disabled = !hasResults;
+    if (threadSearchNext) threadSearchNext.disabled = !hasResults;
+    if (threadSearchCount) {
+      if (normalizeSpace(state.threadSearchQuery) && hasResults) {
+        threadSearchCount.textContent = (Math.max(0, state.threadSearchIndex) + 1).toLocaleString("fa-IR") + " از " + state.threadSearchResults.length.toLocaleString("fa-IR");
+      } else if (normalizeSpace(state.threadSearchQuery)) {
+        threadSearchCount.textContent = "نتیجه‌ای پیدا نشد";
+      } else {
+        threadSearchCount.textContent = "جستجو در گفتگو";
+      }
+    }
+    if (threadSearchPreview) {
+      if (selected) {
+        threadSearchPreview.hidden = false;
+        threadSearchPreview.innerHTML = [
+          "<strong>" + escapeHtml(selected.senderName || "کاربر") + "</strong>",
+          "<span>" + escapeHtml(selected.excerpt || "پرش به پیام") + "</span>",
+          "<small>" + escapeHtml(formatDateTime(selected.ts)) + "</small>"
+        ].join("");
+      } else {
+        threadSearchPreview.hidden = true;
+        threadSearchPreview.innerHTML = "";
+      }
+    }
+    renderThreadDayOptions();
+    if (threadJumpUnreadBtn) {
+      var firstUnreadId = Math.max(0, Math.floor(toNumber(state.threadNavigatorFirstUnreadMessageId || state.unreadDividerMessageId, 0)));
+      threadJumpUnreadBtn.disabled = !firstUnreadId;
+      threadJumpUnreadBtn.textContent = firstUnreadId ? "اولین خوانده‌نشده" : "خوانده‌نشده‌ای نیست";
+    }
+    if (threadJumpDayBtn) {
+      threadJumpDayBtn.disabled = !(threadDaySelect && normalizeSpace(threadDaySelect.value));
+    }
+  }
+
+  function setThreadSearchOpen(open) {
+    var nextOpen = !!open;
+    if (nextOpen && !activeConversation()) {
+      return;
+    }
+    state.threadSearchOpen = nextOpen;
+    if (!nextOpen) {
+      resetThreadSearchState({ keepNavigator: true, keepPanel: false });
+    }
+    updateThreadSearchUi();
+    if (nextOpen) {
+      fetchThreadNavigator().catch(function () {});
+      window.requestAnimationFrame(function () {
+        if (threadSearchInput) {
+          threadSearchInput.focus({ preventScroll: true });
+          threadSearchInput.select();
+        }
+      });
+    }
+  }
+
+  async function fetchThreadNavigator() {
+    var conversation = activeConversation();
+    if (!conversation) return null;
+    var response = await apiGet("threadNavigator", {
+      conversationId: conversation.id
+    }, { quiet: true });
+    if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+      throw new Error((response && response.error) || "نشست شما منقضی شده است.");
+    }
+    ensureSuccessResponse(response, "پیمایش گفتگو دریافت نشد.");
+    if (!activeConversation() || activeConversation().id !== conversation.id) {
+      return null;
+    }
+    var navigatorPayload = asObject(response.navigator) || {};
+    state.threadNavigatorConversationId = conversation.id;
+    state.threadNavigatorDays = (Array.isArray(navigatorPayload.days) ? navigatorPayload.days : [])
+      .map(normalizeThreadDayItem)
+      .filter(Boolean)
+      .sort(function (left, right) {
+        return toNumber(right.ts, 0) - toNumber(left.ts, 0);
+      });
+    state.threadNavigatorFirstUnreadMessageId = Math.max(0, Math.floor(toNumber(navigatorPayload.firstUnreadMessageId, 0)));
+    if (!state.unreadDividerMessageId && state.threadNavigatorFirstUnreadMessageId > 0) {
+      state.unreadDividerMessageId = state.threadNavigatorFirstUnreadMessageId;
+    }
+    updateThreadSearchUi();
+    return navigatorPayload;
+  }
+
+  async function loadThreadContext(messageId, options) {
+    var conversation = activeConversation();
+    var targetId = Math.max(0, Math.floor(toNumber(messageId, 0)));
+    if (!conversation || !targetId) return false;
+    var existing = messagesEl ? messagesEl.querySelector('[data-mid="' + targetId + '"]') : null;
+    if (existing) {
+      scrollToMessage(targetId, options);
+      return true;
+    }
+    var response = await apiGet("threadContext", {
+      conversationId: conversation.id,
+      messageId: String(targetId),
+      before: String(THREAD_CONTEXT_BEFORE_LIMIT),
+      after: String(THREAD_CONTEXT_AFTER_LIMIT)
+    }, { quiet: true });
+    if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+      throw new Error((response && response.error) || "نشست شما منقضی شده است.");
+    }
+    ensureSuccessResponse(response, "بخش موردنظر گفتگو دریافت نشد.");
+    if (!activeConversation() || activeConversation().id !== conversation.id) {
+      return false;
+    }
+    var page = asObject(response.messagePage) || {};
+    state.hasMoreBefore = page.hasMoreBefore === true;
+    state.unreadDividerMessageId = Math.max(0, Math.floor(toNumber(page.firstUnreadMessageId, 0)));
+    appendMessages((Array.isArray(response.messages) ? response.messages : []).map(normalizeMessage).filter(Boolean), {
+      replaceAll: true,
+      prepend: false,
+      forceStick: false,
+      smooth: false,
+      markNew: false
+    });
+    window.requestAnimationFrame(function () {
+      scrollToMessage(targetId, options);
+    });
+    return true;
+  }
+
+  async function goToThreadSearchResult(index) {
+    if (!Array.isArray(state.threadSearchResults) || !state.threadSearchResults.length) return;
+    var nextIndex = index;
+    if (nextIndex < 0) {
+      nextIndex = state.threadSearchResults.length - 1;
+    }
+    if (nextIndex >= state.threadSearchResults.length) {
+      nextIndex = 0;
+    }
+    state.threadSearchIndex = nextIndex;
+    updateThreadSearchUi();
+    var result = currentThreadSearchResult();
+    if (!result) return;
+    await loadThreadContext(result.messageId, { behavior: "smooth", block: "center", durationMs: 2200 });
+  }
+
+  async function runThreadSearch(query) {
+    var conversation = activeConversation();
+    var q = normalizeSpace(query);
+    state.threadSearchQuery = q;
+    if (!conversation || !q) {
+      state.threadSearchResults = [];
+      state.threadSearchIndex = -1;
+      updateThreadSearchUi();
+      return null;
+    }
+    var token = ++state.threadSearchRequestToken;
+    var response = await apiGet("messageSearch", {
+      conversationId: conversation.id,
+      q: q,
+      limit: String(THREAD_SEARCH_RESULT_LIMIT)
+    }, { quiet: true });
+    if (token !== state.threadSearchRequestToken) {
+      return null;
+    }
+    if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+      throw new Error((response && response.error) || "نشست شما منقضی شده است.");
+    }
+    ensureSuccessResponse(response, "جستجوی گفتگو انجام نشد.");
+    if (!activeConversation() || activeConversation().id !== conversation.id) {
+      return null;
+    }
+    state.threadSearchResults = (Array.isArray(response.results) ? response.results : [])
+      .map(normalizeThreadSearchResult)
+      .filter(Boolean);
+    state.threadSearchIndex = state.threadSearchResults.length ? 0 : -1;
+    updateThreadSearchUi();
+    return state.threadSearchResults;
+  }
+
+  function scheduleThreadSearch() {
+    if (state.threadSearchDebounceTimer) {
+      window.clearTimeout(state.threadSearchDebounceTimer);
+    }
+    state.threadSearchDebounceTimer = window.setTimeout(function () {
+      state.threadSearchDebounceTimer = null;
+      runThreadSearch(threadSearchInput ? threadSearchInput.value : "").catch(function (error) {
+        updateThreadSearchUi();
+        showToast((error && error.message) || "جستجوی گفتگو انجام نشد.");
+      });
+    }, THREAD_SEARCH_DEBOUNCE_MS);
   }
 
   function closeMediaViewer() {
@@ -4228,6 +4730,7 @@
     state.oldestMessageId = ordered.length ? ordered[0].id : 0;
 
     updateMessageGroups();
+    renderUnreadDivider();
     syncMessageFocus();
     updatePinnedUi();
     updateInfoSheet();
@@ -4291,6 +4794,7 @@
       existing.replaceWith(nextNode);
     }
     updateMessageGroups();
+    renderUnreadDivider();
     syncMessageFocus();
     updatePinnedUi();
     updateInfoSheet();
@@ -4304,6 +4808,7 @@
     var existing = messagesEl.querySelector('[data-mid="' + numericId + '"]');
     if (existing) existing.remove();
     updateMessageGroups();
+    renderUnreadDivider();
     updatePinnedUi();
     updateInfoSheet();
     if (state.messages.size === 0) {
@@ -6689,6 +7194,7 @@
         state.conversations = sortConversations(Array.from(state.conversationsById.values()));
       }
 
+      var previousActiveConversationId = state.activeConversationId;
       var nextConversationId = normalizeSpace(
         response.conversationId
         || (currentPayloadConversation && currentPayloadConversation.id)
@@ -6708,6 +7214,10 @@
 
       if (response && response.presence) {
         applyPresenceBundle(response.presence, { skipRender: true });
+      }
+      if (previousActiveConversationId !== state.activeConversationId) {
+        pauseAllVoiceNotes();
+        resetThreadSearchState({ keepPanel: state.threadSearchOpen, keepNavigator: false });
       }
       state.initialConversationId = "";
 
@@ -6747,6 +7257,9 @@
       if (isOlderPage || forceFull || Number(requestPayload.sinceId) <= 0) {
         state.hasMoreBefore = page.hasMoreBefore === true;
       }
+      if (!isOlderPage && Object.prototype.hasOwnProperty.call(page, "firstUnreadMessageId")) {
+        state.unreadDividerMessageId = Math.max(0, Math.floor(toNumber(page.firstUnreadMessageId, 0)));
+      }
 
       appendMessages(normalizedMessages, {
         replaceAll: !isOlderPage && (forceFull || Number(requestPayload.sinceId) <= 0),
@@ -6758,6 +7271,10 @@
 
       updateInfoSheet();
       updateComposerState();
+      updateThreadSearchUi();
+      if (state.threadSearchOpen && state.threadNavigatorConversationId !== state.activeConversationId) {
+        fetchThreadNavigator().catch(function () {});
+      }
       if (!isOlderPage) {
         scheduleAutoMarkRead();
       }
@@ -7348,15 +7865,131 @@
     return "webm";
   }
 
+  function renderComposerVoiceWave(samples) {
+    if (!composerVoiceWave) return;
+    var normalized = Array.isArray(samples) && samples.length
+      ? samples.map(function (sample) {
+          return clamp(toNumber(sample, 0.2), 0.16, 1);
+        })
+      : seededWaveformSamples("idle-voice", VOICE_WAVE_BAR_COUNT).map(function (sample) {
+          return clamp(sample * 0.42, 0.16, 0.48);
+        });
+    if (composerVoiceWave.childElementCount !== normalized.length) {
+      composerVoiceWave.innerHTML = renderWaveBarsMarkup(normalized, "composer-voice__bar");
+      return;
+    }
+    Array.from(composerVoiceWave.children).forEach(function (bar, index) {
+      var height = Math.round(normalized[index] * 1000) / 10;
+      bar.style.setProperty("--voice-bar-height", height + "%");
+    });
+  }
+
+  function stopVoiceMonitoring(recorder) {
+    if (!recorder) return;
+    if (recorder.waveRaf) {
+      window.cancelAnimationFrame(recorder.waveRaf);
+      recorder.waveRaf = 0;
+    }
+    if (recorder.sourceNode && typeof recorder.sourceNode.disconnect === "function") {
+      try {
+        recorder.sourceNode.disconnect();
+      } catch (_error) {}
+    }
+    if (recorder.analyser && typeof recorder.analyser.disconnect === "function") {
+      try {
+        recorder.analyser.disconnect();
+      } catch (_error) {}
+    }
+    if (recorder.audioContext && typeof recorder.audioContext.close === "function") {
+      try {
+        recorder.audioContext.close().catch(function () {});
+      } catch (_error) {}
+    }
+    recorder.audioContext = null;
+    recorder.analyser = null;
+    recorder.analyserData = null;
+    recorder.sourceNode = null;
+  }
+
+  function startVoiceMonitoring(recorder) {
+    if (!recorder) return;
+    recorder.waveSamples = seededWaveformSamples("live-" + recorder.startedAt, VOICE_WAVE_BAR_COUNT).map(function (sample) {
+      return clamp(sample * 0.5, 0.16, 0.54);
+    });
+    renderComposerVoiceWave(recorder.waveSamples);
+    var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor || !recorder.stream) {
+      return;
+    }
+    try {
+      var audioContext = new AudioContextCtor();
+      if (audioContext && typeof audioContext.resume === "function" && audioContext.state === "suspended") {
+        audioContext.resume().catch(function () {});
+      }
+      var analyser = audioContext.createAnalyser();
+      analyser.fftSize = 128;
+      analyser.smoothingTimeConstant = 0.72;
+      var source = audioContext.createMediaStreamSource(recorder.stream);
+      source.connect(analyser);
+      recorder.audioContext = audioContext;
+      recorder.analyser = analyser;
+      recorder.sourceNode = source;
+      recorder.analyserData = new Uint8Array(analyser.fftSize);
+      var tick = function () {
+        if (state.voiceRecorder !== recorder || !recorder.analyser || !recorder.analyserData) {
+          return;
+        }
+        recorder.analyser.getByteTimeDomainData(recorder.analyserData);
+        var sum = 0;
+        for (var i = 0; i < recorder.analyserData.length; i += 1) {
+          var centered = (recorder.analyserData[i] - 128) / 128;
+          sum += centered * centered;
+        }
+        var rms = Math.sqrt(sum / Math.max(1, recorder.analyserData.length));
+        var nextHeight = clamp(0.2 + (rms * 3.4), 0.18, 1);
+        recorder.waveSamples = (Array.isArray(recorder.waveSamples) ? recorder.waveSamples : []).slice(-VOICE_WAVE_BAR_COUNT + 1);
+        recorder.waveSamples.push(nextHeight);
+        renderComposerVoiceWave(recorder.waveSamples);
+        recorder.waveRaf = window.requestAnimationFrame(tick);
+      };
+      recorder.waveRaf = window.requestAnimationFrame(tick);
+    } catch (_error) {
+      renderComposerVoiceWave(recorder.waveSamples);
+    }
+  }
+
+  function voiceRecorderHint(recorder) {
+    if (!recorder) return "برای قفل به بالا بکش، برای لغو به چپ بکش.";
+    if (recorder.cancelReady) return "رها کن تا ضبط لغو شود.";
+    if (recorder.lockReady) return "رها کن تا ضبط قفل شود.";
+    if (recorder.locked && recorder.recording) return "ضبط قفل شد. برای پایان از توقف یا ارسال استفاده کن.";
+    if (recorder.recording && recorder.gestureMode) return "برای قفل به بالا بکش، برای لغو به چپ بکش.";
+    if (recorder.recording) return "برای پایان از توقف یا ارسال استفاده کن.";
+    if (recorder.blob) return "پیام صوتی آماده ارسال است.";
+    return "برای قفل به بالا بکش، برای لغو به چپ بکش.";
+  }
+
   function updateVoiceUi() {
     var recorder = state.voiceRecorder;
     if (!composerVoice || !voiceBtn) return;
     var active = !!recorder;
     composerVoice.hidden = !active;
+    composerVoice.classList.toggle("is-locked", !!(recorder && recorder.locked));
+    composerVoice.classList.toggle("is-cancel-ready", !!(recorder && recorder.cancelReady));
+    composerVoice.classList.toggle("is-lock-ready", !!(recorder && recorder.lockReady));
     voiceBtn.classList.toggle("is-recording", !!(recorder && recorder.recording));
     if (composerVoiceTimer) {
       var elapsed = recorder ? Math.max(0, Math.floor(toNumber(recorder.elapsedSeconds, 0))) : 0;
       composerVoiceTimer.textContent = formatDuration(elapsed);
+    }
+    if (composerVoiceHint) {
+      composerVoiceHint.textContent = voiceRecorderHint(recorder);
+    }
+    if (composerVoiceLockChip) {
+      composerVoiceLockChip.hidden = !(recorder && recorder.locked);
+    }
+    if (!recorder) {
+      renderComposerVoiceWave([]);
     }
     if (voiceStopBtn) {
       voiceStopBtn.disabled = !recorder || !recorder.recording;
@@ -7384,14 +8017,64 @@
     if (recorder && recorder.timerId) {
       window.clearInterval(recorder.timerId);
     }
+    if (recorder) {
+      recorder.disposed = true;
+      recorder.sendAfterStop = false;
+      recorder.recording = false;
+      if (recorder.mediaRecorder) {
+        recorder.mediaRecorder.ondataavailable = null;
+        recorder.mediaRecorder.onstop = null;
+        recorder.mediaRecorder.onerror = null;
+        try {
+          if (recorder.mediaRecorder.state && recorder.mediaRecorder.state !== "inactive") {
+            recorder.mediaRecorder.stop();
+          }
+        } catch (_error) {}
+      }
+    }
+    stopVoiceMonitoring(recorder);
     if (recorder && recorder.stream) {
       stopVoiceTracks(recorder.stream);
     }
+    state.voiceGesture = null;
     state.voiceRecorder = null;
     updateVoiceUi();
   }
 
-  async function startVoiceRecording() {
+  function updateVoiceGesturePosition(clientX, clientY) {
+    var recorder = state.voiceRecorder;
+    var gesture = state.voiceGesture;
+    if (!recorder || !gesture || recorder.locked || !recorder.recording) return;
+    var deltaX = clientX - gesture.startX;
+    var deltaY = clientY - gesture.startY;
+    recorder.cancelReady = deltaX <= -VOICE_GESTURE_CANCEL_PX && Math.abs(deltaX) >= Math.abs(deltaY) * 0.9;
+    recorder.lockReady = deltaY <= -VOICE_GESTURE_LOCK_PX && Math.abs(deltaY) >= Math.abs(deltaX) * 0.72;
+    updateVoiceUi();
+  }
+
+  function releaseVoiceGesture(mode) {
+    var recorder = state.voiceRecorder;
+    state.voiceGesture = null;
+    if (!recorder) return;
+    if (mode === "cancel" || recorder.cancelReady) {
+      resetVoiceRecorder();
+      setComposerStatus("", "");
+      return;
+    }
+    if (recorder.lockReady) {
+      recorder.locked = true;
+      recorder.gestureMode = false;
+      recorder.lockReady = false;
+      recorder.cancelReady = false;
+      setComposerStatus("ضبط صدا قفل شد و ادامه دارد.", "");
+      updateVoiceUi();
+      return;
+    }
+    stopVoiceRecording(true);
+  }
+
+  async function startVoiceRecording(options) {
+    var opts = asObject(options) || {};
     var conversation = activeConversation();
     if (!conversation) {
       showToast("ابتدا یک گفت‌وگو را انتخاب کن.");
@@ -7427,7 +8110,18 @@
         recording: true,
         blob: null,
         mimeType: mimeType || mediaRecorder.mimeType || "audio/webm",
-        sendAfterStop: false
+        sendAfterStop: false,
+        gestureMode: !!opts.gestureMode,
+        locked: false,
+        lockReady: false,
+        cancelReady: false,
+        audioContext: null,
+        analyser: null,
+        analyserData: null,
+        sourceNode: null,
+        waveSamples: [],
+        waveRaf: 0,
+        disposed: false
       };
       state.voiceRecorder = recorderState;
       if (voiceBtn) {
@@ -7435,39 +8129,71 @@
       }
 
       mediaRecorder.ondataavailable = function (event) {
+        if (recorderState.disposed) return;
         if (!event || !event.data || !event.data.size) return;
         recorderState.chunks.push(event.data);
       };
       mediaRecorder.onstop = function () {
+        if (recorderState.disposed) {
+          stopVoiceTracks(recorderState.stream);
+          return;
+        }
         recorderState.recording = false;
         recorderState.elapsedSeconds = Math.max(1, Math.floor((Date.now() - recorderState.startedAt) / 1000));
         if (recorderState.timerId) {
           window.clearInterval(recorderState.timerId);
           recorderState.timerId = null;
         }
+        stopVoiceMonitoring(recorderState);
         if (recorderState.chunks.length) {
           recorderState.blob = new Blob(recorderState.chunks, { type: recorderState.mimeType || "audio/webm" });
         }
         stopVoiceTracks(recorderState.stream);
         updateVoiceUi();
+        var hasUsableBlob = !!(recorderState.blob && recorderState.elapsedSeconds >= 1 && recorderState.blob.size >= 1200);
+        if (!hasUsableBlob) {
+          showToast("پیام صوتی خیلی کوتاه بود.");
+          setComposerStatus("", "");
+          resetVoiceRecorder();
+          return;
+        }
+        if (!recorderState.sendAfterStop) {
+          setComposerStatus("پیام صوتی آماده ارسال است.", "");
+          return;
+        }
         if (recorderState.sendAfterStop && recorderState.blob) {
+          if (recorderState.elapsedSeconds < 1 || recorderState.blob.size < 1200) {
+            showToast("پیام صوتی خیلی کوتاه بود.");
+            resetVoiceRecorder();
+            return;
+          }
           sendRecordedVoice(recorderState).catch(function (error) {
+            setComposerStatus("پیام صوتی آماده ارسال است.", "");
             showToast(error && error.message ? error.message : "ارسال پیام صوتی انجام نشد.");
           });
         }
       };
       mediaRecorder.onerror = function () {
+        if (recorderState.disposed) return;
         showToast("ضبط صدا با خطا متوقف شد.");
         resetVoiceRecorder();
       };
 
       mediaRecorder.start(250);
+      startVoiceMonitoring(recorderState);
       recorderState.timerId = window.setInterval(function () {
         recorderState.elapsedSeconds = Math.max(0, Math.floor((Date.now() - recorderState.startedAt) / 1000));
         updateVoiceUi();
       }, 300);
       setComposerStatus("در حال ضبط پیام صوتی...", "");
       updateVoiceUi();
+      if (state.voiceGesture && opts.gestureMode) {
+        if (state.voiceGesture.releasedBeforeReady) {
+          releaseVoiceGesture(state.voiceGesture.releaseMode || "");
+        } else {
+          updateVoiceGesturePosition(state.voiceGesture.lastX, state.voiceGesture.lastY);
+        }
+      }
     } catch (_error) {
       showToast("دسترسی میکروفون داده نشد یا ضبط صدا شروع نشد.");
       resetVoiceRecorder();
@@ -7498,6 +8224,9 @@
   async function sendRecordedVoice(recorderState) {
     if (!recorderState || !recorderState.blob) {
       throw new Error("فایل صوتی آماده ارسال نیست.");
+    }
+    if (Math.max(0, Math.floor(toNumber(recorderState.elapsedSeconds, 0))) < 1 || recorderState.blob.size < 1200) {
+      throw new Error("پیام صوتی خیلی کوتاه بود.");
     }
     var extension = voiceFileExtension(recorderState.mimeType);
     var fileName = "voice-" + Date.now() + "." + extension;
@@ -8808,9 +9537,144 @@
         removeComposerAttachmentByLocalId(button.getAttribute("data-upl-remove"));
       });
     }
+    if (threadSearchToggle) {
+      threadSearchToggle.addEventListener("click", function () {
+        setThreadSearchOpen(!state.threadSearchOpen);
+      });
+    }
+    if (threadSearchClose) {
+      threadSearchClose.addEventListener("click", function () {
+        setThreadSearchOpen(false);
+      });
+    }
+    if (threadSearchInput) {
+      threadSearchInput.addEventListener("input", function () {
+        state.threadSearchQuery = normalizeSpace(threadSearchInput.value || "");
+        if (!state.threadSearchQuery) {
+          if (state.threadSearchDebounceTimer) {
+            window.clearTimeout(state.threadSearchDebounceTimer);
+            state.threadSearchDebounceTimer = null;
+          }
+          state.threadSearchResults = [];
+          state.threadSearchIndex = -1;
+          updateThreadSearchUi();
+          return;
+        }
+        scheduleThreadSearch();
+        updateThreadSearchUi();
+      });
+      threadSearchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          goToThreadSearchResult(state.threadSearchIndex >= 0 ? state.threadSearchIndex : 0).catch(function (error) {
+            showToast((error && error.message) || "جست‌وجوی گفتگو انجام نشد.");
+          });
+          return;
+        }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          setThreadSearchOpen(false);
+        }
+      });
+    }
+    if (threadSearchPrev) {
+      threadSearchPrev.addEventListener("click", function () {
+        goToThreadSearchResult(state.threadSearchIndex - 1).catch(function (error) {
+          showToast((error && error.message) || "جست‌وجوی گفتگو انجام نشد.");
+        });
+      });
+    }
+    if (threadSearchNext) {
+      threadSearchNext.addEventListener("click", function () {
+        goToThreadSearchResult(state.threadSearchIndex + 1).catch(function (error) {
+          showToast((error && error.message) || "جست‌وجوی گفتگو انجام نشد.");
+        });
+      });
+    }
+    if (threadSearchPreview) {
+      threadSearchPreview.addEventListener("click", function () {
+        var result = currentThreadSearchResult();
+        if (!result) return;
+        loadThreadContext(result.messageId, { behavior: "smooth", block: "center", durationMs: 2200 }).catch(function (error) {
+          showToast((error && error.message) || "پرش به پیام انجام نشد.");
+        });
+      });
+    }
+    if (threadDaySelect) {
+      threadDaySelect.addEventListener("change", updateThreadSearchUi);
+    }
+    if (threadJumpDayBtn) {
+      threadJumpDayBtn.addEventListener("click", function () {
+        var messageId = Math.max(0, Math.floor(toNumber(threadDaySelect && threadDaySelect.value, 0)));
+        if (!messageId) return;
+        loadThreadContext(messageId, { behavior: "smooth", block: "start", durationMs: 1800 }).catch(function (error) {
+          showToast((error && error.message) || "پرش به روز موردنظر انجام نشد.");
+        });
+      });
+    }
+    if (threadJumpUnreadBtn) {
+      threadJumpUnreadBtn.addEventListener("click", function () {
+        var messageId = Math.max(0, Math.floor(toNumber(state.threadNavigatorFirstUnreadMessageId || state.unreadDividerMessageId, 0)));
+        if (!messageId) return;
+        loadThreadContext(messageId, { behavior: "smooth", block: "center", durationMs: 2200 }).catch(function (error) {
+          showToast((error && error.message) || "پرش به اولین پیام خوانده‌نشده انجام نشد.");
+        });
+      });
+    }
     if (voiceBtn) {
+      voiceBtn.addEventListener("pointerdown", function (event) {
+        if (!touchLikePointer(event.pointerType)) return;
+        if (event.button != null && event.button !== 0) return;
+        if (state.voiceRecorder || state.voiceGesture) return;
+        event.preventDefault();
+        state.voiceGesture = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startY: event.clientY,
+          lastX: event.clientX,
+          lastY: event.clientY,
+          releasedBeforeReady: false,
+          releaseMode: ""
+        };
+        voiceBtn.__skipClickUntil = Date.now() + 520;
+        if (typeof voiceBtn.setPointerCapture === "function") {
+          try {
+            voiceBtn.setPointerCapture(event.pointerId);
+          } catch (_error) {}
+        }
+        startVoiceRecording({ gestureMode: true }).catch(function () {});
+      });
+      voiceBtn.addEventListener("pointermove", function (event) {
+        if (!state.voiceGesture || event.pointerId !== state.voiceGesture.pointerId) return;
+        state.voiceGesture.lastX = event.clientX;
+        state.voiceGesture.lastY = event.clientY;
+        updateVoiceGesturePosition(event.clientX, event.clientY);
+      });
+      var releaseVoicePointer = function (mode) {
+        return function (event) {
+          if (!state.voiceGesture || event.pointerId !== state.voiceGesture.pointerId) return;
+          state.voiceGesture.lastX = event.clientX;
+          state.voiceGesture.lastY = event.clientY;
+          if (typeof voiceBtn.releasePointerCapture === "function") {
+            try {
+              voiceBtn.releasePointerCapture(event.pointerId);
+            } catch (_error) {}
+          }
+          if (!state.voiceRecorder) {
+            state.voiceGesture.releasedBeforeReady = true;
+            state.voiceGesture.releaseMode = mode || "";
+            return;
+          }
+          releaseVoiceGesture(mode || "");
+        };
+      };
+      voiceBtn.addEventListener("pointerup", releaseVoicePointer(""));
+      voiceBtn.addEventListener("pointercancel", releaseVoicePointer("cancel"));
       voiceBtn.addEventListener("click", function () {
-        startVoiceRecording();
+        if (voiceBtn.__skipClickUntil && voiceBtn.__skipClickUntil > Date.now()) {
+          return;
+        }
+        startVoiceRecording({ gestureMode: false }).catch(function () {});
       });
     }
     if (voiceStopBtn) {
@@ -8945,6 +9809,10 @@
         }
       }
       if (event.key !== "Escape") return;
+      if (state.threadSearchOpen) {
+        setThreadSearchOpen(false);
+        return;
+      }
       if (composerUploadSheet && !composerUploadSheet.hidden) {
         setUploadSheetOpen(false);
       }
