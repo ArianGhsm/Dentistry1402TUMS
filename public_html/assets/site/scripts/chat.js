@@ -40,6 +40,10 @@
   var TELEGRAM_HEART_REACTION = "\u2764\uFE0F";
   var MESSAGE_DOUBLE_TAP_WINDOW_MS = 300;
   var MESSAGE_DOUBLE_TAP_MOVE_PX = 26;
+  var CHAT_PRESENCE_HEARTBEAT_MS = 25000;
+  var CHAT_TYPING_IDLE_MS = 3400;
+  var CHAT_TYPING_REFRESH_MS = 2200;
+  var CHAT_STREAM_RETRY_MS = 1600;
   var pageCohort = "main";
   var chatHomePath = "/chat/";
   var REACTION_GROUPS = [
@@ -512,6 +516,106 @@
     return [date, clock].filter(Boolean).join(" ");
   }
 
+  function formatLastSeenLabel(ts) {
+    var n = Math.max(0, Math.floor(toNumber(ts, 0)));
+    if (!n) return "";
+    var now = Math.floor(Date.now() / 1000);
+    var delta = Math.max(0, now - n);
+    if (delta < 60) return "لحظاتی پیش";
+    if (delta < 3600) return Math.max(1, Math.floor(delta / 60)).toLocaleString("fa-IR") + " دقیقه پیش";
+    if (delta < 21600) return formatClock(n);
+    return formatDateTime(n);
+  }
+
+  function normalizePresenceState(raw, conversationId) {
+    var source = asObject(raw) || {};
+    var currentConversationId = normalizeSpace(conversationId || "");
+    var typingConversationId = normalizeSpace(source.typingConversationId || "");
+    var stateObj = {
+      studentNumber: normalizeStudentNumber(source.studentNumber || source.username),
+      isOnline: !!source.isOnline,
+      isTyping: !!source.isTyping,
+      lastSeenAt: source.lastSeenAt != null ? Math.floor(toNumber(source.lastSeenAt, 0)) : null,
+      lastActiveAt: source.lastActiveAt != null ? Math.floor(toNumber(source.lastActiveAt, 0)) : null,
+      lastHeartbeatAt: source.lastHeartbeatAt != null ? Math.floor(toNumber(source.lastHeartbeatAt, 0)) : null,
+      activeConversationId: normalizeSpace(source.activeConversationId || ""),
+      typingConversationId: typingConversationId,
+      typingExpiresAt: source.typingExpiresAt != null ? Math.floor(toNumber(source.typingExpiresAt, 0)) : null
+    };
+    if (currentConversationId && typingConversationId && typingConversationId === currentConversationId && stateObj.typingExpiresAt) {
+      stateObj.isTyping = true;
+    }
+    return stateObj;
+  }
+
+  function normalizeConversationPresence(raw, conversationId) {
+    var source = asObject(raw) || {};
+    var currentConversationId = normalizeSpace(conversationId || source.conversationId || "");
+    return {
+      conversationId: currentConversationId,
+      onlineCount: Math.max(0, Math.floor(toNumber(source.onlineCount, 0))),
+      peer: source.peer ? normalizePresenceState(source.peer, currentConversationId) : null,
+      typingUsers: (Array.isArray(source.typingUsers) ? source.typingUsers : []).map(function (user) {
+        var normalized = normalizeUser(user);
+        if (!normalized) return null;
+        normalized.presence = normalizePresenceState(user && user.presence ? user.presence : {}, currentConversationId);
+        return normalized;
+      }).filter(Boolean)
+    };
+  }
+
+  function userPresenceText(user, conversationId) {
+    var presence = user && user.presence ? normalizePresenceState(user.presence, conversationId) : null;
+    if (!presence) return "";
+    if (presence.isTyping) return "در حال نوشتن…";
+    if (presence.isOnline) return "آنلاین";
+    if (presence.lastSeenAt) return "آخرین بازدید " + formatLastSeenLabel(presence.lastSeenAt);
+    return "";
+  }
+
+  function conversationPresenceText(conversation) {
+    var presence = conversation && conversation.presence ? conversation.presence : null;
+    if (!presence) return "";
+    var typingUsers = Array.isArray(presence.typingUsers) ? presence.typingUsers : [];
+    if (typingUsers.length === 1) {
+      var typingName = normalizeSpace(typingUsers[0].name) || "کاربر";
+      return typingName + " در حال نوشتن…";
+    }
+    if (typingUsers.length > 1) {
+      return typingUsers.length.toLocaleString("fa-IR") + " نفر در حال نوشتن…";
+    }
+    if (conversation && conversation.type === "direct") {
+      if (presence.peer) {
+        if (presence.peer.isOnline) return "آنلاین";
+        if (presence.peer.lastSeenAt) return "آخرین بازدید " + formatLastSeenLabel(presence.peer.lastSeenAt);
+      }
+      return "";
+    }
+    if (presence.onlineCount > 0) {
+      return presence.onlineCount.toLocaleString("fa-IR") + " نفر آنلاین";
+    }
+    return "";
+  }
+
+  function setPresenceBadge(node, conversation) {
+    if (!node || !node.classList) return;
+    var mode = "";
+    var presence = conversation && conversation.presence ? conversation.presence : null;
+    if (conversation && conversation.type === "direct" && presence && presence.peer) {
+      if (presence.peer.isTyping) {
+        mode = "typing";
+      } else if (presence.peer.isOnline) {
+        mode = "online";
+      }
+    }
+    if (mode) {
+      node.dataset.presence = mode;
+    } else if (node.dataset) {
+      delete node.dataset.presence;
+    }
+    node.classList.toggle("is-live-presence", !!mode);
+  }
+
   function dayKeyFromTimestamp(ts) {
     var n = toNumber(ts, 0);
     if (!n) return "";
@@ -949,7 +1053,23 @@
     mediaViewerItems: [],
     mediaViewerIndex: -1,
     mediaViewerZoomed: false,
-    mediaViewerPointer: null
+    mediaViewerPointer: null,
+    transportMode: "polling",
+    transportStreamUrl: "",
+    transportPresenceUrl: "",
+    streamSource: null,
+    streamConnected: false,
+    streamBoundConversationId: "",
+    streamBoundMembers: false,
+    streamRetryTimer: null,
+    streamSyncTimer: null,
+    presenceHeartbeatTimer: null,
+    presenceRequestInFlight: false,
+    presenceRefreshPending: false,
+    typingConversationId: "",
+    typingActive: false,
+    typingRefreshTimer: null,
+    typingStopTimer: null
   };
   var navBadgeState = {
     notificationsUnread: 0,
@@ -1947,7 +2067,8 @@
       profile: {
         avatarUrl: normalizeAvatarUrl(profile.avatarUrl || source.avatarUrl || ""),
         about: normalizeSpace(profile.about || profile.bio || source.about || "")
-      }
+      },
+      presence: normalizePresenceState(source.presence || {}, "")
     };
   }
 
@@ -2155,6 +2276,7 @@
       about: toText(source.about || ""),
       avatarUrl: normalizeAvatarUrl(source.avatarUrl),
       shareUrl: normalizeSpace(source.shareUrl),
+      presence: normalizeConversationPresence(source.presence || {}, id),
       createdAt: Math.floor(toNumber(source.createdAt, 0)),
       updatedAt: Math.floor(toNumber(source.updatedAt, 0)),
       isMandatory: !!source.isMandatory,
@@ -2225,6 +2347,74 @@
       return;
     }
     state.conversationsById.set(conversation.id, conversation);
+  }
+
+  function mergeUserPresence(existingUser, incomingUser, conversationId) {
+    var existing = asObject(existingUser) || null;
+    var incoming = asObject(incomingUser) || null;
+    if (!existing && !incoming) return null;
+    var merged = Object.assign({}, existing || {}, incoming || {});
+    merged.profile = Object.assign({}, existing && existing.profile ? existing.profile : {}, incoming && incoming.profile ? incoming.profile : {});
+    merged.presence = normalizePresenceState(
+      incoming && incoming.presence ? incoming.presence : (existing && existing.presence ? existing.presence : {}),
+      conversationId || (merged.presence && merged.presence.typingConversationId) || ""
+    );
+    return merged;
+  }
+
+  function mergeConversationPresenceUpdate(update) {
+    var source = asObject(update) || {};
+    var id = normalizeSpace(source.id || source.conversationId);
+    if (!id || !state.conversationsById.has(id)) return false;
+    var current = state.conversationsById.get(id);
+    var next = Object.assign({}, current);
+    if (Object.prototype.hasOwnProperty.call(source, "presence")) {
+      next.presence = normalizeConversationPresence(source.presence || {}, id);
+    }
+    if (source.peer) {
+      next.peer = mergeUserPresence(current && current.peer, normalizeUser(source.peer), id);
+    }
+    if (Array.isArray(source.members) && Array.isArray(current && current.members)) {
+      var memberMap = new Map();
+      current.members.forEach(function (member) {
+        if (member && member.studentNumber) {
+          memberMap.set(member.studentNumber, member);
+        }
+      });
+      next.members = source.members.map(function (member) {
+        var normalized = normalizeUser(member);
+        if (!normalized) return null;
+        return mergeUserPresence(memberMap.get(normalized.studentNumber), normalized, id);
+      }).filter(Boolean);
+    }
+    state.conversationsById.set(id, next);
+    if (id === state.activeConversationId && current && current.peer && next.peer && current.avatarUrl !== next.avatarUrl) {
+      updateThreadHead();
+    }
+    return true;
+  }
+
+  function applyPresenceBundle(raw, options) {
+    var source = asObject(raw) || {};
+    var updates = Array.isArray(source.conversations) ? source.conversations : [];
+    if (!updates.length) return false;
+    var changed = false;
+    updates.forEach(function (entry) {
+      if (mergeConversationPresenceUpdate(entry)) {
+        changed = true;
+      }
+    });
+    if (!changed) return false;
+    state.conversations = state.conversations.map(function (conversation) {
+      return state.conversationsById.get(conversation.id) || conversation;
+    });
+    var opts = asObject(options) || {};
+    if (!opts.skipRender) {
+      renderConversationList();
+      updateThreadHead();
+      updateInfoSheet();
+    }
+    return true;
   }
 
   function replaceConversations(list) {
@@ -2663,6 +2853,10 @@
   }
 
   function conversationPreview(conversation) {
+    var presenceText = conversationPresenceText(conversation);
+    if (presenceText && conversation && conversation.presence && Array.isArray(conversation.presence.typingUsers) && conversation.presence.typingUsers.length) {
+      return presenceText;
+    }
     if (!conversation || !conversation.lastMessage) {
       if (conversation.type === "direct") return "شروع گفت‌وگو";
       if (conversation.type === "class-group") return "گفت‌وگوی عمومی کلاس";
@@ -2686,6 +2880,8 @@
 
   function conversationListLabel(conversation) {
     if (!conversation) return "";
+    var presenceText = conversationPresenceText(conversation);
+    if (presenceText) return presenceText;
     if (conversation.lastMessage) return "";
     if (conversation.type === "class-group") return "کلاس";
     if (conversation.type === "direct") {
@@ -2768,6 +2964,7 @@
     var image = avatar ? avatar.querySelector("img") : null;
     var fallback = avatar ? avatar.querySelector("span") : null;
     renderAvatar(avatar, image, fallback, conversation.avatarUrl, conversation.title);
+    setPresenceBadge(avatar, conversation);
 
     var openButton = node.querySelector("[data-open-conversation]");
     var selectBox = node.querySelector("[data-conversation-select]");
@@ -2997,6 +3194,7 @@
       if (threadSubtitle) threadSubtitle.textContent = "یک گفت‌وگو را انتخاب کن";
       if (threadAvatar && threadAvatarImage && threadAvatarFallback) {
         renderAvatar(threadAvatar, threadAvatarImage, threadAvatarFallback, "", "?");
+        setPresenceBadge(threadAvatar, null);
       }
       return;
     }
@@ -3004,15 +3202,18 @@
     if (conversationTitle) conversationTitle.textContent = "گفتگوها";
     if (threadTitle) threadTitle.textContent = conversation.title;
     if (threadSubtitle) {
+      var livePresenceText = conversationPresenceText(conversation);
       if (conversation.type === "direct" && conversation.peer) {
         var aboutText = normalizeSpace(conversation.peer.profile && conversation.peer.profile.about);
-        threadSubtitle.textContent = aboutText || conversation.subtitle || "گفت‌وگوی خصوصی";
+        threadSubtitle.textContent = livePresenceText || aboutText || conversation.subtitle || "گفت‌وگوی خصوصی";
       } else {
-        threadSubtitle.textContent = conversation.subtitle || "";
+        threadSubtitle.textContent = livePresenceText || conversation.subtitle || "";
       }
+      threadSubtitle.classList.toggle("is-live-presence", !!livePresenceText);
     }
     if (threadAvatar && threadAvatarImage && threadAvatarFallback) {
       renderAvatar(threadAvatar, threadAvatarImage, threadAvatarFallback, conversation.avatarUrl, conversation.title);
+      setPresenceBadge(threadAvatar, conversation);
     }
   }
 
@@ -5167,6 +5368,7 @@
       if (infoTitle) infoTitle.textContent = "گفت‌وگو";
       if (infoStatus) infoStatus.textContent = "گفت‌وگو انتخاب نشده است";
       if (infoAbout) infoAbout.textContent = "";
+      if (infoAvatar) setPresenceBadge(infoAvatar, null);
       if (infoIdentityRows) infoIdentityRows.innerHTML = "";
       if (infoSettingsRows) infoSettingsRows.innerHTML = "";
       if (infoStats) infoStats.innerHTML = "";
@@ -5189,15 +5391,20 @@
     }
 
     if (infoTitle) infoTitle.textContent = conversation.title;
+    var livePresenceText = conversationPresenceText(conversation);
     if (infoStatus) {
       var statusParts = [];
-      statusParts.push(conversation.memberCount.toLocaleString("fa-IR") + " عضو");
       if (conversation.type === "direct") {
-        statusParts.push("گفتگوی خصوصی");
+        statusParts.push(livePresenceText || "گفتگوی خصوصی");
       } else if (conversation.type === "class-group") {
+        statusParts.push(conversation.memberCount.toLocaleString("fa-IR") + " عضو");
         statusParts.push("گروه اجباری");
       } else {
+        statusParts.push(conversation.memberCount.toLocaleString("fa-IR") + " عضو");
         statusParts.push("گروه");
+      }
+      if (livePresenceText && conversation.type !== "direct") {
+        statusParts.push(livePresenceText);
       }
       var unread = Math.max(0, Math.floor(toNumber(conversation.unreadCount, 0)));
       if (unread > 0) {
@@ -5215,6 +5422,7 @@
     if (infoAbout) infoAbout.textContent = aboutText || "توضیحی ثبت نشده است.";
     if (infoAvatar && infoAvatarImage && infoAvatarFallback) {
       renderAvatar(infoAvatar, infoAvatarImage, infoAvatarFallback, conversation.avatarUrl, conversation.title);
+      setPresenceBadge(infoAvatar, conversation);
     }
     if (infoProfileLink) infoProfileLink.href = "/account/?from=chat#account-profile";
     if (infoSecurityLink) infoSecurityLink.href = "/account/?from=chat#account-security";
@@ -5289,6 +5497,13 @@
         value: Math.max(0, Math.floor(toNumber(conversation.unreadCount, 0))).toLocaleString("fa-IR")
       }
     ];
+    if (livePresenceText) {
+      settingsRows.push({
+        label: "وضعیت حضور",
+        value: livePresenceText,
+        tone: conversation.type === "direct" && conversation.presence && conversation.presence.peer && conversation.presence.peer.isOnline ? "good" : ""
+      });
+    }
     if (conversation.type !== "direct") {
       settingsRows.push({
         label: "واکنش‌ها",
@@ -5343,7 +5558,7 @@
             '<span class="chat-member__avatar" data-has-avatar="0"><img alt="" hidden><span>' + escapeHtml(avatarLabel(member.name)) + "</span></span>",
             '<span class="chat-member__copy">',
             "  <strong>" + escapeHtml(member.name) + "</strong>",
-            "  <span>" + escapeHtml(userRoleMetaText(member)) + (tag ? ' <b class="chat-member-tag">' + escapeHtml(tag) + '</b>' : "") + "</span>",
+            "  <span>" + escapeHtml(userRoleMetaText(member) + (userPresenceText(member, conversation.id) ? " • " + userPresenceText(member, conversation.id) : "")) + (tag ? ' <b class="chat-member-tag">' + escapeHtml(tag) + '</b>' : "") + "</span>",
             "  <small>" + escapeHtml(member.profile && member.profile.about ? member.profile.about : "بدون توضیح") + "</small>",
             "</span>",
             canManageMember ? '<span class="chat-member__actions"><button type="button" data-member-tag="' + escapeHtml(member.studentNumber) + '">تگ</button><button type="button" data-member-admin="' + escapeHtml(member.studentNumber) + '" data-admin-next="' + (member.isConversationAdmin ? "0" : "1") + '">' + (member.isConversationAdmin ? "حذف مدیر" : "مدیر") + '</button></span>' : ""
@@ -5389,6 +5604,7 @@
     infoSheetBackdrop.classList.remove("is-open");
     infoSheetBackdrop.hidden = true;
     state.infoSheetOpen = false;
+    refreshTransportBinding();
     updateMobileNav();
   }
 
@@ -5415,6 +5631,7 @@
     } else {
       updateInfoSheet();
     }
+    refreshTransportBinding();
     updateMobileNav();
   }
 
@@ -6025,6 +6242,284 @@
     document.body.classList.toggle("chat-composer-has-draft", hasText || hasAttachment);
   }
 
+  function clearStreamRetryTimer() {
+    if (state.streamRetryTimer) {
+      window.clearTimeout(state.streamRetryTimer);
+      state.streamRetryTimer = null;
+    }
+  }
+
+  function clearStreamSyncTimer() {
+    if (state.streamSyncTimer) {
+      window.clearTimeout(state.streamSyncTimer);
+      state.streamSyncTimer = null;
+    }
+  }
+
+  function clearPresenceHeartbeatTimer() {
+    if (state.presenceHeartbeatTimer) {
+      window.clearTimeout(state.presenceHeartbeatTimer);
+      state.presenceHeartbeatTimer = null;
+    }
+  }
+
+  function clearTypingTimers() {
+    if (state.typingRefreshTimer) {
+      window.clearTimeout(state.typingRefreshTimer);
+      state.typingRefreshTimer = null;
+    }
+    if (state.typingStopTimer) {
+      window.clearTimeout(state.typingStopTimer);
+      state.typingStopTimer = null;
+    }
+  }
+
+  function configureTransport(transport) {
+    var source = asObject(transport) || {};
+    var mode = normalizeSpace(source.mode).toLowerCase();
+    state.transportMode = mode === "sse" ? "sse" : "polling";
+    state.transportStreamUrl = normalizeSpace(source.streamUrl);
+    state.transportPresenceUrl = normalizeSpace(source.presenceUrl);
+    var fallbackMs = source.fallbackIntervalMs != null ? source.fallbackIntervalMs : source.intervalMs;
+    if (fallbackMs != null) {
+      state.pollIntervalMs = clamp(toNumber(fallbackMs, 5000), MIN_POLL_MS, MAX_POLL_MS);
+    }
+  }
+
+  function buildStreamContextUrl() {
+    if (!state.transportStreamUrl) return "";
+    try {
+      var url = new URL(state.transportStreamUrl, window.location.origin);
+      if (state.activeConversationId) {
+        url.searchParams.set("conversationId", state.activeConversationId);
+      } else {
+        url.searchParams.delete("conversationId");
+      }
+      url.searchParams.set("includeMembers", state.infoSheetOpen ? "1" : "0");
+      return url.toString();
+    } catch (_error) {
+      return "";
+    }
+  }
+
+  function stopRealtimeStream(options) {
+    var opts = asObject(options) || {};
+    if (state.streamSource) {
+      try {
+        state.streamSource.close();
+      } catch (_error) {
+        // no-op
+      }
+    }
+    state.streamSource = null;
+    state.streamConnected = false;
+    if (!opts.keepBinding) {
+      state.streamBoundConversationId = "";
+      state.streamBoundMembers = false;
+    }
+    if (!opts.keepRetry) {
+      clearStreamRetryTimer();
+    }
+    clearStreamSyncTimer();
+  }
+
+  function queueRealtimeSync() {
+    if (!state.me.loggedIn) return;
+    if (state.streamSyncTimer) return;
+    state.streamSyncTimer = window.setTimeout(function () {
+      state.streamSyncTimer = null;
+      syncConversation({
+        forceFull: false,
+        includeMembers: state.infoSheetOpen,
+        silent: true
+      }).catch(function () {});
+    }, 120);
+  }
+
+  function scheduleRealtimeReconnect() {
+    if (!state.me.loggedIn || state.transportMode !== "sse") return;
+    if (state.streamRetryTimer) return;
+    state.streamRetryTimer = window.setTimeout(function () {
+      state.streamRetryTimer = null;
+      startRealtimeStream();
+    }, CHAT_STREAM_RETRY_MS);
+  }
+
+  function sendPresenceHeartbeat(options) {
+    var opts = asObject(options) || {};
+    if (!state.me.loggedIn) return Promise.resolve(null);
+    var conversationId = normalizeSpace(opts.conversationId != null ? opts.conversationId : state.activeConversationId);
+    var payload = {
+      conversationId: conversationId,
+      typing: opts.typing === true ? "1" : "0",
+      activity: normalizeSpace(opts.activity) || (opts.typing === true ? "typing" : "active")
+    };
+    return apiPost("presencePing", payload, { quiet: true }).then(function (response) {
+      if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        throw new Error((response && response.error) || "نشست شما منقضی شده است.");
+      }
+      if (response && response.success === false && !response.networkError) {
+        ensureSuccessResponse(response, "بروزرسانی وضعیت حضور انجام نشد.");
+      }
+      return response;
+    }).catch(function () {
+      return null;
+    });
+  }
+
+  function schedulePresenceHeartbeat(delayMs) {
+    clearPresenceHeartbeatTimer();
+    if (!state.me.loggedIn || document.hidden) return;
+    var wait = Math.max(0, Math.floor(toNumber(delayMs, CHAT_PRESENCE_HEARTBEAT_MS)));
+    state.presenceHeartbeatTimer = window.setTimeout(function () {
+      state.presenceHeartbeatTimer = null;
+      var activeTyping = state.typingActive && normalizeSpace(state.typingConversationId) === normalizeSpace(state.activeConversationId);
+      sendPresenceHeartbeat({
+        conversationId: state.activeConversationId,
+        typing: activeTyping,
+        activity: activeTyping ? "typing" : "active"
+      }).finally(function () {
+        schedulePresenceHeartbeat(CHAT_PRESENCE_HEARTBEAT_MS);
+      });
+    }, wait);
+  }
+
+  function clearTypingActivity(skipNetwork) {
+    var hadTyping = state.typingActive || !!state.typingConversationId;
+    state.typingActive = false;
+    state.typingConversationId = "";
+    clearTypingTimers();
+    if (hadTyping && !skipNetwork) {
+      sendPresenceHeartbeat({
+        conversationId: state.activeConversationId,
+        typing: false,
+        activity: "active"
+      }).finally(function () {
+        schedulePresenceHeartbeat(CHAT_PRESENCE_HEARTBEAT_MS);
+      });
+      return;
+    }
+    schedulePresenceHeartbeat(CHAT_PRESENCE_HEARTBEAT_MS);
+  }
+
+  function handleComposerTypingActivity() {
+    var conversation = activeConversation();
+    var text = normalizeSpace(chatTextEl && chatTextEl.value);
+    if (!conversation || !text || document.hidden || !(conversation.permissions && conversation.permissions.canSend) || (conversation.settings && conversation.settings.muted)) {
+      clearTypingActivity(false);
+      return;
+    }
+
+    var alreadyTyping = state.typingActive && normalizeSpace(state.typingConversationId) === normalizeSpace(conversation.id);
+    state.typingActive = true;
+    state.typingConversationId = conversation.id;
+    if (!alreadyTyping) {
+      sendPresenceHeartbeat({
+        conversationId: conversation.id,
+        typing: true,
+        activity: "typing"
+      });
+    }
+    clearTypingTimers();
+    state.typingRefreshTimer = window.setTimeout(function refreshTyping() {
+      if (!state.typingActive || normalizeSpace(state.typingConversationId) !== normalizeSpace(conversation.id) || document.hidden) {
+        return;
+      }
+      sendPresenceHeartbeat({
+        conversationId: conversation.id,
+        typing: true,
+        activity: "typing"
+      });
+      state.typingRefreshTimer = window.setTimeout(refreshTyping, CHAT_TYPING_REFRESH_MS);
+    }, CHAT_TYPING_REFRESH_MS);
+    state.typingStopTimer = window.setTimeout(function () {
+      clearTypingActivity(false);
+    }, CHAT_TYPING_IDLE_MS);
+  }
+
+  function startRealtimeStream() {
+    if (!state.me.loggedIn || state.transportMode !== "sse" || typeof window.EventSource !== "function") {
+      return false;
+    }
+    var nextUrl = buildStreamContextUrl();
+    if (!nextUrl) return false;
+    var sameBinding = !!state.streamSource
+      && state.streamBoundConversationId === normalizeSpace(state.activeConversationId)
+      && state.streamBoundMembers === !!state.infoSheetOpen;
+    if (sameBinding) {
+      return true;
+    }
+
+    stopRealtimeStream({ keepRetry: false });
+
+    try {
+      var source = new window.EventSource(nextUrl);
+      state.streamSource = source;
+      state.streamBoundConversationId = normalizeSpace(state.activeConversationId);
+      state.streamBoundMembers = !!state.infoSheetOpen;
+      source.addEventListener("open", function () {
+        if (state.streamSource !== source) return;
+        state.streamConnected = true;
+        clearStreamRetryTimer();
+        stopPolling();
+        setConnectionState("live", "متصل");
+      });
+      source.addEventListener("sync", function () {
+        if (state.streamSource !== source) return;
+        queueRealtimeSync();
+      });
+      source.addEventListener("presence", function (event) {
+        if (state.streamSource !== source) return;
+        var payload = null;
+        try {
+          payload = event && event.data ? JSON.parse(event.data) : null;
+        } catch (_error) {
+          payload = null;
+        }
+        if (payload) {
+          applyPresenceBundle(payload);
+        }
+      });
+      source.addEventListener("hello", function (event) {
+        if (state.streamSource !== source) return;
+        try {
+          var payload = event && event.data ? JSON.parse(event.data) : null;
+          if (payload && payload.mode === "sse") {
+            setConnectionState("live", "متصل");
+          }
+        } catch (_error) {
+          setConnectionState("live", "متصل");
+        }
+      });
+      source.onerror = function () {
+        if (state.streamSource !== source) return;
+        stopRealtimeStream({ keepBinding: false, keepRetry: true });
+        state.streamConnected = false;
+        if (state.me.loggedIn) {
+          setConnectionState("issue", "در انتظار اتصال زنده");
+          startPolling();
+          scheduleRealtimeReconnect();
+        }
+      };
+      return true;
+    } catch (_error) {
+      state.streamConnected = false;
+      return false;
+    }
+  }
+
+  function refreshTransportBinding() {
+    if (!state.me.loggedIn) return;
+    if (state.transportMode === "sse" && typeof window.EventSource === "function") {
+      if (!startRealtimeStream()) {
+        startPolling();
+      }
+      return;
+    }
+    stopRealtimeStream();
+    startPolling();
+  }
+
   function stopPolling() {
     if (state.pollingTimer) {
       window.clearTimeout(state.pollingTimer);
@@ -6036,6 +6531,7 @@
   function startPolling() {
     stopPolling();
     if (!state.me.loggedIn) return;
+    if (state.transportMode === "sse" && state.streamConnected) return;
 
     var scheduleNextPoll = function () {
       if (!state.me.loggedIn) {
@@ -6161,12 +6657,7 @@
       var hadConnectionIssue = !!state.connectionIssue;
       state.connectionIssue = false;
 
-      if (response && asObject(response.transport) && response.transport.intervalMs != null) {
-        var nextPollInterval = clamp(toNumber(response.transport.intervalMs, 1700), MIN_POLL_MS, MAX_POLL_MS);
-        if (nextPollInterval !== state.pollIntervalMs) {
-          state.pollIntervalMs = nextPollInterval;
-        }
-      }
+      configureTransport(response && response.transport ? response.transport : {});
 
       if (typeof response.conversationListVersion === "string" && response.conversationListVersion) {
         state.conversationListVersion = response.conversationListVersion;
@@ -6215,6 +6706,9 @@
         state.lastMessageId = 0;
       }
 
+      if (response && response.presence) {
+        applyPresenceBundle(response.presence, { skipRender: true });
+      }
       state.initialConversationId = "";
 
       var hasActiveConversation = !!state.activeConversationId;
@@ -6226,6 +6720,8 @@
 
       var active = activeConversation();
       updateMuteUi(active && active.settings ? active.settings : { muted: false });
+      refreshTransportBinding();
+      schedulePresenceHeartbeat(0);
 
       if (!hasActiveConversation) {
         clearThreadState();
@@ -6301,6 +6797,7 @@
     var previousConversationId = state.activeConversationId;
     var changed = previousConversationId !== nextId;
     if (changed) {
+      clearTypingActivity(false);
       saveComposerDraftNow(previousConversationId);
     }
     state.activeConversationId = nextId;
@@ -6414,6 +6911,9 @@
     nativeEmojiPicker = null;
 
     stopPolling();
+    stopRealtimeStream();
+    clearPresenceHeartbeatTimer();
+    clearTypingActivity(true);
     clearAutoReadTimer();
     clearFastChatCacheSaveHandle();
     resetVoiceRecorder();
@@ -6510,6 +7010,9 @@
       state.pendingAttachments = [];
       clearFastChatCacheSaveHandle();
       clearAutoReadTimer();
+      stopRealtimeStream();
+      clearPresenceHeartbeatTimer();
+      clearTypingActivity(true);
       setUploadSheetOpen(false);
       renderComposerUploads();
       resetVoiceRecorder();
@@ -6552,7 +7055,8 @@
       showToast(error && error.message ? error.message : "بارگذاری گفتگوها انجام نشد.");
     }
 
-    startPolling();
+    refreshTransportBinding();
+    schedulePresenceHeartbeat(0);
   }
 
   async function handleAuthChange(detail) {
@@ -7085,6 +7589,7 @@
       }
       autosizeComposer();
       clearReplyTarget();
+      clearTypingActivity(false);
       clearComposerAttachments(attachmentIds);
       setComposerStatus("", "");
       setConnectionState("live", "متصل");
@@ -8234,7 +8739,10 @@
     });
 
     if (chatTextEl) {
-      chatTextEl.addEventListener("input", autosizeComposer);
+      chatTextEl.addEventListener("input", function () {
+        autosizeComposer();
+        handleComposerTypingActivity();
+      });
       chatTextEl.addEventListener("keydown", function (event) {
         if (event.key === "Enter" && !event.shiftKey) {
           event.preventDefault();
@@ -8246,9 +8754,11 @@
         syncFocusedComposerIntoView();
         window.setTimeout(syncFocusedComposerIntoView, 140);
         window.setTimeout(syncFocusedComposerIntoView, 320);
+        schedulePresenceHeartbeat(0);
       });
       chatTextEl.addEventListener("blur", function () {
         window.setTimeout(applyViewportHeight, 160);
+        clearTypingActivity(false);
       });
     }
 
@@ -8504,12 +9014,19 @@
       if (!state.me.loggedIn) return;
       syncConversation({ forceFull: false, includeMembers: state.infoSheetOpen, silent: true }).catch(function () {});
       loadNotificationBadgeSummary(false);
+      schedulePresenceHeartbeat(0);
     });
 
     document.addEventListener("visibilitychange", function () {
-      if (document.hidden || !state.me.loggedIn) return;
+      if (!state.me.loggedIn) return;
+      if (document.hidden) {
+        clearPresenceHeartbeatTimer();
+        clearTypingActivity(false);
+        return;
+      }
       syncConversation({ forceFull: false, includeMembers: state.infoSheetOpen, silent: true }).catch(function () {});
       loadNotificationBadgeSummary(false);
+      schedulePresenceHeartbeat(0);
     });
 
     window.addEventListener("dent1402:notifications-change", function (event) {

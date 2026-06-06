@@ -8944,3 +8944,71 @@ html[data-performance-mode="lite"] body.chat-page .msg-heart-burst {
         right: -2rem;
     }
 }
+
+body.chat-page .thread-head__copy span.is-live-presence,
+body.chat-page .conversation-item__subtitle,
+body.chat-page .chat-member__copy span {
+    transition: color var(--motion-fast) var(--motion-ease-standard);
+}
+
+body.chat-page .thread-head__copy span.is-live-presence {
+    color: var(--chat-accent);
+}
+
+body.chat-page .conversation-item__avatar,
+body.chat-page .thread-head__avatar,
+body.chat-page .chat-info-sheet__avatar {
+    position: relative;
+}
+
+body.chat-page .conversation-item__avatar::after,
+body.chat-page .thread-head__avatar::after,
+body.chat-page .chat-info-sheet__avatar::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: 1px;
+    inset-block-end: 1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    border: 2px solid var(--chat-panel-solid, #ffffff);
+    background: #36c56f;
+    box-shadow: 0 0 0 0 rgba(54, 197, 111, 0);
+    opacity: 0;
+    transform: scale(0.72);
+    transition:
+        opacity var(--motion-fast) var(--motion-ease-standard),
+        transform var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-fast) var(--motion-ease-standard),
+        background var(--motion-fast) var(--motion-ease-standard);
+}
+
+body.chat-page .conversation-item__avatar[data-presence="online"]::after,
+body.chat-page .thread-head__avatar[data-presence="online"]::after,
+body.chat-page .chat-info-sheet__avatar[data-presence="online"]::after,
+body.chat-page .conversation-item__avatar[data-presence="typing"]::after,
+body.chat-page .thread-head__avatar[data-presence="typing"]::after,
+body.chat-page .chat-info-sheet__avatar[data-presence="typing"]::after {
+    opacity: 1;
+    transform: scale(1);
+}
+
+body.chat-page .conversation-item__avatar[data-presence="online"]::after,
+body.chat-page .thread-head__avatar[data-presence="online"]::after,
+body.chat-page .chat-info-sheet__avatar[data-presence="online"]::after {
+    background: #36c56f;
+    box-shadow: 0 0 0 4px rgba(54, 197, 111, 0.14);
+}
+
+body.chat-page .conversation-item__avatar[data-presence="typing"]::after,
+body.chat-page .thread-head__avatar[data-presence="typing"]::after,
+body.chat-page .chat-info-sheet__avatar[data-presence="typing"]::after {
+    background: var(--chat-accent);
+    box-shadow: 0 0 0 4px rgba(43, 109, 243, 0.16);
+}
+
+html[data-performance-mode="lite"] body.chat-page .conversation-item__avatar::after,
+html[data-performance-mode="lite"] body.chat-page .thread-head__avatar::after,
+html[data-performance-mode="lite"] body.chat-page .chat-info-sheet__avatar::after {
+    box-shadow: none;
+}

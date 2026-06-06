@@ -23,6 +23,13 @@ const CHAT_POLL_AUDIENCE_ROTATION_1 = 'rotation-1';
 const CHAT_POLL_AUDIENCE_ROTATION_2 = 'rotation-2';
 const CHAT_POLL_AUDIENCE_BOTH_ROTATIONS = 'both-rotations';
 const CHAT_BRAND_ASSET_VERSION = '20260422-brand1';
+const CHAT_PRESENCE_SCHEMA_VERSION = 1;
+const CHAT_PRESENCE_ONLINE_WINDOW_SECONDS = 70;
+const CHAT_PRESENCE_TYPING_WINDOW_SECONDS = 6;
+const CHAT_PRESENCE_RETENTION_SECONDS = 7776000;
+const CHAT_STREAM_MAX_DURATION_SECONDS = 25;
+const CHAT_STREAM_POLL_INTERVAL_MICROSECONDS = 700000;
+const CHAT_STREAM_KEEPALIVE_SECONDS = 12;
 
 function chat_clean_cohort(?string $value): string
 {
@@ -124,6 +131,32 @@ function chat_store_lock_path(): string
     return dent_storage_path('chat/' . dent_cohort_storage_slug($cohortKey) . '_store.lock');
 }
 
+function chat_presence_path(): string
+{
+    $cohortKey = chat_active_cohort();
+    if ($cohortKey === dent_prosthesis_legacy_cohort_key()) {
+        return dent_storage_path('prosthesis_1402/chat/presence.json');
+    }
+    if ($cohortKey === dent_primary_cohort_key()) {
+        return dent_storage_path('chat/presence.json');
+    }
+
+    return dent_storage_path('chat/' . dent_cohort_storage_slug($cohortKey) . '_presence.json');
+}
+
+function chat_presence_lock_path(): string
+{
+    $cohortKey = chat_active_cohort();
+    if ($cohortKey === dent_prosthesis_legacy_cohort_key()) {
+        return dent_storage_path('prosthesis_1402/chat/presence.lock');
+    }
+    if ($cohortKey === dent_primary_cohort_key()) {
+        return dent_storage_path('chat/presence.lock');
+    }
+
+    return dent_storage_path('chat/' . dent_cohort_storage_slug($cohortKey) . '_presence.lock');
+}
+
 function chat_legacy_messages_path(): string
 {
     return dent_storage_path('chat/messages.json');
@@ -187,6 +220,26 @@ function chat_public_media_url(string $attachmentId, string $variant = CHAT_MEDI
     }
     if ($download) {
         $query['download'] = '1';
+    }
+
+    return '/chat/chat_api.php?' . http_build_query($query);
+}
+
+function chat_stream_url(): string
+{
+    $query = ['action' => 'stream'];
+    if (chat_active_cohort() !== dent_primary_cohort_key()) {
+        $query['cohort'] = chat_active_cohort();
+    }
+
+    return '/chat/chat_api.php?' . http_build_query($query);
+}
+
+function chat_presence_url(): string
+{
+    $query = ['action' => 'presence'];
+    if (chat_active_cohort() !== dent_primary_cohort_key()) {
+        $query['cohort'] = chat_active_cohort();
     }
 
     return '/chat/chat_api.php?' . http_build_query($query);
@@ -383,6 +436,7 @@ function chat_ensure_storage(): void
     dent_ensure_directory(dirname(chat_store_path()));
     dent_ensure_directory(chat_media_originals_path());
     dent_ensure_directory(chat_media_previews_path());
+    dent_ensure_directory(dirname(chat_presence_path()));
 
     if (!isset($_SESSION['chat_rate_limit']) || !is_array($_SESSION['chat_rate_limit'])) {
         $_SESSION['chat_rate_limit'] = [];
@@ -425,6 +479,44 @@ function chat_release_store_lock(): void
 
     $GLOBALS['chat_store_lock_handle'] = null;
     $GLOBALS['chat_store_lock_acquired'] = false;
+}
+
+function chat_acquire_presence_lock(): void
+{
+    if (($GLOBALS['chat_presence_lock_acquired'] ?? false) === true) {
+        return;
+    }
+
+    dent_ensure_directory(dirname(chat_presence_lock_path()));
+    $handle = @fopen(chat_presence_lock_path(), 'c');
+    if ($handle === false) {
+        dent_error('Chat presence lock is unavailable.', 503);
+    }
+
+    if (!@flock($handle, LOCK_EX)) {
+        @fclose($handle);
+        dent_error('Chat presence lock is unavailable.', 503);
+    }
+
+    $GLOBALS['chat_presence_lock_handle'] = $handle;
+    $GLOBALS['chat_presence_lock_acquired'] = true;
+    register_shutdown_function('chat_release_presence_lock');
+}
+
+function chat_release_presence_lock(): void
+{
+    if (($GLOBALS['chat_presence_lock_acquired'] ?? false) !== true) {
+        return;
+    }
+
+    $handle = $GLOBALS['chat_presence_lock_handle'] ?? null;
+    if (is_resource($handle)) {
+        @flock($handle, LOCK_UN);
+        @fclose($handle);
+    }
+
+    $GLOBALS['chat_presence_lock_handle'] = null;
+    $GLOBALS['chat_presence_lock_acquired'] = false;
 }
 
 function chat_clean_conversation_id(?string $value): string
@@ -508,6 +600,202 @@ function chat_parse_timestamp($value): ?int
     }
 
     return (int) $parsed;
+}
+
+function chat_default_presence_store(array $seed = []): array
+{
+    return [
+        'schemaVersion' => CHAT_PRESENCE_SCHEMA_VERSION,
+        'updatedAt' => chat_parse_timestamp($seed['updatedAt'] ?? null) ?? time(),
+        'users' => is_array($seed['users'] ?? null) ? $seed['users'] : [],
+    ];
+}
+
+function chat_normalize_presence_entry(string $studentNumber, array $source, ?int $now = null): ?array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        return null;
+    }
+
+    $now = $now ?? time();
+    $lastSeenAt = chat_parse_timestamp($source['lastSeenAt'] ?? null);
+    $lastActiveAt = chat_parse_timestamp($source['lastActiveAt'] ?? null);
+    $lastHeartbeatAt = chat_parse_timestamp($source['lastHeartbeatAt'] ?? null);
+    $activeConversationId = chat_clean_conversation_id((string) ($source['activeConversationId'] ?? ''));
+    $typingConversationId = chat_clean_conversation_id((string) ($source['typingConversationId'] ?? ''));
+    $typingExpiresAt = chat_parse_timestamp($source['typingExpiresAt'] ?? null);
+
+    if ($lastSeenAt !== null && $lastSeenAt > $now + 300) {
+        $lastSeenAt = $now;
+    }
+    if ($lastActiveAt !== null && $lastActiveAt > $now + 300) {
+        $lastActiveAt = $now;
+    }
+    if ($lastHeartbeatAt !== null && $lastHeartbeatAt > $now + 300) {
+        $lastHeartbeatAt = $now;
+    }
+    if ($typingExpiresAt !== null && $typingExpiresAt > $now + 300) {
+        $typingExpiresAt = $now + CHAT_PRESENCE_TYPING_WINDOW_SECONDS;
+    }
+
+    if ($typingExpiresAt === null || $typingExpiresAt <= $now || $typingConversationId === '') {
+        $typingConversationId = '';
+        $typingExpiresAt = null;
+    }
+
+    $latestSeenAt = max(
+        $lastSeenAt ?? 0,
+        $lastActiveAt ?? 0,
+        $lastHeartbeatAt ?? 0
+    );
+    if ($latestSeenAt > 0) {
+        $lastSeenAt = $latestSeenAt;
+    }
+
+    return [
+        'studentNumber' => $studentNumber,
+        'lastSeenAt' => $lastSeenAt,
+        'lastActiveAt' => $lastActiveAt,
+        'lastHeartbeatAt' => $lastHeartbeatAt,
+        'activeConversationId' => $activeConversationId,
+        'typingConversationId' => $typingConversationId,
+        'typingExpiresAt' => $typingExpiresAt,
+    ];
+}
+
+function chat_normalize_presence_store(array $rawStore): array
+{
+    $normalized = chat_default_presence_store($rawStore);
+    $users = [];
+    $now = time();
+    foreach ((array) ($normalized['users'] ?? []) as $key => $entry) {
+        $studentNumber = dent_normalize_student_number((string) (is_array($entry) ? ($entry['studentNumber'] ?? $key) : $key));
+        if (!is_array($entry)) {
+            continue;
+        }
+        $normalizedEntry = chat_normalize_presence_entry($studentNumber, $entry, $now);
+        if ($normalizedEntry === null) {
+            continue;
+        }
+
+        $freshUntil = max(
+            (int) ($normalizedEntry['lastSeenAt'] ?? 0),
+            (int) ($normalizedEntry['lastActiveAt'] ?? 0),
+            (int) ($normalizedEntry['lastHeartbeatAt'] ?? 0)
+        );
+        if ($freshUntil > 0 && ($now - $freshUntil) > CHAT_PRESENCE_RETENTION_SECONDS) {
+            continue;
+        }
+
+        $users[$studentNumber] = $normalizedEntry;
+    }
+
+    ksort($users, SORT_STRING);
+    $normalized['schemaVersion'] = CHAT_PRESENCE_SCHEMA_VERSION;
+    $normalized['updatedAt'] = chat_parse_timestamp($normalized['updatedAt'] ?? null) ?? $now;
+    $normalized['users'] = $users;
+    return $normalized;
+}
+
+function chat_read_presence_store_file(): ?array
+{
+    $path = chat_presence_path();
+    if (!is_file($path)) {
+        return null;
+    }
+
+    $raw = @file_get_contents($path);
+    if ($raw === false || trim($raw) === '') {
+        return null;
+    }
+
+    $decoded = json_decode($raw, true);
+    return is_array($decoded) ? $decoded : null;
+}
+
+function chat_write_presence_store_file(array $store): void
+{
+    dent_ensure_directory(dirname(chat_presence_path()));
+
+    $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+
+    $store = chat_normalize_presence_store($store);
+    $store['schemaVersion'] = CHAT_PRESENCE_SCHEMA_VERSION;
+    $store['updatedAt'] = time();
+
+    $json = json_encode($store, $flags);
+    if ($json === false) {
+        dent_error('Chat presence JSON encoding failed.', 500);
+    }
+
+    $path = chat_presence_path();
+    $tmpPath = $path . '.tmp.' . getmypid() . '.' . str_replace('.', '', uniqid('', true));
+    if (@file_put_contents($tmpPath, $json . PHP_EOL, LOCK_EX) === false) {
+        @unlink($tmpPath);
+        dent_error('Chat presence write failed.', 500);
+    }
+    @chmod($tmpPath, 0644);
+
+    if (!@rename($tmpPath, $path)) {
+        if (is_file($path)) {
+            @unlink($path);
+        }
+        if (!@rename($tmpPath, $path)) {
+            @unlink($tmpPath);
+            dent_error('Chat presence replace failed.', 500);
+        }
+    }
+}
+
+function chat_load_presence_store(): array
+{
+    chat_acquire_presence_lock();
+    $rawStore = chat_read_presence_store_file();
+    $normalized = chat_normalize_presence_store(is_array($rawStore) ? $rawStore : chat_default_presence_store());
+    $rawEncoded = is_array($rawStore)
+        ? (json_encode($rawStore, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '')
+        : '';
+    $normalizedEncoded = json_encode($normalized, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '';
+    if (!is_array($rawStore) || $rawEncoded !== $normalizedEncoded) {
+        chat_write_presence_store_file($normalized);
+    }
+    return $normalized;
+}
+
+function chat_save_presence_store(array $store): void
+{
+    chat_acquire_presence_lock();
+    chat_write_presence_store_file($store);
+}
+
+function chat_read_presence_snapshot(bool $fresh = false): array
+{
+    static $cache = [];
+    $cacheKey = chat_active_cohort();
+    if (!$fresh && isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
+    $rawStore = chat_read_presence_store_file();
+    $cache[$cacheKey] = chat_normalize_presence_store(is_array($rawStore) ? $rawStore : chat_default_presence_store());
+    return $cache[$cacheKey];
+}
+
+function chat_presence_file_signature(): string
+{
+    $path = chat_presence_path();
+    clearstatcache(true, $path);
+    if (!is_file($path)) {
+        return '0:0';
+    }
+
+    $mtime = @filemtime($path) ?: 0;
+    $size = @filesize($path) ?: 0;
+    return $mtime . ':' . $size;
 }
 
 function chat_clean_attachment_id(?string $value): string
@@ -2404,6 +2692,34 @@ function chat_save_store(array $store): void
     chat_write_store_file($store);
 }
 
+function chat_read_store_snapshot(bool $fresh = false): array
+{
+    static $cache = [];
+    $cacheKey = chat_active_cohort();
+    if (!$fresh && isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
+    $rawStore = chat_read_store_file();
+    $cache[$cacheKey] = is_array($rawStore)
+        ? chat_normalize_store($rawStore)
+        : chat_new_store_base();
+    return $cache[$cacheKey];
+}
+
+function chat_store_file_signature(): string
+{
+    $path = chat_store_path();
+    clearstatcache(true, $path);
+    if (!is_file($path)) {
+        return '0:0';
+    }
+
+    $mtime = @filemtime($path) ?: 0;
+    $size = @filesize($path) ?: 0;
+    return $mtime . ':' . $size;
+}
+
 function chat_get_conversation(array $store, string $conversationId): ?array
 {
     $conversationId = chat_clean_conversation_id($conversationId);
@@ -2953,6 +3269,245 @@ function chat_is_group_admin(array $conversation, string $studentNumber): bool
     }
 
     return in_array($studentNumber, chat_normalize_student_list($conversation['admins'] ?? []), true);
+}
+
+function chat_presence_entry_for_student(array $presenceStore, string $studentNumber): array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        return [
+            'studentNumber' => '',
+            'lastSeenAt' => null,
+            'lastActiveAt' => null,
+            'lastHeartbeatAt' => null,
+            'activeConversationId' => '',
+            'typingConversationId' => '',
+            'typingExpiresAt' => null,
+        ];
+    }
+
+    $users = is_array($presenceStore['users'] ?? null) ? $presenceStore['users'] : [];
+    $entry = is_array($users[$studentNumber] ?? null) ? $users[$studentNumber] : [];
+    return chat_normalize_presence_entry($studentNumber, $entry, time()) ?? [
+        'studentNumber' => $studentNumber,
+        'lastSeenAt' => null,
+        'lastActiveAt' => null,
+        'lastHeartbeatAt' => null,
+        'activeConversationId' => '',
+        'typingConversationId' => '',
+        'typingExpiresAt' => null,
+    ];
+}
+
+function chat_presence_is_online(array $entry, ?int $now = null): bool
+{
+    $now = $now ?? time();
+    $heartbeatAt = chat_parse_timestamp($entry['lastHeartbeatAt'] ?? null);
+    return $heartbeatAt !== null && ($now - $heartbeatAt) <= CHAT_PRESENCE_ONLINE_WINDOW_SECONDS;
+}
+
+function chat_presence_is_typing_in_conversation(array $entry, string $conversationId, ?int $now = null): bool
+{
+    $now = $now ?? time();
+    $conversationId = chat_clean_conversation_id($conversationId);
+    if ($conversationId === '') {
+        return false;
+    }
+
+    $typingConversationId = chat_clean_conversation_id((string) ($entry['typingConversationId'] ?? ''));
+    $typingExpiresAt = chat_parse_timestamp($entry['typingExpiresAt'] ?? null);
+    return $typingConversationId !== '' && $typingConversationId === $conversationId
+        && $typingExpiresAt !== null
+        && $typingExpiresAt > $now;
+}
+
+function chat_presence_state_payload(array $entry, string $conversationId = '', ?int $now = null): array
+{
+    $now = $now ?? time();
+    $conversationId = chat_clean_conversation_id($conversationId);
+    return [
+        'studentNumber' => dent_normalize_student_number((string) ($entry['studentNumber'] ?? '')),
+        'isOnline' => chat_presence_is_online($entry, $now),
+        'isTyping' => $conversationId !== '' ? chat_presence_is_typing_in_conversation($entry, $conversationId, $now) : false,
+        'lastSeenAt' => chat_parse_timestamp($entry['lastSeenAt'] ?? null),
+        'lastActiveAt' => chat_parse_timestamp($entry['lastActiveAt'] ?? null),
+        'lastHeartbeatAt' => chat_parse_timestamp($entry['lastHeartbeatAt'] ?? null),
+        'activeConversationId' => chat_clean_conversation_id((string) ($entry['activeConversationId'] ?? '')),
+        'typingConversationId' => chat_clean_conversation_id((string) ($entry['typingConversationId'] ?? '')),
+        'typingExpiresAt' => chat_parse_timestamp($entry['typingExpiresAt'] ?? null),
+    ];
+}
+
+function chat_presence_typing_user_payloads(
+    array $presenceStore,
+    array $conversation,
+    string $viewerStudentNumber,
+    ?int $now = null
+): array {
+    $now = $now ?? time();
+    $conversationId = chat_clean_conversation_id((string) ($conversation['id'] ?? ''));
+    if ($conversationId === '') {
+        return [];
+    }
+
+    $typingUsers = [];
+    foreach (chat_conversation_member_student_numbers($conversation) as $studentNumber) {
+        $studentNumber = dent_normalize_student_number((string) $studentNumber);
+        if ($studentNumber === '' || $studentNumber === $viewerStudentNumber) {
+            continue;
+        }
+
+        $entry = chat_presence_entry_for_student($presenceStore, $studentNumber);
+        if (!chat_presence_is_typing_in_conversation($entry, $conversationId, $now)) {
+            continue;
+        }
+
+        $user = chat_public_user_for_student($studentNumber);
+        $profile = is_array($user['profile'] ?? null) ? $user['profile'] : dent_default_profile();
+        $typingUsers[] = [
+            'studentNumber' => $studentNumber,
+            'name' => (string) ($user['name'] ?? dent_role_label('student')),
+            'role' => (string) ($user['role'] ?? 'student'),
+            'roleLabel' => (string) ($user['roleLabel'] ?? dent_role_label('student')),
+            'avatarUrl' => (string) (($profile['avatarUrl'] ?? '') ?: ''),
+            'presence' => chat_presence_state_payload($entry, $conversationId, $now),
+        ];
+    }
+
+    usort($typingUsers, static function (array $left, array $right): int {
+        $leftTs = (int) ($left['presence']['typingExpiresAt'] ?? 0);
+        $rightTs = (int) ($right['presence']['typingExpiresAt'] ?? 0);
+        if ($leftTs !== $rightTs) {
+            return $rightTs <=> $leftTs;
+        }
+        return strcasecmp((string) ($left['name'] ?? ''), (string) ($right['name'] ?? ''));
+    });
+
+    return array_slice($typingUsers, 0, 4);
+}
+
+function chat_conversation_presence_payload(array $conversation, array $viewer, ?array $presenceStore = null): array
+{
+    $presenceStore = is_array($presenceStore) ? $presenceStore : chat_read_presence_snapshot();
+    $viewerStudentNumber = chat_actor_student_number($viewer);
+    $conversationId = chat_clean_conversation_id((string) ($conversation['id'] ?? ''));
+    $conversationType = (string) ($conversation['type'] ?? 'group');
+    $now = time();
+
+    $payload = [
+        'conversationId' => $conversationId,
+        'onlineCount' => 0,
+        'typingUsers' => [],
+        'peer' => null,
+    ];
+
+    if ($conversationId === '') {
+        return $payload;
+    }
+
+    if ($conversationType === 'direct') {
+        foreach (chat_normalize_student_list($conversation['directParticipants'] ?? []) as $studentNumber) {
+            if ($studentNumber === $viewerStudentNumber) {
+                continue;
+            }
+
+            $entry = chat_presence_entry_for_student($presenceStore, $studentNumber);
+            $payload['peer'] = chat_presence_state_payload($entry, $conversationId, $now);
+            if (!empty($payload['peer']['isOnline'])) {
+                $payload['onlineCount'] = 1;
+            }
+            if (!empty($payload['peer']['isTyping'])) {
+                $payload['typingUsers'] = chat_presence_typing_user_payloads($presenceStore, $conversation, $viewerStudentNumber, $now);
+            }
+            break;
+        }
+
+        return $payload;
+    }
+
+    $onlineCount = 0;
+    foreach (chat_conversation_member_student_numbers($conversation) as $studentNumber) {
+        $studentNumber = dent_normalize_student_number((string) $studentNumber);
+        if ($studentNumber === '' || $studentNumber === $viewerStudentNumber) {
+            continue;
+        }
+
+        $entry = chat_presence_entry_for_student($presenceStore, $studentNumber);
+        if (chat_presence_is_online($entry, $now)) {
+            $onlineCount++;
+        }
+    }
+
+    $payload['onlineCount'] = $onlineCount;
+    $payload['typingUsers'] = chat_presence_typing_user_payloads($presenceStore, $conversation, $viewerStudentNumber, $now);
+    return $payload;
+}
+
+function chat_presence_bundle_payload(
+    array $store,
+    array $user,
+    string $activeConversationId = '',
+    bool $includeMembers = false,
+    ?array $presenceStore = null
+): array
+{
+    $activeConversationId = chat_clean_conversation_id($activeConversationId);
+    $presenceStore = is_array($presenceStore) ? $presenceStore : chat_read_presence_snapshot();
+    $conversationIds = [];
+    if ($activeConversationId !== '') {
+        $conversationIds[] = $activeConversationId;
+    }
+
+    foreach (chat_user_visible_conversation_ids($store, $user) as $conversationId) {
+        $conversation = chat_get_conversation($store, (string) $conversationId);
+        if ($conversation === null) {
+            continue;
+        }
+        if ((string) ($conversation['type'] ?? 'group') === 'direct') {
+            $conversationIds[] = (string) $conversationId;
+        }
+    }
+
+    $updates = [];
+    foreach (array_values(array_unique($conversationIds)) as $conversationId) {
+        $conversation = chat_get_conversation($store, $conversationId);
+        if ($conversation === null) {
+            continue;
+        }
+
+        $update = [
+            'id' => $conversationId,
+            'presence' => chat_conversation_presence_payload($conversation, $user, $presenceStore),
+        ];
+
+        if ((string) ($conversation['type'] ?? 'group') === 'direct') {
+            $viewerStudentNumber = chat_actor_student_number($user);
+            foreach (chat_normalize_student_list($conversation['directParticipants'] ?? []) as $studentNumber) {
+                if ($studentNumber === $viewerStudentNumber) {
+                    continue;
+                }
+                $peer = chat_public_user_for_student($studentNumber);
+                $peer['presence'] = chat_presence_state_payload(
+                    chat_presence_entry_for_student($presenceStore, $studentNumber),
+                    $conversationId
+                );
+                $update['peer'] = $peer;
+                break;
+            }
+        }
+
+        if ($includeMembers) {
+            $update['members'] = chat_conversation_members_payload($conversation, $conversationId, $presenceStore);
+        }
+
+        $updates[] = $update;
+    }
+
+    return [
+        'version' => chat_presence_file_signature(),
+        'activeConversationId' => $activeConversationId,
+        'conversations' => $updates,
+    ];
 }
 
 function chat_can_manage_conversation(array $conversation, array $user): bool
@@ -4201,12 +4756,20 @@ function chat_conversation_search_text(array $messages): string
     return dent_clean_text(implode(' ', array_reverse($parts)), 8000);
 }
 
-function chat_conversation_members_payload(array $conversation): array
+function chat_conversation_members_payload(
+    array $conversation,
+    string $conversationId = '',
+    ?array $presenceStore = null
+): array
 {
     $members = [];
     $admins = chat_normalize_student_list($conversation['admins'] ?? []);
     $memberTags = is_array($conversation['memberTags'] ?? null) ? $conversation['memberTags'] : [];
     $createdBy = dent_normalize_student_number((string) ($conversation['createdBy'] ?? ''));
+    $conversationId = chat_clean_conversation_id($conversationId !== '' ? $conversationId : (string) ($conversation['id'] ?? ''));
+    if ($conversationId !== '') {
+        $presenceStore = is_array($presenceStore) ? $presenceStore : chat_read_presence_snapshot();
+    }
     foreach (chat_conversation_member_student_numbers($conversation) as $studentNumber) {
         $studentNumber = dent_normalize_student_number((string) $studentNumber);
         if ($studentNumber === '') {
@@ -4226,6 +4789,12 @@ function chat_conversation_members_payload(array $conversation): array
             $tag = 'مدیر';
         }
         $member['conversationTag'] = $tag;
+        if ($conversationId !== '' && is_array($presenceStore)) {
+            $member['presence'] = chat_presence_state_payload(
+                chat_presence_entry_for_student($presenceStore, $studentNumber),
+                $conversationId
+            );
+        }
         $members[] = $member;
     }
 
@@ -4365,6 +4934,7 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
     $isPinned = (bool) ($viewerReadState['pinned'] ?? false);
     $isArchived = $canArchiveConversation && (bool) ($viewerReadState['archived'] ?? false);
     $isDeleted = !$isMandatory && (bool) ($viewerReadState['deleted'] ?? false);
+    $presenceStore = chat_read_presence_snapshot();
 
     $payload = [
         'id' => $conversationId,
@@ -4417,6 +4987,7 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
         'lastMessage' => $lastMessage !== null ? chat_normalize_message_for_client($lastMessage, $store, $viewer) : null,
         'pinnedMessage' => $pinnedMessage !== null ? chat_normalize_message_for_client($pinnedMessage, $store, $viewer) : null,
         'searchText' => chat_conversation_search_text($messages),
+        'presence' => chat_conversation_presence_payload($conversation, $viewer, $presenceStore),
     ];
 
     if ($canManageConversation) {
@@ -4428,12 +4999,16 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
         foreach ($participants as $studentNumber) {
             if ($studentNumber !== $viewerStudentNumber) {
                 $payload['peer'] = chat_public_user_for_student((string) $studentNumber);
+                $payload['peer']['presence'] = chat_presence_state_payload(
+                    chat_presence_entry_for_student($presenceStore, $studentNumber),
+                    $conversationId
+                );
             }
         }
     }
 
     if ($includeMembers) {
-        $payload['members'] = chat_conversation_members_payload($conversation);
+        $payload['members'] = chat_conversation_members_payload($conversation, $conversationId, $presenceStore);
     }
 
     return $payload;
@@ -6836,6 +7411,197 @@ if ($action === 'addMembers') {
     ]);
 }
 
+if ($action === 'presence') {
+    $user = chat_require_user();
+    $store = chat_read_store_snapshot(true);
+    $requestedConversationId = chat_clean_conversation_id((string) ($_GET['conversationId'] ?? $_POST['conversationId'] ?? ''));
+    $includeMembers = (string) ($_GET['includeMembers'] ?? $_POST['includeMembers'] ?? '0') === '1';
+    $activeConversationId = '';
+    if ($requestedConversationId !== '') {
+        $conversation = chat_get_conversation($store, $requestedConversationId);
+        $studentNumber = chat_actor_student_number($user);
+        if (
+            $conversation !== null
+            && (chat_is_member($conversation, $studentNumber) || chat_user_can_view_without_membership($conversation, $user))
+            && (
+                (bool) ($conversation['mandatory'] ?? false)
+                || !chat_is_conversation_deleted_for_user($store, $requestedConversationId, $studentNumber)
+            )
+        ) {
+            $activeConversationId = $requestedConversationId;
+        }
+    }
+
+    dent_json_response([
+        'success' => true,
+        'presence' => chat_presence_bundle_payload($store, $user, $activeConversationId, $includeMembers, chat_read_presence_snapshot(true)),
+    ]);
+}
+
+if ($action === 'presencePing') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد بروزرسانی وضعیت حضور نامعتبر است.', 405);
+    }
+
+    $user = chat_require_user();
+    $studentNumber = chat_actor_student_number($user);
+    $requestedConversationId = chat_clean_conversation_id((string) ($_POST['conversationId'] ?? ''));
+    $typing = chat_parse_bool($_POST['typing'] ?? false, false);
+    $activity = dent_clean_text((string) ($_POST['activity'] ?? 'active'), 20);
+    if (!in_array($activity, ['active', 'typing', 'idle'], true)) {
+        $activity = 'active';
+    }
+
+    $validatedConversationId = '';
+    if ($requestedConversationId !== '') {
+        $snapshotStore = chat_read_store_snapshot(true);
+        $conversation = chat_get_conversation($snapshotStore, $requestedConversationId);
+        if (
+            $conversation !== null
+            && (chat_is_member($conversation, $studentNumber) || chat_user_can_view_without_membership($conversation, $user))
+            && (
+                (bool) ($conversation['mandatory'] ?? false)
+                || !chat_is_conversation_deleted_for_user($snapshotStore, $requestedConversationId, $studentNumber)
+            )
+        ) {
+            $validatedConversationId = $requestedConversationId;
+            if ($typing && !chat_can_send_message($conversation, $user)) {
+                $typing = false;
+            }
+        } else {
+            $typing = false;
+        }
+    } else {
+        $typing = false;
+    }
+
+    $presenceStore = chat_load_presence_store();
+    $entry = chat_presence_entry_for_student($presenceStore, $studentNumber);
+    $now = time();
+    $entry['lastSeenAt'] = $now;
+    if ($activity !== 'idle' || $typing) {
+        $entry['lastActiveAt'] = $now;
+    }
+    $entry['lastHeartbeatAt'] = $now;
+    $entry['activeConversationId'] = $validatedConversationId;
+    if ($typing && $validatedConversationId !== '') {
+        $entry['typingConversationId'] = $validatedConversationId;
+        $entry['typingExpiresAt'] = $now + CHAT_PRESENCE_TYPING_WINDOW_SECONDS;
+    } else {
+        $entry['typingConversationId'] = '';
+        $entry['typingExpiresAt'] = null;
+    }
+
+    if (!isset($presenceStore['users']) || !is_array($presenceStore['users'])) {
+        $presenceStore['users'] = [];
+    }
+    $presenceStore['users'][$studentNumber] = $entry;
+    $presenceStore['updatedAt'] = $now;
+    chat_save_presence_store($presenceStore);
+
+    dent_json_response([
+        'success' => true,
+        'presence' => chat_presence_state_payload($entry, $validatedConversationId, $now),
+    ]);
+}
+
+if ($action === 'stream') {
+    $user = chat_require_user();
+    $store = chat_read_store_snapshot(true);
+    $requestedConversationId = chat_clean_conversation_id((string) ($_GET['conversationId'] ?? ''));
+    $includeMembers = (string) ($_GET['includeMembers'] ?? '0') === '1';
+    $activeConversationId = '';
+    if ($requestedConversationId !== '') {
+        $conversation = chat_get_conversation($store, $requestedConversationId);
+        $studentNumber = chat_actor_student_number($user);
+        if (
+            $conversation !== null
+            && (chat_is_member($conversation, $studentNumber) || chat_user_can_view_without_membership($conversation, $user))
+            && (
+                (bool) ($conversation['mandatory'] ?? false)
+                || !chat_is_conversation_deleted_for_user($store, $requestedConversationId, $studentNumber)
+            )
+        ) {
+            $activeConversationId = $requestedConversationId;
+        }
+    }
+
+    chat_release_store_lock();
+    chat_release_presence_lock();
+
+    ignore_user_abort(true);
+    @set_time_limit(0);
+    header('Content-Type: text/event-stream; charset=UTF-8');
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    header('X-Accel-Buffering: no');
+
+    $sendEvent = static function (string $eventName, array $payload): void {
+        echo 'event: ' . $eventName . "\n";
+        echo 'data: ' . (json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') . "\n\n";
+    };
+
+    $flushStream = static function (): void {
+        @ob_flush();
+        @flush();
+    };
+
+    $lastStoreSignature = chat_store_file_signature();
+    $lastPresenceSignature = chat_presence_file_signature();
+    $sendEvent('hello', [
+        'mode' => 'sse',
+        'storeVersion' => $lastStoreSignature,
+        'presenceVersion' => $lastPresenceSignature,
+        'activeConversationId' => $activeConversationId,
+    ]);
+    $sendEvent('presence', chat_presence_bundle_payload(
+        chat_read_store_snapshot(true),
+        $user,
+        $activeConversationId,
+        $includeMembers,
+        chat_read_presence_snapshot(true)
+    ));
+    $flushStream();
+
+    $startedAt = time();
+    $lastKeepaliveAt = $startedAt;
+    while (!connection_aborted() && (time() - $startedAt) < CHAT_STREAM_MAX_DURATION_SECONDS) {
+        usleep(CHAT_STREAM_POLL_INTERVAL_MICROSECONDS);
+
+        $storeSignature = chat_store_file_signature();
+        if ($storeSignature !== $lastStoreSignature) {
+            $lastStoreSignature = $storeSignature;
+            $sendEvent('sync', [
+                'storeVersion' => $storeSignature,
+                'activeConversationId' => $activeConversationId,
+            ]);
+            $flushStream();
+        }
+
+        $presenceSignature = chat_presence_file_signature();
+        if ($presenceSignature !== $lastPresenceSignature) {
+            $lastPresenceSignature = $presenceSignature;
+            $sendEvent('presence', chat_presence_bundle_payload(
+                chat_read_store_snapshot(true),
+                $user,
+                $activeConversationId,
+                $includeMembers,
+                chat_read_presence_snapshot(true)
+            ));
+            $flushStream();
+        }
+
+        if ((time() - $lastKeepaliveAt) >= CHAT_STREAM_KEEPALIVE_SECONDS) {
+            echo ": keepalive\n\n";
+            $flushStream();
+            $lastKeepaliveAt = time();
+        }
+    }
+
+    exit;
+}
+
 if ($action === 'navSummary') {
     $user = chat_require_user();
     dent_release_session_lock();
@@ -6931,6 +7697,7 @@ if ($action === 'sync' || $action === 'fetch') {
 
     $conversationListVersion = chat_conversation_list_version_for_user($store, $user);
     $includeConversationList = $full || $clientConversationListVersion === '' || $clientConversationListVersion !== $conversationListVersion;
+    $presenceBundle = chat_presence_bundle_payload($store, $user, $activeConversationId, $includeMembers);
 
     $response = [
         'success' => true,
@@ -6949,13 +7716,17 @@ if ($action === 'sync' || $action === 'fetch') {
         'state' => is_array($conversation['settings'] ?? null)
             ? chat_default_settings($conversation['settings'])
             : chat_default_settings(),
+        'presence' => $presenceBundle,
         'transport' => [
-            'mode' => 'polling',
-            'intervalMs' => 5000,
+            'mode' => 'sse',
+            'intervalMs' => 0,
+            'fallbackIntervalMs' => 5000,
+            'streamUrl' => chat_stream_url(),
+            'presenceUrl' => chat_presence_url(),
         ],
         'limitations' => [
-            'realtime' => false,
-            'presence' => false,
+            'realtime' => true,
+            'presence' => true,
             'deliveryReceipts' => false,
             'storage' => 'json-file',
         ],
