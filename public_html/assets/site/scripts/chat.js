@@ -900,6 +900,7 @@
     cacheHydrated: false,
     cacheHydratedAt: 0,
     cacheSaveTimer: null,
+    cacheSaveIdleId: 0,
     draftSaveTimer: null,
     lastMessageId: 0,
     oldestMessageId: 0,
@@ -1124,11 +1125,11 @@
   }
 
   function messageReplySwipeThresholdPx() {
-    return clamp(Math.round(window.innerWidth * 0.15), 56, 88);
+    return clamp(Math.round(window.innerWidth * 0.11), 44, 64);
   }
 
   function messageReplySwipeLimitPx() {
-    return clamp(Math.round(window.innerWidth * 0.22), 88, 124);
+    return clamp(Math.round(window.innerWidth * 0.16), 68, 96);
   }
 
   function setBubbleSwipeState(bubble, offsetPx, ready) {
@@ -1162,6 +1163,14 @@
       bubble.style.removeProperty("--msg-swipe-progress");
       bubble.__chatSwipeResetTimer = 0;
     }, settleMs);
+  }
+
+  function yieldChatFrame() {
+    return new Promise(function (resolve) {
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(resolve);
+      });
+    });
   }
 
   function playReactionBurst(messageId, emoji) {
@@ -2299,11 +2308,19 @@
     return Object.assign({}, message);
   }
 
-  function saveFastChatCacheNow() {
+  function clearFastChatCacheSaveHandle() {
     if (state.cacheSaveTimer) {
       window.clearTimeout(state.cacheSaveTimer);
       state.cacheSaveTimer = null;
     }
+    if (state.cacheSaveIdleId && typeof window.cancelIdleCallback === "function") {
+      window.cancelIdleCallback(state.cacheSaveIdleId);
+      state.cacheSaveIdleId = 0;
+    }
+  }
+
+  function saveFastChatCacheNow() {
+    clearFastChatCacheSaveHandle();
     if (!state.me.loggedIn) return;
 
     var storage = chatStorage();
@@ -2353,10 +2370,19 @@
 
   function scheduleFastChatCacheSave(delayMs) {
     if (!state.me.loggedIn) return;
-    if (state.cacheSaveTimer) {
-      window.clearTimeout(state.cacheSaveTimer);
-    }
-    state.cacheSaveTimer = window.setTimeout(saveFastChatCacheNow, Math.max(0, Math.floor(toNumber(delayMs, 220))));
+    clearFastChatCacheSaveHandle();
+    var delay = Math.max(0, Math.floor(toNumber(delayMs, 220)));
+    state.cacheSaveTimer = window.setTimeout(function () {
+      state.cacheSaveTimer = null;
+      if (typeof window.requestIdleCallback === "function") {
+        state.cacheSaveIdleId = window.requestIdleCallback(function () {
+          state.cacheSaveIdleId = 0;
+          saveFastChatCacheNow();
+        }, { timeout: 900 });
+        return;
+      }
+      saveFastChatCacheNow();
+    }, delay);
   }
 
   function readFastChatCache() {
@@ -3929,13 +3955,16 @@
     if (replyBar) replyBar.hidden = true;
   }
 
-  function setReplyTarget(message) {
+  function setReplyTarget(message, options) {
+    var opts = asObject(options) || {};
     state.replyTargetId = message.id;
     if (!replyBar || !replyToName || !replyToSnippet) return;
     replyBar.hidden = false;
     replyToName.textContent = message.name || "کاربر";
     replyToSnippet.textContent = snippet(messagePreviewText(message), 90);
-    if (chatTextEl) chatTextEl.focus();
+    if (opts.focusComposer !== false && chatTextEl) {
+      chatTextEl.focus();
+    }
   }
 
   function appendMessages(messages, options) {
@@ -4467,6 +4496,11 @@
         return;
       }
       gesturePointerId = event.pointerId;
+      if (typeof bubble.setPointerCapture === "function") {
+        try {
+          bubble.setPointerCapture(event.pointerId);
+        } catch (_error) {}
+      }
       startX = event.clientX;
       startY = event.clientY;
       cancelled = false;
@@ -4522,10 +4556,15 @@
         var shouldReply = deltaX >= messageReplySwipeThresholdPx() && deltaX > Math.abs(deltaY);
         resetSwipe({ acknowledge: shouldReply });
         if (shouldReply) {
-          setReplyTarget(message);
+          setReplyTarget(message, { focusComposer: false });
           softHaptic(motionEffectsEnabled() ? [12, 42, 12] : 8);
           event.preventDefault();
           event.stopPropagation();
+        }
+        if (typeof bubble.releasePointerCapture === "function") {
+          try {
+            bubble.releasePointerCapture(event.pointerId);
+          } catch (_error) {}
         }
         return;
       }
@@ -4547,14 +4586,24 @@
         lastTapAt = 0;
         fireGestureHeart(event);
       }
+      if (typeof bubble.releasePointerCapture === "function") {
+        try {
+          bubble.releasePointerCapture(event.pointerId);
+        } catch (_error) {}
+      }
     });
 
     ["pointercancel"].forEach(function (eventName) {
-      bubble.addEventListener(eventName, function () {
+      bubble.addEventListener(eventName, function (event) {
         clearTouchTimer();
         gesturePointerId = null;
         if (swipeTracking) {
           resetSwipe({ acknowledge: false });
+        }
+        if (event && typeof bubble.releasePointerCapture === "function" && event.pointerId != null) {
+          try {
+            bubble.releasePointerCapture(event.pointerId);
+          } catch (_error) {}
         }
       });
     });
@@ -6127,16 +6176,26 @@
       var incomingConversations = (Array.isArray(response.conversations) ? response.conversations : [])
         .map(normalizeConversation)
         .filter(Boolean);
+      var conversationMapChanged = false;
       if (hasConversationList) {
-        replaceConversations(incomingConversations);
-      } else {
-        rebuildConversationsFromMap();
+        state.conversationsById.clear();
+        incomingConversations.forEach(function (conversation) {
+          upsertConversation(conversation);
+        });
+        conversationMapChanged = true;
       }
 
       var currentPayloadConversation = normalizeConversation(response.conversation);
       if (currentPayloadConversation) {
         upsertConversation(currentPayloadConversation);
-        rebuildConversationsFromMap();
+        conversationMapChanged = true;
+      }
+
+      if (conversationMapChanged) {
+        state.conversations = sortConversations(Array.from(state.conversationsById.values()));
+        scheduleFastChatCacheSave(180);
+      } else if (!hasConversationList && state.conversations.length === 0 && state.conversationsById.size > 0) {
+        state.conversations = sortConversations(Array.from(state.conversationsById.values()));
       }
 
       var nextConversationId = normalizeSpace(
@@ -6271,7 +6330,9 @@
     renderConversationList();
     updateThreadHead();
     updateComposerState();
-    scheduleFastChatCacheSave(80);
+    if (!changed && state.messages.size > 0) {
+      scheduleFastChatCacheSave(140);
+    }
 
     if (isMobileViewport() && !state.modalOpen) {
       setMobileView(mobileView === "list" ? "list" : "thread");
@@ -6327,6 +6388,8 @@
     state.conversationsById.clear();
     state.conversationListRenderKey = "";
     state.conversationListVersion = "";
+    state.cacheHydrated = false;
+    state.cacheHydratedAt = 0;
     state.conversationFilter = "";
     state.conversationListCategory = "all";
     state.messages.clear();
@@ -6352,6 +6415,7 @@
 
     stopPolling();
     clearAutoReadTimer();
+    clearFastChatCacheSaveHandle();
     resetVoiceRecorder();
     setUploadSheetOpen(false);
     renderComposerUploads();
@@ -6424,6 +6488,8 @@
       state.conversationsById.clear();
       state.conversationListRenderKey = "";
       state.conversationListVersion = "";
+      state.cacheHydrated = false;
+      state.cacheHydratedAt = 0;
       state.conversationFilter = "";
       state.conversationListCategory = "all";
       state.messages.clear();
@@ -6442,6 +6508,7 @@
       state.showArchivedConversations = false;
       state.reactionDetailsRequestToken += 1;
       state.pendingAttachments = [];
+      clearFastChatCacheSaveHandle();
       clearAutoReadTimer();
       setUploadSheetOpen(false);
       renderComposerUploads();
@@ -6469,9 +6536,14 @@
     updatePollActionVisibility();
     updateConversationFilterTabs();
 
+    var hydratedFromCache = hydrateFastChatCache();
+    if (hydratedFromCache) {
+      await yieldChatFrame();
+    }
+
     try {
       await syncConversation({
-        forceFull: true,
+        forceFull: !hydratedFromCache,
         includeMembers: state.infoSheetOpen,
         conversationId: state.activeConversationId || state.initialConversationId,
         silent: false
