@@ -37,6 +37,9 @@
     "\u{1F680}", "\u{1F6F8}", "\u{1F6E1}\uFE0F", "\u{1F4E2}", "\u{1F4CC}", "\u{1F4A3}"
   ];
   var REACTIONS = Array.from(new Set(QUICK_REACTIONS.concat(REACTION_LIBRARY)));
+  var TELEGRAM_HEART_REACTION = "\u2764\uFE0F";
+  var MESSAGE_DOUBLE_TAP_WINDOW_MS = 300;
+  var MESSAGE_DOUBLE_TAP_MOVE_PX = 26;
   var pageCohort = "main";
   var chatHomePath = "/chat/";
   var REACTION_GROUPS = [
@@ -1090,6 +1093,102 @@
     state.toastTimer = window.setTimeout(function () {
       toastEl.classList.remove("show");
     }, 2200);
+  }
+
+  function motionEffectsEnabled() {
+    if (document.documentElement.getAttribute("data-performance-mode") === "lite") {
+      return false;
+    }
+    return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function softHaptic(pattern) {
+    if (!navigator || typeof navigator.vibrate !== "function") return;
+    try {
+      navigator.vibrate(pattern);
+    } catch (_error) {}
+  }
+
+  function touchLikePointer(pointerType) {
+    return pointerType === "touch" || pointerType === "pen";
+  }
+
+  function interactiveMessageTarget(target) {
+    var element = target && target.nodeType === 1
+      ? target
+      : (target && target.parentElement ? target.parentElement : null);
+    if (!element || typeof element.closest !== "function") return false;
+    return !!element.closest(
+      "a, button, input, textarea, select, audio, video, summary, [role='button'], [contenteditable='true'], .msg-reaction, .reply-preview, .msg-attachment__media-btn, .msg-delivery-btn"
+    );
+  }
+
+  function messageReplySwipeThresholdPx() {
+    return clamp(Math.round(window.innerWidth * 0.15), 56, 88);
+  }
+
+  function messageReplySwipeLimitPx() {
+    return clamp(Math.round(window.innerWidth * 0.22), 88, 124);
+  }
+
+  function setBubbleSwipeState(bubble, offsetPx, ready) {
+    if (!bubble) return;
+    var limit = messageReplySwipeLimitPx();
+    var limitedOffset = clamp(toNumber(offsetPx, 0), 0, limit);
+    var progress = limitedOffset / Math.max(1, limit);
+    bubble.classList.add("is-swipe-tracking");
+    bubble.classList.toggle("is-swipe-reply-ready", !!ready);
+    bubble.style.setProperty("--msg-swipe-offset", limitedOffset.toFixed(1) + "px");
+    bubble.style.setProperty("--msg-swipe-progress", progress.toFixed(3));
+  }
+
+  function clearBubbleSwipeState(bubble, options) {
+    if (!bubble) return;
+    var opts = asObject(options) || {};
+    var acknowledge = !!opts.acknowledge;
+    var settleMs = acknowledge ? 420 : 240;
+    if (bubble.__chatSwipeResetTimer) {
+      window.clearTimeout(bubble.__chatSwipeResetTimer);
+      bubble.__chatSwipeResetTimer = 0;
+    }
+    bubble.classList.add("is-swipe-settling");
+    bubble.classList.toggle("is-swipe-reply-fired", acknowledge);
+    bubble.classList.remove("is-swipe-reply-ready");
+    bubble.style.setProperty("--msg-swipe-offset", "0px");
+    bubble.style.setProperty("--msg-swipe-progress", "0");
+    bubble.__chatSwipeResetTimer = window.setTimeout(function () {
+      bubble.classList.remove("is-swipe-tracking", "is-swipe-settling", "is-swipe-reply-ready", "is-swipe-reply-fired");
+      bubble.style.removeProperty("--msg-swipe-offset");
+      bubble.style.removeProperty("--msg-swipe-progress");
+      bubble.__chatSwipeResetTimer = 0;
+    }, settleMs);
+  }
+
+  function playReactionBurst(messageId, emoji) {
+    if (!messagesEl) return;
+    var row = messagesEl.querySelector('[data-mid="' + Number(messageId) + '"]');
+    if (!row) return;
+    var bubble = row.querySelector(".msg-bubble");
+    if (!bubble) return;
+    Array.from(bubble.querySelectorAll(".msg-heart-burst")).forEach(function (node) {
+      node.remove();
+    });
+    var burst = document.createElement("span");
+    burst.className = "msg-heart-burst";
+    burst.setAttribute("aria-hidden", "true");
+    burst.textContent = normalizeSpace(emoji) || TELEGRAM_HEART_REACTION;
+    bubble.classList.add("is-gesture-reacting");
+    bubble.appendChild(burst);
+    var cleanup = function () {
+      burst.removeEventListener("animationend", cleanup);
+      if (burst.parentNode) {
+        burst.parentNode.removeChild(burst);
+      }
+      bubble.classList.remove("is-gesture-reacting");
+    };
+    burst.addEventListener("animationend", cleanup);
+    window.setTimeout(cleanup, motionEffectsEnabled() ? 720 : 80);
+    softHaptic(motionEffectsEnabled() ? [10, 34, 14] : 8);
   }
 
   function setConnectionState(mode, text) {
@@ -4317,6 +4416,14 @@
     var startX = 0;
     var startY = 0;
     var cancelled = false;
+    var gesturePointerId = null;
+    var swipeTracking = false;
+    var swipeReady = false;
+    var startInteractive = false;
+    var lastTapAt = 0;
+    var lastTapX = 0;
+    var lastTapY = 0;
+    var lastGestureHeartAt = 0;
 
     function clearTouchTimer() {
       if (touchTimer) {
@@ -4325,16 +4432,46 @@
       }
     }
 
+    function fireGestureHeart(event) {
+      var now = Date.now();
+      if ((now - lastGestureHeartAt) < 320) return;
+      lastGestureHeartAt = now;
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      triggerGestureHeartReaction(message);
+    }
+
+    function resetSwipe(options) {
+      if (!swipeTracking && !bubble.classList.contains("is-swipe-tracking") && !bubble.classList.contains("is-swipe-settling")) {
+        return;
+      }
+      clearBubbleSwipeState(bubble, options);
+      swipeTracking = false;
+      swipeReady = false;
+    }
+
     bubble.addEventListener("contextmenu", function (event) {
       event.preventDefault();
       openContextMenu(message, event.clientX, event.clientY);
     });
 
     bubble.addEventListener("pointerdown", function (event) {
-      if (event.pointerType !== "touch") return;
+      if (!touchLikePointer(event.pointerType)) return;
+      if (event.button != null && event.button !== 0) return;
+      startInteractive = interactiveMessageTarget(event.target);
+      if (startInteractive) {
+        gesturePointerId = null;
+        clearTouchTimer();
+        return;
+      }
+      gesturePointerId = event.pointerId;
       startX = event.clientX;
       startY = event.clientY;
       cancelled = false;
+      swipeTracking = false;
+      swipeReady = false;
       clearTouchTimer();
       touchTimer = window.setTimeout(function () {
         if (cancelled) return;
@@ -4343,17 +4480,88 @@
     });
 
     bubble.addEventListener("pointermove", function (event) {
-      if (event.pointerType !== "touch" || !touchTimer) return;
-      var deltaX = Math.abs(event.clientX - startX);
-      var deltaY = Math.abs(event.clientY - startY);
-      if (deltaX > 9 || deltaY > 9) {
+      if (!touchLikePointer(event.pointerType) || gesturePointerId !== event.pointerId || startInteractive) return;
+      var deltaX = event.clientX - startX;
+      var deltaY = event.clientY - startY;
+      if (!swipeTracking && touchTimer && (Math.abs(deltaX) > 9 || Math.abs(deltaY) > 9)) {
         cancelled = true;
+      }
+      if (!swipeTracking && deltaX > 12 && deltaX > Math.abs(deltaY) * 1.15) {
+        swipeTracking = true;
         clearTouchTimer();
+      }
+      if (!swipeTracking) {
+        if (touchTimer && (Math.abs(deltaX) > 9 || Math.abs(deltaY) > 9)) {
+          clearTouchTimer();
+        }
+        return;
+      }
+      if (deltaX <= 0) {
+        setBubbleSwipeState(bubble, 0, false);
+        return;
+      }
+      event.preventDefault();
+      var offset = clamp(deltaX * 0.94, 0, messageReplySwipeLimitPx());
+      var ready = offset >= messageReplySwipeThresholdPx();
+      setBubbleSwipeState(bubble, offset, ready);
+      if (ready && !swipeReady) {
+        softHaptic(10);
+      }
+      swipeReady = ready;
+    });
+
+    bubble.addEventListener("pointerup", function (event) {
+      if (!touchLikePointer(event.pointerType) || gesturePointerId !== event.pointerId) return;
+      clearTouchTimer();
+      gesturePointerId = null;
+      if (startInteractive) return;
+
+      var deltaX = event.clientX - startX;
+      var deltaY = event.clientY - startY;
+      if (swipeTracking) {
+        var shouldReply = deltaX >= messageReplySwipeThresholdPx() && deltaX > Math.abs(deltaY);
+        resetSwipe({ acknowledge: shouldReply });
+        if (shouldReply) {
+          setReplyTarget(message);
+          softHaptic(motionEffectsEnabled() ? [12, 42, 12] : 8);
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        return;
+      }
+
+      if (cancelled || Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
+        return;
+      }
+
+      var now = Date.now();
+      var isDoubleTap = (now - lastTapAt) <= MESSAGE_DOUBLE_TAP_WINDOW_MS
+        && Math.abs(event.clientX - lastTapX) <= MESSAGE_DOUBLE_TAP_MOVE_PX
+        && Math.abs(event.clientY - lastTapY) <= MESSAGE_DOUBLE_TAP_MOVE_PX;
+
+      lastTapAt = now;
+      lastTapX = event.clientX;
+      lastTapY = event.clientY;
+
+      if (isDoubleTap) {
+        lastTapAt = 0;
+        fireGestureHeart(event);
       }
     });
 
-    ["pointerup", "pointercancel", "pointerleave"].forEach(function (eventName) {
-      bubble.addEventListener(eventName, clearTouchTimer);
+    ["pointercancel"].forEach(function (eventName) {
+      bubble.addEventListener(eventName, function () {
+        clearTouchTimer();
+        gesturePointerId = null;
+        if (swipeTracking) {
+          resetSwipe({ acknowledge: false });
+        }
+      });
+    });
+
+    bubble.addEventListener("dblclick", function (event) {
+      if (interactiveMessageTarget(event.target)) return;
+      fireGestureHeart(event);
     });
   }
 
@@ -6823,16 +7031,21 @@
     }
   }
 
-  async function toggleReaction(message, emoji) {
+  async function toggleReaction(message, emoji, options) {
+    var opts = asObject(options) || {};
     var conversation = activeConversation();
     var normalizedEmoji = normalizeSpace(emoji);
     if (!conversation || !message || !normalizedEmoji) return false;
     if (!isLikelyEmoji(normalizedEmoji)) {
-      showToast("ایموجی واکنش معتبر نیست.");
+      if (!opts.silentFailure) {
+        showToast("ایموجی واکنش معتبر نیست.");
+      }
       return false;
     }
     if (!reactionAllowedInActiveConversation(normalizedEmoji)) {
-      showToast("این واکنش در تنظیمات گفتگو مجاز نیست.");
+      if (!opts.silentFailure) {
+        showToast("این واکنش در تنظیمات گفتگو مجاز نیست.");
+      }
       return false;
     }
 
@@ -6858,14 +7071,37 @@
         if (stillOwn) {
           pushRecentReaction(normalizedEmoji);
         }
+        if (typeof opts.afterUpdate === "function") {
+          opts.afterUpdate(updated, {
+            emoji: normalizedEmoji,
+            own: stillOwn
+          });
+        }
       }
       setConnectionState("live", "متصل");
-      closeContextMenu();
+      if (opts.closeContext !== false) {
+        closeContextMenu();
+      }
       return true;
     } catch (error) {
-      showToast(error && error.message ? error.message : "ثبت واکنش انجام نشد.");
+      if (!opts.silentFailure) {
+        showToast(error && error.message ? error.message : "ثبت واکنش انجام نشد.");
+      }
       return false;
     }
+  }
+
+  function triggerGestureHeartReaction(message) {
+    if (!message) return Promise.resolve(false);
+    return toggleReaction(message, TELEGRAM_HEART_REACTION, {
+      silentFailure: true,
+      closeContext: false,
+      afterUpdate: function (updated, meta) {
+        if (meta && meta.own) {
+          playReactionBurst(updated.id, meta.emoji);
+        }
+      }
+    });
   }
 
   async function submitEditedMessage(message, nextText) {
