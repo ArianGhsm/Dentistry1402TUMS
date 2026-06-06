@@ -194,6 +194,7 @@
 powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1
 ```
 7.1. این wrapper باید همان `scripts/deploy_public_html.ps1` را با release-completion guard داخلی اجرا کند؛ یعنی freshness check دیگر نباید به‌صورت step دستیِ جدا باقی بماند. اگر این guard drift بین `public_html/` فعلی و آخرین manifest دیپلوی‌شده را نشان داد، پاسخ نهایی کامل مجاز نیست.
+7.2. فرستادن هر پیام `final` بدون اجرای موفق همین command در همان turn، failure اجرایی محسوب می‌شود؛ حتی اگر خود تغییرات کد کامل شده باشند. در این وضعیت باید اول deploy canonical انجام شود و فقط بعد از موفقیت آن، پاسخ نهایی ارسال شود.
 8. وضعیت `completed` فقط وقتی مجاز است که deploy canonical، live health-check و اعلان داخل سایت برای مالک همگی موفق شده باشند؛ اگر deploy یا اعلان به هر دلیل fail/skip شد، خروجی کار `blocked` یا `partial` است و نباید موفقیت کامل گزارش شود.
 
 ## 12) Deploy پیش‌فرض

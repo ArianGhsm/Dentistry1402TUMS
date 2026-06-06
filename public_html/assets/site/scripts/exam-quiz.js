@@ -18,7 +18,10 @@
 
     var exam = normalizeExamData(parsedData);
     if (!exam.questions.length) {
-        renderFailure("برای این آزمون هنوز سوالی ثبت نشده است.");
+        renderFailure(
+            exam.emptyStateMessage || "برای این آزمون هنوز سوالی ثبت نشده است.",
+            exam.emptyStateTitle || "سؤال‌های این جلسه به‌زودی اضافه می‌شود"
+        );
         return;
     }
 
@@ -69,10 +72,11 @@
     window.setTimeout(scheduleLayoutSync, 180);
     window.setTimeout(scheduleLayoutSync, 520);
 
-    function renderFailure(message) {
+    function renderFailure(message, title) {
         document.body.classList.add("quiz-stage-active");
         var fallbackBackHref = exam && exam.backHref ? exam.backHref : "/exams/";
         var fallbackBackLabel = exam && exam.backLabel ? exam.backLabel : "بازگشت";
+        var heading = title || "خطا در بارگذاری آزمون";
         appRoot.innerHTML = [
             '<div class="background-overlay" aria-hidden="true"></div>',
             '<div class="exam-shell">',
@@ -86,7 +90,7 @@
             '              <span>' + escapeHtml(fallbackBackLabel) + "</span>",
             "            </a>",
             '            <div class="exam-message-card">',
-            "              <h1>خطا در بارگذاری آزمون</h1>",
+            "              <h1>" + escapeHtml(heading) + "</h1>",
             "              <p>" + escapeHtml(message) + "</p>",
             "            </div>",
             "          </section>",

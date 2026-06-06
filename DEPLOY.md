@@ -19,6 +19,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - بعد از هر پرامپت/کاری که روی پروژه انجام می‌شود، deploy canonical باید قبل از پاسخ نهایی اجرا شود مگر کاربر صراحتاً همان نوبت منع کند.
 - command نهایی بالا دیگر نباید به deploy خام ختم شود؛ اسکریپت canonical حالا freshness guard را هم داخل همان run اجرا می‌کند و اگر `public_html/` بعد از آخرین host deploy drift داشته باشد non-zero fail می‌شود.
 - کار فقط وقتی `completed` محسوب می‌شود که deploy، live health-check و اعلان داخل سایت برای مالک موفق شده باشند؛ fail/skip شدن deploy یا اعلان باید صریحاً `blocked` یا `partial` گزارش شود.
+- ارسال پاسخ `final` بدون اجرای موفق `scripts/complete_task.ps1` در همان turn یک completion bug است، نه فراموشی قابل‌قبول؛ اگر این command اجرا نشده یا fail شده باشد، کار هنوز بسته نشده است.
 
 ## ترتیب اجباری Deploy
 0. دانلود یک‌طرفه‌ی `storage/` از هاست به لپتاپ و mirror در `server-only/storage`

@@ -374,7 +374,11 @@ function dent_dentistry_curriculum_terms(): array
                             'title' => 'مبانی مواد دندانی',
                             'examCourseSlugs' => ['craig-dental-materials', 'vannoort-dental-materials'],
                         ],
-                        ['key' => 'diagnostics-1-2', 'title' => 'تشخیصی ۱ و ۲'],
+                        [
+                            'key' => 'diagnostics-1-2',
+                            'title' => 'تشخیصی ۱ و ۲',
+                            'examCourseSlugs' => ['diagnostics-1-term6'],
+                        ],
                         [
                             'key' => 'complete-foundations-theory',
                             'title' => 'مبانی کامل نظری',

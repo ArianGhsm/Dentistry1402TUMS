@@ -407,6 +407,17 @@
             };
         }
 
+        if (session && session.comingSoon) {
+            return {
+                key: "coming-soon",
+                label: "به‌زودی",
+                actionLabel: "جزئیات",
+                actionHref: appendCohortPath(session.path || session.href || course.path || "/exams/"),
+                hint: String(session.emptyStateMessage || session.description || "سؤال‌های این جلسه هنوز اضافه نشده‌اند و به‌زودی از همین صفحه فعال می‌شوند."),
+                className: "exam-session-status exam-session-status--section"
+            };
+        }
+
         if (!session || !session.attemptable) {
             return {
                 key: "section",
@@ -798,6 +809,9 @@
         }
         if (item.status.key === "not-started") {
             return "شروع آزمون از داخل همین جلسه انجام می‌شود.";
+        }
+        if (item.status.key === "coming-soon") {
+            return compactText(item.status.hint || item.raw && item.raw.description || "", "این جلسه هنوز در حال تکمیل است.", 74);
         }
         return compactText(item.status.hint || "", "", 74);
     }
