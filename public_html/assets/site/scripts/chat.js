@@ -737,10 +737,10 @@
 
   function messagePreviewText(message) {
     if (!message) return "";
+    var text = meaningfulMessageText(message);
     if (message.poll && message.poll.question) {
       return "نظرسنجی: " + message.poll.question;
     }
-    var text = normalizeSpace(message.text);
     if (text) return text;
     if (Array.isArray(message.attachments) && message.attachments.length) {
       if (message.attachments.length === 1) {
@@ -748,7 +748,31 @@
       }
       return message.attachments.length.toLocaleString("fa-IR") + " فایل";
     }
+    if (message.forwardedFrom) {
+      return normalizeSpace(message.forwardedFrom.previewText || message.forwardedFrom.attachmentSummary || "");
+    }
     return "";
+  }
+
+  function isGeneratedMessagePlaceholder(message, text) {
+    var normalizedText = normalizeSpace(text);
+    if (!normalizedText) return false;
+    var hasAttachments = !!(message && Array.isArray(message.attachments) && message.attachments.length);
+    var kind = normalizeSpace(message && message.kind || "text");
+    if (hasAttachments && normalizedText.toLowerCase() === "attachment") {
+      return true;
+    }
+    if ((kind === "poll" || !!(message && message.poll)) && normalizedText.toLowerCase() === "poll") {
+      return true;
+    }
+    return false;
+  }
+
+  function meaningfulMessageText(message) {
+    if (!message) return "";
+    var text = toText(message.text);
+    if (!text) return "";
+    return isGeneratedMessagePlaceholder(message, text) ? "" : normalizeSpace(text);
   }
 
   function normalizeAvatarUrl(value) {
@@ -1008,6 +1032,8 @@
   var groupCreateBtn = $("group-create-btn");
   var forwardModal = $("forward-modal");
   var forwardModalClose = $("forward-modal-close");
+  var forwardSourcePreview = $("forward-source-preview");
+  var forwardIncludeSenderInput = $("forward-include-sender");
   var forwardSearch = $("forward-search");
   var forwardList = $("forward-list");
   var reactionModal = $("reaction-modal");
@@ -1127,6 +1153,7 @@
     pendingGroupCreate: false,
     pendingForwardMessageId: null,
     pendingForwardMessageIds: [],
+    forwardIncludeSenderName: true,
     pendingReactionMessageId: null,
     reactionCategory: "recent",
     recentReactions: [],
@@ -2474,6 +2501,30 @@
     };
   }
 
+  function normalizeForwardedFrom(raw) {
+    var source = asObject(raw);
+    if (!source) return null;
+    var conversationId = normalizeSpace(source.conversationId);
+    var messageId = Math.max(0, Math.floor(toNumber(source.messageId, 0)));
+    if (!conversationId || messageId <= 0) return null;
+    var messageKind = normalizeSpace(source.messageKind || "text");
+    if (messageKind !== "poll" && messageKind !== "attachment" && messageKind !== "voice") {
+      messageKind = "text";
+    }
+    return {
+      conversationId: conversationId,
+      messageId: messageId,
+      senderStudentNumber: normalizeStudentNumber(source.senderStudentNumber || ""),
+      senderName: normalizeSpace(source.senderName || ""),
+      conversationTitle: normalizeSpace(source.conversationTitle || ""),
+      previewText: normalizeSpace(source.previewText || ""),
+      attachmentSummary: normalizeSpace(source.attachmentSummary || ""),
+      attachmentCount: Math.max(0, Math.floor(toNumber(source.attachmentCount, 0))),
+      messageKind: messageKind,
+      canJump: source.canJump !== false
+    };
+  }
+
   function normalizeMessage(raw) {
     var source = asObject(raw);
     if (!source) return null;
@@ -2518,6 +2569,7 @@
       reactions: asObject(source.reactions) || {},
       mentions: normalizeMentionUsers(source.mentions),
       attachments: attachments,
+      forwardedFrom: normalizeForwardedFrom(source.forwardedFrom),
       avatarUrl: normalizeAvatarUrl(source.avatarUrl || profile.avatarUrl || ""),
       about: normalizeSpace(source.about || profile.about || profile.bio || ""),
       delivery: normalizeSpace(source.delivery) || "sent",
@@ -3858,6 +3910,71 @@
     );
   }
 
+  function forwardedOriginHeadline(meta) {
+    if (!meta) return "پیام فورواردشده";
+    if (meta.senderName) {
+      return "فوروارد از " + meta.senderName;
+    }
+    return "پیام فورواردشده";
+  }
+
+  function forwardedOriginPreview(meta) {
+    if (!meta) return "";
+    return normalizeSpace(meta.previewText || meta.attachmentSummary || "باز کردن پیام مبدا");
+  }
+
+  function forwardedOriginMeta(meta) {
+    if (!meta) return "";
+    var parts = [];
+    if (meta.conversationTitle) {
+      parts.push(meta.conversationTitle);
+    }
+    if (meta.attachmentSummary && meta.attachmentSummary !== meta.previewText) {
+      parts.push(meta.attachmentSummary);
+    }
+    return parts.join(" • ");
+  }
+
+  function renderForwardHeader(message) {
+    var meta = message && message.forwardedFrom;
+    if (!meta) return "";
+    var attrs = meta.canJump
+      ? (' data-forward-origin="1" data-origin-conversation="' + escapeHtml(meta.conversationId) + '" data-origin-message="' + escapeHtml(String(meta.messageId)) + '"')
+      : "";
+    return [
+      '<button type="button" class="msg-forwarded"' + attrs + (meta.canJump ? "" : ' disabled aria-disabled="true"') + '>',
+      '  <span class="msg-forwarded__kicker">' + escapeHtml(forwardedOriginHeadline(meta)) + "</span>",
+      '  <strong class="msg-forwarded__preview">' + escapeHtml(forwardedOriginPreview(meta)) + "</strong>",
+      forwardedOriginMeta(meta) ? ('  <small class="msg-forwarded__meta">' + escapeHtml(forwardedOriginMeta(meta)) + "</small>") : "",
+      "</button>"
+    ].join("");
+  }
+
+  async function openForwardOrigin(message) {
+    var meta = message && message.forwardedFrom;
+    if (!meta || !meta.conversationId || !meta.messageId) {
+      showToast("مرجع پیام فورواردی در دسترس نیست.");
+      return;
+    }
+
+    try {
+      if (normalizeSpace(state.activeConversationId) !== normalizeSpace(meta.conversationId)) {
+        await openConversation(meta.conversationId, {
+          forceFull: false,
+          source: "forward-origin",
+          silent: true
+        });
+      }
+      await loadThreadContext(meta.messageId, {
+        behavior: "smooth",
+        block: "center",
+        durationMs: 2200
+      });
+    } catch (error) {
+      showToast((error && error.message) || "باز کردن پیام مبدا انجام نشد.");
+    }
+  }
+
   function renderReactions(message) {
     var entries = reactionEntries(message);
     if (!entries.length) return "";
@@ -3962,14 +4079,64 @@
     return parts.join(" • ");
   }
 
-  function renderAttachmentMedia(attachment) {
+  function isVisualAttachmentCategory(category) {
+    return category === "image" || category === "video";
+  }
+
+  function isVisualAttachment(attachment) {
+    return !!attachment && isVisualAttachmentCategory(normalizeAttachmentCategory(attachment.category));
+  }
+
+  function attachmentPreviewPayload(attachment, options) {
+    if (!attachment || !isVisualAttachment(attachment)) return null;
+    var opts = asObject(options) || {};
     var previewUrl = attachment.previewUrl || attachment.url;
-    if ((attachment.category === "image" || attachment.category === "video") && previewUrl && (attachment.available || attachment.hasPreview)) {
-      if (attachment.category === "video" && attachment.available && attachment.url) {
-        return '<button type="button" class="msg-attachment__media msg-attachment__media-btn" data-media-kind="video" data-media-src="' + escapeHtml(attachment.url) + '" data-media-poster="' + escapeHtml(previewUrl) + '" data-media-caption="' + escapeHtml(attachment.name || "") + '"><video controls preload="metadata" src="' + escapeHtml(attachment.url) + '" poster="' + escapeHtml(previewUrl) + '"></video></button>';
-      }
-      return '<button type="button" class="msg-attachment__media msg-attachment__media-btn" data-media-kind="image" data-media-src="' + escapeHtml(attachment.url || previewUrl) + '" data-media-caption="' + escapeHtml(attachment.name || "") + '"><img src="' + escapeHtml(previewUrl) + '" alt="' + escapeHtml(attachment.name || "attachment") + '" loading="lazy"></button>';
+    if (!previewUrl || (!attachment.available && !attachment.hasPreview)) return null;
+    var kind = attachment.category === "video" ? "video" : "image";
+    var src = kind === "video" && attachment.available && attachment.url
+      ? attachment.url
+      : (attachment.url || previewUrl);
+    if (!src) return null;
+    return {
+      kind: kind,
+      src: src,
+      previewUrl: previewUrl,
+      poster: kind === "video" ? previewUrl : "",
+      caption: normalizeSpace(opts.caption || attachment.name || ""),
+      group: normalizeSpace(opts.group || ""),
+      durationSeconds: Math.max(0, Math.floor(toNumber(attachment.durationSeconds, 0)))
+    };
+  }
+
+  function renderAttachmentMediaButton(attachment, options) {
+    var payload = attachmentPreviewPayload(attachment, options);
+    if (!payload) return "";
+    var opts = asObject(options) || {};
+    var className = normalizeSpace(opts.className || "msg-attachment__media msg-attachment__media-btn");
+    var badgeText = normalizeSpace(opts.badgeText);
+    if (!badgeText && payload.kind === "video") {
+      badgeText = payload.durationSeconds > 0 ? formatDuration(payload.durationSeconds) : "ویدیو";
     }
+    return [
+      '<button type="button" class="' + escapeHtml(className) + '" data-media-kind="' + escapeHtml(payload.kind) + '" data-media-src="' + escapeHtml(payload.src) + '"' + (payload.poster ? ' data-media-poster="' + escapeHtml(payload.poster) + '"' : "") + ' data-media-caption="' + escapeHtml(payload.caption || "رسانه") + '"' + (payload.group ? ' data-media-group="' + escapeHtml(payload.group) + '"' : "") + '>',
+      payload.kind === "video"
+        ? (
+          attachment.available && attachment.url
+            ? '<video playsinline muted preload="metadata" src="' + escapeHtml(payload.src) + '" poster="' + escapeHtml(payload.poster) + '"></video>'
+            : '<img src="' + escapeHtml(payload.previewUrl) + '" alt="' + escapeHtml(payload.caption || "رسانه") + '" loading="lazy">'
+        )
+        : '<img src="' + escapeHtml(payload.previewUrl) + '" alt="' + escapeHtml(payload.caption || "رسانه") + '" loading="lazy">',
+      payload.kind === "video" ? '<span class="msg-media-preview__play" aria-hidden="true"></span>' : "",
+      badgeText ? '<span class="msg-media-preview__badge">' + escapeHtml(badgeText) + "</span>" : "",
+      "</button>"
+    ].join("");
+  }
+
+  function renderAttachmentMedia(attachment, options) {
+    var mediaButton = renderAttachmentMediaButton(attachment, Object.assign({}, asObject(options) || {}, {
+      className: "msg-attachment__media msg-attachment__media-btn"
+    }));
+    if (mediaButton) return mediaButton;
 
     if ((attachment.category === "audio" || attachment.category === "voice") && attachment.available && attachment.url) {
       return '<audio class="msg-attachment__audio" controls preload="metadata" src="' + escapeHtml(attachment.url) + '"></audio>';
@@ -4046,7 +4213,7 @@
   }
 
   function renderMessageText(message) {
-    var text = toText(message && message.text);
+    var text = meaningfulMessageText(message);
     if (!text) return "";
     var mentionMap = new Map();
     (Array.isArray(message && message.mentions) ? message.mentions : []).forEach(function (user) {
@@ -4184,8 +4351,42 @@
     ].join("");
   }
 
-  function renderAttachment(attachment) {
+  function attachmentCaptionPreview(message, attachment) {
+    var caption = meaningfulMessageText(message);
+    var label = normalizeSpace(attachment && attachment.name);
+    if (caption && label && caption !== label) {
+      return caption + " • " + label;
+    }
+    return caption || label || "رسانه";
+  }
+
+  function messageUsesVisualCaptionLayout(message) {
+    var attachments = Array.isArray(message && message.attachments) ? message.attachments : [];
+    if (!attachments.length) return false;
+    var previewableVisualCount = attachments.filter(function (attachment) {
+      return !!attachmentPreviewPayload(attachment);
+    }).length;
+    return previewableVisualCount > 0 && previewableVisualCount === attachments.length;
+  }
+
+  function renderAttachmentAlbum(message, attachments) {
+    var visualItems = (Array.isArray(attachments) ? attachments : []).filter(function (attachment) {
+      return !!attachmentPreviewPayload(attachment);
+    });
+    if (visualItems.length <= 1) return "";
+    var group = message && message.id ? ("message-" + message.id) : "message";
+    return '<section class="msg-media-album" data-media-collection="' + escapeHtml(group) + '" data-count="' + escapeHtml(String(Math.min(visualItems.length, 6))) + '">' + visualItems.map(function (attachment) {
+      return renderAttachmentMediaButton(attachment, {
+        className: "msg-media-album__tile msg-attachment__media-btn",
+        group: group,
+        caption: attachmentCaptionPreview(message, attachment)
+      });
+    }).join("") + "</section>";
+  }
+
+  function renderAttachment(attachment, options) {
     if (!attachment) return "";
+    var opts = asObject(options) || {};
     if (attachment.category === "voice") {
       return renderVoiceAttachment(attachment);
     }
@@ -4213,7 +4414,10 @@
 
     return [
       '<article class="msg-attachment">',
-      renderAttachmentMedia(attachment),
+      renderAttachmentMedia(attachment, {
+        group: normalizeSpace(opts.mediaGroup || ""),
+        caption: normalizeSpace(opts.mediaCaption || attachment.name || "")
+      }),
       '  <div class="msg-attachment__head">',
       '    <span class="msg-attachment__name" title="' + escapeHtml(attachment.name) + '">' + escapeHtml(attachment.name) + "</span>",
       '    <span class="msg-attachment__meta">' + escapeHtml(attachmentMetaText(attachment)) + "</span>",
@@ -4226,7 +4430,33 @@
   function renderAttachments(message) {
     var attachments = Array.isArray(message && message.attachments) ? message.attachments : [];
     if (!attachments.length) return "";
-    return '<div class="msg-attachments">' + attachments.map(renderAttachment).join("") + "</div>";
+    var mediaGroup = message && message.id ? ("message-" + message.id) : "message";
+    var visualAttachments = [];
+    var remainingAttachments = [];
+    attachments.forEach(function (attachment) {
+      if (attachmentPreviewPayload(attachment)) {
+        visualAttachments.push(attachment);
+      } else {
+        remainingAttachments.push(attachment);
+      }
+    });
+
+    var parts = [];
+    if (visualAttachments.length > 1) {
+      parts.push(renderAttachmentAlbum(message, visualAttachments));
+    } else if (visualAttachments.length === 1) {
+      parts.push(renderAttachment(visualAttachments[0], {
+        mediaGroup: mediaGroup,
+        mediaCaption: attachmentCaptionPreview(message, visualAttachments[0])
+      }));
+    }
+    remainingAttachments.forEach(function (attachment) {
+      parts.push(renderAttachment(attachment, {
+        mediaGroup: mediaGroup,
+        mediaCaption: attachmentCaptionPreview(message, attachment)
+      }));
+    });
+    return '<div class="msg-attachments">' + parts.join("") + "</div>";
   }
 
   function syncVoiceNoteUi(note, audio) {
@@ -4387,6 +4617,7 @@
     var ownMessage = message.studentNumber === state.me.studentNumber;
     var textHtml = renderMessageText(message);
     var showText = (!message.poll && !!textHtml) || (message.kind !== "poll" && !!textHtml);
+    var captionAfterMedia = showText && !message.poll && messageUsesVisualCaptionLayout(message);
 
     row.innerHTML = [
       '<div class="msg-row">',
@@ -4400,11 +4631,14 @@
       '      <span class="msg-name" data-digit-locale="latin">' + escapeHtml(message.name || "کاربر") + "</span>",
       showRole ? '      <span class="msg-badge">' + escapeHtml(message.roleLabel || "دانشجو") + "</span>" : "",
       "    </div>",
+      renderForwardHeader(message),
       message.replyTo ? renderReplyPreview(message.replyTo) : "",
       message.poll ? renderPollCard(message) : "",
-      showText ? ('    <div class="msg-text" data-digit-locale="latin">' + textHtml + "</div>") : "",
-      message.poll ? "" : renderLinkPreviews(message),
+      captionAfterMedia ? "" : (showText ? ('    <div class="msg-text" data-digit-locale="latin">' + textHtml + "</div>") : ""),
+      captionAfterMedia ? "" : (message.poll ? "" : renderLinkPreviews(message)),
       renderAttachments(message),
+      captionAfterMedia ? ('    <div class="msg-text msg-text--caption" data-digit-locale="latin">' + textHtml + "</div>") : "",
+      captionAfterMedia ? renderLinkPreviews(message) : "",
       renderReactions(message),
       '    <div class="msg-foot">',
       '      <span class="msg-flags">',
@@ -4435,6 +4669,13 @@
         if (targetId > 0) {
           scrollToMessage(targetId);
         }
+      });
+    });
+    Array.from(row.querySelectorAll("[data-forward-origin]")).forEach(function (button) {
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        openForwardOrigin(message);
       });
     });
     Array.from(row.querySelectorAll(".msg-attachment__media-btn")).forEach(function (button) {
@@ -5040,7 +5281,13 @@
       mediaViewerMore.hidden = true;
       mediaViewerMore.removeAttribute("href");
     }
-    if (mediaViewerStage) mediaViewerStage.innerHTML = "";
+    if (mediaViewerStage) {
+      mediaViewerStage.innerHTML = "";
+      mediaViewerStage.classList.remove("is-dragging");
+      mediaViewerStage.classList.remove("is-settling");
+      mediaViewerStage.style.removeProperty("transform");
+      mediaViewerStage.style.removeProperty("opacity");
+    }
     if (mediaViewerCaption) mediaViewerCaption.textContent = "";
     if (mediaViewerCounter) mediaViewerCounter.textContent = "";
     state.mediaViewerItems = [];
@@ -5100,10 +5347,75 @@
     };
   }
 
+  function resetMediaViewerStageOffset() {
+    if (!mediaViewerStage) return;
+    mediaViewerStage.classList.remove("is-dragging");
+    mediaViewerStage.classList.remove("is-settling");
+    mediaViewerStage.style.removeProperty("transform");
+    mediaViewerStage.style.removeProperty("opacity");
+  }
+
+  function applyMediaViewerStageOffset(offsetPx) {
+    if (!mediaViewerStage) return;
+    var offset = toNumber(offsetPx, 0);
+    if (Math.abs(offset) < 0.5) {
+      resetMediaViewerStageOffset();
+      return;
+    }
+    var limited = clamp(offset, -window.innerWidth * 0.42, window.innerWidth * 0.42);
+    var opacity = clamp(1 - (Math.abs(limited) / Math.max(320, window.innerWidth * 0.85)), 0.76, 1);
+    mediaViewerStage.classList.add("is-dragging");
+    mediaViewerStage.classList.remove("is-settling");
+    mediaViewerStage.style.transform = "translate3d(" + limited.toFixed(1) + "px,0,0)";
+    mediaViewerStage.style.opacity = opacity.toFixed(3);
+  }
+
+  function settleMediaViewerStep(direction, distancePx) {
+    if (!mediaViewerStage) {
+      stepMediaViewer(direction);
+      return;
+    }
+    var sign = direction > 0 ? -1 : 1;
+    var distance = Math.max(window.innerWidth * 0.18, Math.abs(toNumber(distancePx, 0)));
+    mediaViewerStage.classList.remove("is-dragging");
+    mediaViewerStage.classList.add("is-settling");
+    mediaViewerStage.style.transform = "translate3d(" + (sign * distance).toFixed(1) + "px,0,0)";
+    mediaViewerStage.style.opacity = "0.78";
+    window.setTimeout(function () {
+      stepMediaViewer(direction);
+    }, 110);
+  }
+
   function collectMediaViewerItems(activeNode) {
-    var nodes = messagesEl
-      ? Array.from(messagesEl.querySelectorAll(".msg-attachment__media-btn[data-media-src]"))
-      : [];
+    var selector = ".msg-attachment__media-btn[data-media-src], .composer-upload-item__preview[data-media-src]";
+    var group = normalizeSpace(activeNode && activeNode.getAttribute("data-media-group"));
+    var nodes = [];
+    var scopedCollection = activeNode && activeNode.closest ? activeNode.closest("[data-media-collection]") : null;
+    if (scopedCollection) {
+      nodes = Array.from(scopedCollection.querySelectorAll(selector));
+    }
+    if (group && nodes.length) {
+      nodes = nodes.filter(function (node) {
+        return normalizeSpace(node.getAttribute("data-media-group")) === group;
+      });
+    }
+    if (!nodes.length) {
+      var messageScope = activeNode && activeNode.closest ? activeNode.closest(".msg-item, .composer-uploads") : null;
+      if (messageScope) {
+        nodes = Array.from(messageScope.querySelectorAll(selector));
+      }
+    }
+    if (group && nodes.length) {
+      nodes = nodes.filter(function (node) {
+        return normalizeSpace(node.getAttribute("data-media-group")) === group;
+      });
+    }
+    if (!nodes.length && messagesEl) {
+      nodes = Array.from(messagesEl.querySelectorAll(selector));
+    }
+    if (!nodes.length && composerUploads) {
+      nodes = Array.from(composerUploads.querySelectorAll(selector));
+    }
     var items = nodes.map(mediaViewerItemFromNode).filter(Boolean);
     var index = nodes.indexOf(activeNode);
     if (index < 0) index = 0;
@@ -5127,6 +5439,7 @@
 
     state.mediaViewerZoomed = false;
     mediaViewer.classList.remove("is-zoomed");
+    resetMediaViewerStageOffset();
 
     mediaViewerStage.innerHTML = item.kind === "video"
       ? '<video controls autoplay playsinline preload="metadata" src="' + escapeHtml(item.src) + '"' + (item.poster ? ' poster="' + escapeHtml(item.poster) + '"' : "") + "></video>"
@@ -7346,8 +7659,13 @@
     if (hadOpenModal && closingKey === "forward") {
       state.pendingForwardMessageId = null;
       state.pendingForwardMessageIds = [];
+      state.forwardIncludeSenderName = true;
+      if (forwardIncludeSenderInput) {
+        forwardIncludeSenderInput.checked = true;
+      }
       if (forwardSearch) forwardSearch.value = "";
       if (forwardList) forwardList.innerHTML = "";
+      if (forwardSourcePreview) forwardSourcePreview.innerHTML = "";
     }
     if (hadOpenModal && closingKey === "reaction") {
       state.pendingReactionMessageId = null;
@@ -7903,24 +8221,46 @@
     });
   }
 
-  function buildForwardText(messages) {
-    var list = Array.isArray(messages) ? messages : [messages];
-    return list.map(function (message) {
-      return messageExportText(message, { forwardStyle: true });
-    }).filter(Boolean).join("\n\n");
+  function renderForwardSourcePreview() {
+    if (!forwardSourcePreview) return;
+    var sourceMessages = forwardSourceMessages();
+    if (!sourceMessages.length) {
+      forwardSourcePreview.innerHTML = '<div class="chat-picker-empty">پیام مبدا پیدا نشد.</div>';
+      return;
+    }
+
+    forwardSourcePreview.innerHTML = sourceMessages.map(function (message) {
+      var meta = [];
+      if (Array.isArray(message.attachments) && message.attachments.length) {
+        meta.push(message.attachments.length === 1
+          ? attachmentCategoryLabel(message.attachments[0].category || "file")
+          : (message.attachments.length.toLocaleString("fa-IR") + " فایل"));
+      }
+      if (message.forwardedFrom && message.forwardedFrom.conversationTitle) {
+        meta.push(message.forwardedFrom.conversationTitle);
+      }
+      return [
+        '<article class="forward-source-card">',
+        '  <span class="forward-source-card__kicker">' + escapeHtml(state.forwardIncludeSenderName ? (message.name || "کاربر") : "بدون نام فرستنده") + "</span>",
+        '  <strong class="forward-source-card__preview">' + escapeHtml(messagePreviewText(message) || "پیام بدون متن") + "</strong>",
+        meta.length ? ('  <small class="forward-source-card__meta">' + escapeHtml(meta.join(" • ")) + "</small>") : "",
+        '</article>'
+      ].join("");
+    }).join("");
   }
 
   async function forwardMessageToConversation(targetConversationId) {
     var conversationId = normalizeSpace(targetConversationId);
     var sourceMessages = forwardSourceMessages();
-    var forwardText = buildForwardText(sourceMessages);
-    if (!conversationId || !sourceMessages.length || !forwardText) return;
+    if (!conversationId || !sourceMessages.length) return;
 
     setModalBusy("forward", true);
     try {
-      var response = await apiPost("send", {
+      var response = await apiPost("forwardMessages", {
         conversationId: conversationId,
-        text: forwardText
+        sourceConversationId: normalizeSpace(state.activeConversationId),
+        ids: sourceMessages.map(function (message) { return message.id; }).join(","),
+        includeSenderName: state.forwardIncludeSenderName ? "1" : "0"
       });
 
       if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
@@ -7928,10 +8268,19 @@
       }
       ensureSuccessResponse(response, "فوروارد پیام انجام نشد.");
 
-      var nextConversation = normalizeConversation(response.conversation);
-      if (nextConversation) {
-        upsertConversation(nextConversation);
-        rebuildConversationsFromMap();
+      var nextConversations = Array.isArray(response.conversations)
+        ? response.conversations.map(normalizeConversation).filter(Boolean)
+        : [];
+      if (nextConversations.length) {
+        replaceConversations(nextConversations);
+        renderConversationList();
+      } else {
+        var nextConversation = normalizeConversation(response.conversation);
+        if (nextConversation) {
+          upsertConversation(nextConversation);
+          rebuildConversationsFromMap();
+          renderConversationList();
+        }
       }
 
       closeModal(true);
@@ -7953,6 +8302,7 @@
   function renderForwardList() {
     if (!forwardList) return;
     var sourceMessages = forwardSourceMessages();
+    renderForwardSourcePreview();
     if (!sourceMessages.length) {
       forwardList.innerHTML = '<div class="chat-picker-empty">پیام مبدا پیدا نشد.</div>';
       return;
@@ -8004,7 +8354,11 @@
   function openForwardPicker(message) {
     if (!message || !forwardModal) return;
     setPendingForwardMessages([message.id]);
+    state.forwardIncludeSenderName = true;
     openModal(forwardModal, "forward");
+    if (forwardIncludeSenderInput) {
+      forwardIncludeSenderInput.checked = true;
+    }
     if (forwardSearch) forwardSearch.value = "";
     renderForwardList();
     if (forwardSearch && !isMobileViewport()) {
@@ -8015,7 +8369,11 @@
   function openForwardPickerForMessages(messageIds) {
     if (!forwardModal) return;
     setPendingForwardMessages(messageIds);
+    state.forwardIncludeSenderName = true;
     openModal(forwardModal, "forward");
+    if (forwardIncludeSenderInput) {
+      forwardIncludeSenderInput.checked = true;
+    }
     if (forwardSearch) forwardSearch.value = "";
     renderForwardList();
     if (forwardSearch && !isMobileViewport()) {
@@ -8719,6 +9077,7 @@
     state.recentReactions = [];
     state.reactionUsage = new Map();
     state.reactionDetailsRequestToken += 1;
+    state.pendingAttachments.forEach(releaseComposerAttachmentPreview);
     state.pendingAttachments = [];
     nativeEmojiPicker = null;
 
@@ -8821,6 +9180,7 @@
       state.showArchivedConversations = false;
       state.pollDraftSelections = new Map();
       state.reactionDetailsRequestToken += 1;
+      state.pendingAttachments.forEach(releaseComposerAttachmentPreview);
       state.pendingAttachments = [];
       clearFastChatCacheSaveHandle();
       clearAutoReadTimer();
@@ -8916,6 +9276,62 @@
     });
   }
 
+  function composerPreviewKindFromFile(file) {
+    var mime = normalizeSpace(file && file.type).toLowerCase();
+    if (mime.indexOf("image/") === 0) return "image";
+    if (mime.indexOf("video/") === 0) return "video";
+    return "";
+  }
+
+  function releaseComposerAttachmentPreview(item) {
+    if (!item || !item.previewOwned || !item.previewUrl || item.previewReleased) return;
+    if (typeof URL !== "undefined" && typeof URL.revokeObjectURL === "function") {
+      try {
+        URL.revokeObjectURL(item.previewUrl);
+      } catch (_error) {}
+    }
+    item.previewReleased = true;
+  }
+
+  function composerAttachmentPreviewPayload(item) {
+    var source = asObject(item) || {};
+    var attachment = source.attachment || null;
+    var previewKind = normalizeSpace(source.previewKind);
+    if (!previewKind && attachment && isVisualAttachment(attachment)) {
+      previewKind = attachment.category === "video" ? "video" : "image";
+    }
+    if (previewKind !== "image" && previewKind !== "video") return null;
+    var previewUrl = toText(source.previewUrl || (attachment && (attachment.previewUrl || attachment.url)) || "");
+    var mediaUrl = toText((attachment && attachment.url) || previewUrl);
+    if (!previewUrl || !mediaUrl) return null;
+    return {
+      kind: previewKind,
+      previewUrl: previewUrl,
+      mediaUrl: mediaUrl,
+      poster: previewKind === "video" ? previewUrl : "",
+      caption: normalizeSpace(source.name || (attachment && attachment.name) || "رسانه")
+    };
+  }
+
+  function moveComposerAttachment(localId, offset) {
+    var id = normalizeSpace(localId);
+    if (!id) return;
+    if (!offset) return;
+    var direction = offset < 0 ? -1 : 1;
+    var currentIndex = state.pendingAttachments.findIndex(function (item) {
+      return item && item.localId === id;
+    });
+    if (currentIndex < 0) return;
+    var nextIndex = clamp(currentIndex + direction, 0, Math.max(0, state.pendingAttachments.length - 1));
+    if (nextIndex === currentIndex) return;
+    var reordered = state.pendingAttachments.slice();
+    var moved = reordered.splice(currentIndex, 1)[0];
+    reordered.splice(nextIndex, 0, moved);
+    state.pendingAttachments = reordered;
+    renderComposerUploads();
+    updateComposerState();
+  }
+
   function removeComposerAttachmentByLocalId(localId) {
     var id = normalizeSpace(localId);
     if (!id) return;
@@ -8928,6 +9344,7 @@
           // Ignore abort failures.
         }
       }
+      releaseComposerAttachmentPreview(item);
       return false;
     });
     renderComposerUploads();
@@ -8939,6 +9356,7 @@
       ? attachmentIds.map(function (value) { return normalizeSpace(value); }).filter(Boolean)
       : [];
     if (!ids.length) {
+      state.pendingAttachments.forEach(releaseComposerAttachmentPreview);
       state.pendingAttachments = [];
       renderComposerUploads();
       return;
@@ -8947,6 +9365,7 @@
     state.pendingAttachments = state.pendingAttachments.filter(function (item) {
       var attachmentId = normalizeSpace(item && item.attachment && item.attachment.id);
       if (!attachmentId || !idSet.has(attachmentId)) return true;
+      releaseComposerAttachmentPreview(item);
       return false;
     });
     renderComposerUploads();
@@ -8963,7 +9382,7 @@
 
     composerUploads.hidden = false;
     syncComposerDraftState();
-    composerUploads.innerHTML = state.pendingAttachments.map(function (item) {
+    composerUploads.innerHTML = state.pendingAttachments.map(function (item, index) {
       var statusLabel = "در حال ارسال";
       if (item.status === "uploaded") {
         statusLabel = "آماده ارسال";
@@ -8971,8 +9390,26 @@
         statusLabel = item.error || "خطا در بارگذاری";
       }
       var progressWidth = clamp(toNumber(item.progress, 0), 0, 100);
+      var preview = composerAttachmentPreviewPayload(item);
+      var canMoveUp = index > 0;
+      var canMoveDown = index < (state.pendingAttachments.length - 1);
       return [
         '<article class="composer-upload-item" data-upl-id="' + escapeHtml(item.localId) + '">',
+        preview
+          ? (
+            '  <button type="button" class="composer-upload-item__preview" data-upl-preview="' + escapeHtml(item.localId) + '" data-media-kind="' + escapeHtml(preview.kind) + '" data-media-src="' + escapeHtml(preview.mediaUrl) + '"' + (preview.poster ? ' data-media-poster="' + escapeHtml(preview.poster) + '"' : "") + ' data-media-caption="' + escapeHtml(preview.caption) + '" data-media-group="composer-pending" aria-label="پیش‌نمایش فایل">' +
+            (preview.kind === "video"
+              ? '<video playsinline muted preload="metadata" src="' + escapeHtml(preview.mediaUrl) + '" poster="' + escapeHtml(preview.poster) + '"></video><span class="msg-media-preview__play" aria-hidden="true"></span>'
+              : '<img src="' + escapeHtml(preview.previewUrl) + '" alt="' + escapeHtml(preview.caption) + '" loading="lazy">') +
+            '    <span class="composer-upload-item__order" aria-hidden="true">' + (index + 1).toLocaleString("fa-IR") + "</span>" +
+            "  </button>"
+          )
+          : (
+            '  <div class="composer-upload-item__preview composer-upload-item__preview--file" aria-hidden="true">' +
+            '    <span class="composer-upload-item__preview-icon">' + escapeHtml((item.status === "error" ? "!" : "FILE")) + '</span>' +
+            '    <span class="composer-upload-item__order">' + (index + 1).toLocaleString("fa-IR") + "</span>" +
+            "  </div>"
+          ),
         '  <div class="composer-upload-item__copy">',
         '    <div class="composer-upload-item__name" title="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + "</div>",
         '    <div class="composer-upload-item__meta">' + escapeHtml(statusLabel) + ' • ' + escapeHtml(formatFileSize(item.sizeBytes || 0)) + "</div>",
@@ -8980,7 +9417,11 @@
           ? ('    <div class="composer-upload-item__progress"><span style="width:' + progressWidth.toFixed(1) + '%"></span></div>')
           : "",
         "  </div>",
-        '  <button type="button" class="composer-upload-item__remove" data-upl-remove="' + escapeHtml(item.localId) + '"' + (item.status === "uploading" ? ' disabled aria-label="در حال بارگذاری"' : ' aria-label="حذف"' ) + ">×</button>",
+        '  <div class="composer-upload-item__actions">',
+        '    <button type="button" class="composer-upload-item__move" data-upl-move="' + escapeHtml(item.localId) + '" data-upl-shift="-1"' + (canMoveUp ? ' aria-label="انتقال به بالا"' : ' disabled aria-label="آیتم اول"') + ">↑</button>",
+        '    <button type="button" class="composer-upload-item__move" data-upl-move="' + escapeHtml(item.localId) + '" data-upl-shift="1"' + (canMoveDown ? ' aria-label="انتقال به پایین"' : ' disabled aria-label="آیتم آخر"') + ">↓</button>",
+        '    <button type="button" class="composer-upload-item__remove" data-upl-remove="' + escapeHtml(item.localId) + '"' + (item.status === "uploading" ? ' disabled aria-label="در حال بارگذاری"' : ' aria-label="حذف"') + ">×</button>",
+        "  </div>",
         "</article>"
       ].join("");
     }).join("");
@@ -9095,8 +9536,21 @@
       progress: 0,
       attachment: null,
       error: "",
-      xhr: null
+      xhr: null,
+      previewKind: composerPreviewKindFromFile(file),
+      previewUrl: "",
+      previewOwned: false,
+      previewReleased: false
     };
+    if (item.previewKind && typeof URL !== "undefined" && typeof URL.createObjectURL === "function") {
+      try {
+        item.previewUrl = URL.createObjectURL(file);
+        item.previewOwned = true;
+      } catch (_error) {
+        item.previewUrl = "";
+        item.previewOwned = false;
+      }
+    }
     state.pendingAttachments.push(item);
     renderComposerUploads();
     updateComposerState();
@@ -10748,6 +11202,12 @@
     if (forwardSearch) {
       forwardSearch.addEventListener("input", renderForwardList);
     }
+    if (forwardIncludeSenderInput) {
+      forwardIncludeSenderInput.addEventListener("change", function () {
+        state.forwardIncludeSenderName = !!forwardIncludeSenderInput.checked;
+        renderForwardSourcePreview();
+      });
+    }
     if (reactionSearch) {
       reactionSearch.addEventListener("input", renderReactionPicker);
     }
@@ -10943,6 +11403,19 @@
     }
     if (composerUploads) {
       composerUploads.addEventListener("click", function (event) {
+        var previewButton = event.target.closest("[data-upl-preview]");
+        if (previewButton) {
+          openMediaViewerFromNode(previewButton);
+          return;
+        }
+        var moveButton = event.target.closest("[data-upl-move]");
+        if (moveButton) {
+          moveComposerAttachment(
+            moveButton.getAttribute("data-upl-move"),
+            Math.floor(toNumber(moveButton.getAttribute("data-upl-shift"), 0)) || 0
+          );
+          return;
+        }
         var button = event.target.closest("[data-upl-remove]");
         if (!button) return;
         removeComposerAttachmentByLocalId(button.getAttribute("data-upl-remove"));
@@ -11138,24 +11611,67 @@
       });
       mediaViewer.addEventListener("pointerdown", function (event) {
         if (event.pointerType === "mouse" && event.button !== 0) return;
+        if (state.mediaViewerItems.length <= 1 || state.mediaViewerZoomed) return;
+        if (event.target && event.target.closest && event.target.closest(".chat-media-viewer__nav, .chat-media-viewer__close, .chat-media-viewer__more")) return;
+        if (!mediaViewerStage || !mediaViewerStage.contains(event.target)) return;
+        if (event.target && event.target.tagName === "VIDEO") return;
         state.mediaViewerPointer = {
           id: event.pointerId,
-          x: event.clientX,
-          y: event.clientY,
-          at: Date.now()
+          startX: event.clientX,
+          startY: event.clientY,
+          lastX: event.clientX,
+          lastY: event.clientY,
+          dragging: false
         };
+        if (typeof mediaViewer.setPointerCapture === "function") {
+          try {
+            mediaViewer.setPointerCapture(event.pointerId);
+          } catch (_error) {}
+        }
+      });
+      mediaViewer.addEventListener("pointermove", function (event) {
+        var start = state.mediaViewerPointer;
+        if (!start || start.id !== event.pointerId) return;
+        start.lastX = event.clientX;
+        start.lastY = event.clientY;
+        var dx = event.clientX - start.startX;
+        var dy = event.clientY - start.startY;
+        if (!start.dragging) {
+          if (Math.abs(dx) < 10) return;
+          if (Math.abs(dx) < Math.abs(dy) * 1.1) {
+            state.mediaViewerPointer = null;
+            resetMediaViewerStageOffset();
+            return;
+          }
+          start.dragging = true;
+        }
+        event.preventDefault();
+        applyMediaViewerStageOffset(dx);
       });
       mediaViewer.addEventListener("pointerup", function (event) {
         var start = state.mediaViewerPointer;
         state.mediaViewerPointer = null;
+        if (typeof mediaViewer.releasePointerCapture === "function") {
+          try {
+            mediaViewer.releasePointerCapture(event.pointerId);
+          } catch (_error) {}
+        }
         if (!start || start.id !== event.pointerId) return;
-        var dx = event.clientX - start.x;
-        var dy = event.clientY - start.y;
-        if (Math.abs(dx) < 52 || Math.abs(dx) < Math.abs(dy) * 1.35) return;
-        stepMediaViewer(dx < 0 ? 1 : -1);
+        var dx = event.clientX - start.startX;
+        var dy = event.clientY - start.startY;
+        if (!start.dragging) {
+          resetMediaViewerStageOffset();
+          return;
+        }
+        if (Math.abs(dx) < Math.min(96, window.innerWidth * 0.16) || Math.abs(dx) < Math.abs(dy) * 1.1) {
+          resetMediaViewerStageOffset();
+          return;
+        }
+        settleMediaViewerStep(dx < 0 ? 1 : -1, dx);
       });
       mediaViewer.addEventListener("pointercancel", function () {
         state.mediaViewerPointer = null;
+        resetMediaViewerStageOffset();
       });
     }
     if (mediaViewerStage) {

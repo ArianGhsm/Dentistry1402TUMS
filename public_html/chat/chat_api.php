@@ -1543,6 +1543,7 @@ function chat_normalize_message_record(array $message, string $conversationId): 
         'kind' => $kind,
         'pollId' => $kind === 'poll' ? $pollId : '',
         'attachmentIds' => $attachmentIds,
+        'forwardedFrom' => chat_normalize_forwarded_from_record($message['forwardedFrom'] ?? null),
     ];
 }
 
@@ -1911,6 +1912,102 @@ function chat_clean_media_relative_path(?string $value): string
     }
 
     return ltrim($value, '/');
+}
+
+function chat_attachment_category_label(string $category, int $count = 1): string
+{
+    $count = max(1, $count);
+    $category = dent_clean_text($category, 20);
+
+    if ($count > 1) {
+        return $count . ' فایل';
+    }
+
+    return match ($category) {
+        'image' => 'تصویر',
+        'video' => 'ویدیو',
+        'audio' => 'فایل صوتی',
+        'voice' => 'پیام صوتی',
+        'document' => 'سند',
+        'pdf' => 'PDF',
+        'office' => 'Office',
+        'archive' => 'آرشیو',
+        default => 'فایل',
+    };
+}
+
+function chat_message_preview_text(array $message, ?array $store = null): string
+{
+    $kind = trim((string) ($message['kind'] ?? 'text'));
+    $text = dent_clean_text((string) ($message['text'] ?? ''), 320);
+
+    $attachmentCount = 0;
+    $attachmentLabel = '';
+    if (is_array($store)) {
+        $attachments = chat_message_attachments_payload($message, $store);
+        $attachmentCount = count($attachments);
+        if ($attachmentCount > 0) {
+            $firstCategory = (string) ($attachments[0]['category'] ?? 'file');
+            $attachmentLabel = chat_attachment_category_label($firstCategory, $attachmentCount);
+        }
+    }
+
+    if ($kind === 'poll') {
+        $pollId = chat_clean_poll_id((string) ($message['pollId'] ?? ''));
+        if ($pollId !== '' && is_array($store)) {
+            $poll = chat_get_poll($store, $pollId);
+            $question = dent_clean_text((string) ($poll['question'] ?? ''), 220);
+            if ($question !== '') {
+                return 'نظرسنجی: ' . $question;
+            }
+        }
+        if ($text !== '' && strcasecmp($text, 'Poll') !== 0) {
+            return $text;
+        }
+        return 'نظرسنجی';
+    }
+
+    if ($text !== '') {
+        if (!(strcasecmp($text, 'Attachment') === 0 && $attachmentCount > 0)) {
+            return $text;
+        }
+    }
+
+    if ($attachmentLabel !== '') {
+        return $attachmentLabel;
+    }
+
+    return $text;
+}
+
+function chat_normalize_forwarded_from_record($raw): ?array
+{
+    if (!is_array($raw)) {
+        return null;
+    }
+
+    $conversationId = chat_clean_conversation_id((string) ($raw['conversationId'] ?? ''));
+    $messageId = isset($raw['messageId']) ? (int) $raw['messageId'] : 0;
+    if ($conversationId === '' || $messageId <= 0) {
+        return null;
+    }
+
+    $messageKind = dent_clean_text((string) ($raw['messageKind'] ?? 'text'), 20);
+    if (!in_array($messageKind, ['text', 'poll', 'attachment', 'voice'], true)) {
+        $messageKind = 'text';
+    }
+
+    return [
+        'conversationId' => $conversationId,
+        'messageId' => $messageId,
+        'senderStudentNumber' => dent_normalize_student_number((string) ($raw['senderStudentNumber'] ?? '')),
+        'senderName' => dent_clean_text((string) ($raw['senderName'] ?? ''), 120),
+        'conversationTitle' => dent_clean_text((string) ($raw['conversationTitle'] ?? ''), 160),
+        'previewText' => dent_clean_text((string) ($raw['previewText'] ?? ''), 320),
+        'attachmentSummary' => dent_clean_text((string) ($raw['attachmentSummary'] ?? ''), 120),
+        'attachmentCount' => max(0, (int) ($raw['attachmentCount'] ?? 0)),
+        'messageKind' => $messageKind,
+    ];
 }
 
 function chat_normalize_attachment_record(string $attachmentId, array $attachment, array $knownConversationIds = []): ?array
@@ -4987,6 +5084,30 @@ function chat_message_attachments_payload(array $message, array $store): array
     return $payload;
 }
 
+function chat_forwarded_from_payload(?array $meta, array $store = [], ?array $viewer = null): ?array
+{
+    if (!is_array($meta)) {
+        return null;
+    }
+
+    $normalized = chat_normalize_forwarded_from_record($meta);
+    if ($normalized === null) {
+        return null;
+    }
+
+    $canJump = false;
+    if ($store !== [] && is_array($viewer)) {
+        $conversation = chat_get_conversation($store, (string) $normalized['conversationId']);
+        if ($conversation !== null && chat_can_view_conversation($conversation, $viewer)) {
+            $messages = chat_get_messages($store, (string) $normalized['conversationId']);
+            $canJump = chat_find_message_index($messages, (int) $normalized['messageId']) !== -1;
+        }
+    }
+
+    $normalized['canJump'] = $canJump;
+    return $normalized;
+}
+
 function chat_attachment_access_allowed(array $store, array $attachment, array $user): bool
 {
     $viewerStudentNumber = chat_actor_student_number($user);
@@ -5133,6 +5254,13 @@ function chat_normalize_message_for_client(array $message, ?array $store = null,
         'pollId' => $kind === 'poll' ? $pollId : '',
         'attachments' => is_array($store) ? chat_message_attachments_payload($message, $store) : [],
         'mentions' => $mentions,
+        'forwardedFrom' => is_array($store)
+            ? chat_forwarded_from_payload(
+                is_array($message['forwardedFrom'] ?? null) ? $message['forwardedFrom'] : null,
+                $store,
+                is_array($viewer) ? $viewer : null
+            )
+            : chat_normalize_forwarded_from_record($message['forwardedFrom'] ?? null),
     ];
 
     if ($payload['attachments'] === [] && in_array($payload['kind'], ['attachment', 'voice'], true)) {
@@ -6130,6 +6258,92 @@ function chat_collect_attachable_ids(array &$store, string $conversationId, arra
     return $resolved;
 }
 
+function chat_clone_attachment_for_forward(
+    array &$store,
+    array $attachment,
+    string $targetConversationId,
+    array $user
+): ?string {
+    $source = chat_normalize_attachment_record((string) ($attachment['id'] ?? ''), $attachment);
+    if ($source === null) {
+        return null;
+    }
+    if ((string) ($source['status'] ?? 'available') !== 'available') {
+        return null;
+    }
+
+    $sourceOriginalPath = chat_attachment_absolute_path((string) ($source['originalPath'] ?? ''));
+    if ($sourceOriginalPath === '' || !is_file($sourceOriginalPath)) {
+        return null;
+    }
+
+    $attachmentId = chat_next_attachment_id($store);
+    $extension = chat_safe_extension((string) ($source['extension'] ?? ''));
+    $safeFileName = $attachmentId . ($extension !== '' ? ('.' . $extension) : '');
+    $originalRelative = 'originals/' . $safeFileName;
+    $originalPath = chat_attachment_absolute_path($originalRelative);
+    if ($originalPath === '') {
+        return null;
+    }
+
+    dent_ensure_directory(dirname($originalPath));
+    if (!@copy($sourceOriginalPath, $originalPath)) {
+        return null;
+    }
+
+    $previewRelative = '';
+    $previewExists = false;
+    $sourcePreviewPath = chat_attachment_absolute_path((string) ($source['previewPath'] ?? ''));
+    if ((bool) ($source['previewExists'] ?? false) && $sourcePreviewPath !== '' && is_file($sourcePreviewPath)) {
+        $previewRelative = 'previews/' . $attachmentId . '.jpg';
+        $previewPath = chat_attachment_absolute_path($previewRelative);
+        if ($previewPath !== '') {
+            dent_ensure_directory(dirname($previewPath));
+            if (@copy($sourcePreviewPath, $previewPath)) {
+                $previewExists = true;
+            } else {
+                $previewRelative = '';
+            }
+        }
+    }
+
+    $savedSize = @filesize($originalPath);
+    $sizeBytes = $savedSize !== false
+        ? max(0, (int) $savedSize)
+        : max(0, (int) ($source['sizeBytes'] ?? 0));
+
+    $now = time();
+    $clone = [
+        'id' => $attachmentId,
+        'conversationId' => chat_clean_conversation_id($targetConversationId),
+        'messageId' => null,
+        'uploaderStudentNumber' => dent_normalize_student_number((string) ($user['studentNumber'] ?? '')),
+        'originalName' => (string) ($source['originalName'] ?? $attachmentId),
+        'safeFileName' => $safeFileName,
+        'mime' => (string) ($source['mime'] ?? ''),
+        'extension' => $extension,
+        'category' => (string) ($source['category'] ?? 'file'),
+        'isVoice' => (bool) ($source['isVoice'] ?? false),
+        'sizeBytes' => $sizeBytes,
+        'durationSeconds' => isset($source['durationSeconds']) ? max(0, (float) $source['durationSeconds']) : null,
+        'width' => isset($source['width']) ? max(1, (int) $source['width']) : null,
+        'height' => isset($source['height']) ? max(1, (int) $source['height']) : null,
+        'createdAt' => $now,
+        'updatedAt' => $now,
+        'linkedAt' => null,
+        'status' => 'available',
+        'purgedAt' => null,
+        'purgeReason' => '',
+        'originalPath' => $originalRelative,
+        'previewPath' => $previewRelative,
+        'originalExists' => true,
+        'previewExists' => $previewExists,
+    ];
+
+    chat_put_attachment($store, $clone);
+    return $attachmentId;
+}
+
 function chat_append_message(
     array &$store,
     string $conversationId,
@@ -6138,7 +6352,9 @@ function chat_append_message(
     ?int $replyTo = null,
     string $kind = 'text',
     string $pollId = '',
-    array $attachmentIds = []
+    array $attachmentIds = [],
+    array $extra = [],
+    bool $skipRateLimit = false
 ): array {
     $conversationId = chat_clean_conversation_id($conversationId);
     if ($conversationId === '') {
@@ -6150,7 +6366,9 @@ function chat_append_message(
         dent_error('در حال حاضر امکان ارسال پیام در این گفتگو را ندارید.', 403);
     }
 
-    chat_apply_rate_limit($conversationId);
+    if (!$skipRateLimit) {
+        chat_apply_rate_limit($conversationId);
+    }
 
     $text = chat_sanitize_message_text($text);
     $attachmentIds = chat_collect_attachable_ids($store, $conversationId, $user, $attachmentIds);
@@ -6209,6 +6427,11 @@ function chat_append_message(
         'attachmentIds' => $attachmentIds,
     ];
 
+    $forwardedFrom = chat_normalize_forwarded_from_record($extra['forwardedFrom'] ?? null);
+    if ($forwardedFrom !== null) {
+        $message['forwardedFrom'] = $forwardedFrom;
+    }
+
     $messages[] = $message;
     chat_put_messages($store, $conversationId, $messages);
 
@@ -6229,6 +6452,38 @@ function chat_append_message(
     chat_mark_read($store, $conversationId, (string) ($user['studentNumber'] ?? ''), (int) $message['id']);
 
     return $message;
+}
+
+function chat_build_forwarded_from_meta(
+    array $store,
+    array $conversation,
+    array $message,
+    array $viewer,
+    bool $includeSenderName
+): array {
+    $senderStudentNumber = dent_normalize_student_number((string) ($message['senderStudentNumber'] ?? ''));
+    $sender = $senderStudentNumber !== '' ? chat_public_user_for_student($senderStudentNumber) : [];
+    $previewText = chat_message_preview_text($message, $store);
+    $attachments = chat_message_attachments_payload($message, $store);
+    $attachmentCount = count($attachments);
+    $attachmentSummary = $attachmentCount > 0
+        ? chat_attachment_category_label((string) ($attachments[0]['category'] ?? 'file'), $attachmentCount)
+        : '';
+    $conversationPayload = chat_conversation_payload($store, $conversation, $viewer, false);
+
+    return [
+        'conversationId' => chat_clean_conversation_id((string) ($conversation['id'] ?? '')),
+        'messageId' => (int) ($message['id'] ?? 0),
+        'senderStudentNumber' => $includeSenderName ? $senderStudentNumber : '',
+        'senderName' => $includeSenderName ? dent_clean_text((string) ($sender['name'] ?? ''), 120) : '',
+        'conversationTitle' => dent_clean_text((string) ($conversationPayload['title'] ?? ''), 160),
+        'previewText' => dent_clean_text($previewText, 320),
+        'attachmentSummary' => dent_clean_text($attachmentSummary, 120),
+        'attachmentCount' => $attachmentCount,
+        'messageKind' => in_array((string) ($message['kind'] ?? 'text'), ['text', 'poll', 'attachment', 'voice'], true)
+            ? (string) ($message['kind'] ?? 'text')
+            : 'text',
+    ];
 }
 
 function chat_require_conversation_for_user(array &$store, string $conversationId, array $user): array
@@ -8454,6 +8709,120 @@ if ($action === 'send') {
         'success' => true,
         'message' => chat_normalize_message_for_client($message, $store, $user),
         'conversation' => chat_conversation_payload($store, $conversation, $user, false),
+    ]);
+}
+
+if ($action === 'forwardMessages') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد فوروارد پیام نامعتبر است.', 405);
+    }
+
+    $user = chat_require_user();
+    $targetConversationId = chat_clean_conversation_id((string) (
+        $_POST['conversationId']
+        ?? $_POST['targetConversationId']
+        ?? CHAT_CLASS_CONVERSATION_ID
+    ));
+    $sourceConversationId = chat_clean_conversation_id((string) (
+        $_POST['sourceConversationId']
+        ?? CHAT_CLASS_CONVERSATION_ID
+    ));
+    $messageIds = chat_parse_message_ids_input($_POST['ids'] ?? ($_POST['messageIds'] ?? []));
+    $includeSenderName = (string) ($_POST['includeSenderName'] ?? ($_POST['keepSenderName'] ?? '1')) !== '0';
+
+    if ($targetConversationId === '' || $sourceConversationId === '') {
+        dent_error('شناسه گفت‌وگوی مبدا یا مقصد نامعتبر است.', 422);
+    }
+    if ($messageIds === []) {
+        dent_error('حداقل یک پیام برای فوروارد لازم است.', 422);
+    }
+    if (count($messageIds) > 30) {
+        dent_error('فوروارد هم‌زمان بیش از ۳۰ پیام مجاز نیست.', 422);
+    }
+
+    $store = chat_load_store();
+    $sourceConversation = chat_require_conversation_for_user($store, $sourceConversationId, $user);
+    chat_require_conversation_for_user($store, $targetConversationId, $user);
+
+    $sourceMessages = chat_get_messages($store, $sourceConversationId);
+    $requestedLookup = array_fill_keys($messageIds, true);
+    $forwardQueue = [];
+    foreach ($sourceMessages as $message) {
+        $messageId = (int) ($message['id'] ?? 0);
+        if ($messageId > 0 && isset($requestedLookup[$messageId])) {
+            $forwardQueue[] = $message;
+        }
+    }
+
+    if ($forwardQueue === []) {
+        dent_error('هیچ پیام معتبری برای فوروارد پیدا نشد.', 404);
+    }
+
+    chat_apply_rate_limit($targetConversationId);
+
+    $createdMessages = [];
+    foreach ($forwardQueue as $sourceMessage) {
+        $forwardMeta = chat_build_forwarded_from_meta(
+            $store,
+            $sourceConversation,
+            $sourceMessage,
+            $user,
+            $includeSenderName
+        );
+
+        $clonedAttachmentIds = [];
+        foreach (chat_message_attachments_payload($sourceMessage, $store) as $attachmentPayload) {
+            $sourceAttachment = chat_get_attachment($store, (string) ($attachmentPayload['id'] ?? ''));
+            if ($sourceAttachment === null) {
+                continue;
+            }
+
+            $clonedId = chat_clone_attachment_for_forward($store, $sourceAttachment, $targetConversationId, $user);
+            if ($clonedId !== null) {
+                $clonedAttachmentIds[] = $clonedId;
+            }
+        }
+
+        $rawText = chat_sanitize_message_text((string) ($sourceMessage['text'] ?? ''));
+        if (strcasecmp($rawText, 'Attachment') === 0 || strcasecmp($rawText, 'Poll') === 0) {
+            $rawText = '';
+        }
+
+        $messageText = $rawText;
+        if ($messageText === '' && $clonedAttachmentIds === []) {
+            $messageText = (string) ($forwardMeta['previewText'] ?? '');
+        }
+        if ($messageText === '' && $clonedAttachmentIds === []) {
+            $messageText = (string) ($forwardMeta['attachmentSummary'] ?? '');
+        }
+        if ($messageText === '' && $clonedAttachmentIds === []) {
+            $messageText = 'پیام فورواردشده';
+        }
+
+        $createdMessages[] = chat_append_message(
+            $store,
+            $targetConversationId,
+            $user,
+            $messageText,
+            null,
+            $clonedAttachmentIds !== [] ? 'attachment' : 'text',
+            '',
+            $clonedAttachmentIds,
+            ['forwardedFrom' => $forwardMeta],
+            true
+        );
+    }
+
+    chat_save_store($store);
+
+    $conversation = chat_require_conversation_for_user($store, $targetConversationId, $user);
+    dent_json_response([
+        'success' => true,
+        'count' => count($createdMessages),
+        'messages' => chat_normalize_messages_for_client($createdMessages, $store, $user),
+        'conversationId' => $targetConversationId,
+        'conversation' => chat_conversation_payload($store, $conversation, $user, false),
+        'conversations' => chat_conversation_summaries_for_user($store, $user),
     ]);
 }
 
