@@ -3475,6 +3475,64 @@ function chat_public_user_for_student($studentNumber): array
     return $cache[$studentNumber];
 }
 
+function chat_extract_mention_student_numbers(string $text, ?array $conversation = null): array
+{
+    $text = (string) $text;
+    if ($text === '' || !preg_match_all('/(^|[\s\(\[\{>])@([A-Za-z0-9][A-Za-z0-9._-]{1,31})/u', $text, $matches)) {
+        return [];
+    }
+
+    $allowedMembers = null;
+    if (is_array($conversation)) {
+        $allowedMembers = [];
+        foreach (chat_conversation_member_student_numbers($conversation) as $studentNumber) {
+            $normalized = dent_normalize_student_number((string) $studentNumber);
+            if ($normalized !== '') {
+                $allowedMembers[$normalized] = true;
+            }
+        }
+    }
+
+    $studentNumbers = [];
+    foreach ((array) ($matches[2] ?? []) as $token) {
+        $studentNumber = dent_normalize_student_number((string) $token);
+        if ($studentNumber === '') {
+            continue;
+        }
+        if (is_array($allowedMembers) && !isset($allowedMembers[$studentNumber])) {
+            continue;
+        }
+
+        $user = dent_get_user_record($studentNumber);
+        if (!is_array($user) || !chat_user_belongs_to_active_cohort($user)) {
+            continue;
+        }
+
+        $studentNumbers[$studentNumber] = $studentNumber;
+    }
+
+    return array_values($studentNumbers);
+}
+
+function chat_message_mentions_payload(string $text, ?array $conversation = null): array
+{
+    $payload = [];
+    foreach (chat_extract_mention_student_numbers($text, $conversation) as $studentNumber) {
+        $payload[] = chat_public_user_for_student($studentNumber);
+    }
+    return $payload;
+}
+
+function chat_message_mentions_student_number(string $text, string $studentNumber, ?array $conversation = null): bool
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        return false;
+    }
+
+    return in_array($studentNumber, chat_extract_mention_student_numbers($text, $conversation), true);
+}
+
 function chat_conversation_member_student_numbers(array $conversation): array
 {
     $type = (string) ($conversation['type'] ?? 'group');
@@ -4644,6 +4702,40 @@ function chat_unread_count(array $store, array $conversation, string $studentNum
     return $count;
 }
 
+function chat_unread_mention_count(array $store, array $conversation, string $studentNumber): int
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '' || (string) ($conversation['type'] ?? 'group') === 'direct') {
+        return 0;
+    }
+
+    $conversationId = (string) ($conversation['id'] ?? '');
+    $messages = chat_get_messages($store, $conversationId);
+    if ($messages === []) {
+        return 0;
+    }
+
+    $lastReadMessageId = chat_last_read_message_id($store, $conversationId, $studentNumber);
+    $count = 0;
+
+    foreach ($messages as $message) {
+        $messageId = (int) ($message['id'] ?? 0);
+        if ($messageId <= $lastReadMessageId) {
+            continue;
+        }
+
+        if (dent_normalize_student_number((string) ($message['senderStudentNumber'] ?? '')) === $studentNumber) {
+            continue;
+        }
+
+        if (chat_message_mentions_student_number((string) ($message['text'] ?? ''), $studentNumber, $conversation)) {
+            $count++;
+        }
+    }
+
+    return $count;
+}
+
 function chat_message_delivery_meta(array $store, array $conversation, array $message, string $viewerStudentNumber): array
 {
     $conversationId = chat_clean_conversation_id((string) ($conversation['id'] ?? ''));
@@ -4918,6 +5010,12 @@ function chat_normalize_message_for_client(array $message, ?array $store = null,
             $delivery = chat_message_delivery_meta($store, $conversation, $message, chat_actor_student_number($viewer));
         }
     }
+    $mentions = [];
+    if (is_array($store)) {
+        $conversationId = chat_clean_conversation_id((string) ($message['conversationId'] ?? ''));
+        $conversation = $conversationId !== '' ? chat_get_conversation($store, $conversationId) : null;
+        $mentions = chat_message_mentions_payload((string) ($message['text'] ?? ''), $conversation);
+    }
 
     $payload = [
         'id' => (int) ($message['id'] ?? 0),
@@ -4943,6 +5041,7 @@ function chat_normalize_message_for_client(array $message, ?array $store = null,
         'kind' => $kind,
         'pollId' => $kind === 'poll' ? $pollId : '',
         'attachments' => is_array($store) ? chat_message_attachments_payload($message, $store) : [],
+        'mentions' => $mentions,
     ];
 
     if ($payload['attachments'] === [] && in_array($payload['kind'], ['attachment', 'voice'], true)) {
@@ -5190,6 +5289,10 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
     $isArchived = $canArchiveConversation && (bool) ($viewerReadState['archived'] ?? false);
     $isDeleted = !$isMandatory && (bool) ($viewerReadState['deleted'] ?? false);
     $presenceStore = chat_read_presence_snapshot();
+    $unreadCount = chat_unread_count($store, $conversation, $viewerStudentNumber);
+    $mentionCount = $unreadCount > 0
+        ? chat_unread_mention_count($store, $conversation, $viewerStudentNumber)
+        : 0;
 
     $payload = [
         'id' => $conversationId,
@@ -5205,7 +5308,8 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
         'conversationKind' => (string) ($settings['conversationKind'] ?? 'group'),
         'shareUrl' => chat_page_url('?conversationId=' . rawurlencode($conversationId)),
         'memberCount' => count(chat_conversation_member_student_numbers($conversation)),
-        'unreadCount' => chat_unread_count($store, $conversation, $viewerStudentNumber),
+        'unreadCount' => $unreadCount,
+        'mentionCount' => $mentionCount,
         'lastReadMessageId' => chat_last_read_message_id($store, $conversationId, $viewerStudentNumber),
         'settings' => $settings,
         'viewerState' => [
@@ -5233,7 +5337,7 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
             'canMarkRead' => $isMember,
             'canMarkUnread' => $isMember,
             'canCreateGroup' => true,
-            'canCreatePoll' => false,
+            'canCreatePoll' => $conversationType !== 'direct' && $canSend && chat_can_create_poll($viewer),
             'canEditProfile' => $conversationType === 'group' && $canManageConversation && !$isMandatory,
             'canEditGroupType' => $conversationType === 'group' && $canManageConversation && !$isMandatory,
             'canEditReactions' => $conversationType !== 'direct' && $canManageConversation,
@@ -6372,6 +6476,9 @@ function chat_create_poll(
         if (!chat_can_send_message($conversation, $user)) {
             dent_error('در این گفتگو اجازه ارسال پیام ندارید.', 403);
         }
+        if ((string) ($conversation['type'] ?? 'group') === 'direct') {
+            dent_error('نظرسنجی داخل گفت‌وگوی خصوصی فعال نیست.', 422);
+        }
     }
 
     $anonymous = chat_parse_bool($input['anonymous'] ?? true, true);
@@ -6785,10 +6892,6 @@ if ($action === 'directory') {
         'viewer' => chat_public_user_payload($viewer),
         'users' => $users,
     ]);
-}
-
-if (in_array($action, ['listPolls', 'activePolls', 'createPoll', 'poll', 'votePoll', 'deletePoll', 'closePoll', 'reopenPoll'], true)) {
-    dent_error('بخش نظرسنجی در پیام‌رسان غیرفعال شده است.', 410);
 }
 
 if ($action === 'listPolls') {

@@ -731,6 +731,9 @@
 
   function messagePreviewText(message) {
     if (!message) return "";
+    if (message.poll && message.poll.question) {
+      return "نظرسنجی: " + message.poll.question;
+    }
     var text = normalizeSpace(message.text);
     if (text) return text;
     if (Array.isArray(message.attachments) && message.attachments.length) {
@@ -900,7 +903,9 @@
   var chatTextEl = $("chat-text");
   var sendBtn = $("send-btn");
   var attachBtn = $("attach-btn");
+  var pollBtn = $("poll-btn");
   var voiceBtn = $("voice-btn");
+  var mentionSuggestions = $("mention-suggestions");
   var attachmentInput = $("attachment-input");
   var composerUploadSheet = $("composer-upload-sheet");
   var composerUploads = $("composer-uploads");
@@ -1001,6 +1006,21 @@
   var reactionDetailsModalClose = $("reaction-details-modal-close");
   var reactionDetailsModalTitle = $("reaction-details-modal-title");
   var reactionDetailsList = $("reaction-details-list");
+  var pollModal = $("poll-modal");
+  var pollModalClose = $("poll-modal-close");
+  var pollModalSubtitle = $("poll-modal-subtitle");
+  var pollQuestionInput = $("poll-question");
+  var pollOptionsList = $("poll-options-list");
+  var pollAddOptionBtn = $("poll-add-option");
+  var pollMultipleChoiceInput = $("poll-multiple-choice");
+  var pollAnonymousInput = $("poll-anonymous");
+  var pollAllowVoteChangeInput = $("poll-allow-vote-change");
+  var pollAllowCreatorVoteInput = $("poll-allow-creator-vote");
+  var pollMaxChoicesSelect = $("poll-max-choices");
+  var pollResultVisibilitySelect = $("poll-result-visibility");
+  var pollModalFeedback = $("poll-modal-feedback");
+  var pollCancelBtn = $("poll-cancel");
+  var pollCreateBtn = $("poll-create");
   var editModal = $("edit-modal");
   var editModalClose = $("edit-modal-close");
   var editCancelBtn = $("edit-cancel");
@@ -1140,7 +1160,14 @@
     typingConversationId: "",
     typingActive: false,
     typingRefreshTimer: null,
-    typingStopTimer: null
+    typingStopTimer: null,
+    mentionQuery: "",
+    mentionSuggestions: [],
+    mentionSelectedIndex: -1,
+    mentionTokenStart: -1,
+    mentionTokenEnd: -1,
+    pollDraftSelections: new Map(),
+    pendingPollCreate: false
   };
   var navBadgeState = {
     notificationsUnread: 0,
@@ -1759,6 +1786,13 @@
   }
 
   function updatePollActionVisibility() {
+    var conversation = activeConversation();
+    var canCreate = !!(conversation && conversation.permissions && conversation.permissions.canCreatePoll);
+    if (pollBtn) {
+      pollBtn.hidden = !conversation;
+      pollBtn.disabled = !!conversation && !canCreate;
+      pollBtn.setAttribute("aria-disabled", pollBtn.disabled ? "true" : "false");
+    }
     updateMobileNav();
   }
 
@@ -2143,6 +2177,95 @@
     };
   }
 
+  function normalizeMentionUsers(raw) {
+    return (Array.isArray(raw) ? raw : []).map(normalizeUser).filter(Boolean);
+  }
+
+  function normalizePollOption(raw) {
+    var source = asObject(raw);
+    if (!source) return null;
+    var id = normalizeSpace(source.id);
+    if (!id) return null;
+    return {
+      id: id,
+      text: normalizeSpace(source.text) || "گزینه",
+      isSelected: !!source.isSelected,
+      voteCount: source.voteCount == null ? null : Math.max(0, Math.floor(toNumber(source.voteCount, 0))),
+      percent: source.percent == null ? null : Math.max(0, toNumber(source.percent, 0)),
+      voters: normalizeMentionUsers(source.voters)
+    };
+  }
+
+  function normalizePoll(raw) {
+    var source = asObject(raw);
+    if (!source) return null;
+    var id = normalizeSpace(source.id);
+    if (!id) return null;
+    var settings = asObject(source.settings) || {};
+    var viewer = asObject(source.viewer) || {};
+    var results = asObject(source.results) || {};
+    var permissions = asObject(source.permissions) || {};
+    var audience = asObject(source.audience) || {};
+    var conversation = asObject(source.conversation) || {};
+    return {
+      id: id,
+      question: normalizeSpace(source.question),
+      shareUrl: normalizeSpace(source.shareUrl),
+      status: normalizeSpace(source.status || "open"),
+      messageId: source.messageId != null ? Math.max(0, Math.floor(toNumber(source.messageId, 0))) : 0,
+      createdAt: Math.max(0, Math.floor(toNumber(source.createdAt, 0))),
+      updatedAt: Math.max(0, Math.floor(toNumber(source.updatedAt, 0))),
+      startAt: source.startAt != null ? Math.max(0, Math.floor(toNumber(source.startAt, 0))) : null,
+      endAt: source.endAt != null ? Math.max(0, Math.floor(toNumber(source.endAt, 0))) : null,
+      closedAt: source.closedAt != null ? Math.max(0, Math.floor(toNumber(source.closedAt, 0))) : null,
+      createdBy: normalizeUser(source.createdBy),
+      closedBy: normalizeUser(source.closedBy),
+      audience: {
+        mode: normalizeSpace(audience.mode || settings.audience || "link"),
+        label: normalizeSpace(audience.label),
+        discoverable: !!audience.discoverable
+      },
+      conversation: normalizeSpace(conversation.id) ? {
+        id: normalizeSpace(conversation.id),
+        type: normalizeSpace(conversation.type || "group"),
+        title: normalizeSpace(conversation.title)
+      } : null,
+      settings: {
+        anonymous: settings.anonymous !== false,
+        multipleChoice: !!settings.multipleChoice,
+        maxChoices: Math.max(1, Math.floor(toNumber(settings.maxChoices, 1))),
+        allowVoteChange: settings.allowVoteChange !== false,
+        allowCreatorVote: settings.allowCreatorVote !== false,
+        resultVisibility: normalizeSpace(settings.resultVisibility || "live"),
+        audience: normalizeSpace(settings.audience || audience.mode || "link")
+      },
+      viewer: {
+        hasVoted: !!viewer.hasVoted,
+        selectedOptionIds: Array.from(new Set((Array.isArray(viewer.selectedOptionIds) ? viewer.selectedOptionIds : []).map(function (item) {
+          return normalizeSpace(item);
+        }).filter(Boolean))),
+        canVote: !!viewer.canVote,
+        canChangeVote: !!viewer.canChangeVote,
+        isCreator: !!viewer.isCreator,
+        isInAudience: viewer.isInAudience !== false,
+        canAccess: viewer.canAccess !== false
+      },
+      results: {
+        visible: !!results.visible,
+        identitiesVisible: !!results.identitiesVisible,
+        hiddenReason: normalizeSpace(results.hiddenReason),
+        totalVoters: results.totalVoters == null ? null : Math.max(0, Math.floor(toNumber(results.totalVoters, 0))),
+        totalVotes: results.totalVotes == null ? null : Math.max(0, Math.floor(toNumber(results.totalVotes, 0)))
+      },
+      permissions: {
+        canManage: !!permissions.canManage,
+        canClose: !!permissions.canClose,
+        canReopen: !!permissions.canReopen
+      },
+      options: (Array.isArray(source.options) ? source.options : []).map(normalizePollOption).filter(Boolean)
+    };
+  }
+
   function normalizeAttachment(raw) {
     var source = asObject(raw);
     if (!source) return null;
@@ -2199,6 +2322,7 @@
     if (attachments.length && kind === "text") {
       kind = attachments[0].category === "voice" ? "voice" : "attachment";
     }
+    var poll = normalizePoll(source.poll);
 
     return {
       id: id,
@@ -2212,12 +2336,15 @@
       roleLabel: normalizeSpace(source.roleLabel) || "دانشجو",
       canModerateChat: !!source.canModerateChat,
       kind: kind,
+      pollId: normalizeSpace(source.pollId || (poll && poll.id) || ""),
+      poll: poll,
       text: text,
       ts: Math.floor(toNumber(source.ts, Math.floor(Date.now() / 1000))),
       editedAt: source.editedAt != null ? Math.floor(toNumber(source.editedAt, 0)) : null,
       replyTo: source.replyTo != null ? Math.floor(toNumber(source.replyTo, 0)) : null,
       pinned: !!source.pinned,
       reactions: asObject(source.reactions) || {},
+      mentions: normalizeMentionUsers(source.mentions),
       attachments: attachments,
       avatarUrl: normalizeAvatarUrl(source.avatarUrl || profile.avatarUrl || ""),
       about: normalizeSpace(source.about || profile.about || profile.bio || ""),
@@ -2353,6 +2480,7 @@
       isMandatory: !!source.isMandatory,
       memberCount: memberCount,
       unreadCount: Math.max(0, Math.floor(toNumber(source.unreadCount, 0))),
+      mentionCount: Math.max(0, Math.floor(toNumber(source.mentionCount, 0))),
       lastReadMessageId: Math.max(0, Math.floor(toNumber(source.lastReadMessageId, 0))),
       settings: {
         muted: !!settings.muted,
@@ -2386,6 +2514,7 @@
         canMarkRead: permissions.canMarkRead !== false,
         canMarkUnread: permissions.canMarkUnread !== false,
         canCreateGroup: permissions.canCreateGroup !== false,
+        canCreatePoll: !!permissions.canCreatePoll,
         canEditProfile: !!permissions.canEditProfile,
         canEditGroupType: !!permissions.canEditGroupType,
         canEditReactions: !!permissions.canEditReactions,
@@ -2820,6 +2949,7 @@
     state.unreadDividerMessageId = 0;
     state.replyTargetId = null;
     state.threadAutoStick = true;
+    closeMentionSuggestions();
     pauseAllVoiceNotes();
     resetThreadSearchState({ keepPanel: false, keepNavigator: false });
     clearReplyTarget();
@@ -2997,6 +3127,7 @@
     var lastTs = conversation.lastMessage ? conversation.lastMessage.ts : conversation.updatedAt;
     var timeLabel = lastTs ? formatTime(lastTs) : "";
     var unread = Math.max(0, Math.floor(toNumber(conversation.unreadCount, 0)));
+    var mentionCount = Math.max(0, Math.floor(toNumber(conversation.mentionCount, 0)));
     var flags = [];
     if (conversation.settings && conversation.settings.muted) {
       flags.push('<span class="conversation-flag conversation-flag--muted" title="بی‌صدا">•</span>');
@@ -3026,6 +3157,7 @@
       '  <span class="conversation-item__meta">',
       '    <span class="conversation-item__time">' + escapeHtml(timeLabel) + "</span>",
       flags.length ? '    <span class="conversation-item__flags">' + flags.join("") + "</span>" : "",
+      mentionCount > 0 ? '    <span class="conversation-item__mention" data-digit-locale="latin">@' + mentionCount.toLocaleString("fa-IR") + "</span>" : "",
       unread > 0 ? '    <span class="conversation-item__unread">' + unread.toLocaleString("fa-IR") + "</span>" : "",
       "  </span>",
       "</button>",
@@ -3355,6 +3487,10 @@
     }
     if (attachBtn) {
       attachBtn.disabled = (conversation && !canUseAttachmentTools) || (canUseAttachmentTools && recordingVoice);
+    }
+    if (pollBtn) {
+      pollBtn.hidden = !conversation;
+      pollBtn.disabled = !conversation || !(conversation.permissions && conversation.permissions.canCreatePoll) || hasUploadsInProgress || hasVoiceRecorder;
     }
     if (voiceBtn) {
       voiceBtn.disabled = (conversation && !canUseAttachmentTools) || (canUseAttachmentTools && (hasUploadsInProgress || hasVoiceRecorder));
@@ -3687,6 +3823,158 @@
     }).join("") + "</div>";
   }
 
+  function mentionDisplayLabel(user, fallbackStudentNumber) {
+    var source = asObject(user) || {};
+    var name = normalizeSpace(source.name);
+    var studentNumber = normalizeStudentNumber(source.studentNumber || fallbackStudentNumber);
+    if (name) {
+      return "@" + name;
+    }
+    if (studentNumber) {
+      return "@" + studentNumber;
+    }
+    return "@کاربر";
+  }
+
+  function renderMessageText(message) {
+    var text = toText(message && message.text);
+    if (!text) return "";
+    var mentionMap = new Map();
+    (Array.isArray(message && message.mentions) ? message.mentions : []).forEach(function (user) {
+      var normalized = normalizeStudentNumber(user && user.studentNumber);
+      if (!normalized || mentionMap.has(normalized)) return;
+      mentionMap.set(normalized, user);
+    });
+
+    var html = "";
+    var lastIndex = 0;
+    var regex = /(^|[\s(\[<{])@([A-Za-z0-9][A-Za-z0-9._-]{1,31})/gm;
+    var match = null;
+    while ((match = regex.exec(text))) {
+      var prefix = match[1] || "";
+      var token = match[2] || "";
+      var start = match.index + prefix.length;
+      var end = start + 1 + token.length;
+      html += escapeHtml(text.slice(lastIndex, start));
+      var studentNumber = normalizeStudentNumber(token);
+      var user = studentNumber ? mentionMap.get(studentNumber) : null;
+      if (user) {
+        html += '<span class="msg-mention" data-mention-student="' + escapeHtml(studentNumber) + '">' + escapeHtml(mentionDisplayLabel(user, studentNumber)) + "</span>";
+      } else {
+        html += escapeHtml(text.slice(start, end));
+      }
+      lastIndex = end;
+    }
+    html += escapeHtml(text.slice(lastIndex));
+    return html;
+  }
+
+  function pollDraftSelection(poll) {
+    if (!poll || !poll.id) return [];
+    var stored = state.pollDraftSelections.get(poll.id);
+    if (!Array.isArray(stored)) {
+      stored = Array.isArray(poll.viewer && poll.viewer.selectedOptionIds) ? poll.viewer.selectedOptionIds.slice() : [];
+      state.pollDraftSelections.set(poll.id, stored);
+    }
+    return stored.slice();
+  }
+
+  function setPollDraftSelection(pollId, optionIds) {
+    var id = normalizeSpace(pollId);
+    if (!id) return;
+    state.pollDraftSelections.set(id, Array.from(new Set((Array.isArray(optionIds) ? optionIds : []).map(function (item) {
+      return normalizeSpace(item);
+    }).filter(Boolean))));
+  }
+
+  function resetPollDraftSelection(poll) {
+    if (!poll || !poll.id) return;
+    setPollDraftSelection(poll.id, Array.isArray(poll.viewer && poll.viewer.selectedOptionIds) ? poll.viewer.selectedOptionIds : []);
+  }
+
+  function pollStatusLabel(poll) {
+    if (!poll) return "";
+    if (poll.status === "closed") return "بسته";
+    if (poll.status === "scheduled") return "زمان‌بندی‌شده";
+    return "باز";
+  }
+
+  function pollSummaryText(poll) {
+    if (!poll) return "";
+    var parts = [];
+    parts.push(poll.settings && poll.settings.multipleChoice
+      ? ("چندگزینه‌ای" + (poll.settings.maxChoices > 1 ? (" تا " + poll.settings.maxChoices.toLocaleString("fa-IR") + " انتخاب") : ""))
+      : "تک‌گزینه‌ای");
+    if (poll.settings && poll.settings.anonymous) {
+      parts.push("مخفی");
+    }
+    if (poll.endAt) {
+      parts.push("مهلت: " + formatDateTime(poll.endAt));
+    }
+    return parts.join(" • ");
+  }
+
+  function pollResultsSummary(poll) {
+    if (!poll || !poll.results) return "";
+    if (!poll.results.visible) {
+      return normalizeSpace(poll.results.hiddenReason) || "نتایج هنوز نمایش داده نمی‌شود.";
+    }
+    var voters = poll.results.totalVoters == null ? null : Math.max(0, Math.floor(toNumber(poll.results.totalVoters, 0)));
+    var votes = poll.results.totalVotes == null ? null : Math.max(0, Math.floor(toNumber(poll.results.totalVotes, 0)));
+    var parts = [];
+    if (voters != null) {
+      parts.push(voters.toLocaleString("fa-IR") + " رأی‌دهنده");
+    }
+    if (votes != null && votes !== voters) {
+      parts.push(votes.toLocaleString("fa-IR") + " رأی");
+    }
+    return parts.join(" • ");
+  }
+
+  function renderPollCard(message) {
+    var poll = message && message.poll;
+    if (!poll) return "";
+    var canVote = !!(poll.viewer && poll.viewer.canVote);
+    var multipleChoice = !!(poll.settings && poll.settings.multipleChoice);
+    var selectedOptionIds = multipleChoice && canVote ? pollDraftSelection(poll) : (Array.isArray(poll.viewer && poll.viewer.selectedOptionIds) ? poll.viewer.selectedOptionIds.slice() : []);
+    var selectedLookup = new Set(selectedOptionIds);
+    var voteSummary = pollResultsSummary(poll);
+    var canSubmitMulti = multipleChoice && canVote;
+    var submitDisabled = !canSubmitMulti || !selectedOptionIds.length;
+
+    return [
+      '<section class="msg-poll" data-poll-id="' + escapeHtml(poll.id) + '" data-message-id="' + escapeHtml(String(message.id)) + '">',
+      '  <div class="msg-poll__head">',
+      '    <strong class="msg-poll__question">' + escapeHtml(poll.question || "نظرسنجی") + "</strong>",
+      '    <span class="msg-poll__status">' + escapeHtml(pollStatusLabel(poll)) + "</span>",
+      "  </div>",
+      '  <div class="msg-poll__meta" data-digit-locale="latin">' + escapeHtml(pollSummaryText(poll)) + "</div>",
+      '  <div class="msg-poll__options">' + poll.options.map(function (option) {
+        var selected = selectedLookup.has(option.id);
+        var percent = option.percent == null ? 0 : clamp(toNumber(option.percent, 0), 0, 100);
+        var voteCount = option.voteCount == null ? "" : option.voteCount.toLocaleString("fa-IR") + " رأی";
+        return [
+          '<button type="button" class="msg-poll__option' + (selected ? " is-selected" : "") + (!canVote ? " is-readonly" : "") + '" data-poll-option="' + escapeHtml(option.id) + '"' + (canVote ? "" : ' disabled aria-disabled="true"') + '>',
+          poll.results && poll.results.visible ? ('  <span class="msg-poll__option-fill" style="--poll-fill:' + escapeHtml(String(percent)) + '%"></span>') : "",
+          '  <span class="msg-poll__option-copy">',
+          '    <strong>' + escapeHtml(option.text || "گزینه") + "</strong>",
+          (poll.results && poll.results.visible) ? ('    <small data-digit-locale="latin">' + escapeHtml(voteCount + (voteCount && option.percent != null ? " • " : "") + (option.percent != null ? option.percent.toLocaleString("fa-IR") + "%" : "")) + "</small>") : "",
+          "  </span>",
+          '  <span class="msg-poll__option-check" aria-hidden="true">' + (selected ? "✓" : "") + "</span>",
+          "</button>"
+        ].join("");
+      }).join("") + "</div>",
+      voteSummary ? ('  <div class="msg-poll__summary" data-digit-locale="latin">' + escapeHtml(voteSummary) + "</div>") : "",
+      '  <div class="msg-poll__actions">',
+      canSubmitMulti ? ('    <button type="button" class="msg-poll__action msg-poll__action--primary" data-poll-submit' + (submitDisabled ? ' disabled aria-disabled="true"' : "") + '>ثبت رأی</button>') : "",
+      canSubmitMulti ? '    <button type="button" class="msg-poll__action" data-poll-reset>بازگردانی</button>' : "",
+      poll.permissions && poll.permissions.canClose ? '    <button type="button" class="msg-poll__action" data-poll-close>بستن نظرسنجی</button>' : "",
+      poll.permissions && poll.permissions.canReopen ? '    <button type="button" class="msg-poll__action" data-poll-reopen>بازگشایی</button>' : "",
+      "  </div>",
+      "</section>"
+    ].join("");
+  }
+
   function renderAttachment(attachment) {
     if (!attachment) return "";
     if (attachment.category === "voice") {
@@ -3886,6 +4174,8 @@
 
     var showRole = !!(message.canModerateChat && message.studentNumber !== state.me.studentNumber);
     var ownMessage = message.studentNumber === state.me.studentNumber;
+    var textHtml = renderMessageText(message);
+    var showText = (!message.poll && !!textHtml) || (message.kind !== "poll" && !!textHtml);
 
     row.innerHTML = [
       '<div class="msg-row">',
@@ -3899,8 +4189,9 @@
       showRole ? '      <span class="msg-badge">' + escapeHtml(message.roleLabel || "دانشجو") + "</span>" : "",
       "    </div>",
       message.replyTo ? renderReplyPreview(message.replyTo) : "",
-      '    <div class="msg-text" data-digit-locale="latin">' + escapeHtml(message.text) + "</div>",
-      renderLinkPreviews(message),
+      message.poll ? renderPollCard(message) : "",
+      showText ? ('    <div class="msg-text" data-digit-locale="latin">' + textHtml + "</div>") : "",
+      message.poll ? "" : renderLinkPreviews(message),
       renderAttachments(message),
       renderReactions(message),
       '    <div class="msg-foot">',
@@ -3942,6 +4233,9 @@
       });
     });
     Array.from(row.querySelectorAll(".msg-voice-note")).forEach(bindVoiceNote);
+    Array.from(row.querySelectorAll(".msg-poll")).forEach(function (card) {
+      bindPollCard(card, message);
+    });
     var deliveryNode = row.querySelector(".msg-delivery");
     if (deliveryNode && ownMessage) {
       deliveryNode.classList.add("msg-delivery-btn");
@@ -3961,6 +4255,175 @@
     }
     attachBubbleMenuEvents(bubble, message);
     return row;
+  }
+
+  function updatePollCardSelectionUi(card, poll) {
+    if (!card || !poll) return;
+    var selection = poll.settings && poll.settings.multipleChoice ? pollDraftSelection(poll) : (Array.isArray(poll.viewer && poll.viewer.selectedOptionIds) ? poll.viewer.selectedOptionIds : []);
+    var selectedLookup = new Set(selection);
+    Array.from(card.querySelectorAll("[data-poll-option]")).forEach(function (button) {
+      var optionId = normalizeSpace(button.getAttribute("data-poll-option"));
+      var selected = selectedLookup.has(optionId);
+      button.classList.toggle("is-selected", selected);
+      var check = button.querySelector(".msg-poll__option-check");
+      if (check) {
+        check.textContent = selected ? "✓" : "";
+      }
+    });
+    var submit = card.querySelector("[data-poll-submit]");
+    if (submit) {
+      submit.disabled = !selection.length;
+      submit.setAttribute("aria-disabled", submit.disabled ? "true" : "false");
+    }
+  }
+
+  function applyPollPayloadToMessages(rawPoll) {
+    var poll = normalizePoll(rawPoll);
+    if (!poll) return false;
+    resetPollDraftSelection(poll);
+    var updated = false;
+    state.messages.forEach(function (message) {
+      if (!message || normalizeSpace(message.pollId) !== poll.id) return;
+      message.poll = poll;
+      if (message.kind !== "poll") {
+        message.kind = "poll";
+      }
+      replaceMessageInDom(message);
+      updated = true;
+    });
+    return updated;
+  }
+
+  async function submitPollVote(poll, optionIds, triggerNode) {
+    if (!poll || !poll.id) return;
+    var button = triggerNode || null;
+    if (button) {
+      button.disabled = true;
+      button.setAttribute("aria-disabled", "true");
+    }
+    try {
+      var response = await apiPost("votePoll", {
+        pollId: poll.id,
+        optionIds: JSON.stringify((Array.isArray(optionIds) ? optionIds : []).map(function (item) {
+          return normalizeSpace(item);
+        }).filter(Boolean))
+      });
+      if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        throw new Error((response && response.error) || "نشست شما منقضی شده است.");
+      }
+      ensureSuccessResponse(response, "ثبت رأی انجام نشد.");
+      if (!applyPollPayloadToMessages(response.poll)) {
+        await syncConversation({
+          forceFull: true,
+          includeMembers: false,
+          conversationId: state.activeConversationId,
+          silent: true
+        });
+      }
+      showToast("رأی ثبت شد.");
+    } catch (error) {
+      showToast((error && error.message) || "ثبت رأی انجام نشد.");
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.setAttribute("aria-disabled", "false");
+      }
+    }
+  }
+
+  async function runPollManageAction(poll, action, triggerNode) {
+    if (!poll || !poll.id || !action) return;
+    var button = triggerNode || null;
+    if (button) {
+      button.disabled = true;
+      button.setAttribute("aria-disabled", "true");
+    }
+    try {
+      var response = await apiPost(action, { pollId: poll.id });
+      if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        throw new Error((response && response.error) || "نشست شما منقضی شده است.");
+      }
+      ensureSuccessResponse(response, "به‌روزرسانی نظرسنجی انجام نشد.");
+      if (!applyPollPayloadToMessages(response.poll)) {
+        await syncConversation({
+          forceFull: true,
+          includeMembers: false,
+          conversationId: state.activeConversationId,
+          silent: true
+        });
+      }
+      showToast(action === "closePoll" ? "نظرسنجی بسته شد." : "نظرسنجی بازگشایی شد.");
+    } catch (error) {
+      showToast((error && error.message) || "به‌روزرسانی نظرسنجی انجام نشد.");
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.setAttribute("aria-disabled", "false");
+      }
+    }
+  }
+
+  function bindPollCard(card, message) {
+    if (!card || !message || !message.poll) return;
+    var poll = message.poll;
+    updatePollCardSelectionUi(card, poll);
+    Array.from(card.querySelectorAll("[data-poll-option]")).forEach(function (button) {
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (!(poll.viewer && poll.viewer.canVote)) return;
+        var optionId = normalizeSpace(button.getAttribute("data-poll-option"));
+        if (!optionId) return;
+        if (!(poll.settings && poll.settings.multipleChoice)) {
+          submitPollVote(poll, [optionId], button);
+          return;
+        }
+        var selection = pollDraftSelection(poll);
+        var next = selection.filter(function (item) { return item !== optionId; });
+        if (next.length === selection.length) {
+          next.push(optionId);
+        }
+        if (poll.settings.maxChoices > 0 && next.length > poll.settings.maxChoices) {
+          showToast("حداکثر " + poll.settings.maxChoices.toLocaleString("fa-IR") + " گزینه قابل انتخاب است.");
+          return;
+        }
+        setPollDraftSelection(poll.id, next);
+        updatePollCardSelectionUi(card, poll);
+      });
+    });
+    var submit = card.querySelector("[data-poll-submit]");
+    if (submit) {
+      submit.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        submitPollVote(poll, pollDraftSelection(poll), submit);
+      });
+    }
+    var reset = card.querySelector("[data-poll-reset]");
+    if (reset) {
+      reset.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        resetPollDraftSelection(poll);
+        updatePollCardSelectionUi(card, poll);
+      });
+    }
+    var closeBtn = card.querySelector("[data-poll-close]");
+    if (closeBtn) {
+      closeBtn.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        runPollManageAction(poll, "closePoll", closeBtn);
+      });
+    }
+    var reopenBtn = card.querySelector("[data-poll-reopen]");
+    if (reopenBtn) {
+      reopenBtn.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        runPollManageAction(poll, "reopenPoll", reopenBtn);
+      });
+    }
   }
 
   function updateMessageGroups() {
@@ -6194,12 +6657,201 @@
     }
   }
 
+  function setPollModalFeedback(text, kind) {
+    if (!pollModalFeedback) return;
+    pollModalFeedback.textContent = normalizeSpace(text);
+    pollModalFeedback.dataset.state = normalizeSpace(kind || "");
+  }
+
+  function syncPollOptionControls() {
+    if (!pollOptionsList) return;
+    var rows = Array.from(pollOptionsList.querySelectorAll(".poll-option-row"));
+    rows.forEach(function (row, index) {
+      var remove = row.querySelector("[data-poll-remove-option]");
+      if (remove) {
+        remove.hidden = rows.length <= 2;
+        remove.disabled = rows.length <= 2;
+      }
+      var input = row.querySelector("input");
+      if (input) {
+        input.placeholder = "گزینه " + (index + 1).toLocaleString("fa-IR");
+      }
+    });
+    if (!pollMaxChoicesSelect) return;
+    var multiple = !!(pollMultipleChoiceInput && pollMultipleChoiceInput.checked);
+    var current = Math.max(1, Math.floor(toNumber(pollMaxChoicesSelect.value, multiple ? 2 : 1)));
+    var maxChoices = Math.max(1, Math.min(6, rows.length));
+    var optionMarkup = [];
+    for (var count = 1; count <= maxChoices; count += 1) {
+      optionMarkup.push('<option value="' + count + '">' + count.toLocaleString("fa-IR") + ' گزینه</option>');
+    }
+    pollMaxChoicesSelect.innerHTML = optionMarkup.join("");
+    if (!multiple) {
+      pollMaxChoicesSelect.value = "1";
+      pollMaxChoicesSelect.disabled = true;
+    } else {
+      pollMaxChoicesSelect.disabled = false;
+      if (current < 2) current = 2;
+      if (current > maxChoices) current = maxChoices;
+      pollMaxChoicesSelect.value = String(current);
+    }
+  }
+
+  function addPollOptionField(value) {
+    if (!pollOptionsList) return null;
+    var rows = pollOptionsList.querySelectorAll(".poll-option-row");
+    if (rows.length >= 8) return null;
+    var row = document.createElement("div");
+    row.className = "poll-option-row";
+    row.innerHTML = [
+      '<input type="text" maxlength="120" value="' + escapeHtml(normalizeSpace(value)) + '" placeholder="گزینه">',
+      '<button type="button" class="poll-option-row__remove" data-poll-remove-option aria-label="حذف گزینه">×</button>'
+    ].join("");
+    var input = row.querySelector("input");
+    var remove = row.querySelector("[data-poll-remove-option]");
+    if (input) {
+      input.addEventListener("input", function () {
+        syncPollOptionControls();
+      });
+    }
+    if (remove) {
+      remove.addEventListener("click", function () {
+        row.remove();
+        syncPollOptionControls();
+      });
+    }
+    pollOptionsList.appendChild(row);
+    syncPollOptionControls();
+    return row;
+  }
+
+  function pollOptionValuesFromModal() {
+    if (!pollOptionsList) return [];
+    return Array.from(pollOptionsList.querySelectorAll("input")).map(function (input) {
+      return normalizeSpace(input && input.value);
+    }).filter(Boolean);
+  }
+
+  function resetPollComposerModal() {
+    if (pollQuestionInput) pollQuestionInput.value = "";
+    if (pollOptionsList) pollOptionsList.innerHTML = "";
+    addPollOptionField("");
+    addPollOptionField("");
+    addPollOptionField("");
+    if (pollMultipleChoiceInput) pollMultipleChoiceInput.checked = false;
+    if (pollAnonymousInput) pollAnonymousInput.checked = true;
+    if (pollAllowVoteChangeInput) pollAllowVoteChangeInput.checked = true;
+    if (pollAllowCreatorVoteInput) pollAllowCreatorVoteInput.checked = true;
+    if (pollResultVisibilitySelect) pollResultVisibilitySelect.value = "live";
+    syncPollOptionControls();
+    setPollModalFeedback("", "");
+    var conversation = activeConversation();
+    if (pollModalSubtitle) {
+      pollModalSubtitle.textContent = conversation
+        ? ("نظرسنجی در «" + (conversation.title || "گفتگو") + "» منتشر می‌شود.")
+        : "نظرسنجی داخل همین گفتگو منتشر می‌شود.";
+    }
+  }
+
+  function openPollComposerModal() {
+    var conversation = activeConversation();
+    if (!conversation) {
+      showToast("ابتدا یک گفتگو را انتخاب کن.");
+      return;
+    }
+    if (!(conversation.permissions && conversation.permissions.canCreatePoll)) {
+      showToast("ساخت نظرسنجی در این گفتگو برای شما فعال نیست.");
+      return;
+    }
+    resetPollComposerModal();
+    openModal(pollModal, "poll");
+    window.requestAnimationFrame(function () {
+      if (pollQuestionInput) {
+        pollQuestionInput.focus({ preventScroll: true });
+      }
+    });
+  }
+
+  async function submitPollFromModal() {
+    var conversation = activeConversation();
+    if (!conversation || !(conversation.permissions && conversation.permissions.canCreatePoll)) {
+      setPollModalFeedback("در این گفتگو اجازه ساخت نظرسنجی ندارید.", "error");
+      return;
+    }
+    var question = normalizeSpace(pollQuestionInput && pollQuestionInput.value).slice(0, 280);
+    var options = pollOptionValuesFromModal();
+    if (!question) {
+      setPollModalFeedback("سوال نظرسنجی را وارد کن.", "error");
+      if (pollQuestionInput) pollQuestionInput.focus({ preventScroll: true });
+      return;
+    }
+    if (options.length < 2) {
+      setPollModalFeedback("حداقل دو گزینه لازم است.", "error");
+      return;
+    }
+
+    setPollModalFeedback("", "");
+    state.pendingPollCreate = true;
+    setModalBusy("poll", true);
+    try {
+      var multipleChoice = !!(pollMultipleChoiceInput && pollMultipleChoiceInput.checked);
+      var maxChoices = multipleChoice ? Math.max(2, Math.floor(toNumber(pollMaxChoicesSelect && pollMaxChoicesSelect.value, 2))) : 1;
+      var response = await apiPost("createPoll", {
+        conversationId: conversation.id,
+        question: question,
+        optionsJson: JSON.stringify(options),
+        anonymous: pollAnonymousInput && pollAnonymousInput.checked ? "1" : "0",
+        multipleChoice: multipleChoice ? "1" : "0",
+        maxChoices: String(Math.min(maxChoices, options.length)),
+        allowVoteChange: pollAllowVoteChangeInput && pollAllowVoteChangeInput.checked ? "1" : "0",
+        allowCreatorVote: pollAllowCreatorVoteInput && pollAllowCreatorVoteInput.checked ? "1" : "0",
+        resultVisibility: normalizeSpace(pollResultVisibilitySelect && pollResultVisibilitySelect.value) || "live",
+        audience: "link",
+        postInConversation: "1"
+      });
+      if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        throw new Error((response && response.error) || "نشست شما منقضی شده است.");
+      }
+      ensureSuccessResponse(response, "ساخت نظرسنجی انجام نشد.");
+
+      var summaries = (Array.isArray(response.conversations) ? response.conversations : []).map(normalizeConversation).filter(Boolean);
+      if (summaries.length) {
+        summaries.forEach(upsertConversation);
+        rebuildConversationsFromMap();
+        renderConversationList();
+        updateThreadHead();
+        updatePollActionVisibility();
+      }
+
+      var message = normalizeMessage(response.message);
+      if (message && message.conversationId === state.activeConversationId) {
+        appendMessages([message], {
+          replaceAll: false,
+          forceStick: true,
+          smooth: true,
+          markNew: true
+        });
+      } else if (response.poll) {
+        applyPollPayloadToMessages(response.poll);
+      }
+
+      closeModal(true);
+      showToast("نظرسنجی منتشر شد.");
+    } catch (error) {
+      setPollModalFeedback((error && error.message) || "ساخت نظرسنجی انجام نشد.", "error");
+    } finally {
+      state.pendingPollCreate = false;
+      setModalBusy("poll", false);
+    }
+  }
+
   function modalNodeByKey(key) {
     if (key === "dm") return dmModal;
     if (key === "group") return groupModal;
     if (key === "forward") return forwardModal;
     if (key === "reaction") return reactionModal;
     if (key === "reaction-details") return reactionDetailsModal;
+    if (key === "poll") return pollModal;
     if (key === "edit") return editModal;
     if (key === "conversation-options") return conversationOptionsModal;
     if (key === "confirm") return confirmModal;
@@ -6247,12 +6899,16 @@
       showToast("در حال ساخت گروه یا کانال است...");
       return;
     }
+    if (!hardClose && state.modalOpen === "poll" && state.pendingPollCreate) {
+      showToast("در حال انتشار نظرسنجی است...");
+      return;
+    }
     var hadOpenModal = !!state.modalOpen;
     if (modalBackdrop) {
       modalBackdrop.classList.remove("is-open");
       modalBackdrop.hidden = true;
     }
-    [dmModal, groupModal, forwardModal, reactionModal, reactionDetailsModal, editModal, conversationOptionsModal, confirmModal, receiptsModal].forEach(function (node) {
+    [dmModal, groupModal, forwardModal, reactionModal, reactionDetailsModal, pollModal, editModal, conversationOptionsModal, confirmModal, receiptsModal].forEach(function (node) {
       if (!node) return;
       node.classList.remove("is-open");
       node.classList.remove("is-busy");
@@ -6286,6 +6942,10 @@
       if (reactionDetailsList) {
         reactionDetailsList.innerHTML = "";
       }
+    }
+    if (hadOpenModal && closingKey === "poll") {
+      state.pendingPollCreate = false;
+      resetPollComposerModal();
     }
     if (hadOpenModal && closingKey === "edit") {
       state.pendingEditMessageId = null;
@@ -6382,6 +7042,162 @@
     state.directoryUsers = users;
     state.directoryLoaded = true;
     return usersForDirectory();
+  }
+
+  function mentionCandidates() {
+    var conversation = activeConversation();
+    var pool = [];
+    if (conversation) {
+      if (Array.isArray(conversation.members) && conversation.members.length) {
+        pool = conversation.members.slice();
+      } else if (conversation.peer) {
+        pool = [conversation.peer];
+      }
+    }
+    if (!pool.length) {
+      pool = usersForDirectory();
+    }
+    var seen = new Set();
+    return pool.filter(function (user) {
+      var studentNumber = normalizeStudentNumber(user && user.studentNumber);
+      if (!studentNumber || studentNumber === normalizeStudentNumber(state.me && state.me.studentNumber) || seen.has(studentNumber)) {
+        return false;
+      }
+      seen.add(studentNumber);
+      return true;
+    });
+  }
+
+  function currentMentionMatch() {
+    if (!chatTextEl || chatTextEl.selectionStart == null || chatTextEl.selectionStart !== chatTextEl.selectionEnd) {
+      return null;
+    }
+    var caret = Math.max(0, Math.floor(toNumber(chatTextEl.selectionStart, 0)));
+    var prefix = toText(chatTextEl.value).slice(0, caret);
+    var match = prefix.match(/(^|[\s(\[<{])@([^\s@]{0,32})$/);
+    if (!match) return null;
+    return {
+      query: toText(match[2] || ""),
+      start: caret - toText(match[2] || "").length - 1,
+      end: caret
+    };
+  }
+
+  function closeMentionSuggestions() {
+    state.mentionQuery = "";
+    state.mentionSuggestions = [];
+    state.mentionSelectedIndex = -1;
+    state.mentionTokenStart = -1;
+    state.mentionTokenEnd = -1;
+    if (mentionSuggestions) {
+      mentionSuggestions.hidden = true;
+      mentionSuggestions.innerHTML = "";
+    }
+  }
+
+  function renderMentionSuggestions() {
+    if (!mentionSuggestions) return;
+    var suggestions = Array.isArray(state.mentionSuggestions) ? state.mentionSuggestions : [];
+    if (!suggestions.length) {
+      mentionSuggestions.hidden = true;
+      mentionSuggestions.innerHTML = "";
+      return;
+    }
+    mentionSuggestions.hidden = false;
+    mentionSuggestions.innerHTML = suggestions.map(function (user, index) {
+      var selected = index === state.mentionSelectedIndex;
+      var subtitle = [normalizeSpace(user.roleLabel), normalizeSpace(user.profile && user.profile.about)].filter(Boolean).slice(0, 2).join(" • ");
+      return [
+        '<button type="button" class="composer-mention-item' + (selected ? " is-selected" : "") + '" data-mention-index="' + index + '">',
+        '  <span class="composer-mention-item__avatar">' + escapeHtml(avatarLabel(user.name || user.studentNumber)) + "</span>",
+        '  <span class="composer-mention-item__copy">',
+        '    <strong data-digit-locale="latin">' + escapeHtml(user.name || user.studentNumber) + "</strong>",
+        subtitle ? ('    <small data-digit-locale="latin">' + escapeHtml(subtitle) + "</small>") : "",
+        "  </span>",
+        "</button>"
+      ].join("");
+    }).join("");
+    Array.from(mentionSuggestions.querySelectorAll("[data-mention-index]")).forEach(function (button) {
+      button.addEventListener("mousedown", function (event) {
+        event.preventDefault();
+      });
+      button.addEventListener("click", function (event) {
+        event.preventDefault();
+        applyMentionSuggestionAtIndex(Math.floor(toNumber(button.getAttribute("data-mention-index"), -1)));
+      });
+    });
+  }
+
+  function refreshMentionSuggestions() {
+    var conversation = activeConversation();
+    var match = currentMentionMatch();
+    if (!conversation || !match || !chatTextEl || chatTextEl.disabled || document.activeElement !== chatTextEl) {
+      closeMentionSuggestions();
+      return;
+    }
+
+    state.mentionTokenStart = Math.max(0, match.start);
+    state.mentionTokenEnd = Math.max(state.mentionTokenStart, match.end);
+    state.mentionQuery = toText(match.query || "");
+
+    var query = state.mentionQuery.toLowerCase();
+    var suggestions = mentionCandidates().filter(function (user) {
+      if (!query) return true;
+      var haystack = [
+        user.name,
+        user.roleLabel,
+        user.profile && user.profile.about,
+        user.studentNumber
+      ].join(" ").toLowerCase();
+      return haystack.indexOf(query) !== -1;
+    }).slice(0, 6);
+
+    if (!suggestions.length && !state.directoryLoaded) {
+      loadDirectory(false).then(function () {
+        refreshMentionSuggestions();
+      }).catch(function () {});
+    }
+
+    state.mentionSuggestions = suggestions;
+    if (!suggestions.length) {
+      state.mentionSelectedIndex = -1;
+      renderMentionSuggestions();
+      return;
+    }
+    if (state.mentionSelectedIndex < 0 || state.mentionSelectedIndex >= suggestions.length) {
+      state.mentionSelectedIndex = 0;
+    }
+    renderMentionSuggestions();
+  }
+
+  function applyMentionSuggestionAtIndex(index) {
+    if (!chatTextEl) return false;
+    var suggestions = Array.isArray(state.mentionSuggestions) ? state.mentionSuggestions : [];
+    var user = suggestions[index] || null;
+    if (!user) return false;
+    var studentNumber = normalizeStudentNumber(user.studentNumber);
+    if (!studentNumber) return false;
+    var value = toText(chatTextEl.value);
+    var start = Math.max(0, state.mentionTokenStart);
+    var end = Math.max(start, state.mentionTokenEnd);
+    chatTextEl.value = value.slice(0, start) + "@" + studentNumber + " " + value.slice(end);
+    var nextCaret = start + studentNumber.length + 2;
+    chatTextEl.setSelectionRange(nextCaret, nextCaret);
+    autosizeComposer();
+    closeMentionSuggestions();
+    handleComposerTypingActivity();
+    chatTextEl.focus({ preventScroll: true });
+    return true;
+  }
+
+  function moveMentionSelection(delta) {
+    var suggestions = Array.isArray(state.mentionSuggestions) ? state.mentionSuggestions : [];
+    if (!suggestions.length) return;
+    var next = state.mentionSelectedIndex + delta;
+    if (next < 0) next = suggestions.length - 1;
+    if (next >= suggestions.length) next = 0;
+    state.mentionSelectedIndex = next;
+    renderMentionSuggestions();
   }
 
   function renderDmList() {
@@ -7421,6 +8237,7 @@
     state.connectionIssue = false;
     state.showArchivedConversations = false;
     state.threadAutoStick = true;
+    state.pollDraftSelections = new Map();
     state.recentReactions = [];
     state.reactionUsage = new Map();
     state.reactionDetailsRequestToken += 1;
@@ -7437,6 +8254,7 @@
     setUploadSheetOpen(false);
     renderComposerUploads();
     clearReplyTarget();
+    closeMentionSuggestions();
     closeContextMenu();
     closeInfoSheet();
     closeModal(true);
@@ -7523,6 +8341,7 @@
       state.confirmDialog = null;
       state.connectionIssue = false;
       state.showArchivedConversations = false;
+      state.pollDraftSelections = new Map();
       state.reactionDetailsRequestToken += 1;
       state.pendingAttachments = [];
       clearFastChatCacheSaveHandle();
@@ -8317,6 +9136,7 @@
         chatTextEl.value = "";
       }
       autosizeComposer();
+      closeMentionSuggestions();
       clearReplyTarget();
       clearTypingActivity(false);
       clearComposerAttachments(attachmentIds);
@@ -9341,9 +10161,11 @@
     if (forwardModalClose) forwardModalClose.addEventListener("click", closeModal);
     if (reactionModalClose) reactionModalClose.addEventListener("click", closeModal);
     if (reactionDetailsModalClose) reactionDetailsModalClose.addEventListener("click", closeModal);
+    if (pollModalClose) pollModalClose.addEventListener("click", closeModal);
     if (receiptsModalClose) receiptsModalClose.addEventListener("click", closeModal);
     if (editModalClose) editModalClose.addEventListener("click", closeModal);
     if (editCancelBtn) editCancelBtn.addEventListener("click", closeModal);
+    if (pollCancelBtn) pollCancelBtn.addEventListener("click", closeModal);
     if (conversationOptionsClose) conversationOptionsClose.addEventListener("click", closeModal);
     if (confirmModalClose) {
       confirmModalClose.addEventListener("click", function () {
@@ -9471,27 +10293,58 @@
       chatTextEl.addEventListener("input", function () {
         autosizeComposer();
         handleComposerTypingActivity();
+        refreshMentionSuggestions();
       });
       chatTextEl.addEventListener("keydown", function (event) {
+        if (Array.isArray(state.mentionSuggestions) && state.mentionSuggestions.length) {
+          if (event.key === "ArrowDown") {
+            event.preventDefault();
+            moveMentionSelection(1);
+            return;
+          }
+          if (event.key === "ArrowUp") {
+            event.preventDefault();
+            moveMentionSelection(-1);
+            return;
+          }
+          if (event.key === "Tab" || (event.key === "Enter" && !event.shiftKey)) {
+            event.preventDefault();
+            applyMentionSuggestionAtIndex(state.mentionSelectedIndex >= 0 ? state.mentionSelectedIndex : 0);
+            return;
+          }
+          if (event.key === "Escape") {
+            event.preventDefault();
+            closeMentionSuggestions();
+            return;
+          }
+        }
         if (event.key === "Enter" && !event.shiftKey) {
           event.preventDefault();
           sendCurrentMessage();
         }
       });
+      chatTextEl.addEventListener("click", refreshMentionSuggestions);
       chatTextEl.addEventListener("focus", function () {
         applyViewportHeight();
         syncFocusedComposerIntoView();
         window.setTimeout(syncFocusedComposerIntoView, 140);
         window.setTimeout(syncFocusedComposerIntoView, 320);
         schedulePresenceHeartbeat(0);
+        refreshMentionSuggestions();
       });
       chatTextEl.addEventListener("blur", function () {
         window.setTimeout(applyViewportHeight, 160);
         clearTypingActivity(false);
+        window.setTimeout(closeMentionSuggestions, 120);
       });
     }
 
     if (sendBtn) sendBtn.addEventListener("click", sendCurrentMessage);
+    if (pollBtn) {
+      pollBtn.addEventListener("click", function () {
+        openPollComposerModal();
+      });
+    }
     if (attachBtn) {
       attachBtn.addEventListener("click", function () {
         var conversation = activeConversation();
@@ -9619,6 +10472,32 @@
         loadThreadContext(messageId, { behavior: "smooth", block: "center", durationMs: 2200 }).catch(function (error) {
           showToast((error && error.message) || "پرش به اولین پیام خوانده‌نشده انجام نشد.");
         });
+      });
+    }
+    if (pollAddOptionBtn) {
+      pollAddOptionBtn.addEventListener("click", function () {
+        var row = addPollOptionField("");
+        var input = row ? row.querySelector("input") : null;
+        if (input) {
+          input.focus({ preventScroll: true });
+        }
+      });
+    }
+    if (pollMultipleChoiceInput) {
+      pollMultipleChoiceInput.addEventListener("change", syncPollOptionControls);
+    }
+    [pollQuestionInput, pollResultVisibilitySelect, pollMaxChoicesSelect, pollAnonymousInput, pollAllowVoteChangeInput, pollAllowCreatorVoteInput].forEach(function (field) {
+      if (!field) return;
+      field.addEventListener("input", function () {
+        setPollModalFeedback("", "");
+      });
+      field.addEventListener("change", function () {
+        setPollModalFeedback("", "");
+      });
+    });
+    if (pollCreateBtn) {
+      pollCreateBtn.addEventListener("click", function () {
+        submitPollFromModal();
       });
     }
     if (voiceBtn) {
