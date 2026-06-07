@@ -533,6 +533,26 @@ function chat_clean_conversation_id(?string $value): string
     return $value;
 }
 
+function chat_saved_conversation_id(string $studentNumber): string
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    return $studentNumber !== '' ? ('saved:' . $studentNumber) : '';
+}
+
+function chat_saved_owner_from_conversation_id(string $conversationId): string
+{
+    if (preg_match('/^saved:([^:]+)$/', $conversationId, $matches) !== 1) {
+        return '';
+    }
+
+    return dent_normalize_student_number((string) ($matches[1] ?? ''));
+}
+
+function chat_is_private_like_conversation_type(string $type): bool
+{
+    return in_array(trim($type), ['direct', 'saved'], true);
+}
+
 function chat_clean_poll_id(?string $value): string
 {
     $value = trim((string) $value);
@@ -851,6 +871,40 @@ function chat_parse_attachment_ids_input($raw): array
         $normalized[] = $clean;
     }
 
+    return $normalized;
+}
+
+function chat_parse_message_ids_input($raw): array
+{
+    $items = [];
+    if (is_array($raw)) {
+        $items = $raw;
+    } else {
+        $text = trim((string) $raw);
+        if ($text === '') {
+            return [];
+        }
+
+        $decoded = json_decode($text, true);
+        if (is_array($decoded)) {
+            $items = $decoded;
+        } else {
+            $items = preg_split('/[\s,;]+/u', $text) ?: [];
+        }
+    }
+
+    $normalized = [];
+    $seen = [];
+    foreach ($items as $item) {
+        $messageId = max(0, (int) $item);
+        if ($messageId <= 0 || isset($seen[$messageId])) {
+            continue;
+        }
+        $seen[$messageId] = true;
+        $normalized[] = $messageId;
+    }
+
+    sort($normalized, SORT_NUMERIC);
     return $normalized;
 }
 
@@ -1650,11 +1704,14 @@ function chat_normalize_conversation_record(string $conversationId, array $conve
     }
 
     $type = trim((string) ($conversation['type'] ?? 'group'));
-    if (!in_array($type, ['class-group', 'direct', 'group'], true)) {
+    if (!in_array($type, ['class-group', 'direct', 'group', 'saved'], true)) {
         $type = 'group';
     }
     if ($type !== 'direct' && str_starts_with($conversationId, 'dm:')) {
         $type = 'direct';
+    }
+    if ($type !== 'saved' && str_starts_with($conversationId, 'saved:')) {
+        $type = 'saved';
     }
 
     $createdAt = (int) ($conversation['createdAt'] ?? time());
@@ -1670,6 +1727,7 @@ function chat_normalize_conversation_record(string $conversationId, array $conve
     $memberStudentNumbers = chat_normalize_student_list($conversation['memberStudentNumbers'] ?? []);
     $directParticipants = chat_normalize_student_list($conversation['directParticipants'] ?? []);
     $directParticipantsFromId = chat_dm_participants_from_conversation_id($conversationId);
+    $savedOwnerFromId = chat_saved_owner_from_conversation_id($conversationId);
     $admins = chat_normalize_student_list($conversation['admins'] ?? []);
     $createdBy = dent_normalize_student_number((string) ($conversation['createdBy'] ?? ''));
     $settings = is_array($conversation['settings'] ?? null) ? $conversation['settings'] : [];
@@ -1714,6 +1772,20 @@ function chat_normalize_conversation_record(string $conversationId, array $conve
         sort($directParticipants, SORT_STRING);
         $memberStudentNumbers = $directParticipants;
         $admins = [];
+    } elseif ($type === 'saved') {
+        if ($savedOwnerFromId !== '') {
+            $memberStudentNumbers = [$savedOwnerFromId];
+        } elseif (count($memberStudentNumbers) === 1) {
+            $memberStudentNumbers = [dent_normalize_student_number((string) $memberStudentNumbers[0])];
+        }
+        if (count($memberStudentNumbers) !== 1 || $memberStudentNumbers[0] === '') {
+            return null;
+        }
+
+        $conversationId = chat_saved_conversation_id($memberStudentNumbers[0]);
+        $directParticipants = [];
+        $admins = [];
+        $temporary = false;
     } else {
         if ($memberStudentNumbers === [] && $createdBy !== '') {
             $memberStudentNumbers = [$createdBy];
@@ -1769,7 +1841,7 @@ function chat_normalize_conversation_record(string $conversationId, array $conve
         'avatarUrl' => $avatarUrl,
         'createdAt' => $createdAt,
         'updatedAt' => $updatedAt,
-        'createdBy' => $type === 'direct' ? '' : ($createdBy !== '' ? $createdBy : 'system'),
+        'createdBy' => chat_is_private_like_conversation_type($type) ? '' : ($createdBy !== '' ? $createdBy : 'system'),
         'mandatory' => $type === 'class-group' ? true : (bool) ($conversation['mandatory'] ?? false),
         'memberStudentNumbers' => $memberStudentNumbers,
         'directParticipants' => $directParticipants,
@@ -3557,6 +3629,13 @@ function chat_conversation_member_student_numbers(array $conversation): array
         return chat_normalize_student_list($conversation['directParticipants'] ?? []);
     }
 
+    if ($type === 'saved') {
+        $savedOwner = chat_saved_owner_from_conversation_id((string) ($conversation['id'] ?? ''));
+        if ($savedOwner !== '') {
+            return [$savedOwner];
+        }
+    }
+
     return chat_normalize_student_list($conversation['memberStudentNumbers'] ?? []);
 }
 
@@ -3843,12 +3922,16 @@ function chat_can_manage_conversation(array $conversation, array $user): bool
         return chat_is_group_admin($conversation, $studentNumber);
     }
 
+    if ($type === 'saved') {
+        return false;
+    }
+
     return false;
 }
 
 function chat_user_can_view_without_membership(array $conversation, array $user): bool
 {
-    if ((string) ($conversation['type'] ?? 'group') === 'direct') {
+    if (chat_is_private_like_conversation_type((string) ($conversation['type'] ?? 'group'))) {
         return false;
     }
 
@@ -3858,7 +3941,7 @@ function chat_user_can_view_without_membership(array $conversation, array $user)
 function chat_can_pin_message(array $conversation, array $user): bool
 {
     $type = (string) ($conversation['type'] ?? 'group');
-    if ($type === 'direct') {
+    if (chat_is_private_like_conversation_type($type)) {
         return chat_is_member($conversation, (string) ($user['studentNumber'] ?? ''));
     }
 
@@ -3879,6 +3962,10 @@ function chat_can_manage_message(array $conversation, array $user, array $messag
         return false;
     }
 
+    if ($type === 'saved') {
+        return chat_is_member($conversation, $studentNumber);
+    }
+
     return chat_can_manage_conversation($conversation, $user);
 }
 
@@ -3890,6 +3977,10 @@ function chat_can_send_message(array $conversation, array $user): bool
 
     $type = (string) ($conversation['type'] ?? 'group');
     if ($type === 'direct') {
+        return true;
+    }
+
+    if ($type === 'saved') {
         return true;
     }
 
@@ -4705,7 +4796,7 @@ function chat_unread_count(array $store, array $conversation, string $studentNum
 function chat_unread_mention_count(array $store, array $conversation, string $studentNumber): int
 {
     $studentNumber = dent_normalize_student_number($studentNumber);
-    if ($studentNumber === '' || (string) ($conversation['type'] ?? 'group') === 'direct') {
+    if ($studentNumber === '' || chat_is_private_like_conversation_type((string) ($conversation['type'] ?? 'group'))) {
         return 0;
     }
 
@@ -5184,6 +5275,10 @@ function chat_conversation_title_for_user(array $conversation, string $viewerStu
         return 'گفت‌وگوی خصوصی';
     }
 
+    if ($type === 'saved') {
+        return 'پیام‌های ذخیره‌شده';
+    }
+
     $title = dent_clean_text((string) ($conversation['title'] ?? ''), 80);
     return $title !== '' ? $title : 'گروه';
 }
@@ -5199,6 +5294,10 @@ function chat_conversation_about_for_user(array $conversation, string $viewerStu
                 return (string) ($peer['about'] ?? '');
             }
         }
+    }
+
+    if ($type === 'saved') {
+        return 'یادداشت‌ها، فورواردها و پیام‌های شخصی خودت را اینجا نگه دار.';
     }
 
     return dent_clean_text((string) ($conversation['about'] ?? ''), 280);
@@ -5219,6 +5318,11 @@ function chat_conversation_avatar_for_user(array $conversation, string $viewerSt
                 return dent_clean_avatar_url((string) ($peer['avatarUrl'] ?? ''), false);
             }
         }
+    }
+
+    if ($type === 'saved') {
+        $viewer = chat_public_user_for_student($viewerStudentNumber);
+        return dent_clean_avatar_url((string) ($viewer['avatarUrl'] ?? ''), false);
     }
 
     return dent_clean_avatar_url((string) ($conversation['avatarUrl'] ?? ''), false);
@@ -5249,6 +5353,10 @@ function chat_conversation_subtitle_for_user(
         }
     }
 
+    if ($type === 'saved') {
+        return 'فقط برای خودت';
+    }
+
     $members = chat_conversation_member_student_numbers($conversation);
     return count($members) . ' عضو';
 }
@@ -5269,14 +5377,13 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
     $canManageConversation = chat_can_manage_conversation($conversation, $viewer);
     $canSend = chat_can_send_message($conversation, $viewer);
     $canPinMessages = chat_can_pin_message($conversation, $viewer);
-    $canMuteConversation = $conversationType !== 'direct' && $canManageConversation;
+    $isPrivateLikeConversation = chat_is_private_like_conversation_type($conversationType);
+    $canMuteConversation = !$isPrivateLikeConversation && $canManageConversation;
     $isMember = chat_is_member($conversation, $viewerStudentNumber);
     $canPinConversation = $isMember;
     $canArchiveConversation = $isMember && !$isMandatory;
     $canLeaveConversation = $conversationType === 'group' && $isMember && !$isMandatory;
-    $canClearHistory = $conversationType === 'direct'
-        ? $isMember
-        : $canManageConversation;
+    $canClearHistory = $isPrivateLikeConversation ? $isMember : $canManageConversation;
     $canDeleteConversation = false;
     if ($conversationType === 'direct') {
         $canDeleteConversation = $isMember;
@@ -5337,10 +5444,10 @@ function chat_conversation_payload(array $store, array $conversation, array $vie
             'canMarkRead' => $isMember,
             'canMarkUnread' => $isMember,
             'canCreateGroup' => true,
-            'canCreatePoll' => $conversationType !== 'direct' && $canSend && chat_can_create_poll($viewer),
+            'canCreatePoll' => !$isPrivateLikeConversation && $canSend && chat_can_create_poll($viewer),
             'canEditProfile' => $conversationType === 'group' && $canManageConversation && !$isMandatory,
             'canEditGroupType' => $conversationType === 'group' && $canManageConversation && !$isMandatory,
-            'canEditReactions' => $conversationType !== 'direct' && $canManageConversation,
+            'canEditReactions' => !$isPrivateLikeConversation && $canManageConversation,
             'canAddMembers' => $conversationType === 'group' && $canManageConversation,
         ],
         'lastMessage' => $lastMessage !== null ? chat_normalize_message_for_client($lastMessage, $store, $viewer) : null,
@@ -5415,6 +5522,11 @@ function chat_user_visible_conversation_ids(array &$store, array $user): array
 function chat_conversation_summaries_for_user(array &$store, array $user): array
 {
     $summaries = [];
+    $viewerStudentNumber = chat_actor_student_number($user);
+    if ($viewerStudentNumber !== '') {
+        chat_ensure_saved_conversation($store, $viewerStudentNumber);
+    }
+
     foreach (chat_user_visible_conversation_ids($store, $user) as $conversationId) {
         $conversation = chat_get_conversation($store, $conversationId);
         if ($conversation === null) {
@@ -5682,6 +5794,69 @@ function chat_ensure_direct_conversation(
         dent_normalize_student_number($creatorStudentNumber)
     );
 
+    return $conversation;
+}
+
+function chat_ensure_saved_conversation(array &$store, string $studentNumber, ?bool &$changed = null): array
+{
+    $changed = false;
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        dent_error('شناسه پیام‌های ذخیره‌شده نامعتبر است.', 422);
+    }
+
+    $conversationId = chat_saved_conversation_id($studentNumber);
+    $expectedMembers = [$studentNumber];
+    $existing = chat_get_conversation($store, $conversationId);
+    if ($existing !== null) {
+        $existingMembers = chat_normalize_student_list($existing['memberStudentNumbers'] ?? []);
+        $needsRepair = (string) ($existing['type'] ?? '') !== 'saved'
+            || count($existingMembers) !== 1
+            || $existingMembers !== $expectedMembers;
+
+        if ($needsRepair) {
+            $existing['type'] = 'saved';
+            $existing['memberStudentNumbers'] = $expectedMembers;
+            $existing['directParticipants'] = [];
+            $existing['admins'] = [];
+            $existing['temporary'] = false;
+            $existing['createdBy'] = '';
+            $existing['updatedAt'] = time();
+            chat_put_conversation($store, $existing);
+            $changed = true;
+        }
+
+        if (!isset($store['messages'][$conversationId]) || !is_array($store['messages'][$conversationId])) {
+            $store['messages'][$conversationId] = [];
+            $changed = true;
+        }
+
+        return chat_get_conversation($store, $conversationId) ?? $existing;
+    }
+
+    $now = time();
+    $conversation = [
+        'id' => $conversationId,
+        'type' => 'saved',
+        'title' => '',
+        'about' => '',
+        'avatarUrl' => '',
+        'createdAt' => $now,
+        'updatedAt' => $now,
+        'createdBy' => '',
+        'mandatory' => false,
+        'memberStudentNumbers' => $expectedMembers,
+        'directParticipants' => [],
+        'admins' => [],
+        'temporary' => false,
+        'settings' => chat_default_settings(),
+    ];
+
+    chat_put_conversation($store, $conversation);
+    if (!isset($store['messages'][$conversationId]) || !is_array($store['messages'][$conversationId])) {
+        $store['messages'][$conversationId] = [];
+    }
+    $changed = true;
     return $conversation;
 }
 
@@ -6059,13 +6234,19 @@ function chat_append_message(
 function chat_require_conversation_for_user(array &$store, string $conversationId, array $user): array
 {
     $conversation = chat_get_conversation($store, $conversationId);
-    if ($conversation === null) {
-        dent_error('گفت‌وگو پیدا نشد.', 404);
-    }
-
     $studentNumber = chat_actor_student_number($user);
     if ($studentNumber === '') {
         dent_error('هویت کاربر نامعتبر است.', 401);
+    }
+
+    if ($conversation === null) {
+        $savedOwner = chat_saved_owner_from_conversation_id($conversationId);
+        if ($savedOwner !== '' && $savedOwner === $studentNumber) {
+            $conversation = chat_ensure_saved_conversation($store, $studentNumber);
+        }
+    }
+    if ($conversation === null) {
+        dent_error('گفت‌وگو پیدا نشد.', 404);
     }
 
     $isMemberBeforeRepair = chat_is_member($conversation, $studentNumber);
@@ -6476,7 +6657,7 @@ function chat_create_poll(
         if (!chat_can_send_message($conversation, $user)) {
             dent_error('در این گفتگو اجازه ارسال پیام ندارید.', 403);
         }
-        if ((string) ($conversation['type'] ?? 'group') === 'direct') {
+        if (chat_is_private_like_conversation_type((string) ($conversation['type'] ?? 'group'))) {
             dent_error('نظرسنجی داخل گفت‌وگوی خصوصی فعال نیست.', 422);
         }
     }
@@ -7151,6 +7332,31 @@ if ($action === 'startDirect') {
     ]);
 }
 
+if ($action === 'openSavedMessages') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد باز کردن پیام‌های ذخیره‌شده نامعتبر است.', 405);
+    }
+
+    $user = chat_require_user();
+    $store = chat_load_store();
+    $changed = false;
+    $conversation = chat_ensure_saved_conversation(
+        $store,
+        chat_actor_student_number($user),
+        $changed
+    );
+    if ($changed) {
+        chat_save_store($store);
+    }
+
+    dent_json_response([
+        'success' => true,
+        'conversationId' => (string) ($conversation['id'] ?? ''),
+        'conversation' => chat_conversation_payload($store, $conversation, $user, true),
+        'conversations' => chat_conversation_summaries_for_user($store, $user),
+    ]);
+}
+
 if ($action === 'createGroup') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد ساخت گروه نامعتبر است.', 405);
@@ -7281,7 +7487,7 @@ if ($action === 'clearHistory') {
     $store = chat_load_store();
     $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
     $conversationType = (string) ($conversation['type'] ?? 'group');
-    $canClearHistory = $conversationType === 'direct'
+    $canClearHistory = chat_is_private_like_conversation_type($conversationType)
         ? chat_is_member($conversation, (string) ($user['studentNumber'] ?? ''))
         : chat_can_manage_conversation($conversation, $user);
 
@@ -7800,7 +8006,7 @@ if ($action === 'setReactionMode') {
 
     $store = chat_load_store();
     $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
-    if ((string) ($conversation['type'] ?? '') === 'direct') {
+    if (chat_is_private_like_conversation_type((string) ($conversation['type'] ?? ''))) {
         dent_error('تنظیم واکنش برای گفتگوی خصوصی لازم نیست.', 422);
     }
     if (!chat_can_manage_conversation($conversation, $user)) {
@@ -8069,6 +8275,14 @@ if ($action === 'navSummary') {
     $user = chat_require_user();
     dent_release_session_lock();
     $store = chat_load_store();
+    $savedConversationChanged = false;
+    $viewerStudentNumber = chat_actor_student_number($user);
+    if ($viewerStudentNumber !== '') {
+        chat_ensure_saved_conversation($store, $viewerStudentNumber, $savedConversationChanged);
+        if ($savedConversationChanged) {
+            chat_save_store($store);
+        }
+    }
     $conversations = chat_conversation_summaries_for_user($store, $user);
     $unreadCount = 0;
     $activeCount = 0;
@@ -8096,6 +8310,14 @@ if ($action === 'navSummary') {
 if ($action === 'sync' || $action === 'fetch') {
     $user = chat_require_user();
     $store = chat_load_store();
+    $savedConversationChanged = false;
+    $viewerStudentNumber = chat_actor_student_number($user);
+    if ($viewerStudentNumber !== '') {
+        chat_ensure_saved_conversation($store, $viewerStudentNumber, $savedConversationChanged);
+        if ($savedConversationChanged) {
+            chat_save_store($store);
+        }
+    }
 
     $requestedConversationId = chat_clean_conversation_id((string) ($_GET['conversationId'] ?? $_POST['conversationId'] ?? ''));
     if ($requestedConversationId !== '') {
@@ -8317,6 +8539,68 @@ if ($action === 'delete') {
     ]);
 }
 
+if ($action === 'batchDeleteMessages') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد حذف گروهی پیام نامعتبر است.', 405);
+    }
+
+    $user = chat_require_user();
+    $conversationId = chat_clean_conversation_id((string) ($_POST['conversationId'] ?? CHAT_CLASS_CONVERSATION_ID));
+    $messageIds = chat_parse_message_ids_input($_POST['ids'] ?? ($_POST['messageIds'] ?? []));
+
+    if ($conversationId === '') {
+        dent_error('شناسه گفت‌وگو نامعتبر است.', 422);
+    }
+    if ($messageIds === []) {
+        dent_error('حداقل یک پیام برای حذف لازم است.', 422);
+    }
+
+    $store = chat_load_store();
+    $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
+    $messages = chat_get_messages($store, $conversationId);
+    $requestedLookup = array_fill_keys($messageIds, true);
+    $deletedIds = [];
+    $skippedIds = [];
+    $nextMessages = [];
+
+    foreach ($messages as $message) {
+        $messageId = (int) ($message['id'] ?? 0);
+        if ($messageId <= 0 || !isset($requestedLookup[$messageId])) {
+            $nextMessages[] = $message;
+            continue;
+        }
+
+        if (!chat_can_manage_message($conversation, $user, $message)) {
+            $skippedIds[] = $messageId;
+            $nextMessages[] = $message;
+            continue;
+        }
+
+        chat_delete_message_attachments($store, $conversationId, $messageId);
+        $deletedIds[] = $messageId;
+    }
+
+    foreach ($messageIds as $messageId) {
+        if (!in_array($messageId, $deletedIds, true) && !in_array($messageId, $skippedIds, true)) {
+            $skippedIds[] = $messageId;
+        }
+    }
+
+    if ($deletedIds !== []) {
+        chat_put_messages($store, $conversationId, $nextMessages);
+        chat_save_store($store);
+    }
+
+    $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
+    dent_json_response([
+        'success' => true,
+        'deletedIds' => $deletedIds,
+        'skippedIds' => $skippedIds,
+        'conversation' => chat_conversation_payload($store, $conversation, $user, false),
+        'conversations' => chat_conversation_summaries_for_user($store, $user),
+    ]);
+}
+
 if ($action === 'pin') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد سنجاق پیام نامعتبر است.', 405);
@@ -8353,6 +8637,70 @@ if ($action === 'pin') {
     dent_json_response([
         'success' => true,
         'message' => chat_normalize_message_for_client($messages[$index], $store, $user),
+    ]);
+}
+
+if ($action === 'batchPinMessages') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد سنجاق گروهی پیام نامعتبر است.', 405);
+    }
+
+    $user = chat_require_user();
+    $conversationId = chat_clean_conversation_id((string) ($_POST['conversationId'] ?? CHAT_CLASS_CONVERSATION_ID));
+    $messageIds = chat_parse_message_ids_input($_POST['ids'] ?? ($_POST['messageIds'] ?? []));
+    $shouldPin = (string) ($_POST['pinned'] ?? '1') === '1';
+
+    if ($conversationId === '') {
+        dent_error('شناسه گفت‌وگو نامعتبر است.', 422);
+    }
+    if ($messageIds === []) {
+        dent_error('حداقل یک پیام برای سنجاق لازم است.', 422);
+    }
+
+    $store = chat_load_store();
+    $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
+    if (!chat_can_pin_message($conversation, $user)) {
+        dent_error('اجازه سنجاق این گفت‌وگو را ندارید.', 403);
+    }
+
+    $messages = chat_get_messages($store, $conversationId);
+    $requestedLookup = array_fill_keys($messageIds, true);
+    $updatedMessages = [];
+    $updatedIds = [];
+    $skippedIds = [];
+
+    foreach ($messages as &$message) {
+        $messageId = (int) ($message['id'] ?? 0);
+        if ($messageId <= 0 || !isset($requestedLookup[$messageId])) {
+            continue;
+        }
+
+        $message['pinned'] = $shouldPin;
+        $updatedIds[] = $messageId;
+        $updatedMessages[] = chat_normalize_message_for_client($message, $store, $user);
+    }
+    unset($message);
+
+    foreach ($messageIds as $messageId) {
+        if (!in_array($messageId, $updatedIds, true)) {
+            $skippedIds[] = $messageId;
+        }
+    }
+
+    if ($updatedIds !== []) {
+        chat_put_messages($store, $conversationId, $messages);
+        chat_save_store($store);
+    }
+
+    $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
+    dent_json_response([
+        'success' => true,
+        'pinned' => $shouldPin,
+        'updatedIds' => $updatedIds,
+        'skippedIds' => $skippedIds,
+        'messages' => $updatedMessages,
+        'conversation' => chat_conversation_payload($store, $conversation, $user, false),
+        'conversations' => chat_conversation_summaries_for_user($store, $user),
     ]);
 }
 
@@ -8472,7 +8820,7 @@ if ($action === 'setMute') {
 
     $store = chat_load_store();
     $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
-    if ((string) ($conversation['type'] ?? '') === 'direct') {
+    if (chat_is_private_like_conversation_type((string) ($conversation['type'] ?? ''))) {
         dent_error('بستن ارسال پیام برای گفت‌وگوی خصوصی پشتیبانی نمی‌شود.', 422);
     }
 

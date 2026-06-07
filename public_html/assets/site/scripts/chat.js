@@ -572,6 +572,11 @@
     };
   }
 
+  function isPrivateLikeConversationType(type) {
+    var normalized = normalizeSpace(type || "").toLowerCase();
+    return normalized === "direct" || normalized === "saved";
+  }
+
   function userPresenceText(user, conversationId) {
     var presence = user && user.presence ? normalizePresenceState(user.presence, conversationId) : null;
     if (!presence) return "";
@@ -582,6 +587,7 @@
   }
 
   function conversationPresenceText(conversation) {
+    if (conversation && conversation.type === "saved") return "";
     var presence = conversation && conversation.presence ? conversation.presence : null;
     if (!presence) return "";
     var typingUsers = Array.isArray(presence.typingUsers) ? presence.typingUsers : [];
@@ -892,6 +898,15 @@
   var threadDaySelect = $("thread-day-select");
   var threadJumpDayBtn = $("thread-jump-day-btn");
   var threadJumpUnreadBtn = $("thread-jump-unread-btn");
+  var messageManageBar = $("message-manage-bar");
+  var messageSelectionCount = $("message-selection-count");
+  var messageSelectionToggleAll = $("message-selection-toggle-all");
+  var messageSelectionClear = $("message-selection-clear");
+  var messageBatchCopy = $("message-batch-copy");
+  var messageBatchForward = $("message-batch-forward");
+  var messageBatchPin = $("message-batch-pin");
+  var messageBatchUnpin = $("message-batch-unpin");
+  var messageBatchDelete = $("message-batch-delete");
   var threadUpdatingCount = 0;
 
   var muteBadge = $("mute-badge");
@@ -1098,6 +1113,8 @@
     toastTimer: null,
     contextOpen: false,
     contextAnchorMessageId: null,
+    messageSelectionMode: false,
+    selectedMessageIds: new Set(),
     listContextOpen: false,
     listContextConversationId: "",
     listSelectionMode: false,
@@ -1109,6 +1126,7 @@
     pendingDirectStart: false,
     pendingGroupCreate: false,
     pendingForwardMessageId: null,
+    pendingForwardMessageIds: [],
     pendingReactionMessageId: null,
     reactionCategory: "recent",
     recentReactions: [],
@@ -1673,10 +1691,10 @@
       return Math.max(0, Math.floor(toNumber(conversation.unreadCount, 0))) > 0;
     }
     if (category === "groups") {
-      return conversation.type !== "direct";
+      return !isPrivateLikeConversationType(conversation.type);
     }
     if (category === "direct") {
-      return conversation.type === "direct";
+      return isPrivateLikeConversationType(conversation.type);
     }
     return true;
   }
@@ -1983,6 +2001,160 @@
     });
     updateSelectionUi();
     renderConversationList();
+  }
+
+  function selectedMessages() {
+    return Array.from(state.selectedMessageIds)
+      .map(function (messageId) { return findMessage(messageId); })
+      .filter(function (message) {
+        return !!message && normalizeSpace(message.conversationId) === normalizeSpace(state.activeConversationId);
+      })
+      .sort(function (left, right) {
+        return left.id - right.id;
+      });
+  }
+
+  function selectableMessageIds() {
+    return messageList()
+      .filter(function (message) {
+        return !!message && normalizeSpace(message.conversationId) === normalizeSpace(state.activeConversationId);
+      })
+      .map(function (message) {
+        return Math.max(0, Math.floor(toNumber(message.id, 0)));
+      })
+      .filter(function (messageId) {
+        return messageId > 0;
+      });
+  }
+
+  function pruneSelectedMessageIds() {
+    var validIds = new Set();
+    state.selectedMessageIds.forEach(function (messageId) {
+      var message = findMessage(messageId);
+      if (message && normalizeSpace(message.conversationId) === normalizeSpace(state.activeConversationId)) {
+        validIds.add(message.id);
+      }
+    });
+    state.selectedMessageIds = validIds;
+    if (!state.selectedMessageIds.size) {
+      state.messageSelectionMode = false;
+    }
+  }
+
+  function syncSelectedMessageNodes() {
+    if (!messagesEl) return;
+    Array.from(messagesEl.querySelectorAll(".msg-item[data-mid]")).forEach(function (item) {
+      var messageId = Math.max(0, Math.floor(toNumber(item.getAttribute("data-mid"), 0)));
+      var isSelected = state.selectedMessageIds.has(messageId);
+      item.classList.toggle("is-selected", isSelected);
+      item.classList.toggle("is-selection-mode", !!state.messageSelectionMode);
+      var badge = item.querySelector(".msg-select-badge");
+      if (badge) {
+        badge.setAttribute("aria-hidden", "true");
+      }
+    });
+  }
+
+  function updateMessageSelectionUi() {
+    pruneSelectedMessageIds();
+    if (document.body) {
+      document.body.classList.toggle("chat-message-selection-mode", !!state.messageSelectionMode);
+    }
+    if (messageManageBar) {
+      messageManageBar.hidden = !state.messageSelectionMode;
+    }
+    if (messageSelectionCount) {
+      messageSelectionCount.textContent = state.selectedMessageIds.size.toLocaleString("fa-IR") + " مورد انتخاب";
+    }
+    if (messageSelectionToggleAll) {
+      var selectableIds = selectableMessageIds();
+      var allSelected = selectableIds.length > 0 && selectableIds.every(function (messageId) {
+        return state.selectedMessageIds.has(messageId);
+      });
+      messageSelectionToggleAll.disabled = selectableIds.length <= 0;
+      messageSelectionToggleAll.textContent = allSelected ? "لغو همه" : "انتخاب همه";
+    }
+    var selected = selectedMessages();
+    var hasSelection = selected.length > 0;
+    var canPin = canPinMessage();
+    var hasDeletableSelection = selected.some(function (message) {
+      return canManageMessage(message);
+    });
+    [
+      messageBatchCopy,
+      messageBatchForward
+    ].forEach(function (button) {
+      if (!button) return;
+      button.disabled = !hasSelection;
+    });
+    [
+      messageBatchPin,
+      messageBatchUnpin
+    ].forEach(function (button) {
+      if (!button) return;
+      button.disabled = !hasSelection || !canPin;
+    });
+    if (messageBatchDelete) {
+      messageBatchDelete.disabled = !hasDeletableSelection;
+    }
+    syncSelectedMessageNodes();
+    updateComposerState();
+  }
+
+  function enterMessageSelectionMode(seedMessageId) {
+    state.messageSelectionMode = true;
+    if (seedMessageId) {
+      state.selectedMessageIds.add(Math.max(0, Math.floor(toNumber(seedMessageId, 0))));
+    }
+    closeContextMenu();
+    updateMessageSelectionUi();
+  }
+
+  function exitMessageSelectionMode() {
+    state.messageSelectionMode = false;
+    state.selectedMessageIds.clear();
+    updateMessageSelectionUi();
+  }
+
+  function toggleMessageSelection(messageId, force) {
+    var numericId = Math.max(0, Math.floor(toNumber(messageId, 0)));
+    if (numericId <= 0) return;
+    if (!state.messageSelectionMode) {
+      state.messageSelectionMode = true;
+    }
+    var shouldSelect = force === true;
+    var shouldUnselect = force === false;
+    if (!shouldSelect && !shouldUnselect) {
+      shouldSelect = !state.selectedMessageIds.has(numericId);
+    }
+    if (shouldSelect) {
+      state.selectedMessageIds.add(numericId);
+    } else {
+      state.selectedMessageIds.delete(numericId);
+    }
+    updateMessageSelectionUi();
+  }
+
+  function toggleSelectAllVisibleMessages() {
+    if (!state.messageSelectionMode) {
+      state.messageSelectionMode = true;
+    }
+    var ids = selectableMessageIds();
+    if (!ids.length) {
+      updateMessageSelectionUi();
+      return;
+    }
+    var allSelected = ids.every(function (messageId) {
+      return state.selectedMessageIds.has(messageId);
+    });
+    ids.forEach(function (messageId) {
+      if (allSelected) {
+        state.selectedMessageIds.delete(messageId);
+      } else {
+        state.selectedMessageIds.add(messageId);
+      }
+    });
+    updateMessageSelectionUi();
   }
 
   function reactionUsageScore(emoji) {
@@ -2386,6 +2558,10 @@
       return "گفت‌وگوی خصوصی";
     }
 
+    if (type === "saved") {
+      return "پیام‌های ذخیره‌شده";
+    }
+
     if (type === "class-group") {
       return "گفت‌وگوی کلاس";
     }
@@ -2413,6 +2589,10 @@
       return "گفت‌وگوی خصوصی";
     }
 
+    if (type === "saved") {
+      return "فقط برای خودت";
+    }
+
     if (type === "class-group") {
       return "گفت‌وگوی مشترک کلاسی";
     }
@@ -2435,14 +2615,20 @@
     var id = normalizeSpace(source.id);
     if (!id) return null;
     var type = normalizeSpace(source.type).toLowerCase();
-    if (type !== "class-group" && type !== "direct" && type !== "group") {
+    if (type !== "class-group" && type !== "direct" && type !== "group" && type !== "saved") {
       type = "";
     }
     if (!type && id.indexOf("dm:") === 0) {
       type = "direct";
     }
+    if (!type && id.indexOf("saved:") === 0) {
+      type = "saved";
+    }
     if (type === "group" && id.indexOf("dm:") === 0) {
       type = "direct";
+    }
+    if (type === "group" && id.indexOf("saved:") === 0) {
+      type = "saved";
     }
     if (!type) {
       type = "group";
@@ -2948,6 +3134,8 @@
     state.olderMessagesLoading = false;
     state.unreadDividerMessageId = 0;
     state.replyTargetId = null;
+    state.messageSelectionMode = false;
+    state.selectedMessageIds.clear();
     state.threadAutoStick = true;
     closeMentionSuggestions();
     pauseAllVoiceNotes();
@@ -2956,6 +3144,7 @@
     if (messagesEl) messagesEl.innerHTML = "";
     showStreamState("empty", "گفت‌وگو خالی است", "برای شروع گفت‌وگو، یک پیام بفرست.");
     updateThreadSearchUi();
+    updateMessageSelectionUi();
   }
 
   function setThreadVisible(visible) {
@@ -3044,6 +3233,7 @@
     if (!conversation) return "";
     if (conversation.type === "class-group") return "کلاس";
     if (conversation.type === "direct") return "خصوصی";
+    if (conversation.type === "saved") return "ذخیره";
     return "گروه";
   }
 
@@ -3053,6 +3243,9 @@
     }
     if (conversation.type === "class-group") {
       return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 9.3L12 4.5L20.5 9.3L12 14.1L3.5 9.3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M7 11.2V16.2C7 17.7 9.24 19 12 19C14.76 19 17 17.7 17 16.2V11.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+    }
+    if (conversation.type === "saved") {
+      return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4.5H17A1.5 1.5 0 0 1 18.5 6V19L12 15.6L5.5 19V6A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>';
     }
     return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 12.5C14.0711 12.5 15.75 10.8211 15.75 8.75C15.75 6.67893 14.0711 5 12 5C9.92893 5 8.25 6.67893 8.25 8.75C8.25 10.8211 9.92893 12.5 12 12.5Z" stroke="currentColor" stroke-width="1.7"/><path d="M5.5 18.5C6.42 16.22 8.9 14.75 12 14.75C15.1 14.75 17.58 16.22 18.5 18.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
   }
@@ -3064,6 +3257,7 @@
     }
     if (!conversation || !conversation.lastMessage) {
       if (conversation.type === "direct") return "شروع گفت‌وگو";
+      if (conversation.type === "saved") return "یادداشت و فورواردهای شخصی‌ات را اینجا نگه دار";
       if (conversation.type === "class-group") return "گفت‌وگوی عمومی کلاس";
       var aboutText = normalizeSpace(conversation.about);
       if (aboutText) return snippet(aboutText, 96);
@@ -3074,8 +3268,8 @@
       return "هنوز پیامی ثبت نشده";
     }
     var last = conversation.lastMessage;
-    var own = last.studentNumber === state.me.studentNumber;
-    var prefix = own ? "شما: " : (last.name ? last.name + ": " : "");
+    var own = last.studentNumber === state.me.studentNumber && conversation.type !== "saved";
+    var prefix = conversation.type === "saved" ? "" : (own ? "شما: " : (last.name ? last.name + ": " : ""));
     var deliveryPrefix = "";
     if (own) {
       deliveryPrefix = last.delivery === "seen" ? "✓✓ " : "✓ ";
@@ -3091,6 +3285,9 @@
     if (conversation.type === "class-group") return "کلاس";
     if (conversation.type === "direct") {
       return normalizeSpace(conversation.subtitle) || "خصوصی";
+    }
+    if (conversation.type === "saved") {
+      return normalizeSpace(conversation.subtitle) || "شخصی";
     }
     var memberCount = Math.max(0, Math.floor(toNumber(conversation.memberCount, 0)));
     if (memberCount > 0) {
@@ -3270,7 +3467,8 @@
         conversationPreview(conversation),
         conversation.searchText,
         loadedMessageText,
-        canCurrentUserViewStudentNumbers() && conversation.type === "direct" && conversation.peer ? conversation.peer.studentNumber : ""
+        canCurrentUserViewStudentNumbers() && conversation.type === "direct" && conversation.peer ? conversation.peer.studentNumber : "",
+        conversation.type === "saved" ? state.me.name : ""
       ].join(" ").toLowerCase();
       var hayDigits = normalizeDigits(hay).toLowerCase();
       return hay.indexOf(q) !== -1 || (qDigits && hayDigits.indexOf(qDigits) !== -1);
@@ -3415,6 +3613,8 @@
       if (conversation.type === "direct" && conversation.peer) {
         var aboutText = normalizeSpace(conversation.peer.profile && conversation.peer.profile.about);
         threadSubtitle.textContent = livePresenceText || aboutText || conversation.subtitle || "گفت‌وگوی خصوصی";
+      } else if (conversation.type === "saved") {
+        threadSubtitle.textContent = conversation.subtitle || "یادداشت‌ها و فورواردهای شخصی خودت";
       } else {
         threadSubtitle.textContent = livePresenceText || conversation.subtitle || "";
       }
@@ -3473,13 +3673,16 @@
     var hasUploadsInProgress = composerHasUploadingItems();
     var hasVoiceRecorder = !!state.voiceRecorder;
     var recordingVoice = !!(state.voiceRecorder && state.voiceRecorder.recording);
-    var shouldDisable = !conversation || !canSend || muted;
-    var canUseAttachmentTools = !!conversation && canSend && !muted;
+    var selectingMessages = !!state.messageSelectionMode;
+    var shouldDisable = !conversation || !canSend || muted || selectingMessages;
+    var canUseAttachmentTools = !!conversation && canSend && !muted && !selectingMessages;
 
     if (chatTextEl) {
       chatTextEl.disabled = shouldDisable;
       chatTextEl.placeholder = shouldDisable
-        ? (conversation ? "ارسال پیام در این گفت‌وگو ممکن نیست" : "یک گفت‌وگو را انتخاب کن")
+        ? (selectingMessages
+          ? "در حال انتخاب چند پیام هستی"
+          : (conversation ? "ارسال پیام در این گفت‌وگو ممکن نیست" : "یک گفت‌وگو را انتخاب کن"))
         : "پیامت را بنویس...";
     }
     if (sendBtn) {
@@ -3502,6 +3705,12 @@
     if (!conversation) {
       setUploadSheetOpen(false);
       setComposerStatus("یک گفت‌وگو را برای شروع انتخاب کن.", "");
+      return;
+    }
+
+    if (selectingMessages) {
+      setUploadSheetOpen(false);
+      setComposerStatus("حالت چندانتخابی پیام فعال است.", "");
       return;
     }
 
@@ -4131,6 +4340,8 @@
     if (message.pinned) classes.push("is-pinned");
     if (message.delivery === "sending") classes.push("delivery-sending");
     if (message.delivery === "failed") classes.push("delivery-failed");
+    if (state.selectedMessageIds.has(message.id)) classes.push("is-selected");
+    if (state.messageSelectionMode) classes.push("is-selection-mode");
     return classes.join(" ");
   }
 
@@ -4184,6 +4395,7 @@
       '    <span class="msg-avatar__fallback">' + escapeHtml(avatarLabel(message.name)) + "</span>",
       "  </span>",
       '  <div class="msg-bubble">',
+      '    <span class="msg-select-badge" aria-hidden="true">✓</span>',
       '    <div class="msg-head">',
       '      <span class="msg-name" data-digit-locale="latin">' + escapeHtml(message.name || "کاربر") + "</span>",
       showRole ? '      <span class="msg-badge">' + escapeHtml(message.roleLabel || "دانشجو") + "</span>" : "",
@@ -5488,6 +5700,10 @@
 
   function openContextMenu(message, clientX, clientY) {
     if (!message || !contextBackdrop || !contextMenu || !reactionBar || !contextActions) return;
+    if (state.messageSelectionMode) {
+      toggleMessageSelection(message.id);
+      return;
+    }
     closeListContextMenu();
     state.contextAnchorMessageId = message.id;
     syncMessageFocus();
@@ -5549,6 +5765,11 @@
 
     contextActions.appendChild(contextAction("کپی", "کپی متن", function () {
       copyMessageText(message);
+      closeContextMenu();
+    }));
+
+    contextActions.appendChild(contextAction("انتخاب چندتایی", "افزودن پیام به حالت چندانتخابی", function () {
+      enterMessageSelectionMode(message.id);
       closeContextMenu();
     }));
 
@@ -5652,10 +5873,26 @@
 
     bubble.addEventListener("contextmenu", function (event) {
       event.preventDefault();
+      if (state.messageSelectionMode) {
+        toggleMessageSelection(message.id);
+        return;
+      }
       openContextMenu(message, event.clientX, event.clientY);
     });
 
+    bubble.addEventListener("click", function (event) {
+      if (!state.messageSelectionMode || interactiveMessageTarget(event.target)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      toggleMessageSelection(message.id);
+    });
+
     bubble.addEventListener("pointerdown", function (event) {
+      if (state.messageSelectionMode) {
+        clearTouchTimer();
+        gesturePointerId = null;
+        return;
+      }
       if (!touchLikePointer(event.pointerType)) return;
       if (event.button != null && event.button !== 0) return;
       startInteractive = interactiveMessageTarget(event.target);
@@ -5683,6 +5920,7 @@
     });
 
     bubble.addEventListener("pointermove", function (event) {
+      if (state.messageSelectionMode) return;
       if (!touchLikePointer(event.pointerType) || gesturePointerId !== event.pointerId || startInteractive) return;
       var deltaX = event.clientX - startX;
       var deltaY = event.clientY - startY;
@@ -5714,6 +5952,7 @@
     });
 
     bubble.addEventListener("pointerup", function (event) {
+      if (state.messageSelectionMode) return;
       if (!touchLikePointer(event.pointerType) || gesturePointerId !== event.pointerId) return;
       clearTouchTimer();
       gesturePointerId = null;
@@ -5764,6 +6003,7 @@
 
     ["pointercancel"].forEach(function (eventName) {
       bubble.addEventListener(eventName, function (event) {
+        if (state.messageSelectionMode) return;
         clearTouchTimer();
         gesturePointerId = null;
         if (swipeTracking) {
@@ -5778,20 +6018,21 @@
     });
 
     bubble.addEventListener("dblclick", function (event) {
+      if (state.messageSelectionMode) return;
       if (interactiveMessageTarget(event.target)) return;
       fireGestureHeart(event);
     });
   }
 
-  async function copyMessageText(message) {
-    var text = normalizeSpace(message && message.text);
-    if (!text) return;
+  async function copyTextToClipboard(text) {
+    var value = toText(text);
+    if (!normalizeSpace(value)) return false;
     try {
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(value);
       } else {
         var helper = document.createElement("textarea");
-        helper.value = text;
+        helper.value = value;
         helper.setAttribute("readonly", "");
         helper.style.position = "fixed";
         helper.style.opacity = "0";
@@ -5802,9 +6043,172 @@
         document.execCommand("copy");
         helper.remove();
       }
-      showToast("پیام کپی شد.");
+      return true;
     } catch (error) {
+      return false;
+    }
+  }
+
+  function messageExportText(message, options) {
+    if (!message) return "";
+    var opts = asObject(options) || {};
+    var senderName = normalizeSpace(message.name) || "کاربر";
+    var previewText = normalizeSpace(messagePreviewText(message)) || "پیام بدون متن";
+    if (opts.forwardStyle) {
+      return "↪️ فوروارد از " + senderName + ":\n" + previewText;
+    }
+    return senderName + ":\n" + previewText;
+  }
+
+  async function copyMessageText(message) {
+    var text = messageExportText(message, { forwardStyle: false });
+    if (!normalizeSpace(text)) return;
+    if (await copyTextToClipboard(text)) {
+      showToast("پیام کپی شد.");
+    } else {
       showToast("کپی پیام انجام نشد.");
+    }
+  }
+
+  async function copySelectedMessagesText() {
+    var messages = selectedMessages();
+    if (!messages.length) {
+      showToast("هیچ پیامی انتخاب نشده است.");
+      return;
+    }
+    var text = messages.map(function (message) {
+      return messageExportText(message, { forwardStyle: false });
+    }).join("\n\n");
+    if (await copyTextToClipboard(text)) {
+      showToast("پیام‌های انتخاب‌شده کپی شدند.");
+      exitMessageSelectionMode();
+    } else {
+      showToast("کپی پیام‌ها انجام نشد.");
+    }
+  }
+
+  async function runMessageBatchAction(actionKey) {
+    var action = normalizeSpace(actionKey).toLowerCase();
+    var conversation = activeConversation();
+    var messages = selectedMessages();
+    if (!conversation) {
+      showToast("گفت‌وگویی انتخاب نشده است.");
+      return;
+    }
+    if (!messages.length) {
+      showToast("هیچ پیامی انتخاب نشده است.");
+      return;
+    }
+
+    if (action === "copy") {
+      await copySelectedMessagesText();
+      return;
+    }
+
+    if (action === "forward") {
+      openForwardPickerForMessages(messages.map(function (message) {
+        return message.id;
+      }));
+      return;
+    }
+
+    if (action !== "pin" && action !== "unpin" && action !== "delete") {
+      return;
+    }
+
+    if ((action === "pin" || action === "unpin") && !canPinMessage()) {
+      showToast("اجازه سنجاق این گفت‌وگو را نداری.");
+      return;
+    }
+
+    if (action === "delete") {
+      var approved = await openConfirmDialog({
+        title: "حذف پیام‌های انتخاب‌شده",
+        message: "پیام‌های قابل‌مدیریت حذف می‌شوند و بقیه دست‌نخورده می‌مانند.",
+        acceptLabel: "حذف پیام‌ها",
+        danger: true
+      });
+      if (!approved) return;
+    }
+
+    closeContextMenu();
+
+    var ids = messages.map(function (message) {
+      return message.id;
+    });
+
+    try {
+      var response = null;
+      if (action === "pin" || action === "unpin") {
+        response = await apiPost("batchPinMessages", {
+          conversationId: conversation.id,
+          ids: ids.join(","),
+          pinned: action === "pin" ? "1" : "0"
+        });
+      } else {
+        response = await apiPost("batchDeleteMessages", {
+          conversationId: conversation.id,
+          ids: ids.join(",")
+        });
+      }
+
+      if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        throw new Error((response && response.error) || "نشست شما منقضی شده است.");
+      }
+      ensureSuccessResponse(response, action === "delete" ? "حذف گروهی پیام انجام نشد." : "سنجاق گروهی پیام انجام نشد.");
+
+      await refreshAfterConversationAction(response, conversation.id, {
+        keepCurrentActive: true,
+        forceFull: false,
+        skipSync: true
+      });
+
+      var success = 0;
+      var skipped = Array.isArray(response && response.skippedIds) ? response.skippedIds.length : 0;
+      if (action === "delete") {
+        var deletedIds = Array.isArray(response && response.deletedIds) ? response.deletedIds : [];
+        deletedIds.forEach(function (messageId) {
+          removeMessageFromDom(messageId);
+        });
+        success = deletedIds.length;
+      } else {
+        var updatedMessages = (Array.isArray(response && response.messages) ? response.messages : [])
+          .map(normalizeMessage)
+          .filter(Boolean);
+        updatedMessages.forEach(function (message) {
+          replaceMessageInDom(message);
+        });
+        success = updatedMessages.length;
+      }
+
+      if (success > 0) {
+        exitMessageSelectionMode();
+      } else {
+        updateMessageSelectionUi();
+      }
+
+      var successLabel = "";
+      if (action === "pin") {
+        successLabel = success > 1 ? "پیام‌ها سنجاق شدند." : "پیام سنجاق شد.";
+      } else if (action === "unpin") {
+        successLabel = success > 1 ? "سنجاق پیام‌ها برداشته شد." : "سنجاق پیام برداشته شد.";
+      } else {
+        successLabel = success > 1 ? "پیام‌ها حذف شدند." : "پیام حذف شد.";
+      }
+
+      if (success > 0 && skipped > 0) {
+        showToast(successLabel + " • " + skipped.toLocaleString("fa-IR") + " مورد رد شد.");
+      } else if (success > 0) {
+        showToast(successLabel);
+      } else if (skipped > 0) {
+        showToast(skipped.toLocaleString("fa-IR") + " مورد قابل انجام نبود.");
+      } else {
+        showToast("تغییری اعمال نشد.");
+      }
+    } catch (error) {
+      showToast(error && error.message
+        ? error.message
+        : (action === "delete" ? "حذف گروهی پیام انجام نشد." : "عملیات روی پیام‌های انتخاب‌شده انجام نشد."));
     }
   }
 
@@ -5983,6 +6387,7 @@
   function conversationKindLabel(conversation) {
     if (!conversation) return "گفتگو";
     if (conversation.type === "direct") return "خصوصی";
+    if (conversation.type === "saved") return "پیام‌های ذخیره‌شده";
     if (conversation.type === "class-group") return "گروه اجباری کلاس";
     return conversation.settings && conversation.settings.conversationKind === "channel" ? "کانال" : "گروه";
   }
@@ -6364,6 +6769,9 @@
       var statusParts = [];
       if (conversation.type === "direct") {
         statusParts.push(livePresenceText || "گفتگوی خصوصی");
+      } else if (conversation.type === "saved") {
+        statusParts.push("فقط شما");
+        statusParts.push("یادداشت شخصی");
       } else if (conversation.type === "class-group") {
         statusParts.push(conversation.memberCount.toLocaleString("fa-IR") + " عضو");
         statusParts.push("گروه اجباری");
@@ -6386,6 +6794,8 @@
     var aboutText = normalizeSpace(conversation.about);
     if (!aboutText && conversation.type === "direct" && conversation.peer && conversation.peer.profile) {
       aboutText = normalizeSpace(conversation.peer.profile.about);
+    } else if (!aboutText && conversation.type === "saved") {
+      aboutText = "یادداشت‌ها، فورواردها و پیام‌های شخصی خودت را اینجا نگه دار.";
     }
     if (infoAbout) infoAbout.textContent = aboutText || "توضیحی ثبت نشده است.";
     if (infoAvatar && infoAvatarImage && infoAvatarFallback) {
@@ -6404,10 +6814,13 @@
       }
     }
     if (infoNotificationBtn) {
-      infoNotificationBtn.hidden = false;
-      infoNotificationBtn.textContent = conversation.viewerState && conversation.viewerState.notificationsMuted
-        ? "روشن کردن اعلان‌ها"
-        : "بی‌صدا کردن اعلان‌ها";
+      var canManageNotifications = !!(conversation.permissions && conversation.permissions.canMuteConversation);
+      infoNotificationBtn.hidden = !canManageNotifications;
+      if (canManageNotifications) {
+        infoNotificationBtn.textContent = conversation.viewerState && conversation.viewerState.notificationsMuted
+          ? "روشن کردن اعلان‌ها"
+          : "بی‌صدا کردن اعلان‌ها";
+      }
     }
     if (infoEditProfileBtn) {
       infoEditProfileBtn.hidden = !(conversation.permissions && conversation.permissions.canEditProfile);
@@ -6426,6 +6839,9 @@
     var roleLabel = conversation.permissions && conversation.permissions.canManageConversation
       ? "مدیر گفتگو"
       : "عضو گفتگو";
+    if (conversation.type === "saved") {
+      roleLabel = "فقط شما";
+    }
     var identityRows = [
       {
         label: "نوع گفتگو",
@@ -6440,6 +6856,11 @@
       identityRows.push({
         label: "شناسه مخاطب",
         value: "@" + normalizeSpace(conversation.peer.studentNumber || "")
+      });
+    } else if (conversation.type === "saved") {
+      identityRows.push({
+        label: "حریم گفتگو",
+        value: "فقط برای خودت"
       });
     } else if (canViewStudentNumbers && conversation.id) {
       identityRows.push({
@@ -6472,7 +6893,7 @@
         tone: conversation.type === "direct" && conversation.presence && conversation.presence.peer && conversation.presence.peer.isOnline ? "good" : ""
       });
     }
-    if (conversation.type !== "direct") {
+    if (!isPrivateLikeConversationType(conversation.type)) {
       settingsRows.push({
         label: "واکنش‌ها",
         value: reactionModeLabel(conversation.settings && conversation.settings.reactionMode)
@@ -6924,6 +7345,7 @@
     }
     if (hadOpenModal && closingKey === "forward") {
       state.pendingForwardMessageId = null;
+      state.pendingForwardMessageIds = [];
       if (forwardSearch) forwardSearch.value = "";
       if (forwardList) forwardList.innerHTML = "";
     }
@@ -7204,6 +7626,7 @@
     if (!dmList) return;
 
     var query = normalizeSpace(dmSearch && dmSearch.value).toLowerCase();
+    var savedMatchesQuery = !query || "پیام های ذخیره شده ذخیره یادداشت شخصی".indexOf(query) !== -1;
     var users = usersForDirectory().filter(function (user) {
       if (!query) return true;
       var haystack = [
@@ -7215,12 +7638,29 @@
       return haystack.indexOf(query) !== -1;
     });
 
-    if (!users.length) {
+    if (!users.length && !savedMatchesQuery) {
       dmList.innerHTML = '<div class="chat-picker-empty">کاربری برای شروع گفتگو پیدا نشد.</div>';
       return;
     }
 
     dmList.innerHTML = "";
+    if (savedMatchesQuery) {
+      var savedItem = document.createElement("button");
+      savedItem.type = "button";
+      savedItem.className = "chat-picker-item chat-picker-item--saved";
+      savedItem.innerHTML = [
+        '<span class="chat-picker-item__avatar" data-has-avatar="0"><img alt="" hidden><span>ذ</span></span>',
+        '<span class="chat-picker-item__copy">',
+        '  <strong>پیام‌های ذخیره‌شده</strong>',
+        '  <span>فقط برای خودت</span>',
+        '</span>',
+        '<span class="chat-picker-check">‹</span>'
+      ].join("");
+      savedItem.addEventListener("click", function () {
+        openSavedMessagesConversation();
+      });
+      dmList.appendChild(savedItem);
+    }
     users.forEach(function (user) {
       var item = document.createElement("button");
       item.type = "button";
@@ -7441,19 +7881,40 @@
     }
   }
 
-  function buildForwardText(message) {
-    if (!message) return "";
-    var senderName = normalizeSpace(message.name) || "کاربر";
-    var text = normalizeSpace(message.text);
-    if (!text) return "";
-    return "↪️ فوروارد از " + senderName + ":\n" + text;
+  function setPendingForwardMessages(messageIds) {
+    var ids = (Array.isArray(messageIds) ? messageIds : [messageIds]).map(function (messageId) {
+      return Math.max(0, Math.floor(toNumber(messageId, 0)));
+    }).filter(function (messageId) {
+      return messageId > 0;
+    });
+    ids = Array.from(new Set(ids));
+    state.pendingForwardMessageIds = ids;
+    state.pendingForwardMessageId = ids.length ? ids[0] : null;
+  }
+
+  function forwardSourceMessages() {
+    var ids = Array.isArray(state.pendingForwardMessageIds) && state.pendingForwardMessageIds.length
+      ? state.pendingForwardMessageIds
+      : [state.pendingForwardMessageId];
+    return ids.map(function (messageId) {
+      return findMessage(messageId);
+    }).filter(Boolean).sort(function (left, right) {
+      return left.id - right.id;
+    });
+  }
+
+  function buildForwardText(messages) {
+    var list = Array.isArray(messages) ? messages : [messages];
+    return list.map(function (message) {
+      return messageExportText(message, { forwardStyle: true });
+    }).filter(Boolean).join("\n\n");
   }
 
   async function forwardMessageToConversation(targetConversationId) {
     var conversationId = normalizeSpace(targetConversationId);
-    var sourceMessage = findMessage(state.pendingForwardMessageId);
-    var forwardText = buildForwardText(sourceMessage);
-    if (!conversationId || !sourceMessage || !forwardText) return;
+    var sourceMessages = forwardSourceMessages();
+    var forwardText = buildForwardText(sourceMessages);
+    if (!conversationId || !sourceMessages.length || !forwardText) return;
 
     setModalBusy("forward", true);
     try {
@@ -7478,9 +7939,12 @@
         forceFull: true,
         source: "forward"
       });
-      showToast("پیام فوروارد شد.");
+      if (state.messageSelectionMode) {
+        exitMessageSelectionMode();
+      }
+      showToast(sourceMessages.length > 1 ? "پیام‌ها فوروارد شدند." : "پیام فوروارد شد.");
     } catch (error) {
-      showToast(error && error.message ? error.message : "فوروارد پیام انجام نشد.");
+      showToast(error && error.message ? error.message : (sourceMessages.length > 1 ? "فوروارد پیام‌ها انجام نشد." : "فوروارد پیام انجام نشد."));
     } finally {
       setModalBusy("forward", false);
     }
@@ -7488,8 +7952,8 @@
 
   function renderForwardList() {
     if (!forwardList) return;
-    var sourceMessage = findMessage(state.pendingForwardMessageId);
-    if (!sourceMessage) {
+    var sourceMessages = forwardSourceMessages();
+    if (!sourceMessages.length) {
       forwardList.innerHTML = '<div class="chat-picker-empty">پیام مبدا پیدا نشد.</div>';
       return;
     }
@@ -7539,7 +8003,18 @@
 
   function openForwardPicker(message) {
     if (!message || !forwardModal) return;
-    state.pendingForwardMessageId = message.id;
+    setPendingForwardMessages([message.id]);
+    openModal(forwardModal, "forward");
+    if (forwardSearch) forwardSearch.value = "";
+    renderForwardList();
+    if (forwardSearch && !isMobileViewport()) {
+      forwardSearch.focus({ preventScroll: true });
+    }
+  }
+
+  function openForwardPickerForMessages(messageIds) {
+    if (!forwardModal) return;
+    setPendingForwardMessages(messageIds);
     openModal(forwardModal, "forward");
     if (forwardSearch) forwardSearch.value = "";
     renderForwardList();
@@ -8231,11 +8706,14 @@
     state.pendingDirectStart = false;
     state.pendingGroupCreate = false;
     state.pendingForwardMessageId = null;
+    state.pendingForwardMessageIds = [];
     state.pendingReactionMessageId = null;
     state.pendingEditMessageId = null;
     state.confirmDialog = null;
     state.connectionIssue = false;
     state.showArchivedConversations = false;
+    state.messageSelectionMode = false;
+    state.selectedMessageIds.clear();
     state.threadAutoStick = true;
     state.pollDraftSelections = new Map();
     state.recentReactions = [];
@@ -9824,6 +10302,53 @@
     }
   }
 
+  async function openSavedMessagesConversation() {
+    if (state.pendingDirectStart) return;
+    state.pendingDirectStart = true;
+    setModalBusy("dm", true);
+    try {
+      var response = await apiPost("openSavedMessages", {});
+      if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        throw new Error((response && response.error) || "نشست شما منقضی شده است.");
+      }
+      ensureSuccessResponse(response, "باز کردن پیام‌های ذخیره‌شده انجام نشد.");
+
+      var conversations = (Array.isArray(response.conversations) ? response.conversations : [])
+        .map(normalizeConversation)
+        .filter(Boolean);
+      if (conversations.length) {
+        replaceConversations(conversations);
+      }
+
+      var currentConversation = normalizeConversation(response.conversation);
+      if (currentConversation) {
+        upsertConversation(currentConversation);
+        rebuildConversationsFromMap();
+      }
+
+      var conversationId = normalizeSpace(
+        response.conversationId || (currentConversation && currentConversation.id)
+      );
+      if (!conversationId) {
+        throw new Error("شناسه معتبری برای پیام‌های ذخیره‌شده برنگشت.");
+      }
+
+      closeModal(true);
+      await openConversation(conversationId, {
+        forceFull: true,
+        source: "saved-open",
+        silent: false,
+        mobileView: "list"
+      });
+      showToast("پیام‌های ذخیره‌شده آماده است.");
+    } catch (error) {
+      showToast(error && error.message ? error.message : "باز کردن پیام‌های ذخیره‌شده انجام نشد.");
+    } finally {
+      state.pendingDirectStart = false;
+      setModalBusy("dm", false);
+    }
+  }
+
   async function createGroupConversation() {
     if (state.pendingGroupCreate) return;
 
@@ -10070,9 +10595,38 @@
     if (conversationBatchDelete) {
       conversationBatchDelete.addEventListener("click", function () { runConversationBatchAction("delete"); });
     }
+    if (messageSelectionClear) {
+      messageSelectionClear.addEventListener("click", function () {
+        exitMessageSelectionMode();
+      });
+    }
+    if (messageSelectionToggleAll) {
+      messageSelectionToggleAll.addEventListener("click", function () {
+        toggleSelectAllVisibleMessages();
+      });
+    }
+    if (messageBatchCopy) {
+      messageBatchCopy.addEventListener("click", function () { runMessageBatchAction("copy"); });
+    }
+    if (messageBatchForward) {
+      messageBatchForward.addEventListener("click", function () { runMessageBatchAction("forward"); });
+    }
+    if (messageBatchPin) {
+      messageBatchPin.addEventListener("click", function () { runMessageBatchAction("pin"); });
+    }
+    if (messageBatchUnpin) {
+      messageBatchUnpin.addEventListener("click", function () { runMessageBatchAction("unpin"); });
+    }
+    if (messageBatchDelete) {
+      messageBatchDelete.addEventListener("click", function () { runMessageBatchAction("delete"); });
+    }
     conversationQuickActionButtons.forEach(function (button) {
       button.addEventListener("click", function () {
         var action = normalizeSpace(button.getAttribute("data-chat-quick-action"));
+        if (action === "saved") {
+          openSavedMessagesConversation();
+          return;
+        }
         if (action === "dm") {
           openDmCreationFlow();
           return;
@@ -10085,6 +10639,10 @@
     placeholderActionButtons.forEach(function (button) {
       button.addEventListener("click", function () {
         var action = normalizeSpace(button.getAttribute("data-placeholder-action"));
+        if (action === "saved") {
+          openSavedMessagesConversation();
+          return;
+        }
         if (action === "mandatory") {
           var conversation = primaryMandatoryConversation();
           if (!conversation) {

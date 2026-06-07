@@ -104,6 +104,14 @@
                         <input id="conversation-search" type="search" placeholder="جستجو در گفتگوها...">
                     </label>
                     <div class="conversation-quick-actions" aria-label="شروع سریع گفتگو">
+                        <button class="conversation-quick-action conversation-quick-action--saved" type="button" data-chat-quick-action="saved">
+                            <span class="conversation-quick-action__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M7 4.5H17A1.5 1.5 0 0 1 18.5 6V19L12 15.6L5.5 19V6A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            <span>ذخیره‌ها</span>
+                        </button>
                         <button class="conversation-quick-action conversation-quick-action--direct" type="button" data-chat-quick-action="dm">
                             <span class="conversation-quick-action__icon" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" fill="none">
@@ -178,6 +186,11 @@
                                 </div>
                             </div>
                             <div class="thread-placeholder__actions">
+                                <button class="thread-placeholder__action" type="button" data-placeholder-action="saved">
+                                    <span class="thread-placeholder__action-kicker">Keep</span>
+                                    <strong>پیام‌های ذخیره‌شده</strong>
+                                    <span>یادداشت شخصی، فورواردها و پیام‌هایی که فقط برای خودت می‌مانی.</span>
+                                </button>
                                 <button class="thread-placeholder__action" type="button" data-placeholder-action="mandatory">
                                     <span class="thread-placeholder__action-kicker">Quick Start</span>
                                     <strong>ورود به کلاس اجباری</strong>
@@ -272,6 +285,23 @@
                                 <button class="thread-search-panel__btn" id="thread-jump-day-btn" type="button">رفتن به تاریخ</button>
                             </div>
                             <button class="thread-search-panel__preview" id="thread-search-preview" type="button" hidden></button>
+                        </section>
+
+                        <section class="conversation-manage-bar message-manage-bar" id="message-manage-bar" hidden>
+                            <div class="conversation-manage-bar__head">
+                                <strong id="message-selection-count">۰ مورد انتخاب</strong>
+                                <div class="conversation-manage-bar__head-actions">
+                                    <button id="message-selection-toggle-all" type="button">انتخاب همه</button>
+                                    <button id="message-selection-clear" type="button">لغو</button>
+                                </div>
+                            </div>
+                            <div class="conversation-manage-bar__actions">
+                                <button id="message-batch-copy" type="button">کپی</button>
+                                <button id="message-batch-forward" type="button">فوروارد</button>
+                                <button id="message-batch-pin" type="button">سنجاق</button>
+                                <button id="message-batch-unpin" type="button">برداشتن سنجاق</button>
+                                <button id="message-batch-delete" type="button" class="is-danger">حذف</button>
+                            </div>
                         </section>
 
                         <div class="thread-stream">
