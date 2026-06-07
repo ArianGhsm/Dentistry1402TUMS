@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../api/auth_store.php';
+require_once __DIR__ . '/../api/notifications_store.php';
 
 const CHAT_SCHEMA_VERSION = 7;
 const CHAT_CLASS_CONVERSATION_ID = 'class-main';
@@ -98,6 +99,208 @@ function chat_page_url(string $suffix = ''): string
     }
 
     return $path . (str_contains($path, '?') ? '&' : '?') . http_build_query($query);
+}
+
+function chat_clean_internal_card_href(?string $value): string
+{
+    $href = trim((string) $value);
+    if ($href === '' || !str_starts_with($href, '/') || str_starts_with($href, '//')) {
+        return '';
+    }
+
+    $parts = parse_url($href);
+    if ($parts === false || isset($parts['scheme']) || isset($parts['host']) || isset($parts['user']) || isset($parts['pass'])) {
+        return '';
+    }
+
+    $path = '/' . ltrim((string) ($parts['path'] ?? ''), '/');
+    $allowed = false;
+    foreach (['/notes', '/exams', '/forms'] as $prefix) {
+        if ($path === $prefix || str_starts_with($path, $prefix . '/')) {
+            $allowed = true;
+            break;
+        }
+    }
+    if (!$allowed) {
+        return '';
+    }
+
+    $normalized = $path;
+    if (isset($parts['query']) && trim((string) $parts['query']) !== '') {
+        $normalized .= '?' . trim((string) $parts['query']);
+    }
+    if (isset($parts['fragment']) && trim((string) $parts['fragment']) !== '') {
+        $normalized .= '#' . trim((string) $parts['fragment']);
+    }
+
+    return $normalized;
+}
+
+function chat_internal_card_section(string $href): string
+{
+    $path = '/' . ltrim((string) (parse_url($href, PHP_URL_PATH) ?? ''), '/');
+    return match (true) {
+        $path === '/notes' || str_starts_with($path, '/notes/') => 'notes',
+        $path === '/exams' || str_starts_with($path, '/exams/') => 'exams',
+        $path === '/forms' || str_starts_with($path, '/forms/') => 'forms',
+        default => '',
+    };
+}
+
+function chat_route_card_default_title(string $section): string
+{
+    return match ($section) {
+        'notes' => 'جزوه و منبع مرتبط',
+        'exams' => 'آزمون مرتبط',
+        'forms' => 'فرم مرتبط',
+        default => 'لینک داخلی',
+    };
+}
+
+function chat_route_card_default_badge(string $section): string
+{
+    return match ($section) {
+        'notes' => 'جزوه',
+        'exams' => 'آزمون',
+        'forms' => 'فرم',
+        default => 'لینک',
+    };
+}
+
+function chat_task_card_default_label(string $category): string
+{
+    return match ($category) {
+        'exam' => 'آزمون',
+        'form' => 'فرم',
+        default => 'یادآور',
+    };
+}
+
+function chat_message_meta_default_text(?array $meta): string
+{
+    if (!is_array($meta)) {
+        return '';
+    }
+
+    return match ((string) ($meta['type'] ?? '')) {
+        'route-link' => 'RouteCard',
+        'task-reminder' => 'TaskReminder',
+        default => '',
+    };
+}
+
+function chat_message_meta_preview_text(?array $meta): string
+{
+    if (!is_array($meta)) {
+        return '';
+    }
+
+    $type = (string) ($meta['type'] ?? '');
+    if ($type === 'route-link') {
+        $routeLink = is_array($meta['routeLink'] ?? null) ? $meta['routeLink'] : [];
+        return dent_clean_text((string) (($routeLink['title'] ?? '') ?: ($routeLink['badge'] ?? '')), 220);
+    }
+
+    if ($type === 'task-reminder') {
+        $task = is_array($meta['taskReminder'] ?? null) ? $meta['taskReminder'] : [];
+        $title = dent_clean_text((string) ($task['title'] ?? ''), 160);
+        if ($title === '') {
+            return '';
+        }
+        return 'یادآور: ' . $title;
+    }
+
+    return '';
+}
+
+function chat_normalize_message_meta_record($raw): ?array
+{
+    if (!is_array($raw)) {
+        return null;
+    }
+
+    $type = dent_clean_text((string) ($raw['type'] ?? ($raw['cardType'] ?? '')), 32);
+    if ($type === 'route-link') {
+        $href = chat_clean_internal_card_href((string) ($raw['href'] ?? ($raw['ctaHref'] ?? '')));
+        $section = chat_internal_card_section($href);
+        if ($href === '' || $section === '') {
+            return null;
+        }
+
+        $title = dent_clean_text((string) ($raw['title'] ?? ''), 160);
+        $description = dent_clean_text((string) ($raw['description'] ?? ($raw['subtitle'] ?? '')), 280);
+        $ctaLabel = dent_clean_text((string) ($raw['ctaLabel'] ?? ''), 60);
+        $badge = dent_clean_text((string) ($raw['badge'] ?? ''), 60);
+
+        return [
+            'type' => 'route-link',
+            'routeLink' => [
+                'section' => $section,
+                'href' => $href,
+                'title' => $title !== '' ? $title : chat_route_card_default_title($section),
+                'description' => $description,
+                'ctaLabel' => $ctaLabel !== '' ? $ctaLabel : 'باز کردن',
+                'badge' => $badge !== '' ? $badge : chat_route_card_default_badge($section),
+            ],
+        ];
+    }
+
+    if ($type === 'task-reminder') {
+        $category = dent_clean_text((string) ($raw['category'] ?? 'deadline'), 20);
+        if (!in_array($category, ['exam', 'form', 'deadline'], true)) {
+            $category = 'deadline';
+        }
+
+        $title = dent_clean_text((string) ($raw['title'] ?? ''), 160);
+        if ($title === '') {
+            return null;
+        }
+
+        $details = dent_clean_text((string) ($raw['details'] ?? ($raw['description'] ?? '')), 320);
+        $tone = dent_clean_text((string) ($raw['tone'] ?? 'normal'), 20);
+        if (!in_array($tone, ['normal', 'important', 'urgent'], true)) {
+            $tone = 'normal';
+        }
+
+        $dueAtInput = trim((string) ($raw['dueAtIso'] ?? ($raw['dueAt'] ?? '')));
+        $dueAtIso = $dueAtInput !== '' ? notifications_normalize_iso_datetime($dueAtInput) : '';
+        $dueAtTs = null;
+        if ($dueAtIso !== '') {
+            $timestamp = strtotime($dueAtIso);
+            if ($timestamp !== false && $timestamp > 0) {
+                $dueAtTs = $timestamp;
+            } else {
+                $dueAtIso = '';
+            }
+        }
+
+        $ctaHref = chat_clean_internal_card_href((string) ($raw['ctaHref'] ?? ($raw['href'] ?? '')));
+        $ctaLabel = $ctaHref !== ''
+            ? dent_clean_text((string) ($raw['ctaLabel'] ?? ''), 60)
+            : '';
+        if ($ctaHref === '') {
+            $ctaLabel = '';
+        } elseif ($ctaLabel === '') {
+            $ctaLabel = 'باز کردن';
+        }
+
+        return [
+            'type' => 'task-reminder',
+            'taskReminder' => [
+                'category' => $category,
+                'categoryLabel' => chat_task_card_default_label($category),
+                'title' => $title,
+                'details' => $details,
+                'dueAt' => $dueAtTs,
+                'dueAtIso' => $dueAtIso,
+                'ctaHref' => $ctaHref,
+                'ctaLabel' => $ctaLabel,
+                'tone' => $tone,
+            ],
+        ];
+    }
+
+    return null;
 }
 
 function chat_brand_logo_url(): string
@@ -908,6 +1111,21 @@ function chat_parse_message_ids_input($raw): array
     return $normalized;
 }
 
+function chat_parse_assoc_input($raw): ?array
+{
+    if (is_array($raw)) {
+        return $raw;
+    }
+
+    $text = trim((string) $raw);
+    if ($text === '') {
+        return null;
+    }
+
+    $decoded = json_decode($text, true);
+    return is_array($decoded) ? $decoded : null;
+}
+
 function chat_safe_extension(string $fileName): string
 {
     $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
@@ -1499,10 +1717,14 @@ function chat_normalize_message_record(array $message, string $conversationId): 
     $attachmentIds = chat_parse_attachment_ids_input(
         $message['attachmentIds'] ?? ($message['attachments'] ?? [])
     );
+    $meta = chat_normalize_message_meta_record($message['meta'] ?? null);
 
     $text = dent_clean_text((string) ($message['text'] ?? ''), 2000);
     if ($text === '' && $kind === 'poll') {
         $text = 'Poll';
+    }
+    if ($text === '' && $kind !== 'poll' && $attachmentIds === [] && $meta !== null) {
+        $text = chat_message_meta_default_text($meta);
     }
     if ($text === '' && $attachmentIds === [] && $kind !== 'poll') {
         return null;
@@ -1543,6 +1765,7 @@ function chat_normalize_message_record(array $message, string $conversationId): 
         'kind' => $kind,
         'pollId' => $kind === 'poll' ? $pollId : '',
         'attachmentIds' => $attachmentIds,
+        'meta' => $meta,
         'forwardedFrom' => chat_normalize_forwarded_from_record($message['forwardedFrom'] ?? null),
     ];
 }
@@ -1940,6 +2163,9 @@ function chat_message_preview_text(array $message, ?array $store = null): string
 {
     $kind = trim((string) ($message['kind'] ?? 'text'));
     $text = dent_clean_text((string) ($message['text'] ?? ''), 320);
+    $metaPreview = chat_message_meta_preview_text(
+        chat_normalize_message_meta_record($message['meta'] ?? null)
+    );
 
     $attachmentCount = 0;
     $attachmentLabel = '';
@@ -1968,9 +2194,16 @@ function chat_message_preview_text(array $message, ?array $store = null): string
     }
 
     if ($text !== '') {
-        if (!(strcasecmp($text, 'Attachment') === 0 && $attachmentCount > 0)) {
+        if (
+            !(strcasecmp($text, 'Attachment') === 0 && $attachmentCount > 0)
+            && !in_array($text, ['RouteCard', 'TaskReminder'], true)
+        ) {
             return $text;
         }
+    }
+
+    if ($metaPreview !== '') {
+        return $metaPreview;
     }
 
     if ($attachmentLabel !== '') {
@@ -3418,6 +3651,11 @@ function chat_message_search_text(array $message, array $store): string
         $parts[] = $text;
     }
 
+    $metaPreview = chat_message_meta_preview_text(chat_normalize_message_meta_record($message['meta'] ?? null));
+    if ($metaPreview !== '') {
+        $parts[] = $metaPreview;
+    }
+
     foreach (chat_message_attachments_payload($message, $store) as $attachment) {
         if (!is_array($attachment)) {
             continue;
@@ -3436,8 +3674,13 @@ function chat_message_search_excerpt(array $message, array $store, string $query
     $candidates = [];
 
     $text = dent_clean_text((string) ($message['text'] ?? ''), 320);
-    if ($text !== '' && !in_array($text, ['Attachment', 'Poll'], true)) {
+    if ($text !== '' && !in_array($text, ['Attachment', 'Poll', 'RouteCard', 'TaskReminder'], true)) {
         $candidates[] = $text;
+    }
+
+    $metaPreview = chat_message_meta_preview_text(chat_normalize_message_meta_record($message['meta'] ?? null));
+    if ($metaPreview !== '') {
+        $candidates[] = $metaPreview;
     }
 
     $attachmentNames = [];
@@ -3700,6 +3943,83 @@ function chat_message_mentions_student_number(string $text, string $studentNumbe
     }
 
     return in_array($studentNumber, chat_extract_mention_student_numbers($text, $conversation), true);
+}
+
+function chat_important_mention_student_numbers(string $text, ?array $conversation = null): array
+{
+    $targets = [];
+    foreach (chat_extract_mention_student_numbers($text, $conversation) as $studentNumber) {
+        $user = dent_get_user_record($studentNumber);
+        if (!is_array($user)) {
+            continue;
+        }
+
+        $publicUser = dent_public_user($user);
+        $isImportant = !empty($publicUser['canModerateChat'])
+            || !empty($publicUser['isOwner'])
+            || !empty($publicUser['isRepresentative'])
+            || !empty($publicUser['isProsthesisRepresentative']);
+        if (!$isImportant) {
+            continue;
+        }
+
+        $targets[$studentNumber] = $studentNumber;
+    }
+
+    return array_values($targets);
+}
+
+function chat_dispatch_important_mention_notifications(
+    array $sender,
+    array $store,
+    array $conversation,
+    array $message
+): void {
+    $senderStudentNumber = dent_normalize_student_number((string) ($sender['studentNumber'] ?? ''));
+    $conversationId = chat_clean_conversation_id((string) ($conversation['id'] ?? ''));
+    $messageId = (int) ($message['id'] ?? 0);
+    if ($senderStudentNumber === '' || $conversationId === '' || $messageId <= 0) {
+        return;
+    }
+
+    $targets = chat_important_mention_student_numbers((string) ($message['text'] ?? ''), $conversation);
+    if ($targets === []) {
+        return;
+    }
+
+    $senderName = dent_clean_text((string) ($sender['name'] ?? ''), 120);
+    if ($senderName === '') {
+        $senderName = 'یکی از کاربران';
+    }
+
+    $conversationPayload = chat_conversation_payload($store, $conversation, $sender, false);
+    $conversationTitle = dent_clean_text((string) ($conversationPayload['title'] ?? ''), 160);
+    $previewText = dent_clean_text(chat_message_preview_text($message, $store), 320);
+    $bodyParts = array_values(array_filter([
+        $conversationTitle !== '' ? ('گفت‌وگو: ' . $conversationTitle) : '',
+        $previewText !== '' ? ('پیام: ' . $previewText) : '',
+    ], static fn($value): bool => trim((string) $value) !== ''));
+    $body = implode("\n", $bodyParts);
+    $ctaHref = chat_page_url('?conversationId=' . rawurlencode($conversationId) . '&messageId=' . rawurlencode((string) $messageId));
+
+    foreach ($targets as $targetStudentNumber) {
+        if ($targetStudentNumber === $senderStudentNumber) {
+            continue;
+        }
+
+        notifications_try_create_chat_mention_notice($sender, [
+            'targetStudentNumber' => $targetStudentNumber,
+            'conversationId' => $conversationId,
+            'conversationTitle' => $conversationTitle,
+            'messageId' => $messageId,
+            'previewText' => $previewText,
+            'title' => $senderName . ' شما را در یک پیام مهم منشن کرد',
+            'body' => $body !== '' ? $body : 'برای مشاهده پیام به گفتگو برگرد.',
+            'ctaHref' => $ctaHref,
+            'ctaLabel' => 'باز کردن گفتگو',
+            'createdAt' => dent_iso_now(),
+        ]);
+    }
 }
 
 function chat_conversation_member_student_numbers(array $conversation): array
@@ -5223,10 +5543,21 @@ function chat_normalize_message_for_client(array $message, ?array $store = null,
         }
     }
     $mentions = [];
+    $viewerImportantMentioned = false;
     if (is_array($store)) {
         $conversationId = chat_clean_conversation_id((string) ($message['conversationId'] ?? ''));
         $conversation = $conversationId !== '' ? chat_get_conversation($store, $conversationId) : null;
         $mentions = chat_message_mentions_payload((string) ($message['text'] ?? ''), $conversation);
+        if (is_array($viewer)) {
+            $viewerStudentNumber = chat_actor_student_number($viewer);
+            if ($viewerStudentNumber !== '') {
+                $viewerImportantMentioned = in_array(
+                    $viewerStudentNumber,
+                    chat_important_mention_student_numbers((string) ($message['text'] ?? ''), $conversation),
+                    true
+                );
+            }
+        }
     }
 
     $payload = [
@@ -5253,7 +5584,9 @@ function chat_normalize_message_for_client(array $message, ?array $store = null,
         'kind' => $kind,
         'pollId' => $kind === 'poll' ? $pollId : '',
         'attachments' => is_array($store) ? chat_message_attachments_payload($message, $store) : [],
+        'meta' => chat_normalize_message_meta_record($message['meta'] ?? null),
         'mentions' => $mentions,
+        'viewerImportantMentioned' => $viewerImportantMentioned,
         'forwardedFrom' => is_array($store)
             ? chat_forwarded_from_payload(
                 is_array($message['forwardedFrom'] ?? null) ? $message['forwardedFrom'] : null,
@@ -5306,18 +5639,7 @@ function chat_conversation_search_text(array $messages): string
         }
 
         $message = is_array($messages[$index] ?? null) ? $messages[$index] : [];
-        $text = dent_clean_text((string) ($message['text'] ?? ''), 220);
-        if ($text === '' && is_array($message['attachments'] ?? null)) {
-            foreach ($message['attachments'] as $attachment) {
-                if (!is_array($attachment)) {
-                    continue;
-                }
-                $text = dent_clean_text((string) ($attachment['name'] ?? ''), 120);
-                if ($text !== '') {
-                    break;
-                }
-            }
-        }
+        $text = chat_message_preview_text($message);
         if ($text === '') {
             continue;
         }
@@ -6402,11 +6724,15 @@ function chat_append_message(
         $kind = 'text';
     }
 
+    $meta = chat_normalize_message_meta_record($extra['meta'] ?? null);
     if ($text === '' && $kind === 'poll') {
         $text = 'Poll';
     }
     if ($text === '' && $attachmentIds !== []) {
         $text = 'Attachment';
+    }
+    if ($text === '' && $attachmentIds === [] && $meta !== null) {
+        $text = chat_message_meta_default_text($meta);
     }
     if ($text === '' && $attachmentIds === []) {
         dent_error('متن پیام یا فایل پیوست الزامی است.', 422);
@@ -6426,6 +6752,9 @@ function chat_append_message(
         'pollId' => $kind === 'poll' ? $pollId : '',
         'attachmentIds' => $attachmentIds,
     ];
+    if ($meta !== null) {
+        $message['meta'] = $meta;
+    }
 
     $forwardedFrom = chat_normalize_forwarded_from_record($extra['forwardedFrom'] ?? null);
     if ($forwardedFrom !== null) {
@@ -8701,10 +9030,14 @@ if ($action === 'send') {
         $kind = 'text';
     }
     $attachmentIds = chat_parse_attachment_ids_input($_POST['attachmentIds'] ?? []);
-    $message = chat_append_message($store, $conversationId, $user, $text, $replyTo, $kind, '', $attachmentIds);
+    $meta = chat_parse_assoc_input($_POST['meta'] ?? null);
+    $message = chat_append_message($store, $conversationId, $user, $text, $replyTo, $kind, '', $attachmentIds, [
+        'meta' => $meta,
+    ]);
     chat_save_store($store);
 
     $conversation = chat_require_conversation_for_user($store, $conversationId, $user);
+    chat_dispatch_important_mention_notifications($user, $store, $conversation, $message);
     dent_json_response([
         'success' => true,
         'message' => chat_normalize_message_for_client($message, $store, $user),
@@ -8784,7 +9117,12 @@ if ($action === 'forwardMessages') {
         }
 
         $rawText = chat_sanitize_message_text((string) ($sourceMessage['text'] ?? ''));
-        if (strcasecmp($rawText, 'Attachment') === 0 || strcasecmp($rawText, 'Poll') === 0) {
+        if (
+            strcasecmp($rawText, 'Attachment') === 0
+            || strcasecmp($rawText, 'Poll') === 0
+            || strcasecmp($rawText, 'RouteCard') === 0
+            || strcasecmp($rawText, 'TaskReminder') === 0
+        ) {
             $rawText = '';
         }
 
@@ -8799,6 +9137,12 @@ if ($action === 'forwardMessages') {
             $messageText = 'پیام فورواردشده';
         }
 
+        $extra = ['forwardedFrom' => $forwardMeta];
+        $sourceMeta = chat_normalize_message_meta_record($sourceMessage['meta'] ?? null);
+        if ($sourceMeta !== null) {
+            $extra['meta'] = $sourceMeta;
+        }
+
         $createdMessages[] = chat_append_message(
             $store,
             $targetConversationId,
@@ -8808,7 +9152,7 @@ if ($action === 'forwardMessages') {
             $clonedAttachmentIds !== [] ? 'attachment' : 'text',
             '',
             $clonedAttachmentIds,
-            ['forwardedFrom' => $forwardMeta],
+            $extra,
             true
         );
     }

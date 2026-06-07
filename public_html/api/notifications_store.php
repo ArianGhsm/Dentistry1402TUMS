@@ -1757,6 +1757,151 @@ function notifications_create_owner_deploy_notice(array $viewer, array $payload)
         : $record;
 }
 
+function notifications_write_store_locked_best_effort(array $store): bool
+{
+    $normalizedStore = notifications_normalize_store($store);
+    $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+
+    $json = json_encode($normalizedStore, $flags);
+    if ($json === false) {
+        return false;
+    }
+
+    $path = notifications_store_path();
+    $tmpPath = $path . '.tmp-' . preg_replace('/[^a-z0-9]+/i', '', uniqid('', true));
+    if (@file_put_contents($tmpPath, $json . PHP_EOL) === false) {
+        @unlink($tmpPath);
+        return false;
+    }
+
+    if (!@rename($tmpPath, $path)) {
+        @unlink($tmpPath);
+        return false;
+    }
+
+    return true;
+}
+
+function notifications_try_create_chat_mention_notice(array $viewer, array $payload): ?array
+{
+    $recipientStudentNumber = dent_normalize_student_number((string) ($payload['targetStudentNumber'] ?? ''));
+    $senderStudentNumber = dent_normalize_student_number((string) ($viewer['studentNumber'] ?? ''));
+    $conversationId = dent_clean_text((string) ($payload['conversationId'] ?? ''), 120);
+    $messageId = max(0, (int) ($payload['messageId'] ?? 0));
+    $title = dent_clean_text((string) ($payload['title'] ?? ''), 180);
+    $body = dent_clean_text((string) ($payload['body'] ?? ''), 4000);
+    $ctaHref = notifications_clean_cta_href((string) ($payload['ctaHref'] ?? ''));
+    $ctaLabel = $ctaHref !== ''
+        ? dent_clean_text((string) ($payload['ctaLabel'] ?? ''), 80)
+        : '';
+    $conversationTitle = dent_clean_text((string) ($payload['conversationTitle'] ?? ''), 160);
+    $previewText = dent_clean_text((string) ($payload['previewText'] ?? ''), 320);
+    $createdAt = notifications_normalize_iso_datetime((string) ($payload['createdAt'] ?? ''));
+
+    if ($recipientStudentNumber === '' || $recipientStudentNumber === $senderStudentNumber || $conversationId === '' || $messageId <= 0) {
+        return null;
+    }
+
+    if ($title === '' || $body === '') {
+        return null;
+    }
+
+    if ($createdAt === '') {
+        $createdAt = dent_iso_now();
+    }
+
+    if ($ctaHref === '' || $ctaLabel === '') {
+        $ctaHref = '';
+        $ctaLabel = '';
+    }
+
+    $recipients = notifications_snapshot_recipients_for_target(
+        DENT_NOTIFICATION_TARGET_USER,
+        '',
+        $recipientStudentNumber
+    );
+    if ($recipients === []) {
+        return null;
+    }
+
+    notifications_ensure_storage();
+    $lock = @fopen(notifications_store_lock_path(), 'c+');
+    if ($lock === false) {
+        return null;
+    }
+
+    try {
+        if (!@flock($lock, LOCK_EX)) {
+            return null;
+        }
+
+        $store = notifications_load_store_unlocked();
+        $sourceKey = 'chat-mention:' . $conversationId . ':' . $messageId . ':' . $recipientStudentNumber;
+        $sourceSignature = notifications_source_signature('chat', $sourceKey);
+        if ($sourceSignature !== '' && isset($store['suppressedSources'][$sourceSignature])) {
+            return null;
+        }
+
+        foreach (($store['notifications'] ?? []) as $existingRecord) {
+            if (!is_array($existingRecord)) {
+                continue;
+            }
+            if ((string) ($existingRecord['source'] ?? '') === 'chat' && (string) ($existingRecord['sourceKey'] ?? '') === $sourceKey) {
+                return $existingRecord;
+            }
+        }
+
+        $id = notifications_generate_id();
+        $record = notifications_normalize_record($id, [
+            'id' => $id,
+            'kind' => DENT_NOTIFICATION_KIND_ANNOUNCEMENT,
+            'title' => $title,
+            'body' => $body,
+            'tone' => 'warn',
+            'target' => DENT_NOTIFICATION_TARGET_USER,
+            'targetStudentNumber' => $recipientStudentNumber,
+            'source' => 'chat',
+            'sourceKey' => $sourceKey,
+            'ctaHref' => $ctaHref,
+            'ctaLabel' => $ctaLabel,
+            'createdAt' => $createdAt,
+            'publishAt' => $createdAt,
+            'releasedAt' => $createdAt,
+            'status' => DENT_NOTIFICATION_STATUS_ACTIVE,
+            'createdByStudentNumber' => $senderStudentNumber,
+            'createdByName' => (string) ($viewer['name'] ?? ''),
+            'createdByRole' => dent_role_label((string) ($viewer['role'] ?? 'student')),
+            'meta' => [
+                'conversationId' => $conversationId,
+                'conversationTitle' => $conversationTitle,
+                'messageId' => $messageId,
+                'previewText' => $previewText,
+                'mentionType' => 'important',
+            ],
+            'recipients' => $recipients,
+            'sendSms' => false,
+            'smsStatus' => DENT_NOTIFICATION_SMS_STATUS_NONE,
+        ]);
+        if ($record === null) {
+            return null;
+        }
+
+        $store['notifications'][$record['id']] = $record;
+        if (!notifications_write_store_locked_best_effort($store)) {
+            unset($store['notifications'][$record['id']]);
+            return null;
+        }
+
+        return $record;
+    } finally {
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+}
+
 function notifications_audience_payload(array $viewer, string $notificationId): array
 {
     $notificationId = trim($notificationId);
