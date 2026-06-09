@@ -4355,6 +4355,17 @@ function chat_user_can_view_without_membership(array $conversation, array $user)
     return chat_user_can_moderate_active_cohort($user);
 }
 
+function chat_can_view_conversation(array $conversation, array $viewer): bool
+{
+    $studentNumber = chat_actor_student_number($viewer);
+    if ($studentNumber === '') {
+        return false;
+    }
+
+    return chat_is_member($conversation, $studentNumber)
+        || chat_user_can_view_without_membership($conversation, $viewer);
+}
+
 function chat_can_pin_message(array $conversation, array $user): bool
 {
     $type = (string) ($conversation['type'] ?? 'group');

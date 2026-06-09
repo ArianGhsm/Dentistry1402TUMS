@@ -932,7 +932,11 @@
                 try {
                     response = JSON.parse(xhr.responseText || "{}");
                 } catch (_error) {
-                    response = { success: false, error: "پاسخ آپلود معتبر نبود." };
+                    var httpStatus = xhr.status;
+                    var errorMsg = httpStatus >= 500
+                        ? "سرور در پردازش فایل دچار خطا شد (HTTP " + httpStatus + "). پوشه مقصد را بررسی کنید — اگر فایل آپلود نشده بود دوباره تلاش کنید."
+                        : "پاسخ آپلود معتبر نبود.";
+                    response = { success: false, error: errorMsg };
                 }
                 state.uploadXhr = null;
                 state.uploadCancelRequested = false;

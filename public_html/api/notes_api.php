@@ -2676,6 +2676,8 @@ if ($action === 'downloadHostUpload') {
             dent_error('Upload stream could not be opened.', 422);
         }
 
+        notes_download_host_prepare_long_transfer();
+
         try {
             $uploaded = notes_download_host_upload_stream($relativeDir, $stream, $contentLength, $desiredName, $mimeType, $scopeRoot);
         } finally {
@@ -2685,7 +2687,7 @@ if ($action === 'downloadHostUpload') {
         dent_json_response([
             'success' => true,
             'file' => $uploaded,
-            'message' => $uploaded['message'] ?? 'File was saved on the download host.',
+            'message' => $uploaded['message'] ?? 'فایل روی هاست دانلود ذخیره شد.',
         ]);
     }
 
@@ -2693,6 +2695,7 @@ if ($action === 'downloadHostUpload') {
         dent_error('فایل برای آپلود ارسال نشد.', 422);
     }
 
+    notes_download_host_prepare_long_transfer();
     $desiredName = trim((string) ($uploadParams['fileName'] ?? ''));
     $uploaded = notes_download_host_upload_file($relativeDir, $_FILES['file'], $desiredName, $scopeRoot);
     dent_json_response([

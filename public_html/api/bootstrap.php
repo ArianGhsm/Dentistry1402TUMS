@@ -290,6 +290,9 @@ function dent_json_response(array $payload, int $statusCode = 200): void
         }
     }
 
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     http_response_code($statusCode);
     header('Content-Type: application/json; charset=UTF-8');
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
@@ -313,6 +316,9 @@ function dent_emit_fallback_json_error(string $message, int $statusCode = 500): 
         $json = '{"success":false,"error":"Server error."}';
     }
 
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     http_response_code($statusCode);
     header('Content-Type: application/json; charset=UTF-8');
     header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
