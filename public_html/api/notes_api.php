@@ -2679,16 +2679,32 @@ if ($action === 'downloadHostUpload') {
         notes_download_host_prepare_long_transfer();
 
         try {
-            $uploaded = notes_download_host_upload_stream($relativeDir, $stream, $contentLength, $desiredName, $mimeType, $scopeRoot);
+            $prepared = notes_download_host_upload_stream_prepare($relativeDir, $stream, $contentLength, $desiredName, $mimeType, $scopeRoot);
         } finally {
             fclose($stream);
         }
 
-        dent_json_response([
+        notes_download_host_respond_and_continue([
             'success' => true,
-            'file' => $uploaded,
-            'message' => $uploaded['message'] ?? 'فایل روی هاست دانلود ذخیره شد.',
+            'file' => $prepared['result'],
+            'message' => $prepared['result']['message'],
         ]);
+
+        register_shutdown_function(static function () use ($prepared): void {
+            if (is_file($prepared['tmpPath'])) {
+                @unlink($prepared['tmpPath']);
+            }
+        });
+
+        try {
+            notes_download_host_stream_upload($prepared['targetAbsDir'], $prepared['tmpPath'], $prepared['finalName'], $prepared['mimeType']);
+        } catch (\Throwable $error) {
+            notes_download_host_record_async_failure([
+                'cohort' => $cohort,
+                'relativePath' => $prepared['result']['relativePath'] ?? '',
+            ], $error->getMessage());
+        }
+        exit;
     }
 
     if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {

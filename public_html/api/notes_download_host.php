@@ -1085,6 +1085,106 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
     return notes_download_host_parse_upload_response($response);
 }
 
+function notes_download_host_finish_request(): void
+{
+    if (function_exists('fastcgi_finish_request')) {
+        fastcgi_finish_request();
+        return;
+    }
+    if (function_exists('litespeed_finish_request')) {
+        litespeed_finish_request();
+        return;
+    }
+    flush();
+}
+
+function notes_download_host_respond_and_continue(array $payload): void
+{
+    $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+    $json = json_encode($payload, $flags);
+    if ($json === false) {
+        $json = '{"success":false,"error":"Server JSON encoding failed."}';
+    }
+
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    http_response_code(200);
+    header('Content-Type: application/json; charset=UTF-8');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Content-Length: ' . strlen($json));
+    header('Connection: close');
+    echo $json;
+
+    notes_download_host_finish_request();
+}
+
+function notes_download_host_record_async_failure(array $context, string $error): void
+{
+    $logPath = DENT_STORAGE_ROOT . DIRECTORY_SEPARATOR . 'notes' . DIRECTORY_SEPARATOR . 'download_host_async_failures.json';
+    $entries = dent_read_json_file($logPath, []);
+    if (!is_array($entries)) {
+        $entries = [];
+    }
+    $entries[] = array_merge($context, [
+        'error' => $error,
+        'at' => dent_iso_now(),
+    ]);
+    if (count($entries) > 200) {
+        $entries = array_slice($entries, -200);
+    }
+    dent_write_json_file($logPath, $entries);
+}
+
+function notes_download_host_upload_stream_prepare(string $relativeDir, $sourceStream, int $sourceSize, string $desiredName = '', string $mimeType = '', ?string $scopeRoot = null): array
+{
+    if (!is_resource($sourceStream)) {
+        dent_error('جریان فایل برای آپلود معتبر نیست.', 422);
+    }
+    if ($sourceSize <= 0) {
+        dent_error('حجم فایل برای آپلود معتبر نیست.', 422);
+    }
+
+    $targetAbsDir = notes_download_host_ensure_dir($relativeDir, $scopeRoot);
+    $finalName = notes_download_host_unique_file_name($relativeDir, $desiredName);
+
+    dent_ensure_directory(DENT_TMP_ROOT);
+    $tmpPath = DENT_TMP_ROOT . DIRECTORY_SEPARATOR . 'download-host-upload-' . bin2hex(random_bytes(8)) . '.tmp';
+    $tmpFile = fopen($tmpPath, 'wb');
+    if ($tmpFile === false) {
+        dent_error('امکان آماده‌سازی فایل موقت برای آپلود وجود ندارد.', 500);
+    }
+    $copied = stream_copy_to_stream($sourceStream, $tmpFile);
+    fclose($tmpFile);
+    if ($copied === false || $copied !== $sourceSize) {
+        @unlink($tmpPath);
+        dent_error('دریافت فایل از مرورگر کامل نشد.', 422);
+    }
+
+    $relativePath = trim($relativeDir, '/') . '/' . $finalName;
+    $relativePath = trim($relativePath, '/');
+
+    return [
+        'result' => [
+            'name' => $finalName,
+            'relativeDir' => notes_download_host_normalize_relative_path($relativeDir),
+            'relativePath' => $relativePath,
+            'sizeBytes' => $sourceSize,
+            'sizeLabel' => notes_download_host_human_size($sourceSize),
+            'mimeType' => $mimeType,
+            'publicUrl' => notes_download_host_public_url($relativePath),
+            'message' => 'فایل دریافت شد و در حال انتقال نهایی به هاست دانلود است.',
+        ],
+        'tmpPath' => $tmpPath,
+        'targetAbsDir' => $targetAbsDir,
+        'finalName' => $finalName,
+        'mimeType' => $mimeType,
+    ];
+}
+
 function notes_download_host_upload_stream(string $relativeDir, $sourceStream, int $sourceSize, string $desiredName = '', string $mimeType = '', ?string $scopeRoot = null): array
 {
     if (!is_resource($sourceStream)) {

@@ -206,7 +206,7 @@ def check_upload_stream_contracts(repo_root: Path) -> list[tuple[Path, int, str,
     issues: list[tuple[Path, int, str, str]] = []
     notes_api = repo_root / "public_html" / "api" / "notes_api.php"
     notes_text = read_text(notes_api)
-    if "php://input" not in notes_text or "notes_download_host_upload_stream(" not in notes_text:
+    if "php://input" not in notes_text or "notes_download_host_upload_stream_prepare(" not in notes_text:
         issues.append(issue(notes_api.relative_to(repo_root), 0, "missing-notes-stream-upload", "notes upload path must preserve direct stream upload support"))
 
     content_api = repo_root / "public_html" / "api" / "content_tools_api.php"
