@@ -113,9 +113,6 @@
     var ownerImportUsersFile = $("owner-import-users-file");
     var ownerImportUsersSubmit = $("owner-import-users-submit");
     var ownerImportUsersFeedback = $("owner-import-users-feedback");
-    var ownerStatsPanelRoot = document.querySelector('.owner-block--stats[data-owner-tab-panel="stats"]');
-    var ownerStatsNav = null;
-    var ownerStatsViewPanels = [];
     var ownerStatsRefreshButton = $("owner-stats-refresh");
     var ownerStatsFeedback = $("owner-stats-feedback");
     var ownerStatsMeta = $("owner-stats-meta");
@@ -295,8 +292,7 @@
     var ownerAnalyticsState = {
         loading: false,
         loaded: false,
-        dashboard: null,
-        activeView: "overview"
+        dashboard: null
     };
     var smsState = {
         loading: false,
@@ -552,231 +548,6 @@
 
     function ownerCanAccessStats() {
         return hasOwnerAccess();
-    }
-
-    function normalizeOwnerStatsView(value) {
-        var view = String(value || "").trim().toLowerCase();
-        return ["overview", "traffic", "audience", "content"].indexOf(view) >= 0 ? view : "overview";
-    }
-
-    function setOwnerStatsPanelCopy(panel, title, description) {
-        if (!panel) {
-            return;
-        }
-        var heading = panel.querySelector(".owner-stats-panel__head");
-        if (!heading) {
-            return;
-        }
-        var titleNode = heading.querySelector("h5");
-        var descriptionNode = heading.querySelector("p");
-        if (titleNode) {
-            titleNode.textContent = title;
-        }
-        if (descriptionNode) {
-            descriptionNode.textContent = description;
-        }
-    }
-
-    function buildOwnerStatsDashboard() {
-        if (!ownerStatsPanelRoot || ownerStatsPanelRoot.dataset.ownerStatsLayoutReady === "1") {
-            return;
-        }
-        ownerStatsPanelRoot.dataset.ownerStatsLayoutReady = "1";
-        ownerStatsPanelRoot.classList.add("owner-stats-layout-ready");
-
-        var head = ownerStatsPanelRoot.querySelector(".owner-block__head");
-        var toolbar = ownerStatsPanelRoot.querySelector(".owner-stats-toolbar");
-        var visitsPanel = ownerStatsVisitsChart && ownerStatsVisitsChart.closest(".owner-stats-panel");
-        var loginsPanel = ownerStatsLoginsChart && ownerStatsLoginsChart.closest(".owner-stats-panel");
-        var downloadsChartPanel = ownerStatsDownloadsChart && ownerStatsDownloadsChart.closest(".owner-stats-panel");
-        var cohortsPanel = ownerStatsCohorts && ownerStatsCohorts.closest(".owner-stats-panel");
-        var familiesPanel = ownerStatsFamilies && ownerStatsFamilies.closest(".owner-stats-panel");
-        var methodsPanel = ownerStatsMethods && ownerStatsMethods.closest(".owner-stats-panel");
-        var pagesPanel = ownerStatsPages && ownerStatsPages.closest(".owner-stats-panel");
-        var downloadsPanel = ownerStatsDownloads && ownerStatsDownloads.closest(".owner-stats-panel");
-        var referencesPanel = ownerStatsReferences && ownerStatsReferences.closest(".owner-stats-panel");
-        var shell = document.createElement("div");
-        var hero = document.createElement("div");
-        var nav = document.createElement("nav");
-        var stage = document.createElement("div");
-        var overviewView = document.createElement("section");
-        var trafficView = document.createElement("section");
-        var audienceView = document.createElement("section");
-        var contentView = document.createElement("section");
-        var overviewStack = document.createElement("div");
-        var trafficStack = document.createElement("div");
-        var audienceStack = document.createElement("div");
-        var contentStack = document.createElement("div");
-
-        shell.className = "owner-stats-shell";
-        hero.className = "owner-stats-hero";
-        nav.id = "owner-stats-nav";
-        nav.className = "owner-stats-nav";
-        nav.setAttribute("aria-label", "بخش‌های داشبورد آمار");
-        nav.innerHTML = [
-            '<button class="owner-stats-nav__btn is-active" type="button" data-owner-stats-view="overview" aria-selected="true">نمای کلی</button>',
-            '<button class="owner-stats-nav__btn" type="button" data-owner-stats-view="traffic" aria-selected="false">روندها</button>',
-            '<button class="owner-stats-nav__btn" type="button" data-owner-stats-view="audience" aria-selected="false">کاربرها</button>',
-            '<button class="owner-stats-nav__btn" type="button" data-owner-stats-view="content" aria-selected="false">محتوا</button>'
-        ].join("");
-        stage.className = "owner-stats-stage";
-
-        overviewView.className = "owner-stats-view is-active";
-        overviewView.dataset.ownerStatsViewPanel = "overview";
-        trafficView.className = "owner-stats-view";
-        trafficView.dataset.ownerStatsViewPanel = "traffic";
-        trafficView.hidden = true;
-        audienceView.className = "owner-stats-view";
-        audienceView.dataset.ownerStatsViewPanel = "audience";
-        audienceView.hidden = true;
-        contentView.className = "owner-stats-view";
-        contentView.dataset.ownerStatsViewPanel = "content";
-        contentView.hidden = true;
-
-        overviewStack.className = "owner-stats-stack owner-stats-stack--overview";
-        trafficStack.className = "owner-stats-stack owner-stats-stack--traffic";
-        audienceStack.className = "owner-stats-stack owner-stats-stack--audience";
-        contentStack.className = "owner-stats-stack owner-stats-stack--content";
-
-        if (head) {
-            var eyebrow = document.createElement("span");
-            var titleNode = head.querySelector("h4");
-            var descriptionNode = head.querySelector("p");
-            eyebrow.className = "account-section-kicker owner-stats-hero__eyebrow";
-            eyebrow.textContent = "داشبورد مالک";
-            head.classList.add("owner-stats-hero__copy");
-            head.insertBefore(eyebrow, head.firstChild);
-            if (titleNode) {
-                titleNode.textContent = "آمار زنده سایت";
-            }
-            if (descriptionNode) {
-                descriptionNode.textContent = "نمای فشرده و مدرن از ترافیک، کاربران و محتوای پربازدید؛ بدون شلوغی پنل‌های قدیمی.";
-            }
-            hero.appendChild(head);
-        }
-
-        if (toolbar) {
-            var metaWrap = toolbar.querySelector(".owner-stats-toolbar__meta");
-            toolbar.className = "owner-stats-hero__actions";
-            if (metaWrap) {
-                var metaTitle = metaWrap.querySelector("strong");
-                metaWrap.className = "owner-stats-hero__meta";
-                if (metaTitle) {
-                    metaTitle.remove();
-                }
-            }
-            if (ownerStatsMeta) {
-                ownerStatsMeta.classList.add("owner-stats-pill");
-            }
-            if (ownerStatsRefreshButton) {
-                ownerStatsRefreshButton.textContent = "به‌روزرسانی";
-            }
-            hero.appendChild(toolbar);
-        }
-
-        if (cohortsPanel) {
-            cohortsPanel.classList.add("owner-stats-panel--compact");
-            setOwnerStatsPanelCopy(cohortsPanel, "وضعیت ورودی‌ها", "تعداد کاربر، نماینده و activity ورودی‌های فعال");
-            if (ownerStatsCohorts) {
-                ownerStatsCohorts.classList.add("owner-stats-table--compact");
-            }
-            overviewStack.appendChild(cohortsPanel);
-        }
-
-        if (referencesPanel) {
-            referencesPanel.classList.remove("owner-stats-panel--wide");
-            referencesPanel.classList.add("owner-stats-panel--compact");
-            setOwnerStatsPanelCopy(referencesPanel, "سلامت ماژول‌های محتوا", "خلاصه فایل‌سنتر، paste و HTML uploader در یک نمای کوتاه");
-            if (ownerStatsReferences) {
-                ownerStatsReferences.classList.add("owner-summary--stats-mini");
-            }
-            overviewStack.appendChild(referencesPanel);
-        }
-
-        setOwnerStatsPanelCopy(visitsPanel, "بازدید روزانه", "روند ۱۴ روز اخیر page viewها");
-        setOwnerStatsPanelCopy(loginsPanel, "ورود روزانه", "loginهای موفق با رمز، OTP و ثبت‌نام");
-        setOwnerStatsPanelCopy(downloadsChartPanel, "دانلود روزانه", "کلیک‌های دانلود و منبع در ۱۴ روز اخیر");
-        if (visitsPanel) {
-            trafficStack.appendChild(visitsPanel);
-        }
-        if (loginsPanel) {
-            trafficStack.appendChild(loginsPanel);
-        }
-        if (downloadsChartPanel) {
-            trafficStack.appendChild(downloadsChartPanel);
-        }
-
-        setOwnerStatsPanelCopy(familiesPanel, "بخش‌های پربازدید", "توزیع بازدید بین خانواده مسیرهای اصلی سایت");
-        setOwnerStatsPanelCopy(methodsPanel, "روش‌های ورود", "سهم هر مسیر ورود در کل sessionهای ثبت‌شده");
-        if (familiesPanel) {
-            audienceStack.appendChild(familiesPanel);
-        }
-        if (methodsPanel) {
-            audienceStack.appendChild(methodsPanel);
-        }
-
-        setOwnerStatsPanelCopy(pagesPanel, "صفحه‌های پربازدید", "صفحه‌هایی که در ۳۰ روز اخیر بیشترین ترافیک را گرفته‌اند");
-        setOwnerStatsPanelCopy(downloadsPanel, "دانلودها و منبع‌های پرتکرار", "خروجی‌های پرکلیک با مبدا و زمان آخرین استفاده");
-        if (pagesPanel) {
-            pagesPanel.classList.remove("owner-stats-panel--wide");
-            pagesPanel.classList.add("owner-stats-panel--table");
-            if (ownerStatsPages) {
-                ownerStatsPages.classList.add("owner-stats-table--scroll");
-            }
-            contentStack.appendChild(pagesPanel);
-        }
-        if (downloadsPanel) {
-            downloadsPanel.classList.remove("owner-stats-panel--wide");
-            downloadsPanel.classList.add("owner-stats-panel--table");
-            if (ownerStatsDownloads) {
-                ownerStatsDownloads.classList.add("owner-stats-table--scroll");
-            }
-            contentStack.appendChild(downloadsPanel);
-        }
-
-        if (ownerStatsOverview) {
-            overviewView.appendChild(ownerStatsOverview);
-        }
-        overviewView.appendChild(overviewStack);
-        trafficView.appendChild(trafficStack);
-        audienceView.appendChild(audienceStack);
-        contentView.appendChild(contentStack);
-        stage.appendChild(overviewView);
-        stage.appendChild(trafficView);
-        stage.appendChild(audienceView);
-        stage.appendChild(contentView);
-
-        shell.appendChild(hero);
-        if (ownerStatsFeedback) {
-            shell.appendChild(ownerStatsFeedback);
-        }
-        shell.appendChild(nav);
-        shell.appendChild(stage);
-        ownerStatsPanelRoot.replaceChildren(shell);
-        ownerStatsNav = nav;
-        ownerStatsViewPanels = Array.prototype.slice.call(ownerStatsPanelRoot.querySelectorAll("[data-owner-stats-view-panel]"));
-    }
-
-    function updateOwnerStatsViews() {
-        var active = normalizeOwnerStatsView(ownerAnalyticsState.activeView);
-        if (ownerStatsNav) {
-            Array.prototype.slice.call(ownerStatsNav.querySelectorAll("[data-owner-stats-view]")).forEach(function (button) {
-                var selected = normalizeOwnerStatsView(button.dataset.ownerStatsView) === active;
-                button.classList.toggle("is-active", selected);
-                button.setAttribute("aria-selected", selected ? "true" : "false");
-            });
-        }
-        ownerStatsViewPanels.forEach(function (panel) {
-            var selected = normalizeOwnerStatsView(panel.dataset.ownerStatsViewPanel) === active;
-            panel.hidden = !selected;
-            panel.classList.toggle("is-active", selected);
-        });
-        ownerAnalyticsState.activeView = active;
-    }
-
-    function setOwnerStatsView(value) {
-        ownerAnalyticsState.activeView = normalizeOwnerStatsView(value);
-        updateOwnerStatsViews();
     }
 
     function normalizeOwnerTab(value) {
@@ -4916,7 +4687,6 @@
     function renderOwnerPanel() {
         renderOwnerCohortPicker();
         updateOwnerTabs();
-        updateOwnerStatsViews();
         renderOwnerSummary(ownerState.users);
         renderOwnerGradeManager();
         renderOwnerToolbarMeta(ownerState.users);
@@ -6790,7 +6560,6 @@
             ownerAnalyticsState.loading = false;
             ownerAnalyticsState.loaded = false;
             ownerAnalyticsState.dashboard = null;
-            ownerAnalyticsState.activeView = "overview";
             updateOwnerTabs();
             syncOwnerStatsShortcut();
             if (accountPhoneNudge) {
@@ -6836,7 +6605,6 @@
             ownerAnalyticsState.loading = false;
             ownerAnalyticsState.loaded = false;
             ownerAnalyticsState.dashboard = null;
-            ownerAnalyticsState.activeView = "overview";
         }
         currentUser = detail.user;
         syncOwnerStatsShortcut();
@@ -6900,7 +6668,6 @@
             ownerState.activeTab = "users";
             ownerState.activeCohortKey = "";
             ownerState.userPage = 1;
-            ownerAnalyticsState.activeView = "overview";
             updateOwnerTabs();
             syncOwnerStatsShortcut();
             setCreateStudentBusy(false);
@@ -7066,9 +6833,6 @@
     if (loginOtpCodeInput) {
         loginOtpCodeInput.addEventListener("input", handleLoginOtpCodeInput);
     }
-
-    buildOwnerStatsDashboard();
-    updateOwnerStatsViews();
 
     if (loginMethodPasswordBtn) {
         loginMethodPasswordBtn.addEventListener("click", function () {
@@ -7377,14 +7141,6 @@
             var button = event.target && event.target.closest ? event.target.closest("[data-owner-tab]") : null;
             if (!button) return;
             setOwnerTab(button.dataset.ownerTab);
-        });
-    }
-
-    if (ownerStatsNav) {
-        ownerStatsNav.addEventListener("click", function (event) {
-            var button = event.target && event.target.closest ? event.target.closest("[data-owner-stats-view]") : null;
-            if (!button) return;
-            setOwnerStatsView(button.dataset.ownerStatsView);
         });
     }
 

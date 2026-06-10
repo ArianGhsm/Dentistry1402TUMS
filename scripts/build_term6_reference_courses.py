@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# Builds term-6 reference exam data as one PHP file per course under
+# public_html/api/exams_term6_reference_data/<slug>.php (loaded lazily by
+# exams_term6_reference_overrides.php). Never collapse this back into a single
+# monolithic data file - that previously caused 500s under low memory limits.
 from __future__ import annotations
 
 import argparse
