@@ -52,8 +52,11 @@ function dent_exams_term6_reference_catalog_course_map_lazy(): array
     static $loaded = false;
     if (!$loaded) {
         $loaded = true;
-        dent_exams_term6_reference_raise_memory_limit();
-        require_once __DIR__ . '/exams_term6_reference_catalog_data.php';
+        $path = __DIR__ . '/exams_term6_reference_catalog_data.php';
+        if (is_file($path)) {
+            dent_exams_term6_reference_raise_memory_limit();
+            require_once $path;
+        }
     }
 
     return function_exists('dent_exams_term6_reference_catalog_course_map')
@@ -66,8 +69,11 @@ function dent_exams_term6_reference_course_map_lazy(): array
     static $loaded = false;
     if (!$loaded) {
         $loaded = true;
-        dent_exams_term6_reference_raise_memory_limit();
-        require_once __DIR__ . '/exams_term6_reference_data.php';
+        $path = __DIR__ . '/exams_term6_reference_data.php';
+        if (is_file($path)) {
+            dent_exams_term6_reference_raise_memory_limit();
+            require_once $path;
+        }
     }
 
     return function_exists('dent_exams_term6_reference_course_map')

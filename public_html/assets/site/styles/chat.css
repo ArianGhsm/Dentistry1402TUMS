@@ -2272,7 +2272,16 @@ body.chat-page.chat-selection-mode .conversation-item__select {
 }
 
 .msg-item.is-new {
-    animation: chat-message-in var(--motion-base) var(--motion-ease-soft);
+    animation: chat-message-in var(--motion-base) var(--motion-ease-standard);
+    transform-origin: bottom center;
+}
+
+.msg-item.me.is-new {
+    transform-origin: bottom left;
+}
+
+.msg-item.other.is-new {
+    transform-origin: bottom right;
 }
 
 .msg-row {
@@ -4268,12 +4277,17 @@ body.chat-page.chat-selection-mode .conversation-item__select {
 @keyframes chat-message-in {
     from {
         opacity: 0;
-        transform: translateY(10px) scale(0.995);
+        transform: translateY(14px) scale(0.96);
+    }
+
+    60% {
+        opacity: 1;
+        transform: translateY(-1px) scale(1.01);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
@@ -6881,6 +6895,19 @@ html[data-performance-mode="lite"] body.chat-page .msg-item.is-new {
     animation: none;
 }
 
+html[data-performance-mode="lite"] body.chat-page .chat-modal,
+html[data-performance-mode="lite"] body.chat-page .chat-modal-backdrop,
+html[data-performance-mode="lite"] body.chat-page .chat-sheet-backdrop,
+html[data-performance-mode="lite"] body.chat-page .chat-context-backdrop,
+html[data-performance-mode="lite"] body.chat-page .chat-list-context-backdrop,
+html[data-performance-mode="lite"] body.chat-page .chat-context-menu,
+html[data-performance-mode="lite"] body.chat-page .chat-list-context-menu,
+html[data-performance-mode="lite"] body.chat-page .chat-info-sheet,
+html[data-performance-mode="lite"] body.chat-page .composer-upload-sheet,
+html[data-performance-mode="lite"] body.chat-page .chat-mobile-nav {
+    backdrop-filter: none !important;
+}
+
 /* Bale-style flat chat shell. Keep this final so earlier redesign layers cannot collapse mobile. */
 body.chat-page {
     --chat-bale-line: color-mix(in srgb, var(--border-color) 78%, transparent);
@@ -9017,6 +9044,28 @@ body.chat-page .msg-bubble {
     border-radius: 12px !important;
 }
 
+/* Telegram-style grouped bubble tails: keep the asymmetric corner on the
+   side facing the avatar so consecutive messages read as one stack. */
+body.chat-page .msg-item.other.group-single .msg-bubble,
+body.chat-page .msg-item.other.group-end .msg-bubble {
+    border-bottom-left-radius: 6px !important;
+}
+
+body.chat-page .msg-item.other.group-start .msg-bubble,
+body.chat-page .msg-item.other.group-middle .msg-bubble {
+    border-top-left-radius: 8px !important;
+}
+
+body.chat-page .msg-item.me.group-single .msg-bubble,
+body.chat-page .msg-item.me.group-end .msg-bubble {
+    border-bottom-right-radius: 6px !important;
+}
+
+body.chat-page .msg-item.me.group-start .msg-bubble,
+body.chat-page .msg-item.me.group-middle .msg-bubble {
+    border-top-right-radius: 8px !important;
+}
+
 body.chat-page .msg-text {
     font-size: 0.84rem !important;
     line-height: 1.72 !important;
@@ -9194,7 +9243,6 @@ body.chat-page .msg-bubble {
     --msg-swipe-progress: 0;
     position: relative;
     transform: translate3d(var(--msg-swipe-offset), 0, 0);
-    will-change: transform;
     transition:
         transform var(--motion-fast) var(--motion-ease-standard),
         border-color var(--motion-fast) var(--motion-ease-standard),
@@ -9284,6 +9332,7 @@ body.chat-page.chat-message-selection-mode .composer-mention-tray {
 body.chat-page .msg-bubble.is-swipe-tracking,
 body.chat-page .msg-bubble.is-swipe-settling {
     z-index: 4;
+    will-change: transform;
 }
 
 body.chat-page .msg-bubble.is-swipe-tracking {
@@ -9393,10 +9442,6 @@ html[data-performance-mode="lite"] body.chat-page .msg-heart-burst {
 }
 
 @media (max-width: 980px) {
-    body.chat-page .msg-bubble {
-        will-change: auto;
-    }
-
     body.chat-page .msg-bubble::before {
         right: -2rem;
     }
