@@ -2676,35 +2676,7 @@ if ($action === 'downloadHostUpload') {
             dent_error('Upload stream could not be opened.', 422);
         }
 
-        notes_download_host_prepare_long_transfer();
-
-        try {
-            $prepared = notes_download_host_upload_stream_prepare($relativeDir, $stream, $contentLength, $desiredName, $mimeType, $scopeRoot);
-        } finally {
-            fclose($stream);
-        }
-
-        notes_download_host_respond_and_continue([
-            'success' => true,
-            'file' => $prepared['result'],
-            'message' => $prepared['result']['message'],
-        ]);
-
-        register_shutdown_function(static function () use ($prepared): void {
-            if (is_file($prepared['tmpPath'])) {
-                @unlink($prepared['tmpPath']);
-            }
-        });
-
-        try {
-            notes_download_host_stream_upload($prepared['targetAbsDir'], $prepared['tmpPath'], $prepared['finalName'], $prepared['mimeType']);
-        } catch (\Throwable $error) {
-            notes_download_host_record_async_failure([
-                'cohort' => $cohort,
-                'relativePath' => $prepared['result']['relativePath'] ?? '',
-            ], $error->getMessage());
-        }
-        exit;
+        notes_download_host_stream_upload_relay($relativeDir, $stream, $contentLength, $desiredName, $mimeType, $scopeRoot);
     }
 
     if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {

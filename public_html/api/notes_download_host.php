@@ -1085,20 +1085,46 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
     return notes_download_host_parse_upload_response($response);
 }
 
-function notes_download_host_finish_request(): void
+function notes_download_host_relay_begin_output(): void
 {
-    if (function_exists('fastcgi_finish_request')) {
-        fastcgi_finish_request();
-        return;
+    while (ob_get_level() > 0) {
+        @ob_end_flush();
     }
-    if (function_exists('litespeed_finish_request')) {
-        litespeed_finish_request();
-        return;
+    @ini_set('output_buffering', 'off');
+    @ini_set('implicit_flush', '1');
+    if (!headers_sent()) {
+        http_response_code(200);
+        header('Content-Type: application/json; charset=UTF-8');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('X-Accel-Buffering: no');
     }
-    flush();
+    echo ' ';
+    @flush();
 }
 
-function notes_download_host_respond_and_continue(array $payload): void
+function notes_download_host_relay_ping(): void
+{
+    echo ' ';
+    @flush();
+}
+
+function notes_download_host_relay_fail(string $message): void
+{
+    $payload = ['success' => false, 'error' => $message];
+    $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+    $json = json_encode($payload, $flags);
+    if ($json === false) {
+        $json = '{"success":false,"error":"Server error."}';
+    }
+    echo ' ' . $json;
+    @flush();
+    exit;
+}
+
+function notes_download_host_relay_succeed(array $payload): void
 {
     $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
     if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
@@ -1106,40 +1132,104 @@ function notes_download_host_respond_and_continue(array $payload): void
     }
     $json = json_encode($payload, $flags);
     if ($json === false) {
-        $json = '{"success":false,"error":"Server JSON encoding failed."}';
+        notes_download_host_relay_fail('خطا در تولید پاسخ JSON سرور.');
+        return;
     }
-
-    while (ob_get_level() > 0) {
-        ob_end_clean();
-    }
-    http_response_code(200);
-    header('Content-Type: application/json; charset=UTF-8');
-    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
-    header('Content-Length: ' . strlen($json));
-    header('Connection: close');
-    echo $json;
-
-    notes_download_host_finish_request();
+    echo ' ' . $json;
+    @flush();
+    exit;
 }
 
-function notes_download_host_record_async_failure(array $context, string $error): void
+function notes_download_host_relay_write_all($socket, string $payload, string $phaseLabel): void
 {
-    $logPath = DENT_STORAGE_ROOT . DIRECTORY_SEPARATOR . 'notes' . DIRECTORY_SEPARATOR . 'download_host_async_failures.json';
-    $entries = dent_read_json_file($logPath, []);
-    if (!is_array($entries)) {
-        $entries = [];
+    $offset = 0;
+    $length = strlen($payload);
+    $lastPing = microtime(true);
+    while ($offset < $length) {
+        $written = @fwrite($socket, substr($payload, $offset));
+        if (!is_int($written) || $written <= 0) {
+            $meta = is_resource($socket) ? stream_get_meta_data($socket) : [];
+            if (!empty($meta['timed_out'])) {
+                throw new RuntimeException($phaseLabel . ' به‌خاطر timeout شبکه کامل نشد.');
+            }
+            throw new RuntimeException($phaseLabel . ' به‌خاطر قطع ارتباط شبکه کامل نشد.');
+        }
+        $offset += $written;
+        if (microtime(true) - $lastPing > 3) {
+            notes_download_host_relay_ping();
+            $lastPing = microtime(true);
+        }
     }
-    $entries[] = array_merge($context, [
-        'error' => $error,
-        'at' => dent_iso_now(),
-    ]);
-    if (count($entries) > 200) {
-        $entries = array_slice($entries, -200);
-    }
-    dent_write_json_file($logPath, $entries);
 }
 
-function notes_download_host_upload_stream_prepare(string $relativeDir, $sourceStream, int $sourceSize, string $desiredName = '', string $mimeType = '', ?string $scopeRoot = null): array
+function notes_download_host_relay_read_response($socket): string
+{
+    $buffer = '';
+    $deadline = microtime(true) + NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS;
+    while (true) {
+        stream_set_timeout($socket, 4);
+        $chunk = fread($socket, 65536);
+        if ($chunk !== false && $chunk !== '') {
+            $buffer .= $chunk;
+            continue;
+        }
+        if (feof($socket)) {
+            break;
+        }
+        $meta = stream_get_meta_data($socket);
+        if (!empty($meta['timed_out'])) {
+            if (microtime(true) > $deadline) {
+                throw new RuntimeException('پاسخ نهایی هاست دانلود برای این فایل در زمان مجاز نرسید.');
+            }
+            notes_download_host_relay_ping();
+            continue;
+        }
+        break;
+    }
+
+    return $buffer;
+}
+
+function notes_download_host_relay_parse_response(string $raw): array
+{
+    if (preg_match("/\r\n\r\n(.*)\$/s", $raw, $matches) !== 1) {
+        throw new RuntimeException('پاسخ آپلود از هاست دانلود معتبر نبود.');
+    }
+
+    $body = trim((string) ($matches[1] ?? ''));
+    $decoded = json_decode($body, true);
+    if (!is_array($decoded)) {
+        throw new RuntimeException('پاسخ JSON آپلود از هاست دانلود معتبر نبود.');
+    }
+    if ((int) ($decoded['status'] ?? 0) !== 1) {
+        $errors = $decoded['errors'] ?? [];
+        throw new RuntimeException(
+            is_array($errors) && $errors !== [] ? implode(' | ', array_map('strval', $errors)) : 'آپلود فایل روی هاست دانلود ناموفق بود.'
+        );
+    }
+
+    $data = is_array($decoded['data'] ?? null) ? $decoded['data'] : [];
+    $uploads = is_array($data['uploads'] ?? null) ? $data['uploads'] : [];
+    if ($uploads === []) {
+        throw new RuntimeException('اطلاعات فایل آپلودشده از هاست دانلود دریافت نشد.');
+    }
+    $upload = is_array($uploads[0] ?? null) ? $uploads[0] : [];
+    if ((int) ($upload['status'] ?? 0) !== 1) {
+        throw new RuntimeException(trim((string) ($upload['reason'] ?? 'آپلود فایل روی هاست دانلود ناموفق بود.')));
+    }
+
+    return $upload;
+}
+
+/**
+ * Streams the upload body directly from the browser to the download host (cPanel)
+ * without buffering it on the main host's disk. While the transfer (and the wait
+ * for cPanel's response) is in progress, periodic single-space "ping" bytes are
+ * flushed to the browser to keep LiteSpeed's idle/response timeout from firing.
+ * JSON.parse() ignores leading/trailing whitespace, so the JSON payload appended
+ * at the end is still parsed correctly by the browser.
+ */
+function notes_download_host_stream_upload_relay(string $relativeDir, $sourceStream, int $sourceSize, string $desiredName = '', string $mimeType = '', ?string $scopeRoot = null): void
 {
     if (!is_resource($sourceStream)) {
         dent_error('جریان فایل برای آپلود معتبر نیست.', 422);
@@ -1148,70 +1238,117 @@ function notes_download_host_upload_stream_prepare(string $relativeDir, $sourceS
         dent_error('حجم فایل برای آپلود معتبر نیست.', 422);
     }
 
+    notes_download_host_prepare_long_transfer();
+
     $targetAbsDir = notes_download_host_ensure_dir($relativeDir, $scopeRoot);
     $finalName = notes_download_host_unique_file_name($relativeDir, $desiredName);
 
-    dent_ensure_directory(DENT_TMP_ROOT);
-    $tmpPath = DENT_TMP_ROOT . DIRECTORY_SEPARATOR . 'download-host-upload-' . bin2hex(random_bytes(8)) . '.tmp';
-    $tmpFile = fopen($tmpPath, 'wb');
-    if ($tmpFile === false) {
-        dent_error('امکان آماده‌سازی فایل موقت برای آپلود وجود ندارد.', 500);
-    }
-    $copied = stream_copy_to_stream($sourceStream, $tmpFile);
-    fclose($tmpFile);
-    if ($copied === false || $copied !== $sourceSize) {
-        @unlink($tmpPath);
-        dent_error('دریافت فایل از مرورگر کامل نشد.', 422);
+    $secret = notes_download_host_load_secret();
+    if (!is_array($secret)) {
+        dent_error('تنظیمات هاست دانلود روی سرور فعال نیست.', 503);
     }
 
-    $relativePath = trim($relativeDir, '/') . '/' . $finalName;
-    $relativePath = trim($relativePath, '/');
+    $scheme = (string) ($secret['scheme'] ?? 'http') === 'https' ? 'https' : 'http';
+    $socketPrefix = $scheme === 'https' ? 'ssl://' : 'tcp://';
+    $socketPort = $scheme === 'https'
+        ? (int) ($secret['cpanelSecurePort'] ?? 2083)
+        : (int) ($secret['cpanelPort'] ?? 2082);
 
-    return [
-        'result' => [
+    $socket = @stream_socket_client(
+        $socketPrefix . $secret['host'] . ':' . $socketPort,
+        $errno,
+        $errstr,
+        NOTES_DOWNLOAD_HOST_STREAM_CONNECT_TIMEOUT_SECONDS,
+        STREAM_CLIENT_CONNECT,
+        stream_context_create([
+            'ssl' => [
+                'verify_peer' => false,
+                'verify_peer_name' => false,
+                'allow_self_signed' => true,
+                'SNI_enabled' => true,
+            ],
+        ])
+    );
+    if (!is_resource($socket)) {
+        dent_error('اتصال امن به هاست دانلود برقرار نشد: ' . trim($errstr), 502);
+    }
+    stream_set_timeout($socket, NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS);
+    @stream_set_write_buffer($socket, 0);
+
+    $boundary = '----DentNotesBoundary' . bin2hex(random_bytes(12));
+    $prefix = '';
+    $prefix .= '--' . $boundary . "\r\n";
+    $prefix .= 'Content-Disposition: form-data; name="dir"' . "\r\n\r\n";
+    $prefix .= $targetAbsDir . "\r\n";
+    $prefix .= '--' . $boundary . "\r\n";
+    $prefix .= 'Content-Disposition: form-data; name="file-1"; filename="' . addslashes($finalName) . '"' . "\r\n";
+    $prefix .= 'Content-Type: ' . ($mimeType !== '' ? $mimeType : 'application/octet-stream') . "\r\n\r\n";
+    $suffix = "\r\n--" . $boundary . "--\r\n";
+    $contentLength = strlen($prefix) + $sourceSize + strlen($suffix);
+
+    $headers = [
+        'POST /execute/Fileman/upload_files HTTP/1.1',
+        'Host: ' . $secret['host'],
+        'Authorization: Basic ' . base64_encode((string) $secret['username'] . ':' . (string) $secret['password']),
+        'User-Agent: Dentistry1402TUMS-NotesDownloadHost/1.0',
+        'Accept: application/json',
+        'Content-Type: multipart/form-data; boundary=' . $boundary,
+        'Content-Length: ' . $contentLength,
+        'Connection: close',
+        '',
+        '',
+    ];
+
+    notes_download_host_socket_write_all($socket, implode("\r\n", $headers), 'ارسال هدر آپلود به هاست دانلود');
+    notes_download_host_socket_write_all($socket, $prefix, 'شروع انتقال فایل به هاست دانلود');
+
+    notes_download_host_relay_begin_output();
+
+    $relativePath = trim(trim($relativeDir, '/') . '/' . $finalName, '/');
+
+    try {
+        $remaining = $sourceSize;
+        while ($remaining > 0) {
+            $chunk = fread($sourceStream, min(NOTES_DOWNLOAD_HOST_STREAM_CHUNK_BYTES, $remaining));
+            if ($chunk === false || $chunk === '') {
+                throw new RuntimeException('دریافت فایل از مرورگر کامل نشد.');
+            }
+            $remaining -= strlen($chunk);
+            notes_download_host_relay_write_all($socket, $chunk, 'ارسال فایل به هاست دانلود');
+        }
+
+        notes_download_host_relay_write_all($socket, $suffix, 'پایان‌بندی آپلود روی هاست دانلود');
+
+        $response = notes_download_host_relay_read_response($socket);
+        if (trim($response) === '') {
+            throw new RuntimeException('پاسخ آپلود از هاست دانلود دریافت نشد.');
+        }
+        $upload = notes_download_host_relay_parse_response($response);
+    } catch (\Throwable $error) {
+        @fclose($socket);
+        notes_download_host_relay_fail($error->getMessage());
+        return;
+    }
+
+    @fclose($socket);
+
+    $bytes = max(0, (int) ($upload['size'] ?? $sourceSize));
+    $message = trim((string) ($upload['reason'] ?? 'فایل روی هاست دانلود ذخیره شد.'));
+
+    notes_download_host_relay_succeed([
+        'success' => true,
+        'file' => [
             'name' => $finalName,
             'relativeDir' => notes_download_host_normalize_relative_path($relativeDir),
             'relativePath' => $relativePath,
-            'sizeBytes' => $sourceSize,
-            'sizeLabel' => notes_download_host_human_size($sourceSize),
+            'sizeBytes' => $bytes,
+            'sizeLabel' => notes_download_host_human_size($bytes),
             'mimeType' => $mimeType,
             'publicUrl' => notes_download_host_public_url($relativePath),
-            'message' => 'فایل دریافت شد و در حال انتقال نهایی به هاست دانلود است.',
+            'message' => $message,
         ],
-        'tmpPath' => $tmpPath,
-        'targetAbsDir' => $targetAbsDir,
-        'finalName' => $finalName,
-        'mimeType' => $mimeType,
-    ];
-}
-
-function notes_download_host_upload_stream(string $relativeDir, $sourceStream, int $sourceSize, string $desiredName = '', string $mimeType = '', ?string $scopeRoot = null): array
-{
-    if (!is_resource($sourceStream)) {
-        dent_error('جریان فایل برای آپلود معتبر نیست.', 422);
-    }
-    if ($sourceSize <= 0) {
-        dent_error('حجم فایل برای آپلود معتبر نیست.', 422);
-    }
-
-    $targetAbsDir = notes_download_host_ensure_dir($relativeDir, $scopeRoot);
-    $finalName = notes_download_host_unique_file_name($relativeDir, $desiredName);
-    $upload = notes_download_host_stream_upload_from_stream($targetAbsDir, $sourceStream, $sourceSize, $finalName, $mimeType);
-
-    $relativePath = trim($relativeDir, '/') . '/' . $finalName;
-    $relativePath = trim($relativePath, '/');
-    $bytes = max(0, (int) ($upload['size'] ?? $sourceSize));
-
-    return [
-        'name' => $finalName,
-        'relativeDir' => notes_download_host_normalize_relative_path($relativeDir),
-        'relativePath' => $relativePath,
-        'sizeBytes' => $bytes,
-        'sizeLabel' => notes_download_host_human_size($bytes),
-        'mimeType' => $mimeType,
-        'publicUrl' => notes_download_host_public_url($relativePath),
-        'message' => trim((string) ($upload['reason'] ?? 'فایل روی هاست دانلود ذخیره شد.')),
-    ];
+        'message' => $message,
+    ]);
 }
 
 function notes_download_host_upload_file(string $relativeDir, array $file, string $desiredName = '', ?string $scopeRoot = null): array
