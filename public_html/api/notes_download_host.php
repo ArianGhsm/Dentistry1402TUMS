@@ -1088,7 +1088,7 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
 function notes_download_host_relay_begin_output(): void
 {
     while (ob_get_level() > 0) {
-        @ob_end_flush();
+        @ob_end_clean();
     }
     @ini_set('output_buffering', 'off');
     @ini_set('implicit_flush', '1');
