@@ -1329,7 +1329,34 @@ def strip_questions_from_value(value):
     return value
 
 
+def course_data_function_name(slug: str) -> str:
+    if not re.match(r"^[a-z][a-z0-9-]*$", slug):
+        raise ValueError(f"Unsafe course slug for PHP identifier: {slug!r}")
+    return "dent_exams_term6_reference_course_data_" + slug.replace("-", "_")
+
+
 def load_existing_course_map(root: Path) -> dict[str, dict]:
+    data_dir = root / "public_html" / "api" / "exams_term6_reference_data"
+    php_files = sorted(data_dir.glob("*.php")) if data_dir.is_dir() else []
+    if not php_files:
+        return load_legacy_course_map(root)
+
+    requires = "\n".join(f"require {str(path)!r};" for path in php_files)
+    assigns = "\n".join(
+        f"$map[{json.dumps(path.stem)}] = {course_data_function_name(path.stem)}();"
+        for path in php_files
+    )
+    script = f"{requires}\n$map = [];\n{assigns}\necho json_encode($map, JSON_UNESCAPED_UNICODE);"
+
+    try:
+        result = subprocess.run(["php", "-r", script], check=True, capture_output=True, text=True, encoding="utf-8")
+        decoded = json.loads(result.stdout.strip() or "{}")
+    except Exception:
+        return {}
+    return decoded if isinstance(decoded, dict) else {}
+
+
+def load_legacy_course_map(root: Path) -> dict[str, dict]:
     data_path = root / "public_html" / "api" / "exams_term6_reference_data.php"
     if not data_path.is_file():
         return {}
@@ -1413,28 +1440,37 @@ def build_course_map(root: Path, desktop_root: Path) -> tuple[dict[str, dict], l
     return course_map, summary_lines
 
 
+def write_course_data_files(root: Path, course_map: dict[str, dict]) -> None:
+    data_dir = root / "public_html" / "api" / "exams_term6_reference_data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    written_paths: set[Path] = set()
+    for slug, course in course_map.items():
+        function_name = course_data_function_name(slug)
+        php_payload = php_export(course, 4)
+        content = (
+            "<?php\n"
+            "declare(strict_types=1);\n\n"
+            f"function {function_name}(): array\n"
+            "{\n"
+            f"    return {php_payload};\n"
+            "}\n"
+        )
+        file_path = data_dir / f"{slug}.php"
+        write_file(file_path, content)
+        written_paths.add(file_path)
+
+    for stale_path in data_dir.glob("*.php"):
+        if stale_path not in written_paths:
+            stale_path.unlink()
+
+
 def write_php_data(root: Path, course_map: dict[str, dict]) -> None:
-    php_payload = php_export(course_map, 4)
-    content = (
-        "<?php\n"
-        "declare(strict_types=1);\n\n"
-        "if (function_exists('ini_set')) {\n"
-        "    $currentMemoryLimit = trim((string) ini_get('memory_limit'));\n"
-        "    if ($currentMemoryLimit !== '' && $currentMemoryLimit !== '-1') {\n"
-        "        @ini_set('memory_limit', '512M');\n"
-        "    }\n"
-        "}\n\n"
-        "function dent_exams_term6_reference_course_map(): array\n"
-        "{\n"
-        "    static $courses = null;\n"
-        "    if (is_array($courses)) {\n"
-        "        return $courses;\n"
-        "    }\n\n"
-        f"    $courses = {php_payload};\n"
-        "    return $courses;\n"
-        "}\n"
-    )
-    write_file(root / "public_html" / "api" / "exams_term6_reference_data.php", content)
+    write_course_data_files(root, course_map)
+
+    legacy_path = root / "public_html" / "api" / "exams_term6_reference_data.php"
+    if legacy_path.is_file():
+        legacy_path.unlink()
 
     catalog_payload = php_export(strip_questions_from_value(course_map), 4)
     catalog_content = (
@@ -1509,10 +1545,27 @@ def main() -> None:
         default=Path(__file__).resolve().parents[1],
         help="Repository root.",
     )
+    parser.add_argument(
+        "--migrate",
+        action="store_true",
+        help="Split the legacy monolithic exams_term6_reference_data.php into per-course files and exit.",
+    )
     args = parser.parse_args()
 
     repo_root = args.repo_root.resolve()
     desktop_root = args.desktop_root.resolve()
+
+    if args.migrate:
+        course_map = load_legacy_course_map(repo_root)
+        if not course_map:
+            raise SystemExit("No legacy course map data found to migrate.")
+        write_course_data_files(repo_root, course_map)
+        legacy_path = repo_root / "public_html" / "api" / "exams_term6_reference_data.php"
+        if legacy_path.is_file():
+            legacy_path.unlink()
+        print(f"Migrated {len(course_map)} courses into per-course files.")
+        return
+
     asset_version = extract_asset_version(repo_root)
 
     course_map, summary_lines = build_course_map(repo_root, desktop_root)

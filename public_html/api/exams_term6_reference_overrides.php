@@ -64,21 +64,36 @@ function dent_exams_term6_reference_catalog_course_map_lazy(): array
         : [];
 }
 
-function dent_exams_term6_reference_course_map_lazy(): array
+function dent_exams_term6_reference_course_data_lazy(string $courseSlug): ?array
 {
-    static $loaded = false;
-    if (!$loaded) {
-        $loaded = true;
-        $path = __DIR__ . '/exams_term6_reference_data.php';
-        if (is_file($path)) {
-            dent_exams_term6_reference_raise_memory_limit();
-            require_once $path;
+    static $cache = [];
+
+    $courseSlug = trim($courseSlug);
+    if ($courseSlug === '' || preg_match('/^[a-z0-9-]+$/', $courseSlug) !== 1) {
+        return null;
+    }
+
+    if (array_key_exists($courseSlug, $cache)) {
+        return $cache[$courseSlug];
+    }
+
+    $course = null;
+    $path = __DIR__ . '/exams_term6_reference_data/' . $courseSlug . '.php';
+    if (is_file($path)) {
+        dent_exams_term6_reference_raise_memory_limit();
+        require_once $path;
+
+        $function = 'dent_exams_term6_reference_course_data_' . str_replace('-', '_', $courseSlug);
+        if (function_exists($function)) {
+            $loaded = $function();
+            if (is_array($loaded)) {
+                $course = $loaded;
+            }
         }
     }
 
-    return function_exists('dent_exams_term6_reference_course_map')
-        ? dent_exams_term6_reference_course_map()
-        : [];
+    $cache[$courseSlug] = $course;
+    return $course;
 }
 
 function dent_exams_apply_term6_reference_catalog_overrides(array $bank): array
@@ -119,8 +134,7 @@ function dent_exams_term6_reference_runtime_exam_payload(string $catalogKey, str
         return null;
     }
 
-    $courses = dent_exams_term6_reference_course_map_lazy();
-    $course = $courses[$courseSlug] ?? null;
+    $course = dent_exams_term6_reference_course_data_lazy($courseSlug);
     if (!is_array($course)) {
         return null;
     }

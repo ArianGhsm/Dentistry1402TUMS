@@ -1,0 +1,87 @@
+<?php
+declare(strict_types=1);
+
+function dent_exams_term6_reference_course_data_whitepharoah_radiology_term6(): array
+{
+    return [
+        'slug' => 'whitepharoah-radiology-term6',
+        'title' => 'White & Pharoah | رادیو عملی ۲',
+        'shortTitle' => 'White & Pharoah',
+        'badge' => '۷ بخش',
+        'cardDescription' => 'آزمون‌های مرجع White & Pharoah برای رادیو عملی ۲ ترم ۶ در ۷ بخش فصل‌بندی شده‌اند.',
+        'heroTitle' => 'آزمون‌های White & Pharoah',
+        'heroDescription' => 'این مجموعه برای رادیو عملی ۲ ترم ۶ آماده شده و ۷ بخش با مجموع ۲۶۴۰ سؤال دارد. با یک بار پرداخت ۳۰ هزار تومان، دسترسی کامل این مرجع برای همین حساب فعال می‌شود.',
+        'path' => '/exams/whitepharoah-radiology-term6/',
+        'paymentTitle' => 'آزمون‌های White & Pharoah',
+        'paymentDescription' => 'با یک بار پرداخت ۳۰ هزار تومان، همهٔ بخش‌های آزمون‌های مرجع White & Pharoah برای همین حساب فعال می‌شود.',
+        'paymentSuccessMessage' => 'پرداخت شما تایید شد و همهٔ بخش‌های آزمون‌های White & Pharoah برای این حساب باز شد.',
+        'paymentFailureMessage' => 'فعال‌سازی کامل آزمون‌های White & Pharoah انجام نشد. نتیجه را دوباره بررسی کنید.',
+        'defaultPaymentMode' => 'paid',
+        'defaultAmount' => 300000,
+        'exams' => [
+            [
+                'slug' => '1-5',
+                'path' => '/exams/whitepharoah-radiology-term6/1-5/',
+                'questionCount' => 400,
+                'label' => 'فصول ۱ تا ۵',
+                'title' => '۱۰ آزمون برای فصول ۱ تا ۵',
+                'description' => 'برای این بازه ۱۰ آزمون با مجموع ۴۰۰ سؤال آماده شده است و با خرید کامل این مرجع باز می‌شود.',
+                'ctaLabel' => 'مشاهده بخش',
+            ],
+            [
+                'slug' => '6-10',
+                'path' => '/exams/whitepharoah-radiology-term6/6-10/',
+                'questionCount' => 400,
+                'label' => 'فصول ۶ تا ۱۰',
+                'title' => '۱۰ آزمون برای فصول ۶ تا ۱۰',
+                'description' => 'برای این بازه ۱۰ آزمون با مجموع ۴۰۰ سؤال آماده شده است و با خرید کامل این مرجع باز می‌شود.',
+                'ctaLabel' => 'مشاهده بخش',
+            ],
+            [
+                'slug' => '11-15',
+                'path' => '/exams/whitepharoah-radiology-term6/11-15/',
+                'questionCount' => 400,
+                'label' => 'فصول ۱۱ تا ۱۵',
+                'title' => '۱۰ آزمون برای فصول ۱۱ تا ۱۵',
+                'description' => 'برای این بازه ۱۰ آزمون با مجموع ۴۰۰ سؤال آماده شده است و با خرید کامل این مرجع باز می‌شود.',
+                'ctaLabel' => 'مشاهده بخش',
+            ],
+            [
+                'slug' => '16-20',
+                'path' => '/exams/whitepharoah-radiology-term6/16-20/',
+                'questionCount' => 400,
+                'label' => 'فصول ۱۶ تا ۲۰',
+                'title' => '۱۰ آزمون برای فصول ۱۶ تا ۲۰',
+                'description' => 'برای این بازه ۱۰ آزمون با مجموع ۴۰۰ سؤال آماده شده است و با خرید کامل این مرجع باز می‌شود.',
+                'ctaLabel' => 'مشاهده بخش',
+            ],
+            [
+                'slug' => '21-25',
+                'path' => '/exams/whitepharoah-radiology-term6/21-25/',
+                'questionCount' => 400,
+                'label' => 'فصول ۲۱ تا ۲۵',
+                'title' => '۱۰ آزمون برای فصول ۲۱ تا ۲۵',
+                'description' => 'برای این بازه ۱۰ آزمون با مجموع ۴۰۰ سؤال آماده شده است و با خرید کامل این مرجع باز می‌شود.',
+                'ctaLabel' => 'مشاهده بخش',
+            ],
+            [
+                'slug' => '26-30',
+                'path' => '/exams/whitepharoah-radiology-term6/26-30/',
+                'questionCount' => 400,
+                'label' => 'فصول ۲۶ تا ۳۰',
+                'title' => '۱۰ آزمون برای فصول ۲۶ تا ۳۰',
+                'description' => 'برای این بازه ۱۰ آزمون با مجموع ۴۰۰ سؤال آماده شده است و با خرید کامل این مرجع باز می‌شود.',
+                'ctaLabel' => 'مشاهده بخش',
+            ],
+            [
+                'slug' => '31-33',
+                'path' => '/exams/whitepharoah-radiology-term6/31-33/',
+                'questionCount' => 240,
+                'label' => 'فصول ۳۱ تا ۳۳',
+                'title' => '۶ آزمون برای فصول ۳۱ تا ۳۳',
+                'description' => 'برای این بازه ۶ آزمون با مجموع ۲۴۰ سؤال آماده شده است و با خرید کامل این مرجع باز می‌شود.',
+                'ctaLabel' => 'مشاهده بخش',
+            ],
+        ],
+    ];
+}
