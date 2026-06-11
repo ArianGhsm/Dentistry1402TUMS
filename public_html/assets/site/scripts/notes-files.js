@@ -473,6 +473,8 @@
                 statsLine[0] = '<span>حجم: ' + escapeHtml(formatBytes(item.size || 0)) + '</span>';
                 statsLine[2] = '<span>مسیر: ' + escapeHtml(item.relativePath || state.currentPath || "/") + '</span>';
                 statsLine[3] = '<span>اتمام: ' + escapeHtml(formatDate(item.completedAt || "")) + '</span>';
+            } else if (item.status === "finalizing") {
+                statsLine[3] = '<span>در حال ثبت نهایی روی هاست؛ برای فایل‌های حجیم ممکن است چند دقیقه طول بکشد.</span>';
             } else if (item.status === "waiting") {
                 statsLine[2] = '<span>وضعیت: ' + escapeHtml(item.error || waitingUploadMessage(item)) + '</span>';
                 statsLine[3] = '<span>تلاش دوباره: به‌محض برگشت اتصال، خودکار دوباره انجام می‌شود.</span>';

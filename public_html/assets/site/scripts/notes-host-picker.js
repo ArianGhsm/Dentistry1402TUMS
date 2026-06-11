@@ -365,7 +365,9 @@
                     }).format(new Date(snapshot.completedAt)) : "اکنون"))
                     : (snapshot.phase === "waiting"
                         ? "تلاش دوباره: بعد از پایدار شدن اتصال، آپلود خودکار تکرار می‌شود."
-                        : "زمان باقی‌مانده: " + formatEta(snapshot.etaSeconds));
+                        : (snapshot.phase === "finalizing"
+                            ? "در حال ثبت نهایی فایل روی هاست؛ برای فایل‌های حجیم ممکن است چند دقیقه طول بکشد."
+                            : "زمان باقی‌مانده: " + formatEta(snapshot.etaSeconds)));
             }
         }
 
