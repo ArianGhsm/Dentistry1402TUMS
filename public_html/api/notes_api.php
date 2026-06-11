@@ -2652,7 +2652,7 @@ if ($action === 'downloadHostBrowse') {
     ]);
 }
 
-if ($action === 'downloadHostUpload') {
+if ($action === 'hostUploadFile') {
     notes_1402_require_method(['POST']);
     $uploadParams = array_merge($_GET, $_POST);
     $cohort = notes_parse_cohort($uploadParams['cohort'] ?? '1402');

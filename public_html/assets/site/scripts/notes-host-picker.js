@@ -801,7 +801,7 @@
                 params.fileName = fileName;
             }
             var search = new URLSearchParams();
-            search.set("action", "downloadHostUpload");
+            search.set("action", "hostUploadFile");
             Object.keys(params).forEach(function (key) {
                 var value = params[key];
                 if (value !== undefined && value !== null && String(value) !== "") {

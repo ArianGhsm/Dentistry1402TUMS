@@ -1796,6 +1796,9 @@ function dent_save_user_store(array $store): void
 
     dent_write_auth_store_payload($nextStore);
     dent_auth_store_runtime_cache($nextStore, true);
+
+    $publicUsersCache = &dent_public_users_cache_ref();
+    $publicUsersCache = [];
 }
 
 function dent_get_user_record($studentNumber): ?array
@@ -2249,8 +2252,20 @@ function dent_cohort_management_payload(array $viewer, array $users): array
     return $payload;
 }
 
+function &dent_public_users_cache_ref(): array
+{
+    static $cache = [];
+    return $cache;
+}
+
 function dent_list_public_users(bool $includeOwnerPrivate = false): array
 {
+    $cache = &dent_public_users_cache_ref();
+    $cacheKey = $includeOwnerPrivate ? '1' : '0';
+    if (isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
     $store = dent_load_user_store();
     $users = [];
 
@@ -2295,6 +2310,8 @@ function dent_list_public_users(bool $includeOwnerPrivate = false): array
         unset($user['sortableName']);
     }
     unset($user);
+
+    $cache[$cacheKey] = $users;
 
     return $users;
 }

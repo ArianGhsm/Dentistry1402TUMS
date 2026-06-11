@@ -705,7 +705,7 @@
             var startedAt = Date.now();
             var xhr = new XMLHttpRequest();
             item.xhr = xhr;
-            var requestUrl = "/api/notes_api.php?action=downloadHostUpload&path=" + encodeURIComponent(item.targetPath || "");
+            var requestUrl = "/api/notes_api.php?action=hostUploadFile&path=" + encodeURIComponent(item.targetPath || "");
             if (state.scopeCohort) {
                 requestUrl += "&cohort=" + encodeURIComponent(state.scopeCohort);
             }
