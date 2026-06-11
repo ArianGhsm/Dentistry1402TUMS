@@ -1172,18 +1172,17 @@
   var infoSheet = $("chat-info-sheet");
   var infoSheetBackdrop = $("chat-sheet-backdrop");
   var infoSheetClose = $("chat-sheet-close");
+  var infoProfile = $("chat-info-profile");
   var infoTitle = $("chat-info-title");
   var infoStatus = $("chat-info-status");
   var infoAbout = $("chat-info-about");
   var infoIdentityRows = $("chat-info-identity-rows");
-  var infoSettingsRows = $("chat-info-settings-rows");
-  var infoStats = $("chat-info-stats");
   var infoContentTabs = $("chat-info-content-tabs");
   var infoContentTable = $("chat-info-content-table");
-  var infoRecentActions = $("chat-recent-actions");
   var infoMembers = $("chat-info-members");
+  var infoMembersBlock = $("chat-info-members-block");
   var infoActionsBlock = $("chat-info-actions-block");
-  var infoAvatar = $("chat-info-avatar-fallback") ? $("chat-info-avatar-fallback").parentElement : null;
+  var infoAvatar = $("chat-info-avatar");
   var infoAvatarImage = $("chat-info-avatar-image");
   var infoAvatarFallback = $("chat-info-avatar-fallback");
   var infoCopyLink = $("chat-info-copy-link");
@@ -1192,7 +1191,6 @@
   var infoGroupTypeBtn = $("chat-info-group-type-btn");
   var infoReactionSettingsBtn = $("chat-info-reaction-settings-btn");
   var infoAddMembersBtn = $("chat-info-add-members-btn");
-  var infoPeerLink = $("chat-info-peer-link");
   var infoProfileLink = $("chat-info-profile-link");
   var infoSecurityLink = $("chat-info-security-link");
   var infoAccountLink = $("chat-info-account-link");
@@ -7179,44 +7177,6 @@
     }).join("");
   }
 
-  function renderRecentActions(conversation) {
-    if (!infoRecentActions) return;
-    if (!conversation) {
-      infoRecentActions.innerHTML = "";
-      return;
-    }
-    var actions = [];
-    if (conversation.createdAt) {
-      actions.push({ label: "ایجاد گفتگو", ts: conversation.createdAt });
-    }
-    if (conversation.updatedAt) {
-      actions.push({ label: "آخرین بروزرسانی", ts: conversation.updatedAt });
-    }
-    if (conversation.settings && conversation.settings.mutedAt) {
-      actions.push({ label: conversation.settings.muted ? "ارسال پیام بسته شد" : "تنظیم ارسال پیام", ts: conversation.settings.mutedAt });
-    }
-    messageList().filter(function (message) {
-      return message.pinned || message.editedAt;
-    }).forEach(function (message) {
-      if (message.pinned) {
-        actions.push({ label: "پیام سنجاق شد", ts: message.ts, messageId: message.id });
-      }
-      if (message.editedAt) {
-        actions.push({ label: "پیام ویرایش شد", ts: message.editedAt, messageId: message.id });
-      }
-    });
-    actions.sort(function (left, right) {
-      return toNumber(right.ts, 0) - toNumber(left.ts, 0);
-    });
-    if (!actions.length) {
-      infoRecentActions.innerHTML = '<div class="chat-info-empty">تغییر اخیری ثبت نشده است.</div>';
-      return;
-    }
-    infoRecentActions.innerHTML = actions.slice(0, 8).map(function (item) {
-      return '<button type="button" class="chat-recent-action" data-scroll-message="' + escapeHtml(item.messageId || "") + '"><strong>' + escapeHtml(item.label) + '</strong><span>' + escapeHtml(formatDateTime(item.ts)) + '</span></button>';
-    }).join("");
-  }
-
   function conversationKindLabel(conversation) {
     if (!conversation) return "گفتگو";
     if (conversation.type === "direct") return "خصوصی";
@@ -7573,15 +7533,20 @@
     if (!conversation) {
       if (infoTitle) infoTitle.textContent = "گفت‌وگو";
       if (infoStatus) infoStatus.textContent = "گفت‌وگو انتخاب نشده است";
-      if (infoAbout) infoAbout.textContent = "";
+      if (infoAbout) {
+        infoAbout.textContent = "";
+        infoAbout.hidden = true;
+      }
       if (infoAvatar) setPresenceBadge(infoAvatar, null);
+      if (infoProfile) {
+        infoProfile.classList.remove("is-clickable");
+        delete infoProfile.dataset.profileHref;
+      }
       if (infoIdentityRows) infoIdentityRows.innerHTML = "";
-      if (infoSettingsRows) infoSettingsRows.innerHTML = "";
-      if (infoStats) infoStats.innerHTML = "";
       if (infoContentTabs) infoContentTabs.innerHTML = "";
       if (infoContentTable) infoContentTable.innerHTML = "";
-      if (infoRecentActions) infoRecentActions.innerHTML = "";
       if (infoMembers) infoMembers.innerHTML = "";
+      if (infoMembersBlock) infoMembersBlock.hidden = true;
       if (infoActionsBlock) infoActionsBlock.hidden = true;
       if (adminTools) adminTools.hidden = true;
       if (infoNotificationBtn) infoNotificationBtn.hidden = true;
@@ -7589,7 +7554,6 @@
       if (infoGroupTypeBtn) infoGroupTypeBtn.hidden = true;
       if (infoReactionSettingsBtn) infoReactionSettingsBtn.hidden = true;
       if (infoAddMembersBtn) infoAddMembersBtn.hidden = true;
-      if (infoPeerLink) infoPeerLink.hidden = true;
       if (infoProfileLink) infoProfileLink.href = "/account/?from=chat#account-profile";
       if (infoSecurityLink) infoSecurityLink.href = "/account/?from=chat#account-security";
       if (infoAccountLink) infoAccountLink.href = "/account/?from=chat";
@@ -7630,29 +7594,39 @@
     } else if (!aboutText && conversation.type === "saved") {
       aboutText = "یادداشت‌ها، فورواردها و پیام‌های شخصی خودت را اینجا نگه دار.";
     }
-    if (infoAbout) infoAbout.textContent = aboutText || "توضیحی ثبت نشده است.";
+    if (infoAbout) {
+      if (aboutText) {
+        infoAbout.textContent = aboutText;
+        infoAbout.hidden = false;
+      } else {
+        infoAbout.textContent = "";
+        infoAbout.hidden = true;
+      }
+    }
     if (infoAvatar && infoAvatarImage && infoAvatarFallback) {
       renderAvatar(infoAvatar, infoAvatarImage, infoAvatarFallback, conversation.avatarUrl, conversation.title);
       setPresenceBadge(infoAvatar, conversation);
     }
+    if (infoProfile) {
+      if (conversation.type === "direct" && conversation.peer && conversation.peer.studentNumber) {
+        infoProfile.classList.add("is-clickable");
+        infoProfile.dataset.profileHref = "/account/?studentNumber=" + encodeURIComponent(conversation.peer.studentNumber) + "&from=chat#account-info";
+      } else {
+        infoProfile.classList.remove("is-clickable");
+        delete infoProfile.dataset.profileHref;
+      }
+    }
     if (infoProfileLink) infoProfileLink.href = "/account/?from=chat#account-profile";
     if (infoSecurityLink) infoSecurityLink.href = "/account/?from=chat#account-security";
     if (infoAccountLink) infoAccountLink.href = "/account/?from=chat";
-    if (infoPeerLink) {
-      if (conversation.type === "direct" && conversation.peer && conversation.peer.studentNumber) {
-        infoPeerLink.hidden = false;
-        infoPeerLink.href = "/account/?studentNumber=" + encodeURIComponent(conversation.peer.studentNumber) + "&from=chat#account-info";
-      } else {
-        infoPeerLink.hidden = true;
-      }
-    }
     if (infoNotificationBtn) {
       var canManageNotifications = !!(conversation.permissions && conversation.permissions.canMuteConversation);
       infoNotificationBtn.hidden = !canManageNotifications;
       if (canManageNotifications) {
-        infoNotificationBtn.textContent = conversation.viewerState && conversation.viewerState.notificationsMuted
-          ? "روشن کردن اعلان‌ها"
-          : "بی‌صدا کردن اعلان‌ها";
+        var notificationsMuted = !!(conversation.viewerState && conversation.viewerState.notificationsMuted);
+        var notificationLabel = infoNotificationBtn.querySelector(".chat-info-quick-action__label");
+        if (notificationLabel) notificationLabel.textContent = notificationsMuted ? "روشن کردن اعلان" : "بی‌صدا کردن";
+        infoNotificationBtn.classList.toggle("is-active", notificationsMuted);
       }
     }
     if (infoEditProfileBtn) {
@@ -7675,93 +7649,75 @@
     if (conversation.type === "saved") {
       roleLabel = "فقط شما";
     }
-    var identityRows = [
+    var infoRows = [
       {
         label: "نوع گفتگو",
         value: conversationKindLabel(conversation)
-      },
-      {
-        label: "نقش شما",
-        value: roleLabel
       }
     ];
+    if (conversation.type !== "saved") {
+      infoRows.push({
+        label: "نقش شما",
+        value: roleLabel
+      });
+    }
     if (conversation.type === "direct" && conversation.peer && canViewStudentNumbers) {
-      identityRows.push({
+      infoRows.push({
         label: "شناسه مخاطب",
         value: "@" + normalizeSpace(conversation.peer.studentNumber || "")
       });
-    } else if (conversation.type === "saved") {
-      identityRows.push({
-        label: "حریم گفتگو",
-        value: "فقط برای خودت"
-      });
-    } else if (canViewStudentNumbers && conversation.id) {
-      identityRows.push({
+    } else if (canViewStudentNumbers && conversation.id && conversation.type !== "direct" && conversation.type !== "saved") {
+      infoRows.push({
         label: "شناسه گفتگو",
         value: conversation.id
       });
     }
-    renderInfoRows(infoIdentityRows, identityRows);
-
-    var settingsRows = [
-      {
+    if (conversation.viewerState && conversation.viewerState.archived) {
+      infoRows.push({
         label: "وضعیت گفتگو",
-        value: conversation.viewerState && conversation.viewerState.archived ? "بایگانی‌شده" : "فعال",
-        tone: conversation.viewerState && conversation.viewerState.archived ? "muted" : "good"
-      },
-      {
+        value: "بایگانی‌شده",
+        tone: "muted"
+      });
+    }
+    if (!(conversation.permissions && conversation.permissions.canSend)) {
+      infoRows.push({
         label: "ارسال پیام",
-        value: conversation.permissions && conversation.permissions.canSend ? "مجاز" : "غیرفعال",
-        tone: conversation.permissions && conversation.permissions.canSend ? "good" : "danger"
-      },
-      {
+        value: "غیرفعال",
+        tone: "danger"
+      });
+    }
+    var unreadCount = Math.max(0, Math.floor(toNumber(conversation.unreadCount, 0)));
+    if (unreadCount > 0) {
+      infoRows.push({
         label: "خوانده‌نشده",
-        value: Math.max(0, Math.floor(toNumber(conversation.unreadCount, 0))).toLocaleString("fa-IR")
-      }
-    ];
-    if (livePresenceText) {
-      settingsRows.push({
+        value: unreadCount.toLocaleString("fa-IR")
+      });
+    }
+    if (livePresenceText && conversation.type !== "direct") {
+      infoRows.push({
         label: "وضعیت حضور",
-        value: livePresenceText,
-        tone: conversation.type === "direct" && conversation.presence && conversation.presence.peer && conversation.presence.peer.isOnline ? "good" : ""
+        value: livePresenceText
       });
     }
     if (!isPrivateLikeConversationType(conversation.type)) {
-      settingsRows.push({
+      infoRows.push({
         label: "واکنش‌ها",
         value: reactionModeLabel(conversation.settings && conversation.settings.reactionMode)
       });
     }
     if (conversation.type === "group") {
-      settingsRows.push({
+      infoRows.push({
         label: "نوع عضویت",
         value: groupVisibilityLabel(conversation.settings && conversation.settings.visibility)
       });
     }
-    settingsRows.push({
-      label: "اعلان‌ها",
-      value: conversation.viewerState && conversation.viewerState.notificationsMuted ? "بی‌صدا" : "فعال",
-      tone: conversation.viewerState && conversation.viewerState.notificationsMuted ? "muted" : "good"
-    });
-    renderInfoRows(infoSettingsRows, settingsRows);
+    renderInfoRows(infoIdentityRows, infoRows);
 
-    if (infoStats) {
-      var list = messageList();
-      var pinnedCount = list.filter(function (item) { return !!item.pinned; }).length;
-      var lastMessage = list.length ? list[list.length - 1] : null;
-      var createdAtLabel = conversation.createdAt ? formatDateTime(conversation.createdAt) : "نامشخص";
-      var archiveLabel = conversation.viewerState && conversation.viewerState.archived ? "بایگانی‌شده" : "فعال";
-      infoStats.innerHTML = [
-        '<div class="chat-info-stat"><strong>پیام‌ها</strong><span>' + list.length.toLocaleString("fa-IR") + " پیام</span></div>",
-        '<div class="chat-info-stat"><strong>سنجاق‌ها</strong><span>' + pinnedCount.toLocaleString("fa-IR") + " پیام سنجاق‌شده</span></div>",
-        '<div class="chat-info-stat"><strong>وضعیت گفتگو</strong><span>' + archiveLabel + "</span></div>",
-        '<div class="chat-info-stat"><strong>تاریخ ایجاد</strong><span>' + escapeHtml(createdAtLabel) + "</span></div>",
-        '<div class="chat-info-stat"><strong>آخرین فعالیت</strong><span>' + (lastMessage ? escapeHtml(formatDateTime(lastMessage.ts)) : "بدون فعالیت") + "</span></div>"
-      ].join("");
-    }
     renderInfoContentOverview();
-    renderRecentActions(conversation);
 
+    if (infoMembersBlock) {
+      infoMembersBlock.hidden = !(conversation.type === "group" || conversation.type === "channel" || conversation.type === "class-group");
+    }
     if (infoMembers) {
       infoMembers.innerHTML = "";
       var members = Array.isArray(conversation.members) ? conversation.members : [];
@@ -7776,6 +7732,10 @@
           node.className = "chat-member";
           var tag = normalizeSpace(member.conversationTag);
           var canManageMember = !!(conversation.permissions && conversation.permissions.canManageConversation && conversation.type === "group");
+          if (member.studentNumber) {
+            node.classList.add("chat-member--clickable");
+            node.setAttribute("data-member-student", member.studentNumber);
+          }
           node.innerHTML = [
             '<span class="chat-member__avatar" data-has-avatar="0"><img alt="" hidden><span>' + escapeHtml(avatarLabel(member.name)) + "</span></span>",
             '<span class="chat-member__copy">',
@@ -12061,6 +12021,12 @@
     }
     if (infoSheetClose) infoSheetClose.addEventListener("click", closeInfoSheet);
     if (infoSheetBackdrop) infoSheetBackdrop.addEventListener("click", closeInfoSheet);
+    if (infoProfile) {
+      infoProfile.addEventListener("click", function () {
+        var href = infoProfile.dataset.profileHref;
+        if (href) window.location.href = href;
+      });
+    }
     if (infoCopyLink) infoCopyLink.addEventListener("click", copyConversationLink);
     if (infoNotificationBtn) infoNotificationBtn.addEventListener("click", function () { openConversationOptions("notifications"); });
     if (infoEditProfileBtn) infoEditProfileBtn.addEventListener("click", function () { openConversationOptions("profile"); });
@@ -12077,6 +12043,14 @@
         var adminButton = event.target && event.target.closest ? event.target.closest("[data-member-admin]") : null;
         if (adminButton) {
           setMemberAdmin(adminButton.getAttribute("data-member-admin"), adminButton.getAttribute("data-admin-next") === "1");
+          return;
+        }
+        var memberRow = event.target && event.target.closest ? event.target.closest("[data-member-student]") : null;
+        if (memberRow) {
+          var studentNumber = memberRow.getAttribute("data-member-student");
+          if (studentNumber) {
+            window.location.href = "/account/?studentNumber=" + encodeURIComponent(studentNumber) + "&from=chat#account-info";
+          }
         }
       });
     }
@@ -12088,9 +12062,8 @@
         renderInfoContentOverview();
       });
     }
-    [infoContentTable, infoRecentActions].forEach(function (container) {
-      if (!container) return;
-      container.addEventListener("click", function (event) {
+    if (infoContentTable) {
+      infoContentTable.addEventListener("click", function (event) {
         var mediaButton = event.target && event.target.closest ? event.target.closest(".msg-attachment__media-btn[data-media-src]") : null;
         if (mediaButton) {
           event.preventDefault();
@@ -12105,7 +12078,7 @@
           scrollToMessage(messageId);
         }
       });
-    });
+    }
 
     if (muteBtn) muteBtn.addEventListener("click", function () { setConversationMute(true); });
     if (unmuteBtn) unmuteBtn.addEventListener("click", function () { setConversationMute(false); });
