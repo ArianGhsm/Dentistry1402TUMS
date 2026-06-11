@@ -8009,7 +8009,7 @@ body.chat-page .chat-media-viewer__meta {
     z-index: 1110;
     top: calc(0.8rem + env(safe-area-inset-top, 0px));
     inset-inline-start: calc(0.8rem + 44px + 0.6rem);
-    inset-inline-end: calc(0.8rem + (44px + 0.5rem) * 5);
+    inset-inline-end: calc(0.8rem + (44px + 0.5rem) * 4);
     min-height: 44px;
     display: flex;
     flex-direction: column;
@@ -8746,23 +8746,6 @@ body.chat-page .chat-context-receipt {
     color: var(--chat-bale-green);
     font-size: 0.78rem;
     font-weight: 850;
-}
-
-body.chat-page .chat-media-viewer__more {
-    width: 44px;
-    height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.44);
-    color: #fff;
-}
-
-body.chat-page .chat-media-viewer__more svg {
-    width: 22px;
-    height: 22px;
 }
 
 body.chat-page .composer {
@@ -9569,8 +9552,7 @@ body.chat-page .chat-media-viewer__counter {
     }
 
     body.chat-page .chat-media-viewer__close,
-    body.chat-page .chat-media-viewer__action,
-    body.chat-page .chat-media-viewer__more {
+    body.chat-page .chat-media-viewer__action {
         width: 38px;
         height: 38px;
     }
@@ -9586,11 +9568,10 @@ body.chat-page .chat-media-viewer__counter {
 
     body.chat-page .chat-media-viewer__meta {
         inset-inline-start: calc(0.42rem + 38px + 0.4rem);
-        inset-inline-end: calc(0.42rem + (38px + 0.32rem) * 5);
+        inset-inline-end: calc(0.42rem + (38px + 0.32rem) * 4);
     }
 
-    body.chat-page .chat-media-viewer__action svg,
-    body.chat-page .chat-media-viewer__more svg {
+    body.chat-page .chat-media-viewer__action svg {
         width: 19px;
         height: 19px;
     }

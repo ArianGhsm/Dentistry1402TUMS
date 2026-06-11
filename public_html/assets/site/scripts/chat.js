@@ -1256,7 +1256,6 @@
   var receiptsList = $("receipts-list");
   var mediaViewer = $("chat-media-viewer");
   var mediaViewerClose = $("chat-media-viewer-close");
-  var mediaViewerMore = $("chat-media-viewer-more");
   var mediaViewerStage = $("chat-media-viewer-stage");
   var mediaViewerCaption = $("chat-media-viewer-caption");
   var mediaViewerMeta = $("chat-media-viewer-meta");
@@ -5661,10 +5660,6 @@
     mediaViewerCloseTimer = window.setTimeout(function () {
       mediaViewerCloseTimer = null;
       mediaViewer.hidden = true;
-      if (mediaViewerMore) {
-        mediaViewerMore.hidden = true;
-        mediaViewerMore.removeAttribute("href");
-      }
       if (mediaViewerStage) mediaViewerStage.innerHTML = "";
       if (mediaViewerCaption) mediaViewerCaption.textContent = "";
       if (mediaViewerCounter) mediaViewerCounter.textContent = "";
@@ -5910,10 +5905,6 @@
     mediaViewerStage.innerHTML = item.kind === "video"
       ? '<video controls autoplay playsinline preload="metadata" src="' + escapeHtml(item.src) + '"' + (item.poster ? ' poster="' + escapeHtml(item.poster) + '"' : "") + "></video>"
       : '<img src="' + escapeHtml(item.src) + '" decoding="async" alt="' + escapeHtml(item.caption || "\u0631\u0633\u0627\u0646\u0647") + '">';
-    if (mediaViewerMore) {
-      mediaViewerMore.href = item.src;
-      mediaViewerMore.hidden = false;
-    }
     if (mediaViewerRotate) mediaViewerRotate.hidden = item.kind !== "image";
     if (mediaViewerCaption) mediaViewerCaption.textContent = item.caption || "";
     if (mediaViewerCounter) {
@@ -5994,10 +5985,6 @@
     mediaViewerStage.innerHTML = kind === "video"
       ? '<video controls autoplay playsinline src="' + escapeHtml(src) + '"' + (poster ? ' poster="' + escapeHtml(poster) + '"' : "") + "></video>"
       : '<img src="' + escapeHtml(src) + '" alt="' + escapeHtml(caption || "رسانه") + '">';
-    if (mediaViewerMore) {
-      mediaViewerMore.href = src;
-      mediaViewerMore.hidden = false;
-    }
     if (mediaViewerCaption) mediaViewerCaption.textContent = caption || "";
     if (mediaViewerMeta) mediaViewerMeta.hidden = true;
     if (mediaViewerForward) mediaViewerForward.hidden = true;
@@ -12814,7 +12801,7 @@
       });
       mediaViewer.addEventListener("pointerdown", function (event) {
         if (event.pointerType === "mouse" && event.button !== 0) return;
-        if (event.target && event.target.closest && event.target.closest(".chat-media-viewer__nav, .chat-media-viewer__close, .chat-media-viewer__more, .chat-media-viewer__action, .chat-media-viewer__meta")) return;
+        if (event.target && event.target.closest && event.target.closest(".chat-media-viewer__nav, .chat-media-viewer__close, .chat-media-viewer__action, .chat-media-viewer__meta")) return;
         if (!mediaViewerStage || !mediaViewerStage.contains(event.target)) return;
         if (event.target && event.target.tagName === "VIDEO") return;
 
