@@ -3519,12 +3519,20 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     line-height: 1.9;
 }
 
-.chat-info-rows,
 .chat-info-stats,
 .chat-info-members,
 .chat-info-actions {
     display: grid;
     gap: 0.5rem;
+}
+
+.chat-info-rows {
+    display: flex;
+    flex-direction: column;
+    border-radius: 14px;
+    border: 1px solid var(--chat-border);
+    background: var(--chat-chip-bg);
+    overflow: hidden;
 }
 
 .chat-info-row {
@@ -3533,9 +3541,11 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     justify-content: space-between;
     gap: 0.65rem;
     padding: 0.64rem 0.76rem;
-    border-radius: 14px;
-    border: 1px solid var(--chat-border);
-    background: var(--chat-chip-bg);
+    border-bottom: 1px solid var(--chat-border);
+}
+
+.chat-info-row:last-child {
+    border-bottom: none;
 }
 
 .chat-info-row--empty {
@@ -8336,8 +8346,10 @@ body.chat-page .receipt-row small {
 }
 
 body.chat-page .chat-info-empty {
+    grid-column: 1 / -1;
     color: var(--chat-bale-muted);
     padding: 0.72rem 0.2rem;
+    text-align: center;
 }
 
 body.chat-page .chat-info-content-table--grid {

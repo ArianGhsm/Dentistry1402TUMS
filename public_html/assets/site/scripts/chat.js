@@ -926,9 +926,12 @@
     return isGeneratedMessagePlaceholder(message, text) ? "" : normalizeSpace(text);
   }
 
+  var BLANK_AVATAR_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn0K1sAAAAASUVORK5CYII=";
+
   function normalizeAvatarUrl(value) {
     var clean = toText(value).trim();
     if (!clean) return "";
+    if (clean === BLANK_AVATAR_DATA_URL) return "";
     if (clean.indexOf("data:image/") === 0) return clean;
     if (clean.charAt(0) === "/") return clean;
     if (/^https?:\/\//i.test(clean)) return clean;
