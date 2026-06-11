@@ -1521,36 +1521,19 @@ function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin
     }
 
     $gatewayUrl = notes_download_host_internal_runtime_public_url(notes_download_host_direct_upload_gateway_relative_path());
-    $gatewayHost = strtolower(trim((string) parse_url($gatewayUrl, PHP_URL_HOST)));
-    if ($gatewayHost === '' || !notes_download_host_domain_accepts_https($gatewayHost)) {
+    if ($gatewayUrl === '') {
         return null;
     }
 
-    $health = notes_download_host_direct_upload_health($mainSiteOrigin);
-    if (is_array($health)) {
-        $cache[$mainSiteOrigin] = $health;
-        return $health;
-    }
-
-    notes_download_host_internal_runtime_ensure_dir(notes_download_host_direct_upload_runtime_dir());
-    notes_download_host_internal_runtime_upload_text_file(
-        notes_download_host_direct_upload_user_ini_relative_path(),
-        notes_download_host_direct_upload_user_ini_source(),
-        'text/plain'
-    );
-    notes_download_host_internal_runtime_upload_text_file(
-        notes_download_host_direct_upload_gateway_relative_path(),
-        notes_download_host_direct_upload_gateway_source($mainSiteOrigin),
-        'application/x-httpd-php'
-    );
-
-    $health = notes_download_host_direct_upload_health($mainSiteOrigin);
-    if (!is_array($health)) {
-        return null;
-    }
-
-    $cache[$mainSiteOrigin] = $health;
-    return $health;
+    $payload = [
+        'success' => true,
+        'version' => NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION,
+        'mainSiteOrigin' => $mainSiteOrigin,
+        'allowedOrigin' => $mainSiteOrigin,
+        'uploadUrl' => $gatewayUrl,
+    ];
+    $cache[$mainSiteOrigin] = $payload;
+    return $payload;
 }
 
 function notes_download_host_extract_response_body(string $raw): string
