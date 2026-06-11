@@ -1239,13 +1239,17 @@ function notes_download_host_stream_upload_relay(string $relativeDir, $sourceStr
     }
 
     notes_download_host_prepare_long_transfer();
+    notes_download_host_relay_begin_output();
 
     $targetAbsDir = notes_download_host_ensure_dir($relativeDir, $scopeRoot);
+    notes_download_host_relay_ping();
     $finalName = notes_download_host_unique_file_name($relativeDir, $desiredName);
+    notes_download_host_relay_ping();
 
     $secret = notes_download_host_load_secret();
     if (!is_array($secret)) {
-        dent_error('تنظیمات هاست دانلود روی سرور فعال نیست.', 503);
+        notes_download_host_relay_fail('تنظیمات هاست دانلود روی سرور فعال نیست.');
+        return;
     }
 
     $scheme = (string) ($secret['scheme'] ?? 'http') === 'https' ? 'https' : 'http';
@@ -1270,10 +1274,12 @@ function notes_download_host_stream_upload_relay(string $relativeDir, $sourceStr
         ])
     );
     if (!is_resource($socket)) {
-        dent_error('اتصال امن به هاست دانلود برقرار نشد: ' . trim($errstr), 502);
+        notes_download_host_relay_fail('اتصال امن به هاست دانلود برقرار نشد: ' . trim($errstr));
+        return;
     }
     stream_set_timeout($socket, NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS);
     @stream_set_write_buffer($socket, 0);
+    notes_download_host_relay_ping();
 
     $boundary = '----DentNotesBoundary' . bin2hex(random_bytes(12));
     $prefix = '';
@@ -1299,14 +1305,12 @@ function notes_download_host_stream_upload_relay(string $relativeDir, $sourceStr
         '',
     ];
 
-    notes_download_host_socket_write_all($socket, implode("\r\n", $headers), 'ارسال هدر آپلود به هاست دانلود');
-    notes_download_host_socket_write_all($socket, $prefix, 'شروع انتقال فایل به هاست دانلود');
-
-    notes_download_host_relay_begin_output();
-
     $relativePath = trim(trim($relativeDir, '/') . '/' . $finalName, '/');
 
     try {
+        notes_download_host_relay_write_all($socket, implode("\r\n", $headers), 'ارسال هدر آپلود به هاست دانلود');
+        notes_download_host_relay_write_all($socket, $prefix, 'شروع انتقال فایل به هاست دانلود');
+
         $remaining = $sourceSize;
         while ($remaining > 0) {
             $chunk = fread($sourceStream, min(NOTES_DOWNLOAD_HOST_STREAM_CHUNK_BYTES, $remaining));

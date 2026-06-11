@@ -439,6 +439,82 @@ function dent_auth_store_runtime_cache(?array $nextStore = null, bool $replace =
     return $cachedStore;
 }
 
+function dent_user_store_normalized_cache_path(): string
+{
+    return dent_storage_path('auth/users.normalized-cache.json');
+}
+
+function dent_user_store_source_signature(): string
+{
+    $path = dent_auth_store_path();
+    clearstatcache(false, $path);
+    if (!is_file($path)) {
+        return 'missing';
+    }
+
+    $mtime = @filemtime($path);
+    $size = @filesize($path);
+    return ($mtime === false ? 'unknown' : (string) $mtime) . '|' . ($size === false ? 'unknown' : (string) $size);
+}
+
+function dent_read_user_store_normalized_cache(string $signature): ?array
+{
+    $path = dent_user_store_normalized_cache_path();
+    if (!is_file($path)) {
+        return null;
+    }
+
+    $raw = @file_get_contents($path);
+    if ($raw === false || trim($raw) === '') {
+        return null;
+    }
+
+    $decoded = json_decode($raw, true);
+    if (!is_array($decoded) || json_last_error() !== JSON_ERROR_NONE) {
+        return null;
+    }
+
+    if (($decoded['signature'] ?? null) !== $signature) {
+        return null;
+    }
+
+    $store = $decoded['store'] ?? null;
+    if (!is_array($store) || !isset($store['users']) || !is_array($store['users']) || !isset($store['cohorts'])) {
+        return null;
+    }
+
+    return $store;
+}
+
+function dent_write_user_store_normalized_cache(string $signature, array $store): void
+{
+    $path = dent_user_store_normalized_cache_path();
+    $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+
+    $json = json_encode([
+        'signature' => $signature,
+        'store' => $store,
+    ], $flags);
+    if ($json === false) {
+        return;
+    }
+
+    dent_ensure_directory(dirname($path));
+    $tmpPath = $path . '.tmp.' . bin2hex(random_bytes(6));
+    $bytesWritten = @file_put_contents($tmpPath, $json, LOCK_EX);
+    if ($bytesWritten === false) {
+        @unlink($tmpPath);
+        return;
+    }
+
+    if (!@rename($tmpPath, $path)) {
+        @unlink($tmpPath);
+    }
+}
+
 function dent_decode_auth_store_snapshot(string $path): ?array
 {
     if (!is_file($path)) {
@@ -1662,6 +1738,13 @@ function dent_load_user_store(): array
         return $cachedStore;
     }
 
+    $sourceSignature = dent_user_store_source_signature();
+    $normalizedCache = dent_read_user_store_normalized_cache($sourceSignature);
+    if (is_array($normalizedCache)) {
+        dent_auth_store_runtime_cache($normalizedCache, true);
+        return $normalizedCache;
+    }
+
     $path = dent_auth_store_path();
     $backupPath = dent_auth_store_backup_path();
     $seedPayload = dent_auth_store_seed_payload();
@@ -1761,6 +1844,7 @@ function dent_load_user_store(): array
     ];
 
     dent_auth_store_runtime_cache($result, true);
+    dent_write_user_store_normalized_cache(dent_user_store_source_signature(), $result);
     return $result;
 }
 
@@ -1796,6 +1880,7 @@ function dent_save_user_store(array $store): void
 
     dent_write_auth_store_payload($nextStore);
     dent_auth_store_runtime_cache($nextStore, true);
+    dent_write_user_store_normalized_cache(dent_user_store_source_signature(), $nextStore);
 }
 
 function dent_get_user_record($studentNumber): ?array
