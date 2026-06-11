@@ -3549,8 +3549,6 @@
 
   function conversationListLabel(conversation) {
     if (!conversation) return "";
-    var presenceText = conversationPresenceText(conversation);
-    if (presenceText) return presenceText;
     if (conversation.lastMessage) return "";
     if (conversation.type === "class-group") return "کلاس";
     if (conversation.type === "direct") {

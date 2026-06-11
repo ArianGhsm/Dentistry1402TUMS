@@ -202,38 +202,14 @@ function notes_download_host_domain_is_resolvable(string $host): bool
     return is_string($resolved) && trim($resolved) !== '' && strcasecmp($resolved, $normalized) !== 0;
 }
 
-function notes_download_host_public_host(): string
-{
-    static $cached = null;
-    if ($cached !== null) {
-        return $cached;
-    }
-
-    $secret = notes_download_host_load_secret();
-    if (!is_array($secret)) {
-        $cached = '';
-        return $cached;
-    }
-
-    $publicDomain = trim((string) ($secret['publicDomain'] ?? ''));
-    $fallbackHost = trim((string) ($secret['host'] ?? ''));
-    if ($publicDomain !== '' && notes_download_host_domain_is_resolvable($publicDomain)) {
-        $cached = $publicDomain;
-        return $cached;
-    }
-
-    $cached = $fallbackHost !== '' ? $fallbackHost : $publicDomain;
-    return $cached;
-}
-
 function notes_download_host_public_base_url(): string
 {
-    $host = notes_download_host_public_host();
-    if ($host === '') {
+    $secret = notes_download_host_load_secret();
+    if (!is_array($secret)) {
         return '';
     }
 
-    return 'https://' . trim($host, '/');
+    return 'https://' . trim((string) $secret['publicDomain'], '/');
 }
 
 function notes_download_host_prepare_long_transfer(): void
