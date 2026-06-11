@@ -9001,14 +9001,11 @@ if ($action === 'sync' || $action === 'fetch') {
             : chat_default_settings(),
         'presence' => $presenceBundle,
         'transport' => [
-            'mode' => 'sse',
-            'intervalMs' => 0,
-            'fallbackIntervalMs' => 5000,
-            'streamUrl' => chat_stream_url(),
-            'presenceUrl' => chat_presence_url(),
+            'mode' => 'polling',
+            'intervalMs' => 5000,
         ],
         'limitations' => [
-            'realtime' => true,
+            'realtime' => false,
             'presence' => true,
             'deliveryReceipts' => false,
             'storage' => 'json-file',
