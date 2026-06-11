@@ -362,7 +362,7 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
     }
 
     $downloadPublicHost = strtolower(trim((string) parse_url(notes_download_host_public_base_url(), PHP_URL_HOST)));
-    if ($downloadPublicHost === '' || !notes_download_host_domain_is_resolvable($downloadPublicHost)) {
+    if ($downloadPublicHost === '' || !notes_download_host_domain_is_publicly_resolvable($downloadPublicHost)) {
         return [
             'mode' => 'relay',
             'url' => notes_build_host_upload_url($target['relativeDir'], $cohort),

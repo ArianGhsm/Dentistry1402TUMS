@@ -1411,7 +1411,6 @@
     mentionTokenStart: -1,
     mentionTokenEnd: -1,
     pollDraftSelections: new Map(),
-    pendingPollCreate: false,
     pendingCardCreate: false
   };
   var navBadgeState = {
@@ -8013,188 +8012,6 @@
     }
   }
 
-  function syncPollOptionControls() {
-    if (!pollOptionsList) return;
-    var rows = Array.from(pollOptionsList.querySelectorAll(".poll-option-row"));
-    rows.forEach(function (row, index) {
-      var remove = row.querySelector("[data-poll-remove-option]");
-      if (remove) {
-        remove.hidden = rows.length <= 2;
-        remove.disabled = rows.length <= 2;
-      }
-      var input = row.querySelector("input");
-      if (input) {
-        input.placeholder = "گزینه " + (index + 1).toLocaleString("fa-IR");
-      }
-    });
-    if (!pollMaxChoicesSelect) return;
-    var multiple = !!(pollMultipleChoiceInput && pollMultipleChoiceInput.checked);
-    var current = Math.max(1, Math.floor(toNumber(pollMaxChoicesSelect.value, multiple ? 2 : 1)));
-    var maxChoices = Math.max(1, Math.min(6, rows.length));
-    var optionMarkup = [];
-    for (var count = 1; count <= maxChoices; count += 1) {
-      optionMarkup.push('<option value="' + count + '">' + count.toLocaleString("fa-IR") + ' گزینه</option>');
-    }
-    pollMaxChoicesSelect.innerHTML = optionMarkup.join("");
-    if (!multiple) {
-      pollMaxChoicesSelect.value = "1";
-      pollMaxChoicesSelect.disabled = true;
-    } else {
-      pollMaxChoicesSelect.disabled = false;
-      if (current < 2) current = 2;
-      if (current > maxChoices) current = maxChoices;
-      pollMaxChoicesSelect.value = String(current);
-    }
-  }
-
-  function addPollOptionField(value) {
-    if (!pollOptionsList) return null;
-    var rows = pollOptionsList.querySelectorAll(".poll-option-row");
-    if (rows.length >= 8) return null;
-    var row = document.createElement("div");
-    row.className = "poll-option-row";
-    row.innerHTML = [
-      '<input type="text" maxlength="120" value="' + escapeHtml(normalizeSpace(value)) + '" placeholder="گزینه">',
-      '<button type="button" class="poll-option-row__remove" data-poll-remove-option aria-label="حذف گزینه">×</button>'
-    ].join("");
-    var input = row.querySelector("input");
-    var remove = row.querySelector("[data-poll-remove-option]");
-    if (input) {
-      input.addEventListener("input", function () {
-        syncPollOptionControls();
-      });
-    }
-    if (remove) {
-      remove.addEventListener("click", function () {
-        row.remove();
-        syncPollOptionControls();
-      });
-    }
-    pollOptionsList.appendChild(row);
-    syncPollOptionControls();
-    return row;
-  }
-
-  function pollOptionValuesFromModal() {
-    if (!pollOptionsList) return [];
-    return Array.from(pollOptionsList.querySelectorAll("input")).map(function (input) {
-      return normalizeSpace(input && input.value);
-    }).filter(Boolean);
-  }
-
-  function resetPollComposerModal() {
-    if (pollQuestionInput) pollQuestionInput.value = "";
-    if (pollOptionsList) pollOptionsList.innerHTML = "";
-    addPollOptionField("");
-    addPollOptionField("");
-    addPollOptionField("");
-    if (pollMultipleChoiceInput) pollMultipleChoiceInput.checked = false;
-    if (pollAnonymousInput) pollAnonymousInput.checked = true;
-    if (pollAllowVoteChangeInput) pollAllowVoteChangeInput.checked = true;
-    if (pollAllowCreatorVoteInput) pollAllowCreatorVoteInput.checked = true;
-    if (pollResultVisibilitySelect) pollResultVisibilitySelect.value = "live";
-    syncPollOptionControls();
-    setPollModalFeedback("", "");
-    var conversation = activeConversation();
-    if (pollModalSubtitle) {
-      pollModalSubtitle.textContent = conversation
-        ? ("نظرسنجی در «" + (conversation.title || "گفتگو") + "» منتشر می‌شود.")
-        : "نظرسنجی داخل همین گفتگو منتشر می‌شود.";
-    }
-  }
-
-  function openPollComposerModal() {
-    var conversation = activeConversation();
-    if (!conversation) {
-      showToast("ابتدا یک گفتگو را انتخاب کن.");
-      return;
-    }
-    if (!(conversation.permissions && conversation.permissions.canCreatePoll)) {
-      showToast("ساخت نظرسنجی در این گفتگو برای شما فعال نیست.");
-      return;
-    }
-    resetPollComposerModal();
-    openModal(pollModal, "poll");
-    window.requestAnimationFrame(function () {
-      if (pollQuestionInput) {
-        pollQuestionInput.focus({ preventScroll: true });
-      }
-    });
-  }
-
-  async function submitPollFromModal() {
-    var conversation = activeConversation();
-    if (!conversation || !(conversation.permissions && conversation.permissions.canCreatePoll)) {
-      setPollModalFeedback("در این گفتگو اجازه ساخت نظرسنجی ندارید.", "error");
-      return;
-    }
-    var question = normalizeSpace(pollQuestionInput && pollQuestionInput.value).slice(0, 280);
-    var options = pollOptionValuesFromModal();
-    if (!question) {
-      setPollModalFeedback("سوال نظرسنجی را وارد کن.", "error");
-      if (pollQuestionInput) pollQuestionInput.focus({ preventScroll: true });
-      return;
-    }
-    if (options.length < 2) {
-      setPollModalFeedback("حداقل دو گزینه لازم است.", "error");
-      return;
-    }
-
-    setPollModalFeedback("", "");
-    state.pendingPollCreate = true;
-    setModalBusy("poll", true);
-    try {
-      var multipleChoice = !!(pollMultipleChoiceInput && pollMultipleChoiceInput.checked);
-      var maxChoices = multipleChoice ? Math.max(2, Math.floor(toNumber(pollMaxChoicesSelect && pollMaxChoicesSelect.value, 2))) : 1;
-      var response = await apiPost("createPoll", {
-        conversationId: conversation.id,
-        question: question,
-        optionsJson: JSON.stringify(options),
-        anonymous: pollAnonymousInput && pollAnonymousInput.checked ? "1" : "0",
-        multipleChoice: multipleChoice ? "1" : "0",
-        maxChoices: String(Math.min(maxChoices, options.length)),
-        allowVoteChange: pollAllowVoteChangeInput && pollAllowVoteChangeInput.checked ? "1" : "0",
-        allowCreatorVote: pollAllowCreatorVoteInput && pollAllowCreatorVoteInput.checked ? "1" : "0",
-        resultVisibility: normalizeSpace(pollResultVisibilitySelect && pollResultVisibilitySelect.value) || "live",
-        audience: "link",
-        postInConversation: "1"
-      });
-      if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
-        throw new Error((response && response.error) || "نشست شما منقضی شده است.");
-      }
-      ensureSuccessResponse(response, "ساخت نظرسنجی انجام نشد.");
-
-      var summaries = (Array.isArray(response.conversations) ? response.conversations : []).map(normalizeConversation).filter(Boolean);
-      if (summaries.length) {
-        summaries.forEach(upsertConversation);
-        rebuildConversationsFromMap();
-        renderConversationList();
-        updateThreadHead();
-        updatePollActionVisibility();
-      }
-
-      var message = normalizeMessage(response.message);
-      if (message && message.conversationId === state.activeConversationId) {
-        appendMessages([message], {
-          replaceAll: false,
-          forceStick: true,
-          smooth: true,
-          markNew: true
-        });
-      } else if (response.poll) {
-        applyPollPayloadToMessages(response.poll);
-      }
-
-      closeModal(true);
-      showToast("نظرسنجی منتشر شد.");
-    } catch (error) {
-      setPollModalFeedback((error && error.message) || "ساخت نظرسنجی انجام نشد.", "error");
-    } finally {
-      state.pendingPollCreate = false;
-      setModalBusy("poll", false);
-    }
-  }
-
   function modalNodeByKey(key) {
     if (key === "dm") return dmModal;
     if (key === "group") return groupModal;
@@ -8202,7 +8019,6 @@
     if (key === "reaction") return reactionModal;
     if (key === "reaction-details") return reactionDetailsModal;
     if (key === "card") return cardModal;
-    if (key === "poll") return pollModal;
     if (key === "edit") return editModal;
     if (key === "conversation-options") return conversationOptionsModal;
     if (key === "confirm") return confirmModal;
@@ -8250,10 +8066,6 @@
       showToast("در حال ساخت گروه یا کانال است...");
       return;
     }
-    if (!hardClose && state.modalOpen === "poll" && state.pendingPollCreate) {
-      showToast("در حال انتشار نظرسنجی است...");
-      return;
-    }
     if (!hardClose && state.modalOpen === "card" && state.pendingCardCreate) {
       showToast("در حال ارسال کارت است...");
       return;
@@ -8263,7 +8075,7 @@
       modalBackdrop.classList.remove("is-open");
       modalBackdrop.hidden = true;
     }
-    [dmModal, groupModal, forwardModal, reactionModal, reactionDetailsModal, cardModal, pollModal, editModal, conversationOptionsModal, confirmModal, receiptsModal].forEach(function (node) {
+    [dmModal, groupModal, forwardModal, reactionModal, reactionDetailsModal, cardModal, editModal, conversationOptionsModal, confirmModal, receiptsModal].forEach(function (node) {
       if (!node) return;
       node.classList.remove("is-open");
       node.classList.remove("is-busy");
@@ -8307,10 +8119,6 @@
     if (hadOpenModal && closingKey === "card") {
       state.pendingCardCreate = false;
       resetCardComposerModal();
-    }
-    if (hadOpenModal && closingKey === "poll") {
-      state.pendingPollCreate = false;
-      resetPollComposerModal();
     }
     if (hadOpenModal && closingKey === "edit") {
       state.pendingEditMessageId = null;
@@ -12096,12 +11904,10 @@
     if (reactionModalClose) reactionModalClose.addEventListener("click", closeModal);
     if (reactionDetailsModalClose) reactionDetailsModalClose.addEventListener("click", closeModal);
     if (cardModalClose) cardModalClose.addEventListener("click", closeModal);
-    if (pollModalClose) pollModalClose.addEventListener("click", closeModal);
     if (receiptsModalClose) receiptsModalClose.addEventListener("click", closeModal);
     if (editModalClose) editModalClose.addEventListener("click", closeModal);
     if (editCancelBtn) editCancelBtn.addEventListener("click", closeModal);
     if (cardCancelBtn) cardCancelBtn.addEventListener("click", closeModal);
-    if (pollCancelBtn) pollCancelBtn.addEventListener("click", closeModal);
     if (conversationOptionsClose) conversationOptionsClose.addEventListener("click", closeModal);
     if (confirmModalClose) {
       confirmModalClose.addEventListener("click", function () {
