@@ -85,10 +85,7 @@
             '      <div class="exam-stage-scaler">',
             '        <div class="exam-stage-canvas">',
             '          <section class="exam-panel exam-stage exam-stage--message">',
-            '            <a class="back-btn exam-back-link" href="' + escapeHtml(fallbackBackHref) + '">',
-            '              <span class="back-icon" aria-hidden="true">←</span>',
-            '              <span>' + escapeHtml(fallbackBackLabel) + "</span>",
-            "            </a>",
+            renderBackLinkMarkup(fallbackBackHref, fallbackBackLabel, "آزمون‌ها"),
             '            <div class="exam-message-card">',
             "              <h1>" + escapeHtml(heading) + "</h1>",
             "              <p>" + escapeHtml(message) + "</p>",
@@ -189,20 +186,97 @@
 
     function renderLaunchHeader(launchMeta) {
         return [
-            '  <div class="exam-stage-head">',
+            '  <div class="exam-stage-head exam-stage-head--launch">',
             '    <div class="exam-stage-head__main">',
-            '      <a class="back-btn exam-back-link" href="' + escapeHtml(exam.backHref) + '">',
-            '        <span class="back-icon" aria-hidden="true">←</span>',
-            "        " + renderResponsiveLabel(exam.backLabel, "\u0628\u0627\u0632\u06af\u0634\u062a"),
-            "      </a>",
+            '      <div class="exam-stage-head__topline">',
+            renderBackLinkMarkup(exam.backHref, exam.backLabel),
+            renderHeaderIdentity(),
+            "      </div>",
             '      <div class="exam-stage-head__copy">',
-            '        <span class="exam-kicker">' + escapeHtml(exam.courseTitle || exam.eyebrow) + "</span>",
             '        <div class="exam-meta-strip">' + launchMeta.join("") + "</div>",
             "      </div>",
             "    </div>",
             state.feedback.text ? '<div class="exam-feedback exam-feedback--' + escapeHtml(state.feedback.kind || "neutral") + '">' + escapeHtml(state.feedback.text) + "</div>" : "",
             "  </div>"
         ].join("");
+    }
+
+    function headerMetaParts(value) {
+        return String(value || "").split("|").map(function (part) {
+            return normalizeText(part);
+        }).filter(Boolean);
+    }
+
+    function headerCourseLabel() {
+        var courseTitle = normalizeText(exam.courseTitle);
+        if (courseTitle) {
+            return courseTitle;
+        }
+
+        var eyebrowParts = headerMetaParts(exam.eyebrow);
+        if (eyebrowParts.length) {
+            return eyebrowParts[0];
+        }
+
+        return compactBackTarget(exam.backLabel);
+    }
+
+    function headerContextLabel() {
+        var eyebrowParts = headerMetaParts(exam.eyebrow);
+        if (eyebrowParts.length > 1) {
+            return eyebrowParts[1];
+        }
+
+        return "";
+    }
+
+    function compactBackTarget(label) {
+        var text = normalizeText(label);
+        if (!text) {
+            return "";
+        }
+
+        text = text
+            .replace(/^بازگشت(?:\s+به)?\s*/u, "")
+            .replace(/^فهرست\s*/u, "")
+            .replace(/^آزمون(?:‌|\s)*های\s*/u, "")
+            .replace(/^آزمون\s*/u, "")
+            .trim();
+
+        return normalizeText(text);
+    }
+
+    function renderBackLinkMarkup(href, label, targetOverride) {
+        var target = normalizeText(targetOverride) || compactBackTarget(label) || headerCourseLabel();
+        return [
+            '<a class="back-btn exam-back-link" href="' + escapeHtml(href || "/exams/") + '">',
+            '  <span class="exam-back-link__icon" aria-hidden="true">→</span>',
+            '  <span class="exam-back-link__content">',
+            '    <span class="exam-back-link__label">' + renderResponsiveLabel("بازگشت به فهرست", "بازگشت") + "</span>",
+            target ? '    <span class="exam-back-link__meta">' + escapeHtml(target) + "</span>" : "",
+            "  </span>",
+            "</a>"
+        ].join("");
+    }
+
+    function renderHeaderIdentity() {
+        var chips = [];
+        var course = headerCourseLabel();
+        var context = headerContextLabel();
+
+        if (course) {
+            chips.push('<span class="exam-head-chip exam-head-chip--course">' + escapeHtml(course) + "</span>");
+        }
+
+        if (context && context !== course) {
+            chips.push('<span class="exam-head-chip">' + escapeHtml(context) + "</span>");
+        }
+
+        if (!chips.length) {
+            return "";
+        }
+
+        return '<div class="exam-head-chips">' + chips.join("") + "</div>";
     }
 
     function renderLaunchActions() {
@@ -400,12 +474,11 @@
         return [
             '  <div class="exam-stage-head exam-stage-head--session">',
             '    <div class="exam-stage-head__main">',
-            '      <a class="back-btn exam-back-link" href="' + escapeHtml(exam.backHref) + '">',
-            '        <span class="back-icon" aria-hidden="true">←</span>',
-            "        " + renderResponsiveLabel(exam.backLabel, "\u0628\u0627\u0632\u06af\u0634\u062a"),
-            "      </a>",
+            '      <div class="exam-stage-head__topline">',
+            renderBackLinkMarkup(exam.backHref, exam.backLabel),
+            renderHeaderIdentity(),
+            "      </div>",
             '      <div class="exam-stage-head__copy">',
-            '        <span class="exam-kicker">' + escapeHtml(exam.eyebrow) + "</span>",
             '        <h2 class="exam-stage-title exam-stage-title--compact">' + escapeHtml(exam.title) + "</h2>",
             '        <p class="exam-stage-subtitle exam-stage-subtitle--compact">' + escapeHtml(config.subtitle) + "</p>",
             "      </div>",

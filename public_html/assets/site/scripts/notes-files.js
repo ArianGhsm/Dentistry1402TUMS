@@ -689,6 +689,7 @@
 
     function uploadItem(item) {
         return new Promise(function (resolve, reject) {
+            var finalizingProgress = 99.2;
             item.targetPath = String(item.targetPath || state.currentPath || "");
             item.status = "uploading";
             item.progress = 0;
@@ -730,6 +731,7 @@
                 item.etaSeconds = speed > 0 && total > loaded ? (total - loaded) / speed : 0;
                 if (item.progress >= 99.9) {
                     item.status = "finalizing";
+                    item.progress = finalizingProgress;
                     item.etaSeconds = 0;
                 }
                 renderUploadQueue();
@@ -737,7 +739,7 @@
 
             xhr.upload.onload = function () {
                 item.uploadedBytes = Number(item.size || item.uploadedBytes || 0);
-                item.progress = 100;
+                item.progress = finalizingProgress;
                 item.status = "finalizing";
                 item.speedBps = 0;
                 item.etaSeconds = 0;

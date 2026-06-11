@@ -211,6 +211,16 @@
                     </div>
 
                     <div class="thread-shell" id="thread-shell" hidden>
+                        <div class="chat-drop-overlay" id="chat-drop-overlay" hidden aria-hidden="true">
+                            <div class="chat-drop-overlay__card">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M12 4V14M12 14L8 10M12 14L16 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M5 17V18.5C5 19.3284 5.67157 20 6.5 20H17.5C18.3284 20 19 19.3284 19 18.5V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <strong>فایل را اینجا رها کن</strong>
+                                <span>برای پیوست کردن به این گفت‌وگو</span>
+                            </div>
+                        </div>
                         <header class="thread-head">
                             <button id="mobile-open-list" class="thread-head__mobile-btn" type="button" aria-label="باز کردن لیست گفتگو">
                                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -505,7 +515,7 @@
         <section class="chat-info-block">
             <span class="chat-info-block__label">محتوای گفتگو</span>
             <div class="chat-info-content-tabs" id="chat-info-content-tabs"></div>
-            <div class="chat-info-content-table" id="chat-info-content-table"></div>
+            <div class="chat-info-content-table" id="chat-info-content-table" data-media-collection="info"></div>
         </section>
 
         <section class="chat-info-block">
@@ -925,13 +935,105 @@
                 <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
             </svg>
         </button>
-        <a class="chat-media-viewer__more" id="chat-media-viewer-more" href="#" target="_blank" rel="noopener" hidden aria-label="گزینه‌های رسانه">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M12 7.2H12.01M12 12H12.01M12 16.8H12.01" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
-            </svg>
-        </a>
+        <div class="chat-media-viewer__meta" id="chat-media-viewer-meta" hidden>
+            <strong class="chat-media-viewer__meta-name" id="chat-media-viewer-sender"></strong>
+            <span class="chat-media-viewer__meta-time" id="chat-media-viewer-time"></span>
+        </div>
+        <div class="chat-media-viewer__actions">
+            <button class="chat-media-viewer__action" id="chat-media-viewer-rotate" type="button" hidden aria-label="چرخش تصویر">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M4 9C5.1 6 8 4 11.5 4C16.2 4 20 7.8 20 12.5C20 17.2 16.2 21 11.5 21C7.6 21 4.3 18.4 3.3 14.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4 4.5V9H8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button class="chat-media-viewer__action" id="chat-media-viewer-forward" type="button" hidden aria-label="فوروارد">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M14 5L20 11L14 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M20 11H10C7 11 4 13 4 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <a class="chat-media-viewer__action" id="chat-media-viewer-download" href="#" download hidden aria-label="دانلود">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 4V14M12 14L8 10M12 14L16 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M5 17V18.5C5 19.3284 5.67157 20 6.5 20H17.5C18.3284 20 19 19.3284 19 18.5V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+            <button class="chat-media-viewer__action chat-media-viewer__action--danger" id="chat-media-viewer-delete" type="button" hidden aria-label="حذف">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 7H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M9 7V5C9 4.44772 9.44772 4 10 4H14C14.5523 4 15 4.44772 15 5V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 7L7.6 18.2C7.65 19.2 8.5 20 9.5 20H14.5C15.5 20 16.35 19.2 16.4 18.2L17 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 11V16M14 11V16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <a class="chat-media-viewer__more" id="chat-media-viewer-more" href="#" target="_blank" rel="noopener" hidden aria-label="گزینه‌های رسانه">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 7.2H12.01M12 12H12.01M12 16.8H12.01" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+                </svg>
+            </a>
+        </div>
         <div class="chat-media-viewer__stage" id="chat-media-viewer-stage"></div>
         <div class="chat-media-viewer__caption" id="chat-media-viewer-caption"></div>
+    </section>
+
+    <section class="chat-image-editor" id="chat-image-editor" hidden aria-label="ویرایش تصویر">
+        <header class="chat-image-editor__head">
+            <button class="chat-image-editor__icon-btn" id="chat-image-editor-close" type="button" aria-label="انصراف">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
+            </button>
+            <div class="chat-image-editor__tools">
+                <button class="chat-image-editor__tool" id="chat-image-editor-rotate" type="button" aria-label="چرخش">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 9C5.1 6 8 4 11.5 4C16.2 4 20 7.8 20 12.5C20 17.2 16.2 21 11.5 21C7.6 21 4.3 18.4 3.3 14.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 4.5V9H8.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="chat-image-editor__tool" id="chat-image-editor-crop" type="button" aria-label="برش">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6 2V18C6 19.1046 6.89543 20 8 20H22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M18 22V6C18 4.89543 17.1046 4 16 4H2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="chat-image-editor__tool" id="chat-image-editor-draw" type="button" aria-label="نقاشی">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 20L4.7 16.6C4.85 15.86 5.21 15.18 5.74 14.65L15.6 4.79C16.39 4 17.66 4 18.45 4.79L19.21 5.55C20 6.34 20 7.61 19.21 8.4L9.35 18.26C8.82 18.79 8.14 19.15 7.4 19.3L4 20Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                        <path d="M14 6.5L17.5 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <button class="chat-image-editor__tool chat-image-editor__tool--filter" id="chat-image-editor-filter" type="button" aria-label="فیلتر">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <circle cx="9" cy="12" r="5.2" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="15" cy="12" r="5.2" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                    <span class="chat-image-editor__filter-label" id="chat-image-editor-filter-label">بدون فیلتر</span>
+                </button>
+            </div>
+            <button class="chat-image-editor__icon-btn chat-image-editor__icon-btn--primary" id="chat-image-editor-done" type="button" aria-label="اعمال تغییرات">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 12.5L10 17.5L19 7" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </header>
+        <div class="chat-image-editor__stage" id="chat-image-editor-stage">
+            <canvas id="chat-image-editor-canvas"></canvas>
+            <div class="chat-image-editor__crop-box" id="chat-image-editor-crop-box" hidden>
+                <span class="chat-image-editor__crop-handle" data-handle="nw"></span>
+                <span class="chat-image-editor__crop-handle" data-handle="ne"></span>
+                <span class="chat-image-editor__crop-handle" data-handle="sw"></span>
+                <span class="chat-image-editor__crop-handle" data-handle="se"></span>
+            </div>
+        </div>
+        <div class="chat-image-editor__draw-options" id="chat-image-editor-draw-options" hidden>
+            <button type="button" class="chat-image-editor__color is-selected" data-draw-color="#ff3b30" style="background:#ff3b30" aria-label="قرمز"></button>
+            <button type="button" class="chat-image-editor__color" data-draw-color="#ffd60a" style="background:#ffd60a" aria-label="زرد"></button>
+            <button type="button" class="chat-image-editor__color" data-draw-color="#34c759" style="background:#34c759" aria-label="سبز"></button>
+            <button type="button" class="chat-image-editor__color" data-draw-color="#0a84ff" style="background:#0a84ff" aria-label="آبی"></button>
+            <button type="button" class="chat-image-editor__color" data-draw-color="#ffffff" style="background:#ffffff" aria-label="سفید"></button>
+            <button type="button" class="chat-image-editor__color" data-draw-color="#1c1c1e" style="background:#1c1c1e" aria-label="مشکی"></button>
+        </div>
     </section>
 
     <script src="/assets/site/scripts/auth.js?v=20260604-161209"></script>

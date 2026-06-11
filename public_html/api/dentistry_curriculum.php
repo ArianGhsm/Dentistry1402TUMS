@@ -372,7 +372,7 @@ function dent_dentistry_curriculum_terms(): array
                         [
                             'key' => 'dental-materials-foundations',
                             'title' => 'مبانی مواد دندانی',
-                            'examCourseSlugs' => ['craig-dental-materials', 'vannoort-dental-materials'],
+                            'examCourseSlugs' => ['dental-materials-foundations', 'craig-dental-materials', 'vannoort-dental-materials'],
                         ],
                         [
                             'key' => 'diagnostics-1-2',
@@ -395,7 +395,7 @@ function dent_dentistry_curriculum_terms(): array
                             'title' => 'فوریت‌های پزشکی',
                             'examCourseSlugs' => ['malamed-medical-emergencies'],
                         ],
-                        ['key' => 'gerontology-term-6', 'title' => 'سالمندشناسی'],
+                        ['key' => 'gerontology-term-6', 'title' => 'سالمندشناسی', 'examCourseSlugs' => ['gerontology-term-6']],
                         [
                             'key' => 'equipment-ergonomics',
                             'title' => 'تجهیزات دندان‌پزشکی و ارگونومی',

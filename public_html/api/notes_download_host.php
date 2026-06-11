@@ -836,13 +836,93 @@ function notes_download_host_unique_file_name(string $relativeDir, string $name)
     return $candidate;
 }
 
-function notes_download_host_parse_upload_response(string $raw): array
+function notes_download_host_extract_response_body(string $raw): string
 {
-    if (preg_match("/\r\n\r\n(.*)\$/s", $raw, $matches) !== 1) {
-        dent_error('پاسخ آپلود از هاست دانلود معتبر نبود.', 502);
+    $separator = strpos($raw, "\r\n\r\n");
+    if ($separator === false) {
+        return trim($raw);
     }
 
-    $body = trim((string) ($matches[1] ?? ''));
+    return trim(substr($raw, $separator + 4));
+}
+
+function notes_download_host_parse_http_headers(string $headerBlock): array
+{
+    $headers = [];
+    $lines = preg_split('/\r\n/', trim($headerBlock)) ?: [];
+    foreach ($lines as $index => $line) {
+        if ($index === 0) {
+            continue;
+        }
+        $colon = strpos($line, ':');
+        if ($colon === false) {
+            continue;
+        }
+        $name = strtolower(trim(substr($line, 0, $colon)));
+        if ($name === '') {
+            continue;
+        }
+        $value = trim(substr($line, $colon + 1));
+        if ($value === '') {
+            continue;
+        }
+        if (isset($headers[$name])) {
+            $headers[$name] .= ', ' . $value;
+            continue;
+        }
+        $headers[$name] = $value;
+    }
+
+    return $headers;
+}
+
+function notes_download_host_decode_chunked_body(string $body): ?string
+{
+    $offset = 0;
+    $length = strlen($body);
+    $decoded = '';
+
+    while (true) {
+        $lineEnd = strpos($body, "\r\n", $offset);
+        if ($lineEnd === false) {
+            return null;
+        }
+
+        $sizeLine = trim(substr($body, $offset, $lineEnd - $offset));
+        $sizeLine = trim(explode(';', $sizeLine, 2)[0]);
+        if ($sizeLine === '' || preg_match('/^[0-9a-fA-F]+$/', $sizeLine) !== 1) {
+            return null;
+        }
+
+        $chunkSize = hexdec($sizeLine);
+        $offset = $lineEnd + 2;
+
+        if ($chunkSize === 0) {
+            if ($length < $offset + 2) {
+                return null;
+            }
+            if (substr($body, $offset, 2) !== "\r\n") {
+                return null;
+            }
+            return $decoded;
+        }
+
+        if ($length < $offset + $chunkSize + 2) {
+            return null;
+        }
+
+        $decoded .= substr($body, $offset, $chunkSize);
+        $offset += $chunkSize;
+        if (substr($body, $offset, 2) !== "\r\n") {
+            return null;
+        }
+        $offset += 2;
+    }
+}
+
+function notes_download_host_parse_upload_response(string $raw): array
+{
+    $body = notes_download_host_extract_response_body($raw);
     $decoded = json_decode($body, true);
     if (!is_array($decoded)) {
         dent_error('پاسخ JSON آپلود از هاست دانلود معتبر نبود.', 502);
@@ -925,6 +1005,7 @@ function notes_download_host_stream_upload_from_stream(string $targetAbsDir, $so
         'Authorization: Basic ' . base64_encode((string) $secret['username'] . ':' . (string) $secret['password']),
         'User-Agent: Dentistry1402TUMS-NotesDownloadHost/1.0',
         'Accept: application/json',
+        'Accept-Encoding: identity',
         'Content-Type: multipart/form-data; boundary=' . $boundary,
         'Content-Length: ' . $contentLength,
         'Connection: close',
@@ -952,13 +1033,8 @@ function notes_download_host_stream_upload_from_stream(string $targetAbsDir, $so
 
     notes_download_host_socket_write_all($socket, $suffix, 'پایان‌بندی آپلود روی هاست دانلود');
 
-    stream_set_timeout($socket, NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS);
-    $response = stream_get_contents($socket);
-    $meta = stream_get_meta_data($socket);
+    $response = notes_download_host_relay_read_response($socket);
     fclose($socket);
-    if (!empty($meta['timed_out'])) {
-        dent_error('پاسخ نهایی هاست دانلود برای این فایل در زمان مجاز نرسید. timeout سمت سرور یا شبکه را بررسی کنید.', 504);
-    }
     if (!is_string($response) || trim($response) === '') {
         dent_error('پاسخ آپلود از هاست دانلود دریافت نشد.', 502);
     }
@@ -1036,6 +1112,7 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
         'Authorization: Basic ' . base64_encode((string) $secret['username'] . ':' . (string) $secret['password']),
         'User-Agent: Dentistry1402TUMS-NotesDownloadHost/1.0',
         'Accept: application/json',
+        'Accept-Encoding: identity',
         'Content-Type: multipart/form-data; boundary=' . $boundary,
         'Content-Length: ' . $contentLength,
         'Connection: close',
@@ -1165,29 +1242,77 @@ function notes_download_host_relay_write_all($socket, string $payload, string $p
 function notes_download_host_relay_read_response($socket): string
 {
     $buffer = '';
+    $headerEnd = null;
+    $headers = [];
     $deadline = microtime(true) + NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS;
     while (true) {
         stream_set_timeout($socket, 4);
         $chunk = fread($socket, 65536);
-        if ($chunk !== false && $chunk !== '') {
-            $buffer .= $chunk;
-            continue;
+        if ($chunk === false) {
+            $meta = stream_get_meta_data($socket);
+            if (!empty($meta['timed_out'])) {
+                if (microtime(true) > $deadline) {
+                    throw new RuntimeException('پاسخ نهایی هاست دانلود برای این فایل در زمان مجاز نرسید.');
+                }
+                notes_download_host_relay_ping();
+                continue;
+            }
+            throw new RuntimeException('خواندن پاسخ آپلود از هاست دانلود ممکن نشد.');
         }
+        if ($chunk !== '') {
+            $buffer .= $chunk;
+        }
+
+        if ($headerEnd === null) {
+            $headerEnd = strpos($buffer, "\r\n\r\n");
+            if ($headerEnd !== false) {
+                $headers = notes_download_host_parse_http_headers(substr($buffer, 0, $headerEnd));
+            }
+        }
+
+        if ($headerEnd !== null) {
+            $body = substr($buffer, $headerEnd + 4);
+            $transferEncoding = strtolower((string) ($headers['transfer-encoding'] ?? ''));
+            $contentLength = isset($headers['content-length']) ? max(0, (int) $headers['content-length']) : null;
+
+            if (str_contains($transferEncoding, 'chunked')) {
+                $decoded = notes_download_host_decode_chunked_body($body);
+                if ($decoded !== null) {
+                    return $decoded;
+                }
+            } elseif ($contentLength !== null) {
+                if (strlen($body) >= $contentLength) {
+                    return substr($body, 0, $contentLength);
+                }
+            } else {
+                $trimmed = trim($body);
+                if ($trimmed !== '') {
+                    $decoded = json_decode($trimmed, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        return $trimmed;
+                    }
+                }
+            }
+        }
+
         if (feof($socket)) {
             break;
         }
+
         $meta = stream_get_meta_data($socket);
         if (!empty($meta['timed_out'])) {
             if (microtime(true) > $deadline) {
                 throw new RuntimeException('پاسخ نهایی هاست دانلود برای این فایل در زمان مجاز نرسید.');
             }
             notes_download_host_relay_ping();
-            continue;
         }
-        break;
     }
 
-    return $buffer;
+    if ($headerEnd !== null) {
+        return trim((string) substr($buffer, $headerEnd + 4));
+    }
+
+    return trim($buffer);
 }
 
 function notes_download_host_relay_parse_response(string $raw): array

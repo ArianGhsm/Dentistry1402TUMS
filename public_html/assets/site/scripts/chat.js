@@ -1008,6 +1008,7 @@
   var threadPane = $("thread-pane");
   var threadPlaceholder = $("thread-placeholder");
   var threadShell = $("thread-shell");
+  var chatDropOverlay = $("chat-drop-overlay");
   var placeholderActiveCount = $("placeholder-active-count");
   var placeholderUnreadCount = $("placeholder-unread-count");
   var placeholderClassLabel = $("placeholder-class-label");
@@ -1258,9 +1259,40 @@
   var mediaViewerMore = $("chat-media-viewer-more");
   var mediaViewerStage = $("chat-media-viewer-stage");
   var mediaViewerCaption = $("chat-media-viewer-caption");
+  var mediaViewerMeta = $("chat-media-viewer-meta");
+  var mediaViewerSender = $("chat-media-viewer-sender");
+  var mediaViewerTime = $("chat-media-viewer-time");
+  var mediaViewerRotate = $("chat-media-viewer-rotate");
+  var mediaViewerForward = $("chat-media-viewer-forward");
+  var mediaViewerDownload = $("chat-media-viewer-download");
+  var mediaViewerDelete = $("chat-media-viewer-delete");
   var mediaViewerPrev = null;
   var mediaViewerNext = null;
   var mediaViewerCounter = null;
+  var mediaViewerCloseTimer = null;
+  var MEDIA_VIEWER_FADE_MS = 160;
+  var MEDIA_VIEWER_SETTLE_MS = 180;
+  var imageEditor = $("chat-image-editor");
+  var imageEditorClose = $("chat-image-editor-close");
+  var imageEditorDone = $("chat-image-editor-done");
+  var imageEditorRotate = $("chat-image-editor-rotate");
+  var imageEditorCrop = $("chat-image-editor-crop");
+  var imageEditorDraw = $("chat-image-editor-draw");
+  var imageEditorFilter = $("chat-image-editor-filter");
+  var imageEditorFilterLabel = $("chat-image-editor-filter-label");
+  var imageEditorCanvas = $("chat-image-editor-canvas");
+  var imageEditorStage = $("chat-image-editor-stage");
+  var imageEditorCropBox = $("chat-image-editor-crop-box");
+  var imageEditorDrawOptions = $("chat-image-editor-draw-options");
+  var imageEditorState = null;
+  var IMAGE_EDITOR_FILTERS = [
+    { id: "none", label: "بدون فیلتر", css: "none" },
+    { id: "grayscale", label: "سیاه و سفید", css: "grayscale(1)" },
+    { id: "sepia", label: "قدیمی", css: "sepia(0.65) saturate(1.2)" },
+    { id: "bright", label: "روشن", css: "brightness(1.18) saturate(1.05)" },
+    { id: "contrast", label: "کنتراست", css: "contrast(1.25)" },
+    { id: "cool", label: "سرد", css: "hue-rotate(-12deg) saturate(1.1)" }
+  ];
 
   var toastEl = $("toast");
   var themeColorMetas = Array.from(document.querySelectorAll('meta[name="theme-color"]'));
@@ -1364,6 +1396,13 @@
     mediaViewerIndex: -1,
     mediaViewerZoomed: false,
     mediaViewerPointer: null,
+    mediaViewerScale: 1,
+    mediaViewerRotation: 0,
+    mediaViewerOffsetX: 0,
+    mediaViewerOffsetY: 0,
+    mediaViewerActivePointers: new Map(),
+    mediaViewerPinch: null,
+    mediaViewerPanPointer: null,
     transportMode: "polling",
     transportStreamUrl: "",
     transportPresenceUrl: "",
@@ -4285,6 +4324,8 @@
       poster: kind === "video" ? previewUrl : "",
       caption: normalizeSpace(opts.caption || attachment.name || ""),
       group: normalizeSpace(opts.group || ""),
+      downloadUrl: normalizeSpace(attachment.downloadUrl || attachment.url || ""),
+      messageId: opts.messageId ? String(opts.messageId) : "",
       durationSeconds: Math.max(0, Math.floor(toNumber(attachment.durationSeconds, 0)))
     };
   }
@@ -4299,7 +4340,7 @@
       badgeText = payload.durationSeconds > 0 ? formatDuration(payload.durationSeconds) : "ویدیو";
     }
     return [
-      '<button type="button" class="' + escapeHtml(className) + '" data-media-kind="' + escapeHtml(payload.kind) + '" data-media-src="' + escapeHtml(payload.src) + '"' + (payload.poster ? ' data-media-poster="' + escapeHtml(payload.poster) + '"' : "") + ' data-media-caption="' + escapeHtml(payload.caption || "رسانه") + '"' + (payload.group ? ' data-media-group="' + escapeHtml(payload.group) + '"' : "") + '>',
+      '<button type="button" class="' + escapeHtml(className) + '" data-media-kind="' + escapeHtml(payload.kind) + '" data-media-src="' + escapeHtml(payload.src) + '"' + (payload.poster ? ' data-media-poster="' + escapeHtml(payload.poster) + '"' : "") + ' data-media-caption="' + escapeHtml(payload.caption || "رسانه") + '"' + (payload.group ? ' data-media-group="' + escapeHtml(payload.group) + '"' : "") + (payload.downloadUrl ? ' data-media-download="' + escapeHtml(payload.downloadUrl) + '"' : "") + (payload.messageId ? ' data-media-message-id="' + escapeHtml(payload.messageId) + '"' : "") + '>',
       payload.kind === "video"
         ? (
           attachment.available && attachment.url
@@ -4690,7 +4731,8 @@
       return renderAttachmentMediaButton(attachment, {
         className: "msg-media-album__tile msg-attachment__media-btn",
         group: group,
-        caption: attachmentCaptionPreview(message, attachment)
+        caption: attachmentCaptionPreview(message, attachment),
+        messageId: message && message.id
       });
     }).join("") + "</section>";
   }
@@ -4727,7 +4769,8 @@
       '<article class="msg-attachment">',
       renderAttachmentMedia(attachment, {
         group: normalizeSpace(opts.mediaGroup || ""),
-        caption: normalizeSpace(opts.mediaCaption || attachment.name || "")
+        caption: normalizeSpace(opts.mediaCaption || attachment.name || ""),
+        messageId: opts.messageId
       }),
       '  <div class="msg-attachment__head">',
       '    <span class="msg-attachment__name" title="' + escapeHtml(attachment.name) + '">' + escapeHtml(attachment.name) + "</span>",
@@ -4758,13 +4801,15 @@
     } else if (visualAttachments.length === 1) {
       parts.push(renderAttachment(visualAttachments[0], {
         mediaGroup: mediaGroup,
-        mediaCaption: attachmentCaptionPreview(message, visualAttachments[0])
+        mediaCaption: attachmentCaptionPreview(message, visualAttachments[0]),
+        messageId: message && message.id
       }));
     }
     remainingAttachments.forEach(function (attachment) {
       parts.push(renderAttachment(attachment, {
         mediaGroup: mediaGroup,
-        mediaCaption: attachmentCaptionPreview(message, attachment)
+        mediaCaption: attachmentCaptionPreview(message, attachment),
+        messageId: message && message.id
       }));
     });
     return '<div class="msg-attachments">' + parts.join("") + "</div>";
@@ -5589,26 +5634,97 @@
 
   function closeMediaViewer() {
     if (!mediaViewer) return;
+    if (mediaViewerCloseTimer) {
+      window.clearTimeout(mediaViewerCloseTimer);
+      mediaViewerCloseTimer = null;
+    }
+    if (mediaViewer.hidden) return;
     mediaViewer.classList.remove("is-open");
     mediaViewer.classList.remove("is-zoomed");
-    mediaViewer.hidden = true;
-    if (mediaViewerMore) {
-      mediaViewerMore.hidden = true;
-      mediaViewerMore.removeAttribute("href");
-    }
     if (mediaViewerStage) {
-      mediaViewerStage.innerHTML = "";
       mediaViewerStage.classList.remove("is-dragging");
       mediaViewerStage.classList.remove("is-settling");
       mediaViewerStage.style.removeProperty("transform");
       mediaViewerStage.style.removeProperty("opacity");
     }
-    if (mediaViewerCaption) mediaViewerCaption.textContent = "";
-    if (mediaViewerCounter) mediaViewerCounter.textContent = "";
     state.mediaViewerItems = [];
     state.mediaViewerIndex = -1;
     state.mediaViewerZoomed = false;
     state.mediaViewerPointer = null;
+    state.mediaViewerScale = 1;
+    state.mediaViewerRotation = 0;
+    state.mediaViewerOffsetX = 0;
+    state.mediaViewerOffsetY = 0;
+    state.mediaViewerActivePointers.clear();
+    state.mediaViewerPinch = null;
+    state.mediaViewerPanPointer = null;
+    mediaViewerCloseTimer = window.setTimeout(function () {
+      mediaViewerCloseTimer = null;
+      mediaViewer.hidden = true;
+      if (mediaViewerMore) {
+        mediaViewerMore.hidden = true;
+        mediaViewerMore.removeAttribute("href");
+      }
+      if (mediaViewerStage) mediaViewerStage.innerHTML = "";
+      if (mediaViewerCaption) mediaViewerCaption.textContent = "";
+      if (mediaViewerCounter) mediaViewerCounter.textContent = "";
+      if (mediaViewerMeta) mediaViewerMeta.hidden = true;
+      if (mediaViewerSender) mediaViewerSender.textContent = "";
+      if (mediaViewerTime) mediaViewerTime.textContent = "";
+      if (mediaViewerForward) mediaViewerForward.hidden = true;
+      if (mediaViewerDelete) mediaViewerDelete.hidden = true;
+      if (mediaViewerRotate) mediaViewerRotate.hidden = true;
+      if (mediaViewerDownload) {
+        mediaViewerDownload.hidden = true;
+        mediaViewerDownload.removeAttribute("href");
+      }
+    }, MEDIA_VIEWER_FADE_MS);
+  }
+
+  function clampMediaViewerOffsets() {
+    if (!mediaViewerStage) return;
+    var media = mediaViewerStage.querySelector("img, video");
+    if (!media) return;
+    var stageRect = mediaViewerStage.getBoundingClientRect();
+    var rotated = (state.mediaViewerRotation % 180) !== 0;
+    var baseW = media.offsetWidth;
+    var baseH = media.offsetHeight;
+    var renderedW = (rotated ? baseH : baseW) * state.mediaViewerScale;
+    var renderedH = (rotated ? baseW : baseH) * state.mediaViewerScale;
+    var maxX = Math.max(0, (renderedW - stageRect.width) / 2);
+    var maxY = Math.max(0, (renderedH - stageRect.height) / 2);
+    state.mediaViewerOffsetX = clamp(state.mediaViewerOffsetX, -maxX, maxX);
+    state.mediaViewerOffsetY = clamp(state.mediaViewerOffsetY, -maxY, maxY);
+  }
+
+  function applyMediaViewerTransform(options) {
+    if (!mediaViewerStage) return;
+    var media = mediaViewerStage.querySelector("img, video");
+    if (!media) return;
+    var opts = asObject(options) || {};
+    clampMediaViewerOffsets();
+    media.style.transition = opts.live ? "none" : "";
+    media.style.transform = "translate3d(" + state.mediaViewerOffsetX.toFixed(1) + "px," + state.mediaViewerOffsetY.toFixed(1) + "px,0) rotate(" + state.mediaViewerRotation + "deg) scale(" + state.mediaViewerScale.toFixed(3) + ")";
+    var zoomed = state.mediaViewerScale > 1.01;
+    state.mediaViewerZoomed = zoomed;
+    mediaViewer.classList.toggle("is-zoomed", zoomed);
+  }
+
+  function setMediaViewerScale(scale, options) {
+    state.mediaViewerScale = clamp(scale, 1, 4);
+    if (state.mediaViewerScale <= 1.01) {
+      state.mediaViewerScale = 1;
+      state.mediaViewerOffsetX = 0;
+      state.mediaViewerOffsetY = 0;
+    }
+    applyMediaViewerTransform(options);
+  }
+
+  function rotateMediaViewerImage() {
+    var item = state.mediaViewerItems[state.mediaViewerIndex];
+    if (!item || item.kind !== "image") return;
+    state.mediaViewerRotation = (state.mediaViewerRotation + 90) % 360;
+    applyMediaViewerTransform();
   }
 
   function ensureMediaViewerControls() {
@@ -5654,11 +5770,17 @@
     var caption = normalizeSpace(node.getAttribute("data-media-caption"));
     if (!src) return null;
     if (kind !== "video") kind = "image";
+    var messageId = Math.floor(toNumber(node.getAttribute("data-media-message-id"), 0));
+    var message = messageId > 0 ? findMessage(messageId) : null;
     return {
       kind: kind,
       src: src,
       poster: poster,
-      caption: caption
+      caption: caption,
+      messageId: messageId > 0 ? messageId : 0,
+      downloadUrl: toText(node.getAttribute("data-media-download")) || src,
+      senderName: message ? (message.name || "") : "",
+      ts: message ? message.ts : 0
     };
   }
 
@@ -5698,7 +5820,7 @@
     mediaViewerStage.style.opacity = "0.78";
     window.setTimeout(function () {
       stepMediaViewer(direction);
-    }, 110);
+    }, MEDIA_VIEWER_SETTLE_MS);
   }
 
   function collectMediaViewerItems(activeNode) {
@@ -5753,6 +5875,11 @@
     if (!item || !item.src) return;
 
     state.mediaViewerZoomed = false;
+    state.mediaViewerScale = 1;
+    state.mediaViewerRotation = 0;
+    state.mediaViewerPinch = null;
+    state.mediaViewerPanPointer = null;
+    state.mediaViewerActivePointers.clear();
     mediaViewer.classList.remove("is-zoomed");
     resetMediaViewerStageOffset();
 
@@ -5763,6 +5890,7 @@
       mediaViewerMore.href = item.src;
       mediaViewerMore.hidden = false;
     }
+    if (mediaViewerRotate) mediaViewerRotate.hidden = item.kind !== "image";
     if (mediaViewerCaption) mediaViewerCaption.textContent = item.caption || "";
     if (mediaViewerCounter) {
       mediaViewerCounter.textContent = state.mediaViewerItems.length > 1
@@ -5772,6 +5900,22 @@
     }
     if (mediaViewerPrev) mediaViewerPrev.hidden = state.mediaViewerItems.length <= 1;
     if (mediaViewerNext) mediaViewerNext.hidden = state.mediaViewerItems.length <= 1;
+
+    var message = item.messageId ? findMessage(item.messageId) : null;
+    if (mediaViewerSender) mediaViewerSender.textContent = item.senderName || "";
+    if (mediaViewerTime) mediaViewerTime.textContent = item.ts ? formatDateTime(item.ts) : "";
+    if (mediaViewerMeta) mediaViewerMeta.hidden = !item.senderName && !item.ts;
+    if (mediaViewerDownload) {
+      if (item.downloadUrl) {
+        mediaViewerDownload.href = item.downloadUrl;
+        mediaViewerDownload.hidden = false;
+      } else {
+        mediaViewerDownload.hidden = true;
+        mediaViewerDownload.removeAttribute("href");
+      }
+    }
+    if (mediaViewerForward) mediaViewerForward.hidden = !message;
+    if (mediaViewerDelete) mediaViewerDelete.hidden = !message || !canManageMessage(message);
   }
 
   function stepMediaViewer(delta) {
@@ -5788,12 +5932,15 @@
     if (!mediaViewer || !mediaViewerStage) return;
     var item = state.mediaViewerItems[state.mediaViewerIndex];
     if (!item || item.kind !== "image") return;
-    state.mediaViewerZoomed = !state.mediaViewerZoomed;
-    mediaViewer.classList.toggle("is-zoomed", state.mediaViewerZoomed);
+    setMediaViewerScale(state.mediaViewerScale > 1.01 ? 1 : 2.5);
   }
 
   function openMediaViewerFromNode(node) {
     if (!node || !mediaViewer || !mediaViewerStage) return;
+    if (mediaViewerCloseTimer) {
+      window.clearTimeout(mediaViewerCloseTimer);
+      mediaViewerCloseTimer = null;
+    }
     var payload = collectMediaViewerItems(node);
     if (payload.items.length) {
       ensureMediaViewerControls();
@@ -5820,6 +5967,14 @@
       mediaViewerMore.hidden = false;
     }
     if (mediaViewerCaption) mediaViewerCaption.textContent = caption || "";
+    if (mediaViewerMeta) mediaViewerMeta.hidden = true;
+    if (mediaViewerForward) mediaViewerForward.hidden = true;
+    if (mediaViewerDelete) mediaViewerDelete.hidden = true;
+    if (mediaViewerDownload) {
+      var downloadUrl = toText(node.getAttribute("data-media-download")) || src;
+      mediaViewerDownload.href = downloadUrl;
+      mediaViewerDownload.hidden = false;
+    }
     mediaViewer.hidden = false;
     window.requestAnimationFrame(function () {
       mediaViewer.classList.add("is-open");
@@ -6951,8 +7106,23 @@
     }).join("");
 
     var activeItems = buckets[state.infoContentCategory] || [];
+    infoContentTable.classList.toggle("chat-info-content-table--grid", state.infoContentCategory === "media");
+
     if (!activeItems.length) {
       infoContentTable.innerHTML = '<div class="chat-info-empty">موردی برای این دسته وجود ندارد.</div>';
+      return;
+    }
+
+    if (state.infoContentCategory === "media") {
+      infoContentTable.innerHTML = activeItems.slice(0, 60).map(function (item) {
+        var media = renderAttachmentMediaButton(item.attachment, { caption: item.title || "رسانه", messageId: item.message && item.message.id });
+        if (media) return media;
+        return [
+          '<button type="button" class="chat-info-media-cell chat-info-media-cell--placeholder" data-scroll-message="' + String(item.message.id) + '">',
+          '  <span>' + escapeHtml(item.title || "رسانه") + '</span>',
+          '</button>'
+        ].join("");
+      }).join("");
       return;
     }
 
@@ -9921,6 +10091,11 @@
           : "",
         "  </div>",
         '  <div class="composer-upload-item__actions">',
+        (preview && preview.kind === "image" && item.status !== "uploading"
+          ? ('    <button type="button" class="composer-upload-item__edit" data-upl-edit="' + escapeHtml(item.localId) + '" aria-label="ویرایش تصویر">' +
+            '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20L4.7 16.6C4.85 15.86 5.21 15.18 5.74 14.65L15.6 4.79C16.39 4 17.66 4 18.45 4.79L19.21 5.55C20 6.34 20 7.61 19.21 8.4L9.35 18.26C8.82 18.79 8.14 19.15 7.4 19.3L4 20Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 6.5L17.5 10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>' +
+            "</button>")
+          : ""),
         '    <button type="button" class="composer-upload-item__move" data-upl-move="' + escapeHtml(item.localId) + '" data-upl-shift="-1"' + (canMoveUp ? ' aria-label="انتقال به بالا"' : ' disabled aria-label="آیتم اول"') + ">↑</button>",
         '    <button type="button" class="composer-upload-item__move" data-upl-move="' + escapeHtml(item.localId) + '" data-upl-shift="1"' + (canMoveDown ? ' aria-label="انتقال به پایین"' : ' disabled aria-label="آیتم آخر"') + ">↓</button>",
         '    <button type="button" class="composer-upload-item__remove" data-upl-remove="' + escapeHtml(item.localId) + '"' + (item.status === "uploading" ? ' disabled aria-label="در حال بارگذاری"' : ' aria-label="حذف"') + ">×</button>",
@@ -10098,6 +10273,262 @@
     attachmentInput.accept = accept || "*/*";
     attachmentInput.dataset.attachLabel = label || "فایل";
     attachmentInput.click();
+  }
+
+  function canQueueAttachments() {
+    return !!(attachmentInput && !attachmentInput.disabled);
+  }
+
+  function imageEditorCanvasDisplayRect() {
+    var canvasRect = imageEditorCanvas.getBoundingClientRect();
+    var stageRect = imageEditorStage.getBoundingClientRect();
+    return {
+      left: canvasRect.left - stageRect.left,
+      top: canvasRect.top - stageRect.top,
+      width: canvasRect.width,
+      height: canvasRect.height
+    };
+  }
+
+  function imageEditorCropRectForHandle(startRect, handleName, dx, dy, maxW, maxH, minSize) {
+    var x = startRect.x;
+    var y = startRect.y;
+    var w = startRect.w;
+    var h = startRect.h;
+    if (handleName.indexOf("w") !== -1) {
+      var newX = clamp(startRect.x + dx, 0, startRect.x + startRect.w - minSize);
+      w = startRect.w + (startRect.x - newX);
+      x = newX;
+    } else if (handleName.indexOf("e") !== -1) {
+      w = clamp(startRect.w + dx, minSize, maxW - startRect.x);
+    }
+    if (handleName.indexOf("n") !== -1) {
+      var newY = clamp(startRect.y + dy, 0, startRect.y + startRect.h - minSize);
+      h = startRect.h + (startRect.y - newY);
+      y = newY;
+    } else if (handleName.indexOf("s") !== -1) {
+      h = clamp(startRect.h + dy, minSize, maxH - startRect.y);
+    }
+    return { x: x, y: y, w: w, h: h };
+  }
+
+  function updateImageEditorCropBoxStyle() {
+    if (!imageEditorState || !imageEditorCropBox || imageEditorState.mode !== "crop") return;
+    var source = imageEditorState.source;
+    var displayRect = imageEditorCanvasDisplayRect();
+    if (!displayRect.width || !displayRect.height) return;
+    var scaleX = displayRect.width / source.width;
+    var scaleY = displayRect.height / source.height;
+    var rect = imageEditorState.cropRect;
+    imageEditorCropBox.style.left = (displayRect.left + rect.x * scaleX) + "px";
+    imageEditorCropBox.style.top = (displayRect.top + rect.y * scaleY) + "px";
+    imageEditorCropBox.style.width = (rect.w * scaleX) + "px";
+    imageEditorCropBox.style.height = (rect.h * scaleY) + "px";
+  }
+
+  function initImageEditorCropBox() {
+    if (!imageEditorState) return;
+    if (!imageEditorState.cropRect) {
+      var source = imageEditorState.source;
+      imageEditorState.cropRect = { x: 0, y: 0, w: source.width, h: source.height };
+    }
+    requestAnimationFrame(updateImageEditorCropBoxStyle);
+  }
+
+  function applyImageEditorCrop() {
+    if (!imageEditorState || !imageEditorState.cropRect) return;
+    var rect = imageEditorState.cropRect;
+    var x = Math.round(rect.x);
+    var y = Math.round(rect.y);
+    var w = Math.round(rect.w);
+    var h = Math.round(rect.h);
+    imageEditorState.cropRect = null;
+    if (w < 1 || h < 1) return;
+    if (x === 0 && y === 0 && w === imageEditorState.source.width && h === imageEditorState.source.height) return;
+    var cropped = document.createElement("canvas");
+    cropped.width = w;
+    cropped.height = h;
+    cropped.getContext("2d").drawImage(imageEditorState.source, x, y, w, h, 0, 0, w, h);
+    imageEditorState.source = cropped;
+    renderImageEditorCanvas();
+  }
+
+  function renderImageEditorCanvas() {
+    if (!imageEditorState || !imageEditorCanvas) return;
+    var source = imageEditorState.source;
+    if (imageEditorCanvas.width !== source.width || imageEditorCanvas.height !== source.height) {
+      imageEditorCanvas.width = source.width;
+      imageEditorCanvas.height = source.height;
+    }
+    var ctx = imageEditorCanvas.getContext("2d");
+    ctx.save();
+    ctx.clearRect(0, 0, imageEditorCanvas.width, imageEditorCanvas.height);
+    ctx.filter = IMAGE_EDITOR_FILTERS[imageEditorState.filterIndex].css;
+    ctx.drawImage(source, 0, 0);
+    ctx.restore();
+    if (imageEditorState.mode === "crop") {
+      requestAnimationFrame(updateImageEditorCropBoxStyle);
+    }
+  }
+
+  function rotateImageEditorImage() {
+    if (!imageEditorState) return;
+    if (imageEditorState.mode === "crop") {
+      applyImageEditorCrop();
+    }
+    var source = imageEditorState.source;
+    var rotated = document.createElement("canvas");
+    rotated.width = source.height;
+    rotated.height = source.width;
+    var ctx = rotated.getContext("2d");
+    ctx.translate(rotated.width / 2, rotated.height / 2);
+    ctx.rotate(Math.PI / 2);
+    ctx.drawImage(source, -source.width / 2, -source.height / 2);
+    imageEditorState.source = rotated;
+    renderImageEditorCanvas();
+    if (imageEditorState.mode === "crop") {
+      initImageEditorCropBox();
+    }
+  }
+
+  function updateImageEditorFilterLabel() {
+    if (!imageEditorFilterLabel || !imageEditorState) return;
+    imageEditorFilterLabel.textContent = IMAGE_EDITOR_FILTERS[imageEditorState.filterIndex].label;
+  }
+
+  function cycleImageEditorFilter() {
+    if (!imageEditorState) return;
+    imageEditorState.filterIndex = (imageEditorState.filterIndex + 1) % IMAGE_EDITOR_FILTERS.length;
+    updateImageEditorFilterLabel();
+    renderImageEditorCanvas();
+  }
+
+  function setImageEditorMode(mode) {
+    if (!imageEditorState) return;
+    var current = imageEditorState.mode;
+    if (current === "crop" && mode !== "crop") {
+      applyImageEditorCrop();
+    }
+    var next = current === mode ? "view" : mode;
+    imageEditorState.mode = next;
+    if (imageEditorCrop) imageEditorCrop.classList.toggle("is-active", next === "crop");
+    if (imageEditorDraw) imageEditorDraw.classList.toggle("is-active", next === "draw");
+    if (imageEditorCropBox) imageEditorCropBox.hidden = next !== "crop";
+    if (imageEditorDrawOptions) imageEditorDrawOptions.hidden = next !== "draw";
+    if (next === "crop") {
+      initImageEditorCropBox();
+    }
+  }
+
+  function imageEditorCanvasPoint(event) {
+    var rect = imageEditorCanvas.getBoundingClientRect();
+    var scaleX = imageEditorCanvas.width / rect.width;
+    var scaleY = imageEditorCanvas.height / rect.height;
+    return {
+      x: (event.clientX - rect.left) * scaleX,
+      y: (event.clientY - rect.top) * scaleY
+    };
+  }
+
+  function drawImageEditorStroke(from, to) {
+    if (!imageEditorState) return;
+    var source = imageEditorState.source;
+    var ctx = source.getContext("2d");
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = imageEditorState.drawColor;
+    ctx.lineWidth = Math.max(2, Math.round(Math.max(source.width, source.height) * 0.01));
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+    ctx.restore();
+    renderImageEditorCanvas();
+  }
+
+  function openImageEditor(localId) {
+    var id = normalizeSpace(localId);
+    if (!id || !imageEditor || !imageEditorCanvas) return;
+    var item = state.pendingAttachments.find(function (entry) {
+      return entry && entry.localId === id;
+    });
+    if (!item) return;
+    var preview = composerAttachmentPreviewPayload(item);
+    if (!preview || preview.kind !== "image") return;
+
+    var image = new Image();
+    image.onload = function () {
+      var source = document.createElement("canvas");
+      source.width = image.naturalWidth || image.width;
+      source.height = image.naturalHeight || image.height;
+      source.getContext("2d").drawImage(image, 0, 0);
+
+      imageEditorState = {
+        localId: id,
+        itemName: item.name,
+        source: source,
+        filterIndex: 0,
+        mode: "view",
+        drawColor: "#ff3b30",
+        cropRect: null,
+        cropDrag: null,
+        drawPointerId: null,
+        lastDrawPoint: null
+      };
+
+      if (imageEditorCrop) imageEditorCrop.classList.remove("is-active");
+      if (imageEditorDraw) imageEditorDraw.classList.remove("is-active");
+      if (imageEditorCropBox) imageEditorCropBox.hidden = true;
+      if (imageEditorDrawOptions) imageEditorDrawOptions.hidden = true;
+      updateImageEditorFilterLabel();
+      renderImageEditorCanvas();
+      imageEditor.hidden = false;
+    };
+    image.onerror = function () {
+      showToast("بارگذاری تصویر برای ویرایش انجام نشد.");
+    };
+    image.src = preview.previewUrl;
+  }
+
+  function closeImageEditor() {
+    if (!imageEditor) return;
+    imageEditor.hidden = true;
+    if (imageEditorCropBox) imageEditorCropBox.hidden = true;
+    if (imageEditorDrawOptions) imageEditorDrawOptions.hidden = true;
+    if (imageEditorCrop) imageEditorCrop.classList.remove("is-active");
+    if (imageEditorDraw) imageEditorDraw.classList.remove("is-active");
+    imageEditorState = null;
+  }
+
+  function finishImageEditor() {
+    if (!imageEditorState) return;
+    if (imageEditorState.mode === "crop") {
+      applyImageEditorCrop();
+    }
+    var source = imageEditorState.source;
+    var localId = imageEditorState.localId;
+    var baseName = normalizeSpace(imageEditorState.itemName).replace(/\.[^.]+$/, "") || "image";
+    var filterCss = IMAGE_EDITOR_FILTERS[imageEditorState.filterIndex].css;
+    var output = source;
+    if (filterCss !== "none") {
+      output = document.createElement("canvas");
+      output.width = source.width;
+      output.height = source.height;
+      var outCtx = output.getContext("2d");
+      outCtx.filter = filterCss;
+      outCtx.drawImage(source, 0, 0);
+    }
+    output.toBlob(function (blob) {
+      if (!blob) {
+        showToast("ذخیره تصویر ویرایش‌شده انجام نشد.");
+        return;
+      }
+      var file = new File([blob], baseName + "-edited.png", { type: "image/png" });
+      removeComposerAttachmentByLocalId(localId);
+      queueAttachmentUpload(file, {}).catch(function () {});
+      closeImageEditor();
+    }, "image/png");
   }
 
   function bestVoiceMimeType() {
@@ -11775,6 +12206,12 @@
     [infoContentTable, infoRecentActions].forEach(function (container) {
       if (!container) return;
       container.addEventListener("click", function (event) {
+        var mediaButton = event.target && event.target.closest ? event.target.closest(".msg-attachment__media-btn[data-media-src]") : null;
+        if (mediaButton) {
+          event.preventDefault();
+          openMediaViewerFromNode(mediaButton);
+          return;
+        }
         var button = event.target && event.target.closest ? event.target.closest("[data-scroll-message]") : null;
         if (!button) return;
         var messageId = Math.floor(toNumber(button.getAttribute("data-scroll-message"), 0));
@@ -11865,6 +12302,26 @@
         clearTypingActivity(false);
         window.setTimeout(closeMentionSuggestions, 120);
       });
+      chatTextEl.addEventListener("paste", function (event) {
+        var items = event.clipboardData ? event.clipboardData.items : null;
+        if (!items || !items.length || !canQueueAttachments()) return;
+        var files = [];
+        for (var i = 0; i < items.length; i += 1) {
+          if (items[i].kind === "file") {
+            var file = items[i].getAsFile();
+            if (file) files.push(file);
+          }
+        }
+        if (!files.length) return;
+        event.preventDefault();
+        files.forEach(function (file, index) {
+          if (!file.name || file.name === "blob") {
+            var ext = (file.type && file.type.split("/")[1]) || "png";
+            file = new File([file], "pasted-" + Date.now() + "-" + index + "." + ext, { type: file.type });
+          }
+          queueAttachmentUpload(file, {}).catch(function () {});
+        });
+      });
     }
 
     if (sendBtn) sendBtn.addEventListener("click", sendCurrentMessage);
@@ -11940,11 +12397,49 @@
         });
       });
     }
+    if (threadShell) {
+      var chatDragDepth = 0;
+      var dragHasFiles = function (event) {
+        return !!(event.dataTransfer && Array.from(event.dataTransfer.types || []).indexOf("Files") !== -1);
+      };
+      threadShell.addEventListener("dragenter", function (event) {
+        if (!dragHasFiles(event) || !canQueueAttachments()) return;
+        event.preventDefault();
+        chatDragDepth += 1;
+        if (chatDropOverlay) chatDropOverlay.hidden = false;
+      });
+      threadShell.addEventListener("dragover", function (event) {
+        if (!dragHasFiles(event) || !canQueueAttachments()) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+      });
+      threadShell.addEventListener("dragleave", function () {
+        if (!chatDropOverlay || chatDropOverlay.hidden) return;
+        chatDragDepth = Math.max(0, chatDragDepth - 1);
+        if (chatDragDepth === 0) chatDropOverlay.hidden = true;
+      });
+      threadShell.addEventListener("drop", function (event) {
+        chatDragDepth = 0;
+        if (chatDropOverlay) chatDropOverlay.hidden = true;
+        if (!dragHasFiles(event)) return;
+        event.preventDefault();
+        if (!canQueueAttachments()) return;
+        var fileList = event.dataTransfer.files ? Array.from(event.dataTransfer.files) : [];
+        fileList.forEach(function (file) {
+          queueAttachmentUpload(file, {}).catch(function () {});
+        });
+      });
+    }
     if (composerUploads) {
       composerUploads.addEventListener("click", function (event) {
         var previewButton = event.target.closest("[data-upl-preview]");
         if (previewButton) {
           openMediaViewerFromNode(previewButton);
+          return;
+        }
+        var editButton = event.target.closest("[data-upl-edit]");
+        if (editButton) {
+          openImageEditor(editButton.getAttribute("data-upl-edit"));
           return;
         }
         var moveButton = event.target.closest("[data-upl-move]");
@@ -11958,6 +12453,116 @@
         var button = event.target.closest("[data-upl-remove]");
         if (!button) return;
         removeComposerAttachmentByLocalId(button.getAttribute("data-upl-remove"));
+      });
+    }
+    if (imageEditorClose) {
+      imageEditorClose.addEventListener("click", closeImageEditor);
+    }
+    if (imageEditorDone) {
+      imageEditorDone.addEventListener("click", finishImageEditor);
+    }
+    if (imageEditorRotate) {
+      imageEditorRotate.addEventListener("click", rotateImageEditorImage);
+    }
+    if (imageEditorCrop) {
+      imageEditorCrop.addEventListener("click", function () {
+        setImageEditorMode("crop");
+      });
+    }
+    if (imageEditorDraw) {
+      imageEditorDraw.addEventListener("click", function () {
+        setImageEditorMode("draw");
+      });
+    }
+    if (imageEditorFilter) {
+      imageEditorFilter.addEventListener("click", cycleImageEditorFilter);
+    }
+    if (imageEditorDrawOptions) {
+      imageEditorDrawOptions.addEventListener("click", function (event) {
+        var colorButton = event.target.closest("[data-draw-color]");
+        if (!colorButton || !imageEditorState) return;
+        imageEditorState.drawColor = colorButton.getAttribute("data-draw-color");
+        Array.from(imageEditorDrawOptions.querySelectorAll(".chat-image-editor__color")).forEach(function (btn) {
+          btn.classList.toggle("is-selected", btn === colorButton);
+        });
+      });
+    }
+    if (imageEditorCanvas) {
+      imageEditorCanvas.addEventListener("pointerdown", function (event) {
+        if (!imageEditorState || imageEditorState.mode !== "draw") return;
+        event.preventDefault();
+        var point = imageEditorCanvasPoint(event);
+        imageEditorState.drawPointerId = event.pointerId;
+        imageEditorState.lastDrawPoint = point;
+        try {
+          imageEditorCanvas.setPointerCapture(event.pointerId);
+        } catch (_error) {
+          // Ignore pointer capture failures.
+        }
+        drawImageEditorStroke(point, point);
+      });
+      imageEditorCanvas.addEventListener("pointermove", function (event) {
+        if (!imageEditorState || imageEditorState.drawPointerId !== event.pointerId) return;
+        event.preventDefault();
+        var point = imageEditorCanvasPoint(event);
+        drawImageEditorStroke(imageEditorState.lastDrawPoint, point);
+        imageEditorState.lastDrawPoint = point;
+      });
+      var endImageEditorStroke = function (event) {
+        if (!imageEditorState || imageEditorState.drawPointerId !== event.pointerId) return;
+        imageEditorState.drawPointerId = null;
+        imageEditorState.lastDrawPoint = null;
+      };
+      imageEditorCanvas.addEventListener("pointerup", endImageEditorStroke);
+      imageEditorCanvas.addEventListener("pointercancel", endImageEditorStroke);
+    }
+    if (imageEditorCropBox) {
+      Array.from(imageEditorCropBox.querySelectorAll("[data-handle]")).forEach(function (handle) {
+        var handleName = handle.getAttribute("data-handle");
+        handle.addEventListener("pointerdown", function (event) {
+          if (!imageEditorState || imageEditorState.mode !== "crop") return;
+          event.preventDefault();
+          event.stopPropagation();
+          try {
+            handle.setPointerCapture(event.pointerId);
+          } catch (_error) {
+            // Ignore pointer capture failures.
+          }
+          imageEditorState.cropDrag = {
+            pointerId: event.pointerId,
+            handle: handleName,
+            startClientX: event.clientX,
+            startClientY: event.clientY,
+            startRect: {
+              x: imageEditorState.cropRect.x,
+              y: imageEditorState.cropRect.y,
+              w: imageEditorState.cropRect.w,
+              h: imageEditorState.cropRect.h
+            }
+          };
+        });
+        handle.addEventListener("pointermove", function (event) {
+          var drag = imageEditorState && imageEditorState.cropDrag;
+          if (!drag || drag.pointerId !== event.pointerId) return;
+          event.preventDefault();
+          var displayRect = imageEditorCanvasDisplayRect();
+          if (!displayRect.width || !displayRect.height) return;
+          var source = imageEditorState.source;
+          var scaleX = source.width / displayRect.width;
+          var scaleY = source.height / displayRect.height;
+          var dx = (event.clientX - drag.startClientX) * scaleX;
+          var dy = (event.clientY - drag.startClientY) * scaleY;
+          var minSize = Math.min(source.width, source.height) * 0.1;
+          imageEditorState.cropRect = imageEditorCropRectForHandle(drag.startRect, drag.handle, dx, dy, source.width, source.height, minSize);
+          updateImageEditorCropBoxStyle();
+        });
+        var endCropDrag = function (event) {
+          var drag = imageEditorState && imageEditorState.cropDrag;
+          if (!drag || drag.pointerId !== event.pointerId) return;
+          imageEditorState.cropDrag = null;
+        };
+        handle.addEventListener("pointerup", endCropDrag);
+        handle.addEventListener("pointercancel", endCropDrag);
       });
     }
     if (threadSearchToggle) {
@@ -12144,16 +12749,73 @@
     }
     if (replyCancel) replyCancel.addEventListener("click", clearReplyTarget);
     if (mediaViewerClose) mediaViewerClose.addEventListener("click", closeMediaViewer);
+    if (mediaViewerRotate) {
+      mediaViewerRotate.addEventListener("click", function (event) {
+        event.preventDefault();
+        rotateMediaViewerImage();
+      });
+    }
+    if (mediaViewerForward) {
+      mediaViewerForward.addEventListener("click", function (event) {
+        event.preventDefault();
+        var item = state.mediaViewerItems[state.mediaViewerIndex];
+        var message = item && item.messageId ? findMessage(item.messageId) : null;
+        if (!message) return;
+        closeMediaViewer();
+        openForwardPicker(message);
+      });
+    }
+    if (mediaViewerDelete) {
+      mediaViewerDelete.addEventListener("click", function (event) {
+        event.preventDefault();
+        var item = state.mediaViewerItems[state.mediaViewerIndex];
+        var message = item && item.messageId ? findMessage(item.messageId) : null;
+        if (!message) return;
+        deleteMessage(message).then(function () {
+          if (!state.messages.has(message.id)) closeMediaViewer();
+        });
+      });
+    }
     if (mediaViewer) {
       mediaViewer.addEventListener("click", function (event) {
         if (event.target === mediaViewer) closeMediaViewer();
       });
       mediaViewer.addEventListener("pointerdown", function (event) {
         if (event.pointerType === "mouse" && event.button !== 0) return;
-        if (state.mediaViewerItems.length <= 1 || state.mediaViewerZoomed) return;
-        if (event.target && event.target.closest && event.target.closest(".chat-media-viewer__nav, .chat-media-viewer__close, .chat-media-viewer__more")) return;
+        if (event.target && event.target.closest && event.target.closest(".chat-media-viewer__nav, .chat-media-viewer__close, .chat-media-viewer__more, .chat-media-viewer__action, .chat-media-viewer__meta")) return;
         if (!mediaViewerStage || !mediaViewerStage.contains(event.target)) return;
         if (event.target && event.target.tagName === "VIDEO") return;
+
+        state.mediaViewerActivePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        if (typeof mediaViewer.setPointerCapture === "function") {
+          try {
+            mediaViewer.setPointerCapture(event.pointerId);
+          } catch (_error) {}
+        }
+
+        if (state.mediaViewerActivePointers.size === 2) {
+          state.mediaViewerPointer = null;
+          state.mediaViewerPanPointer = null;
+          resetMediaViewerStageOffset();
+          var pts = Array.from(state.mediaViewerActivePointers.values());
+          state.mediaViewerPinch = {
+            startDistance: Math.max(1, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y)),
+            startScale: state.mediaViewerScale
+          };
+          return;
+        }
+        if (state.mediaViewerActivePointers.size > 2) return;
+
+        if (state.mediaViewerScale > 1.01) {
+          state.mediaViewerPanPointer = {
+            id: event.pointerId,
+            lastX: event.clientX,
+            lastY: event.clientY
+          };
+          return;
+        }
+
+        if (state.mediaViewerItems.length <= 1) return;
         state.mediaViewerPointer = {
           id: event.pointerId,
           startX: event.clientX,
@@ -12162,13 +12824,32 @@
           lastY: event.clientY,
           dragging: false
         };
-        if (typeof mediaViewer.setPointerCapture === "function") {
-          try {
-            mediaViewer.setPointerCapture(event.pointerId);
-          } catch (_error) {}
-        }
       });
       mediaViewer.addEventListener("pointermove", function (event) {
+        if (state.mediaViewerActivePointers.has(event.pointerId)) {
+          state.mediaViewerActivePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+        }
+
+        if (state.mediaViewerPinch && state.mediaViewerActivePointers.size >= 2) {
+          var pts = Array.from(state.mediaViewerActivePointers.values()).slice(0, 2);
+          var dist = Math.max(1, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y));
+          event.preventDefault();
+          setMediaViewerScale(state.mediaViewerPinch.startScale * (dist / state.mediaViewerPinch.startDistance), { live: true });
+          return;
+        }
+
+        if (state.mediaViewerPanPointer && state.mediaViewerPanPointer.id === event.pointerId) {
+          var panDx = event.clientX - state.mediaViewerPanPointer.lastX;
+          var panDy = event.clientY - state.mediaViewerPanPointer.lastY;
+          state.mediaViewerPanPointer.lastX = event.clientX;
+          state.mediaViewerPanPointer.lastY = event.clientY;
+          state.mediaViewerOffsetX += panDx;
+          state.mediaViewerOffsetY += panDy;
+          event.preventDefault();
+          applyMediaViewerTransform({ live: true });
+          return;
+        }
+
         var start = state.mediaViewerPointer;
         if (!start || start.id !== event.pointerId) return;
         start.lastX = event.clientX;
@@ -12188,13 +12869,28 @@
         applyMediaViewerStageOffset(dx);
       });
       mediaViewer.addEventListener("pointerup", function (event) {
-        var start = state.mediaViewerPointer;
-        state.mediaViewerPointer = null;
+        state.mediaViewerActivePointers.delete(event.pointerId);
         if (typeof mediaViewer.releasePointerCapture === "function") {
           try {
             mediaViewer.releasePointerCapture(event.pointerId);
           } catch (_error) {}
         }
+
+        if (state.mediaViewerPinch) {
+          if (state.mediaViewerActivePointers.size < 2) {
+            state.mediaViewerPinch = null;
+            setMediaViewerScale(state.mediaViewerScale);
+          }
+          return;
+        }
+
+        if (state.mediaViewerPanPointer && state.mediaViewerPanPointer.id === event.pointerId) {
+          state.mediaViewerPanPointer = null;
+          return;
+        }
+
+        var start = state.mediaViewerPointer;
+        state.mediaViewerPointer = null;
         if (!start || start.id !== event.pointerId) return;
         var dx = event.clientX - start.startX;
         var dy = event.clientY - start.startY;
@@ -12208,7 +12904,15 @@
         }
         settleMediaViewerStep(dx < 0 ? 1 : -1, dx);
       });
-      mediaViewer.addEventListener("pointercancel", function () {
+      mediaViewer.addEventListener("pointercancel", function (event) {
+        state.mediaViewerActivePointers.delete(event.pointerId);
+        if (state.mediaViewerPinch && state.mediaViewerActivePointers.size < 2) {
+          state.mediaViewerPinch = null;
+          setMediaViewerScale(state.mediaViewerScale);
+        }
+        if (state.mediaViewerPanPointer && state.mediaViewerPanPointer.id === event.pointerId) {
+          state.mediaViewerPanPointer = null;
+        }
         state.mediaViewerPointer = null;
         resetMediaViewerStageOffset();
       });
@@ -12218,6 +12922,13 @@
         event.preventDefault();
         toggleMediaViewerZoom();
       });
+      mediaViewerStage.addEventListener("wheel", function (event) {
+        var item = state.mediaViewerItems[state.mediaViewerIndex];
+        if (!item || item.kind !== "image") return;
+        event.preventDefault();
+        var factor = Math.exp(-event.deltaY * 0.0015);
+        setMediaViewerScale(state.mediaViewerScale * factor, { live: true });
+      }, { passive: false });
     }
 
     if (logoutBtn) {
