@@ -174,14 +174,66 @@ function notes_download_host_is_enabled(): bool
     return is_array(notes_download_host_load_secret());
 }
 
-function notes_download_host_public_base_url(): string
+function notes_download_host_domain_is_resolvable(string $host): bool
 {
+    $normalized = strtolower(trim($host));
+    if ($normalized === '') {
+        return false;
+    }
+    if (filter_var($normalized, FILTER_VALIDATE_IP)) {
+        return true;
+    }
+
+    if (function_exists('dns_get_record')) {
+        $records = @dns_get_record($normalized, DNS_A + DNS_AAAA + DNS_CNAME);
+        if (is_array($records) && $records !== []) {
+            return true;
+        }
+    }
+    if (function_exists('checkdnsrr')) {
+        foreach (['A', 'AAAA', 'CNAME'] as $type) {
+            if (@checkdnsrr($normalized, $type)) {
+                return true;
+            }
+        }
+    }
+
+    $resolved = @gethostbyname($normalized);
+    return is_string($resolved) && trim($resolved) !== '' && strcasecmp($resolved, $normalized) !== 0;
+}
+
+function notes_download_host_public_host(): string
+{
+    static $cached = null;
+    if ($cached !== null) {
+        return $cached;
+    }
+
     $secret = notes_download_host_load_secret();
     if (!is_array($secret)) {
+        $cached = '';
+        return $cached;
+    }
+
+    $publicDomain = trim((string) ($secret['publicDomain'] ?? ''));
+    $fallbackHost = trim((string) ($secret['host'] ?? ''));
+    if ($publicDomain !== '' && notes_download_host_domain_is_resolvable($publicDomain)) {
+        $cached = $publicDomain;
+        return $cached;
+    }
+
+    $cached = $fallbackHost !== '' ? $fallbackHost : $publicDomain;
+    return $cached;
+}
+
+function notes_download_host_public_base_url(): string
+{
+    $host = notes_download_host_public_host();
+    if ($host === '') {
         return '';
     }
 
-    return 'https://' . trim((string) $secret['publicDomain'], '/');
+    return 'https://' . trim($host, '/');
 }
 
 function notes_download_host_prepare_long_transfer(): void
