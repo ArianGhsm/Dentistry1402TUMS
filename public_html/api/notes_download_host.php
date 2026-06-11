@@ -202,56 +202,6 @@ function notes_download_host_domain_is_resolvable(string $host): bool
     return is_string($resolved) && trim($resolved) !== '' && strcasecmp($resolved, $normalized) !== 0;
 }
 
-function notes_download_host_domain_is_publicly_resolvable(string $host): bool
-{
-    static $cache = [];
-
-    $normalized = strtolower(trim($host));
-    if ($normalized === '') {
-        return false;
-    }
-    if (isset($cache[$normalized])) {
-        return $cache[$normalized];
-    }
-    if (filter_var($normalized, FILTER_VALIDATE_IP)) {
-        $cache[$normalized] = true;
-        return true;
-    }
-
-    $url = 'https://dns.google/resolve?name=' . rawurlencode($normalized) . '&type=A';
-    $context = stream_context_create([
-        'http' => [
-            'ignore_errors' => true,
-            'timeout' => 10,
-            'protocol_version' => 1.1,
-            'header' => "Accept: application/json\r\nConnection: close\r\n",
-            'method' => 'GET',
-        ],
-        'ssl' => [
-            'verify_peer' => false,
-            'verify_peer_name' => false,
-            'allow_self_signed' => true,
-            'SNI_enabled' => true,
-        ],
-    ]);
-
-    $raw = @file_get_contents($url, false, $context);
-    if (!is_string($raw) || trim($raw) === '') {
-        $cache[$normalized] = false;
-        return false;
-    }
-
-    $decoded = json_decode($raw, true);
-    if (!is_array($decoded) || (int) ($decoded['Status'] ?? -1) !== 0) {
-        $cache[$normalized] = false;
-        return false;
-    }
-
-    $answers = is_array($decoded['Answer'] ?? null) ? $decoded['Answer'] : [];
-    $cache[$normalized] = $answers !== [];
-    return $cache[$normalized];
-}
-
 function notes_download_host_public_base_url(): string
 {
     $secret = notes_download_host_load_secret();

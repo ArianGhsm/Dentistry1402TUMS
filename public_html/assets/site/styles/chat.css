@@ -10430,9 +10430,7 @@ body.chat-page .msg-poll {
 }
 
 body.chat-page .msg-poll__head,
-body.chat-page .msg-poll__actions,
-body.chat-page .poll-option-row,
-body.chat-page .poll-settings-grid {
+body.chat-page .msg-poll__actions {
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -10565,56 +10563,6 @@ body.chat-page .msg-poll__action:disabled {
     transform: none;
 }
 
-body.chat-page .chat-modal--poll {
-    max-width: min(34rem, calc(100vw - 1.4rem));
-}
-
-body.chat-page .poll-option-list {
-    display: grid;
-    gap: 0.58rem;
-}
-
-body.chat-page .poll-option-row input {
-    flex: 1 1 0;
-}
-
-body.chat-page .poll-option-row__remove {
-    width: 2.3rem;
-    height: 2.3rem;
-    border: 1px solid rgba(255, 133, 102, 0.18);
-    border-radius: 14px;
-    background: rgba(255, 133, 102, 0.1);
-    color: #ffb6a3;
-    font-size: 1.25rem;
-    line-height: 1;
-}
-
-body.chat-page .poll-settings-grid {
-    justify-content: stretch;
-}
-
-body.chat-page .poll-setting-check {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.48rem;
-    min-height: 2.5rem;
-    padding: 0.55rem 0.7rem;
-    border: 1px solid rgba(130, 182, 255, 0.12);
-    border-radius: 16px;
-    background: rgba(18, 31, 46, 0.72);
-    color: var(--chat-text);
-}
-
-body.chat-page .poll-setting-check input {
-    width: 1rem;
-    height: 1rem;
-    accent-color: var(--chat-accent);
-}
-
-body.chat-page #poll-modal-feedback[data-state="error"] {
-    color: #ffb6a3;
-}
-
 @media (max-width: 720px) {
     body.chat-page .composer-mention-item {
         padding: 0.66rem 0.72rem;
@@ -10626,14 +10574,5 @@ body.chat-page #poll-modal-feedback[data-state="error"] {
 
     body.chat-page .msg-poll__option {
         padding: 0.72rem 0.78rem;
-    }
-
-    body.chat-page .poll-settings-grid {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    body.chat-page .poll-setting-check {
-        width: 100%;
     }
 }

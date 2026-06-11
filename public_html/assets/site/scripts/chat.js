@@ -12143,11 +12143,6 @@
         createCardMessageFromModal();
       });
     }
-    if (pollBtn) {
-      pollBtn.addEventListener("click", function () {
-        openPollComposerModal();
-      });
-    }
     if (attachBtn) {
       attachBtn.addEventListener("click", function () {
         var conversation = activeConversation();
@@ -12436,32 +12431,6 @@
         loadThreadContext(messageId, { behavior: "smooth", block: "center", durationMs: 2200 }).catch(function (error) {
           showToast((error && error.message) || "پرش به اولین پیام خوانده‌نشده انجام نشد.");
         });
-      });
-    }
-    if (pollAddOptionBtn) {
-      pollAddOptionBtn.addEventListener("click", function () {
-        var row = addPollOptionField("");
-        var input = row ? row.querySelector("input") : null;
-        if (input) {
-          input.focus({ preventScroll: true });
-        }
-      });
-    }
-    if (pollMultipleChoiceInput) {
-      pollMultipleChoiceInput.addEventListener("change", syncPollOptionControls);
-    }
-    [pollQuestionInput, pollResultVisibilitySelect, pollMaxChoicesSelect, pollAnonymousInput, pollAllowVoteChangeInput, pollAllowCreatorVoteInput].forEach(function (field) {
-      if (!field) return;
-      field.addEventListener("input", function () {
-        setPollModalFeedback("", "");
-      });
-      field.addEventListener("change", function () {
-        setPollModalFeedback("", "");
-      });
-    });
-    if (pollCreateBtn) {
-      pollCreateBtn.addEventListener("click", function () {
-        submitPollFromModal();
       });
     }
     if (voiceBtn) {
