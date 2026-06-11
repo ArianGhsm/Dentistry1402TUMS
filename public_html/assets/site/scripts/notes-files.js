@@ -687,6 +687,31 @@
         renderUploadQueue();
     }
 
+    function prepareUploadRequest(item) {
+        return request("prepareHostUpload", "POST", {
+            path: String(item && item.targetPath || ""),
+            fileName: item && item.file && item.file.name ? String(item.file.name) : "file",
+            fileSize: Number(item && (item.size || (item.file && item.file.size)) || 0),
+            mimeType: item && item.file && item.file.type ? String(item.file.type) : "application/octet-stream"
+        });
+    }
+
+    function openUploadXhr(xhr, uploadPlan, item) {
+        var mode = uploadPlan && uploadPlan.mode ? String(uploadPlan.mode) : "relay";
+        var targetUrl = uploadPlan && uploadPlan.url ? String(uploadPlan.url) : "";
+        if (!targetUrl) {
+            throw createUploadSignal("prepare-error", "آدرس آپلود معتبر نیست.");
+        }
+
+        xhr.open("POST", targetUrl, true);
+        xhr.withCredentials = mode !== "direct";
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("Content-Type", item.file && item.file.type ? item.file.type : "application/octet-stream");
+        if (mode !== "direct") {
+            xhr.setRequestHeader("X-Dent-Upload-Name", encodeURIComponent(item.file && item.file.name ? item.file.name : "file"));
+        }
+    }
+
     function uploadItem(item) {
         return new Promise(function (resolve, reject) {
             var finalizingProgress = 99.2;
@@ -702,6 +727,155 @@
             item.completedAt = "";
             item.canceled = false;
             renderUploadQueue();
+
+            prepareUploadRequest(item).then(function (prepareResponse) {
+                if (prepareResponse && (prepareResponse.loggedOut || prepareResponse.httpStatus === 401)) {
+                    item.status = "error";
+                    item.error = "نشست شما منقضی شده است.";
+                    item.speedBps = 0;
+                    item.etaSeconds = NaN;
+                    item.xhr = null;
+                    renderUploadQueue();
+                    setGuard("login", "نیاز به ورود", "برای استفاده از فایل‌منیجر منابع باید وارد حساب مجاز شوید.", loginUrl(), "ورود");
+                    reject(createUploadSignal("prepare-error", item.error));
+                    return;
+                }
+                if (prepareResponse && prepareResponse.httpStatus === 403) {
+                    item.status = "error";
+                    item.error = prepareResponse.error || "اجازه آپلود فایل در این بخش را ندارید.";
+                    item.speedBps = 0;
+                    item.etaSeconds = NaN;
+                    item.xhr = null;
+                    renderUploadQueue();
+                    setGuard("forbidden", "دسترسی مجاز نیست", prepareResponse.error || "این بخش فقط برای حساب‌های مجاز فعال است.");
+                    reject(createUploadSignal("prepare-error", item.error));
+                    return;
+                }
+                if (!prepareResponse || !prepareResponse.success || !prepareResponse.upload || !prepareResponse.upload.url) {
+                    item.status = "error";
+                    item.error = prepareResponse && prepareResponse.error ? prepareResponse.error : "آماده‌سازی آپلود انجام نشد.";
+                    item.speedBps = 0;
+                    item.etaSeconds = NaN;
+                    item.xhr = null;
+                    renderUploadQueue();
+                    reject(createUploadSignal("prepare-error", item.error));
+                    return;
+                }
+
+                var startedAt = Date.now();
+                item.xhr = new XMLHttpRequest();
+                var xhr = item.xhr;
+                openUploadXhr(xhr, prepareResponse.upload, item);
+
+                xhr.upload.onprogress = function (event) {
+                    if (!event.lengthComputable) {
+                        return;
+                    }
+
+                    var loaded = Number(event.loaded || 0);
+                    var total = Number(event.total || item.size || 0);
+                    var elapsed = Math.max(0.25, (Date.now() - startedAt) / 1000);
+                    var speed = loaded / elapsed;
+                    item.uploadedBytes = loaded;
+                    item.progress = total > 0 ? (loaded / total) * 100 : item.progress;
+                    item.speedBps = speed;
+                    item.etaSeconds = speed > 0 && total > loaded ? (total - loaded) / speed : 0;
+                    if (item.progress >= 99.9) {
+                        item.status = "finalizing";
+                        item.progress = finalizingProgress;
+                        item.etaSeconds = 0;
+                    }
+                    renderUploadQueue();
+                };
+
+                xhr.upload.onload = function () {
+                    item.uploadedBytes = Number(item.size || item.uploadedBytes || 0);
+                    item.progress = finalizingProgress;
+                    item.status = "finalizing";
+                    item.speedBps = 0;
+                    item.etaSeconds = 0;
+                    renderUploadQueue();
+                };
+
+                xhr.onload = function () {
+                    var response = {};
+                    try {
+                        response = JSON.parse(xhr.responseText || "{}");
+                    } catch (_error) {
+                        response = { success: false, error: "پاسخ آپلود معتبر نبود." };
+                    }
+                    item.xhr = null;
+                    response.httpStatus = xhr.status;
+
+                    if (response && (response.loggedOut || response.httpStatus === 401)) {
+                        item.status = "error";
+                        item.error = "نشست شما منقضی شده است.";
+                        item.speedBps = 0;
+                        item.etaSeconds = NaN;
+                        renderUploadQueue();
+                        setGuard("login", "نیاز به ورود", "برای استفاده از فایل‌منیجر منابع باید وارد حساب مجاز شوید.", loginUrl(), "ورود");
+                        reject(createUploadSignal("prepare-error", item.error));
+                        return;
+                    }
+                    if (response && response.httpStatus === 403) {
+                        item.status = "error";
+                        item.error = response.error || "اجازه آپلود فایل در این بخش را ندارید.";
+                        item.speedBps = 0;
+                        item.etaSeconds = NaN;
+                        renderUploadQueue();
+                        setGuard("forbidden", "دسترسی مجاز نیست", response.error || "این بخش فقط برای حساب‌های مجاز فعال است.");
+                        reject(createUploadSignal("prepare-error", item.error));
+                        return;
+                    }
+                    if (!response || !response.success || !response.file) {
+                        item.status = "error";
+                        item.error = (response && response.error) || "آپلود فایل کامل نشد.";
+                        item.speedBps = 0;
+                        item.etaSeconds = NaN;
+                        renderUploadQueue();
+                        reject(new Error(item.error));
+                        return;
+                    }
+
+                    item.status = "done";
+                    item.progress = 100;
+                    item.uploadedBytes = Number(item.size || item.uploadedBytes || 0);
+                    item.speedBps = 0;
+                    item.etaSeconds = 0;
+                    item.publicUrl = String(response.file.publicUrl || "");
+                    item.relativePath = String(response.file.relativePath || response.file.relativeDir || item.targetPath || "");
+                    item.completedAt = new Date().toISOString();
+                    renderUploadQueue();
+                    resolve(response);
+                };
+
+                xhr.onerror = function () {
+                    reject(markUploadWaiting(item, waitingUploadMessage(item)));
+                };
+
+                xhr.onabort = function () {
+                    item.xhr = null;
+                    if (item.canceled) {
+                        item.status = "error";
+                        item.error = "آپلود توسط کاربر لغو شد.";
+                        item.speedBps = 0;
+                        item.etaSeconds = NaN;
+                        renderUploadQueue();
+                        reject(createUploadSignal("canceled", item.error));
+                        return;
+                    }
+                    reject(markUploadWaiting(item, waitingUploadMessage(item)));
+                };
+
+                xhr.send(item.file);
+            }).catch(function (error) {
+                if (error && (error.code === "prepare-error" || error.code === "canceled")) {
+                    reject(error);
+                    return;
+                }
+                reject(markUploadWaiting(item, waitingUploadMessage(item)));
+            });
+            return;
 
             var startedAt = Date.now();
             var xhr = new XMLHttpRequest();

@@ -6,6 +6,10 @@ const NOTES_DOWNLOAD_HOST_SECRET_FILE = 'mihan_download_host.json';
 const NOTES_DOWNLOAD_HOST_STREAM_CONNECT_TIMEOUT_SECONDS = 300;
 const NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS = 14400;
 const NOTES_DOWNLOAD_HOST_STREAM_CHUNK_BYTES = 4 * 1024 * 1024;
+const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION = '20260611-1';
+const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_RUNTIME_DIR = '__dent-upload';
+const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_FILE = 'notes-upload.php';
+const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_USER_INI_FILE = '.user.ini';
 
 function notes_download_host_request_header(string $name): string
 {
@@ -54,6 +58,21 @@ function notes_download_host_decode_header_value(string $value): string
 function notes_download_host_allowed_roots(): array
 {
     return NOTES_DOWNLOAD_HOST_ALLOWED_ROOTS;
+}
+
+function notes_download_host_direct_upload_runtime_dir(): string
+{
+    return NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_RUNTIME_DIR;
+}
+
+function notes_download_host_direct_upload_gateway_relative_path(): string
+{
+    return notes_download_host_direct_upload_runtime_dir() . '/' . NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_FILE;
+}
+
+function notes_download_host_direct_upload_user_ini_relative_path(): string
+{
+    return notes_download_host_direct_upload_runtime_dir() . '/' . NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_USER_INI_FILE;
 }
 
 function notes_download_host_secret_candidates(): array
@@ -814,7 +833,7 @@ function notes_download_host_file_names_in_dir(string $relativeDir): array
     return $names;
 }
 
-function notes_download_host_unique_file_name(string $relativeDir, string $name): string
+function notes_download_host_unique_file_name_with_reserved(string $relativeDir, string $name, array $reservedNames = []): string
 {
     $name = notes_download_host_sanitize_leaf_name($name, 'file');
     $extension = pathinfo($name, PATHINFO_EXTENSION);
@@ -823,6 +842,14 @@ function notes_download_host_unique_file_name(string $relativeDir, string $name)
     $candidate = $extension !== '' ? ($baseName . '.' . $extension) : $baseName;
 
     $existing = notes_download_host_file_names_in_dir($relativeDir);
+    foreach ($reservedNames as $reservedName) {
+        $cleanReserved = notes_download_host_sanitize_leaf_name((string) $reservedName, '');
+        if ($cleanReserved === '') {
+            continue;
+        }
+        $existing[dent_utf8_strtolower($cleanReserved)] = true;
+    }
+
     $index = 2;
     $lower = dent_utf8_strtolower($candidate);
     while (isset($existing[$lower])) {
@@ -834,6 +861,632 @@ function notes_download_host_unique_file_name(string $relativeDir, string $name)
     }
 
     return $candidate;
+}
+
+function notes_download_host_unique_file_name(string $relativeDir, string $name): string
+{
+    return notes_download_host_unique_file_name_with_reserved($relativeDir, $name, []);
+}
+
+function notes_download_host_assert_internal_runtime_relative_path(string $relativePath): string
+{
+    $normalized = notes_download_host_normalize_relative_path($relativePath);
+    $runtimeDir = notes_download_host_direct_upload_runtime_dir();
+    if ($normalized === '' || ($normalized !== $runtimeDir && !str_starts_with($normalized . '/', $runtimeDir . '/'))) {
+        dent_error('Direct upload runtime path is invalid.', 500);
+    }
+
+    return $normalized;
+}
+
+function notes_download_host_internal_runtime_public_url(string $relativePath = ''): string
+{
+    $base = notes_download_host_public_base_url();
+    if ($base === '') {
+        return '';
+    }
+
+    $normalized = trim($relativePath) === ''
+        ? notes_download_host_direct_upload_runtime_dir()
+        : notes_download_host_assert_internal_runtime_relative_path($relativePath);
+
+    $segments = array_map(static function (string $segment): string {
+        return rawurlencode($segment);
+    }, explode('/', $normalized));
+
+    return $base . '/' . implode('/', $segments);
+}
+
+function notes_download_host_internal_runtime_ensure_dir(string $relativeDir): string
+{
+    $normalized = notes_download_host_assert_internal_runtime_relative_path($relativeDir);
+    $parts = explode('/', $normalized);
+    $currentRelative = '';
+    $currentAbs = notes_download_host_absolute_base_dir();
+    foreach ($parts as $part) {
+        $part = notes_download_host_sanitize_leaf_name($part, 'runtime');
+        $result = notes_download_host_execute_api2('mkdir', [
+            'path' => $currentAbs,
+            'name' => $part,
+            'permissions' => '0755',
+        ]);
+        $error = trim((string) ($result['error'] ?? ''));
+        if ($error !== '' && stripos($error, 'file exists') === false) {
+            dent_error('Runtime directory creation on the download host failed: ' . $error, 502);
+        }
+        $currentRelative = $currentRelative === '' ? $part : ($currentRelative . '/' . $part);
+        $currentAbs = notes_download_host_abs_path_from_relative($currentRelative);
+    }
+
+    return $currentAbs;
+}
+
+function notes_download_host_internal_runtime_delete_entry(string $relativePath, string $entryType = 'file', bool $ignoreMissing = true): void
+{
+    $relativePath = notes_download_host_assert_internal_runtime_relative_path($relativePath);
+    $operation = $entryType === 'dir' ? 'trash' : 'unlink';
+    $result = notes_download_host_execute_api2('fileop', [
+        'op' => $operation,
+        'sourcefiles' => notes_download_host_abs_path_from_relative($relativePath),
+        'doubledecode' => '1',
+    ]);
+
+    $rows = is_array($result['data'] ?? null) ? $result['data'] : [];
+    $row = is_array($rows[0] ?? null) ? $rows[0] : [];
+    if ((int) ($row['result'] ?? 0) === 1) {
+        return;
+    }
+
+    $error = trim((string) ($row['err'] ?? $result['error'] ?? 'Delete failed.'));
+    $missing = stripos($error, 'No such file') !== false
+        || stripos($error, 'No such file or directory') !== false
+        || stripos($error, 'does not exist') !== false;
+    if ($ignoreMissing && $missing) {
+        return;
+    }
+
+    dent_error($error !== '' ? $error : 'Delete failed.', 502);
+}
+
+function notes_download_host_stream_from_string(string $payload)
+{
+    $stream = fopen('php://temp', 'r+b');
+    if ($stream === false) {
+        dent_error('Temporary stream for runtime upload could not be created.', 500);
+    }
+    if ($payload !== '' && fwrite($stream, $payload) === false) {
+        fclose($stream);
+        dent_error('Runtime payload could not be staged for upload.', 500);
+    }
+    rewind($stream);
+    return $stream;
+}
+
+function notes_download_host_internal_runtime_upload_text_file(string $relativePath, string $contents, string $mimeType = 'text/plain'): void
+{
+    $relativePath = notes_download_host_assert_internal_runtime_relative_path($relativePath);
+    $parent = dirname($relativePath);
+    $parent = $parent === '.' ? notes_download_host_direct_upload_runtime_dir() : notes_download_host_assert_internal_runtime_relative_path($parent);
+    notes_download_host_internal_runtime_ensure_dir($parent);
+    notes_download_host_internal_runtime_delete_entry($relativePath, 'file', true);
+
+    $stream = notes_download_host_stream_from_string($contents);
+    try {
+        notes_download_host_stream_upload_from_stream(
+            notes_download_host_abs_path_from_relative($parent),
+            $stream,
+            strlen($contents),
+            basename($relativePath),
+            $mimeType
+        );
+    } finally {
+        fclose($stream);
+    }
+}
+
+function notes_download_host_direct_upload_user_ini_source(): string
+{
+    return implode("\n", [
+        'post_max_size=20G',
+        'upload_max_filesize=20G',
+        'max_execution_time=0',
+        'max_input_time=0',
+        'memory_limit=512M',
+        'default_socket_timeout=' . NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS,
+        'output_buffering=0',
+        'zlib.output_compression=0',
+        '',
+    ]);
+}
+
+function notes_download_host_direct_upload_gateway_source(string $mainSiteOrigin): string
+{
+    $mainSiteOrigin = rtrim(trim($mainSiteOrigin), '/');
+    $template = <<<'PHP'
+<?php
+declare(strict_types=1);
+
+const DENT_NOTES_GATEWAY_VERSION = __VERSION__;
+const DENT_NOTES_GATEWAY_MAIN_SITE_ORIGIN = __MAIN_SITE_ORIGIN__;
+const DENT_NOTES_GATEWAY_RESOLVE_URL = __RESOLVE_URL__;
+const DENT_NOTES_GATEWAY_COMPLETE_URL = __COMPLETE_URL__;
+const DENT_NOTES_GATEWAY_ALLOWED_ORIGIN = __ALLOWED_ORIGIN__;
+const DENT_NOTES_GATEWAY_ALLOWED_ROOTS = __ALLOWED_ROOTS__;
+const DENT_NOTES_GATEWAY_TIMEOUT_SECONDS = __TIMEOUT_SECONDS__;
+const DENT_NOTES_GATEWAY_CHUNK_BYTES = __CHUNK_BYTES__;
+
+function dent_notes_gateway_origin(): string
+{
+    return trim((string) ($_SERVER['HTTP_ORIGIN'] ?? ''));
+}
+
+function dent_notes_gateway_apply_cors(?string $origin = null): void
+{
+    $candidate = trim((string) ($origin ?? dent_notes_gateway_origin()));
+    if ($candidate === '' || !hash_equals(DENT_NOTES_GATEWAY_ALLOWED_ORIGIN, $candidate)) {
+        return;
+    }
+
+    header('Access-Control-Allow-Origin: ' . $candidate);
+    header('Vary: Origin');
+    header('Access-Control-Allow-Headers: Accept, Content-Type');
+    header('Access-Control-Allow-Methods: POST, OPTIONS, GET');
+    header('Access-Control-Max-Age: 86400');
+}
+
+function dent_notes_gateway_json(array $payload, int $status = 200): void
+{
+    http_response_code($status);
+    header('Content-Type: application/json; charset=UTF-8');
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+    }
+    $json = json_encode($payload, $flags);
+    if (!is_string($json) || $json === '') {
+        $json = '{"success":false,"error":"gateway-json-failed"}';
+    }
+    echo $json;
+    exit;
+}
+
+function dent_notes_gateway_clean_token($value): string
+{
+    $token = trim(strtolower((string) $value));
+    return preg_match('/^[a-z0-9_-]{16,200}$/', $token) === 1 ? $token : '';
+}
+
+function dent_notes_gateway_normalize_relative_path(string $path): string
+{
+    $normalized = trim(str_replace('\\', '/', $path));
+    $normalized = preg_replace('#/+#', '/', $normalized) ?? '';
+    $normalized = trim($normalized, '/');
+    if ($normalized === '') {
+        return '';
+    }
+
+    $segments = [];
+    foreach (explode('/', $normalized) as $segment) {
+        $segment = trim($segment);
+        if ($segment === '' || $segment === '.') {
+            continue;
+        }
+        if ($segment === '..' || preg_match('/[\x00-\x1f]/u', $segment) === 1) {
+            throw new RuntimeException('invalid-relative-path');
+        }
+        $segments[] = $segment;
+    }
+
+    return implode('/', $segments);
+}
+
+function dent_notes_gateway_relative_root(string $relativePath): string
+{
+    if ($relativePath === '') {
+        return '';
+    }
+    $parts = explode('/', $relativePath, 2);
+    return (string) ($parts[0] ?? '');
+}
+
+function dent_notes_gateway_root_is_allowed(string $relativePath): bool
+{
+    $root = dent_notes_gateway_relative_root($relativePath);
+    return $root !== '' && in_array($root, DENT_NOTES_GATEWAY_ALLOWED_ROOTS, true);
+}
+
+function dent_notes_gateway_base_dir(): string
+{
+    static $cached = null;
+    if (is_string($cached) && $cached !== '') {
+        return $cached;
+    }
+
+    $candidate = realpath(__DIR__ . DIRECTORY_SEPARATOR . '..');
+    if (!is_string($candidate) || $candidate === '') {
+        throw new RuntimeException('gateway-base-dir-missing');
+    }
+
+    $cached = rtrim(str_replace('\\', '/', $candidate), '/');
+    return $cached;
+}
+
+function dent_notes_gateway_absolute_path(string $relativePath): string
+{
+    return dent_notes_gateway_base_dir() . '/' . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+}
+
+function dent_notes_gateway_ensure_parent_dir(string $absolutePath): void
+{
+    $directory = dirname($absolutePath);
+    if (is_dir($directory)) {
+        return;
+    }
+    if (!@mkdir($directory, 0755, true) && !is_dir($directory)) {
+        throw new RuntimeException('create-directory-failed');
+    }
+}
+
+function dent_notes_gateway_parse_size_bytes(string $value): ?int
+{
+    $value = trim($value);
+    if ($value === '') {
+        return null;
+    }
+
+    if (preg_match('/^\s*(\d+(?:\.\d+)?)\s*([kmgt]?)(?:b)?\s*$/i', $value, $matches) !== 1) {
+        return is_numeric($value) ? max(0, (int) round((float) $value)) : null;
+    }
+
+    $number = (float) ($matches[1] ?? 0);
+    $suffix = strtolower((string) ($matches[2] ?? ''));
+    $powers = ['' => 0, 'k' => 1, 'm' => 2, 'g' => 3, 't' => 4];
+    $power = $powers[$suffix] ?? 0;
+    $bytes = $number * (1024 ** $power);
+    return max(0, (int) round($bytes));
+}
+
+function dent_notes_gateway_http_post_json(string $url, array $payload): array
+{
+    $body = http_build_query($payload, '', '&', PHP_QUERY_RFC3986);
+    $context = stream_context_create([
+        'http' => [
+            'ignore_errors' => true,
+            'timeout' => DENT_NOTES_GATEWAY_TIMEOUT_SECONDS,
+            'protocol_version' => 1.1,
+            'method' => 'POST',
+            'header' => implode("\r\n", [
+                'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
+                'Accept: application/json',
+                'Connection: close',
+                'Content-Length: ' . strlen($body),
+            ]) . "\r\n",
+            'content' => $body,
+        ],
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => true,
+            'SNI_enabled' => true,
+        ],
+    ]);
+
+    $raw = @file_get_contents($url, false, $context);
+    $responseHeaders = isset($http_response_header) && is_array($http_response_header) ? $http_response_header : [];
+    if (!is_string($raw)) {
+        $error = error_get_last();
+        throw new RuntimeException('gateway-callback-failed:' . trim((string) ($error['message'] ?? 'network')));
+    }
+
+    $status = 0;
+    foreach ($responseHeaders as $line) {
+        if (preg_match('/^HTTP\/\S+\s+(\d+)/i', (string) $line, $matches) === 1) {
+            $status = (int) ($matches[1] ?? 0);
+            break;
+        }
+    }
+
+    $decoded = json_decode($raw, true);
+    if (!is_array($decoded)) {
+        throw new RuntimeException('gateway-callback-json-invalid');
+    }
+
+    $decoded['httpStatus'] = $status;
+    return $decoded;
+}
+
+function dent_notes_gateway_health_payload(): array
+{
+    return [
+        'success' => true,
+        'version' => DENT_NOTES_GATEWAY_VERSION,
+        'mainSiteOrigin' => DENT_NOTES_GATEWAY_MAIN_SITE_ORIGIN,
+        'allowedOrigin' => DENT_NOTES_GATEWAY_ALLOWED_ORIGIN,
+        'postMaxSize' => (string) ini_get('post_max_size'),
+        'postMaxBytes' => dent_notes_gateway_parse_size_bytes((string) ini_get('post_max_size')),
+        'uploadMaxSize' => (string) ini_get('upload_max_filesize'),
+        'uploadMaxBytes' => dent_notes_gateway_parse_size_bytes((string) ini_get('upload_max_filesize')),
+        'maxInputTime' => (string) ini_get('max_input_time'),
+        'maxExecutionTime' => (string) ini_get('max_execution_time'),
+    ];
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    dent_notes_gateway_apply_cors();
+    http_response_code(204);
+    exit;
+}
+
+if (isset($_GET['health'])) {
+    dent_notes_gateway_apply_cors();
+    dent_notes_gateway_json(dent_notes_gateway_health_payload());
+}
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    dent_notes_gateway_apply_cors();
+    dent_notes_gateway_json([
+        'success' => false,
+        'error' => 'method-not-allowed',
+    ], 405);
+}
+
+$origin = dent_notes_gateway_origin();
+if ($origin !== '' && !hash_equals(DENT_NOTES_GATEWAY_ALLOWED_ORIGIN, $origin)) {
+    dent_notes_gateway_apply_cors();
+    dent_notes_gateway_json([
+        'success' => false,
+        'error' => 'origin-not-allowed',
+    ], 403);
+}
+
+dent_notes_gateway_apply_cors($origin);
+@ignore_user_abort(true);
+if (function_exists('set_time_limit')) {
+    @set_time_limit(0);
+}
+@ini_set('max_execution_time', '0');
+@ini_set('max_input_time', '0');
+
+$token = dent_notes_gateway_clean_token($_GET['token'] ?? ($_POST['token'] ?? ''));
+if ($token === '') {
+    dent_notes_gateway_json([
+        'success' => false,
+        'error' => 'invalid-upload-token',
+    ], 422);
+}
+
+$contentType = trim((string) strtok((string) ($_SERVER['CONTENT_TYPE'] ?? ''), ';'));
+$contentLength = isset($_SERVER['CONTENT_LENGTH']) ? max(0, (int) $_SERVER['CONTENT_LENGTH']) : 0;
+$absolutePath = '';
+$tempPath = '';
+$cleanupFinal = false;
+
+try {
+    $resolve = dent_notes_gateway_http_post_json(DENT_NOTES_GATEWAY_RESOLVE_URL, [
+        'token' => $token,
+        'gatewayVersion' => DENT_NOTES_GATEWAY_VERSION,
+        'origin' => $origin,
+        'contentType' => $contentType,
+        'contentLength' => (string) $contentLength,
+    ]);
+    if (!($resolve['success'] ?? false) || !is_array($resolve['session'] ?? null)) {
+        $status = max(400, (int) ($resolve['httpStatus'] ?? 502));
+        dent_notes_gateway_json([
+            'success' => false,
+            'error' => trim((string) ($resolve['error'] ?? 'direct-upload-resolve-failed')),
+        ], $status);
+    }
+
+    $session = $resolve['session'];
+    $sessionKey = trim((string) ($session['sessionKey'] ?? ''));
+    $relativePath = dent_notes_gateway_normalize_relative_path((string) ($session['relativePath'] ?? ''));
+    $expectedSize = max(0, (int) ($session['expectedSize'] ?? 0));
+    if ($sessionKey === '' || $relativePath === '' || !dent_notes_gateway_root_is_allowed($relativePath)) {
+        throw new RuntimeException('direct-upload-session-invalid');
+    }
+
+    if ($contentLength > 0 && $expectedSize > 0 && $contentLength !== $expectedSize) {
+        dent_notes_gateway_json([
+            'success' => false,
+            'error' => 'direct-upload-size-mismatch',
+        ], 422);
+    }
+
+    $absolutePath = dent_notes_gateway_absolute_path($relativePath);
+    dent_notes_gateway_ensure_parent_dir($absolutePath);
+    $tempPath = $absolutePath . '.part-' . bin2hex(random_bytes(6));
+    if (is_file($tempPath)) {
+        @unlink($tempPath);
+    }
+
+    $source = fopen('php://input', 'rb');
+    $target = fopen($tempPath, 'wb');
+    if ($source === false || $target === false) {
+        if (is_resource($source)) {
+            fclose($source);
+        }
+        if (is_resource($target)) {
+            fclose($target);
+        }
+        throw new RuntimeException('direct-upload-stream-open-failed');
+    }
+
+    $writtenBytes = 0;
+    while (!feof($source)) {
+        $chunk = fread($source, DENT_NOTES_GATEWAY_CHUNK_BYTES);
+        if ($chunk === false) {
+            fclose($source);
+            fclose($target);
+            throw new RuntimeException('direct-upload-read-failed');
+        }
+        if ($chunk === '') {
+            continue;
+        }
+        $length = strlen($chunk);
+        $offset = 0;
+        while ($offset < $length) {
+            $saved = fwrite($target, substr($chunk, $offset));
+            if (!is_int($saved) || $saved <= 0) {
+                fclose($source);
+                fclose($target);
+                throw new RuntimeException('direct-upload-write-failed');
+            }
+            $offset += $saved;
+        }
+        $writtenBytes += $length;
+    }
+
+    fclose($source);
+    fclose($target);
+
+    if ($writtenBytes <= 0) {
+        throw new RuntimeException('direct-upload-empty-body');
+    }
+    if (($expectedSize > 0 && $writtenBytes !== $expectedSize) || ($contentLength > 0 && $writtenBytes !== $contentLength)) {
+        throw new RuntimeException('direct-upload-size-mismatch');
+    }
+
+    if (is_file($absolutePath)) {
+        @unlink($absolutePath);
+    }
+    if (!@rename($tempPath, $absolutePath)) {
+        throw new RuntimeException('direct-upload-finalize-failed');
+    }
+    $tempPath = '';
+    $cleanupFinal = true;
+    @chmod($absolutePath, 0644);
+    clearstatcache(true, $absolutePath);
+    $storedBytes = max(0, (int) (@filesize($absolutePath) ?: $writtenBytes));
+
+    $complete = dent_notes_gateway_http_post_json(DENT_NOTES_GATEWAY_COMPLETE_URL, [
+        'token' => $token,
+        'sessionKey' => $sessionKey,
+        'bytes' => (string) $storedBytes,
+        'mimeType' => $contentType,
+        'gatewayVersion' => DENT_NOTES_GATEWAY_VERSION,
+        'origin' => $origin,
+    ]);
+    if (!($complete['success'] ?? false) || !is_array($complete['file'] ?? null)) {
+        $status = max(400, (int) ($complete['httpStatus'] ?? 502));
+        dent_notes_gateway_json([
+            'success' => false,
+            'error' => trim((string) ($complete['error'] ?? 'direct-upload-complete-failed')),
+        ], $status);
+    }
+
+    $cleanupFinal = false;
+    dent_notes_gateway_json($complete);
+} catch (Throwable $error) {
+    if ($tempPath !== '' && is_file($tempPath)) {
+        @unlink($tempPath);
+    }
+    if ($cleanupFinal && $absolutePath !== '' && is_file($absolutePath)) {
+        @unlink($absolutePath);
+    }
+    dent_notes_gateway_json([
+        'success' => false,
+        'error' => $error->getMessage(),
+    ], 500);
+}
+PHP;
+
+    return str_replace(
+        [
+            '__VERSION__',
+            '__MAIN_SITE_ORIGIN__',
+            '__RESOLVE_URL__',
+            '__COMPLETE_URL__',
+            '__ALLOWED_ORIGIN__',
+            '__ALLOWED_ROOTS__',
+            '__TIMEOUT_SECONDS__',
+            '__CHUNK_BYTES__',
+        ],
+        [
+            var_export(NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION, true),
+            var_export($mainSiteOrigin, true),
+            var_export($mainSiteOrigin . '/api/notes_api.php?action=resolveDirectHostUpload', true),
+            var_export($mainSiteOrigin . '/api/notes_api.php?action=completeDirectHostUpload', true),
+            var_export($mainSiteOrigin, true),
+            var_export(array_values(notes_download_host_allowed_roots()), true),
+            (string) NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS,
+            (string) NOTES_DOWNLOAD_HOST_STREAM_CHUNK_BYTES,
+        ],
+        $template
+    );
+}
+
+function notes_download_host_direct_upload_health(string $mainSiteOrigin): ?array
+{
+    $gatewayUrl = notes_download_host_internal_runtime_public_url(notes_download_host_direct_upload_gateway_relative_path());
+    if ($gatewayUrl === '') {
+        return null;
+    }
+
+    $response = notes_download_host_http_request(
+        'GET',
+        $gatewayUrl . '?health=1',
+        [
+            'Accept: application/json',
+            'Connection: close',
+        ]
+    );
+    if ((int) ($response['status'] ?? 0) < 200 || (int) ($response['status'] ?? 0) >= 300) {
+        return null;
+    }
+
+    $decoded = json_decode((string) ($response['body'] ?? ''), true);
+    if (!is_array($decoded) || !($decoded['success'] ?? false)) {
+        return null;
+    }
+    if (trim((string) ($decoded['version'] ?? '')) !== NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION) {
+        return null;
+    }
+    if (rtrim(trim((string) ($decoded['mainSiteOrigin'] ?? '')), '/') !== rtrim($mainSiteOrigin, '/')) {
+        return null;
+    }
+
+    $decoded['uploadUrl'] = $gatewayUrl;
+    return $decoded;
+}
+
+function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin): array
+{
+    static $cache = [];
+
+    $mainSiteOrigin = rtrim(trim($mainSiteOrigin), '/');
+    if ($mainSiteOrigin === '') {
+        dent_error('Main-site origin for direct upload is invalid.', 500);
+    }
+    if (isset($cache[$mainSiteOrigin]) && is_array($cache[$mainSiteOrigin])) {
+        return $cache[$mainSiteOrigin];
+    }
+
+    $health = notes_download_host_direct_upload_health($mainSiteOrigin);
+    if (is_array($health)) {
+        $cache[$mainSiteOrigin] = $health;
+        return $health;
+    }
+
+    notes_download_host_internal_runtime_ensure_dir(notes_download_host_direct_upload_runtime_dir());
+    notes_download_host_internal_runtime_upload_text_file(
+        notes_download_host_direct_upload_user_ini_relative_path(),
+        notes_download_host_direct_upload_user_ini_source(),
+        'text/plain'
+    );
+    notes_download_host_internal_runtime_upload_text_file(
+        notes_download_host_direct_upload_gateway_relative_path(),
+        notes_download_host_direct_upload_gateway_source($mainSiteOrigin),
+        'application/x-httpd-php'
+    );
+
+    $health = notes_download_host_direct_upload_health($mainSiteOrigin);
+    if (!is_array($health)) {
+        dent_error('Direct upload gateway on the download host did not become healthy after installation.', 502);
+    }
+
+    $cache[$mainSiteOrigin] = $health;
+    return $health;
 }
 
 function notes_download_host_extract_response_body(string $raw): string

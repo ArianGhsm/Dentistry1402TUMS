@@ -1935,6 +1935,14 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     display: block;
 }
 
+.conversation-item__preview-row {
+    display: flex;
+    align-items: baseline;
+    min-width: 0;
+    gap: 0.3rem;
+    overflow: hidden;
+}
+
 .conversation-item__title,
 .conversation-item__subtitle,
 .conversation-item__preview {
@@ -1952,11 +1960,14 @@ body.chat-page.chat-selection-mode .conversation-item__select {
 .conversation-item__subtitle {
     font-size: 0.63rem;
     color: var(--chat-muted);
+    flex: 0 0 auto;
 }
 
 .conversation-item__preview {
     color: var(--chat-muted);
     font-size: 0.67rem;
+    display: block;
+    flex: 1 1 auto;
 }
 
 .conversation-badge {

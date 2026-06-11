@@ -16,6 +16,9 @@ const NOTES_1404_SCHEMA_VERSION = 1;
 const NOTES_1404_MIN_TERM = 1;
 const NOTES_1404_MAX_TERM = 12;
 const NOTES_PROSTHESIS_1402_SCHEMA_VERSION = 1;
+const NOTES_DIRECT_UPLOAD_SCHEMA_VERSION = 1;
+const NOTES_DIRECT_UPLOAD_SESSION_TTL_SECONDS = 14400;
+const NOTES_DIRECT_UPLOAD_COMPLETED_TTL_SECONDS = 172800;
 
 function notes_1402_store_path(): string
 {
@@ -65,6 +68,349 @@ function notes_prosthesis_1402_store_path(): string
 function notes_prosthesis_1402_lock_path(): string
 {
     return dent_storage_path('notes/prosthesis_1402_terms.lock');
+}
+
+function notes_direct_upload_store_path(): string
+{
+    return dent_storage_path('notes/direct_upload_sessions.json');
+}
+
+function notes_direct_upload_lock_path(): string
+{
+    return dent_storage_path('notes/direct_upload_sessions.lock');
+}
+
+function notes_direct_upload_default_store(): array
+{
+    return [
+        'schemaVersion' => NOTES_DIRECT_UPLOAD_SCHEMA_VERSION,
+        'sessions' => [],
+    ];
+}
+
+function notes_direct_upload_clean_token($value): string
+{
+    $token = trim(strtolower((string) $value));
+    return preg_match('/^[a-z0-9_-]{16,200}$/', $token) === 1 ? $token : '';
+}
+
+function notes_direct_upload_next_token(int $bytes = 18): string
+{
+    try {
+        return strtolower(dent_base64url_encode(random_bytes($bytes)));
+    } catch (Throwable $error) {
+        return strtolower(hash('sha256', microtime(true) . '|' . mt_rand() . '|' . uniqid('', true)));
+    }
+}
+
+function notes_direct_upload_clean_status($value): string
+{
+    $status = trim(strtolower((string) $value));
+    return in_array($status, ['prepared', 'resolved', 'completed'], true) ? $status : 'prepared';
+}
+
+function notes_direct_upload_ensure_storage(): void
+{
+    dent_ensure_directory(dirname(notes_direct_upload_store_path()));
+    if (!is_file(notes_direct_upload_store_path())) {
+        dent_write_json_file(notes_direct_upload_store_path(), notes_direct_upload_default_store());
+    }
+}
+
+function notes_direct_upload_normalize_store(array $store): array
+{
+    $now = time();
+    $sessions = [];
+    foreach (($store['sessions'] ?? []) as $key => $value) {
+        if (!is_array($value)) {
+            continue;
+        }
+
+        $token = notes_direct_upload_clean_token($value['token'] ?? $key);
+        if ($token === '') {
+            continue;
+        }
+
+        $status = notes_direct_upload_clean_status($value['status'] ?? 'prepared');
+        $createdAt = trim((string) ($value['createdAt'] ?? ''));
+        $updatedAt = trim((string) ($value['updatedAt'] ?? $createdAt));
+        $expiresAt = trim((string) ($value['expiresAt'] ?? ''));
+        $expiresUnix = $expiresAt !== '' ? (int) strtotime($expiresAt) : 0;
+        $updatedUnix = $updatedAt !== '' ? (int) strtotime($updatedAt) : 0;
+
+        if ($expiresUnix > 0 && $expiresUnix < ($now - 300)) {
+            continue;
+        }
+        if ($status === 'completed' && $updatedUnix > 0 && ($now - $updatedUnix) > NOTES_DIRECT_UPLOAD_COMPLETED_TTL_SECONDS) {
+            continue;
+        }
+
+        $sessions[$token] = [
+            'token' => $token,
+            'status' => $status,
+            'cohort' => trim((string) ($value['cohort'] ?? '1402')),
+            'scopeRoot' => trim((string) ($value['scopeRoot'] ?? '')),
+            'relativeDir' => trim((string) ($value['relativeDir'] ?? '')),
+            'relativePath' => trim((string) ($value['relativePath'] ?? '')),
+            'finalName' => trim((string) ($value['finalName'] ?? '')),
+            'mimeType' => trim((string) ($value['mimeType'] ?? '')),
+            'expectedSize' => max(0, (int) ($value['expectedSize'] ?? 0)),
+            'createdAt' => $createdAt !== '' ? $createdAt : dent_iso_now(),
+            'updatedAt' => $updatedAt !== '' ? $updatedAt : dent_iso_now(),
+            'expiresAt' => $expiresAt !== '' ? $expiresAt : date('c', $now + NOTES_DIRECT_UPLOAD_SESSION_TTL_SECONDS),
+            'sessionKey' => notes_direct_upload_clean_token($value['sessionKey'] ?? ''),
+            'origin' => trim((string) ($value['origin'] ?? '')),
+            'gatewayVersion' => trim((string) ($value['gatewayVersion'] ?? '')),
+            'contentType' => trim((string) ($value['contentType'] ?? '')),
+            'contentLength' => max(0, (int) ($value['contentLength'] ?? 0)),
+            'completedAt' => trim((string) ($value['completedAt'] ?? '')),
+            'file' => is_array($value['file'] ?? null) ? $value['file'] : null,
+        ];
+    }
+
+    return [
+        'schemaVersion' => NOTES_DIRECT_UPLOAD_SCHEMA_VERSION,
+        'sessions' => $sessions,
+    ];
+}
+
+function notes_direct_upload_load_store_unlocked(): array
+{
+    notes_direct_upload_ensure_storage();
+    $raw = dent_read_json_file(notes_direct_upload_store_path(), notes_direct_upload_default_store());
+    if (!is_array($raw)) {
+        $raw = notes_direct_upload_default_store();
+    }
+
+    return notes_direct_upload_normalize_store($raw);
+}
+
+/**
+ * @template T
+ * @param callable(array):T $callback
+ * @return T
+ */
+function notes_direct_upload_with_store_lock(callable $callback)
+{
+    notes_direct_upload_ensure_storage();
+    $lock = fopen(notes_direct_upload_lock_path(), 'c+');
+    if ($lock === false) {
+        dent_error('قفل آپلود مستقیم منابع در دسترس نیست.', 500);
+    }
+
+    try {
+        if (!flock($lock, LOCK_EX)) {
+            dent_error('قفل آپلود مستقیم منابع آماده نشد.', 500);
+        }
+        $store = notes_direct_upload_load_store_unlocked();
+        $result = $callback($store);
+        dent_write_json_file(notes_direct_upload_store_path(), notes_direct_upload_normalize_store($store));
+        return $result;
+    } finally {
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+}
+
+function notes_direct_upload_reserved_names_for_dir(array $store, string $relativeDir): array
+{
+    $reserved = [];
+    foreach (($store['sessions'] ?? []) as $session) {
+        if (!is_array($session)) {
+            continue;
+        }
+        if ((string) ($session['status'] ?? '') === 'completed') {
+            continue;
+        }
+        if (trim((string) ($session['relativeDir'] ?? '')) !== $relativeDir) {
+            continue;
+        }
+        $name = trim((string) ($session['finalName'] ?? ''));
+        if ($name === '') {
+            continue;
+        }
+        $reserved[] = $name;
+    }
+
+    return $reserved;
+}
+
+function notes_direct_upload_limit_bytes(array $gateway): ?int
+{
+    $limits = [];
+    foreach (['postMaxBytes', 'uploadMaxBytes'] as $key) {
+        $value = $gateway[$key] ?? null;
+        if (is_int($value) || is_float($value) || (is_string($value) && is_numeric($value))) {
+            $bytes = max(0, (int) round((float) $value));
+            if ($bytes > 0) {
+                $limits[] = $bytes;
+            }
+        }
+    }
+
+    if ($limits === []) {
+        return null;
+    }
+
+    return min($limits);
+}
+
+function notes_direct_upload_build_file_payload(array $session, ?int $sizeBytes = null, ?string $mimeType = null): array
+{
+    $bytes = $sizeBytes !== null ? max(0, $sizeBytes) : max(0, (int) ($session['expectedSize'] ?? 0));
+    $finalMimeType = trim((string) ($mimeType !== null ? $mimeType : ($session['mimeType'] ?? '')));
+    $relativeDir = trim((string) ($session['relativeDir'] ?? ''));
+    $relativePath = trim((string) ($session['relativePath'] ?? ''));
+    $finalName = trim((string) ($session['finalName'] ?? basename($relativePath)));
+
+    return [
+        'name' => $finalName,
+        'relativeDir' => $relativeDir,
+        'relativePath' => $relativePath,
+        'sizeBytes' => $bytes,
+        'sizeLabel' => notes_download_host_human_size($bytes),
+        'mimeType' => $finalMimeType,
+        'publicUrl' => notes_download_host_public_url($relativePath),
+        'message' => 'فایل روی هاست دانلود ذخیره شد.',
+    ];
+}
+
+function notes_build_host_upload_url(string $relativeDir, string $cohort): string
+{
+    $query = [
+        'action' => 'hostUploadFile',
+        'path' => $relativeDir,
+    ];
+    if ($cohort !== '') {
+        $query['cohort'] = $cohort;
+    }
+
+    return '/api/notes_api.php?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+}
+
+function notes_direct_upload_main_site_origin(): string
+{
+    $host = trim((string) ($_SERVER['HTTP_HOST'] ?? ''));
+    if ($host === '') {
+        return '';
+    }
+
+    $parsedHost = parse_url('http://' . $host, PHP_URL_HOST);
+    $hostname = strtolower(trim((string) $parsedHost));
+    if ($hostname === '' || in_array($hostname, ['localhost', '127.0.0.1', '::1'], true)) {
+        return '';
+    }
+    if (str_ends_with($hostname, '.local') || str_ends_with($hostname, '.test') || str_ends_with($hostname, '.invalid') || str_ends_with($hostname, '.localhost')) {
+        return '';
+    }
+    if (filter_var($hostname, FILTER_VALIDATE_IP) && filter_var($hostname, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+        return '';
+    }
+    if (!filter_var($hostname, FILTER_VALIDATE_IP) && !str_contains($hostname, '.')) {
+        return '';
+    }
+
+    $forwardedProto = strtolower(trim((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')));
+    $forwardedSsl = strtolower(trim((string) ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '')));
+    $secure = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+        || $forwardedProto === 'https'
+        || $forwardedSsl === 'on';
+
+    return ($secure ? 'https://' : 'http://') . $host;
+}
+
+function notes_download_host_target_context(string $cohort, array $viewer, array $params): array
+{
+    $scopeRoot = notes_download_host_scope_for_viewer($cohort, $viewer);
+    $relativeDir = trim((string) ($params['path'] ?? $params['relativeDir'] ?? ''));
+    if ($relativeDir === '') {
+        $term = $cohort === 'prosthesis-1402'
+            ? notes_prosthesis_1402_parse_term_id($params['term'] ?? '1')
+            : notes_require_term_for_cohort($cohort, $params['term'] ?? '');
+        $store = notes_curriculum_store_for_cohort($cohort);
+        $relativeDir = notes_download_host_default_relative_dir_from_request($cohort, $term, $params, $store);
+    }
+
+    return [
+        'scopeRoot' => $scopeRoot,
+        'relativeDir' => notes_download_host_assert_allowed_relative_path($relativeDir, $scopeRoot, false),
+    ];
+}
+
+function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $params): array
+{
+    $target = notes_download_host_target_context($cohort, $viewer, $params);
+    $expectedSize = max(0, (int) ($params['fileSize'] ?? 0));
+    if ($expectedSize <= 0) {
+        dent_error('حجم فایل برای آپلود معتبر نیست.', 422);
+    }
+
+    $desiredName = trim((string) ($params['fileName'] ?? ''));
+    if ($desiredName === '') {
+        dent_error('نام فایل برای آپلود معتبر نیست.', 422);
+    }
+
+    $mimeType = trim((string) ($params['mimeType'] ?? ''));
+    $mainSiteOrigin = notes_direct_upload_main_site_origin();
+    if ($mainSiteOrigin === '') {
+        return [
+            'mode' => 'relay',
+            'url' => notes_build_host_upload_url($target['relativeDir'], $cohort),
+            'relativeDir' => $target['relativeDir'],
+            'scopeRoot' => $target['scopeRoot'],
+        ];
+    }
+
+    $gateway = notes_download_host_ensure_direct_upload_gateway($mainSiteOrigin);
+    $limitBytes = notes_direct_upload_limit_bytes($gateway);
+    if ($limitBytes !== null && $expectedSize > $limitBytes) {
+        dent_error('سقف فعلی آپلود مستقیم روی هاست دانلود برای این فایل کافی نیست.', 413);
+    }
+
+    return notes_direct_upload_with_store_lock(static function (array &$store) use ($cohort, $target, $desiredName, $mimeType, $expectedSize, $gateway, $mainSiteOrigin): array {
+        $finalName = notes_download_host_unique_file_name_with_reserved(
+            $target['relativeDir'],
+            $desiredName,
+            notes_direct_upload_reserved_names_for_dir($store, $target['relativeDir'])
+        );
+        $relativePath = trim($target['relativeDir'] . '/' . $finalName, '/');
+        $token = notes_direct_upload_next_token();
+        $sessionKey = notes_direct_upload_next_token();
+        $now = dent_iso_now();
+
+        $session = [
+            'token' => $token,
+            'status' => 'prepared',
+            'cohort' => $cohort,
+            'scopeRoot' => (string) ($target['scopeRoot'] ?? ''),
+            'relativeDir' => $target['relativeDir'],
+            'relativePath' => $relativePath,
+            'finalName' => $finalName,
+            'mimeType' => $mimeType,
+            'expectedSize' => $expectedSize,
+            'createdAt' => $now,
+            'updatedAt' => $now,
+            'expiresAt' => date('c', time() + NOTES_DIRECT_UPLOAD_SESSION_TTL_SECONDS),
+            'sessionKey' => $sessionKey,
+            'origin' => $mainSiteOrigin,
+            'gatewayVersion' => trim((string) ($gateway['version'] ?? '')),
+            'contentType' => '',
+            'contentLength' => 0,
+            'completedAt' => '',
+            'file' => null,
+        ];
+        $store['sessions'][$token] = $session;
+
+        return [
+            'mode' => 'direct',
+            'url' => rtrim((string) ($gateway['uploadUrl'] ?? ''), '/') . '?token=' . rawurlencode($token),
+            'relativeDir' => $target['relativeDir'],
+            'relativePath' => $relativePath,
+            'fileName' => $finalName,
+            'scopeRoot' => $target['scopeRoot'],
+            'gatewayVersion' => trim((string) ($gateway['version'] ?? '')),
+        ];
+    });
 }
 
 function notes_1402_term_template(int $term): array
@@ -2652,20 +2998,123 @@ if ($action === 'downloadHostBrowse') {
     ]);
 }
 
+if ($action === 'prepareHostUpload') {
+    notes_1402_require_method(['POST']);
+    $uploadParams = array_merge($_GET, $_POST);
+    $cohort = notes_parse_cohort($uploadParams['cohort'] ?? '1402');
+    $viewer = notes_require_manage_cohort($cohort);
+    $upload = notes_prepare_host_upload_plan($cohort, $viewer, $uploadParams);
+
+    dent_json_response([
+        'success' => true,
+        'upload' => $upload,
+    ]);
+}
+
+if ($action === 'resolveDirectHostUpload') {
+    notes_1402_require_method(['POST']);
+    dent_release_session_lock();
+
+    $token = notes_direct_upload_clean_token($_POST['token'] ?? '');
+    if ($token === '') {
+        dent_error('توکن آپلود مستقیم معتبر نیست.', 422);
+    }
+
+    $sessionPayload = notes_direct_upload_with_store_lock(static function (array &$store) use ($token): array {
+        $session = $store['sessions'][$token] ?? null;
+        if (!is_array($session)) {
+            dent_error('نشست آپلود مستقیم پیدا نشد یا منقضی شده است.', 404);
+        }
+
+        $session['status'] = 'resolved';
+        $session['updatedAt'] = dent_iso_now();
+        $session['contentType'] = trim((string) ($_POST['contentType'] ?? $session['contentType'] ?? ''));
+        $session['contentLength'] = max(0, (int) ($_POST['contentLength'] ?? $session['contentLength'] ?? 0));
+        $session['origin'] = trim((string) ($_POST['origin'] ?? $session['origin'] ?? ''));
+        $session['gatewayVersion'] = trim((string) ($_POST['gatewayVersion'] ?? $session['gatewayVersion'] ?? ''));
+        $store['sessions'][$token] = $session;
+
+        return [
+            'token' => $session['token'],
+            'sessionKey' => (string) ($session['sessionKey'] ?? ''),
+            'relativeDir' => (string) ($session['relativeDir'] ?? ''),
+            'relativePath' => (string) ($session['relativePath'] ?? ''),
+            'fileName' => (string) ($session['finalName'] ?? ''),
+            'expectedSize' => max(0, (int) ($session['expectedSize'] ?? 0)),
+            'mimeType' => (string) ($session['mimeType'] ?? ''),
+            'publicUrl' => notes_download_host_public_url((string) ($session['relativePath'] ?? '')),
+        ];
+    });
+
+    dent_json_response([
+        'success' => true,
+        'session' => $sessionPayload,
+    ]);
+}
+
+if ($action === 'completeDirectHostUpload') {
+    notes_1402_require_method(['POST']);
+    dent_release_session_lock();
+
+    $token = notes_direct_upload_clean_token($_POST['token'] ?? '');
+    $sessionKey = notes_direct_upload_clean_token($_POST['sessionKey'] ?? '');
+    $sizeBytes = max(0, (int) ($_POST['bytes'] ?? 0));
+    $mimeType = trim((string) ($_POST['mimeType'] ?? ''));
+
+    if ($token === '' || $sessionKey === '') {
+        dent_error('اطلاعات نهایی‌سازی آپلود مستقیم معتبر نیست.', 422);
+    }
+
+    $filePayload = notes_direct_upload_with_store_lock(static function (array &$store) use ($token, $sessionKey, $sizeBytes, $mimeType): array {
+        $session = $store['sessions'][$token] ?? null;
+        if (!is_array($session)) {
+            dent_error('نشست آپلود مستقیم پیدا نشد یا منقضی شده است.', 404);
+        }
+        if (!hash_equals((string) ($session['sessionKey'] ?? ''), $sessionKey)) {
+            dent_error('کلید نهایی‌سازی آپلود مستقیم معتبر نیست.', 403);
+        }
+
+        $storedFile = is_array($session['file'] ?? null) ? $session['file'] : null;
+        if ((string) ($session['status'] ?? '') === 'completed' && $storedFile !== null) {
+            return $storedFile;
+        }
+
+        $expectedSize = max(0, (int) ($session['expectedSize'] ?? 0));
+        if ($expectedSize > 0 && $sizeBytes > 0 && $sizeBytes !== $expectedSize) {
+            dent_error('حجم نهایی فایل با نشست آپلود مستقیم هم‌خوانی ندارد.', 422);
+        }
+
+        $finalFile = notes_direct_upload_build_file_payload(
+            $session,
+            $sizeBytes > 0 ? $sizeBytes : $expectedSize,
+            $mimeType !== '' ? $mimeType : (string) ($session['mimeType'] ?? '')
+        );
+
+        $session['status'] = 'completed';
+        $session['updatedAt'] = dent_iso_now();
+        $session['completedAt'] = $session['updatedAt'];
+        $session['mimeType'] = (string) ($finalFile['mimeType'] ?? '');
+        $session['file'] = $finalFile;
+        $store['sessions'][$token] = $session;
+
+        return $finalFile;
+    });
+
+    dent_json_response([
+        'success' => true,
+        'file' => $filePayload,
+        'message' => (string) ($filePayload['message'] ?? 'فایل روی هاست دانلود ذخیره شد.'),
+    ]);
+}
+
 if ($action === 'hostUploadFile') {
     notes_1402_require_method(['POST']);
     $uploadParams = array_merge($_GET, $_POST);
     $cohort = notes_parse_cohort($uploadParams['cohort'] ?? '1402');
     $viewer = notes_require_manage_cohort($cohort);
-    $scopeRoot = notes_download_host_scope_for_viewer($cohort, $viewer);
-    $relativeDir = trim((string) ($uploadParams['path'] ?? $uploadParams['relativeDir'] ?? ''));
-    if ($relativeDir === '') {
-        $term = $cohort === 'prosthesis-1402'
-            ? notes_prosthesis_1402_parse_term_id($uploadParams['term'] ?? '1')
-            : notes_require_term_for_cohort($cohort, $uploadParams['term'] ?? '');
-        $store = notes_curriculum_store_for_cohort($cohort);
-        $relativeDir = notes_download_host_default_relative_dir_from_request($cohort, $term, $uploadParams, $store);
-    }
+    $target = notes_download_host_target_context($cohort, $viewer, $uploadParams);
+    $scopeRoot = $target['scopeRoot'];
+    $relativeDir = $target['relativeDir'];
 
     if (!isset($_FILES['file']) && max(0, (int) notes_download_host_request_header('Content-Length')) > 0) {
         $contentLength = max(0, (int) notes_download_host_request_header('Content-Length'));
