@@ -5720,6 +5720,30 @@
     applyMediaViewerTransform(options);
   }
 
+  function setMediaViewerScaleAtPoint(scale, clientX, clientY, options) {
+    if (!mediaViewerStage || typeof clientX !== "number" || typeof clientY !== "number") {
+      setMediaViewerScale(scale, options);
+      return;
+    }
+    var newScale = clamp(scale, 1, 4);
+    if (newScale <= 1.01) {
+      state.mediaViewerScale = 1;
+      state.mediaViewerOffsetX = 0;
+      state.mediaViewerOffsetY = 0;
+      applyMediaViewerTransform(options);
+      return;
+    }
+    var rect = mediaViewerStage.getBoundingClientRect();
+    var stageCenterX = rect.left + rect.width / 2;
+    var stageCenterY = rect.top + rect.height / 2;
+    var anchorX = (clientX - stageCenterX - state.mediaViewerOffsetX) / state.mediaViewerScale;
+    var anchorY = (clientY - stageCenterY - state.mediaViewerOffsetY) / state.mediaViewerScale;
+    state.mediaViewerOffsetX = clientX - stageCenterX - anchorX * newScale;
+    state.mediaViewerOffsetY = clientY - stageCenterY - anchorY * newScale;
+    state.mediaViewerScale = newScale;
+    applyMediaViewerTransform(options);
+  }
+
   function rotateMediaViewerImage() {
     var item = state.mediaViewerItems[state.mediaViewerIndex];
     if (!item || item.kind !== "image") return;
@@ -5928,11 +5952,19 @@
     renderMediaViewerItem();
   }
 
-  function toggleMediaViewerZoom() {
+  function toggleMediaViewerZoom(event) {
     if (!mediaViewer || !mediaViewerStage) return;
     var item = state.mediaViewerItems[state.mediaViewerIndex];
     if (!item || item.kind !== "image") return;
-    setMediaViewerScale(state.mediaViewerScale > 1.01 ? 1 : 2.5);
+    if (state.mediaViewerScale > 1.01) {
+      setMediaViewerScale(1);
+      return;
+    }
+    if (event && typeof event.clientX === "number") {
+      setMediaViewerScaleAtPoint(2.5, event.clientX, event.clientY);
+    } else {
+      setMediaViewerScale(2.5);
+    }
   }
 
   function openMediaViewerFromNode(node) {
@@ -12834,7 +12866,9 @@
           var pts = Array.from(state.mediaViewerActivePointers.values()).slice(0, 2);
           var dist = Math.max(1, Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y));
           event.preventDefault();
-          setMediaViewerScale(state.mediaViewerPinch.startScale * (dist / state.mediaViewerPinch.startDistance), { live: true });
+          var midX = (pts[0].x + pts[1].x) / 2;
+          var midY = (pts[0].y + pts[1].y) / 2;
+          setMediaViewerScaleAtPoint(state.mediaViewerPinch.startScale * (dist / state.mediaViewerPinch.startDistance), midX, midY, { live: true });
           return;
         }
 
@@ -12858,11 +12892,7 @@
         var dy = event.clientY - start.startY;
         if (!start.dragging) {
           if (Math.abs(dx) < 10) return;
-          if (Math.abs(dx) < Math.abs(dy) * 1.1) {
-            state.mediaViewerPointer = null;
-            resetMediaViewerStageOffset();
-            return;
-          }
+          if (Math.abs(dx) < Math.abs(dy) * 1.1) return;
           start.dragging = true;
         }
         event.preventDefault();
@@ -12920,7 +12950,7 @@
     if (mediaViewerStage) {
       mediaViewerStage.addEventListener("dblclick", function (event) {
         event.preventDefault();
-        toggleMediaViewerZoom();
+        toggleMediaViewerZoom(event);
       });
       mediaViewerStage.addEventListener("wheel", function (event) {
         var item = state.mediaViewerItems[state.mediaViewerIndex];
