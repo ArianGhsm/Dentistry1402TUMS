@@ -1288,7 +1288,7 @@ body.chat-page * {
     background: var(--chat-control-bg);
     color: var(--chat-text);
     overflow: hidden;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+    transition: transform var(--motion-fast, 0.18s) ease, border-color var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease, box-shadow var(--motion-fast, 0.18s) ease;
 }
 
 .chat-back:hover,
@@ -1473,7 +1473,7 @@ body.chat-page * {
     font-size: 0.9rem;
     font-weight: 860;
     box-shadow: var(--btn-shadow);
-    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+    transition: transform var(--motion-fast, 0.18s) ease, box-shadow var(--motion-fast, 0.18s) ease, filter var(--motion-fast, 0.18s) ease;
 }
 
 .chat-login-btn:hover:not(:disabled),
@@ -1588,7 +1588,7 @@ body.chat-page * {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    transition: transform var(--motion-fast, 0.18s) ease, border-color var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease;
 }
 
 .conversation-pane__icon-btn svg {
@@ -1755,7 +1755,7 @@ body.chat-page * {
     text-align: start;
     position: relative;
     overflow: hidden;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+    transition: transform var(--motion-fast, 0.18s) ease, border-color var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease, box-shadow var(--motion-fast, 0.18s) ease;
 }
 
 .conversation-item__main:hover,
@@ -1773,7 +1773,7 @@ body.chat-page * {
     border-radius: 999px;
     background: var(--chat-accent);
     opacity: 0;
-    transition: opacity 0.16s ease;
+    transition: opacity var(--motion-fast, 0.18s) ease;
 }
 
 .conversation-item.is-active .conversation-item__main {
@@ -1815,7 +1815,7 @@ body.chat-page * {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+    transition: border-color var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease, color var(--motion-fast, 0.18s) ease;
 }
 
 .conversation-item__more {
@@ -1862,7 +1862,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     gap: 0.5rem;
     font-size: 0.67rem;
     font-weight: 760;
-    transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+    transition: border-color var(--motion-fast, 0.18s) ease, color var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease;
 }
 
 .conversation-archive-toggle:hover,
@@ -2370,7 +2370,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     border: 1px solid var(--chat-border);
     background: var(--chat-bubble);
     box-shadow: 0 10px 24px -22px rgba(22, 42, 70, 0.12);
-    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+    transition: transform var(--motion-fast, 0.18s) ease, box-shadow var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease, border-color var(--motion-fast, 0.18s) ease;
 }
 
 .msg-item.me .msg-bubble {
@@ -2753,7 +2753,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     font-size: 0.68rem;
     font-weight: 760;
     cursor: pointer;
-    transition: border-color 0.16s ease, background 0.16s ease;
+    transition: border-color var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease;
 }
 
 .msg-reaction:hover,
@@ -2836,7 +2836,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     border-radius: 20px;
     border: 1px solid var(--chat-border);
     background: var(--chat-input-bg);
-    transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    transition: border-color var(--motion-fast, 0.18s) ease, box-shadow var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease;
 }
 
 .composer-box:focus-within {
@@ -2861,7 +2861,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+    transition: border-color var(--motion-fast, 0.18s) ease, color var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease;
 }
 
 .composer-tool svg {
@@ -2900,7 +2900,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     font-weight: 790;
     white-space: nowrap;
     text-align: center;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+    transition: transform var(--motion-fast, 0.18s) ease, border-color var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease, color var(--motion-fast, 0.18s) ease;
 }
 
 .composer-upload-option:hover,
@@ -3145,7 +3145,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     background: var(--btn-gradient);
     color: #fff;
     box-shadow: var(--btn-shadow);
-    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
+    transition: transform var(--motion-fast, 0.18s) ease, box-shadow var(--motion-fast, 0.18s) ease, filter var(--motion-fast, 0.18s) ease, opacity var(--motion-fast, 0.18s) ease;
 }
 
 .composer-send svg {
@@ -3293,7 +3293,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     font-size: 0.8rem;
     font-weight: 780;
     pointer-events: auto;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    transition: transform var(--motion-fast, 0.18s) ease, border-color var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease;
 }
 
 .chat-reaction-btn:hover,
@@ -4205,7 +4205,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     font-size: 0.58rem;
     font-weight: 810;
     text-decoration: none;
-    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+    transition: transform var(--motion-fast, 0.18s) ease, border-color var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease, color var(--motion-fast, 0.18s) ease;
 }
 
 .chat-mobile-nav__badge {
@@ -4262,7 +4262,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+    transition: transform var(--motion-fast, 0.18s) ease, box-shadow var(--motion-fast, 0.18s) ease, opacity var(--motion-fast, 0.18s) ease;
 }
 
 .chat-fab svg {
@@ -4293,7 +4293,7 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     color: #fff;
     font-size: 0.78rem;
     box-shadow: 0 22px 42px -30px rgba(22, 42, 70, 0.3);
-    transition: opacity 0.16s ease, transform 0.16s ease;
+    transition: opacity var(--motion-fast, 0.18s) ease, transform var(--motion-fast, 0.18s) ease;
     z-index: 290;
 }
 
@@ -5475,7 +5475,7 @@ html[data-theme="dark"] body.chat-page {
     font-size: 0.68rem;
     font-weight: 830;
     white-space: nowrap;
-    transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+    transition: color var(--motion-fast, 0.18s) ease, border-color var(--motion-fast, 0.18s) ease, background var(--motion-fast, 0.18s) ease, transform var(--motion-fast, 0.18s) ease;
 }
 
 .conversation-filter-tab:hover,
@@ -6167,7 +6167,7 @@ body.chat-page [contenteditable="true"] {
         opacity: 0;
         pointer-events: none;
         transform: none;
-        transition: opacity 0.16s ease;
+        transition: opacity var(--motion-fast, 0.18s) ease;
     }
 
     .conversation-item:hover .conversation-item__tools,
@@ -6647,7 +6647,7 @@ body.chat-page #edit-text {
     background: color-mix(in srgb, var(--surface-muted) 90%, #fff) !important;
     border-color: var(--chat-soft-line) !important;
     color: var(--text-primary) !important;
-    transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+    transition: border-color var(--motion-fast, 0.18s) ease, box-shadow var(--motion-fast, 0.18s) ease, background-color var(--motion-fast, 0.18s) ease;
 }
 
 body.chat-page .conversation-search-wrap input:focus,
@@ -6672,7 +6672,7 @@ body.chat-page .conversation-filter-tab {
     color: var(--text-secondary);
     font-size: 0.75rem;
     font-weight: 700;
-    transition: background-color 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+    transition: background-color var(--motion-fast, 0.18s) ease, color var(--motion-fast, 0.18s) ease, border-color var(--motion-fast, 0.18s) ease;
 }
 
 body.chat-page .conversation-filter-tab.is-active {
@@ -6694,7 +6694,7 @@ body.chat-page .conversation-item__main {
     border-bottom: 1px solid color-mix(in srgb, var(--chat-soft-line) 88%, transparent);
     background: transparent;
     padding: 0.58rem 0.3rem;
-    transition: background-color 0.16s ease, border-color 0.16s ease;
+    transition: background-color var(--motion-fast, 0.18s) ease, border-color var(--motion-fast, 0.18s) ease;
 }
 
 body.chat-page .conversation-item__main::before {
@@ -10405,6 +10405,84 @@ body.chat-page .composer-mention-item__badge {
     font-size: 0.58rem;
     font-weight: 860;
     vertical-align: middle;
+}
+
+body.chat-page .composer-emoji-panel {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.55rem;
+    padding: 0.6rem;
+    border: 1px solid var(--chat-border);
+    border-radius: 18px;
+    background: rgba(12, 22, 33, 0.92);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+body.chat-page .composer-emoji-panel[hidden] {
+    display: none !important;
+}
+
+body.chat-page .composer-emoji-panel__tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    overflow-x: auto;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--chat-border);
+}
+
+body.chat-page .composer-emoji-tab {
+    flex: 0 0 auto;
+    width: 2.2rem;
+    height: 2.2rem;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    font-size: 1.15rem;
+    line-height: 1;
+    transition: background var(--motion-fast, 180ms ease), border-color var(--motion-fast, 180ms ease);
+}
+
+body.chat-page .composer-emoji-tab:hover,
+body.chat-page .composer-emoji-tab:focus-visible,
+body.chat-page .composer-emoji-tab.is-active {
+    background: rgba(130, 182, 255, 0.16);
+    border-color: rgba(130, 182, 255, 0.26);
+}
+
+body.chat-page .composer-emoji-panel__grid {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.2rem;
+    max-height: 13.5rem;
+    overflow-y: auto;
+}
+
+body.chat-page .composer-emoji-item {
+    display: inline-grid;
+    place-items: center;
+    aspect-ratio: 1;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    font-size: 1.4rem;
+    line-height: 1;
+    transition: background var(--motion-fast, 180ms ease), transform var(--motion-fast, 180ms ease);
+}
+
+body.chat-page .composer-emoji-item:hover,
+body.chat-page .composer-emoji-item:focus-visible {
+    background: rgba(130, 182, 255, 0.16);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 720px) {
+    body.chat-page .composer-emoji-panel__grid {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        max-height: 11.5rem;
+    }
 }
 
 body.chat-page .msg-mention {

@@ -202,6 +202,36 @@ function notes_download_host_domain_is_resolvable(string $host): bool
     return is_string($resolved) && trim($resolved) !== '' && strcasecmp($resolved, $normalized) !== 0;
 }
 
+function notes_download_host_domain_accepts_https(string $host, int $timeoutMs = 1200): bool
+{
+    $normalized = strtolower(trim($host));
+    if ($normalized === '') {
+        return false;
+    }
+
+    $address = filter_var($normalized, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)
+        ? 'ssl://[' . $normalized . ']:443'
+        : 'ssl://' . $normalized . ':443';
+    $timeoutSeconds = max(0.2, $timeoutMs / 1000);
+    $context = stream_context_create([
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => true,
+            'SNI_enabled' => true,
+        ],
+    ]);
+    $errno = 0;
+    $errstr = '';
+    $socket = @stream_socket_client($address, $errno, $errstr, $timeoutSeconds, STREAM_CLIENT_CONNECT, $context);
+    if (!is_resource($socket)) {
+        return false;
+    }
+
+    fclose($socket);
+    return true;
+}
+
 function notes_download_host_public_base_url(): string
 {
     $secret = notes_download_host_load_secret();
@@ -1478,7 +1508,7 @@ function notes_download_host_direct_upload_health(string $mainSiteOrigin): ?arra
     return $decoded;
 }
 
-function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin): array
+function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin): ?array
 {
     static $cache = [];
 
@@ -1488,6 +1518,12 @@ function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin
     }
     if (isset($cache[$mainSiteOrigin]) && is_array($cache[$mainSiteOrigin])) {
         return $cache[$mainSiteOrigin];
+    }
+
+    $gatewayUrl = notes_download_host_internal_runtime_public_url(notes_download_host_direct_upload_gateway_relative_path());
+    $gatewayHost = strtolower(trim((string) parse_url($gatewayUrl, PHP_URL_HOST)));
+    if ($gatewayHost === '' || !notes_download_host_domain_accepts_https($gatewayHost)) {
+        return null;
     }
 
     $health = notes_download_host_direct_upload_health($mainSiteOrigin);
@@ -1510,7 +1546,7 @@ function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin
 
     $health = notes_download_host_direct_upload_health($mainSiteOrigin);
     if (!is_array($health)) {
-        dent_error('Direct upload gateway on the download host did not become healthy after installation.', 502);
+        return null;
     }
 
     $cache[$mainSiteOrigin] = $health;

@@ -696,6 +696,54 @@
         });
     }
 
+    function probeDirectUploadPlan(uploadPlan) {
+        var mode = uploadPlan && uploadPlan.mode ? String(uploadPlan.mode) : "relay";
+        var relayUrl = uploadPlan && uploadPlan.relayUrl ? String(uploadPlan.relayUrl) : "";
+        if (mode !== "direct" || !relayUrl) {
+            return Promise.resolve(uploadPlan);
+        }
+
+        var targetUrl = uploadPlan && uploadPlan.url ? String(uploadPlan.url) : "";
+        var probeUrl = targetUrl;
+        try {
+            var parsed = new URL(targetUrl, window.location.href);
+            parsed.search = "";
+            parsed.searchParams.set("health", "1");
+            probeUrl = parsed.toString();
+        } catch (_error) {
+            return Promise.resolve(Object.assign({}, uploadPlan, { mode: "relay", url: relayUrl }));
+        }
+
+        var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+        var timeoutId = controller ? setTimeout(function () {
+            try {
+                controller.abort();
+            } catch (_abortError) {
+            }
+        }, 1200) : null;
+
+        return fetch(probeUrl, {
+            method: "GET",
+            mode: "cors",
+            credentials: "omit",
+            cache: "no-store",
+            signal: controller ? controller.signal : undefined
+        }).then(function (response) {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            if (response && response.ok) {
+                return uploadPlan;
+            }
+            return Object.assign({}, uploadPlan, { mode: "relay", url: relayUrl });
+        }).catch(function () {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            return Object.assign({}, uploadPlan, { mode: "relay", url: relayUrl });
+        });
+    }
+
     function openUploadXhr(xhr, uploadPlan, item) {
         var mode = uploadPlan && uploadPlan.mode ? String(uploadPlan.mode) : "relay";
         var targetUrl = uploadPlan && uploadPlan.url ? String(uploadPlan.url) : "";
@@ -762,112 +810,122 @@
                     return;
                 }
 
-                var startedAt = Date.now();
-                item.xhr = new XMLHttpRequest();
-                var xhr = item.xhr;
-                openUploadXhr(xhr, prepareResponse.upload, item);
+                probeDirectUploadPlan(prepareResponse.upload).then(function (uploadPlan) {
+                    var startedAt = Date.now();
+                    item.xhr = new XMLHttpRequest();
+                    var xhr = item.xhr;
+                    openUploadXhr(xhr, uploadPlan, item);
 
-                xhr.upload.onprogress = function (event) {
-                    if (!event.lengthComputable) {
-                        return;
-                    }
+                    xhr.upload.onprogress = function (event) {
+                        if (!event.lengthComputable) {
+                            return;
+                        }
 
-                    var loaded = Number(event.loaded || 0);
-                    var total = Number(event.total || item.size || 0);
-                    var elapsed = Math.max(0.25, (Date.now() - startedAt) / 1000);
-                    var speed = loaded / elapsed;
-                    item.uploadedBytes = loaded;
-                    item.progress = total > 0 ? (loaded / total) * 100 : item.progress;
-                    item.speedBps = speed;
-                    item.etaSeconds = speed > 0 && total > loaded ? (total - loaded) / speed : 0;
-                    if (item.progress >= 99.9) {
-                        item.status = "finalizing";
+                        var loaded = Number(event.loaded || 0);
+                        var total = Number(event.total || item.size || 0);
+                        var elapsed = Math.max(0.25, (Date.now() - startedAt) / 1000);
+                        var speed = loaded / elapsed;
+                        item.uploadedBytes = loaded;
+                        item.progress = total > 0 ? (loaded / total) * 100 : item.progress;
+                        item.speedBps = speed;
+                        item.etaSeconds = speed > 0 && total > loaded ? (total - loaded) / speed : 0;
+                        if (item.progress >= 99.9) {
+                            item.status = "finalizing";
+                            item.progress = finalizingProgress;
+                            item.etaSeconds = 0;
+                        }
+                        renderUploadQueue();
+                    };
+
+                    xhr.upload.onload = function () {
+                        item.uploadedBytes = Number(item.size || item.uploadedBytes || 0);
                         item.progress = finalizingProgress;
+                        item.status = "finalizing";
+                        item.speedBps = 0;
                         item.etaSeconds = 0;
-                    }
-                    renderUploadQueue();
-                };
+                        renderUploadQueue();
+                    };
 
-                xhr.upload.onload = function () {
-                    item.uploadedBytes = Number(item.size || item.uploadedBytes || 0);
-                    item.progress = finalizingProgress;
-                    item.status = "finalizing";
+                    xhr.onload = function () {
+                        var response = {};
+                        try {
+                            response = JSON.parse(xhr.responseText || "{}");
+                        } catch (_error) {
+                            response = { success: false, error: "پاسخ آپلود معتبر نبود." };
+                        }
+                        item.xhr = null;
+                        response.httpStatus = xhr.status;
+
+                        if (response && (response.loggedOut || response.httpStatus === 401)) {
+                            item.status = "error";
+                            item.error = "نشست شما منقضی شده است.";
+                            item.speedBps = 0;
+                            item.etaSeconds = NaN;
+                            renderUploadQueue();
+                            setGuard("login", "نیاز به ورود", "برای استفاده از فایل‌منیجر منابع باید وارد حساب مجاز شوید.", loginUrl(), "ورود");
+                            reject(createUploadSignal("prepare-error", item.error));
+                            return;
+                        }
+                        if (response && response.httpStatus === 403) {
+                            item.status = "error";
+                            item.error = response.error || "اجازه آپلود فایل در این بخش را ندارید.";
+                            item.speedBps = 0;
+                            item.etaSeconds = NaN;
+                            renderUploadQueue();
+                            setGuard("forbidden", "دسترسی مجاز نیست", response.error || "این بخش فقط برای حساب‌های مجاز فعال است.");
+                            reject(createUploadSignal("prepare-error", item.error));
+                            return;
+                        }
+                        if (!response || !response.success || !response.file) {
+                            item.status = "error";
+                            item.error = (response && response.error) || "آپلود فایل کامل نشد.";
+                            item.speedBps = 0;
+                            item.etaSeconds = NaN;
+                            renderUploadQueue();
+                            reject(new Error(item.error));
+                            return;
+                        }
+
+                        item.status = "done";
+                        item.progress = 100;
+                        item.uploadedBytes = Number(item.size || item.uploadedBytes || 0);
+                        item.speedBps = 0;
+                        item.etaSeconds = 0;
+                        item.publicUrl = String(response.file.publicUrl || "");
+                        item.relativePath = String(response.file.relativePath || response.file.relativeDir || item.targetPath || "");
+                        item.completedAt = new Date().toISOString();
+                        renderUploadQueue();
+                        resolve(response);
+                    };
+
+                    xhr.onerror = function () {
+                        reject(markUploadWaiting(item, waitingUploadMessage(item)));
+                    };
+
+                    xhr.onabort = function () {
+                        item.xhr = null;
+                        if (item.canceled) {
+                            item.status = "error";
+                            item.error = "آپلود توسط کاربر لغو شد.";
+                            item.speedBps = 0;
+                            item.etaSeconds = NaN;
+                            renderUploadQueue();
+                            reject(createUploadSignal("canceled", item.error));
+                            return;
+                        }
+                        reject(markUploadWaiting(item, waitingUploadMessage(item)));
+                    };
+
+                    xhr.send(item.file);
+                }).catch(function (error) {
+                    item.status = "error";
+                    item.error = error && error.message ? error.message : "ارتباط با هاست دانلود برقرار نشد.";
                     item.speedBps = 0;
-                    item.etaSeconds = 0;
-                    renderUploadQueue();
-                };
-
-                xhr.onload = function () {
-                    var response = {};
-                    try {
-                        response = JSON.parse(xhr.responseText || "{}");
-                    } catch (_error) {
-                        response = { success: false, error: "پاسخ آپلود معتبر نبود." };
-                    }
+                    item.etaSeconds = NaN;
                     item.xhr = null;
-                    response.httpStatus = xhr.status;
-
-                    if (response && (response.loggedOut || response.httpStatus === 401)) {
-                        item.status = "error";
-                        item.error = "نشست شما منقضی شده است.";
-                        item.speedBps = 0;
-                        item.etaSeconds = NaN;
-                        renderUploadQueue();
-                        setGuard("login", "نیاز به ورود", "برای استفاده از فایل‌منیجر منابع باید وارد حساب مجاز شوید.", loginUrl(), "ورود");
-                        reject(createUploadSignal("prepare-error", item.error));
-                        return;
-                    }
-                    if (response && response.httpStatus === 403) {
-                        item.status = "error";
-                        item.error = response.error || "اجازه آپلود فایل در این بخش را ندارید.";
-                        item.speedBps = 0;
-                        item.etaSeconds = NaN;
-                        renderUploadQueue();
-                        setGuard("forbidden", "دسترسی مجاز نیست", response.error || "این بخش فقط برای حساب‌های مجاز فعال است.");
-                        reject(createUploadSignal("prepare-error", item.error));
-                        return;
-                    }
-                    if (!response || !response.success || !response.file) {
-                        item.status = "error";
-                        item.error = (response && response.error) || "آپلود فایل کامل نشد.";
-                        item.speedBps = 0;
-                        item.etaSeconds = NaN;
-                        renderUploadQueue();
-                        reject(new Error(item.error));
-                        return;
-                    }
-
-                    item.status = "done";
-                    item.progress = 100;
-                    item.uploadedBytes = Number(item.size || item.uploadedBytes || 0);
-                    item.speedBps = 0;
-                    item.etaSeconds = 0;
-                    item.publicUrl = String(response.file.publicUrl || "");
-                    item.relativePath = String(response.file.relativePath || response.file.relativeDir || item.targetPath || "");
-                    item.completedAt = new Date().toISOString();
                     renderUploadQueue();
-                    resolve(response);
-                };
-
-                xhr.onerror = function () {
-                    reject(markUploadWaiting(item, waitingUploadMessage(item)));
-                };
-
-                xhr.onabort = function () {
-                    item.xhr = null;
-                    if (item.canceled) {
-                        item.status = "error";
-                        item.error = "آپلود توسط کاربر لغو شد.";
-                        item.speedBps = 0;
-                        item.etaSeconds = NaN;
-                        renderUploadQueue();
-                        reject(createUploadSignal("canceled", item.error));
-                        return;
-                    }
-                    reject(markUploadWaiting(item, waitingUploadMessage(item)));
-                };
-
-                xhr.send(item.file);
+                    reject(createUploadSignal("prepare-error", item.error));
+                });
             }).catch(function (error) {
                 if (error && (error.code === "prepare-error" || error.code === "canceled")) {
                     reject(error);

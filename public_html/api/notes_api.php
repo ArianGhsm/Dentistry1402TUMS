@@ -356,6 +356,7 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
         return [
             'mode' => 'relay',
             'url' => notes_build_host_upload_url($target['relativeDir'], $cohort),
+            'relayUrl' => notes_build_host_upload_url($target['relativeDir'], $cohort),
             'relativeDir' => $target['relativeDir'],
             'scopeRoot' => $target['scopeRoot'],
         ];
@@ -366,12 +367,22 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
         return [
             'mode' => 'relay',
             'url' => notes_build_host_upload_url($target['relativeDir'], $cohort),
+            'relayUrl' => notes_build_host_upload_url($target['relativeDir'], $cohort),
             'relativeDir' => $target['relativeDir'],
             'scopeRoot' => $target['scopeRoot'],
         ];
     }
 
     $gateway = notes_download_host_ensure_direct_upload_gateway($mainSiteOrigin);
+    if (!is_array($gateway)) {
+        return [
+            'mode' => 'relay',
+            'url' => notes_build_host_upload_url($target['relativeDir'], $cohort),
+            'relayUrl' => notes_build_host_upload_url($target['relativeDir'], $cohort),
+            'relativeDir' => $target['relativeDir'],
+            'scopeRoot' => $target['scopeRoot'],
+        ];
+    }
     $limitBytes = notes_direct_upload_limit_bytes($gateway);
     if ($limitBytes !== null && $expectedSize > $limitBytes) {
         dent_error('سقف فعلی آپلود مستقیم روی هاست دانلود برای این فایل کافی نیست.', 413);
@@ -414,6 +425,7 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
         return [
             'mode' => 'direct',
             'url' => rtrim((string) ($gateway['uploadUrl'] ?? ''), '/') . '?token=' . rawurlencode($token),
+            'relayUrl' => notes_build_host_upload_url($target['relativeDir'], $cohort),
             'relativeDir' => $target['relativeDir'],
             'relativePath' => $relativePath,
             'fileName' => $finalName,

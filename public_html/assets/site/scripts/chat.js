@@ -156,6 +156,44 @@
   var CHAT_FAST_CACHE_MESSAGE_LIMIT = 140;
   var CHAT_DRAFT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
   var CHAT_DRAFT_SAVE_DELAY_MS = 180;
+  var EMOJI_CATEGORIES = [
+    {
+      key: "smileys",
+      icon: "😀",
+      label: "صورت‌ها و افراد",
+      items: ["😀", "😃", "😄", "😁", "😆", "😅", "🤣", "😂", "🙂", "🙃", "😉", "😊", "😇", "🥰", "😍", "🤩", "😘", "😗", "😋", "😛", "😜", "🤪", "🤔", "🤨", "😐", "😑", "😶", "🙄", "😏", "😴", "😪", "😌", "😷", "🤒", "🥺", "😭", "😢", "😤", "😡", "🥱"]
+    },
+    {
+      key: "gestures",
+      icon: "👍",
+      label: "حالت‌ها و دست‌ها",
+      items: ["👍", "👎", "👌", "✌️", "🤞", "🤟", "🤙", "👋", "🤝", "🙏", "👏", "💪", "🤲", "👆", "👇", "👈", "👉", "✋", "🤚", "🖐️", "✊", "👊", "🤌", "🫡", "🫶", "🤝", "💅"]
+    },
+    {
+      key: "hearts",
+      icon: "❤️",
+      label: "قلب‌ها",
+      items: ["❤️", "🧡", "💛", "💚", "💙", "💜", "🖤", "🤍", "🤎", "💔", "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "♥️"]
+    },
+    {
+      key: "animals",
+      icon: "🐶",
+      label: "حیوانات و طبیعت",
+      items: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐮", "🐷", "🐸", "🐵", "🙈", "🙉", "🙊", "🐔", "🐧", "🐦", "🦋", "🌸", "🌹", "🌻", "🌼", "🌳", "🌙", "⭐", "☀️", "⛅", "🌧️"]
+    },
+    {
+      key: "food",
+      icon: "🍔",
+      label: "غذا و نوشیدنی",
+      items: ["🍏", "🍎", "🍊", "🍋", "🍌", "🍉", "🍇", "🍓", "🍒", "🍑", "🥭", "🍍", "🥥", "🥑", "🍕", "🍔", "🌭", "🥪", "🌮", "🍟", "🍗", "🍰", "🎂", "🍪", "🍩", "🍫", "🍬", "🍭", "☕", "🍵", "🧋", "🥤"]
+    },
+    {
+      key: "objects",
+      icon: "🎉",
+      label: "نمادها و فعالیت‌ها",
+      items: ["🎉", "🎊", "🎁", "🎈", "🏆", "🥇", "🔥", "✨", "⚡", "💯", "✅", "❌", "❗", "❓", "💤", "📌", "📎", "📚", "✏️", "🖊️", "📷", "🎵", "🎮", "⚽", "🏀", "🎯", "⏰", "🔔", "🔒", "🔑", "💡", "📍"]
+    }
+  ];
   var VOICE_MIME_CANDIDATES = [
     "audio/webm;codecs=opus",
     "audio/ogg;codecs=opus",
@@ -1097,6 +1135,10 @@
   var chatTextEl = $("chat-text");
   var sendBtn = $("send-btn");
   var attachBtn = $("attach-btn");
+  var emojiBtn = $("emoji-btn");
+  var emojiPanel = $("composer-emoji-panel");
+  var emojiTabs = $("composer-emoji-tabs");
+  var emojiGrid = $("composer-emoji-grid");
   var cardBtn = $("card-btn");
   var voiceBtn = $("voice-btn");
   var mentionSuggestions = $("mention-suggestions");
@@ -1411,7 +1453,8 @@
     mentionTokenStart: -1,
     mentionTokenEnd: -1,
     pollDraftSelections: new Map(),
-    pendingCardCreate: false
+    pendingCardCreate: false,
+    emojiCategory: EMOJI_CATEGORIES[0].key
   };
   var navBadgeState = {
     notificationsUnread: 0,
@@ -3932,6 +3975,9 @@
     if (attachBtn) {
       attachBtn.disabled = (conversation && !canUseAttachmentTools) || (canUseAttachmentTools && recordingVoice);
     }
+    if (emojiBtn) {
+      emojiBtn.disabled = shouldDisable;
+    }
     if (cardBtn) {
       cardBtn.hidden = !conversation;
       cardBtn.disabled = !conversation || !canUseAttachmentTools || hasUploadsInProgress || hasVoiceRecorder;
@@ -3944,25 +3990,25 @@
     }
 
     if (!conversation) {
-      setUploadSheetOpen(false);
+      setUploadSheetOpen(false); setEmojiPanelOpen(false);
       setComposerStatus("یک گفت‌وگو را برای شروع انتخاب کن.", "");
       return;
     }
 
     if (selectingMessages) {
-      setUploadSheetOpen(false);
+      setUploadSheetOpen(false); setEmojiPanelOpen(false);
       setComposerStatus("حالت چندانتخابی پیام فعال است.", "");
       return;
     }
 
     if (!canSend) {
-      setUploadSheetOpen(false);
+      setUploadSheetOpen(false); setEmojiPanelOpen(false);
       setComposerStatus("در حال حاضر اجازه ارسال پیام در این گفت‌وگو را ندارید.", "error");
       return;
     }
 
     if (muted) {
-      setUploadSheetOpen(false);
+      setUploadSheetOpen(false); setEmojiPanelOpen(false);
       setComposerStatus("ارسال پیام در این گفت‌وگو بسته است.", "error");
       return;
     }
@@ -8152,7 +8198,7 @@
     if (!node || !modalBackdrop) return;
     closeContextMenu();
     closeInfoSheet();
-    setUploadSheetOpen(false);
+    setUploadSheetOpen(false); setEmojiPanelOpen(false);
     closeModal(true);
     node.hidden = false;
     modalBackdrop.hidden = false;
@@ -9444,7 +9490,7 @@
       clearReplyTarget();
       closeContextMenu();
       clearComposerAttachments();
-      setUploadSheetOpen(false);
+      setUploadSheetOpen(false); setEmojiPanelOpen(false);
       resetVoiceRecorder();
       if (chatTextEl) {
         chatTextEl.value = "";
@@ -9553,7 +9599,7 @@
     clearAutoReadTimer();
     clearFastChatCacheSaveHandle();
     resetVoiceRecorder();
-    setUploadSheetOpen(false);
+    setUploadSheetOpen(false); setEmojiPanelOpen(false);
     renderComposerUploads();
     clearReplyTarget();
     closeMentionSuggestions();
@@ -9651,7 +9697,7 @@
       stopRealtimeStream();
       clearPresenceHeartbeatTimer();
       clearTypingActivity(true);
-      setUploadSheetOpen(false);
+      setUploadSheetOpen(false); setEmojiPanelOpen(false);
       renderComposerUploads();
       resetVoiceRecorder();
       clearReplyTarget();
@@ -9901,6 +9947,55 @@
     var shouldOpen = !!open;
     composerUploadSheet.hidden = !shouldOpen;
     attachBtn.classList.toggle("is-open", shouldOpen);
+    if (shouldOpen) {
+      setEmojiPanelOpen(false);
+    }
+  }
+
+  function renderEmojiTabs() {
+    if (!emojiTabs) return;
+    emojiTabs.innerHTML = EMOJI_CATEGORIES.map(function (category) {
+      var active = category.key === state.emojiCategory;
+      return '<button type="button" class="composer-emoji-tab' + (active ? " is-active" : "") + '" data-emoji-category="' + escapeHtml(category.key) + '" aria-label="' + escapeHtml(category.label) + '">' + category.icon + "</button>";
+    }).join("");
+  }
+
+  function renderEmojiGrid() {
+    if (!emojiGrid) return;
+    var category = EMOJI_CATEGORIES.find(function (item) {
+      return item.key === state.emojiCategory;
+    }) || EMOJI_CATEGORIES[0];
+    emojiGrid.innerHTML = category.items.map(function (emoji) {
+      return '<button type="button" class="composer-emoji-item" data-emoji="' + escapeHtml(emoji) + '">' + emoji + "</button>";
+    }).join("");
+  }
+
+  function setEmojiCategory(key) {
+    if (!EMOJI_CATEGORIES.some(function (item) { return item.key === key; })) return;
+    if (state.emojiCategory === key) return;
+    state.emojiCategory = key;
+    renderEmojiTabs();
+    renderEmojiGrid();
+  }
+
+  function setEmojiPanelOpen(open) {
+    if (!emojiPanel || !emojiBtn) return;
+    var shouldOpen = !!open;
+    emojiPanel.hidden = !shouldOpen;
+    emojiBtn.classList.toggle("is-open", shouldOpen);
+  }
+
+  function insertEmojiAtCursor(emoji) {
+    if (!chatTextEl || chatTextEl.disabled || !emoji) return;
+    var value = toText(chatTextEl.value);
+    var start = chatTextEl.selectionStart != null ? chatTextEl.selectionStart : value.length;
+    var end = chatTextEl.selectionEnd != null ? chatTextEl.selectionEnd : value.length;
+    chatTextEl.value = value.slice(0, start) + emoji + value.slice(end);
+    var nextCaret = start + emoji.length;
+    chatTextEl.setSelectionRange(nextCaret, nextCaret);
+    autosizeComposer();
+    handleComposerTypingActivity();
+    chatTextEl.focus({ preventScroll: true });
   }
 
   function parseUploadResponse(xhr) {
@@ -10795,6 +10890,7 @@
 
       if (opts.text == null) {
         chatTextEl.value = "";
+        clearComposerDraft(conversation.id);
       }
       autosizeComposer();
       closeMentionSuggestions();
@@ -12048,6 +12144,7 @@
         autosizeComposer();
         handleComposerTypingActivity();
         refreshMentionSuggestions();
+        scheduleComposerDraftSave();
       });
       chatTextEl.addEventListener("keydown", function (event) {
         if (Array.isArray(state.mentionSuggestions) && state.mentionSuggestions.length) {
@@ -12167,8 +12264,30 @@
         if (!target) return;
         var accept = normalizeSpace(target.getAttribute("data-attach-accept")) || "*/*";
         var label = normalizeSpace(target.getAttribute("data-attach-label")) || "فایل";
-        setUploadSheetOpen(false);
+        setUploadSheetOpen(false); setEmojiPanelOpen(false);
         pickAttachmentFiles(accept, label);
+      });
+    }
+    if (emojiBtn) {
+      emojiBtn.addEventListener("click", function () {
+        if (emojiBtn.disabled) return;
+        var willOpen = emojiPanel ? emojiPanel.hidden : false;
+        setUploadSheetOpen(false); setEmojiPanelOpen(false);
+        setEmojiPanelOpen(willOpen);
+      });
+    }
+    if (emojiTabs) {
+      emojiTabs.addEventListener("click", function (event) {
+        var target = event.target.closest("[data-emoji-category]");
+        if (!target) return;
+        setEmojiCategory(target.getAttribute("data-emoji-category"));
+      });
+    }
+    if (emojiGrid) {
+      emojiGrid.addEventListener("click", function (event) {
+        var target = event.target.closest("[data-emoji]");
+        if (!target) return;
+        insertEmojiAtCursor(target.getAttribute("data-emoji"));
       });
     }
     if (attachmentInput) {
@@ -12773,7 +12892,10 @@
         return;
       }
       if (composerUploadSheet && !composerUploadSheet.hidden) {
-        setUploadSheetOpen(false);
+        setUploadSheetOpen(false); setEmojiPanelOpen(false);
+      }
+      if (emojiPanel && !emojiPanel.hidden) {
+        setEmojiPanelOpen(false);
       }
       if (state.contextOpen) {
         closeContextMenu();
@@ -12789,13 +12911,18 @@
     });
 
     document.addEventListener("click", function (event) {
-      if (!composerUploadSheet || composerUploadSheet.hidden) return;
       var target = event.target;
       if (!target) return;
-      if (composerUploadSheet.contains(target) || (attachBtn && attachBtn.contains(target))) {
-        return;
+      if (composerUploadSheet && !composerUploadSheet.hidden) {
+        if (!composerUploadSheet.contains(target) && !(attachBtn && attachBtn.contains(target))) {
+          setUploadSheetOpen(false); setEmojiPanelOpen(false);
+        }
       }
-      setUploadSheetOpen(false);
+      if (emojiPanel && !emojiPanel.hidden) {
+        if (!emojiPanel.contains(target) && !(emojiBtn && emojiBtn.contains(target))) {
+          setEmojiPanelOpen(false);
+        }
+      }
     });
 
     window.addEventListener("resize", function () {
@@ -12872,7 +12999,9 @@
     autosizeComposer();
     renderComposerUploads();
     updateVoiceUi();
-    setUploadSheetOpen(false);
+    renderEmojiTabs();
+    renderEmojiGrid();
+    setUploadSheetOpen(false); setEmojiPanelOpen(false);
     setThreadVisible(false);
     setMobileView("list");
     setConnectionState("idle", "آفلاین");
