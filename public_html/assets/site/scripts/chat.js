@@ -1097,7 +1097,6 @@
   var chatTextEl = $("chat-text");
   var sendBtn = $("send-btn");
   var attachBtn = $("attach-btn");
-  var pollBtn = $("poll-btn");
   var cardBtn = $("card-btn");
   var voiceBtn = $("voice-btn");
   var mentionSuggestions = $("mention-suggestions");
@@ -1224,21 +1223,6 @@
   var cardModalFeedback = $("card-modal-feedback");
   var cardCancelBtn = $("card-cancel");
   var cardCreateBtn = $("card-create");
-  var pollModal = $("poll-modal");
-  var pollModalClose = $("poll-modal-close");
-  var pollModalSubtitle = $("poll-modal-subtitle");
-  var pollQuestionInput = $("poll-question");
-  var pollOptionsList = $("poll-options-list");
-  var pollAddOptionBtn = $("poll-add-option");
-  var pollMultipleChoiceInput = $("poll-multiple-choice");
-  var pollAnonymousInput = $("poll-anonymous");
-  var pollAllowVoteChangeInput = $("poll-allow-vote-change");
-  var pollAllowCreatorVoteInput = $("poll-allow-creator-vote");
-  var pollMaxChoicesSelect = $("poll-max-choices");
-  var pollResultVisibilitySelect = $("poll-result-visibility");
-  var pollModalFeedback = $("poll-modal-feedback");
-  var pollCancelBtn = $("poll-cancel");
-  var pollCreateBtn = $("poll-create");
   var editModal = $("edit-modal");
   var editModalClose = $("edit-modal-close");
   var editCancelBtn = $("edit-cancel");
@@ -2046,16 +2030,6 @@
     return "\u06a9\u0627\u0631\u0628\u0631";
   }
 
-  function updatePollActionVisibility() {
-    var conversation = activeConversation();
-    var canCreate = !!(conversation && conversation.permissions && conversation.permissions.canCreatePoll);
-    if (pollBtn) {
-      pollBtn.hidden = !conversation;
-      pollBtn.disabled = !!conversation && !canCreate;
-      pollBtn.setAttribute("aria-disabled", pollBtn.disabled ? "true" : "false");
-    }
-    updateMobileNav();
-  }
 
   function setMobileView(view) {
     if (!chatApp) return;
@@ -3958,10 +3932,6 @@
     }
     if (attachBtn) {
       attachBtn.disabled = (conversation && !canUseAttachmentTools) || (canUseAttachmentTools && recordingVoice);
-    }
-    if (pollBtn) {
-      pollBtn.hidden = !conversation;
-      pollBtn.disabled = !conversation || !(conversation.permissions && conversation.permissions.canCreatePoll) || hasUploadsInProgress || hasVoiceRecorder;
     }
     if (cardBtn) {
       cardBtn.hidden = !conversation;
@@ -7896,12 +7866,6 @@
     }
   }
 
-  function setPollModalFeedback(text, kind) {
-    if (!pollModalFeedback) return;
-    pollModalFeedback.textContent = normalizeSpace(text);
-    pollModalFeedback.dataset.state = normalizeSpace(kind || "");
-  }
-
   function setCardModalFeedback(text, kind) {
     if (!cardModalFeedback) return;
     cardModalFeedback.textContent = normalizeSpace(text);
@@ -9821,7 +9785,6 @@
     );
     setConnectionState("idle", "آفلاین");
     setMobileView("list");
-    updatePollActionVisibility();
     updateFabVisibility();
     updateMobileNav();
     navBadgeState.notificationsUnread = 0;
@@ -9903,7 +9866,7 @@
     loadNotificationBadgeSummary(true);
 
     syncCurrentUserAvatar();
-    updatePollActionVisibility();
+    updateMobileNav();
     updateConversationFilterTabs();
 
     var hydratedFromCache = hydrateFastChatCache();
@@ -13148,7 +13111,7 @@
     updateMuteUi({ muted: false });
     syncCurrentUserAvatar();
     syncMobileNavLinks();
-    updatePollActionVisibility();
+    updateMobileNav();
     updateFabVisibility();
     installChatOverscrollGuard();
     bindEvents();

@@ -390,14 +390,6 @@
                                             <path d="M8.5 12.8 14.6 6.7a3.2 3.2 0 1 1 4.5 4.5l-8 8a4.7 4.7 0 0 1-6.7-6.7l8.1-8.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
                                     </button>
-                                    <button class="composer-tool" id="poll-btn" type="button" aria-label="ایجاد نظرسنجی">
-                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                            <path d="M5.5 18V11.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                            <path d="M11.75 18V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                            <path d="M18 18V9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                            <path d="M4 18.5H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                        </svg>
-                                    </button>
                                     <button class="composer-tool" id="card-btn" type="button" aria-label="ارسال کارت درسی یا یادآور">
                                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                             <rect x="4" y="5" width="16" height="14" rx="3" stroke="currentColor" stroke-width="1.8" />
@@ -735,73 +727,6 @@
         </div>
         <div class="reaction-picker-tabs" id="reaction-tabs"></div>
         <div class="chat-modal__body chat-modal__body--dense reaction-picker-grid" id="reaction-grid"></div>
-    </section>
-
-    <section class="chat-modal chat-modal--poll" id="poll-modal" hidden aria-labelledby="poll-modal-title">
-        <div class="chat-modal__header">
-            <div class="chat-modal__title-wrap">
-                <h2 id="poll-modal-title">ایجاد نظرسنجی</h2>
-                <p id="poll-modal-subtitle">نظرسنجی داخل همین گفتگو منتشر می‌شود.</p>
-            </div>
-            <button class="chat-sheet-close" id="poll-modal-close" type="button" aria-label="بستن">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
-                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
-                </svg>
-            </button>
-        </div>
-        <div class="chat-modal__body">
-            <div class="chat-modal__fields">
-                <label for="poll-question">سوال نظرسنجی</label>
-                <input id="poll-question" type="text" maxlength="280" placeholder="مثلاً: زمان برگزاری مرور تشخیصی ۱؟">
-
-                <label>گزینه‌ها</label>
-                <div class="poll-option-list" id="poll-options-list"></div>
-                <button id="poll-add-option" class="chat-modal-secondary-btn" type="button">افزودن گزینه</button>
-
-                <div class="poll-settings-grid">
-                    <label class="poll-setting-check" for="poll-multiple-choice">
-                        <input id="poll-multiple-choice" type="checkbox">
-                        <span>چندگزینه‌ای</span>
-                    </label>
-                    <label class="poll-setting-check" for="poll-anonymous">
-                        <input id="poll-anonymous" type="checkbox" checked>
-                        <span>رأی مخفی</span>
-                    </label>
-                    <label class="poll-setting-check" for="poll-allow-vote-change">
-                        <input id="poll-allow-vote-change" type="checkbox" checked>
-                        <span>امکان تغییر رأی</span>
-                    </label>
-                    <label class="poll-setting-check" for="poll-allow-creator-vote">
-                        <input id="poll-allow-creator-vote" type="checkbox" checked>
-                        <span>رأی‌دادن سازنده</span>
-                    </label>
-                </div>
-
-                <label for="poll-max-choices">حداکثر انتخاب</label>
-                <select id="poll-max-choices">
-                    <option value="1">۱ گزینه</option>
-                    <option value="2">۲ گزینه</option>
-                    <option value="3">۳ گزینه</option>
-                    <option value="4">۴ گزینه</option>
-                    <option value="5">۵ گزینه</option>
-                    <option value="6">۶ گزینه</option>
-                </select>
-
-                <label for="poll-result-visibility">نمایش نتایج</label>
-                <select id="poll-result-visibility">
-                    <option value="live">هم‌زمان با رأی‌گیری</option>
-                    <option value="after-close">بعد از بسته‌شدن</option>
-                    <option value="creator-only">فقط برای سازنده/مدیر</option>
-                </select>
-
-                <p id="poll-modal-feedback" class="chat-modal-meta" aria-live="polite"></p>
-            </div>
-        </div>
-        <div class="chat-modal__footer chat-modal__footer--split">
-            <button id="poll-cancel" class="chat-modal-secondary-btn" type="button">انصراف</button>
-            <button id="poll-create" class="chat-login-btn" type="button">انتشار نظرسنجی</button>
-        </div>
     </section>
 
     <section class="chat-modal chat-modal--edit" id="edit-modal" hidden aria-labelledby="edit-modal-title">

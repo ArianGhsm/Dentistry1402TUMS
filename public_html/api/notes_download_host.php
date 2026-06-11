@@ -1998,11 +1998,11 @@ function notes_download_host_relay_read_response($socket): string
 
 function notes_download_host_relay_parse_response(string $raw): array
 {
-    if (preg_match("/\r\n\r\n(.*)\$/s", $raw, $matches) !== 1) {
+    $body = notes_download_host_extract_response_body($raw);
+    if ($body === '') {
         throw new RuntimeException('پاسخ آپلود از هاست دانلود معتبر نبود.');
     }
 
-    $body = trim((string) ($matches[1] ?? ''));
     $decoded = json_decode($body, true);
     if (!is_array($decoded)) {
         throw new RuntimeException('پاسخ JSON آپلود از هاست دانلود معتبر نبود.');
@@ -2104,6 +2104,7 @@ function notes_download_host_stream_upload_relay(string $relativeDir, $sourceStr
         'Authorization: Basic ' . base64_encode((string) $secret['username'] . ':' . (string) $secret['password']),
         'User-Agent: Dentistry1402TUMS-NotesDownloadHost/1.0',
         'Accept: application/json',
+        'Accept-Encoding: identity',
         'Content-Type: multipart/form-data; boundary=' . $boundary,
         'Content-Length: ' . $contentLength,
         'Connection: close',
