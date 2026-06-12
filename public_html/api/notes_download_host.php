@@ -1508,6 +1508,22 @@ function notes_download_host_direct_upload_health(string $mainSiteOrigin): ?arra
     return $decoded;
 }
 
+function notes_download_host_direct_upload_health_with_retries(string $mainSiteOrigin, int $attempts = 4): ?array
+{
+    $attempts = max(1, $attempts);
+    for ($index = 0; $index < $attempts; $index++) {
+        $health = notes_download_host_direct_upload_health($mainSiteOrigin);
+        if (is_array($health)) {
+            return $health;
+        }
+        if ($index + 1 < $attempts) {
+            usleep(250000);
+        }
+    }
+
+    return null;
+}
+
 function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin): ?array
 {
     static $cache = [];
@@ -1525,15 +1541,32 @@ function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin
         return null;
     }
 
-    $payload = [
-        'success' => true,
-        'version' => NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION,
-        'mainSiteOrigin' => $mainSiteOrigin,
-        'allowedOrigin' => $mainSiteOrigin,
-        'uploadUrl' => $gatewayUrl,
-    ];
-    $cache[$mainSiteOrigin] = $payload;
-    return $payload;
+    $existing = notes_download_host_direct_upload_health_with_retries($mainSiteOrigin, 1);
+    if (is_array($existing)) {
+        $cache[$mainSiteOrigin] = $existing;
+        return $existing;
+    }
+
+    $runtimeDir = notes_download_host_direct_upload_runtime_dir();
+    notes_download_host_internal_runtime_ensure_dir($runtimeDir);
+    notes_download_host_internal_runtime_upload_text_file(
+        $runtimeDir . '/.user.ini',
+        notes_download_host_direct_upload_user_ini_source(),
+        'text/plain'
+    );
+    notes_download_host_internal_runtime_upload_text_file(
+        notes_download_host_direct_upload_gateway_relative_path(),
+        notes_download_host_direct_upload_gateway_source($mainSiteOrigin),
+        'application/x-httpd-php'
+    );
+
+    $health = notes_download_host_direct_upload_health_with_retries($mainSiteOrigin, 4);
+    if (!is_array($health)) {
+        dent_error('Direct upload gateway on the download host is not reachable.', 502);
+    }
+
+    $cache[$mainSiteOrigin] = $health;
+    return $health;
 }
 
 function notes_download_host_extract_response_body(string $raw): string
