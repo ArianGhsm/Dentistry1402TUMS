@@ -1181,6 +1181,7 @@
   var infoContentTable = $("chat-info-content-table");
   var infoMembers = $("chat-info-members");
   var infoMembersBlock = $("chat-info-members-block");
+  var infoMembersLabel = $("chat-info-members-label");
   var infoActionsBlock = $("chat-info-actions-block");
   var infoAvatar = $("chat-info-avatar");
   var infoAvatarImage = $("chat-info-avatar-image");
@@ -6514,6 +6515,43 @@
     updateMobileNav();
   }
 
+  function openMemberContextMenu(member, clientX, clientY) {
+    if (!member || !listContextBackdrop || !listContextMenu || !listContextActions) return;
+    closeContextMenu();
+    state.listContextOpen = true;
+    state.listContextConversationId = "";
+    if (listContextTitle) listContextTitle.textContent = member.name || "عضو";
+    if (listContextSubtitle) listContextSubtitle.textContent = userRoleMetaText(member);
+
+    var runAndClose = function (fn) {
+      return function () {
+        closeListContextMenu();
+        return fn();
+      };
+    };
+
+    listContextActions.innerHTML = "";
+    listContextActions.appendChild(listContextAction("تگ عضو", "نمایش کنار نام در گروه", runAndClose(function () {
+      return setMemberTag(member.studentNumber);
+    })));
+    listContextActions.appendChild(listContextAction(
+      member.isConversationAdmin ? "حذف مدیر" : "مدیر کردن",
+      member.isConversationAdmin ? "برداشتن دسترسی مدیریت" : "افزودن دسترسی مدیریت",
+      runAndClose(function () {
+        return setMemberAdmin(member.studentNumber, !member.isConversationAdmin);
+      })
+    ));
+
+    listContextBackdrop.hidden = false;
+    listContextMenu.hidden = false;
+    window.requestAnimationFrame(function () {
+      listContextBackdrop.classList.add("is-open");
+      listContextMenu.classList.add("is-open");
+      positionListContextMenu(clientX, clientY);
+    });
+    updateMobileNav();
+  }
+
   function openContextMenu(message, clientX, clientY) {
     if (!message || !contextBackdrop || !contextMenu || !reactionBar || !contextActions) return;
     if (state.messageSelectionMode) {
@@ -7716,7 +7754,14 @@
     renderInfoContentOverview();
 
     if (infoMembersBlock) {
-      infoMembersBlock.hidden = !(conversation.type === "group" || conversation.type === "channel" || conversation.type === "class-group");
+      var isMembersConversation = conversation.type === "group" || conversation.type === "channel" || conversation.type === "class-group";
+      infoMembersBlock.hidden = !isMembersConversation;
+      if (isMembersConversation && infoMembersLabel) {
+        var memberTotal = Array.isArray(conversation.members) && conversation.members.length
+          ? conversation.members.length
+          : Math.max(0, Math.floor(toNumber(conversation.memberCount, 0)));
+        infoMembersLabel.textContent = memberTotal > 0 ? "اعضا  ·  " + memberTotal.toLocaleString("fa-IR") : "اعضا";
+      }
     }
     if (infoMembers) {
       infoMembers.innerHTML = "";
@@ -7736,19 +7781,27 @@
             node.classList.add("chat-member--clickable");
             node.setAttribute("data-member-student", member.studentNumber);
           }
+          var presenceText = userPresenceText(member, conversation.id);
+          var isLivePresence = presenceText === "آنلاین" || presenceText === "در حال نوشتن…";
+          var subtitleText = userRoleMetaText(member) + (presenceText ? " • " + presenceText : "");
           node.innerHTML = [
             '<span class="chat-member__avatar" data-has-avatar="0"><img alt="" hidden><span>' + escapeHtml(avatarLabel(member.name)) + "</span></span>",
             '<span class="chat-member__copy">',
             "  <strong>" + escapeHtml(member.name) + "</strong>",
-            "  <span>" + escapeHtml(userRoleMetaText(member) + (userPresenceText(member, conversation.id) ? " • " + userPresenceText(member, conversation.id) : "")) + (tag ? ' <b class="chat-member-tag">' + escapeHtml(tag) + '</b>' : "") + "</span>",
-            "  <small>" + escapeHtml(member.profile && member.profile.about ? member.profile.about : "بدون توضیح") + "</small>",
+            '  <span class="' + (isLivePresence ? "is-live-presence" : "") + '">' + escapeHtml(subtitleText) + (tag ? ' <b class="chat-member-tag">' + escapeHtml(tag) + '</b>' : "") + "</span>",
             "</span>",
-            canManageMember ? '<span class="chat-member__actions"><button type="button" data-member-tag="' + escapeHtml(member.studentNumber) + '">تگ</button><button type="button" data-member-admin="' + escapeHtml(member.studentNumber) + '" data-admin-next="' + (member.isConversationAdmin ? "0" : "1") + '">' + (member.isConversationAdmin ? "حذف مدیر" : "مدیر") + '</button></span>' : ""
+            canManageMember ? '<button class="chat-member__menu-btn" type="button" data-member-menu="' + escapeHtml(member.studentNumber) + '" aria-label="عملیات عضو"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="6" r="1.6" fill="currentColor" /><circle cx="12" cy="12" r="1.6" fill="currentColor" /><circle cx="12" cy="18" r="1.6" fill="currentColor" /></svg></button>' : ""
           ].join("");
           var avatar = node.querySelector(".chat-member__avatar");
           var image = node.querySelector("img");
           var fallback = node.querySelector(".chat-member__avatar span");
           renderAvatar(avatar, image, fallback, member.profile && member.profile.avatarUrl, member.name);
+          var memberPresence = member && member.presence ? normalizePresenceState(member.presence, conversation.id) : null;
+          if (memberPresence && memberPresence.isTyping) {
+            avatar.dataset.presence = "typing";
+          } else if (memberPresence && memberPresence.isOnline) {
+            avatar.dataset.presence = "online";
+          }
           infoMembers.appendChild(node);
         });
       }
@@ -12035,14 +12088,18 @@
     if (infoAddMembersBtn) infoAddMembersBtn.addEventListener("click", function () { openConversationOptions("add-members"); });
     if (infoMembers) {
       infoMembers.addEventListener("click", function (event) {
-        var tagButton = event.target && event.target.closest ? event.target.closest("[data-member-tag]") : null;
-        if (tagButton) {
-          setMemberTag(tagButton.getAttribute("data-member-tag"));
-          return;
-        }
-        var adminButton = event.target && event.target.closest ? event.target.closest("[data-member-admin]") : null;
-        if (adminButton) {
-          setMemberAdmin(adminButton.getAttribute("data-member-admin"), adminButton.getAttribute("data-admin-next") === "1");
+        var menuButton = event.target && event.target.closest ? event.target.closest("[data-member-menu]") : null;
+        if (menuButton) {
+          event.stopPropagation();
+          var conversation = activeConversation();
+          var memberId = normalizeStudentNumber(menuButton.getAttribute("data-member-menu"));
+          var member = conversation && (conversation.members || []).find(function (item) {
+            return normalizeStudentNumber(item.studentNumber) === memberId;
+          });
+          if (member) {
+            var rect = menuButton.getBoundingClientRect();
+            openMemberContextMenu(member, rect.left + rect.width / 2, rect.bottom + 6);
+          }
           return;
         }
         var memberRow = event.target && event.target.closest ? event.target.closest("[data-member-student]") : null;

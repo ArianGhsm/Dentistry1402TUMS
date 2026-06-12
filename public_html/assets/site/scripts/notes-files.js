@@ -697,51 +697,7 @@
     }
 
     function probeDirectUploadPlan(uploadPlan) {
-        var mode = uploadPlan && uploadPlan.mode ? String(uploadPlan.mode) : "relay";
-        var relayUrl = uploadPlan && uploadPlan.relayUrl ? String(uploadPlan.relayUrl) : "";
-        if (mode !== "direct" || !relayUrl) {
-            return Promise.resolve(uploadPlan);
-        }
-
-        var targetUrl = uploadPlan && uploadPlan.url ? String(uploadPlan.url) : "";
-        var probeUrl = targetUrl;
-        try {
-            var parsed = new URL(targetUrl, window.location.href);
-            parsed.search = "";
-            parsed.searchParams.set("health", "1");
-            probeUrl = parsed.toString();
-        } catch (_error) {
-            return Promise.resolve(Object.assign({}, uploadPlan, { mode: "relay", url: relayUrl }));
-        }
-
-        var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-        var timeoutId = controller ? setTimeout(function () {
-            try {
-                controller.abort();
-            } catch (_abortError) {
-            }
-        }, 1200) : null;
-
-        return fetch(probeUrl, {
-            method: "GET",
-            mode: "cors",
-            credentials: "omit",
-            cache: "no-store",
-            signal: controller ? controller.signal : undefined
-        }).then(function (response) {
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-            if (response && response.ok) {
-                return uploadPlan;
-            }
-            return Object.assign({}, uploadPlan, { mode: "relay", url: relayUrl });
-        }).catch(function () {
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
-            return Object.assign({}, uploadPlan, { mode: "relay", url: relayUrl });
-        });
+        return Promise.resolve(uploadPlan);
     }
 
     function openUploadXhr(xhr, uploadPlan, item) {
