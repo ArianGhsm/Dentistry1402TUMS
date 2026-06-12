@@ -860,10 +860,23 @@
             xhr.open("POST", targetUrl, true);
             xhr.withCredentials = mode !== "direct";
             xhr.setRequestHeader("Accept", "application/json");
-            xhr.setRequestHeader("Content-Type", task.file && task.file.type ? task.file.type : "application/octet-stream");
-            if (mode !== "direct") {
-                xhr.setRequestHeader("X-Dent-Upload-Name", encodeURIComponent(task.fileName || task.file.name || "file"));
+            if (mode === "direct") {
+                xhr.setRequestHeader("Content-Type", task.file && task.file.type ? task.file.type : "application/octet-stream");
             }
+        }
+
+        function buildUploadRequestBody(uploadPlan, task) {
+            var mode = uploadPlan && uploadPlan.mode ? String(uploadPlan.mode) : "relay";
+            if (mode === "direct") {
+                return task.file;
+            }
+
+            var formData = new FormData();
+            var originalName = task && task.file && task.file.name ? String(task.file.name) : "file";
+            var desiredName = task && task.fileName ? String(task.fileName) : originalName;
+            formData.append("file", task.file, originalName);
+            formData.append("fileName", desiredName);
+            return formData;
         }
 
         function moveUploadToWaiting(message) {
@@ -979,6 +992,7 @@
 
                 probeDirectUploadPlan(prepareResponse.upload).then(function (uploadPlan) {
                     var startedAt = Date.now();
+                    var uploadBody = buildUploadRequestBody(uploadPlan, task);
                     var xhr = new XMLHttpRequest();
                     state.uploadCancelRequested = false;
                     state.uploadXhr = xhr;
@@ -1115,7 +1129,7 @@
                         moveUploadToWaiting(waitingMessage());
                     };
 
-                    xhr.send(task.file);
+                    xhr.send(uploadBody);
                 }).catch(function () {
                     state.uploadXhr = null;
                     state.uploadBusy = false;

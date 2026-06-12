@@ -754,10 +754,23 @@
         xhr.open("POST", targetUrl, true);
         xhr.withCredentials = mode !== "direct";
         xhr.setRequestHeader("Accept", "application/json");
-        xhr.setRequestHeader("Content-Type", item.file && item.file.type ? item.file.type : "application/octet-stream");
-        if (mode !== "direct") {
-            xhr.setRequestHeader("X-Dent-Upload-Name", encodeURIComponent(item.file && item.file.name ? item.file.name : "file"));
+        if (mode === "direct") {
+            xhr.setRequestHeader("Content-Type", item.file && item.file.type ? item.file.type : "application/octet-stream");
         }
+    }
+
+    function buildUploadRequestBody(uploadPlan, item) {
+        var mode = uploadPlan && uploadPlan.mode ? String(uploadPlan.mode) : "relay";
+        if (mode === "direct") {
+            return item.file;
+        }
+
+        var formData = new FormData();
+        var originalName = item && item.file && item.file.name ? String(item.file.name) : "file";
+        var desiredName = item && item.fileName ? String(item.fileName) : originalName;
+        formData.append("file", item.file, originalName);
+        formData.append("fileName", desiredName);
+        return formData;
     }
 
     function uploadItem(item) {
@@ -812,6 +825,7 @@
 
                 probeDirectUploadPlan(prepareResponse.upload).then(function (uploadPlan) {
                     var startedAt = Date.now();
+                    var uploadBody = buildUploadRequestBody(uploadPlan, item);
                     item.xhr = new XMLHttpRequest();
                     var xhr = item.xhr;
                     openUploadXhr(xhr, uploadPlan, item);
@@ -916,7 +930,7 @@
                         reject(markUploadWaiting(item, waitingUploadMessage(item)));
                     };
 
-                    xhr.send(item.file);
+                    xhr.send(uploadBody);
                 }).catch(function (error) {
                     item.status = "error";
                     item.error = error && error.message ? error.message : "ارتباط با هاست دانلود برقرار نشد.";

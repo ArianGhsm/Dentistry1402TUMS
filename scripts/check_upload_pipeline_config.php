@@ -51,6 +51,25 @@ function jsHasRawBodyUpload(string $contents, string $headerName, string $sendPa
     return preg_match($sendPattern, $contents) === 1;
 }
 
+function jsHasMultipartUpload(string $contents): bool
+{
+    if (strpos($contents, 'new FormData()') === false) {
+        return false;
+    }
+    if (strpos($contents, 'formData.append("file"') === false) {
+        return false;
+    }
+
+    return preg_match('/xhr\.send\(\s*uploadBody\s*\)/', $contents) === 1
+        || preg_match('/return\s+formData\s*;/', $contents) === 1;
+}
+
+function jsHasNotesUploadTransport(string $contents, string $headerName, string $sendPattern): bool
+{
+    return jsHasRawBodyUpload($contents, $headerName, $sendPattern)
+        || jsHasMultipartUpload($contents);
+}
+
 $publicIniPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . '.user.ini';
 $apiIniPath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . '.user.ini';
 $storePath = $projectRoot . DIRECTORY_SEPARATOR . 'public_html' . DIRECTORY_SEPARATOR . 'api' . DIRECTORY_SEPARATOR . 'content_tools_store.php';
@@ -164,30 +183,30 @@ if ($errors === []) {
     }
 
     $notesFilesJsContents = (string) file_get_contents($notesFilesJsPath);
-    if (!jsHasRawBodyUpload($notesFilesJsContents, 'X-Dent-Upload-Name', '/xhr\.send\(\s*item\.file\s*\)/')) {
-        $errors[] = 'notes-files.js is not configured for raw body upload.';
+    if (!jsHasNotesUploadTransport($notesFilesJsContents, 'X-Dent-Upload-Name', '/xhr\.send\(\s*item\.file\s*\)/')) {
+        $errors[] = 'notes-files.js is not configured for notes upload transport.';
     }
 
     $notesHostPickerJsContents = (string) file_get_contents($notesHostPickerJsPath);
-    $notesHostPickerHasRawUpload = jsHasRawBodyUpload(
+    $notesHostPickerHasUploadTransport = jsHasNotesUploadTransport(
         $notesHostPickerJsContents,
         'X-Dent-Upload-Name',
         '/xhr\.send\(\s*(?:file|task\.file)\s*\)/'
     );
-    if (!$notesHostPickerHasRawUpload) {
-        $errors[] = 'notes-host-picker.js is not configured for raw body upload.';
+    if (!$notesHostPickerHasUploadTransport) {
+        $errors[] = 'notes-host-picker.js is not configured for notes upload transport.';
     }
 
     $notesTermJsContents = (string) file_get_contents($notesTermJsPath);
-    $notesTermUsesRawUpload = jsHasRawBodyUpload(
+    $notesTermUsesUploadTransport = jsHasNotesUploadTransport(
         $notesTermJsContents,
         'X-Dent-Upload-Name',
         '/xhr\.send\(\s*(?:file|task\.file)\s*\)/'
     );
     $notesTermDelegatesToHostPicker = strpos($notesTermJsContents, 'Dent1402NotesHostPicker') !== false
         && strpos($notesTermJsContents, '.create({') !== false;
-    if (!$notesTermUsesRawUpload && !($notesTermDelegatesToHostPicker && $notesHostPickerHasRawUpload)) {
-        $errors[] = 'notes-term.js is not configured for raw body upload.';
+    if (!$notesTermUsesUploadTransport && !($notesTermDelegatesToHostPicker && $notesHostPickerHasUploadTransport)) {
+        $errors[] = 'notes-term.js is not configured for notes upload transport.';
     }
 }
 

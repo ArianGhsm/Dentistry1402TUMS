@@ -448,6 +448,30 @@ function chat_presence_url(): string
     return '/chat/chat_api.php?' . http_build_query($query);
 }
 
+function chat_avatar_url(string $studentNumber): string
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        return '';
+    }
+
+    $query = ['action' => 'avatar', 'user' => $studentNumber];
+    if (chat_active_cohort() !== dent_primary_cohort_key()) {
+        $query['cohort'] = chat_active_cohort();
+    }
+
+    return '/chat/chat_api.php?' . http_build_query($query);
+}
+
+function chat_avatar_display_url(string $rawAvatarUrl, string $studentNumber): string
+{
+    if ($studentNumber !== '' && preg_match('/^data:image\//i', $rawAvatarUrl) === 1) {
+        return chat_avatar_url($studentNumber);
+    }
+
+    return $rawAvatarUrl;
+}
+
 function chat_default_settings(array $seed = []): array
 {
     $kind = dent_clean_text((string) ($seed['conversationKind'] ?? ($seed['kind'] ?? 'group')), 20);
@@ -3829,18 +3853,23 @@ function chat_user_can_moderate_active_cohort(array $user): bool
 function chat_public_user_payload(array $user): array
 {
     $public = dent_public_user($user);
+    $studentNumber = (string) ($public['studentNumber'] ?? '');
+    $profile = is_array($public['profile'] ?? null) ? $public['profile'] : dent_default_profile();
+    $avatarUrl = chat_avatar_display_url((string) (($profile['avatarUrl'] ?? '') ?: ''), $studentNumber);
+    $profile['avatarUrl'] = $avatarUrl;
+
     return [
-        'studentNumber' => (string) ($public['studentNumber'] ?? ''),
-        'username' => (string) ($public['studentNumber'] ?? ''),
+        'studentNumber' => $studentNumber,
+        'username' => $studentNumber,
         'name' => (string) ($public['name'] ?? ''),
         'role' => (string) ($public['role'] ?? 'student'),
         'roleLabel' => (string) ($public['roleLabel'] ?? dent_role_label('student')),
         'isOwner' => (bool) ($public['isOwner'] ?? false),
         'isRepresentative' => chat_user_can_moderate_active_cohort($user),
         'canModerateChat' => chat_user_can_moderate_active_cohort($user),
-        'profile' => is_array($public['profile'] ?? null) ? $public['profile'] : dent_default_profile(),
-        'avatarUrl' => (string) (($public['profile']['avatarUrl'] ?? '') ?: ''),
-        'about' => (string) (($public['profile']['about'] ?? ($public['profile']['bio'] ?? '')) ?: ''),
+        'profile' => $profile,
+        'avatarUrl' => $avatarUrl,
+        'about' => (string) (($profile['about'] ?? ($profile['bio'] ?? '')) ?: ''),
     ];
 }
 
@@ -5525,6 +5554,43 @@ function chat_stream_attachment_file(array $attachment, string $variant, bool $d
     }
 
     readfile($absolutePath);
+    exit;
+}
+
+function chat_stream_user_avatar(string $studentNumber): void
+{
+    $user = dent_get_user_record($studentNumber);
+    $raw = $user !== null ? (string) (($user['profile']['avatarUrl'] ?? '') ?: '') : '';
+
+    if (preg_match('/^data:(image\/(?:png|jpe?g|webp));base64,(.+)$/is', $raw, $matches) !== 1) {
+        http_response_code(404);
+        header('Cache-Control: private, max-age=60');
+        exit;
+    }
+
+    $mime = strtolower($matches[1]);
+    $payload = preg_replace('/\s+/', '', $matches[2]) ?? '';
+    $binary = $payload !== '' ? base64_decode($payload, true) : false;
+    if ($binary === false) {
+        http_response_code(404);
+        header('Cache-Control: private, max-age=60');
+        exit;
+    }
+
+    $etag = '"' . md5($binary) . '"';
+    $ifNoneMatch = trim((string) ($_SERVER['HTTP_IF_NONE_MATCH'] ?? ''));
+
+    http_response_code($ifNoneMatch === $etag ? 304 : 200);
+    header('Cache-Control: private, max-age=86400');
+    header('ETag: ' . $etag);
+
+    if ($ifNoneMatch === $etag) {
+        exit;
+    }
+
+    header('Content-Type: ' . $mime);
+    header('Content-Length: ' . (string) strlen($binary));
+    echo $binary;
     exit;
 }
 
@@ -7525,6 +7591,22 @@ if (in_array($action, ['login', 'logout', 'me'], true)) {
     ]);
 }
 
+if ($action === 'avatar') {
+    if (dent_request_method() !== 'GET') {
+        dent_error('متد دریافت تصویر نامعتبر است.', 405);
+    }
+
+    chat_require_user();
+
+    $targetStudentNumber = dent_normalize_student_number((string) ($_GET['user'] ?? ''));
+    if ($targetStudentNumber === '') {
+        dent_error('شناسه کاربر نامعتبر است.', 422);
+    }
+
+    chat_release_store_lock();
+    chat_stream_user_avatar($targetStudentNumber);
+}
+
 if ($action === 'media') {
     if (dent_request_method() !== 'GET') {
         dent_error('متد دریافت فایل نامعتبر است.', 405);
@@ -7655,7 +7737,10 @@ if ($action === 'directory') {
             continue;
         }
         $profile = is_array($user['profile'] ?? null) ? $user['profile'] : dent_default_profile();
-        $user['avatarUrl'] = (string) (($profile['avatarUrl'] ?? '') ?: '');
+        $user['avatarUrl'] = chat_avatar_display_url(
+            (string) (($profile['avatarUrl'] ?? '') ?: ''),
+            (string) ($user['studentNumber'] ?? '')
+        );
         $user['about'] = (string) (($profile['about'] ?? ($profile['bio'] ?? '')) ?: '');
         $user['canModerateChat'] = chat_user_can_moderate_active_cohort($record);
         $user['isRepresentative'] = chat_user_can_moderate_active_cohort($record) && empty($user['isOwner']);
