@@ -976,29 +976,29 @@
         var flagsCount = Number(entry && entry.flagsCount || 0);
         var metaParts = [
             String(entry && entry.roleLabel || "").trim(),
-            entry && entry.lastActivityAt ? ("Ø¢Ø®Ø±ÛŒÙ† ÙØ¹Ø§Ù„ÛŒØª " + formatDateTime(entry.lastActivityAt)) : ""
+            entry && entry.lastActivityAt ? ("آخرین فعالیت " + formatDateTime(entry.lastActivityAt)) : ""
         ].filter(Boolean);
         if (flagsCount > 0) {
-            metaParts.push("Ù†Ø´Ø§Ù†â€ŒØ¯Ø§Ø± " + formatValue(flagsCount));
+            metaParts.push("نشان‌دار " + formatValue(flagsCount));
         }
 
         return [
             '<article class="exam-owner-row">',
             '  <div class="exam-owner-row__identity">',
             '    <div class="exam-owner-row__name-wrap">',
-            '      <strong class="exam-owner-row__name">' + escapeHtml(String(entry && entry.name || "Ú©Ø§Ø±Ø¨Ø±")) + "</strong>",
+            '      <strong class="exam-owner-row__name">' + escapeHtml(String(entry && entry.name || "کاربر")) + "</strong>",
             '      <span class="exam-owner-row__type">' + escapeHtml(String(entry && entry.typeLabel || "—")) + "</span>",
             "    </div>",
             '    <span class="exam-owner-row__student" dir="ltr" data-latin-digits="true">' + escapeHtml(String(entry && entry.studentNumber || "—")) + "</span>",
             metaParts.length ? ('    <p class="exam-owner-row__meta">' + escapeHtml(metaParts.join(" • ")) + "</p>") : "",
             "  </div>",
             '  <div class="exam-owner-row__metrics">',
-            renderOwnerParticipantMetric("Ø¯Ø±ØµØ¯", entry && entry.percent, entry && entry.percent !== null ? "accent" : "", formatPercent),
-            renderOwnerParticipantMetric("ØµØ­ÛŒØ­", entry && entry.correct, entry && entry.correct !== null ? "success" : ""),
-            renderOwnerParticipantMetric("ØºÙ„Ø·", entry && entry.wrong, entry && entry.wrong !== null ? "danger" : ""),
-            renderOwnerParticipantMetric("Ø±ØªØ¨Ù‡", entry && entry.rank, entry && entry.rank !== null ? "warning" : ""),
-            renderOwnerParticipantMetric("Ú©Ù„ Ø¢Ø²Ù…ÙˆÙ†â€ŒÙ‡Ø§", entry && entry.overallExamCount, "soft"),
-            renderOwnerParticipantMetric("Ø®Ø±ÛŒØ¯ Ø¢Ø²Ù…ÙˆÙ†", entry && entry.purchasedExamCount, entry && Number(entry.purchasedExamCount || 0) > 0 ? "success" : "soft")
+            renderOwnerParticipantMetric("درصد", entry && entry.percent, entry && entry.percent !== null ? "accent" : "", formatPercent),
+            renderOwnerParticipantMetric("صحیح", entry && entry.correct, entry && entry.correct !== null ? "success" : ""),
+            renderOwnerParticipantMetric("غلط", entry && entry.wrong, entry && entry.wrong !== null ? "danger" : ""),
+            renderOwnerParticipantMetric("رتبه", entry && entry.rank, entry && entry.rank !== null ? "warning" : ""),
+            renderOwnerParticipantMetric("کل آزمون‌ها", entry && entry.overallExamCount, "soft"),
+            renderOwnerParticipantMetric("خرید آزمون", entry && entry.purchasedExamCount, entry && Number(entry.purchasedExamCount || 0) > 0 ? "success" : "soft")
             + "  </div>",
             "</article>"
         ].join("");
@@ -1020,24 +1020,24 @@
             '<details class="exam-owner-panel"' + (state.ownerPanelOpen ? " open" : "") + ">",
             '  <summary class="exam-owner-panel__summary">',
             '    <div class="exam-owner-panel__summary-copy">',
-            '      <span class="exam-owner-panel__eyebrow">ÙÙ‚Ø· Ø¨Ø±Ø§ÛŒ Ù…Ø§Ù„Ú©</span>',
-            '      <strong class="exam-owner-panel__title">ØªØ§Ø¨Ù„ÙˆÛŒ Ø´Ø±Ú©Øªâ€ŒÚ©Ù†Ù†Ø¯Ù‡â€ŒÙ‡Ø§ÛŒ Ø§ÛŒÙ† Ø¢Ø²Ù…ÙˆÙ†</strong>',
-            '      <span class="exam-owner-panel__meta">' + escapeHtml(formatValue(summary.participantCount || 0) + " Ù†ÙØ± • " + formatValue(summary.assessmentCount || 0) + " Ú©Ø§Ø±Ù†Ø§Ù…Ù‡ Ø³Ù†Ø¬Ø´ÛŒ") + "</span>",
+            '      <span class="exam-owner-panel__eyebrow">فقط برای مالک</span>',
+            '      <strong class="exam-owner-panel__title">تابلوی شرکت‌کننده‌های این آزمون</strong>',
+            '      <span class="exam-owner-panel__meta">' + escapeHtml(formatValue(summary.participantCount || 0) + " نفر • " + formatValue(summary.assessmentCount || 0) + " کارنامه سنجشی") + "</span>",
             "    </div>",
-            '    <span class="exam-owner-panel__hint">Ù„ÛŒØ³Øª Ùˆ Ø±ØªØ¨Ù‡â€ŒØ¨Ù†Ø¯ÛŒ</span>',
+            '    <span class="exam-owner-panel__hint">لیست و رتبه‌بندی</span>',
             "  </summary>",
             '  <div class="exam-owner-panel__body">',
             '    <div class="exam-owner-panel__metrics">',
-            renderOwnerInsightMetric("Ø´Ø±Ú©Øªâ€ŒÚ©Ù†Ù†Ø¯Ù‡", ownerMetricValue(summary.participantCount || 0), "soft", "Ø´Ø±ÙˆØ¹â€ŒÙ‡Ø§ÛŒ Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡ Ø¯Ø± Ø§ÛŒÙ† Ø¬Ù„Ø³Ù‡"),
-            renderOwnerInsightMetric("Ú©Ø§Ø±Ù†Ø§Ù…Ù‡ Ø³Ù†Ø¬Ø´ÛŒ", ownerMetricValue(summary.assessmentCount || 0), "accent", "ÙÙ‚Ø· Ø±Ø¯ÛŒÙâ€ŒÙ‡Ø§ÛŒ Ø¯Ø§Ø±Ø§ÛŒ Ø¯Ø±ØµØ¯ Ùˆ Ø±ØªØ¨Ù‡"),
-            renderOwnerInsightMetric("Ù…ÛŒØ§Ù†Ú¯ÛŒÙ† Ø¯Ø±ØµØ¯", averagePercent, summary.averagePercent !== null && summary.averagePercent !== undefined ? "success" : "soft", "Ø¨Ø± Ø§Ø³Ø§Ø³ Ú©Ø§Ø±Ù†Ø§Ù…Ù‡â€ŒÙ‡Ø§ÛŒ Ø³Ù†Ø¬Ø´ÛŒ Ø§ÛŒÙ† Ø¬Ù„Ø³Ù‡"),
-            renderOwnerInsightMetric("Ø®Ø±ÛŒØ¯ Ø¢Ø²Ù…ÙˆÙ†", ownerMetricValue(summary.paidParticipantCount || 0), Number(summary.paidParticipantCount || 0) > 0 ? "warning" : "soft", "ØªØ¹Ø¯Ø§Ø¯ Ø´Ø±Ú©Øªâ€ŒÚ©Ù†Ù†Ø¯Ù‡â€ŒÙ‡Ø§ÛŒÛŒ Ú©Ù‡ Ø¯Ø± Ø³Ø§ÛŒØª Ø¯Ø±Ø³â€ŒÙ‡Ø§ÛŒ Ø¢Ø²Ù…ÙˆÙ† Ø®Ø±ÛŒØ¯Ù‡â€ŒØ§Ù†Ø¯"),
+            renderOwnerInsightMetric("شرکت‌کننده", ownerMetricValue(summary.participantCount || 0), "soft", "شروع‌های ثبت‌شده در این جلسه"),
+            renderOwnerInsightMetric("کارنامه سنجشی", ownerMetricValue(summary.assessmentCount || 0), "accent", "فقط ردیف‌های دارای درصد و رتبه"),
+            renderOwnerInsightMetric("میانگین درصد", averagePercent, summary.averagePercent !== null && summary.averagePercent !== undefined ? "success" : "soft", "بر اساس کارنامه‌های سنجشی این جلسه"),
+            renderOwnerInsightMetric("خرید آزمون", ownerMetricValue(summary.paidParticipantCount || 0), Number(summary.paidParticipantCount || 0) > 0 ? "warning" : "soft", "تعداد شرکت‌کننده‌هایی که در سایت درس‌های آزمون خریده‌اند"),
             "    </div>",
             participants.length
                 ? ('    <div class="exam-owner-board">' + participants.map(function (entry) {
                     return renderOwnerParticipantRow(entry);
                 }).join("") + "</div>")
-                : '    <div class="exam-owner-empty">Ù‡Ù†ÙˆØ² Ø´Ø±Ú©Øªâ€ŒÚ©Ù†Ù†Ø¯Ù‡â€ŒØ§ÛŒ Ø¨Ø±Ø§ÛŒ Ø§ÛŒÙ† Ø¬Ù„Ø³Ù‡ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.</div>',
+                : '    <div class="exam-owner-empty">هنوز شرکت‌کننده‌ای برای این جلسه ثبت نشده است.</div>',
             "  </div>",
             "</details>"
         ].join("");

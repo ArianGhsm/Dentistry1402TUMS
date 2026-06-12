@@ -22,16 +22,69 @@
         unauthorized: STATUS.UNAUTHORIZED
     };
 
+    var AUTH_CACHE_KEY = "dent1402_auth_cache_v1";
+
     var listeners = [];
     var readyResolved = false;
     var readyResolve = null;
     var bootPromise = null;
-    var state = {
-        status: STATUS.SESSION_RESTORING,
-        loggedIn: false,
-        user: null,
-        error: ""
-    };
+
+    function readAuthCache() {
+        try {
+            var raw = window.localStorage ? window.localStorage.getItem(AUTH_CACHE_KEY) : null;
+            if (!raw) {
+                return null;
+            }
+
+            var parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== "object") {
+                return null;
+            }
+
+            if (parsed.loggedIn && parsed.user && typeof parsed.user === "object") {
+                return { loggedIn: true, user: parsed.user };
+            }
+
+            if (parsed.loggedIn === false) {
+                return { loggedIn: false, user: null };
+            }
+
+            return null;
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    function writeAuthCache(loggedIn, user) {
+        try {
+            if (!window.localStorage) {
+                return;
+            }
+
+            if (loggedIn && user) {
+                window.localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({ loggedIn: true, user: user }));
+            } else {
+                window.localStorage.removeItem(AUTH_CACHE_KEY);
+            }
+        } catch (_error) {
+            // Ignore storage errors (private mode, quota, etc.).
+        }
+    }
+
+    var initialAuthCache = readAuthCache();
+    var state = initialAuthCache
+        ? {
+            status: initialAuthCache.loggedIn ? STATUS.LOGGED_IN : STATUS.LOGGED_OUT,
+            loggedIn: initialAuthCache.loggedIn,
+            user: initialAuthCache.user,
+            error: ""
+        }
+        : {
+            status: STATUS.SESSION_RESTORING,
+            loggedIn: false,
+            user: null,
+            error: ""
+        };
 
     var readyPromise = new Promise(function (resolve) {
         readyResolve = resolve;
@@ -302,6 +355,8 @@
             user: user,
             error: ""
         });
+
+        writeAuthCache(!!user, user);
     }
 
     function applyLoggedOutState(nextStatus, errorText) {
@@ -316,6 +371,8 @@
             user: null,
             error: errorText || ""
         });
+
+        writeAuthCache(false, null);
     }
 
     function patchCurrentUser(user, nextStatus) {
@@ -340,12 +397,15 @@
             return bootPromise;
         }
 
-        setState({
-            status: STATUS.SESSION_RESTORING,
-            loggedIn: state.loggedIn,
-            user: state.user,
-            error: ""
-        });
+        var alreadyDetermined = state.status === STATUS.LOGGED_IN || state.status === STATUS.LOGGED_OUT;
+        if (!alreadyDetermined || force) {
+            setState({
+                status: STATUS.SESSION_RESTORING,
+                loggedIn: state.loggedIn,
+                user: state.user,
+                error: ""
+            });
+        }
 
         bootPromise = request("me", "GET").then(function (response) {
             if (response && response.loggedIn && response.user) {
@@ -357,7 +417,9 @@
             resolveReady();
             return snapshot();
         }).catch(function () {
-            applyLoggedOutState(STATUS.LOGGED_OUT, "Session restore failed.");
+            if (state.status !== STATUS.LOGGED_IN) {
+                applyLoggedOutState(STATUS.LOGGED_OUT, "Session restore failed.");
+            }
             resolveReady();
             return snapshot();
         }).finally(function () {

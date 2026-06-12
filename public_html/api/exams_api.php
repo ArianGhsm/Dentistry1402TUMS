@@ -1082,13 +1082,13 @@ function dent_exams_api_owner_exam_purchase_counts(array $examsStore, array $pay
 function dent_exams_api_owner_exam_type_label(bool $hasReport, string $lastMode): string
 {
     if ($hasReport || $lastMode === 'assessment') {
-        return 'Ø³Ù†Ø¬Ø´ÛŒ';
+        return 'سنجشی';
     }
     if ($lastMode === 'learning') {
-        return 'Ø¢Ù…ÙˆØ²Ø´ÛŒ';
+        return 'آموزشی';
     }
 
-    return 'Ø´Ø±ÙˆØ¹ Ø§ÙˆÙ„ÛŒÙ‡';
+    return 'شروع اولیه';
 }
 
 function dent_exams_api_owner_exam_insights_payload(
@@ -1201,9 +1201,9 @@ function dent_exams_api_owner_exam_insights_payload(
         }
 
         $participants[] = [
-            'name' => trim((string) ($userMeta['name'] ?? '')) !== '' ? (string) $userMeta['name'] : ('Ú©Ø§Ø±Ø¨Ø± ' . $participantKey),
+            'name' => trim((string) ($userMeta['name'] ?? '')) !== '' ? (string) $userMeta['name'] : ('کاربر ' . $participantKey),
             'studentNumber' => (string) ($userMeta['studentNumber'] ?? $participantKey),
-            'roleLabel' => (string) ($userMeta['roleLabel'] ?? 'Ú©Ø§Ø±Ø¨Ø± Ø¢Ø²Ù…ÙˆÙ†'),
+            'roleLabel' => (string) ($userMeta['roleLabel'] ?? 'کاربر آزمون'),
             'typeLabel' => dent_exams_api_owner_exam_type_label($hasReport, $lastMode),
             'rank' => $hasReport ? max(1, (int) ($rankMap[$participantKey] ?? 0)) : null,
             'percent' => $hasReport ? dent_exams_normalize_percent($report['percent'] ?? 0) : null,
