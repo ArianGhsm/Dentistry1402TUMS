@@ -43,7 +43,8 @@
         flagsSync: { saving: false, queued: false, timer: 0 },
         assessment: restoreAssessmentState(assessmentDraftKey, exam.questions.length, initialReport),
         learning: restoreLearningState(learningDraftKey, exam.questions.length),
-        layout: { chooserHintExpanded: false }
+        layout: { chooserHintExpanded: false },
+        ownerPanelOpen: false
     };
     var activityTrackedMode = "";
     var layoutFrame = 0;
@@ -102,6 +103,10 @@
 
     function render() {
         document.body.classList.add("quiz-stage-active");
+        var existingOwnerPanel = appRoot.querySelector(".exam-owner-panel");
+        if (existingOwnerPanel) {
+            state.ownerPanelOpen = !!existingOwnerPanel.open;
+        }
         appRoot.innerHTML = [
             '<div class="background-overlay" aria-hidden="true"></div>',
             '<div class="exam-shell">',
@@ -110,6 +115,7 @@
             '      <div class="exam-stage-scaler">',
             '        <div class="exam-stage-canvas">',
             !state.mode || !isModeStarted(state.mode) ? renderLaunchStage() : renderActiveStage(),
+            renderOwnerInsightsPanel(),
             "        </div>",
             "      </div>",
             "    </section>",
@@ -934,6 +940,106 @@
             '  <span class="exam-stat-card__label">' + escapeHtml(label) + "</span>",
             '  <strong class="exam-stat-card__value">' + escapeHtml(value) + "</strong>",
             "</article>"
+        ].join("");
+    }
+
+    function ownerMetricValue(value, formatter) {
+        if (value === null || value === undefined || value === "") {
+            return "—";
+        }
+        if (typeof formatter === "function") {
+            return formatter(value);
+        }
+        return formatValue(value);
+    }
+
+    function renderOwnerInsightMetric(label, value, tone, meta) {
+        return [
+            '<article class="exam-owner-metric' + (tone ? " is-" + escapeHtml(tone) : "") + '">',
+            '  <span class="exam-owner-metric__label">' + escapeHtml(label) + "</span>",
+            '  <strong class="exam-owner-metric__value">' + escapeHtml(value) + "</strong>",
+            meta ? '  <small class="exam-owner-metric__meta">' + escapeHtml(meta) + "</small>" : "",
+            "</article>"
+        ].join("");
+    }
+
+    function renderOwnerParticipantMetric(label, value, tone, formatter) {
+        return [
+            '<div class="exam-owner-row__metric' + (tone ? " is-" + escapeHtml(tone) : "") + '">',
+            '  <span>' + escapeHtml(label) + "</span>",
+            '  <strong>' + escapeHtml(ownerMetricValue(value, formatter)) + "</strong>",
+            "</div>"
+        ].join("");
+    }
+
+    function renderOwnerParticipantRow(entry) {
+        var flagsCount = Number(entry && entry.flagsCount || 0);
+        var metaParts = [
+            String(entry && entry.roleLabel || "").trim(),
+            entry && entry.lastActivityAt ? ("Ø¢Ø®Ø±ÛŒÙ† ÙØ¹Ø§Ù„ÛŒØª " + formatDateTime(entry.lastActivityAt)) : ""
+        ].filter(Boolean);
+        if (flagsCount > 0) {
+            metaParts.push("Ù†Ø´Ø§Ù†â€ŒØ¯Ø§Ø± " + formatValue(flagsCount));
+        }
+
+        return [
+            '<article class="exam-owner-row">',
+            '  <div class="exam-owner-row__identity">',
+            '    <div class="exam-owner-row__name-wrap">',
+            '      <strong class="exam-owner-row__name">' + escapeHtml(String(entry && entry.name || "Ú©Ø§Ø±Ø¨Ø±")) + "</strong>",
+            '      <span class="exam-owner-row__type">' + escapeHtml(String(entry && entry.typeLabel || "—")) + "</span>",
+            "    </div>",
+            '    <span class="exam-owner-row__student" dir="ltr" data-latin-digits="true">' + escapeHtml(String(entry && entry.studentNumber || "—")) + "</span>",
+            metaParts.length ? ('    <p class="exam-owner-row__meta">' + escapeHtml(metaParts.join(" • ")) + "</p>") : "",
+            "  </div>",
+            '  <div class="exam-owner-row__metrics">',
+            renderOwnerParticipantMetric("Ø¯Ø±ØµØ¯", entry && entry.percent, entry && entry.percent !== null ? "accent" : "", formatPercent),
+            renderOwnerParticipantMetric("ØµØ­ÛŒØ­", entry && entry.correct, entry && entry.correct !== null ? "success" : ""),
+            renderOwnerParticipantMetric("ØºÙ„Ø·", entry && entry.wrong, entry && entry.wrong !== null ? "danger" : ""),
+            renderOwnerParticipantMetric("Ø±ØªØ¨Ù‡", entry && entry.rank, entry && entry.rank !== null ? "warning" : ""),
+            renderOwnerParticipantMetric("Ú©Ù„ Ø¢Ø²Ù…ÙˆÙ†â€ŒÙ‡Ø§", entry && entry.overallExamCount, "soft"),
+            renderOwnerParticipantMetric("Ø®Ø±ÛŒØ¯ Ø¢Ø²Ù…ÙˆÙ†", entry && entry.purchasedExamCount, entry && Number(entry.purchasedExamCount || 0) > 0 ? "success" : "soft")
+            + "  </div>",
+            "</article>"
+        ].join("");
+    }
+
+    function renderOwnerInsightsPanel() {
+        var insights = exam.ownerInsights;
+        if (!insights || !insights.canView) {
+            return "";
+        }
+
+        var summary = insights.summary || {};
+        var participants = Array.isArray(insights.participants) ? insights.participants : [];
+        var averagePercent = summary.averagePercent === null || summary.averagePercent === undefined
+            ? "—"
+            : formatPercent(summary.averagePercent);
+
+        return [
+            '<details class="exam-owner-panel"' + (state.ownerPanelOpen ? " open" : "") + ">",
+            '  <summary class="exam-owner-panel__summary">',
+            '    <div class="exam-owner-panel__summary-copy">',
+            '      <span class="exam-owner-panel__eyebrow">ÙÙ‚Ø· Ø¨Ø±Ø§ÛŒ Ù…Ø§Ù„Ú©</span>',
+            '      <strong class="exam-owner-panel__title">ØªØ§Ø¨Ù„ÙˆÛŒ Ø´Ø±Ú©Øªâ€ŒÚ©Ù†Ù†Ø¯Ù‡â€ŒÙ‡Ø§ÛŒ Ø§ÛŒÙ† Ø¢Ø²Ù…ÙˆÙ†</strong>',
+            '      <span class="exam-owner-panel__meta">' + escapeHtml(formatValue(summary.participantCount || 0) + " Ù†ÙØ± • " + formatValue(summary.assessmentCount || 0) + " Ú©Ø§Ø±Ù†Ø§Ù…Ù‡ Ø³Ù†Ø¬Ø´ÛŒ") + "</span>",
+            "    </div>",
+            '    <span class="exam-owner-panel__hint">Ù„ÛŒØ³Øª Ùˆ Ø±ØªØ¨Ù‡â€ŒØ¨Ù†Ø¯ÛŒ</span>',
+            "  </summary>",
+            '  <div class="exam-owner-panel__body">',
+            '    <div class="exam-owner-panel__metrics">',
+            renderOwnerInsightMetric("Ø´Ø±Ú©Øªâ€ŒÚ©Ù†Ù†Ø¯Ù‡", ownerMetricValue(summary.participantCount || 0), "soft", "Ø´Ø±ÙˆØ¹â€ŒÙ‡Ø§ÛŒ Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡ Ø¯Ø± Ø§ÛŒÙ† Ø¬Ù„Ø³Ù‡"),
+            renderOwnerInsightMetric("Ú©Ø§Ø±Ù†Ø§Ù…Ù‡ Ø³Ù†Ø¬Ø´ÛŒ", ownerMetricValue(summary.assessmentCount || 0), "accent", "ÙÙ‚Ø· Ø±Ø¯ÛŒÙâ€ŒÙ‡Ø§ÛŒ Ø¯Ø§Ø±Ø§ÛŒ Ø¯Ø±ØµØ¯ Ùˆ Ø±ØªØ¨Ù‡"),
+            renderOwnerInsightMetric("Ù…ÛŒØ§Ù†Ú¯ÛŒÙ† Ø¯Ø±ØµØ¯", averagePercent, summary.averagePercent !== null && summary.averagePercent !== undefined ? "success" : "soft", "Ø¨Ø± Ø§Ø³Ø§Ø³ Ú©Ø§Ø±Ù†Ø§Ù…Ù‡â€ŒÙ‡Ø§ÛŒ Ø³Ù†Ø¬Ø´ÛŒ Ø§ÛŒÙ† Ø¬Ù„Ø³Ù‡"),
+            renderOwnerInsightMetric("Ø®Ø±ÛŒØ¯ Ø¢Ø²Ù…ÙˆÙ†", ownerMetricValue(summary.paidParticipantCount || 0), Number(summary.paidParticipantCount || 0) > 0 ? "warning" : "soft", "ØªØ¹Ø¯Ø§Ø¯ Ø´Ø±Ú©Øªâ€ŒÚ©Ù†Ù†Ø¯Ù‡â€ŒÙ‡Ø§ÛŒÛŒ Ú©Ù‡ Ø¯Ø± Ø³Ø§ÛŒØª Ø¯Ø±Ø³â€ŒÙ‡Ø§ÛŒ Ø¢Ø²Ù…ÙˆÙ† Ø®Ø±ÛŒØ¯Ù‡â€ŒØ§Ù†Ø¯"),
+            "    </div>",
+            participants.length
+                ? ('    <div class="exam-owner-board">' + participants.map(function (entry) {
+                    return renderOwnerParticipantRow(entry);
+                }).join("") + "</div>")
+                : '    <div class="exam-owner-empty">Ù‡Ù†ÙˆØ² Ø´Ø±Ú©Øªâ€ŒÚ©Ù†Ù†Ø¯Ù‡â€ŒØ§ÛŒ Ø¨Ø±Ø§ÛŒ Ø§ÛŒÙ† Ø¬Ù„Ø³Ù‡ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.</div>',
+            "  </div>",
+            "</details>"
         ].join("");
     }
 
@@ -1773,11 +1879,57 @@
             subtitle: normalizeText(data.subtitle) || "پیش از شروع، حالت دلخواهت را انتخاب کن.",
             modes: Array.isArray(data.modes) ? data.modes : [],
             questions: normalizedQuestions,
+            ownerInsights: normalizeOwnerInsights(data.ownerInsights),
             viewerState: {
                 canPersist: Boolean(viewerState.canPersist),
                 flaggedQuestionIndexes: normalizeFlagIndexes(viewerState.flaggedQuestionIndexes, normalizedQuestions.length),
                 assessmentReport: report
             }
+        };
+    }
+
+    function normalizeOwnerInsights(rawInsights) {
+        if (!isObject(rawInsights) || !rawInsights.canView) {
+            return null;
+        }
+
+        var summary = isObject(rawInsights.summary) ? rawInsights.summary : {};
+        return {
+            canView: true,
+            summary: {
+                participantCount: maxNumber(summary.participantCount, 0),
+                assessmentCount: maxNumber(summary.assessmentCount, 0),
+                paidParticipantCount: maxNumber(summary.paidParticipantCount, 0),
+                averagePercent: summary.averagePercent === null || summary.averagePercent === undefined
+                    ? null
+                    : clampPercent(summary.averagePercent)
+            },
+            participants: (Array.isArray(rawInsights.participants) ? rawInsights.participants : [])
+                .map(normalizeOwnerParticipant)
+                .filter(function (entry) {
+                    return !!entry;
+                })
+        };
+    }
+
+    function normalizeOwnerParticipant(rawEntry) {
+        if (!isObject(rawEntry)) {
+            return null;
+        }
+
+        return {
+            name: normalizeText(rawEntry.name) || "\u06a9\u0627\u0631\u0628\u0631",
+            studentNumber: normalizeText(rawEntry.studentNumber),
+            roleLabel: normalizeText(rawEntry.roleLabel),
+            typeLabel: normalizeText(rawEntry.typeLabel) || "—",
+            rank: rawEntry.rank === null || rawEntry.rank === undefined ? null : maxNumber(rawEntry.rank, 0),
+            percent: rawEntry.percent === null || rawEntry.percent === undefined ? null : clampPercent(rawEntry.percent),
+            correct: rawEntry.correct === null || rawEntry.correct === undefined ? null : maxNumber(rawEntry.correct, 0),
+            wrong: rawEntry.wrong === null || rawEntry.wrong === undefined ? null : maxNumber(rawEntry.wrong, 0),
+            overallExamCount: maxNumber(rawEntry.overallExamCount, 0),
+            purchasedExamCount: maxNumber(rawEntry.purchasedExamCount, 0),
+            flagsCount: maxNumber(rawEntry.flagsCount, 0),
+            lastActivityAt: normalizeText(rawEntry.lastActivityAt)
         };
     }
 

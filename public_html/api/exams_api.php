@@ -885,6 +885,349 @@ function dent_exams_api_report_summary_payload(
     ];
 }
 
+function dent_exams_api_report_rows(array $store, string $catalogKey, string $courseSlug, string $examSlug): array
+{
+    $reportsByUser = dent_exams_reports_by_user($store, $catalogKey, $courseSlug, $examSlug);
+    $rows = [];
+    foreach ($reportsByUser as $userKey => $report) {
+        if (!is_array($report)) {
+            continue;
+        }
+
+        $cleanUserKey = dent_exams_clean_participant_key((string) $userKey);
+        if ($cleanUserKey === '') {
+            continue;
+        }
+
+        $rows[] = [
+            'userKey' => $cleanUserKey,
+            'report' => dent_exams_normalize_assessment_report($report),
+        ];
+    }
+
+    usort($rows, static function (array $left, array $right): int {
+        return dent_exams_api_compare_reports(
+            is_array($left['report'] ?? null) ? $left['report'] : [],
+            (string) ($left['userKey'] ?? ''),
+            is_array($right['report'] ?? null) ? $right['report'] : [],
+            (string) ($right['userKey'] ?? '')
+        );
+    });
+
+    foreach ($rows as $index => $row) {
+        $rows[$index]['rank'] = $index + 1;
+    }
+
+    return $rows;
+}
+
+function dent_exams_api_user_site_average(array $store, string $participantKey): array
+{
+    $cleanParticipant = dent_exams_clean_participant_key($participantKey);
+    if ($cleanParticipant === '') {
+        return [
+            'completedCount' => 0,
+            'averagePercent' => null,
+        ];
+    }
+
+    $records = is_array($store['examRecords'] ?? null) ? $store['examRecords'] : [];
+    $percents = [];
+    foreach ($records as $record) {
+        if (!is_array($record)) {
+            continue;
+        }
+
+        $normalizedRecord = dent_exams_normalize_exam_record($record);
+        $report = $normalizedRecord['reportsByUser'][$cleanParticipant] ?? null;
+        if (!is_array($report)) {
+            continue;
+        }
+
+        $percents[] = dent_exams_normalize_percent($report['percent'] ?? 0);
+    }
+
+    if ($percents === []) {
+        return [
+            'completedCount' => 0,
+            'averagePercent' => null,
+        ];
+    }
+
+    return [
+        'completedCount' => count($percents),
+        'averagePercent' => round(array_sum($percents) / count($percents), 1),
+    ];
+}
+
+function dent_exams_api_owner_user_lookup(): array
+{
+    $lookup = [];
+    foreach (dent_list_public_users(false) as $user) {
+        if (!is_array($user)) {
+            continue;
+        }
+
+        $participantKey = dent_exams_clean_participant_key((string) ($user['studentNumber'] ?? ($user['student_number'] ?? '')));
+        if ($participantKey === '') {
+            continue;
+        }
+
+        $lookup[$participantKey] = [
+            'name' => trim((string) ($user['name'] ?? '')),
+            'studentNumber' => $participantKey,
+            'roleLabel' => dent_role_label((string) ($user['role'] ?? 'student')),
+        ];
+    }
+
+    return $lookup;
+}
+
+function dent_exams_api_owner_order_participant_key(array $order): string
+{
+    $candidates = [
+        (string) ($order['user_id'] ?? ''),
+        (string) ($order['payer_student_number'] ?? ''),
+    ];
+
+    foreach ($candidates as $candidate) {
+        $participantKey = dent_exams_clean_participant_key($candidate);
+        if ($participantKey !== '') {
+            return $participantKey;
+        }
+    }
+
+    return '';
+}
+
+function dent_exams_api_owner_exam_collection_group_map(array $examsStore): array
+{
+    $collectionToGroup = [];
+    foreach (dent_exams_catalogs() as $catalogKey => $catalog) {
+        if (!is_array($catalog)) {
+            continue;
+        }
+
+        $courses = is_array($catalog['courses'] ?? null) ? $catalog['courses'] : [];
+        foreach ($courses as $courseSlug => $course) {
+            if (!is_array($course)) {
+                continue;
+            }
+
+            $cleanCourseSlug = dent_exams_clean_course_slug((string) $courseSlug);
+            $bindingSlug = dent_exams_api_payment_binding_slug((string) $catalogKey, $cleanCourseSlug, $course);
+            if ($bindingSlug === '' || $bindingSlug !== $cleanCourseSlug) {
+                continue;
+            }
+
+            $bindingCourse = dent_exams_api_payment_binding_course((string) $catalogKey, $bindingSlug, $course);
+            $setting = dent_exams_course_setting($examsStore, (string) $catalogKey, $bindingSlug);
+            $setting = dent_exams_api_setting_with_legacy_collection_ids($examsStore, (string) $catalogKey, $bindingCourse, $setting);
+            $groupKey = dent_exams_course_key((string) $catalogKey, $bindingSlug);
+            if ($groupKey === '') {
+                continue;
+            }
+
+            foreach (dent_exams_api_setting_collection_ids($setting) as $collectionId) {
+                $cleanCollectionId = max(0, (int) $collectionId);
+                if ($cleanCollectionId > 0) {
+                    $collectionToGroup[$cleanCollectionId] = $groupKey;
+                }
+            }
+        }
+    }
+
+    return $collectionToGroup;
+}
+
+function dent_exams_api_owner_exam_purchase_counts(array $examsStore, array $paymentsStore): array
+{
+    $collectionToGroup = dent_exams_api_owner_exam_collection_group_map($examsStore);
+    if ($collectionToGroup === []) {
+        return [];
+    }
+
+    $purchasesByUser = [];
+    foreach (is_array($paymentsStore['orders'] ?? null) ? $paymentsStore['orders'] : [] as $order) {
+        if (!is_array($order) || (string) ($order['status'] ?? '') !== PAYMENTS_ORDER_STATUS_SUCCESS) {
+            continue;
+        }
+
+        $extra = is_array($order['extra_form_data'] ?? null) ? $order['extra_form_data'] : [];
+        $collectionId = max(0, (int) ($extra['collection_id'] ?? 0));
+        $groupKey = (string) ($collectionToGroup[$collectionId] ?? '');
+        if ((string) ($extra['_source'] ?? '') !== 'collection' || $groupKey === '') {
+            continue;
+        }
+
+        $participantKey = dent_exams_api_owner_order_participant_key($order);
+        if ($participantKey === '') {
+            continue;
+        }
+
+        if (!isset($purchasesByUser[$participantKey])) {
+            $purchasesByUser[$participantKey] = [];
+        }
+        $purchasesByUser[$participantKey][$groupKey] = true;
+    }
+
+    $counts = [];
+    foreach ($purchasesByUser as $participantKey => $groups) {
+        $counts[$participantKey] = count($groups);
+    }
+
+    return $counts;
+}
+
+function dent_exams_api_owner_exam_type_label(bool $hasReport, string $lastMode): string
+{
+    if ($hasReport || $lastMode === 'assessment') {
+        return 'Ø³Ù†Ø¬Ø´ÛŒ';
+    }
+    if ($lastMode === 'learning') {
+        return 'Ø¢Ù…ÙˆØ²Ø´ÛŒ';
+    }
+
+    return 'Ø´Ø±ÙˆØ¹ Ø§ÙˆÙ„ÛŒÙ‡';
+}
+
+function dent_exams_api_owner_exam_insights_payload(
+    array $store,
+    array $paymentsStore,
+    string $catalogKey,
+    string $courseSlug,
+    string $examSlug
+): array {
+    $record = dent_exams_record($store, $catalogKey, $courseSlug, $examSlug);
+    $flagsByUser = is_array($record['flagsByUser'] ?? null) ? $record['flagsByUser'] : [];
+    $activityByUser = is_array($record['activityByUser'] ?? null) ? $record['activityByUser'] : [];
+    $reportRows = dent_exams_api_report_rows($store, $catalogKey, $courseSlug, $examSlug);
+    $reportMap = [];
+    $rankMap = [];
+    foreach ($reportRows as $row) {
+        $participantKey = (string) ($row['userKey'] ?? '');
+        if ($participantKey === '') {
+            continue;
+        }
+
+        $reportMap[$participantKey] = is_array($row['report'] ?? null) ? $row['report'] : null;
+        $rankMap[$participantKey] = max(1, (int) ($row['rank'] ?? 0));
+    }
+
+    $userLookup = dent_exams_api_owner_user_lookup();
+    $purchaseCounts = dent_exams_api_owner_exam_purchase_counts($store, $paymentsStore);
+
+    $participantKeys = [];
+    foreach (array_keys($reportMap) as $participantKey) {
+        $participantKeys[$participantKey] = true;
+    }
+    foreach (array_keys($activityByUser) as $participantKey) {
+        $cleanParticipant = dent_exams_clean_participant_key((string) $participantKey);
+        if ($cleanParticipant !== '') {
+            $participantKeys[$cleanParticipant] = true;
+        }
+    }
+    foreach (array_keys($flagsByUser) as $participantKey) {
+        $cleanParticipant = dent_exams_clean_participant_key((string) $participantKey);
+        if ($cleanParticipant !== '') {
+            $participantKeys[$cleanParticipant] = true;
+        }
+    }
+
+    $extraParticipants = [];
+    foreach (array_keys($participantKeys) as $participantKey) {
+        if (isset($rankMap[$participantKey])) {
+            continue;
+        }
+
+        $activity = is_array($activityByUser[$participantKey] ?? null)
+            ? dent_exams_normalize_exam_activity($activityByUser[$participantKey])
+            : null;
+        $flagsCount = count(dent_exams_normalize_question_index_list($flagsByUser[$participantKey] ?? []));
+        $extraParticipants[] = [
+            'userKey' => $participantKey,
+            'lastActivityAt' => is_array($activity) ? (string) ($activity['updatedAt'] ?? '') : '',
+            'flagsCount' => $flagsCount,
+        ];
+    }
+
+    usort($extraParticipants, static function (array $left, array $right): int {
+        $activityComparison = strcmp((string) ($right['lastActivityAt'] ?? ''), (string) ($left['lastActivityAt'] ?? ''));
+        if ($activityComparison !== 0) {
+            return $activityComparison;
+        }
+
+        return max(0, (int) ($right['flagsCount'] ?? 0)) <=> max(0, (int) ($left['flagsCount'] ?? 0));
+    });
+
+    $orderedKeys = array_values(array_map(static function (array $row): string {
+        return (string) ($row['userKey'] ?? '');
+    }, $reportRows));
+    foreach ($extraParticipants as $row) {
+        $participantKey = (string) ($row['userKey'] ?? '');
+        if ($participantKey !== '') {
+            $orderedKeys[] = $participantKey;
+        }
+    }
+
+    $participants = [];
+    $percentTotal = 0.0;
+    $percentCount = 0;
+    $paidParticipantCount = 0;
+    foreach ($orderedKeys as $participantKey) {
+        if ($participantKey === '') {
+            continue;
+        }
+
+        $report = is_array($reportMap[$participantKey] ?? null) ? $reportMap[$participantKey] : null;
+        $activity = is_array($activityByUser[$participantKey] ?? null)
+            ? dent_exams_normalize_exam_activity($activityByUser[$participantKey])
+            : null;
+        $flagsCount = count(dent_exams_normalize_question_index_list($flagsByUser[$participantKey] ?? []));
+        $hasReport = is_array($report);
+        $lastMode = is_array($activity)
+            ? dent_exams_api_normalize_activity_mode((string) ($activity['lastMode'] ?? 'view'))
+            : ($hasReport ? 'assessment' : 'view');
+        $overallStats = dent_exams_api_user_site_average($store, $participantKey);
+        $purchaseCount = max(0, (int) ($purchaseCounts[$participantKey] ?? 0));
+        $userMeta = is_array($userLookup[$participantKey] ?? null) ? $userLookup[$participantKey] : [];
+
+        if ($purchaseCount > 0) {
+            $paidParticipantCount++;
+        }
+        if ($hasReport) {
+            $percentTotal += dent_exams_normalize_percent($report['percent'] ?? 0);
+            $percentCount++;
+        }
+
+        $participants[] = [
+            'name' => trim((string) ($userMeta['name'] ?? '')) !== '' ? (string) $userMeta['name'] : ('Ú©Ø§Ø±Ø¨Ø± ' . $participantKey),
+            'studentNumber' => (string) ($userMeta['studentNumber'] ?? $participantKey),
+            'roleLabel' => (string) ($userMeta['roleLabel'] ?? 'Ú©Ø§Ø±Ø¨Ø± Ø¢Ø²Ù…ÙˆÙ†'),
+            'typeLabel' => dent_exams_api_owner_exam_type_label($hasReport, $lastMode),
+            'rank' => $hasReport ? max(1, (int) ($rankMap[$participantKey] ?? 0)) : null,
+            'percent' => $hasReport ? dent_exams_normalize_percent($report['percent'] ?? 0) : null,
+            'correct' => $hasReport ? max(0, (int) ($report['correct'] ?? 0)) : null,
+            'wrong' => $hasReport ? max(0, (int) ($report['wrong'] ?? 0)) : null,
+            'overallExamCount' => max(0, (int) ($overallStats['completedCount'] ?? 0)),
+            'purchasedExamCount' => $purchaseCount,
+            'flagsCount' => $flagsCount,
+            'lastActivityAt' => is_array($activity) ? (string) ($activity['updatedAt'] ?? '') : ($hasReport ? (string) ($report['updatedAt'] ?? ($report['submittedAt'] ?? '')) : ''),
+        ];
+    }
+
+    return [
+        'canView' => true,
+        'summary' => [
+            'participantCount' => count($participants),
+            'assessmentCount' => count($reportRows),
+            'paidParticipantCount' => $paidParticipantCount,
+            'averagePercent' => $percentCount > 0 ? round($percentTotal / $percentCount, 1) : null,
+        ],
+        'participants' => $participants,
+    ];
+}
+
 function dent_exams_api_normalize_activity_mode(string $value): string
 {
     $mode = trim(strtolower($value));
@@ -970,6 +1313,7 @@ function dent_exams_api_exam_progress_payload(
 
 function dent_exams_api_exam_payload(
     array $store,
+    array $paymentsStore,
     string $catalogKey,
     array $course,
     array $exam,
@@ -1005,6 +1349,15 @@ function dent_exams_api_exam_payload(
             )
             : null,
     ];
+    if (dent_exams_api_is_owner($viewer)) {
+        $payload['ownerInsights'] = dent_exams_api_owner_exam_insights_payload(
+            $store,
+            $paymentsStore,
+            $catalogKey,
+            $courseSlug,
+            $examSlug
+        );
+    }
 
     return $payload;
 }
@@ -1945,7 +2298,7 @@ if ($action === 'exam') {
     dent_json_response([
         'success' => true,
         'course' => $coursePayload,
-        'exam' => dent_exams_api_exam_payload($examsStore, $catalogKey, $course, $exam, $user),
+        'exam' => dent_exams_api_exam_payload($examsStore, $paymentsStore, $catalogKey, $course, $exam, $user),
         'viewer' => $user ? dent_public_user($user) : null,
     ]);
 }

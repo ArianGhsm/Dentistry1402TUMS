@@ -92,15 +92,16 @@ function dent_exams_diagnostics1_term6_exam_payloads(string $courseSlug, array $
 
         $title = $topic !== ''
             ? 'آزمون ' . $label . ' - ' . $topic
-            : 'آزمون ' . $label . ' - به‌زودی';
+            : ($comingSoon ? 'آزمون ' . $label . ' - به‌زودی' : 'آزمون ' . $label);
         $subtitle = $comingSoon
             ? 'صفحه این جلسه آماده است و سؤال‌های آن به‌زودی از همین مسیر فعال می‌شود.'
             : dent_exams_diagnostics1_term6_to_persian_digits((string) $questionCount)
-                . ' سؤال چهارگزینه‌ای با پاسخ تشریحی از مبحث «' . $topic . '».';
+                . ' سؤال چهارگزینه‌ای با پاسخ تشریحی'
+                . ($topic !== '' ? ' از مبحث «' . $topic . '».' : '.');
         $description = $comingSoon
             ? 'سؤال‌های این جلسه هنوز اضافه نشده‌اند و به‌زودی از همین صفحه در دسترس قرار می‌گیرند.'
             : 'مرور ' . dent_exams_diagnostics1_term6_to_persian_digits((string) $questionCount)
-                . ' سؤال از مبحث «' . $topic . '» در تشخیصی ۱.';
+                . ' سؤال' . ($topic !== '' ? ' از مبحث «' . $topic . '»' : '') . ' در تشخیصی ۱.';
 
         $payloads[] = [
             'slug' => $slug,
