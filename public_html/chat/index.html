@@ -397,18 +397,16 @@
                                             <path d="M9 9.5h.01M15 9.5h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
                                         </svg>
                                     </button>
-                                    <button class="composer-tool" id="card-btn" type="button" aria-label="ارسال کارت درسی یا یادآور">
-                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                            <rect x="4" y="5" width="16" height="14" rx="3" stroke="currentColor" stroke-width="1.8" />
-                                            <path d="M8 10H16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                                            <path d="M8 14H12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-                                        </svg>
-                                    </button>
                                     <button class="composer-tool" id="voice-btn" type="button" aria-label="ضبط پیام صوتی">
                                         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                             <rect x="9" y="4" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.8" />
                                             <path d="M6 11.5a6 6 0 1 0 12 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                                             <path d="M12 18.5V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                                        </svg>
+                                    </button>
+                                    <button class="composer-tool" id="poll-btn" type="button" aria-label="ساخت نظرسنجی" hidden>
+                                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                            <path d="M5 19V11M12 19V5M19 19v-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
                                     </button>
                                 </div>
@@ -674,88 +672,6 @@
         <div class="chat-modal__body chat-modal__body--dense" id="forward-list"></div>
     </section>
 
-    <section class="chat-modal chat-modal--card" id="card-modal" hidden aria-labelledby="card-modal-title">
-        <div class="chat-modal__header">
-            <div class="chat-modal__title-wrap">
-                <h2 id="card-modal-title">ارسال کارت درسی</h2>
-                <p id="card-modal-subtitle">لینک داخلی یا یادآور را داخل همین گفتگو منتشر کن.</p>
-            </div>
-            <button class="chat-sheet-close" id="card-modal-close" type="button" aria-label="بستن">
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
-                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
-                </svg>
-            </button>
-        </div>
-        <div class="chat-modal__body">
-            <div class="chat-modal__fields">
-                <label for="card-type">نوع کارت</label>
-                <select id="card-type">
-                    <option value="route-link">لینک داخلی</option>
-                    <option value="task-reminder">یادآور / کار</option>
-                </select>
-
-                <div class="card-modal-section" id="card-route-fields">
-                    <label for="card-route-section">بخش مقصد</label>
-                    <select id="card-route-section">
-                        <option value="notes">جزوه‌ها و منابع</option>
-                        <option value="exams">آزمون‌ها</option>
-                        <option value="forms">فرم‌ها</option>
-                    </select>
-
-                    <label for="card-route-href">مسیر داخلی</label>
-                    <input id="card-route-href" type="text" maxlength="280" placeholder="/exams/diagnostics-1-term6/">
-
-                    <label for="card-route-title">عنوان کارت</label>
-                    <input id="card-route-title" type="text" maxlength="160" placeholder="مثلاً: آزمون تشخیصی ۱ ترم ۶">
-
-                    <label for="card-route-description">توضیح کوتاه</label>
-                    <textarea id="card-route-description" rows="4" maxlength="280" placeholder="توضیح کوتاهی درباره مقصد این لینک بنویس..."></textarea>
-
-                    <label for="card-route-cta-label">متن دکمه</label>
-                    <input id="card-route-cta-label" type="text" maxlength="60" placeholder="مثلاً: باز کردن آزمون">
-                </div>
-
-                <div class="card-modal-section" id="card-task-fields" hidden>
-                    <label for="card-task-category">دسته یادآور</label>
-                    <select id="card-task-category">
-                        <option value="exam">آزمون</option>
-                        <option value="form">فرم</option>
-                        <option value="deadline">ددلاین</option>
-                    </select>
-
-                    <label for="card-task-title">عنوان</label>
-                    <input id="card-task-title" type="text" maxlength="160" placeholder="مثلاً: تکمیل فرم حضور تا پایان هفته">
-
-                    <label for="card-task-details">جزئیات</label>
-                    <textarea id="card-task-details" rows="4" maxlength="320" placeholder="جزئیات کوتاه، شرط یا توضیح لازم را بنویس..."></textarea>
-
-                    <label for="card-task-due-at">مهلت / زمان</label>
-                    <input id="card-task-due-at" type="datetime-local">
-
-                    <label for="card-task-tone">اهمیت</label>
-                    <select id="card-task-tone">
-                        <option value="normal">عادی</option>
-                        <option value="important">مهم</option>
-                        <option value="urgent">فوری</option>
-                    </select>
-
-                    <label for="card-task-href">مسیر داخلی مقصد</label>
-                    <input id="card-task-href" type="text" maxlength="280" placeholder="/forms/ یا /exams/">
-
-                    <label for="card-task-cta-label">متن دکمه</label>
-                    <input id="card-task-cta-label" type="text" maxlength="60" placeholder="مثلاً: باز کردن فرم">
-                </div>
-
-                <p id="card-modal-feedback" class="chat-modal-meta" aria-live="polite"></p>
-            </div>
-        </div>
-        <div class="chat-modal__footer chat-modal__footer--split">
-            <button id="card-cancel" class="chat-modal-secondary-btn" type="button">انصراف</button>
-            <button id="card-create" class="chat-login-btn" type="button">ارسال کارت</button>
-        </div>
-    </section>
-
     <section class="chat-modal chat-modal--reaction" id="reaction-modal" hidden aria-labelledby="reaction-modal-title">
         <div class="chat-modal__header">
             <h2 id="reaction-modal-title">انتخاب واکنش</h2>
@@ -795,6 +711,61 @@
         <div class="chat-modal__footer chat-modal__footer--split">
             <button id="edit-cancel" class="chat-modal-secondary-btn" type="button">انصراف</button>
             <button id="edit-save" class="chat-login-btn" type="button">ذخیره ویرایش</button>
+        </div>
+    </section>
+
+    <section class="chat-modal chat-modal--poll" id="poll-modal" hidden aria-labelledby="poll-modal-title">
+        <div class="chat-modal__header">
+            <h2 id="poll-modal-title">نظرسنجی جدید</h2>
+            <button class="chat-sheet-close" id="poll-modal-close" type="button" aria-label="بستن">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+        <div class="chat-modal__body">
+            <div class="chat-modal__fields">
+                <label for="poll-question">سوال نظرسنجی</label>
+                <textarea id="poll-question" rows="2" maxlength="280" placeholder="سوالت را بنویس..."></textarea>
+
+                <label>گزینه‌ها</label>
+                <div class="poll-options-list" id="poll-options-list"></div>
+                <button type="button" class="poll-add-option-btn" id="poll-add-option">+ افزودن گزینه</button>
+
+                <label class="chat-option-row chat-option-row--checkbox" for="poll-multiple-choice">
+                    <input id="poll-multiple-choice" type="checkbox">
+                    <span>
+                        <strong>انتخاب چندگزینه‌ای</strong>
+                        <span>اعضا می‌توانند بیش از یک گزینه را انتخاب کنند.</span>
+                    </span>
+                </label>
+
+                <div class="chat-modal__fields chat-modal__fields--compact" id="poll-max-choices-field" hidden>
+                    <label for="poll-max-choices">حداکثر تعداد گزینه قابل انتخاب</label>
+                    <input id="poll-max-choices" type="number" min="2" max="10" value="2" inputmode="numeric">
+                </div>
+
+                <label class="chat-option-row chat-option-row--checkbox" for="poll-anonymous">
+                    <input id="poll-anonymous" type="checkbox" checked>
+                    <span>
+                        <strong>رأی‌گیری ناشناس</strong>
+                        <span>هویت رأی‌دهنده‌ها برای دیگران نمایش داده نمی‌شود.</span>
+                    </span>
+                </label>
+
+                <label class="chat-option-row chat-option-row--checkbox" for="poll-allow-change">
+                    <input id="poll-allow-change" type="checkbox" checked>
+                    <span>
+                        <strong>امکان تغییر رأی</strong>
+                        <span>اعضا می‌توانند رأی خود را تا پایان نظرسنجی تغییر دهند.</span>
+                    </span>
+                </label>
+            </div>
+        </div>
+        <div class="chat-modal__footer chat-modal__footer--split">
+            <button id="poll-cancel" class="chat-modal-secondary-btn" type="button">انصراف</button>
+            <button id="poll-create" class="chat-login-btn" type="button">ساخت و ارسال نظرسنجی</button>
         </div>
     </section>
 

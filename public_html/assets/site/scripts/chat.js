@@ -148,6 +148,8 @@
   var OLDER_MESSAGE_LIMIT = 60;
   var MIN_POLL_MS = 1000;
   var MAX_POLL_MS = 8000;
+  var POLL_MIN_OPTIONS = 2;
+  var POLL_MAX_OPTIONS = 10;
   var REACTION_RECENTS_LIMIT = 24;
   var REACTION_USAGE_LIMIT = 120;
   var CHAT_FAST_CACHE_VERSION = 1;
@@ -1139,8 +1141,8 @@
   var emojiPanel = $("composer-emoji-panel");
   var emojiTabs = $("composer-emoji-tabs");
   var emojiGrid = $("composer-emoji-grid");
-  var cardBtn = $("card-btn");
   var voiceBtn = $("voice-btn");
+  var pollBtn = $("poll-btn");
   var mentionSuggestions = $("mention-suggestions");
   var attachmentInput = $("attachment-input");
   var composerUploadSheet = $("composer-upload-sheet");
@@ -1243,32 +1245,23 @@
   var reactionDetailsModalClose = $("reaction-details-modal-close");
   var reactionDetailsModalTitle = $("reaction-details-modal-title");
   var reactionDetailsList = $("reaction-details-list");
-  var cardModal = $("card-modal");
-  var cardModalClose = $("card-modal-close");
-  var cardModalSubtitle = $("card-modal-subtitle");
-  var cardTypeSelect = $("card-type");
-  var cardRouteFields = $("card-route-fields");
-  var cardRouteSectionSelect = $("card-route-section");
-  var cardRouteHrefInput = $("card-route-href");
-  var cardRouteTitleInput = $("card-route-title");
-  var cardRouteDescriptionInput = $("card-route-description");
-  var cardRouteCtaLabelInput = $("card-route-cta-label");
-  var cardTaskFields = $("card-task-fields");
-  var cardTaskCategorySelect = $("card-task-category");
-  var cardTaskTitleInput = $("card-task-title");
-  var cardTaskDetailsInput = $("card-task-details");
-  var cardTaskDueAtInput = $("card-task-due-at");
-  var cardTaskToneSelect = $("card-task-tone");
-  var cardTaskHrefInput = $("card-task-href");
-  var cardTaskCtaLabelInput = $("card-task-cta-label");
-  var cardModalFeedback = $("card-modal-feedback");
-  var cardCancelBtn = $("card-cancel");
-  var cardCreateBtn = $("card-create");
   var editModal = $("edit-modal");
   var editModalClose = $("edit-modal-close");
   var editCancelBtn = $("edit-cancel");
   var editSaveBtn = $("edit-save");
   var editTextInput = $("edit-text");
+  var pollModal = $("poll-modal");
+  var pollModalClose = $("poll-modal-close");
+  var pollQuestionInput = $("poll-question");
+  var pollOptionsList = $("poll-options-list");
+  var pollAddOptionBtn = $("poll-add-option");
+  var pollMultipleChoiceInput = $("poll-multiple-choice");
+  var pollMaxChoicesField = $("poll-max-choices-field");
+  var pollMaxChoicesInput = $("poll-max-choices");
+  var pollAnonymousInput = $("poll-anonymous");
+  var pollAllowChangeInput = $("poll-allow-change");
+  var pollCancelBtn = $("poll-cancel");
+  var pollCreateBtn = $("poll-create");
   var conversationOptionsModal = $("conversation-options-modal");
   var conversationOptionsClose = $("conversation-options-close");
   var conversationOptionsTitle = $("conversation-options-title");
@@ -1452,7 +1445,6 @@
     mentionTokenStart: -1,
     mentionTokenEnd: -1,
     pollDraftSelections: new Map(),
-    pendingCardCreate: false,
     emojiCategory: EMOJI_CATEGORIES[0].key
   };
   var navBadgeState = {
@@ -3977,12 +3969,13 @@
     if (emojiBtn) {
       emojiBtn.disabled = shouldDisable;
     }
-    if (cardBtn) {
-      cardBtn.hidden = !conversation;
-      cardBtn.disabled = !conversation || !canUseAttachmentTools || hasUploadsInProgress || hasVoiceRecorder;
-    }
     if (voiceBtn) {
       voiceBtn.disabled = (conversation && !canUseAttachmentTools) || (canUseAttachmentTools && (hasUploadsInProgress || hasVoiceRecorder));
+    }
+    if (pollBtn) {
+      var canCreatePoll = !!(conversation && conversation.permissions && conversation.permissions.canCreatePoll);
+      pollBtn.hidden = !canCreatePoll;
+      pollBtn.disabled = !canCreatePoll || !canUseAttachmentTools;
     }
     if (attachmentInput) {
       attachmentInput.disabled = (conversation && !canUseAttachmentTools) || (canUseAttachmentTools && recordingVoice);
@@ -4715,6 +4708,136 @@
       "  </div>",
       "</section>"
     ].join("");
+  }
+
+  function pollOptionRowMarkup(value) {
+    return [
+      '<div class="poll-option-row" data-poll-option-row>',
+      '  <input type="text" maxlength="120" placeholder="گزینه" data-poll-option-input value="' + escapeHtml(value || "") + '">',
+      '  <button type="button" class="poll-option-remove" data-poll-option-remove aria-label="حذف گزینه">',
+      '    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>',
+      '  </button>',
+      '</div>'
+    ].join("");
+  }
+
+  function pollOptionRows() {
+    return pollOptionsList ? Array.from(pollOptionsList.querySelectorAll("[data-poll-option-row]")) : [];
+  }
+
+  function updatePollOptionControlsState() {
+    var rows = pollOptionRows();
+    rows.forEach(function (row) {
+      var removeBtn = row.querySelector("[data-poll-option-remove]");
+      if (removeBtn) removeBtn.hidden = rows.length <= POLL_MIN_OPTIONS;
+    });
+    if (pollAddOptionBtn) {
+      pollAddOptionBtn.hidden = rows.length >= POLL_MAX_OPTIONS;
+    }
+  }
+
+  function addPollOptionRow(value, focus) {
+    if (!pollOptionsList) return;
+    if (pollOptionRows().length >= POLL_MAX_OPTIONS) return;
+    pollOptionsList.insertAdjacentHTML("beforeend", pollOptionRowMarkup(value));
+    updatePollOptionControlsState();
+    if (focus) {
+      var rows = pollOptionRows();
+      var last = rows[rows.length - 1];
+      var input = last && last.querySelector("[data-poll-option-input]");
+      if (input) input.focus({ preventScroll: true });
+    }
+  }
+
+  function togglePollMaxChoicesField() {
+    if (!pollMaxChoicesField || !pollMultipleChoiceInput) return;
+    pollMaxChoicesField.hidden = !pollMultipleChoiceInput.checked;
+  }
+
+  function resetPollModal() {
+    if (pollQuestionInput) pollQuestionInput.value = "";
+    if (pollOptionsList) pollOptionsList.innerHTML = "";
+    addPollOptionRow("");
+    addPollOptionRow("");
+    if (pollMultipleChoiceInput) pollMultipleChoiceInput.checked = false;
+    if (pollMaxChoicesInput) pollMaxChoicesInput.value = "2";
+    if (pollAnonymousInput) pollAnonymousInput.checked = true;
+    if (pollAllowChangeInput) pollAllowChangeInput.checked = true;
+    togglePollMaxChoicesField();
+  }
+
+  function openPollComposerModal() {
+    var conversation = activeConversation();
+    if (!conversation || !conversation.permissions || !conversation.permissions.canCreatePoll) return;
+    resetPollModal();
+    openModal(pollModal, "poll");
+    if (pollQuestionInput) {
+      window.setTimeout(function () {
+        pollQuestionInput.focus({ preventScroll: true });
+      }, 0);
+    }
+  }
+
+  async function createPollFromModal() {
+    var conversation = activeConversation();
+    if (!conversation) return;
+    var question = pollQuestionInput ? toText(pollQuestionInput.value).trim() : "";
+    if (!question) {
+      showToast("سوال نظرسنجی را بنویس.");
+      if (pollQuestionInput) pollQuestionInput.focus({ preventScroll: true });
+      return;
+    }
+
+    var options = pollOptionRows().map(function (row) {
+      var input = row.querySelector("[data-poll-option-input]");
+      return input ? toText(input.value).trim() : "";
+    }).filter(Boolean);
+    if (options.length < POLL_MIN_OPTIONS) {
+      showToast("حداقل دو گزینه برای نظرسنجی لازم است.");
+      return;
+    }
+
+    var multipleChoice = !!(pollMultipleChoiceInput && pollMultipleChoiceInput.checked);
+    var maxChoices = multipleChoice
+      ? Math.max(2, Math.min(options.length, Math.floor(toNumber(pollMaxChoicesInput && pollMaxChoicesInput.value, 2))))
+      : 1;
+    var anonymous = !!(pollAnonymousInput && pollAnonymousInput.checked);
+    var allowVoteChange = !!(pollAllowChangeInput && pollAllowChangeInput.checked);
+
+    setModalBusy("poll", true);
+    try {
+      var response = await apiPost("createPoll", {
+        conversationId: conversation.id,
+        question: question,
+        options: JSON.stringify(options),
+        multipleChoice: multipleChoice ? "1" : "0",
+        maxChoices: String(maxChoices),
+        anonymous: anonymous ? "1" : "0",
+        allowVoteChange: allowVoteChange ? "1" : "0",
+        postInConversation: "1"
+      });
+      if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+        throw new Error((response && response.error) || "نشست شما منقضی شده است.");
+      }
+      ensureSuccessResponse(response, "ساخت نظرسنجی انجام نشد.");
+
+      var message = normalizeMessage(response.message);
+      if (message && message.conversationId === state.activeConversationId) {
+        appendMessages([message], {
+          replaceAll: false,
+          forceStick: true,
+          smooth: true,
+          markNew: true
+        });
+      }
+      closeModal(true);
+      showToast("نظرسنجی ارسال شد.");
+      syncConversation({ silent: true }).catch(function () {});
+    } catch (error) {
+      showToast(error && error.message ? error.message : "ساخت نظرسنجی انجام نشد.");
+    } finally {
+      setModalBusy("poll", false);
+    }
   }
 
   function attachmentCaptionPreview(message, attachment) {
@@ -7924,161 +8047,14 @@
     }
   }
 
-  function setCardModalFeedback(text, kind) {
-    if (!cardModalFeedback) return;
-    cardModalFeedback.textContent = normalizeSpace(text);
-    cardModalFeedback.dataset.state = normalizeSpace(kind || "");
-  }
-
-  function cardRouteDefaultHref(section) {
-    var clean = normalizeSpace(section || "notes");
-    if (clean !== "exams" && clean !== "forms") {
-      clean = "notes";
-    }
-    return "/" + clean + "/";
-  }
-
-  function cardTaskDefaultHref(category) {
-    var clean = normalizeSpace(category || "deadline");
-    if (clean === "exam") return "/exams/";
-    if (clean === "form") return "/forms/";
-    return "";
-  }
-
-  function syncCardComposerMode() {
-    var cardType = normalizeSpace(cardTypeSelect && cardTypeSelect.value || "route-link");
-    if (cardRouteFields) cardRouteFields.hidden = cardType !== "route-link";
-    if (cardTaskFields) cardTaskFields.hidden = cardType !== "task-reminder";
-    if (cardModalSubtitle) {
-      cardModalSubtitle.textContent = cardType === "task-reminder"
-        ? "یادآور یا کار مهم را با ددلاین و مسیر داخلی منتشر کن."
-        : "یک لینک داخلی به جزوه‌ها، آزمون‌ها یا فرم‌ها را به‌صورت کارت بفرست.";
-    }
-  }
-
-  function resetCardComposerModal() {
-    if (cardTypeSelect) cardTypeSelect.value = "route-link";
-    if (cardRouteSectionSelect) cardRouteSectionSelect.value = "notes";
-    if (cardRouteHrefInput) cardRouteHrefInput.value = cardRouteDefaultHref("notes");
-    if (cardRouteTitleInput) cardRouteTitleInput.value = "";
-    if (cardRouteDescriptionInput) cardRouteDescriptionInput.value = "";
-    if (cardRouteCtaLabelInput) cardRouteCtaLabelInput.value = "";
-    if (cardTaskCategorySelect) cardTaskCategorySelect.value = "exam";
-    if (cardTaskTitleInput) cardTaskTitleInput.value = "";
-    if (cardTaskDetailsInput) cardTaskDetailsInput.value = "";
-    if (cardTaskDueAtInput) cardTaskDueAtInput.value = "";
-    if (cardTaskToneSelect) cardTaskToneSelect.value = "normal";
-    if (cardTaskHrefInput) cardTaskHrefInput.value = cardTaskDefaultHref("exam");
-    if (cardTaskCtaLabelInput) cardTaskCtaLabelInput.value = "";
-    syncCardComposerMode();
-    setCardModalFeedback("", "");
-  }
-
-  function openCardComposerModal() {
-    var conversation = activeConversation();
-    if (!conversation) {
-      showToast("ابتدا یک گفتگو را انتخاب کن.");
-      return;
-    }
-    if (!(conversation.permissions && conversation.permissions.canSend)) {
-      showToast("ارسال کارت در این گفتگو برای شما فعال نیست.");
-      return;
-    }
-    resetCardComposerModal();
-    openModal(cardModal, "card");
-    window.requestAnimationFrame(function () {
-      if (cardRouteTitleInput) {
-        cardRouteTitleInput.focus({ preventScroll: true });
-      }
-    });
-  }
-
-  function buildCardMessageMetaFromModal() {
-    var cardType = normalizeSpace(cardTypeSelect && cardTypeSelect.value || "route-link");
-    if (cardType === "route-link") {
-      var routeSection = normalizeSpace(cardRouteSectionSelect && cardRouteSectionSelect.value || "notes");
-      var routeHref = normalizeSpace(cardRouteHrefInput && cardRouteHrefInput.value) || cardRouteDefaultHref(routeSection);
-      routeHref = parseInternalRouteHref(routeHref);
-      if (!routeHref || routeCardSectionFromHref(routeHref) !== routeSection) {
-        throw new Error("مسیر لینک باید داخل /notes/ ، /exams/ یا /forms/ باشد.");
-      }
-      return {
-        type: "route-link",
-        section: routeSection,
-        href: routeHref,
-        title: normalizeSpace(cardRouteTitleInput && cardRouteTitleInput.value) || routeCardDefaultTitle(routeSection),
-        description: normalizeSpace(cardRouteDescriptionInput && cardRouteDescriptionInput.value),
-        ctaLabel: normalizeSpace(cardRouteCtaLabelInput && cardRouteCtaLabelInput.value) || "باز کردن"
-      };
-    }
-
-    var taskTitle = normalizeSpace(cardTaskTitleInput && cardTaskTitleInput.value);
-    if (!taskTitle) {
-      throw new Error("عنوان یادآور را وارد کن.");
-    }
-    var taskCategory = normalizeSpace(cardTaskCategorySelect && cardTaskCategorySelect.value || "deadline");
-    var dueAtRaw = normalizeSpace(cardTaskDueAtInput && cardTaskDueAtInput.value);
-    var dueAtIso = "";
-    if (dueAtRaw) {
-      var dueDate = new Date(dueAtRaw);
-      if (!Number.isFinite(dueDate.getTime())) {
-        throw new Error("زمان یادآور معتبر نیست.");
-      }
-      dueAtIso = dueDate.toISOString();
-    }
-    var taskHref = normalizeSpace(cardTaskHrefInput && cardTaskHrefInput.value);
-    if (taskHref) {
-      taskHref = parseInternalRouteHref(taskHref);
-      if (!taskHref) {
-        throw new Error("مسیر یادآور باید داخل /notes/ ، /exams/ یا /forms/ باشد.");
-      }
-    }
-    return {
-      type: "task-reminder",
-      category: taskCategory,
-      title: taskTitle,
-      details: normalizeSpace(cardTaskDetailsInput && cardTaskDetailsInput.value),
-      dueAtIso: dueAtIso,
-      ctaHref: taskHref,
-      ctaLabel: taskHref ? (normalizeSpace(cardTaskCtaLabelInput && cardTaskCtaLabelInput.value) || "باز کردن") : "",
-      tone: normalizeSpace(cardTaskToneSelect && cardTaskToneSelect.value || "normal")
-    };
-  }
-
-  async function createCardMessageFromModal() {
-    setCardModalFeedback("", "");
-    setModalBusy("card", true);
-    state.pendingCardCreate = true;
-    try {
-      var meta = buildCardMessageMetaFromModal();
-      var created = await sendCurrentMessage({
-        meta: meta,
-        text: "",
-        throwOnError: true,
-        silentErrorUi: true
-      });
-      if (!created) {
-        throw new Error("");
-      }
-      closeModal(true);
-      showToast(meta.type === "task-reminder" ? "یادآور منتشر شد." : "کارت لینک منتشر شد.");
-    } catch (error) {
-      var message = error && error.message ? error.message : "ارسال کارت انجام نشد.";
-      setCardModalFeedback(message, "error");
-    } finally {
-      state.pendingCardCreate = false;
-      setModalBusy("card", false);
-    }
-  }
-
   function modalNodeByKey(key) {
     if (key === "dm") return dmModal;
     if (key === "group") return groupModal;
     if (key === "forward") return forwardModal;
     if (key === "reaction") return reactionModal;
     if (key === "reaction-details") return reactionDetailsModal;
-    if (key === "card") return cardModal;
     if (key === "edit") return editModal;
+    if (key === "poll") return pollModal;
     if (key === "conversation-options") return conversationOptionsModal;
     if (key === "confirm") return confirmModal;
     if (key === "receipts") return receiptsModal;
@@ -8125,16 +8101,12 @@
       showToast("در حال ساخت گروه یا کانال است...");
       return;
     }
-    if (!hardClose && state.modalOpen === "card" && state.pendingCardCreate) {
-      showToast("در حال ارسال کارت است...");
-      return;
-    }
     var hadOpenModal = !!state.modalOpen;
     if (modalBackdrop) {
       modalBackdrop.classList.remove("is-open");
       modalBackdrop.hidden = true;
     }
-    [dmModal, groupModal, forwardModal, reactionModal, reactionDetailsModal, cardModal, editModal, conversationOptionsModal, confirmModal, receiptsModal].forEach(function (node) {
+    [dmModal, groupModal, forwardModal, reactionModal, reactionDetailsModal, editModal, pollModal, conversationOptionsModal, confirmModal, receiptsModal].forEach(function (node) {
       if (!node) return;
       node.classList.remove("is-open");
       node.classList.remove("is-busy");
@@ -8175,13 +8147,12 @@
         reactionDetailsList.innerHTML = "";
       }
     }
-    if (hadOpenModal && closingKey === "card") {
-      state.pendingCardCreate = false;
-      resetCardComposerModal();
-    }
     if (hadOpenModal && closingKey === "edit") {
       state.pendingEditMessageId = null;
       if (editTextInput) editTextInput.value = "";
+    }
+    if (hadOpenModal && closingKey === "poll") {
+      resetPollModal();
     }
     if (hadOpenModal && closingKey === "conversation-options") {
       state.conversationOptionsMode = "";
@@ -12012,11 +11983,11 @@
     if (forwardModalClose) forwardModalClose.addEventListener("click", closeModal);
     if (reactionModalClose) reactionModalClose.addEventListener("click", closeModal);
     if (reactionDetailsModalClose) reactionDetailsModalClose.addEventListener("click", closeModal);
-    if (cardModalClose) cardModalClose.addEventListener("click", closeModal);
     if (receiptsModalClose) receiptsModalClose.addEventListener("click", closeModal);
     if (editModalClose) editModalClose.addEventListener("click", closeModal);
     if (editCancelBtn) editCancelBtn.addEventListener("click", closeModal);
-    if (cardCancelBtn) cardCancelBtn.addEventListener("click", closeModal);
+    if (pollModalClose) pollModalClose.addEventListener("click", closeModal);
+    if (pollCancelBtn) pollCancelBtn.addEventListener("click", closeModal);
     if (conversationOptionsClose) conversationOptionsClose.addEventListener("click", closeModal);
     if (confirmModalClose) {
       confirmModalClose.addEventListener("click", function () {
@@ -12037,6 +12008,26 @@
       });
     }
     if (editSaveBtn) editSaveBtn.addEventListener("click", saveEditedMessageFromModal);
+    if (pollCreateBtn) pollCreateBtn.addEventListener("click", createPollFromModal);
+    if (pollAddOptionBtn) {
+      pollAddOptionBtn.addEventListener("click", function () {
+        addPollOptionRow("", true);
+      });
+    }
+    if (pollOptionsList) {
+      pollOptionsList.addEventListener("click", function (event) {
+        var removeBtn = event.target.closest("[data-poll-option-remove]");
+        if (!removeBtn) return;
+        var row = removeBtn.closest("[data-poll-option-row]");
+        if (!row) return;
+        if (pollOptionRows().length <= POLL_MIN_OPTIONS) return;
+        row.remove();
+        updatePollOptionControlsState();
+      });
+    }
+    if (pollMultipleChoiceInput) {
+      pollMultipleChoiceInput.addEventListener("change", togglePollMaxChoicesField);
+    }
     if (modalBackdrop) modalBackdrop.addEventListener("click", closeModal);
     if (forwardSearch) {
       forwardSearch.addEventListener("input", renderForwardList);
@@ -12241,35 +12232,6 @@
     }
 
     if (sendBtn) sendBtn.addEventListener("click", sendCurrentMessage);
-    if (cardBtn) {
-      cardBtn.addEventListener("click", function () {
-        openCardComposerModal();
-      });
-    }
-    if (cardTypeSelect) {
-      cardTypeSelect.addEventListener("change", syncCardComposerMode);
-    }
-    if (cardRouteSectionSelect) {
-      cardRouteSectionSelect.addEventListener("change", function () {
-        var cleanHref = parseInternalRouteHref(cardRouteHrefInput && cardRouteHrefInput.value || "");
-        if (!cleanHref || /^\/(?:notes|exams|forms)\/?$/i.test(cleanHref)) {
-          cardRouteHrefInput.value = cardRouteDefaultHref(cardRouteSectionSelect.value);
-        }
-      });
-    }
-    if (cardTaskCategorySelect) {
-      cardTaskCategorySelect.addEventListener("change", function () {
-        var cleanHref = parseInternalRouteHref(cardTaskHrefInput && cardTaskHrefInput.value || "");
-        if (!cleanHref || /^\/(?:exams|forms)\/?$/i.test(cleanHref)) {
-          cardTaskHrefInput.value = cardTaskDefaultHref(cardTaskCategorySelect.value);
-        }
-      });
-    }
-    if (cardCreateBtn) {
-      cardCreateBtn.addEventListener("click", function () {
-        createCardMessageFromModal();
-      });
-    }
     if (attachBtn) {
       attachBtn.addEventListener("click", function () {
         var conversation = activeConversation();
@@ -12304,6 +12266,12 @@
         var willOpen = emojiPanel ? emojiPanel.hidden : false;
         setUploadSheetOpen(false); setEmojiPanelOpen(false);
         setEmojiPanelOpen(willOpen);
+      });
+    }
+    if (pollBtn) {
+      pollBtn.addEventListener("click", function () {
+        if (pollBtn.disabled) return;
+        openPollComposerModal();
       });
     }
     if (emojiTabs) {

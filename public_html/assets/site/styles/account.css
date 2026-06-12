@@ -1474,11 +1474,42 @@ body.account-page.account-stage-login-active .auth-brand strong {
     gap: 0.84rem;
 }
 
-.login-method-switch {
-    display: flex;
+.login-signup-prompt {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    gap: 0.28rem;
+    width: 100%;
+    margin: 0.52rem 0 0;
+    padding: 0.14rem 0.24rem;
+    border: 0;
+    background: transparent;
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 0.81rem;
+    font-weight: 760;
+    line-height: 1.8;
+    cursor: pointer;
+    text-align: center;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.login-signup-prompt span {
+    color: var(--accent-strong);
+    font-weight: 860;
+}
+
+.login-signup-prompt:hover,
+.login-signup-prompt:focus-visible {
+    color: var(--text-primary);
+}
+
+.login-method-switch {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.52rem;
-    margin-top: 0.52rem;
+    margin-top: 0.2rem;
 }
 
 .login-method-btn {
@@ -1486,28 +1517,27 @@ body.account-page.account-stage-login-active .auth-brand strong {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 1 1 0;
+    width: 100%;
     min-height: 46px;
     margin: 0;
     padding: 0.42rem 0.9rem;
     border-radius: 16px;
-    border: 1px solid rgba(43, 109, 243, 0.22);
-    background:
-        linear-gradient(180deg, rgba(43, 109, 243, 0.1), rgba(43, 109, 243, 0.045)),
-        var(--surface-solid);
-    color: var(--accent-strong);
+    border: 1px solid rgba(31, 86, 214, 0.18);
+    background: var(--btn-gradient);
+    color: var(--text-on-accent);
     font-size: 0.94rem;
     font-weight: 860;
     cursor: pointer;
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.16s ease, border-color 0.16s ease, transform 0.14s ease;
+    box-shadow: var(--btn-shadow);
+    transition: transform var(--motion-fast) var(--motion-ease-standard), box-shadow var(--motion-fast) var(--motion-ease-standard), filter var(--motion-fast) var(--motion-ease-standard);
 }
 
 .login-method-btn:hover,
 .login-method-btn:focus-visible {
-    background: var(--accent-soft);
-    border-color: rgba(43, 109, 243, 0.34);
+    filter: brightness(1.03);
+    transform: translateY(-1px);
 }
 
 .login-method-btn.is-active {
@@ -5316,10 +5346,24 @@ body.account-page.account-stage-login-active #account-login .account-inline-meta
 }
 
 body.account-page.account-stage-login-active .login-method-switch {
-    margin-top: 0.42rem;
+    margin-top: 0.22rem;
 }
 
-body.account-page.account-stage-login-active .login-method-btn,
+body.account-page.account-stage-login-active #account-login[data-login-mode="signup"] .account-card--auth > .account-card__head {
+    display: none;
+}
+
+body.account-page.account-stage-login-active .login-signup-prompt {
+    margin-top: 0.44rem;
+    font-size: 0.78rem;
+}
+
+body.account-page.account-stage-login-active .login-method-btn {
+    min-height: 46px;
+    font-size: 0.92rem;
+    border-radius: 18px;
+}
+
 body.account-page.account-stage-login-active .otp-edit-phone-btn {
     appearance: none;
     min-height: 38px;

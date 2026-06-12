@@ -352,11 +352,12 @@ function dent_exams_text_source_collect_answers(string $text): array
             continue;
         }
 
-        if (preg_match('/^(\d+)[\.\)]\s*(?:گزینه\s*)?([الفبجدabcd])(?:\s*[،,:-]\s*(.*))?$/u', $trimmed, $matches) === 1) {
+        $answerStart = dent_exams_text_source_match_answer_start($trimmed);
+        if ($answerStart !== null) {
             $flush();
-            $currentNumber = max(0, (int) $matches[1]);
-            $currentCorrectIndex = dent_exams_text_source_option_letter_to_index((string) $matches[2]);
-            $tail = trim((string) ($matches[3] ?? ''));
+            $currentNumber = max(0, (int) ($answerStart['number'] ?? 0));
+            $currentCorrectIndex = dent_exams_text_source_option_letter_to_index((string) ($answerStart['letter'] ?? ''));
+            $tail = trim((string) ($answerStart['tail'] ?? ''));
             $currentExplanation = $tail !== '' ? [$tail] : [];
             continue;
         }
@@ -382,6 +383,13 @@ function dent_exams_text_source_match_question_start(string $line): ?array
         ];
     }
 
+    if (preg_match('/^\s*(?:سؤال|سوال)\s*(\d+)\s*[\)\.:\-]?\s*(.*)$/u', $line, $matches) === 1) {
+        return [
+            'number' => max(0, (int) $matches[1]),
+            'text' => trim((string) ($matches[2] ?? '')),
+        ];
+    }
+
     return null;
 }
 
@@ -396,6 +404,30 @@ function dent_exams_text_source_match_option_start(string $line): ?array
         return [
             'key' => $key,
             'text' => trim((string) ($matches[2] ?? '')),
+        ];
+    }
+
+    return null;
+}
+
+function dent_exams_text_source_match_answer_start(string $line): ?array
+{
+    $patterns = [
+        '/^(\d+)[\.\)]\s*(?:گزینه\s*)?([الفبجدabcd])(?:\s*[،,:-]\s*(.*))?$/u',
+        '/^(\d+)[\.\)]\s*پاسخ(?:\s*(?:صحیح|درست))?\s*:\s*(?:گزینه\s*)?([الفبجدabcd])(?:\s*[،,:-]\s*(.*))?$/u',
+        '/^پاسخ\s*سؤال\s*(\d+)\s*:\s*(?:گزینه\s*)?([الفبجدabcd])(?:\s*[،,:-]\s*(.*))?$/u',
+        '/^پاسخ\s*سوال\s*(\d+)\s*:\s*(?:گزینه\s*)?([الفبجدabcd])(?:\s*[،,:-]\s*(.*))?$/u',
+    ];
+
+    foreach ($patterns as $pattern) {
+        if (preg_match($pattern, $line, $matches) !== 1) {
+            continue;
+        }
+
+        return [
+            'number' => max(0, (int) ($matches[1] ?? 0)),
+            'letter' => (string) ($matches[2] ?? ''),
+            'tail' => trim((string) ($matches[3] ?? '')),
         ];
     }
 
@@ -429,6 +461,10 @@ function dent_exams_text_source_extract_topic(string $text): string
 {
     if (preg_match('/^#\s*(.+)$/m', $text, $matches) === 1) {
         return dent_exams_text_source_restore_digits(trim((string) $matches[1]));
+    }
+
+    if (preg_match('/^\s*(?:مبحث|موضوع)\s*:\s*(.+)$/miu', $text, $matches) === 1) {
+        return dent_exams_text_source_restore_digits(trim((string) ($matches[1] ?? '')));
     }
 
     return '';

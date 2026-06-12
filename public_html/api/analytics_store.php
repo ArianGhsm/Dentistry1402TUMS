@@ -834,11 +834,228 @@ function analytics_sort_desc(array $items, string $field): array
     return $items;
 }
 
+function analytics_sum_daily_family_views(array $store, string $familyKey, int $days): int
+{
+    $cleanFamily = analytics_clean_family($familyKey);
+    if ($cleanFamily === '') {
+        return 0;
+    }
+
+    $total = 0;
+    foreach (analytics_series_days($days) as $day) {
+        $bucket = is_array($store['daily'][$day] ?? null) ? $store['daily'][$day] : [];
+        $families = is_array($bucket['families'] ?? null) ? $bucket['families'] : [];
+        $total += max(0, (int) ($families[$cleanFamily] ?? 0));
+    }
+
+    return $total;
+}
+
+function analytics_exam_question_count(array $exam): int
+{
+    $questions = $exam['questions'] ?? null;
+    if (is_array($questions)) {
+        return count($questions);
+    }
+
+    return max(0, (int) ($exam['questionCount'] ?? 0));
+}
+
+function analytics_exam_counts_toward_stats(array $exam): bool
+{
+    if (!array_key_exists('countsTowardStats', $exam)) {
+        return true;
+    }
+
+    return (bool) $exam['countsTowardStats'];
+}
+
+function analytics_exam_collection_ids(array $examsStore): array
+{
+    $ids = [];
+    $settings = is_array($examsStore['courseSettings'] ?? null) ? $examsStore['courseSettings'] : [];
+    foreach ($settings as $setting) {
+        if (!is_array($setting)) {
+            continue;
+        }
+
+        $primaryId = max(0, (int) ($setting['collectionId'] ?? ($setting['collection_id'] ?? 0)));
+        if ($primaryId > 0) {
+            $ids[$primaryId] = true;
+        }
+
+        $legacyIds = is_array($setting['legacyCollectionIds'] ?? null)
+            ? $setting['legacyCollectionIds']
+            : (is_array($setting['legacy_collection_ids'] ?? null) ? $setting['legacy_collection_ids'] : []);
+        foreach ($legacyIds as $legacyId) {
+            $cleanId = max(0, (int) $legacyId);
+            if ($cleanId > 0) {
+                $ids[$cleanId] = true;
+            }
+        }
+    }
+
+    return array_map('intval', array_keys($ids));
+}
+
+function analytics_exam_paid_participant_key(array $order): string
+{
+    $candidates = [
+        (string) ($order['user_id'] ?? ''),
+        (string) ($order['payer_student_number'] ?? ''),
+    ];
+
+    foreach ($candidates as $candidate) {
+        $normalized = dent_normalize_student_number($candidate);
+        if ($normalized !== '') {
+            return $normalized;
+        }
+    }
+
+    $orderId = max(0, (int) ($order['id'] ?? 0));
+    return $orderId > 0 ? 'order-' . $orderId : '';
+}
+
+function analytics_build_exam_summary(array $analyticsStore, array $examsStore, array $paymentsStore): array
+{
+    $courseCount = 0;
+    $paidCourseCount = 0;
+    $examCount = 0;
+    $questionCount = 0;
+
+    foreach (dent_exams_catalogs() as $catalogKey => $catalog) {
+        if (!is_array($catalog)) {
+            continue;
+        }
+
+        $courses = is_array($catalog['courses'] ?? null) ? $catalog['courses'] : [];
+        foreach ($courses as $courseSlug => $course) {
+            if (!is_array($course)) {
+                continue;
+            }
+
+            $courseCount++;
+            $setting = dent_exams_course_setting($examsStore, (string) $catalogKey, (string) $courseSlug);
+            if ((string) ($setting['paymentMode'] ?? 'free') === 'paid') {
+                $paidCourseCount++;
+            }
+
+            $exams = is_array($course['exams'] ?? null) ? $course['exams'] : [];
+            foreach ($exams as $exam) {
+                if (!is_array($exam) || !analytics_exam_counts_toward_stats($exam)) {
+                    continue;
+                }
+
+                $examCount++;
+                $questionCount += analytics_exam_question_count($exam);
+            }
+        }
+    }
+
+    $startedCount = 0;
+    $submittedCount = 0;
+    $percentCount = 0;
+    $percentTotal = 0.0;
+    $records = is_array($examsStore['examRecords'] ?? null) ? $examsStore['examRecords'] : [];
+    foreach ($records as $record) {
+        if (!is_array($record)) {
+            continue;
+        }
+
+        $normalizedRecord = dent_exams_normalize_exam_record($record);
+        $participants = [];
+
+        foreach (is_array($normalizedRecord['activityByUser'] ?? null) ? $normalizedRecord['activityByUser'] : [] as $participantKey => $activity) {
+            if (!is_array($activity)) {
+                continue;
+            }
+
+            $cleanParticipant = dent_exams_clean_participant_key((string) $participantKey);
+            if ($cleanParticipant !== '') {
+                $participants[$cleanParticipant] = true;
+            }
+        }
+
+        foreach (is_array($normalizedRecord['flagsByUser'] ?? null) ? $normalizedRecord['flagsByUser'] : [] as $participantKey => $indexes) {
+            $cleanParticipant = dent_exams_clean_participant_key((string) $participantKey);
+            if ($cleanParticipant === '' || !is_array($indexes) || $indexes === []) {
+                continue;
+            }
+
+            $participants[$cleanParticipant] = true;
+        }
+
+        foreach (is_array($normalizedRecord['reportsByUser'] ?? null) ? $normalizedRecord['reportsByUser'] : [] as $participantKey => $report) {
+            if (!is_array($report)) {
+                continue;
+            }
+
+            $cleanParticipant = dent_exams_clean_participant_key((string) $participantKey);
+            if ($cleanParticipant === '') {
+                continue;
+            }
+
+            $participants[$cleanParticipant] = true;
+            $submittedCount++;
+            $percentCount++;
+            $percentTotal += dent_exams_normalize_percent($report['percent'] ?? 0);
+        }
+
+        $startedCount += count($participants);
+    }
+
+    $collectionIdMap = array_fill_keys(analytics_exam_collection_ids($examsStore), true);
+    $purchasers = [];
+    $paidOrderCount = 0;
+    $receivedAmount = 0;
+    foreach (is_array($paymentsStore['orders'] ?? null) ? $paymentsStore['orders'] : [] as $order) {
+        if (!is_array($order)) {
+            continue;
+        }
+
+        $extra = is_array($order['extra_form_data'] ?? null) ? $order['extra_form_data'] : [];
+        $collectionId = max(0, (int) ($extra['collection_id'] ?? 0));
+        if ((string) ($extra['_source'] ?? '') !== 'collection' || $collectionId <= 0 || !isset($collectionIdMap[$collectionId])) {
+            continue;
+        }
+        if ((string) ($order['status'] ?? '') !== PAYMENTS_ORDER_STATUS_SUCCESS) {
+            continue;
+        }
+
+        $paidOrderCount++;
+        $receivedAmount += max(0, (int) ($order['amount'] ?? 0));
+
+        $participantKey = analytics_exam_paid_participant_key($order);
+        if ($participantKey !== '') {
+            $purchasers[$participantKey] = true;
+        }
+    }
+
+    $examFamily = is_array($analyticsStore['families']['exams'] ?? null) ? $analyticsStore['families']['exams'] : [];
+
+    return [
+        'courseCount' => $courseCount,
+        'paidCourseCount' => $paidCourseCount,
+        'examCount' => $examCount,
+        'questionCount' => $questionCount,
+        'startedCount' => $startedCount,
+        'submittedCount' => $submittedCount,
+        'purchaserCount' => count($purchasers),
+        'paidOrderCount' => $paidOrderCount,
+        'receivedAmount' => $receivedAmount,
+        'averagePercent' => $percentCount > 0 ? round($percentTotal / $percentCount, 1) : null,
+        'pageViews' => max(0, (int) ($examFamily['views'] ?? 0)),
+        'pageViews30d' => analytics_sum_daily_family_views($analyticsStore, 'exams', 30),
+    ];
+}
+
 function analytics_build_owner_dashboard(array $viewer): array
 {
     require_once __DIR__ . '/auth_store.php';
     require_once __DIR__ . '/content_tools_store.php';
     require_once __DIR__ . '/html_uploader_store.php';
+    require_once __DIR__ . '/exams_store.php';
+    require_once __DIR__ . '/payments_store.php';
 
     $store = analytics_read_store();
     $users = dent_list_public_users(false);
@@ -961,6 +1178,7 @@ function analytics_build_owner_dashboard(array $viewer): array
     $htmlSummary = function_exists('html_uploader_read_store')
         ? html_uploader_owner_summary(html_uploader_read_store())
         : [];
+    $examsSummary = analytics_build_exam_summary($store, dent_exams_read_store(), payments_read_store());
 
     return [
         'generatedAt' => dent_iso_now(),
@@ -994,6 +1212,7 @@ function analytics_build_owner_dashboard(array $viewer): array
         'topDownloads' => $downloads,
         'loginMethods' => $loginMethods,
         'cohorts' => $cohortRows,
+        'exams' => $examsSummary,
         'references' => [
             'contentTools' => [
                 'totalFiles' => max(0, (int) ($contentSummary['totalFiles'] ?? 0)),

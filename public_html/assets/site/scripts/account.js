@@ -384,18 +384,17 @@
             usernameInput.placeholder = "40211272003 یا 09123456789";
             usernameInput.setAttribute("inputmode", "numeric");
         }
+        if (!loginMethodSignupBtn && loginMethodSwitch && loginMethodSwitch.parentNode) {
+            loginMethodSignupBtn = document.createElement("button");
+            loginMethodSignupBtn.type = "button";
+            loginMethodSignupBtn.className = "login-signup-prompt";
+            loginMethodSignupBtn.id = "login-method-signup";
+            loginMethodSignupBtn.innerHTML = 'حساب کاربری ندارید؟ <span>ثبت نام کنید.</span>';
+            loginMethodSwitch.parentNode.insertBefore(loginMethodSignupBtn, loginMethodSwitch);
+        }
         if (!loginMethodSwitch || !loginOtpForm || externalSignupForm) {
             return;
         }
-
-        loginMethodSignupBtn = document.createElement("button");
-        loginMethodSignupBtn.type = "button";
-        loginMethodSignupBtn.className = "login-method-btn";
-        loginMethodSignupBtn.id = "login-method-signup";
-        loginMethodSignupBtn.setAttribute("role", "tab");
-        loginMethodSignupBtn.setAttribute("aria-selected", "false");
-        loginMethodSignupBtn.textContent = "ثبت نام آزمون";
-        loginMethodSwitch.appendChild(loginMethodSignupBtn);
 
         externalSignupForm = document.createElement("form");
         externalSignupForm.className = "account-form external-signup-form";
@@ -1230,6 +1229,9 @@
         } else {
             loginMode = mode === "otp" ? "otp" : "password";
         }
+        if (stageLogin) {
+            stageLogin.dataset.loginMode = loginMode;
+        }
         syncLoginHeading();
 
         if (loginMethodPasswordBtn) {
@@ -1243,9 +1245,7 @@
             loginMethodOtpBtn.setAttribute("aria-selected", otpActive ? "true" : "false");
         }
         if (loginMethodSignupBtn) {
-            var signupActive = loginMode === "signup";
-            loginMethodSignupBtn.classList.toggle("is-active", signupActive);
-            loginMethodSignupBtn.setAttribute("aria-selected", signupActive ? "true" : "false");
+            loginMethodSignupBtn.hidden = loginMode === "signup";
         }
         if (loginForm) {
             loginForm.hidden = loginMode !== "password";

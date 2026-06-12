@@ -90,8 +90,17 @@ function dent_exams_api_resolve_exam_question_count(array $exam): int
     return max(0, (int) ($exam['questionCount'] ?? 0));
 }
 
+function dent_exams_api_exam_has_questions(array $exam): bool
+{
+    return dent_exams_api_resolve_exam_question_count($exam) > 0;
+}
+
 function dent_exams_api_exam_is_attemptable(array $exam): bool
 {
+    if (dent_exams_api_exam_has_questions($exam)) {
+        return true;
+    }
+
     if (array_key_exists('attemptable', $exam)) {
         return (bool) $exam['attemptable'];
     }
@@ -102,11 +111,20 @@ function dent_exams_api_exam_is_attemptable(array $exam): bool
 
 function dent_exams_api_exam_counts_toward_stats(array $exam): bool
 {
+    if (dent_exams_api_exam_has_questions($exam)) {
+        return true;
+    }
+
     if (!array_key_exists('countsTowardStats', $exam)) {
         return true;
     }
 
     return (bool) $exam['countsTowardStats'];
+}
+
+function dent_exams_api_exam_is_coming_soon(array $exam): bool
+{
+    return (bool) ($exam['comingSoon'] ?? false) && !dent_exams_api_exam_has_questions($exam);
 }
 
 function dent_exams_api_course_is_catalog_visible(array $course): bool
@@ -969,6 +987,8 @@ function dent_exams_api_exam_payload(
 
     $payload = $exam;
     $payload['questionCount'] = dent_exams_api_resolve_exam_question_count($exam);
+    $payload['comingSoon'] = dent_exams_api_exam_is_coming_soon($exam);
+    $payload['attemptable'] = dent_exams_api_exam_is_attemptable($exam);
     $payload['courseTitle'] = (string) ($course['title'] ?? '');
     $payload['coursePath'] = (string) ($course['path'] ?? '/exams/');
     $payload['modes'] = dent_exams_api_mode_definitions();
@@ -1525,7 +1545,9 @@ function dent_exams_api_course_summary_payload(
 
             $examPath = (string) ($exam['path'] ?? '');
             $examSlug = (string) ($exam['slug'] ?? '');
+            $questionCount = dent_exams_api_resolve_exam_question_count($exam);
             $isAttemptable = dent_exams_api_exam_is_attemptable($exam);
+            $isComingSoon = dent_exams_api_exam_is_coming_soon($exam);
             $viewerProgress = $isAttemptable
                 ? dent_exams_api_exam_progress_payload($examsStore, $catalogKey, $courseSlug, $examSlug, $viewer)
                 : null;
@@ -1546,11 +1568,11 @@ function dent_exams_api_course_summary_payload(
                 'subtitle' => (string) ($exam['subtitle'] ?? ''),
                 'description' => (string) ($exam['description'] ?? ''),
                 'attemptable' => $isAttemptable,
-                'comingSoon' => (bool) ($exam['comingSoon'] ?? false),
+                'comingSoon' => $isComingSoon,
                 'emptyStateTitle' => (string) ($exam['emptyStateTitle'] ?? ''),
                 'emptyStateMessage' => (string) ($exam['emptyStateMessage'] ?? ''),
                 'ctaLabel' => (string) ($exam['ctaLabel'] ?? 'انتخاب حالت و شروع'),
-                'questionCount' => dent_exams_api_resolve_exam_question_count($exam),
+                'questionCount' => $questionCount,
                 'path' => $examPath,
                 'href' => $access['hasAccess'] ? $examPath : $paymentPath,
                 'isLocked' => !$access['hasAccess'] && (bool) ($access['isPaidCourse'] ?? false),

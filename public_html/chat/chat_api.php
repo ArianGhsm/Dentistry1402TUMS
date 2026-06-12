@@ -5532,7 +5532,10 @@ function chat_stream_attachment_file(array $attachment, string $variant, bool $d
         $mime = 'application/octet-stream';
     }
 
-    if ($variant === CHAT_MEDIA_VARIANT_ORIGINAL && $category === 'voice' && str_starts_with($mime, 'audio/')) {
+    if ($variant === CHAT_MEDIA_VARIANT_ORIGINAL && $category === 'voice') {
+        if (!str_starts_with($mime, 'audio/')) {
+            $mime = chat_voice_audio_mime($mime);
+        }
         $download = false;
     }
 
@@ -7035,6 +7038,26 @@ function chat_detect_file_mime(string $path, string $fallback = ''): string
     return 'application/octet-stream';
 }
 
+function chat_voice_audio_mime(string $mime): string
+{
+    $mime = strtolower(trim($mime));
+    $map = [
+        'video/webm' => 'audio/webm',
+        'video/ogg' => 'audio/ogg',
+        'application/ogg' => 'audio/ogg',
+        'video/mp4' => 'audio/mp4',
+        'video/x-matroska' => 'audio/webm',
+    ];
+    if (isset($map[$mime])) {
+        return $map[$mime];
+    }
+    if ($mime === '' || $mime === 'application/octet-stream') {
+        return 'audio/webm';
+    }
+
+    return $mime;
+}
+
 function chat_generate_image_preview(string $sourcePath, string $targetPath): bool
 {
     if (!function_exists('imagecreatefromstring')) {
@@ -7206,6 +7229,11 @@ function chat_store_uploaded_attachment(
     }
     if ($voiceFlag) {
         $category = 'voice';
+        if (!str_starts_with($mime, 'audio/')) {
+            $clientMime = strtolower(trim((string) ($fileInfo['type'] ?? '')));
+            $clientMime = explode(';', $clientMime)[0];
+            $mime = str_starts_with($clientMime, 'audio/') ? $clientMime : chat_voice_audio_mime($mime);
+        }
     }
 
     $attachmentId = chat_next_attachment_id($store);

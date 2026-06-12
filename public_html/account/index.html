@@ -130,8 +130,9 @@
                         <div id="login-otp-feedback" class="account-feedback" aria-live="polite"></div>
                     </form>
 
+                    <button id="login-method-signup" class="login-signup-prompt" type="button">حساب کاربری ندارید؟ <span>ثبت نام کنید.</span></button>
                     <div class="login-method-switch" id="login-method-switch" role="tablist" aria-label="روش ورود">
-                        <button id="login-method-password" class="login-method-btn is-active" type="button" data-login-method="password" role="tab" aria-selected="true">ورود با رمزعبور</button>
+                        <button id="login-method-password" class="login-method-btn is-active" type="button" data-login-method="password" role="tab" aria-selected="true">ورود با رمز عبور</button>
                         <button id="login-method-otp" class="login-method-btn" type="button" data-login-method="otp" role="tab" aria-selected="false">ورود با موبایل</button>
                     </div>
                     <a class="account-login-home" href="/app/">برگشت به خانه</a>
@@ -966,6 +967,16 @@
                                             <div id="owner-stats-downloads" class="owner-stats-table owner-stats-table--scroll"></div>
                                         </div>
                                     </div>
+                                </div>
+                            </details>
+
+                            <details class="owner-stats-section">
+                                <summary>
+                                    <span class="owner-stats-section__title">عملکرد آزمون‌ها</span>
+                                    <span class="owner-stats-section__hint">خرید، شروع، سوال‌ها، هزینه، بازدید و میانگین درصد آزمون‌های سایت</span>
+                                </summary>
+                                <div class="owner-stats-section__body">
+                                    <div id="owner-stats-exams" class="owner-summary owner-summary--compact"></div>
                                 </div>
                             </details>
 
