@@ -124,6 +124,7 @@
     var ownerStatsPages = $("owner-stats-pages");
     var ownerStatsDownloads = $("owner-stats-downloads");
     var ownerStatsCohorts = $("owner-stats-cohorts");
+    var ownerStatsRecentLogins = $("owner-stats-recent-logins");
     var ownerStatsMethods = $("owner-stats-methods");
     var ownerStatsExams = $("owner-stats-exams");
     var ownerStatsReferences = $("owner-stats-references");
@@ -3641,6 +3642,41 @@
                 }
             }
         ], dashboard && dashboard.cohorts || [], "هنوز داده cohort-driven برای نمایش وجود ندارد.");
+
+        renderOwnerStatsSimpleTable(ownerStatsRecentLogins, [
+            {
+                label: "کاربر",
+                render: function (row) {
+                    var name = String(row.name || "").trim();
+                    var studentNumber = String(row.studentNumber || "").trim();
+                    return '<strong>' + escapeHtml(name || "بدون نام") + '</strong><small dir="ltr">' + escapeHtml(studentNumber) + "</small>";
+                }
+            },
+            {
+                label: "ورودی",
+                render: function (row) {
+                    return escapeHtml(String(row.cohortLabel || row.cohortKey || "—"));
+                }
+            },
+            {
+                label: "نقش",
+                render: function (row) {
+                    return escapeHtml(String(row.roleLabel || row.role || ""));
+                }
+            },
+            {
+                label: "روش ورود",
+                render: function (row) {
+                    return escapeHtml(String(row.methodLabel || row.method || ""));
+                }
+            },
+            {
+                label: "زمان ورود",
+                render: function (row) {
+                    return escapeHtml(formatJalaliDateTime(row.at, "—"));
+                }
+            }
+        ], dashboard && dashboard.recentLogins || [], "هنوز ورودی برای نمایش ثبت نشده است.");
 
         if (ownerStatsExams) {
             if (!examStats) {

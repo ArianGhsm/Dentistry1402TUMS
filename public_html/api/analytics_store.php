@@ -5,6 +5,7 @@ require_once __DIR__ . '/bootstrap.php';
 
 const ANALYTICS_SCHEMA_VERSION = 1;
 const ANALYTICS_KEEP_DAILY_DAYS = 120;
+const ANALYTICS_RECENT_LOGINS_LIMIT = 200;
 
 function analytics_store_path(): string
 {
@@ -30,6 +31,7 @@ function analytics_default_store(): array
             'methods' => [],
             'cohorts' => [],
         ],
+        'recentLogins' => [],
         'cohorts' => [],
         'daily' => [],
     ];
@@ -40,7 +42,7 @@ function analytics_normalize_store(array $store): array
     $defaults = analytics_default_store();
     $normalized = $defaults;
 
-    foreach (['schemaVersion', 'totals', 'pages', 'families', 'downloads', 'logins', 'cohorts', 'daily'] as $key) {
+    foreach (['schemaVersion', 'totals', 'pages', 'families', 'downloads', 'logins', 'recentLogins', 'cohorts', 'daily'] as $key) {
         if (array_key_exists($key, $store)) {
             $normalized[$key] = $store[$key];
         }
@@ -184,6 +186,21 @@ function analytics_normalize_store(array $store): array
             unset($normalized['logins']['cohorts'][$cohortKey]);
         }
     }
+
+    if (!is_array($normalized['recentLogins'])) {
+        $normalized['recentLogins'] = [];
+    }
+    $recentLogins = [];
+    foreach ($normalized['recentLogins'] as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $cleanEntry = analytics_clean_recent_login_entry($entry);
+        if ($cleanEntry !== null) {
+            $recentLogins[] = $cleanEntry;
+        }
+    }
+    $normalized['recentLogins'] = array_slice($recentLogins, 0, ANALYTICS_RECENT_LOGINS_LIMIT);
 
     foreach ($normalized['cohorts'] as $cohortKey => $payload) {
         if (!is_array($payload)) {
@@ -696,20 +713,53 @@ function analytics_record_download(array $payload): void
     });
 }
 
+function analytics_clean_recent_login_entry(array $entry): ?array
+{
+    $studentNumber = analytics_clean_bucket_key((string) ($entry['studentNumber'] ?? ''));
+    $at = trim((string) ($entry['at'] ?? ''));
+    if ($studentNumber === '' || $at === '') {
+        return null;
+    }
+
+    return [
+        'studentNumber' => $studentNumber,
+        'name' => analytics_clean_label((string) ($entry['name'] ?? ''), 120),
+        'cohortKey' => analytics_clean_cohort_key((string) ($entry['cohortKey'] ?? '')),
+        'role' => analytics_clean_bucket_key((string) ($entry['role'] ?? 'student')),
+        'method' => analytics_clean_login_method((string) ($entry['method'] ?? '')),
+        'at' => $at,
+    ];
+}
+
 function analytics_record_login(array $user, string $method): void
 {
     $studentNumber = analytics_clean_bucket_key((string) ($user['studentNumber'] ?? ''));
     $cohortKey = analytics_clean_cohort_key((string) ($user['cohortKey'] ?? (($user['cohort']['key'] ?? ''))));
     $cleanMethod = analytics_clean_login_method($method);
+    $name = analytics_clean_label((string) ($user['name'] ?? ''), 120);
+    $role = analytics_clean_bucket_key((string) ($user['role'] ?? 'student'));
     $now = dent_iso_now();
     $day = analytics_event_now_day();
 
-    analytics_update_store(static function (array $store) use ($studentNumber, $cohortKey, $cleanMethod, $now, $day): array {
+    analytics_update_store(static function (array $store) use ($studentNumber, $cohortKey, $cleanMethod, $name, $role, $now, $day): array {
         $store['totals']['logins'] = max(0, (int) ($store['totals']['logins'] ?? 0)) + 1;
         analytics_increment_counter($store['logins']['methods'], $cleanMethod);
         if ($cohortKey !== '') {
             analytics_increment_counter($store['logins']['cohorts'], $cohortKey);
         }
+
+        if (!is_array($store['recentLogins'] ?? null)) {
+            $store['recentLogins'] = [];
+        }
+        array_unshift($store['recentLogins'], [
+            'studentNumber' => $studentNumber,
+            'name' => $name,
+            'cohortKey' => $cohortKey,
+            'role' => $role,
+            'method' => $cleanMethod,
+            'at' => $now,
+        ]);
+        $store['recentLogins'] = array_slice($store['recentLogins'], 0, ANALYTICS_RECENT_LOGINS_LIMIT);
 
         $bucket = analytics_ensure_daily_bucket($store, $day);
         $bucket['logins'] = max(0, (int) ($bucket['logins'] ?? 0)) + 1;
@@ -1049,6 +1099,51 @@ function analytics_build_exam_summary(array $analyticsStore, array $examsStore, 
     ];
 }
 
+function analytics_recent_logins_payload(array $store, array $visibleCohorts, int $limit): array
+{
+    $cohortKeys = [];
+    foreach ($visibleCohorts as $cohort) {
+        if (!is_array($cohort)) {
+            continue;
+        }
+        $cohortKey = analytics_clean_cohort_key((string) ($cohort['key'] ?? ''));
+        if ($cohortKey !== '') {
+            $cohortKeys[$cohortKey] = true;
+        }
+    }
+
+    $result = [];
+    foreach (($store['recentLogins'] ?? []) as $entry) {
+        if (!is_array($entry) || count($result) >= $limit) {
+            continue;
+        }
+
+        $cohortKey = (string) ($entry['cohortKey'] ?? '');
+        if ($cohortKeys !== [] && $cohortKey !== '' && !isset($cohortKeys[$cohortKey])) {
+            continue;
+        }
+
+        $cohortRecord = $cohortKey !== '' ? dent_cohort_record($cohortKey) : null;
+        $role = (string) ($entry['role'] ?? 'student');
+
+        $result[] = [
+            'studentNumber' => (string) ($entry['studentNumber'] ?? ''),
+            'name' => (string) ($entry['name'] ?? ''),
+            'cohortKey' => $cohortKey,
+            'cohortLabel' => $cohortRecord !== null
+                ? (string) ($cohortRecord['shortTitle'] ?? $cohortRecord['title'] ?? $cohortKey)
+                : $cohortKey,
+            'role' => $role,
+            'roleLabel' => function_exists('dent_role_label') ? dent_role_label($role) : $role,
+            'method' => (string) ($entry['method'] ?? ''),
+            'methodLabel' => analytics_login_method_label((string) ($entry['method'] ?? '')),
+            'at' => (string) ($entry['at'] ?? ''),
+        ];
+    }
+
+    return $result;
+}
+
 function analytics_build_owner_dashboard(array $viewer): array
 {
     require_once __DIR__ . '/auth_store.php';
@@ -1211,6 +1306,7 @@ function analytics_build_owner_dashboard(array $viewer): array
         'topPages' => $pages,
         'topDownloads' => $downloads,
         'loginMethods' => $loginMethods,
+        'recentLogins' => analytics_recent_logins_payload($store, $cohorts, 20),
         'cohorts' => $cohortRows,
         'exams' => $examsSummary,
         'references' => [
