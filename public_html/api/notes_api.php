@@ -352,10 +352,7 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
 
     $mimeType = trim((string) ($params['mimeType'] ?? ''));
 
-    // Direct-to-host gateway provisioning runs an expensive per-request
-    // health-check chain that can stall before the upload even starts.
-    // Default to the relay transport (raw-body stream with ping-keepalive).
-    return [
+    $relayPlan = [
         'mode' => 'relay',
         'url' => notes_build_host_upload_url($target['relativeDir'], $cohort),
         'relayUrl' => notes_build_host_upload_url($target['relativeDir'], $cohort),
@@ -365,42 +362,27 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
 
     $mainSiteOrigin = notes_direct_upload_main_site_origin();
     if ($mainSiteOrigin === '') {
-        return [
-            'mode' => 'relay',
-            'url' => notes_build_host_upload_url($target['relativeDir'], $cohort),
-            'relayUrl' => notes_build_host_upload_url($target['relativeDir'], $cohort),
-            'relativeDir' => $target['relativeDir'],
-            'scopeRoot' => $target['scopeRoot'],
-        ];
+        return $relayPlan;
     }
 
     $downloadPublicHost = strtolower(trim((string) parse_url(notes_download_host_public_base_url(), PHP_URL_HOST)));
     if ($downloadPublicHost === '') {
-        return [
-            'mode' => 'relay',
-            'url' => notes_build_host_upload_url($target['relativeDir'], $cohort),
-            'relayUrl' => notes_build_host_upload_url($target['relativeDir'], $cohort),
-            'relativeDir' => $target['relativeDir'],
-            'scopeRoot' => $target['scopeRoot'],
-        ];
+        return $relayPlan;
     }
 
-    $gateway = notes_download_host_ensure_direct_upload_gateway($mainSiteOrigin);
+    // Cached, short-timeout health-check only — never the expensive
+    // provisioning chain — so an unreachable/unprovisioned gateway can
+    // never stall or break the relay fallback above.
+    $gateway = notes_download_host_direct_upload_gateway_cached($mainSiteOrigin);
     if (!is_array($gateway)) {
-        return [
-            'mode' => 'relay',
-            'url' => notes_build_host_upload_url($target['relativeDir'], $cohort),
-            'relayUrl' => notes_build_host_upload_url($target['relativeDir'], $cohort),
-            'relativeDir' => $target['relativeDir'],
-            'scopeRoot' => $target['scopeRoot'],
-        ];
+        return $relayPlan;
     }
     $limitBytes = notes_direct_upload_limit_bytes($gateway);
     if ($limitBytes !== null && $expectedSize > $limitBytes) {
-        dent_error('سقف فعلی آپلود مستقیم روی هاست دانلود برای این فایل کافی نیست.', 413);
+        return $relayPlan;
     }
 
-    return notes_direct_upload_with_store_lock(static function (array &$store) use ($cohort, $target, $desiredName, $mimeType, $expectedSize, $gateway, $mainSiteOrigin): array {
+    return notes_direct_upload_with_store_lock(static function (array &$store) use ($cohort, $target, $desiredName, $mimeType, $expectedSize, $gateway, $mainSiteOrigin, $relayPlan): array {
         $finalName = notes_download_host_unique_file_name_with_reserved(
             $target['relativeDir'],
             $desiredName,
@@ -437,7 +419,7 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
         return [
             'mode' => 'direct',
             'url' => rtrim((string) ($gateway['uploadUrl'] ?? ''), '/') . '?token=' . rawurlencode($token),
-            'relayUrl' => notes_build_host_upload_url($target['relativeDir'], $cohort),
+            'relayUrl' => $relayPlan['relayUrl'],
             'relativeDir' => $target['relativeDir'],
             'relativePath' => $relativePath,
             'fileName' => $finalName,
@@ -3042,6 +3024,34 @@ if ($action === 'prepareHostUpload') {
     dent_json_response([
         'success' => true,
         'upload' => $upload,
+    ]);
+}
+
+if ($action === 'ensureDirectUploadGateway') {
+    notes_1402_require_method(['POST']);
+    $uploadParams = array_merge($_GET, $_POST);
+    $cohort = notes_parse_cohort($uploadParams['cohort'] ?? '1402');
+    notes_require_manage_cohort($cohort);
+
+    $mainSiteOrigin = notes_direct_upload_main_site_origin();
+    if ($mainSiteOrigin === '') {
+        dent_error('Main-site origin for direct upload could not be determined (local/dev host?).', 422);
+    }
+
+    $downloadPublicHost = strtolower(trim((string) parse_url(notes_download_host_public_base_url(), PHP_URL_HOST)));
+    if ($downloadPublicHost === '') {
+        dent_error('هاست دانلود برای آپلود مستقیم پیکربندی نشده است.', 422);
+    }
+
+    $gateway = notes_download_host_ensure_direct_upload_gateway($mainSiteOrigin);
+    if (!is_array($gateway)) {
+        dent_error('گیت‌وی آپلود مستقیم روی هاست دانلود راه‌اندازی نشد.', 502);
+    }
+
+    dent_json_response([
+        'success' => true,
+        'gateway' => $gateway,
+        'message' => 'گیت‌وی آپلود مستقیم روی هاست دانلود فعال و آماده است.',
     ]);
 }
 

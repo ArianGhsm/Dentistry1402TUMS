@@ -10,6 +10,8 @@ const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION = '20260611-1';
 const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_RUNTIME_DIR = '__dent-upload';
 const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_FILE = 'notes-upload.php';
 const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_USER_INI_FILE = '.user.ini';
+const NOTES_DIRECT_UPLOAD_GATEWAY_HEALTHY_TTL_SECONDS = 1800;
+const NOTES_DIRECT_UPLOAD_GATEWAY_UNAVAILABLE_TTL_SECONDS = 120;
 
 function notes_download_host_request_header(string $name): string
 {
@@ -1524,6 +1526,143 @@ function notes_download_host_direct_upload_health_with_retries(string $mainSiteO
     return null;
 }
 
+function notes_download_host_http_get_safe(string $url, int $timeoutSeconds = 6): ?array
+{
+    if ($url === '') {
+        return null;
+    }
+
+    $context = stream_context_create([
+        'http' => [
+            'ignore_errors' => true,
+            'timeout' => max(1, $timeoutSeconds),
+            'protocol_version' => 1.1,
+            'method' => 'GET',
+            'header' => "Accept: application/json\r\nConnection: close\r\n",
+        ],
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => true,
+            'SNI_enabled' => true,
+        ],
+    ]);
+
+    $raw = @file_get_contents($url, false, $context);
+    if (!is_string($raw)) {
+        return null;
+    }
+
+    $status = 0;
+    $responseHeaders = isset($http_response_header) && is_array($http_response_header) ? $http_response_header : [];
+    foreach ($responseHeaders as $line) {
+        if (preg_match('/^HTTP\/\S+\s+(\d+)/i', (string) $line, $matches) === 1) {
+            $status = (int) ($matches[1] ?? 0);
+            break;
+        }
+    }
+
+    return ['status' => $status, 'body' => $raw];
+}
+
+function notes_download_host_direct_upload_health_safe(string $mainSiteOrigin, string $gatewayUrl): ?array
+{
+    if ($gatewayUrl === '') {
+        return null;
+    }
+
+    $response = notes_download_host_http_get_safe($gatewayUrl . '?health=1', 6);
+    if ($response === null || (int) $response['status'] < 200 || (int) $response['status'] >= 300) {
+        return null;
+    }
+
+    $decoded = json_decode((string) $response['body'], true);
+    if (!is_array($decoded) || !($decoded['success'] ?? false)) {
+        return null;
+    }
+    if (trim((string) ($decoded['version'] ?? '')) !== NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION) {
+        return null;
+    }
+    if (rtrim(trim((string) ($decoded['mainSiteOrigin'] ?? '')), '/') !== rtrim($mainSiteOrigin, '/')) {
+        return null;
+    }
+
+    $decoded['uploadUrl'] = $gatewayUrl;
+    return $decoded;
+}
+
+function notes_direct_upload_gateway_cache_path(): string
+{
+    return dent_storage_path('notes/direct_upload_gateway.json');
+}
+
+function notes_direct_upload_gateway_cache_read(): array
+{
+    $raw = dent_read_json_file(notes_direct_upload_gateway_cache_path(), []);
+    return is_array($raw) ? $raw : [];
+}
+
+function notes_direct_upload_gateway_cache_write(array $data): void
+{
+    dent_ensure_directory(dirname(notes_direct_upload_gateway_cache_path()));
+    dent_write_json_file(notes_direct_upload_gateway_cache_path(), $data);
+}
+
+/**
+ * Returns the cached direct-upload gateway info for the given main-site
+ * origin, or null when the gateway is unavailable / not yet provisioned.
+ *
+ * This never throws and never performs the expensive provisioning round
+ * trip — it only issues a single short, best-effort health-check GET when
+ * the cache is missing or stale, so a slow/unreachable download host can
+ * never stall (let alone break) the relay-based upload fallback.
+ */
+function notes_download_host_direct_upload_gateway_cached(string $mainSiteOrigin): ?array
+{
+    $mainSiteOrigin = rtrim(trim($mainSiteOrigin), '/');
+    if ($mainSiteOrigin === '') {
+        return null;
+    }
+
+    $now = time();
+    $cache = notes_direct_upload_gateway_cache_read();
+    $cachedOrigin = rtrim(trim((string) ($cache['mainSiteOrigin'] ?? '')), '/');
+    $checkedAt = trim((string) ($cache['checkedAt'] ?? ''));
+    $checkedUnix = $checkedAt !== '' ? (int) strtotime($checkedAt) : 0;
+    $status = trim((string) ($cache['status'] ?? ''));
+
+    if ($cachedOrigin === $mainSiteOrigin && $checkedUnix > 0) {
+        $age = $now - $checkedUnix;
+        if ($status === 'healthy' && $age < NOTES_DIRECT_UPLOAD_GATEWAY_HEALTHY_TTL_SECONDS && is_array($cache['gateway'] ?? null)) {
+            return $cache['gateway'];
+        }
+        if ($status === 'unavailable' && $age < NOTES_DIRECT_UPLOAD_GATEWAY_UNAVAILABLE_TTL_SECONDS) {
+            return null;
+        }
+    }
+
+    $gatewayUrl = notes_download_host_internal_runtime_public_url(notes_download_host_direct_upload_gateway_relative_path());
+    $health = notes_download_host_direct_upload_health_safe($mainSiteOrigin, $gatewayUrl);
+
+    if (is_array($health)) {
+        notes_direct_upload_gateway_cache_write([
+            'mainSiteOrigin' => $mainSiteOrigin,
+            'status' => 'healthy',
+            'checkedAt' => dent_iso_now(),
+            'gateway' => $health,
+        ]);
+        return $health;
+    }
+
+    notes_direct_upload_gateway_cache_write([
+        'mainSiteOrigin' => $mainSiteOrigin,
+        'status' => 'unavailable',
+        'checkedAt' => dent_iso_now(),
+        'gateway' => null,
+    ]);
+    return null;
+}
+
 function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin): ?array
 {
     static $cache = [];
@@ -1544,6 +1683,12 @@ function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin
     $existing = notes_download_host_direct_upload_health_with_retries($mainSiteOrigin, 1);
     if (is_array($existing)) {
         $cache[$mainSiteOrigin] = $existing;
+        notes_direct_upload_gateway_cache_write([
+            'mainSiteOrigin' => $mainSiteOrigin,
+            'status' => 'healthy',
+            'checkedAt' => dent_iso_now(),
+            'gateway' => $existing,
+        ]);
         return $existing;
     }
 
@@ -1562,10 +1707,22 @@ function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin
 
     $health = notes_download_host_direct_upload_health_with_retries($mainSiteOrigin, 4);
     if (!is_array($health)) {
+        notes_direct_upload_gateway_cache_write([
+            'mainSiteOrigin' => $mainSiteOrigin,
+            'status' => 'unavailable',
+            'checkedAt' => dent_iso_now(),
+            'gateway' => null,
+        ]);
         dent_error('Direct upload gateway on the download host is not reachable.', 502);
     }
 
     $cache[$mainSiteOrigin] = $health;
+    notes_direct_upload_gateway_cache_write([
+        'mainSiteOrigin' => $mainSiteOrigin,
+        'status' => 'healthy',
+        'checkedAt' => dent_iso_now(),
+        'gateway' => $health,
+    ]);
     return $health;
 }
 

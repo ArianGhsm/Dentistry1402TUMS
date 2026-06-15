@@ -741,7 +741,7 @@ if ($action === 'saveSmsConfig') {
         dent_error('متد ذخیره تنظیمات پیامک نامعتبر است.', 405);
     }
 
-    $viewer = dent_require_user();
+    $viewer = dent_require_owner();
     $status = dent_save_sms_owner_config([
         'enabled' => $_POST['enabled'] ?? '0',
         'apiKey' => $_POST['apiKey'] ?? '',
@@ -764,7 +764,7 @@ if ($action === 'smsHealthCheck') {
         dent_error('متد بررسی سلامت پیامک نامعتبر است.', 405);
     }
 
-    $viewer = dent_require_user();
+    $viewer = dent_require_owner();
     $phoneNumber = (string) ($_POST['phoneNumber'] ?? ($_GET['phoneNumber'] ?? ''));
     $health = dent_sms_health_check($phoneNumber === '' ? null : $phoneNumber);
 
