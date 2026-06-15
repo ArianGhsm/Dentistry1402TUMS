@@ -122,6 +122,14 @@
         });
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function consumeUnauthorized(payload, fallbackText) {
         var site = siteApi();
         if (site && typeof site.consumeUnauthorized === "function") {
@@ -155,7 +163,7 @@
             options.body = new URLSearchParams(Object.assign({ action: action }, data));
         }
 
-        return fetch(url, options).then(parseJsonResponse);
+        return fetch(url, options).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function authSnapshotKey() {

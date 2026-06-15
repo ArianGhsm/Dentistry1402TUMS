@@ -77,6 +77,14 @@
         }
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function request(action, body, method) {
         var verb = String(method || "POST").toUpperCase();
         var url = "/api/html_uploader_api.php";
@@ -103,7 +111,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function copyText(value, callback) {

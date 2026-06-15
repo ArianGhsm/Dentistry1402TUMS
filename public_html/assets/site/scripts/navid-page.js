@@ -848,6 +848,14 @@
         renderAssignments(assignments);
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function apiGet(action) {
         return fetch("/api/navid_api.php?action=" + encodeURIComponent(action), {
             method: "GET",
@@ -865,7 +873,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function apiPost(action, payload) {
@@ -887,7 +895,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function focusOwnerPanel() {

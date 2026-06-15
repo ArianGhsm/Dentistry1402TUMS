@@ -88,6 +88,14 @@
         });
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function formatNumber(value) {
         return Number(value || 0).toLocaleString("fa-IR");
     }
@@ -187,7 +195,7 @@
             options.body = new URLSearchParams(Object.assign({ action: action }, data));
         }
 
-        return fetch(url, options).then(parseJsonResponse);
+        return fetch(url, options).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function requestFormData(action, formData) {
@@ -202,7 +210,7 @@
                 Accept: "application/json"
             },
             body: formData
-        }).then(parseJsonResponse);
+        }).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function setFeedback(text, kind) {

@@ -240,6 +240,14 @@
         });
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function formatBytes(value) {
         var bytes = Number(value || 0);
         if (!Number.isFinite(bytes) || bytes <= 0) {
@@ -343,7 +351,7 @@
             options.body = new URLSearchParams(Object.assign({ action: action }, requestPayload));
         }
 
-        return fetch(url, options).then(parseJsonResponse);
+        return fetch(url, options).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function requestFormData(action, formData) {
@@ -355,7 +363,7 @@
             headers: {
                 Accept: "application/json"
             }
-        }).then(parseJsonResponse);
+        }).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function setFeedback(text, kind) {

@@ -385,7 +385,7 @@ function payments_gateway_http_post_json(string $url, array $payload, int $timeo
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $body,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => max(3, $timeoutSeconds - 3),
+            CURLOPT_CONNECTTIMEOUT => 5,
             CURLOPT_TIMEOUT => max(3, $timeoutSeconds),
             CURLOPT_HTTPHEADER => $headers,
         ]);
@@ -631,7 +631,7 @@ function payments_zibal_start_payment(array $item, array $order, array $context 
         $payload['orderId'] = $orderId;
     }
 
-    $httpResponse = payments_gateway_http_post_json($requestUrl, $payload, 22);
+    $httpResponse = payments_gateway_http_post_json($requestUrl, $payload, 15);
     $responsePayload = is_array($httpResponse['json'] ?? null) ? $httpResponse['json'] : [];
     $resultCode = (int) ($responsePayload['result'] ?? 0);
     $resultCode = abs($resultCode);
@@ -719,7 +719,7 @@ function payments_zibal_verify_payment(array $order, array $context = []): array
         'trackId' => $trackId,
     ];
 
-    $httpResponse = payments_gateway_http_post_json($verifyUrl, $payload, 22);
+    $httpResponse = payments_gateway_http_post_json($verifyUrl, $payload, 15);
     $responsePayload = is_array($httpResponse['json'] ?? null) ? $httpResponse['json'] : [];
     $resultCode = abs((int) ($responsePayload['result'] ?? 0));
     $refIdRaw = $responsePayload['refNumber'] ?? ($responsePayload['ref_number'] ?? '');
@@ -841,7 +841,7 @@ function payments_zarinpal_start_payment(array $item, array $order, array $conte
         $payload['metadata'] = $metadata;
     }
 
-    $httpResponse = payments_gateway_http_post_json($requestUrl, $payload, 22);
+    $httpResponse = payments_gateway_http_post_json($requestUrl, $payload, 15);
     $responsePayload = is_array($httpResponse['json'] ?? null) ? $httpResponse['json'] : [];
     $data = is_array($responsePayload['data'] ?? null) ? $responsePayload['data'] : [];
     $errors = is_array($responsePayload['errors'] ?? null) ? $responsePayload['errors'] : [];
@@ -930,7 +930,7 @@ function payments_zarinpal_verify_payment(array $order, array $context = []): ar
         'authority' => $authority,
     ];
 
-    $httpResponse = payments_gateway_http_post_json($verifyUrl, $payload, 22);
+    $httpResponse = payments_gateway_http_post_json($verifyUrl, $payload, 15);
     $responsePayload = is_array($httpResponse['json'] ?? null) ? $httpResponse['json'] : [];
     $data = is_array($responsePayload['data'] ?? null) ? $responsePayload['data'] : [];
     $errors = is_array($responsePayload['errors'] ?? null) ? $responsePayload['errors'] : [];
