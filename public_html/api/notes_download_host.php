@@ -1679,9 +1679,12 @@ function notes_download_host_parse_upload_response(string $raw): array
     return $upload;
 }
 
-function notes_download_host_stream_upload_from_stream(string $targetAbsDir, $sourceStream, int $sourceSize, string $remoteName, string $mimeType): array
+function notes_download_host_stream_upload_from_stream(string $targetAbsDir, $sourceStream, int $sourceSize, string $remoteName, string $mimeType, bool $relayPing = false): array
 {
     notes_download_host_prepare_long_transfer();
+    if ($relayPing) {
+        notes_download_host_relay_begin_output();
+    }
     if (!is_resource($sourceStream)) {
         dent_error('جریان فایل برای آپلود روی هاست دانلود معتبر نیست.', 422);
     }
@@ -1746,25 +1749,25 @@ function notes_download_host_stream_upload_from_stream(string $targetAbsDir, $so
         '',
     ];
 
-    notes_download_host_socket_write_all($socket, implode("\r\n", $headers), 'ارسال هدر آپلود به هاست دانلود');
-    notes_download_host_socket_write_all($socket, $prefix, 'شروع انتقال فایل به هاست دانلود');
-
     try {
+        notes_download_host_relay_write_all($socket, implode("\r\n", $headers), 'ارسال هدر آپلود به هاست دانلود');
+        notes_download_host_relay_write_all($socket, $prefix, 'شروع انتقال فایل به هاست دانلود');
+
         $remaining = $sourceSize;
         while ($remaining > 0) {
             $chunk = fread($sourceStream, min(NOTES_DOWNLOAD_HOST_STREAM_CHUNK_BYTES, $remaining));
             if ($chunk === false || $chunk === '') {
-                throw new RuntimeException('stream-read-failed');
+                throw new RuntimeException('دریافت فایل از مرورگر کامل نشد.');
             }
             $remaining -= strlen($chunk);
-            notes_download_host_socket_write_all($socket, $chunk, 'ارسال فایل به هاست دانلود');
+            notes_download_host_relay_write_all($socket, $chunk, 'ارسال فایل به هاست دانلود');
         }
+
+        notes_download_host_relay_write_all($socket, $suffix, 'پایان‌بندی آپلود روی هاست دانلود');
     } catch (RuntimeException $error) {
         fclose($socket);
-        dent_error('ارسال فایل به هاست دانلود کامل نشد.', 502);
+        dent_error($error->getMessage(), 502);
     }
-
-    notes_download_host_socket_write_all($socket, $suffix, 'پایان‌بندی آپلود روی هاست دانلود');
 
     $response = notes_download_host_relay_read_response($socket);
     fclose($socket);

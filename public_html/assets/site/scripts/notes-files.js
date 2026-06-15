@@ -710,23 +710,16 @@
         xhr.open("POST", targetUrl, true);
         xhr.withCredentials = mode !== "direct";
         xhr.setRequestHeader("Accept", "application/json");
-        if (mode === "direct") {
-            xhr.setRequestHeader("Content-Type", item.file && item.file.type ? item.file.type : "application/octet-stream");
+        xhr.setRequestHeader("Content-Type", item.file && item.file.type ? item.file.type : "application/octet-stream");
+        if (mode !== "direct") {
+            var originalName = item && item.file && item.file.name ? String(item.file.name) : "file";
+            var desiredName = item && item.fileName ? String(item.fileName) : originalName;
+            xhr.setRequestHeader("X-Dent-Upload-Name", encodeURIComponent(desiredName));
         }
     }
 
     function buildUploadRequestBody(uploadPlan, item) {
-        var mode = uploadPlan && uploadPlan.mode ? String(uploadPlan.mode) : "relay";
-        if (mode === "direct") {
-            return item.file;
-        }
-
-        var formData = new FormData();
-        var originalName = item && item.file && item.file.name ? String(item.file.name) : "file";
-        var desiredName = item && item.fileName ? String(item.fileName) : originalName;
-        formData.append("file", item.file, originalName);
-        formData.append("fileName", desiredName);
-        return formData;
+        return item.file;
     }
 
     function uploadItem(item) {

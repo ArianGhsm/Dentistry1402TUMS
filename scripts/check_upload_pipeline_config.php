@@ -183,7 +183,7 @@ if ($errors === []) {
     }
 
     $notesFilesJsContents = (string) file_get_contents($notesFilesJsPath);
-    if (!jsHasNotesUploadTransport($notesFilesJsContents, 'X-Dent-Upload-Name', '/xhr\.send\(\s*item\.file\s*\)/')) {
+    if (!jsHasNotesUploadTransport($notesFilesJsContents, 'X-Dent-Upload-Name', '/xhr\.send\(\s*(?:item\.file|uploadBody)\s*\)/')) {
         $errors[] = 'notes-files.js is not configured for notes upload transport.';
     }
 
@@ -191,7 +191,7 @@ if ($errors === []) {
     $notesHostPickerHasUploadTransport = jsHasNotesUploadTransport(
         $notesHostPickerJsContents,
         'X-Dent-Upload-Name',
-        '/xhr\.send\(\s*(?:file|task\.file)\s*\)/'
+        '/xhr\.send\(\s*(?:file|task\.file|uploadBody)\s*\)/'
     );
     if (!$notesHostPickerHasUploadTransport) {
         $errors[] = 'notes-host-picker.js is not configured for notes upload transport.';
@@ -201,7 +201,7 @@ if ($errors === []) {
     $notesTermUsesUploadTransport = jsHasNotesUploadTransport(
         $notesTermJsContents,
         'X-Dent-Upload-Name',
-        '/xhr\.send\(\s*(?:file|task\.file)\s*\)/'
+        '/xhr\.send\(\s*(?:file|task\.file|uploadBody)\s*\)/'
     );
     $notesTermDelegatesToHostPicker = strpos($notesTermJsContents, 'Dent1402NotesHostPicker') !== false
         && strpos($notesTermJsContents, '.create({') !== false;

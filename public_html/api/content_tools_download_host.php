@@ -388,7 +388,7 @@ function content_download_host_upload_stream(string $relativeDir, $sourceStream,
     $normalizedDir = content_download_host_normalize_relative_path($relativeDir);
     $targetAbsDir = content_download_host_ensure_dir($normalizedDir);
     $finalName = content_download_host_unique_file_name($normalizedDir, $desiredName);
-    $upload = notes_download_host_stream_upload_from_stream($targetAbsDir, $sourceStream, $sourceSize, $finalName, $mimeType);
+    $upload = notes_download_host_stream_upload_from_stream($targetAbsDir, $sourceStream, $sourceSize, $finalName, $mimeType, true);
     $finalRelativePath = trim(($normalizedDir === '' ? '' : ($normalizedDir . '/')) . $finalName, '/');
     $bytes = max(0, (int) ($upload['size'] ?? $sourceSize));
 

@@ -351,6 +351,18 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
     }
 
     $mimeType = trim((string) ($params['mimeType'] ?? ''));
+
+    // Direct-to-host gateway provisioning runs an expensive per-request
+    // health-check chain that can stall before the upload even starts.
+    // Default to the relay transport (raw-body stream with ping-keepalive).
+    return [
+        'mode' => 'relay',
+        'url' => notes_build_host_upload_url($target['relativeDir'], $cohort),
+        'relayUrl' => notes_build_host_upload_url($target['relativeDir'], $cohort),
+        'relativeDir' => $target['relativeDir'],
+        'scopeRoot' => $target['scopeRoot'],
+    ];
+
     $mainSiteOrigin = notes_direct_upload_main_site_origin();
     if ($mainSiteOrigin === '') {
         return [

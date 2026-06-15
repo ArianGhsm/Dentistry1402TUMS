@@ -816,23 +816,16 @@
             xhr.open("POST", targetUrl, true);
             xhr.withCredentials = mode !== "direct";
             xhr.setRequestHeader("Accept", "application/json");
-            if (mode === "direct") {
-                xhr.setRequestHeader("Content-Type", task.file && task.file.type ? task.file.type : "application/octet-stream");
+            xhr.setRequestHeader("Content-Type", task.file && task.file.type ? task.file.type : "application/octet-stream");
+            if (mode !== "direct") {
+                var originalName = task && task.file && task.file.name ? String(task.file.name) : "file";
+                var desiredName = task && task.fileName ? String(task.fileName) : originalName;
+                xhr.setRequestHeader("X-Dent-Upload-Name", encodeURIComponent(desiredName));
             }
         }
 
         function buildUploadRequestBody(uploadPlan, task) {
-            var mode = uploadPlan && uploadPlan.mode ? String(uploadPlan.mode) : "relay";
-            if (mode === "direct") {
-                return task.file;
-            }
-
-            var formData = new FormData();
-            var originalName = task && task.file && task.file.name ? String(task.file.name) : "file";
-            var desiredName = task && task.fileName ? String(task.fileName) : originalName;
-            formData.append("file", task.file, originalName);
-            formData.append("fileName", desiredName);
-            return formData;
+            return task.file;
         }
 
         function moveUploadToWaiting(message) {
