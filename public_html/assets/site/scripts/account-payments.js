@@ -107,6 +107,14 @@
         });
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function request(action, payload, method) {
         var verb = String(method || "GET").toUpperCase();
         if (verb === "POST") {
@@ -118,7 +126,7 @@
                     "Accept": "application/json"
                 },
                 body: new URLSearchParams(Object.assign({ action: action }, payload || {}))
-            }).then(parseJsonResponse);
+            }).then(parseJsonResponse).catch(networkErrorResponse);
         }
 
         var query = new URLSearchParams(Object.assign({ action: action }, payload || {}));
@@ -126,7 +134,7 @@
             method: "GET",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
-        }).then(parseJsonResponse);
+        }).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function requestFormData(action, formData) {
@@ -137,7 +145,7 @@
             credentials: "same-origin",
             headers: { "Accept": "application/json" },
             body: body
-        }).then(parseJsonResponse);
+        }).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function consumeUnauthorized(payload, fallbackText) {

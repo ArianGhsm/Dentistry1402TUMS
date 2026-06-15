@@ -179,6 +179,10 @@
             }
             throw new Error((payload && payload.error) || "بارگذاری آزمون انجام نشد.");
         }).catch(function (error) {
+            if (error instanceof TypeError) {
+                renderFailure("ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.");
+                return;
+            }
             renderFailure(error && error.message ? error.message : "بارگذاری آزمون انجام نشد.");
         });
     }

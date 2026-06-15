@@ -111,6 +111,14 @@
         });
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function apiGet(action, params) {
         var query = new URLSearchParams(Object.assign({ action: action }, params || {}));
         return fetch("/api/dis_request_api.php?" + query.toString(), {
@@ -119,7 +127,7 @@
             headers: {
                 "Accept": "application/json"
             }
-        }).then(parseJsonResponse);
+        }).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function consumeUnauthorized(payload, fallbackText) {

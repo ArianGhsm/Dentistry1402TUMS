@@ -1802,6 +1802,14 @@
         return state.flags.has(questionIndex);
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function apiPost(action, payload) {
         var body = new URLSearchParams(withCohort(Object.assign({ action: action }, payload || {})));
         return fetch("/api/exams_api.php", {
@@ -1812,7 +1820,7 @@
                 Accept: "application/json"
             },
             body: body.toString()
-        }).then(parseJson);
+        }).then(parseJson).catch(networkErrorResponse);
     }
 
     function touchExamActivity(mode) {

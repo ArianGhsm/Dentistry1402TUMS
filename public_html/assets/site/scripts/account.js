@@ -1727,6 +1727,14 @@
         setInlineFeedback(ownerStatsFeedback, text, kind, loading);
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function request(action, payload) {
         return fetch("/api/auth_api.php", {
             method: "POST",
@@ -1746,7 +1754,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function requestFormData(action, formData) {
@@ -1769,7 +1777,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function requestUsers() {
@@ -1794,7 +1802,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function analyticsGet(action, payload) {
@@ -1815,7 +1823,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function navidGet(action) {
@@ -1835,7 +1843,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function navidPost(action, payload) {
@@ -1860,7 +1868,7 @@
                 }
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function consumeUnauthorized(response, fallbackText) {
@@ -1913,7 +1921,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function notificationsPost(action, payload) {
@@ -1935,7 +1943,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function notificationsResetState() {
@@ -3915,7 +3923,7 @@
                 data.httpStatus = res.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
         mediaState.loading = false;
 
         if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
@@ -3954,7 +3962,7 @@
                     data.httpStatus = res.status;
                     return data;
                 });
-            });
+            }).catch(networkErrorResponse);
 
             if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
                 ownerMediaFeedbackMessage("", "");

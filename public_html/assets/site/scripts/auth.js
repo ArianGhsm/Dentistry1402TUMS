@@ -330,7 +330,17 @@
             options.body = new URLSearchParams(Object.assign({ action: action }, payload || {}));
         }
 
-        var response = await fetch(url, options);
+        var response;
+        try {
+            response = await fetch(url, options);
+        } catch (error) {
+            return {
+                success: false,
+                error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+                httpStatus: 0
+            };
+        }
+
         var data = {};
 
         try {

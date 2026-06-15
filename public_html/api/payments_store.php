@@ -135,8 +135,26 @@ function payments_ensure_storage(): void
     }
 }
 
+/**
+ * Holds the in-memory copy of the payments store for the lifetime of the
+ * current request, so repeated reads (e.g. catalog rendering loops) don't
+ * re-read and re-decode the multi-hundred-KB store file each time.
+ *
+ * @return array|null
+ */
+function &dent_payments_store_cache_slot()
+{
+    static $cache = null;
+    return $cache;
+}
+
 function payments_read_store(): array
 {
+    $cache =& dent_payments_store_cache_slot();
+    if (is_array($cache)) {
+        return $cache;
+    }
+
     payments_ensure_storage();
 
     $lock = fopen(payments_lock_path(), 'c+');
@@ -155,6 +173,8 @@ function payments_read_store(): array
         @flock($lock, LOCK_UN);
         @fclose($lock);
     }
+
+    $cache = $store;
 
     return $store;
 }
@@ -183,6 +203,9 @@ function payments_with_store_lock(callable $callback)
         $result = $callback($store);
         $store = payments_normalize_store($store);
         payments_save_store_unlocked($store);
+
+        $cache =& dent_payments_store_cache_slot();
+        $cache = $store;
 
         return $result;
     } finally {

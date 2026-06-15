@@ -40,13 +40,21 @@
         });
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function apiGet(action, params) {
         var query = new URLSearchParams(Object.assign({ action: action }, params || {}));
         return fetch("/api/payments_api.php?" + query.toString(), {
             method: "GET",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
-        }).then(parseJsonResponse);
+        }).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function apiPost(action, payload) {
@@ -58,7 +66,7 @@
                 "Accept": "application/json"
             },
             body: new URLSearchParams(Object.assign({ action: action }, payload || {}))
-        }).then(parseJsonResponse);
+        }).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function money(value) {

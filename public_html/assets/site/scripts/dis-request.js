@@ -132,6 +132,14 @@
         });
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function consumeUnauthorized(payload, fallbackText) {
         var auth = window.Dent1402Auth && typeof window.Dent1402Auth === "object"
             ? window.Dent1402Auth
@@ -165,7 +173,7 @@
             headers: {
                 "Accept": "application/json"
             }
-        }).then(parseJsonResponse);
+        }).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function apiPost(action, formData) {
@@ -183,7 +191,7 @@
                 "Accept": "application/json"
             },
             body: body
-        }).then(parseJsonResponse);
+        }).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
     function showStage(name) {

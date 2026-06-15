@@ -10,6 +10,12 @@ function dent_exams_bank(): array
         return $bank;
     }
 
+    $cached = dent_exams_bank_load_from_cache();
+    if (is_array($cached)) {
+        $bank = $cached;
+        return $bank;
+    }
+
     $json = <<<'JSON'
 {
   "catalogs": {
@@ -17191,5 +17197,7 @@ JSON;
     }
 
     $bank = dent_exams_apply_registered_catalog_overrides($bank);
+    dent_exams_bank_save_to_cache($bank);
+
     return $bank;
 }

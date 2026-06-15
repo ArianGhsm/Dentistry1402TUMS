@@ -291,6 +291,14 @@
         });
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     async function gradesApiRequest(action, method, payload) {
         var requestMethod = method || "GET";
         var effectiveCohort = requestCohort();
@@ -316,7 +324,12 @@
             options.body = new URLSearchParams(requestPayload);
         }
 
-        var response = await fetch(url, options);
+        var response;
+        try {
+            response = await fetch(url, options);
+        } catch (error) {
+            return networkErrorResponse();
+        }
         return parseJsonResponse(response);
     }
 
@@ -326,14 +339,19 @@
         if (effectiveCohort) {
             body.set("cohort", effectiveCohort);
         }
-        var response = await fetch("/grades/grades_api.php?action=" + encodeURIComponent(action), {
-            method: "POST",
-            credentials: "same-origin",
-            headers: {
-                "Accept": "application/json"
-            },
-            body: body
-        });
+        var response;
+        try {
+            response = await fetch("/grades/grades_api.php?action=" + encodeURIComponent(action), {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Accept": "application/json"
+                },
+                body: body
+            });
+        } catch (error) {
+            return networkErrorResponse();
+        }
         return parseJsonResponse(response);
     }
 
@@ -561,13 +579,18 @@
         if (effectiveCohort) {
             url += "&cohort=" + encodeURIComponent(effectiveCohort);
         }
-        var response = await fetch(url, {
-            method: "GET",
-            credentials: "same-origin",
-            headers: {
-                "Accept": "application/json"
-            }
-        });
+        var response;
+        try {
+            response = await fetch(url, {
+                method: "GET",
+                credentials: "same-origin",
+                headers: {
+                    "Accept": "application/json"
+                }
+            });
+        } catch (error) {
+            return networkErrorResponse();
+        }
 
         return parseJsonResponse(response);
     }

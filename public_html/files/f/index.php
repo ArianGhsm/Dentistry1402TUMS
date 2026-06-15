@@ -8,6 +8,9 @@ $file = null;
 if ($token !== '') {
     $file = content_find_file_by_token(content_read_store(), $token);
 }
+if (!is_array($file)) {
+    http_response_code(404);
+}
 $title = is_array($file) ? ((string) ($file['title'] ?? '') ?: (string) ($file['originalName'] ?? 'فایل')) : 'فایل در دسترس نیست';
 $description = is_array($file)
     ? ('دانلود فایل ' . ((string) ($file['originalName'] ?? $title)) . ' از سایت ورودی ۱۴۰۲ دندانپزشکی تهران.')

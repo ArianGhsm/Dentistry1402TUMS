@@ -51,8 +51,27 @@ function dent_exams_ensure_storage(): void
     }
 }
 
+/**
+ * Holds the in-memory copy of the exams store for the lifetime of the
+ * current request, so repeated reads (including the "read the fresh state
+ * back after a write" pattern used across exams_api.php) don't re-read and
+ * re-normalize the store file each time.
+ *
+ * @return array|null
+ */
+function &dent_exams_store_cache_slot()
+{
+    static $cache = null;
+    return $cache;
+}
+
 function dent_exams_read_store(): array
 {
+    $cache =& dent_exams_store_cache_slot();
+    if (is_array($cache)) {
+        return $cache;
+    }
+
     dent_exams_ensure_storage();
 
     $lock = fopen(dent_exams_lock_path(), 'c+');
@@ -65,11 +84,15 @@ function dent_exams_read_store(): array
             throw new RuntimeException('Unable to acquire shared lock.');
         }
 
-        return dent_exams_load_store_unlocked();
+        $store = dent_exams_load_store_unlocked();
     } finally {
         @flock($lock, LOCK_UN);
         @fclose($lock);
     }
+
+    $cache = $store;
+
+    return $store;
 }
 
 /**
@@ -93,7 +116,10 @@ function dent_exams_with_store_lock(callable $callback)
 
         $store = dent_exams_load_store_unlocked();
         $result = $callback($store);
-        dent_exams_save_store_unlocked($store);
+        $normalized = dent_exams_save_store_unlocked($store);
+
+        $cache =& dent_exams_store_cache_slot();
+        $cache = $normalized;
 
         return $result;
     } finally {
@@ -112,9 +138,12 @@ function dent_exams_load_store_unlocked(): array
     return dent_exams_normalize_store($raw);
 }
 
-function dent_exams_save_store_unlocked(array $store): void
+function dent_exams_save_store_unlocked(array $store): array
 {
-    dent_write_json_file(dent_exams_store_path(), dent_exams_normalize_store($store));
+    $normalized = dent_exams_normalize_store($store);
+    dent_write_json_file(dent_exams_store_path(), $normalized);
+
+    return $normalized;
 }
 
 function dent_exams_normalize_store(array $store): array

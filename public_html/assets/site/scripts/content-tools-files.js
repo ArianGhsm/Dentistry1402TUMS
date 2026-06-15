@@ -207,6 +207,14 @@
         return true;
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function request(action, payload, method) {
         var verb = String(method || "GET").toUpperCase();
         var url = "/api/content_tools_api.php";
@@ -231,7 +239,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function copyText(value, onDone) {
@@ -364,6 +372,7 @@
             browserPath: "",
             browserEntries: [],
             browserQuery: "",
+            browserQueryTimer: 0,
             browserLoading: false,
             queue: [],
             uploadBusy: false,
@@ -374,6 +383,7 @@
             linkType: "all",
             linkSort: "newest",
             linkQuery: "",
+            linkQueryTimer: 0,
             linkPage: 1,
             linkPerPage: 20,
             linkSelected: {},
@@ -1328,7 +1338,8 @@
         if (browserQuery) {
             browserQuery.addEventListener("input", function () {
                 state.browserQuery = browserQuery.value || "";
-                renderBrowser();
+                window.clearTimeout(state.browserQueryTimer);
+                state.browserQueryTimer = window.setTimeout(renderBrowser, 150);
             });
         }
         if (browserRefresh) {
@@ -1385,7 +1396,10 @@
             filesQuery.addEventListener("input", function () {
                 state.linkQuery = filesQuery.value || "";
                 state.linkPage = 1;
-                loadLinks(true);
+                window.clearTimeout(state.linkQueryTimer);
+                state.linkQueryTimer = window.setTimeout(function () {
+                    loadLinks(true);
+                }, 300);
             });
         }
         var filesStatus = $("ct-files-status");

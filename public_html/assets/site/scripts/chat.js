@@ -5182,30 +5182,9 @@
     Array.from(row.querySelectorAll("[data-reaction-emoji]")).forEach(function (button) {
       bindReactionButton(button, message);
     });
-    Array.from(row.querySelectorAll("[data-reply-id]")).forEach(function (button) {
-      button.addEventListener("click", function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        var targetId = Math.floor(toNumber(button.getAttribute("data-reply-id"), 0));
-        if (targetId > 0) {
-          scrollToMessage(targetId);
-        }
-      });
-    });
-    Array.from(row.querySelectorAll("[data-forward-origin]")).forEach(function (button) {
-      button.addEventListener("click", function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        openForwardOrigin(message);
-      });
-    });
-    Array.from(row.querySelectorAll(".msg-attachment__media-btn")).forEach(function (button) {
-      button.addEventListener("click", function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        openMediaViewerFromNode(button);
-      });
-    });
+    // Reply/forward/attachment-media/receipt clicks are handled via a single
+    // delegated listener on messagesEl (see bindMessageListDelegation) so we
+    // don't re-attach N listeners on every render/poll-driven re-render.
     Array.from(row.querySelectorAll(".msg-voice-note")).forEach(bindVoiceNote);
     Array.from(row.querySelectorAll(".msg-poll")).forEach(function (card) {
       bindPollCard(card, message);
@@ -5215,20 +5194,72 @@
       deliveryNode.classList.add("msg-delivery-btn");
       deliveryNode.setAttribute("role", "button");
       deliveryNode.tabIndex = 0;
-      var openReceipts = function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        openReceiptsModal(message);
-      };
-      deliveryNode.addEventListener("click", openReceipts);
-      deliveryNode.addEventListener("keydown", function (event) {
-        if (event.key === "Enter" || event.key === " ") {
-          openReceipts(event);
-        }
-      });
     }
     attachBubbleMenuEvents(bubble, message);
     return row;
+  }
+
+  function bindMessageListDelegation() {
+    if (!messagesEl) return;
+
+    var resolveMessage = function (node) {
+      var row = node && node.closest ? node.closest(".msg-item[data-mid]") : null;
+      if (!row) return null;
+      return state.messages.get(Number(row.dataset.mid)) || null;
+    };
+
+    messagesEl.addEventListener("click", function (event) {
+      var target = event.target;
+      if (!target || !target.closest) return;
+
+      var replyBtn = target.closest("[data-reply-id]");
+      if (replyBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        var targetId = Math.floor(toNumber(replyBtn.getAttribute("data-reply-id"), 0));
+        if (targetId > 0) scrollToMessage(targetId);
+        return;
+      }
+
+      var forwardBtn = target.closest("[data-forward-origin]");
+      if (forwardBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        var forwardMessage = resolveMessage(forwardBtn);
+        if (forwardMessage) openForwardOrigin(forwardMessage);
+        return;
+      }
+
+      var mediaBtn = target.closest(".msg-attachment__media-btn");
+      if (mediaBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        openMediaViewerFromNode(mediaBtn);
+        return;
+      }
+
+      var deliveryBtn = target.closest(".msg-delivery-btn");
+      if (deliveryBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        var deliveryMessage = resolveMessage(deliveryBtn);
+        if (deliveryMessage) openReceiptsModal(deliveryMessage);
+      }
+    });
+
+    messagesEl.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      var target = event.target;
+      if (!target || !target.closest) return;
+
+      var deliveryBtn = target.closest(".msg-delivery-btn");
+      if (!deliveryBtn) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      var deliveryMessage = resolveMessage(deliveryBtn);
+      if (deliveryMessage) openReceiptsModal(deliveryMessage);
+    });
   }
 
   function updatePollCardSelectionUi(card, poll) {
@@ -7614,6 +7645,7 @@
       var memberIds = new Set((conversation.members || []).map(function (member) {
         return normalizeStudentNumber(member && member.studentNumber);
       }).filter(Boolean));
+      var memberSearchTimer = null;
 
       function renderList() {
         var queryInput = $("conversation-option-member-search");
@@ -7670,7 +7702,10 @@
         }
         var nextQuery = $("conversation-option-member-search");
         if (nextQuery) {
-          nextQuery.addEventListener("input", renderList);
+          nextQuery.addEventListener("input", function () {
+            window.clearTimeout(memberSearchTimer);
+            memberSearchTimer = window.setTimeout(renderList, 200);
+          });
           if (query) {
             nextQuery.focus({ preventScroll: true });
             nextQuery.setSelectionRange(nextQuery.value.length, nextQuery.value.length);
@@ -12177,6 +12212,7 @@
 
     if (contextBackdrop) contextBackdrop.addEventListener("click", closeContextMenu);
     if (listContextBackdrop) listContextBackdrop.addEventListener("click", closeListContextMenu);
+    bindMessageListDelegation();
     if (messagesEl) messagesEl.addEventListener("scroll", function () {
       if (state.contextOpen) closeContextMenu();
       if (state.listContextOpen) closeListContextMenu();
@@ -12998,8 +13034,10 @@
       if (document.hidden) {
         clearPresenceHeartbeatTimer();
         clearTypingActivity(false);
+        stopPolling();
         return;
       }
+      refreshTransportBinding();
       syncConversation({ forceFull: false, includeMembers: state.infoSheetOpen, silent: true }).catch(function () {});
       loadNotificationBadgeSummary(false);
       schedulePresenceHeartbeat(0);

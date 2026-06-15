@@ -10,6 +10,11 @@
   AddType application/manifest+json .webmanifest
 </IfModule>
 
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml text/javascript
+  AddOutputFilterByType DEFLATE application/javascript application/json application/xml application/manifest+json image/svg+xml font/ttf font/otf
+</IfModule>
+
 <IfModule mod_headers.c>
   <FilesMatch "\.(woff2|woff|ttf|otf|eot)$">
     Header set Access-Control-Allow-Origin "*"
@@ -31,7 +36,8 @@
   </FilesMatch>
 
   <FilesMatch "^(?!sw\.js$).*\.(css|js)$">
-    Header set Cache-Control "public, no-cache, max-age=0, must-revalidate"
+    Header set Cache-Control "public, max-age=31536000, immutable" env=ASSET_VERSIONED
+    Header set Cache-Control "public, no-cache, max-age=0, must-revalidate" env=!ASSET_VERSIONED
   </FilesMatch>
 
   <FilesMatch "^(?!sw\.js$).*\.(png|jpg|jpeg|gif|svg|webp|woff2|woff)$">
@@ -52,6 +58,9 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
+  RewriteCond %{QUERY_STRING} (^|&)v= [NC]
+  RewriteRule .* - [E=ASSET_VERSIONED:1]
+
   RewriteRule ^dental-residency(?:/.*)?$ - [G,L]
 
   RewriteRule ^booklets/?$ /notes/ [R=301,L,NE]
@@ -59,7 +68,7 @@
   RewriteRule ^booklets1403/?$ /notes/1403/ [R=301,L,NE]
   RewriteRule ^booklets1403/index\.html$ /notes/1403/ [R=301,L,NE]
 
-  RewriteRule ^prosthesis-1402(?:/index\.html)?$ /notes/?cohort=prosthesis-1402 [R=301,L,NE,QSA]
+  RewriteRule ^prosthesis-1402(?:/index\.html)?/?$ /notes/?cohort=prosthesis-1402 [R=301,L,NE,QSA]
   RewriteRule ^prosthesis-1402/chat(?:/index\.html)?/?$ /chat/?cohort=prosthesis-1402 [R=301,L,NE,QSA]
   RewriteRule ^prosthesis-1402/forms/fill(?:/index\.html)?/?$ /forms/fill/?cohort=prosthesis-1402 [R=301,L,NE,QSA]
   RewriteRule ^prosthesis-1402/forms(?:/index\.html)?/?$ /forms/?cohort=prosthesis-1402 [R=301,L,NE,QSA]

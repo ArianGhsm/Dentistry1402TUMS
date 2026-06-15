@@ -189,6 +189,14 @@
         return baseUrl + "&cohort=" + encodeURIComponent(cleanCohort);
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function requestFormsSession(cohortKey) {
         return fetch(formsSessionUrl(cohortKey), {
             method: "GET",
@@ -206,7 +214,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     async function loadHomeFormsCount(user) {
@@ -441,7 +449,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function navidRenderUpdates(items) {

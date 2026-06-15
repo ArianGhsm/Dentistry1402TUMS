@@ -8,6 +8,9 @@ $paste = null;
 if ($token !== '') {
     $paste = content_find_paste_by_token(content_read_store(), $token);
 }
+if (!is_array($paste)) {
+    http_response_code(404);
+}
 $title = is_array($paste) ? ((string) ($paste['title'] ?? 'Paste')) : 'Paste در دسترس نیست';
 $description = is_array($paste)
     ? ('نمایش paste عمومی ' . $title . ' در سایت ورودی ۱۴۰۲ دندانپزشکی تهران.')

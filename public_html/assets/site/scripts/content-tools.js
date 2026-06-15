@@ -81,6 +81,14 @@
         return ext ? ext.slice(0, 4) : "FILE";
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function request(action, payload, method) {
         var verb = String(method || "GET").toUpperCase();
         var url = "/api/content_tools_api.php";
@@ -105,7 +113,7 @@
                 data.httpStatus = response.status;
                 return data;
             });
-        });
+        }).catch(networkErrorResponse);
     }
 
     function copyText(value, onDone) {

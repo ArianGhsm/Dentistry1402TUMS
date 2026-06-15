@@ -52,6 +52,7 @@
         roots: ["1402", "1403", "1404", "prosthesis-1402"],
         uploadItems: [],
         searchQuery: "",
+        searchDebounceTimer: 0,
         scopeCohort: requestedCohort,
         downloadHost: null,
         missingDirectory: false
@@ -1139,7 +1140,8 @@
         if (searchInput) {
             searchInput.addEventListener("input", function () {
                 state.searchQuery = String(searchInput.value || "");
-                renderEntries();
+                window.clearTimeout(state.searchDebounceTimer);
+                state.searchDebounceTimer = window.setTimeout(renderEntries, 150);
             });
         }
 

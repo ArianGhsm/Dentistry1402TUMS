@@ -86,6 +86,14 @@
         return target + (target.indexOf("?") === -1 ? "?" : "&") + "cohort=" + encodeURIComponent(cohort);
     }
 
+    function networkErrorResponse() {
+        return {
+            success: false,
+            error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
+            httpStatus: 0
+        };
+    }
+
     function apiGet(action, payload) {
         var query = new URLSearchParams(withCohort(Object.assign({ action: action }, payload || {})));
         query.set("_t", String(Date.now()));
@@ -94,7 +102,7 @@
             cache: "no-store",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
-        }).then(parseJson);
+        }).then(parseJson).catch(networkErrorResponse);
     }
 
     function apiPost(action, payload) {
@@ -106,7 +114,7 @@
                 Accept: "application/json"
             },
             body: new URLSearchParams(withCohort(Object.assign({ action: action }, payload || {})))
-        }).then(parseJson);
+        }).then(parseJson).catch(networkErrorResponse);
     }
 
     function formatValue(value) {
