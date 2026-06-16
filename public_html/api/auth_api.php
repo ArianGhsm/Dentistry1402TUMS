@@ -497,6 +497,7 @@ if ($action === 'logout') {
 
 if ($action === 'me') {
     $user = dent_current_user();
+    dent_release_session_lock();
 
     if ($user === null) {
         dent_json_response([

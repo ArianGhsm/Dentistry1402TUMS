@@ -379,7 +379,19 @@ body.forms-page button {
 }
 
 .forms-option-line--has-cap {
-    grid-template-columns: minmax(0, 1fr) 64px auto;
+    grid-template-columns: minmax(0, 1fr) 64px minmax(42px, auto) auto;
+}
+
+.forms-option-usage {
+    font-size: 0.72rem;
+    font-weight: 760;
+    color: var(--forms-text-soft);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.forms-option-usage.is-full {
+    color: #c0392b;
 }
 
 .forms-option-cap-header {

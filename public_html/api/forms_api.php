@@ -316,13 +316,19 @@ function forms_normalize_options($raw): array
             $id = 'opt-' . (string) $index;
         }
         $seen[$id] = true;
-        $options[] = [
+        $option = [
             'id' => $id,
             'text' => $text,
             'capacity' => is_array($item) ? max(0, (int) ($item['capacity'] ?? 0)) : 0,
         ];
+        // Soft-deleted options are retained in storage so historical responses and
+        // capacity counts stay correct; they are hidden from builders and respondents.
+        if (is_array($item) && !empty($item['deleted'])) {
+            $option['deleted'] = true;
+        }
+        $options[] = $option;
         $index++;
-        if (count($options) >= 50) {
+        if (count($options) >= 60) {
             break;
         }
     }
@@ -1279,6 +1285,108 @@ function forms_responses_for_form(array $store, string $formId): array
 }
 
 /**
+ * Collect every scalar option id that has been chosen for a given field across responses.
+ * Handles flat choice answers (scalar / array) and grid answers (nested per row).
+ * Returns: [ optionId => true ]
+ */
+function forms_answered_option_ids_for_field(array $responses, string $fieldId): array
+{
+    $ids = [];
+    foreach ($responses as $response) {
+        if (!is_array($response)) {
+            continue;
+        }
+        $answers = is_array($response['answers'] ?? null) ? $response['answers'] : [];
+        $answer = $answers[$fieldId] ?? null;
+        if ($answer === null) {
+            continue;
+        }
+        if (is_array($answer)) {
+            foreach ($answer as $value) {
+                if (is_array($value)) {
+                    foreach ($value as $nested) {
+                        if (is_scalar($nested) && (string) $nested !== '') {
+                            $ids[(string) $nested] = true;
+                        }
+                    }
+                } elseif (is_scalar($value) && (string) $value !== '') {
+                    $ids[(string) $value] = true;
+                }
+            }
+        } elseif (is_scalar($answer) && (string) $answer !== '') {
+            $ids[(string) $answer] = true;
+        }
+    }
+    return $ids;
+}
+
+/**
+ * Preserve options that an editor removed but that still carry meaning: options
+ * with a capacity, options already soft-deleted, or options that have at least
+ * one stored response. Such options are re-attached to the new form marked
+ * `deleted => true` so historical responses render correctly and capacity counts
+ * stay authoritative. Visible (non-deleted) options are left untouched.
+ * Only flat choice fields participate; grids/scale are left as-is.
+ */
+function forms_preserve_deleted_options(array $newForm, ?array $oldForm, array $responses): array
+{
+    if (!is_array($oldForm)) {
+        return $newForm;
+    }
+    $oldFieldsById = [];
+    foreach ((array) ($oldForm['fields'] ?? []) as $oldField) {
+        if (is_array($oldField) && isset($oldField['id'])) {
+            $oldFieldsById[(string) $oldField['id']] = $oldField;
+        }
+    }
+    $newFields = (array) ($newForm['fields'] ?? []);
+    foreach ($newFields as $index => $field) {
+        if (!is_array($field)) {
+            continue;
+        }
+        $type = (string) ($field['type'] ?? '');
+        if (!in_array($type, ['single_choice', 'multiple_choice', 'dropdown'], true)) {
+            continue;
+        }
+        $fieldId = (string) ($field['id'] ?? '');
+        $oldField = $oldFieldsById[$fieldId] ?? null;
+        if (!is_array($oldField)) {
+            continue;
+        }
+        $currentIds = [];
+        foreach ((array) ($field['options'] ?? []) as $option) {
+            if (is_array($option) && isset($option['id'])) {
+                $currentIds[(string) $option['id']] = true;
+            }
+        }
+        $answeredIds = forms_answered_option_ids_for_field($responses, $fieldId);
+        $preserved = [];
+        foreach ((array) ($oldField['options'] ?? []) as $oldOption) {
+            if (!is_array($oldOption) || !isset($oldOption['id'])) {
+                continue;
+            }
+            $optionId = (string) $oldOption['id'];
+            if (isset($currentIds[$optionId])) {
+                continue; // still present in the new form
+            }
+            $hadCapacity = (int) ($oldOption['capacity'] ?? 0) > 0;
+            $wasDeleted = !empty($oldOption['deleted']);
+            $wasAnswered = isset($answeredIds[$optionId]);
+            if ($hadCapacity || $wasDeleted || $wasAnswered) {
+                $oldOption['deleted'] = true;
+                $preserved[] = $oldOption;
+            }
+        }
+        if ($preserved !== []) {
+            $field['options'] = array_merge((array) ($field['options'] ?? []), $preserved);
+            $newFields[$index] = $field;
+        }
+    }
+    $newForm['fields'] = $newFields;
+    return $newForm;
+}
+
+/**
  * Count how many times each option has been selected per field across the given responses.
  * Pass $excludeResponseId to skip one response (used for edit-mode: don't count the user's existing answer).
  * Returns: [ fieldId => [ optionId => count ] ]
@@ -1530,7 +1638,11 @@ function forms_option_map(array $field): array
         if (is_array($option)) {
             $id = (string) ($option['id'] ?? '');
             if ($id !== '') {
-                $map[$id] = (string) ($option['text'] ?? $id);
+                $text = (string) ($option['text'] ?? $id);
+                if (!empty($option['deleted'])) {
+                    $text .= ' (حذف‌شده)';
+                }
+                $map[$id] = $text;
             }
         }
     }
@@ -1757,8 +1869,18 @@ function forms_answer_display_value(array $field, $answer): string
         return 'رسید آپلود نشده';
     }
     $optionMap = forms_option_map($field);
+    $type = (string) ($field['type'] ?? '');
+    $isChoice = in_array($type, ['single_choice', 'multiple_choice', 'dropdown', 'linear_scale', 'multiple_choice_grid', 'checkbox_grid'], true);
+    // For choice fields an option id with no matching option means the option was
+    // fully removed; show an explicit marker instead of the raw id. For free-text
+    // fields the answer is the literal value and must pass through unchanged.
+    $resolveOption = static function (string $key) use ($optionMap, $isChoice): string {
+        if (isset($optionMap[$key])) {
+            return $optionMap[$key];
+        }
+        return $isChoice ? ('گزینه حذف‌شده (' . $key . ')') : $key;
+    };
     if (is_array($answer)) {
-        $type = (string) ($field['type'] ?? '');
         if (in_array($type, ['multiple_choice_grid', 'checkbox_grid'], true)) {
             $rowMap = forms_row_map($field);
             $rows = [];
@@ -1767,26 +1889,22 @@ function forms_answer_display_value(array $field, $answer): string
                 if (is_array($rowAnswer)) {
                     $parts = [];
                     foreach ($rowAnswer as $item) {
-                        $key = (string) $item;
-                        $parts[] = $optionMap[$key] ?? $key;
+                        $parts[] = $resolveOption((string) $item);
                     }
                     $rows[] = $rowLabel . ': ' . implode('، ', $parts);
                 } else {
-                    $key = (string) $rowAnswer;
-                    $rows[] = $rowLabel . ': ' . ($optionMap[$key] ?? $key);
+                    $rows[] = $rowLabel . ': ' . $resolveOption((string) $rowAnswer);
                 }
             }
             return implode(' | ', array_filter($rows, static fn(string $item): bool => trim($item) !== ''));
         }
         $parts = [];
         foreach ($answer as $item) {
-            $key = (string) $item;
-            $parts[] = $optionMap[$key] ?? $key;
+            $parts[] = $resolveOption((string) $item);
         }
         return implode('، ', $parts);
     }
-    $key = (string) $answer;
-    return $optionMap[$key] ?? $key;
+    return $resolveOption((string) $answer);
 }
 
 function forms_poll_results(array $store, array $form, ?array $viewer, ?string $identityKey = null): array
@@ -1977,6 +2095,40 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
         }
     }
 
+    // Hide soft-deleted options from builders and respondents alike. Their data is
+    // still retained in the store (used for capacity counting and response display),
+    // but they must never appear as a selectable option again.
+    if ($fieldsPayload !== []) {
+        foreach ($fieldsPayload as $index => $field) {
+            if (!is_array($field) || !is_array($field['options'] ?? null)) {
+                continue;
+            }
+            $visibleOptions = [];
+            foreach ($field['options'] as $opt) {
+                if (is_array($opt) && !empty($opt['deleted'])) {
+                    continue;
+                }
+                $visibleOptions[] = $opt;
+            }
+            $field['options'] = array_values($visibleOptions);
+            $fieldsPayload[$index] = $field;
+        }
+    }
+
+    // Provide the viewer's previous answers when editing is allowed, so the
+    // respondent can see and modify their prior submission instead of a blank form.
+    $existingResponsePayload = null;
+    if ($includeFields && $identityKey !== null && $identityKey !== ''
+        && forms_parse_bool($settings['allowEditResponse'] ?? false, false)) {
+        $priorResponse = forms_response_for_identity($store, $formId, $identityKey);
+        if (is_array($priorResponse)) {
+            $existingResponsePayload = [
+                'id' => (string) ($priorResponse['id'] ?? ''),
+                'answers' => is_array($priorResponse['answers'] ?? null) ? $priorResponse['answers'] : [],
+            ];
+        }
+    }
+
     $settingsPayload = [
         'allowGuest' => forms_parse_bool($settings['allowGuest'] ?? false, false),
         'collectGuestName' => forms_parse_bool($settings['collectGuestName'] ?? true, true),
@@ -2017,6 +2169,7 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
         'fields' => $fieldsPayload,
         'paymentGateways' => $includeFields && forms_has_payment_fields($form) ? forms_payment_gateways_payload() : null,
         'settings' => $settingsPayload,
+        'existingResponse' => $existingResponsePayload,
         'permissions' => [
             'canManage' => $canManage,
             'canDelete' => forms_can_delete($form, $viewer),
@@ -2804,6 +2957,9 @@ if ($action === 'update') {
         }
         $updated = forms_build_form_from_payload($payload, $user, $existing);
         $updated['id'] = $formId;
+        // Keep removed options that still carry capacity/responses as soft-deleted,
+        // so historical responses and capacity counts remain correct.
+        $updated = forms_preserve_deleted_options($updated, $existing, forms_responses_for_form($store, $formId));
         $store['forms'][$formId] = $updated;
         forms_save_store($store);
     } finally {

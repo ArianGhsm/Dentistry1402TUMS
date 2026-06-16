@@ -383,6 +383,16 @@
         };
     }
 
+    // Generate an option id that never collides with existing ids — even after
+    // some options were deleted (so "opt-" + length+1 is unsafe).
+    function nextOptionId(options) {
+        var maxN = (Array.isArray(options) ? options : []).reduce(function (max, opt) {
+            var n = parseInt(String((opt && opt.id) || "").replace(/^opt-/, ""), 10);
+            return isNaN(n) ? max : Math.max(max, n);
+        }, 0);
+        return "opt-" + (maxN + 1);
+    }
+
     function newField(type, label) {
         var field = {
             id: uniqueFieldId(),
@@ -472,11 +482,16 @@
             help: String(field.help || ""),
             required: !!field.required,
             options: Array.isArray(field.options) ? field.options.map(function (item, index) {
-                return {
+                var cloned = {
                     id: String(item.id || ("opt-" + (index + 1))),
                     text: String(item.text || ""),
                     capacity: Number(item.capacity || 0)
                 };
+                // Preserve server-reported live usage so the builder can show "X / Y".
+                if (typeof item.capacityUsed === "number") {
+                    cloned.capacityUsed = item.capacityUsed;
+                }
+                return cloned;
             }) : [],
             rows: Array.isArray(field.rows) ? field.rows.map(function (item, index) {
                 return {
@@ -686,6 +701,9 @@
             var capHeaderCap = document.createElement("span");
             capHeaderCap.textContent = "ظرفیت";
             capHeader.appendChild(capHeaderCap);
+            var capHeaderUsed = document.createElement("span");
+            capHeaderUsed.textContent = "ثبت‌شده";
+            capHeader.appendChild(capHeaderUsed);
             capHeader.appendChild(document.createElement("span")); // placeholder for × column
             wrap.appendChild(capHeader);
         }
@@ -719,6 +737,19 @@
                     item.capacity = isNaN(v) || v < 0 ? 0 : v;
                 });
                 row.appendChild(capInput);
+
+                // Show live usage "X / Y" when capacity is set and the server reported it.
+                var usage = document.createElement("span");
+                usage.className = "forms-option-usage";
+                if (Number(item.capacity) > 0 && typeof item.capacityUsed === "number") {
+                    usage.textContent = Number(item.capacityUsed).toLocaleString("fa-IR") + " / " + Number(item.capacity).toLocaleString("fa-IR");
+                    if (item.capacityUsed >= item.capacity) {
+                        usage.classList.add("is-full");
+                    }
+                } else {
+                    usage.textContent = "";
+                }
+                row.appendChild(usage);
             }
             var remove = document.createElement("button");
             remove.type = "button";
@@ -727,6 +758,10 @@
             remove.addEventListener("click", function () {
                 if (field.options.length <= 2) {
                     showToast("حداقل دو گزینه لازم است.");
+                    return;
+                }
+                var hasUsage = (Number(item.capacity) > 0) || (Number(item.capacityUsed) > 0);
+                if (hasUsage && !window.confirm("این گزینه ظرفیت یا پاسخ دارد. با حذف آن، گزینه به‌صورت «حذف‌شده» نگه داشته می‌شود تا پاسخ‌های قبلی و شمارش ظرفیت درست بمانند، اما دیگر برای کاربران نمایش داده نمی‌شود. ادامه می‌دهید؟")) {
                     return;
                 }
                 field.options.splice(index, 1);
@@ -745,7 +780,7 @@
                 showToast("حداکثر ۵۰ گزینه مجاز است.");
                 return;
             }
-            field.options.push(option("گزینه جدید", field.options.length + 1));
+            field.options.push({ id: nextOptionId(field.options), text: "گزینه جدید", capacity: 0 });
             renderFieldEditor();
         });
         wrap.appendChild(add);

@@ -652,8 +652,82 @@
         } else {
             setFeedback("", "");
         }
+
+        // Edit mode: when the form allows editing and the viewer already submitted,
+        // restore their previous answers so they can review and change them.
+        if (settings.allowEditResponse && form.existingResponse && form.existingResponse.answers) {
+            prefillAnswers(form.existingResponse.answers);
+            if (!submitBtn.disabled) {
+                setFeedback("پاسخ قبلی شما بارگذاری شد. می‌توانید آن را ویرایش و دوباره ثبت کنید.", "");
+            }
+        }
+
         renderResults(form);
         showStage("stage");
+    }
+
+    function prefillAnswers(answers) {
+        if (!answers || typeof answers !== "object" || !state.form) {
+            return;
+        }
+        (Array.isArray(state.form.fields) ? state.form.fields : []).forEach(function (field) {
+            var fieldId = String(field.id || "");
+            var type = String(field.type || "short_text");
+            if (type === "payment" || type === "receipt_payment") {
+                return;
+            }
+            if (!Object.prototype.hasOwnProperty.call(answers, fieldId)) {
+                return;
+            }
+            var answer = answers[fieldId];
+            var card = fieldsRoot.querySelector('[data-field-id="' + fieldId.replace(/"/g, "") + '"]');
+            if (!card) {
+                return;
+            }
+
+            if (type === "multiple_choice") {
+                var values = Array.isArray(answer) ? answer.map(String) : [];
+                Array.prototype.forEach.call(card.querySelectorAll("input[type=checkbox]"), function (input) {
+                    if (values.indexOf(String(input.value || "")) !== -1) {
+                        input.checked = true;
+                    }
+                });
+            } else if (type === "single_choice" || type === "linear_scale") {
+                var single = String(answer == null ? "" : answer);
+                Array.prototype.forEach.call(card.querySelectorAll("input[type=radio]"), function (input) {
+                    if (String(input.value || "") === single) {
+                        input.checked = true;
+                    }
+                });
+            } else if (type === "dropdown") {
+                var select = card.querySelector("select[data-answer-input]");
+                if (select) {
+                    select.value = String(answer == null ? "" : answer);
+                }
+            } else if (type === "multiple_choice_grid" || type === "checkbox_grid") {
+                var gridAnswer = (answer && typeof answer === "object") ? answer : {};
+                Array.prototype.forEach.call(card.querySelectorAll("input[data-grid-input]"), function (input) {
+                    var rowId = String(input.dataset.rowId || "");
+                    var optionValue = String(input.value || "");
+                    var rowAnswer = gridAnswer[rowId];
+                    if (Array.isArray(rowAnswer)) {
+                        if (rowAnswer.map(String).indexOf(optionValue) !== -1) {
+                            input.checked = true;
+                        }
+                    } else if (rowAnswer != null && String(rowAnswer) === optionValue) {
+                        input.checked = true;
+                    }
+                });
+            } else {
+                var inputEl = card.querySelector("[data-answer-input]");
+                if (inputEl) {
+                    inputEl.value = String(answer == null ? "" : answer);
+                }
+            }
+
+            syncChoiceStyles(card);
+            syncGridStyles(card);
+        });
     }
 
     function collectAnswers() {
