@@ -1475,12 +1475,15 @@
             exportLink.hidden = true;
             exportLink.removeAttribute("href");
         }
+        state.responsesForm = form || null;
+        var canManage = !!(form && form.permissions && form.permissions.canManage);
         var fragment = document.createDocumentFragment();
         responses.forEach(function (response) {
             var card = document.createElement("article");
             card.className = "forms-response-card";
-            var identity = response.identity || {};
+            card.setAttribute("data-response-id", String(response.id || ""));
             var title = document.createElement("h3");
+            var identity = response.identity || {};
             title.textContent = String(identity.name || identity.studentNumber || "شرکت‌کننده") + " • " + formatDateTime(response.submittedAt);
             card.appendChild(title);
             var grid = document.createElement("div");
@@ -1497,9 +1500,182 @@
                 grid.appendChild(item);
             });
             card.appendChild(grid);
+
+            if (canManage) {
+                var actions = document.createElement("div");
+                actions.className = "forms-response-actions";
+                var editBtn = document.createElement("button");
+                editBtn.type = "button";
+                editBtn.className = "forms-btn";
+                editBtn.textContent = "ویرایش";
+                editBtn.addEventListener("click", function () {
+                    startEditResponse(card, response);
+                });
+                var delBtn = document.createElement("button");
+                delBtn.type = "button";
+                delBtn.className = "forms-btn forms-btn--danger";
+                delBtn.textContent = "حذف";
+                delBtn.addEventListener("click", function () {
+                    deleteResponse(response.id);
+                });
+                actions.appendChild(editBtn);
+                actions.appendChild(delBtn);
+                card.appendChild(actions);
+            }
             fragment.appendChild(card);
         });
         responsesList.appendChild(fragment);
+    }
+
+    var EDITABLE_TYPES = ["short_text", "paragraph", "single_choice", "multiple_choice", "dropdown", "linear_scale"];
+
+    function startEditResponse(card, response) {
+        var form = state.responsesForm;
+        if (!form) return;
+        var fieldsById = {};
+        (Array.isArray(form.fields) ? form.fields : []).forEach(function (f) {
+            fieldsById[String(f.id || "")] = f;
+        });
+        var grid = card.querySelector(".forms-answer-grid");
+        var actions = card.querySelector(".forms-response-actions");
+        if (!grid) return;
+        grid.innerHTML = "";
+        var editors = {};
+
+        (Array.isArray(response.answers) ? response.answers : []).forEach(function (answer) {
+            var fieldId = String(answer.fieldId || "");
+            var field = fieldsById[fieldId];
+            var type = field ? String(field.type || "") : String(answer.type || "");
+            var row = document.createElement("div");
+            row.className = "forms-answer";
+            var label = document.createElement("span");
+            label.textContent = String(answer.label || "");
+            row.appendChild(label);
+
+            if (!field || EDITABLE_TYPES.indexOf(type) === -1) {
+                var ro = document.createElement("strong");
+                ro.textContent = String(answer.displayValue || "—") + " (غیرقابل ویرایش)";
+                row.appendChild(ro);
+                grid.appendChild(row);
+                return;
+            }
+
+            var options = Array.isArray(field.options) ? field.options : [];
+            var current = answer.value;
+            if (type === "single_choice" || type === "dropdown" || type === "linear_scale") {
+                var sel = document.createElement("select");
+                sel.className = "forms-input";
+                var empty = document.createElement("option");
+                empty.value = ""; empty.textContent = "—";
+                sel.appendChild(empty);
+                options.forEach(function (opt) {
+                    var o = document.createElement("option");
+                    o.value = String(opt.id || "");
+                    o.textContent = String(opt.text || opt.id || "");
+                    if (String(current || "") === String(opt.id || "")) o.selected = true;
+                    sel.appendChild(o);
+                });
+                row.appendChild(sel);
+                editors[fieldId] = { type: "single", el: sel };
+            } else if (type === "multiple_choice") {
+                var box = document.createElement("div");
+                box.className = "forms-edit-checks";
+                var cur = Array.isArray(current) ? current.map(String) : [];
+                var inputs = [];
+                options.forEach(function (opt) {
+                    var lbl = document.createElement("label");
+                    lbl.className = "forms-choice";
+                    var inp = document.createElement("input");
+                    inp.type = "checkbox";
+                    inp.value = String(opt.id || "");
+                    if (cur.indexOf(String(opt.id || "")) !== -1) inp.checked = true;
+                    lbl.appendChild(inp);
+                    var sp = document.createElement("span");
+                    sp.textContent = String(opt.text || opt.id || "");
+                    lbl.appendChild(sp);
+                    box.appendChild(lbl);
+                    inputs.push(inp);
+                });
+                row.appendChild(box);
+                editors[fieldId] = { type: "multi", inputs: inputs };
+            } else {
+                var inp2 = document.createElement(type === "paragraph" ? "textarea" : "input");
+                inp2.className = "forms-input";
+                inp2.value = String(current == null ? "" : current);
+                row.appendChild(inp2);
+                editors[fieldId] = { type: "text", el: inp2 };
+            }
+            grid.appendChild(row);
+        });
+
+        if (actions) {
+            actions.innerHTML = "";
+            var saveBtn = document.createElement("button");
+            saveBtn.type = "button";
+            saveBtn.className = "forms-btn forms-btn--primary";
+            saveBtn.textContent = "ذخیره تغییرات";
+            saveBtn.addEventListener("click", function () {
+                saveEditResponse(response.id, editors);
+            });
+            var cancelBtn = document.createElement("button");
+            cancelBtn.type = "button";
+            cancelBtn.className = "forms-btn";
+            cancelBtn.textContent = "انصراف";
+            cancelBtn.addEventListener("click", function () {
+                loadResponses(form.id);
+            });
+            actions.appendChild(saveBtn);
+            actions.appendChild(cancelBtn);
+        }
+    }
+
+    async function saveEditResponse(responseId, editors) {
+        var form = state.responsesForm;
+        if (!form || !responseId) return;
+        var answers = {};
+        Object.keys(editors).forEach(function (fieldId) {
+            var ed = editors[fieldId];
+            if (ed.type === "single" || ed.type === "text") {
+                answers[fieldId] = String(ed.el.value || "");
+            } else if (ed.type === "multi") {
+                answers[fieldId] = ed.inputs.filter(function (i) { return i.checked; }).map(function (i) { return String(i.value || ""); });
+            }
+        });
+        try {
+            var response = await apiPost("ownerEditResponse", {
+                formId: String(form.id || ""),
+                responseId: String(responseId),
+                answers: JSON.stringify(answers)
+            });
+            if (consumeUnauthorized(response)) return;
+            if (!response || !response.success) {
+                throw new Error((response && response.error) || "ویرایش پاسخ انجام نشد.");
+            }
+            showToast("پاسخ ویرایش شد.");
+            await loadResponses(form.id);
+        } catch (error) {
+            showToast(error && error.message ? error.message : "ویرایش پاسخ انجام نشد.");
+        }
+    }
+
+    async function deleteResponse(responseId) {
+        var form = state.responsesForm;
+        if (!form || !responseId) return;
+        if (!window.confirm("این پاسخ حذف شود؟ این کار برگشت‌پذیر نیست.")) return;
+        try {
+            var response = await apiPost("deleteResponse", {
+                formId: String(form.id || ""),
+                responseId: String(responseId)
+            });
+            if (consumeUnauthorized(response)) return;
+            if (!response || !response.success) {
+                throw new Error((response && response.error) || "حذف پاسخ انجام نشد.");
+            }
+            showToast("پاسخ حذف شد.");
+            await loadResponses(form.id);
+        } catch (error) {
+            showToast(error && error.message ? error.message : "حذف پاسخ انجام نشد.");
+        }
     }
 
     async function loadSession() {

@@ -535,6 +535,32 @@ body.forms-page button {
     gap: 0.12rem;
 }
 
+.forms-response-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.44rem;
+    justify-content: flex-end;
+    margin-top: 0.2rem;
+}
+
+.forms-answer .forms-input,
+.forms-answer select.forms-input,
+.forms-answer textarea.forms-input {
+    width: 100%;
+    min-height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--forms-border);
+    background: var(--forms-surface-solid);
+    color: var(--forms-text);
+    padding: 0.32rem 0.5rem;
+    font: inherit;
+}
+
+.forms-edit-checks {
+    display: grid;
+    gap: 0.28rem;
+}
+
 .forms-answer span {
     color: var(--forms-text-soft);
     font-size: 0.7rem;

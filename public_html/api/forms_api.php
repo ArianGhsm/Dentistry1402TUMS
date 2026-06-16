@@ -2555,7 +2555,7 @@ function forms_export_xlsx(array $form, array $responses, string $mode = 'respon
         '_rels/.rels' => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>',
         'docProps/app.xml' => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>Dentistry1402 Forms</Application></Properties>',
         'docProps/core.xml' => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>' . forms_xml_escape($title) . '</dc:title><dc:creator>Dentistry1402 Forms</dc:creator><cp:lastModifiedBy>Dentistry1402 Forms</cp:lastModifiedBy><dcterms:created xsi:type="dcterms:W3CDTF">' . $now . '</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">' . $now . '</dcterms:modified></cp:coreProperties>',
-        'xl/workbook.xml' => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView rightToLeft="1"/></bookViews><sheets><sheet name="Responses" sheetId="1" r:id="rId1"/></sheets></workbook>',
+        'xl/workbook.xml' => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets><sheet name="Responses" sheetId="1" r:id="rId1"/></sheets></workbook>',
         'xl/_rels/workbook.xml.rels' => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
         'xl/styles.xml' => forms_xlsx_styles_xml(),
         'xl/worksheets/sheet1.xml' => $sheetXml,
@@ -3739,6 +3739,124 @@ if ($action === 'ownerPatchAnswer') {
         $store['responses'][$responseId]['updatedAt'] = time();
         forms_save_store($store);
         dent_json_response(['success' => true, 'responseId' => $responseId, 'fieldId' => $fieldId, 'newAnswer' => $newAnswer]);
+    } finally {
+        @flock($handle, LOCK_UN);
+        @fclose($handle);
+    }
+}
+
+if ($action === 'deleteResponse') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد نامعتبر است.', 405);
+    }
+    $user = forms_require_context_user();
+    dent_release_session_lock();
+
+    $formId     = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
+    $responseId = forms_clean_id((string) ($_POST['responseId'] ?? ''), FORMS_RESPONSE_ID_PREFIX);
+    if ($formId === '' || $responseId === '') {
+        dent_error('پارامترهای ناقص.', 422);
+    }
+
+    $handle = @fopen(forms_lock_path(), 'c');
+    if ($handle === false) {
+        dent_error('قفل store باز نشد.', 500);
+    }
+    try {
+        if (!@flock($handle, LOCK_EX)) {
+            dent_error('قفل store گرفته نشد.', 500);
+        }
+        $store = forms_load_store();
+        $form = $store['forms'][$formId] ?? null;
+        if (!is_array($form)) {
+            dent_error('فرم پیدا نشد.', 404);
+        }
+        if (!forms_can_manage($form, $user)) {
+            dent_error('اجازه مدیریت این فرم را ندارید.', 403);
+        }
+        if (!isset($store['responses'][$responseId]) || (string) ($store['responses'][$responseId]['formId'] ?? '') !== $formId) {
+            dent_error('پاسخ پیدا نشد.', 404);
+        }
+        unset($store['responses'][$responseId]);
+        forms_save_store($store);
+        dent_json_response(['success' => true, 'responseId' => $responseId]);
+    } finally {
+        @flock($handle, LOCK_UN);
+        @fclose($handle);
+    }
+}
+
+if ($action === 'ownerEditResponse') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد نامعتبر است.', 405);
+    }
+    $user = forms_require_context_user();
+    dent_release_session_lock();
+
+    $formId     = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
+    $responseId = forms_clean_id((string) ($_POST['responseId'] ?? ''), FORMS_RESPONSE_ID_PREFIX);
+    $answersRaw = (string) ($_POST['answers'] ?? '');
+    if ($formId === '' || $responseId === '') {
+        dent_error('پارامترهای ناقص.', 422);
+    }
+    $patch = json_decode($answersRaw, true);
+    if (!is_array($patch)) {
+        dent_error('داده پاسخ نامعتبر است.', 422);
+    }
+
+    $handle = @fopen(forms_lock_path(), 'c');
+    if ($handle === false) {
+        dent_error('قفل store باز نشد.', 500);
+    }
+    try {
+        if (!@flock($handle, LOCK_EX)) {
+            dent_error('قفل store گرفته نشد.', 500);
+        }
+        $store = forms_load_store();
+        $form = $store['forms'][$formId] ?? null;
+        if (!is_array($form)) {
+            dent_error('فرم پیدا نشد.', 404);
+        }
+        if (!forms_can_manage($form, $user)) {
+            dent_error('اجازه مدیریت این فرم را ندارید.', 403);
+        }
+        if (!isset($store['responses'][$responseId]) || (string) ($store['responses'][$responseId]['formId'] ?? '') !== $formId) {
+            dent_error('پاسخ پیدا نشد.', 404);
+        }
+        // Only allow editing simple/choice fields; payment & receipt answers stay intact.
+        $editableTypes = ['short_text', 'paragraph', 'single_choice', 'multiple_choice', 'dropdown', 'linear_scale'];
+        $fieldsById = [];
+        foreach ((array) ($form['fields'] ?? []) as $f) {
+            if (is_array($f) && isset($f['id'])) {
+                $fieldsById[(string) $f['id']] = $f;
+            }
+        }
+        $answers = is_array($store['responses'][$responseId]['answers'] ?? null) ? $store['responses'][$responseId]['answers'] : [];
+        foreach ($patch as $fieldId => $value) {
+            $fieldId = (string) $fieldId;
+            $field = $fieldsById[$fieldId] ?? null;
+            if (!is_array($field) || !in_array((string) ($field['type'] ?? ''), $editableTypes, true)) {
+                continue; // ignore unknown or non-editable fields
+            }
+            if (is_array($value)) {
+                $clean = [];
+                foreach ($value as $item) {
+                    if (is_scalar($item)) {
+                        $clean[] = forms_clean_text((string) $item, 400);
+                    }
+                }
+                $answers[$fieldId] = $clean;
+            } else {
+                $answers[$fieldId] = forms_clean_text((string) $value, 4000);
+            }
+        }
+        $store['responses'][$responseId]['answers'] = $answers;
+        $store['responses'][$responseId]['updatedAt'] = time();
+        forms_save_store($store);
+        dent_json_response([
+            'success'  => true,
+            'response' => forms_response_payload($store['responses'][$responseId], $form),
+        ]);
     } finally {
         @flock($handle, LOCK_UN);
         @fclose($handle);

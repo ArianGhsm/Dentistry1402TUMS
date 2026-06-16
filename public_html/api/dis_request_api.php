@@ -1069,7 +1069,7 @@ function dis_request_emit_excel(array $dataset): void
     $workbookXml = implode('', [
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
         '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">',
-        '<bookViews><workbookView rightToLeft="1"/></bookViews>',
+        '<bookViews><workbookView/></bookViews>',
         '<sheets><sheet name="' . dis_request_xml_escape($sheetName) . '" sheetId="1" r:id="rId1"/></sheets>',
         '</workbook>',
     ]);
