@@ -422,19 +422,43 @@
         if (["single_choice", "multiple_choice", "linear_scale"].indexOf(type) !== -1) {
             var inputType = type === "multiple_choice" ? "checkbox" : "radio";
             (Array.isArray(field.options) ? field.options : []).forEach(function (option) {
+                var isFull = !!option.capacityFull;
+                var cap = Number(option.capacity || 0);
+                var remaining = typeof option.capacityRemaining === "number" ? option.capacityRemaining : (cap > 0 ? Math.max(0, cap - Number(option.capacityUsed || 0)) : -1);
+                var showCap = cap > 0 && type !== "linear_scale";
+
                 var label = document.createElement("label");
-                label.className = "forms-choice";
+                var labelClass = "forms-choice";
+                if (showCap) labelClass += " forms-choice--has-cap";
+                if (isFull) labelClass += " is-full";
+                label.className = labelClass;
+
                 var input = document.createElement("input");
                 input.type = inputType;
                 input.name = "answer-" + String(field.id || "");
                 input.value = String(option.id || "");
+                if (isFull) input.disabled = true;
                 input.addEventListener("change", function () {
                     syncChoiceStyles(card);
                 });
                 label.appendChild(input);
+
                 var text = document.createElement("span");
                 text.textContent = String(option.text || option.id || "");
                 label.appendChild(text);
+
+                if (showCap) {
+                    var badge = document.createElement("span");
+                    if (isFull) {
+                        badge.className = "forms-cap-badge forms-cap-badge--full";
+                        badge.textContent = "پر شد";
+                    } else {
+                        badge.className = "forms-cap-badge" + (remaining <= 3 ? " forms-cap-badge--low" : "");
+                        badge.textContent = String(remaining) + " جا";
+                    }
+                    label.appendChild(badge);
+                }
+
                 card.appendChild(label);
             });
             if (type === "linear_scale" && field.scale) {

@@ -378,6 +378,21 @@ body.forms-page button {
     padding: 0.38rem;
 }
 
+.forms-option-line--has-cap {
+    grid-template-columns: minmax(0, 1fr) 64px auto;
+}
+
+.forms-option-cap-header {
+    padding-block: 0.1rem;
+    font-size: 0.7rem;
+    color: var(--forms-text-soft);
+    font-weight: 760;
+}
+
+.forms-option-cap-header span:last-child {
+    display: none; /* hides placeholder column */
+}
+
 .forms-option-line input {
     min-height: 36px;
     border-radius: 11px;
@@ -385,6 +400,25 @@ body.forms-page button {
     background: transparent;
     color: var(--forms-text);
     padding-inline: 0.44rem;
+}
+
+.forms-option-cap {
+    min-height: 36px;
+    border-radius: 11px;
+    border: 1px solid var(--forms-border);
+    background: var(--forms-surface-solid);
+    color: var(--forms-text);
+    padding-inline: 0.44rem;
+    text-align: center;
+    font-size: 0.82rem;
+    width: 100%;
+    min-width: 0;
+}
+
+.forms-option-cap:focus {
+    outline: none;
+    border-color: var(--forms-accent);
+    box-shadow: 0 0 0 3px var(--forms-accent-soft);
 }
 
 .forms-option-line button {
@@ -653,15 +687,53 @@ body.forms-page button {
 .forms-choice {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    align-items: start;
+    align-items: center;
     gap: 0.56rem;
     padding: 0.64rem 0.72rem;
     font-size: 0.84rem;
+    transition: opacity 0.15s;
+}
+
+.forms-choice--has-cap {
+    grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
 .forms-choice.is-selected {
     border-color: rgba(43, 109, 243, 0.3);
     background: var(--forms-accent-soft);
+}
+
+.forms-choice.is-full {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.forms-cap-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    padding: 0.18rem 0.52rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.68rem;
+    font-weight: 760;
+    white-space: nowrap;
+    background: var(--forms-muted);
+    color: var(--forms-text-soft);
+    border: 1px solid var(--forms-border);
+}
+
+.forms-cap-badge--low {
+    background: rgba(234, 140, 0, 0.12);
+    color: #b86a00;
+    border-color: rgba(234, 140, 0, 0.3);
+}
+
+.forms-cap-badge--full {
+    background: rgba(220, 50, 50, 0.1);
+    color: var(--forms-danger);
+    border-color: rgba(220, 50, 50, 0.25);
 }
 
 .forms-grid-question-wrap {

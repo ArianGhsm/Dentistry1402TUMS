@@ -319,6 +319,7 @@ function forms_normalize_options($raw): array
         $options[] = [
             'id' => $id,
             'text' => $text,
+            'capacity' => is_array($item) ? max(0, (int) ($item['capacity'] ?? 0)) : 0,
         ];
         $index++;
         if (count($options) >= 50) {
@@ -1277,6 +1278,45 @@ function forms_responses_for_form(array $store, string $formId): array
     return $responses;
 }
 
+/**
+ * Count how many times each option has been selected per field across the given responses.
+ * Pass $excludeResponseId to skip one response (used for edit-mode: don't count the user's existing answer).
+ * Returns: [ fieldId => [ optionId => count ] ]
+ */
+function forms_option_capacity_counts_from_responses(array $responses, ?string $excludeResponseId): array
+{
+    $counts = [];
+    foreach ($responses as $response) {
+        if (!is_array($response)) {
+            continue;
+        }
+        if ($excludeResponseId !== null && (string) ($response['id'] ?? '') === $excludeResponseId) {
+            continue;
+        }
+        $answers = is_array($response['answers'] ?? null) ? $response['answers'] : [];
+        foreach ($answers as $fieldId => $answer) {
+            $fieldId = (string) $fieldId;
+            if (!isset($counts[$fieldId])) {
+                $counts[$fieldId] = [];
+            }
+            if (is_array($answer)) {
+                foreach ($answer as $optId) {
+                    $optId = (string) $optId;
+                    if ($optId !== '') {
+                        $counts[$fieldId][$optId] = ($counts[$fieldId][$optId] ?? 0) + 1;
+                    }
+                }
+            } else {
+                $optId = (string) $answer;
+                if ($optId !== '') {
+                    $counts[$fieldId][$optId] = ($counts[$fieldId][$optId] ?? 0) + 1;
+                }
+            }
+        }
+    }
+    return $counts;
+}
+
 function forms_payment_fields(array $form): array
 {
     return array_values(array_filter((array) ($form['fields'] ?? []), static function ($field): bool {
@@ -1878,6 +1918,61 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
             }
             $fieldId = (string) ($field['id'] ?? '');
             $field['receiptStatus'] = $receiptStatuses[$fieldId] ?? forms_receipt_public_payload(null);
+            $fieldsPayload[$index] = $field;
+        }
+    }
+
+    // Enrich choice-field options with live capacity counts so the fill view
+    // can show remaining slots and disable full options.
+    if ($fieldsPayload !== []) {
+        $capExcludeId = null;
+        if ($identityKey !== null && $identityKey !== '' && forms_parse_bool($settings['allowEditResponse'] ?? false, false)) {
+            $existingResp = forms_response_for_identity($store, $formId, $identityKey);
+            if (is_array($existingResp)) {
+                $capExcludeId = (string) ($existingResp['id'] ?? null);
+            }
+        }
+        $capCounts = null; // lazy – only computed if at least one field has capacity
+        foreach ($fieldsPayload as $index => $field) {
+            if (!is_array($field)) {
+                continue;
+            }
+            $ftype = (string) ($field['type'] ?? '');
+            if ($ftype !== 'single_choice' && $ftype !== 'multiple_choice' && $ftype !== 'dropdown') {
+                continue;
+            }
+            $options = is_array($field['options'] ?? null) ? $field['options'] : [];
+            $hasCapacity = false;
+            foreach ($options as $opt) {
+                if (is_array($opt) && (int) ($opt['capacity'] ?? 0) > 0) {
+                    $hasCapacity = true;
+                    break;
+                }
+            }
+            if (!$hasCapacity) {
+                continue;
+            }
+            if ($capCounts === null) {
+                $capCounts = forms_option_capacity_counts_from_responses($responses, $capExcludeId);
+            }
+            $fieldId = (string) ($field['id'] ?? '');
+            $fieldCounts = $capCounts[$fieldId] ?? [];
+            $enrichedOptions = [];
+            foreach ($options as $opt) {
+                if (!is_array($opt)) {
+                    $enrichedOptions[] = $opt;
+                    continue;
+                }
+                $cap = (int) ($opt['capacity'] ?? 0);
+                if ($cap > 0) {
+                    $used = (int) ($fieldCounts[(string) ($opt['id'] ?? '')] ?? 0);
+                    $opt['capacityUsed'] = $used;
+                    $opt['capacityRemaining'] = max(0, $cap - $used);
+                    $opt['capacityFull'] = $used >= $cap;
+                }
+                $enrichedOptions[] = $opt;
+            }
+            $field['options'] = $enrichedOptions;
             $fieldsPayload[$index] = $field;
         }
     }
@@ -3244,6 +3339,59 @@ if ($action === 'submit') {
         $existingResponse = forms_response_for_identity($store, $formId, $identityKey);
         if (forms_parse_bool($settings['limitOneResponse'] ?? true, true) && $existingResponse !== null && !forms_parse_bool($settings['allowEditResponse'] ?? false, false)) {
             dent_error('برای این شرکت‌کننده قبلاً پاسخ ثبت شده است.', 409);
+        }
+        // Validate per-option capacity limits (inside the lock so counts are authoritative).
+        $capExcludeId = is_array($existingResponse) ? (string) ($existingResponse['id'] ?? null) : null;
+        $capCounts = null; // lazy – only computed if a field with capacity is found
+        foreach ((array) ($form['fields'] ?? []) as $capField) {
+            if (!is_array($capField)) {
+                continue;
+            }
+            $capFtype = (string) ($capField['type'] ?? '');
+            if ($capFtype !== 'single_choice' && $capFtype !== 'multiple_choice' && $capFtype !== 'dropdown') {
+                continue;
+            }
+            $capFieldId = (string) ($capField['id'] ?? '');
+            $fieldAnswer = $preAnswers[$capFieldId] ?? null;
+            if ($fieldAnswer === null || $fieldAnswer === '' || $fieldAnswer === []) {
+                continue;
+            }
+            $selectedIds = is_array($fieldAnswer) ? array_map('strval', $fieldAnswer) : [(string) $fieldAnswer];
+            $capOptions = is_array($capField['options'] ?? null) ? $capField['options'] : [];
+            $fieldHasCap = false;
+            foreach ($capOptions as $opt) {
+                if (is_array($opt) && (int) ($opt['capacity'] ?? 0) > 0) {
+                    $fieldHasCap = true;
+                    break;
+                }
+            }
+            if (!$fieldHasCap) {
+                continue;
+            }
+            if ($capCounts === null) {
+                $capCounts = forms_option_capacity_counts_from_responses(
+                    forms_responses_for_form($store, $formId),
+                    $capExcludeId
+                );
+            }
+            $capFieldCounts = $capCounts[$capFieldId] ?? [];
+            foreach ($capOptions as $opt) {
+                if (!is_array($opt)) {
+                    continue;
+                }
+                $cap = (int) ($opt['capacity'] ?? 0);
+                if ($cap <= 0) {
+                    continue;
+                }
+                $optId = (string) ($opt['id'] ?? '');
+                if (!in_array($optId, $selectedIds, true)) {
+                    continue;
+                }
+                $used = (int) ($capFieldCounts[$optId] ?? 0);
+                if ($used >= $cap) {
+                    dent_error('ظرفیت گزینه «' . (string) ($opt['text'] ?? $optId) . '» تکمیل شده است.', 409);
+                }
+            }
         }
         $answers = $preAnswers;
         foreach (forms_collect_payment_answers($form, $identityKey) as $fieldId => $answer) {

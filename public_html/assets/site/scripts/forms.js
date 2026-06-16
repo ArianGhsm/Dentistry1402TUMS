@@ -378,7 +378,8 @@
     function option(text, index) {
         return {
             id: "opt-" + String(index || 1),
-            text: text || "گزینه"
+            text: text || "گزینه",
+            capacity: 0
         };
     }
 
@@ -473,7 +474,8 @@
             options: Array.isArray(field.options) ? field.options.map(function (item, index) {
                 return {
                     id: String(item.id || ("opt-" + (index + 1))),
-                    text: String(item.text || "")
+                    text: String(item.text || ""),
+                    capacity: Number(item.capacity || 0)
                 };
             }) : [],
             rows: Array.isArray(field.rows) ? field.rows.map(function (item, index) {
@@ -670,12 +672,27 @@
     }
 
     function renderOptionsEditor(field) {
+        var hasCap = ["single_choice", "multiple_choice", "dropdown"].indexOf(field.type) !== -1;
         var wrap = document.createElement("div");
         wrap.className = "forms-options-box";
         field.options = Array.isArray(field.options) ? field.options : [];
+
+        if (hasCap) {
+            var capHeader = document.createElement("div");
+            capHeader.className = "forms-option-line forms-option-line--has-cap forms-option-cap-header";
+            var capHeaderText = document.createElement("span");
+            capHeaderText.textContent = "متن گزینه";
+            capHeader.appendChild(capHeaderText);
+            var capHeaderCap = document.createElement("span");
+            capHeaderCap.textContent = "ظرفیت";
+            capHeader.appendChild(capHeaderCap);
+            capHeader.appendChild(document.createElement("span")); // placeholder for × column
+            wrap.appendChild(capHeader);
+        }
+
         field.options.forEach(function (item, index) {
             var row = document.createElement("div");
-            row.className = "forms-option-line";
+            row.className = hasCap ? "forms-option-line forms-option-line--has-cap" : "forms-option-line";
             var input = document.createElement("input");
             input.type = "text";
             input.maxLength = 160;
@@ -684,6 +701,21 @@
                 item.text = input.value;
             });
             row.appendChild(input);
+            if (hasCap) {
+                var capInput = document.createElement("input");
+                capInput.type = "number";
+                capInput.min = "0";
+                capInput.max = "9999";
+                capInput.className = "forms-option-cap";
+                capInput.placeholder = "∞";
+                capInput.value = item.capacity > 0 ? String(item.capacity) : "";
+                capInput.title = "ظرفیت (خالی = بدون محدودیت)";
+                capInput.addEventListener("input", function () {
+                    var v = parseInt(capInput.value, 10);
+                    item.capacity = isNaN(v) || v < 0 ? 0 : v;
+                });
+                row.appendChild(capInput);
+            }
             var remove = document.createElement("button");
             remove.type = "button";
             remove.className = "forms-btn forms-btn--danger";
