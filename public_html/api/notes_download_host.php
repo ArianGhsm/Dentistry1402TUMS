@@ -6,7 +6,7 @@ const NOTES_DOWNLOAD_HOST_SECRET_FILE = 'mihan_download_host.json';
 const NOTES_DOWNLOAD_HOST_STREAM_CONNECT_TIMEOUT_SECONDS = 300;
 const NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS = 14400;
 const NOTES_DOWNLOAD_HOST_STREAM_CHUNK_BYTES = 4 * 1024 * 1024;
-const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION = '20260611-1';
+const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION = '20260616-chunked-1';
 const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_RUNTIME_DIR = '__dent-upload';
 const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_FILE = 'notes-upload.php';
 const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_USER_INI_FILE = '.user.ini';
@@ -1318,6 +1318,12 @@ if ($token === '') {
 
 $contentType = trim((string) strtok((string) ($_SERVER['CONTENT_TYPE'] ?? ''), ';'));
 $contentLength = isset($_SERVER['CONTENT_LENGTH']) ? max(0, (int) $_SERVER['CONTENT_LENGTH']) : 0;
+// Chunked uploads split a large file into several short requests so each one
+// finishes well under the host WAF's slow-upload threshold.
+$chunkCount = isset($_GET['chunkCount']) ? max(1, (int) $_GET['chunkCount']) : 1;
+$chunkIndex = isset($_GET['chunkIndex']) ? max(0, (int) $_GET['chunkIndex']) : 0;
+$isChunked = $chunkCount > 1;
+$isLastChunk = !$isChunked || ($chunkIndex >= $chunkCount - 1);
 $absolutePath = '';
 $tempPath = '';
 $cleanupFinal = false;
@@ -1346,7 +1352,8 @@ try {
         throw new RuntimeException('direct-upload-session-invalid');
     }
 
-    if ($contentLength > 0 && $expectedSize > 0 && $contentLength !== $expectedSize) {
+    // Whole-file size guard only applies to single-shot uploads.
+    if (!$isChunked && $contentLength > 0 && $expectedSize > 0 && $contentLength !== $expectedSize) {
         dent_notes_gateway_json([
             'success' => false,
             'error' => 'direct-upload-size-mismatch',
@@ -1355,6 +1362,96 @@ try {
 
     $absolutePath = dent_notes_gateway_absolute_path($relativePath);
     dent_notes_gateway_ensure_parent_dir($absolutePath);
+
+    if ($isChunked) {
+        // Stable part path keyed by token so successive chunks append to the same file.
+        $tokenKey = preg_replace('/[^a-z0-9]/', '', strtolower($token)) ?? '';
+        $partPath = $absolutePath . '.dentup-' . substr($tokenKey, 0, 24);
+        $writeMode = $chunkIndex <= 0 ? 'wb' : 'cb';
+
+        $source = fopen('php://input', 'rb');
+        $target = fopen($partPath, $writeMode);
+        if ($source === false || $target === false) {
+            if (is_resource($source)) { fclose($source); }
+            if (is_resource($target)) { fclose($target); }
+            throw new RuntimeException('direct-upload-stream-open-failed');
+        }
+        if ($chunkIndex > 0) {
+            fseek($target, 0, SEEK_END); // append after previously received chunks
+        }
+        while (!feof($source)) {
+            $chunk = fread($source, DENT_NOTES_GATEWAY_CHUNK_BYTES);
+            if ($chunk === false) {
+                fclose($source); fclose($target);
+                throw new RuntimeException('direct-upload-read-failed');
+            }
+            if ($chunk === '') { continue; }
+            $length = strlen($chunk);
+            $offset = 0;
+            while ($offset < $length) {
+                $saved = fwrite($target, substr($chunk, $offset));
+                if (!is_int($saved) || $saved <= 0) {
+                    fclose($source); fclose($target);
+                    throw new RuntimeException('direct-upload-write-failed');
+                }
+                $offset += $saved;
+            }
+        }
+        fclose($source);
+        fclose($target);
+
+        if (!$isLastChunk) {
+            // Intermediate chunk stored; wait for the rest. Do not finalize yet.
+            dent_notes_gateway_json([
+                'success' => true,
+                'partial' => true,
+                'received' => $chunkIndex + 1,
+                'of' => $chunkCount,
+            ]);
+        }
+
+        clearstatcache(true, $partPath);
+        $storedBytes = max(0, (int) (@filesize($partPath) ?: 0));
+        if ($storedBytes <= 0) {
+            $tempPath = $partPath;
+            throw new RuntimeException('direct-upload-empty-body');
+        }
+        if ($expectedSize > 0 && $storedBytes !== $expectedSize) {
+            $tempPath = $partPath;
+            throw new RuntimeException('direct-upload-size-mismatch');
+        }
+        if (is_file($absolutePath)) {
+            @unlink($absolutePath);
+        }
+        if (!@rename($partPath, $absolutePath)) {
+            $tempPath = $partPath;
+            throw new RuntimeException('direct-upload-finalize-failed');
+        }
+        $tempPath = '';
+        $cleanupFinal = true;
+        @chmod($absolutePath, 0644);
+        clearstatcache(true, $absolutePath);
+        $storedBytes = max(0, (int) (@filesize($absolutePath) ?: $storedBytes));
+
+        $complete = dent_notes_gateway_http_post_json(DENT_NOTES_GATEWAY_COMPLETE_URL, [
+            'token' => $token,
+            'sessionKey' => $sessionKey,
+            'bytes' => (string) $storedBytes,
+            'mimeType' => $contentType,
+            'gatewayVersion' => DENT_NOTES_GATEWAY_VERSION,
+            'origin' => $origin,
+        ]);
+        if (!($complete['success'] ?? false) || !is_array($complete['file'] ?? null)) {
+            $status = max(400, (int) ($complete['httpStatus'] ?? 502));
+            dent_notes_gateway_json([
+                'success' => false,
+                'error' => trim((string) ($complete['error'] ?? 'direct-upload-complete-failed')),
+            ], $status);
+        }
+        $cleanupFinal = false;
+        dent_notes_gateway_json($complete);
+    }
+
     $tempPath = $absolutePath . '.part-' . bin2hex(random_bytes(6));
     if (is_file($tempPath)) {
         @unlink($tempPath);

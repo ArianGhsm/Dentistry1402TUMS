@@ -731,6 +731,129 @@
         return item.file;
     }
 
+    // Large files are split into short chunks so each request finishes well under
+    // the download-host WAF's slow-upload threshold (which 403s long single POSTs).
+    var DIRECT_CHUNK_THRESHOLD = 4 * 1024 * 1024;
+    var DIRECT_CHUNK_SIZE = 3 * 1024 * 1024;
+
+    function finishUpload(response, item, resolve, reject) {
+        item.xhr = null;
+        if (response && (response.loggedOut || response.httpStatus === 401)) {
+            item.status = "error";
+            item.error = "نشست شما منقضی شده است.";
+            item.speedBps = 0;
+            item.etaSeconds = NaN;
+            renderUploadQueue();
+            setGuard("login", "نیاز به ورود", "برای استفاده از فایل‌منیجر منابع باید وارد حساب مجاز شوید.", loginUrl(), "ورود");
+            reject(createUploadSignal("prepare-error", item.error));
+            return;
+        }
+        if (response && response.httpStatus === 403) {
+            item.status = "error";
+            item.error = response.error || "اجازه آپلود فایل در این بخش را ندارید.";
+            item.speedBps = 0;
+            item.etaSeconds = NaN;
+            renderUploadQueue();
+            setGuard("forbidden", "دسترسی مجاز نیست", response.error || "این بخش فقط برای حساب‌های مجاز فعال است.");
+            reject(createUploadSignal("prepare-error", item.error));
+            return;
+        }
+        if (!response || !response.success || !response.file) {
+            item.status = "error";
+            item.error = (response && response.error) || "آپلود فایل کامل نشد.";
+            item.speedBps = 0;
+            item.etaSeconds = NaN;
+            renderUploadQueue();
+            reject(new Error(item.error));
+            return;
+        }
+        item.status = "done";
+        item.progress = 100;
+        item.uploadedBytes = Number(item.size || item.uploadedBytes || 0);
+        item.speedBps = 0;
+        item.etaSeconds = 0;
+        item.publicUrl = String(response.file.publicUrl || "");
+        item.relativePath = String(response.file.relativePath || response.file.relativeDir || item.targetPath || "");
+        item.completedAt = new Date().toISOString();
+        renderUploadQueue();
+        resolve(response);
+    }
+
+    function sendChunkedUpload(uploadPlan, item, startedAt) {
+        var baseUrl = String(uploadPlan.url || "");
+        var total = Number(item.size || (item.file && item.file.size) || 0);
+        var chunkCount = Math.max(1, Math.ceil(total / DIRECT_CHUNK_SIZE));
+        var ctype = item.file && item.file.type ? item.file.type : "application/octet-stream";
+
+        return new Promise(function (resolve, reject) {
+            function sendChunk(index) {
+                if (item.canceled) {
+                    reject(createUploadSignal("canceled", "آپلود توسط کاربر لغو شد."));
+                    return;
+                }
+                var start = index * DIRECT_CHUNK_SIZE;
+                var end = Math.min(total, start + DIRECT_CHUNK_SIZE);
+                var blob = item.file.slice(start, end);
+                var url = baseUrl + (baseUrl.indexOf("?") === -1 ? "?" : "&") + "chunkIndex=" + index + "&chunkCount=" + chunkCount;
+                var xhr = new XMLHttpRequest();
+                item.xhr = xhr;
+                xhr.open("POST", url, true);
+                xhr.withCredentials = false;
+                xhr.setRequestHeader("Accept", "application/json");
+                xhr.setRequestHeader("Content-Type", ctype);
+
+                xhr.upload.onprogress = function (event) {
+                    if (!event.lengthComputable) return;
+                    var loaded = start + Number(event.loaded || 0);
+                    var elapsed = Math.max(0.25, (Date.now() - startedAt) / 1000);
+                    var speed = loaded / elapsed;
+                    item.uploadedBytes = loaded;
+                    item.progress = total > 0 ? Math.min(99.2, (loaded / total) * 100) : item.progress;
+                    item.speedBps = speed;
+                    item.etaSeconds = speed > 0 && total > loaded ? (total - loaded) / speed : 0;
+                    renderUploadQueue();
+                };
+
+                xhr.onload = function () {
+                    var response = {};
+                    try { response = JSON.parse(xhr.responseText || "{}"); }
+                    catch (_e) { response = { success: false, error: "پاسخ آپلود معتبر نبود." }; }
+                    response.httpStatus = xhr.status;
+                    item.xhr = null;
+
+                    if (xhr.status === 401 || xhr.status === 403 || !response.success) {
+                        // Surface auth/permission/other failures through the shared handler.
+                        if (xhr.status === 401) response.loggedOut = true;
+                        finishUpload(response, item, function () {}, reject);
+                        return;
+                    }
+                    if (index >= chunkCount - 1) {
+                        // Last chunk returns the final file payload.
+                        finishUpload(response, item, resolve, reject);
+                        return;
+                    }
+                    item.progress = total > 0 ? Math.min(99.2, (end / total) * 100) : item.progress;
+                    renderUploadQueue();
+                    sendChunk(index + 1);
+                };
+                xhr.onerror = function () {
+                    item.xhr = null;
+                    reject(markUploadWaiting(item, waitingUploadMessage(item)));
+                };
+                xhr.onabort = function () {
+                    item.xhr = null;
+                    if (item.canceled) {
+                        reject(createUploadSignal("canceled", "آپلود توسط کاربر لغو شد."));
+                        return;
+                    }
+                    reject(markUploadWaiting(item, waitingUploadMessage(item)));
+                };
+                xhr.send(blob);
+            }
+            sendChunk(0);
+        });
+    }
+
     function uploadItem(item) {
         return new Promise(function (resolve, reject) {
             var finalizingProgress = 99.2;
@@ -783,6 +906,18 @@
 
                 probeDirectUploadPlan(prepareResponse.upload).then(function (uploadPlan) {
                     var startedAt = Date.now();
+                    var planMode = uploadPlan && uploadPlan.mode ? String(uploadPlan.mode) : "relay";
+                    var fileSize = Number(item.size || (item.file && item.file.size) || 0);
+                    if (planMode === "direct" && item.file && fileSize > DIRECT_CHUNK_THRESHOLD) {
+                        // Chunked direct upload — evades the host WAF slow-upload block.
+                        sendChunkedUpload(uploadPlan, item, startedAt).then(function (response) {
+                            // finishUpload already resolved item state; nothing else to do.
+                            resolve(response);
+                        }).catch(function (error) {
+                            reject(error);
+                        });
+                        return;
+                    }
                     var uploadBody = buildUploadRequestBody(uploadPlan, item);
                     item.xhr = new XMLHttpRequest();
                     var xhr = item.xhr;
