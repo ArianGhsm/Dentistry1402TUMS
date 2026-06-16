@@ -3405,13 +3405,22 @@
         }
 
         var totals = dashboard.totals || {};
+        var seg = dashboard.segments || {};
+        var human = seg.human || {};
+        var owner = seg.owner || {};
+        var bot = seg.bot || {};
         ownerStatsOverview.innerHTML = [
             summaryCard("کل کاربران", ownerStatsMetric(totals.totalUsers), "تعداد فعلی حساب‌های ثبت‌شده در کل سایت", "ok"),
-            summaryCard("بازدید امروز", ownerStatsMetric(totals.pageViewsToday), "page viewهای ثبت‌شده از ابتدای امروز", totals.pageViewsToday > 0 ? "ok" : ""),
-            summaryCard("بازدید ۳۰ روز", ownerStatsMetric(totals.pageViews30d), "مجموع بازدیدهای ثبت‌شده در ۳۰ روز اخیر"),
-            summaryCard("ورود امروز", ownerStatsMetric(totals.loginsToday), "ورودهای موفق امروز از همه مسیرهای login", totals.loginsToday > 0 ? "ok" : ""),
-            summaryCard("ورود ۳۰ روز", ownerStatsMetric(totals.logins30d), "مجموع loginهای موفق در ۳۰ روز اخیر"),
-            summaryCard("دانلود ۳۰ روز", ownerStatsMetric(totals.downloads30d), "کلیک‌های دانلود/منبع ثبت‌شده در ۳۰ روز اخیر", totals.downloads30d > 0 ? "ok" : ""),
+            summaryCard("بازدید کاربران واقعی", ownerStatsMetric(human.pageViews || 0), "بدون احتساب مالک و هوش مصنوعی/ربات‌ها", (human.pageViews || 0) > 0 ? "ok" : ""),
+            summaryCard("بازدید مالک", ownerStatsMetric(owner.pageViews || 0), "بازدیدهای حساب مالک (شامل کار هوش مصنوعی با حساب مالک)"),
+            summaryCard("بازدید هوش مصنوعی/ربات", ownerStatsMetric(bot.pageViews || 0), "ربات‌ها، خزنده‌ها و ابزارهای هوش مصنوعی", "warn"),
+            summaryCard("ورود کاربران واقعی", ownerStatsMetric(human.logins || 0), "ورودهای دانشجویان واقعی (بدون مالک/ربات)", (human.logins || 0) > 0 ? "ok" : ""),
+            summaryCard("ورود مالک", ownerStatsMetric(owner.logins || 0), "ورودهای ثبت‌شده با حساب مالک"),
+            summaryCard("دانلود کاربران واقعی", ownerStatsMetric(human.downloads || 0), "دانلودهای دانشجویان واقعی (بدون مالک/ربات)"),
+            summaryCard("بازدید امروز (کل)", ownerStatsMetric(totals.pageViewsToday), "همه بازدیدها از ابتدای امروز شامل مالک/ربات", totals.pageViewsToday > 0 ? "ok" : ""),
+            summaryCard("بازدید ۳۰ روز (کل)", ownerStatsMetric(totals.pageViews30d), "مجموع همه بازدیدهای ۳۰ روز اخیر شامل مالک/ربات"),
+            summaryCard("ورود ۳۰ روز (کل)", ownerStatsMetric(totals.logins30d), "مجموع همه loginهای موفق در ۳۰ روز اخیر"),
+            summaryCard("دانلود ۳۰ روز (کل)", ownerStatsMetric(totals.downloads30d), "همه کلیک‌های دانلود ۳۰ روز اخیر", totals.downloads30d > 0 ? "ok" : ""),
             summaryCard("بازدیدکننده یکتا", ownerStatsMetric(totals.uniqueVisitors30d), "تعداد visitor یکتای ۳۰ روز اخیر"),
             summaryCard("فایل‌سنتر / HTML", ownerStatsMetric((totals.contentToolsDownloads || 0) + (totals.htmlPageViews || 0)), "دانلودهای فایل‌سنتر + بازدید صفحه‌های HTML uploader", "warn")
         ].join("");

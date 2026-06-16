@@ -12,6 +12,47 @@ function analytics_store_path(): string
     return dent_storage_path('analytics/store.json');
 }
 
+function analytics_segment_keys(): array
+{
+    return ['human', 'owner', 'bot'];
+}
+
+function analytics_clean_segment(string $value): string
+{
+    $value = trim(strtolower($value));
+    return in_array($value, analytics_segment_keys(), true) ? $value : 'human';
+}
+
+function analytics_request_is_bot(): bool
+{
+    $ua = strtolower(trim((string) ($_SERVER['HTTP_USER_AGENT'] ?? '')));
+    if ($ua === '') {
+        return true; // no UA → almost always automated traffic
+    }
+    $needles = [
+        'bot', 'crawl', 'spider', 'slurp', 'bing', 'googlebot', 'google-extended',
+        'yandex', 'duckduck', 'baidu', 'gptbot', 'claudebot', 'claude-user', 'claude-web',
+        'anthropic', 'ccbot', 'perplexity', 'oai-searchbot', 'chatgpt', 'headless',
+        'python-requests', 'python-urllib', 'curl/', 'wget', 'go-http-client',
+        'facebookexternalhit', 'applebot', 'semrush', 'ahrefs', 'mj12', 'dotbot',
+    ];
+    foreach ($needles as $needle) {
+        if (strpos($ua, $needle) !== false) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function analytics_default_segments(): array
+{
+    $segments = [];
+    foreach (analytics_segment_keys() as $key) {
+        $segments[$key] = ['pageViews' => 0, 'logins' => 0, 'downloads' => 0];
+    }
+    return $segments;
+}
+
 function analytics_default_store(): array
 {
     return [
@@ -20,6 +61,7 @@ function analytics_default_store(): array
             'pageViews' => 0,
             'logins' => 0,
             'downloads' => 0,
+            'segments' => analytics_default_segments(),
         ],
         'pages' => [],
         'families' => [],
@@ -54,6 +96,14 @@ function analytics_normalize_store(array $store): array
     $normalized['totals'] = array_merge($defaults['totals'], $normalized['totals']);
     foreach (['pageViews', 'logins', 'downloads'] as $key) {
         $normalized['totals'][$key] = max(0, (int) ($normalized['totals'][$key] ?? 0));
+    }
+    $segments = is_array($normalized['totals']['segments'] ?? null) ? $normalized['totals']['segments'] : [];
+    $normalized['totals']['segments'] = analytics_default_segments();
+    foreach (analytics_segment_keys() as $segKey) {
+        $row = is_array($segments[$segKey] ?? null) ? $segments[$segKey] : [];
+        foreach (['pageViews', 'logins', 'downloads'] as $metric) {
+            $normalized['totals']['segments'][$segKey][$metric] = max(0, (int) ($row[$metric] ?? 0));
+        }
     }
 
     foreach (['pages', 'families', 'cohorts', 'daily'] as $key) {
@@ -579,11 +629,13 @@ function analytics_record_page_view(array $payload): void
     $cohortKey = analytics_clean_cohort_key((string) ($payload['cohort'] ?? ''));
     $visitorKey = analytics_clean_bucket_key((string) ($payload['visitorId'] ?? ''));
     $visitKey = analytics_clean_bucket_key((string) ($payload['visitId'] ?? ''));
+    $segment = analytics_clean_segment((string) ($payload['segment'] ?? 'human'));
     $now = dent_iso_now();
     $day = analytics_event_now_day();
 
-    analytics_update_store(static function (array $store) use ($path, $title, $family, $cohortKey, $visitorKey, $visitKey, $now, $day): array {
+    analytics_update_store(static function (array $store) use ($path, $title, $family, $cohortKey, $visitorKey, $visitKey, $segment, $now, $day): array {
         $store['totals']['pageViews'] = max(0, (int) ($store['totals']['pageViews'] ?? 0)) + 1;
+        $store['totals']['segments'][$segment]['pageViews'] = max(0, (int) ($store['totals']['segments'][$segment]['pageViews'] ?? 0)) + 1;
 
         $page = is_array($store['pages'][$path] ?? null) ? $store['pages'][$path] : [
             'path' => $path,
@@ -649,11 +701,13 @@ function analytics_record_download(array $payload): void
     $sourceFamily = analytics_clean_family((string) ($payload['sourceFamily'] ?? analytics_page_family((string) ($payload['sourcePath'] ?? '/'))));
     $cohortKey = analytics_clean_cohort_key((string) ($payload['cohort'] ?? ''));
     $targetKey = analytics_download_target_key($href, $label);
+    $segment = analytics_clean_segment((string) ($payload['segment'] ?? 'human'));
     $now = dent_iso_now();
     $day = analytics_event_now_day();
 
-    analytics_update_store(static function (array $store) use ($href, $label, $sourceFamily, $cohortKey, $targetKey, $now, $day): array {
+    analytics_update_store(static function (array $store) use ($href, $label, $sourceFamily, $cohortKey, $targetKey, $segment, $now, $day): array {
         $store['totals']['downloads'] = max(0, (int) ($store['totals']['downloads'] ?? 0)) + 1;
+        $store['totals']['segments'][$segment]['downloads'] = max(0, (int) ($store['totals']['segments'][$segment]['downloads'] ?? 0)) + 1;
         analytics_increment_counter($store['downloads']['sources'], $sourceFamily);
 
         $target = is_array($store['downloads']['targets'][$targetKey] ?? null) ? $store['downloads']['targets'][$targetKey] : [
@@ -738,11 +792,14 @@ function analytics_record_login(array $user, string $method): void
     $cleanMethod = analytics_clean_login_method($method);
     $name = analytics_clean_label((string) ($user['name'] ?? ''), 120);
     $role = analytics_clean_bucket_key((string) ($user['role'] ?? 'student'));
+    $isOwner = $role === 'owner' || !empty($user['isOwner']);
+    $segment = $isOwner ? 'owner' : (analytics_request_is_bot() ? 'bot' : 'human');
     $now = dent_iso_now();
     $day = analytics_event_now_day();
 
-    analytics_update_store(static function (array $store) use ($studentNumber, $cohortKey, $cleanMethod, $name, $role, $now, $day): array {
+    analytics_update_store(static function (array $store) use ($studentNumber, $cohortKey, $cleanMethod, $name, $role, $segment, $now, $day): array {
         $store['totals']['logins'] = max(0, (int) ($store['totals']['logins'] ?? 0)) + 1;
+        $store['totals']['segments'][$segment]['logins'] = max(0, (int) ($store['totals']['segments'][$segment]['logins'] ?? 0)) + 1;
         analytics_increment_counter($store['logins']['methods'], $cleanMethod);
         if ($cohortKey !== '') {
             analytics_increment_counter($store['logins']['cohorts'], $cohortKey);
@@ -1275,11 +1332,39 @@ function analytics_build_owner_dashboard(array $viewer): array
         : [];
     $examsSummary = analytics_build_exam_summary($store, dent_exams_read_store(), payments_read_store());
 
+    $segments = is_array($store['totals']['segments'] ?? null) ? $store['totals']['segments'] : analytics_default_segments();
+    $segHuman = is_array($segments['human'] ?? null) ? $segments['human'] : ['pageViews' => 0, 'logins' => 0, 'downloads' => 0];
+    $segOwner = is_array($segments['owner'] ?? null) ? $segments['owner'] : ['pageViews' => 0, 'logins' => 0, 'downloads' => 0];
+    $segBot = is_array($segments['bot'] ?? null) ? $segments['bot'] : ['pageViews' => 0, 'logins' => 0, 'downloads' => 0];
+
     return [
         'generatedAt' => dent_iso_now(),
+        'segments' => [
+            'human' => [
+                'label' => 'کاربران واقعی',
+                'pageViews' => max(0, (int) ($segHuman['pageViews'] ?? 0)),
+                'logins' => max(0, (int) ($segHuman['logins'] ?? 0)),
+                'downloads' => max(0, (int) ($segHuman['downloads'] ?? 0)),
+            ],
+            'owner' => [
+                'label' => 'مالک سایت',
+                'pageViews' => max(0, (int) ($segOwner['pageViews'] ?? 0)),
+                'logins' => max(0, (int) ($segOwner['logins'] ?? 0)),
+                'downloads' => max(0, (int) ($segOwner['downloads'] ?? 0)),
+            ],
+            'bot' => [
+                'label' => 'هوش مصنوعی و ربات‌ها',
+                'pageViews' => max(0, (int) ($segBot['pageViews'] ?? 0)),
+                'logins' => max(0, (int) ($segBot['logins'] ?? 0)),
+                'downloads' => max(0, (int) ($segBot['downloads'] ?? 0)),
+            ],
+        ],
         'totals' => [
             'totalUsers' => count($users),
             'pageViews' => max(0, (int) ($store['totals']['pageViews'] ?? 0)),
+            'pageViewsReal' => max(0, (int) ($segHuman['pageViews'] ?? 0)),
+            'loginsReal' => max(0, (int) ($segHuman['logins'] ?? 0)),
+            'downloadsReal' => max(0, (int) ($segHuman['downloads'] ?? 0)),
             'pageViewsToday' => max(0, (int) ($todayBucket['pageViews'] ?? 0)),
             'pageViews30d' => analytics_sum_daily_metric($store, 'pageViews', 30),
             'logins' => max(0, (int) ($store['totals']['logins'] ?? 0)),
