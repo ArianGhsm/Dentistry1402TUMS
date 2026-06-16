@@ -67,6 +67,11 @@ function forms_store_path(): string
     return dent_storage_path('forms/store.json');
 }
 
+function forms_lock_path(): string
+{
+    return dent_storage_path('forms/store.lock');
+}
+
 function forms_legacy_store_paths(): array
 {
     return [
@@ -856,7 +861,16 @@ function forms_load_store(): array
     ];
 
     if ($needsSharedBackfill) {
-        forms_save_store($store);
+        // Non-blocking lock: skip auto-save if another writer already holds the lock.
+        // That writer will save the merged data as part of its own write cycle.
+        $backfillLock = @fopen(forms_lock_path(), 'c+');
+        if ($backfillLock !== false) {
+            if (@flock($backfillLock, LOCK_EX | LOCK_NB)) {
+                forms_save_store($store);
+                @flock($backfillLock, LOCK_UN);
+            }
+            @fclose($backfillLock);
+        }
     }
 
     return $store;
@@ -1904,6 +1918,7 @@ function forms_form_payload(array $store, array $form, ?array $viewer = null, bo
         'sharePath' => forms_share_path($formId, $form),
         'shareUrl' => forms_absolute_url(forms_share_path($formId, $form)),
         'responseCount' => $canManage ? count($responses) : null,
+        'hasReceiptPaymentFields' => forms_has_receipt_payment_fields($form),
         'fields' => $fieldsPayload,
         'paymentGateways' => $includeFields && forms_has_payment_fields($form) ? forms_payment_gateways_payload() : null,
         'settings' => $settingsPayload,
@@ -2585,6 +2600,7 @@ forms_set_active_cohort(forms_requested_cohort());
 
 if ($action === 'session') {
     $user = forms_current_site_user();
+    dent_release_session_lock();
     $store = forms_load_store();
     $activeCohort = dent_cohort_record(forms_active_cohort());
     dent_json_response([
@@ -2609,6 +2625,7 @@ if ($action === 'session') {
 
 if ($action === 'list') {
     $user = forms_require_context_user();
+    dent_release_session_lock();
     $store = forms_load_store();
     $forms = [];
     foreach ($store['forms'] as $form) {
@@ -2618,9 +2635,11 @@ if ($action === 'list') {
         if (!forms_form_matches_active_cohort($form)) {
             continue;
         }
-        $canManage = forms_can_manage($form, $user);
         if (forms_user_can_list_form($form, $user)) {
-            $forms[] = forms_form_payload($store, $form, $user, $canManage);
+            // Pass false for $includeFields: the list view only needs metadata (title,
+            // status, responseCount, audienceLabel, hasReceiptPaymentFields).
+            // Full fields + payment-status reads are deferred to the 'get' action.
+            $forms[] = forms_form_payload($store, $form, $user, false);
         }
     }
     dent_json_response([
@@ -2744,6 +2763,8 @@ if ($action === 'delete') {
 }
 
 if ($action === 'get') {
+    $user = forms_current_site_user();
+    dent_release_session_lock();
     $store = forms_load_store();
     $formId = forms_clean_id((string) ($_GET['form'] ?? $_GET['formId'] ?? $_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
@@ -2753,7 +2774,6 @@ if ($action === 'get') {
     if (!is_array($form)) {
         dent_error('فرم پیدا نشد.', 404);
     }
-    $user = forms_current_site_user();
     if (!forms_user_can_open_form($form, $user)) {
         if ($user === null && !forms_guest_allowed($form)) {
             dent_error('برای شرکت در این فرم باید وارد حساب شوید.', 401, ['loggedOut' => true, 'requiresLogin' => true]);
@@ -3165,6 +3185,7 @@ if ($action === 'submit') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد ثبت پاسخ نامعتبر است.', 405);
     }
+    // --- Pre-lock validation (reads session + initial store snapshot) ---
     $store = forms_load_store();
     $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
@@ -3175,6 +3196,8 @@ if ($action === 'submit') {
         dent_error('فرم پیدا نشد.', 404);
     }
     $user = forms_current_site_user();
+    // Release PHP session lock as early as possible — file I/O continues below.
+    dent_release_session_lock();
     if (!forms_viewer_can_access($form, $user)) {
         if ($user === null && !forms_guest_allowed($form)) {
             dent_error('برای ثبت پاسخ باید وارد حساب شوید.', 401, ['loggedOut' => true, 'requiresLogin' => true]);
@@ -3198,30 +3221,54 @@ if ($action === 'submit') {
         dent_error('شماره تماس شرکت‌کننده مهمان الزامی است.', 422);
     }
     $identityKey = forms_identity_key($user, $_POST);
-    $existingResponse = forms_response_for_identity($store, $formId, $identityKey);
-    if (forms_parse_bool($settings['limitOneResponse'] ?? true, true) && $existingResponse !== null && !forms_parse_bool($settings['allowEditResponse'] ?? false, false)) {
-        dent_error('برای این شرکت‌کننده قبلاً پاسخ ثبت شده است.', 409);
+    // Pre-compute answers from POST data (outside the file lock).
+    $preAnswers = forms_collect_answers($form, $_POST);
+
+    // --- Atomic check-and-save (exclusive file lock) ---
+    $submitLock = fopen(forms_lock_path(), 'c+');
+    if ($submitLock === false) {
+        dent_error('خطا در دسترسی به قفل فضای ذخیره‌سازی فرم.', 500);
     }
-    $answers = forms_collect_answers($form, $_POST);
-    foreach (forms_collect_payment_answers($form, $identityKey) as $fieldId => $answer) {
-        $answers[$fieldId] = $answer;
+    $response = null;
+    $existingResponse = null;
+    try {
+        if (!flock($submitLock, LOCK_EX)) {
+            throw new RuntimeException('Unable to acquire store lock.');
+        }
+        // Re-read the store inside the lock so we see any concurrent writes.
+        $store = forms_load_store();
+        $form = $store['forms'][$formId] ?? null;
+        if (!is_array($form)) {
+            dent_error('فرم پیدا نشد.', 404);
+        }
+        $existingResponse = forms_response_for_identity($store, $formId, $identityKey);
+        if (forms_parse_bool($settings['limitOneResponse'] ?? true, true) && $existingResponse !== null && !forms_parse_bool($settings['allowEditResponse'] ?? false, false)) {
+            dent_error('برای این شرکت‌کننده قبلاً پاسخ ثبت شده است.', 409);
+        }
+        $answers = $preAnswers;
+        foreach (forms_collect_payment_answers($form, $identityKey) as $fieldId => $answer) {
+            $answers[$fieldId] = $answer;
+        }
+        foreach (forms_collect_receipt_payment_answers($store, $form, $identityKey) as $fieldId => $answer) {
+            $answers[$fieldId] = $answer;
+        }
+        $now = time();
+        $response = [
+            'id' => is_array($existingResponse) ? (string) ($existingResponse['id'] ?? forms_next_id(FORMS_RESPONSE_ID_PREFIX)) : forms_next_id(FORMS_RESPONSE_ID_PREFIX),
+            'formId' => $formId,
+            'submittedAt' => is_array($existingResponse) ? (int) ($existingResponse['submittedAt'] ?? $now) : $now,
+            'updatedAt' => $now,
+            'identity' => forms_identity_payload($user, $_POST),
+            'answers' => $answers,
+        ];
+        $store['responses'][(string) $response['id']] = $response;
+        $form['updatedAt'] = $now;
+        $store['forms'][$formId] = $form;
+        forms_save_store($store);
+    } finally {
+        @flock($submitLock, LOCK_UN);
+        @fclose($submitLock);
     }
-    foreach (forms_collect_receipt_payment_answers($store, $form, $identityKey) as $fieldId => $answer) {
-        $answers[$fieldId] = $answer;
-    }
-    $now = time();
-    $response = [
-        'id' => is_array($existingResponse) ? (string) ($existingResponse['id'] ?? forms_next_id(FORMS_RESPONSE_ID_PREFIX)) : forms_next_id(FORMS_RESPONSE_ID_PREFIX),
-        'formId' => $formId,
-        'submittedAt' => is_array($existingResponse) ? (int) ($existingResponse['submittedAt'] ?? $now) : $now,
-        'updatedAt' => $now,
-        'identity' => forms_identity_payload($user, $_POST),
-        'answers' => $answers,
-    ];
-    $store['responses'][(string) $response['id']] = $response;
-    $form['updatedAt'] = $now;
-    $store['forms'][$formId] = $form;
-    forms_save_store($store);
     $formPayload = forms_form_payload($store, $form, $user, true, $identityKey);
     dent_json_response([
         'success' => true,

@@ -892,11 +892,20 @@
     formEl.addEventListener("submit", submitForm);
 
     showStage("boot");
+    var lastAuthStatus = null;
     window.Dent1402Auth.onChange(function (detail) {
-        if (detail && (detail.status === "session-restoring" || detail.status === "logging-out")) {
+        var status = detail && detail.status ? String(detail.status) : null;
+        if (status === "session-restoring" || status === "logging-out") {
             showStage("boot");
+            lastAuthStatus = null; // Reset so the next stable state always triggers a load
             return;
         }
+        // If the form is already rendered and the auth status hasn't changed,
+        // skip the reload to avoid wiping the user's partially-filled answers.
+        if (state.form !== null && status !== null && status === lastAuthStatus) {
+            return;
+        }
+        lastAuthStatus = status;
         loadForm();
     });
 })();

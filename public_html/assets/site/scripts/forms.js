@@ -82,6 +82,7 @@
         editingId: "",
         fields: [],
         toastTimer: 0,
+        loadSessionRequestId: 0,
         loadFormsRequestId: 0,
         loadResponsesRequestId: 0,
         editRequestId: 0
@@ -1098,6 +1099,11 @@
     }
 
     function formHasReceiptPayments(form) {
+        // Use the lightweight server-side flag (always present) instead of scanning
+        // the full fields array, which is omitted from list responses.
+        if (form && typeof form.hasReceiptPaymentFields === "boolean") {
+            return form.hasReceiptPaymentFields;
+        }
         return Array.isArray(form && form.fields) && form.fields.some(function (field) {
             return field && String(field.type || "") === "receipt_payment";
         });
@@ -1425,7 +1431,15 @@
     }
 
     async function loadSession() {
+        // Deduplication: if onChange fires multiple times in rapid succession,
+        // only the last call proceeds — earlier stale calls are discarded.
+        var requestId = state.loadSessionRequestId + 1;
+        state.loadSessionRequestId = requestId;
+
         var response = await apiGet("session");
+        if (requestId !== state.loadSessionRequestId) {
+            return; // Stale — a newer loadSession() call has taken over
+        }
         if (!response || !response.success) {
             throw new Error((response && response.error) || "آماده‌سازی انجام نشد.");
         }
