@@ -1017,7 +1017,8 @@
                 next.options = next.options.map(function (item, index) {
                     return {
                         id: String(item.id || ("opt-" + (index + 1))),
-                        text: String(item.text || "").trim()
+                        text: String(item.text || "").trim(),
+                        capacity: Number(item.capacity || 0)
                     };
                 }).filter(function (item) {
                     return item.text;
