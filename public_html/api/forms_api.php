@@ -2752,10 +2752,22 @@ if ($action === 'create') {
     if (!forms_can_create($user)) {
         dent_error('ساخت فرم و نظرسنجی فقط برای مالک یا مدیر مجاز همان ورودی فعال است.', 403);
     }
-    $store = forms_load_store();
+    // Release session lock before file I/O; validate payload before acquiring store lock.
+    dent_release_session_lock();
     $form = forms_build_form_from_payload(forms_request_payload(), $user, null);
-    $store['forms'][(string) $form['id']] = $form;
-    forms_save_store($store);
+    $createLock = fopen(forms_lock_path(), 'c+');
+    if ($createLock === false) {
+        dent_error('خطا در دسترسی به قفل فضای ذخیره‌سازی فرم.', 500);
+    }
+    try {
+        flock($createLock, LOCK_EX);
+        $store = forms_load_store();
+        $store['forms'][(string) $form['id']] = $form;
+        forms_save_store($store);
+    } finally {
+        @flock($createLock, LOCK_UN);
+        @fclose($createLock);
+    }
     dent_json_response([
         'success' => true,
         'message' => forms_kind_label((string) $form['kind']) . ' ساخته شد.',
@@ -2773,19 +2785,31 @@ if ($action === 'update') {
     if ($formId === '') {
         dent_error('شناسه فرم نامعتبر است.', 422);
     }
-    $store = forms_load_store();
-    $existing = $store['forms'][$formId] ?? null;
-    if (!is_array($existing)) {
-        dent_error('فرم پیدا نشد.', 404);
-    }
-    if (!forms_can_manage($existing, $user)) {
-        dent_error('اجازه ویرایش این فرم را ندارید.', 403);
-    }
+    dent_release_session_lock();
     $payload = forms_request_payload();
-    $updated = forms_build_form_from_payload($payload, $user, $existing);
-    $updated['id'] = $formId;
-    $store['forms'][$formId] = $updated;
-    forms_save_store($store);
+    $updateLock = fopen(forms_lock_path(), 'c+');
+    if ($updateLock === false) {
+        dent_error('خطا در دسترسی به قفل فضای ذخیره‌سازی فرم.', 500);
+    }
+    $updated = null;
+    try {
+        flock($updateLock, LOCK_EX);
+        $store = forms_load_store();
+        $existing = $store['forms'][$formId] ?? null;
+        if (!is_array($existing)) {
+            dent_error('فرم پیدا نشد.', 404);
+        }
+        if (!forms_can_manage($existing, $user)) {
+            dent_error('اجازه ویرایش این فرم را ندارید.', 403);
+        }
+        $updated = forms_build_form_from_payload($payload, $user, $existing);
+        $updated['id'] = $formId;
+        $store['forms'][$formId] = $updated;
+        forms_save_store($store);
+    } finally {
+        @flock($updateLock, LOCK_UN);
+        @fclose($updateLock);
+    }
     dent_json_response([
         'success' => true,
         'message' => 'تنظیمات فرم ذخیره شد.',
@@ -2803,18 +2827,29 @@ if ($action === 'setStatus') {
     if ($formId === '') {
         dent_error('شناسه فرم نامعتبر است.', 422);
     }
-    $store = forms_load_store();
-    $form = $store['forms'][$formId] ?? null;
-    if (!is_array($form)) {
-        dent_error('فرم پیدا نشد.', 404);
+    dent_release_session_lock();
+    $statusLock = fopen(forms_lock_path(), 'c+');
+    if ($statusLock === false) {
+        dent_error('خطا در دسترسی به قفل فضای ذخیره‌سازی فرم.', 500);
     }
-    if (!forms_can_manage($form, $user)) {
-        dent_error('اجازه مدیریت این فرم را ندارید.', 403);
+    try {
+        flock($statusLock, LOCK_EX);
+        $store = forms_load_store();
+        $form = $store['forms'][$formId] ?? null;
+        if (!is_array($form)) {
+            dent_error('فرم پیدا نشد.', 404);
+        }
+        if (!forms_can_manage($form, $user)) {
+            dent_error('اجازه مدیریت این فرم را ندارید.', 403);
+        }
+        $form['status'] = $status;
+        $form['updatedAt'] = time();
+        $store['forms'][$formId] = $form;
+        forms_save_store($store);
+    } finally {
+        @flock($statusLock, LOCK_UN);
+        @fclose($statusLock);
     }
-    $form['status'] = $status;
-    $form['updatedAt'] = time();
-    $store['forms'][$formId] = $form;
-    forms_save_store($store);
     dent_json_response([
         'success' => true,
         'form' => forms_form_payload($store, $form, $user, false),
@@ -2830,27 +2865,38 @@ if ($action === 'delete') {
     if ($formId === '') {
         dent_error('شناسه فرم نامعتبر است.', 422);
     }
-    $store = forms_load_store();
-    $form = $store['forms'][$formId] ?? null;
-    if (!is_array($form)) {
-        dent_error('فرم پیدا نشد.', 404);
+    dent_release_session_lock();
+    $deleteLock = fopen(forms_lock_path(), 'c+');
+    if ($deleteLock === false) {
+        dent_error('خطا در دسترسی به قفل فضای ذخیره‌سازی فرم.', 500);
     }
-    if (!forms_can_delete($form, $user)) {
-        dent_error('حذف کامل فرم فقط برای مالک مجاز است.', 403);
-    }
-    unset($store['forms'][$formId]);
-    foreach ($store['responses'] as $responseId => $response) {
-        if (is_array($response) && (string) ($response['formId'] ?? '') === $formId) {
-            unset($store['responses'][$responseId]);
+    try {
+        flock($deleteLock, LOCK_EX);
+        $store = forms_load_store();
+        $form = $store['forms'][$formId] ?? null;
+        if (!is_array($form)) {
+            dent_error('فرم پیدا نشد.', 404);
         }
-    }
-    foreach ($store['receiptUploads'] as $receiptId => $receipt) {
-        if (is_array($receipt) && (string) ($receipt['formId'] ?? '') === $formId) {
-            forms_delete_receipt_file($receipt);
-            unset($store['receiptUploads'][$receiptId]);
+        if (!forms_can_delete($form, $user)) {
+            dent_error('حذف کامل فرم فقط برای مالک مجاز است.', 403);
         }
+        unset($store['forms'][$formId]);
+        foreach ($store['responses'] as $responseId => $response) {
+            if (is_array($response) && (string) ($response['formId'] ?? '') === $formId) {
+                unset($store['responses'][$responseId]);
+            }
+        }
+        foreach ($store['receiptUploads'] as $receiptId => $receipt) {
+            if (is_array($receipt) && (string) ($receipt['formId'] ?? '') === $formId) {
+                forms_delete_receipt_file($receipt);
+                unset($store['receiptUploads'][$receiptId]);
+            }
+        }
+        forms_save_store($store);
+    } finally {
+        @flock($deleteLock, LOCK_UN);
+        @fclose($deleteLock);
     }
-    forms_save_store($store);
     dent_json_response([
         'success' => true,
         'formId' => $formId,
@@ -2893,8 +2939,10 @@ if ($action === 'uploadReceipt') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد آپلود رسید نامعتبر است.', 405);
     }
+    // Read session (user) first, then release lock before any file I/O.
+    $user = forms_current_site_user();
+    dent_release_session_lock();
 
-    $store = forms_load_store();
     $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     $fieldId = trim(strtolower((string) ($_POST['fieldId'] ?? '')));
     if (preg_match('/^[a-z0-9_-]{3,48}$/', $fieldId) !== 1) {
@@ -2903,11 +2951,12 @@ if ($action === 'uploadReceipt') {
     if ($formId === '' || $fieldId === '') {
         dent_error('شناسه فرم یا سوال رسید معتبر نیست.', 422);
     }
+    // Pre-lock read for validation (non-authoritative but fast).
+    $store = forms_load_store();
     $form = $store['forms'][$formId] ?? null;
     if (!is_array($form)) {
         dent_error('فرم پیدا نشد.', 404);
     }
-    $user = forms_current_site_user();
     if (!forms_viewer_can_access($form, $user)) {
         if ($user === null && !forms_guest_allowed($form)) {
             dent_error('برای آپلود رسید باید وارد حساب شوید.', 401, ['loggedOut' => true, 'requiresLogin' => true]);
@@ -2917,7 +2966,6 @@ if ($action === 'uploadReceipt') {
     if (forms_status($form) !== 'open') {
         dent_error('آپلود رسید برای این فرم فعال نیست.', 422);
     }
-
     $targetField = null;
     foreach (forms_receipt_payment_fields($form) as $field) {
         if ((string) ($field['id'] ?? '') === $fieldId) {
@@ -2928,16 +2976,15 @@ if ($action === 'uploadReceipt') {
     if (!is_array($targetField)) {
         dent_error('سوال پرداخت با رسید پیدا نشد.', 404);
     }
-
     $file = $_FILES['receipt'] ?? null;
     if (!is_array($file)) {
         dent_error('فایل رسید انتخاب نشده است.', 422);
     }
-
     $identityKey = forms_identity_key($user, $_POST);
     if ($identityKey === '') {
         dent_error('شناسه شرکت‌کننده برای آپلود رسید معتبر نیست.', 422);
     }
+    // Upload file to disk outside the store lock (slow I/O should not block other requests).
     $receiptId = forms_next_id(FORMS_RECEIPT_ID_PREFIX);
     $stored = forms_store_uploaded_receipt_file($file, $receiptId, forms_form_cohort($form));
     $receipt = [
@@ -2954,11 +3001,28 @@ if ($action === 'uploadReceipt') {
         'uploadedBy' => $user !== null ? dent_normalize_student_number((string) ($user['studentNumber'] ?? '')) : '',
         'status' => 'uploaded',
     ];
-    $store['receiptUploads'][$receiptId] = $receipt;
-    forms_save_store($store);
-
+    // Atomic store update: re-read inside lock to avoid concurrent-write data loss.
+    $receiptLock = fopen(forms_lock_path(), 'c+');
+    if ($receiptLock === false) {
+        forms_delete_receipt_file($receipt);
+        dent_error('خطا در دسترسی به قفل فضای ذخیره‌سازی فرم.', 500);
+    }
+    try {
+        flock($receiptLock, LOCK_EX);
+        $store = forms_load_store();
+        // Re-validate form status inside the lock.
+        $lockedForm = $store['forms'][$formId] ?? null;
+        if (!is_array($lockedForm) || forms_status($lockedForm) !== 'open') {
+            forms_delete_receipt_file($receipt);
+            dent_error('فرم دیگر پذیرش رسید ندارد.', 409);
+        }
+        $store['receiptUploads'][$receiptId] = $receipt;
+        forms_save_store($store);
+    } finally {
+        @flock($receiptLock, LOCK_UN);
+        @fclose($receiptLock);
+    }
     forms_upsert_receipt_payment_order($form, $targetField, $receipt, forms_identity_payload($user, $_POST));
-
     dent_json_response([
         'success' => true,
         'receipt' => forms_receipt_public_payload($receipt),
@@ -2971,6 +3035,7 @@ if ($action === 'downloadReceipt') {
         dent_error('متد دانلود رسید نامعتبر است.', 405);
     }
     $user = forms_require_context_user();
+    dent_release_session_lock();
     $store = forms_load_store();
     $receiptId = forms_clean_id((string) ($_GET['id'] ?? ''), FORMS_RECEIPT_ID_PREFIX);
     if ($receiptId === '') {
@@ -3001,6 +3066,7 @@ if ($action === 'exportReceipts') {
         dent_error('متد خروجی رسیدها نامعتبر است.', 405);
     }
     $user = forms_require_context_user();
+    dent_release_session_lock();
     $store = forms_load_store();
     $formId = forms_clean_id((string) ($_GET['formId'] ?? $_GET['form'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
@@ -3055,6 +3121,7 @@ if ($action === 'createPayment') {
     }
 
     $user = forms_require_context_user();
+    dent_release_session_lock();
     $formStore = forms_load_store();
     $formId = forms_clean_id((string) ($_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     $fieldId = trim(strtolower((string) ($_POST['fieldId'] ?? '')));
@@ -3428,6 +3495,7 @@ if ($action === 'submit') {
 
 if ($action === 'responses') {
     $user = forms_require_context_user();
+    dent_release_session_lock();
     $store = forms_load_store();
     $formId = forms_clean_id((string) ($_GET['formId'] ?? $_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
@@ -3450,6 +3518,7 @@ if ($action === 'responses') {
 
 if ($action === 'export') {
     $user = forms_require_context_user();
+    dent_release_session_lock();
     $store = forms_load_store();
     $formId = forms_clean_id((string) ($_GET['formId'] ?? $_POST['formId'] ?? ''), FORMS_ID_PREFIX);
     if ($formId === '') {
