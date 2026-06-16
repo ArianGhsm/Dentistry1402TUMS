@@ -3535,4 +3535,48 @@ if ($action === 'export') {
     forms_export_xlsx($form, forms_responses_for_form($store, $formId), $mode);
 }
 
+if ($action === 'ownerPatchAnswer') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد نامعتبر است.', 405);
+    }
+    $user = dent_require_owner();
+    dent_release_session_lock();
+
+    $formId     = forms_clean_id((string) ($_POST['formId']     ?? ''), FORMS_ID_PREFIX);
+    $responseId = forms_clean_id((string) ($_POST['responseId'] ?? ''), FORMS_RESPONSE_ID_PREFIX);
+    $fieldId    = trim((string) ($_POST['fieldId'] ?? ''));
+    $newAnswer  = $_POST['newAnswer'] ?? '';
+
+    if ($formId === '' || $responseId === '' || $fieldId === '') {
+        dent_error('پارامترهای ناقص.', 422);
+    }
+
+    $handle = @fopen(forms_lock_path(), 'c');
+    if ($handle === false) {
+        dent_error('قفل store باز نشد.', 500);
+    }
+    try {
+        if (!@flock($handle, LOCK_EX)) {
+            dent_error('قفل store گرفته نشد.', 500);
+        }
+        $store = forms_load_store();
+        if (!isset($store['forms'][$formId])) {
+            dent_error('فرم پیدا نشد.', 404);
+        }
+        if (!isset($store['responses'][$responseId])) {
+            dent_error('پاسخ پیدا نشد.', 404);
+        }
+        if ((string) ($store['responses'][$responseId]['formId'] ?? '') !== $formId) {
+            dent_error('پاسخ به این فرم تعلق ندارد.', 422);
+        }
+        $store['responses'][$responseId]['answers'][$fieldId] = $newAnswer;
+        $store['responses'][$responseId]['updatedAt'] = time();
+        forms_save_store($store);
+        dent_json_response(['success' => true, 'responseId' => $responseId, 'fieldId' => $fieldId, 'newAnswer' => $newAnswer]);
+    } finally {
+        @flock($handle, LOCK_UN);
+        @fclose($handle);
+    }
+}
+
 dent_error('درخواست نامعتبر است.', 404);
