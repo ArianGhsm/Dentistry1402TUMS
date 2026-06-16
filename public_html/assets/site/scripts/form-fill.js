@@ -644,7 +644,11 @@
 
         submitBtn.disabled = !(form.permissions && form.permissions.canSubmit);
         if (submitBtn.disabled) {
-            setFeedback("ثبت پاسخ برای این فرم فعال نیست.", "");
+            if (form.permissions && form.permissions.alreadySubmitted) {
+                setFeedback("پاسخ این فرم قبلاً توسط شما ثبت شده است.", "success");
+            } else {
+                setFeedback("شما مجاز به پاسخ‌دهی به این فرم نیستید.", "error");
+            }
         } else {
             setFeedback("", "");
         }
