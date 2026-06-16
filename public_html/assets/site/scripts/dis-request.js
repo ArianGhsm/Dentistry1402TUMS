@@ -265,7 +265,7 @@
         }
     }
 
-    function setStatusCard(alreadySubmitted, response) {
+    function setStatusCard(alreadySubmitted, response, formOpen) {
         if (!statusKicker || !statusTitle || !statusText || !submittedAt) {
             return;
         }
@@ -279,6 +279,14 @@
             if (fullName.replace(/\s+/g, "").trim()) {
                 statusText.textContent = "درخواست ثبت‌شده برای «" + fullName.trim() + "» نگهداری می‌شود و ارسال مجدد فعال نیست.";
             }
+            return;
+        }
+
+        if (formOpen === false) {
+            statusKicker.textContent = "فرم بسته است";
+            statusTitle.textContent = "ثبت درخواست در حال حاضر فعال نیست";
+            statusText.textContent = "فرم DIS توسط مدیر موقتاً بسته شده است. برای اطلاع از زمان فعال‌شدن مجدد منتظر اطلاع‌رسانی باشید.";
+            submittedAt.textContent = "—";
             return;
         }
 
@@ -376,7 +384,8 @@
 
     function updateFromStatusPayload(payload) {
         currentResponse = payload && payload.response ? payload.response : null;
-        setStatusCard(!!payload.alreadySubmitted, currentResponse);
+        var formOpen = payload && payload.formOpen !== false;
+        setStatusCard(!!payload.alreadySubmitted, currentResponse, payload.formOpen);
 
         if (manageLink) {
             manageLink.hidden = !payload.ownerAccess;
@@ -389,6 +398,12 @@
             fillFormFromResponse(currentResponse);
             setReadonlyMode(true);
             setFeedback("پاسخ این حساب قبلا ثبت شده است.", "success");
+            return;
+        }
+
+        if (!formOpen) {
+            setReadonlyMode(true);
+            setFeedback("فرم DIS در حال حاضر بسته است و امکان ثبت درخواست وجود ندارد.", "error");
             return;
         }
 

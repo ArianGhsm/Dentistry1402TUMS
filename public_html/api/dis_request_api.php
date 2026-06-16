@@ -17,6 +17,7 @@ function dis_request_default_store(): array
 {
     return [
         'schemaVersion' => DIS_REQUEST_SCHEMA_VERSION,
+        'formOpen' => true,
         'responses' => [],
     ];
 }
@@ -51,6 +52,7 @@ function dis_request_load_store(): array
 
     return [
         'schemaVersion' => DIS_REQUEST_SCHEMA_VERSION,
+        'formOpen' => isset($store['formOpen']) ? (bool) $store['formOpen'] : true,
         'responses' => $normalizedResponses,
     ];
 }
@@ -80,6 +82,7 @@ function dis_request_save_store(array $store): void
 
     dent_write_json_file(dis_request_store_path(), [
         'schemaVersion' => DIS_REQUEST_SCHEMA_VERSION,
+        'formOpen' => isset($store['formOpen']) ? (bool) $store['formOpen'] : true,
         'responses' => $normalizedResponses,
     ]);
 }
@@ -463,6 +466,11 @@ function dis_request_submit(array $user, array $source): array
     }
 
     $store = dis_request_load_store();
+
+    if (!($store['formOpen'] ?? true)) {
+        dent_error('فرم در حال حاضر بسته است و امکان ثبت درخواست وجود ندارد.', 403);
+    }
+
     if (isset($store['responses'][$studentNumber])) {
         dent_error(
             'برای این کاربر قبلا پاسخ ثبت شده است و ارسال تکراری مجاز نیست.',
@@ -485,6 +493,20 @@ function dis_request_submit(array $user, array $source): array
 
     $store['responses'][$studentNumber] = $record;
     dis_request_save_store($store);
+
+    // Persist nationalCode and directoryPhoneNumber into the user's auth profile.
+    $profileNationalCode = dent_normalize_national_code((string) ($fields['nationalCode'] ?? ''));
+    $profilePhone = dent_normalize_phone_number((string) ($fields['phoneNumber'] ?? ''));
+    if ($profileNationalCode !== '' || $profilePhone !== '') {
+        $profilePatch = ['studentNumber' => $studentNumber];
+        if ($profileNationalCode !== '') {
+            $profilePatch['nationalCode'] = $profileNationalCode;
+        }
+        if ($profilePhone !== '') {
+            $profilePatch['directoryPhoneNumber'] = $profilePhone;
+        }
+        dent_persist_user($profilePatch);
+    }
 
     return dis_request_response_payload($record);
 }
@@ -1148,19 +1170,21 @@ $action = dent_request_action();
 if ($action === 'status') {
     $user = dent_require_main_site_user();
     $store = dis_request_load_store();
+    $formOpen = $store['formOpen'] ?? true;
     $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
     $response = $studentNumber !== '' ? dis_request_form_response_for_user($store, $studentNumber) : null;
 
     dent_json_response([
         'success' => true,
         'title' => DIS_REQUEST_FORM_TITLE,
+        'formOpen' => $formOpen,
         'shareUrl' => dis_request_absolute_url(DIS_REQUEST_SHARE_PATH),
         'sharePath' => DIS_REQUEST_SHARE_PATH,
         'manageUrl' => dis_request_absolute_url(DIS_REQUEST_MANAGE_PATH),
         'managePath' => DIS_REQUEST_MANAGE_PATH,
         'ownerAccess' => ((string) ($user['role'] ?? '')) === 'owner',
         'alreadySubmitted' => $response !== null,
-        'canSubmit' => $response === null,
+        'canSubmit' => $response === null && $formOpen,
         'response' => $response,
         'prefill' => dis_request_prefill_for_user($user),
     ]);
@@ -1183,11 +1207,37 @@ if ($action === 'submit') {
 
 if ($action === 'ownerOverview') {
     dent_require_owner();
+    $store = dis_request_load_store();
 
     dent_json_response([
         'success' => true,
         'title' => DIS_REQUEST_FORM_TITLE,
+        'formOpen' => $store['formOpen'] ?? true,
         'overview' => dis_request_owner_overview(),
+    ]);
+}
+
+if ($action === 'setFormStatus') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد نامعتبر است.', 405);
+    }
+
+    dent_require_owner();
+
+    $openRaw = trim((string) ($_POST['open'] ?? ''));
+    $open = filter_var($openRaw, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+    if ($open === null) {
+        dent_error('مقدار وضعیت فرم نامعتبر است.', 422);
+    }
+
+    $store = dis_request_load_store();
+    $store['formOpen'] = $open;
+    dis_request_save_store($store);
+
+    dent_json_response([
+        'success' => true,
+        'formOpen' => $open,
+        'message' => $open ? 'فرم DIS باز شد.' : 'فرم DIS بسته شد.',
     ]);
 }
 

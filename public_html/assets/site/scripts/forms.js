@@ -1349,21 +1349,7 @@
             state.editingId = String(response.form.id || "");
             setFeedback((response && response.message) || "ذخیره شد.", "success");
             showToast("فرم ذخیره شد.");
-            // Use forms list from response when available (create returns full list);
-            // for update, patch only the changed form to avoid a redundant round-trip.
-            if (Array.isArray(response.forms)) {
-                state.forms = response.forms;
-                renderFormsList();
-            } else {
-                var updatedFormId = String(response.form.id || "");
-                var found = false;
-                state.forms = state.forms.map(function (f) {
-                    if (String(f.id || "") === updatedFormId) { found = true; return response.form; }
-                    return f;
-                });
-                if (!found) state.forms.push(response.form);
-                renderFormsList();
-            }
+            await loadForms();
             populateBuilder(response.form);
         } catch (error) {
             setFeedback(error && error.message ? error.message : "ذخیره انجام نشد.", "error");
@@ -1383,19 +1369,7 @@
                 throw new Error((response && response.error) || "تغییر وضعیت انجام نشد.");
             }
             showToast(status === "open" ? "فرم فعال شد." : "فرم بسته شد.");
-            // Patch the single changed form in state — no round-trip needed.
-            if (response.form) {
-                var changedId = String(response.form.id || "");
-                var found = false;
-                state.forms = state.forms.map(function (f) {
-                    if (String(f.id || "") === changedId) { found = true; return response.form; }
-                    return f;
-                });
-                if (!found) state.forms.push(response.form);
-                renderFormsList();
-            } else {
-                await loadForms();
-            }
+            await loadForms();
         } catch (error) {
             showToast(error && error.message ? error.message : "تغییر وضعیت انجام نشد.");
         }
@@ -1421,10 +1395,7 @@
             exportLink.hidden = true;
             exportLink.removeAttribute("href");
             showToast("فرم حذف شد.");
-            // Remove deleted form from state — no round-trip needed.
-            var deletedId = String(response.formId || formId || "");
-            state.forms = state.forms.filter(function (f) { return String(f.id || "") !== deletedId; });
-            renderFormsList();
+            await loadForms();
         } catch (error) {
             showToast(error && error.message ? error.message : "حذف فرم انجام نشد.");
         }

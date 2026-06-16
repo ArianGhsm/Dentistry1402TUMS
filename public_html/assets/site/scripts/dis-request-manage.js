@@ -32,8 +32,11 @@
     var toastEl = $("dis-manage-toast");
 
     var exportOfficial = $("dis-export-official");
+    var formOpenLabel = $("dis-form-open-label");
+    var toggleFormOpenBtn = $("dis-toggle-form-open");
 
     var activeStudentNumber = "";
+    var formIsOpen = true;
     var toastTimer = 0;
     var loadingOverview = false;
 
@@ -130,6 +133,23 @@
         }).then(parseJsonResponse).catch(networkErrorResponse);
     }
 
+    function apiPost(action, data) {
+        var body = new URLSearchParams();
+        body.append("action", action);
+        Object.keys(data || {}).forEach(function (key) {
+            body.append(key, data[key]);
+        });
+        return fetch("/api/dis_request_api.php", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "Accept": "application/json"
+            },
+            body: body
+        }).then(parseJsonResponse).catch(networkErrorResponse);
+    }
+
     function consumeUnauthorized(payload, fallbackText) {
         var auth = window.Dent1402Auth && typeof window.Dent1402Auth === "object"
             ? window.Dent1402Auth
@@ -167,6 +187,41 @@
         toastTimer = window.setTimeout(function () {
             toastEl.classList.remove("is-show");
         }, 2200);
+    }
+
+    function renderFormStatusUi(formOpen) {
+        formIsOpen = !!formOpen;
+        if (formOpenLabel) {
+            formOpenLabel.textContent = formIsOpen
+                ? "فرم در حال حاضر باز است — کاربران می‌توانند درخواست ثبت کنند."
+                : "فرم در حال حاضر بسته است — ثبت درخواست جدید غیرفعال است.";
+        }
+        if (toggleFormOpenBtn) {
+            toggleFormOpenBtn.disabled = false;
+            toggleFormOpenBtn.textContent = formIsOpen ? "بستن فرم" : "باز کردن فرم";
+        }
+    }
+
+    function handleToggleFormOpen() {
+        if (toggleFormOpenBtn) {
+            toggleFormOpenBtn.disabled = true;
+        }
+        var nextOpen = !formIsOpen;
+        apiPost("setFormStatus", { open: nextOpen ? "1" : "0" }).then(function (payload) {
+            if (consumeUnauthorized(payload, "نشست شما منقضی شده است.")) {
+                return;
+            }
+            if (!payload || !payload.success) {
+                throw new Error((payload && payload.error) || "تغییر وضعیت فرم انجام نشد.");
+            }
+            renderFormStatusUi(payload.formOpen);
+            showToast((payload && payload.message) || (nextOpen ? "فرم باز شد." : "فرم بسته شد."));
+        }).catch(function (error) {
+            showToast(error && error.message ? error.message : "تغییر وضعیت فرم انجام نشد.");
+            if (toggleFormOpenBtn) {
+                toggleFormOpenBtn.disabled = false;
+            }
+        });
     }
 
     function showStage(name) {
@@ -464,6 +519,7 @@
             if (submittedList) {
                 submittedList.dataset.items = JSON.stringify(submittedItems);
             }
+            renderFormStatusUi(payload.formOpen !== false);
             renderSubmittedList(submittedItems);
             renderPendingList(pendingItems);
             renderDetail(null);
@@ -547,6 +603,10 @@
 
             loadResponseDetail(studentNumber);
         });
+    }
+
+    if (toggleFormOpenBtn) {
+        toggleFormOpenBtn.addEventListener("click", handleToggleFormOpen);
     }
 
     setExportLinks();
