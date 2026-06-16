@@ -1094,7 +1094,7 @@ function forms_user_can_list_form(array $form, ?array $user): bool
 
 function forms_user_can_open_form(array $form, ?array $user): bool
 {
-    if (!forms_form_matches_active_cohort($form)) {
+    if (!forms_audience_is_cross_cohort($form) && !forms_form_matches_active_cohort($form)) {
         return false;
     }
 
@@ -1207,9 +1207,19 @@ function forms_guest_allowed(array $form): bool
     return forms_parse_bool($settings['allowGuest'] ?? false, false);
 }
 
+function forms_audience_is_cross_cohort(array $form): bool
+{
+    $settings = is_array($form['settings'] ?? null) ? $form['settings'] : [];
+    $audience = forms_normalize_audience_for_cohort((string) ($settings['audience'] ?? 'link'), forms_form_cohort($form));
+    // "all-users" literally means every site user, regardless of entry-year cohort.
+    // Student numbers do NOT reliably encode the cohort, so an all-users form must
+    // not be gated by the viewer's cohort.
+    return $audience === 'all-users';
+}
+
 function forms_viewer_can_access(array $form, ?array $user): bool
 {
-    if (!forms_form_matches_active_cohort($form)) {
+    if (!forms_audience_is_cross_cohort($form) && !forms_form_matches_active_cohort($form)) {
         return false;
     }
     if ($user !== null && forms_user_matches_audience($form, $user)) {
