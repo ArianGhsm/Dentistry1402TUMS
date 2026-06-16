@@ -703,15 +703,19 @@
             row.appendChild(input);
             if (hasCap) {
                 var capInput = document.createElement("input");
-                capInput.type = "number";
-                capInput.min = "0";
-                capInput.max = "9999";
+                capInput.type = "text";
+                capInput.inputMode = "numeric";
+                capInput.pattern = "[0-9]*";
                 capInput.className = "forms-option-cap";
                 capInput.placeholder = "∞";
                 capInput.value = item.capacity > 0 ? String(item.capacity) : "";
                 capInput.title = "ظرفیت (خالی = بدون محدودیت)";
                 capInput.addEventListener("input", function () {
-                    var v = parseInt(capInput.value, 10);
+                    var normalized = normalizeDigits(capInput.value).replace(/\D+/g, "");
+                    if (capInput.value !== normalized) {
+                        capInput.value = normalized;
+                    }
+                    var v = parseInt(normalized, 10);
                     item.capacity = isNaN(v) || v < 0 ? 0 : v;
                 });
                 row.appendChild(capInput);
