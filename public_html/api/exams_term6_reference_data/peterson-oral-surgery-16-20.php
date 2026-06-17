@@ -47,10 +47,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کاهش مصرف مایعات تا فروکش‌کردن تورم و تمرکز بر کنترل درد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل تأکید می‌کند پس از کنترل منبع و درناژ، نقش clinician بهینه‌کردن توان host defense با hydration، improved nutrition، pain control، adjunctive antibiotic therapy و blood glucose control است.
-دلیل رد گزینه الف: شست‌وشوی دهانی و انتظار برای تخلیه خودبه‌خودی جایگزین systemic support پس از درمان جراحی نیست.
-دلیل رد گزینه ج: اتکای صرف به آنتی‌بیوتیک وسیع‌الطیف با اصل adjunct بودن آنتی‌بیوتیک و حمایت سیستمیک سازگار نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل تأکید می‌کند پس از کنترل منبع و درناژ، نقش clinician بهینه‌کردن توان host defense با hydration، improved nutrition، pain control، adjunctive antibiotic therapy و blood glucose control است.
+دلیل رد گزینه الف: شست‌وشوی دهانی و انتظار برای تخلیه خودبه‌خودی جایگزین systemic support پس از درمان جراحی نیست.
+دلیل رد گزینه ج: اتکای صرف به آنتی‌بیوتیک وسیع‌الطیف با اصل adjunct بودن آنتی‌بیوتیک و حمایت سیستمیک سازگار نیست.
 دلیل رد گزینه د: محدود کردن مایعات برخلاف توصیه فصل برای hydration و جبران دهیدراتاسیون است.',
                     ],
                     [
@@ -62,10 +62,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'قارچی، با شروع معمول از کلونیزاسیون فرصت‌طلب در پوست صورت',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل عفونت‌های ادنتوژنیک را تقریباً همیشه polymicrobial و عمدتاً ناشی از normal oral flora شامل aerobic/anaerobic gram-positive cocci و anaerobic gram-negative rods می‌داند.
-دلیل رد گزینه الف: routine culture معمولاً یک ارگانیسم primary منفرد را مشخص نمی‌کند.
-دلیل رد گزینه ج: منشأ عفونت ادنتوژنیک در فصل باکتریال است، نه ویروسی.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل عفونت‌های ادنتوژنیک را تقریباً همیشه polymicrobial و عمدتاً ناشی از normal oral flora شامل aerobic/anaerobic gram-positive cocci و anaerobic gram-negative rods می‌داند.
+دلیل رد گزینه الف: routine culture معمولاً یک ارگانیسم primary منفرد را مشخص نمی‌کند.
+دلیل رد گزینه ج: منشأ عفونت ادنتوژنیک در فصل باکتریال است، نه ویروسی.
 دلیل رد گزینه د: قارچ‌ها عامل معمول این عفونت‌ها معرفی نشده‌اند.',
                     ],
                     [
@@ -77,10 +77,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ادامه drain تا پایان کامل دوره آنتی‌بیوتیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: drain معمولاً تا epithelialization tract یا بهبود بالینی و قطع drainage باقی می‌ماند؛ این وضعیت اغلب طی ۲ تا ۵ روز رخ می‌دهد و پس از خارج کردن drain زخم با secondary intention ترمیم می‌شود.
-دلیل رد گزینه ب: primary closure مسیر تخلیه را می‌بندد و با هدف tract drainage سازگار نیست.
-دلیل رد گزینه ج: needle aspiration درمان definitive محسوب نمی‌شود و جایگزین drain نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: drain معمولاً تا epithelialization tract یا بهبود بالینی و قطع drainage باقی می‌ماند؛ این وضعیت اغلب طی ۲ تا ۵ روز رخ می‌دهد و پس از خارج کردن drain زخم با secondary intention ترمیم می‌شود.
+دلیل رد گزینه ب: primary closure مسیر تخلیه را می‌بندد و با هدف tract drainage سازگار نیست.
+دلیل رد گزینه ج: needle aspiration درمان definitive محسوب نمی‌شود و جایگزین drain نیست.
 دلیل رد گزینه د: مدت باقی‌ماندن drain وابسته به بهبود بالینی و cessation of drainage است، نه پایان کامل دوره آنتی‌بیوتیک.',
                     ],
                     [
@@ -92,10 +92,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کورتکس اینفریور؛ چون فشار آبسه به‌طور مستقیم به سمت حاشیه تحتانی مندیبل می‌رود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل بیان می‌کند عفونت پالپی مولرهای مندیبل معمولاً از lingual cortex فرسایش می‌یابد، چون آپکس‌ها تمایل به قرارگیری در سمت لینگوال دارند و cortical bone لینگوال نازک‌تر است.
-دلیل رد گزینه الف: این توصیف با مولر مندیبل در فصل همخوان نیست.
-دلیل رد گزینه ج: مسیر کرستال به‌عنوان مسیر معمول این مثال بیان نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل بیان می‌کند عفونت پالپی مولرهای مندیبل معمولاً از lingual cortex فرسایش می‌یابد، چون آپکس‌ها تمایل به قرارگیری در سمت لینگوال دارند و cortical bone لینگوال نازک‌تر است.
+دلیل رد گزینه الف: این توصیف با مولر مندیبل در فصل همخوان نیست.
+دلیل رد گزینه ج: مسیر کرستال به‌عنوان مسیر معمول این مثال بیان نشده است.
 دلیل رد گزینه د: فشار آبسه مسیر اصلی را به حاشیه تحتانی هدایت نمی‌کند؛ مسیر بر اساس path of least resistance است.',
                     ],
                     [
@@ -107,10 +107,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'برای پیشگیری از dry socket پس از درمان پالپ تجویز می‌شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: acute pulpitis به pulpal system محدود است، به آنتی‌بیوتیک پاسخ نمی‌دهد و باید با restorative care یا endodontic treatment مدیریت شود.
-دلیل رد گزینه الف: فصل آنتی‌بیوتیک را برای acute pulpitis استفاده نامناسب می‌داند.
-دلیل رد گزینه ب: آنتی‌بیوتیک جایگزین درمان اندودنتیک یا restorative نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: acute pulpitis به pulpal system محدود است، به آنتی‌بیوتیک پاسخ نمی‌دهد و باید با restorative care یا endodontic treatment مدیریت شود.
+دلیل رد گزینه الف: فصل آنتی‌بیوتیک را برای acute pulpitis استفاده نامناسب می‌داند.
+دلیل رد گزینه ب: آنتی‌بیوتیک جایگزین درمان اندودنتیک یا restorative نیست.
 دلیل رد گزینه د: dry socket یک فرایند inflammatory است و ارتباطی با پیشگیری آنتی‌بیوتیکی در درمان پالپ ندارد.',
                     ],
                     [
@@ -122,10 +122,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تورم بزرگ و board-like، بدون پورولانس، درد منتشر',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: abscess در جدول با درد localized، اندازه smaller، مرکز نرم، purulence present و bacteria عمدتاً anaerobic توصیف شده است.
-دلیل رد گزینه الف: این ویژگی‌ها بیشتر با inoculation، به‌ویژه dough-like و aerobic، همخوان است.
-دلیل رد گزینه ب: induration و tenderness شدید ویژگی cellulitis است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: abscess در جدول با درد localized، اندازه smaller، مرکز نرم، purulence present و bacteria عمدتاً anaerobic توصیف شده است.
+دلیل رد گزینه الف: این ویژگی‌ها بیشتر با inoculation، به‌ویژه dough-like و aerobic، همخوان است.
+دلیل رد گزینه ب: induration و tenderness شدید ویژگی cellulitis است.
 دلیل رد گزینه د: board-like و absence of purulence با cellulitis تطابق دارد نه abscess.',
                     ],
                     [
@@ -137,10 +137,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'انتخاب داروی bacteriostatic در بیمار ایمنوساپرس برای کاهش فشار انتخابی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل توصیه می‌کند تا حد ممکن از narrow-spectrum antibiotic برای هدف‌گیری streptococci و oral anaerobes بدون تخریب فلور نرمال استفاده شود.
-دلیل رد گزینه الف: broad-spectrum flora طبیعی پوست و GI را مختل کرده و superinfection/opportunistic infection و resistance را افزایش می‌دهد.
-دلیل رد گزینه ج: هزینه بالا دلیل انتخاب دارو نیست و فصل بر cost awareness تأکید دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل توصیه می‌کند تا حد ممکن از narrow-spectrum antibiotic برای هدف‌گیری streptococci و oral anaerobes بدون تخریب فلور نرمال استفاده شود.
+دلیل رد گزینه الف: broad-spectrum flora طبیعی پوست و GI را مختل کرده و superinfection/opportunistic infection و resistance را افزایش می‌دهد.
+دلیل رد گزینه ج: هزینه بالا دلیل انتخاب دارو نیست و فصل بر cost awareness تأکید دارد.
 دلیل رد گزینه د: در بیمار immunocompromised، bactericidal antibiotic در صورت امکان ترجیح دارد.',
                     ],
                     [
@@ -152,10 +152,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'یافته‌های معمول abscess سطحی که با needle aspiration قطعی درمان می‌شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: دشواری تنفس، دشواری بلع و ناتوانی در handling secretions از شاخص‌های airway compromise هستند و فصل انتقال فوری به emergency room را توصیه می‌کند.
-دلیل رد گزینه الف: این علائم با عفونت محدود آلوئولار سازگار نیستند.
-دلیل رد گزینه ج: مرحله inoculation با swelling نرم و درد خفیف مطرح می‌شود، نه علائم راه هوایی.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: دشواری تنفس، دشواری بلع و ناتوانی در handling secretions از شاخص‌های airway compromise هستند و فصل انتقال فوری به emergency room را توصیه می‌کند.
+دلیل رد گزینه الف: این علائم با عفونت محدود آلوئولار سازگار نیستند.
+دلیل رد گزینه ج: مرحله inoculation با swelling نرم و درد خفیف مطرح می‌شود، نه علائم راه هوایی.
 دلیل رد گزینه د: needle aspiration درمان قطعی نیست و این وضعیت سطحی محسوب نمی‌شود.',
                     ],
                     [
@@ -167,10 +167,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون infiltration باعث افزایش اکسیژن بافتی و مهار بی‌هوازی‌ها می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل regional nerve block را ترجیح می‌دهد، زیرا محیط اسیدی ناحیه آلوده انتشار و اثر local anesthetic را کاهش می‌دهد و infiltration می‌تواند عفونت را به بافت‌های غیرآلوده منتقل کند.
-دلیل رد گزینه ب: infiltration به‌طور مطلق ممنوع نیست، ولی نیازمند احتیاط است.
-دلیل رد گزینه ج: block نیاز به کشت یا drain را حذف نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل regional nerve block را ترجیح می‌دهد، زیرا محیط اسیدی ناحیه آلوده انتشار و اثر local anesthetic را کاهش می‌دهد و infiltration می‌تواند عفونت را به بافت‌های غیرآلوده منتقل کند.
+دلیل رد گزینه ب: infiltration به‌طور مطلق ممنوع نیست، ولی نیازمند احتیاط است.
+دلیل رد گزینه ج: block نیاز به کشت یا drain را حذف نمی‌کند.
 دلیل رد گزینه د: فصل چنین اثر افزایش اکسیژن بافتی برای infiltration ذکر نمی‌کند.',
                     ],
                     [
@@ -182,10 +182,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'محدود شدن عفونت به مسیر فیستول داخل دهانی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل تغییر character و location درد، مانند انتقال درد مولر مندیبل به jaw و neck، را نشانه احتمالی spread به deeper space می‌داند.
-دلیل رد گزینه الف: resolution پس از drainage و شروع healing مطرح می‌شود، نه تغییر درد به گردن.
-دلیل رد گزینه ج: تغییر محل درد به‌تنهایی عفونت را nonodontogenic نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل تغییر character و location درد، مانند انتقال درد مولر مندیبل به jaw و neck، را نشانه احتمالی spread به deeper space می‌داند.
+دلیل رد گزینه الف: resolution پس از drainage و شروع healing مطرح می‌شود، نه تغییر درد به گردن.
+دلیل رد گزینه ج: تغییر محل درد به‌تنهایی عفونت را nonodontogenic نمی‌کند.
 دلیل رد گزینه د: مسیر فیستول محدود با چنین گسترش درد توضیح داده نشده است.',
                     ],
                     [
@@ -197,10 +197,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'در صورت وجود pacemaker همزمان با مفصل مصنوعی به‌عنوان معیار اصلی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: طبق appropriate use criteria، prophylaxis برای orthopedic implants محدود به prosthesisهای اخیر در بیماران با immunocompromise یا poor glycemic control توصیه می‌شود.
-دلیل رد گزینه ب: توصیه قدیمی برای همه بیماران دارای مفصل مصنوعی در نسخه‌های بعدی محدود شده است.
-دلیل رد گزینه ج: poor glycemic control عامل تقویت اندیکاسیون است، نه منع prophylaxis.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: طبق appropriate use criteria، prophylaxis برای orthopedic implants محدود به prosthesisهای اخیر در بیماران با immunocompromise یا poor glycemic control توصیه می‌شود.
+دلیل رد گزینه ب: توصیه قدیمی برای همه بیماران دارای مفصل مصنوعی در نسخه‌های بعدی محدود شده است.
+دلیل رد گزینه ج: poor glycemic control عامل تقویت اندیکاسیون است، نه منع prophylaxis.
 دلیل رد گزینه د: pacemaker جزو اندیکاسیون‌های prosthetic joint prophylaxis نیست.',
                     ],
                     [
@@ -212,10 +212,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تورم کوچک‌تر با مرکز براق، کاهش پیشرفت و بی‌هوازی غالب',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: cellulitis با تورم منتشر، poorly defined، firm/indurated، قرمز و exquisitely tender توصیف شده است.
-دلیل رد گزینه الف: doughy و درد خفیف بیشتر با inoculation سازگار است.
-دلیل رد گزینه ج: fluctuant و purulence ویژگی abscess است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: cellulitis با تورم منتشر، poorly defined، firm/indurated، قرمز و exquisitely tender توصیف شده است.
+دلیل رد گزینه الف: doughy و درد خفیف بیشتر با inoculation سازگار است.
+دلیل رد گزینه ج: fluctuant و purulence ویژگی abscess است.
 دلیل رد گزینه د: مرکز براق، کاهش progression و غلبه anaerobes بیشتر با abscess مطرح می‌شود.',
                     ],
                     [
@@ -227,10 +227,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'dry socket پس از کشیدن دندان در بیمار immunocompetent',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: Box 16.3 nonresponsive infection after >48 h را اندیکاسیون culture and sensitivity می‌داند.
-دلیل رد گزینه الف: عفونت localized با پاسخ مناسب نیاز معمول به culture ندارد.
-دلیل رد گزینه ج: درد دندانی بدون شواهد عفونت بافت نرم اندیکاسیون culture نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: Box 16.3 nonresponsive infection after >48 h را اندیکاسیون culture and sensitivity می‌داند.
+دلیل رد گزینه الف: عفونت localized با پاسخ مناسب نیاز معمول به culture ندارد.
+دلیل رد گزینه ج: درد دندانی بدون شواهد عفونت بافت نرم اندیکاسیون culture نیست.
 دلیل رد گزینه د: dry socket یک فرایند inflammatory است و برای culture درمانی مطرح نشده است.',
                     ],
                     [
@@ -242,10 +242,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'علامت اختصاصی برای عفونت periodontal و نیازمند scaling فوری است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در بیمار otherwise healthy، SpO2 کمتر از ۹۵٪ باید concern برای airway compromise یا obstruction ایجاد کند.
-دلیل رد گزینه الف: فصل کاهش اکسیژن را قابل چشم‌پوشی نمی‌داند.
-دلیل رد گزینه ج: SpO2 پایین معیار اختصاصی abscess نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در بیمار otherwise healthy، SpO2 کمتر از ۹۵٪ باید concern برای airway compromise یا obstruction ایجاد کند.
+دلیل رد گزینه الف: فصل کاهش اکسیژن را قابل چشم‌پوشی نمی‌داند.
+دلیل رد گزینه ج: SpO2 پایین معیار اختصاصی abscess نیست.
 دلیل رد گزینه د: این یافته اختصاصی عفونت periodontal نیست.',
                     ],
                     [
@@ -257,10 +257,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'در بیمار سالم، آنتی‌بیوتیک وسیع‌الطیف بهترین راه کاهش deep space infection است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید در routine oral surgery، کاهش عفونت‌های خفیف و کم‌شیوع معمولاً خطر adverse reactions، resistance و هزینه را توجیه نمی‌کند.
-دلیل رد گزینه الف: preoperative antibiotics برای همه جراحی‌های دهانی توصیه نمی‌شود.
-دلیل رد گزینه ج: آنتی‌بیوتیک نمی‌تواند جایگزین asepsis و proper surgical technique باشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید در routine oral surgery، کاهش عفونت‌های خفیف و کم‌شیوع معمولاً خطر adverse reactions، resistance و هزینه را توجیه نمی‌کند.
+دلیل رد گزینه الف: preoperative antibiotics برای همه جراحی‌های دهانی توصیه نمی‌شود.
+دلیل رد گزینه ج: آنتی‌بیوتیک نمی‌تواند جایگزین asepsis و proper surgical technique باشد.
 دلیل رد گزینه د: استفاده routine از broad-spectrum در بیمار سالم توصیه نشده است.',
                     ],
                     [
@@ -272,10 +272,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'با افزایش جریان خون موضعی، فشار داخل آبسه را کاهش می‌دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: hyaluronidase با cleavage of hyaluronic acid به گسترش عفونت در subcutaneous tissues و fascial spaces کمک می‌کند.
-دلیل رد گزینه ب: فصل محیط اسیدی را عامل تسهیل رشد anaerobes می‌داند، نه hyaluronidase را عامل افزایش pH.
-دلیل رد گزینه ج: این آنزیم درمان necrotic pulp ایجاد نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: hyaluronidase با cleavage of hyaluronic acid به گسترش عفونت در subcutaneous tissues و fascial spaces کمک می‌کند.
+دلیل رد گزینه ب: فصل محیط اسیدی را عامل تسهیل رشد anaerobes می‌داند، نه hyaluronidase را عامل افزایش pH.
+دلیل رد گزینه ج: این آنزیم درمان necrotic pulp ایجاد نمی‌کند.
 دلیل رد گزینه د: کاهش فشار آبسه با surgical drainage رخ می‌دهد، نه اثر hyaluronidase.',
                     ],
                     [
@@ -287,10 +287,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Ampicillin 1 g خوراکی، شب قبل و صبح روز procedure',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: جدول prophylaxis، Amoxicillin 2 g خوراکی را برای بالغین ۳۰ تا ۶۰ دقیقه قبل از procedure ذکر می‌کند.
-دلیل رد گزینه ب: ۵۰۰ mg پس از procedure رژیم prophylaxis جدول نیست.
-دلیل رد گزینه ج: Clindamycin در جدول برای allergy با دوز ۶۰۰ mg پیش از procedure آمده، نه ۱۵۰ mg بعد از خونریزی.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: جدول prophylaxis، Amoxicillin 2 g خوراکی را برای بالغین ۳۰ تا ۶۰ دقیقه قبل از procedure ذکر می‌کند.
+دلیل رد گزینه ب: ۵۰۰ mg پس از procedure رژیم prophylaxis جدول نیست.
+دلیل رد گزینه ج: Clindamycin در جدول برای allergy با دوز ۶۰۰ mg پیش از procedure آمده، نه ۱۵۰ mg بعد از خونریزی.
 دلیل رد گزینه د: Ampicillin در جدول parenteral با دوز ۲ g IM/IV است، نه خوراکی شب قبل.',
                     ],
                     [
@@ -302,10 +302,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'perforation فاسیال بالای buccinator در mandible به submandibular space منتهی می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در مندیبل، lingual perforation بالای mylohyoid به sublingual space منجر می‌شود.
-دلیل رد گزینه ب: perforation پایین mylohyoid در مندیبل به submandibular space می‌رود، نه palatal.
-دلیل رد گزینه ج: facial erosion پایین buccinator در maxilla به vestibular space منتهی می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در مندیبل، lingual perforation بالای mylohyoid به sublingual space منجر می‌شود.
+دلیل رد گزینه ب: perforation پایین mylohyoid در مندیبل به submandibular space می‌رود، نه palatal.
+دلیل رد گزینه ج: facial erosion پایین buccinator در maxilla به vestibular space منتهی می‌شود.
 دلیل رد گزینه د: facial erosion بالای buccinator در mandible به vestibular space می‌رود، نه submandibular.',
                     ],
                     [
@@ -317,10 +317,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون آنتی‌بیوتیک می‌تواند نیاز به کنترل قند خون و hydration را حذف کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید برخی deep spaces مانند infratemporal، lateral pharyngeal و retropharyngeal بدون CT به‌خوبی ارزیابی نمی‌شوند و خطر incomplete drainage بالاتر است؛ بنابراین نقش adjunctive antibiotics بیشتر می‌شود.
-دلیل رد گزینه الف: درناژ جراحی همچنان اصل درمان است.
-دلیل رد گزینه ج: فلور این عفونت‌ها باکتریال و مرتبط با normal oral flora است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید برخی deep spaces مانند infratemporal، lateral pharyngeal و retropharyngeal بدون CT به‌خوبی ارزیابی نمی‌شوند و خطر incomplete drainage بالاتر است؛ بنابراین نقش adjunctive antibiotics بیشتر می‌شود.
+دلیل رد گزینه الف: درناژ جراحی همچنان اصل درمان است.
+دلیل رد گزینه ج: فلور این عفونت‌ها باکتریال و مرتبط با normal oral flora است.
 دلیل رد گزینه د: آنتی‌بیوتیک جایگزین hydration، glycemic control یا supportive care نیست.',
                     ],
                     [
@@ -332,10 +332,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'پوسیدگی وسیع، درد پالپی و پاسخ طبیعی به vital testing',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: fever/malaise، dyspnea، dysphagia/odynophagia، dysphonia و trismus در فصل به‌عنوان علائم مرتبط با severe infection و deep spaces ذکر شده‌اند.
-دلیل رد گزینه الف: این مجموعه بیشتر با عفونت موضعی و کم‌خطر همخوان است.
-دلیل رد گزینه ج: chronicity بیش از ۳۰ روز بیشتر نشانه containment نسبی است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: fever/malaise، dyspnea، dysphagia/odynophagia، dysphonia و trismus در فصل به‌عنوان علائم مرتبط با severe infection و deep spaces ذکر شده‌اند.
+دلیل رد گزینه الف: این مجموعه بیشتر با عفونت موضعی و کم‌خطر همخوان است.
+دلیل رد گزینه ج: chronicity بیش از ۳۰ روز بیشتر نشانه containment نسبی است.
 دلیل رد گزینه د: درد پالپی با پاسخ vital طبیعی معیار ارجاع فوری نیست.',
                     ],
                     [
@@ -347,10 +347,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'انتخاب drain غیر Penrose به‌عنوان علت معمول شکست',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل تأکید می‌کند در inadequate response، inadequate surgical treatment شامل source control یا drainage باید primary reason فرض شود تا خلافش ثابت گردد.
-دلیل رد گزینه ب: persistent swelling، pain، drainage و constitutional symptoms پاسخ مناسب نیست.
-دلیل رد گزینه ج: chlorhexidine sensitivity به‌عنوان علت معمول شکست ذکر نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل تأکید می‌کند در inadequate response، inadequate surgical treatment شامل source control یا drainage باید primary reason فرض شود تا خلافش ثابت گردد.
+دلیل رد گزینه ب: persistent swelling، pain، drainage و constitutional symptoms پاسخ مناسب نیست.
+دلیل رد گزینه ج: chlorhexidine sensitivity به‌عنوان علت معمول شکست ذکر نشده است.
 دلیل رد گزینه د: استفاده از جایگزین‌های Penrose مثل glove یا rubber dam مؤثر دانسته شده است.',
                     ],
                     [
@@ -362,10 +362,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'CBCT برای موارد localized به‌عنوان نخستین بررسی معمول انتخاب می‌شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: panoramic radiograph نمای کلی jaws، nasal cavity، maxillary sinuses و dentition می‌دهد و با ناراحتی کمتر، به‌ویژه در trismus، تهیه می‌شود.
-دلیل رد گزینه الف: bitewing periapical region را ثبت نمی‌کند و نقش مهمی در assessment عفونت ادنتوژنیک ندارد.
-دلیل رد گزینه ج: radiographic examination هرگز جایگزین history و physical examination نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: panoramic radiograph نمای کلی jaws، nasal cavity، maxillary sinuses و dentition می‌دهد و با ناراحتی کمتر، به‌ویژه در trismus، تهیه می‌شود.
+دلیل رد گزینه الف: bitewing periapical region را ثبت نمی‌کند و نقش مهمی در assessment عفونت ادنتوژنیک ندارد.
+دلیل رد گزینه ج: radiographic examination هرگز جایگزین history و physical examination نمی‌شود.
 دلیل رد گزینه د: CBCT برای همه موارد localized ضروری نیست و باید بر اساس risk-benefit استفاده شود.',
                     ],
                     [
@@ -377,10 +377,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'محدود کردن برش به mucosa بدون عبور از submucosa',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل هنگام برش در mandibular premolar region توجه به مسیر mental neurovascular bundle و اجتناب از آسیب به آن را ضروری می‌داند.
-دلیل رد گزینه ب: قرار دادن برش روی مسیر vital structures برخلاف توصیه فصل است.
-دلیل رد گزینه ج: برش باید کافی و معمولاً ۱۰ تا ۱۵ میلی‌متر باشد؛ کوتاه‌تر کردن آن می‌تواند drainage را ناکافی کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل هنگام برش در mandibular premolar region توجه به مسیر mental neurovascular bundle و اجتناب از آسیب به آن را ضروری می‌داند.
+دلیل رد گزینه ب: قرار دادن برش روی مسیر vital structures برخلاف توصیه فصل است.
+دلیل رد گزینه ج: برش باید کافی و معمولاً ۱۰ تا ۱۵ میلی‌متر باشد؛ کوتاه‌تر کردن آن می‌تواند drainage را ناکافی کند.
 دلیل رد گزینه د: عمق باید حداقل از mucosal و submucosal layers عبور کند.',
                     ],
                     [
@@ -392,10 +392,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Coagulase-negative staphylococci با فراوانی ۴۵٪ گزارش شده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در جدول 16.1، Streptococcus viridans در گروه aerobic با ۴۵٪ بیشترین فراوانی را در همان گروه دارد.
-دلیل رد گزینه ب: Pseudomonas aeruginosa در جدول aerobic و با ۵٪ است، نه anaerobic و نه شایع‌ترین.
-دلیل رد گزینه ج: Porphyromonas در anaerobic با ۵٪ آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در جدول 16.1، Streptococcus viridans در گروه aerobic با ۴۵٪ بیشترین فراوانی را در همان گروه دارد.
+دلیل رد گزینه ب: Pseudomonas aeruginosa در جدول aerobic و با ۵٪ است، نه anaerobic و نه شایع‌ترین.
+دلیل رد گزینه ج: Porphyromonas در anaerobic با ۵٪ آمده است.
 دلیل رد گزینه د: coagulase-negative staphylococci با ۱۰٪ گزارش شده، نه ۴۵٪.',
                     ],
                     [
@@ -407,10 +407,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون culture جایگزین incision and drainage در infection منتشر می‌شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در established infection در بیمار دارای prosthetic joint، اگر prosthesis آلوده شود، culture and sensitivity کمک می‌کند آنتی‌بیوتیک دقیق‌تر از درمان صرفاً empiric انتخاب شود.
-دلیل رد گزینه الف: source control و I&D همچنان ضروری هستند.
-دلیل رد گزینه ج: فصل از prolonged bacteremia در عفونت established سخن می‌گوید.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در established infection در بیمار دارای prosthetic joint، اگر prosthesis آلوده شود، culture and sensitivity کمک می‌کند آنتی‌بیوتیک دقیق‌تر از درمان صرفاً empiric انتخاب شود.
+دلیل رد گزینه الف: source control و I&D همچنان ضروری هستند.
+دلیل رد گزینه ج: فصل از prolonged bacteremia در عفونت established سخن می‌گوید.
 دلیل رد گزینه د: culture جایگزین source control و incision/drainage نیست.',
                     ],
                     [
@@ -422,10 +422,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'trismus عمدتاً زمانی مهم است که بیمار درد پالپی همزمان نداشته باشد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: trismus ممکن است involvement مasticator spaces را نشان دهد، شدت آن معمولاً با شدت infection مرتبط است و می‌تواند بدون تورم واضح هم وجود داشته باشد.
-دلیل رد گزینه الف: trismus کمتر از ۱۵ mm معمولاً severe infection را مطرح می‌کند.
-دلیل رد گزینه ج: absence of swelling، involvement مasticator spaces را رد نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: trismus ممکن است involvement مasticator spaces را نشان دهد، شدت آن معمولاً با شدت infection مرتبط است و می‌تواند بدون تورم واضح هم وجود داشته باشد.
+دلیل رد گزینه الف: trismus کمتر از ۱۵ mm معمولاً severe infection را مطرح می‌کند.
+دلیل رد گزینه ج: absence of swelling، involvement مasticator spaces را رد نمی‌کند.
 دلیل رد گزینه د: اهمیت trismus به تهدید فضاهای عمقی، access و airway مربوط است، نه صرفاً وجود درد پالپی.',
                     ],
                     [
@@ -437,10 +437,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'trismus همراه عفونت ادنتوژنیک',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: Box 16.4 drained abscess limited to alveolar process را جزو inappropriate uses برای adjunctive antibiotics فهرست کرده است.
-دلیل رد گزینه الف: cellulitis جزو appropriate uses است.
-دلیل رد گزینه ب: fever بالاتر از ۱۰۱°F از appropriate uses است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: Box 16.4 drained abscess limited to alveolar process را جزو inappropriate uses برای adjunctive antibiotics فهرست کرده است.
+دلیل رد گزینه الف: cellulitis جزو appropriate uses است.
+دلیل رد گزینه ب: fever بالاتر از ۱۰۱°F از appropriate uses است.
 دلیل رد گزینه د: trismus از appropriate uses است.',
                     ],
                     [
@@ -452,10 +452,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'HIV در صورت همراهی با periodontal pocket نقش درمانی اصلی پیدا می‌کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: severe HIV با اثر بر B و T lymphocytes بیمار را مستعد عفونت و poor response به درمان می‌کند.
-دلیل رد گزینه الف: HIV seropositivity alone طبق فصل معادل ناتوانی در دفاع علیه عفونت ادنتوژنیک نیست.
-دلیل رد گزینه ج: عفونت‌های ادنتوژنیک عمدتاً extracellular pathogens هستند، نه intracellular.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: severe HIV با اثر بر B و T lymphocytes بیمار را مستعد عفونت و poor response به درمان می‌کند.
+دلیل رد گزینه الف: HIV seropositivity alone طبق فصل معادل ناتوانی در دفاع علیه عفونت ادنتوژنیک نیست.
+دلیل رد گزینه ج: عفونت‌های ادنتوژنیک عمدتاً extracellular pathogens هستند، نه intracellular.
 دلیل رد گزینه د: اهمیت HIV به وضعیت ایمنی و شدت آن مربوط است، نه فقط periodontal pocket.',
                     ],
                     [
@@ -467,10 +467,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ایجاد سطح متغیر دارو برای تحریک host defense',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل هدف را plasma level کافی برای کشتن یا مهار باکتری‌ها با کمترین عوارض می‌داند و target peak plasma level را حدود ۴ تا ۵ برابر MIC ذکر می‌کند.
-دلیل رد گزینه الف: سطح برابر MIC هدف کافی فصل نیست.
-دلیل رد گزینه ج: سطح کمتر از MIC می‌تواند درمان را ناکافی کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل هدف را plasma level کافی برای کشتن یا مهار باکتری‌ها با کمترین عوارض می‌داند و target peak plasma level را حدود ۴ تا ۵ برابر MIC ذکر می‌کند.
+دلیل رد گزینه الف: سطح برابر MIC هدف کافی فصل نیست.
+دلیل رد گزینه ج: سطح کمتر از MIC می‌تواند درمان را ناکافی کند.
 دلیل رد گزینه د: سطح متغیر برای تحریک host defense مطرح نشده است.',
                     ],
                     [
@@ -482,10 +482,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'masseteric space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: جدول common areas of extraoral swelling، nasolabial region را با canine space مرتبط می‌کند.
-دلیل رد گزینه ب: submental space با swelling midline در inferior border/neck مرتبط است.
-دلیل رد گزینه ج: superficial temporal space با temple region مرتبط است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: جدول common areas of extraoral swelling، nasolabial region را با canine space مرتبط می‌کند.
+دلیل رد گزینه ب: submental space با swelling midline در inferior border/neck مرتبط است.
+دلیل رد گزینه ج: superficial temporal space با temple region مرتبط است.
 دلیل رد گزینه د: masseteric space با angle of mandible مرتبط است.',
                     ],
                     [
@@ -497,10 +497,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'جایگزینی همیشگی narrow-spectrum با moxifloxacin به‌عنوان روتین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل در مشکلات administration به poor compliance یا انتخاب نامناسب آنتی‌بیوتیک اشاره می‌کند و در صورت عوامل مالی یا convenience، داروی generic با dosing interval طولانی‌تر را قابل ترجیح می‌داند.
-دلیل رد گزینه ب: افزایش خودکار مدت درمان بدون بررسی surgical causes برخلاف اصل reevaluation است.
-دلیل رد گزینه ج: follow-up فعال و ارزیابی پاسخ لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل در مشکلات administration به poor compliance یا انتخاب نامناسب آنتی‌بیوتیک اشاره می‌کند و در صورت عوامل مالی یا convenience، داروی generic با dosing interval طولانی‌تر را قابل ترجیح می‌داند.
+دلیل رد گزینه ب: افزایش خودکار مدت درمان بدون بررسی surgical causes برخلاف اصل reevaluation است.
+دلیل رد گزینه ج: follow-up فعال و ارزیابی پاسخ لازم است.
 دلیل رد گزینه د: moxifloxacin به‌دلیل broad-spectrum، عوارض و هزینه برای routine use توجیه نمی‌شود.',
                     ],
                     [
@@ -512,10 +512,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'cellulitis معمولاً پس از drainage خودبه‌خودی به‌عنوان مرحله بعدی ظاهر می‌شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل cellulitis را stage اولیه‌تر با severity بیشتر و progression نامطمئن‌تر می‌داند؛ abscess نشان‌دهنده localization توسط host defense است.
-دلیل رد گزینه الف: containment بهتر بیشتر با abscess مطرح می‌شود.
-دلیل رد گزینه ج: cellulitis مرحله resolution نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل cellulitis را stage اولیه‌تر با severity بیشتر و progression نامطمئن‌تر می‌داند؛ abscess نشان‌دهنده localization توسط host defense است.
+دلیل رد گزینه الف: containment بهتر بیشتر با abscess مطرح می‌شود.
+دلیل رد گزینه ج: cellulitis مرحله resolution نیست.
 دلیل رد گزینه د: cellulitis معمولاً پیش از تشکیل abscess است، نه پس از drainage خودبه‌خودی.',
                     ],
                     [
@@ -527,10 +527,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'استفاده از chlorhexidine به‌جای آنتی‌بیوتیک، چون procedure آغاز شده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل در at-risk patient با آشکار شدن وضعیت پس از شروع procedure یا خونریزی غیرمنتظره، تجویز antibiotics را هرچه زودتر و نه دیرتر از ۴ ساعت پس از خونریزی با دوز استاندارد SBE prophylaxis توصیه می‌کند.
-دلیل رد گزینه ب: فصل تأخیر تا تب را توصیه نمی‌کند.
-دلیل رد گزینه ج: دوز درمانی چندروزه برای همه خونریزی‌ها بیان نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل در at-risk patient با آشکار شدن وضعیت پس از شروع procedure یا خونریزی غیرمنتظره، تجویز antibiotics را هرچه زودتر و نه دیرتر از ۴ ساعت پس از خونریزی با دوز استاندارد SBE prophylaxis توصیه می‌کند.
+دلیل رد گزینه ب: فصل تأخیر تا تب را توصیه نمی‌کند.
+دلیل رد گزینه ج: دوز درمانی چندروزه برای همه خونریزی‌ها بیان نشده است.
 دلیل رد گزینه د: chlorhexidine به‌عنوان nonantibiotic measure مفید است، اما جایگزین این prophylaxis خاص نیست.',
                     ],
                     [
@@ -542,10 +542,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'superficial temporal space و deep temporal space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: جدول extraoral swelling، angle of mandible را با masseteric space و lateral pharyngeal space مرتبط می‌کند.
-دلیل رد گزینه ب: canine و periorbital به nasolabial و orbit مربوط‌اند.
-دلیل رد گزینه ج: submental با midline inferior border/neck است و palatal در جدول این ناحیه نیامده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: جدول extraoral swelling، angle of mandible را با masseteric space و lateral pharyngeal space مرتبط می‌کند.
+دلیل رد گزینه ب: canine و periorbital به nasolabial و orbit مربوط‌اند.
+دلیل رد گزینه ج: submental با midline inferior border/neck است و palatal در جدول این ناحیه نیامده است.
 دلیل رد گزینه د: temporal spaces با temple region مرتبط‌اند.',
                     ],
                     [
@@ -557,10 +557,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'علیه obligate anaerobes اثر محدودتری دارد و با metronidazole جایگزین می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل moxifloxacin را fluoroquinolone با broad spectrum و عوارض مهم مانند spontaneous tendon rupture، hepatitis، dysrhythmia، peripheral neuropathy و psychiatric effects معرفی می‌کند.
-دلیل رد گزینه ب: narrow-spectrum نیست و routine use آن به‌دلیل هزینه و عوارض سخت توجیه می‌شود.
-دلیل رد گزینه ج: در متن به‌عنوان bacteriostatic ترجیحی برای همه immunocompromisedها معرفی نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل moxifloxacin را fluoroquinolone با broad spectrum و عوارض مهم مانند spontaneous tendon rupture، hepatitis، dysrhythmia، peripheral neuropathy و psychiatric effects معرفی می‌کند.
+دلیل رد گزینه ب: narrow-spectrum نیست و routine use آن به‌دلیل هزینه و عوارض سخت توجیه می‌شود.
+دلیل رد گزینه ج: در متن به‌عنوان bacteriostatic ترجیحی برای همه immunocompromisedها معرفی نشده است.
 دلیل رد گزینه د: فقط علیه obligate anaerobes نیست؛ metronidazole این نقش محدودتر را دارد.',
                     ],
                     [
@@ -572,10 +572,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'مرحله inoculation که به‌تازگی شروع شده است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: symptoms ثابت و persistent برای بیش از ۳۰ روز در فصل نشانه chronic infection است که توسط host defense تا حدی contained شده است.
-دلیل رد گزینه الف: acute rapid exacerbation بیشتر با aggressive infection یا compromise host defense همراه است.
-دلیل رد گزینه ج: chronicity به‌تنهایی deep space infection را ثابت نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: symptoms ثابت و persistent برای بیش از ۳۰ روز در فصل نشانه chronic infection است که توسط host defense تا حدی contained شده است.
+دلیل رد گزینه الف: acute rapid exacerbation بیشتر با aggressive infection یا compromise host defense همراه است.
+دلیل رد گزینه ج: chronicity به‌تنهایی deep space infection را ثابت نمی‌کند.
 دلیل رد گزینه د: inoculation معمولاً در ۳ روز نخست رخ می‌دهد.',
                     ],
                     [
@@ -587,10 +587,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'در implantهای تک‌واحدی preoperative antibiotics سودمندتر از graftهای وسیع معرفی شده است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل بیان می‌کند systematic reviews/meta-analyses برای dental implants تفاوتی در infection rates با placebo/no antibiotics نشان نداده‌اند و confounders می‌توانند باعث برداشت نادرست از success rates شوند.
-دلیل رد گزینه الف: کاهش واضح infection rate تأیید نشده است.
-دلیل رد گزینه ج: routine antibiotics برای همه بیماران سالم دارای implant توصیه نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل بیان می‌کند systematic reviews/meta-analyses برای dental implants تفاوتی در infection rates با placebo/no antibiotics نشان نداده‌اند و confounders می‌توانند باعث برداشت نادرست از success rates شوند.
+دلیل رد گزینه الف: کاهش واضح infection rate تأیید نشده است.
+دلیل رد گزینه ج: routine antibiotics برای همه بیماران سالم دارای implant توصیه نمی‌شود.
 دلیل رد گزینه د: چنین اولویتی برای implant تک‌واحدی نسبت به graftهای وسیع در فصل بیان نشده است.',
                     ],
                     [
@@ -602,10 +602,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تکیه بر questionnaire بدون گفت‌وگوی تکمیلی با بیمار',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: review of systems باید علائم systemic مانند polyuria، polydipsia و polyphagia را بپرسد تا comorbidityهای پنهان مثل diabetes mellitus یا immunocompromised state کشف شود.
-دلیل رد گزینه ب: محدود شدن به درد و تورم دهانی ممکن است بیماری‌های مؤثر بر host defense را از دست بدهد.
-دلیل رد گزینه ج: فصل review of systems را crucial می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: review of systems باید علائم systemic مانند polyuria، polydipsia و polyphagia را بپرسد تا comorbidityهای پنهان مثل diabetes mellitus یا immunocompromised state کشف شود.
+دلیل رد گزینه ب: محدود شدن به درد و تورم دهانی ممکن است بیماری‌های مؤثر بر host defense را از دست بدهد.
+دلیل رد گزینه ج: فصل review of systems را crucial می‌داند.
 دلیل رد گزینه د: questionnaire باید با گفت‌وگوی تکمیلی بررسی شود.',
                     ],
                     [
@@ -617,10 +617,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون دوره‌های کوتاه ۴ تا ۵ روزه در فصل به‌عنوان الگوی معمول مطرح نشده‌اند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید دوره typical آنتی‌بیوتیک ۴ تا ۵ روز است و نیاز به prolonged course نادر بوده و می‌تواند نشان‌دهنده inadequate source control، drainage یا هر دو باشد.
-دلیل رد گزینه الف: اتکا به دوره طولانی‌تر اصل درمان نیست.
-دلیل رد گزینه ج: مدت آنتی‌بیوتیک به دفع drain وابسته نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید دوره typical آنتی‌بیوتیک ۴ تا ۵ روز است و نیاز به prolonged course نادر بوده و می‌تواند نشان‌دهنده inadequate source control، drainage یا هر دو باشد.
+دلیل رد گزینه الف: اتکا به دوره طولانی‌تر اصل درمان نیست.
+دلیل رد گزینه ج: مدت آنتی‌بیوتیک به دفع drain وابسته نیست.
 دلیل رد گزینه د: دوره ۴ تا ۵ روزه به‌عنوان typical regimen ذکر شده است.',
                     ],
                     [
@@ -632,10 +632,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'در عفونت‌های deep space به‌دلیل تب و malaise کاربرد ندارند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: laboratory studies عمدتاً در hospital setting برای ارزیابی systemic response مانند bacteremia و پایش recovery پس از درمان به‌کار می‌روند.
-دلیل رد گزینه الف: localized vestibular abscess معمولاً constitutional symptoms چشمگیر ندارد و lab tests به ندرت لازم است.
-دلیل رد گزینه ج: آزمایش جایگزین history و physical examination نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: laboratory studies عمدتاً در hospital setting برای ارزیابی systemic response مانند bacteremia و پایش recovery پس از درمان به‌کار می‌روند.
+دلیل رد گزینه الف: localized vestibular abscess معمولاً constitutional symptoms چشمگیر ندارد و lab tests به ندرت لازم است.
+دلیل رد گزینه ج: آزمایش جایگزین history و physical examination نیست.
 دلیل رد گزینه د: در deep space infections همراه fever/malaise، lab studies به physical examination کمک می‌کند.',
                     ],
                 ],
@@ -666,10 +666,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون در عفونت‌های ادنتوژنیک fluid aspirate ارزش تشخیصی محدودی دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل surgical drainage را از simple evacuation of purulence تفکیک می‌کند؛ needle aspiration tract پایدار برای decompression و پیشگیری از reaccumulation ایجاد نمی‌کند و نقش definitive کمی دارد.
-دلیل رد گزینه ب: اثر بر MIC در فصل بیان نشده است.
-دلیل رد گزینه ج: مشکل بی‌حسی محیط اسیدی مربوط به infiltration در ناحیه آلوده است، نه علت اصلی ناکافی بودن needle aspiration.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل surgical drainage را از simple evacuation of purulence تفکیک می‌کند؛ needle aspiration tract پایدار برای decompression و پیشگیری از reaccumulation ایجاد نمی‌کند و نقش definitive کمی دارد.
+دلیل رد گزینه ب: اثر بر MIC در فصل بیان نشده است.
+دلیل رد گزینه ج: مشکل بی‌حسی محیط اسیدی مربوط به infiltration در ناحیه آلوده است، نه علت اصلی ناکافی بودن needle aspiration.
 دلیل رد گزینه د: در abscess purulence یا tissue fluid وجود دارد، اما aspiration به‌تنهایی کافی نیست.',
                     ],
                     [
@@ -681,10 +681,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'heart rate نزدیک ۹۰ beats/min همراه درد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: elevated temperature به ۱۰۱°F (۳۸٫۳°C) یا بیشتر در فصل strongly indicates bacteremia and systemic involvement و نیازمند مداخله فوری است.
-دلیل رد گزینه الف: pain و anxiety می‌توانند فشار خون را بالا ببرند و به‌تنهایی شاخص bacteremia نیستند.
-دلیل رد گزینه ب: tachypnea نگران‌کننده است اما دلالت strong ذکرشده برای bacteremia مربوط به fever است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: elevated temperature به ۱۰۱°F (۳۸٫۳°C) یا بیشتر در فصل strongly indicates bacteremia and systemic involvement و نیازمند مداخله فوری است.
+دلیل رد گزینه الف: pain و anxiety می‌توانند فشار خون را بالا ببرند و به‌تنهایی شاخص bacteremia نیستند.
+دلیل رد گزینه ب: tachypnea نگران‌کننده است اما دلالت strong ذکرشده برای bacteremia مربوط به fever است.
 دلیل رد گزینه د: HR نزدیک ۹۰ tachycardia تعریف‌شده در فصل نیست.',
                     ],
                     [
@@ -696,10 +696,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'داروهای چهار بار در روز معمولاً از نظر compliance بر داروهای دو بار در روز برتری دارند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل بیان می‌کند frequency of administration با compliance رابطه inverse دارد؛ مثال clindamycin چهار بار در روز در برابر Augmentin دو بار در روز آورده شده است.
-دلیل رد گزینه الف: خلاف رابطه معکوس ذکرشده است.
-دلیل رد گزینه ج: compliance به dosing regimen مرتبط است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل بیان می‌کند frequency of administration با compliance رابطه inverse دارد؛ مثال clindamycin چهار بار در روز در برابر Augmentin دو بار در روز آورده شده است.
+دلیل رد گزینه الف: خلاف رابطه معکوس ذکرشده است.
+دلیل رد گزینه ج: compliance به dosing regimen مرتبط است.
 دلیل رد گزینه د: داروی با دفعات کمتر معمولاً compliance بهتری دارد.',
                     ],
                     [
@@ -711,10 +711,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'مصرف طولانی metronidazole بدون درمان موضعی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: برای source periodontal، فصل scaling and root planing with debridement را treatment method معمول می‌داند.
-دلیل رد گزینه الف: pulp extirpation برای منشأ endodontic مانند necrotic pulp است.
-دلیل رد گزینه ج: needle aspiration حذف منبع عفونت نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: برای source periodontal، فصل scaling and root planing with debridement را treatment method معمول می‌داند.
+دلیل رد گزینه الف: pulp extirpation برای منشأ endodontic مانند necrotic pulp است.
+دلیل رد گزینه ج: needle aspiration حذف منبع عفونت نیست.
 دلیل رد گزینه د: آنتی‌بیوتیک بدون درمان موضعی با اصل surgical/source control سازگار نیست.',
                     ],
                     [
@@ -726,10 +726,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'vena caval filter بدون شواهد bacteremia',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: Box 16.6 previous infective endocarditis را در اندیکاسیون‌های prophylaxis برای procedures با manipulation gingival/periapical/oral mucosa ذکر می‌کند.
-دلیل رد گزینه الف: transvenous pacemaker از شرایطی است که معمولاً indication prophylaxis نیست.
-دلیل رد گزینه ب: coronary artery angioplasty بدون established infection indication نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: Box 16.6 previous infective endocarditis را در اندیکاسیون‌های prophylaxis برای procedures با manipulation gingival/periapical/oral mucosa ذکر می‌کند.
+دلیل رد گزینه الف: transvenous pacemaker از شرایطی است که معمولاً indication prophylaxis نیست.
+دلیل رد گزینه ب: coronary artery angioplasty بدون established infection indication نیست.
 دلیل رد گزینه د: vena caval filter جزو nonvalvular cardiovascular devices است و به‌تنهایی indication نیست.',
                     ],
                     [
@@ -741,10 +741,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'deep temporal space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: جدول common extraoral swelling، cheek را با buccal space مرتبط می‌کند.
-دلیل رد گزینه ب: submental space با midline inferior border/neck مرتبط است.
-دلیل رد گزینه ج: periorbital space با orbit مرتبط است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: جدول common extraoral swelling، cheek را با buccal space مرتبط می‌کند.
+دلیل رد گزینه ب: submental space با midline inferior border/neck مرتبط است.
+دلیل رد گزینه ج: periorbital space با orbit مرتبط است.
 دلیل رد گزینه د: deep temporal space با temple مرتبط است.',
                     ],
                     [
@@ -756,10 +756,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'clindamycin با دوز پایین bactericidal محسوب می‌شود و اولویت بالینی دارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: bactericidal antibiotics با lysing و killing bacteria بار host defense را کاهش می‌دهند و در immunocompromised patients اهمیت بیشتری دارند.
-دلیل رد گزینه الف: bacteriostaticها فقط رشد را کند می‌کنند و بیشتر بر host defense تکیه دارند.
-دلیل رد گزینه ج: نوع اثر دارو در وضعیت compromise host defense اهمیت دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: bactericidal antibiotics با lysing و killing bacteria بار host defense را کاهش می‌دهند و در immunocompromised patients اهمیت بیشتری دارند.
+دلیل رد گزینه الف: bacteriostaticها فقط رشد را کند می‌کنند و بیشتر بر host defense تکیه دارند.
+دلیل رد گزینه ج: نوع اثر دارو در وضعیت compromise host defense اهمیت دارد.
 دلیل رد گزینه د: clindamycin در low doses bacteriostatic و در high doses bactericidal است؛ اولویت مطلق بیان نشده است.',
                     ],
                     [
@@ -771,10 +771,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تخریب enamel، thrombosis شریانی، fibrosis بدون purulence',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل پس از ورود به soft tissues، محیط اسیدی ناشی از bacterial metabolism، غلبه anaerobes، tissue breakdown و liquefaction necrosis، سپس microabscess و coalescence را توصیف می‌کند.
-دلیل رد گزینه الف: pH افزایش نمی‌یابد و رشد anaerobes مهار نمی‌شود.
-دلیل رد گزینه ج: bacterial metabolism کاهش نمی‌یابد و WBC breakdown در تشکیل pus نقش دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل پس از ورود به soft tissues، محیط اسیدی ناشی از bacterial metabolism، غلبه anaerobes، tissue breakdown و liquefaction necrosis، سپس microabscess و coalescence را توصیف می‌کند.
+دلیل رد گزینه الف: pH افزایش نمی‌یابد و رشد anaerobes مهار نمی‌شود.
+دلیل رد گزینه ج: bacterial metabolism کاهش نمی‌یابد و WBC breakdown در تشکیل pus نقش دارد.
 دلیل رد گزینه د: این توالی در فصل برای abscess ادنتوژنیک بیان نشده است.',
                     ],
                     [
@@ -786,10 +786,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'جراحی دهانی با تکنیک ضعیف برای جبران کمبود asepsis',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: long complicated procedures مانند extensive alveoloplasty با چند implant و bone graft از شرایطی هستند که preoperative antibiotics ممکن است در آنها در نظر گرفته شود.
-دلیل رد گزینه الف: جراحی کوتاه routine در بیمار سالم اندیکاسیون routine ندارد.
-دلیل رد گزینه ج: extraction ساده در بیمار سالم معمولاً نیاز به prophylaxis ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: long complicated procedures مانند extensive alveoloplasty با چند implant و bone graft از شرایطی هستند که preoperative antibiotics ممکن است در آنها در نظر گرفته شود.
+دلیل رد گزینه الف: جراحی کوتاه routine در بیمار سالم اندیکاسیون routine ندارد.
+دلیل رد گزینه ج: extraction ساده در بیمار سالم معمولاً نیاز به prophylaxis ندارد.
 دلیل رد گزینه د: آنتی‌بیوتیک نباید برای جبران poor surgical technique یا lack of asepsis استفاده شود.',
                     ],
                     [
@@ -801,10 +801,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'استفاده از infiltration در محل عفونت مشکل دسترسی را به‌طور قطعی حل می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در surgical technique، اگر access به‌علت limited opening کافی نباشد و analgesia/anxiolysis آن را بهبود ندهد، بیمار باید فوراً به OMFS ارجاع شود.
-دلیل رد گزینه ب: trismus اغلب نماینده severe infection یا deep space involvement است.
-دلیل رد گزینه ج: محدودیت دهان به‌معنی عدم نیاز به drainage نیست؛ گاه نیاز به درمان بیمارستانی دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در surgical technique، اگر access به‌علت limited opening کافی نباشد و analgesia/anxiolysis آن را بهبود ندهد، بیمار باید فوراً به OMFS ارجاع شود.
+دلیل رد گزینه ب: trismus اغلب نماینده severe infection یا deep space involvement است.
+دلیل رد گزینه ج: محدودیت دهان به‌معنی عدم نیاز به drainage نیست؛ گاه نیاز به درمان بیمارستانی دارد.
 دلیل رد گزینه د: infiltration در محل آلوده مشکل access را حل نمی‌کند و خطر seeding دارد.',
                     ],
                     [
@@ -816,10 +816,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Amoxicillin-clavulanate 875 mg خوراکی، بعد از هر وعده غذایی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: Table 16.5 در penicillin allergy oral، Cephalexin 2 g را برای adults در فاصله ۳۰ تا ۶۰ دقیقه قبل procedure ذکر می‌کند.
-دلیل رد گزینه ب: Ampicillin در جدول parenteral است و نه ۴ ساعت بعد.
-دلیل رد گزینه ج: Ceftriaxone oral و یک هفته قبل در جدول نیامده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: Table 16.5 در penicillin allergy oral، Cephalexin 2 g را برای adults در فاصله ۳۰ تا ۶۰ دقیقه قبل procedure ذکر می‌کند.
+دلیل رد گزینه ب: Ampicillin در جدول parenteral است و نه ۴ ساعت بعد.
+دلیل رد گزینه ج: Ceftriaxone oral و یک هفته قبل در جدول نیامده است.
 دلیل رد گزینه د: Amoxicillin-clavulanate در این جدول prophylaxis ذکر نشده است.',
                     ],
                     [
@@ -831,10 +831,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'lingual cortex؛ چون mylohyoid attachment مسیر اصلی را تعیین می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل بیان می‌کند عفونت necrotic pulp مولر maxilla معمولاً از facial cortex فرسایش می‌یابد، چون facial bone نازک و مسیر با مقاومت کمتر است.
-دلیل رد گزینه ب: مسیر معمول palatal برای مولر maxilla در فصل ذکر نشده است.
-دلیل رد گزینه ج: inferior border مسیر معمول مولر maxilla نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل بیان می‌کند عفونت necrotic pulp مولر maxilla معمولاً از facial cortex فرسایش می‌یابد، چون facial bone نازک و مسیر با مقاومت کمتر است.
+دلیل رد گزینه ب: مسیر معمول palatal برای مولر maxilla در فصل ذکر نشده است.
+دلیل رد گزینه ج: inferior border مسیر معمول مولر maxilla نیست.
 دلیل رد گزینه د: mylohyoid مربوط به mandible و فضاهای lingual است، نه maxillary molar.',
                     ],
                     [
@@ -846,10 +846,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تقسیم میان اعضای خانواده در صورت علائم مشابه',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل توصیه می‌کند antibiotics unused دور ریخته شوند تا از استفاده نادرست آینده و خطر برای بیمار و community جلوگیری شود.
-دلیل رد گزینه الف: نگهداری برای آینده می‌تواند misuse ایجاد کند.
-دلیل رد گزینه ب: مصرف متناوب بدون تشخیص، خطرناک و برخلاف تکمیل/دورریزی مناسب است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل توصیه می‌کند antibiotics unused دور ریخته شوند تا از استفاده نادرست آینده و خطر برای بیمار و community جلوگیری شود.
+دلیل رد گزینه الف: نگهداری برای آینده می‌تواند misuse ایجاد کند.
+دلیل رد گزینه ب: مصرف متناوب بدون تشخیص، خطرناک و برخلاف تکمیل/دورریزی مناسب است.
 دلیل رد گزینه د: تقسیم آنتی‌بیوتیک بین دیگران در فصل جایگاهی ندارد و misuse محسوب می‌شود.',
                     ],
                     [
@@ -861,10 +861,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'پیگیری بدون مداخله تا ایجاد فیستول خودبه‌خودی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در case 1 فصل، vestibular space abscess با appearance خوب، early mild swelling و host defense سالم با I&D و source elimination در office و reevaluation طی ۲ تا ۳ روز مدیریت می‌شود.
-دلیل رد گزینه ب: IV antibiotics و بستری برای deep/severe infections است، نه این مورد localized.
-دلیل رد گزینه ج: CT contrast قدم اول برای عفونت سطحی early نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در case 1 فصل، vestibular space abscess با appearance خوب، early mild swelling و host defense سالم با I&D و source elimination در office و reevaluation طی ۲ تا ۳ روز مدیریت می‌شود.
+دلیل رد گزینه ب: IV antibiotics و بستری برای deep/severe infections است، نه این مورد localized.
+دلیل رد گزینه ج: CT contrast قدم اول برای عفونت سطحی early نیست.
 دلیل رد گزینه د: انتظار برای fistula خودبه‌خودی با اصل source control و drainage سازگار نیست.',
                     ],
                     [
@@ -876,10 +876,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'antibiotic prophylaxis به‌تنهایی وقوع endocarditis را غیرممکن می‌کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل حفظ oral hygiene را هدف اصلی prevention infective endocarditis می‌داند و همچنین chlorhexidine gluconate rinses و careful surgical technique را توصیه می‌کند.
-دلیل رد گزینه الف: bacteremia می‌تواند در فعالیت‌های روزمره مثل chewing، toothbrushing و flossing رخ دهد.
-دلیل رد گزینه ج: فصل همین فعالیت‌ها را منبع bacteremia روزمره معرفی می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل حفظ oral hygiene را هدف اصلی prevention infective endocarditis می‌داند و همچنین chlorhexidine gluconate rinses و careful surgical technique را توصیه می‌کند.
+دلیل رد گزینه الف: bacteremia می‌تواند در فعالیت‌های روزمره مثل chewing، toothbrushing و flossing رخ دهد.
+دلیل رد گزینه ج: فصل همین فعالیت‌ها را منبع bacteremia روزمره معرفی می‌کند.
 دلیل رد گزینه د: infective endocarditis ممکن است با وجود adherence به توصیه‌ها رخ دهد.',
                     ],
                     [
@@ -891,10 +891,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'درصد Streptococcus viridans در کشت',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فضای درگیر عمدتاً به موقعیت bony erosion نسبت به muscle attachments مجاور وابسته است.
-دلیل رد گزینه الف: محل درد نسبت به تاج دندان تعیین‌کننده اصلی فضای بالقوه نیست.
-دلیل رد گزینه ج: آنتی‌بیوتیک مصرف‌شده مسیر آناتومیک را تعیین نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فضای درگیر عمدتاً به موقعیت bony erosion نسبت به muscle attachments مجاور وابسته است.
+دلیل رد گزینه الف: محل درد نسبت به تاج دندان تعیین‌کننده اصلی فضای بالقوه نیست.
+دلیل رد گزینه ج: آنتی‌بیوتیک مصرف‌شده مسیر آناتومیک را تعیین نمی‌کند.
 دلیل رد گزینه د: درصد Streptococcus viridans در کشت تعیین‌کننده فضای انتشار نیست.',
                     ],
                     [
@@ -906,10 +906,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'به‌علت اینکه dialysis اثر آنتی‌بیوتیک‌ها را به‌طور بالینی کاهش می‌دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در renal dialysis، arteriovenous shunt می‌تواند به‌علت turbulent flow مستعد metastatic infection باشد و prophylaxis پیش از invasive dental procedure قابل بررسی است.
-دلیل رد گزینه ب: وجود pacemaker در همه بیماران dialysis مطرح نیست.
-دلیل رد گزینه ج: bacteremia در dental procedures ممکن است رخ دهد و دلیل prophylaxis همین کاهش ریسک metastatic infection است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در renal dialysis، arteriovenous shunt می‌تواند به‌علت turbulent flow مستعد metastatic infection باشد و prophylaxis پیش از invasive dental procedure قابل بررسی است.
+دلیل رد گزینه ب: وجود pacemaker در همه بیماران dialysis مطرح نیست.
+دلیل رد گزینه ج: bacteremia در dental procedures ممکن است رخ دهد و دلیل prophylaxis همین کاهش ریسک metastatic infection است.
 دلیل رد گزینه د: dialysis همه آنتی‌بیوتیک‌ها را بی‌اثر نمی‌کند و دلیل فصل susceptibility شانت است.',
                     ],
                     [
@@ -921,10 +921,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون purulence دارد، بستری و IV antibiotics به‌صورت routine لازم است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل draining periapical abscess را chronic localized condition و معادل surgically drained abscess cavity می‌داند که elimination of source با RCT یا extraction برای آن کافی است.
-دلیل رد گزینه الف: آنتی‌بیوتیک طولانی بدون حذف منبع توصیه نشده است.
-دلیل رد گزینه ج: draining periapical abscess به‌خودی‌خود deep fascial space infection نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل draining periapical abscess را chronic localized condition و معادل surgically drained abscess cavity می‌داند که elimination of source با RCT یا extraction برای آن کافی است.
+دلیل رد گزینه الف: آنتی‌بیوتیک طولانی بدون حذف منبع توصیه نشده است.
+دلیل رد گزینه ج: draining periapical abscess به‌خودی‌خود deep fascial space infection نیست.
 دلیل رد گزینه د: بستری و IV antibiotics برای همه موارد draining abscess لازم نیست.',
                     ],
                     [
@@ -936,10 +936,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کاهش فشار هیدرواستاتیک abscess و افزایش blood flow',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: hyperglycemia در poorly controlled diabetes باعث decreased leukocyte chemotaxis و phagocytosis و کاهش مقاومت در برابر عفونت می‌شود.
-دلیل رد گزینه الف: فصل کاهش، نه افزایش، این عملکردها را ذکر می‌کند.
-دلیل رد گزینه ج: عفونت‌های ادنتوژنیک عمدتاً extracellular هستند و توضیح فصل بر leukocyte function و glucose control است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: hyperglycemia در poorly controlled diabetes باعث decreased leukocyte chemotaxis و phagocytosis و کاهش مقاومت در برابر عفونت می‌شود.
+دلیل رد گزینه الف: فصل کاهش، نه افزایش، این عملکردها را ذکر می‌کند.
+دلیل رد گزینه ج: عفونت‌های ادنتوژنیک عمدتاً extracellular هستند و توضیح فصل بر leukocyte function و glucose control است.
 دلیل رد گزینه د: کاهش hydrostatic pressure با drainage رخ می‌دهد، نه به‌عنوان اثر diabetes.',
                     ],
                     [
@@ -951,10 +951,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'local infiltration جایگزین ایمن airway management در بیمارستان است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در بیمار با limited mouth opening و نیاز به GA، فصل حفاظت راه هوایی با endotracheal tube و معمولاً endoscopically guided fiberoptic nasal intubation را مطرح می‌کند.
-دلیل رد گزینه ب: trismus intubation را ساده‌تر نمی‌کند.
-دلیل رد گزینه ج: منشأ دندانی عفونت نیاز به airway protection را کم‌اهمیت نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در بیمار با limited mouth opening و نیاز به GA، فصل حفاظت راه هوایی با endotracheal tube و معمولاً endoscopically guided fiberoptic nasal intubation را مطرح می‌کند.
+دلیل رد گزینه ب: trismus intubation را ساده‌تر نمی‌کند.
+دلیل رد گزینه ج: منشأ دندانی عفونت نیاز به airway protection را کم‌اهمیت نمی‌کند.
 دلیل رد گزینه د: local infiltration جایگزین airway management در GA نیست.',
                     ],
                     [
@@ -966,10 +966,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'vena caval filter',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: arteriovenous shunt در بیماران chronic renal dialysis در فصل به‌عنوان وضعیت نیازمند consideration و ارتباط با پزشک ذکر شده است.
-دلیل رد گزینه ب: transvenous pacemaker از nonindications برای prophylaxis است.
-دلیل رد گزینه ج: coronary angioplasty procedure به‌تنهایی indication نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: arteriovenous shunt در بیماران chronic renal dialysis در فصل به‌عنوان وضعیت نیازمند consideration و ارتباط با پزشک ذکر شده است.
+دلیل رد گزینه ب: transvenous pacemaker از nonindications برای prophylaxis است.
+دلیل رد گزینه ج: coronary angioplasty procedure به‌تنهایی indication نیست.
 دلیل رد گزینه د: vena caval filter در nonvalvular cardiovascular devices و nonindications ذکر شده است.',
                     ],
                     [
@@ -981,10 +981,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'medication list بدون بررسی evolution علائم برای تعیین aggressiveness کافی است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: history of present illness شامل onset، chronicity/duration، evolution و treatment history برای تعیین origin، involved spaces و aggressiveness اهمیت دارد.
-دلیل رد گزینه ب: chief complaint باید probe شود و به عبارت vague بیمار محدود نماند.
-دلیل رد گزینه ج: occupational history در جدول به این اهداف مرتبط نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: history of present illness شامل onset، chronicity/duration، evolution و treatment history برای تعیین origin، involved spaces و aggressiveness اهمیت دارد.
+دلیل رد گزینه ب: chief complaint باید probe شود و به عبارت vague بیمار محدود نماند.
+دلیل رد گزینه ج: occupational history در جدول به این اهداف مرتبط نشده است.
 دلیل رد گزینه د: medication list برای comorbidities مهم است، اما origin/spaces/aggressiveness را به‌تنهایی تعیین نمی‌کند.',
                     ],
                     [
@@ -996,10 +996,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'نمونه‌گیری پس از پایان آنتی‌بیوتیک و دور انداختن fluid aspirated',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل aspiration با 3 mL sterile syringe و 18-gauge needle، انتقال aspirate به aerobic/anaerobic و گاه fungal sterile culture tubes و ذکر clinical details را توصیه می‌کند.
-دلیل رد گزینه ب: swab سطحی خشک و بدون شرایط anaerobic با روش فصل سازگار نیست.
-دلیل رد گزینه ج: saliva نمونه مناسب abscess cavity نیست و حذف محل آناتومیک برخلاف درخواست laboratory form است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل aspiration با 3 mL sterile syringe و 18-gauge needle، انتقال aspirate به aerobic/anaerobic و گاه fungal sterile culture tubes و ذکر clinical details را توصیه می‌کند.
+دلیل رد گزینه ب: swab سطحی خشک و بدون شرایط anaerobic با روش فصل سازگار نیست.
+دلیل رد گزینه ج: saliva نمونه مناسب abscess cavity نیست و حذف محل آناتومیک برخلاف درخواست laboratory form است.
 دلیل رد گزینه د: fluid aspirated باید برای microbiologic analysis ارسال شود، نه دور ریخته شود.',
                     ],
                     [
@@ -1011,10 +1011,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'درد پس از غذا خوردن بدون تب و بدون malaise',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: Box 16.1 moderate to severe trismus با interincisal opening کمتر از ۲۵ mm را معیار referral به OMFS معرفی می‌کند.
-دلیل رد گزینه الف: mild toothache بدون تورم معیار referral نیست.
-دلیل رد گزینه ب: swelling محدود gingival در بیمار سالم الزاماً معیار referral نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: Box 16.1 moderate to severe trismus با interincisal opening کمتر از ۲۵ mm را معیار referral به OMFS معرفی می‌کند.
+دلیل رد گزینه الف: mild toothache بدون تورم معیار referral نیست.
+دلیل رد گزینه ب: swelling محدود gingival در بیمار سالم الزاماً معیار referral نیست.
 دلیل رد گزینه د: درد پس از غذا بدون systemic signs در criteria نیامده است.',
                     ],
                     [
@@ -1026,10 +1026,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'در کودکان با دوز بیشتر از دوز بالغ توصیه می‌شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: footnote جدول 16.5 می‌گوید cephalosporins در بیماران با immediate-type hypersensitivity reaction به penicillins نباید استفاده شوند.
-دلیل رد گزینه ب: در immediate-type hypersensitivity، cephalosporins مجاز نیستند.
-دلیل رد گزینه ج: regimen جدول ۳۰ تا ۶۰ دقیقه قبل procedure است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: footnote جدول 16.5 می‌گوید cephalosporins در بیماران با immediate-type hypersensitivity reaction به penicillins نباید استفاده شوند.
+دلیل رد گزینه ب: در immediate-type hypersensitivity، cephalosporins مجاز نیستند.
+دلیل رد گزینه ج: regimen جدول ۳۰ تا ۶۰ دقیقه قبل procedure است.
 دلیل رد گزینه د: pediatric total dose نباید از adult dose بیشتر شود.',
                     ],
                     [
@@ -1041,10 +1041,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'lingual perforation پایین‌تر از mylohyoid',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در mandible، facial erosion پایین‌تر از buccinator attachment موجب involvement buccal space می‌شود.
-دلیل رد گزینه ب: facial erosion بالاتر از buccinator در mandible به vestibular space می‌رود.
-دلیل رد گزینه ج: lingual perforation بالاتر از mylohyoid به sublingual space منجر می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در mandible، facial erosion پایین‌تر از buccinator attachment موجب involvement buccal space می‌شود.
+دلیل رد گزینه ب: facial erosion بالاتر از buccinator در mandible به vestibular space می‌رود.
+دلیل رد گزینه ج: lingual perforation بالاتر از mylohyoid به sublingual space منجر می‌شود.
 دلیل رد گزینه د: lingual perforation پایین mylohyoid به submandibular space منجر می‌شود.',
                     ],
                     [
@@ -1056,10 +1056,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'نیاز به تمدید antibiotic course به چند هفته بدون معاینه مجدد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در follow-up معمول ۲ تا ۳ روز، پاسخ مناسب با significant improvement of pain، intraoral swelling و overall wellness مشخص می‌شود.
-دلیل رد گزینه الف: افزایش induration و تب نشانه پاسخ ناکافی است.
-دلیل رد گزینه ج: constitutional symptoms پایدار نیازمند بررسی علت inadequate response است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در follow-up معمول ۲ تا ۳ روز، پاسخ مناسب با significant improvement of pain، intraoral swelling و overall wellness مشخص می‌شود.
+دلیل رد گزینه الف: افزایش induration و تب نشانه پاسخ ناکافی است.
+دلیل رد گزینه ج: constitutional symptoms پایدار نیازمند بررسی علت inadequate response است.
 دلیل رد گزینه د: تمدید چند هفته‌ای بدون reevaluation با اصول فصل سازگار نیست.',
                     ],
                     [
@@ -1071,10 +1071,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون کاربرد اصلی آن تشخیص deep temporal space است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: bitewing برای caries surveillance مفید است، اما چون periapical region را ثبت نمی‌کند، نقش مهمی در assessment عفونت ادنتوژنیک ندارد.
-دلیل رد گزینه ب: panoramic نمای کلی را بهتر فراهم می‌کند.
-دلیل رد گزینه ج: در trismus، panoramic معمولاً ناراحتی کمتری دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: bitewing برای caries surveillance مفید است، اما چون periapical region را ثبت نمی‌کند، نقش مهمی در assessment عفونت ادنتوژنیک ندارد.
+دلیل رد گزینه ب: panoramic نمای کلی را بهتر فراهم می‌کند.
+دلیل رد گزینه ج: در trismus، panoramic معمولاً ناراحتی کمتری دارد.
 دلیل رد گزینه د: bitewing برای deep temporal space کاربرد اصلی ندارد.',
                     ],
                     [
@@ -1086,10 +1086,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'delayed drainage تا پس از تکمیل دوره آنتی‌بیوتیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: اگر عفونت pulpal origin محدود به alveolar process باشد و بیمار immunocompetent و دندان salvageable باشد، standard endodontic access از طریق tooth و drainage از apical foramen معمولاً کافی است.
-دلیل رد گزینه ب: extraoral I&D برای همه pulpal infections لازم نیست.
-دلیل رد گزینه ج: needle aspiration بدون source control درمان definitive نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: اگر عفونت pulpal origin محدود به alveolar process باشد و بیمار immunocompetent و دندان salvageable باشد، standard endodontic access از طریق tooth و drainage از apical foramen معمولاً کافی است.
+دلیل رد گزینه ب: extraoral I&D برای همه pulpal infections لازم نیست.
+دلیل رد گزینه ج: needle aspiration بدون source control درمان definitive نیست.
 دلیل رد گزینه د: drainage نباید تا تکمیل آنتی‌بیوتیک به تأخیر افتد.',
                     ],
                     [
@@ -1101,10 +1101,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'پس از drainage، تخریب host defense و افزایش bacterial load',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: inoculation/edema در ۰ تا ۳ روز نخست و با colonization اولیه، swelling نرم/doughy و tenderness خفیف توصیف شده است.
-دلیل رد گزینه ب: purulence و fluctuant center مربوط به abscess است.
-دلیل رد گزینه ج: induration و exquisite tenderness مربوط به cellulitis است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: inoculation/edema در ۰ تا ۳ روز نخست و با colonization اولیه، swelling نرم/doughy و tenderness خفیف توصیف شده است.
+دلیل رد گزینه ب: purulence و fluctuant center مربوط به abscess است.
+دلیل رد گزینه ج: induration و exquisite tenderness مربوط به cellulitis است.
 دلیل رد گزینه د: پس از drainage و healing، resolution مطرح می‌شود، نه inoculation.',
                     ],
                     [
@@ -1116,10 +1116,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'unrepaired cyanotic congenital heart disease',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: cardiac stents در گروه nonvalvular cardiovascular devices آمده‌اند که به‌تنهایی indication prophylaxis نیستند، مگر established infection وجود داشته باشد.
-دلیل رد گزینه ب: prosthetic cardiac valve اندیکاسیون IE prophylaxis است.
-دلیل رد گزینه ج: previous infective endocarditis اندیکاسیون است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: cardiac stents در گروه nonvalvular cardiovascular devices آمده‌اند که به‌تنهایی indication prophylaxis نیستند، مگر established infection وجود داشته باشد.
+دلیل رد گزینه ب: prosthetic cardiac valve اندیکاسیون IE prophylaxis است.
+دلیل رد گزینه ج: previous infective endocarditis اندیکاسیون است.
 دلیل رد گزینه د: unrepaired cyanotic congenital heart disease اندیکاسیون است.',
                     ],
                     [
@@ -1131,10 +1131,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حذف نیاز به surgical treatment به‌علت مصرف داروهای سیستمیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: chemotherapeutic agents برای malignancy می‌توانند bone marrow depression ایجاد کنند و immune system را تضعیف کنند؛ در برخی عوامل، اثرات تا یک سال یا بیشتر باقی می‌ماند.
-دلیل رد گزینه ب: فصل کاهش توان ایمنی را بیان می‌کند، نه افزایش chemotaxis.
-دلیل رد گزینه ج: عفونت ادنتوژنیک به‌عنوان intracellular pure مطرح نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: chemotherapeutic agents برای malignancy می‌توانند bone marrow depression ایجاد کنند و immune system را تضعیف کنند؛ در برخی عوامل، اثرات تا یک سال یا بیشتر باقی می‌ماند.
+دلیل رد گزینه ب: فصل کاهش توان ایمنی را بیان می‌کند، نه افزایش chemotaxis.
+دلیل رد گزینه ج: عفونت ادنتوژنیک به‌عنوان intracellular pure مطرح نشده است.
 دلیل رد گزینه د: مصرف chemotherapy نیاز به surgical treatment را حذف نمی‌کند و ممکن است درمان aggressive و adjunctive antibiotics را ضروری‌تر کند.',
                     ],
                     [
@@ -1146,10 +1146,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'مانع تشکیل microabscess در مرحله inoculation می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: برش کوتاه exploration کافی و disruption of loculations را محدود می‌کند و دستکاری بافت شکننده می‌تواند tearing، scarring و آسیب به ساختارهای مجاور ایجاد کند.
-دلیل رد گزینه ب: افزایش pH یا رشد هوازی‌ها پیامد مطرح‌شده برای برش کوتاه نیست.
-دلیل رد گزینه ج: برش کوتاه نیاز به drain را حذف نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: برش کوتاه exploration کافی و disruption of loculations را محدود می‌کند و دستکاری بافت شکننده می‌تواند tearing، scarring و آسیب به ساختارهای مجاور ایجاد کند.
+دلیل رد گزینه ب: افزایش pH یا رشد هوازی‌ها پیامد مطرح‌شده برای برش کوتاه نیست.
+دلیل رد گزینه ج: برش کوتاه نیاز به drain را حذف نمی‌کند.
 دلیل رد گزینه د: microabscess با پاتوفیزیولوژی infection ایجاد می‌شود، نه با طول برش.',
                     ],
                     [
@@ -1161,10 +1161,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'defect اطراف restorationها بدون head and neck exam به‌عنوان محور ارزیابی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل توصیه می‌کند پس از head and neck exam، oral exam به‌صورت systematic انجام شود و pharyngeal walls، uvula و floor of mouth برای خطر airway compromise بررسی شوند.
-دلیل رد گزینه ب: تمرکز فوری روی caries می‌تواند یافته‌های مهم راه هوایی را پنهان کند.
-دلیل رد گزینه ج: vitality testing فقط برای involved teeth و در صورت نیاز است، نه اولین یا تنها بخش معاینه.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل توصیه می‌کند پس از head and neck exam، oral exam به‌صورت systematic انجام شود و pharyngeal walls، uvula و floor of mouth برای خطر airway compromise بررسی شوند.
+دلیل رد گزینه ب: تمرکز فوری روی caries می‌تواند یافته‌های مهم راه هوایی را پنهان کند.
+دلیل رد گزینه ج: vitality testing فقط برای involved teeth و در صورت نیاز است، نه اولین یا تنها بخش معاینه.
 دلیل رد گزینه د: head and neck و oral soft tissue examination نباید حذف شود.',
                     ],
                     [
@@ -1176,10 +1176,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Azithromycin 250 mg IV، هنگام شروع درد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: Table 16.5 برای penicillin allergy parenteral، Clindamycin 600 mg IM/IV را ۳۰ تا ۶۰ دقیقه قبل از procedure ذکر می‌کند.
-دلیل رد گزینه ب: Amoxicillin خوراکی است و در allergy مناسب نیست؛ IV با این شکل در جدول نیامده است.
-دلیل رد گزینه ج: Metronidazole در جدول prophylaxis استاندارد ذکر نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: Table 16.5 برای penicillin allergy parenteral، Clindamycin 600 mg IM/IV را ۳۰ تا ۶۰ دقیقه قبل از procedure ذکر می‌کند.
+دلیل رد گزینه ب: Amoxicillin خوراکی است و در allergy مناسب نیست؛ IV با این شکل در جدول نیامده است.
+دلیل رد گزینه ج: Metronidazole در جدول prophylaxis استاندارد ذکر نشده است.
 دلیل رد گزینه د: Azithromycin در جدول oral allergy regimen با ۵۰۰ mg آمده، نه IV هنگام شروع درد.',
                     ],
                     [
@@ -1191,10 +1191,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Ampicillin، Cefazolin، Ceftriaxone، Clarithromycin',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: Box 16.5 narrow-spectrum antibiotics برای simple odontogenic infections را Penicillin، Amoxicillin، Clindamycin و Metronidazole ذکر می‌کند.
-دلیل رد گزینه ب: این‌ها broad-spectrum یا مربوط به complex infections در Box 16.5 هستند.
-دلیل رد گزینه ج: چنین فهرستی در Box 16.5 نیامده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: Box 16.5 narrow-spectrum antibiotics برای simple odontogenic infections را Penicillin، Amoxicillin، Clindamycin و Metronidazole ذکر می‌کند.
+دلیل رد گزینه ب: این‌ها broad-spectrum یا مربوط به complex infections در Box 16.5 هستند.
+دلیل رد گزینه ج: چنین فهرستی در Box 16.5 نیامده است.
 دلیل رد گزینه د: بیشتر مربوط به prophylaxis table یا macrolideها هستند، نه فهرست narrow-spectrum simple infections.',
                     ],
                     [
@@ -1206,10 +1206,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'در prevention نقشی ندارد، چون عفونت ادنتوژنیک غیرقابل پیشگیری است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل نقش general dentist را در تشخیص، شناسایی منبع، سنجش severity/complexity و treat or refer timely برجسته می‌کند.
-دلیل رد گزینه الف: antibiotic-only management بدون surgery ممکن است درمان یا referral مناسب را به تأخیر اندازد.
-دلیل رد گزینه ج: dentist نباید همه عفونت‌ها را بدون referral درمان کند؛ موارد complex یا beyond comfort باید ارجاع شوند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل نقش general dentist را در تشخیص، شناسایی منبع، سنجش severity/complexity و treat or refer timely برجسته می‌کند.
+دلیل رد گزینه الف: antibiotic-only management بدون surgery ممکن است درمان یا referral مناسب را به تأخیر اندازد.
+دلیل رد گزینه ج: dentist نباید همه عفونت‌ها را بدون referral درمان کند؛ موارد complex یا beyond comfort باید ارجاع شوند.
 دلیل رد گزینه د: prevention از نقش‌های مهم general dentist است.',
                     ],
                     [
@@ -1221,10 +1221,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ایجاد fistula به پوست به‌عنوان مسیر معمول در بیماران',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: expanding abscess با افزایش hydrostatic pressure روی عروق اطراف، blood flow را compromise کرده، ischemia ایجاد می‌کند و zone of necrosis را افزایش می‌دهد.
-دلیل رد گزینه ب: drainage است که pressure را کم و blood supply را بهتر می‌کند.
-دلیل رد گزینه ج: رشد anaerobes در محیط اسیدی و abscess تقویت می‌شود، نه مهار کامل.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: expanding abscess با افزایش hydrostatic pressure روی عروق اطراف، blood flow را compromise کرده، ischemia ایجاد می‌کند و zone of necrosis را افزایش می‌دهد.
+دلیل رد گزینه ب: drainage است که pressure را کم و blood supply را بهتر می‌کند.
+دلیل رد گزینه ج: رشد anaerobes در محیط اسیدی و abscess تقویت می‌شود، نه مهار کامل.
 دلیل رد گزینه د: fistula به پوست ممکن است رخ دهد، اما نتیجه مستقیم و همیشگی pressure نیست.',
                     ],
                     [
@@ -1236,10 +1236,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'bacteriostatic طولانی‌مدت، با plasma level پایین‌تر از MIC',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: برای preoperative antibiotics، داروی ایده‌آل باید علیه oral flora مؤثر، narrow-spectrum، کم‌عارضه باشد و زمان تجویز طوری باشد که peak plasma concentration هنگام surgical insult رخ دهد.
-دلیل رد گزینه ب: شروع پس از procedure و broad spectrum به‌عنوان اصل prophylaxis بیان نشده است.
-دلیل رد گزینه ج: antibiotic جایگزین asepsis نیست و هزینه بیشتر معیار مطلوب نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: برای preoperative antibiotics، داروی ایده‌آل باید علیه oral flora مؤثر، narrow-spectrum، کم‌عارضه باشد و زمان تجویز طوری باشد که peak plasma concentration هنگام surgical insult رخ دهد.
+دلیل رد گزینه ب: شروع پس از procedure و broad spectrum به‌عنوان اصل prophylaxis بیان نشده است.
+دلیل رد گزینه ج: antibiotic جایگزین asepsis نیست و هزینه بیشتر معیار مطلوب نیست.
 دلیل رد گزینه د: plasma level پایین‌تر از MIC و درمان طولانی‌مدت با هدف prophylaxis سازگار نیست.',
                     ],
                     [
@@ -1251,10 +1251,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حساسیت percussion یک دندان، با vital signs طبیعی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل appearance شامل fatigue/lethargy، increased work of breathing، voice change و inability to handle secretions/drooling را بسیار suggestive برای severe infection می‌داند.
-دلیل رد گزینه الف: ambulating and speaking without difficulty و no distress احتمال severe infection را کمتر می‌کند.
-دلیل رد گزینه ج: درد موضعی بدون fever یا trismus نشانه severe infection نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل appearance شامل fatigue/lethargy، increased work of breathing، voice change و inability to handle secretions/drooling را بسیار suggestive برای severe infection می‌داند.
+دلیل رد گزینه الف: ambulating and speaking without difficulty و no distress احتمال severe infection را کمتر می‌کند.
+دلیل رد گزینه ج: درد موضعی بدون fever یا trismus نشانه severe infection نیست.
 دلیل رد گزینه د: percussion sensitivity با vital signs طبیعی به‌تنهایی نمای severe infection نیست.',
                     ],
                 ],
@@ -1285,7 +1285,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'التهاب موضعی در space of body of mandible',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: dysphonia، dysphagia، ناتوانی در کنترل ترشحات و خطر airway compromise از علائم گسترش به deep fascial spaces of the neck هستند. الف بیشتر عفونت اولیه و محدود vestibular است. ج به فضای کام و ریشه‌های کامی مربوط است و چنین علائم گردنی نمی‌دهد. د space of body of mandible مرحله محدودتر در اطراف پریوست فک پایین است.',
                     ],
                     [
@@ -1297,7 +1297,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'قرار دادن drain در فضای عفونی و پایش پس از عمل',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: وقتی مانورهای معمول حفظ راه هوایی مثل head tilt و jaw thrust کافی نیستند، باید راه هوایی با روش جراحی مثل cricothyrotomy یا tracheotomy برقرار شود. الف خطرناک است چون obstruction می‌تواند اورژانس باشد. ج بدون راه هوایی ایمن ناقص است. د برای تخلیه عفونت مهم است اما جایگزین تأمین airway نیست.',
                     ],
                     [
@@ -1309,7 +1309,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Osteomyelitis',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: cellulitis در جدول با ۳ تا ۷ روز، درد شدید و منتشر، اندازه بزرگ، انتشار diffuse و مایع serosanguineous یا purulence همراه است. الف مربوط به ۰ تا ۳ روز و شدت کمتر است. ج معمولاً بیش از ۵ روز، well-circumscribed و fluctuant است. د مرحله عفونت بافت نرم نیست و به عفونت استخوان مربوط می‌شود.',
                     ],
                     [
@@ -1321,7 +1321,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'observation، rinse ضدعفونی، درمان اندودنتیک تأخیری و حذف drain',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: فصل اهداف اصلی را medical optimization، airway protection، حذف منبع، incision and drainage، آنتی‌بیوتیک کمکی و ارزیابی مکرر معرفی می‌کند. الف درمان منبع و airway را نادیده می‌گیرد. ج بیشتر به سناریوهای استخوانی خاص مربوط است. د observation و تأخیر با اصول عفونت‌های پیچیده ناسازگار است.',
                     ],
                     [
@@ -1333,7 +1333,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'رابطه orbital septum با extraocular muscles',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: گسترش عفونت دندان mandibular به sublingual یا submandibular space به موقعیت apex نسبت به اتصال mylohyoid وابسته است. ب مربوط به palatal space است. ج مسیر انتشار به cavernous sinus را توضیح می‌دهد. د به orbital space مربوط است.',
                     ],
                     [
@@ -1345,7 +1345,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'CN XII',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 دلیل: در cavernous sinus thrombosis، abducens nerve یا CN VI بیشترین احتمال درگیری دارد چون در cavernous sinus بیشترین exposure را دارد و lateral rectus palsy می‌دهد. الف، ب و د نیز می‌توانند ساختارهای عصبی مهم باشند، اما متن CN VI را محتمل‌تر می‌داند.',
                     ],
                     [
@@ -1357,7 +1357,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'فضاهای عروقی وابسته به ترومبوز وریدی‌اند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: deep fascial spaces فضاهای بالقوه‌اند و با تومور، التهاب یا عفونت به صورت فضای واقعی باز می‌شوند. الف آن‌ها را فضاهای ثابت می‌داند. ج آن‌ها را به سینوس‌ها محدود می‌کند. د تشکیل آن‌ها را فقط به ترومبوز نسبت می‌دهد.',
                     ],
                     [
@@ -1369,7 +1369,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تجویز طولانی نیتاتین و پرهیز از جراحی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: necrotizing fasciitis نیازمند دبریدمان بسیار تهاجمی، broad-spectrum bactericidal IV antibiotics، اغلب airway جراحی و ICU است. الف برای این بیماری ناکافی است. ج و د به عفونت قارچی مخاطی مربوط‌اند، نه نکروز فاشیای گردن.',
                     ],
                     [
@@ -1381,7 +1381,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'مقاومت طبیعی Candida به درمان موضعی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: بیماران neutropenic یا دارای اختلال neutrophil ممکن است پاسخ ایمنی و تشکیل آبسه معمول را نشان ندهند. الف درباره خون‌رسانی maxilla است. ج مسیر آناتومیک انتشار را توضیح می‌دهد نه نبود آبسه. د به candidiasis مربوط است.',
                     ],
                     [
@@ -1393,7 +1393,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'بستن مسیرهای ارتباطی به mediastinum',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: متن توصیه می‌کند آستانه پایین برای drain placement حتی در cellulitis وجود داشته باشد، چون می‌تواند از abscess جلوگیری و resolution را تسریع کند. الف حذف منبع همچنان لازم است. ج آنتی‌بیوتیک کمکی را جایگزین نمی‌کند. د بستن مسیرهای مدیاستن هدف drain نیست.',
                     ],
                     [
@@ -1405,7 +1405,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'scaling and root planing به عنوان درمان نهایی',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 دلیل: وقتی عفونت از alveolus و basal bone خارج و وارد بافت نرم اطراف می‌شود، prompt surgical incision and drainage محتاطانه‌ترین مدیریت است. الف، ب و د برای عفونت‌های محدودتر ممکن‌اند، اما در گسترش soft tissue کافی نیستند.',
                     ],
                     [
@@ -1417,7 +1417,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'observation تا ایجاد sequestrum بدون حذف منبع',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: chronic suppurative osteomyelitis با bone biopsy برای culture and sensitivity، دبریدمان تهاجمی و high-dose IV antibiotics درمان می‌شود. الف کوتاه و ناکافی است. ج درمان candidiasis است. د تأخیر و عدم حذف منبع خلاف اصول فصل است.',
                     ],
                     [
@@ -1429,7 +1429,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'preseptal، cavernous و mediastinal',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: deep cervical fascia به superficial، middle و deep تقسیم می‌شود. middle خود به muscular و visceral و deep به prevertebral posterior و alar anterior تقسیم می‌شود. گزینه‌های ب، ج و د تقسیم‌بندی مطرح در فصل نیستند.',
                     ],
                     [
@@ -1441,7 +1441,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'درگیری مدیاستن بیشتر با angular cheilitis همراه است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: mediastinitis با ظاهر critically ill به علت compression قلب و ریه و خطرات حیات‌تهدیدکننده همراه است. الف شدت بیماری را کم نشان می‌دهد. ج مربوط به canine space است. د به angular cheilitis ارتباط دارد.',
                     ],
                     [
@@ -1453,7 +1453,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'در مسیر greater palatine neurovascular bundle',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: در drainage خارج دهانی buccal space، برش پایین‌تر از محل spontaneous drainage قرار می‌گیرد تا dependent drainage و نتیجه اسکاری بهتر فراهم شود. الف محل نکروز و ادم حداکثر را پیشنهاد می‌کند که متن توصیه نکرده است. ج و د به فضاهای دیگر مربوط‌اند.',
                     ],
                     [
@@ -1465,7 +1465,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'widening محدود periodontal ligament در ناحیه بدون درد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: acute suppurative osteomyelitis پس از ایجاد تغییرات می‌تواند نمای moth-eaten radiolucencies با sequestra و involucrum داشته باشد. الف نمای Garre osteomyelitis است. ج chronic sclerosing را تداعی می‌کند. د از متن این بخش نیست.',
                     ],
                     [
@@ -1477,7 +1477,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Prevotella و Actinomyces',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: شایع‌ترین aerobic species در head and neck infections، Streptococcus و Staphylococcus هستند. الف، ج و د عمدتاً anaerobic یا عوامل خاص دیگر را شامل می‌شوند.',
                     ],
                     [
@@ -1489,7 +1489,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Cervicofacial actinomycosis',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: chronic sclerosing osteomyelitis با درد شدید شاخص، درد dull مزمن، نبود purulence/drainage و increased trabecular density شناخته می‌شود. الف purulence و اغلب تخریب رادیوگرافیک دارد. ج onion-skinning در کودکان دارد. د drainage tracts و sulfur granules دارد.',
                     ],
                     [
@@ -1501,7 +1501,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'parotitis از مسیر parotid space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: palatal space معمولاً از lateral incisor یا ریشه‌های کامی دندان‌های خلفی منشأ می‌گیرد. ب به submental space مربوط است. ج به masticator/pterygomandibular space نزدیک است. د مربوط به parotid space است.',
                     ],
                     [
@@ -1513,7 +1513,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'periosteal blood supply فک بالا نمی‌تواند وارد cortex شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: osteomyelitis در mandible شایع‌تر است چون خون‌رسانی آن بیشتر از inferior alveolar artery و periosteum تأمین می‌شود، در حالی که maxilla خون‌رسانی multifocal و robust دارد. ب ویژگی maxilla را به mandible نسبت می‌دهد. ج نادرست است چون هر دو فک در معرض periapical pathogens هستند. د بر خلاف متن است.',
                     ],
                     [
@@ -1525,7 +1525,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'penicillin ساده به عنوان انتخابی که تولید beta-lactamase را پوشش نمی‌دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: درمان odontogenic-related maxillary sinusitis معمولاً beta-lactam همراه beta-lactamase inhibitor، مثل ampicillin/sulbactam، با یا بدون metronidazole است. ب نادرست است چون ۵۰٪ پاتوژن‌ها نسبت به clindamycin مقاوم گزارش شده‌اند. ج ضدقارچ است. د تولید beta-lactamase را نادیده می‌گیرد.',
                     ],
                     [
@@ -1537,7 +1537,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'congestion وریدهای شبکیه سمت مقابل',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: Garre osteomyelitis با paracortical bone formation یا onion-skinning شناخته می‌شود. الف abscess در CT را تداعی می‌کند. ج necrotizing fasciitis را یادآور است. د به cavernous sinus thrombosis مربوط است.',
                     ],
                     [
@@ -1549,7 +1549,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'tonsillitis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: infraorbital/canine space از upper canine یا upper premolar منشأ می‌گیرد. ب به submental space، ج به parotid space و د به peritonsillar/lateral pharyngeal route مربوط است.',
                     ],
                     [
@@ -1561,7 +1561,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'tracheotomy اورژانس به دلیل درگیری airway',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: درمان routine در Garre osteomyelitis حذف منبع عفونت است و در فاز حاد می‌توان دوره کوتاه آنتی‌بیوتیک مانند penicillin، tetracycline یا clindamycin داد. ب برای chronic suppurative osteomyelitis مقاوم مناسب‌تر است. ج candidiasis است. د با Garre معمولی تناسب ندارد.',
                     ],
                     [
@@ -1573,7 +1573,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'antibiotic therapy پیش از نمونه‌گیری علت اصلی حذف آن‌هاست.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: anaerobic bacteria سخت‌کشت هستند چون نمونه‌ها هنگام جمع‌آوری معمولاً در معرض oxygen قرار می‌گیرند. ب نادرست است چون بحث باکتری است. ج آن‌ها به سینوس محدود نیستند. د حذف پیش از نمونه‌گیری در متن علت اصلی معرفی نشده است.',
                     ],
                     [
@@ -1585,7 +1585,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'flattening nasolabial fold با درناژ نزدیک canthi چشم',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: cervicofacial actinomycosis با induration، nodular fibrosis و intermittent spontaneous drainage tracts و سیر indolent همراه است. الف pseudomembranous candidiasis است. ج pterygomandibular abscess را مطرح می‌کند. د canine/infraorbital infection را تداعی می‌کند.',
                     ],
                     [
@@ -1597,7 +1597,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'سفیدشدگی گوشه‌های دهان همراه شکاف اولسراتیو',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: canine space infection در معاینه با obliteration یا flattening nasolabial fold دیده می‌شود. ب lateral pharyngeal space است. ج temporal/submasseteric involvement است. د angular cheilitis است.',
                     ],
                     [
@@ -1609,7 +1609,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'culture and sensitivity از bone biopsy',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: biopsy با periodic acid Schiff staining برای نشان دادن tissue invasion در candidiasis قابل اعتمادتر است. الف KOH smear ممکن است hyphae نشان دهد اما unreliable است چون invasion را معمولاً نشان نمی‌دهد. ج برای abscess cavity در CT کاربرد دارد. د برای osteomyelitis است.',
                     ],
                     [
@@ -1621,7 +1621,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Palatal space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: infratemporal space می‌تواند از maxillary third molars درگیر شود و به pterygoid plexus و سپس cavernous sinus ارتباط پیدا کند. ب، ج و د این مسیر وریدی و قاعده جمجمه‌ای را ندارند.',
                     ],
                     [
@@ -1633,7 +1633,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'با paracortical bone formation در کودکان شناخته می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: pseudomembranous candidiasis به صورت white patches قابل پاک شدن با سطح اریتماتوز زیرین توصیف شده است. ب erythromatous candidiasis است. ج angular cheilitis است. د Garre osteomyelitis است.',
                     ],
                     [
@@ -1645,7 +1645,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Retropharyngeal space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: perforation cephalad به mylohyoid attachment وارد sublingual space می‌شود. ب وقتی perforation پایین‌تر از mylohyoid رخ دهد مطرح است. ج بیشتر از دندان‌های قدامی پایین یا extension submandibular است. د فضای عمقی گردن است.',
                     ],
                     [
@@ -1657,7 +1657,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'پاره شدن inferior ophthalmic vein',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: angular cheilitis اغلب با reduced occlusal vertical dimension و overclosure لب‌ها، به‌خصوص در edentulous یا denture مشکل‌دار، همراه است. ب، ج و د به بیماری‌های دیگر فصل مربوط‌اند.',
                     ],
                     [
@@ -1669,7 +1669,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'پوست necrotic گردن همراه از بین رفتن platysma',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: isolated sublingual space abscess به دلیل موقعیت cephalad به mylohyoid تورم extraoral قابل توجه ندارد، اما floor of mouth و tongue elevation و دشواری گفتار یا بلع دارد. الف به submandibular/Ludwig نزدیک است. ج temporal space است. د necrotizing fasciitis است.',
                     ],
                     [
@@ -1681,7 +1681,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'به علت تبدیل pseudomembranous candidiasis به cellulitis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: systemic antifungalها مثل fluconazole یا ketoconazole عوارض بالقوه جدی از جمله hepatotoxicity و adrenal insufficiency دارند و برای موارد مقاوم نگه داشته می‌شوند. ب نادرست است چون برای strainهای مقاوم مانند C. glabrata می‌توانند کمک‌کننده باشند. ج و د ارتباطی با متن ندارند.',
                     ],
                     [
@@ -1693,7 +1693,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'درگیری orbital space به دنبال maxillary sinusitis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: Ludwig angina درگیری دو submandibular، دو sublingual و یک submental space است و airway اولویت اصلی دارد. ب، ج و د فضاهای محدودتر یا مسیرهای دیگر هستند و تعریف Ludwig نیستند.',
                     ],
                     [
@@ -1705,7 +1705,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون با topical antifungal به‌سرعت برطرف می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: necrotizing fasciitis از fascial planes معمول پیروی نمی‌کند و تخریب سریع و مرگ‌ومیر قابل توجه دارد. ب آن را محدود می‌کند. ج بر خلاف نیاز به debridement تهاجمی است. د درمان قارچی است و به این بیماری مربوط نیست.',
                     ],
                     [
@@ -1717,7 +1717,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'palatal root به palatal space',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: mandibular third molar به‌ویژه در pericoronitis شایع‌ترین offending tooth در masticator space infection است و مسیر مستقیم شایع به pterygomandibular space است. الف canine/infraorbital، ج submental و د palatal space را توصیف می‌کند.',
                     ],
                     [
@@ -1729,7 +1729,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'amoxicillin-clavulanate بدون نیاز به حذف منبع',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در actinomycosis، antibiotic ترجیحی IV penicillin در فاز حاد و سپس oral penicillin طولانی‌مدت است. ب برای candidiasis موضعی است. ج به عنوان درمان ترجیحی متن نیامده است. د حذف منبع را نادیده می‌گیرد.',
                     ],
                     [
@@ -1741,7 +1741,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'white plaques قابل پاک شدن',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: CT با IV contrast در abscess cavity می‌تواند ring enhancement نشان دهد، چون contrast در عروق محیط cavity دیده می‌شود. ب Garre osteomyelitis است. ج chronic sclerosing را مطرح می‌کند. د candidiasis است.',
                     ],
                     [
@@ -1753,7 +1753,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'برداشت بافت نکروتیک تا رسیدن به bleeding bone',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در candidiasis مرتبط با denture نامناسب، denture باید trim و reline شود و شبانه در antiseptic solution قرار گیرد تا ارگانیسم‌های colonized حذف شوند. ب آنتی‌بیوتیک باکتریایی است. ج خلاف حذف عوامل موضعی است. د درمان osteomyelitis/necrosis استخوانی است.',
                     ],
                 ],
@@ -1784,7 +1784,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ترک‌های دوطرفه commissure دهان با اریتم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در lateral pharyngeal space infection تورم بین inferior border of mandible و SCM می‌تواند باعث ناتوانی در visualizing/palpating angle of mandible شود. ب palatal space است. ج isolated sublingual است. د angular cheilitis است.',
                     ],
                     [
@@ -1796,7 +1796,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Wharton duct',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: انتشار anterior به cavernous sinus از طریق superior و inferior ophthalmic veins رخ می‌دهد. ب، ج و د مسیرهای وریدی یا مجرایی مرتبط با cavernous sinus در متن نیستند.',
                     ],
                     [
@@ -1808,7 +1808,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'alar fascia',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: mylohyoid muscle attachment مرز کلیدی بین sublingual و submandibular spaces است. ب مرز submasseteric و superficial temporal است. ج مربوط به orbit است. د یکی از مرزهای danger/retropharyngeal region است.',
                     ],
                     [
@@ -1820,7 +1820,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Staphylococcus aureus و Aspergillus species',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: chronic sclerosing osteomyelitis با Actinomyces species و Eikenella corrodens مرتبط دانسته شده است. ب به candidiasis مربوط است. ج به sinus flora در maxillary sinusitis نزدیک است. د و Aspergillus در این تشخیص شاخص نیستند.',
                     ],
                     [
@@ -1832,7 +1832,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'وجود orbital septum در مسیر گسترش',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در temporal space infections تورم معمولاً بالای zygomatic arch است و زیر آن دیده نمی‌شود، چون anterior layer of deep cervical fascia اتصال متراکمی به zygomatic arch دارد. ب، ج و د به مسیرهای دیگر مربوط‌اند.',
                     ],
                     [
@@ -1844,7 +1844,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'masseteric vessels، buccal fat pad و parotid duct',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: محتویات cavernous sinus در فصل شامل CN II, III, IV, VI، شاخه دوم CN V و internal carotid artery است. ب بیشتر posterior compartment lateral pharyngeal را تداعی می‌کند. ج sublingual space است. د buccal/masticator contents هستند.',
                     ],
                     [
@@ -1856,7 +1856,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'به‌طور مستقیم باعث cavernous sinus thrombosis می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: فصل بیان می‌کند ۵۰٪ پاتوژن‌های maxillary sinusitis نسبت به clindamycin مقاوم‌اند، بنابراین برای این کاربرد ایده‌آل نیست. ب نادرست است چون مشکل متن، ناکافی بودن پوشش Streptococcus و Staphylococcus به‌صورت کلی نیست. ج و د به متن ارتباطی ندارند.',
                     ],
                     [
@@ -1868,7 +1868,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون عفونت به سطح mucosa محدود است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در فاز acute suppurative osteomyelitis ممکن است یافته رادیوگرافیک دیده نشود چون bone loss حداقل است. ب تعریف sequestra را نادرست می‌گوید. ج نادرست است چون mandible شایع‌تر است. د بیماری به mucosa محدود نیست.',
                     ],
                     [
@@ -1880,7 +1880,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Parotid space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: submental space اغلب از lower anterior teeth منشأ می‌گیرد. ب با maxillary sinusitis/maxillary teeth، ج با molars و د با parotitis مرتبط است.',
                     ],
                     [
@@ -1892,7 +1892,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'بسته شدن superior orbital fissure',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: necrotizing fasciitis با necrosis platysma و skin به علت thrombosis عضلات، بافت نرم و dermal blood supply توصیف شده است. ب، ج و د سازوکارهای مربوط به این بیماری نیستند.',
                     ],
                     [
@@ -1904,7 +1904,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'قرمزی خام با loss of filiform papillae دیده می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در buccal space abscess بدون extension، zygomatic arch و inferior border of mandible معمولاً قابل لمس می‌مانند. ب lateral pharyngeal، ج Ludwig/sublingual، و د candidiasis erythematous را مطرح می‌کند.',
                     ],
                     [
@@ -1916,7 +1916,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'penicillin در colonization استخوانی نقش درمانی ندارد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: درمان آنتی‌بیوتیکی osteomyelitis طولانی‌تر است چون penetration به bone و رفع bony colonization دشوارتر از عفونت‌های ادنتوژنیک معمول است. ب، ج و د با متن فصل سازگار نیستند.',
                     ],
                     [
@@ -1928,7 +1928,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'nodular fibrosis، sulfur granule و drainage tract',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: شایع‌ترین findings در maxillary sinusitis شامل facial pain، postnasal discharge و congestion است. ب lateral pharyngeal، ج Ludwig angina، و د actinomycosis را توصیف می‌کند.',
                     ],
                     [
@@ -1940,7 +1940,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'fusion of alar and prevertebral fascia',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: HIV/AIDS و systemic chemotherapy از عوامل سیستمیک مرتبط با oral candidiasis هستند. ب عامل submasseteric infection است. ج مسیر cavernous sinus است. د مربوط به danger/retropharyngeal region است.',
                     ],
                     [
@@ -1952,7 +1952,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'محتوی اصلی آن globe و extraocular muscles است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: submental space اغلب از mandibular incisors یا extension از submandibular infection درگیر می‌شود. ب بیشتر pterygomandibular/masticator است. ج orbit/sinus را توصیف می‌کند. د مربوط به orbital space است.',
                     ],
                     [
@@ -1964,7 +1964,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تعویق reduction fracture تا پس از ۶ ماه آنتی‌بیوتیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در acute suppurative osteomyelitis، علاوه بر debridement باید source مانند دندان پوسیده، failed root canal، implant یا necrotic bone در ORN/MRONJ رسیدگی شود. ب و ج و د با اصول درمانی فصل ناسازگارند.',
                     ],
                     [
@@ -1976,7 +1976,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Retropharyngeal space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: parotid space در جدول با parotitis به عنوان source مرتبط است. ب، ج و د منابع دیگری دارند یا معمولاً مسیرهای extension هستند.',
                     ],
                     [
@@ -1988,7 +1988,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'در فضای cavernous sinus رخ می‌دهد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: فصل می‌گوید periostitis ossificans نام مناسبی نیست، چون periosteum ossified نمی‌شود؛ chronic infection باعث deposition استخوان جدید و lifting periosteum می‌شود. ب، ج و د خلاف متن‌اند.',
                     ],
                     [
@@ -2000,7 +2000,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Pretracheal space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: perforation apex دندان canine بالاتر از اتصال levator anguli oris و پایین‌تر از مبدأ levator labii superioris باعث درگیری canine space می‌شود. ب، ج و د فضاهای دیگر با منابع متفاوت‌اند.',
                     ],
                     [
@@ -2012,7 +2012,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'nystatin برای bacterial sinusitis کاربرد اصلی دارد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: nystatin به clotrimazole ترجیح داده شده چون clotrimazole toxicity بیشتری دارد و حاوی sugar است که در xerostomic patient می‌تواند به caries کمک کند. ب، ج و د نادرست‌اند و کاربرد داروها را جابه‌جا می‌کنند.',
                     ],
                     [
@@ -2024,7 +2024,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'از palatal cortex و periosteum تشکیل می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: lateral pharyngeal space از skull base تا hyoid امتداد دارد و medially توسط superior pharyngeal constrictor محدود می‌شود. ب sublingual space است. ج danger space است. د palatal space است.',
                     ],
                     [
@@ -2036,7 +2036,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'به علت بسته بودن کامل مسیرهای drainage',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: actinomycosis به دلیل drainage خودبه‌خودی از fistula همراه با sulfur granule-like discharge ممکن است درد شدید ندهد. ب chronic sclerosing را تداعی می‌کند. ج غلط است چون soft tissue معمولاً درگیر می‌شود. د بر خلاف وجود drainage است.',
                     ],
                     [
@@ -2048,7 +2048,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'فضای میان temporalis muscle و calvarium است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: space of body of mandible فضای بالقوه بین cortical bone of mandible و overlying periosteum است. ب danger space، ج orbital space، و د deep temporal space را توصیف می‌کند.',
                     ],
                     [
@@ -2060,7 +2060,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ampicillin/sulbactam و metronidazole',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: fluconazole، ketoconazole، itraconazole و posaconazole از systemic antifungal agents ذکر شده‌اند. ب برای Garre/باکتری‌ها، ج alternative antibiotics، و د maxillary sinusitis bacterial therapy است.',
                     ],
                     [
@@ -2072,7 +2072,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'وجود blood supply multifocal در mandible',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: chemotherapy می‌تواند neutropenia ایجاد کند؛ این بیماران گاهی پاسخ طبیعی و abscess واضح ندارند. ب به Candida و beta-lactamase ارتباط ندارد. ج مکانیزم temporal swelling است. د خون‌رسانی maxilla را به mandible نسبت می‌دهد.',
                     ],
                     [
@@ -2084,7 +2084,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'firm induration of submental skin',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در cavernous sinus thrombosis، congestion of retinal veins در چشم سمت غیر درگیر می‌تواند finding زودرس باشد. ب candidiasis، ج Garre، و د Ludwig angina را نشان می‌دهد.',
                     ],
                     [
@@ -2096,7 +2096,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'بیشتر در زمینه chronic antibiotic use ایجاد می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: عفونت‌های maxillary و mandibular teeth تقریباً همیشه ابتدا به صورت vestibular space abscess از مسیر کم‌مقاومت در plate استخوانی شروع می‌شوند. ب peritonsillar، ج فضای عمقی و د candidiasis/antibiotic-related است.',
                     ],
                     [
@@ -2108,7 +2108,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'palatal neurovascular bundle enlargement',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: متن می‌گوید بیماران immunocompromised اغلب سیر غیرمعمول و extensive در necrotizing fasciitis دارند. ب عامل candidiasis/angular cheilitis است. ج ویژگی maxilla است. د ارتباطی ندارد.',
                     ],
                     [
@@ -2120,7 +2120,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Retinal vein congestion',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: علامت بالینی اصلی masticator space involvement، trismus به علت التهاب muscles of mastication است. ب sinusitis، ج angular cheilitis، و د cavernous sinus thrombosis است.',
                     ],
                     [
@@ -2132,7 +2132,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'درمان به drainage داخل دهانی palatal محدود می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در chronic sclerosing osteomyelitis، antibiotic therapy با یا بدون hyperbaric oxygen ممکن است progression را کم کند، اما surgical resection of diseased bone اغلب لازم است. ب candidiasis/denture، ج airway emergency، و د palatal abscess را توصیف می‌کند.',
                     ],
                     [
@@ -2144,7 +2144,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'عفونت بین alar و prevertebral fascia',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: preseptal cellulitis یعنی عفونت ساختارهای پلک در anterior to the orbital septum. ب acute suppurative osteomyelitis، ج necrotizing fasciitis، و د danger space infection را توصیف می‌کند.',
                     ],
                     [
@@ -2156,7 +2156,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کاربرد اصلی آن برای تشخیص orbital cellulitis است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: هدف exposure به محیط aerobic در cellulitis جلوگیری از progression به abscess با anaerobic bacteria و در abscess established کمک به decompression و کاهش محیط anaerobic است. ب خلاف مفهوم درمانی است. ج حذف منبع همچنان لازم است. د کاربرد اصلی آن نیست.',
                     ],
                     [
@@ -2168,7 +2168,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'parapharyngeal spaces؛ extraoral',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: buccal space در جدول با upper/lower premolars و upper molars مرتبط است؛ approach در عفونت خفیف intraoral و در متوسط تا شدید extraoral است. ب submental، ج peritonsillar، و د carotid space را توصیف می‌کنند.',
                     ],
                     [
@@ -2180,7 +2180,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'drainage tract همراه sulfur granule',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: sequestra نواحی radiopaque استخوانی هستند که هنوز resorb نشده‌اند. ب تعریف surrounding radiolucent area یعنی involucrum است. ج necrotizing fasciitis را توصیف می‌کند. د actinomycosis است.',
                     ],
                     [
@@ -2192,7 +2192,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'temporal fullness بدون درگیری فضای زیر فکی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: Ludwig angina می‌تواند floor of mouth و tongue elevation، hot potato voice، inability to handle secretions و increased work of breathing داشته باشد. ب candidiasis است. ج sinusitis محدود را نشان می‌دهد. د temporal space است.',
                     ],
                     [
@@ -2204,7 +2204,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'با جلوگیری از اکسیژن‌گیری بافت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: drain placement در actinomycosis با حذف محیط anaerobic به درمان کمک می‌کند. ب دیابت را بدتر توصیف می‌کند. ج مسیر انتشار cavernous sinus است و هدف درمانی نیست. د خلاف هدف drain است.',
                     ],
                     [
@@ -2216,7 +2216,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Canine space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: گسترش از retropharyngeal به danger space می‌تواند به mediastinum برسد و mediastinitis ایجاد کند. ب، ج و د مسیرهای محلی دیگر هستند و endpoint خطرناک این مسیر نیستند.',
                     ],
                     [
@@ -2228,7 +2228,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             '۲۴ تا ۴۸ ساعت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در chronic unresponsive osteomyelitis، پوشش آنتی‌بیوتیکی ممکن است تا ۶ ماه یا بیشتر IV ادامه یابد. ب مدت cellulitis است. ج مدت حداقلی درمان antifungal موضعی candidiasis را تداعی می‌کند. د برای این حالت کافی نیست.',
                     ],
                     [
@@ -2240,7 +2240,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'از طریق denture stomatitis به commissure دهان',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: متن دو مسیر از submandibular به lateral pharyngeal را توضیح می‌دهد: از buccopharyngeal gap به pterygomandibular و سپس lateral pharyngeal، یا مستقیماً posterior around posterior belly of digastric. ب مسیر cavernous sinus، ج مسیر palatal/peritonsillar و د candidiasis/angular cheilitis است.',
                     ],
                     [
@@ -2252,7 +2252,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون drain پس از ۱۴ روز محیط anaerobic را بازسازی می‌کند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در candidiasis، با وجود بهبود سریع، درمان باید حداقل ۱۴ روز ادامه یابد چون عفونت tendency to recur دارد. ب، ج و د به osteomyelitis، beta-lactamase یا drain ارتباط نادرست می‌دهند.',
                     ],
                 ],
@@ -2283,10 +2283,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'استفاده از Cavit و ادامه irrigation تا پس از تراکم ماده',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: MTA در فصل به‌عنوان ماده‌ای با ویژگی‌های زیستی و فیزیکی مطلوب، قابل استفاده در میدان دارای کمی خون‌ریزی، و دارای موفقیت بالاتر گزارش شده است؛ بعد از قرار دادن نباید با irrigation شسته شود.
-دلیل رد گزینه ب: gutta-percha جزو مواد پیشنهادشده با مستندات بالینی کمتر است و شست‌وشوی پس از قرار دادن با منطق MTA سازگار نیست.
-دلیل رد گزینه ج: composite resin نیز در متن جزو مواد با مستندات بالینی کمتر آمده و انتخاب برجسته فصل برای این وضعیت نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: MTA در فصل به‌عنوان ماده‌ای با ویژگی‌های زیستی و فیزیکی مطلوب، قابل استفاده در میدان دارای کمی خون‌ریزی، و دارای موفقیت بالاتر گزارش شده است؛ بعد از قرار دادن نباید با irrigation شسته شود.
+دلیل رد گزینه ب: gutta-percha جزو مواد پیشنهادشده با مستندات بالینی کمتر است و شست‌وشوی پس از قرار دادن با منطق MTA سازگار نیست.
+دلیل رد گزینه ج: composite resin نیز در متن جزو مواد با مستندات بالینی کمتر آمده و انتخاب برجسته فصل برای این وضعیت نیست.
 دلیل رد گزینه د: Cavit در متن مستندات موفقیت کمتری دارد و irrigation پس از جای‌گذاری ماده می‌تواند MTA را خارج کند.',
                     ],
                     [
@@ -2298,10 +2298,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'انجام periapical surgery به‌عنوان جایگزین اصلی برای drainage',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: I&D زمانی اندیکاسیون دارد که عفونت سریع گسترش یابد، درگیری فضا وجود داشته باشد، یا باز کردن دندان از راه کرونال چرک واضح ندهد؛ drain به باقی‌ماندن مسیر باز و dependent drainage بستگی دارد.
-دلیل رد گزینه ب: درناژ برای کاهش درد، بهبود گردش و حذف محرک قوی لازم است و تأخیر با متن سازگار نیست.
-دلیل رد گزینه ج: وقتی مسیر کرونالی چرک واضح ایجاد نمی‌کند، تکیه بر همان روش کافی نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: I&D زمانی اندیکاسیون دارد که عفونت سریع گسترش یابد، درگیری فضا وجود داشته باشد، یا باز کردن دندان از راه کرونال چرک واضح ندهد؛ drain به باقی‌ماندن مسیر باز و dependent drainage بستگی دارد.
+دلیل رد گزینه ب: درناژ برای کاهش درد، بهبود گردش و حذف محرک قوی لازم است و تأخیر با متن سازگار نیست.
+دلیل رد گزینه ج: وقتی مسیر کرونالی چرک واضح ایجاد نمی‌کند، تکیه بر همان روش کافی نیست.
 دلیل رد گزینه د: periapical surgery برای حذف علائم و اصلاح ناحیه اپیکال مطرح است، نه جایگزین مستقیم drainage حاد در این سناریو.',
                     ],
                     [
@@ -2313,10 +2313,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'نتیجه بیشتر به نوع suturing وابسته است تا موقعیت cervical یا furcation',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: نقص‌های cervical third و furcation بدترین پیش‌آگهی را دارند، زیرا ارتباط با junctional epithelium می‌تواند به periodontal breakdown، loss of attachment و pocket formation منجر شود.
-دلیل رد گزینه ب: متن برای defectهای middle یا apical third پیش‌آگهی خیلی خوب‌تری ذکر می‌کند، نه برای furcation.
-دلیل رد گزینه ج: loss of attachment در همین محل‌ها از نگرانی‌های اصلی متن است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: نقص‌های cervical third و furcation بدترین پیش‌آگهی را دارند، زیرا ارتباط با junctional epithelium می‌تواند به periodontal breakdown، loss of attachment و pocket formation منجر شود.
+دلیل رد گزینه ب: متن برای defectهای middle یا apical third پیش‌آگهی خیلی خوب‌تری ذکر می‌کند، نه برای furcation.
+دلیل رد گزینه ج: loss of attachment در همین محل‌ها از نگرانی‌های اصلی متن است.
 دلیل رد گزینه د: نوع بخیه اهمیت دارد، اما در این بحث عامل کلیدی پیش‌آگهی محل defect است.',
                     ],
                     [
@@ -2328,10 +2328,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'restorative factors مرتبط با marginal leakage',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: bone fill پس از جراحی، رفع درد و علائم، نبود sinus tract و کاهش mobility در Box عوامل موفقیت periapical surgery آمده‌اند.
-دلیل رد گزینه ب: عوامل پریودنتال شکست شامل وضعیت پریودنتال ضعیف یا dehiscence/vertical bone loss است، نه این علائم بهبودی.
-دلیل رد گزینه ج: شک به fracture با الگوهایی مانند halo/J radiolucency یا شواهد شکستگی مطرح می‌شود، نه کاهش mobility و bone fill.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: bone fill پس از جراحی، رفع درد و علائم، نبود sinus tract و کاهش mobility در Box عوامل موفقیت periapical surgery آمده‌اند.
+دلیل رد گزینه ب: عوامل پریودنتال شکست شامل وضعیت پریودنتال ضعیف یا dehiscence/vertical bone loss است، نه این علائم بهبودی.
+دلیل رد گزینه ج: شک به fracture با الگوهایی مانند halo/J radiolucency یا شواهد شکستگی مطرح می‌شود، نه کاهش mobility و bone fill.
 دلیل رد گزینه د: marginal leakage of crown or post از عوامل شکست است و در سناریو مطرح نشده است.',
                     ],
                     [
@@ -2343,10 +2343,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'این وضعیت با widened periodontal ligament space با حاشیه کورتیکه تطابق دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در فصل آمده که اگر پس از ۱ سال ضایعه کاهش نیابد یا بزرگ‌تر شود، معمولاً failure و التهاب پایدار را نشان می‌دهد؛ تورم نیز از علائم شکست است.
-دلیل رد گزینه ب: scar healing ظاهر رادیوگرافیک متمایز با حاشیه مشخص و جدا از root end دارد و علامت تورم ندارد.
-دلیل رد گزینه ج: پیگیری ۶ تا ۱۲ ماهه برای ضایعه‌ای است که کاهش اندازه نشان می‌دهد، نه ضایعه پایدار همراه علامت.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در فصل آمده که اگر پس از ۱ سال ضایعه کاهش نیابد یا بزرگ‌تر شود، معمولاً failure و التهاب پایدار را نشان می‌دهد؛ تورم نیز از علائم شکست است.
+دلیل رد گزینه ب: scar healing ظاهر رادیوگرافیک متمایز با حاشیه مشخص و جدا از root end دارد و علامت تورم ندارد.
+دلیل رد گزینه ج: پیگیری ۶ تا ۱۲ ماهه برای ضایعه‌ای است که کاهش اندازه نشان می‌دهد، نه ضایعه پایدار همراه علامت.
 دلیل رد گزینه د: فضای PDL کمی widened با حاشیه distinct و corticated می‌تواند قابل قبول باشد؛ سناریو ضایعه پایدار و علامت‌دار را توصیف می‌کند.',
                     ],
                     [
@@ -2358,10 +2358,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'استخراج، چون وجود radiolucency ارزش درمان اندودنتیک را کاهش می‌دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در بیشتر موقعیت‌ها درمان اندودنتیک orthograde ترجیح داده می‌شود؛ وجود ضایعه پری‌رادیکولار یا تک‌جلسه‌ای بودن درمان، به‌تنهایی اندیکاسیون جراحی نیست.
-دلیل رد گزینه ب: هم‌زمانی RCT و جراحی فقط در موارد محدودی مانند باقی‌ماندن چرک یا تورم با وجود instrumentation و antibiotics مطرح است.
-دلیل رد گزینه ج: فصل صریحاً این تصور را رد می‌کند که single-visit treatment باید با surgery همراه شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در بیشتر موقعیت‌ها درمان اندودنتیک orthograde ترجیح داده می‌شود؛ وجود ضایعه پری‌رادیکولار یا تک‌جلسه‌ای بودن درمان، به‌تنهایی اندیکاسیون جراحی نیست.
+دلیل رد گزینه ب: هم‌زمانی RCT و جراحی فقط در موارد محدودی مانند باقی‌ماندن چرک یا تورم با وجود instrumentation و antibiotics مطرح است.
+دلیل رد گزینه ج: فصل صریحاً این تصور را رد می‌کند که single-visit treatment باید با surgery همراه شود.
 دلیل رد گزینه د: استخراج یکی از گزینه‌هاست، اما وقتی درمان conventional ممکن است، متن آن را ترجیح می‌دهد.',
                     ],
                     [
@@ -2373,10 +2373,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'افزایش suction در محل خون‌ریزی برای پیدا کردن کامل بافت باقی‌مانده',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن تأکید می‌کند total removal لازم نیست و بهتر است مقدار کمی از بافت باقی بماند تا inferior alveolar nerve آسیب نبیند.
-دلیل رد گزینه ب: enucleation کامل معمولاً رخ نمی‌دهد و در نواحی پرخطر توصیه نشده است.
-دلیل رد گزینه ج: درمان ضایعه اپیکال و seal کردن کانال عامل اصلی بهبود است؛ باقی‌ماندن مقدار کمی بافت لزوماً healing را مختل نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن تأکید می‌کند total removal لازم نیست و بهتر است مقدار کمی از بافت باقی بماند تا inferior alveolar nerve آسیب نبیند.
+دلیل رد گزینه ب: enucleation کامل معمولاً رخ نمی‌دهد و در نواحی پرخطر توصیه نشده است.
+دلیل رد گزینه ج: درمان ضایعه اپیکال و seal کردن کانال عامل اصلی بهبود است؛ باقی‌ماندن مقدار کمی بافت لزوماً healing را مختل نمی‌کند.
 دلیل رد گزینه د: برای کنترل خون‌ریزی، کاهش suction در محل bleeder توصیه شده است، نه افزایش آن.',
                     ],
                     [
@@ -2388,10 +2388,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'این رخداد نشانه contraindication مهم برای درمان مولرهای ماگزیلا است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در متن، exposure سینوس در بیشتر جراحی‌های اپیکال مولر ماگزیلا complication محسوب نشده و به‌عنوان پیامد شناخته‌شده مطرح است؛ باید از ورود جسم خارجی و فشار بینی تا ترمیم زخم پرهیز شود.
-دلیل رد گزینه ب: متن توقف درمان و رهاکردن seal را توصیه نمی‌کند.
-دلیل رد گزینه ج: flap سولکولار با دور نگه داشتن خط برش از opening احتمال oral-antral communication را کم می‌کند؛ semilunar ارجح نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در متن، exposure سینوس در بیشتر جراحی‌های اپیکال مولر ماگزیلا complication محسوب نشده و به‌عنوان پیامد شناخته‌شده مطرح است؛ باید از ورود جسم خارجی و فشار بینی تا ترمیم زخم پرهیز شود.
+دلیل رد گزینه ب: متن توقف درمان و رهاکردن seal را توصیه نمی‌کند.
+دلیل رد گزینه ج: flap سولکولار با دور نگه داشتن خط برش از opening احتمال oral-antral communication را کم می‌کند؛ semilunar ارجح نیست.
 دلیل رد گزینه د: وجود سینوس نیازمند مهارت و احتیاط است، نه contraindication مطلق.',
                     ],
                     [
@@ -2403,10 +2403,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'باید جراحی را به extraction تبدیل کند چون تشخیص پاتولوژیک قطعی نیست',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: Box 18.6 می‌گوید اگر شواهد preendodontic pulpal necrosis، radiolucency کلاسیک و امکان follow-up وجود داشته باشد، جراح ممکن است تصمیم بگیرد بافت جمع‌آوری‌شده روتین را ارسال نکند؛ ثبت rationale توصیه می‌شود.
-دلیل رد گزینه ب: متن می‌گوید تمایز periapical granuloma و cyst اثر مستقیم بر outcome ندارد و به‌تنهایی دلیل منطقی ارسال همه نمونه‌ها نیست.
-دلیل رد گزینه ج: membrane بخشی از بحث guided tissue regeneration است و جایگزین تصمیم biopsy نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: Box 18.6 می‌گوید اگر شواهد preendodontic pulpal necrosis، radiolucency کلاسیک و امکان follow-up وجود داشته باشد، جراح ممکن است تصمیم بگیرد بافت جمع‌آوری‌شده روتین را ارسال نکند؛ ثبت rationale توصیه می‌شود.
+دلیل رد گزینه ب: متن می‌گوید تمایز periapical granuloma و cyst اثر مستقیم بر outcome ندارد و به‌تنهایی دلیل منطقی ارسال همه نمونه‌ها نیست.
+دلیل رد گزینه ج: membrane بخشی از بحث guided tissue regeneration است و جایگزین تصمیم biopsy نیست.
 دلیل رد گزینه د: عدم ارسال روتین بافت در شرایط مشخص به معنی نیاز به extraction نیست.',
                     ],
                     [
@@ -2418,10 +2418,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'وجود post and core نشانه ضعف پیش‌آگهی apical surgery است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل postهای دشوار یا پرخطر برای برداشت را از دلایل شایع انتخاب جراحی می‌داند؛ resection و root-end filling می‌تواند علائم را برطرف کند.
-دلیل رد گزینه ب: متن خطر compromise شدن restoration یا perforation/fracture را در دسترسی کرونالی ذکر می‌کند.
-دلیل رد گزینه ج: در بسیاری از موارد تلاش برای برداشت post خود عامل خطر است و الزام اولیه نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل postهای دشوار یا پرخطر برای برداشت را از دلایل شایع انتخاب جراحی می‌داند؛ resection و root-end filling می‌تواند علائم را برطرف کند.
+دلیل رد گزینه ب: متن خطر compromise شدن restoration یا perforation/fracture را در دسترسی کرونالی ذکر می‌کند.
+دلیل رد گزینه ج: در بسیاری از موارد تلاش برای برداشت post خود عامل خطر است و الزام اولیه نیست.
 دلیل رد گزینه د: post and core علت شایع اندیکاسیون جراحی است، نه نشانه شکست قطعی آن.',
                     ],
                     [
@@ -2433,10 +2433,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'handpiece هوا-آب معمولی برای ورود سریع‌تر به حفره استخوانی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: ultrasonic tips کنترل، شکل بهتر، bevel کمتر، برداشت کمتر ریشه و توانایی آماده‌سازی isthmus را فراهم می‌کنند و برای جلوگیری از overheating و fracture ابزار به irrigation مداوم نیاز دارند.
-دلیل رد گزینه ب: روش‌های rotary/microhandpiece در متن دشوارتر و مستعد misaligned preparation معرفی شده‌اند.
-دلیل رد گزینه ج: bevel بلند tubules بیشتری را آشکار می‌کند و leakage را افزایش می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: ultrasonic tips کنترل، شکل بهتر، bevel کمتر، برداشت کمتر ریشه و توانایی آماده‌سازی isthmus را فراهم می‌کنند و برای جلوگیری از overheating و fracture ابزار به irrigation مداوم نیاز دارند.
+دلیل رد گزینه ب: روش‌های rotary/microhandpiece در متن دشوارتر و مستعد misaligned preparation معرفی شده‌اند.
+دلیل رد گزینه ج: bevel بلند tubules بیشتری را آشکار می‌کند و leakage را افزایش می‌دهد.
 دلیل رد گزینه د: handpieceهایی که هوا/آب/ذرات را تحت فشار وارد site می‌کنند برای پیشگیری از emphysema نباید استفاده شوند.',
                     ],
                     [
@@ -2448,10 +2448,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'برداشتن کامل بافت گرانولاسیون اطراف فورامن برای افزایش دید',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: نویسنده فصل exposure عصب را ایمن‌تر از تخمین محل آن می‌داند؛ باید با reflection دقیق آن را شناسایی و anterior loop ۲ تا ۴ میلی‌متری را در نظر گرفت.
-دلیل رد گزینه ب: متن بر خلاف این گزینه، تخمین را ایمن‌تر نمی‌داند.
-دلیل رد گزینه ج: semilunar incision برای بیشتر جراحی‌های اندودنتیک contraindicated توصیف شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: نویسنده فصل exposure عصب را ایمن‌تر از تخمین محل آن می‌داند؛ باید با reflection دقیق آن را شناسایی و anterior loop ۲ تا ۴ میلی‌متری را در نظر گرفت.
+دلیل رد گزینه ب: متن بر خلاف این گزینه، تخمین را ایمن‌تر نمی‌داند.
+دلیل رد گزینه ج: semilunar incision برای بیشتر جراحی‌های اندودنتیک contraindicated توصیف شده است.
 دلیل رد گزینه د: در نزدیکی عصب، برداشتن کامل ضایعه لازم نیست و می‌تواند آسیب ایجاد کند.',
                     ],
                     [
@@ -2463,10 +2463,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'استفاده از suture با wicking بیشتر برای نگهداری بهتر لخته',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: تمیز کردن cervical region، فشار دیجیتال برای خروج خون زیر flap و adaptation بهتر، و sling suture در esthetic zone برای کاهش recession توصیه شده‌اند.
-دلیل رد گزینه ب: calculus و granulation tissue باید برداشته شوند و فشار دیجیتال پس از suturing نیز سودمند است.
-دلیل رد گزینه ج: متن adaptation اولیه با فشار و گاز مرطوب را قبل از suturing ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: تمیز کردن cervical region، فشار دیجیتال برای خروج خون زیر flap و adaptation بهتر، و sling suture در esthetic zone برای کاهش recession توصیه شده‌اند.
+دلیل رد گزینه ب: calculus و granulation tissue باید برداشته شوند و فشار دیجیتال پس از suturing نیز سودمند است.
+دلیل رد گزینه ج: متن adaptation اولیه با فشار و گاز مرطوب را قبل از suturing ذکر می‌کند.
 دلیل رد گزینه د: absorbable monofilament sutures به علت wicking کمتر و retention کمتر باکتری ترجیح داده می‌شوند.',
                     ],
                     [
@@ -2478,10 +2478,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'overfill باید با decompression طولانی‌مدت درمان شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید overfilling به‌خودی‌خود اندیکاسیون removal نیست، اما اگر tooth symptomatic شود، اصلاح جراحی می‌تواند سودمند باشد.
-دلیل رد گزینه ب: فصل اقدام فوری را بر اساس overfill بی‌علامت توصیه نمی‌کند.
-دلیل رد گزینه ج: در procedural errors، obturation اغلب dense است و جراحی در صورت علامت‌دار شدن می‌تواند پیش‌آگهی عالی داشته باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید overfilling به‌خودی‌خود اندیکاسیون removal نیست، اما اگر tooth symptomatic شود، اصلاح جراحی می‌تواند سودمند باشد.
+دلیل رد گزینه ب: فصل اقدام فوری را بر اساس overfill بی‌علامت توصیه نمی‌کند.
+دلیل رد گزینه ج: در procedural errors، obturation اغلب dense است و جراحی در صورت علامت‌دار شدن می‌تواند پیش‌آگهی عالی داشته باشد.
 دلیل رد گزینه د: decompression بیشتر برای large unresolved lesions مطرح شده است، نه overfill بی‌علامت.',
                     ],
                     [
@@ -2493,10 +2493,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تا زمان suture removal در روز هفتم نباید مداخله کرد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید infection پس از این نوع جراحی نادر است و در صورت مشکل باید بیمار حضوری ارزیابی شود؛ عللی مانند suture شل، cotton pellet زیر flap یا overreaction بافت نرم مطرح‌اند.
-دلیل رد گزینه ب: متن antibiotics را در این وضعیت معمولاً indicated نمی‌داند و palliative/corrective treatment را کافی می‌شمارد.
-دلیل رد گزینه ج: پس از ۳ روز swelling و discomfort باید در حال کاهش باشند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید infection پس از این نوع جراحی نادر است و در صورت مشکل باید بیمار حضوری ارزیابی شود؛ عللی مانند suture شل، cotton pellet زیر flap یا overreaction بافت نرم مطرح‌اند.
+دلیل رد گزینه ب: متن antibiotics را در این وضعیت معمولاً indicated نمی‌داند و palliative/corrective treatment را کافی می‌شمارد.
+دلیل رد گزینه ج: پس از ۳ روز swelling و discomfort باید در حال کاهش باشند.
 دلیل رد گزینه د: انتظار بدون ارزیابی با توصیه تماس و ارزیابی حضوری در صورت مشکل سازگار نیست.',
                     ],
                     [
@@ -2508,10 +2508,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'استخراج به‌عنوان گزینه برتر در حضور هرگونه exudate باقی‌مانده',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن موارد اندکی را برای simultaneous root canal therapy and apical surgery می‌پذیرد؛ یکی از آنها باقی‌ماندن purulent exudate یا vestibular swelling با وجود instrumentation و antibiotics است.
-دلیل رد گزینه ب: فصل می‌گوید معمولاً مزیت ندارد، اما در این سناریوی خاص می‌تواند موفق باشد.
-دلیل رد گزینه ج: تک‌جلسه‌ای بودن درمان به‌تنهایی دلیل همراه کردن surgery نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن موارد اندکی را برای simultaneous root canal therapy and apical surgery می‌پذیرد؛ یکی از آنها باقی‌ماندن purulent exudate یا vestibular swelling با وجود instrumentation و antibiotics است.
+دلیل رد گزینه ب: فصل می‌گوید معمولاً مزیت ندارد، اما در این سناریوی خاص می‌تواند موفق باشد.
+دلیل رد گزینه ج: تک‌جلسه‌ای بودن درمان به‌تنهایی دلیل همراه کردن surgery نیست.
 دلیل رد گزینه د: استخراج گزینه برتر مطرح‌شده در این سناریو نیست.',
                     ],
                     [
@@ -2523,10 +2523,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کاهش نیاز به retrograde filling در اغلب موارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: root end resection ناحیه‌ای را حذف می‌کند که به علت فاصله از coronal portion احتمال obturation ضعیف‌تر و accessory canals بیشتری دارد.
-دلیل رد گزینه ب: bone augmentation در فصل برای اغلب حفره‌ها کم‌فایده یا بی‌نیاز معرفی شده است.
-دلیل رد گزینه ج: برداشتن کامل بافت گرانولاسیون لازم نیست و می‌تواند خطرناک باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: root end resection ناحیه‌ای را حذف می‌کند که به علت فاصله از coronal portion احتمال obturation ضعیف‌تر و accessory canals بیشتری دارد.
+دلیل رد گزینه ب: bone augmentation در فصل برای اغلب حفره‌ها کم‌فایده یا بی‌نیاز معرفی شده است.
+دلیل رد گزینه ج: برداشتن کامل بافت گرانولاسیون لازم نیست و می‌تواند خطرناک باشد.
 دلیل رد گزینه د: پس از resection معمولاً retrograde filling برای seal کردن کانال لازم است مگر موانع تکنیکی وجود داشته باشد.',
                     ],
                     [
@@ -2538,10 +2538,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'درمان جراحی بدون تلاش برای ارزیابی امکان درمان conventional',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در anatomic problems مانند calcification، blockage، curvature شدید یا constricted canal، اگر conventional treatment یا retreatment ممکن نباشد، resection قسمت instrument نشده و root-end filling مطرح می‌شود.
-دلیل رد گزینه ب: کانال تمیز و obturate نشده می‌تواند به علت apical leakage باعث failure شود.
-دلیل رد گزینه ج: implant گزینه‌ای ممکن است، اما متن ابتدا تصمیم را بر اساس وضعیت بالینی/آناتومیک و امکان retreatment یا surgery می‌چیند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در anatomic problems مانند calcification، blockage، curvature شدید یا constricted canal، اگر conventional treatment یا retreatment ممکن نباشد، resection قسمت instrument نشده و root-end filling مطرح می‌شود.
+دلیل رد گزینه ب: کانال تمیز و obturate نشده می‌تواند به علت apical leakage باعث failure شود.
+دلیل رد گزینه ج: implant گزینه‌ای ممکن است، اما متن ابتدا تصمیم را بر اساس وضعیت بالینی/آناتومیک و امکان retreatment یا surgery می‌چیند.
 دلیل رد گزینه د: فصل ترجیح می‌دهد ابتدا conventional treatment یا retreatment تلاش یا ارزیابی شود.',
                     ],
                     [
@@ -2553,10 +2553,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Cavit',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در corrective surgery، MTA یا super EBA برای external repair مناسب معرفی شده‌اند؛ MTA به‌خصوص خواص زیستی مطلوب و رنگ سفید سازگار با بافت نازک دارد.
-دلیل رد گزینه ب: amalgam در برخی موارد به‌عنوان ماده ترمیمی آمده، اما گزینه مورد تأکید برای رنگ و خواص زیستی در این بخش MTA است.
-دلیل رد گزینه ج: gutta-percha در بخش مواد root-end با مستندات کمتر آمده و ماده برجسته برای external repair نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در corrective surgery، MTA یا super EBA برای external repair مناسب معرفی شده‌اند؛ MTA به‌خصوص خواص زیستی مطلوب و رنگ سفید سازگار با بافت نازک دارد.
+دلیل رد گزینه ب: amalgam در برخی موارد به‌عنوان ماده ترمیمی آمده، اما گزینه مورد تأکید برای رنگ و خواص زیستی در این بخش MTA است.
+دلیل رد گزینه ج: gutta-percha در بخش مواد root-end با مستندات کمتر آمده و ماده برجسته برای external repair نیست.
 دلیل رد گزینه د: Cavit نیز در متن مستندات کمتر برای root-end materials دارد و انتخاب مطلوب این وضعیت نیست.',
                     ],
                     [
@@ -2568,10 +2568,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'subperiosteal، apically positioned و vestibular',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل سه incision رایج را semilunar، submarginal و full mucoperiosteal یا sulcular معرفی می‌کند.
-دلیل رد گزینه ب: triangular یک design برای submarginal یا full mucoperiosteal است، نه یکی از سه نوع اصلی برش در متن.
-دلیل رد گزینه ج: sulcular نام دیگر full mucoperiosteal است، اما دو گزینه دیگر مجموعه فصل را کامل نمی‌کنند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل سه incision رایج را semilunar، submarginal و full mucoperiosteal یا sulcular معرفی می‌کند.
+دلیل رد گزینه ب: triangular یک design برای submarginal یا full mucoperiosteal است، نه یکی از سه نوع اصلی برش در متن.
+دلیل رد گزینه ج: sulcular نام دیگر full mucoperiosteal است، اما دو گزینه دیگر مجموعه فصل را کامل نمی‌کنند.
 دلیل رد گزینه د: این‌ها ترکیب سه برش رایج فصل برای endodontic surgery نیستند.',
                     ],
                     [
@@ -2583,10 +2583,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'برای ضایعات کوچک محصور در bone روش استاندارد و ضروری است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: GTR برای defectهای امتداد یافته به cervical margins یا defectهای بزرگ احاطه‌شده با bone مطرح شده، اما شواهد بلندمدت ناکامل است و افزایش bone density با membrane نشان داده نشده است.
-دلیل رد گزینه ب: مطالعات افزایش bone density با membrane را نشان نداده‌اند.
-دلیل رد گزینه ج: نویسنده فصل حذف منبع عفونت را عامل اصلی ترمیم می‌داند، نه جایگزینی آن با membrane.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: GTR برای defectهای امتداد یافته به cervical margins یا defectهای بزرگ احاطه‌شده با bone مطرح شده، اما شواهد بلندمدت ناکامل است و افزایش bone density با membrane نشان داده نشده است.
+دلیل رد گزینه ب: مطالعات افزایش bone density با membrane را نشان نداده‌اند.
+دلیل رد گزینه ج: نویسنده فصل حذف منبع عفونت را عامل اصلی ترمیم می‌داند، نه جایگزینی آن با membrane.
 دلیل رد گزینه د: برای حفره‌های کوچک محصور در bone، ضرورت استفاده روتین ذکر نشده است.',
                     ],
                     [
@@ -2598,10 +2598,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'افزایش احتمال recession به علت برش داخل gingival sulcus',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: semilunar incision دسترسی سریع می‌دهد، اما evaluation کامل root surface را محدود می‌کند، اگر fracture دیده شود resection/extraction دشوار می‌شود، برش در alveolar mucosa قرار دارد و flap روی site ملتهب می‌افتد.
-دلیل رد گزینه ب: برداشت papilla و free gingival margin مربوط به full mucoperiosteal incision است.
-دلیل رد گزینه ج: submarginal incision در attached gingiva قرار می‌گیرد، نه semilunar.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: semilunar incision دسترسی سریع می‌دهد، اما evaluation کامل root surface را محدود می‌کند، اگر fracture دیده شود resection/extraction دشوار می‌شود، برش در alveolar mucosa قرار دارد و flap روی site ملتهب می‌افتد.
+دلیل رد گزینه ب: برداشت papilla و free gingival margin مربوط به full mucoperiosteal incision است.
+دلیل رد گزینه ج: submarginal incision در attached gingiva قرار می‌گیرد، نه semilunar.
 دلیل رد گزینه د: برش داخل sulcus ویژگی full mucoperiosteal است، نه semilunar.',
                     ],
                     [
@@ -2613,10 +2613,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'نبود graft مانع bone fill حتی در defectهای بزرگ می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید به دلیل موقعیت حفره و احاطه آن با bone یا periosteum، spontaneous bone regeneration قابل پیش‌بینی است و augmentation کم‌فایده یا بی‌نیاز است.
-دلیل رد گزینه ب: متن استفاده روتین از graft را لازم نمی‌داند.
-دلیل رد گزینه ج: مواد قرار داده‌شده در محل عفونت فعال می‌توانند nidus برای عفونت شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید به دلیل موقعیت حفره و احاطه آن با bone یا periosteum، spontaneous bone regeneration قابل پیش‌بینی است و augmentation کم‌فایده یا بی‌نیاز است.
+دلیل رد گزینه ب: متن استفاده روتین از graft را لازم نمی‌داند.
+دلیل رد گزینه ج: مواد قرار داده‌شده در محل عفونت فعال می‌توانند nidus برای عفونت شوند.
 دلیل رد گزینه د: شکل و متن نشان می‌دهند bone fill حتی بدون graft یا membrane نیز ممکن است.',
                     ],
                     [
@@ -2628,10 +2628,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'با قرار دادن drain، نیاز به تصمیم درباره culture از بین می‌رود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید بیشتر عفونت‌های اندودنتیک community-acquired نیازی به culture ندارند، مگر در بیمار compromised، عدم پاسخ به antibiotic تجربی، یا hospital-acquired infection.
-دلیل رد گزینه ب: ارسال روتین culture برای موارد رایج با متن مخالف است.
-دلیل رد گزینه ج: مسیر drainage معیار اصلی culture نیست؛ وضعیت بیمار، پاسخ درمانی و منشأ عفونت اهمیت دارند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید بیشتر عفونت‌های اندودنتیک community-acquired نیازی به culture ندارند، مگر در بیمار compromised، عدم پاسخ به antibiotic تجربی، یا hospital-acquired infection.
+دلیل رد گزینه ب: ارسال روتین culture برای موارد رایج با متن مخالف است.
+دلیل رد گزینه ج: مسیر drainage معیار اصلی culture نیست؛ وضعیت بیمار، پاسخ درمانی و منشأ عفونت اهمیت دارند.
 دلیل رد گزینه د: drain و culture تصمیم‌های متفاوت‌اند و یکی جای دیگری را نمی‌گیرد.',
                     ],
                     [
@@ -2643,10 +2643,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'استفاده از graft برای کاهش نیاز به مهارت surgical access',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل تأکید دارد بیشتر این اعمال به آموزش و تجربه فراتر از undergraduate نیاز دارند؛ نزدیکی neurovascular bundle، bone، frena، fenestration و sinus از دلایل referral است.
-دلیل رد گزینه ب: متن می‌گوید اغلب generalists آموزش پیشرفته و armamentarium لازم را ندارند.
-دلیل رد گزینه ج: اگر علت failure مشخص نباشد، referral باید در نظر گرفته شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل تأکید دارد بیشتر این اعمال به آموزش و تجربه فراتر از undergraduate نیاز دارند؛ نزدیکی neurovascular bundle، bone، frena، fenestration و sinus از دلایل referral است.
+دلیل رد گزینه ب: متن می‌گوید اغلب generalists آموزش پیشرفته و armamentarium لازم را ندارند.
+دلیل رد گزینه ج: اگر علت failure مشخص نباشد، referral باید در نظر گرفته شود.
 دلیل رد گزینه د: graft مشکل surgical access و خطر آسیب عصبی/خون‌ریزی را حل نمی‌کند.',
                     ],
                     [
@@ -2658,10 +2658,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'اتکا به cotton pellet بی‌حسی به‌عنوان جایگزین block',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل bupivacaine 0.5% با epinephrine 1:200,000 را برای inferior alveolar nerve block توصیه می‌کند چون بی‌حسی طولانی و analgesia باقی‌مانده می‌دهد.
-دلیل رد گزینه ب: بافت‌پراکنی bupivacaine برای infiltration محدودتر است چون protein binding بالایی دارد.
-دلیل رد گزینه ج: در مندیبل، block سپس infiltration با ماده حاوی epinephrine برای hemostasis انجام می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل bupivacaine 0.5% با epinephrine 1:200,000 را برای inferior alveolar nerve block توصیه می‌کند چون بی‌حسی طولانی و analgesia باقی‌مانده می‌دهد.
+دلیل رد گزینه ب: بافت‌پراکنی bupivacaine برای infiltration محدودتر است چون protein binding بالایی دارد.
+دلیل رد گزینه ج: در مندیبل، block سپس infiltration با ماده حاوی epinephrine برای hemostasis انجام می‌شود.
 دلیل رد گزینه د: cotton pellet با anesthetic برای کاهش حساسیت curettage کمک‌کننده است، نه جایگزین block.',
                     ],
                     [
@@ -2673,10 +2673,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'overfill بدون علامت در apical third',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید halo-type radiolucency یا J-type pattern ارتباط بسیار قوی با vertical root fracture دارد.
-دلیل رد گزینه ب: scar healing حاشیه مشخص و جدا از root end دارد و معمولاً پس از surgery در maxillary incisors دیده می‌شود.
-دلیل رد گزینه ج: large unresolved lesions ممکن است decompression بخواهند، اما J/halo علامت شاخص fracture است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید halo-type radiolucency یا J-type pattern ارتباط بسیار قوی با vertical root fracture دارد.
+دلیل رد گزینه ب: scar healing حاشیه مشخص و جدا از root end دارد و معمولاً پس از surgery در maxillary incisors دیده می‌شود.
+دلیل رد گزینه ج: large unresolved lesions ممکن است decompression بخواهند، اما J/halo علامت شاخص fracture است.
 دلیل رد گزینه د: overfill بی‌علامت با چنین الگوی radiolucency در متن معرفی نشده است.',
                     ],
                     [
@@ -2688,10 +2688,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'incision محدود در alveolar mucosa روی lesion',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: full mucoperiosteal incision دید و دسترسی حداکثر، visibility کامل root، امکان root planing و bone contouring و انجام اقدامات بیشتر را فراهم می‌کند.
-دلیل رد گزینه ب: semilunar incision در صورت یافتن fracture، root resection یا extraction را دشوار می‌کند.
-دلیل رد گزینه ج: submarginal دسترسی محدودتری دارد و اگر fracture یا نیاز به extraction/resection باشد محدودیت ایجاد می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: full mucoperiosteal incision دید و دسترسی حداکثر، visibility کامل root، امکان root planing و bone contouring و انجام اقدامات بیشتر را فراهم می‌کند.
+دلیل رد گزینه ب: semilunar incision در صورت یافتن fracture، root resection یا extraction را دشوار می‌کند.
+دلیل رد گزینه ج: submarginal دسترسی محدودتری دارد و اگر fracture یا نیاز به extraction/resection باشد محدودیت ایجاد می‌کند.
 دلیل رد گزینه د: برش روی lesion و در mucosa unattached از اشکالات semilunar-type است.',
                     ],
                     [
@@ -2703,10 +2703,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'پرهیز کامل از بهداشت دهان تا suture removal',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن توصیه می‌کند محل جراحی دستکاری نشود، فشار و cold packs می‌توانند کمک کنند و chlorhexidine twice daily bacterial count و inflammation را کاهش دهد.
-دلیل رد گزینه ب: بهداشت در سایر نواحی به‌جز محل جراحی انجام می‌شود و brushing/flossing دقیق معمولاً بعد از ۲۴ ساعت شروع می‌شود.
-دلیل رد گزینه ج: تورم جزو sequelae مورد انتظار است و antibiotic برای complication معمولاً indicated نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن توصیه می‌کند محل جراحی دستکاری نشود، فشار و cold packs می‌توانند کمک کنند و chlorhexidine twice daily bacterial count و inflammation را کاهش دهد.
+دلیل رد گزینه ب: بهداشت در سایر نواحی به‌جز محل جراحی انجام می‌شود و brushing/flossing دقیق معمولاً بعد از ۲۴ ساعت شروع می‌شود.
+دلیل رد گزینه ج: تورم جزو sequelae مورد انتظار است و antibiotic برای complication معمولاً indicated نیست.
 دلیل رد گزینه د: پرهیز کامل از بهداشت دهان توصیه نشده است؛ surgical site باید محافظت شود.',
                     ],
                     [
@@ -2718,10 +2718,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حذف نیاز به بررسی periodontal cervical support',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در teeth با ریشه بسیار کوتاه، root-end resection می‌تواند bony support و stability را بیشتر compromise کند؛ crown-root ratio باید در نظر گرفته شود.
-دلیل رد گزینه ب: scar healing عمدتاً در maxillary incisors مطرح شده و نگرانی اصلی این سناریو نیست.
-دلیل رد گزینه ج: کوتاه کردن ریشه به‌طور خودکار موفقیت را افزایش نمی‌دهد و می‌تواند پایداری را کم کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در teeth با ریشه بسیار کوتاه، root-end resection می‌تواند bony support و stability را بیشتر compromise کند؛ crown-root ratio باید در نظر گرفته شود.
+دلیل رد گزینه ب: scar healing عمدتاً در maxillary incisors مطرح شده و نگرانی اصلی این سناریو نیست.
+دلیل رد گزینه ج: کوتاه کردن ریشه به‌طور خودکار موفقیت را افزایش نمی‌دهد و می‌تواند پایداری را کم کند.
 دلیل رد گزینه د: سلامت periodontium cervical می‌تواند در توان حمایت crown بلند اهمیت داشته باشد.',
                     ],
                     [
@@ -2733,10 +2733,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حساسیت زیاد به moisture، insertion دشوار و نیاز به بارگذاری فوری',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: ماده root-end باید seal خوبی بدهد، tissue tolerant باشد، آسان وارد شود، کم تحت تأثیر moisture باشد، radiographically visible باشد و به‌طور نامحدود stable و nonresorbable بماند.
-دلیل رد گزینه ب: resorption تدریجی و نیاز شدید به خشکی با معیارهای متن سازگار نیست.
-دلیل رد گزینه ج: radiographic visibility یکی از ویژگی‌های خواسته‌شده است؛ عدم visibility مناسب نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: ماده root-end باید seal خوبی بدهد، tissue tolerant باشد، آسان وارد شود، کم تحت تأثیر moisture باشد، radiographically visible باشد و به‌طور نامحدود stable و nonresorbable بماند.
+دلیل رد گزینه ب: resorption تدریجی و نیاز شدید به خشکی با معیارهای متن سازگار نیست.
+دلیل رد گزینه ج: radiographic visibility یکی از ویژگی‌های خواسته‌شده است؛ عدم visibility مناسب نیست.
 دلیل رد گزینه د: ماده مطلوب باید insertion آسان و minimal moisture sensitivity داشته باشد؛ apex ناحیه load-bearing فوری نیست.',
                     ],
                     [
@@ -2748,10 +2748,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'antibiotics اگر بعد از شروع جراحی داده شوند همان اثر prophylactic را دارند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید corticosteroids ممکن است edema را کاهش دهند اما خطر infection را افزایش دهند؛ بنابراین prophylactic antibiotics ممکن است ضروری شوند.
-دلیل رد گزینه ب: کورتیکواستروئید جایگزین antibiotic prophylaxis نیست.
-دلیل رد گزینه ج: نیاز به postoperative dosing به‌طور روشن تعریف نشده و ممکن است سودی نداشته باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید corticosteroids ممکن است edema را کاهش دهند اما خطر infection را افزایش دهند؛ بنابراین prophylactic antibiotics ممکن است ضروری شوند.
+دلیل رد گزینه ب: کورتیکواستروئید جایگزین antibiotic prophylaxis نیست.
+دلیل رد گزینه ج: نیاز به postoperative dosing به‌طور روشن تعریف نشده و ممکن است سودی نداشته باشد.
 دلیل رد گزینه د: اصول prophylaxis در فصل بر تجویز قبل از surgery برای اثر محافظتی تأکید دارد.',
                     ],
                     [
@@ -2763,10 +2763,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'انجام suturing، سپس اصلاح root-end filling در صورت مشاهده مشکل رادیوگرافیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: site با sterile saline شسته می‌شود، اما درباره MTA irrigation قبل از قرار دادن انجام می‌شود تا ماده شسته نشود؛ قبل از suturing باید radiograph برای تأیید اهداف گرفته شود.
-دلیل رد گزینه ب: irrigation پس از MTA می‌تواند آن را خارج کند و حذف radiograph با متن ناسازگار است.
-دلیل رد گزینه ج: radiographic verification قبل از suturing توصیه شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: site با sterile saline شسته می‌شود، اما درباره MTA irrigation قبل از قرار دادن انجام می‌شود تا ماده شسته نشود؛ قبل از suturing باید radiograph برای تأیید اهداف گرفته شود.
+دلیل رد گزینه ب: irrigation پس از MTA می‌تواند آن را خارج کند و حذف radiograph با متن ناسازگار است.
+دلیل رد گزینه ج: radiographic verification قبل از suturing توصیه شده است.
 دلیل رد گزینه د: اصلاحات باید پیش از suturing انجام شود.',
                     ],
                     [
@@ -2778,10 +2778,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'وجود فایل، prognosis درمان جراحی را در هر حالت ضعیف می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید broken file اگر tooth asymptomatic باشد می‌تواند در canal باقی بماند و خودبه‌خود indication برای apical surgery نیست.
-دلیل رد گزینه ب: surgical removal معمولاً وقتی apical pathosis وجود دارد مطرح است.
-دلیل رد گزینه ج: decompression برای large unresolved lesions مطرح است، نه separated file بی‌علامت.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید broken file اگر tooth asymptomatic باشد می‌تواند در canal باقی بماند و خودبه‌خود indication برای apical surgery نیست.
+دلیل رد گزینه ب: surgical removal معمولاً وقتی apical pathosis وجود دارد مطرح است.
+دلیل رد گزینه ج: decompression برای large unresolved lesions مطرح است، نه separated file بی‌علامت.
 دلیل رد گزینه د: متن چنین حکم کلی درباره prognosis در هر حالت نمی‌دهد.',
                     ],
                     [
@@ -2793,10 +2793,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ثابت و مستقل از bevel در ریشه‌های مختلف',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید عمق preparation باید حداقل ۱ میلی‌متر از طول bevel عمیق‌تر باشد تا apex به‌خوبی seal شود.
-دلیل رد گزینه ب: برابر بودن با طول bevel برای seal کافی مطابق متن نیست.
-دلیل رد گزینه ج: کمتر بودن از bevel seal را compromise می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید عمق preparation باید حداقل ۱ میلی‌متر از طول bevel عمیق‌تر باشد تا apex به‌خوبی seal شود.
+دلیل رد گزینه ب: برابر بودن با طول bevel برای seal کافی مطابق متن نیست.
+دلیل رد گزینه ج: کمتر بودن از bevel seal را compromise می‌کند.
 دلیل رد گزینه د: معیار متن به طول bevel وابسته است و کاملاً ثابت نیست.',
                     ],
                     [
@@ -2808,10 +2808,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'semilunar incision، bone graft اجباری، suturing بدون radiograph و follow-up در صورت علامت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل periapical surgery را شامل exposure مناسب root/apical region، exploration، curettage، resection، ultrasonic preparation، retrograde filling و closure مناسب می‌داند.
-دلیل رد گزینه ب: این توالی مربوط به اجزای اصلی periapical surgery در متن نیست.
-دلیل رد گزینه ج: این ترکیب شامل درمان‌های متفاوت و علل resorption است، نه مراحل جراحی پری‌اپیکال.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل periapical surgery را شامل exposure مناسب root/apical region، exploration، curettage، resection، ultrasonic preparation، retrograde filling و closure مناسب می‌داند.
+دلیل رد گزینه ب: این توالی مربوط به اجزای اصلی periapical surgery در متن نیست.
+دلیل رد گزینه ج: این ترکیب شامل درمان‌های متفاوت و علل resorption است، نه مراحل جراحی پری‌اپیکال.
 دلیل رد گزینه د: semilunar معمولاً منع شده، graft اجباری نیست و radiograph پیش از suturing توصیه می‌شود.',
                     ],
                     [
@@ -2823,10 +2823,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'قرار دادن ماده از بیرون بدون contour کردن excess داخلی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید defect باید برای ایجاد حاشیه سالم و اجتناب از knife-edge margins بزرگ‌تر و آماده شود؛ defect معمولاً بزرگ‌تر و پیچیده‌تر از تصویر رادیوگرافیک است.
-دلیل رد گزینه ب: knife-edge margins باید اجتناب شوند، نه حفظ.
-دلیل رد گزینه ج: رادیوگرافی معمولاً defect را کمتر از واقعیت نشان می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید defect باید برای ایجاد حاشیه سالم و اجتناب از knife-edge margins بزرگ‌تر و آماده شود؛ defect معمولاً بزرگ‌تر و پیچیده‌تر از تصویر رادیوگرافیک است.
+دلیل رد گزینه ب: knife-edge margins باید اجتناب شوند، نه حفظ.
+دلیل رد گزینه ج: رادیوگرافی معمولاً defect را کمتر از واقعیت نشان می‌دهد.
 دلیل رد گزینه د: در repair داخلی یا مواد extruded، excess باید با burr یا sharp instruments برداشته و contour شود.',
                     ],
                     [
@@ -2838,10 +2838,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حذف vertical release و تکیه بر کشش flap برای دید بهتر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: وقتی release از prominences و frenum می‌گذرد، papilla مجاور ممکن است خون‌رسانی کمتری بگیرد؛ متن پیشنهاد می‌کند release عمودی مستقیم‌تر/perpendicular به sulcus و موازی long axis دندان‌ها طراحی شود.
-دلیل رد گزینه ب: trapezoidal classic جزء طولانی‌تری در nonkeratinized tissue ایجاد می‌کند و در این وضعیت ممکن است درد/ترمیم را بدتر کند.
-دلیل رد گزینه ج: برش روی lesion از مشکلات semilunar است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: وقتی release از prominences و frenum می‌گذرد، papilla مجاور ممکن است خون‌رسانی کمتری بگیرد؛ متن پیشنهاد می‌کند release عمودی مستقیم‌تر/perpendicular به sulcus و موازی long axis دندان‌ها طراحی شود.
+دلیل رد گزینه ب: trapezoidal classic جزء طولانی‌تری در nonkeratinized tissue ایجاد می‌کند و در این وضعیت ممکن است درد/ترمیم را بدتر کند.
+دلیل رد گزینه ج: برش روی lesion از مشکلات semilunar است.
 دلیل رد گزینه د: کشش flap باعث tearing و کند شدن healing می‌شود؛ عرض و release کافی توصیه شده است.',
                     ],
                     [
@@ -2853,10 +2853,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'graft placement، biopsy omission، recall failure و MTA setting time',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن resorption را در ارتباط با sequelae of trauma، internal bleaching، orthodontic movement، restorative procedures، التهاب pulpal/periradicular و گاهی idiopathic می‌داند.
-دلیل رد گزینه ب: این‌ها عوامل مدیریتی یا تکنیکی جراحی‌اند، نه علل resorptive perforation.
-دلیل رد گزینه ج: این مجموعه شامل اجزای flap و مراقبت است و علت resorption نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن resorption را در ارتباط با sequelae of trauma، internal bleaching، orthodontic movement، restorative procedures، التهاب pulpal/periradicular و گاهی idiopathic می‌داند.
+دلیل رد گزینه ب: این‌ها عوامل مدیریتی یا تکنیکی جراحی‌اند، نه علل resorptive perforation.
+دلیل رد گزینه ج: این مجموعه شامل اجزای flap و مراقبت است و علت resorption نیست.
 دلیل رد گزینه د: این موارد مربوط به adjuncts، biopsy و material properties هستند، نه منشأ resorption.',
                     ],
                     [
@@ -2868,10 +2868,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حساسیت گذرا در روز اول بدون شواهد drainage یا radiolucency',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل draining fistula، درد هنگام mastication و افزایش radiolucency را نشانه‌هایی از مشکل در درمان اندودنتیک اولیه می‌داند.
-دلیل رد گزینه ب: restoration قطعی ارزش دندان را بالا می‌برد، اما بدون علامت یا تغییر رادیوگرافیک نشانه failure نیست.
-دلیل رد گزینه ج: کاهش mobility و نبود sinus tract از postoperative success factors هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل draining fistula، درد هنگام mastication و افزایش radiolucency را نشانه‌هایی از مشکل در درمان اندودنتیک اولیه می‌داند.
+دلیل رد گزینه ب: restoration قطعی ارزش دندان را بالا می‌برد، اما بدون علامت یا تغییر رادیوگرافیک نشانه failure نیست.
+دلیل رد گزینه ج: کاهش mobility و نبود sinus tract از postoperative success factors هستند.
 دلیل رد گزینه د: حساسیت گذرا بدون نشانه‌های ذکرشده در متن معیار اصلی failure نیست.',
                     ],
                 ],
@@ -2902,10 +2902,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'زمان removal وابسته به شروع chlorhexidine است و معیار tissue apposition اهمیت ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن sutures را معمولاً در ۵ تا ۷ روز برمی‌دارد و دوره کوتاه‌تر را برای healing بهتر ترجیح می‌دهد؛ پس از ۳ روز swelling و discomfort باید کاهش یابد و primary closure دیده شود.
-دلیل رد گزینه ب: باقی ماندن طولانی‌تر در متن ترجیح داده نشده است.
-دلیل رد گزینه ج: bone fill معیار زمان suture removal نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن sutures را معمولاً در ۵ تا ۷ روز برمی‌دارد و دوره کوتاه‌تر را برای healing بهتر ترجیح می‌دهد؛ پس از ۳ روز swelling و discomfort باید کاهش یابد و primary closure دیده شود.
+دلیل رد گزینه ب: باقی ماندن طولانی‌تر در متن ترجیح داده نشده است.
+دلیل رد گزینه ج: bone fill معیار زمان suture removal نیست.
 دلیل رد گزینه د: tissue apposition و primary closure در ارزیابی زخم اهمیت دارند.',
                     ],
                     [
@@ -2917,10 +2917,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'bone fill رادیوگرافیک پس از جراحی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در الگوریتم و Box عوامل، crack/fracture و وضعیت پریودنتال ناکافی مسیر را از حفظ دندان دور می‌کنند و extraction/implant-prosthesis مطرح می‌شود.
-دلیل رد گزینه ب: dense fill و adequate crown-root ratio از عوامل موفقیت هستند.
-دلیل رد گزینه ج: radiolucency محدود به apical one-third از عوامل مرتبط با موفقیت است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در الگوریتم و Box عوامل، crack/fracture و وضعیت پریودنتال ناکافی مسیر را از حفظ دندان دور می‌کنند و extraction/implant-prosthesis مطرح می‌شود.
+دلیل رد گزینه ب: dense fill و adequate crown-root ratio از عوامل موفقیت هستند.
+دلیل رد گزینه ج: radiolucency محدود به apical one-third از عوامل مرتبط با موفقیت است.
 دلیل رد گزینه د: bone fill پس از جراحی معیار موفقیت و final restoration است، نه extraction.',
                     ],
                     [
@@ -2932,10 +2932,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'MTA washout به علت irrigation پس از placement',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: healing by scar tissue به‌خصوص در maxillary incisors رخ می‌دهد و ظاهر رادیوگرافیک distinct، نامنظم و جدا از root end دارد؛ این حالت outcome موفق محسوب می‌شود.
-دلیل رد گزینه ب: persistent inflammation معمولاً diffuse یا همراه عدم کاهش ضایعه/علائم است، نه حاشیه distinct و جدایی از apex.
-دلیل رد گزینه ج: resorptive perforation ارتباط pulp-periodontium یا cervical exposure دارد و این توصیف scar است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: healing by scar tissue به‌خصوص در maxillary incisors رخ می‌دهد و ظاهر رادیوگرافیک distinct، نامنظم و جدا از root end دارد؛ این حالت outcome موفق محسوب می‌شود.
+دلیل رد گزینه ب: persistent inflammation معمولاً diffuse یا همراه عدم کاهش ضایعه/علائم است، نه حاشیه distinct و جدایی از apex.
+دلیل رد گزینه ج: resorptive perforation ارتباط pulp-periodontium یا cervical exposure دارد و این توصیف scar است.
 دلیل رد گزینه د: washout MTA در متن به irrigation نامناسب مربوط است، اما این الگوی دیررس خاص scar healing است.',
                     ],
                     [
@@ -2947,10 +2947,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حذف درمان قطعی دندان چون drainage انجام شده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: تصمیم برای drain بر این اساس است که abscess cavity باز می‌ماند یا نه؛ اگر dependent drainage برقرار نباشد، drain باید در نظر گرفته شود.
-دلیل رد گزینه ب: بستن اولیه مسیر را می‌بندد و با هدف drainage سازگار نیست.
-دلیل رد گزینه ج: culture جایگزین ایجاد مسیر drainage نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: تصمیم برای drain بر این اساس است که abscess cavity باز می‌ماند یا نه؛ اگر dependent drainage برقرار نباشد، drain باید در نظر گرفته شود.
+دلیل رد گزینه ب: بستن اولیه مسیر را می‌بندد و با هدف drainage سازگار نیست.
+دلیل رد گزینه ج: culture جایگزین ایجاد مسیر drainage نیست.
 دلیل رد گزینه د: drainage علت عفونت را حذف نمی‌کند و definitive treatment دندان لازم است.',
                     ],
                     [
@@ -2962,10 +2962,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'پرهیز از هرگونه NSAID در بیماران معمول به‌عنوان قاعده این فصل',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید درد معمولاً minimal است و analgesics برای درد متوسط کافی‌اند؛ اثربخشی بیشتر است اگر قبل از جراحی یا پیش از رفع anesthesia داده شوند، و یک پروتکل ibuprofen 400 mg هر ۴ ساعت برای ۴۸ ساعت ذکر می‌شود.
-دلیل رد گزینه ب: strong analgesics معمولاً لازم نیستند.
-دلیل رد گزینه ج: متن شروع قبل از رفع anesthesia را مؤثر می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید درد معمولاً minimal است و analgesics برای درد متوسط کافی‌اند؛ اثربخشی بیشتر است اگر قبل از جراحی یا پیش از رفع anesthesia داده شوند، و یک پروتکل ibuprofen 400 mg هر ۴ ساعت برای ۴۸ ساعت ذکر می‌شود.
+دلیل رد گزینه ب: strong analgesics معمولاً لازم نیستند.
+دلیل رد گزینه ج: متن شروع قبل از رفع anesthesia را مؤثر می‌داند.
 دلیل رد گزینه د: فصل چنین منع عمومی برای NSAID در این بخش بیان نمی‌کند؛ ibuprofen را به‌عنوان پروتکل نمونه آورده است.',
                     ],
                     [
@@ -2977,10 +2977,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'biopsy بدون اصلاح apical leakage',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: ضایعات بزرگ unresolved معمولاً با decompression و curettage محدود درمان می‌شوند تا به ساختارهایی مانند mandibular nerve آسیب نرسد؛ apical leakage با root resection و apical seal باید برطرف شود.
-دلیل رد گزینه ب: برداشت کامل می‌تواند به عصب آسیب بزند و متن curettage محدود را توصیه می‌کند.
-دلیل رد گزینه ج: بزرگ شدن پس از درمان کافی نیازمند مدیریت است، نه قطع درمان.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: ضایعات بزرگ unresolved معمولاً با decompression و curettage محدود درمان می‌شوند تا به ساختارهایی مانند mandibular nerve آسیب نرسد؛ apical leakage با root resection و apical seal باید برطرف شود.
+دلیل رد گزینه ب: برداشت کامل می‌تواند به عصب آسیب بزند و متن curettage محدود را توصیه می‌کند.
+دلیل رد گزینه ج: بزرگ شدن پس از درمان کافی نیازمند مدیریت است، نه قطع درمان.
 دلیل رد گزینه د: biopsy ممکن است در موارد خاص لازم باشد، اما رفع leakage و seal بخش اصلی درمان است.',
                     ],
                     [
@@ -2992,10 +2992,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ultrasonic retrograde preparation',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: endoscopy در متن به‌عنوان سیستم دارای fiber bundle کوچک و flexible با نور و optic system معرفی شده که به monitor وصل می‌شود و امکان recording دارد.
-دلیل رد گزینه ب: surgical microscope magnification و in-line illumination می‌دهد، اما fiber bundle انعطاف‌پذیر متصل به monitor توصیف endoscopy است.
-دلیل رد گزینه ج: GTR مربوط به membranes و regeneration است، نه visualization با fiberoptics.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: endoscopy در متن به‌عنوان سیستم دارای fiber bundle کوچک و flexible با نور و optic system معرفی شده که به monitor وصل می‌شود و امکان recording دارد.
+دلیل رد گزینه ب: surgical microscope magnification و in-line illumination می‌دهد، اما fiber bundle انعطاف‌پذیر متصل به monitor توصیف endoscopy است.
+دلیل رد گزینه ج: GTR مربوط به membranes و regeneration است، نه visualization با fiberoptics.
 دلیل رد گزینه د: ultrasonic preparation ابزار آماده‌سازی root end است، نه سیستم مشاهده.',
                     ],
                     [
@@ -3007,10 +3007,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'انتخاب semilunar flap برای جلوگیری از مشاهده fracture',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل تأکید می‌کند جراحی اندودنتیک exploratory است؛ یافته‌های حین عمل می‌توانند procedure را تغییر دهند و اگر extraction ممکن باشد، consent و برنامه temporization باید پیشاپیش فراهم شود.
-دلیل رد گزینه ب: دقیقاً برخلاف متن است؛ procedure بسته به یافته‌های بالینی پس از exposure تعیین می‌شود.
-دلیل رد گزینه ج: اگر extraction ممکن باشد، consent پیش از عمل باید گرفته شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل تأکید می‌کند جراحی اندودنتیک exploratory است؛ یافته‌های حین عمل می‌توانند procedure را تغییر دهند و اگر extraction ممکن باشد، consent و برنامه temporization باید پیشاپیش فراهم شود.
+دلیل رد گزینه ب: دقیقاً برخلاف متن است؛ procedure بسته به یافته‌های بالینی پس از exposure تعیین می‌شود.
+دلیل رد گزینه ج: اگر extraction ممکن باشد، consent پیش از عمل باید گرفته شود.
 دلیل رد گزینه د: پنهان کردن fracture هدف نیست و semilunar دسترسی و مدیریت fracture را محدود می‌کند.',
                     ],
                     [
@@ -3022,10 +3022,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کاربرد آن به guided tissue regeneration محدود است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن مزایای microscope را magnification، in-line illumination، امکان video/monitor و کمک به identification structures می‌داند، اما clinical benefits بلندمدت در مطالعات کنترل‌شده هنوز ثابت نشده است؛ شواهدی برای بهبود short-term technique/outcomes وجود دارد.
-دلیل رد گزینه ب: microscope جایگزین تشخیص علت failure نیست و سود بلندمدت قطعی ذکر نشده است.
-دلیل رد گزینه ج: متن کاهش نیاز به retrograde filling را مزیت microscope نمی‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن مزایای microscope را magnification، in-line illumination، امکان video/monitor و کمک به identification structures می‌داند، اما clinical benefits بلندمدت در مطالعات کنترل‌شده هنوز ثابت نشده است؛ شواهدی برای بهبود short-term technique/outcomes وجود دارد.
+دلیل رد گزینه ب: microscope جایگزین تشخیص علت failure نیست و سود بلندمدت قطعی ذکر نشده است.
+دلیل رد گزینه ج: متن کاهش نیاز به retrograde filling را مزیت microscope نمی‌داند.
 دلیل رد گزینه د: microscope ابزار visualization است و به GTR محدود نیست.',
                     ],
                     [
@@ -3037,10 +3037,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'نیاز به نبود attached gingiva دارد تا tension flap کاهش یابد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: submarginal incision در attached gingiva با scalloped horizontal line انجام می‌شود و برای maxillary anterior یا گاهی premolars با crowns مناسب است؛ شرط آن حداقل ۴ mm attached gingiva و periodontal health است و esthetics مزیت اصلی آن است.
-دلیل رد گزینه ب: قرار گرفتن در alveolar mucosa ویژگی semilunar است و healing آن مشکل‌تر است.
-دلیل رد گزینه ج: submarginal در صورت fracture یا نیاز به extraction/resection محدودیت دسترسی دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: submarginal incision در attached gingiva با scalloped horizontal line انجام می‌شود و برای maxillary anterior یا گاهی premolars با crowns مناسب است؛ شرط آن حداقل ۴ mm attached gingiva و periodontal health است و esthetics مزیت اصلی آن است.
+دلیل رد گزینه ب: قرار گرفتن در alveolar mucosa ویژگی semilunar است و healing آن مشکل‌تر است.
+دلیل رد گزینه ج: submarginal در صورت fracture یا نیاز به extraction/resection محدودیت دسترسی دارد.
 دلیل رد گزینه د: برخلاف متن، attached gingiva کافی شرط استفاده از آن است.',
                     ],
                     [
@@ -3052,10 +3052,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'امکان استفاده از MTA به علت رنگ سفید',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: corrective surgery زمانی compromise می‌شود که defect قابل دسترسی نباشد یا دسترسی handpiece/ultrasonic با ساختارها و visibility محدود شود؛ distal/lingual posterior از مثال‌های دشوار است.
-دلیل رد گزینه ب: این معیار مربوط به تصمیم biopsy است، نه contraindication repair.
-دلیل رد گزینه ج: defect احاطه‌شده با bone/periosteum بیشتر در بحث bone regeneration مطرح است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: corrective surgery زمانی compromise می‌شود که defect قابل دسترسی نباشد یا دسترسی handpiece/ultrasonic با ساختارها و visibility محدود شود؛ distal/lingual posterior از مثال‌های دشوار است.
+دلیل رد گزینه ب: این معیار مربوط به تصمیم biopsy است، نه contraindication repair.
+دلیل رد گزینه ج: defect احاطه‌شده با bone/periosteum بیشتر در بحث bone regeneration مطرح است.
 دلیل رد گزینه د: MTA به repair کمک می‌کند، اما مشکل accessibility را حذف نمی‌کند.',
                     ],
                     [
@@ -3067,10 +3067,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون accessory canals را افزایش می‌دهند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن برای جلوگیری از air emphysema، استفاده از handpieceهایی را که هوا/آب/ذرات را تحت فشار وارد surgical site می‌کنند منع می‌کند.
-دلیل رد گزینه ب: scar healing پیامد رادیوگرافیک پیگیری است و علت پرهیز از این handpieceها نیست.
-دلیل رد گزینه ج: setting MTA علت این توصیه نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن برای جلوگیری از air emphysema، استفاده از handpieceهایی را که هوا/آب/ذرات را تحت فشار وارد surgical site می‌کنند منع می‌کند.
+دلیل رد گزینه ب: scar healing پیامد رادیوگرافیک پیگیری است و علت پرهیز از این handpieceها نیست.
+دلیل رد گزینه ج: setting MTA علت این توصیه نیست.
 دلیل رد گزینه د: accessory canals ویژگی آناتومیک انتهای ریشه‌اند و با handpiece افزایش نمی‌یابند.',
                     ],
                     [
@@ -3082,10 +3082,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'قرار دادن membrane برای حذف نیاز به diagnosis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل دو مرحله identification علت failure و design درمان را حیاتی می‌داند و اگر علت مشخص نشود، referral باید در نظر گرفته شود.
-دلیل رد گزینه ب: سurgery برای failure با علت نامشخص اغلب unsuccessful توصیف شده است.
-دلیل رد گزینه ج: graft علت failure را مشخص یا اصلاح نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل دو مرحله identification علت failure و design درمان را حیاتی می‌داند و اگر علت مشخص نشود، referral باید در نظر گرفته شود.
+دلیل رد گزینه ب: سurgery برای failure با علت نامشخص اغلب unsuccessful توصیف شده است.
+دلیل رد گزینه ج: graft علت failure را مشخص یا اصلاح نمی‌کند.
 دلیل رد گزینه د: membrane جایگزین تشخیص و plan درمان نیست.',
                     ],
                     [
@@ -3097,10 +3097,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ترمیم cervical defect با MTA بدون برداشت apical segment',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در horizontal root fracture، اگر apical segment نکروزه شود، چون درمان آن از coronal approach قابل پیش‌بینی نیست، پس از RCT بخش coronal، apical segment جراحی برداشته می‌شود.
-دلیل رد گزینه ب: متن pulpal necrosis بخش اپیکال را از coronal approach غیرقابل پیش‌بینی می‌داند.
-دلیل رد گزینه ج: drainage علت اندودنتیک را حذف نمی‌کند و مدیریت خاص fracture را انجام نمی‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در horizontal root fracture، اگر apical segment نکروزه شود، چون درمان آن از coronal approach قابل پیش‌بینی نیست، پس از RCT بخش coronal، apical segment جراحی برداشته می‌شود.
+دلیل رد گزینه ب: متن pulpal necrosis بخش اپیکال را از coronal approach غیرقابل پیش‌بینی می‌داند.
+دلیل رد گزینه ج: drainage علت اندودنتیک را حذف نمی‌کند و مدیریت خاص fracture را انجام نمی‌دهد.
 دلیل رد گزینه د: این گزینه مربوط به corrective surgery defects است، نه horizontal root fracture با apical necrosis.',
                     ],
                     [
@@ -3112,10 +3112,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'جای‌گذاری membrane برای ضایعات پری‌رادیکولار معمول',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: corrective surgery مدیریت defectهایی است که از پاسخ بیولوژیک مثل resorption یا خطای iatrogenic ایجاد شده‌اند و معمولاً شامل exposure، preparation، sealing، حذف irritants و بازسازی root surface است.
-دلیل رد گزینه ب: این تعریف drainage است و drainage علت عفونت را حذف نمی‌کند.
-دلیل رد گزینه ج: این توصیف root-end resection در periapical surgery است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: corrective surgery مدیریت defectهایی است که از پاسخ بیولوژیک مثل resorption یا خطای iatrogenic ایجاد شده‌اند و معمولاً شامل exposure، preparation، sealing، حذف irritants و بازسازی root surface است.
+دلیل رد گزینه ب: این تعریف drainage است و drainage علت عفونت را حذف نمی‌کند.
+دلیل رد گزینه ج: این توصیف root-end resection در periapical surgery است.
 دلیل رد گزینه د: GTR adjunct انتخابی است، نه تعریف corrective surgery.',
                     ],
                     [
@@ -3127,10 +3127,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'برای افزایش طول bevel و آشکار کردن tubules بیشتر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: exposure ریشه قبل از resection برای جلوگیری از گم شدن orientation و blend شدن root با bone مهم است، به‌ویژه در mandible با bone متراکم.
-دلیل رد گزینه ب: graft هدف این توصیه نیست.
-دلیل رد گزینه ج: radiographic verification همچنان قبل از suturing توصیه می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: exposure ریشه قبل از resection برای جلوگیری از گم شدن orientation و blend شدن root با bone مهم است، به‌ویژه در mandible با bone متراکم.
+دلیل رد گزینه ب: graft هدف این توصیه نیست.
+دلیل رد گزینه ج: radiographic verification همچنان قبل از suturing توصیه می‌شود.
 دلیل رد گزینه د: متن bevel کمتر را مطلوب می‌داند تا tubules کمتری آشکار شود.',
                     ],
                     [
@@ -3142,10 +3142,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'draining abscess که پس از I&D نیاز به درمان قطعی دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: procedural errors در corrective surgery شامل opening through the lateral root surface است که معمولاً در access، instrumentation یا post space preparation رخ می‌دهد.
-دلیل رد گزینه ب: sinus exposure پیامد شناخته‌شده بعضی جراحی‌های مولر ماگزیلا است، نه procedural perforation lateral root.
-دلیل رد گزینه ج: scar healing outcome موفق است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: procedural errors در corrective surgery شامل opening through the lateral root surface است که معمولاً در access، instrumentation یا post space preparation رخ می‌دهد.
+دلیل رد گزینه ب: sinus exposure پیامد شناخته‌شده بعضی جراحی‌های مولر ماگزیلا است، نه procedural perforation lateral root.
+دلیل رد گزینه ج: scar healing outcome موفق است.
 دلیل رد گزینه د: drainage abscess یک category دیگر مدیریت عفونت است و defect ریشه‌ای iatrogenic نیست.',
                     ],
                     [
@@ -3157,10 +3157,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'classic radiolucency همراه با امکان پیگیری منظم بیمار',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: اندیکاسیون‌های بالینی periapical surgery پس از endodontics شامل chronic fistula/drainage، درد، شروع ناگهانی vestibular infection و radiolucency افزایشی است.
-دلیل رد گزینه ب: این‌ها postoperative success factors هستند.
-دلیل رد گزینه ج: این ترکیب بیشتر با عوامل موفقیت در صورت اندیکاسیون سازگار است، نه خودِ اندیکاسیون علامت‌دار.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: اندیکاسیون‌های بالینی periapical surgery پس از endodontics شامل chronic fistula/drainage، درد، شروع ناگهانی vestibular infection و radiolucency افزایشی است.
+دلیل رد گزینه ب: این‌ها postoperative success factors هستند.
+دلیل رد گزینه ج: این ترکیب بیشتر با عوامل موفقیت در صورت اندیکاسیون سازگار است، نه خودِ اندیکاسیون علامت‌دار.
 دلیل رد گزینه د: این معیارها در تصمیم عدم ارسال biopsy مطرح می‌شوند.',
                     ],
                     [
@@ -3172,10 +3172,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'semilunar access بدون involvement of interproximal wall',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید interproximal defect شبیه class 2 preparation است؛ از facial یا lingual باز می‌شود، interproximal wall را شامل می‌شود و lingual wall در صورت امکان باقی می‌ماند.
-دلیل رد گزینه ب: facial یا lingual defect شبیه class 1 است، نه interproximal defect.
-دلیل رد گزینه ج: root-end preparation مربوط به apical surgery است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید interproximal defect شبیه class 2 preparation است؛ از facial یا lingual باز می‌شود، interproximal wall را شامل می‌شود و lingual wall در صورت امکان باقی می‌ماند.
+دلیل رد گزینه ب: facial یا lingual defect شبیه class 1 است، نه interproximal defect.
+دلیل رد گزینه ج: root-end preparation مربوط به apical surgery است.
 دلیل رد گزینه د: semilunar incision طراحی flap است و آماده‌سازی defect بین‌دندانی را توصیف نمی‌کند.',
                     ],
                     [
@@ -3187,10 +3187,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'maxillary sinus exposure، anterior loop و sulcular flap',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: procedural errors شامل broken instruments، ledging، gross overfills و perforations هستند.
-دلیل رد گزینه ب: این‌ها criteria تصمیم biopsy هستند، نه procedural errors.
-دلیل رد گزینه ج: این موارد بخشی از مراقبت/closure پس از جراحی‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: procedural errors شامل broken instruments، ledging، gross overfills و perforations هستند.
+دلیل رد گزینه ب: این‌ها criteria تصمیم biopsy هستند، نه procedural errors.
+دلیل رد گزینه ج: این موارد بخشی از مراقبت/closure پس از جراحی‌اند.
 دلیل رد گزینه د: این‌ها considerations آناتومیک و flap هستند، نه procedural errors.',
                     ],
                     [
@@ -3202,10 +3202,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'زمان set طولانی باعث contraindication استفاده آن در ناحیه apical می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل MTA را hydrophilic و مشابه Portland cement می‌داند؛ working time حدود ۱۰ دقیقه و final set حدود ۲ تا ۳ ساعت است و چون root apex load-bearing نیست این مسئله مشکل‌ساز نیست.
-دلیل رد گزینه ب: final set فوری نیست و irrigation بعد از placement می‌تواند ماده را خارج کند.
-دلیل رد گزینه ج: MTA hydrophilic است و blood contamination نهایی آن را مختل نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل MTA را hydrophilic و مشابه Portland cement می‌داند؛ working time حدود ۱۰ دقیقه و final set حدود ۲ تا ۳ ساعت است و چون root apex load-bearing نیست این مسئله مشکل‌ساز نیست.
+دلیل رد گزینه ب: final set فوری نیست و irrigation بعد از placement می‌تواند ماده را خارج کند.
+دلیل رد گزینه ج: MTA hydrophilic است و blood contamination نهایی آن را مختل نمی‌کند.
 دلیل رد گزینه د: متن برعکس، MTA را widely used و مناسب می‌داند.',
                     ],
                     [
@@ -3217,10 +3217,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'tooth با marginal leakage of crown or post',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در عوامل موفقیت، maxillary incisor و mesiobuccal root of maxillary molars ذکر شده‌اند.
-دلیل رد گزینه ب: mandibular incisor و poor/lack of orthograde filling در عوامل شکست آمده‌اند.
-دلیل رد گزینه ج: clinical یا radiographic evidence of fracture عامل شکست است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در عوامل موفقیت، maxillary incisor و mesiobuccal root of maxillary molars ذکر شده‌اند.
+دلیل رد گزینه ب: mandibular incisor و poor/lack of orthograde filling در عوامل شکست آمده‌اند.
+دلیل رد گزینه ج: clinical یا radiographic evidence of fracture عامل شکست است.
 دلیل رد گزینه د: marginal leakage of crown or post نیز عامل شکست است.',
                     ],
                     [
@@ -3232,10 +3232,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'شست‌وشوی MTA پس از placement تا هم‌زمان hemostasis ایجاد شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن direct pressure با gauze soaked in local anesthetic solution with epinephrine و minimization of suction at bleeder را توصیه می‌کند؛ hemostatic agents باید پس از استفاده برداشته شوند.
-دلیل رد گزینه ب: افزایش suction در محل bleeder و باقی گذاشتن agent با متن مخالف است.
-دلیل رد گزینه ج: دید نامناسب می‌تواند کیفیت کار را مختل کند و کنترل خون‌ریزی لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن direct pressure با gauze soaked in local anesthetic solution with epinephrine و minimization of suction at bleeder را توصیه می‌کند؛ hemostatic agents باید پس از استفاده برداشته شوند.
+دلیل رد گزینه ب: افزایش suction در محل bleeder و باقی گذاشتن agent با متن مخالف است.
+دلیل رد گزینه ج: دید نامناسب می‌تواند کیفیت کار را مختل کند و کنترل خون‌ریزی لازم است.
 دلیل رد گزینه د: MTA نباید پس از placement شسته شود و برای hemostasis این‌گونه استفاده نمی‌شود.',
                     ],
                     [
@@ -3247,10 +3247,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'postoperative success factor مربوط به absence of sinus tract',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل در contraindications/cautions به systemic complications مانند bleeding disorders اشاره می‌کند و می‌گوید ملاحظات عمومی بیمار مانند سایر oral surgery اهمیت دارد.
-دلیل رد گزینه ب: post and core و crown مسائل restorative هستند.
-دلیل رد گزینه ج: calcification و canal blockage مشکلات آناتومیک کانال‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل در contraindications/cautions به systemic complications مانند bleeding disorders اشاره می‌کند و می‌گوید ملاحظات عمومی بیمار مانند سایر oral surgery اهمیت دارد.
+دلیل رد گزینه ب: post and core و crown مسائل restorative هستند.
+دلیل رد گزینه ج: calcification و canal blockage مشکلات آناتومیک کانال‌اند.
 دلیل رد گزینه د: absence of sinus tract پس از عمل نشانه موفقیت است، نه caution پیش از جراحی.',
                     ],
                     [
@@ -3262,10 +3262,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'به اندازه کامل ضایعه؛ چون tissue removal کامل شرط healing است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در متن معمولاً حدود ۲ تا ۳ mm از root resect می‌شود؛ اگر access یا instrument در apex باشد بیشتر، و اگر root کوتاه و stability نگران‌کننده باشد کمتر برداشته می‌شود.
-دلیل رد گزینه ب: مقدار ۶ تا ۸ mm و استقلال از وضعیت ریشه در متن نیامده است.
-دلیل رد گزینه ج: accessory canals در apex افزایش دارند و برداشت بسیار کم ممکن است کافی نباشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در متن معمولاً حدود ۲ تا ۳ mm از root resect می‌شود؛ اگر access یا instrument در apex باشد بیشتر، و اگر root کوتاه و stability نگران‌کننده باشد کمتر برداشته می‌شود.
+دلیل رد گزینه ب: مقدار ۶ تا ۸ mm و استقلال از وضعیت ریشه در متن نیامده است.
+دلیل رد گزینه ج: accessory canals در apex افزایش دارند و برداشت بسیار کم ممکن است کافی نباشد.
 دلیل رد گزینه د: میزان root resection به اندازه ضایعه وابسته نیست و tissue removal کامل هم لازم نیست.',
                     ],
                     [
@@ -3277,10 +3277,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'biopsy، orthodontic extrusion، socket preservation، flapless implant و pulpotomy',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل endodontic surgery را مدیریت surgical بیماری periradicular می‌داند و categories آن را abscess drainage، periapical surgery، corrective surgery، intentional replantation و root removal/hemisection معرفی می‌کند.
-دلیل رد گزینه ب: این‌ها ترکیبی از درمان‌های ترمیمی/ایمپلنت و اندودنتیک غیرجراحی هستند.
-دلیل رد گزینه ج: GTR adjunct است و بقیه موارد categories اصلی endodontic surgery نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل endodontic surgery را مدیریت surgical بیماری periradicular می‌داند و categories آن را abscess drainage، periapical surgery، corrective surgery، intentional replantation و root removal/hemisection معرفی می‌کند.
+دلیل رد گزینه ب: این‌ها ترکیبی از درمان‌های ترمیمی/ایمپلنت و اندودنتیک غیرجراحی هستند.
+دلیل رد گزینه ج: GTR adjunct است و بقیه موارد categories اصلی endodontic surgery نیستند.
 دلیل رد گزینه د: biopsy ممکن است همراه جراحی باشد، اما این مجموعه categories فصل را نشان نمی‌دهد.',
                     ],
                     [
@@ -3292,10 +3292,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'bone removal نباید visibility را افزایش دهد چون defect از radiograph کافی مشخص است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در surgical procedure corrective، bone removal باید access و visualization کافی بدهد؛ اگر ممکن باشد rim of cervical bone برای حمایت flap و reattachment حفظ می‌شود، اما در cervical defects اغلب ممکن نیست.
-دلیل رد گزینه ب: حذف کامل همیشگی توصیه نشده است.
-دلیل رد گزینه ج: حفظ rim در صورت امکان به حمایت flap و reattachment کمک می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در surgical procedure corrective، bone removal باید access و visualization کافی بدهد؛ اگر ممکن باشد rim of cervical bone برای حمایت flap و reattachment حفظ می‌شود، اما در cervical defects اغلب ممکن نیست.
+دلیل رد گزینه ب: حذف کامل همیشگی توصیه نشده است.
+دلیل رد گزینه ج: حفظ rim در صورت امکان به حمایت flap و reattachment کمک می‌کند.
 دلیل رد گزینه د: defect معمولاً بزرگ‌تر/پیچیده‌تر از radiograph است و دید کافی لازم است.',
                     ],
                     [
@@ -3307,10 +3307,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'chlorhexidine rinse به‌عنوان جایگزین systemic prophylaxis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن برای prophylaxis پیش از عمل، penicillin V potassium 2 g یا clindamycin 600 mg یک ساعت قبل از surgery را به‌عنوان گزینه‌های قابل‌تأمل ذکر می‌کند.
-دلیل رد گزینه ب: اثر prophylactic در متن به تجویز قبل از surgery وابسته است، نه پس از suturing؛ دوزهای این گزینه در فصل نیامده‌اند.
-دلیل رد گزینه ج: postoperative dosing به‌طور واضح سودمند تعریف نشده است و این regimen در متن ذکر نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن برای prophylaxis پیش از عمل، penicillin V potassium 2 g یا clindamycin 600 mg یک ساعت قبل از surgery را به‌عنوان گزینه‌های قابل‌تأمل ذکر می‌کند.
+دلیل رد گزینه ب: اثر prophylactic در متن به تجویز قبل از surgery وابسته است، نه پس از suturing؛ دوزهای این گزینه در فصل نیامده‌اند.
+دلیل رد گزینه ج: postoperative dosing به‌طور واضح سودمند تعریف نشده است و این regimen در متن ذکر نشده است.
 دلیل رد گزینه د: chlorhexidine برای کاهش bacterial count موضعی پس از عمل مطرح است، نه جایگزین antibiotic systemic در این بحث.',
                     ],
                     [
@@ -3322,10 +3322,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'پس از radiographic verification و suturing قرار داده می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید retrograde filling باید قرار داده شود مگر technical aspects آن را ممنوع کنند، چون canal system را seal و leakage را کاهش می‌دهد.
-دلیل رد گزینه ب: حتی با obturation قبلی، apical seal پس از resection هدف اصلی است.
-دلیل رد گزینه ج: نیاز به filling به seal کانال مربوط است، نه کامل بودن curettage.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید retrograde filling باید قرار داده شود مگر technical aspects آن را ممنوع کنند، چون canal system را seal و leakage را کاهش می‌دهد.
+دلیل رد گزینه ب: حتی با obturation قبلی، apical seal پس از resection هدف اصلی است.
+دلیل رد گزینه ج: نیاز به filling به seal کانال مربوط است، نه کامل بودن curettage.
 دلیل رد گزینه د: filling قبل از radiographic verification و suturing انجام می‌شود.',
                     ],
                     [
@@ -3337,10 +3337,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'general dentist شناخت indications را به متخصص واگذار می‌کند چون تصمیم‌ها intraoperative هستند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید general dentist باید diagnosis و treatment planning را بداند، procedure و potential success را برای counseling بفهمد، در follow-up کمک کند و اغلب final determination of success و placement final restoration بر عهده اوست.
-دلیل رد گزینه ب: متن نقش follow-up و long-term assessment را برای generalist ذکر می‌کند.
-دلیل رد گزینه ج: در فصل outcomes apical surgery بیش از ۸۵٪ طی ۳ سال گزارش شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید general dentist باید diagnosis و treatment planning را بداند، procedure و potential success را برای counseling بفهمد، در follow-up کمک کند و اغلب final determination of success و placement final restoration بر عهده اوست.
+دلیل رد گزینه ب: متن نقش follow-up و long-term assessment را برای generalist ذکر می‌کند.
+دلیل رد گزینه ج: در فصل outcomes apical surgery بیش از ۸۵٪ طی ۳ سال گزارش شده است.
 دلیل رد گزینه د: generalist باید indications و situations مناسب را تشخیص دهد.',
                     ],
                     [
@@ -3352,10 +3352,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون sutures حداقل دو هفته باقی می‌مانند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن healing را سریع می‌داند زیرا اغلب tissues manipulated سالم و دارای blood supply خوب هستند و tissue replacement امکان repair by primary intention را می‌دهد.
-دلیل رد گزینه ب: graft و membrane روتین یا ضروری معرفی نشده‌اند.
-دلیل رد گزینه ج: total removal بافت ملتهب لازم نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن healing را سریع می‌داند زیرا اغلب tissues manipulated سالم و دارای blood supply خوب هستند و tissue replacement امکان repair by primary intention را می‌دهد.
+دلیل رد گزینه ب: graft و membrane روتین یا ضروری معرفی نشده‌اند.
+دلیل رد گزینه ج: total removal بافت ملتهب لازم نیست.
 دلیل رد گزینه د: sutures معمولاً ۵ تا ۷ روز برداشته می‌شوند، نه حداقل دو هفته.',
                     ],
                     [
@@ -3367,10 +3367,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کاهش width و vertical release برای کم‌کردن اندازه flap حتی اگر tension ایجاد شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل بر incision محکم تا bone و reflection تمام‌ضخامت با elevator تیز در تماس با bone تأکید می‌کند تا hemorrhage و tearing کم شود.
-دلیل رد گزینه ب: full-thickness flap اهمیت دارد و reflection سطحی توصیه نشده است.
-دلیل رد گزینه ج: reflection از vertical incisions شروع می‌شود و سپس horizontal component بالا می‌رود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل بر incision محکم تا bone و reflection تمام‌ضخامت با elevator تیز در تماس با bone تأکید می‌کند تا hemorrhage و tearing کم شود.
+دلیل رد گزینه ب: full-thickness flap اهمیت دارد و reflection سطحی توصیه نشده است.
+دلیل رد گزینه ج: reflection از vertical incisions شروع می‌شود و سپس horizontal component بالا می‌رود.
 دلیل رد گزینه د: width و vertical release کافی باید باشد تا flap کشیده نشود و tearing و کندی healing رخ ندهد.',
                     ],
                     [
@@ -3382,10 +3382,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'قرار دادن membrane برای جلوگیری از نیاز به تصمیم intraoperative',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید در صورت یافتن root fracture ممکن است حین surgery تصمیم به resect root یا extract tooth لازم شود؛ consent و برنامه temporary removable partial denture یا مدیریت محل باید قبل از عمل مشخص باشد.
-دلیل رد گزینه ب: fracture ممکن است به resection یا extraction نیاز داشته باشد و seal تنها کافی نیست.
-دلیل رد گزینه ج: consent پیش از عمل باید گرفته شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید در صورت یافتن root fracture ممکن است حین surgery تصمیم به resect root یا extract tooth لازم شود؛ consent و برنامه temporary removable partial denture یا مدیریت محل باید قبل از عمل مشخص باشد.
+دلیل رد گزینه ب: fracture ممکن است به resection یا extraction نیاز داشته باشد و seal تنها کافی نیست.
+دلیل رد گزینه ج: consent پیش از عمل باید گرفته شود.
 دلیل رد گزینه د: membrane تصمیم مربوط به fracture را حذف نمی‌کند.',
                     ],
                     [
@@ -3397,10 +3397,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تشخیص قطعی vertical root fracture',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: Drainage ترانسودا/اگزودا را آزاد می‌کند، درد را کاهش می‌دهد، circulation را افزایش می‌دهد و irritant قوی را حذف می‌کند؛ اما علت عفونت را از بین نمی‌برد و درمان قطعی دندان لازم است.
-دلیل رد گزینه ب: seal canal system مربوط به root-end filling است، نه drainage.
-دلیل رد گزینه ج: crown-root ratio با drainage اصلاح نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: Drainage ترانسودا/اگزودا را آزاد می‌کند، درد را کاهش می‌دهد، circulation را افزایش می‌دهد و irritant قوی را حذف می‌کند؛ اما علت عفونت را از بین نمی‌برد و درمان قطعی دندان لازم است.
+دلیل رد گزینه ب: seal canal system مربوط به root-end filling است، نه drainage.
+دلیل رد گزینه ج: crown-root ratio با drainage اصلاح نمی‌شود.
 دلیل رد گزینه د: تشخیص fracture با exploration/radiographic clues مطرح است، نه اثر drainage.',
                     ],
                     [
@@ -3412,10 +3412,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ناحیه‌ای که scar healing انتظار می‌رود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید اگر حاشیه‌ها nonadapted باشند، readaptation و resuturing عمدتاً در maxillary anterior esthetic zone انجام می‌شود.
-دلیل رد گزینه ب: برای هر ناحیه posterior بدون علامت چنین توصیه عمومی نیامده است.
-دلیل رد گزینه ج: عدم graft معیار resuturing نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید اگر حاشیه‌ها nonadapted باشند، readaptation و resuturing عمدتاً در maxillary anterior esthetic zone انجام می‌شود.
+دلیل رد گزینه ب: برای هر ناحیه posterior بدون علامت چنین توصیه عمومی نیامده است.
+دلیل رد گزینه ج: عدم graft معیار resuturing نیست.
 دلیل رد گزینه د: scar healing بحث رادیوگرافیک دیررس است، نه معیار immediate resuturing.',
                     ],
                     [
@@ -3427,10 +3427,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون semilunar incision در lower incisor بهترین دسترسی را می‌دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید lower incisor roots باید با دقت exposed شوند، زیرا نزدیکی به adjacent teeth ممکن است باعث درمان دندان اشتباه شود.
-دلیل رد گزینه ب: sinus exposure مربوط به maxillary molars است، نه lower incisors.
-دلیل رد گزینه ج: بحث bupivacaine مربوط به IAN block است و علت این تأکید نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید lower incisor roots باید با دقت exposed شوند، زیرا نزدیکی به adjacent teeth ممکن است باعث درمان دندان اشتباه شود.
+دلیل رد گزینه ب: sinus exposure مربوط به maxillary molars است، نه lower incisors.
+دلیل رد گزینه ج: بحث bupivacaine مربوط به IAN block است و علت این تأکید نیست.
 دلیل رد گزینه د: semilunar incision در بیشتر جراحی‌های اندودنتیک contraindicated است.',
                     ],
                     [
@@ -3442,10 +3442,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'MTA را نمی‌توان متراکم یا به آن اضافه کرد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن special carriers برای MTA را ذکر می‌کند و می‌گوید excess با cotton pellet فقط dampened پاک می‌شود؛ MTA می‌تواند condensed و اضافه شود.
-دلیل رد گزینه ب: irrigation بعد از placement می‌تواند MTA را خارج کند.
-دلیل رد گزینه ج: MTA hydrophilic است؛ carrier با sleeve از تماس اضافی با moisture در مسیر حمل جلوگیری می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن special carriers برای MTA را ذکر می‌کند و می‌گوید excess با cotton pellet فقط dampened پاک می‌شود؛ MTA می‌تواند condensed و اضافه شود.
+دلیل رد گزینه ب: irrigation بعد از placement می‌تواند MTA را خارج کند.
+دلیل رد گزینه ج: MTA hydrophilic است؛ carrier با sleeve از تماس اضافی با moisture در مسیر حمل جلوگیری می‌کند.
 دلیل رد گزینه د: متن امکان condense کردن و افزودن MTA برای کامل کردن fill را بیان می‌کند.',
                     ],
                     [
@@ -3457,10 +3457,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'cervical periodontium در تصمیم apical surgery نقشی ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید ریشه‌های بسیار کوتاه حمایت استخوانی compromised دارند و resection می‌تواند stability را کم کند، اما ریشه کوتاه با periodontium cervical سالم ممکن است crown نسبتاً بلند را حمایت کند.
-دلیل رد گزینه ب: متن حکم extraction برای ریشه‌های کوتاه نمی‌دهد.
-دلیل رد گزینه ج: resection می‌تواند stability را compromise کند، نه افزایش دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید ریشه‌های بسیار کوتاه حمایت استخوانی compromised دارند و resection می‌تواند stability را کم کند، اما ریشه کوتاه با periodontium cervical سالم ممکن است crown نسبتاً بلند را حمایت کند.
+دلیل رد گزینه ب: متن حکم extraction برای ریشه‌های کوتاه نمی‌دهد.
+دلیل رد گزینه ج: resection می‌تواند stability را compromise کند، نه افزایش دهد.
 دلیل رد گزینه د: سلامت periodontium cervical در این قضاوت نقش دارد.',
                     ],
                     [
@@ -3472,10 +3472,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'primary molars و impacted third molars',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید mandibular molars و maxillary premolars دندان‌هایی هستند که بیشتر occult vertical root fractures دارند.
-دلیل رد گزینه ب: maxillary incisors و MB root maxillary molars در Box موفقیت periapical surgery آمده‌اند، نه فراوانی fracture occult.
-دلیل رد گزینه ج: mandibular incisor در عوامل failure periapical surgery آمده، اما همراه maxillary canines به‌عنوان شایع‌ترین fracture occult ذکر نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید mandibular molars و maxillary premolars دندان‌هایی هستند که بیشتر occult vertical root fractures دارند.
+دلیل رد گزینه ب: maxillary incisors و MB root maxillary molars در Box موفقیت periapical surgery آمده‌اند، نه فراوانی fracture occult.
+دلیل رد گزینه ج: mandibular incisor در عوامل failure periapical surgery آمده، اما همراه maxillary canines به‌عنوان شایع‌ترین fracture occult ذکر نشده است.
 دلیل رد گزینه د: این دندان‌ها در این بحث فصل مطرح نشده‌اند.',
                     ],
                     [
@@ -3487,10 +3487,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'implant procedures در consensus conference ناموفق‌تر از endodontic therapy دانسته شده‌اند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید procedures اضافی روی دندان، چه orthograde retreatment و چه periapical surgery، ممکن است long-term success را کاهش دهند چون هر درمان با برداشت بیشتر tooth structure همراه است.
-دلیل رد گزینه ب: متن چنین افزایش موفقیتی با هر procedure اضافی بیان نمی‌کند.
-دلیل رد گزینه ج: حتی periapical surgery نیز می‌تواند با برداشت root/tooth structure همراه باشد و موفقیت درازمدت را کاهش دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید procedures اضافی روی دندان، چه orthograde retreatment و چه periapical surgery، ممکن است long-term success را کاهش دهند چون هر درمان با برداشت بیشتر tooth structure همراه است.
+دلیل رد گزینه ب: متن چنین افزایش موفقیتی با هر procedure اضافی بیان نمی‌کند.
+دلیل رد گزینه ج: حتی periapical surgery نیز می‌تواند با برداشت root/tooth structure همراه باشد و موفقیت درازمدت را کاهش دهد.
 دلیل رد گزینه د: consensus conference درمان اندودنتیک و implant procedures را از نظر موفقیت برابر دانسته است.',
                     ],
                 ],
@@ -3521,10 +3521,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حفظ دندان‌ها تا زمانی که درد یا آبسه واضح ایجاد شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در فصل تأکید شده است که در ارزیابی قبل از radiotherapy، دندان‌های با پیش‌آگهی questionable یا poor باید قبل از irradiation کشیده شوند و حتی اصل عملی «If in doubt, extract» مطرح می‌شود؛ هدف کاهش ریسک osteoradionecrosis بعدی است.
-دلیل رد گزینه ا: نادرست است؛ منبع در این شرایط محافظه‌کاری ترمیمی را بر خارج کردن دندان‌های با پیش‌آگهی بد ترجیح نمی‌دهد.
-دلیل رد گزینه ج: نادرست است؛ انتظار تا پس از radiotherapy می‌تواند بیمار را در معرض کشیدن دندان در استخوان irradiated قرار دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در فصل تأکید شده است که در ارزیابی قبل از radiotherapy، دندان‌های با پیش‌آگهی questionable یا poor باید قبل از irradiation کشیده شوند و حتی اصل عملی «If in doubt, extract» مطرح می‌شود؛ هدف کاهش ریسک osteoradionecrosis بعدی است.
+دلیل رد گزینه ا: نادرست است؛ منبع در این شرایط محافظه‌کاری ترمیمی را بر خارج کردن دندان‌های با پیش‌آگهی بد ترجیح نمی‌دهد.
+دلیل رد گزینه ج: نادرست است؛ انتظار تا پس از radiotherapy می‌تواند بیمار را در معرض کشیدن دندان در استخوان irradiated قرار دهد.
 دلیل رد گزینه د: نادرست است؛ ایجاد درد یا آبسه بعد از irradiation دقیقاً وضعیتی است که خطر عوارض استخوانی را بالا می‌برد.',
                     ],
                     [
@@ -3536,10 +3536,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کاندیدیازیس مزمن بدون درگیری مخاط و بدون اثر بر تغذیه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: اثر اولیه radiotherapy بر مخاط دهان در ۱ تا ۲ هفته اول اریتم است و ممکن است به mucositis شدید با یا بدون ulceration برسد؛ درد و dysphagia می‌توانند تغذیه را دشوار کنند و اختلال چشایی نیز زود دیده می‌شود.
-دلیل رد گزینه ب: نادرست است؛ trismus ناشی از فیبروز معمولاً در طول سال اول و به‌صورت insidious و painless رخ می‌دهد، نه تغییر هفته‌های ابتدایی مخاط.
-دلیل رد گزینه ج: نادرست است؛ در متن، مخاط زودتر اثرات درمان را نشان می‌دهد و osteoradionecrosis پیامد شدید استخوانی است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: اثر اولیه radiotherapy بر مخاط دهان در ۱ تا ۲ هفته اول اریتم است و ممکن است به mucositis شدید با یا بدون ulceration برسد؛ درد و dysphagia می‌توانند تغذیه را دشوار کنند و اختلال چشایی نیز زود دیده می‌شود.
+دلیل رد گزینه ب: نادرست است؛ trismus ناشی از فیبروز معمولاً در طول سال اول و به‌صورت insidious و painless رخ می‌دهد، نه تغییر هفته‌های ابتدایی مخاط.
+دلیل رد گزینه ج: نادرست است؛ در متن، مخاط زودتر اثرات درمان را نشان می‌دهد و osteoradionecrosis پیامد شدید استخوانی است.
 دلیل رد گزینه د: نادرست است؛ کاندیدیازیس می‌تواند رخ دهد، اما شرح سؤال با mucositis و اختلال چشایی زودرس radiotherapy هماهنگ‌تر است.',
                     ],
                     [
@@ -3551,10 +3551,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'باقی گذاشتن لبه‌های تیز استخوانی تا remodeling طبیعی آن‌ها را اصلاح کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در preirradiation extraction اصول atraumatic رعایت می‌شود، اما حفظ استخوان اولویت ندارد؛ دندان‌ها معمولاً با روش جراحی، فلپ، برداشت قابل توجه آلوئول، صاف کردن لبه‌ها با irrigation فراوان و بستن اولیه بافت نرم خارج می‌شوند.
-دلیل رد گزینه ا: نادرست است؛ پس از radiotherapy توان remodeling به‌شدت کاهش می‌یابد و حفظ لبه‌های استخوانی مسئله‌ساز می‌شود.
-دلیل رد گزینه ج: نادرست است؛ منبع کشیدن ساده بدون smoothing را به‌عنوان روش مطلوب قبل از irradiation معرفی نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در preirradiation extraction اصول atraumatic رعایت می‌شود، اما حفظ استخوان اولویت ندارد؛ دندان‌ها معمولاً با روش جراحی، فلپ، برداشت قابل توجه آلوئول، صاف کردن لبه‌ها با irrigation فراوان و بستن اولیه بافت نرم خارج می‌شوند.
+دلیل رد گزینه ا: نادرست است؛ پس از radiotherapy توان remodeling به‌شدت کاهش می‌یابد و حفظ لبه‌های استخوانی مسئله‌ساز می‌شود.
+دلیل رد گزینه ج: نادرست است؛ منبع کشیدن ساده بدون smoothing را به‌عنوان روش مطلوب قبل از irradiation معرفی نمی‌کند.
 دلیل رد گزینه د: نادرست است؛ فصل تأکید می‌کند remodeling طبیعی بعد از radiotherapy مهار می‌شود و sharp bone موجب ulceration و exposure می‌شود.',
                     ],
                     [
@@ -3566,10 +3566,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'مصرف منظم caffeine و decongestant برای کاهش ترشحات غلیظ',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: برای جایگزینی ساده بزاق، نوشیدن جرعه‌های آب در طول روز و هنگام غذا توصیه شده است. محصولات حاوی alcohol یا strong flavors ممکن است مخاط را تحریک کنند و محصولات قندی به علت افزایش استعداد caries باید پرهیز شوند.
-دلیل رد گزینه ا: نادرست است؛ alcohol و طعم‌های قوی مخاط را تحریک می‌کنند.
-دلیل رد گزینه ب: نادرست است؛ در بیماران مستعد radiation caries، محصولات قندی باید اجتناب شوند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: برای جایگزینی ساده بزاق، نوشیدن جرعه‌های آب در طول روز و هنگام غذا توصیه شده است. محصولات حاوی alcohol یا strong flavors ممکن است مخاط را تحریک کنند و محصولات قندی به علت افزایش استعداد caries باید پرهیز شوند.
+دلیل رد گزینه ا: نادرست است؛ alcohol و طعم‌های قوی مخاط را تحریک می‌کنند.
+دلیل رد گزینه ب: نادرست است؛ در بیماران مستعد radiation caries، محصولات قندی باید اجتناب شوند.
 دلیل رد گزینه د: نادرست است؛ caffeine، antihistamines و decongestants می‌توانند تولید بزاق را کمتر و علائم را بدتر کنند.',
                     ],
                     [
@@ -3581,10 +3581,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'WBC=1900/mm3، PMN=25%، platelet=45000/mm3',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در متن آمده است که اگر WBC حداقل 2000/mm3 با دست‌کم 20% polymorphonuclear leukocytes و platelet حداقل 50,000/mm3 باشد، درمان routine معمولاً ممکن است؛ گزینه ب هر سه شرط را دارد.
-دلیل رد گزینه ا: نادرست است؛ WBC و درصد PMN هر دو کمتر از آستانه متن هستند.
-دلیل رد گزینه ج: نادرست است؛ با وجود WBC کافی، PMN و platelet کمتر از حد ذکرشده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در متن آمده است که اگر WBC حداقل 2000/mm3 با دست‌کم 20% polymorphonuclear leukocytes و platelet حداقل 50,000/mm3 باشد، درمان routine معمولاً ممکن است؛ گزینه ب هر سه شرط را دارد.
+دلیل رد گزینه ا: نادرست است؛ WBC و درصد PMN هر دو کمتر از آستانه متن هستند.
+دلیل رد گزینه ج: نادرست است؛ با وجود WBC کافی، PMN و platelet کمتر از حد ذکرشده‌اند.
 دلیل رد گزینه د: نادرست است؛ PMN کافی است، اما WBC و platelet به آستانه متن نمی‌رسند.',
                     ],
                     [
@@ -3596,10 +3596,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون داروهای ضدقارچ همزمان turnover اپیتلیوم را کم می‌کنند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل بیان می‌کند هرچه cellular turnover سریع‌تر باشد، حساسیت به اثرات مخرب radiation بیشتر است؛ به همین دلیل hematopoietic، epithelial و endothelial cells زودتر تحت تأثیر قرار می‌گیرند.
-دلیل رد گزینه ا: نادرست است؛ کمبود بزاق پیامد آسیب غدد و vascular compromise است، نه شرط اصلی اثر radiation بر همه بافت‌ها.
-دلیل رد گزینه ج: نادرست است؛ متن اثر زودرس را بیشتر در سلول‌های با turnover بالا شرح می‌دهد، نه استخوان کم‌تراکم.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل بیان می‌کند هرچه cellular turnover سریع‌تر باشد، حساسیت به اثرات مخرب radiation بیشتر است؛ به همین دلیل hematopoietic، epithelial و endothelial cells زودتر تحت تأثیر قرار می‌گیرند.
+دلیل رد گزینه ا: نادرست است؛ کمبود بزاق پیامد آسیب غدد و vascular compromise است، نه شرط اصلی اثر radiation بر همه بافت‌ها.
+دلیل رد گزینه ج: نادرست است؛ متن اثر زودرس را بیشتر در سلول‌های با turnover بالا شرح می‌دهد، نه استخوان کم‌تراکم.
 دلیل رد گزینه د: نادرست است؛ بحث حساسیت به radiation به ضدقارچ‌ها مربوط نیست.',
                     ],
                     [
@@ -3611,10 +3611,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تمرکز بر ترمیم full crown و حذف fluoridation تا پس از پایان درمان',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در متن، طی radiation treatment، شست‌وشو با saline حداقل ۱۰ بار روزانه، chlorhexidine دوبار در روز، و ویزیت هفتگی برای مشاهده و ارزیابی بهداشت دهان توصیه شده است.
-دلیل رد گزینه ا: نادرست است؛ فصل ویزیت هفتگی طی radiotherapy را توصیه می‌کند.
-دلیل رد گزینه ج: نادرست است؛ دهان‌شویه‌ها و کنترل میکروبی مطرح‌اند و رژیم قندی با خطر caries سازگار نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در متن، طی radiation treatment، شست‌وشو با saline حداقل ۱۰ بار روزانه، chlorhexidine دوبار در روز، و ویزیت هفتگی برای مشاهده و ارزیابی بهداشت دهان توصیه شده است.
+دلیل رد گزینه ا: نادرست است؛ فصل ویزیت هفتگی طی radiotherapy را توصیه می‌کند.
+دلیل رد گزینه ج: نادرست است؛ دهان‌شویه‌ها و کنترل میکروبی مطرح‌اند و رژیم قندی با خطر caries سازگار نیست.
 دلیل رد گزینه د: نادرست است؛ پیشگیری با fluoride و بازسازی سلامت دندان‌ها مهم است و full crown برای postradiation caries هم مطلوب دانسته نشده است.',
                     ],
                     [
@@ -3626,10 +3626,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'فعالیت بیش از حد osteoclastها، turnover استخوان را بیش از حد بالا می‌برد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در osteoradionecrosis، bone داخل radiation beam به‌علت endarteritis و حذف fine vasculature تقریباً nonvital می‌شود و turnover باقیمانده آن برای self-repair مؤثر نیست.
-دلیل رد گزینه ا: نادرست است؛ مشکل اصلی کاهش شدید remodeling و self-repair است، نه افزایش آن.
-دلیل رد گزینه ج: نادرست است؛ radiotherapy xerostomia و نازکی مخاط ایجاد می‌کند، نه افزایش بزاق و رشد سریع اپیتلیوم.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در osteoradionecrosis، bone داخل radiation beam به‌علت endarteritis و حذف fine vasculature تقریباً nonvital می‌شود و turnover باقیمانده آن برای self-repair مؤثر نیست.
+دلیل رد گزینه ا: نادرست است؛ مشکل اصلی کاهش شدید remodeling و self-repair است، نه افزایش آن.
+دلیل رد گزینه ج: نادرست است؛ radiotherapy xerostomia و نازکی مخاط ایجاد می‌کند، نه افزایش بزاق و رشد سریع اپیتلیوم.
 دلیل رد گزینه د: نادرست است؛ توصیف افزایش osteoclast activity مربوط به مکانیسم فصل برای ORN نیست.',
                     ],
                     [
@@ -3641,10 +3641,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'محدودیت باز شدن فقط در صورت necrosis زودرس condyle',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: در متن، pterygomasseteric sling و connective tissues اطراف مفصل ملتهب می‌شوند، عضله irradiated فیبروتیک و منقبض می‌شود و trismus معمولاً insidious، طی سال اول و painless است.
-دلیل رد گزینه ب: نادرست است؛ suppuration و lymphadenopathy بیشتر به عفونت/نکروز آلوده می‌خورند، نه الگوی کلاسیک trismus ناشی از radiation.
-دلیل رد گزینه ج: نادرست است؛ فصل پیشگیری با mouth-opening exercises و مانیتور کردن interincisal dimension را مطرح می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: در متن، pterygomasseteric sling و connective tissues اطراف مفصل ملتهب می‌شوند، عضله irradiated فیبروتیک و منقبض می‌شود و trismus معمولاً insidious، طی سال اول و painless است.
+دلیل رد گزینه ب: نادرست است؛ suppuration و lymphadenopathy بیشتر به عفونت/نکروز آلوده می‌خورند، نه الگوی کلاسیک trismus ناشی از radiation.
+دلیل رد گزینه ج: نادرست است؛ فصل پیشگیری با mouth-opening exercises و مانیتور کردن interincisal dimension را مطرح می‌کند.
 دلیل رد گزینه د: نادرست است؛ مکانیسم شرح‌داده‌شده محدود به necrosis کندیل نیست و عضلات و بافت‌های پری‌آرتیکولار را دربرمی‌گیرد.',
                     ],
                     [
@@ -3656,10 +3656,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'HBO بعد از extraction کافی است و نیازی به جلسات قبل از extraction نیست',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید extraction پس از radiotherapy ممکن است، اما از دشوارترین و نامطمئن‌ترین موارد است. آنتی‌بیوتیک سیستمیک توصیه می‌شود و HBO قبل و بعد از extraction به‌عنوان adjunct مؤثر مطرح شده است.
-دلیل رد گزینه ا: نادرست است؛ متن پاسخ به امکان extraction را «yes» می‌داند، هرچند با احتیاط و اختلاف نظر.
-دلیل رد گزینه ج: نادرست است؛ هم routine extraction بدون primary closure و هم surgical extraction با alveoloplasty و primary closure ذکر شده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید extraction پس از radiotherapy ممکن است، اما از دشوارترین و نامطمئن‌ترین موارد است. آنتی‌بیوتیک سیستمیک توصیه می‌شود و HBO قبل و بعد از extraction به‌عنوان adjunct مؤثر مطرح شده است.
+دلیل رد گزینه ا: نادرست است؛ متن پاسخ به امکان extraction را «yes» می‌داند، هرچند با احتیاط و اختلاف نظر.
+دلیل رد گزینه ج: نادرست است؛ هم routine extraction بدون primary closure و هم surgical extraction با alveoloplasty و primary closure ذکر شده‌اند.
 دلیل رد گزینه د: نادرست است؛ پروتکل معمول HBO شامل ۲۰ تا ۳۰ dive قبل و ۱۰ dive بلافاصله بعد از extraction است.',
                     ],
                     [
@@ -3671,10 +3671,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون salivary mucins فقط در تشکیل calculus نقش دارند و اثر محافظتی ندارند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن نقش ضدباکتریایی peroxidase، lysozyme و lactoferrin، اثر محافظتی mucins، و خاصیت ضدقارچی histatins را ذکر می‌کند؛ کاهش حجم بزاق این سامانه محافظ را تضعیف می‌کند.
-دلیل رد گزینه ب: نادرست است؛ secretory IgA و IgM در متن بخشی از محافظت علیه باکتری‌های cariogenic هستند، نه عامل رشد آن‌ها.
-دلیل رد گزینه ج: نادرست است؛ فصل xerostomia و کاهش عملکرد محافظتی بزاق را مطرح می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن نقش ضدباکتریایی peroxidase، lysozyme و lactoferrin، اثر محافظتی mucins، و خاصیت ضدقارچی histatins را ذکر می‌کند؛ کاهش حجم بزاق این سامانه محافظ را تضعیف می‌کند.
+دلیل رد گزینه ب: نادرست است؛ secretory IgA و IgM در متن بخشی از محافظت علیه باکتری‌های cariogenic هستند، نه عامل رشد آن‌ها.
+دلیل رد گزینه ج: نادرست است؛ فصل xerostomia و کاهش عملکرد محافظتی بزاق را مطرح می‌کند.
 دلیل رد گزینه د: نادرست است؛ mucins روی دندان و مخاط فیلم محافظ ایجاد می‌کنند و از wear محافظت می‌کنند.',
                     ],
                     [
@@ -3686,10 +3686,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'مقدار radiation نقشی در تصمیم برای extraction قبل از درمان ندارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید squamous cell carcinoma دهان حدود ۹۰٪ بدخیمی‌هایی است که radiotherapy می‌گیرند و برای اثر درمانی معمولاً دوز بزرگ‌تر از 6000 rad (60 Gy) لازم دارد.
-دلیل رد گزینه ا: نادرست است؛ برعکس، وقتی total dose زیر 5000 rad (50 Gy) باشد عوارض درازمدت مثل xerostomia و ORN به‌طور چشمگیر کاهش می‌یابد.
-دلیل رد گزینه ج: نادرست است؛ lymphoma دوز کمتری برای پاسخ نیاز دارد و دهان کمتر آسیب می‌بیند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید squamous cell carcinoma دهان حدود ۹۰٪ بدخیمی‌هایی است که radiotherapy می‌گیرند و برای اثر درمانی معمولاً دوز بزرگ‌تر از 6000 rad (60 Gy) لازم دارد.
+دلیل رد گزینه ا: نادرست است؛ برعکس، وقتی total dose زیر 5000 rad (50 Gy) باشد عوارض درازمدت مثل xerostomia و ORN به‌طور چشمگیر کاهش می‌یابد.
+دلیل رد گزینه ج: نادرست است؛ lymphoma دوز کمتری برای پاسخ نیاز دارد و دهان کمتر آسیب می‌بیند.
 دلیل رد گزینه د: نادرست است؛ dose یکی از عوامل اصلی در محافظه‌کاری یا extraction قبل از irradiation است.',
                     ],
                     [
@@ -3701,10 +3701,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تکثیر پایدار taste budها بدون تغییر در بافت همبند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: اثرات درازمدت radiotherapy بر مخاط شامل استعداد breakdown و delayed healing است؛ epithelium نازک‌تر و کم‌کراتین‌تر، submucosa کم‌عروق‌تر و مخاط به‌علت fibrosis کم‌انعطاف می‌شود.
-دلیل رد گزینه ا: نادرست است؛ دقیقاً خلاف توصیف فصل است.
-دلیل رد گزینه ج: نادرست است؛ در متن mucosa کمتر pliable و less resilient می‌شود و healing تأخیر دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: اثرات درازمدت radiotherapy بر مخاط شامل استعداد breakdown و delayed healing است؛ epithelium نازک‌تر و کم‌کراتین‌تر، submucosa کم‌عروق‌تر و مخاط به‌علت fibrosis کم‌انعطاف می‌شود.
+دلیل رد گزینه ا: نادرست است؛ دقیقاً خلاف توصیف فصل است.
+دلیل رد گزینه ج: نادرست است؛ در متن mucosa کمتر pliable و less resilient می‌شود و healing تأخیر دارد.
 دلیل رد گزینه د: نادرست است؛ taste buds در تغییر چشایی مطرح‌اند، اما شرح late ulceration به تغییرات مخاط و زیرمخاط مربوط است.',
                     ],
                     [
@@ -3716,10 +3716,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'افزایش keratinization در gingival surfaces',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: بسیاری از chemotherapeutic agents turnover اپی‌تلیوم دهان را کم می‌کنند و باعث نازکی آتروفیک مخاط با سطوح دردناک، اریتماتوز و ulcerative می‌شوند؛ اثرات بیشتر روی unattached mucosa دیده می‌شوند و gingiva کمتر درگیر است.
-دلیل رد گزینه ب: نادرست است؛ myelosuppression مهم است، اما این الگوی یک‌هفته‌ای مخاطی ناشی از اثر مستقیم بر turnover اپی‌تلیوم است.
-دلیل رد گزینه ج: نادرست است؛ شیمی‌درمانی در متن با xerostomia و mucositis همراه است، نه افزایش بزاق.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: بسیاری از chemotherapeutic agents turnover اپی‌تلیوم دهان را کم می‌کنند و باعث نازکی آتروفیک مخاط با سطوح دردناک، اریتماتوز و ulcerative می‌شوند؛ اثرات بیشتر روی unattached mucosa دیده می‌شوند و gingiva کمتر درگیر است.
+دلیل رد گزینه ب: نادرست است؛ myelosuppression مهم است، اما این الگوی یک‌هفته‌ای مخاطی ناشی از اثر مستقیم بر turnover اپی‌تلیوم است.
+دلیل رد گزینه ج: نادرست است؛ شیمی‌درمانی در متن با xerostomia و mucositis همراه است، نه افزایش بزاق.
 دلیل رد گزینه د: نادرست است؛ متن افزایش keratinization gingiva را مکانیسم این حالت نمی‌داند.',
                     ],
                     [
@@ -3731,10 +3731,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کاهش crown و باقی گذاشتن ریشه‌ها بالای gingiva',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید اگر third molar کاملاً در bone مندیبل impacted باشد، در کل باقی گذاشتن آن سریع‌تر و مناسب‌تر از خارج کردن و انتظار برای healing است؛ برعکس، partially erupted molar ممکن است برای پیشگیری از pericoronal infection خارج شود.
-دلیل رد گزینه ا: نادرست است؛ برای tooth کاملاً impacted، متن removal را به‌طور کلی expeditious نمی‌داند.
-دلیل رد گزینه ج: نادرست است؛ ایجاد ارتباط دهانی/drainage در متن توصیه نشده و می‌تواند خطر trauma یا infection را بالا ببرد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید اگر third molar کاملاً در bone مندیبل impacted باشد، در کل باقی گذاشتن آن سریع‌تر و مناسب‌تر از خارج کردن و انتظار برای healing است؛ برعکس، partially erupted molar ممکن است برای پیشگیری از pericoronal infection خارج شود.
+دلیل رد گزینه ا: نادرست است؛ برای tooth کاملاً impacted، متن removal را به‌طور کلی expeditious نمی‌داند.
+دلیل رد گزینه ج: نادرست است؛ ایجاد ارتباط دهانی/drainage در متن توصیه نشده و می‌تواند خطر trauma یا infection را بالا ببرد.
 دلیل رد گزینه د: نادرست است؛ crown reduction برای دندان کاملاً impacted در متن مطرح نیست.',
                     ],
                     [
@@ -3746,10 +3746,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ویزیت فقط هنگام caries، چون radiation caries قابل پیشگیری نیست',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: پس از radiation، دندانپزشک باید بیمار را هر ۳ تا ۴ ماه ببیند؛ در این ویزیت‌ها prophylaxis انجام می‌شود و topical fluoride اعمال می‌گردد. custom trays و کاربرد روزانه fluoride نیز آموزش داده می‌شود.
-دلیل رد گزینه ا: نادرست است؛ فواصل سالانه و حذف fluoride با متن سازگار نیست.
-دلیل رد گزینه ج: نادرست است؛ متن فواصل ۳ تا ۴ ماه را ذکر می‌کند و fluoride trays را مفید می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: پس از radiation، دندانپزشک باید بیمار را هر ۳ تا ۴ ماه ببیند؛ در این ویزیت‌ها prophylaxis انجام می‌شود و topical fluoride اعمال می‌گردد. custom trays و کاربرد روزانه fluoride نیز آموزش داده می‌شود.
+دلیل رد گزینه ا: نادرست است؛ فواصل سالانه و حذف fluoride با متن سازگار نیست.
+دلیل رد گزینه ج: نادرست است؛ متن فواصل ۳ تا ۴ ماه را ذکر می‌کند و fluoride trays را مفید می‌داند.
 دلیل رد گزینه د: نادرست است؛ پیشگیری از radiation caries با topical fluoride و rinse مطرح شده است.',
                     ],
                     [
@@ -3761,10 +3761,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ادامه پروتز برای توزیع فشار و تحریک healing استخوان',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در مدیریت ORN، بیمار باید prosthesis را کنار بگذارد، بهداشت دهان را حفظ کند و irrigation برای necrotic debris انجام شود. آنتی‌بیوتیک فقط گاهی لازم است؛ loose sequestra برداشته می‌شوند و ابتدا تلاشی برای بستن بافت نرم روی استخوان exposed انجام نمی‌شود.
-دلیل رد گزینه ا: نادرست است؛ متن تصریح می‌کند ORN عفونت استخوان نیست، بلکه nonhealing hypoxic wound است و antibiotics فقط در موارد خاص/secondary infection مفیدند.
-دلیل رد گزینه ج: نادرست است؛ برای زخم‌های کوچک معمولاً انتظار برای healing ممکن است و closure اولیه مطرح نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در مدیریت ORN، بیمار باید prosthesis را کنار بگذارد، بهداشت دهان را حفظ کند و irrigation برای necrotic debris انجام شود. آنتی‌بیوتیک فقط گاهی لازم است؛ loose sequestra برداشته می‌شوند و ابتدا تلاشی برای بستن بافت نرم روی استخوان exposed انجام نمی‌شود.
+دلیل رد گزینه ا: نادرست است؛ متن تصریح می‌کند ORN عفونت استخوان نیست، بلکه nonhealing hypoxic wound است و antibiotics فقط در موارد خاص/secondary infection مفیدند.
+دلیل رد گزینه ج: نادرست است؛ برای زخم‌های کوچک معمولاً انتظار برای healing ممکن است و closure اولیه مطرح نیست.
 دلیل رد گزینه د: نادرست است؛ ادامه prosthesis می‌تواند mucosal breakdown و bone exposure را بدتر کند.',
                     ],
                     [
@@ -3776,10 +3776,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'osteocytes mature، taste buds و ligament fibroblasts فقط پس از چند سال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل به‌صراحت hematopoietic cells، epithelial cells و endothelial cells را به‌دلیل turnover سریع‌تر به‌عنوان بافت‌های طبیعی که زود تحت تأثیر radiation قرار می‌گیرند ذکر می‌کند.
-دلیل رد گزینه ب: نادرست است؛ این مجموعه در متن به‌عنوان بافت‌های زودآسیب‌پذیر ذکر نشده است.
-دلیل رد گزینه ج: نادرست است؛ این گزینه خوشه ذکرشده در فصل را جایگزین می‌کند و با بیان متن سازگار نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل به‌صراحت hematopoietic cells، epithelial cells و endothelial cells را به‌دلیل turnover سریع‌تر به‌عنوان بافت‌های طبیعی که زود تحت تأثیر radiation قرار می‌گیرند ذکر می‌کند.
+دلیل رد گزینه ب: نادرست است؛ این مجموعه در متن به‌عنوان بافت‌های زودآسیب‌پذیر ذکر نشده است.
+دلیل رد گزینه ج: نادرست است؛ این گزینه خوشه ذکرشده در فصل را جایگزین می‌کند و با بیان متن سازگار نیست.
 دلیل رد گزینه د: نادرست است؛ taste buds زود در اختلال چشایی مطرح‌اند، اما ترکیب و زمان‌بندی این گزینه مطابق متن نیست.',
                     ],
                     [
@@ -3791,10 +3791,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'قرار دادن implant در maxilla به جای mandible',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در فهرست نتایج مطالعات، متن بیان می‌کند هرچه فاصله بین radiation treatment و implantation طولانی‌تر باشد، failure rate بیشتر می‌شود. همچنین radiation بیشتر، implant کوتاه‌تر، و ترکیب radiation/chemotherapy نیز اثر منفی دارند.
-دلیل رد گزینه ا: نادرست است؛ radiation بیشتر با failure بالاتر مرتبط است، نه dose کمتر.
-دلیل رد گزینه ب: نادرست است؛ متن می‌گوید osseointegration در irradiated bone طولانی می‌شود و implants دست‌کم ۶ ماه نباید load شوند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در فهرست نتایج مطالعات، متن بیان می‌کند هرچه فاصله بین radiation treatment و implantation طولانی‌تر باشد، failure rate بیشتر می‌شود. همچنین radiation بیشتر، implant کوتاه‌تر، و ترکیب radiation/chemotherapy نیز اثر منفی دارند.
+دلیل رد گزینه ا: نادرست است؛ radiation بیشتر با failure بالاتر مرتبط است، نه dose کمتر.
+دلیل رد گزینه ب: نادرست است؛ متن می‌گوید osseointegration در irradiated bone طولانی می‌شود و implants دست‌کم ۶ ماه نباید load شوند.
 دلیل رد گزینه د: نادرست است؛ survival در irradiated patients معمولاً در maxilla بالاتر از mandible گزارش شده است.',
                     ],
                     [
@@ -3806,10 +3806,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'بی‌اهمیت بودن oral hygiene چون xerostomia به‌تنهایی تعیین‌کننده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل وضعیت دندان‌ها و periodontium را نشانه‌ای از مراقبت گذشته می‌داند؛ در بیمار با oral hygiene عالی تا حد امکان teeth نگه داشته می‌شوند، ولی در بیمار neglect کننده احتمال ادامه neglect در شرایط xerostomia و درد بالا است.
-دلیل رد گزینه ب: نادرست است؛ حتی در بیماران انتخاب‌شده برای حفظ دندان، fluoride و hygiene measures باید اجرا شوند.
-دلیل رد گزینه ج: نادرست است؛ متن همه بیماران را برای extraction کامل یکسان نمی‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل وضعیت دندان‌ها و periodontium را نشانه‌ای از مراقبت گذشته می‌داند؛ در بیمار با oral hygiene عالی تا حد امکان teeth نگه داشته می‌شوند، ولی در بیمار neglect کننده احتمال ادامه neglect در شرایط xerostomia و درد بالا است.
+دلیل رد گزینه ب: نادرست است؛ حتی در بیماران انتخاب‌شده برای حفظ دندان، fluoride و hygiene measures باید اجرا شوند.
+دلیل رد گزینه ج: نادرست است؛ متن همه بیماران را برای extraction کامل یکسان نمی‌داند.
 دلیل رد گزینه د: نادرست است؛ xerostomia مهم است، اما توان و تمایل بیمار به مراقبت دهان یکی از عوامل تصمیم است.',
                     ],
                     [
@@ -3821,10 +3821,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'دهان‌شویه الکلی با طعم قوی برای تحریک ترشح بزاق',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: اگر مقداری بزاق تولید شود، sugar-free chewing gum می‌تواند تولید بزاق را تحریک کند. Pilocarpine HCl و cevimeline HCl نیز parasympathomimetic/muscarinic agonist هستند و برای بهبود xerostomia تأیید شده‌اند.
-دلیل رد گزینه ب: نادرست است؛ آدامس قندی caries را تشدید می‌کند و antihistamine می‌تواند بزاق را کمتر کند.
-دلیل رد گزینه ج: نادرست است؛ sipping water during meals به chewing، swallowing و taste کمک می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: اگر مقداری بزاق تولید شود، sugar-free chewing gum می‌تواند تولید بزاق را تحریک کند. Pilocarpine HCl و cevimeline HCl نیز parasympathomimetic/muscarinic agonist هستند و برای بهبود xerostomia تأیید شده‌اند.
+دلیل رد گزینه ب: نادرست است؛ آدامس قندی caries را تشدید می‌کند و antihistamine می‌تواند بزاق را کمتر کند.
+دلیل رد گزینه ج: نادرست است؛ sipping water during meals به chewing، swallowing و taste کمک می‌کند.
 دلیل رد گزینه د: نادرست است؛ alcohol و strong flavors مخاط را تحریک می‌کنند و توصیه نمی‌شوند.',
                     ],
                     [
@@ -3836,10 +3836,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون chemotherapy در leukemia اثر موقتی ندارد و هرگز بهبود blood elements رخ نمی‌دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل تأکید می‌کند در hematologic neoplasms مانند leukemia، هم disease و هم chemotherapy باعث کاهش عناصر عملکردی خون می‌شوند و خطر infection و hemorrhage ممکن است در هر زمان بالا باشد؛ consultation با physician الزامی است.
-دلیل رد گزینه ب: نادرست است؛ متن برعکس، برخی solid tumors غیرمغزاستخوانی را با marrow aplasia کمتر مقایسه می‌کند.
-دلیل رد گزینه ج: نادرست است؛ hematologic status در این بیماران حیاتی است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل تأکید می‌کند در hematologic neoplasms مانند leukemia، هم disease و هم chemotherapy باعث کاهش عناصر عملکردی خون می‌شوند و خطر infection و hemorrhage ممکن است در هر زمان بالا باشد؛ consultation با physician الزامی است.
+دلیل رد گزینه ب: نادرست است؛ متن برعکس، برخی solid tumors غیرمغزاستخوانی را با marrow aplasia کمتر مقایسه می‌کند.
+دلیل رد گزینه ج: نادرست است؛ hematologic status در این بیماران حیاتی است.
 دلیل رد گزینه د: نادرست است؛ اثرات chemotherapy غالباً موقتی‌اند، اما leukemia خود نیز marrow را درگیر می‌کند.',
                     ],
                     [
@@ -3851,10 +3851,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'بازگشت حس چشایی مستقل از quantity و quality بزاق باقی‌مانده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: طبق متن، taste buds نیز از epithelial cells تشکیل شده‌اند و واکنشی مشابه oral mucosa دارند؛ loss of taste شکایت مهم early treatment است و بازگشت تدریجی آن به quantity و quality بزاق باقی‌مانده وابسته است.
-دلیل رد گزینه ب: نادرست است؛ taste buds در متن epithelial معرفی شده‌اند، نه bone marrow cells.
-دلیل رد گزینه ج: نادرست است؛ اختلال چشایی early در radiotherapy رخ می‌دهد و به fracture وابسته نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: طبق متن، taste buds نیز از epithelial cells تشکیل شده‌اند و واکنشی مشابه oral mucosa دارند؛ loss of taste شکایت مهم early treatment است و بازگشت تدریجی آن به quantity و quality بزاق باقی‌مانده وابسته است.
+دلیل رد گزینه ب: نادرست است؛ taste buds در متن epithelial معرفی شده‌اند، نه bone marrow cells.
+دلیل رد گزینه ج: نادرست است؛ اختلال چشایی early در radiotherapy رخ می‌دهد و به fracture وابسته نیست.
 دلیل رد گزینه د: نادرست است؛ متن بازگشت taste را وابسته به بزاق باقی‌مانده می‌داند.',
                     ],
                     [
@@ -3866,10 +3866,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'وجود anaerobes و fungi در شدت mucositis نقشی ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید C. albicans اغلب در دهان بیماران irradiated رشد می‌کند و بیماران ممکن است به topical antifungal agents مثل nystatin نیاز داشته باشند؛ نقش flora در شدت mucositis و healing نیز مطرح شده است.
-دلیل رد گزینه ب: نادرست است؛ متن می‌گوید معلوم نیست تغییر flora به خود radiation مربوط است یا xerostomia حاصل از آن.
-دلیل رد گزینه ج: نادرست است؛ chlorhexidine اثرات potent antibacterial و antifungal در vitro نشان داده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید C. albicans اغلب در دهان بیماران irradiated رشد می‌کند و بیماران ممکن است به topical antifungal agents مثل nystatin نیاز داشته باشند؛ نقش flora در شدت mucositis و healing نیز مطرح شده است.
+دلیل رد گزینه ب: نادرست است؛ متن می‌گوید معلوم نیست تغییر flora به خود radiation مربوط است یا xerostomia حاصل از آن.
+دلیل رد گزینه ج: نادرست است؛ chlorhexidine اثرات potent antibacterial و antifungal در vitro نشان داده است.
 دلیل رد گزینه د: نادرست است؛ محققان نقش oral flora colonizing mucosa را در شدت mucositis و healing مهم می‌دانند.',
                     ],
                     [
@@ -3881,10 +3881,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'extraction فوری همه دندان‌های carious بدون تلاش محافظه‌کارانه',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: برای postradiotherapy caries، متن care فوری را برای جلوگیری از spread infection توصیه می‌کند و composite و amalgam را مواد انتخابی می‌داند. full crowns احتمالاً مناسب نیستند چون recurrent caries زیر آن‌ها دشوارتر تشخیص داده می‌شود.
-دلیل رد گزینه ا: نادرست است؛ full crown به‌دلیل دشواری تشخیص recurrent caries توصیه نشده است.
-دلیل رد گزینه ج: نادرست است؛ تأخیر می‌تواند infection را گسترش دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: برای postradiotherapy caries، متن care فوری را برای جلوگیری از spread infection توصیه می‌کند و composite و amalgam را مواد انتخابی می‌داند. full crowns احتمالاً مناسب نیستند چون recurrent caries زیر آن‌ها دشوارتر تشخیص داده می‌شود.
+دلیل رد گزینه ا: نادرست است؛ full crown به‌دلیل دشواری تشخیص recurrent caries توصیه نشده است.
+دلیل رد گزینه ج: نادرست است؛ تأخیر می‌تواند infection را گسترش دهد.
 دلیل رد گزینه د: نادرست است؛ متن ابتدا ترمیم و حفظ دندان‌ها را در صورت امکان مطرح می‌کند، نه extraction همه موارد.',
                     ],
                     [
@@ -3896,10 +3896,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حداقل ۳ ماه تا تکمیل remodeling استخوانی آلوئول',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: اگرچه ۷ تا ۱۴ روز به‌طور سنتی پیشنهاد شده، متن می‌گوید اگر ممکن باشد radiotherapy تا ۳ هفته پس از extraction به تأخیر بیفتد تا soft tissue healing کافی‌تر تضمین شود؛ در dehiscence، تأخیر بیشتر و wound care لازم است.
-دلیل رد گزینه ا: نادرست است؛ اگر radiation قبل از healing داده شود، healing ممکن است ماه‌ها یا سال‌ها طول بکشد.
-دلیل رد گزینه ب: نادرست است؛ dehiscence نیاز به تأخیر بیشتر، irrigations و antibiotic دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: اگرچه ۷ تا ۱۴ روز به‌طور سنتی پیشنهاد شده، متن می‌گوید اگر ممکن باشد radiotherapy تا ۳ هفته پس از extraction به تأخیر بیفتد تا soft tissue healing کافی‌تر تضمین شود؛ در dehiscence، تأخیر بیشتر و wound care لازم است.
+دلیل رد گزینه ا: نادرست است؛ اگر radiation قبل از healing داده شود، healing ممکن است ماه‌ها یا سال‌ها طول بکشد.
+دلیل رد گزینه ب: نادرست است؛ dehiscence نیاز به تأخیر بیشتر، irrigations و antibiotic دارد.
 دلیل رد گزینه د: نادرست است؛ چنین تأخیر طولانی در فصل توصیه عمومی نیست و باید درمان malignancy هم مدنظر باشد.',
                     ],
                     [
@@ -3911,10 +3911,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'immunosuppression باعث حذف کامل oral flora و کاهش infection می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل می‌گوید overgrowth، superinfection با gram-negative bacilli و opportunistic infections شایع‌اند؛ systemic infections مسئول حدود ۷۰٪ مرگ‌ها در بیماران chemotherapy هستند و oral microorganisms منبع شایع bacteremia هستند.
-دلیل رد گزینه ب: نادرست است؛ با وجود antimicrobial regimens، overgrowth به‌ویژه Candida species شایع است.
-دلیل رد گزینه ج: نادرست است؛ superinfection با gram-negative bacilli در effects on oral microbiology chemotherapy ذکر شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل می‌گوید overgrowth، superinfection با gram-negative bacilli و opportunistic infections شایع‌اند؛ systemic infections مسئول حدود ۷۰٪ مرگ‌ها در بیماران chemotherapy هستند و oral microorganisms منبع شایع bacteremia هستند.
+دلیل رد گزینه ب: نادرست است؛ با وجود antimicrobial regimens، overgrowth به‌ویژه Candida species شایع است.
+دلیل رد گزینه ج: نادرست است؛ superinfection با gram-negative bacilli در effects on oral microbiology chemotherapy ذکر شده است.
 دلیل رد گزینه د: نادرست است؛ immunosuppression flora را حذف نمی‌کند، بلکه تعادل را به‌سمت overgrowth و opportunistic infection می‌برد.',
                     ],
                     [
@@ -3926,10 +3926,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'implant فوری در همان محل برای جلوگیری از dysphagia',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید در دندان با necrotic pulp پس از radiotherapy، endodontic intervention با systemic antibiotics می‌تواند با احتیاط انجام شود و tooth از occlusion خارج و نگه داشته شود؛ گاهی به‌علت sclerosis پالپ، crown amputation و باقی گذاشتن tooth مطرح است.
-دلیل رد گزینه ب: نادرست است؛ extraction پس از irradiation نامطمئن و پرخطر است و systemic antibiotics در extraction توصیه شده است.
-دلیل رد گزینه ج: نادرست است؛ full crown برای postradiation caries مطلوب نیست و pulp necrosis را حل نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید در دندان با necrotic pulp پس از radiotherapy، endodontic intervention با systemic antibiotics می‌تواند با احتیاط انجام شود و tooth از occlusion خارج و نگه داشته شود؛ گاهی به‌علت sclerosis پالپ، crown amputation و باقی گذاشتن tooth مطرح است.
+دلیل رد گزینه ب: نادرست است؛ extraction پس از irradiation نامطمئن و پرخطر است و systemic antibiotics در extraction توصیه شده است.
+دلیل رد گزینه ج: نادرست است؛ full crown برای postradiation caries مطلوب نیست و pulp necrosis را حل نمی‌کند.
 دلیل رد گزینه د: نادرست است؛ implant فوری در محل آلوده و irradiated مطابق متن نیست.',
                     ],
                     [
@@ -3941,10 +3941,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'بیماری که acute effects irradiation کاملاً فروکش کرده و previously edentulous بوده است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: متن می‌گوید بیمارانی که قبل از radiotherapy edentulous بوده‌اند معمولاً با dentures خوب کنار می‌آیند، اما بیمارانی که درست قبل یا بعد از radiotherapy edentulous می‌شوند بیشتر دچار mucosal ulceration و سپس osteoradionecrosis می‌شوند.
-دلیل رد گزینه ا: نادرست است؛ این گروه در متن generally manage nicely با dentures خوب توصیف شده‌اند.
-دلیل رد گزینه ج: نادرست است؛ سؤال درباره شرایط postirradiation است و این گزینه خوشه مربوط را ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: متن می‌گوید بیمارانی که قبل از radiotherapy edentulous بوده‌اند معمولاً با dentures خوب کنار می‌آیند، اما بیمارانی که درست قبل یا بعد از radiotherapy edentulous می‌شوند بیشتر دچار mucosal ulceration و سپس osteoradionecrosis می‌شوند.
+دلیل رد گزینه ا: نادرست است؛ این گروه در متن generally manage nicely با dentures خوب توصیف شده‌اند.
+دلیل رد گزینه ج: نادرست است؛ سؤال درباره شرایط postirradiation است و این گزینه خوشه مربوط را ندارد.
 دلیل رد گزینه د: نادرست است؛ در previously edentulous patients ساخت denture پس از فروکش acute effects ممکن است پیش برود.',
                     ],
                     [
@@ -3956,10 +3956,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'درگیری salivary glands مانع radiation caries می‌شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید هرچه salivary glands و bone بیشتر در field باشند، xerostomia و vascular compromise شدیدترند. xerostomia به‌تنهایی اگر dentition حفظ شود ممکن است مشکل شدید نسازد؛ ترکیب xerostomia و irradiated bone معمولاً مسئله‌ساز است.
-دلیل رد گزینه ا: نادرست است؛ ترکیب با bone irradiated خطر را بیشتر می‌کند، نه بی‌خطر.
-دلیل رد گزینه ج: نادرست است؛ mandible متراکم‌تر و خون‌رسانی ضعیف‌تر از maxilla دارد و بیشتر درگیر ORN می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید هرچه salivary glands و bone بیشتر در field باشند، xerostomia و vascular compromise شدیدترند. xerostomia به‌تنهایی اگر dentition حفظ شود ممکن است مشکل شدید نسازد؛ ترکیب xerostomia و irradiated bone معمولاً مسئله‌ساز است.
+دلیل رد گزینه ا: نادرست است؛ ترکیب با bone irradiated خطر را بیشتر می‌کند، نه بی‌خطر.
+دلیل رد گزینه ج: نادرست است؛ mandible متراکم‌تر و خون‌رسانی ضعیف‌تر از maxilla دارد و بیشتر درگیر ORN می‌شود.
 دلیل رد گزینه د: نادرست است؛ xerostomia ناشی از درگیری غدد بزاقی radiation caries را تشدید می‌کند.',
                     ],
                     [
@@ -3971,10 +3971,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'قطع mouth-opening exercises تا اشتها بهتر شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید همه بیماران باید weekly weighed شوند؛ ترکیب mucositis و xerostomia خوردن را ناراحت می‌کند و malnutrition ترمیم oral tissues را به تأخیر می‌اندازد. در موارد شدید nasogastric tube ممکن است لازم شود.
-دلیل رد گزینه ب: نادرست است؛ malnutrition در متن باعث delayed healing و احساس illness می‌شود.
-دلیل رد گزینه ج: نادرست است؛ رژیم کاریوژنیک خطر radiation caries را بالا می‌برد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید همه بیماران باید weekly weighed شوند؛ ترکیب mucositis و xerostomia خوردن را ناراحت می‌کند و malnutrition ترمیم oral tissues را به تأخیر می‌اندازد. در موارد شدید nasogastric tube ممکن است لازم شود.
+دلیل رد گزینه ب: نادرست است؛ malnutrition در متن باعث delayed healing و احساس illness می‌شود.
+دلیل رد گزینه ج: نادرست است؛ رژیم کاریوژنیک خطر radiation caries را بالا می‌برد.
 دلیل رد گزینه د: نادرست است؛ mouth-opening exercises برای پیشگیری از trismus اهمیت دارد.',
                     ],
                     [
@@ -3986,10 +3986,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'یک جلسه طولانی HBO در همان روز extraction',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل پروتکل usual را ۲۰ تا ۳۰ HBO dives قبل از extraction و ۱۰ dive بلافاصله پس از extraction ذکر می‌کند؛ هر روز معمولاً یک جلسه انجام می‌شود و درمان قبل از جراحی ۴ تا ۶ هفته طول می‌کشد.
-دلیل رد گزینه ا: نادرست است؛ این تعداد با پروتکل ذکرشده در متن کمتر است.
-دلیل رد گزینه ج: نادرست است؛ متن بر جلسات قبل و بعد تأکید دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل پروتکل usual را ۲۰ تا ۳۰ HBO dives قبل از extraction و ۱۰ dive بلافاصله پس از extraction ذکر می‌کند؛ هر روز معمولاً یک جلسه انجام می‌شود و درمان قبل از جراحی ۴ تا ۶ هفته طول می‌کشد.
+دلیل رد گزینه ا: نادرست است؛ این تعداد با پروتکل ذکرشده در متن کمتر است.
+دلیل رد گزینه ج: نادرست است؛ متن بر جلسات قبل و بعد تأکید دارد.
 دلیل رد گزینه د: نادرست است؛ درمان به صورت یک جلسه واحد بیان نشده است.',
                     ],
                     [
@@ -4001,10 +4001,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون antimicrobial prophylaxis نیاز به دانستن تاریخ chemotherapy را حذف می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل می‌گوید به‌دلیل intermittent بودن chemotherapy، اثرات حداقلی‌تر بر vasculature و وضعیت تقریباً طبیعی فرد بین administrations، مدیریت دندانی اغلب آسان‌تر است و اثرات chemotherapy تقریباً همیشه temporary هستند.
-دلیل رد گزینه ب: نادرست است؛ myelosuppression یکی از نگرانی‌های اصلی است.
-دلیل رد گزینه ج: نادرست است؛ altered taste، xerostomia و mucositis از عوارض شایع دهانی chemotherapy هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل می‌گوید به‌دلیل intermittent بودن chemotherapy، اثرات حداقلی‌تر بر vasculature و وضعیت تقریباً طبیعی فرد بین administrations، مدیریت دندانی اغلب آسان‌تر است و اثرات chemotherapy تقریباً همیشه temporary هستند.
+دلیل رد گزینه ب: نادرست است؛ myelosuppression یکی از نگرانی‌های اصلی است.
+دلیل رد گزینه ج: نادرست است؛ altered taste، xerostomia و mucositis از عوارض شایع دهانی chemotherapy هستند.
 دلیل رد گزینه د: نادرست است؛ دانستن dates of chemotherapy و hematologic status قبل از درمان ضروری است.',
                     ],
                     [
@@ -4016,10 +4016,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'topical fluoride در بیمار xerostomic به‌دلیل تحریک مخاط ممنوع است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل گزارش می‌کند استفاده از ۱٪ fluoride rinse برای ۵ دقیقه هر روز incidence radiation caries را کاهش داده است؛ topical fluoride و trays نیز در مراقبت پس از irradiation مطرح‌اند.
-دلیل رد گزینه ب: نادرست است؛ پس از radiotherapy در ویزیت‌های ۳ تا ۴ ماهه topical fluoride اعمال می‌شود.
-دلیل رد گزینه ج: نادرست است؛ متن می‌گوید rinses موجود OTC بدون splint سفارشی قابل استفاده‌اند و پذیرش بهتری دارند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل گزارش می‌کند استفاده از ۱٪ fluoride rinse برای ۵ دقیقه هر روز incidence radiation caries را کاهش داده است؛ topical fluoride و trays نیز در مراقبت پس از irradiation مطرح‌اند.
+دلیل رد گزینه ب: نادرست است؛ پس از radiotherapy در ویزیت‌های ۳ تا ۴ ماهه topical fluoride اعمال می‌شود.
+دلیل رد گزینه ج: نادرست است؛ متن می‌گوید rinses موجود OTC بدون splint سفارشی قابل استفاده‌اند و پذیرش بهتری دارند.
 دلیل رد گزینه د: نادرست است؛ topical fluoride بخش اصلی پیشگیری است، نه ممنوعیت عمومی.',
                     ],
                     [
@@ -4031,10 +4031,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'artificial saliva حاوی sugar به‌عنوان antifungal',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن در بخش مراقبت طی radiotherapy می‌گوید nystatin یا clotrimazole topical applications overgrowth C. albicans را نسبتاً سریع تحت کنترل قرار می‌دهند.
-دلیل رد گزینه ب: نادرست است؛ systemic fluconazole در بخش candidiasis برای stubborn cases مطرح است، نه درمان موضعی ذکرشده برای کنترل سریع حین RT.
-دلیل رد گزینه ج: نادرست است؛ aspirin mouth rinse در متن به‌عنوان antifungal مطرح نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن در بخش مراقبت طی radiotherapy می‌گوید nystatin یا clotrimazole topical applications overgrowth C. albicans را نسبتاً سریع تحت کنترل قرار می‌دهند.
+دلیل رد گزینه ب: نادرست است؛ systemic fluconazole در بخش candidiasis برای stubborn cases مطرح است، نه درمان موضعی ذکرشده برای کنترل سریع حین RT.
+دلیل رد گزینه ج: نادرست است؛ aspirin mouth rinse در متن به‌عنوان antifungal مطرح نشده است.
 دلیل رد گزینه د: نادرست است؛ products sugar-containing باید اجتناب شوند و artificial saliva نقش antifungal اختصاصی ندارد.',
                     ],
                     [
@@ -4046,10 +4046,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کاهش نیاز به oral hygiene چون saliva کمتر plaque را جابه‌جا می‌کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل بیان می‌کند در غیاب saliva، periodontitis تسریع می‌شود و rampant radiation caries می‌تواند dentition باقی‌مانده را سریعاً تخریب کند؛ پوسیدگی معمولاً دور کل circumference بخش cervical رخ می‌دهد.
-دلیل رد گزینه ا: نادرست است؛ عدم saliva به کاهش دفاع و افزایش مشکلات منجر می‌شود، نه کاهش periodontitis.
-دلیل رد گزینه ج: نادرست است؛ film محافظ mucins با کاهش بزاق کم می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل بیان می‌کند در غیاب saliva، periodontitis تسریع می‌شود و rampant radiation caries می‌تواند dentition باقی‌مانده را سریعاً تخریب کند؛ پوسیدگی معمولاً دور کل circumference بخش cervical رخ می‌دهد.
+دلیل رد گزینه ا: نادرست است؛ عدم saliva به کاهش دفاع و افزایش مشکلات منجر می‌شود، نه کاهش periodontitis.
+دلیل رد گزینه ج: نادرست است؛ film محافظ mucins با کاهش بزاق کم می‌شود.
 دلیل رد گزینه د: نادرست است؛ oral hygiene باید بیشتر تقویت شود، نه کاهش یابد.',
                     ],
                     [
@@ -4061,10 +4061,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'قطر cervical caries در radiograph',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: در متن، توانایی باز کردن دهان و interincisal dimension باید پایش شود. هر کاهش در maximum interincisal dimension باید با mouth-opening exercises پاسخ داده شود؛ برای موارد established، devices مانند Therabite مطرح‌اند.
-دلیل رد گزینه ب: نادرست است؛ depth vestibule در بحث دشواری denture/implant مطرح می‌شود، نه شاخص اصلی تمرین trismus.
-دلیل رد گزینه ج: نادرست است؛ عرض attached gingiva در این بخش به‌عنوان شاخص exercise ذکر نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: در متن، توانایی باز کردن دهان و interincisal dimension باید پایش شود. هر کاهش در maximum interincisal dimension باید با mouth-opening exercises پاسخ داده شود؛ برای موارد established، devices مانند Therabite مطرح‌اند.
+دلیل رد گزینه ب: نادرست است؛ depth vestibule در بحث دشواری denture/implant مطرح می‌شود، نه شاخص اصلی تمرین trismus.
+دلیل رد گزینه ج: نادرست است؛ عرض attached gingiva در این بخش به‌عنوان شاخص exercise ذکر نشده است.
 دلیل رد گزینه د: نادرست است؛ caries اهمیت دارد اما شاخص محدودیت باز شدن دهان نیست.',
                     ],
                     [
@@ -4076,10 +4076,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون اثر xerostomia، dysphagia و dysgeusia را به‌طور کامل از بین می‌برد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل می‌گوید درمان ایده‌آل در jaws irradiated استفاده از appliance supported by dental implants است تا تماس appliance با mucosa حذف شود؛ ulceration مخاط می‌تواند به osteoradionecrosis منجر شود.
-دلیل رد گزینه ب: نادرست است؛ osseointegration در irradiated patients طولانی‌تر و موفقیت کمتر/نامطمئن‌تر است.
-دلیل رد گزینه ج: نادرست است؛ این بیماران به پیگیری و hygiene دقیق‌تر نیاز دارند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل می‌گوید درمان ایده‌آل در jaws irradiated استفاده از appliance supported by dental implants است تا تماس appliance با mucosa حذف شود؛ ulceration مخاط می‌تواند به osteoradionecrosis منجر شود.
+دلیل رد گزینه ب: نادرست است؛ osseointegration در irradiated patients طولانی‌تر و موفقیت کمتر/نامطمئن‌تر است.
+دلیل رد گزینه ج: نادرست است؛ این بیماران به پیگیری و hygiene دقیق‌تر نیاز دارند.
 دلیل رد گزینه د: نادرست است؛ implant-borne prosthesis عملکرد را بهتر می‌کند، اما عوارض radiation را کاملاً حذف نمی‌کند.',
                     ],
                     [
@@ -4091,10 +4091,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'افزایش قطعی saliva با هر دوز بالاتر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید هر neoplasm اگر dose کافی به سلول‌هایش برسد می‌تواند نابود شود، اما عامل محدودکننده مقدار radiation قابل تحمل توسط surrounding tissues است.
-دلیل رد گزینه ب: نادرست است؛ neoplastic cells معمولاً به‌علت reproduction سریع نسبتاً حساس‌ترند.
-دلیل رد گزینه ج: نادرست است؛ در عمل sparing کامل normal tissues حاصل نمی‌شود و آن‌ها دچار undesirable effects می‌شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید هر neoplasm اگر dose کافی به سلول‌هایش برسد می‌تواند نابود شود، اما عامل محدودکننده مقدار radiation قابل تحمل توسط surrounding tissues است.
+دلیل رد گزینه ب: نادرست است؛ neoplastic cells معمولاً به‌علت reproduction سریع نسبتاً حساس‌ترند.
+دلیل رد گزینه ج: نادرست است؛ در عمل sparing کامل normal tissues حاصل نمی‌شود و آن‌ها دچار undesirable effects می‌شوند.
 دلیل رد گزینه د: نادرست است؛ دوز بالاتر با آسیب بیشتر به بافت طبیعی، از جمله xerostomia، مرتبط است.',
                     ],
                     [
@@ -4106,10 +4106,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'antibiotic نیازی به ارتباط با زمان chemotherapy ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: در متن آمده است اگر بیمار within 3 weeks of dental treatment chemotherapy داشته باشد، antibiotics should be administered prophylactically، حتی اگر شاخص‌های خونی اجازه درمان routine را بدهند.
-دلیل رد گزینه ب: نادرست است؛ شرط ذکرشده زمان chemotherapy است، نه لزوماً همزمانی radiotherapy.
-دلیل رد گزینه ج: نادرست است؛ بیمار chemotherapy در معرض bacteremia و opportunistic infections است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: در متن آمده است اگر بیمار within 3 weeks of dental treatment chemotherapy داشته باشد، antibiotics should be administered prophylactically، حتی اگر شاخص‌های خونی اجازه درمان routine را بدهند.
+دلیل رد گزینه ب: نادرست است؛ شرط ذکرشده زمان chemotherapy است، نه لزوماً همزمانی radiotherapy.
+دلیل رد گزینه ج: نادرست است؛ بیمار chemotherapy در معرض bacteremia و opportunistic infections است.
 دلیل رد گزینه د: نادرست است؛ زمان chemotherapy یکی از داده‌های اصلی قبل از dental care است.',
                     ],
                 ],
@@ -4140,10 +4140,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'radiation caries محدود به cervical enamel',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: MRONJ به شکل chronically exposed necrotic bone، معمولاً دردناک و گاه infected، در بیمارانی دیده می‌شود که antiresorptive medication می‌گیرند و radiotherapy ندارند؛ اغلب پس از invasive dental procedure ظاهر می‌شود و به درمان‌های معمول پاسخ قابل پیش‌بینی ندارد.
-دلیل رد گزینه ا: نادرست است؛ در سناریو سابقه radiotherapy وجود ندارد و متن MRONJ را شبیه ORN اما بدون radiation معرفی می‌کند.
-دلیل رد گزینه ج: نادرست است؛ mucositis chemotherapy زخم مخاطی بدون exposed necrotic bone مزمن نیست و معمولاً self-limited است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: MRONJ به شکل chronically exposed necrotic bone، معمولاً دردناک و گاه infected، در بیمارانی دیده می‌شود که antiresorptive medication می‌گیرند و radiotherapy ندارند؛ اغلب پس از invasive dental procedure ظاهر می‌شود و به درمان‌های معمول پاسخ قابل پیش‌بینی ندارد.
+دلیل رد گزینه ا: نادرست است؛ در سناریو سابقه radiotherapy وجود ندارد و متن MRONJ را شبیه ORN اما بدون radiation معرفی می‌کند.
+دلیل رد گزینه ج: نادرست است؛ mucositis chemotherapy زخم مخاطی بدون exposed necrotic bone مزمن نیست و معمولاً self-limited است.
 دلیل رد گزینه د: نادرست است؛ radiation caries پوسیدگی cervical است نه exposed bone دردناک پایدار.',
                     ],
                     [
@@ -4155,10 +4155,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کاشت immediate implant در crater برای تحریک remodeling',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: در شرح شکل 19.6، bone of alveolar crest برداشته شد و باقی‌مانده با burr صاف شد تا bleeding bone مشاهده شود؛ central crater نیز burred out شد و سپس soft tissue closure انجام گرفت.
-دلیل رد گزینه ب: نادرست است؛ soft liner در بحث denture بیماران irradiated مطلوب خاصی نداشت و درمان ORN شکل نیست.
-دلیل رد گزینه ج: نادرست است؛ در شکل، ابتدا devitalized bone و crater جراحی مدیریت شدند، سپس closure انجام شد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: در شرح شکل 19.6، bone of alveolar crest برداشته شد و باقی‌مانده با burr صاف شد تا bleeding bone مشاهده شود؛ central crater نیز burred out شد و سپس soft tissue closure انجام گرفت.
+دلیل رد گزینه ب: نادرست است؛ soft liner در بحث denture بیماران irradiated مطلوب خاصی نداشت و درمان ORN شکل نیست.
+دلیل رد گزینه ج: نادرست است؛ در شکل، ابتدا devitalized bone و crater جراحی مدیریت شدند، سپس closure انجام شد.
 دلیل رد گزینه د: نادرست است؛ implant immediate در crater ORN در متن مطرح نشده و منطقی با hypoxic necrotic bone ندارد.',
                     ],
                     [
@@ -4170,10 +4170,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Risedronate — subcutaneous injection',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در جدول 19.1، zoledronate با نام تجاری Zometa از bisphosphonates و با route intravenous آمده است.
-دلیل رد گزینه ا: نادرست است؛ pamidronate/Aredia در جدول intravenous است، نه oral.
-دلیل رد گزینه ج: نادرست است؛ alendronate/Fosamax در جدول oral است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در جدول 19.1، zoledronate با نام تجاری Zometa از bisphosphonates و با route intravenous آمده است.
+دلیل رد گزینه ا: نادرست است؛ pamidronate/Aredia در جدول intravenous است، نه oral.
+دلیل رد گزینه ج: نادرست است؛ alendronate/Fosamax در جدول oral است.
 دلیل رد گزینه د: نادرست است؛ risedronate/Actonel oral است و subcutaneous injection برای denosumab ذکر شده است.',
                     ],
                     [
@@ -4185,10 +4185,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'HBO به‌عنوان درمانی که به‌طور routine موفقیت قابل پیش‌بینی دارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در established MRONJ هدف comfort، کنترل pain و prevention of progression است. اگر sharp edges مخاط را تحریک کنند، می‌توان آن‌ها را با rotating diamond burr حذف کرد؛ superficial debridement باید آخرین انتخاب باشد.
-دلیل رد گزینه ا: نادرست است؛ تلاش برای پوشاندن exposed bone با flaps می‌تواند exposure بیشتر، علائم بدتر و حتی خطر pathologic fracture ایجاد کند.
-دلیل رد گزینه ج: نادرست است؛ routine restorative care در بیماران MRONJ قابل انجام است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در established MRONJ هدف comfort، کنترل pain و prevention of progression است. اگر sharp edges مخاط را تحریک کنند، می‌توان آن‌ها را با rotating diamond burr حذف کرد؛ superficial debridement باید آخرین انتخاب باشد.
+دلیل رد گزینه ا: نادرست است؛ تلاش برای پوشاندن exposed bone با flaps می‌تواند exposure بیشتر، علائم بدتر و حتی خطر pathologic fracture ایجاد کند.
+دلیل رد گزینه ج: نادرست است؛ routine restorative care در بیماران MRONJ قابل انجام است.
 دلیل رد گزینه د: نادرست است؛ HBO جزو modalities گزارش‌شده است، اما هیچ‌کدام routinely successful ثابت نشده‌اند.',
                     ],
                     [
@@ -4200,10 +4200,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون chlorhexidine به‌تنهایی جایگزین کامل همه antifungalهاست',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن درمان اولیه candidiasis را topical antifungal می‌داند، چون systemic side effects کم می‌شود؛ ادامه topical agents حتی همراه systemic medication می‌تواند dose و duration سیستمیک را کاهش دهد.
-دلیل رد گزینه ب: نادرست است؛ فصل هشدار می‌دهد systemic antifungals مثل ketoconazole/fluconazole ممکن است toxic side effects جدی داشته باشند.
-دلیل رد گزینه ج: نادرست است؛ rinses کوتاه‌ترین contact time را دارند و کمتر مؤثرند؛ tablets با حل آهسته exposure بیشتری می‌دهند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن درمان اولیه candidiasis را topical antifungal می‌داند، چون systemic side effects کم می‌شود؛ ادامه topical agents حتی همراه systemic medication می‌تواند dose و duration سیستمیک را کاهش دهد.
+دلیل رد گزینه ب: نادرست است؛ فصل هشدار می‌دهد systemic antifungals مثل ketoconazole/fluconazole ممکن است toxic side effects جدی داشته باشند.
+دلیل رد گزینه ج: نادرست است؛ rinses کوتاه‌ترین contact time را دارند و کمتر مؤثرند؛ tablets با حل آهسته exposure بیشتری می‌دهند.
 دلیل رد گزینه د: نادرست است؛ chlorhexidine در vivo علیه Candida در immunosuppressed افراد کمتر مستند است و جایگزین قطعی antifungalها نیست.',
                     ],
                     [
@@ -4215,10 +4215,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تکیه بر HBO برای پیشگیری از MRONJ به‌جای حذف کانون‌های عفونت',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل پیشگیری را حیاتی می‌داند: بیمار باید قبل از شروع antiresorptive therapy دیده شود، دندان‌های poor prognosis قبل از دارو یا هرچه زودتر خارج شوند، و اگر ممکن است شروع درمان antiresorptive حدود ۴ تا ۶ هفته پس از procedures تهاجمی به تعویق افتد.
-دلیل رد گزینه ا: نادرست است؛ بیشتر MRONJها پس از ۶ ماه یا بیشتر گزارش شده‌اند و extraction بعدتر ریسک بیشتری دارد.
-دلیل رد گزینه ج: نادرست است؛ prophylaxis، caries control و conservative restorative dentistry بسیار مهم‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل پیشگیری را حیاتی می‌داند: بیمار باید قبل از شروع antiresorptive therapy دیده شود، دندان‌های poor prognosis قبل از دارو یا هرچه زودتر خارج شوند، و اگر ممکن است شروع درمان antiresorptive حدود ۴ تا ۶ هفته پس از procedures تهاجمی به تعویق افتد.
+دلیل رد گزینه ا: نادرست است؛ بیشتر MRONJها پس از ۶ ماه یا بیشتر گزارش شده‌اند و extraction بعدتر ریسک بیشتری دارد.
+دلیل رد گزینه ج: نادرست است؛ prophylaxis، caries control و conservative restorative dentistry بسیار مهم‌اند.
 دلیل رد گزینه د: نادرست است؛ HBO درمان قابل اتکای MRONJ نیست و پیشگیری با حذف infection sites و مراقبت دندانی محور است.',
                     ],
                     [
@@ -4230,10 +4230,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'یک bisphosphonate تزریقی با نام Zometa است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: متن denosumab/Prolia را RANK ligand inhibitor و fully humanized antibody علیه RANK-L می‌داند که osteoclast function و bone resorption را مهار می‌کند؛ برخلاف bisphosphonates به bone متصل نمی‌شود و اثرش عمدتاً ظرف ۶ ماه بعد از cessation کاهش می‌یابد.
-دلیل رد گزینه ا: نادرست است؛ این ویژگی به bisphosphonates نسبت داده شده است، نه denosumab.
-دلیل رد گزینه ج: نادرست است؛ Sutent نام تجاری sunitinib و antiangiogenic oral است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: متن denosumab/Prolia را RANK ligand inhibitor و fully humanized antibody علیه RANK-L می‌داند که osteoclast function و bone resorption را مهار می‌کند؛ برخلاف bisphosphonates به bone متصل نمی‌شود و اثرش عمدتاً ظرف ۶ ماه بعد از cessation کاهش می‌یابد.
+دلیل رد گزینه ا: نادرست است؛ این ویژگی به bisphosphonates نسبت داده شده است، نه denosumab.
+دلیل رد گزینه ج: نادرست است؛ Sutent نام تجاری sunitinib و antiangiogenic oral است.
 دلیل رد گزینه د: نادرست است؛ Zometa نام تجاری zoledronate و bisphosphonate intravenous است.',
                     ],
                     [
@@ -4245,10 +4245,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'MRONJ به conventional debridement و HBO پاسخ قطعی می‌دهد ولی ORN پاسخ نمی‌دهد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل MRONJ را ضایعه‌ای شبیه osteoradionecrosis با exposed devitalized jaw bone معرفی می‌کند، اما در بیمارانی که radiation نداشته‌اند و وجه مشترکشان مصرف antiresorptive medication است.
-دلیل رد گزینه ا: نادرست است؛ عبارت وارونه است.
-دلیل رد گزینه ج: نادرست است؛ ORN بیشتر در mandible رخ می‌دهد و MRONJ jaw bone را درگیر می‌کند، نه فقط gingiva.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل MRONJ را ضایعه‌ای شبیه osteoradionecrosis با exposed devitalized jaw bone معرفی می‌کند، اما در بیمارانی که radiation نداشته‌اند و وجه مشترکشان مصرف antiresorptive medication است.
+دلیل رد گزینه ا: نادرست است؛ عبارت وارونه است.
+دلیل رد گزینه ج: نادرست است؛ ORN بیشتر در mandible رخ می‌دهد و MRONJ jaw bone را درگیر می‌کند، نه فقط gingiva.
 دلیل رد گزینه د: نادرست است؛ متن می‌گوید درمان‌های معمول ORN مانند debridement، antibiotics یا HBO پاسخ predictable در MRONJ ندارند.',
                     ],
                     [
@@ -4260,10 +4260,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'risk با طولانی‌تر شدن مصرف کاهش می‌یابد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: در متن آمده است هنگام procedure تهاجمی در بیمار مصرف‌کننده oral bisphosphonate می‌توان drug holiday را با physician مطرح کرد و مطالعات نشان داده‌اند ۶ تا ۱۲ ماه پس از cessation، توسعه MRONJ پس از procedures invasive کاهش می‌یابد.
-دلیل رد گزینه ب: نادرست است؛ bisphosphonates ممکن است سال‌ها در بدن/استخوان باقی بمانند و اثر کوتاه‌مدت نیست.
-دلیل رد گزینه ج: نادرست است؛ هرچند ریسک oral alendronate کم است، موارد MRONJ گزارش شده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: در متن آمده است هنگام procedure تهاجمی در بیمار مصرف‌کننده oral bisphosphonate می‌توان drug holiday را با physician مطرح کرد و مطالعات نشان داده‌اند ۶ تا ۱۲ ماه پس از cessation، توسعه MRONJ پس از procedures invasive کاهش می‌یابد.
+دلیل رد گزینه ب: نادرست است؛ bisphosphonates ممکن است سال‌ها در بدن/استخوان باقی بمانند و اثر کوتاه‌مدت نیست.
+دلیل رد گزینه ج: نادرست است؛ هرچند ریسک oral alendronate کم است، موارد MRONJ گزارش شده‌اند.
 دلیل رد گزینه د: نادرست است؛ متن می‌گوید هرچه مدت مصرف طولانی‌تر باشد، خطر MRONJ بیشتر است.',
                     ],
                     [
@@ -4275,10 +4275,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Ibandronate/Boniva — antiangiogenic intravenous',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: در جدول، bevacizumab با نام تجاری Avastin، نوع antiangiogenic و route intravenous آمده است.
-دلیل رد گزینه ب: نادرست است؛ denosumab RANK ligand inhibitor و به‌صورت subcutaneous injection است.
-دلیل رد گزینه ج: نادرست است؛ clodronate/Bonefos bisphosphonate intravenous است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: در جدول، bevacizumab با نام تجاری Avastin، نوع antiangiogenic و route intravenous آمده است.
+دلیل رد گزینه ب: نادرست است؛ denosumab RANK ligand inhibitor و به‌صورت subcutaneous injection است.
+دلیل رد گزینه ج: نادرست است؛ clodronate/Bonefos bisphosphonate intravenous است.
 دلیل رد گزینه د: نادرست است؛ ibandronate/Boniva bisphosphonate oral است، نه antiangiogenic intravenous.',
                     ],
                     [
@@ -4290,10 +4290,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'افزایش salivary mucins → ulceration مخاطی بدون درگیری استخوان',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل می‌گوید bisphosphonates و denosumab differentiation و function استئوکلاست را مهار و apoptosis را افزایش می‌دهند، bone resorption/remodeling کاهش می‌یابد، bone brittle می‌شود و repair پس از microfracture، infection یا extraction مختل می‌شود.
-دلیل رد گزینه ب: نادرست است؛ متن کاهش resorption/remodeling و hypovascularity را مطرح می‌کند، نه hypervascular healing.
-دلیل رد گزینه ج: نادرست است؛ bisphosphonates خاصیت antiangiogenic دارند و remodeling suppress می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل می‌گوید bisphosphonates و denosumab differentiation و function استئوکلاست را مهار و apoptosis را افزایش می‌دهند، bone resorption/remodeling کاهش می‌یابد، bone brittle می‌شود و repair پس از microfracture، infection یا extraction مختل می‌شود.
+دلیل رد گزینه ب: نادرست است؛ متن کاهش resorption/remodeling و hypovascularity را مطرح می‌کند، نه hypervascular healing.
+دلیل رد گزینه ج: نادرست است؛ bisphosphonates خاصیت antiangiogenic دارند و remodeling suppress می‌شود.
 دلیل رد گزینه د: نادرست است؛ MRONJ بیماری exposed necrotic bone است، نه صرفاً تغییر salivary mucins.',
                     ],
                     [
@@ -4305,10 +4305,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'گسترش قطعی ضایعه به maxilla و absence of fibrosis',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: شرح شکل 19.6 پس از closure نشان می‌دهد radiograph پانورامیک ۸ ماه بعد slight remodeling and healing of bone را نشان داد و histology نمونه resected، osteoradionecrosis و fibrosis در marrow area of haversian systems را نشان داد.
-دلیل رد گزینه ا: نادرست است؛ slight remodeling/healing و fibrosis ذکر شده‌اند.
-دلیل رد گزینه ج: نادرست است؛ این شکل درباره implant یا candidiasis نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: شرح شکل 19.6 پس از closure نشان می‌دهد radiograph پانورامیک ۸ ماه بعد slight remodeling and healing of bone را نشان داد و histology نمونه resected، osteoradionecrosis و fibrosis در marrow area of haversian systems را نشان داد.
+دلیل رد گزینه ا: نادرست است؛ slight remodeling/healing و fibrosis ذکر شده‌اند.
+دلیل رد گزینه ج: نادرست است؛ این شکل درباره implant یا candidiasis نیست.
 دلیل رد گزینه د: نادرست است؛ گسترش به maxilla یا نبود fibrosis در شرح شکل نیامده است.',
                     ],
                     [
@@ -4320,10 +4320,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون systemic absorption آن‌ها عمداً باید حداکثر شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید oral rinses contact time کوتاهی دارند و کمتر مؤثرند؛ tablets چون آهسته در دهان حل می‌شوند، exposure time دارو با oral flora را افزایش می‌دهند و از accepted forms هستند.
-دلیل رد گزینه ب: نادرست است؛ هدف درمان موضعی افزایش تماس دارو با مخاط/فلور است.
-دلیل رد گزینه ج: نادرست است؛ creams برای commissures یا prosthetic surfaces مفیدند، نه tablets.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید oral rinses contact time کوتاهی دارند و کمتر مؤثرند؛ tablets چون آهسته در دهان حل می‌شوند، exposure time دارو با oral flora را افزایش می‌دهند و از accepted forms هستند.
+دلیل رد گزینه ب: نادرست است؛ هدف درمان موضعی افزایش تماس دارو با مخاط/فلور است.
+دلیل رد گزینه ج: نادرست است؛ creams برای commissures یا prosthetic surfaces مفیدند، نه tablets.
 دلیل رد گزینه د: نادرست است؛ مزیت topical therapy کاهش side effects سیستمیک است، نه افزایش جذب سیستمیک.',
                     ],
                     [
@@ -4335,10 +4335,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'مصرف یک‌هفته‌ای oral alendronate بدون عامل موضعی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید در cancer patients taking intravenous bisphosphonates، median time تا jaw necrosis حدود ۲۵ ماه گزارش شده و هر فردی با مصرف IV bisphosphonates بیش از ۱۲ ماه در serious risk است.
-دلیل رد گزینه ب: نادرست است؛ افزایش خطر با older adults >65 years ذکر شده، نه سن کمتر از ۲۰ سال.
-دلیل رد گزینه ج: نادرست است؛ periodontitis، infected teeth، dental abscesses و tori از عوامل محلی مرتبط‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید در cancer patients taking intravenous bisphosphonates، median time تا jaw necrosis حدود ۲۵ ماه گزارش شده و هر فردی با مصرف IV bisphosphonates بیش از ۱۲ ماه در serious risk است.
+دلیل رد گزینه ب: نادرست است؛ افزایش خطر با older adults >65 years ذکر شده، نه سن کمتر از ۲۰ سال.
+دلیل رد گزینه ج: نادرست است؛ periodontitis، infected teeth، dental abscesses و tori از عوامل محلی مرتبط‌اند.
 دلیل رد گزینه د: نادرست است؛ ریسک oral bisphosphonate به‌طور کلی بسیار کمتر از IV است و سناریوی متن را ندارد.',
                     ],
                     [
@@ -4350,10 +4350,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'نیاز به restorative care روی دندان دور از ضایعه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل توصیه می‌کند اگر اطراف exposed bone دردناک، erythematous، suppurative و/یا دارای sinus tracts باشد، بیمار با antibiotics درمان شود تا نواحی heal کنند؛ chlorhexidine rinse نیز برای کاهش bacterial load توصیه شده است.
-دلیل رد گزینه ب: نادرست است؛ exposed bone مزمن نیاز به monitoring دارد، اما antibiotic در متن برای علائم suppurative/secondary infection برجسته شده است.
-دلیل رد گزینه ج: نادرست است؛ roughness ممکن است complaint اولیه باشد، اما به‌تنهایی اندیکاسیون antibiotic قوی نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل توصیه می‌کند اگر اطراف exposed bone دردناک، erythematous، suppurative و/یا دارای sinus tracts باشد، بیمار با antibiotics درمان شود تا نواحی heal کنند؛ chlorhexidine rinse نیز برای کاهش bacterial load توصیه شده است.
+دلیل رد گزینه ب: نادرست است؛ exposed bone مزمن نیاز به monitoring دارد، اما antibiotic در متن برای علائم suppurative/secondary infection برجسته شده است.
+دلیل رد گزینه ج: نادرست است؛ roughness ممکن است complaint اولیه باشد، اما به‌تنهایی اندیکاسیون antibiotic قوی نیست.
 دلیل رد گزینه د: نادرست است؛ restorative care routine قابل انجام است و خود به‌تنهایی معیار antibiotic نیست.',
                     ],
                     [
@@ -4365,10 +4365,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'IV bisphosphonates عمدتاً برای osteoporosis routine postmenopausal تجویز می‌شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید بیماران دریافت‌کننده IV bisphosphonates به‌وضوح susceptibleتر از oral هستند. oral bisphosphonates اغلب برای osteoporosis و injectable forms برای cancer with primary bone lesions یا skeletal metastasis استفاده می‌شوند.
-دلیل رد گزینه ب: نادرست است؛ خطر oral بسیار کمتر است، هرچند صفر نیست.
-دلیل رد گزینه ج: نادرست است؛ oral forms اغلب در osteoporosis استفاده می‌شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید بیماران دریافت‌کننده IV bisphosphonates به‌وضوح susceptibleتر از oral هستند. oral bisphosphonates اغلب برای osteoporosis و injectable forms برای cancer with primary bone lesions یا skeletal metastasis استفاده می‌شوند.
+دلیل رد گزینه ب: نادرست است؛ خطر oral بسیار کمتر است، هرچند صفر نیست.
+دلیل رد گزینه ج: نادرست است؛ oral forms اغلب در osteoporosis استفاده می‌شوند.
 دلیل رد گزینه د: نادرست است؛ injectable forms بیشتر در cancer با ضایعات استخوانی یا metastasis کاربرد دارند.',
                     ],
                     [
@@ -4380,10 +4380,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حذف periodic follow-up چون درمان فعال پایان یافته است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: در بیماران دریافت‌کننده antiresorptives، treatment principally preventive است. primary objective حذف potential sites of infection، restorative care برای caries/defective restorations، تنظیم پروتزها، prophylaxis، hygiene instruction و follow-up مکرر است تا نیاز به procedures تهاجمی آینده کاهش یابد.
-دلیل رد گزینه ب: نادرست است؛ پیشگیری و درمان محافظه‌کارانه زودهنگام محور متن است.
-دلیل رد گزینه ج: نادرست است؛ crowns و fixed prosthodontic گسترده ممکن است برای برخی بیماران مناسب نباشند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: در بیماران دریافت‌کننده antiresorptives، treatment principally preventive است. primary objective حذف potential sites of infection، restorative care برای caries/defective restorations، تنظیم پروتزها، prophylaxis، hygiene instruction و follow-up مکرر است تا نیاز به procedures تهاجمی آینده کاهش یابد.
+دلیل رد گزینه ب: نادرست است؛ پیشگیری و درمان محافظه‌کارانه زودهنگام محور متن است.
+دلیل رد گزینه ج: نادرست است؛ crowns و fixed prosthodontic گسترده ممکن است برای برخی بیماران مناسب نباشند.
 دلیل رد گزینه د: نادرست است؛ frequent periodic follow-up پس از active dental treatment توصیه می‌شود.',
                     ],
                     [
@@ -4395,10 +4395,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'MRONJ هرگز با prosthetic trauma آغاز نمی‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن تأکید می‌کند باید MRONJ را از mucosal ulcerations گذرا و denudation of bone در mucosa نازک تشخیص داد؛ آن ضایعات پس از حذف irritation خودبه‌خود heal می‌شوند، اما lesions of MRONJ healing ندارند.
-دلیل رد گزینه ب: نادرست است؛ MRONJ با exposed necrotic bone مشخص می‌شود.
-دلیل رد گزینه ج: نادرست است؛ حتی MRONJ در مراحل early radiographic manifestations ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن تأکید می‌کند باید MRONJ را از mucosal ulcerations گذرا و denudation of bone در mucosa نازک تشخیص داد؛ آن ضایعات پس از حذف irritation خودبه‌خود heal می‌شوند، اما lesions of MRONJ healing ندارند.
+دلیل رد گزینه ب: نادرست است؛ MRONJ با exposed necrotic bone مشخص می‌شود.
+دلیل رد گزینه ج: نادرست است؛ حتی MRONJ در مراحل early radiographic manifestations ندارد.
 دلیل رد گزینه د: نادرست است؛ ulcer ناشی از ill-fitting prosthetic device می‌تواند در شروع MRONJ نقش داشته باشد.',
                     ],
                     [
@@ -4410,10 +4410,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Sirolimus—Bisphosphonate؛ Ibandronate—Antiangiogenic؛ Pamidronate—RANK ligand inhibitor',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: طبق جدول 19.1، alendronate یک bisphosphonate، denosumab یک RANK ligand inhibitor، و sunitinib یک antiangiogenic medication است.
-دلیل رد گزینه ب: نادرست است؛ هر سه نوع در این گزینه جابه‌جا شده‌اند.
-دلیل رد گزینه ج: نادرست است؛ zoledronate و clodronate bisphosphonate هستند و bevacizumab antiangiogenic است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: طبق جدول 19.1، alendronate یک bisphosphonate، denosumab یک RANK ligand inhibitor، و sunitinib یک antiangiogenic medication است.
+دلیل رد گزینه ب: نادرست است؛ هر سه نوع در این گزینه جابه‌جا شده‌اند.
+دلیل رد گزینه ج: نادرست است؛ zoledronate و clodronate bisphosphonate هستند و bevacizumab antiangiogenic است.
 دلیل رد گزینه د: نادرست است؛ sirolimus antiangiogenic، ibandronate و pamidronate bisphosphonate هستند.',
                     ],
                     [
@@ -4425,10 +4425,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ممنوعیت هرگونه adjustment تا پس از ایجاد exposed bone',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید بیماران با full یا partial dentures باید از نظر areas of mucosal trauma، به‌ویژه along the lingual flange region، بررسی شوند؛ trauma مخاط می‌تواند با MRONJ مرتبط باشد.
-دلیل رد گزینه ب: نادرست است؛ pressure points و trauma باید حذف شوند، نه افزایش.
-دلیل رد گزینه ج: نادرست است؛ lateral forces و trauma با هدف پیشگیری سازگار نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید بیماران با full یا partial dentures باید از نظر areas of mucosal trauma، به‌ویژه along the lingual flange region، بررسی شوند؛ trauma مخاط می‌تواند با MRONJ مرتبط باشد.
+دلیل رد گزینه ب: نادرست است؛ pressure points و trauma باید حذف شوند، نه افزایش.
+دلیل رد گزینه ج: نادرست است؛ lateral forces و trauma با هدف پیشگیری سازگار نیستند.
 دلیل رد گزینه د: نادرست است؛ adjustment پیشگیرانه قبل از عارضه توصیه می‌شود.',
                     ],
                     [
@@ -4440,10 +4440,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'هیچ مبنای احتمالی برای کاربرد آن در این بیماران ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل می‌گوید chlorhexidine mouth rinse in vitro خواص potent antibacterial و antifungal دارد، اما in vivo به‌ویژه علیه Candida species در immunosuppressed individuals کمتر مستند است؛ با این حال اغلب استفاده می‌شود چون احتمالاً ضرری ندارد و شاید مفید باشد.
-دلیل رد گزینه ب: نادرست است؛ متن آن را جایگزین قطعی topical antifungalها نمی‌داند.
-دلیل رد گزینه ج: نادرست است؛ در متن استفاده آن در بیشتر بیماران بر اساس probably no harm مطرح شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل می‌گوید chlorhexidine mouth rinse in vitro خواص potent antibacterial و antifungal دارد، اما in vivo به‌ویژه علیه Candida species در immunosuppressed individuals کمتر مستند است؛ با این حال اغلب استفاده می‌شود چون احتمالاً ضرری ندارد و شاید مفید باشد.
+دلیل رد گزینه ب: نادرست است؛ متن آن را جایگزین قطعی topical antifungalها نمی‌داند.
+دلیل رد گزینه ج: نادرست است؛ در متن استفاده آن در بیشتر بیماران بر اساس probably no harm مطرح شده است.
 دلیل رد گزینه د: نادرست است؛ اثرات in vitro و احتمال benefit ذکر شده‌اند.',
                     ],
                     [
@@ -4455,10 +4455,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون bisphosphonate فقط روی مخاط اثر دارد و وارد bone نمی‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید با وجود ظاهر vascularized bone at surgical margins، healing ممکن است رخ ندهد چون entire bone affected است و debridement تا normal bone امکان‌پذیر نیست؛ به همین دلیل modalities مختلف routinely successful ثابت نشده‌اند.
-دلیل رد گزینه ب: نادرست است؛ MRONJ بیماری exposed necrotic jaw bone است.
-دلیل رد گزینه ج: نادرست است؛ flap coverage می‌تواند مشکل را بدتر کند و موفقیت قطعی ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید با وجود ظاهر vascularized bone at surgical margins، healing ممکن است رخ ندهد چون entire bone affected است و debridement تا normal bone امکان‌پذیر نیست؛ به همین دلیل modalities مختلف routinely successful ثابت نشده‌اند.
+دلیل رد گزینه ب: نادرست است؛ MRONJ بیماری exposed necrotic jaw bone است.
+دلیل رد گزینه ج: نادرست است؛ flap coverage می‌تواند مشکل را بدتر کند و موفقیت قطعی ندارد.
 دلیل رد گزینه د: نادرست است؛ bisphosphonates به bone mineral متصل و در matrix incorporated می‌شوند.',
                     ],
                     [
@@ -4470,10 +4470,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'صفر، زیرا هیچ موردی گزارش نشده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل بیان می‌کند در زمان متن، incidence ظاهری MRONJ در بیماران مصرف‌کننده oral alendronate برای osteoporosis حدود 1:1000 تا 1:25,000 است و با طول مدت مصرف افزایش می‌یابد.
-دلیل رد گزینه ب: نادرست است؛ این مقدار بسیار بالاتر از محدوده ذکرشده است.
-دلیل رد گزینه ج: نادرست است؛ متن چنین risk بسیار بالا را برای oral alendronate ذکر نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل بیان می‌کند در زمان متن، incidence ظاهری MRONJ در بیماران مصرف‌کننده oral alendronate برای osteoporosis حدود 1:1000 تا 1:25,000 است و با طول مدت مصرف افزایش می‌یابد.
+دلیل رد گزینه ب: نادرست است؛ این مقدار بسیار بالاتر از محدوده ذکرشده است.
+دلیل رد گزینه ج: نادرست است؛ متن چنین risk بسیار بالا را برای oral alendronate ذکر نمی‌کند.
 دلیل رد گزینه د: نادرست است؛ موارد oral bisphosphonate-related MRONJ گزارش شده‌اند.',
                     ],
                     [
@@ -4485,10 +4485,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Oral؛ Sutent و Nexavar',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: Table 19.1 برای denosumab نام‌های Xgeva و Prolia را ذکر می‌کند و route را subcutaneous injection می‌نویسد؛ نوع دارو RANK ligand inhibitor است.
-دلیل رد گزینه ا: نادرست است؛ Fosamax و Actonel به alendronate/risedronate oral bisphosphonates مربوط‌اند.
-دلیل رد گزینه ب: نادرست است؛ Aredia و Zometa به pamidronate/zoledronate intravenous bisphosphonates مربوط‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: Table 19.1 برای denosumab نام‌های Xgeva و Prolia را ذکر می‌کند و route را subcutaneous injection می‌نویسد؛ نوع دارو RANK ligand inhibitor است.
+دلیل رد گزینه ا: نادرست است؛ Fosamax و Actonel به alendronate/risedronate oral bisphosphonates مربوط‌اند.
+دلیل رد گزینه ب: نادرست است؛ Aredia و Zometa به pamidronate/zoledronate intravenous bisphosphonates مربوط‌اند.
 دلیل رد گزینه د: نادرست است؛ Sutent و Nexavar داروهای antiangiogenic oral هستند، نه denosumab.',
                     ],
                     [
@@ -4500,10 +4500,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'zoledronate یا pamidronate',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: برای stubborn cases، ketoconazole یا fluconazole به‌عنوان systemic antifungal medications قابل تجویزند؛ دندانپزشک باید به side effects toxic آن‌ها توجه کند.
-دلیل رد گزینه ب: نادرست است؛ این‌ها antibiotics هستند و در فصل برای Candida مقاوم به‌عنوان systemic antifungal ذکر نشده‌اند.
-دلیل رد گزینه ج: نادرست است؛ pilocarpine و cevimeline برای تحریک بزاق/xerostomia هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: برای stubborn cases، ketoconazole یا fluconazole به‌عنوان systemic antifungal medications قابل تجویزند؛ دندانپزشک باید به side effects toxic آن‌ها توجه کند.
+دلیل رد گزینه ب: نادرست است؛ این‌ها antibiotics هستند و در فصل برای Candida مقاوم به‌عنوان systemic antifungal ذکر نشده‌اند.
+دلیل رد گزینه ج: نادرست است؛ pilocarpine و cevimeline برای تحریک بزاق/xerostomia هستند.
 دلیل رد گزینه د: نادرست است؛ این‌ها bisphosphonates مرتبط با MRONJ هستند، نه ضدقارچ.',
                     ],
                     [
@@ -4515,10 +4515,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'عدم درمان caries تا sequestration خودبه‌خودی رخ دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید اگر دندان به‌علت caries nonrestorable باشد، root canal treatment و amputation of crown ممکن است بهتر از removing the tooth باشد، مگر آنکه دندان very loose باشد؛ extraction باید تا حد امکان اجتناب شود.
-دلیل رد گزینه ب: نادرست است؛ extraction در MRONJ باید اجتناب شود و اگر لازم شد atraumatic باشد.
-دلیل رد گزینه ج: نادرست است؛ implant placement از procedures تهاجمی مرتبط با MRONJ است و درمان این حالت نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید اگر دندان به‌علت caries nonrestorable باشد، root canal treatment و amputation of crown ممکن است بهتر از removing the tooth باشد، مگر آنکه دندان very loose باشد؛ extraction باید تا حد امکان اجتناب شود.
+دلیل رد گزینه ب: نادرست است؛ extraction در MRONJ باید اجتناب شود و اگر لازم شد atraumatic باشد.
+دلیل رد گزینه ج: نادرست است؛ implant placement از procedures تهاجمی مرتبط با MRONJ است و درمان این حالت نیست.
 دلیل رد گزینه د: نادرست است؛ routine restorative/endodontic care قابل انجام است و infection/caries نباید رها شود.',
                     ],
                     [
@@ -4530,10 +4530,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Penicillin، clindamycin و chlorhexidine',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل سه دسته را برای MRONJ معرفی می‌کند: bisphosphonates، RANK ligand inhibitors و antiangiogenic medications.
-دلیل رد گزینه ب: نادرست است؛ این‌ها دسته‌های دارویی درد/بی‌حسی‌اند و در فصل به‌عنوان عوامل MRONJ معرفی نشده‌اند.
-دلیل رد گزینه ج: نادرست است؛ این‌ها برای xerostomia و پیشگیری caries مطرح‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل سه دسته را برای MRONJ معرفی می‌کند: bisphosphonates، RANK ligand inhibitors و antiangiogenic medications.
+دلیل رد گزینه ب: نادرست است؛ این‌ها دسته‌های دارویی درد/بی‌حسی‌اند و در فصل به‌عنوان عوامل MRONJ معرفی نشده‌اند.
+دلیل رد گزینه ج: نادرست است؛ این‌ها برای xerostomia و پیشگیری caries مطرح‌اند.
 دلیل رد گزینه د: نادرست است؛ این‌ها در مدیریت عفونت/دهان‌شویه مطرح‌اند، نه کلاس‌های عامل MRONJ.',
                     ],
                     [
@@ -4545,10 +4545,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             '۱۰ سال دقیقاً در همه موارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل می‌گوید در بیماران سرطانی مصرف‌کننده IV bisphosphonates، median time از شروع therapy تا necrosis jaw حدود ۲۵ ماه گزارش شده است؛ البته موارد زودتر نیز رخ می‌دهند.
-دلیل رد گزینه ب: نادرست است؛ ۲ هفته در متن برای بهبودی mucositis پس از cessation agent مطرح است، نه median MRONJ.
-دلیل رد گزینه ج: نادرست است؛ چنین زمان کوتاهی در فصل به‌عنوان median MRONJ نیامده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل می‌گوید در بیماران سرطانی مصرف‌کننده IV bisphosphonates، median time از شروع therapy تا necrosis jaw حدود ۲۵ ماه گزارش شده است؛ البته موارد زودتر نیز رخ می‌دهند.
+دلیل رد گزینه ب: نادرست است؛ ۲ هفته در متن برای بهبودی mucositis پس از cessation agent مطرح است، نه median MRONJ.
+دلیل رد گزینه ج: نادرست است؛ چنین زمان کوتاهی در فصل به‌عنوان median MRONJ نیامده است.
 دلیل رد گزینه د: نادرست است؛ متن median 25 months و وقوع موارد زودتر را ذکر می‌کند، نه زمان ثابت ۱۰ سال.',
                     ],
                     [
@@ -4560,10 +4560,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Nexavar — Sorafenib — intravenous',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: در جدول، Aredia نام تجاری pamidronate، نوع bisphosphonate و route آن intravenous است.
-دلیل رد گزینه ب: نادرست است؛ Boniva/Ibandronate در جدول oral است.
-دلیل رد گزینه ج: نادرست است؛ Rapamune/Sirolimus antiangiogenic oral است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: در جدول، Aredia نام تجاری pamidronate، نوع bisphosphonate و route آن intravenous است.
+دلیل رد گزینه ب: نادرست است؛ Boniva/Ibandronate در جدول oral است.
+دلیل رد گزینه ج: نادرست است؛ Rapamune/Sirolimus antiangiogenic oral است.
 دلیل رد گزینه د: نادرست است؛ Nexavar/Sorafenib antiangiogenic oral است.',
                     ],
                     [
@@ -4575,10 +4575,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'pamidronate و zoledronate',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید گرچه penicillin آنتی‌بیوتیک first-choice در dentistry است، در MRONJ با odontogenic infections، amoxicillin، clindamycin یا هر دو، bone penetration بهتر و spectrum وسیع‌تری فراهم می‌کنند.
-دلیل رد گزینه ب: نادرست است؛ nystatin و clotrimazole ضدقارچ موضعی‌اند.
-دلیل رد گزینه ج: نادرست است؛ این‌ها muscarinic agonists برای xerostomia هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید گرچه penicillin آنتی‌بیوتیک first-choice در dentistry است، در MRONJ با odontogenic infections، amoxicillin، clindamycin یا هر دو، bone penetration بهتر و spectrum وسیع‌تری فراهم می‌کنند.
+دلیل رد گزینه ب: نادرست است؛ nystatin و clotrimazole ضدقارچ موضعی‌اند.
+دلیل رد گزینه ج: نادرست است؛ این‌ها muscarinic agonists برای xerostomia هستند.
 دلیل رد گزینه د: نادرست است؛ این‌ها bisphosphonates هستند و خود با MRONJ مرتبط‌اند.',
                     ],
                     [
@@ -4590,10 +4590,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'افزایش vascular ingrowth به hypoxic tissues مثل HBO',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل می‌گوید bisphosphonates به bone mineral متصل می‌شوند، در آنجا concentrate و accumulate می‌شوند، و هنگام remodeling توسط osteoclastها uptake و internalize شده، function آن‌ها را مهار و apoptosis ایجاد می‌کنند.
-دلیل رد گزینه ب: نادرست است؛ چنین اثر enamel/salivary IgA در متن برای bisphosphonates ذکر نشده است.
-دلیل رد گزینه ج: نادرست است؛ اثر ضدکاندیدایی مربوط به antifungal/chlorhexidine بحث دیگری است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل می‌گوید bisphosphonates به bone mineral متصل می‌شوند، در آنجا concentrate و accumulate می‌شوند، و هنگام remodeling توسط osteoclastها uptake و internalize شده، function آن‌ها را مهار و apoptosis ایجاد می‌کنند.
+دلیل رد گزینه ب: نادرست است؛ چنین اثر enamel/salivary IgA در متن برای bisphosphonates ذکر نشده است.
+دلیل رد گزینه ج: نادرست است؛ اثر ضدکاندیدایی مربوط به antifungal/chlorhexidine بحث دیگری است.
 دلیل رد گزینه د: نادرست است؛ افزایش tissue oxygenation و vascular ingrowth ویژگی HBO در بخش ORN است.',
                     ],
                     [
@@ -4605,10 +4605,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تشکیل فوری bone طبیعی پس از flap coverage',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: شرح شکل 19.8 می‌گوید پس از minor debridements، infection of the right mandible ایجاد شد و spontaneous breakdown of skin در submental region رخ داد؛ این نشان‌دهنده progressive nature برخی MRONJ cases است.
-دلیل رد گزینه ب: نادرست است؛ ضایعه progressive شد و healing سریع گزارش نشده است.
-دلیل رد گزینه ج: نادرست است؛ radiation caries ضایعه دندانی است، نه سیر mandibular MRONJ.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: شرح شکل 19.8 می‌گوید پس از minor debridements، infection of the right mandible ایجاد شد و spontaneous breakdown of skin در submental region رخ داد؛ این نشان‌دهنده progressive nature برخی MRONJ cases است.
+دلیل رد گزینه ب: نادرست است؛ ضایعه progressive شد و healing سریع گزارش نشده است.
+دلیل رد گزینه ج: نادرست است؛ radiation caries ضایعه دندانی است، نه سیر mandibular MRONJ.
 دلیل رد گزینه د: نادرست است؛ flap coverage در MRONJ می‌تواند مشکل را بدتر کند و در شکل نیز چنین روندی نیامده است.',
                     ],
                     [
@@ -4620,10 +4620,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'توصیه به حذف مسواک برای جلوگیری از trauma',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن پس از پایان active dental treatment، frequent periodic follow-up visits را برای تقویت اهمیت oral hygiene maintenance و انجام new oral examination توصیه می‌کند.
-دلیل رد گزینه ب: نادرست است؛ رویکرد فصل پیشگیرانه و follow-up محور است.
-دلیل رد گزینه ج: نادرست است؛ antifungal برای candidiasis است، نه مراقبت عمومی همه بیماران antiresorptive.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن پس از پایان active dental treatment، frequent periodic follow-up visits را برای تقویت اهمیت oral hygiene maintenance و انجام new oral examination توصیه می‌کند.
+دلیل رد گزینه ب: نادرست است؛ رویکرد فصل پیشگیرانه و follow-up محور است.
+دلیل رد گزینه ج: نادرست است؛ antifungal برای candidiasis است، نه مراقبت عمومی همه بیماران antiresorptive.
 دلیل رد گزینه د: نادرست است؛ oral hygiene آموزش داده و تقویت می‌شود، نه حذف مسواک.',
                     ],
                     [
@@ -4635,10 +4635,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'برای صاف کردن sharp exposed bone در MRONJ',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: در متن، cream forms of topical antifungals برای candidiasis of oral commissures یا application روی oral surfaces of prosthetic devices مفیدند تا medication exposure طولانی‌تر شود.
-دلیل رد گزینه ب: نادرست است؛ این مربوط به پیشگیری MRONJ است نه درمان Candida.
-دلیل رد گزینه ج: نادرست است؛ تحریک بزاق با sugar-free gum، pilocarpine یا cevimeline مطرح است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: در متن، cream forms of topical antifungals برای candidiasis of oral commissures یا application روی oral surfaces of prosthetic devices مفیدند تا medication exposure طولانی‌تر شود.
+دلیل رد گزینه ب: نادرست است؛ این مربوط به پیشگیری MRONJ است نه درمان Candida.
+دلیل رد گزینه ج: نادرست است؛ تحریک بزاق با sugar-free gum، pilocarpine یا cevimeline مطرح است.
 دلیل رد گزینه د: نادرست است؛ sharp bone در MRONJ ممکن است با diamond burr حذف شود، نه cream antifungal.',
                     ],
                     [
@@ -4650,10 +4650,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون این داروها هیچ ارتباطی با bone remodeling ندارند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید به‌علت half-life بسیار طولانی bisphosphonates (سال‌ها)، قطع دارو برای تسهیل healing MRONJ منطقی نیست؛ علاوه بر آن بیماران metastatic cancer به medication نیاز دارند.
-دلیل رد گزینه ب: نادرست است؛ drug می‌تواند سال‌ها در بدن/استخوان باقی بماند.
-دلیل رد گزینه ج: نادرست است؛ بهبودی فوری پس از قطع در متن نیامده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید به‌علت half-life بسیار طولانی bisphosphonates (سال‌ها)، قطع دارو برای تسهیل healing MRONJ منطقی نیست؛ علاوه بر آن بیماران metastatic cancer به medication نیاز دارند.
+دلیل رد گزینه ب: نادرست است؛ drug می‌تواند سال‌ها در بدن/استخوان باقی بماند.
+دلیل رد گزینه ج: نادرست است؛ بهبودی فوری پس از قطع در متن نیامده است.
 دلیل رد گزینه د: نادرست است؛ bisphosphonates remodeling و osteoclast activity را شدیداً مختل می‌کنند.',
                     ],
                     [
@@ -4665,10 +4665,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'radiograph همیشه MRONJ را از ulceration ناشی از prosthesis تفکیک قطعی می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل می‌گوید similar to osteoradionecrosis، در early stages of oral MRONJ هیچ radiographic manifestations دیده نمی‌شود؛ تشخیص به clinical presentation و history دارویی متکی است.
-دلیل رد گزینه ب: نادرست است؛ متن عکس آن را بیان می‌کند.
-دلیل رد گزینه ج: نادرست است؛ چنین تأکیدی در فصل نیامده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل می‌گوید similar to osteoradionecrosis، در early stages of oral MRONJ هیچ radiographic manifestations دیده نمی‌شود؛ تشخیص به clinical presentation و history دارویی متکی است.
+دلیل رد گزینه ب: نادرست است؛ متن عکس آن را بیان می‌کند.
+دلیل رد گزینه ج: نادرست است؛ چنین تأکیدی در فصل نیامده است.
 دلیل رد گزینه د: نادرست است؛ تمایز با ulceration ساده بر healing پس از حذف irritation و زمینه دارویی/بالینی است، نه قطعی بودن radiograph.',
                     ],
                     [
@@ -4680,10 +4680,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'saline rinse، chlorhexidine حین RT، nystatin و weekly weighing',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: برای MRONJ درمان‌هایی مانند minor debridement under local anesthesia، major surgical sequestrectomies، marginal/segmental mandibular resections، partial/complete maxillectomies و HBO گزارش شده‌اند، اما هیچ‌کدام routinely successful ثابت نشده‌اند.
-دلیل رد گزینه ب: نادرست است؛ این‌ها مربوط به xerostomia/radiation caries هستند.
-دلیل رد گزینه ج: نادرست است؛ این مجموعه مربوط به پوسیدگی و trismus در بیمار irradiated است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: برای MRONJ درمان‌هایی مانند minor debridement under local anesthesia، major surgical sequestrectomies، marginal/segmental mandibular resections، partial/complete maxillectomies و HBO گزارش شده‌اند، اما هیچ‌کدام routinely successful ثابت نشده‌اند.
+دلیل رد گزینه ب: نادرست است؛ این‌ها مربوط به xerostomia/radiation caries هستند.
+دلیل رد گزینه ج: نادرست است؛ این مجموعه مربوط به پوسیدگی و trismus در بیمار irradiated است.
 دلیل رد گزینه د: نادرست است؛ این‌ها مراقبت حین radiotherapy/کنترل Candida است، نه modalities MRONJ.',
                     ],
                     [
@@ -4695,10 +4695,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'با تحریک muscarinic receptors، salivary flow را بالا می‌برند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید angiogenesis inhibitors با binding به signaling molecules و disruption of angiogenesis signaling cascade، formation of new blood vessels را مختل می‌کنند و در درمان برخی tumors مؤثر بوده‌اند.
-دلیل رد گزینه ب: نادرست است؛ این شرح RANK ligand inhibitors/denosumab است.
-دلیل رد گزینه ج: نادرست است؛ این شرح bisphosphonates است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید angiogenesis inhibitors با binding به signaling molecules و disruption of angiogenesis signaling cascade، formation of new blood vessels را مختل می‌کنند و در درمان برخی tumors مؤثر بوده‌اند.
+دلیل رد گزینه ب: نادرست است؛ این شرح RANK ligand inhibitors/denosumab است.
+دلیل رد گزینه ج: نادرست است؛ این شرح bisphosphonates است.
 دلیل رد گزینه د: نادرست است؛ این شرح pilocarpine/cevimeline برای xerostomia است.',
                     ],
                     [
@@ -4710,10 +4710,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تغییر رنگ کامپوزیت‌های قدیمی بدون ناراحتی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: فصل می‌گوید patients باید درباره اهمیت dental hygiene و regular evaluations آموزش ببینند و مشخصاً دستور داده شود pain، swelling یا exposed bone را گزارش کنند؛ این‌ها می‌توانند MRONJ را پیش‌بینی یا مشخص کنند.
-دلیل رد گزینه ب: نادرست است؛ این علامت برای MRONJ در متن مطرح نیست.
-دلیل رد گزینه ج: نادرست است؛ mouth-opening exercises به trismus radiation مربوط است، نه warning sign اصلی MRONJ.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: فصل می‌گوید patients باید درباره اهمیت dental hygiene و regular evaluations آموزش ببینند و مشخصاً دستور داده شود pain، swelling یا exposed bone را گزارش کنند؛ این‌ها می‌توانند MRONJ را پیش‌بینی یا مشخص کنند.
+دلیل رد گزینه ب: نادرست است؛ این علامت برای MRONJ در متن مطرح نیست.
+دلیل رد گزینه ج: نادرست است؛ mouth-opening exercises به trismus radiation مربوط است، نه warning sign اصلی MRONJ.
 دلیل رد گزینه د: نادرست است؛ تغییر رنگ restoration بدون ناراحتی warning sign ذکرشده نیست.',
                     ],
                     [
@@ -4725,10 +4725,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'یک بار مصرف در مطب کافی است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه ا: متن می‌گوید clotrimazole و nystatin باید چهار بار روزانه استفاده شوند و therapy باید ۲ هفته پس از cessation of clinical signs and symptoms ادامه یابد.
-دلیل رد گزینه ب: نادرست است؛ توقف در نخستین بهبود با توصیه متن سازگار نیست.
-دلیل رد گزینه ج: نادرست است؛ دوره ثابت ۶ ماهه در فصل ذکر نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه ا: متن می‌گوید clotrimazole و nystatin باید چهار بار روزانه استفاده شوند و therapy باید ۲ هفته پس از cessation of clinical signs and symptoms ادامه یابد.
+دلیل رد گزینه ب: نادرست است؛ توقف در نخستین بهبود با توصیه متن سازگار نیست.
+دلیل رد گزینه ج: نادرست است؛ دوره ثابت ۶ ماهه در فصل ذکر نشده است.
 دلیل رد گزینه د: نادرست است؛ درمان single-dose در متن نیامده است.',
                     ],
                 ],
@@ -4759,10 +4759,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Streptococcus pneumoniae همراه با تعداد اندکی anaerobeهای غیر دهانی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل ۲۰ می‌گوید sinusitis ادونتوژنیک معمولاً با فلور عفونت‌های دندانی، شامل aerobic/anaerobic streptococci و anaerobes مانند Bacteroides و Enterobacteriaceae همراه است.
-رد گزینه الف: این مجموعه بیشتر با nonodontogenic sinusitis هماهنگ است.
-رد گزینه ج: Branhamella catarrhalis و فلور بینی در خوشه nonodontogenic قرار می‌گیرند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل ۲۰ می‌گوید sinusitis ادونتوژنیک معمولاً با فلور عفونت‌های دندانی، شامل aerobic/anaerobic streptococci و anaerobes مانند Bacteroides و Enterobacteriaceae همراه است.
+رد گزینه الف: این مجموعه بیشتر با nonodontogenic sinusitis هماهنگ است.
+رد گزینه ج: Branhamella catarrhalis و فلور بینی در خوشه nonodontogenic قرار می‌گیرند.
 رد گزینه د: S. pneumoniae در متن جزو عوامل مهم nonodontogenic است، نه الگوی غالب odontogenic.',
                     ],
                     [
@@ -4774,10 +4774,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'خارج کردن کامل مخاط اطراف ارتباط و بستن defect با membrane فلزی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در opening کوچک و سینوس disease-free، درمان کم‌تهاجمی با ایجاد و حفظ clot، reposition نرم‌نسج، sutures و gauze pack توصیه می‌شود.
-رد گزینه ب: palatal flap برای fistula مزمن یا defectهای نیازمند flap است، نه اقدام اولیه opening کوچک.
-رد گزینه ج: Caldwell-Luc برای مواردی مانند chronic disease یا foreign body دشوار کاربرد دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در opening کوچک و سینوس disease-free، درمان کم‌تهاجمی با ایجاد و حفظ clot، reposition نرم‌نسج، sutures و gauze pack توصیه می‌شود.
+رد گزینه ب: palatal flap برای fistula مزمن یا defectهای نیازمند flap است، نه اقدام اولیه opening کوچک.
+رد گزینه ج: Caldwell-Luc برای مواردی مانند chronic disease یا foreign body دشوار کاربرد دارد.
 رد گزینه د: membrane/foil برای روش‌های closure انتخابی fistula یا defectهای خاص است، نه opening کوچک اولیه.',
                     ],
                     [
@@ -4789,10 +4789,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ostium در دیواره خلفی و نزدیک توبروزیته باز می‌شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: ostium در موقعیت وابسته نیست و در دو سوم فوقانی دیواره مدیال قرار دارد؛ بنابراین cilia باید mucus را به سمت ostium حرکت دهند.
-رد گزینه الف: متن تأکید می‌کند ostium inferior یا dependent نیست.
-رد گزینه ج: apex جانبی مربوط به شکل pyramidal sinus است، نه محل ostium.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: ostium در موقعیت وابسته نیست و در دو سوم فوقانی دیواره مدیال قرار دارد؛ بنابراین cilia باید mucus را به سمت ostium حرکت دهند.
+رد گزینه الف: متن تأکید می‌کند ostium inferior یا dependent نیست.
+رد گزینه ج: apex جانبی مربوط به شکل pyramidal sinus است، نه محل ostium.
 رد گزینه د: دیواره خلفی/توبروزیته محل ostium معرفی نشده است.',
                     ],
                     [
@@ -4804,10 +4804,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کوچک‌تر کردن osseous defect نسبت به deformity نرم‌نسجی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: palatal flap full-thickness با blood supply از palatal vessels، بافت ضخیم و keratinized شبیه crestal ridge فراهم می‌کند.
-رد گزینه الف: در fistula، کنترل عفونت سینوس پیش از closure همچنان ضروری است.
-رد گزینه ج: عیب palatal flap، ایجاد ناحیه وسیع exposed bone در کام است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: palatal flap full-thickness با blood supply از palatal vessels، بافت ضخیم و keratinized شبیه crestal ridge فراهم می‌کند.
+رد گزینه الف: در fistula، کنترل عفونت سینوس پیش از closure همچنان ضروری است.
+رد گزینه ج: عیب palatal flap، ایجاد ناحیه وسیع exposed bone در کام است.
 رد گزینه د: flap اندازه osseous defect را کوچک نمی‌کند؛ طراحی باید بزرگی defect واقعی را پوشش دهد.',
                     ],
                     [
@@ -4819,10 +4819,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'radiolucency دارای حاشیه کورتیکال وابسته به apex',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: air-fluid level بیشتر characteristic acute sinus disease است، هرچند در exacerbation مزمن هم ممکن است دیده شود.
-رد گزینه ب: polyps جزو radiographic changes chronic sinusitis ذکر شده‌اند.
-رد گزینه ج: expansion دیواره‌ها بیشتر در ضایعاتی مانند cyst/tumor مطرح می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: air-fluid level بیشتر characteristic acute sinus disease است، هرچند در exacerbation مزمن هم ممکن است دیده شود.
+رد گزینه ب: polyps جزو radiographic changes chronic sinusitis ذکر شده‌اند.
+رد گزینه ج: expansion دیواره‌ها بیشتر در ضایعاتی مانند cyst/tumor مطرح می‌شود.
 رد گزینه د: radiolucency وابسته به apex با حاشیه کورتیکال در افتراق ضایعات دندانی مطرح است.',
                     ],
                     [
@@ -4834,10 +4834,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'بستن ارتباط با collagen membrane و پیگیری بدون retrieval',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید در بسیاری موارد opening اولیه کمی enlarge می‌شود و جسم با forceps کوچک یا suction دیده و خارج می‌شود؛ irrigation/suction نیز کمک‌کننده است.
-رد گزینه ب: antrostomy بخشی از جراحی سینوس برای drainage در موارد دیگر است، نه retrieval ساده نزدیک opening.
-رد گزینه ج: palatal rotation برای closure fistula کاربرد دارد، نه retrieval جسم جابه‌جا شده.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید در بسیاری موارد opening اولیه کمی enlarge می‌شود و جسم با forceps کوچک یا suction دیده و خارج می‌شود؛ irrigation/suction نیز کمک‌کننده است.
+رد گزینه ب: antrostomy بخشی از جراحی سینوس برای drainage در موارد دیگر است، نه retrieval ساده نزدیک opening.
+رد گزینه ج: palatal rotation برای closure fistula کاربرد دارد، نه retrieval جسم جابه‌جا شده.
 رد گزینه د: بستن با membrane بدون خارج کردن foreign body با هدف درمان complication هماهنگ نیست.',
                     ],
                     [
@@ -4849,10 +4849,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'Porphyromonas، Prevotella و Eubacterium به‌عنوان منشأ اصلی دندانی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: عوامل مهم nonodontogenic در متن شامل S. pneumoniae، H. influenzae و Branhamella catarrhalis هستند.
-رد گزینه ب: این گزینه فلور anaerobic نزدیک به عفونت‌های دندانی را برجسته می‌کند.
-رد گزینه ج: این الگو برای odontogenic sinusitis مناسب‌تر است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: عوامل مهم nonodontogenic در متن شامل S. pneumoniae، H. influenzae و Branhamella catarrhalis هستند.
+رد گزینه ب: این گزینه فلور anaerobic نزدیک به عفونت‌های دندانی را برجسته می‌کند.
+رد گزینه ج: این الگو برای odontogenic sinusitis مناسب‌تر است.
 رد گزینه د: اینها بیشتر در خوشه فلور ادونتوژنیک یا anaerobic ذکر می‌شوند.',
                     ],
                     [
@@ -4864,10 +4864,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'برای کاهش فشار، دهان را هنگام عطسه ببندد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: sinus precautions شامل باز نگه داشتن دهان هنگام عطسه است تا اختلاف فشار بین بینی و دهان ایجاد نشود.
-رد گزینه ب: nose blowing باید اجتناب شود.
-رد گزینه ج: sucking on straw یا cigarettes ممنوع است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: sinus precautions شامل باز نگه داشتن دهان هنگام عطسه است تا اختلاف فشار بین بینی و دهان ایجاد نشود.
+رد گزینه ب: nose blowing باید اجتناب شود.
+رد گزینه ج: sucking on straw یا cigarettes ممنوع است.
 رد گزینه د: بستن دهان هنگام عطسه برخلاف توصیه متن است.',
                     ],
                     [
@@ -4879,10 +4879,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'postoperative maxillary cyst با رفتار expansile',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: acute maxillary sinusitis با pressure/pain/fullness سریعاً افزاینده، facial swelling/erythema، malaise، fever و drainage بدبو توصیف شده است.
-رد گزینه الف: chronic form عودکننده یا persistent پس از درمان است.
-رد گزینه ج: antral pseudocyst معمولاً بی‌پیامد بالینی است و چنین علائم حادی ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: acute maxillary sinusitis با pressure/pain/fullness سریعاً افزاینده، facial swelling/erythema، malaise، fever و drainage بدبو توصیف شده است.
+رد گزینه الف: chronic form عودکننده یا persistent پس از درمان است.
+رد گزینه ج: antral pseudocyst معمولاً بی‌پیامد بالینی است و چنین علائم حادی ندارد.
 رد گزینه د: postoperative maxillary cyst یک mucocele واقعی پس از surgery است، نه الگوی حاد عفونی.',
                     ],
                     [
@@ -4894,10 +4894,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'periosteum دست‌نخورده بماند تا vascularity کاهش پیدا نکند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: مهم‌ترین اصول flap advancement، broad-based flap، پوشش defect با margins روی bone و closure بدون tension با periosteal release است.
-رد گزینه ب: margin روی defect قرار نمی‌گیرد؛ باید روی استخوان قرار بگیرد.
-رد گزینه ج: flap باریک coverage کافی و پایداری نمی‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: مهم‌ترین اصول flap advancement، broad-based flap، پوشش defect با margins روی bone و closure بدون tension با periosteal release است.
+رد گزینه ب: margin روی defect قرار نمی‌گیرد؛ باید روی استخوان قرار بگیرد.
+رد گزینه ج: flap باریک coverage کافی و پایداری نمی‌دهد.
 رد گزینه د: معمولاً periosteum در ارتفاع dissection incised/released می‌شود تا tension کم شود.',
                     ],
                     [
@@ -4909,10 +4909,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'افزایش حرکت مژک‌ها و تخلیه سریع‌تر mucus',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در transillumination، سمت درگیر به علت fluid/debris/pus و thickened mucosa نور کمتری عبور می‌دهد.
-رد گزینه ب: pneumatization اطراف ریشه‌ها علت کاهش نور در sinus disease نیست.
-رد گزینه ج: متن کف سینوس و کف بینی را در context رشد توصیف می‌کند، نه علت تست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در transillumination، سمت درگیر به علت fluid/debris/pus و thickened mucosa نور کمتری عبور می‌دهد.
+رد گزینه ب: pneumatization اطراف ریشه‌ها علت کاهش نور در sinus disease نیست.
+رد گزینه ج: متن کف سینوس و کف بینی را در context رشد توصیف می‌کند، نه علت تست.
 رد گزینه د: افزایش clearance باعث کاهش transillumination نمی‌شود.',
                     ],
                     [
@@ -4924,10 +4924,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'انتخاب حتمی یک flap از tongue یا temporalis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: قبل از closure fistula، elimination عفونت acute/chronic داخل سینوس imperative دانسته شده است.
-رد گزینه ب: tuberosity reduction اصل مرکزی پیش از closure نیست.
-رد گزینه ج: analgesic به تنهایی عفونت یا communication را درمان نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: قبل از closure fistula، elimination عفونت acute/chronic داخل سینوس imperative دانسته شده است.
+رد گزینه ب: tuberosity reduction اصل مرکزی پیش از closure نیست.
+رد گزینه ج: analgesic به تنهایی عفونت یا communication را درمان نمی‌کند.
 رد گزینه د: tongue/temporalis flaps در defectهای بزرگ و نادر مطرح می‌شوند.',
                     ],
                     [
@@ -4939,10 +4939,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون برای جلوگیری از superimposition نیازمند تیلت سر به سمت cassette است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: panoramic در مطب بهترین screening برای دیدن و مقایسه دو سینوس است، اما focal trough محدودیت delineation خارج از ناحیه دارد.
-رد گزینه ب: این توصیف به periapical radiograph مربوط است.
-رد گزینه ج: این مربوط به Waters view و زاویه ۳۷ درجه است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: panoramic در مطب بهترین screening برای دیدن و مقایسه دو سینوس است، اما focal trough محدودیت delineation خارج از ناحیه دارد.
+رد گزینه ب: این توصیف به periapical radiograph مربوط است.
+رد گزینه ج: این مربوط به Waters view و زاویه ۳۷ درجه است.
 رد گزینه د: این مربوط به lateral view با تیلت سر به سمت cassette است.',
                     ],
                     [
@@ -4954,10 +4954,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'sinus از canine fossa باز می‌شود و material در ostium برای drainage قرار می‌گیرد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در alloplastic closure، fistula excise می‌شود، facial و palatal flaps بالا می‌روند، material روی defect قرار می‌گیرد و flaps روی آن نزدیک می‌شوند.
-رد گزینه ب: tract باید excised شود و membrane زیر flaps/روی bone قرار می‌گیرد.
-رد گزینه ج: تکنیک membrane به exposed bone اطراف defect نیاز دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در alloplastic closure، fistula excise می‌شود، facial و palatal flaps بالا می‌روند، material روی defect قرار می‌گیرد و flaps روی آن نزدیک می‌شوند.
+رد گزینه ب: tract باید excised شود و membrane زیر flaps/روی bone قرار می‌گیرد.
+رد گزینه ج: تکنیک membrane به exposed bone اطراف defect نیاز دارد.
 رد گزینه د: قرار دادن material در ostium هدف این روش نیست.',
                     ],
                     [
@@ -4969,10 +4969,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'postoperative maxillary cyst',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: antral pseudocyst در ۲٪ تا ۱۰٪ panoramic radiographs دیده می‌شود، از serum زیر mucosa تشکیل می‌شود، درمان ندارد و اغلب محو می‌شود.
-رد گزینه ب: surgical ciliated cyst/postoperative maxillary cyst یک mucocele واقعی بعد از surgery است.
-رد گزینه ج: retention cyst از انسداد ducts غدد mucus-secreting ایجاد می‌شود و معمولاً کوچک است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: antral pseudocyst در ۲٪ تا ۱۰٪ panoramic radiographs دیده می‌شود، از serum زیر mucosa تشکیل می‌شود، درمان ندارد و اغلب محو می‌شود.
+رد گزینه ب: surgical ciliated cyst/postoperative maxillary cyst یک mucocele واقعی بعد از surgery است.
+رد گزینه ج: retention cyst از انسداد ducts غدد mucus-secreting ایجاد می‌شود و معمولاً کوچک است.
 رد گزینه د: postoperative maxillary cyst می‌تواند expansile باشد و نیاز به افتراق دارد.',
                     ],
                     [
@@ -4984,10 +4984,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'کانین فک بالا با ریشه کوتاه و بدون ضایعه پری‌آپیکال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: شایع‌ترین حالت perforation در extraction، مولر ماگزیلا با roots divergent کنار edentulous spaces است که sinus pneumatization اطراف tooth رخ داده است.
-رد گزینه ب: پرمولر مندیبل به سینوس ماگزیلا مربوط نیست.
-رد گزینه ج: سینوس کوچک و دور از apexها خطر perforation را کاهش می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: شایع‌ترین حالت perforation در extraction، مولر ماگزیلا با roots divergent کنار edentulous spaces است که sinus pneumatization اطراف tooth رخ داده است.
+رد گزینه ب: پرمولر مندیبل به سینوس ماگزیلا مربوط نیست.
+رد گزینه ج: سینوس کوچک و دور از apexها خطر perforation را کاهش می‌دهد.
 رد گزینه د: کانین کوتاه بدون ضایعه، الگوی پرخطر متن نیست.',
                     ],
                     [
@@ -4999,10 +4999,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'elevation دقیق membrane بدون ورود graft به حفره سینوس',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: complications sinus lift در دو حالت بیشتر می‌شود: laceration/avulsion شدید sinus membrane یا overfilling سینوس.
-رد گزینه الف: حفظ membrane و graft محدود با complications کمتر هماهنگ است.
-رد گزینه ج: نوع graft به‌تنهایی علت ذکرشده نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: complications sinus lift در دو حالت بیشتر می‌شود: laceration/avulsion شدید sinus membrane یا overfilling سینوس.
+رد گزینه الف: حفظ membrane و graft محدود با complications کمتر هماهنگ است.
+رد گزینه ج: نوع graft به‌تنهایی علت ذکرشده نیست.
 رد گزینه د: elevation دقیق بدون ورود graft به سینوس الگوی ایمن‌تر است.',
                     ],
                     [
@@ -5014,10 +5014,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حفظ دائمی foil فلزی در defect برای تشکیل استخوان کرستال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: FESS روش کم‌تهاجمی transnasal برای chronic sinusitis و optimizing drainage از maxillary sinus است.
-رد گزینه ب: endoscopic approach جایگزین closure فیزیکی defectهای مختلف نمی‌شود.
-رد گزینه ج: ساخت flap کراتینیزه از کام مربوط به palatal flap است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: FESS روش کم‌تهاجمی transnasal برای chronic sinusitis و optimizing drainage از maxillary sinus است.
+رد گزینه ب: endoscopic approach جایگزین closure فیزیکی defectهای مختلف نمی‌شود.
+رد گزینه ج: ساخت flap کراتینیزه از کام مربوط به palatal flap است.
 رد گزینه د: حفظ foil فلزی هدف FESS نیست.',
                     ],
                     [
@@ -5029,10 +5029,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'به طور معمول با anaerobeهای دهانی colonized است و عفونت خفیف دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید سینوس سالم ممکن است مقدار کمی باکتری داشته باشد، ولی dynamic mucus layer و epithelium فعال مانع colonization قابل‌توجه می‌شوند.
-رد گزینه ب: فلور دندانی فراوان مربوط به سلامت سینوس نیست.
-رد گزینه ج: ostium وابسته نیست و cilia برای drainage لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید سینوس سالم ممکن است مقدار کمی باکتری داشته باشد، ولی dynamic mucus layer و epithelium فعال مانع colonization قابل‌توجه می‌شوند.
+رد گزینه ب: فلور دندانی فراوان مربوط به سلامت سینوس نیست.
+رد گزینه ج: ostium وابسته نیست و cilia برای drainage لازم است.
 رد گزینه د: colonization معمول با anaerobeهای دهانی و عفونت خفیف در متن نیامده است.',
                     ],
                     [
@@ -5044,10 +5044,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون sinus precautions بعد از عمل دیگر ضرورتی ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اگر fistula نزدیک root دندان مجاور باشد، closure دشوارتر می‌شود و گاهی برای موفقیت باید tooth برداشته شود.
-رد گزینه ب: radiographs/ارزیابی حذف نمی‌شود؛ ارزیابی adjacent teeth اهمیت دارد.
-رد گزینه ج: fistula مزمن به excision/elevation tract نیاز دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اگر fistula نزدیک root دندان مجاور باشد، closure دشوارتر می‌شود و گاهی برای موفقیت باید tooth برداشته شود.
+رد گزینه ب: radiographs/ارزیابی حذف نمی‌شود؛ ارزیابی adjacent teeth اهمیت دارد.
+رد گزینه ج: fistula مزمن به excision/elevation tract نیاز دارد.
 رد گزینه د: sinus precautions پس از closure همچنان لازم هستند.',
                     ],
                     [
@@ -5059,10 +5059,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'پس از رویش دندان‌های دائمی با pneumatization ثانویه ridge بی‌دندان',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: primary pneumatization از ماه سوم جنینی با mucosal invaginations یا pouching از ethmoid infundibula آغاز می‌شود.
-رد گزینه ب: ماه پنجم مربوط به secondary pneumatization است.
-رد گزینه ج: پس از تولد گسترش ادامه می‌یابد، اما شروع primary نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: primary pneumatization از ماه سوم جنینی با mucosal invaginations یا pouching از ethmoid infundibula آغاز می‌شود.
+رد گزینه ب: ماه پنجم مربوط به secondary pneumatization است.
+رد گزینه ج: پس از تولد گسترش ادامه می‌یابد، اما شروع primary نیست.
 رد گزینه د: pneumatization پس از extraction الگوی later expansion در adult است.',
                     ],
                     [
@@ -5074,10 +5074,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'ایجاد intentional antrostomy پیش از extraction',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: وقتی radiographs خطر communication را نشان دهند، surgery می‌تواند با section کردن tooth و خارج کردن rootها جداگانه تغییر کند.
-رد گزینه ب: force یک‌باره خطر fracture/perforation را بیشتر می‌کند.
-رد گزینه ج: radiographic evaluation اساس پیشگیری است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: وقتی radiographs خطر communication را نشان دهند، surgery می‌تواند با section کردن tooth و خارج کردن rootها جداگانه تغییر کند.
+رد گزینه ب: force یک‌باره خطر fracture/perforation را بیشتر می‌کند.
+رد گزینه ج: radiographic evaluation اساس پیشگیری است.
 رد گزینه د: antrostomy prophylactic برای extraction معمول توصیف نشده است.',
                     ],
                     [
@@ -5089,10 +5089,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'transillumination طبیعی، normal antrum و comparison دو طرف',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: disruption cortical outline می‌تواند ناشی از trauma، tumor، infectious abscess/fistula یا procedure ناقض دیواره سینوس باشد.
-رد گزینه ب: mucociliary drainage باعث disruption cortex نمی‌شود.
-رد گزینه ج: pneumatization و رشد، الگوی developmental هستند نه disruption pathologic.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: disruption cortical outline می‌تواند ناشی از trauma، tumor، infectious abscess/fistula یا procedure ناقض دیواره سینوس باشد.
+رد گزینه ب: mucociliary drainage باعث disruption cortex نمی‌شود.
+رد گزینه ج: pneumatization و رشد، الگوی developmental هستند نه disruption pathologic.
 رد گزینه د: یافته‌های معاینه/نرمال، علت disruption نیستند.',
                     ],
                     [
@@ -5104,10 +5104,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون با pressure روی palatal flap می‌توان defect استخوانی را کوچک کرد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن تأکید دارد osseous defect اطراف fistula معمولاً از soft tissue deformity بالینی بزرگ‌تر است؛ پس طراحی closure باید بر آن اساس باشد.
-رد گزینه ب: برعکس متن است و flap کوچک کفایت نمی‌کند.
-رد گزینه ج: اندازه defect مستقیماً بر طراحی flap اثر دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن تأکید دارد osseous defect اطراف fistula معمولاً از soft tissue deformity بالینی بزرگ‌تر است؛ پس طراحی closure باید بر آن اساس باشد.
+رد گزینه ب: برعکس متن است و flap کوچک کفایت نمی‌کند.
+رد گزینه ج: اندازه defect مستقیماً بر طراحی flap اثر دارد.
 رد گزینه د: pressure روی flap خطر blood supply reduction و necrosis دارد.',
                     ],
                     [
@@ -5119,10 +5119,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'بستن semilunar hiatus برای جلوگیری از برگشت ترشحات nasopharynx',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: هدف surgery در chronic sinusitis حذف abnormal tissue و restoration طبیعی drainage از ostium است.
-رد گزینه ب: obstruction ostium عامل بیماری است، نه هدف درمان.
-رد گزینه ج: جایگزینی mucosa با bone graft در متن هدف جراحی نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: هدف surgery در chronic sinusitis حذف abnormal tissue و restoration طبیعی drainage از ostium است.
+رد گزینه ب: obstruction ostium عامل بیماری است، نه هدف درمان.
+رد گزینه ج: جایگزینی mucosa با bone graft در متن هدف جراحی نیست.
 رد گزینه د: بستن semilunar hiatus مخالف restoration drainage است.',
                     ],
                     [
@@ -5134,10 +5134,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'suturing مستقیم duct-like tract بدون حذف epithelium lining',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن تکنیکی را شرح می‌دهد که defect مستقیماً با pedicled buccal fat pad پوشانده و mucoperiosteal flap به‌طور partial بسته می‌شود.
-رد گزینه ب: این توصیف palatal flap است و pressure روی آن مضر است.
-رد گزینه ج: antrostomy برای drainage سینوس است، نه پوشاندن مستقیم fistula.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن تکنیکی را شرح می‌دهد که defect مستقیماً با pedicled buccal fat pad پوشانده و mucoperiosteal flap به‌طور partial بسته می‌شود.
+رد گزینه ب: این توصیف palatal flap است و pressure روی آن مضر است.
+رد گزینه ج: antrostomy برای drainage سینوس است، نه پوشاندن مستقیم fistula.
 رد گزینه د: epithelial tract باید حذف/برگردانده شود، نه suturing بدون حذف.',
                     ],
                     [
@@ -5149,10 +5149,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'lateral cephalometric view',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: panoramic radiograph بهترین رادیوگرافی رایج در اکثر مطب‌ها برای screening و مقایسه هر دو maxillary sinus است.
-رد گزینه ب: periapical بخش کوچکی از inferior sinus را نشان می‌دهد.
-رد گزینه ج: standard PA skull کمتر از Waters view برای سینوس واضح است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: panoramic radiograph بهترین رادیوگرافی رایج در اکثر مطب‌ها برای screening و مقایسه هر دو maxillary sinus است.
+رد گزینه ب: periapical بخش کوچکی از inferior sinus را نشان می‌دهد.
+رد گزینه ج: standard PA skull کمتر از Waters view برای سینوس واضح است.
 رد گزینه د: lateral view مکمل است، اما screening رایج دوطرفه در مطب نیست.',
                     ],
                     [
@@ -5164,10 +5164,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تبدیل fistula مزمن به communication کوچک برای بی‌نیاز شدن از surgery',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: appliance موقت fistula را می‌پوشاند تا food و contaminants دهانی وارد سینوس نشوند.
-رد گزینه ب: pressure روی flap به‌ویژه palatal flap می‌تواند blood supply را کم کند.
-رد گزینه ج: appliance برای باز نگه داشتن ostium نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: appliance موقت fistula را می‌پوشاند تا food و contaminants دهانی وارد سینوس نشوند.
+رد گزینه ب: pressure روی flap به‌ویژه palatal flap می‌تواند blood supply را کم کند.
+رد گزینه ج: appliance برای باز نگه داشتن ostium نیست.
 رد گزینه د: appliance جایگزین closure surgical در fistula مزمن نیست.',
                     ],
                     [
@@ -5179,10 +5179,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'mucostasis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: التهاب هم‌زمان بیشتر paranasal sinuses، pansinusitis نام دارد.
-رد گزینه ب: antrostomy ایجاد opening برای drainage است.
-رد گزینه ج: pneumatization گسترش هوادار سینوس است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: التهاب هم‌زمان بیشتر paranasal sinuses، pansinusitis نام دارد.
+رد گزینه ب: antrostomy ایجاد opening برای drainage است.
+رد گزینه ج: pneumatization گسترش هوادار سینوس است.
 رد گزینه د: mucostasis رکود mucus در اثر مشکل drainage است.',
                     ],
                     [
@@ -5194,10 +5194,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حذف نیاز به sinus precautions و کوتاه کردن follow-up',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: antibiotic، antihistamine و systemic decongestant برای جلوگیری از infection، shrink کردن mucous membranes و کم کردن nasal/sinus secretions داده می‌شوند.
-رد گزینه ب: این داروها برای حل clot یا افزایش ciliary beat به این شکل ذکر نشده‌اند.
-رد گزینه ج: هدف حفظ communication یا تحریک bleeding نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: antibiotic، antihistamine و systemic decongestant برای جلوگیری از infection، shrink کردن mucous membranes و کم کردن nasal/sinus secretions داده می‌شوند.
+رد گزینه ب: این داروها برای حل clot یا افزایش ciliary beat به این شکل ذکر نشده‌اند.
+رد گزینه ج: هدف حفظ communication یا تحریک bleeding نیست.
 رد گزینه د: این داروها جایگزین sinus precautions و follow-up نمی‌شوند.',
                     ],
                     [
@@ -5209,10 +5209,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'نشان‌دهنده سالم بودن sinus mucosa و drainage مناسب است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: درد به percussion چند دندان خلفی ماگزیلا اغلب نشانه acute sinus infection است.
-رد گزینه ب: درد چند دندانی تشخیص آبسه یک tooth را قطعی نمی‌کند.
-رد گزینه ج: retention cyst چنین علامت چنددندانی acute ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: درد به percussion چند دندان خلفی ماگزیلا اغلب نشانه acute sinus infection است.
+رد گزینه ب: درد چند دندانی تشخیص آبسه یک tooth را قطعی نمی‌کند.
+رد گزینه ج: retention cyst چنین علامت چنددندانی acute ندارد.
 رد گزینه د: درد percussion با sinus mucosa سالم سازگار نیست.',
                     ],
                     [
@@ -5224,10 +5224,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             '۱۰ تا ۱۴ روز',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: gauze pack در درمان opening کوچک برای ۱ تا ۲ ساعت روی surgical site قرار می‌گیرد.
-رد گزینه ب: ۴۸ تا ۷۲ ساعت مربوط به intervalهای follow-up است.
-رد گزینه ج: ۷ تا ۱۰ روز مربوط به داروهای post-op است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: gauze pack در درمان opening کوچک برای ۱ تا ۲ ساعت روی surgical site قرار می‌گیرد.
+رد گزینه ب: ۴۸ تا ۷۲ ساعت مربوط به intervalهای follow-up است.
+رد گزینه ج: ۷ تا ۱۰ روز مربوط به داروهای post-op است.
 رد گزینه د: ۱۰ تا ۱۴ روز مربوط به sinus precautions است.',
                     ],
                     [
@@ -5239,10 +5239,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'cilia حدود ۱۰۰۰ ضربه در ساعت می‌زنند و mucus حدود ۶ cm/hour حرکت می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن rate مژک‌ها را تا ۱۰۰۰ strokes/min و حرکت mucus را ۶ mm/min ذکر می‌کند.
-رد گزینه ب: عدد حرکت mucus و ضربان cilia با متن مطابقت ندارد.
-رد گزینه ج: هر دو مقدار بسیار کمتر از متن‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن rate مژک‌ها را تا ۱۰۰۰ strokes/min و حرکت mucus را ۶ mm/min ذکر می‌کند.
+رد گزینه ب: عدد حرکت mucus و ضربان cilia با متن مطابقت ندارد.
+رد گزینه ج: هر دو مقدار بسیار کمتر از متن‌اند.
 رد گزینه د: واحد زمان برای cilia و حرکت mucus با متن متفاوت است.',
                     ],
                     [
@@ -5254,10 +5254,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'به bony sequestrum تبدیل شده و نیازمند Caldwell-Luc فوری می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: foil فلزی ممکن است باقی بماند، اما بیشتر اوقات بخشی expose می‌شود و به‌تدریج exfoliate می‌گردد.
-رد گزینه ب: resorption کامل مربوط به collagen membrane است، نه فلز.
-رد گزینه ج: foil در ostium برای drainage قرار داده نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: foil فلزی ممکن است باقی بماند، اما بیشتر اوقات بخشی expose می‌شود و به‌تدریج exfoliate می‌گردد.
+رد گزینه ب: resorption کامل مربوط به collagen membrane است، نه فلز.
+رد گزینه ج: foil در ostium برای drainage قرار داده نمی‌شود.
 رد گزینه د: متن چنین سرنوشت قطعی و فوری برای foil ذکر نکرده است.',
                     ],
                     [
@@ -5269,10 +5269,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'erosion دیواره lateral به دنبال abscess دندانی مرتبط با مولر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: CT طبیعی در شکل فصل، دیواره‌های نازک و نبود thickening mucosal lining، mass یا fluid را نشان می‌دهد.
-رد گزینه ب: این به abscess/periapical lesion مرتبط با مولر در CT غیرطبیعی نزدیک است.
-رد گزینه ج: air-fluid level و increased opacity یافته بیماری است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: CT طبیعی در شکل فصل، دیواره‌های نازک و نبود thickening mucosal lining، mass یا fluid را نشان می‌دهد.
+رد گزینه ب: این به abscess/periapical lesion مرتبط با مولر در CT غیرطبیعی نزدیک است.
+رد گزینه ج: air-fluid level و increased opacity یافته بیماری است.
 رد گزینه د: erosion lateral wall ناشی از infection دندانی یک یافته pathologic است.',
                     ],
                     [
@@ -5284,10 +5284,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'guided tissue regeneration',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در figure modalities، buccal flaps مانند Rehrmann و Moczair در گروه soft tissue flaps local آمده‌اند.
-رد گزینه ب: iliac crest در bone grafts autogenous است.
-رد گزینه ج: polymethylmethacrylate در synthetic/metals قرار دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در figure modalities، buccal flaps مانند Rehrmann و Moczair در گروه soft tissue flaps local آمده‌اند.
+رد گزینه ب: iliac crest در bone grafts autogenous است.
+رد گزینه ج: polymethylmethacrylate در synthetic/metals قرار دارد.
 رد گزینه د: guided tissue regeneration در other techniques آمده است.',
                     ],
                     [
@@ -5299,10 +5299,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'بستن ostium برای مهار ورود ترشحات بینی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اگر پاسخ طی ۷۲ ساعت رخ ندهد، علت، antibiotic و culture/sensitivity باید بازبینی و در صورت نیاز regimen تغییر کند.
-رد گزینه ب: ادامه بدون reassessment برخلاف متن است.
-رد گزینه ج: humidification و drainage جزو درمان اولیه‌اند، نه چیزی برای قطع کردن.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اگر پاسخ طی ۷۲ ساعت رخ ندهد، علت، antibiotic و culture/sensitivity باید بازبینی و در صورت نیاز regimen تغییر کند.
+رد گزینه ب: ادامه بدون reassessment برخلاف متن است.
+رد گزینه ج: humidification و drainage جزو درمان اولیه‌اند، نه چیزی برای قطع کردن.
 رد گزینه د: بستن ostium با پاتوفیزیولوژی بیماری و هدف درمان مغایر است.',
                     ],
                     [
@@ -5314,10 +5314,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'باید ostium را ببندد تا mucus در سینوس باقی بماند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: obturator ممکن است defect پالاتال را بپوشاند، اما نباید به flap فشار بیاورد چون blood supply کم شده و necrosis رخ می‌دهد.
-رد گزینه ب: pressure عمدی برخلاف هشدار متن است.
-رد گزینه ج: مجوز obturator به عدم excision tract محدود نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: obturator ممکن است defect پالاتال را بپوشاند، اما نباید به flap فشار بیاورد چون blood supply کم شده و necrosis رخ می‌دهد.
+رد گزینه ب: pressure عمدی برخلاف هشدار متن است.
+رد گزینه ج: مجوز obturator به عدم excision tract محدود نشده است.
 رد گزینه د: بستن ostium یا نگه داشتن mucus هدف obturator نیست.',
                     ],
                     [
@@ -5329,10 +5329,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'سر به عقب چرخانده می‌شود تا ostium در کف سینوس بیفتد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Waters view با head tipped 37 degrees نسبت به central beam گرفته می‌شود تا maxillary sinus بالای petrous temporal قرار گیرد.
-رد گزینه ب: تیلت به سمت cassette مربوط به lateral view است، نه Waters.
-رد گزینه ج: bitewing در متن برای سینوس مطرح نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Waters view با head tipped 37 degrees نسبت به central beam گرفته می‌شود تا maxillary sinus بالای petrous temporal قرار گیرد.
+رد گزینه ب: تیلت به سمت cassette مربوط به lateral view است، نه Waters.
+رد گزینه ج: bitewing در متن برای سینوس مطرح نیست.
 رد گزینه د: تغییر محل ostium با positioning امکان‌پذیر نیست.',
                     ],
                     [
@@ -5344,10 +5344,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تحمل عطسه با دهان باز بدون خروج هوا',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: بیمار باید در صورت leakage air into mouth، fluid into nose یا symptoms sinusitis مراجعه کند.
-رد گزینه ب: کاهش discomfort نشانه هشدار ذکر نشده است.
-رد گزینه ج: حفظ clot هدف درمان است، نه علامت failure.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: بیمار باید در صورت leakage air into mouth، fluid into nose یا symptoms sinusitis مراجعه کند.
+رد گزینه ب: کاهش discomfort نشانه هشدار ذکر نشده است.
+رد گزینه ج: حفظ clot هدف درمان است، نه علامت failure.
 رد گزینه د: عطسه با دهان باز بدون مشکل با precautions سازگار است.',
                     ],
                 ],
@@ -5378,10 +5378,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'floor سینوس در بزرگسالان به سمت base skull بالا می‌رود و از ridge دور می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: پس از removal دندان‌های خلفی، sinus ممکن است into residual alveolar process pneumatize کند و حتی تا crest edentulous ridge برسد.
-رد گزینه ب: eruption دائمی معمولاً expansion را متوقف می‌کند، اما متن exceptions پس از extraction را ذکر می‌کند.
-رد گزینه ج: در posterior edentulous maxilla سینوس به‌طور معنی‌دار بزرگ‌تر است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: پس از removal دندان‌های خلفی، sinus ممکن است into residual alveolar process pneumatize کند و حتی تا crest edentulous ridge برسد.
+رد گزینه ب: eruption دائمی معمولاً expansion را متوقف می‌کند، اما متن exceptions پس از extraction را ذکر می‌کند.
+رد گزینه ج: در posterior edentulous maxilla سینوس به‌طور معنی‌دار بزرگ‌تر است.
 رد گزینه د: متن دور شدن floor از ridge پس از edentulism را بیان نمی‌کند.',
                     ],
                     [
@@ -5393,10 +5393,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'جایگزینی antibiotic و decongestant در موارد fistula مزمن',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در sinus disease پایدار، ممکن است Caldwell-Luc از lateral maxillary wall بالای apex دندان‌های باقی‌مانده برای removal diseased tissues لازم شود.
-رد گزینه ب: pressure روی palatal flap توصیه نمی‌شود.
-رد گزینه ج: بستن soft tissue بدون کنترل sinus disease موفقیت را کاهش می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در sinus disease پایدار، ممکن است Caldwell-Luc از lateral maxillary wall بالای apex دندان‌های باقی‌مانده برای removal diseased tissues لازم شود.
+رد گزینه ب: pressure روی palatal flap توصیه نمی‌شود.
+رد گزینه ج: بستن soft tissue بدون کنترل sinus disease موفقیت را کاهش می‌دهد.
 رد گزینه د: Caldwell-Luc جایگزین دارو در کل بیماران نیست؛ برای موارد پایدار/نیازمند debridement مطرح است.',
                     ],
                     [
@@ -5408,10 +5408,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'localized dental granuloma با cortical border وابسته به apex',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: surgery سینوس می‌تواند بخشی از lining را جدا کند و mucocele واقعی به نام surgical ciliated cyst یا postoperative maxillary cyst ایجاد شود.
-رد گزینه ب: antral pseudocyst از serum زیر مخاط است و true cyst نیست.
-رد گزینه ج: mucostasis یک فرایند رکود mucus است، نه cystic lesion liningدار پس از surgery.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: surgery سینوس می‌تواند بخشی از lining را جدا کند و mucocele واقعی به نام surgical ciliated cyst یا postoperative maxillary cyst ایجاد شود.
+رد گزینه ب: antral pseudocyst از serum زیر مخاط است و true cyst نیست.
+رد گزینه ج: mucostasis یک فرایند رکود mucus است، نه cystic lesion liningدار پس از surgery.
 رد گزینه د: granuloma دندانی ضایعه odontogenic وابسته به apex است.',
                     ],
                     [
@@ -5423,10 +5423,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'بسته‌ماندن fistula با clot بدون elevation بافت نرم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن در defectهای بزرگ نادر، pedicle flaps از tongue یا temporalis muscle را ذکر می‌کند.
-رد گزینه ب: palatal flap باید full-thickness و broad posterior base داشته باشد.
-رد گزینه ج: چنین flap باریک از canine fossa/zygomatic buttress در متن برای closure بزرگ نیامده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن در defectهای بزرگ نادر، pedicle flaps از tongue یا temporalis muscle را ذکر می‌کند.
+رد گزینه ب: palatal flap باید full-thickness و broad posterior base داشته باشد.
+رد گزینه ج: چنین flap باریک از canine fossa/zygomatic buttress در متن برای closure بزرگ نیامده است.
 رد گزینه د: defectهای بزرگ معمولاً با clot تنها درمان نمی‌شوند.',
                     ],
                     [
@@ -5438,10 +5438,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'اندازه سینوس، volume ۱۵ تا ۲۰ mL و شکل pyramid',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: dental pathologic lesions با ارتباط به tooth apex، correlation با dental exam و وجود cortical osseous margin از sinus anatomy جدا می‌شوند.
-رد گزینه ب: اینها یافته‌های بالینی sinus disease هستند.
-رد گزینه ج: اینها به acute sinusitis نزدیک‌ترند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: dental pathologic lesions با ارتباط به tooth apex، correlation با dental exam و وجود cortical osseous margin از sinus anatomy جدا می‌شوند.
+رد گزینه ب: اینها یافته‌های بالینی sinus disease هستند.
+رد گزینه ج: اینها به acute sinusitis نزدیک‌ترند.
 رد گزینه د: اینها توصیف anatomy طبیعی سینوس است، نه معیار افتراق ضایعه دندانی.',
                     ],
                     [
@@ -5453,10 +5453,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'برای بستن ostium و تبدیل drainage به مسیر وابسته جدید',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در membrane-assisted closure باید margins استخوانی ۳۶۰ درجه expose شوند تا membrane زیر flaps قرار گیرد و روی bone حمایت شود.
-رد گزینه ب: fistulous tract باید excised شود.
-رد گزینه ج: pressure obturator هدف نیست و می‌تواند زیان‌آور باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در membrane-assisted closure باید margins استخوانی ۳۶۰ درجه expose شوند تا membrane زیر flaps قرار گیرد و روی bone حمایت شود.
+رد گزینه ب: fistulous tract باید excised شود.
+رد گزینه ج: pressure obturator هدف نیست و می‌تواند زیان‌آور باشد.
 رد گزینه د: بستن ostium جزء این تکنیک نیست.',
                     ],
                     [
@@ -5468,10 +5468,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'باکتری‌های nonodontogenic به ندرت از nasal cavity منشأ می‌گیرند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: nonodontogenic sinusitis عمدتاً با aerobes و تعداد کمتری anaerobes همراه است.
-رد گزینه ب: این توصیف به odontogenic sinusitis نزدیک‌تر است.
-رد گزینه ج: periapical/periodontal sources منشأ odontogenic هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: nonodontogenic sinusitis عمدتاً با aerobes و تعداد کمتری anaerobes همراه است.
+رد گزینه ب: این توصیف به odontogenic sinusitis نزدیک‌تر است.
+رد گزینه ج: periapical/periodontal sources منشأ odontogenic هستند.
 رد گزینه د: عوامل nonodontogenic معمولاً از nasal cavity organisms می‌آیند.',
                     ],
                     [
@@ -5483,10 +5483,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون بافت نرم باید باز بماند تا drainage دهانی ادامه یابد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: برای opening کوچک disease-free، حفظ clot و reposition نرم‌نسج کافی است و additional flap لازم نیست.
-رد گزینه ب: دلیل عدم flap در متن necrosis قطعی flap کوچک نیست.
-رد گزینه ج: foil برای موارد خاص closure است، نه هر communication کوچک.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: برای opening کوچک disease-free، حفظ clot و reposition نرم‌نسج کافی است و additional flap لازم نیست.
+رد گزینه ب: دلیل عدم flap در متن necrosis قطعی flap کوچک نیست.
+رد گزینه ج: foil برای موارد خاص closure است، نه هر communication کوچک.
 رد گزینه د: هدف حفظ بازبودن ارتباط دهانی نیست.',
                     ],
                     [
@@ -5498,10 +5498,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'جایگزینی antibiotic در sinusitis عفونی ادونتوژنیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: humidification برای نرم‌کردن و کمک به خارج کردن dried secretions از nasal passage و sinus ostium است.
-رد گزینه ب: درمان با بازگرداندن drainage کار می‌کند، نه ایجاد obstruction.
-رد گزینه ج: خشک کردن mucosa و کاهش cilia مخالف هدف است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: humidification برای نرم‌کردن و کمک به خارج کردن dried secretions از nasal passage و sinus ostium است.
+رد گزینه ب: درمان با بازگرداندن drainage کار می‌کند، نه ایجاد obstruction.
+رد گزینه ج: خشک کردن mucosa و کاهش cilia مخالف هدف است.
 رد گزینه د: در infectious sinusitis، antibiotics هم لازم‌اند و humidification جایگزین آن نیست.',
                     ],
                     [
@@ -5513,10 +5513,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حفظ epithelium fistula و suturing آن به mucosa دهانی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: closure بزرگ‌تر با buccal flap شامل elevation، periosteal release و advancement روی extraction site است.
-رد گزینه ب: برداشتن palatine artery با palatal flap هم سازگار نیست و در متن نیامده است.
-رد گزینه ج: foil در ostium یا nasal cavity قرار نمی‌گیرد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: closure بزرگ‌تر با buccal flap شامل elevation، periosteal release و advancement روی extraction site است.
+رد گزینه ب: برداشتن palatine artery با palatal flap هم سازگار نیست و در متن نیامده است.
+رد گزینه ج: foil در ostium یا nasal cavity قرار نمی‌گیرد.
 رد گزینه د: epithelium fistula در موارد مزمن باید excised/elevated شود.',
                     ],
                     [
@@ -5528,10 +5528,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'باید با removal adjacent tooth پیش از هر درمانی کنترل شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: allergic sinusitis که موجب congestion و drainage altered می‌شود، اغلب به humidification، decongestants و nasal vasoconstrictors پاسخ می‌دهد.
-رد گزینه ب: removal graft devitalized مربوط به complications sinus lift است.
-رد گزینه ج: antibioticهای odontogenic برای infectious odontogenic sinusitis مطرح‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: allergic sinusitis که موجب congestion و drainage altered می‌شود، اغلب به humidification، decongestants و nasal vasoconstrictors پاسخ می‌دهد.
+رد گزینه ب: removal graft devitalized مربوط به complications sinus lift است.
+رد گزینه ج: antibioticهای odontogenic برای infectious odontogenic sinusitis مطرح‌اند.
 رد گزینه د: removal adjacent tooth در fistula نزدیک ریشه و closure دشوار مطرح می‌شود.',
                     ],
                     [
@@ -5543,10 +5543,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون mucus production را با حذف کامل mucosa متوقف می‌کنند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: موفقیت long-term fistula اغلب نیازمند مدیریت هم عفونت داخل sinus و هم communication فیزیکی است؛ approach ترکیبی این را ممکن‌تر می‌کند.
-رد گزینه ب: anatomy و size defect همچنان crucial هستند.
-رد گزینه ج: endoscopic approach flapها را به طور کلی غیرضروری نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: موفقیت long-term fistula اغلب نیازمند مدیریت هم عفونت داخل sinus و هم communication فیزیکی است؛ approach ترکیبی این را ممکن‌تر می‌کند.
+رد گزینه ب: anatomy و size defect همچنان crucial هستند.
+رد گزینه ج: endoscopic approach flapها را به طور کلی غیرضروری نمی‌کند.
 رد گزینه د: هدف حذف کامل mucus production نیست.',
                     ],
                     [
@@ -5558,10 +5558,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'حدود ۱۵ mm قدامی-خلفی، ۲۰ mm ارتفاع، ۲۳ mm عرض و ۳۳ تا ۳۴ mL حجم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: ابعاد میانگین adult maxillary sinus در متن ۳۴ mm AP، ۳۳ mm height، ۲۳ mm width و volume ۱۵ تا ۲۰ mL است.
-رد گزینه ب: ابعاد و حجم جابه‌جا و نادرست‌اند.
-رد گزینه ج: نسبت height/width و volume با متن نمی‌خواند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: ابعاد میانگین adult maxillary sinus در متن ۳۴ mm AP، ۳۳ mm height، ۲۳ mm width و volume ۱۵ تا ۲۰ mL است.
+رد گزینه ب: ابعاد و حجم جابه‌جا و نادرست‌اند.
+رد گزینه ج: نسبت height/width و volume با متن نمی‌خواند.
 رد گزینه د: این گزینه volume را با ابعاد اشتباه آمیخته است.',
                     ],
                     [
@@ -5573,10 +5573,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'blockage ductهای mucous glands و تشکیل retention cyst بزرگ قابل مشاهده',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: دو complication شایع dental شامل displacement دندان/ریشه/fragment instrument به سینوس و ایجاد communication oral cavity-sinus هستند.
-رد گزینه ب: epistaxis و zygomatic fracture به‌عنوان common dental complications این فصل ذکر نشده‌اند.
-رد گزینه ج: resorption flap و spontaneous closure fistulaهای مزمن مطرح نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: دو complication شایع dental شامل displacement دندان/ریشه/fragment instrument به سینوس و ایجاد communication oral cavity-sinus هستند.
+رد گزینه ب: epistaxis و zygomatic fracture به‌عنوان common dental complications این فصل ذکر نشده‌اند.
+رد گزینه ج: resorption flap و spontaneous closure fistulaهای مزمن مطرح نیست.
 رد گزینه د: retention cyst بخشی از cystic lesions است، نه شایع‌ترین complication oral surgery involving sinus.',
                     ],
                     [
@@ -5588,10 +5588,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'fluid-filled cyst کوچک ناشی از blockage ductهای mucus-secreting glands',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: chronic maxillary sinusitis با episodes عودکننده یا persistent با وجود درمان توصیف شده است.
-رد گزینه ب: این شرح acute maxillary sinusitis است.
-رد گزینه ج: این توصیف antral pseudocyst است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: chronic maxillary sinusitis با episodes عودکننده یا persistent با وجود درمان توصیف شده است.
+رد گزینه ب: این شرح acute maxillary sinusitis است.
+رد گزینه ج: این توصیف antral pseudocyst است.
 رد گزینه د: این توصیف retention cyst است.',
                     ],
                     [
@@ -5603,10 +5603,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'با nasal vasoconstrictor spray به صورت شیمیایی کوچک شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: tract مزمن lined by epithelium است و باید excised/elevated، در صورت امکان sutured و به داخل sinus inverted شود.
-رد گزینه ب: باقی گذاشتن lining احتمال closure موفق را کم می‌کند.
-رد گزینه ج: gauze pack طولانی برای tract epithelialized توصیف نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: tract مزمن lined by epithelium است و باید excised/elevated، در صورت امکان sutured و به داخل sinus inverted شود.
+رد گزینه ب: باقی گذاشتن lining احتمال closure موفق را کم می‌کند.
+رد گزینه ج: gauze pack طولانی برای tract epithelialized توصیف نشده است.
 رد گزینه د: spray vasoconstrictor tract را حذف نمی‌کند.',
                     ],
                     [
@@ -5618,10 +5618,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'anterior wall در canine fossa نزدیک vestibule',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: maxillary sinus به posterior/inferior end of semilunar hiatus در middle meatus بین inferior و middle nasal conchae باز می‌شود.
-رد گزینه ب: ostium در کف nasal cavity نیست.
-رد گزینه ج: posterior tuberosity محل ostium نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: maxillary sinus به posterior/inferior end of semilunar hiatus در middle meatus بین inferior و middle nasal conchae باز می‌شود.
+رد گزینه ب: ostium در کف nasal cavity نیست.
+رد گزینه ج: posterior tuberosity محل ostium نیست.
 رد گزینه د: canine fossa مسیر Caldwell-Luc است، نه drainage طبیعی.',
                     ],
                     [
@@ -5633,10 +5633,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'جایگزینی کامل sinus precautions در ۱۰ تا ۱۴ روز اول',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: antihistamine و systemic decongestant برای shrink mucous membranes و کاهش nasal/sinus secretions داده می‌شوند.
-رد گزینه ب: هدف این داروها افزایش خون‌ریزی نیست.
-رد گزینه ج: resorption membrane و opening defect هدف دارویی نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: antihistamine و systemic decongestant برای shrink mucous membranes و کاهش nasal/sinus secretions داده می‌شوند.
+رد گزینه ب: هدف این داروها افزایش خون‌ریزی نیست.
+رد گزینه ج: resorption membrane و opening defect هدف دارویی نیست.
 رد گزینه د: sinus precautions همچنان برای ۱۰ تا ۱۴ روز لازم‌اند.',
                     ],
                     [
@@ -5648,10 +5648,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'occlusal mandibular، periapical mandibular و panoramic bitewing',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: periapical، occlusal و گاهی panoramic radiographs برای locating و retrieving foreign bodies مانند teeth/root tips/osseous fragments مفیدند.
-رد گزینه ب: این views در متن برای این کاربرد ذکر نشده‌اند.
-رد گزینه ج: Waters/lateral بیشتر plain films مکمل برای sinus evaluation هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: periapical، occlusal و گاهی panoramic radiographs برای locating و retrieving foreign bodies مانند teeth/root tips/osseous fragments مفیدند.
+رد گزینه ب: این views در متن برای این کاربرد ذکر نشده‌اند.
+رد گزینه ج: Waters/lateral بیشتر plain films مکمل برای sinus evaluation هستند.
 رد گزینه د: mandibular views با foreign body در maxillary sinus تناسب ندارند.',
                     ],
                     [
@@ -5663,10 +5663,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون positioning flap روی bone در palatal flap ممنوع است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: margins flap باید روی bone قرار گیرد و flap بدون tension بسته شود تا coverage پایدار communication فراهم شود.
-رد گزینه ب: قرارگیری margin روی defect توصیه نشده است.
-رد گزینه ج: ostium محل flap closure نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: margins flap باید روی bone قرار گیرد و flap بدون tension بسته شود تا coverage پایدار communication فراهم شود.
+رد گزینه ب: قرارگیری margin روی defect توصیه نشده است.
+رد گزینه ج: ostium محل flap closure نیست.
 رد گزینه د: قرارگیری روی bone اصل عمومی flap advancement است، نه ممنوعیت palatal flap.',
                     ],
                     [
@@ -5678,10 +5678,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'nasal polyps، septal surgery و middle turbinate dislocation',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: منابع odontogenic شامل periapical و periodontal disease، trauma dentition و posterior maxillary surgery مانند extraction، alveolectomy، tuberosity reduction، sinus lift grafting و implant placement هستند.
-رد گزینه ب: allergy/obstructive nasal disease/fungal infection علل chronic sinusitis غیرادونتوژنیک‌ترند.
-رد گزینه ج: اینها مراحل رشد سینوس‌اند، نه منابع عفونت.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: منابع odontogenic شامل periapical و periodontal disease، trauma dentition و posterior maxillary surgery مانند extraction، alveolectomy، tuberosity reduction، sinus lift grafting و implant placement هستند.
+رد گزینه ب: allergy/obstructive nasal disease/fungal infection علل chronic sinusitis غیرادونتوژنیک‌ترند.
+رد گزینه ج: اینها مراحل رشد سینوس‌اند، نه منابع عفونت.
 رد گزینه د: اینها درمان/عوامل سینوس یا ساختارهای بینی‌اند، نه منابع odontogenic infection.',
                     ],
                     [
@@ -5693,10 +5693,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'tantalum',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در figure modalities، iliac crest در گروه autogenous bone grafts آمده است.
-رد گزینه ب: collagen در other techniques/materials resorbable ذکر شده است.
-رد گزینه ج: prolamin gel در other techniques آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در figure modalities، iliac crest در گروه autogenous bone grafts آمده است.
+رد گزینه ب: collagen در other techniques/materials resorbable ذکر شده است.
+رد گزینه ج: prolamin gel در other techniques آمده است.
 رد گزینه د: tantalum در synthetic/metals قرار دارد.',
                     ],
                     [
@@ -5708,10 +5708,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'collapse دیواره sinus → بسته شدن canine fossa → تشکیل retention cyst در duct',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: inflammation باعث hyperplasia/hypertrophy mucosa و obstruction ostium می‌شود؛ mucus جمع می‌شود و bacterial overgrowth عفونت ایجاد می‌کند.
-رد گزینه ب: متن از کاهش mucus production یا graft به‌عنوان توالی sinusitis صحبت نمی‌کند.
-رد گزینه ج: کاهش pressure و درمان بدون مداخله توالی پاتوفیزیولوژیک فصل نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: inflammation باعث hyperplasia/hypertrophy mucosa و obstruction ostium می‌شود؛ mucus جمع می‌شود و bacterial overgrowth عفونت ایجاد می‌کند.
+رد گزینه ب: متن از کاهش mucus production یا graft به‌عنوان توالی sinusitis صحبت نمی‌کند.
+رد گزینه ج: کاهش pressure و درمان بدون مداخله توالی پاتوفیزیولوژیک فصل نیست.
 رد گزینه د: retention cyst مسیر جداگانه‌ای دارد و توالی sinusitis نیست.',
                     ],
                     [
@@ -5723,10 +5723,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'برداشت complete middle turbinate و باقی گذاشتن tissue غیرطبیعی در cavity',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در Caldwell-Luc، anterior wall در canine fossa از vestibular approach باز می‌شود و abnormal tissue/foreign bodies برداشته می‌شود.
-رد گزینه ب: palatal sulcus/rotation flap مربوط به fistula closure است.
-رد گزینه ج: بستن semilunar hiatus خلاف restoration drainage است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در Caldwell-Luc، anterior wall در canine fossa از vestibular approach باز می‌شود و abnormal tissue/foreign bodies برداشته می‌شود.
+رد گزینه ب: palatal sulcus/rotation flap مربوط به fistula closure است.
+رد گزینه ج: بستن semilunar hiatus خلاف restoration drainage است.
 رد گزینه د: complete uncinectomy/middle turbinate manipulation به endoscopic approaches مربوط‌تر است.',
                     ],
                     [
@@ -5738,10 +5738,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'چون graft material در این حالت sterile می‌ماند و nasal mucosa درمان اصلی را لازم دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در عفونت ناشی از disruption/overfilling sinus lift، antibiotics می‌توانند acute problem را موقتاً بهتر کنند و treatment نهایی sinus exploration و debridement است.
-رد گزینه ب: متن complications نیازمند treatment را ذکر می‌کند.
-رد گزینه ج: منشأ در این سناریو graft/membrane disruption است، نه allergy.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در عفونت ناشی از disruption/overfilling sinus lift، antibiotics می‌توانند acute problem را موقتاً بهتر کنند و treatment نهایی sinus exploration و debridement است.
+رد گزینه ب: متن complications نیازمند treatment را ذکر می‌کند.
+رد گزینه ج: منشأ در این سناریو graft/membrane disruption است، نه allergy.
 رد گزینه د: contaminated/devitalized graft material و foreign bodies باید برداشته شوند.',
                     ],
                     [
@@ -5753,10 +5753,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'β-agonists و antihistamine تنها',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در fistula مزمن، irrigation مکرر fistula و sinus با antibiotics و decongestants همراه می‌شود.
-رد گزینه ب: narcotic analgesic درمان اصلی عفونت و drainage نیست.
-رد گزینه ج: anticoagulants/antihypertensives در این فصل برای fistula treatment مطرح نشده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در fistula مزمن، irrigation مکرر fistula و sinus با antibiotics و decongestants همراه می‌شود.
+رد گزینه ب: narcotic analgesic درمان اصلی عفونت و drainage نیست.
+رد گزینه ج: anticoagulants/antihypertensives در این فصل برای fistula treatment مطرح نشده‌اند.
 رد گزینه د: β-agonists مربوط به بیماری‌های تنفسی‌اند و در این context ذکر نشده‌اند.',
                     ],
                     [
@@ -5768,10 +5768,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'pseudocyst از انسداد ductهای mucous glands و تجمع mucin ایجاد می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: antral pseudocyst تجمع serum زیر mucosa است و true epithelial cyst نیست.
-رد گزینه ب: پس از surgery و جدا شدن lining مربوط به surgical ciliated cyst است.
-رد گزینه ج: expansile و نیازمند biopsy در mucoceles واقعی/postoperative maxillary cystها مطرح است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: antral pseudocyst تجمع serum زیر mucosa است و true epithelial cyst نیست.
+رد گزینه ب: پس از surgery و جدا شدن lining مربوط به surgical ciliated cyst است.
+رد گزینه ج: expansile و نیازمند biopsy در mucoceles واقعی/postoperative maxillary cystها مطرح است.
 رد گزینه د: duct blockage و mucin مربوط به retention cyst است.',
                     ],
                     [
@@ -5783,10 +5783,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'تا palatal vessels در flap حفظ شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در fistula مزمن، tract پیش از buccal flap حذف/برگردانده می‌شود تا size واقعی bony defect مشخص و flap مناسب طراحی شود.
-رد گزینه ب: margin باید روی bone باشد، نه soft defect.
-رد گزینه ج: حذف tract به‌تنهایی sinus disease را بدون دارو/درمان برطرف نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در fistula مزمن، tract پیش از buccal flap حذف/برگردانده می‌شود تا size واقعی bony defect مشخص و flap مناسب طراحی شود.
+رد گزینه ب: margin باید روی bone باشد، نه soft defect.
+رد گزینه ج: حذف tract به‌تنهایی sinus disease را بدون دارو/درمان برطرف نمی‌کند.
 رد گزینه د: palatal vessels مربوط به palatal flap هستند.',
                     ],
                     [
@@ -5798,10 +5798,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'با تیلت head به cassette، superimposition دیواره‌ها را حذف می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: periapical radiograph بخش کوچکی از inferior aspect سینوس را visualizes می‌کند.
-رد گزینه ب: مقایسه دو سینوس نقش panoramic است.
-رد گزینه ج: این توصیف Waters view است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: periapical radiograph بخش کوچکی از inferior aspect سینوس را visualizes می‌کند.
+رد گزینه ب: مقایسه دو سینوس نقش panoramic است.
+رد گزینه ج: این توصیف Waters view است.
 رد گزینه د: این توصیف lateral view است.',
                     ],
                     [
@@ -5813,10 +5813,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'buccal-based، آزاد از keratinized tissue و با pressure obturator ثابت شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: palatal flap باید full-thickness mucoperiosteum، با broad posterior base و شامل palatine artery باشد.
-رد گزینه ب: پایه anterior narrow و حذف vessels با blood supply مطلوب سازگار نیست.
-رد گزینه ج: flap کوتاه و تحت tension خلاف طراحی passive rotation است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: palatal flap باید full-thickness mucoperiosteum، با broad posterior base و شامل palatine artery باشد.
+رد گزینه ب: پایه anterior narrow و حذف vessels با blood supply مطلوب سازگار نیست.
+رد گزینه ج: flap کوتاه و تحت tension خلاف طراحی passive rotation است.
 رد گزینه د: buccal-based بودن و pressure obturator با palatal flap متن مطابقت ندارد.',
                     ],
                     [
@@ -5828,10 +5828,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'درمان با analgesic و حذف culture حتی در موارد resistant',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: acute maxillary sinusitis دردناک و بالقوه serious است و نیاز به attention فوری، aggressive medical/surgical care و referral به OMS یا ENT دارد.
-رد گزینه ب: observation بدون imaging/درمان برای این حالت مطرح نشده است.
-رد گزینه ج: بستن ostium درمان sinusitis نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: acute maxillary sinusitis دردناک و بالقوه serious است و نیاز به attention فوری، aggressive medical/surgical care و referral به OMS یا ENT دارد.
+رد گزینه ب: observation بدون imaging/درمان برای این حالت مطرح نشده است.
+رد گزینه ج: بستن ostium درمان sinusitis نیست.
 رد گزینه د: analgesic تنها و حذف culture در موارد مقاوم خلاف متن است.',
                     ],
                     [
@@ -5843,10 +5843,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'collagen، gelatin film و fibrin glue',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در figure modalities، gold، aluminium، tantalum و polymethylmethacrylate در گروه synthetic/metals هستند.
-رد گزینه ب: tongue flap، chin و retromolar در soft tissue flap/bone donor groups قرار می‌گیرند.
-رد گزینه ج: iliac crest، zygoma و third molar در bone grafts هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در figure modalities، gold، aluminium، tantalum و polymethylmethacrylate در گروه synthetic/metals هستند.
+رد گزینه ب: tongue flap، chin و retromolar در soft tissue flap/bone donor groups قرار می‌گیرند.
+رد گزینه ج: iliac crest، zygoma و third molar در bone grafts هستند.
 رد گزینه د: collagen، gelatin film و fibrin glue در other techniques/materials آمده‌اند.',
                     ],
                     [
@@ -5858,10 +5858,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'transillumination طبیعی، normal antrum و well-demarcated cortical outline',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: opacification جزئی یا کامل می‌تواند به mucosal hypertrophy/fluid در sinusitis، خون پس از trauma یا neoplasia مربوط باشد.
-رد گزینه ب: normal ciliary clearance با opacification سازگار نیست.
-رد گزینه ج: developmental pneumatization علت مستقیم opacification نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: opacification جزئی یا کامل می‌تواند به mucosal hypertrophy/fluid در sinusitis، خون پس از trauma یا neoplasia مربوط باشد.
+رد گزینه ب: normal ciliary clearance با opacification سازگار نیست.
+رد گزینه ج: developmental pneumatization علت مستقیم opacification نیست.
 رد گزینه د: well-demarcated cortical outline و radiolucent body توصیف normal antrum است.',
                     ],
                     [
@@ -5873,10 +5873,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'مراجعه هنگام برنامه‌ریزی implant placement',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: پس از درمان، بیمار در intervalهای ۴۸ تا ۷۲ ساعت follow می‌شود.
-رد گزینه ب: ۱۰ تا ۱۴ روز مربوط به nasal precautions است، نه ویزیت روزانه.
-رد گزینه ج: ۶ ماه برای این follow-up در متن نیامده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: پس از درمان، بیمار در intervalهای ۴۸ تا ۷۲ ساعت follow می‌شود.
+رد گزینه ب: ۱۰ تا ۱۴ روز مربوط به nasal precautions است، نه ویزیت روزانه.
+رد گزینه ج: ۶ ماه برای این follow-up در متن نیامده است.
 رد گزینه د: follow-up به implant placement محدود نیست.',
                     ],
                     [
@@ -5888,10 +5888,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'عفونت حاد با air-fluid level که با decongestant به سرعت برطرف می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: sinus mucoceles واقعی lining اپی‌تلیالی دارند، می‌توانند expansile باشند و برای افتراق از ضایعات aggressive/malignant معمولاً removal و biopsy لازم است.
-رد گزینه ب: این توصیف antral pseudocyst است.
-رد گزینه ج: این توصیف retention cyst است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: sinus mucoceles واقعی lining اپی‌تلیالی دارند، می‌توانند expansile باشند و برای افتراق از ضایعات aggressive/malignant معمولاً removal و biopsy لازم است.
+رد گزینه ب: این توصیف antral pseudocyst است.
+رد گزینه ج: این توصیف retention cyst است.
 رد گزینه د: این توصیف acute sinusitis است.',
                     ],
                     [
@@ -5903,10 +5903,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'قرار گرفتن root apexها دور از floor سینوس در panoramic radiograph',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: tenderness به tapping خارجی روی cheekbone prominence یا palpation داخل دهانی بین canine fossa و zygomatic buttress از معاینه sinus disease است.
-رد گزینه ب: درد percussion چند دندان می‌تواند sinus infection را مطرح کند؛ absence آن sign مثبت نیست.
-رد گزینه ج: در disease، transillumination کاهش می‌یابد نه افزایش.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: tenderness به tapping خارجی روی cheekbone prominence یا palpation داخل دهانی بین canine fossa و zygomatic buttress از معاینه sinus disease است.
+رد گزینه ب: درد percussion چند دندان می‌تواند sinus infection را مطرح کند؛ absence آن sign مثبت نیست.
+رد گزینه ج: در disease، transillumination کاهش می‌یابد نه افزایش.
 رد گزینه د: فاصله root apexها از floor سینوس نشانه معاینه بالینی بیماری نیست.',
                     ],
                     [
@@ -5918,10 +5918,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'erythromycin، ciprofloxacin، rifampin و cephalexin',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: antibiotic choices برای nonodontogenic sinusitis شامل amoxicillin، trimethoprim-sulfamethoxazole، amoxicillin-clavulanate، azithromycin و cefuroxime است.
-رد گزینه ب: penicillin/clindamycin/metronidazole برای odontogenic infection/sinusitis مناسب‌تر ذکر شده‌اند.
-رد گزینه ج: این مجموعه در متن فصل ۲۰ برای nonodontogenic sinusitis نیامده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: antibiotic choices برای nonodontogenic sinusitis شامل amoxicillin، trimethoprim-sulfamethoxazole، amoxicillin-clavulanate، azithromycin و cefuroxime است.
+رد گزینه ب: penicillin/clindamycin/metronidazole برای odontogenic infection/sinusitis مناسب‌تر ذکر شده‌اند.
+رد گزینه ج: این مجموعه در متن فصل ۲۰ برای nonodontogenic sinusitis نیامده است.
 رد گزینه د: این ترکیب نیز به عنوان choices متن ذکر نشده است.',
                     ],
                     [
@@ -5933,10 +5933,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'collagen membrane برای acute sinusitis بدون communication به کار می‌رود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: collagen membrane resorbable است؛ foil فلزی ممکن است بماند یا بخشی expose و exfoliate شود.
-رد گزینه ب: هر دو در closure defect زیر flaps/روی bone مطرح‌اند، نه در ostium.
-رد گزینه ج: membrane-assisted closure به exposure margins اطراف defect نیاز دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: collagen membrane resorbable است؛ foil فلزی ممکن است بماند یا بخشی expose و exfoliate شود.
+رد گزینه ب: هر دو در closure defect زیر flaps/روی bone مطرح‌اند، نه در ostium.
+رد گزینه ج: membrane-assisted closure به exposure margins اطراف defect نیاز دارد.
 رد گزینه د: collagen membrane برای closure communication/fistula است، نه acute sinusitis بدون communication.',
                     ],
                     [
@@ -5948,10 +5948,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'شروع بعد از extraction مولرها و توقف کامل پس از edentulism',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: secondary pneumatization در ماه پنجم fetal development آغاز می‌شود و invaginationها به developing maxillary bone گسترش می‌یابند.
-رد گزینه ب: ماه سوم و ethmoid infundibula به primary pneumatization مربوط است.
-رد گزینه ج: سن ۱۲ تا ۱۳ سال نتیجه رشد و هم‌سطح شدن floorهاست، نه شروع secondary pneumatization.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: secondary pneumatization در ماه پنجم fetal development آغاز می‌شود و invaginationها به developing maxillary bone گسترش می‌یابند.
+رد گزینه ب: ماه سوم و ethmoid infundibula به primary pneumatization مربوط است.
+رد گزینه ج: سن ۱۲ تا ۱۳ سال نتیجه رشد و هم‌سطح شدن floorهاست، نه شروع secondary pneumatization.
 رد گزینه د: post-extraction pneumatization یک تغییر بعدی در adult است، نه secondary fetal pneumatization.',
                     ],
                     [
@@ -5963,10 +5963,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_16_20(): a
                             'sinus lining معمولاً باز می‌ماند و membrane مانع mucosal healing می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در membrane closure، اگر gap کوچکی بین flaps باقی بماند، ممکن است over membrane با secondary intention ترمیم شود و sinus lining نیز معمولاً بسته می‌شود.
-رد گزینه ب: root analogue در این context برای پر کردن gap کوچک نیامده است.
-رد گزینه ج: tongue flap برای defectهای بزرگ و نادر است، نه شرط healing هر gap کوچک.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در membrane closure، اگر gap کوچکی بین flaps باقی بماند، ممکن است over membrane با secondary intention ترمیم شود و sinus lining نیز معمولاً بسته می‌شود.
+رد گزینه ب: root analogue در این context برای پر کردن gap کوچک نیامده است.
+رد گزینه ج: tongue flap برای defectهای بزرگ و نادر است، نه شرط healing هر gap کوچک.
 رد گزینه د: متن بیان می‌کند sinus lining معمولاً heal و close می‌شود و membrane exfoliate/resorb می‌شود.',
                     ],
                 ],

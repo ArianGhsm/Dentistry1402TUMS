@@ -47,10 +47,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'هر دو فرمول mepivacaine فقط با bupivacaine ترکیب می‌شوند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن می‌گوید ۳٪ mepivacaine مورد استفاده در دندان‌پزشکی vasoconstrictor ندارد، اما ۲٪ mepivacaine حاوی levonordefrin با غلظت 1:20,000 است.
-دلیل رد گزینه الف: این گزینه جهت فرمول‌ها و نوع vasoconstrictor را وارونه و نادرست بیان می‌کند.
-دلیل رد گزینه ب: mepivacaine در جدول‌های فصل جزو LAهای مورد بحث است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن می‌گوید ۳٪ mepivacaine مورد استفاده در دندان‌پزشکی vasoconstrictor ندارد، اما ۲٪ mepivacaine حاوی levonordefrin با غلظت 1:20,000 است.
+دلیل رد گزینه الف: این گزینه جهت فرمول‌ها و نوع vasoconstrictor را وارونه و نادرست بیان می‌کند.
+دلیل رد گزینه ب: mepivacaine در جدول‌های فصل جزو LAهای مورد بحث است.
 دلیل رد گزینه د: ترکیب با bupivacaine در متن مطرح نیست.',
                     ],
                     [
@@ -62,10 +62,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'هر دو gauge تا انتهای tank همیشه 750 psi ثابت می‌مانند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن و شکل‌ها توضیح می‌دهند oxygen در tank به حالت گاز است و gauge فشار واقعی را نشان می‌دهد؛ N2O زیر فشار عمدتاً مایع است و gauge تا کاهش مایع معمولاً 750 psi می‌خواند.
-دلیل رد گزینه ب: این گزینه رفتار دو gauge را وارونه بیان می‌کند.
-دلیل رد گزینه ج: متن می‌گوید N2O مایع و oxygen گاز است، نه برعکس.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن و شکل‌ها توضیح می‌دهند oxygen در tank به حالت گاز است و gauge فشار واقعی را نشان می‌دهد؛ N2O زیر فشار عمدتاً مایع است و gauge تا کاهش مایع معمولاً 750 psi می‌خواند.
+دلیل رد گزینه ب: این گزینه رفتار دو gauge را وارونه بیان می‌کند.
+دلیل رد گزینه ج: متن می‌گوید N2O مایع و oxygen گاز است، نه برعکس.
 دلیل رد گزینه د: oxygen gauge ثابت نمی‌ماند و فشار واقعی را نشان می‌دهد.',
                     ],
                     [
@@ -77,10 +77,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'قطع oxygen و نگه‌داشتن بیمار بدون staff تا پایان numbness',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل می‌گوید اثر N2O با تنفس 100% oxygen یا room air سریع dissipate می‌شود و در پایان sedation بیمار حدود ۵ دقیقه روی 100% oxygen قرار می‌گیرد.
-دلیل رد گزینه الف: بازگشت حس لب به LA مربوط است و ادامه N2O برای آن نیست.
-دلیل رد گزینه ب: bupivacaine LA طولانی‌اثر است و اثر N2O را خنثی نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل می‌گوید اثر N2O با تنفس 100% oxygen یا room air سریع dissipate می‌شود و در پایان sedation بیمار حدود ۵ دقیقه روی 100% oxygen قرار می‌گیرد.
+دلیل رد گزینه الف: بازگشت حس لب به LA مربوط است و ادامه N2O برای آن نیست.
+دلیل رد گزینه ب: bupivacaine LA طولانی‌اثر است و اثر N2O را خنثی نمی‌کند.
 دلیل رد گزینه د: staff باید حین استفاده و recovery حاضر باشد؛ قطع oxygen بخشی از پروتکل نیست.',
                     ],
                     [
@@ -92,10 +92,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Anterior superior alveolar nerve',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: جدول فصل، lingual nerve را مسئول lingual soft tissue همه دندان‌ها معرفی می‌کند و برای دندان‌ها نقشی ذکر نمی‌کند.
-دلیل رد گزینه ب: long buccal nerve بافت نرم باکال مولرها و second premolar فک پایین را عصب‌دهی می‌کند، نه لینگوال همه دندان‌ها.
-دلیل رد گزینه ج: greater palatine nerve مربوط به بافت لینگوال/پالاتال مولرها و پرمولرهای فک بالاست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: جدول فصل، lingual nerve را مسئول lingual soft tissue همه دندان‌ها معرفی می‌کند و برای دندان‌ها نقشی ذکر نمی‌کند.
+دلیل رد گزینه ب: long buccal nerve بافت نرم باکال مولرها و second premolar فک پایین را عصب‌دهی می‌کند، نه لینگوال همه دندان‌ها.
+دلیل رد گزینه ج: greater palatine nerve مربوط به بافت لینگوال/پالاتال مولرها و پرمولرهای فک بالاست.
 دلیل رد گزینه د: anterior superior alveolar nerve مربوط به دندان‌های قدامی فک بالا و بافت باکال آن‌هاست.',
                     ],
                     [
@@ -107,10 +107,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'از تزریق کارتریج سوم ۳٪ mepivacaine خودداری شود، چون دو کارتریج حدود ۱۰۸ mg می‌شود',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل مثال می‌زند که در کودک ۴۴ پوندی/۲۰ کیلوگرمی حداکثر توصیه‌شده mepivacaine حدود ۱۰۰ mg است و دو کارتریج ۳٪، ۱۰۸ mg می‌دهد؛ بنابراین کارتریج سوم نباید تزریق شود.
-دلیل رد گزینه الف: عدد ۱۵۰ mg در متن برای این کودک ذکر نشده و با مثال فصل ناسازگار است.
-دلیل رد گزینه ب: تزریق داخل شانت اصلاً در بحث فصل مطرح نیست و راه‌حل overdose محسوب نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل مثال می‌زند که در کودک ۴۴ پوندی/۲۰ کیلوگرمی حداکثر توصیه‌شده mepivacaine حدود ۱۰۰ mg است و دو کارتریج ۳٪، ۱۰۸ mg می‌دهد؛ بنابراین کارتریج سوم نباید تزریق شود.
+دلیل رد گزینه الف: عدد ۱۵۰ mg در متن برای این کودک ذکر نشده و با مثال فصل ناسازگار است.
+دلیل رد گزینه ب: تزریق داخل شانت اصلاً در بحث فصل مطرح نیست و راه‌حل overdose محسوب نمی‌شود.
 دلیل رد گزینه ج: فصل دوز را بر اساس mg/kg و وزن بیمار توضیح می‌دهد، نه تعداد دندان‌ها.',
                     ],
                     [
@@ -122,10 +122,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'medial به raphe برای دورشدن از lingual nerve',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: شرح شکل IAN block می‌گوید با باز بودن دهان، raphe دیده می‌شود و penetration point باید just lateral به آن باشد تا needle خود raphe را سوراخ نکند.
-دلیل رد گزینه ب: incisive papilla landmark فک بالا برای incisive infiltration است.
-دلیل رد گزینه ج: متن ورود در خود raphe را هدف نمی‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: شرح شکل IAN block می‌گوید با باز بودن دهان، raphe دیده می‌شود و penetration point باید just lateral به آن باشد تا needle خود raphe را سوراخ نکند.
+دلیل رد گزینه ب: incisive papilla landmark فک بالا برای incisive infiltration است.
+دلیل رد گزینه ج: متن ورود در خود raphe را هدف نمی‌داند.
 دلیل رد گزینه د: medial به raphe در تکنیک ذکر نشده و هدف دورشدن از lingual nerve نیست.',
                     ],
                     [
@@ -137,10 +137,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'معمولاً additional local anesthetic لازم نیست',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل بیان می‌کند برای routine extractions که فقط mild to moderate analgesics نیاز خواهد بود، معمولاً local anesthetic اضافی لازم نیست.
-دلیل رد گزینه الف: bupivacaine برای procedures traumatic مانند impacted teeth مطرح می‌شود، نه به‌صورت روتین برای همه.
-دلیل رد گزینه ب: PDL injection برای درد حین luxation و اثر کوتاه است، نه برنامه روتین postoperative.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل بیان می‌کند برای routine extractions که فقط mild to moderate analgesics نیاز خواهد بود، معمولاً local anesthetic اضافی لازم نیست.
+دلیل رد گزینه الف: bupivacaine برای procedures traumatic مانند impacted teeth مطرح می‌شود، نه به‌صورت روتین برای همه.
+دلیل رد گزینه ب: PDL injection برای درد حین luxation و اثر کوتاه است، نه برنامه روتین postoperative.
 دلیل رد گزینه ج: N2O sedation جایگزین analgesic خوراکی postoperative معرفی نشده است.',
                     ],
                     [
@@ -152,10 +152,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Posterior superior alveolar nerve',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: posterior superior alveolar nerve طبق جدول maxillary molars را به‌جز بخشی از first molar عصب‌دهی می‌کند.
-دلیل رد گزینه الف: ASA incisors و canines فک بالا را پوشش می‌دهد.
-دلیل رد گزینه ب: greater palatine nerve بافت نرم پالاتال molars و premolars را پوشش می‌دهد و دندان‌ها را عصب‌دهی نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: posterior superior alveolar nerve طبق جدول maxillary molars را به‌جز بخشی از first molar عصب‌دهی می‌کند.
+دلیل رد گزینه الف: ASA incisors و canines فک بالا را پوشش می‌دهد.
+دلیل رد گزینه ب: greater palatine nerve بافت نرم پالاتال molars و premolars را پوشش می‌دهد و دندان‌ها را عصب‌دهی نمی‌کند.
 دلیل رد گزینه ج: MSA پرمولرهای فک بالا و بخشی از first molar را پوشش می‌دهد.',
                     ],
                     [
@@ -167,10 +167,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'استفاده از کارتریج‌های بیشتر تا زمانی که لب بی‌حس بماند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل برای محدودکردن مقدار vasoconstrictor بر aspiration پیش از deposition در بافت‌های دارای عروق بزرگ و محدودکردن مقدار کل LA تأکید می‌کند، به‌ویژه در بیماران قلبی-عروقی.
-دلیل رد گزینه الف: تزریق سریع‌تر درد را بیشتر می‌کند و aspiration را جایگزین نمی‌کند.
-دلیل رد گزینه ج: افزایش غلظت vasoconstrictor در بیمار مستعد dysrhythmia با احتیاط‌های متن سازگار نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل برای محدودکردن مقدار vasoconstrictor بر aspiration پیش از deposition در بافت‌های دارای عروق بزرگ و محدودکردن مقدار کل LA تأکید می‌کند، به‌ویژه در بیماران قلبی-عروقی.
+دلیل رد گزینه الف: تزریق سریع‌تر درد را بیشتر می‌کند و aspiration را جایگزین نمی‌کند.
+دلیل رد گزینه ج: افزایش غلظت vasoconstrictor در بیمار مستعد dysrhythmia با احتیاط‌های متن سازگار نیست.
 دلیل رد گزینه د: بی‌حسی لب معیار کافی نیست و افزایش کارتریج‌ها خطر دوز و vasoconstrictor را بالا می‌برد.',
                     ],
                     [
@@ -182,10 +182,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'داشتن فشار ناشی از proprioception هنگام extraction',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن می‌گوید پزشک باید سابقه پزشکی و anesthetic را بداند؛ تجربه بد قبلی با N2O یا claustrophobia می‌تواند استفاده از nasal hood/N2O را نامناسب کند.
-دلیل رد گزینه الف: توضیح و empathy بخشی از کنترل اضطراب است و منع N2O محسوب نمی‌شود.
-دلیل رد گزینه ب: نیاز به long buccal block برای molar فک پایین به تصمیم درباره N2O مربوط مستقیم ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن می‌گوید پزشک باید سابقه پزشکی و anesthetic را بداند؛ تجربه بد قبلی با N2O یا claustrophobia می‌تواند استفاده از nasal hood/N2O را نامناسب کند.
+دلیل رد گزینه الف: توضیح و empathy بخشی از کنترل اضطراب است و منع N2O محسوب نمی‌شود.
+دلیل رد گزینه ب: نیاز به long buccal block برای molar فک پایین به تصمیم درباره N2O مربوط مستقیم ندارد.
 دلیل رد گزینه د: احساس pressure به proprioception مربوط است و به‌تنهایی منع N2O نیست.',
                     ],
                     [
@@ -197,10 +197,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'استفاده از pterygomandibular raphe به‌عنوان landmark اصلی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: شرح شکل می‌گوید greater palatine foramen معمولاً در junction عناصر عمودی و افقی hard palate در ناحیه second molar است؛ needle فقط ۲ تا ۳ میلی‌متر نفوذ می‌کند و تلاشی برای ورود به foramen نمی‌شود.
-دلیل رد گزینه الف: فصل ورود به foramen یا canal را توصیه نمی‌کند.
-دلیل رد گزینه ج: incisive papilla مربوط به incisive nerve infiltration است، نه greater palatine.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: شرح شکل می‌گوید greater palatine foramen معمولاً در junction عناصر عمودی و افقی hard palate در ناحیه second molar است؛ needle فقط ۲ تا ۳ میلی‌متر نفوذ می‌کند و تلاشی برای ورود به foramen نمی‌شود.
+دلیل رد گزینه الف: فصل ورود به foramen یا canal را توصیه نمی‌کند.
+دلیل رد گزینه ج: incisive papilla مربوط به incisive nerve infiltration است، نه greater palatine.
 دلیل رد گزینه د: pterygomandibular raphe landmark فک پایین برای IAN block است.',
                     ],
                     [
@@ -212,10 +212,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'فشار وارده به دندان‌های مجاور هنگام extraction می‌تواند برای بیمار دردناک باشد',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل می‌گوید هنگام extraction، adjacent teeth معمولاً تحت فشار قرار می‌گیرند و این فشار ممکن است درد ایجاد کند؛ بنابراین باید آن‌ها نیز بی‌حس شوند.
-دلیل رد گزینه الف: متن چنین علت آناتومیکی برای همه دندان‌ها ذکر نمی‌کند.
-دلیل رد گزینه ب: متن می‌گوید این نکته در mandibular extractions هم صدق می‌کند، هرچند block معمولاً adjacent teeth را کافی بی‌حس می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل می‌گوید هنگام extraction، adjacent teeth معمولاً تحت فشار قرار می‌گیرند و این فشار ممکن است درد ایجاد کند؛ بنابراین باید آن‌ها نیز بی‌حس شوند.
+دلیل رد گزینه الف: متن چنین علت آناتومیکی برای همه دندان‌ها ذکر نمی‌کند.
+دلیل رد گزینه ب: متن می‌گوید این نکته در mandibular extractions هم صدق می‌کند، هرچند block معمولاً adjacent teeth را کافی بی‌حس می‌کند.
 دلیل رد گزینه ج: تحریک مستقیم nasopalatine nerve علت مطرح‌شده نیست.',
                     ],
                     [
@@ -227,10 +227,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون سطح استخوان maxilla در خلف به‌سمت medial می‌رود و این کار نوک سوزن را نزدیک سطح استخوان نگه می‌دارد',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: شرح شکل PSA می‌گوید سطح استخوان در تشکیل دیواره خلفی maxilla به‌سمت medial می‌رود؛ lateral بردن barrel کمک می‌کند نوک سوزن نزدیک سطح استخوان بماند.
-دلیل رد گزینه الف: PSA block از مسیر باکال برای posterior superior alveolar nerve است و ورود به greater palatine canal هدف آن نیست.
-دلیل رد گزینه ب: متن می‌گوید اپکس‌ها غالباً نزدیک mucobuccal fold هستند؛ palatal root مولر استثناست.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: شرح شکل PSA می‌گوید سطح استخوان در تشکیل دیواره خلفی maxilla به‌سمت medial می‌رود؛ lateral بردن barrel کمک می‌کند نوک سوزن نزدیک سطح استخوان بماند.
+دلیل رد گزینه الف: PSA block از مسیر باکال برای posterior superior alveolar nerve است و ورود به greater palatine canal هدف آن نیست.
+دلیل رد گزینه ب: متن می‌گوید اپکس‌ها غالباً نزدیک mucobuccal fold هستند؛ palatal root مولر استثناست.
 دلیل رد گزینه ج: فصل PSA را از موارد نیازمند aspiration می‌داند، پس حرکت lateral نیاز به aspiration را حذف نمی‌کند.',
                     ],
                     [
@@ -242,10 +242,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حذف نیاز به هرگونه analgesic خوراکی در تمام بیماران',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل می‌گوید پس از اعمال traumatic مانند impacted teeth، بسیاری از جراحان از LA طولانی‌اثر مثل bupivacaine استفاده می‌کنند تا ۴ تا ۸ ساعت بی‌حسی بدهد و زمان کافی برای اثر analgesics خوراکی فراهم شود.
-دلیل رد گزینه الف: bupivacaine برای کاهش pH بافت یا درمان التهاب معرفی نشده است.
-دلیل رد گزینه ب: اثر ۱۵ تا ۲۰ دقیقه‌ای مربوط به PDL injection است، نه bupivacaine.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل می‌گوید پس از اعمال traumatic مانند impacted teeth، بسیاری از جراحان از LA طولانی‌اثر مثل bupivacaine استفاده می‌کنند تا ۴ تا ۸ ساعت بی‌حسی بدهد و زمان کافی برای اثر analgesics خوراکی فراهم شود.
+دلیل رد گزینه الف: bupivacaine برای کاهش pH بافت یا درمان التهاب معرفی نشده است.
+دلیل رد گزینه ب: اثر ۱۵ تا ۲۰ دقیقه‌ای مربوط به PDL injection است، نه bupivacaine.
 دلیل رد گزینه د: متن نمی‌گوید analgesic خوراکی حذف می‌شود؛ بلکه فرصت اثرکردن آن فراهم می‌شود.',
                     ],
                     [
@@ -257,10 +257,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'گازی بی‌بو، بی‌رنگ و غیرتحریک‌کننده راه هوایی است که با oxygen خالص می‌تواند analgesic و anxiolytic قوی باشد',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل N2O را odorless، colorless و non-irritating معرفی می‌کند و می‌گوید اگر با oxygen خالص درست مخلوط شود، analgesic و anxiolytic بسیار مؤثری است.
-دلیل رد گزینه الف: متن می‌گوید در غلظت‌های بسیار بالا برای انسان toxic است.
-دلیل رد گزینه ب: N2O گاز است و باید با oxygen مناسب داده شود؛ بدون oxygen ایمن‌تر نیست.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل N2O را odorless، colorless و non-irritating معرفی می‌کند و می‌گوید اگر با oxygen خالص درست مخلوط شود، analgesic و anxiolytic بسیار مؤثری است.
+دلیل رد گزینه الف: متن می‌گوید در غلظت‌های بسیار بالا برای انسان toxic است.
+دلیل رد گزینه ب: N2O گاز است و باید با oxygen مناسب داده شود؛ بدون oxygen ایمن‌تر نیست.
 دلیل رد گزینه ج: N2O inhalational sedation است، نه داروی تزریقی hemostasis.',
                     ],
                     [
@@ -272,10 +272,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'maxillary teeth حدود ۶۰ تا ۹۰ دقیقه، mandibular teeth حدود ۳ ساعت، soft tissue حدود ۴ تا ۹ ساعت',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: جدول، گروه ۲ را LAهای همراه vasoconstrictor معرفی می‌کند و برای آن‌ها maxillary teeth حدود ۵۰ تا ۶۰ دقیقه، mandibular teeth حدود ۹۰ تا ۱۰۰ دقیقه و soft tissue حدود ۳ تا ۴ ساعت ذکر شده است.
-دلیل رد گزینه الف: این گزینه اعداد را جابه‌جا کرده و ۱۵ تا ۲۰ دقیقه مربوط به PDL injection است، نه جدول مدت اثر LAهای گروه ۲.
-دلیل رد گزینه ب: این اعداد مربوط به گروه ۱، یعنی LAهای بدون vasoconstrictor است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: جدول، گروه ۲ را LAهای همراه vasoconstrictor معرفی می‌کند و برای آن‌ها maxillary teeth حدود ۵۰ تا ۶۰ دقیقه، mandibular teeth حدود ۹۰ تا ۱۰۰ دقیقه و soft tissue حدود ۳ تا ۴ ساعت ذکر شده است.
+دلیل رد گزینه الف: این گزینه اعداد را جابه‌جا کرده و ۱۵ تا ۲۰ دقیقه مربوط به PDL injection است، نه جدول مدت اثر LAهای گروه ۲.
+دلیل رد گزینه ب: این اعداد مربوط به گروه ۱، یعنی LAهای بدون vasoconstrictor است.
 دلیل رد گزینه د: این الگو مربوط به گروه ۳ یا LAهای long-acting مانند bupivacaine و etidocaine است.',
                     ],
                     [
@@ -287,10 +287,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Long buccal nerve',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در جدول، inferior alveolar nerve برای همه دندان‌های mandibular و بافت نرم buccal پرمولرها، کانین‌ها و incisors ذکر شده است.
-دلیل رد گزینه الف: lingual nerve دندان‌ها را عصب‌دهی نمی‌کند و بافت لینگوال را پوشش می‌دهد.
-دلیل رد گزینه ج: nasopalatine nerve مربوط به بافت پالاتال incisors و canines فک بالاست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در جدول، inferior alveolar nerve برای همه دندان‌های mandibular و بافت نرم buccal پرمولرها، کانین‌ها و incisors ذکر شده است.
+دلیل رد گزینه الف: lingual nerve دندان‌ها را عصب‌دهی نمی‌کند و بافت لینگوال را پوشش می‌دهد.
+دلیل رد گزینه ج: nasopalatine nerve مربوط به بافت پالاتال incisors و canines فک بالاست.
 دلیل رد گزینه د: long buccal nerve دندان‌ها را عصب‌دهی نمی‌کند و بافت باکال molars و second premolar را پوشش می‌دهد.',
                     ],
                     [
@@ -302,10 +302,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'جلوگیری از ثبت vital signs در پرونده',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید nasal hoods باید fit خوبی روی صورت داشته باشند و expired air را scavenge کنند تا N2O هوای operatory کم شود.
-دلیل رد گزینه ب: تحویل گاز به کانال mandibular مطرح نیست.
-دلیل رد گزینه ج: N2O sedation با nasal hood به تنفس بینی وابسته است و پوشاندن فقط دهان هدف نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید nasal hoods باید fit خوبی روی صورت داشته باشند و expired air را scavenge کنند تا N2O هوای operatory کم شود.
+دلیل رد گزینه ب: تحویل گاز به کانال mandibular مطرح نیست.
+دلیل رد گزینه ج: N2O sedation با nasal hood به تنفس بینی وابسته است و پوشاندن فقط دهان هدف نیست.
 دلیل رد گزینه د: ثبت vital signs و dose از caveats مهم است و nasal hood جایگزین آن نیست.',
                     ],
                     [
@@ -317,10 +317,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'این block soft tissue anesthesia خوبی می‌دهد ولی pulpal anesthesia قابل اعتماد و کافی ایجاد نمی‌کند',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل می‌گوید mental nerve block بی‌حسی نرم‌بافتی عالی در توزیع خود می‌دهد، اما به‌ندرت pulpal anesthesia قابل اعتماد و کافی فراهم می‌کند.
-دلیل رد گزینه الف: فصل bilateral IAN block را خطرناک نمی‌داند.
-دلیل رد گزینه ب: متن برعکس می‌گوید mental nerve block ارزیابی adequacy یک IAN block بعدی را دشوار می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل می‌گوید mental nerve block بی‌حسی نرم‌بافتی عالی در توزیع خود می‌دهد، اما به‌ندرت pulpal anesthesia قابل اعتماد و کافی فراهم می‌کند.
+دلیل رد گزینه الف: فصل bilateral IAN block را خطرناک نمی‌داند.
+دلیل رد گزینه ب: متن برعکس می‌گوید mental nerve block ارزیابی adequacy یک IAN block بعدی را دشوار می‌کند.
 دلیل رد گزینه ج: mental nerve مربوط به فک پایین است، نه مولرهای فک بالا.',
                     ],
                     [
@@ -332,10 +332,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حس فشار پروپریوسپتیو به‌طور کامل با تزریق بعدی حذف می‌شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن تأکید می‌کند بی‌حسی ناکافی یا کوتاه، بیمار را در معرض درد حین عمل قرار می‌دهد و درد می‌تواند کاتکولامین‌های درون‌زاد را تحریک کند.
-دلیل رد گزینه الف: درد پالپی pH محلول را خنثی نمی‌کند؛ بحث pH مربوط به محلول و بافت ملتهب است.
-دلیل رد گزینه ب: متن چنین اثری برای بی‌حسی ناکافی ذکر نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن تأکید می‌کند بی‌حسی ناکافی یا کوتاه، بیمار را در معرض درد حین عمل قرار می‌دهد و درد می‌تواند کاتکولامین‌های درون‌زاد را تحریک کند.
+دلیل رد گزینه الف: درد پالپی pH محلول را خنثی نمی‌کند؛ بحث pH مربوط به محلول و بافت ملتهب است.
+دلیل رد گزینه ب: متن چنین اثری برای بی‌حسی ناکافی ذکر نمی‌کند.
 دلیل رد گزینه د: proprioception با LA از بین نمی‌رود و حس فشار باقی می‌ماند.',
                     ],
                     [
@@ -347,10 +347,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'soft tissue anesthesia حدود ۶۰ تا ۹۰ دقیقه',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: جدول گروه ۳، شامل bupivacaine و etidocaine، مدت soft tissue anesthesia را ۴ تا ۹ ساعت ذکر می‌کند.
-دلیل رد گزینه الف: این مدت برای گروه ۱ بدون vasoconstrictor است.
-دلیل رد گزینه ب: این مدت برای گروه ۲ حاوی vasoconstrictor است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: جدول گروه ۳، شامل bupivacaine و etidocaine، مدت soft tissue anesthesia را ۴ تا ۹ ساعت ذکر می‌کند.
+دلیل رد گزینه الف: این مدت برای گروه ۱ بدون vasoconstrictor است.
+دلیل رد گزینه ب: این مدت برای گروه ۲ حاوی vasoconstrictor است.
 دلیل رد گزینه د: ۶۰ تا ۹۰ دقیقه در جدول برای maxillary teeth در گروه long-acting آمده، نه soft tissue.',
                     ],
                     [
@@ -362,10 +362,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'روی maxillary tuberosity',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: شرح شکل 6.15 می‌گوید پس از نفوذ چند میلی‌متری، barrel سرنگ باید چرخانده شود تا روی contralateral premolar area قرار گیرد.
-دلیل رد گزینه الف: incisive papilla مربوط به فک بالا و incisive infiltration است.
-دلیل رد گزینه ب: ipsilateral canine area در متن تکنیک ذکر نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: شرح شکل 6.15 می‌گوید پس از نفوذ چند میلی‌متری، barrel سرنگ باید چرخانده شود تا روی contralateral premolar area قرار گیرد.
+دلیل رد گزینه الف: incisive papilla مربوط به فک بالا و incisive infiltration است.
+دلیل رد گزینه ب: ipsilateral canine area در متن تکنیک ذکر نشده است.
 دلیل رد گزینه د: maxillary tuberosity با PSA block مرتبط است، نه IAN block.',
                     ],
                     [
@@ -377,10 +377,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تانک دقیقاً 50% پر است، همانند gauge اکسیژن',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل توضیح می‌دهد در N2O، gauge تا زمانی که liquid N2O شروع به اتمام نکرده، فشار بخار بالای مایع را نشان می‌دهد و روی 750 psi می‌ماند؛ بنابراین مقدار باقی‌مانده را مستقیم نشان نمی‌دهد.
-دلیل رد گزینه الف: تا زمانی که gauge 750 است نمی‌توان خالی بودن را نتیجه گرفت.
-دلیل رد گزینه ج: 750 psi در این بحث مربوط به N2O tank است، نه وجود oxygen.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل توضیح می‌دهد در N2O، gauge تا زمانی که liquid N2O شروع به اتمام نکرده، فشار بخار بالای مایع را نشان می‌دهد و روی 750 psi می‌ماند؛ بنابراین مقدار باقی‌مانده را مستقیم نشان نمی‌دهد.
+دلیل رد گزینه الف: تا زمانی که gauge 750 است نمی‌توان خالی بودن را نتیجه گرفت.
+دلیل رد گزینه ج: 750 psi در این بحث مربوط به N2O tank است، نه وجود oxygen.
 دلیل رد گزینه د: رفتار gauge N2O مانند oxygen نیست و 750 psi معادل 50% پر بودن نیست.',
                     ],
                     [
@@ -392,10 +392,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Greater palatine nerve - بافت نرم buccal پرمولرهای فک پایین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در جدول، long buccal nerve با بافت نرم buccal مولرها و second premolar مرتبط است.
-دلیل رد گزینه ب: nasopalatine nerve بافت پالاتال/لینگوال incisors و canines را پوشش می‌دهد، نه buccal molars.
-دلیل رد گزینه ج: lingual nerve بافت لینگوال همه دندان‌های فک پایین را پوشش می‌دهد، نه labial incisors فک بالا.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در جدول، long buccal nerve با بافت نرم buccal مولرها و second premolar مرتبط است.
+دلیل رد گزینه ب: nasopalatine nerve بافت پالاتال/لینگوال incisors و canines را پوشش می‌دهد، نه buccal molars.
+دلیل رد گزینه ج: lingual nerve بافت لینگوال همه دندان‌های فک پایین را پوشش می‌دهد، نه labial incisors فک بالا.
 دلیل رد گزینه د: greater palatine nerve بافت پالاتال مولرها و پرمولرهای فک بالا را پوشش می‌دهد، نه باکال فک پایین.',
                     ],
                     [
@@ -407,10 +407,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای تضمین اینکه همه داروها بدون vasoconstrictor استفاده شوند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن توضیح می‌دهد محدودکردن تعداد داروهای یک گروه به clinician اجازه می‌دهد ویژگی‌های دارو، واکنش‌های بیمار و دانش جدید مرتبط را بهتر مسلط شود.
-دلیل رد گزینه الف: اتفاقاً فصل بر دانستن دوزها و مدت اثر تأکید دارد.
-دلیل رد گزینه ب: یک LA واحد جایگزین همه روش‌های sedation معرفی نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن توضیح می‌دهد محدودکردن تعداد داروهای یک گروه به clinician اجازه می‌دهد ویژگی‌های دارو، واکنش‌های بیمار و دانش جدید مرتبط را بهتر مسلط شود.
+دلیل رد گزینه الف: اتفاقاً فصل بر دانستن دوزها و مدت اثر تأکید دارد.
+دلیل رد گزینه ب: یک LA واحد جایگزین همه روش‌های sedation معرفی نشده است.
 دلیل رد گزینه د: داروهای فصل شامل انواع با و بدون vasoconstrictor هستند.',
                     ],
                     [
@@ -422,10 +422,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تنظیم خودکار درصد N2O به ۵۰٪ در همه بیماران',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: شرح شکل pin index می‌گوید این سیستم برای جلوگیری از اتصال گاز اشتباه به port اشتباه continuous-flow sedation unit به کار می‌رود.
-دلیل رد گزینه ب: pulpal anesthesia با آزمون محرک دردناک ارزیابی می‌شود و به pin index مربوط نیست.
-دلیل رد گزینه ج: scavenging مربوط به nasal hood و waste gas system است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: شرح شکل pin index می‌گوید این سیستم برای جلوگیری از اتصال گاز اشتباه به port اشتباه continuous-flow sedation unit به کار می‌رود.
+دلیل رد گزینه ب: pulpal anesthesia با آزمون محرک دردناک ارزیابی می‌شود و به pin index مربوط نیست.
+دلیل رد گزینه ج: scavenging مربوط به nasal hood و waste gas system است.
 دلیل رد گزینه د: تنظیم درصد N2O وظیفه کنترل‌های flow/mix است، نه pin index.',
                     ],
                     [
@@ -437,10 +437,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'کاهش به 10% N2O برای پیشگیری از هر اثر',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: پروتکل فصل پس از ۲۰٪ و عدم اثر، افزایش به ۳۰٪ N2O/70٪ O2 و query مجدد پس از ۲ دقیقه را توصیه می‌کند.
-دلیل رد گزینه الف: افزایش مستقیم به 50% با روش تدریجی فصل و احتیاط‌ها سازگار نیست.
-دلیل رد گزینه ب: IV narcotic بخشی از پروتکل ساده N2O نیست و نیازمند مهارت/اندیکاسیون جداست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: پروتکل فصل پس از ۲۰٪ و عدم اثر، افزایش به ۳۰٪ N2O/70٪ O2 و query مجدد پس از ۲ دقیقه را توصیه می‌کند.
+دلیل رد گزینه الف: افزایش مستقیم به 50% با روش تدریجی فصل و احتیاط‌ها سازگار نیست.
+دلیل رد گزینه ب: IV narcotic بخشی از پروتکل ساده N2O نیست و نیازمند مهارت/اندیکاسیون جداست.
 دلیل رد گزینه د: کاهش به 10% در این مرحله در متن نیامده است.',
                     ],
                     [
@@ -452,10 +452,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حذف palatal anesthesia به‌علت طولانی‌شدن pulpal anesthesia',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید اپکس همه دندان‌های فک بالا به‌جز canine و palatal root مولرها معمولاً در عمق mucobuccal fold است؛ برای canine نوک سوزن باید چند میلی‌متر عمیق‌تر نفوذ کند.
-دلیل رد گزینه الف: قرارگیری barrel روی premolars مقابل مربوط به تکنیک IAN block در فک پایین است.
-دلیل رد گزینه ج: ورود به incisive canal برای canine infiltration توصیه نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید اپکس همه دندان‌های فک بالا به‌جز canine و palatal root مولرها معمولاً در عمق mucobuccal fold است؛ برای canine نوک سوزن باید چند میلی‌متر عمیق‌تر نفوذ کند.
+دلیل رد گزینه الف: قرارگیری barrel روی premolars مقابل مربوط به تکنیک IAN block در فک پایین است.
+دلیل رد گزینه ج: ورود به incisive canal برای canine infiltration توصیه نشده است.
 دلیل رد گزینه د: نیاز به palatal anesthesia به جراحی و بافت درگیر بستگی دارد و با عمیق‌تر بودن canine حذف نمی‌شود.',
                     ],
                     [
@@ -467,10 +467,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Middle superior alveolar nerve؛ چون pulpal anesthesia پرمولرهای فک بالا را فراهم می‌کند',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: جدول، nasopalatine nerve را برای lingual soft tissue incisors و canines ذکر می‌کند؛ greater palatine برای molars و premolars است.
-دلیل رد گزینه الف: inferior alveolar nerve مربوط به فک پایین است.
-دلیل رد گزینه ب: PSA مربوط به دندان و بافت باکال مولرهای فک بالاست، نه پالاتال قدامی.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: جدول، nasopalatine nerve را برای lingual soft tissue incisors و canines ذکر می‌کند؛ greater palatine برای molars و premolars است.
+دلیل رد گزینه الف: inferior alveolar nerve مربوط به فک پایین است.
+دلیل رد گزینه ب: PSA مربوط به دندان و بافت باکال مولرهای فک بالاست، نه پالاتال قدامی.
 دلیل رد گزینه د: MSA عمدتاً با دندان‌های پرمولر فک بالا و بافت باکال آن‌ها مرتبط است، نه پالاتال incisors/canines.',
                     ],
                     [
@@ -482,10 +482,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'به علت اینکه mental nerve block همیشه pulpal anesthesia کامل می‌دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید anesthesia دندان‌های فک پایین پیچیده‌تر است، چون استخوان آلوئولار اطراف apex این دندان‌ها ضخیم است؛ بنابراین IAN و lingual blocks لازم‌اند.
-دلیل رد گزینه ب: نازکی استخوان ویژگی‌ای است که maxillary infiltration را ساده‌تر می‌کند، نه mandibular anesthesia.
-دلیل رد گزینه ج: long buccal nerve دندان‌ها را عصب‌دهی نمی‌کند و فقط بافت نرم buccal برخی نواحی را پوشش می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید anesthesia دندان‌های فک پایین پیچیده‌تر است، چون استخوان آلوئولار اطراف apex این دندان‌ها ضخیم است؛ بنابراین IAN و lingual blocks لازم‌اند.
+دلیل رد گزینه ب: نازکی استخوان ویژگی‌ای است که maxillary infiltration را ساده‌تر می‌کند، نه mandibular anesthesia.
+دلیل رد گزینه ج: long buccal nerve دندان‌ها را عصب‌دهی نمی‌کند و فقط بافت نرم buccal برخی نواحی را پوشش می‌دهد.
 دلیل رد گزینه د: فصل mental nerve block را برای pulpal anesthesia قابل اعتماد نمی‌داند.',
                     ],
                     [
@@ -497,10 +497,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'افزایش تدریجی بدون سؤال تا نزدیک 50%',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید در procedures طولانی، dentist باید مرتب بررسی کند که بیمار همچنان relaxed و دارای احساس خوب است؛ گاهی بیمار به break از sedation نیاز دارد.
-دلیل رد گزینه الف: پروتکل بر ارزیابی مکرر و titration تأکید دارد.
-دلیل رد گزینه ج: mood، disorientation و combative behavior در بالای 40% مهم است و نباید منتظر pulpal pain ماند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید در procedures طولانی، dentist باید مرتب بررسی کند که بیمار همچنان relaxed و دارای احساس خوب است؛ گاهی بیمار به break از sedation نیاز دارد.
+دلیل رد گزینه الف: پروتکل بر ارزیابی مکرر و titration تأکید دارد.
+دلیل رد گزینه ج: mood، disorientation و combative behavior در بالای 40% مهم است و نباید منتظر pulpal pain ماند.
 دلیل رد گزینه د: افزایش بدون سؤال و نزدیک 50% با احتیاط‌های فصل ناسازگار است.',
                     ],
                     [
@@ -512,10 +512,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Nasopalatine nerve',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: جدول، middle superior alveolar nerve را برای maxillary premolars و بخشی از first molar و نیز buccal soft tissue پرمولرها ذکر می‌کند.
-دلیل رد گزینه الف: long buccal nerve مربوط به بافت باکال مولرها و second premolar فک پایین است.
-دلیل رد گزینه ج: posterior superior alveolar nerve برای molars فک بالا به‌جز بخشی از first molar و بافت باکال مولرهاست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: جدول، middle superior alveolar nerve را برای maxillary premolars و بخشی از first molar و نیز buccal soft tissue پرمولرها ذکر می‌کند.
+دلیل رد گزینه الف: long buccal nerve مربوط به بافت باکال مولرها و second premolar فک پایین است.
+دلیل رد گزینه ج: posterior superior alveolar nerve برای molars فک بالا به‌جز بخشی از first molar و بافت باکال مولرهاست.
 دلیل رد گزینه د: nasopalatine nerve بافت لینگوال/پالاتال incisors و canines را عصب‌دهی می‌کند و دندان را عصب‌دهی نمی‌کند.',
                     ],
                     [
@@ -527,10 +527,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Articaine 4% با 1:100,000 epinephrine',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: جدول برای etidocaine 1.5% با epinephrine تعداد ۱۵ کارتریج در بالغ ۷۰ کیلوگرمی را ذکر می‌کند که از گزینه‌های دیگر بیشتر است.
-دلیل رد گزینه ب: برای mepivacaine 3% بدون vasoconstrictor ۶ کارتریج آمده است.
-دلیل رد گزینه ج: برای prilocaine 4% با epinephrine ۶ کارتریج آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: جدول برای etidocaine 1.5% با epinephrine تعداد ۱۵ کارتریج در بالغ ۷۰ کیلوگرمی را ذکر می‌کند که از گزینه‌های دیگر بیشتر است.
+دلیل رد گزینه ب: برای mepivacaine 3% بدون vasoconstrictor ۶ کارتریج آمده است.
+دلیل رد گزینه ج: برای prilocaine 4% با epinephrine ۶ کارتریج آمده است.
 دلیل رد گزینه د: برای articaine در بالغ ۷۰ کیلوگرمی ۶ کارتریج آمده است.',
                     ],
                     [
@@ -542,10 +542,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نیاز به postextraction analgesic خوراکی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل poorly controlled COPD و respiratory infection مداخله‌کننده با nasal breathing را relative contraindication برای N2O می‌داند.
-دلیل رد گزینه ب: فشار بدون sharp pain مربوط به proprioception است و منع N2O نیست.
-دلیل رد گزینه ج: apex عمیق‌تر canine به تکنیک maxillary infiltration مربوط است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل poorly controlled COPD و respiratory infection مداخله‌کننده با nasal breathing را relative contraindication برای N2O می‌داند.
+دلیل رد گزینه ب: فشار بدون sharp pain مربوط به proprioception است و منع N2O نیست.
+دلیل رد گزینه ج: apex عمیق‌تر canine به تکنیک maxillary infiltration مربوط است.
 دلیل رد گزینه د: نیاز به analgesic خوراکی بخشی از مدیریت درد است، نه contraindication N2O در متن.',
                     ],
                     [
@@ -557,10 +557,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'درد موجود، agitation و fatigue بیمار، پیش‌داوری درباره extraction و stimuli مانند cracking و clinking',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل چند عامل را مطرح می‌کند: بیماران ممکن است درد داشته باشند، agitated و fatigued باشند، تجارب/باورهای قبلی از extraction داشته باشند و با فشار، صدای cracking و clinking ابزار مواجه شوند.
-دلیل رد گزینه الف: طول soft tissue anesthesia به‌تنهایی علت اصلی anxiety در متن نیست.
-دلیل رد گزینه ب: نور و topical anesthesia محور توضیح فصل درباره اضطراب جراحی دهان نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل چند عامل را مطرح می‌کند: بیماران ممکن است درد داشته باشند، agitated و fatigued باشند، تجارب/باورهای قبلی از extraction داشته باشند و با فشار، صدای cracking و clinking ابزار مواجه شوند.
+دلیل رد گزینه الف: طول soft tissue anesthesia به‌تنهایی علت اصلی anxiety در متن نیست.
+دلیل رد گزینه ب: نور و topical anesthesia محور توضیح فصل درباره اضطراب جراحی دهان نیستند.
 دلیل رد گزینه ج: dense anesthesia درد، دما و touch را حذف می‌کند؛ اضطراب فصل به عوامل روانی و حسی گسترده‌تر مربوط است.',
                     ],
                     [
@@ -572,10 +572,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تحریک انتخابی proprioceptive fibers بدون اثر قلبی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در toxic level، LAها می‌توانند myocardium را دپرِس کنند و عضله صاف عروقی را شل کنند؛ پیامدهای متن کاهش cardiac output، rhythm abnormality و hypotension است.
-دلیل رد گزینه الف: مهار کامل کاتکولامین‌های درون‌زاد در متن ذکر نشده است.
-دلیل رد گزینه ج: این توصیف بیشتر به اثرات sympathomimetic نزدیک است و خلاف متن درباره LA toxicity است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در toxic level، LAها می‌توانند myocardium را دپرِس کنند و عضله صاف عروقی را شل کنند؛ پیامدهای متن کاهش cardiac output، rhythm abnormality و hypotension است.
+دلیل رد گزینه الف: مهار کامل کاتکولامین‌های درون‌زاد در متن ذکر نشده است.
+دلیل رد گزینه ج: این توصیف بیشتر به اثرات sympathomimetic نزدیک است و خلاف متن درباره LA toxicity است.
 دلیل رد گزینه د: متن سمیت را شامل قلب، عروق و CNS می‌داند، نه تحریک انتخابی proprioception.',
                     ],
                     [
@@ -587,10 +587,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'به علت کوتاه‌تر بودن قطعی onset نسبت به buccal infiltration',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل ناراحتی تزریق palatal را به محدودبودن بافت همبند شل و نیاز به فشار بیشتر برای delivery دارو نسبت می‌دهد.
-دلیل رد گزینه الف: متن aspiration را برای IAN و PSA برجسته می‌کند، نه برای همه palatal injections.
-دلیل رد گزینه ب: topical anesthetic می‌تواند ناراحتی را کم کند، اما حذف کامل یا بی‌اثر مطلق بودن آن گفته نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل ناراحتی تزریق palatal را به محدودبودن بافت همبند شل و نیاز به فشار بیشتر برای delivery دارو نسبت می‌دهد.
+دلیل رد گزینه الف: متن aspiration را برای IAN و PSA برجسته می‌کند، نه برای همه palatal injections.
+دلیل رد گزینه ب: topical anesthetic می‌تواند ناراحتی را کم کند، اما حذف کامل یا بی‌اثر مطلق بودن آن گفته نشده است.
 دلیل رد گزینه د: onset کوتاه‌تر علت ناراحتی تزریق palatal در متن نیست.',
                     ],
                     [
@@ -602,10 +602,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'شروع کند پس از ۷ دقیقه و اثر soft tissue به مدت ۴ تا ۸ ساعت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید با تحویل درست و تحت فشار، PDL injection تقریباً فوری profound anesthesia می‌دهد، اما کوتاه‌مدت است و بهتر است کار در ۱۵ تا ۲۰ دقیقه انجام شود.
-دلیل رد گزینه ب: کاهش discomfort ورود سوزن مربوط به topical anesthesia است؛ PDL injection برای درد حین luxation مطرح شده است.
-دلیل رد گزینه ج: چنین onset و مدت طولانی برای PDL injection در متن نیامده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید با تحویل درست و تحت فشار، PDL injection تقریباً فوری profound anesthesia می‌دهد، اما کوتاه‌مدت است و بهتر است کار در ۱۵ تا ۲۰ دقیقه انجام شود.
+دلیل رد گزینه ب: کاهش discomfort ورود سوزن مربوط به topical anesthesia است؛ PDL injection برای درد حین luxation مطرح شده است.
+دلیل رد گزینه ج: چنین onset و مدت طولانی برای PDL injection در متن نیامده است.
 دلیل رد گزینه د: ۷ دقیقه مربوط به انتظار برای hemostatic effect در تزریق vasoconstrictor اطراف biopsy site است، نه PDL injection.',
                     ],
                     [
@@ -617,10 +617,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'قرارگیری ریشه palatal مولرها در مسیر needle',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: شرح شکل incisive nerve infiltration می‌گوید تزریق به علت density بافت و tight adherence آن به underlying bone ناراحت‌کننده است.
-دلیل رد گزینه الف: متن از topical anesthesia روی مخاط خشک در بخش کاهش درد تزریق صحبت کرده و عدم امکان استفاده ذکر نشده است.
-دلیل رد گزینه ب: متن این تزریق را به وجود حتمی رگ‌های بزرگ و تزریق سریع نسبت نمی‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: شرح شکل incisive nerve infiltration می‌گوید تزریق به علت density بافت و tight adherence آن به underlying bone ناراحت‌کننده است.
+دلیل رد گزینه الف: متن از topical anesthesia روی مخاط خشک در بخش کاهش درد تزریق صحبت کرده و عدم امکان استفاده ذکر نشده است.
+دلیل رد گزینه ب: متن این تزریق را به وجود حتمی رگ‌های بزرگ و تزریق سریع نسبت نمی‌دهد.
 دلیل رد گزینه د: ریشه palatal مولرها به این تزریق قدامی مربوط نیست.',
                     ],
                     [
@@ -632,10 +632,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'General anesthesia بیمارستانی و deep IV sedation برای همه بیماران',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: مقدمه فصل می‌گوید پوشش کنترل اضطراب را به nitrous oxide sedation محدود می‌کند و درباره local anesthesia در routine oral surgery بحث می‌کند.
-دلیل رد گزینه ب: opioidها جایگزین local anesthesia معرفی نشده‌اند.
-دلیل رد گزینه ج: تکنیک‌های رفتاری ذکر می‌شوند، اما فصل کنترل اضطراب دارویی را به nitrous oxide محدود می‌کند، نه hypnosis.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: مقدمه فصل می‌گوید پوشش کنترل اضطراب را به nitrous oxide sedation محدود می‌کند و درباره local anesthesia در routine oral surgery بحث می‌کند.
+دلیل رد گزینه ب: opioidها جایگزین local anesthesia معرفی نشده‌اند.
+دلیل رد گزینه ج: تکنیک‌های رفتاری ذکر می‌شوند، اما فصل کنترل اضطراب دارویی را به nitrous oxide محدود می‌کند، نه hypnosis.
 دلیل رد گزینه د: متن می‌گوید موضوعات sedation در منابع دیگر جامع‌تر پوشش داده شده و فصل بر nitrous oxide تمرکز دارد.',
                     ],
                 ],
@@ -666,10 +666,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'کاهش خودبه‌خودی فشار خون پس از تزریق',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل بیان می‌کند LAها در pH نزدیک به خنثی بهتر عمل می‌کنند و ماهیت اسیدی التهاب/عفونت با اثر آن‌ها تداخل دارد.
-دلیل رد گزینه الف: متن علت را اسیدی‌بودن بافت ملتهب می‌داند، نه قلیایی‌بودن آن یا اکسیدشدن vasoconstrictor در بافت.
-دلیل رد گزینه ب: proprioception با LA از بین نمی‌رود، اما علت کاهش اثر در عفونت، pH بافت است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل بیان می‌کند LAها در pH نزدیک به خنثی بهتر عمل می‌کنند و ماهیت اسیدی التهاب/عفونت با اثر آن‌ها تداخل دارد.
+دلیل رد گزینه الف: متن علت را اسیدی‌بودن بافت ملتهب می‌داند، نه قلیایی‌بودن آن یا اکسیدشدن vasoconstrictor در بافت.
+دلیل رد گزینه ب: proprioception با LA از بین نمی‌رود، اما علت کاهش اثر در عفونت، pH بافت است.
 دلیل رد گزینه د: هیپوتانسیون در بحث toxic reaction مطرح است، نه علت بی‌اثری موضعی در ناحیه عفونی.',
                     ],
                     [
@@ -681,10 +681,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تزریق تعداد بیشتری کارتریج LA تا اضطراب برطرف شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن می‌گوید بیماران با anxiety متوسط تا شدید ممکن است به sedation با anxiolytic drugs مانند diazepam یا midazolam با/بدون narcotic نیاز داشته باشند و اگر dentist در این modality مهارت ندارد، باید ارجاع دهد.
-دلیل رد گزینه الف: سطوح N2O بالای ۵۰٪ باید اجتناب شود و برای همه بیماران مناسب نیست.
-دلیل رد گزینه ب: سادگی extraction به‌تنهایی نیاز به anxiety control را حذف نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن می‌گوید بیماران با anxiety متوسط تا شدید ممکن است به sedation با anxiolytic drugs مانند diazepam یا midazolam با/بدون narcotic نیاز داشته باشند و اگر dentist در این modality مهارت ندارد، باید ارجاع دهد.
+دلیل رد گزینه الف: سطوح N2O بالای ۵۰٪ باید اجتناب شود و برای همه بیماران مناسب نیست.
+دلیل رد گزینه ب: سادگی extraction به‌تنهایی نیاز به anxiety control را حذف نمی‌کند.
 دلیل رد گزینه د: افزایش LA اضطراب را درمان نمی‌کند و دوز/toxicity محدودیت دارد.',
                     ],
                     [
@@ -696,10 +696,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'بیماری که به explanation و empathy پاسخ مناسب می‌دهد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید بیمارانی که mind-altering drugs را تحمل نمی‌کنند، از جمله کسانی که relative loss of control را تحمل ندارند، poor candidates برای N2O هستند.
-دلیل رد گزینه الف: اضطراب از صداها ممکن است indication کنترل اضطراب باشد، نه poor candidacy به‌خودی‌خود.
-دلیل رد گزینه ج: نیاز به analgesic پس از جراحی به انتخاب N2O پیش از عمل مربوط مستقیم ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید بیمارانی که mind-altering drugs را تحمل نمی‌کنند، از جمله کسانی که relative loss of control را تحمل ندارند، poor candidates برای N2O هستند.
+دلیل رد گزینه الف: اضطراب از صداها ممکن است indication کنترل اضطراب باشد، نه poor candidacy به‌خودی‌خود.
+دلیل رد گزینه ج: نیاز به analgesic پس از جراحی به انتخاب N2O پیش از عمل مربوط مستقیم ندارد.
 دلیل رد گزینه د: پاسخ به روش‌های غیر دارویی مانع یا poor candidacy برای N2O محسوب نمی‌شود.',
                     ],
                     [
@@ -711,10 +711,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'maxillary teeth حدود ۱۰ تا ۲۰ دقیقه، mandibular teeth حدود ۴۰ تا ۶۰ دقیقه، soft tissue حدود ۲ تا ۳ ساعت',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: گروه ۱ جدول شامل LAهای بدون vasoconstrictor است و همین بازه‌ها را برای دندان‌های فک بالا، دندان‌های فک پایین و بافت نرم نشان می‌دهد.
-دلیل رد گزینه الف: این الگو مربوط به گروه ۲، یعنی LAهای همراه vasoconstrictor است.
-دلیل رد گزینه ب: این الگو مربوط به گروه ۳، یعنی LAهای long-acting است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: گروه ۱ جدول شامل LAهای بدون vasoconstrictor است و همین بازه‌ها را برای دندان‌های فک بالا، دندان‌های فک پایین و بافت نرم نشان می‌دهد.
+دلیل رد گزینه الف: این الگو مربوط به گروه ۲، یعنی LAهای همراه vasoconstrictor است.
+دلیل رد گزینه ب: این الگو مربوط به گروه ۳، یعنی LAهای long-acting است.
 دلیل رد گزینه ج: این گزینه اعداد گروه ۱ و گروه ۳ را مخلوط کرده است.',
                     ],
                     [
@@ -726,10 +726,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'افزایش pH محلول برای کاهش burn در injection',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن می‌گوید این vasoconstrictorها با vasoconstriction، مدت بی‌حسی را طولانی‌تر و hemostasis موضعی را بهتر می‌کنند.
-دلیل رد گزینه الف: آن‌ها مدت اثر را طولانی می‌کنند، نه کوتاه.
-دلیل رد گزینه ب: proprioception با LA هم حذف نمی‌شود و vasoconstrictor چنین اثری ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن می‌گوید این vasoconstrictorها با vasoconstriction، مدت بی‌حسی را طولانی‌تر و hemostasis موضعی را بهتر می‌کنند.
+دلیل رد گزینه الف: آن‌ها مدت اثر را طولانی می‌کنند، نه کوتاه.
+دلیل رد گزینه ب: proprioception با LA هم حذف نمی‌شود و vasoconstrictor چنین اثری ندارد.
 دلیل رد گزینه د: افزودن vasoconstrictor با پایین‌آوردن pH محلول همراه است، نه افزایش آن.',
                     ],
                     [
@@ -741,10 +741,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'اضطراب فقط زمانی رخ می‌دهد که LA از نظر شیمیایی ester باشد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل می‌گوید removal of teeth می‌تواند واکنش‌های متنوعی ایجاد کند؛ بیمار ممکن است برای body part از دست‌رفته سوگواری کند یا آن را نشانه گذر جوانی بداند.
-دلیل رد گزینه الف: فصل حتی بیماران دارای درد، agitation و fatigue را مطرح می‌کند و واکنش روانی را به بدون درد بودن محدود نمی‌کند.
-دلیل رد گزینه ب: متن بر وجود واکنش‌های روانی مختلف تأکید دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل می‌گوید removal of teeth می‌تواند واکنش‌های متنوعی ایجاد کند؛ بیمار ممکن است برای body part از دست‌رفته سوگواری کند یا آن را نشانه گذر جوانی بداند.
+دلیل رد گزینه الف: فصل حتی بیماران دارای درد، agitation و fatigue را مطرح می‌کند و واکنش روانی را به بدون درد بودن محدود نمی‌کند.
+دلیل رد گزینه ب: متن بر وجود واکنش‌های روانی مختلف تأکید دارد.
 دلیل رد گزینه د: نوع شیمیایی LA به این واکنش روانی مربوط نشده است.',
                     ],
                     [
@@ -756,10 +756,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ابتدا 50% N2O/50% O2 بدون oxygen اولیه برای سنجش تحمل بیمار',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل پروتکل را با 100% oxygen آغاز می‌کند، fit ماسک و تحمل بیمار را بررسی می‌کند و پس از چند دقیقه preoxygenation، مخلوط 20%/80% N2O:O2 می‌دهد.
-دلیل رد گزینه الف: scavenging باید برقرار باشد و room air نقطه شروع پروتکل نیست.
-دلیل رد گزینه ج: 35% مرحله بعد از ارزیابی 30% است، نه شروع پروتکل؛ افزایش به 50% در صورت اثر بد توصیه نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل پروتکل را با 100% oxygen آغاز می‌کند، fit ماسک و تحمل بیمار را بررسی می‌کند و پس از چند دقیقه preoxygenation، مخلوط 20%/80% N2O:O2 می‌دهد.
+دلیل رد گزینه الف: scavenging باید برقرار باشد و room air نقطه شروع پروتکل نیست.
+دلیل رد گزینه ج: 35% مرحله بعد از ارزیابی 30% است، نه شروع پروتکل؛ افزایش به 50% در صورت اثر بد توصیه نشده است.
 دلیل رد گزینه د: شروع بدون 100% oxygen اولیه با متن سازگار نیست.',
                     ],
                     [
@@ -771,10 +771,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'این حس نشان می‌دهد همه فیبرهای proprioceptive هم توسط LA حذف شده‌اند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید dense local anesthesia درد، دما و touch را حذف می‌کند، اما proprioceptive fibers بی‌حس نمی‌شوند؛ بیمار باید pressure را از sharp pain تفکیک کند.
-دلیل رد گزینه ب: این گزینه به جدول مدت اثر مربوط است و از سناریو نتیجه نمی‌شود.
-دلیل رد گزینه ج: احساس فشار در extraction به proprioception مربوط است، نه نشانه سمیت CNS.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید dense local anesthesia درد، دما و touch را حذف می‌کند، اما proprioceptive fibers بی‌حس نمی‌شوند؛ بیمار باید pressure را از sharp pain تفکیک کند.
+دلیل رد گزینه ب: این گزینه به جدول مدت اثر مربوط است و از سناریو نتیجه نمی‌شود.
+دلیل رد گزینه ج: احساس فشار در extraction به proprioception مربوط است، نه نشانه سمیت CNS.
 دلیل رد گزینه د: گزینه خلاف متن است؛ proprioception با LA حذف نمی‌شود.',
                     ],
                     [
@@ -786,10 +786,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'همگی tertiary amine و از نوع amino amide هستند و نسبتاً به hydrolysis مقاوم‌اند',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: متن صریحاً می‌گوید LAهای بحث‌شده tertiary amines و amino amides هستند و نسبت به hydrolysis مقاومت نسبی دارند.
-دلیل رد گزینه الف: چند داروی فصل با epinephrine یا levonordefrin عرضه می‌شوند؛ این گزینه تعمیم نادرست دارد.
-دلیل رد گزینه ب: متن می‌گوید LAها برای بلوک اعصاب حسی طراحی شده‌اند ولی می‌توانند اعصاب حرکتی و بافت‌های عصبی دیگر را نیز مهار کنند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: متن صریحاً می‌گوید LAهای بحث‌شده tertiary amines و amino amides هستند و نسبت به hydrolysis مقاومت نسبی دارند.
+دلیل رد گزینه الف: چند داروی فصل با epinephrine یا levonordefrin عرضه می‌شوند؛ این گزینه تعمیم نادرست دارد.
+دلیل رد گزینه ب: متن می‌گوید LAها برای بلوک اعصاب حسی طراحی شده‌اند ولی می‌توانند اعصاب حرکتی و بافت‌های عصبی دیگر را نیز مهار کنند.
 دلیل رد گزینه ج: فصل آن‌ها را amino amide معرفی می‌کند، نه amino ester؛ همچنین بافت عفونی اثر را کم می‌کند.',
                     ],
                     [
@@ -801,10 +801,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'روی hard palate کنار second molar',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: شرح شکل 6.14 می‌گوید هنگام اولین نفوذ needle، barrel سرنگ باید روی contralateral lower incisors باشد.
-دلیل رد گزینه ب: پس از چند میلی‌متر نفوذ، barrel به ناحیه contralateral premolar چرخانده می‌شود؛ نه در لحظه اول.
-دلیل رد گزینه ج: maxillary molars در تکنیک IAN block مرجع ذکر نشده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: شرح شکل 6.14 می‌گوید هنگام اولین نفوذ needle، barrel سرنگ باید روی contralateral lower incisors باشد.
+دلیل رد گزینه ب: پس از چند میلی‌متر نفوذ، barrel به ناحیه contralateral premolar چرخانده می‌شود؛ نه در لحظه اول.
+دلیل رد گزینه ج: maxillary molars در تکنیک IAN block مرجع ذکر نشده‌اند.
 دلیل رد گزینه د: hard palate کنار second molar مربوط به greater palatine است.',
                     ],
                     [
@@ -816,10 +816,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Topical benzocaine روی mucosa خشک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید وقتی هنگام luxation با وجود بی‌حسی ظاهری درد تیز باقی می‌ماند، به‌ویژه در pulpitis یا التهاب/عفونت، periodontal ligament injection مفید است و باید تحت فشار داده شود.
-دلیل رد گزینه ب: mental nerve block برای pulpal anesthesia قابل اعتماد نیست.
-دلیل رد گزینه ج: ورود به greater palatine foramen توصیه نشده و برای این موقعیت فک پایین/PDL مناسب نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید وقتی هنگام luxation با وجود بی‌حسی ظاهری درد تیز باقی می‌ماند، به‌ویژه در pulpitis یا التهاب/عفونت، periodontal ligament injection مفید است و باید تحت فشار داده شود.
+دلیل رد گزینه ب: mental nerve block برای pulpal anesthesia قابل اعتماد نیست.
+دلیل رد گزینه ج: ورود به greater palatine foramen توصیه نشده و برای این موقعیت فک پایین/PDL مناسب نیست.
 دلیل رد گزینه د: benzocaine ناراحتی ورود سوزن به مخاط را کم می‌کند، نه درد تیز هنگام luxation دندان.',
                     ],
                     [
@@ -831,10 +831,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Inferior alveolar و posterior superior alveolar nerve blocks',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: در caveats فصل آمده است که در نواحی دارای رگ‌های بزرگ‌تر باید aspiration انجام شود و این نکته برای inferior alveolar و posterior superior alveolar nerve blocks ذکر شده است.
-دلیل رد گزینه الف: این دو تزریق پالاتال در متن به‌عنوان نمونه‌های اصلی نیازمند aspiration به علت رگ‌های بزرگ‌تر ذکر نشده‌اند.
-دلیل رد گزینه ب: این تزریق‌ها از نظر محل و عمق با blocks ذکرشده متفاوت‌اند و در متن به‌عنوان موارد اصلی aspiration نیامده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: در caveats فصل آمده است که در نواحی دارای رگ‌های بزرگ‌تر باید aspiration انجام شود و این نکته برای inferior alveolar و posterior superior alveolar nerve blocks ذکر شده است.
+دلیل رد گزینه الف: این دو تزریق پالاتال در متن به‌عنوان نمونه‌های اصلی نیازمند aspiration به علت رگ‌های بزرگ‌تر ذکر نشده‌اند.
+دلیل رد گزینه ب: این تزریق‌ها از نظر محل و عمق با blocks ذکرشده متفاوت‌اند و در متن به‌عنوان موارد اصلی aspiration نیامده‌اند.
 دلیل رد گزینه ج: PDL injection و topical anesthesia در این بخش به عنوان هدف aspiration عروقی مطرح نشده‌اند.',
                     ],
                     [
@@ -846,10 +846,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'اتکا به احساس numbness گزارش‌شده بدون آزمون محرک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل تأکید می‌کند باید ناحیه مورد انتظار anesthesia برای تشخیص محرک دردناک آزمایش شود؛ پرسیدن numbness یا لمس لب کافی نیست.
-دلیل رد گزینه ب: متن می‌گوید لمس لب روش مناسب نیست، چون proprioception باقی می‌ماند.
-دلیل رد گزینه ج: onset بر اساس pharmacology و دقت deposition متفاوت است و باید زمان کافی داد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل تأکید می‌کند باید ناحیه مورد انتظار anesthesia برای تشخیص محرک دردناک آزمایش شود؛ پرسیدن numbness یا لمس لب کافی نیست.
+دلیل رد گزینه ب: متن می‌گوید لمس لب روش مناسب نیست، چون proprioception باقی می‌ماند.
+دلیل رد گزینه ج: onset بر اساس pharmacology و دقت deposition متفاوت است و باید زمان کافی داد.
 دلیل رد گزینه د: گزارش numbness معیار کافی برای profound anesthesia نیست.',
                     ],
                     [
@@ -861,10 +861,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تنها گذاشتن بیمار در recovery برای کاهش اضطراب',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل با وجود ایمنی N2O، informed consent را لازم می‌داند؛ همچنین vital signs و dose باید ثبت شوند و staff هنگام استفاده و دوره recovery حاضر باشد.
-دلیل رد گزینه الف: متن ثبت dose را مانند سایر داروها لازم می‌داند.
-دلیل رد گزینه ج: ایمن‌بودن N2O نیاز به informed consent را حذف نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل با وجود ایمنی N2O، informed consent را لازم می‌داند؛ همچنین vital signs و dose باید ثبت شوند و staff هنگام استفاده و دوره recovery حاضر باشد.
+دلیل رد گزینه الف: متن ثبت dose را مانند سایر داروها لازم می‌داند.
+دلیل رد گزینه ج: ایمن‌بودن N2O نیاز به informed consent را حذف نمی‌کند.
 دلیل رد گزینه د: حضور staff در زمان استفاده و recovery از caveats فصل است.',
                     ],
                     [
@@ -876,10 +876,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای ایجاد pulpal anesthesia اضافی و باید فوراً پس از تزریق برش زد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید در biopsy، infiltrating با LA حاوی vasoconstrictor اطراف محل می‌تواند bleeding را محدود کند و حدود ۷ دقیقه باید تا اثر hemostatic بهینه صبر کرد.
-دلیل رد گزینه ب: این اقدام جایگزین informed consent یا nitrous oxide نیست.
-دلیل رد گزینه ج: proprioception با LA حذف نمی‌شود و ۲۰ دقیقه در متن برای PDL procedure آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید در biopsy، infiltrating با LA حاوی vasoconstrictor اطراف محل می‌تواند bleeding را محدود کند و حدود ۷ دقیقه باید تا اثر hemostatic بهینه صبر کرد.
+دلیل رد گزینه ب: این اقدام جایگزین informed consent یا nitrous oxide نیست.
+دلیل رد گزینه ج: proprioception با LA حذف نمی‌شود و ۲۰ دقیقه در متن برای PDL procedure آمده است.
 دلیل رد گزینه د: هدف اصلی در این موقعیت hemostasis است، نه pulpal anesthesia؛ برش فوری هم با متن سازگار نیست.',
                     ],
                     [
@@ -891,10 +891,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون posterior superior alveolar nerve همیشه بافت پالاتال همه دندان‌ها را هم بی‌حس می‌کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل تصریح می‌کند در کنار بی‌حسی دندان‌ها، بافت palatal سمت عمل نیز باید بی‌حس شود و برای آن greater palatine infiltration یا infiltration مجاور دندان مطرح است.
-دلیل رد گزینه الف: palatal anesthesia جایگزین pulpal anesthesia نیست؛ هر دو در جای خود لازم‌اند.
-دلیل رد گزینه ج: nasopalatine nerve برای palatal/lingual soft tissue incisors و canines است؛ molars/premolars با greater palatine مرتبط‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل تصریح می‌کند در کنار بی‌حسی دندان‌ها، بافت palatal سمت عمل نیز باید بی‌حس شود و برای آن greater palatine infiltration یا infiltration مجاور دندان مطرح است.
+دلیل رد گزینه الف: palatal anesthesia جایگزین pulpal anesthesia نیست؛ هر دو در جای خود لازم‌اند.
+دلیل رد گزینه ج: nasopalatine nerve برای palatal/lingual soft tissue incisors و canines است؛ molars/premolars با greater palatine مرتبط‌اند.
 دلیل رد گزینه د: PSA طبق جدول بافت buccal molars را پوشش می‌دهد، نه بافت palatal.',
                     ],
                     [
@@ -906,10 +906,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'افزایش عمق نفوذ تا حد بلوک کامل عصب دندانی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید benzocaine روی مخاط خشک‌شده می‌تواند ناراحتی insertion سوزن را طی حدود ۶۰ ثانیه حذف کند، اما به اندازه کافی برای حذف ناراحتی deposition نفوذ نمی‌کند.
-دلیل رد گزینه ب: benzocaine جایگزین احتیاط‌های vasoconstrictor نیست.
-دلیل رد گزینه ج: متن صریحاً می‌گوید benzocaine برای حذف ناراحتی deposition عمق کافی ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید benzocaine روی مخاط خشک‌شده می‌تواند ناراحتی insertion سوزن را طی حدود ۶۰ ثانیه حذف کند، اما به اندازه کافی برای حذف ناراحتی deposition نفوذ نمی‌کند.
+دلیل رد گزینه ب: benzocaine جایگزین احتیاط‌های vasoconstrictor نیست.
+دلیل رد گزینه ج: متن صریحاً می‌گوید benzocaine برای حذف ناراحتی deposition عمق کافی ندارد.
 دلیل رد گزینه د: کارکرد آن topical anesthesia سطحی است، نه بلوک کامل عصب دندانی.',
                     ],
                     [
@@ -921,10 +921,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'قطع oxygen و ادامه N2O برای تقویت anxiolysis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید اگر در 30% احساسات بد باشند، درصد N2O به 25% کاهش یابد و پس از ۲ دقیقه درباره مثبت یا منفی بودن اثر پرسیده شود.
-دلیل رد گزینه ب: پروتکل بر query و titration مکرر تأکید دارد.
-دلیل رد گزینه ج: افزایش به 35% برای وقتی است که بیمار در 30% بی‌اثر یا اثر مثبت دارد، نه اثر بد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید اگر در 30% احساسات بد باشند، درصد N2O به 25% کاهش یابد و پس از ۲ دقیقه درباره مثبت یا منفی بودن اثر پرسیده شود.
+دلیل رد گزینه ب: پروتکل بر query و titration مکرر تأکید دارد.
+دلیل رد گزینه ج: افزایش به 35% برای وقتی است که بیمار در 30% بی‌اثر یا اثر مثبت دارد، نه اثر بد.
 دلیل رد گزینه د: N2O باید با oxygen مناسب داده شود و قطع oxygen توصیه نشده است.',
                     ],
                     [
@@ -936,10 +936,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون greater palatine nerve در transition zone فک پایین دخالت دارد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل ناحیه second premolar را نمونه transition می‌داند؛ buccal soft tissue عمدتاً از mental branch و نیز terminal branches long buccal innervation می‌گیرد، پس long buccal supplement مناسب است.
-دلیل رد گزینه الف: long buccal nerve در جدول دندان‌ها را عصب‌دهی نمی‌کند.
-دلیل رد گزینه ب: lingual nerve بافت لینگوال را پوشش می‌دهد، نه buccal soft tissue.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل ناحیه second premolar را نمونه transition می‌داند؛ buccal soft tissue عمدتاً از mental branch و نیز terminal branches long buccal innervation می‌گیرد، پس long buccal supplement مناسب است.
+دلیل رد گزینه الف: long buccal nerve در جدول دندان‌ها را عصب‌دهی نمی‌کند.
+دلیل رد گزینه ب: lingual nerve بافت لینگوال را پوشش می‌دهد، نه buccal soft tissue.
 دلیل رد گزینه د: greater palatine nerve مربوط به پالات فک بالاست.',
                     ],
                     [
@@ -951,10 +951,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نفوذ باید تا تماس با posterior maxillary wall ادامه یابد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: شرح شکل incisive nerve infiltration می‌گوید needle کمی lateral به incisive papilla وارد می‌شود، عمق ۲ تا ۳ میلی‌متر است و نباید وارد incisive canal شد.
-دلیل رد گزینه الف: متن و شکل صریحاً عدم تلاش برای ورود به incisive canal را ذکر می‌کنند.
-دلیل رد گزینه ج: چرخاندن barrel به premolars مقابل مربوط به IAN block است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: شرح شکل incisive nerve infiltration می‌گوید needle کمی lateral به incisive papilla وارد می‌شود، عمق ۲ تا ۳ میلی‌متر است و نباید وارد incisive canal شد.
+دلیل رد گزینه الف: متن و شکل صریحاً عدم تلاش برای ورود به incisive canal را ذکر می‌کنند.
+دلیل رد گزینه ج: چرخاندن barrel به premolars مقابل مربوط به IAN block است.
 دلیل رد گزینه د: posterior maxillary wall به PSA block مربوط است، نه incisive infiltration.',
                     ],
                     [
@@ -966,10 +966,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'مقدار داروی deposited و vascularity بافت در محل injection',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: متن می‌گوید duration تحت تأثیر مقدار drug deposited و vascularity ناحیه است؛ هرچه برداشت عروقی کمتر و مقدار دارو بیشتر باشد، مدت اثر طولانی‌تر می‌شود.
-دلیل رد گزینه الف: تعداد دندان‌ها به‌تنهایی عامل تعیین‌کننده duration در متن نیست.
-دلیل رد گزینه ب: نوع injection مهم است، اما فصل در این جمله مقدار دارو و vascularity را برجسته می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: متن می‌گوید duration تحت تأثیر مقدار drug deposited و vascularity ناحیه است؛ هرچه برداشت عروقی کمتر و مقدار دارو بیشتر باشد، مدت اثر طولانی‌تر می‌شود.
+دلیل رد گزینه الف: تعداد دندان‌ها به‌تنهایی عامل تعیین‌کننده duration در متن نیست.
+دلیل رد گزینه ب: نوع injection مهم است، اما فصل در این جمله مقدار دارو و vascularity را برجسته می‌کند.
 دلیل رد گزینه ج: proprioception باقی می‌ماند اما عامل مدت اثر LA معرفی نشده است.',
                     ],
                     [
@@ -981,10 +981,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'توضیح مناسب procedure، اطمینان از پیشگیری از sharp pain غیرمنتظره و بیان empathy؛ معمولاً بدون داروی اضافی جز LA',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل می‌گوید anxiety control معمولاً با explanation مناسب، reassurance و empathy شروع می‌شود و در mildly anxious patient با دندان‌پزشک caring، pharmacologic assistance جز LA معمولاً لازم نیست.
-دلیل رد گزینه الف: توضیح مناسب و reassurance توصیه شده، نه حذف توضیح.
-دلیل رد گزینه ب: IV sedation برای moderate تا severe anxiety و در صورت مهارت clinician مطرح است، نه همه بیماران خفیف.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل می‌گوید anxiety control معمولاً با explanation مناسب، reassurance و empathy شروع می‌شود و در mildly anxious patient با دندان‌پزشک caring، pharmacologic assistance جز LA معمولاً لازم نیست.
+دلیل رد گزینه الف: توضیح مناسب و reassurance توصیه شده، نه حذف توضیح.
+دلیل رد گزینه ب: IV sedation برای moderate تا severe anxiety و در صورت مهارت clinician مطرح است، نه همه بیماران خفیف.
 دلیل رد گزینه ج: N2O بالای ۵۰٪ طبق فصل باید اجتناب شود و titration لازم است.',
                     ],
                     [
@@ -996,10 +996,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ادامه 25% تا بیمار به اثر منفی عادت کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید اگر پس از کاهش به 25% همچنان اثر منفی باشد، ممکن است بیمار حتی low levels of N2O را تحمل نکند و تلاش برای inhalation sedation پایان می‌یابد.
-دلیل رد گزینه الف: 100% N2O خطرناک است و N2O باید با oxygen داده شود.
-دلیل رد گزینه ج: افزایش به 35% در اثر منفی توصیه نشده و جراحی بدون LA نیز با فصل ناسازگار است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید اگر پس از کاهش به 25% همچنان اثر منفی باشد، ممکن است بیمار حتی low levels of N2O را تحمل نکند و تلاش برای inhalation sedation پایان می‌یابد.
+دلیل رد گزینه الف: 100% N2O خطرناک است و N2O باید با oxygen داده شود.
+دلیل رد گزینه ج: افزایش به 35% در اثر منفی توصیه نشده و جراحی بدون LA نیز با فصل ناسازگار است.
 دلیل رد گزینه د: پروتکل عادت‌دادن به اثر منفی را پیشنهاد نمی‌کند.',
                     ],
                     [
@@ -1011,10 +1011,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حضور بیمار در وضعیت supine پس از تزریق',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید onset در oral surgery به نزدیکی محل deposition به target nerve هم وابسته است؛ هرچه فاصله انتشار کمتر باشد، onset سریع‌تر است.
-دلیل رد گزینه الف: قطر بزرگ‌تر needle برای onset سریع‌تر در متن ذکر نشده است.
-دلیل رد گزینه ج: کاهش oxygen به بحث nitrous oxide هم مربوط نیست و عامل onset LA نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید onset در oral surgery به نزدیکی محل deposition به target nerve هم وابسته است؛ هرچه فاصله انتشار کمتر باشد، onset سریع‌تر است.
+دلیل رد گزینه الف: قطر بزرگ‌تر needle برای onset سریع‌تر در متن ذکر نشده است.
+دلیل رد گزینه ج: کاهش oxygen به بحث nitrous oxide هم مربوط نیست و عامل onset LA نیست.
 دلیل رد گزینه د: وضعیت supine در این بخش عامل onset معرفی نشده است.',
                     ],
                     [
@@ -1026,10 +1026,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'از علائم depression و اثر anticonvulsant به وضعیت preconvulsant و احتمال convulsion',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل می‌گوید در سطح پایین‌ترِ toxic، LAها نشانه‌های CNS depression و خواص ضدتشنجی دارند؛ با افزایش غلظت سرمی، حالت preconvulsant و سپس convulsion ممکن است رخ دهد.
-دلیل رد گزینه الف: bradycardia درمانی و vasoconstriction پالپ در متن چنین ارتباطی ندارد.
-دلیل رد گزینه ب: اضطراب تزریق و proprioception به بحث سمیت CNS مربوط نیست.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل می‌گوید در سطح پایین‌ترِ toxic، LAها نشانه‌های CNS depression و خواص ضدتشنجی دارند؛ با افزایش غلظت سرمی، حالت preconvulsant و سپس convulsion ممکن است رخ دهد.
+دلیل رد گزینه الف: bradycardia درمانی و vasoconstriction پالپ در متن چنین ارتباطی ندارد.
+دلیل رد گزینه ب: اضطراب تزریق و proprioception به بحث سمیت CNS مربوط نیست.
 دلیل رد گزینه ج: convulsion فوری در همه سطوح toxic گفته نشده و analgesia طولانی‌مدت بحث جداگانه‌ای است.',
                     ],
                     [
@@ -1041,10 +1041,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'bupivacaine شب قبل و benzocaine صبح جراحی برای کنترل anxiety',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل diazepam را برای کمک به استراحت شب قبل و lorazepam را برای صبح جراحی مثال می‌زند و در این شرایط رانندگی توسط فردی غیر از بیمار را لازم می‌داند.
-دلیل رد گزینه الف: levonordefrin vasoconstrictor است و جایگزین sedative نیست.
-دلیل رد گزینه ج: متن midazolam را در بحث sedation دارویی/IV مثال می‌زند و همراه‌نداشتن با مصرف sedative صبحگاهی سازگار نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل diazepam را برای کمک به استراحت شب قبل و lorazepam را برای صبح جراحی مثال می‌زند و در این شرایط رانندگی توسط فردی غیر از بیمار را لازم می‌داند.
+دلیل رد گزینه الف: levonordefrin vasoconstrictor است و جایگزین sedative نیست.
+دلیل رد گزینه ج: متن midazolam را در بحث sedation دارویی/IV مثال می‌زند و همراه‌نداشتن با مصرف sedative صبحگاهی سازگار نیست.
 دلیل رد گزینه د: bupivacaine و benzocaine anesthetic هستند، نه برنامه oral sedation برای anxiety.',
                     ],
                     [
@@ -1056,10 +1056,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'needle کامل‌تر وارد شود تا foramen پیدا شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: شرح شکل می‌گوید در IAN block حدود دو سوم تا سه چهارم long needle باید داخل بافت باشد؛ اگر همه needle پیش از تماس با bone دفن شد، باید کمی withdraw و barrel بیشتر posterior شود.
-دلیل رد گزینه ب: greater palatine foramen به فک بالا مربوط است و مشکل مسیر IAN block را حل نمی‌کند.
-دلیل رد گزینه ج: حرکت anterior و تزریق فوری در متن توصیه نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: شرح شکل می‌گوید در IAN block حدود دو سوم تا سه چهارم long needle باید داخل بافت باشد؛ اگر همه needle پیش از تماس با bone دفن شد، باید کمی withdraw و barrel بیشتر posterior شود.
+دلیل رد گزینه ب: greater palatine foramen به فک بالا مربوط است و مشکل مسیر IAN block را حل نمی‌کند.
+دلیل رد گزینه ج: حرکت anterior و تزریق فوری در متن توصیه نشده است.
 دلیل رد گزینه د: پیش‌بردن کامل‌تر needle خلاف هشدار شکل است.',
                     ],
                     [
@@ -1071,10 +1071,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تبدیل اثر LA به preconvulsant state در غلظت درمانی',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در فصل آمده است که pulpal anesthesia حدود ۶۰ تا ۹۰ دقیقه پیش از soft tissue anesthesia از بین می‌رود؛ بنابراین بی‌حسی لب نشانه قطعی بی‌حسی پالپ نیست.
-دلیل رد گزینه الف: گزینه درباره مقایسه کلی روش‌هاست و سناریو مربوط به اختلاف مدت pulpal و soft tissue anesthesia است.
-دلیل رد گزینه ب: proprioception با LA حذف نمی‌شود و مسئله اصلی برگشت حس پالپ است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در فصل آمده است که pulpal anesthesia حدود ۶۰ تا ۹۰ دقیقه پیش از soft tissue anesthesia از بین می‌رود؛ بنابراین بی‌حسی لب نشانه قطعی بی‌حسی پالپ نیست.
+دلیل رد گزینه الف: گزینه درباره مقایسه کلی روش‌هاست و سناریو مربوط به اختلاف مدت pulpal و soft tissue anesthesia است.
+دلیل رد گزینه ب: proprioception با LA حذف نمی‌شود و مسئله اصلی برگشت حس پالپ است.
 دلیل رد گزینه د: preconvulsant state در toxic level بالاتر مطرح می‌شود، نه در وضعیت معمول بالینی با لب بی‌حس.',
                     ],
                     [
@@ -1086,10 +1086,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'needle برای کاهش آلودگی وارد incisive canal شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: یکی از caveats عمومی فصل این است که همیشه پیش از گذاشتن syringe، needle دوباره resheathe شود.
-دلیل رد گزینه الف: نگه‌داشتن سرنگ در دهان راهکار ایمنی ذکرشده نیست.
-دلیل رد گزینه ج: گذاشتن needle بدون cap خلاف توصیه ایمنی فصل است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: یکی از caveats عمومی فصل این است که همیشه پیش از گذاشتن syringe، needle دوباره resheathe شود.
+دلیل رد گزینه الف: نگه‌داشتن سرنگ در دهان راهکار ایمنی ذکرشده نیست.
+دلیل رد گزینه ج: گذاشتن needle بدون cap خلاف توصیه ایمنی فصل است.
 دلیل رد گزینه د: ورود به incisive canal در شکل‌ها توصیه نشده و ربطی به ایمنی گذاشتن سرنگ ندارد.',
                     ],
                     [
@@ -1101,10 +1101,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'قطع scavenging برای افزایش دریافت N2O',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید در چنین بیماران باید مطمئن شد mask درست fit شده و بیمار از بینی نفس می‌کشد؛ عموماً N2O بالای 50% باید اجتناب شود و بالای 40% mood پایش شود.
-دلیل رد گزینه ب: در سطوح بالای 40% باید mood پایش شود، نه حذف پایش.
-دلیل رد گزینه ج: افزایش خودکار به 70% با توصیه اجتناب از >50% ناسازگار است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید در چنین بیماران باید مطمئن شد mask درست fit شده و بیمار از بینی نفس می‌کشد؛ عموماً N2O بالای 50% باید اجتناب شود و بالای 40% mood پایش شود.
+دلیل رد گزینه ب: در سطوح بالای 40% باید mood پایش شود، نه حذف پایش.
+دلیل رد گزینه ج: افزایش خودکار به 70% با توصیه اجتناب از >50% ناسازگار است.
 دلیل رد گزینه د: scavenging برای کاهش N2O محیطی لازم است و قطع آن توصیه نشده است.',
                     ],
                     [
@@ -1116,10 +1116,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'الزام به افزایش N2O بالای 40% در همه بیماران',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل می‌گوید به‌ندرت بیماران تحت N2O دچار erotic delusions می‌شوند؛ بنابراین عضوی از جنس مخالف operating surgeon باید حاضر باشد.
-دلیل رد گزینه الف: pin index ارتباطی با جنسیت staff ندارد.
-دلیل رد گزینه ب: این موضوع به LA و مدت pulpal/soft tissue anesthesia مربوط است، نه N2O caveat.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل می‌گوید به‌ندرت بیماران تحت N2O دچار erotic delusions می‌شوند؛ بنابراین عضوی از جنس مخالف operating surgeon باید حاضر باشد.
+دلیل رد گزینه الف: pin index ارتباطی با جنسیت staff ندارد.
+دلیل رد گزینه ب: این موضوع به LA و مدت pulpal/soft tissue anesthesia مربوط است، نه N2O caveat.
 دلیل رد گزینه د: در سطوح بالای 40% پایش mood لازم است، نه افزایش اجباری.',
                     ],
                     [
@@ -1131,10 +1131,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'pH پایین‌تر برای کوتاه‌کردن مدت بی‌حسی و کاهش خون‌گیری موضعی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: سازندگان برای مهار اکسیداسیون vasoconstrictor، pH داروهای همراه با epinephrine را پایین می‌آورند و همین acidification می‌تواند سوزش تزریق ایجاد کند.
-دلیل رد گزینه الف: پایین‌آمدن pH برای نفوذ سدیم نیست و درد رسوب دارو را حذف نمی‌کند.
-دلیل رد گزینه ج: pH حدود ۶/۵ مربوط به LA بدون vasoconstrictor است، نه محلول حاوی epinephrine.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: سازندگان برای مهار اکسیداسیون vasoconstrictor، pH داروهای همراه با epinephrine را پایین می‌آورند و همین acidification می‌تواند سوزش تزریق ایجاد کند.
+دلیل رد گزینه الف: پایین‌آمدن pH برای نفوذ سدیم نیست و درد رسوب دارو را حذف نمی‌کند.
+دلیل رد گزینه ج: pH حدود ۶/۵ مربوط به LA بدون vasoconstrictor است، نه محلول حاوی epinephrine.
 دلیل رد گزینه د: vasoconstrictor مدت اثر را طولانی‌تر و hemostasis را بهتر می‌کند، نه اینکه مدت بی‌حسی را کوتاه کند.',
                     ],
                     [
@@ -1146,10 +1146,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'افزایش نفوذپذیری غشا برای ورود سریع سدیم به axoplasm',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: طبق فصل، Local anesthetic عمدتاً آستانه شلیک غشا را بالا می‌برد؛ بنابراین غشا در حالت پلاریزه باقی می‌ماند و پیام درد منتقل نمی‌شود.
-دلیل رد گزینه ب: تحریک گیرنده‌ها و دپلاریزاسیون خلاف هدف LA است و به ایجاد/انتشار ایمپالس نزدیک‌تر است.
-دلیل رد گزینه ج: اتصال به پروتئین در متن به تفاوت‌های فارماکولوژیک و مدت اثر داروها مربوط است، نه اثر اصلی مهاری.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: طبق فصل، Local anesthetic عمدتاً آستانه شلیک غشا را بالا می‌برد؛ بنابراین غشا در حالت پلاریزه باقی می‌ماند و پیام درد منتقل نمی‌شود.
+دلیل رد گزینه ب: تحریک گیرنده‌ها و دپلاریزاسیون خلاف هدف LA است و به ایجاد/انتشار ایمپالس نزدیک‌تر است.
+دلیل رد گزینه ج: اتصال به پروتئین در متن به تفاوت‌های فارماکولوژیک و مدت اثر داروها مربوط است، نه اثر اصلی مهاری.
 دلیل رد گزینه د: ورود سدیم به axoplasm بخشی از روند دپلاریزاسیون طبیعی عصب است، نه مکانیسم مهار توسط LA.',
                     ],
                     [
@@ -1161,10 +1161,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ورود به incisive canal برای بی‌حسی دندان‌های mandibular',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل توضیح می‌دهد نزدیک midline معمولاً crossover innervation از IAN سمت مقابل وجود دارد و bilateral IAN block در صورت اندیکاسیون بی‌خطر و قابل انجام است.
-دلیل رد گزینه ب: greater palatine infiltration مربوط به بافت پالاتال فک بالاست.
-دلیل رد گزینه ج: mental nerve block pulpal anesthesia قابل اعتماد نمی‌دهد و proprioception نیز حذف نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل توضیح می‌دهد نزدیک midline معمولاً crossover innervation از IAN سمت مقابل وجود دارد و bilateral IAN block در صورت اندیکاسیون بی‌خطر و قابل انجام است.
+دلیل رد گزینه ب: greater palatine infiltration مربوط به بافت پالاتال فک بالاست.
+دلیل رد گزینه ج: mental nerve block pulpal anesthesia قابل اعتماد نمی‌دهد و proprioception نیز حذف نمی‌شود.
 دلیل رد گزینه د: incisive canal مربوط به فک بالا/ناحیه پالاتال قدامی است.',
                     ],
                     [
@@ -1176,10 +1176,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'کاهش به حدود 32% یا 33% برای fine-tuning',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فصل می‌گوید اگر اثر مثبت قبلی در 35% به خوبی 30% نباشد، dentist می‌تواند N2O را به 32% یا 33% کاهش دهد تا اثر sedative تنظیم شود.
-دلیل رد گزینه الف: سطوح بالای 50% معمولاً باید اجتناب شود.
-دلیل رد گزینه ب: mental nerve block به sedation با N2O مربوط نیست و pulpal anesthesia قابل اعتماد هم نمی‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فصل می‌گوید اگر اثر مثبت قبلی در 35% به خوبی 30% نباشد، dentist می‌تواند N2O را به 32% یا 33% کاهش دهد تا اثر sedative تنظیم شود.
+دلیل رد گزینه الف: سطوح بالای 50% معمولاً باید اجتناب شود.
+دلیل رد گزینه ب: mental nerve block به sedation با N2O مربوط نیست و pulpal anesthesia قابل اعتماد هم نمی‌دهد.
 دلیل رد گزینه ج: در این حالت fine-tuning مطرح است، نه پایان قطعی.',
                     ],
                     [
@@ -1191,10 +1191,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در مرکز pterygomandibular raphe برای نزدیک‌شدن به apex',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن و شکل‌ها هدف maxillary infiltration را قرار دادن محلول نزدیک apex دندان می‌دانند؛ اکثر اپکس‌ها در عمق mucobuccal fold هستند و نفوذ اندک کافی است.
-دلیل رد گزینه ب: greater palatine foramen مربوط به بافت پالاتال خلفی است، نه بی‌حسی پالپی دندان‌های فک بالا.
-دلیل رد گزینه ج: ورود به incisive canal در متن برای incisive infiltration توصیه نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن و شکل‌ها هدف maxillary infiltration را قرار دادن محلول نزدیک apex دندان می‌دانند؛ اکثر اپکس‌ها در عمق mucobuccal fold هستند و نفوذ اندک کافی است.
+دلیل رد گزینه ب: greater palatine foramen مربوط به بافت پالاتال خلفی است، نه بی‌حسی پالپی دندان‌های فک بالا.
+دلیل رد گزینه ج: ورود به incisive canal در متن برای incisive infiltration توصیه نشده است.
 دلیل رد گزینه د: pterygomandibular raphe مرجع injection فک پایین است، نه maxillary infiltration.',
                     ],
                     [
@@ -1206,10 +1206,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'انتخاب فقط palatal infiltration برای soft tissue سمت باکال',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل توصیه می‌کند برای همه اعمال برنامه‌ریزی‌شده روی premolar یا molar فک پایین، long buccal block بخشی از رویکرد همراه IAN block باشد.
-دلیل رد گزینه الف: mental nerve block برای pulpal anesthesia قابل اعتماد معرفی نشده است.
-دلیل رد گزینه ب: بی‌حسی لب معیار کافی نیست و آزمون درد لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل توصیه می‌کند برای همه اعمال برنامه‌ریزی‌شده روی premolar یا molar فک پایین، long buccal block بخشی از رویکرد همراه IAN block باشد.
+دلیل رد گزینه الف: mental nerve block برای pulpal anesthesia قابل اعتماد معرفی نشده است.
+دلیل رد گزینه ب: بی‌حسی لب معیار کافی نیست و آزمون درد لازم است.
 دلیل رد گزینه د: palatal infiltration مربوط به فک بالا و بافت پالاتال است، نه سمت باکال فک پایین.',
                     ],
                     [
@@ -1221,10 +1221,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'منع کامل در تمام بارداری حتی با نظر obstetrician',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل احتیاط را اجتناب از N2O در trimester اول می‌داند و در trimesters بعدی راهنمایی obstetrician را لازم می‌شمارد.
-دلیل رد گزینه الف: غلظت بالای ۵۰٪ باید اجتناب شود و افزایش آن برای کاهش exposure توصیه نشده است.
-دلیل رد گزینه ب: ترکیب با O2 مجوز استفاده روتین در trimester اول نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل احتیاط را اجتناب از N2O در trimester اول می‌داند و در trimesters بعدی راهنمایی obstetrician را لازم می‌شمارد.
+دلیل رد گزینه الف: غلظت بالای ۵۰٪ باید اجتناب شود و افزایش آن برای کاهش exposure توصیه نشده است.
+دلیل رد گزینه ب: ترکیب با O2 مجوز استفاده روتین در trimester اول نیست.
 دلیل رد گزینه د: متن منع مطلق در تمام بارداری را بیان نمی‌کند.',
                     ],
                     [
@@ -1236,10 +1236,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'کنترل‌های O2 و N2O یا single dial همراه flowmeters',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: متن می‌گوید continuous-flow units ممکن است single dial برای mix یا knobهای جداگانه برای flow هر گاز داشته باشند و شکل نیز controls و flowmeters را نشان می‌دهد.
-دلیل رد گزینه الف: این‌ها landmarks آناتومیک تزریق پالاتال‌اند، نه اجزای unit.
-دلیل رد گزینه ب: benzocaine و bupivacaine داروهای anesthetic هستند، نه اجزای unit گاز.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: متن می‌گوید continuous-flow units ممکن است single dial برای mix یا knobهای جداگانه برای flow هر گاز داشته باشند و شکل نیز controls و flowmeters را نشان می‌دهد.
+دلیل رد گزینه الف: این‌ها landmarks آناتومیک تزریق پالاتال‌اند، نه اجزای unit.
+دلیل رد گزینه ب: benzocaine و bupivacaine داروهای anesthetic هستند، نه اجزای unit گاز.
 دلیل رد گزینه ج: این‌ها به تزریق و آناتومی فک پایین مربوط‌اند، نه کنترل gas mix.',
                     ],
                     [
@@ -1251,10 +1251,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'افزایش سرعت تزریق، حذف گفت‌وگو و فروبردن عمیق‌تر سوزن',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن کاهش سرعت تزریق، prewarming کارتریج و تکنیک‌های distraction مانند حرکت‌دادن بافت مجاور یا صحبت با بیمار را راه‌های کاهش درد تزریق معرفی می‌کند.
-دلیل رد گزینه الف: تزریق palatal به علت بافت متراکم‌تر ناراحت‌کننده‌تر است و فشار بیشتر درد ایجاد می‌کند.
-دلیل رد گزینه ب: این گزینه مربوط به ارزیابی عمق بی‌حسی است و روش کاهش درد تزریق نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن کاهش سرعت تزریق، prewarming کارتریج و تکنیک‌های distraction مانند حرکت‌دادن بافت مجاور یا صحبت با بیمار را راه‌های کاهش درد تزریق معرفی می‌کند.
+دلیل رد گزینه الف: تزریق palatal به علت بافت متراکم‌تر ناراحت‌کننده‌تر است و فشار بیشتر درد ایجاد می‌کند.
+دلیل رد گزینه ب: این گزینه مربوط به ارزیابی عمق بی‌حسی است و روش کاهش درد تزریق نیست.
 دلیل رد گزینه د: افزایش سرعت و کاهش ارتباط با بیمار با توصیه فصل ناسازگار است.',
                     ],
                 ],
@@ -1285,10 +1285,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'استفاده از No. 9 Molt به‌جای Seldin retractor',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: needle holder برای suturing طراحی شده و beak کوتاه، قوی و cross-hatched آن needle را مطمئن‌تر می‌گیرد؛ hemostat به‌علت beak بلندتر و grooves موازی کنترل کافی بر needle ندارد.
-رد ب: Adson و college pliers ابزارهای grasping یا برداشتن اجسام کوچک‌اند و مسئله اصلی لغزش needle در suturing نیست.
-رد ج: Dean scissors برای cutting suture است و جایگزین needle holder محسوب نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: needle holder برای suturing طراحی شده و beak کوتاه، قوی و cross-hatched آن needle را مطمئن‌تر می‌گیرد؛ hemostat به‌علت beak بلندتر و grooves موازی کنترل کافی بر needle ندارد.
+رد ب: Adson و college pliers ابزارهای grasping یا برداشتن اجسام کوچک‌اند و مسئله اصلی لغزش needle در suturing نیست.
+رد ج: Dean scissors برای cutting suture است و جایگزین needle holder محسوب نمی‌شود.
 رد د: No. 9 Molt و Seldin در elevation/retraction به‌کار می‌روند، نه گرفتن needle.',
                     ],
                     [
@@ -1300,10 +1300,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'کاهش توانایی ابزار برای گرفتن gauze pack',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: Weider tongue retractor پهن و دندانه‌دار است و اگر خیلی posterior قرار گیرد می‌تواند gagging ایجاد کند یا زبان را به oropharynx براند.
-رد الف: کندشدن blade مربوط به scalpel blade و تماس با hard tissue یا keratinized tissue است.
-رد ب: گیرکردن soft tissue در ساکشن به طراحی suction tip مربوط است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: Weider tongue retractor پهن و دندانه‌دار است و اگر خیلی posterior قرار گیرد می‌تواند gagging ایجاد کند یا زبان را به oropharynx براند.
+رد الف: کندشدن blade مربوط به scalpel blade و تماس با hard tissue یا keratinized tissue است.
+رد ب: گیرکردن soft tissue در ساکشن به طراحی suction tip مربوط است.
 رد د: گرفتن gauze pack بیشتر با college pliers انجام می‌شود.',
                     ],
                     [
@@ -1315,10 +1315,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No. 15 blade',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: No. 11 blade تیغه‌ای sharp-pointed است و برای small stab incisions مانند incising an abscess جهت drainage به‌کار می‌رود.
-رد الف: No. 10 blade بزرگ‌تر است و در متن برای large skin incisions در نواحی دیگر بدن آمده است.
-رد ج: No. 12 blade hooked است و برای mucogingival procedures در نواحی posterior teeth یا maxillary tuberosity مفید است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: No. 11 blade تیغه‌ای sharp-pointed است و برای small stab incisions مانند incising an abscess جهت drainage به‌کار می‌رود.
+رد الف: No. 10 blade بزرگ‌تر است و در متن برای large skin incisions در نواحی دیگر بدن آمده است.
+رد ج: No. 12 blade hooked است و برای mucogingival procedures در نواحی posterior teeth یا maxillary tuberosity مفید است.
 رد د: No. 15 blade شایع‌ترین تیغه intraoral است، اما کاربرد ویژه stab incision آبسه در متن برای No. 11 آمده است.',
                     ],
                     [
@@ -1330,10 +1330,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'bone file باید قبل از هر استفاده با mallet فعال شود.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: دندانه‌های بیشتر bone fileها طوری قرار گرفته‌اند که در pull stroke استخوان را برمی‌دارند؛ push stroke بیشتر موجب burnishing و crushing می‌شود.
-رد الف: bone file برای final smoothing است، نه برداشت حجیم استخوان.
-رد ب: خلاف متن است؛ مؤثر بودن بیشتر در pull stroke ذکر شده است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: دندانه‌های بیشتر bone fileها طوری قرار گرفته‌اند که در pull stroke استخوان را برمی‌دارند؛ push stroke بیشتر موجب burnishing و crushing می‌شود.
+رد الف: bone file برای final smoothing است، نه برداشت حجیم استخوان.
+رد ب: خلاف متن است؛ مؤثر بودن بیشتر در pull stroke ذکر شده است.
 رد د: mallet مربوط به chisel است، نه فعال‌کردن bone file.',
                     ],
                     [
@@ -1345,10 +1345,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'مناسب‌بودن برای ocular surgery، نیاز نداشتن به removal و مقاومت زیاد در برابر saliva',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن 3-0 black silk را به‌علت strength مناسب، polyfilament بودن و گره‌زنی آسان، تحمل خوب توسط soft tissues و رنگ قابل مشاهده هنگام suture removal رایج می‌داند.
-رد الف: 7-0 برای پوست conspicuous مثل face ذکر شده، و silk تک‌رشته‌ای یا resorbable سریع نیست.
-رد ج: جذب تا چهار هفته مربوط به synthetic resorbable sutures مانند polyglycolic/polylactic acid است، نه 3-0 black silk.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن 3-0 black silk را به‌علت strength مناسب، polyfilament بودن و گره‌زنی آسان، تحمل خوب توسط soft tissues و رنگ قابل مشاهده هنگام suture removal رایج می‌داند.
+رد الف: 7-0 برای پوست conspicuous مثل face ذکر شده، و silk تک‌رشته‌ای یا resorbable سریع نیست.
+رد ج: جذب تا چهار هفته مربوط به synthetic resorbable sutures مانند polyglycolic/polylactic acid است، نه 3-0 black silk.
 رد د: ocular surgery و عدم نیاز به removal با کاربرد معمول 3-0 black silk در مخاط دهان منطبق نیست.',
                     ],
                     [
@@ -1360,10 +1360,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'گرفتن blade با Adson forceps از ناحیه برنده، چرخاندن handle، انداختن blade روی groove',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: blade باید از noncutting reinforced edge با needle holder گرفته شود، male fitting handle رو به بالا باشد و blade آرام در groove لغزانده شود تا click کند.
-رد الف: گرفتن لبه برنده با انگشت و کشیدن به سمت بدن خطرناک و خلاف متن است.
-رد ج: فشار سریع و جهت‌گیری مبهم male fitting روش توصیه‌شده نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: blade باید از noncutting reinforced edge با needle holder گرفته شود، male fitting handle رو به بالا باشد و blade آرام در groove لغزانده شود تا click کند.
+رد الف: گرفتن لبه برنده با انگشت و کشیدن به سمت بدن خطرناک و خلاف متن است.
+رد ج: فشار سریع و جهت‌گیری مبهم male fitting روش توصیه‌شده نیست.
 رد د: Adson forceps و گرفتن ناحیه برنده برای loading blade در متن توصیه نشده‌اند.',
                     ],
                     [
@@ -1375,10 +1375,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'towel clip باید برای حفظ بازشدگی دهان به لب وصل شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: side-action یا Molt mouth prop با ratchet action می‌تواند فشار زیادی به teeth و TMJ وارد کند؛ در sedation عمیق یا trismus خفیف مفید است ولی باید با احتیاط استفاده شود.
-رد الف: bite block معمولاً روی teeth، به‌ویژه molar area، برای حمایت TMJ استفاده می‌شود و محدود به قدام نیست.
-رد ج: Weider retractor زبان را کنار می‌زند و mouth prop نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: side-action یا Molt mouth prop با ratchet action می‌تواند فشار زیادی به teeth و TMJ وارد کند؛ در sedation عمیق یا trismus خفیف مفید است ولی باید با احتیاط استفاده شود.
+رد الف: bite block معمولاً روی teeth، به‌ویژه molar area، برای حمایت TMJ استفاده می‌شود و محدود به قدام نیست.
+رد ج: Weider retractor زبان را کنار می‌زند و mouth prop نیست.
 رد د: towel clip برای drape یا کنترل زبان در شرایط خاص است، نه باز نگه‌داشتن دهان.',
                     ],
                     [
@@ -1390,10 +1390,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'قرار دادن سوراخ روی بافت نرم برای جلوگیری از جریان هوا',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در Fraser suction، هنگام cut کردن hard tissue با irrigation copious، سوراخ دسته پوشانده می‌شود تا محلول سریع‌تر تخلیه شود.
-رد الف: باز گذاشتن سوراخ در soft tissue suction برای جلوگیری از tissue injury یا obstruction مناسب است، نه hard tissue با irrigation فراوان.
-رد ج: stylet برای تمیزکردن tip هنگام گیر کردن bone/tooth particles است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در Fraser suction، هنگام cut کردن hard tissue با irrigation copious، سوراخ دسته پوشانده می‌شود تا محلول سریع‌تر تخلیه شود.
+رد الف: باز گذاشتن سوراخ در soft tissue suction برای جلوگیری از tissue injury یا obstruction مناسب است، نه hard tissue با irrigation فراوان.
+رد ج: stylet برای تمیزکردن tip هنگام گیر کردن bone/tooth particles است.
 رد د: قرار دادن سوراخ روی بافت نرم توصیف‌شده نیست.',
                     ],
                     [
@@ -1405,10 +1405,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'انتهای نوک‌تیز برای suturing، انتهای پهن برای قطع بخیه به‌کار می‌رود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: No. 9 Molt یک انتهای pointed برای شروع reflection و جداکردن dental papillae و یک انتهای broad/rounded برای ادامه elevation پریوست از bone دارد.
-رد الف: نقش دو انتها را برعکس بیان می‌کند.
-رد ج: No. 9 Molt علاوه بر retraction small flaps، periosteal elevator رایج است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: No. 9 Molt یک انتهای pointed برای شروع reflection و جداکردن dental papillae و یک انتهای broad/rounded برای ادامه elevation پریوست از bone دارد.
+رد الف: نقش دو انتها را برعکس بیان می‌کند.
+رد ج: No. 9 Molt علاوه بر retraction small flaps، periosteal elevator رایج است.
 رد د: این ابزار برای suturing یا قطع سوتور طراحی نشده است.',
                     ],
                     [
@@ -1420,10 +1420,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حفظ تیزی و سلامت ابزار به‌علت گران‌بودن و ظرافت آن',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: rongeur برای گرفتن و خارج‌کردن tooth طراحی نشده و استفاده از آن برای removal teeth ابزار را کند و خراب می‌کند و خطر افتادن tooth در throat را دارد.
-رد الف: متن توصیه می‌کند bone در multiple small bites برداشته شود.
-رد ب: side- and end-cutting rongeurs برای socket و sharp bone edges کاربرد دارند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: rongeur برای گرفتن و خارج‌کردن tooth طراحی نشده و استفاده از آن برای removal teeth ابزار را کند و خراب می‌کند و خطر افتادن tooth در throat را دارد.
+رد الف: متن توصیه می‌کند bone در multiple small bites برداشته شود.
+رد ب: side- and end-cutting rongeurs برای socket و sharp bone edges کاربرد دارند.
 رد د: مراقبت از تیزی و سلامت rongeur با متن هماهنگ است.',
                     ],
                     [
@@ -1435,10 +1435,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Stillies forceps',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Allis tissue forceps دارای locking handle و teeth است و برای گرفتن محکم بافتی که قرار است excise شود، مانند epulis fissurata، مناسب است.
-رد ب: Adson برای نگه‌داشتن ظریف بافت و suturing/dissection است، نه گرفتن محکم بافت بزرگ برای excision.
-رد ج: college pliers برای اجسام کوچک یا gauze کاربرد دارد و برای tissue handling قوی مناسب نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Allis tissue forceps دارای locking handle و teeth است و برای گرفتن محکم بافتی که قرار است excise شود، مانند epulis fissurata، مناسب است.
+رد ب: Adson برای نگه‌داشتن ظریف بافت و suturing/dissection است، نه گرفتن محکم بافت بزرگ برای excision.
+رد ج: college pliers برای اجسام کوچک یا gauze کاربرد دارد و برای tissue handling قوی مناسب نیست.
 رد د: Stillies نسخه بلندتر forceps برای خلف دهان است، اما ابزار قفل‌شونده دندانه‌دار مورد نظر نیست.',
                     ],
                     [
@@ -1450,10 +1450,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'باعث می‌شود irrigation به flutes burr نرسد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: handpiece جراحی باید کاملاً sterilizable باشد، سرعت و torque مناسب داشته باشد و air into operative field exhaust نکند؛ air exhaust می‌تواند به tissue planes برود و tissue emphysema خطرناک ایجاد کند.
-رد الف: مشکل اصلی torque بیش از حد نیست؛ surgical handpiece باید high speed and torque داشته باشد.
-رد ج: سازگاری با burrهای خاص علت منع high-speed air-turbine ترمیمی نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: handpiece جراحی باید کاملاً sterilizable باشد، سرعت و torque مناسب داشته باشد و air into operative field exhaust نکند؛ air exhaust می‌تواند به tissue planes برود و tissue emphysema خطرناک ایجاد کند.
+رد الف: مشکل اصلی torque بیش از حد نیست؛ surgical handpiece باید high speed and torque داشته باشد.
+رد ج: سازگاری با burrهای خاص علت منع high-speed air-turbine ترمیمی نیست.
 رد د: مشکل اصلی exhaust air و sterilizability است، نه صرفاً رسیدن irrigation.',
                     ],
                     [
@@ -1465,10 +1465,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'root-tip pick',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: periapical curette ابزار angled double-ended و spoon-shaped برای برداشتن granulomas یا small cysts از periapical lesions و soft tissue از bony cavities است.
-رد الف: متن تأکید می‌کند periapical curette از periodontal curette از نظر طراحی و عملکرد متفاوت است.
-رد ج: bone file برای smoothing استخوان است، نه برداشتن granuloma.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: periapical curette ابزار angled double-ended و spoon-shaped برای برداشتن granulomas یا small cysts از periapical lesions و soft tissue از bony cavities است.
+رد الف: متن تأکید می‌کند periapical curette از periodontal curette از نظر طراحی و عملکرد متفاوت است.
+رد ج: bone file برای smoothing استخوان است، نه برداشتن granuloma.
 رد د: root-tip pick برای teasing root tips است، نه soft tissue periapical lesion.',
                     ],
                     [
@@ -1480,10 +1480,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'curved hemostat',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: Dean scissors نوع رایج suture scissors در oral surgery است و cutting edges کوتاه و serrated blades دارد تا suture را آسان‌تر ببرد.
-رد الف: Iris scissors برای کار ظریف soft tissue است و نباید برای suture استفاده شود.
-رد ب: Metzenbaum برای undermining/cutting soft tissue است و cut کردن suture آن را کند می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: Dean scissors نوع رایج suture scissors در oral surgery است و cutting edges کوتاه و serrated blades دارد تا suture را آسان‌تر ببرد.
+رد الف: Iris scissors برای کار ظریف soft tissue است و نباید برای suture استفاده شود.
+رد ب: Metzenbaum برای undermining/cutting soft tissue است و cut کردن suture آن را کند می‌کند.
 رد د: hemostat ابزار clamp و grasping است، نه scissors.',
                     ],
                     [
@@ -1495,10 +1495,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'chromic gut در دهان به‌ندرت بیش از ۳ تا ۵ روز دوام دارد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: chromic gut با tanning solution یعنی chromic acid درمان شده و از plain gut طولانی‌تر باقی می‌ماند و در متن دوام آن تا حدود ۷ تا ۱۰ روز ذکر شده است.
-رد الف: plain gut معمولاً سریع جذب می‌شود و به‌ندرت بیش از ۳ تا ۵ روز می‌ماند.
-رد ج: polymer braided با resorption طولانی مربوط به synthetic resorbable sutures است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: chromic gut با tanning solution یعنی chromic acid درمان شده و از plain gut طولانی‌تر باقی می‌ماند و در متن دوام آن تا حدود ۷ تا ۱۰ روز ذکر شده است.
+رد الف: plain gut معمولاً سریع جذب می‌شود و به‌ندرت بیش از ۳ تا ۵ روز می‌ماند.
+رد ج: polymer braided با resorption طولانی مربوط به synthetic resorbable sutures است.
 رد د: دوام ۳ تا ۵ روز مربوط به plain gut است، نه chromic gut.',
                     ],
                     [
@@ -1510,10 +1510,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'باعث می‌شود tooth بدون expansion استخوانی از socket خارج شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: elevator قبل از forceps دندان را luxate می‌کند، extraction را آسان‌تر می‌کند، شکستگی crown/root/bone را کاهش می‌دهد و اگر root بشکند، خارج‌کردن آن را آسان‌تر می‌کند.
-رد الف: forceps همچنان باید با root structure تطابق داشته باشد.
-رد ج: irrigation هنگام burr/handpiece مسئله دیگری است و با luxation جایگزین نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: elevator قبل از forceps دندان را luxate می‌کند، extraction را آسان‌تر می‌کند، شکستگی crown/root/bone را کاهش می‌دهد و اگر root بشکند، خارج‌کردن آن را آسان‌تر می‌کند.
+رد الف: forceps همچنان باید با root structure تطابق داشته باشد.
+رد ج: irrigation هنگام burr/handpiece مسئله دیگری است و با luxation جایگزین نمی‌شود.
 رد د: elevators حتی می‌توانند alveolar bone را expand کنند؛ حذف کامل expansion هدف ذکرشده نیست.',
                     ],
                     [
@@ -1525,10 +1525,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نگه‌داشتن tissue شل تا blade بدون resistance حرکت کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: برای full-thickness mucoperiosteal incision، blade باید با فشار کافی از mucosa و periosteum در همان stroke عبور کند.
-رد الف: برش سطحی و جداکردن پریوست در مرحله جداگانه با توضیح متن هماهنگ نیست.
-رد ج: ابزار primary incision، scalpel است نه tissue scissors.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: برای full-thickness mucoperiosteal incision، blade باید با فشار کافی از mucosa و periosteum در همان stroke عبور کند.
+رد الف: برش سطحی و جداکردن پریوست در مرحله جداگانه با توضیح متن هماهنگ نیست.
+رد ج: ابزار primary incision، scalpel است نه tissue scissors.
 رد د: mobile tissue باید تحت tension ثابت شود تا blade بافت را قطع کند نه فقط جابه‌جا کند.',
                     ],
                     [
@@ -1540,10 +1540,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'به‌علت دندانه‌دار بودن، زبان را به سمت medial و anterior می‌کشند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Henahan و Seldin ممکن است شبیه periosteal elevator به‌نظر برسند، اما leading edge آن‌ها smooth است و معمولاً برای elevation mucoperiosteum استفاده نمی‌شوند.
-رد ب: sharp leading edge و شروع reflection مربوط به periosteal elevator، به‌ویژه No. 9 Molt، است.
-رد ج: برداشت interradicular bone مربوط به rongeur end-cutting است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Henahan و Seldin ممکن است شبیه periosteal elevator به‌نظر برسند، اما leading edge آن‌ها smooth است و معمولاً برای elevation mucoperiosteum استفاده نمی‌شوند.
+رد ب: sharp leading edge و شروع reflection مربوط به periosteal elevator، به‌ویژه No. 9 Molt، است.
+رد ج: برداشت interradicular bone مربوط به rongeur end-cutting است.
 رد د: serrated tongue retraction مربوط به Weider retractor است.',
                     ],
                     [
@@ -1555,10 +1555,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'tip آن triangular است و مسیر needle را lateral می‌برد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: hemostat beaks بلند و نازک با parallel grooves دارد و کنترل needle/suture را کم می‌کند؛ needle holder beak کوتاه، قوی و cross-hatched دارد.
-رد ب: hemostat locking handle دارد.
-رد ج: hemostat serrated blade برای cutting ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: hemostat beaks بلند و نازک با parallel grooves دارد و کنترل needle/suture را کم می‌کند؛ needle holder beak کوتاه، قوی و cross-hatched دارد.
+رد ب: hemostat locking handle دارد.
+رد ج: hemostat serrated blade برای cutting ندارد.
 رد د: triangular tip مربوط به cutting needle است، نه hemostat.',
                     ],
                     [
@@ -1570,10 +1570,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'bite block برای procedures طولانی نباید برداشته شود، چون muscle rest لازم نیست.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: bite block بلوک نرم rubber-like است که بیمار روی آن دندان‌ها را قرار می‌دهد؛ دهان در وضعیت راحت انتخاب‌شده توسط بیمار بدون effort باز می‌ماند و TMJ حمایت می‌شود.
-رد ب: ratchet action مربوط به side-action/Molt mouth prop است.
-رد ج: متن می‌گوید برای بیشتر بزرگسالان pediatric-sized bite block روی molar teeth کافی است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: bite block بلوک نرم rubber-like است که بیمار روی آن دندان‌ها را قرار می‌دهد؛ دهان در وضعیت راحت انتخاب‌شده توسط بیمار بدون effort باز می‌ماند و TMJ حمایت می‌شود.
+رد ب: ratchet action مربوط به side-action/Molt mouth prop است.
+رد ج: متن می‌گوید برای بیشتر بزرگسالان pediatric-sized bite block روی molar teeth کافی است.
 رد د: در procedures طولانی بهتر است prop گاهی برداشته شود تا بیمار jaw را حرکت دهد و muscles استراحت کنند.',
                     ],
                     [
@@ -1585,10 +1585,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'needle بزرگ مخصوص vascular surgery برای oral mucosa',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: برای oral mucosal incisions معمولاً small half-circle یا three-eighths-circle curved suture needle استفاده می‌شود و cutting needle با tip مثلثی از mucoperiosteum راحت‌تر عبور می‌کند.
-رد الف: straight needle در فضای محدود دهان مناسب نیست.
-رد ج: rounded/tapered needle برای delicate tissues مانند ocular یا vascular surgery آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: برای oral mucosal incisions معمولاً small half-circle یا three-eighths-circle curved suture needle استفاده می‌شود و cutting needle با tip مثلثی از mucoperiosteum راحت‌تر عبور می‌کند.
+رد الف: straight needle در فضای محدود دهان مناسب نیست.
+رد ج: rounded/tapered needle برای delicate tissues مانند ocular یا vascular surgery آمده است.
 رد د: needle بزرگ vascular برای oral mucosa ذکر نشده است.',
                     ],
                     [
@@ -1600,10 +1600,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای اتصال همزمان به irrigation syringe و hemostat',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: چند orifice در surgical suction tips از aspirated شدن soft tissue در suction hole و آسیب بافتی جلوگیری می‌کند.
-رد الف: air exhaust در operative field خطرناک و مربوط به handpiece نامناسب است.
-رد ج: irrigation برای کاهش heat buildup استفاده می‌شود، نه suction holes برای افزایش حرارت.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: چند orifice در surgical suction tips از aspirated شدن soft tissue در suction hole و آسیب بافتی جلوگیری می‌کند.
+رد الف: air exhaust در operative field خطرناک و مربوط به handpiece نامناسب است.
+رد ج: irrigation برای کاهش heat buildup استفاده می‌شود، نه suction holes برای افزایش حرارت.
 رد د: همزمانی با irrigation syringe و hemostat توصیف نشده است.',
                     ],
                     [
@@ -1615,10 +1615,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'blade پس از کندشدن برای برداشتن bone با rongeur جایگزین می‌شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: scalpel blades برای single-patient use هستند و با تماس با bone/teeth یا عبورهای تکراری از keratinized tissue کند می‌شوند؛ blade کند incision تمیز ایجاد نمی‌کند و باید تعویض شود.
-رد الف: متن خلاف آن را می‌گوید و تماس با hard tissue تیغه را کند می‌کند.
-رد ج: blade sharp برای clean, sharp incision لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: scalpel blades برای single-patient use هستند و با تماس با bone/teeth یا عبورهای تکراری از keratinized tissue کند می‌شوند؛ blade کند incision تمیز ایجاد نمی‌کند و باید تعویض شود.
+رد الف: متن خلاف آن را می‌گوید و تماس با hard tissue تیغه را کند می‌کند.
+رد ج: blade sharp برای clean, sharp incision لازم است.
 رد د: blade کند ابزار برداشت bone نیست و جایگزین rongeur نمی‌شود.',
                     ],
                     [
@@ -1630,10 +1630,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'curved hemostat: برش ظریف tissue با blade کوتاه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Iris scissors کوچک، نوک‌تیز و delicate هستند و برای fine work استفاده می‌شوند.
-رد ب: Metzenbaum scissors برای undermining soft tissue و cutting است، نه فقط suture.
-رد ج: Dean scissors برای cutting sutures است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Iris scissors کوچک، نوک‌تیز و delicate هستند و برای fine work استفاده می‌شوند.
+رد ب: Metzenbaum scissors برای undermining soft tissue و cutting است، نه فقط suture.
+رد ج: Dean scissors برای cutting sutures است.
 رد د: curved hemostat scissors نیست و برای clamp/grasping کاربرد دارد.',
                     ],
                     [
@@ -1645,10 +1645,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'فقط مدل blunt می‌تواند drape را نگه دارد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: towel clip drapes را نگه می‌دارد و ممکن است sharp یا blunt باشد؛ هنگام استفاده باید مراقب pinch شدن skin زیرین بیمار بود.
-رد الف: tissue emphysema مربوط به exhaust air از handpiece است.
-رد ج: locking handle برای حفظ موقعیت clip کمک‌کننده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: towel clip drapes را نگه می‌دارد و ممکن است sharp یا blunt باشد؛ هنگام استفاده باید مراقب pinch شدن skin زیرین بیمار بود.
+رد الف: tissue emphysema مربوط به exhaust air از handpiece است.
+رد ج: locking handle برای حفظ موقعیت clip کمک‌کننده است.
 رد د: مدل‌های sharp penetrating و blunt هر دو وجود دارند؛ فقط blunt نیست.',
                     ],
                     [
@@ -1660,10 +1660,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'جداکردن periodontal ligament از socket wall',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: bone file برای final smoothing small sharp edges یا spicules of bone به‌کار می‌رود.
-رد الف: برداشت مقدار زیاد bone با rongeur یا burr انجام می‌شود، نه bone file.
-رد ب: sectioning tooth با handpiece و burr انجام می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: bone file برای final smoothing small sharp edges یا spicules of bone به‌کار می‌رود.
+رد الف: برداشت مقدار زیاد bone با rongeur یا burr انجام می‌شود، نه bone file.
+رد ب: sectioning tooth با handpiece و burr انجام می‌شود.
 رد د: جداکردن periodontal ligament مربوط به periotome است.',
                     ],
                     [
@@ -1675,10 +1675,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Dean scissors همراه Metzenbaum scissors',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن برای removal bone در surgical removal of teeth، moderate-speed, high-torque sterilizable handpiece همراه sharp carbide burrs مانند No. 557، No. 703 یا No. 8 round را مطرح می‌کند.
-رد الف: high-speed air-turbine ترمیمی به‌دلیل air exhaust و مسائل sterilization مناسب نیست.
-رد ج: mouth prop و blade مجموعه برداشت bone با burr نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن برای removal bone در surgical removal of teeth، moderate-speed, high-torque sterilizable handpiece همراه sharp carbide burrs مانند No. 557، No. 703 یا No. 8 round را مطرح می‌کند.
+رد الف: high-speed air-turbine ترمیمی به‌دلیل air exhaust و مسائل sterilization مناسب نیست.
+رد ج: mouth prop و blade مجموعه برداشت bone با burr نیستند.
 رد د: Dean و Metzenbaum scissors به suturing/soft tissue مربوط‌اند نه removal bone.',
                     ],
                     [
@@ -1690,10 +1690,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برداشتن loose amalgam fragments',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: mallet and chisel به‌دلیل وجود handpieces کمتر لازم‌اند، اما گاهی برای برداشتن lingual tori به‌کار می‌روند.
-رد ب: cut کردن suture با suture scissors است.
-رد ج: گرفتن بافتی که باقی می‌ماند با Allis مناسب نیست و mallet/chisel هم برای آن نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: mallet and chisel به‌دلیل وجود handpieces کمتر لازم‌اند، اما گاهی برای برداشتن lingual tori به‌کار می‌روند.
+رد ب: cut کردن suture با suture scissors است.
+رد ج: گرفتن بافتی که باقی می‌ماند با Allis مناسب نیست و mallet/chisel هم برای آن نیست.
 رد د: برداشتن loose fragments با college pliers یا hemostat انجام می‌شود.',
                     ],
                     [
@@ -1705,10 +1705,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'curved hemostat',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Stillies forceps طولانی‌تر از Adson هستند، معمولاً ۷ تا ۹ اینچ، و برای grasping tissue در posterior mouth با کنترل کافی بیرون از lips استفاده می‌شوند.
-رد ب: Allis برای tissue excision با crushing نسبی و locking teeth است.
-رد ج: college pliers بیشتر برای اجسام کوچک و gauze است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Stillies forceps طولانی‌تر از Adson هستند، معمولاً ۷ تا ۹ اینچ، و برای grasping tissue در posterior mouth با کنترل کافی بیرون از lips استفاده می‌شوند.
+رد ب: Allis برای tissue excision با crushing نسبی و locking teeth است.
+رد ج: college pliers بیشتر برای اجسام کوچک و gauze است.
 رد د: hemostat برای خون‌ریزی و گرفتن اجسام کوچک/گرانولاسیون کاربرد دارد، نه نسخه بلندتر Adson.',
                     ],
                     [
@@ -1720,10 +1720,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Weider tongue retractor',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: college یا cotton pliers ابزار angled برای برداشتن loose fragments of tooth، amalgam یا foreign material و گذاشتن/برداشتن gauze packs است.
-رد الف: Adson برای gentle stabilization of soft tissue است.
-رد ج: Allis بافتی را که قرار است excise شود محکم می‌گیرد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: college یا cotton pliers ابزار angled برای برداشتن loose fragments of tooth، amalgam یا foreign material و گذاشتن/برداشتن gauze packs است.
+رد الف: Adson برای gentle stabilization of soft tissue است.
+رد ج: Allis بافتی را که قرار است excise شود محکم می‌گیرد.
 رد د: Weider برای retract کردن tongue است.',
                     ],
                     [
@@ -1735,10 +1735,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'tip آن با purchase point روی root قفل شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Austin و Minnesota retractors قبل از flap loosely در cheek نگه داشته می‌شوند و پس از reflection، edge روی bone قرار می‌گیرد تا flap retract شود.
-رد ب: periodontal ligament space محل ورود periotome یا root-tip pick است.
-رد ج: serrated surface برای Weider tongue retractor است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Austin و Minnesota retractors قبل از flap loosely در cheek نگه داشته می‌شوند و پس از reflection، edge روی bone قرار می‌گیرد تا flap retract شود.
+رد ب: periodontal ligament space محل ورود periotome یا root-tip pick است.
+رد ج: serrated surface برای Weider tongue retractor است.
 رد د: purchase point برای Crane pick روی root است.',
                     ],
                     [
@@ -1750,10 +1750,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'side-action mouth prop',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: mouth mirror شایع‌ترین ابزار برای retract کردن tongue در routine exodontia است و برای examination و indirect visualization نیز مفید است.
-رد ب: Minnesota cheek/flap retractor است.
-رد ج: bone file برای smoothing bone است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: mouth mirror شایع‌ترین ابزار برای retract کردن tongue در routine exodontia است و برای examination و indirect visualization نیز مفید است.
+رد ب: Minnesota cheek/flap retractor است.
+رد ج: bone file برای smoothing bone است.
 رد د: side-action mouth prop برای بازکردن دهان است، نه tongue retraction معمول.',
                     ],
                     [
@@ -1765,10 +1765,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'tissue plane بین mucosa و enamel قرار دارد و پرخون است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: tissue plane بین periosteum و bone نسبتاً bloodless و well-defined است و بعد از incision through periosteum باید به‌صورت single subperiosteal layer reflected شود.
-رد ب: rongeur برای bone cutting است، نه reflection پریوست.
-رد ج: ارتباطی با گرفتن سوزن ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: tissue plane بین periosteum و bone نسبتاً bloodless و well-defined است و بعد از incision through periosteum باید به‌صورت single subperiosteal layer reflected شود.
+رد ب: rongeur برای bone cutting است، نه reflection پریوست.
+رد ج: ارتباطی با گرفتن سوزن ندارد.
 رد د: plane صحیح بین periosteum و bone است، نه mucosa و enamel.',
                     ],
                     [
@@ -1780,10 +1780,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'جلوگیری از نیاز به rebound mechanism',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: side- and end-cutting rongeurs می‌توانند داخل sockets برای removal interradicular bone وارد شوند و sharp edges of bone را بردارند.
-رد ب: rongeur برای گرفتن tooth طراحی نشده است.
-رد ج: cutting suture با Dean scissors است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: side- and end-cutting rongeurs می‌توانند داخل sockets برای removal interradicular bone وارد شوند و sharp edges of bone را بردارند.
+رد ب: rongeur برای گرفتن tooth طراحی نشده است.
+رد ج: cutting suture با Dean scissors است.
 رد د: rebound mechanism مزیت rongeur است و حذف نمی‌شود.',
                     ],
                     [
@@ -1795,10 +1795,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'chromic gut و stainless steel: polyfilament؛ silk و polyglycolic acid: monofilament',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: silk، polyglycolic acid و polylactic acid braided/polyfilament هستند؛ plain/chromic gut، nylon و stainless steel monofilament هستند.
-رد ب: silk در متن polyfilament است، نه monofilament.
-رد ج: nylon monofilament است و silk polyfilament.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: silk، polyglycolic acid و polylactic acid braided/polyfilament هستند؛ plain/chromic gut، nylon و stainless steel monofilament هستند.
+رد ب: silk در متن polyfilament است، نه monofilament.
+رد ج: nylon monofilament است و silk polyfilament.
 رد د: chromic gut و stainless steel monofilament هستند، و silk/polyglycolic acid polyfilament.',
                     ],
                     [
@@ -1810,10 +1810,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             '0 کوچک‌تر از 5-0 است و برای ظریف‌ترین نواحی استفاده می‌شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: اندازه suture با تعداد صفرها بیان می‌شود؛ هرچه صفرها بیشتر باشد قطر کوچک‌تر است. برای oral mucosa معمولاً 3-0 رایج است.
-رد الف: 2-0 یا 0 از 3-0 بزرگ‌تر است، نه کوچک‌تر.
-رد ج: 7-0 برای نواحی conspicuous skin مثل face ذکر شده، نه suturing معمول oral mucosa.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: اندازه suture با تعداد صفرها بیان می‌شود؛ هرچه صفرها بیشتر باشد قطر کوچک‌تر است. برای oral mucosa معمولاً 3-0 رایج است.
+رد الف: 2-0 یا 0 از 3-0 بزرگ‌تر است، نه کوچک‌تر.
+رد ج: 7-0 برای نواحی conspicuous skin مثل face ذکر شده، نه suturing معمول oral mucosa.
 رد د: 0 بزرگ‌تر از 5-0 است، نه کوچک‌تر.',
                     ],
                     [
@@ -1825,10 +1825,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نگه‌داشتن mouth open با ratchet action',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: hemostat با long delicate beaks و locking handle می‌تواند vessel را clamp کند تا ligature یا cautery انجام شود.
-رد ب: عبور needle با needle holder انجام می‌شود.
-رد ج: برداشت bone با rongeur یا burr است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: hemostat با long delicate beaks و locking handle می‌تواند vessel را clamp کند تا ligature یا cautery انجام شود.
+رد ب: عبور needle با needle holder انجام می‌شود.
+رد ج: برداشت bone با rongeur یا burr است.
 رد د: ratchet mouth-opening مربوط به Molt mouth prop است.',
                     ],
                     [
@@ -1840,10 +1840,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'جایگزین‌کردن نیاز به suturing flap',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن: irrigation burr را خنک می‌کند، heat buildup را کم می‌کند، bone chips را از flutes می‌شوید، lubrication می‌دهد و در پایان surgical field را قبل از suturing پاک می‌کند؛ جایگزین suturing flap نیست.
-رد الف: خنک‌کردن burr از کارکردهای اصلی irrigation است.
-رد ب: شستن bone chips از flutes burr در متن آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن: irrigation burr را خنک می‌کند، heat buildup را کم می‌کند، bone chips را از flutes می‌شوید، lubrication می‌دهد و در پایان surgical field را قبل از suturing پاک می‌کند؛ جایگزین suturing flap نیست.
+رد الف: خنک‌کردن burr از کارکردهای اصلی irrigation است.
+رد ب: شستن bone chips از flutes burr در متن آمده است.
 رد ج: فراهم‌کردن lubrication نیز ذکر شده است.',
                     ],
                     [
@@ -1855,10 +1855,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'این scissors به‌علت serrated blade نخ را نمی‌برند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: tissue scissors مانند iris و Metzenbaum نباید برای sutures به‌کار روند، چون suture material blades را dull می‌کند و cutting tissue را less effective و traumaticتر می‌سازد.
-رد ب: pull/push stroke مربوط به bone file است.
-رد ج: tissue emphysema مربوط به handpiece با air exhaust است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: tissue scissors مانند iris و Metzenbaum نباید برای sutures به‌کار روند، چون suture material blades را dull می‌کند و cutting tissue را less effective و traumaticتر می‌سازد.
+رد ب: pull/push stroke مربوط به bone file است.
+رد ج: tissue emphysema مربوط به handpiece با air exhaust است.
 رد د: serrated blade برای Dean scissors کمک‌کننده است، نه علت منع tissue scissors.',
                     ],
                     [
@@ -1870,10 +1870,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در نقطه swage، تا suture material داخل beak قرار گیرد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: needle holder باید curved needle را حدود دو سوم فاصله از tip تا base بگیرد تا needle کافی برای عبور از tissue آزاد باشد و در بخش قوی خود گرفته شود؛ این کار از bending و dulling tip جلوگیری می‌کند.
-رد الف: گرفتن نزدیک tip بخش کافی برای عبور و کنترل مناسب نمی‌دهد و tip را در معرض آسیب قرار می‌دهد.
-رد ج: گرفتن در base کنترل مناسب مسیر needle را کم می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: needle holder باید curved needle را حدود دو سوم فاصله از tip تا base بگیرد تا needle کافی برای عبور از tissue آزاد باشد و در بخش قوی خود گرفته شود؛ این کار از bending و dulling tip جلوگیری می‌کند.
+رد الف: گرفتن نزدیک tip بخش کافی برای عبور و کنترل مناسب نمی‌دهد و tip را در معرض آسیب قرار می‌دهد.
+رد ج: گرفتن در base کنترل مناسب مسیر needle را کم می‌کند.
 رد د: نقطه swage محل اتصال suture است و محل توصیه‌شده برای grasping نیست.',
                     ],
                 ],
@@ -1904,10 +1904,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No. 65 forceps',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: No. 88 right/left forceps pointed beak بلندتر و accentuated دارد، برای maxillary molars با crowns بسیار carious مفید است چون deeper into trifurcation می‌رسد؛ اما می‌تواند crestal alveolar bone را crush کند و buccal bone را fracture کند.
-رد الف: No. 150A برای maxillary premolars است.
-رد ج: No. 210S برای maxillary second/third molars با single conical root مفید است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: No. 88 right/left forceps pointed beak بلندتر و accentuated دارد، برای maxillary molars با crowns بسیار carious مفید است چون deeper into trifurcation می‌رسد؛ اما می‌تواند crestal alveolar bone را crush کند و buccal bone را fracture کند.
+رد الف: No. 150A برای maxillary premolars است.
+رد ج: No. 210S برای maxillary second/third molars با single conical root مفید است.
 رد د: No. 65 بیشتر برای broken maxillary molar roots و narrow premolars/lower incisors است.',
                     ],
                     [
@@ -1919,10 +1919,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'hinge',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: blade همان working tip elevator است و force را به tooth، bone یا هر دو منتقل می‌کند.
-رد الف: handle برای گرفتن راحت و اعمال force کنترل‌شده است.
-رد ب: shank handle را به blade وصل و force را منتقل می‌کند، اما working tip نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: blade همان working tip elevator است و force را به tooth، bone یا هر دو منتقل می‌کند.
+رد الف: handle برای گرفتن راحت و اعمال force کنترل‌شده است.
+رد ب: shank handle را به blade وصل و force را منتقل می‌کند، اما working tip نیست.
 رد د: hinge جزء forceps است، نه elevator.',
                     ],
                     [
@@ -1934,10 +1934,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون mandibular forceps با palm underneath نگه داشته می‌شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: mandibular molars furcation در buccal و lingual دارند؛ بنابراین یک single-molar forceps برای دو سمت کافی است. در maxilla به‌علت وضعیت ریشه‌ها right/left molar forceps لازم است.
-رد الف: single conical root برای برخی maxillary second/third molars مطرح است، نه قاعده mandibular molars.
-رد ج: bayonet offset بیشتر برای maxillary molar forceps جهت دسترسی posterior است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: mandibular molars furcation در buccal و lingual دارند؛ بنابراین یک single-molar forceps برای دو سمت کافی است. در maxilla به‌علت وضعیت ریشه‌ها right/left molar forceps لازم است.
+رد الف: single conical root برای برخی maxillary second/third molars مطرح است، نه قاعده mandibular molars.
+رد ج: bayonet offset بیشتر برای maxillary molar forceps جهت دسترسی posterior است.
 رد د: palm positioning دلیل نیاز یا عدم نیاز به pair نیست.',
                     ],
                     [
@@ -1949,10 +1949,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برداشتن interradicular bone با end-cutting blades',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: periotome برای استخراج دندان با حفظ anatomy socket استفاده می‌شود؛ tip آن در PDL space قرار می‌گیرد، حدود ۲ تا ۳ میلی‌متر apically پیش می‌رود و در نقاط مجاور تکرار می‌شود تا periodontal ligaments sever شوند.
-رد ب: purchase point و buccal plate fulcrum مربوط به Crane pick است.
-رد ج: pointed beaks و squeeze کردن مربوط به cowhorn forceps است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: periotome برای استخراج دندان با حفظ anatomy socket استفاده می‌شود؛ tip آن در PDL space قرار می‌گیرد، حدود ۲ تا ۳ میلی‌متر apically پیش می‌رود و در نقاط مجاور تکرار می‌شود تا periodontal ligaments sever شوند.
+رد ب: purchase point و buccal plate fulcrum مربوط به Crane pick است.
+رد ج: pointed beaks و squeeze کردن مربوط به cowhorn forceps است.
 رد د: برداشت interradicular bone با end-cutting rongeur انجام می‌شود.',
                     ],
                     [
@@ -1964,10 +1964,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No. 150S forceps',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: No. 150A forceps modified version of No. 150 است، parallel beaks دارد که به هم نمی‌رسند و برای maxillary premolars مفید است، اما نباید برای incisors به‌کار رود.
-رد الف: No. 150 universal maxillary forceps است و beaks آن در tip به هم می‌رسند.
-رد ج: No. 1 برای maxillary incisors و canines استفاده می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: No. 150A forceps modified version of No. 150 است، parallel beaks دارد که به هم نمی‌رسند و برای maxillary premolars مفید است، اما نباید برای incisors به‌کار رود.
+رد الف: No. 150 universal maxillary forceps است و beaks آن در tip به هم می‌رسند.
+رد ج: No. 1 برای maxillary incisors و canines استفاده می‌شود.
 رد د: No. 150S نسخه کوچک No. 150 برای primary maxillary teeth است.',
                     ],
                     [
@@ -1979,10 +1979,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ایجاد purchase point سه‌میلی‌متری و اهرم‌کردن root با pick',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: cowhorn No. 87 دو beak سنگین و pointed دارد که وارد bifurcation lower molars می‌شوند؛ با squeeze کردن handles، buccal و lingual cortical plates به‌عنوان fulcrums عمل می‌کنند و tooth از socket خارج می‌شود.
-رد الف: blade مقعر در PDL space مربوط به straight elevator است.
-رد ج: palatal concave beak و buccal pointed beak مربوط به maxillary molar forceps مانند No. 53 است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: cowhorn No. 87 دو beak سنگین و pointed دارد که وارد bifurcation lower molars می‌شوند؛ با squeeze کردن handles، buccal و lingual cortical plates به‌عنوان fulcrums عمل می‌کنند و tooth از socket خارج می‌شود.
+رد الف: blade مقعر در PDL space مربوط به straight elevator است.
+رد ج: palatal concave beak و buccal pointed beak مربوط به maxillary molar forceps مانند No. 53 است.
 رد د: purchase point و pick مربوط به Crane pick است.',
                     ],
                     [
@@ -1994,10 +1994,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'cotton applicator sticks و irrigation syringe',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: basic extraction pack شامل ابزارهای پایه است و required forceps پس از بازشدن tray به آن اضافه می‌شود.
-رد ب: tissue scissors و Allis بیشتر در biopsy tray هستند.
-رد ج: handpiece، burr و rongeur در surgical extraction tray اضافه می‌شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: basic extraction pack شامل ابزارهای پایه است و required forceps پس از بازشدن tray به آن اضافه می‌شود.
+رد ب: tissue scissors و Allis بیشتر در biopsy tray هستند.
+رد ج: handpiece، burr و rongeur در surgical extraction tray اضافه می‌شوند.
 رد د: cotton applicators و irrigation syringe مربوط به postoperative tray هستند.',
                     ],
                     [
@@ -2009,10 +2009,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No. 65 با bayonet offset برای palatal root',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: small straight elevator No. 301 برای شروع luxation دندان erupted قبل از forceps به‌کار می‌رود و working side blade آن concave است و به سمت tooth قرار می‌گیرد.
-رد ب: root-tip pick نباید wheel-and-axle یا lever سنگین باشد.
-رد ج: No. 87 cowhorn forceps است، نه straight elevator.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: small straight elevator No. 301 برای شروع luxation دندان erupted قبل از forceps به‌کار می‌رود و working side blade آن concave است و به سمت tooth قرار می‌گیرد.
+رد ب: root-tip pick نباید wheel-and-axle یا lever سنگین باشد.
+رد ج: No. 87 cowhorn forceps است، نه straight elevator.
 رد د: No. 65 forceps برای broken roots و دندان‌های باریک است، نه elevator.',
                     ],
                     [
@@ -2024,10 +2024,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'beak mandibular معمولاً parallel با handle است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: beaks forceps برای adaptation به root structure نزدیک crown-root junction طراحی شده‌اند و نه برای گرفتن crown.
-رد الف: متن تأکید می‌کند beaks به root و نه crown تطابق می‌یابند.
-رد ج: width beak برای تطابق با incisor یا molar اهمیت دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: beaks forceps برای adaptation به root structure نزدیک crown-root junction طراحی شده‌اند و نه برای گرفتن crown.
+رد الف: متن تأکید می‌کند beaks به root و نه crown تطابق می‌یابند.
+رد ج: width beak برای تطابق با incisor یا molar اهمیت دارد.
 رد د: beaks mandibular معمولاً perpendicular to handles هستند، نه parallel.',
                     ],
                     [
@@ -2039,10 +2039,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'cowhorn forceps؛ گرفتن root tip با beaks سنگین و squeeze کردن',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: root-tip pick ابزار ظریف برای teasing small root tips از socket است و tip آن به PDL space بین root tip و socket wall وارد می‌شود؛ نباید مثل Cryer یا Crane pick به‌صورت wheel-and-axle یا lever سنگین استفاده شود.
-رد ب: Cryer elevator برای broken root با adjacent empty socket و wheel-and-axle است.
-رد ج: Crane pick معمولاً با purchase point و lever action کار می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: root-tip pick ابزار ظریف برای teasing small root tips از socket است و tip آن به PDL space بین root tip و socket wall وارد می‌شود؛ نباید مثل Cryer یا Crane pick به‌صورت wheel-and-axle یا lever سنگین استفاده شود.
+رد ب: Cryer elevator برای broken root با adjacent empty socket و wheel-and-axle است.
+رد ج: Crane pick معمولاً با purchase point و lever action کار می‌کند.
 رد د: cowhorn برای lower molar bifurcation است، نه small root tip.',
                     ],
                     [
@@ -2054,10 +2054,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'thumb باید همیشه دور و زیر handle قرار گیرد تا rotational force بیشتر شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: forceps maxillary با palm به side یا underneath forceps نگه داشته می‌شود تا beak به سمت superior هدایت شود.
-رد ب: palm روی forceps مربوط به mandibular teeth است.
-رد ج: hand عمودی مربوط به English-style vertical hinge است، نه همه موارد maxillary.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: forceps maxillary با palm به side یا underneath forceps نگه داشته می‌شود تا beak به سمت superior هدایت شود.
+رد ب: palm روی forceps مربوط به mandibular teeth است.
+رد ج: hand عمودی مربوط به English-style vertical hinge است، نه همه موارد maxillary.
 رد د: thumb around and under handle برای grip محکم‌تر و rotational force بیشتر در mandibular forceps ذکر شده، نه اصل وضعیت maxillary.',
                     ],
                     [
@@ -2069,10 +2069,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون برای primary teeth طراحی شده؛ No. 151S مناسب‌تر است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: No. 17 beaks pointed tips مرکزی برای نشستن در bifurcation lower molars دارند و برای fused conical roots مناسب نیستند؛ برای این حالت No. 151 استفاده می‌شود.
-رد ب: smooth narrow beaks توصیف No. 151 است، نه علت منع No. 17؛ No. 150A maxillary premolar است.
-رد ج: No. 88 maxillary molar forceps است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: No. 17 beaks pointed tips مرکزی برای نشستن در bifurcation lower molars دارند و برای fused conical roots مناسب نیستند؛ برای این حالت No. 151 استفاده می‌شود.
+رد ب: smooth narrow beaks توصیف No. 151 است، نه علت منع No. 17؛ No. 150A maxillary premolar است.
+رد ج: No. 88 maxillary molar forceps است.
 رد د: No. 17 primary forceps نیست و No. 151S برای primary mandibular teeth است.',
                     ],
                     [
@@ -2084,10 +2084,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'فقط نگهداری drape و باز نگه‌داشتن دهان',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: surgical extraction tray شامل basic tray plus ابزارهای لازم برای incision، flap reflection، removal of bone، sectioning teeth، root retrieval، wound debridement و suturing است.
-رد الف: irrigation و suture removal کار postoperative tray است.
-رد ج: examination و indirect visualization به mouth mirror/basic setup مربوط است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: surgical extraction tray شامل basic tray plus ابزارهای لازم برای incision، flap reflection، removal of bone، sectioning teeth، root retrieval، wound debridement و suturing است.
+رد الف: irrigation و suture removal کار postoperative tray است.
+رد ج: examination و indirect visualization به mouth mirror/basic setup مربوط است.
 رد د: drape holding و mouth opening فقط بخشی محدود از ابزارهاست و هدف tray surgical extraction نیست.',
                     ],
                     [
@@ -2099,10 +2099,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No. 34S straight elevator با beakهای paired left/right',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: triangular یا Cryer elevator برای root باقی‌مانده در socket با adjacent socket empty مناسب است؛ tip در socket قرار می‌گیرد، shank روی buccal plate است و با wheel-and-axle rotation root delivery انجام می‌شود.
-رد ب: root-tip pick برای teasing ریشه‌های کوچک است و force سنگین توصیه نشده است.
-رد ج: periotome handles برای squeeze ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: triangular یا Cryer elevator برای root باقی‌مانده در socket با adjacent socket empty مناسب است؛ tip در socket قرار می‌گیرد، shank روی buccal plate است و با wheel-and-axle rotation root delivery انجام می‌شود.
+رد ب: root-tip pick برای teasing ریشه‌های کوچک است و force سنگین توصیه نشده است.
+رد ج: periotome handles برای squeeze ندارد.
 رد د: No. 34S straight elevator paired left/right نیست.',
                     ],
                     [
@@ -2114,10 +2114,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No. 151A forceps',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: No. 65 forceps با beak بسیار narrow عمدتاً برای broken maxillary molar roots به‌کار می‌رود و همچنین می‌تواند برای narrow premolars و lower incisors استفاده شود.
-رد ب: No. 53R/L برای maxillary molars با trifurcation است.
-رد ج: No. 17 برای lower molars bifurcated است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: No. 65 forceps با beak بسیار narrow عمدتاً برای broken maxillary molar roots به‌کار می‌رود و همچنین می‌تواند برای narrow premolars و lower incisors استفاده شود.
+رد ب: No. 53R/L برای maxillary molars با trifurcation است.
+رد ج: No. 17 برای lower molars bifurcated است.
 رد د: No. 151A برای mandibular premolars است.',
                     ],
                     [
@@ -2129,10 +2129,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'مانع قرارگیری blade در posterior mouth می‌شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: crossbar یا T-bar handle می‌تواند force زیادی تولید کند و باید با احتیاط استفاده شود، چون امکان fracture teeth and bones وجود دارد.
-رد الف: force منتقل می‌شود؛ مشکل بیش از حد بودن force است.
-رد ج: این handle محدود به maxillary primary teeth نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: crossbar یا T-bar handle می‌تواند force زیادی تولید کند و باید با احتیاط استفاده شود، چون امکان fracture teeth and bones وجود دارد.
+رد الف: force منتقل می‌شود؛ مشکل بیش از حد بودن force است.
+رد ج: این handle محدود به maxillary primary teeth نیست.
 رد د: angled shank برای posterior access بحث دیگری است.',
                     ],
                     [
@@ -2144,10 +2144,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'primary maxillary forceps کوچک‌شده از No. 150',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: No. 151 lower universal forceps برای single-rooted mandibular teeth است؛ beaks به سمت inferior قرار دارند، smooth و narrow هستند و فقط در tip به هم می‌رسند.
-رد ب: این توصیف No. 150 maxillary universal است.
-رد ج: palatal concave و pointed buccal beak مربوط به maxillary molar forceps است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: No. 151 lower universal forceps برای single-rooted mandibular teeth است؛ beaks به سمت inferior قرار دارند، smooth و narrow هستند و فقط در tip به هم می‌رسند.
+رد ب: این توصیف No. 150 maxillary universal است.
+رد ج: palatal concave و pointed buccal beak مربوط به maxillary molar forceps است.
 رد د: primary maxillary forceps کوچک‌شده از No. 150 همان No. 150S است.',
                     ],
                     [
@@ -2159,10 +2159,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'فقط scissors، college pliers، irrigation syringe و suction tip دارد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: biopsy tray شامل basic tray minus elevators و ابزارهایی مانند blade handle/blade، needle holder and suture، suture scissors، tissue scissors، Allis، Adson و curved hemostat است تا soft tissue specimen برداشته و wound sutured شود.
-رد ب: اضافه شدن forceps بعد از بازکردن tray مربوط به basic extraction tray است.
-رد ج: handpiece، burr، rongeur و Cryer در surgical extraction tray هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: biopsy tray شامل basic tray minus elevators و ابزارهایی مانند blade handle/blade، needle holder and suture، suture scissors، tissue scissors، Allis، Adson و curved hemostat است تا soft tissue specimen برداشته و wound sutured شود.
+رد ب: اضافه شدن forceps بعد از بازکردن tray مربوط به basic extraction tray است.
+رد ج: handpiece، burr، rongeur و Cryer در surgical extraction tray هستند.
 رد د: این مجموعه postoperative tray را توصیف می‌کند.',
                     ],
                     [
@@ -2174,10 +2174,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No. 87 forceps',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: No. 53 right/left forceps رایج‌ترین maxillary molar forceps است؛ palatal beak smooth/concave و buccal beak pointed دارد که در buccal bifurcation می‌نشیند و offset است.
-رد ب: No. 210S برای single conical roots در maxillary second/third molars است.
-رد ج: No. 151 mandibular universal است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: No. 53 right/left forceps رایج‌ترین maxillary molar forceps است؛ palatal beak smooth/concave و buccal beak pointed دارد که در buccal bifurcation می‌نشیند و offset است.
+رد ب: No. 210S برای single conical roots در maxillary second/third molars است.
+رد ج: No. 151 mandibular universal است.
 رد د: No. 87 cowhorn برای lower molars است.',
                     ],
                     [
@@ -2189,10 +2189,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برداشتن soft tissue debris از socket',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: forceps ایده‌آل برای lift کردن teeth از socket پس از elevator luxation است، نه صرفاً pulling؛ همچنین در صورت استفاده درست به expand bone کمک می‌کند.
-رد الف: متن forceps را جایگزین elevator نمی‌داند.
-رد ج: severing PDL با periotome است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: forceps ایده‌آل برای lift کردن teeth از socket پس از elevator luxation است، نه صرفاً pulling؛ همچنین در صورت استفاده درست به expand bone کمک می‌کند.
+رد الف: متن forceps را جایگزین elevator نمی‌داند.
+رد ج: severing PDL با periotome است.
 رد د: برداشتن soft tissue debris با curette یا hemostat انجام می‌شود.',
                     ],
                     [
@@ -2204,10 +2204,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No. 17 forceps',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: No. 210S forceps beaks broad/smooth و offset دارد و برای maxillary second molars و erupted third molars با single conical root مفید است.
-رد ب: No. 88 برای maxillary molars با carious crowns و trifurcation مفید است، با ریسک crush/fracture bone.
-رد ج: No. 150A برای maxillary premolars است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: No. 210S forceps beaks broad/smooth و offset دارد و برای maxillary second molars و erupted third molars با single conical root مفید است.
+رد ب: No. 88 برای maxillary molars با carious crowns و trifurcation مفید است، با ریسک crush/fracture bone.
+رد ج: No. 150A برای maxillary premolars است.
 رد د: No. 17 برای mandibular molars bifurcated است.',
                     ],
                     [
@@ -2219,10 +2219,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'به‌دلیل نداشتن handle، کنترل آن مشابه periotome است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: English style vertical-hinge forceps می‌تواند great force ایجاد کند و اگر با care کافی استفاده نشود، incidence root fracture بیشتر می‌شود.
-رد الف: متن آن را force کم یا مخصوص primary teeth نمی‌داند.
-رد ج: English style vertical hinge دارد، نه horizontal hinge.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: English style vertical-hinge forceps می‌تواند great force ایجاد کند و اگر با care کافی استفاده نشود، incidence root fracture بیشتر می‌شود.
+رد الف: متن آن را force کم یا مخصوص primary teeth نمی‌داند.
+رد ج: English style vertical hinge دارد، نه horizontal hinge.
 رد د: handle و hinge دارد و مثل periotome نیست.',
                     ],
                     [
@@ -2234,10 +2234,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'پوشاندن سوراخ دسته برای افزایش suction هنگام cutting hard tissue',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Crane pick heavy instrument برای elevating broken root است؛ معمولاً purchase point حدود ۳ میلی‌متر در root نزدیک bony crest با burr ایجاد می‌شود و buccal plate به‌عنوان fulcrum به کار می‌رود.
-رد ب: این روش مربوط به root-tip pick است.
-رد ج: wheel-and-axle در socket مجاور خالی مربوط به Cryer elevator است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Crane pick heavy instrument برای elevating broken root است؛ معمولاً purchase point حدود ۳ میلی‌متر در root نزدیک bony crest با burr ایجاد می‌شود و buccal plate به‌عنوان fulcrum به کار می‌رود.
+رد ب: این روش مربوط به root-tip pick است.
+رد ج: wheel-and-axle در socket مجاور خالی مربوط به Cryer elevator است.
 رد د: پوشاندن سوراخ دسته مربوط به Fraser suction است.',
                     ],
                     [
@@ -2249,10 +2249,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'forceps primary mandibular با مقیاس کوچک‌شده از No. 151',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: No. 150 maxillary universal forceps برای single-rooted maxillary teeth است؛ از نمای side کمی S-shaped و از بالا تقریباً straight است و beaks فقط در tip به هم می‌رسند.
-رد ب: این توصیف به No. 17 lower molar forceps نزدیک است.
-رد ج: beak narrow برای broken roots مربوط به No. 65 است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: No. 150 maxillary universal forceps برای single-rooted maxillary teeth است؛ از نمای side کمی S-shaped و از بالا تقریباً straight است و beaks فقط در tip به هم می‌رسند.
+رد ب: این توصیف به No. 17 lower molar forceps نزدیک است.
+رد ج: beak narrow برای broken roots مربوط به No. 65 است.
 رد د: primary mandibular forceps کوچک‌شده از No. 151 همان No. 151S است.',
                     ],
                     [
@@ -2264,10 +2264,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'routine extraction؛ شامل anesthesia syringe، elevators و forceps داخل بسته از ابتدا',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: postoperative tray برای irrigation surgical site و removal of sutures است و معمولاً scissors، college pliers، irrigation syringe، cotton applicator sticks، gauze و suction tip دارد.
-رد ب: removal of bone و sectioning teeth مربوط به surgical extraction tray است.
-رد ج: biopsy tray ابزارهای soft tissue specimen مانند Allis و tissue scissors دارد، اما postoperative tray را توصیف نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: postoperative tray برای irrigation surgical site و removal of sutures است و معمولاً scissors، college pliers، irrigation syringe، cotton applicator sticks، gauze و suction tip دارد.
+رد ب: removal of bone و sectioning teeth مربوط به surgical extraction tray است.
+رد ج: biopsy tray ابزارهای soft tissue specimen مانند Allis و tissue scissors دارد، اما postoperative tray را توصیف نمی‌کند.
 رد د: basic extraction tray شامل anesthesia syringe و elevators است، و forceps پس از باز شدن افزوده می‌شود.',
                     ],
                     [
@@ -2279,10 +2279,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No. 210S forceps',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: No. 1 forceps برای maxillary incisors و canines استفاده می‌شود و برای upper incisors از No. 150 آسان‌تر است.
-رد ب: No. 151A برای mandibular premolars است.
-رد ج: No. 87 cowhorn برای lower molars است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: No. 1 forceps برای maxillary incisors و canines استفاده می‌شود و برای upper incisors از No. 150 آسان‌تر است.
+رد ب: No. 151A برای mandibular premolars است.
+رد ج: No. 87 cowhorn برای lower molars است.
 رد د: No. 210S برای maxillary molars با single conical root است.',
                     ],
                     [
@@ -2294,10 +2294,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'flat tray forceps را بعد از بازشدن نمی‌پذیرد ولی cassette می‌پذیرد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: instruments می‌توانند روی flat tray قرار گیرند، با sterilization paper wrapped و sterilized شوند؛ این سیستم به autoclave بزرگ نیاز دارد. Metal cassettes compactترند اما آن‌ها هم باید در sterilization paper پیچیده شوند.
-رد ب: cassette نیز نیاز به wrapping/sterilization دارد.
-رد ج: متن چنین تقسیم‌بندی‌ای برای نوع tray ذکر نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: instruments می‌توانند روی flat tray قرار گیرند، با sterilization paper wrapped و sterilized شوند؛ این سیستم به autoclave بزرگ نیاز دارد. Metal cassettes compactترند اما آن‌ها هم باید در sterilization paper پیچیده شوند.
+رد ب: cassette نیز نیاز به wrapping/sterilization دارد.
+رد ج: متن چنین تقسیم‌بندی‌ای برای نوع tray ذکر نمی‌کند.
 رد د: افزودن forceps پس از باز شدن tray به basic extraction tray مربوط است و مانع flat tray نیست.',
                     ],
                     [
@@ -2309,10 +2309,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون hinge عمودی آن root fracture را کم می‌کند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: No. 151A کمی برای mandibular premolar teeth modified شده و نباید برای other lower teeth استفاده شود، چون form آن مانع adaptation مناسب به roots می‌شود.
-رد ب: ورود beaks به bifurcation و squeeze کردن مربوط به cowhorn No. 87 است.
-رد ج: maxillary primary teeth با No. 150S خارج می‌شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: No. 151A کمی برای mandibular premolar teeth modified شده و نباید برای other lower teeth استفاده شود، چون form آن مانع adaptation مناسب به roots می‌شود.
+رد ب: ورود beaks به bifurcation و squeeze کردن مربوط به cowhorn No. 87 است.
+رد ج: maxillary primary teeth با No. 150S خارج می‌شوند.
 رد د: vertical hinge توصیف English style forceps است.',
                     ],
                     [
@@ -2324,10 +2324,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'هر دو حالت تطابق مشابهی با root structure دارند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: forceps با narrow beaks برای lower incisor روی lower molar inefficient است؛ broad molar forceps در فضای narrow lower incisor تطابق ندارد و می‌تواند adjacent teeth را آسیب بزند.
-رد ب: متن چنین برتری همیشگی برای narrow beak مطرح نمی‌کند.
-رد ج: serrated handle برای grip است و مانع maxillary placement نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: forceps با narrow beaks برای lower incisor روی lower molar inefficient است؛ broad molar forceps در فضای narrow lower incisor تطابق ندارد و می‌تواند adjacent teeth را آسیب بزند.
+رد ب: متن چنین برتری همیشگی برای narrow beak مطرح نمی‌کند.
+رد ج: serrated handle برای grip است و مانع maxillary placement نیست.
 رد د: متن تأکید می‌کند beak width در adaptation و outcome اثر دارد.',
                     ],
                     [
@@ -2339,10 +2339,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No. 65 forceps',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: No. 150S نسخه کوچک‌تر No. 150 است و برای all maxillary primary teeth به‌عنوان universal primary tooth forceps مناسب است.
-رد ب: No. 151S برای primary mandibular teeth است.
-رد ج: No. 210S برای maxillary second/third molars با single conical roots است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: No. 150S نسخه کوچک‌تر No. 150 است و برای all maxillary primary teeth به‌عنوان universal primary tooth forceps مناسب است.
+رد ب: No. 151S برای primary mandibular teeth است.
+رد ج: No. 210S برای maxillary second/third molars با single conical roots است.
 رد د: No. 65 root-tip forceps است.',
                     ],
                     [
@@ -2354,10 +2354,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'جداکردن periodontal ligament با حرکت apical',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: hinge در forceps مانند shank در elevator handles را به beak وصل می‌کند و force واردشده به handles را به beak منتقل و متمرکز می‌سازد.
-رد ب: تماس با root مربوط به beaks است.
-رد ج: purchase point برای Crane pick ایجاد می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: hinge در forceps مانند shank در elevator handles را به beak وصل می‌کند و force واردشده به handles را به beak منتقل و متمرکز می‌سازد.
+رد ب: تماس با root مربوط به beaks است.
+رد ج: purchase point برای Crane pick ایجاد می‌شود.
 رد د: جداسازی PDL با periotome انجام می‌شود.',
                     ],
                     [
@@ -2369,10 +2369,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'serrated surface برای retract کردن tongue',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Miller و Potts نمونه‌هایی از angled-shank elevators با blade مشابه straight elevator هستند و برای نواحی posterior mouth کاربرد دارند.
-رد ب: crossbar handle ویژگی force زیاد و نیاز به احتیاط دارد، نه مزیت Miller/Potts.
-رد ج: paired right/left beaks مربوط به maxillary molar forceps یا Cryer elevators در کاربرد دیگری است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Miller و Potts نمونه‌هایی از angled-shank elevators با blade مشابه straight elevator هستند و برای نواحی posterior mouth کاربرد دارند.
+رد ب: crossbar handle ویژگی force زیاد و نیاز به احتیاط دارد، نه مزیت Miller/Potts.
+رد ج: paired right/left beaks مربوط به maxillary molar forceps یا Cryer elevators در کاربرد دیگری است.
 رد د: serrated surface ویژگی Weider tongue retractor است.',
                     ],
                     [
@@ -2384,10 +2384,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No. 88 forceps',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: No. 151S همان design عمومی No. 151 را دارد اما scaled down است و برای all primary mandibular teeth کافی است.
-رد ب: No. 150S برای primary maxillary teeth است.
-رد ج: No. 150A برای maxillary premolars است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: No. 151S همان design عمومی No. 151 را دارد اما scaled down است و برای all primary mandibular teeth کافی است.
+رد ب: No. 150S برای primary maxillary teeth است.
+رد ج: No. 150A برای maxillary premolars است.
 رد د: No. 88 maxillary molar forceps است.',
                     ],
                     [
@@ -2399,10 +2399,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون No. 88 forceps همه premolarها را با beak نوک‌دار می‌گیرد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: maxillary first premolar گاه bifurcated root دارد، اما چون این bifurcation در apical third است، بر forceps design اثر ندارد.
-رد ب: premolars سه‌ریشه‌ای در متن مطرح نشده‌اند.
-رد ج: forceps برای root و نه crown طراحی می‌شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: maxillary first premolar گاه bifurcated root دارد، اما چون این bifurcation در apical third است، بر forceps design اثر ندارد.
+رد ب: premolars سه‌ریشه‌ای در متن مطرح نشده‌اند.
+رد ج: forceps برای root و نه crown طراحی می‌شوند.
 رد د: No. 88 برای maxillary molars با carious crowns است، نه premolars.',
                     ],
                     [
@@ -2414,10 +2414,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'با No. 17 forceps در تمام دندان‌ها، حتی roots conical',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: پس از severance کافی PDL با periotome، tooth با elevator، extraction forceps یا هر دو خارج می‌شود و باید از expansion/fracture بیش از حد bone اجتناب شود.
-رد ب: rongeur برای خارج‌کردن tooth استفاده نمی‌شود.
-رد ج: tissue scissors ابزار خارج‌کردن tooth نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: پس از severance کافی PDL با periotome، tooth با elevator، extraction forceps یا هر دو خارج می‌شود و باید از expansion/fracture بیش از حد bone اجتناب شود.
+رد ب: rongeur برای خارج‌کردن tooth استفاده نمی‌شود.
+رد ج: tissue scissors ابزار خارج‌کردن tooth نیست.
 رد د: No. 17 برای lower molars با bifurcation مناسب است و برای همه دندان‌ها یا conical roots مناسب نیست.',
                     ],
                     [
@@ -2429,10 +2429,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای استریل‌شدن بدون wrapping',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: handles forceps معمولاً serrated هستند تا positive grip فراهم کنند و از slippage جلوگیری شود.
-رد ب: cut کردن PDL با periotome انجام می‌شود، نه handle forceps.
-رد ج: قرار گرفتن در bifurcation مربوط به beaks، مانند cowhorn یا molar forceps است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: handles forceps معمولاً serrated هستند تا positive grip فراهم کنند و از slippage جلوگیری شود.
+رد ب: cut کردن PDL با periotome انجام می‌شود، نه handle forceps.
+رد ج: قرار گرفتن در bifurcation مربوط به beaks، مانند cowhorn یا molar forceps است.
 رد د: serration به sterilization بدون wrapping مربوط نیست.',
                     ],
                     [
@@ -2444,10 +2444,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تا نیاز به elevator پیش از forceps از بین برود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: beaks forceps زاویه‌دار طراحی می‌شوند تا parallel با long axis tooth قرار گیرند در حالی که handle در موقعیت راحت و controlled باشد؛ maxillary molar forceps به‌صورت bayonet offset و mandibular forceps معمولاً perpendicular to handle هستند.
-رد ب: beaks برای root structure هستند، نه crown.
-رد ج: زاویه beak همان تغییر hinge style نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: beaks forceps زاویه‌دار طراحی می‌شوند تا parallel با long axis tooth قرار گیرند در حالی که handle در موقعیت راحت و controlled باشد؛ maxillary molar forceps به‌صورت bayonet offset و mandibular forceps معمولاً perpendicular to handle هستند.
+رد ب: beaks برای root structure هستند، نه crown.
+رد ج: زاویه beak همان تغییر hinge style نیست.
 رد د: elevator قبل از forceps همچنان برای luxation مفید است.',
                     ],
                     [
@@ -2459,10 +2459,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'استفاده از towel clip برای گرفتن root',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: larger straight elevators برای displacing roots from sockets یا luxating teeth with wider spacing و زمانی که straight elevator کوچک کمتر مؤثر می‌شود استفاده می‌شوند؛ No. 34S شایع‌ترین large straight elevator است.
-رد ب: No. 150S forceps primary maxillary است.
-رد ج: tissue scissors ابزار بازکردن socket یا luxation نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: larger straight elevators برای displacing roots from sockets یا luxating teeth with wider spacing و زمانی که straight elevator کوچک کمتر مؤثر می‌شود استفاده می‌شوند؛ No. 34S شایع‌ترین large straight elevator است.
+رد ب: No. 150S forceps primary maxillary است.
+رد ج: tissue scissors ابزار بازکردن socket یا luxation نیست.
 رد د: towel clip برای drape یا کنترل زبان در شرایط خاص است، نه root removal.',
                     ],
                     [
@@ -2474,10 +2474,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'یکسان‌سازی beakها برای single، two و three-rooted teeth',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: forceps در سبک‌ها و configurations متعدد ساخته شده‌اند تا با انواع teeth و نیز individual operator preferences هماهنگ شوند.
-رد ب: forceps جایگزین کامل elevators در همه مراحل نیستند.
-رد ج: tray systems و sterilization موضوع جداگانه‌ای است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: forceps در سبک‌ها و configurations متعدد ساخته شده‌اند تا با انواع teeth و نیز individual operator preferences هماهنگ شوند.
+رد ب: forceps جایگزین کامل elevators در همه مراحل نیستند.
+رد ج: tray systems و sterilization موضوع جداگانه‌ای است.
 رد د: متن بر تفاوت beaks برای single-, two- و three-rooted teeth تأکید می‌کند، نه یکسان‌سازی.',
                     ],
                     [
@@ -2489,10 +2489,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'کندشدن blade به‌علت تماس با keratinized tissue',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: cowhorn forceps اگر به‌درستی کنترل نشود، مانند English style forceps می‌تواند untoward effects مثل fracture of alveolar bone یا damage to maxillary teeth هنگام خروج molar از socket ایجاد کند.
-رد ب: wicking مربوط به polyfilament sutures است، نه forceps beaks.
-رد ج: tissue emphysema مربوط به air exhaust از handpiece نامناسب است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: cowhorn forceps اگر به‌درستی کنترل نشود، مانند English style forceps می‌تواند untoward effects مثل fracture of alveolar bone یا damage to maxillary teeth هنگام خروج molar از socket ایجاد کند.
+رد ب: wicking مربوط به polyfilament sutures است، نه forceps beaks.
+رد ج: tissue emphysema مربوط به air exhaust از handpiece نامناسب است.
 رد د: کندشدن blade مربوط به scalpel blade در تماس با hard/keratinized tissue است.',
                     ],
                 ],
@@ -2523,10 +2523,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'کشیدن دندان مقابل بدون ارزیابی دندان نهفته، چون منبع اصلی مشکل همان دندان مقابل است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در فصل، برای pericoronitis شدید، irrigation، درمان بافت نرم و در صورت لزوم برداشتن maxillary third molar برای رفع impingement قبل از کشیدن توصیه شده است.
-دلیل رد گزینه الف: acute dentoalveolar abscess منع extraction نیست، اما severe pericoronitis برای mandibular third molar باید ابتدا درمان شود.
-دلیل رد گزینه ج: آنتی‌بیوتیک ممکن است توسط بعضی clinicians داده شود، اما جایگزین ارزیابی و درمان علت مکانیکی نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در فصل، برای pericoronitis شدید، irrigation، درمان بافت نرم و در صورت لزوم برداشتن maxillary third molar برای رفع impingement قبل از کشیدن توصیه شده است.
+دلیل رد گزینه الف: acute dentoalveolar abscess منع extraction نیست، اما severe pericoronitis برای mandibular third molar باید ابتدا درمان شود.
+دلیل رد گزینه ج: آنتی‌بیوتیک ممکن است توسط بعضی clinicians داده شود، اما جایگزین ارزیابی و درمان علت مکانیکی نیست.
 دلیل رد گزینه د: کشیدن دندان مقابل فقط وقتی لازم است که impingement روی بافت نرم را ایجاد کند؛ به‌تنهایی تصمیم قطعی نیست.',
                     ],
                     [
@@ -2538,10 +2538,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'صندلی بسیار بالا تا اپراتور با انگشتان و مچ نیرو را دقیق‌تر وارد کند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: متن فصل این وضعیت را برای فک بالا توصیه می‌کند تا بازو نزدیک بدن، مچ نسبتاً مستقیم و کنترل نیرو مناسب باشد.
-دلیل رد گزینه الف: برای فک بالا صندلی باید به عقب خم شود؛ upright بودن کنترل و دید مناسب نمی‌دهد.
-دلیل رد گزینه ج: موازی بودن occlusal plane با کف مربوط به mandibular extraction هنگام باز بودن دهان است، نه maxillary extraction.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: متن فصل این وضعیت را برای فک بالا توصیه می‌کند تا بازو نزدیک بدن، مچ نسبتاً مستقیم و کنترل نیرو مناسب باشد.
+دلیل رد گزینه الف: برای فک بالا صندلی باید به عقب خم شود؛ upright بودن کنترل و دید مناسب نمی‌دهد.
+دلیل رد گزینه ج: موازی بودن occlusal plane با کف مربوط به mandibular extraction هنگام باز بودن دهان است، نه maxillary extraction.
 دلیل رد گزینه د: بالا بودن بیش از حد صندلی خطای شایع است و باعث بالا رفتن شانه و کاهش کنترل نیرو می‌شود.',
                     ],
                     [
@@ -2553,10 +2553,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'condensing osteitis که extraction را آسان‌تر می‌کند.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در premolarهای mandibular باید محل mental foramen مشخص باشد تا هنگام flap احتمالی به mental nerve آسیب نرسد.
-دلیل رد گزینه الف: فصل تأکید می‌کند radiolucency در apex premolar می‌تواند mental foramen باشد؛ curettage بی‌مورد خطرناک است.
-دلیل رد گزینه ب: نبودن lamina dura سالم در ضایعه پاتولوژیک مهم است؛ در مثال فصل، lamina dura سالم به نفع mental foramen است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در premolarهای mandibular باید محل mental foramen مشخص باشد تا هنگام flap احتمالی به mental nerve آسیب نرسد.
+دلیل رد گزینه الف: فصل تأکید می‌کند radiolucency در apex premolar می‌تواند mental foramen باشد؛ curettage بی‌مورد خطرناک است.
+دلیل رد گزینه ب: نبودن lamina dura سالم در ضایعه پاتولوژیک مهم است؛ در مثال فصل، lamina dura سالم به نفع mental foramen است.
 دلیل رد گزینه د: condensing osteitis رادیواُپاک است، نه radiolucent، و معمولاً extraction را دشوارتر می‌کند.',
                     ],
                     [
@@ -2568,10 +2568,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وقتی دندان داخل ضایعه است، حتی اگر حفظ آن removal ضایعه را مختل نکند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در فصل، دندان مرتبط با ضایعه زمانی باید کشیده شود که حفظ آن complete surgical removal را در جایی که critical است، مختل کند.
-دلیل رد گزینه ب: برخی دندان‌ها با endodontic therapy قابل نگهداری‌اند؛ radiolucency به‌تنهایی معیار مطلق نیست.
-دلیل رد گزینه ج: صرف ارتباط مکانی با lesion کافی نیست و باید امکان حفظ دندان و ضرورت برداشت کامل سنجیده شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در فصل، دندان مرتبط با ضایعه زمانی باید کشیده شود که حفظ آن complete surgical removal را در جایی که critical است، مختل کند.
+دلیل رد گزینه ب: برخی دندان‌ها با endodontic therapy قابل نگهداری‌اند؛ radiolucency به‌تنهایی معیار مطلق نیست.
+دلیل رد گزینه ج: صرف ارتباط مکانی با lesion کافی نیست و باید امکان حفظ دندان و ضرورت برداشت کامل سنجیده شود.
 دلیل رد گزینه د: اگر حفظ دندان با برداشت ضایعه تعارض نداشته باشد، فصل extraction را الزام نمی‌داند.',
                     ],
                     [
@@ -2583,10 +2583,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'استفاده از فشار rotational شدید، چون تاج شکننده است و باید زود آزاد شود.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در تاج‌های ضعیف، forceps باید تا حد امکان apical قرار گیرد تا بخش سالم ریشه گرفته شود.
-دلیل رد گزینه الف: ترمیم بزرگ و تاج carious با نیروی forceps مستعد fracture است و نباید تکیه‌گاه اصلی باشد.
-دلیل رد گزینه ب: فصل بر elevation بیشتر و grasp آپیکالی تأکید می‌کند، نه traction زودهنگام.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در تاج‌های ضعیف، forceps باید تا حد امکان apical قرار گیرد تا بخش سالم ریشه گرفته شود.
+دلیل رد گزینه الف: ترمیم بزرگ و تاج carious با نیروی forceps مستعد fracture است و نباید تکیه‌گاه اصلی باشد.
+دلیل رد گزینه ب: فصل بر elevation بیشتر و grasp آپیکالی تأکید می‌کند، نه traction زودهنگام.
 دلیل رد گزینه د: rotational force شدید در ریشه‌های نامناسب یا شکننده خطر شکستگی را افزایش می‌دهد.',
                     ],
                     [
@@ -2598,10 +2598,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'traction؛ چون tooth از همان ابتدا از socket کشیده می‌شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل توضیح می‌دهد tips باریک forceps در PDL space مانند wedge عمل کرده و alveolar bone را گسترش می‌دهند.
-دلیل رد گزینه الف: lever بیشتر درباره elevator مانند Crane pick در purchase point توضیح داده شده است.
-دلیل رد گزینه ج: wheel and axle مربوط به triangular/Cryer elevator برای ریشه باقی‌مانده است، نه beak forceps.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل توضیح می‌دهد tips باریک forceps در PDL space مانند wedge عمل کرده و alveolar bone را گسترش می‌دهند.
+دلیل رد گزینه الف: lever بیشتر درباره elevator مانند Crane pick در purchase point توضیح داده شده است.
+دلیل رد گزینه ج: wheel and axle مربوط به triangular/Cryer elevator برای ریشه باقی‌مانده است، نه beak forceps.
 دلیل رد گزینه د: traction باید در مرحله نهایی و با نیروی کم باشد، نه اصل ورود beakها به PDL space.',
                     ],
                     [
@@ -2613,10 +2613,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'هزینه درمان نباید در تصمیم مشترک بیمار و دندان‌پزشک برای extraction وارد شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: اگر بیمار نتواند یا نخواهد هزینه حفظ دندان را بپردازد، extraction ممکن است انتخاب منطقی شود.
-دلیل رد گزینه الف: فصل financial issues را در بخش indications می‌آورد، نه contraindications.
-دلیل رد گزینه ج: فصل اشاره می‌کند implant dentistry گاهی از حفظ دندان compromise شده cost effectiveتر است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: اگر بیمار نتواند یا نخواهد هزینه حفظ دندان را بپردازد، extraction ممکن است انتخاب منطقی شود.
+دلیل رد گزینه الف: فصل financial issues را در بخش indications می‌آورد، نه contraindications.
+دلیل رد گزینه ج: فصل اشاره می‌کند implant dentistry گاهی از حفظ دندان compromise شده cost effectiveتر است.
 دلیل رد گزینه د: در caries و مسائل مالی، judgment بین dentist و patient اهمیت دارد.',
                     ],
                     [
@@ -2628,10 +2628,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'canine eminence، palatal root divergence و maxillary sinus proximity.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: این سه مورد به‌عنوان علل محتمل محدودیت opening در بخش access ذکر شده‌اند.
-دلیل رد گزینه ب: این‌ها عوامل دشواری ریشه یا bone هستند، نه علل اصلی محدودیت باز شدن دهان.
-دلیل رد گزینه ج: این‌ها به condition of crown و adjacent structures مربوط‌اند، نه mouth opening.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: این سه مورد به‌عنوان علل محتمل محدودیت opening در بخش access ذکر شده‌اند.
+دلیل رد گزینه ب: این‌ها عوامل دشواری ریشه یا bone هستند، نه علل اصلی محدودیت باز شدن دهان.
+دلیل رد گزینه ج: این‌ها به condition of crown و adjacent structures مربوط‌اند، نه mouth opening.
 دلیل رد گزینه د: این‌ها روابط آناتومیک یا مورفولوژی دندان‌اند و علت کاهش opening نیستند.',
                     ],
                     [
@@ -2643,10 +2643,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'اتکا به شرح حال بیمار برای تعیین نیاز به barrier protection.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید همه بیماران باید بالقوه دارای بیماری‌های bloodborne فرض شوند و barrier protection لازم است.
-دلیل رد گزینه ب: احتیاطات فقط محدود به بیماران شناخته‌شده پرخطر نیست.
-دلیل رد گزینه ج: در extraction نیز انتقال خون‌زاد و splash ممکن است؛ mask جزو تجهیزات لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید همه بیماران باید بالقوه دارای بیماری‌های bloodborne فرض شوند و barrier protection لازم است.
+دلیل رد گزینه ب: احتیاطات فقط محدود به بیماران شناخته‌شده پرخطر نیست.
+دلیل رد گزینه ج: در extraction نیز انتقال خون‌زاد و splash ممکن است؛ mask جزو تجهیزات لازم است.
 دلیل رد گزینه د: شرح حال برای حذف universal precautions کافی نیست.',
                     ],
                     [
@@ -2658,10 +2658,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چرخش شدید tooth برای جمع کردن ریشه‌های divergent.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل wide divergence و curvature را مواردی می‌داند که ممکن است surgical extraction و planned division لازم کنند.
-دلیل رد گزینه الف: palatal force شدید به‌خصوص در maxillary molar خطر شکست palatal root و آسیب سینوس را بالا می‌برد.
-دلیل رد گزینه ج: مشکل مسیر خروج و divergence با بزرگ‌تر کردن forceps حل نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل wide divergence و curvature را مواردی می‌داند که ممکن است surgical extraction و planned division لازم کنند.
+دلیل رد گزینه الف: palatal force شدید به‌خصوص در maxillary molar خطر شکست palatal root و آسیب سینوس را بالا می‌برد.
+دلیل رد گزینه ج: مشکل مسیر خروج و divergence با بزرگ‌تر کردن forceps حل نمی‌شود.
 دلیل رد گزینه د: rotational forces برای molarهای چندریشه‌ای مناسب نیستند.',
                     ],
                     [
@@ -2673,10 +2673,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'tooth involved in jaw fracture.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل hypererupted teeth را مثال malpositioned teeth می‌داند که ممکن است برای prosthetic rehabilitation مانع ایجاد کنند.
-دلیل رد گزینه ب: supernumerary tooth دندان اضافی است، نه hypereruption دندان موجود.
-دلیل رد گزینه ج: impaction به ناتوانی eruption در مسیر functional occlusion مربوط است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل hypererupted teeth را مثال malpositioned teeth می‌داند که ممکن است برای prosthetic rehabilitation مانع ایجاد کنند.
+دلیل رد گزینه ب: supernumerary tooth دندان اضافی است، نه hypereruption دندان موجود.
+دلیل رد گزینه ج: impaction به ناتوانی eruption در مسیر functional occlusion مربوط است.
 دلیل رد گزینه د: jaw fracture به دندان در line of fracture مربوط است، نه hypereruption.',
                     ],
                     [
@@ -2688,10 +2688,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تروما به cheek به علت buccal version.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل retained submerged primary molar را نمونه‌ای با احتمال ankylosis بالا و دشواری در forceps extraction می‌داند.
-دلیل رد گزینه الف: mobility بیش از حد طبیعی معمولاً با severe periodontal disease دیده می‌شود، نه submerged primary molar.
-دلیل رد گزینه ج: این توضیح مربوط به supernumerary teeth است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل retained submerged primary molar را نمونه‌ای با احتمال ankylosis بالا و دشواری در forceps extraction می‌داند.
+دلیل رد گزینه الف: mobility بیش از حد طبیعی معمولاً با severe periodontal disease دیده می‌شود، نه submerged primary molar.
+دلیل رد گزینه ج: این توضیح مربوط به supernumerary teeth است.
 دلیل رد گزینه د: تروما به cheek مثال malpositioned maxillary third molar است.',
                     ],
                     [
@@ -2703,10 +2703,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وجود primary molar با root resorption.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در فصل، سابقه radiation درمانی برای cancer مهم‌ترین local contraindication است و خطر osteoradionecrosis دارد.
-دلیل رد گزینه ب: acute dentoalveolar abscess به‌صراحت contraindication برای extraction نیست، اگر access و anesthesia مناسب باشند.
-دلیل رد گزینه ج: severe nonrestorable caries یک indication رایج برای extraction است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در فصل، سابقه radiation درمانی برای cancer مهم‌ترین local contraindication است و خطر osteoradionecrosis دارد.
+دلیل رد گزینه ب: acute dentoalveolar abscess به‌صراحت contraindication برای extraction نیست، اگر access و anesthesia مناسب باشند.
+دلیل رد گزینه ج: severe nonrestorable caries یک indication رایج برای extraction است.
 دلیل رد گزینه د: primary molar با resorption نیاز به احتیاط دارد، اما local contraindication اصلی فصل نیست.',
                     ],
                     [
@@ -2718,10 +2718,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'افزایش gag reflex تا بیمار از افتادن قطعات آگاه شود.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: فصل می‌گوید این barrier قطعات دندان یا tooth را قبل از بلع/aspiration می‌گیرد.
-دلیل رد گزینه الف: hemostasis اولیه پس از extraction با gauze 2×2 روی socket انجام می‌شود، نه این partition قبل یا حین extraction.
-دلیل رد گزینه ب: این gauze جایگزین suction نیست و اگر posterior باشد می‌تواند gag ایجاد کند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: فصل می‌گوید این barrier قطعات دندان یا tooth را قبل از بلع/aspiration می‌گیرد.
+دلیل رد گزینه الف: hemostasis اولیه پس از extraction با gauze 2×2 روی socket انجام می‌شود، نه این partition قبل یا حین extraction.
+دلیل رد گزینه ب: این gauze جایگزین suction نیست و اگر posterior باشد می‌تواند gag ایجاد کند.
 دلیل رد گزینه د: باید مراقب بود gauze آن‌قدر posterior نباشد که gag reflex را تحریک کند.',
                     ],
                     [
@@ -2733,10 +2733,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نشانه افزایش bone density و نیاز به تأخیر درمان است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل root caries و resorption را عوامل تضعیف ساختار ریشه و مستعد fracture معرفی می‌کند.
-دلیل رد گزینه ب: ضعیف شدن ریشه با fracture حین forceps همراه است، نه لزوماً خروج آسان.
-دلیل رد گزینه ج: این یافته‌ها مستقیماً بر انتخاب closed یا surgical technique اثر دارند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل root caries و resorption را عوامل تضعیف ساختار ریشه و مستعد fracture معرفی می‌کند.
+دلیل رد گزینه ب: ضعیف شدن ریشه با fracture حین forceps همراه است، نه لزوماً خروج آسان.
+دلیل رد گزینه ج: این یافته‌ها مستقیماً بر انتخاب closed یا surgical technique اثر دارند.
 دلیل رد گزینه د: افزایش bone density مربوط به radiopaque bone/condensing osteitis است، نه root resorption.',
                     ],
                     [
@@ -2748,10 +2748,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ادامه forceps extraction تا crown fracture رخ دهد و سپس roots خارج شوند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در دشواری بالا، approach جراحی سنجیده بر force زیاد ترجیح دارد.
-دلیل رد گزینه الف: فصل تأکید می‌کند tooth نباید با زور کشیده شود؛ traction شدید موجب آسیب می‌شود.
-دلیل رد گزینه ج: فشار ناگهانی با اصول slow, controlled force سازگار نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در دشواری بالا، approach جراحی سنجیده بر force زیاد ترجیح دارد.
+دلیل رد گزینه الف: فصل تأکید می‌کند tooth نباید با زور کشیده شود؛ traction شدید موجب آسیب می‌شود.
+دلیل رد گزینه ج: فشار ناگهانی با اصول slow, controlled force سازگار نیست.
 دلیل رد گزینه د: crown fracture extraction را دشوارتر می‌کند و هدف تکنیک نیست.',
                     ],
                     [
@@ -2763,10 +2763,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'بیمار uprightتر ولی bite block بزرگ برای حداکثر باز کردن TMJ.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: این ترکیب با توصیه فصل برای کنترل force و کاهش فشار روی mandible/TMJ هماهنگ است.
-دلیل رد گزینه الف: فصل برای mandibular extraction بیمار را uprightتر قرار می‌دهد و bite block مناسب را برای support توصیه می‌کند.
-دلیل رد گزینه ج: زاویه ۶۰ درجه و mouth at elbow بیشتر برای maxillary extraction است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: این ترکیب با توصیه فصل برای کنترل force و کاهش فشار روی mandible/TMJ هماهنگ است.
+دلیل رد گزینه الف: فصل برای mandibular extraction بیمار را uprightتر قرار می‌دهد و bite block مناسب را برای support توصیه می‌کند.
+دلیل رد گزینه ج: زاویه ۶۰ درجه و mouth at elbow بیشتر برای maxillary extraction است.
 دلیل رد گزینه د: bite block بیش از حد بزرگ می‌تواند ligaments مفصل را overstretch و discomfort ایجاد کند.',
                     ],
                     [
@@ -2778,10 +2778,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'کاهش نیاز به orthodontic space و prevention از crowding درمانی.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید supernumerary teeth معمولاً impacted هستند و می‌توانند eruption دندان‌های جانشین را مختل کنند و resorption/displacement دهند.
-دلیل رد گزینه الف: این ویژگی در فصل برای supernumerary teeth مطرح نشده است.
-دلیل رد گزینه ج: pericoronitis شدید بیشتر در بحث impacted mandibular third molar آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید supernumerary teeth معمولاً impacted هستند و می‌توانند eruption دندان‌های جانشین را مختل کنند و resorption/displacement دهند.
+دلیل رد گزینه الف: این ویژگی در فصل برای supernumerary teeth مطرح نشده است.
+دلیل رد گزینه ج: pericoronitis شدید بیشتر در بحث impacted mandibular third molar آمده است.
 دلیل رد گزینه د: orthodontic extraction برای ایجاد space است، نه پیامد اصلی supernumerary teeth.',
                     ],
                     [
@@ -2793,10 +2793,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نشانه mental foramen است و نباید در طرح extraction لحاظ شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در فصل bone رادیواُپاک/اسکلروتیک با دشواری بیشتر extraction مرتبط دانسته شده است.
-دلیل رد گزینه الف: رادیولوسنسی بیشتر معمولاً به bone density کمتر و extraction آسان‌تر اشاره دارد، نه opacity.
-دلیل رد گزینه ج: root resorption در ساختار ریشه دیده می‌شود، نه صرفاً به شکل condensing osteitis استخوان.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در فصل bone رادیواُپاک/اسکلروتیک با دشواری بیشتر extraction مرتبط دانسته شده است.
+دلیل رد گزینه الف: رادیولوسنسی بیشتر معمولاً به bone density کمتر و extraction آسان‌تر اشاره دارد، نه opacity.
+دلیل رد گزینه ج: root resorption در ساختار ریشه دیده می‌شود، نه صرفاً به شکل condensing osteitis استخوان.
 دلیل رد گزینه د: mental foramen radiolucency موضعی نزدیک premolar است، نه opacity اسکلروتیک.',
                     ],
                     [
@@ -2808,10 +2808,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نادیده گرفتن دندان مجاور چون forceps فقط دندان موردنظر را درگیر می‌کند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: هم احتیاط در elevator و هم اطلاع دادن به بیمار پیش از عمل در فصل آمده است.
-دلیل رد گزینه الف: فصل هشدار می‌دهد restorations بزرگ یا crowns دندان‌های مجاور می‌توانند fracture یا displacement پیدا کنند.
-دلیل رد گزینه ج: برداشتن restoration مجاور به‌عنوان اقدام استاندارد فصل مطرح نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: هم احتیاط در elevator و هم اطلاع دادن به بیمار پیش از عمل در فصل آمده است.
+دلیل رد گزینه الف: فصل هشدار می‌دهد restorations بزرگ یا crowns دندان‌های مجاور می‌توانند fracture یا displacement پیدا کنند.
+دلیل رد گزینه ج: برداشتن restoration مجاور به‌عنوان اقدام استاندارد فصل مطرح نشده است.
 دلیل رد گزینه د: elevators و forceps می‌توانند به دندان مجاور نیرو وارد کنند، پس نادیده گرفتن آن غلط است.',
                     ],
                     [
@@ -2823,10 +2823,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وجود trismus و دشواری anesthesia اهمیتی در زمان‌بندی extraction ندارد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: مطابق فصل، سریع‌ترین resolution وقتی است که tooth as early as possible برداشته شود، اگر دسترسی و anesthesia فراهم باشد.
-دلیل رد گزینه الف: فصل تأکید می‌کند acute infection contraindication extraction نیست.
-دلیل رد گزینه ج: اگر دسترسی یا anesthesia مناسب نباشد antibiotic شروع و extraction به زودی برنامه‌ریزی می‌شود، نه اینکه همیشه جایگزین شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: مطابق فصل، سریع‌ترین resolution وقتی است که tooth as early as possible برداشته شود، اگر دسترسی و anesthesia فراهم باشد.
+دلیل رد گزینه الف: فصل تأکید می‌کند acute infection contraindication extraction نیست.
+دلیل رد گزینه ج: اگر دسترسی یا anesthesia مناسب نباشد antibiotic شروع و extraction به زودی برنامه‌ریزی می‌شود، نه اینکه همیشه جایگزین شود.
 دلیل رد گزینه د: trismus و عدم امکان anesthesia عمیق می‌توانند extraction فوری را عملی نکنند.',
                     ],
                     [
@@ -2838,10 +2838,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'فقط برای انتخاب نوع suturing بعد از extraction اهمیت دارد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل دانستن number of roots را برای تغییر طرح و جلوگیری از fracture ریشه‌های اضافی مهم می‌داند.
-دلیل رد گزینه ب: چندریشه‌ای بودن با rotational force شدید سازگار نیست و ممکن است fracture دهد.
-دلیل رد گزینه ج: دو ریشه بودن به‌تنهایی nonvital بودن یا ankylosis را ثابت نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل دانستن number of roots را برای تغییر طرح و جلوگیری از fracture ریشه‌های اضافی مهم می‌داند.
+دلیل رد گزینه ب: چندریشه‌ای بودن با rotational force شدید سازگار نیست و ممکن است fracture دهد.
+دلیل رد گزینه ج: دو ریشه بودن به‌تنهایی nonvital بودن یا ankylosis را ثابت نمی‌کند.
 دلیل رد گزینه د: اطلاع از ریشه‌ها بر تکنیک removal اثر دارد، نه فقط suturing.',
                     ],
                     [
@@ -2853,10 +2853,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'انتخاب forceps بر اساس سن بیمار بدون توجه به وضعیت medical.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید ممکن است برای کنترل خونریزی، کم کردن احتمال عفونت یا پیشگیری از emergency اقدامات ویژه لازم باشد.
-دلیل رد گزینه ب: این موارد در آن بخش از فصل به‌عنوان هدف medical assessment مطرح نشده‌اند.
-دلیل رد گزینه ج: medical assessment جایگزین radiograph یا consent نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید ممکن است برای کنترل خونریزی، کم کردن احتمال عفونت یا پیشگیری از emergency اقدامات ویژه لازم باشد.
+دلیل رد گزینه ب: این موارد در آن بخش از فصل به‌عنوان هدف medical assessment مطرح نشده‌اند.
+دلیل رد گزینه ج: medical assessment جایگزین radiograph یا consent نیست.
 دلیل رد گزینه د: انتخاب forceps موضوع تکنیکی است و medical status را حذف نمی‌کند.',
                     ],
                     [
@@ -2868,10 +2868,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در رادیوگرافی هیچ ارتباطی با دندان‌های مجاور نداشته باشد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل همین معیارها را برای در نظر گرفتن removal دندان partially impacted ذکر می‌کند.
-دلیل رد گزینه ب: اگر امکان eruption به occlusion عملکردی وجود داشته باشد، معیار ذکرشده برای surgical removal فراهم نیست.
-دلیل رد گزینه ج: فصل چنین محدودیتی به anterior یا orthodontics ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل همین معیارها را برای در نظر گرفتن removal دندان partially impacted ذکر می‌کند.
+دلیل رد گزینه ب: اگر امکان eruption به occlusion عملکردی وجود داشته باشد، معیار ذکرشده برای surgical removal فراهم نیست.
+دلیل رد گزینه ج: فصل چنین محدودیتی به anterior یا orthodontics ندارد.
 دلیل رد گزینه د: عدم تداخل با adjacent teeth یکی از دلایل removal را تضعیف می‌کند، نه تقویت.',
                     ],
                     [
@@ -2883,10 +2883,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نادیده گرفتن finding چون hypercementosis فقط تشخیص پاتولوژیک است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل آن را در older patients مهم می‌داند و می‌گوید ممکن است surgical extraction لازم شود.
-دلیل رد گزینه الف: hypercementosis ریشه را بزرگ‌تر و removal را دشوارتر می‌کند.
-دلیل رد گزینه ج: bulbous root با چرخش آسان‌تر سازگار نیست و fracture/گیرکردن را محتمل می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل آن را در older patients مهم می‌داند و می‌گوید ممکن است surgical extraction لازم شود.
+دلیل رد گزینه الف: hypercementosis ریشه را بزرگ‌تر و removal را دشوارتر می‌کند.
+دلیل رد گزینه ج: bulbous root با چرخش آسان‌تر سازگار نیست و fracture/گیرکردن را محتمل می‌کند.
 دلیل رد گزینه د: این finding مستقیماً بر طرح extraction اثر دارد.',
                     ],
                     [
@@ -2898,10 +2898,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'افزایش خونریزی برای پاک‌سازی socket پس از extraction.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید برخی surgeons rinse را توصیه می‌کنند و contamination را تا حدی کم می‌کند، اما اثر postoperative روشن نیست.
-دلیل رد گزینه ب: mouth rinse جایگزین universal precautions نیست.
-دلیل رد گزینه ج: در severe pericoronitis، irrigations و درمان موضعی جداگانه مطرح است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید برخی surgeons rinse را توصیه می‌کنند و contamination را تا حدی کم می‌کند، اما اثر postoperative روشن نیست.
+دلیل رد گزینه ب: mouth rinse جایگزین universal precautions نیست.
+دلیل رد گزینه ج: در severe pericoronitis، irrigations و درمان موضعی جداگانه مطرح است.
 دلیل رد گزینه د: هدف rinse کاهش contamination است، نه افزایش خونریزی.',
                     ],
                     [
@@ -2913,10 +2913,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'فقط برای تشخیص periodontal disease استفاده می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل ارتباط roots با sinus را در maxillary molars مهم می‌داند و در خطر بالا تغییر طرح به open/root division را مطرح می‌کند.
-دلیل رد گزینه ب: molar چندریشه‌ای معمولاً با rotational force خارج نمی‌شود.
-دلیل رد گزینه ج: palatal force زیاد می‌تواند palatal root و sinus floor را در معرض خطر قرار دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل ارتباط roots با sinus را در maxillary molars مهم می‌داند و در خطر بالا تغییر طرح به open/root division را مطرح می‌کند.
+دلیل رد گزینه ب: molar چندریشه‌ای معمولاً با rotational force خارج نمی‌شود.
+دلیل رد گزینه ج: palatal force زیاد می‌تواند palatal root و sinus floor را در معرض خطر قرار دهد.
 دلیل رد گزینه د: این ارزیابی برای جلوگیری از perforation و planning تکنیک است.',
                     ],
                     [
@@ -2928,10 +2928,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'bone loss مداوم، زمان extraction را همیشه تا mobile شدن شدید به تعویق می‌اندازد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل severe periodontal disease با excessive bone loss و irreversible mobility را indication رایج می‌داند و به اثر آن بر implant اشاره می‌کند.
-دلیل رد گزینه ب: حفظ دندان hypermobile در این وضعیت لزوماً منطقی نیست.
-دلیل رد گزینه ج: periodontal disease خودش یک indication مستقل است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل severe periodontal disease با excessive bone loss و irreversible mobility را indication رایج می‌داند و به اثر آن بر implant اشاره می‌کند.
+دلیل رد گزینه ب: حفظ دندان hypermobile در این وضعیت لزوماً منطقی نیست.
+دلیل رد گزینه ج: periodontal disease خودش یک indication مستقل است.
 دلیل رد گزینه د: فصل می‌گوید گاهی پیش از mobility متوسط/شدید هم extraction برای حفظ امکان implant معقول است.',
                     ],
                     [
@@ -2943,10 +2943,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در همه maxillary extractions سر بیمار یکسان و بدون چرخش نگه داشته می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: این توصیف دقیقاً با موقعیت‌های شرح داده‌شده در فصل برای maxillary right، anterior و left هماهنگ است.
-دلیل رد گزینه ب: برای anterior بیمار مستقیم نگاه می‌کند و right posterior به سمت surgeon می‌چرخد.
-دلیل رد گزینه ج: posteriorها به‌ویژه سمت راست نیاز به چرخش به سوی surgeon دارند، نه دور شدن.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: این توصیف دقیقاً با موقعیت‌های شرح داده‌شده در فصل برای maxillary right، anterior و left هماهنگ است.
+دلیل رد گزینه ب: برای anterior بیمار مستقیم نگاه می‌کند و right posterior به سمت surgeon می‌چرخد.
+دلیل رد گزینه ج: posteriorها به‌ویژه سمت راست نیاز به چرخش به سوی surgeon دارند، نه دور شدن.
 دلیل رد گزینه د: فصل برای quadrantهای مختلف head position متفاوتی ارائه می‌کند.',
                     ],
                     [
@@ -2958,10 +2958,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Cryer elevator ـ antiseptic barrier؛ Crane pick ـ gauze partition.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: Crane pick نمونه lever و triangular/Cryer elevator نمونه wheel-and-axle برای root باقی‌مانده معرفی شده است.
-دلیل رد گزینه ب: این جابه‌جایی اصول با متن فصل سازگار نیست.
-دلیل رد گزینه ج: straight elevator در PDL space به‌صورت wedge عمل می‌کند، نه traction machine.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: Crane pick نمونه lever و triangular/Cryer elevator نمونه wheel-and-axle برای root باقی‌مانده معرفی شده است.
+دلیل رد گزینه ب: این جابه‌جایی اصول با متن فصل سازگار نیست.
+دلیل رد گزینه ج: straight elevator در PDL space به‌صورت wedge عمل می‌کند، نه traction machine.
 دلیل رد گزینه د: این موارد ابزارهای مکانیکی extraction هستند، نه barrier یا dressing.',
                     ],
                     [
@@ -2973,10 +2973,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'دندان با therapeutic radiation قبلی در همان ناحیه.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل necrosis یا irreversible pulpitis غیرقابل درمان endodontically، یا درمان شکست‌خورده، را indication می‌داند.
-دلیل رد گزینه ب: این مورد malpositioned tooth است، نه pulpal necrosis.
-دلیل رد گزینه ج: این مورد teeth involved in jaw fractures است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل necrosis یا irreversible pulpitis غیرقابل درمان endodontically، یا درمان شکست‌خورده، را indication می‌داند.
+دلیل رد گزینه ب: این مورد malpositioned tooth است، نه pulpal necrosis.
+دلیل رد گزینه ج: این مورد teeth involved in jaw fractures است.
 دلیل رد گزینه د: این مورد local contraindication مهم است، نه indication ساده.',
                     ],
                     [
@@ -2988,10 +2988,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون forceps روی enamel دندان malignant گیر نمی‌کند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: این دلیل دقیقاً در بخش local contraindications فصل آمده است.
-دلیل رد گزینه ب: ankylosis/hypercementosis دلایل دشواری extraction هستند و علت منع tumor نیستند.
-دلیل رد گزینه ج: ارزیابی radiographic همچنان برای planning اهمیت دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: این دلیل دقیقاً در بخش local contraindications فصل آمده است.
+دلیل رد گزینه ب: ankylosis/hypercementosis دلایل دشواری extraction هستند و علت منع tumor نیستند.
+دلیل رد گزینه ج: ارزیابی radiographic همچنان برای planning اهمیت دارد.
 دلیل رد گزینه د: مشکل اصلی dissemination سلولی است، نه گیر forceps روی enamel.',
                     ],
                     [
@@ -3003,10 +3003,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون برداشتن calculus جایگزین debridement بعد از extraction می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: دو دلیل فصل برای scaling قبل از extraction همین دو مورد است.
-دلیل رد گزینه ب: اثر بی‌حسی به calculus وابسته دانسته نشده است.
-دلیل رد گزینه ج: calculus نشانه قطعی root resorption نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: دو دلیل فصل برای scaling قبل از extraction همین دو مورد است.
+دلیل رد گزینه ب: اثر بی‌حسی به calculus وابسته دانسته نشده است.
+دلیل رد گزینه ج: calculus نشانه قطعی root resorption نیست.
 دلیل رد گزینه د: socket پس از extraction فقط در صورت نیاز و وجود debris/lesion debride می‌شود؛ scaling جایگزین ارزیابی بعدی نیست.',
                     ],
                     [
@@ -3018,10 +3018,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'هزینه و پیچیدگی درمان در تصمیم extraction برای caries نباید وارد شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل severe caries nonrestorable را رایج‌ترین reason می‌داند اما تعیین nonrestorable بودن را judgment بین dentist و patient می‌شمارد.
-دلیل رد گزینه ب: فقط caries شدید و nonrestorable مطرح است، نه هر caries.
-دلیل رد گزینه ج: implant گزینه موفقی است اما به معنی کشیدن خودکار هر دندان carious نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل severe caries nonrestorable را رایج‌ترین reason می‌داند اما تعیین nonrestorable بودن را judgment بین dentist و patient می‌شمارد.
+دلیل رد گزینه ب: فقط caries شدید و nonrestorable مطرح است، نه هر caries.
+دلیل رد گزینه ج: implant گزینه موفقی است اما به معنی کشیدن خودکار هر دندان carious نیست.
 دلیل رد گزینه د: فصل complexity و cost را در منطقی شدن extraction دخیل می‌داند.',
                     ],
                     [
@@ -3033,10 +3033,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تأخیر radiograph تا پس از extraction.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید اگر opening substantially compromised باشد، surgical approach و sedation/GA قابل بررسی است.
-دلیل رد گزینه الف: access برای anesthesia و extraction اهمیت دارد؛ force بیشتر توصیه نشده است.
-دلیل رد گزینه ج: forceps بزرگ‌تر مشکل access محدود را بدتر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید اگر opening substantially compromised باشد، surgical approach و sedation/GA قابل بررسی است.
+دلیل رد گزینه الف: access برای anesthesia و extraction اهمیت دارد؛ force بیشتر توصیه نشده است.
+دلیل رد گزینه ج: forceps بزرگ‌تر مشکل access محدود را بدتر می‌کند.
 دلیل رد گزینه د: radiographic planning پیش از extraction ضروری است.',
                     ],
                     [
@@ -3048,10 +3048,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای maxillary molar، رابطه با sinus را نمی‌توان در planning دخیل کرد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل periapical radiographs را برای tooth، roots و surrounding tissue دقیق و جزئی می‌داند.
-دلیل رد گزینه ب: panoramic کاربرد دارد، اما متن periapical را برای جزئیات دقیق‌تر معرفی می‌کند.
-دلیل رد گزینه ج: فصل می‌گوید proper radiographs برای هر tooth to be removed ضروری است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل periapical radiographs را برای tooth، roots و surrounding tissue دقیق و جزئی می‌داند.
+دلیل رد گزینه ب: panoramic کاربرد دارد، اما متن periapical را برای جزئیات دقیق‌تر معرفی می‌کند.
+دلیل رد گزینه ج: فصل می‌گوید proper radiographs برای هر tooth to be removed ضروری است.
 دلیل رد گزینه د: رابطه maxillary molar roots با sinus از نکات مهم planning است.',
                     ],
                     [
@@ -3063,10 +3063,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وجود ضایعه extraction را contraindicated می‌کند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید آگاهی از apical pathology مهم است چون این lesions باید هنگام surgery برداشته شوند.
-دلیل رد گزینه ب: عدم curettage فقط وقتی است که lesion یا debris وجود ندارد.
-دلیل رد گزینه ج: mental foramen یک differential در ناحیه premolar است، نه هر radiolucency.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید آگاهی از apical pathology مهم است چون این lesions باید هنگام surgery برداشته شوند.
+دلیل رد گزینه ب: عدم curettage فقط وقتی است که lesion یا debris وجود ندارد.
+دلیل رد گزینه ج: mental foramen یک differential در ناحیه premolar است، نه هر radiolucency.
 دلیل رد گزینه د: apical pathology به‌تنهایی contraindication برای extraction نیست.',
                     ],
                     [
@@ -3078,10 +3078,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ضرورت rotational force شدید در همه موارد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن فصل old endodontic therapy را با brittleness و ankylosis احتمالی مرتبط می‌داند.
-دلیل رد گزینه ب: برعکس، tooth desiccated/brittle می‌شود و راحت‌تر خرد می‌شود.
-دلیل رد گزینه ج: radiographic evaluation همچنان برای root shape، lesions و anatomy لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن فصل old endodontic therapy را با brittleness و ankylosis احتمالی مرتبط می‌داند.
+دلیل رد گزینه ب: برعکس، tooth desiccated/brittle می‌شود و راحت‌تر خرد می‌شود.
+دلیل رد گزینه ج: radiographic evaluation همچنان برای root shape، lesions و anatomy لازم است.
 دلیل رد گزینه د: rotational force بسته به root morphology است و در teeth brittle می‌تواند خطرناک باشد.',
                     ],
                     [
@@ -3093,10 +3093,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'hand and arm positions برای maxillary extraction باید کاملاً خلاف حالت ایستاده باشد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل برای seated surgeon بیمار را کمتر reclined و تا حد امکان پایین قرار می‌دهد.
-دلیل رد گزینه ب: موازی کف برای mandibular occlusal plane در حالت باز شدن مطرح است، نه maxillary seated extraction.
-دلیل رد گزینه ج: بالا بودن دهان، خطای positioning و سبب کاهش کنترل است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل برای seated surgeon بیمار را کمتر reclined و تا حد امکان پایین قرار می‌دهد.
+دلیل رد گزینه ب: موازی کف برای mandibular occlusal plane در حالت باز شدن مطرح است، نه maxillary seated extraction.
+دلیل رد گزینه ج: بالا بودن دهان، خطای positioning و سبب کاهش کنترل است.
 دلیل رد گزینه د: فصل می‌گوید hand/forceps positions تا حد زیادی مشابه حالت ایستاده‌اند.',
                     ],
                     [
@@ -3108,10 +3108,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'اگر indication وجود داشته باشد، contraindication نباید در تصمیم‌گیری وارد شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: این بیان با متن فصل درباره relative بودن contraindications و امکان modification سازگار است.
-دلیل رد گزینه الف: فصل تأکید می‌کند این عوامل درجات مختلف دارند و گاهی قابل اصلاح‌اند.
-دلیل رد گزینه ج: فصل local contraindications مانند radiation، malignant tumor و severe pericoronitis را مطرح می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: این بیان با متن فصل درباره relative بودن contraindications و امکان modification سازگار است.
+دلیل رد گزینه الف: فصل تأکید می‌کند این عوامل درجات مختلف دارند و گاهی قابل اصلاح‌اند.
+دلیل رد گزینه ج: فصل local contraindications مانند radiation، malignant tumor و severe pericoronitis را مطرح می‌کند.
 دلیل رد گزینه د: حتی با وجود indication، contraindications باید بررسی شوند.',
                     ],
                 ],
@@ -3142,10 +3142,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'center of rotation را buccal می‌برد و palatal bone را expand نمی‌کند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل تأکید می‌کند apical seating fulcrum را به apex نزدیک کرده، crestal expansion را بیشتر و apical fracture را کمتر می‌کند.
-دلیل رد گزینه الف: high/occlusal center of rotation باعث حرکت بیش از حد apex و fracture می‌شود.
-دلیل رد گزینه ج: rotation/fulcrum حذف نمی‌شود؛ کنترل آن هدف است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل تأکید می‌کند apical seating fulcrum را به apex نزدیک کرده، crestal expansion را بیشتر و apical fracture را کمتر می‌کند.
+دلیل رد گزینه الف: high/occlusal center of rotation باعث حرکت بیش از حد apex و fracture می‌شود.
+دلیل رد گزینه ج: rotation/fulcrum حذف نمی‌شود؛ کنترل آن هدف است.
 دلیل رد گزینه د: بحث اصلی موقعیت apical-occlusal fulcrum است، نه انتقال آن به buccal.',
                     ],
                     [
@@ -3157,10 +3157,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وقتی فقط نیاز به نرم کردن soft tissue attachment وجود دارد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل open technique را برای نیاز به force زیاد، از دست رفتن/پوشیده بودن crown یا access دشوار به root مطرح می‌کند.
-دلیل رد گزینه الف: این شرایط با closed extraction routine سازگارتر است.
-دلیل رد گزینه ج: mobility زیاد اغلب removal را ساده‌تر می‌کند، هرچند soft tissue management مهم می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل open technique را برای نیاز به force زیاد، از دست رفتن/پوشیده بودن crown یا access دشوار به root مطرح می‌کند.
+دلیل رد گزینه الف: این شرایط با closed extraction routine سازگارتر است.
+دلیل رد گزینه ج: mobility زیاد اغلب removal را ساده‌تر می‌کند، هرچند soft tissue management مهم می‌شود.
 دلیل رد گزینه د: loosening soft tissue attachment مرحله اول closed extraction است، نه indication برای open technique.',
                     ],
                     [
@@ -3172,10 +3172,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون دندان سه ریشه دارد و palatal root از sinus floor عبور می‌کند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل maxillary first premolar را شایع‌ترین root fracture در adults می‌داند؛ palatal tip سخت‌تر retrieved می‌شود و rotation باید avoid شود.
-دلیل رد گزینه الف: این توصیف بیشتر درباره maxillary second premolar است.
-دلیل رد گزینه ج: این نکته به mandibular third molar یا lower molar region مربوط‌تر است، نه maxillary first premolar.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل maxillary first premolar را شایع‌ترین root fracture در adults می‌داند؛ palatal tip سخت‌تر retrieved می‌شود و rotation باید avoid شود.
+دلیل رد گزینه الف: این توصیف بیشتر درباره maxillary second premolar است.
+دلیل رد گزینه ج: این نکته به mandibular third molar یا lower molar region مربوط‌تر است، نه maxillary first premolar.
 دلیل رد گزینه د: سه ریشه و palatal root به maxillary molar مربوط است.',
                     ],
                     [
@@ -3187,10 +3187,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'از retraction cheek خودداری کند تا soft tissue tension کمتر شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید در lower posterior extraction، آزاد شدن ناگهانی forceps می‌تواند به maxillary teeth ضربه بزند و assistant باید محافظت کند.
-دلیل رد گزینه ب: هدف assistant fracture نیست؛ نقش او protection، retraction، suction و support است.
-دلیل رد گزینه ج: suction برای جلوگیری از تجمع خون/مایعات و راحتی بیمار ضروری است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید در lower posterior extraction، آزاد شدن ناگهانی forceps می‌تواند به maxillary teeth ضربه بزند و assistant باید محافظت کند.
+دلیل رد گزینه ب: هدف assistant fracture نیست؛ نقش او protection، retraction، suction و support است.
+دلیل رد گزینه ج: suction برای جلوگیری از تجمع خون/مایعات و راحتی بیمار ضروری است.
 دلیل رد گزینه د: retraction برای دید و access یکی از نقش‌های اصلی assistant است.',
                     ],
                     [
@@ -3202,10 +3202,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'levator، wedge، wheel، axle، fulcrum.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: این پنج حرکت در فصل به‌عنوان major motions forceps آمده‌اند.
-دلیل رد گزینه ب: این‌ها مراحل یا اعمال جراحی دیگرند و motionهای forceps نیستند.
-دلیل رد گزینه ج: عبارات کلی‌اند و نکات کلیدی apical seating و directional pressure را نشان نمی‌دهند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: این پنج حرکت در فصل به‌عنوان major motions forceps آمده‌اند.
+دلیل رد گزینه ب: این‌ها مراحل یا اعمال جراحی دیگرند و motionهای forceps نیستند.
+دلیل رد گزینه ج: عبارات کلی‌اند و نکات کلیدی apical seating و directional pressure را نشان نمی‌دهند.
 دلیل رد گزینه د: این‌ها اصول/ماشین‌های مکانیکی‌اند، نه motionهای forceps.',
                     ],
                     [
@@ -3217,10 +3217,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'پر کردن socket با gauze تا عمق apex.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: وقتی lesion یا debris نیست، socket نباید curette شود و بافت‌های باقی‌مانده برای healing مناسب‌اند.
-دلیل رد گزینه الف: فصل vigorous curettage را injury اضافی می‌داند که ممکن است healing را delay کند.
-دلیل رد گزینه ج: برداشت lamina dura به‌صورت routine در فصل توصیه نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: وقتی lesion یا debris نیست، socket نباید curette شود و بافت‌های باقی‌مانده برای healing مناسب‌اند.
+دلیل رد گزینه الف: فصل vigorous curettage را injury اضافی می‌داند که ممکن است healing را delay کند.
+دلیل رد گزینه ج: برداشت lamina dura به‌صورت routine در فصل توصیه نشده است.
 دلیل رد گزینه د: gauze برای pressure روی socket است، نه packing عمیق داخل apex.',
                     ],
                     [
@@ -3232,10 +3232,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تحویل tooth در palato-occlusal direction با traction زیاد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل می‌گوید بهتر است palatal root نشکند؛ buccal roots آسان‌تر retrieved می‌شوند، پس palatal force باید کم باشد.
-دلیل رد گزینه الف: palatal force همان نیرویی است که palatal root را بیشتر در معرض fracture قرار می‌دهد.
-دلیل رد گزینه ج: rotational forces برای این tooth سه‌ریشه‌ای مفید نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل می‌گوید بهتر است palatal root نشکند؛ buccal roots آسان‌تر retrieved می‌شوند، پس palatal force باید کم باشد.
+دلیل رد گزینه الف: palatal force همان نیرویی است که palatal root را بیشتر در معرض fracture قرار می‌دهد.
+دلیل رد گزینه ج: rotational forces برای این tooth سه‌ریشه‌ای مفید نیستند.
 دلیل رد گزینه د: delivery معمول bucco-occlusal است و traction زیاد خلاف اصول atraumatic است.',
                     ],
                     [
@@ -3247,10 +3247,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'روی restoration دندان مجاور، چون fulcrum مقاوم‌تری فراهم می‌کند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: این روش با توضیح فصل درباره insertion perpendicular و سپس advancement apical در PDL space هماهنگ است.
-دلیل رد گزینه الف: فصل هشدار می‌دهد elevation along buccal bone می‌تواند buccal bone fracture یا soft tissue injury ایجاد کند.
-دلیل رد گزینه ج: lingual/palatal access معمولاً محدود و کم‌اثر است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: این روش با توضیح فصل درباره insertion perpendicular و سپس advancement apical در PDL space هماهنگ است.
+دلیل رد گزینه الف: فصل هشدار می‌دهد elevation along buccal bone می‌تواند buccal bone fracture یا soft tissue injury ایجاد کند.
+دلیل رد گزینه ج: lingual/palatal access معمولاً محدود و کم‌اثر است.
 دلیل رد گزینه د: استفاده از adjacent restored tooth به‌عنوان fulcrum خطر fracture/displacement restoration دارد.',
                     ],
                     [
@@ -3262,10 +3262,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'عدم نیاز به radiographic assessment چون premolarها ساده‌اند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل تصریح می‌کند اگر curvature وجود داشته باشد، rotational movements باید کاهش یا حذف شود.
-دلیل رد گزینه ب: هرچند premolarهای mandibular معمولاً ساده‌اند، curvature ممکن است و rotation می‌تواند fracture بدهد.
-دلیل رد گزینه ج: روش معمول شامل buccal، lingual و در صورت مناسب rotation/traction است، نه lingual traction تنها.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل تصریح می‌کند اگر curvature وجود داشته باشد، rotational movements باید کاهش یا حذف شود.
+دلیل رد گزینه ب: هرچند premolarهای mandibular معمولاً ساده‌اند، curvature ممکن است و rotation می‌تواند fracture بدهد.
+دلیل رد گزینه ج: روش معمول شامل buccal، lingual و در صورت مناسب rotation/traction است، نه lingual traction تنها.
 دلیل رد گزینه د: ارزیابی رادیوگرافی برای تشخیص curvature لازم است.',
                     ],
                     [
@@ -3277,10 +3277,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'فشردن maxillary teeth برای ایجاد occlusal support.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید در mandibular extraction حمایت mandible اهمیت ویژه دارد تا نیروها به TMJ آسیب نزنند.
-دلیل رد گزینه ب: opposite hand tooth را نمی‌کشد؛ forceps/elevator نیروی luxation را وارد می‌کنند.
-دلیل رد گزینه ج: این دست کمک‌کننده است و جایگزین instruments نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید در mandibular extraction حمایت mandible اهمیت ویژه دارد تا نیروها به TMJ آسیب نزنند.
+دلیل رد گزینه ب: opposite hand tooth را نمی‌کشد؛ forceps/elevator نیروی luxation را وارد می‌کنند.
+دلیل رد گزینه ج: این دست کمک‌کننده است و جایگزین instruments نیست.
 دلیل رد گزینه د: occlusal support با bite block در contralateral side انجام می‌شود، نه فشردن maxillary teeth.',
                     ],
                     [
@@ -3292,10 +3292,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نادیده گرفتن root fragments چون primary teeth همیشه کامل resorb شده‌اند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل در این حالت sectioning را مطرح می‌کند، زیرا ریشه‌ها ممکن است premolar دائمی را loosen یا extract کنند.
-دلیل رد گزینه ب: rotational motions در primary multirooted teeth باید حداقل و محتاطانه باشد.
-دلیل رد گزینه ج: برای primary teeth، adaptations یعنی No.150S و No.151S معمول‌اند، نه cowhorn routine.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل در این حالت sectioning را مطرح می‌کند، زیرا ریشه‌ها ممکن است premolar دائمی را loosen یا extract کنند.
+دلیل رد گزینه ب: rotational motions در primary multirooted teeth باید حداقل و محتاطانه باشد.
+دلیل رد گزینه ج: برای primary teeth، adaptations یعنی No.150S و No.151S معمول‌اند، نه cowhorn routine.
 دلیل رد گزینه د: بعد از removal باید محل carefully inspected شود تا قطعات باقی نمانند.',
                     ],
                     [
@@ -3307,10 +3307,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'به‌عنوان جایگزین apical seating forceps در مرحله adaptation.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: tractional forces برای final removal پس از کافی بودن expansion و PDL disruption استفاده می‌شوند.
-دلیل رد گزینه الف: فصل تکرار می‌کند teeth pulled نمی‌شوند و traction زیاد خطاست.
-دلیل رد گزینه ج: در roots curved/divergent نیروی traction زیاد خطر fracture را افزایش می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: tractional forces برای final removal پس از کافی بودن expansion و PDL disruption استفاده می‌شوند.
+دلیل رد گزینه الف: فصل تکرار می‌کند teeth pulled نمی‌شوند و traction زیاد خطاست.
+دلیل رد گزینه ج: در roots curved/divergent نیروی traction زیاد خطر fracture را افزایش می‌دهد.
 دلیل رد گزینه د: apical seating برای wedge effect و پایین بردن center of rotation لازم است و با traction جایگزین نمی‌شود.',
                     ],
                     [
@@ -3322,10 +3322,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'لزوم استفاده routine از No.210S forceps.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل lateral incisor را slenderتر و مستعد distal curvature معرفی می‌کند؛ rotation باید با احتیاط باشد.
-دلیل رد گزینه ب: maxillary incisors معمولاً conic single-rooted هستند و No.150 قابل استفاده است.
-دلیل رد گزینه ج: در maxilla labial bone نازک‌تر است و expansion عمده labial است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل lateral incisor را slenderتر و مستعد distal curvature معرفی می‌کند؛ rotation باید با احتیاط باشد.
+دلیل رد گزینه ب: maxillary incisors معمولاً conic single-rooted هستند و No.150 قابل استفاده است.
+دلیل رد گزینه ج: در maxilla labial bone نازک‌تر است و expansion عمده labial است.
 دلیل رد گزینه د: No.210S برای erupted maxillary third molar ذکر شده است.',
                     ],
                     [
@@ -3337,10 +3337,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ابتدا buccal beak روی adjacent tooth تکیه داده شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل parallel بودن beaks با long axis و apical seating را برای انتقال مؤثر نیرو و کاهش fracture ضروری می‌داند.
-دلیل رد گزینه ب: عمود بودن و گرفتن crown نیروی نامناسب ایجاد کرده و fracture را محتمل می‌کند.
-دلیل رد گزینه ج: بدون apical pressure wedge effect و پایین رفتن center of rotation حاصل نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل parallel بودن beaks با long axis و apical seating را برای انتقال مؤثر نیرو و کاهش fracture ضروری می‌داند.
+دلیل رد گزینه ب: عمود بودن و گرفتن crown نیروی نامناسب ایجاد کرده و fracture را محتمل می‌کند.
+دلیل رد گزینه ج: بدون apical pressure wedge effect و پایین رفتن center of rotation حاصل نمی‌شود.
 دلیل رد گزینه د: engaging adjacent tooth خطای خطرناک است و باید از آن پرهیز شود.',
                     ],
                     [
@@ -3352,10 +3352,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No.151S با حداقل buccolingual movement و بدون توجه به bifurcation.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل No.23 cowhorn را برای molarهای mandibular با bifurcation واضح توصیف می‌کند.
-دلیل رد گزینه ب: No.150A برای برخی premolarهای maxillary ذکر شده، نه lower molar bifurcation.
-دلیل رد گزینه ج: No.210S برای maxillary third molar است؛ linguo-occlusal delivery بیشتر برای mandibular third molar fused conic آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل No.23 cowhorn را برای molarهای mandibular با bifurcation واضح توصیف می‌کند.
+دلیل رد گزینه ب: No.150A برای برخی premolarهای maxillary ذکر شده، نه lower molar bifurcation.
+دلیل رد گزینه ج: No.210S برای maxillary third molar است؛ linguo-occlusal delivery بیشتر برای mandibular third molar fused conic آمده است.
 دلیل رد گزینه د: No.151S برای primary teeth است و انتخاب معمول lower molar bifurcated نیست.',
                     ],
                     [
@@ -3367,10 +3367,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'گسترش maxillary sinus و پیشگیری از root fracture.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل دو هدف step 1 را همین موارد می‌داند: بررسی anesthesia و افزایش عرض sulcus برای placement ابزار.
-دلیل رد گزینه ب: هدف مرحله اول fracture bone یا حذف radiograph نیست.
-دلیل رد گزینه ج: PDL tearing در luxation رخ می‌دهد؛ soft tissue loosening sulcus را باز می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل دو هدف step 1 را همین موارد می‌داند: بررسی anesthesia و افزایش عرض sulcus برای placement ابزار.
+دلیل رد گزینه ب: هدف مرحله اول fracture bone یا حذف radiograph نیست.
+دلیل رد گزینه ج: PDL tearing در luxation رخ می‌دهد؛ soft tissue loosening sulcus را باز می‌کند.
 دلیل رد گزینه د: این موارد به anatomy maxillary molar مربوط‌اند و هدف step 1 نیستند.',
                     ],
                     [
@@ -3382,10 +3382,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'افزایش rotational force تا bone دوباره فشرده شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: فصل این روش را برای حفظ قطعه viable متصل به periosteum توصیه می‌کند.
-دلیل رد گزینه الف: ادامه بدون اصلاح ممکن است bone loss و delayed healing را بیشتر کند.
-دلیل رد گزینه ج: فقط اگر bone از periosteum detached شود احتمال nonvital بودن دارد و remove می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: فصل این روش را برای حفظ قطعه viable متصل به periosteum توصیه می‌کند.
+دلیل رد گزینه الف: ادامه بدون اصلاح ممکن است bone loss و delayed healing را بیشتر کند.
+دلیل رد گزینه ج: فقط اگر bone از periosteum detached شود احتمال nonvital بودن دارد و remove می‌شود.
 دلیل رد گزینه د: rotational force برای حل fracture plate مطرح نشده و می‌تواند آسیب را بدتر کند.',
                     ],
                     [
@@ -3397,10 +3397,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'gauze داخل عمق socket تا apex فشرده شود تا clot سریع‌تر شکل بگیرد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل ۲×۲ مرطوب را برای single socket در space crown توصیه می‌کند تا pressure مستقیم به gingiva/socket برسد.
-دلیل رد گزینه ب: اگر gauze روی occlusal table قرار گیرد، pressure کافی به bleeding socket منتقل نمی‌شود.
-دلیل رد گزینه ج: gauze بزرگ برای multiple extractions یا opposing arch edentulous ممکن است لازم شود، نه routine single tooth.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل ۲×۲ مرطوب را برای single socket در space crown توصیه می‌کند تا pressure مستقیم به gingiva/socket برسد.
+دلیل رد گزینه ب: اگر gauze روی occlusal table قرار گیرد، pressure کافی به bleeding socket منتقل نمی‌شود.
+دلیل رد گزینه ج: gauze بزرگ برای multiple extractions یا opposing arch edentulous ممکن است لازم شود، نه routine single tooth.
 دلیل رد گزینه د: فصل packing عمیق socket را برای hemostasis routine توصیه نمی‌کند.',
                     ],
                     [
@@ -3412,10 +3412,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No.17 forceps، دو root divergent، و rotation شدید.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل برای erupted maxillary third molar No.210S، roots conic/fused و اهمیت radiograph به علت root variability را ذکر می‌کند.
-دلیل رد گزینه ب: No.23 cowhorn برای mandibular molar bifurcation است.
-دلیل رد گزینه ج: No.151S برای primary teeth است، نه maxillary third molar.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل برای erupted maxillary third molar No.210S، roots conic/fused و اهمیت radiograph به علت root variability را ذکر می‌کند.
+دلیل رد گزینه ب: No.23 cowhorn برای mandibular molar bifurcation است.
+دلیل رد گزینه ج: No.151S برای primary teeth است، نه maxillary third molar.
 دلیل رد گزینه د: No.17 برای mandibular molars است و rotation شدید برای molars مناسب نیست.',
                     ],
                     [
@@ -3427,10 +3427,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ایجاد fracture عمدی در lingual plate در همه posterior teeth.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: این توصیف با مفهوم lingual/palatal pressure در فصل سازگار است.
-دلیل رد گزینه ب: delivery نهایی مربوط به tractional force است، نه lingual/palatal pressure.
-دلیل رد گزینه ج: apical pressure، نه lingual pressure، center of rotation را apical می‌برد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: این توصیف با مفهوم lingual/palatal pressure در فصل سازگار است.
+دلیل رد گزینه ب: delivery نهایی مربوط به tractional force است، نه lingual/palatal pressure.
+دلیل رد گزینه ج: apical pressure، نه lingual pressure، center of rotation را apical می‌برد.
 دلیل رد گزینه د: هدف expansion کنترل‌شده است، نه fracture عمدی.',
                     ],
                     [
@@ -3442,10 +3442,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'جلوگیری از retraction cheek و tongue برای حفظ بافت نرم.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل suction را برای دید مناسب و جلوگیری از ناراحتی بیمار ناشی از تجمع مایعات مهم می‌داند.
-دلیل رد گزینه ب: assistant باید حمایت روانی و زبان مثبت داشته باشد، نه افزایش اضطراب.
-دلیل رد گزینه ج: هدف assistant افزایش access و visualization surgeon است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل suction را برای دید مناسب و جلوگیری از ناراحتی بیمار ناشی از تجمع مایعات مهم می‌داند.
+دلیل رد گزینه ب: assistant باید حمایت روانی و زبان مثبت داشته باشد، نه افزایش اضطراب.
+دلیل رد گزینه ج: هدف assistant افزایش access و visualization surgeon است.
 دلیل رد گزینه د: retraction cheek/tongue از وظایف اصلی assistant است.',
                     ],
                     [
@@ -3457,10 +3457,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'roots fused conic و extraction معمول با No.210S.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: این مشخصات مربوط به maxillary second premolar است.
-دلیل رد گزینه ب: این توصیف بیشتر به maxillary first premolar مربوط است.
-دلیل رد گزینه ج: سه ریشه و palatal divergence مربوط به maxillary molars است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: این مشخصات مربوط به maxillary second premolar است.
+دلیل رد گزینه ب: این توصیف بیشتر به maxillary first premolar مربوط است.
+دلیل رد گزینه ج: سه ریشه و palatal divergence مربوط به maxillary molars است.
 دلیل رد گزینه د: No.210S و fused conic roots بیشتر برای erupted maxillary third molar ذکر شده‌اند.',
                     ],
                     [
@@ -3472,10 +3472,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'محافظت قطعی از buccal cortical plate حتی با force ناگهانی.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید buccal pressure crestal buccal bone را expand می‌کند ولی lingual apical pressure هم ایجاد می‌کند و excessive force خطر fracture دارد.
-دلیل رد گزینه ب: معمولاً buccal و lingual/palatal forces به‌صورت ترکیبی برای luxation به کار می‌روند.
-دلیل رد گزینه ج: apical seating برای پایین بردن center of rotation لازم است؛ buccal pressure به‌تنهایی این اثر را تضمین نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید buccal pressure crestal buccal bone را expand می‌کند ولی lingual apical pressure هم ایجاد می‌کند و excessive force خطر fracture دارد.
+دلیل رد گزینه ب: معمولاً buccal و lingual/palatal forces به‌صورت ترکیبی برای luxation به کار می‌روند.
+دلیل رد گزینه ج: apical seating برای پایین بردن center of rotation لازم است؛ buccal pressure به‌تنهایی این اثر را تضمین نمی‌کند.
 دلیل رد گزینه د: excessive buccal force می‌تواند buccal bone را fracture کند.',
                     ],
                     [
@@ -3487,10 +3487,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'palatal force غالب، rotation شدید و avoidance از apical pressure.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: این سه مورد در فصل به‌عنوان fundamental requirements ذکر شده‌اند.
-دلیل رد گزینه ب: radiograph ضروری است و traction سریع/curettage شدید خلاف اصول فصل است.
-دلیل رد گزینه ج: flap/suture برای همه closed extractions لازم نیست و antibiotic routine در این بخش requirement نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: این سه مورد در فصل به‌عنوان fundamental requirements ذکر شده‌اند.
+دلیل رد گزینه ب: radiograph ضروری است و traction سریع/curettage شدید خلاف اصول فصل است.
+دلیل رد گزینه ج: flap/suture برای همه closed extractions لازم نیست و antibiotic routine در این بخش requirement نیست.
 دلیل رد گزینه د: apical pressure مفید است؛ palatal force غالب یا rotation شدید برای همه teeth درست نیست.',
                     ],
                     [
@@ -3502,10 +3502,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'فقط retract cheek بدون حمایت inferior mandible.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل این grip را برای support mandible و کاهش TMJ pressure توصیف می‌کند.
-دلیل رد گزینه ب: این چیدمان با متن فصل مطابقت ندارد.
-دلیل رد گزینه ج: bite block در contralateral side کمک می‌کند اما دست روی occlusal surfaces جایگزین support نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل این grip را برای support mandible و کاهش TMJ pressure توصیف می‌کند.
+دلیل رد گزینه ب: این چیدمان با متن فصل مطابقت ندارد.
+دلیل رد گزینه ج: bite block در contralateral side کمک می‌کند اما دست روی occlusal surfaces جایگزین support نیست.
 دلیل رد گزینه د: در lower molars، support mandible اهمیت ویژه دارد.',
                     ],
                     [
@@ -3517,10 +3517,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'primary wedge؛ چون beakهای forceps در PDL space قرار می‌گیرند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل triangular/Cryer elevator را نمونه wheel-and-axle برای root باقی‌مانده معرفی می‌کند.
-دلیل رد گزینه ب: در این تکنیک چرخش ابزار و engagement root مهم است، نه traction مستقیم.
-دلیل رد گزینه ج: barrier مربوط به gauze partition است و ابزار مکانیکی root removal نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل triangular/Cryer elevator را نمونه wheel-and-axle برای root باقی‌مانده معرفی می‌کند.
+دلیل رد گزینه ب: در این تکنیک چرخش ابزار و engagement root مهم است، نه traction مستقیم.
+دلیل رد گزینه ج: barrier مربوط به gauze partition است و ابزار مکانیکی root removal نیست.
 دلیل رد گزینه د: wedge effect forceps beaks یا straight elevator در PDL space است، نه کاربرد اصلی Cryer در این مثال.',
                     ],
                     [
@@ -3532,10 +3532,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'طراحی cowhorn برای squeeze کردن bifurcation lower molar.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل No.53R/53L را برای maxillary molars با projections روی buccal beaks توصیف می‌کند.
-دلیل رد گزینه ب: short-beaked right-angle design No.222 برای mandibular third molar است.
-دلیل رد گزینه ج: No.150S/151S برای primary teeth آمده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل No.53R/53L را برای maxillary molars با projections روی buccal beaks توصیف می‌کند.
+دلیل رد گزینه ب: short-beaked right-angle design No.222 برای mandibular third molar است.
+دلیل رد گزینه ج: No.150S/151S برای primary teeth آمده‌اند.
 دلیل رد گزینه د: cowhorn No.23 برای lower molars bifurcated است.',
                     ],
                     [
@@ -3547,10 +3547,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'اگر tooth mobile شد، نیازی به ادامه controlled expansion نیست و باید ناگهان کشیده شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل تأکید می‌کند نقش اصلی forceps گسترش bone و قطع PDL است و removal مرحله جداگانه بعدی است.
-دلیل رد گزینه ب: این برداشت novice error است؛ teeth pulled نمی‌شوند.
-دلیل رد گزینه ج: traction شدید خلاف اصول controlled force است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل تأکید می‌کند نقش اصلی forceps گسترش bone و قطع PDL است و removal مرحله جداگانه بعدی است.
+دلیل رد گزینه ب: این برداشت novice error است؛ teeth pulled نمی‌شوند.
+دلیل رد گزینه ج: traction شدید خلاف اصول controlled force است.
 دلیل رد گزینه د: حتی با mobility، delivery باید با نیروی کم و پس از expansion کافی باشد.',
                     ],
                     [
@@ -3562,10 +3562,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'squeeze در bifurcation با cowhorn forceps.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل برای mandibular incisors/canines حرکات labial و lingual با فشارهای برابر و سپس rotation پس از mobile شدن را ذکر می‌کند.
-دلیل رد گزینه ب: palatal اصطلاح مربوط به maxilla است و delivery توصیف‌شده در فصل نیست.
-دلیل رد گزینه ج: حرکت یک‌طرفه کافی نیست و می‌تواند trauma ایجاد کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل برای mandibular incisors/canines حرکات labial و lingual با فشارهای برابر و سپس rotation پس از mobile شدن را ذکر می‌کند.
+دلیل رد گزینه ب: palatal اصطلاح مربوط به maxilla است و delivery توصیف‌شده در فصل نیست.
+دلیل رد گزینه ج: حرکت یک‌طرفه کافی نیست و می‌تواند trauma ایجاد کند.
 دلیل رد گزینه د: cowhorn برای lower molars bifurcated است، نه anterior teeth.',
                     ],
                     [
@@ -3577,10 +3577,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای ایجاد sharp jerky movements و شکستن PDL سریع‌تر.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید با شروع expansion، reseating apically باعث expansion اضافی و پایین‌تر رفتن center of rotation می‌شود.
-دلیل رد گزینه ب: نیرو باید با shoulder/upper arm و wrist locked وارد شود، نه fingers.
-دلیل رد گزینه ج: هدف گرفتن root apical‌تر است، نه crown.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید با شروع expansion، reseating apically باعث expansion اضافی و پایین‌تر رفتن center of rotation می‌شود.
+دلیل رد گزینه ب: نیرو باید با shoulder/upper arm و wrist locked وارد شود، نه fingers.
+دلیل رد گزینه ج: هدف گرفتن root apical‌تر است، نه crown.
 دلیل رد گزینه د: حرکات باید slow, deliberate و sustained باشند، نه jerky.',
                     ],
                     [
@@ -3592,10 +3592,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون مانع گذاشتن gauze روی occlusal table می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل این دلیل را برای برداشتن granulation tissue اضافی پس از extraction دندان‌های periodontal ذکر می‌کند.
-دلیل رد گزینه ب: granulation tissue periodontal به‌معنای malignant tumor نیست.
-دلیل رد گزینه ج: PDL remnants در socket سالم برای healing مناسب‌اند و نباید routine حذف شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل این دلیل را برای برداشتن granulation tissue اضافی پس از extraction دندان‌های periodontal ذکر می‌کند.
+دلیل رد گزینه ب: granulation tissue periodontal به‌معنای malignant tumor نیست.
+دلیل رد گزینه ج: PDL remnants در socket سالم برای healing مناسب‌اند و نباید routine حذف شوند.
 دلیل رد گزینه د: gauze باید در فضای crown و روی socket pressure دهد، نه روی occlusal table.',
                     ],
                     [
@@ -3607,10 +3607,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'fulcrum، axle و wheel؛ bladeها فقط برای maxillary molars هستند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: این ترکیب دقیقاً با توصیف فصل از dental elevator همخوان است.
-دلیل رد گزینه ب: beak/hinge/handle مربوط به forceps است، نه elevator؛ cowhorn/universal forceps هستند.
-دلیل رد گزینه ج: این اجزا در فصل برای elevator مطرح نشده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: این ترکیب دقیقاً با توصیف فصل از dental elevator همخوان است.
+دلیل رد گزینه ب: beak/hinge/handle مربوط به forceps است، نه elevator؛ cowhorn/universal forceps هستند.
+دلیل رد گزینه ج: این اجزا در فصل برای elevator مطرح نشده‌اند.
 دلیل رد گزینه د: lever/wheel concepts اصول مکانیکی‌اند، نه اجزای خود elevator.',
                     ],
                     [
@@ -3622,10 +3622,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ایجاد pericoronitis، افزایش trismus و کاهش access.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل سه هدف forceps را همین موارد بیان می‌کند.
-دلیل رد گزینه ب: این‌ها اعمال دیگر جراحی‌اند و اهداف forceps use نیستند.
-دلیل رد گزینه ج: این موارد در preoperative evaluation مطرح می‌شوند، نه اهداف forceps.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل سه هدف forceps را همین موارد بیان می‌کند.
+دلیل رد گزینه ب: این‌ها اعمال دیگر جراحی‌اند و اهداف forceps use نیستند.
+دلیل رد گزینه ج: این موارد در preoperative evaluation مطرح می‌شوند، نه اهداف forceps.
 دلیل رد گزینه د: این گزینه پیامدهای نامطلوب یا بی‌ربط را ترکیب کرده است.',
                     ],
                     [
@@ -3637,10 +3637,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وقتی buccal bone عمداً به‌عنوان محل elevation مستقیم انتخاب شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل می‌گوید usefulness این step در نبود دندان posterior، broken-down crown یا planned extraction دندان مجاور بیشتر است.
-دلیل رد گزینه ب: در حضور contactهای stable جلو و عقب، movement با straight elevator معمولاً minimal است.
-دلیل رد گزینه ج: تکیه بر restoration مجاور خطر آسیب دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل می‌گوید usefulness این step در نبود دندان posterior، broken-down crown یا planned extraction دندان مجاور بیشتر است.
+دلیل رد گزینه ب: در حضور contactهای stable جلو و عقب، movement با straight elevator معمولاً minimal است.
+دلیل رد گزینه ج: تکیه بر restoration مجاور خطر آسیب دارد.
 دلیل رد گزینه د: elevation along buccal bone ممنوع/خطرناک است.',
                     ],
                     [
@@ -3652,10 +3652,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'سه root بزرگ با buccal bifurcation.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: این‌ها مشخصات فصل برای maxillary canine هستند و علت دشواری با وجود labial bone نازک را توضیح می‌دهند.
-دلیل رد گزینه ب: این توصیف به maxillary second premolar نزدیک‌تر است.
-دلیل رد گزینه ج: این توصیف برای maxillary first premolar مناسب‌تر است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: این‌ها مشخصات فصل برای maxillary canine هستند و علت دشواری با وجود labial bone نازک را توضیح می‌دهند.
+دلیل رد گزینه ب: این توصیف به maxillary second premolar نزدیک‌تر است.
+دلیل رد گزینه ج: این توصیف برای maxillary first premolar مناسب‌تر است.
 دلیل رد گزینه د: سه root با bifurcation مربوط به molars است.',
                     ],
                     [
@@ -3667,10 +3667,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'No.151S forceps، بدون elevation چون دندان primary است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل این دندان را با fused conic roots، No.222 و lingual delivery توصیف می‌کند.
-دلیل رد گزینه ب: No.210S برای maxillary third molar است.
-دلیل رد گزینه ج: No.150 برای maxillary anterior/premolars است و ریشه‌های fused conic lower third molar با توصیف گزینه سازگار نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل این دندان را با fused conic roots، No.222 و lingual delivery توصیف می‌کند.
+دلیل رد گزینه ب: No.210S برای maxillary third molar است.
+دلیل رد گزینه ج: No.150 برای maxillary anterior/premolars است و ریشه‌های fused conic lower third molar با توصیف گزینه سازگار نیست.
 دلیل رد گزینه د: No.151S برای primary mandibular teeth است.',
                     ],
                     [
@@ -3682,10 +3682,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'فقط در maxillary third molar و بدون توجه به آینده implant انجام می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل compression به original configuration را توصیه می‌کند اما در برنامه implant نسبت به overreduction هشدار می‌دهد.
-دلیل رد گزینه ب: overreduction ممکن است برای implant future مضر باشد.
-دلیل رد گزینه ج: برگرداندن plates به شکل اولیه برای جلوگیری از bony undercuts توصیه شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل compression به original configuration را توصیه می‌کند اما در برنامه implant نسبت به overreduction هشدار می‌دهد.
+دلیل رد گزینه ب: overreduction ممکن است برای implant future مضر باشد.
+دلیل رد گزینه ج: برگرداندن plates به شکل اولیه برای جلوگیری از bony undercuts توصیه شده است.
 دلیل رد گزینه د: این مراقبت عمومی socket است، نه فقط maxillary third molar.',
                     ],
                     [
@@ -3697,10 +3697,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'قرار دادن gauze بزرگ روی occlusal table برای فشردن projection.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل همین روش را برای sharp bony projections توصیه می‌کند.
-دلیل رد گزینه ب: فصل بررسی و اصلاح sharp projections را مطرح می‌کند، نه رها کردن routine.
-دلیل رد گزینه ج: curettage شدید دیواره socket آسیب اضافی ایجاد می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل همین روش را برای sharp bony projections توصیه می‌کند.
+دلیل رد گزینه ب: فصل بررسی و اصلاح sharp projections را مطرح می‌کند، نه رها کردن routine.
+دلیل رد گزینه ج: curettage شدید دیواره socket آسیب اضافی ایجاد می‌کند.
 دلیل رد گزینه د: gauze برای hemostasis است و projection تیز را اصلاح نمی‌کند.',
                     ],
                     [
@@ -3712,10 +3712,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'feet نزدیک هم قرار گیرند تا بدن سریع‌تر به سمت tooth حرکت کند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل این وضعیت را برای mechanical advantage و control توضیح می‌دهد.
-دلیل رد گزینه ب: این روش کنترل و leverage را کاهش می‌دهد و با اصول فصل مخالف است.
-دلیل رد گزینه ج: leaning over patient خطای positioning است و force ناگهانی توصیه نمی‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل این وضعیت را برای mechanical advantage و control توضیح می‌دهد.
+دلیل رد گزینه ب: این روش کنترل و leverage را کاهش می‌دهد و با اصول فصل مخالف است.
+دلیل رد گزینه ج: leaning over patient خطای positioning است و force ناگهانی توصیه نمی‌شود.
 دلیل رد گزینه د: feet comfortably apart برای stability لازم است، نه نزدیک هم.',
                     ],
                     [
@@ -3727,10 +3727,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون buccal plate اطراف آن ضخیم‌تر از palatal plate است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل تفاوت maxillary second molar را همین کوتاه‌تر/کمتر divergent بودن roots و fusion buccal roots می‌داند.
-دلیل رد گزینه ب: این توصیف دشواری first molar را بیشتر می‌کند و با second molar فصل سازگار نیست.
-دلیل رد گزینه ج: No.23 cowhorn برای lower molars است، نه maxillary second molar.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل تفاوت maxillary second molar را همین کوتاه‌تر/کمتر divergent بودن roots و fusion buccal roots می‌داند.
+دلیل رد گزینه ب: این توصیف دشواری first molar را بیشتر می‌کند و با second molar فصل سازگار نیست.
+دلیل رد گزینه ج: No.23 cowhorn برای lower molars است، نه maxillary second molar.
 دلیل رد گزینه د: در maxilla buccal plate معمولاً نازک‌تر و palatal cortical plate ضخیم‌تر است.',
                     ],
                 ],
@@ -3761,11 +3761,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'لبه‌های زخم با فشار گاز به همان وضعیت عادت داده شوند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در منبع تأکید شده بخیه فقط برای تقریب بافت است و نباید باعث ischemia یا blanching شود؛ در صورت blanching باید بخیه برداشته و جایگزین شود.
-دلیل رد گزینه‌های غلط:
-- الف: کوتاه‌کردن انتهای نخ فشار و ایسکمی لبه‌ها را اصلاح نمی‌کند.
-- ج: بخیه اضافه فشار را بیشتر می‌کند و هدف بخیه را از approximation به فشار غیرمجاز تبدیل می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در منبع تأکید شده بخیه فقط برای تقریب بافت است و نباید باعث ischemia یا blanching شود؛ در صورت blanching باید بخیه برداشته و جایگزین شود.
+دلیل رد گزینه‌های غلط:
+- الف: کوتاه‌کردن انتهای نخ فشار و ایسکمی لبه‌ها را اصلاح نمی‌کند.
+- ج: بخیه اضافه فشار را بیشتر می‌کند و هدف بخیه را از approximation به فشار غیرمجاز تبدیل می‌کند.
 - د: فشار گاز جایگزین اصلاح کشش بخیه نیست و مشکل ایسکمی را حل نمی‌کند.',
                     ],
                     [
@@ -3777,11 +3777,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در مرکز ناحیه‌ای قرار گیرد که قرار است bone removal انجام شود.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: خط برش باید روی استخوانی قرار گیرد که پس از جراحی سالم و حمایت‌کننده باقی می‌ماند؛ اگر buccal plate از بین رفته باشد، برش باید ۶ تا ۸ میلی‌متر از آن فاصله داشته باشد.
-دلیل رد گزینه‌های غلط:
-- الف: قرارگرفتن خط برش روی defect باعث collapse، dehiscence و delayed healing می‌شود.
-- ب: این فاصله کمتر از حد توصیه‌شده منبع است و حمایت کافی نمی‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: خط برش باید روی استخوانی قرار گیرد که پس از جراحی سالم و حمایت‌کننده باقی می‌ماند؛ اگر buccal plate از بین رفته باشد، برش باید ۶ تا ۸ میلی‌متر از آن فاصله داشته باشد.
+دلیل رد گزینه‌های غلط:
+- الف: قرارگرفتن خط برش روی defect باعث collapse، dehiscence و delayed healing می‌شود.
+- ب: این فاصله کمتر از حد توصیه‌شده منبع است و حمایت کافی نمی‌دهد.
 - د: برش نباید روی ناحیه‌ای باشد که پس از برداشتن استخوان بدون حمایت می‌شود.',
                     ],
                     [
@@ -3793,11 +3793,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'استفاده از vertical traction بیشتر برای غلبه بر مقاومت bone.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: منبع open extraction را در شرایط نیاز به نیروی زیاد، کم‌تروما‌تر از closed extraction می‌داند و از رویکرد divide and conquer حمایت می‌کند.
-دلیل رد گزینه‌های غلط:
-- الف: نیروی بیشتر می‌تواند باعث شکستگی root یا bone و morbidity بیشتر شود.
-- ب: انتظار برای root fracture برخلاف تصمیم‌گیری پیشگیرانه در فصل است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: منبع open extraction را در شرایط نیاز به نیروی زیاد، کم‌تروما‌تر از closed extraction می‌داند و از رویکرد divide and conquer حمایت می‌کند.
+دلیل رد گزینه‌های غلط:
+- الف: نیروی بیشتر می‌تواند باعث شکستگی root یا bone و morbidity بیشتر شود.
+- ب: انتظار برای root fracture برخلاف تصمیم‌گیری پیشگیرانه در فصل است.
 - د: vertical traction بیشتر، خصوصاً در برخی نواحی، با اصول کنترل نیرو سازگار نیست.',
                     ],
                     [
@@ -3809,11 +3809,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'شروع از apical margin با root tip pick و سپس آزادکردن sulcus.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: برای three-cornered flap، ابتدا فقط papilla اول با sharp end آزاد می‌شود؛ سپس broad end در middle corner قرار گرفته و با pushing stroke به سمت posterior و apical حرکت می‌کند.
-دلیل رد گزینه‌های غلط:
-- الف: broad end برای شروع همه papillae توصیه نشده و می‌تواند تروماتیک باشد.
-- ج: رترکشن شدید soft tissue قبل از reflection آتروماتیک نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: برای three-cornered flap، ابتدا فقط papilla اول با sharp end آزاد می‌شود؛ سپس broad end در middle corner قرار گرفته و با pushing stroke به سمت posterior و apical حرکت می‌کند.
+دلیل رد گزینه‌های غلط:
+- الف: broad end برای شروع همه papillae توصیه نشده و می‌تواند تروماتیک باشد.
+- ج: رترکشن شدید soft tissue قبل از reflection آتروماتیک نیست.
 - د: root tip pick ابزار reflection flap نیست و در این مرحله جایگاهی ندارد.',
                     ],
                     [
@@ -3825,11 +3825,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Y-incision',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: Semilunar incision برای دسترسی محدود به root apex مفید است و از papillae و gingival margin دوری می‌کند، اما چون کل ریشه دیده نمی‌شود دسترسی محدودی دارد.
-دلیل رد گزینه‌های غلط:
-- الف: envelope flap دسترسی sulcular وسیع‌تری می‌دهد و هدف اصلی آن حفظ gingival margin به شکل semilunar نیست.
-- ب: three-cornered flap برای دسترسی apical بیشتر به کمک releasing incision است، نه برشی با دسترسی محدود به apex.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: Semilunar incision برای دسترسی محدود به root apex مفید است و از papillae و gingival margin دوری می‌کند، اما چون کل ریشه دیده نمی‌شود دسترسی محدودی دارد.
+دلیل رد گزینه‌های غلط:
+- الف: envelope flap دسترسی sulcular وسیع‌تری می‌دهد و هدف اصلی آن حفظ gingival margin به شکل semilunar نیست.
+- ب: three-cornered flap برای دسترسی apical بیشتر به کمک releasing incision است، نه برشی با دسترسی محدود به apex.
 - د: Y-incision برای دسترسی palatal torus به کار می‌رود، نه apex ریشه.',
                     ],
                     [
@@ -3841,11 +3841,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'جایگزین لازم برای تمام interrupted sutures در papillae.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: منبع بیان می‌کند figure-of-eight می‌تواند مانعی برای جابه‌جایی clot یا نگهداشتن oxidized cellulose باشد، اما نقش آن در حفظ clot minor است.
-دلیل رد گزینه‌های غلط:
-- الف: هدف آن primary closure کامل socket نیست.
-- ج: برای خونریزی فعال عمقی، بستن سفت مخاط توصیه نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: منبع بیان می‌کند figure-of-eight می‌تواند مانعی برای جابه‌جایی clot یا نگهداشتن oxidized cellulose باشد، اما نقش آن در حفظ clot minor است.
+دلیل رد گزینه‌های غلط:
+- الف: هدف آن primary closure کامل socket نیست.
+- ج: برای خونریزی فعال عمقی، بستن سفت مخاط توصیه نشده است.
 - د: این سوتور جایگزین همیشگی interrupted sutures نیست و کاربرد خاص دارد.',
                     ],
                     [
@@ -3857,11 +3857,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'به دلیل غیرممکن‌بودن قرار دادن sutures روی palatal soft tissue.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در posterior palate، vertical release معمولاً greater palatine artery را داخل بافت قطع می‌کند و باعث خونریزی pulsatile دشوار می‌شود.
-دلیل رد گزینه‌های غلط:
-- الف: متن درباره incisive bundle می‌گوید بی‌حسی موقت معمولاً آزاردهنده نیست و nerve بازسازی می‌شود.
-- ج: منبع چنین دلیلی برای پرهیز از posterior palatal release ذکر نکرده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در posterior palate، vertical release معمولاً greater palatine artery را داخل بافت قطع می‌کند و باعث خونریزی pulsatile دشوار می‌شود.
+دلیل رد گزینه‌های غلط:
+- الف: متن درباره incisive bundle می‌گوید بی‌حسی موقت معمولاً آزاردهنده نیست و nerve بازسازی می‌شود.
+- ج: منبع چنین دلیلی برای پرهیز از posterior palatal release ذکر نکرده است.
 - د: دشواری بخیه‌زدن علت اصلی ذکرشده نیست.',
                     ],
                     [
@@ -3873,11 +3873,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حفظ بهتر attached gingiva در facial aspect.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: منبع توصیه می‌کند releasing incision از bony prominences مانند canine eminence عبور نکند، زیرا tension در suture line را افزایش داده و dehiscence را محتمل‌تر می‌کند.
-دلیل رد گزینه‌های غلط:
-- الف: اثر ذکرشده برعکس است؛ tension بیشتر می‌شود.
-- ج: عبور از برجستگی استخوانی نیاز به reflection را کاهش نمی‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: منبع توصیه می‌کند releasing incision از bony prominences مانند canine eminence عبور نکند، زیرا tension در suture line را افزایش داده و dehiscence را محتمل‌تر می‌کند.
+دلیل رد گزینه‌های غلط:
+- الف: اثر ذکرشده برعکس است؛ tension بیشتر می‌شود.
+- ج: عبور از برجستگی استخوانی نیاز به reflection را کاهش نمی‌دهد.
 - د: عبور نامناسب می‌تواند نقص soft tissue و مشکلات periodontal/aesthetic ایجاد کند.',
                     ],
                     [
@@ -3889,11 +3889,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'افزایش عمدی eversion لبه‌های زخم.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: needle باید با زاویه راست وارد شود و با چرخش از بافت عبور کند؛ ورود حاد و فشار مستقیم احتمال tearing را زیاد می‌کند.
-دلیل رد گزینه‌های غلط:
-- الف: ورود مورب hole مؤثر را بزرگ‌تر و آسیب را بیشتر می‌کند.
-- ب: اگر مقدار tissue در دو طرف برابر نباشد، alignment هم بدتر می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: needle باید با زاویه راست وارد شود و با چرخش از بافت عبور کند؛ ورود حاد و فشار مستقیم احتمال tearing را زیاد می‌کند.
+دلیل رد گزینه‌های غلط:
+- الف: ورود مورب hole مؤثر را بزرگ‌تر و آسیب را بیشتر می‌کند.
+- ب: اگر مقدار tissue در دو طرف برابر نباشد، alignment هم بدتر می‌شود.
 - د: eversion کنترل‌شده مربوط به mattress suture است، نه ورود مورب needle.',
                     ],
                     [
@@ -3905,11 +3905,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'زیرا در استخوان dense، sectioning دندان ممنوع است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در استخوان ضخیم و dense، اتساع buccocortical plate کمتر رخ می‌دهد و ریسک root fracture بالا می‌رود؛ بنابراین open extraction باید در نظر گرفته شود.
-دلیل رد گزینه‌های غلط:
-- الف: منبع دقیقاً می‌گوید expansion کافی کمتر محتمل است.
-- ج: visualization مستقیم از مزیت‌های surgical approach است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در استخوان ضخیم و dense، اتساع buccocortical plate کمتر رخ می‌دهد و ریسک root fracture بالا می‌رود؛ بنابراین open extraction باید در نظر گرفته شود.
+دلیل رد گزینه‌های غلط:
+- الف: منبع دقیقاً می‌گوید expansion کافی کمتر محتمل است.
+- ج: visualization مستقیم از مزیت‌های surgical approach است.
 - د: sectioning یکی از روش‌های کاهش تروما در open extraction است.',
                     ],
                     [
@@ -3921,11 +3921,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای palatal torus به دلیل حفظ greater palatine branches طراحی می‌شود.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: Four-cornered flap شامل envelope incision با دو releasing incision است و با وجود ایجاد دسترسی زیاد در ناحیه با بعد anteroposterior محدود، rarely indicated است.
-دلیل رد گزینه‌های غلط:
-- الف: یک releasing incision، three-cornered flap می‌سازد.
-- ب: semilunar برای periapical access محدود ذکر شده است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: Four-cornered flap شامل envelope incision با دو releasing incision است و با وجود ایجاد دسترسی زیاد در ناحیه با بعد anteroposterior محدود، rarely indicated است.
+دلیل رد گزینه‌های غلط:
+- الف: یک releasing incision، three-cornered flap می‌سازد.
+- ب: semilunar برای periapical access محدود ذکر شده است.
 - د: توصیف مربوط به Y-incision برای palatal torus است.',
                     ],
                     [
@@ -3937,11 +3937,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حفظ periosteum روی bone تا surgical bone reshaping بدون reflection انجام شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در tooth removal، flap باید full-thickness باشد؛ چون هدف برداشت یا تغییر شکل bone است و بازگرداندن periosteum، که در bone healing نقش اصلی دارد، healing را تسریع می‌کند.
-دلیل رد گزینه‌های غلط:
-- الف: periosteum حذف نمی‌شود و در flap باقی می‌ماند.
-- ج: tissue torn/split کندتر ترمیم می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در tooth removal، flap باید full-thickness باشد؛ چون هدف برداشت یا تغییر شکل bone است و بازگرداندن periosteum، که در bone healing نقش اصلی دارد، healing را تسریع می‌کند.
+دلیل رد گزینه‌های غلط:
+- الف: periosteum حذف نمی‌شود و در flap باقی می‌ماند.
+- ج: tissue torn/split کندتر ترمیم می‌شود.
 - د: برای remove/reshape bone باید overlying tissue از bone منعکس شود.',
                     ],
                     [
@@ -3953,11 +3953,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'هدف اصلی بخیه، coaptation لبه‌ها و نگهداشتن flap در موقعیت است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن تأکید دارد overlying tissue نباید برای کنترل خونریزی socket سفت بسته شود؛ sutures فقط در oozing عمومی نقش tamponade دارند.
-دلیل رد گزینه‌های غلط:
-- الف: این گزاره با منبع سازگار است و گزینه نادرست نیست.
-- ج: متن همین خطر hematoma را ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن تأکید دارد overlying tissue نباید برای کنترل خونریزی socket سفت بسته شود؛ sutures فقط در oozing عمومی نقش tamponade دارند.
+دلیل رد گزینه‌های غلط:
+- الف: این گزاره با منبع سازگار است و گزینه نادرست نیست.
+- ج: متن همین خطر hematoma را ذکر می‌کند.
 - د: coaptation و نگهداشتن flap از کارکردهای اصلی sutures است.',
                     ],
                     [
@@ -3969,11 +3969,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'کاهش تماس blade با bone، حتی اگر periosteum کامل قطع نشود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: Scalpel blade با تماس و فشار روی bone هنگام mucoperiosteal incision سریع dull می‌شود؛ اگر بیش از یک flap نیاز باشد، تعویض blade باید در نظر گرفته شود.
-دلیل رد گزینه‌های غلط:
-- الف: blade کند برش تمیز را دشوارتر می‌کند.
-- ج: root tip pick ابزار برش sulcus نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: Scalpel blade با تماس و فشار روی bone هنگام mucoperiosteal incision سریع dull می‌شود؛ اگر بیش از یک flap نیاز باشد، تعویض blade باید در نظر گرفته شود.
+دلیل رد گزینه‌های غلط:
+- الف: blade کند برش تمیز را دشوارتر می‌کند.
+- ج: root tip pick ابزار برش sulcus نیست.
 - د: برای full-thickness incision باید تماس با bone و برش کامل periosteum حفظ شود.',
                     ],
                     [
@@ -3985,11 +3985,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون open extraction در این موارد بدون flap انجام می‌شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در teeth با caries وسیع، restorations بزرگ یا prior endodontic treatment، فشار forceps می‌تواند crown را crush/shatter کند؛ open extraction از نیروی زیاد جلوگیری می‌کند.
-دلیل رد گزینه‌های غلط:
-- الف: forceps عمدتاً root را می‌گیرد ولی بخشی از نیرو به crown وارد می‌شود.
-- ج: متن این ارتباط قطعی با periodontal disease را بیان نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در teeth با caries وسیع، restorations بزرگ یا prior endodontic treatment، فشار forceps می‌تواند crown را crush/shatter کند؛ open extraction از نیروی زیاد جلوگیری می‌کند.
+دلیل رد گزینه‌های غلط:
+- الف: forceps عمدتاً root را می‌گیرد ولی بخشی از نیرو به crown وارد می‌شود.
+- ج: متن این ارتباط قطعی با periodontal disease را بیان نمی‌کند.
 - د: open extraction معمولاً با reflection flap و گاه sectioning/bone removal همراه است.',
                     ],
                     [
@@ -4001,11 +4001,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'عبور incision از superior retromolar area برای کوتاه‌تر کردن flap.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: lingual nerve ممکن است به lingual mandible نزدیک یا حتی روی superior retromolar area باشد؛ incisions باید از lingual aspect دور باشند.
-دلیل رد گزینه‌های غلط:
-- الف: این کار خطر آسیب nerve را افزایش می‌دهد.
-- ج: دو release توصیه نشده و ممکن است تروما را بیشتر کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: lingual nerve ممکن است به lingual mandible نزدیک یا حتی روی superior retromolar area باشد؛ incisions باید از lingual aspect دور باشند.
+دلیل رد گزینه‌های غلط:
+- الف: این کار خطر آسیب nerve را افزایش می‌دهد.
+- ج: دو release توصیه نشده و ممکن است تروما را بیشتر کند.
 - د: superior retromolar area می‌تواند محل عبور نزدیک lingual nerve باشد.',
                     ],
                     [
@@ -4017,11 +4017,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'زیرا در این محل همیشه باعث آسیب greater palatine artery می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: کنت باید در کنار incision، معمولاً به سمت facial/buccal، قرار گیرد تا فشار اضافی روی خط incision وارد نشود.
-دلیل رد گزینه‌های غلط:
-- ب: بحث resorption علت ذکرشده نیست.
-- ج: ارتباطی با رهاشدن نخ از needle holder ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: کنت باید در کنار incision، معمولاً به سمت facial/buccal، قرار گیرد تا فشار اضافی روی خط incision وارد نشود.
+دلیل رد گزینه‌های غلط:
+- ب: بحث resorption علت ذکرشده نیست.
+- ج: ارتباطی با رهاشدن نخ از needle holder ندارد.
 - د: آسیب greater palatine artery مربوط به posterior palatal releasing incision است، نه محل knot در همه موارد.',
                     ],
                     [
@@ -4033,11 +4033,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Sulcular incision محدود فقط در ناحیه molars.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: Y-incision برای palatal torus مفید است؛ anterolateral extensions آن در قدام ناحیه canine قرار می‌گیرند و معمولاً شاخه‌های عمده greater palatine artery را قطع نمی‌کنند.
-دلیل رد گزینه‌های غلط:
-- الف: semilunar برای دسترسی محدود به root apex است.
-- ج: posterior vertical release خطر قطع greater palatine artery و خونریزی دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: Y-incision برای palatal torus مفید است؛ anterolateral extensions آن در قدام ناحیه canine قرار می‌گیرند و معمولاً شاخه‌های عمده greater palatine artery را قطع نمی‌کنند.
+دلیل رد گزینه‌های غلط:
+- الف: semilunar برای دسترسی محدود به root apex است.
+- ج: posterior vertical release خطر قطع greater palatine artery و خونریزی دارد.
 - د: sulcular molar incision برای palatal torus توصیف انتخابی متن نیست.',
                     ],
                     [
@@ -4049,11 +4049,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'یک releasing incision posterior و بدون امتداد anterior.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: برای envelope flap با اندازه کافی، طول anteroposterior معمولاً دو teeth anterior و یک tooth posterior نسبت به ناحیه جراحی امتداد می‌یابد.
-دلیل رد گزینه‌های غلط:
-- الف: این الگو بیشتر با flap همراه releasing incision تطابق دارد.
-- ج: دسترسی کافی برای visualization، instrument insertion و retraction نمی‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: برای envelope flap با اندازه کافی، طول anteroposterior معمولاً دو teeth anterior و یک tooth posterior نسبت به ناحیه جراحی امتداد می‌یابد.
+دلیل رد گزینه‌های غلط:
+- الف: این الگو بیشتر با flap همراه releasing incision تطابق دارد.
+- ج: دسترسی کافی برای visualization، instrument insertion و retraction نمی‌دهد.
 - د: توصیف envelope flap بدون release نیست.',
                     ],
                     [
@@ -4065,11 +4065,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای ایجاد primary closure کامل روی socket.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: اگر sinus به ناحیه ریشه‌های molars گسترش یافته و ریشه‌ها divergent باشند، extraction ممکن است بخشی از sinus floor را با tooth خارج کند؛ surgical extraction برای کاهش این خطر مطرح است.
-دلیل رد گزینه‌های غلط:
-- الف: palatal pressure در maxillary molars می‌تواند خطرناک باشد.
-- ج: sectioning یکی از راه‌های کنترل extraction در این وضعیت است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: اگر sinus به ناحیه ریشه‌های molars گسترش یافته و ریشه‌ها divergent باشند، extraction ممکن است بخشی از sinus floor را با tooth خارج کند؛ surgical extraction برای کاهش این خطر مطرح است.
+دلیل رد گزینه‌های غلط:
+- الف: palatal pressure در maxillary molars می‌تواند خطرناک باشد.
+- ج: sectioning یکی از راه‌های کنترل extraction در این وضعیت است.
 - د: هدف اصلی در اینجا کاهش آسیب به sinus floor است، نه primary closure.',
                     ],
                     [
@@ -4081,11 +4081,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در همان جلسه، چون فقط برای hemostasis موقت کاربرد دارند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: منبع می‌گوید nonresorbable sutures حدود ۵ تا ۷ روز باقی می‌مانند؛ بعد از آن نقش مفیدی ندارند و contamination زیرمخاط را افزایش می‌دهند.
-دلیل رد گزینه‌های غلط:
-- الف: ۲۴ ساعت زمان توصیه‌شده متن نیست.
-- ج: باقی‌ماندن طولانی‌تر از مقدار ذکرشده ضرورت ندارد و contamination را افزایش می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: منبع می‌گوید nonresorbable sutures حدود ۵ تا ۷ روز باقی می‌مانند؛ بعد از آن نقش مفیدی ندارند و contamination زیرمخاط را افزایش می‌دهند.
+دلیل رد گزینه‌های غلط:
+- الف: ۲۴ ساعت زمان توصیه‌شده متن نیست.
+- ج: باقی‌ماندن طولانی‌تر از مقدار ذکرشده ضرورت ندارد و contamination را افزایش می‌دهد.
 - د: sutures برای coaptation و stabilization هستند و همان جلسه برداشته نمی‌شوند.',
                     ],
                     [
@@ -4097,11 +4097,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تسهیل retraction بدون نیاز به periosteal elevator.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: base flap باید معمولاً پهن‌تر از free margin باشد تا blood supply قطع نشود؛ base باریک می‌تواند ischemic necrosis ایجاد کند.
-دلیل رد گزینه‌های غلط:
-- الف: مشکل اصلی کاهش خون‌رسانی است نه افزایش آن.
-- ج: ارتباطی با افزایش vestibular depth ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: base flap باید معمولاً پهن‌تر از free margin باشد تا blood supply قطع نشود؛ base باریک می‌تواند ischemic necrosis ایجاد کند.
+دلیل رد گزینه‌های غلط:
+- الف: مشکل اصلی کاهش خون‌رسانی است نه افزایش آن.
+- ج: ارتباطی با افزایش vestibular depth ندارد.
 - د: طراحی base باریک retraction را ایمن‌تر نمی‌کند.',
                     ],
                     [
@@ -4113,11 +4113,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'خطر آسیب mental nerve حذف می‌شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: برای برش تمیز vertical release، alveolar mucosa باید tense شود؛ در غیر این صورت blade mucosa را تمیز نمی‌برد و jagged incision ایجاد می‌شود.
-دلیل رد گزینه‌های غلط:
-- الف: عدم tension نتیجه معکوس دارد.
-- ج: full-thickness بودن flap همچنان لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: برای برش تمیز vertical release، alveolar mucosa باید tense شود؛ در غیر این صورت blade mucosa را تمیز نمی‌برد و jagged incision ایجاد می‌شود.
+دلیل رد گزینه‌های غلط:
+- الف: عدم tension نتیجه معکوس دارد.
+- ج: full-thickness بودن flap همچنان لازم است.
 - د: tension mucosa جایگزین طراحی مناسب برای پرهیز از nerve injury نیست.',
                     ],
                     [
@@ -4129,11 +4129,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در صورت بازشدن یک loop، سایر بخش‌های continuous line را محفوظ نگه می‌دارد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: Horizontal mattress تعداد sutures را کاهش می‌دهد و مهم‌تر اینکه wound را کمی compress کرده و edges را evert می‌کند؛ می‌تواند دو papilla مجاور را با یک suture ببندد.
-دلیل رد گزینه‌های غلط:
-- الف: این توصیف بیشتر به figure-of-eight روی socket نزدیک است و ناقص است.
-- ج: برای vertical release تنها و بدون سایر sutures توصیف نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: Horizontal mattress تعداد sutures را کاهش می‌دهد و مهم‌تر اینکه wound را کمی compress کرده و edges را evert می‌کند؛ می‌تواند دو papilla مجاور را با یک suture ببندد.
+دلیل رد گزینه‌های غلط:
+- الف: این توصیف بیشتر به figure-of-eight روی socket نزدیک است و ناقص است.
+- ج: برای vertical release تنها و بدون سایر sutures توصیف نشده است.
 - د: مشکل شل‌شدن کل خط مربوط به continuous suture است، نه مزیت mattress.',
                     ],
                     [
@@ -4145,11 +4145,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'استفاده از posterior palatal release برای تمام molars.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: ریشه bulbous یا hypercementosed از دهانه socket به‌سختی خارج می‌شود و نیروی زیاد می‌تواند root یا buccocortical bone را بشکند؛ open extraction باید در نظر گرفته شود.
-دلیل رد گزینه‌های غلط:
-- الف: افزایش نیروی بسته خطر شکستگی را بالا می‌برد.
-- ج: visualization مستقیم در surgical approach کمک‌کننده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: ریشه bulbous یا hypercementosed از دهانه socket به‌سختی خارج می‌شود و نیروی زیاد می‌تواند root یا buccocortical bone را بشکند؛ open extraction باید در نظر گرفته شود.
+دلیل رد گزینه‌های غلط:
+- الف: افزایش نیروی بسته خطر شکستگی را بالا می‌برد.
+- ج: visualization مستقیم در surgical approach کمک‌کننده است.
 - د: posterior palatal release به دلیل خطر خونریزی توصیه نمی‌شود.',
                     ],
                     [
@@ -4161,11 +4161,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در papillae باقی‌مانده؛ استثنا teeth با periodontal disease است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در edentulous patient، envelope incision معمولاً روی scar کرست ridge است؛ استثنا mandible بسیار آتروفیک است که inferior alveolar nerve ممکن است روی residual ridge قرار گیرد.
-دلیل رد گزینه‌های غلط:
-- الف: buccal vestibule محل معمول ذکرشده نیست.
-- ج: posterior palate محل عمومی envelope incision در edentulous ridge نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در edentulous patient، envelope incision معمولاً روی scar کرست ridge است؛ استثنا mandible بسیار آتروفیک است که inferior alveolar nerve ممکن است روی residual ridge قرار گیرد.
+دلیل رد گزینه‌های غلط:
+- الف: buccal vestibule محل معمول ذکرشده نیست.
+- ج: posterior palate محل عمومی envelope incision در edentulous ridge نیست.
 - د: papillae مربوط به بیمار dentulous است.',
                     ],
                     [
@@ -4177,11 +4177,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'به صورت افقی روی crown دندان‌ها برای کاهش دید surgical field.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: retractor یا periosteal elevator باید perpendicular به bone و روی sound bone نگه داشته شود؛ نباید soft tissue را بین retractor و bone گیر بیندازد یا با tension flap را بکشد.
-دلیل رد گزینه‌های غلط:
-- الف: فشار بر soft tissue و کشیدن apical flap می‌تواند tearing ایجاد کند.
-- ج: فشار روی wound margin با اصول retraction سازگار نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: retractor یا periosteal elevator باید perpendicular به bone و روی sound bone نگه داشته شود؛ نباید soft tissue را بین retractor و bone گیر بیندازد یا با tension flap را بکشد.
+دلیل رد گزینه‌های غلط:
+- الف: فشار بر soft tissue و کشیدن apical flap می‌تواند tearing ایجاد کند.
+- ج: فشار روی wound margin با اصول retraction سازگار نیست.
 - د: این وضعیت surgical field را مختل می‌کند و توصیف متن نیست.',
                     ],
                     [
@@ -4193,11 +4193,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در center of socket برای فشردن clot.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در envelope flap، sutures فقط از papillae عبور داده می‌شوند؛ نباید روی empty socket گذاشته شوند، زیرا wound edges روی استخوان سالم حمایت نمی‌شوند.
-دلیل رد گزینه‌های غلط:
-- الف: عبور روی socket با هدف اصلی متن سازگار نیست.
-- ج: سوتور معمولاً ابتدا از mobile tissue و سپس از attached lingual papilla عبور می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در envelope flap، sutures فقط از papillae عبور داده می‌شوند؛ نباید روی empty socket گذاشته شوند، زیرا wound edges روی استخوان سالم حمایت نمی‌شوند.
+دلیل رد گزینه‌های غلط:
+- الف: عبور روی socket با هدف اصلی متن سازگار نیست.
+- ج: سوتور معمولاً ابتدا از mobile tissue و سپس از attached lingual papilla عبور می‌کند.
 - د: فشردن clot هدف اصلی بخیه‌های flap نیست.',
                     ],
                     [
@@ -4209,11 +4209,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'غیرضروری‌شدن استفاده از forceps.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در شکل و متن مربوط به indications، teeth با evidence of bruxism ممکن است bone متراکم‌تر و PDL attachment قوی‌تری داشته باشند و extraction دشوارتر شود.
-دلیل رد گزینه‌های غلط:
-- الف: متن به dense bone و PDL قوی‌تر اشاره دارد، نه bone نازک‌تر.
-- ج: semilunar incision ارتباطی با bruxism ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در شکل و متن مربوط به indications، teeth با evidence of bruxism ممکن است bone متراکم‌تر و PDL attachment قوی‌تری داشته باشند و extraction دشوارتر شود.
+دلیل رد گزینه‌های غلط:
+- الف: متن به dense bone و PDL قوی‌تر اشاره دارد، نه bone نازک‌تر.
+- ج: semilunar incision ارتباطی با bruxism ندارد.
 - د: forceps ممکن است همچنان استفاده شود، اما open extraction باید در نظر گرفته شود.',
                     ],
                     [
@@ -4225,11 +4225,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در posterior mandible، incisions هرچه lingual‌تر باشند ایمن‌ترند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید maxillary facial flaps به‌ندرت vital structures را تهدید می‌کنند و روی facial aspect of maxillary alveolar process عصب یا شریان قابل‌توجهی برای آسیب معمول وجود ندارد.
-دلیل رد گزینه‌های غلط:
-- ب: در incisive bundle خونریزی bothersome کم است و nerve معمولاً regenerate می‌شود.
-- ج: releasing incisions در premolar mandible باید well anterior یا posterior نسبت به mental nerve باشند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید maxillary facial flaps به‌ندرت vital structures را تهدید می‌کنند و روی facial aspect of maxillary alveolar process عصب یا شریان قابل‌توجهی برای آسیب معمول وجود ندارد.
+دلیل رد گزینه‌های غلط:
+- ب: در incisive bundle خونریزی bothersome کم است و nerve معمولاً regenerate می‌شود.
+- ج: releasing incisions در premolar mandible باید well anterior یا posterior نسبت به mental nerve باشند.
 - د: incisions در posterior mandible باید از lingual aspect دور باشند.',
                     ],
                     [
@@ -4241,11 +4241,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حدود ۶ تا ۸ میلی‌متر.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: متن حداقل مقدار tissue بین suture و edge flap را ۳ میلی‌متر ذکر می‌کند تا needle یا suture از soft tissue flap بیرون کشیده نشود.
-دلیل رد گزینه‌های غلط:
-- الف: کمتر از مقدار توصیه‌شده است.
-- ب: کمتر از مقدار مشخص‌شده در فصل است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: متن حداقل مقدار tissue بین suture و edge flap را ۳ میلی‌متر ذکر می‌کند تا needle یا suture از soft tissue flap بیرون کشیده نشود.
+دلیل رد گزینه‌های غلط:
+- الف: کمتر از مقدار توصیه‌شده است.
+- ب: کمتر از مقدار مشخص‌شده در فصل است.
 - د: ۶ تا ۸ میلی‌متر مربوط به فاصله incision از bony defect/area of bone removal است، نه tissue bite.',
                     ],
                     [
@@ -4257,11 +4257,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'اجتناب کامل از نیاز به flap reflection.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Three-cornered flap با یک vertical release دسترسی بیشتری را با sulcular incision کوتاه‌تر فراهم می‌کند و وقتی access apical، به‌ویژه در posterior mouth، لازم باشد مفید است.
-دلیل رد گزینه‌های غلط:
-- ب: papillae همچنان sutured می‌شوند.
-- ج: vertical component ممکن است closure دشوارتر و healing کمی طولانی‌تر داشته باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Three-cornered flap با یک vertical release دسترسی بیشتری را با sulcular incision کوتاه‌تر فراهم می‌کند و وقتی access apical، به‌ویژه در posterior mouth، لازم باشد مفید است.
+دلیل رد گزینه‌های غلط:
+- ب: papillae همچنان sutured می‌شوند.
+- ج: vertical component ممکن است closure دشوارتر و healing کمی طولانی‌تر داشته باشد.
 - د: اساساً برای reflection flap طراحی شده است.',
                     ],
                     [
@@ -4273,11 +4273,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نیاز به tight suturing پیش از ادامه جراحی.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید اگر elevation در نقطه‌ای دشوار است، incision احتمالاً incomplete است و آن ناحیه باید دوباره incised شود.
-دلیل رد گزینه‌های غلط:
-- ب: دشواری initial elevation به‌تنهایی به معنی necrosis نیست.
-- ج: توقف retraction مشکل دسترسی را حل نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید اگر elevation در نقطه‌ای دشوار است، incision احتمالاً incomplete است و آن ناحیه باید دوباره incised شود.
+دلیل رد گزینه‌های غلط:
+- ب: دشواری initial elevation به‌تنهایی به معنی necrosis نیست.
+- ج: توقف retraction مشکل دسترسی را حل نمی‌کند.
 - د: suturing قبل از تکمیل reflection جایگاهی ندارد.',
                     ],
                     [
@@ -4289,11 +4289,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نیروی لازم برای luxation اولیه با straight elevator.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن excessive force را نیرویی می‌داند که احتمالاً به fracture of bone، tooth root یا هر دو منجر شود و به bone loss یا surgery اضافی نیاز پیدا کند.
-دلیل رد گزینه‌های غلط:
-- الف: معیار متن pain نیست.
-- ج: همه نیروهای forceps excessive نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن excessive force را نیرویی می‌داند که احتمالاً به fracture of bone، tooth root یا هر دو منجر شود و به bone loss یا surgery اضافی نیاز پیدا کند.
+دلیل رد گزینه‌های غلط:
+- الف: معیار متن pain نیست.
+- ج: همه نیروهای forceps excessive نیستند.
 - د: controlled luxation با elevator، اگر درست انجام شود، الزاماً excessive نیست.',
                     ],
                     [
@@ -4305,11 +4305,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'مزیت: افزایش عمدی vestibular depth؛ عیب: شکستگی needle.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Continuous suture سریع‌تر است، knots کمتری دارد و debris کمتری جمع می‌کند؛ اما اگر یک قسمت pull through شود، کل suture line loose می‌شود.
-دلیل رد گزینه‌های غلط:
-- ب: knots کمتر است، نه نیاز به knot برای هر papilla؛ حذف کامل debris ادعا نشده است.
-- ج: برای hemostasis فعال عمیق طراحی نشده و در oral cavity قابل استفاده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Continuous suture سریع‌تر است، knots کمتری دارد و debris کمتری جمع می‌کند؛ اما اگر یک قسمت pull through شود، کل suture line loose می‌شود.
+دلیل رد گزینه‌های غلط:
+- ب: knots کمتر است، نه نیاز به knot برای هر papilla؛ حذف کامل debris ادعا نشده است.
+- ج: برای hemostasis فعال عمیق طراحی نشده و در oral cavity قابل استفاده است.
 - د: چنین مزیت/عیبی در متن نیامده است.',
                     ],
                     [
@@ -4321,11 +4321,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون reflection کمتر همیشه باعث healing سریع‌تر می‌شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: منبع توضیح می‌دهد soft tissue across incision ترمیم می‌یابد و sharp incisions سریع‌تر از torn tissue ترمیم می‌شوند؛ بنابراین incision بلند و تمیز با reflection کافی از برش کوتاه و پاره بهتر است.
-دلیل رد گزینه‌های غلط:
-- الف: جهت ترمیم برعکس بیان شده است.
-- ج: torn tissue معمولاً به secondary intention نیاز پیدا می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: منبع توضیح می‌دهد soft tissue across incision ترمیم می‌یابد و sharp incisions سریع‌تر از torn tissue ترمیم می‌شوند؛ بنابراین incision بلند و تمیز با reflection کافی از برش کوتاه و پاره بهتر است.
+دلیل رد گزینه‌های غلط:
+- الف: جهت ترمیم برعکس بیان شده است.
+- ج: torn tissue معمولاً به secondary intention نیاز پیدا می‌کند.
 - د: reflection ناکافی باعث tension و tearing می‌شود.',
                     ],
                     [
@@ -4337,11 +4337,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در وسط empty socket برای نگهداری clot.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: برای three-cornered flap، اولین suture در occlusal end of vertical-releasing incision و در papilla محل release زده می‌شود تا landmark مهم repositioning تثبیت شود.
-دلیل رد گزینه‌های غلط:
-- الف: superior aspect در صورت نیاز بعدتر بسته می‌شود.
-- ج: ابتدا papilla محل vertical release مهم‌ترین landmark است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: برای three-cornered flap، اولین suture در occlusal end of vertical-releasing incision و در papilla محل release زده می‌شود تا landmark مهم repositioning تثبیت شود.
+دلیل رد گزینه‌های غلط:
+- الف: superior aspect در صورت نیاز بعدتر بسته می‌شود.
+- ج: ابتدا papilla محل vertical release مهم‌ترین landmark است.
 - د: empty socket محل مناسب اولین suture برای repositioning flap نیست.',
                     ],
                     [
@@ -4353,11 +4353,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'قرار دادن knot مستقیم روی incision line.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: first step در surgeon’s knot با double wrap، double overhand knot ایجاد می‌کند که friction را بالا می‌برد و wound edges را تا تکمیل قسمت بعدی کنار هم نگه می‌دارد.
-دلیل رد گزینه‌های غلط:
-- ب: هدف افزایش friction است نه کاهش آن.
-- ج: second portion همچنان لازم است؛ در resorbable material حتی third throw هم معمولاً اضافه می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: first step در surgeon’s knot با double wrap، double overhand knot ایجاد می‌کند که friction را بالا می‌برد و wound edges را تا تکمیل قسمت بعدی کنار هم نگه می‌دارد.
+دلیل رد گزینه‌های غلط:
+- ب: هدف افزایش friction است نه کاهش آن.
+- ج: second portion همچنان لازم است؛ در resorbable material حتی third throw هم معمولاً اضافه می‌شود.
 - د: knot باید کنار incision line باشد، نه روی آن.',
                     ],
                     [
@@ -4369,11 +4369,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وجود فضای periodontal کاملاً باز پس از luxation کافی.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن می‌گوید retained roots با extensive periodontal disease ممکن است به‌سادگی با elevators خارج شوند؛ اما اگر bone firm باشد و periodontal disease وجود نداشته باشد، open extraction باید در نظر گرفته شود.
-دلیل رد گزینه‌های غلط:
-- الف: در این حالت delivery با elevators ممکن است آسان باشد.
-- ج: mobility زیاد به closed/elevator delivery کمک می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن می‌گوید retained roots با extensive periodontal disease ممکن است به‌سادگی با elevators خارج شوند؛ اما اگر bone firm باشد و periodontal disease وجود نداشته باشد، open extraction باید در نظر گرفته شود.
+دلیل رد گزینه‌های غلط:
+- الف: در این حالت delivery با elevators ممکن است آسان باشد.
+- ج: mobility زیاد به closed/elevator delivery کمک می‌کند.
 - د: PDL space باز و luxation کافی closed retrieval یا simple removal را آسان‌تر می‌کند.',
                     ],
                     [
@@ -4385,11 +4385,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'روی برجسته‌ترین قسمت canine eminence.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: vertical release باید free gingival margin را در line angle دندان قطع کند؛ عبور از facial aspect باعث نقص attached gingiva و clefting bone و عبور از papilla باعث آسیب periodontal موضعی می‌شود.
-دلیل رد گزینه‌های غلط:
-- الف: باعث healing ضعیف و defect در attached gingiva می‌شود.
-- ب: papilla را بی‌دلیل آسیب می‌زند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: vertical release باید free gingival margin را در line angle دندان قطع کند؛ عبور از facial aspect باعث نقص attached gingiva و clefting bone و عبور از papilla باعث آسیب periodontal موضعی می‌شود.
+دلیل رد گزینه‌های غلط:
+- الف: باعث healing ضعیف و defect در attached gingiva می‌شود.
+- ب: papilla را بی‌دلیل آسیب می‌زند.
 - د: عبور از canine eminence خطر dehiscence را افزایش می‌دهد.',
                     ],
                 ],
@@ -4420,11 +4420,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'استفاده فوری از Crane pick بدون درگیرکردن forceps.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: پس از ایجاد flap، جراح می‌تواند forceps را تحت دید مستقیم apical‌تر بنشاند و با mechanical advantage بهتر tooth را بدون bone removal خارج کند.
-دلیل رد گزینه‌های غلط:
-- الف: purchase point بعد از مراحل دیگر و هنگام دشواری extraction مطرح می‌شود.
-- ج: bone removal همیشه نخستین اقدام نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: پس از ایجاد flap، جراح می‌تواند forceps را تحت دید مستقیم apical‌تر بنشاند و با mechanical advantage بهتر tooth را بدون bone removal خارج کند.
+دلیل رد گزینه‌های غلط:
+- الف: purchase point بعد از مراحل دیگر و هنگام دشواری extraction مطرح می‌شود.
+- ج: bone removal همیشه نخستین اقدام نیست.
 - د: Crane pick معمولاً پس از purchase point استفاده می‌شود.',
                     ],
                     [
@@ -4436,11 +4436,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'sedation عمیق و حذف تمام irrigation.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: منبع برای removal ریشه‌های کوچک، excellent light و excellent suction، ترجیحاً با suction tip کوچک، را ضروری می‌داند؛ irrigation syringe نیز برای پاک‌کردن blood/debris مهم است.
-دلیل رد گزینه‌های غلط:
-- ب: palatal pressure می‌تواند در برخی موارد زیان‌بار باشد و primary closure شرط retrieval نیست.
-- ج: force زیاد و rongeur قوی رویکرد توصیه‌شده برای root tip کوچک نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: منبع برای removal ریشه‌های کوچک، excellent light و excellent suction، ترجیحاً با suction tip کوچک، را ضروری می‌داند؛ irrigation syringe نیز برای پاک‌کردن blood/debris مهم است.
+دلیل رد گزینه‌های غلط:
+- ب: palatal pressure می‌تواند در برخی موارد زیان‌بار باشد و primary closure شرط retrieval نیست.
+- ج: force زیاد و rongeur قوی رویکرد توصیه‌شده برای root tip کوچک نیست.
 - د: irrigation حذف نمی‌شود؛ برای visualization ضروری است.',
                     ],
                     [
@@ -4452,11 +4452,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'خارج‌کردن همه ریشه‌ها با vertical traction مستقیم پیش از sectioning.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در maxillary molar سه‌ریشه با crown سالم، buccal roots از crown section می‌شوند و crown همراه palatal root با upper molar forceps در bucco-occlusal direction خارج می‌شود؛ palatal pressure باعث شکست palatal root می‌شود.
-دلیل رد گزینه‌های غلط:
-- الف: این روش به mandibular molar دو‌ریشه نزدیک است.
-- ج: palatal pressure در متن ممنوع دانسته شده زیرا palatal root را می‌شکند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در maxillary molar سه‌ریشه با crown سالم، buccal roots از crown section می‌شوند و crown همراه palatal root با upper molar forceps در bucco-occlusal direction خارج می‌شود؛ palatal pressure باعث شکست palatal root می‌شود.
+دلیل رد گزینه‌های غلط:
+- الف: این روش به mandibular molar دو‌ریشه نزدیک است.
+- ج: palatal pressure در متن ممنوع دانسته شده زیرا palatal root را می‌شکند.
 - د: هدف sectioning کاهش force و کنترل extraction است.',
                     ],
                     [
@@ -4468,11 +4468,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون hemorrhage maxilla همیشه دید mandibular surgery را غیرممکن می‌کند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن چند دلیل می‌آورد: infiltration anesthesia در maxilla سریع‌تر شروع و سریع‌تر از بین می‌رود؛ همچنین اگر ابتدا mandibular teeth خارج شوند، debris از بالا ممکن است در sockets پایین بیفتد. Maxillary teeth نیز عمدتاً با buccal force خارج می‌شوند.
-دلیل رد گزینه‌های غلط:
-- الف: گزاره mandibular را با maxillary جابه‌جا کرده است.
-- ج: متن می‌گوید maxillary teeth با component عمده buccal force و little/no vertical traction خارج می‌شوند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن چند دلیل می‌آورد: infiltration anesthesia در maxilla سریع‌تر شروع و سریع‌تر از بین می‌رود؛ همچنین اگر ابتدا mandibular teeth خارج شوند، debris از بالا ممکن است در sockets پایین بیفتد. Maxillary teeth نیز عمدتاً با buccal force خارج می‌شوند.
+دلیل رد گزینه‌های غلط:
+- الف: گزاره mandibular را با maxillary جابه‌جا کرده است.
+- ج: متن می‌گوید maxillary teeth با component عمده buccal force و little/no vertical traction خارج می‌شوند.
 - د: hemorrhage maxilla یک disadvantage کوچک است اما معمولاً با suction و hemostasis کنترل می‌شود.',
                     ],
                     [
@@ -4484,11 +4484,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'رهاکردن root fragment بدون ارزیابی شرایط باقی‌گذاشتن.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن تأکید می‌کند open retrieval درست و سریع معمولاً کمتر از تلاش بسته طولانی و ناکام، تروماتیک است؛ بنابراین باید بدون تأخیر به open technique تغییر داد.
-دلیل رد گزینه‌های غلط:
-- الف: تلاش طولانی بسته می‌تواند تروماتیک‌تر باشد.
-- ج: فشار apical می‌تواند fragment را به sinus یا tissue spaces براند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن تأکید می‌کند open retrieval درست و سریع معمولاً کمتر از تلاش بسته طولانی و ناکام، تروماتیک است؛ بنابراین باید بدون تأخیر به open technique تغییر داد.
+دلیل رد گزینه‌های غلط:
+- الف: تلاش طولانی بسته می‌تواند تروماتیک‌تر باشد.
+- ج: فشار apical می‌تواند fragment را به sinus یا tissue spaces براند.
 - د: باقی‌گذاشتن root نیازمند شرایط و پروتکل مشخص است.',
                     ],
                     [
@@ -4500,11 +4500,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'mesiodistal کمتر از نصف root و vertical بدون ارتباط با طول root.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: عرض buccal bone removal در بعد mesiodistal تقریباً برابر عرض tooth/root است و در بعد عمودی حدود یک‌دوم تا دو‌سوم طول ریشه برداشته می‌شود.
-دلیل رد گزینه‌های غلط:
-- ب: برداشتن دو برابر عرض root و فقط ۱ میلی‌متر vertical با متن سازگار نیست.
-- ج: removal تمام طول root و فقط distal line angle توصیه نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: عرض buccal bone removal در بعد mesiodistal تقریباً برابر عرض tooth/root است و در بعد عمودی حدود یک‌دوم تا دو‌سوم طول ریشه برداشته می‌شود.
+دلیل رد گزینه‌های غلط:
+- ب: برداشتن دو برابر عرض root و فقط ۱ میلی‌متر vertical با متن سازگار نیست.
+- ج: removal تمام طول root و فقط distal line angle توصیه نشده است.
 - د: مقدارها در متن مشخص و وابسته به ابعاد tooth/root هستند.',
                     ],
                     [
@@ -4516,11 +4516,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'بدون sectioning؛ فقط برداشتن buccal bone کامل.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: Lower first molar با crown سالم معمولاً buccolingually section می‌شود تا به mesial half شامل mesial root و distal half تقسیم شود و سپس مانند single-rooted portions خارج گردد.
-دلیل رد گزینه‌های غلط:
-- الف: تقسیم buccal/lingual برای این tooth توصیف متن نیست.
-- ج: palatal root مربوط به maxillary molar است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: Lower first molar با crown سالم معمولاً buccolingually section می‌شود تا به mesial half شامل mesial root و distal half تقسیم شود و سپس مانند single-rooted portions خارج گردد.
+دلیل رد گزینه‌های غلط:
+- الف: تقسیم buccal/lingual برای این tooth توصیف متن نیست.
+- ج: palatal root مربوط به maxillary molar است.
 - د: در molarهای چندریشه، sectioning اصل مهمی برای کنترل extraction است.',
                     ],
                     [
@@ -4532,11 +4532,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در تماس با mental foramen، سطحی، و symptomatic.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: برای باقی‌گذاشتن root، fragment باید کوچک باشد، عمیقاً در استخوان قرار داشته باشد و infected نباشد یا radiolucency اطراف apex نداشته باشد.
-دلیل رد گزینه‌های غلط:
-- الف: بزرگ و سطحی و دارای radiolucency با معیارهای متن سازگار نیست.
-- ج: mobility/سطحی بودن و abscess دلیل باقی‌گذاشتن نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: برای باقی‌گذاشتن root، fragment باید کوچک باشد، عمیقاً در استخوان قرار داشته باشد و infected نباشد یا radiolucency اطراف apex نداشته باشد.
+دلیل رد گزینه‌های غلط:
+- الف: بزرگ و سطحی و دارای radiolucency با معیارهای متن سازگار نیست.
+- ج: mobility/سطحی بودن و abscess دلیل باقی‌گذاشتن نیست.
 - د: symptomatic یا سطحی بودن و تماس خطرناک نیاز به ارزیابی متفاوت دارد و شرط متن نیست.',
                     ],
                     [
@@ -4548,11 +4548,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون ترتیب posterior به anterior دیگر اهمیتی ندارد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در multiple extractions، luxation پیش از extraction مفید است چون adjacent tooth می‌تواند anchor برای elevator باشد و نگرانی از آسیب به tooth باقی‌مانده وجود ندارد.
-دلیل رد گزینه‌های غلط:
-- ب: bone compression و smoothing همچنان پس از extraction ارزیابی می‌شود.
-- ج: پس از luxation، teeth معمولاً با forceps خارج می‌شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در multiple extractions، luxation پیش از extraction مفید است چون adjacent tooth می‌تواند anchor برای elevator باشد و نگرانی از آسیب به tooth باقی‌مانده وجود ندارد.
+دلیل رد گزینه‌های غلط:
+- ب: bone compression و smoothing همچنان پس از extraction ارزیابی می‌شود.
+- ج: پس از luxation، teeth معمولاً با forceps خارج می‌شوند.
 - د: sequencing همچنان مطرح است؛ posterior teeth معمولاً ابتدا خارج می‌شوند و canine آخر می‌ماند.',
                     ],
                     [
@@ -4564,11 +4564,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حفره‌ای در palatal mucosa برای عبور needle.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در root مقاوم، purchase point در root و در apical portion ناحیه bone removal ساخته می‌شود؛ حدود ۳ میلی‌متر قطر و عمق کافی دارد تا Crane pick یا elevator سنگین وارد شود.
-دلیل رد گزینه‌های غلط:
-- الف: root tip pick برای tease کردن root tip کوچک است، نه purchase point سنگین.
-- ج: crown در این سناریو موضوع اصلی نیست و purchase point در root ساخته می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در root مقاوم، purchase point در root و در apical portion ناحیه bone removal ساخته می‌شود؛ حدود ۳ میلی‌متر قطر و عمق کافی دارد تا Crane pick یا elevator سنگین وارد شود.
+دلیل رد گزینه‌های غلط:
+- الف: root tip pick برای tease کردن root tip کوچک است، نه purchase point سنگین.
+- ج: crown در این سناریو موضوع اصلی نیست و purchase point در root ساخته می‌شود.
 - د: ارتباطی به suturing ندارد.',
                     ],
                     [
@@ -4580,11 +4580,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای بریدن interradicular bone پیش از burr.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: Root tip pick ابزار ظریف است؛ باید داخل PDL space قرار گیرد و root tip را به‌آرامی tease کند. force زیاد apical می‌تواند root را به sinus/tissue spaces ببرد و force lateral می‌تواند نوک ابزار را خم یا بشکند.
-دلیل رد گزینه‌های غلط:
-- الف: منبع صریحاً آن را مانند Cryer elevator نمی‌داند.
-- ج: فشار apical خطر displacement دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: Root tip pick ابزار ظریف است؛ باید داخل PDL space قرار گیرد و root tip را به‌آرامی tease کند. force زیاد apical می‌تواند root را به sinus/tissue spaces ببرد و force lateral می‌تواند نوک ابزار را خم یا بشکند.
+دلیل رد گزینه‌های غلط:
+- الف: منبع صریحاً آن را مانند Cryer elevator نمی‌داند.
+- ج: فشار apical خطر displacement دارد.
 - د: bone cutting با burr انجام می‌شود، نه root tip pick.',
                     ],
                     [
@@ -4596,11 +4596,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'بدون division، فقط vertical traction.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: وقتی crown maxillary molar از دست رفته یا شکسته است، ریشه‌ها باید به دو buccal roots و یک palatal root تقسیم شوند و سپس با elevators/forceps مناسب خارج شوند.
-دلیل رد گزینه‌های غلط:
-- الف: تقسیم mesial/distal مربوط به mandibular molar است.
-- ج: crown segment در این حالت وجود ندارد یا قابل اتکا نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: وقتی crown maxillary molar از دست رفته یا شکسته است، ریشه‌ها باید به دو buccal roots و یک palatal root تقسیم شوند و سپس با elevators/forceps مناسب خارج شوند.
+دلیل رد گزینه‌های غلط:
+- الف: تقسیم mesial/distal مربوط به mandibular molar است.
+- ج: crown segment در این حالت وجود ندارد یا قابل اتکا نیست.
 - د: division برای کاهش force و کنترل retrieval لازم است.',
                     ],
                     [
@@ -4612,11 +4612,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون alveolar plates را به‌طور کامل از بین می‌برد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: منبع می‌گوید اگر redundant tissue وجود ندارد، نباید primary closure روی sockets ایجاد شود؛ این کار vestibular depth را کاهش می‌دهد و wound closure را تحت tension قرار می‌دهد.
-دلیل رد گزینه‌های غلط:
-- الف: اثر ذکرشده برعکس است.
-- ج: زمان برداشت suture دلیل این پرهیز نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: منبع می‌گوید اگر redundant tissue وجود ندارد، نباید primary closure روی sockets ایجاد شود؛ این کار vestibular depth را کاهش می‌دهد و wound closure را تحت tension قرار می‌دهد.
+دلیل رد گزینه‌های غلط:
+- الف: اثر ذکرشده برعکس است.
+- ج: زمان برداشت suture دلیل این پرهیز نیست.
 - د: primary closure به خودی خود plates را از بین نمی‌برد، اما برای prosthesis مشکل‌ساز می‌شود.',
                     ],
                     [
@@ -4628,11 +4628,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وقتی dilaceration شدید در root end وجود دارد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: closed retrieval زمانی مفیدتر است که tooth پیش از fracture به‌خوبی luxated و mobile شده باشد؛ در این حالت root tip اغلب mobile است.
-دلیل رد گزینه‌های غلط:
-- ب: hypercementosed bulbous root با bony interference شانس closed retrieval را کم می‌کند.
-- ج: نبود mobilization قبل از fracture موفقیت closed technique را کاهش می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: closed retrieval زمانی مفیدتر است که tooth پیش از fracture به‌خوبی luxated و mobile شده باشد؛ در این حالت root tip اغلب mobile است.
+دلیل رد گزینه‌های غلط:
+- ب: hypercementosed bulbous root با bony interference شانس closed retrieval را کم می‌کند.
+- ج: نبود mobilization قبل از fracture موفقیت closed technique را کاهش می‌دهد.
 - د: severe dilaceration مانع closed technique می‌شود.',
                     ],
                     [
@@ -4644,11 +4644,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نادیده‌گرفتن sharpness چون irrigation کافی است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: لبه‌های bone باید بررسی شوند و اگر sharp بودند با bone file smooth شوند؛ rongeur در این شرایط به‌ندرت لازم است چون ممکن است bone زیادی بردارد.
-دلیل رد گزینه‌های غلط:
-- الف: rongeur routinely توصیه نشده و ممکن است bone زیاد بردارد.
-- ج: بستن سفت روی sharp edges مشکل را پنهان می‌کند و اصولی نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: لبه‌های bone باید بررسی شوند و اگر sharp بودند با bone file smooth شوند؛ rongeur در این شرایط به‌ندرت لازم است چون ممکن است bone زیادی بردارد.
+دلیل رد گزینه‌های غلط:
+- الف: rongeur routinely توصیه نشده و ممکن است bone زیاد بردارد.
+- ج: بستن سفت روی sharp edges مشکل را پنهان می‌کند و اصولی نیست.
 - د: irrigation debris را حذف می‌کند اما sharp bony edges را اصلاح نمی‌کند.',
                     ],
                     [
@@ -4660,11 +4660,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای بستن papillae در پایان جراحی استفاده می‌شوند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در lower molar بدون crown، roots به mesial و distal تقسیم می‌شوند؛ پس از mobilization، Cryer در slot قرار می‌گیرد و با wheel-and-axle principle ریشه را خارج می‌کند؛ عضو مقابل برای ریشه باقی‌مانده استفاده می‌شود.
-دلیل رد گزینه‌های غلط:
-- الف: sectioning با burr انجام می‌شود.
-- ج: این توصیف مربوط به maxillary molar نیست و palatal pressure در آن خطرناک است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در lower molar بدون crown، roots به mesial و distal تقسیم می‌شوند؛ پس از mobilization، Cryer در slot قرار می‌گیرد و با wheel-and-axle principle ریشه را خارج می‌کند؛ عضو مقابل برای ریشه باقی‌مانده استفاده می‌شود.
+دلیل رد گزینه‌های غلط:
+- الف: sectioning با burr انجام می‌شود.
+- ج: این توصیف مربوط به maxillary molar نیست و palatal pressure در آن خطرناک است.
 - د: Cryer elevator ابزار extraction است نه suturing.',
                     ],
                     [
@@ -4676,11 +4676,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ترتیب تصادفی extraction برای کاهش زمان anesthesia.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن بر برنامه‌ریزی replacement پیش از extraction تأکید دارد؛ شامل interim/immediate denture، soft tissue procedures، removal of undercuts/exostoses و در صورت implant، محدودکردن trimming/compression یا preparation of surgical guide stent.
-دلیل رد گزینه‌های غلط:
-- الف: موضوعات برنامه‌ریزی بسیار فراتر از نخ بخیه است.
-- ج: compression/trimming به برنامه implant و prosthesis وابسته است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن بر برنامه‌ریزی replacement پیش از extraction تأکید دارد؛ شامل interim/immediate denture، soft tissue procedures، removal of undercuts/exostoses و در صورت implant، محدودکردن trimming/compression یا preparation of surgical guide stent.
+دلیل رد گزینه‌های غلط:
+- الف: موضوعات برنامه‌ریزی بسیار فراتر از نخ بخیه است.
+- ج: compression/trimming به برنامه implant و prosthesis وابسته است.
 - د: sequencing مشخص و هدفمند است، نه تصادفی.',
                     ],
                     [
@@ -4692,11 +4692,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وقتی root tip آلوده و دارای radiolucency است و باید باقی گذاشته شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Open-window approach با ایجاد پنجره روی apex root fragment، buccocrestal bone را حفظ می‌کند و در maxillary premolar extraction برای orthodontic purposes، به‌ویژه در adults، indicated است.
-دلیل رد گزینه‌های غلط:
-- ب: این مربوط به sectioning mandibular molar است.
-- ج: open-window برای پرهیز از برداشت بیش از حد buccal plate است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Open-window approach با ایجاد پنجره روی apex root fragment، buccocrestal bone را حفظ می‌کند و در maxillary premolar extraction برای orthodontic purposes، به‌ویژه در adults، indicated است.
+دلیل رد گزینه‌های غلط:
+- ب: این مربوط به sectioning mandibular molar است.
+- ج: open-window برای پرهیز از برداشت بیش از حد buccal plate است.
 - د: infected/radiolucent root tip شرط باقی‌گذاشتن نیست و نیاز به management مناسب دارد.',
                     ],
                     [
@@ -4708,11 +4708,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حرکت باید صرفاً lateral و با نیروی زیاد باشد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: straight elevator باید در PDL space با small to-and-fro motions پیش برود و دست جراح روی adjacent teeth حمایت شود تا slippage و injury به soft tissue رخ ندهد.
-دلیل رد گزینه‌های غلط:
-- ب: فشار apical بدون حمایت خطر displacement و injury دارد.
-- ج: در root fractured، crown قابل اتکا نیست و instrument در PDL space عمل می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: straight elevator باید در PDL space با small to-and-fro motions پیش برود و دست جراح روی adjacent teeth حمایت شود تا slippage و injury به soft tissue رخ ندهد.
+دلیل رد گزینه‌های غلط:
+- ب: فشار apical بدون حمایت خطر displacement و injury دارد.
+- ج: در root fractured، crown قابل اتکا نیست و instrument در PDL space عمل می‌کند.
 - د: نیروی زیاد lateral توصیه نشده است.',
                     ],
                     [
@@ -4724,11 +4724,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای جلوگیری از sectioning roots با burr.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: maxillary premolar/molar root tips ممکن است به sinus نزدیک باشند؛ حمایت دست امکان نیروی دقیق و کنترل‌شده را می‌دهد و خطر displacement fragment یا instrument به sinus را کاهش می‌دهد.
-دلیل رد گزینه‌های غلط:
-- ب: افزایش apical pressure دقیقاً خطری است که باید از آن پرهیز شود.
-- ج: visualization of root و PDL space همچنان ضروری است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: maxillary premolar/molar root tips ممکن است به sinus نزدیک باشند؛ حمایت دست امکان نیروی دقیق و کنترل‌شده را می‌دهد و خطر displacement fragment یا instrument به sinus را کاهش می‌دهد.
+دلیل رد گزینه‌های غلط:
+- ب: افزایش apical pressure دقیقاً خطری است که باید از آن پرهیز شود.
+- ج: visualization of root و PDL space همچنان ضروری است.
 - د: ارتباط اصلی با کنترل نیرو و جلوگیری از displacement است.',
                     ],
                     [
@@ -4740,11 +4740,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'پس از primary closure کامل، برای حفظ vestibular depth.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: Canine معمولاً دشوارترین tooth است و آخر خارج می‌شود؛ removal دندان‌های دو طرف، bony socket آن را mesial و distal ضعیف‌تر می‌کند و extraction را آسان‌تر می‌سازد.
-دلیل رد گزینه‌های غلط:
-- الف: متن canine را دشوارترین tooth می‌داند، نه ساده‌ترین.
-- ج: sequencing برای canine مهم است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: Canine معمولاً دشوارترین tooth است و آخر خارج می‌شود؛ removal دندان‌های دو طرف، bony socket آن را mesial و distal ضعیف‌تر می‌کند و extraction را آسان‌تر می‌سازد.
+دلیل رد گزینه‌های غلط:
+- الف: متن canine را دشوارترین tooth می‌داند، نه ساده‌ترین.
+- ج: sequencing برای canine مهم است.
 - د: extraction پیش از closure انجام می‌شود و primary closure کامل روی sockets توصیه نمی‌شود.',
                     ],
                     [
@@ -4756,11 +4756,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون debris در این ناحیه به سرعت با primary closure جذب می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید debris اغلب در inferior portion of flap، محل اتصال flap به bone، جمع می‌شود؛ اگر با curettage/irrigation پاک نشود می‌تواند delayed healing یا subperiosteal abscess در ۳ تا ۴ هفته بعد ایجاد کند.
-دلیل رد گزینه‌های غلط:
-- ب: greater palatine artery مربوط به palate است نه mandibular flap.
-- ج: irrigation برای پاکسازی لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید debris اغلب در inferior portion of flap، محل اتصال flap به bone، جمع می‌شود؛ اگر با curettage/irrigation پاک نشود می‌تواند delayed healing یا subperiosteal abscess در ۳ تا ۴ هفته بعد ایجاد کند.
+دلیل رد گزینه‌های غلط:
+- ب: greater palatine artery مربوط به palate است نه mandibular flap.
+- ج: irrigation برای پاکسازی لازم است.
 - د: debris جذب بی‌خطر نمی‌شود و باید حذف گردد.',
                     ],
                     [
@@ -4772,11 +4772,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'rotation Cryer elevator از socket خالی برای buccal root.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در maxillary molar، crown همراه palatal root باید با force bucco-occlusal خارج شود؛ palatal pressure احتمال fracture palatal root از crown را بالا می‌برد.
-دلیل رد گزینه‌های غلط:
-- الف: bucco-occlusal force جهت توصیه‌شده است.
-- ج: buccal roots پس از جداشدن می‌توانند با straight elevator mobilized شوند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در maxillary molar، crown همراه palatal root باید با force bucco-occlusal خارج شود؛ palatal pressure احتمال fracture palatal root از crown را بالا می‌برد.
+دلیل رد گزینه‌های غلط:
+- الف: bucco-occlusal force جهت توصیه‌شده است.
+- ج: buccal roots پس از جداشدن می‌توانند با straight elevator mobilized شوند.
 - د: Cryer elevator می‌تواند برای remaining buccal root استفاده شود.',
                     ],
                     [
@@ -4788,11 +4788,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'هدف اصلی آن برداشتن حداکثری bone برای prosthesis است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: متن تأکید می‌کند surgical/open extraction به‌درستی و به‌موقع می‌تواند conservative‌تر، با morbidity کمتر و سریع‌تر از closed extraction پرنیرو باشد.
-دلیل رد گزینه‌های غلط:
-- الف: متن آن را الزاماً کندتر یا کم‌مهارت‌تر نمی‌داند.
-- ج: نباید تا ایجاد عارضه صبر کرد؛ anticipated excessive force indication است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: متن تأکید می‌کند surgical/open extraction به‌درستی و به‌موقع می‌تواند conservative‌تر، با morbidity کمتر و سریع‌تر از closed extraction پرنیرو باشد.
+دلیل رد گزینه‌های غلط:
+- الف: متن آن را الزاماً کندتر یا کم‌مهارت‌تر نمی‌داند.
+- ج: نباید تا ایجاد عارضه صبر کرد؛ anticipated excessive force indication است.
 - د: هدف کاهش تروما و کنترل extraction است، نه حداکثر bone removal.',
                     ],
                     [
@@ -4804,11 +4804,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'granulation tissue عمداً باقی گذاشته شود تا bone حفظ شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در صورت برنامه implant، منبع توصیه می‌کند bone trimming و socket compression محدود شود؛ فشار زیاد می‌تواند alveolar width را بیش از حد کاهش دهد.
-دلیل رد گزینه‌های غلط:
-- الف: این کار می‌تواند عرض ridge را کم کند.
-- ج: primary closure کامل vestibular depth را کاهش می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در صورت برنامه implant، منبع توصیه می‌کند bone trimming و socket compression محدود شود؛ فشار زیاد می‌تواند alveolar width را بیش از حد کاهش دهد.
+دلیل رد گزینه‌های غلط:
+- الف: این کار می‌تواند عرض ridge را کم کند.
+- ج: primary closure کامل vestibular depth را کاهش می‌دهد.
 - د: granulation tissue باید برداشته شود چون hemorrhage را طولانی می‌کند.',
                     ],
                     [
@@ -4820,11 +4820,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'فقط برای palpation sharp bony edges پس از extraction.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: برای fragments بزرگ‌تر، small straight elevator در PDL space مثل wedge عمل می‌کند و با حرکات ملایم root را به سمت occlusal plane جابه‌جا می‌کند؛ فشار apical زیاد باید اجتناب شود.
-دلیل رد گزینه‌های غلط:
-- ب: elevator ابزار cutting نیست.
-- ج: apical pressure زیاد خطر displacement به sinus/tissue spaces دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: برای fragments بزرگ‌تر، small straight elevator در PDL space مثل wedge عمل می‌کند و با حرکات ملایم root را به سمت occlusal plane جابه‌جا می‌کند؛ فشار apical زیاد باید اجتناب شود.
+دلیل رد گزینه‌های غلط:
+- ب: elevator ابزار cutting نیست.
+- ج: apical pressure زیاد خطر displacement به sinus/tissue spaces دارد.
 - د: palpation با finger/flap انجام می‌شود و bone file برای smoothing استفاده می‌شود.',
                     ],
                     [
@@ -4836,11 +4836,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'جداکردن buccal roots از palatal root.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: با reflection flap و direct visualization، forceps می‌تواند apical‌تر در PDL space قرار گیرد و گاهی نیاز به bone removal از بین می‌رود.
-دلیل رد گزینه‌های غلط:
-- ب: rongeur وسیع توصیه نشده و conservative نیست.
-- ج: suturing قبل از extraction نقش ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: با reflection flap و direct visualization، forceps می‌تواند apical‌تر در PDL space قرار گیرد و گاهی نیاز به bone removal از بین می‌رود.
+دلیل رد گزینه‌های غلط:
+- ب: rongeur وسیع توصیه نشده و conservative نیست.
+- ج: suturing قبل از extraction نقش ندارد.
 - د: تقسیم buccal/palatal roots مربوط به maxillary molar است، نه single root.',
                     ],
                     [
@@ -4852,11 +4852,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برداشتن فوری تمام bone اطراف در همان جلسه.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: منبع پروتکل مشخصی دارد: بیمار باید مطلع شود، radiographic documentation از presence/position root tip حفظ شود، اطلاع‌رسانی در chart ثبت شود، follow-upهای دوره‌ای طی سال بعد انجام شود و بیمار در صورت مشکل تماس بگیرد.
-دلیل رد گزینه‌های غلط:
-- ب: خلاف ضرورت اطلاع‌رسانی و پیگیری است.
-- ج: documentation و follow-up حذف‌شدنی نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: منبع پروتکل مشخصی دارد: بیمار باید مطلع شود، radiographic documentation از presence/position root tip حفظ شود، اطلاع‌رسانی در chart ثبت شود، follow-upهای دوره‌ای طی سال بعد انجام شود و بیمار در صورت مشکل تماس بگیرد.
+دلیل رد گزینه‌های غلط:
+- ب: خلاف ضرورت اطلاع‌رسانی و پیگیری است.
+- ج: documentation و follow-up حذف‌شدنی نیستند.
 - د: تصمیم به باقی‌گذاشتن زمانی است که surgery بیشتر از benefit خطر دارد.',
                     ],
                     [
@@ -4868,11 +4868,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نیرو فقط vertical traction و بدون visualization اعمال شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: به علت نزدیکی احتمالی maxillary sinus، force of straight elevator برای buccal roots باید به سمت palate باشد و apical pressure محدود شود.
-دلیل رد گزینه‌های غلط:
-- ب: فشار apical خطر displacement به sinus را افزایش می‌دهد.
-- ج: palatal pressure روی crown در crown-palatal root complex می‌تواند palatal root را بشکند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: به علت نزدیکی احتمالی maxillary sinus، force of straight elevator برای buccal roots باید به سمت palate باشد و apical pressure محدود شود.
+دلیل رد گزینه‌های غلط:
+- ب: فشار apical خطر displacement به sinus را افزایش می‌دهد.
+- ج: palatal pressure روی crown در crown-palatal root complex می‌تواند palatal root را بشکند.
 - د: visualization و کنترل نیرو ضروری است.',
                     ],
                     [
@@ -4884,11 +4884,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'root tip pick برای sectioning mesial و distal roots به کار می‌رود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در روش جایگزین، burr mesial root را از tooth جدا می‌کند، No.17 lower molar forceps crown همراه distal root را خارج می‌کند و Cryer elevator با wheel-and-axle mesial root را خارج می‌کند.
-دلیل رد گزینه‌های غلط:
-- ب: Cryer برای خارج‌کردن intact crown توصیف نشده و rongeur ابزار برداشتن ریشه نیست.
-- ج: upper molar forceps و palatal root مربوط به maxillary molars است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در روش جایگزین، burr mesial root را از tooth جدا می‌کند، No.17 lower molar forceps crown همراه distal root را خارج می‌کند و Cryer elevator با wheel-and-axle mesial root را خارج می‌کند.
+دلیل رد گزینه‌های غلط:
+- ب: Cryer برای خارج‌کردن intact crown توصیف نشده و rongeur ابزار برداشتن ریشه نیست.
+- ج: upper molar forceps و palatal root مربوط به maxillary molars است.
 - د: sectioning با burr انجام می‌شود، نه root tip pick.',
                     ],
                     [
@@ -4900,11 +4900,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'با primary closure نرم‌افزاری جایگزین می‌شوند و compression ممنوع است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: بعد از extractions، buccolingual plates با firm pressure به preexisting position برگردانده می‌شوند؛ اما اگر implant در آینده مطرح است، نباید width بیش از حد با compression کاهش یابد.
-دلیل رد گزینه‌های غلط:
-- ب: حذف کامل plates توصیه نشده است.
-- ج: sharp spicules باید با rongeur/bone file اصلاح شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: بعد از extractions، buccolingual plates با firm pressure به preexisting position برگردانده می‌شوند؛ اما اگر implant در آینده مطرح است، نباید width بیش از حد با compression کاهش یابد.
+دلیل رد گزینه‌های غلط:
+- ب: حذف کامل plates توصیه نشده است.
+- ج: sharp spicules باید با rongeur/bone file اصلاح شوند.
 - د: soft tissue closure جایگزین ارزیابی و compression استخوانی نیست.',
                     ],
                     [
@@ -4916,11 +4916,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'مشاهده واضح PDL space پس از irrigation.',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: closed technique در root bulbous/hypercementosed با bony interference و نیز severe dilaceration کمتر موفق است.
-دلیل رد گزینه‌های غلط:
-- الف: luxation کافی، شانس closed retrieval را افزایش می‌دهد.
-- ب: mobility root tip به موفقیت closed technique کمک می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: closed technique در root bulbous/hypercementosed با bony interference و نیز severe dilaceration کمتر موفق است.
+دلیل رد گزینه‌های غلط:
+- الف: luxation کافی، شانس closed retrieval را افزایش می‌دهد.
+- ب: mobility root tip به موفقیت closed technique کمک می‌کند.
 - د: visualization واضح PDL space برای retrieval کمک‌کننده است.',
                     ],
                     [
@@ -4932,11 +4932,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وقتی root tip باید عمداً در sinus جابه‌جا شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید گاهی دسترسی به roots به اندازه‌ای هست که maxillary root forceps یا upper universal forceps بتواند roots را مستقل خارج کند.
-دلیل رد گزینه‌های غلط:
-- ب: palatal pressure زیاد در maxillary molar خطر شکستگی palatal root دارد.
-- ج: اگر crown سالم و roots divergent باشند، sectioning buccal roots از crown مطرح است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید گاهی دسترسی به roots به اندازه‌ای هست که maxillary root forceps یا upper universal forceps بتواند roots را مستقل خارج کند.
+دلیل رد گزینه‌های غلط:
+- ب: palatal pressure زیاد در maxillary molar خطر شکستگی palatal root دارد.
+- ج: اگر crown سالم و roots divergent باشند، sectioning buccal roots از crown مطرح است.
 - د: جابه‌جایی به sinus عارضه‌ای است که باید از آن جلوگیری شود.',
                     ],
                     [
@@ -4948,11 +4948,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'زیرا همیشه جایگزین bone file می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: منبع توصیه می‌کند اگر granulation tissue وجود دارد، برداشته شود چون می‌تواند postoperative hemorrhage را prolong کند.
-دلیل رد گزینه‌های غلط:
-- ب: متن چنین اثر مطلوبی ذکر نمی‌کند.
-- ج: حفظ clot نقش اصلی granulation tissue نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: منبع توصیه می‌کند اگر granulation tissue وجود دارد، برداشته شود چون می‌تواند postoperative hemorrhage را prolong کند.
+دلیل رد گزینه‌های غلط:
+- ب: متن چنین اثر مطلوبی ذکر نمی‌کند.
+- ج: حفظ clot نقش اصلی granulation tissue نیست.
 - د: bone file برای smoothing bone است، نه حذف granulation tissue.',
                     ],
                     [
@@ -4964,11 +4964,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حذف تمام buccal و lingual plates بدون sectioning.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن می‌گوید به جای اعمال force بیشتر، surgeon باید flap reflect کند، tooth را section کند، در صورت نیاز bone بردارد و tooth را به صورت sections خارج کند؛ این همان divide and conquer است.
-دلیل رد گزینه‌های غلط:
-- ب: دقیقاً رویکردی است که متن از آن پرهیز می‌دهد.
-- ج: suturing پیش از extraction بی‌معناست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن می‌گوید به جای اعمال force بیشتر، surgeon باید flap reflect کند، tooth را section کند، در صورت نیاز bone بردارد و tooth را به صورت sections خارج کند؛ این همان divide and conquer است.
+دلیل رد گزینه‌های غلط:
+- ب: دقیقاً رویکردی است که متن از آن پرهیز می‌دهد.
+- ج: suturing پیش از extraction بی‌معناست.
 - د: حذف گسترده plates بدون sectioning محافظه‌کارانه نیست.',
                     ],
                     [
@@ -4980,11 +4980,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'باقی‌گذاشتن root بدون radiograph و بدون follow-up.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در open technique، soft tissue flap با releasing incision reflect می‌شود، bone overlying root با burr برداشته می‌شود و root از مسیر buccal با small straight elevator خارج می‌گردد.
-دلیل رد گزینه‌های غلط:
-- ب: tight suturing برای root retrieval کاربرد ندارد.
-- ج: crown سالم در root tip retrieval مطرح نیست و palatal pressure می‌تواند زیان‌بار باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در open technique، soft tissue flap با releasing incision reflect می‌شود، bone overlying root با burr برداشته می‌شود و root از مسیر buccal با small straight elevator خارج می‌گردد.
+دلیل رد گزینه‌های غلط:
+- ب: tight suturing برای root retrieval کاربرد ندارد.
+- ج: crown سالم در root tip retrieval مطرح نیست و palatal pressure می‌تواند زیان‌بار باشد.
 - د: باقی‌گذاشتن root protocol خاص و documentation/follow-up لازم دارد.',
                     ],
                     [
@@ -4996,11 +4996,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'suturing papillae برای ثابت‌کردن crown.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: برای تقسیم maxillary molar سالم، standard envelope flap reflect می‌شود و مقدار کمی crestal bone برداشته می‌شود تا trifurcation area آشکار شود و burr بتواند buccal roots را section کند.
-دلیل رد گزینه‌های غلط:
-- ب: Y-incision برای palatal torus است و قطع artery هدف نیست.
-- ج: برداشت کامل palatal plate توصیه نشده و palatal pressure نیز خطرناک است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: برای تقسیم maxillary molar سالم، standard envelope flap reflect می‌شود و مقدار کمی crestal bone برداشته می‌شود تا trifurcation area آشکار شود و burr بتواند buccal roots را section کند.
+دلیل رد گزینه‌های غلط:
+- ب: Y-incision برای palatal torus است و قطع artery هدف نیست.
+- ج: برداشت کامل palatal plate توصیه نشده و palatal pressure نیز خطرناک است.
 - د: suturing در پایان closure انجام می‌شود، نه قبل از sectioning.',
                     ],
                     [
@@ -5012,11 +5012,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'از lingual soft tissue بدون تماس با bone.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: پس از برداشتن buccal bone، straight elevator می‌تواند در palatal aspect قرار گیرد و root را به buccal direction جابه‌جا کند؛ دست جراح باید محکم روی adjacent teeth حمایت شود.
-دلیل رد گزینه‌های غلط:
-- ب: راندن root به sinus عارضه است و هدف نیست.
-- ج: elevator برای closure socket نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: پس از برداشتن buccal bone، straight elevator می‌تواند در palatal aspect قرار گیرد و root را به buccal direction جابه‌جا کند؛ دست جراح باید محکم روی adjacent teeth حمایت شود.
+دلیل رد گزینه‌های غلط:
+- ب: راندن root به sinus عارضه است و هدف نیست.
+- ج: elevator برای closure socket نیست.
 - د: instrument باید در مسیر کنترل‌شده و با حمایت دست استفاده شود، نه روی soft tissue بی‌حمایت.',
                     ],
                     [
@@ -5028,11 +5028,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'استفاده از envelope flap برای access کافی.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: متن هشدار می‌دهد roots of mandibular second and third molars می‌توانند هنگام attempts to remove، به submandibular space رانده شوند؛ apical pressure با elevator عامل خطر است.
-دلیل رد گزینه‌های غلط:
-- ب: irrigation برای clear visualization کمک‌کننده است.
-- ج: documentation بخشی از protocol ایمن در leaving root است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: متن هشدار می‌دهد roots of mandibular second and third molars می‌توانند هنگام attempts to remove، به submandibular space رانده شوند؛ apical pressure با elevator عامل خطر است.
+دلیل رد گزینه‌های غلط:
+- ب: irrigation برای clear visualization کمک‌کننده است.
+- ج: documentation بخشی از protocol ایمن در leaving root است.
 - د: envelope flap خود به‌تنهایی خطای displacement نیست.',
                     ],
                     [
@@ -5044,11 +5044,11 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'عدم استفاده از suture چون sockets باید کاملاً باز بمانند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در multiple extractions، papillae با interrupted یا continuous sutures بسته می‌شوند و اگر nonresorbable sutures استفاده شده باشد، removal حدود یک هفته بعد برنامه‌ریزی می‌شود.
-دلیل رد گزینه‌های غلط:
-- ب: figure-of-eight تنها گزینه نیست و همان‌روز برداشته نمی‌شود.
-- ج: tight primary closure روی sockets باعث کاهش vestibular depth و tension می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در multiple extractions، papillae با interrupted یا continuous sutures بسته می‌شوند و اگر nonresorbable sutures استفاده شده باشد، removal حدود یک هفته بعد برنامه‌ریزی می‌شود.
+دلیل رد گزینه‌های غلط:
+- ب: figure-of-eight تنها گزینه نیست و همان‌روز برداشته نمی‌شود.
+- ج: tight primary closure روی sockets باعث کاهش vestibular depth و tension می‌شود.
 - د: papillae باید reapproximated و sutured شوند، هرچند sockets primary closure کامل نمی‌خواهند.',
                     ],
                 ],
@@ -5079,8 +5079,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'رویش دیرهنگام تا ۲۵ سالگی همراه با فقدان تماس با مولر دوم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در فصل، شایع‌ترین علت نهفتگی مولر سوم مندیبول، ناکامی چرخش از mesioangular به vertical و عامل مهم دیگر، کمبود فضای قدامی راموس برای رویش است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در فصل، شایع‌ترین علت نهفتگی مولر سوم مندیبول، ناکامی چرخش از mesioangular به vertical و عامل مهم دیگر، کمبود فضای قدامی راموس برای رویش است.
 رد گزینه‌ها: ب) تکمیل زودرس ریشه و افزایش فضا علت اصلی ذکرشده نیست. ج) قرارگیری کامل تاج قدام راموس و پوشش صرفاً نرم‌بافتی بیشتر به امکان رویش یا دشواری کمتر اشاره دارد. د) رویش دیرهنگام با فضای کافی، الزاماً نهفتگی را توضیح نمی‌دهد.',
                     ],
                     [
@@ -5092,8 +5092,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نشانه آن است که دندان باید بدون flap و بدون دید مستقیم خارج شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: follicular sac پهن، مقدار استخوان لازم برای برداشت را کم می‌کند و extraction را ساده‌تر می‌سازد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: follicular sac پهن، مقدار استخوان لازم برای برداشت را کم می‌کند و extraction را ساده‌تر می‌سازد.
 رد گزینه‌ها: ب) تراکم استخوان با سن بهتر برآورد می‌شود، نه با فولیکول پهن. ج) نزدیکی به canal با رابطه ریشه و canal سنجیده می‌شود. د) حتی با فولیکول پهن، دید مستقیم و اصول جراحی لازم است.',
                     ],
                     [
@@ -5105,8 +5105,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'operculectomy به عنوان درمان قطعی و جایگزین extraction',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در نوع خفیف pericoronitis، irrigation و curettage زیر operculum و irrigation خانگی معمولاً کافی است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در نوع خفیف pericoronitis، irrigation و curettage زیر operculum و irrigation خانگی معمولاً کافی است.
 رد گزینه‌ها: الف) خارج‌کردن مولر سوم مندیبول در فاز عفونت فعال موجب افزایش dry socket، عفونت پس از عمل، خونریزی و کندی ترمیم می‌شود. ج) بستری برای موارد شدید با trismus شدید، تب، تورم صورت، درد و malaise مطرح است. د) operculectomy دردناک و معمولاً ناکارآمد است و درمان قطعی محسوب نمی‌شود.',
                     ],
                     [
@@ -5118,8 +5118,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'Transverse شایع‌ترین وضعیت غیرطبیعی است و بیشتر از vertical دیده می‌شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در maxillary third molar، vertical حدود ۶۳٪ موارد را تشکیل می‌دهد و vertical و distoangular معمولاً کم‌پیچیده‌تر از mesioangular هستند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در maxillary third molar، vertical حدود ۶۳٪ موارد را تشکیل می‌دهد و vertical و distoangular معمولاً کم‌پیچیده‌تر از mesioangular هستند.
 رد گزینه‌ها: الف) mesioangular در ماگزیلا حدود ۱۲٪ است و دشوارترینِ سه وضعیت اصلی محسوب می‌شود. ج) horizontal از وضعیت‌های نادر و زیر ۱٪ است. د) transverse شایع نیست و در گروه وضعیت‌های نادر قرار دارد.',
                     ],
                     [
@@ -5131,8 +5131,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'انجام operculectomy پیشگیرانه و باقی‌گذاشتن دندان در استخوان',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در سن ۱۸ یا ۱۹ سالگی، اگر کمبود فضای عملکردی تشخیص داده شود، خارج‌سازی asymptomatic third molar برای بهینه‌سازی سلامت پریودنتال مولر دوم توصیه می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در سن ۱۸ یا ۱۹ سالگی، اگر کمبود فضای عملکردی تشخیص داده شود، خارج‌سازی asymptomatic third molar برای بهینه‌سازی سلامت پریودنتال مولر دوم توصیه می‌شود.
 رد گزینه‌ها: الف) انتظار تا بروز pericoronitis موربیدیتی و پیچیدگی را افزایش می‌دهد. ج) سیاست نگهداری با پیگیری بیشتر برای بیمار مسن بی‌علامت با impaction کامل استخوانی مناسب است. د) operculectomy برای پیشگیری معمولاً ناکارآمد است.',
                     ],
                     [
@@ -5144,8 +5144,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ایجاد ارتباط oroantral به علت عبور از tuberosity',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: ادامه مستقیم incision به خلف می‌تواند از استخوان خارج شده وارد sublingual space شود و lingual nerve را آسیب بزند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: ادامه مستقیم incision به خلف می‌تواند از استخوان خارج شده وارد sublingual space شود و lingual nerve را آسیب بزند.
 رد گزینه‌ها: ب) مسئله اصلی افزایش خون‌رسانی نیست. ج) inferior alveolar canal با این مسیر incision ارتباط اصلی ندارد. د) oroantral communication مربوط به ماگزیلا و sinus است، نه incision خلفی مندیبول.',
                     ],
                     [
@@ -5157,8 +5157,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'به علت قرارگیری ثابت کانال آلوئولار تحتانی در سمت پالاتال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در ماگزیلا، گسترش پاکت پریودنتال به distal furcation مولر دوم زود رخ می‌دهد و درمان را سخت‌تر و بیماری را شدیدتر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در ماگزیلا، گسترش پاکت پریودنتال به distal furcation مولر دوم زود رخ می‌دهد و درمان را سخت‌تر و بیماری را شدیدتر می‌کند.
 رد گزینه‌ها: ب) فقدان فولیکول دلیل مطرح‌شده نیست. ج) ضخامت operculum عامل اصلی periodontal disease ماگزیلا نیست. د) کانال آلوئولار تحتانی در مندیبول مطرح است.',
                     ],
                     [
@@ -5170,8 +5170,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'احتمال شکستگی tuberosity؛ کمک‌گرفتن از palpation پالاتال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: نزدیکی ریشه‌های مولر سوم مندیبول به inferior alveolar canal می‌تواند موجب paresthesia/anesthesia لب پایین و چانه شود؛ cone-beam CT رابطه ریشه و canal را دقیق‌تر نشان می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: نزدیکی ریشه‌های مولر سوم مندیبول به inferior alveolar canal می‌تواند موجب paresthesia/anesthesia لب پایین و چانه شود؛ cone-beam CT رابطه ریشه و canal را دقیق‌تر نشان می‌دهد.
 رد گزینه‌ها: ب) ulceration زیر دنچر مربوط به دندان نهفته زیر prosthesis است. ج) furcation involvement مربوط به بیماری پریودنتال مولر دوم ماگزیلا است. د) tuberosity fracture در ماگزیلا مطرح می‌شود.',
                     ],
                     [
@@ -5183,8 +5183,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'پس از ۲۵ سالگی، وقتی تراکم استخوان به حد پایدار رسیده است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: زمان ایده‌آل وقتی است که ریشه‌ها یک‌سوم تا دوسوم تشکیل شده‌اند؛ این حالت معمولاً در ۱۶ تا ۲۰ سالگی رخ می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: زمان ایده‌آل وقتی است که ریشه‌ها یک‌سوم تا دوسوم تشکیل شده‌اند؛ این حالت معمولاً در ۱۶ تا ۲۰ سالگی رخ می‌دهد.
 رد گزینه‌ها: الف) removal در ۷ تا ۹ سالگی به علت عدم پیش‌بینی قابل اعتماد نهفتگی معمولاً به تعویق می‌افتد. ج) تکمیل کامل ریشه احتمال شکل غیرطبیعی و نزدیکی به ساختارهای حیاتی را افزایش می‌دهد. د) پس از ۲۵ سالگی استخوان متراکم‌تر و کمتر الاستیک می‌شود.',
                     ],
                     [
@@ -5196,8 +5196,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون باعث شکستگی فوری second molar در سمت مزیال می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: sectioning کامل با burr به سمت لینگوال احتمال آسیب به lingual nerve را افزایش می‌دهد؛ دندان معمولاً سه‌چهارم تا سمت لینگوال cut و سپس با elevator split می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: sectioning کامل با burr به سمت لینگوال احتمال آسیب به lingual nerve را افزایش می‌دهد؛ دندان معمولاً سه‌چهارم تا سمت لینگوال cut و سپس با elevator split می‌شود.
 رد گزینه‌ها: ب) علت، نبود PDL نیست. ج) نوع impaction با این کار تغییر طبقه‌بندی بیمه‌ای نمی‌دهد. د) خطر اصلی ذکرشده شکستگی فوری مولر دوم نیست.',
                     ],
                     [
@@ -5209,8 +5209,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون maxillary third molar پس از درمان خودبه‌خود به سمت مندیبول رویش می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: بیمار با یک دوره pericoronitis احتمال بالایی برای دوره‌های بعدی دارد مگر دندان عامل خارج شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: بیمار با یک دوره pericoronitis احتمال بالایی برای دوره‌های بعدی دارد مگر دندان عامل خارج شود.
 رد گزینه‌ها: ب) irrigation درمان موقت است و علت عود را از بین نمی‌برد. ج) penicillin و clindamycin باعث ankylosis ذکر نشده‌اند. د) رویش یا حرکت خودبه‌خودی مولر سوم ماگزیلا علت درمان نیست.',
                     ],
                     [
@@ -5222,8 +5222,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'دندان فقط در جهت buccolingual افقی است و برای تشخیص به CT نیاز دارد',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: در partial bony impaction، بخشی از height of contour دندان زیر سطح bone اطراف است و برای removal، flap و bone removal لازم می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: در partial bony impaction، بخشی از height of contour دندان زیر سطح bone اطراف است و برای removal، flap و bone removal لازم می‌شود.
 رد گزینه‌ها: الف) این توصیف complete bony است. ب) این توصیف soft tissue impaction است. د) transverse impaction طبقه‌بندی جهت‌گیری buccolingual است، نه partial bony.',
                     ],
                     [
@@ -5235,8 +5235,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'operculectomy برای حذف risk pericoronitis',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در بیمار مسن بی‌علامت با دندان عمیق و پوشش استخوانی قابل مشاهده، خارج‌سازی توصیه نمی‌شود و پیگیری رادیوگرافیک هر ۱ تا ۲ سال مطرح است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در بیمار مسن بی‌علامت با دندان عمیق و پوشش استخوانی قابل مشاهده، خارج‌سازی توصیه نمی‌شود و پیگیری رادیوگرافیک هر ۱ تا ۲ سال مطرح است.
 رد گزینه‌ها: الف) پیشگیری قطعی از ameloblastoma دلیل extraction فوری در این وضعیت نیست. ج) برداشتن توبروزیته اقدام روتین نیست. د) operculectomy برای دندان کاملاً استخوانی بی‌معناست.',
                     ],
                     [
@@ -5248,8 +5248,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'soft tissue impaction با follicular space پهن و دسترسی با periosteal elevator',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: شکستگی tuberosity با استخوان غیرالاستیک در بیماران مسن، ریشه‌های بزرگ یا divergent، sinus بزرگ و نیروی زیاد بیشتر محتمل است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: شکستگی tuberosity با استخوان غیرالاستیک در بیماران مسن، ریشه‌های بزرگ یا divergent، sinus بزرگ و نیروی زیاد بیشتر محتمل است.
 رد گزینه‌ها: الف) استخوان الاستیک و fused conical roots دشواری کمتری دارند. ب) sinus کوچک و فاصله از sinus خطر را کم‌تر می‌کند. د) soft tissue impaction با follicle پهن از عوامل ساده‌تر است.',
                     ],
                     [
@@ -5261,8 +5261,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وقتی بیمار کمتر از ۷ سال دارد و tooth bud تازه قابل مشاهده شده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اگر علت‌های دیگر مانند myofascial pain dysfunction و سایر facial pain disorders رد شوند و دندان unerupted وجود داشته باشد، removal گاهی درد را برطرف می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اگر علت‌های دیگر مانند myofascial pain dysfunction و سایر facial pain disorders رد شوند و دندان unerupted وجود داشته باشد، removal گاهی درد را برطرف می‌کند.
 رد گزینه‌ها: ب) نبود دندان unerupted با این اندیکاسیون ناسازگار است. ج) لزوم هم‌زمان خارج‌کردن second molar در منبع مطرح نشده است. د) سن زیر ۷ سال و tooth bud به این اندیکاسیون مربوط نیست.',
                     ],
                     [
@@ -5274,8 +5274,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'پوشش نرم‌بافتی روی تاج؛ حذف نیاز به flap و برداشتن استخوان',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: موقعیت پالاتالی با deficit در ناحیه توبروزیته و دشواری بیشتر همراه است و approach پالاتالی می‌تواند عروق و اعصاب palatine foramina را تهدید کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: موقعیت پالاتالی با deficit در ناحیه توبروزیته و دشواری بیشتر همراه است و approach پالاتالی می‌تواند عروق و اعصاب palatine foramina را تهدید کند.
 رد گزینه‌ها: الف) برجستگی باکال نشانه موقعیت باکال و برداشتن ساده‌تر استخوان نازک است. ج) inferior alveolar canal مربوط به مندیبول است. د) پوشش نرم‌بافتی تعریف soft tissue impaction است و موقعیت پالاتالی را نشان نمی‌دهد.',
                     ],
                     [
@@ -5287,8 +5287,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نشان می‌دهد sectioning دندان نهفته ممنوع است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در تماس نزدیک با مولر دوم، به‌ویژه اگر مولر دوم پوسیدگی، restoration بزرگ یا درمان اندودنتیک داشته باشد، خطر آسیب به restoration یا crown مطرح است و بیمار باید مطلع شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در تماس نزدیک با مولر دوم، به‌ویژه اگر مولر دوم پوسیدگی، restoration بزرگ یا درمان اندودنتیک داشته باشد، خطر آسیب به restoration یا crown مطرح است و بیمار باید مطلع شود.
 رد گزینه‌ها: ب) انتقال فشار به مولر دوم خطرناک است. ج) تماس با مولر دوم از نظر جراحی مهم است. د) sectioning بر اساس angulation و نیاز جراحی تصمیم‌گیری می‌شود، نه وجود restoration مجاور به تنهایی.',
                     ],
                     [
@@ -5300,8 +5300,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'luxation آپیکالی با ریشه‌گیر و هدایت دندان به infratemporal space',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: مولر سوم ماگزیلا با elevator کوچک معمولاً به سمت distobuccal luxate می‌شود و باید از فشار anterior زیاد برای محافظت از ریشه مولر دوم پرهیز کرد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: مولر سوم ماگزیلا با elevator کوچک معمولاً به سمت distobuccal luxate می‌شود و باید از فشار anterior زیاد برای محافظت از ریشه مولر دوم پرهیز کرد.
 رد گزینه‌ها: الف) luxation لینگوالی و بی‌توجهی به tuberosity با منبع سازگار نیست. ج) Cryer و فشار روی مولر دوم روش معمول ماگزیلا نیست. د) هدایت به infratemporal space عارضه‌ای است که باید تشخیص و از آن اجتناب شود.',
                     ],
                     [
@@ -5313,8 +5313,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'unerupted tooth فقط در ماگزیلا به‌کار می‌رود؛ impacted tooth فقط در مندیبول کاربرد دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: impacted tooth دندانی است که در بازه معمول به قوس دندانی وارد نمی‌شود؛ unerupted teeth هم impacted teeth و هم دندان‌های در حال تکامل و رویش را شامل می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: impacted tooth دندانی است که در بازه معمول به قوس دندانی وارد نمی‌شود؛ unerupted teeth هم impacted teeth و هم دندان‌های در حال تکامل و رویش را شامل می‌شود.
 رد گزینه‌ها: ب) unerupted به cyst محدود نیست. ج) وضعیت ریشه معیار تعریف impacted نیست. د) این اصطلاحات محدود به یک فک خاص نیستند.',
                     ],
                     [
@@ -5326,8 +5326,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حذف استخوان با handpiece ترمیمی برای کاهش سرعت و حرارت',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در مندیبول، ابتدا استخوان اکلوزال برای نمایان‌کردن crown برداشته می‌شود، سپس buccal bone تا cervical line و در ادامه ditching برای مسیر elevator و delivery انجام می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در مندیبول، ابتدا استخوان اکلوزال برای نمایان‌کردن crown برداشته می‌شود، سپس buccal bone تا cervical line و در ادامه ditching برای مسیر elevator و delivery انجام می‌شود.
 رد گزینه‌ها: الف) برداشتن استخوان لینگوال به علت خطر lingual nerve انجام نمی‌شود. ج) حذف فقط ناحیه مزیال کافی نیست. د) handpiece ترمیمی برای این کار نباید استفاده شود.',
                     ],
                     [
@@ -5339,8 +5339,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون soft tissue impaction در این سن شایع‌تر از complete bony است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: با افزایش سن، استخوان متراکم‌تر و کمتر قابل اتساع می‌شود و PDL در بیماران مسن، به‌ویژه بالای ۴۰ سال، معمولاً باریک‌تر است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: با افزایش سن، استخوان متراکم‌تر و کمتر قابل اتساع می‌شود و PDL در بیماران مسن، به‌ویژه بالای ۴۰ سال، معمولاً باریک‌تر است.
 رد گزینه‌ها: الف) bone density کمتر نمی‌شود و follicle همیشه بزرگ‌تر نمی‌شود. ج) ریشه کمتر از یک‌سوم بیشتر مسئله بیماران بسیار جوان است. د) soft tissue impaction در سن بالا علت اصلی دشواری نیست.',
                     ],
                     [
@@ -5352,8 +5352,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'antibiotic، corticosteroid، ice pack، analgesic، follow-up radiograph',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: پنج مرحله فصل عبارت‌اند از flap مناسب، ارزیابی و برداشت bone، sectioning در صورت نیاز، delivery با elevator، و آماده‌سازی زخم و closure.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: پنج مرحله فصل عبارت‌اند از flap مناسب، ارزیابی و برداشت bone، sectioning در صورت نیاز، delivery با elevator، و آماده‌سازی زخم و closure.
 رد گزینه‌ها: ب) ترتیب و اجزا با مراحل surgical removal تطابق ندارد. ج) این مجموعه مراحل اصلی فصل نیست. د) این‌ها بیشتر جنبه perioperative یا postoperative دارند.',
                     ],
                     [
@@ -5365,8 +5365,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'کاهش خطر fracture مندیبول به علت افزایش حجم استخوان اطراف دندان',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: تحلیل ridge باعث نزدیک‌شدن دندان نهفته به سطح می‌شود؛ denture می‌تواند بافت نرم را روی دندان بفشارد و ulceration و infection ایجاد کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: تحلیل ridge باعث نزدیک‌شدن دندان نهفته به سطح می‌شود؛ denture می‌تواند بافت نرم را روی دندان بفشارد و ulceration و infection ایجاد کند.
 رد گزینه‌ها: ب) تحلیل استخوان پوشش را کمتر می‌کند، نه بیشتر. ج) eruption طبیعی با attachment کامل نتیجه مورد انتظار نیست. د) atrophic mandible خطر fracture را افزایش می‌دهد.',
                     ],
                     [
@@ -5378,8 +5378,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'هرچه bone کمتر برداشته شود، بدون توجه به pathway، خطر شکستگی فک کمتر می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: bone removal بیش از حد healing را طولانی و jaw را تضعیف می‌کند؛ bone removal کم همراه با sectioning زیاد می‌تواند زمان عمل را بی‌جهت طولانی کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: bone removal بیش از حد healing را طولانی و jaw را تضعیف می‌کند؛ bone removal کم همراه با sectioning زیاد می‌تواند زمان عمل را بی‌جهت طولانی کند.
 رد گزینه‌ها: ب) حذف کامل bone روش مطلوب روتین نیست. ج) sectioning جای hemostasis و irrigation را نمی‌گیرد. د) pathway بدون مانع برای delivery ضروری است.',
                     ],
                     [
@@ -5391,7 +5391,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'orthostatic folliculitis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل درست بودن: فضای فولیکولی بیش از ۳ میلی‌متر اطراف crown، تشخیص پیش‌عملی dentigerous cyst را معقول می‌کند.',
                     ],
                     [
@@ -5403,8 +5403,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تماس مستقیم با مولر دوم و نزدیکی واضح به inferior alveolar canal',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: mesioangular position همراه با class 1 ramus و class A depth از عوامل آسان‌تر بودن surgery است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: mesioangular position همراه با class 1 ramus و class A depth از عوامل آسان‌تر بودن surgery است.
 رد گزینه‌ها: الف) distoangular class 3 دشوار است. ب) ریشه‌های بلند و divergent و PDL باریک دشواری را افزایش می‌دهند. د) تماس با مولر دوم و نزدیکی canal عوامل دشوارکننده‌اند.',
                     ],
                     [
@@ -5416,8 +5416,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'خونریزی خفیف پس از irrigation با hydrogen peroxide',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: trismus با بازشدن کمتر از ۲۰ میلی‌متر، تب بیش از ۱۰۱°F، facial swelling، pain و malaise نشان‌دهنده شدت و نیاز به ارجاع و احتمال بستری است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: trismus با بازشدن کمتر از ۲۰ میلی‌متر، تب بیش از ۱۰۱°F، facial swelling، pain و malaise نشان‌دهنده شدت و نیاز به ارجاع و احتمال بستری است.
 رد گزینه‌ها: الف) با نوع خفیف‌تر سازگار است. ج) بدون علائم التهاب شدید، بستری مطرح نیست. د) خونریزی خفیف پس از irrigation معیار ارجاع شدید نیست.',
                     ],
                     [
@@ -5429,8 +5429,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای ایجاد نقص پالاتالی و آسان‌کردن approach از palatal foramina',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در canine لبی، apically positioned flap برای حفظ یا ایجاد پوشش keratinized tissue اطراف دندان هدایت‌شونده به کار می‌رود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در canine لبی، apically positioned flap برای حفظ یا ایجاد پوشش keratinized tissue اطراف دندان هدایت‌شونده به کار می‌رود.
 رد گزینه‌ها: ب) gold chain برای انعطاف و کاهش breakage استفاده می‌شود، نه قطع‌شدن. ج) bracket bonding بخش روش است. د) ایجاد نقص پالاتالی هدف نیست.',
                     ],
                     [
@@ -5442,8 +5442,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'غیرقابل ارزیابی، چون angulation نقشی در دشواری ندارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: horizontal impaction با class 2 ramus و class B depth در فصل extraction با دشواری متوسط معرفی شده است که بسیاری از general practitionerهای باتجربه نیز مایل به انجام آن نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: horizontal impaction با class 2 ramus و class B depth در فصل extraction با دشواری متوسط معرفی شده است که بسیاری از general practitionerهای باتجربه نیز مایل به انجام آن نیستند.
 رد گزینه‌ها: الف) ساده‌ترین ترکیب mesioangular class 1 class A است. ج) دشوارترین نمونه distoangular class 3 class C است. د) angulation نقش اصلی در پیش‌بینی دشواری دارد.',
                     ],
                     [
@@ -5455,8 +5455,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'scalpel باید با stroke نرم و در تماس با bone باعث full-thickness flap شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: در صورت نیاز به releasing incision، فقط یک releasing incision باید استفاده شود؛ دو releasing incision توصیه نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: در صورت نیاز به releasing incision، فقط یک releasing incision باید استفاده شود؛ دو releasing incision توصیه نشده است.
 رد گزینه‌ها: الف) broad base برای vascularity فلپ لازم است. ب) closure روی bone solid اصل طراحی incision است. د) incision باید full-thickness mucoperiosteal flap بدهد.',
                     ],
                     [
@@ -5468,8 +5468,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'پیشگیری از تشکیل dentigerous cyst',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: مولر سوم مندیبول نهفته فضای استخوانی را اشغال و فک را در آن ناحیه ضعیف می‌کند، بنابراین خطر fracture در محل دندان بیشتر می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: مولر سوم مندیبول نهفته فضای استخوانی را اشغال و فک را در آن ناحیه ضعیف می‌کند، بنابراین خطر fracture در محل دندان بیشتر می‌شود.
 رد گزینه‌ها: ب) این مکانیسم به operculum trauma مربوط نیست. ج) وجود دندان نهفته معمولاً distal periodontal health مولر دوم را تهدید می‌کند. د) اشغال استخوان از تشکیل cyst جلوگیری نمی‌کند.',
                     ],
                     [
@@ -5481,8 +5481,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'دندان الزاماً در جهت transverse قرار دارد و occlusal surface به سمت باکال است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در complete bony impaction، دندان کاملاً با استخوان احاطه شده، بعد از reflection دیده نمی‌شود، bone removal وسیع و تقریباً همیشه sectioning لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در complete bony impaction، دندان کاملاً با استخوان احاطه شده، بعد از reflection دیده نمی‌شود، bone removal وسیع و تقریباً همیشه sectioning لازم است.
 رد گزینه‌ها: ب) soft tissue impaction است. ج) removal ساده با forceps تعریف این حالت نیست. د) transverse جهت قرارگیری است و با complete bony یکسان نیست.',
                     ],
                     [
@@ -5494,8 +5494,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'آنتی‌بیوتیک پیشگیرانه به تنهایی تمام خطرهای جراحی را حذف می‌کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: اگر وضعیت cardiovascular یا respiratory، دفاع میزبان یا coagulation شدیداً compromised باشد و دندان asymptomatic باشد، باقی‌گذاشتن دندان در alveolar process باید بررسی شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: اگر وضعیت cardiovascular یا respiratory، دفاع میزبان یا coagulation شدیداً compromised باشد و دندان asymptomatic باشد، باقی‌گذاشتن دندان در alveolar process باید بررسی شود.
 رد گزینه‌ها: الف) دندان نهفته بی‌علامت elective محسوب می‌شود. ج) compromised medical status محدود به کودکان نیست. د) آنتی‌بیوتیک به‌تنهایی خطرهای پزشکی جراحی را حذف نمی‌کند.',
                     ],
                     [
@@ -5507,8 +5507,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون در این وضعیت root formation همیشه کمتر از یک‌سوم است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در ماگزیلا، mesioangular دشوارتر است زیرا bone overlying در posterior ضخیم‌تر است و second molar erupted دسترسی را دشوار می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در ماگزیلا، mesioangular دشوارتر است زیرا bone overlying در posterior ضخیم‌تر است و second molar erupted دسترسی را دشوار می‌کند.
 رد گزینه‌ها: ب) follicle بزرگ و crown قابل مشاهده دشواری کمتر ایجاد می‌کند. ج) مسیر lingual mandible به ماگزیلا مربوط نیست. د) root formation کمتر از یک‌سوم ویژگی همیشگی این angulation نیست.',
                     ],
                     [
@@ -5520,8 +5520,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون tooth همیشه به inferior alveolar canal چسبیده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اگر root development کمتر از یک‌سوم باشد، crown ممکن است در socket مانند marble بچرخد و elevation معمول دشوار شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اگر root development کمتر از یک‌سوم باشد، crown ممکن است در socket مانند marble بچرخد و elevation معمول دشوار شود.
 رد گزینه‌ها: ب) hooked roots به تکامل کامل و morphology مربوط‌اند، نه الزاماً ریشه زیر یک‌سوم. ج) PDL از بین نمی‌رود. د) نزدیکی canal از رادیوگرافی رابطه ریشه‌ها و canal برآورد می‌شود.',
                     ],
                     [
@@ -5533,8 +5533,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'پرهیز از برداشت باقی‌مانده follicle برای کاهش خطر dry socket',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: پس از removal، لبه‌های تیز با bone file صاف می‌شود، زخم با saline sterile به‌خوبی irrigate و پیش از closure بازرسی می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: پس از removal، لبه‌های تیز با bone file صاف می‌شود، زخم با saline sterile به‌خوبی irrigate و پیش از closure بازرسی می‌شود.
 رد گزینه‌ها: الف) bone chips و debris باید خارج شوند. ج) hemostasis باید بررسی و کنترل شود. د) remnants فولیکول در صورت وجود با hemostat برداشته می‌شوند.',
                     ],
                     [
@@ -5546,8 +5546,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'مانع گیر غذایی زیر operculum می‌شود و درمان انتخابی نگهداری آن است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: مولر سوم ماگزیلا می‌تواند operculum متورم روی مولر سوم مندیبول را هنگام اکلوژن تروما دهد و چرخه swelling و trauma را تشدید کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: مولر سوم ماگزیلا می‌تواند operculum متورم روی مولر سوم مندیبول را هنگام اکلوژن تروما دهد و چرخه swelling و trauma را تشدید کند.
 رد گزینه‌ها: ب) آزادسازی اکسیژن نقش hydrogen peroxide است. ج) furcation involvement مربوط به periodontal disease مولر دوم ماگزیلا است. د) maxillary third molar می‌تواند عامل تشدید باشد و گاهی removal آن در نظر گرفته می‌شود.',
                     ],
                     [
@@ -5559,8 +5559,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'tooth باید بدون bracket و بدون appliance در همان جلسه خارج شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در canine پالاتالی که قرار است ارتودنتیک هدایت شود، soft tissue روی دندان excise می‌شود و flap برای attached tissue لازم نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در canine پالاتالی که قرار است ارتودنتیک هدایت شود، soft tissue روی دندان excise می‌شود و flap برای attached tissue لازم نیست.
 رد گزینه‌ها: ب) bone پالاتال ضخیم‌تر است و معمولاً burr برای برداشتن bone لازم می‌شود. ج) approach پالاتال برای mesiodens و canine پالاتالی در شرایط مناسب مطرح است. د) bracket و appliance در repositioning استفاده می‌شوند.',
                     ],
                     [
@@ -5572,8 +5572,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تماس مستقیم crown با ریشه مولر دوم و فقدان فضای قدامی راموس',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: رویش دیرهنگام معمولاً در دندان vertical، نسبتاً superficial، با پوشش نرم‌بافتی یا مقدار کم bone و فضای کافی بین ramus و second molar محتمل‌تر است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: رویش دیرهنگام معمولاً در دندان vertical، نسبتاً superficial، با پوشش نرم‌بافتی یا مقدار کم bone و فضای کافی بین ramus و second molar محتمل‌تر است.
 رد گزینه‌ها: الف) پوشش کامل bone، mesioangular و موقعیت پایین بیشتر به impaction اشاره دارد. ج) class 3 و class C و ریشه کامل رویش را نامحتمل می‌کند. د) تماس مستقیم و فقدان فضا به نهفتگی مربوط است.',
                     ],
                     [
@@ -5585,8 +5585,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'codeine موضعی زیر فلپ همراه با حذف analgesic خوراکی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: یک رژیم رایج ذکرشده، ۸ میلی‌گرم dexamethasone پیش از جراحی و سپس گاهی 0.75 تا 1.25 میلی‌گرم خوراکی دوبار در روز برای ۲ تا ۳ روز است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: یک رژیم رایج ذکرشده، ۸ میلی‌گرم dexamethasone پیش از جراحی و سپس گاهی 0.75 تا 1.25 میلی‌گرم خوراکی دوبار در روز برای ۲ تا ۳ روز است.
 رد گزینه‌ها: ب) در بیمار سالم بدون عفونت، systemic antibiotics معمولاً indicated نیست. ج) aspirin داخل socket و نقش آن در dry socket در فصل مطرح نشده است. د) codeine موضعی زیر فلپ مطرح نیست.',
                     ],
                 ],
@@ -5617,8 +5617,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'caries نشانه contraindication قطعی برای removal است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در third molar impacted یا partially impacted، عوامل پوسیدگی می‌توانند crown دندان نهفته و distal مولر دوم را درگیر کنند، حتی بدون ارتباط واضح دهانی.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در third molar impacted یا partially impacted، عوامل پوسیدگی می‌توانند crown دندان نهفته و distal مولر دوم را درگیر کنند، حتی بدون ارتباط واضح دهانی.
 رد گزینه‌ها: الف) ارتباط واضح لازم نیست. ج) محدود به ماگزیلا یا خود مولر سوم نیست. د) caries اندیکاسیون removal است، نه contraindication.',
                     ],
                     [
@@ -5630,8 +5630,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'forceps No. 150 و rongeur forceps به عنوان روش روتین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در مندیبول، straight elevator، paired Cryer elevator و Crane pick از elevatorهای رایج برای delivery هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در مندیبول، straight elevator، paired Cryer elevator و Crane pick از elevatorهای رایج برای delivery هستند.
 رد گزینه‌ها: ب) Potts، Miller و Warwick بیشتر برای دسترسی و delivery در ماگزیلا ذکر شده‌اند. ج) periosteal elevator ابزار اصلی delivery ریشه‌های مندیبول نیست. د) forceps و rongeur روش‌های روتین اصلی این مرحله نیستند.',
                     ],
                     [
@@ -5643,8 +5643,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون pericoronitis معمولاً از maxillary sinus آغاز می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: operculectomy معمولاً ناکارآمد است چون soft tissue دوباره روی دندان drape می‌شود و operculum بازمی‌گردد؛ pocket distal نیز عمیق می‌ماند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: operculectomy معمولاً ناکارآمد است چون soft tissue دوباره روی دندان drape می‌شود و operculum بازمی‌گردد؛ pocket distal نیز عمیق می‌ماند.
 رد گزینه‌ها: ب) حذف کامل follicle یا تسریع رویش هدف و اثر آن نیست. ج) ممنوعیت مطبی با آنتی‌بیوتیک وریدی مطرح نشده است. د) pericoronitis از محیط زیر operculum و فلور دهانی رخ می‌دهد.',
                     ],
                     [
@@ -5656,8 +5656,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نبود follicular space و نبود second molar adjacent',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در maxillary third molar، thin, nonfused root با erratic curvature از عوامل شایع دشوارکننده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در maxillary third molar، thin, nonfused root با erratic curvature از عوامل شایع دشوارکننده است.
 رد گزینه‌ها: ب) fused conical roots و PDL wide معمولاً ساده‌ترند. ج) ریشه یک‌سوم تا دوسوم با blunt ends شرایط مطلوب‌تر است. د) نبود follicular space دشواری را افزایش می‌دهد ولی گزینه شامل نبود second molar هم هست و دقیق‌ترین عامل ریشه‌ای نیست.',
                     ],
                     [
@@ -5669,8 +5669,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'کل tooth در داخل ramus مندیبول قرار دارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: class 2 ramus یعنی دندان posteriorتر است و تقریباً نیمی از آن توسط anterior ramus پوشیده شده؛ معمولاً shelf استخوانی distal مانع رویش کامل می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: class 2 ramus یعنی دندان posteriorتر است و تقریباً نیمی از آن توسط anterior ramus پوشیده شده؛ معمولاً shelf استخوانی distal مانع رویش کامل می‌شود.
 رد گزینه‌ها: الف) class 1 است. ج) مربوط به class C depth است. د) class 3 ramus است.',
                     ],
                     [
@@ -5682,8 +5682,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون برای خروج آن‌ها باید ابتدا lingual plate مندیبول برداشته شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: دندان‌های نهفته ماگزیلا به‌ندرت section می‌شوند زیرا استخوان روی آن‌ها معمولاً نازک و الاستیک‌تر است و در موارد نیاز، removal با برداشتن bone انجام می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: دندان‌های نهفته ماگزیلا به‌ندرت section می‌شوند زیرا استخوان روی آن‌ها معمولاً نازک و الاستیک‌تر است و در موارد نیاز، removal با برداشتن bone انجام می‌شود.
 رد گزینه‌ها: ب) inferior alveolar nerve مربوط به مندیبول است. ج) ریشه‌های ماگزیلا می‌توانند erratic و nonfused باشند. د) lingual plate مندیبول به extraction ماگزیلا مربوط نیست.',
                     ],
                     [
@@ -5695,8 +5695,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'وجود second molar بیمار extraction دندان سوم را به طور مطلق ممنوع می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اگر second molar به‌شدت بیمار و نیازمند removal باشد، ممکن است third molar حفظ شود تا پس از removal مولر دوم به occlusion مناسب هدایت شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اگر second molar به‌شدت بیمار و نیازمند removal باشد، ممکن است third molar حفظ شود تا پس از removal مولر دوم به occlusion مناسب هدایت شود.
 رد گزینه‌ها: ب) ترتیب تصمیم‌گیری باید وضعیت مولر دوم را هم بسنجد. ج) این تصمیم محدود به بالای ۶۰ سال نیست. د) وجود مولر دوم بیمار ممنوعیت مطلق ایجاد نمی‌کند.',
                     ],
                     [
@@ -5708,8 +5708,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'fracture از angle مندیبول در محل دندان',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: تماس نزدیک maxillary third molar با sinus یا تشکیل بخشی از posterior sinus wall می‌تواند پس از removal با sinusitis یا oroantral fistula همراه شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: تماس نزدیک maxillary third molar با sinus یا تشکیل بخشی از posterior sinus wall می‌تواند پس از removal با sinusitis یا oroantral fistula همراه شود.
 رد گزینه‌ها: ب) anesthesia لب پایین و چانه مربوط به inferior alveolar nerve در مندیبول است. ج) distal furcation involvement مولر دوم مندیبول در این سؤال مطرح نیست. د) fracture angle مندیبول مربوط به دندان نهفته مندیبول است.',
                     ],
                     [
@@ -5721,8 +5721,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'mesiodens شایع‌ترین، سپس mandibular first molars و بعد maxillary incisors',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: شایع‌ترین دندان‌های نهفته، maxillary و mandibular third molars هستند؛ پس از آن maxillary canines و سپس mandibular premolars قرار می‌گیرند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: شایع‌ترین دندان‌های نهفته، maxillary و mandibular third molars هستند؛ پس از آن maxillary canines و سپس mandibular premolars قرار می‌گیرند.
 رد گزینه‌ها: ب، ج و د) ترتیب‌های ذکرشده با ترتیب فصل تطابق ندارند.',
                     ],
                     [
@@ -5734,8 +5734,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'برای impaction بسیار عمیق بدون خطر پارگی بهترین گزینه قطعی است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: envelope flap سریع‌تر suturing می‌شود و بهتر از three-cornered flap healing می‌یابد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: envelope flap سریع‌تر suturing می‌شود و بهتر از three-cornered flap healing می‌یابد.
 رد گزینه‌ها: ب) هدف آن برداشتن lingual bone نیست. ج) نیاز به bone removal به نوع impaction بستگی دارد. د) اگر دسترسی apical بیشتر لازم باشد، three-cornered flap می‌تواند مناسب‌تر باشد.',
                     ],
                     [
@@ -5747,8 +5747,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'apical hooks تیز در هر دو ریشه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در mesioangular impaction، ریشه‌هایی که ملایم به distal خم شده‌اند در مسیر extraction قرار دارند و کمتر نیازمند force شکست‌زا هستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در mesioangular impaction، ریشه‌هایی که ملایم به distal خم شده‌اند در مسیر extraction قرار دارند و کمتر نیازمند force شکست‌زا هستند.
 رد گزینه‌ها: ب) curvature mesial بدون sectioning خطر شکستگی را زیاد می‌کند. ج) root width بیشتر از cervical width دشواری را افزایش می‌دهد. د) apical hooks دشوارکننده‌اند.',
                     ],
                     [
@@ -5760,8 +5760,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'flap لازم نیست زیرا دندان بعد از reflection دیده نمی‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: موقعیت buccal مولر سوم ماگزیلا معمولاً با bulge قابل لمس در tuberosity و استخوان نازک‌تر همراه است که access را ساده‌تر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: موقعیت buccal مولر سوم ماگزیلا معمولاً با bulge قابل لمس در tuberosity و استخوان نازک‌تر همراه است که access را ساده‌تر می‌کند.
 رد گزینه‌ها: ب) bony deficit بیشتر نشانه موقعیت palatal است. ج) inferior alveolar canal در ماگزیلا موضوع اصلی نیست. د) موقعیت باکال لزوماً بی‌نیازی از flap را نشان نمی‌دهد.',
                     ],
                     [
@@ -5773,8 +5773,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تجویز routine corticosteroid داخل socket به جای antibiotic',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در pericoronitis با شدت بیشتر، همراه با facial swelling خفیف، trismus خفیف یا low-grade fever، systemic antibiotic در کنار irrigation و extraction در نظر گرفته می‌شود؛ داروی انتخابی penicillin و در آلرژی clindamycin است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در pericoronitis با شدت بیشتر، همراه با facial swelling خفیف، trismus خفیف یا low-grade fever، systemic antibiotic در کنار irrigation و extraction در نظر گرفته می‌شود؛ داروی انتخابی penicillin و در آلرژی clindamycin است.
 رد گزینه‌ها: ب) درمان موضعی حذف نمی‌شود. ج) operculectomy درمان قطعی معمول نیست. د) corticosteroid داخل socket جایگزین آنتی‌بیوتیک در این وضعیت نیست.',
                     ],
                     [
@@ -5786,8 +5786,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'بخیه‌ها باید فقط در mucosa آزاد بدون درگیری papilla قرار گیرند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در envelope incision معمولاً دو یا سه suture کافی است؛ اولین suture از attached tissue در posterior مولر دوم گذاشته می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در envelope incision معمولاً دو یا سه suture کافی است؛ اولین suture از attached tissue در posterior مولر دوم گذاشته می‌شود.
 رد گزینه‌ها: ب) در flap ماگزیلا اگر passively در جای خود بماند ممکن است suturing لازم نباشد. ج) releasing incision در صورت استفاده باید بسته شود. د) فقط mucosa آزاد محل مطلوب suturing نیست.',
                     ],
                     [
@@ -5799,8 +5799,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'MRI ابزار انتخابی برای تعیین Pell and Gregory depth است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: panoramic radiograph imaging انتخابی برای planning است؛ اگر ریشه‌های مولر سوم مندیبول خیلی نزدیک یا superimposed بر inferior alveolar canal باشند، CBCT مفید است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: panoramic radiograph imaging انتخابی برای planning است؛ اگر ریشه‌های مولر سوم مندیبول خیلی نزدیک یا superimposed بر inferior alveolar canal باشند، CBCT مفید است.
 رد گزینه‌ها: ب) occlusal radiograph فقط برای برخی موقعیت‌ها مانند transverse کمک‌کننده است. ج) bitewing تمام ساختارهای لازم را نشان نمی‌دهد. د) MRI ابزار انتخابی فصل برای این طبقه‌بندی نیست.',
                     ],
                     [
@@ -5812,8 +5812,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'codeine در همه بیماران اثر قابل پیش‌بینی و کافی دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: analgesic بهتر است با شروع برگشت sensation یا حتی پیش از آن آغاز شود و مقدار کافی برای دست‌کم ۳ تا ۴ روز تجویز گردد؛ long-acting local anesthetic در مندیبول مفید است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: analgesic بهتر است با شروع برگشت sensation یا حتی پیش از آن آغاز شود و مقدار کافی برای دست‌کم ۳ تا ۴ روز تجویز گردد؛ long-acting local anesthetic در مندیبول مفید است.
 رد گزینه‌ها: ب) انتظار تا روز سوم توصیه نشده است. ج) long-acting anesthetic در مندیبول باید در نظر گرفته شود. د) فصل تصریح می‌کند codeine در بسیاری بیماران ممکن است ineffective باشد.',
                     ],
                     [
@@ -5825,8 +5825,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'دندان نهفته‌ای که follicular space آن بیش از ۳ میلی‌متر شده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: مثال کلاسیک، بیمار مسنی است که removal مولر سوم احتمالاً باعث از دست رفتن مولر دوم می‌شود، در حالی که نشانه عارضه قریب‌الوقوع وجود ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: مثال کلاسیک، بیمار مسنی است که removal مولر سوم احتمالاً باعث از دست رفتن مولر دوم می‌شود، در حالی که نشانه عارضه قریب‌الوقوع وجود ندارد.
 رد گزینه‌ها: ب) نوجوان با کمبود فضا اغلب به removal زودتر نیاز دارد. ج) pericoronitis عودکننده اندیکاسیون removal است. د) follicular space بیش از ۳ میلی‌متر احتمال cyst را مطرح می‌کند.',
                     ],
                     [
@@ -5838,8 +5838,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون elevatorها برای اعمال force زیاد و شکستن cortical plate طراحی شده‌اند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در impacted mandibular third molar، هدف اصلی expansion صفحات با luxation نیست؛ bone removal و sectioning باید pathway بدون مانع برای delivery ایجاد کنند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در impacted mandibular third molar، هدف اصلی expansion صفحات با luxation نیست؛ bone removal و sectioning باید pathway بدون مانع برای delivery ایجاد کنند.
 رد گزینه‌ها: ب) PDL دندان نهفته به علت عدم تحمل occlusal forces ضعیف‌تر است. ج) sinusitis به مندیبول مربوط نیست. د) elevatorها برای اعمال نیروی درست، نه force excessive، طراحی شده‌اند.',
                     ],
                     [
@@ -5851,8 +5851,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'horizontal، چون long axis موازی second molar است و آسان‌ترین است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: distoangular impaction دشوارترین angulation مندیبول است؛ مسیر خروج آن به ramus برخورد می‌کند و intervention و bone removal قابل توجه می‌خواهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: distoangular impaction دشوارترین angulation مندیبول است؛ مسیر خروج آن به ramus برخورد می‌کند و intervention و bone removal قابل توجه می‌خواهد.
 رد گزینه‌ها: ب) mesioangular شایع‌ترین و معمولاً آسان‌ترین است. ج) vertical long axis موازی second molar دارد و حدود ۳۸٪ موارد است. د) horizontal long axis عمود بر second molar است و آسان‌ترین نیست.',
                     ],
                     [
@@ -5864,8 +5864,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'ice pack باید داخل socket قرار گیرد تا bone chips حذف شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید شواهد نشان می‌دهد ice احتمالاً اثر زیادی در جلوگیری یا محدودکردن swelling ندارد، اما بیمار ممکن است احساس راحتی بیشتری گزارش کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید شواهد نشان می‌دهد ice احتمالاً اثر زیادی در جلوگیری یا محدودکردن swelling ندارد، اما بیمار ممکن است احساس راحتی بیشتری گزارش کند.
 رد گزینه‌ها: ب) روش اصلی جلوگیری قطعی dry socket نیست. ج) جایگزین analgesic یا steroid محسوب نمی‌شود. د) داخل socket قرار داده نمی‌شود.',
                     ],
                     [
@@ -5877,8 +5877,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'follicular sac مولر سوم مستقیماً جایگزین bone height مولر اول می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: distal آخرین دندان قوس سخت‌ترین محل برای پاک‌سازی است؛ التهاب و مهاجرت apical attachment باعث دسترسی باکتری‌ها به سطح وسیع ریشه و periodontitis زودرس می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: distal آخرین دندان قوس سخت‌ترین محل برای پاک‌سازی است؛ التهاب و مهاجرت apical attachment باعث دسترسی باکتری‌ها به سطح وسیع ریشه و periodontitis زودرس می‌شود.
 رد گزینه‌ها: ب) فقدان طبیعی attachment در cementum مطرح نیست. ج) PDL مولر دوم الزاماً از بین نمی‌رود. د) follicular sac جایگزین bone height مولر اول نمی‌شود.',
                     ],
                     [
@@ -5890,8 +5890,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'حذف نیاز به flap و suturing در همه موارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: finger on tuberosity هنگام elevation کمک می‌کند fracture احتمالی تشخیص داده شود و soft tissue attachments حفظ گردد؛ همچنین مسیر اشتباه به infratemporal space قابل تشخیص است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: finger on tuberosity هنگام elevation کمک می‌کند fracture احتمالی تشخیص داده شود و soft tissue attachments حفظ گردد؛ همچنین مسیر اشتباه به infratemporal space قابل تشخیص است.
 رد گزینه‌ها: ب) mental nerve در مندیبول است. ج) فشار anterior روی مولر دوم باید کم شود، نه زیاد. د) این کار نیاز به flap یا suturing را در همه موارد حذف نمی‌کند.',
                     ],
                     [
@@ -5903,8 +5903,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'بیمار ۵۰ ساله معمولاً سریع‌تر از بیمار ۱۸ ساله از procedure مشابه بهبود می‌یابد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: هرچند tooth bud از حدود ۶ سالگی دیده می‌شود و برخی removal در ۷ تا ۹ سالگی را مطرح کرده‌اند، اجماع فصل بر تعویق تا تشخیص قابل اعتماد impaction است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: هرچند tooth bud از حدود ۶ سالگی دیده می‌شود و برخی removal در ۷ تا ۹ سالگی را مطرح کرده‌اند، اجماع فصل بر تعویق تا تشخیص قابل اعتماد impaction است.
 رد گزینه‌ها: ب) پیش‌بینی impaction در آن سن قطعی نیست. ج) advanced age استخوان را متراکم‌تر و sequelae را بیشتر می‌کند. د) بیمار ۵۰ ساله معمولاً recovery طولانی‌تری از بیمار ۱۸ ساله دارد.',
                     ],
                     [
@@ -5916,8 +5916,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'موقعیت buccolingual فقط بعد از sectioning ریشه‌ها قابل تشخیص است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: برای canine نهفته، تعیین labial، palatal یا middle بودن مهم‌ترین ارزیابی است و CBCT بهترین روش سنجش buccolingual position معرفی شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: برای canine نهفته، تعیین labial، palatal یا middle بودن مهم‌ترین ارزیابی است و CBCT بهترین روش سنجش buccolingual position معرفی شده است.
 رد گزینه‌ها: ب) approach به موقعیت بستگی دارد. ج) palatal یا intermediate removal دشوارتر از labial است. د) موقعیت buccolingual پیش از عمل با imaging قابل ارزیابی است.',
                     ],
                     [
@@ -5929,8 +5929,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'تماس با second molar همراه با pocket عمیق و caries distal',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در بیمار مسن، دندان نهفته‌ای که سال‌ها بدون caries، periodontal disease یا cystic degeneration باقی مانده و bone روی آن دیده می‌شود، معمولاً خارج نمی‌شود و پیگیری می‌گردد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در بیمار مسن، دندان نهفته‌ای که سال‌ها بدون caries، periodontal disease یا cystic degeneration باقی مانده و bone روی آن دیده می‌شود، معمولاً خارج نمی‌شود و پیگیری می‌گردد.
 رد گزینه‌ها: ب) این‌ها اندیکاسیون‌های مداخله‌اند. ج) cystic formation، infection یا thin bone زیر prosthesis به removal اشاره دارند. د) تماس همراه pocket و caries نشانه مشکل است.',
                     ],
                     [
@@ -5942,8 +5942,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'burrها فقط برای maxillary canine و نه mandibular molar کاربرد دارند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل تأکید می‌کند dental handpiece ترمیمی نباید برای bone removal یا sectioning third molars استفاده شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل تأکید می‌کند dental handpiece ترمیمی نباید برای bone removal یا sectioning third molars استفاده شود.
 رد گزینه‌ها: ب) No. 8 round burr به علت end-cutting برای drilling با pushing motion مفید است. ج) No. 703 fissure burr در lateral direction bone/tooth را سریع می‌برد. د) burrها در mandibular third molar هم کاربرد دارند.',
                     ],
                     [
@@ -5955,8 +5955,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'باعث حرکت ارتودنتیک مولر سوم به occlusion می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: hydrogen peroxide با foaming action debris و bacteria را مکانیکی حذف و با release oxygen شمار anaerobic bacteria را کاهش می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: hydrogen peroxide با foaming action debris و bacteria را مکانیکی حذف و با release oxygen شمار anaerobic bacteria را کاهش می‌دهد.
 رد گزینه‌ها: ب) cemental repair مربوط به root resorption پس از removal دندان نهفته است. ج) operculum را دائمی حذف نمی‌کند. د) حرکت ارتودنتیک ایجاد نمی‌کند.',
                     ],
                     [
@@ -5968,8 +5968,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'tooth به طور کامل تا lingual با burr قطع می‌شود و lingual plate برداشته می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در horizontal impaction، crown از roots در cervical line جدا و خارج می‌شود؛ سپس roots با Cryer به فضای قبلی crown جابه‌جا و خارج می‌شوند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در horizontal impaction، crown از roots در cervical line جدا و خارج می‌شود؛ سپس roots با Cryer به فضای قبلی crown جابه‌جا و خارج می‌شوند.
 رد گزینه‌ها: ب) این بیشتر شبیه mesioangular یا vertical است. ج) bone removal و sectioning معمولاً لازم است. د) section کامل تا لینگوال و برداشتن lingual plate به علت خطر lingual nerve انجام نمی‌شود.',
                     ],
                     [
@@ -5981,8 +5981,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'papilloma',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل ameloblastoma را شایع‌ترین odontogenic tumor مرتبط با این ناحیه و dental follicle اطراف impacted teeth معرفی می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل ameloblastoma را شایع‌ترین odontogenic tumor مرتبط با این ناحیه و dental follicle اطراف impacted teeth معرفی می‌کند.
 رد گزینه‌ها: ب، ج و د) این ضایعات در این بخش به عنوان تومور ادنتوژنیک شایع اطراف دندان نهفته مطرح نشده‌اند.',
                     ],
                     [
@@ -5994,8 +5994,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'lingual mandibular',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: mesiodens در midline ماگزیلا تقریباً همیشه در پالات قرار دارد و باید از palatal direction approach شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: mesiodens در midline ماگزیلا تقریباً همیشه در پالات قرار دارد و باید از palatal direction approach شود.
 رد گزینه‌ها: ب) labial approach برای mesiodens معمول ذکر نشده است. ج) transramal مربوط به این ناحیه نیست. د) lingual mandibular به مندیبول مربوط است.',
                     ],
                     [
@@ -6007,8 +6007,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'نیمی از دندان توسط ramus پوشیده شده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: در class C depth، occlusal surface دندان نهفته زیر cervical line مولر دوم قرار دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: در class C depth، occlusal surface دندان نهفته زیر cervical line مولر دوم قرار دارد.
 رد گزینه‌ها: ب) class 1 ramus است. ج) class A depth است. د) class 2 ramus است.',
                     ],
                     [
@@ -6020,8 +6020,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'preexisting pericoronitis contraindication مطلق برای هر نوع antibiotic است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اگر بیمار سالم باشد و systemic indication یا infection موضعی قبلی وجود نداشته باشد، systemic antibiotics معمولاً indicated نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اگر بیمار سالم باشد و systemic indication یا infection موضعی قبلی وجود نداشته باشد، systemic antibiotics معمولاً indicated نیستند.
 رد گزینه‌ها: ب) تجویز روتین برای هر بیمار سالم توصیه نشده است. ج) آنتی‌بیوتیک موضعی مانند minocycline کاهش واضح osteitis sicca را نشان داده است، نه افزایش. د) pericoronitis قبلی گاهی تجویز antibiotic چندروزه را موجه می‌کند.',
                     ],
                     [
@@ -6033,8 +6033,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'curvature distal ملایم در mesioangular impaction',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: ریشه‌های جدا و widely separated همراه با curvature شدید یا dilaceration extraction را دشوارتر می‌کنند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: ریشه‌های جدا و widely separated همراه با curvature شدید یا dilaceration extraction را دشوارتر می‌کنند.
 رد گزینه‌ها: ب) fused conical، blunt ends و PDL wide از عوامل ساده‌ترند. ج) root development یک‌سوم تا دوسوم و follicle بزرگ شرایط مطلوب‌تر است. د) distal curvature ملایم در mesioangular با مسیر خروج سازگارتر است.',
                     ],
                     [
@@ -6046,8 +6046,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'مسیر withdrawal آن به سمت فضای قبلی crown در mesial است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: distoangular impaction به distal می‌چرخد و به ramus برخورد می‌کند؛ بنابراین distal bone بیشتری باید برداشته شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: distoangular impaction به distal می‌چرخد و به ramus برخورد می‌کند؛ بنابراین distal bone بیشتری باید برداشته شود.
 رد گزینه‌ها: ب) در distoangular اغلب distal bone مهم است و removal ساده نرم‌بافتی نیست. ج) fused roots همیشگی نیستند. د) pathway به ramus برخورد می‌کند، نه فضای مزیال آسان.',
                     ],
                     [
@@ -6059,8 +6059,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'در بیمار جوان، nerve injury در صورت وقوع کندتر از بیمار مسن ترمیم می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل تأکید می‌کند انتظار تا بروز مشکل می‌تواند local tissue morbidity، آسیب به دندان و استخوان مجاور و خطر به ساختارهای حیاتی را افزایش دهد و جراحی را در سن بالاتر دشوارتر کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل تأکید می‌کند انتظار تا بروز مشکل می‌تواند local tissue morbidity، آسیب به دندان و استخوان مجاور و خطر به ساختارهای حیاتی را افزایش دهد و جراحی را در سن بالاتر دشوارتر کند.
 رد گزینه‌ها: ب) سن بالاتر با استخوان متراکم‌تر و ریشه کامل‌تر همراه است. ج) عدم رویش تا ۲۰ سالگی به‌ویژه با پوشش استخوانی احتمال نهفتگی را بالا می‌برد. د) recovery پس از nerve injury در جوانان بهتر است.',
                     ],
                     [
@@ -6072,8 +6072,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'باید تا ۲ تا ۳ هفته بدون ارزیابی صبر کرد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اگر pain، edema و trismus تا ۷ روز پس از عمل به‌طور واضح بهتر نشده باشند، surgeon باید علت را بررسی کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اگر pain، edema و trismus تا ۷ روز پس از عمل به‌طور واضح بهتر نشده باشند، surgeon باید علت را بررسی کند.
 رد گزینه‌ها: ب) بی‌نیازی از پیگیری با متن مخالف است. ج) این یافته‌ها اختصاصی fracture tuberosity نیستند. د) انتظار بدون ارزیابی توصیه نشده است.',
                     ],
                     [
@@ -6085,8 +6085,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'چون remaining impacted tooth هیچ‌گاه با implant placement تداخل ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: اگر دندان نهفته بعد از ساخت prosthesis خارج شود، alveolar ridge ممکن است آن‌قدر تغییر کند که prosthesis کمتر functional شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: اگر دندان نهفته بعد از ساخت prosthesis خارج شود، alveolar ridge ممکن است آن‌قدر تغییر کند که prosthesis کمتر functional شود.
 رد گزینه‌ها: ب) تغییر ridge ممکن است رخ دهد. ج) denture می‌تواند ulceration ایجاد کند. د) دندان نهفته می‌تواند با implant placement تداخل داشته باشد.',
                     ],
                     [
@@ -6098,8 +6098,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'transverse impaction جایگزین partial bony impaction در ماگزیلا است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: برای maxillary third molars نیز همان دسته‌های soft tissue، partial bony و complete bony با تعاریف مشابه مندیبول به کار می‌رود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: برای maxillary third molars نیز همان دسته‌های soft tissue، partial bony و complete bony با تعاریف مشابه مندیبول به کار می‌رود.
 رد گزینه‌ها: ب) soft tissue impaction در ماگزیلا نیز کاربرد دارد. ج) ramus class برای مندیبول است و طبقه‌بندی بیمه‌ای overlying tissue متفاوت است. د) transverse جایگزین partial bony نیست.',
                     ],
                     [
@@ -6111,8 +6111,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'vertical impaction، class 3 ramus، class C depth',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: ترکیب mesioangular، class 1 ramus و class A depth به عنوان آسان‌ترین نوع کلی removal معرفی شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: ترکیب mesioangular، class 1 ramus و class A depth به عنوان آسان‌ترین نوع کلی removal معرفی شده است.
 رد گزینه‌ها: ب) دشوارترین ترکیب است. ج) دشواری متوسط دارد. د) class 3 و class C دشواری را بالا می‌برند.',
                     ],
                     [
@@ -6124,8 +6124,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_6_10(): ar
                             'swelling اگر تا روز سوم وجود داشته باشد، همیشه نیازمند hospitalization است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: پس از surgical removal مولر سوم نهفته، edema معمولاً ۳ تا ۴ روز دیده می‌شود و حدود ۵ تا ۷ روز برطرف می‌گردد؛ trismus خفیف تا متوسط معمولاً طی ۷ تا ۱۰ روز بهتر می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: پس از surgical removal مولر سوم نهفته، edema معمولاً ۳ تا ۴ روز دیده می‌شود و حدود ۵ تا ۷ روز برطرف می‌گردد؛ trismus خفیف تا متوسط معمولاً طی ۷ تا ۱۰ روز بهتر می‌شود.
 رد گزینه‌ها: ب) trismus معمولاً ماه‌ها ثابت نمی‌ماند. ج) trismus می‌تواند sequela طبیعی باشد. د) swelling روز سوم به تنهایی نشانه قطعی hospitalization نیست.',
                     ],
                 ],

@@ -47,10 +47,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'بیمار در ۱۲ ساعت اول هر چند دقیقه یک‌بار دهان را با آب بشوید و تف کند.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: متن تأکید می‌کند گاز تاخورده کوچک مستقیماً روی سوکت قرار گیرد تا فشار دقیقاً بر محل bleeding وارد شود و بیمار دست‌کم ۳۰ دقیقه دهان را باز نکند و آن را نجود.
-رد الف: گاز بزرگ که روی occlusal surfaces دندان‌های مجاور می‌نشیند فشار مؤثر بر سوکت وارد نمی‌کند.
-رد ج: متن می‌گوید گاز می‌تواند مرطوب شود تا clot به گاز نچسبد و هنگام برداشتن جدا نشود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: متن تأکید می‌کند گاز تاخورده کوچک مستقیماً روی سوکت قرار گیرد تا فشار دقیقاً بر محل bleeding وارد شود و بیمار دست‌کم ۳۰ دقیقه دهان را باز نکند و آن را نجود.
+رد الف: گاز بزرگ که روی occlusal surfaces دندان‌های مجاور می‌نشیند فشار مؤثر بر سوکت وارد نمی‌کند.
+رد ج: متن می‌گوید گاز می‌تواند مرطوب شود تا clot به گاز نچسبد و هنگام برداشتن جدا نشود.
 رد د: تف کردن و شست‌وشوی مکرر در ساعات اول با فشار منفی و agitation می‌تواند bleeding تازه ایجاد کند.',
                     ],
                     [
@@ -62,10 +62,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'چون acetaminophen تنها پیش از برگشت حس، اثر ضدپلاکتی دارد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: اگر مصرف analgesic تا درد شدید به تأخیر بیفتد، کنترل درد دشوارتر می‌شود و اثر کامل analgesic ممکن است ۶۰ تا ۹۰ دقیقه زمان ببرد.
-رد الف: analgesic فوری اثر نمی‌کند و غذا نخوردن مخصوصاً با narcotic مشکل‌زا است.
-رد ج: متن چنین محدودیت جذب برای narcotic در حضور local anesthesia ندارد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: اگر مصرف analgesic تا درد شدید به تأخیر بیفتد، کنترل درد دشوارتر می‌شود و اثر کامل analgesic ممکن است ۶۰ تا ۹۰ دقیقه زمان ببرد.
+رد الف: analgesic فوری اثر نمی‌کند و غذا نخوردن مخصوصاً با narcotic مشکل‌زا است.
+رد ج: متن چنین محدودیت جذب برای narcotic در حضور local anesthesia ندارد.
 رد د: acetaminophen اثر ضدپلاکتی ندارد و timing آن برای platelet function مطرح نشده است.',
                     ],
                     [
@@ -77,10 +77,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'نشانه عفونت است، چون تورم طبیعی در روز دوم رخ نمی‌دهد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: تورم معمولاً در ۳۶ تا ۴۸ ساعت به حداکثر می‌رسد، روز سوم یا چهارم شروع به کاهش می‌کند و اغلب تا پایان هفته برطرف می‌شود؛ افزایش صبحگاهی نیز به تغییرات postural نسبت داده شده است.
-رد ب: dry socket عمدتاً درد روز سوم یا چهارم با سوکت خالی و بدون علائم عفونت است، نه تورم طبیعی روز دوم.
-رد ج: ecchymosis کبودی submucosal/subcutaneous است و در متن خطرناک یا نیازمند تخلیه معرفی نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: تورم معمولاً در ۳۶ تا ۴۸ ساعت به حداکثر می‌رسد، روز سوم یا چهارم شروع به کاهش می‌کند و اغلب تا پایان هفته برطرف می‌شود؛ افزایش صبحگاهی نیز به تغییرات postural نسبت داده شده است.
+رد ب: dry socket عمدتاً درد روز سوم یا چهارم با سوکت خالی و بدون علائم عفونت است، نه تورم طبیعی روز دوم.
+رد ج: ecchymosis کبودی submucosal/subcutaneous است و در متن خطرناک یا نیازمند تخلیه معرفی نشده است.
 رد د: عفونت بیشتر وقتی مطرح می‌شود که swelling بعد از روز سوم همراه redness، fever یا pain افزایش یابد.',
                     ],
                     [
@@ -92,10 +92,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'گذاشتن incision بیش از حد buccal در retromolar pad',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: puncture wound معمولاً از slip کردن instrument مثل straight elevator ناشی از uncontrolled force است و با finger rests یا support دست مقابل پیشگیری می‌شود.
-رد ب: مصرف acetaminophen به puncture wound مربوط نیست.
-رد ج: گاز مرطوب برای hemostasis است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: puncture wound معمولاً از slip کردن instrument مثل straight elevator ناشی از uncontrolled force است و با finger rests یا support دست مقابل پیشگیری می‌شود.
+رد ب: مصرف acetaminophen به puncture wound مربوط نیست.
+رد ج: گاز مرطوب برای hemostasis است.
 رد د: incision buccal در retromolar pad برای پیشگیری از lingual nerve injury است، نه puncture elevator.',
                     ],
                     [
@@ -107,10 +107,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'احتمال شکستگی آلوئول مطرح است؛ تنها رادیوگرافی پری‌آپیکال کافی است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: سرفه شدید و shortness of breath احتمال aspiration را مطرح می‌کند؛ متن انتقال به emergency department، chest and abdominal radiographs و حفظ airway/breathing را توصیه می‌کند.
-رد الف: absence of cough بیشتر به swallowing می‌خورد، ولی در این سناریو سرفه شدید وجود دارد.
-رد ج: dry socket عارضه delayed healing روز سوم یا چهارم است و به ورود crown به oropharynx مربوط نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: سرفه شدید و shortness of breath احتمال aspiration را مطرح می‌کند؛ متن انتقال به emergency department، chest and abdominal radiographs و حفظ airway/breathing را توصیه می‌کند.
+رد الف: absence of cough بیشتر به swallowing می‌خورد، ولی در این سناریو سرفه شدید وجود دارد.
+رد ج: dry socket عارضه delayed healing روز سوم یا چهارم است و به ورود crown به oropharynx مربوط نیست.
 رد د: پری‌آپیکال به تنهایی محل tooth/crown در chest یا abdomen را تعیین نمی‌کند.',
                     ],
                     [
@@ -122,10 +122,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'Oxycodone 2.5–10 mg',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درستی: در جدول analgesics، hydrocodone 5–10 mg در گروه درد متوسط آمده است.
-رد الف: ibuprofen 400–800 mg در گروه mild pain situations آمده است.
-رد ب: acetaminophen 325–500 mg نیز در mild pain situations قرار دارد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درستی: در جدول analgesics، hydrocodone 5–10 mg در گروه درد متوسط آمده است.
+رد الف: ibuprofen 400–800 mg در گروه mild pain situations آمده است.
+رد ب: acetaminophen 325–500 mg نیز در mild pain situations قرار دارد.
 رد د: oxycodone 2.5–10 mg در گروه severe pain situations آمده است.',
                     ],
                     [
@@ -137,10 +137,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ویزیت معمول باید در همان روز عمل، پیش از discharge انجام شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: متن می‌گوید همه بیماران seen by novice surgeons باید return appointment داشته باشند تا surgeon healing socket طبیعی را ارزیابی و یاد بگیرد.
-رد الف: خلاف عبارت صریح فصل است.
-رد ج: follow-up فقط محدود به ecchymosis نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: متن می‌گوید همه بیماران seen by novice surgeons باید return appointment داشته باشند تا surgeon healing socket طبیعی را ارزیابی و یاد بگیرد.
+رد الف: خلاف عبارت صریح فصل است.
+رد ج: follow-up فقط محدود به ecchymosis نیست.
 رد د: routine uncomplicated follow-up معمولاً ۱ هفته است، نه همان لحظه discharge.',
                     ],
                     [
@@ -152,10 +152,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'برداشتن فوری با Caldwell-Luc توسط همان دندان‌پزشک عمومی.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: در root tip کوچک و noninfected با sinus سالم، پس از تلاش کوتاه ناموفق از راه irrigation/suction، ادامه جراحی از سوکت توصیه نمی‌شود و می‌توان قطعه را با اطلاع و پیگیری باقی گذاشت.
-رد الف: متن تأکید می‌کند پس از ناموفق بودن این روش، procedure اضافی از راه سوکت انجام نشود.
-رد ج: probing/curettage داخل sinus می‌تواند آسیب و آلودگی وارد کند و در بخش OAC نیز contraindicated دانسته شده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: در root tip کوچک و noninfected با sinus سالم، پس از تلاش کوتاه ناموفق از راه irrigation/suction، ادامه جراحی از سوکت توصیه نمی‌شود و می‌توان قطعه را با اطلاع و پیگیری باقی گذاشت.
+رد الف: متن تأکید می‌کند پس از ناموفق بودن این روش، procedure اضافی از راه سوکت انجام نشود.
+رد ج: probing/curettage داخل sinus می‌تواند آسیب و آلودگی وارد کند و در بخش OAC نیز contraindicated دانسته شده است.
 رد د: Caldwell-Luc/endoscopic approach برای قطعات بزرگ، tooth کامل یا موارد infected/chronic sinusitis و توسط oral-maxillofacial surgeon مطرح است.',
                     ],
                     [
@@ -167,10 +167,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'رژیم کم‌کالری تا زمان برداشتن بخیه',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: در ۱۲ تا ۲۴ ساعت اول، رژیم high-calorie, high-volume liquid or soft و حداقل حدود ۲ لیتر مایع توصیه شده است.
-رد الف: غذای سفت می‌تواند trauma و rebleeding ایجاد کند و alcohol توصیه نشده است.
-رد ج: intake مایعات کافی لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: در ۱۲ تا ۲۴ ساعت اول، رژیم high-calorie, high-volume liquid or soft و حداقل حدود ۲ لیتر مایع توصیه شده است.
+رد الف: غذای سفت می‌تواند trauma و rebleeding ایجاد کند و alcohol توصیه نشده است.
+رد ج: intake مایعات کافی لازم است.
 رد د: رژیم کم‌کالری با توصیه high-calorie ناسازگار است.',
                     ],
                     [
@@ -182,10 +182,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تبدیل closure به یک بخیه محکم‌تر برای غلبه بر tension.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: اگر surgeon یا assistant شروع پارگی فلپ را ببیند، باید hard tissue surgery متوقف و incision بلندتر یا releasing incision ایجاد شود.
-رد الف: افزایش retraction همان علت پارگی است و با پیشگیری متن ناسازگار است.
-رد ج: excision لبه‌های jagged فقط با احتیاط و در پایان مطرح است و excision بیش از حد می‌تواند tension/dehiscence ایجاد کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: اگر surgeon یا assistant شروع پارگی فلپ را ببیند، باید hard tissue surgery متوقف و incision بلندتر یا releasing incision ایجاد شود.
+رد الف: افزایش retraction همان علت پارگی است و با پیشگیری متن ناسازگار است.
+رد ج: excision لبه‌های jagged فقط با احتیاط و در پایان مطرح است و excision بیش از حد می‌تواند tension/dehiscence ایجاد کند.
 رد د: بخیه محکم برای غلبه بر tension خود عامل wound dehiscence است.',
                     ],
                     [
@@ -197,10 +197,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'دندان تک‌ریشه با mobility زیاد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: long, curved, divergent roots در dense bone بیشترین احتمال fracture دارند.
-رد الف: short straight roots در bone نرم خطر کمتری دارند.
-رد ج: crown سالم و PDL پهن در متن به‌عنوان ریسک root fracture ذکر نشده‌اند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: long, curved, divergent roots در dense bone بیشترین احتمال fracture دارند.
+رد الف: short straight roots در bone نرم خطر کمتری دارند.
+رد ج: crown سالم و PDL پهن در متن به‌عنوان ریسک root fracture ذکر نشده‌اند.
 رد د: mobility زیاد معمولاً نیروی کمتری برای removal می‌خواهد.',
                     ],
                     [
@@ -212,10 +212,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'مدت انتظار بیمار در پذیرش و نوع موسیقی محیط',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: operative note باید anesthesia با amount used و medications prescribed with amounts را شامل شود.
-رد الف: رنگ گاز و تعداد suction در عناصر ضروری Box 11.1 نیستند.
-رد ج: برند ابزار یا شرکت نخ جزو عناصر اصلی operative note در متن نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: operative note باید anesthesia با amount used و medications prescribed with amounts را شامل شود.
+رد الف: رنگ گاز و تعداد suction در عناصر ضروری Box 11.1 نیستند.
+رد ج: برند ابزار یا شرکت نخ جزو عناصر اصلی operative note در متن نیست.
 رد د: زمان پذیرش و موسیقی محیط در record جراحی فصل ذکر نشده‌اند.',
                     ],
                     [
@@ -227,10 +227,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'slight oozing پس از خروج از مطب در متن فصل غیرطبیعی دانسته شده است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: متن می‌گوید slight oozing تا ۲۴ ساعت طبیعی است و مقدار کم خون در بزاق زیاد به نظر می‌رسد.
-رد ب: هر رنگ خون در بزاق معادل hemorrhage فعال نیست.
-رد ج: لکه روی بالش در صبح پس از oozing شبانه محتمل و هشدار داده‌شده است، نه arterial bleeding قطعی.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: متن می‌گوید slight oozing تا ۲۴ ساعت طبیعی است و مقدار کم خون در بزاق زیاد به نظر می‌رسد.
+رد ب: هر رنگ خون در بزاق معادل hemorrhage فعال نیست.
+رد ج: لکه روی بالش در صبح پس از oozing شبانه محتمل و هشدار داده‌شده است، نه arterial bleeding قطعی.
 رد د: slight ooze تا ۲۴ ساعت طبیعی دانسته شده است.',
                     ],
                     [
@@ -242,10 +242,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'tooth همیشه داخل nasal cavity قرار می‌گیرد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: impacted maxillary third molar ممکن است posteriorly through periosteum به infratemporal fossa برود و معمولاً lateral to lateral pterygoid plate و inferior to lateral pterygoid muscle قرار گیرد.
-رد ب: GI tract مربوط به tooth lost into pharynx و swallowing است.
-رد ج: internal oblique ridge به exposed bone projection پس از extraction mandibular molars مربوط است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: impacted maxillary third molar ممکن است posteriorly through periosteum به infratemporal fossa برود و معمولاً lateral to lateral pterygoid plate و inferior to lateral pterygoid muscle قرار گیرد.
+رد ب: GI tract مربوط به tooth lost into pharynx و swallowing است.
+رد ج: internal oblique ridge به exposed bone projection پس از extraction mandibular molars مربوط است.
 رد د: nasal cavity در متن به‌عنوان مسیر معمول displacement این دندان نیامده است.',
                     ],
                     [
@@ -257,10 +257,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'دهان‌شویه hydrogen peroxide برای همه extractionهای تک‌ناحیه‌ای ضروری است.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: روز اول postoperative بیمار باید rinses ملایم با آب‌نمک رقیق و گرم را شروع کند.
-رد الف: روز عمل باید از brushing دندان‌های immediately adjacent به extraction site اجتناب شود.
-رد ج: floss در دندان‌های anterior/posterior به extraction site هر زمان که بیمار راحت باشد از سر گرفته می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: روز اول postoperative بیمار باید rinses ملایم با آب‌نمک رقیق و گرم را شروع کند.
+رد الف: روز عمل باید از brushing دندان‌های immediately adjacent به extraction site اجتناب شود.
+رد ج: floss در دندان‌های anterior/posterior به extraction site هر زمان که بیمار راحت باشد از سر گرفته می‌شود.
 رد د: dilute hydrogen peroxide وقتی hygiene در چند ناحیه دشوار است مطرح می‌شود، نه برای همه موارد تک‌ناحیه‌ای.',
                     ],
                     [
@@ -272,10 +272,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'wound dehiscence است، در سالمندان شایع‌تر است و معمولاً باید بسته شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: ecchymosis خون در بافت submucosal/subcutaneous است، در سالمندان به دلیل decreased tissue tone و capillary fragility بیشتر دیده می‌شود، dangerous نیست و طی ۷ تا ۱۰ روز برطرف می‌شود.
-رد ب: trismus محدودیت باز کردن دهان است، نه کبودی صورت و گردن.
-رد ج: dry socket درد سوکت، معمولاً lower molar، بدون fever و swelling است، نه کبودی منتشر.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: ecchymosis خون در بافت submucosal/subcutaneous است، در سالمندان به دلیل decreased tissue tone و capillary fragility بیشتر دیده می‌شود، dangerous نیست و طی ۷ تا ۱۰ روز برطرف می‌شود.
+رد ب: trismus محدودیت باز کردن دهان است، نه کبودی صورت و گردن.
+رد ج: dry socket درد سوکت، معمولاً lower molar، بدون fever و swelling است، نه کبودی منتشر.
 رد د: wound dehiscence separation of wound edges است، نه bruising.',
                     ],
                     [
@@ -287,10 +287,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ترکیب narcotic با nonnarcotic در نسخه‌های دندانی به ندرت استفاده می‌شود.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: برای اثر کامل nonnarcotic، متن ۵۰۰ تا ۱۰۰۰ mg aspirin یا acetaminophen هر ۴ ساعت را لازم می‌داند.
-رد الف: بسیاری از ترکیبات فقط ۳۰۰ mg دارند و این مقدار برای full advantage کافی نیست.
-رد ج: حتی با codeine/hydrocodone کافی، کم بودن acetaminophen مزیت analgesic آن را کامل نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: برای اثر کامل nonnarcotic، متن ۵۰۰ تا ۱۰۰۰ mg aspirin یا acetaminophen هر ۴ ساعت را لازم می‌داند.
+رد الف: بسیاری از ترکیبات فقط ۳۰۰ mg دارند و این مقدار برای full advantage کافی نیست.
+رد ج: حتی با codeine/hydrocodone کافی، کم بودن acetaminophen مزیت analgesic آن را کامل نمی‌کند.
 رد د: متن می‌گوید opioidها در نسخه‌های دندانی غالباً با aspirin یا acetaminophen فرموله می‌شوند.',
                     ],
                     [
@@ -302,10 +302,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'حذف توضیحات postoperative برای کاهش اضطراب بیمار',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: متن prevention را بر medical history، imaging، treatment plan، instrumentation، pain/anxiety management، postoperative instructions و compliance بنا می‌کند.
-رد الف: فقط آماده‌سازی ابزار، برنامه جامع فصل نیست.
-رد ج: routine antibiotic برای هر extraction در متن حمایت نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: متن prevention را بر medical history، imaging، treatment plan، instrumentation، pain/anxiety management، postoperative instructions و compliance بنا می‌کند.
+رد الف: فقط آماده‌سازی ابزار، برنامه جامع فصل نیست.
+رد ج: routine antibiotic برای هر extraction در متن حمایت نشده است.
 رد د: آموزش postoperative برای پیشگیری یا محدود کردن complications ضروری دانسته شده است.',
                     ],
                     [
@@ -317,10 +317,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'پوشاندن آن با cellulose داخل سوکت extraction',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: پس از کنترل bleeding با direct pressure، wound معمولاً باز و unsutured رها می‌شود تا healing به secondary intention انجام شود و در صورت infection مسیر drainage وجود داشته باشد.
-رد الف: closure محکم drainage را محدود می‌کند و در متن توصیه نشده است.
-رد ج: curettage تا bare bone در این عارضه مطرح نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: پس از کنترل bleeding با direct pressure، wound معمولاً باز و unsutured رها می‌شود تا healing به secondary intention انجام شود و در صورت infection مسیر drainage وجود داشته باشد.
+رد الف: closure محکم drainage را محدود می‌کند و در متن توصیه نشده است.
+رد ج: curettage تا bare bone در این عارضه مطرح نیست.
 رد د: cellulose برای bleeding socket persistently استفاده می‌شود، نه puncture wound مخاطی کنترل‌شده.',
                     ],
                     [
@@ -332,10 +332,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'قرار دادن implant فوری و ادامه extraction طبق طرح اولیه.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: اگر خطا فوراً مشخص شود، دندان باید سریعاً replant شود؛ در درمان ارتودنسی باید orthodontist تماس گرفته شود و اگر دندان اصلی هنوز باید کشیده شود، ۴ تا ۵ هفته تعویق توصیه می‌شود تا سرنوشت دندان replanted معلوم شود.
-رد الف: دور انداختن دندان و ادامه extraction درست با متن ناسازگار است.
-رد ج: متن می‌گوید contralateral tooth نباید تا تعیین plan جایگزین قطعی کشیده شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: اگر خطا فوراً مشخص شود، دندان باید سریعاً replant شود؛ در درمان ارتودنسی باید orthodontist تماس گرفته شود و اگر دندان اصلی هنوز باید کشیده شود، ۴ تا ۵ هفته تعویق توصیه می‌شود تا سرنوشت دندان replanted معلوم شود.
+رد الف: دور انداختن دندان و ادامه extraction درست با متن ناسازگار است.
+رد ج: متن می‌گوید contralateral tooth نباید تا تعیین plan جایگزین قطعی کشیده شود.
 رد د: implant-supported restoration در بعضی موارد برای جبران دیرهنگام مطرح است، نه اقدام فوری استاندارد در لحظه خطا.',
                     ],
                     [
@@ -347,10 +347,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'Oxycodone–aspirin',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درستی: acetaminophen با platelet function تداخل ندارد و در بیمار با platelet defect مفیدتر است.
-رد الف: ibuprofen aggregation پلاکتی و bleeding time را کاهش می‌دهد، هرچند معمولاً اثر بالینی مهمی ندارد.
-رد ب: aspirin اثر ضدپلاکتی دارد و در platelet defect انتخاب مناسبی نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درستی: acetaminophen با platelet function تداخل ندارد و در بیمار با platelet defect مفیدتر است.
+رد الف: ibuprofen aggregation پلاکتی و bleeding time را کاهش می‌دهد، هرچند معمولاً اثر بالینی مهمی ندارد.
+رد ب: aspirin اثر ضدپلاکتی دارد و در platelet defect انتخاب مناسبی نیست.
 رد د: oxycodone–aspirin به علت aspirin برای بیمار مستعد bleeding مناسب نیست.',
                     ],
                     [
@@ -362,10 +362,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'curettage روتین socket تا inferior alveolar canal',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: در displacement ریشه mandibular molar، یک تلاش با index finger روی lingual floor of mouth برای فشار دادن root به socket و سپس root-tip pick توصیه شده است.
-رد ب: apical pressure علت displacement به submandibular space است و باید اجتناب شود.
-رد ج: definitive lingual flap/dissection معمولاً کار oral-maxillofacial surgeon است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: در displacement ریشه mandibular molar، یک تلاش با index finger روی lingual floor of mouth برای فشار دادن root به socket و سپس root-tip pick توصیه شده است.
+رد ب: apical pressure علت displacement به submandibular space است و باید اجتناب شود.
+رد ج: definitive lingual flap/dissection معمولاً کار oral-maxillofacial surgeon است.
 رد د: curettage تا inferior alveolar canal در متن توصیه نشده و خطرناک است.',
                     ],
                     [
@@ -377,10 +377,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'طبیعی بودن edema تا پایان هفته.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: swelling همراه surface redness، fever و pain در روز سوم یا بعد از آن infection محسوب می‌شود تا خلافش ثابت شود.
-رد الف: dry socket معمولاً pain بدون swelling و سایر signs of infection دارد.
-رد ج: ecchymosis کبودی است، نه fever/redness/pain عفونی.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: swelling همراه surface redness، fever و pain در روز سوم یا بعد از آن infection محسوب می‌شود تا خلافش ثابت شود.
+رد الف: dry socket معمولاً pain بدون swelling و سایر signs of infection دارد.
+رد ج: ecchymosis کبودی است، نه fever/redness/pain عفونی.
 رد د: edema طبیعی پس از روز سوم باید رو به کاهش باشد؛ افزایش همراه علائم ذکرشده نگران‌کننده است.',
                     ],
                     [
@@ -392,10 +392,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'استفاده از cowhorn forceps برای محافظت از restoration',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: وقتی adjacent tooth restoration بزرگ دارد، straight elevator باید با احتیاط کامل و کاملاً داخل PDL space قرار گیرد یا استفاده نشود.
-رد الف: فشار روی restoration می‌تواند آن را بشکند یا dislodge کند.
-رد ج: force عمودی زیاد خطر آسیب restoration و opposite arch را افزایش می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: وقتی adjacent tooth restoration بزرگ دارد، straight elevator باید با احتیاط کامل و کاملاً داخل PDL space قرار گیرد یا استفاده نشود.
+رد الف: فشار روی restoration می‌تواند آن را بشکند یا dislodge کند.
+رد ج: force عمودی زیاد خطر آسیب restoration و opposite arch را افزایش می‌دهد.
 رد د: cowhorn forceps برای محافظت restoration توصیه نشده و می‌تواند tractional force زیاد ایجاد کند.',
                     ],
                     [
@@ -407,10 +407,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تجویز رژیم مایع کم‌کالری برای کاهش خون‌ریزی.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: برای بیمار دیابتی، جراحی یک سمت دهان در هر جلسه می‌تواند interference با intake کالری را کم کند و بازگشت به insulin/caloric intake معمول را تسهیل کند.
-رد الف: جراحی دو طرف می‌تواند خوردن را سخت‌تر کند و با توصیه متن برای diabetic patients ناسازگار است.
-رد ج: متن بر بازگشت هرچه زودتر به intake معمول تأکید دارد، نه حذف وعده‌ها.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: برای بیمار دیابتی، جراحی یک سمت دهان در هر جلسه می‌تواند interference با intake کالری را کم کند و بازگشت به insulin/caloric intake معمول را تسهیل کند.
+رد الف: جراحی دو طرف می‌تواند خوردن را سخت‌تر کند و با توصیه متن برای diabetic patients ناسازگار است.
+رد ج: متن بر بازگشت هرچه زودتر به intake معمول تأکید دارد، نه حذف وعده‌ها.
 رد د: رژیم باید high-calorie/high-volume liquid or soft باشد، نه کم‌کالری.',
                     ],
                     [
@@ -422,10 +422,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تجویز antibiotic و ارجاع برای localization',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: وقتی tooth visible نیست، blind probing باعث displacement بیشتر می‌شود و باید پس از یک تلاش ناموفق incision بسته و procedure متوقف شود.
-رد الف: یک تلاش محتاطانه با hemostat در صورت access/light و دید مستقیم مجاز دانسته شده است.
-رد ج: بستن incision پس از تلاش ناموفق همان توصیه متن است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: وقتی tooth visible نیست، blind probing باعث displacement بیشتر می‌شود و باید پس از یک تلاش ناموفق incision بسته و procedure متوقف شود.
+رد الف: یک تلاش محتاطانه با hemostat در صورت access/light و دید مستقیم مجاز دانسته شده است.
+رد ج: بستن incision پس از تلاش ناموفق همان توصیه متن است.
 رد د: antibiotics، مراقبت routine و removal later بعد از fibrosis/radiographic localization توصیه شده‌اند.',
                     ],
                     [
@@ -437,10 +437,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'مصرف هم‌زمان straw برای کاهش طعم دارو',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: narcotic analgesics می‌توانند drowsiness و gastrointestinal upset ایجاد کنند و متن توصیه می‌کند بیمار snack یا meal قبل از مصرف داشته باشد.
-رد الف: مصرف با معده خالی خلاف توصیه متن است.
-رد ج: هدف حذف کامل discomfort نیست و افزایش خودسرانه dose خطر nausea/vomiting را بالا می‌برد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: narcotic analgesics می‌توانند drowsiness و gastrointestinal upset ایجاد کنند و متن توصیه می‌کند بیمار snack یا meal قبل از مصرف داشته باشد.
+رد الف: مصرف با معده خالی خلاف توصیه متن است.
+رد ج: هدف حذف کامل discomfort نیست و افزایش خودسرانه dose خطر nausea/vomiting را بالا می‌برد.
 رد د: straw به دلیل negative pressure پس از extraction منع شده است.',
                     ],
                     [
@@ -452,10 +452,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فقط بافت نرم لب و گوشه دهان',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: رادیوگرافی باید کل surgical area، apices، maxillary sinus و inferior alveolar canal و root morphology/ankylosis را پوشش دهد.
-رد الف: فقط تاج برای ارزیابی خطرات surgical کافی نیست.
-رد ج: دندان مقابل موضوع آسیب احتمالی forceps است، نه محتوای اصلی imaging preoperative.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: رادیوگرافی باید کل surgical area، apices، maxillary sinus و inferior alveolar canal و root morphology/ankylosis را پوشش دهد.
+رد الف: فقط تاج برای ارزیابی خطرات surgical کافی نیست.
+رد ج: دندان مقابل موضوع آسیب احتمالی forceps است، نه محتوای اصلی imaging preoperative.
 رد د: soft tissue لب و گوشه دهان با رادیوگرافی هدف اصلی این بخش نیست.',
                     ],
                     [
@@ -467,10 +467,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'افزایش جذب opioid از دستگاه گوارش.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: نوشیدن مایعات غلیظ با straw فشار منفی داخل دهان ایجاد می‌کند و ممکن است bleeding تازه را شروع کند.
-رد ب: متن درباره straw، bleeding و negative pressure را مطرح می‌کند، نه fibrinolysis immediate.
-رد ج: hyperocclusion مربوط به luxated adjacent tooth است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: نوشیدن مایعات غلیظ با straw فشار منفی داخل دهان ایجاد می‌کند و ممکن است bleeding تازه را شروع کند.
+رد ب: متن درباره straw، bleeding و negative pressure را مطرح می‌کند، نه fibrinolysis immediate.
+رد ج: hyperocclusion مربوط به luxated adjacent tooth است.
 رد د: جذب opioid موضوع منع straw در متن نیست.',
                     ],
                     [
@@ -482,10 +482,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'گذاشتن heat شدید و طولانی روی ناحیه در روز اول.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: abrasion/burn پوستی باید با antibiotic ointment فقط روی ناحیه آسیب‌دیده پوشانده و مرطوب نگه داشته شود تا eschar، delayed healing و ناراحتی کاهش یابد.
-رد الف: خشک نگه داشتن و eschar formation می‌تواند delayed healing ایجاد کند.
-رد ج: پخش ointment روی intact skin ممکن است ulceration یا rash بدهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: abrasion/burn پوستی باید با antibiotic ointment فقط روی ناحیه آسیب‌دیده پوشانده و مرطوب نگه داشته شود تا eschar، delayed healing و ناراحتی کاهش یابد.
+رد الف: خشک نگه داشتن و eschar formation می‌تواند delayed healing ایجاد کند.
+رد ج: پخش ointment روی intact skin ممکن است ulceration یا rash بدهد.
 رد د: heat شدید و طولانی در متن برای این آسیب توصیه نشده و می‌تواند بافت را آسیب بزند.',
                     ],
                     [
@@ -497,10 +497,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'fracture of alveolar process',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: pain که اول کم شده و در روز سوم یا چهارم بدون swelling/علائم عفونت افزایش می‌یابد، به‌ویژه در lower molar socket، با dry socket سازگار است.
-رد ب: infection با fever، swelling، redness، purulence یا worsening pain همراه‌تر است.
-رد ج: maxillary sinusitis به ارتباط سینوس و دندان‌های maxillary مربوط است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: pain که اول کم شده و در روز سوم یا چهارم بدون swelling/علائم عفونت افزایش می‌یابد، به‌ویژه در lower molar socket، با dry socket سازگار است.
+رد ب: infection با fever، swelling، redness، purulence یا worsening pain همراه‌تر است.
+رد ج: maxillary sinusitis به ارتباط سینوس و دندان‌های maxillary مربوط است.
 رد د: fracture alveolar process عارضه حین extraction با bone fracture است، نه الگوی درد روز سوم بدون swelling.',
                     ],
                     [
@@ -512,10 +512,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تأخیر در اطلاع به بیمار تا پایان دوره healing.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: اگر restoration dislodged/fractured شود، surgeon باید مطمئن شود قطعه از دهان خارج شده و به سوکت نمی‌افتد.
-رد الف: باقی گذاشتن قطعه خطر aspiration/swallowing یا ورود به socket دارد.
-رد ج: بستن سوکت روی قطعه در متن توصیه نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: اگر restoration dislodged/fractured شود، surgeon باید مطمئن شود قطعه از دهان خارج شده و به سوکت نمی‌افتد.
+رد الف: باقی گذاشتن قطعه خطر aspiration/swallowing یا ورود به socket دارد.
+رد ج: بستن سوکت روی قطعه در متن توصیه نشده است.
 رد د: بیمار باید از fracture/restoration و نیاز به replacement آگاه شود.',
                     ],
                     [
@@ -527,10 +527,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'analgesic باید تا زمان شروع درد شدید به تأخیر بیفتد.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: متن می‌گوید هدف analgesic medication مدیریت درد است، نه elimination of all discomfort.
-رد الف: وعده حذف کامل ناراحتی خلاف هدف ذکرشده است.
-رد ج: significant pain معمولاً بیش از ۲ روز در routine extraction پایدار نمی‌ماند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: متن می‌گوید هدف analgesic medication مدیریت درد است، نه elimination of all discomfort.
+رد الف: وعده حذف کامل ناراحتی خلاف هدف ذکرشده است.
+رد ج: significant pain معمولاً بیش از ۲ روز در routine extraction پایدار نمی‌ماند.
 رد د: تأخیر تا درد شدید کنترل درد را سخت‌تر می‌کند.',
                     ],
                     [
@@ -542,10 +542,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'شروع با Caldwell-Luc approach در همه موارد premolar.',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: متن در maxillary first premolar با long thin roots بیان می‌کند buccal root retrieval آسان‌تر است؛ بنابراین force بیشتر به سمت buccal root داده می‌شود تا اگر ریشه‌ای شکست، احتمالاً buccal باشد.
-رد الف: palatal root retrieval دشوارتر است.
-رد ج: متن اجتناب مطلق از نیرو به buccal root را بیان نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: متن در maxillary first premolar با long thin roots بیان می‌کند buccal root retrieval آسان‌تر است؛ بنابراین force بیشتر به سمت buccal root داده می‌شود تا اگر ریشه‌ای شکست، احتمالاً buccal باشد.
+رد الف: palatal root retrieval دشوارتر است.
+رد ج: متن اجتناب مطلق از نیرو به buccal root را بیان نمی‌کند.
 رد د: Caldwell-Luc برای root/tooth در sinus است، نه همه premolarها.',
                     ],
                     [
@@ -557,10 +557,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'absence of cough اثبات می‌کند که رادیوگرافی لازم نیست.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: اگر tooth swallowed باشد، به احتمال زیاد طی ۲ تا ۴ روز از GI tract عبور می‌کند.
-رد ب: متن می‌گوید teeth معمولاً jagged یا sharp نیستند و اغلب unimpeded passage دارند.
-رد ج: follow-up radiographs احتمالاً لازم نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: اگر tooth swallowed باشد، به احتمال زیاد طی ۲ تا ۴ روز از GI tract عبور می‌کند.
+رد ب: متن می‌گوید teeth معمولاً jagged یا sharp نیستند و اغلب unimpeded passage دارند.
+رد ج: follow-up radiographs احتمالاً لازم نیستند.
 رد د: حتی اگر swallowing محتمل باشد، رادیوگرافی abdomen برای تأیید GI tract و رد respiratory tract prudent است.',
                     ],
                     [
@@ -572,10 +572,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'قرار دادن ice pack ۲۰ دقیقه روی صورت',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: آسیب opposite arch وقتی رخ می‌دهد که tooth ناگهان از socket آزاد شده و forceps با نیروی tractional زیاد به دندان مقابل برخورد کند.
-رد الف: luxation مناسب نیاز به tractional force زیاد را کم می‌کند.
-رد ج: گاز کوچک مرطوب برای کنترل bleeding است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: آسیب opposite arch وقتی رخ می‌دهد که tooth ناگهان از socket آزاد شده و forceps با نیروی tractional زیاد به دندان مقابل برخورد کند.
+رد الف: luxation مناسب نیاز به tractional force زیاد را کم می‌کند.
+رد ج: گاز کوچک مرطوب برای کنترل bleeding است.
 رد د: ice pack به edema comfort مربوط است، نه chipping opposite arch.',
                     ],
                     [
@@ -587,10 +587,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'اثر tannic acid بر عضلات mastication',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: trismus از trauma و inflammation عضلات mastication ناشی می‌شود و medial pterygoid ممکن است با inferior alveolar nerve block درگیر شود.
-رد الف: آسیب enamel یا cusp مقابل به trauma forceps مربوط است، نه محدودیت دهان باز کردن.
-رد ج: فیبروز sinus membrane به root tip در sinus مربوط است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: trismus از trauma و inflammation عضلات mastication ناشی می‌شود و medial pterygoid ممکن است با inferior alveolar nerve block درگیر شود.
+رد الف: آسیب enamel یا cusp مقابل به trauma forceps مربوط است، نه محدودیت دهان باز کردن.
+رد ج: فیبروز sinus membrane به root tip در sinus مربوط است.
 رد د: tannic acid در tea bag برای vasoconstriction موضعی خون‌ریزی است.',
                     ],
                     [
@@ -602,10 +602,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'وجود ecchymosis در سالمندان',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: در ارجاع، اختلاف tooth numbering systems یا تفاوت mounting radiographs می‌تواند باعث برداشت اشتباه از دستور referring dentist شود.
-رد الف: tea bag به bleeding مربوط است.
-رد ج: ibuprofen با timing analgesic ارتباط دارد، نه wrong tooth.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: در ارجاع، اختلاف tooth numbering systems یا تفاوت mounting radiographs می‌تواند باعث برداشت اشتباه از دستور referring dentist شود.
+رد الف: tea bag به bleeding مربوط است.
+رد ج: ibuprofen با timing analgesic ارتباط دارد، نه wrong tooth.
 رد د: ecchymosis سالمندان علت extraction دندان اشتباه نیست.',
                     ],
                     [
@@ -617,10 +617,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'pain پس از routine extraction معمولاً با OTC analgesics کنترل نمی‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: سه ویژگی pain routine extraction شامل غیرشدید بودن، peak حدود ۱۲ ساعت و کاهش سریع، و ماندگاری نادر significant pain بیش از ۲ روز است.
-رد ب: peak روز پنجم با متن سازگار نیست.
-رد ج: significant pain دو هفته‌ای برای routine extraction در متن ذکر نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: سه ویژگی pain routine extraction شامل غیرشدید بودن، peak حدود ۱۲ ساعت و کاهش سریع، و ماندگاری نادر significant pain بیش از ۲ روز است.
+رد ب: peak روز پنجم با متن سازگار نیست.
+رد ج: significant pain دو هفته‌ای برای routine extraction در متن ذکر نشده است.
 رد د: بیشتر موارد با OTC analgesics قابل مدیریت‌اند.',
                     ],
                     [
@@ -632,10 +632,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'حذف ارتباط با referring dentist برای کاهش خطا',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: Box 11.4 بر focus attention، check با patient و assistant و check/recheck images and records تأکید دارد.
-رد الف: اتکا به حافظه و یک بار دیدن رادیوگرافی با چک مجدد سازگار نیست.
-رد ج: gross caries احتمال خطا را کمتر می‌کند ولی جای تأیید طرح را نمی‌گیرد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: Box 11.4 بر focus attention، check با patient و assistant و check/recheck images and records تأکید دارد.
+رد الف: اتکا به حافظه و یک بار دیدن رادیوگرافی با چک مجدد سازگار نیست.
+رد ج: gross caries احتمال خطا را کمتر می‌کند ولی جای تأیید طرح را نمی‌گیرد.
 رد د: ارتباط روشن با referring dentist یکی از راه‌های پیشگیری است.',
                     ],
                 ],
@@ -666,10 +666,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'elevator مستقیم با apical pressure روی دندان مجاور',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: در crowding و overlap، forceps باریک مثل No. 286 برای کاهش luxation adjacent teeth مفید است.
-رد الف: beak پهن می‌تواند به دندان‌های مجاور آسیب بزند و luxation ایجاد کند.
-رد ج: No. 23 cowhorn بیشتر با vertical traction در mandibular teeth و خطر injury opposite arch مطرح است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: در crowding و overlap، forceps باریک مثل No. 286 برای کاهش luxation adjacent teeth مفید است.
+رد الف: beak پهن می‌تواند به دندان‌های مجاور آسیب بزند و luxation ایجاد کند.
+رد ج: No. 23 cowhorn بیشتر با vertical traction در mandibular teeth و خطر injury opposite arch مطرح است.
 رد د: apical pressure روی دندان مجاور ابزار پیشگیرانه نیست.',
                     ],
                     [
@@ -681,10 +681,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'باید luxation دندان مجاور فرض شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: اگر bone به root ends چسبیده باشد، باید communication بین sinus و mouth فرض شود.
-رد ب: dry socket چند روز بعد با pain و socket empty مطرح می‌شود.
-رد ج: mandibular fracture به maxillary molar root ends مربوط نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: اگر bone به root ends چسبیده باشد، باید communication بین sinus و mouth فرض شود.
+رد ب: dry socket چند روز بعد با pain و socket empty مطرح می‌شود.
+رد ج: mandibular fracture به maxillary molar root ends مربوط نیست.
 رد د: luxation adjacent tooth با mobility/position دندان مجاور تشخیص داده می‌شود.',
                     ],
                     [
@@ -696,10 +696,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'prescribing acetaminophen برای platelet defect.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: علت محتمل fracture alveolar process استفاده از excessive force با forceps و شکست cortical plate است.
-رد ب: salt water rinse ملایم در روز اول برای hygiene توصیه می‌شود.
-رد ج: gelatin sponge برای hemostasis است، نه علت fracture.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: علت محتمل fracture alveolar process استفاده از excessive force با forceps و شکست cortical plate است.
+رد ب: salt water rinse ملایم در روز اول برای hygiene توصیه می‌شود.
+رد ج: gelatin sponge برای hemostasis است، نه علت fracture.
 رد د: acetaminophen انتخابی برای بیمار با platelet defect است، نه علت شکستگی استخوان.',
                     ],
                     [
@@ -711,10 +711,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'جلوگیری از root displacement به sinus',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: topical thrombin steps coagulation cascade را bypass می‌کند و enzymatically fibrinogen را به fibrin تبدیل می‌کند.
-رد ب: nasal decongestion مربوط به decongestant spray در OAC است.
-رد ج: obtund pain از bone مربوط به eugenol در dry socket dressing است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: topical thrombin steps coagulation cascade را bypass می‌کند و enzymatically fibrinogen را به fibrin تبدیل می‌کند.
+رد ب: nasal decongestion مربوط به decongestant spray در OAC است.
+رد ج: obtund pain از bone مربوط به eugenol در dry socket dressing است.
 رد د: root displacement با تکنیک surgical و اجتناب از apical pressure پیشگیری می‌شود.',
                     ],
                     [
@@ -726,10 +726,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'mental و lingual',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: nasopalatine و long buccal nerves به علت ناحیه sensory کوچک و reinnervation سریع، می‌توانند در flapها section شوند بدون sequelae طولانی یا bother زیاد.
-رد ب: mental و inferior alveolar injury می‌تواند paresthesia/anesthesia مهم و گاهی پایدار بدهد.
-رد ج: lingual nerve شدیداً آسیب‌پذیر است و severe trauma به‌ندرت regeneration دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: nasopalatine و long buccal nerves به علت ناحیه sensory کوچک و reinnervation سریع، می‌توانند در flapها section شوند بدون sequelae طولانی یا bother زیاد.
+رد ب: mental و inferior alveolar injury می‌تواند paresthesia/anesthesia مهم و گاهی پایدار بدهد.
+رد ج: lingual nerve شدیداً آسیب‌پذیر است و severe trauma به‌ندرت regeneration دارد.
 رد د: mental/lingual از اعصاب کم‌پیامد متن نیستند.',
                     ],
                     [
@@ -741,10 +741,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'curettage از راه socket تا گسترش opening',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: communication کوچک ≤۲ mm در بیمار بدون sinus disease به جراحی اضافی نیاز ندارد؛ clot باکیفیت و sinus precautions کافی است.
-رد ب: flap closure برای large openings یا موارد خاص مطرح است، نه همه small openings.
-رد ج: Caldwell-Luc برای قطعات/موارد خاص sinus است، نه communication کوچک ساده.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: communication کوچک ≤۲ mm در بیمار بدون sinus disease به جراحی اضافی نیاز ندارد؛ clot باکیفیت و sinus precautions کافی است.
+رد ب: flap closure برای large openings یا موارد خاص مطرح است، نه همه small openings.
+رد ج: Caldwell-Luc برای قطعات/موارد خاص sinus است، نه communication کوچک ساده.
 رد د: curettage/probing می‌تواند opening و آلودگی را بدتر کند.',
                     ],
                     [
@@ -756,10 +756,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'چون همیشه باعث dry socket در mandibular molar می‌شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: maxillary tuberosity برای stable retentive maxillary denture اهمیت دارد و removal آن stability را مختل می‌کند.
-رد ب: inferior alveolar nerve در mandible است، نه tuberosity maxilla.
-رد ج: platelet aggregation مربوط به collagen hemostatic agent است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: maxillary tuberosity برای stable retentive maxillary denture اهمیت دارد و removal آن stability را مختل می‌کند.
+رد ب: inferior alveolar nerve در mandible است، نه tuberosity maxilla.
+رد ج: platelet aggregation مربوط به collagen hemostatic agent است.
 رد د: dry socket عمدتاً lower molar socket است و به tuberosity مربوط نیست.',
                     ],
                     [
@@ -771,10 +771,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'برداشتن clot با curette خانگی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: در secondary bleeding، بیمار باید gently با chilled water rinse کند، damp gauze مناسب بگذارد و ۳۰ دقیقه firm bite داشته باشد.
-رد ب: آب داغ و تف کردن مکرر clot را مختل می‌کند.
-رد ج: متن تأکید می‌کند herbal teas tannin ندارند و مؤثر نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: در secondary bleeding، بیمار باید gently با chilled water rinse کند، damp gauze مناسب بگذارد و ۳۰ دقیقه firm bite داشته باشد.
+رد ب: آب داغ و تف کردن مکرر clot را مختل می‌کند.
+رد ج: متن تأکید می‌کند herbal teas tannin ندارند و مؤثر نیستند.
 رد د: curette خانگی خطرناک و خارج از دستور متن است.',
                     ],
                     [
@@ -786,10 +786,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'curettage socket تا bare bone',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: برای pain ناحیه TMJ پس از extraction، heat، rest، soft diet و ibuprofen 600–800 mg هر ۴ ساعت برای چند روز توصیه شده است؛ اگر NSAID تحمل نشود acetaminophen 500–1000 mg مطرح است.
-رد ب: cold pack روز سوم و probing sinus به TMJ injury مربوط نیست.
-رد ج: rigid fixation برای luxated tooth نیز نامطلوب است و برای TMJ pain توصیه نشده.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: برای pain ناحیه TMJ پس از extraction، heat، rest، soft diet و ibuprofen 600–800 mg هر ۴ ساعت برای چند روز توصیه شده است؛ اگر NSAID تحمل نشود acetaminophen 500–1000 mg مطرح است.
+رد ب: cold pack روز سوم و probing sinus به TMJ injury مربوط نیست.
+رد ج: rigid fixation برای luxated tooth نیز نامطلوب است و برای TMJ pain توصیه نشده.
 رد د: curettage socket تا bare bone در dry socket هم پرهیز می‌شود.',
                     ],
                     [
@@ -801,10 +801,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'INR برای therapeutic anticoagulation کاربردی ندارد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: متن بیان می‌کند extraction با INR ≤2.5 معمولاً بدون کاهش anticoagulant dose منطقی است و minor surgery با precautions تا INR 3.0 قابل انجام است.
-رد ب: INR بالاتر از ۱.۰ مانع قطعی نیست.
-رد ج: اگر INR بالاتر از 3.0 باشد، physician باید برای کاهش dose contacted شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: متن بیان می‌کند extraction با INR ≤2.5 معمولاً بدون کاهش anticoagulant dose منطقی است و minor surgery با precautions تا INR 3.0 قابل انجام است.
+رد ب: INR بالاتر از ۱.۰ مانع قطعی نیست.
+رد ج: اگر INR بالاتر از 3.0 باشد، physician باید برای کاهش dose contacted شود.
 رد د: INR ابزار سنجش therapeutic anticoagulation با warfarin است.',
                     ],
                     [
@@ -816,10 +816,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'عدم بررسی occlusion چون hyperocclusion اهمیتی ندارد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: luxated tooth باید reposition شود، occlusion بررسی شود و اگر mobile است، semirigid fixation با silk suture معمولاً کافی است.
-رد الف: rigid fixation با wires/arch bars احتمال external root resorption و ankylosis را افزایش می‌دهد.
-رد ج: خارج کردن دندان luxated هدف درمان نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: luxated tooth باید reposition شود، occlusion بررسی شود و اگر mobile است، semirigid fixation با silk suture معمولاً کافی است.
+رد الف: rigid fixation با wires/arch bars احتمال external root resorption و ankylosis را افزایش می‌دهد.
+رد ج: خارج کردن دندان luxated هدف درمان نیست.
 رد د: hyperocclusion/traumatic occlusion باید بررسی و رفع شود.',
                     ],
                     [
@@ -831,10 +831,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'بسته‌بندی socket با dry gauze بدون medication',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: در ۲ تا ۶ mm، figure-of-eight suture، گاه gelatin sponge، sinus precautions، antibiotics مثل amoxicillin/cephalexin/clindamycin برای ۵ روز و nasal decongestant برای حفظ ostium توصیه شده‌اند.
-رد ب: تف کردن و فشار منفی clot را dislodge می‌کند.
-رد ج: rigid fixation دندان‌های مجاور درمان OAC نیست و nasal spray برای حفظ drainage مفید است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: در ۲ تا ۶ mm، figure-of-eight suture، گاه gelatin sponge، sinus precautions، antibiotics مثل amoxicillin/cephalexin/clindamycin برای ۵ روز و nasal decongestant برای حفظ ostium توصیه شده‌اند.
+رد ب: تف کردن و فشار منفی clot را dislodge می‌کند.
+رد ج: rigid fixation دندان‌های مجاور درمان OAC نیست و nasal spray برای حفظ drainage مفید است.
 رد د: dry gauze بدون medication/precautions با توصیه فصل همخوان نیست.',
                     ],
                     [
@@ -846,10 +846,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'درد خفیف ۱۲ ساعت بعد از extraction',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: ریشه‌های widely divergent، نزدیکی به sinus، heavy buccal cortical bone و سن/استخوان کم‌الاستیک surgeon را به open technique با bone removal/sectioning سوق می‌دهد.
-رد ب: restoration کوچک مجاور معیار اصلی fracture cortical plate نیست.
-رد ج: ecchymosis روز دوم postoperative به پیش‌بینی fracture حین extraction مربوط نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: ریشه‌های widely divergent، نزدیکی به sinus، heavy buccal cortical bone و سن/استخوان کم‌الاستیک surgeon را به open technique با bone removal/sectioning سوق می‌دهد.
+رد ب: restoration کوچک مجاور معیار اصلی fracture cortical plate نیست.
+رد ج: ecchymosis روز دوم postoperative به پیش‌بینی fracture حین extraction مربوط نیست.
 رد د: درد خفیف ۱۲ ساعت بعد، pattern طبیعی pain است.',
                     ],
                     [
@@ -861,10 +861,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ecchymosis؛ خون‌ریزی زیرپوستی دردناک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: dry socket/alveolar osteitis delayed healing بدون infection است؛ pain روز سوم/چهارم، empty socket، exposed bone، bad odor/taste و radiation to ear دارد و fever/swelling/erythema معمولاً ندارد.
-رد ب: infection با fever، swelling، reddening، foul taste، worsening pain و purulence همراه است.
-رد ج: oroantral fistula به passage بین دهان و بینی/sinus مربوط است و در maxilla رخ می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: dry socket/alveolar osteitis delayed healing بدون infection است؛ pain روز سوم/چهارم، empty socket، exposed bone، bad odor/taste و radiation to ear دارد و fever/swelling/erythema معمولاً ندارد.
+رد ب: infection با fever، swelling، reddening، foul taste، worsening pain و purulence همراه است.
+رد ج: oroantral fistula به passage بین دهان و بینی/sinus مربوط است و در maxilla رخ می‌دهد.
 رد د: ecchymosis bruising است و در متن pain/infection را افزایش نمی‌دهد.',
                     ],
                     [
@@ -876,10 +876,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'incision باید در nasal mucosa برای حفظ ostium باشد.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: برای پرهیز از lingual nerve، incisions ناحیه retromolar/posterior molar باید well to the buccal aspect of the mandible باشند و از stretching lingual tissues پرهیز شود.
-رد ب: lingual incision/stretching خطر آسیب lingual nerve را زیاد می‌کند.
-رد ج: figure-of-eight suture مربوط به socket/OAC/hemostasis است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: برای پرهیز از lingual nerve، incisions ناحیه retromolar/posterior molar باید well to the buccal aspect of the mandible باشند و از stretching lingual tissues پرهیز شود.
+رد ب: lingual incision/stretching خطر آسیب lingual nerve را زیاد می‌کند.
+رد ج: figure-of-eight suture مربوط به socket/OAC/hemostasis است.
 رد د: nasal mucosa/ostium در مدیریت OAC و sinusitis مطرح است.',
                     ],
                     [
@@ -891,10 +891,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'گذاشتن dressing dry socket حاوی eugenol',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: arterial bleeding soft tissue اگر با direct pressure کنترل نشود، با clamping توسط hemostat و ligating با nonresorbable suture کنترل می‌شود.
-رد ب: tea bag خانگی برای bleeding ثانویه خفیف است، نه artery مشخص soft tissue حین درمان.
-رد ج: probing sinus contraindicated است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: arterial bleeding soft tissue اگر با direct pressure کنترل نشود، با clamping توسط hemostat و ligating با nonresorbable suture کنترل می‌شود.
+رد ب: tea bag خانگی برای bleeding ثانویه خفیف است، نه artery مشخص soft tissue حین درمان.
+رد ج: probing sinus contraindicated است.
 رد د: eugenol dressing برای dry socket و pain relief است.',
                     ],
                     [
@@ -906,10 +906,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ادامه extraction با force بیشتر برای حذف کامل segment',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: در mobility بیش از حد و عدم امکان dissect، یکی از گزینه‌ها splint کردن tooth به adjacent teeth و defer extraction برای ۶ تا ۸ هفته است.
-رد ب: جدا شدن کامل tuberosity از soft tissue وضعیت نامطلوب است و باید sharp edges smooth و soft tissue sutured شود.
-رد ج: curettage وسیع sinus floor توصیه نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: در mobility بیش از حد و عدم امکان dissect، یکی از گزینه‌ها splint کردن tooth به adjacent teeth و defer extraction برای ۶ تا ۸ هفته است.
+رد ب: جدا شدن کامل tuberosity از soft tissue وضعیت نامطلوب است و باید sharp edges smooth و soft tissue sutured شود.
+رد ج: curettage وسیع sinus floor توصیه نشده است.
 رد د: force بیشتر می‌تواند tuberosity و sinus exposure را بدتر کند.',
                     ],
                     [
@@ -921,10 +921,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'خوردن رژیم نرم در ۱۲ ساعت اول',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: wound dehiscence از suturing under tension یا flap بدون adequate bony foundation ایجاد می‌شود؛ tension باعث ischemia، necrosis و pull-through suture می‌شود.
-رد ب: sutures باید آن‌قدر loose باشند که blanching ایجاد نکنند.
-رد ج: closure روی intact bone و aseptic/atraumatic technique جزو prevention است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: wound dehiscence از suturing under tension یا flap بدون adequate bony foundation ایجاد می‌شود؛ tension باعث ischemia، necrosis و pull-through suture می‌شود.
+رد ب: sutures باید آن‌قدر loose باشند که blanching ایجاد نکنند.
+رد ج: closure روی intact bone و aseptic/atraumatic technique جزو prevention است.
 رد د: soft diet علت dehiscence در متن نیست.',
                     ],
                     [
@@ -936,10 +936,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'اجتناب از هرگونه تماس دست با فک پایین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: controlled force، support mandible، bite block سمت مقابل و حمایت lower border of mandible برای پیشگیری از TMJ injury توصیه شده‌اند.
-رد ب: باز کردن زیاد و بدون حمایت خطر injury را افزایش می‌دهد.
-رد ج: traction ناگهانی excessive با اصول کنترل force ناسازگار است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: controlled force، support mandible، bite block سمت مقابل و حمایت lower border of mandible برای پیشگیری از TMJ injury توصیه شده‌اند.
+رد ب: باز کردن زیاد و بدون حمایت خطر injury را افزایش می‌دهد.
+رد ج: traction ناگهانی excessive با اصول کنترل force ناسازگار است.
 رد د: حمایت دستی mandible در متن توصیه شده است.',
                     ],
                     [
@@ -951,10 +951,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'قرار دادن dressing حاوی eugenol هر روز',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: opening بزرگ ≥۷ mm باید برای repair با flap procedure مدنظر قرار گیرد و معمولاً referral به oral-maxillofacial surgeon لازم است.
-رد ب: nose-blowing شدید می‌تواند communication ایجاد یا بدتر کند.
-رد ج: internal oblique ridge به exposed bone projection mandibular مربوط است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: opening بزرگ ≥۷ mm باید برای repair با flap procedure مدنظر قرار گیرد و معمولاً referral به oral-maxillofacial surgeon لازم است.
+رد ب: nose-blowing شدید می‌تواند communication ایجاد یا بدتر کند.
+رد ج: internal oblique ridge به exposed bone projection mandibular مربوط است.
 رد د: eugenol dressing برای dry socket است.',
                     ],
                     [
@@ -966,10 +966,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'قرار دادن قطعه در sinus برای حفظ ridge',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: اگر bone کاملاً همراه tooth خارج شده باشد، نباید جای‌گذاری شود؛ soft tissue باید تا حد امکان reposition شود و sharp edges صاف شوند.
-رد الف: replacement قطعه جداشده توصیه نشده است.
-رد ج: arch bars مربوط به rigid fixation دندان luxated و fracture jaw نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: اگر bone کاملاً همراه tooth خارج شده باشد، نباید جای‌گذاری شود؛ soft tissue باید تا حد امکان reposition شود و sharp edges صاف شوند.
+رد الف: replacement قطعه جداشده توصیه نشده است.
+رد ج: arch bars مربوط به rigid fixation دندان luxated و fracture jaw نیستند.
 رد د: قرار دادن قطعه در sinus بی‌اساس و خارج از متن است.',
                     ],
                     [
@@ -981,10 +981,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'platelet aggregation را به‌عنوان مکانیسم اصلی مثل collagen تحریک می‌کند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: absorbable gelatin sponge مثل Gelfoam scaffold برای clot formation فراهم می‌کند و با figure-of-eight suture در socket نگه داشته می‌شود.
-رد ب: متن می‌گوید gelatin sponge وقتی wet شود friable است و نمی‌توان آن را مثل cellulose pack کرد.
-رد ج: تبدیل fibrinogen به fibrin مکانیسم topical thrombin است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: absorbable gelatin sponge مثل Gelfoam scaffold برای clot formation فراهم می‌کند و با figure-of-eight suture در socket نگه داشته می‌شود.
+رد ب: متن می‌گوید gelatin sponge وقتی wet شود friable است و نمی‌توان آن را مثل cellulose pack کرد.
+رد ج: تبدیل fibrinogen به fibrin مکانیسم topical thrombin است.
 رد د: platelet aggregation مکانیسم collagen است.',
                     ],
                     [
@@ -996,10 +996,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'استفاده از warm salt water در روز اول',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: mandibular fracture نادر است و تقریباً به surgical removal of impacted third molars، forceful elevator use، deep impaction یا severe atrophic mandible مرتبط است.
-رد ب: routine anterior extraction با mobility زیاد در متن عامل غالب نیست.
-رد ج: figure-of-eight suture برای hemostasis یا OAC است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: mandibular fracture نادر است و تقریباً به surgical removal of impacted third molars، forceful elevator use، deep impaction یا severe atrophic mandible مرتبط است.
+رد ب: routine anterior extraction با mobility زیاد در متن عامل غالب نیست.
+رد ج: figure-of-eight suture برای hemostasis یا OAC است.
 رد د: warm salt water برای hygiene بعد از عمل است.',
                     ],
                     [
@@ -1011,10 +1011,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'چون ostium را دائماً مسدود می‌کند.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: nose-blowing test می‌تواند در نبود communication با forceful blowing خود communication ایجاد کند؛ به همین دلیل بسیاری از surgeons آن را به کار نمی‌برند.
-رد ب: در صورت وجود communication، passage of air و bubbling خون ممکن است دیده شود.
-رد ج: test برای maxillary sinus communication است، نه mandibular premolars.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: nose-blowing test می‌تواند در نبود communication با forceful blowing خود communication ایجاد کند؛ به همین دلیل بسیاری از surgeons آن را به کار نمی‌برند.
+رد ب: در صورت وجود communication، passage of air و bubbling خون ممکن است دیده شود.
+رد ج: test برای maxillary sinus communication است، نه mandibular premolars.
 رد د: test برای تشخیص است و در متن به انسداد دائمی ostium نسبت داده نشده است.',
                     ],
                     [
@@ -1026,10 +1026,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تبدیل معمول به chronic sinusitis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: اگر mental nerve injury ناشی از flap reflection/manipulation باشد، normal sensation معمولاً در چند روز تا چند هفته برمی‌گردد.
-رد ب: قطع یا پارگی عصب می‌تواند permanent anesthesia بدهد، نه manipulation ساده در همه موارد.
-رد ج: replantation مربوط به wrong tooth extraction است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: اگر mental nerve injury ناشی از flap reflection/manipulation باشد، normal sensation معمولاً در چند روز تا چند هفته برمی‌گردد.
+رد ب: قطع یا پارگی عصب می‌تواند permanent anesthesia بدهد، نه manipulation ساده در همه موارد.
+رد ج: replantation مربوط به wrong tooth extraction است.
 رد د: chronic sinusitis به oroantral fistula مربوط است.',
                     ],
                     [
@@ -1041,10 +1041,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'sedative opioid باید جایگزین هر اقدام موضعی شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: اگر pressure کافی نباشد، regional/block anesthesia ترجیح دارد؛ infiltration با epinephrine ممکن است vasoconstriction موقت بدهد و با محو شدن اثر epinephrine rebound hemorrhage ایجاد شود.
-رد ب: متن به همین دلیل infiltration را ترجیح نمی‌دهد.
-رد ج: socket باید پس از anesthesia curette/suction و منبع bleeding مشخص شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: اگر pressure کافی نباشد، regional/block anesthesia ترجیح دارد؛ infiltration با epinephrine ممکن است vasoconstriction موقت بدهد و با محو شدن اثر epinephrine rebound hemorrhage ایجاد شود.
+رد ب: متن به همین دلیل infiltration را ترجیح نمی‌دهد.
+رد ج: socket باید پس از anesthesia curette/suction و منبع bleeding مشخص شود.
 رد د: opioid sedative جایگزین local hemostatic management نیست.',
                     ],
                     [
@@ -1056,10 +1056,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'referral فوری برای mandibular fracture reduction',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: اگر projection irritation زیادی نداشته باشد، preferred method رها کردن است تا exposed bone طی ۲ تا ۴ هفته slough off شود.
-رد ب: اگر bone file استفاده شود، flap نباید elevated شود چون exposed bone را زیاد می‌کند.
-رد ج: packing با Surgicel برای bleeding persistent است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: اگر projection irritation زیادی نداشته باشد، preferred method رها کردن است تا exposed bone طی ۲ تا ۴ هفته slough off شود.
+رد ب: اگر bone file استفاده شود، flap نباید elevated شود چون exposed bone را زیاد می‌کند.
+رد ج: packing با Surgicel برای bleeding persistent است.
 رد د: این وضعیت mandibular fracture نیست.',
                     ],
                     [
@@ -1071,10 +1071,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'توصیه به blowing nose برای حفظ drainage',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: در chronic sinus disease، حتی small oroantral communications ممکن است poorly heal و به chronic communication/fistula برسند؛ referral برای definitive care توصیه می‌شود.
-رد ب: اطمینان از healing خودبه‌خود در chronic sinusitis خلاف متن است.
-رد ج: probing contraindicated است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: در chronic sinus disease، حتی small oroantral communications ممکن است poorly heal و به chronic communication/fistula برسند؛ referral برای definitive care توصیه می‌شود.
+رد ب: اطمینان از healing خودبه‌خود در chronic sinusitis خلاف متن است.
+رد ج: probing contraindicated است.
 رد د: blowing nose از sinus precautions منع می‌شود.',
                     ],
                     [
@@ -1086,10 +1086,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'curettage کامل periosteum برای جلوگیری از ankylosis',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: اگر bone هنوز به periosteum متصل است، باید بافت نرم و bone با ابزار کوچک از tooth dissect شود، tooth خارج و flap/bone reapproximated و sutured شوند تا ridge form بهتر حفظ شود.
-رد الف: دور انداختن قطعه متصل به periosteum نتیجه ridge را بدتر می‌کند.
-رد ج: ادامه traction ممکن است قطعه را همراه tooth خارج کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: اگر bone هنوز به periosteum متصل است، باید بافت نرم و bone با ابزار کوچک از tooth dissect شود، tooth خارج و flap/bone reapproximated و sutured شوند تا ridge form بهتر حفظ شود.
+رد الف: دور انداختن قطعه متصل به periosteum نتیجه ridge را بدتر می‌کند.
+رد ج: ادامه traction ممکن است قطعه را همراه tooth خارج کند.
 رد د: curettage periosteum برای جلوگیری از ankylosis در این بخش مطرح نیست.',
                     ],
                     [
@@ -1101,10 +1101,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فقط برای dressing dry socket به کار می‌رود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: oxidized regenerated cellulose مثل Surgicel بهتر pack می‌شود و coagulation را بهتر از gelatin sponge promote می‌کند، اما packing آن تقریباً همیشه delayed socket healing ایجاد می‌کند و برای bleeding persistent رزرو می‌شود.
-رد ب: متن ارزان‌ترین ماده را gelatin sponge می‌داند و delayed healing برای cellulose ذکر شده است.
-رد ج: friable شدن در wet state مربوط به gelatin sponge است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: oxidized regenerated cellulose مثل Surgicel بهتر pack می‌شود و coagulation را بهتر از gelatin sponge promote می‌کند، اما packing آن تقریباً همیشه delayed socket healing ایجاد می‌کند و برای bleeding persistent رزرو می‌شود.
+رد ب: متن ارزان‌ترین ماده را gelatin sponge می‌داند و delayed healing برای cellulose ذکر شده است.
+رد ج: friable شدن در wet state مربوط به gelatin sponge است.
 رد د: Surgicel برای bleeding socket است، نه dry socket dressing.',
                     ],
                     [
@@ -1116,10 +1116,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'چون collagen plug گران است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: متن می‌گوید در آسیب lingual یا inferior alveolar nerves، referral prompt لازم است چون repair زودتر شانس full recovery را بهتر می‌کند.
-رد ب: dressing dry socket موضوع جداگانه‌ای است.
-رد ج: rebound hemorrhage به infiltration epinephrine در secondary bleeding مربوط است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: متن می‌گوید در آسیب lingual یا inferior alveolar nerves، referral prompt لازم است چون repair زودتر شانس full recovery را بهتر می‌کند.
+رد ب: dressing dry socket موضوع جداگانه‌ای است.
+رد ج: rebound hemorrhage به infiltration epinephrine در secondary bleeding مربوط است.
 رد د: قیمت collagen plug دلیل referral عصبی نیست.',
                     ],
                     [
@@ -1131,10 +1131,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'هدف حذف sinus precautions است و socket نباید irrigate شود.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: درمان dry socket تنها برای pain relief در دوره healing است و healing را تسریع نمی‌کند؛ socket باید gently saline irrigated شود و نباید curetted down to bare bone شود.
-رد ب: curettage خشن exposed bone و pain را افزایش می‌دهد و healing را تسریع نمی‌کند.
-رد ج: flap closure under tension به dehiscence مربوط است و هدف dry socket نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: درمان dry socket تنها برای pain relief در دوره healing است و healing را تسریع نمی‌کند؛ socket باید gently saline irrigated شود و نباید curetted down to bare bone شود.
+رد ب: curettage خشن exposed bone و pain را افزایش می‌دهد و healing را تسریع نمی‌کند.
+رد ج: flap closure under tension به dehiscence مربوط است و هدف dry socket نیست.
 رد د: irrigation gently با saline بخشی از درمان است و sinus precautions موضوع OAC است.',
                     ],
                     [
@@ -1146,10 +1146,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ecchymosis زیرپوستی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: leakage of fluids from mouth into nose شکایت معمول persistent oroantral communication/fistula است.
-رد ب: luxation adjacent tooth با mobility/displacement دندان مجاور همراه است.
-رد ج: fracture mandible با fracture reduction/stabilization مرتبط است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: leakage of fluids from mouth into nose شکایت معمول persistent oroantral communication/fistula است.
+رد ب: luxation adjacent tooth با mobility/displacement دندان مجاور همراه است.
+رد ج: fracture mandible با fracture reduction/stabilization مرتبط است.
 رد د: ecchymosis bruising soft tissue است، نه عبور مایع به بینی.',
                     ],
                     [
@@ -1161,10 +1161,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'discharge بیمار قبل از بررسی socket پس از ۳۰ دقیقه',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درستی: primary bleeding با atraumatic surgery، clean incisions، soft tissue gentle، smoothing/removing spicules، curettage مناسب و یافتن arterial bleeding کنترل می‌شود.
-رد الف: crushed tissue بیشتر ooze می‌کند.
-رد ج: curettage در نزدیکی sinus یا inferior alveolar canal باید defer شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درستی: primary bleeding با atraumatic surgery، clean incisions، soft tissue gentle، smoothing/removing spicules، curettage مناسب و یافتن arterial bleeding کنترل می‌شود.
+رد الف: crushed tissue بیشتر ooze می‌کند.
+رد ج: curettage در نزدیکی sinus یا inferior alveolar canal باید defer شود.
 رد د: surgeon نباید بیمار را پیش از hemostasis و بررسی حدود ۳۰ دقیقه‌ای socket مرخص کند.',
                     ],
                     [
@@ -1176,10 +1176,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'prevention اصلی عفونت، بستن wound تحت tension برای حذف drainage است.',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: infection بعد از routine extraction نادر است؛ antibiotics برای average healthy patient بعد از routine extraction معمولاً لازم نیست و پیشگیری اصلی adherence به اصول surgery، asepsis و debridement است؛ در host-defense depressed patients ممکن است prophylaxis قبل از عمل لازم شود.
-رد ب: متن routine postoperative antibiotics را برای همه بیماران تأیید نمی‌کند.
-رد ج: signs infection شامل fever، increased swelling، reddening skin، foul taste، worsening pain در ۳ تا ۴ روز و معمولاً purulence است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: infection بعد از routine extraction نادر است؛ antibiotics برای average healthy patient بعد از routine extraction معمولاً لازم نیست و پیشگیری اصلی adherence به اصول surgery، asepsis و debridement است؛ در host-defense depressed patients ممکن است prophylaxis قبل از عمل لازم شود.
+رد ب: متن routine postoperative antibiotics را برای همه بیماران تأیید نمی‌کند.
+رد ج: signs infection شامل fever، increased swelling، reddening skin، foul taste، worsening pain در ۳ تا ۴ روز و معمولاً purulence است.
 رد د: closure under tension عامل dehiscence است و drainage را هم مختل می‌کند.',
                     ],
                     [
@@ -1191,10 +1191,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'پیگیری healing در چند هفته',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: probing از socket به sinus ممکن است membrane را lacerate کند یا foreign material/bacteria وارد sinus کند و contraindicated است.
-رد ب: تشکیل clot خوب در small communication توصیه می‌شود.
-رد ج: sinus precautions برای جلوگیری از dislodgment clot لازم است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: probing از socket به sinus ممکن است membrane را lacerate کند یا foreign material/bacteria وارد sinus کند و contraindicated است.
+رد ب: تشکیل clot خوب در small communication توصیه می‌شود.
+رد ج: sinus precautions برای جلوگیری از dislodgment clot لازم است.
 رد د: follow-up برای اطمینان از healing توصیه شده است.',
                     ],
                     [
@@ -1206,10 +1206,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'قابلیت sealing کامل dressing تحت فشار در همه موارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: tissues دهان و فک highly vascular هستند و extraction wound باز در soft tissue/bone باقی می‌گذارد؛ این‌ها hemostasis را دشوار می‌کنند.
-رد ب: متن می‌گوید salivary enzymes ممکن است clot را lyse کنند، نه اینکه کامل کاهش یابند.
-رد ج: زبان می‌تواند clot را dislodge کند یا negative pressure ایجاد کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: tissues دهان و فک highly vascular هستند و extraction wound باز در soft tissue/bone باقی می‌گذارد؛ این‌ها hemostasis را دشوار می‌کنند.
+رد ب: متن می‌گوید salivary enzymes ممکن است clot را lyse کنند، نه اینکه کامل کاهش یابند.
+رد ج: زبان می‌تواند clot را dislodge کند یا negative pressure ایجاد کند.
 رد د: متن می‌گوید apply dressing با pressure/sealing کافی تقریباً impossible است.',
                     ],
                     [
@@ -1221,10 +1221,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تجویز decongestant nasal spray',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: خون‌ریزی از foramen استخوانی کوچک را می‌توان با crushing foramen با انتهای بسته hemostat کنترل کرد.
-رد ب: arch bar برای این نوع bleeding مطرح نیست.
-رد ج: excision وسیع flap خطر tension/dehiscence دارد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: خون‌ریزی از foramen استخوانی کوچک را می‌توان با crushing foramen با انتهای بسته hemostat کنترل کرد.
+رد ب: arch bar برای این نوع bleeding مطرح نیست.
+رد ج: excision وسیع flap خطر tension/dehiscence دارد.
 رد د: nasal spray برای OAC/sinusitis prevention است.',
                     ],
                     [
@@ -1236,10 +1236,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'nasal spray و sinus precautions بدون socket management',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: standard local control برای secondary bleeding استفاده از absorbable gelatin sponge با topical thrombin، secured with figure-of-eight stitch و reinforced با small damp gauze pressure است.
-رد ب: buccal flap closure برای OAC است، نه bleeding socket standard.
-رد ج: eugenol iodoform dressing برای dry socket است و clot intact نباید بی‌جهت حذف شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: standard local control برای secondary bleeding استفاده از absorbable gelatin sponge با topical thrombin، secured with figure-of-eight stitch و reinforced با small damp gauze pressure است.
+رد ب: buccal flap closure برای OAC است، نه bleeding socket standard.
+رد ج: eugenol iodoform dressing برای dry socket است و clot intact نباید بی‌جهت حذف شود.
 رد د: nasal spray/sinus precautions بدون socket management خون‌ریزی را کنترل نمی‌کند.',
                     ],
                     [
@@ -1251,10 +1251,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'برداشتن تمام sutures و رها کردن wound under tension',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درستی: اگر local measures مؤثر نباشند، باید hemostatic defect جدی بررسی شود و consultation با hematologist و screening tests مطرح است.
-رد ب: discharge بدون کنترل hemostasis خلاف متن است.
-رد ج: straw negative pressure ایجاد و bleeding را بدتر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درستی: اگر local measures مؤثر نباشند، باید hemostatic defect جدی بررسی شود و consultation با hematologist و screening tests مطرح است.
+رد ب: discharge بدون کنترل hemostasis خلاف متن است.
+رد ج: straw negative pressure ایجاد و bleeding را بدتر می‌کند.
 رد د: wound تحت tension و رهاسازی sutures درمان hemostasis نیست.',
                     ],
                 ],
@@ -1285,8 +1285,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'وقوع numbness به‌دلیل ریسک ذاتی درمان، وقتی بیمار پیش از عمل درباره آن حق انتخاب داشته است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: در فصل، dentist برای inherent risk در نبود negligence مسئول نیست، اما اگر آسیب ناشی از negligence باشد یا بیمار پیش از عمل از خطر numbness آگاه نشده باشد، liability مطرح می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: در فصل، dentist برای inherent risk در نبود negligence مسئول نیست، اما اگر آسیب ناشی از negligence باشد یا بیمار پیش از عمل از خطر numbness آگاه نشده باشد، liability مطرح می‌شود.
 دلیل رد گزینه‌های غلط: الف: این حالت دقیقاً نمونه ریسک ذاتیِ درمان با consent و بدون negligence است، نه عامل افزایش مسئولیت.؛ ج: ثبت و پیگیری منظم، از دید risk management رفتار مناسب است و به‌خودی‌خود مسئولیت را افزایش نمی‌دهد.؛ د: وقتی بیمار از ریسک ذاتی آگاه شده و حق انتخاب داشته، مبنای liability ناشی از informed consent کاهش می‌یابد.',
                     ],
                     [
@@ -1298,8 +1298,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'بازنویسی کل note در پایان هفته و حذف نسخه اولیه برای جلوگیری از ابهام',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل تأکید می‌کند اصلاح با یک خط روی اطلاعات حذف‌شده، افزودن اطلاعات درست، تاریخ و initial انجام شود و هیچ بخش پرونده دور ریخته یا محو نشود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل تأکید می‌کند اصلاح با یک خط روی اطلاعات حذف‌شده، افزودن اطلاعات درست، تاریخ و initial انجام شود و هیچ بخش پرونده دور ریخته یا محو نشود.
 دلیل رد گزینه‌های غلط: الف: erasure یا پاک‌کردن، با ممنوعیت obliterate/erase/alter در فصل ناسازگار است.؛ ج: discard کردن بخشی از پرونده صریحاً منع شده است.؛ د: حذف نسخه اولیه و بازنویسی بعدی می‌تواند alteration تلقی شود و دفاع قانونی را تضعیف کند.',
                     ],
                     [
@@ -1311,8 +1311,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ریسکی ذکر شود که دندان‌پزشک شخصاً احتمال وقوع آن را زیاد ارزیابی کرده باشد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: طبق فصل، material risk یعنی جنبه‌ای که یک reasonable person در ارزیابی انجام یا عدم انجام درمان به آن significance می‌دهد، حتی اگر عرف حرفه همیشه آن را مطرح نکند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: طبق فصل، material risk یعنی جنبه‌ای که یک reasonable person در ارزیابی انجام یا عدم انجام درمان به آن significance می‌دهد، حتی اگر عرف حرفه همیشه آن را مطرح نکند.
 دلیل رد گزینه‌های غلط: الف: فصل می‌گوید در material risk، customary بودن در حرفه کافی نیست.؛ ج: material بودن الزاماً مساوی شایع‌بودن آماری نیست.؛ د: معیار، صرفاً برداشت شخصی دندان‌پزشک نیست، بلکه اهمیت آن برای تصمیم بیمار reasonable است.',
                     ],
                     [
@@ -1324,8 +1324,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ادامه درمان تا پایان طرح درمان، حتی اگر ادامه noncompliance نتیجه قابل‌قبول را ناممکن کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل مراحل termination را شامل مستندسازی رفتارها، هشدار، نامه رسمی، فرصت معمول 30 تا 45 روز، تداوم emergency care و پیشنهاد ارسال کپی سوابق می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل مراحل termination را شامل مستندسازی رفتارها، هشدار، نامه رسمی، فرصت معمول 30 تا 45 روز، تداوم emergency care و پیشنهاد ارسال کپی سوابق می‌داند.
 دلیل رد گزینه‌های غلط: الف: قطع فوری و نگه‌داشتن پرونده، خلاف توصیه فصل و زمینه‌ساز abandonment است.؛ ج: ارجاع شفاهی بدون مستندسازی، حمایت قانونی لازم را ایجاد نمی‌کند.؛ د: فصل اجازه termination منطقی را با طی مراحل مناسب می‌دهد؛ ادامه اجباری درمان در هر شرایطی مطرح نشده است.',
                     ],
                     [
@@ -1337,8 +1337,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'Causation',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: در فصل آمده که برای موفقیت دعوای malpractice باید actual damage، جسمی یا روانی، نشان داده شود؛ revenge یا اختلاف پرداخت بدون damage کافی نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: در فصل آمده که برای موفقیت دعوای malpractice باید actual damage، جسمی یا روانی، نشان داده شود؛ revenge یا اختلاف پرداخت بدون damage کافی نیست.
 دلیل رد گزینه‌های غلط: الف: Duty به وجود رابطه حرفه‌ای مربوط است، نه اثبات آسیب.؛ ب: Breach به عدم رعایت standard of care مربوط است.؛ د: Causation ارتباط علت و معلولی بین breach و injury را می‌سنجد؛ وقتی injury اثبات نشده، مسئله اصلی damages است.',
                     ],
                     [
@@ -1350,8 +1350,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'غیرفعال‌کردن tracking نرم‌افزار هنگام اصلاح برای حفظ محرمانگی داخلی',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل توصیه می‌کند در electronic records، تغییر لازم به‌صورت addendum جداگانه وارد شود، چون forensic computer science و tracking می‌تواند تغییرات را آشکار کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل توصیه می‌کند در electronic records، تغییر لازم به‌صورت addendum جداگانه وارد شود، چون forensic computer science و tracking می‌تواند تغییرات را آشکار کند.
 دلیل رد گزینه‌های غلط: الف: تغییر مستقیم note اولیه با اصل عدم alteration ناسازگار است.؛ ج: حذف نسخه قبلی همان مشکل دورریزی/alteration را ایجاد می‌کند.؛ د: tracking برای اعتبار و حفاظت record اهمیت دارد و غیرفعال‌کردن آن در فصل توصیه نشده است.',
                     ],
                     [
@@ -1363,8 +1363,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فقط وقتی مجاز است که complication محتمل نباشد و درمان elective باشد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل می‌گوید staff یا ویدئو می‌توانند در process کمک کنند، اما دندان‌پزشک نمی‌تواند کل مسئولیت را delegate کند و باید با بیمار گفتگو کند و در دسترس پرسش‌ها باشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل می‌گوید staff یا ویدئو می‌توانند در process کمک کنند، اما دندان‌پزشک نمی‌تواند کل مسئولیت را delegate کند و باید با بیمار گفتگو کند و در دسترس پرسش‌ها باشد.
 دلیل رد گزینه‌های غلط: الف: مسئولیت کامل consent قابل واگذاری نیست.؛ ج: ویدئو بخشی از فرایند اطلاع‌رسانی پیش از consent است، نه الزاماً بعد از امضا.؛ د: محدود به نبود complication یا elective بودن نشده است.',
                     ],
                     [
@@ -1376,8 +1376,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'بیمار می‌پذیرد که هزینه عوارض آینده مستقل از علت آن‌ها به عهده شرکت بیمه خواهد بود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل می‌گوید revised consent باید آگاهی بیمار از noncompliance، تأثیر آن بر سلامت/نتیجه، و ادامه درمان بدون تضمین نتیجه acceptable و با پذیرش مسئولیت بیمار را منعکس کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل می‌گوید revised consent باید آگاهی بیمار از noncompliance، تأثیر آن بر سلامت/نتیجه، و ادامه درمان بدون تضمین نتیجه acceptable و با پذیرش مسئولیت بیمار را منعکس کند.
 دلیل رد گزینه‌های غلط: الف: فصل waiver مطلق مسئولیت در صورت negligence تکنیکی را مطرح نمی‌کند.؛ ج: revised consent برای ادامه درمان در همان office مطرح است، نه الزاماً خروج کامل دندان‌پزشک.؛ د: بحث فصل درباره بیمه یا انتقال هزینه به insurance نیست.',
                     ],
                     [
@@ -1389,8 +1389,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'Therapeutic privilege ناشی از حذف عمدی اطلاعات از consent',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل تبلیغات یا وعده‌هایی را که به‌صورت تضمین نتیجه فهمیده شوند، زمینه breach of contract/warranty و trade practice claims می‌داند؛ مثال painless یا bloodless surgery آورده شده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل تبلیغات یا وعده‌هایی را که به‌صورت تضمین نتیجه فهمیده شوند، زمینه breach of contract/warranty و trade practice claims می‌داند؛ مثال painless یا bloodless surgery آورده شده است.
 دلیل رد گزینه‌های غلط: ب: Failure to diagnose مربوط به تشخیص‌ندادن یا پیگیری‌نکردن مشکل است.؛ ج: Patient abandonment به termination نامناسب رابطه درمانی مربوط است.؛ د: Therapeutic privilege استثنای نادر در informed consent است، نه وعده تبلیغاتی.',
                     ],
                     [
@@ -1402,8 +1402,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ارجاع مجدد شفاهی و سپس شروع درمان برای حفظ رابطه درمانی',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: فصل تصریح می‌کند refusal بیمار برای مراجعه به specialist، دندان‌پزشک را از liability ناشی از درمان فراتر از scope of training/expertise رها نمی‌کند؛ اگر درمان در توان او نیست نباید انجام دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: فصل تصریح می‌کند refusal بیمار برای مراجعه به specialist، دندان‌پزشک را از liability ناشی از درمان فراتر از scope of training/expertise رها نمی‌کند؛ اگر درمان در توان او نیست نباید انجام دهد.
 دلیل رد گزینه‌های غلط: الف: متن فصل خلاف این را می‌گوید.؛ ب: امضای refusal به‌تنهایی مجوز درمان خارج از competence نیست.؛ د: ارجاع شفاهی و شروع درمان همچنان مشکل scope و documentation را حل نمی‌کند.',
                     ],
                     [
@@ -1415,8 +1415,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'هزینه نهایی، زمان انتظار، و راه‌های شکایت بیمه‌ای، بدون بحث درباره alternative treatments',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل آموزش بیمار را شامل اطلاعات کافی درباره proposed treatment، alternatives، risks، benefits و limitations هر گزینه و بیان layperson language می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل آموزش بیمار را شامل اطلاعات کافی درباره proposed treatment، alternatives، risks، benefits و limitations هر گزینه و بیان layperson language می‌داند.
 دلیل رد گزینه‌های غلط: ب: تأکید فصل بر understandable و layperson language است، نه جزئیات فنی خام.؛ ج: حذف risk/complication با informed consent و realistic expectations ناسازگار است.؛ د: اطلاعات اداری جایگزین بحث درمان، alternatives و risks نیست.',
                     ],
                     [
@@ -1428,8 +1428,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'امضای فرم consent توسط بیمار بالغ و شاهد در پرونده',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل از کودکان/زیر سن majority، fraudulent concealment و باقی‌ماندن nontherapeutic foreign object مثل broken burr یا file به‌عنوان عوامل extend شدن statute of limitations نام می‌برد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل از کودکان/زیر سن majority، fraudulent concealment و باقی‌ماندن nontherapeutic foreign object مثل broken burr یا file به‌عنوان عوامل extend شدن statute of limitations نام می‌برد.
 دلیل رد گزینه‌های غلط: الف: پرداخت هزینه به‌عنوان عامل تمدید در متن فصل نیامده است.؛ ج: مستندسازی کامل، عامل risk reduction است نه تمدید limitation.؛ د: consent معتبر نیز عامل تمدید limitation معرفی نشده است.',
                     ],
                     [
@@ -1441,8 +1441,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'این وضعیت همان therapeutic privilege است و باید از بیمار پنهان بماند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل می‌گوید در emergency یا management فوری complication که delay باعث harm بیشتر می‌شود، complete informed consent یا consent اختصاصی جدید ممکن است لازم نباشد و درمان باید proceed کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل می‌گوید در emergency یا management فوری complication که delay باعث harm بیشتر می‌شود، complete informed consent یا consent اختصاصی جدید ممکن است لازم نباشد و درمان باید proceed کند.
 دلیل رد گزینه‌های غلط: الف: توقف درمان در چنین شرایطی با توصیه فصل ناسازگار است.؛ ج: فصل واگذاری تصمیم به staff را مطرح نمی‌کند.؛ د: therapeutic privilege بحث متفاوت و نادر است و به پنهان‌کاری complication فوری تقلیل نمی‌یابد.',
                     ],
                     [
@@ -1454,7 +1454,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'پرداخت نکردن هزینه درمان قبلی توسط بیمار و درخواست دریافت record',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل درست بودن: طبق فصل، duty معمولاً با dentist-patient relationship ایجاد می‌شود؛ این رابطه با acceptance یا شروع درمان و گاهی به‌طور خودکار در on-call emergency شکل می‌گیرد.',
                     ],
                     [
@@ -1466,8 +1466,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'پس از تکمیل prosthetic treatment، چون sensory recovery به درمان ترمیمی وابسته است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل توصیه می‌کند در بیشتر موارد، اگر significant improvement دیده نشود، referral برای nerve injury نباید دیرتر از 3 ماه پس از injury انجام شود، چون تأخیر زیاد effectiveness درمان را محدود می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل توصیه می‌کند در بیشتر موارد، اگر significant improvement دیده نشود، referral برای nerve injury نباید دیرتر از 3 ماه پس از injury انجام شود، چون تأخیر زیاد effectiveness درمان را محدود می‌کند.
 دلیل رد گزینه‌های غلط: الف: متن فصل عدد ۲ هفته را به‌عنوان قاعده عمومی نمی‌دهد.؛ ج: انتظار تا مهلت قانونی کاملاً خلاف هدف early referral است.؛ د: ارتباطی با prosthetic treatment در این context مطرح نشده است.',
                     ],
                     [
@@ -1479,8 +1479,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'Communication، rapport، insurance approval، written brochure',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل چهار عنصر malpractice را duty، breach of duty، damages و causation می‌داند و burden اولیه اثبات با plaintiff است که باید بیش از 50٪ شواهد را نشان دهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل چهار عنصر malpractice را duty، breach of duty، damages و causation می‌داند و burden اولیه اثبات با plaintiff است که باید بیش از 50٪ شواهد را نشان دهد.
 دلیل رد گزینه‌های غلط: ب: این‌ها ابزارها یا بخش‌هایی از risk management هستند، نه عناصر قانونی malpractice.؛ ج: این‌ها اجزای clinical/administrative care هستند، نه چهار عنصر claim.؛ د: ارتباط و بیمه در ریسک نقش دارند، اما عناصر اثبات malpractice نیستند.',
                     ],
                     [
@@ -1492,8 +1492,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'جایگزین‌کردن consent کتبی با بروشور تصویری، بدون امضای بیمار و witness',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل تأکید می‌کند اگر بیمار انگلیسی نمی‌خواند یا صحبت نمی‌کند، presentation و written consent باید به زبان spoken بیمار ارائه شود و این موضوع documented گردد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل تأکید می‌کند اگر بیمار انگلیسی نمی‌خواند یا صحبت نمی‌کند، presentation و written consent باید به زبان spoken بیمار ارائه شود و این موضوع documented گردد.
 دلیل رد گزینه‌های غلط: الف: امضای فرم نامفهوم، informed بودن consent را تضمین نمی‌کند.؛ ج: ثبت زبان و فهم بیمار بخشی از حفاظت medicolegal است.؛ د: بروشور/ویدئو جای direct consent و امضای مناسب را نمی‌گیرد.',
                     ],
                     [
@@ -1505,8 +1505,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'چون poor records نشان می‌دهد patient consent هرگز نمی‌تواند معتبر باشد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید poor documentation از شایع‌ترین مشکلات دفاع است؛ record باید نشان دهد چه کاری و چرا انجام شده، و نبود آن به attorney فرصت ادعای substandard care می‌دهد و recall را دشوار می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید poor documentation از شایع‌ترین مشکلات دفاع است؛ record باید نشان دهد چه کاری و چرا انجام شده، و نبود آن به attorney فرصت ادعای substandard care می‌دهد و recall را دشوار می‌کند.
 دلیل رد گزینه‌های غلط: ب: فصل automatic breach را بیان نمی‌کند؛ اما دفاع را آسیب‌پذیر می‌کند.؛ ج: چنین اثر زمانی در فصل ذکر نشده است.؛ د: هر record ضعیف الزاماً consent را باطل نمی‌کند، هرچند اثبات آن را سخت می‌کند.',
                     ],
                     [
@@ -1518,8 +1518,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ارجاع بیمار به specialist بدون توضیح، چون disclosure می‌تواند admission of negligence تلقی شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل مثال می‌زند قبل از remove کردن دندان دیگر یا alarm کردن بیمار و والدین، باید با orthodontist درباره اثر بر نتیجه و modifications تماس گرفت و سپس بیمار/والدین را مطلع کرد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل مثال می‌زند قبل از remove کردن دندان دیگر یا alarm کردن بیمار و والدین، باید با orthodontist درباره اثر بر نتیجه و modifications تماس گرفت و سپس بیمار/والدین را مطلع کرد.
 دلیل رد گزینه‌های غلط: الف: ادامه extraction بدون مشاوره با orthodontist خلاف توصیه فصل است.؛ ج: عدم disclosure complication با اصول فصل در مدیریت complications ناسازگار است.؛ د: ارجاع بدون توضیح، outline management و اطلاع‌رسانی لازم را تأمین نمی‌کند.',
                     ],
                     [
@@ -1531,8 +1531,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'هر protocol نوشته‌شده توسط شرکت بیمه در زمان approval درمان',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: فصل standard of care را common denominator می‌داند؛ care باید حداقل با آنچه average practitioners در شرایط مشابه به‌طور معمول انجام می‌دهند هم‌خوان باشد، نه highest level یا صرفاً آموزه مدرسه.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: فصل standard of care را common denominator می‌داند؛ care باید حداقل با آنچه average practitioners در شرایط مشابه به‌طور معمول انجام می‌دهند هم‌خوان باشد، نه highest level یا صرفاً آموزه مدرسه.
 دلیل رد گزینه‌های غلط: الف: فصل صریحاً می‌گوید standard obligate به آنچه در dental school تدریس می‌شود نیست.؛ ب: highest skill معیار نیست.؛ د: insurance protocol معیار standard of care نیست و managed care نباید قضاوت professional را جایگزین کند.',
                     ],
                     [
@@ -1544,8 +1544,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'اخذ امضا روی فرم عمومی رضایت، بدون ذکر risk of refusal',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید بیمار حق دارد خطرات رد درمان را بداند و informed refusal و تلاش برای اطلاع‌رسانی از پیامدها باید در chart مستند شود؛ برای عدم مراجعه نیز نامه هشدار و نسخه آن در chart نگهداری شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید بیمار حق دارد خطرات رد درمان را بداند و informed refusal و تلاش برای اطلاع‌رسانی از پیامدها باید در chart مستند شود؛ برای عدم مراجعه نیز نامه هشدار و نسخه آن در chart نگهداری شود.
 دلیل رد گزینه‌های غلط: ب: حذف پیشنهاد درمان با documentation مناسب و صداقت پرونده در تضاد است.؛ ج: درمان جایگزین باید با limitations و risks توضیح داده شود.؛ د: فرم عمومی بدون risk of refusal هدف informed refusal را برآورده نمی‌کند.',
                     ],
                     [
@@ -1557,8 +1557,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'لغو دائمی پرونده بدون اطلاع به referring dentist برای اجتناب از liability',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل می‌گوید specialist باید بیماران referred را دقیق evaluate کند؛ در تردید باید با referring dentist تماس بگیرد و هر تغییر treatment plan باید در هر دو chart و با approval بیمار مستند شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل می‌گوید specialist باید بیماران referred را دقیق evaluate کند؛ در تردید باید با referring dentist تماس بگیرد و هر تغییر treatment plan باید در هر دو chart و با approval بیمار مستند شود.
 دلیل رد گزینه‌های غلط: الف: اعتماد کور به slip، زمینه wrong tooth litigation است.؛ ج: chief complaint به‌تنهایی کافی نیست و ممکن است با plan تخصصی متفاوت باشد.؛ د: لغو بدون communication و documentation، مشکل را حل نمی‌کند.',
                     ],
                     [
@@ -1570,8 +1570,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'Risk disclosure، anesthesia، postoperative instruction',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل informed consent را شامل سه phase می‌داند: informing، written consent و documentation در patient’s chart.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل informed consent را شامل سه phase می‌داند: informing، written consent و documentation در patient’s chart.
 دلیل رد گزینه‌های غلط: الف: این‌ها عناصر مراقبت هستند اما سه phase consent نیستند.؛ ج: بروشور و ویدئو ابزار کمک‌کننده‌اند، نه سه مرحله اصلی.؛ د: این‌ها بعضی محتواهای consent و care هستند، نه ساختار سه‌مرحله‌ای.',
                     ],
                     [
@@ -1583,8 +1583,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'Deceptive trade practice',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید درمان بدون informed consent مناسب می‌تواند battery تلقی شود، یعنی لمس عمدی شخص بدون رضایت او.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید درمان بدون informed consent مناسب می‌تواند battery تلقی شود، یعنی لمس عمدی شخص بدون رضایت او.
 دلیل رد گزینه‌های غلط: ب: Causation عنصر ارتباط breach با injury است.؛ ج: Statute of limitations به مهلت طرح دعوا مربوط است.؛ د: Deceptive trade practice بیشتر با تبلیغات/ضمانت‌های گمراه‌کننده مرتبط است.',
                     ],
                     [
@@ -1596,8 +1596,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تا زمانی که بیمار درخواست original chart کند و آن را تحویل بگیرد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل می‌گوید دوره نگهداری records بین 3 تا 10 سال متغیر است، در Dental Practice Act هر state یافت می‌شود و باید تا زمانی که patient بتواند sue کند نگهداری شود؛ در minors limitation از age of majority شروع می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل می‌گوید دوره نگهداری records بین 3 تا 10 سال متغیر است، در Dental Practice Act هر state یافت می‌شود و باید تا زمانی که patient بتواند sue کند نگهداری شود؛ در minors limitation از age of majority شروع می‌شود.
 دلیل رد گزینه‌های غلط: الف: عدد ثابت ۲ سال در فصل نیامده است.؛ ج: تسویه مالی معیار نگهداری قانونی record نیست.؛ د: original record متعلق و تحت تکلیف office است و به بیمار داده نمی‌شود.',
                     ],
                     [
@@ -1609,8 +1609,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'دریافت نکردن توضیح درباره complications برای کاهش anxiety',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل بارها تأکید می‌کند بیماران با reasonable expectations و رابطه favorable با dentist کمتر sue می‌کنند و complications را بیشتر تحمل می‌کنند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل بارها تأکید می‌کند بیماران با reasonable expectations و رابطه favorable با dentist کمتر sue می‌کنند و complications را بیشتر تحمل می‌کنند.
 دلیل رد گزینه‌های غلط: الف: انتظار غیرواقعی و communication ضعیف از عوامل problem هستند.؛ ج: insurance approval جای professional judgment و informed consent را نمی‌گیرد.؛ د: حذف توضیح درباره complications، informed consent را ضعیف می‌کند.',
                     ],
                     [
@@ -1622,8 +1622,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فرایندی است که فقط برای minors و legal guardians استفاده می‌شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل therapeutic privilege را عدم ارائه کامل اطلاعات به‌دلیل harm احتمالی به بیمار می‌داند، اما آن را controversial و در routine oral surgical/dental procedures نادر معرفی می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل therapeutic privilege را عدم ارائه کامل اطلاعات به‌دلیل harm احتمالی به بیمار می‌داند، اما آن را controversial و در routine oral surgical/dental procedures نادر معرفی می‌کند.
 دلیل رد گزینه‌های غلط: الف: فصل تأکید می‌کند کاربرد routine ندارد.؛ ج: به staff یا حذف دلخواه risks مربوط نیست.؛ د: موضوع minors و guardians جداگانه در امضای consent مطرح می‌شود.',
                     ],
                     [
@@ -1635,8 +1635,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تعداد کارکنان حاضر در ساختمان در روز درمان',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل از postoperative instructions/orders، warnings مربوط به lack of compliance، missed appointments و موارد مشابه به‌عنوان داده‌های اغلب فراموش‌شده ولی مهم در chart نام می‌برد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل از postoperative instructions/orders، warnings مربوط به lack of compliance، missed appointments و موارد مشابه به‌عنوان داده‌های اغلب فراموش‌شده ولی مهم در chart نام می‌برد.
 دلیل رد گزینه‌های غلط: الف: رنگ اتاق جزو داده‌های patient-care در فصل نیست.؛ ج: سازنده صندلی در فهرست documentation نیامده است.؛ د: تعداد کارکنان ساختمان جزء اطلاعات ضروری/overlooked ذکر نشده است.',
                     ],
                     [
@@ -1648,8 +1648,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'اگر بیمار فرم consent را امضا کند، standard of care دیگر بررسی نمی‌شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل standard را سطح common denominator می‌داند و بیان می‌کند که dentist ملزم به درمان در بالاترین سطح skilled dentist یا آنچه در school آموزش داده شده نیست، بلکه باید care قابل‌قبول average practitioner را رعایت کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل standard را سطح common denominator می‌داند و بیان می‌کند که dentist ملزم به درمان در بالاترین سطح skilled dentist یا آنچه در school آموزش داده شده نیست، بلکه باید care قابل‌قبول average practitioner را رعایت کند.
 دلیل رد گزینه‌های غلط: الف: عدم الزام به highest level به معنی نبود حداقل استاندارد نیست.؛ ج: پذیرش بیمار درمان خارج از standard را مجاز نمی‌کند.؛ د: consent جای رعایت standard of care را نمی‌گیرد.',
                     ],
                     [
@@ -1661,8 +1661,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'اگر درمان oral surgery باشد، امضای staff به جای guardian کافی است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل می‌گوید برای minors، parent یا legal guardian باید informed consent را امضا کند؛ برخی states اجازه امضای minor married یا pregnant را می‌دهند، اما dentist باید local regulations را verify کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل می‌گوید برای minors، parent یا legal guardian باید informed consent را امضا کند؛ برخی states اجازه امضای minor married یا pregnant را می‌دهند، اما dentist باید local regulations را verify کند.
 دلیل رد گزینه‌های غلط: الف: عمومیت ندارد و خلاف متن است.؛ ج: witness جای guardian را نمی‌گیرد.؛ د: staff نمی‌تواند به جای guardian consent بدهد.',
                     ],
                     [
@@ -1674,8 +1674,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'Written consent',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل در causation می‌گوید باید نشان داده شود failure to provide standard care علت injury بوده؛ اگر اتفاقی بین درمان و آسیب رخ دهد، ممکن است ارتباط dentist care با injury وجود نداشته باشد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل در causation می‌گوید باید نشان داده شود failure to provide standard care علت injury بوده؛ اگر اتفاقی بین درمان و آسیب رخ دهد، ممکن است ارتباط dentist care با injury وجود نداشته باشد.
 دلیل رد گزینه‌های غلط: الف: Duty به وجود رابطه درمانی مربوط است.؛ ج: Damages به وجود آسیب واقعی مربوط است، نه ارتباط علت و معلولی.؛ د: Written consent عنصر چهارگانه claim نیست، هرچند در liability نقش دارد.',
                     ],
                     [
@@ -1687,8 +1687,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'چون اختلاف مالی statute of limitations را متوقف می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل تصریح می‌کند بیمارِ ناراضی از revenge یا payment dispute، بدون actual physical/mental damages نمی‌تواند malpractice case موفقی داشته باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل تصریح می‌کند بیمارِ ناراضی از revenge یا payment dispute، بدون actual physical/mental damages نمی‌تواند malpractice case موفقی داشته باشد.
 دلیل رد گزینه‌های غلط: ب: هر اختلاف مالی الزاماً breach of warranty نیست.؛ ج: پایان duty صرفاً با پرداخت هزینه تعریف نشده است.؛ د: چنین اثر قانونی بر statute در فصل ذکر نشده است.',
                     ],
                     [
@@ -1700,8 +1700,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'حذف audit trail برای جلوگیری از سوءبرداشت attorney',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل electronic records را معتبر می‌داند وقتی درست generated, stored, protected شوند و به user identification، passwords و security measures برای حفاظت از integrity اشاره می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل electronic records را معتبر می‌داند وقتی درست generated, stored, protected شوند و به user identification، passwords و security measures برای حفاظت از integrity اشاره می‌کند.
 دلیل رد گزینه‌های غلط: الف: دسترسی آزاد با حفاظت از records ناسازگار است.؛ ج: فصل نگهداری ناامن روی وسیله شخصی را توصیه نمی‌کند.؛ د: audit/tracking mechanisms بخشی از شفافیت و اعتبار سیستم هستند، نه چیزی برای حذف.',
                     ],
                     [
@@ -1713,8 +1713,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'duty فقط پس از billing رسمی ایجاد می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل ذکر می‌کند accepting a patient می‌تواند automatically occur، مانند زمانی که dentist on call for emergencies است و patient برای care ارائه می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل ذکر می‌کند accepting a patient می‌تواند automatically occur، مانند زمانی که dentist on call for emergencies است و patient برای care ارائه می‌شود.
 دلیل رد گزینه‌های غلط: ب: امضای consent معیار آغاز همه dutyها نیست.؛ ج: در شرایط on-call emergency، وضعیت با patient جدید معمولی متفاوت است.؛ د: billing معیار ایجاد رابطه حرفه‌ای در متن فصل نیست.',
                     ],
                     [
@@ -1726,8 +1726,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'جزئیات قرارداد بیمه‌ای office با third-party payer',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل هفت حوزه informed consent را شامل problem، proposed treatment، common side effects، complications/frequency، planned anesthesia/material risks، alternatives و uncertainties/no guarantees می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل هفت حوزه informed consent را شامل problem، proposed treatment، common side effects، complications/frequency، planned anesthesia/material risks، alternatives و uncertainties/no guarantees می‌داند.
 دلیل رد گزینه‌های غلط: ب: فهرست کارکنان جزء هفت حوزه نیست.؛ ج: قوانین malpractice هر state جزء محتوای clinical consent نیست.؛ د: جزئیات قرارداد بیمه‌ای در فهرست هفت‌گانه consent نیامده است.',
                     ],
                     [
@@ -1739,8 +1739,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ارجاع بیمار بدون ثبت complication برای پرهیز از ایجاد evidence',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل می‌گوید در بیشتر instances، dentist باید patient را از complication آگاه کند و proposed management، specific instructions، further treatment و referral به oral-maxillofacial surgeon را در صورت مناسب outline کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل می‌گوید در بیشتر instances، dentist باید patient را از complication آگاه کند و proposed management، specific instructions، further treatment و referral به oral-maxillofacial surgeon را در صورت مناسب outline کند.
 دلیل رد گزینه‌های غلط: الف: پنهان‌کردن complication با توصیه فصل ناسازگار است.؛ ج: alteration record ممنوع و خطرناک است.؛ د: ارجاع بدون documentation و disclosure، اصول management complication را رعایت نمی‌کند.',
                     ],
                     [
@@ -1752,7 +1752,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'sedation overdose، wrong antibiotic، broken suture',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل درست بودن: در آغاز فصل، lawsuits شایع علیه dentists شامل extraction of the wrong tooth، failure to diagnose a problem و lack of proper informed consent معرفی شده‌اند.',
                     ],
                     [
@@ -1764,8 +1764,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'چون اطلاعات مثبت، نیاز به documentation را حذف می‌کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل communication مثبت را بخشی از risk reduction می‌داند؛ بیماران آگاه‌تر expectations واقعی‌تری دارند و process consent می‌تواند dentist-patient rapport را بهبود دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل communication مثبت را بخشی از risk reduction می‌داند؛ بیماران آگاه‌تر expectations واقعی‌تری دارند و process consent می‌تواند dentist-patient rapport را بهبود دهد.
 دلیل رد گزینه‌های غلط: الف: rapport در فصل cornerstone risk management معرفی شده است.؛ ج: مشکل defensive بودن به حذف اجباری risk از فرم مربوط نیست.؛ د: حتی گفتگو و informational package باید documented شود.',
                     ],
                     [
@@ -1777,8 +1777,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فقط زمانی مطرح است که record electronic باشد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل پس از توضیح نحوه صحیح correction می‌گوید در برخی states، altering records با intent to deceive felony است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل پس از توضیح نحوه صحیح correction می‌گوید در برخی states، altering records با intent to deceive felony است.
 دلیل رد گزینه‌های غلط: ب: addendum روش صحیح اصلاح است؛ altering فریبکارانه متفاوت است.؛ ج: فصل آن را پیامد جدی می‌داند.؛ د: حکم کلی درباره records است و منحصر به electronic نیست.',
                     ],
                     [
@@ -1790,8 +1790,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'اینکه patient هیچ سؤال احتمالی در آینده نخواهد داشت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید وقتی dentist discussion خاصی با patient دارد یا informational package می‌دهد، باید در chart document شود؛ این اطلاعات بعداً هنگام complication قابل مرور است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید وقتی dentist discussion خاصی با patient دارد یا informational package می‌دهد، باید در chart document شود؛ این اطلاعات بعداً هنگام complication قابل مرور است.
 دلیل رد گزینه‌های غلط: ب: حضور در appointment کافی نیست.؛ ج: billing جای documentation clinical/educational را نمی‌گیرد.؛ د: نمی‌توان عدم سؤال آینده را فرض یا ثبت کرد؛ بیمار باید opportunity to ask questions داشته باشد.',
                     ],
                 ],
@@ -1822,8 +1822,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'اعلام اینکه coverage بیمه‌ای معیار اصلی تصمیم درمانی است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل برای appeal letter چهار عنصر می‌آورد: diagnosis و recommended treatment، clinical indications، risks/complications عدم درمان، و statement نادرست‌بودن denial چون cost limitation نباید judgement را مختل کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل برای appeal letter چهار عنصر می‌آورد: diagnosis و recommended treatment، clinical indications، risks/complications عدم درمان، و statement نادرست‌بودن denial چون cost limitation نباید judgement را مختل کند.
 دلیل رد گزینه‌های غلط: ب: قطع care یا حذف از plan موضوع نامه appeal نیست.؛ ج: compromised treatment نیازمند اطلاع‌رسانی risks/limitations و consent است، نه انجام بدون consent.؛ د: فصل می‌گوید درمان نباید بر پایه insurance plan coverage تعیین شود.',
                     ],
                     [
@@ -1835,8 +1835,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'بحث طولانی با attorney مقابل برای اصلاح برداشت او از پرونده',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: فصل در توصیه‌های deposition بر فهم کامل سؤال، پاسخ کوتاه و توقف، و عدم speculation یا guess کردن تأکید دارد؛ lawsuit در deposition برده نمی‌شود ولی می‌تواند باخته شود.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: فصل در توصیه‌های deposition بر فهم کامل سؤال، پاسخ کوتاه و توقف، و عدم speculation یا guess کردن تأکید دارد؛ lawsuit در deposition برده نمی‌شود ولی می‌تواند باخته شود.
 دلیل رد گزینه‌های غلط: الف: سرعت بدون فهم کامل می‌تواند خطرناک باشد.؛ ب: never guess و عدم speculation صریحاً توصیه شده است.؛ د: بحث غیرضروری و anger display باید اجتناب شود.',
                     ],
                     [
@@ -1848,8 +1848,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'الزام بیماران به آوردن interpreter خانوادگی برای هر visit',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل برای LEP language group کمتر از 100 نفر، written notice به primary language درباره حق دریافت competent oral translation را ذکر می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل برای LEP language group کمتر از 100 نفر، written notice به primary language درباره حق دریافت competent oral translation را ذکر می‌کند.
 دلیل رد گزینه‌های غلط: ب: ترجمه vital documents مربوط به threshold پنج درصد یا 1000 نفر است.؛ ج: ترجمه written materials در primary language مربوط به threshold ده درصد یا 3000 نفر است.؛ د: تشویق بیماران به آوردن interpreter خودشان غیرقانونی معرفی شده است.',
                     ],
                     [
@@ -1861,8 +1861,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'office می‌تواند درخواست signer را رد کند اگر practice کوچک باشد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید hearing-impaired patients حق درخواست signer دارند؛ dental office باید آن را فراهم کند و cost signer باید توسط office پرداخت شود، نه patient.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید hearing-impaired patients حق درخواست signer دارند؛ dental office باید آن را فراهم کند و cost signer باید توسط office پرداخت شود، نه patient.
 دلیل رد گزینه‌های غلط: ب: تأمین را بر عهده office می‌گذارد.؛ ج: فصل می‌گوید written communication برای بسیاری از بیماران hearing-impaired ممکن است مؤثر نباشد.؛ د: ADA به professional office health care به‌عنوان public accommodation صرف‌نظر از size اعمال می‌شود.',
                     ],
                     [
@@ -1874,8 +1874,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'رمز عبور staff؛ امضای بیمار؛ ارسال claim الکترونیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل این سه را چنین تعریف می‌کند: confidentiality یعنی privacy، integrity یعنی اطلاعات improperly altered/destroyed نشود، و availability یعنی برای authorized persons accessible and usable باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل این سه را چنین تعریف می‌کند: confidentiality یعنی privacy، integrity یعنی اطلاعات improperly altered/destroyed نشود، و availability یعنی برای authorized persons accessible and usable باشد.
 دلیل رد گزینه‌های غلط: ب: این‌ها تعریف‌های امنیتی HIPAA در فصل نیستند.؛ ج: این‌ها عناصر clinical record هستند نه CIA در security rule.؛ د: این‌ها ابزار یا اقدامات منفردند، نه تعریف سه مفهوم.',
                     ],
                     [
@@ -1887,8 +1887,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'صبر تا پایان orthodontic treatment و سپس بررسی پیامد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید برخی experts توصیه می‌کنند اگر wrong tooth removal بلافاصله بعد از extraction فهمیده شد، tooth دوباره در fresh socket قرار گیرد و مانند recently avulsed tooth مدیریت شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید برخی experts توصیه می‌کنند اگر wrong tooth removal بلافاصله بعد از extraction فهمیده شد، tooth دوباره در fresh socket قرار گیرد و مانند recently avulsed tooth مدیریت شود.
 دلیل رد گزینه‌های غلط: ب: دورانداختن و پنهان‌کردن با اصول disclosure/documentation ناسازگار است.؛ ج: implant فوری بدون disclosure و plan مناسب در فصل مطرح نشده است.؛ د: انتظار تا پایان درمان، اقدام فوری پیشنهادی را از دست می‌دهد.',
                     ],
                     [
@@ -1900,8 +1900,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'telemedicine در dentistry هیچ duty جدیدی ایجاد نمی‌کند و نیازی به disclaimer ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید در general، courts یافته‌اند practitioners باید در ایالتی که patient consultation را initiate می‌کند licensed باشند و قوانین همان jurisdiction apply می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید در general، courts یافته‌اند practitioners باید در ایالتی که patient consultation را initiate می‌کند licensed باشند و قوانین همان jurisdiction apply می‌شود.
 دلیل رد گزینه‌های غلط: ب: محل server در متن فصل معیار معرفی نشده است.؛ ج: فصل می‌گوید رابطه ممکن است clouded/implicit شود و قواعد روشن نیستند.؛ د: فصل از new duties/liability concerns و ضرورت disclaimer در advice عمومی سخن می‌گوید.',
                     ],
                     [
@@ -1913,8 +1913,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'نگهداری فقط نسخه کاغذی برای خروج کامل از HIPAA',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل سه اقدام compliance را ذکر می‌کند: notice of privacy practices، consent برای release اطلاعات لازم جهت business practice، و آموزش/به‌روزرسانی staff درباره privacy/confidentiality.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل سه اقدام compliance را ذکر می‌کند: notice of privacy practices، consent برای release اطلاعات لازم جهت business practice، و آموزش/به‌روزرسانی staff درباره privacy/confidentiality.
 دلیل رد گزینه‌های غلط: ب: privacy laws استفاده/افشای اطلاعات برای treatment, payment, operations را با consent اجازه می‌دهند.؛ ج: additional uses/disclosures نیازمند consent جداگانه‌اند.؛ د: HIPAA فقط به الکترونیک محدود نیست و covered entities را در writing/electronically شامل می‌شود.',
                     ],
                     [
@@ -1926,8 +1926,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'دندان‌پزشک هیچ قرارداد یا privileges مرتبط با hospital ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل liability under EMTALA را برای dentist در دو حالت می‌پذیرد: on call بودن و ارسال بیمار از hospital به office برای facility مناسب، یا پذیرش duties در contract/bylaws hospital.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل liability under EMTALA را برای dentist در دو حالت می‌پذیرد: on call بودن و ارسال بیمار از hospital به office برای facility مناسب، یا پذیرش duties در contract/bylaws hospital.
 دلیل رد گزینه‌های غلط: ب: فصل می‌گوید چنین threat معمولاً unfounded است و باید statutory authority خواسته شود.؛ ج: این حالت به‌خودی‌خود EMTALA duty توصیف نشده است.؛ د: نبود contract/privileges و on-call status احتمال EMTALA applicability را کاهش می‌دهد.',
                     ],
                     [
@@ -1939,8 +1939,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'اینکه smoking فقط در صورت malpractice اهمیت قانونی دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید در implant complications/failure باید reconstruction/long-term outcome، hygiene و follow-up دقیق، و اثر detrimental habits مانند smoking توضیح و documented شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید در implant complications/failure باید reconstruction/long-term outcome، hygiene و follow-up دقیق، و اثر detrimental habits مانند smoking توضیح و documented شود.
 دلیل رد گزینه‌های غلط: ب: implant نیز مانند هر procedure به اطلاع‌رسانی risks/complications نیاز دارد.؛ ج: وقتی implant را dentist دیگر restore می‌کند، customized consent form توصیه شده است.؛ د: smoking به‌عنوان habit مؤثر بر outcome باید explained/documented شود.',
                     ],
                     [
@@ -1952,8 +1952,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'خودداری از ارائه هر نوع record تا پایان lawsuit',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل می‌گوید dental office مالک records است و original records را باید نگه دارد؛ patient entitled به legible copy است و office می‌تواند reimbursement reasonable برای کپی دریافت کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل می‌گوید dental office مالک records است و original records را باید نگه دارد؛ patient entitled به legible copy است و office می‌تواند reimbursement reasonable برای کپی دریافت کند.
 دلیل رد گزینه‌های غلط: الف: پرداخت هزینه درمان ownership بیمار بر originals ایجاد نمی‌کند.؛ ج: destroy/misplace records صریحاً خطرناک و ممنوع است.؛ د: office باید با state law درباره records compliance داشته باشد؛ منع کامل ارائه کپی توصیه نشده است.',
                     ],
                     [
@@ -1965,8 +1965,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'جایگزین‌کردن کامل HIPAA privacy regulations با قوانین managed care',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل HITECH Act 2009 را برای advance health IT، ایجاد incentives برای electronic health records و افزایش حفاظت اطلاعات electronically transmitted با تقویت HIPAA معرفی می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل HITECH Act 2009 را برای advance health IT، ایجاد incentives برای electronic health records و افزایش حفاظت اطلاعات electronically transmitted با تقویت HIPAA معرفی می‌کند.
 دلیل رد گزینه‌های غلط: ب: paperless بودن consent را حذف نمی‌کند؛ electronic signatures معتبرند.؛ ج: risk analysis همچنان تحت Security Rule لازم است.؛ د: HITECH جایگزین HIPAA privacy نمی‌شود؛ آن را تقویت می‌کند.',
                     ],
                     [
@@ -1978,8 +1978,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'در صورتی مجاز است که patient از Medicare استفاده نکند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل صریحاً می‌گوید encouraging patients from language minority groups to provide their own interpreters به‌عنوان alternative به bilingual employees/interpreters غیرقانونی است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل صریحاً می‌گوید encouraging patients from language minority groups to provide their own interpreters به‌عنوان alternative به bilingual employees/interpreters غیرقانونی است.
 دلیل رد گزینه‌های غلط: الف: متن فصل خلاف این را می‌گوید.؛ ج: تفکیک consent و history در این حکم بیان نشده است.؛ د: الزامات LEP به practices receiving federal financial assistance مربوط است، نه این شرط خاص در گزینه.',
                     ],
                     [
@@ -1991,8 +1991,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'حذف درمان ضروری تا وقتی TMJ symptoms کاملاً ناپدید شوند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل توصیه می‌کند اگر care ضروری ممکن است TMJ condition را worsen کند، customized consent form drafted and signed شود و problem، options و authorization برای proceed را روشن کند.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل توصیه می‌کند اگر care ضروری ممکن است TMJ condition را worsen کند، customized consent form drafted and signed شود و problem، options و authorization برای proceed را روشن کند.
 دلیل رد گزینه‌های غلط: الف: حذف TMJ risk با informed consent سازگار نیست.؛ ج: ارجاع به attorney بیمار در متن فصل برای این وضعیت مطرح نشده است.؛ د: در حالت dire need، مدیریت با consent سفارشی مطرح است، نه حذف قطعی care.',
                     ],
                     [
@@ -2004,8 +2004,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تقریباً هیچ موردی به trial نمی‌رود و آمار پیروزی بیان نشده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل برای کاهش anxiety ناشی از ناشناخته‌ها می‌گوید فقط حدود 10٪ cases به trial می‌روند و dentists بیش از 80٪ این cases را می‌برند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل برای کاهش anxiety ناشی از ناشناخته‌ها می‌گوید فقط حدود 10٪ cases به trial می‌روند و dentists بیش از 80٪ این cases را می‌برند.
 دلیل رد گزینه‌های غلط: ب: اعداد با متن فصل مغایرند.؛ ج: برعکس آمار فصل است.؛ د: فصل آمار مشخص ارائه می‌کند.',
                     ],
                     [
@@ -2017,8 +2017,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فقط پس از وقوع breach و دریافت شکایت بیمار انجام می‌شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: فصل risk analysis را ongoing process می‌داند که شامل track access to e-PHI، detect security incidents، periodic evaluation of security measures و reevaluation risks است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: فصل risk analysis را ongoing process می‌داند که شامل track access to e-PHI، detect security incidents، periodic evaluation of security measures و reevaluation risks است.
 دلیل رد گزینه‌های غلط: الف: ongoing است نه one-time.؛ ج: staff/workforce compliance و security official و procedures نیز مطرح‌اند.؛ د: فقط reactive پس از breach نیست؛ پیشگیرانه و مستمر است.',
                     ],
                     [
@@ -2030,8 +2030,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'صبر تا biopsy malignancy را ثابت کند و سپس تکمیل chart',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید clinician باید initial diagnosis را chart کند یا consultation از specialist بخواهد؛ اگر lesion resolve شد، آن را ثبت کند و اگر referral شد، progress و درمان موفق را follow-up/document کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید clinician باید initial diagnosis را chart کند یا consultation از specialist بخواهد؛ اگر lesion resolve شد، آن را ثبت کند و اگر referral شد، progress و درمان موفق را follow-up/document کند.
 دلیل رد گزینه‌های غلط: ب: نداشتن documentation/follow-up همان مشکل اصلی failure to diagnose است.؛ ج: referring clinician باید پیگیری progress را document کند.؛ د: صبر تا malignancy اثبات شود، risk litigation را افزایش می‌دهد.',
                     ],
                     [
@@ -2043,8 +2043,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             '$50,000 ثابت',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: Table 12.1 فصل برای Willful neglect corrected مقدار per violation را $10,000 تا $50,000 و سقف identical provision را $1.5 million نشان می‌دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: Table 12.1 فصل برای Willful neglect corrected مقدار per violation را $10,000 تا $50,000 و سقف identical provision را $1.5 million نشان می‌دهد.
 دلیل رد گزینه‌های غلط: الف: این بازه برای Did not know است.؛ ب: این بازه برای Reasonable cause است.؛ د: $50,000 ثابت برای Willful neglect not corrected آمده است.',
                     ],
                     [
@@ -2056,8 +2056,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'professional judgment باید با decision اداری plan جایگزین شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل از statement ADA نقل می‌کند که contract obligations دندان‌پزشک را از ethical duty برای قرار دادن welfare بیمار در اولویت معاف نمی‌کند و cost demands نباید informed choice، professional judgment یا referral را مختل کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل از statement ADA نقل می‌کند که contract obligations دندان‌پزشک را از ethical duty برای قرار دادن welfare بیمار در اولویت معاف نمی‌کند و cost demands نباید informed choice، professional judgment یا referral را مختل کند.
 دلیل رد گزینه‌های غلط: ب: متن فصل دقیقاً عدم interference با حق انتخاب patient را بیان می‌کند.؛ ج: referral indicated نباید تحت فشار plan کنار رود.؛ د: professional judgment نباید توسط cost-containment pressures مختل شود.',
                     ],
                     [
@@ -2069,8 +2069,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'هر مترجمی که فقط مدرک رسمی national accreditation داشته باشد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل تعریف ADA را می‌آورد: کسی که بتواند effectively، accurately و impartially، both receptively and expressively، با specialized vocabulary لازم تفسیر کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل تعریف ADA را می‌آورد: کسی که بتواند effectively، accurately و impartially، both receptively and expressively، با specialized vocabulary لازم تفسیر کند.
 دلیل رد گزینه‌های غلط: ب: خانواده ممکن است گاهی qualified باشد، اما سن/اعتماد به‌تنهایی کافی نیست و emotional/confidentiality issues ممکن است مانع شود.؛ ج: چند واژه عمومی برای informed consent کافی نیست.؛ د: فصل می‌گوید interpreters لازم نیست حتماً specially accredited باشند.',
                     ],
                     [
@@ -2082,8 +2082,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'چون پذیرش authority باعث می‌شود attorney بیمار نماینده insurance شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید اگر clinician author/text را authoritative بداند، ممکن است با هرچه آن author گفته و با رفتار یا نظر clinician ناسازگار است impeached شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید اگر clinician author/text را authoritative بداند، ممکن است با هرچه آن author گفته و با رفتار یا نظر clinician ناسازگار است impeached شود.
 دلیل رد گزینه‌های غلط: ب: در complex cases review textbook ممکن است مفید باشد، اما باید attorney مشورت شود.؛ ج: فصل چنین ممنوعیت مطلقی بیان نمی‌کند.؛ د: این گزینه به ساختار litigation ارتباطی ندارد.',
                     ],
                     [
@@ -2095,8 +2095,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فقط زمانی duty ایجاد می‌شود که consultation با videoconferencing انجام شود',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: فصل می‌گوید jurisdictions اختلاف دارند: یک court physician consultant تلفنی را فاقد duty به patient دانست، اما court دیگر در consultation تلفنی on-call physician که emergency physician به آن relied کرده بود relationship را implied دانست.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: فصل می‌گوید jurisdictions اختلاف دارند: یک court physician consultant تلفنی را فاقد duty به patient دانست، اما court دیگر در consultation تلفنی on-call physician که emergency physician به آن relied کرده بود relationship را implied دانست.
 دلیل رد گزینه‌های غلط: الف: فصل حکم همیشگی ایجاد duty نمی‌دهد.؛ ب: حکم مطلق عدم duty با مثال دوم فصل مغایر است.؛ د: فصل بحث را به videoconferencing محدود نکرده است.',
                     ],
                     [
@@ -2108,8 +2108,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فراهم‌کردن signer برای hearing-impaired patients در dental office',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل چهار duty EMTALA را شامل medical screening در emergency department، تعیین emergency medical condition، stabilization پیش از transfer/discharge، و transfer فقط وقتی benefits outweigh risks می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل چهار duty EMTALA را شامل medical screening در emergency department، تعیین emergency medical condition، stabilization پیش از transfer/discharge، و transfer فقط وقتی benefits outweigh risks می‌داند.
 دلیل رد گزینه‌های غلط: ب: این موضوع به ACA/insurance مربوط است و EMTALA duty نیست.؛ ج: EMTALA برای جلوگیری از dumping و transfer پیش از stabilization است.؛ د: signer موضوع ADA است، نه EMTALA.',
                     ],
                     [
@@ -2121,8 +2121,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فقط patients و family members که به records دسترسی دارند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل privacy regulations را برای covered entities شامل health plans، health care clearinghouses و health care providers که اطلاعات health را in writing یا electronically transmit می‌کنند، و practiceهایی که third parties برای electronic claims دارند، می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل privacy regulations را برای covered entities شامل health plans، health care clearinghouses و health care providers که اطلاعات health را in writing یا electronically transmit می‌کنند، و practiceهایی که third parties برای electronic claims دارند، می‌داند.
 دلیل رد گزینه‌های غلط: ب: فصل dentists/health care providers را نیز شامل می‌کند.؛ ج: استفاده از third-party processor نیز مشمول می‌شود.؛ د: patients/family به‌عنوان covered entities در این بخش نیامده‌اند.',
                     ],
                     [
@@ -2134,8 +2134,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'شروع surgery بدون documentation چون radiograph خودبه‌خود کافی است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید چون nerve injuries known complication هستند و بیمار حق پذیرش risks دارد، اگر conditions افزایش‌دهنده risk قابل visualize باشد، باید بیمار advised شود و condition documented گردد؛ مثال relation IAN به third molar است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید چون nerve injuries known complication هستند و بیمار حق پذیرش risks دارد، اگر conditions افزایش‌دهنده risk قابل visualize باشد، باید بیمار advised شود و condition documented گردد؛ مثال relation IAN به third molar است.
 دلیل رد گزینه‌های غلط: ب: known complication بودن دلیل حذف اطلاع‌رسانی نیست.؛ ج: waiver attorney در فصل مطرح نشده است.؛ د: radiograph بدون documentation و patient advisement کافی دانسته نشده است.',
                     ],
                     [
@@ -2147,8 +2147,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'زیرا storage off premises جایگزین تمام risk analysisها می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید almost half of data breaches ناشی از theft است؛ devices unencrypted ریسک را بالا می‌برند، بنابراین داده‌ها باید safely stored off premises باشند تا device stolen حاوی e-PHI نباشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید almost half of data breaches ناشی از theft است؛ devices unencrypted ریسک را بالا می‌برند، بنابراین داده‌ها باید safely stored off premises باشند تا device stolen حاوی e-PHI نباشد.
 دلیل رد گزینه‌های غلط: ب: فصل توصیه به encryption یا destruction mechanism می‌کند.؛ ج: electronic records در صورت حفاظت مناسب معتبرند.؛ د: off-premises storage فقط یک risk-reduction measure است، نه جایگزین risk analysis.',
                     ],
                     [
@@ -2160,8 +2160,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'نامه به specialist برای انجام درمان compromised بدون consent patient',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید یکی از دو document لازم، نامه به patient است که treatment recommended اما payment denied شده را رد کرده؛ در آن reconsideration، concern نسبت به consequences و urge to appeal به plan administrators آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید یکی از دو document لازم، نامه به patient است که treatment recommended اما payment denied شده را رد کرده؛ در آن reconsideration، concern نسبت به consequences و urge to appeal به plan administrators آمده است.
 دلیل رد گزینه‌های غلط: ب: قطع coverage موضوع فصل نیست.؛ ج: فرم مورد بحث باید diagnosis، treatment، risks عدم درمان و امکان payment از own funds را روشن کند، نه فقط محدودیت مالی office.؛ د: compromised treatment بدون consent patient توصیه نمی‌شود.',
                     ],
                     [
@@ -2173,8 +2173,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فقط dental schools و مراکز آموزشی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید ADA به places of public accommodation اعمال می‌شود و professional office of a health care professional مشخصاً در این category است؛ قانون به health care offices irrespective of size اعمال می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید ADA به places of public accommodation اعمال می‌شود و professional office of a health care professional مشخصاً در این category است؛ قانون به health care offices irrespective of size اعمال می‌شود.
 دلیل رد گزینه‌های غلط: ب: بیمارستان emergency مربوط به EMTALA است، نه دامنه عمومی ADA.؛ ج: federal financial assistance بیشتر در Title VI/LEP مطرح است.؛ د: متن فصل ADA را به dental schools محدود نمی‌کند.',
                     ],
                     [
@@ -2186,8 +2186,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'مستندسازی threat و گزارش فوری به malpractice carrier',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن: سؤال رفتار نادرست را می‌خواهد: فصل می‌گوید بعد از threat یا suit، dentist/staff نباید case را با patient/representative discuss کنند، نباید argue کنند، fault/liability admit کنند یا agree to waive fees، چون می‌تواند admission of negligence شود.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن: سؤال رفتار نادرست را می‌خواهد: فصل می‌گوید بعد از threat یا suit، dentist/staff نباید case را با patient/representative discuss کنند، نباید argue کنند، fault/liability admit کنند یا agree to waive fees، چون می‌تواند admission of negligence شود.
 دلیل رد گزینه‌های غلط: الف: این رفتار درست است، نه رفتار اجتنابی.؛ ج: ارائه کپی خوانا طبق قانون درست است.؛ د: documentation و report immediate به carrier توصیه شده است.',
                     ],
                     [
@@ -2199,8 +2199,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فقط حذف امکان تماس تلفنی با practice کافی است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌پرسد آیا advice الکترونیک برای general information است؛ اگر چنین است، prominent disclaimer باید پیش از ادامه interaction posted and acknowledged شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌پرسد آیا advice الکترونیک برای general information است؛ اگر چنین است، prominent disclaimer باید پیش از ادامه interaction posted and acknowledged شود.
 دلیل رد گزینه‌های غلط: ب: فصل ایجاد duty را clouded و وابسته به شرایط می‌داند.؛ ج: upload charts خطر privacy/security دارد.؛ د: حذف تماس تلفنی موضوع disclaimer general advice را حل نمی‌کند.',
                     ],
                     [
@@ -2212,8 +2212,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ارسال اطلاعات به هر insurance یا third party بدون محدودیت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل تصریح می‌کند privacy laws اجازه use/disclose health information برای treatment، payment و health care operations را می‌دهند؛ uses/disclosures اضافی separate consent می‌خواهد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل تصریح می‌کند privacy laws اجازه use/disclose health information برای treatment، payment و health care operations را می‌دهند؛ uses/disclosures اضافی separate consent می‌خواهد.
 دلیل رد گزینه‌های غلط: ب: advertising عمومی با اطلاعات identifiable جزو TPO نیست و consent جداگانه می‌خواهد.؛ ج: انتشار identifiable در website در متن مجاز عمومی نیست.؛ د: ارسال نامحدود به هر third party با requirement separate consent برای uses اضافی ناسازگار است.',
                     ],
                     [
@@ -2225,8 +2225,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'وقتی patient informed consent برای referral دریافت کرده و refusal او chart می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید failure to refer برای complicated treatments not routinely performed یا delayed referral برای management complication frequently becomes basis for litigation.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید failure to refer برای complicated treatments not routinely performed یا delayed referral برای management complication frequently becomes basis for litigation.
 دلیل رد گزینه‌های غلط: ب: written report specialist رفتار مناسب است.؛ ج: discussion برای رفع هزینه و completion treatment به‌عنوان کمک در patient management آمده است.؛ د: chart کردن refusal بخشی از مدیریت مناسب referral است.',
                     ],
                     [
@@ -2238,8 +2238,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فقط تهیه بروشور تبلیغاتی به زبان‌های مختلف بدون staff training',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل برنامه written language assistance را شامل assessment زبان‌های احتمالی و منابع، policy دسترسی زبانی برای interpreters/translation/signs، و آموزش staff در LEP procedures و کار با interpreters می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل برنامه written language assistance را شامل assessment زبان‌های احتمالی و منابع، policy دسترسی زبانی برای interpreters/translation/signs، و آموزش staff در LEP procedures و کار با interpreters می‌داند.
 دلیل رد گزینه‌های غلط: ب: اتکا به خانواده و نبود برنامه رسمی با فصل ناسازگار است.؛ ج: فرم انگلیسی بدون translation/interpretation کافی نیست.؛ د: brochure تبلیغاتی جای policy و staff training را نمی‌گیرد.',
                     ],
                     [
@@ -2251,8 +2251,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'عدم تحویل originals و آماده‌کردن legible copies مطابق law',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن: فصل پس از threat تأکید می‌کند هیچ addition، deletion یا change از هر نوع در dental record نباید انجام شود و clinician باید قبل از هر clarification entry legal advice بگیرد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن: فصل پس از threat تأکید می‌کند هیچ addition، deletion یا change از هر نوع در dental record نباید انجام شود و clinician باید قبل از هر clarification entry legal advice بگیرد.
 دلیل رد گزینه‌های غلط: الف: این رفتار صریحاً توصیه شده است.؛ ب: مشورت قانونی پیش از clarification توصیه فصل است.؛ د: حفظ originals و ارائه copies مطابق قانون درست است.',
                     ],
                     [
@@ -2264,8 +2264,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ممنوعیت تمام compromised treatment plans در بیماران insured',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید ACA همه Americans را ملزم به medical insurance coverage می‌کرد؛ initially dental coverage برای pediatric patients در ACA plans لازم بود، اما در بیشتر states relaxed/eliminated شد و adults الزام به dental insurance ندارند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید ACA همه Americans را ملزم به medical insurance coverage می‌کرد؛ initially dental coverage برای pediatric patients در ACA plans لازم بود، اما در بیشتر states relaxed/eliminated شد و adults الزام به dental insurance ندارند.
 دلیل رد گزینه‌های غلط: ب:  adults no requirement to obtain dental insurance دارند.؛ ج: فصل می‌گوید اگر dental insurance موجود باشد همان managed care decision-making situations apply می‌شود.؛ د: compromised plans ممنوع مطلق نیستند، اما باید risks/limitations و optimal options توضیح داده شوند.',
                     ],
                     [
@@ -2277,8 +2277,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'از medical screening تا stabilization پیش از transfer',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید obligation provider برای auxiliary aids ممکن است از کمک ساده به بیمار برای قرارگرفتن در chair تا فراهم‌کردن qualified signers برای hearing-impaired patients گسترده باشد.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید obligation provider برای auxiliary aids ممکن است از کمک ساده به بیمار برای قرارگرفتن در chair تا فراهم‌کردن qualified signers برای hearing-impaired patients گسترده باشد.
 دلیل رد گزینه‌های غلط: ب: این‌ها به managed care مربوط‌اند.؛ ج: این‌ها به HIPAA Security/Risk management مربوط‌اند.؛ د: این‌ها EMTALA duties هستند.',
                     ],
                     [
@@ -2290,8 +2290,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ارسال عمومی اطلاعات به website practice برای transparency',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل می‌گوید اگر access to health information breached باشد و compromise مطرح شود، covered entity باید affected individual را از breach notify کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل می‌گوید اگر access to health information breached باشد و compromise مطرح شود، covered entity باید affected individual را از breach notify کند.
 دلیل رد گزینه‌های غلط: ب: انتظار و سکوت با requirement notification ناسازگار است.؛ ج: حذف logs خلاف track/detect و risk management است.؛ د: انتشار عمومی اطلاعات protected خود breach را تشدید می‌کند.',
                     ],
                     [
@@ -2303,8 +2303,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'وابسته فقط به تصمیم insurance plan',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: Summary می‌گوید clinician باید کیفیت care و advice را document کند، اما قانون چنین تلاش‌هایی را reasonable می‌خواهد، نه perfect.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: Summary می‌گوید clinician باید کیفیت care و advice را document کند، اما قانون چنین تلاش‌هایی را reasonable می‌خواهد، نه perfect.
 دلیل رد گزینه‌های غلط: ب: متن فصل perfect بودن را لازم نمی‌داند.؛ ج: rapport مهم است ولی documentation لازم باقی می‌ماند.؛ د: insurance plan معیار سطح تلاش قانونی نیست.',
                     ],
                     [
@@ -2316,8 +2316,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'او فقط برای تعیین premium malpractice insurance حضور دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل در توصیه ششم deposition می‌گوید advice وکیل باید دنبال شود؛ حتی اگر توسط insurance company retained شده باشد، attorney ملزم است interests clinician را نمایندگی کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل در توصیه ششم deposition می‌گوید advice وکیل باید دنبال شود؛ حتی اگر توسط insurance company retained شده باشد، attorney ملزم است interests clinician را نمایندگی کند.
 دلیل رد گزینه‌های غلط: ب: متن فصل خلاف این را بیان می‌کند.؛ ج: deponent باید پاسخ دهد، اما با advice counsel.؛ د: نقش deposition counsel تعیین premium نیست.',
                     ],
                     [
@@ -2329,8 +2329,8 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'انتظار برای شکایت بیمار و سپس اصلاح documentation',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن: فصل برای پیشگیری از wrong tooth litigation می‌گوید هویت tooth/teeth باید با clinical/radiographic examination و written instructions یا discussion با referring dentist confirm شود؛ اختلاف opinions باید به patient/referring dentist گفته و documented شود و follow-up letter می‌تواند کمک کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن: فصل برای پیشگیری از wrong tooth litigation می‌گوید هویت tooth/teeth باید با clinical/radiographic examination و written instructions یا discussion با referring dentist confirm شود؛ اختلاف opinions باید به patient/referring dentist گفته و documented شود و follow-up letter می‌تواند کمک کند.
 دلیل رد گزینه‌های غلط: ب: گفته بیمار به‌تنهایی برای identity confirmation کافی نیست.؛ ج: ترتیب یا متن referral بدون verification ریسک communication breakdown را بالا می‌برد.؛ د: اصلاح دیرهنگام documentation پس از complaint با اصول record integrity ناسازگار است.',
                     ],
                 ],
@@ -3359,7 +3359,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تکنسین برای تعیین طرح درمان، جراح برای انتخاب رنگ پروتز، و دندان‌پزشک ترمیمی برای آماده‌سازی فلپ',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: فصل درمان ایمپلنت را وابسته به رویکرد هماهنگ جراح، دندان‌پزشک restorative/prosthetic و تکنسین لابراتوار می‌داند. رد گزینه‌ها: ب نقش‌ها را جابه‌جا کرده و طراحی اکلوژن و استئوتومی را به افراد نامتناسب نسبت می‌دهد؛ ج جایگذاری fixture و ساخت framework را با نقش‌های متن همخوان نمی‌کند؛ د تعیین طرح درمان و انتخاب رنگ را به تکنسین و جراح نسبت می‌دهد که مطابق رویکرد فصل نیست.',
                     ],
                     [
@@ -3371,7 +3371,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'افزایش امکان loading فوری به دلیل کاهش مقاومت استخوان',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: ثبات اولیه به volume و quality استخوان و طول و قطر ایمپلنت وابسته است؛ posterior maxilla با کورتکس نازک و cancellous bone کم‌تراکم، ثبات کمتری می‌دهد و ممکن است healing غیر loaded و two-stage لازم شود. رد گزینه‌ها: الف تماس کمتر با کورتکس capacity را افزایش نمی‌دهد؛ ج کنترل حرارت همچنان ضروری است؛ د loading فوری در چنین ثبات ضعیفی منطقی نیست.',
                     ],
                     [
@@ -3383,7 +3383,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ثبات موقت مکانیکی ایمپلنت تا پیش از تکمیل ترمیم بافت نرم',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: تعریف هیستولوژیک osseointegration اتصال مستقیم structural و functional استخوان زنده سازمان‌یافته به implant surface بدون soft tissue است. رد گزینه‌ها: الف به مخاط و junction اپی‌تلیالی می‌پردازد نه bone-implant interface؛ ج الیاف Sharpey و cementum مربوط به دندان طبیعی است نه ایمپلنت؛ د ثبات موقت مکانیکی تعریف کامل osseointegration نیست.',
                     ],
                     [
@@ -3395,7 +3395,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'کاهش نیاز به sequence اختصاصی دریل‌های سیستم ایمپلنت',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: فصل تأکید می‌کند دمای استخوان باید زیر ۴۷°C بماند؛ فشار و irrigation نامناسب می‌تواند حرارت را بالا برده، bone necrosis و شکست osseointegration ایجاد کند. رد گزینه‌ها: الف irrigation ناکافی دما را کاهش نمی‌دهد؛ ج فیبروز پری‌ایمپلنت هدف درمان نیست؛ د sequence اختصاصی drills همچنان لازم است.',
                     ],
                     [
@@ -3407,7 +3407,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فلپ اپیکالی repositioned برای افزایش بافت attached',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: flapless surgery زمانی مطرح است که keratinized tissue کافی و ridge form ایده‌آل وجود داشته باشد؛ trauma کمتر و esthetics بهتر ایجاد می‌کند و در single stage implant/healing یا provisional restoration قرار می‌گیرد. رد گزینه‌ها: ب برای نیاز به access/visualization بیشتر است؛ ج در narrow keratinized zone برای flap design مطرح می‌شود نه کمترین تروما در anatomy ایده‌آل؛ د برای inadequate attached tissue از تکنیک‌های پیشرفته است.',
                     ],
                     [
@@ -3419,7 +3419,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'احاطه شدن توسط connective tissue فوق کرستال',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: تفاوت اصلی implant با tooth، نبود periodontal ligament و تماس مستقیم با استخوان است؛ این موضوع روی biomechanics، proprioception و prosthetic considerations اثر دارد. رد گزینه‌ها: الف و ج هر دو در اطراف دندان/ایمپلنت وجود دارند و تفاوت اصلی نیستند؛ د supracrestal connective tissue در هر دو interface دیده می‌شود.',
                     ],
                     [
@@ -3431,7 +3431,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'یک ایمپلنت متصل به یک دندان طبیعی به‌عنوان abutment',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: آرایش linear کمترین مزیت biomechanical را دارد؛ آرایش curvilinear یا staggered مقاومت سه‌بعدی بیشتری در برابر torque ناشی از off-center loads ایجاد می‌کند. رد گزینه‌ها: الف دقیقاً آرایش نامطلوب است؛ ج cantilever pontic capacity را کاهش می‌دهد؛ د اتصال implant به tooth به علت تفاوت mobility stress ایجاد می‌کند.',
                     ],
                     [
@@ -3443,7 +3443,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'نیروهای خارج از محور باعث افزایش seal بافت نرم و کاهش تحلیل کرستال می‌شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: loads از محور طولی بهتر تحمل می‌شوند؛ فصل بیان می‌کند off-axis loads در زاویه‌های حدود بیش از ۲۰ درجه می‌توانند load magnification و bone loss را آغاز کنند. رد گزینه‌ها: ب ایمپلنت periodontal ligament ندارد؛ ج direction load پس از integration هم مهم است؛ د off-axis loading seal را تقویت نمی‌کند.',
                     ],
                     [
@@ -3455,7 +3455,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'اتصال به دندان طبیعی، پروتز cantilever، کورتکس نازک، و زمان ترمیم کوتاه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: چهار شرط اصلی فصل برای osseointegration قابل پیش‌بینی شامل biocompatible material، atraumatic surgery، intimate bone contact و immobility در healing است. رد گزینه‌ها: ب شامل عوامل پروتزی یا مخاطی نامربوط و بارگذاری نامطلوب است؛ ج عوامل آسیب‌زا و خطرناک برای integration را فهرست می‌کند؛ د ترکیبی از شرایط biomechanically نامطلوب است.',
                     ],
                     [
@@ -3467,7 +3467,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'شکست رادیوگرافیک ناشی از magnification پانورامیک',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 دلیل: fracture porcelain یا loosening/fracture prosthetic screw در متن به‌عنوان mechanical failure ناشی از بارگذاری نامطلوب مطرح شده‌اند. رد گزینه‌ها: الف مسئله اپی‌تلیال نیست؛ ج contraindication پزشکی را نشان نمی‌دهد؛ د magnification پانورامیک علت این شکست‌ها نیست.',
                     ],
                     [
@@ -3479,7 +3479,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'مستقل از ارتفاع connective tissue فوق کرستال محاسبه می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: zone connective tissue حدود ۱ تا ۲ میلی‌متر ارتفاع دارد؛ بنابراین در implant سالم probing depth حدود ۱ تا ۲ میلی‌متر کمتر از فاصله sulcus تا crest استخوان خواهد بود. رد گزینه‌ها: ب نادیده گرفتن connective tissue zone است؛ ج مقدار اضافه‌شدن ۳ میلی‌متر در فصل نیامده؛ د probing با این zone ارتباط کلینیکی دارد.',
                     ],
                     [
@@ -3491,7 +3491,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فضای موجود جایگزینی screw-retained crown را ناممکن می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: برای cement-retained abutment-supported crown در mandibular first molar حداقل ۸ میلی‌متر interarch space از crest تا opposing occlusal surface لازم است؛ ۷ میلی‌متر کمتر از حداقل است. رد گزینه‌ها: ب bar-retained overdenture به حدود ۱۵ تا ۱۷ میلی‌متر نیاز دارد؛ ج interarch space در crown-implant ratio مهم است؛ د screw-retained crown ممکن است گزینه جایگزین باشد نه ناممکن.',
                     ],
                     [
@@ -3503,7 +3503,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'امکان انتخاب یک abutment از نوع prefabricated attachment',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در partially edentulous patient، prognosis و ارزش پروتزی دندان‌های باقی‌مانده باید تعیین کند که نگهداری یا حذف دندان‌ها منطقی‌تر است. رد گزینه‌ها: ب به انتخاب imaging مربوط است نه تصمیم دندان‌های باقی‌مانده؛ ج calibration پانورامیک جای تصمیم پروتزی را نمی‌گیرد؛ د نوع abutment مربوط به فاز prosthetic است.',
                     ],
                     [
@@ -3515,7 +3515,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تمایل به پروتز نهایی بدون بررسی انتظارات بیمار',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: فصل تفاوت بین بیمار compliant و بیمار با تعهد کم به مراقبت را به‌عنوان عامل مهم در انتخاب complexity درمانی بیان می‌کند. رد گزینه‌ها: ب نبود سابقه درمانی به‌تنهایی معیار مناسب‌بودن نیست؛ ج تعهد کم، ریسک را بالا می‌برد؛ د بررسی انتظارات بیمار بخش کلیدی treatment planning است.',
                     ],
                     [
@@ -3527,7 +3527,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'جایگزینی کامل mounted casts در تحلیل اکلوژن و interarch space',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: CT/CBCT امکان visualizing و measuring ساختارهای critical را در سه محور فراهم می‌کند و planning دقیق‌تر می‌شود. رد گزینه‌ها: ب برعکس، CT/CBCT برای این ارزیابی‌ها مفید است؛ ج magnification در panoramic سنتی متغیر است؛ د casts هنوز برای occlusion و space ارزش دارند.',
                     ],
                     [
@@ -3539,7 +3539,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             '۱۶ میلی‌متر',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 دلیل: دو ایمپلنت ۴ میلی‌متری بین دندان‌ها به ۱.۵ + ۴ + ۳ + ۴ + ۱.۵ = ۱۴ میلی‌متر نیاز دارد. رد گزینه‌ها: الف و ب فاصله root-to-implant و implant-to-implant را کامل تأمین نمی‌کنند؛ د بیش از حداقل محاسبه‌شده در فصل است.',
                     ],
                     [
@@ -3551,7 +3551,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'tissue punch uncovering بدون توجه به موقعیت دندان‌های نهایی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در atrophic maxilla opposing dentate mandible، اختلاف AP ممکن است fixed partial denture معمولی را نامناسب کند؛ hybrid fixed framework-supported یا overdenture قابل استفاده است. رد گزینه‌ها: ب مربوط به single-tooth است؛ ج ترکیب tooth-implant مشکل biomechanical دارد؛ د tissue punch ارتباطی به این تصمیم پروتزی ندارد.',
                     ],
                     [
@@ -3563,7 +3563,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'نیاز بیمار به fixed prosthetic option به‌جای removable option',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: contraindication مطلق بر اساس surgical/anesthetic risk عمدتاً بیماری حاد و metabolic disease کنترل‌نشده است. رد گزینه‌ها: ب عامل soft tissue/esthetic است؛ ج محدودیت anatomic و quality bone است؛ د ترجیح prosthetic مطلقاً contraindication نیست.',
                     ],
                     [
@@ -3575,7 +3575,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             '۳ میلی‌متر posterior به mental foramen برای افزایش AP spread',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: به دلیل anterior loop، implant باید حداقل ۵ میلی‌متر anterior به قدامی‌ترین بخش mental foramen قرار گیرد. رد گزینه‌ها: ب و ج فاصله ایمن را تأمین نمی‌کنند؛ د posterior placement خطر نزدیک شدن به nerve/foramen دارد.',
                     ],
                     [
@@ -3587,7 +3587,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'implant platform باید بدون توجه به lip support در محل ridge موجود قرار گیرد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: prosthetic assessment باید مشخص کند که قرار است tooth تنها، tooth + gingiva، یا bone + gingiva + tooth جایگزین شود؛ این تصمیم طراحی را تغییر می‌دهد. رد گزینه‌ها: ب CBCT ممکن است برای anatomy لازم باشد؛ ج spacing بین implant و root/implant طبق قواعد خود باقی است؛ د lip support و final tooth position مهم هستند.',
                     ],
                     [
@@ -3599,7 +3599,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'برای افزایش keratinized tissue در ناحیه implant platform',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در panoramic سنتی magnification می‌تواند متغیر باشد؛ ball bearing با اندازه واقعی مشخص امکان تخمین magnification موضعی را می‌دهد. رد گزینه‌ها: ب مربوط به retention abutment نیست؛ ج اثری بر حرارت drilling ندارد؛ د بافت کراتینیزه را افزایش نمی‌دهد.',
                     ],
                     [
@@ -3611,7 +3611,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تجویز labial flange برای جبران lip support بدون توجه به شرایط بیمار',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: حذف palatal portion در maxillary overdenture با implant support مناسب، bone quality خوب، و عمق قابل‌قبول buccal vestibule و palatal vault ممکن است. رد گزینه‌ها: ب shallow vestibule/vault ممکن است palatal coverage را برای stability لازم کند؛ ج linear arrangement و AP spread کم نامطلوب است؛ د نیاز به flange برای بیشتر بیماران یکسان نیست.',
                     ],
                     [
@@ -3623,7 +3623,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تاج ۱۷ میلی‌متری روی ایمپلنت ۱۰ میلی‌متری در posterior maxilla',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: ratio کمتر از ۱:۱ biomechanically favorable است؛ تاج ۸ روی implant ۱۳ چنین وضعیتی دارد. رد گزینه‌ها: ب ratio بسیار بیشتر از ۱:۱ است؛ ج ratio ۱:۱ با off-axis loading اطمینان بیشتری نمی‌دهد؛ د crown height بلند روی implant کوتاه، liability را افزایش می‌دهد.',
                     ],
                     [
@@ -3635,7 +3635,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'حذف ضرورت مشاهده موقعیت frontal و sagittal در حین جراحی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: اهداف template در بیمار partially edentulous شامل delineating embrasure، locating implant within tooth contour، aligning با محور restoration و identifying CEJ/emergence است. رد گزینه‌ها: ب assessment پزشکی حذف نمی‌شود؛ ج افزایش حرارت مطلوب نیست؛ د guide باید visualization در موقعیت‌های مختلف را تسهیل کند.',
                     ],
                     [
@@ -3647,7 +3647,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'به دلیل فشار mylohyoid muscle بر lingual undercut',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: posterior maxilla معمولاً thin cortical bone و least dense trabecular bone دارد؛ بنابراین stability کمتر و healing طولانی‌تر، حتی ۶ ماه یا بیشتر، ممکن است. رد گزینه‌ها: ب مربوط به mandible است؛ ج maxillary midline مربوط به anterior maxilla/incisive canal است؛ د lingual undercut مربوط به posterior mandible است.',
                     ],
                     [
@@ -3659,7 +3659,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'حذف محدودیت‌های nasal cavity و incisive canal',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: پس از tooth loss در anterior maxilla، ridge معمولاً apically و palatally resorb می‌شود و narrow/angulated ridge می‌تواند positioning ایده‌آل را دشوار کند. رد گزینه‌ها: ب خلاف روند ذکرشده است؛ ج جهت resorption را معکوس بیان می‌کند؛ د nasal cavity و incisive canal محدودیت باقی می‌مانند.',
                     ],
                     [
@@ -3671,7 +3671,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             '۱.۵ میلی‌متر بین adjacent implants و ۳ میلی‌متر از root مجاور',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: critical measurements فصل شامل حداقل ۱ میلی‌متر inferior به sinus/nasal floor و ۲ میلی‌متر superior به mandibular canal است. رد گزینه‌ها: ب ورود به sinus و فاصله ناکافی از canal را پیشنهاد می‌کند؛ ج mental foramen باید با anterior فاصله رعایت شود و تماس با sinus floor مطلوب نیست؛ د spacing را جابه‌جا کرده است، چون ۳ mm بین implants و ۱.۵ mm از roots است.',
                     ],
                     [
@@ -3683,7 +3683,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'وضعیت open-tray coping هنگام impression نهایی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: mounted casts روی semiadjustable articulator با face-bow اطلاعاتی مانند occlusion، arch relationships، interarch space، arch form و force vectors را نشان می‌دهند. رد گزینه‌ها: ب مربوط به اجزای implant و insertion است؛ ج حرارت osteotomy از مدل قابل تعیین نیست؛ د impression coping مربوط به فاز prosthetic بعدی است.',
                     ],
                     [
@@ -3695,7 +3695,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'حذف بررسی radiographic verification در بافت ضخیم فیبروتیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: اگر keratinized tissue برای سلامت implant یا support زیبایی کافی نباشد، soft tissue grafting یا augmentation باید در نظر گرفته شود. رد گزینه‌ها: ب tooth-implant connection مشکل biomechanical دارد؛ ج زاویه بیش از ۲۰ درجه خطرناک است؛ د tissue ضخیم ممکن است نیاز به radiographic verification را بیشتر کند.',
                     ],
                     [
@@ -3707,7 +3707,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'incisive canal در خلف mandible مهم‌ترین محدودیت است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: attachment عضله mylohyoid می‌تواند عرض استخوان را در بالا حفظ کند ولی در زیر آن lingual undercut عمیق وجود داشته باشد و خطر perforation ایجاد کند. رد گزینه‌ها: ب mental foramen در این ناحیه لینگوال مطرح نیست؛ ج sinus مربوط به maxilla است؛ د incisive canal مربوط به maxillary midline است.',
                     ],
                     [
@@ -3719,7 +3719,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             '۲۰ میلی‌متر',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 دلیل: قاعده فصل cantilever مجاز را تا ۱.۵ برابر AP spread بیان می‌کند؛ ۱۰ × ۱.۵ = ۱۵ میلی‌متر. رد گزینه‌ها: الف برابر AP spread است نه extension مجاز؛ ب ضریب ۱.۲ در فصل نیامده؛ د بیش از مقدار توصیه‌شده است.',
                     ],
                     [
@@ -3731,7 +3731,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'انتخاب tapered healing abutment برای emergence profile',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: diabetes و osteoporosis از medical conditions مؤثر بر bone metabolism یا healing و در گروه contraindication نسبی/عوامل خطر مطرح می‌شوند. رد گزینه‌ها: ب رکورد تشخیصی است نه contraindication؛ ج ابزار surgical sequence است؛ د انتخاب prosthetic/healing component است.',
                     ],
                     [
@@ -3743,7 +3743,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'اتصال implant به tooth برای افزایش mobility سیستم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در esthetic zone، surgical guide بر پایه wax-up یا virtual planning به حفظ position و angulation کمک می‌کند. رد گزینه‌ها: ب پانورامیک بدون calibration دقت کمتری دارد؛ ج linear arrangement biomechanically نامطلوب است؛ د tooth-implant connection stress ایجاد می‌کند.',
                     ],
                     [
@@ -3755,7 +3755,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'cefazolin و ampicillin در متن فصل برای بیماران قادر به مصرف خوراکی مطرح نشده‌اند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: فصل preoperative prophylaxis را گاهی توصیه می‌کند: amoxicillin 2 g یک ساعت پیش از عمل؛ postoperative antibiotic معمولاً لازم نیست. رد گزینه‌ها: ب دوز clindamycin 600 mg است نه 60 mg و به عنوان alternative preoperative مطرح است؛ ج postoperative antibiotic routine لازم نیست؛ د cefazolin 1 g یا ampicillin 2 g برای کسانی که خوراکی نمی‌گیرند ذکر شده است.',
                     ],
                     [
@@ -3767,7 +3767,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'نوع analgesic پس از جراحی، میزان chlorhexidine و شکل suture',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: intraoral exam implant-focused شامل وضعیت teeth، prosthetics، vestibular/palatal depths، ridge topography، periodontal status، occlusion، opening، parafunction و hygiene است. رد گزینه‌ها: ب، ج و د هر کدام بخش‌های محدود یا مربوط به مراحل دیگر را ذکر می‌کنند.',
                     ],
                     [
@@ -3779,7 +3779,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'یک ایمپلنت متصل به یک دندان طبیعی با pontic میانی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در سه tooth span، load-bearing capacity با سه implants و سه crowns splinted بیشترین است و با گزینه‌های بعدی کاهش می‌یابد. رد گزینه‌ها: ب ظرفیت کمتر از سه implant دارد؛ ج cantilever capacity را بیشتر کم می‌کند؛ د tooth-implant connection در فصل نامطلوب معرفی شده است.',
                     ],
                     [
@@ -3791,7 +3791,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'پایین بودن magnification در periapical radiograph',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: دندان طبیعی به دلیل periodontal ligament حرکت می‌کند ولی implant immobile است؛ این تفاوت تنش را در implant-abutment junction افزایش می‌دهد. رد گزینه‌ها: ب internal thread علت stress tooth-implant نیست؛ ج وجود epithelium عامل اصلی نیست؛ د رادیوگرافی عامل biomechanical این اتصال نیست.',
                     ],
                     [
@@ -3803,7 +3803,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'با کاهش torque پیچ‌ها، مشکل fit در چارچوب‌های غیر passive برطرف می‌شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: framework غیر passive هنگام tightening پیچ‌ها forces فشاری را به implant-bone interface منتقل می‌کند و می‌تواند bone loss و failure ایجاد کند. رد گزینه‌ها: ب cement space راه‌حل فصل نیست؛ ج framework می‌تواند interface استخوانی را تحت فشار قرار دهد؛ د کاهش torque به‌تنهایی fit نامناسب را اصلاح نمی‌کند.',
                     ],
                     [
@@ -3815,7 +3815,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'در palatal midline، با هدف عبور از incisive canal',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: vertical releasing incision توصیه‌شده curvilinear، bevel حدود ۴۵ درجه، papilla-sparing و apically extended است. رد گزینه‌ها: ب، ج و د با طراحی محافظ پاپیلا، release کافی و جایگاه درست incision همخوان نیستند.',
                     ],
                     [
@@ -3827,7 +3827,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'برای انتخاب نوع antibiotic prophylaxis قبل از شروع جراحی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: guide pin پس از pilot drill برای ارزیابی position، spacing، angulation و رابطه با opposing dentition به کار می‌رود. رد گزینه‌ها: ب هدف افزایش حرارت نیست؛ ج جای final twist drill را نمی‌گیرد؛ د antibiotic prophylaxis با guide pin تعیین نمی‌شود.',
                     ],
                 ],
@@ -3858,7 +3858,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'کاهش نیاز به ارزیابی perforation با ابزار ظریف',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: پس از osteotomy باید motor به torque مناسب برای implant insertion تغییر کند؛ ادامه با 800-1500 rpm می‌تواند osteotomy را آسیب بزند، implant را بیش از حد deep seat کند یا primary stability را از بین ببرد. رد گزینه‌ها: ب مربوط به سرعت نیست؛ ج seating cover screw بهتر نمی‌شود؛ د بررسی perforation همچنان لازم است.',
                     ],
                     [
@@ -3870,7 +3870,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'قرار دادن impression coping پیش از تصمیم single-stage/two-stage',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: وقتی implant با motor تا حدود ۱ تا ۲ میلی‌متر مانده به seating کامل رسیده یا torques out شده، hand torque wrench برای seating نهایی و سنجش torque به کار می‌رود. رد گزینه‌ها: ب بازگشت به precision drill مرحله اشتباه است؛ ج platform باید نسبت به bone height بررسی شود؛ د impression coping مربوط به فاز restorative است.',
                     ],
                     [
@@ -3882,7 +3882,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'شروع فوری restoration نهایی بدون دوره osseointegration',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: torque 35 Ncm یا بیشتر نشان‌دهنده primary stability خوب است و single-stage healing با healing abutment ممکن است. رد گزینه‌ها: ب torque بالا الزاماً two-stage نمی‌خواهد؛ ج fracture با excessive torque/شرایط خاص مطرح است نه هر ۳۸ Ncm؛ د restoration نهایی فوری بدون integration در متن توصیه نشده است.',
                     ],
                     [
@@ -3894,7 +3894,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'در تماس با opposing dentition تنظیم شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: healing abutment باید ۱ تا ۲ میلی‌متر از tissue بیرون بزند تا permucosal access فراهم شود. رد گزینه‌ها: ب و ج مربوط به cover screw/submerged placement هستند؛ د قرار گرفتن نسبت به opposing dentition معیار height healing abutment نیست.',
                     ],
                     [
@@ -3906,7 +3906,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'جایگزینی کامل ارزیابی بالینی weekly تا تکمیل soft tissue healing',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: postoperative radiograph برای ارزیابی relation implant با sinus، IAN canal، teeth و implants و نیز complete seating cover screw یا healing abutment است. رد گزینه‌ها: ب و ج تصمیم‌های prosthetic هستند؛ د follow-up بالینی جایگزین نمی‌شود.',
                     ],
                     [
@@ -3918,7 +3918,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تحویل پروتز نهایی بدون دوره soft tissue healing',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در two-stage system، uncovering برای قرار دادن healing abutment، حفظ keratinized tissue و اصلاح tissue form/thickness انجام می‌شود و قبل از restoration به ۲ تا ۴ هفته soft tissue healing نیاز دارد. رد گزینه‌ها: ب و ج مربوط به first-stage surgery هستند؛ د restoration فوری بدون soft tissue healing با متن سازگار نیست.',
                     ],
                     [
@@ -3930,7 +3930,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'موقعیت implant نامشخص باشد و احتمال انحراف platform بالا باشد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: tissue punch زمانی مناسب است که implant با اطمینان قابل locate باشد و keratinized tissue کافی وجود داشته باشد. رد گزینه‌ها: ب و ج مواردی هستند که small flap یا tissue transfer را مناسب‌تر می‌کنند؛ د موقعیت نامشخص implant برای punch خطرناک است.',
                     ],
                     [
@@ -3942,7 +3942,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'عدم امکان دسترسی به cover screw در implant two-stage',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: tissue punch کم‌تروماست اما بخشی از keratinized tissue را حذف می‌کند و visualization استخوان و abutment-implant interface را محدود می‌سازد. رد گزینه‌ها: ب برعکس، periosteum reflected نمی‌شود؛ ج trauma آن کمتر است؛ د access به cover screw هدف تکنیک است.',
                     ],
                     [
@@ -3954,7 +3954,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'جایگزینی soft tissue moulage در مرحله laboratory cast',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: radiofrequency analysis با transducer و resonance frequency، interface را به‌صورت کلی ارزیابی می‌کند و وابسته به movement در یک جهت نیست. رد گزینه‌ها: ب، ج و د به stability analysis مربوط نیستند.',
                     ],
                     [
@@ -3966,7 +3966,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'loosening attachment insert',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: invasion یا impingement به IAN canal می‌تواند paresthesia یا dysesthesia ایجاد کند. رد گزینه‌ها: ب soft tissue/peri-implant complication است؛ ج structural prosthetic complication است؛ د مربوط به attachment maintenance است.',
                     ],
                     [
@@ -3978,7 +3978,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'نیاز به radiograph postoperative از بین می‌رود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: قرار دادن implant بیش از حد deep می‌تواند prosthetic access را مشکل کند. رد گزینه‌ها: ب شکل‌گیری tissue cuff تضمینی نیست؛ ج thread exposure زمانی مطرح است که implant shallow باشد و threads بالای crest بمانند؛ د postoperative radiograph همچنان لازم است.',
                     ],
                     [
@@ -3990,7 +3990,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'implant analog',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: implant body یا fixture همان component است که در bone در first stage placed می‌شود. رد گزینه‌ها: ب برای transfer impression است؛ ج برای اتصال prosthesis/framework به implant/abutment است؛ د قطعه لابراتواری replica است.',
                     ],
                     [
@@ -4002,7 +4002,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'به‌عنوان retentive attachment برای overdenture عمل می‌کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: cover screw باید کاملاً روی implant platform بنشیند تا bone بین screw و implant رشد نکند. رد گزینه‌ها: ب ویژگی healing abutment است؛ ج کار impression coping است؛ د کار locator/O-ring attachment است.',
                     ],
                     [
@@ -4014,7 +4014,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'replicate کردن implant platform در dental stone cast',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: tapered healing abutment برای شکل‌دهی soft tissue emergence مناسب restoration مانند crown به کار می‌رود. رد گزینه‌ها: ب در retentive bar معمولاً parallel-walled کافی‌تر است؛ ج نقش impression coping است؛ د نقش analog/replica است.',
                     ],
                     [
@@ -4026,7 +4026,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'عدم نیاز به implant analog پس از impression',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: open-tray transfer دقیق‌تر دانسته شده و در large-span frameworks/bars یا implants divergent اندیکاسیون دارد. رد گزینه‌ها: ب radiograph برای seating coping ضروری است؛ ج impression coping جزء تکنیک است؛ د analog برای laboratory cast لازم است.',
                     ],
                     [
@@ -4038,7 +4038,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'برای انتخاب دوز preoperative amoxicillin',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: اگر impression coping درست روی platform ننشیند، موقعیت implant نادرست transfer می‌شود؛ radiograph قبل از impression این seating را تأیید می‌کند. رد گزینه‌ها: ب AP spread با casts/plan تعیین می‌شود؛ ج نوع suture را مشخص نمی‌کند؛ د دوز antibiotic به این رادیوگرافی مربوط نیست.',
                     ],
                     [
@@ -4050,7 +4050,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'جایگزینی healing abutment در single-stage surgery',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: soft tissue moulage یک محصول elastomeric است که soft tissue portion را روی cast شبیه‌سازی می‌کند و به laboratory technician برای abutment/framework کمک می‌کند. رد گزینه‌ها: ب مربوط به drilling است؛ ج مربوط به cephalometric evaluation است؛ د جای healing abutment را نمی‌گیرد.',
                     ],
                     [
@@ -4062,7 +4062,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'flapless، midcrestal و vertical releasing abutments',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: abutments بر اساس retention prosthesis/superstructure به سه دسته screw-retained، cement-retained و prefabricated attachment تقسیم می‌شوند. رد گزینه‌ها: ب اجزای جراحی/راهنما را با abutment اشتباه می‌کند؛ ج اجزای impression/cast هستند؛ د طراحی‌های incision/exposure هستند.',
                     ],
                     [
@@ -4074,7 +4074,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             '۸۰۰ تا ۱۵۰۰ Ncm',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: prosthesis retaining screws معمولاً با torque wrench یا handpiece و در محدوده ۱۰ تا ۴۰ Ncm سفت می‌شوند. رد گزینه‌ها: ب خیلی پایین و در متن به‌عنوان range screw نیامده؛ ج بیش از range ذکرشده است؛ د rpm مربوط به سرعت drilling/insertion اشتباه است، نه Ncm screw torque.',
                     ],
                     [
@@ -4086,7 +4086,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'tissue punch prosthesis، cover screw denture، و diagnostic wax-up crown',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: سه گزینه پایه برای edentulous patient شامل implant و soft tissue-supported overdenture، all-implant-supported overdenture و complete implant-supported fixed prosthesis است. رد گزینه‌ها: ب قطعات یا گزینه‌های single tooth را مخلوط می‌کند؛ ج درمان‌های غیر implant یا diagnostic را می‌آورد؛ د اصطلاحات پروتزی متن نیستند.',
                     ],
                     [
@@ -4098,7 +4098,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'جایگذاری حداقل شش implant در mandibular arch به‌عنوان شرط اولیه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در implant-soft tissue overdenture، حفظ soft tissue support با relines به‌موقع و پایش/تعویض attachment inserts برای جلوگیری از overload مهم است. رد گزینه‌ها: ب این پروتز بر soft tissue support نیز متکی است؛ ج metal framework برای تقویت توصیه می‌شود؛ د حداقل شش implant برای این گزینه mandibular شرط نیست.',
                     ],
                     [
@@ -4110,7 +4110,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'یک implant',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: برای all-implant-supported overdenture، حداقل چهار implant در mandible و شش implant در maxilla توصیه شده است. رد گزینه‌ها: ب مقدار mandible است؛ ج و د برای تحمل تمام load کافی دانسته نشده‌اند.',
                     ],
                     [
@@ -4122,7 +4122,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'نشان می‌دهد آیا impression coping باید closed-tray باشد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: bar length می‌تواند تا ۱.۵ برابر AP spread cantilever شود؛ بنابراین AP spread پشتیبانی posterior و stability را تعیین می‌کند. رد گزینه‌ها: ب مربوط به first/second stage نیست؛ ج analgesic را تعیین نمی‌کند؛ د انتخاب tray technique با AP spread مستقیم تعیین نمی‌شود.',
                     ],
                     [
@@ -4134,7 +4134,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'tissue punch uncovering با healing abutment کوتاه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: fixed partial denture که screw- یا cement-retained به شش تا هشت abutment است، مشابه conventional crown and bridge طراحی می‌شود. رد گزینه‌ها: ب و ج overdenture هستند؛ د روش surgical uncovering است نه fixed prosthesis design.',
                     ],
                     [
@@ -4146,7 +4146,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'cover screw، impression coping و analog',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: hybrid prosthesis معمولاً وقتی patient bone، soft tissue و teeth را از دست داده باشد برای جایگزینی هر سه طراحی می‌شود. رد گزینه‌ها: ب بافت‌های دندان طبیعی هستند؛ ج ساختارهای آناتومیک مسیر implant هستند؛ د قطعات restorative هستند نه بافت‌های جایگزین‌شونده.',
                     ],
                     [
@@ -4158,7 +4158,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'layered porcelain fused directly to zirconium framework',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: فصل acrylic hybrid را آسان‌ترین و کم‌هزینه‌ترین نوع برای repair می‌داند. رد گزینه‌ها: ب کمی دشوارتر و گران‌تر است؛ ج و د all-ceramic/porcelain designs دشوارتر و گران‌تر برای repair هستند.',
                     ],
                     [
@@ -4170,7 +4170,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'open-tray transfer بدون fixture و بدون abutment',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: single missing tooth می‌تواند با cement-retained crown روی abutment یا screw-retained crown مستقیم روی implant platform بازسازی شود. رد گزینه‌ها: ب برای edentulous maxilla/all-implant overdenture است؛ ج hybrid برای هر single tooth لازم نیست؛ د fixture/abutment basis را حذف می‌کند.',
                     ],
                     [
@@ -4182,7 +4182,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'cover screw همراه با palatal coverage',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: zirconium abutment همراه با all-ceramic crown در anterior region برای maximize esthetics مطرح شده است. رد گزینه‌ها: ب مربوط به denture base و screw است؛ ج مربوط به overdenture/bar است؛ د cover screw جزء ترمیم نهایی esthetic نیست.',
                     ],
                     [
@@ -4194,7 +4194,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'یک implant منفرد برای span بدون توجه به force vectors',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در بیش از دو missing adjacent teeth، implants می‌توانند abutments یک fixed partial denture cement- یا screw-retained باشند. رد گزینه‌ها: ب tooth-implant connection به عنوان مشکل biomechanical مطرح شده؛ ج implant-assisted option را حذف می‌کند؛ د ignore کردن span و force vectors با فصل ناسازگار است.',
                     ],
                     [
@@ -4206,7 +4206,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'بهتر شدن osseointegration به دلیل تحریک خارج از محور',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: اگر load-bearing capacity implant-bone complex کمتر از applied load باشد، stress به interface منتقل و bone loss تا failure ممکن است. رد گزینه‌ها: ب overload soft tissue support را بهتر نمی‌کند؛ ج retention type خودبه‌خود تغییر نمی‌کند؛ د off-axis overload osseointegration را تقویت نمی‌کند.',
                     ],
                     [
@@ -4218,7 +4218,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'کاهش interarch space برای bar overdenture',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: retained cement یا lack of hygiene می‌تواند soft tissue interface را violate کند و همان sequelae peri-implant مانند bone loss را ایجاد کند. رد گزینه‌ها: ب manufacturing error rare component complication است؛ ج surgical technique complication است؛ د interarch space complication جداگانه‌ای است.',
                     ],
                     [
@@ -4230,7 +4230,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'استفاده از 0.12% chlorhexidine پس از جراحی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: component complications تقریباً معمولاً با excessive mechanical overload و/یا زاویه destructive مرتبط‌اند. رد گزینه‌ها: ب، ج و د با component overload رابطه ذکرشده ندارند.',
                     ],
                     [
@@ -4242,7 +4242,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'واگرایی implants و انتخاب open-tray impression',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: structural complications شامل مشکلات metal، porcelain، acrylic، resin یا denture teeth است. رد گزینه‌ها: ب anatomic invasion surgical complication است؛ ج اندیکاسیون/روش جراحی است؛ د مسئله impression technique است.',
                     ],
                     [
@@ -4254,7 +4254,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'six zirconia abutments برای دو three-unit fixed partial dentures در mandibular anterior',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: شکل فصل برای جایگزینی دو posterior maxillary teeth، pretreatment radiograph، وضعیت شش ماه پس از placement و سه هفته پس از uncovering با healing abutment، سپس final abutment و cement-retained PFM crowns را نشان می‌دهد. رد گزینه‌ها: ب مربوط به ridge graft/anterior یا hybrid نیست؛ ج به شکل پنج anterior maxillary teeth نزدیک است؛ د جایگاه و طراحی را اشتباه بیان می‌کند.',
                     ],
                     [
@@ -4266,7 +4266,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'cover screws با flap closure بدون uncovering',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: شکل replacement پنج anterior maxillary teeth، چهار CAD/CAM custom zirconia abutments برای cement-retained fixed partial denture را نشان می‌دهد. رد گزینه‌ها: ب locator overdenture است؛ ج all-implant overdenture maxilla با bar است؛ د cover screw/flap closure مرحله prosthetic شکل نیست.',
                     ],
                     [
@@ -4278,7 +4278,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'single tooth replacement با extraction و implant فوری در mandibular molar',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: شکل restoration bilateral posterior edentulous maxilla شش zirconia abutments برای دو سه‌واحدی FPD و پنج دندان طبیعی آماده‌شده برای individual all-ceramic crowns را نشان می‌دهد. رد گزینه‌ها: ب mandibular overdenture شکل دیگری است؛ ج hybrid maxilla با هشت implant مربوط به شکل دیگر است؛ د single tooth replacement است.',
                     ],
                     [
@@ -4290,7 +4290,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'complex concern ناشی از craniofacial anomaly',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: implant platform fracture ناشی از excessive insertion torque در متن به‌عنوان mechanical complication مطرح شده است. رد گزینه‌ها: ب retained cement peri-implant مسیر دیگری است؛ ج denture teeth structural complication است؛ د complex concern به سناریوهای پیچیده بیمار مربوط است.',
                     ],
                     [
@@ -4302,7 +4302,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'impression coping به جای healing abutment برای permucosal access باقی می‌ماند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: در single-stage surgery، implant با healing abutment exposed باقی می‌ماند و uncovering لازم نیست. رد گزینه‌ها: ب تعریف two-stage submerged approach است؛ ج مربوط به two-stage uncovering است؛ د impression coping برای permucosal healing گذاشته نمی‌شود.',
                     ],
                     [
@@ -4314,7 +4314,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'باید برای افزایش stability روی healing abutment قفل شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: اگر tissue-borne denture روی ناحیه implant باشد، پس از یک هفته می‌توان آن را با soft liner reline کرد. رد گزینه‌ها: ب loading مستقیم soft tissue روی implant site باید پرهیز شود؛ ج عدم اصلاح برخلاف توصیه است؛ د اتصال denture به healing abutment بیان نشده است.',
                     ],
                     [
@@ -4326,7 +4326,7 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'باید با attachment inserts جدید به implant متصل شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 دلیل: interim partial denture یا orthodontic retainer با pontic می‌تواند فوراً استفاده شود، به شرطی که contour شود و روی implant site soft tissue loading ایجاد نکند. رد گزینه‌ها: ب فشار روی cover screw/implant site مطلوب نیست؛ ج palatal coverage مربوط به برخی maxillary overdenture cases است؛ د attachment inserts مربوط به overdenture maintenance است.',
                     ],
                 ],
@@ -4357,10 +4357,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'بررسی ضخامت porcelain در پروتز نهایی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در متن، cross-sectional view در CBCT برای تحلیل ridge و روابط آناتومیک مهم، از جمله محل inferior alveolar nerve، معرفی شده است.
-رد گزینه ب: نوع آلیاژ fixture در این بخش به‌عنوان هدف CBCT مطرح نشده است.
-رد گزینه ج: انتخاب attachment به بخش پروتز مربوط است و در متن هدف اصلی مقاطع CBCT نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در متن، cross-sectional view در CBCT برای تحلیل ridge و روابط آناتومیک مهم، از جمله محل inferior alveolar nerve، معرفی شده است.
+رد گزینه ب: نوع آلیاژ fixture در این بخش به‌عنوان هدف CBCT مطرح نشده است.
+رد گزینه ج: انتخاب attachment به بخش پروتز مربوط است و در متن هدف اصلی مقاطع CBCT نیست.
 رد گزینه د: ضخامت porcelain در این فصل جزو کاربردهای مقاطع CBCT ذکر نشده است.',
                     ],
                     [
@@ -4372,10 +4372,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'occlusion بلافاصله نیروهای زیاد روی implant وارد کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: Immediate placement زمانی قابل بررسی است که دندان عفونی نباشد و extraction با حداقل bone removal و بدون تضعیف حمایت استخوانی انجام شود.
-رد گزینه الف: چندریشه‌ای بودن و برداشت زیاد استخوان در متن جزو دشواری‌ها و عوامل نامطلوب immediate placement است.
-رد گزینه ج: نبود ثبات اولیه با اصل حیاتی این تکنیک، یعنی initial implant stability، ناسازگار است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: Immediate placement زمانی قابل بررسی است که دندان عفونی نباشد و extraction با حداقل bone removal و بدون تضعیف حمایت استخوانی انجام شود.
+رد گزینه الف: چندریشه‌ای بودن و برداشت زیاد استخوان در متن جزو دشواری‌ها و عوامل نامطلوب immediate placement است.
+رد گزینه ج: نبود ثبات اولیه با اصل حیاتی این تکنیک، یعنی initial implant stability، ناسازگار است.
 رد گزینه د: نیروی اکلوزالی زیاد می‌تواند ثبات کوتاه‌مدت و بلندمدت implant را به خطر بیندازد.',
                     ],
                     [
@@ -4387,10 +4387,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'عدم امکان استفاده همراه collagen sponge',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن، مزایای BMP را حذف donor-site surgery و بهبود bone formation می‌داند و معایب اصلی را significant postoperative edema و cost معرفی می‌کند.
-رد گزینه الف: BMP نیاز به donor site را کاهش می‌دهد، نه اینکه donor-site morbidity را افزایش دهد.
-رد گزینه ب: BMP نیاز به shaping و containment را در همه موارد حذف نمی‌کند و edema از معایب آن است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن، مزایای BMP را حذف donor-site surgery و بهبود bone formation می‌داند و معایب اصلی را significant postoperative edema و cost معرفی می‌کند.
+رد گزینه الف: BMP نیاز به donor site را کاهش می‌دهد، نه اینکه donor-site morbidity را افزایش دهد.
+رد گزینه ب: BMP نیاز به shaping و containment را در همه موارد حذف نمی‌کند و edema از معایب آن است.
 رد گزینه د: BMP معمولاً روی absorbable collagen sponge قرار داده می‌شود، بنابراین این گزینه خلاف متن است.',
                     ],
                     [
@@ -4402,10 +4402,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'indirect sinus lift با osteotome از مسیر osteotomy',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: وقتی augmentation محدود و همراه با simultaneous implant placement لازم باشد، indirect sinus lift با drilling نزدیک کف سینوس و استفاده از osteotome توضیح داده شده است.
-رد گزینه الف: onlay graft برای atrophic maxilla شدید و فقدان ridge بالینی مطرح می‌شود، نه این سناریوی محدود.
-رد گزینه ب: open approach برای مواردی است که augmentation بیشتری لازم باشد.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: وقتی augmentation محدود و همراه با simultaneous implant placement لازم باشد، indirect sinus lift با drilling نزدیک کف سینوس و استفاده از osteotome توضیح داده شده است.
+رد گزینه الف: onlay graft برای atrophic maxilla شدید و فقدان ridge بالینی مطرح می‌شود، نه این سناریوی محدود.
+رد گزینه ب: open approach برای مواردی است که augmentation بیشتری لازم باشد.
 رد گزینه ج: distraction برای نواقص ridge و افزایش تدریجی بافت است، نه چند میلی‌متر sinus floor elevation همزمان.',
                     ],
                     [
@@ -4417,10 +4417,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'مهار ورود fibrous connective tissue و epithelium به defect',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: GBR با قرار دادن barrier روی defect، از ورود بافت همبند فیبرو و اپی‌تلیوم جلوگیری می‌کند تا استخوان فرصت رشد و پر کردن defect را داشته باشد.
-رد گزینه الف: GBR برای افزایش نیروی اکلوزال روی implant طراحی نشده است.
-رد گزینه ب: متن osseointegration را با GBR جایگزین نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: GBR با قرار دادن barrier روی defect، از ورود بافت همبند فیبرو و اپی‌تلیوم جلوگیری می‌کند تا استخوان فرصت رشد و پر کردن defect را داشته باشد.
+رد گزینه الف: GBR برای افزایش نیروی اکلوزال روی implant طراحی نشده است.
+رد گزینه ب: متن osseointegration را با GBR جایگزین نمی‌کند.
 رد گزینه ج: ایجاد lateral window مربوط به open sinus lift است، نه هدف barrier در GBR.',
                     ],
                     [
@@ -4432,10 +4432,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'titanium mesh tray به‌تنهایی',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: وقتی sinus floor grafting عملی یا پذیرفتنی نیست، متن استفاده از zygomaticus implant را قابل بررسی می‌داند.
-رد گزینه الف: collagen pellet در مدیریت gap یا پوشش روی implant immediate کاربرد دارد، نه جایگزین زایگوماتیک.
-رد گزینه ب: پروتز removable بدون anchor به‌عنوان گزینه فصل برای این وضعیت مطرح نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: وقتی sinus floor grafting عملی یا پذیرفتنی نیست، متن استفاده از zygomaticus implant را قابل بررسی می‌داند.
+رد گزینه الف: collagen pellet در مدیریت gap یا پوشش روی implant immediate کاربرد دارد، نه جایگزین زایگوماتیک.
+رد گزینه ب: پروتز removable بدون anchor به‌عنوان گزینه فصل برای این وضعیت مطرح نشده است.
 رد گزینه د: titanium mesh tray وسیله containment و shaping graft است و جایگزین کامل sinus grafting در این سناریو معرفی نشده است.',
                     ],
                     [
@@ -4447,10 +4447,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'posterior ramus فقط',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: symphysis بهترین منبع داخل دهانی برای حجم مناسبی از bone cortical و cancellous معرفی شده است.
-رد گزینه الف: lateral sinus wall در متن منبع برداشت autogenous graft معرفی نشده است.
-رد گزینه ج: tuberosity عمدتاً cancellous است و به‌عنوان بهترین منبع ترکیبی حجم‌دار معرفی نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: symphysis بهترین منبع داخل دهانی برای حجم مناسبی از bone cortical و cancellous معرفی شده است.
+رد گزینه الف: lateral sinus wall در متن منبع برداشت autogenous graft معرفی نشده است.
+رد گزینه ج: tuberosity عمدتاً cancellous است و به‌عنوان بهترین منبع ترکیبی حجم‌دار معرفی نشده است.
 رد گزینه د: ramus-posterior body عمدتاً cortical است و از نظر ترکیب cortical/cancellous مشابه symphysis نیست.',
                     ],
                     [
@@ -4462,10 +4462,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'نادیده گرفتن gap و شروع loading سنگین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در gap بزرگ‌تر از 1 mm، grafting با particulate bone material ممکن است اندیکاسیون داشته باشد؛ هرچند متن نیاز به آن را تا حدی controversial می‌داند.
-رد گزینه ب: متن برای همه موارد دستور خارج کردن implant و انتظار طولانی نمی‌دهد.
-رد گزینه ج: extraoral implant برای پروتزهای گوش، چشم و بینی است و به gap socket مربوط نیست.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در gap بزرگ‌تر از 1 mm، grafting با particulate bone material ممکن است اندیکاسیون داشته باشد؛ هرچند متن نیاز به آن را تا حدی controversial می‌داند.
+رد گزینه ب: متن برای همه موارد دستور خارج کردن implant و انتظار طولانی نمی‌دهد.
+رد گزینه ج: extraoral implant برای پروتزهای گوش، چشم و بینی است و به gap socket مربوط نیست.
 رد گزینه د: loading سنگین می‌تواند ثبات implant را به خطر بیندازد.',
                     ],
                     [
@@ -4477,10 +4477,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'نیاز به fixation pins در surgical guide',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در متن، neurosensory disturbances ناشی از inferior alveolar nerve dehiscence در سطح فوقانی مندیبل می‌تواند با superior border grafting بهبود یابد.
-رد گزینه ب: pneumatization سینوس ماگزیلا مشکل maxilla است، نه superior border مندیبل.
-رد گزینه ج: نبود tuberosity notching مربوط به دشواری ساخت denture در maxillary augmentation است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در متن، neurosensory disturbances ناشی از inferior alveolar nerve dehiscence در سطح فوقانی مندیبل می‌تواند با superior border grafting بهبود یابد.
+رد گزینه ب: pneumatization سینوس ماگزیلا مشکل maxilla است، نه superior border مندیبل.
+رد گزینه ج: نبود tuberosity notching مربوط به دشواری ساخت denture در maxillary augmentation است.
 رد گزینه د: fixation pins مربوط به guide در virtual planning است و مشکل درمانی مندیبل تحلیل‌رفته نیست.',
                     ],
                     [
@@ -4492,10 +4492,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'inferior turbinate',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: وقتی حجم بیشتری از autogenous bone لازم باشد، anterior iliac crest به‌عنوان شایع‌ترین harvest site معرفی شده است.
-رد گزینه الف: tuberosity منبع داخل دهانی و عمدتاً cancellous است و برای حجم زیاد مورد اشاره متن نیست.
-رد گزینه ج: ramus منبع داخل دهانی عمدتاً cortical است و برای موارد گسترده جایگزین اصلی iliac crest معرفی نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: وقتی حجم بیشتری از autogenous bone لازم باشد، anterior iliac crest به‌عنوان شایع‌ترین harvest site معرفی شده است.
+رد گزینه الف: tuberosity منبع داخل دهانی و عمدتاً cancellous است و برای حجم زیاد مورد اشاره متن نیست.
+رد گزینه ج: ramus منبع داخل دهانی عمدتاً cortical است و برای موارد گسترده جایگزین اصلی iliac crest معرفی نشده است.
 رد گزینه د: inferior turbinate در این فصل به‌عنوان donor site مطرح نشده است.',
                     ],
                     [
@@ -4507,10 +4507,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'انتخاب xenograft به‌جای کنترل contact',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن تأکید می‌کند restoration باید تماس ایده‌آل و firm با دندان‌های مجاور داشته باشد تا loading نامطلوب روی implant تا زمان osseointegration کاهش یابد.
-رد گزینه الف: متن در موارد منتخب restoration همزمان را مطرح می‌کند و حذف قطعی provisional را نمی‌گوید.
-رد گزینه ب: تماس سنگین اکلوزالی با هشدار متن درباره نیروهای بیش از حد ناسازگار است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن تأکید می‌کند restoration باید تماس ایده‌آل و firm با دندان‌های مجاور داشته باشد تا loading نامطلوب روی implant تا زمان osseointegration کاهش یابد.
+رد گزینه الف: متن در موارد منتخب restoration همزمان را مطرح می‌کند و حذف قطعی provisional را نمی‌گوید.
+رد گزینه ب: تماس سنگین اکلوزالی با هشدار متن درباره نیروهای بیش از حد ناسازگار است.
 رد گزینه د: نوع graft جایگزین تنظیم contact برای کنترل loading immediate نیست.',
                     ],
                     [
@@ -4522,10 +4522,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'osteoconductive scaffold باقی می‌ماند اما osteoinduction از بین می‌رود',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فرآوری برای sterility و کاهش immune response انجام می‌شود و sterilization، osteoinductive nature را از بین می‌برد؛ graft به‌صورت scaffold برای osteoconduction عمل می‌کند.
-رد گزینه الف: این گزینه ویژگی منبع autogenous symphysis را با allograft مخلوط کرده است.
-رد گزینه ب: متن allograft را منبع osteogenesis مستقیم و بدون resorption نمی‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فرآوری برای sterility و کاهش immune response انجام می‌شود و sterilization، osteoinductive nature را از بین می‌برد؛ graft به‌صورت scaffold برای osteoconduction عمل می‌کند.
+رد گزینه الف: این گزینه ویژگی منبع autogenous symphysis را با allograft مخلوط کرده است.
+رد گزینه ب: متن allograft را منبع osteogenesis مستقیم و بدون resorption نمی‌داند.
 رد گزینه ج: هدف فرآوری کاهش پاسخ ایمنی و ایجاد sterility است، نه افزایش آن‌ها.',
                     ],
                     [
@@ -4537,10 +4537,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'پوشاندن با redundancy غشا و patch از resorbable membrane',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: متن می‌گوید perforation معمولاً با redundancy غشای بالا رفته و یک patch از resorbable membrane پوشانده می‌شود تا ارتباط مستقیم با سینوس کنترل شود.
-رد گزینه الف: متن رها کردن perforation و loading فوری را توصیه نمی‌کند.
-رد گزینه ب: برداشتن کامل sinus membrane و حذف graft با توضیح open sinus lift ناسازگار است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: متن می‌گوید perforation معمولاً با redundancy غشای بالا رفته و یک patch از resorbable membrane پوشانده می‌شود تا ارتباط مستقیم با سینوس کنترل شود.
+رد گزینه الف: متن رها کردن perforation و loading فوری را توصیه نمی‌کند.
+رد گزینه ب: برداشتن کامل sinus membrane و حذف graft با توضیح open sinus lift ناسازگار است.
 رد گزینه ج: extraoral implant برای پروتزهای صورت است و درمان perforation سینوس نیست.',
                     ],
                     [
@@ -4552,10 +4552,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تعیین اجبار به استفاده از autogenous rib در همه maxillaها',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: نرم‌افزارهای اختصاصی، prosthetic result نهایی را با bone anatomy ترکیب می‌کنند تا نیاز به graft و موقعیت و زاویه implant با دقت بالا برنامه‌ریزی شود.
-رد گزینه الف: CBCT و ارزیابی ساختارهای آناتومیک اساس planning است، نه چیزی که حذف شود.
-رد گزینه ب: خروجی planning می‌تواند surgical guide دقیق باشد، نه جایگزینی آن با probing دستی.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: نرم‌افزارهای اختصاصی، prosthetic result نهایی را با bone anatomy ترکیب می‌کنند تا نیاز به graft و موقعیت و زاویه implant با دقت بالا برنامه‌ریزی شود.
+رد گزینه الف: CBCT و ارزیابی ساختارهای آناتومیک اساس planning است، نه چیزی که حذف شود.
+رد گزینه ب: خروجی planning می‌تواند surgical guide دقیق باشد، نه جایگزینی آن با probing دستی.
 رد گزینه د: متن استفاده همگانی از rib autograft را نتیجه virtual planning نمی‌داند.',
                     ],
                     [
@@ -4567,10 +4567,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فشرده‌سازی sinus membrane در indirect lift',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: thin malleable titanium mesh برای حفظ graft shape و کاهش ingrowth بافت فیبرو در متن ذکر شده است.
-رد گزینه الف: osseointegration external hex در متن به mesh ارتباط داده نشده است.
-رد گزینه ج: هدف mesh افزایش resorption graft نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: thin malleable titanium mesh برای حفظ graft shape و کاهش ingrowth بافت فیبرو در متن ذکر شده است.
+رد گزینه الف: osseointegration external hex در متن به mesh ارتباط داده نشده است.
+رد گزینه ج: هدف mesh افزایش resorption graft نیست.
 رد گزینه د: فشرده‌سازی sinus membrane مربوط به osteotome در indirect sinus lift است.',
                     ],
                     [
@@ -4582,10 +4582,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فعال‌سازی فوری 5 mm/day، سپس implant placement همان روز',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: فصل، latency اولیه 5 تا 7 روز، فعال‌سازی تدریجی حدود 1 mm/day و سپس healing regenerate برای 3 تا 4 ماه را بیان می‌کند.
-رد گزینه ب: healing پیش از osteotomy معنی ندارد و متن چنین توالی‌ای ندارد.
-رد گزینه ج: این گزینه مفاهیم sinus lift و particulate graft را با distraction مخلوط می‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: فصل، latency اولیه 5 تا 7 روز، فعال‌سازی تدریجی حدود 1 mm/day و سپس healing regenerate برای 3 تا 4 ماه را بیان می‌کند.
+رد گزینه ب: healing پیش از osteotomy معنی ندارد و متن چنین توالی‌ای ندارد.
+رد گزینه ج: این گزینه مفاهیم sinus lift و particulate graft را با distraction مخلوط می‌کند.
 رد گزینه د: فعال‌سازی 5 mm/day و implant همان روز در متن نیامده و با اصل gradual distraction ناسازگار است.',
                     ],
                     [
@@ -4597,10 +4597,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ورود از lateral window و توقف زیر sinus membrane',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: zygomatic implant پس از reflection غشا، maxillary sinus را طی می‌کند، tip آن در body of zygoma engage می‌شود و fixture در ناحیه second premolar/first molar ماگزیلا خارج می‌شود.
-رد گزینه ب: zygomatic implant کوتاه و محدود به tuberosity نیست.
-رد گزینه ج: اتصال به prosthetic ear کاربرد extraoral implant است، نه zygomatic implant داخل دهانی.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: zygomatic implant پس از reflection غشا، maxillary sinus را طی می‌کند، tip آن در body of zygoma engage می‌شود و fixture در ناحیه second premolar/first molar ماگزیلا خارج می‌شود.
+رد گزینه ب: zygomatic implant کوتاه و محدود به tuberosity نیست.
+رد گزینه ج: اتصال به prosthetic ear کاربرد extraoral implant است، نه zygomatic implant داخل دهانی.
 رد گزینه د: توقف زیر sinus membrane توصیف sinus grafting است، نه zygomatic implant.',
                     ],
                     [
@@ -4612,10 +4612,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'موقعیت 1 mm palatal implant در esthetic zone',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در متن، severe interarch space، loss of palatal vault، interference from zygomatic buttress و نبود posterior tuberosity notching از عواملی هستند که denture مناسب را دشوار می‌کنند.
-رد گزینه الف: این مجموعه برعکس شرایط مشکل‌زا است و می‌تواند rehabilitation را ساده‌تر کند.
-رد گزینه ج: gap کوچک در socket به immediate implant مربوط است، نه اندیکاسیون maxillary augmentation برای denture.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در متن، severe interarch space، loss of palatal vault، interference from zygomatic buttress و نبود posterior tuberosity notching از عواملی هستند که denture مناسب را دشوار می‌کنند.
+رد گزینه الف: این مجموعه برعکس شرایط مشکل‌زا است و می‌تواند rehabilitation را ساده‌تر کند.
+رد گزینه ج: gap کوچک در socket به immediate implant مربوط است، نه اندیکاسیون maxillary augmentation برای denture.
 رد گزینه د: موقعیت palatal implant جزئی از immediate placement در esthetic zone است، نه مشکل ساخت denture کامل maxilla.',
                     ],
                     [
@@ -4627,10 +4627,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ترمیم prosthetic ear با framework',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن بیان می‌کند وقتی augmentation بیشتری لازم باشد، open approach به sinus با lateral window لازم می‌شود.
-رد گزینه الف: mandibular symphysis در این متن منبع graft است و به sinus lift مربوط نیست.
-رد گزینه ب: این وضعیت با indirect sinus lift سازگارتر است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن بیان می‌کند وقتی augmentation بیشتری لازم باشد، open approach به sinus با lateral window لازم می‌شود.
+رد گزینه الف: mandibular symphysis در این متن منبع graft است و به sinus lift مربوط نیست.
+رد گزینه ب: این وضعیت با indirect sinus lift سازگارتر است.
 رد گزینه د: prosthetic ear با extraoral implant مرتبط است، نه open sinus lift.',
                     ],
                     [
@@ -4642,10 +4642,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'حدود 3 mm پایین‌تر',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: در maxillary anterior، platform implant به‌طور ایده‌آل 3 mm پایین‌تر از free gingival margin قرار می‌گیرد تا emergence contour و maintenance بافت نرم بهتر شود.
-رد گزینه الف: floor of sinus در این سناریو مرجع موقعیت platform در esthetic zone نیست.
-رد گزینه ب: هم‌سطح قرار دادن platform با توصیه متن برای esthetic zone متفاوت است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: در maxillary anterior، platform implant به‌طور ایده‌آل 3 mm پایین‌تر از free gingival margin قرار می‌گیرد تا emergence contour و maintenance بافت نرم بهتر شود.
+رد گزینه الف: floor of sinus در این سناریو مرجع موقعیت platform در esthetic zone نیست.
+رد گزینه ب: هم‌سطح قرار دادن platform با توصیه متن برای esthetic zone متفاوت است.
 رد گزینه ج: بالا قرار دادن platform با اصل countersinking و esthetic contour سازگار نیست.',
                     ],
                     [
@@ -4657,10 +4657,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'برای جبران remodeling فاسیال استخوان و soft tissue',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: متن می‌گوید implant به‌طور کلی 1 mm palatal نسبت به مرکز root قرار می‌گیرد تا کاهش حجم facial crestal ناشی از remodeling پیش‌بینی‌شده جبران شود.
-رد گزینه الف: هدف، ایجاد contact فاسیال عمدی نیست؛ remodeling فاسیال مدنظر است.
-رد گزینه ب: نیاز به initial apical stability همچنان حیاتی است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: متن می‌گوید implant به‌طور کلی 1 mm palatal نسبت به مرکز root قرار می‌گیرد تا کاهش حجم facial crestal ناشی از remodeling پیش‌بینی‌شده جبران شود.
+رد گزینه الف: هدف، ایجاد contact فاسیال عمدی نیست؛ remodeling فاسیال مدنظر است.
+رد گزینه ب: نیاز به initial apical stability همچنان حیاتی است.
 رد گزینه ج: هدایت به zygoma مربوط به zygomatic implant است، نه immediate placement معمولی.',
                     ],
                     [
@@ -4672,10 +4672,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'حدود 1 mm',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن و تصویر همراه آن تأکید دارند که حداقل 4 mm از apex implant باید به‌طور دقیق در استخوان محکم قرار گیرد.
-رد گزینه الف: 9 mm به‌عنوان الزام عمومی stability در متن نیامده است.
-رد گزینه ب: متن initial stability را برای موفقیت بلندمدت حیاتی می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن و تصویر همراه آن تأکید دارند که حداقل 4 mm از apex implant باید به‌طور دقیق در استخوان محکم قرار گیرد.
+رد گزینه الف: 9 mm به‌عنوان الزام عمومی stability در متن نیامده است.
+رد گزینه ب: متن initial stability را برای موفقیت بلندمدت حیاتی می‌داند.
 رد گزینه د: 1 mm در متن به gap یا موقعیت palatal مربوط است و برای stability کافی نیست.',
                     ],
                     [
@@ -4687,10 +4687,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'titanium mesh را به ridge پیچ می‌کند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: osteotome با انتهای cup-shaped دیواره‌های osteotomy را compress می‌کند، از دیواره bone می‌تراشد و آن را به سمت بالا می‌راند تا floor سینوس و membrane بالا رود.
-رد گزینه الف: external hex در زایگوماتیک مطرح می‌شود و اثر osteotome نیست.
-رد گزینه ج: lateral window و elevation مستقیم membrane مربوط به open sinus lift است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: osteotome با انتهای cup-shaped دیواره‌های osteotomy را compress می‌کند، از دیواره bone می‌تراشد و آن را به سمت بالا می‌راند تا floor سینوس و membrane بالا رود.
+رد گزینه الف: external hex در زایگوماتیک مطرح می‌شود و اثر osteotome نیست.
+رد گزینه ج: lateral window و elevation مستقیم membrane مربوط به open sinus lift است.
 رد گزینه د: پیچ کردن titanium mesh بخشی از GBR/augmentation mesh است، نه osteotome sinus elevation.',
                     ],
                     [
@@ -4702,10 +4702,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'maxillary tuberosity: عمدتاً cortical؛ ramus-posterior body: عمدتاً cancellous',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن بیان می‌کند tuberosity عمدتاً cancellous است و ramus-posterior body مندیبل عمدتاً cortical است.
-رد گزینه ب: symphysis منبع intraoral مناسب از cortical و cancellous bone است و tuberosity خارج دهانی نیست.
-رد گزینه ج: iliac crest منبع خارج دهانی و ramus منبع داخل دهانی است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن بیان می‌کند tuberosity عمدتاً cancellous است و ramus-posterior body مندیبل عمدتاً cortical است.
+رد گزینه ب: symphysis منبع intraoral مناسب از cortical و cancellous bone است و tuberosity خارج دهانی نیست.
+رد گزینه ج: iliac crest منبع خارج دهانی و ramus منبع داخل دهانی است.
 رد گزینه د: این گزینه دو ویژگی را برعکس کرده است.',
                     ],
                     [
@@ -4717,10 +4717,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'پروتئین بازترکیب انسانی قرارگرفته روی collagen sponge',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: xenograft از بخش inorganic استخوان گونه ژنتیکی متفاوت با گیرنده تهیه می‌شود و شایع‌ترین منبع آن bovine bone است.
-رد گزینه ب: این تعریف allograft است.
-رد گزینه ج: این تعریف autogenous graft است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: xenograft از بخش inorganic استخوان گونه ژنتیکی متفاوت با گیرنده تهیه می‌شود و شایع‌ترین منبع آن bovine bone است.
+رد گزینه ب: این تعریف allograft است.
+رد گزینه ج: این تعریف autogenous graft است.
 رد گزینه د: این توصیف rhBMP-2 روی carrier است، نه xenograft.',
                     ],
                     [
@@ -4732,10 +4732,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'کاهش interarch space در mandible denture',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: متن، GBR را به‌ویژه در treatment of buccal dehiscence و augmentation افقی labiobuccal مفید می‌داند.
-رد گزینه الف: عبور از zygoma به zygomatic implant مربوط است، نه کاربرد ویژه GBR.
-رد گزینه ج: پروتز گوش با extraoral implant مرتبط است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: متن، GBR را به‌ویژه در treatment of buccal dehiscence و augmentation افقی labiobuccal مفید می‌داند.
+رد گزینه الف: عبور از zygoma به zygomatic implant مربوط است، نه کاربرد ویژه GBR.
+رد گزینه ج: پروتز گوش با extraoral implant مرتبط است.
 رد گزینه د: interarch space در بحث maxillary/mandibular atrophy مطرح می‌شود، اما کاربرد ویژه GBR در متن نیست.',
                     ],
                     [
@@ -4747,10 +4747,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'تشخیص نوع sedative و مقدار vasoconstrictor',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن دو مشکل مرتبط با هر نوع grafting را containment/shaping graft material و پیشگیری از fibrous tissue ingrowth در healing phase می‌داند.
-رد گزینه الف: gag reflex و oxygen saturation در این فصل محور بحث grafting نیستند.
-رد گزینه ب: رنگ پروتز در این بخش به‌عنوان مشکل grafting مطرح نشده است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن دو مشکل مرتبط با هر نوع grafting را containment/shaping graft material و پیشگیری از fibrous tissue ingrowth در healing phase می‌داند.
+رد گزینه الف: gag reflex و oxygen saturation در این فصل محور بحث grafting نیستند.
+رد گزینه ب: رنگ پروتز در این بخش به‌عنوان مشکل grafting مطرح نشده است.
 رد گزینه د: sedative و vasoconstrictor در این بخش به‌عنوان مسائل مشترک grafting ذکر نشده‌اند.',
                     ],
                     [
@@ -4762,10 +4762,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'برای حذف mobility و کاهش resorption graft',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: متن می‌گوید blocks با small screws به maxilla ثابت می‌شوند تا mobility حذف و resorption کمتر شود.
-رد گزینه الف: این کار ارتباطی با extraoral prosthetic anchorage ندارد.
-رد گزینه ب: هدف screws ایجاد perforation سینوس نیست.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: متن می‌گوید blocks با small screws به maxilla ثابت می‌شوند تا mobility حذف و resorption کمتر شود.
+رد گزینه الف: این کار ارتباطی با extraoral prosthetic anchorage ندارد.
+رد گزینه ب: هدف screws ایجاد perforation سینوس نیست.
 رد گزینه ج: cancellous bone هنوز برای بهبود contour اطراف graft packed می‌شود.',
                     ],
                     [
@@ -4777,10 +4777,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'surface area بیشتر و adaptation بهتر در contour defect',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: فرم granular allograft surface area بیشتری دارد و adaptation آن در defectهای contour بهتر است؛ به همین دلیل برای augmenting alveolar ridge contour defects رایج است.
-رد گزینه الف: sterilization، osteoinductive nature را تخریب می‌کند.
-رد گزینه ب: متن significant resorption را یکی از معایب allograft می‌داند.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: فرم granular allograft surface area بیشتری دارد و adaptation آن در defectهای contour بهتر است؛ به همین دلیل برای augmenting alveolar ridge contour defects رایج است.
+رد گزینه الف: sterilization، osteoinductive nature را تخریب می‌کند.
+رد گزینه ب: متن significant resorption را یکی از معایب allograft می‌داند.
 رد گزینه ج: allograft donor site در بیمار ندارد؛ عبارت donor site برای آن مناسب نیست.',
                     ],
                     [
@@ -4792,10 +4792,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'external hex fixture',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: rhBMP-2 روی carrier قرار داده می‌شود و متن معمولاً absorbable collagen sponges را ذکر می‌کند.
-رد گزینه الف: milled titanium bar در پروتز overdenture کاربرد دارد و carrier BMP نیست.
-رد گزینه ب: bite registration در planning/guide کاربرد دارد، نه carrier BMP.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: rhBMP-2 روی carrier قرار داده می‌شود و متن معمولاً absorbable collagen sponges را ذکر می‌کند.
+رد گزینه الف: milled titanium bar در پروتز overdenture کاربرد دارد و carrier BMP نیست.
+رد گزینه ب: bite registration در planning/guide کاربرد دارد، نه carrier BMP.
 رد گزینه د: external hex بخشی از implant زایگوماتیک است، نه carrier BMP.',
                     ],
                     [
@@ -4807,10 +4807,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'فعال‌سازی distractor با سرعت 1 mm/day در سینوس',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: متن می‌گوید اگر bone کافی برای initial stability نباشد، graft برای 3 تا 6 ماه healing داده می‌شود و سپس stage I implant placement انجام می‌گیرد.
-رد گزینه الف: extraoral prosthesis به نقص‌های صورت مربوط است، نه جایگزین posterior maxillary implant.
-رد گزینه ج: implant بدون stability و loading فوری با معیارهای فصل ناسازگار است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: متن می‌گوید اگر bone کافی برای initial stability نباشد، graft برای 3 تا 6 ماه healing داده می‌شود و سپس stage I implant placement انجام می‌گیرد.
+رد گزینه الف: extraoral prosthesis به نقص‌های صورت مربوط است، نه جایگزین posterior maxillary implant.
+رد گزینه ج: implant بدون stability و loading فوری با معیارهای فصل ناسازگار است.
 رد گزینه د: distraction با sinus graft healing جایگزین نمی‌شود.',
                     ],
                     [
@@ -4822,10 +4822,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'کمتر از 1 mm در تمام طول ridge',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن بیان می‌کند اگر bone کافی برای initial implant stability وجود داشته باشد، معمولاً 4 تا 5 mm، implant placement می‌تواند همزمان با sinus grafting انجام شود.
-رد گزینه ب: 35 تا 55 mm طول zygomatic implant است، نه ارتفاع bone native برای sinus grafting.
-رد گزینه ج: وجود pneumatization علت انجام sinus lift است و همزمانی implant با معیار stability تعیین می‌شود.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن بیان می‌کند اگر bone کافی برای initial implant stability وجود داشته باشد، معمولاً 4 تا 5 mm، implant placement می‌تواند همزمان با sinus grafting انجام شود.
+رد گزینه ب: 35 تا 55 mm طول zygomatic implant است، نه ارتفاع bone native برای sinus grafting.
+رد گزینه ج: وجود pneumatization علت انجام sinus lift است و همزمانی implant با معیار stability تعیین می‌شود.
 رد گزینه د: کمتر از 1 mm برای initial stability کافی نیست.',
                     ],
                     [
@@ -4837,10 +4837,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ناسازگاری کامل navigation با outcome قابل تکرار',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: متن می‌گوید چالش‌های intraoral navigation بیشتر پیرامون تجهیزات، به‌ویژه handpieceهای bulky و calibration قابل اعتماد و reproducible است.
-رد گزینه ب: متن CBCT سه‌بعدی و نرم‌افزارهای planning را رو به گسترش می‌داند.
-رد گزینه ج: guide cylinders مربوط به static surgical guide هستند و متن حذف قطعی آن‌ها را نمی‌گوید.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: متن می‌گوید چالش‌های intraoral navigation بیشتر پیرامون تجهیزات، به‌ویژه handpieceهای bulky و calibration قابل اعتماد و reproducible است.
+رد گزینه ب: متن CBCT سه‌بعدی و نرم‌افزارهای planning را رو به گسترش می‌داند.
+رد گزینه ج: guide cylinders مربوط به static surgical guide هستند و متن حذف قطعی آن‌ها را نمی‌گوید.
 رد گزینه د: هدف navigation افزایش accuracy، efficiency و reproducible outcomes است، نه ناسازگاری با آن.',
                     ],
                     [
@@ -4852,10 +4852,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'sinus floor augmentation membranes',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: extraoral implants برای anchorage پروتزهای گوش، چشم و بینی در نقص‌های مادرزادی، تروما یا پاتولوژیک ذکر شده‌اند.
-رد گزینه الف: mandibular overdenture کاربرد intraoral implant است.
-رد گزینه ج: posterior zygomatic fixed bridge با zygomatic implants داخل دهانی مرتبط است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: extraoral implants برای anchorage پروتزهای گوش، چشم و بینی در نقص‌های مادرزادی، تروما یا پاتولوژیک ذکر شده‌اند.
+رد گزینه الف: mandibular overdenture کاربرد intraoral implant است.
+رد گزینه ج: posterior zygomatic fixed bridge با zygomatic implants داخل دهانی مرتبط است.
 رد گزینه د: membrane در sinus/GBR به anchorage prosthetic extraoral مربوط نیست.',
                     ],
                     [
@@ -4867,10 +4867,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'بی‌نیازی از ارزیابی عفونت و سلامت socket',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: مزیت اصلی immediate placement در متن کوتاه شدن healing کلی و انجام extraction و implant placement در یک عمل است؛ provisional هم می‌تواند به حفظ anatomy بافت نرم و esthetics کمک کند.
-رد گزینه الف: immediate placement بر کاهش زمان کلی نسبت به staged treatment تأکید دارد.
-رد گزینه ب: تفاوت شکل root و implant یک دشواری است نه مزیت.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: مزیت اصلی immediate placement در متن کوتاه شدن healing کلی و انجام extraction و implant placement در یک عمل است؛ provisional هم می‌تواند به حفظ anatomy بافت نرم و esthetics کمک کند.
+رد گزینه الف: immediate placement بر کاهش زمان کلی نسبت به staged treatment تأکید دارد.
+رد گزینه ب: تفاوت شکل root و implant یک دشواری است نه مزیت.
 رد گزینه د: متن شرط نبود infection و حفظ bone را مطرح می‌کند.',
                     ],
                     [
@@ -4882,10 +4882,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'excessive occlusal forces روی implant',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: متن هشدار می‌دهد اگر implant در معرض نیروهای اکلوزالی بیش از حد باشد، stability کوتاه‌مدت و بلندمدت آن می‌تواند jeopardized شود.
-رد گزینه الف: countersinking مختصر برای جبران resorption پس از extraction توصیه شده است.
-رد گزینه ب: تماس apical 4 mm عامل کمک‌کننده به initial stability است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: متن هشدار می‌دهد اگر implant در معرض نیروهای اکلوزالی بیش از حد باشد، stability کوتاه‌مدت و بلندمدت آن می‌تواند jeopardized شود.
+رد گزینه الف: countersinking مختصر برای جبران resorption پس از extraction توصیه شده است.
+رد گزینه ب: تماس apical 4 mm عامل کمک‌کننده به initial stability است.
 رد گزینه ج: surgical guide برای بهبود angulation و کاهش خطا مفید است.',
                     ],
                     [
@@ -4897,10 +4897,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'افزایش volume و کمک به place, shape, and contain graft',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: در larger defects، BMP با osteoconductive allogeneic materials ترکیب می‌شود تا graft volume گسترش یابد و placement، shaping و containment بهتر انجام شود.
-رد گزینه الف: هدف کاهش volume graft نیست، بلکه expand کردن حجم graft است.
-رد گزینه ب: BMP برای enhanced bone formation استفاده می‌شود، نه حذف آن.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: در larger defects، BMP با osteoconductive allogeneic materials ترکیب می‌شود تا graft volume گسترش یابد و placement، shaping و containment بهتر انجام شود.
+رد گزینه الف: هدف کاهش volume graft نیست، بلکه expand کردن حجم graft است.
+رد گزینه ب: BMP برای enhanced bone formation استفاده می‌شود، نه حذف آن.
 رد گزینه ج: framework prosthetic ear به extraoral implant مربوط است.',
                     ],
                     [
@@ -4912,10 +4912,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'نیاز الزامی به donor site surgery در همان بیمار',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: متن disadvantage allograft را resorption قابل‌توجه می‌داند که باعث volume کوچک‌تر استخوان برای implant placement می‌شود.
-رد گزینه الف: متن outpatient setting را از مزایای allograft می‌داند.
-رد گزینه ب: processing/sterilization osteoinductive nature را از بین می‌برد، نه اینکه آن را افزایش دهد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: متن disadvantage allograft را resorption قابل‌توجه می‌داند که باعث volume کوچک‌تر استخوان برای implant placement می‌شود.
+رد گزینه الف: متن outpatient setting را از مزایای allograft می‌داند.
+رد گزینه ب: processing/sterilization osteoinductive nature را از بین می‌برد، نه اینکه آن را افزایش دهد.
 رد گزینه د: یکی از مزایای allograft، اجتناب از donor site اضافی است.',
                     ],
                     [
@@ -4927,10 +4927,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'همان روز برای loading کامل implantها استفاده شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: متن می‌گوید یک removable prosthesis که به‌درستی relief داده شده باشد، معمولاً می‌تواند پس از surgery در دوره healing استفاده شود.
-رد گزینه الف: patch سینوس از resorbable membrane است، نه removable prosthesis.
-رد گزینه ج: فشار مستقیم و tight بودن با هدف حفاظت محل graft ناسازگار است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: متن می‌گوید یک removable prosthesis که به‌درستی relief داده شده باشد، معمولاً می‌تواند پس از surgery در دوره healing استفاده شود.
+رد گزینه الف: patch سینوس از resorbable membrane است، نه removable prosthesis.
+رد گزینه ج: فشار مستقیم و tight بودن با هدف حفاظت محل graft ناسازگار است.
 رد گزینه د: متن prosthesis را برای loading کامل implantها در این وضعیت معرفی نمی‌کند.',
                     ],
                     [
@@ -4942,10 +4942,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'ثابت کردن corticocancellous blocks با small screws',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: وقتی primary closure ممکن یا مطلوب نیست، متن قرار دادن resorbable collagen pellet روی implant و تثبیت با figure-of-eight suture را مطرح می‌کند.
-رد گزینه ب: lateral window مربوط به open sinus lift است.
-رد گزینه ج: titanium bar splint مربوط به mandibular overdenture case است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: وقتی primary closure ممکن یا مطلوب نیست، متن قرار دادن resorbable collagen pellet روی implant و تثبیت با figure-of-eight suture را مطرح می‌کند.
+رد گزینه ب: lateral window مربوط به open sinus lift است.
+رد گزینه ج: titanium bar splint مربوط به mandibular overdenture case است.
 رد گزینه د: small screws برای onlay block graft در maxilla به‌کار می‌روند.',
                     ],
                 ],
@@ -4976,10 +4976,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'برداشت از ramus و اتصال به temporal bone برای ear prosthesis',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در کیس دندان‌های قدامی، bone از mandibular symphysis برداشت و به facial wall قدامی maxilla ثابت شد.
-رد گزینه ب: tuberosity و zygomatic body در این کیس به‌عنوان ترکیب donor/recipient ذکر نشده‌اند.
-رد گزینه ج: calvarium و floor سینوس مربوط به این کیس قدامی نیستند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در کیس دندان‌های قدامی، bone از mandibular symphysis برداشت و به facial wall قدامی maxilla ثابت شد.
+رد گزینه ب: tuberosity و zygomatic body در این کیس به‌عنوان ترکیب donor/recipient ذکر نشده‌اند.
+رد گزینه ج: calvarium و floor سینوس مربوط به این کیس قدامی نیستند.
 رد گزینه د: temporal bone و ear prosthesis مربوط به extraoral implant است، نه reconstruction قدام maxilla.',
                     ],
                     [
@@ -4991,10 +4991,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'bone harvest محدود از maxillary tuberosity',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در این کیس، exposure ایلیاک و harvest هر دو بخش cortical و cancellous از iliac crest نشان داده شده است.
-رد گزینه الف: کیس بر autogenous grafting تأکید دارد، نه allograft تنها.
-رد گزینه ج: xenograft به‌تنهایی graft اصلی این کیس نیست.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در این کیس، exposure ایلیاک و harvest هر دو بخش cortical و cancellous از iliac crest نشان داده شده است.
+رد گزینه الف: کیس بر autogenous grafting تأکید دارد، نه allograft تنها.
+رد گزینه ج: xenograft به‌تنهایی graft اصلی این کیس نیست.
 رد گزینه د: tuberosity در این کیس به‌عنوان harvest site گزارش نشده است.',
                     ],
                     [
@@ -5006,10 +5006,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'symphysis block graft و all-zirconia fixed partial denture',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در کیس maxillary defect، titanium mesh crib با BMP روی ACS و particulate bone برای بازسازی ridge استفاده شد.
-رد گزینه الف: سه mandibular implant و milled bar مربوط به overdenture mandibular در کیس failed dentition است.
-رد گزینه ب: zygomatic implant مربوط به کیس دیگری است و بازسازی این defect با mesh/BMP انجام شد.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در کیس maxillary defect، titanium mesh crib با BMP روی ACS و particulate bone برای بازسازی ridge استفاده شد.
+رد گزینه الف: سه mandibular implant و milled bar مربوط به overdenture mandibular در کیس failed dentition است.
+رد گزینه ب: zygomatic implant مربوط به کیس دیگری است و بازسازی این defect با mesh/BMP انجام شد.
 رد گزینه د: symphysis block و all-zirconia FPD مربوط به کیس missing anterior teeth است.',
                     ],
                     [
@@ -5021,10 +5021,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'conventional maxillary denture همراه mandibular overdenture',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: این کیس با conventional maxillary denture و mandibular overdenture درمان شد.
-رد گزینه الف: پروتز گوش و temporal implant به extraoral implants مربوط است.
-رد گزینه ب: ترکیب zygomatic hybrid مربوط به nonrestorable maxillary dentition است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: این کیس با conventional maxillary denture و mandibular overdenture درمان شد.
+رد گزینه الف: پروتز گوش و temporal implant به extraoral implants مربوط است.
+رد گزینه ب: ترکیب zygomatic hybrid مربوط به nonrestorable maxillary dentition است.
 رد گزینه ج: all-zirconia FPD قدامی مربوط به کیس missing anterior teeth است.',
                     ],
                     [
@@ -5036,10 +5036,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'anterior iliac crest bone graft شامل corticocancellous block و marrow اضافی',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: کیس severe atrophic mandible از anterior iliac crest graft استفاده کرد و graft شامل corticocancellous block و marrow اضافی بود.
-رد گزینه الف: particulate xenograft socket قدامی مربوط به immediate implant case است نه این mandible شدیداً atrophic.
-رد گزینه ب: کیس با autogenous iliac crest graft و extraoral approach توصیف شده است، نه BMP تنها.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: کیس severe atrophic mandible از anterior iliac crest graft استفاده کرد و graft شامل corticocancellous block و marrow اضافی بود.
+رد گزینه الف: particulate xenograft socket قدامی مربوط به immediate implant case است نه این mandible شدیداً atrophic.
+رد گزینه ب: کیس با autogenous iliac crest graft و extraoral approach توصیف شده است، نه BMP تنها.
 رد گزینه ج: zygomatic implant به maxilla مربوط است و برای این mandible به‌کار نرفته است.',
                     ],
                     [
@@ -5051,10 +5051,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'از titanium crib preformed ساخته شد و با 1.2-mm screws ثابت گردید',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در این کیس، radiographic guide از transitional denture تأییدشده duplicate شد و همراه bite registration در planning به‌کار رفت.
-رد گزینه الف: intaglio surface مربوط به overdenture mandibular در کیس failed dentition است.
-رد گزینه ب: symphysis block مربوط به کیس missing anterior teeth است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در این کیس، radiographic guide از transitional denture تأییدشده duplicate شد و همراه bite registration در planning به‌کار رفت.
+رد گزینه الف: intaglio surface مربوط به overdenture mandibular در کیس failed dentition است.
+رد گزینه ب: symphysis block مربوط به کیس missing anterior teeth است.
 رد گزینه د: titanium crib و 1.2-mm screws مربوط به کیس central giant cell granuloma است.',
                     ],
                     [
@@ -5066,10 +5066,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'پس از 3 تا 4 ماه',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در کپشن کیس، پس از 15 دقیقه rhBMP-2 به collagen sponges مرطوب‌شده می‌چسبد.
-رد گزینه الف: 6 ماه در برخی مراحل healing یا reentry/abutment در کیس‌های دیگر دیده می‌شود، نه adhesion BMP به ACS.
-رد گزینه ج: 5 تا 7 روز latency distraction است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در کپشن کیس، پس از 15 دقیقه rhBMP-2 به collagen sponges مرطوب‌شده می‌چسبد.
+رد گزینه الف: 6 ماه در برخی مراحل healing یا reentry/abutment در کیس‌های دیگر دیده می‌شود، نه adhesion BMP به ACS.
+رد گزینه ج: 5 تا 7 روز latency distraction است.
 رد گزینه د: 3 تا 4 ماه healing regenerate در distraction است.',
                     ],
                     [
@@ -5081,10 +5081,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'برای اتصال overdenture attachment به titanium bar',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: کپشن کیس نشان می‌دهد implant cover screws برای two-stage healing process قرار داده شدند.
-رد گزینه ب: تثبیت titanium crib مربوط به کیس maxillary defect است.
-رد گزینه ج: bite registration مربوط به planning کیس nonrestorable maxillary dentition است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: کپشن کیس نشان می‌دهد implant cover screws برای two-stage healing process قرار داده شدند.
+رد گزینه ب: تثبیت titanium crib مربوط به کیس maxillary defect است.
+رد گزینه ج: bite registration مربوط به planning کیس nonrestorable maxillary dentition است.
 رد گزینه د: overdenture attachments مربوط به کیس failed dentition است.',
                     ],
                     [
@@ -5096,10 +5096,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'جایگزینی titanium bar splinting',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در کیس، overlay برای پر کردن space بین mucosa و prosthesis و افزودن support به lower lip area استفاده شد.
-رد گزینه ب: perforation sinus membrane مربوط به sinus lift است.
-رد گزینه ج: adhesion BMP به ACS در کیس maxillary defect مطرح است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در کیس، overlay برای پر کردن space بین mucosa و prosthesis و افزودن support به lower lip area استفاده شد.
+رد گزینه ب: perforation sinus membrane مربوط به sinus lift است.
+رد گزینه ج: adhesion BMP به ACS در کیس maxillary defect مطرح است.
 رد گزینه د: titanium bar splinting مربوط به overdenture mandibular در کیس failed dentition است.',
                     ],
                     [
@@ -5111,10 +5111,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'implantهای قدامی پس از graft از symphysis',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: عنوان و مراحل کیس nonrestorable maxillary dentition، بازسازی با conventional anterior implants و posterior zygomaticus implants را نشان می‌دهد.
-رد گزینه الف: سه implant و milled bar مربوط به کیس failed dentition است.
-رد گزینه ج: چهار implant در regenerated ridge مربوط به maxillary defect after CGCG resection است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: عنوان و مراحل کیس nonrestorable maxillary dentition، بازسازی با conventional anterior implants و posterior zygomaticus implants را نشان می‌دهد.
+رد گزینه الف: سه implant و milled bar مربوط به کیس failed dentition است.
+رد گزینه ج: چهار implant در regenerated ridge مربوط به maxillary defect after CGCG resection است.
 رد گزینه د: implantهای قدامی پس از symphysis graft مربوط به missing anterior teeth است.',
                     ],
                     [
@@ -5126,10 +5126,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'adhesion BMP به ACS پس از 15 دقیقه',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: کپشن pretreatment radiograph این کیس به pneumatized maxillary sinuses و atrophic posterior mandibular anatomy اشاره می‌کند.
-رد گزینه الف: smile نهایی مربوط به نتیجه کیس zygomatic/maxillary hybrid است، نه یافته pretreatment این کیس.
-رد گزینه ب: فقدان ear مربوط به extraoral implant example است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: کپشن pretreatment radiograph این کیس به pneumatized maxillary sinuses و atrophic posterior mandibular anatomy اشاره می‌کند.
+رد گزینه الف: smile نهایی مربوط به نتیجه کیس zygomatic/maxillary hybrid است، نه یافته pretreatment این کیس.
+رد گزینه ب: فقدان ear مربوط به extraoral implant example است.
 رد گزینه د: adhesion BMP به ACS مربوط به آماده‌سازی BMP در کیس CGCG است.',
                     ],
                     [
@@ -5141,10 +5141,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'zirconia hybrid framework برای replacement gingival tissues',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: در کیس، screw-retained zirconia hybrid framework با pink porcelain برای جایگزینی gingival tissues توصیف شده است.
-رد گزینه الف: healing abutment مربوط به مراحل healing کیس missing anterior teeth است.
-رد گزینه ب: radiographic guide مربوط به planning کیس nonrestorable maxillary dentition است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: در کیس، screw-retained zirconia hybrid framework با pink porcelain برای جایگزینی gingival tissues توصیف شده است.
+رد گزینه الف: healing abutment مربوط به مراحل healing کیس missing anterior teeth است.
+رد گزینه ب: radiographic guide مربوط به planning کیس nonrestorable maxillary dentition است.
 رد گزینه ج: corticocancellous block iliac crest مربوط به کیس atrophic mandible است.',
                     ],
                     [
@@ -5156,10 +5156,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'با titanium bar به هم splint شدند و attachments روی bar قرار گرفت',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: در این کیس سه mandibular implants با titanium bar splint شدند و milled titanium bar با attachments برای overdenture به‌کار رفت.
-رد گزینه الف: zygomatic implants در کیس maxillary nonrestorable dentition کاربرد دارد.
-رد گزینه ب: titanium crib مربوط به بازسازی defect maxilla پس از CGCG است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: در این کیس سه mandibular implants با titanium bar splint شدند و milled titanium bar با attachments برای overdenture به‌کار رفت.
+رد گزینه الف: zygomatic implants در کیس maxillary nonrestorable dentition کاربرد دارد.
+رد گزینه ب: titanium crib مربوط به بازسازی defect maxilla پس از CGCG است.
 رد گزینه ج: symphyseal block graft مربوط به case missing anterior teeth است.',
                     ],
                     [
@@ -5171,10 +5171,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'figure-of-eight suture و collagen pellet',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در مراحل کیس، surgical guide در محل با bite registration و insertion of fixation pins نشان داده شده است.
-رد گزینه الف: small screws برای fixation graft blocks در onlay grafting هستند.
-رد گزینه ب: milled bar و attachments مربوط به overdenture case است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در مراحل کیس، surgical guide در محل با bite registration و insertion of fixation pins نشان داده شده است.
+رد گزینه الف: small screws برای fixation graft blocks در onlay grafting هستند.
+رد گزینه ب: milled bar و attachments مربوط به overdenture case است.
 رد گزینه د: figure-of-eight suture و collagen pellet به immediate implant socket management مربوط است.',
                     ],
                     [
@@ -5186,10 +5186,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'extreme atrophy of entire mandible',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: کپشن کیس missing anterior teeth تصریح می‌کند lateral cephalometric radiograph، maxillary deficiency نسبت به mandible را نشان می‌دهد.
-رد گزینه الف: normal ridge height after titanium crib مربوط به کیس CGCG reconstruction است.
-رد گزینه ج: pneumatized sinus و atrophic posterior mandible مربوط به کیس edentulous spaces است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: کپشن کیس missing anterior teeth تصریح می‌کند lateral cephalometric radiograph، maxillary deficiency نسبت به mandible را نشان می‌دهد.
+رد گزینه الف: normal ridge height after titanium crib مربوط به کیس CGCG reconstruction است.
+رد گزینه ج: pneumatized sinus و atrophic posterior mandible مربوط به کیس edentulous spaces است.
 رد گزینه د: extreme atrophy of entire mandible مربوط به کیس severely atrophic edentulous mandible است.',
                     ],
                     [
@@ -5201,10 +5201,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'قرار دادن implant-supported prosthetic ear در temporal bone',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در کپشن، exposure of atrophic posterior mandible و fixation of cortical bone graft به‌عنوان مراحل این کیس آمده است.
-رد گزینه ب: برداشت healing abutment در کیس missing anterior teeth ذکر شده است.
-رد گزینه ج: open-tray transfer impression در مراحل case nonrestorable maxillary dentition آمده است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در کپشن، exposure of atrophic posterior mandible و fixation of cortical bone graft به‌عنوان مراحل این کیس آمده است.
+رد گزینه ب: برداشت healing abutment در کیس missing anterior teeth ذکر شده است.
+رد گزینه ج: open-tray transfer impression در مراحل case nonrestorable maxillary dentition آمده است.
 رد گزینه د: prosthetic ear مربوط به extraoral implant example است.',
                     ],
                     [
@@ -5216,10 +5216,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'با cover screws برای two-stage healing',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: کپشن می‌گوید titanium crib با 1.2-mm self-drilling screws به native ridge secured شد.
-رد گزینه ب: bite registration مربوط به guide در case nonrestorable maxillary dentition است.
-رد گزینه ج: attachments در intaglio surface مربوط به overdenture case است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: کپشن می‌گوید titanium crib با 1.2-mm self-drilling screws به native ridge secured شد.
+رد گزینه ب: bite registration مربوط به guide در case nonrestorable maxillary dentition است.
+رد گزینه ج: attachments در intaglio surface مربوط به overdenture case است.
 رد گزینه د: cover screws مربوط به two-stage healing implantها، نه crib fixation، هستند.',
                     ],
                     [
@@ -5231,10 +5231,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'supported by titanium crib بدون implant',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در کپشن کیس، prosthesis نهایی totally supported by implants ذکر شده است.
-رد گزینه الف: مخاط به‌تنهایی support نهایی این prosthesis نبود.
-رد گزینه ج: zygomatic body و sinus floor مربوط به maxillary zygomatic/sinus procedures است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در کپشن کیس، prosthesis نهایی totally supported by implants ذکر شده است.
+رد گزینه الف: مخاط به‌تنهایی support نهایی این prosthesis نبود.
+رد گزینه ج: zygomatic body و sinus floor مربوط به maxillary zygomatic/sinus procedures است.
 رد گزینه د: titanium crib برای بازسازی ridge در کیس CGCG بود و support prosthesis نهایی این mandible نیست.',
                     ],
                     [
@@ -5246,10 +5246,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'metal-reinforced overdenture بدون framework zirconia',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در مراحل پایانی این کیس، computer design، CAD/CAM zirconia framework و completed porcelain-to-zirconia hybrid prosthesis نشان داده شده است.
-رد گزینه الف: all-zirconia screw-retained FPD مربوط به case missing anterior teeth است.
-رد گزینه ب: milled titanium bar مربوط به mandibular overdenture case است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در مراحل پایانی این کیس، computer design، CAD/CAM zirconia framework و completed porcelain-to-zirconia hybrid prosthesis نشان داده شده است.
+رد گزینه الف: all-zirconia screw-retained FPD مربوط به case missing anterior teeth است.
+رد گزینه ب: milled titanium bar مربوط به mandibular overdenture case است.
 رد گزینه د: metal-reinforced overdenture مربوط به case failed dentition است.',
                     ],
                     [
@@ -5261,10 +5261,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'implant-supported all-zirconia screw-retained fixed partial denture',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: کپشن نهایی این کیس، implant-supported, all-zirconia, screw-retained, fixed partial denture را ذکر می‌کند.
-رد گزینه الف: prosthetic ear مربوط به extraoral implants است.
-رد گزینه ب: این گزینه مربوط به کیس failed dentition است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: کپشن نهایی این کیس، implant-supported, all-zirconia, screw-retained, fixed partial denture را ذکر می‌کند.
+رد گزینه الف: prosthetic ear مربوط به extraoral implants است.
+رد گزینه ب: این گزینه مربوط به کیس failed dentition است.
 رد گزینه ج: این گزینه مربوط به کیس nonrestorable maxillary dentition است.',
                     ],
                     [
@@ -5276,10 +5276,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'metal-reinforced final overdenture with attachments',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: در کپشن، intaglio surface پروتز نهایی یک metal-reinforced final overdenture with attachments توصیف شده است.
-رد گزینه الف: zirconia hybrid framework با pink porcelain مربوط به maxillary defect/یا hybrid case است.
-رد گزینه ب: all-zirconia FPD مربوط به missing anterior teeth است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: در کپشن، intaglio surface پروتز نهایی یک metal-reinforced final overdenture with attachments توصیف شده است.
+رد گزینه الف: zirconia hybrid framework با pink porcelain مربوط به maxillary defect/یا hybrid case است.
+رد گزینه ب: all-zirconia FPD مربوط به missing anterior teeth است.
 رد گزینه ج: radiographic guide مربوط به planning، نه intaglio surface پروتز نهایی، است.',
                     ],
                     [
@@ -5291,10 +5291,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'titanium crib fixation با 1.2-mm screws',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در کپشن، simultaneous implant placement and sinus lift پیش از placement bone graft در maxillary sinus آمده است.
-رد گزینه الف: prosthetic overlay مربوط به severe atrophic mandible است.
-رد گزینه ب: mandibular symphysis harvest مربوط به missing anterior teeth است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در کپشن، simultaneous implant placement and sinus lift پیش از placement bone graft در maxillary sinus آمده است.
+رد گزینه الف: prosthetic overlay مربوط به severe atrophic mandible است.
+رد گزینه ب: mandibular symphysis harvest مربوط به missing anterior teeth است.
 رد گزینه د: titanium crib مربوط به defect ناشی از CGCG است.',
                     ],
                     [
@@ -5306,10 +5306,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'به‌صورت milled bar با attachments برای overdenture آماده شد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در کپشن، fine titanium mesh به فرم ideal alveolar ridge contoured شد و با BMP on ACSs و particulate bone packed گردید.
-رد گزینه الف: cover screw جزء implant healing است، نه آماده‌سازی mesh.
-رد گزینه ج: radiographic guide مربوط به case nonrestorable maxillary dentition است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در کپشن، fine titanium mesh به فرم ideal alveolar ridge contoured شد و با BMP on ACSs و particulate bone packed گردید.
+رد گزینه الف: cover screw جزء implant healing است، نه آماده‌سازی mesh.
+رد گزینه ج: radiographic guide مربوط به case nonrestorable maxillary dentition است.
 رد گزینه د: milled bar مربوط به mandibular overdenture است.',
                     ],
                     [
@@ -5321,10 +5321,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'titanium bar splinting سه implant mandibular',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در کپشن‌ها، 3D reconstruction edentulous maxilla و virtual planning با simulated prosthesis و virtual implant placement نشان داده شده است.
-رد گزینه ب: ACS با BMP مربوط به maxillary defect after CGCG resection است.
-رد گزینه ج: prosthetic overlay مربوط به severely atrophic mandible است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در کپشن‌ها، 3D reconstruction edentulous maxilla و virtual planning با simulated prosthesis و virtual implant placement نشان داده شده است.
+رد گزینه ب: ACS با BMP مربوط به maxillary defect after CGCG resection است.
+رد گزینه ج: prosthetic overlay مربوط به severely atrophic mandible است.
 رد گزینه د: bar splinting مربوط به mandibular overdenture case است.',
                     ],
                     [
@@ -5336,10 +5336,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'normal alveolar ridge height after mesh crib',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: کپشن Panorex این کیس، extreme atrophy of entire mandible را نشان می‌دهد.
-رد گزینه ب: maxillary deficiency compared with mandible مربوط به کیس missing anterior teeth است.
-رد گزینه ج: pneumatization maxillary sinus در case edentulous spaces مطرح شده، نه توصیف کل مندیبل.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: کپشن Panorex این کیس، extreme atrophy of entire mandible را نشان می‌دهد.
+رد گزینه ب: maxillary deficiency compared with mandible مربوط به کیس missing anterior teeth است.
+رد گزینه ج: pneumatization maxillary sinus در case edentulous spaces مطرح شده، نه توصیف کل مندیبل.
 رد گزینه د: normal ridge height after mesh crib مربوط به بازسازی maxillary defect است.',
                     ],
                     [
@@ -5351,10 +5351,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'temporal bone around missing ear',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در کپشن، fixation of symphyseal bone harvest to the facial wall of the anterior maxilla توصیف شده است.
-رد گزینه الف: body of zygoma مربوط به zygomatic implant است.
-رد گزینه ج: inferior sinus portion محل graft در sinus lift است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در کپشن، fixation of symphyseal bone harvest to the facial wall of the anterior maxilla توصیف شده است.
+رد گزینه الف: body of zygoma مربوط به zygomatic implant است.
+رد گزینه ج: inferior sinus portion محل graft در sinus lift است.
 رد گزینه د: temporal bone مربوط به extraoral implant ear prosthesis است.',
                     ],
                     [
@@ -5366,10 +5366,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'three implants، سپس titanium bar، سپس overdenture intaglio attachments',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: کپشن این کیس نشان می‌دهد implant placement و sinus lift همزمان انجام شد و بعد placement bone graft در maxillary sinus تکمیل گردید.
-رد گزینه الف: این توالی مربوط به maxillary defect after CGCG است.
-رد گزینه ب: این توالی مربوط به case missing anterior teeth است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: کپشن این کیس نشان می‌دهد implant placement و sinus lift همزمان انجام شد و بعد placement bone graft در maxillary sinus تکمیل گردید.
+رد گزینه الف: این توالی مربوط به maxillary defect after CGCG است.
+رد گزینه ب: این توالی مربوط به case missing anterior teeth است.
 رد گزینه د: این توالی مربوط به case failed dentition with overdenture است.',
                     ],
                     [
@@ -5381,10 +5381,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             '9 months after grafting',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: کپشن کیس، surgical reentry در regenerated ridge را 9 months after grafting گزارش می‌کند.
-رد گزینه الف: 6 hours در این فصل برای reentry graft ذکر نشده است.
-رد گزینه ب: 2 weeks مربوط به بهبود موقعیت در distraction example است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: کپشن کیس، surgical reentry در regenerated ridge را 9 months after grafting گزارش می‌کند.
+رد گزینه الف: 6 hours در این فصل برای reentry graft ذکر نشده است.
+رد گزینه ب: 2 weeks مربوط به بهبود موقعیت در distraction example است.
 رد گزینه ج: 5 months در sinus augmentation case برای secondary implant placement دیده شده، نه reentry این defect.',
                     ],
                     [
@@ -5396,10 +5396,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'zygomaticus implant',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: کپشن این کیس surgical exposure for placement of the zygomaticus implant را نشان می‌دهد.
-رد گزینه الف: mandibular overdenture implant در کیس failed dentition است.
-رد گزینه ب: prosthetic ear implant مربوط به extraoral implants است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: کپشن این کیس surgical exposure for placement of the zygomaticus implant را نشان می‌دهد.
+رد گزینه الف: mandibular overdenture implant در کیس failed dentition است.
+رد گزینه ب: prosthetic ear implant مربوط به extraoral implants است.
 رد گزینه ج: implant در regenerated ridge مربوط به کیس CGCG است.',
                     ],
                     [
@@ -5411,10 +5411,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'حفظ شکل BMP/particulate bone در maxillary defect',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در این کیس، titanium bar سه implant را splint کرد و milled titanium bar دارای attachments برای overdenture بود.
-رد گزینه الف: هدایت drillها نقش surgical guide است.
-رد گزینه ب: پر کردن فاصله mucosa و prosthesis نقش prosthetic overlay در severe mandibular atrophy است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در این کیس، titanium bar سه implant را splint کرد و milled titanium bar دارای attachments برای overdenture بود.
+رد گزینه الف: هدایت drillها نقش surgical guide است.
+رد گزینه ب: پر کردن فاصله mucosa و prosthesis نقش prosthetic overlay در severe mandibular atrophy است.
 رد گزینه د: حفظ شکل BMP/particulate bone نقش titanium mesh crib است.',
                     ],
                     [
@@ -5426,10 +5426,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'lateral maxillary wall window approach',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: کپشن کیس severe atrophic mandible، extraoral approach for bone grafting و exposure of anterior mandible را نشان می‌دهد.
-رد گزینه الف: temporal approach در example extraoral ear prosthesis مطرح می‌شود، نه bone grafting مندیبل.
-رد گزینه ج: flapless extraction socket approach مربوط به immediate implant placement است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: کپشن کیس severe atrophic mandible، extraoral approach for bone grafting و exposure of anterior mandible را نشان می‌دهد.
+رد گزینه الف: temporal approach در example extraoral ear prosthesis مطرح می‌شود، نه bone grafting مندیبل.
+رد گزینه ج: flapless extraction socket approach مربوط به immediate implant placement است.
 رد گزینه د: lateral wall window مربوط به open sinus lift است.',
                     ],
                     [
@@ -5441,10 +5441,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'سه implant با bar ارتفاع ridge را کاهش دادند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در کپشن پس از grafting، titanium crib و graft reestablishing normal alveolar ridge height توصیف شده است.
-رد گزینه ب: zygomatic implant در این کیس استفاده نشده است.
-رد گزینه ج: prosthetic overlay یک جزء پروتزی است و bone height ایجاد نمی‌کند.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در کپشن پس از grafting، titanium crib و graft reestablishing normal alveolar ridge height توصیف شده است.
+رد گزینه ب: zygomatic implant در این کیس استفاده نشده است.
+رد گزینه ج: prosthetic overlay یک جزء پروتزی است و bone height ایجاد نمی‌کند.
 رد گزینه د: سه implant با bar مربوط به overdenture case است و درباره بازسازی ridge height این defect نیست.',
                     ],
                     [
@@ -5456,10 +5456,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'برای کاهش interarch space با overlay',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: کپشن‌ها surgical guide، fixation pins، drill osteotomy و implant placement را پشت سر هم نشان می‌دهند؛ نقش guide انتقال برنامه مجازی و تثبیت موقعیت جراحی است.
-رد گزینه ب: adhesion rhBMP-2 به ACS به زمان آماده‌سازی BMP مربوط است، نه guide.
-رد گزینه ج: splint کردن implantها کار titanium bar در overdenture case است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: کپشن‌ها surgical guide، fixation pins، drill osteotomy و implant placement را پشت سر هم نشان می‌دهند؛ نقش guide انتقال برنامه مجازی و تثبیت موقعیت جراحی است.
+رد گزینه ب: adhesion rhBMP-2 به ACS به زمان آماده‌سازی BMP مربوط است، نه guide.
+رد گزینه ج: splint کردن implantها کار titanium bar در overdenture case است.
 رد گزینه د: overlay برای پر کردن فضای پروتزی در severe mandibular atrophy است.',
                     ],
                     [
@@ -5471,10 +5471,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             '3 to 6 months before sinus grafting',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: در کپشن case missing anterior teeth، healing abutment removed 6 months after implant placement آمده است.
-رد گزینه الف: 15 دقیقه مربوط به adherence BMP به ACS است.
-رد گزینه ج: 5 تا 7 روز latency distraction است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: در کپشن case missing anterior teeth، healing abutment removed 6 months after implant placement آمده است.
+رد گزینه الف: 15 دقیقه مربوط به adherence BMP به ACS است.
+رد گزینه ج: 5 تا 7 روز latency distraction است.
 رد گزینه د: 3 تا 6 ماه مربوط به healing graft در sinus lift بدون initial stability است، نه abutment این case.',
                     ],
                     [
@@ -5486,10 +5486,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'پس از CAD/CAM zirconia framework',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: کپشن این case پس از مراحل maxillary sinus graft و mandibular cortical graft، Panoramic radiograph after grafting را نشان می‌دهد.
-رد گزینه الف: healing abutment مربوط به case missing anterior teeth است.
-رد گزینه ب: prosthetic ear framework مربوط به extraoral implant example است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: کپشن این case پس از مراحل maxillary sinus graft و mandibular cortical graft، Panoramic radiograph after grafting را نشان می‌دهد.
+رد گزینه الف: healing abutment مربوط به case missing anterior teeth است.
+رد گزینه ب: prosthetic ear framework مربوط به extraoral implant example است.
 رد گزینه د: CAD/CAM zirconia framework مربوط به case nonrestorable maxillary dentition است.',
                     ],
                     [
@@ -5501,10 +5501,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'چهار implant',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: کپشن، placement of four dental implants into the regenerated ridge را ذکر می‌کند.
-رد گزینه الف: symphysis در case missing anterior teeth donor site است، نه محل یک implant برای این defect.
-رد گزینه ب: سه implant مربوط به case mandibular overdenture است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: کپشن، placement of four dental implants into the regenerated ridge را ذکر می‌کند.
+رد گزینه الف: symphysis در case missing anterior teeth donor site است، نه محل یک implant برای این defect.
+رد گزینه ب: سه implant مربوط به case mandibular overdenture است.
 رد گزینه ج: دو zygomatic implants در این case ذکر نشده‌اند.',
                     ],
                     [
@@ -5516,10 +5516,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'پس از 6 months of healing',
                         ],
                         'correctIndex' => 3,
-                        'explanation' => '**پاسخ درست:** گزینه د
-دلیل درست بودن گزینه د: کپشن این کیس، occlusal view of maxilla after 6 months of healing را ذکر می‌کند.
-رد گزینه الف: 15 دقیقه مربوط به BMP on ACS است.
-رد گزینه ب: 2 هفته مربوط به distraction example در نیمه اول است.
+                        'explanation' => '**پاسخ درست:** گزینه د
+دلیل درست بودن گزینه د: کپشن این کیس، occlusal view of maxilla after 6 months of healing را ذکر می‌کند.
+رد گزینه الف: 15 دقیقه مربوط به BMP on ACS است.
+رد گزینه ب: 2 هفته مربوط به distraction example در نیمه اول است.
 رد گزینه ج: immediate temporary crown مربوط به guided immediate implant example است.',
                     ],
                     [
@@ -5531,10 +5531,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'lateral bone window to elevate sinus membrane',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
-دلیل درست بودن گزینه ج: در کپشن، پس از grafting، intraoral exposure of anterior mandible at time of implant placement و سپس placement of implants آمده است.
-رد گزینه الف: lab-manufactured guide مربوط به immediate implant case است.
-رد گزینه ب: preformed titanium crib مربوط به CGCG maxillary defect است.
+                        'explanation' => '**پاسخ درست:** گزینه ج
+دلیل درست بودن گزینه ج: در کپشن، پس از grafting، intraoral exposure of anterior mandible at time of implant placement و سپس placement of implants آمده است.
+رد گزینه الف: lab-manufactured guide مربوط به immediate implant case است.
+رد گزینه ب: preformed titanium crib مربوط به CGCG maxillary defect است.
 رد گزینه د: lateral bone window مربوط به sinus lift است.',
                     ],
                     [
@@ -5546,10 +5546,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'bar splinting سه implant با milled titanium bar',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
-دلیل درست بودن گزینه ب: کپشن‌های پایانی به preparation for an open-tray transfer impression و impression transfers in place اشاره می‌کنند.
-رد گزینه الف: reentry 9 months after grafting مربوط به maxillary defect after CGCG است.
-رد گزینه ج: figure-of-eight suture مربوط به immediate implant socket management است.
+                        'explanation' => '**پاسخ درست:** گزینه ب
+دلیل درست بودن گزینه ب: کپشن‌های پایانی به preparation for an open-tray transfer impression و impression transfers in place اشاره می‌کنند.
+رد گزینه الف: reentry 9 months after grafting مربوط به maxillary defect after CGCG است.
+رد گزینه ج: figure-of-eight suture مربوط به immediate implant socket management است.
 رد گزینه د: bar splinting سه implant مربوط به overdenture mandibular case است.',
                     ],
                     [
@@ -5561,10 +5561,10 @@ function dent_exams_term6_reference_course_data_peterson_oral_surgery_11_15(): a
                             'pink porcelain روی zirconia framework',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
-دلیل درست بودن گزینه الف: در case overdenture، milled titanium bar with attachments و intaglio surface دارای attachments برای retention/restoration توصیف شده‌اند.
-رد گزینه ب: corticocancellous block مربوط به grafting severe atrophic mandible است.
-رد گزینه ج: radiographic guide مربوط به planning کیس nonrestorable maxillary dentition است.
+                        'explanation' => '**پاسخ درست:** گزینه الف
+دلیل درست بودن گزینه الف: در case overdenture، milled titanium bar with attachments و intaglio surface دارای attachments برای retention/restoration توصیف شده‌اند.
+رد گزینه ب: corticocancellous block مربوط به grafting severe atrophic mandible است.
+رد گزینه ج: radiographic guide مربوط به planning کیس nonrestorable maxillary dentition است.
 رد گزینه د: pink porcelain مربوط به جایگزینی gingival tissue در zirconia hybrid framework است.',
                     ],
                 ],

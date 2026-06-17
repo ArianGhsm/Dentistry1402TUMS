@@ -32,26 +32,33 @@ ARABIC_TO_PERSIAN = str.maketrans(
 
 OPTION_LABELS = ("الف", "ب", "ج", "د", "پ", "ت")
 OPTION_LABEL_PATTERN = "|".join(re.escape(label) for label in OPTION_LABELS)
+ANSWER_LABEL_ALIASES = {"ا": "الف"}
+ANSWER_OPTION_LABELS = OPTION_LABELS + tuple(ANSWER_LABEL_ALIASES.keys())
+ANSWER_OPTION_LABEL_PATTERN = "|".join(re.escape(label) for label in ANSWER_OPTION_LABELS)
+QUESTION_OPTION_LABEL_PATTERN = ANSWER_OPTION_LABEL_PATTERN
 PART_INDEX = {"اول": 1, "دوم": 2, "سوم": 3, "چهارم": 4}
 HALF_PART_INDEX = PART_INDEX.copy()
 HALF_LABEL = {1: "نیمه اول", 2: "نیمه دوم", 3: "نیمه سوم", 4: "نیمه چهارم"}
 PART_LABEL = {1: "قسمت اول", 2: "قسمت دوم", 3: "قسمت سوم", 4: "قسمت چهارم"}
 
 QUESTION_RE = re.compile(r"^(?:س(?:ؤ|و)?ال\s*)?(?P<number>[0-9۰-۹٠-٩]+)[\.\):]\s*(?P<text>.+)$")
-OPTION_RE = re.compile(rf"^(?P<label>{OPTION_LABEL_PATTERN})\)\s*(?P<text>.+)$")
+OPTION_RE = re.compile(rf"^(?P<label>{QUESTION_OPTION_LABEL_PATTERN})[\.\)]\s*(?P<text>.+)$")
 ANSWER_ENTRY_RE = re.compile(
-    rf"^(?P<number>[0-9۰-۹٠-٩]+)[\.\)]\s*(?:(?:(?:پاسخ|گزینه)(?:\s*(?:صحیح|درست))?\s*:?\s*)?(?:گزینه\s*)?)?(?P<label>{OPTION_LABEL_PATTERN})(?:\)|\b)(?P<tail>.*)$"
+    rf"^(?P<number>[0-9۰-۹٠-٩]+)[\.\)]\s*(?:(?:(?:پاسخ|گزینه)(?:\s*(?:صحیح|درست))?\s*:?\s*)?(?:گزینه\s*)?)?(?P<label>{ANSWER_OPTION_LABEL_PATTERN})(?:\)|\b)(?P<tail>.*)$"
 )
 ANSWER_PROMPT_RE = re.compile(
     rf"^(?:پاسخ(?:\s+(?:س(?:ؤ|و)?ال))?|س(?:ؤ|و)?ال)\s*(?P<number>[0-9۰-۹٠-٩]+)\s*:\s*"
-    rf"(?:گزینه(?:[ٔ‌]\s*|\s*))?(?P<label>{OPTION_LABEL_PATTERN})(?P<tail>.*)$"
+    rf"(?:گزینه(?:[ٔ‌]\s*|\s*))?(?P<label>{ANSWER_OPTION_LABEL_PATTERN})(?P<tail>.*)$"
 )
 ANSWER_QUESTION_PROMPT_RE = re.compile(
     rf"^س(?:ؤ|و)?ال\s*(?P<number>[0-9۰-۹٠-٩]+)[\.\)]\s*پاسخ\s*:\s*"
-    rf"(?:گزینه(?:[ٔ‌]\s*|\s*))?(?P<label>{OPTION_LABEL_PATTERN})(?P<tail>.*)$"
+    rf"(?:گزینه(?:[ٔ‌]\s*|\s*))?(?P<label>{ANSWER_OPTION_LABEL_PATTERN})(?P<tail>.*)$"
 )
 ANSWER_SECTION_HEADING_RE = re.compile(
     r"^پاسخنامه(?:\s+تشریحی(?:\s+کامل)?)?(?:(?:\s*[—\-:|،]\s*.*)|(?:\s+فصل\b.*))?$"
+)
+ANSWER_SECTION_PREFIX_RE = re.compile(
+    r"^(?:بخش|قسمت|نیمه(?:[‌ ]?ی)?)\s*(?:اول|دوم|سوم|چهارم|[0-9۰-۹٠-٩]+)?\s*:?\s*پاسخنامه\b"
 )
 
 MALAMED_CHAPTER_RE = re.compile(
@@ -417,14 +424,26 @@ def should_skip_content_line(text: str) -> bool:
     }
 
 
-def is_answer_marker_line(text: str) -> bool:
+def normalize_answer_label(label: str) -> str:
+    clean = clean_inline(label)
+    return ANSWER_LABEL_ALIASES.get(clean, clean)
+
+
+def looks_like_answer_section_header(text: str) -> bool:
     clean = strip_hash_heading(clean_inline(text))
-    return bool(ANSWER_SECTION_HEADING_RE.match(clean) or clean.startswith("بخش پاسخنامه"))
+    return bool(
+        ANSWER_SECTION_HEADING_RE.match(clean)
+        or clean.startswith("بخش پاسخنامه")
+        or ANSWER_SECTION_PREFIX_RE.match(clean)
+    )
+
+
+def is_answer_marker_line(text: str) -> bool:
+    return looks_like_answer_section_header(text)
 
 
 def is_answer_section_header(text: str) -> bool:
-    clean = strip_hash_heading(clean_inline(text))
-    return bool(ANSWER_SECTION_HEADING_RE.match(clean) or clean.startswith("بخش پاسخنامه"))
+    return looks_like_answer_section_header(text)
 
 
 def extract_asset_version(root: Path) -> str:
@@ -438,9 +457,15 @@ def split_question_answer_halves(lines: list[str]) -> tuple[list[str], list[str]
     marker_index = None
     for index, raw_line in enumerate(lines):
         text = strip_hash_heading(clean_inline(raw_line))
-        if text.startswith("بخش دوم:") or is_answer_section_header(text):
+        if is_answer_section_header(text):
             marker_index = index
             break
+    if marker_index is None:
+        for index, raw_line in enumerate(lines):
+            text = strip_hash_heading(clean_inline(raw_line))
+            if text.startswith("بخش دوم:"):
+                marker_index = index
+                break
     if marker_index is None:
         raise ValueError("Could not locate answer section marker.")
     return lines[:marker_index], lines[marker_index + 1 :]
@@ -714,7 +739,7 @@ def parse_question_lines(lines: list[str]) -> list[ParsedQuestion]:
 
         option_match = OPTION_RE.match(text)
         if option_match and pending is not None:
-            pending.option_labels.append(clean_inline(option_match.group("label")))
+            pending.option_labels.append(normalize_answer_label(option_match.group("label")))
             pending.options.append(clean_inline(option_match.group("text")))
             continue
 
@@ -754,7 +779,7 @@ def parse_answer_lines(lines: list[str]) -> dict[int, tuple[str, str]]:
         if answer_match:
             flush()
             current_number = digits_to_int(answer_match.group("number"))
-            current_label = answer_match.group("label")
+            current_label = normalize_answer_label(answer_match.group("label"))
             current_explanation = clean_inline(answer_match.group("tail").lstrip(")—-:؛ ")) if answer_match.group("tail") else ""
             continue
 
