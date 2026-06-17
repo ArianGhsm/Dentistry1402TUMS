@@ -516,7 +516,7 @@ ol {
 .site-header {
     position: sticky;
     top: 0;
-    z-index: 120;
+    z-index: 330;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1070,9 +1070,9 @@ body.app-shell-hidden {
 }
 
 .shell-search-panel {
-    position: fixed;
+    position: absolute;
     inset-inline: clamp(0.72rem, 2.6vw, 1rem);
-    top: calc(var(--shell-header-offset) + 0.5rem);
+    top: calc(100% + 0.5rem);
     z-index: 330;
     width: min(620px, calc(100vw - 1.44rem));
     margin-inline: auto;

@@ -204,6 +204,14 @@ function dent_bootstrap(): void
     }
 
     set_exception_handler(static function (Throwable $exception): void {
+        dent_error_log_record([
+            'type' => 'exception',
+            'message' => get_class($exception) . ': ' . $exception->getMessage(),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            'status' => 500,
+        ]);
+
         if (headers_sent()) {
             return;
         }
@@ -221,6 +229,14 @@ function dent_bootstrap(): void
         if (!in_array((int) ($error['type'] ?? 0), $fatalTypes, true)) {
             return;
         }
+
+        dent_error_log_record([
+            'type' => 'fatal',
+            'message' => (string) ($error['message'] ?? ''),
+            'file' => (string) ($error['file'] ?? ''),
+            'line' => (int) ($error['line'] ?? 0),
+            'status' => 500,
+        ]);
 
         if (headers_sent()) {
             return;
@@ -330,8 +346,113 @@ function dent_emit_fallback_json_error(string $message, int $statusCode = 500): 
     exit;
 }
 
+const DENT_ERROR_LOG_MAX_LINES = 1500;
+
+function dent_error_log_path(): string
+{
+    return DENT_STORAGE_ROOT . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'errors.jsonl';
+}
+
+/**
+ * Append a structured error record to the shared server error log.
+ *
+ * Called from the global exception/shutdown handlers and from 5xx responses,
+ * so it must be fully defensive: it never throws and never blocks the response.
+ */
+function dent_error_log_record(array $entry): void
+{
+    try {
+        if (!defined('DENT_STORAGE_ROOT')) {
+            return;
+        }
+
+        $path = dent_error_log_path();
+        $dir = dirname($path);
+        if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+            return;
+        }
+
+        $clip = static function ($value, int $max): string {
+            $text = trim((string) $value);
+            if ($text === '') {
+                return '';
+            }
+            if (function_exists('mb_substr')) {
+                return mb_substr($text, 0, $max, 'UTF-8');
+            }
+            return substr($text, 0, $max);
+        };
+
+        $student = '';
+        if (isset($_SESSION) && is_array($_SESSION)) {
+            $student = trim((string) ($_SESSION['student_number'] ?? ''));
+        }
+
+        $record = [
+            'at' => date('c'),
+            'type' => $clip($entry['type'] ?? 'error', 24),
+            'message' => $clip($entry['message'] ?? '', 600),
+            'file' => $clip($entry['file'] ?? '', 220),
+            'line' => max(0, (int) ($entry['line'] ?? 0)),
+            'status' => max(0, (int) ($entry['status'] ?? 0)),
+            'method' => $clip($_SERVER['REQUEST_METHOD'] ?? '', 10),
+            'uri' => $clip($_SERVER['REQUEST_URI'] ?? '', 300),
+            'action' => $clip($_POST['action'] ?? ($_GET['action'] ?? ''), 80),
+            'user' => $student,
+            'ua' => $clip($_SERVER['HTTP_USER_AGENT'] ?? '', 220),
+        ];
+
+        $line = json_encode($record, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if ($line === false) {
+            return;
+        }
+
+        $handle = @fopen($path, 'c+');
+        if ($handle === false) {
+            return;
+        }
+        try {
+            if (!@flock($handle, LOCK_EX)) {
+                return;
+            }
+            @fseek($handle, 0, SEEK_END);
+            @fwrite($handle, $line . "\n");
+
+            // Occasionally trim the log so it cannot grow without bound.
+            $size = @ftell($handle);
+            if ($size !== false && $size > 1500000) {
+                @rewind($handle);
+                $contents = @stream_get_contents($handle);
+                if (is_string($contents) && $contents !== '') {
+                    $lines = preg_split('/\n/', rtrim($contents, "\n")) ?: [];
+                    if (count($lines) > DENT_ERROR_LOG_MAX_LINES) {
+                        $lines = array_slice($lines, -DENT_ERROR_LOG_MAX_LINES);
+                        $rewritten = implode("\n", $lines) . "\n";
+                        @ftruncate($handle, 0);
+                        @rewind($handle);
+                        @fwrite($handle, $rewritten);
+                    }
+                }
+            }
+        } finally {
+            @flock($handle, LOCK_UN);
+            @fclose($handle);
+        }
+    } catch (\Throwable $loggingError) {
+        // Logging must never interfere with the actual response.
+    }
+}
+
 function dent_error(string $message, int $statusCode = 400, array $extra = []): void
 {
+    if ($statusCode >= 500) {
+        dent_error_log_record([
+            'type' => 'handled',
+            'message' => $message,
+            'status' => $statusCode,
+        ]);
+    }
+
     dent_json_response(array_merge([
         'success' => false,
         'error' => $message,

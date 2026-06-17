@@ -2680,12 +2680,26 @@ function Sync-GitHubFromLaptop([object]$GitHubPlan) {
                 throw "GitHub sync plan resolved to an empty stage scope after filtering protected paths."
             }
 
-            $gitAddArgs = @("add", "-A", "--")
-            $gitAddArgs += $stagePaths
-            $gitAddResult = Invoke-GitCommandCapture -repoPath $worktree.Path -GitArgs $gitAddArgs
-            if ($gitAddResult.ExitCode -ne 0) {
-                $gitAddDetail = Format-CommandFailureDetail -commandOutput $gitAddResult.Output -fallback "No stderr output."
-                throw "git add failed inside the temporary GitHub sync worktree. $gitAddDetail"
+            $stagePathSpecFile = ""
+            try {
+                $stagePathSpecFile = [System.IO.Path]::GetTempFileName()
+                $stagePathPayload = [string]::Join([char]0, $stagePaths) + [char]0
+                [System.IO.File]::WriteAllText($stagePathSpecFile, $stagePathPayload, (New-Object System.Text.UTF8Encoding($false)))
+
+                $gitAddResult = Invoke-GitCommandCapture -repoPath $worktree.Path -GitArgs @(
+                    "add",
+                    "-A",
+                    "--pathspec-from-file=$stagePathSpecFile",
+                    "--pathspec-file-nul"
+                )
+                if ($gitAddResult.ExitCode -ne 0) {
+                    $gitAddDetail = Format-CommandFailureDetail -commandOutput $gitAddResult.Output -fallback "No stderr output."
+                    throw "git add failed inside the temporary GitHub sync worktree. $gitAddDetail"
+                }
+            } finally {
+                if (-not [string]::IsNullOrWhiteSpace($stagePathSpecFile) -and (Test-Path -LiteralPath $stagePathSpecFile)) {
+                    Remove-Item -LiteralPath $stagePathSpecFile -Force -ErrorAction SilentlyContinue
+                }
             }
 
             $diffProbeResult = Invoke-GitCommandCapture -repoPath $worktree.Path -GitArgs @("diff", "--cached", "--quiet", "--exit-code")

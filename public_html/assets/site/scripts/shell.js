@@ -1373,7 +1373,7 @@
             '<p class="shell-search-status" aria-live="polite"></p>',
             '<div class="shell-search-results"></div>'
         ].join("");
-        document.body.appendChild(panel);
+        header.appendChild(panel);
         searchState.panel = panel;
         searchState.input = panel.querySelector(".shell-search-input");
         searchState.results = panel.querySelector(".shell-search-results");

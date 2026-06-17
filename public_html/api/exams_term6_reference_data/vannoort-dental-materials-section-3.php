@@ -47,7 +47,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'مولد دنچر برای پلیمریزاسیون رزین پایه دنچر',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . الف مدل کلی قوس است؛ ب دای منفرد برای الگوی مومی کراون است؛ ج قالب نسوز ریختگی است؛ د به قالب گیری دنچر مربوط می شود.',
                     ],
                     [
@@ -59,7 +59,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پلاستر ماده فسفاتی، استون ماده سیلیکاتی و دنزیت ماده گچی است',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . الف ترکیب را نادرست متفاوت می داند؛ ب متن می گوید هر سه از نظر شیمیایی مشابه اند؛ ج مراحل حرارتی را با محصولات کاربردی اشتباه می کند؛ د ماهیت مواد را از گچ خارج می کند.',
                     ],
                     [
@@ -71,7 +71,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ذرات کریستوبالیت همراه با بایندر فسفاتی',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . الف توصیف استون است؛ ب به دنزیت نزدیک است؛ ج ذرات بتا-همی هیدرات پلاستر متخلخل و نامنظم اند؛ د به سرمایه گذاری نسوز مربوط است.',
                     ],
                     [
@@ -83,7 +83,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             '20 میلی لیتر آب برای 50 گرم پودر',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . الف نسبت استون و دنزیت است؛ ب نسبت پلاستر در کتاب است؛ ج و د نسبت های وارونه یا نامتناسب اند.',
                     ],
                     [
@@ -95,7 +95,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش تخلخل بین ذرات و جذب بیشتر آب در مخلوط',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . الف جزء پلاستر یا استون نیست؛ ب علت نیاز آبی کمتر استون است؛ ج به انیدریت مربوط می شود؛ د برخلاف کاهش آب است.',
                     ],
                     [
@@ -107,7 +107,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل مستقیم همی هیدرات به کریستوبالیت کم دما',
                         ],
                         'correctIndex' => 2,
-                        'explanation' => '**پاسخ درست:** گزینه ج
+                        'explanation' => '**پاسخ درست:** گزینه ج
 . الف بایندر فسفاتی را توصیف می کند؛ ب پیامد ستینگ نیست؛ ج نقش دفلوکولانت دو کلرید است؛ د تبدیل سیلیس نیست.',
                     ],
                     [
@@ -119,7 +119,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'گچ نسوز فسفاتی برای مدل دهانی و پلاستر برای دای',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . الف کاربردها را جابه جا می کند؛ ب مطابق متن است؛ ج دنزیت برای مولد دنچر ذکر نشده؛ د ماده نسوز برای مدل معمولی نیست.',
                     ],
                     [
@@ -131,7 +131,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تشکیل انیدریت و سپس جذب آب توسط سیلیس',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . الف رسوب پس از حل و واکنش رخ می دهد؛ ب آغاز روند است؛ ج به سیلیس مربوط است؛ د مسیر ستینگ گچ نیست.',
                     ],
                     [
@@ -143,7 +143,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'چون انیدریت در مخلوط به سرعت تشکیل می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت طولانی شدن زمان گیرش است؛ ب دما اثر اصلی ندارد؛ ج حاصل اسپاتولاسیون است؛ د انیدریت در واکنش معمول گیرش شکل نمی گیرد.',
                     ],
                     [
@@ -155,7 +155,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل آلفا-همی هیدرات به بتا-همی هیدرات در مخلوط',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . الف وارونه است؛ ب شکستن کریستال ها و افزایش هسته ها زمان گیرش را کاهش می دهد؛ ج واکنش را متوقف نمی کند؛ د تبدیل فازی ذرات نیست.',
                     ],
                     [
@@ -167,7 +167,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حل شدن بایندر فسفاتی و ایجاد شبکه متراکم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف توضیح انبساط مشاهده شده است؛ ب انقباض و تراکم را برجسته می کند؛ ج مربوط به سیلیس نسوز است؛ د به سرمایه گذاری فسفاتی مربوط است.',
                     ],
                     [
@@ -179,7 +179,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پلاستر حدود 0.08 تا 0.10 درصد و استون حدود 0.30 درصد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مقادیر کتاب را بازتاب می دهد؛ ب وارونه است؛ ج عدد 0.60 درصد به انبساط حجمی مشاهده شده بحث شده مربوط است نه جدول؛ د مقادیر را جابه جا می کند.',
                     ],
                     [
@@ -191,7 +191,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'دمای آب، حلالیت دی هیدرات را به صفر می رساند',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . الف محدودکننده رشد در هواست؛ ب دلیل انبساط هیگروسکوپیک است؛ ج واکنش فسفاتی نیست؛ د متن چنین اثری برای آب نمی گوید.',
                     ],
                     [
@@ -203,7 +203,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'آماده سازی دنچر آکریلی برای کاهش مونومر باقی مانده',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کاربرد ذکرشده است؛ ب، ج و د از مباحث دیگر کتاب اند و به انبساط هیگروسکوپیک مربوط نیستند.',
                     ],
                     [
@@ -215,7 +215,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پس از گیرش، ماده به تدریج به همی هیدرات بازمی گردد و منبسط می شود',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . الف شستشو با آب داغ توصیه نشده؛ ب هم ثبات و هم احتیاط در آب را بیان می کند؛ ج حلالیت را نادیده می گیرد؛ د برگشت فازی ذکر نشده است.',
                     ],
                     [
@@ -227,7 +227,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پلاستر 12 مگاپاسکال، استون 12 مگاپاسکال، دنزیت 30 مگاپاسکال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف داده جدول است؛ ب و ج ترتیب ها را به هم می زنند؛ د استون را کمتر از مقدار متن می آورد.',
                     ],
                     [
@@ -239,7 +239,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'زمان گیرش کوتاه تر می شود و انبساط حرارتی افزایش می یابد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اثر آب اضافی را درست می گوید؛ ب مربوط به آب کم است؛ ج کاهش تخلخل و واکنش کامل تر را تضمین نمی کند؛ د نتیجه اصلی نیست.',
                     ],
                     [
@@ -251,7 +251,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'میزان حلالیت دی هیدرات در آب به طور شدید افزایش می یابد',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . الف وارونه است؛ ب متن درباره مخلوط ضخیم، حبس هوا و احتمال آب ناکافی می گوید؛ ج و د خارج از واکنش گچ اند.',
                     ],
                     [
@@ -263,7 +263,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'استحکام خشک با افزایش رطوبت محیط به مقدار تر نزدیک نمی شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مطابق متن است؛ ب وارونه است؛ ج و د با بیان کلی کتاب هماهنگ نیستند.',
                     ],
                     [
@@ -275,7 +275,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تیتانیوم اکسید',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف رفتار وابسته به غلظت سدیم کلرید است؛ ب و ج کندکننده اند؛ د رنگدانه/اپاسیفایر در رزین هاست.',
                     ],
                     [
@@ -287,7 +287,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش تخلخل بین ذرات با عمل پلاستیسایزری',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش پتاسیم سولفات را بیان می کند؛ ب به کندکننده ها نزدیک است؛ ج و د ارتباطی با مکانیسم متن ندارند.',
                     ],
                     [
@@ -299,7 +299,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'محلول را از حالت فوق اشباع خارج کرده و واکنش را متوقف می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش هسته زایی دی هیدرات است؛ ب کندکنندگی نیست؛ ج تبدیل به سیلیس ندارد؛ د واکنش را متوقف نمی کند.',
                     ],
                     [
@@ -311,7 +311,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'سدیم کلرید رقیق',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کندکننده است؛ ب و ج تسریع کننده اند؛ د سدیم کلرید در غلظت کم تسریع می کند.',
                     ],
                     [
@@ -323,7 +323,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'قرار دادن در محلول فسفریک اسید برای تثبیت سطح',
                         ],
                         'correctIndex' => 1,
-                        'explanation' => '**پاسخ درست:** گزینه ب
+                        'explanation' => '**پاسخ درست:** گزینه ب
 . الف باعث حل سطح می شود؛ ب توصیه متن است؛ ج خشک و تر شدن تکراری مناسب نیست؛ د اسید فسفریک برای این کاربرد نیست.',
                     ],
                     [
@@ -335,7 +335,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'هدایت حرارتی زیاد و انبساط حرارتی ناچیز',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دو عیب جدول را دارد؛ ب هزینه بالا ندارد؛ ج رنگ و ثبات را نادرست بیان می کند؛ د در جدول نیامده است.',
                     ],
                     [
@@ -347,7 +347,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'عدم حلالیت کامل در آب گرم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت های جدول است؛ ب و ج مزیت پلاستر نیستند؛ د حلالیت را نادیده می گیرد.',
                     ],
                     [
@@ -359,7 +359,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'با سیلیس ایمپرشن، فاز لووسیت می سازد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف همان ضعف wetting است؛ ب و ج و د فرآیندهای ذکرشده در این بحث نیستند.',
                     ],
                     [
@@ -371,7 +371,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کلاژن یا هیدروکسی آپاتیت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف متن بایندرهای گچ و فسفات را معرفی می کند؛ ب، ج و د ماهیت سرمایه گذاری را تغییر می دهند.',
                     ],
                     [
@@ -383,7 +383,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف نیاز به بایندر در تمام سرامیک های دندانی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تعریف و کاربرد قالب نسوز است؛ ب و ج و د کاربردهای دیگر مواد دندانی اند.',
                     ],
                     [
@@ -395,7 +395,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'رنگ گچی قالب را برای تشخیص حاشیه بهبود می دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل افزودن کریستوبالیت است؛ ب حلالیت مبنا نیست؛ ج بایندر فسفاتی را مهار نمی کند؛ د هدف رنگی ندارد.',
                     ],
                     [
@@ -407,7 +407,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حل شدن بایندر و افت مقاومت قالب',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف انبساط سریع را توضیح می دهد؛ ب، ج و د با متن ناسازگارند.',
                     ],
                     [
@@ -419,7 +419,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'گچ به لووسیت تبدیل شده و ضریب انبساط سرامیک را بالا می برد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مسیر از دست دادن آب بایندر گچی است؛ ب و ج و د واکنش های غیرمرتبط اند.',
                     ],
                     [
@@ -431,7 +431,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'انبساط هیگروسکوپیک در آنها رخ نمی دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت جایگزینی سرمایه گذاری فسفاتی در دمای بالا است؛ ب و ج و د دلایل مطرح شده نیستند.',
                     ],
                     [
@@ -443,7 +443,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'بایندر سیلانی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف بایندر مناسب دمای بالاتر است؛ ب، ج و د برای سرمایه گذاری نسوز متن نیستند.',
                     ],
                     [
@@ -455,7 +455,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پودر حاوی آلفا-همی هیدرات و کلسیم کلرید همراه با منیزیم کلرید',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ترکیب رایج سرمایه گذاری فسفاتی است؛ ب سیستم آکریلی است؛ ج سیمان زینک فسفات را تداعی می کند؛ د دنزیت را توصیف می کند.',
                     ],
                     [
@@ -467,7 +467,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش اسپاتولاسیون و حذف کامل هسته های کریستالی برای فیت بهتر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف منطق جبران انقباض ریختگی است؛ ب و ج و د با هدف سرمایه گذاری سازگار نیستند.',
                     ],
                     [
@@ -479,7 +479,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'انبساط مدل ها به جای انقباض ریختگی، انبساط آکریل را جبران می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف توضیح بالینی متن است؛ ب و ج خلاف آن اند؛ د به آکریل مربوط نیست.',
                     ],
                     [
@@ -491,7 +491,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش دما به عنوان عامل اصلی کنترل گیرش و استحکام',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف بهترین جمع بندی دستکاری است؛ ب و ج به افت خواص می انجامند؛ د دما اثر عمده ای ندارد.',
                     ],
                     [
@@ -503,7 +503,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش دما مانع شکل گیری محلول فوق اشباع در هر نسبت اختلاط می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت اثر محدود دماست؛ ب و ج نامرتبط اند؛ د اغراق آمیز و مخالف متن است.',
                     ],
                     [
@@ -515,7 +515,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'سرمایه گذاری ها بیشتر برای کاهش دمای ذوب آلیاژ و نه جبران انقباض استفاده می شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف جمع بندی صحیح فصل است؛ ب تفاوت عنصر کلسیم ندارد؛ ج حلالیت و سایش را نادرست می گوید؛ د نقش جبران انقباض را حذف می کند.',
                     ],
                 ],
@@ -546,7 +546,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پایداری کامل رنگی در همه حلال ها و حذف نیاز به تعمیر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلایل اصلی رواج PMMA است؛ ب و ج خواصی را نسبت می دهند که متن آنها را محدود می داند؛ د ادعای پایداری کامل و بی نیازی از تعمیر با متن سازگار نیست.',
                     ],
                     [
@@ -558,7 +558,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'زیبایی ضعیف اما تولید انبوه آسان مانند ولکانیت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مشکل سلولز است؛ ب باکلیت را توصیف می کند؛ ج وینیلی ها را توضیح می دهد؛ د ولکانیت است.',
                     ],
                     [
@@ -570,7 +570,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ماده ای فنول-فرمالدهید بود که پردازش آن بسیار دشوار بود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مطابق متن است؛ ب، ج و د مواد دیگر تاریخی را جایگزین کرده اند.',
                     ],
                     [
@@ -582,7 +582,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'دی اتیل هگزیل مالیات و پلی آمید',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مونومر و پلیمر اصلی است؛ ب و ج در ریلاین ها مطرح اند؛ د مربوط به سیستم های نرم یا تجربی است.',
                     ],
                     [
@@ -594,7 +594,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل PMMA به سرامیک، افزایش هدایت حرارتی و مهار جذب آب',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف سه دلیل متن است؛ ب، ج و د هدف فرمولاسیون پودر-مایع نیستند.',
                     ],
                     [
@@ -606,7 +606,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'رنگدانه ها را از مایع جدا می کنند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت کوتاه شدن زمان dough است؛ ب تا د توضیح متن نیستند.',
                     ],
                     [
@@ -618,7 +618,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پلیمر در آب دهان نامحلول می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نشان می دهد بخش زیادی از ماده قبلاً پلیمر شده؛ ب تا د مکانیسم را نادرست می گویند.',
                     ],
                     [
@@ -630,7 +630,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد اتصال شیمیایی مستقیم به دندان های پرسلنی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش inhibitor است؛ ب نقش آغازگر را به اشتباه می دهد؛ ج و د ارتباطی ندارند.',
                     ],
                     [
@@ -642,7 +642,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'سطح آنها اسید فسفریک دارد و مونومر را حل می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل پرهیز از آلودگی است؛ ب، ج و د در متن نیامده اند.',
                     ],
                     [
@@ -654,7 +654,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش حلالیت رزین در بزاق برای ترمیم پذیری بهتر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اثر cross-linking است؛ ب و د خلاف بهبود خواص اند؛ ج با جلوگیری از post-processing سازگار نیست.',
                     ],
                     [
@@ -666,7 +666,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'با ذوب پرسلن و انبساط لووسیت فعال می شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تفاوت آغاز پخت است؛ ب، ج و د از مباحث دیگرند.',
                     ],
                     [
@@ -678,7 +678,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش دمای انتقال شیشه ای به علت پخت کم دما',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نتیجه پخت سرد است؛ ب، ج و د بر خلاف متن اند.',
                     ],
                     [
@@ -690,7 +690,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'رهایش تنش و تشکیل craze',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دو علت اصلی پوروزیتی است؛ ب، ج و د پدیده های دیگرند.',
                     ],
                     [
@@ -702,7 +702,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پودر PMMA در قالب گچی به طور کامل حل می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت contraction porosity است؛ ب و ج و د ارتباطی ندارند.',
                     ],
                     [
@@ -714,7 +714,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل رزین سردپخت به رزین گرماپخت با وزن مولکولی بالاتر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش فشار است؛ ب و ج و د اغراق یا خطا هستند.',
                     ],
                     [
@@ -726,7 +726,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ذرات پودر در این مرحله به پرسلن تبدیل می شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل انتظار تا مرحله خمیری است؛ ب وارونه است؛ ج و د بی ربط اند.',
                     ],
                     [
@@ -738,7 +738,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش دمای فلاسک به زیر دمای انتقال شیشه ای در پایان پخت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تعریف gaseous porosity است؛ ب و ج و د علت اصلی نیستند.',
                     ],
                     [
@@ -750,7 +750,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف فشار از قالب برای خروج گازها',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف روش پیشگیری است؛ ب و ج و د احتمال مشکل را بالا می برند.',
                     ],
                     [
@@ -762,7 +762,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پودر در تماس با مونومر، باند سیلیکونی تشکیل می دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نکته کنترل رنگ است؛ ب، ج و د در متن نیستند.',
                     ],
                     [
@@ -774,7 +774,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش رشد کریستالی پلاستر برای انبساط بیشتر قالب',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف وظیفه separating medium است؛ ب تا د کاربردهای دیگرند.',
                     ],
                     [
@@ -786,7 +786,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تشکیل کریستال های دی هیدرات روی سطح مخاط',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مدل معرفی شده متن است؛ ب آندرکات برای دنچر rigid مزاحم است؛ ج و د رخ نمی دهند.',
                     ],
                     [
@@ -798,7 +798,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'سطح پوشش کمتر، بزاق رقیق تر و اکلوژن نامتعادل تر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اصول رتنتشن است؛ ب، ج و د رتنتشن را مختل می کنند.',
                     ],
                     [
@@ -810,7 +810,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'گسترش مناسب دنچر در محدوده عملکرد عضلات',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف از عوامل اختلال سیل است؛ ب، ج و د مطلوب اند.',
                     ],
                     [
@@ -822,7 +822,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'استحکام کششی نزدیک به فولاد ارتودنسی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف توضیح شکنندگی است؛ ب و ج و د با داده های PMMA سازگار نیستند.',
                     ],
                     [
@@ -834,7 +834,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'دنچرهای پلی آمیدی تزریقی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مطابق متن است؛ ب تا د جایگزین های نادرست اند.',
                     ],
                     [
@@ -846,7 +846,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'اختلاف حلالیت کاندیدا و سیلیکون در مخاط',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف منشا تنش های باقی مانده است؛ ب تا د مربوط نیستند.',
                     ],
                     [
@@ -858,7 +858,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف عامل اتصال عرضی و افزایش مونومر آزاد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف راه کاهش تنش است؛ ب و ج تنش یا پوروزیتی را بدتر می کنند؛ د خواص را تضعیف می کند.',
                     ],
                     [
@@ -870,7 +870,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'رسوب کریستالی کلسیم سولفات روی سطح دنچر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف توصیف craze است؛ ب crack کامل است؛ ج و د پدیده های دیگرند.',
                     ],
                     [
@@ -882,7 +882,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'جذب آب 1 تا 2 درصدی پس از چند هفته غوطه وری',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف عوامل ذکرشده اند؛ ب شرایط مطلوب رتنتشن است؛ ج نگهداری مونومر است؛ د جذب آب است.',
                     ],
                     [
@@ -894,7 +894,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             '2200 ppm/°C',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مقدار متن است؛ ب نزدیک پرسلن/دندان است؛ ج و د اعداد نادرست اند.',
                     ],
                     [
@@ -906,7 +906,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'به علت تبدیل PMMA به پلی آمید در دمای دهان',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت لقی دندان پرسلنی است؛ ب و ج و د با متن سازگار نیستند.',
                     ],
                     [
@@ -918,7 +918,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             '50 تا 60 درصد وزنی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مقدار جذب آب PMMA است؛ ب، ج و د نادرست اند.',
                     ],
                     [
@@ -930,7 +930,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'مدول رزین را به مقدار فولاد نزدیک می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اثر مفید نسبی جذب آب است؛ ب زمان را بسیار کوتاه می کند؛ ج و د درست نیستند.',
                     ],
                     [
@@ -942,7 +942,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'فریت و سمنتیت حاصل از پردازش حرارتی رزین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف عامل محتمل آلرژی است؛ ب تا د از مباحث دیگرند.',
                     ],
                     [
@@ -954,7 +954,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'در آنها بنزوییل پراکسید وجود ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت بیشتر بودن احتمال واکنش است؛ ب و ج و د خطا هستند.',
                     ],
                     [
@@ -966,7 +966,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'گلس آینومر یا زینک فسفات',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف جایگزین های متن است؛ ب، ج و د برای این هدف نیستند.',
                     ],
                     [
@@ -978,7 +978,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد باند رزینی به سرامیک ونیر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ریلاین سخت را توضیح می دهد؛ ب tissue conditioner است؛ ج و د موضوعات دیگرند.',
                     ],
                     [
@@ -990,7 +990,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'نوع I بدون آغازگر و نوع II بدون آمین است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تفاوت دو نوع سردپخت است؛ ب تا د مطابق جدول نیستند.',
                     ],
                     [
@@ -1002,7 +1002,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'سختی بیشتر در دمای دهان، همراه با حذف creep',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت و عیب نوع II است؛ ب تا د با متن سازگار نیستند.',
                     ],
                     [
@@ -1014,7 +1014,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'آکریل نیاز به باندینگ اجباری دارد و tear strength آن ضعیف تر گزارش شده است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف جمع بندی جدول است؛ ب، ج و د ویژگی ها را برعکس یا جابه جا بیان می کنند.',
                     ],
                 ],
@@ -1045,7 +1045,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'شبکه ای کریستالی برای رشد گچ',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تعریف حفره پس از حذف موم است؛ ب، ج و د به موضوعات دیگر مربوط اند.',
                     ],
                     [
@@ -1057,7 +1057,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تهیه دندان، اچ سرامیک، باند رزین، burnout، پلیمریزاسیون و صیقل',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف توالی کتاب است؛ ب و ج و د ترتیب و فرآیندها را اشتباه ترکیب کرده اند.',
                     ],
                     [
@@ -1069,7 +1069,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'بیمار، زیرا هزینه آلیاژ را پرداخت می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مسیولیت بالینی را بیان می کند؛ ب، ج و د نقش نهایی انتخاب را به جای دیگری منتقل می کنند.',
                     ],
                     [
@@ -1081,7 +1081,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'چگالی پایین و انقباض casting بسیار زیاد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف برای bridge بلند لازم است؛ ب برای inlay نرم تر مناسب است؛ ج و د معیارهای اصلی نیستند.',
                     ],
                     [
@@ -1093,7 +1093,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'نقطه ذوب بالا همراه با عدم مقاومت به خوردگی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تعادل strength و ductility را می گوید؛ ب تا د احتمال شکست یا تغییر شکل را بالا می برند.',
                     ],
                     [
@@ -1105,7 +1105,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'فاز آلیاژ باید به آستنیت تبدیل شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت burnishing است؛ ب تا د مربوط به چسبندگی، جذب آب یا فولادند.',
                     ],
                     [
@@ -1117,7 +1117,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش اتوماتیک داکتیلیتی در تمام آلیاژها',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اثر چگالی در centrifugal casting است؛ ب تا د ادعاهای نادرست اند.',
                     ],
                     [
@@ -1129,7 +1129,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تیتانیوم و کبالت noble؛ نقره و مس precious',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تقسیم بندی متن است؛ ب تا د عناصر را نادرست گروه بندی می کنند.',
                     ],
                     [
@@ -1141,7 +1141,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کروم و مولیبدن عناصر اصلی و طلا عنصر جزیی باشد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف شرط high-gold است؛ ب، ج و د به low-gold/base metal نزدیک اند.',
                     ],
                     [
@@ -1153,7 +1153,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حدود 90 درصد طلا در آلیاژ',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف 12 از 24 قسمت را نشان می دهد؛ ب 18 carat است؛ ج 9 carat است؛ د به 21.6 carat نزدیک تر است.',
                     ],
                     [
@@ -1165,7 +1165,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش شدید دمای ذوب مانند پلاتین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش نقره است؛ ب نقش مس است؛ ج وارونه است؛ د نقش اصلی پلاتین/پالادیوم است.',
                     ],
                     [
@@ -1177,7 +1177,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد مراکز هسته زایی به علت دمای ذوب بسیار بالا',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش مس است؛ ب و ج و د نادرست اند.',
                     ],
                     [
@@ -1189,7 +1189,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'مقادیر بالاتر از 16 درصد فاز گچی در آلیاژ می سازد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف محدودیت tarnish است؛ ب تا د رخ نمی دهند.',
                     ],
                     [
@@ -1201,7 +1201,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش gap بین liquidus و solidus در همه ترکیبات',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش Pt/Pd است؛ ب و ج خطا هستند؛ د برای هر ترکیب تضمین نشده است.',
                     ],
                     [
@@ -1213,7 +1213,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'عنصر افزایش دهنده فاز آستنیتی در آلیاژ',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش zinc است؛ ب مس است؛ ج noble بودن را اشتباه می دهد؛ د مربوط به فولاد است.',
                     ],
                     [
@@ -1225,7 +1225,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'فعال سازی پلیمریزاسیون مونومر MMA',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف grain refining است؛ ب تا د نامرتبط اند.',
                     ],
                     [
@@ -1237,7 +1237,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایریدیوم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف عنصر کلیدی order hardening است؛ ب تا د چنین نقشی ندارند.',
                     ],
                     [
@@ -1249,7 +1249,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'بیش از 30 درصد باشد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف آستانه متن است؛ ب و ج ناکافی اند؛ د بیش از محدوده ذکرشده است.',
                     ],
                     [
@@ -1261,7 +1261,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ساختار آنها سرامیکی و غیر فلزی است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل اصلی است؛ ب تا د با متن سازگار نیستند.',
                     ],
                     [
@@ -1273,7 +1273,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پخت در آب برای ایجاد انبساط هیگروسکوپیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف پروتکل سخت سازی است؛ ب homogenizing/quenched را جایگزین می کند؛ ج و د موضوع دیگری اند.',
                     ],
                     [
@@ -1285,7 +1285,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش دمای ذوب و افزایش چگالی آلیاژ',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف هزینه مکانیکی سخت سازی است؛ ب تا د برعکس یا نامرتبط اند.',
                     ],
                     [
@@ -1297,7 +1297,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'cast post بلند با بارگذاری شدید',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کاربرد type I است؛ ب تا د کاربردهای type IV یا موارد دیگرند.',
                     ],
                     [
@@ -1309,7 +1309,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'انقباض ریختگی آن با سرمایه گذاری گچی جبران نمی شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت نامناسب بودن برای inlay است؛ ب و ج و د نادرست اند.',
                     ],
                     [
@@ -1321,7 +1321,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'چارچوب removable partial denture کبالت-کروم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کاربردهای type III است؛ ب type I است؛ ج type IV است؛ د Co-Cr است.',
                     ],
                     [
@@ -1333,7 +1333,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'در hardened state بسیار مناسب burnishing است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت clasp arm است؛ ب و د درباره burnishing غلط اند؛ ج ترکیب را نادرست می گوید.',
                     ],
                     [
@@ -1345,7 +1345,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تشکیل بایندر فسفاتی در شبکه آلیاژ',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تعریف self-hardening است؛ ب تا د مربوط نیستند.',
                     ],
                     [
@@ -1357,7 +1357,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'انبساط حرارتی آنها با پرسلن هیچ ارتباطی ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت نیاز به homogenizing است؛ ب تا د خطا هستند.',
                     ],
                     [
@@ -1369,7 +1369,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل ساختار به تیتانیوم-آلومینیوم-وانادیوم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مشخصه medium-gold است؛ ب تا د ترکیب را عوض می کنند.',
                     ],
                     [
@@ -1381,7 +1381,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل فاز آلیاژ به سمنتیت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش پالادیوم است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -1393,7 +1393,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'به علت داشتن MMA برای دنچرهای آکریلی استفاده می شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف جمع بندی محتاطانه متن است؛ ب و ج و د نادرست اند.',
                     ],
                     [
@@ -1405,7 +1405,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'zinc phosphate و polycarboxylate',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف base metal alloys بحث شده است؛ ب تا د مواد غیرآلیاژی اند.',
                     ],
                     [
@@ -1417,7 +1417,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'چگالی بالاتر و هزینه فلز precious بیشتر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت Co-Cr در framework است؛ ب، ج و د خلاف ویژگی هاست.',
                     ],
                     [
@@ -1429,7 +1429,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پخت با آمین ثالثیه و آزادسازی مونومر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف محدودیت عملی است؛ ب تا د با متن سازگار نیستند.',
                     ],
                     [
@@ -1441,7 +1441,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'Ag-75%Zn-20%Fe',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ترکیب تیتانیوم آلیاژی است؛ ب تا د ساختگی یا مربوط به دیگر موادند.',
                     ],
                     [
@@ -1453,7 +1453,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پلیمریزاسیون افزایشی با بنزوییل پراکسید',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف allotropic بودن را توضیح می دهد؛ ب تا د مباحث دیگرند.',
                     ],
                     [
@@ -1465,7 +1465,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'نرم بودن زیاد و امکان burnishing آسان',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دشواری casting تیتانیوم است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -1477,7 +1477,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تشکیل craze و crack در رزین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف عامل fit است؛ ب تا د مربوط به رزین/دنچرند.',
                     ],
                     [
@@ -1489,7 +1489,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ductility نزدیک به صفر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف hardness پایین پرداخت را آسان تر می کند؛ ب، ج و د لزوماً کمک نمی کنند.',
                     ],
                     [
@@ -1501,7 +1501,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پایه آنها کروم و کبالت است و طلا نقش رنگدانه دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف جمع بندی high-gold است؛ ب تا د با ترکیب و کاربردها ناسازگارند.',
                     ],
                     [
@@ -1513,7 +1513,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ductility از نوع investment و نه ترکیب آلیاژ پیروی می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف رابطه stiffness را بیان می کند؛ ب تا د تعاریف را جابه جا می کنند.',
                     ],
                 ],
@@ -1544,7 +1544,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'چون در دهان به آسانی تغییر رنگ داده و بافت را تحریک می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت زیبایی پرسلن است؛ ب و ج و د با محدودیت های شکنندگی و کاربرد متن سازگار نیستند.',
                     ],
                     [
@@ -1556,7 +1556,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'سیمان های زینک فسفات، پلی کربوکسیلات و گلس آینومر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کاربردهای گسترش یافته است؛ ب تا د مواد غیرسرامیکی اند.',
                     ],
                     [
@@ -1568,7 +1568,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش دمای انتقال شیشه ای پلیمر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مشکل خاک رس را بیان می کند؛ ب تا د مربوط نیستند.',
                     ],
                     [
@@ -1580,7 +1580,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'خوردگی الکتروشیمیایی فلز در بزاق',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تعریف sintering است؛ ب، ج و د فرآیندهای دیگرند.',
                     ],
                     [
@@ -1592,7 +1592,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ضریب انبساط آن با بزاق برابر نبود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت تخلخل earthenware است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -1604,7 +1604,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'غوطه وری در محلول کلسیم سولفات',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش glaze است؛ ب تا د به مباحث دیگرند.',
                     ],
                     [
@@ -1616,7 +1616,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل به آلیاژ کبالت-کروم در کوره',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف stoneware را توضیح می دهد؛ ب تا د خطا هستند.',
                     ],
                     [
@@ -1628,7 +1628,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'مقاومت کششی بالا و رفتار داکتیل مانند طلا',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ویژگی تاریخی porcelain است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -1640,7 +1640,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'روی اکسید، اسید فسفریک و آب',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اجزای شناسایی شده اند؛ ب تا د متعلق به مواد دیگرند.',
                     ],
                     [
@@ -1652,7 +1652,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             '80 درصد PMMA، 20 درصد MMA و مقدار کمی آمین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ترکیب porcelain چینی است؛ ب ترکیب dental porcelain است؛ ج و د نامرتبط اند.',
                     ],
                     [
@@ -1664,7 +1664,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'Buonocore برای اچ اسید مینا و باند رزین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف رویداد 1774 را بازتاب می دهد؛ ب تا د افراد و کاربردهای دیگرند.',
                     ],
                     [
@@ -1676,7 +1676,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تردی ناشی از فاز لووسیت و fracture toughness پایین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل جایگزینی عاج است؛ ب تا د با روایت متن سازگار نیست.',
                     ],
                     [
@@ -1688,7 +1688,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد باند شیمیایی مستقیم به dentine بدون رزین',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت حذف kaolin است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -1700,7 +1700,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد ته رنگ آبی و opacity بالا',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش quartz است؛ ب و ج و د دیگرند.',
                     ],
                     [
@@ -1712,7 +1712,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد فاز آستنیتی در سرامیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش feldspar است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -1724,7 +1724,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'هر دو باعث پلیمریزاسیون افزایشی می شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اثر soda و potash را درست مقایسه می کند؛ ب وارونه است؛ ج و د بی ربط اند.',
                     ],
                     [
@@ -1736,7 +1736,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش باند شیمیایی به فلز بدون oxide',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف پیامد flow زیاد است؛ ب تا د مربوط نیستند.',
                     ],
                     [
@@ -1748,7 +1748,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'kaolin، quartz و feldspar هر کدام حدود یک سوم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ترکیب dental porcelain است؛ ب household porcelain است؛ ج و د خطا هستند.',
                     ],
                     [
@@ -1760,7 +1760,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'boric oxide و titanium oxide',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف بیشترین سهم را دارد؛ ب تا د سهم های کمتری دارند.',
                     ],
                     [
@@ -1772,7 +1772,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'سردکردن آهسته آلیاژ طلا برای self-hardening',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف فرایند fritting است؛ ب، ج و د فرایندهای غیرمرتبط اند.',
                     ],
                     [
@@ -1784,7 +1784,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تشکیل پلیمر زنجیره ای از مونومر متاکریلات',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ماهیت firing است؛ ب تا د واکنش های نادرست اند.',
                     ],
                     [
@@ -1796,7 +1796,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد آلیاژ دو فازی برای heat hardening',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اهمیت particle distribution است؛ ب تا د نامرتبط اند.',
                     ],
                     [
@@ -1808,7 +1808,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد واکنش پلیمریزاسیون نوری در پرسلن',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل استفاده از چند shade است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -1820,7 +1820,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد فاز فلزی برای تحمل کشش',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف هدف condensation است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -1832,7 +1832,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'جلوگیری از هرگونه contraction در تمام مراحل',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف پیشگیری از steam cracking است؛ ب تا د درست نیستند.',
                     ],
                     [
@@ -1844,7 +1844,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'مرحله تشکیل آلیاژ زیرساخت فلزی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف low bisque را بیان می کند؛ ب، ج و د مراحل دیگرند.',
                     ],
                     [
@@ -1856,7 +1856,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'از دست دادن مس در آلیاژ طلا',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت shrinkage است؛ ب تا د نامرتبط اند.',
                     ],
                     [
@@ -1868,7 +1868,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف کامل نیاز به glazing سطحی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت vacuum firing است؛ ب تا د خلاف یا غیرمرتبط اند.',
                     ],
                     [
@@ -1880,7 +1880,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'با افزایش داکتیلیتی حاشیه را ناپایدار می کنند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مشکل porosity است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -1892,7 +1892,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل fitting surface به سطح ضخیم تر برای seating بهتر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف هدف glazing است؛ ب تا د با هدف مخالف اند.',
                     ],
                     [
@@ -1904,7 +1904,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'heat hardening مس در آلیاژ طلا',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دو روش glazing متن است؛ ب تا د روش های دیگرند.',
                     ],
                     [
@@ -1916,7 +1916,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حل شدن کنترل شده در بزاق و ترمیم خودکار ترک ها',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت های porcelain است؛ ب تا د با رفتار شیشه ای سازگار نیست.',
                     ],
                     [
@@ -1928,7 +1928,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             '2200 تا 2500 مگاپاسکال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف محدوده compressive strength است؛ ب tensile strength است؛ ج گچ است؛ د مدول PMMA است.',
                     ],
                     [
@@ -1940,7 +1940,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'در دمای دهان بالاتر از Tg قرار دارد و جریان می یابد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت شکنندگی است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -1952,7 +1952,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'مس در سطح خارجی خوشه های منظم تشکیل می دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف توضیح cooling stress است؛ ب تا د مباحث دیگرند.',
                     ],
                     [
@@ -1964,7 +1964,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'موجب حذف رنگ enamel shade می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت عدم استفاده روی fitting surface است؛ ب تا د دلیل متن نیستند.',
                     ],
                     [
@@ -1976,7 +1976,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'داکتیلیتی زیاد و تغییر شکل پلاستیک حین load',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف محدودیت early porcelain است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -1988,7 +1988,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف فاز شیشه ای و تبدیل آن به رزین نرم',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف راهبرد کلی فصل است؛ ب تا د نامناسب اند.',
                     ],
                     [
@@ -2000,7 +2000,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ferritic، austenitic و martensitic ceramics',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف طبقه بندی متن است؛ ب تا د مواد دیگرند.',
                     ],
                     [
@@ -2012,7 +2012,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش نیاز به cementation و sealing marginal',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اهمیت bond را بیان می کند؛ ب تا د نادرست اند.',
                     ],
                 ],
@@ -2043,7 +2043,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزودن PMMA به فلدسپار برای کاهش تردی سرامیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف premise سیستم است؛ ب غیرعملی بودن glaze fitting را نادیده می گیرد؛ ج و د نامرتبط اند.',
                     ],
                     [
@@ -2055,7 +2055,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'فعال کردن پلیمریزاسیون رزین بین فلز و سرامیک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش leucite در patent ذکرشده است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2067,7 +2067,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تغییر مارتنزیتی فلز در دمای دهان',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت محتمل شکست است؛ ب تا د مربوط نیستند.',
                     ],
                     [
@@ -2079,7 +2079,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'tarnish، galvanic corrosion و pitting',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف سه مکانیسم متن است؛ ب تا د از مباحث دیگرند.',
                     ],
                     [
@@ -2091,7 +2091,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پلیمریزاسیون سردپخت مونومر در interface',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف mechanical retention است؛ ب تا د رخ نمی دهند.',
                     ],
                     [
@@ -2103,7 +2103,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش ضریب انبساط فلز به مقدار پرسلن jacket crown',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت grit blasting/roughening است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2115,7 +2115,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش دمای transition شیشه به دمای اتاق',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف هدف degassing است؛ ب تا د بی ربط اند.',
                     ],
                     [
@@ -2127,7 +2127,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'چون طلا فاقد هرگونه biocompatibility است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت افزودن oxide-forming elements است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -2139,7 +2139,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'compaction، firing، glazing و cementation',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مراحل آماده سازی است؛ ب تا د مربوط به فصل های دیگرند.',
                     ],
                     [
@@ -2151,7 +2151,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حل کردن oxide film با اسید هیدروفلویوریک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف هدف grinding است؛ ب ایجاد fissure عمیق را نامطلوب می داند؛ ج و د درست نیستند.',
                     ],
                     [
@@ -2163,7 +2163,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'چون ضریب انبساط سرامیک را خودکار تنظیم می کنند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل توصیه ابزارهاست؛ ب تا د نامرتبط اند.',
                     ],
                     [
@@ -2175,7 +2175,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش ضخامت coping به صفر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش heat under vacuum است؛ ب تا د خطا هستند.',
                     ],
                     [
@@ -2187,7 +2187,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'آلیاژ به Ni-Cr-Mo تبدیل می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف پیامد heat کوتاه است؛ ب پیامد طولانی است؛ ج و د نامربوط اند.',
                     ],
                     [
@@ -2199,7 +2199,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف نیاز به acid pickling و heating in air',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف پیامد heat طولانی است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2211,7 +2211,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش زبری با حفرات عمیق و بسته',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف هدف acid pickling است؛ ب تا د درست نیستند.',
                     ],
                     [
@@ -2223,7 +2223,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'شفاف و بی رنگ مانند fused silica',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ظاهر مطلوب oxide است؛ ب نشانه کمبود oxide است؛ ج و د نادرست اند.',
                     ],
                     [
@@ -2235,7 +2235,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'آماده بودن surface برای glaze مستقیم روی fitting',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف برداشت متن است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -2247,7 +2247,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حدود 80 ppm/°C و نزدیک PMMA',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اختلاف CTE را بیان می کند؛ ب تا د اعداد نادرست اند.',
                     ],
                     [
@@ -2259,7 +2259,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'فلز به علت فشار دچار fracture گسترده می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف سرامیک در tension می ماند؛ ب حالت αp<αm است؛ ج و د غلط اند.',
                     ],
                     [
@@ -2271,7 +2271,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'هر دو ضریب به مقدار fused silica نزدیک شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف بهترین حالت توصیه شده است؛ ب و ج mismatch زیاد می دهند؛ د عملی و هدف نیست.',
                     ],
                     [
@@ -2283,7 +2283,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'metal را در هر شرایطی به حالت compression مفید می برد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل نامطلوب بودن mismatch بزرگ است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -2295,7 +2295,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش تمام فازهای بلوری به fused silica',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف روش افزایش CTE است؛ ب وارونه است؛ ج و د بی ربط اند.',
                     ],
                     [
@@ -2307,7 +2307,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'عامل باند شیمیایی به dentine است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش tetragonal leucite است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2319,7 +2319,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش firing temperature تا دمای اتاق',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف هدف اصلی است؛ ب تا د متن نیست.',
                     ],
                     [
@@ -2331,7 +2331,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             '2200 تا 2500 مگاپاسکال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف flexural strength است؛ ب compressive porcelain است؛ ج tensile alloys است؛ د مدول PMMA است.',
                     ],
                     [
@@ -2343,7 +2343,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ضخامت زیاد باعث کاهش CTE سرامیک به مقدار طلا می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت محدودیت ضخامت است؛ ب تا د درست نیستند.',
                     ],
                     [
@@ -2355,7 +2355,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'با ضخامت coping فلزی برابر نباشد و حدی ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف توصیه بالینی است؛ ب تا د در متن نیستند.',
                     ],
                     [
@@ -2367,7 +2367,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش داکتیلیتی سرامیک تا حد فلز',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اثر multiple firing است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -2379,7 +2379,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف کامل opaque shade از coping',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف devitrification را توضیح می دهد؛ ب تا د غلط اند.',
                     ],
                     [
@@ -2391,7 +2391,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'جایگزین degassing cycle می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش opaque porcelain است؛ ب تا د درست نیستند.',
                     ],
                     [
@@ -2403,7 +2403,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'برای جلوگیری از creep دمای ذوب آن نزدیک دمای اتاق باشد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف شرط alloy است؛ ب تا د خطر deform/melting را افزایش می دهند.',
                     ],
                     [
@@ -2415,7 +2415,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'مدول بالا castability و fit را در هر آلیاژ بهتر می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اهمیت stiffness است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2427,7 +2427,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد آلرژی شناخته شده مشابه نیکل در بیمار',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت حذف Cu است؛ ب تا د با متن سازگار نیست.',
                     ],
                     [
@@ -2439,7 +2439,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'وجود مقدار زیاد نیکل و بریلیوم در ترکیب',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف محدودیت high-gold است؛ ب تا د ویژگی دیگر آلیاژهاست.',
                     ],
                     [
@@ -2451,7 +2451,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'به علت داشتن titanium reaction layer به bonding مشکل می دهند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف توصیف Au-Pd است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -2463,7 +2463,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'growth کاندیدا روی سطح پرسلن',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نگرانی Pd-Ag است؛ ب مربوط high-gold/Cu است؛ ج مربوط cpTi است؛ د unrelated است.',
                     ],
                     [
@@ -2475,7 +2475,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'CTE مشابه titanium و عدم نیاز به ceramic اختصاصی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت Ni-Cr-Mo است؛ ب تا د خطا هستند.',
                     ],
                     [
@@ -2487,7 +2487,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل نیکل به PMMA در دهان',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف contraindication است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2499,7 +2499,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد رادیواپاسیتی ناکافی در ceramic',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف خطر Be است؛ ب خلاف نقش Be است؛ ج و د نامرتبط اند.',
                     ],
                     [
@@ -2511,7 +2511,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'بالاتر از 800 درجه oxide نازک تر و bond قوی تر می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نکات cpTi است؛ ب تا د خلاف متن اند.',
                     ],
                 ],
@@ -2542,7 +2542,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'آلرژی ناشی از نیکل در آلیاژ زیرساخت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مشکل اصلی all-ceramic قدیمی است؛ ب تا د مربوط به مواد دیگرند.',
                     ],
                     [
@@ -2554,7 +2554,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف کامل نیاز به core material در crownهای خلفی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اثر vacuum firing است؛ ب تا د اغراق یا خطا هستند.',
                     ],
                     [
@@ -2566,7 +2566,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش مقاومت crack propagation',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف منطق افزایش strength با modulus است؛ ب تا د خلاف هدف اند.',
                     ],
                     [
@@ -2578,7 +2578,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش toughness و افزایش surface flaws',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دو مسیر بهبود strength است؛ ب تا د ضعف را بیشتر می کنند.',
                     ],
                     [
@@ -2590,7 +2590,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'وجود نیکل و بریلیوم به عنوان آلرژن',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلایل عدم تناسب است؛ ب تا د نامرتبط اند.',
                     ],
                     [
@@ -2602,7 +2602,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'Duchateau و Réaumur',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نام های متن است؛ ب تا د افراد سایر فصل ها هستند.',
                     ],
                     [
@@ -2614,7 +2614,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'آلیاژ gold-palladium با oxide-forming elements',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ترکیب aluminous core است؛ ب تا د مواد دیگرند.',
                     ],
                     [
@@ -2626,7 +2626,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'بایندر فسفاتی برای قالب ریختگی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش crack stopper است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -2638,7 +2638,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'از حدود 350 مگاپاسکال به 20 مگاپاسکال کاهش می یابد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تغییر strength را بیان می کند؛ ب تا د اعداد نادرست اند.',
                     ],
                     [
@@ -2650,7 +2650,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'alumina در دهان به سرعت حل می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل باقی ماندن feldspathic veneers است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2662,7 +2662,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'soft liner نیمه دایمی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کاربرد اصلی است؛ ب و ج از توان آن فراتر است؛ د غیرمرتبط است.',
                     ],
                     [
@@ -2674,7 +2674,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'با آلیاژ نیکل-کروم واکنش آلرژیک می دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف محدودیت strength است؛ ب تا د علت متن نیستند.',
                     ],
                     [
@@ -2686,7 +2686,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ماده ای PMMA با ذرات glass filler است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تفاوت In-Ceram است؛ ب تا د مواد دیگرند.',
                     ],
                     [
@@ -2698,7 +2698,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'silane روی سطح etched ceramic',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف فرایند slip-casting است؛ ب تا د نامرتبط اند.',
                     ],
                     [
@@ -2710,7 +2710,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پودر در دمای اتاق به resin gel تبدیل می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف توضیح porous core است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -2722,7 +2722,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'بیش از 1000 مگاپاسکال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف strength اولیه porous است؛ ب تا د مراحل/مواد دیگرند.',
                     ],
                     [
@@ -2734,7 +2734,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل alumina به metal coping',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش glass infiltration است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -2746,7 +2746,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'acid etching عمیق core و حذف veneering',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مرحله veneer است؛ ب تا د روش های دیگرند.',
                     ],
                     [
@@ -2758,7 +2758,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'core بدون glass و قابل etching با acid',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ویژگی spinel است؛ ب zirconia است؛ ج zirconia خالص تر است؛ د نادرست است.',
                     ],
                     [
@@ -2770,7 +2770,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزودن PMMA و کاهش creep',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ترکیب و پیامد zirconia variant است؛ ب تا د خطا هستند.',
                     ],
                     [
@@ -2782,7 +2782,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'mixing powder-liquid، dough stage و packing',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف سه مرحله CAD-CAM است؛ ب تا د متعلق به فصل های دیگرند.',
                     ],
                     [
@@ -2794,7 +2794,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'چون به resin-bonding وابسته می شوند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل strength بالاتر blocks است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2806,7 +2806,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'نیاز کمتر به compatible feldspathic glass',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزایای pure alumina است؛ ب و ج و د درست نیستند.',
                     ],
                     [
@@ -2818,7 +2818,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پخت سرد با آمین ثالثیه و دمای دهان',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف روش Procera است؛ ب In-Ceram است؛ ج Techceram است؛ د آکریل است.',
                     ],
                     [
@@ -2830,7 +2830,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حدود 120 تا 150 مگاپاسکال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مقدار متن است؛ ب porous core است؛ ج porcelain vacuum-fired است؛ د aluminous core است.',
                     ],
                     [
@@ -2842,7 +2842,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'soft machining zirconia blank و densification نهایی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف روش Techceram است؛ ب Procera است؛ ج In-Ceram است؛ د zirconia CAD-CAM است.',
                     ],
                     [
@@ -2854,7 +2854,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'zirconia با هر cementing medium باند رزینی ایده آل می داد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مشکل تاریخی zirconia است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2866,7 +2866,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'investment gypsum-bonded برای casting طلا',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کاربرد strength zirconia است؛ ب تا د بی ربط اند.',
                     ],
                     [
@@ -2878,7 +2878,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'polyethyl methacrylate plasticized',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ماده واقعی است؛ ب بدون yttria هدف را از دست می دهد؛ ج و د مواد دیگرند.',
                     ],
                     [
@@ -2890,7 +2890,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد رنگ enamel shade در veneer',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش yttria است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -2902,7 +2902,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'سرامیک در نوک ترک ذوب شده و به glaze تبدیل می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف transformation toughening است؛ ب تا د مکانیسم متن نیستند.',
                     ],
                     [
@@ -2914,7 +2914,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'به علت مدول بسیار پایین شبیه rubber',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت toughness است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2926,7 +2926,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'condensation powder با آب و firing مستقیم بدون shrinkage',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف soft machining است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -2938,7 +2938,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'با acid etching fitting surface به صفر می رسد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف shrinkage طراحی شده است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2950,7 +2950,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'investment porous با strength 6 مگاپاسکال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نتیجه نهایی است؛ ب تا د مواد دیگرند.',
                     ],
                     [
@@ -2962,7 +2962,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'فاز اصلی آنها gold و palladium است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت عدم etch مناسب است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -2974,7 +2974,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'tissue conditioner باند شیمیایی دایمی می دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مشکل coupling است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -2986,7 +2986,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'cementing medium به enamel و core باند ایده آل ایجاد می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف پیامد عدم باند موثر است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -2998,7 +2998,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'growth کاندیدا روی سطح fitting',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اتکای اصلی restoration است؛ ب تا د نامرتبط اند.',
                     ],
                     [
@@ -3010,7 +3010,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'روند ساخت را به پلیمریزاسیون سردپخت PMMA تبدیل کرد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش CAD-CAM است؛ ب تا د خطا هستند.',
                     ],
                 ],
@@ -3041,7 +3041,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'sintering آلومینای خالص در 1700 درجه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف پیش شرط adhesive ceramic است؛ ب تا د از مباحث دیگرند.',
                     ],
                     [
@@ -3053,7 +3053,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف نیاز به انتخاب shade و translucency',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اثر bond است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3065,7 +3065,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'با spot welding به enamel',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف روش Pincus بود؛ ب روش های مدرن اند؛ ج و د موضوعات دیگرند.',
                     ],
                     [
@@ -3077,7 +3077,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پرسلن در دمای دهان بالاتر از Tg قرار داشت',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت شکست و جداشدگی است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -3089,7 +3089,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد transformation toughening در zirconia',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف امکان clinical veneer را ایجاد کرد؛ ب تا د نامرتبط اند.',
                     ],
                     [
@@ -3101,7 +3101,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'استفاده از tissue conditioner روی fitting surface',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف پیشنهاد Horn است؛ ب تا د مواد دیگرند.',
                     ],
                     [
@@ -3113,7 +3113,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش brittle fracture در veneer',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش silane است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3125,7 +3125,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'مقاومت خمشی کافی برای همه bridgeهای خلفی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت های veneer ceramic است؛ ب و ج و د خلاف متن اند.',
                     ],
                     [
@@ -3137,7 +3137,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'جایگزینی کامل dentine-bonding با zinc phosphate',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت محافظه کارانه veneer است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3149,7 +3149,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'gypsum-bonded و phosphate-bonded investments',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مواد انتخابی veneer است؛ ب تا د کاربردهای دیگرند.',
                     ],
                     [
@@ -3161,7 +3161,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'acid pickling، degassing و heating in air',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف روش های ساخت است؛ ب تا د در فصل های دیگرند.',
                     ],
                     [
@@ -3173,7 +3173,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'flexible PMMA soft liner',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تفاوت با PJC است؛ ب PJC است؛ ج و د نادرست اند.',
                     ],
                     [
@@ -3185,7 +3185,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'برای کاهش کامل نیاز به firing furnace',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نیاز فنی است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -3197,7 +3197,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل ceramic به tissue conditioner',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف هدف hot pressing است؛ ب تا د بی ربط اند.',
                     ],
                     [
@@ -3209,7 +3209,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'Ni-Cr-Mo alloy با beryllium',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ماده Empress I است؛ ب تا د مواد دیگرند.',
                     ],
                     [
@@ -3221,7 +3221,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'polymerization انبساطی رزین در mould',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف روش filling mould است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3233,7 +3233,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'در دمای اتاق و بدون furnace انجام می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تفاوت transfer moulding است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -3245,7 +3245,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد bond به enamel بدون resin',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت CAD-CAM است؛ ب تا د خطا هستند.',
                     ],
                     [
@@ -3257,7 +3257,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تغییر رنگ سریع در saliva',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ویژگی aesthetic است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3269,7 +3269,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ترمیم های با تراش حداقلی enamel',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف محدودیت strength است؛ ب و ج مناسب ترند؛ د مربوط نیست.',
                     ],
                     [
@@ -3281,7 +3281,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ماده گچی با crystals دی هیدرات',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تعریف glass-ceramic است؛ ب تا د مواد دیگرند.',
                     ],
                     [
@@ -3293,7 +3293,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'wetting سطح PMMA با saliva',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ceraming است؛ ب تا د فرایندهای دیگرند.',
                     ],
                     [
@@ -3305,7 +3305,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'مرحله نخست casting و مرحله دوم burnishing را انجام می دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف منطق heat treatment دو مرحله ای است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3317,7 +3317,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'porosity زیاد و interfacial bond ضعیف',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف شرایط strength است؛ ب تا د strength را تضعیف می کنند.',
                     ],
                     [
@@ -3329,7 +3329,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش فاصله بین crystals با porosity بیشتر',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف رابطه mean free path است؛ ب تا د خلاف اند.',
                     ],
                     [
@@ -3341,7 +3341,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'stainless steel wires و orthodontic springs',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کاربرد مناسب leucite است؛ ب تا د نامرتبط اند.',
                     ],
                     [
@@ -3353,7 +3353,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'به علت opacity زیاد در veneers کاربردی ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف contraindication است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -3365,7 +3365,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'martensitic transformation شبیه steel',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اثر fluoride است؛ ب تا د از مواد دیگرند.',
                     ],
                     [
@@ -3377,7 +3377,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'hydroxyapatite که opaque shade غالب ایجاد می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف فاز و اثر fluormica است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3389,7 +3389,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             '6 تا 10 مگاپاسکال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مقدار fluormica است؛ ب lithium disilicate است؛ ج zirconia است؛ د porous core است.',
                     ],
                     [
@@ -3401,7 +3401,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'به هیچ روش casting یا CAD-CAM قابل پردازش نیستند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت محدودیت bridges است؛ ب تا د خطا هستند.',
                     ],
                     [
@@ -3413,7 +3413,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'thick film saliva بین restoration و tooth',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف عوامل optical است؛ ب تا د نامرتبط اند.',
                     ],
                     [
@@ -3425,7 +3425,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'injection moulding polyamide denture base',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف route castable است؛ ب تا د سایر فرآیندها هستند.',
                     ],
                     [
@@ -3437,7 +3437,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             '99.5 درصد pure alumina',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف فاز اصلی lithium disilicate است؛ ب تا د مواد دیگرند.',
                     ],
                     [
@@ -3449,7 +3449,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'porosity open-pore crack را گسترش می دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مکانیسم تقویت است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -3461,7 +3461,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'strength حدود 50-60 MPa مشابه porcelain vacuum-fired',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اعداد و مقایسه متن است؛ ب تا د مربوط به مواد دیگرند.',
                     ],
                     [
@@ -3473,7 +3473,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'به علت presence metal coping زیر آن است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت translucency است؛ ب تا د خلاف اند.',
                     ],
                     [
@@ -3485,7 +3485,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'lithium disilicate در 60 درجه سردپخت می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دمای processing lithium disilicate است؛ ب تا د دیگر فرآیندها هستند.',
                     ],
                     [
@@ -3497,7 +3497,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'چون به طور کامل فلزی و تیره است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل layering جدید است؛ ب و ج و د نادرست اند.',
                     ],
                     [
@@ -3509,7 +3509,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'بایندر آن calcium sulphate dihydrate است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف شباهت apatite ceramic به enamel است؛ ب تا د مواد دیگرند.',
                     ],
                 ],
@@ -3540,7 +3540,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'cementation دیگر برای crown و bridge کاربرد ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل واژه luting agent است؛ ب تا د خلاف گستره فصل اند.',
                     ],
                     [
@@ -3552,7 +3552,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'کاهش radiopacity نسبت به dentine برای زیبایی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش seal است؛ ب و ج آسیب زا هستند؛ د با نیاز radiopacity مخالف است.',
                     ],
                     [
@@ -3564,7 +3564,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'light curing کامل در عمق inlay',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف retention آب پایه را توضیح می دهد؛ ب تا د بیشتر برای سیستم های adhesive است.',
                     ],
                     [
@@ -3576,7 +3576,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'creep زیاد برای نشستن restoration پس از set',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف خواص مکانیکی مفید است؛ ب تا د نامطلوب اند.',
                     ],
                     [
@@ -3588,7 +3588,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش radiopacity حاشیه تا حد فلز',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف پیامد wear است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3600,7 +3600,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش grooving برای retention پلاک',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت film thickness پایین است؛ ب تا د خلاف هدف اند.',
                     ],
                     [
@@ -3612,7 +3612,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد chemical bond مستقیم به ceramic و metal',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف خطر تغییر ratio است؛ ب تا د درست نیستند.',
                     ],
                     [
@@ -3624,7 +3624,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف نیاز به follow-up radiograph',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت radiopacity است؛ ب و ج و د نادرست اند.',
                     ],
                     [
@@ -3636,7 +3636,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حلالیت بالا برای adjustment پس از cementation',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نیاز aesthetic veneer است؛ ب و ج مناسب موارد دیگرند؛ د مطلوب نیست.',
                     ],
                     [
@@ -3648,7 +3648,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'با metal primer به noble alloy باند دایمی می دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ماهیت zinc phosphate است؛ ب تا د مربوط به مواد دیگرند.',
                     ],
                     [
@@ -3660,7 +3660,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'gypsum-bonded investment',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نخستین cement adhesive به tooth بود؛ ب و ج adhesion ندارند؛ د cement luting نیست.',
                     ],
                     [
@@ -3672,7 +3672,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'heat-cured و cold-cured acrylics',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دسته بندی فصل است؛ ب تا د موضوعات دیگرند.',
                     ],
                     [
@@ -3684,7 +3684,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'alumina powder و lanthanum glass',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ترکیب powder است؛ ب تا د مواد دیگرند.',
                     ],
                     [
@@ -3696,7 +3696,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'silane فعال شده در ethyl alcohol',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مایع zinc phosphate است؛ ب polycarboxylate است؛ ج acrylic denture است؛ د silane است.',
                     ],
                     [
@@ -3708,7 +3708,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد porosity open-pore برای glass infiltration',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف هدف firing powder است؛ ب وارونه است؛ ج و د بی ربط اند.',
                     ],
                     [
@@ -3720,7 +3720,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ایجاد fluoride release طولانی مدت در همه فرمول ها',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش MgO است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3732,7 +3732,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'باعث حذف نیاز به powder incorporation می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش aluminium است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -3744,7 +3744,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حدود 10 ثانیه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف working time متن است؛ ب gypsum investment است؛ ج و د غلط اند.',
                     ],
                     [
@@ -3756,7 +3756,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حدود 7 روز',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف setting time متن است؛ ب impression plaster است؛ ج و د نادرست اند.',
                     ],
                     [
@@ -3768,7 +3768,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'نگهداری cement در بزاق پیش از قرار دادن restoration',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف روش افزایش زمان است؛ ب زمان را کم می کند؛ ج ماده ضعیف می دهد؛ د بی ربط است.',
                     ],
                     [
@@ -3780,7 +3780,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف خطر آلودگی آب از slab',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت cooled slab است؛ ب و ج و د غلط اند.',
                     ],
                     [
@@ -3792,7 +3792,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'sand-blasting metal surface با alumina grit',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف slaking است؛ ب تا د فرایندهای دیگرند.',
                     ],
                     [
@@ -3804,7 +3804,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پس از 10 دقیقه به صفر می رسد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف رابطه strength است؛ ب تا د خلاف اند.',
                     ],
                     [
@@ -3816,7 +3816,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حدود 80 تا 90 مگاپاسکال',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف tensile strength پایین را بیان می کند؛ ب تا د مربوط مواد دیگرند.',
                     ],
                     [
@@ -3828,7 +3828,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'cement در حالت تازه radiopacity ندارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت عدم تاخیر است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3840,7 +3840,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'مانع recurrent caries حتی بدون seal می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اهمیت solubility اولیه است؛ ب تا د خطا هستند.',
                     ],
                     [
@@ -3852,7 +3852,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'high translucency و رنگ ناپایدار برای veneers',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف disadvantages متن است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3864,7 +3864,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'hydrofluoric acid gel با silane',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مایع polycarboxylate است؛ ب zinc phosphate است؛ ج و د resin/etch هستند.',
                     ],
                     [
@@ -3876,7 +3876,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'oxidation chromium در stainless steel',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف reaction setting است؛ ب تا د نامرتبط اند.',
                     ],
                     [
@@ -3888,7 +3888,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'به علت آزادسازی بزیلیوم، bacteria را حذف می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت mild response است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -3900,7 +3900,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'با hydrofluoric acid etch ایجاد می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف bond ضعیف به gold است؛ ب تا د خلاف متن اند.',
                     ],
                     [
@@ -3912,7 +3912,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل آلیاژ به glass-ceramic',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل bond بهتر به base metals است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -3924,7 +3924,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'setting آن در همه موارد فوری و غیرقابل کنترل است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مشکل clean-up است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3936,7 +3936,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'luting GIC و filling GIC ترکیب و نیازهای یکسان دارند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل استفاده از luting-specific GIC است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -3948,7 +3948,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پس از شروع stiffening کامل',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف بازه placement است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -3960,7 +3960,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'removal posts cemented with RMGIC همواره آسان تر است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف هشدار RMGIC است؛ ب و ج و د خلاف متن اند.',
                     ],
                     [
@@ -3972,7 +3972,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'high-gold، Au-Pd و Ni-Cr-Mo',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف سه subgroup فصل است؛ ب تا د سایر طبقه بندی هاست.',
                     ],
                     [
@@ -3984,7 +3984,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'عدم نیاز به polymerization در inlays و crowns',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل preference است؛ ب و ج و د غلط اند.',
                     ],
                     [
@@ -3996,7 +3996,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'نبود acidic monomer و pH خنثی اولیه',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ویژگی self-adhesive است؛ ب تا د خلاف اند.',
                     ],
                     [
@@ -4008,7 +4008,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'slaking fluid، powder increment و cooled slab',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مجموعه resin-to-ceramic است؛ ب resin-to-metal است؛ ج metal-ceramic است؛ د zinc phosphate mixing است.',
                     ],
                 ],
@@ -4039,7 +4039,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'gypsum investments و refractory dies',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کاربردهای دندانی stainless steel است؛ ب تا د مواد دیگرند.',
                     ],
                     [
@@ -4051,7 +4051,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'با ceraming به glass-ceramic چندفازی تبدیل می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تعریف wrought alloy است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -4063,7 +4063,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل فولاد به ceramic و حذف corrosion resistance',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اثر cold working است؛ ب hot working است؛ ج و د نادرست اند.',
                     ],
                     [
@@ -4075,7 +4075,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'افزایش work hardening با هر مرحله خم کاری',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تفاوت hot working است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -4087,7 +4087,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'فولادها از نظر ساختار همان PMMA هستند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ویژگی steels است؛ ب تا د خلاف اند.',
                     ],
                     [
@@ -4099,7 +4099,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'cast iron',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف قبل از stainless steel فلز قابل اعتماد دهانی بود؛ ب تا د چنین جایگاهی ندارند.',
                     ],
                     [
@@ -4111,7 +4111,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'cast iron با کربن بالای 2 درصد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف wire ارتودنسی است؛ ب cutting instruments است؛ ج و د نادرست اند.',
                     ],
                     [
@@ -4123,7 +4123,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'amorphous glass phase',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف iron room temperature است؛ ب در 912 تا 1390 است؛ ج martensite است؛ د سرامیک است.',
                     ],
                     [
@@ -4135,7 +4135,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'از ferrite به chromium oxide',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف transition در 912 درجه است؛ ب در 1390 رخ می دهد؛ ج و د غلط اند.',
                     ],
                     [
@@ -4147,7 +4147,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'پودر zinc oxide و phosphoric acid',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تعریف steel است؛ ب cast iron است؛ ج و د مواد دیگرند.',
                     ],
                     [
@@ -4159,7 +4159,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'در orthodontics به عنوان spring استفاده می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف تفاوت cast iron است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -4171,7 +4171,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'stabilized austenite با 8 درصد nickel',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ferrite است؛ ب austenite است؛ ج cementite است؛ د stainless oxide است.',
                     ],
                     [
@@ -4183,7 +4183,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'صفر است و هیچ carbon حل نمی شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نکته ظاهراً متناقض متن است؛ ب وارونه است؛ ج و د نادرست اند.',
                     ],
                     [
@@ -4195,7 +4195,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'در FCC carbon به chromium carbide تبدیل می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف علت solubility بیشتر FCC است؛ ب و ج و د غلط اند.',
                     ],
                     [
@@ -4207,7 +4207,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'pearlite',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نام FCC steel است؛ ب BCC carbon solution است؛ ج Fe3C است؛ د mixture است.',
                     ],
                     [
@@ -4219,7 +4219,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'oxide coating محافظ stainless steel',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف cementite است؛ ب تا د مواد دیگرند.',
                     ],
                     [
@@ -4231,7 +4231,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'stainless steel به polyamide تبدیل می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف eutectoid transformation است؛ ب eutectic است؛ ج و د نامرتبط اند.',
                     ],
                     [
@@ -4243,7 +4243,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ferritic stainless، برای orthodontic wire',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف hyper-eutectoid و کاربرد است؛ ب hypo است؛ ج و د غلط اند.',
                     ],
                     [
@@ -4255,7 +4255,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'resin-bonded veneers',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کاربرد hypo-eutectoid است؛ ب hyper است؛ ج و د نامرتبط اند.',
                     ],
                     [
@@ -4267,7 +4267,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'glass-ceramic حاوی lithium disilicate',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف pearlite است؛ ب martensite است؛ ج oxide است؛ د glass-ceramic است.',
                     ],
                     [
@@ -4279,7 +4279,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'pearlite با رشد آهسته و equilibrium کامل تشکیل می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف اثر quenching است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -4291,7 +4291,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'oxide film محافظ روی stainless steel',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف martensite را توصیف می کند؛ ب تا د سایر فازها/لایه ها هستند.',
                     ],
                     [
@@ -4303,7 +4303,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تشکیل glaze روی cutting edge',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف tempering است؛ ب تا د خطا هستند.',
                     ],
                     [
@@ -4315,7 +4315,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'ductility به صفر رسیده و instrument سخت تر می شود',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف هشدار clinical significance است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -4327,7 +4327,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'cadmium و coating silver solder',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف chromium oxide است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -4339,7 +4339,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'برابر با 8 درصد nickel باشد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف شرط stainless است؛ ب تا د اجزای دیگرند.',
                     ],
                     [
@@ -4351,7 +4351,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'تبدیل ferrite به glass-ceramic',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش nickel است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -4363,7 +4363,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'plaster، stone و densite',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف سه فرم stainless steel است؛ ب تا د طبقه بندی های دیگرند.',
                     ],
                     [
@@ -4375,7 +4375,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'glass-infiltrated ceramic cores',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کاربرد ferritic است؛ ب austenitic است؛ ج martensitic است؛ د ceramic است.',
                     ],
                     [
@@ -4387,7 +4387,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'resin cements',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف کاربرد martensitic است؛ ب austenitic است؛ ج و د مواد دیگرند.',
                     ],
                     [
@@ -4399,7 +4399,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'Au-16Cu با gold و copper',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ترکیب 18/8 است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -4411,7 +4411,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'عدم وجود nickel و chromium در ترکیب',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلایل orthodontic use است؛ ب تا د خلاف اند.',
                     ],
                     [
@@ -4423,7 +4423,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'Co-Cr alloy، چون soldering آسان تر است',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف انتخاب مناسب هنگام خم کاری زیاد است؛ ب تا د مناسب نیستند.',
                     ],
                     [
@@ -4435,7 +4435,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'حذف work hardening هنگام شکل دهی',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف خطر انتخاب wire خیلی hard است؛ ب تا د خلاف داده جدول اند.',
                     ],
                     [
@@ -4447,7 +4447,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'lanthanum glass و alumina powder',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف hard soldering است؛ ب soft solder است؛ ج و د بی ربط اند.',
                     ],
                     [
@@ -4459,7 +4459,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'solder را بدون heat ذوب می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف مزیت resistance soldering است؛ ب gas soldering است؛ ج و د غلط اند.',
                     ],
                     [
@@ -4471,7 +4471,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'acid etching ceramic با HF',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف weld decay است؛ ب تا د موضوعات دیگرند.',
                     ],
                     [
@@ -4483,7 +4483,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'silver solder را به ceramic تبدیل می کند',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف نقش stabilization با titanium است؛ ب تا د نادرست اند.',
                     ],
                     [
@@ -4495,7 +4495,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'soft liner روی آن بهتر bond می دهد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف دلیل محدودیت heating است؛ ب تا د غلط اند.',
                     ],
                     [
@@ -4507,7 +4507,7 @@ function dent_exams_term6_reference_course_data_vannoort_dental_materials_sectio
                             'Co-Cr alloy ductility بالا و soldering آسان دارد',
                         ],
                         'correctIndex' => 0,
-                        'explanation' => '**پاسخ درست:** گزینه الف
+                        'explanation' => '**پاسخ درست:** گزینه الف
 . الف ویژگی Ni-Ti جدول است؛ ب تا د ویژگی ها را وارونه می کنند.',
                     ],
                 ],

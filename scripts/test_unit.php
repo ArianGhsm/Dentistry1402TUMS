@@ -13,6 +13,16 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../public_html/api/search_store.php';
 require_once __DIR__ . '/../public_html/api/push_store.php';
+require_once __DIR__ . '/../public_html/api/analytics_store.php';
+
+// Order-status constants live in payments_store.php (not loaded here); define the
+// stable values the funnel relies on so the test stays self-contained.
+if (!defined('PAYMENTS_ORDER_STATUS_SUCCESS')) {
+    define('PAYMENTS_ORDER_STATUS_SUCCESS', 'success');
+}
+if (!defined('PAYMENTS_ORDER_STATUS_PENDING')) {
+    define('PAYMENTS_ORDER_STATUS_PENDING', 'pending');
+}
 
 // The bootstrap installs JSON error/exception handlers meant for HTTP; restore
 // defaults so a real failure surfaces as a normal CLI error instead of a 200.

@@ -554,10 +554,19 @@ function analytics_normalize_daily_bucket(string $day, array $payload): array
         if ($cleanCohort === '' || !is_array($cohortPayload)) {
             continue;
         }
+        $cohortFamilies = [];
+        $familySource = is_array($cohortPayload['families'] ?? null) ? $cohortPayload['families'] : [];
+        foreach ($familySource as $familyKey => $familyCount) {
+            $cleanFamily = analytics_clean_family((string) $familyKey);
+            if ($cleanFamily !== '') {
+                $cohortFamilies[$cleanFamily] = max(0, (int) $familyCount);
+            }
+        }
         $bucket['cohorts'][$cleanCohort] = [
             'pageViews' => max(0, (int) ($cohortPayload['pageViews'] ?? 0)),
             'logins' => max(0, (int) ($cohortPayload['logins'] ?? 0)),
             'downloads' => max(0, (int) ($cohortPayload['downloads'] ?? 0)),
+            'families' => $cohortFamilies,
         ];
     }
 
@@ -672,8 +681,11 @@ function analytics_record_page_view(array $payload): void
                 'pageViews' => 0,
                 'logins' => 0,
                 'downloads' => 0,
+                'families' => [],
             ];
             $cohortBucket['pageViews'] = max(0, (int) ($cohortBucket['pageViews'] ?? 0)) + 1;
+            $cohortBucket['families'] = is_array($cohortBucket['families'] ?? null) ? $cohortBucket['families'] : [];
+            analytics_increment_counter($cohortBucket['families'], $family);
             $bucket['cohorts'][$cohortKey] = $cohortBucket;
 
             $cohortRow = is_array($store['cohorts'][$cohortKey] ?? null) ? $store['cohorts'][$cohortKey] : [
@@ -1201,6 +1213,198 @@ function analytics_recent_logins_payload(array $store, array $visibleCohorts, in
     return $result;
 }
 
+/**
+ * Read the shared server error log and summarize it for the owner dashboard.
+ */
+function analytics_error_log_payload(int $limit = 40): array
+{
+    $result = [
+        'available' => false,
+        'total' => 0,
+        'last24h' => 0,
+        'last7d' => 0,
+        'byType' => [],
+        'recent' => [],
+    ];
+
+    $path = function_exists('dent_error_log_path') ? dent_error_log_path() : '';
+    if ($path === '' || !is_file($path)) {
+        return $result;
+    }
+
+    $lines = @file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if (!is_array($lines)) {
+        return $result;
+    }
+
+    $result['available'] = true;
+    $result['total'] = count($lines);
+    $now = time();
+    $byType = [];
+
+    foreach ($lines as $line) {
+        $row = json_decode((string) $line, true);
+        if (!is_array($row)) {
+            continue;
+        }
+        $timestamp = strtotime((string) ($row['at'] ?? ''));
+        if ($timestamp !== false) {
+            if ($timestamp >= $now - 86400) {
+                $result['last24h']++;
+            }
+            if ($timestamp >= $now - (7 * 86400)) {
+                $result['last7d']++;
+            }
+        }
+        $type = trim((string) ($row['type'] ?? 'error'));
+        if ($type === '') {
+            $type = 'error';
+        }
+        $byType[$type] = (int) ($byType[$type] ?? 0) + 1;
+    }
+
+    foreach ($byType as $typeKey => $count) {
+        $result['byType'][] = ['key' => $typeKey, 'count' => $count];
+    }
+    usort($result['byType'], static function (array $left, array $right): int {
+        return (int) $right['count'] <=> (int) $left['count'];
+    });
+
+    $recentLines = array_slice($lines, -max(1, $limit));
+    foreach (array_reverse($recentLines) as $line) {
+        $row = json_decode((string) $line, true);
+        if (!is_array($row)) {
+            continue;
+        }
+        $result['recent'][] = [
+            'at' => (string) ($row['at'] ?? ''),
+            'type' => (string) ($row['type'] ?? ''),
+            'message' => (string) ($row['message'] ?? ''),
+            'file' => (string) ($row['file'] ?? ''),
+            'line' => max(0, (int) ($row['line'] ?? 0)),
+            'status' => max(0, (int) ($row['status'] ?? 0)),
+            'uri' => (string) ($row['uri'] ?? ''),
+            'action' => (string) ($row['action'] ?? ''),
+            'user' => (string) ($row['user'] ?? ''),
+        ];
+    }
+
+    return $result;
+}
+
+/**
+ * Returning vs one-time login users across the recent window, derived from the
+ * per-day loginUsers sets that are already tracked.
+ */
+function analytics_retention_summary(array $store, int $days = 30): array
+{
+    $userDayCounts = [];
+    foreach (analytics_series_days($days) as $day) {
+        $loginUsers = is_array($store['daily'][$day]['loginUsers'] ?? null) ? $store['daily'][$day]['loginUsers'] : [];
+        foreach (array_keys($loginUsers) as $userKey) {
+            $userKey = (string) $userKey;
+            if ($userKey === '') {
+                continue;
+            }
+            $userDayCounts[$userKey] = (int) ($userDayCounts[$userKey] ?? 0) + 1;
+        }
+    }
+
+    $unique = count($userDayCounts);
+    $returning = 0;
+    foreach ($userDayCounts as $count) {
+        if ((int) $count >= 2) {
+            $returning++;
+        }
+    }
+
+    return [
+        'windowDays' => $days,
+        'uniqueUsers' => $unique,
+        'returning' => $returning,
+        'oneTime' => max(0, $unique - $returning),
+        'returnRatePercent' => $unique > 0 ? (int) round(($returning / $unique) * 100) : 0,
+    ];
+}
+
+/**
+ * Purchase funnel: buy-page views -> orders created -> orders paid, all over
+ * the same recent window so the conversion ratio is meaningful.
+ */
+function analytics_purchase_funnel(array $store, array $paymentsStore, int $days = 30): array
+{
+    $buyViews = 0;
+    foreach (analytics_series_days($days) as $day) {
+        $pages = is_array($store['daily'][$day]['pages'] ?? null) ? $store['daily'][$day]['pages'] : [];
+        foreach ($pages as $pagePath => $count) {
+            if (strpos((string) $pagePath, '/buy') === 0) {
+                $buyViews += max(0, (int) $count);
+            }
+        }
+    }
+
+    $cutoff = time() - ($days * 86400);
+    $created = 0;
+    $paid = 0;
+    $pending = 0;
+    $orders = is_array($paymentsStore['orders'] ?? null) ? $paymentsStore['orders'] : [];
+    foreach ($orders as $order) {
+        if (!is_array($order)) {
+            continue;
+        }
+        $createdTimestamp = strtotime((string) ($order['createdAt'] ?? ''));
+        if ($createdTimestamp !== false && $createdTimestamp < $cutoff) {
+            continue;
+        }
+        $created++;
+        $status = (string) ($order['status'] ?? '');
+        if (defined('PAYMENTS_ORDER_STATUS_SUCCESS') && $status === PAYMENTS_ORDER_STATUS_SUCCESS) {
+            $paid++;
+        } elseif (defined('PAYMENTS_ORDER_STATUS_PENDING') && $status === PAYMENTS_ORDER_STATUS_PENDING) {
+            $pending++;
+        }
+    }
+
+    return [
+        'windowDays' => $days,
+        'buyViews' => $buyViews,
+        'ordersCreated' => $created,
+        'ordersPaid' => $paid,
+        'ordersPending' => $pending,
+        'conversionPercent' => $created > 0 ? (int) round(($paid / $created) * 100) : 0,
+    ];
+}
+
+/**
+ * Most-active page families for one cohort over the recent window.
+ */
+function analytics_cohort_top_families(array $store, string $cohortKey, int $days = 30, int $limit = 4): array
+{
+    $aggregate = [];
+    foreach (analytics_series_days($days) as $day) {
+        $families = $store['daily'][$day]['cohorts'][$cohortKey]['families'] ?? null;
+        if (!is_array($families)) {
+            continue;
+        }
+        foreach ($families as $familyKey => $count) {
+            $familyKey = (string) $familyKey;
+            $aggregate[$familyKey] = (int) ($aggregate[$familyKey] ?? 0) + max(0, (int) $count);
+        }
+    }
+
+    arsort($aggregate);
+    $rows = [];
+    foreach (array_slice($aggregate, 0, max(1, $limit), true) as $familyKey => $count) {
+        $rows[] = [
+            'key' => $familyKey,
+            'label' => analytics_family_label($familyKey),
+            'views' => $count,
+        ];
+    }
+
+    return $rows;
+}
+
 function analytics_build_owner_dashboard(array $viewer): array
 {
     require_once __DIR__ . '/auth_store.php';
@@ -1321,6 +1525,7 @@ function analytics_build_owner_dashboard(array $viewer): array
             'pageViews30d' => $pageViews30d,
             'logins30d' => $logins30d,
             'downloads30d' => $downloads30d,
+            'topFamilies' => analytics_cohort_top_families($store, $cohortKey, 30, 4),
         ];
     }
 
@@ -1330,7 +1535,8 @@ function analytics_build_owner_dashboard(array $viewer): array
     $htmlSummary = function_exists('html_uploader_read_store')
         ? html_uploader_owner_summary(html_uploader_read_store())
         : [];
-    $examsSummary = analytics_build_exam_summary($store, dent_exams_read_store(), payments_read_store());
+    $paymentsStore = payments_read_store();
+    $examsSummary = analytics_build_exam_summary($store, dent_exams_read_store(), $paymentsStore);
 
     $segments = is_array($store['totals']['segments'] ?? null) ? $store['totals']['segments'] : analytics_default_segments();
     $segHuman = is_array($segments['human'] ?? null) ? $segments['human'] : ['pageViews' => 0, 'logins' => 0, 'downloads' => 0];
@@ -1393,6 +1599,9 @@ function analytics_build_owner_dashboard(array $viewer): array
         'loginMethods' => $loginMethods,
         'recentLogins' => analytics_recent_logins_payload($store, $cohorts, 20),
         'cohorts' => $cohortRows,
+        'retention' => analytics_retention_summary($store, 30),
+        'funnel' => analytics_purchase_funnel($store, $paymentsStore, 30),
+        'errorLog' => analytics_error_log_payload(40),
         'exams' => $examsSummary,
         'references' => [
             'contentTools' => [

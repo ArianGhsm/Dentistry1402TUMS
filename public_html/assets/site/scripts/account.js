@@ -128,6 +128,10 @@
     var ownerStatsMethods = $("owner-stats-methods");
     var ownerStatsExams = $("owner-stats-exams");
     var ownerStatsReferences = $("owner-stats-references");
+    var ownerStatsRetention = $("owner-stats-retention");
+    var ownerStatsFunnel = $("owner-stats-funnel");
+    var ownerStatsErrors = $("owner-stats-errors");
+    var ownerStatsErrorsMeta = $("owner-stats-errors-meta");
     var ownerGradesCoursesSummary = $("owner-grades-courses-summary");
     var ownerGradesImportForm = $("owner-grades-import-form");
     var ownerGradesImportText = $("owner-grades-import-text");
@@ -3662,6 +3666,18 @@
                 render: function (row) {
                     return escapeHtml(ownerStatsMetric(row.logins30d || 0));
                 }
+            },
+            {
+                label: "بخش‌های فعال",
+                render: function (row) {
+                    var families = Array.isArray(row.topFamilies) ? row.topFamilies : [];
+                    if (!families.length) {
+                        return "—";
+                    }
+                    return families.slice(0, 3).map(function (family) {
+                        return escapeHtml(String(family.label || family.key || ""));
+                    }).join("، ");
+                }
             }
         ], dashboard && dashboard.cohorts || [], "هنوز داده cohort-driven برای نمایش وجود ندارد.");
 
@@ -3725,6 +3741,70 @@
                 summaryCard("بازدید HTML", ownerStatsMetric(totals.htmlPageViews || 0), "viewCount صفحه‌های public HTML uploader", totals.htmlPageViews > 0 ? "warn" : ""),
                 summaryCard("دانلود ثبت‌شده جدید", ownerStatsMetric(totals.downloads || 0), "downloadهایی که از tracker جدید جمع شده‌اند", totals.downloads > 0 ? "ok" : "")
             ].join("");
+        }
+
+        if (ownerStatsRetention) {
+            var retention = dashboard && dashboard.retention ? dashboard.retention : {};
+            ownerStatsRetention.innerHTML = [
+                summaryCard("نرخ بازگشت", ownerStatsMetric(retention.returnRatePercent || 0) + "%", "کاربرانی که در ۳۰ روز بیش از یک روز وارد شده‌اند", (retention.returnRatePercent || 0) > 0 ? "ok" : ""),
+                summaryCard("کاربر بازگشتی", ownerStatsMetric(retention.returning || 0), "ورود در حداقل ۲ روز مجزا"),
+                summaryCard("کاربر یک‌باره", ownerStatsMetric(retention.oneTime || 0), "فقط در یک روز وارد شده‌اند", (retention.oneTime || 0) > 0 ? "warn" : ""),
+                summaryCard("کاربر یکتا", ownerStatsMetric(retention.uniqueUsers || 0), "کل کاربران واردشده در ۳۰ روز")
+            ].join("");
+        }
+
+        if (ownerStatsFunnel) {
+            var funnel = dashboard && dashboard.funnel ? dashboard.funnel : {};
+            ownerStatsFunnel.innerHTML = [
+                summaryCard("بازدید صفحه خرید", ownerStatsMetric(funnel.buyViews || 0), "بازدید مسیرهای خرید در ۳۰ روز"),
+                summaryCard("سفارش ثبت‌شده", ownerStatsMetric(funnel.ordersCreated || 0), "سفارش‌های ساخته‌شده در ۳۰ روز"),
+                summaryCard("پرداخت موفق", ownerStatsMetric(funnel.ordersPaid || 0), ownerStatsMetric(funnel.ordersPending || 0) + " سفارش در انتظار پرداخت", (funnel.ordersPaid || 0) > 0 ? "ok" : ""),
+                summaryCard("نرخ تبدیل", ownerStatsMetric(funnel.conversionPercent || 0) + "%", "سهم پرداخت موفق از کل سفارش‌ها", (funnel.conversionPercent || 0) >= 50 ? "ok" : "warn")
+            ].join("");
+        }
+
+        var errorLog = dashboard && dashboard.errorLog ? dashboard.errorLog : null;
+        if (ownerStatsErrorsMeta) {
+            ownerStatsErrorsMeta.textContent = errorLog && errorLog.available
+                ? ("۲۴ ساعت: " + ownerStatsMetric(errorLog.last24h || 0) + " • ۷ روز: " + ownerStatsMetric(errorLog.last7d || 0) + " • کل ثبت‌شده: " + ownerStatsMetric(errorLog.total || 0))
+                : "هنوز خطایی در لاگ سرور ثبت نشده است.";
+        }
+        if (ownerStatsErrors) {
+            renderOwnerStatsSimpleTable(ownerStatsErrors, [
+                {
+                    label: "زمان",
+                    render: function (row) {
+                        return escapeHtml(formatJalaliDateTime(row.at, "—"));
+                    }
+                },
+                {
+                    label: "نوع",
+                    render: function (row) {
+                        var type = String(row.type || "");
+                        var status = row.status ? ('<small>' + escapeHtml(ownerStatsMetric(row.status)) + "</small>") : "";
+                        return escapeHtml(type) + status;
+                    }
+                },
+                {
+                    label: "پیام",
+                    render: function (row) {
+                        var message = String(row.message || "");
+                        if (message.length > 120) {
+                            message = message.slice(0, 120) + "…";
+                        }
+                        var location = row.file
+                            ? ('<small dir="ltr">' + escapeHtml(ownerStatsShortPath(row.file)) + (row.line ? (":" + row.line) : "") + "</small>")
+                            : "";
+                        return '<strong>' + escapeHtml(message || "بدون پیام") + "</strong>" + location;
+                    }
+                },
+                {
+                    label: "مسیر",
+                    render: function (row) {
+                        return escapeHtml(String(row.action || ownerStatsShortPath(row.uri || "") || "—"));
+                    }
+                }
+            ], errorLog && errorLog.recent || [], "هنوز خطایی در لاگ سرور ثبت نشده است.");
         }
     }
 
