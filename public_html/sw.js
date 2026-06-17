@@ -1,5 +1,7 @@
-const APP_VERSION = "20260617-211857";
+const APP_VERSION = "20260617-213131";
 const STATIC_CACHE = "dent1402-static-" + APP_VERSION;
+const PAGE_CACHE = "dent1402-pages-" + APP_VERSION;
+const MAX_PAGE_CACHE_ENTRIES = 40;
 
 const STATIC_ASSETS = [
   "/offline.html",
@@ -50,8 +52,9 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
+    const keepCaches = [STATIC_CACHE, PAGE_CACHE];
     await Promise.all(keys.map((key) => {
-      if (key !== STATIC_CACHE) {
+      if (keepCaches.indexOf(key) === -1) {
         return caches.delete(key);
       }
       return Promise.resolve();
@@ -171,10 +174,36 @@ async function networkFirstAsset(request) {
   }
 }
 
-async function networkOnlyPage(request) {
+async function trimPageCache(cache) {
+  const requests = await cache.keys();
+  if (requests.length <= MAX_PAGE_CACHE_ENTRIES) {
+    return;
+  }
+  const removeCount = requests.length - MAX_PAGE_CACHE_ENTRIES;
+  for (let i = 0; i < removeCount; i++) {
+    await cache.delete(requests[i]);
+  }
+}
+
+// Always fetch fresh while online (no-store), but keep a copy of each
+// successfully-served page so previously-visited pages re-open offline
+// instead of falling back to the generic offline screen. API responses stay
+// network-only via DYNAMIC_BYPASS, so no live/paid data is cached.
+async function networkFirstPage(request) {
+  const cache = await caches.open(PAGE_CACHE);
   try {
-    return await fetch(request, { cache: "no-store" });
+    const response = await fetch(request, { cache: "no-store" });
+    if (response && response.ok && response.type === "basic") {
+      cache.put(request, response.clone())
+        .then(() => trimPageCache(cache))
+        .catch(() => {});
+    }
+    return response;
   } catch (error) {
+    const cached = await cache.match(request);
+    if (cached) {
+      return cached;
+    }
     return caches.match("/offline.html");
   }
 }
@@ -188,7 +217,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (request.mode === "navigate" && url.origin === self.location.origin) {
-    event.respondWith(networkOnlyPage(request));
+    event.respondWith(networkFirstPage(request));
     return;
   }
 

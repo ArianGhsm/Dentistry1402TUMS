@@ -23,7 +23,7 @@
 - Storage: داده‌های پایدار باید در مسیرهای ذخیره‌سازی مشترک نگه‌داری شوند؛ نه در فایل‌های موقتی جایگزین‌شونده در Deploy.
 - جستجوی سراسری سایت از `public_html/api/search_api.php` + `public_html/api/search_store.php` استفاده می‌کند و فقط عنوان منابع/جزوات و دروس/جلسات آزمونِ همان cohortِ مجاز کاربر را index می‌کند؛ ورودی آن باکس جستجو در هدر shared است (`shell.js`). این مسیر باید auth و مرز cohort را enforce کند و نباید به منبع داده موازی یا فهرست‌کردن state حساس تبدیل شود. mapping توکن notes باید با `notes_curriculum_store_for_cohort` هم‌خوان بماند.
 - اعلان‌های Web Push از `public_html/api/push_api.php` + `public_html/api/push_store.php` استفاده می‌کنند؛ کلید VAPID و اشتراک‌ها در storage مشترک `push/` می‌مانند و ارسال push فقط باید از همان مسیر dispatch اعلان‌های مشترک (`notifications_dispatch_push_if_needed` در `notifications_store.php`) عبور کند، نه queue/auth موازی. فعال/غیرفعال‌سازی فقط با اجازه مرورگر و از پنل حساب کاربر (`push.js`) است و `sw.js` باید handlerهای `push`/`notificationclick` را داشته باشد.
-- PWA: `manifest.webmanifest` و `sw.js` فعال هستند و باید سازگار بمانند.
+- PWA: `manifest.webmanifest` و `sw.js` فعال هستند و باید سازگار بمانند. `sw.js` برای navigationها network-first است و علاوه بر STATIC_CACHE یک PAGE_CACHE نسخه‌دار نگه می‌دارد تا صفحات قبلاً بازدیدشده آفلاین هم باز شوند؛ آنلاین همیشه تازه fetch می‌شود (no-store) و پاسخ APIها (به‌خصوص آزمون‌های پولی در `DYNAMIC_BYPASS`) نباید برای آفلاین کش شوند. هر دو cache باید با تغییر `APP_VERSION` بازسازی/پاک شوند.
 
 ## 3) هویت و احراز هویت (غیرقابل مذاکره)
 - تنها منبع حقیقت هویت/نقش/session:
@@ -218,6 +218,7 @@ python .\scripts\check_host_deploy_freshness.py
 - ترتیب اجباری:
   - host storage backup/mirror -> local validation -> host deploy -> live health-check -> GitHub sync
 - local validation پیش‌فرض باید پایدار، سریع و کم‌نویز بماند؛ اضافه‌کردن check جدیدی که مرتب false-fail می‌دهد یا به شرایط ناپایدار بیرونی وابسته است بدون کنترل scope و پایداری مجاز نیست.
+- چک‌های static قطعی و آفلاین (lint PHP/JS، text-integrity، instruction-contracts، resilience/quality/upload و unit testهای `scripts/test_unit.php`) از `scripts/run_static_checks.sh` اجرا می‌شوند و همین اسکریپت در GitHub Actions (`.github/workflows/ci.yml`) روی push/PR هم اجرا می‌شود. این مسیر CI نباید به سرور زنده، دیتابیس، شبکه یا credential وابسته شود؛ smoke چندورودی که نیاز به login مالک دارد فقط در deploy محلی می‌ماند نه CI. توابع pure جدید (مثل crypto یا normalization) باید همراه خود unit test در همین فایل بیایند.
 - قبل از upload کد، `storage/` هاست باید در `.codex-local/remote-storage/snapshots/` ذخیره و در `server-only/storage/` mirror شود.
 - upload/delete دیتای runtime از لپتاپ به هاست ممنوع است؛ حتی FullSync هم نباید `public_html/.env` یا `public_html/storage/` را آپلود/حذف کند.
 - `git pull` قبل از deploy پیش‌فرض ممنوع است مگر درخواست صریح.
