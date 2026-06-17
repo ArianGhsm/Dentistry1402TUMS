@@ -232,6 +232,11 @@
     var notificationsPrefsCard = $("notifications-prefs-card");
     var notificationsNavidAlertsToggle = $("notifications-navid-alerts");
     var notificationsPrefsSaveButton = $("notifications-prefs-save");
+    var notificationsPushCard = $("notifications-push-card");
+    var notificationsPushToggle = $("notifications-push-toggle");
+    var notificationsPushHint = $("notifications-push-hint");
+    var notificationsPushStatus = $("notifications-push-status");
+    var notificationsPushState = { busy: false };
     var notificationsPrefsHint = $("notifications-prefs-hint");
     var notificationsManagerCard = $("notifications-manager-card");
     var notificationsComposeShell = $("notifications-compose-shell");
@@ -6815,6 +6820,99 @@
             markAllNotificationsRead();
         });
     }
+
+    function setPushStatusMessage(message, isError) {
+        if (!notificationsPushStatus) {
+            return;
+        }
+        var text = String(message || "");
+        notificationsPushStatus.textContent = text;
+        notificationsPushStatus.hidden = text === "";
+        notificationsPushStatus.classList.toggle("is-error", !!isError);
+    }
+
+    function applyPushStatus(status) {
+        if (!notificationsPushCard) {
+            return;
+        }
+        if (!status || !status.supported) {
+            notificationsPushCard.hidden = true;
+            return;
+        }
+
+        notificationsPushCard.hidden = false;
+        var serverOff = !status.serverSupported;
+        var blocked = status.permission === "denied";
+
+        if (notificationsPushToggle) {
+            notificationsPushToggle.checked = !!status.subscribed;
+            notificationsPushToggle.disabled = notificationsPushState.busy || serverOff || blocked;
+        }
+
+        if (serverOff) {
+            setPushStatusMessage("اعلان مرورگر روی سرور هنوز فعال نیست.", true);
+        } else if (blocked) {
+            setPushStatusMessage("اجازه نمایش اعلان در مرورگر مسدود شده است؛ از تنظیمات مرورگر آن را آزاد کنید.", true);
+        } else if (status.subscribed) {
+            setPushStatusMessage("اعلان‌های مرورگر روی این دستگاه فعال است.", false);
+        } else {
+            setPushStatusMessage("", false);
+        }
+    }
+
+    function refreshPushCard() {
+        if (!notificationsPushCard || !window.Dent1402Push) {
+            if (notificationsPushCard) {
+                notificationsPushCard.hidden = true;
+            }
+            return;
+        }
+        if (!window.Dent1402Push.isSupported()) {
+            notificationsPushCard.hidden = true;
+            return;
+        }
+        window.Dent1402Push.getStatus().then(applyPushStatus).catch(function () {
+            // Leave the card untouched if status lookup fails.
+        });
+    }
+
+    function handlePushToggleChange() {
+        if (!window.Dent1402Push || notificationsPushState.busy) {
+            return;
+        }
+        var wantOn = !!(notificationsPushToggle && notificationsPushToggle.checked);
+        notificationsPushState.busy = true;
+        if (notificationsPushToggle) {
+            notificationsPushToggle.disabled = true;
+        }
+        setPushStatusMessage(wantOn ? "در حال فعال‌سازی..." : "در حال غیرفعال‌سازی...", false);
+
+        var operation = wantOn ? window.Dent1402Push.subscribe() : window.Dent1402Push.unsubscribe();
+        operation.then(function () {
+            notificationsPushState.busy = false;
+            return window.Dent1402Push.getStatus();
+        }).then(function (status) {
+            applyPushStatus(status);
+            if (wantOn && status && status.subscribed) {
+                setPushStatusMessage("اعلان‌های مرورگر روی این دستگاه فعال شد.", false);
+            } else if (!wantOn) {
+                setPushStatusMessage("اعلان‌های مرورگر روی این دستگاه غیرفعال شد.", false);
+            }
+        }).catch(function (error) {
+            notificationsPushState.busy = false;
+            if (notificationsPushToggle) {
+                notificationsPushToggle.checked = !wantOn;
+                notificationsPushToggle.disabled = false;
+            }
+            setPushStatusMessage(error && error.message ? error.message : "تغییر وضعیت اعلان مرورگر ناموفق بود.", true);
+            refreshPushCard();
+        });
+    }
+
+    if (notificationsPushToggle) {
+        notificationsPushToggle.addEventListener("change", handlePushToggleChange);
+    }
+    refreshPushCard();
 
     if (notificationsPrefsSaveButton) {
         notificationsPrefsSaveButton.addEventListener("click", function (event) {

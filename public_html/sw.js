@@ -1,4 +1,4 @@
-const APP_VERSION = "20260616-235238";
+const APP_VERSION = "20260617-211857";
 const STATIC_CACHE = "dent1402-static-" + APP_VERSION;
 
 const STATIC_ASSETS = [
@@ -65,6 +65,69 @@ self.addEventListener("message", (event) => {
     return;
   }
   self.skipWaiting();
+});
+
+self.addEventListener("push", (event) => {
+  let data = {};
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (_jsonError) {
+      try {
+        data = { title: "اعلان جدید", body: event.data.text() };
+      } catch (_textError) {
+        data = {};
+      }
+    }
+  }
+
+  const title = data && data.title ? String(data.title) : "اعلان جدید";
+  const url = data && data.url ? String(data.url) : "/account/#notifications";
+  const tag = data && data.tag ? String(data.tag) : undefined;
+  const options = {
+    body: data && data.body ? String(data.body) : "",
+    dir: "rtl",
+    lang: "fa",
+    tag: tag,
+    renotify: !!tag,
+    icon: "/assets/icons/icon-192.png?v=" + APP_VERSION,
+    badge: "/assets/icons/icon-192.png?v=" + APP_VERSION,
+    data: { url: url }
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data && event.notification.data.url
+    ? event.notification.data.url
+    : "/account/#notifications";
+
+  event.waitUntil((async () => {
+    const windowClients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const client of windowClients) {
+      try {
+        const clientUrl = new URL(client.url);
+        if (clientUrl.origin === self.location.origin && "focus" in client) {
+          await client.focus();
+          if ("navigate" in client) {
+            try {
+              await client.navigate(targetUrl);
+            } catch (_navigateError) {
+              // Navigation can fail on some browsers; focus is enough.
+            }
+          }
+          return;
+        }
+      } catch (_clientError) {
+        // Ignore malformed client URLs.
+      }
+    }
+    if (self.clients.openWindow) {
+      await self.clients.openWindow(targetUrl);
+    }
+  })());
 });
 
 function shouldBypass(url, request) {

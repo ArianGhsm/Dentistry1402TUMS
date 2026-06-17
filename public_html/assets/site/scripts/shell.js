@@ -1143,6 +1143,257 @@
         applyBranding(state);
         syncAuthLinks(state);
         syncPollEntry(state);
+        updateSearchVisibility(state);
+    }
+
+    var searchState = {
+        trigger: null,
+        panel: null,
+        input: null,
+        results: null,
+        status: null,
+        backdrop: null,
+        open: false,
+        seeded: false,
+        timer: 0,
+        requestId: 0,
+        lastQuery: ""
+    };
+
+    function searchIconMarkup() {
+        return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="M16 16L20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+    }
+
+    function searchCohortParam() {
+        try {
+            var params = new URLSearchParams(window.location.search || "");
+            var cohort = params.get("cohort");
+            return cohort ? String(cohort) : "";
+        } catch (_error) {
+            return "";
+        }
+    }
+
+    function localeDigits(value) {
+        var text = String(value);
+        if (window.Dent1402Locale && typeof window.Dent1402Locale.toPersianDigits === "function") {
+            return window.Dent1402Locale.toPersianDigits(text);
+        }
+        return text;
+    }
+
+    function setSearchStatus(text) {
+        if (searchState.status) {
+            searchState.status.textContent = text || "";
+        }
+    }
+
+    function updateSearchVisibility(state) {
+        if (!searchState.trigger) {
+            return;
+        }
+        var show = !!(state && state.loggedIn);
+        searchState.trigger.hidden = !show;
+        if (!show && searchState.open) {
+            closeSearch();
+        }
+    }
+
+    function openSearch() {
+        if (!searchState.panel || searchState.open) {
+            return;
+        }
+        searchState.open = true;
+        searchState.backdrop.hidden = false;
+        searchState.panel.hidden = false;
+        document.body.classList.add("shell-search-active");
+        if (searchState.trigger) {
+            searchState.trigger.setAttribute("aria-expanded", "true");
+        }
+        window.requestAnimationFrame(function () {
+            searchState.panel.classList.add("is-open");
+            searchState.backdrop.classList.add("is-open");
+            if (searchState.input) {
+                searchState.input.focus();
+            }
+        });
+    }
+
+    function closeSearch() {
+        if (!searchState.panel || !searchState.open) {
+            return;
+        }
+        searchState.open = false;
+        searchState.panel.classList.remove("is-open");
+        searchState.backdrop.classList.remove("is-open");
+        document.body.classList.remove("shell-search-active");
+        if (searchState.trigger) {
+            searchState.trigger.setAttribute("aria-expanded", "false");
+        }
+        window.setTimeout(function () {
+            if (!searchState.open) {
+                searchState.panel.hidden = true;
+                searchState.backdrop.hidden = true;
+            }
+        }, 200);
+    }
+
+    function runSearch(rawValue, immediate) {
+        var query = String(rawValue || "").trim();
+        if (searchState.timer && immediate) {
+            window.clearTimeout(searchState.timer);
+            searchState.timer = 0;
+        }
+        if (query === searchState.lastQuery && !immediate) {
+            return;
+        }
+        searchState.lastQuery = query;
+        if (searchState.results) {
+            searchState.results.textContent = "";
+        }
+        if (query.length < 2) {
+            setSearchStatus(query.length === 0 ? "نام منبع، درس یا جلسه آزمون را بنویسید." : "حداقل ۲ نویسه وارد کنید.");
+            return;
+        }
+        setSearchStatus("در حال جستجو...");
+        var requestId = ++searchState.requestId;
+        var url = "/api/search_api.php?action=query&q=" + encodeURIComponent(query);
+        var cohort = searchCohortParam();
+        if (cohort) {
+            url += "&cohort=" + encodeURIComponent(cohort);
+        }
+        window.fetch(url, {
+            method: "GET",
+            credentials: "same-origin",
+            headers: { Accept: "application/json" }
+        }).then(parseJsonResponse).then(function (payload) {
+            if (requestId !== searchState.requestId) {
+                return;
+            }
+            if (!payload || payload.success !== true) {
+                setSearchStatus(payload && payload.error ? payload.error : "جستجو ناموفق بود.");
+                return;
+            }
+            renderSearchResults(payload);
+        }).catch(function () {
+            if (requestId === searchState.requestId) {
+                setSearchStatus("اتصال برقرار نشد. دوباره تلاش کنید.");
+            }
+        });
+    }
+
+    function renderSearchResults(payload) {
+        var results = Array.isArray(payload.results) ? payload.results : [];
+        if (!searchState.results) {
+            return;
+        }
+        searchState.results.textContent = "";
+        if (results.length === 0) {
+            setSearchStatus("نتیجه‌ای برای «" + (payload.query || "") + "» پیدا نشد.");
+            return;
+        }
+        var total = payload.counts && payload.counts.total ? payload.counts.total : results.length;
+        setSearchStatus(localeDigits(total) + " نتیجه پیدا شد.");
+        results.forEach(function (item) {
+            if (!item || !item.href) {
+                return;
+            }
+            var link = document.createElement("a");
+            link.className = "shell-search-result";
+            link.href = item.href;
+            if (item.external) {
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+            }
+            var badge = document.createElement("span");
+            badge.className = "shell-search-result__type shell-search-result__type--" + (item.type || "note");
+            badge.textContent = item.typeLabel || "";
+            var body = document.createElement("span");
+            body.className = "shell-search-result__body";
+            var title = document.createElement("strong");
+            title.className = "shell-search-result__title";
+            title.textContent = item.title || "";
+            body.appendChild(title);
+            if (item.subtitle) {
+                var sub = document.createElement("span");
+                sub.className = "shell-search-result__subtitle";
+                sub.textContent = item.subtitle;
+                body.appendChild(sub);
+            }
+            link.appendChild(badge);
+            link.appendChild(body);
+            link.addEventListener("click", closeSearch);
+            searchState.results.appendChild(link);
+        });
+    }
+
+    function ensureHeaderSearch() {
+        if (searchState.seeded) {
+            return;
+        }
+        if (shellHeaderDisabled || document.body.classList.contains("chat-page")) {
+            return;
+        }
+        var header = document.querySelector(".site-header");
+        if (!header) {
+            return;
+        }
+        searchState.seeded = true;
+
+        var trigger = document.createElement("button");
+        trigger.type = "button";
+        trigger.className = "shell-search-trigger";
+        trigger.setAttribute("aria-label", "جستجو در سایت");
+        trigger.setAttribute("aria-haspopup", "dialog");
+        trigger.setAttribute("aria-expanded", "false");
+        trigger.innerHTML = searchIconMarkup();
+        trigger.hidden = true;
+        trigger.addEventListener("click", openSearch);
+        header.appendChild(trigger);
+        searchState.trigger = trigger;
+
+        var backdrop = document.createElement("div");
+        backdrop.className = "shell-search-backdrop";
+        backdrop.hidden = true;
+        backdrop.addEventListener("click", closeSearch);
+        document.body.appendChild(backdrop);
+        searchState.backdrop = backdrop;
+
+        var panel = document.createElement("div");
+        panel.className = "shell-search-panel";
+        panel.setAttribute("role", "dialog");
+        panel.setAttribute("aria-label", "جستجوی سراسری");
+        panel.hidden = true;
+        panel.innerHTML = [
+            '<form class="shell-search-form" role="search" autocomplete="off">',
+            '  <span class="shell-search-form__icon" aria-hidden="true">' + searchIconMarkup() + "</span>",
+            '  <input type="search" class="shell-search-input" enterkeyhint="search" placeholder="جستجوی منابع و آزمون‌ها..." aria-label="عبارت جستجو">',
+            '  <button type="button" class="shell-search-close">بستن</button>',
+            "</form>",
+            '<p class="shell-search-status" aria-live="polite"></p>',
+            '<div class="shell-search-results"></div>'
+        ].join("");
+        document.body.appendChild(panel);
+        searchState.panel = panel;
+        searchState.input = panel.querySelector(".shell-search-input");
+        searchState.results = panel.querySelector(".shell-search-results");
+        searchState.status = panel.querySelector(".shell-search-status");
+
+        panel.querySelector(".shell-search-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            runSearch(searchState.input.value, true);
+        });
+        panel.querySelector(".shell-search-close").addEventListener("click", closeSearch);
+        searchState.input.addEventListener("input", function () {
+            if (searchState.timer) {
+                window.clearTimeout(searchState.timer);
+            }
+            searchState.timer = window.setTimeout(function () {
+                runSearch(searchState.input.value, false);
+            }, 260);
+        });
+
+        updateSearchVisibility(authState());
     }
 
     function init() {
@@ -1155,6 +1406,7 @@
         bindInstallButtons();
         normalizeSiteHeader();
         normalizePageTopbars();
+        ensureHeaderSearch();
         syncAuthUi(authState());
 
         if (window.Dent1402Auth && typeof window.Dent1402Auth.onChange === "function") {
@@ -1192,6 +1444,9 @@
 
         document.addEventListener("keydown", function (event) {
             if (event.key === "Escape") {
+                if (searchState.open) {
+                    closeSearch();
+                }
                 closeModal();
             }
         });

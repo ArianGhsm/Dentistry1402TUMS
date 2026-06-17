@@ -733,8 +733,8 @@
 
     // Large files are split into short chunks so each request finishes well under
     // the download-host WAF's slow-upload threshold (which 403s long single POSTs).
-    var DIRECT_CHUNK_THRESHOLD = 4 * 1024 * 1024;
-    var DIRECT_CHUNK_SIZE = 3 * 1024 * 1024;
+    var DIRECT_CHUNK_THRESHOLD = 1536 * 1024;
+    var DIRECT_CHUNK_SIZE = 1024 * 1024;
 
     function finishUpload(response, item, resolve, reject) {
         item.xhr = null;

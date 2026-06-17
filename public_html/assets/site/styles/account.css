@@ -846,6 +846,21 @@ body.account-page.account-stage-login-active .auth-brand strong {
     padding: 0.84rem 0.92rem 0.92rem;
 }
 
+.account-notifications-push-status {
+    margin: 0;
+    padding: 0.5rem 0.7rem;
+    border-radius: 12px;
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.6;
+}
+
+.account-notifications-push-status.is-error {
+    background: var(--danger-soft, rgba(220, 64, 64, 0.12));
+    color: var(--danger-color, #c0392b);
+}
+
 .account-notifications-compose {
     position: relative;
     border: 1px solid rgba(127, 145, 165, 0.18);

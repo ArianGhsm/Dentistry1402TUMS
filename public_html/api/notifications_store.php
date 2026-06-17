@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/auth_store.php';
+require_once __DIR__ . '/push_store.php';
 
 const DENT_NOTIFICATIONS_SCHEMA_VERSION = 4;
 const DENT_NOTIFICATION_ID_PREFIX = 'nt-';
@@ -1410,9 +1411,10 @@ function notifications_dispatch_sms_if_needed(string $notificationId): array
 
 function notifications_process_due_queue(): array
 {
-    $dispatchIds = notifications_with_store_lock(static function (array &$store): array {
+    $dispatch = notifications_with_store_lock(static function (array &$store): array {
         $now = time();
-        $dispatch = [];
+        $sms = [];
+        $activated = [];
 
         foreach (($store['notifications'] ?? []) as $id => $record) {
             if (!is_array($record) || !notifications_record_is_scheduled($record)) {
@@ -1427,20 +1429,27 @@ function notifications_process_due_queue(): array
             $record['status'] = DENT_NOTIFICATION_STATUS_ACTIVE;
             $record['releasedAt'] = (string) ($record['publishAt'] ?? dent_iso_now());
             $store['notifications'][$id] = $record;
+            $activated[] = (string) $id;
 
             if (!empty($record['sendSms']) && (string) ($record['smsStatus'] ?? '') === DENT_NOTIFICATION_SMS_STATUS_PENDING) {
-                $dispatch[] = (string) $id;
+                $sms[] = (string) $id;
             }
         }
 
-        return $dispatch;
+        return ['sms' => $sms, 'activated' => $activated];
     });
 
-    foreach ($dispatchIds as $notificationId) {
+    $smsIds = is_array($dispatch['sms'] ?? null) ? $dispatch['sms'] : [];
+    foreach ($smsIds as $notificationId) {
         notifications_dispatch_sms_if_needed((string) $notificationId);
     }
 
-    return $dispatchIds;
+    $activatedIds = is_array($dispatch['activated'] ?? null) ? $dispatch['activated'] : [];
+    foreach ($activatedIds as $notificationId) {
+        notifications_dispatch_push_if_needed((string) $notificationId);
+    }
+
+    return $smsIds;
 }
 
 function notifications_create_broadcast(array $viewer, array $payload): array
@@ -1555,6 +1564,9 @@ function notifications_create_broadcast(array $viewer, array $payload): array
 
     if (!$scheduled && $sendSms) {
         notifications_dispatch_sms_if_needed((string) ($record['id'] ?? ''));
+    }
+    if (!$scheduled) {
+        notifications_dispatch_push_if_needed((string) ($record['id'] ?? ''));
     }
 
     $latestStore = notifications_read_store();
@@ -1750,8 +1762,10 @@ function notifications_create_owner_deploy_notice(array $viewer, array $payload)
         return $record;
     });
 
-    $latestStore = notifications_read_store();
     $recordId = (string) ($record['id'] ?? '');
+    notifications_dispatch_push_if_needed($recordId);
+
+    $latestStore = notifications_read_store();
     return is_array($latestStore['notifications'][$recordId] ?? null)
         ? $latestStore['notifications'][$recordId]
         : $record;
@@ -1833,6 +1847,7 @@ function notifications_try_create_chat_mention_notice(array $viewer, array $payl
         return null;
     }
 
+    $created = null;
     try {
         if (!@flock($lock, LOCK_EX)) {
             return null;
@@ -1895,11 +1910,17 @@ function notifications_try_create_chat_mention_notice(array $viewer, array $payl
             return null;
         }
 
-        return $record;
+        $created = $record;
     } finally {
         @flock($lock, LOCK_UN);
         @fclose($lock);
     }
+
+    if (is_array($created) && (string) ($created['id'] ?? '') !== '') {
+        notifications_dispatch_push_if_needed((string) $created['id']);
+    }
+
+    return $created;
 }
 
 function notifications_audience_payload(array $viewer, string $notificationId): array
@@ -2059,7 +2080,7 @@ function notifications_enqueue_navid_assignment(array $assignment): ?array
         return trim((string) $value) !== '';
     }));
 
-    return notifications_with_store_lock(static function (array &$store) use (
+    $navidRecord = notifications_with_store_lock(static function (array &$store) use (
         $assignmentKey,
         $courseTitle,
         $deadlineLabel,
@@ -2123,4 +2144,10 @@ function notifications_enqueue_navid_assignment(array $assignment): ?array
         $store['notifications'][$record['id']] = $record;
         return $record;
     });
+
+    if (is_array($navidRecord) && (string) ($navidRecord['id'] ?? '') !== '') {
+        notifications_dispatch_push_if_needed((string) $navidRecord['id']);
+    }
+
+    return $navidRecord;
 }
