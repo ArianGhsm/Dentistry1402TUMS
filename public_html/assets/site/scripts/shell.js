@@ -1147,6 +1147,7 @@
     }
 
     var searchState = {
+        header: null,
         trigger: null,
         panel: null,
         input: null,
@@ -1162,6 +1163,10 @@
 
     function searchIconMarkup() {
         return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="M16 16L20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+    }
+
+    function closeIconMarkup() {
+        return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
     }
 
     function searchCohortParam() {
@@ -1207,6 +1212,9 @@
         searchState.backdrop.hidden = false;
         searchState.panel.hidden = false;
         document.body.classList.add("shell-search-active");
+        if (searchState.header) {
+            searchState.header.classList.add("site-header--searching");
+        }
         if (searchState.trigger) {
             searchState.trigger.setAttribute("aria-expanded", "true");
         }
@@ -1227,6 +1235,9 @@
         searchState.panel.classList.remove("is-open");
         searchState.backdrop.classList.remove("is-open");
         document.body.classList.remove("shell-search-active");
+        if (searchState.header) {
+            searchState.header.classList.remove("site-header--searching");
+        }
         if (searchState.trigger) {
             searchState.trigger.setAttribute("aria-expanded", "false");
         }
@@ -1339,6 +1350,7 @@
             return;
         }
         searchState.seeded = true;
+        searchState.header = header;
 
         var trigger = document.createElement("button");
         trigger.type = "button";
@@ -1368,12 +1380,12 @@
             '<form class="shell-search-form" role="search" autocomplete="off">',
             '  <span class="shell-search-form__icon" aria-hidden="true">' + searchIconMarkup() + "</span>",
             '  <input type="search" class="shell-search-input" enterkeyhint="search" placeholder="جستجوی منابع و آزمون‌ها..." aria-label="عبارت جستجو">',
-            '  <button type="button" class="shell-search-close">بستن</button>',
+            '  <button type="button" class="shell-search-close" aria-label="بستن جستجو">' + closeIconMarkup() + "</button>",
             "</form>",
             '<p class="shell-search-status" aria-live="polite"></p>',
             '<div class="shell-search-results"></div>'
         ].join("");
-        header.appendChild(panel);
+        document.body.appendChild(panel);
         searchState.panel = panel;
         searchState.input = panel.querySelector(".shell-search-input");
         searchState.results = panel.querySelector(".shell-search-results");

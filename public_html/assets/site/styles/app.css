@@ -1513,7 +1513,7 @@ html[data-theme="dark"] .app-dashboard-page .background-overlay {
     opacity: 0.95;
 }
 
-body.app-dashboard-page > :not(.background-overlay):not(.home-background-aura):not(.shell-bottom-nav) {
+body.app-dashboard-page > :not(.background-overlay):not(.home-background-aura):not(.shell-bottom-nav):not(.shell-search-backdrop):not(.shell-search-panel):not(.shell-drawer-backdrop):not(.shell-modal-backdrop):not(.shell-drawer):not(.shell-modal):not(.shell-notification-banner):not(.dent1402-pwa-update) {
     position: relative;
     z-index: 1;
 }

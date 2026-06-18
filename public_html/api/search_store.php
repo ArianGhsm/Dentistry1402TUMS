@@ -10,6 +10,66 @@ const SEARCH_MAX_QUERY_LENGTH = 80;
 const SEARCH_MAX_RESULTS_PER_SECTION = 18;
 const SEARCH_MAX_RESULTS_TOTAL = 40;
 
+function search_utf8_strlen(string $value): int
+{
+    if (function_exists('mb_strlen')) {
+        return mb_strlen($value, 'UTF-8');
+    }
+
+    if (preg_match_all('/./us', $value, $matches) === false) {
+        return strlen($value);
+    }
+
+    return count($matches[0]);
+}
+
+function search_utf8_substr(string $value, int $start, ?int $length = null): string
+{
+    if (function_exists('mb_substr')) {
+        return $length === null
+            ? mb_substr($value, $start, null, 'UTF-8')
+            : mb_substr($value, $start, $length, 'UTF-8');
+    }
+
+    if (preg_match_all('/./us', $value, $matches) === false) {
+        return $length === null ? substr($value, $start) : substr($value, $start, $length);
+    }
+
+    $slice = $length === null
+        ? array_slice($matches[0], $start)
+        : array_slice($matches[0], $start, $length);
+
+    return implode('', $slice);
+}
+
+function search_utf8_strtolower(string $value): string
+{
+    if (function_exists('mb_strtolower')) {
+        return mb_strtolower($value, 'UTF-8');
+    }
+
+    return strtolower($value);
+}
+
+function search_utf8_contains(string $haystack, string $needle): bool
+{
+    if ($needle === '') {
+        return false;
+    }
+
+    if (function_exists('mb_strpos')) {
+        return mb_strpos($haystack, $needle, 0, 'UTF-8') !== false;
+    }
+
+    $pattern = '/' . preg_quote($needle, '/') . '/u';
+    $matched = preg_match($pattern, $haystack);
+    if ($matched === false) {
+        return strpos($haystack, $needle) !== false;
+    }
+
+    return $matched === 1;
+}
+
 /**
  * Normalize Persian/Arabic text so search matching is tolerant of the usual
  * variations: Arabic vs Persian ye/kaf, diacritics, ZWNJ, tatweel and digits.
@@ -38,7 +98,7 @@ function search_normalize_text(string $value): string
     // Fold Persian and Arabic digits to Latin.
     $value = dent_normalize_digits($value);
 
-    $value = mb_strtolower($value, 'UTF-8');
+    $value = search_utf8_strtolower($value);
     $value = preg_replace('/\s+/u', ' ', $value) ?? $value;
 
     return trim($value);
@@ -50,7 +110,7 @@ function search_text_matches(string $haystack, string $needle): bool
         return false;
     }
 
-    return mb_strpos(search_normalize_text($haystack), $needle, 0, 'UTF-8') !== false;
+    return search_utf8_contains(search_normalize_text($haystack), $needle);
 }
 
 /**
@@ -276,12 +336,12 @@ function search_collect_exams(string $cohort, string $needle): array
  */
 function search_run_query(string $rawQuery, string $cohort): array
 {
-    if (mb_strlen($rawQuery, 'UTF-8') > SEARCH_MAX_QUERY_LENGTH) {
-        $rawQuery = mb_substr($rawQuery, 0, SEARCH_MAX_QUERY_LENGTH, 'UTF-8');
+    if (search_utf8_strlen($rawQuery) > SEARCH_MAX_QUERY_LENGTH) {
+        $rawQuery = search_utf8_substr($rawQuery, 0, SEARCH_MAX_QUERY_LENGTH);
     }
 
     $needle = search_normalize_text($rawQuery);
-    if (mb_strlen($needle, 'UTF-8') < SEARCH_MIN_QUERY_LENGTH) {
+    if (search_utf8_strlen($needle) < SEARCH_MIN_QUERY_LENGTH) {
         return [
             'success' => true,
             'query' => trim($rawQuery),
