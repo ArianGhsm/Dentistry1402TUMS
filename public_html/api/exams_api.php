@@ -2168,12 +2168,13 @@ $catalogKey = dent_exams_resolve_catalog_key(dent_requested_cohort_key());
 if ($action === 'catalog') {
     dent_exams_api_require_method(['GET']);
 
+    $user = dent_current_user();
+    dent_release_session_lock();
+
     $catalog = dent_exams_catalog($catalogKey);
     if ($catalog === null) {
         dent_error('کاتالوگ آزمون‌ها پیدا نشد.', 404);
     }
-
-    $user = dent_current_user();
     $examsStore = dent_exams_read_store();
     $paymentsStore = payments_read_store();
     $coursePayloadLookup = [];
@@ -2229,6 +2230,9 @@ if ($action === 'course') {
         dent_error('شناسه درس آزمون معتبر نیست.', 422);
     }
 
+    $user = dent_current_user();
+    dent_release_session_lock();
+
     try {
         $payload = dent_exams_api_current_course_summary($catalogKey, $courseSlug);
     } catch (DentExamsApiException $error) {
@@ -2238,7 +2242,7 @@ if ($action === 'course') {
     dent_json_response([
         'success' => true,
         'course' => $payload,
-        'viewer' => dent_current_user() ? dent_public_user(dent_current_user()) : null,
+        'viewer' => $user ? dent_public_user($user) : null,
     ]);
 }
 
@@ -2251,6 +2255,9 @@ if ($action === 'exam') {
         dent_error('شناسه آزمون معتبر نیست.', 422);
     }
 
+    $user = dent_current_user();
+    dent_release_session_lock();
+
     try {
         $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
         $exam = dent_exams_api_apply_runtime_exam_override(
@@ -2262,8 +2269,6 @@ if ($action === 'exam') {
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
     }
-
-    $user = dent_current_user();
     $examsStore = dent_exams_read_store();
     $paymentsStore = payments_read_store();
     $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, $courseSlug, $course);
@@ -2307,6 +2312,7 @@ if ($action === 'saveFlags') {
     dent_exams_api_require_method(['POST']);
 
     $user = dent_require_user();
+    dent_release_session_lock();
     $courseSlug = dent_exams_clean_course_slug((string) ($_POST['course'] ?? ''));
     $examSlug = dent_exams_clean_exam_slug((string) ($_POST['exam'] ?? ''));
     if ($courseSlug === '' || $examSlug === '') {
@@ -2374,6 +2380,7 @@ if ($action === 'touchExamActivity') {
     dent_exams_api_require_method(['POST']);
 
     $user = dent_require_user();
+    dent_release_session_lock();
     $courseSlug = dent_exams_clean_course_slug((string) ($_POST['course'] ?? ''));
     $examSlug = dent_exams_clean_exam_slug((string) ($_POST['exam'] ?? ''));
     if ($courseSlug === '' || $examSlug === '') {
@@ -2432,6 +2439,7 @@ if ($action === 'submitAssessment') {
     dent_exams_api_require_method(['POST']);
 
     $user = dent_require_user();
+    dent_release_session_lock();
     $courseSlug = dent_exams_clean_course_slug((string) ($_POST['course'] ?? ''));
     $examSlug = dent_exams_clean_exam_slug((string) ($_POST['exam'] ?? ''));
     if ($courseSlug === '' || $examSlug === '') {
@@ -2518,6 +2526,7 @@ if ($action === 'resetAssessment') {
     dent_exams_api_require_method(['POST']);
 
     $user = dent_require_user();
+    dent_release_session_lock();
     $courseSlug = dent_exams_clean_course_slug((string) ($_POST['course'] ?? ''));
     $examSlug = dent_exams_clean_exam_slug((string) ($_POST['exam'] ?? ''));
     if ($courseSlug === '' || $examSlug === '') {
@@ -2565,6 +2574,7 @@ if ($action === 'resetAssessment') {
 if ($action === 'ownerSaveCourseAccess') {
     dent_exams_api_require_method(['POST']);
     dent_require_owner();
+    dent_release_session_lock();
 
     $courseSlug = dent_exams_clean_course_slug((string) ($_POST['course'] ?? ''));
     if ($courseSlug === '') {
