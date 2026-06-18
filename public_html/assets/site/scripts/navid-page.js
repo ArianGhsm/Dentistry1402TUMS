@@ -821,9 +821,20 @@
         var actionRequired = String(publicStatus.actionRequired || "");
         var publicLastError = snippet(publicStatus.lastError, 180);
         var failedCourses = Math.max(0, Math.floor(Number(publicStatus.lastFailedCourses) || 0));
-        var assignmentCountText = assignments.length.toLocaleString("fa-IR");
-        var courseCountText = uniqueCourseCount(assignments).toLocaleString("fa-IR");
-        var nearestDeadline = findNearestDeadline(assignments);
+
+        // Store for use in syncAssignmentsPreview
+        currentFeedLastSyncAt = publicStatus.lastSuccessAt || publicStatus.lastSyncAt || "";
+        currentFeedUpdates = updates.slice(0, 40);
+
+        // Count only active (non-expired) for hero stats
+        var nowMs = Date.now();
+        var activeAssignments = assignments.filter(function (item) {
+            var d = parseDate(item && item.endDateIso);
+            return !d || d.getTime() > nowMs;
+        });
+        var assignmentCountText = activeAssignments.length.toLocaleString("fa-IR");
+        var courseCountText = uniqueCourseCount(activeAssignments).toLocaleString("fa-IR");
+        var nearestDeadline = findNearestDeadline(activeAssignments);
         var nearestDeadlineText = nearestDeadline
             ? (snippet(nearestDeadline.item.courseTitle, 48) + " • " + nearestDeadline.info.label)
             : "فعلاً مهلت فعالی نیست";
@@ -837,10 +848,16 @@
         setText(viewAssignmentsCount, assignmentCountText);
         setText(viewUpdatesCount, updateCountText);
 
-        if (!assignments.length && updates.length && currentContentView !== "updates") {
-            setContentView("updates");
-        } else if (assignments.length && currentContentView !== "assignments") {
-            syncContentView();
+        // Always show assignments panel; hide view switcher and updates aside
+        var switcherPanel = $("navid-switcher-panel");
+        if (switcherPanel) {
+            switcherPanel.hidden = true;
+        }
+        if (updatesPanel) {
+            updatesPanel.hidden = true;
+        }
+        if (assignmentsPanel) {
+            assignmentsPanel.hidden = false;
         }
 
         if (!enabled) {
@@ -1288,6 +1305,9 @@
     function handleMoreAssignments() {
         assignmentsExpanded = !assignmentsExpanded;
         syncAssignmentsPreview();
+        if (assignmentsMoreButton) {
+            assignmentsMoreButton.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
     }
 
     function handleMoreUpdates() {

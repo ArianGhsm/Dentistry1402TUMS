@@ -2151,3 +2151,137 @@ function notifications_enqueue_navid_assignment(array $assignment): ?array
 
     return $navidRecord;
 }
+
+function notifications_enqueue_navid_deadline_reminder(array $assignment, int $thresholdDays): ?array
+{
+    $assignmentKey = dent_clean_text((string) ($assignment['assignmentKey'] ?? ''), 120);
+    $endDateIso = trim((string) ($assignment['endDateIso'] ?? ''));
+    if ($assignmentKey === '' || $endDateIso === '') {
+        return null;
+    }
+
+    $endTime = strtotime($endDateIso);
+    if ($endTime === false || $endTime <= 0) {
+        return null;
+    }
+
+    $now = time();
+    $secondsRemaining = $endTime - $now;
+    $thresholdSeconds = $thresholdDays * 24 * 3600;
+
+    // Only send if deadline is upcoming and within the threshold window
+    if ($secondsRemaining <= 0 || $secondsRemaining > $thresholdSeconds) {
+        return null;
+    }
+
+    $courseTitle = dent_clean_text((string) ($assignment['courseTitle'] ?? ''), 180);
+    $assignmentTitle = dent_clean_text((string) ($assignment['title'] ?? ''), 220);
+    $deadlineLabel = dent_clean_text((string) ($assignment['endDateShamsi'] ?? ''), 80);
+
+    if ($thresholdDays === 1) {
+        $timeLabel = 'کمتر از ۱ روز مانده';
+        $tone = 'danger';
+    } elseif ($thresholdDays === 2) {
+        $timeLabel = 'کمتر از ۲ روز مانده';
+        $tone = 'warn';
+    } else {
+        $timeLabel = 'کمتر از ۷ روز مانده';
+        $tone = 'info';
+    }
+
+    $bodyParts = array_values(array_filter([
+        $courseTitle !== '' && $assignmentTitle !== ''
+            ? ($courseTitle . ' • ' . $assignmentTitle)
+            : ($assignmentTitle !== '' ? $assignmentTitle : $courseTitle),
+        $deadlineLabel !== '' ? ('مهلت ارسال: ' . $deadlineLabel) : '',
+        $timeLabel,
+    ], static function ($value): bool {
+        return trim((string) $value) !== '';
+    }));
+
+    $sourceKey = 'navid-remind-' . $thresholdDays . 'd:' . $assignmentKey;
+
+    $record = notifications_with_store_lock(static function (array &$store) use (
+        $assignmentKey,
+        $courseTitle,
+        $deadlineLabel,
+        $bodyParts,
+        $assignment,
+        $thresholdDays,
+        $tone,
+        $sourceKey
+    ): ?array {
+        $sourceSignature = notifications_source_signature('navid', $sourceKey);
+        if ($sourceSignature !== '' && isset($store['suppressedSources'][$sourceSignature])) {
+            return null;
+        }
+
+        foreach (($store['notifications'] ?? []) as $existing) {
+            if (!is_array($existing)) {
+                continue;
+            }
+            if ((string) ($existing['source'] ?? '') === 'navid' && (string) ($existing['sourceKey'] ?? '') === $sourceKey) {
+                return $existing;
+            }
+        }
+
+        $id = notifications_generate_id();
+        $record = notifications_normalize_record($id, [
+            'id' => $id,
+            'kind' => DENT_NOTIFICATION_KIND_NAVID_ASSIGNMENT,
+            'title' => 'یادآوری مهلت تکلیف نوید',
+            'body' => implode("\n", $bodyParts),
+            'tone' => $tone,
+            'target' => DENT_NOTIFICATION_TARGET_COHORT,
+            'cohortKey' => dent_primary_cohort_key(),
+            'source' => 'navid',
+            'sourceKey' => $sourceKey,
+            'ctaHref' => '/navid/',
+            'ctaLabel' => 'مشاهده تکالیف',
+            'createdAt' => dent_iso_now(),
+            'publishAt' => dent_iso_now(),
+            'releasedAt' => dent_iso_now(),
+            'status' => DENT_NOTIFICATION_STATUS_ACTIVE,
+            'createdByStudentNumber' => '',
+            'createdByName' => '',
+            'createdByRole' => '',
+            'meta' => [
+                'assignmentKey' => $assignmentKey,
+                'courseTitle' => $courseTitle,
+                'endDateIso' => (string) ($assignment['endDateIso'] ?? ''),
+                'endDateLabel' => $deadlineLabel,
+                'reminderDays' => $thresholdDays,
+            ],
+            'recipients' => notifications_snapshot_recipients_for_target(
+                DENT_NOTIFICATION_TARGET_COHORT,
+                dent_primary_cohort_key()
+            ),
+            'sendSms' => false,
+            'smsStatus' => DENT_NOTIFICATION_SMS_STATUS_NONE,
+        ]);
+        if ($record === null) {
+            return null;
+        }
+
+        $store['notifications'][$record['id']] = $record;
+        return $record;
+    });
+
+    if (is_array($record) && (string) ($record['id'] ?? '') !== '') {
+        notifications_dispatch_push_if_needed((string) $record['id']);
+    }
+
+    return $record;
+}
+
+function notifications_enqueue_navid_deadline_reminders(array $assignments): void
+{
+    foreach ($assignments as $assignment) {
+        if (!is_array($assignment)) {
+            continue;
+        }
+        notifications_enqueue_navid_deadline_reminder($assignment, 7);
+        notifications_enqueue_navid_deadline_reminder($assignment, 2);
+        notifications_enqueue_navid_deadline_reminder($assignment, 1);
+    }
+}

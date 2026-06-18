@@ -2801,6 +2801,9 @@ function navid_feed_payload(bool $ownerView): array
 
     $assignments = is_array($store['snapshot']['assignments'] ?? null) ? array_values($store['snapshot']['assignments']) : [];
     $assignments = navid_assignments_sorted($assignments);
+    if (!empty($assignments)) {
+        notifications_enqueue_navid_deadline_reminders($assignments);
+    }
     $updates = is_array($store['updates'] ?? null) ? array_slice($store['updates'], 0, 40) : [];
     $credentials = navid_get_credentials($store);
     $enabled = !empty($store['config']['enabled']);
