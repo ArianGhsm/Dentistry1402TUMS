@@ -4857,9 +4857,9 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     }
 
     .conversation-item__main {
-        min-height: 68px;
+        min-height: 58px;
         gap: 0.42rem;
-        padding: 0.42rem 0.46rem;
+        padding: 0.32rem 0.46rem;
         border-radius: 12px;
     }
 
@@ -5285,8 +5285,8 @@ html[data-theme="dark"] body.chat-page {
 }
 
 .conversation-item__main {
-    min-height: 62px;
-    padding: 0.36rem 0.42rem;
+    min-height: 54px;
+    padding: 0.28rem 0.42rem;
     border-radius: 12px;
 }
 
@@ -5753,11 +5753,11 @@ html[data-theme="dark"] body.chat-page {
     }
 
     .conversation-item__main {
-        min-height: 72px;
+        min-height: 62px;
         border-radius: 0;
         border: 0;
         border-bottom: 1px solid color-mix(in srgb, var(--chat-border) 75%, transparent);
-        padding: 0.48rem 0.12rem;
+        padding: 0.36rem 0.12rem;
     }
 
     .conversation-item__main::before {

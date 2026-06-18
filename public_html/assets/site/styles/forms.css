@@ -885,7 +885,17 @@ body.forms-page button {
     border-color: rgba(220, 50, 50, 0.25);
 }
 
-/* Linear scale – pill buttons */
+/* Linear scale – horizontal pill buttons */
+[data-field-type="linear_scale"].forms-fill-question {
+    grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
+    gap: 0.5rem;
+}
+
+[data-field-type="linear_scale"] .forms-card-head,
+[data-field-type="linear_scale"] .forms-muted {
+    grid-column: 1 / -1;
+}
+
 [data-field-type="linear_scale"] .forms-choice {
     border-radius: var(--radius-pill);
     min-height: 52px;

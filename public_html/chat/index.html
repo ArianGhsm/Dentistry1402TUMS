@@ -119,6 +119,12 @@
                                     <path d="M7 17H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                 </svg>
                             </button>
+                            <button id="conversation-search-btn" class="conversation-pane__icon-btn" type="button" aria-label="جستجو در گفتگوها">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+                                    <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                </svg>
+                            </button>
                         </div>
                         <button id="mobile-close-list" class="conversation-pane__close" type="button" aria-label="بستن لیست گفتگو">
                             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -128,7 +134,7 @@
                         </button>
                     </div>
 
-                    <label class="conversation-search-wrap" for="conversation-search">
+                    <label class="conversation-search-wrap" id="conversation-search-wrap" for="conversation-search" hidden>
                         <input id="conversation-search" type="search" placeholder="جستجو در گفتگوها...">
                     </label>
                     <div class="conversation-filter-tabs" id="conversation-filter-tabs" role="tablist" aria-label="فیلتر گفتگوها">

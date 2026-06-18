@@ -1091,6 +1091,8 @@
   var conversationTitle = $("conversation-title");
   var conversationMeta = $("conversation-meta");
   var conversationSearch = $("conversation-search");
+  var conversationSearchWrap = $("conversation-search-wrap");
+  var conversationSearchBtn = $("conversation-search-btn");
   var conversationFilterTabs = $("conversation-filter-tabs");
   var conversationManageBtn = $("conversation-manage-btn");
   var conversationManageBar = $("conversation-manage-bar");
@@ -11871,6 +11873,30 @@
           }, { passive: true });
         });
       })();
+    }
+    if (conversationSearchBtn && conversationSearchWrap) {
+      conversationSearchBtn.addEventListener("click", function () {
+        var isHidden = conversationSearchWrap.hidden;
+        conversationSearchWrap.hidden = !isHidden;
+        if (!isHidden && conversationSearch) {
+          conversationSearch.value = "";
+          state.conversationFilter = "";
+          renderConversationList();
+        }
+        if (isHidden && conversationSearch) {
+          conversationSearch.focus();
+        }
+      });
+      if (conversationSearch) {
+        conversationSearch.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            conversationSearchWrap.hidden = true;
+            conversationSearch.value = "";
+            state.conversationFilter = "";
+            renderConversationList();
+          }
+        });
+      }
     }
     var composeBtn = $("compose-btn");
     var composeMenu = $("compose-menu");
