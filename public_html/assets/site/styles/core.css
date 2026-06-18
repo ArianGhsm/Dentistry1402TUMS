@@ -1119,11 +1119,11 @@ body.app-shell-hidden {
     box-shadow: none;
     opacity: 0;
     pointer-events: none;
-    transform: translateY(-6px) scaleX(0.92);
-    transform-origin: center;
+    transform: translateY(-8px) scale(0.97);
+    transform-origin: top center;
     transition:
-        opacity var(--motion-base) var(--motion-ease-soft),
-        transform var(--motion-base) var(--motion-ease-soft);
+        opacity var(--motion-fast) var(--motion-ease-soft),
+        transform var(--motion-fast) var(--motion-ease-soft);
 }
 
 .shell-search-panel[hidden] {
@@ -1145,7 +1145,9 @@ body.app-shell-hidden {
     border: 1px solid var(--border-color);
     border-radius: var(--radius-pill);
     background: var(--surface-solid);
-    box-shadow: 0 18px 38px -30px rgba(17, 30, 54, 0.36);
+    box-shadow:
+        0 0 0 0 rgba(43, 109, 243, 0),
+        0 18px 38px -30px rgba(17, 30, 54, 0.36);
     transition:
         border-color var(--motion-fast) var(--motion-ease-standard),
         box-shadow var(--motion-base) var(--motion-ease-soft),
@@ -1153,8 +1155,10 @@ body.app-shell-hidden {
 }
 
 .shell-search-form:focus-within {
-    border-color: var(--accent-color);
-    box-shadow: 0 20px 44px -30px rgba(43, 109, 243, 0.38);
+    border-color: var(--border-color);
+    box-shadow:
+        0 0 0 3px rgba(43, 109, 243, 0.1),
+        0 22px 48px -28px rgba(17, 30, 54, 0.3);
 }
 
 .shell-search-form__icon {
