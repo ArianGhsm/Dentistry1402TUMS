@@ -407,15 +407,12 @@
             return bootPromise;
         }
 
-        var alreadyDetermined = state.status === STATUS.LOGGED_IN || state.status === STATUS.LOGGED_OUT;
-        if (!alreadyDetermined || force) {
-            setState({
-                status: STATUS.SESSION_RESTORING,
-                loggedIn: state.loggedIn,
-                user: state.user,
-                error: ""
-            });
-        }
+        setState({
+            status: STATUS.SESSION_RESTORING,
+            loggedIn: state.loggedIn,
+            user: state.user,
+            error: ""
+        });
 
         bootPromise = request("me", "GET").then(function (response) {
             if (response && response.loggedIn && response.user) {
