@@ -74,6 +74,8 @@
     var currentContentView = "assignments";
     var currentAssignments = [];
     var currentUpdates = [];
+    var currentFeedUpdates = [];
+    var currentFeedLastSyncAt = "";
     var assignmentsExpanded = false;
     var updatesExpanded = false;
     var ownerExpanded = false;
@@ -81,7 +83,6 @@
         loaded: false,
         ownerStatus: null
     };
-    var ASSIGNMENTS_PREVIEW_COUNT = 1;
     var UPDATES_PREVIEW_COUNT = 3;
 
     function consumeUnauthorized(response, fallbackText) {
@@ -663,30 +664,111 @@
         ].join("");
     }
 
+    function buildCategorySection(title, tone, count, items, buildCard, emptyMessage) {
+        var countHtml = '<span class="navid-badge navid-badge--' + safeText(tone) + '">' + count.toLocaleString("fa-IR") + "</span>";
+        var parts = [
+            '<section class="navid-category">',
+            '<div class="navid-category__header"><h4 class="navid-category__title">' + safeText(title) + "</h4>" + countHtml + "</div>"
+        ];
+        if (!items.length) {
+            parts.push('<div class="navid-empty">' + safeText(emptyMessage) + "</div>");
+        } else {
+            for (var i = 0; i < items.length; i++) {
+                parts.push(buildCard(items[i]));
+            }
+        }
+        parts.push("</section>");
+        return parts.join("");
+    }
+
     function syncAssignmentsPreview() {
         if (!assignmentsList) {
             return;
         }
 
-        var list = currentAssignments.slice();
-        if (!list.length) {
-            renderEmpty(assignmentsList, "فعلاً تکلیف فعالی در خروجی نوید پیدا نشد.");
-            if (assignmentsMoreButton) {
-                assignmentsMoreButton.hidden = true;
+        var now = Date.now();
+        var activeItems = [];
+        var expiredItems = [];
+        for (var i = 0; i < currentAssignments.length; i++) {
+            var item = currentAssignments[i];
+            var d = parseDate(item && item.endDateIso);
+            if (d && d.getTime() <= now) {
+                expiredItems.push(item);
+            } else {
+                activeItems.push(item);
             }
-            return;
         }
 
-        var visible = assignmentsExpanded ? list : list.slice(0, ASSIGNMENTS_PREVIEW_COUNT);
-        assignmentsList.innerHTML = visible.map(buildAssignmentCard).join("");
+        // expired: most recently expired first
+        expiredItems.sort(function (a, b) {
+            var at = parseDate(a.endDateIso);
+            var bt = parseDate(b.endDateIso);
+            return (bt ? bt.getTime() : 0) - (at ? at.getTime() : 0);
+        });
+
+        // Updates section: items detected in last sync, fallback to last 3
+        var updateItems = currentFeedUpdates.slice(0, 3);
+        if (currentFeedUpdates.length && currentFeedLastSyncAt) {
+            var syncMs = new Date(currentFeedLastSyncAt).getTime();
+            if (Number.isFinite(syncMs) && syncMs > 0) {
+                var recent = currentFeedUpdates.filter(function (u) {
+                    var dt = u && u.detectedAt ? new Date(u.detectedAt).getTime() : NaN;
+                    return Number.isFinite(dt) && dt >= syncMs;
+                });
+                if (recent.length) {
+                    updateItems = recent;
+                }
+            }
+        }
+
+        var sections = [];
+
+        // Section 1: Active (already sorted nearest deadline first from PHP)
+        sections.push(buildCategorySection(
+            "تکالیف با مهلت باقی‌مانده",
+            activeItems.length ? "accent" : "muted",
+            activeItems.length,
+            activeItems,
+            buildAssignmentCard,
+            "فعلاً تکلیف فعالی در نوید یافت نشد."
+        ));
+
+        // Section 2: Expired (collapsed by default)
+        if (expiredItems.length > 0) {
+            var expiredBody = assignmentsExpanded
+                ? expiredItems.map(buildAssignmentCard).join("")
+                : '<div class="navid-empty">برای نمایش تکالیف منقضی دکمه زیر را بزن.</div>';
+            sections.push([
+                '<section class="navid-category">',
+                '<div class="navid-category__header"><h4 class="navid-category__title">تکالیف منقضی‌شده</h4>',
+                '<span class="navid-badge navid-badge--muted">' + expiredItems.length.toLocaleString("fa-IR") + "</span></div>",
+                expiredBody,
+                "</section>"
+            ].join(""));
+        }
+
+        // Section 3: Updates since last sync (fallback: last 3)
+        sections.push(buildCategorySection(
+            "آپدیت‌ها",
+            updateItems.length ? "warning" : "muted",
+            updateItems.length,
+            updateItems,
+            buildUpdateCard,
+            "هنوز تغییر تازه‌ای در آخرین sync نوید ثبت نشده است."
+        ));
+
+        assignmentsList.innerHTML = sections.join("");
 
         if (assignmentsMoreButton) {
-            var hiddenCount = Math.max(0, list.length - visible.length);
-            assignmentsMoreButton.hidden = list.length <= ASSIGNMENTS_PREVIEW_COUNT;
-            assignmentsMoreButton.textContent = assignmentsExpanded
-                ? "جمع‌کردن فهرست تکالیف"
-                : ("نمایش " + hiddenCount.toLocaleString("fa-IR") + " تکلیف دیگر");
-            assignmentsMoreButton.setAttribute("aria-expanded", assignmentsExpanded ? "true" : "false");
+            if (!expiredItems.length) {
+                assignmentsMoreButton.hidden = true;
+            } else {
+                assignmentsMoreButton.hidden = false;
+                assignmentsMoreButton.textContent = assignmentsExpanded
+                    ? "پنهان کردن تکالیف منقضی‌شده"
+                    : ("نمایش " + expiredItems.length.toLocaleString("fa-IR") + " تکلیف منقضی‌شده");
+                assignmentsMoreButton.setAttribute("aria-expanded", assignmentsExpanded ? "true" : "false");
+            }
         }
     }
 

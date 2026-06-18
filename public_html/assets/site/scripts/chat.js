@@ -6534,13 +6534,31 @@
     updateMobileNav();
   }
 
+  var LIST_CTX_ICONS = {
+    "باز کردن گفتگو": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "اطلاعات گفتگو": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    "انتخاب": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><rect x="4" y="4" width="16" height="16" rx="4" stroke="currentColor" stroke-width="1.8"/><path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "برداشتن از انتخاب": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><rect x="4" y="4" width="16" height="16" rx="4" stroke="currentColor" stroke-width="1.8"/><path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    "سنجاق کردن": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 2v9M8 11h8M10 11v8l2-1 2 1v-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "برداشتن سنجاق": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 2v9M8 11h8M10 11v8l2-1 2 1v-8M3 3l18 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "بی‌صدا": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 4a4 4 0 0 0-4 4v3c0 .5-.2 1-.5 1.4L6 14c-.5.6-.1 1.5.7 1.5h10.6c.8 0 1.2-.9.7-1.5l-1.5-1.6A2 2 0 0 1 16 11V8a4 4 0 0 0-4-4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 18.5a2 2 0 0 0 4 0M3 3l18 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+    "خارج کردن از سکوت": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M12 4a4 4 0 0 0-4 4v3c0 .5-.2 1-.5 1.4L6 14c-.5.6-.1 1.5.7 1.5h10.6c.8 0 1.2-.9.7-1.5l-1.5-1.6A2 2 0 0 1 16 11V8a4 4 0 0 0-4-4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 18.5a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+    "علامت‌گذاری به‌عنوان خوانده‌شده": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M4 13l4.5 4.5L20 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "علامت‌گذاری به‌عنوان خوانده‌نشده": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>',
+    "بایگانی": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><rect x="3" y="4" width="18" height="4" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8" stroke="currentColor" stroke-width="1.8"/><path d="M10 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    "خروج از بایگانی": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><rect x="3" y="4" width="18" height="4" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8" stroke="currentColor" stroke-width="1.8"/><path d="M12 12v4M10 14l2-2 2 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "حذف گفتگو": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "حذف پیام": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  };
+
   function listContextAction(label, hint, onClick, className) {
     var button = document.createElement("button");
     button.type = "button";
     button.className = "chat-list-context-action" + (className ? " " + className : "");
+    var icon = LIST_CTX_ICONS[label] || "";
     button.innerHTML =
-      '<span class="chat-list-context-action__label">' + escapeHtml(label) + "</span>" +
-      '<strong class="chat-list-context-action__hint">' + escapeHtml(hint || "") + "</strong>";
+      (icon ? '<span class="chat-list-context-action__icon" aria-hidden="true">' + icon + "</span>" : "") +
+      '<span class="chat-list-context-action__label">' + escapeHtml(label) + "</span>";
     button.addEventListener("click", function () {
       Promise.resolve(onClick && onClick()).catch(function (error) {
         showToast((error && error.message) || "اجرای عملیات انجام نشد.");

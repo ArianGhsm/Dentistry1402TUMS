@@ -827,6 +827,33 @@ body.navid-page main.navid-flow {
     display: none !important;
 }
 
+.navid-category {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.navid-category + .navid-category {
+    padding-top: 0.64rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 0.24rem;
+}
+
+.navid-category__header {
+    display: flex;
+    align-items: center;
+    gap: 0.56rem;
+    padding: 0 0.12rem;
+}
+
+.navid-category__title {
+    margin: 0;
+    font-size: 0.84rem;
+    font-weight: 780;
+    color: var(--text-secondary);
+    flex: 1;
+    line-height: 1.3;
+}
+
 .navid-empty {
     padding: 1rem;
     border-radius: 22px;
