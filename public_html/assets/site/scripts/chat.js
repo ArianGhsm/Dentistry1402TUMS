@@ -11872,6 +11872,26 @@
         });
       })();
     }
+    var composeBtn = $("compose-btn");
+    var composeMenu = $("compose-menu");
+    var composeMenuWrap = $("compose-menu-wrap");
+    if (composeBtn && composeMenu) {
+      composeBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        composeMenu.hidden = !composeMenu.hidden;
+      });
+      composeMenu.addEventListener("click", function () {
+        composeMenu.hidden = true;
+      });
+      document.addEventListener("click", function (e) {
+        if (composeMenuWrap && !composeMenuWrap.contains(e.target)) {
+          composeMenu.hidden = true;
+        }
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") composeMenu.hidden = true;
+      });
+    }
     if (conversationManageBtn) {
       conversationManageBtn.addEventListener("click", function () {
         if (state.listSelectionMode) {

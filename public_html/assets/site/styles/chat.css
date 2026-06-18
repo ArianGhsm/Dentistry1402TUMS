@@ -8885,41 +8885,50 @@ body.chat-page #refresh-btn {
     display: none !important;
 }
 
-body.chat-page .conversation-quick-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.4rem;
-    padding: 0.1rem 0.9rem 0.6rem;
+body.chat-page .compose-menu-wrap {
+    position: relative;
 }
 
-body.chat-page .conversation-quick-action {
-    min-width: 0;
-    min-height: 36px;
+body.chat-page .compose-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    inset-inline-end: 0;
+    z-index: 30;
+    min-width: 168px;
+    border-radius: 10px;
+    border: 1px solid var(--chat-bale-line-strong);
+    background: var(--chat-bale-surface-strong);
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.28);
+    overflow: hidden;
+}
+
+body.chat-page .compose-menu__item {
+    width: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.42rem;
-    padding: 0 0.62rem;
-    border: 1px solid var(--chat-bale-line-strong);
-    border-radius: 8px;
-    background: var(--chat-bale-surface-soft);
+    gap: 0.58rem;
+    padding: 0.6rem 0.82rem;
+    font-size: 0.84rem;
+    font-weight: 650;
     color: var(--chat-bale-text);
-    font-size: 0.82rem;
-    font-weight: 700;
-    transition: background var(--motion-fast, 120ms) ease, border-color var(--motion-fast, 120ms) ease;
+    text-align: start;
+    transition: background 80ms ease;
 }
 
-body.chat-page .conversation-quick-action:hover {
-    background: var(--chat-bale-surface-strong);
-    border-color: color-mix(in srgb, var(--chat-bale-text) 28%, var(--chat-bale-line-strong));
+body.chat-page .compose-menu__item:hover {
+    background: color-mix(in srgb, var(--chat-bale-text) 7%, transparent);
 }
 
-body.chat-page .conversation-quick-action__icon,
-body.chat-page .conversation-quick-action__icon svg {
+body.chat-page .compose-menu__item + .compose-menu__item {
+    border-top: 1px solid var(--chat-bale-line-strong);
+}
+
+body.chat-page .compose-menu__icon,
+body.chat-page .compose-menu__icon svg {
     width: 17px;
     height: 17px;
     flex: 0 0 auto;
-    opacity: 0.82;
+    opacity: 0.7;
 }
 
 body.chat-page .chat-context-receipt {
@@ -9005,14 +9014,6 @@ body.chat-page .chat-mobile-nav {
         color: var(--accent-strong) !important;
     }
 
-    body.chat-page .conversation-quick-actions {
-        padding-bottom: 0.5rem;
-    }
-
-    body.chat-page .conversation-quick-action {
-        min-height: 38px;
-        font-size: 0.82rem;
-    }
 
     body.chat-page .thread-head {
         grid-template-columns: 40px minmax(0, 1fr) 40px !important;
@@ -9437,22 +9438,6 @@ body.chat-page .conversation-search-wrap input {
     font-size: 0.82rem !important;
 }
 
-body.chat-page .conversation-quick-actions {
-    gap: 0.34rem !important;
-    padding: 0.06rem 0.7rem 0.42rem !important;
-}
-
-body.chat-page .conversation-quick-action {
-    min-height: 34px !important;
-    border-radius: 8px !important;
-    font-size: 0.76rem !important;
-}
-
-body.chat-page .conversation-quick-action__icon,
-body.chat-page .conversation-quick-action__icon svg {
-    width: 15px !important;
-    height: 15px !important;
-}
 
 body.chat-page .conversation-filter-tabs {
     min-height: 42px !important;
