@@ -2369,46 +2369,44 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
 }
 
 .owner-summary-card {
-    padding: 1rem;
-    border-radius: 20px;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0)),
-        var(--surface-muted);
-    border: 1px solid color-mix(in srgb, var(--border-color) 82%, var(--accent-color));
-    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.06);
+    padding: 0.62rem 0.78rem;
+    border-radius: 10px;
+    background: var(--surface-muted);
+    border: 1px solid var(--border-color);
+    border-inline-start: 2.5px solid var(--border-color);
     display: grid;
-    gap: 0.22rem;
+    gap: 0.1rem;
 }
 
-.owner-summary-card span,
-.owner-summary-card small {
+.owner-summary-card span {
     color: var(--text-secondary);
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.owner-summary-card small {
+    color: var(--text-tertiary);
+    font-size: 0.68rem;
+    line-height: 1.5;
 }
 
 .owner-summary-card strong {
-    font-size: 1.26rem;
-    font-weight: 910;
+    font-size: 1.18rem;
+    font-weight: 900;
+    line-height: 1.2;
+    color: var(--text-primary);
 }
 
 .owner-summary-card--ok {
-    border-color: rgba(21, 143, 99, 0.3);
-    background:
-        linear-gradient(180deg, rgba(21, 143, 99, 0.14), rgba(21, 143, 99, 0.03)),
-        var(--surface-muted);
+    border-inline-start-color: rgb(21, 143, 99);
 }
 
 .owner-summary-card--warn {
-    border-color: rgba(194, 129, 29, 0.34);
-    background:
-        linear-gradient(180deg, rgba(194, 129, 29, 0.16), rgba(194, 129, 29, 0.03)),
-        var(--surface-muted);
+    border-inline-start-color: rgb(194, 129, 29);
 }
 
 .owner-summary-card--danger {
-    border-color: rgba(199, 83, 94, 0.34);
-    background:
-        linear-gradient(180deg, rgba(199, 83, 94, 0.16), rgba(199, 83, 94, 0.04)),
-        var(--surface-muted);
+    border-inline-start-color: rgb(199, 83, 94);
 }
 
 .owner-toolbar {
@@ -2449,18 +2447,17 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
 }
 
 .owner-summary--stats .owner-summary-card {
-    padding: 0.86rem 0.9rem;
-    border-radius: 18px;
+    padding: 0.58rem 0.72rem;
 }
 
 .owner-summary--stats .owner-summary-card span,
 .owner-summary--stats .owner-summary-card small {
-    font-size: 0.7rem;
-    line-height: 1.65;
+    font-size: 0.68rem;
+    line-height: 1.55;
 }
 
 .owner-summary--stats .owner-summary-card strong {
-    font-size: 1.08rem;
+    font-size: 1.02rem;
 }
 
 .owner-stats-head {
@@ -4532,24 +4529,15 @@ html[data-theme="dark"] body.account-page .owner-user__hint {
 }
 
 html[data-theme="dark"] body.account-page .owner-summary-card--ok {
-    border-color: rgba(67, 194, 143, 0.34);
-    background:
-        linear-gradient(180deg, rgba(67, 194, 143, 0.2), rgba(15, 24, 37, 0.92)),
-        var(--surface-muted);
+    border-inline-start-color: rgba(67, 194, 143, 0.82);
 }
 
 html[data-theme="dark"] body.account-page .owner-summary-card--warn {
-    border-color: rgba(229, 164, 75, 0.38);
-    background:
-        linear-gradient(180deg, rgba(229, 164, 75, 0.2), rgba(15, 24, 37, 0.92)),
-        var(--surface-muted);
+    border-inline-start-color: rgba(229, 164, 75, 0.82);
 }
 
 html[data-theme="dark"] body.account-page .owner-summary-card--danger {
-    border-color: rgba(239, 124, 136, 0.38);
-    background:
-        linear-gradient(180deg, rgba(239, 124, 136, 0.2), rgba(15, 24, 37, 0.92)),
-        var(--surface-muted);
+    border-inline-start-color: rgba(239, 124, 136, 0.82);
 }
 
 html[data-theme="dark"] body.account-page .owner-block--payments-toolbar,
@@ -5547,73 +5535,7 @@ html[data-theme="dark"] body.account-page.account-stage-login-active #login-otp-
 #owner-sms-status .owner-summary-card,
 #owner-media-status .owner-summary-card,
 #owner-user-panel-summary .owner-summary-card {
-    position: relative;
-    overflow: hidden;
-    min-height: 88px;
-    padding: 0.76rem 0.82rem;
-    border-radius: 18px;
-    border: 1px solid color-mix(in srgb, var(--border-color-strong) 74%, transparent);
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 94%, transparent), color-mix(in srgb, var(--surface) 98%, transparent)),
-        color-mix(in srgb, var(--surface) 98%, transparent);
-    box-shadow: 0 18px 34px -30px rgba(16, 28, 48, 0.42);
-}
-
-#owner-summary .owner-summary-card::before,
-#owner-cohort-summary .owner-summary-card::before,
-#owner-grades-courses-summary .owner-summary-card::before,
-#owner-sms-status .owner-summary-card::before,
-#owner-media-status .owner-summary-card::before,
-#owner-user-panel-summary .owner-summary-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at top right, color-mix(in srgb, var(--accent-soft) 84%, transparent) 0%, transparent 46%);
-    opacity: 0.72;
-    pointer-events: none;
-}
-
-#owner-summary .owner-summary-card span,
-#owner-summary .owner-summary-card strong,
-#owner-summary .owner-summary-card small,
-#owner-cohort-summary .owner-summary-card span,
-#owner-cohort-summary .owner-summary-card strong,
-#owner-cohort-summary .owner-summary-card small,
-#owner-grades-courses-summary .owner-summary-card span,
-#owner-grades-courses-summary .owner-summary-card strong,
-#owner-grades-courses-summary .owner-summary-card small,
-#owner-sms-status .owner-summary-card span,
-#owner-sms-status .owner-summary-card strong,
-#owner-sms-status .owner-summary-card small,
-#owner-media-status .owner-summary-card span,
-#owner-media-status .owner-summary-card strong,
-#owner-media-status .owner-summary-card small,
-#owner-user-panel-summary .owner-summary-card span,
-#owner-user-panel-summary .owner-summary-card strong,
-#owner-user-panel-summary .owner-summary-card small {
-    position: relative;
-    z-index: 1;
-}
-
-#owner-summary .owner-summary-card span,
-#owner-cohort-summary .owner-summary-card span,
-#owner-grades-courses-summary .owner-summary-card span,
-#owner-sms-status .owner-summary-card span,
-#owner-media-status .owner-summary-card span,
-#owner-user-panel-summary .owner-summary-card span {
-    font-size: 0.71rem;
-    font-weight: 820;
-}
-
-#owner-summary .owner-summary-card strong,
-#owner-cohort-summary .owner-summary-card strong,
-#owner-grades-courses-summary .owner-summary-card strong,
-#owner-sms-status .owner-summary-card strong,
-#owner-media-status .owner-summary-card strong,
-#owner-user-panel-summary .owner-summary-card strong {
-    font-family: var(--font-accent);
-    font-size: 1.04rem;
-    line-height: 1.35;
+    padding: 0.72rem 0.82rem;
 }
 
 #owner-summary .owner-summary-card small,
@@ -5622,8 +5544,6 @@ html[data-theme="dark"] body.account-page.account-stage-login-active #login-otp-
 #owner-sms-status .owner-summary-card small,
 #owner-media-status .owner-summary-card small,
 #owner-user-panel-summary .owner-summary-card small {
-    font-size: 0.72rem;
-    line-height: 1.55;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
