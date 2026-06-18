@@ -68,6 +68,7 @@ if ($action === 'trackDownload') {
 
 if ($action === 'ownerDashboard') {
     $viewer = dent_require_owner();
+    dent_release_session_lock();
 
     dent_json_response([
         'success' => true,
