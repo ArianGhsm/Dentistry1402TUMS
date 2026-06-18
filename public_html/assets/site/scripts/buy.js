@@ -2370,10 +2370,22 @@
                 }).join("");
             }
             if (actionsNode) {
-                var itemHref = resultCartItems.length ? "/buy/cart/" : (item && item.slug ? "/buy/item/?slug=" + encodeURIComponent(String(item.slug)) : "/buy/");
                 var ref = String(order.refId || order.authority || "");
+                var backHref, backLabel;
+                if (resultCartItems.length) {
+                    var hasExamItem = resultCartItems.some(function (ci) { return itemCategory(ci) === "educational_package"; });
+                    backHref = hasExamItem ? "/exams/" : "/buy/";
+                    backLabel = hasExamItem ? "بازگشت به بخش آزمون‌ها" : "بازگشت به خرید";
+                } else if (item) {
+                    var isExamItem = itemCategory(item) === "educational_package";
+                    backHref = isExamItem ? "/exams/" : (item.slug ? "/buy/item/?slug=" + encodeURIComponent(String(item.slug)) : "/buy/");
+                    backLabel = isExamItem ? "بازگشت به بخش آزمون‌ها" : "بازگشت به صفحه آیتم";
+                } else {
+                    backHref = "/buy/";
+                    backLabel = "بازگشت به خرید";
+                }
                 actionsNode.innerHTML = [
-                    '<a class="buy-primary-btn" href="' + itemHref + '">' + (resultCartItems.length ? "بازگشت به سبد خرید" : "بازگشت به صفحه آیتم") + "</a>",
+                    '<a class="buy-primary-btn" href="' + backHref + '">' + backLabel + "</a>",
                     '<a class="shell-action-btn" href="/buy/">مشاهده سایر آیتم‌ها</a>',
                     ref ? '<button class="shell-action-btn" type="button" data-copy-result="' + text(ref) + '">کپی کد رهگیری</button>' : ""
                 ].join("");
