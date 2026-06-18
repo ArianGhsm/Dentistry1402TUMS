@@ -179,13 +179,24 @@ body.navid-page main.navid-flow {
 
 .navid-glance-card span,
 .navid-status-card span,
-.navid-owner-card span,
-.navid-field__label,
-.navid-update__meta-label,
-.navid-assignment__section-label {
+.navid-owner-card span {
     color: var(--text-secondary);
     font-size: 0.75rem;
     line-height: 1.6;
+}
+
+.navid-field__label,
+.navid-update__meta-label {
+    color: var(--text-tertiary);
+    font-size: 0.74rem;
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.navid-assignment__section-label {
+    color: var(--text-tertiary);
+    font-size: 0.72rem;
+    line-height: 1.5;
 }
 
 .navid-glance-card strong,
@@ -543,33 +554,19 @@ body.navid-page main.navid-flow {
 .navid-update {
     --navid-item-accent: var(--accent-color);
     position: relative;
-    overflow: hidden;
-    border-radius: 24px;
-    border: 1px solid color-mix(in srgb, var(--navid-item-accent) 16%, var(--border-color));
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 88%, var(--navid-item-accent) 3%), var(--surface-solid));
-    box-shadow: 0 18px 36px -34px color-mix(in srgb, var(--navid-item-accent) 32%, #000);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    border-inline-start: 3px solid var(--navid-item-accent);
+    background: var(--surface-muted);
     transition:
-        transform var(--motion-fast) var(--motion-ease-standard),
         border-color var(--motion-fast) var(--motion-ease-standard),
-        box-shadow var(--motion-fast) var(--motion-ease-standard),
         background var(--motion-fast) var(--motion-ease-standard);
 }
 
-.navid-assignment::before,
-.navid-update::before {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 4px;
-    background: linear-gradient(180deg, var(--navid-item-accent), color-mix(in srgb, var(--navid-item-accent) 16%, transparent));
-    opacity: 0.92;
-}
-
 .navid-assignment {
-    padding: 0.94rem;
+    padding: 0.7rem 0.86rem 0.7rem 0.78rem;
     display: grid;
-    gap: 0.72rem;
+    gap: 0.36rem;
 }
 
 .navid-assignment--warning {
@@ -624,35 +621,39 @@ body.navid-page main.navid-flow {
 .navid-assignment__title,
 .navid-update__title {
     margin: 0;
-    font-size: 1rem;
-    line-height: 1.9;
-    font-weight: 900;
+    font-size: 0.94rem;
+    line-height: 1.5;
+    font-weight: 820;
     direction: rtl;
     text-align: right;
     unicode-bidi: isolate;
 }
 
 .navid-assignment__meta {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.18rem 1rem;
+    grid-template-columns: unset;
 }
 
 .navid-field {
-    min-height: 74px;
-    padding: 0.72rem 0.8rem;
-    border-radius: 18px;
-    border: 1px solid color-mix(in srgb, var(--navid-item-accent) 10%, var(--border-color));
-    background: color-mix(in srgb, var(--surface-solid) 88%, var(--navid-item-accent) 4%);
-    display: grid;
-    gap: 0.24rem;
-    align-content: start;
+    min-height: 0;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    background: none;
+    display: flex;
+    align-items: baseline;
+    gap: 0.32rem;
 }
 
 .navid-field__value,
 .navid-update__meta-value {
     color: var(--text-primary);
-    font-size: 0.9rem;
-    line-height: 1.8;
-    font-weight: 860;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    font-weight: 760;
     direction: rtl;
     text-align: right;
     unicode-bidi: isolate;
@@ -665,7 +666,10 @@ body.navid-page main.navid-flow {
 
 .navid-assignment__section {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.3rem;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.42rem;
+    margin-top: 0.06rem;
 }
 
 .navid-assignment__section-head {
@@ -673,18 +677,18 @@ body.navid-page main.navid-flow {
 }
 
 .navid-assignment__description {
-    padding: 0.86rem 0.9rem;
-    border-radius: 20px;
-    border: 1px solid color-mix(in srgb, var(--navid-item-accent) 9%, var(--border-color));
-    background: color-mix(in srgb, var(--surface-solid) 90%, var(--navid-item-accent) 3%);
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    background: none;
     display: grid;
-    gap: 0.6rem;
+    gap: 0.36rem;
 }
 
 .navid-assignment__description-copy {
     color: var(--text-secondary);
-    font-size: 0.88rem;
-    line-height: 2;
+    font-size: 0.82rem;
+    line-height: 1.7;
     white-space: normal;
     direction: rtl;
     text-align: right;
@@ -857,8 +861,7 @@ body.navid-page main.navid-flow {
 
     .navid-assignment:hover,
     .navid-update:hover {
-        border-color: color-mix(in srgb, var(--navid-item-accent) 24%, var(--border-color));
-        box-shadow: 0 24px 42px -34px color-mix(in srgb, var(--navid-item-accent) 42%, #000);
+        background: var(--surface-solid);
     }
 
     .navid-file-chip:hover {
@@ -878,10 +881,8 @@ body.navid-page main.navid-flow {
 .navid-list-toggle:focus-visible,
 .navid-file-chip:focus-visible,
 .navid-inline-toggle:focus-visible {
-    border-color: color-mix(in srgb, var(--navid-item-accent) 24%, var(--border-color));
-    box-shadow:
-        0 0 0 4px color-mix(in srgb, var(--navid-item-accent) 12%, transparent),
-        0 24px 42px -34px color-mix(in srgb, var(--navid-item-accent) 42%, #000);
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--navid-item-accent) 18%, transparent);
 }
 
 .navid-view-switch__btn:focus-visible {
@@ -1091,42 +1092,18 @@ html[data-theme="dark"] body.navid-page .navid-skeleton::after {
 
     .navid-assignment,
     .navid-update {
-        padding: 0.8rem;
-        border-radius: 22px;
-        gap: 0.62rem;
+        padding: 0.62rem 0.76rem 0.62rem 0.68rem;
+        gap: 0.3rem;
     }
 
     .navid-assignment__title,
     .navid-update__title {
-        font-size: 0.92rem;
-        line-height: 1.78;
-    }
-
-    .navid-field {
-        min-height: 60px;
-        padding: 0.56rem 0.62rem;
-        border-radius: 16px;
-    }
-
-    .navid-field__value,
-    .navid-update__meta-value {
-        font-size: 0.84rem;
-        line-height: 1.7;
-    }
-
-    .navid-assignment__description {
-        padding: 0.72rem 0.76rem;
-        border-radius: 18px;
-        gap: 0.48rem;
-    }
-
-    .navid-assignment__description-copy {
-        font-size: 0.84rem;
-        line-height: 1.82;
+        font-size: 0.9rem;
+        line-height: 1.48;
     }
 
     .navid-assignment__description-copy.is-collapsed {
-        -webkit-line-clamp: 1;
+        -webkit-line-clamp: 2;
     }
 
     .navid-inline-toggle {
