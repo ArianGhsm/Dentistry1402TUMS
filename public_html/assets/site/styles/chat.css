@@ -3460,6 +3460,33 @@ body.chat-page.chat-selection-mode .conversation-item__select {
     pointer-events: auto;
 }
 
+.chat-peer-sheet {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-end: 0;
+    z-index: 280;
+    width: min(400px, 100vw);
+    padding: calc(0.95rem + env(safe-area-inset-top, 0px)) 0.9rem calc(0.95rem + env(safe-area-inset-bottom, 0px) + var(--chat-shell-offset));
+    border-inline-start: 1px solid var(--chat-border);
+    background: var(--chat-sheet-bg);
+    box-shadow: -28px 0 60px -42px rgba(18, 30, 48, 0.28);
+    backdrop-filter: blur(18px);
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        transform var(--motion-slow) var(--motion-ease-soft),
+        opacity var(--motion-base) var(--motion-ease-soft);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.chat-peer-sheet.is-open {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
 .chat-info-sheet__topbar {
     display: flex;
     justify-content: flex-end;

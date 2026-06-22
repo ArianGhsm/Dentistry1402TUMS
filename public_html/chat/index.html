@@ -578,6 +578,30 @@
         </section>
     </aside>
 
+    <aside class="chat-peer-sheet" id="chat-peer-sheet" hidden aria-labelledby="chat-peer-name">
+        <div class="chat-info-sheet__topbar">
+            <button class="chat-sheet-close" id="chat-peer-sheet-close" type="button" aria-label="بستن">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 7L17 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                    <path d="M17 7L7 17" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+                </svg>
+            </button>
+        </div>
+        <div class="chat-info-profile">
+            <span class="chat-info-profile__avatar" id="chat-peer-avatar" data-has-avatar="0">
+                <img id="chat-peer-avatar-image" alt="" hidden>
+                <span id="chat-peer-avatar-fallback">?</span>
+            </span>
+            <strong class="chat-info-profile__name" id="chat-peer-name" data-digit-locale="latin"></strong>
+            <span class="chat-info-profile__status" id="chat-peer-status"></span>
+            <p class="chat-info-profile__about" id="chat-peer-about" hidden></p>
+        </div>
+        <div class="chat-info-quick-actions" id="chat-peer-quick-actions"></div>
+        <section class="chat-info-block" id="chat-peer-info-block" hidden>
+            <div class="chat-info-rows" id="chat-peer-info-rows"></div>
+        </section>
+    </aside>
+
     <div class="chat-modal-backdrop" id="chat-modal-backdrop" hidden></div>
 
     <section class="chat-modal chat-modal--dm" id="dm-modal" hidden aria-labelledby="dm-modal-title">

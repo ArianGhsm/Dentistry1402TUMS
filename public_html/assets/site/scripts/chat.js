@@ -1200,6 +1200,17 @@
   var infoSheet = $("chat-info-sheet");
   var infoSheetBackdrop = $("chat-sheet-backdrop");
   var infoSheetClose = $("chat-sheet-close");
+  var peerSheet = $("chat-peer-sheet");
+  var peerSheetClose = $("chat-peer-sheet-close");
+  var peerAvatar = $("chat-peer-avatar");
+  var peerAvatarImg = $("chat-peer-avatar-image");
+  var peerAvatarFallback = $("chat-peer-avatar-fallback");
+  var peerName = $("chat-peer-name");
+  var peerStatus = $("chat-peer-status");
+  var peerAbout = $("chat-peer-about");
+  var peerQuickActions = $("chat-peer-quick-actions");
+  var peerInfoBlock = $("chat-peer-info-block");
+  var peerInfoRows = $("chat-peer-info-rows");
   var infoProfile = $("chat-info-profile");
   var infoTitle = $("chat-info-title");
   var infoStatus = $("chat-info-status");
@@ -1397,6 +1408,7 @@
     listSelectionMode: false,
     selectedConversationIds: new Set(),
     infoSheetOpen: false,
+    peerSheetOpen: false,
     infoContentCategory: "media",
     modalOpen: "",
     groupCreateStep: "members",
@@ -2139,7 +2151,7 @@
     var loggedIn = !!state.me.loggedIn && chatBox && !chatBox.hidden;
     var mobile = isMobileViewport();
     var listViewActive = chatApp && chatApp.dataset.mobileView === "list";
-    var shouldShow = loggedIn && mobile && !state.modalOpen && !state.contextOpen && !state.listContextOpen && !state.infoSheetOpen && listViewActive;
+    var shouldShow = loggedIn && mobile && !state.modalOpen && !state.contextOpen && !state.listContextOpen && !state.infoSheetOpen && !state.peerSheetOpen && listViewActive;
     chatMobileNav.hidden = !shouldShow;
     if (document.body) {
       document.body.classList.toggle("chat-mobile-nav-visible", shouldShow);
@@ -5265,8 +5277,7 @@
               var nameEl = msgRow.querySelector(".msg-name");
               senderMember = { studentNumber: senderStudentNumber, name: nameEl ? nameEl.textContent.trim() : senderStudentNumber };
             }
-            var rect = senderEl.getBoundingClientRect();
-            openChatMemberProfile(senderMember, rect.left + rect.width / 2, rect.bottom + 6);
+            openChatMemberProfile(senderMember);
           }
         }
       }
@@ -6774,28 +6785,76 @@
     updateMobileNav();
   }
 
-  function openChatMemberProfile(member, clientX, clientY) {
-    if (!member || !listContextBackdrop || !listContextMenu || !listContextActions) return;
-    var isOwnProfile = normalizeStudentNumber(member.studentNumber) === normalizeStudentNumber(state.me && state.me.studentNumber);
-    closeContextMenu();
-    state.listContextOpen = true;
-    state.listContextConversationId = "";
-    if (listContextTitle) listContextTitle.textContent = member.name || "کاربر";
-    if (listContextSubtitle) listContextSubtitle.textContent = userRoleMetaText(member);
-    listContextActions.innerHTML = "";
-    if (!isOwnProfile && member.studentNumber) {
-      listContextActions.appendChild(listContextAction("ارسال پیام خصوصی", "شروع گفتگوی مستقیم", function () {
-        closeListContextMenu();
-        startDirectConversation(member.studentNumber);
-      }));
+  function closePeerSheet() {
+    if (!peerSheet) return;
+    peerSheet.classList.remove("is-open");
+    peerSheet.hidden = true;
+    if (infoSheetBackdrop && !state.infoSheetOpen) {
+      infoSheetBackdrop.classList.remove("is-open");
+      infoSheetBackdrop.hidden = true;
     }
-    listContextBackdrop.hidden = false;
-    listContextMenu.hidden = false;
+    state.peerSheetOpen = false;
+    refreshTransportBinding();
+    updateMobileNav();
+  }
+
+  function openChatMemberProfile(member) {
+    if (!member || !peerSheet) return;
+    if (state.infoSheetOpen) closeInfoSheet();
+    closeListContextMenu();
+    closeContextMenu();
+
+    renderAvatar(peerAvatar, peerAvatarImg, peerAvatarFallback,
+      member.avatarUrl || (member.profile && member.profile.avatarUrl), member.name);
+
+    if (peerName) peerName.textContent = member.name || "کاربر";
+    if (peerStatus) peerStatus.textContent = userRoleMetaText(member);
+
+    var about = normalizeSpace(member.about || (member.profile && member.profile.about) || "");
+    if (peerAbout) {
+      peerAbout.textContent = about;
+      peerAbout.hidden = !about;
+    }
+
+    if (peerQuickActions) {
+      peerQuickActions.innerHTML = "";
+      var isOwnProfile = normalizeStudentNumber(member.studentNumber) === normalizeStudentNumber(state.me && state.me.studentNumber);
+      if (!isOwnProfile && member.studentNumber) {
+        var dmBtn = document.createElement("button");
+        dmBtn.type = "button";
+        dmBtn.className = "chat-info-quick-action";
+        dmBtn.innerHTML = '<span class="chat-info-quick-action__icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span class="chat-info-quick-action__label">پیام خصوصی</span>';
+        dmBtn.addEventListener("click", function () {
+          closePeerSheet();
+          startDirectConversation(member.studentNumber);
+        });
+        peerQuickActions.appendChild(dmBtn);
+      }
+      peerQuickActions.hidden = peerQuickActions.children.length === 0;
+    }
+
+    var rows = [];
+    if (canCurrentUserViewStudentNumbers() && member.studentNumber) {
+      rows.push({ label: "شماره دانشجویی", value: member.studentNumber });
+    }
+    var roleLabel = normalizeSpace(member.roleLabel) || "دانشجو";
+    rows.push({ label: "نقش", value: roleLabel });
+    if (peerInfoRows) renderInfoRows(peerInfoRows, rows);
+    if (peerInfoBlock) peerInfoBlock.hidden = false;
+
+    state.peerSheetOpen = true;
+    peerSheet.hidden = false;
+    var mobileSheet = isMobileViewport();
+    if (infoSheetBackdrop) {
+      infoSheetBackdrop.hidden = !mobileSheet;
+    }
     window.requestAnimationFrame(function () {
-      listContextBackdrop.classList.add("is-open");
-      listContextMenu.classList.add("is-open");
-      positionListContextMenu(clientX, clientY);
+      peerSheet.classList.add("is-open");
+      if (infoSheetBackdrop && !infoSheetBackdrop.hidden) {
+        infoSheetBackdrop.classList.add("is-open");
+      }
     });
+    refreshTransportBinding();
     updateMobileNav();
   }
 
@@ -12236,7 +12295,10 @@
       });
     }
     if (infoSheetClose) infoSheetClose.addEventListener("click", closeInfoSheet);
-    if (infoSheetBackdrop) infoSheetBackdrop.addEventListener("click", closeInfoSheet);
+    if (infoSheetBackdrop) infoSheetBackdrop.addEventListener("click", function () {
+      if (state.peerSheetOpen) { closePeerSheet(); } else { closeInfoSheet(); }
+    });
+    if (peerSheetClose) peerSheetClose.addEventListener("click", closePeerSheet);
     if (infoProfile) {
       infoProfile.addEventListener("click", function () {
         var href = infoProfile.dataset.profileHref;
@@ -12275,7 +12337,7 @@
               return normalizeStudentNumber(item.studentNumber) === normalizeStudentNumber(studentNumber);
             });
             if (member) {
-              openChatMemberProfile(member, event.clientX, event.clientY);
+              openChatMemberProfile(member);
             }
           }
         }
