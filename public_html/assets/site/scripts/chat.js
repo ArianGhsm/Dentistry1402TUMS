@@ -5246,6 +5246,29 @@
         event.stopPropagation();
         var deliveryMessage = resolveMessage(deliveryBtn);
         if (deliveryMessage) openReceiptsModal(deliveryMessage);
+        return;
+      }
+
+      var senderEl = target.closest(".msg-avatar, .msg-name");
+      if (senderEl) {
+        var msgRow = target.closest("[data-sender]");
+        if (msgRow) {
+          var senderStudentNumber = normalizeStudentNumber(msgRow.dataset.sender);
+          var mySn = normalizeStudentNumber(state.me && state.me.studentNumber);
+          if (senderStudentNumber && senderStudentNumber !== mySn) {
+            event.preventDefault();
+            event.stopPropagation();
+            var conversation = activeConversation();
+            var members = conversation && Array.isArray(conversation.members) ? conversation.members : [];
+            var senderMember = members.find(function (m) { return normalizeStudentNumber(m.studentNumber) === senderStudentNumber; });
+            if (!senderMember) {
+              var nameEl = msgRow.querySelector(".msg-name");
+              senderMember = { studentNumber: senderStudentNumber, name: nameEl ? nameEl.textContent.trim() : senderStudentNumber };
+            }
+            var rect = senderEl.getBoundingClientRect();
+            openChatMemberProfile(senderMember, rect.left + rect.width / 2, rect.bottom + 6);
+          }
+        }
       }
     });
 
@@ -6549,6 +6572,7 @@
     "خروج از بایگانی": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><rect x="3" y="4" width="18" height="4" rx="1.5" stroke="currentColor" stroke-width="1.8"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8" stroke="currentColor" stroke-width="1.8"/><path d="M12 12v4M10 14l2-2 2 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     "حذف گفتگو": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
     "حذف پیام": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "ارسال پیام خصوصی": '<svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
   };
 
   function listContextAction(label, hint, onClick, className) {
@@ -6740,6 +6764,31 @@
       })
     ));
 
+    listContextBackdrop.hidden = false;
+    listContextMenu.hidden = false;
+    window.requestAnimationFrame(function () {
+      listContextBackdrop.classList.add("is-open");
+      listContextMenu.classList.add("is-open");
+      positionListContextMenu(clientX, clientY);
+    });
+    updateMobileNav();
+  }
+
+  function openChatMemberProfile(member, clientX, clientY) {
+    if (!member || !listContextBackdrop || !listContextMenu || !listContextActions) return;
+    var isOwnProfile = normalizeStudentNumber(member.studentNumber) === normalizeStudentNumber(state.me && state.me.studentNumber);
+    closeContextMenu();
+    state.listContextOpen = true;
+    state.listContextConversationId = "";
+    if (listContextTitle) listContextTitle.textContent = member.name || "کاربر";
+    if (listContextSubtitle) listContextSubtitle.textContent = userRoleMetaText(member);
+    listContextActions.innerHTML = "";
+    if (!isOwnProfile && member.studentNumber) {
+      listContextActions.appendChild(listContextAction("ارسال پیام خصوصی", "شروع گفتگوی مستقیم", function () {
+        closeListContextMenu();
+        startDirectConversation(member.studentNumber);
+      }));
+    }
     listContextBackdrop.hidden = false;
     listContextMenu.hidden = false;
     window.requestAnimationFrame(function () {
@@ -12220,7 +12269,14 @@
         if (memberRow) {
           var studentNumber = memberRow.getAttribute("data-member-student");
           if (studentNumber) {
-            window.location.href = "/account/?studentNumber=" + encodeURIComponent(studentNumber) + "&from=chat#account-info";
+            var conversation = activeConversation();
+            var members = conversation && Array.isArray(conversation.members) ? conversation.members : [];
+            var member = members.find(function (item) {
+              return normalizeStudentNumber(item.studentNumber) === normalizeStudentNumber(studentNumber);
+            });
+            if (member) {
+              openChatMemberProfile(member, event.clientX, event.clientY);
+            }
           }
         }
       });
