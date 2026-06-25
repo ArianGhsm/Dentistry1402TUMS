@@ -1,0 +1,155 @@
+[
+  {
+    "id": 9,
+    "slug": "dastebistoorikh",
+    "title": "دسته بیستوری",
+    "category": "consumables",
+    "price": 2500000,
+    "status": "deleted",
+    "hero_image": "/api/payments_api.php?action=paymentImage&name=buy-20260501-095537-f392bb2d47460981.webp",
+    "max_quantity_per_order": 5,
+    "required_fields": [],
+    "specifications": [],
+    "delivery_note": "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود."
+  },
+  {
+    "id": 8,
+    "slug": "5-1401",
+    "title": "کلاس رفع اشکال علوم پایه با رتبه 5 سال 1401",
+    "category": "group_order",
+    "price": 5000000,
+    "status": "deleted",
+    "hero_image": "",
+    "max_quantity_per_order": 1,
+    "required_fields": [],
+    "specifications": [],
+    "delivery_note": "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود."
+  },
+  {
+    "id": 7,
+    "slug": "item-20260429214643-0f5690",
+    "title": "تومور های نکروتیک",
+    "category": "educational_supplies",
+    "price": 1000000,
+    "status": "deleted",
+    "hero_image": "",
+    "max_quantity_per_order": 1,
+    "required_fields": [],
+    "specifications": [],
+    "delivery_note": "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود."
+  },
+  {
+    "id": 6,
+    "slug": "item-20260429214147-7809f4",
+    "title": "AI in Dentistry 2025",
+    "category": "group_order",
+    "price": 1500000,
+    "status": "deleted",
+    "hero_image": "",
+    "max_quantity_per_order": 1,
+    "required_fields": [],
+    "specifications": [],
+    "delivery_note": "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود."
+  },
+  {
+    "id": 5,
+    "slug": "item-20260429214021-8699b9",
+    "title": "کارگاه مقاله نویسی دکتر هوشیار",
+    "category": "educational_supplies",
+    "price": 2500000,
+    "status": "deleted",
+    "hero_image": "",
+    "max_quantity_per_order": 1,
+    "required_fields": [],
+    "specifications": [],
+    "delivery_note": "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود."
+  },
+  {
+    "id": 4,
+    "slug": "1401",
+    "title": "کلاس آموزش اندنوت با استاد یونس پور(ویژه ورودی 1401)",
+    "category": "educational_package",
+    "price": 1000000,
+    "status": "deleted",
+    "hero_image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAABO1BMVEXp5uQAAAD////+lgLf3Nrs6efw7evu6+n+lABEQ0PCv76XlZQ4ODcgIB/o6uwyMjFlZGP+jwD+hgDHxcNvbmzQzcxSUVCxr61ZV1f+igDl4uDd2tj/kQD+p0309fZCQUGgnp2Jh4b+lBX+rV57e3v+zqL/+u/r4doTExOOjIvs28n/69b/4sf//Pbxxpvzvor/8uL6nUH/06z2rGL+yZcoKCf1tG/t2L7r3s76pkD/wYf+niv/2rr6qEn/48n+nEH+oEz1unn+w47wyqb+smz+uX/6nzP9yIhqfI7CeRrxkQD/qlf/05b/r0nv0bP2w4by4Lzwz5j8pS8UsGnP6tq6xt",
+    "max_quantity_per_order": 1,
+    "required_fields": [],
+    "specifications": [],
+    "delivery_note": "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود."
+  },
+  {
+    "id": 3,
+    "slug": "item-20260429210427-6029c9",
+    "title": "کاسه همزن",
+    "category": "educational_supplies",
+    "price": 3800000,
+    "status": "deleted",
+    "hero_image": "https://image.torob.com/base/images/nv/pK/nvpKJ_vUcUNn2KeH.webp_/560x560.webp",
+    "max_quantity_per_order": 1,
+    "required_fields": [],
+    "specifications": [],
+    "delivery_note": "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود."
+  },
+  {
+    "id": 2,
+    "slug": "saman-foam-face-shield",
+    "title": "شیلد ابری سامان زر دندان",
+    "category": "consumables",
+    "price": 1200000,
+    "status": "deleted",
+    "hero_image": "/assets/images/buy/saman-foam-face-shield.jpg",
+    "max_quantity_per_order": 2,
+    "required_fields": [
+      {
+        "name": "studentnumber",
+        "label": "شماره دانشجویی",
+        "type": "text",
+        "required": true,
+        "placeholder": "مثلا ۴۰۲۱۱۲۷۲۰۰۳",
+        "maxLength": 14,
+        "options": []
+      },
+      {
+        "name": "group",
+        "label": "گروه/بخش تحویل",
+        "type": "text",
+        "required": false,
+        "placeholder": "مثلا گروه ۱",
+        "maxLength": 80,
+        "options": []
+      }
+    ],
+    "specifications": [
+      {
+        "label": "کاربرد",
+        "value": "دندانپزشکی، لابراتوار و محیط آموزشی"
+      },
+      {
+        "label": "محتوای بسته",
+        "value": "۲ عددی"
+      },
+      {
+        "label": "ویژگی",
+        "value": "قابل استفاده مجدد، قابل شستشو، دارای کش"
+      },
+      {
+        "label": "منبع قیمت",
+        "value": "دنتی‌پارس، ۱۲۰٬۰۰۰ تومان"
+      }
+    ],
+    "delivery_note": "تحویل حضوری در محدوده دانشکده دندانپزشکی دانشگاه علوم پزشکی تهران هماهنگ می‌شود."
+  },
+  {
+    "id": 1,
+    "slug": "item-20260429195800-557893",
+    "title": "شیلد ابری",
+    "category": "group_order",
+    "price": 4000000,
+    "status": "deleted",
+    "hero_image": "https://image.torob.com/base/images/UG/lT/UGlTXPJ9qG0XY8YL.jpg_/0x352.avif",
+    "max_quantity_per_order": 1,
+    "required_fields": [],
+    "specifications": [],
+    "delivery_note": "تحویل یا استفاده در محدوده دانشگاه علوم پزشکی تهران هماهنگ می‌شود."
+  }
+]

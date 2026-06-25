@@ -95,24 +95,24 @@ function dent_exams_text_source_build_course(array $config): array
     $fullTitle = $termLabel !== '' ? $title . ' ' . $termLabel : $title;
 
     $cardDescription = $hasComingSoon
-        ? 'فعلاً ' . $activeExamCountFa . ' جلسه از ' . $plannedExamCountFa
-            . ' جلسه این درس فعال شده و بقیه جلسه‌ها از همین صفحه اضافه می‌شوند.'
-        : 'همهٔ ' . $plannedExamCountFa . ' جلسه فعلی این درس با مجموع '
+        ? 'فعلاً ' . $activeExamCountFa . ' آزمون از ' . $plannedExamCountFa
+            . ' آزمون این درس فعال شده و بقیه آزمون‌ها از همین صفحه اضافه می‌شوند.'
+        : 'همهٔ ' . $plannedExamCountFa . ' آزمون فعلی این درس با مجموع '
             . $activeQuestionCountFa . ' سوال از همین صفحه در دسترس است.';
 
     $heroDescription = $hasComingSoon
         ? 'این مجموعه مربوط به درس ' . $fullTitle . ' است. فعلاً ' . $activeExamCountFa
-            . ' جلسه از ' . $plannedExamCountFa . ' جلسه با مجموع ' . $activeQuestionCountFa
-            . ' سوال فعال شده‌اند و بقیه جلسه‌ها به‌زودی از همین مسیر تکمیل می‌شوند. با یک بار پرداخت ۳۰ هزار تومان، کل درس برای همین حساب فعال می‌شود.'
+            . ' آزمون از ' . $plannedExamCountFa . ' آزمون با مجموع ' . $activeQuestionCountFa
+            . ' سوال فعال شده‌اند و بقیه آزمون‌ها به‌زودی از همین مسیر تکمیل می‌شوند. با یک بار پرداخت ۳۰ هزار تومان، کل درس برای همین حساب فعال می‌شود.'
         : 'این مجموعه مربوط به درس ' . $fullTitle . ' است و فعلاً ' . $plannedExamCountFa
-            . ' جلسه با مجموع ' . $activeQuestionCountFa
+            . ' آزمون با مجموع ' . $activeQuestionCountFa
             . ' سوال را پوشش می‌دهد. با یک بار پرداخت ۳۰ هزار تومان، کل درس برای همین حساب فعال می‌شود.';
 
     return [
         'slug' => $courseSlug,
         'title' => $title,
         'shortTitle' => $shortTitle !== '' ? $shortTitle : $title,
-        'badge' => $plannedExamCountFa . ' جلسه',
+        'badge' => $plannedExamCountFa . ' آزمون',
         'cardDescription' => $cardDescription,
         'heroTitle' => $title,
         'heroDescription' => $heroDescription,

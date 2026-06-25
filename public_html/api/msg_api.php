@@ -1,10 +1,8 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/msg_store.php';
 require_once __DIR__ . '/auth_store.php';
-
-dent_init_api();
+require_once __DIR__ . '/msg_store.php';
 
 $action = dent_request_action();
 

@@ -44,6 +44,12 @@ $cssVars   = implode(';', array_map(
     <meta name="robots" content="noindex,nofollow">
     <title><?php echo $povLine ? 'pov: ' . $povLine : 'کارت'; ?></title>
     <style>
+        @font-face{font-family:'YekanBakh';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/YekanBakh-Regular.woff2') format('woff2'),url('/fonts/YekanBakh-Regular.woff') format('woff')}
+        @font-face{font-family:'YekanBakh';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/YekanBakh-Bold.woff2') format('woff2'),url('/fonts/YekanBakh-Bold.woff') format('woff')}
+        @font-face{font-family:'B Nazanin';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/B Nazanin-.ttf') format('truetype')}
+        @font-face{font-family:'B Nazanin';font-style:normal;font-weight:700;font-display:swap;src:url('/fonts/B Nazanin-.ttf') format('truetype')}
+        @font-face{font-family:'B Nazanin';font-style:normal;font-weight:900;font-display:swap;src:url('/fonts/B Nazanin Bold-.ttf') format('truetype')}
+
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
         :root { <?php echo $cssVars; ?> }
@@ -52,7 +58,7 @@ $cssVars   = implode(';', array_map(
             min-height:100dvh;
             background:var(--bg);
             color:#fff;
-            font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+            font-family:'YekanBakh',system-ui,sans-serif;
             -webkit-font-smoothing:antialiased;
             overflow-x:hidden;
         }
@@ -107,6 +113,7 @@ $cssVars   = implode(';', array_map(
 
         .pov-line{
             font-size:clamp(1.5rem,5vw,2.4rem);
+            font-family:'B Nazanin','YekanBakh',sans-serif;
             font-weight:700;
             line-height:1.25;
             color:#fff;
