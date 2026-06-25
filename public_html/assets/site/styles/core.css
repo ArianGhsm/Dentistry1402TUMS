@@ -293,6 +293,44 @@ html {
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* Firefox: slim, accent-tinted, transparent track. */
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent-color) 66%, transparent) transparent;
+}
+
+/* ===== Custom site scrollbar — elegant, theme-aware accent capsule =====
+   A floating gradient thumb (padding-box border trick) that gently thickens
+   and glows on hover/active. Components that hide their own scrollbars keep
+   doing so because their element-scoped rules are more specific. */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
+    background-image: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--accent-color) 90%, transparent),
+        var(--accent-strong)
+    );
+    transition: border-width 160ms ease, background-image 200ms ease;
+}
+@media (hover: hover) {
+    ::-webkit-scrollbar-thumb:hover {
+        border-width: 2px;
+        background-image: linear-gradient(180deg, var(--accent-color), var(--accent-strong));
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-color) 40%, transparent);
+    }
+}
+::-webkit-scrollbar-thumb:active {
+    border-width: 2px;
+    background-image: linear-gradient(180deg, var(--accent-strong), var(--accent-color));
 }
 
 body {
