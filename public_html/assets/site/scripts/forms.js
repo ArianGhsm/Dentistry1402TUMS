@@ -1708,6 +1708,10 @@
             return;
         }
         showStage("app");
+        var endosimCard = document.getElementById("forms-endosim-card");
+        if (endosimCard) {
+            endosimCard.hidden = !(state.viewer && state.viewer.isOwner);
+        }
         if (!state.canCreate) {
             panels.builder.hidden = true;
             tabs.forEach(function (tab) {

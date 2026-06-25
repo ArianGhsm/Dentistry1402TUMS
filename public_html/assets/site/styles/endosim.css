@@ -372,6 +372,15 @@ body.endosim-modal-open { overflow: hidden; }
 
 /* ---- form ---- */
 .endosim-form { display: flex; flex-direction: column; gap: 14px; }
+.endosim-identity-note {
+    margin: 0;
+    padding: 11px 14px;
+    border-radius: var(--radius-md);
+    background: var(--commerce-accent-soft);
+    color: var(--text-secondary);
+    font-size: .88rem;
+    font-weight: 600;
+}
 .endosim-field { display: flex; flex-direction: column; gap: 6px; }
 .endosim-field span { font-size: .85rem; font-weight: 600; color: var(--text-secondary); }
 .endosim-field span i { color: var(--danger-color); font-style: normal; margin-inline-start: 2px; }
@@ -435,7 +444,30 @@ body.endosim-modal-open { overflow: hidden; }
 }
 .endosim-pay:disabled { opacity: .6; cursor: progress; }
 
-@media (max-width: 480px) {
-    .endosim-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+@media (max-width: 600px) {
+    .endosim-shell { padding-top: 12px; gap: 16px; }
+    .endosim-hero { padding: 18px 16px; border-radius: var(--radius-lg); }
+    .endosim-hero__kicker { font-size: .74rem; margin-bottom: 6px; }
+    .endosim-hero__title { font-size: 1.3rem; margin-bottom: 8px; }
+    .endosim-hero__lead { font-size: .88rem; line-height: 1.85; margin-bottom: 12px; }
+    .endosim-hero__badges { gap: 6px; }
+    .endosim-hero__badges li { padding: 5px 11px; font-size: .76rem; }
     .endosim-toolbar { flex-direction: column; align-items: stretch; }
+
+    .endosim-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .endosim-card__body { padding: 12px 12px 6px; gap: 6px; }
+    .endosim-card__title { font-size: .9rem; line-height: 1.55; }
+    .endosim-card__price { font-size: 1rem; }
+    .endosim-card__chip { font-size: .72rem; padding: 3px 9px; }
+    .endosim-card__code { font-size: .62rem; padding: 3px 7px; }
+
+    .endosim-bar { padding: 10px 14px; gap: 10px; }
+    .endosim-bar__count { font-size: .72rem; }
+    .endosim-bar__total { font-size: 1.02rem; }
+    .endosim-bar__cta { padding: 12px 18px; font-size: .94rem; }
+}
+
+@media (max-width: 360px) {
+    .endosim-bar__cta { padding: 11px 14px; font-size: .88rem; }
+    .endosim-card__title { font-size: .84rem; }
 }

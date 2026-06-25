@@ -91,27 +91,8 @@
             <div class="endosim-modal__body">
                 <div class="endosim-summary" id="endosim-summary"></div>
 
-                <form class="endosim-form" id="endosim-form" autocomplete="on" novalidate>
-                    <label class="endosim-field">
-                        <span>نام و نام خانوادگی<i>*</i></span>
-                        <input type="text" id="endosim-payer-name" name="payerName" maxlength="120" required
-                            placeholder="مثلا علی رضایی">
-                    </label>
-                    <label class="endosim-field">
-                        <span>شماره موبایل<i>*</i></span>
-                        <input type="tel" id="endosim-payer-phone" name="payerPhone" inputmode="numeric"
-                            maxlength="14" required placeholder="مثلا ۰۹۱۲۳۴۵۶۷۸۹">
-                    </label>
-                    <label class="endosim-field">
-                        <span>شماره دانشجویی</span>
-                        <input type="text" id="endosim-payer-student" name="payerStudentNumber" inputmode="numeric"
-                            maxlength="14" placeholder="مثلا ۴۰۲۱۱۲۷۲۰۰۳">
-                    </label>
-                    <label class="endosim-field">
-                        <span>گروه/بخش تحویل</span>
-                        <input type="text" id="endosim-payer-group" name="group" maxlength="80"
-                            placeholder="مثلا گروه ۱">
-                    </label>
+                <form class="endosim-form" id="endosim-form" novalidate>
+                    <p class="endosim-identity-note" id="endosim-identity-note">سفارش به نام حساب شما ثبت می‌شود.</p>
 
                     <fieldset class="endosim-gateways" id="endosim-gateways">
                         <legend>روش پرداخت</legend>

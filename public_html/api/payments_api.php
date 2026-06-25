@@ -1999,17 +1999,30 @@ if ($action === 'createCartOrder') {
         dent_error('سبد خرید خالی است.', 422);
     }
 
+    // Identity is taken from the logged-in account (login is required above).
+    // Posted values are accepted only as an override and never as the source of truth.
+    $payerDefaults = payments_api_collection_payer_defaults($requiredUser);
+
     $payerName = dent_clean_text((string) ($_POST['payerName'] ?? ''), 120);
     if ($payerName === '') {
-        dent_error('نام پرداخت‌کننده الزامی است.', 422);
+        $payerName = dent_clean_text((string) ($payerDefaults['name'] ?? ''), 120);
+    }
+    if ($payerName === '') {
+        dent_error('نام شما در حساب کاربری ثبت نشده است. لطفا ابتدا پروفایل خود را کامل کنید.', 422);
     }
 
     $payerPhone = payments_normalize_phone((string) ($_POST['payerPhone'] ?? ''));
-    if ($payerPhone === '' || strlen($payerPhone) < 10 || strlen($payerPhone) > 14) {
-        dent_error('شماره موبایل پرداخت‌کننده معتبر نیست.', 422);
+    if ($payerPhone === '') {
+        $payerPhone = payments_normalize_phone((string) ($payerDefaults['phone'] ?? ''));
+    }
+    if ($payerPhone !== '' && (strlen($payerPhone) < 10 || strlen($payerPhone) > 14)) {
+        dent_error('شماره موبایل ثبت‌شده در حساب شما معتبر نیست.', 422);
     }
 
     $payerStudentNumber = dent_normalize_student_number((string) ($_POST['payerStudentNumber'] ?? ''));
+    if ($payerStudentNumber === '') {
+        $payerStudentNumber = dent_normalize_student_number((string) ($payerDefaults['studentNumber'] ?? ''));
+    }
     $extraFormData = payments_api_parse_extra_form_data($_POST['extraFormData'] ?? ($_POST['extra_form_data'] ?? ''));
     $extraBySlug = [];
     $rawLineExtras = $_POST['lineExtraFormData'] ?? ($_POST['line_extra_form_data'] ?? '');

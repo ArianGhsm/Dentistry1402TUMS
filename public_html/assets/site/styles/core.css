@@ -92,6 +92,9 @@
     --shell-nav-inner-bg: rgba(255, 255, 255, 0.94);
     --shell-nav-inner-border: rgba(127, 145, 165, 0.15);
     --shell-nav-active-bg: rgba(43, 109, 243, 0.1);
+    --shell-nav-active-fill: #2b6df3;
+    --shell-nav-active-text: #ffffff;
+    --shell-nav-active-shadow: 0 12px 24px -12px rgba(43, 109, 243, 0.5);
     --shell-nav-badge-border: rgba(255, 255, 255, 0.92);
     --shell-nav-badge-shadow: 0 10px 18px -14px rgba(20, 30, 45, 0.62);
     --home-aura-base-start: #f8fbff;
@@ -178,6 +181,9 @@ html[data-theme="light"] {
     --shell-nav-inner-bg: rgba(255, 255, 255, 0.94);
     --shell-nav-inner-border: rgba(127, 145, 165, 0.15);
     --shell-nav-active-bg: rgba(43, 109, 243, 0.1);
+    --shell-nav-active-fill: #2b6df3;
+    --shell-nav-active-text: #ffffff;
+    --shell-nav-active-shadow: 0 12px 24px -12px rgba(43, 109, 243, 0.5);
     --shell-nav-badge-border: rgba(255, 255, 255, 0.92);
     --shell-nav-badge-shadow: 0 10px 18px -14px rgba(20, 30, 45, 0.62);
     --home-aura-base-start: #f8fbff;
@@ -247,6 +253,9 @@ html[data-theme="dark"] {
     --shell-nav-inner-bg: rgba(14, 22, 34, 0.94);
     --shell-nav-inner-border: rgba(124, 145, 168, 0.16);
     --shell-nav-active-bg: rgba(114, 169, 255, 0.14);
+    --shell-nav-active-fill: #3f78dd;
+    --shell-nav-active-text: #ffffff;
+    --shell-nav-active-shadow: 0 12px 26px -14px rgba(0, 0, 0, 0.6);
     --shell-nav-badge-border: rgba(14, 22, 34, 0.96);
     --shell-nav-badge-shadow: 0 12px 20px -14px rgba(0, 0, 0, 0.68);
     --home-aura-base-start: #081322;
@@ -926,7 +935,7 @@ body.app-shell-hidden {
     inset-inline: 0;
     inset-block-end: 0;
     z-index: 210;
-    padding: 0.5rem 0.65rem calc(0.72rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.5rem 0.65rem calc(0.95rem + env(safe-area-inset-bottom, 0px));
     background: var(--shell-nav-overlay);
     pointer-events: none;
     transform: translate3d(0, 0, 0);
@@ -938,15 +947,17 @@ body.app-shell-hidden {
 }
 
 .shell-bottom-nav__inner {
-    width: min(430px, 100%);
+    width: fit-content;
+    max-width: calc(100% - 1.1rem);
     margin: 0 auto;
-    padding: 0.24rem;
-    display: grid;
-    grid-template-columns: repeat(var(--nav-count, 5), minmax(0, 1fr));
-    gap: 0.22rem;
+    padding: 0.26rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.16rem;
     background: var(--shell-nav-inner-bg);
     border: 1px solid var(--shell-nav-inner-border);
-    border-radius: 22px;
+    border-radius: 999px;
     box-shadow: 0 24px 54px -38px rgba(17, 30, 54, 0.22);
     backdrop-filter: blur(16px);
     pointer-events: auto;
@@ -958,30 +969,45 @@ body.app-shell-hidden {
 }
 
 .shell-bottom-nav__link {
-    min-height: 52px;
-    padding: 0.42rem 0.18rem;
-    display: flex;
-    flex-direction: column;
+    min-height: 46px;
+    min-width: 46px;
+    padding: 0;
+    display: inline-flex;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 0.28rem;
-    border-radius: 18px;
+    gap: 0;
+    border-radius: 999px;
     color: var(--text-tertiary);
+    white-space: nowrap;
     transition:
         background var(--motion-fast) var(--motion-ease-standard),
         color var(--motion-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-base) var(--motion-ease-soft),
         transform var(--motion-fast) var(--motion-ease-standard);
 }
 
-.shell-bottom-nav__link:hover,
-.shell-bottom-nav__link:focus-visible {
+.shell-bottom-nav__link:not(.is-active):hover,
+.shell-bottom-nav__link:not(.is-active):focus-visible {
     color: var(--text-primary);
+    background: var(--shell-nav-active-bg);
     transform: translateY(-1px);
 }
 
 .shell-bottom-nav__link.is-active {
-    background: var(--shell-nav-active-bg);
-    color: var(--accent-strong);
+    padding-inline: 0.62rem 0.82rem;
+    gap: 0.4rem;
+    background: var(--shell-nav-active-fill);
+    color: var(--shell-nav-active-text);
+    box-shadow: var(--shell-nav-active-shadow);
+}
+
+.shell-bottom-nav__label {
+    display: none;
+}
+
+.shell-bottom-nav__link.is-active .shell-bottom-nav__label {
+    display: inline;
 }
 
 .shell-bottom-nav__icon {
@@ -998,10 +1024,10 @@ body.app-shell-hidden {
     height: 20px;
 }
 
-.shell-bottom-nav__label {
-    font-size: 0.68rem;
-    font-weight: 820;
-    line-height: 1.1;
+.shell-bottom-nav__link.is-active .shell-bottom-nav__label {
+    font-size: 0.74rem;
+    font-weight: 760;
+    line-height: 1;
 }
 
 .shell-bottom-nav__badge {
@@ -2081,7 +2107,7 @@ html[data-performance-mode="lite"] .shell-modal {
 
 @media (min-width: 992px) {
     .shell-bottom-nav__inner {
-        width: min(430px, calc(100% - 2rem));
+        max-width: min(430px, calc(100% - 2rem));
     }
 }
 

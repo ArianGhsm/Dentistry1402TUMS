@@ -283,6 +283,17 @@
 
     // ---- checkout ----
 
+    function fillIdentityNote() {
+        var note = $("endosim-identity-note");
+        if (!note) return;
+        var auth = window.Dent1402Auth;
+        var user = auth && typeof auth.getCurrentUser === "function" ? auth.getCurrentUser() : null;
+        var name = user && user.name ? String(user.name).trim() : "";
+        note.textContent = name
+            ? "سفارش به نام «" + name + "» ثبت می‌شود."
+            : "سفارش به نام حساب شما ثبت می‌شود.";
+    }
+
     function openCheckout() {
         if (!selectedLines().length) return;
         var modal = $("endosim-checkout");
@@ -290,6 +301,7 @@
         modal.hidden = false;
         document.body.classList.add("endosim-modal-open");
         setFeedback("", "");
+        fillIdentityNote();
         refreshQuote();
     }
 
@@ -389,17 +401,8 @@
         event.preventDefault();
         if (state.submitting) return;
 
-        var name = ($("endosim-payer-name").value || "").trim();
-        var phone = normalizePhone($("endosim-payer-phone").value);
-        var student = normalizeDigits($("endosim-payer-student").value || "").replace(/\D+/g, "");
-        var group = ($("endosim-payer-group").value || "").trim();
         var lines = cartItemsPayload();
-
         if (!lines.length) { setFeedback("سبد خرید خالی است.", "is-error"); return; }
-        if (!name) { setFeedback("نام و نام خانوادگی را وارد کنید.", "is-error"); return; }
-        if (phone.length < 10 || phone.length > 14) {
-            setFeedback("شماره موبایل معتبر نیست.", "is-error"); return;
-        }
         var selected = document.querySelector('input[name="endosim_gateway"]:checked');
         if (!selected) { setFeedback("روش پرداخت را انتخاب کنید.", "is-error"); return; }
 
@@ -410,10 +413,7 @@
 
         apiPost("createCartOrder", {
             items: JSON.stringify(lines),
-            payerName: name,
-            payerPhone: phone,
-            payerStudentNumber: student,
-            extraFormData: JSON.stringify({ source: "endosim", group: group }),
+            extraFormData: JSON.stringify({ source: "endosim" }),
             gateway: String(selected.value || "").trim()
         }).then(function (response) {
             if (isUnauthorized(response)) { redirectToLogin(); return; }

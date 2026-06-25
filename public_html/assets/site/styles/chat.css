@@ -10994,3 +10994,17 @@ body.chat-page .msg-poll__action:disabled {
         padding: 0.72rem 0.78rem;
     }
 }
+
+/* Bottom-nav redesign sync: active chat tab adopts the shared solid lozenge
+   signature (same tokens as .shell-bottom-nav) while the messenger tab-bar
+   structure stays intact. Must remain last so it wins the cascade. */
+body.chat-page .chat-mobile-nav__item.is-active {
+    border-color: transparent !important;
+    background: var(--shell-nav-active-fill) !important;
+    color: var(--shell-nav-active-text) !important;
+    box-shadow: var(--shell-nav-active-shadow) !important;
+}
+
+body.chat-page .chat-mobile-nav__item.is-active svg {
+    color: var(--shell-nav-active-text) !important;
+}
