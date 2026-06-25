@@ -1530,6 +1530,81 @@ html[data-theme="light"] .exams-reference-card__meta-item {
     }
 }
 
+.exams-buyers-list {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.exams-buyer-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.72rem;
+    padding: 0.88rem;
+    border-radius: 18px;
+    border: 1px solid color-mix(in srgb, var(--border-color) 90%, transparent);
+    background: color-mix(in srgb, var(--surface-solid) 86%, transparent);
+}
+
+.exams-buyer-row__main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.32rem;
+    min-width: 0;
+}
+
+.exams-buyer-row__name {
+    color: var(--text-primary);
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+
+.exams-buyer-row__student {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+}
+
+.exams-buyer-row__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+    text-align: left;
+}
+
+.exams-buyer-row__amount {
+    color: var(--text-primary);
+    font-weight: 800;
+    font-size: 0.86rem;
+}
+
+.exams-buyer-row__date {
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+}
+
+.exams-buyer-row__discount {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent-color) 16%, transparent);
+    color: var(--accent-color);
+    font-size: 0.72rem;
+    font-weight: 760;
+}
+
+@media (max-width: 680px) {
+    .exams-buyer-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .exams-buyer-row__meta {
+        align-items: flex-start;
+        text-align: right;
+    }
+}
+
 .exams-feedback {
     min-height: 22px;
     color: var(--text-secondary);

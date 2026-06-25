@@ -1601,6 +1601,58 @@ function dent_exams_api_collection_discount_usage_map_for_ids(array $paymentsSto
     return $usage;
 }
 
+function dent_exams_api_collection_orders_for_ids(array $paymentsStore, array $collectionIds): array
+{
+    $orders = [];
+    $seenIds = [];
+
+    foreach ($collectionIds as $collectionId) {
+        foreach (dent_exams_api_collection_orders($paymentsStore, max(0, (int) $collectionId)) as $order) {
+            $orderId = (int) ($order['id'] ?? 0);
+            if ($orderId > 0) {
+                if (isset($seenIds[$orderId])) {
+                    continue;
+                }
+                $seenIds[$orderId] = true;
+            }
+            $orders[] = $order;
+        }
+    }
+
+    usort($orders, static function (array $left, array $right): int {
+        return strcmp((string) ($right['created_at'] ?? ''), (string) ($left['created_at'] ?? ''));
+    });
+
+    return $orders;
+}
+
+function dent_exams_api_owner_buyers_payload(array $paymentsStore, array $collectionIds): array
+{
+    $buyers = [];
+
+    foreach (dent_exams_api_collection_orders_for_ids($paymentsStore, $collectionIds) as $order) {
+        if ((string) ($order['status'] ?? '') !== PAYMENTS_ORDER_STATUS_SUCCESS) {
+            continue;
+        }
+
+        $studentNumber = (string) ($order['payer_student_number'] ?? ($order['user_id'] ?? ''));
+        $amount = max(0, (int) ($order['amount'] ?? 0));
+
+        $buyers[] = [
+            'orderId' => (int) ($order['id'] ?? 0),
+            'payerName' => (string) ($order['payer_name'] ?? ''),
+            'payerStudentNumber' => $studentNumber,
+            'payerPhone' => (string) ($order['payer_phone'] ?? ''),
+            'amount' => $amount,
+            'amountLabel' => dent_exams_api_money($amount),
+            'discountCode' => (string) ($order['discount_code'] ?? ''),
+            'paidAt' => (string) ($order['paid_at'] ?? ($order['created_at'] ?? '')),
+        ];
+    }
+
+    return $buyers;
+}
+
 function dent_exams_api_migrate_payment_group_setting(
     array $examsStore,
     string $catalogKey,
@@ -1991,6 +2043,7 @@ function dent_exams_api_course_summary_payload(
             'canManage' => $viewerIsOwner,
             'updatedAt' => (string) ($setting['updatedAt'] ?? ''),
             'discountCodes' => $viewerIsOwner ? dent_exams_api_owner_discount_codes_payload($setting, $discountUsageMap) : [],
+            'buyers' => $viewerIsOwner ? dent_exams_api_owner_buyers_payload($paymentsStore, $collectionIds) : [],
         ],
         'exams' => $exams,
     ];

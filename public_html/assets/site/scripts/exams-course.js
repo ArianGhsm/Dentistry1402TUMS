@@ -808,6 +808,52 @@
         ].join("");
     }
 
+    function buyerRowHtml(buyer) {
+        var name = String((buyer && buyer.payerName) || "").trim() || "بدون نام ثبت‌شده";
+        var studentNumber = String((buyer && buyer.payerStudentNumber) || "").trim();
+        var amountLabel = String((buyer && buyer.amountLabel) || "").trim();
+        var paidAt = formatDateTime(buyer && buyer.paidAt, "—");
+        var discountCode = String((buyer && buyer.discountCode) || "").trim();
+
+        return [
+            '<article class="exams-buyer-row">',
+            '  <div class="exams-buyer-row__main">',
+            '    <span class="exams-buyer-row__name">' + escapeHtml(name) + "</span>",
+            studentNumber
+                ? '    <span class="exams-buyer-row__student">شماره دانشجویی: ' + escapeHtml(studentNumber) + "</span>"
+                : "",
+            "  </div>",
+            '  <div class="exams-buyer-row__meta">',
+            amountLabel ? '    <span class="exams-buyer-row__amount">' + escapeHtml(amountLabel) + "</span>" : "",
+            '    <span class="exams-buyer-row__date">' + escapeHtml(paidAt) + "</span>",
+            discountCode ? '    <span class="exams-buyer-row__discount">کد تخفیف: ' + escapeHtml(discountCode) + "</span>" : "",
+            "  </div>",
+            "</article>"
+        ].join("");
+    }
+
+    function ownerBuyersHtml(course) {
+        if (!course || !course.ownerSettings || !course.ownerSettings.canManage) {
+            return "";
+        }
+
+        var buyers = Array.isArray(course.ownerSettings.buyers) ? course.ownerSettings.buyers : [];
+
+        return [
+            '<details class="exams-card exams-owner-shell exams-buyers-shell">',
+            '  <summary class="exams-owner-shell__summary">',
+            '    <span class="exams-owner-chip">فقط برای مالک</span>',
+            '    <span class="exams-owner-shell__title">خریداران این درس (' + escapeHtml(formatValue(buyers.length)) + ")</span>",
+            "  </summary>",
+            '  <div class="exams-owner-shell__body">',
+            buyers.length
+                ? '<div class="exams-buyers-list">' + buyers.map(buyerRowHtml).join("") + "</div>"
+                : '<div class="exams-owner-discount-empty">هنوز کسی این درس را نخریده است.</div>',
+            "  </div>",
+            "</details>"
+        ].join("");
+    }
+
     function sessionMetaText(item) {
         if (item.status.key === "completed") {
             return "کارنامه و مرور پاسخ‌ها داخل همین جلسه باز می‌شود.";
@@ -957,6 +1003,7 @@
                 : emptyStateHtml("برای این جستجو یا فیلتر، جلسه‌ای پیدا نشد."),
                      paywallHtml(course),
                      ownerPanelHtml(course),
+                     ownerBuyersHtml(course),
             "  </div>",
             "</section>"
         ].join("");

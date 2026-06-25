@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/auth_store.php';
 require_once __DIR__ . '/payments_store.php';
 require_once __DIR__ . '/payments_gateway.php';
+require_once __DIR__ . '/endosim_catalog.php';
 
 const PAYMENTS_PUBLIC_LIST_PATH = '/buy/';
 const PAYMENTS_PUBLIC_ITEM_PATH = '/buy/item/';
@@ -3299,6 +3300,23 @@ if ($action === 'ownerItems') {
     dent_json_response([
         'success' => true,
         'items' => $items,
+    ]);
+}
+
+if ($action === 'ownerImportEndosim') {
+    payments_api_require_method(['POST']);
+    dent_require_owner();
+
+    $summary = payments_with_store_lock(static function (array &$store): array {
+        return endosim_import_into_store($store);
+    });
+
+    dent_json_response([
+        'success' => true,
+        'summary' => $summary,
+        'message' => 'کاتالوگ اندوسیم به‌روزرسانی شد: '
+            . (int) ($summary['created'] ?? 0) . ' محصول جدید، '
+            . (int) ($summary['updated'] ?? 0) . ' محصول به‌روزرسانی‌شده.',
     ]);
 }
 
