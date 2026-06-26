@@ -7697,8 +7697,8 @@ body.chat-page .chat-mobile-nav__item.is-active {
     body.chat-page .chat-stage {
         display: block !important;
         width: 100% !important;
-        height: calc(var(--chat-vh, 100dvh) - var(--chat-local-nav-height)) !important;
-        min-height: calc(var(--chat-vh, 100dvh) - var(--chat-local-nav-height)) !important;
+        height: var(--chat-vh, 100dvh) !important;
+        min-height: var(--chat-vh, 100dvh) !important;
         overflow: hidden !important;
     }
 
@@ -7707,8 +7707,8 @@ body.chat-page .chat-mobile-nav__item.is-active {
         position: absolute !important;
         inset: 0 !important;
         width: 100% !important;
-        height: calc(var(--chat-vh, 100dvh) - var(--chat-local-nav-height)) !important;
-        min-height: calc(var(--chat-vh, 100dvh) - var(--chat-local-nav-height)) !important;
+        height: var(--chat-vh, 100dvh) !important;
+        min-height: var(--chat-vh, 100dvh) !important;
         transition: transform 0.2s ease, opacity 0.2s ease !important;
     }
 
@@ -11157,7 +11157,7 @@ body.chat-page .chat-mobile-nav:not([hidden]) {
     border: 0 !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
-    padding: 0.5rem 0.65rem calc(0.95rem + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 0.4rem 0.6rem calc(0.42rem + env(safe-area-inset-bottom, 0px)) !important;
 }
 
 body.chat-page .chat-mobile-nav__inner {
