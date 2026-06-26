@@ -453,6 +453,9 @@ body.endosim-modal-open { overflow: hidden; }
     .endosim-hero__badges { gap: 6px; }
     .endosim-hero__badges li { padding: 5px 11px; font-size: .76rem; }
     .endosim-toolbar { flex-direction: column; align-items: stretch; }
+    /* In a column flex container the 260px basis would apply to HEIGHT and
+       balloon the search box; reset it so it hugs its content. */
+    .endosim-search { flex: 0 0 auto; }
 
     .endosim-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .endosim-card__body { padding: 12px 12px 6px; gap: 6px; }

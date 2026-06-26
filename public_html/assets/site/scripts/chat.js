@@ -6522,13 +6522,29 @@
     }
   }
 
+  var CONTEXT_ACTION_ICONS = {
+    "پاسخ": '<svg viewBox="0 0 24 24" fill="none" width="19" height="19"><path d="M9 7 4 12l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12h11a5 5 0 0 1 5 5v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "فوروارد": '<svg viewBox="0 0 24 24" fill="none" width="19" height="19"><path d="M15 7l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12H9a5 5 0 0 0-5 5v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "کپی": '<svg viewBox="0 0 24 24" fill="none" width="19" height="19"><rect x="9" y="9" width="11" height="11" rx="2.2" stroke="currentColor" stroke-width="1.8"/><path d="M5 15V5.2A1.2 1.2 0 0 1 6.2 4H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "انتخاب چندتایی": '<svg viewBox="0 0 24 24" fill="none" width="19" height="19"><rect x="4" y="4" width="16" height="16" rx="4" stroke="currentColor" stroke-width="1.8"/><path d="M8 12l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "واکنش دیگر": '<svg viewBox="0 0 24 24" fill="none" width="19" height="19"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M9 10h.01M15 10h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8.5 14.5c.9 1.2 2.1 1.8 3.5 1.8s2.6-.6 3.5-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    "ویرایش": '<svg viewBox="0 0 24 24" fill="none" width="19" height="19"><path d="M4 20l.9-3.6L15.6 5.7a1.5 1.5 0 0 1 2.1 0l1.6 1.6a1.5 1.5 0 0 1 0 2.1L8.6 20.1 4 20Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14.3 7.3l2.4 2.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    "سنجاق کردن": '<svg viewBox="0 0 24 24" fill="none" width="19" height="19"><path d="M12 2.5v8.5M8 11h8M10 11v8l2-1 2 1v-8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "برداشتن سنجاق": '<svg viewBox="0 0 24 24" fill="none" width="19" height="19"><path d="M12 2.5v8.5M8 11h8M10 11v8l2-1 2 1v-8M3 3l18 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    "حذف": '<svg viewBox="0 0 24 24" fill="none" width="19" height="19"><path d="M5 7h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" stroke="currentColor" stroke-width="1.8"/><path d="M7 7l.6 11.2A2 2 0 0 0 9.6 20h4.8a2 2 0 0 0 2-1.8L17 7" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 11v5M14 11v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    "فهرست سین‌ها": '<svg viewBox="0 0 24 24" fill="none" width="19" height="19"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.8"/></svg>',
+    "_default": '<svg viewBox="0 0 24 24" fill="none" width="19" height="19"><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg>'
+  };
+
   function contextAction(label, hint, onClick, className) {
     var button = document.createElement("button");
     button.type = "button";
     button.className = "chat-context-action" + (className ? " " + className : "");
+    if (hint) button.title = hint;
+    var icon = CONTEXT_ACTION_ICONS[label] || CONTEXT_ACTION_ICONS._default;
     button.innerHTML =
-      '<span class="chat-context-action__label">' + escapeHtml(label) + "</span>" +
-      '<strong class="chat-context-action__hint">' + escapeHtml(hint || "") + "</strong>";
+      '<span class="chat-context-action__icon" aria-hidden="true">' + icon + "</span>" +
+      '<span class="chat-context-action__label">' + escapeHtml(label) + "</span>";
     button.addEventListener("click", onClick);
     return button;
   }
