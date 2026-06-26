@@ -7697,8 +7697,8 @@ body.chat-page .chat-mobile-nav__item.is-active {
     body.chat-page .chat-stage {
         display: block !important;
         width: 100% !important;
-        height: var(--chat-vh, 100dvh) !important;
-        min-height: var(--chat-vh, 100dvh) !important;
+        height: calc(var(--chat-vh, 100dvh) - var(--chat-local-nav-height)) !important;
+        min-height: calc(var(--chat-vh, 100dvh) - var(--chat-local-nav-height)) !important;
         overflow: hidden !important;
     }
 
@@ -7707,8 +7707,8 @@ body.chat-page .chat-mobile-nav__item.is-active {
         position: absolute !important;
         inset: 0 !important;
         width: 100% !important;
-        height: var(--chat-vh, 100dvh) !important;
-        min-height: var(--chat-vh, 100dvh) !important;
+        height: calc(var(--chat-vh, 100dvh) - var(--chat-local-nav-height)) !important;
+        min-height: calc(var(--chat-vh, 100dvh) - var(--chat-local-nav-height)) !important;
         transition: transform 0.2s ease, opacity 0.2s ease !important;
     }
 
@@ -7963,8 +7963,8 @@ body.chat-page .composer-storage-note {
     body.chat-page .chat-app[data-mobile-view="thread"] .chat-stage,
     body.chat-page .chat-app[data-mobile-view="thread"] .conversation-pane,
     body.chat-page .chat-app[data-mobile-view="thread"] .thread-pane {
-        height: var(--chat-vh, 100dvh) !important;
-        min-height: var(--chat-vh, 100dvh) !important;
+        height: calc(var(--chat-vh, 100dvh) - var(--chat-local-nav-height)) !important;
+        min-height: calc(var(--chat-vh, 100dvh) - var(--chat-local-nav-height)) !important;
     }
 
     body.chat-page .conversation-search-wrap {
