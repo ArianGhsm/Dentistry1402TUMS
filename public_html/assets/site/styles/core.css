@@ -988,7 +988,7 @@ body.app-shell-hidden {
     width: fit-content;
     max-width: calc(100% - 1.1rem);
     margin: 0 auto;
-    padding: 0.26rem;
+    padding: 0.3rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1007,8 +1007,8 @@ body.app-shell-hidden {
 }
 
 .shell-bottom-nav__link {
-    min-height: 46px;
-    min-width: 46px;
+    min-height: 52px;
+    min-width: 52px;
     padding: 0;
     display: inline-flex;
     flex-direction: row;
@@ -1033,8 +1033,8 @@ body.app-shell-hidden {
 }
 
 .shell-bottom-nav__link.is-active {
-    padding-inline: 0.62rem 0.82rem;
-    gap: 0.4rem;
+    padding-inline: 0.74rem 0.94rem;
+    gap: 0.42rem;
     background: var(--shell-nav-active-fill);
     color: var(--shell-nav-active-text);
     box-shadow: var(--shell-nav-active-shadow);
@@ -1049,8 +1049,8 @@ body.app-shell-hidden {
 }
 
 .shell-bottom-nav__icon {
-    width: 20px;
-    height: 20px;
+    width: 23px;
+    height: 23px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1058,12 +1058,12 @@ body.app-shell-hidden {
 }
 
 .shell-bottom-nav__icon svg {
-    width: 20px;
-    height: 20px;
+    width: 23px;
+    height: 23px;
 }
 
 .shell-bottom-nav__link.is-active .shell-bottom-nav__label {
-    font-size: 0.74rem;
+    font-size: 0.8rem;
     font-weight: 760;
     line-height: 1;
 }
@@ -2138,7 +2138,7 @@ html[data-performance-mode="lite"] .shell-modal {
     }
 
     .shell-bottom-nav__label {
-        font-size: 0.66rem;
+        font-size: 0.74rem;
     }
 
     .shell-notification-banner {

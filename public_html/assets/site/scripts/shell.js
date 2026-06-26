@@ -1408,6 +1408,94 @@
         updateSearchVisibility(authState());
     }
 
+    function startsOnHorizontalScroller(target) {
+        var node = target;
+        while (node && node !== document.body && node.nodeType === 1) {
+            if (node.closest && node.closest(".shell-bottom-nav")) {
+                return true;
+            }
+            var style = window.getComputedStyle(node);
+            var overflowX = style.overflowX;
+            if ((overflowX === "auto" || overflowX === "scroll") && node.scrollWidth > node.clientWidth + 4) {
+                return true;
+            }
+            node = node.parentNode;
+        }
+        return false;
+    }
+
+    function initNavSwipe() {
+        if (shellDisabled || !("ontouchstart" in window)) {
+            return;
+        }
+        var startX = 0;
+        var startY = 0;
+        var startedAt = 0;
+        var tracking = false;
+        var blocked = false;
+
+        document.addEventListener("touchstart", function (event) {
+            if (!event.touches || event.touches.length !== 1 || !navInner || !navInner.isConnected) {
+                tracking = false;
+                return;
+            }
+            if (searchState && searchState.open) {
+                tracking = false;
+                return;
+            }
+            var touch = event.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            startedAt = Date.now();
+            blocked = startsOnHorizontalScroller(event.target);
+            tracking = true;
+        }, { passive: true });
+
+        document.addEventListener("touchend", function (event) {
+            if (!tracking || blocked) {
+                tracking = false;
+                return;
+            }
+            tracking = false;
+            var touch = event.changedTouches && event.changedTouches[0];
+            if (!touch) {
+                return;
+            }
+            var dx = touch.clientX - startX;
+            var dy = touch.clientY - startY;
+            if (Date.now() - startedAt > 700) {
+                return;
+            }
+            if (Math.abs(dx) < 72 || Math.abs(dy) > 52 || Math.abs(dx) < Math.abs(dy) * 1.6) {
+                return;
+            }
+            var links = Array.prototype.slice.call(navInner.querySelectorAll(".shell-bottom-nav__link"));
+            if (links.length < 2) {
+                return;
+            }
+            var activeIndex = -1;
+            for (var i = 0; i < links.length; i++) {
+                if (links[i].classList.contains("is-active")) {
+                    activeIndex = i;
+                    break;
+                }
+            }
+            if (activeIndex === -1) {
+                return;
+            }
+            // DOM order matches RTL visual order (index 0 sits on the right). A
+            // leftward swipe (dx < 0) advances to the item on the left, i.e. next index.
+            var targetIndex = dx < 0 ? activeIndex + 1 : activeIndex - 1;
+            if (targetIndex < 0 || targetIndex >= links.length) {
+                return;
+            }
+            var href = links[targetIndex].getAttribute("href");
+            if (href) {
+                window.location.href = href;
+            }
+        }, { passive: true });
+    }
+
     function init() {
         document.body.classList.add("has-app-shell");
         if (shellDisabled) {
@@ -1420,6 +1508,7 @@
         normalizePageTopbars();
         ensureHeaderSearch();
         syncAuthUi(authState());
+        initNavSwipe();
 
         if (window.Dent1402Auth && typeof window.Dent1402Auth.onChange === "function") {
             window.Dent1402Auth.onChange(syncAuthUi);

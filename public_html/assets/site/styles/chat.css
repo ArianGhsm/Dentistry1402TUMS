@@ -11098,10 +11098,69 @@ body.chat-page .msg-poll__action:disabled {
     }
 }
 
-/* Bottom-nav redesign sync: active chat tab adopts the shared solid lozenge
-   signature (same tokens as .shell-bottom-nav) while the messenger tab-bar
-   structure stays intact. Must remain last so it wins the cascade. */
+/* Chat bottom nav unified with the rest of the site: a content-width floating
+   pill (outer = transparent container, inner = the pill) with icon-only inactive
+   items and an active solid lozenge. Mirrors .shell-bottom-nav and uses the same
+   shared tokens. Must remain last so it wins the cascade. */
+body.chat-page .chat-mobile-nav:not([hidden]) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    grid-template-columns: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    padding: 0.5rem 0.65rem calc(0.95rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+body.chat-page .chat-mobile-nav__inner {
+    width: fit-content;
+    max-width: calc(100% - 1.1rem);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 0.16rem;
+    padding: 0.3rem;
+    border-radius: 999px;
+    background: var(--shell-nav-inner-bg);
+    border: 1px solid var(--shell-nav-inner-border);
+    box-shadow: 0 24px 54px -38px rgba(17, 30, 54, 0.22);
+    backdrop-filter: blur(16px);
+}
+
+body.chat-page .chat-mobile-nav__item {
+    min-width: 52px !important;
+    width: auto !important;
+    min-height: 52px !important;
+    flex-direction: row !important;
+    gap: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    color: var(--chat-muted) !important;
+    white-space: nowrap !important;
+}
+
+body.chat-page .chat-mobile-nav__item svg {
+    width: 22px !important;
+    height: 22px !important;
+}
+
+body.chat-page .chat-mobile-nav__item > span:not(.chat-mobile-nav__badge) {
+    display: none !important;
+}
+
+body.chat-page .chat-mobile-nav__item:not(.is-active):hover,
+body.chat-page .chat-mobile-nav__item:not(.is-active):focus-visible {
+    color: var(--chat-text) !important;
+    background: var(--shell-nav-active-bg) !important;
+}
+
 body.chat-page .chat-mobile-nav__item.is-active {
+    padding-inline: 0.74rem 0.94rem !important;
+    gap: 0.42rem !important;
     border-color: transparent !important;
     background: var(--shell-nav-active-fill) !important;
     color: var(--shell-nav-active-text) !important;
@@ -11110,4 +11169,17 @@ body.chat-page .chat-mobile-nav__item.is-active {
 
 body.chat-page .chat-mobile-nav__item.is-active svg {
     color: var(--shell-nav-active-text) !important;
+}
+
+body.chat-page .chat-mobile-nav__item.is-active > span:not(.chat-mobile-nav__badge) {
+    display: inline !important;
+    font-size: 0.8rem !important;
+    font-weight: 760 !important;
+    line-height: 1 !important;
+}
+
+body.chat-page .chat-mobile-nav__item .chat-mobile-nav__badge {
+    inset-inline: auto 6px !important;
+    inset-block-start: 2px !important;
+    transform: none !important;
 }
