@@ -23,6 +23,7 @@
     };
 
     var AUTH_CACHE_KEY = "dent1402_auth_cache_v1";
+    var REQUEST_TIMEOUT_MS = 12000;
 
     var listeners = [];
     var readyResolved = false;
@@ -315,12 +316,17 @@
     async function request(action, method, payload) {
         var requestMethod = method || "GET";
         var url = "/api/auth_api.php";
+        var controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
+        var timeoutId = controller
+            ? setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT_MS)
+            : 0;
         var options = {
             method: requestMethod,
             credentials: "same-origin",
             headers: {
                 "Accept": "application/json"
-            }
+            },
+            signal: controller ? controller.signal : undefined
         };
 
         if (requestMethod === "GET") {
@@ -339,6 +345,10 @@
                 error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
                 httpStatus: 0
             };
+        } finally {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
         }
 
         var data = {};
@@ -415,9 +425,18 @@
         });
 
         bootPromise = request("me", "GET").then(function (response) {
+            var http = response ? response.httpStatus : 0;
+            // The server only "answers" cleanly with success:true (even the
+            // logged-out reply uses success:true) or with a 401. Anything else
+            // (httpStatus 0 from an aborted/offline fetch, a 5xx, malformed JSON)
+            // is a transient failure that must NOT drop a cached session — this
+            // is what caused spurious logouts while switching sections quickly.
+            var serverAnswered = !!response && (response.success === true || http === 401);
             if (response && response.loggedIn && response.user) {
                 applyAuthenticatedState(response);
-            } else {
+            } else if (serverAnswered) {
+                applyLoggedOutState(STATUS.LOGGED_OUT, "");
+            } else if (state.status !== STATUS.LOGGED_IN) {
                 applyLoggedOutState(STATUS.LOGGED_OUT, "");
             }
 
