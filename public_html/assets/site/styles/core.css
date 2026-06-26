@@ -1507,7 +1507,9 @@ html[data-performance-mode="lite"] .shell-search-result {
 
 body.site-keyboard-open .shell-bottom-nav,
 body.site-keyboard-open .buy-floating-bar,
-body.site-keyboard-open .buy-cart-dock {
+body.site-keyboard-open .buy-cart-dock,
+body.endosim-modal-open .shell-bottom-nav,
+body.buy-modal-open .shell-bottom-nav {
     opacity: 0;
     pointer-events: none;
     transform: translate3d(0, calc(100% + env(safe-area-inset-bottom, 0px) + 16px), 0);

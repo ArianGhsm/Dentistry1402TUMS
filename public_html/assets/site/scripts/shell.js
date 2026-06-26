@@ -1424,6 +1424,39 @@
         return false;
     }
 
+    function initNavPrefetch() {
+        if (shellDisabled) {
+            return;
+        }
+        var prefetched = {};
+        function prefetch(href) {
+            if (!href || href.charAt(0) !== "/" || prefetched[href]) {
+                return;
+            }
+            prefetched[href] = true;
+            try {
+                var link = document.createElement("link");
+                link.rel = "prefetch";
+                link.href = href;
+                document.head.appendChild(link);
+            } catch (err) {
+                /* prefetch is best-effort */
+            }
+        }
+        // Warm the next page as soon as the finger lands / pointer enters, so the
+        // cross-document view transition has a ready document and section switches
+        // feel instant instead of freezing on the snapshot while the page loads.
+        ["pointerdown", "touchstart", "pointerenter"].forEach(function (type) {
+            document.addEventListener(type, function (event) {
+                var target = event.target;
+                var link = target && target.closest ? target.closest(".shell-bottom-nav__link") : null;
+                if (link) {
+                    prefetch(link.getAttribute("href"));
+                }
+            }, { passive: true, capture: true });
+        });
+    }
+
     function initNavSwipe() {
         if (shellDisabled || !("ontouchstart" in window)) {
             return;
@@ -1509,6 +1542,7 @@
         ensureHeaderSearch();
         syncAuthUi(authState());
         initNavSwipe();
+        initNavPrefetch();
 
         if (window.Dent1402Auth && typeof window.Dent1402Auth.onChange === "function") {
             window.Dent1402Auth.onChange(syncAuthUi);
