@@ -2202,6 +2202,9 @@
     if (conversationManageBar) {
       conversationManageBar.hidden = !state.listSelectionMode;
     }
+    if (document.body) {
+      document.body.classList.toggle("chat-list-selection-mode", !!state.listSelectionMode);
+    }
     if (conversationSelectionCount) {
       var count = state.selectedConversationIds.size;
       conversationSelectionCount.textContent = count.toLocaleString("fa-IR") + " مورد انتخاب";
