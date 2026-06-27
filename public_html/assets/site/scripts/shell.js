@@ -755,6 +755,27 @@
         return false;
     }
 
+    function payloadLooksUnauthorized(payload) {
+        var auth = window.Dent1402Auth;
+        if (auth && typeof auth.isUnauthorizedPayload === "function") {
+            return auth.isUnauthorizedPayload(payload);
+        }
+        return !!(payload && (payload.loggedOut || payload.httpStatus === 401));
+    }
+
+    // A secondary badge endpoint (notifications/chat summary) returning 401 is
+    // NOT authoritative. Logging the user out app-wide on its word caused a
+    // visible logout/login flicker when one of those endpoints 401'd
+    // transiently (e.g. mid-exam). Re-validate against the real session
+    // endpoint instead; bootstrap only downgrades to logged-out when the
+    // server cleanly confirms it, and keeps the session intact otherwise.
+    function revalidateSessionAfterBadge401() {
+        var auth = window.Dent1402Auth;
+        if (auth && typeof auth.bootstrap === "function") {
+            auth.bootstrap(true);
+        }
+    }
+
     function shouldRefetchPollCount(state) {
         if (!state.loggedIn) {
             return false;
@@ -876,12 +897,15 @@
             var notificationsPayload = results[0] || {};
             var chatPayload = results[1] || {};
             if (
-                consumeUnauthorized(notificationsPayload, "نشست شما برای خواندن اعلان‌ها منقضی شده است.")
-                || consumeUnauthorized(chatPayload, "نشست شما برای خواندن پیام‌ها منقضی شده است.")
+                payloadLooksUnauthorized(notificationsPayload)
+                || payloadLooksUnauthorized(chatPayload)
             ) {
-                resetNavBadgeState();
-                renderBottomNav(authState());
-                renderNotificationBanner(authState());
+                // Throttle so a persistently-401 badge endpoint can't loop
+                // (re-validate -> auth-change -> poll -> 401 -> ...), then
+                // let the authoritative session check decide the real state.
+                navBadgeState.lastFetchedAt = Date.now();
+                navBadgeState.lastUserKey = key;
+                revalidateSessionAfterBadge401();
                 return;
             }
 

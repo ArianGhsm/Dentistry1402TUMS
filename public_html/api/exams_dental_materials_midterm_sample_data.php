@@ -21,8 +21,9 @@ function dent_exams_dental_materials_midterm_sample_course(): array
         'examDefinitions' => [
             [
                 'slug' => 'mcq',
-                'label' => 'نمونه سوالات تستی',
+                'label' => 'نمونه سوالات تستی میانترم مبانی مواد دندانی',
                 'patterns' => ['midterm_72_mcq*.txt'],
+                'parser' => 'dent_exams_text_source_parse_file_multiline',
             ],
             [
                 'slug' => 'essay',

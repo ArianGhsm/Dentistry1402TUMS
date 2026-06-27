@@ -85,8 +85,16 @@ html[data-theme="dark"] body.quiz-page {
 
 body.quiz-page.quiz-stage-active,
 body.quiz-page.quiz-stage-active.has-app-shell {
-    overflow-x: hidden;
-    overflow-y: auto;
+    /*
+     * Clip horizontal overflow without turning <body> into a scroll
+     * container. `overflow: hidden` on either axis would make <body> the
+     * scroll context for the sticky `.site-header`; because the real scroll
+     * happens on the viewport (<html>), the header would then scroll away
+     * with the page. `overflow-x: clip` clips without creating a scroll
+     * container, so the sticky header stays pinned at the top.
+     */
+    overflow-x: clip;
+    overflow-y: visible;
     padding-bottom: 0;
 }
 

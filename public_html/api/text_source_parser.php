@@ -149,7 +149,12 @@ function dent_exams_text_source_find_source_file(string $baseDir, array $pattern
     return '';
 }
 
-function dent_exams_text_source_parse_file(string $path): array
+function dent_exams_text_source_parse_file_multiline(string $path): array
+{
+    return dent_exams_text_source_parse_file($path, true);
+}
+
+function dent_exams_text_source_parse_file(string $path, bool $multilineExplanation = false): array
 {
     $raw = @file_get_contents($path);
     if (!is_string($raw) || $raw === '') {
@@ -162,7 +167,7 @@ function dent_exams_text_source_parse_file(string $path): array
     $text = dent_exams_text_source_normalize_text($raw);
     [$questionText, $answerText] = dent_exams_text_source_split_sections($text);
     $questionMap = dent_exams_text_source_collect_questions($questionText);
-    $answerMap = dent_exams_text_source_collect_answers($answerText);
+    $answerMap = dent_exams_text_source_collect_answers($answerText, $multilineExplanation);
     $questions = [];
 
     foreach ($questionMap as $questionData) {
@@ -325,7 +330,7 @@ function dent_exams_text_source_collect_questions(string $text): array
     return $questions;
 }
 
-function dent_exams_text_source_collect_answers(string $text): array
+function dent_exams_text_source_collect_answers(string $text, bool $multilineExplanation = false): array
 {
     $lines = preg_split('/\R/u', $text) ?: [];
     $answers = [];
@@ -333,7 +338,7 @@ function dent_exams_text_source_collect_answers(string $text): array
     $currentCorrectIndex = null;
     $currentExplanation = [];
 
-    $flush = static function () use (&$answers, &$currentNumber, &$currentCorrectIndex, &$currentExplanation): void {
+    $flush = static function () use (&$answers, &$currentNumber, &$currentCorrectIndex, &$currentExplanation, $multilineExplanation): void {
         if ($currentNumber <= 0 || $currentCorrectIndex === null) {
             $currentNumber = 0;
             $currentCorrectIndex = null;
@@ -343,7 +348,9 @@ function dent_exams_text_source_collect_answers(string $text): array
 
         $answers[$currentNumber] = [
             'correctIndex' => $currentCorrectIndex,
-            'explanation' => dent_exams_text_source_inline_text(implode(' ', $currentExplanation)),
+            'explanation' => $multilineExplanation
+                ? dent_exams_text_source_explanation_lines($currentExplanation)
+                : dent_exams_text_source_inline_text(implode(' ', $currentExplanation)),
         ];
 
         $currentNumber = 0;
@@ -479,6 +486,23 @@ function dent_exams_text_source_inline_text(string $text): string
 {
     $text = trim(preg_replace('/\s+/u', ' ', trim($text)) ?? $text);
     return dent_exams_text_source_restore_digits($text);
+}
+
+function dent_exams_text_source_explanation_lines(array $lines): string
+{
+    $clean = [];
+    foreach ($lines as $line) {
+        $line = trim(preg_replace('/[ \t]+/u', ' ', (string) $line) ?? (string) $line);
+        if ($line === '') {
+            continue;
+        }
+        if (preg_match('/^(دلیل[^:]+):\s*(.+)$/u', $line, $matches) === 1) {
+            $line = '**' . trim((string) $matches[1]) . ':** ' . trim((string) $matches[2]);
+        }
+        $clean[] = $line;
+    }
+
+    return dent_exams_text_source_restore_digits(implode("\n", $clean));
 }
 
 function dent_exams_text_source_restore_digits(string $text): string
