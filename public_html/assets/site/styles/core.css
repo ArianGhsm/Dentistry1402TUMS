@@ -130,6 +130,7 @@
     --motion-ease-soft: cubic-bezier(0.2, 0.88, 0.24, 1);
     --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
     --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+    --motion-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     --shell-header-offset: calc(64px + env(safe-area-inset-top, 0px));
     --shell-nav-offset: calc(104px + env(safe-area-inset-bottom, 0px));
     --shell-nav-content-reserve: calc(var(--shell-nav-offset) + 0.5rem);
@@ -430,6 +431,22 @@ a {
 
 ::view-transition-new(root) {
     animation-name: site-view-fade-in;
+}
+
+/*
+ * Keep the bottom nav out of the full-page cross-fade. The bar holds still
+ * across section switches and the active pill morphs from its old slot to its
+ * new one — so navigating sections slides the indicator instead of flashing
+ * the whole bar. Names are only assigned when motion is allowed (see below).
+ */
+::view-transition-group(shell-nav-bar) {
+    animation-duration: var(--motion-base);
+    animation-timing-function: var(--motion-ease-soft);
+}
+
+::view-transition-group(shell-nav-active) {
+    animation-duration: var(--motion-slow);
+    animation-timing-function: var(--motion-ease-spring);
 }
 
 button,
@@ -1086,6 +1103,69 @@ body.app-shell-hidden {
     align-items: center;
     justify-content: center;
     box-shadow: var(--shell-nav-badge-shadow);
+}
+
+/* ===== Bottom nav — springy, Instagram-grade motion ===== */
+.shell-bottom-nav__link {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* Tactile press: the whole control dips under the finger, then springs back. */
+.shell-bottom-nav__link:active {
+    transform: scale(0.88);
+    transition-duration: 90ms;
+}
+
+.shell-bottom-nav__link.is-active:active {
+    transform: scale(0.94);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    /*
+     * Cross-document View Transitions: the bar stays put and the active pill
+     * morphs between section slots. Assigned only when motion is allowed so
+     * reduced-motion falls back to the instant root cross-fade.
+     */
+    .shell-bottom-nav__inner {
+        view-transition-name: shell-nav-bar;
+    }
+
+    .shell-bottom-nav__link.is-active {
+        view-transition-name: shell-nav-active;
+    }
+
+    /* Per-page settle: icon springs in, label slides out from behind it. */
+    .shell-bottom-nav__link.is-active .shell-bottom-nav__icon {
+        animation: shell-nav-icon-pop var(--motion-slow) var(--motion-ease-spring) both;
+    }
+
+    .shell-bottom-nav__link.is-active .shell-bottom-nav__label {
+        animation: shell-nav-label-in var(--motion-base) var(--motion-ease-standard) both;
+    }
+}
+
+@keyframes shell-nav-icon-pop {
+    0% {
+        transform: scale(0.7);
+    }
+    55% {
+        transform: scale(1.16);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes shell-nav-label-in {
+    from {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* Global header search */
@@ -1902,6 +1982,11 @@ html[data-performance-mode="lite"] .shell-notification-banner {
 
 html[data-performance-mode="lite"] ::view-transition-old(root),
 html[data-performance-mode="lite"] ::view-transition-new(root) {
+    animation-duration: 0.01ms;
+}
+
+html[data-performance-mode="lite"] ::view-transition-group(shell-nav-bar),
+html[data-performance-mode="lite"] ::view-transition-group(shell-nav-active) {
     animation-duration: 0.01ms;
 }
 
