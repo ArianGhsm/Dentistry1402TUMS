@@ -496,7 +496,7 @@ function dent_exams_text_source_explanation_lines(array $lines): string
         if ($line === '') {
             continue;
         }
-        if (preg_match('/^(دلیل[^:]+):\s*(.+)$/u', $line, $matches) === 1) {
+        if (preg_match('/^(دلیل[^:]+|منبع):\s*(.+)$/u', $line, $matches) === 1) {
             $line = '**' . trim((string) $matches[1]) . ':** ' . trim((string) $matches[2]);
         }
         $clean[] = $line;

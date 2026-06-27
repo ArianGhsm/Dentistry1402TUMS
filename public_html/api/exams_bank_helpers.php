@@ -65,7 +65,7 @@ function dent_exams_bank_source_files(): array
         $dir . '/exams_modules.php',
     ];
 
-    foreach (['/exams_*_overrides.php', '/exams_*_data.php', '/exams_term6_reference_data/*.php'] as $pattern) {
+    foreach (['/exams_*_overrides.php', '/exams_*_data.php', '/exams_term6_reference_data/*.php', '/data/*.txt', '/data/*/*.txt'] as $pattern) {
         $matches = glob($dir . $pattern);
         if (is_array($matches)) {
             $files = array_merge($files, $matches);
