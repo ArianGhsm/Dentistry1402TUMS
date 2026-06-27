@@ -32,9 +32,14 @@ function dent_exams_text_source_build_course(array $config): array
             continue;
         }
 
+        $isEssayDefinition = ($definition['kind'] ?? '') === 'essay';
+        $parser = is_callable($definition['parser'] ?? null)
+            ? $definition['parser']
+            : 'dent_exams_text_source_parse_file';
+
         $sourcePath = dent_exams_text_source_find_source_file($dataDir, $patterns);
         $sourcePayload = $sourcePath !== ''
-            ? dent_exams_text_source_parse_file($sourcePath)
+            ? $parser($sourcePath)
             : ['topic' => '', 'questions' => []];
 
         $topic = trim((string) ($sourcePayload['topic'] ?? ''));
@@ -57,7 +62,7 @@ function dent_exams_text_source_build_course(array $config): array
                 : 'آزمون ' . $label,
             'subtitle' => $comingSoon
                 ? 'صفحه این جلسه آماده است و سوال‌های آن به‌زودی از همین مسیر فعال می‌شوند.'
-                : $questionCountFa . ' سوال چهارگزینه‌ای با پاسخ تشریحی'
+                : $questionCountFa . ($isEssayDefinition ? ' سوال تشریحی با پاسخ تفصیلی' : ' سوال چهارگزینه‌ای با پاسخ تشریحی')
                     . ($topic !== '' ? ' از مبحث «' . $topic . '».' : '.'),
             'description' => $comingSoon
                 ? 'سوال‌های این جلسه هنوز اضافه نشده‌اند و به‌زودی از همین صفحه در دسترس قرار می‌گیرند.'

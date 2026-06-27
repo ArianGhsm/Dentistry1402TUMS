@@ -372,7 +372,7 @@ function dent_dentistry_curriculum_terms(): array
                         [
                             'key' => 'dental-materials-foundations',
                             'title' => 'مبانی مواد دندانی',
-                            'examCourseSlugs' => ['dental-materials-foundations', 'craig-dental-materials', 'vannoort-dental-materials'],
+                            'examCourseSlugs' => ['dental-materials-foundations', 'dental-materials-midterm-sample', 'craig-dental-materials', 'vannoort-dental-materials'],
                         ],
                         [
                             'key' => 'diagnostics-1-2',

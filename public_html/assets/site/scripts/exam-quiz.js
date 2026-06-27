@@ -32,6 +32,9 @@
     var learningDraftKey = storageBase + ":learning";
     var guestFlagsKey = storageBase + ":flags";
     var selectedMode = normalizeMode(params.get("mode"));
+    if (exam.essayOnly && !selectedMode) {
+        selectedMode = "learning";
+    }
     var initialFlags = exam.viewerState.canPersist
         ? exam.viewerState.flaggedQuestionIndexes.slice()
         : restoreFlagIndexes(guestFlagsKey);
@@ -140,6 +143,10 @@
         var previewCopy = selected
             ? selected.description
             : "برای همین جلسه دو مسیر جدا در دسترس است: آموزشی برای پاسخ فوری و سنجشی برای ثبت کارنامه.";
+        if (exam.essayOnly) {
+            previewTitle = "مرور سوال‌های تشریحی";
+            previewCopy = "سوال‌ها به‌ترتیب نمایش داده می‌شوند؛ روی «نمایش پاسخ تشریحی» بزن تا پاسخ کامل همان سوال را ببینی.";
+        }
         var previewStats = [];
 
         if (state.mode === "assessment") {
@@ -155,7 +162,7 @@
         } else if (state.mode === "learning") {
             previewStats.push(renderMiniStat("حل‌شده", formatValue(learningStats.answered)));
             previewStats.push(renderMiniStat("باقی‌مانده", formatValue(learningStats.unanswered)));
-            previewStats.push(renderMiniStat("پاسخ فوری", "فعال"));
+            previewStats.push(renderMiniStat(exam.essayOnly ? "نمایش پاسخ" : "پاسخ فوری", "فعال"));
         }
 
         return [
@@ -174,13 +181,13 @@
             '          <h2 class="exam-launch-panel__title">' + escapeHtml(previewTitle) + "</h2>",
             "        </div>",
             '        <div class="exam-mode-pills">',
-            renderModePill("assessment", "سنجشی", !state.mode),
-            renderModePill("learning", "آموزشی", !state.mode),
+            exam.essayOnly ? "" : renderModePill("assessment", "سنجشی", !state.mode),
+            renderModePill("learning", exam.essayOnly ? "مرور سوال‌ها" : "آموزشی", !state.mode),
             "        </div>",
             "      </div>",
             '      <p class="exam-launch-panel__copy">' + escapeHtml(previewCopy) + "</p>",
             previewStats.length ? '<div class="exam-mini-stats">' + previewStats.join("") + "</div>" : "",
-            state.layout.chooserHintExpanded
+            state.layout.chooserHintExpanded && !exam.essayOnly
                 ? '<div class="exam-note-card">در حالت سنجشی همه سوال‌ها با کارنامه، رتبه و ذخیره نتیجه اجرا می‌شود. در حالت آموزشی پس از هر پاسخ، جواب درست و توضیح همان سوال را می‌بینی.</div>'
                 : "",
             renderLaunchActions(),
@@ -318,6 +325,8 @@
             } else {
                 primaryLabel = "شروع آزمون سنجشی";
             }
+        } else if (exam.essayOnly) {
+            primaryLabel = learningStats.answered > 0 ? "ادامه مرور سوال‌ها" : "شروع مرور سوال‌ها";
         } else if (learningStats.answered > 0) {
             primaryLabel = "ادامه آزمون آموزشی";
         } else {
@@ -327,7 +336,7 @@
         return [
             '  <div class="exam-launch-actions">',
             '    <button class="exam-btn exam-btn--primary" type="button" data-action="start-mode"' + (currentMode ? ' data-mode="' + escapeHtml(currentMode) + '"' : "") + ">" + escapeHtml(primaryLabel) + "</button>",
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-chooser-hint">' + escapeHtml(state.layout.chooserHintExpanded ? "بستن توضیح" : "تفاوت دو حالت") + "</button>",
+            exam.essayOnly ? "" : '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-chooser-hint">' + escapeHtml(state.layout.chooserHintExpanded ? "بستن توضیح" : "تفاوت دو حالت") + "</button>",
             "  </div>"
         ].join("");
     }
@@ -445,8 +454,10 @@
             '<section class="exam-panel exam-stage exam-stage--session exam-stage--learning">',
             renderSessionHeader({
                 mode: "learning",
-                title: "آزمون آموزشی",
-                subtitle: "بعد از هر پاسخ، جواب درست و توضیح همان سوال بدون خروج از همین صفحه نمایش داده می‌شود.",
+                title: exam.essayOnly ? "مرور سوال‌های تشریحی" : "آزمون آموزشی",
+                subtitle: exam.essayOnly
+                    ? "روی «نمایش پاسخ تشریحی» بزن تا پاسخ کامل همان سوال بدون خروج از همین صفحه نمایش داده شود."
+                    : "بعد از هر پاسخ، جواب درست و توضیح همان سوال بدون خروج از همین صفحه نمایش داده می‌شود.",
                 chips: [
                     renderMetaChip("سوال " + formatValue(currentIndex + 1) + " از " + formatValue(exam.questions.length), "neutral"),
                     renderMetaChip("حل‌شده " + formatValue(stats.answered), "success"),
@@ -491,8 +502,8 @@
             "    </div>",
             '    <div class="exam-stage-head__aside">',
             '      <div class="exam-mode-pills exam-mode-pills--compact">',
-            renderModePill("assessment", "سنجشی", false),
-            renderModePill("learning", "آموزشی", false),
+            exam.essayOnly ? "" : renderModePill("assessment", "سنجشی", false),
+            exam.essayOnly ? "" : renderModePill("learning", "آموزشی", false),
             "      </div>",
             config.statusText ? '<div class="exam-feedback exam-feedback--' + escapeHtml(config.statusKind || "neutral") + '">' + escapeHtml(config.statusText) + "</div>" : "",
             "    </div>",
@@ -596,12 +607,18 @@
             '<article class="exam-session-card exam-session-card--question" data-card-state="' + escapeHtml(learningNavState(questionIndex)) + '">',
             renderQuestionCardHead(questionIndex, revealed ? learningAnswerLabel(question, selectedIndex) : "در انتظار پاسخ"),
             '  <h3 class="exam-question-text">' + richTextHtml(question.question) + "</h3>",
-            '  <div class="exam-option-grid' + (question.useCompactOptions ? " is-compact" : "") + '">',
-            question.options.map(function (option, optionIndex) {
-                return renderLearningOption(questionIndex, optionIndex, option, selectedIndex, question.correctIndex, revealed);
-            }).join(""),
-            "  </div>",
-            revealed ? renderLearningFeedback(question, selectedIndex, questionIndex) : '<div class="exam-note-card">یکی از گزینه‌ها را انتخاب کن تا پاسخ صحیح و توضیح همان سوال نمایش داده شود.</div>',
+            question.isEssay ? "" : [
+                '  <div class="exam-option-grid' + (question.useCompactOptions ? " is-compact" : "") + '">',
+                question.options.map(function (option, optionIndex) {
+                    return renderLearningOption(questionIndex, optionIndex, option, selectedIndex, question.correctIndex, revealed);
+                }).join(""),
+                "  </div>"
+            ].join(""),
+            question.isEssay
+                ? (revealed
+                    ? renderEssayAnswerCard(question)
+                    : '<div class="exam-essay-reveal"><button class="exam-btn exam-btn--primary" type="button" data-action="learning-reveal-essay" data-question-index="' + escapeHtml(String(questionIndex)) + '">نمایش پاسخ تشریحی</button></div>')
+                : (revealed ? renderLearningFeedback(question, selectedIndex, questionIndex) : '<div class="exam-note-card">یکی از گزینه‌ها را انتخاب کن تا پاسخ صحیح و توضیح همان سوال نمایش داده شود.</div>'),
             '  <div class="exam-question-actions">',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">" + renderResponsiveLabel("\u0633\u0648\u0627\u0644 \u0642\u0628\u0644\u06cc", "\u0642\u0628\u0644\u06cc") + "</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + renderResponsiveLabel(isFlagged(questionIndex) ? "\u062d\u0630\u0641 \u0646\u0634\u0627\u0646" : "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631 \u06a9\u0646", isFlagged(questionIndex) ? "\u062d\u0630\u0641" : "\u0646\u0634\u0627\u0646") + "</button>",
@@ -690,7 +707,7 @@
         return [
             '<aside class="exam-session-card exam-session-card--side">',
             '  <div class="exam-side-section">',
-            '    <span class="exam-kicker">مرور آموزشی</span>',
+            '    <span class="exam-kicker">' + (exam.essayOnly ? "مرور سوال‌های تشریحی" : "مرور آموزشی") + "</span>",
             '    <div class="exam-stat-grid">',
             renderStatCard("حل‌شده", formatValue(stats.answered)),
             renderStatCard("باقی‌مانده", formatValue(stats.unanswered)),
@@ -708,8 +725,8 @@
             "  </div>",
             '  <div class="exam-side-section exam-side-section--actions">',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-jump-unanswered"' + (stats.unanswered <= 0 ? " disabled" : "") + ">اولین سوال بی‌پاسخ</button>",
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-learning-progress">شروع دوباره آموزشی</button>',
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0631\u0641\u062a\u0646 \u0628\u0647 \u0633\u0646\u062c\u0634\u06cc</button>',
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-learning-progress">' + escapeHtml(exam.essayOnly ? "شروع دوباره مرور" : "شروع دوباره آموزشی") + "</button>",
+            exam.essayOnly ? "" : '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0631\u0641\u062a\u0646 \u0628\u0647 \u0633\u0646\u062c\u0634\u06cc</button>',
             "  </div>",
             "</aside>"
         ].join("");
@@ -783,7 +800,7 @@
             renderCompactMetric("\u062c\u0627\u0631\u06cc", formatValue(currentIndex + 1), "accent"),
             renderCompactMetric("\u062d\u0644", formatValue(stats.answered), stats.answered ? "success" : "neutral"),
             "    </div>",
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0633\u0646\u062c\u0634\u06cc</button>',
+            exam.essayOnly ? "" : '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0633\u0646\u062c\u0634\u06cc</button>',
             '    <details class="exam-compact-tools">',
             '      <summary class="exam-compact-tools__summary">\u0627\u0628\u0632\u0627\u0631\u0647\u0627</summary>',
             '      <div class="exam-compact-tools__body">',
@@ -900,6 +917,40 @@
             '  <span class="exam-option-copy">' + richTextHtml(optionText) + "</span>",
             tag ? '  <span class="exam-option-tag">' + escapeHtml(tag) + "</span>" : "",
             "</button>"
+        ].join("");
+    }
+
+    function renderEssayAnswerCard(question) {
+        var sections = [];
+
+        if (question.answerSummary) {
+            sections.push([
+                '  <div class="exam-answer-card__section">',
+                '    <span class="exam-answer-card__section-label">پاسخ</span>',
+                '    <div class="exam-answer-card__section-copy">' + richTextHtml(question.answerSummary) + "</div>",
+                "  </div>"
+            ].join(""));
+        }
+
+        if (question.answerDetail) {
+            sections.push([
+                '  <div class="exam-answer-card__section">',
+                '    <span class="exam-answer-card__section-label">پاسخ تشریحی</span>',
+                '    <div class="exam-answer-card__section-copy">' + richTextHtml(question.answerDetail) + "</div>",
+                "  </div>"
+            ].join(""));
+        }
+
+        if (!sections.length && question.explanation) {
+            sections.push('  <div class="exam-answer-card__section-copy">' + richTextHtml(question.explanation) + "</div>");
+        }
+
+        return [
+            '<div class="exam-answer-card exam-answer-card--essay">',
+            '  <span class="exam-answer-card__label">پاسخ تشریحی</span>',
+            sections.join(""),
+            question.reference ? '<p class="exam-answer-card__reference">' + richTextHtml(question.reference) + "</p>" : "",
+            "</div>"
         ].join("");
     }
 
@@ -1099,6 +1150,10 @@
             );
             return;
         }
+        if (action === "learning-reveal-essay") {
+            revealEssayAnswer(parseIndex(actionNode.getAttribute("data-question-index")));
+            return;
+        }
         if (action === "reset-assessment-draft") {
             resetAssessmentDraft();
             return;
@@ -1227,6 +1282,17 @@
         }
 
         state.learning.answers[questionIndex] = optionIndex;
+        state.learning.revealed[questionIndex] = true;
+        state.learning.currentQuestionIndex = questionIndex;
+        persistLearningState();
+        render();
+    }
+
+    function revealEssayAnswer(questionIndex) {
+        if (!isValidQuestionIndex(questionIndex)) {
+            return;
+        }
+
         state.learning.revealed[questionIndex] = true;
         state.learning.currentQuestionIndex = questionIndex;
         persistLearningState();
@@ -1621,8 +1687,9 @@
 
     function learningTotals() {
         var answered = 0;
-        state.learning.answers.forEach(function (answer) {
-            if (answer !== null) {
+        exam.questions.forEach(function (question, index) {
+            var isDone = question.isEssay ? state.learning.revealed[index] : state.learning.answers[index] !== null;
+            if (isDone) {
                 answered++;
             }
         });
@@ -1653,6 +1720,10 @@
     }
 
     function learningNavState(questionIndex) {
+        var question = exam.questions[questionIndex];
+        if (question.isEssay) {
+            return state.learning.revealed[questionIndex] ? "answered" : "unanswered";
+        }
         var selectedIndex = state.learning.answers[questionIndex];
         if (selectedIndex === null) {
             return "unanswered";
@@ -1660,7 +1731,7 @@
         if (!state.learning.revealed[questionIndex]) {
             return "answered";
         }
-        return selectedIndex === exam.questions[questionIndex].correctIndex ? "correct" : "wrong";
+        return selectedIndex === question.correctIndex ? "correct" : "wrong";
     }
 
     function assessmentStateLabel(stateName) {
@@ -1677,6 +1748,9 @@
     }
 
     function learningAnswerLabel(question, selectedIndex) {
+        if (question.isEssay) {
+            return "پاسخ تشریحی نمایش داده شد";
+        }
         if (selectedIndex === null) {
             return "در انتظار پاسخ";
         }
@@ -1871,11 +1945,15 @@
     function normalizeExamData(data) {
         var viewerState = isObject(data.viewerState) ? data.viewerState : {};
         var normalizedQuestions = (Array.isArray(data.questions) ? data.questions : []).map(normalizeQuestion).filter(function (question) {
-            return question.question && question.options.length;
+            return question.question && (question.isEssay || question.options.length >= 2);
         });
         var report = normalizeReport(viewerState.assessmentReport, normalizedQuestions);
+        var essayOnly = normalizedQuestions.length > 0 && normalizedQuestions.every(function (question) {
+            return question.isEssay;
+        });
 
         return {
+            essayOnly: essayOnly,
             slug: normalizeText(data.slug),
             courseSlug: normalizeText(data.courseSlug || data.course || (document.body && document.body.dataset ? document.body.dataset.examsCourse : "")),
             courseTitle: normalizeText(data.courseTitle),
@@ -1946,12 +2024,17 @@
         var options = rawOptions.map(function (option) {
             return normalizeText(option);
         });
+        var isEssay = options.length === 0;
 
         return {
             question: stripQuestionNumber(normalizeText(item.question || item.text || "")),
             options: options,
-            correctIndex: clampCorrectIndex(item.correctIndex, options.length),
+            correctIndex: isEssay ? null : clampCorrectIndex(item.correctIndex, options.length),
             explanation: normalizeText(item.explanation || ""),
+            isEssay: isEssay,
+            answerSummary: normalizeText(item.answerSummary || ""),
+            answerDetail: normalizeText(item.answerDetail || ""),
+            reference: normalizeText(item.reference || ""),
             useCompactOptions: shouldUseCompactOptions(options)
         };
     }
@@ -2069,7 +2152,11 @@
     function clampAnswers(answers, questions) {
         return createNullArray(questions.length).map(function (_item, index) {
             var answer = Array.isArray(answers) ? answers[index] : null;
-            var optionCount = questions[index] ? questions[index].options.length : 0;
+            var question = questions[index];
+            if (question && question.isEssay) {
+                return answer === 0 ? 0 : null;
+            }
+            var optionCount = question ? question.options.length : 0;
             return Number.isInteger(answer) && answer >= 0 && answer < optionCount ? answer : null;
         });
     }
@@ -2102,7 +2189,13 @@
 
     function normalizeMode(value) {
         var mode = String(value || "").trim().toLowerCase();
-        return mode === "assessment" || mode === "learning" ? mode : null;
+        if (mode !== "assessment" && mode !== "learning") {
+            return null;
+        }
+        if (exam.essayOnly && mode === "assessment") {
+            return "learning";
+        }
+        return mode;
     }
 
     function loginHref() {

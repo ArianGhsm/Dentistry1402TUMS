@@ -1354,6 +1354,56 @@ body.quiz-page .exam-answer-card__hint {
     font-size: 0.78rem;
 }
 
+body.quiz-page .exam-answer-card--essay {
+    gap: 0.7rem;
+}
+
+body.quiz-page .exam-answer-card__section {
+    display: grid;
+    gap: 0.36rem;
+    padding-top: 0.62rem;
+    border-top: 1px solid var(--exam-line);
+}
+
+body.quiz-page .exam-answer-card__section:first-of-type {
+    padding-top: 0;
+    border-top: none;
+}
+
+body.quiz-page .exam-answer-card__section-label {
+    width: fit-content;
+    color: var(--exam-accent-strong);
+    font-size: 0.78rem;
+    font-weight: 820;
+}
+
+body.quiz-page .exam-answer-card__section-copy {
+    color: var(--exam-text-soft);
+    font-size: 0.88rem;
+    line-height: 2;
+    text-align: right;
+    direction: rtl;
+    unicode-bidi: isolate;
+}
+
+body.quiz-page .exam-answer-card__reference {
+    margin: 0;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--exam-line);
+    color: var(--exam-text-muted);
+    font-size: 0.74rem;
+    line-height: 1.7;
+    text-align: right;
+    direction: rtl;
+    unicode-bidi: isolate;
+}
+
+body.quiz-page .exam-essay-reveal {
+    display: flex;
+    justify-content: center;
+    padding: 0.6rem 0;
+}
+
 body.quiz-page .exam-note-card {
     color: var(--exam-text-muted);
     font-size: 0.85rem;
@@ -2008,9 +2058,14 @@ body.quiz-page .exam-empty-card .exam-btn {
 
     body.quiz-page .exam-answer-card__copy,
     body.quiz-page .exam-answer-card__body,
+    body.quiz-page .exam-answer-card__section-copy,
     body.quiz-page .exam-note-card {
         font-size: 0.73rem;
         line-height: 1.52;
+    }
+
+    body.quiz-page .exam-answer-card__reference {
+        font-size: 0.68rem;
     }
 
     body.quiz-page .exam-question-actions .exam-btn,
@@ -2049,7 +2104,8 @@ body.quiz-page .exam-empty-card .exam-btn {
     body.quiz-page .exam-side-copy,
     body.quiz-page .exam-note-card,
     body.quiz-page .exam-answer-card__copy,
-    body.quiz-page .exam-answer-card__body {
+    body.quiz-page .exam-answer-card__body,
+    body.quiz-page .exam-answer-card__section-copy {
         font-size: 0.82rem;
     }
 
@@ -2166,6 +2222,7 @@ body.quiz-page .exam-empty-card .exam-btn {
     body.quiz-page .exam-note-card,
     body.quiz-page .exam-answer-card__copy,
     body.quiz-page .exam-answer-card__body,
+    body.quiz-page .exam-answer-card__section-copy,
     body.quiz-page .exam-report-score__meta {
         font-size: 0.78rem;
         line-height: 1.76;
