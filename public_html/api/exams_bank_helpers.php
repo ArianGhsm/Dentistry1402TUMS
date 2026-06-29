@@ -49,6 +49,13 @@ function dent_exams_sync_bank_question_counts(array $bank): array
 
 function dent_exams_bank_cache_path(): string
 {
+    // Binary (serialize) cache: unserialize is ~35% faster than json_decode for
+    // this ~7.7MB bank, and round-trips Persian/UTF-8 strings without escaping.
+    return dent_storage_path('cache/exams_bank.bin');
+}
+
+function dent_exams_bank_legacy_cache_path(): string
+{
     return dent_storage_path('cache/exams_bank.json');
 }
 
@@ -91,7 +98,18 @@ function dent_exams_bank_source_signature(): string
 
 function dent_exams_bank_load_from_cache(): ?array
 {
-    $cached = dent_read_json_file(dent_exams_bank_cache_path(), null);
+    $path = dent_exams_bank_cache_path();
+    if (!is_file($path)) {
+        return null;
+    }
+
+    $raw = @file_get_contents($path);
+    if ($raw === false || $raw === '') {
+        return null;
+    }
+
+    // Pure arrays/scalars only — never instantiate objects from the cache file.
+    $cached = @unserialize($raw, ['allowed_classes' => false]);
     if (!is_array($cached)) {
         return null;
     }
@@ -117,19 +135,16 @@ function dent_exams_bank_save_to_cache(array $bank): void
         return;
     }
 
-    $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
-    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
-        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
-    }
-
-    $json = json_encode([
+    $payload = serialize([
         'signature' => dent_exams_bank_source_signature(),
         'bank' => $bank,
-    ], $flags);
+    ]);
 
-    if ($json === false) {
-        return;
+    @file_put_contents($path, $payload, LOCK_EX);
+
+    // Drop the legacy JSON cache so the old 7.7MB file does not linger stale.
+    $legacy = dent_exams_bank_legacy_cache_path();
+    if (is_file($legacy)) {
+        @unlink($legacy);
     }
-
-    @file_put_contents($path, $json, LOCK_EX);
 }
