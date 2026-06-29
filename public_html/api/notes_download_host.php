@@ -1575,20 +1575,17 @@ PHP;
 
 function notes_download_host_direct_upload_health(string $mainSiteOrigin): ?array
 {
+    // Strict server-side verification (no "trust" fallback, never fatal): used to
+    // decide whether the gateway needs to be (re)deployed. Returns null whenever the
+    // gateway cannot be positively verified over HTTP — including when the public
+    // domain is simply unreachable/unresolvable from the main host.
     $gatewayUrl = notes_download_host_internal_runtime_public_url(notes_download_host_direct_upload_gateway_relative_path());
     if ($gatewayUrl === '') {
         return null;
     }
 
-    $response = notes_download_host_http_request(
-        'GET',
-        $gatewayUrl . '?health=1',
-        [
-            'Accept: application/json',
-            'Connection: close',
-        ]
-    );
-    if ((int) ($response['status'] ?? 0) < 200 || (int) ($response['status'] ?? 0) >= 300) {
+    $response = notes_download_host_http_get_safe($gatewayUrl . '?health=1', 6);
+    if ($response === null || (int) ($response['status'] ?? 0) < 200 || (int) ($response['status'] ?? 0) >= 300) {
         return null;
     }
 
@@ -1662,6 +1659,24 @@ function notes_download_host_http_get_safe(string $url, int $timeoutSeconds = 6)
     return ['status' => $status, 'body' => $raw];
 }
 
+function notes_download_host_direct_upload_trusted_descriptor(string $gatewayUrl, string $mainSiteOrigin): array
+{
+    // The main host often cannot resolve/reach the PUBLIC download-host domain
+    // server-side (it lives on separate DNS), but the BROWSER can — and the browser
+    // is what actually performs the direct upload. When the server-side probe cannot
+    // connect at all, trust the provisioned gateway instead of disabling direct
+    // upload and falling back to the WAF-prone relay. Chunked uploads keep each
+    // request tiny, so no server-enforced size cap is included here.
+    return [
+        'success' => true,
+        'version' => NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION,
+        'mainSiteOrigin' => rtrim($mainSiteOrigin, '/'),
+        'allowedOrigin' => rtrim($mainSiteOrigin, '/'),
+        'uploadUrl' => $gatewayUrl,
+        'trusted' => true,
+    ];
+}
+
 function notes_download_host_direct_upload_health_safe(string $mainSiteOrigin, string $gatewayUrl): ?array
 {
     if ($gatewayUrl === '') {
@@ -1669,7 +1684,14 @@ function notes_download_host_direct_upload_health_safe(string $mainSiteOrigin, s
     }
 
     $response = notes_download_host_http_get_safe($gatewayUrl . '?health=1', 6);
-    if ($response === null || (int) $response['status'] < 200 || (int) $response['status'] >= 300) {
+    if ($response === null) {
+        // Could not connect to the public gateway domain at all from the main host
+        // (typically unresolvable DNS server-side). That says nothing about whether
+        // the gateway is reachable from BROWSERS — trust it and let the browser
+        // verify, rather than disabling direct upload.
+        return notes_download_host_direct_upload_trusted_descriptor($gatewayUrl, $mainSiteOrigin);
+    }
+    if ((int) $response['status'] < 200 || (int) $response['status'] >= 300) {
         return null;
     }
 
@@ -1803,6 +1825,14 @@ function notes_download_host_ensure_direct_upload_gateway(string $mainSiteOrigin
     );
 
     $health = notes_download_host_direct_upload_health_with_retries($mainSiteOrigin, 4);
+    if (!is_array($health)) {
+        // The gateway files were just deployed via the cPanel API (the reliable,
+        // always-reachable channel). If we still cannot verify over HTTP it is
+        // because the main host cannot resolve/reach the public download-host
+        // domain — not because the gateway is broken. Trust the fresh deployment;
+        // the browser performs the actual upload and CAN reach it.
+        $health = notes_download_host_direct_upload_health_safe($mainSiteOrigin, $gatewayUrl);
+    }
     if (!is_array($health)) {
         notes_direct_upload_gateway_cache_write([
             'mainSiteOrigin' => $mainSiteOrigin,
