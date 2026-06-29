@@ -1167,6 +1167,11 @@ function dis_request_emit_excel(array $dataset): void
 
 $action = dent_request_action();
 
+// Only auth_store writes the PHP session; every action below is a pure session
+// reader. Release the session lock now so concurrent same-session requests are
+// not serialized behind this request. $_SESSION stays readable.
+dent_release_session_lock();
+
 if ($action === 'status') {
     $user = dent_require_main_site_user();
     $store = dis_request_load_store();

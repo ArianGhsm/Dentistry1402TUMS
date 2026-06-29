@@ -78,6 +78,11 @@ function html_uploader_api_paginate(array $pages, array $params): array
 
 $action = dent_request_action();
 
+// Only auth_store writes the PHP session; every action below is a pure session
+// reader. Release the session lock now so concurrent same-session requests are
+// not serialized behind this request. $_SESSION stays readable.
+dent_release_session_lock();
+
 if ($action === 'uploadPage') {
     html_uploader_api_require_method(['POST']);
     $file = $_FILES['file'] ?? null;
