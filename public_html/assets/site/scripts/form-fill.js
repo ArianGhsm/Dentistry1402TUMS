@@ -799,6 +799,21 @@
                 return;
             }
             if (response && response.httpStatus === 401) {
+                // A single 401 can be a transient session-lock/race hiccup. Re-verify
+                // once before showing the login stage so the user is not bounced out.
+                var authApi = window.Dent1402Auth;
+                if (!state.authRechecked && authApi && typeof authApi.verifySession === "function") {
+                    state.authRechecked = true;
+                    authApi.verifySession().then(function (loggedIn) {
+                        if (loggedIn === false) {
+                            loginLink.href = authApi.loginUrl(window.location.pathname + window.location.search);
+                            showStage("login");
+                        } else {
+                            loadForm();
+                        }
+                    });
+                    return;
+                }
                 loginLink.href = window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search);
                 showStage("login");
                 return;
@@ -856,6 +871,10 @@
                 gateway: gatewayInput ? gatewayInput.value : ""
             });
             if (response && response.httpStatus === 401) {
+                var authApi = window.Dent1402Auth;
+                if (authApi && typeof authApi.verifySession === "function" && (await authApi.verifySession()) !== false) {
+                    throw new Error("نشست به‌طور موقت پاسخ نداد. دوباره تلاش کنید.");
+                }
                 loginLink.href = window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search);
                 showStage("login");
                 return;
@@ -905,6 +924,10 @@
         try {
             var response = await apiPostFormData("uploadReceipt", body);
             if (response && response.httpStatus === 401) {
+                var authApi = window.Dent1402Auth;
+                if (authApi && typeof authApi.verifySession === "function" && (await authApi.verifySession()) !== false) {
+                    throw new Error("نشست به‌طور موقت پاسخ نداد. دوباره تلاش کنید.");
+                }
                 loginLink.href = window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search);
                 showStage("login");
                 return;
@@ -943,6 +966,10 @@
             };
             var response = await apiPost("submit", payload);
             if (response && response.httpStatus === 401) {
+                var authApi = window.Dent1402Auth;
+                if (authApi && typeof authApi.verifySession === "function" && (await authApi.verifySession()) !== false) {
+                    throw new Error("نشست به‌طور موقت پاسخ نداد. دوباره تلاش کنید.");
+                }
                 loginLink.href = window.Dent1402Auth.loginUrl(window.location.pathname + window.location.search);
                 showStage("login");
                 return;

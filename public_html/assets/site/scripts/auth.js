@@ -628,9 +628,56 @@
         return snapshot();
     }
 
+    // Canonically re-check the session against `me`. Resolves with:
+    //   true  -> server confirms a valid session (state restored to logged-in)
+    //   false -> server confirms there is no session
+    //   null  -> transient/unknown failure; caller MUST keep the current state
+    // This is the single source of truth page scripts use before reacting to a 401.
+    function verifySession() {
+        return request("me", "GET").then(function (response) {
+            if (response && response.loggedIn && response.user) {
+                applyAuthenticatedState(response);
+                return true;
+            }
+            var http = response ? response.httpStatus : 0;
+            if (!!response && (response.success === true || http === 401)) {
+                return false;
+            }
+            return null;
+        }).catch(function () {
+            return null;
+        });
+    }
+
+    var unauthorizedRecheckInFlight = false;
+
     function markUnauthorized(errorText) {
-        applyLoggedOutState(STATUS.UNAUTHORIZED, errorText || "Authentication required.");
-        resolveReady();
+        // A single 401 from a page API call is NOT proof the session is gone.
+        // Under session-lock contention or a transient server hiccup a request can
+        // briefly return 401 while the real server session is still valid. Re-verify
+        // with the canonical `me` endpoint before dropping the session, so a transient
+        // 401 from any page script never logs the user out across the site.
+        if (state.status !== STATUS.LOGGED_IN || !state.loggedIn) {
+            applyLoggedOutState(STATUS.UNAUTHORIZED, errorText || "Authentication required.");
+            resolveReady();
+            return snapshot();
+        }
+
+        if (unauthorizedRecheckInFlight) {
+            return snapshot();
+        }
+        unauthorizedRecheckInFlight = true;
+
+        verifySession().then(function (result) {
+            unauthorizedRecheckInFlight = false;
+            if (result === false) {
+                applyLoggedOutState(STATUS.UNAUTHORIZED, errorText || "Authentication required.");
+                resolveReady();
+            }
+            // result === true  -> verifySession already restored logged-in state.
+            // result === null  -> transient failure; keep the current session.
+        });
+
         return snapshot();
     }
 
@@ -773,6 +820,7 @@
         saveSmsConfig: saveSmsConfig,
         smsHealthCheck: smsHealthCheck,
         markUnauthorized: markUnauthorized,
+        verifySession: verifySession,
         isUnauthorizedPayload: isUnauthorizedPayload,
         handleUnauthorizedPayload: handleUnauthorizedPayload,
         getState: snapshot,

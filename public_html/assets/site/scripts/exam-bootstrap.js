@@ -34,6 +34,7 @@
 
     var params = new URLSearchParams(window.location.search);
     var started = false;
+    var authRechecked = false;
 
     function escapeHtml(value) {
         return String(value == null ? "" : value).replace(/[&<>"]/g, function (char) {
@@ -170,6 +171,22 @@
                 return;
             }
             if (payload && payload.httpStatus === 401) {
+                // A single 401 can be a transient session-lock/race hiccup, not a real
+                // logout. Re-verify once with the canonical session before showing login.
+                var authApi = window.Dent1402Auth;
+                if (!authRechecked && authApi && typeof authApi.verifySession === "function") {
+                    authRechecked = true;
+                    authApi.verifySession().then(function (loggedIn) {
+                        if (loggedIn === false) {
+                            renderLogin();
+                        } else {
+                            // Session is actually valid (or check was transient) — retry.
+                            started = false;
+                            loadExam();
+                        }
+                    });
+                    return;
+                }
                 renderLogin();
                 return;
             }
