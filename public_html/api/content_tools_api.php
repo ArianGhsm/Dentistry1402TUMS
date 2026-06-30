@@ -827,6 +827,81 @@ if ($action === 'ownerDownloadHostUpload') {
     ]);
 }
 
+// Register a file that the BROWSER already uploaded straight to the download host
+// (via the shared direct-upload gateway) as an upload-center record — so large
+// files never have to be relayed through this (site) host. The bytes never touch
+// this server; only the metadata is stored here.
+if ($action === 'ownerRegisterDownloadHostFile') {
+    content_api_require_method(['POST']);
+    $owner = dent_require_owner();
+    dent_release_session_lock();
+    if (!content_download_host_is_enabled()) {
+        dent_error('هاست دانلود برای آپلودسنتر فعال نیست.', 503);
+    }
+
+    $relativePath = content_clean_remote_relative_path((string) ($_POST['relativePath'] ?? ''));
+    if ($relativePath === '') {
+        dent_error('مسیر فایل آپلودشده روی هاست دانلود معتبر نیست.', 422);
+    }
+
+    $originalName = dent_clean_text((string) ($_POST['fileName'] ?? ''), 240);
+    if ($originalName === '') {
+        $originalName = basename($relativePath);
+    }
+
+    $extension = strtolower(preg_replace('/[^a-z0-9]+/', '', pathinfo($originalName, PATHINFO_EXTENSION)) ?? '');
+    if (!content_extension_allowed($extension)) {
+        dent_error('This file extension is not allowed for upload.', 422);
+    }
+
+    $mime = strtolower(trim((string) strtok((string) ($_POST['mimeType'] ?? ''), ';')));
+    if ($mime === '') {
+        $mime = 'application/octet-stream';
+    }
+    if (!content_mime_allowed($mime)) {
+        dent_error('This file type is not allowed for upload.', 422);
+    }
+
+    $size = max(0, (int) ($_POST['bytes'] ?? ($_POST['size'] ?? 0)));
+
+    $meta = [
+        'title' => (string) ($_POST['title'] ?? ''),
+        'description' => (string) ($_POST['description'] ?? ''),
+        'tags' => (string) ($_POST['tags'] ?? ''),
+        'folder' => (string) ($_POST['folder'] ?? ''),
+        'status' => (string) ($_POST['status'] ?? 'active'),
+        'expiresAt' => (string) ($_POST['expiresAt'] ?? ''),
+        'password' => (string) ($_POST['password'] ?? ''),
+        'downloadLimit' => $_POST['downloadLimit'] ?? 0,
+    ];
+
+    $upload = [
+        'relativePath' => $relativePath,
+        'originalName' => $originalName,
+        'mimeType' => $mime,
+        'extension' => $extension,
+        'sizeBytes' => $size,
+    ];
+
+    $record = content_with_store_lock(static function (array &$store) use ($upload, $owner, $meta): array {
+        $built = content_build_download_host_file_record($upload, $owner, $meta);
+        $store['files'][(string) $built['id']] = $built;
+        return $built;
+    });
+
+    content_audit_log('owner-download-host-register', [
+        'targetPath' => $relativePath,
+        'by' => dent_normalize_student_number((string) ($owner['studentNumber'] ?? '')),
+    ]);
+
+    dent_json_response([
+        'success' => true,
+        'downloadHost' => content_api_download_host_meta_payload(),
+        'files' => [content_file_public_payload($record, true)],
+        'message' => 'فایل روی هاست دانلود ثبت شد.',
+    ]);
+}
+
 if ($action === 'ownerDownloadHostCreateDir') {
     content_api_require_method(['POST']);
     dent_require_owner();

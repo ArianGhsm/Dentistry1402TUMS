@@ -883,7 +883,171 @@
             renderQueue();
         }
 
+        // Chunk size kept under the download-host WAF slow-upload threshold so each
+        // request finishes fast; the whole file is streamed straight to the download
+        // host from the browser, never relayed through this (site) host.
+        var CT_DIRECT_CHUNK_SIZE = 1024 * 1024;
+
+        function ctDirectError(message, fallback) {
+            var err = new Error(message || "direct-upload-failed");
+            if (fallback) { err.__ctFallback = true; }
+            return err;
+        }
+
+        function sendDirectChunks(plan, item) {
+            var baseUrl = String(plan.url || "");
+            var total = Number(item.size || (item.file && item.file.size) || 0);
+            var chunkCount = Math.max(1, Math.ceil(total / CT_DIRECT_CHUNK_SIZE));
+            var ctype = item.file && item.file.type ? item.file.type : "application/octet-stream";
+            var startedAt = Date.now();
+            return new Promise(function (resolve, reject) {
+                function sendChunk(index) {
+                    if (item.canceled) { reject(createUploadSignal("canceled", "آپلود توسط کاربر لغو شد.")); return; }
+                    var start = index * CT_DIRECT_CHUNK_SIZE;
+                    var end = Math.min(total, start + CT_DIRECT_CHUNK_SIZE);
+                    var blob = item.file.slice(start, end);
+                    var url = baseUrl + (baseUrl.indexOf("?") === -1 ? "?" : "&") + "chunkIndex=" + index + "&chunkCount=" + chunkCount;
+                    var xhr = new XMLHttpRequest();
+                    item.xhr = xhr;
+                    xhr.open("POST", url, true);
+                    xhr.withCredentials = false; // cross-origin straight to the download host
+                    xhr.timeout = 0;
+                    xhr.setRequestHeader("Accept", "application/json");
+                    xhr.setRequestHeader("Content-Type", ctype);
+                    xhr.upload.onprogress = function (event) {
+                        if (!event.lengthComputable) return;
+                        var loaded = start + Number(event.loaded || 0);
+                        var elapsed = Math.max(0.25, (Date.now() - startedAt) / 1000);
+                        item.speedBps = loaded / elapsed;
+                        item.progress = total > 0 ? (loaded / total) * 100 : item.progress;
+                        item.etaSeconds = item.speedBps > 0 && total > loaded ? (total - loaded) / item.speedBps : 0;
+                        if (item.progress >= 99.9) { item.status = "finalizing"; item.etaSeconds = 0; }
+                        renderQueue();
+                    };
+                    xhr.onerror = function () { item.xhr = null; reject(ctDirectError("network", index === 0)); };
+                    xhr.ontimeout = function () { item.xhr = null; reject(ctDirectError("timeout", index === 0)); };
+                    xhr.onabort = function () {
+                        item.xhr = null;
+                        reject(item.canceled ? createUploadSignal("canceled", "آپلود توسط کاربر لغو شد.") : ctDirectError("aborted", index === 0));
+                    };
+                    xhr.onload = function () {
+                        item.xhr = null;
+                        var resp = {};
+                        try { resp = JSON.parse(xhr.responseText || "{}"); } catch (_e) { resp = {}; }
+                        if (xhr.status < 200 || xhr.status >= 300 || !resp || resp.success === false) {
+                            // First chunk failing means the gateway is unusable -> fall back to proxy.
+                            reject(ctDirectError((resp && resp.error) || ("gateway-" + xhr.status), index === 0));
+                            return;
+                        }
+                        if (index + 1 >= chunkCount) { resolve(resp && resp.file ? resp.file : {}); return; }
+                        sendChunk(index + 1);
+                    };
+                    xhr.send(blob);
+                }
+                sendChunk(0);
+            });
+        }
+
+        function uploadItemDirect(item) {
+            return new Promise(function (resolve, reject) {
+                var meta = item.uploadMeta && typeof item.uploadMeta === "object"
+                    ? Object.assign({}, item.uploadMeta)
+                    : uploadMetaPayload();
+                meta.fileName = item.name || (item.file && item.file.name) || "file";
+                item.uploadMeta = Object.assign({}, meta);
+                item.targetPath = String(meta.targetPath || item.targetPath || currentUploadPath() || "");
+                item.status = "uploading";
+                item.progress = 0;
+                item.speedBps = 0;
+                item.etaSeconds = NaN;
+                item.error = "";
+                item.canceled = false;
+                renderQueue();
+
+                var fileSize = Number(item.size || (item.file && item.file.size) || 0);
+                var rootSeg = String(item.targetPath || "").split("/")[0] || "1402";
+                var cohort = ["1402", "1403", "1404", "prosthesis-1402"].indexOf(rootSeg) !== -1 ? rootSeg : "1402";
+
+                fetch("/api/notes_api.php?action=prepareHostUpload", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "Accept": "application/json" },
+                    body: new URLSearchParams({
+                        path: item.targetPath,
+                        cohort: cohort,
+                        fileName: meta.fileName,
+                        fileSize: String(fileSize),
+                        mimeType: (item.file && item.file.type) || "application/octet-stream"
+                    })
+                }).then(function (r) { return r.json().then(function (j) { j.httpStatus = r.status; return j; }); }).then(function (prep) {
+                    if (consumeUnauthorized(prep)) { reject(new Error("unauthorized")); return; }
+                    var plan = prep && prep.upload;
+                    if (!prep || !prep.success || !plan || plan.mode !== "direct" || !plan.url) {
+                        reject(ctDirectError("direct-unavailable", true));
+                        return;
+                    }
+                    sendDirectChunks(plan, item).then(function (gwFile) {
+                        var regBody = new URLSearchParams({
+                            relativePath: String(plan.relativePath || (gwFile && gwFile.relativePath) || ""),
+                            fileName: meta.fileName,
+                            bytes: String(fileSize),
+                            mimeType: (item.file && item.file.type) || "application/octet-stream",
+                            title: meta.title || "",
+                            description: meta.description || "",
+                            tags: meta.tags || "",
+                            folder: meta.folder || "",
+                            status: meta.status || "active",
+                            expiresAt: meta.expiresAt || "",
+                            password: meta.password || "",
+                            downloadLimit: String(meta.downloadLimit || "")
+                        });
+                        fetch("/api/content_tools_api.php?action=ownerRegisterDownloadHostFile", {
+                            method: "POST",
+                            credentials: "same-origin",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "Accept": "application/json" },
+                            body: regBody
+                        }).then(function (r) { return r.json().then(function (j) { j.httpStatus = r.status; return j; }); }).then(function (reg) {
+                            if (consumeUnauthorized(reg)) { reject(new Error("unauthorized")); return; }
+                            if (!reg || !reg.success) {
+                                item.status = "error";
+                                item.error = (reg && reg.error) || "ثبت فایل روی هاست انجام نشد.";
+                                item.speedBps = 0;
+                                item.etaSeconds = NaN;
+                                renderQueue();
+                                reject(new Error(item.error));
+                                return;
+                            }
+                            var uploaded = Array.isArray(reg.files) && reg.files[0] ? reg.files[0] : null;
+                            item.status = "done";
+                            item.progress = 100;
+                            item.completedAt = new Date().toISOString();
+                            item.speedBps = 0;
+                            item.etaSeconds = 0;
+                            item.publicUrl = uploaded && uploaded.publicUrl ? String(uploaded.publicUrl) : "";
+                            item.directUrl = uploaded && uploaded.directUrl ? String(uploaded.directUrl) : "";
+                            item.remotePath = uploaded && uploaded.remoteRelativePath ? String(uploaded.remoteRelativePath) : item.targetPath;
+                            renderQueue();
+                            resolve(reg);
+                        }).catch(function () { reject(ctDirectError("register-failed", false)); });
+                    }).catch(reject);
+                }).catch(function () { reject(ctDirectError("prepare-failed", true)); });
+            });
+        }
+
         function uploadItem(item) {
+            // Prefer a direct browser -> download-host upload. Only fall back to the
+            // legacy relay-through-this-host path when the direct gateway is genuinely
+            // unavailable, so large files never get stuck relaying through this host.
+            return uploadItemDirect(item).catch(function (error) {
+                if (item.canceled || (error && error.code === "canceled")) { throw error; }
+                if (error && error.__ctFallback) {
+                    return uploadItemViaProxy(item);
+                }
+                throw error;
+            });
+        }
+
+        function uploadItemViaProxy(item) {
             return new Promise(function (resolve, reject) {
                 var meta = item.uploadMeta && typeof item.uploadMeta === "object"
                     ? Object.assign({}, item.uploadMeta)
