@@ -41,6 +41,7 @@
 - هر تغییر در storage/sync/backup/restore/migration/deploy باید continuity تاریخچه پیام و داده را حفظ کند.
 - منبع حقیقت دیتا در زمان deploy، `storage/` روی هاست است؛ قبل از deploy باید از هاست به لپتاپ بکاپ/ mirror شود.
 - جهت sync دیتابیس و state فقط هاست -> لپتاپ است. دیتای موجود روی لپتاپ (`storage/`, `server-only/storage/`, backupها، sessionها، lockها، `.env`) نباید به هاست یا GitHub ارسال شود.
+- deploy عادی نباید delta بزرگ و ناخواسته را آپلود کند؛ اگر plan بیش از ۸۰ upload یا بیش از ۲۵ delete داشت، باید قبل از upload متوقف شود مگر deploy گسترده با dry-run دیده‌شده و flag صریح `-AllowLargeDeploy` یا `-FullSync` تایید شده باشد.
 - داده‌های فرم‌ساز جدید باید در storage مشترک `forms/store.json` بماند و داده‌های قبلی DIS در `dis_request/store.json` یا نظرسنجی‌های قدیمی chat بدون migration صریح حذف/بازنویسی نشوند.
 - داده‌های خرید/سفارش باید در storage مشترک `payments/store.json` بماند و deploy نباید سفارش‌ها، آیتم‌ها، کدهای تخفیف یا تاریخچه پرداخت را reset کند.
 - تصاویر آپلودی کالاهای بخش خرید باید در storage مشترک `payments/uploads/` بمانند و نباید با فایل‌های deploy-replaced یا مسیرهای temp جایگزین شوند.

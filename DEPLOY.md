@@ -39,6 +39,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - صرفا فایل هایی که تغییر کرده اند باید دپلوی شوند. نیازی به اپلود هرباره همه فایل ها نیست.
 - delta deploy باید علاوه بر `git diff` با manifest آخرین محتوای deploy‌شده روی همین لپتاپ فیلتر شود؛ یعنی اگر فایلی هنوز در worktree dirty است اما همان محتوا قبلاً deploy شده، دوباره upload نشود.
 - اگر `HEAD` فعلی همان آخرین `host deploy` موفق است، اختلاف `upstream..HEAD` نباید دوباره وارد plan شود؛ در این حالت فقط delta بعد از آخرین deploy موفق و تغییرات واقعی worktree مجازند.
+- deploy عادی اگر بیش از ۸۰ upload یا بیش از ۲۵ delete داشته باشد باید قبل از upload fail شود. deploy گسترده فقط وقتی مجاز است که dry-run دیده شده و دستور با `-AllowLargeDeploy` یا `-FullSync` صریح اجرا شود.
 - PWA version stamp دیگر نباید `HTML/PHP`های کل سایت را فقط برای تغییر `?v=` rewrite کند. cache-busting فایل‌های shared از این به بعد با revalidate header روی `css/js` و stamp محدود به `pwa.js`, `sw.js`, `manifest.webmanifest`, `app-version.json` انجام می‌شود.
 - به‌محض موفقیت deploy روی هاست و health-check زنده، state و manifest لوکال باید قبل از notification/GitHub sync ثبت شوند تا failureهای مرحله‌های بعدی باعث تکرار uploadهای قبلاً deploy‌شده نشوند.
 - هیچ سقف حجمی/proxy budget نباید deploy یا GitHub sync را متوقف کند؛ اگر مسیر شبکه در دسترس است، deploy باید ادامه پیدا کند.

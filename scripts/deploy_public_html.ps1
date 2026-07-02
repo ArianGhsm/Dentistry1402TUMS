@@ -7,6 +7,7 @@ param(
     [switch]$SkipGitHubSync,
     [switch]$SkipOwnerDeployNotification,
     [switch]$SkipVersionStamp,
+    [switch]$AllowLargeDeploy,
     [switch]$PullBeforeDeploy,
     [switch]$SkipRemoteStorageSync,
     [switch]$AllowProxyPull,
@@ -16,6 +17,8 @@ param(
     [string]$GitHubNetworkPath = "auto",
     [string]$RemoteStoragePath = "storage",
     [string]$LowBandwidthMode = "auto",
+    [int]$MaxDeployUploads = 80,
+    [int]$MaxDeployDeletes = 25,
     [string]$ProxyEndpoint = "",
     [string]$OwnerStudentNumber = "",
     [string]$OwnerPassword = "",
@@ -3025,6 +3028,36 @@ function Get-OwnerDeployNoticeSkipResult([string]$status, [string]$message, [str
     }
 }
 
+function Assert-DeployDeltaIsIntentional(
+    [string[]]$UploadList,
+    [string[]]$DeleteList
+) {
+    $uploadCount = @($UploadList).Count
+    $deleteCount = @($DeleteList).Count
+    $uploadLimit = [Math]::Max(1, [int]$MaxDeployUploads)
+    $deleteLimit = [Math]::Max(0, [int]$MaxDeployDeletes)
+
+    if ($DryRun) {
+        if ($uploadCount -gt $uploadLimit -or $deleteCount -gt $deleteLimit) {
+            Write-Warning "Dry-run deploy delta is large: upload=$uploadCount (limit=$uploadLimit), delete=$deleteCount (limit=$deleteLimit). A real deploy will fail unless -AllowLargeDeploy or -FullSync is explicit."
+        }
+        return
+    }
+
+    if ($AllowLargeDeploy -or $FullSync) {
+        if ($uploadCount -gt $uploadLimit -or $deleteCount -gt $deleteLimit) {
+            Write-Warning "Large deploy guard bypassed explicitly: upload=$uploadCount, delete=$deleteCount."
+        }
+        return
+    }
+
+    if ($uploadCount -le $uploadLimit -and $deleteCount -le $deleteLimit) {
+        return
+    }
+
+    throw "Refusing large local-delta deploy: upload=$uploadCount (limit=$uploadLimit), delete=$deleteCount (limit=$deleteLimit). Run dry-run, narrow the delta, or pass -AllowLargeDeploy only for an intentional broad deploy."
+}
+
 $validationInfo = [PSCustomObject]@{
     Status     = "not-run"
     StartedAt  = ""
@@ -3194,6 +3227,7 @@ try {
         Write-Host "Deploy mode: $($deployInfo.Mode)"
         Write-Host "Upload count: $($uploadList.Count)"
         Write-Host "Delete count: $($deleteList.Count)"
+        Assert-DeployDeltaIsIntentional -UploadList $uploadList -DeleteList $deleteList
 
         foreach ($relative in $uploadList) {
             Upload-File -relative $relative

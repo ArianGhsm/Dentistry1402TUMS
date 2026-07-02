@@ -24,8 +24,8 @@
 
     var AUTH_CACHE_KEY = "dent1402_auth_cache_v1";
     var REQUEST_TIMEOUT_MS = 12000;
-    var SESSION_RECHECK_DELAY_MS = 350;
-    var SESSION_RECHECK_ATTEMPTS = 2;
+    var SESSION_RECHECK_DELAY_MS = 600;
+    var SESSION_RECHECK_ATTEMPTS = 4;
 
     var listeners = [];
     var readyResolved = false;
@@ -468,11 +468,7 @@
                         attempts: SESSION_RECHECK_ATTEMPTS,
                         delayMs: SESSION_RECHECK_DELAY_MS
                     }).then(function (result) {
-                        if (result === false) {
-                            applyLoggedOutState(STATUS.LOGGED_OUT, "");
-                        } else if (result === null) {
-                            keepCachedAuthenticatedState();
-                        }
+                        keepCachedAuthenticatedState();
                         resolveReady();
                         return snapshot();
                     });
@@ -748,6 +744,16 @@
 
     function handleUnauthorizedPayload(payload, fallbackError) {
         if (!isUnauthorizedPayload(payload)) {
+            return false;
+        }
+
+        if (state.loggedIn && state.user) {
+            markUnauthorized((payload && payload.error) || fallbackError || "Authentication required.");
+            if (payload && typeof payload === "object") {
+                payload.authRecheckPending = true;
+                payload.loggedOut = false;
+                payload.httpStatus = 0;
+            }
             return false;
         }
 
