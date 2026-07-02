@@ -24,6 +24,8 @@
 
     var AUTH_CACHE_KEY = "dent1402_auth_cache_v1";
     var REQUEST_TIMEOUT_MS = 12000;
+    var SESSION_RECHECK_DELAY_MS = 350;
+    var SESSION_RECHECK_ATTEMPTS = 2;
 
     var listeners = [];
     var readyResolved = false;
@@ -323,6 +325,7 @@
         var options = {
             method: requestMethod,
             credentials: "same-origin",
+            cache: "no-store",
             headers: {
                 "Accept": "application/json"
             },
@@ -330,7 +333,7 @@
         };
 
         if (requestMethod === "GET") {
-            url += "?action=" + encodeURIComponent(action);
+            url += "?action=" + encodeURIComponent(action) + "&_=" + encodeURIComponent(String(Date.now()));
         } else {
             options.headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8";
             options.body = new URLSearchParams(Object.assign({ action: action }, payload || {}));
@@ -364,6 +367,31 @@
 
         data.httpStatus = response.status;
         return data;
+    }
+
+    function serverAnsweredCleanly(response) {
+        var http = response ? response.httpStatus : 0;
+        return !!response && (response.success === true || http === 401);
+    }
+
+    function wait(ms) {
+        return new Promise(function (resolve) {
+            window.setTimeout(resolve, ms);
+        });
+    }
+
+    function keepCachedAuthenticatedState() {
+        if (!state.loggedIn || !state.user) {
+            return false;
+        }
+
+        setState({
+            status: STATUS.LOGGED_IN,
+            loggedIn: true,
+            user: state.user,
+            error: ""
+        });
+        return true;
     }
 
     function applyAuthenticatedState(response) {
@@ -408,6 +436,7 @@
             error: ""
         });
 
+        writeAuthCache(true, user);
         resolveReady();
         return snapshot();
     }
@@ -425,16 +454,29 @@
         });
 
         bootPromise = request("me", "GET").then(function (response) {
-            var http = response ? response.httpStatus : 0;
             // The server only "answers" cleanly with success:true (even the
             // logged-out reply uses success:true) or with a 401. Anything else
             // (httpStatus 0 from an aborted/offline fetch, a 5xx, malformed JSON)
             // is a transient failure that must NOT drop a cached session — this
             // is what caused spurious logouts while switching sections quickly.
-            var serverAnswered = !!response && (response.success === true || http === 401);
+            var serverAnswered = serverAnsweredCleanly(response);
             if (response && response.loggedIn && response.user) {
                 applyAuthenticatedState(response);
             } else if (serverAnswered) {
+                if (state.loggedIn && state.user) {
+                    return verifySession({
+                        attempts: SESSION_RECHECK_ATTEMPTS,
+                        delayMs: SESSION_RECHECK_DELAY_MS
+                    }).then(function (result) {
+                        if (result === false) {
+                            applyLoggedOutState(STATUS.LOGGED_OUT, "");
+                        } else if (result === null) {
+                            keepCachedAuthenticatedState();
+                        }
+                        resolveReady();
+                        return snapshot();
+                    });
+                }
                 applyLoggedOutState(STATUS.LOGGED_OUT, "");
             } else if (state.status !== STATUS.LOGGED_IN) {
                 applyLoggedOutState(STATUS.LOGGED_OUT, "");
@@ -633,20 +675,32 @@
     //   false -> server confirms there is no session
     //   null  -> transient/unknown failure; caller MUST keep the current state
     // This is the single source of truth page scripts use before reacting to a 401.
-    function verifySession() {
-        return request("me", "GET").then(function (response) {
-            if (response && response.loggedIn && response.user) {
-                applyAuthenticatedState(response);
-                return true;
-            }
-            var http = response ? response.httpStatus : 0;
-            if (!!response && (response.success === true || http === 401)) {
-                return false;
-            }
-            return null;
-        }).catch(function () {
-            return null;
-        });
+    function verifySession(options) {
+        var settings = options || {};
+        var attempts = Math.max(1, Number(settings.attempts || 1) || 1);
+        var delayMs = Math.max(0, Number(settings.delayMs || 0) || 0);
+
+        function runAttempt(index) {
+            return request("me", "GET").then(function (response) {
+                if (response && response.loggedIn && response.user) {
+                    applyAuthenticatedState(response);
+                    return true;
+                }
+                if (serverAnsweredCleanly(response)) {
+                    if (index + 1 < attempts) {
+                        return wait(delayMs).then(function () {
+                            return runAttempt(index + 1);
+                        });
+                    }
+                    return false;
+                }
+                return null;
+            }).catch(function () {
+                return null;
+            });
+        }
+
+        return runAttempt(0);
     }
 
     var unauthorizedRecheckInFlight = false;
@@ -668,7 +722,10 @@
         }
         unauthorizedRecheckInFlight = true;
 
-        verifySession().then(function (result) {
+        verifySession({
+            attempts: SESSION_RECHECK_ATTEMPTS,
+            delayMs: SESSION_RECHECK_DELAY_MS
+        }).then(function (result) {
             unauthorizedRecheckInFlight = false;
             if (result === false) {
                 applyLoggedOutState(STATUS.UNAUTHORIZED, errorText || "Authentication required.");
