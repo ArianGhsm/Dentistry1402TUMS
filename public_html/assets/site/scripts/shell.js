@@ -1540,9 +1540,10 @@
             if (activeIndex === -1) {
                 return;
             }
-            // DOM order matches RTL visual order (index 0 sits on the right). A
-            // leftward swipe (dx < 0) advances to the item on the left, i.e. next index.
-            var targetIndex = dx < 0 ? activeIndex + 1 : activeIndex - 1;
+            // DOM order matches RTL visual order (index 0 sits on the right).
+            // Match the bottom bar's RTL feel: swiping right moves to the
+            // visually-left tab (next index), and swiping left moves right.
+            var targetIndex = dx > 0 ? activeIndex + 1 : activeIndex - 1;
             if (targetIndex < 0 || targetIndex >= links.length) {
                 return;
             }
