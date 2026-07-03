@@ -139,7 +139,7 @@
 }
 
 @view-transition {
-    navigation: auto;
+    navigation: none;
 }
 
 html[data-theme="light"] {
@@ -434,10 +434,9 @@ a {
 }
 
 /*
- * Keep the bottom nav out of the full-page cross-fade. The bar holds still
- * across section switches and the active pill morphs from its old slot to its
- * new one — so navigating sections slides the indicator instead of flashing
- * the whole bar. Names are only assigned when motion is allowed (see below).
+ * Cross-document View Transitions are disabled above because rapid mobile
+ * navigation can leave old/new page snapshots visibly stacked. Keep these
+ * pseudo rules harmless for engines that still expose named transitions.
  */
 ::view-transition-group(shell-nav-bar) {
     animation-duration: var(--motion-base);
@@ -449,11 +448,7 @@ a {
     animation-timing-function: var(--motion-ease-spring);
 }
 
-/*
- * The bottom nav uses a blurred glass surface. Animating its View Transition
- * snapshot can momentarily soften the bar during rapid section switches, so
- * keep named nav snapshots instant while the page itself still cross-fades.
- */
+/* Keep any named nav snapshots instant if a browser still creates them. */
 ::view-transition-group(shell-nav-bar),
 ::view-transition-group(shell-nav-active),
 ::view-transition-old(shell-nav-bar),
@@ -1138,9 +1133,8 @@ body.app-shell-hidden {
 
 @media (prefers-reduced-motion: no-preference) {
     /*
-     * Cross-document View Transitions: the bar stays put and the active pill
-     * morphs between section slots. Assigned only when motion is allowed so
-     * reduced-motion falls back to the instant root cross-fade.
+     * Keep names available for any same-document transition experiments, but
+     * cross-document page transitions remain disabled by the top-level rule.
      */
     .shell-bottom-nav__inner {
         view-transition-name: shell-nav-bar;
