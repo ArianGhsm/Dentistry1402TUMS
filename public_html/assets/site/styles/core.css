@@ -449,6 +449,21 @@ a {
     animation-timing-function: var(--motion-ease-spring);
 }
 
+/*
+ * The bottom nav uses a blurred glass surface. Animating its View Transition
+ * snapshot can momentarily soften the bar during rapid section switches, so
+ * keep named nav snapshots instant while the page itself still cross-fades.
+ */
+::view-transition-group(shell-nav-bar),
+::view-transition-group(shell-nav-active),
+::view-transition-old(shell-nav-bar),
+::view-transition-new(shell-nav-bar),
+::view-transition-old(shell-nav-active),
+::view-transition-new(shell-nav-active) {
+    animation-duration: 0.01ms;
+    animation-delay: 0s;
+}
+
 button,
 input,
 textarea,
