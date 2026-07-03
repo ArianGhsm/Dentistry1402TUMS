@@ -58,6 +58,74 @@
         }
     }
 
+    function slimCachedUser(user) {
+        if (!user || typeof user !== "object") {
+            return null;
+        }
+
+        var cached = {};
+        [
+            "studentNumber",
+            "disNumber",
+            "name",
+            "role",
+            "roleLabel",
+            "cohortKey",
+            "cohort",
+            "isOwner",
+            "isRepresentative",
+            "isExternalExamUser",
+            "canUseChat",
+            "isProsthesisStudent",
+            "isProsthesisRepresentative",
+            "canModerateChat",
+            "permissions",
+            "phone",
+            "rotation",
+            "createdAt",
+            "updatedAt"
+        ].forEach(function (key) {
+            if (Object.prototype.hasOwnProperty.call(user, key)) {
+                cached[key] = clone(user[key]);
+            }
+        });
+
+        if (user.profile && typeof user.profile === "object") {
+            cached.profile = {
+                about: user.profile.about || user.profile.bio || "",
+                bio: user.profile.bio || user.profile.about || "",
+                contactHandle: user.profile.contactHandle || "",
+                focusArea: user.profile.focusArea || "",
+                hasAvatar: !!user.profile.avatarUrl
+            };
+        }
+
+        return cached.studentNumber ? cached : null;
+    }
+
+    function minimalCachedUser(user) {
+        if (!user || typeof user !== "object") {
+            return null;
+        }
+
+        return {
+            studentNumber: user.studentNumber || "",
+            name: user.name || user.studentNumber || "",
+            role: user.role || "student",
+            roleLabel: user.roleLabel || "",
+            cohortKey: user.cohortKey || "",
+            cohort: user.cohort || null,
+            isOwner: !!user.isOwner,
+            isRepresentative: !!user.isRepresentative,
+            isExternalExamUser: !!user.isExternalExamUser,
+            canUseChat: user.canUseChat !== false,
+            isProsthesisStudent: !!user.isProsthesisStudent,
+            isProsthesisRepresentative: !!user.isProsthesisRepresentative,
+            canModerateChat: !!user.canModerateChat,
+            permissions: user.permissions || {}
+        };
+    }
+
     function writeAuthCache(loggedIn, user) {
         try {
             if (!window.localStorage) {
@@ -65,12 +133,18 @@
             }
 
             if (loggedIn && user) {
-                window.localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({ loggedIn: true, user: user }));
+                window.localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({ loggedIn: true, user: slimCachedUser(user) || minimalCachedUser(user) }));
             } else {
                 window.localStorage.removeItem(AUTH_CACHE_KEY);
             }
         } catch (_error) {
-            // Ignore storage errors (private mode, quota, etc.).
+            try {
+                if (loggedIn && user && window.localStorage) {
+                    window.localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({ loggedIn: true, user: minimalCachedUser(user) }));
+                }
+            } catch (_fallbackError) {
+                // Ignore storage errors (private mode, quota, etc.).
+            }
         }
     }
 

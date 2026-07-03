@@ -188,12 +188,14 @@
     function navItems(state) {
         var status = authStatus(state);
         var isPending = isAuthTransitioning(status);
+        var renderLoggedInShell = !!state.loggedIn || isPending;
+        var canUseChat = state.loggedIn ? canUseChatState(state) : isPending;
         var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
         var isProsthesis = isProsthesisState(state);
         var chatBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.chatCount || 0)) : 0;
         var accountBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.notificationCount || 0)) : 0;
         var items = [];
-        if (state.loggedIn) {
+        if (renderLoggedInShell) {
             items.push({
                 href: "/app/",
                 label: "خانه",
@@ -205,8 +207,8 @@
             items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
         }
 
-        if (!canUseChatState(state)) {
-            if (state.loggedIn) {
+        if (!canUseChat) {
+            if (renderLoggedInShell) {
                 items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
             }
             items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
@@ -234,7 +236,7 @@
         items.push(
             {
                 href: accountHref,
-                label: state.loggedIn ? "حساب" : "ورود",
+                label: renderLoggedInShell ? "حساب" : "ورود",
                 icon: "account",
                 active: ["/account/"],
                 pending: isPending,
