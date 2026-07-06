@@ -36,13 +36,15 @@ function dent_exams_text_source_build_course(array $config): array
         $parser = is_callable($definition['parser'] ?? null)
             ? $definition['parser']
             : 'dent_exams_text_source_parse_file';
+        $definitionTopic = trim((string) ($definition['topic'] ?? ''));
 
         $sourcePath = dent_exams_text_source_find_source_file($dataDir, $patterns);
         $sourcePayload = $sourcePath !== ''
             ? $parser($sourcePath)
             : ['topic' => '', 'questions' => []];
 
-        $topic = trim((string) ($sourcePayload['topic'] ?? ''));
+        $sourceTopic = trim((string) ($sourcePayload['topic'] ?? ''));
+        $topic = $sourceTopic !== '' ? $sourceTopic : $definitionTopic;
         $questions = is_array($sourcePayload['questions'] ?? null) ? $sourcePayload['questions'] : [];
         $comingSoon = $questions === [];
         $questionCount = count($questions);

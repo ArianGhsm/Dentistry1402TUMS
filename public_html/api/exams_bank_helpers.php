@@ -51,12 +51,26 @@ function dent_exams_bank_cache_path(): string
 {
     // Binary (serialize) cache: unserialize is ~35% faster than json_decode for
     // this ~7.7MB bank, and round-trips Persian/UTF-8 strings without escaping.
-    return dent_storage_path('cache/exams_bank.bin');
+    return dent_storage_path('cache/exams_bank_' . dent_exams_bank_cache_context_key() . '.bin');
 }
 
 function dent_exams_bank_legacy_cache_path(): string
 {
     return dent_storage_path('cache/exams_bank.json');
+}
+
+function dent_exams_bank_cache_context_key(): string
+{
+    $context = 'shared';
+    if (function_exists('dent_requested_cohort_key')) {
+        $context = (string) dent_requested_cohort_key();
+    }
+
+    $context = trim(strtolower($context));
+    $context = preg_replace('/[^a-z0-9_-]+/', '-', $context) ?? '';
+    $context = trim($context, '-_');
+
+    return $context !== '' ? substr($context, 0, 80) : 'shared';
 }
 
 /**
