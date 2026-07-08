@@ -813,13 +813,57 @@
                             <select id="owner-cohort-product-type">
                                 <option value="dentistry">دندانپزشکی</option>
                                 <option value="prosthesis">پروتز</option>
+                                <option value="site-users">کاربران عمومی سایت</option>
                             </select>
 
                             <label for="owner-cohort-notes-mode">حالت منابع</label>
                             <select id="owner-cohort-notes-mode">
                                 <option value="archive">آرشیو</option>
                                 <option value="terms">ترمی</option>
+                                <option value="none">بدون منابع</option>
                             </select>
+
+                            <div class="owner-cohort-feature-grid" aria-label="کارت‌های خانه">
+                                <label class="phone-toggle-row" for="owner-cohort-service-notes">
+                                    <span>
+                                        <strong>کارت منابع</strong>
+                                        <small>نمایش ورودی این cohort در بخش منابع خانه</small>
+                                    </span>
+                                    <input id="owner-cohort-service-notes" type="checkbox" checked>
+                                </label>
+
+                                <label class="phone-toggle-row" for="owner-cohort-service-forms">
+                                    <span>
+                                        <strong>کارت فرم‌ها</strong>
+                                        <small>نمایش مسیر فرم‌های همین cohort در خانه</small>
+                                    </span>
+                                    <input id="owner-cohort-service-forms" type="checkbox" checked>
+                                </label>
+
+                                <label class="phone-toggle-row" for="owner-cohort-service-grades">
+                                    <span>
+                                        <strong>کارت نمرات</strong>
+                                        <small>نمایش مسیر نمرات همین cohort در خانه</small>
+                                    </span>
+                                    <input id="owner-cohort-service-grades" type="checkbox" checked>
+                                </label>
+
+                                <label class="phone-toggle-row" for="owner-cohort-service-navid">
+                                    <span>
+                                        <strong>کارت نوید</strong>
+                                        <small>نمایش میان‌بر تکالیف نوید برای این cohort</small>
+                                    </span>
+                                    <input id="owner-cohort-service-navid" type="checkbox" checked>
+                                </label>
+
+                                <label class="phone-toggle-row" for="owner-cohort-service-buy">
+                                    <span>
+                                        <strong>کارت خرید</strong>
+                                        <small>برای cohortهای عمومی یا پرداخت‌محور</small>
+                                    </span>
+                                    <input id="owner-cohort-service-buy" type="checkbox">
+                                </label>
+                            </div>
 
                             <label class="phone-toggle-row" for="owner-cohort-allow-representative">
                                 <span>

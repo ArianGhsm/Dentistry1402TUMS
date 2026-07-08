@@ -129,6 +129,8 @@ function dent_management_cohort_cards(array $viewer, array $users): array
             'notesMode' => (string) ($cohort['notesMode'] ?? ''),
             'allowRepresentativeManagement' => !empty($cohort['allowRepresentativeManagement']),
             'supportsRotationGroups' => !empty($cohort['supportsRotationGroups']),
+            'services' => is_array($cohort['services'] ?? null) ? $cohort['services'] : [],
+            'routes' => is_array($cohort['routes'] ?? null) ? $cohort['routes'] : [],
             'permissions' => dent_permissions_for_role((string) ($viewer['role'] ?? 'student'), $cohortKey),
             'counts' => $counts,
         ];
@@ -482,6 +484,7 @@ if ($action === 'login') {
         'loggedIn' => true,
         'status' => dent_auth_status($user),
         'user' => $publicUser,
+        'availableCohorts' => dent_visible_cohorts_for_user($publicUser),
     ]);
 }
 
@@ -596,6 +599,7 @@ if ($action === 'verifyLoginOtp') {
         'loggedIn' => true,
         'status' => 'logged-in',
         'user' => $loggedInUser,
+        'availableCohorts' => dent_visible_cohorts_for_user($loggedInUser),
         'message' => 'ورود با کد تایید انجام شد.',
     ]);
 }
@@ -643,6 +647,7 @@ if ($action === 'verifyExternalSignupOtp') {
         'loggedIn' => true,
         'status' => 'logged-in',
         'user' => $loggedInUser,
+        'availableCohorts' => dent_visible_cohorts_for_user($loggedInUser),
         'message' => 'ثبت‌نام تکمیل شد.',
     ]);
 }
@@ -1012,6 +1017,13 @@ if ($action === 'createCohort') {
         'year' => $_POST['year'] ?? '',
         'notesMode' => $_POST['notesMode'] ?? '',
         'allowRepresentativeManagement' => $_POST['allowRepresentativeManagement'] ?? '1',
+        'services' => [
+            'notes' => $_POST['serviceNotes'] ?? '',
+            'forms' => $_POST['serviceForms'] ?? '',
+            'grades' => $_POST['serviceGrades'] ?? '',
+            'navid' => $_POST['serviceNavid'] ?? '',
+            'buy' => $_POST['serviceBuy'] ?? '',
+        ],
         'sortOrder' => $_POST['sortOrder'] ?? '',
     ]);
 

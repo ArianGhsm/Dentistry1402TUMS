@@ -92,6 +92,11 @@
     var ownerCohortYear = $("owner-cohort-year");
     var ownerCohortProductType = $("owner-cohort-product-type");
     var ownerCohortNotesMode = $("owner-cohort-notes-mode");
+    var ownerCohortServiceNotes = $("owner-cohort-service-notes");
+    var ownerCohortServiceForms = $("owner-cohort-service-forms");
+    var ownerCohortServiceGrades = $("owner-cohort-service-grades");
+    var ownerCohortServiceNavid = $("owner-cohort-service-navid");
+    var ownerCohortServiceBuy = $("owner-cohort-service-buy");
     var ownerCohortAllowRepresentative = $("owner-cohort-allow-representative");
     var ownerCreateCohortSubmit = $("owner-create-cohort-submit");
     var ownerCreateCohortFeedback = $("owner-create-cohort-feedback");
@@ -3307,10 +3312,21 @@
         }
 
         if (ownerCohortSummary) {
+            var activeServices = activeRecord && activeRecord.services && typeof activeRecord.services === "object"
+                ? activeRecord.services
+                : {};
+            var activeServiceLabels = [
+                activeServices.notes ? "منابع" : "",
+                activeServices.forms ? "فرم" : "",
+                activeServices.grades ? "نمره" : "",
+                activeServices.navid ? "نوید" : "",
+                activeServices.buy ? "خرید" : ""
+            ].filter(Boolean);
             ownerCohortSummary.innerHTML = activeRecord ? [
                 summaryCard("فعال", String(activeRecord.shortTitle || activeRecord.title || "—"), String(activeRecord.title || ""), "ok"),
-                summaryCard("نوع", activeRecord.productType === "prosthesis" ? "پروتز" : "دندانپزشکی", "محیط ایزوله همین ورودی"),
-                summaryCard("دسترسی", activeRecord.allowRepresentativeManagement ? "نماینده فعال" : "فقط مالک", activeRecord.allowRepresentativeManagement ? "ابزارهای اصلی برای نماینده همین ورودی باز است" : "مدیریت فقط در سطح مالک انجام می‌شود", activeRecord.allowRepresentativeManagement ? "ok" : "warn")
+                summaryCard("نوع", activeRecord.productType === "prosthesis" ? "پروتز" : (activeRecord.productType === "site-users" ? "کاربران عمومی" : "دندانپزشکی"), "محیط ایزوله همین ورودی"),
+                summaryCard("دسترسی", activeRecord.allowRepresentativeManagement ? "نماینده فعال" : "فقط مالک", activeRecord.allowRepresentativeManagement ? "ابزارهای اصلی برای نماینده همین ورودی باز است" : "مدیریت فقط در سطح مالک انجام می‌شود", activeRecord.allowRepresentativeManagement ? "ok" : "warn"),
+                summaryCard("کارت‌های خانه", activeServiceLabels.length ? activeServiceLabels.join("، ") : "بدون کارت", activeServiceLabels.length ? "کارت‌های خانه این ورودی از همین تنظیم‌ها ساخته می‌شود" : "برای این ورودی فعلاً کارت خانه فعالی تعریف نشده است")
             ].join("") : "";
         }
     }
@@ -5965,13 +5981,59 @@
         ownerCohortFeedbackMessage("", "");
     }
 
+    function ownerCohortServiceInputs() {
+        return [
+            ownerCohortServiceNotes,
+            ownerCohortServiceForms,
+            ownerCohortServiceGrades,
+            ownerCohortServiceNavid,
+            ownerCohortServiceBuy
+        ];
+    }
+
+    function ownerApplyCohortToggle(node, checked, force) {
+        if (!node) {
+            return;
+        }
+        if (!force && node.dataset.userTouched === "1") {
+            return;
+        }
+        node.checked = !!checked;
+    }
+
+    function syncOwnerCohortServiceDefaults(force) {
+        var productType = ownerCohortProductType ? String(ownerCohortProductType.value || "dentistry") : "dentistry";
+        var notesMode = ownerCohortNotesMode ? String(ownerCohortNotesMode.value || "archive") : "archive";
+        var isSiteUsers = productType === "site-users";
+        ownerApplyCohortToggle(ownerCohortServiceNotes, !isSiteUsers && notesMode !== "none", force);
+        ownerApplyCohortToggle(ownerCohortServiceForms, !isSiteUsers, force);
+        ownerApplyCohortToggle(ownerCohortServiceGrades, !isSiteUsers, force);
+        ownerApplyCohortToggle(ownerCohortServiceNavid, !isSiteUsers, force);
+        ownerApplyCohortToggle(ownerCohortServiceBuy, isSiteUsers, force);
+        ownerApplyCohortToggle(ownerCohortAllowRepresentative, !isSiteUsers, force);
+    }
+
+    function resetOwnerCohortDefaults() {
+        ownerCohortServiceInputs().forEach(function (node) {
+            if (node) {
+                delete node.dataset.userTouched;
+            }
+        });
+        if (ownerCohortAllowRepresentative) {
+            delete ownerCohortAllowRepresentative.dataset.userTouched;
+        }
+        syncOwnerCohortServiceDefaults(true);
+    }
+
     function setCreateCohortBusy(isBusy) {
         ownerState.creatingCohort = !!isBusy;
-        [ownerCohortTitle, ownerCohortShortTitle, ownerCohortYear, ownerCohortProductType, ownerCohortNotesMode, ownerCohortAllowRepresentative].forEach(function (node) {
+        [ownerCohortTitle, ownerCohortShortTitle, ownerCohortYear, ownerCohortProductType, ownerCohortNotesMode, ownerCohortAllowRepresentative]
+            .concat(ownerCohortServiceInputs())
+            .forEach(function (node) {
             if (node) {
                 node.disabled = ownerState.creatingCohort;
             }
-        });
+            });
         if (ownerCreateCohortSubmit) {
             ownerCreateCohortSubmit.disabled = ownerState.creatingCohort;
         }
@@ -6002,7 +6064,12 @@
                 year: year,
                 productType: ownerCohortProductType ? ownerCohortProductType.value : "dentistry",
                 notesMode: ownerCohortNotesMode ? ownerCohortNotesMode.value : "archive",
-                allowRepresentativeManagement: ownerCohortAllowRepresentative && ownerCohortAllowRepresentative.checked ? "1" : "0"
+                allowRepresentativeManagement: ownerCohortAllowRepresentative && ownerCohortAllowRepresentative.checked ? "1" : "0",
+                serviceNotes: ownerCohortServiceNotes && ownerCohortServiceNotes.checked ? "1" : "0",
+                serviceForms: ownerCohortServiceForms && ownerCohortServiceForms.checked ? "1" : "0",
+                serviceGrades: ownerCohortServiceGrades && ownerCohortServiceGrades.checked ? "1" : "0",
+                serviceNavid: ownerCohortServiceNavid && ownerCohortServiceNavid.checked ? "1" : "0",
+                serviceBuy: ownerCohortServiceBuy && ownerCohortServiceBuy.checked ? "1" : "0"
             });
             if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
                 ownerCreateCohortFeedbackMessage("", "");
@@ -6014,6 +6081,7 @@
             }
 
             ownerCreateCohortForm.reset();
+            resetOwnerCohortDefaults();
             ownerCreateCohortFeedbackMessage(response.message || "ورودی جدید ساخته شد.", "success");
             ownerState.activeCohortKey = String(response.cohort.key || ownerState.activeCohortKey || "");
             await loadOwnerUsers();
@@ -7575,6 +7643,25 @@
 
     if (ownerCreateCohortForm) {
         ownerCreateCohortForm.addEventListener("submit", createCohort);
+        if (ownerCohortProductType) {
+            ownerCohortProductType.addEventListener("change", function () {
+                syncOwnerCohortServiceDefaults(false);
+            });
+        }
+        if (ownerCohortNotesMode) {
+            ownerCohortNotesMode.addEventListener("change", function () {
+                syncOwnerCohortServiceDefaults(false);
+            });
+        }
+        ownerCohortServiceInputs().concat([ownerCohortAllowRepresentative]).forEach(function (node) {
+            if (!node) {
+                return;
+            }
+            node.addEventListener("change", function () {
+                node.dataset.userTouched = "1";
+            });
+        });
+        resetOwnerCohortDefaults();
     }
 
     if (ownerImportUsersForm) {

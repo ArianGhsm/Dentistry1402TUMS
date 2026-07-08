@@ -176,6 +176,105 @@ function dent_default_cohort_short_title(string $key): string
     return dent_default_cohort_title($key);
 }
 
+function dent_default_cohort_services(string $key, string $productType, string $notesMode): array
+{
+    $isSiteUsers = $productType === 'site-users';
+    return [
+        'notes' => !$isSiteUsers && $notesMode !== 'none',
+        'forms' => !$isSiteUsers,
+        'grades' => !$isSiteUsers,
+        'navid' => !$isSiteUsers,
+        'buy' => $isSiteUsers,
+    ];
+}
+
+function dent_normalize_cohort_services(string $key, string $productType, string $notesMode, $input): array
+{
+    $defaults = dent_default_cohort_services($key, $productType, $notesMode);
+    $raw = is_array($input) ? $input : [];
+    $services = [];
+    foreach ($defaults as $name => $enabled) {
+        $services[$name] = dent_parse_bool($raw[$name] ?? $enabled, $enabled);
+    }
+    return $services;
+}
+
+function dent_default_cohort_routes(string $key, array $services): array
+{
+    $buildScoped = static function (string $path) use ($key): string {
+        return $key === dent_primary_cohort_key()
+            ? $path
+            : $path . '?cohort=' . rawurlencode($key);
+    };
+
+    if (!empty($services['notes'])) {
+        if ($key === dent_primary_cohort_key()) {
+            $notesRoute = '/notes/';
+        } elseif ($key === 'dentistry-1403') {
+            $notesRoute = '/notes/1403/';
+        } elseif ($key === 'dentistry-1404') {
+            $notesRoute = '/notes/1404/';
+        } else {
+            $notesRoute = '/notes/?cohort=' . rawurlencode($key);
+        }
+    } else {
+        $notesRoute = '';
+    }
+
+    return [
+        'notes' => $notesRoute,
+        'forms' => !empty($services['forms']) ? $buildScoped('/forms/') : '',
+        'grades' => !empty($services['grades']) ? $buildScoped('/grades/') : '',
+        'navid' => !empty($services['navid']) ? '/navid/' : '',
+        'buy' => !empty($services['buy']) ? '/buy/' : '',
+    ];
+}
+
+function dent_normalize_cohort_route(string $value, string $fallback): string
+{
+    $clean = trim($value);
+    if ($clean === '') {
+        return $fallback;
+    }
+    if ($clean[0] !== '/') {
+        return $fallback;
+    }
+    return $clean;
+}
+
+function dent_normalize_cohort_routes(string $key, array $services, $input): array
+{
+    $defaults = dent_default_cohort_routes($key, $services);
+    $raw = is_array($input) ? $input : [];
+    $routes = [];
+    foreach ($defaults as $name => $fallback) {
+        if (empty($services[$name])) {
+            $routes[$name] = '';
+            continue;
+        }
+        $routes[$name] = dent_normalize_cohort_route((string) ($raw[$name] ?? ''), $fallback);
+    }
+    return $routes;
+}
+
+function dent_public_cohort_record(array $cohort): array
+{
+    return [
+        'key' => (string) ($cohort['key'] ?? ''),
+        'title' => (string) ($cohort['title'] ?? ''),
+        'shortTitle' => (string) ($cohort['shortTitle'] ?? ''),
+        'description' => (string) ($cohort['description'] ?? ''),
+        'productType' => (string) ($cohort['productType'] ?? ''),
+        'year' => (string) ($cohort['year'] ?? ''),
+        'siteVariant' => (string) ($cohort['siteVariant'] ?? ''),
+        'notesMode' => (string) ($cohort['notesMode'] ?? ''),
+        'allowRepresentativeManagement' => !empty($cohort['allowRepresentativeManagement']),
+        'supportsRotationGroups' => !empty($cohort['supportsRotationGroups']),
+        'services' => is_array($cohort['services'] ?? null) ? $cohort['services'] : [],
+        'routes' => is_array($cohort['routes'] ?? null) ? $cohort['routes'] : [],
+    ];
+}
+
 function dent_normalize_cohort_record(string $key, array $seed): ?array
 {
     $key = dent_clean_cohort_key($key !== '' ? $key : (string) ($seed['key'] ?? ''));
@@ -187,7 +286,7 @@ function dent_normalize_cohort_record(string $key, array $seed): ?array
     $merged = array_merge($defaultSeed, $seed);
 
     $productType = strtolower(trim((string) ($merged['productType'] ?? 'dentistry')));
-    if (!in_array($productType, ['dentistry', 'prosthesis'], true)) {
+    if (!in_array($productType, ['dentistry', 'prosthesis', 'site-users'], true)) {
         $productType = 'dentistry';
     }
 
@@ -197,7 +296,7 @@ function dent_normalize_cohort_record(string $key, array $seed): ?array
     }
 
     $notesMode = trim((string) ($merged['notesMode'] ?? 'archive'));
-    if (!in_array($notesMode, ['terms', 'archive'], true)) {
+    if (!in_array($notesMode, ['terms', 'archive', 'none'], true)) {
         $notesMode = 'archive';
     }
 
@@ -217,6 +316,9 @@ function dent_normalize_cohort_record(string $key, array $seed): ?array
         $year = (string) $matches[1];
     }
 
+    $services = dent_normalize_cohort_services($key, $productType, $notesMode, $merged['services'] ?? null);
+    $routes = dent_normalize_cohort_routes($key, $services, $merged['routes'] ?? null);
+
     return [
         'key' => $key,
         'title' => $title,
@@ -228,6 +330,8 @@ function dent_normalize_cohort_record(string $key, array $seed): ?array
         'notesMode' => $notesMode,
         'allowRepresentativeManagement' => dent_parse_bool($merged['allowRepresentativeManagement'] ?? false, false),
         'supportsRotationGroups' => dent_parse_bool($merged['supportsRotationGroups'] ?? ($key === dent_primary_cohort_key()), $key === dent_primary_cohort_key()),
+        'services' => $services,
+        'routes' => $routes,
         'sortOrder' => max(0, (int) ($merged['sortOrder'] ?? 9999)),
         'isSeeded' => dent_parse_bool($merged['isSeeded'] ?? false, false),
         'isIsolated' => dent_parse_bool($merged['isIsolated'] ?? true, true),
@@ -1839,18 +1943,7 @@ function dent_public_user(array $user): array
         'role' => $role,
         'roleLabel' => dent_user_is_external_exam_role($role) ? 'کاربر عادی سایت' : dent_role_label($role),
         'cohortKey' => $cohortKey,
-        'cohort' => $cohort === null ? null : [
-            'key' => (string) ($cohort['key'] ?? ''),
-            'title' => (string) ($cohort['title'] ?? ''),
-            'shortTitle' => (string) ($cohort['shortTitle'] ?? ''),
-            'description' => (string) ($cohort['description'] ?? ''),
-            'productType' => (string) ($cohort['productType'] ?? ''),
-            'year' => (string) ($cohort['year'] ?? ''),
-            'siteVariant' => (string) ($cohort['siteVariant'] ?? ''),
-            'notesMode' => (string) ($cohort['notesMode'] ?? ''),
-            'allowRepresentativeManagement' => !empty($cohort['allowRepresentativeManagement']),
-            'supportsRotationGroups' => !empty($cohort['supportsRotationGroups']),
-        ],
+        'cohort' => $cohort === null ? null : dent_public_cohort_record($cohort),
         'isOwner' => $role === 'owner',
         'isRepresentative' => $role === 'representative',
         'isExternalExamUser' => dent_user_is_external_exam_role($role),
@@ -2139,12 +2232,12 @@ function dent_visible_cohorts_for_user(array $viewer): array
     $catalog = dent_cohort_catalog();
     $role = dent_normalize_role((string) ($viewer['role'] ?? 'student'), (string) ($viewer['studentNumber'] ?? ''));
     if ($role === 'owner') {
-        return dent_sorted_cohort_records($catalog);
+        return array_map('dent_public_cohort_record', dent_sorted_cohort_records($catalog));
     }
 
     $cohortKey = dent_user_cohort_key($viewer);
     $record = $cohortKey !== '' ? dent_cohort_record($cohortKey) : null;
-    return $record === null ? [] : [$record];
+    return $record === null ? [] : [dent_public_cohort_record($record)];
 }
 
 function dent_user_can_manage_target_user(array $viewer, array $targetUser): bool
@@ -2241,6 +2334,8 @@ function dent_cohort_management_payload(array $viewer, array $users): array
             'notesMode' => (string) ($cohort['notesMode'] ?? ''),
             'allowRepresentativeManagement' => !empty($cohort['allowRepresentativeManagement']),
             'supportsRotationGroups' => !empty($cohort['supportsRotationGroups']),
+            'services' => is_array($cohort['services'] ?? null) ? $cohort['services'] : [],
+            'routes' => is_array($cohort['routes'] ?? null) ? $cohort['routes'] : [],
             'permissions' => $permissions,
             'counts' => [
                 'totalUsers' => (int) ($counts['totalUsers'] ?? 0),
@@ -2469,7 +2564,7 @@ function dent_create_cohort(array $input): array
 {
     $store = dent_load_user_store();
     $productType = strtolower(trim((string) ($input['productType'] ?? 'dentistry')));
-    if (!in_array($productType, ['dentistry', 'prosthesis'], true)) {
+    if (!in_array($productType, ['dentistry', 'prosthesis', 'site-users'], true)) {
         $productType = 'dentistry';
     }
 
@@ -2497,8 +2592,8 @@ function dent_create_cohort(array $input): array
     }
 
     $siteVariant = $requestedKey === dent_prosthesis_legacy_cohort_key() ? 'prosthesis-legacy' : 'main';
-    $notesMode = trim((string) ($input['notesMode'] ?? ($productType === 'prosthesis' ? 'terms' : 'archive')));
-    if (!in_array($notesMode, ['terms', 'archive'], true)) {
+    $notesMode = trim((string) ($input['notesMode'] ?? ($productType === 'prosthesis' ? 'terms' : ($productType === 'site-users' ? 'none' : 'archive'))));
+    if (!in_array($notesMode, ['terms', 'archive', 'none'], true)) {
         $notesMode = 'archive';
     }
 
@@ -2512,6 +2607,8 @@ function dent_create_cohort(array $input): array
         'notesMode' => $notesMode,
         'allowRepresentativeManagement' => dent_parse_bool($input['allowRepresentativeManagement'] ?? ($requestedKey !== dent_primary_cohort_key()), $requestedKey !== dent_primary_cohort_key()),
         'supportsRotationGroups' => dent_parse_bool($input['supportsRotationGroups'] ?? ($requestedKey === dent_primary_cohort_key()), $requestedKey === dent_primary_cohort_key()),
+        'services' => is_array($input['services'] ?? null) ? $input['services'] : [],
+        'routes' => is_array($input['routes'] ?? null) ? $input['routes'] : [],
         'sortOrder' => (int) ($input['sortOrder'] ?? (140 + count($store['cohorts']) * 10)),
         'isSeeded' => false,
         'isIsolated' => true,

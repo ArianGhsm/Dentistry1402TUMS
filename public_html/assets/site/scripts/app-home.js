@@ -21,8 +21,12 @@
     var primaryAction = $("home-identity-primary");
     var secondaryAction = $("home-identity-secondary");
     var ownerBadge = $("home-owner-badge");
-    var homeFormsPrimaryMeta = $("home-forms-primary-meta");
-    var homeFormsProsthesisMeta = $("home-forms-prosthesis-meta");
+    var resourceSection = $("home-resource-section");
+    var resourceStrip = $("home-resource-strip");
+    var classSection = $("home-class-section");
+    var classStrip = $("home-class-strip");
+    var resourceSectionTitle = resourceSection ? resourceSection.querySelector(".portal-section-title") : null;
+    var classSectionTitle = classSection ? classSection.querySelector(".portal-section-title") : null;
 
     var navidPanel = $("home-navid-panel");
     var navidStateText = $("home-navid-state");
@@ -48,6 +52,27 @@
     var homeKicker = document.querySelector(".home-kicker");
     var homeTitle = $("app-home-title");
     var homeServicesTitle = $("home-services-title");
+    var fallbackPrimaryCohort = {
+        key: "dentistry-1402",
+        title: "دندانپزشکی ۱۴۰۲",
+        shortTitle: "دندان ۱۴۰۲",
+        productType: "dentistry",
+        notesMode: "terms",
+        services: {
+            notes: true,
+            forms: true,
+            grades: true,
+            navid: true,
+            buy: false
+        },
+        routes: {
+            notes: "/notes/",
+            forms: "/forms/",
+            grades: "/grades/",
+            navid: "/navid/",
+            buy: ""
+        }
+    };
 
     function applyBranding(isProsthesis) {
         var brand = isProsthesis ? "ورودی ۱۴۰۲ پروتز تهران" : "ورودی ۱۴۰۲ دندانپزشکی تهران";
@@ -148,14 +173,201 @@
         });
     }
 
-    function setHomeFormsMetaText(text) {
-        var value = String(text || "فرم و نظرسنجی");
-        if (homeFormsPrimaryMeta) {
-            homeFormsPrimaryMeta.textContent = value;
+    function iconSvg(name) {
+        switch (name) {
+            case "notes":
+                return '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6.8A2.8 2.8 0 0 1 8.8 4H15.2A2.8 2.8 0 0 1 18 6.8V17.2A2.8 2.8 0 0 1 15.2 20H8.8A2.8 2.8 0 0 1 6 17.2V6.8Z" stroke="currentColor" stroke-width="1.8"/><path d="M9 9H15M9 12.2H15M9 15.4H12.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+            case "forms":
+                return '<svg viewBox="0 0 24 24" fill="none"><rect x="5.5" y="4.2" width="13" height="15.6" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8.7 9H15.3M8.7 12.2H15.3M8.7 15.4H12.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+            case "grades":
+                return '<svg viewBox="0 0 24 24" fill="none"><path d="M5 18.5V13.4M12 18.5V9.2M19 18.5V5.5M3.8 19.5H20.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+            case "navid":
+                return '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6.8A2.8 2.8 0 0 1 8.8 4H15.2A2.8 2.8 0 0 1 18 6.8V17.2A2.8 2.8 0 0 1 15.2 20H8.8A2.8 2.8 0 0 1 6 17.2V6.8Z" stroke="currentColor" stroke-width="1.8"/><path d="M9.2 8.8H14.8M9.2 12H14.8M9.2 15.2H12.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+            case "buy":
+                return '<svg viewBox="0 0 24 24" fill="none"><path d="M6 7.2H18L16.9 14.1A2 2 0 0 1 14.9 15.8H9.1A2 2 0 0 1 7.1 14.1L6 7.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.2 18.6A1.1 1.1 0 1 0 8.2 20.8A1.1 1.1 0 0 0 8.2 18.6ZM15.8 18.6A1.1 1.1 0 1 0 15.8 20.8A1.1 1.1 0 0 0 15.8 18.6Z" fill="currentColor"/><path d="M9 10.4H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+            default:
+                return "";
         }
-        if (homeFormsProsthesisMeta) {
-            homeFormsProsthesisMeta.textContent = value;
+    }
+
+    function cohortServices(cohort) {
+        var services = cohort && typeof cohort === "object" && cohort.services && typeof cohort.services === "object"
+            ? cohort.services
+            : {};
+        return {
+            notes: !!services.notes,
+            forms: !!services.forms,
+            grades: !!services.grades,
+            navid: !!services.navid,
+            buy: !!services.buy
+        };
+    }
+
+    function cohortRoutes(cohort) {
+        var key = String(cohort && cohort.key ? cohort.key : "");
+        var services = cohortServices(cohort);
+        var routes = cohort && typeof cohort === "object" && cohort.routes && typeof cohort.routes === "object"
+            ? cohort.routes
+            : {};
+        var scoped = function (basePath) {
+            if (!key || key === "dentistry-1402") {
+                return basePath;
+            }
+            return basePath + "?cohort=" + encodeURIComponent(key);
+        };
+        var notesFallback = "";
+        if (services.notes) {
+            if (!key || key === "dentistry-1402") {
+                notesFallback = "/notes/";
+            } else if (key === "dentistry-1403") {
+                notesFallback = "/notes/1403/";
+            } else if (key === "dentistry-1404") {
+                notesFallback = "/notes/1404/";
+            } else {
+                notesFallback = "/notes/?cohort=" + encodeURIComponent(key);
+            }
         }
+        return {
+            notes: String(routes.notes || notesFallback || ""),
+            forms: services.forms ? String(routes.forms || scoped("/forms/")) : "",
+            grades: services.grades ? String(routes.grades || scoped("/grades/")) : "",
+            navid: services.navid ? String(routes.navid || "/navid/") : "",
+            buy: services.buy ? String(routes.buy || "/buy/") : ""
+        };
+    }
+
+    function availableHomeCohorts(detail) {
+        var cohorts = Array.isArray(detail && detail.availableCohorts) ? detail.availableCohorts.slice() : [];
+        if (!cohorts.length && detail && detail.user && detail.user.cohort && typeof detail.user.cohort === "object") {
+            cohorts = [detail.user.cohort];
+        }
+        if (!cohorts.length) {
+            cohorts = [fallbackPrimaryCohort];
+        }
+        return cohorts;
+    }
+
+    function activeHomeCohort(detail) {
+        var currentKey = String(detail && detail.user && detail.user.cohortKey ? detail.user.cohortKey : "");
+        var cohorts = availableHomeCohorts(detail);
+        var matched = cohorts.find(function (cohort) {
+            return String(cohort && cohort.key ? cohort.key : "") === currentKey;
+        });
+        return matched || cohorts[0] || fallbackPrimaryCohort;
+    }
+
+    function homeFormsMetaText() {
+        if (formsSessionState.loading) {
+            return "در حال بررسی فرم‌های فعال...";
+        }
+        if (formsSessionState.lastUserKey) {
+            if (formsSessionState.count > 0) {
+                return "تعداد " + formsSessionState.count.toLocaleString("fa-IR") + " فرم برای شما فعال است";
+            }
+            return "در حال حاضر فرم فعالی برای شما نیست";
+        }
+        return "فرم و نظرسنجی";
+    }
+
+    function renderServiceCards(root, cards) {
+        if (!root) {
+            return;
+        }
+        root.innerHTML = (cards || []).map(function (card) {
+            return [
+                '<a class="home-service-link" href="' + safeText(card.href || "#") + '">',
+                '  <span class="home-service-link__icon" aria-hidden="true">' + String(card.icon || "") + "</span>",
+                '  <span class="home-service-link__meta">',
+                '    <strong>' + safeText(card.label || "بخش") + "</strong>",
+                '    <small>' + safeText(card.meta || "") + "</small>",
+                "  </span>",
+                "</a>"
+            ].join("");
+        }).join("");
+    }
+
+    function buildResourceCards(detail) {
+        var cohorts = detail && detail.loggedIn && detail.user && detail.user.isOwner
+            ? availableHomeCohorts(detail)
+            : [activeHomeCohort(detail)];
+        return cohorts.filter(function (cohort) {
+            return cohortServices(cohort).notes && cohortRoutes(cohort).notes;
+        }).map(function (cohort) {
+            var cohortKey = String(cohort && cohort.key ? cohort.key : "");
+            return {
+                href: cohortRoutes(cohort).notes,
+                label: "منابع " + String(cohort.shortTitle || cohort.title || cohort.key || "ورودی"),
+                meta: cohortKey === "dentistry-1402"
+                    ? "آرشیو جزوات"
+                    : String(cohort && cohort.notesMode === "archive" ? "آرشیو جزوات" : "منابع و ترم‌ها"),
+                icon: iconSvg("notes")
+            };
+        });
+    }
+
+    function buildClassCards(detail) {
+        var activeCohort = activeHomeCohort(detail);
+        var services = cohortServices(activeCohort);
+        var routes = cohortRoutes(activeCohort);
+        var cards = [];
+        if (services.forms && routes.forms) {
+            cards.push({
+                href: routes.forms,
+                label: "فرم‌ها",
+                meta: homeFormsMetaText(),
+                icon: iconSvg("forms")
+            });
+        }
+        if (services.grades && routes.grades) {
+            cards.push({
+                href: routes.grades,
+                label: "نمرات",
+                meta: String(activeCohort && activeCohort.productType === "prosthesis" ? "کارنامه پروتز" : "کارنامه و نمره"),
+                icon: iconSvg("grades")
+            });
+        }
+        if (services.navid && routes.navid) {
+            cards.push({
+                href: routes.navid,
+                label: "مشاهده تکالیف",
+                meta: "تکلیف‌های نوید",
+                icon: iconSvg("navid")
+            });
+        }
+        if (services.buy && routes.buy) {
+            cards.push({
+                href: routes.buy,
+                label: "خرید و ثبت‌نام",
+                meta: "پرداخت و سفارش",
+                icon: iconSvg("buy")
+            });
+        }
+        return cards;
+    }
+
+    function renderHomeCatalog(detail) {
+        var resourceCards = buildResourceCards(detail || null);
+        var classCards = buildClassCards(detail || null);
+
+        if (resourceSection) {
+            resourceSection.hidden = resourceCards.length === 0;
+        }
+        if (classSection) {
+            classSection.hidden = classCards.length === 0;
+        }
+        if (resourceSectionTitle) {
+            resourceSectionTitle.textContent = detail && detail.loggedIn && detail.user && detail.user.isOwner
+                ? "منابع ورودی‌ها"
+                : "منابع درسی";
+        }
+        if (classSectionTitle) {
+            classSectionTitle.textContent = detail && detail.loggedIn && detail.user && detail.user.isOwner
+                ? "مسیرهای ورودی فعال"
+                : "امور کلاسی";
+        }
+
+        renderServiceCards(resourceStrip, resourceCards);
+        renderServiceCards(classStrip, classCards);
     }
 
     function resetHomeFormsMeta() {
@@ -164,17 +376,12 @@
         formsSessionState.lastUserKey = "";
         formsSessionState.cohortKey = "";
         formsSessionState.count = 0;
-        setHomeFormsMetaText("فرم و نظرسنجی");
+        renderHomeCatalog(authApi && typeof authApi.getState === "function" ? authApi.getState() : null);
     }
 
     function renderHomeFormsCount(count) {
-        var total = Math.max(0, Math.floor(Number(count) || 0));
-        formsSessionState.count = total;
-        if (total > 0) {
-            setHomeFormsMetaText("تعداد " + total.toLocaleString("fa-IR") + " فرم برای شما فعال است");
-            return;
-        }
-        setHomeFormsMetaText("در حال حاضر فرم فعالی برای شما نیست");
+        formsSessionState.count = Math.max(0, Math.floor(Number(count) || 0));
+        renderHomeCatalog(authApi && typeof authApi.getState === "function" ? authApi.getState() : null);
     }
 
     function formsSessionUrl(cohortKey) {
@@ -233,7 +440,7 @@
         formsSessionState.lastUserKey = userKey;
         formsSessionState.cohortKey = cohortKey;
         var ticket = ++formsSessionState.requestToken;
-        setHomeFormsMetaText("در حال بررسی فرم‌های فعال...");
+        renderHomeCatalog(authApi && typeof authApi.getState === "function" ? authApi.getState() : null);
 
         try {
             var response = await requestFormsSession(cohortKey);
@@ -300,12 +507,7 @@
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = true;
         });
-        document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
-            node.hidden = false;
-        });
-        document.querySelectorAll("[data-prosthesis-only]").forEach(function (node) {
-            node.hidden = true;
-        });
+        renderHomeCatalog(null);
         panel.dataset.authState = errorText ? "unauthorized" : "logged-out";
         status.textContent = "\u0648\u0631\u0648\u062f \u0644\u0627\u0632\u0645 \u0627\u0633\u062a";
         title.textContent = "\u062d\u0633\u0627\u0628 \u0633\u0631\u0627\u0633\u0631\u06cc\u200c\u0627\u062a \u0631\u0627 \u0641\u0639\u0627\u0644 \u06a9\u0646.";
@@ -324,12 +526,7 @@
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = true;
         });
-        document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
-            node.hidden = false;
-        });
-        document.querySelectorAll("[data-prosthesis-only]").forEach(function (node) {
-            node.hidden = true;
-        });
+        renderHomeCatalog(authApi && typeof authApi.getState === "function" ? authApi.getState() : null);
         panel.dataset.authState = "session-restoring";
         status.textContent = "\u062f\u0631 \u062d\u0627\u0644 \u0628\u0627\u0632\u06cc\u0627\u0628\u06cc";
         title.textContent = "\u0646\u0634\u0633\u062a \u062d\u0633\u0627\u0628 \u062f\u0631 \u062d\u0627\u0644 \u0622\u0645\u0627\u062f\u0647\u200c\u0633\u0627\u0632\u06cc \u0627\u0633\u062a.";
@@ -345,32 +542,39 @@
     function setIdentityLoggedIn(user) {
         var isOwner = !!(user && user.isOwner);
         var isProsthesis = !!(user && user.isProsthesisStudent);
+        var isExternalExamUser = !!(user && user.isExternalExamUser);
+        var currentCohort = user && user.cohort ? user.cohort : fallbackPrimaryCohort;
+        var currentServices = cohortServices(currentCohort);
+        var currentRoutes = cohortRoutes(currentCohort);
         applyBranding(isProsthesis);
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = !isOwner;
         });
-        document.querySelectorAll("[data-main-student-only]").forEach(function (node) {
-            node.hidden = isProsthesis;
-        });
-        document.querySelectorAll("[data-prosthesis-only]").forEach(function (node) {
-            node.hidden = !isProsthesis;
-        });
+        renderHomeCatalog(authApi && typeof authApi.getState === "function" ? authApi.getState() : { loggedIn: true, user: user, availableCohorts: [user.cohort || fallbackPrimaryCohort] });
         panel.dataset.authState = "logged-in";
         status.textContent = isOwner ? "\u0645\u0627\u0644\u06a9 \u0633\u0627\u0645\u0627\u0646\u0647" : (user.roleLabel || "\u062d\u0633\u0627\u0628 \u0641\u0639\u0627\u0644");
         title.textContent = (user.name || "\u062f\u0627\u0646\u0634\u062c\u0648") + "\u060c \u062e\u0648\u0634 \u0628\u0631\u06af\u0634\u062a\u06cc.";
         desc.textContent = isOwner
             ? "\u062f\u0633\u062a\u0631\u0633\u06cc \u0645\u062f\u06cc\u0631\u06cc\u062a\u06cc \u0641\u0639\u0627\u0644 \u0627\u0633\u062a \u0648 \u0627\u0632 \u0647\u0645\u06cc\u0646\u200c\u062c\u0627 \u0645\u06cc\u200c\u062a\u0648\u0627\u0646\u06cc \u0686\u062a\u060c \u0646\u0645\u0627\u06cc\u0646\u062f\u0647\u200c\u0647\u0627 \u0648 \u062d\u0633\u0627\u0628\u200c\u0647\u0627 \u0631\u0627 \u0645\u062f\u06cc\u0631\u06cc\u062a \u06a9\u0646\u06cc."
-            : (isProsthesis
+            : (isExternalExamUser
+                ? "\u0627\u06cc\u0646 \u062d\u0633\u0627\u0628 \u0628\u0631\u0627\u06cc \u062e\u0631\u06cc\u062f\u060c \u0622\u0632\u0645\u0648\u0646 \u0648 \u067e\u06cc\u06af\u06cc\u0631\u06cc \u0633\u0641\u0627\u0631\u0634\u200c\u0647\u0627\u06cc \u0633\u0627\u06cc\u062a \u0641\u0639\u0627\u0644 \u0627\u0633\u062a."
+                : (isProsthesis
                 ? "\u0647\u0648\u06cc\u062a\u062a \u062f\u0631 \u0686\u062a\u060c \u0641\u0631\u0645\u200c\u0647\u0627\u060c \u0646\u0645\u0631\u0627\u062a \u0648 \u0645\u0646\u0627\u0628\u0639 \u067e\u0631\u0648\u062a\u0632 \u0628\u0647\u200c\u0635\u0648\u0631\u062a \u062c\u062f\u0627 \u0646\u06af\u0647\u200c\u062f\u0627\u0631\u06cc \u0645\u06cc\u200c\u0634\u0648\u062f."
-                : "\u0647\u0648\u06cc\u062a\u062a \u062f\u0631 \u0686\u062a\u060c \u0646\u0645\u0631\u0627\u062a \u0648 \u062d\u0633\u0627\u0628 \u06a9\u0627\u0631\u0628\u0631\u06cc \u0647\u0645\u06af\u0627\u0645 \u0627\u0633\u062a \u0648 \u0644\u0627\u0632\u0645 \u0646\u06cc\u0633\u062a \u0647\u0631 \u0635\u0641\u062d\u0647 \u062c\u062f\u0627\u06af\u0627\u0646\u0647 \u0648\u0627\u0631\u062f \u0634\u0648\u06cc.");
+                : "\u0647\u0648\u06cc\u062a\u062a \u062f\u0631 \u0686\u062a\u060c \u0646\u0645\u0631\u0627\u062a \u0648 \u062d\u0633\u0627\u0628 \u06a9\u0627\u0631\u0628\u0631\u06cc \u0647\u0645\u06af\u0627\u0645 \u0627\u0633\u062a \u0648 \u0644\u0627\u0632\u0645 \u0646\u06cc\u0633\u062a \u0647\u0631 \u0635\u0641\u062d\u0647 \u062c\u062f\u0627\u06af\u0627\u0646\u0647 \u0648\u0627\u0631\u062f \u0634\u0648\u06cc."));
         meta.textContent = "\u0634\u0645\u0627\u0631\u0647 \u062f\u0627\u0646\u0634\u062c\u0648\u06cc\u06cc: " + (user.studentNumber || "-");
         ownerBadge.hidden = !isOwner;
         primaryAction.textContent = isOwner ? "\u067e\u0646\u0644 \u062d\u0633\u0627\u0628 \u0648 \u0645\u062f\u06cc\u0631\u06cc\u062a" : "\u062d\u0633\u0627\u0628 \u06a9\u0627\u0631\u0628\u0631\u06cc";
         primaryAction.href = "/account/";
-        secondaryAction.textContent = isProsthesis ? "\u0646\u0645\u0631\u0627\u062a \u067e\u0631\u0648\u062a\u0632" : "\u0646\u0645\u0631\u0627\u062a \u0645\u0646";
-        secondaryAction.href = isProsthesis && authApi && typeof authApi.appendCohortQuery === "function"
-            ? authApi.appendCohortQuery("/grades/", "prosthesis-1402")
-            : "/grades/";
+        if (currentServices.grades && currentRoutes.grades) {
+            secondaryAction.textContent = isProsthesis ? "\u0646\u0645\u0631\u0627\u062a \u067e\u0631\u0648\u062a\u0632" : "\u0646\u0645\u0631\u0627\u062a \u0645\u0646";
+            secondaryAction.href = currentRoutes.grades;
+        } else if (currentServices.buy && currentRoutes.buy) {
+            secondaryAction.textContent = "\u062e\u0631\u06cc\u062f \u0648 \u062b\u0628\u062a\u200c\u0646\u0627\u0645";
+            secondaryAction.href = currentRoutes.buy;
+        } else {
+            secondaryAction.textContent = "\u0645\u062f\u06cc\u0631\u06cc\u062a \u062d\u0633\u0627\u0628";
+            secondaryAction.href = "/account/";
+        }
     }
 
     function navidSetState(state) {

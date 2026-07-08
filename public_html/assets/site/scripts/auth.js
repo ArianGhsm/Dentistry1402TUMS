@@ -45,11 +45,19 @@
             }
 
             if (parsed.loggedIn && parsed.user && typeof parsed.user === "object") {
-                return { loggedIn: true, user: parsed.user };
+                return {
+                    loggedIn: true,
+                    user: parsed.user,
+                    availableCohorts: Array.isArray(parsed.availableCohorts) ? parsed.availableCohorts : []
+                };
             }
 
             if (parsed.loggedIn === false) {
-                return { loggedIn: false, user: null };
+                return {
+                    loggedIn: false,
+                    user: null,
+                    availableCohorts: Array.isArray(parsed.availableCohorts) ? parsed.availableCohorts : []
+                };
             }
 
             return null;
@@ -126,21 +134,30 @@
         };
     }
 
-    function writeAuthCache(loggedIn, user) {
+    function writeAuthCache(loggedIn, user, availableCohorts) {
+        var cohorts = Array.isArray(availableCohorts) ? clone(availableCohorts) : [];
         try {
             if (!window.localStorage) {
                 return;
             }
 
             if (loggedIn && user) {
-                window.localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({ loggedIn: true, user: slimCachedUser(user) || minimalCachedUser(user) }));
+                window.localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({
+                    loggedIn: true,
+                    user: slimCachedUser(user) || minimalCachedUser(user),
+                    availableCohorts: cohorts
+                }));
             } else {
                 window.localStorage.removeItem(AUTH_CACHE_KEY);
             }
         } catch (_error) {
             try {
                 if (loggedIn && user && window.localStorage) {
-                    window.localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({ loggedIn: true, user: minimalCachedUser(user) }));
+                    window.localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify({
+                        loggedIn: true,
+                        user: minimalCachedUser(user),
+                        availableCohorts: cohorts
+                    }));
                 }
             } catch (_fallbackError) {
                 // Ignore storage errors (private mode, quota, etc.).
@@ -154,12 +171,14 @@
             status: initialAuthCache.loggedIn ? STATUS.LOGGED_IN : STATUS.LOGGED_OUT,
             loggedIn: initialAuthCache.loggedIn,
             user: initialAuthCache.user,
+            availableCohorts: Array.isArray(initialAuthCache.availableCohorts) ? initialAuthCache.availableCohorts : [],
             error: ""
         }
         : {
             status: STATUS.SESSION_RESTORING,
             loggedIn: false,
             user: null,
+            availableCohorts: [],
             error: ""
         };
 
@@ -176,6 +195,7 @@
             status: state.status,
             loggedIn: state.loggedIn,
             user: clone(state.user),
+            availableCohorts: clone(state.availableCohorts),
             error: state.error || ""
         };
     }
@@ -219,11 +239,16 @@
         var status = normalizeStatus(nextState.status, state.status);
         var user = nextState.user ? clone(nextState.user) : null;
         var loggedIn = !!nextState.loggedIn && !!user;
+        var availableCohorts = Array.isArray(nextState.availableCohorts) ? clone(nextState.availableCohorts) : [];
+        if (!availableCohorts.length && user && user.cohort && typeof user.cohort === "object") {
+            availableCohorts = [clone(user.cohort)];
+        }
 
         state = {
             status: status,
             loggedIn: loggedIn,
             user: user,
+            availableCohorts: availableCohorts,
             error: nextState.error || ""
         };
 
@@ -463,6 +488,7 @@
             status: STATUS.LOGGED_IN,
             loggedIn: true,
             user: state.user,
+            availableCohorts: state.availableCohorts,
             error: ""
         });
         return true;
@@ -470,15 +496,17 @@
 
     function applyAuthenticatedState(response) {
         var user = response && response.user ? response.user : null;
+        var availableCohorts = Array.isArray(response && response.availableCohorts) ? response.availableCohorts : [];
 
         setState({
             status: STATUS.LOGGED_IN,
             loggedIn: !!user,
             user: user,
+            availableCohorts: availableCohorts,
             error: ""
         });
 
-        writeAuthCache(!!user, user);
+        writeAuthCache(!!user, user, availableCohorts);
     }
 
     function applyLoggedOutState(nextStatus, errorText) {
@@ -491,26 +519,30 @@
             status: status,
             loggedIn: false,
             user: null,
+            availableCohorts: [],
             error: errorText || ""
         });
 
-        writeAuthCache(false, null);
+        writeAuthCache(false, null, []);
     }
 
-    function patchCurrentUser(user, nextStatus) {
+    function patchCurrentUser(user, nextStatus, nextAvailableCohorts) {
         if (!user) {
             applyLoggedOutState(STATUS.LOGGED_OUT, "");
             return snapshot();
         }
 
+        var availableCohorts = Array.isArray(nextAvailableCohorts) ? nextAvailableCohorts : state.availableCohorts;
+
         setState({
             status: normalizeStatus(nextStatus || STATUS.LOGGED_IN, STATUS.LOGGED_IN),
             loggedIn: true,
             user: user,
+            availableCohorts: availableCohorts,
             error: ""
         });
 
-        writeAuthCache(true, user);
+        writeAuthCache(true, user, availableCohorts);
         resolveReady();
         return snapshot();
     }
@@ -524,6 +556,7 @@
             status: STATUS.SESSION_RESTORING,
             loggedIn: state.loggedIn,
             user: state.user,
+            availableCohorts: state.availableCohorts,
             error: ""
         });
 
@@ -572,6 +605,7 @@
             status: STATUS.LOGGING_IN,
             loggedIn: false,
             user: null,
+            availableCohorts: [],
             error: ""
         });
 
@@ -590,6 +624,7 @@
             status: STATUS.LOGIN_ERROR,
             loggedIn: false,
             user: null,
+            availableCohorts: [],
             error: (response && response.error) || "Login failed."
         });
 
@@ -608,6 +643,7 @@
             status: STATUS.LOGGING_IN,
             loggedIn: false,
             user: null,
+            availableCohorts: [],
             error: ""
         });
 
@@ -626,6 +662,7 @@
             status: STATUS.LOGIN_ERROR,
             loggedIn: false,
             user: null,
+            availableCohorts: [],
             error: (response && response.error) || "OTP login failed."
         });
 
@@ -642,6 +679,7 @@
             status: STATUS.LOGGING_IN,
             loggedIn: false,
             user: null,
+            availableCohorts: [],
             error: ""
         });
 
@@ -657,6 +695,7 @@
             status: STATUS.LOGIN_ERROR,
             loggedIn: false,
             user: null,
+            availableCohorts: [],
             error: (response && response.error) || "Signup failed."
         });
 
@@ -728,6 +767,7 @@
             status: STATUS.LOGGING_OUT,
             loggedIn: state.loggedIn,
             user: state.user,
+            availableCohorts: state.availableCohorts,
             error: ""
         });
 
