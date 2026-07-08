@@ -91,6 +91,9 @@
         editingItemId: 0,
         authKey: "",
         downloadHost: null,
+        resourceBusy: false,
+        resourceFeedback: "",
+        resourceInsights: null,
         uploadBusy: false
     };
 
@@ -307,6 +310,233 @@
         return toFaDigits(Math.max(0, Math.min(100, Math.round(number))));
     }
 
+    function formatDate(value) {
+        var date = new Date(String(value || ""));
+        if (Number.isNaN(date.getTime())) {
+            return "";
+        }
+        try {
+            return new Intl.DateTimeFormat("fa-IR", {
+                month: "short",
+                day: "numeric"
+            }).format(date);
+        } catch (error) {
+            return "";
+        }
+    }
+
+    function applyResourceInsights(payload) {
+        if (payload && payload.resourceInsights) {
+            state.resourceInsights = payload.resourceInsights;
+        }
+    }
+
+    function resourceInsights() {
+        return state.resourceInsights && typeof state.resourceInsights === "object"
+            ? state.resourceInsights
+            : {
+                authenticated: false,
+                favoriteIds: [],
+                favorites: [],
+                recent: [],
+                latestUpdates: [],
+                pending: {},
+                inbox: null
+            };
+    }
+
+    function isResourceFavorite(item) {
+        var itemId = Number(item && item.id || 0);
+        var ids = Array.isArray(resourceInsights().favoriteIds) ? resourceInsights().favoriteIds : [];
+        return ids.some(function (id) {
+            return Number(id || 0) === itemId;
+        });
+    }
+
+    function setResourceFeedback(text) {
+        state.resourceFeedback = String(text || "");
+        var node = $("notes-term-resource-feedback");
+        if (node) {
+            node.textContent = state.resourceFeedback;
+            node.hidden = !state.resourceFeedback;
+        }
+    }
+
+    function resourceItemTerm(item) {
+        return Number(item && (item.storageTerm || item.term) || term || 0);
+    }
+
+    function createMiniList(titleText, items, emptyText) {
+        var group = document.createElement("div");
+        group.className = "notes-resource-mini-list";
+        var heading = document.createElement("h4");
+        heading.className = "notes-resource-mini-list__title";
+        heading.textContent = titleText;
+        group.appendChild(heading);
+
+        var list = document.createElement("div");
+        list.className = "notes-resource-mini-list__items";
+        var rows = Array.isArray(items) ? items.slice(0, 3) : [];
+        if (!rows.length) {
+            var empty = document.createElement("p");
+            empty.className = "notes-resource-mini-list__empty";
+            empty.textContent = emptyText;
+            list.appendChild(empty);
+        } else {
+            rows.forEach(function (item) {
+                var link = document.createElement("a");
+                link.className = "notes-resource-mini-list__item";
+                link.href = item.viewUrl || item.buttonUrl || "#";
+                link.textContent = item.title || item.itemTitle || "منبع";
+                list.appendChild(link);
+            });
+        }
+        group.appendChild(list);
+        return group;
+    }
+
+    function createOwnerInbox(insights) {
+        var inbox = insights && insights.inbox ? insights.inbox : null;
+        var shell = document.createElement("div");
+        shell.className = "notes-resource-inbox";
+        var entries = [];
+        (Array.isArray(inbox && inbox.requests) ? inbox.requests : []).slice(0, 3).forEach(function (item) {
+            entries.push({
+                type: "request",
+                id: item.id,
+                title: item.title || item.note || "درخواست منبع",
+                meta: item.userName || "دانشجو"
+            });
+        });
+        (Array.isArray(inbox && inbox.reports) ? inbox.reports : []).slice(0, 3).forEach(function (item) {
+            entries.push({
+                type: "report",
+                id: item.id,
+                title: item.itemTitle || item.reason || "گزارش لینک",
+                meta: item.userName || "دانشجو"
+            });
+        });
+        entries.slice(0, 4).forEach(function (entry) {
+            var row = document.createElement("div");
+            row.className = "notes-resource-inbox__row";
+            var text = document.createElement("span");
+            text.className = "notes-resource-inbox__text";
+            text.textContent = entry.title + " • " + entry.meta;
+            var button = document.createElement("button");
+            button.type = "button";
+            button.className = "notes-resource-action notes-resource-action--muted";
+            button.dataset.resourceIssue = "true";
+            button.dataset.issueType = entry.type;
+            button.dataset.issueId = String(entry.id || "");
+            button.textContent = "رسیدگی شد";
+            row.appendChild(text);
+            row.appendChild(button);
+            shell.appendChild(row);
+        });
+        return shell;
+    }
+
+    function ensureResourceInsightsPanel() {
+        var existing = $("notes-term-resource-insights");
+        if (existing) {
+            return existing;
+        }
+        var panel = document.createElement("section");
+        panel.id = "notes-term-resource-insights";
+        panel.className = "notes-resource-insights";
+        var section = $("notes-term-section");
+        if (section && cardsContainer) {
+            section.insertBefore(panel, cardsContainer);
+        }
+        return panel;
+    }
+
+    function renderResourceInsightsPanel() {
+        var panel = ensureResourceInsightsPanel();
+        if (!panel) {
+            return;
+        }
+        panel.innerHTML = "";
+        var insights = resourceInsights();
+        var head = document.createElement("div");
+        head.className = "notes-resource-insights__head";
+        var kicker = document.createElement("span");
+        kicker.className = "archive-term__kicker";
+        kicker.textContent = "منابع من";
+        var heading = document.createElement("h3");
+        heading.textContent = "پیگیری منابع";
+        var feedback = document.createElement("p");
+        feedback.id = "notes-term-resource-feedback";
+        feedback.className = "notes-manage-feedback";
+        feedback.textContent = state.resourceFeedback;
+        feedback.hidden = !state.resourceFeedback;
+        head.appendChild(kicker);
+        head.appendChild(heading);
+        head.appendChild(feedback);
+        panel.appendChild(head);
+
+        var grid = document.createElement("div");
+        grid.className = "notes-resource-insights__grid";
+        grid.appendChild(createMiniList(
+            "علاقه‌مندی‌ها",
+            insights.authenticated ? insights.favorites : [],
+            insights.authenticated ? "هنوز منبعی ذخیره نشده است." : "برای ذخیره علاقه‌مندی وارد حساب شو."
+        ));
+        grid.appendChild(createMiniList(
+            "اخیراً دیده‌شده",
+            insights.authenticated ? insights.recent : [],
+            insights.authenticated ? "هنوز منبعی باز نکرده‌ای." : "بعد از ورود، بازدیدهای اخیر اینجا می‌آید."
+        ));
+        grid.appendChild(createMiniList("آخرین آپدیت‌ها", insights.latestUpdates, "آپدیت تازه‌ای ثبت نشده است."));
+        panel.appendChild(grid);
+
+        if (state.canManage && insights.inbox) {
+            var ownerLine = document.createElement("div");
+            ownerLine.className = "notes-resource-owner-line";
+            var pending = insights.pending || {};
+            var requestChip = document.createElement("span");
+            requestChip.className = "notes-chip notes-chip--soft";
+            requestChip.textContent = "درخواست باز: " + toFaDigits(pending.requests || 0);
+            var reportChip = document.createElement("span");
+            reportChip.className = "notes-chip notes-chip--soft";
+            reportChip.textContent = "گزارش لینک: " + toFaDigits(pending.reports || 0);
+            ownerLine.appendChild(requestChip);
+            ownerLine.appendChild(reportChip);
+            panel.appendChild(ownerLine);
+            panel.appendChild(createOwnerInbox(insights));
+        }
+
+        var requestForm = document.createElement("form");
+        requestForm.className = "notes-resource-request";
+        requestForm.dataset.resourceRequestForm = "true";
+        requestForm.dataset.term = String(term || 0);
+        requestForm.dataset.unitKey = requestedUnitKey || "";
+        var requestTitle = document.createElement("h4");
+        requestTitle.className = "notes-resource-request__title";
+        requestTitle.textContent = "درخواست منبع";
+        var input = document.createElement("input");
+        input.className = "notes-resource-request__input";
+        input.name = "title";
+        input.type = "text";
+        input.maxLength = 180;
+        input.placeholder = "عنوان منبع موردنیاز";
+        var textarea = document.createElement("textarea");
+        textarea.className = "notes-resource-request__input";
+        textarea.name = "note";
+        textarea.maxLength = 800;
+        textarea.placeholder = "توضیح کوتاه";
+        var submit = document.createElement("button");
+        submit.className = "notes-link-btn";
+        submit.type = "submit";
+        submit.textContent = state.resourceBusy ? "در حال ثبت..." : "ثبت درخواست";
+        submit.disabled = !!state.resourceBusy;
+        requestForm.appendChild(requestTitle);
+        requestForm.appendChild(input);
+        requestForm.appendChild(textarea);
+        requestForm.appendChild(submit);
+        panel.appendChild(requestForm);
+    }
+
     function isOffline() {
         return typeof navigator !== "undefined" && navigator && navigator.onLine === false;
     }
@@ -477,6 +707,9 @@
         link.href = item.buttonUrl || "#";
         link.dataset.analyticsDownload = "notes-resource";
         link.dataset.analyticsLabel = item.title || item.badge || "منبع";
+        link.dataset.resourceOpen = "true";
+        link.dataset.itemId = String(item.id || "");
+        link.dataset.term = String(resourceItemTerm(item));
         if (item.isExternal) {
             link.dataset.externalLink = "true";
             link.target = "_blank";
@@ -499,7 +732,11 @@
 
         var desc = document.createElement("span");
         desc.className = "card-desc";
+        var updatedText = formatDate(item.updatedAt);
         desc.textContent = item.description || "";
+        if (updatedText) {
+            desc.textContent += (desc.textContent ? " • " : "") + "آپدیت " + updatedText;
+        }
 
         header.appendChild(badge);
         header.appendChild(title);
@@ -512,12 +749,46 @@
         return link;
     }
 
+    function createResourceStudentActions(item) {
+        var actions = document.createElement("div");
+        actions.className = "notes-resource-row__actions";
+        var itemId = String(item.id || "");
+        var itemTerm = String(resourceItemTerm(item));
+
+        var favoriteButton = document.createElement("button");
+        favoriteButton.type = "button";
+        favoriteButton.className = "notes-resource-action";
+        favoriteButton.dataset.resourceFavorite = "true";
+        favoriteButton.dataset.itemId = itemId;
+        favoriteButton.dataset.term = itemTerm;
+        favoriteButton.dataset.favorite = isResourceFavorite(item) ? "0" : "1";
+        favoriteButton.textContent = isResourceFavorite(item) ? "حذف علاقه‌مندی" : "علاقه‌مندی";
+        actions.appendChild(favoriteButton);
+
+        var reportButton = document.createElement("button");
+        reportButton.type = "button";
+        reportButton.className = "notes-resource-action notes-resource-action--muted";
+        reportButton.dataset.resourceReport = "true";
+        reportButton.dataset.itemId = itemId;
+        reportButton.dataset.term = itemTerm;
+        reportButton.textContent = "گزارش لینک";
+        actions.appendChild(reportButton);
+
+        var version = document.createElement("span");
+        version.className = "notes-resource-version";
+        version.textContent = "نسخه " + toFaDigits(Number(item.version || 1));
+        actions.appendChild(version);
+        return actions;
+    }
+
     function buildCard(item) {
         var itemId = Number(item.id || 0);
         if (!state.canManage) {
-            var publicCard = createPrimaryLink(item);
-            publicCard.classList.add("action-card", "action-card--link");
+            var publicCard = document.createElement("article");
+            publicCard.className = "action-card notes-resource-card-shell";
             publicCard.dataset.itemId = String(item.id || "");
+            publicCard.appendChild(createPrimaryLink(item));
+            publicCard.appendChild(createResourceStudentActions(item));
             return publicCard;
         }
 
@@ -525,6 +796,7 @@
         card.className = "action-card";
         card.dataset.itemId = String(item.id || "");
         card.appendChild(createPrimaryLink(item));
+        card.appendChild(createResourceStudentActions(item));
 
         var actions = document.createElement("div");
         actions.className = "notes-card-actions";
@@ -696,15 +968,16 @@
         }
     }
 
-    function handleUnauthorized(payload) {
+    function handleUnauthorized(payload, fallbackText) {
+        var message = fallbackText || "برای مدیریت منابع باید وارد حساب مجاز شوید.";
         if (siteApi && typeof siteApi.consumeUnauthorized === "function") {
-            return !!siteApi.consumeUnauthorized(payload, "برای مدیریت منابع باید وارد حساب مجاز شوید.");
+            return !!siteApi.consumeUnauthorized(payload, message);
         }
         var auth = window.Dent1402Auth;
         if (!auth || typeof auth.handleUnauthorizedPayload !== "function") {
             return false;
         }
-        return auth.handleUnauthorizedPayload(payload, "برای مدیریت منابع باید وارد حساب مجاز شوید.");
+        return auth.handleUnauthorizedPayload(payload, message);
     }
 
     function escapeHtml(value) {
@@ -779,6 +1052,8 @@
             termDescription.textContent = termData.description || termDescription.textContent;
         }
 
+        renderResourceInsightsPanel();
+
         var items = Array.isArray(termData.items) ? termData.items : [];
         if (!items.length) {
             emptyBox.hidden = false;
@@ -823,12 +1098,14 @@
             emptyBox.textContent = "در حال دریافت منابع این ترم...";
         }
         state.loadError = "";
+        state.resourceInsights = null;
 
         return request("term", "GET", {}).then(function (payload) {
             if (handleUnauthorized(payload)) {
                 state.canManage = false;
                 state.termData = payload.term || state.termData;
                 state.downloadHost = payload.downloadHost || null;
+                applyResourceInsights(payload);
                 renderTerm();
                 return;
             }
@@ -841,6 +1118,7 @@
             state.canManage = !!payload.canManage;
             state.loadError = "";
             state.downloadHost = payload.downloadHost || null;
+            applyResourceInsights(payload);
             if (state.canManage && manageRequested) {
                 state.manageExpanded = true;
                 state.manageFocusPending = true;
@@ -943,10 +1221,176 @@
         });
     }
 
+    function trackResourceOpenFromNode(node) {
+        if (!node) {
+            return;
+        }
+        request("trackResourceOpen", "POST", {
+            itemId: node.dataset.itemId || "",
+            term: node.dataset.term || String(term)
+        }).then(function (payload) {
+            applyResourceInsights(payload);
+        });
+    }
+
+    function submitResourceRequest(form) {
+        if (!form || state.resourceBusy) {
+            return;
+        }
+        var titleInput = form.querySelector("input[name='title']");
+        var noteInput = form.querySelector("textarea[name='note']");
+        var titleValue = titleInput ? String(titleInput.value || "").trim() : "";
+        var noteValue = noteInput ? String(noteInput.value || "").trim() : "";
+        if (!titleValue && !noteValue) {
+            setResourceFeedback("عنوان یا توضیح درخواست منبع را وارد کن.");
+            return;
+        }
+
+        state.resourceBusy = true;
+        renderTerm();
+        request("requestResource", "POST", {
+            term: form.dataset.term || String(term),
+            unitKey: form.dataset.unitKey || requestedUnitKey || "",
+            title: titleValue,
+            note: noteValue
+        }).then(function (payload) {
+            if (handleUnauthorized(payload, "برای ثبت درخواست منبع باید وارد حساب شوی.")) {
+                throw new Error("برای ثبت درخواست منبع باید وارد حساب مجاز شوید.");
+            }
+            if (!payload || !payload.success) {
+                throw new Error((payload && payload.error) || "ثبت درخواست منبع انجام نشد.");
+            }
+            applyResourceInsights(payload);
+            state.resourceFeedback = payload.message || "درخواست منبع ثبت شد.";
+            renderTerm();
+        }).catch(function (error) {
+            setResourceFeedback(error && error.message ? error.message : "ثبت درخواست منبع با خطا مواجه شد.");
+        }).finally(function () {
+            state.resourceBusy = false;
+            renderTerm();
+        });
+    }
+
+    function bindResourcePanelActions() {
+        var section = $("notes-term-section");
+        if (!section) {
+            return;
+        }
+        section.addEventListener("click", function (event) {
+            var issueButton = event.target && event.target.closest ? event.target.closest("[data-resource-issue]") : null;
+            if (!issueButton) {
+                return;
+            }
+            event.preventDefault();
+            if (state.resourceBusy) {
+                return;
+            }
+            state.resourceBusy = true;
+            request("updateResourceIssueStatus", "POST", {
+                type: issueButton.dataset.issueType || "",
+                id: issueButton.dataset.issueId || "",
+                status: "resolved"
+            }).then(function (payload) {
+                if (handleUnauthorized(payload, "برای مدیریت صندوق منابع باید وارد حساب مجاز شوید.")) {
+                    throw new Error("برای مدیریت صندوق منابع باید وارد حساب مجاز شوید.");
+                }
+                if (!payload || !payload.success) {
+                    throw new Error((payload && payload.error) || "به‌روزرسانی وضعیت انجام نشد.");
+                }
+                applyResourceInsights(payload);
+                state.resourceFeedback = payload.message || "وضعیت مورد به‌روزرسانی شد.";
+                renderTerm();
+            }).catch(function (error) {
+                setResourceFeedback(error && error.message ? error.message : "به‌روزرسانی وضعیت با خطا مواجه شد.");
+            }).finally(function () {
+                state.resourceBusy = false;
+                renderTerm();
+            });
+        });
+        section.addEventListener("submit", function (event) {
+            var form = event.target && event.target.closest ? event.target.closest("[data-resource-request-form]") : null;
+            if (!form) {
+                return;
+            }
+            event.preventDefault();
+            submitResourceRequest(form);
+        });
+    }
+
     function bindCardActions() {
         cardsContainer.addEventListener("click", function (event) {
+            var favoriteButton = event.target && event.target.closest ? event.target.closest("[data-resource-favorite]") : null;
+            var reportButton = event.target && event.target.closest ? event.target.closest("[data-resource-report]") : null;
+            var openLink = event.target && event.target.closest ? event.target.closest("[data-resource-open]") : null;
             var editButton = event.target && event.target.closest ? event.target.closest("[data-notes-edit='true']") : null;
             var deleteButton = event.target && event.target.closest ? event.target.closest("[data-notes-delete='true']") : null;
+
+            if (favoriteButton) {
+                event.preventDefault();
+                if (state.resourceBusy) {
+                    return;
+                }
+                state.resourceBusy = true;
+                request("toggleResourceFavorite", "POST", {
+                    itemId: favoriteButton.dataset.itemId || "",
+                    term: favoriteButton.dataset.term || String(term),
+                    favorite: favoriteButton.dataset.favorite || "1"
+                }).then(function (payload) {
+                    if (handleUnauthorized(payload, "برای ذخیره علاقه‌مندی باید وارد حساب شوی.")) {
+                        throw new Error("برای ذخیره علاقه‌مندی باید وارد حساب مجاز شوید.");
+                    }
+                    if (!payload || !payload.success) {
+                        throw new Error((payload && payload.error) || "تغییر علاقه‌مندی انجام نشد.");
+                    }
+                    applyResourceInsights(payload);
+                    state.resourceFeedback = payload.message || "علاقه‌مندی به‌روزرسانی شد.";
+                    renderTerm();
+                }).catch(function (error) {
+                    setResourceFeedback(error && error.message ? error.message : "تغییر علاقه‌مندی با خطا مواجه شد.");
+                }).finally(function () {
+                    state.resourceBusy = false;
+                    renderTerm();
+                });
+                return;
+            }
+
+            if (reportButton) {
+                event.preventDefault();
+                if (state.resourceBusy) {
+                    return;
+                }
+                var note = window.prompt("اگر توضیح کوتاهی درباره مشکل لینک داری بنویس.");
+                if (note === null) {
+                    return;
+                }
+                state.resourceBusy = true;
+                request("reportResourceLink", "POST", {
+                    itemId: reportButton.dataset.itemId || "",
+                    term: reportButton.dataset.term || String(term),
+                    reason: "گزارش دانشجو",
+                    note: note
+                }).then(function (payload) {
+                    if (handleUnauthorized(payload, "برای گزارش لینک باید وارد حساب شوی.")) {
+                        throw new Error("برای گزارش لینک باید وارد حساب مجاز شوید.");
+                    }
+                    if (!payload || !payload.success) {
+                        throw new Error((payload && payload.error) || "ثبت گزارش لینک انجام نشد.");
+                    }
+                    applyResourceInsights(payload);
+                    state.resourceFeedback = payload.message || "گزارش لینک ثبت شد.";
+                    renderTerm();
+                }).catch(function (error) {
+                    setResourceFeedback(error && error.message ? error.message : "ثبت گزارش لینک با خطا مواجه شد.");
+                }).finally(function () {
+                    state.resourceBusy = false;
+                    renderTerm();
+                });
+                return;
+            }
+
+            if (openLink) {
+                trackResourceOpenFromNode(openLink);
+            }
 
             if (editButton) {
                 if (!state.canManage || state.saving || state.deletingItemId) {
@@ -1037,6 +1481,7 @@
     function boot() {
         state.authKey = authSnapshotKey();
         bindManageForm();
+        bindResourcePanelActions();
         bindCardActions();
         watchAuthChanges();
         loadTerm({ silent: false });

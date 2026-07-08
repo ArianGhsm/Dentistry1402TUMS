@@ -19,6 +19,9 @@ const NOTES_PROSTHESIS_1402_SCHEMA_VERSION = 1;
 const NOTES_DIRECT_UPLOAD_SCHEMA_VERSION = 1;
 const NOTES_DIRECT_UPLOAD_SESSION_TTL_SECONDS = 14400;
 const NOTES_DIRECT_UPLOAD_COMPLETED_TTL_SECONDS = 172800;
+const NOTES_RESOURCE_RECENT_LIMIT = 40;
+const NOTES_RESOURCE_HISTORY_LIMIT = 12;
+const NOTES_RESOURCE_INSIGHT_LIMIT = 8;
 
 function notes_1402_store_path(): string
 {
@@ -689,11 +692,11 @@ function notes_fixed_terms_default_store(
         $terms[(string) $term] = $template;
     }
 
-    return [
+    return array_merge([
         'schemaVersion' => $schemaVersion,
         'nextItemId' => max(1, $maxItemId + 1),
         'terms' => $terms,
-    ];
+    ], notes_resource_meta_defaults());
 }
 
 function notes_1402_item_signature(array $item): string
@@ -962,12 +965,12 @@ function notes_1402_default_store(): array
         $terms[(string) $term] = $template;
     }
 
-    return [
+    return array_merge([
         'schemaVersion' => NOTES_1402_SCHEMA_VERSION,
         'seedBackfillVersion' => NOTES_1402_SEED_BACKFILL_VERSION,
         'nextItemId' => 12,
         'terms' => $terms,
-    ];
+    ], notes_resource_meta_defaults());
 }
 
 function notes_1402_ensure_storage(): void
@@ -1019,6 +1022,287 @@ function notes_1402_normalize_url(string $value): string
     return $validated;
 }
 
+function notes_normalize_iso_string($value, string $fallback = ''): string
+{
+    $clean = trim((string) $value);
+    if ($clean === '') {
+        return $fallback;
+    }
+
+    return $clean;
+}
+
+function notes_normalize_item_version_history($value): array
+{
+    $historySeed = is_array($value) ? $value : [];
+    $history = [];
+    foreach ($historySeed as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+
+        $version = max(1, (int) ($entry['version'] ?? 1));
+        $snapshotAt = notes_normalize_iso_string($entry['snapshotAt'] ?? '', (string) ($entry['updatedAt'] ?? ''));
+        if ($snapshotAt === '') {
+            $snapshotAt = dent_iso_now();
+        }
+
+        $history[] = [
+            'version' => $version,
+            'snapshotAt' => $snapshotAt,
+            'badge' => dent_clean_text((string) ($entry['badge'] ?? ''), 70),
+            'title' => dent_clean_text((string) ($entry['title'] ?? ''), 180),
+            'description' => dent_clean_text((string) ($entry['description'] ?? ''), 600),
+            'buttonLabel' => dent_clean_text((string) ($entry['buttonLabel'] ?? ''), 70),
+            'buttonUrl' => notes_1402_normalize_url((string) ($entry['buttonUrl'] ?? '')),
+            'unitKey' => trim(strtolower((string) ($entry['unitKey'] ?? ''))),
+            'updatedAt' => notes_normalize_iso_string($entry['updatedAt'] ?? '', $snapshotAt),
+        ];
+    }
+
+    usort($history, static function (array $left, array $right): int {
+        return strcmp((string) ($right['snapshotAt'] ?? ''), (string) ($left['snapshotAt'] ?? ''));
+    });
+
+    return array_slice($history, 0, NOTES_RESOURCE_HISTORY_LIMIT);
+}
+
+function notes_item_version_snapshot(array $item, string $snapshotAt): array
+{
+    return [
+        'version' => max(1, (int) ($item['version'] ?? 1)),
+        'snapshotAt' => $snapshotAt,
+        'badge' => (string) ($item['badge'] ?? ''),
+        'title' => (string) ($item['title'] ?? ''),
+        'description' => (string) ($item['description'] ?? ''),
+        'buttonLabel' => (string) ($item['buttonLabel'] ?? ''),
+        'buttonUrl' => (string) ($item['buttonUrl'] ?? ''),
+        'unitKey' => (string) ($item['unitKey'] ?? ''),
+        'updatedAt' => (string) ($item['updatedAt'] ?? ''),
+    ];
+}
+
+function notes_item_edit_signature(array $item): string
+{
+    return hash('sha256', json_encode([
+        (string) ($item['badge'] ?? ''),
+        (string) ($item['title'] ?? ''),
+        (string) ($item['description'] ?? ''),
+        (string) ($item['buttonLabel'] ?? ''),
+        (string) ($item['buttonUrl'] ?? ''),
+        (string) ($item['unitKey'] ?? ''),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+}
+
+function notes_normalize_resource_user_key($value): string
+{
+    $studentNumber = dent_normalize_student_number((string) $value);
+    if ($studentNumber !== '') {
+        return $studentNumber;
+    }
+
+    $clean = trim((string) $value);
+    return preg_match('/^[a-zA-Z0-9_.:-]{2,80}$/', $clean) === 1 ? $clean : '';
+}
+
+function notes_resource_user_key(array $viewer): string
+{
+    return notes_normalize_resource_user_key($viewer['studentNumber'] ?? '');
+}
+
+function notes_resource_user_name(array $viewer): string
+{
+    $name = dent_clean_text((string) ($viewer['name'] ?? ''), 120);
+    if ($name !== '') {
+        return $name;
+    }
+
+    return (string) ($viewer['studentNumber'] ?? '');
+}
+
+function notes_normalize_resource_state_entry($value): ?array
+{
+    if (!is_array($value)) {
+        return null;
+    }
+
+    $itemId = max(0, (int) ($value['itemId'] ?? $value['id'] ?? 0));
+    if ($itemId <= 0) {
+        return null;
+    }
+
+    return [
+        'itemId' => $itemId,
+        'term' => max(0, (int) ($value['term'] ?? 0)),
+        'unitKey' => trim(strtolower((string) ($value['unitKey'] ?? ''))),
+        'updatedAt' => notes_normalize_iso_string($value['updatedAt'] ?? $value['viewedAt'] ?? '', dent_iso_now()),
+        'viewedAt' => notes_normalize_iso_string($value['viewedAt'] ?? $value['updatedAt'] ?? '', dent_iso_now()),
+    ];
+}
+
+function notes_normalize_resource_user_state($value): array
+{
+    $seed = is_array($value) ? $value : [];
+    $favorites = [];
+    $favoriteSeed = is_array($seed['favorites'] ?? null) ? $seed['favorites'] : [];
+    foreach ($favoriteSeed as $key => $entry) {
+        if (!is_array($entry)) {
+            $entry = ['itemId' => $key, 'updatedAt' => (string) $entry];
+        }
+        $normalized = notes_normalize_resource_state_entry($entry);
+        if ($normalized !== null) {
+            $favorites[(string) $normalized['itemId']] = $normalized;
+        }
+    }
+
+    $recent = [];
+    $recentSeed = is_array($seed['recent'] ?? null) ? $seed['recent'] : [];
+    foreach ($recentSeed as $entry) {
+        $normalized = notes_normalize_resource_state_entry($entry);
+        if ($normalized !== null) {
+            $recent[] = $normalized;
+        }
+    }
+    usort($recent, static function (array $left, array $right): int {
+        return strcmp((string) ($right['viewedAt'] ?? ''), (string) ($left['viewedAt'] ?? ''));
+    });
+
+    return [
+        'favorites' => $favorites,
+        'recent' => array_slice($recent, 0, NOTES_RESOURCE_RECENT_LIMIT),
+    ];
+}
+
+function notes_normalize_resource_user_states($value): array
+{
+    $seed = is_array($value) ? $value : [];
+    $states = [];
+    foreach ($seed as $key => $entry) {
+        $userKey = notes_normalize_resource_user_key($key);
+        if ($userKey === '') {
+            continue;
+        }
+        $states[$userKey] = notes_normalize_resource_user_state($entry);
+    }
+
+    return $states;
+}
+
+function notes_normalize_resource_issue_status($value): string
+{
+    $status = trim(strtolower((string) $value));
+    return in_array($status, ['open', 'resolved', 'dismissed'], true) ? $status : 'open';
+}
+
+function notes_normalize_resource_requests($value): array
+{
+    $seed = is_array($value) ? $value : [];
+    $requests = [];
+    foreach ($seed as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+
+        $id = max(0, (int) ($entry['id'] ?? 0));
+        $title = dent_clean_text((string) ($entry['title'] ?? ''), 180);
+        $note = dent_clean_text((string) ($entry['note'] ?? ''), 800);
+        if ($id <= 0 || ($title === '' && $note === '')) {
+            continue;
+        }
+
+        $requests[(string) $id] = [
+            'id' => $id,
+            'userKey' => notes_normalize_resource_user_key($entry['userKey'] ?? ''),
+            'userName' => dent_clean_text((string) ($entry['userName'] ?? ''), 120),
+            'term' => max(0, (int) ($entry['term'] ?? 0)),
+            'unitKey' => trim(strtolower((string) ($entry['unitKey'] ?? ''))),
+            'title' => $title,
+            'note' => $note,
+            'status' => notes_normalize_resource_issue_status($entry['status'] ?? 'open'),
+            'createdAt' => notes_normalize_iso_string($entry['createdAt'] ?? '', dent_iso_now()),
+            'updatedAt' => notes_normalize_iso_string($entry['updatedAt'] ?? $entry['createdAt'] ?? '', dent_iso_now()),
+        ];
+    }
+
+    uasort($requests, static function (array $left, array $right): int {
+        return strcmp((string) ($right['createdAt'] ?? ''), (string) ($left['createdAt'] ?? ''));
+    });
+
+    return $requests;
+}
+
+function notes_normalize_resource_link_reports($value): array
+{
+    $seed = is_array($value) ? $value : [];
+    $reports = [];
+    foreach ($seed as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+
+        $id = max(0, (int) ($entry['id'] ?? 0));
+        $itemId = max(0, (int) ($entry['itemId'] ?? 0));
+        if ($id <= 0 || $itemId <= 0) {
+            continue;
+        }
+
+        $reports[(string) $id] = [
+            'id' => $id,
+            'itemId' => $itemId,
+            'userKey' => notes_normalize_resource_user_key($entry['userKey'] ?? ''),
+            'userName' => dent_clean_text((string) ($entry['userName'] ?? ''), 120),
+            'term' => max(0, (int) ($entry['term'] ?? 0)),
+            'unitKey' => trim(strtolower((string) ($entry['unitKey'] ?? ''))),
+            'itemTitle' => dent_clean_text((string) ($entry['itemTitle'] ?? ''), 180),
+            'itemUrl' => notes_1402_normalize_url((string) ($entry['itemUrl'] ?? '')),
+            'reason' => dent_clean_text((string) ($entry['reason'] ?? ''), 180),
+            'note' => dent_clean_text((string) ($entry['note'] ?? ''), 800),
+            'status' => notes_normalize_resource_issue_status($entry['status'] ?? 'open'),
+            'createdAt' => notes_normalize_iso_string($entry['createdAt'] ?? '', dent_iso_now()),
+            'updatedAt' => notes_normalize_iso_string($entry['updatedAt'] ?? $entry['createdAt'] ?? '', dent_iso_now()),
+        ];
+    }
+
+    uasort($reports, static function (array $left, array $right): int {
+        return strcmp((string) ($right['createdAt'] ?? ''), (string) ($left['createdAt'] ?? ''));
+    });
+
+    return $reports;
+}
+
+function notes_resource_meta_defaults(): array
+{
+    return [
+        'resourceUserState' => [],
+        'resourceRequests' => [],
+        'resourceLinkReports' => [],
+        'nextResourceRequestId' => 1,
+        'nextResourceLinkReportId' => 1,
+    ];
+}
+
+function notes_normalize_resource_meta_store(array $seed): array
+{
+    $requests = notes_normalize_resource_requests($seed['resourceRequests'] ?? []);
+    $reports = notes_normalize_resource_link_reports($seed['resourceLinkReports'] ?? []);
+    $maxRequestId = 0;
+    foreach ($requests as $request) {
+        $maxRequestId = max($maxRequestId, (int) ($request['id'] ?? 0));
+    }
+    $maxReportId = 0;
+    foreach ($reports as $report) {
+        $maxReportId = max($maxReportId, (int) ($report['id'] ?? 0));
+    }
+
+    return [
+        'resourceUserState' => notes_normalize_resource_user_states($seed['resourceUserState'] ?? []),
+        'resourceRequests' => $requests,
+        'resourceLinkReports' => $reports,
+        'nextResourceRequestId' => max(1, (int) ($seed['nextResourceRequestId'] ?? 1), $maxRequestId + 1),
+        'nextResourceLinkReportId' => max(1, (int) ($seed['nextResourceLinkReportId'] ?? 1), $maxReportId + 1),
+    ];
+}
+
 function notes_1402_normalize_item_record(array $seed): ?array
 {
     $id = max(0, (int) ($seed['id'] ?? 0));
@@ -1051,6 +1335,8 @@ function notes_1402_normalize_item_record(array $seed): ?array
         'unitKey' => $unitKey,
         'createdAt' => (string) ($seed['createdAt'] ?? dent_iso_now()),
         'updatedAt' => (string) ($seed['updatedAt'] ?? dent_iso_now()),
+        'version' => max(1, (int) ($seed['version'] ?? 1)),
+        'versionHistory' => notes_normalize_item_version_history($seed['versionHistory'] ?? []),
     ];
 }
 
@@ -1099,12 +1385,12 @@ function notes_1402_normalize_store(array $seed): array
         ];
     }
 
-    return [
+    return array_merge([
         'schemaVersion' => NOTES_1402_SCHEMA_VERSION,
         'seedBackfillVersion' => max(0, (int) ($seed['seedBackfillVersion'] ?? 0)),
         'nextItemId' => max(1, (int) ($seed['nextItemId'] ?? 1), $maxItemId + 1),
         'terms' => $normalizedTerms,
-    ];
+    ], notes_normalize_resource_meta_store($seed));
 }
 
 function notes_1402_load_store_unlocked(): array
@@ -1195,11 +1481,11 @@ function notes_fixed_terms_normalize_store(
         ];
     }
 
-    return [
+    return array_merge([
         'schemaVersion' => $schemaVersion,
         'nextItemId' => max(1, (int) ($seed['nextItemId'] ?? 1), $maxItemId + 1),
         'terms' => $normalizedTerms,
-    ];
+    ], notes_normalize_resource_meta_store($seed));
 }
 
 function notes_1403_normalize_store(array $seed): array
@@ -1304,12 +1590,12 @@ function notes_1404_save_store_unlocked(array $store): void
 
 function notes_prosthesis_1402_default_store(): array
 {
-    return [
+    return array_merge([
         'schemaVersion' => NOTES_PROSTHESIS_1402_SCHEMA_VERSION,
         'nextTermId' => 1,
         'nextItemId' => 1,
         'terms' => [],
-    ];
+    ], notes_resource_meta_defaults());
 }
 
 function notes_prosthesis_1402_ensure_storage(): void
@@ -1411,12 +1697,12 @@ function notes_prosthesis_1402_normalize_store(array $seed): array
         return (int) ($left['id'] ?? 0) <=> (int) ($right['id'] ?? 0);
     });
 
-    return [
+    return array_merge([
         'schemaVersion' => NOTES_PROSTHESIS_1402_SCHEMA_VERSION,
         'nextTermId' => max(1, (int) ($seed['nextTermId'] ?? 1), $maxTermId + 1),
         'nextItemId' => max(1, (int) ($seed['nextItemId'] ?? 1), $maxItemId + 1),
         'terms' => $terms,
-    ];
+    ], notes_normalize_resource_meta_store($seed));
 }
 
 function notes_prosthesis_1402_load_store_unlocked(): array
@@ -1709,6 +1995,8 @@ function notes_1402_item_payload(array $item): array
         'unitKey' => $unitKey,
         'createdAt' => (string) ($item['createdAt'] ?? ''),
         'updatedAt' => (string) ($item['updatedAt'] ?? ''),
+        'version' => max(1, (int) ($item['version'] ?? 1)),
+        'versionCount' => max(1, count(is_array($item['versionHistory'] ?? null) ? $item['versionHistory'] : []) + 1),
     ];
 }
 
@@ -2568,13 +2856,29 @@ function notes_new_item(array &$store, array $fields): array
         'id' => notes_1402_next_item_id($store),
         'createdAt' => dent_iso_now(),
         'updatedAt' => dent_iso_now(),
+        'version' => 1,
+        'versionHistory' => [],
     ]);
 }
 
 function notes_update_item_record(array $current, array $fields): array
 {
-    return array_merge($current, $fields, [
-        'updatedAt' => dent_iso_now(),
+    $next = array_merge($current, $fields);
+    $now = dent_iso_now();
+    $changed = notes_item_edit_signature($current) !== notes_item_edit_signature($next);
+    $history = notes_normalize_item_version_history($current['versionHistory'] ?? []);
+    $version = max(1, (int) ($current['version'] ?? 1));
+
+    if ($changed) {
+        array_unshift($history, notes_item_version_snapshot($current, $now));
+        $history = array_slice(notes_normalize_item_version_history($history), 0, NOTES_RESOURCE_HISTORY_LIMIT);
+        $version++;
+    }
+
+    return array_merge($next, [
+        'updatedAt' => $now,
+        'version' => $version,
+        'versionHistory' => $history,
     ]);
 }
 
@@ -2861,6 +3165,235 @@ function notes_item_response_payload(string $cohort, array $item, int $storageTe
     return notes_curriculum_item_payload($item, $storageTerm);
 }
 
+function notes_with_store_lock_for_cohort(string $cohort, callable $callback)
+{
+    if ($cohort === '1403') {
+        return notes_1403_with_store_lock($callback);
+    }
+    if ($cohort === '1404') {
+        return notes_1404_with_store_lock($callback);
+    }
+    if ($cohort === 'prosthesis-1402') {
+        return notes_prosthesis_1402_with_store_lock($callback);
+    }
+
+    return notes_1402_with_store_lock($callback);
+}
+
+function notes_resource_next_request_id(array &$store): int
+{
+    $next = max(1, (int) ($store['nextResourceRequestId'] ?? 1));
+    $store['nextResourceRequestId'] = $next + 1;
+    return $next;
+}
+
+function notes_resource_next_report_id(array &$store): int
+{
+    $next = max(1, (int) ($store['nextResourceLinkReportId'] ?? 1));
+    $store['nextResourceLinkReportId'] = $next + 1;
+    return $next;
+}
+
+function notes_resource_find_item_context(string $cohort, array $store, int $itemId, int $preferredTerm = 0): ?array
+{
+    $terms = is_array($store['terms'] ?? null) ? $store['terms'] : [];
+    foreach ($terms as $termKey => $termRecord) {
+        if (!is_array($termRecord)) {
+            continue;
+        }
+
+        $termNumber = max(0, (int) ($termRecord['term'] ?? $termRecord['id'] ?? $termKey));
+        if ($preferredTerm > 0 && $termNumber !== $preferredTerm) {
+            continue;
+        }
+
+        $items = is_array($termRecord['items'] ?? null) ? $termRecord['items'] : [];
+        foreach ($items as $item) {
+            if (!is_array($item) || (int) ($item['id'] ?? 0) !== $itemId) {
+                continue;
+            }
+
+            return [
+                'term' => $termNumber,
+                'termTitle' => (string) ($termRecord['title'] ?? ''),
+                'item' => $item,
+                'unitKey' => (string) ($item['unitKey'] ?? ''),
+                'cohort' => $cohort,
+            ];
+        }
+    }
+
+    return null;
+}
+
+function notes_resource_view_url(string $cohort, int $term, array $item): string
+{
+    $params = ['term' => (string) $term];
+    $unitKey = trim(strtolower((string) ($item['unitKey'] ?? '')));
+    if ($unitKey !== '' && notes_is_curriculum_cohort($cohort)) {
+        $params['unit'] = $unitKey;
+    }
+    if ($cohort !== '1402') {
+        $params['cohort'] = $cohort;
+    }
+
+    $base = $unitKey !== '' && notes_is_curriculum_cohort($cohort) ? '/notes/' : '/notes/term/';
+    if ($unitKey !== '' && $cohort === '1403') {
+        $base = '/notes/1403/';
+    } elseif ($unitKey !== '' && $cohort === '1404') {
+        $base = '/notes/1404/';
+    }
+
+    return $base . '?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+}
+
+function notes_resource_item_context_payload(string $cohort, array $context): array
+{
+    $term = max(0, (int) ($context['term'] ?? 0));
+    $item = is_array($context['item'] ?? null) ? $context['item'] : [];
+    $payload = notes_item_response_payload($cohort, $item, $term);
+    $payload['term'] = $term;
+    $payload['termTitle'] = (string) ($context['termTitle'] ?? '');
+    $payload['viewUrl'] = notes_resource_view_url($cohort, $term, $item);
+    return $payload;
+}
+
+function notes_resource_hydrate_user_entries(string $cohort, array $store, array $entries): array
+{
+    $payloads = [];
+    foreach ($entries as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $itemId = max(0, (int) ($entry['itemId'] ?? 0));
+        if ($itemId <= 0) {
+            continue;
+        }
+
+        $preferredTerm = max(0, (int) ($entry['term'] ?? 0));
+        $context = notes_resource_find_item_context($cohort, $store, $itemId, $preferredTerm);
+        if ($context === null && $preferredTerm > 0) {
+            $context = notes_resource_find_item_context($cohort, $store, $itemId, 0);
+        }
+        if ($context === null) {
+            continue;
+        }
+
+        $payload = notes_resource_item_context_payload($cohort, $context);
+        $payload['viewedAt'] = (string) ($entry['viewedAt'] ?? '');
+        $payload['savedAt'] = (string) ($entry['updatedAt'] ?? '');
+        $payloads[] = $payload;
+    }
+
+    return $payloads;
+}
+
+function notes_latest_updates_payload(string $cohort, array $store, int $limit = NOTES_RESOURCE_INSIGHT_LIMIT): array
+{
+    $updates = [];
+    $terms = is_array($store['terms'] ?? null) ? $store['terms'] : [];
+    foreach ($terms as $termKey => $termRecord) {
+        if (!is_array($termRecord)) {
+            continue;
+        }
+        $term = max(0, (int) ($termRecord['term'] ?? $termRecord['id'] ?? $termKey));
+        $items = is_array($termRecord['items'] ?? null) ? $termRecord['items'] : [];
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $updates[] = notes_resource_item_context_payload($cohort, [
+                'term' => $term,
+                'termTitle' => (string) ($termRecord['title'] ?? ''),
+                'item' => $item,
+            ]);
+        }
+    }
+
+    usort($updates, static function (array $left, array $right): int {
+        return strcmp((string) ($right['updatedAt'] ?? ''), (string) ($left['updatedAt'] ?? ''));
+    });
+
+    return array_slice($updates, 0, max(1, $limit));
+}
+
+function notes_resource_open_issues(array $store, string $type, int $limit = NOTES_RESOURCE_INSIGHT_LIMIT): array
+{
+    $source = $type === 'request' ? ($store['resourceRequests'] ?? []) : ($store['resourceLinkReports'] ?? []);
+    $items = [];
+    foreach (is_array($source) ? $source : [] as $entry) {
+        if (!is_array($entry) || (string) ($entry['status'] ?? 'open') !== 'open') {
+            continue;
+        }
+        $entry['type'] = $type;
+        $items[] = $entry;
+    }
+    usort($items, static function (array $left, array $right): int {
+        return strcmp((string) ($right['createdAt'] ?? ''), (string) ($left['createdAt'] ?? ''));
+    });
+
+    return array_slice($items, 0, max(1, $limit));
+}
+
+function notes_resource_insights_payload(string $cohort, array $store, ?array $viewer): array
+{
+    $canManage = notes_can_manage_cohort($cohort, $viewer);
+    $payload = [
+        'authenticated' => $viewer !== null,
+        'favoriteIds' => [],
+        'favorites' => [],
+        'recent' => [],
+        'latestUpdates' => notes_latest_updates_payload($cohort, $store),
+        'pending' => [
+            'requests' => count(notes_resource_open_issues($store, 'request', 200)),
+            'reports' => count(notes_resource_open_issues($store, 'report', 200)),
+        ],
+        'inbox' => null,
+    ];
+
+    if ($viewer !== null) {
+        $userKey = notes_resource_user_key($viewer);
+        $userState = is_array($store['resourceUserState'][$userKey] ?? null)
+            ? $store['resourceUserState'][$userKey]
+            : notes_normalize_resource_user_state([]);
+        $favorites = is_array($userState['favorites'] ?? null) ? $userState['favorites'] : [];
+        $payload['favoriteIds'] = array_values(array_map('intval', array_keys($favorites)));
+        $payload['favorites'] = notes_resource_hydrate_user_entries($cohort, $store, array_values($favorites));
+        $payload['recent'] = notes_resource_hydrate_user_entries($cohort, $store, is_array($userState['recent'] ?? null) ? $userState['recent'] : []);
+    }
+
+    if ($canManage) {
+        $payload['inbox'] = [
+            'requests' => notes_resource_open_issues($store, 'request'),
+            'reports' => notes_resource_open_issues($store, 'report'),
+        ];
+    }
+
+    return $payload;
+}
+
+function notes_resource_context_entry_from_item_context(array $context, string $now): array
+{
+    $item = is_array($context['item'] ?? null) ? $context['item'] : [];
+    return [
+        'itemId' => max(0, (int) ($item['id'] ?? 0)),
+        'term' => max(0, (int) ($context['term'] ?? 0)),
+        'unitKey' => trim(strtolower((string) ($item['unitKey'] ?? ''))),
+        'updatedAt' => $now,
+        'viewedAt' => $now,
+    ];
+}
+
+function notes_parse_resource_issue_status_from_post(): string
+{
+    $status = notes_normalize_resource_issue_status($_POST['status'] ?? 'resolved');
+    if ($status === 'open') {
+        dent_error('وضعیت انتخابی معتبر نیست.', 422);
+    }
+
+    return $status;
+}
+
 $action = dent_request_action();
 
 if ($action === 'terms') {
@@ -2883,6 +3416,7 @@ if ($action === 'terms') {
         'terms' => $terms,
         'curriculum' => notes_is_curriculum_cohort($cohort) ? notes_curriculum_payload($cohort, $store) : null,
         'canManage' => notes_can_manage_cohort($cohort, $viewer),
+        'resourceInsights' => notes_resource_insights_payload($cohort, $store, $viewer),
     ]);
 }
 
@@ -2981,6 +3515,223 @@ if ($action === 'term') {
         'term' => $termPayload,
         'canManage' => notes_can_manage_cohort($cohort, $viewer),
         'downloadHost' => notes_download_host_term_payload($cohort, $term, $termPayload, $viewer),
+        'resourceInsights' => notes_resource_insights_payload($cohort, $store, $viewer),
+    ]);
+}
+
+if ($action === 'resourceState') {
+    notes_1402_require_method(['GET']);
+    $cohort = notes_parse_cohort($_GET['cohort'] ?? '1402');
+    $viewer = dent_current_user();
+    $store = notes_curriculum_store_for_cohort($cohort);
+    dent_json_response([
+        'success' => true,
+        'canManage' => notes_can_manage_cohort($cohort, $viewer),
+        'resourceInsights' => notes_resource_insights_payload($cohort, $store, $viewer),
+    ]);
+}
+
+if ($action === 'trackResourceOpen') {
+    notes_1402_require_method(['POST']);
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $viewer = dent_current_user();
+    if ($viewer === null) {
+        dent_json_response([
+            'success' => true,
+            'tracked' => false,
+        ]);
+    }
+
+    $itemId = notes_1402_parse_item_id($_POST['itemId'] ?? '');
+    $preferredTerm = max(0, (int) dent_normalize_digits((string) ($_POST['term'] ?? '0')));
+    $userKey = notes_resource_user_key($viewer);
+
+    $insights = notes_with_store_lock_for_cohort($cohort, static function (array &$store) use ($cohort, $itemId, $preferredTerm, $viewer, $userKey): array {
+        $context = notes_resource_find_item_context($cohort, $store, $itemId, $preferredTerm);
+        if ($context === null) {
+            dent_error('منبع موردنظر پیدا نشد.', 404);
+        }
+
+        if (!is_array($store['resourceUserState'][$userKey] ?? null)) {
+            $store['resourceUserState'][$userKey] = notes_normalize_resource_user_state([]);
+        }
+        $now = dent_iso_now();
+        $entry = notes_resource_context_entry_from_item_context($context, $now);
+        $recent = is_array($store['resourceUserState'][$userKey]['recent'] ?? null) ? $store['resourceUserState'][$userKey]['recent'] : [];
+        $recent = array_values(array_filter($recent, static function ($current) use ($itemId): bool {
+            return !is_array($current) || (int) ($current['itemId'] ?? 0) !== $itemId;
+        }));
+        array_unshift($recent, $entry);
+        $store['resourceUserState'][$userKey]['recent'] = array_slice($recent, 0, NOTES_RESOURCE_RECENT_LIMIT);
+        return notes_resource_insights_payload($cohort, $store, $viewer);
+    });
+
+    dent_json_response([
+        'success' => true,
+        'tracked' => true,
+        'resourceInsights' => $insights,
+    ]);
+}
+
+if ($action === 'toggleResourceFavorite') {
+    notes_1402_require_method(['POST']);
+    $viewer = dent_require_user();
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $itemId = notes_1402_parse_item_id($_POST['itemId'] ?? '');
+    $preferredTerm = max(0, (int) dent_normalize_digits((string) ($_POST['term'] ?? '0')));
+    $favoriteRaw = strtolower(trim((string) ($_POST['favorite'] ?? '1')));
+    $favorite = !in_array($favoriteRaw, ['0', 'false', 'off', 'no'], true);
+    $userKey = notes_resource_user_key($viewer);
+
+    $insights = notes_with_store_lock_for_cohort($cohort, static function (array &$store) use ($cohort, $itemId, $preferredTerm, $favorite, $viewer, $userKey): array {
+        $context = notes_resource_find_item_context($cohort, $store, $itemId, $preferredTerm);
+        if ($context === null) {
+            dent_error('منبع موردنظر پیدا نشد.', 404);
+        }
+
+        if (!is_array($store['resourceUserState'][$userKey] ?? null)) {
+            $store['resourceUserState'][$userKey] = notes_normalize_resource_user_state([]);
+        }
+        if (!is_array($store['resourceUserState'][$userKey]['favorites'] ?? null)) {
+            $store['resourceUserState'][$userKey]['favorites'] = [];
+        }
+
+        if ($favorite) {
+            $entry = notes_resource_context_entry_from_item_context($context, dent_iso_now());
+            $store['resourceUserState'][$userKey]['favorites'][(string) $itemId] = $entry;
+        } else {
+            unset($store['resourceUserState'][$userKey]['favorites'][(string) $itemId]);
+        }
+
+        return notes_resource_insights_payload($cohort, $store, $viewer);
+    });
+
+    dent_json_response([
+        'success' => true,
+        'favorite' => $favorite,
+        'resourceInsights' => $insights,
+        'message' => $favorite ? 'منبع به علاقه‌مندی‌ها اضافه شد.' : 'منبع از علاقه‌مندی‌ها حذف شد.',
+    ]);
+}
+
+if ($action === 'requestResource') {
+    notes_1402_require_method(['POST']);
+    $viewer = dent_require_user();
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $term = max(0, (int) dent_normalize_digits((string) ($_POST['term'] ?? '0')));
+    $unitKey = trim(strtolower((string) ($_POST['unitKey'] ?? $_POST['unit'] ?? '')));
+    if ($unitKey !== '' && notes_is_curriculum_cohort($cohort)) {
+        $unit = dent_dentistry_curriculum_find_unit($unitKey);
+        if (!is_array($unit)) {
+            dent_error('واحد انتخاب‌شده معتبر نیست.', 422);
+        }
+        $unitKey = (string) ($unit['key'] ?? '');
+    }
+
+    $title = dent_clean_text((string) ($_POST['title'] ?? ''), 180);
+    $note = dent_clean_text((string) ($_POST['note'] ?? ''), 800);
+    if ($title === '' && $note === '') {
+        dent_error('عنوان یا توضیح درخواست منبع را وارد کن.', 422);
+    }
+
+    $insights = notes_with_store_lock_for_cohort($cohort, static function (array &$store) use ($cohort, $viewer, $term, $unitKey, $title, $note): array {
+        $now = dent_iso_now();
+        $id = notes_resource_next_request_id($store);
+        $store['resourceRequests'][(string) $id] = [
+            'id' => $id,
+            'userKey' => notes_resource_user_key($viewer),
+            'userName' => notes_resource_user_name($viewer),
+            'term' => $term,
+            'unitKey' => $unitKey,
+            'title' => $title,
+            'note' => $note,
+            'status' => 'open',
+            'createdAt' => $now,
+            'updatedAt' => $now,
+        ];
+
+        return notes_resource_insights_payload($cohort, $store, $viewer);
+    });
+
+    dent_json_response([
+        'success' => true,
+        'resourceInsights' => $insights,
+        'message' => 'درخواست منبع ثبت شد.',
+    ]);
+}
+
+if ($action === 'reportResourceLink') {
+    notes_1402_require_method(['POST']);
+    $viewer = dent_require_user();
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $itemId = notes_1402_parse_item_id($_POST['itemId'] ?? '');
+    $preferredTerm = max(0, (int) dent_normalize_digits((string) ($_POST['term'] ?? '0')));
+    $reason = dent_clean_text((string) ($_POST['reason'] ?? 'لینک خراب است'), 180);
+    $note = dent_clean_text((string) ($_POST['note'] ?? ''), 800);
+
+    $insights = notes_with_store_lock_for_cohort($cohort, static function (array &$store) use ($cohort, $viewer, $itemId, $preferredTerm, $reason, $note): array {
+        $context = notes_resource_find_item_context($cohort, $store, $itemId, $preferredTerm);
+        if ($context === null) {
+            dent_error('منبع موردنظر پیدا نشد.', 404);
+        }
+        $item = is_array($context['item'] ?? null) ? $context['item'] : [];
+        $now = dent_iso_now();
+        $id = notes_resource_next_report_id($store);
+        $store['resourceLinkReports'][(string) $id] = [
+            'id' => $id,
+            'itemId' => $itemId,
+            'userKey' => notes_resource_user_key($viewer),
+            'userName' => notes_resource_user_name($viewer),
+            'term' => max(0, (int) ($context['term'] ?? 0)),
+            'unitKey' => trim(strtolower((string) ($item['unitKey'] ?? ''))),
+            'itemTitle' => (string) ($item['title'] ?? ''),
+            'itemUrl' => (string) ($item['buttonUrl'] ?? ''),
+            'reason' => $reason !== '' ? $reason : 'لینک خراب است',
+            'note' => $note,
+            'status' => 'open',
+            'createdAt' => $now,
+            'updatedAt' => $now,
+        ];
+
+        return notes_resource_insights_payload($cohort, $store, $viewer);
+    });
+
+    dent_json_response([
+        'success' => true,
+        'resourceInsights' => $insights,
+        'message' => 'گزارش لینک ثبت شد.',
+    ]);
+}
+
+if ($action === 'updateResourceIssueStatus') {
+    notes_1402_require_method(['POST']);
+    $cohort = notes_parse_cohort($_POST['cohort'] ?? '1402');
+    $viewer = notes_require_manage_cohort($cohort);
+    $type = trim(strtolower((string) ($_POST['type'] ?? '')));
+    if (!in_array($type, ['request', 'report'], true)) {
+        dent_error('نوع مورد معتبر نیست.', 422);
+    }
+    $issueId = max(0, (int) dent_normalize_digits((string) ($_POST['id'] ?? '0')));
+    if ($issueId <= 0) {
+        dent_error('شناسه مورد معتبر نیست.', 422);
+    }
+    $status = notes_parse_resource_issue_status_from_post();
+
+    $insights = notes_with_store_lock_for_cohort($cohort, static function (array &$store) use ($cohort, $viewer, $type, $issueId, $status): array {
+        $key = $type === 'request' ? 'resourceRequests' : 'resourceLinkReports';
+        if (!is_array($store[$key][(string) $issueId] ?? null)) {
+            dent_error('مورد انتخابی پیدا نشد.', 404);
+        }
+
+        $store[$key][(string) $issueId]['status'] = $status;
+        $store[$key][(string) $issueId]['updatedAt'] = dent_iso_now();
+        return notes_resource_insights_payload($cohort, $store, $viewer);
+    });
+
+    dent_json_response([
+        'success' => true,
+        'resourceInsights' => $insights,
+        'message' => 'وضعیت مورد منابع به‌روزرسانی شد.',
     ]);
 }
 

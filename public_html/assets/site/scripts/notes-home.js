@@ -353,6 +353,216 @@
         }).join(" • ");
     }
 
+    function dentalFormatDate(value) {
+        var date = new Date(String(value || ""));
+        if (Number.isNaN(date.getTime())) {
+            return "";
+        }
+        try {
+            return new Intl.DateTimeFormat("fa-IR", {
+                month: "short",
+                day: "numeric"
+            }).format(date);
+        } catch (error) {
+            return "";
+        }
+    }
+
+    function dentalApplyResourceInsights(payload) {
+        if (payload && payload.resourceInsights) {
+            dentalState.resourceInsights = payload.resourceInsights;
+        }
+    }
+
+    function dentalResourceInsights() {
+        return dentalState.resourceInsights && typeof dentalState.resourceInsights === "object"
+            ? dentalState.resourceInsights
+            : {
+                authenticated: false,
+                favoriteIds: [],
+                favorites: [],
+                recent: [],
+                latestUpdates: [],
+                pending: {},
+                inbox: null
+            };
+    }
+
+    function dentalIsResourceFavorite(item) {
+        var itemId = Number(item && item.id || 0);
+        var favoriteIds = Array.isArray(dentalResourceInsights().favoriteIds)
+            ? dentalResourceInsights().favoriteIds
+            : [];
+        return favoriteIds.some(function (id) {
+            return Number(id || 0) === itemId;
+        });
+    }
+
+    function dentalSetResourceFeedback(text) {
+        dentalState.resourceFeedback = String(text || "");
+        var node = $("notes-resource-feedback");
+        if (node) {
+            node.textContent = dentalState.resourceFeedback;
+            node.hidden = !dentalState.resourceFeedback;
+        }
+    }
+
+    function dentalCreateMiniList(titleText, items, emptyText) {
+        var group = dentalCreate("div", "notes-resource-mini-list");
+        group.appendChild(dentalCreate("h4", "notes-resource-mini-list__title", titleText));
+        var listNode = dentalCreate("div", "notes-resource-mini-list__items");
+        var rows = Array.isArray(items) ? items.slice(0, 3) : [];
+        if (!rows.length) {
+            listNode.appendChild(dentalCreate("p", "notes-resource-mini-list__empty", emptyText));
+        } else {
+            rows.forEach(function (item) {
+                var link = dentalCreate("a", "notes-resource-mini-list__item");
+                link.href = item.viewUrl || item.buttonUrl || "#";
+                link.textContent = dentalCompactText(item.title || item.itemTitle || "منبع", "", 52);
+                listNode.appendChild(link);
+            });
+        }
+        group.appendChild(listNode);
+        return group;
+    }
+
+    function dentalCreateRequestBox(termData) {
+        var form = dentalCreate("form", "notes-resource-request");
+        form.setAttribute("data-resource-request-form", "true");
+        form.appendChild(dentalCreate("h4", "notes-resource-request__title", "درخواست منبع"));
+        var titleInput = dentalCreate("input", "notes-resource-request__input");
+        titleInput.type = "text";
+        titleInput.name = "title";
+        titleInput.maxLength = 180;
+        titleInput.placeholder = "عنوان منبع موردنیاز";
+        var noteInput = dentalCreate("textarea", "notes-resource-request__input");
+        noteInput.name = "note";
+        noteInput.maxLength = 800;
+        noteInput.placeholder = "توضیح کوتاه";
+        var button = dentalCreate("button", "notes-link-btn");
+        button.type = "submit";
+        button.textContent = dentalState.resourceBusy ? "در حال ثبت..." : "ثبت درخواست";
+        button.disabled = !!dentalState.resourceBusy;
+        form.appendChild(titleInput);
+        form.appendChild(noteInput);
+        form.appendChild(button);
+        form.dataset.term = String(Number(termData && (termData.term || termData.termNumber) || dentalRequestedTerm() || 0));
+        form.dataset.unitKey = String(termData && termData.unitKey || dentalRequestedUnitKey() || "");
+        return form;
+    }
+
+    function dentalCreateOwnerInbox(insights) {
+        var inbox = insights && insights.inbox ? insights.inbox : null;
+        var shell = dentalCreate("div", "notes-resource-inbox");
+        var entries = [];
+        (Array.isArray(inbox && inbox.requests) ? inbox.requests : []).slice(0, 3).forEach(function (item) {
+            entries.push({
+                type: "request",
+                id: item.id,
+                title: item.title || item.note || "درخواست منبع",
+                meta: item.userName || "دانشجو"
+            });
+        });
+        (Array.isArray(inbox && inbox.reports) ? inbox.reports : []).slice(0, 3).forEach(function (item) {
+            entries.push({
+                type: "report",
+                id: item.id,
+                title: item.itemTitle || item.reason || "گزارش لینک",
+                meta: item.userName || "دانشجو"
+            });
+        });
+        if (!entries.length) {
+            return shell;
+        }
+        entries.slice(0, 4).forEach(function (entry) {
+            var row = dentalCreate("div", "notes-resource-inbox__row");
+            var text = dentalCreate("span", "notes-resource-inbox__text");
+            text.textContent = entry.title + " • " + entry.meta;
+            var button = dentalCreate("button", "notes-resource-action notes-resource-action--muted");
+            button.type = "button";
+            button.dataset.resourceIssue = "true";
+            button.dataset.issueType = entry.type;
+            button.dataset.issueId = String(entry.id || "");
+            button.textContent = "رسیدگی شد";
+            row.appendChild(text);
+            row.appendChild(button);
+            shell.appendChild(row);
+        });
+        return shell;
+    }
+
+    function dentalAppendResourceInsights(termData) {
+        var insights = dentalResourceInsights();
+        var shell = dentalCreate("section", "notes-resource-insights");
+        var head = dentalCreate("div", "notes-resource-insights__head");
+        head.appendChild(dentalCreate("span", "archive-term__kicker", "منابع من"));
+        head.appendChild(dentalCreate("h3", "", "پیگیری منابع"));
+        var feedbackNode = dentalCreate("p", "notes-manage-feedback");
+        feedbackNode.id = "notes-resource-feedback";
+        feedbackNode.hidden = !dentalState.resourceFeedback;
+        feedbackNode.textContent = dentalState.resourceFeedback;
+        head.appendChild(feedbackNode);
+        shell.appendChild(head);
+
+        var grid = dentalCreate("div", "notes-resource-insights__grid");
+        grid.appendChild(dentalCreateMiniList(
+            "علاقه‌مندی‌ها",
+            insights.authenticated ? insights.favorites : [],
+            insights.authenticated ? "هنوز منبعی ذخیره نشده است." : "برای ذخیره علاقه‌مندی وارد حساب شو."
+        ));
+        grid.appendChild(dentalCreateMiniList(
+            "اخیراً دیده‌شده",
+            insights.authenticated ? insights.recent : [],
+            insights.authenticated ? "هنوز منبعی باز نکرده‌ای." : "بعد از ورود، بازدیدهای اخیر اینجا می‌آید."
+        ));
+        grid.appendChild(dentalCreateMiniList(
+            "آخرین آپدیت‌ها",
+            insights.latestUpdates,
+            "آپدیت تازه‌ای ثبت نشده است."
+        ));
+        shell.appendChild(grid);
+
+        var pending = insights.pending || {};
+        if (dentalState.canManage && insights.inbox) {
+            var ownerLine = dentalCreate("div", "notes-resource-owner-line");
+            ownerLine.appendChild(dentalCreate(
+                "span",
+                "notes-chip notes-chip--soft",
+                "درخواست باز: " + toFaDigits(pending.requests || 0)
+            ));
+            ownerLine.appendChild(dentalCreate(
+                "span",
+                "notes-chip notes-chip--soft",
+                "گزارش لینک: " + toFaDigits(pending.reports || 0)
+            ));
+            shell.appendChild(ownerLine);
+            shell.appendChild(dentalCreateOwnerInbox(insights));
+        }
+
+        if (termData) {
+            shell.appendChild(dentalCreateRequestBox(termData));
+        }
+
+        list.appendChild(shell);
+    }
+
+    function dentalResourceItemTerm(item, fallbackTerm) {
+        return Number(item && (item.storageTerm || item.term) || fallbackTerm || dentalRequestedTerm() || 0);
+    }
+
+    function dentalTrackResourceOpen(item) {
+        var itemId = Number(item && item.id || 0);
+        if (!itemId) {
+            return;
+        }
+        request("trackResourceOpen", "POST", {
+            itemId: String(itemId),
+            term: String(dentalResourceItemTerm(item, 0))
+        }).then(function (payload) {
+            dentalApplyResourceInsights(payload);
+        });
+    }
+
     function dentalAccentClassName(index) {
         var accents = ["is-accent-a", "is-accent-b", "is-accent-c", "is-accent-d"];
         return accents[Math.abs(Number(index) || 0) % accents.length];
@@ -615,6 +825,66 @@
         list.appendChild(actions);
     }
 
+    function dentalCreateResourceRow(item, index, termData) {
+        var termNumber = dentalResourceItemTerm(item, Number(termData && (termData.term || termData.termNumber) || 0));
+        var updatedText = dentalFormatDate(item.updatedAt);
+        var statusText = updatedText ? ("آپدیت " + updatedText) : "";
+        var row = dentalCreateSimpleRow({
+            href: item.buttonUrl || "#",
+            external: !!item.isExternal,
+            eyebrow: item.badge || "منبع",
+            status: statusText,
+            title: item.title || "بدون عنوان",
+            meta: dentalCompactText(
+                item.description || "",
+                "لینک این منبع از همین ردیف باز می‌شود.",
+                108
+            ),
+            actionLabel: item.buttonLabel || "باز کردن",
+            analyticsDownload: "notes-resource",
+            analyticsLabel: item.title || item.badge || "منبع",
+            rowClassName: dentalRowClassName(index, false),
+            visualLabel: toFaDigits(Number(item.version || 1) > 1 ? item.version : index + 1)
+        });
+        row.classList.add("notes-resource-row");
+        row.dataset.resourceItemId = String(item.id || "");
+        row.dataset.resourceTerm = String(termNumber || "");
+
+        var link = row.querySelector(".catalog-simple-row__link");
+        if (link) {
+            link.dataset.resourceOpen = "true";
+            link.dataset.itemId = String(item.id || "");
+            link.dataset.term = String(termNumber || "");
+        }
+
+        var actions = dentalCreate("div", "notes-resource-row__actions");
+        var favoriteButton = dentalCreate("button", "notes-resource-action");
+        favoriteButton.type = "button";
+        favoriteButton.dataset.resourceFavorite = "true";
+        favoriteButton.dataset.itemId = String(item.id || "");
+        favoriteButton.dataset.term = String(termNumber || "");
+        favoriteButton.dataset.favorite = dentalIsResourceFavorite(item) ? "0" : "1";
+        favoriteButton.textContent = dentalIsResourceFavorite(item) ? "حذف علاقه‌مندی" : "علاقه‌مندی";
+        actions.appendChild(favoriteButton);
+
+        var reportButton = dentalCreate("button", "notes-resource-action notes-resource-action--muted");
+        reportButton.type = "button";
+        reportButton.dataset.resourceReport = "true";
+        reportButton.dataset.itemId = String(item.id || "");
+        reportButton.dataset.term = String(termNumber || "");
+        reportButton.textContent = "گزارش لینک";
+        actions.appendChild(reportButton);
+
+        var versionLabel = dentalCreate(
+            "span",
+            "notes-resource-version",
+            "نسخه " + toFaDigits(Number(item.version || 1))
+        );
+        actions.appendChild(versionLabel);
+        row.appendChild(actions);
+        return row;
+    }
+
     function dentalAppendResourceCards(termData, canManage) {
         var items = Array.isArray(termData && termData.items) ? termData.items : [];
         if (!items.length) {
@@ -628,22 +898,7 @@
 
         var wrap = dentalCreate("div", "catalog-simple-stack");
         items.forEach(function (item, index) {
-            wrap.appendChild(dentalCreateSimpleRow({
-                href: item.buttonUrl || "#",
-                external: !!item.isExternal,
-                eyebrow: item.badge || "منبع",
-                status: "",
-                title: item.title || "بدون عنوان",
-                meta: dentalCompactText(
-                    item.description || "",
-                    "لینک این منبع از همین ردیف باز می‌شود.",
-                    108
-                ),
-                analyticsDownload: "notes-resource",
-                analyticsLabel: item.title || item.badge || "منبع",
-                rowClassName: dentalRowClassName(index, false),
-                visualLabel: toFaDigits(index + 1)
-            }));
+            wrap.appendChild(dentalCreateResourceRow(item, index, termData));
         });
         list.appendChild(wrap);
     }
@@ -662,6 +917,7 @@
         );
         document.title = "آرشیو منابع " + dentalYearLabel() + " | ساختار ترم و واحد";
         dentalResetList();
+        dentalAppendResourceInsights(null);
         dentalAppendTermCards(curriculum);
         dentalAppendLegacyTerms(curriculum);
         dentalSyncUnitManagePanel(null);
@@ -686,6 +942,11 @@
         document.title = (termData.label || "ترم") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
         dentalAppendOverviewActions(Number(termData.number || 0), !!dentalState.canManage);
+        dentalAppendResourceInsights({
+            term: Number(termData.number || 0),
+            termNumber: Number(termData.number || 0),
+            unitKey: ""
+        });
         dentalAppendTermOverview(termData);
         dentalSyncUnitManagePanel(null);
     }
@@ -709,6 +970,7 @@
         document.title = (termData.title || "آرشیو") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
         dentalAppendResourceActions(termData, !!dentalState.canManage, "");
+        dentalAppendResourceInsights(termData);
         dentalAppendResourceCards(termData, !!dentalState.canManage);
         dentalSyncUnitManagePanel(null);
     }
@@ -731,6 +993,7 @@
         document.title = (termData.title || "منابع واحد") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
         dentalAppendResourceActions(termData, !!dentalState.canManage, termData.unitKey || "");
+        dentalAppendResourceInsights(termData);
         dentalAppendResourceCards(termData, !!dentalState.canManage);
         dentalSyncUnitManagePanel(termData);
     }
@@ -754,6 +1017,9 @@
         unitDetail: null,
         downloadHost: null,
         loading: false,
+        resourceBusy: false,
+        resourceFeedback: "",
+        resourceInsights: null,
         unitSaving: false
     };
 
@@ -940,6 +1206,161 @@
         unitManageForm.addEventListener("submit", dentalSubmitUnitManageForm);
     }
 
+    function dentalSubmitResourceRequest(form) {
+        if (!form || dentalState.resourceBusy) {
+            return;
+        }
+        var titleInput = form.querySelector("input[name='title']");
+        var noteInput = form.querySelector("textarea[name='note']");
+        var titleValue = titleInput ? String(titleInput.value || "").trim() : "";
+        var noteValue = noteInput ? String(noteInput.value || "").trim() : "";
+        if (!titleValue && !noteValue) {
+            dentalSetResourceFeedback("عنوان یا توضیح درخواست منبع را وارد کن.");
+            return;
+        }
+
+        dentalState.resourceBusy = true;
+        dentalRenderFromState();
+        request("requestResource", "POST", {
+            term: form.dataset.term || "",
+            unitKey: form.dataset.unitKey || "",
+            title: titleValue,
+            note: noteValue
+        }).then(function (payload) {
+            if (consumeUnauthorized(payload, "برای ثبت درخواست منبع باید وارد حساب شوی.")) {
+                throw new Error("برای ثبت درخواست منبع باید وارد حساب شوی.");
+            }
+            if (!payload || !payload.success) {
+                throw new Error((payload && payload.error) || "ثبت درخواست منبع انجام نشد.");
+            }
+            dentalApplyResourceInsights(payload);
+            dentalState.resourceFeedback = payload.message || "درخواست منبع ثبت شد.";
+            dentalRenderFromState();
+        }).catch(function (error) {
+            dentalSetResourceFeedback(error && error.message ? error.message : "ثبت درخواست منبع با خطا مواجه شد.");
+        }).finally(function () {
+            dentalState.resourceBusy = false;
+            dentalRenderFromState();
+        });
+    }
+
+    function dentalBindResourceActions() {
+        list.addEventListener("click", function (event) {
+            var favoriteButton = event.target && event.target.closest ? event.target.closest("[data-resource-favorite]") : null;
+            var reportButton = event.target && event.target.closest ? event.target.closest("[data-resource-report]") : null;
+            var issueButton = event.target && event.target.closest ? event.target.closest("[data-resource-issue]") : null;
+            var openLink = event.target && event.target.closest ? event.target.closest("[data-resource-open]") : null;
+
+            if (issueButton) {
+                event.preventDefault();
+                if (dentalState.resourceBusy) {
+                    return;
+                }
+                dentalState.resourceBusy = true;
+                request("updateResourceIssueStatus", "POST", {
+                    type: issueButton.dataset.issueType || "",
+                    id: issueButton.dataset.issueId || "",
+                    status: "resolved"
+                }).then(function (payload) {
+                    if (consumeUnauthorized(payload, "برای مدیریت صندوق منابع باید وارد حساب مجاز شوی.")) {
+                        throw new Error("برای مدیریت صندوق منابع باید وارد حساب مجاز شوی.");
+                    }
+                    if (!payload || !payload.success) {
+                        throw new Error((payload && payload.error) || "به‌روزرسانی وضعیت انجام نشد.");
+                    }
+                    dentalApplyResourceInsights(payload);
+                    dentalState.resourceFeedback = payload.message || "وضعیت مورد به‌روزرسانی شد.";
+                    dentalRenderFromState();
+                }).catch(function (error) {
+                    dentalSetResourceFeedback(error && error.message ? error.message : "به‌روزرسانی وضعیت با خطا مواجه شد.");
+                }).finally(function () {
+                    dentalState.resourceBusy = false;
+                    dentalRenderFromState();
+                });
+                return;
+            }
+
+            if (favoriteButton) {
+                event.preventDefault();
+                if (dentalState.resourceBusy) {
+                    return;
+                }
+                dentalState.resourceBusy = true;
+                request("toggleResourceFavorite", "POST", {
+                    itemId: favoriteButton.dataset.itemId || "",
+                    term: favoriteButton.dataset.term || "",
+                    favorite: favoriteButton.dataset.favorite || "1"
+                }).then(function (payload) {
+                    if (consumeUnauthorized(payload, "برای ذخیره علاقه‌مندی باید وارد حساب شوی.")) {
+                        throw new Error("برای ذخیره علاقه‌مندی باید وارد حساب شوی.");
+                    }
+                    if (!payload || !payload.success) {
+                        throw new Error((payload && payload.error) || "تغییر علاقه‌مندی انجام نشد.");
+                    }
+                    dentalApplyResourceInsights(payload);
+                    dentalState.resourceFeedback = payload.message || "علاقه‌مندی به‌روزرسانی شد.";
+                    dentalRenderFromState();
+                }).catch(function (error) {
+                    dentalSetResourceFeedback(error && error.message ? error.message : "تغییر علاقه‌مندی با خطا مواجه شد.");
+                }).finally(function () {
+                    dentalState.resourceBusy = false;
+                    dentalRenderFromState();
+                });
+                return;
+            }
+
+            if (reportButton) {
+                event.preventDefault();
+                if (dentalState.resourceBusy) {
+                    return;
+                }
+                var note = window.prompt("اگر توضیح کوتاهی درباره مشکل لینک داری بنویس.");
+                if (note === null) {
+                    return;
+                }
+                dentalState.resourceBusy = true;
+                request("reportResourceLink", "POST", {
+                    itemId: reportButton.dataset.itemId || "",
+                    term: reportButton.dataset.term || "",
+                    reason: "گزارش دانشجو",
+                    note: note
+                }).then(function (payload) {
+                    if (consumeUnauthorized(payload, "برای گزارش لینک باید وارد حساب شوی.")) {
+                        throw new Error("برای گزارش لینک باید وارد حساب شوی.");
+                    }
+                    if (!payload || !payload.success) {
+                        throw new Error((payload && payload.error) || "ثبت گزارش لینک انجام نشد.");
+                    }
+                    dentalApplyResourceInsights(payload);
+                    dentalState.resourceFeedback = payload.message || "گزارش لینک ثبت شد.";
+                    dentalRenderFromState();
+                }).catch(function (error) {
+                    dentalSetResourceFeedback(error && error.message ? error.message : "ثبت گزارش لینک با خطا مواجه شد.");
+                }).finally(function () {
+                    dentalState.resourceBusy = false;
+                    dentalRenderFromState();
+                });
+                return;
+            }
+
+            if (openLink) {
+                dentalTrackResourceOpen({
+                    id: openLink.dataset.itemId || "",
+                    term: openLink.dataset.term || ""
+                });
+            }
+        });
+
+        list.addEventListener("submit", function (event) {
+            var form = event.target && event.target.closest ? event.target.closest("[data-resource-request-form]") : null;
+            if (!form) {
+                return;
+            }
+            event.preventDefault();
+            dentalSubmitResourceRequest(form);
+        });
+    }
+
     function dentalRenderFromState() {
         var requestedTerm = dentalRequestedTerm();
         var requestedUnitKey = dentalRequestedUnitKey();
@@ -989,6 +1410,7 @@
         dentalState.curriculum = null;
         dentalState.unitDetail = null;
         dentalState.downloadHost = null;
+        dentalState.resourceInsights = null;
         dentalShowEmpty("در حال دریافت ساختار منابع...");
         dentalSetUnitManageFeedback("", "");
         dentalSyncUnitManagePanel(null);
@@ -1001,6 +1423,7 @@
             }
             dentalState.curriculum = payload.curriculum;
             dentalState.canManage = !!payload.canManage;
+            dentalApplyResourceInsights(payload);
             dentalRenderFromState();
         }).catch(function (error) {
             dentalRenderError(error && error.message ? error.message : "دریافت ساختار منابع با خطا مواجه شد.");
@@ -1016,6 +1439,7 @@
         dentalState.loading = true;
         dentalState.unitDetail = null;
         dentalState.downloadHost = null;
+        dentalState.resourceInsights = null;
         dentalShowEmpty("در حال دریافت منابع این واحد...");
         dentalSetUnitManageFeedback("", "");
         dentalSyncUnitManagePanel(null);
@@ -1032,6 +1456,7 @@
             dentalState.unitDetail = payload.term;
             dentalState.canManage = !!payload.canManage;
             dentalState.downloadHost = payload.downloadHost || null;
+            dentalApplyResourceInsights(payload);
             dentalRenderFromState();
         }).catch(function (error) {
             dentalState.downloadHost = null;
@@ -1065,6 +1490,7 @@
             manage.hidden = true;
         }
         dentalBindUnitManageForm();
+        dentalBindResourceActions();
         dentalState.authKey = authSnapshotKey();
         dentalWatchAuthChanges();
         if (dentalRequestedUnitKey()) {
