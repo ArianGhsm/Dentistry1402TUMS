@@ -422,6 +422,7 @@
             case "":
                 return "home";
             case "app":
+            case "admin":
             case "account":
             case "chat":
             case "exams":

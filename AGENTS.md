@@ -6,7 +6,7 @@
 
 ## 1) مرز محصول (کل سایت)
 - این پروژه یک سایت آموزشی چندبخشی است، نه یک پیام‌رسان مستقل.
-- مسیرهای اصلی سایت باید کاربرد آموزشی/عملیاتی خود را حفظ کنند: `/app/`, `/grades/`, `/exams/`, `/notes/`, `/resources/`, `/account/`, `/forms/`, `/buy/`.
+- مسیرهای اصلی سایت باید کاربرد آموزشی/عملیاتی خود را حفظ کنند: `/app/`, `/grades/`, `/exams/`, `/notes/`, `/resources/`, `/account/`, `/forms/`, `/buy/`, `/admin/`.
 - UX تلگرام‌مانند فقط برای `/chat/` و بخش‌های تنظیمات/پروفایل مرتبط با چت مجاز است.
 - هیچ بخش غیرچتی نباید به الگوی پیام‌رسان تبدیل شود.
 - ورودی پروتز ۱۴۰۲ باید از همان مسیرهای shared سایت (`/chat/`, `/forms/`, `/grades/`, `/notes/`, `/exams/`) با cohort/query یا config مناسب استفاده کند؛ state چت و نمرات آن جدا می‌ماند اما shell و فایل‌بندی UI نباید برایش fork جداگانه داشته باشد. مالک سایت در همه بخش‌های پروتز دسترسی دارد.
@@ -20,6 +20,7 @@
 - Pastebin شخصی مالک از `public_html/paste/` و `public_html/api/content_tools_api.php` استفاده می‌کند؛ ساخت/مدیریت فقط مالک است اما لینک‌های عمومی paste از `/paste/p/` و raw view از API بدون login برای دارنده لینک قابل دسترسی‌اند.
 - آپلودر HTML موقت از `public_html/html-uploader/` و `public_html/api/html_uploader_api.php` استفاده می‌کند؛ هر دارنده‌ی لینک uploader می‌تواند فایل HTML تک‌فایلی آپلود کند و خروجی عمومی آن از `/html/p/` فقط با لینک مستقیم باز می‌شود. صفحه‌های HTML آپلودشده باید با sandbox/CSP ایزوله سرو شوند و نباید به session یا origin اصلی سایت دسترسی هم‌ارز بگیرند.
 - آرشیو منابع/جزواتی که از داخل سایت قابل افزودن، ویرایش یا حذف است از `public_html/notes/`، `public_html/notes/files/` و `public_html/api/notes_api.php` استفاده می‌کند؛ HTML صفحات فقط shell نمایشی است و کارت‌های منابع نباید به‌عنوان state قابل مدیریت داخل HTML ثابت نگه‌داری شوند. آپلود مستقیم فایل منبع و فایل‌منیجر فولدری هاست دانلود هم باید از همین ماژول و API مشترک استفاده کنند، نه از مسیر موازی.
+- داشبورد عملیاتی مالک از `public_html/admin/` و `public_html/api/admin_api.php` استفاده می‌کند؛ این مسیر فقط summary/health/status/linkهای مدیریتی را با auth مشترک مالک نمایش می‌دهد و نباید به پنل موازی برای عملیات تخصصی مثل خرید، فرم، منابع، فایل، paste، HTML uploader یا نوید تبدیل شود. عملیات تخصصی باید در route خودش بماند و `/admin/` فقط ورود سریع و وضعیت عملیاتی بدهد.
 - Storage: داده‌های پایدار باید در مسیرهای ذخیره‌سازی مشترک نگه‌داری شوند؛ نه در فایل‌های موقتی جایگزین‌شونده در Deploy.
 - جستجوی سراسری سایت از `public_html/api/search_api.php` + `public_html/api/search_store.php` استفاده می‌کند و فقط عنوان منابع/جزوات و دروس/جلسات آزمونِ همان cohortِ مجاز کاربر را index می‌کند؛ ورودی آن باکس جستجو در هدر shared است (`shell.js`). این مسیر باید auth و مرز cohort را enforce کند و نباید به منبع داده موازی یا فهرست‌کردن state حساس تبدیل شود. mapping توکن notes باید با `notes_curriculum_store_for_cohort` هم‌خوان بماند.
 - اعلان‌های Web Push از `public_html/api/push_api.php` + `public_html/api/push_store.php` استفاده می‌کنند؛ کلید VAPID و اشتراک‌ها در storage مشترک `push/` می‌مانند و ارسال push فقط باید از همان مسیر dispatch اعلان‌های مشترک (`notifications_dispatch_push_if_needed` در `notifications_store.php`) عبور کند، نه queue/auth موازی. فعال/غیرفعال‌سازی فقط با اجازه مرورگر و از پنل حساب کاربر (`push.js`) است و `sw.js` باید handlerهای `push`/`notificationclick` را داشته باشد.
