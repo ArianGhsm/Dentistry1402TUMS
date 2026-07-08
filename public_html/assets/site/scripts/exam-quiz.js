@@ -586,7 +586,9 @@
                 return renderAssessmentOption(questionIndex, optionIndex, option, selectedIndex, question.correctIndex, true);
             }).join(""),
             "  </div>",
-            question.explanation ? '<div class="exam-answer-card"><span class="exam-answer-card__label">پاسخ تشریحی</span><div class="exam-answer-card__copy">' + richTextHtml(question.explanation) + "</div></div>" : "",
+            renderMcqAnswerCard(question, selectedIndex, {
+                unresolvedLabel: "کلید قطعی این سؤال در فایل منبع موجود نیست"
+            }),
             '  <div class="exam-question-actions">',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">" + renderResponsiveLabel("\u0633\u0648\u0627\u0644 \u0642\u0628\u0644\u06cc", "\u0642\u0628\u0644\u06cc") + "</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + renderResponsiveLabel(isFlagged(questionIndex) ? "\u062d\u0630\u0641 \u0646\u0634\u0627\u0646" : "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631 \u06a9\u0646", isFlagged(questionIndex) ? "\u062d\u0630\u0641" : "\u0646\u0634\u0627\u0646") + "</button>",
@@ -867,9 +869,15 @@
     function renderAssessmentOption(questionIndex, optionIndex, optionText, selectedIndex, correctIndex, reviewMode) {
         var stateName = "neutral";
         var tag = "";
+        var resolvedAnswer = hasResolvedCorrectIndex(correctIndex);
 
         if (reviewMode) {
-            if (optionIndex === correctIndex && selectedIndex === optionIndex) {
+            if (!resolvedAnswer) {
+                if (selectedIndex === optionIndex) {
+                    stateName = "selected";
+                    tag = "انتخاب تو";
+                }
+            } else if (optionIndex === correctIndex && selectedIndex === optionIndex) {
                 stateName = "user-correct";
                 tag = "پاسخ درست تو";
             } else if (optionIndex === correctIndex) {
@@ -895,9 +903,15 @@
     function renderLearningOption(questionIndex, optionIndex, optionText, selectedIndex, correctIndex, revealed) {
         var stateName = "neutral";
         var tag = "";
+        var resolvedAnswer = hasResolvedCorrectIndex(correctIndex);
 
         if (revealed) {
-            if (optionIndex === correctIndex && selectedIndex === optionIndex) {
+            if (!resolvedAnswer) {
+                if (selectedIndex === optionIndex) {
+                    stateName = "selected";
+                    tag = "انتخاب تو";
+                }
+            } else if (optionIndex === correctIndex && selectedIndex === optionIndex) {
                 stateName = "user-correct";
                 tag = "پاسخ درست تو";
             } else if (optionIndex === correctIndex) {
@@ -917,6 +931,60 @@
             '  <span class="exam-option-copy">' + richTextHtml(optionText) + "</span>",
             tag ? '  <span class="exam-option-tag">' + escapeHtml(tag) + "</span>" : "",
             "</button>"
+        ].join("");
+    }
+
+    function renderAnswerMeta(question) {
+        if (!question.answerMeta.length) {
+            return "";
+        }
+
+        return '<div class="exam-answer-card__facts">' + question.answerMeta.map(function (item) {
+            return [
+                '<article class="exam-answer-card__fact' + (item.tone ? " is-" + escapeHtml(item.tone) : "") + (item.wide ? " is-wide" : "") + '">',
+                '  <span class="exam-answer-card__fact-label">' + escapeHtml(item.label) + "</span>",
+                '  <div class="exam-answer-card__fact-value">' + richTextHtml(item.value) + "</div>",
+                "</article>"
+            ].join("");
+        }).join("") + "</div>";
+    }
+
+    function renderAnswerDetailsContent(question, fallbackHtml) {
+        return [
+            renderAnswerMeta(question),
+            question.explanation ? '<div class="exam-answer-card__body">' + richTextHtml(question.explanation) + "</div>" : (fallbackHtml || ""),
+            question.reference ? '<p class="exam-answer-card__reference">' + richTextHtml(question.reference) + "</p>" : ""
+        ].filter(Boolean).join("");
+    }
+
+    function renderMcqAnswerCard(question, selectedIndex, options) {
+        if (!question.explanation && !question.answerMeta.length && !question.reference) {
+            return "";
+        }
+
+        var config = options || {};
+        var resolvedAnswer = hasResolvedCorrectIndex(question.correctIndex);
+        var isCorrect = resolvedAnswer && selectedIndex === question.correctIndex;
+        var cardClassName = "exam-answer-card";
+        var label = config.label || "پاسخ تشریحی";
+        var fallbackCopy = "";
+
+        if (!resolvedAnswer) {
+            label = config.unresolvedLabel || "کلید قطعی این سؤال در فایل منبع موجود نیست";
+            cardClassName += " is-warning";
+            fallbackCopy = '  <p class="exam-answer-card__copy">' + escapeHtml("برای این سؤال، در فایل منبع پاسخ قطعی ثبت نشده است.") + "</p>";
+        } else if (selectedIndex !== null) {
+            cardClassName += isCorrect ? " is-correct" : " is-warning";
+            label = config.label || (isCorrect ? "پاسخ تو درست بود" : "پاسخ صحیح مشخص شد");
+            fallbackCopy = '  <p class="exam-answer-card__copy">' + escapeHtml("پاسخ صحیح این سؤال گزینه " + optionLetter(question.correctIndex) + " است.") + "</p>";
+        }
+
+        return [
+            '<div class="' + cardClassName + '">',
+            '  <span class="exam-answer-card__label">' + escapeHtml(label) + "</span>",
+            renderAnswerDetailsContent(question, fallbackCopy),
+            config.hintHtml || "",
+            "</div>"
         ].join("");
     }
 
@@ -948,6 +1016,7 @@
         return [
             '<div class="exam-answer-card exam-answer-card--essay">',
             '  <span class="exam-answer-card__label">پاسخ تشریحی</span>',
+            renderAnswerMeta(question),
             sections.join(""),
             question.reference ? '<p class="exam-answer-card__reference">' + richTextHtml(question.reference) + "</p>" : "",
             "</div>"
@@ -955,16 +1024,12 @@
     }
 
     function renderLearningFeedback(question, selectedIndex, questionIndex) {
-        var isCorrect = selectedIndex === question.correctIndex;
-        var briefCopy = '  <p class="exam-answer-card__copy">' + escapeHtml("پاسخ صحیح این سوال گزینه " + optionLetter(question.correctIndex) + " است.") + "</p>";
-
         return [
-            '<div class="exam-answer-card' + (isCorrect ? " is-correct" : " is-warning") + '">',
-            '  <span class="exam-answer-card__label">' + escapeHtml(isCorrect ? "پاسخ تو درست بود" : "پاسخ صحیح مشخص شد") + "</span>",
-            question.explanation ? '<div class="exam-answer-card__body">' + richTextHtml(question.explanation) + "</div>" : briefCopy,
-            isFlagged(questionIndex) ? '<span class="exam-answer-card__hint">این سوال نشان‌دار شده و بعداً سریع پیدایش می‌کنی.</span>' : "",
-            "</div>"
-        ].join("");
+            renderMcqAnswerCard(question, selectedIndex, {
+                unresolvedLabel: "کلید قطعی این سؤال در فایل منبع موجود نیست",
+                hintHtml: isFlagged(questionIndex) ? '<span class="exam-answer-card__hint">این سوال نشان‌دار شده و بعداً سریع پیدایش می‌کنی.</span>' : ""
+            })
+        ].filter(Boolean).join("");
     }
 
     function renderStageEmptyState(copy) {
@@ -1708,6 +1773,9 @@
         if (selectedIndex === null) {
             return "unanswered";
         }
+        if (!hasResolvedCorrectIndex(exam.questions[questionIndex].correctIndex)) {
+            return "review";
+        }
         return selectedIndex === exam.questions[questionIndex].correctIndex ? "correct" : "wrong";
     }
 
@@ -1731,6 +1799,9 @@
         if (!state.learning.revealed[questionIndex]) {
             return "answered";
         }
+        if (!hasResolvedCorrectIndex(question.correctIndex)) {
+            return "review";
+        }
         return selectedIndex === question.correctIndex ? "correct" : "wrong";
     }
 
@@ -1744,6 +1815,9 @@
         if (stateName === "answered") {
             return "پاسخ داده شده";
         }
+        if (stateName === "review") {
+            return "بدون کلید";
+        }
         return "بی‌پاسخ";
     }
 
@@ -1753,6 +1827,9 @@
         }
         if (selectedIndex === null) {
             return "در انتظار پاسخ";
+        }
+        if (!hasResolvedCorrectIndex(question.correctIndex)) {
+            return "بدون کلید قطعی";
         }
         return selectedIndex === question.correctIndex ? "پاسخ درست" : "نیاز به مرور";
     }
@@ -2025,18 +2102,49 @@
             return normalizeText(option);
         });
         var isEssay = options.length === 0;
+        var correctIndex = isEssay ? null : clampCorrectIndex(item.correctIndex, options.length);
 
         return {
             question: stripQuestionNumber(normalizeText(item.question || item.text || "")),
             options: options,
-            correctIndex: isEssay ? null : clampCorrectIndex(item.correctIndex, options.length),
+            correctIndex: correctIndex,
             explanation: normalizeText(item.explanation || ""),
             isEssay: isEssay,
             answerSummary: normalizeText(item.answerSummary || ""),
             answerDetail: normalizeText(item.answerDetail || ""),
             reference: normalizeText(item.reference || ""),
+            answerMeta: normalizeAnswerMeta(item.answerMeta),
+            answerResolved: isEssay ? true : hasResolvedCorrectIndex(correctIndex),
             useCompactOptions: shouldUseCompactOptions(options)
         };
+    }
+
+    function normalizeAnswerMeta(items) {
+        if (!Array.isArray(items)) {
+            return [];
+        }
+
+        return items.map(function (item) {
+            if (!isObject(item)) {
+                return null;
+            }
+
+            var label = normalizeText(item.label || "");
+            var value = normalizeText(item.value || "");
+            if (!label || !value) {
+                return null;
+            }
+
+            var tone = normalizeText(item.tone || "");
+            return {
+                label: label,
+                value: value,
+                tone: tone,
+                wide: Boolean(item.wide)
+            };
+        }).filter(function (item) {
+            return !!item;
+        });
     }
 
     function normalizeReport(rawReport, questions) {
@@ -2262,9 +2370,13 @@
     function clampCorrectIndex(value, optionCount) {
         var parsed = Number(value);
         if (!Number.isInteger(parsed) || parsed < 0 || parsed >= optionCount) {
-            return 0;
+            return null;
         }
         return parsed;
+    }
+
+    function hasResolvedCorrectIndex(correctIndex) {
+        return Number.isInteger(correctIndex) && correctIndex >= 0;
     }
 
     function createNullArray(length) {

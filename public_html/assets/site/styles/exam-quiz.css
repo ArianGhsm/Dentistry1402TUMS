@@ -1366,6 +1366,57 @@ body.quiz-page .exam-answer-card--essay {
     gap: 0.7rem;
 }
 
+body.quiz-page .exam-answer-card__facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.48rem;
+}
+
+body.quiz-page .exam-answer-card__fact {
+    display: grid;
+    gap: 0.22rem;
+    min-width: 0;
+    padding: 0.58rem 0.62rem;
+    border: 1px solid var(--exam-line);
+    border-radius: 18px;
+    background: var(--exam-surface-strong);
+}
+
+body.quiz-page .exam-answer-card__fact.is-wide {
+    grid-column: 1 / -1;
+}
+
+body.quiz-page .exam-answer-card__fact.is-accent {
+    border-color: rgba(91, 133, 255, 0.2);
+    background: color-mix(in srgb, var(--exam-accent-soft) 44%, var(--exam-surface-strong));
+}
+
+body.quiz-page .exam-answer-card__fact.is-success {
+    border-color: rgba(69, 210, 154, 0.22);
+    background: color-mix(in srgb, var(--exam-success-soft) 64%, var(--exam-surface-strong));
+}
+
+body.quiz-page .exam-answer-card__fact.is-warning {
+    border-color: rgba(239, 177, 84, 0.24);
+    background: color-mix(in srgb, var(--exam-warning-soft) 68%, var(--exam-surface-strong));
+}
+
+body.quiz-page .exam-answer-card__fact-label {
+    color: var(--exam-text-muted);
+    font-size: 0.72rem;
+    font-weight: 780;
+    line-height: 1.4;
+}
+
+body.quiz-page .exam-answer-card__fact-value {
+    color: var(--exam-text);
+    font-size: 0.8rem;
+    line-height: 1.9;
+    text-align: right;
+    direction: rtl;
+    unicode-bidi: isolate;
+}
+
 body.quiz-page .exam-answer-card__section {
     display: grid;
     gap: 0.36rem;
@@ -2070,6 +2121,20 @@ body.quiz-page .exam-empty-card .exam-btn {
     body.quiz-page .exam-note-card {
         font-size: 0.73rem;
         line-height: 1.52;
+    }
+
+    body.quiz-page .exam-answer-card__facts {
+        grid-template-columns: 1fr;
+    }
+
+    body.quiz-page .exam-answer-card__fact {
+        border-radius: 16px;
+        padding: 0.5rem 0.56rem;
+    }
+
+    body.quiz-page .exam-answer-card__fact-label,
+    body.quiz-page .exam-answer-card__fact-value {
+        font-size: 0.69rem;
     }
 
     body.quiz-page .exam-answer-card__reference {

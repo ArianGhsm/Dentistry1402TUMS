@@ -388,7 +388,7 @@ function dent_dentistry_curriculum_terms(): array
                             'key' => 'restorative-theory-1',
                             'title' => 'ترمیمی نظری ۱',
                             'resourceAliases' => ['سامیت', 'summitt'],
-                            'examCourseSlugs' => ['restorative-theory-1-term6', 'summit-operative-dentistry', 'sturdevant-operative-dentistry'],
+                            'examCourseSlugs' => ['restorative-theory-1-term6', 'restorative-theory-1-midterm-sample', 'summit-operative-dentistry', 'sturdevant-operative-dentistry'],
                         ],
                         [
                             'key' => 'medical-emergencies',

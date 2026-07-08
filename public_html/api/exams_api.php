@@ -668,15 +668,24 @@ function dent_exams_api_score_answers(array $questions, array $answers): array
     $correct = 0;
     $wrong = 0;
     $unanswered = 0;
+    $gradableQuestions = 0;
 
     foreach ($questions as $index => $question) {
+        $optionCount = is_array($question['options'] ?? null) ? count($question['options']) : 0;
+        $correctIndex = $question['correctIndex'] ?? null;
+        $hasResolvedAnswer = is_int($correctIndex) && $correctIndex >= 0 && $correctIndex < $optionCount;
+        if (!$hasResolvedAnswer) {
+            continue;
+        }
+
+        $gradableQuestions++;
         $selectedIndex = $clampedAnswers[$index] ?? null;
         if (!is_int($selectedIndex)) {
             $unanswered++;
             continue;
         }
 
-        if ($selectedIndex === (int) ($question['correctIndex'] ?? 0)) {
+        if ($selectedIndex === $correctIndex) {
             $correct++;
             continue;
         }
@@ -684,7 +693,7 @@ function dent_exams_api_score_answers(array $questions, array $answers): array
         $wrong++;
     }
 
-    $totalQuestions = count($questions);
+    $totalQuestions = $gradableQuestions;
     $percent = $totalQuestions > 0 ? round(($correct / $totalQuestions) * 100, 1) : 0.0;
 
     return [
