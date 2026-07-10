@@ -40,13 +40,10 @@ if ($action === '') {
     $action = 'summary';
 }
 
-if (in_array($action, ['summary', 'list', 'markRead', 'markAllRead', 'savePrefs', 'broadcast', 'deployNotice', 'audience', 'delete'], true)) {
-    notifications_process_due_queue();
-}
-
 if ($action === 'summary') {
     $user = dent_require_user();
     dent_release_session_lock();
+    notifications_process_due_queue($user);
     $store = notifications_read_store();
     dent_json_response([
         'success' => true,
@@ -58,6 +55,7 @@ if ($action === 'summary') {
 if ($action === 'list') {
     $user = dent_require_user();
     dent_release_session_lock();
+    notifications_process_due_queue($user);
     $store = notifications_read_store();
     dent_json_response([
         'success' => true,
@@ -72,6 +70,7 @@ if ($action === 'markRead') {
 
     $user = dent_require_user();
     dent_release_session_lock();
+    notifications_process_due_queue($user);
     $ids = notifications_parse_ids_input($_POST['ids'] ?? ($_POST['idsJson'] ?? []));
     $summary = notifications_mark_read($user, $ids);
     $store = notifications_read_store();
@@ -90,6 +89,7 @@ if ($action === 'markAllRead') {
 
     $user = dent_require_user();
     dent_release_session_lock();
+    notifications_process_due_queue($user);
     $summary = notifications_mark_all_read($user);
     $store = notifications_read_store();
     dent_json_response([
@@ -109,13 +109,38 @@ if ($action === 'savePrefs') {
     dent_release_session_lock();
     $preferences = notifications_save_preferences($user, [
         'navidAssignmentAlerts' => $_POST['navidAssignmentAlerts'] ?? null,
+        'formReminders' => $_POST['formReminders'] ?? null,
+        'paymentReminders' => $_POST['paymentReminders'] ?? null,
+        'examReminders' => $_POST['examReminders'] ?? null,
+        'dailyDigestEnabled' => $_POST['dailyDigestEnabled'] ?? null,
+        'dailyDigestHour' => $_POST['dailyDigestHour'] ?? null,
     ]);
+    notifications_process_due_queue($user);
     $store = notifications_read_store();
     dent_json_response([
         'success' => true,
         'preferences' => $preferences,
         'summary' => notifications_summary_for_user($store, $user),
         'preview' => notifications_latest_unread_payload_for_user($store, $user),
+    ]);
+}
+
+if ($action === 'snooze') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد تعویق اعلان نامعتبر است.', 405);
+    }
+
+    $user = dent_require_user();
+    dent_release_session_lock();
+    $hours = max(1, min(168, (int) ($_POST['hours'] ?? 24)));
+    $summary = notifications_snooze_record($user, (string) ($_POST['id'] ?? ''), $hours);
+    $store = notifications_read_store();
+    dent_json_response([
+        'success' => true,
+        'message' => 'اعلان موقتاً کنار گذاشته شد.',
+        'summary' => $summary,
+        'preview' => notifications_latest_unread_payload_for_user($store, $user),
+        'preferences' => notifications_preferences_payload($user, $store),
     ]);
 }
 
@@ -126,6 +151,7 @@ if ($action === 'broadcast') {
 
     $viewer = dent_require_user();
     dent_release_session_lock();
+    notifications_process_due_queue($viewer);
     $record = notifications_create_broadcast($viewer, [
         'targetKey' => (string) ($_POST['targetKey'] ?? ''),
         'title' => (string) ($_POST['title'] ?? ''),
@@ -160,6 +186,7 @@ if ($action === 'deployNotice') {
 
     $viewer = dent_require_owner();
     dent_release_session_lock();
+    notifications_process_due_queue($viewer);
     $record = notifications_create_owner_deploy_notice($viewer, [
         'version' => (string) ($_POST['version'] ?? ''),
         'deployedAt' => (string) ($_POST['deployedAt'] ?? ''),
@@ -187,6 +214,7 @@ if ($action === 'deployNotice') {
 if ($action === 'audience') {
     $viewer = dent_require_user();
     dent_release_session_lock();
+    notifications_process_due_queue($viewer);
     dent_json_response([
         'success' => true,
         'data' => notifications_audience_payload(
@@ -203,6 +231,7 @@ if ($action === 'delete') {
 
     $viewer = dent_require_user();
     dent_release_session_lock();
+    notifications_process_due_queue($viewer);
     $deleted = notifications_delete_record($viewer, (string) ($_POST['id'] ?? ''));
     $store = notifications_read_store();
     dent_json_response([

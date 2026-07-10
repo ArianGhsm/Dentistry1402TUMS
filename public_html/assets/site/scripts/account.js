@@ -239,7 +239,13 @@
     var ownerMediaFeedback = $("owner-media-feedback");
     var notificationsSummary = $("notifications-summary");
     var notificationsPrefsCard = $("notifications-prefs-card");
+    var notificationsNavidRow = $("notifications-navid-row");
     var notificationsNavidAlertsToggle = $("notifications-navid-alerts");
+    var notificationsFormRemindersToggle = $("notifications-form-reminders");
+    var notificationsPaymentRemindersToggle = $("notifications-payment-reminders");
+    var notificationsExamRemindersToggle = $("notifications-exam-reminders");
+    var notificationsDigestEnabledToggle = $("notifications-digest-enabled");
+    var notificationsDigestHourInput = $("notifications-digest-hour");
     var notificationsPrefsSaveButton = $("notifications-prefs-save");
     var notificationsPushCard = $("notifications-push-card");
     var notificationsPushToggle = $("notifications-push-toggle");
@@ -325,6 +331,7 @@
         summary: null,
         preview: null,
         preferences: null,
+        draftPreferences: null,
         manager: null,
         items: [],
         activeFilter: "all",
@@ -332,6 +339,7 @@
         markingAll: false,
         broadcasting: false,
         markingIds: {},
+        snoozingIds: {},
         audienceById: {},
         audienceLoadingIds: {},
         expandedAudienceId: "",
@@ -1967,6 +1975,7 @@
         notificationsState.summary = null;
         notificationsState.preview = null;
         notificationsState.preferences = null;
+        notificationsState.draftPreferences = null;
         notificationsState.manager = null;
         notificationsState.items = [];
         notificationsState.activeFilter = "all";
@@ -1974,6 +1983,7 @@
         notificationsState.markingAll = false;
         notificationsState.broadcasting = false;
         notificationsState.markingIds = {};
+        notificationsState.snoozingIds = {};
         notificationsState.audienceById = {};
         notificationsState.audienceLoadingIds = {};
         notificationsState.expandedAudienceId = "";
@@ -1990,8 +2000,66 @@
         }));
     }
 
+    function notificationsNormalizeDigestHourValue(value, fallback) {
+        var normalized = Math.floor(toNumber(value, fallback));
+        if (!Number.isFinite(normalized)) {
+            normalized = Math.floor(toNumber(fallback, 8));
+        }
+        return Math.max(0, Math.min(23, normalized));
+    }
+
+    function notificationsPreferenceSnapshotFromInputs() {
+        var base = notificationsState.preferences && typeof notificationsState.preferences === "object"
+            ? notificationsState.preferences
+            : {};
+        return {
+            navidAssignmentAlerts: notificationsNavidAlertsToggle
+                ? !!notificationsNavidAlertsToggle.checked
+                : !!base.navidAssignmentAlerts,
+            formReminders: notificationsFormRemindersToggle
+                ? !!notificationsFormRemindersToggle.checked
+                : !!base.formReminders,
+            paymentReminders: notificationsPaymentRemindersToggle
+                ? !!notificationsPaymentRemindersToggle.checked
+                : !!base.paymentReminders,
+            examReminders: notificationsExamRemindersToggle
+                ? !!notificationsExamRemindersToggle.checked
+                : !!base.examReminders,
+            dailyDigestEnabled: notificationsDigestEnabledToggle
+                ? !!notificationsDigestEnabledToggle.checked
+                : !!base.dailyDigestEnabled,
+            dailyDigestHour: notificationsNormalizeDigestHourValue(
+                notificationsDigestHourInput ? notificationsDigestHourInput.value : (base.dailyDigestHour || 8),
+                base.dailyDigestHour || 8
+            )
+        };
+    }
+
+    function notificationsCurrentPreferenceView() {
+        var base = notificationsState.preferences && typeof notificationsState.preferences === "object"
+            ? notificationsState.preferences
+            : {};
+        var draft = notificationsState.draftPreferences && typeof notificationsState.draftPreferences === "object"
+            ? notificationsState.draftPreferences
+            : null;
+        return draft ? Object.assign({}, base, draft) : base;
+    }
+
+    function notificationsUpdatePreferenceDraft(shouldRender) {
+        notificationsState.draftPreferences = notificationsPreferenceSnapshotFromInputs();
+        if (shouldRender) {
+            renderNotificationsSurface();
+        }
+    }
+
+    function notificationsItemIsImportant(item) {
+        return !!(item && item.important);
+    }
+
     function notificationsLatestUnreadItemFromItems() {
         return notificationsState.items.find(function (item) {
+            return !!(item && item.unread && notificationsItemIsImportant(item));
+        }) || notificationsState.items.find(function (item) {
             return !!(item && item.unread);
         }) || null;
     }
@@ -2054,6 +2122,9 @@
         if (key === "unread") {
             return !!(item && item.unread && !item.scheduled);
         }
+        if (key === "important") {
+            return !!(item && item.unread && !item.scheduled && notificationsItemIsImportant(item));
+        }
         if (key === "navid") {
             return !!(item && item.kind === "navid-assignment");
         }
@@ -2071,13 +2142,14 @@
         var configs = [
             { key: "all", label: "همه", count: list.length },
             { key: "unread", label: "خوانده‌نشده", count: list.filter(function (item) { return notificationsMatchesFilter(item, "unread"); }).length },
+            { key: "important", label: "مهم", count: list.filter(function (item) { return notificationsMatchesFilter(item, "important"); }).length },
             { key: "navid", label: "نوید", count: list.filter(function (item) { return notificationsMatchesFilter(item, "navid"); }).length },
             { key: "manager", label: "مدیریتی", count: list.filter(function (item) { return notificationsMatchesFilter(item, "manager"); }).length },
             { key: "scheduled", label: "زمان‌بندی", count: list.filter(function (item) { return notificationsMatchesFilter(item, "scheduled"); }).length }
         ];
 
         return configs.filter(function (config) {
-            return config.key === "all" || config.count > 0;
+            return config.key === "all" || config.key === "important" || config.count > 0;
         });
     }
 
@@ -2282,6 +2354,19 @@
         if (item && item.kind === "navid-assignment") {
             return "نوید";
         }
+        var source = String(item && item.source || "");
+        if (source === "forms") {
+            return "فرم";
+        }
+        if (source === "payments") {
+            return "پرداخت";
+        }
+        if (source === "exams") {
+            return "آزمون";
+        }
+        if (source === "digest") {
+            return "خلاصه روزانه";
+        }
         if (item && item.source === "deploy") {
             return "استقرار";
         }
@@ -2396,15 +2481,17 @@
 
     function notificationsOverviewHtml(summary, manager) {
         var unreadCount = Math.max(0, Math.floor(toNumber(summary && summary.unreadCount, 0)));
+        var importantUnreadCount = Math.max(0, Math.floor(toNumber(summary && summary.importantUnreadCount, 0)));
+        var reminderCount = Math.max(0, Math.floor(toNumber(summary && summary.reminderCount, 0)));
         var visibleCount = Math.max(0, Math.floor(toNumber(summary && summary.visibleCount, 0)));
-        var announcementCount = Math.max(0, Math.floor(toNumber(summary && summary.announcementCount, 0)));
         var navidCount = Math.max(0, Math.floor(toNumber(summary && summary.navidCount, 0)));
         var scheduledCount = Math.max(0, Math.floor(toNumber(summary && summary.scheduledCount, 0)));
         var latestTitle = String(summary && summary.latestTitle || "").trim();
         var pills = [
             notificationsOverviewPillHtml("جدید", unreadCount.toLocaleString("fa-IR"), unreadCount > 0 ? "warn" : "ok"),
+            notificationsOverviewPillHtml("مهم", importantUnreadCount.toLocaleString("fa-IR"), importantUnreadCount > 0 ? "danger" : ""),
+            notificationsOverviewPillHtml("یادآور", reminderCount.toLocaleString("fa-IR"), reminderCount > 0 ? "warn" : ""),
             notificationsOverviewPillHtml(manager && manager.canBroadcast ? "در فید" : "قابل‌نمایش", visibleCount.toLocaleString("fa-IR"), ""),
-            notificationsOverviewPillHtml("اعلان", announcementCount.toLocaleString("fa-IR"), ""),
             notificationsOverviewPillHtml("نوید", navidCount.toLocaleString("fa-IR"), "")
         ];
         if (manager && manager.canBroadcast) {
@@ -2415,7 +2502,9 @@
             '<p class="account-notifications-overview__lead">' + escapeHtml(
                 latestTitle
                     ? ("آخرین مورد: " + latestTitle)
-                    : (unreadCount > 0 ? "اعلان‌های جدید شما اینجا جمع می‌شوند." : "فید اعلان‌ها جمع‌وجور شد و جزئیات هر مورد فقط هنگام نیاز باز می‌شود.")
+                    : (importantUnreadCount > 0
+                        ? "اعلان‌های مهم خوانده‌نشده و یادآورها از همین‌جا پیگیری می‌شوند."
+                        : (unreadCount > 0 ? "اعلان‌های جدید شما اینجا جمع می‌شوند." : "فید اعلان‌ها جمع‌وجور شد و جزئیات هر مورد فقط هنگام نیاز باز می‌شود."))
             ) + "</p>",
             '<div class="account-notifications-overview__pills">' + pills.join("") + "</div>"
         ].join("");
@@ -2533,13 +2622,18 @@
         var summary = notificationsState.summary || {};
         var manager = notificationsState.manager || {};
         var unreadCount = Math.max(0, Math.floor(toNumber(summary.unreadCount, 0)));
+        var importantUnreadCount = Math.max(0, Math.floor(toNumber(summary.importantUnreadCount, 0)));
         var scheduledCount = Math.max(0, Math.floor(toNumber(summary.scheduledCount, 0)));
         if (notificationsState.loading) {
             return "در حال دریافت اعلان‌ها...";
         }
         if (unreadCount > 0) {
             var latestTitle = String(summary.latestTitle || "").trim();
-            return unreadCount.toLocaleString("fa-IR") + " اعلان جدید" + (latestTitle ? (" • آخرین مورد: " + latestTitle) : "");
+            var meta = unreadCount.toLocaleString("fa-IR") + " اعلان جدید";
+            if (importantUnreadCount > 0) {
+                meta += " • " + importantUnreadCount.toLocaleString("fa-IR") + " مورد مهم";
+            }
+            return meta + (latestTitle ? (" • آخرین مورد: " + latestTitle) : "");
         }
 
         if (notificationsState.loadedForUserKey) {
@@ -2600,7 +2694,8 @@
 
     function renderNotificationsSurface() {
         var summary = notificationsState.summary || {};
-        var preferences = notificationsState.preferences || {};
+        var storedPreferences = notificationsState.preferences || {};
+        var preferences = notificationsCurrentPreferenceView();
         var manager = notificationsState.manager || {};
         var items = Array.isArray(notificationsState.items) ? notificationsState.items : [];
         var filterConfigs = notificationsFilterConfigs(items);
@@ -2612,11 +2707,36 @@
         }
 
         if (notificationsPrefsCard) {
-            var canToggle = !!preferences.canToggleNavidAssignmentAlerts;
-            notificationsPrefsCard.hidden = !canToggle;
+            var canToggle = !!storedPreferences.canToggleNavidAssignmentAlerts;
+            var digestEnabled = !!preferences.dailyDigestEnabled;
+            var digestHour = notificationsNormalizeDigestHourValue(preferences.dailyDigestHour, 8);
+            notificationsPrefsCard.hidden = false;
+            if (notificationsNavidRow) {
+                notificationsNavidRow.hidden = !canToggle;
+            }
             if (notificationsNavidAlertsToggle) {
                 notificationsNavidAlertsToggle.checked = !!preferences.navidAssignmentAlerts;
-                notificationsNavidAlertsToggle.disabled = notificationsState.savingPrefs;
+                notificationsNavidAlertsToggle.disabled = notificationsState.savingPrefs || !canToggle;
+            }
+            if (notificationsFormRemindersToggle) {
+                notificationsFormRemindersToggle.checked = !!preferences.formReminders;
+                notificationsFormRemindersToggle.disabled = notificationsState.savingPrefs;
+            }
+            if (notificationsPaymentRemindersToggle) {
+                notificationsPaymentRemindersToggle.checked = !!preferences.paymentReminders;
+                notificationsPaymentRemindersToggle.disabled = notificationsState.savingPrefs;
+            }
+            if (notificationsExamRemindersToggle) {
+                notificationsExamRemindersToggle.checked = !!preferences.examReminders;
+                notificationsExamRemindersToggle.disabled = notificationsState.savingPrefs;
+            }
+            if (notificationsDigestEnabledToggle) {
+                notificationsDigestEnabledToggle.checked = digestEnabled;
+                notificationsDigestEnabledToggle.disabled = notificationsState.savingPrefs;
+            }
+            if (notificationsDigestHourInput) {
+                notificationsDigestHourInput.value = String(digestHour);
+                notificationsDigestHourInput.disabled = notificationsState.savingPrefs || !digestEnabled;
             }
             if (notificationsPrefsSaveButton) {
                 notificationsPrefsSaveButton.disabled = notificationsState.savingPrefs;
@@ -2675,7 +2795,9 @@
             notificationsEmpty.hidden = filteredItems.length > 0 || notificationsState.loading;
             notificationsEmpty.textContent = activeFilter === "all"
                 ? "اعلانی برای این حساب پیدا نشد."
-                : "برای این فیلتر، اعلانی پیدا نشد.";
+                : (activeFilter === "important"
+                    ? "اعلان مهم خوانده‌نشده‌ای پیدا نشد."
+                    : "برای این فیلتر، اعلانی پیدا نشد.");
         }
         if (!notificationsList) {
             return;
@@ -2686,6 +2808,7 @@
             var displayAt = notificationsItemDisplayAt(item);
             var unread = !!(item && item.unread);
             var marking = !!notificationsState.markingIds[id];
+            var snoozing = !!notificationsState.snoozingIds[id];
             var ctaHref = String(item && item.ctaHref || "");
             var ctaLabel = String(item && item.ctaLabel || "مشاهده");
             var deleting = notificationsState.deletingId === id;
@@ -2694,6 +2817,8 @@
             var stateBadge = notificationsPrimaryState(item);
             var sms = item && item.sms ? item.sms : {};
             var smsLabel = notificationsSmsStatusLabel(sms);
+            var important = notificationsItemIsImportant(item);
+            var canSnooze = !!(item && item.canSnooze && unread && !item.scheduled);
             var canInspect = !!managerMeta.canInspectAudience;
             var canDelete = !!managerMeta.canDelete;
             var audienceOpen = notificationsState.expandedAudienceId === id;
@@ -2711,12 +2836,18 @@
             if (smsLabel) {
                 signals.push('<span class="account-notification-item__badge">' + escapeHtml(smsLabel) + "</span>");
             }
+            if (important) {
+                signals.push('<span class="account-notification-item__badge is-important">مهم</span>');
+            }
 
             if (ctaHref) {
                 actions.push('<a class="shell-action-btn shell-action-btn-primary" href="' + escapeHtml(ctaHref) + '" data-notification-cta="true" data-notification-id="' + escapeHtml(id) + '">' + escapeHtml(ctaLabel) + "</a>");
             }
             if (!item.scheduled && unread) {
                 actions.push('<button class="shell-action-btn" type="button" data-notification-mark="' + escapeHtml(id) + '"' + (marking ? " disabled" : "") + ">" + (marking ? "در حال ثبت..." : "خواندم") + "</button>");
+            }
+            if (canSnooze) {
+                actions.push('<button class="shell-action-btn" type="button" data-notification-snooze="24" data-notification-id="' + escapeHtml(id) + '"' + (snoozing ? " disabled" : "") + ">" + (snoozing ? "در حال تعویق..." : "یادآوری فردا") + "</button>");
             }
             if (canInspect) {
                 actions.push('<button class="shell-action-btn" type="button" data-notification-audience-toggle="' + escapeHtml(id) + '" aria-expanded="' + (audienceOpen ? "true" : "false") + '" aria-controls="' + escapeHtml(audiencePanelId) + '"' + (audienceLoading ? " disabled" : "") + ">" + (audienceOpen ? "بستن مخاطب‌ها" : "مخاطب‌ها") + "</button>");
@@ -2765,6 +2896,7 @@
         notificationsState.summary = data.summary && typeof data.summary === "object" ? data.summary : null;
         notificationsState.preview = data.preview && typeof data.preview === "object" ? data.preview : null;
         notificationsState.preferences = data.preferences && typeof data.preferences === "object" ? data.preferences : null;
+        notificationsState.draftPreferences = null;
         notificationsState.manager = data.manager && typeof data.manager === "object" ? data.manager : null;
         notificationsState.items = Array.isArray(data.items) ? data.items : [];
         var validIds = {};
@@ -2787,6 +2919,11 @@
         Object.keys(notificationsState.markingIds).forEach(function (id) {
             if (!validIds[id]) {
                 delete notificationsState.markingIds[id];
+            }
+        });
+        Object.keys(notificationsState.snoozingIds).forEach(function (id) {
+            if (!validIds[id]) {
+                delete notificationsState.snoozingIds[id];
             }
         });
         if (notificationsState.expandedAudienceId && !notificationsState.items.some(function (item) {
@@ -2952,15 +3089,22 @@
     }
 
     function saveNotificationsPreferences() {
-        if (!notificationsNavidAlertsToggle || notificationsState.savingPrefs) {
+        if (notificationsState.savingPrefs) {
             return Promise.resolve(null);
         }
 
+        var draftPreferences = notificationsPreferenceSnapshotFromInputs();
+        notificationsState.draftPreferences = draftPreferences;
         notificationsState.savingPrefs = true;
         setInlineFeedback(notificationsFeedback, "در حال ذخیره تنظیمات اعلان...", "", true);
         renderNotificationsUi();
         return notificationsPost("savePrefs", {
-            navidAssignmentAlerts: notificationsNavidAlertsToggle.checked ? "1" : "0"
+            navidAssignmentAlerts: draftPreferences.navidAssignmentAlerts ? "1" : "0",
+            formReminders: draftPreferences.formReminders ? "1" : "0",
+            paymentReminders: draftPreferences.paymentReminders ? "1" : "0",
+            examReminders: draftPreferences.examReminders ? "1" : "0",
+            dailyDigestEnabled: draftPreferences.dailyDigestEnabled ? "1" : "0",
+            dailyDigestHour: String(draftPreferences.dailyDigestHour)
         }).then(function (response) {
             notificationsState.savingPrefs = false;
             if (consumeUnauthorized(response, "نشست شما برای ذخیره تنظیمات اعلان منقضی شده است.")) {
@@ -2981,6 +3125,44 @@
         }).catch(function () {
             notificationsState.savingPrefs = false;
             setInlineFeedback(notificationsFeedback, "اتصال برای ذخیره تنظیمات اعلان برقرار نشد.", "error");
+            renderNotificationsUi();
+            return null;
+        });
+    }
+
+    function snoozeNotification(id, hours) {
+        var notificationId = String(id || "").trim();
+        var snoozeHours = Math.max(1, Math.floor(toNumber(hours, 24)));
+        if (!notificationId || notificationsState.snoozingIds[notificationId]) {
+            return Promise.resolve(null);
+        }
+
+        notificationsState.snoozingIds[notificationId] = true;
+        setInlineFeedback(notificationsFeedback, "در حال ثبت تعویق اعلان...", "", true);
+        renderNotificationsUi();
+        return notificationsPost("snooze", {
+            id: notificationId,
+            hours: String(snoozeHours)
+        }).then(function (response) {
+            delete notificationsState.snoozingIds[notificationId];
+            if (consumeUnauthorized(response, "نشست شما برای تعویق اعلان منقضی شده است.")) {
+                notificationsResetState();
+                renderNotificationsUi();
+                return null;
+            }
+            if (!response || response.success !== true) {
+                setInlineFeedback(notificationsFeedback, (response && response.error) || "تعویق اعلان انجام نشد.", "error");
+                renderNotificationsUi();
+                return null;
+            }
+
+            notificationsApplyResponseMeta(response);
+            setInlineFeedback(notificationsFeedback, response.message || "اعلان برای بعداً کنار گذاشته شد.", "success");
+            loadNotifications(true);
+            return response;
+        }).catch(function () {
+            delete notificationsState.snoozingIds[notificationId];
+            setInlineFeedback(notificationsFeedback, "اتصال برای تعویق اعلان برقرار نشد.", "error");
             renderNotificationsUi();
             return null;
         });
@@ -7062,6 +7244,26 @@
     }
     refreshPushCard();
 
+    [
+        notificationsNavidAlertsToggle,
+        notificationsFormRemindersToggle,
+        notificationsPaymentRemindersToggle,
+        notificationsExamRemindersToggle,
+        notificationsDigestEnabledToggle
+    ].forEach(function (input) {
+        if (!input) {
+            return;
+        }
+        input.addEventListener("change", function () {
+            notificationsUpdatePreferenceDraft(!!notificationsDigestEnabledToggle && input === notificationsDigestEnabledToggle);
+        });
+    });
+    if (notificationsDigestHourInput) {
+        notificationsDigestHourInput.addEventListener("input", function () {
+            notificationsUpdatePreferenceDraft(false);
+        });
+    }
+
     if (notificationsPrefsSaveButton) {
         notificationsPrefsSaveButton.addEventListener("click", function (event) {
             event.preventDefault();
@@ -7094,6 +7296,13 @@
             if (markButton) {
                 event.preventDefault();
                 markNotificationsRead([markButton.dataset.notificationMark]);
+                return;
+            }
+
+            var snoozeButton = event.target && event.target.closest ? event.target.closest("[data-notification-snooze]") : null;
+            if (snoozeButton) {
+                event.preventDefault();
+                snoozeNotification(snoozeButton.getAttribute("data-notification-id"), snoozeButton.getAttribute("data-notification-snooze"));
                 return;
             }
 
@@ -7131,6 +7340,7 @@
     bindNumericInput(externalSignupOtpCode, 6);
     bindNumericInput(phoneEnrollNumber, 14);
     bindNumericInput(ownerSmsTestPhone, 14);
+    bindNumericInput(notificationsDigestHourInput, 2);
     bindNumericInput(loginOtpCodeInput, 6);
     bindNumericInput(phoneEnrollCode, 6);
     applyOtpSlots(loginOtpCodeInput, loginOtpSlots);

@@ -559,12 +559,49 @@
                                 <span>نمایش یا عدم نمایش اعلان تکلیف‌های نوید برای همین حساب</span>
                             </summary>
                             <div class="account-notifications-disclosure__body">
-                                <label class="phone-toggle-row account-notifications-toggle" for="notifications-navid-alerts">
+                                <div class="account-notifications-pref-grid">
+                                    <label id="notifications-navid-row" class="phone-toggle-row account-notifications-toggle" for="notifications-navid-alerts">
+                                        <span>
+                                            <strong>اعلان تکلیف جدید نوید</strong>
+                                            <small id="notifications-prefs-hint">وقتی تکلیف جدیدی در نوید بیاید، در حساب کاربری به شما اطلاع داده می‌شود.</small>
+                                        </span>
+                                        <input id="notifications-navid-alerts" type="checkbox">
+                                    </label>
+                                    <label class="phone-toggle-row account-notifications-toggle" for="notifications-form-reminders">
+                                        <span>
+                                            <strong>یادآور فرم‌ها</strong>
+                                            <small>فرم‌های مهم و فرم‌های نزدیک به مهلت را در همین فید دنبال کن.</small>
+                                        </span>
+                                        <input id="notifications-form-reminders" type="checkbox">
+                                    </label>
+                                    <label class="phone-toggle-row account-notifications-toggle" for="notifications-payment-reminders">
+                                        <span>
+                                            <strong>یادآور پرداخت‌ها</strong>
+                                            <small>وضعیت سفارش‌ها و پرداخت‌های معطل را قبل از سررسید از دست نده.</small>
+                                        </span>
+                                        <input id="notifications-payment-reminders" type="checkbox">
+                                    </label>
+                                    <label class="phone-toggle-row account-notifications-toggle" for="notifications-exam-reminders">
+                                        <span>
+                                            <strong>یادآور آزمون‌ها</strong>
+                                            <small>برای آزمون‌های در حال برگزاری یا نزدیک، هشدار جداگانه بگیر.</small>
+                                        </span>
+                                        <input id="notifications-exam-reminders" type="checkbox">
+                                    </label>
+                                    <label class="phone-toggle-row account-notifications-toggle" for="notifications-digest-enabled">
+                                        <span>
+                                            <strong>خلاصه روزانه</strong>
+                                            <small>اگر اعلان مهمی خوانده‌نشده بماند، یک جمع‌بندی روزانه در این فید ثبت شود.</small>
+                                        </span>
+                                        <input id="notifications-digest-enabled" type="checkbox">
+                                    </label>
+                                </div>
+                                <label class="account-notifications-digest-field" for="notifications-digest-hour">
                                     <span>
-                                        <strong>اعلان تکلیف جدید نوید</strong>
-                                        <small id="notifications-prefs-hint">وقتی تکلیف جدیدی در نوید بیاید، در حساب کاربری به شما اطلاع داده می‌شود.</small>
+                                        <strong>ساعت خلاصه روزانه</strong>
+                                        <small>ساعت را بین ۰ تا ۲۳ وارد کن. خلاصه بر اساس زمان تهران ساخته می‌شود.</small>
                                     </span>
-                                    <input id="notifications-navid-alerts" type="checkbox">
+                                    <input id="notifications-digest-hour" type="number" min="0" max="23" step="1" inputmode="numeric" dir="ltr" data-latin-digits="true" data-digit-locale="latin">
                                 </label>
                                 <div class="phone-action-row">
                                     <button id="notifications-prefs-save" class="shell-action-btn" type="button">ذخیره تنظیمات</button>

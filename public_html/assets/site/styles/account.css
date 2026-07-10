@@ -800,6 +800,11 @@ body.account-page.account-stage-login-active .auth-brand strong {
     background: rgba(21, 143, 99, 0.08);
 }
 
+.account-notifications-overview__pill[data-tone="danger"] {
+    border-color: rgba(198, 88, 100, 0.26);
+    background: rgba(198, 88, 100, 0.1);
+}
+
 .account-notifications-disclosure {
     border: 1px solid rgba(127, 145, 165, 0.18);
     border-radius: 20px;
@@ -844,6 +849,52 @@ body.account-page.account-stage-login-active .auth-brand strong {
     display: grid;
     gap: 0.72rem;
     padding: 0.84rem 0.92rem 0.92rem;
+}
+
+.account-notifications-pref-grid {
+    display: grid;
+    gap: 0.56rem;
+}
+
+.account-notifications-digest-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 0.72rem;
+    padding: 0.72rem 0.78rem;
+    border: 1px solid rgba(127, 145, 165, 0.18);
+    border-radius: 16px;
+    background: var(--surface-muted);
+}
+
+.account-notifications-digest-field span {
+    min-width: 0;
+    display: grid;
+    gap: 0.14rem;
+}
+
+.account-notifications-digest-field strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    font-weight: 840;
+    line-height: 1.55;
+}
+
+.account-notifications-digest-field small {
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    line-height: 1.82;
+}
+
+.account-notifications-digest-field input {
+    width: 88px;
+    min-height: 44px;
+    text-align: center;
+}
+
+.account-notifications-digest-field input:disabled {
+    opacity: 0.7;
 }
 
 .account-notifications-push-status {
@@ -1202,6 +1253,12 @@ body.account-page.account-stage-login-active .auth-brand strong {
     color: var(--warning-color);
 }
 
+.account-notification-item__badge.is-important {
+    border-color: rgba(198, 88, 100, 0.24);
+    background: rgba(198, 88, 100, 0.12);
+    color: var(--danger-color, #c65864);
+}
+
 .account-notification-audience {
     display: grid;
     gap: 0.54rem;
@@ -1307,6 +1364,14 @@ body.account-page.account-stage-login-active .auth-brand strong {
     }
 
     .account-notifications-form-actions .shell-action-btn {
+        width: 100%;
+    }
+
+    .account-notifications-digest-field {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .account-notifications-digest-field input {
         width: 100%;
     }
 
@@ -4308,6 +4373,12 @@ html[data-theme="dark"] body.account-page .account-notification-item__badge.is-s
     color: #ffd492;
 }
 
+html[data-theme="dark"] body.account-page .account-notification-item__badge.is-important {
+    border-color: rgba(212, 116, 129, 0.28);
+    background: rgba(198, 88, 100, 0.2);
+    color: #ffb7c0;
+}
+
 html[data-theme="dark"] body.account-page .account-notifications-compose {
     border-color: rgba(124, 145, 168, 0.24);
     background:
@@ -4326,6 +4397,16 @@ html[data-theme="dark"] body.account-page .account-notifications-card--feed {
 html[data-theme="dark"] body.account-page .account-notifications-overview__pill {
     border-color: rgba(124, 145, 168, 0.24);
     background: rgba(17, 26, 41, 0.94);
+}
+
+html[data-theme="dark"] body.account-page .account-notifications-overview__pill[data-tone="danger"] {
+    border-color: rgba(212, 116, 129, 0.26);
+    background: rgba(198, 88, 100, 0.18);
+}
+
+html[data-theme="dark"] body.account-page .account-notifications-digest-field {
+    border-color: rgba(124, 145, 168, 0.24);
+    background: rgba(17, 26, 41, 0.88);
 }
 
 html[data-theme="dark"] body.account-page .account-notifications-filter {

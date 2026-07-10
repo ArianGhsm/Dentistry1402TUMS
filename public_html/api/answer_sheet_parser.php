@@ -30,6 +30,114 @@ function dent_exams_answer_sheet_parse_file(string $path): array
     ];
 }
 
+function dent_exams_answer_sheet_parse_question_source_file(string $path): array
+{
+    $raw = @file_get_contents($path);
+    if (!is_string($raw) || trim($raw) === '') {
+        return [
+            'title' => '',
+            'questions' => [],
+        ];
+    }
+
+    $text = dent_exams_text_source_normalize_text($raw);
+
+    return [
+        'title' => dent_exams_answer_sheet_extract_title($text),
+        'questions' => dent_exams_answer_sheet_parse_question_source_text($text),
+    ];
+}
+
+function dent_exams_answer_sheet_merge_question_source(array $answerPayload, array $questionPayload): array
+{
+    $answerQuestions = is_array($answerPayload['questions'] ?? null) ? $answerPayload['questions'] : [];
+    $questionSource = is_array($questionPayload['questions'] ?? null) ? $questionPayload['questions'] : [];
+    $sourceMap = [];
+
+    foreach ($questionSource as $index => $question) {
+        if (!is_array($question)) {
+            continue;
+        }
+
+        $number = max(0, (int) ($question['number'] ?? ($index + 1)));
+        if ($number <= 0) {
+            continue;
+        }
+
+        $sourceMap[$number] = $question;
+    }
+
+    $mergedQuestions = [];
+
+    foreach ($answerQuestions as $index => $answerQuestion) {
+        if (!is_array($answerQuestion)) {
+            continue;
+        }
+
+        $number = max(0, (int) ($answerQuestion['number'] ?? ($index + 1)));
+        $sourceQuestion = is_array($sourceMap[$number] ?? null)
+            ? $sourceMap[$number]
+            : (is_array($questionSource[$index] ?? null) ? $questionSource[$index] : null);
+
+        if ($sourceQuestion === null) {
+            $mergedQuestions[] = $answerQuestion;
+            continue;
+        }
+
+        $questionText = trim((string) ($sourceQuestion['question'] ?? ''));
+        if ($questionText !== '') {
+            $answerQuestion['question'] = $questionText;
+        }
+
+        $sourceOptions = dent_exams_answer_sheet_normalize_option_map([
+            1 => (string) ($sourceQuestion['options'][0] ?? ''),
+            2 => (string) ($sourceQuestion['options'][1] ?? ''),
+            3 => (string) ($sourceQuestion['options'][2] ?? ''),
+            4 => (string) ($sourceQuestion['options'][3] ?? ''),
+        ]);
+        if (count($sourceOptions) === 4) {
+            $answerQuestion['options'] = $sourceOptions;
+        } else {
+            $sourceOptions = is_array($answerQuestion['options'] ?? null) ? $answerQuestion['options'] : [];
+        }
+
+        $metaSource = is_array($answerQuestion['answerMetaSource'] ?? null) ? $answerQuestion['answerMetaSource'] : [];
+        $markedRaw = trim((string) ($sourceQuestion['markedRaw'] ?? ''));
+        if ($markedRaw === '') {
+            $markedRaw = trim((string) ($metaSource['markedRaw'] ?? ''));
+        }
+
+        $markedIndex = dent_exams_answer_sheet_extract_option_index($markedRaw);
+        $suggestedRaw = trim((string) ($metaSource['suggestedRaw'] ?? ''));
+        $suggestedIndex = dent_exams_answer_sheet_extract_option_index($suggestedRaw);
+        $referenceRaw = trim((string) ($metaSource['referenceRaw'] ?? ''));
+
+        $answerQuestion['answerMetaSource'] = [
+            'markedRaw' => $markedRaw,
+            'markedIndex' => $markedIndex,
+            'suggestedRaw' => $suggestedRaw,
+            'suggestedIndex' => $suggestedIndex,
+            'referenceRaw' => $referenceRaw,
+        ];
+        $answerQuestion['answerMeta'] = dent_exams_answer_sheet_build_meta(
+            $sourceOptions,
+            $markedRaw,
+            $markedIndex,
+            $suggestedRaw,
+            $suggestedIndex,
+            $referenceRaw
+        );
+        $mergedQuestions[] = $answerQuestion;
+    }
+
+    return [
+        'title' => trim((string) ($questionPayload['title'] ?? '')) !== ''
+            ? trim((string) ($questionPayload['title'] ?? ''))
+            : trim((string) ($answerPayload['title'] ?? '')),
+        'questions' => $mergedQuestions,
+    ];
+}
+
 function dent_exams_answer_sheet_extract_title(string $text): string
 {
     $lines = preg_split('/\R/u', $text) ?: [];
@@ -58,7 +166,7 @@ function dent_exams_answer_sheet_parse_markdown_blocks(string $text): array
             continue;
         }
 
-        $question = dent_exams_answer_sheet_parse_markdown_chunk($chunk);
+        $question = dent_exams_answer_sheet_parse_markdown_chunk($questionNumber, $chunk);
         if ($question !== null) {
             $questions[] = $question;
         }
@@ -67,7 +175,7 @@ function dent_exams_answer_sheet_parse_markdown_blocks(string $text): array
     return $questions;
 }
 
-function dent_exams_answer_sheet_parse_markdown_chunk(string $chunk): ?array
+function dent_exams_answer_sheet_parse_markdown_chunk(int $questionNumber, string $chunk): ?array
 {
     $lines = preg_split('/\R/u', $chunk) ?: [];
     $questionLines = [];
@@ -131,6 +239,7 @@ function dent_exams_answer_sheet_parse_markdown_chunk(string $chunk): ?array
     $options = dent_exams_answer_sheet_extract_options_from_analysis($analysisLines);
 
     return dent_exams_answer_sheet_build_question(
+        $questionNumber,
         $questionLines,
         $options,
         $markedRaw,
@@ -153,7 +262,7 @@ function dent_exams_answer_sheet_parse_pipe_blocks(string $text): array
             continue;
         }
 
-        $question = dent_exams_answer_sheet_parse_pipe_chunk($chunk);
+        $question = dent_exams_answer_sheet_parse_pipe_chunk($questionNumber, $chunk);
         if ($question !== null) {
             $questions[] = $question;
         }
@@ -162,7 +271,7 @@ function dent_exams_answer_sheet_parse_pipe_blocks(string $text): array
     return $questions;
 }
 
-function dent_exams_answer_sheet_parse_pipe_chunk(string $chunk): ?array
+function dent_exams_answer_sheet_parse_pipe_chunk(int $questionNumber, string $chunk): ?array
 {
     $lines = preg_split('/\R/u', $chunk) ?: [];
     $questionLines = [];
@@ -245,6 +354,7 @@ function dent_exams_answer_sheet_parse_pipe_chunk(string $chunk): ?array
     }
 
     return dent_exams_answer_sheet_build_question(
+        $questionNumber,
         $questionLines,
         $options,
         $markedRaw,
@@ -354,6 +464,7 @@ function dent_exams_answer_sheet_parse_plain_chunk(string $chunk): ?array
     }
 
     return dent_exams_answer_sheet_build_question(
+        0,
         $questionLines,
         dent_exams_answer_sheet_normalize_option_map($options),
         $markedRaw,
@@ -365,6 +476,7 @@ function dent_exams_answer_sheet_parse_plain_chunk(string $chunk): ?array
 }
 
 function dent_exams_answer_sheet_build_question(
+    int $questionNumber,
     array $questionLines,
     array $options,
     string $markedRaw,
@@ -395,6 +507,13 @@ function dent_exams_answer_sheet_build_question(
             $suggestedIndex,
             $referenceRaw
         ),
+        'answerMetaSource' => [
+            'markedRaw' => trim($markedRaw),
+            'markedIndex' => $markedIndex,
+            'suggestedRaw' => trim($suggestedRaw),
+            'suggestedIndex' => $suggestedIndex,
+            'referenceRaw' => trim($referenceRaw),
+        ],
     ];
 }
 
@@ -457,6 +576,89 @@ function dent_exams_answer_sheet_compose_explanation(array $explanationLines, ar
     }
 
     return trim(implode("\n\n", $parts));
+}
+
+function dent_exams_answer_sheet_parse_question_source_text(string $text): array
+{
+    $lines = preg_split('/\R/u', $text) ?: [];
+    $questions = [];
+    $currentNumber = 0;
+    $questionLines = [];
+    $optionMap = [];
+    $currentOptionNumber = 0;
+    $markedRaw = '';
+
+    $flush = static function () use (&$questions, &$currentNumber, &$questionLines, &$optionMap, &$currentOptionNumber, &$markedRaw): void {
+        if ($currentNumber <= 0) {
+            $questionLines = [];
+            $optionMap = [];
+            $currentOptionNumber = 0;
+            $markedRaw = '';
+            return;
+        }
+
+        $question = dent_exams_text_source_restore_digits(trim(implode(' ', $questionLines)));
+        $options = dent_exams_answer_sheet_normalize_option_map($optionMap);
+        if ($question !== '' && count($options) === 4) {
+            $questions[] = [
+                'number' => $currentNumber,
+                'question' => $question,
+                'options' => $options,
+                'markedRaw' => dent_exams_text_source_restore_digits(trim($markedRaw)),
+            ];
+        }
+
+        $currentNumber = 0;
+        $questionLines = [];
+        $optionMap = [];
+        $currentOptionNumber = 0;
+        $markedRaw = '';
+    };
+
+    foreach ($lines as $line) {
+        $trimmed = trim((string) $line);
+        if ($trimmed === '' || preg_match('/^-{5,}$/u', $trimmed) === 1) {
+            continue;
+        }
+
+        if ($currentNumber <= 0 && preg_match('/^[^0-9].*:\s*.+$/u', $trimmed) === 1) {
+            continue;
+        }
+
+        if (preg_match('/^([0-9]+)\.\s*(.+)$/u', $trimmed, $matches) === 1) {
+            $flush();
+            $currentNumber = max(0, (int) ($matches[1] ?? 0));
+            $questionLines = [trim((string) ($matches[2] ?? ''))];
+            continue;
+        }
+
+        if ($currentNumber <= 0) {
+            continue;
+        }
+
+        if (preg_match('/^([1-4])\)\s*(.*)$/u', $trimmed, $matches) === 1) {
+            $currentOptionNumber = max(0, (int) ($matches[1] ?? 0));
+            $optionMap[$currentOptionNumber] = trim((string) ($matches[2] ?? ''));
+            continue;
+        }
+
+        if (count($optionMap) === 4 && preg_match('/^[^0-9][^:]{2,}:\s*(.+)$/u', $trimmed, $matches) === 1) {
+            $markedRaw = trim((string) ($matches[1] ?? ''));
+            $currentOptionNumber = 0;
+            continue;
+        }
+
+        if ($currentOptionNumber >= 1 && $currentOptionNumber <= 4 && isset($optionMap[$currentOptionNumber])) {
+            $optionMap[$currentOptionNumber] .= ' ' . $trimmed;
+            continue;
+        }
+
+        $questionLines[] = $trimmed;
+    }
+
+    $flush();
+
+    return $questions;
 }
 
 function dent_exams_answer_sheet_extract_options_from_analysis(array $analysisLines): array
@@ -560,7 +762,7 @@ function dent_exams_answer_sheet_build_meta(
 
 function dent_exams_answer_sheet_extract_option_index(string $raw): ?int
 {
-    $trimmed = trim($raw);
+    $trimmed = trim(dent_exams_text_source_normalize_digits($raw));
     if ($trimmed === '' || preg_match('/نامشخص|قابل\s+مشاهده\s+نیست|بدون\s+تصویر|نیازمند\s+تصویر/u', $trimmed) === 1) {
         return null;
     }

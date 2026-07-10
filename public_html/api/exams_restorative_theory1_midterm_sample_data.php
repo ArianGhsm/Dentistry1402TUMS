@@ -22,6 +22,7 @@ function dent_exams_restorative_theory1_midterm_sample_course(): array
         [
             'slug' => 'ordibehesht-1400',
             'file' => $dataDir . '/midterm_ordibehesht_1400.md',
+            'questionFile' => $dataDir . '/midterm_ordibehesht_1400_questions.txt',
         ],
         [
             'slug' => 'tir-1400',
@@ -34,6 +35,14 @@ function dent_exams_restorative_theory1_midterm_sample_course(): array
 
     foreach ($sources as $source) {
         $parsed = dent_exams_answer_sheet_parse_file((string) ($source['file'] ?? ''));
+        $questionFile = trim((string) ($source['questionFile'] ?? ''));
+        if ($questionFile !== '') {
+            $parsed = dent_exams_answer_sheet_merge_question_source(
+                $parsed,
+                dent_exams_answer_sheet_parse_question_source_file($questionFile)
+            );
+        }
+
         $questions = is_array($parsed['questions'] ?? null) ? $parsed['questions'] : [];
         $questionCount = count($questions);
         if ($questionCount <= 0) {
