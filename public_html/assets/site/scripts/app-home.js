@@ -25,6 +25,9 @@
     var resourceStrip = $("home-resource-strip");
     var classSection = $("home-class-section");
     var classStrip = $("home-class-strip");
+    var activeExamsPanel = $("home-active-exams");
+    var activeExamsList = $("home-active-exams-list");
+    var activeExamsCount = activeExamsPanel ? activeExamsPanel.querySelector(".home-active-exams__count") : null;
     var resourceSectionTitle = resourceSection ? resourceSection.querySelector(".portal-section-title") : null;
     var classSectionTitle = classSection ? classSection.querySelector(".portal-section-title") : null;
 
@@ -47,6 +50,12 @@
         cohortKey: "",
         count: 0
     };
+    var activeExamsState = {
+        cohortKey: "",
+        loading: false,
+        requestToken: 0,
+        courses: []
+    };
     var appHeaderTitle = document.querySelector(".site-header .site-info h1");
     var appFooterTitle = document.querySelector(".site-footer p");
     var homeKicker = document.querySelector(".home-kicker");
@@ -63,7 +72,8 @@
             forms: true,
             grades: true,
             navid: true,
-            buy: false
+            buy: false,
+            activeExamHighlights: true
         },
         routes: {
             notes: "/notes/",
@@ -199,7 +209,8 @@
             forms: !!services.forms,
             grades: !!services.grades,
             navid: !!services.navid,
-            buy: !!services.buy
+            buy: !!services.buy,
+            activeExamHighlights: !!services.activeExamHighlights
         };
     }
 
@@ -284,6 +295,126 @@
                 "</a>"
             ].join("");
         }).join("");
+    }
+
+    function hideActiveExams() {
+        activeExamsState.requestToken += 1;
+        activeExamsState.loading = false;
+        if (activeExamsPanel) {
+            activeExamsPanel.hidden = true;
+        }
+        if (activeExamsList) {
+            activeExamsList.innerHTML = "";
+        }
+    }
+
+    function activeExamMeta(course) {
+        var addedAt = String(course && course.addedAt ? course.addedAt : "").trim();
+        if (addedAt) {
+            return "افزوده‌شده " + formatDate(addedAt, "");
+        }
+        var badge = String(course && course.badge ? course.badge : "").trim();
+        if (badge) {
+            return badge;
+        }
+        var examCount = Math.max(0, Number(course && course.stats && course.stats.examCount) || 0);
+        return examCount > 0 ? examCount.toLocaleString("fa-IR") + " آزمون" : "آماده شروع";
+    }
+
+    function renderActiveExams(courses) {
+        if (!activeExamsPanel || !activeExamsList) {
+            return;
+        }
+
+        var visibleCourses = Array.isArray(courses) ? courses.slice(0, 2) : [];
+        if (!visibleCourses.length) {
+            hideActiveExams();
+            return;
+        }
+
+        activeExamsList.innerHTML = visibleCourses.map(function (course, index) {
+            var titleText = String(course && (course.title || course.shortTitle) ? (course.title || course.shortTitle) : "آزمون تازه");
+            var descriptionText = snippet(course && (course.cardDescription || course.heroDescription), 92) || "برای مشاهده و شروع آزمون وارد شو.";
+            var href = String(course && course.path ? course.path : "/exams/");
+            return [
+                '<a class="home-active-exam" href="' + safeText(href) + '">',
+                '  <span class="home-active-exam__index" aria-hidden="true">' + (index + 1).toLocaleString("fa-IR") + "</span>",
+                '  <span class="home-active-exam__copy">',
+                '    <span class="home-active-exam__meta">' + safeText(activeExamMeta(course)) + "</span>",
+                '    <strong>' + safeText(titleText) + "</strong>",
+                '    <small>' + safeText(descriptionText) + "</small>",
+                "  </span>",
+                '  <span class="home-active-exam__arrow" aria-hidden="true">←</span>',
+                "</a>"
+            ].join("");
+        }).join("");
+
+        if (activeExamsCount) {
+            activeExamsCount.textContent = visibleCourses.length.toLocaleString("fa-IR");
+            activeExamsCount.setAttribute("aria-label", visibleCourses.length.toLocaleString("fa-IR") + " آزمون فعال");
+        }
+        activeExamsPanel.hidden = false;
+    }
+
+    async function loadActiveExams(cohort) {
+        var cohortKey = String(cohort && cohort.key ? cohort.key : "").trim();
+        if (!cohortKey || !cohortServices(cohort).activeExamHighlights) {
+            activeExamsState.cohortKey = "";
+            activeExamsState.courses = [];
+            hideActiveExams();
+            return;
+        }
+
+        if (activeExamsState.cohortKey === cohortKey && activeExamsState.courses.length) {
+            renderActiveExams(activeExamsState.courses);
+            return;
+        }
+        if (activeExamsState.loading && activeExamsState.cohortKey === cohortKey) {
+            return;
+        }
+
+        activeExamsState.cohortKey = cohortKey;
+        activeExamsState.loading = true;
+        var ticket = ++activeExamsState.requestToken;
+
+        try {
+            var response = await fetch("/api/exams_api.php?action=catalog&cohort=" + encodeURIComponent(cohortKey), {
+                method: "GET",
+                credentials: "same-origin",
+                headers: {
+                    Accept: "application/json"
+                },
+                cache: "no-store"
+            });
+            var payload = await response.json().catch(function () {
+                return null;
+            });
+            if (ticket !== activeExamsState.requestToken) {
+                return;
+            }
+            if (!response.ok || !payload || !payload.success) {
+                activeExamsState.courses = [];
+                hideActiveExams();
+                return;
+            }
+
+            var courses = Array.isArray(payload.catalog && payload.catalog.courses)
+                ? payload.catalog.courses.filter(function (course) {
+                    return course && course.path && Number(course.stats && course.stats.examCount) > 0;
+                }).slice(0, 2)
+                : [];
+            activeExamsState.courses = courses;
+            renderActiveExams(courses);
+        } catch (_error) {
+            if (ticket === activeExamsState.requestToken) {
+                activeExamsState.courses = [];
+                hideActiveExams();
+            }
+        } finally {
+            if (ticket === activeExamsState.requestToken) {
+                activeExamsState.loading = false;
+            }
+        }
     }
 
     function buildResourceCards(detail) {
@@ -860,6 +991,7 @@
 
     function sync(detail) {
         if (detail.status === "session-restoring" || detail.status === "logging-out") {
+            hideActiveExams();
             setIdentityBoot(detail.status === "logging-out"
                 ? "\u062f\u0631 \u062d\u0627\u0644 \u0628\u0633\u062a\u0646 \u0646\u0634\u0633\u062a \u0641\u0639\u0644\u06cc..."
                 : "");
@@ -869,12 +1001,14 @@
 
         if (!detail.loggedIn || !detail.user) {
             setIdentityLoggedOut(detail.status === "unauthorized" ? detail.error : "");
+            loadActiveExams(fallbackPrimaryCohort);
             navidLoadedFor = "";
             navidSetSignedOut(detail.status === "unauthorized" ? detail.error : "");
             return;
         }
 
         setIdentityLoggedIn(detail.user);
+        loadActiveExams(activeHomeCohort(detail));
         loadHomeFormsCount(detail.user);
         var userKey = String(detail.user.studentNumber || "_logged");
         if (userKey !== navidLoadedFor) {

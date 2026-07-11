@@ -51,6 +51,9 @@ section "Auth store resilience"
 section "Exam content quality"
 "$PHP_BIN" scripts/check_exam_content_quality.php || fail "check_exam_content_quality.php"
 
+section "Exam catalog timeline"
+"$PHP_BIN" scripts/check_exam_catalog_timeline.php || fail "check_exam_catalog_timeline.php"
+
 section "Upload pipeline config"
 "$PHP_BIN" scripts/check_upload_pipeline_config.php || fail "check_upload_pipeline_config.php"
 

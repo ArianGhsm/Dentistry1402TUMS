@@ -1342,6 +1342,8 @@ function dent_exams_api_exam_payload(
     $payload['questionCount'] = dent_exams_api_resolve_exam_question_count($exam);
     $payload['comingSoon'] = dent_exams_api_exam_is_coming_soon($exam);
     $payload['attemptable'] = dent_exams_api_exam_is_attemptable($exam);
+    $courseAddedAt = dent_exams_catalog_course_added_at($courseSlug, $course);
+    $payload['addedAt'] = dent_exams_catalog_exam_added_at($exam, $courseAddedAt);
     $payload['courseTitle'] = (string) ($course['title'] ?? '');
     $payload['coursePath'] = (string) ($course['path'] ?? '/exams/');
     $payload['modes'] = dent_exams_api_mode_definitions();
@@ -1939,6 +1941,7 @@ function dent_exams_api_course_summary_payload(
     ?array $viewer = null
 ): array {
     $courseSlug = (string) ($course['slug'] ?? '');
+    $courseAddedAt = dent_exams_catalog_course_added_at($courseSlug, $course);
     $courseStats = dent_exams_api_course_stats($course);
     $paymentPath = '/exams/pay/?course=' . rawurlencode($courseSlug);
     $requestedCohort = dent_requested_cohort_key();
@@ -1987,6 +1990,7 @@ function dent_exams_api_course_summary_payload(
                 'emptyStateMessage' => (string) ($exam['emptyStateMessage'] ?? ''),
                 'ctaLabel' => (string) ($exam['ctaLabel'] ?? 'انتخاب حالت و شروع'),
                 'questionCount' => $questionCount,
+                'addedAt' => dent_exams_catalog_exam_added_at($exam, $courseAddedAt),
                 'path' => $examPath,
                 'href' => $access['hasAccess'] ? $examPath : $paymentPath,
                 'isLocked' => !$access['hasAccess'] && (bool) ($access['isPaidCourse'] ?? false),
@@ -2013,6 +2017,7 @@ function dent_exams_api_course_summary_payload(
         'cardDescription' => (string) ($course['cardDescription'] ?? ''),
         'heroTitle' => (string) ($course['heroTitle'] ?? ''),
         'heroDescription' => (string) ($course['heroDescription'] ?? ''),
+        'addedAt' => $courseAddedAt,
         'path' => (string) ($course['path'] ?? ''),
         'paymentPath' => $paymentPath,
         'paymentUrl' => dent_exams_api_absolute_url($paymentPath),
@@ -2259,10 +2264,15 @@ if ($action === 'catalog') {
 
         $courseRows[] = [
             'sortIndex' => $courseIndex++,
+            'addedAtTimestamp' => strtotime((string) ($payload['addedAt'] ?? '')) ?: 0,
             'payload' => $payload,
         ];
     }
     usort($courseRows, static function (array $left, array $right): int {
+        $dateOrder = (int) ($right['addedAtTimestamp'] ?? 0) <=> (int) ($left['addedAtTimestamp'] ?? 0);
+        if ($dateOrder !== 0) {
+            return $dateOrder;
+        }
         return (int) ($right['sortIndex'] ?? 0) <=> (int) ($left['sortIndex'] ?? 0);
     });
     $courses = array_values(array_map(static function (array $row): array {

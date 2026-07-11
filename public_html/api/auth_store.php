@@ -185,6 +185,7 @@ function dent_default_cohort_services(string $key, string $productType, string $
         'grades' => !$isSiteUsers,
         'navid' => !$isSiteUsers,
         'buy' => $isSiteUsers,
+        'activeExamHighlights' => $key === dent_primary_cohort_key(),
     ];
 }
 

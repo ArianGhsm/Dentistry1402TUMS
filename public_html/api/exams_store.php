@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/auth_store.php';
 require_once __DIR__ . '/exams_bank.php';
+require_once __DIR__ . '/exams_catalog_timeline.php';
 
 if (!defined('DENT_EXAMS_SCHEMA_VERSION')) {
     define('DENT_EXAMS_SCHEMA_VERSION', 4);

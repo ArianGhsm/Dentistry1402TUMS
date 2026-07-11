@@ -39,6 +39,7 @@ ALLOWED_EXAMS_CORE_REQUIRES = {
     "exams_api.php",
     "exams_bank.php",
     "exams_bank_helpers.php",
+    "exams_catalog_timeline.php",
     "exams_modules.php",
     "exams_store.php",
 }

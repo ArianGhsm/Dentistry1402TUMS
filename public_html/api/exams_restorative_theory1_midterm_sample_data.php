@@ -91,6 +91,7 @@ function dent_exams_restorative_theory1_midterm_sample_course(): array
 
     $course = [
         'slug' => $courseSlug,
+        'addedAt' => '2026-07-08T20:57:15+03:30',
         'title' => $courseTitle,
         'shortTitle' => 'نمونه سوالات میان‌ترم',
         'badge' => $examCountFa . ' آزمون',
@@ -108,6 +109,12 @@ function dent_exams_restorative_theory1_midterm_sample_course(): array
         'defaultAmount' => 300000,
         'exams' => $exams,
     ];
+
+    foreach (($course['exams'] ?? []) as $index => $exam) {
+        if (is_array($exam) && empty($exam['addedAt'])) {
+            $course['exams'][$index]['addedAt'] = $course['addedAt'];
+        }
+    }
 
     return $course;
 }

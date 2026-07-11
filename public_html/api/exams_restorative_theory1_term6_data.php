@@ -126,5 +126,12 @@ function dent_exams_restorative_theory1_term6_course(): array
         ],
     ]);
 
+    $course['addedAt'] = '2026-07-06T21:03:27+03:30';
+    foreach (($course['exams'] ?? []) as $index => $exam) {
+        if (is_array($exam) && empty($exam['addedAt'])) {
+            $course['exams'][$index]['addedAt'] = $course['addedAt'];
+        }
+    }
+
     return $course;
 }
