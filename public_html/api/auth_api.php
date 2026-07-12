@@ -485,6 +485,9 @@ if ($action === 'login') {
         'status' => dent_auth_status($user),
         'user' => $publicUser,
         'availableCohorts' => dent_visible_cohorts_for_user($publicUser),
+        'siteSettings' => [
+            'appearance' => dent_site_appearance_public_settings(),
+        ],
     ]);
 }
 
@@ -495,6 +498,9 @@ if ($action === 'logout') {
         'success' => true,
         'loggedIn' => false,
         'status' => 'logged-out',
+        'siteSettings' => [
+            'appearance' => dent_site_appearance_public_settings(),
+        ],
     ]);
 }
 
@@ -507,6 +513,9 @@ if ($action === 'me') {
             'success' => true,
             'loggedIn' => false,
             'status' => 'logged-out',
+            'siteSettings' => [
+                'appearance' => dent_site_appearance_public_settings(),
+            ],
         ]);
     }
 
@@ -516,6 +525,9 @@ if ($action === 'me') {
         'status' => dent_auth_status($user),
         'user' => dent_public_user($user),
         'availableCohorts' => dent_visible_cohorts_for_user($user),
+        'siteSettings' => [
+            'appearance' => dent_site_appearance_public_settings(),
+        ],
     ]);
 }
 

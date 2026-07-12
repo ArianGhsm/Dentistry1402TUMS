@@ -1095,6 +1095,26 @@ body.app-shell-hidden {
     line-height: 1;
 }
 
+html.site-bottom-nav-labels-off .shell-bottom-nav__link.is-active {
+    padding-inline: 0;
+    gap: 0;
+}
+
+html.site-bottom-nav-labels-off .shell-bottom-nav__link.is-active .shell-bottom-nav__label {
+    display: none;
+}
+
+html.site-bottom-nav-solid .shell-bottom-nav {
+    background: color-mix(in srgb, var(--surface-solid) 86%, transparent);
+}
+
+html.site-bottom-nav-solid .shell-bottom-nav__inner {
+    background: var(--surface-solid);
+    border-color: var(--border-color-strong);
+    box-shadow: 0 14px 32px -28px rgba(17, 30, 54, 0.34);
+    backdrop-filter: none;
+}
+
 .shell-bottom-nav__badge {
     position: absolute;
     top: -8px;

@@ -350,6 +350,9 @@ if ($action === 'saveAppearance') {
     dent_require_owner();
     $settings = dent_save_site_appearance_owner_config([
         'bottomNavSwipeEnabled' => $_POST['bottomNavSwipeEnabled'] ?? '0',
+        'bottomNavLabelsEnabled' => $_POST['bottomNavLabelsEnabled'] ?? '0',
+        'bottomNavGlassEnabled' => $_POST['bottomNavGlassEnabled'] ?? '0',
+        'visualEffectsLiteEnabled' => $_POST['visualEffectsLiteEnabled'] ?? '0',
     ]);
 
     dent_json_response([

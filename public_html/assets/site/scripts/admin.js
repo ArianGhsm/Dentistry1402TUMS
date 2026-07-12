@@ -87,9 +87,13 @@
         });
     }
 
-    function requestSaveAppearance(enabled) {
+    function requestSaveAppearance(settings) {
+        var appearance = settings && typeof settings === "object" ? settings : {};
         var body = new FormData();
-        body.set("bottomNavSwipeEnabled", enabled ? "1" : "0");
+        body.set("bottomNavSwipeEnabled", appearance.bottomNavSwipeEnabled ? "1" : "0");
+        body.set("bottomNavLabelsEnabled", appearance.bottomNavLabelsEnabled ? "1" : "0");
+        body.set("bottomNavGlassEnabled", appearance.bottomNavGlassEnabled ? "1" : "0");
+        body.set("visualEffectsLiteEnabled", appearance.visualEffectsLiteEnabled ? "1" : "0");
         return fetch("/api/admin_api.php?action=saveAppearance", {
             method: "POST",
             credentials: "same-origin",
@@ -221,6 +225,21 @@
         if (input) {
             input.disabled = !!saving;
         }
+        ["admin-bottom-nav-labels", "admin-bottom-nav-glass", "admin-visual-effects-lite"].forEach(function (id) {
+            var extraInput = $(id);
+            if (extraInput) {
+                extraInput.disabled = !!saving;
+            }
+        });
+    }
+
+    function readAppearanceForm() {
+        return {
+            bottomNavSwipeEnabled: !!($("admin-bottom-nav-swipe") && $("admin-bottom-nav-swipe").checked),
+            bottomNavLabelsEnabled: !!($("admin-bottom-nav-labels") && $("admin-bottom-nav-labels").checked),
+            bottomNavGlassEnabled: !!($("admin-bottom-nav-glass") && $("admin-bottom-nav-glass").checked),
+            visualEffectsLiteEnabled: !!($("admin-visual-effects-lite") && $("admin-visual-effects-lite").checked)
+        };
     }
 
     function renderAppearance(settings, message) {
@@ -231,6 +250,16 @@
         if (input) {
             input.checked = enabled;
         }
+        [
+            ["admin-bottom-nav-labels", appearance.bottomNavLabelsEnabled !== false],
+            ["admin-bottom-nav-glass", appearance.bottomNavGlassEnabled !== false],
+            ["admin-visual-effects-lite", !!appearance.visualEffectsLiteEnabled]
+        ].forEach(function (entry) {
+            var extraInput = $(entry[0]);
+            if (extraInput) {
+                extraInput.checked = !!entry[1];
+            }
+        });
         if (status) {
             status.textContent = message || (enabled ? "وضعیت فعلی: روشن" : "وضعیت فعلی: خاموش");
         }
@@ -397,18 +426,19 @@
         if (form) {
             form.addEventListener("submit", function (event) {
                 event.preventDefault();
-                var input = $("admin-bottom-nav-swipe");
-                var enabled = !!(input && input.checked);
+                var settings = readAppearanceForm();
+                var enabled = !!settings.bottomNavSwipeEnabled;
                 setAppearanceSaving(true);
                 renderAppearance({ bottomNavSwipeEnabled: enabled }, "در حال ذخیره...");
-                requestSaveAppearance(enabled).then(function (payload) {
+                renderAppearance(settings, "در حال ذخیره...");
+                requestSaveAppearance(settings).then(function (payload) {
                     if (consumeUnauthorized(payload)) {
                         return;
                     }
                     if (!payload || !payload.success) {
                         throw new Error((payload && payload.error) || "ذخیره تنظیمات ظاهر سایت ناموفق بود.");
                     }
-                    var settings = ((payload.appearance || {}).site) || { bottomNavSwipeEnabled: enabled };
+                    var savedSettings = ((payload.appearance || {}).site) || settings;
                     renderAppearance(settings, "تنظیمات ظاهر سایت ذخیره شد.");
                     var auth = authApi();
                     if (auth && typeof auth.verifySession === "function") {

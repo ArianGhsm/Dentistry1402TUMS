@@ -2931,6 +2931,9 @@ function dent_default_auth_meta_store(): array
         ],
         'siteAppearance' => [
             'bottomNavSwipeEnabled' => false,
+            'bottomNavLabelsEnabled' => true,
+            'bottomNavGlassEnabled' => true,
+            'visualEffectsLiteEnabled' => false,
             'updatedAt' => '',
         ],
     ];
@@ -2972,6 +2975,18 @@ function dent_load_auth_meta_store(): array
             $store['siteAppearance']['bottomNavSwipeEnabled'] ?? false,
             false
         );
+        $store['siteAppearance']['bottomNavLabelsEnabled'] = dent_parse_bool(
+            $store['siteAppearance']['bottomNavLabelsEnabled'] ?? true,
+            true
+        );
+        $store['siteAppearance']['bottomNavGlassEnabled'] = dent_parse_bool(
+            $store['siteAppearance']['bottomNavGlassEnabled'] ?? true,
+            true
+        );
+        $store['siteAppearance']['visualEffectsLiteEnabled'] = dent_parse_bool(
+            $store['siteAppearance']['visualEffectsLiteEnabled'] ?? false,
+            false
+        );
         $store['siteAppearance']['updatedAt'] = dent_clean_text((string) ($store['siteAppearance']['updatedAt'] ?? ''), 80);
     }
 
@@ -3002,6 +3017,18 @@ function dent_save_auth_meta_store(array $store): void
             $store['siteAppearance']['bottomNavSwipeEnabled'] ?? false,
             false
         );
+        $store['siteAppearance']['bottomNavLabelsEnabled'] = dent_parse_bool(
+            $store['siteAppearance']['bottomNavLabelsEnabled'] ?? true,
+            true
+        );
+        $store['siteAppearance']['bottomNavGlassEnabled'] = dent_parse_bool(
+            $store['siteAppearance']['bottomNavGlassEnabled'] ?? true,
+            true
+        );
+        $store['siteAppearance']['visualEffectsLiteEnabled'] = dent_parse_bool(
+            $store['siteAppearance']['visualEffectsLiteEnabled'] ?? false,
+            false
+        );
         $store['siteAppearance']['updatedAt'] = dent_clean_text((string) ($store['siteAppearance']['updatedAt'] ?? ''), 80);
     }
 
@@ -3019,6 +3046,9 @@ function dent_site_appearance_public_settings(): array
     $appearance = is_array($meta['siteAppearance'] ?? null) ? $meta['siteAppearance'] : dent_default_auth_meta_store()['siteAppearance'];
     return [
         'bottomNavSwipeEnabled' => dent_parse_bool($appearance['bottomNavSwipeEnabled'] ?? false, false),
+        'bottomNavLabelsEnabled' => dent_parse_bool($appearance['bottomNavLabelsEnabled'] ?? true, true),
+        'bottomNavGlassEnabled' => dent_parse_bool($appearance['bottomNavGlassEnabled'] ?? true, true),
+        'visualEffectsLiteEnabled' => dent_parse_bool($appearance['visualEffectsLiteEnabled'] ?? false, false),
         'updatedAt' => dent_clean_text((string) ($appearance['updatedAt'] ?? ''), 80),
     ];
 }
@@ -3031,6 +3061,9 @@ function dent_save_site_appearance_owner_config(array $input): array
     }
 
     $meta['siteAppearance']['bottomNavSwipeEnabled'] = dent_parse_bool($input['bottomNavSwipeEnabled'] ?? false, false);
+    $meta['siteAppearance']['bottomNavLabelsEnabled'] = dent_parse_bool($input['bottomNavLabelsEnabled'] ?? true, true);
+    $meta['siteAppearance']['bottomNavGlassEnabled'] = dent_parse_bool($input['bottomNavGlassEnabled'] ?? true, true);
+    $meta['siteAppearance']['visualEffectsLiteEnabled'] = dent_parse_bool($input['visualEffectsLiteEnabled'] ?? false, false);
     $meta['siteAppearance']['updatedAt'] = dent_iso_now();
     dent_save_auth_meta_store($meta);
 

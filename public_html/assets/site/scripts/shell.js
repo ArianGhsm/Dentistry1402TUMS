@@ -137,11 +137,41 @@
         };
     }
 
+    function siteAppearanceSettings(state) {
+        var sourceState = state || authState();
+        var topSettings = sourceState && sourceState.siteSettings;
+        var userSettings = sourceState && sourceState.user && sourceState.user.siteSettings;
+        var appearance = topSettings && topSettings.appearance ? topSettings.appearance : null;
+        if (!appearance && userSettings && userSettings.appearance) {
+            appearance = userSettings.appearance;
+        }
+        return appearance && typeof appearance === "object" ? appearance : {};
+    }
+
     function bottomNavSwipeEnabled() {
         var state = authState();
-        var settings = state && state.user && state.user.siteSettings;
-        var appearance = settings && settings.appearance;
+        var appearance = siteAppearanceSettings(state);
         return !!(appearance && appearance.bottomNavSwipeEnabled);
+    }
+
+    function applySiteAppearance(state) {
+        var appearance = siteAppearanceSettings(state);
+        var root = document.documentElement;
+        var body = document.body;
+        root.classList.toggle("site-bottom-nav-labels-off", appearance.bottomNavLabelsEnabled === false);
+        root.classList.toggle("site-bottom-nav-solid", appearance.bottomNavGlassEnabled === false);
+        root.classList.toggle("site-appearance-lite-forced", !!appearance.visualEffectsLiteEnabled);
+        if (body) {
+            body.classList.toggle("site-bottom-nav-labels-off", appearance.bottomNavLabelsEnabled === false);
+            body.classList.toggle("site-bottom-nav-solid", appearance.bottomNavGlassEnabled === false);
+        }
+        if (appearance.visualEffectsLiteEnabled) {
+            root.dataset.performanceMode = "lite";
+            root.dataset.siteAppearanceForcedLite = "true";
+        } else if (root.dataset.siteAppearanceForcedLite === "true") {
+            root.dataset.performanceMode = "default";
+            delete root.dataset.siteAppearanceForcedLite;
+        }
     }
 
     function authStatus(state) {
@@ -1814,6 +1844,7 @@
         if (maybeRedirectProsthesis(state)) {
             return;
         }
+        applySiteAppearance(state);
         applyBranding(state);
         syncAuthLinks(state);
         syncPollEntry(state);
@@ -2219,6 +2250,7 @@
         normalizeSiteHeader();
         normalizePageTopbars();
         ensureHeaderSearch();
+        applySiteAppearance(authState());
         syncAuthUi(authState());
         initNavSwipe();
         initNavPrefetch();
