@@ -57,6 +57,7 @@
     state.assessment.answers = clampAnswers(state.assessment.answers, exam.questions);
     state.learning.answers = clampAnswers(state.learning.answers, exam.questions);
     state.learning.revealed = clampRevealed(state.learning.revealed, exam.questions.length);
+    syncPendingOfflineAssessment();
 
     if (!selectedMode) {
         state.mode = null;
@@ -65,6 +66,25 @@
 
     appRoot.addEventListener("click", handleClick);
     appRoot.addEventListener("change", handleChange);
+    window.addEventListener("dent1402:offline-queue-change", function () {
+        var previousPending = !!state.assessment.queued;
+        syncPendingOfflineAssessment();
+        if (previousPending !== !!state.assessment.queued) {
+            render();
+        }
+    });
+    window.addEventListener("dent1402:offline-queue-success", function (event) {
+        var detail = event && event.detail ? event.detail : {};
+        var entry = detail.entry || null;
+        if (!entry || entry.kind !== "exam-assessment") {
+            return;
+        }
+        if (String(entry.meta && entry.meta.course || "") !== String(exam.courseSlug || "")
+            || String(entry.meta && entry.meta.exam || "") !== String(exam.slug || "")) {
+            return;
+        }
+        applyOfflineAssessmentResult(detail.payload || null);
+    });
     window.addEventListener("beforeunload", flushFlagSync);
     window.addEventListener("resize", scheduleLayoutSync);
     window.addEventListener("orientationchange", scheduleLayoutSync);
@@ -662,7 +682,7 @@
             '  <div class="exam-side-section exam-side-section--actions">',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-first-unanswered"' + (totals.unanswered <= 0 ? " disabled" : "") + ">اولین سوال بی‌پاسخ</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-assessment-draft">پاک‌کردن پاسخ‌ها</button>',
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="submit-assessment"' + (state.assessment.submitting ? " disabled" : "") + ">" + escapeHtml(state.assessment.submitting ? "در حال ثبت..." : "ثبت آزمون") + "</button>",
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="submit-assessment"' + (state.assessment.submitting || state.assessment.queued ? " disabled" : "") + ">" + escapeHtml(state.assessment.queued ? "در صف آفلاین" : (state.assessment.submitting ? "در حال ثبت..." : "ثبت آزمون")) + "</button>",
             "  </div>",
             "</aside>"
         ].join("");
@@ -742,7 +762,7 @@
             renderCompactMetric("\u0628\u0627\u0642\u06cc", formatValue(totals.unanswered), totals.unanswered ? "warning" : "success"),
             renderCompactMetric("\u0646\u0634\u0627\u0646", formatValue(state.flags.size), state.flags.size ? "flagged" : "neutral"),
             "    </div>",
-            '    <button class="exam-btn exam-btn--primary" type="button" data-action="submit-assessment"' + (state.assessment.submitting ? " disabled" : "") + ">" + escapeHtml(state.assessment.submitting ? "\u062f\u0631 \u062d\u0627\u0644 \u062b\u0628\u062a..." : "\u062b\u0628\u062a \u0633\u0646\u062c\u0634\u06cc") + "</button>",
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="submit-assessment"' + (state.assessment.submitting || state.assessment.queued ? " disabled" : "") + ">" + escapeHtml(state.assessment.queued ? "\u062f\u0631 \u0635\u0641 \u0622\u0641\u0644\u0627\u06cc\u0646" : (state.assessment.submitting ? "\u062f\u0631 \u062d\u0627\u0644 \u062b\u0628\u062a..." : "\u062b\u0628\u062a \u0633\u0646\u062c\u0634\u06cc")) + "</button>",
             '    <details class="exam-compact-tools">',
             '      <summary class="exam-compact-tools__summary">\u0627\u0628\u0632\u0627\u0631\u0647\u0627</summary>',
             '      <div class="exam-compact-tools__body">',
@@ -1384,7 +1404,7 @@
     }
 
     function submitAssessment() {
-        if (!exam.viewerState.canPersist || state.assessment.submitting || state.assessment.report) {
+        if (!exam.viewerState.canPersist || state.assessment.submitting || state.assessment.queued || state.assessment.report) {
             return;
         }
 
@@ -1406,6 +1426,23 @@
             answers: JSON.stringify(state.assessment.answers),
             startedAt: state.assessment.startedAt
         }).then(function (payload) {
+            if (payload && payload.httpStatus === 0) {
+                var queuedEntry = queueOfflineAssessment({
+                    course: exam.courseSlug,
+                    exam: exam.slug,
+                    answers: JSON.stringify(state.assessment.answers),
+                    startedAt: state.assessment.startedAt
+                });
+                if (!queuedEntry) {
+                    throw new Error(payload.error || "ثبت آزمون انجام نشد.");
+                }
+                state.assessment.queued = String(queuedEntry.id || "");
+                state.assessment.submitting = false;
+                setFeedback("neutral", "اتصال قطع است. کارنامه در صف آفلاین ماند و بعد از آنلاین شدن ثبت می‌شود.");
+                persistAssessmentState();
+                render();
+                return;
+            }
             if (!payload || !payload.success || !payload.report) {
                 throw new Error((payload && payload.error) || "ثبت آزمون انجام نشد.");
             }
@@ -1414,6 +1451,7 @@
             state.assessment.answers = state.assessment.report.answers.slice();
             state.assessment.filter = "all";
             state.assessment.submitting = false;
+            state.assessment.queued = "";
             state.assessment.currentQuestionIndex = 0;
             state.assessment.started = true;
             setFeedback("success", payload.message || "کارنامه این آزمون ذخیره شد.");
@@ -1974,6 +2012,71 @@
         }).then(parseJson).catch(networkErrorResponse);
     }
 
+    function offlineApi() {
+        return window.Dent1402Site
+            && typeof window.Dent1402Site === "object"
+            && window.Dent1402Site.offline
+            && typeof window.Dent1402Site.offline === "object"
+            ? window.Dent1402Site.offline
+            : null;
+    }
+
+    function offlineAssessmentDedupeKey() {
+        return ["exam-assessment", cohortKey || "main", exam.courseSlug || "", exam.slug || ""].join(":");
+    }
+
+    function syncPendingOfflineAssessment() {
+        var offline = offlineApi();
+        if (!offline || typeof offline.findQueuedEntry !== "function" || !state || !state.assessment) {
+            return;
+        }
+        var dedupeKey = offlineAssessmentDedupeKey();
+        var queued = offline.findQueuedEntry(function (entry) {
+            return entry && entry.kind === "exam-assessment" && entry.dedupeKey === dedupeKey;
+        });
+        state.assessment.queued = queued ? String(queued.id || "") : "";
+    }
+
+    function queueOfflineAssessment(payload) {
+        var offline = offlineApi();
+        if (!offline || typeof offline.queueRequest !== "function") {
+            return null;
+        }
+        return offline.queueRequest({
+            kind: "exam-assessment",
+            url: "/api/exams_api.php",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                Accept: "application/json"
+            },
+            body: new URLSearchParams(withCohort(Object.assign({ action: "submitAssessment" }, payload || {}))).toString(),
+            dedupeKey: offlineAssessmentDedupeKey(),
+            meta: {
+                cohort: cohortKey || "main",
+                course: exam.courseSlug || "",
+                exam: exam.slug || ""
+            }
+        });
+    }
+
+    function applyOfflineAssessmentResult(payload) {
+        if (!payload || payload.success !== true || !payload.report) {
+            return false;
+        }
+        state.assessment.report = normalizeReport(payload.report, exam.questions);
+        state.assessment.answers = state.assessment.report.answers.slice();
+        state.assessment.filter = "all";
+        state.assessment.submitting = false;
+        state.assessment.queued = "";
+        state.assessment.currentQuestionIndex = 0;
+        state.assessment.started = true;
+        setFeedback("success", payload.message || "کارنامه آزمون آفلاین روی سرور ذخیره شد.");
+        persistAssessmentState();
+        render();
+        return true;
+    }
+
     function touchExamActivity(mode) {
         var normalizedMode = normalizeMode(mode) || "view";
         if (!exam.viewerState.canPersist || !exam.courseSlug || !exam.slug) {
@@ -2180,6 +2283,7 @@
             filter: "all",
             report: report,
             submitting: false,
+            queued: "",
             currentQuestionIndex: 0,
             started: false
         };

@@ -51,7 +51,8 @@
         viewer: null,
         form: null,
         toastTimer: 0,
-        loadRequestId: 0
+        loadRequestId: 0,
+        pendingOfflineSubmissionId: ""
     };
 
     function parseApiResponse(response) {
@@ -124,6 +125,15 @@
         }).then(parseApiResponse).catch(function () {
             return { success: false, httpStatus: 0, error: "ارتباط با سرور پرداخت برقرار نشد." };
         });
+    }
+
+    function offlineApi() {
+        return window.Dent1402Site
+            && typeof window.Dent1402Site === "object"
+            && window.Dent1402Site.offline
+            && typeof window.Dent1402Site.offline === "object"
+            ? window.Dent1402Site.offline
+            : null;
     }
 
     function showStage(name) {
@@ -236,6 +246,54 @@
             key = "guest-" + Date.now().toString(36) + "-" + Math.floor(Math.random() * 1000000).toString(36);
         }
         return key;
+    }
+
+    function formOfflineSubmitDedupeKey(payload) {
+        var viewerStudentNumber = state.viewer && state.viewer.studentNumber ? String(state.viewer.studentNumber) : "";
+        return [
+            "forms-submit",
+            pageCohort,
+            String((payload && payload.formId) || formId || ""),
+            viewerStudentNumber || String((payload && payload.guestKey) || guestKey() || "guest")
+        ].join(":");
+    }
+
+    function syncPendingOfflineSubmission() {
+        var offline = offlineApi();
+        if (!offline || typeof offline.findQueuedEntry !== "function") {
+            state.pendingOfflineSubmissionId = "";
+            return;
+        }
+        var dedupeKey = formOfflineSubmitDedupeKey({
+            formId: String((state.form && state.form.id) || formId || ""),
+            guestKey: guestKey()
+        });
+        var queued = offline.findQueuedEntry(function (entry) {
+            return entry && entry.kind === "form-submit" && entry.dedupeKey === dedupeKey;
+        });
+        state.pendingOfflineSubmissionId = queued ? String(queued.id || "") : "";
+    }
+
+    function queueOfflineFormSubmission(payload) {
+        var offline = offlineApi();
+        if (!offline || typeof offline.queueRequest !== "function") {
+            return null;
+        }
+        return offline.queueRequest({
+            kind: "form-submit",
+            url: "/api/forms_api.php",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                Accept: "application/json"
+            },
+            body: new URLSearchParams(Object.assign({ action: "submit", cohort: pageCohort }, payload || {})).toString(),
+            dedupeKey: formOfflineSubmitDedupeKey(payload),
+            meta: {
+                formId: String((payload && payload.formId) || formId || ""),
+                cohort: pageCohort
+            }
+        });
     }
 
     function copyText(value) {
@@ -616,6 +674,7 @@
         var form = payload.form || null;
         state.form = form;
         state.viewer = payload.viewer || null;
+        syncPendingOfflineSubmission();
         if (!form) return;
 
         topTitle.textContent = String(form.title || "فرم");
@@ -642,9 +701,11 @@
         });
         fieldsRoot.appendChild(fragment);
 
-        submitBtn.disabled = !(form.permissions && form.permissions.canSubmit);
+        submitBtn.disabled = !(form.permissions && form.permissions.canSubmit) || !!state.pendingOfflineSubmissionId;
         if (submitBtn.disabled) {
-            if (form.permissions && form.permissions.alreadySubmitted) {
+            if (state.pendingOfflineSubmissionId) {
+                setFeedback("اتصال قطع است و پاسخ این فرم در صف آفلاین مانده است. بعد از برگشت اینترنت، خودکار ارسال می‌شود.", "");
+            } else if (form.permissions && form.permissions.alreadySubmitted) {
                 setFeedback("پاسخ این فرم قبلاً توسط شما ثبت شده است.", "success");
             } else {
                 setFeedback("شما مجاز به پاسخ‌دهی به این فرم نیستید.", "error");
@@ -965,6 +1026,17 @@
                 guestPhone: normalizeDigits(guestPhoneInput.value || "")
             };
             var response = await apiPost("submit", payload);
+            if (response && response.httpStatus === 0) {
+                var queuedEntry = queueOfflineFormSubmission(payload);
+                if (!queuedEntry) {
+                    throw new Error(response.error || "ثبت پاسخ انجام نشد.");
+                }
+                state.pendingOfflineSubmissionId = String(queuedEntry.id || "");
+                setFeedback("اتصال قطع است. پاسخ فرم در صف آفلاین ذخیره شد و بعد از آنلاین شدن ارسال می‌شود.", "");
+                showToast("پاسخ فرم در صف آفلاین ذخیره شد.");
+                renderForm({ form: state.form, viewer: state.viewer });
+                return;
+            }
             if (response && response.httpStatus === 401) {
                 var authApi = window.Dent1402Auth;
                 if (authApi && typeof authApi.verifySession === "function" && (await authApi.verifySession()) !== false) {
@@ -983,7 +1055,7 @@
         } catch (error) {
             setFeedback(error && error.message ? error.message : "ثبت پاسخ انجام نشد.", "error");
         } finally {
-            if (state.form && state.form.permissions && state.form.permissions.canSubmit) {
+            if (state.form && state.form.permissions && state.form.permissions.canSubmit && !state.pendingOfflineSubmissionId) {
                 submitBtn.disabled = false;
             }
         }
@@ -1017,6 +1089,27 @@
         if (button) {
             payFormField(button);
         }
+    });
+    window.addEventListener("dent1402:offline-queue-change", function () {
+        var previousPending = !!state.pendingOfflineSubmissionId;
+        syncPendingOfflineSubmission();
+        if (state.form && previousPending !== !!state.pendingOfflineSubmissionId) {
+            renderForm({ form: state.form, viewer: state.viewer });
+        }
+    });
+    window.addEventListener("dent1402:offline-queue-success", function (event) {
+        var detail = event && event.detail ? event.detail : {};
+        var entry = detail.entry || null;
+        if (!entry || entry.kind !== "form-submit") {
+            return;
+        }
+        if (String(entry.meta && entry.meta.formId || "") !== String((state.form && state.form.id) || formId || "")) {
+            return;
+        }
+        state.pendingOfflineSubmissionId = "";
+        setFeedback("پاسخ فرم از صف آفلاین به سرور رسید.", "success");
+        showToast("پاسخ فرم ارسال شد.");
+        loadForm();
     });
     formEl.addEventListener("submit", submitForm);
 

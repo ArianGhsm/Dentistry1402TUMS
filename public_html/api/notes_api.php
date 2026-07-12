@@ -2116,6 +2116,43 @@ function notes_curriculum_item_payload(array $item, int $storageTerm): array
     return $payload;
 }
 
+function notes_resource_offline_proxy_url(string $cohort, int $term, array $item): string
+{
+    $itemId = (int) ($item['id'] ?? 0);
+    $buttonUrl = trim((string) ($item['buttonUrl'] ?? ''));
+    if ($itemId <= 0 || $term <= 0 || $buttonUrl === '') {
+        return '';
+    }
+
+    return '/api/notes_api.php?' . http_build_query([
+        'action' => 'offlineResourceProxy',
+        'cohort' => $cohort,
+        'term' => (string) $term,
+        'itemId' => (string) $itemId,
+    ], '', '&', PHP_QUERY_RFC3986);
+}
+
+function notes_item_with_offline_pack_url(string $cohort, array $item, int $term): array
+{
+    $item['offlinePackUrl'] = notes_resource_offline_proxy_url($cohort, $term, $item);
+    return $item;
+}
+
+function notes_attach_offline_pack_urls(string $cohort, array $termPayload): array
+{
+    $fallbackTerm = max(0, (int) ($termPayload['term'] ?? $termPayload['id'] ?? 0));
+    $items = is_array($termPayload['items'] ?? null) ? $termPayload['items'] : [];
+    foreach ($items as $index => $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $itemTerm = max(0, (int) ($item['storageTerm'] ?? $item['term'] ?? $fallbackTerm));
+        $items[$index] = notes_item_with_offline_pack_url($cohort, $item, $itemTerm);
+    }
+    $termPayload['items'] = $items;
+    return $termPayload;
+}
+
 function notes_term_item_payloads(array $items, int $storageTerm): array
 {
     $payloads = [];
@@ -3163,11 +3200,14 @@ function notes_prosthesis_1402_delete_item(int $termId, int $itemId): array
 
 function notes_item_response_payload(string $cohort, array $item, int $storageTerm): array
 {
+    $payload = null;
     if ($cohort === 'prosthesis-1402') {
-        return notes_1402_item_payload($item);
+        $payload = notes_1402_item_payload($item);
+    } else {
+        $payload = notes_curriculum_item_payload($item, $storageTerm);
     }
 
-    return notes_curriculum_item_payload($item, $storageTerm);
+    return notes_item_with_offline_pack_url($cohort, $payload, $storageTerm);
 }
 
 function notes_with_store_lock_for_cohort(string $cohort, callable $callback)
@@ -3261,6 +3301,133 @@ function notes_resource_item_context_payload(string $cohort, array $context): ar
     $payload['termTitle'] = (string) ($context['termTitle'] ?? '');
     $payload['viewUrl'] = notes_resource_view_url($cohort, $term, $item);
     return $payload;
+}
+
+function notes_resource_proxy_public_origin(): string
+{
+    $host = trim((string) ($_SERVER['HTTP_HOST'] ?? 'dentistry1402tums.ir'));
+    if ($host === '' || preg_match('/[^a-zA-Z0-9.:-]/', $host) === 1) {
+        $host = 'dentistry1402tums.ir';
+    }
+    $scheme = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') ? 'https' : 'http';
+    return $scheme . '://' . $host;
+}
+
+function notes_resource_proxy_source_url(string $rawUrl): string
+{
+    $url = notes_1402_normalize_url($rawUrl);
+    if ($url === '') {
+        dent_error('لینک منبع برای ذخیره آفلاین معتبر نیست.', 422);
+    }
+    if (str_starts_with($url, '/') && !str_starts_with($url, '//')) {
+        return notes_resource_proxy_public_origin() . $url;
+    }
+
+    $parts = @parse_url($url);
+    if (!is_array($parts) || !in_array(strtolower((string) ($parts['scheme'] ?? '')), ['http', 'https'], true)) {
+        dent_error('لینک منبع برای ذخیره آفلاین معتبر نیست.', 422);
+    }
+
+    $host = strtolower(trim((string) ($parts['host'] ?? ''), '[]'));
+    if ($host === '' || $host === 'localhost' || $host === 'localdomain' || str_ends_with($host, '.localhost') || str_ends_with($host, '.local')) {
+        dent_error('این لینک برای ذخیره آفلاین مجاز نیست.', 422);
+    }
+    if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+        $publicIp = filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+        if ($publicIp === false) {
+            dent_error('این لینک برای ذخیره آفلاین مجاز نیست.', 422);
+        }
+    }
+
+    return $url;
+}
+
+function notes_resource_proxy_filename(array $item, string $sourceUrl): string
+{
+    $title = dent_clean_text((string) ($item['title'] ?? ''), 160);
+    if ($title === '') {
+        $title = 'resource';
+    }
+    $path = (string) (parse_url($sourceUrl, PHP_URL_PATH) ?: '');
+    $extension = strtolower((string) pathinfo(rawurldecode($path), PATHINFO_EXTENSION));
+    if ($extension !== '' && preg_match('/^[a-z0-9]{1,12}$/i', $extension) === 1 && !preg_match('/\.' . preg_quote($extension, '/') . '$/i', $title)) {
+        $title .= '.' . $extension;
+    }
+
+    $clean = preg_replace('/[\\\\\/:*?"<>|\x00-\x1F]+/u', '-', $title);
+    if (!is_string($clean)) {
+        $clean = $title;
+    }
+    $clean = trim($clean, " .-\t\n\r\0\x0B");
+    return $clean !== '' ? $clean : 'resource';
+}
+
+function notes_stream_offline_resource(string $sourceUrl, array $item): void
+{
+    @set_time_limit(0);
+    $http_response_header = [];
+    $context = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'ignore_errors' => true,
+            'follow_location' => 1,
+            'max_redirects' => 5,
+            'timeout' => 60,
+            'header' => "Accept: */*\r\nUser-Agent: Dentistry1402TUMS-PWA/1.0\r\n",
+        ],
+        'ssl' => [
+            'verify_peer' => true,
+            'verify_peer_name' => true,
+        ],
+    ]);
+    $stream = @fopen($sourceUrl, 'rb', false, $context);
+    if (!is_resource($stream)) {
+        dent_error('دریافت منبع برای ذخیره آفلاین انجام نشد.', 502);
+    }
+
+    $status = 200;
+    $contentType = 'application/octet-stream';
+    $contentLength = '';
+    foreach (($http_response_header ?? []) as $line) {
+        $headerLine = trim((string) $line);
+        if (preg_match('/^HTTP\/\S+\s+(\d{3})/i', $headerLine, $matches) === 1) {
+            $status = (int) $matches[1];
+            $contentType = 'application/octet-stream';
+            $contentLength = '';
+            continue;
+        }
+        if (stripos($headerLine, 'Content-Type:') === 0) {
+            $contentType = trim(substr($headerLine, strlen('Content-Type:'))) ?: $contentType;
+        } elseif (stripos($headerLine, 'Content-Length:') === 0) {
+            $length = trim(substr($headerLine, strlen('Content-Length:')));
+            $contentLength = ctype_digit($length) ? $length : '';
+        }
+    }
+    if ($status >= 400) {
+        fclose($stream);
+        dent_error('منبع اصلی برای ذخیره آفلاین در دسترس نیست.', $status === 404 ? 404 : 502);
+    }
+
+    if (function_exists('session_status') && session_status() === PHP_SESSION_ACTIVE) {
+        @session_write_close();
+    }
+    while (ob_get_level() > 0) {
+        @ob_end_clean();
+    }
+
+    if (!headers_sent()) {
+        header('Content-Type: ' . $contentType);
+        header('Cache-Control: private, max-age=86400');
+        header('X-Content-Type-Options: nosniff');
+        if ($contentLength !== '') {
+            header('Content-Length: ' . $contentLength);
+        }
+        header("Content-Disposition: inline; filename*=UTF-8''" . rawurlencode(notes_resource_proxy_filename($item, $sourceUrl)));
+    }
+
+    fpassthru($stream);
+    fclose($stream);
+    exit;
 }
 
 function notes_resource_hydrate_user_entries(string $cohort, array $store, array $entries): array
@@ -3514,6 +3681,7 @@ if ($action === 'term') {
     } else {
         $termPayload = notes_term_payload_for_cohort($cohort, $store, $term);
     }
+    $termPayload = notes_attach_offline_pack_urls($cohort, $termPayload);
 
     dent_json_response([
         'success' => true,
@@ -3522,6 +3690,25 @@ if ($action === 'term') {
         'downloadHost' => notes_download_host_term_payload($cohort, $term, $termPayload, $viewer),
         'resourceInsights' => notes_resource_insights_payload($cohort, $store, $viewer),
     ]);
+}
+
+if ($action === 'offlineResourceProxy') {
+    notes_1402_require_method(['GET']);
+
+    $cohort = notes_parse_cohort($_GET['cohort'] ?? '1402');
+    $term = $cohort === 'prosthesis-1402'
+        ? notes_prosthesis_1402_parse_term_id($_GET['term'] ?? '')
+        : notes_require_term_for_cohort($cohort, $_GET['term'] ?? '');
+    $itemId = notes_1402_parse_item_id($_GET['itemId'] ?? '');
+    $store = notes_curriculum_store_for_cohort($cohort);
+    $context = notes_resource_find_item_context($cohort, $store, $itemId, $term);
+    if ($context === null) {
+        dent_error('منبع موردنظر پیدا نشد.', 404);
+    }
+
+    $item = is_array($context['item'] ?? null) ? $context['item'] : [];
+    $sourceUrl = notes_resource_proxy_source_url((string) ($item['buttonUrl'] ?? ''));
+    notes_stream_offline_resource($sourceUrl, $item);
 }
 
 if ($action === 'resourceState') {

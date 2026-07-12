@@ -39,6 +39,19 @@
     var POLL_COUNT_TTL_MS = 45000;
     var NAV_BADGE_TTL_MS = 45000;
     var NOTIFICATION_BANNER_DISMISS_KEY = "dent1402-shell-notification-banner-dismissed";
+    var OFFLINE_QUEUE_STORAGE_KEY = "dent1402-offline-queue-v1";
+    var OFFLINE_PACK_STORAGE_KEY = "dent1402-offline-packs-v1";
+    var OFFLINE_PACK_CACHE = "dent1402-offline-pack-cache-v1";
+    var offlineQueueListeners = [];
+    var offlineFlushPromise = null;
+    var offlineFlushTimer = 0;
+    var offlineInitialized = false;
+    var offlineQueueState = {
+        queue: [],
+        flushing: false,
+        lastError: "",
+        lastFlushAt: ""
+    };
 
     function authApi() {
         return window.Dent1402Auth && typeof window.Dent1402Auth === "object"
@@ -538,6 +551,634 @@
             return payload;
         });
     }
+
+    function isPlainObject(value) {
+        return value && typeof value === "object" && !Array.isArray(value);
+    }
+
+    function readLocalJson(key, fallback) {
+        try {
+            var raw = window.localStorage ? window.localStorage.getItem(key) : "";
+            if (!raw) {
+                return fallback;
+            }
+            var parsed = JSON.parse(raw);
+            return parsed === null || parsed === undefined ? fallback : parsed;
+        } catch (_error) {
+            return fallback;
+        }
+    }
+
+    function writeLocalJson(key, value) {
+        try {
+            if (!window.localStorage) {
+                return false;
+            }
+            if (value === null || value === undefined) {
+                window.localStorage.removeItem(key);
+                return true;
+            }
+            window.localStorage.setItem(key, JSON.stringify(value));
+            return true;
+        } catch (_error) {
+            return false;
+        }
+    }
+
+    function offlineNowIso() {
+        return new Date().toISOString();
+    }
+
+    function offlineGenerateId(prefix) {
+        return String(prefix || "offline") + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function offlineNormalizeHeaders(source) {
+        var headers = {};
+        if (!isPlainObject(source)) {
+            return headers;
+        }
+        Object.keys(source).forEach(function (key) {
+            var cleanKey = String(key || "").trim();
+            if (!cleanKey) {
+                return;
+            }
+            headers[cleanKey] = String(source[key] == null ? "" : source[key]);
+        });
+        return headers;
+    }
+
+    function offlineNormalizeQueueEntry(raw) {
+        if (!isPlainObject(raw)) {
+            return null;
+        }
+        var url = String(raw.url || "").trim();
+        if (!url) {
+            return null;
+        }
+        var method = String(raw.method || "POST").trim().toUpperCase();
+        if (method !== "GET") {
+            method = "POST";
+        }
+        return {
+            id: String(raw.id || offlineGenerateId("queue")),
+            kind: String(raw.kind || "request").trim() || "request",
+            url: url,
+            method: method,
+            headers: offlineNormalizeHeaders(raw.headers),
+            body: method === "GET" ? "" : String(raw.body || ""),
+            dedupeKey: String(raw.dedupeKey || "").trim(),
+            meta: isPlainObject(raw.meta) ? raw.meta : {},
+            createdAt: String(raw.createdAt || offlineNowIso()),
+            attempts: Math.max(0, Math.floor(Number(raw.attempts) || 0)),
+            lastAttemptAt: String(raw.lastAttemptAt || ""),
+            lastError: String(raw.lastError || "")
+        };
+    }
+
+    function offlineReadQueue() {
+        var raw = readLocalJson(OFFLINE_QUEUE_STORAGE_KEY, []);
+        if (!Array.isArray(raw)) {
+            return [];
+        }
+        return raw.map(offlineNormalizeQueueEntry).filter(Boolean);
+    }
+
+    function offlineWriteQueue(entries) {
+        var next = Array.isArray(entries) ? entries.map(offlineNormalizeQueueEntry).filter(Boolean) : [];
+        offlineQueueState.queue = next.slice();
+        writeLocalJson(OFFLINE_QUEUE_STORAGE_KEY, next);
+        return next;
+    }
+
+    function offlineQueueSnapshot() {
+        return {
+            count: offlineQueueState.queue.length,
+            entries: offlineQueueState.queue.slice(),
+            flushing: offlineQueueState.flushing,
+            lastError: offlineQueueState.lastError,
+            lastFlushAt: offlineQueueState.lastFlushAt
+        };
+    }
+
+    function emitOfflineEvent(name, detail) {
+        window.dispatchEvent(new CustomEvent(name, { detail: detail || {} }));
+    }
+
+    function emitOfflineQueueChange(extra) {
+        var snapshot = offlineQueueSnapshot();
+        var detail = Object.assign({ state: snapshot }, extra || {});
+        emitOfflineEvent("dent1402:offline-queue-change", detail);
+        offlineQueueListeners.forEach(function (listener) {
+            try {
+                listener(snapshot);
+            } catch (_error) {
+                // Listener failures must not break queue state updates.
+            }
+        });
+    }
+
+    function emitOfflineQueueResult(name, entry, payload, extra) {
+        emitOfflineEvent(name, Object.assign({
+            entry: entry,
+            payload: payload || null,
+            state: offlineQueueSnapshot()
+        }, extra || {}));
+    }
+
+    function offlineIsNavigatorOnline() {
+        return !(window.navigator && window.navigator.onLine === false);
+    }
+
+    function offlineShouldDropClientError(status) {
+        return status === 400
+            || status === 404
+            || status === 409
+            || status === 410
+            || status === 422;
+    }
+
+    function offlineParseResponse(response) {
+        return response.text().then(function (text) {
+            var payload = null;
+            if (text) {
+                try {
+                    payload = JSON.parse(text);
+                } catch (_error) {
+                    payload = null;
+                }
+            }
+            if (!payload || typeof payload !== "object") {
+                payload = {
+                    success: response.ok,
+                    rawText: text || ""
+                };
+            }
+            payload.httpStatus = response.status;
+            return payload;
+        });
+    }
+
+    function offlineQueueRequest(config) {
+        if (!isPlainObject(config)) {
+            throw new Error("offline-queue-config-invalid");
+        }
+        var entry = offlineNormalizeQueueEntry({
+            id: config.id || "",
+            kind: config.kind || "request",
+            url: config.url || "",
+            method: config.method || "POST",
+            headers: config.headers || {},
+            body: typeof config.body === "string"
+                ? config.body
+                : (config.body instanceof URLSearchParams ? config.body.toString() : new URLSearchParams(config.body || {}).toString()),
+            dedupeKey: config.dedupeKey || "",
+            meta: config.meta || {},
+            createdAt: offlineNowIso()
+        });
+        if (!entry) {
+            throw new Error("offline-queue-entry-invalid");
+        }
+
+        var queue = offlineReadQueue();
+        if (entry.dedupeKey) {
+            queue = queue.filter(function (current) {
+                return !(current.kind === entry.kind && current.dedupeKey === entry.dedupeKey);
+            });
+        }
+        queue.push(entry);
+        offlineWriteQueue(queue);
+        offlineQueueState.lastError = "";
+        emitOfflineQueueChange({ reason: "queued", entry: entry });
+        scheduleOfflineQueueFlush(900);
+        return entry;
+    }
+
+    function offlineFindQueuedEntry(predicate) {
+        if (typeof predicate !== "function") {
+            return null;
+        }
+        var queue = offlineReadQueue();
+        for (var index = 0; index < queue.length; index += 1) {
+            if (predicate(queue[index])) {
+                return queue[index];
+            }
+        }
+        return null;
+    }
+
+    function scheduleOfflineQueueFlush(delayMs) {
+        if (offlineFlushTimer) {
+            window.clearTimeout(offlineFlushTimer);
+        }
+        if (!offlineIsNavigatorOnline()) {
+            return;
+        }
+        offlineFlushTimer = window.setTimeout(function () {
+            offlineFlushTimer = 0;
+            flushOfflineQueue().catch(function () {
+                return null;
+            });
+        }, Math.max(120, Number(delayMs) || 0));
+    }
+
+    function replayOfflineQueueEntry(entry) {
+        var requestOptions = {
+            method: entry.method,
+            credentials: "same-origin",
+            cache: "no-store",
+            headers: offlineNormalizeHeaders(entry.headers)
+        };
+        if (!requestOptions.headers.Accept) {
+            requestOptions.headers.Accept = "application/json";
+        }
+        if (entry.method !== "GET" && entry.body) {
+            requestOptions.body = entry.body;
+        }
+
+        return fetch(entry.url, requestOptions).then(function (response) {
+            return offlineParseResponse(response).then(function (payload) {
+                if (!response.ok || payload.success === false) {
+                    var error = new Error(payload.error || "درخواست صف آفلاین ناموفق بود.");
+                    error.httpStatus = response.status;
+                    error.payload = payload;
+                    throw error;
+                }
+                return payload;
+            });
+        });
+    }
+
+    function flushOfflineQueue() {
+        if (offlineFlushPromise) {
+            return offlineFlushPromise;
+        }
+        if (!offlineIsNavigatorOnline()) {
+            return Promise.resolve(offlineQueueSnapshot());
+        }
+
+        offlineFlushPromise = (async function () {
+            offlineQueueState.queue = offlineReadQueue();
+            if (!offlineQueueState.queue.length) {
+                offlineQueueState.lastError = "";
+                return offlineQueueSnapshot();
+            }
+
+            offlineQueueState.flushing = true;
+            emitOfflineQueueChange({ reason: "flush-start" });
+
+            while (offlineQueueState.queue.length) {
+                var entry = offlineQueueState.queue[0];
+                try {
+                    var payload = await replayOfflineQueueEntry(entry);
+                    offlineQueueState.queue.shift();
+                    offlineWriteQueue(offlineQueueState.queue);
+                    offlineQueueState.lastError = "";
+                    offlineQueueState.lastFlushAt = offlineNowIso();
+                    emitOfflineQueueResult("dent1402:offline-queue-success", entry, payload, { dropped: false });
+                    emitOfflineQueueChange({ reason: "flush-success", entry: entry, payload: payload });
+                } catch (error) {
+                    var status = Math.max(0, Math.floor(Number(error && error.httpStatus) || 0));
+                    entry.attempts = Math.max(0, Math.floor(Number(entry.attempts) || 0)) + 1;
+                    entry.lastAttemptAt = offlineNowIso();
+                    entry.lastError = error && error.message ? error.message : "ارسال مورد صف آفلاین انجام نشد.";
+
+                    if (offlineShouldDropClientError(status)) {
+                        offlineQueueState.queue.shift();
+                        offlineWriteQueue(offlineQueueState.queue);
+                        emitOfflineQueueResult("dent1402:offline-queue-failure", entry, error && error.payload ? error.payload : null, {
+                            dropped: true,
+                            httpStatus: status
+                        });
+                        emitOfflineQueueChange({ reason: "flush-drop", entry: entry, httpStatus: status });
+                        continue;
+                    }
+
+                    offlineQueueState.queue[0] = entry;
+                    offlineWriteQueue(offlineQueueState.queue);
+                    offlineQueueState.lastError = entry.lastError;
+                    emitOfflineQueueResult("dent1402:offline-queue-failure", entry, error && error.payload ? error.payload : null, {
+                        dropped: false,
+                        httpStatus: status
+                    });
+                    emitOfflineQueueChange({ reason: "flush-error", entry: entry, httpStatus: status });
+                    break;
+                }
+            }
+
+            return offlineQueueSnapshot();
+        }()).finally(function () {
+            offlineQueueState.flushing = false;
+            emitOfflineQueueChange({ reason: "flush-finish" });
+            offlineFlushPromise = null;
+        });
+
+        return offlineFlushPromise;
+    }
+
+    function offlineNormalizePackRecord(raw) {
+        if (!isPlainObject(raw)) {
+            return null;
+        }
+        var key = String(raw.key || "").trim();
+        if (!key) {
+            return null;
+        }
+        var resources = Array.isArray(raw.resources) ? raw.resources : [];
+        return {
+            key: key,
+            title: String(raw.title || "بسته آفلاین"),
+            pageUrl: String(raw.pageUrl || ""),
+            updatedAt: String(raw.updatedAt || ""),
+            attemptedCount: Math.max(0, Math.floor(Number(raw.attemptedCount) || 0)),
+            cachedCount: Math.max(0, Math.floor(Number(raw.cachedCount) || 0)),
+            failedCount: Math.max(0, Math.floor(Number(raw.failedCount) || 0)),
+            resources: resources.map(function (resource) {
+                if (!isPlainObject(resource)) {
+                    return null;
+                }
+                var url = String(resource.url || "").trim();
+                if (!url) {
+                    return null;
+                }
+                return {
+                    url: url,
+                    title: String(resource.title || ""),
+                    sourceUrl: String(resource.sourceUrl || "")
+                };
+            }).filter(Boolean)
+        };
+    }
+
+    function offlineReadPacks() {
+        var raw = readLocalJson(OFFLINE_PACK_STORAGE_KEY, {});
+        var packs = {};
+        if (!isPlainObject(raw)) {
+            return packs;
+        }
+        Object.keys(raw).forEach(function (key) {
+            var record = offlineNormalizePackRecord(raw[key]);
+            if (record) {
+                packs[record.key] = record;
+            }
+        });
+        return packs;
+    }
+
+    function offlineWritePacks(packs) {
+        var next = {};
+        if (isPlainObject(packs)) {
+            Object.keys(packs).forEach(function (key) {
+                var record = offlineNormalizePackRecord(packs[key]);
+                if (record) {
+                    next[record.key] = record;
+                }
+            });
+        }
+        writeLocalJson(OFFLINE_PACK_STORAGE_KEY, next);
+        return next;
+    }
+
+    function offlineSupportsPacks() {
+        return typeof window.caches !== "undefined" && window.caches && typeof window.caches.open === "function";
+    }
+
+    async function saveOfflinePack(config) {
+        if (!offlineSupportsPacks()) {
+            throw new Error("ذخیره بسته آفلاین در این مرورگر پشتیبانی نمی‌شود.");
+        }
+        if (!isPlainObject(config)) {
+            throw new Error("پیکربندی بسته آفلاین نامعتبر است.");
+        }
+
+        var key = String(config.key || "").trim();
+        if (!key) {
+            throw new Error("کلید بسته آفلاین مشخص نیست.");
+        }
+
+        var resources = (Array.isArray(config.resources) ? config.resources : []).map(function (resource) {
+            if (!isPlainObject(resource)) {
+                return null;
+            }
+            var url = String(resource.url || "").trim();
+            if (!url) {
+                return null;
+            }
+            return {
+                url: url,
+                title: String(resource.title || ""),
+                sourceUrl: String(resource.sourceUrl || "")
+            };
+        }).filter(Boolean);
+        if (!resources.length) {
+            throw new Error("منبعی برای ذخیره آفلاین پیدا نشد.");
+        }
+
+        var cache = await window.caches.open(OFFLINE_PACK_CACHE);
+        var packs = offlineReadPacks();
+        var previous = packs[key];
+        var attemptedCount = resources.length;
+        var cachedResources = [];
+        var failedResources = [];
+
+        for (var index = 0; index < resources.length; index += 1) {
+            var resource = resources[index];
+            try {
+                var response = await fetch(resource.url, {
+                    method: "GET",
+                    cache: "no-store",
+                    credentials: "same-origin",
+                    headers: {
+                        Accept: "*/*"
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error("دریافت منبع با کد " + String(response.status) + " ناموفق بود.");
+                }
+                await cache.put(resource.url, response.clone());
+                cachedResources.push(resource);
+            } catch (error) {
+                failedResources.push({
+                    url: resource.url,
+                    title: resource.title,
+                    error: error && error.message ? error.message : "ذخیره منبع انجام نشد."
+                });
+            }
+        }
+
+        if (!cachedResources.length) {
+            throw new Error(failedResources[0] && failedResources[0].error ? failedResources[0].error : "هیچ منبعی برای آفلاین ذخیره نشد.");
+        }
+
+        if (previous && Array.isArray(previous.resources)) {
+            var keepMap = {};
+            cachedResources.forEach(function (resource) {
+                keepMap[resource.url] = true;
+            });
+            for (var staleIndex = 0; staleIndex < previous.resources.length; staleIndex += 1) {
+                var staleResource = previous.resources[staleIndex];
+                if (!staleResource || !staleResource.url || keepMap[staleResource.url]) {
+                    continue;
+                }
+                await cache.delete(staleResource.url);
+            }
+        }
+
+        packs[key] = {
+            key: key,
+            title: String(config.title || "بسته آفلاین"),
+            pageUrl: String(config.pageUrl || ""),
+            updatedAt: offlineNowIso(),
+            attemptedCount: attemptedCount,
+            cachedCount: cachedResources.length,
+            failedCount: failedResources.length,
+            resources: cachedResources
+        };
+        offlineWritePacks(packs);
+
+        return {
+            pack: packs[key],
+            cachedCount: cachedResources.length,
+            failedCount: failedResources.length,
+            failedResources: failedResources
+        };
+    }
+
+    async function removeOfflinePack(key) {
+        var cleanKey = String(key || "").trim();
+        if (!cleanKey) {
+            return false;
+        }
+        var packs = offlineReadPacks();
+        var record = packs[cleanKey];
+        if (!record) {
+            return false;
+        }
+
+        if (offlineSupportsPacks()) {
+            var cache = await window.caches.open(OFFLINE_PACK_CACHE);
+            if (Array.isArray(record.resources)) {
+                for (var index = 0; index < record.resources.length; index += 1) {
+                    var resource = record.resources[index];
+                    if (resource && resource.url) {
+                        await cache.delete(resource.url);
+                    }
+                }
+            }
+        }
+
+        delete packs[cleanKey];
+        offlineWritePacks(packs);
+        return true;
+    }
+
+    function getOfflinePack(key) {
+        var cleanKey = String(key || "").trim();
+        if (!cleanKey) {
+            return null;
+        }
+        var packs = offlineReadPacks();
+        return packs[cleanKey] || null;
+    }
+
+    async function hasOfflineCachedResource(url) {
+        if (!offlineSupportsPacks()) {
+            return false;
+        }
+        var cleanUrl = String(url || "").trim();
+        if (!cleanUrl) {
+            return false;
+        }
+        var cache = await window.caches.open(OFFLINE_PACK_CACHE);
+        var cached = await cache.match(cleanUrl);
+        return !!cached;
+    }
+
+    async function openOfflineCachedResource(url) {
+        if (!offlineSupportsPacks()) {
+            return false;
+        }
+        var cleanUrl = String(url || "").trim();
+        if (!cleanUrl) {
+            return false;
+        }
+        var cache = await window.caches.open(OFFLINE_PACK_CACHE);
+        var response = await cache.match(cleanUrl);
+        if (!response) {
+            return false;
+        }
+        var blob = await response.blob();
+        if (!blob || !blob.size) {
+            return false;
+        }
+
+        var objectUrl = window.URL.createObjectURL(blob);
+        var popup = window.open(objectUrl, "_blank", "noopener");
+        if (!popup) {
+            var link = document.createElement("a");
+            link.href = objectUrl;
+            link.target = "_blank";
+            link.rel = "noopener";
+            link.click();
+        }
+        window.setTimeout(function () {
+            window.URL.revokeObjectURL(objectUrl);
+        }, 60000);
+        return true;
+    }
+
+    function onOfflineQueueChange(listener) {
+        if (typeof listener !== "function") {
+            return function () {};
+        }
+        offlineQueueListeners.push(listener);
+        listener(offlineQueueSnapshot());
+        return function () {
+            offlineQueueListeners = offlineQueueListeners.filter(function (current) {
+                return current !== listener;
+            });
+        };
+    }
+
+    function initOfflineSupport() {
+        if (offlineInitialized) {
+            return;
+        }
+        offlineInitialized = true;
+        offlineQueueState.queue = offlineReadQueue();
+
+        window.addEventListener("online", function () {
+            scheduleOfflineQueueFlush(320);
+        });
+        window.addEventListener("pageshow", function () {
+            scheduleOfflineQueueFlush(700);
+        });
+        document.addEventListener("visibilitychange", function () {
+            if (!document.hidden) {
+                scheduleOfflineQueueFlush(520);
+            }
+        });
+
+        emitOfflineQueueChange({ reason: "init" });
+        scheduleOfflineQueueFlush(1200);
+    }
+
+    initOfflineSupport();
+
+    window.Dent1402Site = Object.assign({}, window.Dent1402Site || {}, {
+        offline: {
+            getQueueState: offlineQueueSnapshot,
+            findQueuedEntry: offlineFindQueuedEntry,
+            queueRequest: offlineQueueRequest,
+            flushQueue: flushOfflineQueue,
+            onQueueChange: onOfflineQueueChange,
+            getPack: getOfflinePack,
+            savePack: saveOfflinePack,
+            removePack: removeOfflinePack,
+            hasCachedResource: hasOfflineCachedResource,
+            openCachedResource: openOfflineCachedResource
+        }
+    });
 
     function notificationPreviewKey(key, preview) {
         var id = preview && preview.id ? String(preview.id) : "";

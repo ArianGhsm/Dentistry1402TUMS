@@ -1588,6 +1588,69 @@
     return apiRequest("POST", action, payload, options);
   }
 
+  function offlineApi() {
+    return window.Dent1402Site
+      && typeof window.Dent1402Site === "object"
+      && window.Dent1402Site.offline
+      && typeof window.Dent1402Site.offline === "object"
+      ? window.Dent1402Site.offline
+      : null;
+  }
+
+  function queueOfflineChatSend(payload) {
+    var offline = offlineApi();
+    if (!offline || typeof offline.queueRequest !== "function" || !payload || !payload.conversationId) {
+      return null;
+    }
+    return offline.queueRequest({
+      kind: "chat-send",
+      url: "/chat/chat_api.php",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        Accept: "application/json"
+      },
+      body: new URLSearchParams(Object.assign({ action: "send", cohort: pageCohort }, payload)).toString(),
+      dedupeKey: [
+        "chat-send",
+        pageCohort,
+        String(payload.conversationId || ""),
+        String(payload.text || ""),
+        String(payload.replyTo || ""),
+        Date.now().toString(36)
+      ].join(":"),
+      meta: {
+        cohort: pageCohort,
+        conversationId: String(payload.conversationId || "")
+      }
+    });
+  }
+
+  function applyQueuedChatSendPayload(payload) {
+    if (!payload || payload.success !== true) {
+      return false;
+    }
+    var message = normalizeMessage(payload.message);
+    if (message && message.conversationId === state.activeConversationId) {
+      appendMessages([message], {
+        replaceAll: false,
+        forceStick: true,
+        smooth: true,
+        markNew: true
+      });
+    }
+    var nextConversation = normalizeConversation(payload.conversation);
+    if (nextConversation) {
+      upsertConversation(nextConversation);
+      rebuildConversationsFromMap();
+      renderConversationList();
+      updateThreadHead();
+    }
+    setComposerStatus("", "");
+    setConnectionState("live", "متصل");
+    return true;
+  }
+
   function consumeUnauthorized(payload, fallbackText) {
     var auth = safeAuthApi();
     var message = (payload && payload.error) || fallbackText || "نشست شما منقضی شده است. دوباره وارد شوید.";
@@ -11094,6 +11157,22 @@
       if (response && (response.networkError || toNumber(response.httpStatus, 0) <= 0)) {
         state.connectionIssue = true;
         setConnectionState("issue", "در انتظار اتصال");
+        if (!attachmentIds.length) {
+          var queuedEntry = queueOfflineChatSend(payload);
+          if (queuedEntry) {
+            if (opts.text == null) {
+              chatTextEl.value = "";
+              clearComposerDraft(conversation.id);
+            }
+            autosizeComposer();
+            closeMentionSuggestions();
+            clearReplyTarget();
+            clearTypingActivity(false);
+            setComposerStatus("پیام در صف آفلاین ذخیره شد و بعد از آنلاین شدن ارسال می‌شود.", "");
+            showToast("پیام در صف آفلاین ذخیره شد.");
+            return true;
+          }
+        }
       }
       setComposerStatus(error && error.message ? error.message : "ارسال پیام انجام نشد.", "error");
       showToast(error && error.message ? error.message : "ارسال پیام انجام نشد.");
@@ -12493,6 +12572,19 @@
     }
 
     if (sendBtn) sendBtn.addEventListener("click", sendCurrentMessage);
+    window.addEventListener("dent1402:offline-queue-success", function (event) {
+      var detail = event && event.detail ? event.detail : {};
+      var entry = detail.entry || null;
+      if (!entry || entry.kind !== "chat-send") {
+        return;
+      }
+      if (String(entry.meta && entry.meta.conversationId || "") !== String(state.activeConversationId || "")) {
+        return;
+      }
+      if (applyQueuedChatSendPayload(detail.payload || null)) {
+        showToast("پیام آفلاین ارسال شد.");
+      }
+    });
     if (attachBtn) {
       attachBtn.addEventListener("click", function () {
         var conversation = activeConversation();

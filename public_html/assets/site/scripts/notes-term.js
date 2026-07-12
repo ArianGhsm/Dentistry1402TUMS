@@ -94,6 +94,9 @@
         resourceBusy: false,
         resourceFeedback: "",
         resourceInsights: null,
+        offlinePackBusy: false,
+        offlinePackFeedback: "",
+        offlinePackRecord: null,
         uploadBusy: false
     };
 
@@ -366,6 +369,134 @@
         return Number(item && (item.storageTerm || item.term) || term || 0);
     }
 
+    function offlineApi() {
+        return siteApi && siteApi.offline && typeof siteApi.offline === "object" ? siteApi.offline : null;
+    }
+
+    function offlinePackKey() {
+        return ["notes", cohort, String(term || 0), requestedUnitKey || "term"].join(":");
+    }
+
+    function refreshOfflinePackRecord() {
+        var offline = offlineApi();
+        state.offlinePackRecord = offline && typeof offline.getPack === "function"
+            ? offline.getPack(offlinePackKey())
+            : null;
+        return state.offlinePackRecord;
+    }
+
+    function currentOfflinePackResources() {
+        var items = state.termData && Array.isArray(state.termData.items) ? state.termData.items : [];
+        var seen = {};
+        return items.map(function (item) {
+            var url = String(item && item.offlinePackUrl || "").trim();
+            if (!url || seen[url]) {
+                return null;
+            }
+            seen[url] = true;
+            return {
+                url: url,
+                title: String(item.title || item.badge || "منبع"),
+                sourceUrl: String(item.buttonUrl || "")
+            };
+        }).filter(Boolean);
+    }
+
+    function offlinePackTitle() {
+        var data = state.termData && typeof state.termData === "object" ? state.termData : {};
+        return data.title || termTitle && termTitle.textContent || "بسته منابع";
+    }
+
+    function setOfflinePackFeedback(text) {
+        state.offlinePackFeedback = String(text || "");
+        var node = $("notes-term-offline-pack-feedback");
+        if (node) {
+            node.textContent = state.offlinePackFeedback;
+            node.hidden = !state.offlinePackFeedback;
+        }
+    }
+
+    function saveOfflineResourcePack() {
+        var offline = offlineApi();
+        if (!offline || typeof offline.savePack !== "function") {
+            setOfflinePackFeedback("ذخیره آفلاین در این مرورگر پشتیبانی نمی‌شود.");
+            return;
+        }
+        var resources = currentOfflinePackResources();
+        if (!resources.length) {
+            setOfflinePackFeedback("برای این صفحه منبع قابل ذخیره آفلاین پیدا نشد.");
+            return;
+        }
+        if (state.offlinePackBusy) {
+            return;
+        }
+
+        state.offlinePackBusy = true;
+        state.offlinePackFeedback = "در حال ذخیره بسته منابع...";
+        renderTerm();
+        offline.savePack({
+            key: offlinePackKey(),
+            title: offlinePackTitle(),
+            pageUrl: window.location.pathname + window.location.search,
+            resources: resources
+        }).then(function (result) {
+            state.offlinePackRecord = result && result.pack ? result.pack : refreshOfflinePackRecord();
+            var cachedCount = Number(result && result.cachedCount || state.offlinePackRecord && state.offlinePackRecord.cachedCount || 0);
+            var failedCount = Number(result && result.failedCount || 0);
+            state.offlinePackFeedback = failedCount > 0
+                ? "بسته ذخیره شد، اما " + toFaDigits(failedCount) + " فایل دریافت نشد."
+                : "بسته منابع با " + toFaDigits(cachedCount) + " فایل برای مطالعه آفلاین ذخیره شد.";
+        }).catch(function (error) {
+            state.offlinePackFeedback = error && error.message ? error.message : "ذخیره بسته آفلاین انجام نشد.";
+        }).finally(function () {
+            state.offlinePackBusy = false;
+            renderTerm();
+        });
+    }
+
+    function removeOfflineResourcePack() {
+        var offline = offlineApi();
+        if (!offline || typeof offline.removePack !== "function") {
+            setOfflinePackFeedback("مدیریت بسته آفلاین در این مرورگر پشتیبانی نمی‌شود.");
+            return;
+        }
+        if (state.offlinePackBusy) {
+            return;
+        }
+
+        state.offlinePackBusy = true;
+        state.offlinePackFeedback = "در حال حذف بسته آفلاین...";
+        renderTerm();
+        offline.removePack(offlinePackKey()).then(function () {
+            state.offlinePackRecord = null;
+            state.offlinePackFeedback = "بسته آفلاین این صفحه حذف شد.";
+        }).catch(function (error) {
+            state.offlinePackFeedback = error && error.message ? error.message : "حذف بسته آفلاین انجام نشد.";
+        }).finally(function () {
+            state.offlinePackBusy = false;
+            renderTerm();
+        });
+    }
+
+    function openOfflineResourceFromItem(item) {
+        var offline = offlineApi();
+        var url = String(item && item.offlinePackUrl || "").trim();
+        if (!offline || typeof offline.openCachedResource !== "function" || !url) {
+            setResourceFeedback("این منبع در بسته آفلاین ذخیره نشده است.");
+            return;
+        }
+
+        offline.openCachedResource(url).then(function (opened) {
+            if (!opened) {
+                setResourceFeedback("این منبع هنوز در بسته آفلاین ذخیره نشده است.");
+                return;
+            }
+            setResourceFeedback("");
+        }).catch(function () {
+            setResourceFeedback("بازکردن نسخه آفلاین این منبع انجام نشد.");
+        });
+    }
+
     function createMiniList(titleText, items, emptyText) {
         var group = document.createElement("div");
         group.className = "notes-resource-mini-list";
@@ -436,6 +567,65 @@
         return shell;
     }
 
+    function createOfflinePackPanel() {
+        var offline = offlineApi();
+        var record = refreshOfflinePackRecord();
+        var resources = currentOfflinePackResources();
+        var supports = !!(offline && typeof offline.savePack === "function" && typeof offline.removePack === "function");
+        var shell = document.createElement("div");
+        shell.className = "notes-resource-pack";
+
+        var text = document.createElement("div");
+        text.className = "notes-resource-pack__text";
+        var title = document.createElement("h4");
+        title.className = "notes-resource-pack__title";
+        title.textContent = "بسته آفلاین منابع";
+        var meta = document.createElement("p");
+        meta.className = "notes-resource-pack__meta";
+        if (!supports) {
+            meta.textContent = "مرورگر فعلی از ذخیره بسته آفلاین پشتیبانی نمی‌کند.";
+        } else if (record) {
+            var cachedCount = Number(record.cachedCount || (Array.isArray(record.resources) ? record.resources.length : 0));
+            var updatedAt = formatDate(record.updatedAt);
+            meta.textContent = "ذخیره‌شده: " + toFaDigits(cachedCount) + " فایل" + (updatedAt ? "، آخرین به‌روزرسانی " + updatedAt : "");
+        } else {
+            meta.textContent = "برای مطالعه بدون اینترنت، فایل‌های این صفحه را در cache مرورگر ذخیره کن.";
+        }
+        text.appendChild(title);
+        text.appendChild(meta);
+
+        var feedback = document.createElement("p");
+        feedback.id = "notes-term-offline-pack-feedback";
+        feedback.className = "notes-manage-feedback notes-resource-pack__feedback";
+        feedback.textContent = state.offlinePackFeedback;
+        feedback.hidden = !state.offlinePackFeedback;
+        text.appendChild(feedback);
+
+        var actions = document.createElement("div");
+        actions.className = "notes-resource-pack__actions";
+        var saveButton = document.createElement("button");
+        saveButton.type = "button";
+        saveButton.className = "notes-link-btn";
+        saveButton.dataset.resourcePackSave = "true";
+        saveButton.textContent = state.offlinePackBusy ? "در حال ذخیره..." : (record ? "به‌روزرسانی بسته" : "ذخیره آفلاین");
+        saveButton.disabled = state.offlinePackBusy || !supports || !resources.length;
+        actions.appendChild(saveButton);
+
+        if (record) {
+            var removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "notes-link-btn notes-link-btn--muted";
+            removeButton.dataset.resourcePackRemove = "true";
+            removeButton.textContent = state.offlinePackBusy ? "در حال حذف..." : "حذف بسته";
+            removeButton.disabled = state.offlinePackBusy || !supports;
+            actions.appendChild(removeButton);
+        }
+
+        shell.appendChild(text);
+        shell.appendChild(actions);
+        return shell;
+    }
+
     function ensureResourceInsightsPanel() {
         var existing = $("notes-term-resource-insights");
         if (existing) {
@@ -489,6 +679,7 @@
         ));
         grid.appendChild(createMiniList("آخرین آپدیت‌ها", insights.latestUpdates, "آپدیت تازه‌ای ثبت نشده است."));
         panel.appendChild(grid);
+        panel.appendChild(createOfflinePackPanel());
 
         if (state.canManage && insights.inbox) {
             var ownerLine = document.createElement("div");
@@ -710,6 +901,9 @@
         link.dataset.resourceOpen = "true";
         link.dataset.itemId = String(item.id || "");
         link.dataset.term = String(resourceItemTerm(item));
+        if (item.offlinePackUrl) {
+            link.dataset.offlinePackUrl = String(item.offlinePackUrl || "");
+        }
         if (item.isExternal) {
             link.dataset.externalLink = "true";
             link.target = "_blank";
@@ -1277,6 +1471,19 @@
             return;
         }
         section.addEventListener("click", function (event) {
+            var packSaveButton = event.target && event.target.closest ? event.target.closest("[data-resource-pack-save]") : null;
+            var packRemoveButton = event.target && event.target.closest ? event.target.closest("[data-resource-pack-remove]") : null;
+            if (packSaveButton) {
+                event.preventDefault();
+                saveOfflineResourcePack();
+                return;
+            }
+            if (packRemoveButton) {
+                event.preventDefault();
+                removeOfflineResourcePack();
+                return;
+            }
+
             var issueButton = event.target && event.target.closest ? event.target.closest("[data-resource-issue]") : null;
             if (!issueButton) {
                 return;
@@ -1389,6 +1596,11 @@
             }
 
             if (openLink) {
+                if (isOffline()) {
+                    event.preventDefault();
+                    openOfflineResourceFromItem(findItem(openLink.dataset.itemId || ""));
+                    return;
+                }
                 trackResourceOpenFromNode(openLink);
             }
 
