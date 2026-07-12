@@ -137,6 +137,13 @@
         };
     }
 
+    function bottomNavSwipeEnabled() {
+        var state = authState();
+        var settings = state && state.user && state.user.siteSettings;
+        var appearance = settings && settings.appearance;
+        return !!(appearance && appearance.bottomNavSwipeEnabled);
+    }
+
     function authStatus(state) {
         return state && state.status ? state.status : "logged-out";
     }
@@ -2135,6 +2142,10 @@
         var blocked = false;
 
         document.addEventListener("touchstart", function (event) {
+            if (!bottomNavSwipeEnabled()) {
+                tracking = false;
+                return;
+            }
             if (!event.touches || event.touches.length !== 1 || !navInner || !navInner.isConnected) {
                 tracking = false;
                 return;

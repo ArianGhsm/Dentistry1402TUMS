@@ -88,6 +88,7 @@
             "isProsthesisRepresentative",
             "canModerateChat",
             "permissions",
+            "siteSettings",
             "phone",
             "rotation",
             "createdAt",
@@ -130,7 +131,8 @@
             isProsthesisStudent: !!user.isProsthesisStudent,
             isProsthesisRepresentative: !!user.isProsthesisRepresentative,
             canModerateChat: !!user.canModerateChat,
-            permissions: user.permissions || {}
+            permissions: user.permissions || {},
+            siteSettings: user.siteSettings || {}
         };
     }
 

@@ -1969,6 +1969,9 @@ function dent_public_user(array $user): array
             'canLoginWithOtp' => dent_user_phone_ready_for_otp($user),
             'nudgeDismissedAt' => (string) ($user['phoneNudgeDismissedAt'] ?? ''),
         ],
+        'siteSettings' => [
+            'appearance' => dent_site_appearance_public_settings(),
+        ],
         'rotation' => $rotationPayload,
         'createdAt' => (string) ($user['createdAt'] ?? ''),
         'updatedAt' => (string) ($user['updatedAt'] ?? ''),
@@ -2926,6 +2929,10 @@ function dent_default_auth_meta_store(): array
         'otp' => [
             'records' => [],
         ],
+        'siteAppearance' => [
+            'bottomNavSwipeEnabled' => false,
+            'updatedAt' => '',
+        ],
     ];
 }
 
@@ -2938,7 +2945,7 @@ function dent_load_auth_meta_store(): array
     }
 
     $store = $defaults;
-    foreach (['schemaVersion', 'sms', 'otp'] as $key) {
+    foreach (['schemaVersion', 'sms', 'otp', 'siteAppearance'] as $key) {
         if (array_key_exists($key, $raw)) {
             $store[$key] = $raw[$key];
         }
@@ -2956,6 +2963,16 @@ function dent_load_auth_meta_store(): array
     }
     if (!is_array($store['otp']['records'] ?? null)) {
         $store['otp']['records'] = [];
+    }
+    if (!is_array($store['siteAppearance'])) {
+        $store['siteAppearance'] = $defaults['siteAppearance'];
+    } else {
+        $store['siteAppearance'] = array_merge($defaults['siteAppearance'], $store['siteAppearance']);
+        $store['siteAppearance']['bottomNavSwipeEnabled'] = dent_parse_bool(
+            $store['siteAppearance']['bottomNavSwipeEnabled'] ?? false,
+            false
+        );
+        $store['siteAppearance']['updatedAt'] = dent_clean_text((string) ($store['siteAppearance']['updatedAt'] ?? ''), 80);
     }
 
     return $store;
@@ -2977,12 +2994,47 @@ function dent_save_auth_meta_store(array $store): void
     if (!is_array($store['otp']['records'] ?? null)) {
         $store['otp']['records'] = [];
     }
+    if (!is_array($store['siteAppearance'] ?? null)) {
+        $store['siteAppearance'] = $defaults['siteAppearance'];
+    } else {
+        $store['siteAppearance'] = array_merge($defaults['siteAppearance'], $store['siteAppearance']);
+        $store['siteAppearance']['bottomNavSwipeEnabled'] = dent_parse_bool(
+            $store['siteAppearance']['bottomNavSwipeEnabled'] ?? false,
+            false
+        );
+        $store['siteAppearance']['updatedAt'] = dent_clean_text((string) ($store['siteAppearance']['updatedAt'] ?? ''), 80);
+    }
 
     dent_write_json_file(dent_auth_meta_path(), [
         'schemaVersion' => 1,
         'sms' => $store['sms'],
         'otp' => $store['otp'],
+        'siteAppearance' => $store['siteAppearance'],
     ]);
+}
+
+function dent_site_appearance_public_settings(): array
+{
+    $meta = dent_load_auth_meta_store();
+    $appearance = is_array($meta['siteAppearance'] ?? null) ? $meta['siteAppearance'] : dent_default_auth_meta_store()['siteAppearance'];
+    return [
+        'bottomNavSwipeEnabled' => dent_parse_bool($appearance['bottomNavSwipeEnabled'] ?? false, false),
+        'updatedAt' => dent_clean_text((string) ($appearance['updatedAt'] ?? ''), 80),
+    ];
+}
+
+function dent_save_site_appearance_owner_config(array $input): array
+{
+    $meta = dent_load_auth_meta_store();
+    if (!is_array($meta['siteAppearance'] ?? null)) {
+        $meta['siteAppearance'] = dent_default_auth_meta_store()['siteAppearance'];
+    }
+
+    $meta['siteAppearance']['bottomNavSwipeEnabled'] = dent_parse_bool($input['bottomNavSwipeEnabled'] ?? false, false);
+    $meta['siteAppearance']['updatedAt'] = dent_iso_now();
+    dent_save_auth_meta_store($meta);
+
+    return dent_site_appearance_public_settings();
 }
 
 function dent_auth_secret_key(): string

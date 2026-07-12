@@ -311,6 +311,9 @@ function admin_dashboard_payload(array $viewer): array
             'recentLogins' => array_slice(is_array($analytics['recentLogins'] ?? null) ? $analytics['recentLogins'] : [], 0, 8),
         ],
         'content' => admin_content_tools_payload(),
+        'appearance' => [
+            'site' => dent_site_appearance_public_settings(),
+        ],
         'links' => [
             ['label' => 'کاربران و ورودی‌ها', 'href' => '/account/#owner', 'group' => 'account'],
             ['label' => 'مدیریت خرید', 'href' => '/buy/manage/', 'group' => 'buy'],
@@ -337,6 +340,24 @@ if ($action === 'dashboard') {
     dent_json_response([
         'success' => true,
         'dashboard' => admin_dashboard_payload($viewer),
+    ]);
+}
+
+if ($action === 'saveAppearance') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('روش ذخیره ظاهر سایت نامعتبر است.', 405);
+    }
+    dent_require_owner();
+    $settings = dent_save_site_appearance_owner_config([
+        'bottomNavSwipeEnabled' => $_POST['bottomNavSwipeEnabled'] ?? '0',
+    ]);
+
+    dent_json_response([
+        'success' => true,
+        'appearance' => [
+            'site' => $settings,
+        ],
+        'message' => 'تنظیمات ظاهر سایت ذخیره شد.',
     ]);
 }
 

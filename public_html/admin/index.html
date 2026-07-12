@@ -125,6 +125,31 @@
                 </div>
                 <div id="admin-content-list" class="admin-metric-list"></div>
             </article>
+
+            <article class="admin-panel admin-panel--wide" aria-labelledby="admin-appearance-title">
+                <div class="admin-panel__head">
+                    <div>
+                        <span class="admin-kicker">Appearance</span>
+                        <h2 id="admin-appearance-title">مدیریت ظاهر سایت</h2>
+                    </div>
+                </div>
+                <form id="admin-appearance-form" class="admin-appearance-form">
+                    <label class="admin-toggle-row" for="admin-bottom-nav-swipe">
+                        <span class="admin-toggle-row__copy">
+                            <strong>سوایپ بین بخش‌های نوار پایین</strong>
+                            <small>وقتی روشن باشد، کاربر با کشیدن افقی صفحه بین بخش‌های اصلی جابه‌جا می‌شود.</small>
+                        </span>
+                        <span class="admin-toggle-row__control">
+                            <input id="admin-bottom-nav-swipe" type="checkbox" name="bottomNavSwipeEnabled" value="1">
+                            <span aria-hidden="true"></span>
+                        </span>
+                    </label>
+                    <div class="admin-appearance-form__footer">
+                        <p id="admin-appearance-status" class="admin-inline-status" aria-live="polite">پیش‌فرض فعلی: خاموش</p>
+                        <button id="admin-appearance-save" class="admin-save-button" type="submit">ذخیره ظاهر سایت</button>
+                    </div>
+                </form>
+            </article>
         </section>
 
         <section class="admin-links-panel" aria-label="لینک پنل‌های تخصصی">

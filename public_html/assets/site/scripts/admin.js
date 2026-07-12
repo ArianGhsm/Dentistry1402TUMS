@@ -87,6 +87,22 @@
         });
     }
 
+    function requestSaveAppearance(enabled) {
+        var body = new FormData();
+        body.set("bottomNavSwipeEnabled", enabled ? "1" : "0");
+        return fetch("/api/admin_api.php?action=saveAppearance", {
+            method: "POST",
+            credentials: "same-origin",
+            body: body,
+            headers: { Accept: "application/json" }
+        }).then(parseJsonResponse).catch(function () {
+            return {
+                success: false,
+                error: "ارتباط با سرور برقرار نشد."
+            };
+        });
+    }
+
     function setText(id, value) {
         var node = $(id);
         if (node) {
@@ -195,6 +211,31 @@
         });
     }
 
+    function setAppearanceSaving(saving) {
+        var button = $("admin-appearance-save");
+        var input = $("admin-bottom-nav-swipe");
+        if (button) {
+            button.disabled = !!saving;
+            button.textContent = saving ? "در حال ذخیره..." : "ذخیره ظاهر سایت";
+        }
+        if (input) {
+            input.disabled = !!saving;
+        }
+    }
+
+    function renderAppearance(settings, message) {
+        var input = $("admin-bottom-nav-swipe");
+        var status = $("admin-appearance-status");
+        var appearance = settings && typeof settings === "object" ? settings : {};
+        var enabled = !!appearance.bottomNavSwipeEnabled;
+        if (input) {
+            input.checked = enabled;
+        }
+        if (status) {
+            status.textContent = message || (enabled ? "وضعیت فعلی: روشن" : "وضعیت فعلی: خاموش");
+        }
+    }
+
     function groupLabel(group) {
         var labels = {
             account: "کاربران و تنظیمات مالک",
@@ -217,6 +258,7 @@
         var deploy = dashboard.deploy || {};
         var errors = health.errors || {};
         var navid = pending.navid || {};
+        var appearance = ((dashboard.appearance || {}).site) || {};
 
         var navidNeedsAction = !!(navid.requiresReconnect || navid.credentialsMissing || navid.credentialsInvalid);
         var navidStatusLabel = navid.credentialsMissing
@@ -317,6 +359,7 @@
 
         renderErrors(errors);
         renderLinks(dashboard.links || []);
+        renderAppearance(appearance);
     }
 
     function setLoading(loading) {
@@ -349,6 +392,34 @@
         var refresh = $("admin-refresh");
         if (refresh) {
             refresh.addEventListener("click", loadDashboard);
+        }
+        var form = $("admin-appearance-form");
+        if (form) {
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+                var input = $("admin-bottom-nav-swipe");
+                var enabled = !!(input && input.checked);
+                setAppearanceSaving(true);
+                renderAppearance({ bottomNavSwipeEnabled: enabled }, "در حال ذخیره...");
+                requestSaveAppearance(enabled).then(function (payload) {
+                    if (consumeUnauthorized(payload)) {
+                        return;
+                    }
+                    if (!payload || !payload.success) {
+                        throw new Error((payload && payload.error) || "ذخیره تنظیمات ظاهر سایت ناموفق بود.");
+                    }
+                    var settings = ((payload.appearance || {}).site) || { bottomNavSwipeEnabled: enabled };
+                    renderAppearance(settings, "تنظیمات ظاهر سایت ذخیره شد.");
+                    var auth = authApi();
+                    if (auth && typeof auth.verifySession === "function") {
+                        auth.verifySession({ attempts: 1 });
+                    }
+                }).catch(function (error) {
+                    renderAppearance({ bottomNavSwipeEnabled: enabled }, error && error.message ? error.message : "ذخیره تنظیمات ظاهر سایت ناموفق بود.");
+                }).finally(function () {
+                    setAppearanceSaving(false);
+                });
+            });
         }
     }
 
