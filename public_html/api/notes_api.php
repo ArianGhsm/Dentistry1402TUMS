@@ -2238,7 +2238,7 @@ function notes_curriculum_sort_items(array $items): array
     return $items;
 }
 
-function notes_curriculum_unit_summary_payload(array $unit, array $items): array
+function notes_curriculum_unit_summary_payload(array $unit, array $items, string $cohort): array
 {
     $sortedItems = notes_curriculum_sort_items($items);
     $itemCount = count($sortedItems);
@@ -2271,6 +2271,7 @@ function notes_curriculum_unit_summary_payload(array $unit, array $items): array
         'description' => $itemCount > 0
             ? ('در حال حاضر ' . dent_to_fa_digits((string) $itemCount) . ' منبع برای این واحد ثبت شده است.')
             : 'هنوز منبعی برای این واحد ثبت نشده است.',
+        'finalExams' => dent_dentistry_curriculum_final_exams($unit, $cohort),
     ];
 }
 
@@ -2450,7 +2451,8 @@ function notes_curriculum_payload(string $cohort, array $store): array
 
                 $summary = notes_curriculum_unit_summary_payload(
                     $normalizedUnit,
-                    is_array($itemsByUnit[$unitKey] ?? null) ? $itemsByUnit[$unitKey] : []
+                    is_array($itemsByUnit[$unitKey] ?? null) ? $itemsByUnit[$unitKey] : [],
+                    $cohort
                 );
                 $units[] = $summary;
 
@@ -2538,6 +2540,7 @@ function notes_curriculum_unit_term_payload(string $cohort, int $termNumber, str
     $categoryKey = 'archive';
     $categoryTitle = 'آرشیو دسته‌بندی‌نشده';
     $unitTitle = 'آرشیو دسته‌بندی‌نشده';
+    $finalExams = [];
 
     if (notes_curriculum_is_uncategorized_unit_key($cleanUnitKey)) {
         $uncategorizedTerm = notes_curriculum_uncategorized_term_from_key($cleanUnitKey);
@@ -2566,6 +2569,7 @@ function notes_curriculum_unit_term_payload(string $cohort, int $termNumber, str
         $categoryKey = (string) ($unit['categoryKey'] ?? '');
         $categoryTitle = (string) ($unit['categoryTitle'] ?? '');
         $unitTitle = (string) ($unit['title'] ?? '');
+        $finalExams = dent_dentistry_curriculum_final_exams($unit, $cohort);
 
         $termsSeed = is_array($store['terms'] ?? null) ? $store['terms'] : [];
         foreach ($termsSeed as $storageTermKey => $termRecord) {
@@ -2615,6 +2619,7 @@ function notes_curriculum_unit_term_payload(string $cohort, int $termNumber, str
         'termLabel' => $termLabel,
         'categoryKey' => $categoryKey,
         'categoryTitle' => $categoryTitle,
+        'finalExams' => $finalExams,
         'stats' => [
             'itemCount' => count($sortedItems),
             'sourceTerms' => $sourceTerms,

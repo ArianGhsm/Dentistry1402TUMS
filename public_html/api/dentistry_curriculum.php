@@ -11,6 +11,197 @@ function dent_dentistry_curriculum_category_titles(): array
     ];
 }
 
+function dent_dentistry_term6_final_exam_schedule(): array
+{
+    return [
+        'diagnostics-2' => [
+            'title' => 'دندانپزشکی تشخیصی ۲',
+            'jalaliDate' => '۱۴۰۵/۰۴/۲۹',
+            'weekdayLabel' => 'دوشنبه',
+            'timeLabel' => '۱۲:۱۵',
+            'startsAt' => '2026-07-20T12:15:00+03:30',
+            'courseSlugs' => [],
+        ],
+        'complete-prosthodontics-theory' => [
+            'title' => 'پروتز کامل نظری',
+            'jalaliDate' => '۱۴۰۵/۰۴/۳۱',
+            'weekdayLabel' => 'چهارشنبه',
+            'timeLabel' => '۱۲:۱۵',
+            'startsAt' => '2026-07-22T12:15:00+03:30',
+            'courseSlugs' => ['zarb-complete-prosthodontics'],
+        ],
+        'restorative-theory-1' => [
+            'title' => 'ترمیمی نظری ۱',
+            'jalaliDate' => '۱۴۰۵/۰۵/۰۳',
+            'weekdayLabel' => 'شنبه',
+            'timeLabel' => '۰۷:۴۵',
+            'startsAt' => '2026-07-25T07:45:00+03:30',
+            'courseSlugs' => ['restorative-theory-1-term6', 'restorative-theory-1-midterm-sample', 'summit-operative-dentistry', 'sturdevant-operative-dentistry'],
+        ],
+        'endodontics-foundations-1' => [
+            'title' => 'مبانی اندودانتیکس ۱',
+            'jalaliDate' => '۱۴۰۵/۰۵/۰۷',
+            'weekdayLabel' => 'چهارشنبه',
+            'timeLabel' => '۱۲:۱۵',
+            'startsAt' => '2026-07-29T12:15:00+03:30',
+            'courseSlugs' => ['endotorabinejad'],
+        ],
+        'surgery-practical-1' => [
+            'title' => 'جراحی عملی ۱ (آسکی)',
+            'jalaliDate' => '۱۴۰۵/۰۵/۱۱',
+            'weekdayLabel' => 'یکشنبه',
+            'timeLabel' => '۱۲:۱۵',
+            'startsAt' => '2026-08-02T12:15:00+03:30',
+            'courseSlugs' => ['peterson-oral-surgery', 'malamed-local-anesthesia'],
+        ],
+        'specialized-language-3-4' => [
+            'title' => 'زبان تخصصی ۳ و ۴',
+            'jalaliDate' => '۱۴۰۵/۰۵/۱۴',
+            'weekdayLabel' => 'چهارشنبه',
+            'timeLabel' => '۱۳:۰۰',
+            'startsAt' => '2026-08-05T13:00:00+03:30',
+            'courseSlugs' => [],
+        ],
+        'gerontology' => [
+            'title' => 'سالمندشناسی',
+            'jalaliDate' => '۱۴۰۵/۰۵/۱۷',
+            'weekdayLabel' => 'شنبه',
+            'timeLabel' => '۱۲:۱۵',
+            'startsAt' => '2026-08-08T12:15:00+03:30',
+            'courseSlugs' => ['gerontology-term-6'],
+        ],
+        'equipment-ergonomics' => [
+            'title' => 'تجهیزات دندانپزشکی و ارگونومی',
+            'jalaliDate' => '۱۴۰۵/۰۵/۲۰',
+            'weekdayLabel' => 'سه‌شنبه',
+            'timeLabel' => '۱۲:۱۵',
+            'startsAt' => '2026-08-11T12:15:00+03:30',
+            'courseSlugs' => [],
+        ],
+        'diagnostics-1' => [
+            'title' => 'دندانپزشکی تشخیصی ۱',
+            'jalaliDate' => '۱۴۰۵/۰۵/۲۴',
+            'weekdayLabel' => 'شنبه',
+            'timeLabel' => '۱۲:۱۵',
+            'startsAt' => '2026-08-15T12:15:00+03:30',
+            'courseSlugs' => ['diagnostics-1-term6'],
+        ],
+        'research-methods-1' => [
+            'title' => 'روش‌شناسی تحقیق ۱',
+            'jalaliDate' => '۱۴۰۵/۰۵/۲۸',
+            'weekdayLabel' => 'چهارشنبه',
+            'timeLabel' => '۱۲:۱۵',
+            'startsAt' => '2026-08-19T12:15:00+03:30',
+            'courseSlugs' => [],
+        ],
+        'dental-materials-foundations' => [
+            'title' => 'مبانی مواد دندانی',
+            'jalaliDate' => '۱۴۰۵/۰۵/۳۱',
+            'weekdayLabel' => 'شنبه',
+            'timeLabel' => '۱۲:۱۵',
+            'startsAt' => '2026-08-22T12:15:00+03:30',
+            'courseSlugs' => ['dental-materials-foundations', 'dental-materials-midterm-sample', 'craig-dental-materials', 'vannoort-dental-materials'],
+        ],
+        'medical-emergencies' => [
+            'title' => 'فوریت‌های پزشکی در دندانپزشکی',
+            'jalaliDate' => '۱۴۰۵/۰۶/۰۲',
+            'weekdayLabel' => 'دوشنبه',
+            'timeLabel' => '۱۲:۱۵',
+            'startsAt' => '2026-08-24T12:15:00+03:30',
+            'courseSlugs' => ['malamed-medical-emergencies'],
+        ],
+    ];
+}
+
+function dent_dentistry_normalize_schedule_cohort_key(string $cohortKey): string
+{
+    $clean = trim(strtolower($cohortKey));
+    if ($clean === '' || $clean === 'main' || $clean === '1402') {
+        return 'dentistry-1402';
+    }
+    if (preg_match('/^\d{4}$/', $clean) === 1) {
+        return 'dentistry-' . $clean;
+    }
+    return $clean;
+}
+
+function dent_dentistry_final_exam_payload(array $record, ?DateTimeImmutable $now = null): ?array
+{
+    $startsAtRaw = trim((string) ($record['startsAt'] ?? ''));
+    if ($startsAtRaw === '') {
+        return null;
+    }
+
+    try {
+        $startsAt = new DateTimeImmutable($startsAtRaw);
+        $expiresAt = $startsAt->setTime(0, 0)->modify('+1 day');
+        $comparisonTime = $now ?? new DateTimeImmutable('now', $startsAt->getTimezone());
+    } catch (Throwable $error) {
+        return null;
+    }
+
+    $jalaliDate = trim((string) ($record['jalaliDate'] ?? ''));
+    return [
+        'cohortKey' => 'dentistry-1402',
+        'cohortLabel' => 'ورودی ۱۴۰۲',
+        'title' => (string) ($record['title'] ?? ''),
+        'jalaliDate' => $jalaliDate,
+        'weekdayLabel' => (string) ($record['weekdayLabel'] ?? ''),
+        'timeLabel' => (string) ($record['timeLabel'] ?? ''),
+        'startsAt' => $startsAt->format(DATE_ATOM),
+        'expiresAt' => $expiresAt->format(DATE_ATOM),
+        'hasPassed' => $comparisonTime->getTimestamp() >= $expiresAt->getTimestamp(),
+        'displayLabel' => 'تاریخ آزمون پایان ترم برای ورودی ۱۴۰۲: ' . $jalaliDate,
+    ];
+}
+
+function dent_dentistry_curriculum_final_exams(
+    array $unit,
+    string $cohortKey,
+    string $courseSlug = '',
+    ?DateTimeImmutable $now = null
+): array {
+    if (dent_dentistry_normalize_schedule_cohort_key($cohortKey) !== 'dentistry-1402') {
+        return [];
+    }
+
+    $schedule = dent_dentistry_term6_final_exam_schedule();
+    $keys = is_array($unit['finalExamKeys'] ?? null) ? $unit['finalExamKeys'] : [];
+    $cleanCourseSlug = trim(strtolower($courseSlug));
+    $payloads = [];
+    foreach ($keys as $key) {
+        $record = is_array($schedule[(string) $key] ?? null) ? $schedule[(string) $key] : null;
+        if ($record === null) {
+            continue;
+        }
+
+        $courseSlugs = array_values(array_filter(array_map('strval', is_array($record['courseSlugs'] ?? null) ? $record['courseSlugs'] : [])));
+        if ($cleanCourseSlug !== '' && ($courseSlugs === [] || !in_array($cleanCourseSlug, $courseSlugs, true))) {
+            continue;
+        }
+
+        $payload = dent_dentistry_final_exam_payload($record, $now);
+        if ($payload !== null) {
+            $payloads[] = $payload;
+        }
+    }
+
+    return $payloads;
+}
+
+function dent_dentistry_select_home_active_exam_courses(array $sortedCourses, int $limit = 2): array
+{
+    $latestCourses = array_slice(array_values($sortedCourses), 0, max(0, $limit));
+    return array_values(array_filter($latestCourses, static function ($course): bool {
+        if (!is_array($course)) {
+            return false;
+        }
+        $curriculum = is_array($course['curriculum'] ?? null) ? $course['curriculum'] : [];
+        $finalExam = is_array($curriculum['finalExam'] ?? null) ? $curriculum['finalExam'] : null;
+        return $finalExam === null || empty($finalExam['hasPassed']);
+    }));
+}
+
 function dent_dentistry_exam_reference_specialties(): array
 {
     return [
@@ -372,37 +563,45 @@ function dent_dentistry_curriculum_terms(): array
                         [
                             'key' => 'dental-materials-foundations',
                             'title' => 'مبانی مواد دندانی',
+                            'finalExamKeys' => ['dental-materials-foundations'],
                             'examCourseSlugs' => ['dental-materials-foundations', 'dental-materials-midterm-sample', 'craig-dental-materials', 'vannoort-dental-materials'],
                         ],
                         [
                             'key' => 'diagnostics-1-2',
                             'title' => 'تشخیصی ۱ و ۲',
+                            'finalExamKeys' => ['diagnostics-2', 'diagnostics-1'],
                             'examCourseSlugs' => ['diagnostics-1-term6'],
                         ],
                         [
                             'key' => 'complete-foundations-theory',
-                            'title' => 'مبانی کامل نظری',
+                            'title' => 'پروتز کامل نظری',
+                            'aliases' => ['مبانی کامل نظری'],
+                            'finalExamKeys' => ['complete-prosthodontics-theory'],
                             'examCourseSlugs' => ['zarb-complete-prosthodontics'],
                         ],
                         [
                             'key' => 'restorative-theory-1',
                             'title' => 'ترمیمی نظری ۱',
+                            'finalExamKeys' => ['restorative-theory-1'],
                             'resourceAliases' => ['سامیت', 'summitt'],
                             'examCourseSlugs' => ['restorative-theory-1-term6', 'restorative-theory-1-midterm-sample', 'summit-operative-dentistry', 'sturdevant-operative-dentistry'],
                         ],
                         [
                             'key' => 'medical-emergencies',
-                            'title' => 'فوریت‌های پزشکی',
+                            'title' => 'فوریت‌های پزشکی در دندانپزشکی',
+                            'aliases' => ['فوریت‌های پزشکی'],
+                            'finalExamKeys' => ['medical-emergencies'],
                             'examCourseSlugs' => ['malamed-medical-emergencies'],
                         ],
-                        ['key' => 'gerontology-term-6', 'title' => 'سالمندشناسی', 'examCourseSlugs' => ['gerontology-term-6']],
+                        ['key' => 'gerontology-term-6', 'title' => 'سالمندشناسی', 'finalExamKeys' => ['gerontology'], 'examCourseSlugs' => ['gerontology-term-6']],
                         [
                             'key' => 'equipment-ergonomics',
                             'title' => 'تجهیزات دندان‌پزشکی و ارگونومی',
+                            'finalExamKeys' => ['equipment-ergonomics'],
                             'resourceAliases' => ['تمامی پاور های تجهیزات', 'تجهیزات و ارگونومی'],
                         ],
-                        ['key' => 'research-methods-1-theory', 'title' => 'روش تحقیق ۱'],
-                        ['key' => 'specialized-language-3-4', 'title' => 'زبان تخصصی ۳ و ۴'],
+                        ['key' => 'research-methods-1-theory', 'title' => 'روش‌شناسی تحقیق ۱', 'aliases' => ['روش تحقیق ۱'], 'finalExamKeys' => ['research-methods-1']],
+                        ['key' => 'specialized-language-3-4', 'title' => 'زبان تخصصی ۳ و ۴', 'finalExamKeys' => ['specialized-language-3-4']],
                     ],
                 ],
                 [
@@ -411,8 +610,9 @@ function dent_dentistry_curriculum_terms(): array
                     'units' => [
                         [
                             'key' => 'endo-preclinic-1',
-                            'title' => 'پری‌کلینیک اندو ۱',
-                            'aliases' => ['اندو ترابی‌نژاد', 'ترابی‌نژاد'],
+                            'title' => 'مبانی اندودانتیکس ۱',
+                            'finalExamKeys' => ['endodontics-foundations-1'],
+                            'aliases' => ['پری‌کلینیک اندو ۱', 'اندو ترابی‌نژاد', 'ترابی‌نژاد'],
                             'examCourseSlugs' => ['endotorabinejad'],
                         ],
                     ],
@@ -431,6 +631,7 @@ function dent_dentistry_curriculum_terms(): array
                         [
                             'key' => 'surgery-practical-1',
                             'title' => 'جراحی عملی ۱',
+                            'finalExamKeys' => ['surgery-practical-1'],
                             'examCourseSlugs' => ['peterson-oral-surgery', 'malamed-local-anesthesia'],
                         ],
                         ['key' => 'complete-prosthesis-practical-1', 'title' => 'پروتز کامل عملی ۱'],
@@ -441,7 +642,7 @@ function dent_dentistry_curriculum_terms(): array
                     'key' => 'workshop',
                     'title' => $titles['workshop'],
                     'units' => [
-                        ['key' => 'research-methods-1-workshop', 'title' => 'روش تحقیق ۱'],
+                        ['key' => 'research-methods-1-workshop', 'title' => 'روش‌شناسی تحقیق ۱', 'aliases' => ['روش تحقیق ۱'], 'finalExamKeys' => ['research-methods-1']],
                     ],
                 ],
             ],
@@ -739,6 +940,12 @@ function dent_dentistry_curriculum_unit_index(): array
                 ));
                 $normalizedUnit['examCourseSlugs'] = array_values(array_filter(
                     is_array($unit['examCourseSlugs'] ?? null) ? $unit['examCourseSlugs'] : [],
+                    static function ($value): bool {
+                        return is_string($value) && trim($value) !== '';
+                    }
+                ));
+                $normalizedUnit['finalExamKeys'] = array_values(array_filter(
+                    is_array($unit['finalExamKeys'] ?? null) ? $unit['finalExamKeys'] : [],
                     static function ($value): bool {
                         return is_string($value) && trim($value) !== '';
                     }

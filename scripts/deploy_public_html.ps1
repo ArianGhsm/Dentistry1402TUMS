@@ -1785,6 +1785,8 @@ function Run-Validation() {
     $instructionContractScriptPath = Join-Path $projectRoot "scripts\check_instruction_contracts.py"
     $authResilienceScriptPath = Join-Path $projectRoot "scripts\check_auth_store_resilience.php"
     $examQualityScriptPath = Join-Path $projectRoot "scripts\check_exam_content_quality.php"
+    $examTimelineScriptPath = Join-Path $projectRoot "scripts\check_exam_catalog_timeline.php"
+    $finalExamScheduleScriptPath = Join-Path $projectRoot "scripts\check_term6_final_exam_schedule.php"
     $uploadConfigScriptPath = Join-Path $projectRoot "scripts\check_upload_pipeline_config.php"
     $smokeScriptPath = Join-Path $projectRoot "scripts\smoke_multi_cohort_pages.py"
     if (-not (Test-Path $scriptPath)) {
@@ -1798,6 +1800,12 @@ function Run-Validation() {
     }
     if (-not (Test-Path $examQualityScriptPath)) {
         throw "Exam quality validation script not found: $examQualityScriptPath"
+    }
+    if (-not (Test-Path $examTimelineScriptPath)) {
+        throw "Exam timeline validation script not found: $examTimelineScriptPath"
+    }
+    if (-not (Test-Path $finalExamScheduleScriptPath)) {
+        throw "Final-exam schedule validation script not found: $finalExamScheduleScriptPath"
     }
     if (-not (Test-Path $uploadConfigScriptPath)) {
         throw "Upload pipeline validation script not found: $uploadConfigScriptPath"
@@ -1840,6 +1848,18 @@ function Run-Validation() {
         throw "Validation failed (scripts/check_exam_content_quality.php). Deployment aborted before host upload."
     }
 
+    Write-Host "Running: $($php.Source) $examTimelineScriptPath"
+    & $php.Source $examTimelineScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Validation failed (scripts/check_exam_catalog_timeline.php). Deployment aborted before host upload."
+    }
+
+    Write-Host "Running: $($php.Source) $finalExamScheduleScriptPath"
+    & $php.Source $finalExamScheduleScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Validation failed (scripts/check_term6_final_exam_schedule.php). Deployment aborted before host upload."
+    }
+
     Write-Host "Running: $($php.Source) $uploadConfigScriptPath"
     & $php.Source $uploadConfigScriptPath
     if ($LASTEXITCODE -ne 0) {
@@ -1869,7 +1889,7 @@ function Run-Validation() {
         Status     = "completed"
         StartedAt  = $started
         FinishedAt = Get-IsoNow
-        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $($php.Source) $examQualityScriptPath ; $($php.Source) $uploadConfigScriptPath ; $python $($smokeCommand -join ' ')"
+        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $($php.Source) $examQualityScriptPath ; $($php.Source) $examTimelineScriptPath ; $($php.Source) $finalExamScheduleScriptPath ; $($php.Source) $uploadConfigScriptPath ; $python $($smokeCommand -join ' ')"
     }
 }
 

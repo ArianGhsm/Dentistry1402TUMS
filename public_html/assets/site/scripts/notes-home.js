@@ -662,6 +662,14 @@
         }
 
         body.appendChild(dentalCreate("h3", "catalog-simple-row__title", config.title || ""));
+        var scheduleLines = Array.isArray(config.scheduleLines) ? config.scheduleLines.filter(Boolean) : [];
+        if (scheduleLines.length) {
+            var scheduleList = dentalCreate("div", "catalog-simple-row__schedule-list");
+            scheduleLines.forEach(function (line) {
+                scheduleList.appendChild(dentalCreate("span", "catalog-simple-row__schedule", line));
+            });
+            body.appendChild(scheduleList);
+        }
         if (config.meta) {
             body.appendChild(dentalCreate("p", "catalog-simple-row__meta", config.meta));
         }
@@ -682,6 +690,12 @@
         link.appendChild(tail);
         article.appendChild(link);
         return article;
+    }
+
+    function dentalFinalExamLines(unit) {
+        return (Array.isArray(unit && unit.finalExams) ? unit.finalExams : []).map(function (item) {
+            return String(item && item.displayLabel ? item.displayLabel : "").trim();
+        }).filter(Boolean);
     }
 
     function dentalAppendTermCards(curriculum) {
@@ -797,6 +811,7 @@
                     status: isEmpty ? (unit.statusLabel || "بدون منبع") : "",
                     statusMuted: isEmpty,
                     title: unit.title || "واحد",
+                    scheduleLines: dentalFinalExamLines(unit),
                     meta: dentalCompactText(
                         unit.description || "",
                         isEmpty ? "هنوز منبعی برای این درس ثبت نشده است." : "برای دیدن منابع این درس وارد شو.",
@@ -978,13 +993,18 @@
     function dentalRenderUnitDetail(termData) {
         dentalBodyMode("unit");
         dentalApplyBaseCopy();
+        var scheduleLines = dentalFinalExamLines(termData);
+        var detailDescription = termData.description || "منابع این واحد از همین بخش در دسترس هستند.";
+        if (scheduleLines.length) {
+            detailDescription = scheduleLines.join(" • ") + " — " + detailDescription;
+        }
         if (title) {
             title.textContent = termData.title || "منابع واحد";
         }
         dentalSectionText(
             termData.categoryTitle || "منابع این واحد",
             termData.title || "منابع این واحد",
-            termData.description || "منابع این واحد از همین بخش در دسترس هستند."
+            detailDescription
         );
         if (backLink) {
             backLink.href = dentalHomeUrl(Number(termData.term || termData.termNumber || 0), "");

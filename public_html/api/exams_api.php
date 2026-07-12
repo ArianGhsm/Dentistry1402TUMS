@@ -222,6 +222,7 @@ function dent_exams_api_course_curriculum_meta(string $courseSlug): ?array
             return is_string($value) && trim($value) !== '';
         }
     ));
+    $finalExams = dent_dentistry_curriculum_final_exams($unit, dent_requested_cohort_key(), $courseSlug);
 
     return [
         'termNumber' => max(0, (int) ($unit['termNumber'] ?? 0)),
@@ -239,6 +240,8 @@ function dent_exams_api_course_curriculum_meta(string $courseSlug): ?array
         'unitCourseCount' => count($courseSlugs),
         'unitCourseSlugs' => $courseSlugs,
         'unitHasMultipleCollections' => count($courseSlugs) > 1,
+        'finalExams' => $finalExams,
+        'finalExam' => is_array($finalExams[0] ?? null) ? $finalExams[0] : null,
     ];
 }
 
@@ -313,6 +316,7 @@ function dent_exams_api_curriculum_unit_payload(array $unit, array $coursePayloa
     $entryMode = $collectionCount <= 0
         ? 'none'
         : ($collectionCount === 1 ? 'direct' : 'collections');
+    $finalExams = dent_dentistry_curriculum_final_exams($unit, dent_requested_cohort_key());
 
     if ($collectionCount <= 0) {
         $description = 'هنوز آزمونی برای این واحد ثبت نشده است.';
@@ -355,6 +359,7 @@ function dent_exams_api_curriculum_unit_payload(array $unit, array $coursePayloa
             ? (string) ($collections[0]['path'] ?? '')
             : '',
         'description' => $description,
+        'finalExams' => $finalExams,
         'collectionTitles' => $courseTitles,
         'stats' => $stats,
         'collections' => $collections,
@@ -2278,6 +2283,7 @@ if ($action === 'catalog') {
     $courses = array_values(array_map(static function (array $row): array {
         return is_array($row['payload'] ?? null) ? $row['payload'] : [];
     }, $courseRows));
+    $homeActiveCourses = dent_dentistry_select_home_active_exam_courses($courses, 2);
 
     dent_json_response([
         'success' => true,
@@ -2288,6 +2294,7 @@ if ($action === 'catalog') {
             'description' => (string) ($catalog['description'] ?? ''),
             'curriculum' => dent_exams_api_curriculum_payload($coursePayloadLookup),
             'referenceCatalog' => dent_exams_api_reference_catalog_payload($coursePayloadLookup),
+            'homeActiveCourses' => $homeActiveCourses,
             'courses' => $courses,
         ],
         'viewer' => $user ? dent_public_user($user) : null,

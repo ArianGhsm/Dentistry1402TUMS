@@ -54,6 +54,9 @@ section "Exam content quality"
 section "Exam catalog timeline"
 "$PHP_BIN" scripts/check_exam_catalog_timeline.php || fail "check_exam_catalog_timeline.php"
 
+section "Term 6 final-exam schedule"
+"$PHP_BIN" scripts/check_term6_final_exam_schedule.php || fail "check_term6_final_exam_schedule.php"
+
 section "Upload pipeline config"
 "$PHP_BIN" scripts/check_upload_pipeline_config.php || fail "check_upload_pipeline_config.php"
 

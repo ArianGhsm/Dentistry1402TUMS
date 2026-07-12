@@ -286,6 +286,19 @@
         }).join(" • ");
     }
 
+    function finalExamLinesHtml(finalExams) {
+        var items = Array.isArray(finalExams) ? finalExams : [];
+        var lines = items.map(function (item) {
+            return String(item && item.displayLabel ? item.displayLabel : "").trim();
+        }).filter(Boolean);
+        if (!lines.length) {
+            return "";
+        }
+        return '<div class="catalog-simple-row__schedule-list">' + lines.map(function (line) {
+            return '<span class="catalog-simple-row__schedule">' + escapeHtml(line) + "</span>";
+        }).join("") + "</div>";
+    }
+
     function simpleHeroHtml(options) {
         var config = options || {};
         return [
@@ -298,6 +311,7 @@
                 ? '    <span class="catalog-simple-hero__eyebrow">' + escapeHtml(config.eyebrow) + "</span>"
                 : "",
             '    <h2 class="catalog-simple-hero__title">' + escapeHtml(config.title || "") + "</h2>",
+            config.sublineHtml ? config.sublineHtml : "",
             config.meta
                 ? '    <p class="catalog-simple-hero__meta">' + escapeHtml(config.meta) + "</p>"
                 : "",
@@ -338,6 +352,7 @@
                     + "</div>"
                 : "",
             '    <h3 class="catalog-simple-row__title">' + escapeHtml(config.title || "") + "</h3>",
+            config.sublineHtml ? config.sublineHtml : "",
             config.meta
                 ? '    <p class="catalog-simple-row__meta">' + escapeHtml(config.meta) + "</p>"
                 : "",
@@ -788,6 +803,7 @@
         return simpleHeroHtml({
             eyebrow: unit ? (unit.categoryTitle || "مجموعه آزمون‌ها") : "واحدهای همین ترم",
             title: title,
+            sublineHtml: unit ? finalExamLinesHtml(unit.finalExams) : "",
             meta: description,
             actionsHtml: [
                 '<button class="exam-btn exam-btn--ghost" type="button" data-open-mode="term">بازگشت به ترم‌ها</button>',
@@ -843,6 +859,7 @@
             status: isEmpty ? (unit.statusLabel || "بدون آزمون") : "",
             statusMuted: isEmpty,
             title: unit.title || "",
+            sublineHtml: finalExamLinesHtml(unit.finalExams),
             meta: meta,
             rowClassName: accentClassName(index) + (isEmpty ? " is-empty" : ""),
             visualLabel: formatValue(index + 1),
@@ -1065,6 +1082,7 @@
             eyebrow: course.badge || "مجموعه",
             status: statusText,
             title: title,
+            sublineHtml: finalExamLinesHtml(course && course.curriculum && course.curriculum.finalExams),
             meta: meta,
             rowClassName: accentClassName(index),
             visualLabel: formatValue(index + 1)

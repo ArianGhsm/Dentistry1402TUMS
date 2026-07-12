@@ -2421,6 +2421,22 @@ html[data-performance-mode="lite"] .shell-modal {
     unicode-bidi: isolate;
 }
 
+.catalog-simple-row__schedule-list {
+    display: grid;
+    gap: 0.14rem;
+    margin-top: 0.06rem;
+}
+
+.catalog-simple-row__schedule {
+    display: block;
+    color: var(--accent-strong);
+    font-size: 0.73rem;
+    font-weight: 820;
+    line-height: 1.7;
+    direction: rtl;
+    unicode-bidi: isolate;
+}
+
 .catalog-simple-stack {
     display: flex;
     flex-direction: column;
@@ -2654,6 +2670,10 @@ html[data-theme="dark"] .catalog-simple-row__visual {
     .catalog-simple-group__meta,
     .catalog-simple-row__meta {
         font-size: 0.72rem;
+    }
+
+    .catalog-simple-row__schedule {
+        font-size: 0.7rem;
     }
 }
 

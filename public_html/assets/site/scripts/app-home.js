@@ -54,7 +54,8 @@
         cohortKey: "",
         loading: false,
         requestToken: 0,
-        courses: []
+        courses: [],
+        expiryTimer: 0
     };
     var appHeaderTitle = document.querySelector(".site-header .site-info h1");
     var appFooterTitle = document.querySelector(".site-footer p");
@@ -298,6 +299,10 @@
     }
 
     function hideActiveExams() {
+        if (activeExamsState.expiryTimer) {
+            window.clearTimeout(activeExamsState.expiryTimer);
+            activeExamsState.expiryTimer = 0;
+        }
         activeExamsState.requestToken += 1;
         activeExamsState.loading = false;
         if (activeExamsPanel) {
@@ -321,16 +326,60 @@
         return examCount > 0 ? examCount.toLocaleString("fa-IR") + " آزمون" : "آماده شروع";
     }
 
+    function activeExamHasPassed(course) {
+        var finalExam = course && course.curriculum && course.curriculum.finalExam;
+        if (!finalExam) {
+            return false;
+        }
+        var expiresAt = new Date(String(finalExam.expiresAt || ""));
+        if (Number.isFinite(expiresAt.getTime())) {
+            return Date.now() >= expiresAt.getTime();
+        }
+        return !!finalExam.hasPassed;
+    }
+
+    function scheduleActiveExamExpiry(courses) {
+        if (activeExamsState.expiryTimer) {
+            window.clearTimeout(activeExamsState.expiryTimer);
+            activeExamsState.expiryTimer = 0;
+        }
+
+        var now = Date.now();
+        var nextExpiry = (Array.isArray(courses) ? courses : []).reduce(function (nearest, course) {
+            var finalExam = course && course.curriculum && course.curriculum.finalExam;
+            var parsed = new Date(String(finalExam && finalExam.expiresAt ? finalExam.expiresAt : "")).getTime();
+            if (!Number.isFinite(parsed) || parsed <= now) {
+                return nearest;
+            }
+            return nearest === 0 || parsed < nearest ? parsed : nearest;
+        }, 0);
+        if (!nextExpiry) {
+            return;
+        }
+
+        var maxDelay = 2147483647;
+        var delay = Math.min(maxDelay, Math.max(250, nextExpiry - now + 250));
+        activeExamsState.expiryTimer = window.setTimeout(function () {
+            activeExamsState.expiryTimer = 0;
+            renderActiveExams(activeExamsState.courses);
+        }, delay);
+    }
+
     function renderActiveExams(courses) {
         if (!activeExamsPanel || !activeExamsList) {
             return;
         }
 
-        var visibleCourses = Array.isArray(courses) ? courses.slice(0, 2) : [];
+        var candidateCourses = Array.isArray(courses) ? courses.slice(0, 2) : [];
+        var visibleCourses = candidateCourses.filter(function (course) {
+            return !activeExamHasPassed(course);
+        });
         if (!visibleCourses.length) {
             hideActiveExams();
             return;
         }
+
+        scheduleActiveExamExpiry(candidateCourses);
 
         activeExamsList.innerHTML = visibleCourses.map(function (course, index) {
             var titleText = String(course && (course.title || course.shortTitle) ? (course.title || course.shortTitle) : "آزمون تازه");
@@ -398,13 +447,16 @@
                 return;
             }
 
-            var courses = Array.isArray(payload.catalog && payload.catalog.courses)
-                ? payload.catalog.courses.filter(function (course) {
+            var catalogCourses = Array.isArray(payload.catalog && payload.catalog.homeActiveCourses)
+                ? payload.catalog.homeActiveCourses
+                : (Array.isArray(payload.catalog && payload.catalog.courses) ? payload.catalog.courses.slice(0, 2) : []);
+            var latestCourses = catalogCourses
+                .filter(function (course) {
                     return course && course.path && Number(course.stats && course.stats.examCount) > 0;
                 }).slice(0, 2)
-                : [];
-            activeExamsState.courses = courses;
-            renderActiveExams(courses);
+                ;
+            activeExamsState.courses = latestCourses;
+            renderActiveExams(latestCourses);
         } catch (_error) {
             if (ticket === activeExamsState.requestToken) {
                 activeExamsState.courses = [];
