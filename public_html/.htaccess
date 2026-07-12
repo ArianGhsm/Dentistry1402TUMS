@@ -40,6 +40,12 @@
     Header set Cache-Control "public, no-cache, max-age=0, must-revalidate" env=!ASSET_VERSIONED
   </FilesMatch>
 
+  # Exam pages are catalog-generated in large batches. Revalidate their shared
+  # runtime assets so a UI release never requires rewriting hundreds of pages.
+  <FilesMatch "^exam-(quiz|bootstrap)\.(css|js)$">
+    Header set Cache-Control "public, no-cache, max-age=0, must-revalidate"
+  </FilesMatch>
+
   <FilesMatch "^(?!sw\.js$).*\.(png|jpg|jpeg|gif|svg|webp|woff2|woff)$">
     Header set Cache-Control "public, max-age=2592000, immutable"
   </FilesMatch>

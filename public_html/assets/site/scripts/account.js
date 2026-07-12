@@ -181,6 +181,7 @@
     var accountRowProfileMeta = $("account-row-profile-meta");
     var accountRowInfoMeta = $("account-row-info-meta");
     var accountRowOwnerMeta = $("account-row-owner-meta");
+    var accountOwnerAppearanceShortcut = $("account-owner-appearance-shortcut");
     var accountOwnerStatsShortcut = $("account-owner-stats-shortcut");
     var accountRowOwnerStatsMeta = $("account-row-owner-stats-meta");
     var accountRowNavidMeta = $("account-row-navid-meta");
@@ -286,6 +287,7 @@
         campusMarking: false,
         creatingStudent: false,
         deletingStudentNumber: "",
+        clearingExamStudyStudentNumber: "",
         removingPhoneStudentNumber: "",
         loadingGradesStudentNumber: "",
         savingGradeKey: "",
@@ -3564,6 +3566,9 @@
     }
 
     function syncOwnerStatsShortcut() {
+        if (accountOwnerAppearanceShortcut) {
+            accountOwnerAppearanceShortcut.hidden = !hasOwnerAccess();
+        }
         if (accountOwnerStatsShortcut) {
             accountOwnerStatsShortcut.hidden = !hasOwnerAccess();
         }
@@ -4536,6 +4541,7 @@
             rotation: ownerState.savingRotationStudentNumber === key,
             gradesLoading: ownerState.loadingGradesStudentNumber === key,
             removingPhone: ownerState.removingPhoneStudentNumber === key,
+            clearingExamStudy: ownerState.clearingExamStudyStudentNumber === key,
             deletingUser: ownerState.deletingStudentNumber === key
         };
     }
@@ -4765,6 +4771,36 @@
             adminGrid.appendChild(rotationCard);
         }
         details.appendChild(adminGrid);
+
+        var learningSummary = user && user.examLearningSummary && typeof user.examLearningSummary === "object"
+            ? user.examLearningSummary
+            : {};
+        var learningCard = document.createElement("section");
+        learningCard.className = "owner-user-admin-card owner-user-admin-card--exam-learning";
+        var learningTitle = document.createElement("div");
+        learningTitle.className = "owner-user-admin-card__title";
+        learningTitle.textContent = "داده‌های مطالعه آزمون";
+        learningCard.appendChild(learningTitle);
+        var learningMeta = document.createElement("p");
+        learningMeta.className = "owner-user__hint";
+        learningMeta.textContent = [
+            Number(learningSummary.attemptCount || 0).toLocaleString("fa-IR") + " تلاش",
+            Number(learningSummary.noteCount || 0).toLocaleString("fa-IR") + " یادداشت",
+            Number(learningSummary.highlightCount || 0).toLocaleString("fa-IR") + " هایلایت",
+            Number(learningSummary.mistakeQuestionCount || 0).toLocaleString("fa-IR") + " سؤال در دفترچه اشتباهات"
+        ].join(" • ");
+        learningCard.appendChild(learningMeta);
+        var clearLearningBtn = document.createElement("button");
+        clearLearningBtn.type = "button";
+        clearLearningBtn.className = "shell-action-btn shell-action-btn-danger";
+        clearLearningBtn.dataset.ownerAction = "clear-exam-study";
+        clearLearningBtn.dataset.studentNumber = studentNumber;
+        clearLearningBtn.disabled = busyState.clearingExamStudy || busyState.deletingUser
+            || (Number(learningSummary.noteCount || 0) + Number(learningSummary.highlightCount || 0)
+                + Number(learningSummary.struckOptionCount || 0) + Number(learningSummary.mistakeQuestionCount || 0) <= 0);
+        clearLearningBtn.textContent = busyState.clearingExamStudy ? "در حال پاک‌سازی..." : "پاک‌کردن ابزارهای مطالعه";
+        learningCard.appendChild(clearLearningBtn);
+        details.appendChild(learningCard);
 
         var actions = document.createElement("div");
         actions.className = "owner-user__actions owner-user__actions--detail";
@@ -5935,6 +5971,39 @@
         }
     }
 
+    async function clearOwnerUserExamStudy(studentNumber) {
+        var targetStudentNumber = String(studentNumber || "").trim();
+        if (!targetStudentNumber || ownerState.clearingExamStudyStudentNumber) {
+            return;
+        }
+        if (!window.confirm("یادداشت‌ها، هایلایت‌ها، گزینه‌های خط‌خورده و دفترچه اشتباهات این کاربر پاک شود؟ تاریخچه تلاش‌ها و کارنامه‌ها حفظ می‌شوند.")) {
+            return;
+        }
+        ownerState.clearingExamStudyStudentNumber = targetStudentNumber;
+        ownerUserPanelFeedbackMessage("در حال پاک‌سازی داده‌های مطالعه آزمون...", "");
+        renderUsers(ownerState.users);
+        try {
+            var response = await request("ownerClearUserExamStudy", { studentNumber: targetStudentNumber });
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                return;
+            }
+            if (!response || !response.success) {
+                ownerUserPanelFeedbackMessage((response && response.error) || "پاک‌سازی داده‌های مطالعه انجام نشد.", "error");
+                return;
+            }
+            ownerState.users = ownerState.users.map(function (user) {
+                if (String(user.studentNumber || "") !== targetStudentNumber) {
+                    return user;
+                }
+                return Object.assign({}, user, { examLearningSummary: response.examLearningSummary || {} });
+            });
+            ownerUserPanelFeedbackMessage(response.message || "داده‌های مطالعه آزمون پاک شد.", "success");
+        } finally {
+            ownerState.clearingExamStudyStudentNumber = "";
+            renderUsers(ownerState.users);
+        }
+    }
+
     async function deleteOwnerStudentAccount(studentNumber) {
         var targetStudentNumber = String(studentNumber || "").trim();
         if (!targetStudentNumber) {
@@ -5980,6 +6049,7 @@
             renderOwnerPanel();
         } finally {
             ownerState.deletingStudentNumber = "";
+            ownerState.clearingExamStudyStudentNumber = "";
             renderUsers(ownerState.users);
         }
     }
@@ -6953,6 +7023,7 @@
             ownerState.savingPasswordStudentNumber = "";
             ownerState.savingRotationStudentNumber = "";
             ownerState.deletingStudentNumber = "";
+            ownerState.clearingExamStudyStudentNumber = "";
             ownerState.removingPhoneStudentNumber = "";
             ownerState.loadingGradesStudentNumber = "";
             ownerState.savingGradeKey = "";
@@ -7748,6 +7819,11 @@
 
         if (action === "remove-phone") {
             removeOwnerUserPhone(studentNumber);
+            return;
+        }
+
+        if (action === "clear-exam-study") {
+            clearOwnerUserExamStudy(studentNumber);
             return;
         }
 

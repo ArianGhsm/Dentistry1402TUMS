@@ -6,7 +6,7 @@ require_once __DIR__ . '/exams_bank.php';
 require_once __DIR__ . '/exams_catalog_timeline.php';
 
 if (!defined('DENT_EXAMS_SCHEMA_VERSION')) {
-    define('DENT_EXAMS_SCHEMA_VERSION', 4);
+    define('DENT_EXAMS_SCHEMA_VERSION', 5);
 }
 
 function dent_exams_store_path(): string
@@ -474,7 +474,14 @@ function dent_exams_normalize_assessment_report(array $value): array
     $submittedFallback = dent_exams_normalize_datetime_string((string) ($value['submittedAt'] ?? ($value['submitted_at'] ?? dent_iso_now())), dent_iso_now());
     $startedFallback = dent_exams_normalize_datetime_string((string) ($value['startedAt'] ?? ($value['started_at'] ?? $submittedFallback)), $submittedFallback);
 
+    $attemptId = trim(strtolower((string) ($value['attemptId'] ?? ($value['attempt_id'] ?? ''))));
+    $attemptId = preg_replace('/[^a-z0-9_-]+/', '', $attemptId) ?? '';
+    if ($attemptId === '') {
+        $attemptId = 'attempt_' . substr(hash('sha256', $submittedFallback . '|' . json_encode($answers)), 0, 20);
+    }
+
     return [
+        'attemptId' => substr($attemptId, 0, 80),
         'answers' => $answers,
         'totalQuestions' => $totalQuestions,
         'correct' => $correct,
@@ -484,6 +491,147 @@ function dent_exams_normalize_assessment_report(array $value): array
         'startedAt' => dent_exams_normalize_datetime_string((string) ($value['startedAt'] ?? ($value['started_at'] ?? $startedFallback)), $startedFallback),
         'submittedAt' => $submittedFallback,
         'updatedAt' => dent_exams_normalize_datetime_string((string) ($value['updatedAt'] ?? ($value['updated_at'] ?? $submittedFallback)), $submittedFallback),
+        'topicBreakdown' => dent_exams_normalize_topic_breakdown($value['topicBreakdown'] ?? ($value['topic_breakdown'] ?? [])),
+        'mistakeQuestionIndexes' => dent_exams_normalize_question_index_list($value['mistakeQuestionIndexes'] ?? ($value['mistake_question_indexes'] ?? [])),
+    ];
+}
+
+function dent_exams_normalize_topic_breakdown($value): array
+{
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $normalized = [];
+    foreach ($value as $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $label = dent_clean_text((string) ($entry['label'] ?? ($entry['topic'] ?? '')), 160);
+        if ($label === '') {
+            continue;
+        }
+        $correct = max(0, (int) ($entry['correct'] ?? 0));
+        $wrong = max(0, (int) ($entry['wrong'] ?? 0));
+        $unanswered = max(0, (int) ($entry['unanswered'] ?? 0));
+        $total = max($correct + $wrong + $unanswered, max(0, (int) ($entry['total'] ?? 0)));
+        $normalized[] = [
+            'label' => $label,
+            'total' => $total,
+            'correct' => $correct,
+            'wrong' => $wrong,
+            'unanswered' => $unanswered,
+            'percent' => $total > 0
+                ? dent_exams_normalize_percent($entry['percent'] ?? (($correct / $total) * 100))
+                : 0.0,
+        ];
+        if (count($normalized) >= 80) {
+            break;
+        }
+    }
+
+    return $normalized;
+}
+
+function dent_exams_normalize_attempt_history($value): array
+{
+    if (!is_array($value)) {
+        return [];
+    }
+
+    $attempts = [];
+    $seen = [];
+    foreach ($value as $attempt) {
+        if (!is_array($attempt)) {
+            continue;
+        }
+        $normalized = dent_exams_normalize_assessment_report($attempt);
+        $attemptId = (string) ($normalized['attemptId'] ?? '');
+        if ($attemptId === '' || isset($seen[$attemptId])) {
+            continue;
+        }
+        $seen[$attemptId] = true;
+        $attempts[] = $normalized;
+    }
+
+    usort($attempts, static function (array $left, array $right): int {
+        return strcmp((string) ($left['submittedAt'] ?? ''), (string) ($right['submittedAt'] ?? ''));
+    });
+
+    return array_slice($attempts, -50);
+}
+
+function dent_exams_normalize_study_state($value): array
+{
+    $value = is_array($value) ? $value : [];
+    $notesRaw = is_array($value['notesByQuestion'] ?? null) ? $value['notesByQuestion'] : [];
+    $notes = [];
+    foreach ($notesRaw as $questionIndex => $note) {
+        $index = (int) dent_normalize_digits((string) $questionIndex);
+        $cleanNote = dent_clean_text((string) $note, 4000);
+        if ($index < 0 || $index > 5000 || $cleanNote === '') {
+            continue;
+        }
+        $notes[(string) $index] = $cleanNote;
+    }
+
+    $struckRaw = is_array($value['struckOptionsByQuestion'] ?? null) ? $value['struckOptionsByQuestion'] : [];
+    $struck = [];
+    foreach ($struckRaw as $questionIndex => $optionIndexes) {
+        $index = (int) dent_normalize_digits((string) $questionIndex);
+        if ($index < 0 || $index > 5000 || !is_array($optionIndexes)) {
+            continue;
+        }
+        $cleanOptions = [];
+        foreach ($optionIndexes as $optionIndex) {
+            $option = (int) dent_normalize_digits((string) $optionIndex);
+            if ($option >= 0 && $option <= 32) {
+                $cleanOptions[] = $option;
+            }
+        }
+        $cleanOptions = array_values(array_unique($cleanOptions));
+        sort($cleanOptions, SORT_NUMERIC);
+        if ($cleanOptions) {
+            $struck[(string) $index] = $cleanOptions;
+        }
+    }
+
+    $highlightsRaw = is_array($value['highlightsByQuestion'] ?? null) ? $value['highlightsByQuestion'] : [];
+    $highlights = [];
+    foreach ($highlightsRaw as $questionIndex => $items) {
+        $index = (int) dent_normalize_digits((string) $questionIndex);
+        if ($index < 0 || $index > 5000 || !is_array($items)) {
+            continue;
+        }
+        $cleanItems = [];
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $start = max(0, (int) ($item['start'] ?? 0));
+            $end = max($start, (int) ($item['end'] ?? $start));
+            if ($end <= $start || $end - $start > 2000) {
+                continue;
+            }
+            $cleanItems[] = ['start' => $start, 'end' => $end];
+            if (count($cleanItems) >= 20) {
+                break;
+            }
+        }
+        if ($cleanItems) {
+            $highlights[(string) $index] = $cleanItems;
+        }
+    }
+
+    return [
+        'notesByQuestion' => $notes,
+        'struckOptionsByQuestion' => $struck,
+        'highlightsByQuestion' => $highlights,
+        'mistakeQuestionIndexes' => dent_exams_normalize_question_index_list($value['mistakeQuestionIndexes'] ?? []),
+        'updatedAt' => dent_exams_normalize_datetime_string(
+            (string) ($value['updatedAt'] ?? '1970-01-01T00:00:00+00:00'),
+            '1970-01-01T00:00:00+00:00'
+        ),
     ];
 }
 
@@ -492,6 +640,8 @@ function dent_exams_default_exam_record(): array
     return [
         'flagsByUser' => [],
         'reportsByUser' => [],
+        'attemptsByUser' => [],
+        'studyStateByUser' => [],
         'activityByUser' => [],
     ];
 }
@@ -546,6 +696,42 @@ function dent_exams_normalize_exam_record(array $value): array
     }
     ksort($normalizedReports);
 
+    $attemptsRaw = $value['attemptsByUser'] ?? ($value['attempts_by_user'] ?? []);
+    if (!is_array($attemptsRaw)) {
+        $attemptsRaw = [];
+    }
+    $normalizedAttempts = [];
+    foreach ($attemptsRaw as $participantKey => $attempts) {
+        $cleanParticipant = dent_exams_clean_participant_key((string) $participantKey);
+        if ($cleanParticipant === '') {
+            continue;
+        }
+        $history = dent_exams_normalize_attempt_history($attempts);
+        if ($history) {
+            $normalizedAttempts[$cleanParticipant] = $history;
+        }
+    }
+    foreach ($normalizedReports as $participantKey => $report) {
+        if (!isset($normalizedAttempts[$participantKey]) || !$normalizedAttempts[$participantKey]) {
+            $normalizedAttempts[$participantKey] = [$report];
+        }
+    }
+    ksort($normalizedAttempts);
+
+    $studyRaw = $value['studyStateByUser'] ?? ($value['study_state_by_user'] ?? []);
+    if (!is_array($studyRaw)) {
+        $studyRaw = [];
+    }
+    $normalizedStudy = [];
+    foreach ($studyRaw as $participantKey => $studyState) {
+        $cleanParticipant = dent_exams_clean_participant_key((string) $participantKey);
+        if ($cleanParticipant === '' || !is_array($studyState)) {
+            continue;
+        }
+        $normalizedStudy[$cleanParticipant] = dent_exams_normalize_study_state($studyState);
+    }
+    ksort($normalizedStudy);
+
     $activityRaw = $value['activityByUser'] ?? ($value['activity_by_user'] ?? []);
     if (!is_array($activityRaw)) {
         $activityRaw = [];
@@ -565,6 +751,8 @@ function dent_exams_normalize_exam_record(array $value): array
     return [
         'flagsByUser' => $normalizedFlags,
         'reportsByUser' => $normalizedReports,
+        'attemptsByUser' => $normalizedAttempts,
+        'studyStateByUser' => $normalizedStudy,
         'activityByUser' => $normalizedActivity,
     ];
 }
@@ -715,6 +903,95 @@ function dent_exams_reports_by_user(array $store, string $catalogKey, string $co
     $record = dent_exams_record($store, $catalogKey, $courseSlug, $examSlug);
     $reports = $record['reportsByUser'] ?? [];
     return is_array($reports) ? $reports : [];
+}
+
+function dent_exams_attempts_for_user(array $store, string $catalogKey, string $courseSlug, string $examSlug, string $participantKey): array
+{
+    $cleanParticipant = dent_exams_clean_participant_key($participantKey);
+    if ($cleanParticipant === '') {
+        return [];
+    }
+    $record = dent_exams_record($store, $catalogKey, $courseSlug, $examSlug);
+    return dent_exams_normalize_attempt_history($record['attemptsByUser'][$cleanParticipant] ?? []);
+}
+
+function dent_exams_study_state_for_user(array $store, string $catalogKey, string $courseSlug, string $examSlug, string $participantKey): array
+{
+    $cleanParticipant = dent_exams_clean_participant_key($participantKey);
+    if ($cleanParticipant === '') {
+        return dent_exams_normalize_study_state([]);
+    }
+    $record = dent_exams_record($store, $catalogKey, $courseSlug, $examSlug);
+    return dent_exams_normalize_study_state($record['studyStateByUser'][$cleanParticipant] ?? []);
+}
+
+function dent_exams_learning_summary_index(array $store): array
+{
+    $index = [];
+    $records = is_array($store['examRecords'] ?? null) ? $store['examRecords'] : [];
+    foreach ($records as $record) {
+        if (!is_array($record)) {
+            continue;
+        }
+        $normalized = dent_exams_normalize_exam_record($record);
+        $participantKeys = array_values(array_unique(array_merge(
+            array_keys(is_array($normalized['attemptsByUser'] ?? null) ? $normalized['attemptsByUser'] : []),
+            array_keys(is_array($normalized['studyStateByUser'] ?? null) ? $normalized['studyStateByUser'] : [])
+        )));
+        foreach ($participantKeys as $participantKey) {
+            $cleanParticipant = dent_exams_clean_participant_key((string) $participantKey);
+            if ($cleanParticipant === '') {
+                continue;
+            }
+            if (!isset($index[$cleanParticipant])) {
+                $index[$cleanParticipant] = [
+                    'examCount' => 0,
+                    'attemptCount' => 0,
+                    'noteCount' => 0,
+                    'highlightCount' => 0,
+                    'struckOptionCount' => 0,
+                    'mistakeQuestionCount' => 0,
+                ];
+            }
+            $attempts = dent_exams_normalize_attempt_history($normalized['attemptsByUser'][$cleanParticipant] ?? []);
+            $study = isset($normalized['studyStateByUser'][$cleanParticipant])
+                ? dent_exams_normalize_study_state($normalized['studyStateByUser'][$cleanParticipant])
+                : null;
+            $index[$cleanParticipant]['examCount']++;
+            $index[$cleanParticipant]['attemptCount'] += count($attempts);
+            if ($study === null) {
+                continue;
+            }
+            $index[$cleanParticipant]['noteCount'] += count($study['notesByQuestion'] ?? []);
+            foreach (($study['highlightsByQuestion'] ?? []) as $items) {
+                $index[$cleanParticipant]['highlightCount'] += is_array($items) ? count($items) : 0;
+            }
+            foreach (($study['struckOptionsByQuestion'] ?? []) as $items) {
+                $index[$cleanParticipant]['struckOptionCount'] += is_array($items) ? count($items) : 0;
+            }
+            $index[$cleanParticipant]['mistakeQuestionCount'] += count($study['mistakeQuestionIndexes'] ?? []);
+        }
+    }
+    ksort($index);
+    return $index;
+}
+
+function dent_exams_user_learning_summary(array $store, string $participantKey): array
+{
+    $cleanParticipant = dent_exams_clean_participant_key($participantKey);
+    $empty = [
+        'examCount' => 0,
+        'attemptCount' => 0,
+        'noteCount' => 0,
+        'highlightCount' => 0,
+        'struckOptionCount' => 0,
+        'mistakeQuestionCount' => 0,
+    ];
+    if ($cleanParticipant === '') {
+        return $empty;
+    }
+    $index = dent_exams_learning_summary_index($store);
+    return is_array($index[$cleanParticipant] ?? null) ? $index[$cleanParticipant] : $empty;
 }
 
 function dent_exams_activity_for_user(array $store, string $catalogKey, string $courseSlug, string $examSlug, string $participantKey): ?array

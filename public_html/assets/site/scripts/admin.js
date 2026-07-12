@@ -65,11 +65,11 @@
     function consumeUnauthorized(payload) {
         var site = siteApi();
         if (site && typeof site.consumeUnauthorized === "function") {
-            return !!site.consumeUnauthorized(payload, "برای دیدن داشبورد عملیات باید با حساب مالک وارد شوید.");
+            return !!site.consumeUnauthorized(payload, "برای مدیریت ظاهر سایت باید با حساب مالک وارد شوید.");
         }
         var auth = authApi();
         if (auth && typeof auth.handleUnauthorizedPayload === "function") {
-            return !!auth.handleUnauthorizedPayload(payload, "برای دیدن داشبورد عملیات باید با حساب مالک وارد شوید.");
+            return !!auth.handleUnauthorizedPayload(payload, "برای مدیریت ظاهر سایت باید با حساب مالک وارد شوید.");
         }
         return !!(payload && (payload.loggedOut || payload.httpStatus === 401));
     }
@@ -395,7 +395,7 @@
         var refresh = $("admin-refresh");
         if (refresh) {
             refresh.disabled = !!loading;
-            refresh.textContent = loading ? "در حال دریافت..." : "به‌روزرسانی";
+            refresh.textContent = loading ? "در حال دریافت..." : "بازیابی تنظیمات";
         }
     }
 
@@ -407,11 +407,11 @@
                 return;
             }
             if (!payload || !payload.success || !payload.dashboard) {
-                throw new Error((payload && payload.error) || "دریافت داشبورد عملیات ناموفق بود.");
+                throw new Error((payload && payload.error) || "دریافت تنظیمات ظاهر سایت ناموفق بود.");
             }
             renderDashboard(payload.dashboard);
         }).catch(function (error) {
-            setFeedback(error && error.message ? error.message : "دریافت داشبورد عملیات با خطا مواجه شد.");
+            setFeedback(error && error.message ? error.message : "دریافت تنظیمات ظاهر سایت با خطا مواجه شد.");
         }).finally(function () {
             setLoading(false);
         });

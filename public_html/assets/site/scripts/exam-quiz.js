@@ -31,6 +31,7 @@
     var assessmentDraftKey = storageBase + ":assessment";
     var learningDraftKey = storageBase + ":learning";
     var guestFlagsKey = storageBase + ":flags";
+    var studyDraftKey = storageBase + ":study";
     var selectedMode = normalizeMode(params.get("mode"));
     if (exam.essayOnly && !selectedMode) {
         selectedMode = "learning";
@@ -44,19 +45,34 @@
         mode: selectedMode,
         flags: new Set(initialFlags),
         flagsSync: { saving: false, queued: false, timer: 0 },
+        study: restoreStudyState(studyDraftKey, exam.viewerState.studyState, exam.questions.length),
+        studySync: { saving: false, queued: false, timer: 0 },
+        attemptHistory: exam.viewerState.attemptHistory.slice(),
+        pendingHighlight: null,
         assessment: restoreAssessmentState(assessmentDraftKey, exam.questions.length, initialReport),
         learning: restoreLearningState(learningDraftKey, exam.questions.length),
-        layout: { chooserHintExpanded: false },
+        layout: {
+            chooserHintExpanded: false,
+            questionMapOpen: false,
+            finalReviewOpen: false,
+            mediaViewer: null
+        },
         ownerPanelOpen: false
     };
     var activityTrackedMode = "";
     var layoutFrame = 0;
     var delayedLayoutTimer = 0;
+    var timerInterval = 0;
+    var timerExpiryHandled = false;
     var BIDI_LTR_RUN_RE = /[\p{Script=Latin}0-9][\p{Script=Latin}0-9/%&+_.:=,\-]*(?:\s+[\p{Script=Latin}0-9][\p{Script=Latin}0-9/%&+_.:=,\-]*)*/gu;
 
     state.assessment.answers = clampAnswers(state.assessment.answers, exam.questions);
     state.learning.answers = clampAnswers(state.learning.answers, exam.questions);
     state.learning.revealed = clampRevealed(state.learning.revealed, exam.questions.length);
+    if (exam.viewerState.canPersist
+        && Date.parse(state.study.updatedAt || "") > Date.parse(exam.viewerState.studyState.updatedAt || "")) {
+        state.studySync.queued = true;
+    }
     syncPendingOfflineAssessment();
 
     if (!selectedMode) {
@@ -66,6 +82,8 @@
 
     appRoot.addEventListener("click", handleClick);
     appRoot.addEventListener("change", handleChange);
+    appRoot.addEventListener("input", handleInput);
+    document.addEventListener("selectionchange", captureQuestionSelection);
     window.addEventListener("dent1402:offline-queue-change", function () {
         var previousPending = !!state.assessment.queued;
         syncPendingOfflineAssessment();
@@ -85,14 +103,24 @@
         }
         applyOfflineAssessmentResult(detail.payload || null);
     });
-    window.addEventListener("beforeunload", flushFlagSync);
+    window.addEventListener("beforeunload", function () {
+        flushFlagSync();
+        flushStudySync();
+    });
     window.addEventListener("resize", scheduleLayoutSync);
     window.addEventListener("orientationchange", scheduleLayoutSync);
     window.addEventListener("load", scheduleLayoutSync);
+    window.addEventListener("online", function () {
+        updateFocusBarStatus();
+        flushStudySync();
+    });
+    window.addEventListener("offline", updateFocusBarStatus);
+    document.addEventListener("keydown", handleDocumentKeydown);
 
     render();
 
     window.setTimeout(scheduleLayoutSync, 40);
+    window.setTimeout(flushStudySync, 120);
     window.setTimeout(scheduleLayoutSync, 180);
     window.setTimeout(scheduleLayoutSync, 520);
 
@@ -126,6 +154,7 @@
 
     function render() {
         document.body.classList.add("quiz-stage-active");
+        var focusSnapshot = captureFocusSnapshot();
         var existingOwnerPanel = appRoot.querySelector(".exam-owner-panel");
         if (existingOwnerPanel) {
             state.ownerPanelOpen = !!existingOwnerPanel.open;
@@ -138,15 +167,20 @@
             '      <div class="exam-stage-scaler">',
             '        <div class="exam-stage-canvas">',
             !state.mode || !isModeStarted(state.mode) ? renderLaunchStage() : renderActiveStage(),
-            renderOwnerInsightsPanel(),
+            isFocusModeActive() ? "" : renderOwnerInsightsPanel(),
             "        </div>",
             "      </div>",
             "    </section>",
             "  </main>",
-            "</div>"
+            "</div>",
+            renderSessionDialog()
         ].join("");
 
+        syncFocusMode();
+        syncTimerInterval();
         scheduleLayoutSync();
+        restoreFocusSnapshot(focusSnapshot);
+        scheduleDialogFocus();
     }
 
     function renderLaunchStage() {
@@ -210,11 +244,53 @@
             state.layout.chooserHintExpanded && !exam.essayOnly
                 ? '<div class="exam-note-card">در حالت سنجشی همه سوال‌ها با کارنامه، رتبه و ذخیره نتیجه اجرا می‌شود. در حالت آموزشی پس از هر پاسخ، جواب درست و توضیح همان سوال را می‌بینی.</div>'
                 : "",
+            renderCustomPracticeBuilder(),
             renderLaunchActions(),
             "    </section>",
             "  </div>",
             "</section>"
         ].join("");
+    }
+
+    function renderCustomPracticeBuilder() {
+        var topics = uniqueQuestionValues("topic");
+        var difficulties = uniqueQuestionValues("difficultyLabel");
+        var activeCount = Array.isArray(state.learning.customIndexes) ? state.learning.customIndexes.length : 0;
+        return [
+            '<details class="exam-custom-builder"' + (activeCount ? " open" : "") + '>',
+            '  <summary><span><strong>آزمون شخصی</strong><small>جلسه تمرینی از همین بانک سؤال</small></span><span>' + escapeHtml(activeCount ? formatValue(activeCount) + " سؤال فعال" : "ساخت") + '</span></summary>',
+            '  <div class="exam-custom-builder__grid">',
+            renderBuilderSelect("custom-topic", "مبحث", [{ value: "all", label: "همه مباحث" }].concat(topics.map(function (value) { return { value: value, label: value }; }))),
+            renderBuilderSelect("custom-difficulty", "سختی", [{ value: "all", label: "همه سطوح" }].concat(difficulties.map(function (value) { return { value: value, label: value }; }))),
+            renderBuilderSelect("custom-status", "وضعیت", [
+                { value: "all", label: "همه سؤال‌ها" },
+                { value: "unseen", label: "حل‌نشده‌ها" },
+                { value: "mistakes", label: "دفترچه اشتباهات" },
+                { value: "flagged", label: "نشان‌دارها" }
+            ]),
+            '    <label><span>تعداد سؤال</span><input id="custom-count" type="number" inputmode="numeric" min="1" max="' + escapeHtml(String(exam.questions.length)) + '" value="' + escapeHtml(String(Math.min(20, exam.questions.length))) + '" data-digit-locale="latin"></label>',
+            '  </div>',
+            '  <div class="exam-custom-builder__actions">',
+            '    <button class="exam-btn exam-btn--primary" type="button" data-action="build-custom-practice">ساخت و شروع تمرین</button>',
+            activeCount ? '    <button class="exam-btn exam-btn--ghost" type="button" data-action="clear-custom-practice">بازگشت به همه سؤال‌ها</button>' : "",
+            '  </div>',
+            '  <p>این جلسه فقط حالت آموزشی را فیلتر می‌کند و نتیجه سنجشی رسمی آزمون را تغییر نمی‌دهد.</p>',
+            '</details>'
+        ].join("");
+    }
+
+    function renderBuilderSelect(id, label, options) {
+        return '<label><span>' + escapeHtml(label) + '</span><select id="' + escapeHtml(id) + '">' + options.map(function (item) {
+            return '<option value="' + escapeHtml(item.value) + '">' + escapeHtml(item.label) + '</option>';
+        }).join("") + '</select></label>';
+    }
+
+    function uniqueQuestionValues(key) {
+        return Array.from(new Set(exam.questions.map(function (question) {
+            return normalizeText(question[key]);
+        }).filter(Boolean))).sort(function (a, b) {
+            return a.localeCompare(b, "fa");
+        });
     }
 
     function renderLaunchHeader(launchMeta) {
@@ -374,14 +450,47 @@
             if (!exam.viewerState.canPersist) {
                 return renderLaunchStage();
             }
-            return state.assessment.report ? renderAssessmentReportStage() : renderAssessmentDraftStage();
+            return state.assessment.report
+                ? renderAssessmentReportStage()
+                : renderFocusBar() + renderAssessmentDraftStage();
         }
 
         if (state.mode === "learning") {
-            return renderLearningStage();
+            return renderFocusBar() + renderLearningStage();
         }
 
         return renderLaunchStage();
+    }
+
+    function renderFocusBar() {
+        var isAssessment = state.mode === "assessment";
+        var totals = isAssessment ? assessmentDraftTotals() : learningTotals();
+        var currentIndex = isAssessment
+            ? ensureAssessmentIndex(assessmentVisibleIndexes(state.assessment.filter))
+            : ensureLearningIndex(learningVisibleIndexes());
+        var saveStatus = focusSaveStatus();
+        var progress = exam.questions.length > 0
+            ? Math.round((totals.answered / exam.questions.length) * 100)
+            : 0;
+
+        return [
+            '<section class="exam-focus-bar" aria-label="وضعیت جلسه آزمون">',
+            '  <div class="exam-focus-bar__identity">',
+            '    <span class="exam-focus-bar__mode">' + escapeHtml(isAssessment ? "سنجشی" : "آموزشی") + "</span>",
+            '    <strong class="exam-focus-bar__question">سؤال ' + escapeHtml(formatValue(currentIndex + 1)) + ' از ' + escapeHtml(formatValue(exam.questions.length)) + "</strong>",
+            "  </div>",
+            '  <div class="exam-focus-bar__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + escapeHtml(String(progress)) + '" aria-label="' + escapeHtml(formatValue(progress) + " درصد پیشرفت") + '">',
+            '    <span class="exam-focus-bar__progress-copy">' + escapeHtml(formatValue(totals.answered) + " پاسخ") + "</span>",
+            '    <span class="exam-focus-bar__progress-track" aria-hidden="true"><span style="inline-size:' + escapeHtml(String(progress)) + '%"></span></span>',
+            "  </div>",
+            '  <div class="exam-focus-bar__tools">',
+            '    <span class="exam-focus-bar__timer" data-exam-timer aria-live="off">' + escapeHtml(timerLabel()) + "</span>",
+            '    <span class="exam-focus-bar__save is-' + escapeHtml(saveStatus.tone) + '" data-exam-save-status role="status" aria-live="polite">' + escapeHtml(saveStatus.label) + "</span>",
+            '    <button class="exam-focus-bar__button" type="button" data-action="open-question-map" aria-haspopup="dialog">نقشه سؤال‌ها</button>',
+            '    <button class="exam-focus-bar__button exam-focus-bar__button--exit" type="button" data-action="leave-focus-mode">خروج</button>',
+            "  </div>",
+            "</section>"
+        ].join("");
     }
 
     function renderAssessmentDraftStage() {
@@ -397,6 +506,7 @@
                 subtitle: "همه سوال‌ها در همین حالت ذخیره می‌شوند و بعد از ثبت، کارنامه جداگانه نمایش داده می‌شود.",
                 chips: [
                     renderMetaChip("سوال " + formatValue(currentIndex + 1) + " از " + formatValue(exam.questions.length), "neutral"),
+                    state.learning.customLabel ? renderMetaChip(state.learning.customLabel, "success") : "",
                     renderMetaChip("پاسخ‌داده‌شده " + formatValue(totals.answered), "neutral"),
                     renderMetaChip("بی‌پاسخ " + formatValue(totals.unanswered), totals.unanswered ? "warning" : "success"),
                     state.flags.size ? renderMetaChip(formatValue(state.flags.size) + " نشان‌دار", "flagged") : ""
@@ -461,6 +571,7 @@
                 renderAssessmentReportSidePanel(report),
                 "</div>"
             ].join("") : renderStageEmptyState("در این فیلتر سوالی برای مرور باقی نمانده است."),
+            renderReportInsights(report),
             "</section>"
         ].join("");
     }
@@ -575,12 +686,14 @@
         return [
             '<article class="exam-session-card exam-session-card--question" data-card-state="' + escapeHtml(assessmentDraftState(selectedIndex)) + '">',
             renderQuestionCardHead(questionIndex, assessmentStateLabel(assessmentDraftState(selectedIndex))),
-            '  <h3 class="exam-question-text">' + richTextHtml(question.question) + "</h3>",
-            '  <div class="exam-option-grid' + (question.useCompactOptions ? " is-compact" : "") + '">',
+            renderQuestionClinicalContext(question, questionIndex),
+            '  <h3 class="exam-question-text" data-question-text="' + escapeHtml(String(questionIndex)) + '">' + richTextWithHighlights(question.question, questionHighlights(questionIndex)) + "</h3>",
+            '  <div class="exam-option-grid' + (question.useCompactOptions ? " is-compact" : "") + '" role="radiogroup" aria-label="گزینه‌های سؤال ' + escapeHtml(formatValue(questionIndex + 1)) + '">',
             question.options.map(function (option, optionIndex) {
                 return renderAssessmentOption(questionIndex, optionIndex, option, selectedIndex, question.correctIndex, false);
             }).join(""),
             "  </div>",
+            renderQuestionStudyTools(questionIndex),
             '  <div class="exam-question-actions">',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">" + renderResponsiveLabel("\u0633\u0648\u0627\u0644 \u0642\u0628\u0644\u06cc", "\u0642\u0628\u0644\u06cc") + "</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + renderResponsiveLabel(isFlagged(questionIndex) ? "\u062d\u0630\u0641 \u0646\u0634\u0627\u0646" : "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631 \u06a9\u0646", isFlagged(questionIndex) ? "\u062d\u0630\u0641" : "\u0646\u0634\u0627\u0646") + "</button>",
@@ -600,8 +713,9 @@
         return [
             '<article class="exam-session-card exam-session-card--question" data-card-state="' + escapeHtml(stateName) + '">',
             renderQuestionCardHead(questionIndex, assessmentStateLabel(stateName)),
-            '  <h3 class="exam-question-text">' + richTextHtml(question.question) + "</h3>",
-            '  <div class="exam-option-grid' + (question.useCompactOptions ? " is-compact" : "") + '">',
+            renderQuestionClinicalContext(question, questionIndex),
+            '  <h3 class="exam-question-text" data-question-text="' + escapeHtml(String(questionIndex)) + '">' + richTextWithHighlights(question.question, questionHighlights(questionIndex)) + "</h3>",
+            '  <div class="exam-option-grid' + (question.useCompactOptions ? " is-compact" : "") + '" role="radiogroup" aria-label="گزینه‌های سؤال ' + escapeHtml(formatValue(questionIndex + 1)) + '">',
             question.options.map(function (option, optionIndex) {
                 return renderAssessmentOption(questionIndex, optionIndex, option, selectedIndex, question.correctIndex, true);
             }).join(""),
@@ -609,6 +723,7 @@
             renderMcqAnswerCard(question, selectedIndex, {
                 unresolvedLabel: "کلید قطعی این سؤال در فایل منبع موجود نیست"
             }),
+            renderQuestionStudyTools(questionIndex),
             '  <div class="exam-question-actions">',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="assessment-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">" + renderResponsiveLabel("\u0633\u0648\u0627\u0644 \u0642\u0628\u0644\u06cc", "\u0642\u0628\u0644\u06cc") + "</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + renderResponsiveLabel(isFlagged(questionIndex) ? "\u062d\u0630\u0641 \u0646\u0634\u0627\u0646" : "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631 \u06a9\u0646", isFlagged(questionIndex) ? "\u062d\u0630\u0641" : "\u0646\u0634\u0627\u0646") + "</button>",
@@ -628,9 +743,10 @@
         return [
             '<article class="exam-session-card exam-session-card--question" data-card-state="' + escapeHtml(learningNavState(questionIndex)) + '">',
             renderQuestionCardHead(questionIndex, revealed ? learningAnswerLabel(question, selectedIndex) : "در انتظار پاسخ"),
-            '  <h3 class="exam-question-text">' + richTextHtml(question.question) + "</h3>",
+            renderQuestionClinicalContext(question, questionIndex),
+            '  <h3 class="exam-question-text" data-question-text="' + escapeHtml(String(questionIndex)) + '">' + richTextWithHighlights(question.question, questionHighlights(questionIndex)) + "</h3>",
             question.isEssay ? "" : [
-                '  <div class="exam-option-grid' + (question.useCompactOptions ? " is-compact" : "") + '">',
+                '  <div class="exam-option-grid' + (question.useCompactOptions ? " is-compact" : "") + '" role="radiogroup" aria-label="گزینه‌های سؤال ' + escapeHtml(formatValue(questionIndex + 1)) + '">',
                 question.options.map(function (option, optionIndex) {
                     return renderLearningOption(questionIndex, optionIndex, option, selectedIndex, question.correctIndex, revealed);
                 }).join(""),
@@ -641,6 +757,7 @@
                     ? renderEssayAnswerCard(question)
                     : '<div class="exam-essay-reveal"><button class="exam-btn exam-btn--primary" type="button" data-action="learning-reveal-essay" data-question-index="' + escapeHtml(String(questionIndex)) + '">نمایش پاسخ تشریحی</button></div>')
                 : (revealed ? renderLearningFeedback(question, selectedIndex, questionIndex) : '<div class="exam-note-card">یکی از گزینه‌ها را انتخاب کن تا پاسخ صحیح و توضیح همان سوال نمایش داده شود.</div>'),
+            renderQuestionStudyTools(questionIndex),
             '  <div class="exam-question-actions">',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-prev"' + (currentPosition <= 0 ? " disabled" : "") + ">" + renderResponsiveLabel("\u0633\u0648\u0627\u0644 \u0642\u0628\u0644\u06cc", "\u0642\u0628\u0644\u06cc") + "</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-flag" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + renderResponsiveLabel(isFlagged(questionIndex) ? "\u062d\u0630\u0641 \u0646\u0634\u0627\u0646" : "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631 \u06a9\u0646", isFlagged(questionIndex) ? "\u062d\u0630\u0641" : "\u0646\u0634\u0627\u0646") + "</button>",
@@ -651,14 +768,71 @@
     }
 
     function renderQuestionCardHead(questionIndex, stateLabel) {
+        var question = exam.questions[questionIndex];
         return [
             '  <div class="exam-question-card__head">',
             '    <div class="exam-question-card__title-wrap">',
             '      <span class="exam-question-number">سوال ' + escapeHtml(formatValue(questionIndex + 1)) + "</span>",
             '      <span class="exam-question-state">' + escapeHtml(stateLabel) + "</span>",
             "    </div>",
-            '    <span class="exam-question-flag' + (isFlagged(questionIndex) ? " is-active" : "") + '">' + escapeHtml(isFlagged(questionIndex) ? "نشان‌دار" : "عادی") + "</span>",
+            '    <div class="exam-question-head-badges">',
+            question.topic ? '      <span class="exam-question-topic">' + escapeHtml(question.topic) + '</span>' : "",
+            question.difficultyLabel ? '      <span class="exam-question-difficulty" data-level="' + escapeHtml(question.difficultyKey) + '">' + escapeHtml(question.difficultyLabel) + '</span>' : "",
+            '      <span class="exam-question-flag' + (isFlagged(questionIndex) ? " is-active" : "") + '">' + escapeHtml(isFlagged(questionIndex) ? "نشان‌دار" : "عادی") + "</span>",
+            '    </div>',
             "  </div>"
+        ].join("");
+    }
+
+    function renderQuestionClinicalContext(question, questionIndex) {
+        var caseHtml = "";
+        if (question.caseContext) {
+            caseHtml = [
+                '<section class="exam-case-card" aria-label="اطلاعات کیس بالینی">',
+                '  <div class="exam-case-card__head"><span>کیس بالینی</span><strong>' + escapeHtml(question.caseContext.title || "شرح بیمار") + '</strong></div>',
+                question.caseContext.summary ? '  <p>' + richTextHtml(question.caseContext.summary) + '</p>' : "",
+                question.caseContext.facts.length ? '<dl>' + question.caseContext.facts.map(function (fact) {
+                    return '<div><dt>' + escapeHtml(fact.label) + '</dt><dd>' + richTextHtml(fact.value) + '</dd></div>';
+                }).join("") + '</dl>' : "",
+                question.caseContext.alert ? '<div class="exam-case-card__alert">' + richTextHtml(question.caseContext.alert) + '</div>' : "",
+                '</section>'
+            ].join("");
+        }
+        var mediaHtml = question.media.length ? '<div class="exam-question-media">' + question.media.map(function (media, mediaIndex) {
+            return [
+                '<figure class="exam-media-card">',
+                '  <button type="button" data-action="open-question-media" data-question-index="' + escapeHtml(String(questionIndex)) + '" data-media-index="' + escapeHtml(String(mediaIndex)) + '" aria-label="نمایش بزرگ ' + escapeHtml(media.alt) + '">',
+                '    <img src="' + escapeHtml(media.src) + '" alt="' + escapeHtml(media.alt) + '" loading="lazy" decoding="async">',
+                '    <span>نمایش و بزرگ‌نمایی</span>',
+                '  </button>',
+                media.caption ? '  <figcaption>' + escapeHtml(media.caption) + '</figcaption>' : "",
+                '</figure>'
+            ].join("");
+        }).join("") + '</div>' : "";
+        return caseHtml + mediaHtml;
+    }
+
+    function renderQuestionStudyTools(questionIndex) {
+        var note = String(state.study.notesByQuestion[String(questionIndex)] || "");
+        var highlights = questionHighlights(questionIndex);
+        var inMistakeNotebook = isMistakeQuestion(questionIndex);
+        var badges = [note ? "یادداشت" : "", highlights.length ? "هایلایت" : "", inMistakeNotebook ? "دفترچه اشتباهات" : ""].filter(Boolean);
+        return [
+            '<details class="exam-study-tools">',
+            '  <summary class="exam-study-tools__summary">',
+            '    <span>ابزار مطالعه</span>',
+            '    <span class="exam-study-tools__badges">' + escapeHtml(badges.join(" • ")) + "</span>",
+            "  </summary>",
+            '  <div class="exam-study-tools__body">',
+            '    <div class="exam-study-tools__actions">',
+            '      <button class="exam-btn exam-btn--ghost" type="button" data-action="add-question-highlight" data-question-index="' + escapeHtml(String(questionIndex)) + '">هایلایت متن انتخاب‌شده</button>',
+            highlights.length ? '      <button class="exam-btn exam-btn--ghost" type="button" data-action="clear-question-highlights" data-question-index="' + escapeHtml(String(questionIndex)) + '">پاک‌کردن هایلایت‌ها</button>' : "",
+            '      <button class="exam-btn ' + (inMistakeNotebook ? "exam-btn--danger" : "exam-btn--ghost") + '" type="button" data-action="toggle-mistake-notebook" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + escapeHtml(inMistakeNotebook ? "حذف از دفترچه اشتباهات" : "افزودن به دفترچه اشتباهات") + "</button>",
+            "    </div>",
+            '    <label class="exam-study-note"><span>یادداشت شخصی این سؤال</span><textarea data-study-note data-question-index="' + escapeHtml(String(questionIndex)) + '" maxlength="4000" placeholder="نکته، دلیل اشتباه یا چیزی که باید مرور کنی...">' + escapeHtml(note) + "</textarea></label>",
+            '    <p class="exam-study-tools__hint">برای هایلایت، بخشی از صورت سؤال را انتخاب کن و سپس دکمه هایلایت را بزن. دکمه × کنار هر گزینه نیز آن را خط می‌زند.</p>',
+            "  </div>",
+            "</details>"
         ].join("");
     }
 
@@ -725,6 +899,68 @@
         ].join("");
     }
 
+    function renderReportInsights(report) {
+        var topics = Array.isArray(report.topicBreakdown) ? report.topicBreakdown : [];
+        var history = state.attemptHistory.slice(0, 12);
+        var mistakeCount = state.study.mistakeQuestionIndexes.length;
+        var weakTopic = topics.slice().filter(function (topic) {
+            return Number(topic && topic.total || 0) > 0;
+        }).sort(function (a, b) {
+            return Number(a.percent || 0) - Number(b.percent || 0);
+        })[0] || null;
+        return [
+            '<section class="exam-report-insights" aria-label="تحلیل تکمیلی کارنامه">',
+            '  <details class="exam-report-insight">',
+            '    <summary><span><strong>تحلیل مبحثی</strong><small>' + escapeHtml(formatValue(topics.length) + " مبحث") + "</small></span><span>مشاهده</span></summary>",
+            '    <div class="exam-topic-breakdown">' + (topics.length ? topics.map(renderTopicBreakdownRow).join("") : '<p class="exam-report-insight__empty">برای سؤال‌های این آزمون هنوز برچسب مبحثی جزئی ثبت نشده است.</p>') + "</div>",
+            "  </details>",
+            '  <details class="exam-report-insight">',
+            '    <summary><span><strong>تاریخچه تلاش‌ها</strong><small>' + escapeHtml(formatValue(history.length) + " تلاش ذخیره‌شده") + "</small></span><span>مشاهده</span></summary>",
+            '    <div class="exam-attempt-history">' + (history.length ? history.map(renderAttemptHistoryCard).join("") : '<p class="exam-report-insight__empty">هنوز تلاش قبلی ثبت نشده است.</p>') + "</div>",
+            "  </details>",
+            '  <details class="exam-report-insight">',
+            '    <summary><span><strong>دفترچه اشتباهات</strong><small>' + escapeHtml(formatValue(mistakeCount) + " سؤال برای مرور") + "</small></span><span>مشاهده</span></summary>",
+            '    <div class="exam-mistake-summary"><p>سؤال‌های غلط این تلاش خودکار به دفترچه اضافه می‌شوند و از ابزار هر سؤال هم می‌توانی موارد دلخواه را مدیریت کنی.</p>',
+            mistakeCount ? '<button class="exam-btn exam-btn--primary" type="button" data-action="review-mistake-notebook">مرور سؤال‌های دفترچه</button>' : "",
+            "    </div>",
+            "  </details>",
+            '  <details class="exam-report-insight exam-report-insight--recommendation" open>',
+            '    <summary><span><strong>پیشنهاد مرور بعدی</strong><small>بر اساس همین کارنامه و سابقه تو</small></span><span>پیشنهاد شخصی</span></summary>',
+            '    <div class="exam-next-review">',
+            weakTopic ? '<p>اولویت پیشنهادی: مرور <strong>' + escapeHtml(String(weakTopic.label || "مبحث ضعیف‌تر")) + '</strong> با عملکرد ' + escapeHtml(formatPercent(weakTopic.percent)) + '.</p>' : '<p>برای پیشنهاد مبحثی دقیق‌تر، سؤال‌ها باید برچسب مبحث داشته باشند.</p>',
+            '      <div>',
+            weakTopic ? '<button class="exam-btn exam-btn--primary" type="button" data-action="review-weak-topic" data-topic="' + escapeHtml(String(weakTopic.label || "")) + '">تمرین مبحث ضعیف‌تر</button>' : "",
+            mistakeCount ? '<button class="exam-btn exam-btn--ghost" type="button" data-action="review-mistake-notebook">مرور اشتباهات</button>' : "",
+            '      </div>',
+            '    </div>',
+            '  </details>',
+            "</section>"
+        ].join("");
+    }
+
+    function renderTopicBreakdownRow(topic) {
+        var percent = clampPercent(topic && topic.percent);
+        return [
+            '<article class="exam-topic-row">',
+            '  <div class="exam-topic-row__head"><strong>' + escapeHtml(String(topic && topic.label || "مبحث")) + '</strong><span>' + escapeHtml(formatPercent(percent)) + "</span></div>",
+            '  <span class="exam-topic-row__bar" aria-hidden="true"><span style="inline-size:' + escapeHtml(String(percent)) + '%"></span></span>',
+            '  <p>' + escapeHtml(formatValue(topic && topic.correct || 0) + " صحیح • " + formatValue(topic && topic.wrong || 0) + " غلط • " + formatValue(topic && topic.unanswered || 0) + " بی‌پاسخ") + "</p>",
+            "</article>"
+        ].join("");
+    }
+
+    function renderAttemptHistoryCard(attempt, index) {
+        var previous = state.attemptHistory[index + 1] || null;
+        var delta = previous ? Math.round((Number(attempt.percent || 0) - Number(previous.percent || 0)) * 10) / 10 : null;
+        return [
+            '<article class="exam-attempt-card">',
+            '  <div><span>تلاش ' + escapeHtml(formatValue(state.attemptHistory.length - index)) + '</span><strong>' + escapeHtml(formatPercent(attempt.percent)) + "</strong></div>",
+            '  <p>' + escapeHtml(formatDateTime(attempt.submittedAt)) + "</p>",
+            '  <small>' + escapeHtml(formatValue(attempt.correct) + " صحیح • " + formatValue(attempt.wrong) + " غلط" + (delta === null ? "" : " • تغییر " + formatSignedPercent(delta))) + "</small>",
+            "</article>"
+        ].join("");
+    }
+
     function renderLearningSidePanel(stats, currentIndex, visibleCount) {
         return [
             '<aside class="exam-session-card exam-session-card--side">',
@@ -740,14 +976,16 @@
             '  <div class="exam-side-section">',
             '    <span class="exam-side-title">فیلتر نمایش</span>',
             '    <div class="exam-filter-pills">',
-            renderLearningFilterButton("all", "\u0647\u0645\u0647", exam.questions.length),
+            renderLearningFilterButton("all", "\u0647\u0645\u0647", learningScopeCount()),
             renderLearningFilterButton("flagged", "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631", state.flags.size),
+            renderLearningFilterButton("mistakes", "دفترچه اشتباهات", state.study.mistakeQuestionIndexes.length),
             "    </div>",
             '    <p class="exam-side-copy">در این نما ' + escapeHtml(formatValue(visibleCount)) + ' سوال قابل جابه‌جایی است.</p>',
             "  </div>",
             '  <div class="exam-side-section exam-side-section--actions">',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-jump-unanswered"' + (stats.unanswered <= 0 ? " disabled" : "") + ">اولین سوال بی‌پاسخ</button>",
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-learning-progress">' + escapeHtml(exam.essayOnly ? "شروع دوباره مرور" : "شروع دوباره آموزشی") + "</button>",
+            Array.isArray(state.learning.customIndexes) ? '    <button class="exam-btn exam-btn--ghost" type="button" data-action="clear-custom-practice">پایان تمرین شخصی</button>' : "",
             exam.essayOnly ? "" : '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0631\u0641\u062a\u0646 \u0628\u0647 \u0633\u0646\u062c\u0634\u06cc</button>',
             "  </div>",
             "</aside>"
@@ -833,11 +1071,13 @@
             renderCompactMetric("\u062c\u0627\u0631\u06cc", formatValue(currentIndex + 1), "accent"),
             "        </div>",
             '        <div class="exam-compact-filter-row"><div class="exam-filter-pills">',
-            renderLearningFilterButton("all", "\u0647\u0645\u0647", exam.questions.length),
+            renderLearningFilterButton("all", "\u0647\u0645\u0647", learningScopeCount()),
             renderLearningFilterButton("flagged", "\u0646\u0634\u0627\u0646\u200c\u062f\u0627\u0631", state.flags.size),
+            renderLearningFilterButton("mistakes", "دفترچه اشتباهات", state.study.mistakeQuestionIndexes.length),
             "        </div></div>",
             '        <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-jump-unanswered"' + (stats.unanswered <= 0 ? " disabled" : "") + ">\u0627\u0648\u0644\u06cc\u0646 \u0628\u06cc\u200c\u067e\u0627\u0633\u062e</button>",
             '        <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-learning-progress">\u0634\u0631\u0648\u0639 \u062f\u0648\u0628\u0627\u0631\u0647</button>',
+            Array.isArray(state.learning.customIndexes) ? '        <button class="exam-btn exam-btn--ghost" type="button" data-action="clear-custom-practice">پایان تمرین شخصی</button>' : "",
             "      </div>",
             "    </details>",
             "  </div>",
@@ -868,7 +1108,8 @@
                 { key: "correct", label: "صحیح" },
                 { key: "wrong", label: "غلط" },
                 { key: "unanswered", label: "بی‌پاسخ" },
-                { key: "flagged", label: "نشان‌دار" }
+                { key: "flagged", label: "نشان‌دار" },
+                { key: "mistakes", label: "دفترچه اشتباهات" }
             ]
             : [
                 { key: "all", label: "همه" },
@@ -890,6 +1131,8 @@
         var stateName = "neutral";
         var tag = "";
         var resolvedAnswer = hasResolvedCorrectIndex(correctIndex);
+        var locked = !reviewMode && timerExpiryHandled && exam.durationMinutes > 0;
+        var struck = isOptionStruck(questionIndex, optionIndex);
 
         if (reviewMode) {
             if (!resolvedAnswer) {
@@ -912,11 +1155,14 @@
         }
 
         return [
-            '<button class="exam-option' + (selectedIndex === optionIndex ? " is-selected" : "") + (reviewMode ? " is-results-mode" : "") + '" type="button" data-action="' + (reviewMode ? "noop" : "assessment-answer") + '" data-question-index="' + escapeHtml(String(questionIndex)) + '" data-option-index="' + escapeHtml(String(optionIndex)) + '" data-state="' + escapeHtml(stateName) + '"' + (reviewMode ? " disabled" : "") + ">",
+            '<div class="exam-option-row' + (struck ? " is-struck" : "") + '">',
+            '<button class="exam-option' + (selectedIndex === optionIndex ? " is-selected" : "") + (reviewMode ? " is-results-mode" : "") + '" type="button" role="radio" aria-checked="' + (selectedIndex === optionIndex ? "true" : "false") + '" data-action="' + (reviewMode || locked ? "noop" : "assessment-answer") + '" data-question-index="' + escapeHtml(String(questionIndex)) + '" data-option-index="' + escapeHtml(String(optionIndex)) + '" data-state="' + escapeHtml(stateName) + '"' + (reviewMode || locked ? " disabled" : "") + ">",
             '  <span class="exam-option-marker">' + escapeHtml(optionLetter(optionIndex)) + "</span>",
             '  <span class="exam-option-copy">' + richTextHtml(optionText) + "</span>",
             tag ? '  <span class="exam-option-tag">' + escapeHtml(tag) + "</span>" : "",
-            "</button>"
+            "</button>",
+            '<button class="exam-option-strike" type="button" data-action="toggle-option-strike" data-question-index="' + escapeHtml(String(questionIndex)) + '" data-option-index="' + escapeHtml(String(optionIndex)) + '" aria-pressed="' + (struck ? "true" : "false") + '" aria-label="' + escapeHtml((struck ? "برداشتن خط از" : "خط زدن") + " گزینه " + optionLetter(optionIndex)) + '">' + (struck ? "↶" : "×") + "</button>",
+            "</div>"
         ].join("");
     }
 
@@ -924,6 +1170,7 @@
         var stateName = "neutral";
         var tag = "";
         var resolvedAnswer = hasResolvedCorrectIndex(correctIndex);
+        var struck = isOptionStruck(questionIndex, optionIndex);
 
         if (revealed) {
             if (!resolvedAnswer) {
@@ -946,11 +1193,14 @@
         }
 
         return [
-            '<button class="exam-option' + (selectedIndex === optionIndex ? " is-selected" : "") + (revealed ? " is-results-mode" : "") + '" type="button" data-action="' + (revealed ? "noop" : "learning-answer") + '" data-question-index="' + escapeHtml(String(questionIndex)) + '" data-option-index="' + escapeHtml(String(optionIndex)) + '" data-state="' + escapeHtml(stateName) + '"' + (revealed ? " disabled" : "") + ">",
+            '<div class="exam-option-row' + (struck ? " is-struck" : "") + '">',
+            '<button class="exam-option' + (selectedIndex === optionIndex ? " is-selected" : "") + (revealed ? " is-results-mode" : "") + '" type="button" role="radio" aria-checked="' + (selectedIndex === optionIndex ? "true" : "false") + '" data-action="' + (revealed ? "noop" : "learning-answer") + '" data-question-index="' + escapeHtml(String(questionIndex)) + '" data-option-index="' + escapeHtml(String(optionIndex)) + '" data-state="' + escapeHtml(stateName) + '"' + (revealed ? " disabled" : "") + ">",
             '  <span class="exam-option-marker">' + escapeHtml(optionLetter(optionIndex)) + "</span>",
             '  <span class="exam-option-copy">' + richTextHtml(optionText) + "</span>",
             tag ? '  <span class="exam-option-tag">' + escapeHtml(tag) + "</span>" : "",
-            "</button>"
+            "</button>",
+            '<button class="exam-option-strike" type="button" data-action="toggle-option-strike" data-question-index="' + escapeHtml(String(questionIndex)) + '" data-option-index="' + escapeHtml(String(optionIndex)) + '" aria-pressed="' + (struck ? "true" : "false") + '" aria-label="' + escapeHtml((struck ? "برداشتن خط از" : "خط زدن") + " گزینه " + optionLetter(optionIndex)) + '">' + (struck ? "↶" : "×") + "</button>",
+            "</div>"
         ].join("");
     }
 
@@ -1003,6 +1253,7 @@
             '<div class="' + cardClassName + '">',
             '  <span class="exam-answer-card__label">' + escapeHtml(label) + "</span>",
             renderAnswerDetailsContent(question, fallbackCopy),
+            renderDistractorAnalysis(question, selectedIndex),
             config.hintHtml || "",
             "</div>"
         ].join("");
@@ -1052,6 +1303,33 @@
         ].filter(Boolean).join("");
     }
 
+    function renderDistractorAnalysis(question, selectedIndex) {
+        if (!Array.isArray(question.optionRationales) || !question.optionRationales.some(Boolean)) {
+            return "";
+        }
+        var rows = question.options.map(function (option, optionIndex) {
+            var rationale = String(question.optionRationales[optionIndex] || "").trim();
+            if (!rationale || optionIndex === question.correctIndex) {
+                return "";
+            }
+            return [
+                '<article class="exam-distractor-row' + (selectedIndex === optionIndex ? " is-selected" : "") + '">',
+                '  <span class="exam-distractor-row__label">گزینه ' + escapeHtml(optionLetter(optionIndex)) + (selectedIndex === optionIndex ? " • انتخاب تو" : "") + "</span>",
+                '  <p><strong>' + richTextHtml(option) + "</strong><br>" + richTextHtml(rationale) + "</p>",
+                "</article>"
+            ].join("");
+        }).filter(Boolean);
+        if (!rows.length) {
+            return "";
+        }
+        return [
+            '<details class="exam-distractor-analysis"' + (selectedIndex !== null && selectedIndex !== question.correctIndex ? " open" : "") + '>',
+            '  <summary>چرا گزینه‌های دیگر درست نیستند؟</summary>',
+            '  <div class="exam-distractor-analysis__body">' + rows.join("") + "</div>",
+            "</details>"
+        ].join("");
+    }
+
     function renderStageEmptyState(copy) {
         return [
             '<section class="exam-empty-card">',
@@ -1060,6 +1338,151 @@
             '  <button class="exam-btn exam-btn--ghost" type="button" data-action="clear-filters">حذف فیلترها</button>',
             "</section>"
         ].join("");
+    }
+
+    function renderSessionDialog() {
+        if (state.layout.mediaViewer) {
+            return renderMediaViewerDialog();
+        }
+        if (state.layout.finalReviewOpen) {
+            return renderFinalReviewDialog();
+        }
+        if (state.layout.questionMapOpen) {
+            return renderQuestionMapDialog();
+        }
+        return "";
+    }
+
+    function renderMediaViewerDialog() {
+        var viewer = state.layout.mediaViewer;
+        var question = exam.questions[viewer.questionIndex];
+        var media = question && question.media[viewer.mediaIndex];
+        if (!media) {
+            state.layout.mediaViewer = null;
+            return "";
+        }
+        var transform = "scale(" + viewer.zoom + ") rotate(" + viewer.rotation + "deg)";
+        return [
+            '<div class="exam-dialog-backdrop exam-dialog-backdrop--media">',
+            '  <section class="exam-media-viewer" role="dialog" aria-modal="true" aria-labelledby="exam-media-title" data-session-dialog tabindex="-1">',
+            '    <header class="exam-media-viewer__head">',
+            '      <div><span>تصویر سؤال ' + escapeHtml(formatValue(viewer.questionIndex + 1)) + '</span><h2 id="exam-media-title">' + escapeHtml(media.caption || media.alt) + '</h2></div>',
+            '      <button type="button" data-action="close-media-viewer" aria-label="بستن نمایشگر تصویر">×</button>',
+            '    </header>',
+            '    <div class="exam-media-viewer__canvas"><img src="' + escapeHtml(media.src) + '" alt="' + escapeHtml(media.alt) + '" style="transform:' + escapeHtml(transform) + '"></div>',
+            '    <footer class="exam-media-viewer__tools" aria-label="ابزار تصویر">',
+            '      <button type="button" data-action="media-zoom-out"' + (viewer.zoom <= 0.75 ? " disabled" : "") + '>− کوچک‌نمایی</button>',
+            '      <output>' + escapeHtml(formatValue(Math.round(viewer.zoom * 100)) + "٪") + '</output>',
+            '      <button type="button" data-action="media-zoom-in"' + (viewer.zoom >= 3 ? " disabled" : "") + '>+ بزرگ‌نمایی</button>',
+            '      <button type="button" data-action="media-rotate">چرخش ۹۰°</button>',
+            '      <button type="button" data-action="media-reset">بازنشانی</button>',
+            '    </footer>',
+            '  </section>',
+            '</div>'
+        ].join("");
+    }
+
+    function renderQuestionMapDialog() {
+        var answered = state.mode === "assessment" ? assessmentDraftTotals().answered : learningTotals().answered;
+        return [
+            '<div class="exam-dialog-backdrop">',
+            '  <section class="exam-session-dialog exam-session-dialog--map" role="dialog" aria-modal="true" aria-labelledby="exam-map-title" data-session-dialog tabindex="-1">',
+            '    <header class="exam-session-dialog__head">',
+            '      <div><span class="exam-session-dialog__eyebrow">نمای کلی</span><h2 id="exam-map-title">نقشه سؤال‌ها</h2></div>',
+            '      <button class="exam-session-dialog__close" type="button" data-action="close-session-dialog" aria-label="بستن نقشه سؤال‌ها">×</button>',
+            "    </header>",
+            '    <p class="exam-session-dialog__copy">' + escapeHtml(formatValue(answered) + " پاسخ از " + formatValue(exam.questions.length) + " سؤال") + "</p>",
+            '    <div class="exam-map-legend" aria-label="راهنمای وضعیت سؤال‌ها">',
+            '      <span><i class="is-answered"></i>پاسخ‌داده</span>',
+            '      <span><i class="is-unanswered"></i>بی‌پاسخ</span>',
+            '      <span><i class="is-flagged"></i>نشان‌دار</span>',
+            "    </div>",
+            '    <div class="exam-question-map">' + exam.questions.map(function (_question, index) {
+                return renderMapQuestionButton(index);
+            }).join("") + "</div>",
+            '    <footer class="exam-session-dialog__actions">',
+            renderFirstUnansweredDialogButton(),
+            '      <button class="exam-btn exam-btn--primary" type="button" data-action="close-session-dialog">ادامه آزمون</button>',
+            "    </footer>",
+            "  </section>",
+            "</div>"
+        ].join("");
+    }
+
+    function renderFinalReviewDialog() {
+        var totals = assessmentDraftTotals();
+        return [
+            '<div class="exam-dialog-backdrop">',
+            '  <section class="exam-session-dialog exam-session-dialog--review" role="dialog" aria-modal="true" aria-labelledby="exam-review-title" data-session-dialog tabindex="-1">',
+            '    <header class="exam-session-dialog__head">',
+            '      <div><span class="exam-session-dialog__eyebrow">پیش از ثبت نهایی</span><h2 id="exam-review-title">مرور وضعیت آزمون</h2></div>',
+            '      <button class="exam-session-dialog__close" type="button" data-action="close-session-dialog" aria-label="بازگشت به آزمون">×</button>',
+            "    </header>",
+            timerExpiryHandled ? '<div class="exam-review-alert">زمان تعیین‌شده آزمون به پایان رسیده است. پاسخ‌های فعلی را مرور و ثبت کن.</div>' : "",
+            '    <div class="exam-review-summary">',
+            renderReviewMetric("پاسخ‌داده", totals.answered, "answered"),
+            renderReviewMetric("بی‌پاسخ", totals.unanswered, totals.unanswered ? "unanswered" : "complete"),
+            renderReviewMetric("نشان‌دار", state.flags.size, "flagged"),
+            renderReviewMetric(exam.durationMinutes > 0 ? "زمان" : "مدت", timerValue(), "time", true),
+            "    </div>",
+            '    <div class="exam-question-map exam-question-map--review">' + exam.questions.map(function (_question, index) {
+                return renderMapQuestionButton(index);
+            }).join("") + "</div>",
+            '    <p class="exam-session-dialog__note">بعد از ثبت نهایی، پاسخ‌ها قفل می‌شوند و کارنامه نمایش داده خواهد شد.</p>',
+            '    <footer class="exam-session-dialog__actions">',
+            totals.unanswered > 0
+                ? '      <button class="exam-btn exam-btn--ghost" type="button" data-action="review-first-unanswered">رفتن به اولین بی‌پاسخ</button>'
+                : '      <button class="exam-btn exam-btn--ghost" type="button" data-action="close-session-dialog">بازگشت و بررسی</button>',
+            '      <button class="exam-btn exam-btn--danger exam-btn--submit-final" type="button" data-action="confirm-submit-assessment"' + (state.assessment.submitting || state.assessment.queued ? " disabled" : "") + ">ثبت نهایی آزمون</button>",
+            "    </footer>",
+            "  </section>",
+            "</div>"
+        ].join("");
+    }
+
+    function renderReviewMetric(label, value, tone, isText) {
+        return [
+            '<article class="exam-review-metric is-' + escapeHtml(tone || "neutral") + '">',
+            '  <span>' + escapeHtml(label) + "</span>",
+            '  <strong>' + escapeHtml(isText ? String(value) : formatValue(value)) + "</strong>",
+            "</article>"
+        ].join("");
+    }
+
+    function renderMapQuestionButton(index) {
+        var stateName = questionMapState(index);
+        var currentIndex = state.mode === "learning"
+            ? state.learning.currentQuestionIndex
+            : state.assessment.currentQuestionIndex;
+        var className = "exam-map-question is-" + stateName;
+        if (isFlagged(index)) {
+            className += " is-flagged";
+        }
+        if (index === currentIndex) {
+            className += " is-current";
+        }
+        return '<button class="' + escapeHtml(className) + '" type="button" data-action="map-jump-question" data-question-index="' + escapeHtml(String(index)) + '" aria-label="سؤال ' + escapeHtml(formatValue(index + 1) + "، " + questionMapStateLabel(stateName) + (isFlagged(index) ? "، نشان‌دار" : "")) + '">' + escapeHtml(formatValue(index + 1)) + "</button>";
+    }
+
+    function renderFirstUnansweredDialogButton() {
+        var hasUnanswered = state.mode === "assessment"
+            ? assessmentDraftTotals().unanswered > 0
+            : learningTotals().unanswered > 0;
+        if (!hasUnanswered) {
+            return "";
+        }
+        return '      <button class="exam-btn exam-btn--ghost" type="button" data-action="review-first-unanswered">اولین سؤال بی‌پاسخ</button>';
+    }
+
+    function questionMapState(index) {
+        if (state.mode === "learning") {
+            return learningNavState(index) === "unanswered" ? "unanswered" : "answered";
+        }
+        return assessmentNavState(index) === "unanswered" ? "unanswered" : "answered";
+    }
+
+    function questionMapStateLabel(stateName) {
+        return stateName === "answered" ? "پاسخ‌داده‌شده" : "بی‌پاسخ";
     }
 
     function renderMetaChip(text, kind) {
@@ -1203,8 +1626,101 @@
             render();
             return;
         }
+        if (action === "open-question-map") {
+            state.layout.questionMapOpen = true;
+            state.layout.finalReviewOpen = false;
+            render();
+            return;
+        }
+        if (action === "open-question-media") {
+            openMediaViewer(
+                parseIndex(actionNode.getAttribute("data-question-index")),
+                parseIndex(actionNode.getAttribute("data-media-index"))
+            );
+            return;
+        }
+        if (action === "close-media-viewer") {
+            state.layout.mediaViewer = null;
+            render();
+            return;
+        }
+        if (action === "media-zoom-in" || action === "media-zoom-out" || action === "media-rotate" || action === "media-reset") {
+            updateMediaViewer(action);
+            return;
+        }
+        if (action === "close-session-dialog") {
+            closeSessionDialog();
+            return;
+        }
+        if (action === "leave-focus-mode") {
+            leaveFocusMode();
+            return;
+        }
+        if (action === "map-jump-question") {
+            jumpFromQuestionMap(parseIndex(actionNode.getAttribute("data-question-index")));
+            return;
+        }
+        if (action === "review-first-unanswered") {
+            jumpFromDialogToFirstUnanswered();
+            return;
+        }
+        if (action === "confirm-submit-assessment") {
+            performAssessmentSubmission();
+            return;
+        }
         if (action === "toggle-flag") {
             toggleFlag(parseIndex(actionNode.getAttribute("data-question-index")));
+            return;
+        }
+        if (action === "toggle-option-strike") {
+            toggleOptionStrike(
+                parseIndex(actionNode.getAttribute("data-question-index")),
+                parseIndex(actionNode.getAttribute("data-option-index"))
+            );
+            return;
+        }
+        if (action === "add-question-highlight") {
+            addPendingQuestionHighlight(parseIndex(actionNode.getAttribute("data-question-index")));
+            return;
+        }
+        if (action === "clear-question-highlights") {
+            clearQuestionHighlights(parseIndex(actionNode.getAttribute("data-question-index")));
+            return;
+        }
+        if (action === "toggle-mistake-notebook") {
+            toggleMistakeNotebook(parseIndex(actionNode.getAttribute("data-question-index")));
+            return;
+        }
+        if (action === "review-mistake-notebook") {
+            state.mode = "learning";
+            state.learning.filter = "mistakes";
+            state.learning.started = true;
+            ensureLearningIndex(learningVisibleIndexes());
+            persistLearningState();
+            render();
+            return;
+        }
+        if (action === "review-weak-topic") {
+            startWeakTopicReview(String(actionNode.getAttribute("data-topic") || ""));
+            return;
+        }
+        if (action === "build-custom-practice") {
+            buildCustomPractice();
+            return;
+        }
+        if (action === "clear-custom-practice") {
+            state.learning.customIndexes = null;
+            state.learning.customLabel = "";
+            state.learning.filter = "all";
+            persistLearningState();
+            render();
+            return;
+        }
+        if (action === "review-mistake-notebook-assessment") {
+            state.assessment.filter = "mistakes";
+            ensureAssessmentIndex(assessmentVisibleIndexes("mistakes"));
+            persistAssessmentState();
+            render();
             return;
         }
         if (action === "assessment-filter") {
@@ -1300,6 +1816,24 @@
         return;
     }
 
+    function handleInput(event) {
+        var noteNode = event.target && event.target.closest ? event.target.closest("[data-study-note]") : null;
+        if (!noteNode) {
+            return;
+        }
+        var questionIndex = parseIndex(noteNode.getAttribute("data-question-index"));
+        if (!isValidQuestionIndex(questionIndex)) {
+            return;
+        }
+        var note = String(noteNode.value || "").slice(0, 4000).trimStart();
+        if (note) {
+            state.study.notesByQuestion[String(questionIndex)] = note;
+        } else {
+            delete state.study.notesByQuestion[String(questionIndex)];
+        }
+        touchStudyState();
+    }
+
     function setMode(mode) {
         state.mode = mode;
         clearFeedback();
@@ -1316,15 +1850,63 @@
         state.mode = normalizedMode;
         clearFeedback();
         if (normalizedMode === "assessment") {
+            if (!state.assessment.started && assessmentDraftTotals().answered === 0) {
+                state.assessment.startedAt = new Date().toISOString();
+                timerExpiryHandled = false;
+            }
             state.assessment.started = true;
             persistAssessmentState();
         } else {
+            if (!state.learning.started && learningTotals().answered === 0) {
+                state.learning.startedAt = new Date().toISOString();
+            }
             state.learning.started = true;
             persistLearningState();
         }
         syncModeInUrl();
         touchExamActivity(normalizedMode);
         render();
+    }
+
+    function leaveFocusMode() {
+        closeSessionDialog(false);
+        if (state.mode === "assessment") {
+            state.assessment.started = false;
+            persistAssessmentState();
+        } else if (state.mode === "learning") {
+            state.learning.started = false;
+            persistLearningState();
+        }
+        render();
+    }
+
+    function closeSessionDialog(shouldRender) {
+        state.layout.questionMapOpen = false;
+        state.layout.finalReviewOpen = false;
+        state.layout.mediaViewer = null;
+        if (shouldRender !== false) {
+            render();
+        }
+    }
+
+    function jumpFromQuestionMap(questionIndex) {
+        closeSessionDialog(false);
+        if (state.mode === "learning") {
+            state.learning.filter = "all";
+            jumpToLearningQuestion(questionIndex);
+            return;
+        }
+        state.assessment.filter = "all";
+        jumpToAssessmentQuestion(questionIndex);
+    }
+
+    function jumpFromDialogToFirstUnanswered() {
+        closeSessionDialog(false);
+        if (state.mode === "learning") {
+            jumpLearningToFirstUnanswered();
+            return;
+        }
+        jumpAssessmentToFirstUnanswered();
     }
 
     function isModeStarted(mode) {
@@ -1351,7 +1933,7 @@
     }
 
     function selectAssessmentAnswer(questionIndex, optionIndex) {
-        if (state.assessment.report || !isValidQuestionIndex(questionIndex)) {
+        if (state.assessment.report || (timerExpiryHandled && exam.durationMinutes > 0) || !isValidQuestionIndex(questionIndex)) {
             return;
         }
 
@@ -1395,6 +1977,7 @@
 
         state.assessment.answers = createNullArray(exam.questions.length);
         state.assessment.startedAt = new Date().toISOString();
+        timerExpiryHandled = false;
         state.assessment.filter = "all";
         state.assessment.currentQuestionIndex = 0;
         state.assessment.started = true;
@@ -1408,15 +1991,18 @@
             return;
         }
 
-        var totals = assessmentDraftTotals();
-        if (totals.unanswered > 0) {
-            var confirmed = window.confirm("هنوز " + formatValue(totals.unanswered) + " سوال بی‌پاسخ مانده است. آزمون با همین وضعیت ثبت شود؟");
-            if (!confirmed) {
-                return;
-            }
+        state.layout.questionMapOpen = false;
+        state.layout.finalReviewOpen = true;
+        render();
+    }
+
+    function performAssessmentSubmission() {
+        if (!exam.viewerState.canPersist || state.assessment.submitting || state.assessment.queued || state.assessment.report) {
+            return;
         }
 
         state.assessment.submitting = true;
+        state.layout.finalReviewOpen = false;
         clearFeedback();
         render();
 
@@ -1448,6 +2034,13 @@
             }
 
             state.assessment.report = normalizeReport(payload.report, exam.questions);
+            state.attemptHistory = normalizeAttemptHistory(payload.report.attemptHistory || state.attemptHistory);
+            if (payload.report.studyState) {
+                state.study = mergeStudyStateAfterReport(state.study, payload.report.studyState);
+                persistStudyState();
+                state.studySync.queued = true;
+                scheduleStudySync();
+            }
             state.assessment.answers = state.assessment.report.answers.slice();
             state.assessment.filter = "all";
             state.assessment.submitting = false;
@@ -1484,6 +2077,7 @@
             state.assessment.report = null;
             state.assessment.answers = createNullArray(exam.questions.length);
             state.assessment.startedAt = new Date().toISOString();
+            timerExpiryHandled = false;
             state.assessment.filter = "all";
             state.assessment.currentQuestionIndex = 0;
             state.assessment.started = true;
@@ -1503,6 +2097,7 @@
 
         state.learning.answers = createNullArray(exam.questions.length);
         state.learning.revealed = createFalseArray(exam.questions.length);
+        state.learning.startedAt = new Date().toISOString();
         state.learning.currentQuestionIndex = 0;
         state.learning.filter = "all";
         state.learning.started = true;
@@ -1533,6 +2128,9 @@
         }
         if (filter === "flagged") {
             return isFlagged(questionIndex);
+        }
+        if (filter === "mistakes") {
+            return isMistakeQuestion(questionIndex);
         }
         if (filter === "answered") {
             return selectedIndex !== null;
@@ -1605,12 +2203,125 @@
     function learningVisibleIndexes() {
         var indexes = [];
         for (var index = 0; index < exam.questions.length; index++) {
+            if (Array.isArray(state.learning.customIndexes) && state.learning.customIndexes.indexOf(index) === -1) {
+                continue;
+            }
             if (state.learning.filter === "flagged" && !isFlagged(index)) {
+                continue;
+            }
+            if (state.learning.filter === "mistakes" && !isMistakeQuestion(index)) {
                 continue;
             }
             indexes.push(index);
         }
         return indexes;
+    }
+
+    function buildCustomPractice() {
+        var topic = readBuilderValue("custom-topic", "all");
+        var difficulty = readBuilderValue("custom-difficulty", "all");
+        var status = readBuilderValue("custom-status", "all");
+        var countNode = document.getElementById("custom-count");
+        var count = Math.max(1, Math.min(exam.questions.length, parseInt(countNode && countNode.value || "20", 10) || 20));
+        var indexes = exam.questions.map(function (_question, index) { return index; }).filter(function (index) {
+            var question = exam.questions[index];
+            if (topic !== "all" && question.topic !== topic) {
+                return false;
+            }
+            if (difficulty !== "all" && question.difficultyLabel !== difficulty) {
+                return false;
+            }
+            if (status === "mistakes" && !isMistakeQuestion(index)) {
+                return false;
+            }
+            if (status === "flagged" && !isFlagged(index)) {
+                return false;
+            }
+            if (status === "unseen" && (state.learning.answers[index] !== null || state.learning.revealed[index])) {
+                return false;
+            }
+            return true;
+        });
+        if (!indexes.length) {
+            state.feedback = { kind: "warning", text: "با این فیلترها سؤالی پیدا نشد؛ یکی از فیلترها را بازتر کن." };
+            render();
+            return;
+        }
+        shuffleIndexes(indexes);
+        state.learning.customIndexes = indexes.slice(0, count).sort(function (a, b) { return a - b; });
+        state.learning.customLabel = [topic !== "all" ? topic : "", difficulty !== "all" ? difficulty : "", status !== "all" ? builderStatusLabel(status) : ""].filter(Boolean).join(" • ") || "تمرین شخصی";
+        state.learning.filter = "all";
+        state.learning.currentQuestionIndex = state.learning.customIndexes[0];
+        state.learning.started = true;
+        state.mode = "learning";
+        state.feedback = { kind: "success", text: "جلسه تمرینی با " + formatValue(state.learning.customIndexes.length) + " سؤال ساخته شد." };
+        persistLearningState();
+        syncModeInUrl();
+        render();
+    }
+
+    function startWeakTopicReview(topic) {
+        var indexes = exam.questions.map(function (_question, index) { return index; }).filter(function (index) {
+            return exam.questions[index].topic === topic;
+        });
+        if (!indexes.length) {
+            return;
+        }
+        state.learning.customIndexes = indexes;
+        state.learning.customLabel = "مرور مبحث: " + topic;
+        state.learning.filter = "all";
+        state.learning.currentQuestionIndex = indexes[0];
+        state.learning.started = true;
+        state.mode = "learning";
+        persistLearningState();
+        syncModeInUrl();
+        render();
+    }
+
+    function readBuilderValue(id, fallback) {
+        var node = document.getElementById(id);
+        return normalizeText(node && node.value) || fallback;
+    }
+
+    function builderStatusLabel(status) {
+        return { unseen: "حل‌نشده", mistakes: "اشتباهات", flagged: "نشان‌دار" }[status] || "";
+    }
+
+    function shuffleIndexes(indexes) {
+        for (var index = indexes.length - 1; index > 0; index--) {
+            var target = Math.floor(Math.random() * (index + 1));
+            var value = indexes[index];
+            indexes[index] = indexes[target];
+            indexes[target] = value;
+        }
+    }
+
+    function openMediaViewer(questionIndex, mediaIndex) {
+        if (!isValidQuestionIndex(questionIndex) || !exam.questions[questionIndex].media[mediaIndex]) {
+            return;
+        }
+        state.layout.questionMapOpen = false;
+        state.layout.finalReviewOpen = false;
+        state.layout.mediaViewer = { questionIndex: questionIndex, mediaIndex: mediaIndex, zoom: 1, rotation: 0 };
+        render();
+    }
+
+    function updateMediaViewer(action) {
+        var viewer = state.layout.mediaViewer;
+        if (!viewer) {
+            return;
+        }
+        if (action === "media-zoom-in") {
+            viewer.zoom = Math.min(3, Math.round((viewer.zoom + 0.25) * 100) / 100);
+        } else if (action === "media-zoom-out") {
+            viewer.zoom = Math.max(0.75, Math.round((viewer.zoom - 0.25) * 100) / 100);
+        } else if (action === "media-rotate") {
+            viewer.rotation = (viewer.rotation + 90) % 360;
+        } else {
+            viewer.zoom = 1;
+            viewer.rotation = 0;
+        }
+        render();
     }
 
     function ensureLearningIndex(visibleIndexes) {
@@ -1655,10 +2366,16 @@
     }
 
     function jumpLearningToFirstUnanswered() {
-        var index = state.learning.answers.findIndex(function (answer) {
-            return answer === null;
+        var scope = Array.isArray(state.learning.customIndexes)
+            ? state.learning.customIndexes
+            : exam.questions.map(function (_question, questionIndex) { return questionIndex; });
+        var index = scope.find(function (questionIndex) {
+            var question = exam.questions[questionIndex];
+            return question.isEssay
+                ? !state.learning.revealed[questionIndex]
+                : state.learning.answers[questionIndex] === null;
         });
-        if (index < 0) {
+        if (!Number.isInteger(index)) {
             return;
         }
 
@@ -1666,6 +2383,206 @@
         state.learning.filter = "all";
         persistLearningState();
         render();
+    }
+
+    function isOptionStruck(questionIndex, optionIndex) {
+        var options = state.study.struckOptionsByQuestion[String(questionIndex)] || [];
+        return options.indexOf(optionIndex) >= 0;
+    }
+
+    function questionHighlights(questionIndex) {
+        return Array.isArray(state.study.highlightsByQuestion[String(questionIndex)])
+            ? state.study.highlightsByQuestion[String(questionIndex)]
+            : [];
+    }
+
+    function isMistakeQuestion(questionIndex) {
+        return state.study.mistakeQuestionIndexes.indexOf(questionIndex) >= 0;
+    }
+
+    function toggleOptionStrike(questionIndex, optionIndex) {
+        if (!isValidQuestionIndex(questionIndex) || optionIndex < 0 || optionIndex >= exam.questions[questionIndex].options.length) {
+            return;
+        }
+        var key = String(questionIndex);
+        var options = Array.isArray(state.study.struckOptionsByQuestion[key])
+            ? state.study.struckOptionsByQuestion[key].slice()
+            : [];
+        var position = options.indexOf(optionIndex);
+        if (position >= 0) {
+            options.splice(position, 1);
+        } else {
+            options.push(optionIndex);
+            options.sort(function (left, right) { return left - right; });
+        }
+        if (options.length) {
+            state.study.struckOptionsByQuestion[key] = options;
+        } else {
+            delete state.study.struckOptionsByQuestion[key];
+        }
+        touchStudyState();
+        render();
+    }
+
+    function toggleMistakeNotebook(questionIndex) {
+        if (!isValidQuestionIndex(questionIndex)) {
+            return;
+        }
+        var indexes = state.study.mistakeQuestionIndexes.slice();
+        var position = indexes.indexOf(questionIndex);
+        if (position >= 0) {
+            indexes.splice(position, 1);
+        } else {
+            indexes.push(questionIndex);
+            indexes.sort(function (left, right) { return left - right; });
+        }
+        state.study.mistakeQuestionIndexes = indexes;
+        touchStudyState();
+        render();
+    }
+
+    function captureQuestionSelection() {
+        var selection = window.getSelection ? window.getSelection() : null;
+        if (!selection || selection.rangeCount < 1 || selection.isCollapsed) {
+            return;
+        }
+        var range = selection.getRangeAt(0);
+        var anchor = range.commonAncestorContainer.nodeType === 1
+            ? range.commonAncestorContainer
+            : range.commonAncestorContainer.parentElement;
+        var questionNode = anchor && anchor.closest ? anchor.closest("[data-question-text]") : null;
+        if (!questionNode || !appRoot.contains(questionNode)) {
+            return;
+        }
+        var questionIndex = parseIndex(questionNode.getAttribute("data-question-text"));
+        if (!isValidQuestionIndex(questionIndex)) {
+            return;
+        }
+        var prefix = range.cloneRange();
+        prefix.selectNodeContents(questionNode);
+        prefix.setEnd(range.startContainer, range.startOffset);
+        var start = prefix.toString().length;
+        var selectedText = range.toString();
+        var end = start + selectedText.length;
+        if (!selectedText.trim() || end <= start) {
+            return;
+        }
+        state.pendingHighlight = {
+            questionIndex: questionIndex,
+            start: start,
+            end: end
+        };
+    }
+
+    function addPendingQuestionHighlight(questionIndex) {
+        var pending = state.pendingHighlight;
+        if (!pending || pending.questionIndex !== questionIndex || pending.end <= pending.start) {
+            setFeedback("neutral", "ابتدا بخشی از صورت سؤال را انتخاب کن.");
+            render();
+            return;
+        }
+        var key = String(questionIndex);
+        var ranges = questionHighlights(questionIndex).concat([{ start: pending.start, end: pending.end }]);
+        state.study.highlightsByQuestion[key] = mergeHighlightRanges(ranges, exam.questions[questionIndex].question.length);
+        state.pendingHighlight = null;
+        if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        }
+        clearFeedback();
+        touchStudyState();
+        render();
+    }
+
+    function clearQuestionHighlights(questionIndex) {
+        if (!isValidQuestionIndex(questionIndex)) {
+            return;
+        }
+        delete state.study.highlightsByQuestion[String(questionIndex)];
+        state.pendingHighlight = null;
+        touchStudyState();
+        render();
+    }
+
+    function mergeHighlightRanges(ranges, textLength) {
+        var normalized = (Array.isArray(ranges) ? ranges : []).map(function (item) {
+            return {
+                start: Math.max(0, Math.min(textLength, Number(item && item.start) || 0)),
+                end: Math.max(0, Math.min(textLength, Number(item && item.end) || 0))
+            };
+        }).filter(function (item) {
+            return item.end > item.start;
+        }).sort(function (left, right) {
+            return left.start - right.start;
+        });
+        var merged = [];
+        normalized.forEach(function (item) {
+            var previous = merged[merged.length - 1];
+            if (previous && item.start <= previous.end) {
+                previous.end = Math.max(previous.end, item.end);
+            } else {
+                merged.push(item);
+            }
+        });
+        return merged.slice(0, 20);
+    }
+
+    function touchStudyState() {
+        state.study.updatedAt = new Date().toISOString();
+        persistStudyState();
+        if (exam.viewerState.canPersist) {
+            scheduleStudySync();
+        }
+        updateFocusBarStatus();
+    }
+
+    function persistStudyState() {
+        try {
+            window.localStorage.setItem(studyDraftKey, JSON.stringify(state.study));
+        } catch (_error) {
+            return;
+        }
+    }
+
+    function scheduleStudySync() {
+        if (state.studySync.timer) {
+            window.clearTimeout(state.studySync.timer);
+        }
+        state.studySync.queued = true;
+        state.studySync.timer = window.setTimeout(function () {
+            state.studySync.timer = 0;
+            flushStudySync();
+        }, 650);
+    }
+
+    function flushStudySync() {
+        if (!exam.viewerState.canPersist || !state.studySync.queued || state.studySync.saving) {
+            return;
+        }
+        if (typeof navigator !== "undefined" && navigator.onLine === false) {
+            updateFocusBarStatus();
+            return;
+        }
+        state.studySync.saving = true;
+        state.studySync.queued = false;
+        updateFocusBarStatus();
+        apiPost("saveStudyState", {
+            course: exam.courseSlug,
+            exam: exam.slug,
+            studyState: JSON.stringify(state.study)
+        }).then(function (payload) {
+            if (!payload || !payload.success || !payload.studyState) {
+                throw new Error((payload && payload.error) || "ذخیره ابزارهای مطالعه انجام نشد.");
+            }
+            state.study = normalizeStudyState(payload.studyState, exam.questions.length);
+            state.studySync.saving = false;
+            persistStudyState();
+            updateFocusBarStatus();
+        }).catch(function (error) {
+            state.studySync.saving = false;
+            state.studySync.queued = true;
+            setFeedback("error", error && error.message ? error.message : "ذخیره ابزارهای مطالعه انجام نشد.");
+            updateFocusBarStatus();
+        });
     }
 
     function toggleFlag(questionIndex) {
@@ -1757,8 +2674,11 @@
             window.sessionStorage.setItem(learningDraftKey, JSON.stringify({
                 answers: state.learning.answers,
                 revealed: state.learning.revealed,
+                startedAt: state.learning.startedAt,
                 currentQuestionIndex: state.learning.currentQuestionIndex,
                 filter: state.learning.filter,
+                customIndexes: state.learning.customIndexes,
+                customLabel: state.learning.customLabel,
                 started: state.learning.started
             }));
         } catch (_error) {
@@ -1790,7 +2710,11 @@
 
     function learningTotals() {
         var answered = 0;
-        exam.questions.forEach(function (question, index) {
+        var scope = Array.isArray(state.learning.customIndexes)
+            ? state.learning.customIndexes
+            : exam.questions.map(function (_question, index) { return index; });
+        scope.forEach(function (index) {
+            var question = exam.questions[index];
             var isDone = question.isEssay ? state.learning.revealed[index] : state.learning.answers[index] !== null;
             if (isDone) {
                 answered++;
@@ -1799,8 +2723,14 @@
 
         return {
             answered: answered,
-            unanswered: exam.questions.length - answered
+            unanswered: scope.length - answered
         };
+    }
+
+    function learningScopeCount() {
+        return Array.isArray(state.learning.customIndexes)
+            ? state.learning.customIndexes.length
+            : exam.questions.length;
     }
 
     function assessmentDraftState(selectedIndex) {
@@ -1870,6 +2800,189 @@
             return "بدون کلید قطعی";
         }
         return selectedIndex === question.correctIndex ? "پاسخ درست" : "نیاز به مرور";
+    }
+
+    function handleDocumentKeydown(event) {
+        if (!event || event.key !== "Escape") {
+            return;
+        }
+        if (state.layout.questionMapOpen || state.layout.finalReviewOpen || state.layout.mediaViewer) {
+            event.preventDefault();
+            closeSessionDialog();
+        }
+    }
+
+    function syncFocusMode() {
+        var active = isFocusModeActive();
+        document.body.classList.toggle("exam-focus-mode", active);
+        document.body.classList.toggle("exam-dialog-open", !!(state.layout.questionMapOpen || state.layout.finalReviewOpen || state.layout.mediaViewer));
+    }
+
+    function isFocusModeActive() {
+        if (state.mode === "assessment") {
+            return !!state.assessment.started && !state.assessment.report;
+        }
+        return state.mode === "learning" && !!state.learning.started;
+    }
+
+    function scheduleDialogFocus() {
+        if (!state.layout.questionMapOpen && !state.layout.finalReviewOpen && !state.layout.mediaViewer) {
+            return;
+        }
+        window.requestAnimationFrame(function () {
+            var dialog = appRoot.querySelector("[data-session-dialog]");
+            if (dialog && typeof dialog.focus === "function") {
+                dialog.focus({ preventScroll: true });
+            }
+        });
+    }
+
+    function captureFocusSnapshot() {
+        var active = document.activeElement;
+        if (!active || !appRoot.contains(active) || !active.getAttribute) {
+            return null;
+        }
+        var action = normalizeText(active.getAttribute("data-action"));
+        if (!action) {
+            return null;
+        }
+        return {
+            action: action,
+            questionIndex: normalizeText(active.getAttribute("data-question-index")),
+            optionIndex: normalizeText(active.getAttribute("data-option-index")),
+            filter: normalizeText(active.getAttribute("data-filter"))
+        };
+    }
+
+    function restoreFocusSnapshot(snapshot) {
+        if (!snapshot || state.layout.questionMapOpen || state.layout.finalReviewOpen) {
+            return;
+        }
+        window.requestAnimationFrame(function () {
+            var candidates = appRoot.querySelectorAll('[data-action="' + snapshot.action + '"]');
+            for (var index = 0; index < candidates.length; index++) {
+                var candidate = candidates[index];
+                if (normalizeText(candidate.getAttribute("data-question-index")) !== snapshot.questionIndex
+                    || normalizeText(candidate.getAttribute("data-option-index")) !== snapshot.optionIndex
+                    || normalizeText(candidate.getAttribute("data-filter")) !== snapshot.filter) {
+                    continue;
+                }
+                if (!candidate.disabled && typeof candidate.focus === "function") {
+                    candidate.focus({ preventScroll: true });
+                }
+                return;
+            }
+        });
+    }
+
+    function syncTimerInterval() {
+        if (!isFocusModeActive()) {
+            if (timerInterval) {
+                window.clearInterval(timerInterval);
+                timerInterval = 0;
+            }
+            return;
+        }
+
+        updateTimerText();
+        if (!timerInterval) {
+            timerInterval = window.setInterval(updateTimerText, 1000);
+        }
+    }
+
+    function updateTimerText() {
+        var timerNode = appRoot.querySelector("[data-exam-timer]");
+        if (timerNode) {
+            timerNode.textContent = timerLabel();
+            timerNode.classList.toggle("is-warning", isTimedAssessment() && timerRemainingSeconds() <= 300);
+            timerNode.classList.toggle("is-danger", isTimedAssessment() && timerRemainingSeconds() <= 60);
+        }
+        updateFocusBarStatus();
+
+        if (state.mode === "assessment" && exam.durationMinutes > 0 && timerRemainingSeconds() <= 0) {
+            handleTimerExpiry();
+        }
+    }
+
+    function updateFocusBarStatus() {
+        var statusNode = appRoot.querySelector("[data-exam-save-status]");
+        if (!statusNode) {
+            return;
+        }
+        var status = focusSaveStatus();
+        statusNode.textContent = status.label;
+        statusNode.className = "exam-focus-bar__save is-" + status.tone;
+    }
+
+    function focusSaveStatus() {
+        if (state.assessment && state.assessment.queued) {
+            return { label: "در صف آفلاین", tone: "warning" };
+        }
+        if (state.flagsSync.saving || state.studySync.saving) {
+            return { label: "در حال ذخیره", tone: "saving" };
+        }
+        if (typeof navigator !== "undefined" && navigator.onLine === false) {
+            return { label: "آفلاین؛ ذخیره روی دستگاه", tone: "warning" };
+        }
+        if (state.studySync.queued) {
+            return { label: "در انتظار همگام‌سازی", tone: "warning" };
+        }
+        return { label: "ذخیره شد", tone: "saved" };
+    }
+
+    function timerElapsedSeconds() {
+        var sourceStartedAt = state.mode === "learning" ? state.learning.startedAt : state.assessment.startedAt;
+        var startedAt = Date.parse(sourceStartedAt || "");
+        if (!Number.isFinite(startedAt)) {
+            return 0;
+        }
+        return Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+    }
+
+    function timerRemainingSeconds() {
+        if (exam.durationMinutes <= 0) {
+            return 0;
+        }
+        return Math.max(0, Math.round(exam.durationMinutes * 60) - timerElapsedSeconds());
+    }
+
+    function timerValue() {
+        return formatClock(isTimedAssessment() ? timerRemainingSeconds() : timerElapsedSeconds());
+    }
+
+    function timerLabel() {
+        return (isTimedAssessment() ? "باقی‌مانده " : "سپری‌شده ") + timerValue();
+    }
+
+    function isTimedAssessment() {
+        return state.mode === "assessment" && exam.durationMinutes > 0;
+    }
+
+    function formatClock(totalSeconds) {
+        var seconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+        var hours = Math.floor(seconds / 3600);
+        var minutes = Math.floor((seconds % 3600) / 60);
+        var remainder = seconds % 60;
+        var parts = hours > 0 ? [hours, minutes, remainder] : [minutes, remainder];
+        return parts.map(function (part) {
+            return String(part).padStart(2, "0").replace(/[0-9]/g, function (digit) {
+                return "۰۱۲۳۴۵۶۷۸۹"[Number(digit)];
+            });
+        }).join(":");
+    }
+
+    function handleTimerExpiry() {
+        if (timerExpiryHandled || state.assessment.report || state.assessment.submitting) {
+            return;
+        }
+        timerExpiryHandled = true;
+        if (exam.autoSubmitOnExpiry) {
+            performAssessmentSubmission();
+            return;
+        }
+        state.layout.questionMapOpen = false;
+        state.layout.finalReviewOpen = true;
+        render();
     }
 
     function scheduleLayoutSync() {
@@ -2065,6 +3178,13 @@
             return false;
         }
         state.assessment.report = normalizeReport(payload.report, exam.questions);
+        state.attemptHistory = normalizeAttemptHistory(payload.report.attemptHistory || state.attemptHistory);
+        if (payload.report.studyState) {
+            state.study = mergeStudyStateAfterReport(state.study, payload.report.studyState);
+            persistStudyState();
+            state.studySync.queued = true;
+            scheduleStudySync();
+        }
         state.assessment.answers = state.assessment.report.answers.slice();
         state.assessment.filter = "all";
         state.assessment.submitting = false;
@@ -2143,13 +3263,17 @@
             eyebrow: normalizeText(data.eyebrow) || "آزمون",
             title: normalizeText(data.title) || "آزمون",
             subtitle: normalizeText(data.subtitle) || "پیش از شروع، حالت دلخواهت را انتخاب کن.",
+            durationMinutes: Math.min(720, maxNumber(data.durationMinutes || data.timeLimitMinutes, 0)),
+            autoSubmitOnExpiry: Boolean(data.autoSubmitOnExpiry),
             modes: Array.isArray(data.modes) ? data.modes : [],
             questions: normalizedQuestions,
             ownerInsights: normalizeOwnerInsights(data.ownerInsights),
             viewerState: {
                 canPersist: Boolean(viewerState.canPersist),
                 flaggedQuestionIndexes: normalizeFlagIndexes(viewerState.flaggedQuestionIndexes, normalizedQuestions.length),
-                assessmentReport: report
+                assessmentReport: report,
+                attemptHistory: normalizeAttemptHistory(viewerState.attemptHistory, normalizedQuestions.length),
+                studyState: normalizeStudyState(viewerState.studyState, normalizedQuestions)
             }
         };
     }
@@ -2207,11 +3331,19 @@
         var isEssay = options.length === 0;
         var correctIndex = isEssay ? null : clampCorrectIndex(item.correctIndex, options.length);
 
+        var difficulty = normalizeQuestionDifficulty(item.difficulty || item.level || "");
         return {
             question: stripQuestionNumber(normalizeText(item.question || item.text || "")),
             options: options,
             correctIndex: correctIndex,
             explanation: normalizeText(item.explanation || ""),
+            topic: normalizeText(item.topic || item.subject || item.category || ""),
+            difficultyKey: difficulty.key,
+            difficultyLabel: difficulty.label,
+            tags: normalizeQuestionTags(item.tags),
+            caseContext: normalizeCaseContext(item.case || item.caseContext || item.clinicalCase),
+            media: normalizeQuestionMedia(item.media || item.images || item.image),
+            optionRationales: normalizeOptionRationales(item, options),
             isEssay: isEssay,
             answerSummary: normalizeText(item.answerSummary || ""),
             answerDetail: normalizeText(item.answerDetail || ""),
@@ -2220,6 +3352,73 @@
             answerResolved: isEssay ? true : hasResolvedCorrectIndex(correctIndex),
             useCompactOptions: shouldUseCompactOptions(options)
         };
+    }
+
+    function normalizeQuestionDifficulty(value) {
+        var raw = normalizeText(value).toLowerCase();
+        var map = {
+            "1": { key: "easy", label: "آسان" }, easy: { key: "easy", label: "آسان" }, "آسان": { key: "easy", label: "آسان" },
+            "2": { key: "medium", label: "متوسط" }, "3": { key: "medium", label: "متوسط" }, medium: { key: "medium", label: "متوسط" }, "متوسط": { key: "medium", label: "متوسط" },
+            "4": { key: "hard", label: "سخت" }, "5": { key: "hard", label: "سخت" }, hard: { key: "hard", label: "سخت" }, "سخت": { key: "hard", label: "سخت" }
+        };
+        return map[raw] || { key: "", label: "" };
+    }
+
+    function normalizeQuestionTags(value) {
+        return (Array.isArray(value) ? value : []).map(normalizeText).filter(Boolean).slice(0, 12);
+    }
+
+    function normalizeCaseContext(value) {
+        if (!isObject(value)) {
+            return null;
+        }
+        var factsSource = Array.isArray(value.facts) ? value.facts : (Array.isArray(value.sections) ? value.sections : []);
+        var facts = factsSource.map(function (fact) {
+            if (!isObject(fact)) {
+                return null;
+            }
+            var label = normalizeText(fact.label || fact.title);
+            var factValue = normalizeText(fact.value || fact.text);
+            return label && factValue ? { label: label, value: factValue } : null;
+        }).filter(Boolean).slice(0, 12);
+        var result = {
+            title: normalizeText(value.title || value.label),
+            summary: normalizeText(value.summary || value.description || value.patient),
+            alert: normalizeText(value.alert || value.warning),
+            facts: facts
+        };
+        return result.title || result.summary || result.alert || result.facts.length ? result : null;
+    }
+
+    function normalizeQuestionMedia(value) {
+        var list = Array.isArray(value) ? value : (value ? [value] : []);
+        return list.map(function (item, index) {
+            var raw = typeof item === "string" ? { src: item } : item;
+            if (!isObject(raw)) {
+                return null;
+            }
+            var src = normalizeSafeMediaUrl(raw.src || raw.url || raw.path);
+            if (!src) {
+                return null;
+            }
+            return {
+                src: src,
+                alt: normalizeText(raw.alt) || "تصویر بالینی سؤال " + formatValue(index + 1),
+                caption: normalizeText(raw.caption || raw.title),
+                kind: normalizeText(raw.kind || raw.type || "image")
+            };
+        }).filter(Boolean).slice(0, 8);
+    }
+
+    function normalizeSafeMediaUrl(value) {
+        var url = normalizeText(value);
+        if (!url || /^(?:javascript|data|vbscript):/iu.test(url)) {
+            return "";
+        }
+        if (url.charAt(0) === "/" || /^https:\/\//iu.test(url)) {
+            return url;
+        }
+        return "";
     }
 
     function normalizeAnswerMeta(items) {
@@ -2257,6 +3456,7 @@
 
         var totalQuestions = Array.isArray(questions) ? questions.length : 0;
         return {
+            attemptId: normalizeText(rawReport.attemptId),
             answers: clampAnswers(Array.isArray(rawReport.answers) ? rawReport.answers : createNullArray(totalQuestions), Array.isArray(questions) ? questions : []),
             totalQuestions: maxNumber(rawReport.totalQuestions, totalQuestions),
             correct: maxNumber(rawReport.correct, 0),
@@ -2272,8 +3472,154 @@
             overallCompletedExams: maxNumber(rawReport.overallCompletedExams, 0),
             overallAveragePercent: rawReport.overallAveragePercent === null || rawReport.overallAveragePercent === undefined
                 ? null
-                : clampPercent(rawReport.overallAveragePercent)
+                : clampPercent(rawReport.overallAveragePercent),
+            topicBreakdown: normalizeTopicBreakdown(rawReport.topicBreakdown),
+            mistakeQuestionIndexes: normalizeFlagIndexes(rawReport.mistakeQuestionIndexes, totalQuestions)
         };
+    }
+
+    function normalizeOptionRationales(item, options) {
+        var raw = item.optionRationales || item.distractorRationales || item.optionExplanations || [];
+        var rationales = options.map(function (_option, index) {
+            if (Array.isArray(raw)) {
+                return normalizeText(raw[index] || "");
+            }
+            if (isObject(raw)) {
+                return normalizeText(raw[index] || raw[String(index)] || raw[optionLetter(index)] || "");
+            }
+            return "";
+        });
+        if (rationales.some(Boolean)) {
+            return rationales;
+        }
+        var explanation = normalizeText(item.explanation || "");
+        options.forEach(function (_option, index) {
+            var letter = optionLetter(index);
+            var pattern = new RegExp("(?:رد\\s*(?:گزینه\\s*)?" + letter + "|گزینه\\s*" + letter + ")\\s*[:：\\-]\\s*([\\s\\S]*?)(?=(?:رد\\s*(?:گزینه\\s*)?[الفبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی]|گزینه\\s*[الفبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهی])\\s*[:：\\-]|$)", "u");
+            var match = explanation.match(pattern);
+            if (match && match[1]) {
+                rationales[index] = normalizeText(match[1]);
+            }
+        });
+        return rationales;
+    }
+
+    function normalizeTopicBreakdown(items) {
+        if (!Array.isArray(items)) {
+            return [];
+        }
+        return items.map(function (item) {
+            if (!isObject(item)) {
+                return null;
+            }
+            return {
+                label: normalizeText(item.label || item.topic || "مبحث"),
+                total: maxNumber(item.total, 0),
+                correct: maxNumber(item.correct, 0),
+                wrong: maxNumber(item.wrong, 0),
+                unanswered: maxNumber(item.unanswered, 0),
+                percent: clampPercent(item.percent)
+            };
+        }).filter(Boolean).slice(0, 80);
+    }
+
+    function normalizeAttemptHistory(items, totalQuestions) {
+        if (!Array.isArray(items)) {
+            return [];
+        }
+        var questionCount = Number.isFinite(Number(totalQuestions))
+            ? Math.max(0, Number(totalQuestions))
+            : (exam && Array.isArray(exam.questions) ? exam.questions.length : 0);
+        return items.map(function (item) {
+            if (!isObject(item)) {
+                return null;
+            }
+            return {
+                attemptId: normalizeText(item.attemptId),
+                totalQuestions: maxNumber(item.totalQuestions, 0),
+                correct: maxNumber(item.correct, 0),
+                wrong: maxNumber(item.wrong, 0),
+                unanswered: maxNumber(item.unanswered, 0),
+                percent: clampPercent(item.percent),
+                startedAt: normalizeText(item.startedAt),
+                submittedAt: normalizeText(item.submittedAt),
+                topicBreakdown: normalizeTopicBreakdown(item.topicBreakdown),
+                mistakeQuestionIndexes: normalizeFlagIndexes(item.mistakeQuestionIndexes, questionCount)
+            };
+        }).filter(Boolean).slice(0, 20);
+    }
+
+    function normalizeStudyState(rawState, questionsOrCount) {
+        var raw = isObject(rawState) ? rawState : {};
+        var questionList = Array.isArray(questionsOrCount)
+            ? questionsOrCount
+            : (exam && Array.isArray(exam.questions) ? exam.questions : []);
+        var limit = Array.isArray(questionsOrCount)
+            ? questionsOrCount.length
+            : Math.max(0, Number(questionsOrCount) || questionList.length);
+        var normalized = {
+            notesByQuestion: {},
+            struckOptionsByQuestion: {},
+            highlightsByQuestion: {},
+            mistakeQuestionIndexes: normalizeFlagIndexes(raw.mistakeQuestionIndexes, limit),
+            updatedAt: normalizeText(raw.updatedAt) || new Date(0).toISOString()
+        };
+        ["notesByQuestion", "struckOptionsByQuestion", "highlightsByQuestion"].forEach(function (mapKey) {
+            var source = isObject(raw[mapKey]) ? raw[mapKey] : {};
+            Object.keys(source).forEach(function (key) {
+                var index = parseIndex(key);
+                if (index < 0 || index >= limit) {
+                    return;
+                }
+                if (mapKey === "notesByQuestion") {
+                    var note = normalizeText(source[key]).slice(0, 4000);
+                    if (note) {
+                        normalized[mapKey][String(index)] = note;
+                    }
+                    return;
+                }
+                if (mapKey === "struckOptionsByQuestion") {
+                    var options = Array.isArray(source[key]) ? source[key].map(Number).filter(function (option) {
+                        var question = questionList[index] || (exam && exam.questions ? exam.questions[index] : null);
+                        return Number.isInteger(option) && option >= 0 && question && option < question.options.length;
+                    }) : [];
+                    if (options.length) {
+                        normalized[mapKey][String(index)] = Array.from(new Set(options)).sort(function (left, right) { return left - right; });
+                    }
+                    return;
+                }
+                var targetQuestion = questionList[index] || (exam && exam.questions ? exam.questions[index] : null);
+                var ranges = mergeHighlightRanges(source[key], targetQuestion ? targetQuestion.question.length : 0);
+                if (ranges.length) {
+                    normalized[mapKey][String(index)] = ranges;
+                }
+            });
+        });
+        return normalized;
+    }
+
+    function restoreStudyState(key, serverState, totalQuestions) {
+        var server = normalizeStudyState(serverState, totalQuestions);
+        try {
+            var local = normalizeStudyState(JSON.parse(window.localStorage.getItem(key) || "null"), totalQuestions);
+            return Date.parse(local.updatedAt || "") > Date.parse(server.updatedAt || "") ? local : server;
+        } catch (_error) {
+            return server;
+        }
+    }
+
+    function mergeStudyStateAfterReport(localState, serverState) {
+        var local = normalizeStudyState(localState, exam.questions.length);
+        var server = normalizeStudyState(serverState, exam.questions.length);
+        return normalizeStudyState({
+            notesByQuestion: local.notesByQuestion,
+            struckOptionsByQuestion: local.struckOptionsByQuestion,
+            highlightsByQuestion: local.highlightsByQuestion,
+            mistakeQuestionIndexes: Array.from(new Set(
+                local.mistakeQuestionIndexes.concat(server.mistakeQuestionIndexes)
+            )).sort(function (left, right) { return left - right; }),
+            updatedAt: new Date().toISOString()
+        }, exam.questions.length);
     }
 
     function restoreAssessmentState(key, totalQuestions, report) {
@@ -2312,8 +3658,11 @@
         var empty = {
             answers: createNullArray(totalQuestions),
             revealed: createFalseArray(totalQuestions),
+            startedAt: new Date().toISOString(),
             currentQuestionIndex: 0,
             filter: "all",
+            customIndexes: null,
+            customLabel: "",
             started: false
         };
 
@@ -2325,8 +3674,17 @@
 
             empty.answers = clampAnswers(Array.isArray(saved.answers) ? saved.answers : empty.answers, exam.questions);
             empty.revealed = clampRevealed(Array.isArray(saved.revealed) ? saved.revealed : empty.revealed, totalQuestions);
+            empty.startedAt = normalizeText(saved.startedAt) || empty.startedAt;
             empty.currentQuestionIndex = clampIndex(saved.currentQuestionIndex, totalQuestions);
             empty.filter = normalizeLearningFilter(saved.filter);
+            empty.customIndexes = Array.isArray(saved.customIndexes)
+                ? normalizeFlagIndexes(saved.customIndexes, totalQuestions)
+                : null;
+            empty.customLabel = normalizeText(saved.customLabel).slice(0, 160);
+            if (Array.isArray(empty.customIndexes) && !empty.customIndexes.length) {
+                empty.customIndexes = null;
+                empty.customLabel = "";
+            }
             empty.started = Boolean(saved.started);
         } catch (_error) {
             return empty;
@@ -2392,11 +3750,12 @@
 
     function normalizeAssessmentFilter(value) {
         var filter = String(value || "all");
-        return ["all", "answered", "unanswered", "flagged", "correct", "wrong"].indexOf(filter) >= 0 ? filter : "all";
+        return ["all", "answered", "unanswered", "flagged", "mistakes", "correct", "wrong"].indexOf(filter) >= 0 ? filter : "all";
     }
 
     function normalizeLearningFilter(value) {
-        return String(value || "all") === "flagged" ? "flagged" : "all";
+        var filter = String(value || "all");
+        return ["all", "flagged", "mistakes"].indexOf(filter) >= 0 ? filter : "all";
     }
 
     function normalizeMode(value) {
@@ -2448,6 +3807,27 @@
                 return bidiAwareHtml(part);
             })
             .join("");
+    }
+
+    function richTextWithHighlights(text, ranges) {
+        var source = String(text || "");
+        var normalizedRanges = mergeHighlightRanges(ranges, source.length);
+        if (!normalizedRanges.length) {
+            return richTextHtml(source);
+        }
+        var parts = [];
+        var cursor = 0;
+        normalizedRanges.forEach(function (range) {
+            if (range.start > cursor) {
+                parts.push(richTextHtml(source.slice(cursor, range.start)));
+            }
+            parts.push('<mark class="exam-question-highlight">' + richTextHtml(source.slice(range.start, range.end)) + "</mark>");
+            cursor = range.end;
+        });
+        if (cursor < source.length) {
+            parts.push(richTextHtml(source.slice(cursor)));
+        }
+        return parts.join("");
     }
 
     function shouldUseCompactOptions(options) {
@@ -2503,6 +3883,20 @@
         var numeric = clampPercent(value);
         var hasFraction = Math.abs(numeric - Math.round(numeric)) > 0.001;
         return numeric.toLocaleString("fa-IR", {
+            minimumFractionDigits: hasFraction ? 1 : 0,
+            maximumFractionDigits: 1
+        }) + "٪";
+    }
+
+    function formatSignedPercent(value) {
+        var numeric = Number(value);
+        if (!Number.isFinite(numeric)) {
+            numeric = 0;
+        }
+        var rounded = Math.round(numeric * 10) / 10;
+        var absolute = Math.abs(rounded);
+        var hasFraction = Math.abs(absolute - Math.round(absolute)) > 0.001;
+        return (rounded > 0 ? "+" : (rounded < 0 ? "−" : "")) + absolute.toLocaleString("fa-IR", {
             minimumFractionDigits: hasFraction ? 1 : 0,
             maximumFractionDigits: 1
         }) + "٪";

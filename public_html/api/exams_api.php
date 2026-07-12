@@ -711,6 +711,113 @@ function dent_exams_api_score_answers(array $questions, array $answers): array
     ];
 }
 
+function dent_exams_api_question_topic(array $question, array $exam): string
+{
+    $candidates = [
+        $question['topic'] ?? '',
+        $question['subject'] ?? '',
+        $question['category'] ?? '',
+        $exam['topic'] ?? '',
+    ];
+    $tags = $question['tags'] ?? [];
+    if (is_array($tags) && isset($tags[0])) {
+        $candidates[] = $tags[0];
+    }
+    foreach ($candidates as $candidate) {
+        $label = dent_clean_text((string) $candidate, 160);
+        if ($label !== '') {
+            return $label;
+        }
+    }
+    return 'کل آزمون';
+}
+
+function dent_exams_api_topic_breakdown(array $exam, array $questions, array $answers): array
+{
+    $rows = [];
+    foreach ($questions as $index => $question) {
+        if (!is_array($question)) {
+            continue;
+        }
+        $options = is_array($question['options'] ?? null) ? $question['options'] : [];
+        $correctIndex = $question['correctIndex'] ?? null;
+        if (!is_int($correctIndex) || $correctIndex < 0 || $correctIndex >= count($options)) {
+            continue;
+        }
+        $label = dent_exams_api_question_topic($question, $exam);
+        if (!isset($rows[$label])) {
+            $rows[$label] = [
+                'label' => $label,
+                'total' => 0,
+                'correct' => 0,
+                'wrong' => 0,
+                'unanswered' => 0,
+                'percent' => 0.0,
+            ];
+        }
+        $rows[$label]['total']++;
+        $selected = $answers[$index] ?? null;
+        if (!is_int($selected)) {
+            $rows[$label]['unanswered']++;
+        } elseif ($selected === $correctIndex) {
+            $rows[$label]['correct']++;
+        } else {
+            $rows[$label]['wrong']++;
+        }
+    }
+
+    foreach ($rows as &$row) {
+        $row['percent'] = $row['total'] > 0
+            ? round(($row['correct'] / $row['total']) * 100, 1)
+            : 0.0;
+    }
+    unset($row);
+    return dent_exams_normalize_topic_breakdown(array_values($rows));
+}
+
+function dent_exams_api_mistake_indexes(array $questions, array $answers): array
+{
+    $indexes = [];
+    foreach ($questions as $index => $question) {
+        if (!is_array($question)) {
+            continue;
+        }
+        $options = is_array($question['options'] ?? null) ? $question['options'] : [];
+        $correctIndex = $question['correctIndex'] ?? null;
+        $selected = $answers[$index] ?? null;
+        if (!is_int($correctIndex) || $correctIndex < 0 || $correctIndex >= count($options) || !is_int($selected)) {
+            continue;
+        }
+        if ($selected !== $correctIndex) {
+            $indexes[] = (int) $index;
+        }
+    }
+    return dent_exams_normalize_question_index_list($indexes);
+}
+
+function dent_exams_api_attempt_history_payload(array $attempts): array
+{
+    $rows = [];
+    foreach (array_reverse(dent_exams_normalize_attempt_history($attempts)) as $attempt) {
+        $rows[] = [
+            'attemptId' => (string) ($attempt['attemptId'] ?? ''),
+            'totalQuestions' => max(0, (int) ($attempt['totalQuestions'] ?? 0)),
+            'correct' => max(0, (int) ($attempt['correct'] ?? 0)),
+            'wrong' => max(0, (int) ($attempt['wrong'] ?? 0)),
+            'unanswered' => max(0, (int) ($attempt['unanswered'] ?? 0)),
+            'percent' => dent_exams_normalize_percent($attempt['percent'] ?? 0),
+            'startedAt' => (string) ($attempt['startedAt'] ?? ''),
+            'submittedAt' => (string) ($attempt['submittedAt'] ?? ''),
+            'topicBreakdown' => dent_exams_normalize_topic_breakdown($attempt['topicBreakdown'] ?? []),
+            'mistakeQuestionIndexes' => dent_exams_normalize_question_index_list($attempt['mistakeQuestionIndexes'] ?? []),
+        ];
+        if (count($rows) >= 20) {
+            break;
+        }
+    }
+    return $rows;
+}
+
 function dent_exams_api_parse_json_list($value): array
 {
     if (is_array($value)) {
@@ -883,6 +990,7 @@ function dent_exams_api_report_summary_payload(
     $showComparisons = $participantCount >= 10;
 
     return [
+        'attemptId' => (string) ($normalizedReport['attemptId'] ?? ''),
         'totalQuestions' => max(0, (int) ($normalizedReport['totalQuestions'] ?? 0)),
         'correct' => max(0, (int) ($normalizedReport['correct'] ?? 0)),
         'wrong' => max(0, (int) ($normalizedReport['wrong'] ?? 0)),
@@ -896,6 +1004,8 @@ function dent_exams_api_report_summary_payload(
         'showRank' => !empty($ranking['showRank']),
         'overallCompletedExams' => max(0, (int) ($average['completedCount'] ?? 0)),
         'overallAveragePercent' => $showComparisons && array_key_exists('averagePercent', $average) ? $average['averagePercent'] : null,
+        'topicBreakdown' => dent_exams_normalize_topic_breakdown($normalizedReport['topicBreakdown'] ?? []),
+        'mistakeQuestionIndexes' => dent_exams_normalize_question_index_list($normalizedReport['mistakeQuestionIndexes'] ?? []),
     ];
 }
 
@@ -1342,6 +1452,12 @@ function dent_exams_api_exam_payload(
     $report = $participantKey !== ''
         ? dent_exams_report_for_user($store, $catalogKey, $courseSlug, $examSlug, $participantKey)
         : null;
+    $attempts = $participantKey !== ''
+        ? dent_exams_attempts_for_user($store, $catalogKey, $courseSlug, $examSlug, $participantKey)
+        : [];
+    $studyState = $participantKey !== ''
+        ? dent_exams_study_state_for_user($store, $catalogKey, $courseSlug, $examSlug, $participantKey)
+        : dent_exams_normalize_study_state([]);
 
     $payload = $exam;
     $payload['questionCount'] = dent_exams_api_resolve_exam_question_count($exam);
@@ -1364,6 +1480,8 @@ function dent_exams_api_exam_payload(
                 )]
             )
             : null,
+        'attemptHistory' => dent_exams_api_attempt_history_payload($attempts),
+        'studyState' => $studyState,
     ];
     if (dent_exams_api_is_owner($viewer)) {
         $payload['ownerInsights'] = dent_exams_api_owner_exam_insights_payload(
@@ -2455,6 +2573,80 @@ if ($action === 'saveFlags') {
     ]);
 }
 
+if ($action === 'saveStudyState') {
+    dent_exams_api_require_method(['POST']);
+
+    $user = dent_require_user();
+    dent_release_session_lock();
+    $courseSlug = dent_exams_clean_course_slug((string) ($_POST['course'] ?? ''));
+    $examSlug = dent_exams_clean_exam_slug((string) ($_POST['exam'] ?? ''));
+    if ($courseSlug === '' || $examSlug === '') {
+        dent_error('شناسه آزمون معتبر نیست.', 422);
+    }
+
+    try {
+        $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
+        $exam = dent_exams_api_apply_runtime_exam_override(
+            dent_exams_api_exam_or_fail($catalogKey, $courseSlug, $examSlug),
+            $catalogKey,
+            $courseSlug,
+            false
+        );
+    } catch (DentExamsApiException $error) {
+        dent_error($error->getMessage(), $error->statusCode(), $error->payload());
+    }
+
+    $examsStore = dent_exams_read_store();
+    $paymentsStore = payments_read_store();
+    $setting = dent_exams_api_resolve_course_setting($examsStore, $paymentsStore, $catalogKey, $courseSlug, $course);
+    $collection = dent_exams_api_collection_for_setting($paymentsStore, $setting);
+    $access = dent_exams_api_course_access($user, $setting, $collection, $paymentsStore);
+    if (!(bool) ($access['hasAccess'] ?? false)) {
+        dent_error('برای ذخیره ابزارهای مطالعه ابتدا باید به این آزمون دسترسی داشته باشید.', 403);
+    }
+
+    $rawState = $_POST['studyState'] ?? [];
+    if (is_string($rawState)) {
+        $decoded = json_decode($rawState, true);
+        $rawState = is_array($decoded) ? $decoded : [];
+    }
+    $studyState = dent_exams_normalize_study_state(is_array($rawState) ? $rawState : []);
+    $questionCount = dent_exams_api_resolve_exam_question_count($exam);
+    foreach (['notesByQuestion', 'struckOptionsByQuestion', 'highlightsByQuestion'] as $mapKey) {
+        $map = is_array($studyState[$mapKey] ?? null) ? $studyState[$mapKey] : [];
+        $studyState[$mapKey] = array_filter($map, static function ($value, $key) use ($questionCount): bool {
+            $index = (int) $key;
+            return $index >= 0 && $index < $questionCount;
+        }, ARRAY_FILTER_USE_BOTH);
+    }
+    $studyState['mistakeQuestionIndexes'] = array_values(array_filter(
+        dent_exams_normalize_question_index_list($studyState['mistakeQuestionIndexes'] ?? []),
+        static function (int $index) use ($questionCount): bool {
+            return $index >= 0 && $index < $questionCount;
+        }
+    ));
+    $studyState['updatedAt'] = dent_iso_now();
+
+    $participantKey = dent_exams_api_viewer_key($user);
+    $examKey = dent_exams_exam_key($catalogKey, $courseSlug, $examSlug);
+    if ($participantKey === '' || $examKey === '') {
+        dent_error('امکان ذخیره ابزارهای مطالعه این آزمون وجود ندارد.', 422);
+    }
+
+    dent_exams_with_store_lock(static function (array &$store) use ($examKey, $participantKey, $studyState): void {
+        $records = is_array($store['examRecords'] ?? null) ? $store['examRecords'] : [];
+        $record = dent_exams_normalize_exam_record(is_array($records[$examKey] ?? null) ? $records[$examKey] : []);
+        $record['studyStateByUser'][$participantKey] = $studyState;
+        $store['examRecords'][$examKey] = $record;
+    });
+
+    dent_json_response([
+        'success' => true,
+        'studyState' => $studyState,
+        'message' => 'یادداشت‌ها و ابزارهای مطالعه ذخیره شد.',
+    ]);
+}
+
 if ($action === 'touchExamActivity') {
     dent_exams_api_require_method(['POST']);
 
@@ -2566,6 +2758,8 @@ if ($action === 'submitAssessment') {
         'startedAt' => $startedAt,
         'submittedAt' => $submittedAt,
         'updatedAt' => $submittedAt,
+        'topicBreakdown' => dent_exams_api_topic_breakdown($exam, $questions, $score['answers']),
+        'mistakeQuestionIndexes' => dent_exams_api_mistake_indexes($questions, $score['answers']),
     ];
 
     $participantKey = dent_exams_api_viewer_key($user);
@@ -2577,7 +2771,18 @@ if ($action === 'submitAssessment') {
     dent_exams_with_store_lock(static function (array &$store) use ($examKey, $participantKey, $report, $submittedAt): void {
         $records = is_array($store['examRecords'] ?? null) ? $store['examRecords'] : [];
         $record = dent_exams_normalize_exam_record(is_array($records[$examKey] ?? null) ? $records[$examKey] : []);
-        $record['reportsByUser'][$participantKey] = dent_exams_normalize_assessment_report($report);
+        $normalizedReport = dent_exams_normalize_assessment_report($report);
+        $record['reportsByUser'][$participantKey] = $normalizedReport;
+        $history = dent_exams_normalize_attempt_history($record['attemptsByUser'][$participantKey] ?? []);
+        $history[] = $normalizedReport;
+        $record['attemptsByUser'][$participantKey] = dent_exams_normalize_attempt_history($history);
+        $studyState = dent_exams_normalize_study_state($record['studyStateByUser'][$participantKey] ?? []);
+        $studyState['mistakeQuestionIndexes'] = dent_exams_normalize_question_index_list(array_merge(
+            $studyState['mistakeQuestionIndexes'] ?? [],
+            $normalizedReport['mistakeQuestionIndexes'] ?? []
+        ));
+        $studyState['updatedAt'] = $submittedAt;
+        $record['studyStateByUser'][$participantKey] = $studyState;
         $record['activityByUser'][$participantKey] = [
             'lastMode' => 'assessment',
             'updatedAt' => $submittedAt,
@@ -2595,7 +2800,11 @@ if ($action === 'submitAssessment') {
         'success' => true,
         'report' => array_merge(
             dent_exams_api_report_summary_payload($freshStore, $catalogKey, $courseSlug, $examSlug, $participantKey, $savedReport),
-            ['answers' => dent_exams_api_clamp_answers($questions, is_array($savedReport['answers'] ?? null) ? $savedReport['answers'] : [])]
+            [
+                'answers' => dent_exams_api_clamp_answers($questions, is_array($savedReport['answers'] ?? null) ? $savedReport['answers'] : []),
+                'attemptHistory' => dent_exams_api_attempt_history_payload(dent_exams_attempts_for_user($freshStore, $catalogKey, $courseSlug, $examSlug, $participantKey)),
+                'studyState' => dent_exams_study_state_for_user($freshStore, $catalogKey, $courseSlug, $examSlug, $participantKey),
+            ]
         ),
         'message' => 'کارنامه این آزمون ثبت و ذخیره شد.',
     ]);

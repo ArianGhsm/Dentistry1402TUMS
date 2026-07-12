@@ -794,6 +794,7 @@ if ($action === 'smsHealthCheck') {
 }
 
 if ($action === 'users') {
+    require_once __DIR__ . '/exams_store.php';
     $viewer = dent_require_user();
     $activeCohortKey = dent_resolve_accessible_cohort($viewer, dent_requested_cohort_key());
     if (!dent_user_has_cohort_management_access($viewer, $activeCohortKey)) {
@@ -802,6 +803,8 @@ if ($action === 'users') {
 
     $users = dent_management_visible_users($viewer, true);
     $gradeRosters = dent_management_grade_roster_by_cohort($users);
+    $examsStore = dent_exams_read_store();
+    $examLearningSummaryIndex = dent_exams_learning_summary_index($examsStore);
     $disPrivateIndex = dent_owner_dis_request_private_index();
     $representativeCount = 0;
     $withNationalCodeCount = 0;
@@ -831,6 +834,16 @@ if ($action === 'users') {
         $user['ownerPrivate'] = $ownerPrivate;
         $user['hasNationalCode'] = !empty($ownerPrivate['hasNationalCode']);
         $user['hasDirectoryPhone'] = !empty($ownerPrivate['hasDirectoryPhone']);
+        $user['examLearningSummary'] = is_array($examLearningSummaryIndex[$studentNumber] ?? null)
+            ? $examLearningSummaryIndex[$studentNumber]
+            : [
+                'examCount' => 0,
+                'attemptCount' => 0,
+                'noteCount' => 0,
+                'highlightCount' => 0,
+                'struckOptionCount' => 0,
+                'mistakeQuestionCount' => 0,
+            ];
         if ($user['hasNationalCode']) {
             $withNationalCodeCount++;
         }
@@ -891,6 +904,40 @@ if ($action === 'ownerUserGrades') {
         'success' => true,
         'studentNumber' => $studentNumber,
         'grades' => $grades,
+    ]);
+}
+
+if ($action === 'ownerClearUserExamStudy') {
+    require_once __DIR__ . '/exams_store.php';
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد حذف داده‌های مطالعه آزمون نامعتبر است.', 405);
+    }
+    $viewer = dent_require_owner();
+    dent_release_session_lock();
+    $studentNumber = dent_normalize_student_number($_POST['studentNumber'] ?? '');
+    if ($studentNumber === '') {
+        dent_error('شماره دانشجویی نامعتبر است.', 422);
+    }
+    dent_require_manage_target_user($viewer, $studentNumber);
+
+    dent_exams_with_store_lock(static function (array &$store) use ($studentNumber): void {
+        $records = is_array($store['examRecords'] ?? null) ? $store['examRecords'] : [];
+        foreach ($records as $examKey => $record) {
+            if (!is_array($record)) {
+                continue;
+            }
+            $normalized = dent_exams_normalize_exam_record($record);
+            unset($normalized['studyStateByUser'][$studentNumber]);
+            $store['examRecords'][$examKey] = $normalized;
+        }
+    });
+
+    $freshStore = dent_exams_read_store();
+    dent_json_response([
+        'success' => true,
+        'studentNumber' => $studentNumber,
+        'examLearningSummary' => dent_exams_user_learning_summary($freshStore, $studentNumber),
+        'message' => 'یادداشت‌ها، هایلایت‌ها، گزینه‌های خط‌خورده و دفترچه اشتباهات این کاربر حذف شد. تاریخچه تلاش‌ها حفظ شد.',
     ]);
 }
 
@@ -1305,6 +1352,20 @@ if ($action === 'ownerDeleteStudent') {
     dent_grades_set_active_cohort(dent_user_cohort_key($targetUser));
     dent_owner_delete_student_account($studentNumber);
     dent_owner_remove_grades_row($studentNumber);
+    require_once __DIR__ . '/exams_store.php';
+    dent_exams_with_store_lock(static function (array &$store) use ($studentNumber): void {
+        $records = is_array($store['examRecords'] ?? null) ? $store['examRecords'] : [];
+        foreach ($records as $examKey => $record) {
+            if (!is_array($record)) {
+                continue;
+            }
+            $normalized = dent_exams_normalize_exam_record($record);
+            foreach (['flagsByUser', 'reportsByUser', 'attemptsByUser', 'studyStateByUser', 'activityByUser'] as $mapKey) {
+                unset($normalized[$mapKey][$studentNumber]);
+            }
+            $store['examRecords'][$examKey] = $normalized;
+        }
+    });
 
     dent_json_response([
         'success' => true,

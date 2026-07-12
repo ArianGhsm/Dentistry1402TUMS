@@ -3,199 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>داشبورد عملیات مالک | Dentistry1402TUMS</title>
-    <meta name="description" content="داشبورد عملیاتی مالک برای سلامت سایت، وضعیت deploy، صف‌های pending و لینک به پنل‌های تخصصی.">
+    <title>مدیریت ظاهر سایت | Dentistry1402TUMS</title>
+    <meta name="description" content="پنل مالک برای تنظیم ظاهر سایت، نوار پایین، سوایپ بین بخش‌های اصلی و حالت سبک افکت‌ها.">
     <meta name="theme-color" content="#eef2f7">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="داشبورد مالک">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260702-172906">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260702-172906">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260702-172906">
+    <meta name="apple-mobile-web-app-title" content="ظاهر سایت">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260712-214525">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260712-214525">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260712-214525">
     <link rel="preload" as="font" type="font/woff2" href="/fonts/YekanBakh-VF.woff2" crossorigin>
-    <script src="/assets/site/scripts/theme.js?v=20260702-172906"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260702-172906">
-    <link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260702-172906">
-    <link rel="stylesheet" href="/assets/site/styles/admin.css?v=20260702-172906">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260702-172906">
+    <script src="/assets/site/scripts/theme.js?v=20260712-214525"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260712-214525">
+    <link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260712-214525">
+    <link rel="stylesheet" href="/assets/site/styles/admin.css?v=20260712-214525">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260712-214525">
 </head>
-<body class="hub-page admin-page">
+<body class="hub-page admin-page admin-page--appearance">
     <div class="background-overlay" aria-hidden="true"></div>
 
     <header class="site-header">
         <div class="logo-area">
             <div class="logo-circle">
-                <img src="/assets/images/logo.png?v=20260702-172906" alt="لوگوی رسمی سایت">
+                <img src="/assets/images/logo.png?v=20260712-214525" alt="لوگوی رسمی سایت">
             </div>
             <div class="site-info">
-                <h1>داشبورد عملیات مالک</h1>
-                <p>سلامت، deploy، صف‌ها و مسیر پنل‌های تخصصی</p>
+                <h1>مدیریت ظاهر سایت</h1>
+                <p>تنظیم رفتار و حس بصری مشترک سایت</p>
             </div>
         </div>
         <div class="header-actions">
+            <a class="header-link" href="/account/">حساب</a>
             <a class="header-link" href="/app/">خانه</a>
-            <button id="admin-refresh" class="header-link admin-header-button" type="button">به‌روزرسانی</button>
+            <button id="admin-refresh" class="header-link admin-header-button" type="button">بازیابی تنظیمات</button>
         </div>
     </header>
 
-    <main class="admin-main">
-        <section class="admin-status-strip" aria-label="خلاصه وضعیت">
-            <article class="admin-status-card" data-status-card="health">
-                <span class="admin-status-card__label">سلامت کلی</span>
-                <strong id="admin-health-status">در حال دریافت...</strong>
-                <small id="admin-health-meta">اتصال به API مالک</small>
-            </article>
-            <article class="admin-status-card" data-status-card="pending">
-                <span class="admin-status-card__label">کارهای pending</span>
-                <strong id="admin-pending-total">—</strong>
-                <small>پرداخت، فرم، منابع و نوید</small>
-            </article>
-            <article class="admin-status-card" data-status-card="deploy">
-                <span class="admin-status-card__label">نسخه فعال</span>
-                <strong id="admin-version">—</strong>
-                <small id="admin-version-meta">آخرین deploy</small>
-            </article>
-            <article class="admin-status-card" data-status-card="errors">
-                <span class="admin-status-card__label">خطاهای ۲۴ ساعت</span>
-                <strong id="admin-errors-24h">—</strong>
-                <small id="admin-errors-meta">server error log</small>
-            </article>
-        </section>
-
+    <main class="admin-main admin-main--appearance">
         <p id="admin-feedback" class="admin-feedback" hidden></p>
 
-        <section class="admin-grid" aria-label="داشبورد عملیاتی">
-            <article class="admin-panel admin-panel--wide">
-                <div class="admin-panel__head">
-                    <div>
-                        <span class="admin-kicker">عملیات</span>
-                        <h2>صف‌های نیازمند رسیدگی</h2>
-                    </div>
-                    <a class="admin-panel__link" href="/account/#owner">پنل مالک</a>
+        <section class="admin-appearance-layout" aria-label="مدیریت ظاهر سایت">
+            <article class="admin-appearance-hero">
+                <span class="admin-kicker">Appearance</span>
+                <h2>ظاهر سایت را از یک جا کنترل کن</h2>
+                <p>این تنظیمات روی shell مشترک سایت اعمال می‌شوند؛ یعنی خانه، آزمون‌ها، منابع، حساب و مسیرهای اصلی همان رفتار را می‌گیرند.</p>
+                <div class="admin-appearance-hero__chips" aria-label="محدوده اثر">
+                    <span>کل سایت</span>
+                    <span>موبایل‌محور</span>
+                    <span>قابل بازگشت</span>
                 </div>
-                <div id="admin-pending-list" class="admin-metric-list"></div>
             </article>
 
-            <article class="admin-panel">
-                <div class="admin-panel__head">
+            <article id="appearance" class="admin-panel admin-panel--appearance" aria-labelledby="admin-appearance-title">
+                <div class="admin-panel__head admin-panel__head--appearance">
                     <div>
-                        <span class="admin-kicker">Deploy</span>
-                        <h2>استقرار و backup</h2>
+                        <span class="admin-kicker">Site UI</span>
+                        <h2 id="admin-appearance-title">تنظیمات فعال ظاهر</h2>
+                        <p>گزینه‌ها را تغییر بده و ذخیره کن. بعد از ذخیره، مقدار جدید برای همه کاربران از config مشترک خوانده می‌شود.</p>
                     </div>
                 </div>
-                <div id="admin-deploy-list" class="admin-metric-list"></div>
-            </article>
 
-            <article class="admin-panel">
-                <div class="admin-panel__head">
-                    <div>
-                        <span class="admin-kicker">Health</span>
-                        <h2>زیرساخت</h2>
-                    </div>
-                </div>
-                <div id="admin-health-list" class="admin-metric-list"></div>
-            </article>
-
-            <article class="admin-panel admin-panel--wide">
-                <div class="admin-panel__head">
-                    <div>
-                        <span class="admin-kicker">Error Log</span>
-                        <h2>آخرین خطاها</h2>
-                    </div>
-                </div>
-                <div id="admin-error-list" class="admin-log-list"></div>
-            </article>
-
-            <article class="admin-panel">
-                <div class="admin-panel__head">
-                    <div>
-                        <span class="admin-kicker">Activity</span>
-                        <h2>فعالیت اخیر</h2>
-                    </div>
-                </div>
-                <div id="admin-activity-list" class="admin-metric-list"></div>
-            </article>
-
-            <article class="admin-panel">
-                <div class="admin-panel__head">
-                    <div>
-                        <span class="admin-kicker">Content</span>
-                        <h2>ابزارهای محتوا</h2>
-                    </div>
-                </div>
-                <div id="admin-content-list" class="admin-metric-list"></div>
-            </article>
-
-            <article class="admin-panel admin-panel--wide" aria-labelledby="admin-appearance-title">
-                <div class="admin-panel__head">
-                    <div>
-                        <span class="admin-kicker">Appearance</span>
-                        <h2 id="admin-appearance-title">مدیریت ظاهر سایت</h2>
-                    </div>
-                </div>
                 <form id="admin-appearance-form" class="admin-appearance-form">
-                    <label class="admin-toggle-row" for="admin-bottom-nav-swipe">
+                    <label class="admin-toggle-row admin-toggle-row--primary" for="admin-bottom-nav-swipe">
                         <span class="admin-toggle-row__copy">
-                            <strong>سوایپ بین بخش‌های نوار پایین</strong>
-                            <small>وقتی روشن باشد، کاربر با کشیدن افقی صفحه بین بخش‌های اصلی جابه‌جا می‌شود.</small>
+                            <strong>سوایپ بین بخش‌های نوار پایینی</strong>
+                            <small>وقتی روشن باشد، کاربر با کشیدن افقی صفحه بین چهار بخش اصلی نوار پایین جابه‌جا می‌شود. پیش‌فرض فعلی خاموش است.</small>
                         </span>
                         <span class="admin-toggle-row__control">
                             <input id="admin-bottom-nav-swipe" type="checkbox" name="bottomNavSwipeEnabled" value="1">
                             <span aria-hidden="true"></span>
                         </span>
                     </label>
-                    <label class="admin-toggle-row" for="admin-bottom-nav-labels">
-                        <span class="admin-toggle-row__copy">
-                            <strong>نمایش متن کنار آیکن فعال</strong>
-                            <small>خاموش کردنش نوار پایین را فشرده‌تر و آیکن‌محور می‌کند.</small>
-                        </span>
-                        <span class="admin-toggle-row__control">
-                            <input id="admin-bottom-nav-labels" type="checkbox" name="bottomNavLabelsEnabled" value="1">
-                            <span aria-hidden="true"></span>
-                        </span>
-                    </label>
-                    <label class="admin-toggle-row" for="admin-bottom-nav-glass">
-                        <span class="admin-toggle-row__copy">
-                            <strong>ظاهر شیشه‌ای نوار پایین</strong>
-                            <small>اگر خاموش شود، نوار پایین پس‌زمینه ساده‌تر و blur کمتری دارد.</small>
-                        </span>
-                        <span class="admin-toggle-row__control">
-                            <input id="admin-bottom-nav-glass" type="checkbox" name="bottomNavGlassEnabled" value="1">
-                            <span aria-hidden="true"></span>
-                        </span>
-                    </label>
-                    <label class="admin-toggle-row" for="admin-visual-effects-lite">
-                        <span class="admin-toggle-row__copy">
-                            <strong>کاهش افکت‌ها و حرکت‌ها</strong>
-                            <small>برای دستگاه‌های ضعیف‌تر، blur و انیمیشن‌های تزئینی سایت سبک‌تر می‌شوند.</small>
-                        </span>
-                        <span class="admin-toggle-row__control">
-                            <input id="admin-visual-effects-lite" type="checkbox" name="visualEffectsLiteEnabled" value="1">
-                            <span aria-hidden="true"></span>
-                        </span>
-                    </label>
+
+                    <div class="admin-appearance-options">
+                        <label class="admin-toggle-row" for="admin-bottom-nav-labels">
+                            <span class="admin-toggle-row__copy">
+                                <strong>نمایش متن کنار آیکن فعال</strong>
+                                <small>خاموش کردنش نوار پایین را فشرده‌تر و آیکن‌محور می‌کند.</small>
+                            </span>
+                            <span class="admin-toggle-row__control">
+                                <input id="admin-bottom-nav-labels" type="checkbox" name="bottomNavLabelsEnabled" value="1">
+                                <span aria-hidden="true"></span>
+                            </span>
+                        </label>
+
+                        <label class="admin-toggle-row" for="admin-bottom-nav-glass">
+                            <span class="admin-toggle-row__copy">
+                                <strong>ظاهر شیشه‌ای نوار پایین</strong>
+                                <small>اگر خاموش شود، نوار پایین پس‌زمینه ساده‌تر و blur کمتری دارد.</small>
+                            </span>
+                            <span class="admin-toggle-row__control">
+                                <input id="admin-bottom-nav-glass" type="checkbox" name="bottomNavGlassEnabled" value="1">
+                                <span aria-hidden="true"></span>
+                            </span>
+                        </label>
+
+                        <label class="admin-toggle-row" for="admin-visual-effects-lite">
+                            <span class="admin-toggle-row__copy">
+                                <strong>کاهش افکت‌ها و حرکت‌ها</strong>
+                                <small>برای دستگاه‌های ضعیف‌تر، blur و انیمیشن‌های تزئینی سایت سبک‌تر می‌شوند.</small>
+                            </span>
+                            <span class="admin-toggle-row__control">
+                                <input id="admin-visual-effects-lite" type="checkbox" name="visualEffectsLiteEnabled" value="1">
+                                <span aria-hidden="true"></span>
+                            </span>
+                        </label>
+                    </div>
+
                     <div class="admin-appearance-form__footer">
-                        <p id="admin-appearance-status" class="admin-inline-status" aria-live="polite">پیش‌فرض فعلی: خاموش</p>
+                        <p id="admin-appearance-status" class="admin-inline-status" aria-live="polite">در حال خواندن تنظیمات...</p>
                         <button id="admin-appearance-save" class="admin-save-button" type="submit">ذخیره ظاهر سایت</button>
                     </div>
                 </form>
             </article>
         </section>
-
-        <section class="admin-links-panel" aria-label="لینک پنل‌های تخصصی">
-            <div class="admin-panel__head">
-                <div>
-                    <span class="admin-kicker">پنل‌های تخصصی</span>
-                    <h2>مسیرهای عملیات</h2>
-                </div>
-            </div>
-            <div id="admin-links" class="admin-links-grid"></div>
-        </section>
     </main>
 
-    <script src="/assets/site/scripts/pwa.js?v=20260702-172906"></script>
-    <script src="/assets/site/scripts/auth.js?v=20260702-172906"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260702-172906"></script>
-    <script src="/assets/site/scripts/admin.js?v=20260702-172906"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260712-214525"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260712-214525"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260712-214525"></script>
+    <script src="/assets/site/scripts/admin.js?v=20260712-214525"></script>
 </body>
 </html>

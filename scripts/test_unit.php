@@ -14,6 +14,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../public_html/api/search_store.php';
 require_once __DIR__ . '/../public_html/api/push_store.php';
 require_once __DIR__ . '/../public_html/api/analytics_store.php';
+require_once __DIR__ . '/../public_html/api/exams_store.php';
 
 // Order-status constants live in payments_store.php (not loaded here); define the
 // stable values the funnel relies on so the test stays self-contained.
@@ -193,6 +194,70 @@ if (!$cryptoReady) {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Exams: schema-v5 continuity + learning-state normalization
+// ---------------------------------------------------------------------------
+$legacyExamStore = [
+    'schemaVersion' => 4,
+    'examRecords' => [
+        'shared:unit-test:1' => [
+            'reportsByUser' => [
+                '4020001' => [
+                    'answers' => [0, 1, null],
+                    'totalQuestions' => 3,
+                    'correct' => 1,
+                    'wrong' => 1,
+                    'unanswered' => 1,
+                    'percent' => 33.3,
+                    'startedAt' => '2026-01-01T10:00:00+03:30',
+                    'submittedAt' => '2026-01-01T10:10:00+03:30',
+                ],
+            ],
+        ],
+    ],
+];
+$normalizedExamStore = dent_exams_normalize_store($legacyExamStore);
+$normalizedExamRecord = $normalizedExamStore['examRecords']['shared:unit-test:1'] ?? [];
+unit_assert(
+    ($normalizedExamStore['schemaVersion'] ?? 0) === 5,
+    'exams: legacy store normalizes to schema v5'
+);
+unit_assert(
+    count($normalizedExamRecord['attemptsByUser']['4020001'] ?? []) === 1,
+    'exams: legacy current report is backfilled into attempt history'
+);
+$normalizedExamRecord['studyStateByUser']['4020001'] = dent_exams_normalize_study_state([
+    'notesByQuestion' => ['1' => 'نکته تست'],
+    'highlightsByQuestion' => ['1' => [['start' => 0, 'end' => 4]]],
+    'struckOptionsByQuestion' => ['1' => [2]],
+    'mistakeQuestionIndexes' => [1],
+]);
+$normalizedExamStore['examRecords']['shared:unit-test:1'] = $normalizedExamRecord;
+$learningSummary = dent_exams_user_learning_summary($normalizedExamStore, '4020001');
+unit_assert(
+    ($learningSummary['attemptCount'] ?? 0) === 1
+        && ($learningSummary['noteCount'] ?? 0) === 1
+        && ($learningSummary['highlightCount'] ?? 0) === 1
+        && ($learningSummary['struckOptionCount'] ?? 0) === 1
+        && ($learningSummary['mistakeQuestionCount'] ?? 0) === 1,
+    'exams: owner learning summary counts attempts and study tools'
+);
+
+$examQuizSource = (string) file_get_contents(__DIR__ . '/../public_html/assets/site/scripts/exam-quiz.js');
+unit_assert(
+    str_contains($examQuizSource, 'normalizeQuestionMedia')
+        && str_contains($examQuizSource, 'normalizeCaseContext')
+        && str_contains($examQuizSource, 'normalizeQuestionDifficulty')
+        && str_contains($examQuizSource, 'buildCustomPractice')
+        && str_contains($examQuizSource, 'review-weak-topic'),
+    'exams: phase-3 shared client keeps media, clinical-case, difficulty, custom-practice and recommendation contracts'
+);
+unit_assert(
+    str_contains($examQuizSource, '/^(?:javascript|data|vbscript):/iu')
+        && str_contains($examQuizSource, '/^https:\\/\\//iu.test(url)'),
+    'exams: question media URL normalization rejects active-content schemes and only allows local or HTTPS media'
+);
 
 echo "\n";
 echo sprintf(
