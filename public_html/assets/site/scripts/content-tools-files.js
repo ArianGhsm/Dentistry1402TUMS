@@ -897,20 +897,24 @@
         function sendDirectChunks(plan, item) {
             var baseUrl = String(plan.url || "");
             var total = Number(item.size || (item.file && item.file.size) || 0);
-            var chunkCount = Math.max(1, Math.ceil(total / CT_DIRECT_CHUNK_SIZE));
+            var chunkSize = Math.max(256 * 1024, Number(plan.chunkBytes || CT_DIRECT_CHUNK_SIZE));
+            var chunkCount = Math.max(1, Math.ceil(total / chunkSize));
             var ctype = item.file && item.file.type ? item.file.type : "application/octet-stream";
             var startedAt = Date.now();
+            var streamMode = String(plan.mode || "") === "stream";
             return new Promise(function (resolve, reject) {
                 function sendChunk(index) {
                     if (item.canceled) { reject(createUploadSignal("canceled", "آپلود توسط کاربر لغو شد.")); return; }
-                    var start = index * CT_DIRECT_CHUNK_SIZE;
-                    var end = Math.min(total, start + CT_DIRECT_CHUNK_SIZE);
+                    var start = index * chunkSize;
+                    var end = Math.min(total, start + chunkSize);
                     var blob = item.file.slice(start, end);
-                    var url = baseUrl + (baseUrl.indexOf("?") === -1 ? "?" : "&") + "chunkIndex=" + index + "&chunkCount=" + chunkCount;
+                    var url = baseUrl + (baseUrl.indexOf("?") === -1 ? "?" : "&")
+                        + "chunkIndex=" + index + "&chunkCount=" + chunkCount
+                        + "&chunkStart=" + start + "&chunkEnd=" + end;
                     var xhr = new XMLHttpRequest();
                     item.xhr = xhr;
                     xhr.open("POST", url, true);
-                    xhr.withCredentials = false; // cross-origin straight to the download host
+                    xhr.withCredentials = streamMode;
                     xhr.timeout = 0;
                     xhr.setRequestHeader("Accept", "application/json");
                     xhr.setRequestHeader("Content-Type", ctype);
@@ -919,9 +923,8 @@
                         var loaded = start + Number(event.loaded || 0);
                         var elapsed = Math.max(0.25, (Date.now() - startedAt) / 1000);
                         item.speedBps = loaded / elapsed;
-                        item.progress = total > 0 ? (loaded / total) * 100 : item.progress;
+                        item.progress = total > 0 ? Math.min(99.2, (loaded / total) * 100) : item.progress;
                         item.etaSeconds = item.speedBps > 0 && total > loaded ? (total - loaded) / item.speedBps : 0;
-                        if (item.progress >= 99.9) { item.status = "finalizing"; item.etaSeconds = 0; }
                         renderQueue();
                     };
                     xhr.onerror = function () { item.xhr = null; reject(ctDirectError("network", index === 0)); };
@@ -935,8 +938,7 @@
                         var resp = {};
                         try { resp = JSON.parse(xhr.responseText || "{}"); } catch (_e) { resp = {}; }
                         if (xhr.status < 200 || xhr.status >= 300 || !resp || resp.success === false) {
-                            // First chunk failing means the gateway is unusable -> fall back to proxy.
-                            reject(ctDirectError((resp && resp.error) || ("gateway-" + xhr.status), index === 0));
+                            reject(ctDirectError((resp && resp.error) || ("upload-" + xhr.status), false));
                             return;
                         }
                         if (index + 1 >= chunkCount) { resolve(resp && resp.file ? resp.file : {}); return; }
@@ -982,8 +984,8 @@
                 }).then(function (r) { return r.json().then(function (j) { j.httpStatus = r.status; return j; }); }).then(function (prep) {
                     if (consumeUnauthorized(prep)) { reject(new Error("unauthorized")); return; }
                     var plan = prep && prep.upload;
-                    if (!prep || !prep.success || !plan || plan.mode !== "direct" || !plan.url) {
-                        reject(ctDirectError("direct-unavailable", true));
+                    if (!prep || !prep.success || !plan || ["direct", "stream"].indexOf(String(plan.mode || "")) === -1 || !plan.url) {
+                        reject(ctDirectError("stream-unavailable", false));
                         return;
                     }
                     sendDirectChunks(plan, item).then(function (gwFile) {
@@ -1035,16 +1037,10 @@
         }
 
         function uploadItem(item) {
-            // Prefer a direct browser -> download-host upload. Only fall back to the
-            // legacy relay-through-this-host path when the direct gateway is genuinely
-            // unavailable, so large files never get stuck relaying through this host.
-            return uploadItemDirect(item).catch(function (error) {
-                if (item.canceled || (error && error.code === "canceled")) { throw error; }
-                if (error && error.__ctFallback) {
-                    return uploadItemViaProxy(item);
-                }
-                throw error;
-            });
+            // Never fall back to the legacy whole-file request. A failed stream
+            // remains failed/retryable instead of staging the complete file on the
+            // capacity-limited main host.
+            return uploadItemDirect(item);
         }
 
         function uploadItemViaProxy(item) {

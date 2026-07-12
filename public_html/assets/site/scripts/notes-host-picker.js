@@ -828,6 +828,126 @@
             return task.file;
         }
 
+        function sendStreamChunks(uploadPlan, task, startedAt) {
+            var baseUrl = String(uploadPlan && uploadPlan.url || "");
+            var total = Number(task && task.file && task.file.size || 0);
+            var chunkSize = Math.max(256 * 1024, Number(uploadPlan && uploadPlan.chunkBytes || (4 * 1024 * 1024)));
+            var chunkCount = Math.max(1, Math.ceil(total / chunkSize));
+            var ctype = task.file && task.file.type ? task.file.type : "application/octet-stream";
+
+            return new Promise(function (resolve, reject) {
+                function sendChunk(index) {
+                    var start = index * chunkSize;
+                    var end = Math.min(total, start + chunkSize);
+                    var xhr = new XMLHttpRequest();
+                    state.uploadXhr = xhr;
+                    xhr.open("POST", baseUrl + (baseUrl.indexOf("?") === -1 ? "?" : "&")
+                        + "chunkIndex=" + index + "&chunkCount=" + chunkCount
+                        + "&chunkStart=" + start + "&chunkEnd=" + end, true);
+                    xhr.withCredentials = true;
+                    xhr.setRequestHeader("Accept", "application/json");
+                    xhr.setRequestHeader("Content-Type", ctype);
+                    xhr.upload.onprogress = function (event) {
+                        if (!event.lengthComputable) return;
+                        var loaded = start + Number(event.loaded || 0);
+                        var elapsed = Math.max(0.25, (Date.now() - startedAt) / 1000);
+                        state.uploadProgress.phase = "uploading";
+                        state.uploadProgress.transferredBytes = loaded;
+                        state.uploadProgress.progress = total > 0 ? Math.min(99.2, (loaded / total) * 100) : 0;
+                        state.uploadProgress.speedBps = loaded / elapsed;
+                        state.uploadProgress.etaSeconds = state.uploadProgress.speedBps > 0 && total > loaded
+                            ? (total - loaded) / state.uploadProgress.speedBps
+                            : 0;
+                        renderProgress();
+                    };
+                    xhr.onload = function () {
+                        state.uploadXhr = null;
+                        var response = {};
+                        try { response = JSON.parse(xhr.responseText || "{}"); }
+                        catch (_error) { response = { success: false, error: "پاسخ آپلود معتبر نبود." }; }
+                        response.httpStatus = xhr.status;
+                        if (xhr.status < 200 || xhr.status >= 300 || !response.success) {
+                            reject(response);
+                            return;
+                        }
+                        if (index + 1 >= chunkCount) {
+                            resolve(response);
+                            return;
+                        }
+                        state.uploadProgress.transferredBytes = end;
+                        state.uploadProgress.progress = Math.min(99.2, (end / total) * 100);
+                        renderProgress();
+                        sendChunk(index + 1);
+                    };
+                    xhr.onerror = function () { state.uploadXhr = null; reject({ success: false, error: waitingMessage() }); };
+                    xhr.onabort = function () {
+                        state.uploadXhr = null;
+                        reject({ success: false, canceled: state.uploadCancelRequested, error: state.uploadCancelRequested ? "آپلود لغو شد." : waitingMessage() });
+                    };
+                    xhr.send(task.file.slice(start, end));
+                }
+                sendChunk(0);
+            });
+        }
+
+        function applyUploadResponse(response, task) {
+            state.uploadXhr = null;
+            state.uploadCancelRequested = false;
+            if (config.handleUnauthorized && config.handleUnauthorized(response, "برای مدیریت فایل‌های منابع باید وارد حساب مجاز شوید.")) {
+                resetRetryState();
+                state.uploadProgress.phase = "error";
+                state.uploadProgress.etaSeconds = NaN;
+                renderProgress();
+                setStatus("برای مدیریت فایل‌های منابع باید وارد حساب مجاز شوید.", "error");
+                state.uploadBusy = false;
+                syncUi();
+                return false;
+            }
+            if (!response || !response.success || !response.file) {
+                resetRetryState();
+                state.uploadProgress.phase = "error";
+                state.uploadProgress.speedBps = 0;
+                state.uploadProgress.etaSeconds = NaN;
+                renderProgress();
+                state.uploadBusy = false;
+                syncUi();
+                setStatus((response && response.error) || "آپلود فایل روی هاست دانلود انجام نشد.", "error");
+                return false;
+            }
+
+            if (linkInput) {
+                state.manualLink = false;
+                state.manualLinkTouched = false;
+                linkInput.value = response.file.publicUrl || "";
+            }
+            if (buttonLabelInput && !String(buttonLabelInput.value || "").trim()) buttonLabelInput.value = "دانلود";
+            if (response.file.relativeDir) {
+                state.path = normalizePath(response.file.relativeDir);
+                state.pathTouched = true;
+            }
+            var fileInput = node("file-input");
+            var fileNameInput = node("file-name");
+            if (fileInput) fileInput.value = "";
+            if (fileNameInput) fileNameInput.value = "";
+
+            state.uploadProgress.visible = true;
+            state.uploadProgress.phase = "done";
+            state.uploadProgress.progress = 100;
+            state.uploadProgress.transferredBytes = Number(task.file.size || state.uploadProgress.transferredBytes || 0);
+            state.uploadProgress.totalBytes = Number(task.file.size || state.uploadProgress.totalBytes || 0);
+            state.uploadProgress.speedBps = 0;
+            state.uploadProgress.etaSeconds = 0;
+            state.uploadProgress.completedAt = new Date().toISOString();
+            renderProgress();
+            syncFileMeta();
+            syncUi();
+            setStatus(response.message || "فایل روی هاست دانلود ذخیره شد و لینک مستقیم آن آماده است.", "success", response.file.publicUrl || "");
+            state.uploadBusy = false;
+            resetRetryState();
+            syncUi();
+            return true;
+        }
+
         function moveUploadToWaiting(message) {
             state.uploadXhr = null;
             state.uploadCancelRequested = false;
@@ -941,6 +1061,24 @@
 
                 probeDirectUploadPlan(prepareResponse.upload).then(function (uploadPlan) {
                     var startedAt = Date.now();
+                    if (String(uploadPlan && uploadPlan.mode || "") === "stream") {
+                        state.uploadCancelRequested = false;
+                        sendStreamChunks(uploadPlan, task, startedAt).then(function (response) {
+                            applyUploadResponse(response, task);
+                        }).catch(function (response) {
+                            if (response && response.canceled) {
+                                state.uploadBusy = false;
+                                resetRetryState();
+                                state.uploadProgress.phase = "error";
+                                renderProgress();
+                                syncUi();
+                                setStatus("آپلود فایل از طرف کاربر لغو شد.", "");
+                                return;
+                            }
+                            moveUploadToWaiting((response && response.error) || waitingMessage());
+                        });
+                        return;
+                    }
                     var uploadBody = buildUploadRequestBody(uploadPlan, task);
                     var xhr = new XMLHttpRequest();
                     state.uploadCancelRequested = false;
@@ -992,68 +1130,8 @@
                                 : "پاسخ آپلود معتبر نبود.";
                             response = { success: false, error: errorMsg };
                         }
-                        state.uploadXhr = null;
-                        state.uploadCancelRequested = false;
                         response.httpStatus = xhr.status;
-
-                        if (config.handleUnauthorized && config.handleUnauthorized(response, "برای مدیریت فایل‌های منابع باید وارد حساب مجاز شوید.")) {
-                            resetRetryState();
-                            state.uploadProgress.phase = "error";
-                            state.uploadProgress.etaSeconds = NaN;
-                            renderProgress();
-                            setStatus("برای مدیریت فایل‌های منابع باید وارد حساب مجاز شوید.", "error");
-                            state.uploadBusy = false;
-                            syncUi();
-                            return;
-                        }
-                        if (!response || !response.success || !response.file) {
-                            resetRetryState();
-                            state.uploadProgress.phase = "error";
-                            state.uploadProgress.speedBps = 0;
-                            state.uploadProgress.etaSeconds = NaN;
-                            renderProgress();
-                            state.uploadBusy = false;
-                            syncUi();
-                            setStatus((response && response.error) || "آپلود فایل روی هاست دانلود انجام نشد.", "error");
-                            return;
-                        }
-
-                        if (linkInput) {
-                            state.manualLink = false;
-                            state.manualLinkTouched = false;
-                            linkInput.value = response.file.publicUrl || "";
-                        }
-                        if (buttonLabelInput && !String(buttonLabelInput.value || "").trim()) {
-                            buttonLabelInput.value = "دانلود";
-                        }
-                        if (response.file.relativeDir) {
-                            state.path = normalizePath(response.file.relativeDir);
-                            state.pathTouched = true;
-                        }
-                        var fileInput = node("file-input");
-                        var fileNameInput = node("file-name");
-                        if (fileInput) {
-                            fileInput.value = "";
-                        }
-                        if (fileNameInput) {
-                            fileNameInput.value = "";
-                        }
-
-                        state.uploadProgress.visible = true;
-                        state.uploadProgress.phase = "done";
-                        state.uploadProgress.progress = 100;
-                        state.uploadProgress.transferredBytes = Number(task.file.size || state.uploadProgress.transferredBytes || 0);
-                        state.uploadProgress.totalBytes = Number(task.file.size || state.uploadProgress.totalBytes || 0);
-                        state.uploadProgress.speedBps = 0;
-                        state.uploadProgress.etaSeconds = 0;
-                        state.uploadProgress.completedAt = new Date().toISOString();
-                        renderProgress();
-                        syncFileMeta();
-                        syncUi();
-                        setStatus(response.message || "فایل روی هاست دانلود ذخیره شد و لینک مستقیم آن آماده است.", "success", response.file.publicUrl || "");
-                        state.uploadBusy = false;
-                        resetRetryState();
-                        syncUi();
+                        applyUploadResponse(response, task);
                     };
 
                     xhr.onerror = function () {

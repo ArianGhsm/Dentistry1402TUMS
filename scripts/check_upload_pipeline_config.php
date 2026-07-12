@@ -161,6 +161,10 @@ if ($errors === []) {
     if (strpos($downloadHostContents, 'function notes_download_host_stream_upload_from_stream(') === false) {
         $errors[] = 'notes_download_host_stream_upload_from_stream helper is missing.';
     }
+    if (strpos($downloadHostContents, 'function notes_download_host_stream_chunk_to_ftp(') === false
+        || strpos($downloadHostContents, 'ftp_fput(') === false) {
+        $errors[] = 'bounded raw chunk to FTP streaming helper is missing.';
+    }
 
     $contentToolsDownloadHostContents = (string) file_get_contents($contentToolsDownloadHostPath);
     if (strpos($contentToolsDownloadHostContents, 'function content_download_host_upload_stream(') === false) {
@@ -176,15 +180,30 @@ if ($errors === []) {
     if (strpos($notesApiContents, "notes_download_host_request_header('X-Dent-Upload-Name')") === false) {
         $errors[] = 'notes_api raw upload header handling is missing.';
     }
+    if (strpos($notesApiContents, "if (\$action === 'streamHostUploadChunk')") === false
+        || strpos($notesApiContents, "'mode' => 'stream'") === false
+        || strpos($notesApiContents, "'transport' => 'raw-chunk-to-ftp'") === false) {
+        $errors[] = 'notes_api is not configured for bounded stream-to-FTP upload plans.';
+    }
 
     $contentToolsFilesJsContents = (string) file_get_contents($contentToolsFilesJsPath);
     if (!jsHasRawBodyUpload($contentToolsFilesJsContents, 'X-Dent-Upload-Meta', '/xhr\.send\(\s*item\.file\s*\)/')) {
         $errors[] = 'content-tools-files.js is not configured for raw body upload.';
     }
+    if (strpos($contentToolsFilesJsContents, 'return uploadItemDirect(item);') === false
+        || strpos($contentToolsFilesJsContents, 'chunkStart=') === false
+        || strpos($contentToolsFilesJsContents, 'chunkEnd=') === false) {
+        $errors[] = 'content-tools-files.js can still bypass the bounded chunk stream transport.';
+    }
 
     $notesFilesJsContents = (string) file_get_contents($notesFilesJsPath);
     if (!jsHasNotesUploadTransport($notesFilesJsContents, 'X-Dent-Upload-Name', '/xhr\.send\(\s*(?:item\.file|uploadBody)\s*\)/')) {
         $errors[] = 'notes-files.js is not configured for notes upload transport.';
+    }
+    if (strpos($notesFilesJsContents, 'planMode === "stream"') === false
+        || strpos($notesFilesJsContents, 'chunkStart=') === false
+        || strpos($notesFilesJsContents, 'chunkEnd=') === false) {
+        $errors[] = 'notes-files.js is not using the bounded chunk stream plan.';
     }
 
     $notesHostPickerJsContents = (string) file_get_contents($notesHostPickerJsPath);
@@ -195,6 +214,11 @@ if ($errors === []) {
     );
     if (!$notesHostPickerHasUploadTransport) {
         $errors[] = 'notes-host-picker.js is not configured for notes upload transport.';
+    }
+    if (strpos($notesHostPickerJsContents, 'function sendStreamChunks(') === false
+        || strpos($notesHostPickerJsContents, 'chunkStart=') === false
+        || strpos($notesHostPickerJsContents, 'chunkEnd=') === false) {
+        $errors[] = 'notes-host-picker.js is not using the bounded chunk stream plan.';
     }
 
     $notesTermJsContents = (string) file_get_contents($notesTermJsPath);

@@ -355,37 +355,13 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
 
     $mimeType = trim((string) ($params['mimeType'] ?? ''));
 
-    $relayPlan = [
-        'mode' => 'relay',
-        'url' => notes_build_host_upload_url($target['relativeDir'], $cohort),
-        'relayUrl' => notes_build_host_upload_url($target['relativeDir'], $cohort),
-        'relativeDir' => $target['relativeDir'],
-        'scopeRoot' => $target['scopeRoot'],
-    ];
+    // Create only the destination directory. File bytes are sent later as
+    // bounded raw-body chunks and streamed over FTP into a token-scoped partial
+    // file on the download host. No complete-file staging is created here or on
+    // the main host.
+    notes_download_host_ensure_dir($target['relativeDir'], $target['scopeRoot']);
 
-    $mainSiteOrigin = notes_direct_upload_main_site_origin();
-    if ($mainSiteOrigin === '') {
-        return $relayPlan;
-    }
-
-    $downloadPublicHost = strtolower(trim((string) parse_url(notes_download_host_public_base_url(), PHP_URL_HOST)));
-    if ($downloadPublicHost === '') {
-        return $relayPlan;
-    }
-
-    // Cached, short-timeout health-check only — never the expensive
-    // provisioning chain — so an unreachable/unprovisioned gateway can
-    // never stall or break the relay fallback above.
-    $gateway = notes_download_host_direct_upload_gateway_cached($mainSiteOrigin);
-    if (!is_array($gateway)) {
-        return $relayPlan;
-    }
-    $limitBytes = notes_direct_upload_limit_bytes($gateway);
-    if ($limitBytes !== null && $expectedSize > $limitBytes) {
-        return $relayPlan;
-    }
-
-    return notes_direct_upload_with_store_lock(static function (array &$store) use ($cohort, $target, $desiredName, $mimeType, $expectedSize, $gateway, $mainSiteOrigin, $relayPlan): array {
+    return notes_direct_upload_with_store_lock(static function (array &$store) use ($cohort, $target, $desiredName, $mimeType, $expectedSize): array {
         $finalName = notes_download_host_unique_file_name_with_reserved(
             $target['relativeDir'],
             $desiredName,
@@ -410,8 +386,8 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
             'updatedAt' => $now,
             'expiresAt' => date('c', time() + NOTES_DIRECT_UPLOAD_SESSION_TTL_SECONDS),
             'sessionKey' => $sessionKey,
-            'origin' => $mainSiteOrigin,
-            'gatewayVersion' => trim((string) ($gateway['version'] ?? '')),
+            'origin' => notes_direct_upload_main_site_origin(),
+            'gatewayVersion' => 'main-ftp-stream-v1',
             'contentType' => '',
             'contentLength' => 0,
             'completedAt' => '',
@@ -420,14 +396,14 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
         $store['sessions'][$token] = $session;
 
         return [
-            'mode' => 'direct',
-            'url' => rtrim((string) ($gateway['uploadUrl'] ?? ''), '/') . '?token=' . rawurlencode($token),
-            'relayUrl' => $relayPlan['relayUrl'],
+            'mode' => 'stream',
+            'url' => '/api/notes_api.php?action=streamHostUploadChunk&cohort=' . rawurlencode($cohort) . '&token=' . rawurlencode($token),
             'relativeDir' => $target['relativeDir'],
             'relativePath' => $relativePath,
             'fileName' => $finalName,
             'scopeRoot' => $target['scopeRoot'],
-            'gatewayVersion' => trim((string) ($gateway['version'] ?? '')),
+            'transport' => 'raw-chunk-to-ftp',
+            'chunkBytes' => 4 * 1024 * 1024,
         ];
     });
 }
@@ -3995,6 +3971,118 @@ if ($action === 'ensureDirectUploadGateway') {
         'success' => true,
         'gateway' => $gateway,
         'message' => 'گیت‌وی آپلود مستقیم روی هاست دانلود فعال و آماده است.',
+    ]);
+}
+
+if ($action === 'streamHostUploadChunk') {
+    notes_1402_require_method(['POST']);
+    $cohort = notes_parse_cohort($_GET['cohort'] ?? $_POST['cohort'] ?? '1402');
+    $viewer = notes_require_manage_cohort($cohort);
+    dent_release_session_lock();
+
+    $token = notes_direct_upload_clean_token($_GET['token'] ?? $_POST['token'] ?? '');
+    $chunkIndex = max(0, (int) ($_GET['chunkIndex'] ?? -1));
+    $chunkCount = max(1, (int) ($_GET['chunkCount'] ?? 1));
+    $chunkStart = max(0, (int) ($_GET['chunkStart'] ?? -1));
+    $chunkEnd = max(0, (int) ($_GET['chunkEnd'] ?? -1));
+    $contentLength = max(0, (int) notes_download_host_request_header('Content-Length'));
+    if ($token === '' || $chunkIndex >= $chunkCount || $chunkEnd <= $chunkStart || $contentLength <= 0) {
+        dent_error('اطلاعات chunk آپلود معتبر نیست.', 422);
+    }
+    if (($chunkEnd - $chunkStart) !== $contentLength) {
+        dent_error('حجم بدنه chunk با بازه اعلام‌شده برابر نیست.', 422);
+    }
+
+    $sessionSnapshot = notes_direct_upload_with_store_lock(static function (array &$store) use ($token, $cohort): array {
+        $session = $store['sessions'][$token] ?? null;
+        if (!is_array($session)) {
+            dent_error('نشست آپلود پیدا نشد یا منقضی شده است.', 404);
+        }
+        if ((string) ($session['cohort'] ?? '') !== $cohort) {
+            dent_error('نشست آپلود متعلق به این ورودی نیست.', 403);
+        }
+        if ((string) ($session['status'] ?? '') === 'completed' && is_array($session['file'] ?? null)) {
+            return $session;
+        }
+        $session['status'] = 'resolved';
+        $session['updatedAt'] = dent_iso_now();
+        $store['sessions'][$token] = $session;
+        return $session;
+    });
+
+    if ((string) ($sessionSnapshot['status'] ?? '') === 'completed' && is_array($sessionSnapshot['file'] ?? null)) {
+        dent_json_response([
+            'success' => true,
+            'file' => $sessionSnapshot['file'],
+            'message' => 'فایل پیش‌تر روی هاست دانلود کامل شده است.',
+        ]);
+    }
+
+    $expectedSize = max(0, (int) ($sessionSnapshot['expectedSize'] ?? 0));
+    $relativePath = trim((string) ($sessionSnapshot['relativePath'] ?? ''));
+    $scopeRoot = notes_download_host_scope_for_viewer($cohort, $viewer);
+    $relativeDir = trim((string) ($sessionSnapshot['relativeDir'] ?? dirname($relativePath)));
+    notes_download_host_assert_allowed_relative_path($relativeDir, $scopeRoot, false);
+    if ($expectedSize <= 0 || $relativePath === '' || $chunkEnd > $expectedSize) {
+        dent_error('نشست یا بازه فایل آپلود معتبر نیست.', 422);
+    }
+    $isLastChunk = $chunkIndex === ($chunkCount - 1);
+    if ($isLastChunk !== ($chunkEnd === $expectedSize)) {
+        dent_error('chunk پایانی با حجم کل فایل هم‌خوانی ندارد.', 422);
+    }
+
+    $stream = fopen('php://input', 'rb');
+    if ($stream === false) {
+        dent_error('جریان raw-body آپلود باز نشد.', 422);
+    }
+    try {
+        $stored = notes_download_host_stream_chunk_to_ftp(
+            $relativePath,
+            $stream,
+            $chunkStart,
+            $contentLength,
+            $expectedSize,
+            $token,
+            $isLastChunk
+        );
+    } finally {
+        fclose($stream);
+    }
+
+    if (!$isLastChunk) {
+        dent_json_response([
+            'success' => true,
+            'partial' => true,
+            'chunkIndex' => $chunkIndex,
+            'chunkCount' => $chunkCount,
+            'storedBytes' => max(0, (int) ($stored['storedBytes'] ?? $chunkEnd)),
+        ]);
+    }
+
+    $mimeType = trim((string) ($sessionSnapshot['mimeType'] ?? strtok(notes_download_host_request_header('Content-Type'), ';')));
+    $filePayload = notes_direct_upload_with_store_lock(static function (array &$store) use ($token, $expectedSize, $mimeType): array {
+        $session = $store['sessions'][$token] ?? null;
+        if (!is_array($session)) {
+            dent_error('نشست آپلود هنگام نهایی‌سازی پیدا نشد.', 404);
+        }
+        if ((string) ($session['status'] ?? '') === 'completed' && is_array($session['file'] ?? null)) {
+            return $session['file'];
+        }
+        $file = notes_direct_upload_build_file_payload($session, $expectedSize, $mimeType);
+        $session['status'] = 'completed';
+        $session['updatedAt'] = dent_iso_now();
+        $session['completedAt'] = $session['updatedAt'];
+        $session['mimeType'] = (string) ($file['mimeType'] ?? '');
+        $session['file'] = $file;
+        $store['sessions'][$token] = $session;
+        return $file;
+    });
+
+    dent_json_response([
+        'success' => true,
+        'file' => $filePayload,
+        'transport' => 'raw-chunk-to-ftp',
+        'message' => 'فایل بدون staging روی هاست اصلی، مستقیماً روی هاست دانلود کامل شد.',
     ]);
 }
 

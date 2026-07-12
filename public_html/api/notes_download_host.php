@@ -2182,6 +2182,128 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
     return notes_download_host_parse_upload_response($response);
 }
 
+/**
+ * Streams one bounded browser chunk to the download host over FTP resume.
+ *
+ * The complete file is never materialized on the main host. At most the current
+ * request chunk can be buffered by the web server/PHP transport while the same
+ * bytes are written into a token-scoped partial file on the download host.
+ */
+function notes_download_host_stream_chunk_to_ftp(
+    string $relativePath,
+    $sourceStream,
+    int $chunkStart,
+    int $chunkBytes,
+    int $expectedSize,
+    string $uploadToken,
+    bool $isLastChunk
+): array {
+    notes_download_host_prepare_long_transfer();
+    if (!is_resource($sourceStream)) {
+        dent_error('جریان chunk آپلود معتبر نیست.', 422);
+    }
+    if ($chunkStart < 0 || $chunkBytes <= 0 || $expectedSize <= 0 || ($chunkStart + $chunkBytes) > $expectedSize) {
+        dent_error('بازه chunk آپلود معتبر نیست.', 422);
+    }
+    if (!function_exists('ftp_connect') || !function_exists('ftp_fput')) {
+        dent_error('FTP streaming روی هاست اصلی فعال نیست.', 503);
+    }
+
+    $secret = notes_download_host_load_secret();
+    if (!is_array($secret)) {
+        dent_error('تنظیمات هاست دانلود روی سرور فعال نیست.', 503);
+    }
+
+    $normalizedPath = notes_download_host_normalize_relative_path($relativePath);
+    if ($normalizedPath === '') {
+        dent_error('مسیر مقصد chunk معتبر نیست.', 422);
+    }
+
+    $tokenKey = preg_replace('/[^a-z0-9]/', '', strtolower($uploadToken)) ?? '';
+    if ($tokenKey === '') {
+        dent_error('توکن chunk معتبر نیست.', 422);
+    }
+
+    $remoteBase = trim(str_replace('\\', '/', (string) ($secret['remoteBaseDir'] ?? 'public_html')), '/');
+    $remoteFinal = $remoteBase . '/' . $normalizedPath;
+    $remotePart = $remoteFinal . '.dentup-' . substr($tokenKey, 0, 24);
+    $ftp = @ftp_connect((string) $secret['host'], 21, NOTES_DOWNLOAD_HOST_STREAM_CONNECT_TIMEOUT_SECONDS);
+    if ($ftp === false) {
+        dent_error('اتصال FTP streaming به هاست دانلود برقرار نشد.', 502);
+    }
+
+    try {
+        if (!@ftp_login($ftp, (string) $secret['username'], (string) $secret['password'])) {
+            dent_error('ورود FTP streaming به هاست دانلود ناموفق بود.', 502);
+        }
+        @ftp_pasv($ftp, true);
+        if (defined('FTP_TIMEOUT_SEC')) {
+            @ftp_set_option($ftp, FTP_TIMEOUT_SEC, NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS);
+        }
+
+        $expectedEnd = $chunkStart + $chunkBytes;
+        $remoteSize = @ftp_size($ftp, $remotePart);
+        $remoteSize = $remoteSize >= 0 ? (int) $remoteSize : 0;
+
+        // A retried request may arrive after the previous response was lost. If
+        // this exact chunk is already present, do not append it a second time.
+        if ($remoteSize !== $expectedEnd) {
+            if ($chunkStart === 0) {
+                if ($remoteSize > 0) {
+                    @ftp_delete($ftp, $remotePart);
+                }
+                $remoteSize = 0;
+            }
+            if ($remoteSize !== $chunkStart) {
+                dent_error('ترتیب chunkهای آپلود با فایل روی هاست دانلود هم‌خوان نیست؛ آپلود باید از ابتدا تلاش شود.', 409);
+            }
+            if (!@ftp_fput($ftp, $remotePart, $sourceStream, FTP_BINARY, $chunkStart)) {
+                dent_error('نوشتن chunk روی هاست دانلود ناموفق بود.', 502);
+            }
+            clearstatcache();
+            $remoteSize = @ftp_size($ftp, $remotePart);
+            $remoteSize = $remoteSize >= 0 ? (int) $remoteSize : 0;
+        }
+
+        if ($remoteSize !== $expectedEnd) {
+            dent_error('حجم chunk ذخیره‌شده روی هاست دانلود کامل نیست.', 502);
+        }
+
+        if (!$isLastChunk) {
+            return [
+                'partial' => true,
+                'storedBytes' => $remoteSize,
+                'expectedSize' => $expectedSize,
+            ];
+        }
+
+        if ($remoteSize !== $expectedSize) {
+            dent_error('حجم نهایی فایل روی هاست دانلود با فایل انتخاب‌شده برابر نیست.', 422);
+        }
+        $existingFinalSize = @ftp_size($ftp, $remoteFinal);
+        if ($existingFinalSize >= 0) {
+            dent_error('فایل مقصد پیش از نهایی‌سازی روی هاست دانلود موجود است.', 409);
+        }
+        if (!@ftp_rename($ftp, $remotePart, $remoteFinal)) {
+            dent_error('نهایی‌سازی فایل روی هاست دانلود انجام نشد.', 502);
+        }
+        $finalSize = @ftp_size($ftp, $remoteFinal);
+        $finalSize = $finalSize >= 0 ? (int) $finalSize : 0;
+        if ($finalSize !== $expectedSize) {
+            @ftp_delete($ftp, $remoteFinal);
+            dent_error('راستی‌آزمایی حجم فایل نهایی روی هاست دانلود ناموفق بود.', 502);
+        }
+
+        return [
+            'partial' => false,
+            'storedBytes' => $finalSize,
+            'expectedSize' => $expectedSize,
+        ];
+    } finally {
+        @ftp_close($ftp);
+    }
+}
+
 function notes_download_host_relay_begin_output(): void
 {
     while (ob_get_level() > 0) {

@@ -782,8 +782,10 @@
     function sendChunkedUpload(uploadPlan, item, startedAt) {
         var baseUrl = String(uploadPlan.url || "");
         var total = Number(item.size || (item.file && item.file.size) || 0);
-        var chunkCount = Math.max(1, Math.ceil(total / DIRECT_CHUNK_SIZE));
+        var chunkSize = Math.max(256 * 1024, Number(uploadPlan.chunkBytes || DIRECT_CHUNK_SIZE));
+        var chunkCount = Math.max(1, Math.ceil(total / chunkSize));
         var ctype = item.file && item.file.type ? item.file.type : "application/octet-stream";
+        var streamMode = String(uploadPlan.mode || "") === "stream";
 
         return new Promise(function (resolve, reject) {
             function sendChunk(index) {
@@ -791,14 +793,16 @@
                     reject(createUploadSignal("canceled", "آپلود توسط کاربر لغو شد."));
                     return;
                 }
-                var start = index * DIRECT_CHUNK_SIZE;
-                var end = Math.min(total, start + DIRECT_CHUNK_SIZE);
+                var start = index * chunkSize;
+                var end = Math.min(total, start + chunkSize);
                 var blob = item.file.slice(start, end);
-                var url = baseUrl + (baseUrl.indexOf("?") === -1 ? "?" : "&") + "chunkIndex=" + index + "&chunkCount=" + chunkCount;
+                var url = baseUrl + (baseUrl.indexOf("?") === -1 ? "?" : "&")
+                    + "chunkIndex=" + index + "&chunkCount=" + chunkCount
+                    + "&chunkStart=" + start + "&chunkEnd=" + end;
                 var xhr = new XMLHttpRequest();
                 item.xhr = xhr;
                 xhr.open("POST", url, true);
-                xhr.withCredentials = false;
+                xhr.withCredentials = streamMode;
                 xhr.setRequestHeader("Accept", "application/json");
                 xhr.setRequestHeader("Content-Type", ctype);
 
@@ -908,8 +912,9 @@
                     var startedAt = Date.now();
                     var planMode = uploadPlan && uploadPlan.mode ? String(uploadPlan.mode) : "relay";
                     var fileSize = Number(item.size || (item.file && item.file.size) || 0);
-                    if (planMode === "direct" && item.file && fileSize > DIRECT_CHUNK_THRESHOLD) {
-                        // Chunked direct upload — evades the host WAF slow-upload block.
+                    if ((planMode === "stream" || (planMode === "direct" && fileSize > DIRECT_CHUNK_THRESHOLD)) && item.file) {
+                        // The stream plan forwards every bounded raw-body chunk to
+                        // FTP immediately; no complete file is staged on this host.
                         sendChunkedUpload(uploadPlan, item, startedAt).then(function (response) {
                             // finishUpload already resolved item state; nothing else to do.
                             resolve(response);
