@@ -42,13 +42,26 @@ function dent_exams_api_apply_runtime_exam_override(
         && !is_array($exam['questions'] ?? null)
         && $catalogKey !== ''
         && $courseSlug !== ''
-        && function_exists('dent_exams_term6_reference_runtime_exam_payload')
     ) {
-        $runtimeExam = dent_exams_term6_reference_runtime_exam_payload(
-            $catalogKey,
-            $courseSlug,
-            (string) ($exam['slug'] ?? '')
-        );
+        $runtimeExam = null;
+        $examSlug = (string) ($exam['slug'] ?? '');
+
+        if (function_exists('dent_exams_complete_foundations_theory_midterm_practice_runtime_exam_payload')) {
+            $runtimeExam = dent_exams_complete_foundations_theory_midterm_practice_runtime_exam_payload(
+                $catalogKey,
+                $courseSlug,
+                $examSlug
+            );
+        }
+
+        if (!is_array($runtimeExam) && function_exists('dent_exams_term6_reference_runtime_exam_payload')) {
+            $runtimeExam = dent_exams_term6_reference_runtime_exam_payload(
+                $catalogKey,
+                $courseSlug,
+                $examSlug
+            );
+        }
+
         if (is_array($runtimeExam)) {
             $exam = array_replace($exam, $runtimeExam);
         }

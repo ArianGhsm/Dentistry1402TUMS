@@ -17,7 +17,7 @@ function dent_exams_apply_complete_foundations_theory_midterm_practice_catalog_o
         return $bank;
     }
 
-    $course = dent_exams_complete_foundations_theory_midterm_practice_course();
+    $course = dent_exams_complete_foundations_theory_midterm_practice_course(false);
     $courseSlug = trim((string) ($course['slug'] ?? ''));
     if ($courseSlug === '') {
         return $bank;
