@@ -736,6 +736,21 @@
     var DIRECT_CHUNK_THRESHOLD = 1536 * 1024;
     var DIRECT_CHUNK_SIZE = 1024 * 1024;
 
+    function encodeChunkBase64Url(blob) {
+        return new Promise(function (resolve, reject) {
+            var reader = new FileReader();
+            reader.onerror = function () { reject(createUploadSignal("encode-error", "خواندن chunk فایل انجام نشد.")); };
+            reader.onload = function () {
+                var value = String(reader.result || "");
+                var comma = value.indexOf(",");
+                var encoded = comma >= 0 ? value.slice(comma + 1) : "";
+                if (!encoded) { reject(createUploadSignal("encode-error", "کدگذاری chunk فایل انجام نشد.")); return; }
+                resolve(encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, ""));
+            };
+            reader.readAsDataURL(blob);
+        });
+    }
+
     function finishUpload(response, item, resolve, reject) {
         item.xhr = null;
         if (response && (response.loggedOut || response.httpStatus === 401)) {
@@ -798,13 +813,15 @@
                 var blob = item.file.slice(start, end);
                 var url = baseUrl + (baseUrl.indexOf("?") === -1 ? "?" : "&")
                     + "chunkIndex=" + index + "&chunkCount=" + chunkCount
-                    + "&chunkStart=" + start + "&chunkEnd=" + end;
+                            + "&chunkStart=" + start + "&chunkEnd=" + end + "&chunkEncoding=base64url";
+                encodeChunkBase64Url(blob).then(function (encodedBody) {
                 var xhr = new XMLHttpRequest();
                 item.xhr = xhr;
                 xhr.open("POST", url, true);
                 xhr.withCredentials = streamMode;
                 xhr.setRequestHeader("Accept", "application/json");
-                xhr.setRequestHeader("Content-Type", ctype);
+                xhr.setRequestHeader("Content-Type", "text/plain; charset=us-ascii");
+                xhr.setRequestHeader("X-Dent-Chunk-Encoding", "base64url");
 
                 xhr.upload.onprogress = function (event) {
                     if (!event.lengthComputable) return;
@@ -852,7 +869,8 @@
                     }
                     reject(markUploadWaiting(item, waitingUploadMessage(item)));
                 };
-                xhr.send(blob);
+                xhr.send(encodedBody);
+                }).catch(reject);
             }
             sendChunk(0);
         });

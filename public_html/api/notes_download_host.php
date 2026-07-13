@@ -6,7 +6,7 @@ const NOTES_DOWNLOAD_HOST_SECRET_FILE = 'mihan_download_host.json';
 const NOTES_DOWNLOAD_HOST_STREAM_CONNECT_TIMEOUT_SECONDS = 300;
 const NOTES_DOWNLOAD_HOST_STREAM_IO_TIMEOUT_SECONDS = 14400;
 const NOTES_DOWNLOAD_HOST_STREAM_CHUNK_BYTES = 4 * 1024 * 1024;
-const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION = '20260616-chunked-1';
+const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_VERSION = '20260713-ftp-parts-1';
 const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_RUNTIME_DIR = '__dent-upload';
 const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_GATEWAY_FILE = 'notes-upload.php';
 const NOTES_DOWNLOAD_HOST_DIRECT_UPLOAD_USER_INI_FILE = '.user.ini';
@@ -1283,6 +1283,88 @@ if (isset($_GET['health'])) {
     dent_notes_gateway_json(dent_notes_gateway_health_payload());
 }
 
+// The FTP service used by the main host does not reliably support REST+STOR
+// append. Each bounded chunk is therefore uploaded as an independent part and
+// this authenticated GET assembles the parts locally on the DOWNLOAD host.
+// The complete file never exists on the capacity-limited main host.
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && (string) ($_GET['action'] ?? '') === 'assemble') {
+    dent_notes_gateway_apply_cors();
+    @ignore_user_abort(true);
+    if (function_exists('set_time_limit')) { @set_time_limit(0); }
+
+    $token = dent_notes_gateway_clean_token($_GET['token'] ?? '');
+    $chunkCount = max(1, min(10000, (int) ($_GET['chunkCount'] ?? 0)));
+    if ($token === '' || $chunkCount <= 0) {
+        dent_notes_gateway_json(['success' => false, 'error' => 'invalid-assemble-request'], 422);
+    }
+
+    $resolve = dent_notes_gateway_http_post_json(DENT_NOTES_GATEWAY_RESOLVE_URL, [
+        'token' => $token,
+        'gatewayVersion' => DENT_NOTES_GATEWAY_VERSION,
+        'origin' => DENT_NOTES_GATEWAY_MAIN_SITE_ORIGIN,
+        'contentType' => 'application/octet-stream',
+        'contentLength' => '0',
+    ]);
+    if (!($resolve['success'] ?? false) || !is_array($resolve['session'] ?? null)) {
+        dent_notes_gateway_json(['success' => false, 'error' => 'assemble-resolve-failed'], 403);
+    }
+
+    $session = $resolve['session'];
+    $sessionKey = trim((string) ($session['sessionKey'] ?? ''));
+    $relativePath = dent_notes_gateway_normalize_relative_path((string) ($session['relativePath'] ?? ''));
+    $expectedSize = max(0, (int) ($session['expectedSize'] ?? 0));
+    if ($sessionKey === '' || $relativePath === '' || $expectedSize <= 0 || !dent_notes_gateway_root_is_allowed($relativePath)) {
+        dent_notes_gateway_json(['success' => false, 'error' => 'assemble-session-invalid'], 422);
+    }
+
+    $absolutePath = dent_notes_gateway_absolute_path($relativePath);
+    dent_notes_gateway_ensure_parent_dir($absolutePath);
+    $tokenKey = preg_replace('/[^a-z0-9]/', '', strtolower($token)) ?? '';
+    $partPrefix = $absolutePath . '.dentup-' . substr($tokenKey, 0, 24) . '.part-';
+    $assemblingPath = $absolutePath . '.dentup-' . substr($tokenKey, 0, 24) . '.assembling';
+    $target = @fopen($assemblingPath, 'wb');
+    if ($target === false) {
+        dent_notes_gateway_json(['success' => false, 'error' => 'assemble-target-open-failed'], 500);
+    }
+
+    $storedBytes = 0;
+    try {
+        for ($index = 0; $index < $chunkCount; $index++) {
+            $partPath = $partPrefix . str_pad((string) $index, 6, '0', STR_PAD_LEFT);
+            $source = @fopen($partPath, 'rb');
+            if ($source === false) { throw new RuntimeException('assemble-part-missing-' . $index); }
+            $copied = stream_copy_to_stream($source, $target);
+            fclose($source);
+            if (!is_int($copied) || $copied <= 0) { throw new RuntimeException('assemble-part-copy-failed-' . $index); }
+            $storedBytes += $copied;
+        }
+        fclose($target);
+        $target = null;
+        if ($storedBytes !== $expectedSize) { throw new RuntimeException('assemble-size-mismatch'); }
+        if (is_file($absolutePath)) { @unlink($absolutePath); }
+        if (!@rename($assemblingPath, $absolutePath)) { throw new RuntimeException('assemble-rename-failed'); }
+        @chmod($absolutePath, 0644);
+
+        $complete = dent_notes_gateway_http_post_json(DENT_NOTES_GATEWAY_COMPLETE_URL, [
+            'token' => $token,
+            'sessionKey' => $sessionKey,
+            'bytes' => (string) $storedBytes,
+            'mimeType' => (string) ($session['mimeType'] ?? 'application/octet-stream'),
+            'gatewayVersion' => DENT_NOTES_GATEWAY_VERSION,
+            'origin' => DENT_NOTES_GATEWAY_MAIN_SITE_ORIGIN,
+        ]);
+        if (!($complete['success'] ?? false)) { throw new RuntimeException('assemble-complete-callback-failed'); }
+        for ($index = 0; $index < $chunkCount; $index++) {
+            @unlink($partPrefix . str_pad((string) $index, 6, '0', STR_PAD_LEFT));
+        }
+        dent_notes_gateway_json($complete);
+    } catch (Throwable $error) {
+        if (is_resource($target)) { fclose($target); }
+        @unlink($assemblingPath);
+        dent_notes_gateway_json(['success' => false, 'error' => $error->getMessage()], 502);
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     dent_notes_gateway_apply_cors();
     dent_notes_gateway_json([
@@ -2192,17 +2274,20 @@ function notes_download_host_stream_upload(string $targetAbsDir, string $tmpPath
 function notes_download_host_stream_chunk_to_ftp(
     string $relativePath,
     $sourceStream,
+    int $chunkIndex,
+    int $chunkCount,
     int $chunkStart,
     int $chunkBytes,
     int $expectedSize,
     string $uploadToken,
-    bool $isLastChunk
+    bool $isLastChunk,
+    string $mainSiteOrigin
 ): array {
     notes_download_host_prepare_long_transfer();
     if (!is_resource($sourceStream)) {
         dent_error('جریان chunk آپلود معتبر نیست.', 422);
     }
-    if ($chunkStart < 0 || $chunkBytes <= 0 || $expectedSize <= 0 || ($chunkStart + $chunkBytes) > $expectedSize) {
+    if ($chunkIndex < 0 || $chunkIndex >= $chunkCount || $chunkStart < 0 || $chunkBytes <= 0 || $expectedSize <= 0 || ($chunkStart + $chunkBytes) > $expectedSize) {
         dent_error('بازه chunk آپلود معتبر نیست.', 422);
     }
     if (!function_exists('ftp_connect') || !function_exists('ftp_fput')) {
@@ -2226,7 +2311,8 @@ function notes_download_host_stream_chunk_to_ftp(
 
     $remoteBase = trim(str_replace('\\', '/', (string) ($secret['remoteBaseDir'] ?? 'public_html')), '/');
     $remoteFinal = $remoteBase . '/' . $normalizedPath;
-    $remotePart = $remoteFinal . '.dentup-' . substr($tokenKey, 0, 24);
+    $remotePartPrefix = $remoteFinal . '.dentup-' . substr($tokenKey, 0, 24) . '.part-';
+    $remotePart = $remotePartPrefix . str_pad((string) $chunkIndex, 6, '0', STR_PAD_LEFT);
     $ftp = @ftp_connect((string) $secret['host'], 21, NOTES_DOWNLOAD_HOST_STREAM_CONNECT_TIMEOUT_SECONDS);
     if ($ftp === false) {
         dent_error('اتصال FTP streaming به هاست دانلود برقرار نشد.', 502);
@@ -2245,19 +2331,11 @@ function notes_download_host_stream_chunk_to_ftp(
         $remoteSize = @ftp_size($ftp, $remotePart);
         $remoteSize = $remoteSize >= 0 ? (int) $remoteSize : 0;
 
-        // A retried request may arrive after the previous response was lost. If
-        // this exact chunk is already present, do not append it a second time.
-        if ($remoteSize !== $expectedEnd) {
-            if ($chunkStart === 0) {
-                if ($remoteSize > 0) {
-                    @ftp_delete($ftp, $remotePart);
-                }
-                $remoteSize = 0;
-            }
-            if ($remoteSize !== $chunkStart) {
-                dent_error('ترتیب chunkهای آپلود با فایل روی هاست دانلود هم‌خوان نیست؛ آپلود باید از ابتدا تلاش شود.', 409);
-            }
-            if (!@ftp_fput($ftp, $remotePart, $sourceStream, FTP_BINARY, $chunkStart)) {
+        // The host does not reliably support REST+STOR append. Store every
+        // bounded chunk as its own idempotent part and assemble on dl host.
+        if ($remoteSize !== $chunkBytes) {
+            if ($remoteSize > 0) { @ftp_delete($ftp, $remotePart); }
+            if (!@ftp_fput($ftp, $remotePart, $sourceStream, FTP_BINARY, 0)) {
                 dent_error('نوشتن chunk روی هاست دانلود ناموفق بود.', 502);
             }
             clearstatcache();
@@ -2265,43 +2343,43 @@ function notes_download_host_stream_chunk_to_ftp(
             $remoteSize = $remoteSize >= 0 ? (int) $remoteSize : 0;
         }
 
-        if ($remoteSize !== $expectedEnd) {
+        if ($remoteSize !== $chunkBytes) {
             dent_error('حجم chunk ذخیره‌شده روی هاست دانلود کامل نیست.', 502);
         }
 
         if (!$isLastChunk) {
             return [
                 'partial' => true,
-                'storedBytes' => $remoteSize,
+                'storedBytes' => $expectedEnd,
                 'expectedSize' => $expectedSize,
             ];
         }
-
-        if ($remoteSize !== $expectedSize) {
-            dent_error('حجم نهایی فایل روی هاست دانلود با فایل انتخاب‌شده برابر نیست.', 422);
-        }
-        $existingFinalSize = @ftp_size($ftp, $remoteFinal);
-        if ($existingFinalSize >= 0) {
-            dent_error('فایل مقصد پیش از نهایی‌سازی روی هاست دانلود موجود است.', 409);
-        }
-        if (!@ftp_rename($ftp, $remotePart, $remoteFinal)) {
-            dent_error('نهایی‌سازی فایل روی هاست دانلود انجام نشد.', 502);
-        }
-        $finalSize = @ftp_size($ftp, $remoteFinal);
-        $finalSize = $finalSize >= 0 ? (int) $finalSize : 0;
-        if ($finalSize !== $expectedSize) {
-            @ftp_delete($ftp, $remoteFinal);
-            dent_error('راستی‌آزمایی حجم فایل نهایی روی هاست دانلود ناموفق بود.', 502);
-        }
-
-        return [
-            'partial' => false,
-            'storedBytes' => $finalSize,
-            'expectedSize' => $expectedSize,
-        ];
     } finally {
         @ftp_close($ftp);
     }
+
+    $gatewayUrl = notes_download_host_internal_runtime_public_url(notes_download_host_direct_upload_gateway_relative_path());
+    $assembleUrl = $gatewayUrl . '?' . http_build_query([
+        'action' => 'assemble',
+        'token' => $uploadToken,
+        'chunkCount' => $chunkCount,
+    ], '', '&', PHP_QUERY_RFC3986);
+    $response = notes_download_host_http_request('GET', $assembleUrl, [
+        'Accept: application/json',
+        'Origin: ' . $mainSiteOrigin,
+        'Connection: close',
+    ]);
+    $decoded = notes_download_host_decode_json_response($response, 'پاسخ نهایی‌سازی فایل از هاست دانلود معتبر نیست.');
+    if (!($decoded['success'] ?? false) || !is_array($decoded['file'] ?? null)) {
+        dent_error('نهایی‌سازی chunkهای فایل روی هاست دانلود انجام نشد: ' . trim((string) ($decoded['error'] ?? 'خطای نامشخص')), 502);
+    }
+
+    return [
+        'partial' => false,
+        'storedBytes' => $expectedSize,
+        'expectedSize' => $expectedSize,
+        'file' => $decoded['file'],
+    ];
 }
 
 function notes_download_host_relay_begin_output(): void

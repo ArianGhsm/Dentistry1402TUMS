@@ -836,17 +836,35 @@
             var ctype = task.file && task.file.type ? task.file.type : "application/octet-stream";
 
             return new Promise(function (resolve, reject) {
+                function encodeChunk(blob) {
+                    return new Promise(function (resolveEncoded, rejectEncoded) {
+                        var reader = new FileReader();
+                        reader.onerror = function () { rejectEncoded({ success: false, error: "خواندن chunk فایل انجام نشد." }); };
+                        reader.onload = function () {
+                            var value = String(reader.result || "");
+                            var comma = value.indexOf(",");
+                            var encoded = comma >= 0 ? value.slice(comma + 1) : "";
+                            if (!encoded) { rejectEncoded({ success: false, error: "کدگذاری chunk فایل انجام نشد." }); return; }
+                            resolveEncoded(encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, ""));
+                        };
+                        reader.readAsDataURL(blob);
+                    });
+                }
+
                 function sendChunk(index) {
                     var start = index * chunkSize;
                     var end = Math.min(total, start + chunkSize);
+                    var blob = task.file.slice(start, end);
+                    encodeChunk(blob).then(function (encodedBody) {
                     var xhr = new XMLHttpRequest();
                     state.uploadXhr = xhr;
                     xhr.open("POST", baseUrl + (baseUrl.indexOf("?") === -1 ? "?" : "&")
                         + "chunkIndex=" + index + "&chunkCount=" + chunkCount
-                        + "&chunkStart=" + start + "&chunkEnd=" + end, true);
+                        + "&chunkStart=" + start + "&chunkEnd=" + end + "&chunkEncoding=base64url", true);
                     xhr.withCredentials = true;
                     xhr.setRequestHeader("Accept", "application/json");
-                    xhr.setRequestHeader("Content-Type", ctype);
+                    xhr.setRequestHeader("Content-Type", "text/plain; charset=us-ascii");
+                    xhr.setRequestHeader("X-Dent-Chunk-Encoding", "base64url");
                     xhr.upload.onprogress = function (event) {
                         if (!event.lengthComputable) return;
                         var loaded = start + Number(event.loaded || 0);
@@ -884,7 +902,8 @@
                         state.uploadXhr = null;
                         reject({ success: false, canceled: state.uploadCancelRequested, error: state.uploadCancelRequested ? "آپلود لغو شد." : waitingMessage() });
                     };
-                    xhr.send(task.file.slice(start, end));
+                    xhr.send(encodedBody);
+                    }).catch(reject);
                 }
                 sendChunk(0);
             });

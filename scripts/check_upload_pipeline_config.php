@@ -162,7 +162,9 @@ if ($errors === []) {
         $errors[] = 'notes_download_host_stream_upload_from_stream helper is missing.';
     }
     if (strpos($downloadHostContents, 'function notes_download_host_stream_chunk_to_ftp(') === false
-        || strpos($downloadHostContents, 'ftp_fput(') === false) {
+        || strpos($downloadHostContents, 'ftp_fput(') === false
+        || strpos($downloadHostContents, "'action' => 'assemble'") === false
+        || strpos($downloadHostContents, "'.part-'") === false) {
         $errors[] = 'bounded raw chunk to FTP streaming helper is missing.';
     }
 
@@ -182,7 +184,9 @@ if ($errors === []) {
     }
     if (strpos($notesApiContents, "if (\$action === 'streamHostUploadChunk')") === false
         || strpos($notesApiContents, "'mode' => 'stream'") === false
-        || strpos($notesApiContents, "'transport' => 'raw-chunk-to-ftp'") === false) {
+        || strpos($notesApiContents, "'transport' => 'raw-chunk-to-ftp'") === false
+        || strpos($notesApiContents, "notes_download_host_request_header('X-Dent-Chunk-Encoding')") === false
+        || strpos($notesApiContents, "dent_base64url_decode(trim(\$encoded))") === false) {
         $errors[] = 'notes_api is not configured for bounded stream-to-FTP upload plans.';
     }
 
@@ -192,7 +196,9 @@ if ($errors === []) {
     }
     if (strpos($contentToolsFilesJsContents, 'return uploadItemDirect(item);') === false
         || strpos($contentToolsFilesJsContents, 'chunkStart=') === false
-        || strpos($contentToolsFilesJsContents, 'chunkEnd=') === false) {
+        || strpos($contentToolsFilesJsContents, 'chunkEnd=') === false
+        || strpos($contentToolsFilesJsContents, 'X-Dent-Chunk-Encoding') === false
+        || strpos($contentToolsFilesJsContents, 'base64url') === false) {
         $errors[] = 'content-tools-files.js can still bypass the bounded chunk stream transport.';
     }
 
@@ -202,7 +208,9 @@ if ($errors === []) {
     }
     if (strpos($notesFilesJsContents, 'planMode === "stream"') === false
         || strpos($notesFilesJsContents, 'chunkStart=') === false
-        || strpos($notesFilesJsContents, 'chunkEnd=') === false) {
+        || strpos($notesFilesJsContents, 'chunkEnd=') === false
+        || strpos($notesFilesJsContents, 'X-Dent-Chunk-Encoding') === false
+        || strpos($notesFilesJsContents, 'base64url') === false) {
         $errors[] = 'notes-files.js is not using the bounded chunk stream plan.';
     }
 
@@ -217,7 +225,9 @@ if ($errors === []) {
     }
     if (strpos($notesHostPickerJsContents, 'function sendStreamChunks(') === false
         || strpos($notesHostPickerJsContents, 'chunkStart=') === false
-        || strpos($notesHostPickerJsContents, 'chunkEnd=') === false) {
+        || strpos($notesHostPickerJsContents, 'chunkEnd=') === false
+        || strpos($notesHostPickerJsContents, 'X-Dent-Chunk-Encoding') === false
+        || strpos($notesHostPickerJsContents, 'base64url') === false) {
         $errors[] = 'notes-host-picker.js is not using the bounded chunk stream plan.';
     }
 

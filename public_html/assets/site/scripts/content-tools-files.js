@@ -894,6 +894,21 @@
             return err;
         }
 
+        function encodeChunkBase64Url(blob) {
+            return new Promise(function (resolve, reject) {
+                var reader = new FileReader();
+                reader.onerror = function () { reject(ctDirectError("chunk-read-failed", false)); };
+                reader.onload = function () {
+                    var value = String(reader.result || "");
+                    var comma = value.indexOf(",");
+                    var encoded = comma >= 0 ? value.slice(comma + 1) : "";
+                    if (!encoded) { reject(ctDirectError("chunk-encode-failed", false)); return; }
+                    resolve(encoded.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, ""));
+                };
+                reader.readAsDataURL(blob);
+            });
+        }
+
         function sendDirectChunks(plan, item) {
             var baseUrl = String(plan.url || "");
             var total = Number(item.size || (item.file && item.file.size) || 0);
@@ -910,14 +925,16 @@
                     var blob = item.file.slice(start, end);
                     var url = baseUrl + (baseUrl.indexOf("?") === -1 ? "?" : "&")
                         + "chunkIndex=" + index + "&chunkCount=" + chunkCount
-                        + "&chunkStart=" + start + "&chunkEnd=" + end;
+                        + "&chunkStart=" + start + "&chunkEnd=" + end + "&chunkEncoding=base64url";
+                    encodeChunkBase64Url(blob).then(function (encodedBody) {
                     var xhr = new XMLHttpRequest();
                     item.xhr = xhr;
                     xhr.open("POST", url, true);
                     xhr.withCredentials = streamMode;
                     xhr.timeout = 0;
                     xhr.setRequestHeader("Accept", "application/json");
-                    xhr.setRequestHeader("Content-Type", ctype);
+                    xhr.setRequestHeader("Content-Type", "text/plain; charset=us-ascii");
+                    xhr.setRequestHeader("X-Dent-Chunk-Encoding", "base64url");
                     xhr.upload.onprogress = function (event) {
                         if (!event.lengthComputable) return;
                         var loaded = start + Number(event.loaded || 0);
@@ -944,7 +961,8 @@
                         if (index + 1 >= chunkCount) { resolve(resp && resp.file ? resp.file : {}); return; }
                         sendChunk(index + 1);
                     };
-                    xhr.send(blob);
+                    xhr.send(encodedBody);
+                    }).catch(reject);
                 }
                 sendChunk(0);
             });

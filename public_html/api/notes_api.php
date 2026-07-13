@@ -360,6 +360,10 @@ function notes_prepare_host_upload_plan(string $cohort, array $viewer, array $pa
     // file on the download host. No complete-file staging is created here or on
     // the main host.
     notes_download_host_ensure_dir($target['relativeDir'], $target['scopeRoot']);
+    $mainSiteOrigin = notes_direct_upload_main_site_origin();
+    if ($mainSiteOrigin !== '') {
+        notes_download_host_ensure_direct_upload_gateway($mainSiteOrigin);
+    }
 
     return notes_direct_upload_with_store_lock(static function (array &$store) use ($cohort, $target, $desiredName, $mimeType, $expectedSize): array {
         $finalName = notes_download_host_unique_file_name_with_reserved(
@@ -3986,11 +3990,22 @@ if ($action === 'streamHostUploadChunk') {
     $chunkStart = max(0, (int) ($_GET['chunkStart'] ?? -1));
     $chunkEnd = max(0, (int) ($_GET['chunkEnd'] ?? -1));
     $contentLength = max(0, (int) notes_download_host_request_header('Content-Length'));
+    $chunkEncoding = strtolower(trim(notes_download_host_request_header('X-Dent-Chunk-Encoding')));
+    if ($chunkEncoding === '') {
+        // Some managed WAF/proxy layers strip unknown request headers. The
+        // authenticated, token-scoped endpoint therefore accepts the same
+        // non-secret transport hint in the query string as a reliable fallback.
+        $chunkEncoding = strtolower(trim((string) ($_GET['chunkEncoding'] ?? '')));
+    }
+    $decodedChunkBytes = max(0, $chunkEnd - $chunkStart);
     if ($token === '' || $chunkIndex >= $chunkCount || $chunkEnd <= $chunkStart || $contentLength <= 0) {
         dent_error('اطلاعات chunk آپلود معتبر نیست.', 422);
     }
-    if (($chunkEnd - $chunkStart) !== $contentLength) {
+    if ($chunkEncoding === '' && $decodedChunkBytes !== $contentLength) {
         dent_error('حجم بدنه chunk با بازه اعلام‌شده برابر نیست.', 422);
+    }
+    if ($chunkEncoding !== '' && $chunkEncoding !== 'base64url') {
+        dent_error('شیوه کدگذاری chunk پشتیبانی نمی‌شود.', 422);
     }
 
     $sessionSnapshot = notes_direct_upload_with_store_lock(static function (array &$store) use ($token, $cohort): array {
@@ -4031,19 +4046,42 @@ if ($action === 'streamHostUploadChunk') {
         dent_error('chunk پایانی با حجم کل فایل هم‌خوانی ندارد.', 422);
     }
 
-    $stream = fopen('php://input', 'rb');
-    if ($stream === false) {
+    $stream = null;
+    if ($chunkEncoding === 'base64url') {
+        $encoded = file_get_contents('php://input');
+        if (!is_string($encoded) || $encoded === '') {
+            dent_error('بدنه متنی chunk دریافت نشد.', 422);
+        }
+        $decoded = dent_base64url_decode(trim($encoded));
+        unset($encoded);
+        if ($decoded === '' || strlen($decoded) !== $decodedChunkBytes) {
+            dent_error('کدگشایی یا حجم chunk متنی معتبر نیست.', 422);
+        }
+        $stream = fopen('php://temp/maxmemory:8388608', 'w+b');
+        if ($stream === false || fwrite($stream, $decoded) !== strlen($decoded)) {
+            if (is_resource($stream)) fclose($stream);
+            dent_error('بافر حافظه chunk آماده نشد.', 500);
+        }
+        unset($decoded);
+        rewind($stream);
+    } else {
+        $stream = fopen('php://input', 'rb');
+    }
+    if (!is_resource($stream)) {
         dent_error('جریان raw-body آپلود باز نشد.', 422);
     }
     try {
         $stored = notes_download_host_stream_chunk_to_ftp(
             $relativePath,
             $stream,
+            $chunkIndex,
+            $chunkCount,
             $chunkStart,
-            $contentLength,
+            $decodedChunkBytes,
             $expectedSize,
             $token,
-            $isLastChunk
+            $isLastChunk,
+            notes_direct_upload_main_site_origin()
         );
     } finally {
         fclose($stream);

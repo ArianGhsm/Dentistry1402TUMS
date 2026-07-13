@@ -908,20 +908,31 @@ function Invoke-CurlCommand(
         } elseif ($script:NetworkPolicy.HostDeployPath -eq "proxy") {
             $proxyUri = Get-ProxyUriForPath -pathChoice "proxy"
             if (-not [string]::IsNullOrWhiteSpace($proxyUri)) {
-                $effectiveArguments += @("--proxy", $proxyUri)
+                # Tunnel FTP through the HTTP proxy. Without --proxytunnel some
+                # proxies return their own HTML page with exit code 0, which can
+                # be mistaken for an FTP directory listing or successful upload.
+                $effectiveArguments += @("--proxy", $proxyUri, "--proxytunnel")
             }
         }
         $effectiveArguments += @($Arguments)
         $previousErrorActionPreference = $ErrorActionPreference
         try {
             $ErrorActionPreference = "Continue"
-            $output = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.HostDeployPath -ScriptBlock {
-                & curl.exe @effectiveArguments 2>&1
+            # LASTEXITCODE set inside Invoke-WithNetworkPath's child scope is not
+            # reliably visible here. Return it with the captured output so a
+            # failed FTP transfer can never be reported as a successful upload.
+            $commandResult = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.HostDeployPath -ScriptBlock {
+                $capturedOutput = @(& curl.exe @effectiveArguments 2>&1)
+                [PSCustomObject]@{
+                    Output = $capturedOutput
+                    ExitCode = [int]$LASTEXITCODE
+                }
             }
         } finally {
             $ErrorActionPreference = $previousErrorActionPreference
         }
-        $exitCode = $LASTEXITCODE
+        $output = @($commandResult.Output)
+        $exitCode = [int]$commandResult.ExitCode
         $lastOutput = @($output)
         $lastExitCode = $exitCode
 
@@ -2471,15 +2482,31 @@ function Invoke-HealthCheck([string]$url) {
 
     Write-Host "Health check: $url"
 
-    try {
-        $response = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.HealthCheckPath -ScriptBlock {
-            Invoke-WebRequest -Uri $url -Method Get -MaximumRedirection 5 -TimeoutSec 30 -UseBasicParsing
+    $arguments = @(
+        "--silent", "--show-error", "--location", "--max-redirs", "5",
+        "--connect-timeout", "15", "--max-time", "30", "--output", "NUL",
+        "--write-out", "%{http_code}", "--header", "Cache-Control: no-cache",
+        "--user-agent", "Mozilla/5.0 DentistryDeployHealth/1.0"
+    )
+    if ($script:NetworkPolicy.HealthCheckPath -eq "direct") {
+        $arguments += @("--noproxy", "*")
+    } elseif ($script:NetworkPolicy.HealthCheckPath -eq "proxy") {
+        $proxyUri = Get-ProxyUriForPath -pathChoice "proxy"
+        if (-not [string]::IsNullOrWhiteSpace($proxyUri)) {
+            $arguments += @("--proxy", $proxyUri)
         }
-    } catch {
-        throw "Health check request failed for '$url'. $($_.Exception.Message)"
     }
-
-    $statusCode = [int]$response.StatusCode
+    $arguments += $url
+    $result = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.HealthCheckPath -ScriptBlock {
+        $captured = @(& curl.exe @arguments 2>&1)
+        [PSCustomObject]@{ Output = $captured; ExitCode = [int]$LASTEXITCODE }
+    }
+    if ([int]$result.ExitCode -ne 0) {
+        $detail = Format-CommandFailureDetail -commandOutput @($result.Output) -fallback "curl exit $($result.ExitCode)"
+        throw "Health check request failed for '$url'. $detail"
+    }
+    $statusText = (@($result.Output) | Select-Object -Last 1).ToString().Trim()
+    $statusCode = if ($statusText -match '^\d{3}$') { [int]$statusText } else { 0 }
     if ($statusCode -lt 200 -or $statusCode -ge 400) {
         throw "Health check failed for '$url' with status $statusCode."
     }
@@ -2917,6 +2944,13 @@ function Invoke-SiteFormJsonRequest(
         MaximumRedirection = 3
         TimeoutSec         = 30
         UseBasicParsing    = $true
+        UserAgent          = "Mozilla/5.0 DentistryDeployNotification/1.0"
+    }
+    if ($script:NetworkPolicy.HealthCheckPath -eq "proxy") {
+        $proxyUri = Get-ProxyUriForPath -pathChoice "proxy"
+        if (-not [string]::IsNullOrWhiteSpace($proxyUri)) {
+            $invokeArgs.Proxy = $proxyUri
+        }
     }
     if ($null -ne $Session) {
         $invokeArgs.WebSession = $Session
