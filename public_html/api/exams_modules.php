@@ -30,6 +30,7 @@ function dent_exams_bootstrap_modules(): void
     dent_exams_require_optional_module('exams_diagnostics1_term6_overrides.php');
     dent_exams_require_optional_module('exams_gerontology_term6_overrides.php');
     dent_exams_require_optional_module('exams_term6_reference_overrides.php');
+    dent_exams_require_optional_module('exams_complete_foundations_theory_midterm_practice_overrides.php');
     dent_exams_require_optional_module('exams_restorative_theory1_term6_overrides.php');
     dent_exams_require_optional_module('exams_restorative_theory1_midterm_sample_overrides.php');
 }
@@ -46,6 +47,7 @@ function dent_exams_registered_catalog_override_callbacks(): array
         'dent_exams_apply_diagnostics1_term6_catalog_overrides',
         'dent_exams_apply_gerontology_term6_catalog_overrides',
         'dent_exams_apply_term6_reference_catalog_overrides',
+        'dent_exams_apply_complete_foundations_theory_midterm_practice_catalog_overrides',
         'dent_exams_apply_restorative_theory1_term6_catalog_overrides',
         'dent_exams_apply_restorative_theory1_midterm_sample_catalog_overrides',
         'dent_exams_apply_radiology2_overrides',
