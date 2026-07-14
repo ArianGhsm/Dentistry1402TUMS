@@ -3,11 +3,12 @@
         return;
     }
 
-    var CURRENT_VERSION = "20260714-201759";
+    var CURRENT_VERSION = "20260714-204135";
     var VERSION_ENDPOINT = "/app-version.json";
     var SERVICE_WORKER_ENDPOINT = "/sw.js";
     var UPDATE_ACK_STORAGE_KEY = "dent1402-pwa-update-ack-version";
     var UPDATE_AUTO_STORAGE_KEY = "dent1402-pwa-update-auto-version";
+    var UPDATE_RELOAD_GUARD_STORAGE_KEY = "dent1402-pwa-update-reload-guard-version";
     var UPDATE_CHECK_MIN_INTERVAL = 5000;
     var UPDATE_CHECK_INTERVAL = 30000;
     var UPDATE_APPLY_RELOAD_FALLBACK_MS = 1800;
@@ -147,6 +148,23 @@
         }, Math.max(0, Number(delayMs) || 0));
     }
 
+    function scheduleVersionReload(version, delayMs) {
+        var targetVersion = normalizeVersion(version || state.latestVersion);
+        if (readStorage(UPDATE_RELOAD_GUARD_STORAGE_KEY) === targetVersion) {
+            // A stale HTML document can keep pointing at an older PWA runtime.
+            // Reload it at most once per release instead of trapping the user in
+            // a reload loop while the browser cache catches up.
+            updateApplyInFlight = false;
+            writeStorage(UPDATE_AUTO_STORAGE_KEY, "");
+            notify();
+            return false;
+        }
+
+        writeStorage(UPDATE_RELOAD_GUARD_STORAGE_KEY, targetVersion);
+        scheduleUpdateReload(delayMs);
+        return true;
+    }
+
     function ensureBannerStyle() {
         if (document.getElementById("dent1402-pwa-update-style")) {
             return;
@@ -277,6 +295,7 @@
             clearUpdateReloadTimer();
             writeStorage(UPDATE_ACK_STORAGE_KEY, "");
             writeStorage(UPDATE_AUTO_STORAGE_KEY, "");
+            writeStorage(UPDATE_RELOAD_GUARD_STORAGE_KEY, "");
         } else if (hasWaitingWorker && autoApplyVersion() === normalizedLatest && !reloadAfterControllerChange) {
             window.setTimeout(function () {
                 applyUpdate().catch(function () {
@@ -430,7 +449,7 @@
 
     function applyUpdate() {
         if (!("serviceWorker" in navigator)) {
-            scheduleUpdateReload(80);
+            scheduleVersionReload(state.latestVersion, 80);
             return Promise.resolve({ outcome: "reloading" });
         }
 
@@ -443,7 +462,7 @@
             if (waitingWorker) {
                 reloadAfterControllerChange = true;
                 waitingWorker.postMessage({ type: "SKIP_WAITING" });
-                scheduleUpdateReload(UPDATE_APPLY_RELOAD_FALLBACK_MS);
+                scheduleVersionReload(state.latestVersion, UPDATE_APPLY_RELOAD_FALLBACK_MS);
                 return { outcome: "reloading" };
             }
 
@@ -451,12 +470,12 @@
                 if (registrationRef && registrationRef.waiting) {
                     reloadAfterControllerChange = true;
                     registrationRef.waiting.postMessage({ type: "SKIP_WAITING" });
-                    scheduleUpdateReload(UPDATE_APPLY_RELOAD_FALLBACK_MS);
+                    scheduleVersionReload(state.latestVersion, UPDATE_APPLY_RELOAD_FALLBACK_MS);
                     return { outcome: "reloading" };
                 }
 
                 if (state.latestVersion !== state.currentVersion) {
-                    scheduleUpdateReload(220);
+                    scheduleVersionReload(state.latestVersion, 220);
                     return { outcome: "reloading-fallback" };
                 }
 

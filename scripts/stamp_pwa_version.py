@@ -9,6 +9,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_ROOT = ROOT / "public_html"
+VERSIONED_DOCUMENT_ASSET = re.compile(
+    r'(?P<prefix>\b(?:src|href)\s*=\s*["\']/(?:assets/[^"\'?]+|manifest\.webmanifest|sw\.js)\?v=)[^"\'#\s>]+',
+    re.IGNORECASE,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -79,6 +83,21 @@ def stamp_manifest(version: str, changed: list[str], dry_run: bool) -> None:
     record_changed_text(manifest_path, updated, changed, dry_run)
 
 
+def stamp_document_asset_versions(version: str, changed: list[str], dry_run: bool) -> None:
+    """Keep every page on the same cache-busted shared runtime release."""
+    for suffix in ("*.html", "*.php"):
+        for path in PUBLIC_ROOT.rglob(suffix):
+            if path.name == "sw.js":
+                continue
+
+            original = path.read_text(encoding="utf-8")
+            updated = VERSIONED_DOCUMENT_ASSET.sub(
+                lambda match: match.group("prefix") + version,
+                original,
+            )
+            record_changed_text(path, updated, changed, dry_run)
+
+
 def stamp_app_version_file(version: str, changed: list[str], dry_run: bool) -> None:
     payload = {
         "version": version,
@@ -101,6 +120,7 @@ def main() -> int:
 
     stamp_script_versions(version, changed, args.dry_run)
     stamp_manifest(version, changed, args.dry_run)
+    stamp_document_asset_versions(version, changed, args.dry_run)
     stamp_app_version_file(version, changed, args.dry_run)
 
     print(f"STAMP_VERSION={version}")
