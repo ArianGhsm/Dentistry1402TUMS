@@ -15,6 +15,8 @@ require_once __DIR__ . '/../public_html/api/search_store.php';
 require_once __DIR__ . '/../public_html/api/push_store.php';
 require_once __DIR__ . '/../public_html/api/analytics_store.php';
 require_once __DIR__ . '/../public_html/api/exams_store.php';
+require_once __DIR__ . '/../public_html/api/auth_store.php';
+require_once __DIR__ . '/../public_html/api/exams_home_highlights.php';
 
 // Order-status constants live in payments_store.php (not loaded here); define the
 // stable values the funnel relies on so the test stays self-contained.
@@ -257,6 +259,26 @@ unit_assert(
     str_contains($examQuizSource, '/^(?:javascript|data|vbscript):/iu')
         && str_contains($examQuizSource, '/^https:\\/\\//iu.test(url)'),
     'exams: question media URL normalization rejects active-content schemes and only allows local or HTTPS media'
+);
+
+$homeHighlightsBeforeExpiry = dent_exams_home_highlights_courses_for_cohort(
+    'dentistry-1402',
+    strtotime('2026-07-14T20:00:00+03:30')
+);
+$homeHighlightsAfterExpiry = dent_exams_home_highlights_courses_for_cohort(
+    'dentistry-1402',
+    strtotime('2026-07-23T00:00:00+03:30')
+);
+unit_assert(
+    count($homeHighlightsBeforeExpiry) === 2 && count($homeHighlightsAfterExpiry) === 0,
+    'exams: home highlights use the two-entry index and never backfill an expired item'
+);
+$homeHighlightsApiSource = (string) file_get_contents(__DIR__ . '/../public_html/api/exams_home_highlights_api.php');
+unit_assert(
+    !str_contains($homeHighlightsApiSource, 'exams_store.php')
+        && !str_contains($homeHighlightsApiSource, 'payments_store.php')
+        && !str_contains($homeHighlightsApiSource, 'exams_modules.php'),
+    'exams: home highlights endpoint avoids the full exam, payment and module stores'
 );
 
 echo "\n";

@@ -50,7 +50,7 @@ function dent_exams_complete_foundations_theory_midterm_practice_course(bool $hy
             'topic' => 'آناتومی فانکشنال و قالب‌گیری اولیه فک بالا و پایین',
             'professor' => 'شریفی',
             'patterns' => ['session4_*.txt'],
-            'questionCount' => 60,
+            'questionCount' => 50,
         ],
         [
             'slug' => '5-7',

@@ -427,7 +427,7 @@
         var ticket = ++activeExamsState.requestToken;
 
         try {
-            var response = await fetch("/api/exams_api.php?action=catalog&cohort=" + encodeURIComponent(cohortKey), {
+            var response = await fetch("/api/exams_home_highlights_api.php?cohort=" + encodeURIComponent(cohortKey), {
                 method: "GET",
                 credentials: "same-origin",
                 headers: {
@@ -447,9 +447,7 @@
                 return;
             }
 
-            var catalogCourses = Array.isArray(payload.catalog && payload.catalog.homeActiveCourses)
-                ? payload.catalog.homeActiveCourses
-                : (Array.isArray(payload.catalog && payload.catalog.courses) ? payload.catalog.courses.slice(0, 2) : []);
+            var catalogCourses = Array.isArray(payload.courses) ? payload.courses : [];
             var latestCourses = catalogCourses
                 .filter(function (course) {
                     return course && course.path && Number(course.stats && course.stats.examCount) > 0;

@@ -30,12 +30,12 @@ function ct_paste_h(string $value): string
     <title><?php echo ct_paste_h($title); ?> | Paste</title>
     <meta name="description" content="<?php echo ct_paste_h($description); ?>">
     <meta name="robots" content="noindex,follow">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260714-204135">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260714-204135">
-    <script src="/assets/site/scripts/theme.js?v=20260714-204135"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260714-204135">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260714-204135">
-    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260714-204135">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260714-220250">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260714-220250">
+    <script src="/assets/site/scripts/theme.js?v=20260714-220250"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260714-220250">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260714-220250">
+    <link rel="stylesheet" href="/assets/site/styles/content-tools.css?v=20260714-220250">
 </head>
 <body class="content-tools-page content-tools-page--public content-tools-page--public-paste" data-content-tool="public-paste" data-public-token="<?php echo ct_paste_h($token); ?>" data-shell-header="off" data-shell-reserve="self">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -55,7 +55,7 @@ function ct_paste_h(string $value): string
             </div>
         </section>
     </main>
-    <script src="/assets/site/scripts/content-tools.js?v=20260714-204135"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260714-204135"></script>
+    <script src="/assets/site/scripts/content-tools.js?v=20260714-220250"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260714-220250"></script>
 </body>
 </html>
