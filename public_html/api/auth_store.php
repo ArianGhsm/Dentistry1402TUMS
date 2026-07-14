@@ -3241,6 +3241,36 @@ function dent_user_phone_ready_for_otp(array $user): bool
     return $phoneNumber !== '' && $verifiedAt !== '' && $otpEnabled;
 }
 
+function dent_auth_dis_request_phone_index(): array
+{
+    $store = dent_read_json_file(dent_storage_path('dis_request/store.json'), [
+        'responses' => [],
+    ]);
+    $responses = is_array($store['responses'] ?? null) ? $store['responses'] : [];
+    $index = [];
+
+    foreach ($responses as $studentNumber => $record) {
+        if (!is_array($record)) {
+            continue;
+        }
+
+        $normalizedStudentNumber = dent_normalize_student_number((string) ($record['studentNumber'] ?? $studentNumber));
+        if ($normalizedStudentNumber === '') {
+            continue;
+        }
+
+        $fields = is_array($record['fields'] ?? null) ? $record['fields'] : [];
+        $phoneNumber = dent_normalize_phone_number((string) ($fields['phoneNumber'] ?? ''));
+        if ($phoneNumber === '') {
+            continue;
+        }
+
+        $index[$normalizedStudentNumber] = $phoneNumber;
+    }
+
+    return $index;
+}
+
 function dent_phone_number_in_use(string $phoneNumber, string $excludeStudentNumber = ''): bool
 {
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
@@ -3250,6 +3280,7 @@ function dent_phone_number_in_use(string $phoneNumber, string $excludeStudentNum
 
     $excludeStudentNumber = dent_normalize_student_number($excludeStudentNumber);
     $store = dent_load_user_store();
+    $disPhoneIndex = dent_auth_dis_request_phone_index();
     foreach ((array) ($store['users'] ?? []) as $studentNumber => $user) {
         if (!is_array($user)) {
             continue;
@@ -3259,6 +3290,12 @@ function dent_phone_number_in_use(string $phoneNumber, string $excludeStudentNum
             continue;
         }
         if (dent_normalize_phone_number((string) ($user['phoneNumber'] ?? '')) === $normalizedPhone) {
+            return true;
+        }
+        if (dent_normalize_phone_number((string) ($user['directoryPhoneNumber'] ?? '')) === $normalizedPhone) {
+            return true;
+        }
+        if (dent_normalize_phone_number((string) ($disPhoneIndex[$normalizedStudentNumber] ?? '')) === $normalizedPhone) {
             return true;
         }
     }
@@ -3281,6 +3318,65 @@ function dent_find_user_by_phone(string $phoneNumber): ?array
         if (dent_normalize_phone_number((string) ($user['phoneNumber'] ?? '')) === $normalizedPhone) {
             return $user;
         }
+    }
+
+    return null;
+}
+
+function dent_find_login_otp_user_by_phone(string $phoneNumber): ?array
+{
+    $normalizedPhone = dent_normalize_phone_number($phoneNumber);
+    if ($normalizedPhone === '') {
+        return null;
+    }
+
+    $store = dent_load_user_store();
+    $users = is_array($store['users'] ?? null) ? $store['users'] : [];
+    foreach ($users as $user) {
+        if (!is_array($user)) {
+            continue;
+        }
+        if (dent_normalize_phone_number((string) ($user['phoneNumber'] ?? '')) === $normalizedPhone
+            && dent_user_phone_ready_for_otp($user)) {
+            $user['_otpPhoneFallback'] = false;
+            return $user;
+        }
+    }
+
+    $disPhoneIndex = dent_auth_dis_request_phone_index();
+    $candidates = [];
+    foreach ($users as $studentNumber => $user) {
+        if (!is_array($user)) {
+            continue;
+        }
+
+        $normalizedStudentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? $studentNumber));
+        if ($normalizedStudentNumber === '') {
+            continue;
+        }
+
+        $storedPhone = dent_normalize_phone_number((string) ($user['phoneNumber'] ?? ''));
+        if ($storedPhone !== '' && $storedPhone !== $normalizedPhone) {
+            continue;
+        }
+
+        $directoryPhone = dent_normalize_phone_number((string) ($user['directoryPhoneNumber'] ?? ''));
+        $disPhone = dent_normalize_phone_number((string) ($disPhoneIndex[$normalizedStudentNumber] ?? ''));
+        if ($directoryPhone !== $normalizedPhone && $disPhone !== $normalizedPhone) {
+            continue;
+        }
+
+        $user['_otpPhoneFallback'] = true;
+        $user['_otpPhoneFallbackSource'] = $directoryPhone === $normalizedPhone ? 'directory' : 'dis-request';
+        $candidates[$normalizedStudentNumber] = $user;
+    }
+
+    if (count($candidates) > 1) {
+        dent_error('این شماره موبایل به بیش از یک حساب وصل است. برای فعال‌سازی ورود پیامکی با مالک سایت تماس بگیر.', 409);
+    }
+
+    if (count($candidates) === 1) {
+        return reset($candidates) ?: null;
     }
 
     return null;
@@ -4216,8 +4312,8 @@ function dent_request_login_otp(string $phoneNumber): array
         dent_error('شماره موبایل نامعتبر است.', 422);
     }
 
-    $user = dent_find_user_by_phone($normalizedPhone);
-    if ($user === null || !dent_user_phone_ready_for_otp($user)) {
+    $user = dent_find_login_otp_user_by_phone($normalizedPhone);
+    if ($user === null) {
         dent_error('برای این شماره، ورود با کد تایید فعال نیست.', 403);
     }
 
@@ -4239,8 +4335,8 @@ function dent_verify_login_otp(string $phoneNumber, string $otpCode): array
         dent_error('شماره موبایل نامعتبر است.', 422);
     }
 
-    $user = dent_find_user_by_phone($normalizedPhone);
-    if ($user === null || !dent_user_phone_ready_for_otp($user)) {
+    $user = dent_find_login_otp_user_by_phone($normalizedPhone);
+    if ($user === null) {
         dent_error('برای این شماره، ورود با کد تایید فعال نیست.', 403);
     }
 
@@ -4248,6 +4344,15 @@ function dent_verify_login_otp(string $phoneNumber, string $otpCode): array
     $verify = dent_verify_otp_for_phone('login', $normalizedPhone, $otpCode, $studentNumber);
     if (!(bool) ($verify['success'] ?? false)) {
         dent_error((string) ($verify['error'] ?? 'تایید کد انجام نشد.'), (int) ($verify['statusCode'] ?? 422), $verify);
+    }
+
+    if (!dent_user_phone_ready_for_otp($user) || dent_normalize_phone_number((string) ($user['phoneNumber'] ?? '')) !== $normalizedPhone) {
+        $user['phoneNumber'] = $normalizedPhone;
+        $user['phoneVerifiedAt'] = dent_iso_now();
+        $user['phoneLoginEnabled'] = true;
+        $user['phoneNudgeDismissedAt'] = '';
+        unset($user['_otpPhoneFallback'], $user['_otpPhoneFallbackSource']);
+        $user = dent_persist_user($user);
     }
 
     return dent_login_user($user);

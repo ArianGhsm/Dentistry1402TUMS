@@ -828,6 +828,12 @@ if ($action === 'users') {
         }
         $ownerPrivate['hasNationalCode'] = !empty($ownerPrivate['nationalCode']);
         $ownerPrivate['hasDirectoryPhone'] = !empty($ownerPrivate['directoryPhoneNumber']);
+        $ownerPrivate['nationalCodeMasked'] = $ownerPrivate['hasNationalCode']
+            ? ('******' . substr((string) $ownerPrivate['nationalCode'], -4))
+            : '';
+        $ownerPrivate['directoryPhoneMasked'] = $ownerPrivate['hasDirectoryPhone']
+            ? dent_mask_phone_number((string) $ownerPrivate['directoryPhoneNumber'])
+            : '';
         if (!empty($disPrivate['source'])) {
             $ownerPrivate['source'] = (string) $disPrivate['source'];
         }
