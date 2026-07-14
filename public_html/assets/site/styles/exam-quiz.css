@@ -1767,6 +1767,30 @@ body.quiz-page .exam-answer-card__section:first-of-type {
     border-top: none;
 }
 
+body.quiz-page .exam-answer-card__section.is-info,
+body.quiz-page .exam-answer-card__section.is-success,
+body.quiz-page .exam-answer-card__section.is-warning {
+    padding: 0.62rem 0.68rem;
+    border: 1px solid var(--exam-line);
+    border-radius: 18px;
+    background: var(--exam-surface-strong);
+}
+
+body.quiz-page .exam-answer-card__section.is-info {
+    border-color: rgba(91, 133, 255, 0.2);
+    background: color-mix(in srgb, var(--exam-accent-soft) 38%, var(--exam-surface-strong));
+}
+
+body.quiz-page .exam-answer-card__section.is-success {
+    border-color: rgba(69, 210, 154, 0.22);
+    background: color-mix(in srgb, var(--exam-success-soft) 54%, var(--exam-surface-strong));
+}
+
+body.quiz-page .exam-answer-card__section.is-warning {
+    border-color: rgba(239, 177, 84, 0.24);
+    background: color-mix(in srgb, var(--exam-warning-soft) 58%, var(--exam-surface-strong));
+}
+
 body.quiz-page .exam-answer-card__section-label {
     width: fit-content;
     color: var(--exam-accent-strong);

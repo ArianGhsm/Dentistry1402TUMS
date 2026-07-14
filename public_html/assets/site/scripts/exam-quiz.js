@@ -1222,9 +1222,26 @@
     function renderAnswerDetailsContent(question, fallbackHtml) {
         return [
             renderAnswerMeta(question),
-            question.explanation ? '<div class="exam-answer-card__body">' + richTextHtml(question.explanation) + "</div>" : (fallbackHtml || ""),
+            question.answerSections.length
+                ? renderAnswerSections(question.answerSections)
+                : (question.explanation ? '<div class="exam-answer-card__body">' + richTextHtml(question.explanation) + "</div>" : (fallbackHtml || "")),
             question.reference ? '<p class="exam-answer-card__reference">' + richTextHtml(question.reference) + "</p>" : ""
         ].filter(Boolean).join("");
+    }
+
+    function renderAnswerSections(sections) {
+        if (!Array.isArray(sections) || !sections.length) {
+            return "";
+        }
+
+        return sections.map(function (section) {
+            return [
+                '<div class="exam-answer-card__section' + (section.tone ? " is-" + escapeHtml(section.tone) : "") + '">',
+                '  <span class="exam-answer-card__section-label">' + escapeHtml(section.label || "توضیح") + "</span>",
+                '  <div class="exam-answer-card__section-copy">' + richTextHtml(section.value || "") + "</div>",
+                "</div>"
+            ].join("");
+        }).join("");
     }
 
     function renderMcqAnswerCard(question, selectedIndex, options) {
@@ -3349,6 +3366,7 @@
             answerDetail: normalizeText(item.answerDetail || ""),
             reference: normalizeText(item.reference || ""),
             answerMeta: normalizeAnswerMeta(item.answerMeta),
+            answerSections: normalizeAnswerSections(item.answerSections || item.explanationSections),
             answerResolved: isEssay ? true : hasResolvedCorrectIndex(correctIndex),
             useCompactOptions: shouldUseCompactOptions(options)
         };
@@ -3502,6 +3520,30 @@
             }
         });
         return rationales;
+    }
+
+    function normalizeAnswerSections(value) {
+        if (!Array.isArray(value)) {
+            return [];
+        }
+
+        return value.map(function (item) {
+            if (!isObject(item)) {
+                return null;
+            }
+
+            var label = normalizeText(item.label || item.title || item.heading);
+            var sectionValue = normalizeText(item.value || item.text || item.body || item.copy);
+            if (!label || !sectionValue) {
+                return null;
+            }
+
+            return {
+                label: label,
+                value: sectionValue,
+                tone: normalizeText(item.tone || "")
+            };
+        }).filter(Boolean).slice(0, 16);
     }
 
     function normalizeTopicBreakdown(items) {

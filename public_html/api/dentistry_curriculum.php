@@ -28,7 +28,7 @@ function dent_dentistry_term6_final_exam_schedule(): array
             'weekdayLabel' => 'چهارشنبه',
             'timeLabel' => '۱۲:۱۵',
             'startsAt' => '2026-07-22T12:15:00+03:30',
-            'courseSlugs' => ['complete-foundations-theory-midterm-practice', 'zarb-complete-prosthodontics'],
+            'courseSlugs' => ['complete-foundations-theory-midterm-practice', 'complete-prosthodontics-midterm-sample', 'zarb-complete-prosthodontics'],
         ],
         'restorative-theory-1' => [
             'title' => 'ترمیمی نظری ۱',
@@ -577,7 +577,7 @@ function dent_dentistry_curriculum_terms(): array
                             'title' => 'پروتز کامل نظری',
                             'aliases' => ['مبانی کامل نظری'],
                             'finalExamKeys' => ['complete-prosthodontics-theory'],
-                            'examCourseSlugs' => ['complete-foundations-theory-midterm-practice', 'zarb-complete-prosthodontics'],
+                            'examCourseSlugs' => ['complete-foundations-theory-midterm-practice', 'complete-prosthodontics-midterm-sample', 'zarb-complete-prosthodontics'],
                         ],
                         [
                             'key' => 'restorative-theory-1',
