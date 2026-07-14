@@ -2361,9 +2361,14 @@ function dent_exams_api_resolve_course_setting(
     return $nextSetting;
 }
 
-function dent_exams_api_current_course_summary(string $catalogKey, string $courseSlug): array
+function dent_exams_api_current_course_summary(
+    string $catalogKey,
+    string $courseSlug,
+    ?array $viewer = null,
+    bool $viewerProvided = false
+): array
 {
-    $user = dent_current_user();
+    $user = $viewerProvided ? $viewer : dent_current_user();
     $course = dent_exams_api_apply_runtime_course_override(dent_exams_api_course_or_fail($catalogKey, $courseSlug));
     $examsStore = dent_exams_read_store();
     $paymentsStore = payments_read_store();
@@ -2452,7 +2457,7 @@ if ($action === 'course') {
     dent_release_session_lock();
 
     try {
-        $payload = dent_exams_api_current_course_summary($catalogKey, $courseSlug);
+        $payload = dent_exams_api_current_course_summary($catalogKey, $courseSlug, $user, true);
     } catch (DentExamsApiException $error) {
         dent_error($error->getMessage(), $error->statusCode(), $error->payload());
     }
