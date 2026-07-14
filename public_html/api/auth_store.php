@@ -3332,19 +3332,23 @@ function dent_find_login_otp_user_by_phone(string $phoneNumber): ?array
 
     $store = dent_load_user_store();
     $users = is_array($store['users'] ?? null) ? $store['users'] : [];
-    foreach ($users as $user) {
+    $candidates = [];
+    foreach ($users as $studentNumber => $user) {
         if (!is_array($user)) {
+            continue;
+        }
+        $normalizedStudentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? $studentNumber));
+        if ($normalizedStudentNumber === '') {
             continue;
         }
         if (dent_normalize_phone_number((string) ($user['phoneNumber'] ?? '')) === $normalizedPhone
             && dent_user_phone_ready_for_otp($user)) {
             $user['_otpPhoneFallback'] = false;
-            return $user;
+            $candidates[$normalizedStudentNumber] = $user;
         }
     }
 
     $disPhoneIndex = dent_auth_dis_request_phone_index();
-    $candidates = [];
     foreach ($users as $studentNumber => $user) {
         if (!is_array($user)) {
             continue;
@@ -3363,6 +3367,10 @@ function dent_find_login_otp_user_by_phone(string $phoneNumber): ?array
         $directoryPhone = dent_normalize_phone_number((string) ($user['directoryPhoneNumber'] ?? ''));
         $disPhone = dent_normalize_phone_number((string) ($disPhoneIndex[$normalizedStudentNumber] ?? ''));
         if ($directoryPhone !== $normalizedPhone && $disPhone !== $normalizedPhone) {
+            continue;
+        }
+
+        if (isset($candidates[$normalizedStudentNumber])) {
             continue;
         }
 
