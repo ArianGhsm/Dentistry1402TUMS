@@ -45,6 +45,14 @@ function dent_exams_complete_foundations_theory_midterm_practice_course(bool $hy
             'questionCount' => 50,
         ],
         [
+            'slug' => '4',
+            'label' => 'جلسه ۴',
+            'topic' => 'آناتومی فانکشنال و قالب‌گیری اولیه فک بالا و پایین',
+            'professor' => 'شریفی',
+            'patterns' => ['session4_*.txt'],
+            'questionCount' => 60,
+        ],
+        [
             'slug' => '5-7',
             'label' => 'جلسات ۵ و ۷',
             'topic' => 'ساخت تری اختصاصی، بوردرمولدینگ، قالب‌گیری نهایی و ریختن کست نهایی فک بالا و پایین',
