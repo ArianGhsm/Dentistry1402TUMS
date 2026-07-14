@@ -117,6 +117,50 @@
         }).then(parseJson).catch(networkErrorResponse);
     }
 
+    function authSnapshot() {
+        if (!window.Dent1402Auth || typeof window.Dent1402Auth.getState !== "function") {
+            return null;
+        }
+        try {
+            return window.Dent1402Auth.getState();
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    function shouldRecheckCourseAuth(payload) {
+        if (!payload || !payload.success || !payload.course || payload.viewer) {
+            return false;
+        }
+        var access = payload.course.access || {};
+        if (!access.requiresLogin || access.unlockKey !== "login-required") {
+            return false;
+        }
+        var auth = authSnapshot();
+        return !!(auth && auth.loggedIn && auth.user);
+    }
+
+    function recheckCourseAuthIfNeeded(payload) {
+        if (!shouldRecheckCourseAuth(payload)) {
+            return Promise.resolve(payload);
+        }
+        var authApi = window.Dent1402Auth;
+        if (!authApi || typeof authApi.verifySession !== "function") {
+            return Promise.resolve(payload);
+        }
+
+        return authApi.verifySession({ attempts: 2, delayMs: 300 }).then(function (result) {
+            if (result === false) {
+                return payload;
+            }
+            return apiGet("course", { course: courseSlug }).then(function (retryPayload) {
+                return retryPayload && retryPayload.success ? retryPayload : payload;
+            });
+        }).catch(function () {
+            return payload;
+        });
+    }
+
     function formatValue(value) {
         return (Math.max(0, Number(value) || 0)).toLocaleString("fa-IR");
     }
@@ -1044,7 +1088,7 @@
         }
         state.loading = true;
         setLoading();
-        apiGet("course", { course: courseSlug }).then(function (payload) {
+        apiGet("course", { course: courseSlug }).then(recheckCourseAuthIfNeeded).then(function (payload) {
             if (!payload || !payload.success || !payload.course) {
                 throw new Error((payload && payload.error) || "بارگذاری این درس انجام نشد.");
             }
