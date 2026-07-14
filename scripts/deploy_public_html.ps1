@@ -2485,6 +2485,49 @@ function Delete-RemoteFile([string]$relative) {
         -Operation "Delete remote $relative" | Out-Null
 }
 
+function Invoke-NodeHealthCheckFallback([string]$url) {
+    $node = Get-Command node.exe -ErrorAction SilentlyContinue
+    if ($null -eq $node -or [string]::IsNullOrWhiteSpace($node.Source)) {
+        return 0
+    }
+
+    # Node uses OpenSSL instead of Windows Schannel. Keep TLS verification on;
+    # this is only a transport fallback when curl cannot acquire credentials.
+    $nodeScript = @'
+const target = process.argv[1];
+const client = target.startsWith('https://') ? require('https') : require('http');
+const request = client.get(target, {
+  headers: {
+    'Cache-Control': 'no-cache',
+    'User-Agent': 'Mozilla/5.0 DentistryDeployHealth/1.0'
+  }
+}, (response) => {
+  const statusCode = String(response.statusCode || 0);
+  response.resume();
+  response.on('end', () => console.log(statusCode));
+});
+request.on('error', (error) => {
+  console.error(String((error && error.message) || error));
+  process.exitCode = 1;
+});
+'@
+
+    # Node does not consume the HTTP(S)_PROXY environment variables by default,
+    # so invoke its direct TLS client outside the curl network-path wrapper.
+    $captured = @(& $node.Source -e $nodeScript -- $url 2>&1)
+    $result = [PSCustomObject]@{ Output = $captured; ExitCode = [int]$LASTEXITCODE }
+    if ([int]$result.ExitCode -ne 0) {
+        return 0
+    }
+
+    $statusText = (@($result.Output) | Select-Object -Last 1).ToString().Trim()
+    if ($statusText -match '^\d{3}$') {
+        return [int]$statusText
+    }
+
+    return 0
+}
+
 function Invoke-HealthCheck([string]$url) {
     if ([string]::IsNullOrWhiteSpace($url)) {
         return
@@ -2508,11 +2551,29 @@ function Invoke-HealthCheck([string]$url) {
     }
     $arguments += $url
     $result = Invoke-WithNetworkPath -PathChoice $script:NetworkPolicy.HealthCheckPath -ScriptBlock {
-        $captured = @(& curl.exe @arguments 2>&1)
-        [PSCustomObject]@{ Output = $captured; ExitCode = [int]$LASTEXITCODE }
+        # A failed native curl command writes stderr as an error record. Capture
+        # it as transport output so the TLS fallback can make the final decision.
+        $previousErrorActionPreference = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = "Continue"
+            $captured = @(& curl.exe @arguments 2>&1)
+            $exitCode = [int]$LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $previousErrorActionPreference
+        }
+
+        [PSCustomObject]@{ Output = $captured; ExitCode = $exitCode }
     }
     if ([int]$result.ExitCode -ne 0) {
+        $fallbackStatus = Invoke-NodeHealthCheckFallback -url $url
+        if ($fallbackStatus -ge 200 -and $fallbackStatus -lt 400) {
+            Write-Warning "curl health check transport failed; Node TLS fallback succeeded: $url ($fallbackStatus)"
+            return
+        }
         $detail = Format-CommandFailureDetail -commandOutput @($result.Output) -fallback "curl exit $($result.ExitCode)"
+        if ($fallbackStatus -gt 0) {
+            throw "Health check failed for '$url' with status $fallbackStatus via Node TLS fallback. curl transport detail: $detail"
+        }
         throw "Health check request failed for '$url'. $detail"
     }
     $statusText = (@($result.Output) | Select-Object -Last 1).ToString().Trim()
