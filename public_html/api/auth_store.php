@@ -179,17 +179,13 @@ function dent_default_cohort_short_title(string $key): string
 function dent_default_cohort_services(string $key, string $productType, string $notesMode): array
 {
     $isSiteUsers = $productType === 'site-users';
-    $showsSharedExamHighlights = in_array($key, [
-        dent_primary_cohort_key(),
-        dent_external_site_users_cohort_key(),
-    ], true);
     return [
         'notes' => !$isSiteUsers && $notesMode !== 'none',
         'forms' => !$isSiteUsers,
         'grades' => !$isSiteUsers,
         'navid' => !$isSiteUsers,
         'buy' => $isSiteUsers,
-        'activeExamHighlights' => $showsSharedExamHighlights,
+        'activeExamHighlights' => $key === dent_primary_cohort_key(),
     ];
 }
 

@@ -27,7 +27,8 @@ if ($cohort === null) {
 
 dent_release_session_lock();
 $services = is_array($cohort['services'] ?? null) ? $cohort['services'] : [];
-$enabled = !empty($services['activeExamHighlights']);
+$enabled = !empty($services['activeExamHighlights'])
+    || $cohortKey === dent_external_site_users_cohort_key();
 $index = dent_exams_home_highlights_index();
 
 dent_json_response([

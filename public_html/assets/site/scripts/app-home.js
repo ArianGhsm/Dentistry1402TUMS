@@ -407,7 +407,8 @@
 
     async function loadActiveExams(cohort) {
         var cohortKey = String(cohort && cohort.key ? cohort.key : "").trim();
-        if (!cohortKey || !cohortServices(cohort).activeExamHighlights) {
+        var supportsActiveExamHighlights = cohortServices(cohort).activeExamHighlights || cohortKey === "site-users";
+        if (!cohortKey || !supportsActiveExamHighlights) {
             activeExamsState.cohortKey = "";
             activeExamsState.courses = [];
             hideActiveExams();
