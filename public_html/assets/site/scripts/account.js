@@ -24,6 +24,7 @@
     var loginMethodPasswordBtn = $("login-method-password");
     var loginMethodOtpBtn = $("login-method-otp");
     var loginMethodSignupBtn = $("login-method-signup");
+    var loginPasswordResetBtn = $("login-password-reset");
     var loginOtpForm = $("login-otp-form");
     var loginOtpRequestButton = $("login-otp-request");
     var loginOtpSubmitButton = $("login-otp-submit");
@@ -52,6 +53,19 @@
     var externalSignupFeedback = $("external-signup-feedback");
     var externalSignupMeta = $("external-signup-meta");
     var externalSignupVerifyGroup = $("external-signup-verify-group");
+    var passwordResetForm = $("password-reset-form");
+    var passwordResetPhone = $("password-reset-phone");
+    var passwordResetOtpCode = $("password-reset-otp-code");
+    var passwordResetNewPassword = $("password-reset-new-password");
+    var passwordResetConfirmPassword = $("password-reset-confirm-password");
+    var passwordResetNewPasswordToggle = $("password-reset-new-password-toggle");
+    var passwordResetConfirmPasswordToggle = $("password-reset-confirm-password-toggle");
+    var passwordResetRequestButton = $("password-reset-request");
+    var passwordResetSubmitButton = $("password-reset-submit");
+    var passwordResetBackButton = $("password-reset-back");
+    var passwordResetFeedback = $("password-reset-feedback");
+    var passwordResetMeta = $("password-reset-meta");
+    var passwordResetVerifyGroup = $("password-reset-verify-group");
 
     var profileForm = $("profile-form");
     var profileSubmit = $("profile-submit");
@@ -354,14 +368,18 @@
     var loginOtpCooldownUntil = 0;
     var phoneEnrollCooldownUntil = 0;
     var externalSignupCooldownUntil = 0;
+    var passwordResetCooldownUntil = 0;
     var loginOtpCooldownTimer = null;
     var phoneEnrollCooldownTimer = null;
     var externalSignupCooldownTimer = null;
+    var passwordResetCooldownTimer = null;
     var loginOtpRequesting = false;
     var loginOtpSubmitting = false;
     var loginOtpAutoSubmitQueued = false;
     var externalSignupRequesting = false;
     var externalSignupSubmitting = false;
+    var passwordResetRequesting = false;
+    var passwordResetSubmitting = false;
     var otpCredentialAbortController = null;
     var profileDraftAvatarUrl = "";
     var profileSaving = false;
@@ -484,6 +502,78 @@
         externalSignupVerifyGroup = $("external-signup-verify-group");
     }
 
+    function ensurePasswordResetUi() {
+        if (!loginPasswordResetBtn && loginForm && loginForm.parentNode) {
+            loginPasswordResetBtn = document.createElement("button");
+            loginPasswordResetBtn.type = "button";
+            loginPasswordResetBtn.className = "login-signup-prompt login-reset-prompt";
+            loginPasswordResetBtn.id = "login-password-reset";
+            loginPasswordResetBtn.innerHTML = 'رمز عبور خود را فراموش کرده‌اید؟ <span>بازیابی با کد تایید</span>';
+            loginForm.parentNode.insertBefore(loginPasswordResetBtn, loginForm.nextSibling);
+        }
+        if (!loginMethodSwitch || passwordResetForm) {
+            return;
+        }
+
+        passwordResetForm = document.createElement("form");
+        passwordResetForm.className = "account-form otp-auth-panel password-reset-form";
+        passwordResetForm.id = "password-reset-form";
+        passwordResetForm.hidden = true;
+        passwordResetForm.autocomplete = "on";
+        passwordResetForm.noValidate = true;
+        passwordResetForm.innerHTML = [
+            '<div class="otp-auth-panel__hero password-reset-hero">',
+            '  <h4>بازیابی رمز عبور</h4>',
+            '  <p>شماره موبایل تاییدشده حساب را وارد کن. بعد از تایید کد، رمز جدید روی همان حساب ذخیره می‌شود.</p>',
+            '</div>',
+            '<div class="settings-row auth-field otp-login-step otp-login-step--phone">',
+            '  <label for="password-reset-phone">شماره موبایل حساب</label>',
+            '  <div class="otp-phone-shell" dir="ltr">',
+            '    <span class="otp-phone-shell__country" aria-hidden="true">',
+            '      <span class="otp-phone-shell__flag">IR</span>',
+            '      <span class="otp-phone-shell__prefix">+۹۸</span>',
+            '    </span>',
+            '    <input id="password-reset-phone" name="phoneNumber" type="tel" inputmode="numeric" autocomplete="tel-national" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="14" pattern="(09[0-9۰-۹]{9}|9[0-9۰-۹]{9}|\\+989[0-9۰-۹]{9})" aria-label="شماره موبایل حساب" dir="ltr" data-phone-input="iran" data-display-digits="persian" placeholder="09123456789" required>',
+            '  </div>',
+            '</div>',
+            '<div class="account-inline-actions otp-auth-panel__actions otp-auth-panel__actions--request">',
+            '  <button class="shell-action-btn shell-action-btn-primary" id="password-reset-request" type="button">ارسال کد بازیابی</button>',
+            '  <p class="account-inline-meta" id="password-reset-meta"></p>',
+            '</div>',
+            '<div class="password-reset-verify" id="password-reset-verify-group" hidden>',
+            '  <label for="password-reset-otp-code">کد تایید</label>',
+            '  <input id="password-reset-otp-code" name="otpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" dir="ltr" data-digit-locale="latin" placeholder="کد ۶ رقمی">',
+            '  <label for="password-reset-new-password">رمز جدید</label>',
+            '  <div class="external-password-field">',
+            '    <input id="password-reset-new-password" name="newPassword" type="password" autocomplete="new-password" minlength="6" required>',
+            '    <button class="external-password-toggle" id="password-reset-new-password-toggle" type="button" aria-controls="password-reset-new-password" aria-pressed="false">نمایش</button>',
+            '  </div>',
+            '  <label for="password-reset-confirm-password">تکرار رمز جدید</label>',
+            '  <div class="external-password-field">',
+            '    <input id="password-reset-confirm-password" name="confirmPassword" type="password" autocomplete="new-password" minlength="6" required>',
+            '    <button class="external-password-toggle" id="password-reset-confirm-password-toggle" type="button" aria-controls="password-reset-confirm-password" aria-pressed="false">نمایش</button>',
+            '  </div>',
+            '  <button class="shell-action-btn shell-action-btn-primary" id="password-reset-submit" type="submit" disabled>ثبت رمز جدید</button>',
+            '</div>',
+            '<button class="otp-edit-phone-btn password-reset-back" id="password-reset-back" type="button">بازگشت به ورود با رمز عبور</button>',
+            '<p class="account-feedback" id="password-reset-feedback" role="status" aria-live="polite"></p>'
+        ].join("");
+        loginMethodSwitch.parentNode.insertBefore(passwordResetForm, loginMethodSwitch);
+
+        passwordResetPhone = $("password-reset-phone");
+        passwordResetOtpCode = $("password-reset-otp-code");
+        passwordResetNewPassword = $("password-reset-new-password");
+        passwordResetConfirmPassword = $("password-reset-confirm-password");
+        passwordResetNewPasswordToggle = $("password-reset-new-password-toggle");
+        passwordResetConfirmPasswordToggle = $("password-reset-confirm-password-toggle");
+        passwordResetRequestButton = $("password-reset-request");
+        passwordResetSubmitButton = $("password-reset-submit");
+        passwordResetBackButton = $("password-reset-back");
+        passwordResetFeedback = $("password-reset-feedback");
+        passwordResetMeta = $("password-reset-meta");
+        passwordResetVerifyGroup = $("password-reset-verify-group");
+    }
+
     function updatePasswordToggle(button, input) {
         if (!button || !input) {
             return;
@@ -518,6 +608,10 @@
         }
         if (loginMode === "signup") {
             loginCopy.textContent = "نام، موبایل و رمز عبور را وارد کن تا با کد تایید ثبت نام کامل شود.";
+            return;
+        }
+        if (loginMode === "reset") {
+            loginCopy.textContent = "برای بازیابی، شماره موبایل تاییدشده حساب و رمز جدید را با کد تایید ثبت کن.";
             return;
         }
         loginCopy.textContent = loginMode === "otp"
@@ -1292,8 +1386,8 @@
     }
 
     function setLoginMode(mode) {
-        if (mode === "signup") {
-            loginMode = "signup";
+        if (mode === "signup" || mode === "reset") {
+            loginMode = mode;
         } else {
             loginMode = mode === "otp" ? "otp" : "password";
         }
@@ -1313,7 +1407,10 @@
             loginMethodOtpBtn.setAttribute("aria-selected", otpActive ? "true" : "false");
         }
         if (loginMethodSignupBtn) {
-            loginMethodSignupBtn.hidden = loginMode === "signup";
+            loginMethodSignupBtn.hidden = loginMode === "signup" || loginMode === "reset";
+        }
+        if (loginPasswordResetBtn) {
+            loginPasswordResetBtn.hidden = loginMode !== "password";
         }
         if (loginForm) {
             loginForm.hidden = loginMode !== "password";
@@ -1327,6 +1424,10 @@
             externalSignupForm.hidden = loginMode !== "signup";
             setFormControlsEnabled(externalSignupForm, loginMode === "signup");
         }
+        if (passwordResetForm) {
+            passwordResetForm.hidden = loginMode !== "reset";
+            setFormControlsEnabled(passwordResetForm, loginMode === "reset");
+        }
 
         if (loginMode === "otp") {
             setLoginOtpVerifyVisible(false);
@@ -1339,6 +1440,9 @@
         }
         if (loginMode === "signup") {
             setExternalSignupVerifyVisible(false);
+        }
+        if (loginMode === "reset") {
+            setPasswordResetVerifyVisible(false);
         }
 
         updateLoginOtpRequestState();
@@ -1555,6 +1659,75 @@
         }
     }
 
+    function stopPasswordResetCooldownTicker() {
+        if (passwordResetCooldownTimer) {
+            window.clearInterval(passwordResetCooldownTimer);
+            passwordResetCooldownTimer = null;
+        }
+    }
+
+    function passwordResetPayload() {
+        return {
+            phoneNumber: passwordResetPhone ? normalizedPhone(passwordResetPhone.value) : "",
+            otpCode: passwordResetOtpCode ? normalizeDigits(passwordResetOtpCode.value).replace(/\D+/g, "").slice(0, 6) : "",
+            newPassword: passwordResetNewPassword ? passwordResetNewPassword.value : "",
+            confirmPassword: passwordResetConfirmPassword ? passwordResetConfirmPassword.value : ""
+        };
+    }
+
+    function setPasswordResetVerifyVisible(visible) {
+        if (passwordResetVerifyGroup) {
+            passwordResetVerifyGroup.hidden = !visible;
+        }
+        if (!visible) {
+            if (passwordResetOtpCode) passwordResetOtpCode.value = "";
+            if (passwordResetNewPassword) passwordResetNewPassword.value = "";
+            if (passwordResetConfirmPassword) passwordResetConfirmPassword.value = "";
+        }
+        updatePasswordResetState();
+    }
+
+    function isPasswordResetVerifyVisible() {
+        return !!(passwordResetVerifyGroup && !passwordResetVerifyGroup.hidden);
+    }
+
+    function updatePasswordResetState() {
+        var payload = passwordResetPayload();
+        var left = secondsRemaining(passwordResetCooldownUntil);
+        var coolingDown = left > 0;
+        var validPhone = isValidIranMobile(payload.phoneNumber);
+        var passwordReady = payload.newPassword.length >= 6 && payload.confirmPassword.length >= 6 && payload.newPassword === payload.confirmPassword;
+        if (passwordResetRequestButton) {
+            passwordResetRequestButton.disabled = loginMode !== "reset" || passwordResetRequesting || passwordResetSubmitting || coolingDown || !validPhone;
+            setButtonBusy(passwordResetRequestButton, passwordResetRequesting, "در حال ارسال...");
+        }
+        if (passwordResetSubmitButton) {
+            passwordResetSubmitButton.disabled = loginMode !== "reset" || passwordResetSubmitting || !isPasswordResetVerifyVisible() || payload.otpCode.length !== 6 || !passwordReady;
+            setButtonBusy(passwordResetSubmitButton, passwordResetSubmitting, "در حال ثبت رمز...");
+        }
+        if (passwordResetMeta) {
+            passwordResetMeta.textContent = coolingDown
+                ? ("ارسال مجدد تا " + formatSeconds(left) + " دیگر")
+                : (isPasswordResetVerifyVisible() ? "کد پیامک شده و رمز جدید را وارد کن." : "");
+        }
+    }
+
+    function updatePasswordResetCooldownUi() {
+        var active = secondsRemaining(passwordResetCooldownUntil) > 0;
+        updatePasswordResetState();
+        if (!active) {
+            stopPasswordResetCooldownTicker();
+        }
+    }
+
+    function startPasswordResetCooldown(seconds) {
+        passwordResetCooldownUntil = nowSeconds() + Math.max(0, Math.floor(toNumber(seconds, 0)));
+        updatePasswordResetCooldownUi();
+        if (secondsRemaining(passwordResetCooldownUntil) > 0 && !passwordResetCooldownTimer) {
+            passwordResetCooldownTimer = window.setInterval(updatePasswordResetCooldownUi, 1000);
+        }
+    }
+
     function stopPhoneEnrollCooldownTicker() {
         if (phoneEnrollCooldownTimer) {
             window.clearInterval(phoneEnrollCooldownTimer);
@@ -1590,19 +1763,25 @@
         loginOtpCooldownUntil = 0;
         phoneEnrollCooldownUntil = 0;
         externalSignupCooldownUntil = 0;
+        passwordResetCooldownUntil = 0;
         loginOtpRequesting = false;
         loginOtpSubmitting = false;
         loginOtpAutoSubmitQueued = false;
         externalSignupRequesting = false;
         externalSignupSubmitting = false;
+        passwordResetRequesting = false;
+        passwordResetSubmitting = false;
         stopLoginOtpCooldownTicker();
         stopExternalSignupCooldownTicker();
+        stopPasswordResetCooldownTicker();
         stopPhoneEnrollCooldownTicker();
         updateLoginOtpCooldownUi();
         updateExternalSignupCooldownUi();
+        updatePasswordResetCooldownUi();
         updatePhoneEnrollCooldownUi();
         setLoginOtpVerifyVisible(false);
         setExternalSignupVerifyVisible(false);
+        setPasswordResetVerifyVisible(false);
         setFieldError(loginPhoneInput, loginPhoneError, "");
         setFieldError(loginOtpCodeInput, loginOtpCodeError, "");
         stopOtpCredentialRead();
@@ -6756,6 +6935,99 @@
         }
     }
 
+    async function requestPasswordResetOtpCode() {
+        if (passwordResetRequesting) return;
+        var payload = passwordResetPayload();
+        if (!isValidIranMobile(payload.phoneNumber)) {
+            setFeedback(passwordResetFeedback, "شماره موبایل معتبر وارد کن.", "error");
+            if (passwordResetPhone) passwordResetPhone.focus({ preventScroll: true });
+            updatePasswordResetState();
+            return;
+        }
+
+        if (passwordResetPhone) {
+            setNumericDisplayValue(passwordResetPhone, payload.phoneNumber);
+        }
+        setPasswordResetVerifyVisible(false);
+        passwordResetRequesting = true;
+        updatePasswordResetState();
+        setFeedback(passwordResetFeedback, "در حال ارسال کد بازیابی...", "", true);
+        try {
+            var response = await window.Dent1402Auth.requestPasswordResetOtp(payload);
+            if (!response || !response.success) {
+                if (response && response.cooldownSeconds) {
+                    startPasswordResetCooldown(response.cooldownSeconds);
+                }
+                setFeedback(passwordResetFeedback, (response && response.error) || "ارسال کد بازیابی انجام نشد.", "error");
+                return;
+            }
+            startPasswordResetCooldown(response.cooldownSeconds || 0);
+            setPasswordResetVerifyVisible(true);
+            setFeedback(passwordResetFeedback, "", "");
+            if (passwordResetOtpCode) {
+                passwordResetOtpCode.focus({ preventScroll: true });
+                startOtpCredentialRead(passwordResetOtpCode);
+            }
+        } finally {
+            passwordResetRequesting = false;
+            updatePasswordResetState();
+        }
+    }
+
+    async function submitPasswordReset(event) {
+        if (event && event.preventDefault) {
+            event.preventDefault();
+        }
+        if (passwordResetSubmitting) return;
+        var payload = passwordResetPayload();
+        if (!isValidIranMobile(payload.phoneNumber)) {
+            setFeedback(passwordResetFeedback, "شماره موبایل معتبر وارد کن.", "error");
+            if (passwordResetPhone) passwordResetPhone.focus({ preventScroll: true });
+            return;
+        }
+        if (payload.otpCode.length !== 6) {
+            setFeedback(passwordResetFeedback, "کد تایید را کامل وارد کن.", "error");
+            if (passwordResetOtpCode) passwordResetOtpCode.focus({ preventScroll: true });
+            updatePasswordResetState();
+            return;
+        }
+        if (payload.newPassword.length < 6) {
+            setFeedback(passwordResetFeedback, "رمز جدید باید حداقل ۶ کاراکتر باشد.", "error");
+            if (passwordResetNewPassword) passwordResetNewPassword.focus({ preventScroll: true });
+            updatePasswordResetState();
+            return;
+        }
+        if (payload.confirmPassword.length < 6) {
+            setFeedback(passwordResetFeedback, "تکرار رمز جدید را وارد کن.", "error");
+            if (passwordResetConfirmPassword) passwordResetConfirmPassword.focus({ preventScroll: true });
+            updatePasswordResetState();
+            return;
+        }
+        if (payload.newPassword !== payload.confirmPassword) {
+            setFeedback(passwordResetFeedback, "تکرار رمز جدید با رمز جدید یکسان نیست.", "error");
+            if (passwordResetConfirmPassword) passwordResetConfirmPassword.focus({ preventScroll: true });
+            updatePasswordResetState();
+            return;
+        }
+
+        passwordResetSubmitting = true;
+        updatePasswordResetState();
+        stopOtpCredentialRead();
+        setFeedback(passwordResetFeedback, "در حال ثبت رمز جدید...", "", true);
+        try {
+            var state = await window.Dent1402Auth.resetPasswordWithOtp(payload);
+            if (!state || !state.loggedIn) {
+                setFeedback(passwordResetFeedback, (state && state.error) || "بازیابی رمز انجام نشد.", "error");
+                if (passwordResetOtpCode) passwordResetOtpCode.focus({ preventScroll: true });
+                return;
+            }
+            setFeedback(passwordResetFeedback, "رمز عبور تغییر کرد و وارد حساب شدی.", "success");
+        } finally {
+            passwordResetSubmitting = false;
+            updatePasswordResetState();
+        }
+    }
+
     function queueLoginOtpAutoSubmit() {
         if (loginOtpAutoSubmitQueued || loginOtpSubmitting || !isLoginOtpVerifyVisible()) {
             return;
@@ -7462,11 +7734,16 @@
     });
 
     ensureExternalSignupUi();
+    ensurePasswordResetUi();
     bindPasswordToggle(externalSignupPasswordToggle, externalSignupPassword);
     bindPasswordToggle(externalSignupPasswordConfirmToggle, externalSignupPasswordConfirm);
+    bindPasswordToggle(passwordResetNewPasswordToggle, passwordResetNewPassword);
+    bindPasswordToggle(passwordResetConfirmPasswordToggle, passwordResetConfirmPassword);
     bindNumericInput(loginPhoneInput, 14);
     bindNumericInput(externalSignupPhone, 14);
     bindNumericInput(externalSignupOtpCode, 6);
+    bindNumericInput(passwordResetPhone, 14);
+    bindNumericInput(passwordResetOtpCode, 6);
     bindNumericInput(phoneEnrollNumber, 14);
     bindNumericInput(ownerSmsTestPhone, 14);
     bindNumericInput(notificationsDigestHourInput, 2);
@@ -7496,6 +7773,7 @@
         loginMethodPasswordBtn.addEventListener("click", function () {
             setLoginMode("password");
             setFeedback(loginOtpFeedback, "", "");
+            setFeedback(passwordResetFeedback, "", "");
         });
     }
 
@@ -7503,6 +7781,7 @@
         loginMethodOtpBtn.addEventListener("click", function () {
             setLoginMode("otp");
             setFeedback(loginFeedback, "", "");
+            setFeedback(passwordResetFeedback, "", "");
             if (loginPhoneInput) {
                 loginPhoneInput.focus({ preventScroll: true });
             }
@@ -7514,8 +7793,21 @@
             setLoginMode("signup");
             setFeedback(loginFeedback, "", "");
             setFeedback(loginOtpFeedback, "", "");
+            setFeedback(passwordResetFeedback, "", "");
             if (externalSignupFirstName) {
                 externalSignupFirstName.focus({ preventScroll: true });
+            }
+        });
+    }
+
+    if (loginPasswordResetBtn) {
+        loginPasswordResetBtn.addEventListener("click", function () {
+            setLoginMode("reset");
+            setFeedback(loginFeedback, "", "");
+            setFeedback(loginOtpFeedback, "", "");
+            setFeedback(externalSignupFeedback, "", "");
+            if (passwordResetPhone) {
+                passwordResetPhone.focus({ preventScroll: true });
             }
         });
     }
@@ -7545,11 +7837,36 @@
         });
     }
 
+    if (passwordResetRequestButton) {
+        passwordResetRequestButton.addEventListener("click", requestPasswordResetOtpCode);
+    }
+
+    if (passwordResetForm) {
+        passwordResetForm.addEventListener("submit", submitPasswordReset);
+        [passwordResetPhone, passwordResetOtpCode, passwordResetNewPassword, passwordResetConfirmPassword].forEach(function (input) {
+            if (!input) {
+                return;
+            }
+            input.addEventListener("input", function () {
+                setFeedback(passwordResetFeedback, "", "");
+                updatePasswordResetState();
+            });
+        });
+    }
+
+    if (passwordResetBackButton) {
+        passwordResetBackButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            setLoginMode("password");
+            setFeedback(passwordResetFeedback, "", "");
+        });
+    }
+
     if (loginOtpEditPhoneButton) {
         loginOtpEditPhoneButton.addEventListener("click", editLoginOtpPhoneNumber);
     }
 
-    [loginForm, loginOtpForm, externalSignupForm].forEach(function (formNode) {
+    [loginForm, loginOtpForm, externalSignupForm, passwordResetForm].forEach(function (formNode) {
         if (!formNode) {
             return;
         }

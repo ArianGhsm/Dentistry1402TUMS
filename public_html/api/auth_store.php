@@ -4366,6 +4366,73 @@ function dent_verify_login_otp(string $phoneNumber, string $otpCode): array
     return dent_login_user($user);
 }
 
+function dent_request_password_reset_otp(string $phoneNumber): array
+{
+    $normalizedPhone = dent_normalize_phone_number($phoneNumber);
+    if ($normalizedPhone === '') {
+        dent_error('شماره موبایل نامعتبر است.', 422);
+    }
+
+    $user = dent_find_login_otp_user_by_phone($normalizedPhone);
+    if ($user === null) {
+        dent_error('برای این شماره، بازیابی رمز با کد تایید فعال نیست.', 403);
+    }
+
+    $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    $result = dent_issue_otp_for_phone('password-reset', $normalizedPhone, $studentNumber);
+    if (!(bool) ($result['success'] ?? false)) {
+        dent_error((string) ($result['error'] ?? 'ارسال کد بازیابی انجام نشد.'), (int) ($result['statusCode'] ?? 422), $result);
+    }
+
+    return array_merge($result, [
+        'phoneMasked' => dent_mask_phone_number($normalizedPhone),
+    ]);
+}
+
+function dent_verify_password_reset_otp(string $phoneNumber, string $otpCode, string $newPassword, string $confirmPassword = ''): array
+{
+    $normalizedPhone = dent_normalize_phone_number($phoneNumber);
+    if ($normalizedPhone === '') {
+        dent_error('شماره موبایل نامعتبر است.', 422);
+    }
+
+    $user = dent_find_login_otp_user_by_phone($normalizedPhone);
+    if ($user === null) {
+        dent_error('برای این شماره، بازیابی رمز با کد تایید فعال نیست.', 403);
+    }
+
+    $newPassword = dent_normalize_digits($newPassword);
+    $confirmPassword = dent_normalize_digits($confirmPassword);
+    if (dent_utf8_strlen($newPassword) < 6) {
+        dent_error('رمز جدید باید حداقل ۶ کاراکتر باشد.', 422);
+    }
+    if ($confirmPassword === '') {
+        dent_error('تکرار رمز جدید را وارد کن.', 422);
+    }
+    if (!hash_equals($newPassword, $confirmPassword)) {
+        dent_error('تکرار رمز جدید با رمز جدید یکسان نیست.', 422);
+    }
+
+    $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    $verify = dent_verify_otp_for_phone('password-reset', $normalizedPhone, $otpCode, $studentNumber);
+    if (!(bool) ($verify['success'] ?? false)) {
+        dent_error((string) ($verify['error'] ?? 'تایید کد بازیابی انجام نشد.'), (int) ($verify['statusCode'] ?? 422), $verify);
+    }
+
+    if (!dent_user_phone_ready_for_otp($user) || dent_normalize_phone_number((string) ($user['phoneNumber'] ?? '')) !== $normalizedPhone) {
+        $user['phoneNumber'] = $normalizedPhone;
+        $user['phoneVerifiedAt'] = dent_iso_now();
+        $user['phoneLoginEnabled'] = true;
+        $user['phoneNudgeDismissedAt'] = '';
+    }
+    unset($user['_otpPhoneFallback'], $user['_otpPhoneFallbackSource']);
+    $user['passwordHash'] = dent_hash_password($newPassword);
+    $user['updatedAt'] = dent_iso_now();
+    $user = dent_persist_user($user);
+
+    return dent_login_user($user);
+}
+
 function dent_clear_phone_related_otp_records(string $studentNumber, string $phoneNumber): void
 {
     $normalizedStudentNumber = dent_normalize_student_number($studentNumber);
@@ -4386,6 +4453,7 @@ function dent_clear_phone_related_otp_records(string $studentNumber, string $pho
     $keys = [
         dent_otp_record_key('login', $normalizedPhone),
         dent_otp_record_key('enroll:' . $normalizedStudentNumber, $normalizedPhone),
+        dent_otp_record_key('password-reset', $normalizedPhone),
     ];
     $changed = false;
     foreach ($keys as $key) {

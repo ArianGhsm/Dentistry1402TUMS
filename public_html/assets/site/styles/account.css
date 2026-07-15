@@ -1694,19 +1694,35 @@ body.account-page.account-stage-login-active .auth-brand strong {
     font-size: 0.75rem;
 }
 
-.external-signup-form {
+.external-signup-form,
+.password-reset-form {
     animation: accountAuthEnter 0.2s ease both;
 }
 
 .external-signup-panel,
 .external-signup-grid,
-.external-signup-verify {
+.external-signup-verify,
+.password-reset-verify {
     display: grid;
     gap: 0.72rem;
 }
 
-.external-signup-verify .shell-action-btn {
+.external-signup-verify .shell-action-btn,
+.password-reset-verify .shell-action-btn {
     min-height: 48px;
+}
+
+.login-reset-prompt {
+    margin-top: 0.18rem;
+}
+
+.password-reset-hero {
+    padding-bottom: 0.08rem;
+}
+
+.password-reset-back {
+    justify-self: center;
+    margin-top: 0.08rem;
 }
 
 .external-password-field {

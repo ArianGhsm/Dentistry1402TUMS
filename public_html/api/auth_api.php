@@ -616,6 +616,48 @@ if ($action === 'verifyLoginOtp') {
     ]);
 }
 
+if ($action === 'requestPasswordResetOtp') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد درخواست کد بازیابی رمز نامعتبر است.', 405);
+    }
+
+    $phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
+    $result = dent_request_password_reset_otp($phoneNumber);
+
+    dent_json_response([
+        'success' => true,
+        'message' => 'کد بازیابی رمز پیامکی ارسال شد.',
+        'phoneMasked' => (string) ($result['phoneMasked'] ?? ''),
+        'cooldownSeconds' => (int) ($result['cooldownSeconds'] ?? 0),
+        'expiresInSeconds' => (int) ($result['expiresInSeconds'] ?? 0),
+    ]);
+}
+
+if ($action === 'resetPasswordWithOtp') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد بازیابی رمز نامعتبر است.', 405);
+    }
+
+    $phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
+    $otpCode = (string) ($_POST['otpCode'] ?? ($_POST['code'] ?? ''));
+    $loggedInUser = dent_verify_password_reset_otp(
+        $phoneNumber,
+        $otpCode,
+        (string) ($_POST['newPassword'] ?? ''),
+        (string) ($_POST['confirmPassword'] ?? $_POST['passwordConfirm'] ?? '')
+    );
+    analytics_record_login($loggedInUser, 'password-reset');
+
+    dent_json_response([
+        'success' => true,
+        'loggedIn' => true,
+        'status' => 'logged-in',
+        'user' => $loggedInUser,
+        'availableCohorts' => dent_visible_cohorts_for_user($loggedInUser),
+        'message' => 'رمز عبور تغییر کرد و ورود انجام شد.',
+    ]);
+}
+
 if ($action === 'requestExternalSignupOtp') {
     if (dent_request_method() !== 'POST') {
         dent_error('متد درخواست کد ثبت‌نام نامعتبر است.', 405);

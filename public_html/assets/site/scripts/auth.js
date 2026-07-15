@@ -725,6 +725,39 @@
         return snapshot();
     }
 
+    async function requestPasswordResetOtp(payload) {
+        return request("requestPasswordResetOtp", "POST", payload || {});
+    }
+
+    async function resetPasswordWithOtp(payload) {
+        setState({
+            status: STATUS.LOGGING_IN,
+            loggedIn: false,
+            user: null,
+            availableCohorts: [],
+            error: ""
+        });
+
+        var response = await request("resetPasswordWithOtp", "POST", payload || {});
+
+        if (response && response.success && response.loggedIn && response.user) {
+            applyAuthenticatedState(response);
+            resolveReady();
+            return snapshot();
+        }
+
+        setState({
+            status: STATUS.LOGIN_ERROR,
+            loggedIn: false,
+            user: null,
+            availableCohorts: [],
+            error: (response && response.error) || "Password reset failed."
+        });
+
+        resolveReady();
+        return snapshot();
+    }
+
     async function requestPhoneEnrollOtp(phoneNumber) {
         return request("requestPhoneEnrollOtp", "POST", {
             phoneNumber: phoneNumber
@@ -1011,6 +1044,8 @@
         loginWithOtp: loginWithOtp,
         requestExternalSignupOtp: requestExternalSignupOtp,
         completeExternalSignup: completeExternalSignup,
+        requestPasswordResetOtp: requestPasswordResetOtp,
+        resetPasswordWithOtp: resetPasswordWithOtp,
         logout: logout,
         requestPhoneEnrollOtp: requestPhoneEnrollOtp,
         verifyPhoneEnrollOtp: verifyPhoneEnrollOtp,
