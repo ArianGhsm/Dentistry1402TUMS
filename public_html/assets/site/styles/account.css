@@ -2289,6 +2289,7 @@ body.account-page.account-stage-login-active #account-login .otp-phone-shell inp
 }
 
 #login-otp-code,
+#external-signup-otp-code,
 #phone-enroll-code {
     width: 100%;
     min-height: 52px;
@@ -2341,12 +2342,14 @@ body.account-page.account-stage-login-active #account-login .shell-action-btn-pr
     line-height: 1.8;
 }
 
-#login-otp-verify-group {
+#login-otp-verify-group,
+#external-signup-verify-group {
     display: grid;
     gap: 0.72rem;
 }
 
-#login-otp-verify-group[hidden] {
+#login-otp-verify-group[hidden],
+#external-signup-verify-group[hidden] {
     display: none;
 }
 
@@ -5392,13 +5395,15 @@ body.account-page.account-stage-login-active .otp-verify-phone {
     font-variant-numeric: tabular-nums;
 }
 
-body.account-page.account-stage-login-active #login-otp-field {
+body.account-page.account-stage-login-active #login-otp-field,
+body.account-page.account-stage-login-active #external-signup-otp-field {
     position: relative;
     margin-top: 0.08rem;
     min-height: 58px;
 }
 
-body.account-page.account-stage-login-active #login-otp-field #login-otp-code {
+body.account-page.account-stage-login-active #login-otp-field #login-otp-code,
+body.account-page.account-stage-login-active #external-signup-otp-field #external-signup-otp-code {
     position: absolute;
     inset: 0;
     z-index: 2;
@@ -5415,21 +5420,25 @@ body.account-page.account-stage-login-active #login-otp-field #login-otp-code {
     opacity: 0.02;
 }
 
-body.account-page.account-stage-login-active #login-otp-field #login-otp-code:focus {
+body.account-page.account-stage-login-active #login-otp-field #login-otp-code:focus,
+body.account-page.account-stage-login-active #external-signup-otp-field #external-signup-otp-code:focus {
     box-shadow: none;
 }
 
-body.account-page.account-stage-login-active #login-otp-field #login-otp-code::placeholder {
+body.account-page.account-stage-login-active #login-otp-field #login-otp-code::placeholder,
+body.account-page.account-stage-login-active #external-signup-otp-field #external-signup-otp-code::placeholder {
     color: transparent;
 }
 
-body.account-page.account-stage-login-active #login-otp-field .otp-slot-field__slots {
+body.account-page.account-stage-login-active #login-otp-field .otp-slot-field__slots,
+body.account-page.account-stage-login-active #external-signup-otp-field .otp-slot-field__slots {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: clamp(0.28rem, 2.4vw, 0.52rem);
 }
 
-body.account-page.account-stage-login-active #login-otp-field .otp-slot {
+body.account-page.account-stage-login-active #login-otp-field .otp-slot,
+body.account-page.account-stage-login-active #external-signup-otp-field .otp-slot {
     aspect-ratio: 1;
     min-height: 50px;
     border-radius: 17px;
@@ -5443,19 +5452,22 @@ body.account-page.account-stage-login-active #login-otp-field .otp-slot {
         0 12px 26px -24px rgba(32, 62, 115, 0.34);
 }
 
-body.account-page.account-stage-login-active #login-otp-field .otp-slot-field__slots.is-focused .otp-slot.is-active {
+body.account-page.account-stage-login-active #login-otp-field .otp-slot-field__slots.is-focused .otp-slot.is-active,
+body.account-page.account-stage-login-active #external-signup-otp-field .otp-slot-field__slots.is-focused .otp-slot.is-active {
     border-color: rgba(37, 99, 235, 0.72);
     box-shadow:
         0 0 0 4px rgba(37, 99, 235, 0.14),
         0 12px 26px -24px rgba(32, 62, 115, 0.34);
 }
 
-body.account-page.account-stage-login-active #login-otp-field .otp-slot-field__slots.is-complete .otp-slot {
+body.account-page.account-stage-login-active #login-otp-field .otp-slot-field__slots.is-complete .otp-slot,
+body.account-page.account-stage-login-active #external-signup-otp-field .otp-slot-field__slots.is-complete .otp-slot {
     border-color: rgba(37, 99, 235, 0.24);
     background: linear-gradient(180deg, rgba(239, 246, 255, 0.98), rgba(219, 234, 254, 0.7));
 }
 
-body.account-page.account-stage-login-active #login-otp-field .otp-slot-field__slots.has-error .otp-slot {
+body.account-page.account-stage-login-active #login-otp-field .otp-slot-field__slots.has-error .otp-slot,
+body.account-page.account-stage-login-active #external-signup-otp-field .otp-slot-field__slots.has-error .otp-slot {
     border-color: rgba(220, 38, 38, 0.52);
     box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
 }
@@ -5574,14 +5586,16 @@ html[data-theme="dark"] body.account-page.account-stage-login-active #account-lo
 
 html[data-theme="dark"] body.account-page.account-stage-login-active .auth-brand img,
 html[data-theme="dark"] body.account-page.account-stage-login-active .otp-phone-shell,
-html[data-theme="dark"] body.account-page.account-stage-login-active #login-otp-field .otp-slot {
+html[data-theme="dark"] body.account-page.account-stage-login-active #login-otp-field .otp-slot,
+html[data-theme="dark"] body.account-page.account-stage-login-active #external-signup-otp-field .otp-slot {
     border-color: rgba(125, 154, 190, 0.22);
     background: rgba(17, 31, 52, 0.94);
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
 }
 
 html[data-theme="dark"] body.account-page.account-stage-login-active #login-phone-number,
-html[data-theme="dark"] body.account-page.account-stage-login-active #login-otp-field .otp-slot {
+html[data-theme="dark"] body.account-page.account-stage-login-active #login-otp-field .otp-slot,
+html[data-theme="dark"] body.account-page.account-stage-login-active #external-signup-otp-field .otp-slot {
     color: #edf5ff;
 }
 
@@ -5591,7 +5605,8 @@ html[data-theme="dark"] body.account-page.account-stage-login-active .otp-verify
     color: #9dccff;
 }
 
-html[data-theme="dark"] body.account-page.account-stage-login-active #login-otp-field .otp-slot-field__slots.is-complete .otp-slot {
+html[data-theme="dark"] body.account-page.account-stage-login-active #login-otp-field .otp-slot-field__slots.is-complete .otp-slot,
+html[data-theme="dark"] body.account-page.account-stage-login-active #external-signup-otp-field .otp-slot-field__slots.is-complete .otp-slot {
     background: linear-gradient(180deg, rgba(37, 99, 235, 0.22), rgba(17, 31, 52, 0.94));
 }
 
@@ -5617,11 +5632,13 @@ html[data-theme="dark"] body.account-page.account-stage-login-active #login-otp-
         height: 72px;
     }
 
-    body.account-page.account-stage-login-active #login-otp-field {
+    body.account-page.account-stage-login-active #login-otp-field,
+    body.account-page.account-stage-login-active #external-signup-otp-field {
         min-height: 52px;
     }
 
-    body.account-page.account-stage-login-active #login-otp-field .otp-slot {
+    body.account-page.account-stage-login-active #login-otp-field .otp-slot,
+    body.account-page.account-stage-login-active #external-signup-otp-field .otp-slot {
         min-height: 46px;
         border-radius: 15px;
     }
