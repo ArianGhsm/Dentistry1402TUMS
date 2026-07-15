@@ -42,6 +42,10 @@
 - ایجاد auth یا identity موازی برای چت ممنوع است.
 - `chat_api.php` نباید به منبع دوم auth تبدیل شود.
 - `forms_api.php` هم باید از همین auth/session مشترک استفاده کند و نباید identity موازی برای کاربران سایت بسازد؛ فقط برای شرکت‌کننده مهمان، guest identity محدود به همان فرم مجاز است.
+- حفظ نشست فعال کاربران در زمان تغییر و deploy اصل غیرقابل مذاکره است: تغییر قابلیت، cohort، config، cache، نسخه PWA یا storage نباید session cookie، session file، session save path، secret یا شناسه ورود کاربران فعال را حذف، rotate، overwrite یا نامعتبر کند.
+- تغییرات غیرضروری برای یک قابلیت نباید از مسیر `auth_store` یا نرمال‌سازی persisted cohort/user عبور کنند؛ مخصوصاً read request نباید صرفاً به‌دلیل تغییر default/config باعث بازنویسی فایل کاربران، قفل طولانی auth یا خروج سراسری شود.
+- timeout، خطای شبکه، پاسخ malformed و خطاهای موقت `5xx`/`401` از APIهای صفحه نباید در فرانت‌اند به logout قطعی، پاک‌کردن auth cache یا نمایش «نیازمند ورود» تبدیل شوند؛ logout فقط بعد از پاسخ معتبر endpoint canonical احراز هویت و تایید پایان واقعی session مجاز است.
+- هر deploy که auth، bootstrap، session، storage، cohort normalization، PWA یا shared shell را لمس می‌کند باید قبل و بعد از انتشار با یک session موجودِ مالک و یک کاربر عادی smoke-test شود؛ حفظ همان cookie/session و دسترسی نقش‌ها شرط تکمیل deploy است، نه صرفاً `200` بودن صفحه عمومی.
 
 ## 4) قرارداد داده پایدار و همگام‌سازی (غیرقابل مذاکره)
 - پیام‌ها، نمرات، حافظه کاربر و هر state پایدار باید بین local + live + deploy target همگام بمانند.
