@@ -43,6 +43,9 @@
     var externalSignupLastName = $("external-signup-last-name");
     var externalSignupPhone = $("external-signup-phone");
     var externalSignupPassword = $("external-signup-password");
+    var externalSignupPasswordConfirm = $("external-signup-password-confirm");
+    var externalSignupPasswordToggle = $("external-signup-password-toggle");
+    var externalSignupPasswordConfirmToggle = $("external-signup-password-confirm-toggle");
     var externalSignupOtpCode = $("external-signup-otp-code");
     var externalSignupRequestButton = $("external-signup-request");
     var externalSignupSubmitButton = $("external-signup-submit");
@@ -442,7 +445,15 @@
             '    <label for="external-signup-phone">شماره موبایل</label>',
             '    <input id="external-signup-phone" name="phoneNumber" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="09123456789" data-digit-locale="latin" required>',
             '    <label for="external-signup-password">رمز عبور</label>',
-            '    <input id="external-signup-password" name="password" type="password" autocomplete="new-password" minlength="6" required>',
+            '    <div class="external-password-field">',
+            '      <input id="external-signup-password" name="password" type="password" autocomplete="new-password" minlength="6" required>',
+            '      <button class="external-password-toggle" id="external-signup-password-toggle" type="button" aria-controls="external-signup-password" aria-pressed="false">نمایش</button>',
+            '    </div>',
+            '    <label for="external-signup-password-confirm">تکرار رمز عبور</label>',
+            '    <div class="external-password-field">',
+            '      <input id="external-signup-password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="6" required>',
+            '      <button class="external-password-toggle" id="external-signup-password-confirm-toggle" type="button" aria-controls="external-signup-password-confirm" aria-pressed="false">نمایش</button>',
+            '    </div>',
             '  </div>',
             '  <div class="otp-auth-panel__actions otp-auth-panel__actions--request">',
             '    <button class="shell-action-btn shell-action-btn-primary" id="external-signup-request" type="button">ارسال کد تایید</button>',
@@ -462,12 +473,43 @@
         externalSignupLastName = $("external-signup-last-name");
         externalSignupPhone = $("external-signup-phone");
         externalSignupPassword = $("external-signup-password");
+        externalSignupPasswordConfirm = $("external-signup-password-confirm");
+        externalSignupPasswordToggle = $("external-signup-password-toggle");
+        externalSignupPasswordConfirmToggle = $("external-signup-password-confirm-toggle");
         externalSignupOtpCode = $("external-signup-otp-code");
         externalSignupRequestButton = $("external-signup-request");
         externalSignupSubmitButton = $("external-signup-submit");
         externalSignupFeedback = $("external-signup-feedback");
         externalSignupMeta = $("external-signup-meta");
         externalSignupVerifyGroup = $("external-signup-verify-group");
+    }
+
+    function updatePasswordToggle(button, input) {
+        if (!button || !input) {
+            return;
+        }
+        var visible = input.type === "text";
+        button.textContent = visible ? "پنهان" : "نمایش";
+        button.setAttribute("aria-pressed", visible ? "true" : "false");
+        button.setAttribute("aria-label", visible ? "پنهان کردن رمز عبور" : "نمایش رمز عبور");
+    }
+
+    function bindPasswordToggle(button, input) {
+        if (!button || !input || button.dataset.passwordToggleBound === "1") {
+            return;
+        }
+        button.dataset.passwordToggleBound = "1";
+        updatePasswordToggle(button, input);
+        button.addEventListener("click", function () {
+            var selectionStart = input.selectionStart;
+            var selectionEnd = input.selectionEnd;
+            input.type = input.type === "password" ? "text" : "password";
+            updatePasswordToggle(button, input);
+            input.focus({ preventScroll: true });
+            if (typeof selectionStart === "number" && typeof selectionEnd === "number" && input.setSelectionRange) {
+                input.setSelectionRange(selectionStart, selectionEnd);
+            }
+        });
     }
 
     function syncLoginHeading() {
@@ -1457,6 +1499,7 @@
             lastName: externalSignupLastName ? externalSignupLastName.value.trim() : "",
             phoneNumber: externalSignupPhone ? normalizedPhone(externalSignupPhone.value) : "",
             password: externalSignupPassword ? externalSignupPassword.value : "",
+            passwordConfirm: externalSignupPasswordConfirm ? externalSignupPasswordConfirm.value : "",
             otpCode: externalSignupOtpCode ? normalizeDigits(externalSignupOtpCode.value).replace(/\D+/g, "").slice(0, 6) : ""
         };
     }
@@ -1479,7 +1522,8 @@
         var payload = externalSignupPayload();
         var left = secondsRemaining(externalSignupCooldownUntil);
         var coolingDown = left > 0;
-        var readyForOtp = !!(payload.firstName && payload.lastName && isValidIranMobile(payload.phoneNumber) && payload.password.length >= 6);
+        var passwordReady = payload.password.length >= 6 && payload.passwordConfirm.length >= 6 && payload.password === payload.passwordConfirm;
+        var readyForOtp = !!(payload.firstName && payload.lastName && isValidIranMobile(payload.phoneNumber) && passwordReady);
         if (externalSignupRequestButton) {
             externalSignupRequestButton.disabled = loginMode !== "signup" || externalSignupRequesting || externalSignupSubmitting || coolingDown || !readyForOtp;
             setButtonBusy(externalSignupRequestButton, externalSignupRequesting, "در حال ارسال...");
@@ -6635,6 +6679,18 @@
             updateExternalSignupState();
             return;
         }
+        if (payload.passwordConfirm.length < 6) {
+            setFeedback(externalSignupFeedback, "تکرار رمز عبور را وارد کن.", "error");
+            if (externalSignupPasswordConfirm) externalSignupPasswordConfirm.focus({ preventScroll: true });
+            updateExternalSignupState();
+            return;
+        }
+        if (payload.password !== payload.passwordConfirm) {
+            setFeedback(externalSignupFeedback, "تکرار رمز عبور با رمز عبور یکسان نیست.", "error");
+            if (externalSignupPasswordConfirm) externalSignupPasswordConfirm.focus({ preventScroll: true });
+            updateExternalSignupState();
+            return;
+        }
 
         if (externalSignupPhone) {
             setNumericDisplayValue(externalSignupPhone, payload.phoneNumber);
@@ -6671,7 +6727,7 @@
         }
         if (externalSignupSubmitting) return;
         var payload = externalSignupPayload();
-        if (!isValidIranMobile(payload.phoneNumber) || !payload.firstName || !payload.lastName || payload.password.length < 6) {
+        if (!isValidIranMobile(payload.phoneNumber) || !payload.firstName || !payload.lastName || payload.password.length < 6 || payload.passwordConfirm.length < 6 || payload.password !== payload.passwordConfirm) {
             setExternalSignupVerifyVisible(false);
             setFeedback(externalSignupFeedback, "اطلاعات ثبت نام را کامل و معتبر وارد کن.", "error");
             return;
@@ -7406,6 +7462,8 @@
     });
 
     ensureExternalSignupUi();
+    bindPasswordToggle(externalSignupPasswordToggle, externalSignupPassword);
+    bindPasswordToggle(externalSignupPasswordConfirmToggle, externalSignupPasswordConfirm);
     bindNumericInput(loginPhoneInput, 14);
     bindNumericInput(externalSignupPhone, 14);
     bindNumericInput(externalSignupOtpCode, 6);
@@ -7476,7 +7534,7 @@
 
     if (externalSignupForm) {
         externalSignupForm.addEventListener("submit", submitExternalSignup);
-        [externalSignupFirstName, externalSignupLastName, externalSignupPhone, externalSignupPassword, externalSignupOtpCode].forEach(function (input) {
+        [externalSignupFirstName, externalSignupLastName, externalSignupPhone, externalSignupPassword, externalSignupPasswordConfirm, externalSignupOtpCode].forEach(function (input) {
             if (!input) {
                 return;
             }

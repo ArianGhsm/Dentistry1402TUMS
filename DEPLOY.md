@@ -71,6 +71,11 @@ retry سبک برای تکمیل GitHub sync بعد از live deploy موفق:
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipRemoteStorageSync -SkipValidation -SkipPostDeployVerification -SkipVersionStamp -SkipOwnerDeployNotification -HostDeployNetworkPath direct -HealthCheckNetworkPath direct -GitHubNetworkPath proxy
 ```
 
+Deploy محدود به فایل‌های مشخص، وقتی workspace تغییرات unrelated زیادی دارد:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PathScope public_html/assets/site/scripts/account.js,public_html/assets/site/styles/account.css
+```
+
 audit دستی اختیاری بعد از هر deploy:
 ```powershell
 python .\scripts\check_host_deploy_freshness.py

@@ -1709,6 +1709,40 @@ body.account-page.account-stage-login-active .auth-brand strong {
     min-height: 48px;
 }
 
+.external-password-field {
+    position: relative;
+    display: grid;
+    align-items: center;
+}
+
+.external-password-field input {
+    padding-inline-end: 4.6rem !important;
+}
+
+.external-password-toggle {
+    position: absolute;
+    inset-inline-end: 0.45rem;
+    top: 50%;
+    transform: translateY(-50%);
+    min-width: 3.5rem;
+    min-height: 2rem;
+    border: 0;
+    border-radius: 10px;
+    background: rgba(127, 145, 165, 0.16);
+    color: var(--accent-strong);
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.external-password-toggle:hover,
+.external-password-toggle:focus-visible {
+    background: rgba(14, 165, 233, 0.16);
+    outline: 2px solid rgba(14, 165, 233, 0.26);
+    outline-offset: 2px;
+}
+
 .otp-phone-shell {
     direction: ltr;
     position: relative;

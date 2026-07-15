@@ -16,6 +16,7 @@ param(
     [string]$HealthCheckNetworkPath = "auto",
     [string]$GitHubNetworkPath = "auto",
     [string]$RemoteStoragePath = "storage",
+    [string[]]$PathScope = @(),
     [string]$LowBandwidthMode = "auto",
     [int]$MaxDeployUploads = 80,
     [int]$MaxDeployDeletes = 25,
@@ -517,6 +518,83 @@ function Add-RelativePath([System.Collections.Generic.HashSet[string]]$set, [str
     }
 
     [void]$set.Add($relative)
+}
+
+function Normalize-ScopePath([string]$path, [switch]$PublicHtmlRelative) {
+    $normalized = ([string]$path).Trim() -replace '\\', '/'
+    $normalized = $normalized.TrimStart('.', '/')
+    if ([string]::IsNullOrWhiteSpace($normalized)) {
+        return ""
+    }
+    if ($PublicHtmlRelative -and $normalized.StartsWith("public_html/", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $normalized = $normalized.Substring("public_html/".Length)
+    }
+    return $normalized.Trim('/')
+}
+
+function Get-DeployPathScopeSet() {
+    $set = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+    foreach ($rawPath in @($PathScope)) {
+        foreach ($path in (([string]$rawPath) -split ',')) {
+        $normalized = Normalize-ScopePath -path $path -PublicHtmlRelative
+        if ([string]::IsNullOrWhiteSpace($normalized)) {
+            continue
+        }
+        if (Test-ProtectedPublicHtmlRelativePath -relative $normalized) {
+            continue
+        }
+        [void]$set.Add($normalized)
+        }
+    }
+    return $set
+}
+
+function Get-GitHubPathScopeSet() {
+    $set = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+    foreach ($rawPath in @($PathScope)) {
+        foreach ($path in (([string]$rawPath) -split ',')) {
+        $normalized = Normalize-ScopePath -path $path
+        if ([string]::IsNullOrWhiteSpace($normalized)) {
+            continue
+        }
+        if (Test-ProtectedGitHubRelativePath -relative $normalized) {
+            continue
+        }
+        [void]$set.Add($normalized)
+        }
+    }
+    return $set
+}
+
+function Test-PathMatchesScope([string]$path, [System.Collections.Generic.HashSet[string]]$scopeSet) {
+    if ($null -eq $scopeSet -or $scopeSet.Count -eq 0) {
+        return $true
+    }
+    $normalized = Normalize-ScopePath -path $path
+    foreach ($scope in @($scopeSet)) {
+        $scopeText = ([string]$scope).Trim('/')
+        if ($normalized.Equals($scopeText, [System.StringComparison]::Ordinal)) {
+            return $true
+        }
+        if ($normalized.StartsWith($scopeText + "/", [System.StringComparison]::Ordinal)) {
+            return $true
+        }
+    }
+    return $false
+}
+
+function Apply-PathScopeToSet([System.Collections.Generic.HashSet[string]]$set, [System.Collections.Generic.HashSet[string]]$scopeSet) {
+    if ($null -eq $scopeSet -or $scopeSet.Count -eq 0) {
+        return 0
+    }
+    $removed = 0
+    foreach ($path in @($set)) {
+        if (-not (Test-PathMatchesScope -path $path -scopeSet $scopeSet)) {
+            [void]$set.Remove($path)
+            $removed += 1
+        }
+    }
+    return $removed
 }
 
 function Test-ProtectedGitHubRelativePath([string]$relative) {
@@ -2163,6 +2241,13 @@ function Build-DeployPlan() {
         }
     }
 
+    $deployScope = Get-DeployPathScopeSet
+    if ($deployScope.Count -gt 0) {
+        $removedUploads = Apply-PathScopeToSet -set $uploadSet -scopeSet $deployScope
+        $removedDeletes = Apply-PathScopeToSet -set $deleteSet -scopeSet $deployScope
+        [void]$notes.Add("Applied deploy path scope ($($deployScope.Count) item(s)); removed $removedUploads upload candidate(s) and $removedDeletes delete candidate(s).")
+    }
+
     return [PSCustomObject]@{
         Mode       = "local-delta (laptop source)"
         UploadList = @($uploadSet) | Sort-Object
@@ -2261,6 +2346,13 @@ function Build-GitHubSyncPlan([string]$upstream) {
         if ($uploadSet.Contains($path)) {
             [void]$deleteSet.Remove($path)
         }
+    }
+
+    $githubScope = Get-GitHubPathScopeSet
+    if ($githubScope.Count -gt 0) {
+        $removedUploads = Apply-PathScopeToSet -set $uploadSet -scopeSet $githubScope
+        $removedDeletes = Apply-PathScopeToSet -set $deleteSet -scopeSet $githubScope
+        [void]$notes.Add("Applied GitHub path scope ($($githubScope.Count) item(s)); removed $removedUploads upload candidate(s) and $removedDeletes delete candidate(s).")
     }
 
     $pathScope = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
@@ -3325,6 +3417,23 @@ try {
 
         $uploadList = @($previewUploadSet) | Sort-Object
         $deleteList = @($previewDeleteSet) | Sort-Object
+        $previewScope = Get-DeployPathScopeSet
+        if ($previewScope.Count -gt 0) {
+            $scopedPreviewUploadSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+            foreach ($relative in @($uploadList)) {
+                if (Test-PathMatchesScope -path $relative -scopeSet $previewScope) {
+                    [void]$scopedPreviewUploadSet.Add([string]$relative)
+                }
+            }
+            $scopedPreviewDeleteSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+            foreach ($relative in @($deleteList)) {
+                if (Test-PathMatchesScope -path $relative -scopeSet $previewScope) {
+                    [void]$scopedPreviewDeleteSet.Add([string]$relative)
+                }
+            }
+            $uploadList = @($scopedPreviewUploadSet) | Sort-Object
+            $deleteList = @($scopedPreviewDeleteSet) | Sort-Object
+        }
         if (@($versionStampInfo.ChangedFiles).Count -gt 0) {
             $dryRunNotes = @($plan.Notes)
             $dryRunNotes += "Dry run preview included $(@($versionStampInfo.ChangedFiles).Count) file(s) that the real PWA version stamp would rewrite before deploy."
