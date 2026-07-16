@@ -17,6 +17,7 @@ require_once __DIR__ . '/../public_html/api/analytics_store.php';
 require_once __DIR__ . '/../public_html/api/exams_store.php';
 require_once __DIR__ . '/../public_html/api/auth_store.php';
 require_once __DIR__ . '/../public_html/api/exams_home_highlights.php';
+require_once __DIR__ . '/../public_html/api/private_notes_processing.php';
 
 // Order-status constants live in payments_store.php (not loaded here); define the
 // stable values the funnel relies on so the test stays self-contained.
@@ -274,12 +275,246 @@ unit_assert(
     'exams: home highlights use the two-entry index and never backfill an expired item'
 );
 $homeHighlightsApiSource = (string) file_get_contents(__DIR__ . '/../public_html/api/exams_home_highlights_api.php');
+$appHomeSource = (string) file_get_contents(__DIR__ . '/../public_html/assets/site/scripts/app-home.js');
+unit_assert(
+    str_contains($homeHighlightsApiSource, "cohortKey === dent_external_site_users_cohort_key()")
+        && str_contains($appHomeSource, 'cohortKey === "site-users"'),
+    'exams: ordinary site users receive home highlights without changing auth cohort storage'
+);
 unit_assert(
     !str_contains($homeHighlightsApiSource, 'exams_store.php')
         && !str_contains($homeHighlightsApiSource, 'payments_store.php')
         && !str_contains($homeHighlightsApiSource, 'exams_modules.php'),
     'exams: home highlights endpoint avoids the full exam, payment and module stores'
 );
+
+// ---------------------------------------------------------------------------
+// Private notes: access foundation
+// ---------------------------------------------------------------------------
+$privateNotesBaseStore = private_notes_normalize_store([
+    'schemaVersion' => 1,
+    'semesters' => [
+        'pnsem-unit1402t6' => [
+            'id' => 'pnsem-unit1402t6',
+            'cohortKey' => 'dentistry-1402',
+            'title' => 'Unit test semester',
+            'termNumber' => 6,
+        ],
+    ],
+    'courses' => [
+        'pncrs-unitoralpath' => [
+            'id' => 'pncrs-unitoralpath',
+            'cohortKey' => 'dentistry-1402',
+            'semesterId' => 'pnsem-unit1402t6',
+            'title' => 'Unit Test Oral Pathology',
+        ],
+    ],
+    'documents' => [
+        'pndoc-unitatlas' => [
+            'id' => 'pndoc-unitatlas',
+            'cohortKey' => 'dentistry-1402',
+            'title' => 'Unit Test Atlas',
+            'courseId' => 'pncrs-unitoralpath',
+            'semesterId' => 'pnsem-unit1402t6',
+            'originalFileRef' => 'dentistry-1402/unit-atlas.pdf',
+            'processingStatus' => 'ready',
+            'pageCount' => 12,
+            'uploaderUserKey' => '40211272003',
+            'publicationStatus' => 'published',
+        ],
+    ],
+]);
+$privateNotesStudent = ['studentNumber' => '4020001', 'role' => 'student', 'cohortKey' => 'dentistry-1402'];
+$privateNotesOwner = ['studentNumber' => dent_owner_student_number(), 'role' => 'owner', 'cohortKey' => 'dentistry-1402'];
+
+$privateNotesDecision = private_notes_user_can_view_document($privateNotesBaseStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
+unit_assert(
+    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'active-membership-required',
+    'private notes: login without active course membership is denied'
+);
+
+$privateNotesWithMembership = $privateNotesBaseStore;
+$privateNotesWithMembership['courseMemberships']['pnmem-unitstudent'] = [
+    'id' => 'pnmem-unitstudent',
+    'userKey' => '4020001',
+    'courseId' => 'pncrs-unitoralpath',
+    'semesterId' => 'pnsem-unit1402t6',
+    'role' => 'writer',
+    'contributionStatus' => 'approved',
+    'accessStatus' => 'active',
+];
+$privateNotesDecision = private_notes_user_can_view_document($privateNotesWithMembership, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
+unit_assert(
+    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'document-permission-required',
+    'private notes: course membership without document permission is denied'
+);
+
+$privateNotesAllowedStore = $privateNotesWithMembership;
+$privateNotesAllowedStore['documentPermissions']['pnperm-unitstudent'] = [
+    'id' => 'pnperm-unitstudent',
+    'documentId' => 'pndoc-unitatlas',
+    'userKey' => '4020001',
+    'membershipId' => 'pnmem-unitstudent',
+    'permission' => 'view',
+    'status' => 'active',
+];
+$privateNotesDecision = private_notes_user_can_view_document($privateNotesAllowedStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
+unit_assert(
+    $privateNotesDecision['allowed'] === true && $privateNotesDecision['reason'] === 'allowed',
+    'private notes: approved membership plus active document permission is allowed'
+);
+
+$privateNotesWarningStore = $privateNotesAllowedStore;
+$privateNotesWarningStore['courseMemberships']['pnmem-unitstudent']['accessStatus'] = 'warning';
+$privateNotesWarningStore['documentPermissions']['pnperm-unitstudent']['status'] = 'warning';
+$privateNotesDecision = private_notes_user_can_view_document($privateNotesWarningStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
+unit_assert(
+    $privateNotesDecision['allowed'] === true,
+    'private notes: warning access remains viewable but traceable'
+);
+
+$privateNotesSuspendedStore = $privateNotesAllowedStore;
+$privateNotesSuspendedStore['courseMemberships']['pnmem-unitstudent']['accessStatus'] = 'suspended';
+$privateNotesDecision = private_notes_user_can_view_document($privateNotesSuspendedStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
+unit_assert(
+    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'active-membership-required',
+    'private notes: suspended course membership is denied'
+);
+
+$privateNotesRevokedPermissionStore = $privateNotesAllowedStore;
+$privateNotesRevokedPermissionStore['documentPermissions']['pnperm-unitstudent']['status'] = 'revoked';
+$privateNotesDecision = private_notes_user_can_view_document($privateNotesRevokedPermissionStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
+unit_assert(
+    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'document-permission-required',
+    'private notes: revoked document permission is denied'
+);
+
+$privateNotesExpiredStore = $privateNotesAllowedStore;
+$privateNotesExpiredStore['courseMemberships']['pnmem-unitstudent']['accessExpiresAt'] = '2026-07-15T23:59:00+03:30';
+$privateNotesDecision = private_notes_user_can_view_document($privateNotesExpiredStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
+unit_assert(
+    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'active-membership-required',
+    'private notes: expired membership is denied'
+);
+
+$privateNotesTempSuspensionStore = $privateNotesAllowedStore;
+$privateNotesTempSuspensionStore['temporarySuspensions']['pnsus-unitstudent'] = [
+    'id' => 'pnsus-unitstudent',
+    'userKey' => '4020001',
+    'documentId' => 'pndoc-unitatlas',
+    'status' => 'active',
+    'startsAt' => '2026-07-16T00:00:00+03:30',
+    'expiresAt' => '2026-07-17T00:00:00+03:30',
+];
+$privateNotesDecision = private_notes_user_can_view_document($privateNotesTempSuspensionStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
+unit_assert(
+    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'temporarily-suspended',
+    'private notes: active temporary suspension is denied'
+);
+
+$privateNotesOwnerDecision = private_notes_user_can_view_document($privateNotesBaseStore, $privateNotesOwner, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
+unit_assert(
+    $privateNotesOwnerDecision['allowed'] === true && $privateNotesOwnerDecision['reason'] === 'owner',
+    'private notes: owner access uses the existing site role system'
+);
+
+$privateNotesManagerStore = $privateNotesAllowedStore;
+$privateNotesManagerStore['courseMemberships']['pnmem-manager'] = [
+    'id' => 'pnmem-manager',
+    'userKey' => '4020002',
+    'courseId' => 'pncrs-unitoralpath',
+    'semesterId' => 'pnsem-unit1402t6',
+    'role' => 'manager',
+    'contributionStatus' => 'approved',
+    'accessStatus' => 'active',
+];
+unit_assert(
+    private_notes_user_can_manage_course(
+        $privateNotesManagerStore,
+        ['studentNumber' => '4020002', 'role' => 'student', 'cohortKey' => 'dentistry-1402'],
+        'pncrs-unitoralpath',
+        'pnsem-unit1402t6'
+    ) === true,
+    'private notes: approved private course manager may manage uploads'
+);
+unit_assert(
+    private_notes_user_can_manage_course(
+        $privateNotesManagerStore,
+        ['studentNumber' => '4020001', 'role' => 'student', 'cohortKey' => 'dentistry-1402'],
+        'pncrs-unitoralpath',
+        'pnsem-unit1402t6'
+    ) === false,
+    'private notes: writer membership alone does not grant upload management'
+);
+
+$privateNotesPayload = private_notes_document_admin_payload([
+    'id' => 'pndoc-unitatlas',
+    'title' => 'Unit Test Atlas',
+    'originalFileRef' => '2026/07/private.pdf',
+    'originalStorageKey' => '2026/07/private.pdf',
+    'processingStatus' => 'ready',
+]);
+unit_assert(
+    !array_key_exists('originalFileRef', $privateNotesPayload)
+        && !array_key_exists('originalStorageKey', $privateNotesPayload)
+        && ($privateNotesPayload['hasOriginalFile'] ?? false) === true,
+    'private notes: admin document payload does not expose the original PDF path'
+);
+
+$unitTmpDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dent-private-notes-unit-' . bin2hex(random_bytes(4));
+mkdir($unitTmpDir, 0755, true);
+$invalidPdfPath = $unitTmpDir . DIRECTORY_SEPARATOR . 'not-a-pdf.pdf';
+file_put_contents($invalidPdfPath, "not a pdf\n");
+$invalidPdfValidation = private_notes_validate_pdf_file($invalidPdfPath, 'not-a-pdf.pdf', 'application/pdf');
+unit_assert(
+    $invalidPdfValidation['ok'] === false,
+    'private notes: invalid PDF signature is rejected'
+);
+
+$wrongMimePath = $unitTmpDir . DIRECTORY_SEPARATOR . 'wrong-mime.pdf';
+file_put_contents($wrongMimePath, "%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n");
+$wrongMimeValidation = private_notes_validate_pdf_file($wrongMimePath, 'wrong-mime.pdf', 'text/plain');
+if (private_notes_detect_mime_type($wrongMimePath) === '') {
+    unit_assert(
+        $wrongMimeValidation['ok'] === false && str_contains((string) ($wrongMimeValidation['error'] ?? ''), 'MIME'),
+        'private notes: unsupported reported MIME type is rejected when fileinfo is unavailable'
+    );
+} else {
+    unit_assert(
+        array_key_exists('ok', $wrongMimeValidation),
+        'private notes: server-side MIME detector is used when fileinfo is available'
+    );
+}
+
+$encryptedPdfPath = $unitTmpDir . DIRECTORY_SEPARATOR . 'encrypted.pdf';
+file_put_contents($encryptedPdfPath, "%PDF-1.4\n1 0 obj\n<< /Encrypt 2 0 R >>\nendobj\n%%EOF\n");
+$encryptedPdfValidation = private_notes_validate_pdf_file($encryptedPdfPath, 'encrypted.pdf', 'application/pdf');
+unit_assert(
+    $encryptedPdfValidation['ok'] === false && str_contains((string) ($encryptedPdfValidation['error'] ?? ''), 'Encrypted'),
+    'private notes: encrypted PDFs are rejected before processing'
+);
+
+$samplePdfPath = 'C:\\Users\\ASUS\\Downloads\\Telegram Desktop\\جلسه ۱ مبانی کامل نظری.pdf';
+if (is_file($samplePdfPath)) {
+    $sampleValidation = private_notes_validate_pdf_file($samplePdfPath, basename($samplePdfPath), 'application/pdf');
+    unit_assert(
+        $sampleValidation['ok'] === true && ($sampleValidation['sizeBytes'] ?? 0) > 0 && ($sampleValidation['sha256'] ?? '') !== '',
+        'private notes: provided sample PDF passes upload validation'
+    );
+} else {
+    unit_skip('private notes: provided sample PDF is not present on this machine');
+}
+
+$pdfInfoResult = private_notes_pdf_info($wrongMimePath);
+unit_assert(
+    $pdfInfoResult['ok'] === false,
+    'private notes: processing fails clearly when PDF metadata cannot be read'
+);
+
+@unlink($invalidPdfPath);
+@unlink($wrongMimePath);
+@unlink($encryptedPdfPath);
+@rmdir($unitTmpDir);
 
 echo "\n";
 echo sprintf(

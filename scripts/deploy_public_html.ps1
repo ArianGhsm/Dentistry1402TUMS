@@ -1213,6 +1213,10 @@ function Test-OptionalRemoteStorageDirectory([string]$remoteRelative) {
         return $true
     }
 
+    if ($normalized -eq "storage/private_notes/pages") {
+        return $true
+    }
+
     if ($normalized -match '^storage/chat/[^/]+_media/(previews|originals|thumbs|thumbnails)$') {
         return $true
     }

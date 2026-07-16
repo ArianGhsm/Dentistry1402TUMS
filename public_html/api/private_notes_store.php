@@ -43,6 +43,7 @@ function private_notes_default_store(): array
         'documents' => [],
         'courseMemberships' => [],
         'documentPermissions' => [],
+        'processingJobs' => [],
         'registeredDevices' => [],
         'activeViewingSessions' => [],
         'documentViewEvents' => [],
@@ -126,6 +127,7 @@ function private_notes_normalize_store(array $store): array
         'documents' => private_notes_normalize_collection($store['documents'] ?? [], 'private_notes_normalize_document'),
         'courseMemberships' => private_notes_normalize_collection($store['courseMemberships'] ?? [], 'private_notes_normalize_course_membership'),
         'documentPermissions' => private_notes_normalize_collection($store['documentPermissions'] ?? [], 'private_notes_normalize_document_permission'),
+        'processingJobs' => private_notes_normalize_collection($store['processingJobs'] ?? [], 'private_notes_normalize_processing_job'),
         'registeredDevices' => private_notes_normalize_collection($store['registeredDevices'] ?? [], 'private_notes_normalize_registered_device'),
         'activeViewingSessions' => private_notes_normalize_collection($store['activeViewingSessions'] ?? [], 'private_notes_normalize_viewing_session'),
         'documentViewEvents' => private_notes_normalize_collection($store['documentViewEvents'] ?? [], 'private_notes_normalize_view_event'),
@@ -282,8 +284,20 @@ function private_notes_normalize_document(string $key, array $document): ?array
         'courseId' => private_notes_clean_id((string) ($document['courseId'] ?? ''), 'pncrs-'),
         'semesterId' => private_notes_clean_id((string) ($document['semesterId'] ?? ''), 'pnsem-'),
         'originalFileRef' => private_notes_clean_original_file_ref((string) ($document['originalFileRef'] ?? '')),
+        'originalStorageKey' => private_notes_clean_original_file_ref((string) ($document['originalStorageKey'] ?? '')),
+        'originalFilename' => private_notes_clean_text_field($document['originalFilename'] ?? '', 180),
+        'originalMimeType' => private_notes_clean_text_field($document['originalMimeType'] ?? '', 80),
+        'originalSizeBytes' => max(0, (int) ($document['originalSizeBytes'] ?? 0)),
+        'originalSha256' => private_notes_clean_hash((string) ($document['originalSha256'] ?? '')),
         'processingStatus' => private_notes_clean_status($document['processingStatus'] ?? 'pending', PRIVATE_NOTES_DOCUMENT_PROCESSING_STATUSES, 'pending'),
+        'processingError' => private_notes_clean_text_field($document['processingError'] ?? '', 1000),
+        'processingAttempts' => max(0, (int) ($document['processingAttempts'] ?? 0)),
+        'processingStartedAt' => private_notes_clean_iso_datetime($document['processingStartedAt'] ?? ''),
+        'processingCompletedAt' => private_notes_clean_iso_datetime($document['processingCompletedAt'] ?? ''),
         'pageCount' => private_notes_normalize_page_count($document['pageCount'] ?? 0),
+        'renderProfile' => private_notes_normalize_render_profile($document['renderProfile'] ?? []),
+        'pages' => private_notes_normalize_document_pages($document['pages'] ?? []),
+        'assetsStorageKey' => private_notes_clean_original_file_ref((string) ($document['assetsStorageKey'] ?? '')),
         'uploaderUserKey' => dent_normalize_student_number((string) ($document['uploaderUserKey'] ?? '')),
         'publicationStatus' => private_notes_clean_status($document['publicationStatus'] ?? 'draft', PRIVATE_NOTES_DOCUMENT_PUBLICATION_STATUSES, 'draft'),
         'createdAt' => private_notes_clean_iso_datetime($document['createdAt'] ?? '') ?: dent_iso_now(),
@@ -298,6 +312,95 @@ function private_notes_clean_original_file_ref(string $value): string
         return '';
     }
     return preg_match('/^[A-Za-z0-9._\/-]{1,220}$/', $value) === 1 ? $value : '';
+}
+
+function private_notes_clean_hash(string $value): string
+{
+    $value = trim(strtolower($value));
+    return preg_match('/^[a-f0-9]{64}$/', $value) === 1 ? $value : '';
+}
+
+function private_notes_normalize_render_profile($profile): array
+{
+    if (!is_array($profile)) {
+        $profile = [];
+    }
+    return [
+        'dpi' => max(0, (int) ($profile['dpi'] ?? 0)),
+        'tileSize' => max(0, (int) ($profile['tileSize'] ?? 0)),
+        'format' => private_notes_clean_status($profile['format'] ?? 'png', ['png', 'jpg', 'jpeg', 'webp'], 'png'),
+        'renderer' => private_notes_clean_text_field($profile['renderer'] ?? '', 80),
+        'generatedAt' => private_notes_clean_iso_datetime($profile['generatedAt'] ?? ''),
+    ];
+}
+
+function private_notes_normalize_document_pages($pages): array
+{
+    $normalized = [];
+    foreach (is_array($pages) ? $pages : [] as $pageKey => $page) {
+        if (!is_array($page)) {
+            continue;
+        }
+        $number = max(1, (int) ($page['pageNumber'] ?? $pageKey));
+        $levels = [];
+        foreach (is_array($page['levels'] ?? null) ? $page['levels'] : [] as $levelKey => $level) {
+            if (!is_array($level)) {
+                continue;
+            }
+            $levelNumber = max(0, (int) ($level['level'] ?? $levelKey));
+            $tiles = [];
+            foreach (is_array($level['tiles'] ?? null) ? $level['tiles'] : [] as $tile) {
+                if (!is_array($tile)) {
+                    continue;
+                }
+                $tiles[] = [
+                    'x' => max(0, (int) ($tile['x'] ?? 0)),
+                    'y' => max(0, (int) ($tile['y'] ?? 0)),
+                    'width' => max(0, (int) ($tile['width'] ?? 0)),
+                    'height' => max(0, (int) ($tile['height'] ?? 0)),
+                    'storageKey' => private_notes_clean_original_file_ref((string) ($tile['storageKey'] ?? '')),
+                    'bytes' => max(0, (int) ($tile['bytes'] ?? 0)),
+                ];
+            }
+            $levels[] = [
+                'level' => $levelNumber,
+                'scale' => max(0.0, (float) ($level['scale'] ?? 1.0)),
+                'width' => max(0, (int) ($level['width'] ?? 0)),
+                'height' => max(0, (int) ($level['height'] ?? 0)),
+                'tileSize' => max(0, (int) ($level['tileSize'] ?? 0)),
+                'tiles' => $tiles,
+            ];
+        }
+        usort($levels, static fn(array $left, array $right): int => (int) $left['level'] <=> (int) $right['level']);
+        $normalized[(string) $number] = [
+            'pageNumber' => $number,
+            'width' => max(0, (int) ($page['width'] ?? 0)),
+            'height' => max(0, (int) ($page['height'] ?? 0)),
+            'levels' => $levels,
+        ];
+    }
+    ksort($normalized, SORT_NATURAL);
+    return $normalized;
+}
+
+function private_notes_normalize_processing_job(string $key, array $job): ?array
+{
+    $id = private_notes_clean_id((string) ($job['id'] ?? $key), 'pnjob-');
+    if ($id === '') {
+        return null;
+    }
+    return [
+        'id' => $id,
+        'documentId' => private_notes_clean_id((string) ($job['documentId'] ?? ''), 'pndoc-'),
+        'status' => private_notes_clean_status($job['status'] ?? 'pending', ['pending', 'processing', 'ready', 'failed'], 'pending'),
+        'attempts' => max(0, (int) ($job['attempts'] ?? 0)),
+        'lastError' => private_notes_clean_text_field($job['lastError'] ?? '', 1000),
+        'createdBy' => dent_normalize_student_number((string) ($job['createdBy'] ?? '')),
+        'createdAt' => private_notes_clean_iso_datetime($job['createdAt'] ?? '') ?: dent_iso_now(),
+        'updatedAt' => private_notes_clean_iso_datetime($job['updatedAt'] ?? '') ?: dent_iso_now(),
+        'startedAt' => private_notes_clean_iso_datetime($job['startedAt'] ?? ''),
+        'finishedAt' => private_notes_clean_iso_datetime($job['finishedAt'] ?? ''),
+    ];
 }
 
 function private_notes_normalize_course_membership(string $key, array $membership): ?array
@@ -474,6 +577,66 @@ function private_notes_is_owner(array $user): bool
 function private_notes_require_owner_user(): array
 {
     return dent_require_owner();
+}
+
+function private_notes_user_can_manage_course(array $store, array $user, string $courseId, string $semesterId = ''): bool
+{
+    $courseId = private_notes_clean_id($courseId, 'pncrs-');
+    $semesterId = private_notes_clean_id($semesterId, 'pnsem-');
+    if ($courseId === '' || !is_array($store['courses'][$courseId] ?? null)) {
+        return false;
+    }
+
+    if (private_notes_is_owner($user)) {
+        return true;
+    }
+
+    $course = $store['courses'][$courseId];
+    $targetCohort = dent_clean_cohort_key((string) ($course['cohortKey'] ?? dent_primary_cohort_key()));
+    if ($targetCohort !== '' && dent_user_has_cohort_management_access($user, $targetCohort)) {
+        return true;
+    }
+
+    $userKey = private_notes_user_key($user);
+    if ($userKey === '') {
+        return false;
+    }
+
+    $targetSemesterId = $semesterId !== '' ? $semesterId : (string) ($course['semesterId'] ?? '');
+    foreach ($store['courseMemberships'] ?? [] as $membership) {
+        if (!is_array($membership)) {
+            continue;
+        }
+        if ((string) ($membership['userKey'] ?? '') !== $userKey) {
+            continue;
+        }
+        if ((string) ($membership['courseId'] ?? '') !== $courseId) {
+            continue;
+        }
+        if ($targetSemesterId !== '' && (string) ($membership['semesterId'] ?? '') !== $targetSemesterId) {
+            continue;
+        }
+        if ((string) ($membership['role'] ?? '') !== 'manager') {
+            continue;
+        }
+        if ((string) ($membership['contributionStatus'] ?? '') !== 'approved') {
+            continue;
+        }
+        if (!in_array((string) ($membership['accessStatus'] ?? ''), ['active', 'warning'], true)) {
+            continue;
+        }
+        return true;
+    }
+
+    return false;
+}
+
+function private_notes_document_admin_payload(array $document): array
+{
+    $payload = $document;
+    unset($payload['originalFileRef'], $payload['originalStorageKey']);
+    $payload['hasOriginalFile'] = (string) ($document['originalFileRef'] ?? $document['originalStorageKey'] ?? '') !== '';
+    return $payload;
 }
 
 function private_notes_find_active_membership_for_document(array $store, array $user, array $document, ?string $now = null): ?array
@@ -791,4 +954,3 @@ function private_notes_admin_set_document_permission_status(array $admin, string
         return $store['documentPermissions'][$permissionId];
     });
 }
-

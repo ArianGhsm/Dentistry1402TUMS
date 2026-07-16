@@ -47,6 +47,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - اگر در rerun هیچ delta جدیدی زیر `public_html/` روی هاست deploy نشود، owner notification نباید دوباره ارسال شود؛ retryهای repair فقط باید مرحله‌های باقی‌مانده مثل GitHub sync را ادامه دهند.
 - اعلان completion deploy فقط داخل سایت ثبت می‌شود؛ پیامک یا کانال اعلان موازی برای آن مجاز نیست.
 - صفحات منابع/جزوات فقط shell کد هستند. کارت‌های قابل مدیریت منابع باید از storage و API خوانده شوند، از جمله `notes/1402_terms.json`، `notes/1403_terms.json`، `notes/1404_terms.json` و `notes/prosthesis_1402_terms.json`.
+- سیستم مشاهده خصوصی جزوات از storage خصوصی `private_notes/` استفاده می‌کند: PDF اصلی در `private_notes/originals/` و tile/pageهای رندرشده در `private_notes/pages/` می‌مانند. این مسیرها runtime/private هستند، نباید public deploy شوند و نبودن زیرپوشه‌های runtime خالی مثل `pages/` نباید mirror/deploy را fail کند.
 
 ## دستورات مهم
 Dry run:
