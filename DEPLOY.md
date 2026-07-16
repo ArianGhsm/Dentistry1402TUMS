@@ -48,6 +48,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - اعلان completion deploy فقط داخل سایت ثبت می‌شود؛ پیامک یا کانال اعلان موازی برای آن مجاز نیست.
 - صفحات منابع/جزوات فقط shell کد هستند. کارت‌های قابل مدیریت منابع باید از storage و API خوانده شوند، از جمله `notes/1402_terms.json`، `notes/1403_terms.json`، `notes/1404_terms.json` و `notes/prosthesis_1402_terms.json`.
 - سیستم مشاهده خصوصی جزوات از storage خصوصی `private_notes/` استفاده می‌کند: PDF اصلی در `private_notes/originals/` و tile/pageهای رندرشده در `private_notes/pages/` می‌مانند. این مسیرها runtime/private هستند، نباید public deploy شوند و نبودن زیرپوشه‌های runtime خالی مثل `pages/` نباید mirror/deploy را fail کند.
+- تحویل tileهای سیستم مشاهده خصوصی به secret محیطی `DENT_PRIVATE_NOTES_TILE_SIGNING_SECRET` و ImageMagick نیاز دارد. cache کوتاه‌مدت watermark فقط باید زیر `server-only/tmp/private_notes_tile_cache/` بماند و هرگز public deploy نشود. قرارداد endpointها و envها در `docs/private-notes-tile-delivery.md` ثبت شده است.
 
 ## دستورات مهم
 Dry run:

@@ -183,6 +183,7 @@ function private_notes_find_binary(array $candidates, string $envName = ''): str
         $command = DIRECTORY_SEPARATOR === '\\'
             ? 'where ' . escapeshellarg($candidate)
             : 'command -v ' . escapeshellarg($candidate);
+        $command .= DIRECTORY_SEPARATOR === '\\' ? ' 2>NUL' : ' 2>/dev/null';
         $output = [];
         $exitCode = 1;
         @exec($command, $output, $exitCode);

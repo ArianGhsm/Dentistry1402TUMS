@@ -17,7 +17,7 @@ require_once __DIR__ . '/../public_html/api/analytics_store.php';
 require_once __DIR__ . '/../public_html/api/exams_store.php';
 require_once __DIR__ . '/../public_html/api/auth_store.php';
 require_once __DIR__ . '/../public_html/api/exams_home_highlights.php';
-require_once __DIR__ . '/../public_html/api/private_notes_processing.php';
+require_once __DIR__ . '/../public_html/api/private_notes_delivery.php';
 
 // Order-status constants live in payments_store.php (not loaded here); define the
 // stable values the funnel relies on so the test stays self-contained.
@@ -459,6 +459,169 @@ unit_assert(
         && !array_key_exists('originalStorageKey', $privateNotesPayload)
         && ($privateNotesPayload['hasOriginalFile'] ?? false) === true,
     'private notes: admin document payload does not expose the original PDF path'
+);
+
+putenv('DENT_PRIVATE_NOTES_TILE_SIGNING_SECRET=unit-private-notes-tile-secret');
+$_SERVER['HTTP_USER_AGENT'] = 'DentPrivateNotesUnit/1.0';
+$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+$privateNotesTileStore = $privateNotesAllowedStore;
+$privateNotesTileStore['documents']['pndoc-unitatlas']['assetsStorageKey'] = 'documents/pndoc-unitatlas';
+$privateNotesTileStore['documents']['pndoc-unitatlas']['pages'] = [
+    '1' => [
+        'pageNumber' => 1,
+        'width' => 1700,
+        'height' => 2200,
+        'levels' => [
+            [
+                'level' => 2,
+                'scale' => 0.25,
+                'width' => 425,
+                'height' => 550,
+                'tileSize' => 512,
+                'tiles' => [
+                    [
+                        'x' => 512,
+                        'y' => 1024,
+                        'width' => 512,
+                        'height' => 512,
+                        'storageKey' => 'documents/pndoc-unitatlas/p1/z2/tile-512-1024.png',
+                        'bytes' => 1234,
+                    ],
+                ],
+            ],
+        ],
+    ],
+];
+$privateNotesTileStore['registeredDevices']['pndev-unitactive'] = [
+    'id' => 'pndev-unitactive',
+    'userKey' => '4020001',
+    'label' => 'Unit device',
+    'tokenHash' => private_notes_device_token_hash('4020001', 'unit-device-token-abcdefghijklmnopqrstuvwxyz'),
+    'userAgentHash' => private_notes_request_user_agent_hash(),
+    'status' => 'active',
+    'firstSeenAt' => '2026-07-16T12:00:00+03:30',
+    'lastSeenAt' => '2026-07-16T12:00:00+03:30',
+];
+$privateNotesTileStore['activeViewingSessions']['pnses-unitactive'] = [
+    'id' => 'pnses-unitactive',
+    'userKey' => '4020001',
+    'documentId' => 'pndoc-unitatlas',
+    'deviceId' => 'pndev-unitactive',
+    'status' => 'active',
+    'startedAt' => '2026-07-16T12:00:00+03:30',
+    'lastSeenAt' => '2026-07-16T12:00:00+03:30',
+    'ipHash' => private_notes_request_ip_hash(),
+    'userAgentHash' => private_notes_request_user_agent_hash(),
+];
+$privateNotesTileStore = private_notes_normalize_store($privateNotesTileStore);
+$privateNotesTileRequest = [
+    'documentId' => 'pndoc-unitatlas',
+    'sessionId' => 'pnses-unitactive',
+    'pageNumber' => 1,
+    'zoomLevel' => 2,
+    'tileX' => 512,
+    'tileY' => 1024,
+];
+$privateNotesTileAuth = private_notes_authorize_tile_request(
+    $privateNotesTileStore,
+    $privateNotesStudent,
+    $privateNotesTileRequest,
+    '2026-07-16T12:01:00+03:30'
+);
+unit_assert(
+    $privateNotesTileAuth['ok'] === true
+        && ($privateNotesTileAuth['tile']['storageKey'] ?? '') === 'documents/pndoc-unitatlas/p1/z2/tile-512-1024.png',
+    'private notes: tile request requires active access, session, device and tile metadata'
+);
+$privateNotesRevokedDeviceStore = $privateNotesTileStore;
+$privateNotesRevokedDeviceStore['registeredDevices']['pndev-unitactive']['status'] = 'revoked';
+$privateNotesTileAuth = private_notes_authorize_tile_request(
+    $privateNotesRevokedDeviceStore,
+    $privateNotesStudent,
+    $privateNotesTileRequest,
+    '2026-07-16T12:01:00+03:30'
+);
+unit_assert(
+    $privateNotesTileAuth['ok'] === false && $privateNotesTileAuth['reason'] === 'registered-device-not-allowed',
+    'private notes: revoked registered device cannot receive tiles'
+);
+$privateNotesWrongTileRequest = $privateNotesTileRequest;
+$privateNotesWrongTileRequest['tileX'] = 0;
+$privateNotesTileAuth = private_notes_authorize_tile_request(
+    $privateNotesTileStore,
+    $privateNotesStudent,
+    $privateNotesWrongTileRequest,
+    '2026-07-16T12:01:00+03:30'
+);
+unit_assert(
+    $privateNotesTileAuth['ok'] === false && $privateNotesTileAuth['reason'] === 'tile-not-found',
+    'private notes: unknown tile coordinates are denied'
+);
+$privateNotesChangedUaStore = $privateNotesTileStore;
+$_SERVER['HTTP_USER_AGENT'] = 'DentPrivateNotesUnit/changed';
+$privateNotesTileAuth = private_notes_authorize_tile_request(
+    $privateNotesChangedUaStore,
+    $privateNotesStudent,
+    $privateNotesTileRequest,
+    '2026-07-16T12:01:00+03:30'
+);
+unit_assert(
+    $privateNotesTileAuth['ok'] === false && $privateNotesTileAuth['reason'] === 'viewing-session-user-agent-mismatch',
+    'private notes: viewing session is bound to the registered device user agent'
+);
+$_SERVER['HTTP_USER_AGENT'] = 'DentPrivateNotesUnit/1.0';
+
+$privateNotesTokenNow = strtotime('2026-07-16T12:01:00+03:30');
+$privateNotesToken = private_notes_sign_tile_token([
+    'v' => 1,
+    'uid' => '4020001',
+    'doc' => 'pndoc-unitatlas',
+    'sid' => 'pnses-unitactive',
+    'page' => 1,
+    'z' => 2,
+    'x' => 512,
+    'y' => 1024,
+    'exp' => $privateNotesTokenNow + 60,
+    'nonce' => 'unit',
+]);
+$privateNotesTokenCheck = private_notes_validate_tile_token(
+    $privateNotesToken,
+    array_merge($privateNotesTileRequest, ['uid' => '4020001']),
+    $privateNotesTokenNow
+);
+unit_assert(
+    $privateNotesTokenCheck['ok'] === true,
+    'private notes: signed tile token validates for exact user, document, session, page, zoom and tile'
+);
+$privateNotesTokenMismatch = private_notes_validate_tile_token(
+    $privateNotesToken,
+    array_merge($privateNotesTileRequest, ['uid' => '4020001', 'pageNumber' => 2]),
+    $privateNotesTokenNow
+);
+unit_assert(
+    $privateNotesTokenMismatch['ok'] === false
+        && $privateNotesTokenMismatch['reason'] === 'tile-token-claim-mismatch'
+        && $privateNotesTokenMismatch['claim'] === 'page',
+    'private notes: tile token cannot be reused for another page'
+);
+$privateNotesTokenExpired = private_notes_validate_tile_token(
+    $privateNotesToken,
+    array_merge($privateNotesTileRequest, ['uid' => '4020001']),
+    $privateNotesTokenNow + 61
+);
+unit_assert(
+    $privateNotesTokenExpired['ok'] === false && $privateNotesTokenExpired['reason'] === 'tile-token-expired',
+    'private notes: expired tile token is rejected'
+);
+$privateNotesTokenTampered = substr($privateNotesToken, 0, -1) . (substr($privateNotesToken, -1) === 'A' ? 'B' : 'A');
+$privateNotesTokenBadSignature = private_notes_validate_tile_token(
+    $privateNotesTokenTampered,
+    array_merge($privateNotesTileRequest, ['uid' => '4020001']),
+    $privateNotesTokenNow
+);
+unit_assert(
+    $privateNotesTokenBadSignature['ok'] === false && $privateNotesTokenBadSignature['reason'] === 'tile-token-bad-signature',
+    'private notes: tile token signature uses constant-time verification and rejects tampering'
 );
 
 $unitTmpDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dent-private-notes-unit-' . bin2hex(random_bytes(4));

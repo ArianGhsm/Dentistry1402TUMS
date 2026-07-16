@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/private_notes_processing.php';
+require_once __DIR__ . '/private_notes_delivery.php';
 
 function private_notes_api_require_method(array $methods): void
 {
@@ -357,6 +357,34 @@ if ($action === 'checkAccess') {
             'documentId' => (string) (($decision['document']['id'] ?? '') ?: ($_GET['documentId'] ?? '')),
         ],
     ]);
+}
+
+if ($action === 'startViewingSession') {
+    private_notes_api_require_method(['POST']);
+    $user = dent_require_user();
+    dent_release_session_lock();
+    $session = private_notes_start_viewing_session(
+        $user,
+        (string) ($_POST['documentId'] ?? ''),
+        (string) ($_POST['deviceToken'] ?? ''),
+        (string) ($_POST['deviceLabel'] ?? '')
+    );
+    dent_json_response(['success' => true, 'viewingSession' => $session]);
+}
+
+if ($action === 'tileToken') {
+    private_notes_api_require_method(['POST']);
+    $user = dent_require_user();
+    dent_release_session_lock();
+    $token = private_notes_issue_tile_token($user, $_POST);
+    dent_json_response(['success' => true, 'tileToken' => $token]);
+}
+
+if ($action === 'tile') {
+    private_notes_api_require_method(['GET']);
+    $user = dent_require_user();
+    dent_release_session_lock();
+    private_notes_deliver_tile($user, $_GET);
 }
 
 if ($action === 'ownerSaveSemester') {
