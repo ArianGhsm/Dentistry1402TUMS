@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>نمایش خصوصی جزوه | ورودی ۱۴۰۲</title>
+    <meta name="description" content="نمایش امن جزوه‌های خصوصی با واترمارک شخصی‌سازی‌شده.">
+    <meta name="theme-color" content="#eef2f7">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260716-150745">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260716-150745">
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/YekanBakh-VF.woff2" crossorigin>
+    <script src="/assets/site/scripts/theme.js?v=20260716-150745"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260716-150745">
+    <link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260716-150745">
+    <link rel="stylesheet" href="/assets/site/styles/private-notes-viewer.css?v=20260716-150745">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260716-150745">
+</head>
+<body class="hub-page private-notes-viewer-page" data-shell-reserve="self">
+    <div class="background-overlay" aria-hidden="true"></div>
+
+    <header class="site-header private-viewer-header">
+        <div class="logo-area">
+            <div class="logo-circle">
+                <img src="/assets/images/logo.png?v=20260716-150745" alt="لوگوی رسمی ورودی ۱۴۰۲">
+            </div>
+            <div class="site-info">
+                <h1 id="private-viewer-title">نمایش خصوصی جزوه</h1>
+                <p id="private-viewer-subtitle">در حال آماده‌سازی...</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="/notes/" class="header-link">بازگشت</a>
+        </div>
+    </header>
+
+    <main class="private-viewer-shell" aria-labelledby="private-viewer-title">
+        <section class="private-viewer-notice" role="status">
+            <strong>هشدار امنیتی:</strong>
+            <span>تمام صفحه‌ها با واترمارک شخصی و شناسه قابل پیگیری نمایش داده می‌شوند.</span>
+        </section>
+
+        <section class="private-viewer-toolbar" aria-label="کنترل‌های نمایش جزوه">
+            <div class="private-viewer-toolbar__group" role="group" aria-label="جابجایی صفحه">
+                <button type="button" class="viewer-icon-btn" id="viewer-next-page" aria-label="صفحه بعد">›</button>
+                <label class="viewer-page-field">
+                    <span>صفحه</span>
+                    <input id="viewer-page-input" type="number" inputmode="numeric" min="1" value="1" aria-label="شماره صفحه">
+                    <span id="viewer-page-count">/ -</span>
+                </label>
+                <button type="button" class="viewer-icon-btn" id="viewer-prev-page" aria-label="صفحه قبل">‹</button>
+            </div>
+
+            <div class="private-viewer-toolbar__group" role="group" aria-label="بزرگ‌نمایی">
+                <button type="button" class="viewer-icon-btn" id="viewer-zoom-out" aria-label="کوچک‌نمایی">−</button>
+                <span class="viewer-zoom-label" id="viewer-zoom-label">۱۰۰٪</span>
+                <button type="button" class="viewer-icon-btn" id="viewer-zoom-in" aria-label="بزرگ‌نمایی">+</button>
+            </div>
+
+            <div class="private-viewer-toolbar__group" role="group" aria-label="حالت نمایش">
+                <button type="button" class="viewer-text-btn" id="viewer-fit-width">عرض</button>
+                <button type="button" class="viewer-text-btn" id="viewer-fit-page">صفحه</button>
+                <button type="button" class="viewer-icon-btn" id="viewer-fullscreen" aria-label="تمام‌صفحه">⛶</button>
+            </div>
+        </section>
+
+        <section class="private-viewer-status" id="viewer-status" aria-live="polite">
+            <span class="viewer-spinner" aria-hidden="true"></span>
+            <span id="viewer-status-text">در حال بررسی دسترسی...</span>
+        </section>
+
+        <section class="private-viewer-frame" id="viewer-frame" aria-label="صفحه جزوه خصوصی">
+            <div class="private-viewer-canvas" id="viewer-canvas">
+                <div class="private-viewer-page" id="viewer-page"></div>
+            </div>
+            <div class="private-viewer-empty" id="viewer-empty" hidden>
+                <p id="viewer-empty-message">جزوه قابل نمایش نیست.</p>
+                <button type="button" class="viewer-text-btn" id="viewer-retry-document">تلاش دوباره</button>
+            </div>
+        </section>
+
+        <p class="private-viewer-deterrent">
+            برخی رفتارهای مرورگر مثل چاپ، drag و منوی راست‌کلیک در این صفحه محدود شده‌اند؛ کنترل اصلی دسترسی و واترمارک در backend انجام می‌شود.
+        </p>
+    </main>
+
+    <script src="/assets/site/scripts/pwa.js?v=20260716-150745"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260716-150745"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260716-150745"></script>
+    <script src="/assets/site/scripts/private-notes-viewer.js?v=20260716-150745"></script>
+</body>
+</html>

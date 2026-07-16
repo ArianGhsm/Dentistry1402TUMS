@@ -2,9 +2,55 @@
 
 Secure tile delivery is implemented in `public_html/api/private_notes_api.php` with the delivery helpers in `public_html/api/private_notes_delivery.php`.
 
+The frontend viewer route is:
+
+`/notes/private-viewer/?documentId=pndoc-...`
+
 ## Endpoint Contract
 
 All endpoints use the existing site PHP session. No separate authentication system is introduced.
+
+### Viewer Manifest
+
+`GET /api/private_notes_api.php?action=viewerManifest&documentId=pndoc-...`
+
+Behavior:
+- Requires an authenticated user.
+- Checks the existing private-notes document access rules.
+- Requires the document processing status to be `ready`.
+- Returns only page dimensions, zoom levels and tile geometry.
+- Never returns original PDF paths or private tile storage keys.
+
+Response:
+```json
+{
+  "success": true,
+  "document": {
+    "id": "pndoc-...",
+    "title": "Document title",
+    "pageCount": 48,
+    "pages": [
+      {
+        "pageNumber": 1,
+        "width": 1700,
+        "height": 2200,
+        "levels": [
+          {
+            "level": 0,
+            "scale": 1,
+            "width": 1700,
+            "height": 2200,
+            "tileSize": 512,
+            "tiles": [{ "x": 0, "y": 0, "width": 512, "height": 512 }]
+          }
+        ]
+      }
+    ]
+  },
+  "tokenTtlSeconds": 60,
+  "sessionTtlSeconds": 14400
+}
+```
 
 ### Start Viewing Session
 

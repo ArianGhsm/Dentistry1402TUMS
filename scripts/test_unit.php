@@ -533,6 +533,12 @@ unit_assert(
         && ($privateNotesTileAuth['tile']['storageKey'] ?? '') === 'documents/pndoc-unitatlas/p1/z2/tile-512-1024.png',
     'private notes: tile request requires active access, session, device and tile metadata'
 );
+$privateNotesManifest = private_notes_viewer_manifest_for_document($privateNotesTileStore['documents']['pndoc-unitatlas']);
+unit_assert(
+    ($privateNotesManifest['pages'][0]['levels'][0]['tiles'][0]['x'] ?? -1) === 512
+        && !array_key_exists('storageKey', $privateNotesManifest['pages'][0]['levels'][0]['tiles'][0] ?? []),
+    'private notes: viewer manifest exposes tile geometry without private storage keys'
+);
 $privateNotesRevokedDeviceStore = $privateNotesTileStore;
 $privateNotesRevokedDeviceStore['registeredDevices']['pndev-unitactive']['status'] = 'revoked';
 $privateNotesTileAuth = private_notes_authorize_tile_request(

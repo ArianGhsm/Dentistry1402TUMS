@@ -372,6 +372,14 @@ if ($action === 'startViewingSession') {
     dent_json_response(['success' => true, 'viewingSession' => $session]);
 }
 
+if ($action === 'viewerManifest') {
+    private_notes_api_require_method(['GET']);
+    $user = dent_require_user();
+    dent_release_session_lock();
+    $manifest = private_notes_get_viewer_manifest($user, (string) ($_GET['documentId'] ?? ''));
+    dent_json_response(['success' => true] + $manifest);
+}
+
 if ($action === 'tileToken') {
     private_notes_api_require_method(['POST']);
     $user = dent_require_user();

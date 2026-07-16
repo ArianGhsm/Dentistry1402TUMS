@@ -277,6 +277,84 @@ function private_notes_find_tile_metadata(array $document, int $pageNumber, int 
     return null;
 }
 
+function private_notes_viewer_manifest_for_document(array $document): array
+{
+    $pages = [];
+    foreach ((array) ($document['pages'] ?? []) as $page) {
+        if (!is_array($page)) {
+            continue;
+        }
+        $levels = [];
+        foreach ((array) ($page['levels'] ?? []) as $level) {
+            if (!is_array($level)) {
+                continue;
+            }
+            $tiles = [];
+            foreach ((array) ($level['tiles'] ?? []) as $tile) {
+                if (!is_array($tile)) {
+                    continue;
+                }
+                $tiles[] = [
+                    'x' => max(0, (int) ($tile['x'] ?? 0)),
+                    'y' => max(0, (int) ($tile['y'] ?? 0)),
+                    'width' => max(0, (int) ($tile['width'] ?? 0)),
+                    'height' => max(0, (int) ($tile['height'] ?? 0)),
+                ];
+            }
+            $levels[] = [
+                'level' => max(0, (int) ($level['level'] ?? 0)),
+                'scale' => max(0.0, (float) ($level['scale'] ?? 1.0)),
+                'width' => max(0, (int) ($level['width'] ?? 0)),
+                'height' => max(0, (int) ($level['height'] ?? 0)),
+                'tileSize' => max(0, (int) ($level['tileSize'] ?? 0)),
+                'tiles' => $tiles,
+            ];
+        }
+        $pages[] = [
+            'pageNumber' => max(1, (int) ($page['pageNumber'] ?? 1)),
+            'width' => max(0, (int) ($page['width'] ?? 0)),
+            'height' => max(0, (int) ($page['height'] ?? 0)),
+            'levels' => $levels,
+        ];
+    }
+    usort($pages, static fn(array $left, array $right): int => (int) $left['pageNumber'] <=> (int) $right['pageNumber']);
+
+    return [
+        'id' => (string) ($document['id'] ?? ''),
+        'title' => (string) ($document['title'] ?? ''),
+        'courseId' => (string) ($document['courseId'] ?? ''),
+        'semesterId' => (string) ($document['semesterId'] ?? ''),
+        'pageCount' => max(0, (int) ($document['pageCount'] ?? count($pages))),
+        'renderProfile' => [
+            'tileSize' => max(0, (int) ($document['renderProfile']['tileSize'] ?? 0)),
+            'format' => 'png',
+        ],
+        'pages' => $pages,
+    ];
+}
+
+function private_notes_get_viewer_manifest(array $user, string $documentId): array
+{
+    $documentId = private_notes_clean_id($documentId, 'pndoc-');
+    if ($documentId === '') {
+        dent_error('Document id is invalid.', 422);
+    }
+    $store = private_notes_read_store();
+    $access = private_notes_user_can_view_document($store, $user, $documentId);
+    if (empty($access['allowed'])) {
+        dent_error('You do not have permission to view this private document.', 403, ['reason' => $access['reason'] ?? 'denied']);
+    }
+    $document = $access['document'] ?? ($store['documents'][$documentId] ?? null);
+    if (!is_array($document) || (string) ($document['processingStatus'] ?? '') !== 'ready') {
+        dent_error('Document is not ready for secure viewing.', 409);
+    }
+    return [
+        'document' => private_notes_viewer_manifest_for_document($document),
+        'tokenTtlSeconds' => private_notes_tile_token_ttl_seconds(),
+        'sessionTtlSeconds' => private_notes_viewing_session_ttl_seconds(),
+    ];
+}
+
 function private_notes_tile_absolute_path(string $storageKey): string
 {
     $safe = private_notes_clean_original_file_ref($storageKey);
