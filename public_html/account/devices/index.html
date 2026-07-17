@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>دستگاه‌های جزوه خصوصی | ورودی ۱۴۰۲</title>
+    <meta name="description" content="مدیریت دستگاه‌های ثبت‌شده و نشست‌های نمایش جزوه‌های خصوصی.">
+    <meta name="theme-color" content="#eef2f7">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260716-225703">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260716-225703">
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/YekanBakh-VF.woff2" crossorigin>
+    <script src="/assets/site/scripts/theme.js?v=20260716-225703"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260716-225703">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260716-225703">
+    <link rel="stylesheet" href="/assets/site/styles/private-notes-devices.css?v=20260716-225703">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260716-225703">
+</head>
+<body class="account-page private-note-devices-page" data-shell-reserve="self">
+    <div class="background-overlay" aria-hidden="true"></div>
+
+    <header class="site-header">
+        <div class="logo-area">
+            <div class="logo-circle">
+                <img src="/assets/images/logo.png?v=20260716-225703" alt="لوگوی ورودی ۱۴۰۲">
+            </div>
+            <div class="site-info">
+                <h1>دستگاه‌های جزوه خصوصی</h1>
+                <p>مدیریت دسترسی دستگاه‌ها و نشست فعال نمایش</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a class="header-link" href="/account/">حساب کاربری</a>
+        </div>
+    </header>
+
+    <main class="private-devices-shell" aria-labelledby="private-devices-title">
+        <section class="private-devices-hero">
+            <span class="account-kicker">امنیت جزوه</span>
+            <h2 id="private-devices-title">دستگاه‌های مجاز برای نمایش خصوصی</h2>
+            <p>credential دستگاه در cookie امن و HttpOnly نگه‌داری می‌شود و این صفحه فقط وضعیت دستگاه‌ها و نشست‌ها را نشان می‌دهد.</p>
+        </section>
+
+        <section class="private-devices-status" id="devices-status" role="status" aria-live="polite">در حال بارگذاری...</section>
+
+        <section class="private-devices-grid">
+            <article class="private-devices-panel">
+                <header class="private-devices-panel__head">
+                    <div>
+                        <span class="account-section-kicker">دستگاه‌های من</span>
+                        <h3>ثبت‌شده‌ها</h3>
+                    </div>
+                    <button id="sign-out-all-devices" class="shell-action-btn" type="button" disabled>خروج از همه دستگاه‌ها</button>
+                </header>
+                <div id="device-limit" class="private-devices-limit"></div>
+                <div id="my-devices-list" class="private-devices-list"></div>
+            </article>
+
+            <article class="private-devices-panel">
+                <header class="private-devices-panel__head">
+                    <div>
+                        <span class="account-section-kicker">نشست نمایش</span>
+                        <h3>وضعیت فعلی</h3>
+                    </div>
+                </header>
+                <div id="viewing-sessions-list" class="private-devices-list"></div>
+            </article>
+        </section>
+
+        <section id="owner-devices-panel" class="private-devices-panel" hidden>
+            <header class="private-devices-panel__head">
+                <div>
+                    <span class="account-section-kicker">مدیریت مالک</span>
+                    <h3>لغو دستگاه کاربران</h3>
+                </div>
+                <button id="refresh-owner-devices" class="shell-action-btn" type="button">به‌روزرسانی</button>
+            </header>
+            <div id="owner-devices-list" class="private-devices-list"></div>
+        </section>
+    </main>
+
+    <script src="/assets/site/scripts/auth.js?v=20260716-225703"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260716-225703"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260716-225703"></script>
+    <script src="/assets/site/scripts/private-notes-devices.js?v=20260716-225703"></script>
+</body>
+</html>
