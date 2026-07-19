@@ -33,7 +33,7 @@
     var guestFlagsKey = storageBase + ":flags";
     var studyDraftKey = storageBase + ":study";
     var selectedMode = normalizeMode(params.get("mode"));
-    if (exam.essayOnly && !selectedMode) {
+    if (!canUseAssessmentMode() && (!selectedMode || selectedMode === "assessment")) {
         selectedMode = "learning";
     }
     var initialFlags = exam.viewerState.canPersist
@@ -197,9 +197,9 @@
         var previewCopy = selected
             ? selected.description
             : "برای همین جلسه دو مسیر جدا در دسترس است: آموزشی برای پاسخ فوری و سنجشی برای ثبت کارنامه.";
-        if (exam.essayOnly) {
-            previewTitle = "مرور سوال‌های تشریحی";
-            previewCopy = "سوال‌ها به‌ترتیب نمایش داده می‌شوند؛ روی «نمایش پاسخ تشریحی» بزن تا پاسخ کامل همان سوال را ببینی.";
+        if (exam.essayOnly || exam.learningOnly) {
+            previewTitle = "مرور سوال‌ها";
+            previewCopy = "سوال‌ها به‌ترتیب نمایش داده می‌شوند؛ روی دکمه نمایش پاسخ بزن تا کارت توضیح همان مورد را ببینی.";
         }
         var previewStats = [];
 
@@ -216,7 +216,7 @@
         } else if (state.mode === "learning") {
             previewStats.push(renderMiniStat("حل‌شده", formatValue(learningStats.answered)));
             previewStats.push(renderMiniStat("باقی‌مانده", formatValue(learningStats.unanswered)));
-            previewStats.push(renderMiniStat(exam.essayOnly ? "نمایش پاسخ" : "پاسخ فوری", "فعال"));
+            previewStats.push(renderMiniStat(exam.essayOnly || exam.learningOnly ? "نمایش پاسخ" : "پاسخ فوری", "فعال"));
         }
 
         return [
@@ -235,13 +235,13 @@
             '          <h2 class="exam-launch-panel__title">' + escapeHtml(previewTitle) + "</h2>",
             "        </div>",
             '        <div class="exam-mode-pills">',
-            exam.essayOnly ? "" : renderModePill("assessment", "سنجشی", !state.mode),
-            renderModePill("learning", exam.essayOnly ? "مرور سوال‌ها" : "آموزشی", !state.mode),
+            canUseAssessmentMode() ? renderModePill("assessment", "سنجشی", !state.mode) : "",
+            renderModePill("learning", exam.essayOnly || exam.learningOnly ? "مرور سوال‌ها" : "آموزشی", !state.mode),
             "        </div>",
             "      </div>",
             '      <p class="exam-launch-panel__copy">' + escapeHtml(previewCopy) + "</p>",
             previewStats.length ? '<div class="exam-mini-stats">' + previewStats.join("") + "</div>" : "",
-            state.layout.chooserHintExpanded && !exam.essayOnly
+            state.layout.chooserHintExpanded && canUseAssessmentMode()
                 ? '<div class="exam-note-card">در حالت سنجشی همه سوال‌ها با کارنامه، رتبه و ذخیره نتیجه اجرا می‌شود. در حالت آموزشی پس از هر پاسخ، جواب درست و توضیح همان سوال را می‌بینی.</div>'
                 : "",
             renderCustomPracticeBuilder(),
@@ -421,7 +421,7 @@
             } else {
                 primaryLabel = "شروع آزمون سنجشی";
             }
-        } else if (exam.essayOnly) {
+        } else if (exam.essayOnly || exam.learningOnly) {
             primaryLabel = learningStats.answered > 0 ? "ادامه مرور سوال‌ها" : "شروع مرور سوال‌ها";
         } else if (learningStats.answered > 0) {
             primaryLabel = "ادامه آزمون آموزشی";
@@ -432,7 +432,7 @@
         return [
             '  <div class="exam-launch-actions">',
             '    <button class="exam-btn exam-btn--primary" type="button" data-action="start-mode"' + (currentMode ? ' data-mode="' + escapeHtml(currentMode) + '"' : "") + ">" + escapeHtml(primaryLabel) + "</button>",
-            exam.essayOnly ? "" : '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-chooser-hint">' + escapeHtml(state.layout.chooserHintExpanded ? "بستن توضیح" : "تفاوت دو حالت") + "</button>",
+            canUseAssessmentMode() ? '    <button class="exam-btn exam-btn--ghost" type="button" data-action="toggle-chooser-hint">' + escapeHtml(state.layout.chooserHintExpanded ? "بستن توضیح" : "تفاوت دو حالت") + "</button>" : "",
             "  </div>"
         ].join("");
     }
@@ -585,8 +585,8 @@
             '<section class="exam-panel exam-stage exam-stage--session exam-stage--learning">',
             renderSessionHeader({
                 mode: "learning",
-                title: exam.essayOnly ? "مرور سوال‌های تشریحی" : "آزمون آموزشی",
-                subtitle: exam.essayOnly
+                title: exam.essayOnly || exam.learningOnly ? "مرور سوال‌ها" : "آزمون آموزشی",
+                subtitle: exam.essayOnly || exam.learningOnly
                     ? "روی «نمایش پاسخ تشریحی» بزن تا پاسخ کامل همان سوال بدون خروج از همین صفحه نمایش داده شود."
                     : "بعد از هر پاسخ، جواب درست و توضیح همان سوال بدون خروج از همین صفحه نمایش داده می‌شود.",
                 chips: [
@@ -633,8 +633,8 @@
             "    </div>",
             '    <div class="exam-stage-head__aside">',
             '      <div class="exam-mode-pills exam-mode-pills--compact">',
-            exam.essayOnly ? "" : renderModePill("assessment", "سنجشی", false),
-            exam.essayOnly ? "" : renderModePill("learning", "آموزشی", false),
+            canUseAssessmentMode() ? renderModePill("assessment", "سنجشی", false) : "",
+            canUseAssessmentMode() ? renderModePill("learning", "آموزشی", false) : "",
             "      </div>",
             config.statusText ? '<div class="exam-feedback exam-feedback--' + escapeHtml(config.statusKind || "neutral") + '">' + escapeHtml(config.statusText) + "</div>" : "",
             "    </div>",
@@ -739,6 +739,7 @@
         var revealed = state.learning.revealed[questionIndex];
         var visibleIndexes = learningVisibleIndexes();
         var currentPosition = visibleIndexes.indexOf(questionIndex);
+        var essayRevealLabel = question.answerRevealLabel || exam.answerRevealLabel || "نمایش پاسخ تشریحی";
 
         return [
             '<article class="exam-session-card exam-session-card--question" data-card-state="' + escapeHtml(learningNavState(questionIndex)) + '">',
@@ -755,7 +756,7 @@
             question.isEssay
                 ? (revealed
                     ? renderEssayAnswerCard(question)
-                    : '<div class="exam-essay-reveal"><button class="exam-btn exam-btn--primary" type="button" data-action="learning-reveal-essay" data-question-index="' + escapeHtml(String(questionIndex)) + '">نمایش پاسخ تشریحی</button></div>')
+                    : '<div class="exam-essay-reveal"><button class="exam-btn exam-btn--primary" type="button" data-action="learning-reveal-essay" data-question-index="' + escapeHtml(String(questionIndex)) + '">' + escapeHtml(essayRevealLabel) + "</button></div>")
                 : (revealed ? renderLearningFeedback(question, selectedIndex, questionIndex) : '<div class="exam-note-card">یکی از گزینه‌ها را انتخاب کن تا پاسخ صحیح و توضیح همان سوال نمایش داده شود.</div>'),
             renderQuestionStudyTools(questionIndex),
             '  <div class="exam-question-actions">',
@@ -965,7 +966,7 @@
         return [
             '<aside class="exam-session-card exam-session-card--side">',
             '  <div class="exam-side-section">',
-            '    <span class="exam-kicker">' + (exam.essayOnly ? "مرور سوال‌های تشریحی" : "مرور آموزشی") + "</span>",
+            '    <span class="exam-kicker">' + (exam.essayOnly || exam.learningOnly ? "مرور سوال‌ها" : "مرور آموزشی") + "</span>",
             '    <div class="exam-stat-grid">',
             renderStatCard("حل‌شده", formatValue(stats.answered)),
             renderStatCard("باقی‌مانده", formatValue(stats.unanswered)),
@@ -984,9 +985,9 @@
             "  </div>",
             '  <div class="exam-side-section exam-side-section--actions">',
             '    <button class="exam-btn exam-btn--ghost" type="button" data-action="learning-jump-unanswered"' + (stats.unanswered <= 0 ? " disabled" : "") + ">اولین سوال بی‌پاسخ</button>",
-            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-learning-progress">' + escapeHtml(exam.essayOnly ? "شروع دوباره مرور" : "شروع دوباره آموزشی") + "</button>",
+            '    <button class="exam-btn exam-btn--ghost" type="button" data-action="reset-learning-progress">' + escapeHtml(exam.essayOnly || exam.learningOnly ? "شروع دوباره مرور" : "شروع دوباره آموزشی") + "</button>",
             Array.isArray(state.learning.customIndexes) ? '    <button class="exam-btn exam-btn--ghost" type="button" data-action="clear-custom-practice">پایان تمرین شخصی</button>' : "",
-            exam.essayOnly ? "" : '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0631\u0641\u062a\u0646 \u0628\u0647 \u0633\u0646\u062c\u0634\u06cc</button>',
+            canUseAssessmentMode() ? '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0631\u0641\u062a\u0646 \u0628\u0647 \u0633\u0646\u062c\u0634\u06cc</button>' : "",
             "  </div>",
             "</aside>"
         ].join("");
@@ -1060,7 +1061,7 @@
             renderCompactMetric("\u062c\u0627\u0631\u06cc", formatValue(currentIndex + 1), "accent"),
             renderCompactMetric("\u062d\u0644", formatValue(stats.answered), stats.answered ? "success" : "neutral"),
             "    </div>",
-            exam.essayOnly ? "" : '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0633\u0646\u062c\u0634\u06cc</button>',
+            canUseAssessmentMode() ? '    <button class="exam-btn exam-btn--primary" type="button" data-action="set-mode" data-mode="assessment">\u0633\u0646\u062c\u0634\u06cc</button>' : "",
             '    <details class="exam-compact-tools">',
             '      <summary class="exam-compact-tools__summary">\u0627\u0628\u0632\u0627\u0631\u0647\u0627</summary>',
             '      <div class="exam-compact-tools__body">',
@@ -1245,7 +1246,7 @@
     }
 
     function renderMcqAnswerCard(question, selectedIndex, options) {
-        if (!question.explanation && !question.answerMeta.length && !question.reference) {
+        if (!question.explanation && !question.answerMeta.length && !question.answerSections.length && !question.reference) {
             return "";
         }
 
@@ -1278,6 +1279,7 @@
 
     function renderEssayAnswerCard(question) {
         var sections = [];
+        var structuredSections = renderAnswerSections(question.answerSections);
 
         if (question.answerSummary) {
             sections.push([
@@ -1297,13 +1299,17 @@
             ].join(""));
         }
 
+        if (structuredSections) {
+            sections.push(structuredSections);
+        }
+
         if (!sections.length && question.explanation) {
             sections.push('  <div class="exam-answer-card__section-copy">' + richTextHtml(question.explanation) + "</div>");
         }
 
         return [
             '<div class="exam-answer-card exam-answer-card--essay">',
-            '  <span class="exam-answer-card__label">پاسخ تشریحی</span>',
+            '  <span class="exam-answer-card__label">' + escapeHtml(question.answerCardLabel || exam.answerCardLabel || "پاسخ تشریحی") + "</span>",
             renderAnswerMeta(question),
             sections.join(""),
             question.reference ? '<p class="exam-answer-card__reference">' + richTextHtml(question.reference) + "</p>" : "",
@@ -3268,9 +3274,13 @@
         var essayOnly = normalizedQuestions.length > 0 && normalizedQuestions.every(function (question) {
             return question.isEssay;
         });
+        var hasEssayQuestions = normalizedQuestions.some(function (question) {
+            return question.isEssay;
+        });
 
         return {
             essayOnly: essayOnly,
+            learningOnly: Boolean(data.learningOnly || data.reviewOnly) || (hasEssayQuestions && !essayOnly),
             slug: normalizeText(data.slug),
             courseSlug: normalizeText(data.courseSlug || data.course || (document.body && document.body.dataset ? document.body.dataset.examsCourse : "")),
             courseTitle: normalizeText(data.courseTitle),
@@ -3280,6 +3290,8 @@
             eyebrow: normalizeText(data.eyebrow) || "آزمون",
             title: normalizeText(data.title) || "آزمون",
             subtitle: normalizeText(data.subtitle) || "پیش از شروع، حالت دلخواهت را انتخاب کن.",
+            answerRevealLabel: normalizeText(data.answerRevealLabel || ""),
+            answerCardLabel: normalizeText(data.answerCardLabel || ""),
             durationMinutes: Math.min(720, maxNumber(data.durationMinutes || data.timeLimitMinutes, 0)),
             autoSubmitOnExpiry: Boolean(data.autoSubmitOnExpiry),
             modes: Array.isArray(data.modes) ? data.modes : [],
@@ -3364,6 +3376,8 @@
             isEssay: isEssay,
             answerSummary: normalizeText(item.answerSummary || ""),
             answerDetail: normalizeText(item.answerDetail || ""),
+            answerRevealLabel: normalizeText(item.answerRevealLabel || ""),
+            answerCardLabel: normalizeText(item.answerCardLabel || ""),
             reference: normalizeText(item.reference || ""),
             answerMeta: normalizeAnswerMeta(item.answerMeta),
             answerSections: normalizeAnswerSections(item.answerSections || item.explanationSections),
@@ -3805,10 +3819,14 @@
         if (mode !== "assessment" && mode !== "learning") {
             return null;
         }
-        if (exam.essayOnly && mode === "assessment") {
+        if (!canUseAssessmentMode() && mode === "assessment") {
             return "learning";
         }
         return mode;
+    }
+
+    function canUseAssessmentMode() {
+        return !(exam.essayOnly || exam.learningOnly);
     }
 
     function loginHref() {
