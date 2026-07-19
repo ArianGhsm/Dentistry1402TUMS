@@ -28,6 +28,8 @@ function dent_exams_bootstrap_modules(): void
     dent_exams_require_optional_module('exams_dental_materials_foundations_overrides.php');
     dent_exams_require_optional_module('exams_dental_materials_midterm_sample_overrides.php');
     dent_exams_require_optional_module('exams_diagnostics1_term6_overrides.php');
+    dent_exams_require_optional_module('exams_diagnostics2_term6_overrides.php');
+    dent_exams_require_optional_module('exams_diagnostics2_final_sample_overrides.php');
     dent_exams_require_optional_module('exams_gerontology_term6_overrides.php');
     dent_exams_require_optional_module('exams_term6_reference_overrides.php');
     dent_exams_require_optional_module('exams_complete_foundations_theory_midterm_practice_overrides.php');
@@ -46,6 +48,8 @@ function dent_exams_registered_catalog_override_callbacks(): array
         'dent_exams_apply_dental_materials_foundations_catalog_overrides',
         'dent_exams_apply_dental_materials_midterm_sample_catalog_overrides',
         'dent_exams_apply_diagnostics1_term6_catalog_overrides',
+        'dent_exams_apply_diagnostics2_term6_catalog_overrides',
+        'dent_exams_apply_diagnostics2_final_sample_catalog_overrides',
         'dent_exams_apply_gerontology_term6_catalog_overrides',
         'dent_exams_apply_term6_reference_catalog_overrides',
         'dent_exams_apply_complete_foundations_theory_midterm_practice_catalog_overrides',

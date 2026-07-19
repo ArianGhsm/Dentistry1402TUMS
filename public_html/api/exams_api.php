@@ -62,6 +62,22 @@ function dent_exams_api_apply_runtime_exam_override(
             );
         }
 
+        if (!is_array($runtimeExam) && function_exists('dent_exams_diagnostics2_term6_runtime_exam_payload')) {
+            $runtimeExam = dent_exams_diagnostics2_term6_runtime_exam_payload(
+                $catalogKey,
+                $courseSlug,
+                $examSlug
+            );
+        }
+
+        if (!is_array($runtimeExam) && function_exists('dent_exams_diagnostics2_final_sample_runtime_exam_payload')) {
+            $runtimeExam = dent_exams_diagnostics2_final_sample_runtime_exam_payload(
+                $catalogKey,
+                $courseSlug,
+                $examSlug
+            );
+        }
+
         if (!is_array($runtimeExam) && function_exists('dent_exams_term6_reference_runtime_exam_payload')) {
             $runtimeExam = dent_exams_term6_reference_runtime_exam_payload(
                 $catalogKey,

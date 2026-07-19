@@ -20,7 +20,7 @@ function dent_dentistry_term6_final_exam_schedule(): array
             'weekdayLabel' => 'دوشنبه',
             'timeLabel' => '۱۲:۱۵',
             'startsAt' => '2026-07-20T12:15:00+03:30',
-            'courseSlugs' => [],
+            'courseSlugs' => ['diagnostics-2-term6'],
         ],
         'complete-prosthodontics-theory' => [
             'title' => 'پروتز کامل نظری',
@@ -570,7 +570,7 @@ function dent_dentistry_curriculum_terms(): array
                             'key' => 'diagnostics-1-2',
                             'title' => 'تشخیصی ۱ و ۲',
                             'finalExamKeys' => ['diagnostics-2', 'diagnostics-1'],
-                            'examCourseSlugs' => ['diagnostics-1-term6'],
+                            'examCourseSlugs' => ['diagnostics-2-term6', 'diagnostics-2-final-sample', 'diagnostics-1-term6'],
                         ],
                         [
                             'key' => 'complete-foundations-theory',
