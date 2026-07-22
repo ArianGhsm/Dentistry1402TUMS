@@ -412,6 +412,7 @@ function dent_read_grades_source(bool $strict = true): array
             'sum' => 0.0,
             'count' => 0,
             'scores' => [],
+            'students' => [],
         ];
     }
 
@@ -428,10 +429,14 @@ function dent_read_grades_source(bool $strict = true): array
             if ($score === null) {
                 continue;
             }
+            if (isset($statsAccumulator[$index]['students'][$studentNumber])) {
+                continue;
+            }
 
             $statsAccumulator[$index]['sum'] += $score;
             $statsAccumulator[$index]['count']++;
             $statsAccumulator[$index]['scores'][] = $score;
+            $statsAccumulator[$index]['students'][$studentNumber] = true;
         }
     }
 
@@ -701,7 +706,6 @@ function dent_owner_set_grade(
         }
         $row[$columnIndex] = $finalValue;
         $source['rows'][$index] = $row;
-        break;
     }
 
     if (!$rowFound) {
@@ -759,10 +763,11 @@ function dent_owner_grades_course_catalog(): array
     $courses = [];
     foreach ($source['gradeColumns'] as $index => $label) {
         $courseMeta = dent_grade_course_meta($meta, (string) $label);
-        $withScore = 0;
+        $studentsWithScore = [];
         foreach ($source['rows'] as $row) {
-            if (trim((string) ($row[$index] ?? '')) !== '') {
-                $withScore++;
+            $studentNumber = dent_normalize_student_number($row[$source['idIndex']] ?? '');
+            if ($studentNumber !== '' && trim((string) ($row[$index] ?? '')) !== '') {
+                $studentsWithScore[$studentNumber] = true;
             }
         }
 
@@ -771,7 +776,7 @@ function dent_owner_grades_course_catalog(): array
             'key' => $courseMeta['key'],
             'label' => (string) $label,
             'maxScore' => $courseMeta['maxScore'],
-            'withScore' => $withScore,
+            'withScore' => count($studentsWithScore),
         ];
     }
 
@@ -1193,11 +1198,14 @@ function dent_owner_apply_grade_import(string $courseLabel, float $maxScore, arr
         $source['header'][$columnIndex] = $courseLabel;
     }
 
-    $rowIndexByStudent = [];
+    $rowIndexesByStudent = [];
     foreach ($source['rows'] as $index => $row) {
         $studentNumber = dent_normalize_student_number($row[$source['idIndex']] ?? '');
         if ($studentNumber !== '') {
-            $rowIndexByStudent[$studentNumber] = (int) $index;
+            if (!isset($rowIndexesByStudent[$studentNumber])) {
+                $rowIndexesByStudent[$studentNumber] = [];
+            }
+            $rowIndexesByStudent[$studentNumber][] = (int) $index;
         }
     }
 
@@ -1216,8 +1224,8 @@ function dent_owner_apply_grade_import(string $courseLabel, float $maxScore, arr
             dent_error('نمره ' . $studentNumber . ' از سقف درس بیشتر است.', 422);
         }
 
-        $rowIndex = $rowIndexByStudent[$studentNumber] ?? null;
-        if ($rowIndex === null) {
+        $rowIndexes = $rowIndexesByStudent[$studentNumber] ?? [];
+        if ($rowIndexes === []) {
             $row = array_fill(0, count($source['header']), '');
             $row[$source['idIndex']] = $studentNumber;
             if (function_exists('dent_get_user_record')) {
@@ -1227,18 +1235,20 @@ function dent_owner_apply_grade_import(string $courseLabel, float $maxScore, arr
                 }
             }
             $source['rows'][] = $row;
-            $rowIndex = count($source['rows']) - 1;
-            $rowIndexByStudent[$studentNumber] = $rowIndex;
+            $rowIndexes = [count($source['rows']) - 1];
+            $rowIndexesByStudent[$studentNumber] = $rowIndexes;
             $createdRows++;
         } else {
-            $updatedRows++;
+            $updatedRows += count($rowIndexes);
         }
 
-        $row = $source['rows'][$rowIndex];
-        $row = array_pad($row, count($source['header']), '');
-        $row[$source['idIndex']] = $studentNumber;
-        $row[$columnIndex] = dent_format_grade_for_store((float) $score);
-        $source['rows'][$rowIndex] = $row;
+        foreach ($rowIndexes as $rowIndex) {
+            $row = $source['rows'][$rowIndex];
+            $row = array_pad($row, count($source['header']), '');
+            $row[$source['idIndex']] = $studentNumber;
+            $row[$columnIndex] = dent_format_grade_for_store((float) $score);
+            $source['rows'][$rowIndex] = $row;
+        }
     }
 
     $meta = dent_read_grades_meta();
