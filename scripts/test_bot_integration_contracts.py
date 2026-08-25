@@ -1,0 +1,71 @@
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+API = (ROOT / "public_html/api/bot_api.php").read_text(encoding="utf-8")
+STORE = (ROOT / "public_html/api/bot_store.php").read_text(encoding="utf-8")
+PAYMENTS = (ROOT / "public_html/api/bot_payments.php").read_text(encoding="utf-8")
+STUDENT_ASSISTANT = (ROOT / "public_html/api/bot_student_assistant.php").read_text(encoding="utf-8")
+NOTIFICATIONS = (ROOT / "public_html/api/bot_notifications.php").read_text(encoding="utf-8")
+PAGE = (ROOT / "public_html/account/bot-link/index.html").read_text(encoding="utf-8")
+SCRIPT = (ROOT / "public_html/assets/site/scripts/bot-link.js").read_text(encoding="utf-8")
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise AssertionError(message)
+
+
+require("dent_bot_verify_service_signature" in STORE, "service HMAC verification is missing")
+require("['POST', 'PUT']" in STORE, "signed bot service must support the WAF-safe PUT relay transport")
+require("hash_equals" in STORE, "service signature comparison must be constant-time")
+require("nonces" in STORE and "درخواست سرویس تکراری" in STORE, "nonce replay protection is missing")
+require("dent_encrypt_secret_text($platformUserId)" in STORE, "platform identity must be encrypted")
+require("dent_bot_token_hash($token)" in STORE, "raw account-link token must not be stored")
+require("time() + 600" in STORE, "link challenge must expire")
+require("dent_auth_session_require_csrf()" in API, "link confirmation must require CSRF")
+require("dent_require_user()" in API, "link confirmation must require the site account")
+require("dent_build_grades_payload($user)" in STORE, "bot grades must use the canonical site gradebook")
+require("dent_owner_apply_grade_import" in STORE, "bot grade writes must use the canonical site gradebook")
+require("ACCOUNT_LINK_REQUIRED" in STORE, "unlinked users must fail closed")
+require("dent_bot_import_identity_candidates" in STORE, "owner class-identity import is missing")
+require("dent_bot_submit_identity_claim" in STORE, "one-time identity claim flow is missing")
+require("dent_bot_resolve_identity_claim" in STORE, "owner identity approval is missing")
+require("waiting_account" in STORE, "missing canonical accounts must not be synthesized")
+require("claimedNameEncrypted" in STORE, "claimed names must be encrypted at rest")
+require("platformProfileEncrypted" in STORE, "Telegram claim profiles must be encrypted at rest")
+require("dent_bot_conflicting_link" in STORE, "identity links must enforce one-to-one permanence")
+require("dent_bot_set_identity_mapping" in STORE, "owner identity replacement action is missing")
+require("dent_bot_delete_identity_mapping" in STORE, "owner identity removal action is missing")
+require("linked-secure-site" in STORE, "secure site confirmation must clear the pending claim queue")
+require("dent_bot_store_read" in STORE, "read-only account checks must not rewrite the integration store")
+require("createBotPayment" in STORE and "paymentStatus" in STORE, "bot checkout service actions are missing")
+require("paymentCatalog" not in STORE and "ownerPaymentForms" not in STORE, "website catalogs must not be mirrored into the bot")
+require("bot-offer" in PAYMENTS and "bot_offer_ref" in PAYMENTS, "bot offer orders must be distinguishable")
+require("payments_find_item_index_by_slug" not in PAYMENTS, "bot checkout must not depend on the website product catalog")
+require("$payload['amountRials']" in PAYMENTS, "signed bot checkout amount must be validated")
+require("bot_request_ref" in PAYMENTS and "hash_equals" in PAYMENTS, "payment creation must be idempotent")
+require("payments_gateway_start_payment" in PAYMENTS, "bot purchase must use the existing website gateway")
+require("PAYMENT_ORDER_NOT_FOUND" in PAYMENTS and "order['user_id']" in PAYMENTS, "payment status must remain bound to the linked website user")
+require(all(action in STORE for action in (
+    "studentAssistantSummaryV1", "performIntegrationActionV1", "integrationChallengeAnswerV1"
+)), "student assistant v1 service actions are missing")
+require("STUDENT_ASSISTANT_CONTRACT_MISMATCH" in STUDENT_ASSISTANT, "student assistant contract version is not enforced")
+require("expectedAnswerHash" in STUDENT_ASSISTANT and "imageDataUri" not in STUDENT_ASSISTANT.split("dent_student_assistant_store_default", 1)[1].split("function dent_student_assistant_store_with_lock", 1)[0], "captcha answers/images must not be stored as plaintext")
+require("Consume first" in STUDENT_ASSISTANT and "usedAt" in STUDENT_ASSISTANT, "captcha must be consumed before connector continuation")
+require("INTEGRATION_CHALLENGE_NOT_ACTIVE" in STUDENT_ASSISTANT, "expired/replayed/cross-identity challenges must fail closed")
+require("برای اجرای نهایی" in STUDENT_ASSISTANT, "captcha completion must stop at an explicit pre-submit confirmation")
+require("notifications_list_payload_for_user" in NOTIFICATIONS, "bot notifications must use the canonical website feed")
+require("notifications_mark_read" in NOTIFICATIONS, "bot seen state must use the canonical website read state")
+require("notifications_audience_payload" in NOTIFICATIONS, "owner audience reporting must use the canonical website audience")
+require("dent_bot_notifications_require_owner" in NOTIFICATIONS, "delivery claiming and audience reporting must be owner-only")
+require("notificationDeliveries" in STORE and "leaseUntil" in NOTIFICATIONS, "notification delivery must use a durable lease")
+require("ctaUrl" in NOTIFICATIONS and "notifications_clean_cta_href" in NOTIFICATIONS, "notification CTA URLs must be website-validated")
+require("createDeployNotification" in STORE, "signed deployment notification action is missing")
+require("dent_bot_create_deploy_notification" in NOTIFICATIONS, "deploy notifications must require the linked owner")
+require("disablePush" in NOTIFICATIONS, "central deploy notifications must not be duplicated by bot feed workers")
+require('meta name="robots" content="noindex,nofollow,noarchive"' in PAGE, "link page must not be indexed")
+require("X-CSRF-Token" in SCRIPT, "link UI must send the site CSRF token")
+require("localStorage" not in SCRIPT and "indexedDB" not in SCRIPT, "link token must not enter persistent browser storage")
+
+print("OK: bot account-link, class identity review, canonical grades and independent bot-offer contracts are enforced.")

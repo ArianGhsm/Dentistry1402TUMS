@@ -47,6 +47,8 @@ section "Instruction contract audit"
 
 section "Auth store resilience"
 "$PHP_BIN" scripts/check_auth_store_resilience.php || fail "check_auth_store_resilience.php"
+"$PYTHON_BIN" scripts/test_auth_sessions_contracts.py || fail "test_auth_sessions_contracts.py"
+"$NODE_BIN" scripts/test_auth_frontend_session_contracts.cjs || fail "test_auth_frontend_session_contracts.cjs"
 
 section "Exam content quality"
 "$PHP_BIN" scripts/check_exam_content_quality.php || fail "check_exam_content_quality.php"
@@ -65,6 +67,14 @@ section "Upload pipeline config"
 
 section "Unit tests"
 "$PHP_BIN" scripts/test_unit.php || fail "test_unit.php"
+
+section "Signed bot integration contracts"
+"$PYTHON_BIN" scripts/test_bot_integration_contracts.py || fail "test_bot_integration_contracts.py"
+
+section "Private notes frontend/security contracts"
+"$PYTHON_BIN" scripts/test_private_notes_viewer_contracts.py || fail "test_private_notes_viewer_contracts.py"
+"$PYTHON_BIN" scripts/test_private_notes_admin_contracts.py || fail "test_private_notes_admin_contracts.py"
+"$PYTHON_BIN" scripts/test_private_notes_security_contracts.py || fail "test_private_notes_security_contracts.py"
 
 section "Result"
 if [ "$status" -eq 0 ]; then
