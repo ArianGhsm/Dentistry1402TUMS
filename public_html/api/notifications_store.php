@@ -4,9 +4,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/auth_store.php';
 require_once __DIR__ . '/push_store.php';
 require_once __DIR__ . '/payments_store.php';
-require_once __DIR__ . '/exams_store.php';
 
-const DENT_NOTIFICATIONS_SCHEMA_VERSION = 5;
+const DENT_NOTIFICATIONS_SCHEMA_VERSION = 6;
 const DENT_NOTIFICATION_ID_PREFIX = 'nt-';
 const DENT_NOTIFICATION_KIND_ANNOUNCEMENT = 'announcement';
 const DENT_NOTIFICATION_KIND_NAVID_ASSIGNMENT = 'navid-assignment';
@@ -40,6 +39,7 @@ function notifications_default_store(): array
         'notifications' => [],
         'userStates' => [],
         'suppressedSources' => [],
+        'retiredNotificationIds' => [],
     ];
 }
 
@@ -495,6 +495,74 @@ function notifications_source_signature(string $source, string $sourceKey): stri
     return $cleanSource . '|' . $cleanKey;
 }
 
+function notifications_record_is_retired_exam_reminder(array $record): bool
+{
+    $source = strtolower(trim((string) ($record['source'] ?? '')));
+    $sourceKey = strtolower(trim((string) ($record['sourceKey'] ?? '')));
+    if ($source === 'exams' || str_starts_with($sourceKey, 'exam-resume-')) {
+        return true;
+    }
+
+    $meta = is_array($record['meta'] ?? null) ? $record['meta'] : [];
+    foreach (['type', 'category', 'notificationType'] as $key) {
+        $value = strtolower(trim((string) ($meta[$key] ?? ($record[$key] ?? ''))));
+        if (in_array($value, ['exam-reminder', 'exam_reminder', 'exam-inactivity', 'exam_resume'], true)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function notifications_normalize_retired_notification_ids($raw): array
+{
+    $ids = [];
+    if (!is_array($raw)) {
+        return [];
+    }
+
+    foreach ($raw as $value) {
+        $id = trim((string) $value);
+        if ($id !== '') {
+            $ids[$id] = true;
+        }
+    }
+
+    return array_slice(array_keys($ids), -DENT_NOTIFICATIONS_MAX_RECORDS);
+}
+
+function notifications_strip_retired_exam_reminder_from_digest(array $record): ?array
+{
+    if (strtolower(trim((string) ($record['source'] ?? ''))) !== 'digest') {
+        return $record;
+    }
+
+    $body = (string) ($record['body'] ?? '');
+    $lines = preg_split('/\R/u', $body) ?: [];
+    $kept = [];
+    $removed = false;
+    foreach ($lines as $line) {
+        $clean = trim((string) $line);
+        if ($clean !== '' && str_contains($clean, 'آزمون نیمه‌کاره برای ادامه داری')) {
+            $removed = true;
+            continue;
+        }
+        if ($clean !== '') {
+            $kept[] = $clean;
+        }
+    }
+
+    if (!$removed) {
+        return $record;
+    }
+    if ($kept === []) {
+        return null;
+    }
+
+    $record['body'] = implode("\n", $kept);
+    return $record;
+}
+
 function notifications_normalize_record(string $key, array $record): ?array
 {
     $id = trim((string) ($record['id'] ?? $key));
@@ -648,7 +716,6 @@ function notifications_normalize_user_state(string $studentNumber, array $state,
             'navidAssignmentAlerts' => dent_parse_bool($preferences['navidAssignmentAlerts'] ?? null, true),
             'formReminders' => dent_parse_bool($preferences['formReminders'] ?? null, true),
             'paymentReminders' => dent_parse_bool($preferences['paymentReminders'] ?? null, true),
-            'examReminders' => dent_parse_bool($preferences['examReminders'] ?? null, true),
             'dailyDigestEnabled' => dent_parse_bool($preferences['dailyDigestEnabled'] ?? null, false),
             'dailyDigestHour' => notifications_normalize_digest_hour($preferences['dailyDigestHour'] ?? null, 8),
         ],
@@ -687,8 +754,27 @@ function notifications_record_effective_at(array $record): string
 function notifications_normalize_store(array $store): array
 {
     $notifications = [];
+    $retiredNotificationIds = array_fill_keys(
+        notifications_normalize_retired_notification_ids($store['retiredNotificationIds'] ?? []),
+        true
+    );
     foreach (($store['notifications'] ?? []) as $key => $record) {
         if (!is_array($record)) {
+            continue;
+        }
+        $record = notifications_strip_retired_exam_reminder_from_digest($record);
+        if ($record === null) {
+            $retiredId = trim((string) ($store['notifications'][$key]['id'] ?? $key));
+            if ($retiredId !== '') {
+                $retiredNotificationIds[$retiredId] = true;
+            }
+            continue;
+        }
+        if (notifications_record_is_retired_exam_reminder($record)) {
+            $retiredId = trim((string) ($record['id'] ?? $key));
+            if ($retiredId !== '') {
+                $retiredNotificationIds[$retiredId] = true;
+            }
             continue;
         }
         $normalized = notifications_normalize_record((string) $key, $record);
@@ -731,6 +817,7 @@ function notifications_normalize_store(array $store): array
         'notifications' => $notifications,
         'userStates' => $userStates,
         'suppressedSources' => notifications_normalize_suppressed_sources($store['suppressedSources'] ?? []),
+        'retiredNotificationIds' => array_slice(array_keys($retiredNotificationIds), -DENT_NOTIFICATIONS_MAX_RECORDS),
     ];
 }
 
@@ -767,7 +854,7 @@ function notifications_record_is_important(array $record): bool
         return true;
     }
 
-    if (in_array((string) ($record['source'] ?? ''), ['forms', 'payments', 'exams'], true)) {
+    if (in_array((string) ($record['source'] ?? ''), ['forms', 'payments'], true)) {
         return true;
     }
 
@@ -784,7 +871,6 @@ function notifications_default_preferences_for_user(array $user): array
         'navidAssignmentAlerts' => dent_user_cohort_key($user) === dent_primary_cohort_key(),
         'formReminders' => !notifications_user_is_owner($user),
         'paymentReminders' => !notifications_user_is_owner($user),
-        'examReminders' => !notifications_user_is_owner($user),
         'dailyDigestEnabled' => false,
         'dailyDigestHour' => 8,
     ];
@@ -816,7 +902,6 @@ function notifications_user_state(array $store, array $user): array
             'navidAssignmentAlerts' => dent_parse_bool($preferences['navidAssignmentAlerts'] ?? null, $defaults['navidAssignmentAlerts']),
             'formReminders' => dent_parse_bool($preferences['formReminders'] ?? null, $defaults['formReminders']),
             'paymentReminders' => dent_parse_bool($preferences['paymentReminders'] ?? null, $defaults['paymentReminders']),
-            'examReminders' => dent_parse_bool($preferences['examReminders'] ?? null, $defaults['examReminders']),
             'dailyDigestEnabled' => dent_parse_bool($preferences['dailyDigestEnabled'] ?? null, $defaults['dailyDigestEnabled']),
             'dailyDigestHour' => notifications_normalize_digest_hour($preferences['dailyDigestHour'] ?? null, (int) ($defaults['dailyDigestHour'] ?? 8)),
         ],
@@ -887,7 +972,7 @@ function notifications_record_matches_user(array $record, array $user): bool
 
         if (
             notifications_user_is_owner($user)
-            && !in_array((string) ($record['source'] ?? ''), ['forms', 'payments', 'exams', 'digest'], true)
+            && !in_array((string) ($record['source'] ?? ''), ['forms', 'payments', 'digest'], true)
         ) {
             return true;
         }
@@ -912,6 +997,10 @@ function notifications_record_matches_user(array $record, array $user): bool
 
 function notifications_record_visible_to_user(array $record, array $user, array $userState): bool
 {
+    if (notifications_record_is_retired_exam_reminder($record)) {
+        return false;
+    }
+
     $preferences = is_array($userState['preferences'] ?? null) ? $userState['preferences'] : [];
     if (!notifications_record_matches_user($record, $user)) {
         return false;
@@ -929,10 +1018,6 @@ function notifications_record_visible_to_user(array $record, array $user, array 
     }
 
     if ($source === 'payments' && empty($preferences['paymentReminders'])) {
-        return false;
-    }
-
-    if ($source === 'exams' && empty($preferences['examReminders'])) {
         return false;
     }
 
@@ -992,10 +1077,6 @@ function notifications_sender_label(array $record): string
 
     if ((string) ($record['source'] ?? '') === 'payments') {
         return 'یادآور پرداخت';
-    }
-
-    if ((string) ($record['source'] ?? '') === 'exams') {
-        return 'یادآور آزمون';
     }
 
     if ((string) ($record['source'] ?? '') === 'digest') {
@@ -1221,7 +1302,7 @@ function notifications_summary_for_user(array $store, array $user): array
         } else {
             $announcementCount++;
         }
-        if (in_array((string) ($record['source'] ?? ''), ['forms', 'payments', 'exams'], true)) {
+        if (in_array((string) ($record['source'] ?? ''), ['forms', 'payments'], true)) {
             $reminderCount++;
         }
     }
@@ -1322,7 +1403,6 @@ function notifications_preferences_payload(array $user, array $store): array
         'canToggleNavidAssignmentAlerts' => $cohortKey === dent_primary_cohort_key() && !notifications_user_is_prosthesis($user),
         'formReminders' => !empty($state['preferences']['formReminders']),
         'paymentReminders' => !empty($state['preferences']['paymentReminders']),
-        'examReminders' => !empty($state['preferences']['examReminders']),
         'dailyDigestEnabled' => !empty($state['preferences']['dailyDigestEnabled']),
         'dailyDigestHour' => notifications_normalize_digest_hour($state['preferences']['dailyDigestHour'] ?? 8, 8),
     ];
@@ -1445,13 +1525,6 @@ function notifications_save_preferences(array $user, array $payload): array
             $store['userStates'][$studentNumber]['preferences']['paymentReminders'] = dent_parse_bool(
                 $payload['paymentReminders'],
                 !empty($current['preferences']['paymentReminders'])
-            );
-        }
-
-        if (array_key_exists('examReminders', $payload)) {
-            $store['userStates'][$studentNumber]['preferences']['examReminders'] = dent_parse_bool(
-                $payload['examReminders'],
-                !empty($current['preferences']['examReminders'])
             );
         }
 
@@ -1973,104 +2046,6 @@ function notifications_payment_candidate_from_order(array $order, array $user, a
     ];
 }
 
-function notifications_exams_context_for_user(array $user): array
-{
-    static $cache = [];
-
-    $cohortKey = dent_user_cohort_key($user);
-    $cacheKey = $cohortKey !== '' ? $cohortKey : 'shared';
-    if (isset($cache[$cacheKey])) {
-        return $cache[$cacheKey];
-    }
-
-    $catalogKey = dent_exams_resolve_catalog_key($cohortKey);
-    $catalog = dent_exams_catalog($catalogKey);
-    $cache[$cacheKey] = [
-        'catalogKey' => $catalogKey,
-        'catalog' => is_array($catalog) ? $catalog : null,
-        'store' => dent_exams_read_store(),
-    ];
-
-    return $cache[$cacheKey];
-}
-
-function notifications_exam_is_attemptable(array $exam): bool
-{
-    if (is_array($exam['questions'] ?? null) && count($exam['questions']) > 0) {
-        return true;
-    }
-
-    return !empty($exam['attemptable']);
-}
-
-function notifications_exam_candidate_from_record(
-    string $catalogKey,
-    array $course,
-    array $exam,
-    array $user,
-    array $store,
-    int $now
-): ?array {
-    if (notifications_user_is_owner($user)) {
-        return null;
-    }
-
-    $studentNumber = dent_exams_clean_participant_key((string) ($user['studentNumber'] ?? ''));
-    if ($studentNumber === '' || !notifications_exam_is_attemptable($exam)) {
-        return null;
-    }
-
-    $courseSlug = dent_exams_clean_course_slug((string) ($course['slug'] ?? ''));
-    $examSlug = dent_exams_clean_exam_slug((string) ($exam['slug'] ?? ''));
-    if ($courseSlug === '' || $examSlug === '') {
-        return null;
-    }
-
-    $report = dent_exams_report_for_user($store, $catalogKey, $courseSlug, $examSlug, $studentNumber);
-    if (is_array($report)) {
-        return null;
-    }
-
-    $flags = dent_exams_flags_for_user($store, $catalogKey, $courseSlug, $examSlug, $studentNumber);
-    $activity = dent_exams_activity_for_user($store, $catalogKey, $courseSlug, $examSlug, $studentNumber);
-    $lastActivityAt = is_array($activity) ? notifications_normalize_iso_datetime((string) ($activity['updatedAt'] ?? '')) : '';
-    $lastActivityTs = notifications_timestamp($lastActivityAt);
-    if ($flags === [] && $lastActivityTs <= 0) {
-        return null;
-    }
-    if ($lastActivityTs <= 0 || ($now - $lastActivityTs) < 86400) {
-        return null;
-    }
-
-    $cohortKey = dent_user_cohort_key($user);
-    $examTitle = trim((string) ($exam['title'] ?? ($exam['label'] ?? '')));
-    $courseTitle = trim((string) ($course['title'] ?? ''));
-    $bodyParts = [
-        $courseTitle !== '' && $examTitle !== '' ? ($courseTitle . ' • ' . $examTitle) : ($examTitle !== '' ? $examTitle : $courseTitle),
-        count($flags) > 0 ? ('سوال‌های نشان‌دار: ' . dent_to_fa_digits((string) count($flags))) : '',
-        $lastActivityAt !== '' ? ('آخرین فعالیت: ' . notifications_format_fa_tehran_datetime($lastActivityAt)) : '',
-    ];
-
-    return [
-        'source' => 'exams',
-        'sourceKey' => 'exam-resume-1d:' . $studentNumber . ':' . $catalogKey . ':' . $courseSlug . ':' . $examSlug,
-        'title' => count($flags) > 0 ? 'مرور سوال‌های نشان‌دار' : 'ادامه آزمون نیمه‌کاره',
-        'body' => implode("\n", array_values(array_filter($bodyParts, static fn($value): bool => trim((string) $value) !== ''))),
-        'tone' => count($flags) > 0 ? 'warn' : 'accent',
-        'ctaHref' => notifications_append_cohort_query((string) (($exam['path'] ?? '') ?: ($course['path'] ?? '/exams/')), $cohortKey),
-        'ctaLabel' => 'ادامه آزمون',
-        'meta' => [
-            'catalogKey' => $catalogKey,
-            'courseSlug' => $courseSlug,
-            'courseTitle' => $courseTitle,
-            'examSlug' => $examSlug,
-            'examTitle' => $examTitle,
-            'important' => true,
-        ],
-        'dispatchPush' => true,
-    ];
-}
-
 function notifications_form_record_still_relevant_for_user(array $record, array $user): bool
 {
     $meta = is_array($record['meta'] ?? null) ? $record['meta'] : [];
@@ -2107,34 +2082,12 @@ function notifications_payment_record_still_relevant_for_user(array $record, arr
     return is_array($candidate) && (string) ($candidate['sourceKey'] ?? '') === (string) ($record['sourceKey'] ?? '');
 }
 
-function notifications_exam_record_still_relevant_for_user(array $record, array $user): bool
-{
-    $meta = is_array($record['meta'] ?? null) ? $record['meta'] : [];
-    $catalogKey = dent_clean_text((string) ($meta['catalogKey'] ?? ''), 80);
-    $courseSlug = dent_exams_clean_course_slug((string) ($meta['courseSlug'] ?? ''));
-    $examSlug = dent_exams_clean_exam_slug((string) ($meta['examSlug'] ?? ''));
-    if ($catalogKey === '' || $courseSlug === '' || $examSlug === '') {
-        return false;
-    }
-
-    $context = notifications_exams_context_for_user($user);
-    $catalog = is_array($context['catalog'] ?? null) ? $context['catalog'] : null;
-    if ($catalog === null || $catalogKey !== (string) ($context['catalogKey'] ?? '')) {
-        return false;
-    }
-
-    $course = dent_exams_course($catalogKey, $courseSlug);
-    $exam = dent_exams_exam($catalogKey, $courseSlug, $examSlug);
-    if (!is_array($course) || !is_array($exam)) {
-        return false;
-    }
-
-    $candidate = notifications_exam_candidate_from_record($catalogKey, $course, $exam, $user, $context['store'], time());
-    return is_array($candidate) && (string) ($candidate['sourceKey'] ?? '') === (string) ($record['sourceKey'] ?? '');
-}
-
 function notifications_record_still_relevant_for_user(array $record, array $user): bool
 {
+    if (notifications_record_is_retired_exam_reminder($record)) {
+        return false;
+    }
+
     $source = (string) ($record['source'] ?? '');
     if ($source === 'forms') {
         return notifications_form_record_still_relevant_for_user($record, $user);
@@ -2142,10 +2095,6 @@ function notifications_record_still_relevant_for_user(array $record, array $user
     if ($source === 'payments') {
         return notifications_payment_record_still_relevant_for_user($record, $user);
     }
-    if ($source === 'exams') {
-        return notifications_exam_record_still_relevant_for_user($record, $user);
-    }
-
     return true;
 }
 
@@ -2154,7 +2103,6 @@ function notifications_due_candidates_for_user(array $user, array $preferences):
     $all = [];
     $forms = [];
     $payments = [];
-    $exams = [];
     $now = time();
 
     if (!notifications_user_is_owner($user) && !empty($preferences['formReminders'])) {
@@ -2193,37 +2141,9 @@ function notifications_due_candidates_for_user(array $user, array $preferences):
         $all = array_merge($all, $payments);
     }
 
-    if (!notifications_user_is_owner($user) && !empty($preferences['examReminders'])) {
-        $examsContext = notifications_exams_context_for_user($user);
-        $catalogKey = (string) ($examsContext['catalogKey'] ?? '');
-        $catalog = is_array($examsContext['catalog'] ?? null) ? $examsContext['catalog'] : null;
-        if ($catalog !== null) {
-            foreach (($catalog['courses'] ?? []) as $course) {
-                if (!is_array($course)) {
-                    continue;
-                }
-                foreach (($course['exams'] ?? []) as $exam) {
-                    if (!is_array($exam)) {
-                        continue;
-                    }
-                    $candidate = notifications_exam_candidate_from_record($catalogKey, $course, $exam, $user, $examsContext['store'], $now);
-                    if ($candidate !== null) {
-                        $exams[] = $candidate;
-                    }
-                }
-            }
-        }
-        usort($exams, static function (array $left, array $right): int {
-            return strcmp((string) ($left['sourceKey'] ?? ''), (string) ($right['sourceKey'] ?? ''));
-        });
-        $exams = array_slice($exams, 0, 5);
-        $all = array_merge($all, $exams);
-    }
-
     return [
         'forms' => $forms,
         'payments' => $payments,
-        'exams' => $exams,
         'all' => $all,
     ];
 }
@@ -2279,9 +2199,6 @@ function notifications_daily_digest_candidate(array $user, array $store, array $
     if (count($due['payments']) > 0) {
         $lines[] = dent_to_fa_digits((string) count($due['payments'])) . ' پرداخت ناتمام در انتظار پیگیری است.';
     }
-    if (count($due['exams']) > 0) {
-        $lines[] = dent_to_fa_digits((string) count($due['exams'])) . ' آزمون نیمه‌کاره برای ادامه داری.';
-    }
     if ($lines === []) {
         return null;
     }
@@ -2304,6 +2221,10 @@ function notifications_daily_digest_candidate(array $user, array $store, array $
 
 function notifications_ensure_user_candidate(array $user, array $candidate): array
 {
+    if (notifications_record_is_retired_exam_reminder($candidate)) {
+        return ['created' => false, 'record' => null];
+    }
+
     $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
     if ($studentNumber === '') {
         return ['created' => false, 'record' => null];

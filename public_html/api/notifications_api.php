@@ -111,7 +111,6 @@ if ($action === 'savePrefs') {
         'navidAssignmentAlerts' => $_POST['navidAssignmentAlerts'] ?? null,
         'formReminders' => $_POST['formReminders'] ?? null,
         'paymentReminders' => $_POST['paymentReminders'] ?? null,
-        'examReminders' => $_POST['examReminders'] ?? null,
         'dailyDigestEnabled' => $_POST['dailyDigestEnabled'] ?? null,
         'dailyDigestHour' => $_POST['dailyDigestHour'] ?? null,
     ]);

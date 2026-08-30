@@ -267,7 +267,6 @@
     var notificationsNavidAlertsToggle = $("notifications-navid-alerts");
     var notificationsFormRemindersToggle = $("notifications-form-reminders");
     var notificationsPaymentRemindersToggle = $("notifications-payment-reminders");
-    var notificationsExamRemindersToggle = $("notifications-exam-reminders");
     var notificationsDigestEnabledToggle = $("notifications-digest-enabled");
     var notificationsDigestHourInput = $("notifications-digest-hour");
     var notificationsPrefsSaveButton = $("notifications-prefs-save");
@@ -2515,9 +2514,6 @@
             paymentReminders: notificationsPaymentRemindersToggle
                 ? !!notificationsPaymentRemindersToggle.checked
                 : !!base.paymentReminders,
-            examReminders: notificationsExamRemindersToggle
-                ? !!notificationsExamRemindersToggle.checked
-                : !!base.examReminders,
             dailyDigestEnabled: notificationsDigestEnabledToggle
                 ? !!notificationsDigestEnabledToggle.checked
                 : !!base.dailyDigestEnabled,
@@ -2853,9 +2849,6 @@
         }
         if (source === "payments") {
             return "پرداخت";
-        }
-        if (source === "exams") {
-            return "آزمون";
         }
         if (source === "digest") {
             return "خلاصه روزانه";
@@ -3218,10 +3211,6 @@
             if (notificationsPaymentRemindersToggle) {
                 notificationsPaymentRemindersToggle.checked = !!preferences.paymentReminders;
                 notificationsPaymentRemindersToggle.disabled = notificationsState.savingPrefs;
-            }
-            if (notificationsExamRemindersToggle) {
-                notificationsExamRemindersToggle.checked = !!preferences.examReminders;
-                notificationsExamRemindersToggle.disabled = notificationsState.savingPrefs;
             }
             if (notificationsDigestEnabledToggle) {
                 notificationsDigestEnabledToggle.checked = digestEnabled;
@@ -3595,7 +3584,6 @@
             navidAssignmentAlerts: draftPreferences.navidAssignmentAlerts ? "1" : "0",
             formReminders: draftPreferences.formReminders ? "1" : "0",
             paymentReminders: draftPreferences.paymentReminders ? "1" : "0",
-            examReminders: draftPreferences.examReminders ? "1" : "0",
             dailyDigestEnabled: draftPreferences.dailyDigestEnabled ? "1" : "0",
             dailyDigestHour: String(draftPreferences.dailyDigestHour)
         }).then(function (response) {
@@ -7987,7 +7975,6 @@
         notificationsNavidAlertsToggle,
         notificationsFormRemindersToggle,
         notificationsPaymentRemindersToggle,
-        notificationsExamRemindersToggle,
         notificationsDigestEnabledToggle
     ].forEach(function (input) {
         if (!input) {

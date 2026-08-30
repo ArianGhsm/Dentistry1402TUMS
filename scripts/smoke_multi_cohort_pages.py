@@ -170,6 +170,12 @@ def run_smoke_session(args: argparse.Namespace) -> None:
             )
             if not notifications_summary.get("success"):
                 raise RuntimeError(f"Notifications summary failed: {notifications_summary}")
+            notifications_summary_refresh = request_json(
+                opener,
+                base_url + "/api/notifications_api.php?action=summary",
+            )
+            if not notifications_summary_refresh.get("success"):
+                raise RuntimeError(f"Notifications summary refresh failed: {notifications_summary_refresh}")
 
             notifications_list = request_json(
                 opener,
@@ -177,6 +183,20 @@ def run_smoke_session(args: argparse.Namespace) -> None:
             )
             if not notifications_list.get("success"):
                 raise RuntimeError(f"Notifications list failed: {notifications_list}")
+            notifications_list_refresh = request_json(
+                opener,
+                base_url + "/api/notifications_api.php?action=list",
+            )
+            if not notifications_list_refresh.get("success"):
+                raise RuntimeError(f"Notifications list refresh failed: {notifications_list_refresh}")
+            for payload in (notifications_list, notifications_list_refresh):
+                data = payload.get("data") if isinstance(payload.get("data"), dict) else {}
+                preferences = data.get("preferences") if isinstance(data.get("preferences"), dict) else {}
+                if "examReminders" in preferences:
+                    raise RuntimeError("Retired examReminders preference leaked through notifications list")
+                items = data.get("items") if isinstance(data.get("items"), list) else []
+                if any(isinstance(item, dict) and item.get("source") == "exams" for item in items):
+                    raise RuntimeError("Retired exam reminder appeared after summary/list refresh")
 
             chat_summary = request_json(
                 opener,

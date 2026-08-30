@@ -87,6 +87,12 @@ function dent_bot_claim_notification_deliveries(array $caller, string $platform,
     $maxAttempts = max(1, min(12, (int) (getenv('DENT_BOT_NOTIFICATION_MAX_ATTEMPTS') ?: 5)));
     $configuredSince = dent_bot_notification_configured_since();
     $notificationStore = notifications_read_store();
+    $retiredNotificationIds = array_fill_keys(
+        is_array($notificationStore['retiredNotificationIds'] ?? null)
+            ? $notificationStore['retiredNotificationIds']
+            : [],
+        true
+    );
     $now = time();
 
     $claimed = dent_bot_store_with_lock(static function (array &$store) use (
@@ -96,9 +102,24 @@ function dent_bot_claim_notification_deliveries(array $caller, string $platform,
         $maxAttempts,
         $configuredSince,
         $notificationStore,
+        $retiredNotificationIds,
         $now
     ): array {
         dent_bot_cleanup_store($store, $now);
+        foreach (($store['notificationDeliveries'] ?? []) as $deliveryKey => $delivery) {
+            if (!is_array($delivery)) {
+                continue;
+            }
+            $notificationId = (string) ($delivery['notificationId'] ?? '');
+            $status = (string) ($delivery['status'] ?? 'pending');
+            if ($notificationId === '' || !isset($retiredNotificationIds[$notificationId]) || in_array($status, ['delivered', 'failed'], true)) {
+                continue;
+            }
+            $delivery['status'] = 'failed';
+            $delivery['leaseUntil'] = 0;
+            $delivery['reasonCode'] = 'EXAM_REMINDER_RETIRED';
+            $store['notificationDeliveries'][$deliveryKey] = $delivery;
+        }
         $storedSince = strtotime((string) ($store['notificationDispatchSince'] ?? ''));
         $since = $configuredSince ?? ($storedSince !== false ? $storedSince : $now);
         if ($storedSince === false) {
@@ -116,6 +137,9 @@ function dent_bot_claim_notification_deliveries(array $caller, string $platform,
                 continue;
             }
             foreach (notifications_visible_records_for_user($notificationStore, $user) as $record) {
+                if (notifications_record_is_retired_exam_reminder($record)) {
+                    continue;
+                }
                 if (count($deliveries) >= $limit) {
                     break 2;
                 }
@@ -164,6 +188,8 @@ function dent_bot_claim_notification_deliveries(array $caller, string $platform,
                     'chatId' => $platformUserId,
                     'notification' => [
                         'id' => $notificationId,
+                        'source' => (string) ($record['source'] ?? ''),
+                        'sourceKey' => (string) ($record['sourceKey'] ?? ''),
                         'title' => (string) ($record['title'] ?? ''),
                         'body' => (string) ($record['body'] ?? ''),
                         'tone' => (string) ($record['tone'] ?? 'accent'),
@@ -196,7 +222,8 @@ function dent_bot_ack_notification_delivery(array $caller, string $platform, arr
             if (!is_array($delivery) || (string) ($delivery['deliveryId'] ?? '') !== $deliveryId || (string) ($delivery['platform'] ?? '') !== $platform) {
                 continue;
             }
-            $delivery['status'] = $delivered ? 'delivered' : 'pending';
+            $retired = !$delivered && $reasonCode === 'EXAM_REMINDER_RETIRED';
+            $delivery['status'] = $delivered ? 'delivered' : ($retired ? 'failed' : 'pending');
             $delivery['leaseUntil'] = 0;
             $delivery['deliveredAt'] = $delivered ? dent_iso_now() : '';
             $delivery['reasonCode'] = $delivered ? '' : $reasonCode;
