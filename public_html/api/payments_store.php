@@ -775,6 +775,17 @@ function payments_normalize_order_record(array $seed): ?array
         ];
     }
 
+    $createdAt = payments_normalize_datetime_string((string) ($seed['created_at'] ?? dent_iso_now()), dent_iso_now());
+    $paymentStartedAt = payments_normalize_datetime_string((string) ($seed['payment_started_at'] ?? ($seed['paymentStartedAt'] ?? '')), '');
+    $paidAt = payments_normalize_datetime_string((string) ($seed['paid_at'] ?? ''), '');
+    $verifiedAt = payments_normalize_datetime_string((string) ($seed['verified_at'] ?? ''), '');
+    $updatedAt = payments_normalize_datetime_string((string) ($seed['updated_at'] ?? ($seed['updatedAt'] ?? '')), '');
+    foreach ([$createdAt, $paymentStartedAt, $paidAt, $verifiedAt] as $candidateAt) {
+        if ($candidateAt !== '' && ($updatedAt === '' || strcmp($candidateAt, $updatedAt) > 0)) {
+            $updatedAt = $candidateAt;
+        }
+    }
+
     return [
         'id' => $id,
         'item_id' => $fallbackItemId,
@@ -795,9 +806,12 @@ function payments_normalize_order_record(array $seed): ?array
         'ref_id' => dent_clean_text((string) ($seed['ref_id'] ?? ''), 120),
         'status' => $status,
         'gateway_response_snapshot' => $snapshot,
-        'created_at' => payments_normalize_datetime_string((string) ($seed['created_at'] ?? dent_iso_now()), dent_iso_now()),
-        'paid_at' => payments_normalize_datetime_string((string) ($seed['paid_at'] ?? ''), ''),
-        'verified_at' => payments_normalize_datetime_string((string) ($seed['verified_at'] ?? ''), ''),
+        'created_at' => $createdAt,
+        'payment_started_at' => $paymentStartedAt,
+        'paid_at' => $paidAt,
+        'verified_at' => $verifiedAt,
+        'updated_at' => $updatedAt,
+        'expires_at' => payments_normalize_datetime_string((string) ($seed['expires_at'] ?? ($seed['expiresAt'] ?? '')), ''),
         'public_token' => $publicToken,
     ];
 }
@@ -1657,8 +1671,11 @@ function payments_owner_order_payload(array $order, ?array $item = null): array
         'refId' => (string) ($order['ref_id'] ?? ''),
         'status' => (string) ($order['status'] ?? PAYMENTS_ORDER_STATUS_PENDING),
         'createdAt' => (string) ($order['created_at'] ?? ''),
+        'paymentStartedAt' => (string) ($order['payment_started_at'] ?? ''),
         'paidAt' => (string) ($order['paid_at'] ?? ''),
         'verifiedAt' => (string) ($order['verified_at'] ?? ''),
+        'updatedAt' => (string) ($order['updated_at'] ?? ''),
+        'expiredAt' => (string) ($order['expires_at'] ?? ''),
         'publicToken' => (string) ($order['public_token'] ?? ''),
         'source' => function_exists('payments_api_order_source_key') ? payments_api_order_source_key($order) : '',
         'sourceLabel' => function_exists('payments_api_order_source_key') && function_exists('payments_api_order_source_label')

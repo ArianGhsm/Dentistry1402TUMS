@@ -17,7 +17,9 @@ require_once __DIR__ . '/../public_html/api/analytics_store.php';
 require_once __DIR__ . '/../public_html/api/exams_store.php';
 require_once __DIR__ . '/../public_html/api/auth_store.php';
 require_once __DIR__ . '/../public_html/api/exams_home_highlights.php';
-require_once __DIR__ . '/../public_html/api/private_notes_delivery.php';
+require_once __DIR__ . '/../public_html/api/navid_service.php';
+require_once __DIR__ . '/../public_html/api/bot_payments.php';
+require_once __DIR__ . '/../public_html/api/bot_voice_payment_bridge.php';
 
 // Order-status constants live in payments_store.php (not loaded here); define the
 // stable values the funnel relies on so the test stays self-contained.
@@ -32,6 +34,9 @@ if (!defined('PAYMENTS_ORDER_STATUS_PENDING')) {
 // defaults so a real failure surfaces as a normal CLI error instead of a 200.
 restore_error_handler();
 restore_exception_handler();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    @session_start();
+}
 
 $GLOBALS['unit_failures'] = 0;
 $GLOBALS['unit_total'] = 0;
@@ -55,8 +60,301 @@ function unit_skip(string $label): void
 }
 
 // ---------------------------------------------------------------------------
+// Bot commerce v2: immutable order snapshot and bounded public payload
+// ---------------------------------------------------------------------------
+$voicePaymentContract = dent_voice_payment_contract_payload([
+    'action' => 'voicePaymentVerifyV1',
+    'contractVersion' => DENT_VOICE_PAYMENT_CONTRACT,
+    'platform' => 'telegram',
+    'platformUserId' => '123456789',
+    'orderId' => 'VT-20260829-AbCdEf_123',
+    'amountRials' => 200000,
+], 'voicePaymentVerifyV1');
+unit_assert(
+    $voicePaymentContract === [
+        'platformUserId' => '123456789',
+        'orderId' => 'VT-20260829-AbCdEf_123',
+        'amountRials' => 200000,
+    ],
+    'voice payment bridge normalizes its signed stateless contract'
+);
+$voicePaymentProviderFixture = [
+    'raw' => [
+        'request' => ['merchant' => 'must-never-leave-the-website'],
+        'response' => ['json' => [
+            'result' => 100,
+            'amount' => 200000,
+            'orderId' => 'VT-20260829-AbCdEf_123',
+        ]],
+    ],
+];
+unit_assert(
+    dent_voice_payment_result_code($voicePaymentProviderFixture) === 100
+        && dent_voice_payment_verified_identity($voicePaymentProviderFixture) === [
+            'amountRials' => 200000,
+            'orderId' => 'VT-20260829-AbCdEf_123',
+        ],
+    'voice payment bridge extracts amount and order identity before wallet credit'
+);
+unit_assert(
+    dent_voice_payment_callback_url('abcdefghijklmnopqrstuvwxyz_12345')
+        === 'https://dentistry1402tums.ir/api/voice_payment_return.php?token=abcdefghijklmnopqrstuvwxyz_12345',
+    'voice payment bridge uses the fixed HTTPS return relay accepted by the gateway'
+);
+$botOrderFixture = payments_normalize_order_record([
+    'id' => 901,
+    'item_id' => 0,
+    'user_id' => '40211272010',
+    'payer_name' => 'کاربر تست',
+    'payer_phone' => '09120000000',
+    'payer_student_number' => '40211272010',
+    'extra_form_data' => [
+        'source' => 'bot-offer',
+        'bot_offer_ref' => 'offer-ref-1234567890',
+        'bot_offer_title' => 'عنوان snapshot',
+        'bot_origin_platform' => 'telegram',
+        'bot_fulfillment_json' => '{"text":"دسترسی فعال شد","url":"https://example.test/file"}',
+    ],
+    'amount' => 750000,
+    'unit_price' => 750000,
+    'subtotal' => 750000,
+    'status' => 'success',
+    'gateway' => 'mock',
+    'ref_id' => 'track-1',
+    'created_at' => '2026-08-29T08:00:00Z',
+    'payment_started_at' => '2026-08-29T08:01:00Z',
+    'paid_at' => '2026-08-29T08:02:00Z',
+    'verified_at' => '2026-08-29T08:03:00Z',
+    'updated_at' => '2026-08-29T08:03:00Z',
+    'public_token' => 'order-token-123456789012345',
+]);
+unit_assert(is_array($botOrderFixture), 'Bot order fixture normalizes');
+if (is_array($botOrderFixture)) {
+    $botPayload = dent_bot_payment_order_payload($botOrderFixture, false);
+    unit_assert(
+        ($botPayload['title'] ?? '') === 'عنوان snapshot'
+            && (int) ($botPayload['amountRials'] ?? 0) === 750000
+            && ($botPayload['paymentStartedAt'] ?? '') !== ''
+            && ($botPayload['verifiedAt'] ?? '') !== '',
+        'Bot receipt uses immutable title/amount snapshot and standard lifecycle timestamps'
+    );
+    unit_assert(
+        !array_key_exists('payerPhone', $botPayload)
+            && !array_key_exists('studentNumber', $botPayload)
+            && (($botPayload['fulfillment']['url'] ?? '') === 'https://example.test/file'),
+        'User bot receipt omits owner PII while preserving allowlisted fulfillment'
+    );
+    unit_assert(dent_bot_payment_is_offer_order($botOrderFixture, 'offer-ref-1234567890'), 'Bot offer order provenance is recognized');
+}
+
+$genericPayerKey = dent_bot_payment_profile_payer_key('09120000000');
+unit_assert(
+    preg_match('/^profile:[a-f0-9]{40}$/', $genericPayerKey) === 1
+        && !str_contains($genericPayerKey, '09120000000'),
+    'Generic checkout uses a stable opaque verified-phone payer key without exposing the phone'
+);
+unit_assert(
+    dent_bot_payment_payer_keys([
+        'botPaymentPayerKey' => $genericPayerKey,
+        'studentNumber' => '40299999999',
+        'phoneNumber' => '09120000000',
+    ]) === [$genericPayerKey],
+    'A generic self-declared student number cannot grant access to canonical student orders'
+);
+$linkedPayerKeys = dent_bot_payment_payer_keys([
+    'studentNumber' => '40211272010',
+    'phoneNumber' => '09120000000',
+]);
+unit_assert(
+    $linkedPayerKeys === ['40211272010', $genericPayerKey],
+    'A later canonical link retains access to purchases made with the same verified phone'
+);
+$genericOwnerPayload = dent_bot_payment_order_payload([
+    'id' => 902,
+    'user_id' => $genericPayerKey,
+    'payer_name' => 'کاربر عمومی',
+    'payer_phone' => '09120000000',
+    'payer_student_number' => '',
+    'extra_form_data' => ['source' => 'bot-offer'],
+    'status' => PAYMENTS_ORDER_STATUS_PENDING,
+], true);
+unit_assert(
+    ($genericOwnerPayload['studentNumber'] ?? 'invalid') === '',
+    'Owner payment reports never expose the opaque payer key as a student number'
+);
+
+$reservationNow = strtotime('2026-08-29T12:00:00Z');
+$reservationFixture = [
+    [
+        'id' => 1,
+        'user_id' => '40211272010',
+        'status' => PAYMENTS_ORDER_STATUS_PENDING,
+        'expires_at' => '2026-08-29T13:00:00Z',
+        'extra_form_data' => [
+            'source' => 'bot-offer',
+            'bot_offer_ref' => 'offer-ref-1234567890',
+            'bot_request_ref' => 'request-ref-aaaaaaaa',
+        ],
+    ],
+    [
+        'id' => 2,
+        'user_id' => '40211272011',
+        'status' => PAYMENTS_ORDER_STATUS_SUCCESS,
+        'expires_at' => '',
+        'extra_form_data' => [
+            'source' => 'bot-offer',
+            'bot_offer_ref' => 'offer-ref-1234567890',
+            'bot_request_ref' => 'request-ref-bbbbbbbb',
+        ],
+    ],
+    [
+        'id' => 3,
+        'user_id' => '40211272012',
+        'status' => PAYMENTS_ORDER_STATUS_PENDING,
+        'expires_at' => '2026-08-29T11:00:00Z',
+        'extra_form_data' => [
+            'source' => 'bot-offer',
+            'bot_offer_ref' => 'offer-ref-1234567890',
+            'bot_request_ref' => 'request-ref-cccccccc',
+        ],
+    ],
+    [
+        'id' => 4,
+        'user_id' => '40211272010',
+        'status' => PAYMENTS_ORDER_STATUS_FAILED,
+        'expires_at' => '',
+        'extra_form_data' => [
+            'source' => 'bot-offer',
+            'bot_offer_ref' => 'offer-ref-1234567890',
+            'bot_request_ref' => 'request-ref-dddddddd',
+        ],
+    ],
+];
+$reservationState = dent_bot_payment_reservation_state(
+    $reservationFixture,
+    'offer-ref-1234567890',
+    '40211272010',
+    'request-ref-aaaaaaaa',
+    $reservationNow === false ? 0 : $reservationNow
+);
+unit_assert(
+    (int) ($reservationState['existing']['id'] ?? 0) === 1,
+    'Bot checkout idempotency resolves the original same-user request before creating another order'
+);
+unit_assert(
+    (int) ($reservationState['reserved'] ?? -1) === 2
+        && (int) ($reservationState['userReserved'] ?? -1) === 1,
+    'Bot capacity counts active pending and successful orders but ignores expired and failed attempts'
+);
+unit_assert(
+    dent_bot_payment_reservation_error($reservationState, 2, 0) === 'PRODUCT_CAPACITY_REACHED',
+    'Bot checkout enforces global product capacity under the store lock'
+);
+unit_assert(
+    dent_bot_payment_reservation_error($reservationState, 0, 1) === 'PRODUCT_PURCHASE_LIMIT_REACHED',
+    'Bot checkout enforces the per-user purchase limit independently of global capacity'
+);
+$crossIdentityReservation = dent_bot_payment_reservation_state(
+    [[
+        'id' => 9,
+        'user_id' => $genericPayerKey,
+        'status' => PAYMENTS_ORDER_STATUS_SUCCESS,
+        'expires_at' => '',
+        'extra_form_data' => [
+            'source' => 'bot-offer',
+            'bot_offer_ref' => 'offer-ref-1234567890',
+            'bot_request_ref' => 'request-ref-profile',
+        ],
+    ]],
+    'offer-ref-1234567890',
+    '40211272010',
+    'request-ref-new',
+    $reservationNow === false ? 0 : $reservationNow,
+    ['40211272010', $genericPayerKey]
+);
+unit_assert(
+    (int) ($crossIdentityReservation['userReserved'] ?? 0) === 1,
+    'Per-user purchase limits survive a generic-profile to canonical-account transition'
+);
+$summaryBucket = dent_bot_payment_summary_bucket([
+    [
+        'status' => PAYMENTS_ORDER_STATUS_SUCCESS,
+        'amount' => 250000,
+        'created_at' => '2026-01-01T00:00:00Z',
+        'verified_at' => '2026-08-29T10:00:00Z',
+    ],
+    [
+        'status' => PAYMENTS_ORDER_STATUS_PENDING,
+        'amount' => 500000,
+        'created_at' => '2026-08-29T10:00:00Z',
+        'expires_at' => '2000-01-01T00:00:00Z',
+    ],
+], strtotime('2026-08-29T09:00:00Z') ?: 0);
+unit_assert(
+    (int) ($summaryBucket['successCount'] ?? 0) === 1
+        && (int) ($summaryBucket['receivedRials'] ?? 0) === 250000
+        && (int) ($summaryBucket['pendingCount'] ?? 0) === 0,
+    'Bot dashboard buckets successful orders by verification time and excludes expired pending reservations'
+);
+$paymentsApiSource = file_get_contents(__DIR__ . '/../public_html/api/payments_api.php') ?: '';
+unit_assert(
+    str_contains($paymentsApiSource, "'Dent1402Bot'")
+        && str_contains($paymentsApiSource, "'dent1402bot'")
+        && str_contains($paymentsApiSource, "receipt_"),
+    'Bot-origin checkout has deterministic same-platform Telegram and Bale return deep links'
+);
+
+// ---------------------------------------------------------------------------
+// SMS provider response: accepted request is not proof of handset delivery
+// ---------------------------------------------------------------------------
+$smsAccepted = dent_sms_parse_pattern_response([
+    'status' => 'success',
+    'data' => 0,
+    'messages' => 'درخواست ثبت شد.',
+], 201);
+unit_assert(
+    ($smsAccepted['success'] ?? false) === true
+        && ($smsAccepted['acceptanceOnly'] ?? false) === true
+        && ($smsAccepted['message'] ?? '') === 'درخواست ثبت شد.'
+        && ($smsAccepted['providerRequestId'] ?? '') === '0',
+    'SMS pattern parser accepts the documented 201/messages response without claiming delivery'
+);
+$smsRejected = dent_sms_parse_pattern_response([
+    'status' => 'error',
+    'messages' => ['recipient' => ['شماره مقصد نامعتبر است.']],
+], 422);
+unit_assert(
+    ($smsRejected['success'] ?? true) === false
+        && ($smsRejected['acceptanceOnly'] ?? true) === false
+        && ($smsRejected['message'] ?? '') === 'شماره مقصد نامعتبر است.',
+    'SMS pattern parser preserves provider rejection details'
+);
+$smsFalseSuccess = dent_sms_parse_pattern_response([
+    'status' => 'success',
+    'message' => 'legacy response',
+], 500);
+unit_assert(
+    ($smsFalseSuccess['success'] ?? true) === false
+        && ($smsFalseSuccess['message'] ?? '') === 'سرویس پیامکی موقتاً در دسترس نیست.',
+    'SMS pattern parser rejects success-shaped bodies on failed HTTP responses'
+);
+
+// ---------------------------------------------------------------------------
 // Global search: text normalization + matching
 // ---------------------------------------------------------------------------
+unit_assert(
+    !navid_should_announce_new_assignment(null, false),
+    'navid: initial snapshot is a silent baseline'
+);
+unit_assert(
+    navid_should_announce_new_assignment(null, true),
+    'navid: a new assignment after baseline is announced'
+);
+unit_assert(
+    !navid_should_announce_new_assignment(['fingerprint' => 'old'], true),
+    'navid: an existing assignment is not announced as newly created'
+);
+
 unit_assert(
     search_normalize_text("\u{0643}\u{062A}\u{0627}\u{0628}") === search_normalize_text('کتاب'),
     'search: Arabic kaf folds to Persian keheh'
@@ -247,6 +545,37 @@ unit_assert(
     'exams: owner learning summary counts attempts and study tools'
 );
 
+$legacyPurchaseOrders = [
+    [
+        'id' => 1,
+        'status' => PAYMENTS_ORDER_STATUS_SUCCESS,
+        'user_id' => '4020001',
+        'paid_at' => '2026-07-24T20:00:00+03:30',
+    ],
+    [
+        'id' => 2,
+        'status' => PAYMENTS_ORDER_STATUS_SUCCESS,
+        'payer_student_number' => '4020001',
+        'paid_at' => '2026-07-24T22:00:00+03:30',
+    ],
+    [
+        'id' => 3,
+        'status' => PAYMENTS_ORDER_STATUS_PENDING,
+        'payer_student_number' => '4020001',
+        'created_at' => '2026-07-24T19:00:00+03:30',
+    ],
+];
+$eligibleLegacyPurchase = dent_exams_find_eligible_legacy_purchase(
+    $legacyPurchaseOrders,
+    '۴۰۲۰۰۰۱',
+    '2026-07-24T21:53:02+03:30',
+    PAYMENTS_ORDER_STATUS_SUCCESS
+);
+unit_assert(
+    (int) ($eligibleLegacyPurchase['id'] ?? 0) === 1,
+    'exams: legacy purchase grant accepts only successful purchases completed before the cutoff'
+);
+
 $examQuizSource = (string) file_get_contents(__DIR__ . '/../public_html/assets/site/scripts/exam-quiz.js');
 unit_assert(
     str_contains($examQuizSource, 'normalizeQuestionMedia')
@@ -262,16 +591,118 @@ unit_assert(
     'exams: question media URL normalization rejects active-content schemes and only allows local or HTTPS media'
 );
 
+$diagnostics2Course = function_exists('dent_exams_diagnostics2_term6_course')
+    ? dent_exams_diagnostics2_term6_course(true)
+    : [];
+$diagnostics2Exams = is_array($diagnostics2Course['exams'] ?? null) ? $diagnostics2Course['exams'] : [];
+$diagnostics2QuestionCounts = array_map(
+    static fn($exam): int => is_array($exam) ? count(is_array($exam['questions'] ?? null) ? $exam['questions'] : []) : 0,
+    $diagnostics2Exams
+);
+$diagnostics2FirstQuestion = is_array($diagnostics2Exams[0]['questions'][0] ?? null)
+    ? $diagnostics2Exams[0]['questions'][0]
+    : [];
+unit_assert(
+    count($diagnostics2Exams) === 16
+        && array_sum($diagnostics2QuestionCounts) === 660
+        && count(array_filter($diagnostics2QuestionCounts, static fn(int $count): bool => $count > 0)) === 16,
+    'exams: diagnostics-2 term-6 imports 16 active practice exams with 660 questions'
+);
+unit_assert(
+    in_array('محل پاسخ در منبع', array_column($diagnostics2FirstQuestion['answerMeta'] ?? [], 'label'), true)
+        && in_array('دلیل درست‌بودن', array_column($diagnostics2FirstQuestion['answerSections'] ?? [], 'label'), true)
+        && in_array('بررسی گزینه‌ها', array_column($diagnostics2FirstQuestion['answerSections'] ?? [], 'label'), true),
+    'exams: diagnostics-2 term-6 preserves answer-sheet sections in structured response cards'
+);
+
+if (function_exists('dent_exams_bootstrap_modules')) {
+    dent_exams_bootstrap_modules();
+}
+$restorativeFinalSampleCourse = function_exists('dent_exams_restorative_theory1_final_sample_course')
+    ? dent_exams_restorative_theory1_final_sample_course()
+    : [];
+$restorativeFinalSampleExams = is_array($restorativeFinalSampleCourse['exams'] ?? null)
+    ? $restorativeFinalSampleCourse['exams']
+    : [];
+$restorativeFinalSampleQuestionCounts = array_map(
+    static fn($exam): int => is_array($exam) ? count(is_array($exam['questions'] ?? null) ? $exam['questions'] : []) : 0,
+    $restorativeFinalSampleExams
+);
+$restorativeFinalSampleFirstQuestion = is_array($restorativeFinalSampleExams[0]['questions'][0] ?? null)
+    ? $restorativeFinalSampleExams[0]['questions'][0]
+    : [];
+$restorativeFinalSampleQuestions = [];
+foreach ($restorativeFinalSampleExams as $exam) {
+    foreach ((is_array($exam['questions'] ?? null) ? $exam['questions'] : []) as $question) {
+        if (is_array($question)) {
+            $restorativeFinalSampleQuestions[] = $question;
+        }
+    }
+}
+unit_assert(
+    $restorativeFinalSampleQuestionCounts === [62, 32, 32],
+    'exams: restorative theory 1 final sample imports all three supplied exams with 126 questions'
+);
+unit_assert(
+    in_array('پاسخ تشریحی و نکات آموزشی', array_column($restorativeFinalSampleFirstQuestion['answerSections'] ?? [], 'label'), true)
+        && in_array('منبع / رفرنس', array_column($restorativeFinalSampleFirstQuestion['answerSections'] ?? [], 'label'), true)
+        && in_array('بررسی تک‌تک گزینه‌ها', array_column($restorativeFinalSampleFirstQuestion['answerSections'] ?? [], 'label'), true)
+        && count($restorativeFinalSampleQuestions) === 126
+        && count(array_filter($restorativeFinalSampleQuestions, static function (array $question): bool {
+            return count($question['options'] ?? []) === 4
+                && count($question['answerSections'] ?? []) >= 3
+                && count(array_filter($question['optionRationales'] ?? [])) === 4;
+        })) === 126,
+    'exams: restorative final sample keeps explanatory answer sections and four option rationales'
+);
+$restorativeFinalSampleQuestionsByNumber = [];
+foreach ((is_array($restorativeFinalSampleExams[0]['questions'] ?? null) ? $restorativeFinalSampleExams[0]['questions'] : []) as $question) {
+    if (is_array($question)) {
+        $restorativeFinalSampleQuestionsByNumber[(int) ($question['number'] ?? 0)] = $question;
+    }
+}
+$restorativeFinalSampleNumberedPromptFragments = [
+    9 => ['۱- تغییر رنگ قهوه ای', '۳- پوسیدگی در نوک کاسپ'],
+    36 => ['۱- آموزش رعایت بهداشت', '۷- follow up'],
+    57 => ['۱- راحتی بیمار', '۶- ثبات اکلوزالی'],
+    59 => ['۱- سایش سطوح اکلوزال', '۴- لزوم درمان اندو'],
+];
+$restorativeFinalSampleCompleteNumberedPrompts = true;
+foreach ($restorativeFinalSampleNumberedPromptFragments as $number => $fragments) {
+    $questionText = (string) ($restorativeFinalSampleQuestionsByNumber[$number]['question'] ?? '');
+    foreach ($fragments as $fragment) {
+        if (!str_contains($questionText, $fragment)) {
+            $restorativeFinalSampleCompleteNumberedPrompts = false;
+        }
+    }
+}
+unit_assert(
+    $restorativeFinalSampleCompleteNumberedPrompts,
+    'exams: restorative final sample preserves numbered statements inside questions 9, 36, 57, and 59'
+);
+
+$homeHighlightsSeed = dent_exams_home_highlights_courses_for_cohort('dentistry-1402', 0);
+$homeHighlightExpiryTimes = array_values(array_filter(array_map(
+    static fn(array $course): int|false => strtotime((string) ($course['curriculum']['finalExam']['expiresAt'] ?? '')),
+    $homeHighlightsSeed
+), static fn(int|false $timestamp): bool => $timestamp !== false));
+$homeHighlightFirstExpiry = $homeHighlightExpiryTimes !== [] ? min($homeHighlightExpiryTimes) : 0;
 $homeHighlightsBeforeExpiry = dent_exams_home_highlights_courses_for_cohort(
     'dentistry-1402',
-    strtotime('2026-07-14T20:00:00+03:30')
+    max(0, $homeHighlightFirstExpiry - 1)
 );
 $homeHighlightsAfterExpiry = dent_exams_home_highlights_courses_for_cohort(
     'dentistry-1402',
-    strtotime('2026-07-23T00:00:00+03:30')
+    $homeHighlightFirstExpiry
 );
 unit_assert(
-    count($homeHighlightsBeforeExpiry) === 2 && count($homeHighlightsAfterExpiry) === 0,
+    $homeHighlightFirstExpiry > 0
+        && count($homeHighlightsBeforeExpiry) === 2
+        && count($homeHighlightsAfterExpiry) < 2
+        && array_diff(
+            array_column($homeHighlightsAfterExpiry, 'slug'),
+            array_column($homeHighlightsBeforeExpiry, 'slug')
+        ) === [],
     'exams: home highlights use the two-entry index and never backfill an expired item'
 );
 $homeHighlightsApiSource = (string) file_get_contents(__DIR__ . '/../public_html/api/exams_home_highlights_api.php');
@@ -287,403 +718,6 @@ unit_assert(
         && !str_contains($homeHighlightsApiSource, 'exams_modules.php'),
     'exams: home highlights endpoint avoids the full exam, payment and module stores'
 );
-
-// ---------------------------------------------------------------------------
-// Private notes: access foundation
-// ---------------------------------------------------------------------------
-$privateNotesBaseStore = private_notes_normalize_store([
-    'schemaVersion' => 1,
-    'semesters' => [
-        'pnsem-unit1402t6' => [
-            'id' => 'pnsem-unit1402t6',
-            'cohortKey' => 'dentistry-1402',
-            'title' => 'Unit test semester',
-            'termNumber' => 6,
-        ],
-    ],
-    'courses' => [
-        'pncrs-unitoralpath' => [
-            'id' => 'pncrs-unitoralpath',
-            'cohortKey' => 'dentistry-1402',
-            'semesterId' => 'pnsem-unit1402t6',
-            'title' => 'Unit Test Oral Pathology',
-        ],
-    ],
-    'documents' => [
-        'pndoc-unitatlas' => [
-            'id' => 'pndoc-unitatlas',
-            'cohortKey' => 'dentistry-1402',
-            'title' => 'Unit Test Atlas',
-            'courseId' => 'pncrs-unitoralpath',
-            'semesterId' => 'pnsem-unit1402t6',
-            'originalFileRef' => 'dentistry-1402/unit-atlas.pdf',
-            'processingStatus' => 'ready',
-            'pageCount' => 12,
-            'uploaderUserKey' => '40211272003',
-            'publicationStatus' => 'published',
-        ],
-    ],
-]);
-$privateNotesStudent = ['studentNumber' => '4020001', 'role' => 'student', 'cohortKey' => 'dentistry-1402'];
-$privateNotesOwner = ['studentNumber' => dent_owner_student_number(), 'role' => 'owner', 'cohortKey' => 'dentistry-1402'];
-
-$privateNotesDecision = private_notes_user_can_view_document($privateNotesBaseStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
-unit_assert(
-    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'active-membership-required',
-    'private notes: login without active course membership is denied'
-);
-
-$privateNotesWithMembership = $privateNotesBaseStore;
-$privateNotesWithMembership['courseMemberships']['pnmem-unitstudent'] = [
-    'id' => 'pnmem-unitstudent',
-    'userKey' => '4020001',
-    'courseId' => 'pncrs-unitoralpath',
-    'semesterId' => 'pnsem-unit1402t6',
-    'role' => 'writer',
-    'contributionStatus' => 'approved',
-    'accessStatus' => 'active',
-];
-$privateNotesDecision = private_notes_user_can_view_document($privateNotesWithMembership, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
-unit_assert(
-    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'document-permission-required',
-    'private notes: course membership without document permission is denied'
-);
-
-$privateNotesAllowedStore = $privateNotesWithMembership;
-$privateNotesAllowedStore['documentPermissions']['pnperm-unitstudent'] = [
-    'id' => 'pnperm-unitstudent',
-    'documentId' => 'pndoc-unitatlas',
-    'userKey' => '4020001',
-    'membershipId' => 'pnmem-unitstudent',
-    'permission' => 'view',
-    'status' => 'active',
-];
-$privateNotesDecision = private_notes_user_can_view_document($privateNotesAllowedStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
-unit_assert(
-    $privateNotesDecision['allowed'] === true && $privateNotesDecision['reason'] === 'allowed',
-    'private notes: approved membership plus active document permission is allowed'
-);
-
-$privateNotesWarningStore = $privateNotesAllowedStore;
-$privateNotesWarningStore['courseMemberships']['pnmem-unitstudent']['accessStatus'] = 'warning';
-$privateNotesWarningStore['documentPermissions']['pnperm-unitstudent']['status'] = 'warning';
-$privateNotesDecision = private_notes_user_can_view_document($privateNotesWarningStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
-unit_assert(
-    $privateNotesDecision['allowed'] === true,
-    'private notes: warning access remains viewable but traceable'
-);
-
-$privateNotesSuspendedStore = $privateNotesAllowedStore;
-$privateNotesSuspendedStore['courseMemberships']['pnmem-unitstudent']['accessStatus'] = 'suspended';
-$privateNotesDecision = private_notes_user_can_view_document($privateNotesSuspendedStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
-unit_assert(
-    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'active-membership-required',
-    'private notes: suspended course membership is denied'
-);
-
-$privateNotesRevokedPermissionStore = $privateNotesAllowedStore;
-$privateNotesRevokedPermissionStore['documentPermissions']['pnperm-unitstudent']['status'] = 'revoked';
-$privateNotesDecision = private_notes_user_can_view_document($privateNotesRevokedPermissionStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
-unit_assert(
-    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'document-permission-required',
-    'private notes: revoked document permission is denied'
-);
-
-$privateNotesExpiredStore = $privateNotesAllowedStore;
-$privateNotesExpiredStore['courseMemberships']['pnmem-unitstudent']['accessExpiresAt'] = '2026-07-15T23:59:00+03:30';
-$privateNotesDecision = private_notes_user_can_view_document($privateNotesExpiredStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
-unit_assert(
-    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'active-membership-required',
-    'private notes: expired membership is denied'
-);
-
-$privateNotesTempSuspensionStore = $privateNotesAllowedStore;
-$privateNotesTempSuspensionStore['temporarySuspensions']['pnsus-unitstudent'] = [
-    'id' => 'pnsus-unitstudent',
-    'userKey' => '4020001',
-    'documentId' => 'pndoc-unitatlas',
-    'status' => 'active',
-    'startsAt' => '2026-07-16T00:00:00+03:30',
-    'expiresAt' => '2026-07-17T00:00:00+03:30',
-];
-$privateNotesDecision = private_notes_user_can_view_document($privateNotesTempSuspensionStore, $privateNotesStudent, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
-unit_assert(
-    $privateNotesDecision['allowed'] === false && $privateNotesDecision['reason'] === 'temporarily-suspended',
-    'private notes: active temporary suspension is denied'
-);
-
-$privateNotesOwnerDecision = private_notes_user_can_view_document($privateNotesBaseStore, $privateNotesOwner, 'pndoc-unitatlas', '2026-07-16T12:00:00+03:30');
-unit_assert(
-    $privateNotesOwnerDecision['allowed'] === true && $privateNotesOwnerDecision['reason'] === 'owner',
-    'private notes: owner access uses the existing site role system'
-);
-
-$privateNotesManagerStore = $privateNotesAllowedStore;
-$privateNotesManagerStore['courseMemberships']['pnmem-manager'] = [
-    'id' => 'pnmem-manager',
-    'userKey' => '4020002',
-    'courseId' => 'pncrs-unitoralpath',
-    'semesterId' => 'pnsem-unit1402t6',
-    'role' => 'manager',
-    'contributionStatus' => 'approved',
-    'accessStatus' => 'active',
-];
-unit_assert(
-    private_notes_user_can_manage_course(
-        $privateNotesManagerStore,
-        ['studentNumber' => '4020002', 'role' => 'student', 'cohortKey' => 'dentistry-1402'],
-        'pncrs-unitoralpath',
-        'pnsem-unit1402t6'
-    ) === true,
-    'private notes: approved private course manager may manage uploads'
-);
-unit_assert(
-    private_notes_user_can_manage_course(
-        $privateNotesManagerStore,
-        ['studentNumber' => '4020001', 'role' => 'student', 'cohortKey' => 'dentistry-1402'],
-        'pncrs-unitoralpath',
-        'pnsem-unit1402t6'
-    ) === false,
-    'private notes: writer membership alone does not grant upload management'
-);
-
-$privateNotesPayload = private_notes_document_admin_payload([
-    'id' => 'pndoc-unitatlas',
-    'title' => 'Unit Test Atlas',
-    'originalFileRef' => '2026/07/private.pdf',
-    'originalStorageKey' => '2026/07/private.pdf',
-    'processingStatus' => 'ready',
-]);
-unit_assert(
-    !array_key_exists('originalFileRef', $privateNotesPayload)
-        && !array_key_exists('originalStorageKey', $privateNotesPayload)
-        && ($privateNotesPayload['hasOriginalFile'] ?? false) === true,
-    'private notes: admin document payload does not expose the original PDF path'
-);
-
-putenv('DENT_PRIVATE_NOTES_TILE_SIGNING_SECRET=unit-private-notes-tile-secret');
-$_SERVER['HTTP_USER_AGENT'] = 'DentPrivateNotesUnit/1.0';
-$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-$privateNotesTileStore = $privateNotesAllowedStore;
-$privateNotesTileStore['documents']['pndoc-unitatlas']['assetsStorageKey'] = 'documents/pndoc-unitatlas';
-$privateNotesTileStore['documents']['pndoc-unitatlas']['pages'] = [
-    '1' => [
-        'pageNumber' => 1,
-        'width' => 1700,
-        'height' => 2200,
-        'levels' => [
-            [
-                'level' => 2,
-                'scale' => 0.25,
-                'width' => 425,
-                'height' => 550,
-                'tileSize' => 512,
-                'tiles' => [
-                    [
-                        'x' => 512,
-                        'y' => 1024,
-                        'width' => 512,
-                        'height' => 512,
-                        'storageKey' => 'documents/pndoc-unitatlas/p1/z2/tile-512-1024.png',
-                        'bytes' => 1234,
-                    ],
-                ],
-            ],
-        ],
-    ],
-];
-$privateNotesTileStore['registeredDevices']['pndev-unitactive'] = [
-    'id' => 'pndev-unitactive',
-    'userKey' => '4020001',
-    'label' => 'Unit device',
-    'tokenHash' => private_notes_device_token_hash('4020001', 'unit-device-token-abcdefghijklmnopqrstuvwxyz'),
-    'userAgentHash' => private_notes_request_user_agent_hash(),
-    'status' => 'active',
-    'firstSeenAt' => '2026-07-16T12:00:00+03:30',
-    'lastSeenAt' => '2026-07-16T12:00:00+03:30',
-];
-$privateNotesTileStore['activeViewingSessions']['pnses-unitactive'] = [
-    'id' => 'pnses-unitactive',
-    'userKey' => '4020001',
-    'documentId' => 'pndoc-unitatlas',
-    'deviceId' => 'pndev-unitactive',
-    'status' => 'active',
-    'startedAt' => '2026-07-16T12:00:00+03:30',
-    'lastSeenAt' => '2026-07-16T12:00:00+03:30',
-    'ipHash' => private_notes_request_ip_hash(),
-    'userAgentHash' => private_notes_request_user_agent_hash(),
-];
-$privateNotesTileStore = private_notes_normalize_store($privateNotesTileStore);
-$privateNotesTileRequest = [
-    'documentId' => 'pndoc-unitatlas',
-    'sessionId' => 'pnses-unitactive',
-    'pageNumber' => 1,
-    'zoomLevel' => 2,
-    'tileX' => 512,
-    'tileY' => 1024,
-];
-$privateNotesTileAuth = private_notes_authorize_tile_request(
-    $privateNotesTileStore,
-    $privateNotesStudent,
-    $privateNotesTileRequest,
-    '2026-07-16T12:01:00+03:30'
-);
-unit_assert(
-    $privateNotesTileAuth['ok'] === true
-        && ($privateNotesTileAuth['tile']['storageKey'] ?? '') === 'documents/pndoc-unitatlas/p1/z2/tile-512-1024.png',
-    'private notes: tile request requires active access, session, device and tile metadata'
-);
-$privateNotesManifest = private_notes_viewer_manifest_for_document($privateNotesTileStore['documents']['pndoc-unitatlas']);
-unit_assert(
-    ($privateNotesManifest['pages'][0]['levels'][0]['tiles'][0]['x'] ?? -1) === 512
-        && !array_key_exists('storageKey', $privateNotesManifest['pages'][0]['levels'][0]['tiles'][0] ?? []),
-    'private notes: viewer manifest exposes tile geometry without private storage keys'
-);
-$privateNotesRevokedDeviceStore = $privateNotesTileStore;
-$privateNotesRevokedDeviceStore['registeredDevices']['pndev-unitactive']['status'] = 'revoked';
-$privateNotesTileAuth = private_notes_authorize_tile_request(
-    $privateNotesRevokedDeviceStore,
-    $privateNotesStudent,
-    $privateNotesTileRequest,
-    '2026-07-16T12:01:00+03:30'
-);
-unit_assert(
-    $privateNotesTileAuth['ok'] === false && $privateNotesTileAuth['reason'] === 'registered-device-not-allowed',
-    'private notes: revoked registered device cannot receive tiles'
-);
-$privateNotesWrongTileRequest = $privateNotesTileRequest;
-$privateNotesWrongTileRequest['tileX'] = 0;
-$privateNotesTileAuth = private_notes_authorize_tile_request(
-    $privateNotesTileStore,
-    $privateNotesStudent,
-    $privateNotesWrongTileRequest,
-    '2026-07-16T12:01:00+03:30'
-);
-unit_assert(
-    $privateNotesTileAuth['ok'] === false && $privateNotesTileAuth['reason'] === 'tile-not-found',
-    'private notes: unknown tile coordinates are denied'
-);
-$privateNotesChangedUaStore = $privateNotesTileStore;
-$_SERVER['HTTP_USER_AGENT'] = 'DentPrivateNotesUnit/changed';
-$privateNotesTileAuth = private_notes_authorize_tile_request(
-    $privateNotesChangedUaStore,
-    $privateNotesStudent,
-    $privateNotesTileRequest,
-    '2026-07-16T12:01:00+03:30'
-);
-unit_assert(
-    $privateNotesTileAuth['ok'] === false && $privateNotesTileAuth['reason'] === 'viewing-session-user-agent-mismatch',
-    'private notes: viewing session is bound to the registered device user agent'
-);
-$_SERVER['HTTP_USER_AGENT'] = 'DentPrivateNotesUnit/1.0';
-
-$privateNotesTokenNow = strtotime('2026-07-16T12:01:00+03:30');
-$privateNotesToken = private_notes_sign_tile_token([
-    'v' => 1,
-    'uid' => '4020001',
-    'doc' => 'pndoc-unitatlas',
-    'sid' => 'pnses-unitactive',
-    'page' => 1,
-    'z' => 2,
-    'x' => 512,
-    'y' => 1024,
-    'exp' => $privateNotesTokenNow + 60,
-    'nonce' => 'unit',
-]);
-$privateNotesTokenCheck = private_notes_validate_tile_token(
-    $privateNotesToken,
-    array_merge($privateNotesTileRequest, ['uid' => '4020001']),
-    $privateNotesTokenNow
-);
-unit_assert(
-    $privateNotesTokenCheck['ok'] === true,
-    'private notes: signed tile token validates for exact user, document, session, page, zoom and tile'
-);
-$privateNotesTokenMismatch = private_notes_validate_tile_token(
-    $privateNotesToken,
-    array_merge($privateNotesTileRequest, ['uid' => '4020001', 'pageNumber' => 2]),
-    $privateNotesTokenNow
-);
-unit_assert(
-    $privateNotesTokenMismatch['ok'] === false
-        && $privateNotesTokenMismatch['reason'] === 'tile-token-claim-mismatch'
-        && $privateNotesTokenMismatch['claim'] === 'page',
-    'private notes: tile token cannot be reused for another page'
-);
-$privateNotesTokenExpired = private_notes_validate_tile_token(
-    $privateNotesToken,
-    array_merge($privateNotesTileRequest, ['uid' => '4020001']),
-    $privateNotesTokenNow + 61
-);
-unit_assert(
-    $privateNotesTokenExpired['ok'] === false && $privateNotesTokenExpired['reason'] === 'tile-token-expired',
-    'private notes: expired tile token is rejected'
-);
-$privateNotesTokenTampered = substr($privateNotesToken, 0, -1) . (substr($privateNotesToken, -1) === 'A' ? 'B' : 'A');
-$privateNotesTokenBadSignature = private_notes_validate_tile_token(
-    $privateNotesTokenTampered,
-    array_merge($privateNotesTileRequest, ['uid' => '4020001']),
-    $privateNotesTokenNow
-);
-unit_assert(
-    $privateNotesTokenBadSignature['ok'] === false && $privateNotesTokenBadSignature['reason'] === 'tile-token-bad-signature',
-    'private notes: tile token signature uses constant-time verification and rejects tampering'
-);
-
-$unitTmpDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dent-private-notes-unit-' . bin2hex(random_bytes(4));
-mkdir($unitTmpDir, 0755, true);
-$invalidPdfPath = $unitTmpDir . DIRECTORY_SEPARATOR . 'not-a-pdf.pdf';
-file_put_contents($invalidPdfPath, "not a pdf\n");
-$invalidPdfValidation = private_notes_validate_pdf_file($invalidPdfPath, 'not-a-pdf.pdf', 'application/pdf');
-unit_assert(
-    $invalidPdfValidation['ok'] === false,
-    'private notes: invalid PDF signature is rejected'
-);
-
-$wrongMimePath = $unitTmpDir . DIRECTORY_SEPARATOR . 'wrong-mime.pdf';
-file_put_contents($wrongMimePath, "%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n");
-$wrongMimeValidation = private_notes_validate_pdf_file($wrongMimePath, 'wrong-mime.pdf', 'text/plain');
-if (private_notes_detect_mime_type($wrongMimePath) === '') {
-    unit_assert(
-        $wrongMimeValidation['ok'] === false && str_contains((string) ($wrongMimeValidation['error'] ?? ''), 'MIME'),
-        'private notes: unsupported reported MIME type is rejected when fileinfo is unavailable'
-    );
-} else {
-    unit_assert(
-        array_key_exists('ok', $wrongMimeValidation),
-        'private notes: server-side MIME detector is used when fileinfo is available'
-    );
-}
-
-$encryptedPdfPath = $unitTmpDir . DIRECTORY_SEPARATOR . 'encrypted.pdf';
-file_put_contents($encryptedPdfPath, "%PDF-1.4\n1 0 obj\n<< /Encrypt 2 0 R >>\nendobj\n%%EOF\n");
-$encryptedPdfValidation = private_notes_validate_pdf_file($encryptedPdfPath, 'encrypted.pdf', 'application/pdf');
-unit_assert(
-    $encryptedPdfValidation['ok'] === false && str_contains((string) ($encryptedPdfValidation['error'] ?? ''), 'Encrypted'),
-    'private notes: encrypted PDFs are rejected before processing'
-);
-
-$samplePdfPath = 'C:\\Users\\ASUS\\Downloads\\Telegram Desktop\\جلسه ۱ مبانی کامل نظری.pdf';
-if (is_file($samplePdfPath)) {
-    $sampleValidation = private_notes_validate_pdf_file($samplePdfPath, basename($samplePdfPath), 'application/pdf');
-    unit_assert(
-        $sampleValidation['ok'] === true && ($sampleValidation['sizeBytes'] ?? 0) > 0 && ($sampleValidation['sha256'] ?? '') !== '',
-        'private notes: provided sample PDF passes upload validation'
-    );
-} else {
-    unit_skip('private notes: provided sample PDF is not present on this machine');
-}
-
-$pdfInfoResult = private_notes_pdf_info($wrongMimePath);
-unit_assert(
-    $pdfInfoResult['ok'] === false,
-    'private notes: processing fails clearly when PDF metadata cannot be read'
-);
-
-@unlink($invalidPdfPath);
-@unlink($wrongMimePath);
-@unlink($encryptedPdfPath);
-@rmdir($unitTmpDir);
 
 echo "\n";
 echo sprintf(

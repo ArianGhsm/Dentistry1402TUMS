@@ -309,10 +309,28 @@ function dent_json_response(array $payload, int $statusCode = 200): void
     while (ob_get_level() > 0) {
         ob_end_clean();
     }
+
+    $contentEncoding = '';
+    $acceptEncoding = (string) ($_SERVER['HTTP_ACCEPT_ENCODING'] ?? '');
+    if (strlen($json) >= 1024 && stripos($acceptEncoding, 'gzip') !== false && function_exists('gzencode')) {
+        $compressed = gzencode($json, 5);
+        if (is_string($compressed) && $compressed !== '') {
+            $json = $compressed;
+            $contentEncoding = 'gzip';
+        }
+    }
+
     if (!headers_sent()) {
         http_response_code($statusCode);
         header('Content-Type: application/json; charset=UTF-8');
         header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('X-Content-Type-Options: nosniff');
+        header('X-Robots-Tag: noindex, nofollow, noarchive');
+        if ($contentEncoding !== '') {
+            header('Content-Encoding: ' . $contentEncoding);
+            header('Vary: Accept-Encoding');
+        }
     }
     echo $json;
     exit;
@@ -341,6 +359,9 @@ function dent_emit_fallback_json_error(string $message, int $statusCode = 500): 
         http_response_code($statusCode);
         header('Content-Type: application/json; charset=UTF-8');
         header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('X-Content-Type-Options: nosniff');
+        header('X-Robots-Tag: noindex, nofollow, noarchive');
     }
     echo $json;
     exit;
@@ -351,6 +372,26 @@ const DENT_ERROR_LOG_MAX_LINES = 1500;
 function dent_error_log_path(): string
 {
     return DENT_STORAGE_ROOT . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'errors.jsonl';
+}
+
+function dent_sanitize_log_text(string $text, int $maxLength): string
+{
+    $text = trim($text);
+    if ($text === '') {
+        return '';
+    }
+    $text = preg_replace('/([?&](?:token|csrfToken|csrf|password|secret|credential|cookie|session)=)[^&\s]+/i', '$1[redacted]', $text) ?? $text;
+    $text = preg_replace('/(Bearer\s+)[A-Za-z0-9._~+\/=-]+/i', '$1[redacted]', $text) ?? $text;
+    foreach ([DENT_STORAGE_ROOT, DENT_SERVER_ONLY_ROOT, DENT_TMP_ROOT, DENT_PROJECT_ROOT] as $root) {
+        $root = trim((string) $root);
+        if ($root !== '') {
+            $text = str_replace([$root, str_replace('\\', '/', $root), str_replace('/', '\\', $root)], '[private-path]', $text);
+        }
+    }
+    if (function_exists('mb_substr')) {
+        return mb_substr($text, 0, $maxLength, 'UTF-8');
+    }
+    return substr($text, 0, $maxLength);
 }
 
 /**
@@ -372,16 +413,7 @@ function dent_error_log_record(array $entry): void
             return;
         }
 
-        $clip = static function ($value, int $max): string {
-            $text = trim((string) $value);
-            if ($text === '') {
-                return '';
-            }
-            if (function_exists('mb_substr')) {
-                return mb_substr($text, 0, $max, 'UTF-8');
-            }
-            return substr($text, 0, $max);
-        };
+        $clip = static fn($value, int $max): string => dent_sanitize_log_text((string) $value, $max);
 
         $student = '';
         if (isset($_SESSION) && is_array($_SESSION)) {

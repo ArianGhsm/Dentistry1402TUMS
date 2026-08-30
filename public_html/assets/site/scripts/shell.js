@@ -8,7 +8,32 @@
     var pendingExternal = null;
     var navInner = null;
     var navSignature = "";
+    var warmedNavigationTargets = Object.create(null);
     var authLinkSeeded = false;
+    var headerAccount = {
+        root: null,
+        trigger: null,
+        panel: null,
+        avatar: null,
+        avatarImage: null,
+        avatarText: null,
+        triggerTitle: null,
+        triggerMeta: null,
+        badge: null,
+        loggedIn: null,
+        loggedOut: null,
+        name: null,
+        role: null,
+        studentNumber: null,
+        ownerLink: null,
+        loginLink: null,
+        signupLink: null,
+        themeButton: null,
+        themeButtons: [],
+        logoutButton: null,
+        open: false,
+        busy: false
+    };
     var pollNavState = {
         pending: false,
         count: 0,
@@ -238,31 +263,23 @@
     function navItems(state) {
         var status = authStatus(state);
         var isPending = isAuthTransitioning(status);
-        var renderLoggedInShell = !!state.loggedIn || isPending;
         var canUseChat = state.loggedIn ? canUseChatState(state) : isPending;
-        var accountHref = isPending ? "/account/" : authLinkHref(state.loggedIn);
         var isProsthesis = isProsthesisState(state);
         var chatBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.chatCount || 0)) : 0;
-        var accountBadgeCount = state.loggedIn ? Math.max(0, Number(navBadgeState.notificationCount || 0)) : 0;
         var items = [];
-        if (renderLoggedInShell) {
-            items.push({
-                href: "/app/",
-                label: "خانه",
-                icon: "home",
-                active: ["/app/"],
-                exact: true
-            });
-        } else {
-            items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
-        }
+        items.push({
+            href: "/app/",
+            label: "خانه",
+            icon: "home",
+            active: ["/app/"],
+            exact: true
+        });
 
         if (!canUseChat) {
-            if (renderLoggedInShell) {
-                items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
-            }
+            items.push({ href: "/resources/", label: "منابع", icon: "resources", active: ["/resources/", "/notes/"] });
             items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
         } else if (!isProsthesis) {
+            items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
             items.push({
                 href: "/chat/",
                 label: "چت",
@@ -271,8 +288,8 @@
                 badgeCount: chatBadgeCount,
                 badgeAriaLabel: "پیام خوانده‌نشده"
             });
-            items.push({ href: "/exams/", label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
         } else {
+            items.push({ href: scopedPath("/exams/", "prosthesis-1402"), label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
             items.push({
                 href: scopedPath("/chat/", "prosthesis-1402"),
                 label: "چت",
@@ -281,19 +298,7 @@
                 badgeCount: chatBadgeCount,
                 badgeAriaLabel: "پیام خوانده‌نشده"
             });
-            items.push({ href: scopedPath("/exams/", "prosthesis-1402"), label: "آزمون‌ها", icon: "exam", active: ["/exams/"] });
         }
-        items.push(
-            {
-                href: accountHref,
-                label: renderLoggedInShell ? "حساب" : "ورود",
-                icon: "account",
-                active: ["/account/"],
-                pending: isPending,
-                badgeCount: accountBadgeCount,
-                badgeAriaLabel: "اعلان خوانده‌نشده"
-            }
-        );
         return items;
     }
 
@@ -348,11 +353,60 @@
         document.body.appendChild(nav);
     }
 
+    function warmBottomNavigation(items) {
+        if (!("serviceWorker" in navigator) || !Array.isArray(items)) {
+            return;
+        }
+
+        var targets = [];
+        items.forEach(function (item) {
+            if (!item || !item.href || isActive(item)) {
+                return;
+            }
+
+            try {
+                var url = new URL(item.href, window.location.origin);
+                if (url.origin !== window.location.origin || warmedNavigationTargets[url.href]) {
+                    return;
+                }
+                warmedNavigationTargets[url.href] = true;
+                targets.push(url.href);
+            } catch (_urlError) {
+                // Invalid navigation items continue through ordinary clicks.
+            }
+        });
+
+        if (!targets.length) {
+            return;
+        }
+
+        function postTargets(worker) {
+            if (!worker) {
+                return;
+            }
+            targets.forEach(function (url) {
+                worker.postMessage({ type: "WARM_PAGE", url: url });
+            });
+        }
+
+        if (navigator.serviceWorker.controller) {
+            postTargets(navigator.serviceWorker.controller);
+            return;
+        }
+
+        navigator.serviceWorker.ready.then(function (registration) {
+            postTargets(registration && registration.active);
+        }).catch(function () {
+            // Prewarming is optional and must never block shared navigation.
+        });
+    }
+
     function renderBottomNav(state) {
         if (shellDisabled) {
             return;
         }
 
+        renderHeaderAccount(state);
         ensureBottomNav();
         var items = navItems(state);
         var signature = JSON.stringify({
@@ -405,6 +459,7 @@
             fragment.appendChild(link);
         });
         navInner.appendChild(fragment);
+        warmBottomNavigation(items);
     }
 
     function themeIconMarkup(targetTheme) {
@@ -434,8 +489,16 @@
             return;
         }
 
-        var button = actions.querySelector("[data-theme-toggle]");
+        var header = actions.closest(".site-header");
+        var tools = header ? header.querySelector(".shell-header-tools") : null;
+        var button = header
+            ? header.querySelector("[data-theme-toggle]")
+            : actions.querySelector("[data-theme-toggle]");
         if (button) {
+            if (tools && button.parentNode !== tools) {
+                tools.appendChild(button);
+            }
+            syncShellThemeButton(button);
             return;
         }
 
@@ -449,8 +512,252 @@
         window.addEventListener("dent1402:theme-change", function () {
             syncShellThemeButton(button);
         });
-        actions.appendChild(button);
+        (tools || actions).appendChild(button);
         syncShellThemeButton(button);
+    }
+
+    function accountMenuIconMarkup(name) {
+        var icons = {
+            chevron: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 7.5L13.5 12L9 16.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+            bell: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 10A5.5 5.5 0 0 1 17.5 10V14.2L19.2 17H4.8L6.5 14.2V10Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.7 19A2.6 2.6 0 0 0 14.3 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+            logout: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 5H6.8A2.8 2.8 0 0 0 4 7.8V16.2A2.8 2.8 0 0 0 6.8 19H10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M13 8L17 12L13 16M17 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+            theme: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 14.5A7.5 7.5 0 0 1 9.5 4A8.5 8.5 0 1 0 20 14.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+            admin: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.8L19 7.4V12.5C19 16.3 16.2 19.2 12 20.4C7.8 19.2 5 16.3 5 12.5V7.4L12 3.8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.5 12L11.2 13.7L14.8 10.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        };
+        return icons[name] || "";
+    }
+
+    function accountMenuInitials(user) {
+        var name = user && user.name ? String(user.name).trim() : "";
+        var parts = name.split(/\s+/).filter(Boolean);
+        if (parts.length > 1) {
+            return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+        }
+        if (parts.length === 1) {
+            return parts[0].slice(0, 2).toUpperCase();
+        }
+        return "کا";
+    }
+
+    function accountMenuDisplayName(user) {
+        if (user && user.name) {
+            return String(user.name).trim();
+        }
+        return "کاربر سایت";
+    }
+
+    function closeHeaderAccountMenu(restoreFocus) {
+        if (!headerAccount.root || !headerAccount.panel || !headerAccount.trigger) {
+            return;
+        }
+        headerAccount.open = false;
+        headerAccount.root.classList.remove("is-open");
+        headerAccount.panel.hidden = true;
+        headerAccount.trigger.setAttribute("aria-expanded", "false");
+        if (restoreFocus) {
+            headerAccount.trigger.focus();
+        }
+    }
+
+    function openHeaderAccountMenu() {
+        if (!headerAccount.root || !headerAccount.panel || !headerAccount.trigger) {
+            return;
+        }
+        if (searchState && searchState.open) {
+            closeSearch();
+        }
+        headerAccount.open = true;
+        headerAccount.panel.hidden = false;
+        headerAccount.root.classList.add("is-open");
+        headerAccount.trigger.setAttribute("aria-expanded", "true");
+    }
+
+    function toggleHeaderAccountMenu() {
+        if (headerAccount.open) {
+            closeHeaderAccountMenu(false);
+        } else {
+            openHeaderAccountMenu();
+        }
+    }
+
+    function syncHeaderAccountThemeLabel() {
+        if (!headerAccount.root) {
+            return;
+        }
+        var theme = window.Dent1402Theme && typeof window.Dent1402Theme.getState === "function"
+            ? window.Dent1402Theme.getState().theme
+            : (document.documentElement.dataset.theme || "light");
+        headerAccount.themeButtons.forEach(function (button) {
+            var strong = button.querySelector("strong");
+            var small = button.querySelector("small");
+            if (strong) {
+                strong.textContent = theme === "dark" ? "حالت روشن" : "حالت تیره";
+            }
+            if (small) {
+                small.textContent = theme === "dark" ? "نمای روشن سایت را فعال کن" : "برای محیط کم‌نور مناسب‌تر است";
+            }
+        });
+    }
+
+    function ensureHeaderAccountMenu() {
+        if (headerAccount.root || shellHeaderDisabled || document.body.classList.contains("chat-page")) {
+            return;
+        }
+        var header = document.querySelector(".site-header");
+        var actions = header ? header.querySelector(".header-actions") : null;
+        if (!header || !actions) {
+            return;
+        }
+
+        var root = document.createElement("div");
+        root.className = "shell-account-menu";
+        root.innerHTML = [
+            '<button class="shell-account-trigger" type="button" aria-haspopup="menu" aria-expanded="false">',
+            '  <span class="shell-account-trigger__avatar" aria-hidden="true"><img alt="" hidden><span data-account-avatar-text>کا</span></span>',
+            '  <span class="shell-account-trigger__copy"><strong data-account-trigger-title>ورود</strong><small data-account-trigger-meta>حساب کاربری</small></span>',
+            '  <span class="shell-account-trigger__chevron" aria-hidden="true">' + accountMenuIconMarkup("chevron") + "</span>",
+            '  <span class="shell-account-trigger__badge" aria-label="اعلان خوانده‌نشده" hidden></span>',
+            "</button>",
+            '<div class="shell-account-panel" role="menu" aria-label="منوی حساب کاربری" hidden>',
+            '  <div data-account-logged-in hidden>',
+            '    <div class="shell-account-panel__profile">',
+            '      <span class="shell-account-panel__avatar" aria-hidden="true" data-account-panel-avatar>کا</span>',
+            '      <span class="shell-account-panel__identity"><strong data-account-name>کاربر سایت</strong><small data-account-role>دانشجو</small><small data-account-student-number dir="ltr"></small></span>',
+            "    </div>",
+            '    <nav class="shell-account-panel__nav" aria-label="دسترسی‌های حساب">',
+            '      <a href="/account/" role="menuitem"><span class="shell-account-panel__icon">' + icon("account") + '</span><span><strong>حساب کاربری</strong><small>پروفایل، امنیت و تنظیمات</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
+            '      <a href="/account/#notifications" role="menuitem"><span class="shell-account-panel__icon">' + accountMenuIconMarkup("bell") + '</span><span><strong>اعلان‌ها</strong><small>پیام‌ها و یادآوری‌های مهم</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
+            '      <a href="/grades/" role="menuitem"><span class="shell-account-panel__icon">' + icon("grades") + '</span><span><strong>کارنامه و نمرات</strong><small>آخرین وضعیت آموزشی</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
+            '      <a href="/resources/" role="menuitem"><span class="shell-account-panel__icon">' + icon("resources") + '</span><span><strong>منابع ذخیره‌شده</strong><small>جزوات و موارد مطالعه</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
+            '      <a href="/admin/" role="menuitem" data-account-owner-link hidden><span class="shell-account-panel__icon">' + accountMenuIconMarkup("admin") + '</span><span><strong>مدیریت سایت</strong><small>وضعیت و ابزارهای مالک</small></span><span class="shell-account-panel__arrow">' + accountMenuIconMarkup("chevron") + "</span></a>",
+            "    </nav>",
+            '    <div class="shell-account-panel__actions">',
+            '      <button type="button" data-account-theme-action role="menuitem"><span class="shell-account-panel__icon">' + accountMenuIconMarkup("theme") + '</span><span><strong>حالت تیره</strong><small>برای محیط کم‌نور مناسب‌تر است</small></span></button>',
+            '      <button type="button" class="shell-account-panel__logout" data-account-logout role="menuitem"><span class="shell-account-panel__icon">' + accountMenuIconMarkup("logout") + '</span><span><strong>خروج از حساب</strong><small>پایان نشست روی این دستگاه</small></span></button>',
+            "    </div>",
+            "  </div>",
+            '  <div class="shell-account-panel__guest" data-account-logged-out>',
+            '    <span class="shell-account-panel__guest-icon" aria-hidden="true">' + icon("account") + "</span>",
+            '    <strong>حساب کاربری</strong>',
+            '    <p>برای دیدن نمرات، اعلان‌ها، فرم‌ها و منابع شخصی وارد شو.</p>',
+            '    <a class="shell-account-panel__login" href="/account/" role="menuitem" data-account-login>ورود به حساب</a>',
+            '    <a class="shell-account-panel__signup" href="/account/?mode=signup" role="menuitem" data-account-signup>ساخت حساب جدید</a>',
+            '    <button class="shell-account-panel__guest-theme" type="button" data-account-theme-action role="menuitem"><span>' + accountMenuIconMarkup("theme") + '</span><span><strong>حالت تیره</strong><small>برای محیط کم‌نور مناسب‌تر است</small></span></button>',
+            "  </div>",
+            "</div>"
+        ].join("");
+
+        actions.insertBefore(root, actions.firstChild);
+        headerAccount.root = root;
+        headerAccount.trigger = root.querySelector(".shell-account-trigger");
+        headerAccount.panel = root.querySelector(".shell-account-panel");
+        headerAccount.avatar = root.querySelector(".shell-account-trigger__avatar");
+        headerAccount.avatarImage = headerAccount.avatar.querySelector("img");
+        headerAccount.avatarText = root.querySelector("[data-account-avatar-text]");
+        headerAccount.triggerTitle = root.querySelector("[data-account-trigger-title]");
+        headerAccount.triggerMeta = root.querySelector("[data-account-trigger-meta]");
+        headerAccount.badge = root.querySelector(".shell-account-trigger__badge");
+        headerAccount.loggedIn = root.querySelector("[data-account-logged-in]");
+        headerAccount.loggedOut = root.querySelector("[data-account-logged-out]");
+        headerAccount.name = root.querySelector("[data-account-name]");
+        headerAccount.role = root.querySelector("[data-account-role]");
+        headerAccount.studentNumber = root.querySelector("[data-account-student-number]");
+        headerAccount.ownerLink = root.querySelector("[data-account-owner-link]");
+        headerAccount.loginLink = root.querySelector("[data-account-login]");
+        headerAccount.signupLink = root.querySelector("[data-account-signup]");
+        headerAccount.themeButtons = Array.prototype.slice.call(root.querySelectorAll("[data-account-theme-action]"));
+        headerAccount.themeButton = headerAccount.themeButtons[0] || null;
+        headerAccount.logoutButton = root.querySelector("[data-account-logout]");
+
+        headerAccount.trigger.addEventListener("click", function (event) {
+            event.stopPropagation();
+            toggleHeaderAccountMenu();
+        });
+        headerAccount.panel.addEventListener("click", function (event) {
+            var link = event.target.closest("a");
+            if (link) {
+                closeHeaderAccountMenu(false);
+            }
+        });
+        headerAccount.themeButtons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                if (window.Dent1402Theme && typeof window.Dent1402Theme.toggle === "function") {
+                    window.Dent1402Theme.toggle();
+                }
+            });
+        });
+        headerAccount.logoutButton.addEventListener("click", function () {
+            var auth = authApi();
+            if (headerAccount.busy || !auth || typeof auth.logout !== "function") {
+                return;
+            }
+            headerAccount.busy = true;
+            headerAccount.logoutButton.disabled = true;
+            headerAccount.logoutButton.querySelector("strong").textContent = "در حال خروج...";
+            auth.logout().then(function () {
+                window.location.href = "/account/";
+            }).catch(function () {
+                headerAccount.busy = false;
+                headerAccount.logoutButton.disabled = false;
+                headerAccount.logoutButton.querySelector("strong").textContent = "خروج از حساب";
+            });
+        });
+        document.addEventListener("click", function (event) {
+            if (headerAccount.open && headerAccount.root && !headerAccount.root.contains(event.target)) {
+                closeHeaderAccountMenu(false);
+            }
+        });
+        window.addEventListener("dent1402:theme-change", syncHeaderAccountThemeLabel);
+        syncHeaderAccountThemeLabel();
+    }
+
+    function renderHeaderAccount(state) {
+        ensureHeaderAccountMenu();
+        if (!headerAccount.root) {
+            return;
+        }
+        var status = authStatus(state);
+        var pending = isAuthTransitioning(status);
+        var loggedIn = !!(state && state.loggedIn && state.user);
+        var user = loggedIn ? state.user : null;
+        var displayName = accountMenuDisplayName(user);
+        var initials = accountMenuInitials(user);
+        var avatarUrl = user && user.profile && user.profile.avatarUrl ? String(user.profile.avatarUrl) : "";
+        var unreadCount = loggedIn ? Math.max(0, Number(navBadgeState.notificationCount || 0)) : 0;
+        var returnTo = window.location.pathname + window.location.search + window.location.hash;
+
+        headerAccount.root.classList.toggle("is-authenticated", loggedIn);
+        headerAccount.root.classList.toggle("is-pending", pending);
+        headerAccount.trigger.disabled = pending;
+        headerAccount.triggerTitle.textContent = pending ? "در حال بررسی" : (loggedIn ? "حساب من" : "ورود");
+        headerAccount.triggerMeta.textContent = loggedIn ? displayName : "حساب کاربری";
+        headerAccount.trigger.setAttribute("aria-label", pending ? "در حال بررسی حساب" : (loggedIn ? "باز کردن منوی حساب " + displayName : "ورود یا ساخت حساب"));
+        headerAccount.avatarText.textContent = initials;
+        headerAccount.avatarText.hidden = !!avatarUrl;
+        headerAccount.avatarImage.hidden = !avatarUrl;
+        if (avatarUrl && headerAccount.avatarImage.getAttribute("src") !== avatarUrl) {
+            headerAccount.avatarImage.src = avatarUrl;
+        }
+        if (!avatarUrl) {
+            headerAccount.avatarImage.removeAttribute("src");
+        }
+
+        headerAccount.badge.hidden = unreadCount < 1;
+        headerAccount.badge.textContent = unreadCount > 9 ? "۹+" : localeDigits(unreadCount);
+        headerAccount.loggedIn.hidden = !loggedIn;
+        headerAccount.loggedOut.hidden = loggedIn || pending;
+        headerAccount.name.textContent = displayName;
+        headerAccount.role.textContent = user && user.roleLabel ? String(user.roleLabel) : (user && user.isOwner ? "مالک سایت" : "دانشجو");
+        headerAccount.studentNumber.textContent = user && user.studentNumber ? String(user.studentNumber) : "";
+        headerAccount.ownerLink.hidden = !(user && user.isOwner);
+        headerAccount.loginLink.href = authLinkHref(false);
+        headerAccount.signupLink.href = "/account/?mode=signup&returnTo=" + encodeURIComponent(returnTo);
+        if (!loggedIn) {
+            headerAccount.busy = false;
+            headerAccount.logoutButton.disabled = false;
+            headerAccount.logoutButton.querySelector("strong").textContent = "خروج از حساب";
+        }
+        syncHeaderAccountThemeLabel();
     }
 
     function createMinimalSiteHeader() {
@@ -505,6 +812,23 @@
                 siteInfo = document.createElement("div");
                 siteInfo.className = "site-info";
                 logoArea.appendChild(siteInfo);
+            }
+
+            var brandLink = logoArea.querySelector(".shell-brand-link");
+            if (!brandLink) {
+                brandLink = document.createElement("a");
+                brandLink.className = "shell-brand-link";
+                brandLink.href = "/app/";
+                brandLink.setAttribute("aria-label", "رفتن به خانه سایت");
+                logoArea.insertBefore(brandLink, siteInfo);
+                brandLink.appendChild(siteInfo);
+            }
+            if (!brandLink.querySelector(".shell-brand-mark")) {
+                var brandMark = document.createElement("span");
+                brandMark.className = "shell-brand-mark";
+                brandMark.setAttribute("aria-hidden", "true");
+                brandMark.innerHTML = '<img src="/assets/images/logo.png?v=20260722-200509" alt="">';
+                brandLink.insertBefore(brandMark, brandLink.firstChild);
             }
 
             var title = siteInfo.querySelector("h1");
@@ -1847,6 +2171,7 @@
         applySiteAppearance(state);
         applyBranding(state);
         syncAuthLinks(state);
+        renderHeaderAccount(state);
         syncPollEntry(state);
         updateSearchVisibility(state);
     }
@@ -1913,6 +2238,7 @@
         if (!searchState.panel || searchState.open) {
             return;
         }
+        closeHeaderAccountMenu(false);
         searchState.open = true;
         searchState.backdrop.hidden = false;
         searchState.panel.hidden = false;
@@ -2057,6 +2383,19 @@
         searchState.seeded = true;
         searchState.header = header;
 
+        var tools = header.querySelector(".shell-header-tools");
+        if (!tools) {
+            tools = document.createElement("div");
+            tools.className = "shell-header-tools";
+            header.appendChild(tools);
+        }
+
+        var actions = header.querySelector(".header-actions");
+        var themeButton = actions ? actions.querySelector("[data-theme-toggle]") : null;
+        if (themeButton) {
+            tools.appendChild(themeButton);
+        }
+
         var trigger = document.createElement("button");
         trigger.type = "button";
         trigger.className = "shell-search-trigger";
@@ -2066,7 +2405,7 @@
         trigger.innerHTML = searchIconMarkup();
         trigger.hidden = true;
         trigger.addEventListener("click", openSearch);
-        header.appendChild(trigger);
+        tools.appendChild(trigger);
         searchState.trigger = trigger;
 
         var backdrop = document.createElement("div");
@@ -2239,6 +2578,28 @@
         }, { passive: true });
     }
 
+    function initShellScrollState() {
+        if (!document.body || document.body.classList.contains("chat-page")) {
+            return;
+        }
+
+        var framePending = false;
+        var sync = function () {
+            framePending = false;
+            document.body.classList.toggle("is-shell-scrolled", window.scrollY > 8);
+        };
+        var requestSync = function () {
+            if (framePending) {
+                return;
+            }
+            framePending = true;
+            window.requestAnimationFrame(sync);
+        };
+
+        sync();
+        window.addEventListener("scroll", requestSync, { passive: true });
+    }
+
     function init() {
         document.body.classList.add("has-app-shell");
         if (shellDisabled) {
@@ -2252,6 +2613,7 @@
         ensureHeaderSearch();
         applySiteAppearance(authState());
         syncAuthUi(authState());
+        initShellScrollState();
         initNavSwipe();
         initNavPrefetch();
 
@@ -2290,6 +2652,9 @@
 
         document.addEventListener("keydown", function (event) {
             if (event.key === "Escape") {
+                if (headerAccount.open) {
+                    closeHeaderAccountMenu(true);
+                }
                 if (searchState.open) {
                     closeSearch();
                 }

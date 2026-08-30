@@ -989,7 +989,7 @@ function analytics_exam_counts_toward_stats(array $exam): bool
     return (bool) $exam['countsTowardStats'];
 }
 
-function analytics_exam_collection_ids(array $examsStore): array
+function analytics_exam_collection_ids(array $examsStore, array $paymentsStore = []): array
 {
     $ids = [];
     $settings = is_array($examsStore['courseSettings'] ?? null) ? $examsStore['courseSettings'] : [];
@@ -1011,6 +1011,31 @@ function analytics_exam_collection_ids(array $examsStore): array
             if ($cleanId > 0) {
                 $ids[$cleanId] = true;
             }
+        }
+    }
+
+    foreach (is_array($paymentsStore['orders'] ?? null) ? $paymentsStore['orders'] : [] as $order) {
+        if (!is_array($order)) {
+            continue;
+        }
+
+        $extra = is_array($order['extra_form_data'] ?? null) ? $order['extra_form_data'] : [];
+        $collectionId = max(0, (int) ($extra['collection_id'] ?? 0));
+        if ((string) ($extra['_source'] ?? '') !== 'collection' || $collectionId <= 0) {
+            continue;
+        }
+
+        $returnPath = trim((string) ($extra['_return_path'] ?? ''));
+        $path = parse_url($returnPath, PHP_URL_PATH);
+        $query = parse_url($returnPath, PHP_URL_QUERY);
+        if (!is_string($path) || preg_match('#^/exams/pay/?$#', $path) !== 1 || !is_string($query)) {
+            continue;
+        }
+
+        $returnParams = [];
+        parse_str($query, $returnParams);
+        if (dent_exams_clean_course_slug((string) ($returnParams['course'] ?? '')) !== '') {
+            $ids[$collectionId] = true;
         }
     }
 
@@ -1123,7 +1148,7 @@ function analytics_build_exam_summary(array $analyticsStore, array $examsStore, 
         $startedCount += count($participants);
     }
 
-    $collectionIdMap = array_fill_keys(analytics_exam_collection_ids($examsStore), true);
+    $collectionIdMap = array_fill_keys(analytics_exam_collection_ids($examsStore, $paymentsStore), true);
     $purchasers = [];
     $paidOrderCount = 0;
     $receivedAmount = 0;

@@ -17,6 +17,14 @@
 }
 
 @font-face {
+    font-family: "SahelFooter";
+    src: url("/fonts/Sahel-Black.ttf") format("truetype");
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
     font-family: "AbarHigh";
     src: url("/fonts/AbarHigh-SemiBold.woff2") format("woff2"),
          url("/fonts/AbarHigh-SemiBold.ttf") format("truetype");
@@ -848,36 +856,99 @@ html[data-theme="dark"] .logo-circle {
     padding: 1.2rem 5% 0;
 }
 
+body {
+    --footer-page-accent: var(--accent-color);
+}
+
+body.buy-page {
+    --footer-page-accent: var(--commerce-accent);
+}
+
 .site-footer,
 footer {
+    position: relative;
+    isolation: isolate;
     margin-top: auto;
-    padding: 1rem 1rem 1.6rem;
+    padding: 1.05rem max(1rem, 5vw) calc(1.12rem + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.18rem 0;
     text-align: center;
-    color: var(--text-tertiary);
-    font-size: 0.8rem;
-    border-top: 1px solid rgba(127, 145, 165, 0.14);
-    background: transparent;
+    color: color-mix(in srgb, var(--footer-page-accent) 22%, var(--text-secondary));
+    font-family: "SahelFooter", var(--font-main);
+    font-size: clamp(0.74rem, 0.7rem + 0.12vw, 0.82rem);
+    font-synthesis: none;
+    border-top: 1px solid color-mix(in srgb, var(--footer-page-accent) 22%, var(--border-color)) !important;
+    background: color-mix(in srgb, var(--footer-page-accent) 3.5%, var(--surface-solid)) !important;
 }
 
 .site-footer p,
 footer p {
     margin: 0;
-    color: var(--footer-title-color);
-    font-family: var(--font-accent);
-    font-weight: 700;
+    color: color-mix(in srgb, var(--footer-page-accent) 68%, var(--text-primary));
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 900;
+    line-height: 1.65;
     letter-spacing: 0;
+}
+
+.site-footer p::after,
+footer p::after {
+    content: "";
+    width: 4px;
+    height: 4px;
+    display: inline-block;
+    margin-inline: 0.68rem;
+    border-radius: 50%;
+    background: var(--footer-page-accent);
+    vertical-align: 0.12em;
+    opacity: 0.58;
 }
 
 .site-footer::after,
 footer::after {
-    content: "ساخته شده با ❤ توسط آرین قاسم پور";
+    content: "ساخته‌شده با عشق · آرین قاسم‌پور";
     display: block;
-    margin-top: 0.55rem;
-    color: var(--footer-credit-color);
-    font-family: var(--font-accent);
-    font-size: 0.88rem;
-    font-weight: 700;
+    margin: 0;
+    color: color-mix(in srgb, var(--footer-page-accent) 24%, var(--text-secondary));
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 900;
+    line-height: 1.65;
     letter-spacing: 0;
+}
+
+.site-footer::before,
+footer::before {
+    content: "";
+    position: absolute;
+    z-index: 1;
+    inset-block-start: -1px;
+    inset-inline: auto !important;
+    inset-inline-start: calc(50% - 26px) !important;
+    width: 52px !important;
+    height: 2px !important;
+    border-radius: 0 0 4px 4px !important;
+    background: var(--footer-page-accent) !important;
+    transform: none !important;
+    opacity: 0.82 !important;
+}
+
+@media (max-width: 560px) {
+    .site-footer,
+    footer {
+        padding-block-start: 0.92rem;
+        flex-direction: column;
+        gap: 0.06rem;
+    }
+
+    .site-footer p::after,
+    footer p::after {
+        display: none;
+    }
 }
 
 .btn-reset {
@@ -2361,6 +2432,7 @@ html[data-performance-mode="lite"] .shell-modal {
 .catalog-simple-hero,
 .catalog-simple-group {
     padding: 0.84rem 0.9rem;
+    padding-inline-start: 1.4rem;
 }
 
 .catalog-simple-hero__copy,
@@ -2490,6 +2562,7 @@ html[data-performance-mode="lite"] .shell-modal {
     align-items: center;
     gap: 0.78rem;
     padding: 0.78rem 0.9rem;
+    padding-inline-start: 1.3rem;
     color: inherit;
     text-align: right;
     text-decoration: none;
@@ -2662,6 +2735,7 @@ html[data-theme="dark"] .catalog-simple-row__visual {
     .catalog-simple-hero,
     .catalog-simple-group {
         padding: 0.78rem 0.82rem;
+        padding-inline-start: 1.25rem;
     }
 
     .catalog-simple-row__link,
@@ -2669,6 +2743,7 @@ html[data-theme="dark"] .catalog-simple-row__visual {
     .catalog-simple-row__static {
         gap: 0.66rem;
         padding: 0.74rem 0.82rem;
+        padding-inline-start: 1.25rem;
     }
 
     .catalog-simple-row__visual {
@@ -2725,4 +2800,10 @@ html[data-theme="dark"] .catalog-simple-row__visual {
         transform: none;
     }
 
+}
+/* PWA releases activate silently. This kill-switch also suppresses banners
+   injected by an older cached pwa.js while the current worker takes control. */
+#dent1402-pwa-update,
+.dent1402-pwa-update {
+    display: none !important;
 }

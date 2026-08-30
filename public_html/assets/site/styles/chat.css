@@ -9249,7 +9249,7 @@ body.chat-page .composer-send {
 }
 
 body.chat-page .chat-mobile-nav {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
 }
 
 @media (max-width: 980px) {
@@ -9259,7 +9259,7 @@ body.chat-page .chat-mobile-nav {
         bottom: calc(0.42rem + env(safe-area-inset-bottom, 0px)) !important;
         min-height: 64px !important;
         display: grid !important;
-        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         border-radius: 22px !important;
         padding: 0.24rem !important;
         background: var(--shell-nav-inner-bg) !important;
@@ -11438,4 +11438,265 @@ body.chat-page.chat-list-selection-mode .conversation-pane__header,
 body.chat-page.chat-list-selection-mode #conversation-search-wrap,
 body.chat-page.chat-list-selection-mode .conversation-filter-tabs {
     display: none !important;
+}
+
+/* Composer alignment with the current site language. Chat keeps its compact
+   messenger behavior, while upload/voice states use the same restrained
+   surfaces, dividers and control geometry as the rest of the interface. */
+body.chat-page .composer {
+    padding: 0.42rem 0.56rem calc(0.48rem + env(safe-area-inset-bottom, 0px)) !important;
+    border-top: 1px solid var(--chat-border) !important;
+    background: var(--chat-bale-surface, var(--chat-composer-bg)) !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+}
+
+body.chat-page .composer-box {
+    min-height: 50px !important;
+    padding: 0.3rem 0.38rem !important;
+    gap: 0.28rem !important;
+    border: 1px solid var(--chat-border) !important;
+    border-radius: 8px !important;
+    background: var(--chat-bale-surface-soft, var(--chat-input-bg)) !important;
+    box-shadow: none !important;
+}
+
+body.chat-page .composer-box:focus-within {
+    border-color: color-mix(in srgb, var(--chat-accent) 46%, var(--chat-border)) !important;
+    background: var(--chat-bale-surface, var(--chat-input-bg)) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-accent) 10%, transparent) !important;
+}
+
+body.chat-page .composer-tools {
+    gap: 0.06rem !important;
+}
+
+body.chat-page .composer-tool,
+body.chat-page .composer-send {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+
+body.chat-page .composer-tool {
+    border: 0 !important;
+    background: transparent !important;
+    color: var(--chat-bale-muted, var(--chat-muted)) !important;
+}
+
+body.chat-page .composer-tool:hover,
+body.chat-page .composer-tool:focus-visible,
+body.chat-page .composer-tool.is-open,
+body.chat-page .composer-tool.is-recording {
+    transform: none !important;
+    color: var(--chat-accent) !important;
+    background: color-mix(in srgb, var(--chat-accent) 10%, transparent) !important;
+}
+
+body.chat-page .composer-send {
+    border: 0 !important;
+    background: var(--chat-accent) !important;
+    color: var(--text-on-accent, #fff) !important;
+}
+
+body.chat-page .composer-entry textarea {
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0.42rem 0.58rem !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--chat-bale-text, var(--chat-text)) !important;
+    font-size: 16px !important;
+    line-height: 22px !important;
+}
+
+body.chat-page .composer-upload-sheet {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 0 !important;
+    margin: 0 0 0.42rem !important;
+    padding: 0 !important;
+    overflow: hidden;
+    border: 1px solid var(--chat-border) !important;
+    border-radius: 8px !important;
+    background: var(--chat-bale-surface, var(--chat-sheet-bg)) !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+}
+
+body.chat-page .composer-upload-sheet__head {
+    min-height: 38px;
+    padding: 0.38rem 0.58rem !important;
+    border-bottom: 1px solid var(--chat-border);
+}
+
+body.chat-page .composer-upload-option {
+    min-height: 62px !important;
+    gap: 0.28rem !important;
+    padding: 0.46rem 0.28rem !important;
+    border: 0 !important;
+    border-inline-end: 1px solid var(--chat-border) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--chat-bale-text, var(--chat-text)) !important;
+    box-shadow: none !important;
+}
+
+body.chat-page .composer-upload-option:first-of-type {
+    border-inline-end: 0 !important;
+}
+
+body.chat-page .composer-upload-option__icon {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--chat-accent) !important;
+}
+
+body.chat-page .composer-upload-option__icon svg {
+    width: 19px !important;
+    height: 19px !important;
+}
+
+body.chat-page .composer-upload-option:hover,
+body.chat-page .composer-upload-option:focus-visible {
+    transform: none !important;
+    border-color: var(--chat-border) !important;
+    background: color-mix(in srgb, var(--chat-accent) 8%, transparent) !important;
+    color: var(--chat-accent) !important;
+}
+
+body.chat-page .composer-uploads {
+    gap: 0 !important;
+    margin: 0 0 0.42rem !important;
+    border-block: 1px solid var(--chat-border);
+}
+
+body.chat-page .composer-upload-item {
+    min-height: 58px;
+    padding: 0.38rem 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid var(--chat-border) !important;
+    background: transparent !important;
+}
+
+body.chat-page .composer-upload-item:last-child {
+    border-bottom: 0 !important;
+}
+
+body.chat-page .composer-upload-item__preview {
+    width: 48px !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+}
+
+body.chat-page .composer-upload-item__edit,
+body.chat-page .composer-upload-item__move,
+body.chat-page .composer-upload-item__remove {
+    border-radius: 6px !important;
+    box-shadow: none !important;
+}
+
+body.chat-page .composer-voice {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 0.42rem 0.7rem !important;
+    margin: 0 0 0.42rem !important;
+    padding: 0.48rem 0 !important;
+    border: 0 !important;
+    border-block: 1px solid var(--chat-border) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+}
+
+body.chat-page .composer-voice__topline {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+body.chat-page .composer-voice__wave {
+    min-width: 0;
+    color: var(--chat-accent);
+}
+
+body.chat-page .composer-voice__hint {
+    grid-column: 1 / -1;
+    color: var(--chat-bale-muted, var(--chat-muted));
+    font-size: 0.68rem;
+    line-height: 1.6;
+}
+
+body.chat-page .composer-voice__actions {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+}
+
+body.chat-page .composer-voice__actions .shell-action-btn {
+    min-height: 36px !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+}
+
+body.chat-page .composer-status:not(:empty) {
+    margin-top: 0.32rem !important;
+    padding-inline: 0.18rem;
+    font-size: 0.7rem !important;
+}
+
+@media (max-width: 980px) {
+    body.chat-page .composer {
+        padding: 0 !important;
+    }
+
+    body.chat-page .composer-box {
+        width: 100% !important;
+        min-height: 54px !important;
+        padding: 0.32rem 0.44rem !important;
+        border-inline: 0 !important;
+        border-bottom: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    body.chat-page .composer-upload-sheet {
+        inset-inline: 0.5rem !important;
+        inset-block-end: calc(0.42rem + env(safe-area-inset-bottom, 0px) + var(--chat-local-nav-height)) !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        max-height: min(19rem, calc(100dvh - var(--chat-local-nav-height) - 5rem));
+        overflow-y: auto;
+        border-radius: 8px !important;
+    }
+
+    body.chat-page .composer-upload-option {
+        min-height: 58px !important;
+        border-block-end: 1px solid var(--chat-border) !important;
+    }
+
+    body.chat-page .composer-voice,
+    body.chat-page .composer-uploads {
+        margin-inline: 0.52rem !important;
+    }
+
+    body.chat-page .composer-voice {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    body.chat-page .composer-voice__actions {
+        grid-column: 1;
+        grid-row: auto;
+        width: 100%;
+        justify-self: stretch;
+    }
+
+    body.chat-page .composer-voice__actions .shell-action-btn {
+        flex: 1 1 0;
+    }
 }

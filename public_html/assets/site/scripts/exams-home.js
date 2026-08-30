@@ -232,6 +232,20 @@
         };
     }
 
+    function fetchWithTimeout(url, options, timeoutMs) {
+        if (typeof AbortController !== "function") {
+            return fetch(url, options);
+        }
+        var controller = new AbortController();
+        var requestOptions = Object.assign({}, options || {}, { signal: controller.signal });
+        var timer = window.setTimeout(function () {
+            controller.abort();
+        }, Math.max(1000, Number(timeoutMs) || 20000));
+        return fetch(url, requestOptions).finally(function () {
+            window.clearTimeout(timer);
+        });
+    }
+
     function apiGet(action, payload) {
         var query = new URLSearchParams(Object.assign({ action: action }, payload || {}));
         var cohort = String(currentParams().get("cohort") || "").trim();
@@ -239,12 +253,12 @@
             query.set("cohort", cohort);
         }
         query.set("_t", String(Date.now()));
-        return fetch("/api/exams_api.php?" + query.toString(), {
+        return fetchWithTimeout("/api/exams_api.php?" + query.toString(), {
             method: "GET",
             cache: "no-store",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
-        }).then(parseJson).catch(networkErrorResponse);
+        }, 20000).then(parseJson).catch(networkErrorResponse);
     }
 
     function formatValue(value) {
@@ -630,7 +644,6 @@
         return simpleRowHtml({
             type: "button",
             attrs: ' data-open-mode="' + escapeHtml(mode) + '"',
-            eyebrow: "مسیر ورود",
             title: isReference ? "رفرنس‌محور" : "ترم‌محور",
             meta: isReference
                 ? "اول تخصص را انتخاب کن، بعد رفرنس‌ها و آزمون‌های وصل‌شده را ببین."

@@ -6,6 +6,7 @@ param(
     [switch]$SkipPostDeployVerification,
     [switch]$SkipGitHubSync,
     [switch]$SkipOwnerDeployNotification,
+    [switch]$SkipCentralDeployNotification,
     [switch]$SkipVersionStamp,
     [switch]$AllowLargeDeploy,
     [switch]$PullBeforeDeploy,
@@ -49,7 +50,38 @@ $remotePath = "/" + ($config.remotePath.TrimStart('/'))
 $ftpBase = "ftp://$($config.host)$remotePath"
 $credentials = "$($config.username):$($config.password)"
 $runStartedAt = [DateTimeOffset]::Now
+$centralDeployBaseId = "website-" + (Get-Date -Format "yyyyMMdd-HHmmss")
+$centralDeployStarted = $false
+$centralDeployFinalized = $false
 $script:SharedProjectRoot = $null
+
+function Send-CentralDeployLifecycle([string]$Status, [string]$Version, [string]$Summary) {
+    if ($DryRun -or $SkipCentralDeployNotification) {
+        return
+    }
+    $integrationRoot = Join-Path (Split-Path -Parent $projectRoot) "IntegratedDent1402Tums"
+    $emitter = Join-Path $integrationRoot "scripts\emit-deploy-status.ps1"
+    if (-not (Test-Path -LiteralPath $emitter -PathType Leaf)) {
+        throw "Central deployment notifier emitter was not found."
+    }
+    $eventId = "$centralDeployBaseId-$Status"
+    $eventOutput = @(& $emitter -Service website -Status $Status -EventId $eventId -Version $Version -Summary $Summary -Actor "website-deploy-script")
+    if ($LASTEXITCODE -ne 0) {
+        throw "Central website deployment lifecycle event could not be queued."
+    }
+    $eventResult = $null
+    try {
+        $eventResult = ([string]($eventOutput | Select-Object -Last 1)) | ConvertFrom-Json
+    } catch {
+        throw "Central website deployment lifecycle response was invalid."
+    }
+    if ([string]$eventResult.deliveries.site.status -ne "delivered") {
+        throw "Central website deployment lifecycle event was queued but the owner website notice was not delivered."
+    }
+    foreach ($line in $eventOutput) {
+        Write-Output $line
+    }
+}
 
 function Get-SharedProjectRoot() {
     if (-not [string]::IsNullOrWhiteSpace([string]$script:SharedProjectRoot)) {
@@ -522,7 +554,10 @@ function Add-RelativePath([System.Collections.Generic.HashSet[string]]$set, [str
 
 function Normalize-ScopePath([string]$path, [switch]$PublicHtmlRelative) {
     $normalized = ([string]$path).Trim() -replace '\\', '/'
-    $normalized = $normalized.TrimStart('.', '/')
+    while ($normalized.StartsWith("./", [System.StringComparison]::Ordinal)) {
+        $normalized = $normalized.Substring(2)
+    }
+    $normalized = $normalized.TrimStart('/')
     if ([string]::IsNullOrWhiteSpace($normalized)) {
         return ""
     }
@@ -1213,7 +1248,8 @@ function Test-OptionalRemoteStorageDirectory([string]$remoteRelative) {
         return $true
     }
 
-    if ($normalized -eq "storage/private_notes/pages") {
+
+    if ($normalized -eq "storage/logs" -or $normalized.StartsWith("storage/logs/")) {
         return $true
     }
 
@@ -1285,7 +1321,16 @@ function Download-RemoteStorageFile(
     }
 
     $reused = $false
-    if (-not [string]::IsNullOrWhiteSpace($seedPath) -and (Test-Path -LiteralPath $seedPath -PathType Leaf)) {
+    $seedExists = $false
+    if (-not [string]::IsNullOrWhiteSpace($seedPath)) {
+        try {
+            $seedExists = Test-Path -LiteralPath $seedPath -PathType Leaf -ErrorAction Stop
+        } catch {
+            Write-Warning "Unable to inspect local storage mirror seed; downloading a fresh remote copy instead: $localRelative"
+            $seedExists = $false
+        }
+    }
+    if ($seedExists) {
         try {
             $seedInfo = Get-Item -LiteralPath $seedPath -ErrorAction Stop
             $sizeMatches = ($RemoteSize -lt 0 -or [int64]$seedInfo.Length -eq $RemoteSize)
@@ -1336,6 +1381,21 @@ function Download-RemoteStorageDirectory(
     [ref]$reusedCount
 ) {
     $normalized = (($remoteRelative -replace '\\', '/').Trim()).Trim('/')
+    $normalizedRoot = (($remoteRoot -replace '\\', '/').Trim()).Trim('/')
+    $relativeWithinStorage = $normalized
+    if ($relativeWithinStorage.StartsWith($normalizedRoot + "/", [System.StringComparison]::OrdinalIgnoreCase)) {
+        $relativeWithinStorage = $relativeWithinStorage.Substring($normalizedRoot.Length + 1)
+    }
+    if ($relativeWithinStorage.Equals("cache", [System.StringComparison]::OrdinalIgnoreCase) -or
+        $relativeWithinStorage.StartsWith("cache/", [System.StringComparison]::OrdinalIgnoreCase)) {
+        Write-Host "Skip rebuildable runtime cache during host storage mirror: $normalized"
+        return
+    }
+    if ($relativeWithinStorage.Equals("private_notes", [System.StringComparison]::OrdinalIgnoreCase) -or
+        $relativeWithinStorage.StartsWith("private_notes/", [System.StringComparison]::OrdinalIgnoreCase)) {
+        Write-Host "Skip retired private-notes storage; its final DPAPI backup is maintained separately: $normalized"
+        return
+    }
     if ($visited.Contains($normalized)) {
         return
     }
@@ -1982,7 +2042,13 @@ function Run-Validation() {
         "--owner-student-number", $liveCredentials.StudentNumber,
         "--owner-password", $liveCredentials.Password
     )
-    Write-Host "Running: $python $($smokeCommand -join ' ')"
+    $smokeDisplayCommand = @(
+        $smokeScriptPath,
+        "--project-root", $projectRoot,
+        "--owner-student-number", $liveCredentials.StudentNumber,
+        "--owner-password", "[REDACTED]"
+    )
+    Write-Host "Running: $python $($smokeDisplayCommand -join ' ')"
     & $python @smokeCommand
     if ($LASTEXITCODE -ne 0) {
         throw "Validation failed (scripts/smoke_multi_cohort_pages.py). Deployment aborted before host upload."
@@ -1992,7 +2058,7 @@ function Run-Validation() {
         Status     = "completed"
         StartedAt  = $started
         FinishedAt = Get-IsoNow
-        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $($php.Source) $examQualityScriptPath ; $($php.Source) $examTimelineScriptPath ; $($php.Source) $examHomeHighlightsIndexScriptPath --check ; $($php.Source) $finalExamScheduleScriptPath ; $($php.Source) $uploadConfigScriptPath ; $python $($smokeCommand -join ' ')"
+        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $($php.Source) $examQualityScriptPath ; $($php.Source) $examTimelineScriptPath ; $($php.Source) $examHomeHighlightsIndexScriptPath --check ; $($php.Source) $finalExamScheduleScriptPath ; $($php.Source) $uploadConfigScriptPath ; $python $($smokeDisplayCommand -join ' ')"
     }
 }
 
@@ -2382,15 +2448,35 @@ function Build-GitHubSyncPlan([string]$upstream) {
     }
 }
 
-function Get-GitHubStagePathList([string[]]$pathScope) {
+function Get-GitHubStagePathList([string[]]$pathScope, [string]$repoPath = "") {
     $stageSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+    $trackedSet = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+    if (-not [string]::IsNullOrWhiteSpace($repoPath)) {
+        $trackedOutput = @(& git -C $repoPath ls-files 2>$null)
+        if ($LASTEXITCODE -ne 0) {
+            throw "Unable to list tracked files while preparing the GitHub stage scope."
+        }
+        foreach ($trackedPath in $trackedOutput) {
+            $normalizedTrackedPath = ([string]$trackedPath).Trim().Replace('\', '/')
+            if (-not [string]::IsNullOrWhiteSpace($normalizedTrackedPath)) {
+                [void]$trackedSet.Add($normalizedTrackedPath)
+            }
+        }
+    }
+
     foreach ($path in @($pathScope)) {
-        $normalized = ([string]$path).Trim().TrimStart('/')
+        $normalized = ([string]$path).Trim().TrimStart('/').Replace('\', '/')
         if ([string]::IsNullOrWhiteSpace($normalized)) {
             continue
         }
         if (Test-ProtectedGitHubRelativePath -relative $normalized) {
             continue
+        }
+        if (-not [string]::IsNullOrWhiteSpace($repoPath)) {
+            $worktreePath = Join-Path $repoPath ($normalized -replace '/', '\')
+            if (-not (Test-Path -LiteralPath $worktreePath) -and -not $trackedSet.Contains($normalized)) {
+                continue
+            }
         }
         [void]$stageSet.Add($normalized)
     }
@@ -2892,7 +2978,7 @@ function Sync-GitHubFromLaptop([object]$GitHubPlan) {
             $worktree = New-GitHubSyncWorktree -remoteName $target.RemoteName -branchName $target.BranchName -fallbackRef $sourceHead
             Apply-GitHubSyncPlanToWorktree -repoPath $worktree.Path -uploadList $uploadList -deleteList $deleteList
 
-            $stagePaths = @(Get-GitHubStagePathList -pathScope $pathScope)
+            $stagePaths = @(Get-GitHubStagePathList -pathScope $pathScope -repoPath $worktree.Path)
             if ($stagePaths.Count -eq 0) {
                 throw "GitHub sync plan resolved to an empty stage scope after filtering protected paths."
             }
@@ -3457,6 +3543,11 @@ try {
     $deployInfo.Notes = @($plan.Notes)
     $githubPlanInfo = Build-GitHubSyncPlan -upstream (Try-GetUpstreamBranch)
 
+    if (-not $DryRun -and ($uploadList.Count -gt 0 -or $deleteList.Count -gt 0)) {
+        Send-CentralDeployLifecycle -Status "started" -Version ([string]$versionStampInfo.Version) -Summary "Website deployment started."
+        $centralDeployStarted = $true
+    }
+
     if ($uploadList.Count -eq 0 -and $deleteList.Count -eq 0) {
         Write-Host "Step 3/5: deploy to host"
         Write-Host "No local delta detected under public_html. Nothing to deploy."
@@ -3515,6 +3606,11 @@ try {
         $ownerNoticeInfo = Get-OwnerDeployNoticeSkipResult `
             -status "skipped-no-host-delta" `
             -message "Step 4.5/5 skipped because no public_html delta was deployed to host." `
+            -version ([string]$versionStampInfo.Version)
+    } elseif ($centralDeployStarted) {
+        $ownerNoticeInfo = Get-OwnerDeployNoticeSkipResult `
+            -status "completed" `
+            -message "Step 4.5/5 satisfied by the central owner-only website lifecycle notice." `
             -version ([string]$versionStampInfo.Version)
     } else {
         $ownerNoticeInfo = Send-OwnerDeployNotice `
@@ -3611,6 +3707,23 @@ try {
     }
 } finally {
     $runFinishedAt = Get-IsoNow
+
+    if ($centralDeployStarted -and -not $centralDeployFinalized) {
+        $terminalStatus = if ([string]::IsNullOrWhiteSpace($failureMessage)) { "succeeded" } else { "failed" }
+        $terminalSummary = if ($terminalStatus -eq "succeeded") {
+            "Website deployment and health verification succeeded."
+        } else {
+            "Website deployment did not complete; inspect the local deploy report."
+        }
+        try {
+            Send-CentralDeployLifecycle -Status $terminalStatus -Version ([string]$versionStampInfo.Version) -Summary $terminalSummary
+            $centralDeployFinalized = $true
+        } catch {
+            if ([string]::IsNullOrWhiteSpace($failureMessage)) {
+                $failureMessage = $_.Exception.Message
+            }
+        }
+    }
 
     Write-Host "Deploy completed to $remotePath"
     Write-Host "Deployment report (host-storage-first, laptop-code deploy):"

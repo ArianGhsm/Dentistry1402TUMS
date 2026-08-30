@@ -932,9 +932,9 @@
         );
         document.title = "آرشیو منابع " + dentalYearLabel() + " | ساختار ترم و واحد";
         dentalResetList();
-        dentalAppendResourceInsights(null);
         dentalAppendTermCards(curriculum);
         dentalAppendLegacyTerms(curriculum);
+        dentalAppendResourceInsights(null);
         dentalSyncUnitManagePanel(null);
     }
 
@@ -957,12 +957,12 @@
         document.title = (termData.label || "ترم") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
         dentalAppendOverviewActions(Number(termData.number || 0), !!dentalState.canManage);
+        dentalAppendTermOverview(termData);
         dentalAppendResourceInsights({
             term: Number(termData.number || 0),
             termNumber: Number(termData.number || 0),
             unitKey: ""
         });
-        dentalAppendTermOverview(termData);
         dentalSyncUnitManagePanel(null);
     }
 
@@ -985,8 +985,8 @@
         document.title = (termData.title || "آرشیو") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
         dentalAppendResourceActions(termData, !!dentalState.canManage, "");
-        dentalAppendResourceInsights(termData);
         dentalAppendResourceCards(termData, !!dentalState.canManage);
+        dentalAppendResourceInsights(termData);
         dentalSyncUnitManagePanel(null);
     }
 
@@ -1013,8 +1013,8 @@
         document.title = (termData.title || "منابع واحد") + " | آرشیو منابع " + dentalYearLabel();
         dentalResetList();
         dentalAppendResourceActions(termData, !!dentalState.canManage, termData.unitKey || "");
-        dentalAppendResourceInsights(termData);
         dentalAppendResourceCards(termData, !!dentalState.canManage);
+        dentalAppendResourceInsights(termData);
         dentalSyncUnitManagePanel(termData);
     }
 

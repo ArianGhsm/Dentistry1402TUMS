@@ -9,14 +9,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ورودی ۱۴۰۲">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260716-225703">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260716-225703">
-    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260716-225703">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260722-200509">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260722-200509">
+    <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png?v=20260722-200509">
     <link rel="preload" as="font" type="font/woff2" href="/fonts/YekanBakh-VF.woff2" crossorigin>
-    <script src="/assets/site/scripts/theme.js?v=20260716-225703"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260716-225703">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260716-225703">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260716-225703">
+    <script src="/assets/site/scripts/theme.js?v=20260722-200509"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260722-200509">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260827-bot-connections1">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260813-login-refine4">
 </head>
 <body class="account-page">
     <div class="background-overlay" aria-hidden="true"></div>
@@ -24,7 +24,7 @@
     <header class="site-header">
         <div class="logo-area">
             <div class="logo-circle">
-                <img src="/assets/images/logo.png?v=20260716-225703" alt="لوگوی ورودی ۱۴۰۲ دندانپزشکی">
+                <img src="/assets/images/logo.png?v=20260722-200509" alt="لوگوی ورودی ۱۴۰۲ دندانپزشکی">
             </div>
             <div class="site-info">
                 <h1>حساب کاربری</h1>
@@ -61,7 +61,7 @@
                         <div class="account-auth-theme-slot" data-theme-toggle-slot></div>
                     </div>
                     <div class="auth-brand" aria-hidden="true">
-                        <img src="/assets/images/logo.png?v=20260716-225703" alt="">
+                        <img src="/assets/images/logo.png?v=20260722-200509" alt="">
                         <strong id="account-auth-brand">ورودی ۱۴۰۲</strong>
                     </div>
                     <div class="account-card__head">
@@ -226,8 +226,8 @@
                             <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11.5" rx="3.2"></rect><path d="M9 19h6"></path><path d="M12 16.5V19"></path><path d="M8.2 9.2h7.6"></path><path d="M8.2 12.4h4.8"></path></svg>
                         </span>
                         <span class="account-list-row__copy">
-                            <strong>دستگاه‌های جزوه خصوصی</strong>
-                            <small>مشاهده دستگاه‌های ثبت‌شده، نشست نمایش و لغو دسترسی دستگاه‌ها</small>
+                            <strong>نشست‌ها و دستگاه‌های فعال</strong>
+                            <small>مشاهده مرورگرهای واردشده و خروج امن از نشست‌های ناشناس</small>
                         </span>
                         <span class="account-list-row__chevron" aria-hidden="true">‹</span>
                     </a>
@@ -238,6 +238,16 @@
                         <span class="account-list-row__copy">
                             <strong>ورود با موبایل و کد تایید</strong>
                             <small id="account-row-phone-meta">ثبت شماره موبایل، تایید با OTP و عال‌سازی مسیر دوم ورود</small>
+                        </span>
+                        <span class="account-list-row__chevron" aria-hidden="true">‹</span>
+                    </button>
+                    <button class="account-list-row account-list-row--bots" type="button" data-open-surface="bots">
+                        <span class="account-list-row__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24"><path d="M8.2 8.5 5.7 6a2.3 2.3 0 0 0-3.2 3.2l3.4 3.4a2.3 2.3 0 0 0 3.2 0l2-2"></path><path d="m15.8 15.5 2.5 2.5a2.3 2.3 0 0 0 3.2-3.2l-3.4-3.4a2.3 2.3 0 0 0-3.2 0l-2 2"></path><path d="m8.8 15.2 6.4-6.4"></path></svg>
+                        </span>
+                        <span class="account-list-row__copy">
+                            <strong>اتصال به ربات‌ها</strong>
+                            <small id="account-row-bots-meta">بررسی اتصال تلگرام و بله و مدیریت هر اتصال</small>
                         </span>
                         <span class="account-list-row__chevron" aria-hidden="true">‹</span>
                     </button>
@@ -276,26 +286,6 @@
                         </span>
                         <span class="account-list-row__chevron" aria-hidden="true">‹</span>
                     </button>
-                    <a class="account-list-row account-list-row--link account-list-row--admin-tools" href="/notes/private-viewer/?documentId=pndoc-57a0487f404edea9">
-                        <span class="account-list-row__icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24"><rect x="5" y="3.8" width="14" height="16.4" rx="3"></rect><path d="M8.4 8.3h7.2"></path><path d="M8.4 11.8h7.2"></path><path d="M8.4 15.3h4.4"></path><path d="M16.2 4.8V2.8"></path><path d="M16.2 21.2v-2"></path></svg>
-                        </span>
-                        <span class="account-list-row__copy">
-                            <strong>جزوه خصوصی تست</strong>
-                            <small>بازکردن viewer امن برای جلسه ۱ مبانی کامل نظری</small>
-                        </span>
-                        <span class="account-list-row__chevron" aria-hidden="true"></span>
-                    </a>
-                    <a class="account-list-row account-list-row--link account-list-row--admin-tools" href="/admin/private-notes/">
-                        <span class="account-list-row__icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24"><path d="M5.2 6.8A2.8 2.8 0 0 1 8 4h8a2.8 2.8 0 0 1 2.8 2.8v10.4A2.8 2.8 0 0 1 16 20H8a2.8 2.8 0 0 1-2.8-2.8z"></path><path d="M8.5 9h7"></path><path d="M8.5 12h4.5"></path><path d="m15.2 14.2 1 .6 1-.6.1 1.2 1 .7-1 .6-.1 1.2-1-.6-1 .6-.1-1.2-1-.6 1-.7z"></path></svg>
-                        </span>
-                        <span class="account-list-row__copy">
-                            <strong>مدیریت جزوات و تنظیمات امنیتی</strong>
-                            <small>ترم/درس، آپلود PDF، پردازش، دسترسی‌ها، دستگاه‌ها، نشست‌ها و رخدادهای امنیتی</small>
-                        </span>
-                        <span class="account-list-row__chevron" aria-hidden="true"></span>
-                    </a>
                     <a class="account-list-row account-list-row--link" href="/buy/manage/">
                         <span class="account-list-row__icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24"><path d="M5.2 8.2h13.6l-1.1 10.1a2 2 0 0 1-2 1.7H8.3a2 2 0 0 1-2-1.7z"></path><path d="M8.8 8.2a3.2 3.2 0 0 1 6.4 0"></path><path d="M9.2 12.2h5.6"></path><path d="M9.2 15.2h3.6"></path></svg>
@@ -470,6 +460,29 @@
                         <button id="security-submit" class="shell-action-btn shell-action-btn-primary account-submit" type="submit">ثبت رمز جدید</button>
                         <div id="security-feedback" class="account-feedback" aria-live="polite"></div>
                     </form>
+                </article>
+                <article class="account-card account-surface-panel" data-surface="bots" hidden>
+                    <header class="account-surface-head">
+                        <button class="shell-action-btn account-surface-back" type="button" data-surface-back>بازگشت</button>
+                        <div class="account-surface-head__copy">
+                            <span class="account-section-kicker">پیام‌رسان‌ها</span>
+                            <h3>اتصال به ربات‌ها</h3>
+                            <p>وضعیت اتصال حساب سایت به تلگرام و بله را ببین یا اتصال هر پیام‌رسان را جداگانه قطع کن.</p>
+                        </div>
+                    </header>
+
+                    <div class="bot-connections-intro">
+                        <span aria-hidden="true">🔐</span>
+                        <p>شناسه و نام حساب فقط برای خودت نمایش داده می‌شود. با قطع اتصال، دسترسی همان ربات به حساب سایت فوراً بسته و پیام زمان قطع برای همان حساب ارسال می‌شود.</p>
+                    </div>
+                    <div id="bot-connections-feedback" class="account-feedback account-feedback--inline" aria-live="polite"></div>
+                    <div id="bot-connections-list" class="bot-connections-grid" aria-live="polite">
+                        <div class="bot-connection-skeleton" aria-label="در حال دریافت وضعیت اتصال"></div>
+                        <div class="bot-connection-skeleton" aria-hidden="true"></div>
+                    </div>
+                    <div class="account-inline-actions bot-connections-actions">
+                        <button id="bot-connections-refresh" class="shell-action-btn" type="button">↻ تازه‌سازی وضعیت</button>
+                    </div>
                 </article>
                 <article class="account-card account-surface-panel" data-surface="phone" hidden>
                     <header class="account-surface-head">
@@ -1205,10 +1218,10 @@
         <p id="account-footer-brand">ورودی ۱۴۰۲ دندانپزشکی تهران</p>
     </footer>
 
-    <script src="/assets/site/scripts/auth.js?v=20260716-225703"></script>
-    <script src="/assets/site/scripts/push.js?v=20260716-225703"></script>
-    <script src="/assets/site/scripts/account.js?v=20260716-225703"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260716-225703"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260716-225703"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260722-200509"></script>
+    <script src="/assets/site/scripts/push.js?v=20260722-200509"></script>
+    <script src="/assets/site/scripts/account.js?v=20260827-bot-connections1"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260722-200509"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260812-phase3b"></script>
 </body>
 </html>

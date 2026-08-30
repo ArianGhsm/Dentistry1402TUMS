@@ -3,15 +3,17 @@
         return;
     }
 
-    var CURRENT_VERSION = "20260715-104456";
+    var CURRENT_VERSION = "20260829-153231";
     var VERSION_ENDPOINT = "/app-version.json";
     var SERVICE_WORKER_ENDPOINT = "/sw.js";
     var UPDATE_ACK_STORAGE_KEY = "dent1402-pwa-update-ack-version";
     var UPDATE_AUTO_STORAGE_KEY = "dent1402-pwa-update-auto-version";
     var UPDATE_RELOAD_GUARD_STORAGE_KEY = "dent1402-pwa-update-reload-guard-version";
-    var UPDATE_CHECK_MIN_INTERVAL = 5000;
-    var UPDATE_CHECK_INTERVAL = 30000;
+    var UPDATE_CHECK_MIN_INTERVAL = 30000;
+    var UPDATE_CHECK_INTERVAL = 300000;
     var UPDATE_APPLY_RELOAD_FALLBACK_MS = 1800;
+    var UPDATE_PREPARE_RELOAD_FALLBACK_MS = 8000;
+    var VERSION_REQUEST_TIMEOUT_MS = 5000;
 
     var standaloneQuery = window.matchMedia ? window.matchMedia("(display-mode: standalone)") : null;
     var lastVersionCheckAt = 0;
@@ -91,8 +93,9 @@
     }
 
     function shouldShowUpdateBanner() {
-        return !!state.updateAvailable
-            && (updateApplyInFlight || acknowledgedVersion() !== state.latestVersion);
+        // Releases are applied by the native service-worker lifecycle. Never
+        // interrupt page navigation with a version banner or transient toast.
+        return false;
     }
 
     function notify() {
@@ -288,7 +291,11 @@
     function setVersionState(latestVersion, hasWaitingWorker) {
         var normalizedLatest = normalizeVersion(latestVersion || state.currentVersion);
         state.latestVersion = normalizedLatest;
-        state.updateAvailable = !!hasWaitingWorker || normalizedLatest !== state.currentVersion;
+        // A waiting worker can belong to the exact release already running in
+        // this page (for example after its first install or a repeated
+        // registration.update()). Worker lifecycle alone is therefore not an
+        // update signal. app-version.json is the canonical release signal.
+        state.updateAvailable = normalizedLatest !== state.currentVersion;
         if (!state.updateAvailable) {
             state.updateDismissed = false;
             updateApplyInFlight = false;
@@ -296,17 +303,8 @@
             writeStorage(UPDATE_ACK_STORAGE_KEY, "");
             writeStorage(UPDATE_AUTO_STORAGE_KEY, "");
             writeStorage(UPDATE_RELOAD_GUARD_STORAGE_KEY, "");
-        } else if (hasWaitingWorker && autoApplyVersion() === normalizedLatest && !reloadAfterControllerChange) {
-            window.setTimeout(function () {
-                applyUpdate().catch(function () {
-                    updateApplyInFlight = false;
-                    notify();
-                });
-            }, 0);
-            return;
         }
         notify();
-        maybeAutoApplyUpdate();
     }
 
     function shouldAutoApplyUpdate() {
@@ -351,9 +349,14 @@
     }
 
     function fetchLatestVersion() {
+        var controller = typeof AbortController === "function" ? new AbortController() : null;
+        var timer = controller ? window.setTimeout(function () {
+            controller.abort();
+        }, VERSION_REQUEST_TIMEOUT_MS) : 0;
         return fetch(VERSION_ENDPOINT + "?t=" + Date.now(), {
             cache: "no-store",
             credentials: "same-origin",
+            signal: controller ? controller.signal : undefined,
             headers: {
                 Accept: "application/json"
             }
@@ -364,6 +367,10 @@
             return response.json();
         }).then(function (payload) {
             return parseVersionPayload(payload);
+        }).finally(function () {
+            if (timer) {
+                window.clearTimeout(timer);
+            }
         });
     }
 
@@ -464,6 +471,12 @@
                 waitingWorker.postMessage({ type: "SKIP_WAITING" });
                 scheduleVersionReload(state.latestVersion, UPDATE_APPLY_RELOAD_FALLBACK_MS);
                 return { outcome: "reloading" };
+            }
+
+            if (state.latestVersion !== state.currentVersion) {
+                // registration.update() can remain pending on a constrained
+                // network. Never leave the interface in "preparing" forever.
+                scheduleUpdateReload(UPDATE_PREPARE_RELOAD_FALLBACK_MS);
             }
 
             return checkForUpdates(true).then(function () {

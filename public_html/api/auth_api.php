@@ -504,6 +504,40 @@ if ($action === 'logout') {
     ]);
 }
 
+if ($action === 'authSessions') {
+    if (dent_request_method() !== 'GET') {
+        dent_error('متد دریافت نشست‌ها نامعتبر است.', 405);
+    }
+    $user = dent_require_user();
+    $payload = dent_auth_sessions_for_user($user);
+    dent_json_response([
+        'success' => true,
+        'sessions' => $payload['sessions'] ?? [],
+        'currentSessionId' => (string) ($payload['currentSessionId'] ?? ''),
+        'csrfToken' => dent_auth_session_csrf_token(),
+    ]);
+}
+
+if ($action === 'revokeAuthSession') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد پایان نشست نامعتبر است.', 405);
+    }
+    dent_auth_session_require_csrf();
+    $user = dent_require_user();
+    $result = dent_auth_session_revoke($user, (string) ($_POST['sessionId'] ?? ''));
+    dent_json_response(['success' => true] + $result);
+}
+
+if ($action === 'revokeOtherAuthSessions') {
+    if (dent_request_method() !== 'POST') {
+        dent_error('متد پایان نشست‌ها نامعتبر است.', 405);
+    }
+    dent_auth_session_require_csrf();
+    $user = dent_require_user();
+    $result = dent_auth_session_revoke_others($user);
+    dent_json_response(['success' => true] + $result);
+}
+
 if ($action === 'me') {
     $user = dent_current_user();
     dent_release_session_lock();
@@ -571,6 +605,12 @@ if ($action === 'changePassword') {
         (string) ($_POST['currentPassword'] ?? ''),
         (string) ($_POST['newPassword'] ?? '')
     );
+    dent_auth_session_mark_current_revoked('password-changed-session-rotation');
+    session_regenerate_id(true);
+    $_SESSION['student_number'] = $updatedUser['studentNumber'];
+    $_SESSION['auth_at'] = time();
+    unset($_SESSION['auth_session_public_id'], $_SESSION['auth_session_touch_at'], $_SESSION['auth_session_csrf_token']);
+    dent_auth_session_register((string) $updatedUser['studentNumber'], true);
 
     dent_json_response([
         'success' => true,
@@ -733,7 +773,6 @@ if ($action === 'verifyPhoneEnrollOtp') {
     $phoneNumber = (string) ($_POST['phoneNumber'] ?? '');
     $otpCode = (string) ($_POST['otpCode'] ?? ($_POST['code'] ?? ''));
     $updatedUser = dent_verify_phone_enrollment_otp($user, $phoneNumber, $otpCode);
-
     dent_json_response([
         'success' => true,
         'user' => dent_public_user($updatedUser),

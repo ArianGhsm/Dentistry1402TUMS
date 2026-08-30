@@ -227,7 +227,6 @@
     padding: 12px 0;
     transition: background var(--motion-fast);
 }
-.endosim-step:hover { background: var(--commerce-accent-soft); }
 .endosim-step:active { background: var(--commerce-accent); color: var(--text-on-accent); }
 .endosim-qty {
     border: none;
@@ -287,7 +286,6 @@
     box-shadow: var(--btn-shadow);
     transition: transform var(--motion-fast), filter var(--motion-fast);
 }
-.endosim-bar__cta:hover:not(:disabled) { transform: translateY(-2px); }
 .endosim-bar__cta:disabled { opacity: .5; cursor: not-allowed; }
 
 /* ---- modal ---- */
@@ -473,4 +471,175 @@ body.endosim-modal-open { overflow: hidden; }
 @media (max-width: 360px) {
     .endosim-bar__cta { padding: 11px 14px; font-size: .88rem; }
     .endosim-card__title { font-size: .84rem; }
+}
+
+/* Mature commerce pass: keep the product media, flatten the surrounding UI. */
+body.endosim-page .endosim-shell {
+    gap: clamp(1rem, 2.4vw, 1.6rem);
+}
+
+body.endosim-page .endosim-hero {
+    padding: clamp(1.15rem, 3vw, 2rem) 0;
+    overflow: visible;
+    border: 0;
+    border-block-end: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-primary);
+    box-shadow: none;
+}
+
+body.endosim-page .endosim-hero__kicker {
+    margin-block-end: .35rem;
+    color: var(--commerce-accent-strong);
+    letter-spacing: .06em;
+}
+
+body.endosim-page .endosim-hero__title {
+    margin-block-end: .45rem;
+    font-size: clamp(1.35rem, 3.2vw, 1.9rem);
+}
+
+body.endosim-page .endosim-hero__lead {
+    max-width: 62ch;
+    margin-block-end: .75rem;
+    color: var(--text-secondary);
+    font-size: clamp(.82rem, 1.6vw, .94rem);
+    line-height: 1.85;
+}
+
+body.endosim-page .endosim-hero__badges {
+    gap: 0 1rem;
+    border-block-start: 1px solid var(--border-color);
+}
+
+body.endosim-page .endosim-hero__badges li {
+    padding: .6rem 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text-secondary);
+    backdrop-filter: none;
+}
+
+body.endosim-page .endosim-toolbar {
+    gap: .75rem 1rem;
+    padding-block-end: .85rem;
+    border-block-end: 1px solid var(--border-color);
+}
+
+body.endosim-page .endosim-chips {
+    gap: .8rem;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+}
+
+body.endosim-page .endosim-chip {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: .5rem .1rem;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.endosim-page .endosim-chip.is-active {
+    border-block-end-color: var(--commerce-accent);
+    background: transparent;
+    color: var(--text-primary);
+}
+
+body.endosim-page .endosim-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0;
+    border-block-start: 1px solid var(--border-color);
+}
+
+body.endosim-page .endosim-card {
+    border: 0;
+    border-block-end: 1px solid var(--border-color);
+    border-inline-start: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+}
+
+body.endosim-page .endosim-card:hover,
+body.endosim-page .endosim-card.is-selected {
+    box-shadow: none;
+    transform: none;
+}
+
+body.endosim-page .endosim-card.is-selected {
+    border-color: var(--commerce-accent);
+    background: color-mix(in srgb, var(--commerce-accent) 4%, transparent);
+}
+
+body.endosim-page .endosim-card__code,
+body.endosim-page .endosim-card__chip {
+    border-radius: 3px;
+}
+
+body.endosim-page .endosim-summary,
+body.endosim-page .endosim-identity-note,
+body.endosim-page .endosim-gateways {
+    border: 0;
+    border-block: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.endosim-page .endosim-gateway {
+    border: 0;
+    border-block-end: 1px solid var(--border-color);
+    border-radius: 0;
+}
+
+body.endosim-page .endosim-gateway:has(input:checked) {
+    border-color: var(--commerce-accent);
+    background: color-mix(in srgb, var(--commerce-accent) 5%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body.endosim-page .endosim-step:hover {
+        background: var(--commerce-accent-soft);
+    }
+
+    body.endosim-page .endosim-bar__cta:hover:not(:disabled) {
+        filter: brightness(.96);
+    }
+
+    body.endosim-page .endosim-chip:hover {
+        color: var(--text-primary);
+        border-block-end-color: color-mix(in srgb, var(--commerce-accent) 42%, transparent);
+    }
+
+    body.endosim-page .endosim-card:hover {
+        background: color-mix(in srgb, var(--commerce-accent) 3%, transparent);
+    }
+}
+
+@media (max-width: 600px) {
+    body.endosim-page .endosim-hero {
+        padding: 1rem 0;
+    }
+
+    body.endosim-page .endosim-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.endosim-page *,
+    body.endosim-page *::before,
+    body.endosim-page *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
 }

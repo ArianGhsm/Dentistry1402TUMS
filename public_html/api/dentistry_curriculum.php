@@ -36,7 +36,7 @@ function dent_dentistry_term6_final_exam_schedule(): array
             'weekdayLabel' => 'شنبه',
             'timeLabel' => '۰۷:۴۵',
             'startsAt' => '2026-07-25T07:45:00+03:30',
-            'courseSlugs' => ['restorative-theory-1-term6', 'restorative-theory-1-midterm-sample', 'summit-operative-dentistry', 'sturdevant-operative-dentistry'],
+            'courseSlugs' => ['restorative-theory-1-term6', 'restorative-theory-1-final-practice', 'restorative-theory-1-final-sample', 'restorative-theory-1-midterm-sample', 'summit-operative-dentistry', 'sturdevant-operative-dentistry'],
         ],
         'endodontics-foundations-1' => [
             'title' => 'مبانی اندودانتیکس ۱',
@@ -68,7 +68,7 @@ function dent_dentistry_term6_final_exam_schedule(): array
             'weekdayLabel' => 'شنبه',
             'timeLabel' => '۱۲:۱۵',
             'startsAt' => '2026-08-08T12:15:00+03:30',
-            'courseSlugs' => ['gerontology-term-6'],
+            'courseSlugs' => ['gerontology-term-6', 'gerontology-term-6-final-sample'],
         ],
         'equipment-ergonomics' => [
             'title' => 'تجهیزات دندانپزشکی و ارگونومی',
@@ -76,7 +76,7 @@ function dent_dentistry_term6_final_exam_schedule(): array
             'weekdayLabel' => 'سه‌شنبه',
             'timeLabel' => '۱۲:۱۵',
             'startsAt' => '2026-08-11T12:15:00+03:30',
-            'courseSlugs' => [],
+            'courseSlugs' => ['equipment-ergonomics-term6-final-sample'],
         ],
         'diagnostics-1' => [
             'title' => 'دندانپزشکی تشخیصی ۱',
@@ -100,7 +100,7 @@ function dent_dentistry_term6_final_exam_schedule(): array
             'weekdayLabel' => 'شنبه',
             'timeLabel' => '۱۲:۱۵',
             'startsAt' => '2026-08-22T12:15:00+03:30',
-            'courseSlugs' => ['dental-materials-foundations', 'dental-materials-midterm-sample', 'craig-dental-materials', 'vannoort-dental-materials'],
+            'courseSlugs' => ['dental-materials-foundations', 'dental-materials-midterm-sample', 'dental-materials-foundations-final-sample', 'craig-dental-materials', 'vannoort-dental-materials'],
         ],
         'medical-emergencies' => [
             'title' => 'فوریت‌های پزشکی در دندانپزشکی',
@@ -108,7 +108,7 @@ function dent_dentistry_term6_final_exam_schedule(): array
             'weekdayLabel' => 'دوشنبه',
             'timeLabel' => '۱۲:۱۵',
             'startsAt' => '2026-08-24T12:15:00+03:30',
-            'courseSlugs' => ['malamed-medical-emergencies'],
+            'courseSlugs' => ['malamed-medical-emergencies', 'medical-emergencies-term6-final-sample'],
         ],
     ];
 }
@@ -564,7 +564,7 @@ function dent_dentistry_curriculum_terms(): array
                             'key' => 'dental-materials-foundations',
                             'title' => 'مبانی مواد دندانی',
                             'finalExamKeys' => ['dental-materials-foundations'],
-                            'examCourseSlugs' => ['dental-materials-foundations', 'dental-materials-midterm-sample', 'craig-dental-materials', 'vannoort-dental-materials'],
+                            'examCourseSlugs' => ['dental-materials-foundations', 'dental-materials-midterm-sample', 'dental-materials-foundations-final-sample', 'craig-dental-materials', 'vannoort-dental-materials'],
                         ],
                         [
                             'key' => 'diagnostics-1-2',
@@ -584,21 +584,22 @@ function dent_dentistry_curriculum_terms(): array
                             'title' => 'ترمیمی نظری ۱',
                             'finalExamKeys' => ['restorative-theory-1'],
                             'resourceAliases' => ['سامیت', 'summitt'],
-                            'examCourseSlugs' => ['restorative-theory-1-term6', 'restorative-theory-1-midterm-sample', 'summit-operative-dentistry', 'sturdevant-operative-dentistry'],
+                            'examCourseSlugs' => ['restorative-theory-1-term6', 'restorative-theory-1-final-practice', 'restorative-theory-1-final-sample', 'restorative-theory-1-midterm-sample', 'summit-operative-dentistry', 'sturdevant-operative-dentistry'],
                         ],
                         [
                             'key' => 'medical-emergencies',
                             'title' => 'فوریت‌های پزشکی در دندانپزشکی',
                             'aliases' => ['فوریت‌های پزشکی'],
                             'finalExamKeys' => ['medical-emergencies'],
-                            'examCourseSlugs' => ['malamed-medical-emergencies'],
+                            'examCourseSlugs' => ['malamed-medical-emergencies', 'medical-emergencies-term6-final-sample'],
                         ],
-                        ['key' => 'gerontology-term-6', 'title' => 'سالمندشناسی', 'finalExamKeys' => ['gerontology'], 'examCourseSlugs' => ['gerontology-term-6']],
+                        ['key' => 'gerontology-term-6', 'title' => 'سالمندشناسی', 'finalExamKeys' => ['gerontology'], 'examCourseSlugs' => ['gerontology-term-6', 'gerontology-term-6-final-sample']],
                         [
                             'key' => 'equipment-ergonomics',
                             'title' => 'تجهیزات دندان‌پزشکی و ارگونومی',
                             'finalExamKeys' => ['equipment-ergonomics'],
                             'resourceAliases' => ['تمامی پاور های تجهیزات', 'تجهیزات و ارگونومی'],
+                            'examCourseSlugs' => ['equipment-ergonomics-term6-final-sample'],
                         ],
                         ['key' => 'research-methods-1-theory', 'title' => 'روش‌شناسی تحقیق ۱', 'aliases' => ['روش تحقیق ۱'], 'finalExamKeys' => ['research-methods-1']],
                         ['key' => 'specialized-language-3-4', 'title' => 'زبان تخصصی ۳ و ۴', 'finalExamKeys' => ['specialized-language-3-4']],
@@ -632,7 +633,7 @@ function dent_dentistry_curriculum_terms(): array
                             'key' => 'surgery-practical-1',
                             'title' => 'جراحی عملی ۱',
                             'finalExamKeys' => ['surgery-practical-1'],
-                            'examCourseSlugs' => ['peterson-oral-surgery', 'malamed-local-anesthesia'],
+                            'examCourseSlugs' => ['surgery-practical-1-exit-practice', 'peterson-oral-surgery', 'malamed-local-anesthesia'],
                         ],
                         ['key' => 'complete-prosthesis-practical-1', 'title' => 'پروتز کامل عملی ۱'],
                         ['key' => 'equipment-practical', 'title' => 'تجهیزات'],

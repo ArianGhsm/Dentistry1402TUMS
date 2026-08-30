@@ -5,6 +5,11 @@ require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/navid_store.php';
 require_once __DIR__ . '/notifications_store.php';
 
+function navid_should_announce_new_assignment(?array $previous, bool $hasBaseline): bool
+{
+    return $previous === null && $hasBaseline;
+}
+
 function navid_normalize_login_url(?string $value): string
 {
     $candidate = trim((string) $value);
@@ -946,6 +951,7 @@ function navid_sync_store_from_browser_result(array &$store, array $browserResul
     $courseSnapshot = [];
     $failedCourses = 0;
     $previousAssignments = is_array($store['snapshot']['assignments'] ?? null) ? $store['snapshot']['assignments'] : [];
+    $hasAnnouncementBaseline = trim((string) ($store['state']['lastSuccessAt'] ?? '')) !== '' || count($previousAssignments) > 0;
     $previousCourses = is_array($store['snapshot']['courses'] ?? null) ? $store['snapshot']['courses'] : [];
 
     foreach ($courses as $course) {
@@ -1015,14 +1021,16 @@ function navid_sync_store_from_browser_result(array &$store, array $browserResul
     foreach ($currentAssignmentsByKey as $assignmentKey => $assignment) {
         $old = is_array($previousAssignments[$assignmentKey] ?? null) ? $previousAssignments[$assignmentKey] : null;
         if ($old === null) {
-            $event = array_merge($assignment, [
-                'eventType' => 'created',
-                'detectedAt' => dent_iso_now(),
-                'eventId' => 'navid-' . str_replace(':', '-', $assignmentKey) . '-' . time(),
-            ]);
-            navid_add_update_if_new($store, $event);
-            notifications_enqueue_navid_assignment($assignment);
-            $newEvents++;
+            if (navid_should_announce_new_assignment($old, $hasAnnouncementBaseline)) {
+                $event = array_merge($assignment, [
+                    'eventType' => 'created',
+                    'detectedAt' => dent_iso_now(),
+                    'eventId' => 'navid-' . str_replace(':', '-', $assignmentKey) . '-' . time(),
+                ]);
+                navid_add_update_if_new($store, $event);
+                notifications_enqueue_navid_assignment($assignment);
+                $newEvents++;
+            }
             continue;
         }
         if ((string) ($old['fingerprint'] ?? '') !== (string) ($assignment['fingerprint'] ?? '')) {
@@ -1615,6 +1623,7 @@ function navid_finish_sync_from_dashboard(
     $courseSnapshot = [];
     $failedCourses = 0;
     $previousAssignments = is_array($store['snapshot']['assignments'] ?? null) ? $store['snapshot']['assignments'] : [];
+    $hasAnnouncementBaseline = trim((string) ($store['state']['lastSuccessAt'] ?? '')) !== '' || count($previousAssignments) > 0;
     $previousCourses = is_array($store['snapshot']['courses'] ?? null) ? $store['snapshot']['courses'] : [];
 
     foreach ($courses as $course) {
@@ -1690,14 +1699,16 @@ function navid_finish_sync_from_dashboard(
     foreach ($currentAssignmentsByKey as $key => $assignment) {
         $old = is_array($previousAssignments[$key] ?? null) ? $previousAssignments[$key] : null;
         if ($old === null) {
-            $event = array_merge($assignment, [
-                'eventType' => 'created',
-                'detectedAt' => dent_iso_now(),
-                'eventId' => 'navid-' . str_replace(':', '-', $key) . '-' . time(),
-            ]);
-            navid_add_update_if_new($store, $event);
-            notifications_enqueue_navid_assignment($assignment);
-            $newEvents++;
+            if (navid_should_announce_new_assignment($old, $hasAnnouncementBaseline)) {
+                $event = array_merge($assignment, [
+                    'eventType' => 'created',
+                    'detectedAt' => dent_iso_now(),
+                    'eventId' => 'navid-' . str_replace(':', '-', $key) . '-' . time(),
+                ]);
+                navid_add_update_if_new($store, $event);
+                notifications_enqueue_navid_assignment($assignment);
+                $newEvents++;
+            }
             continue;
         }
 
@@ -2787,6 +2798,143 @@ function navid_import_browser_snapshot(array $browserResult): array
     $store['state']['lastFailedCourses'] = 0;
 
     return navid_sync_store_from_browser_result($store, $browserResult, $loginUrl, microtime(true));
+}
+
+function navid_daily_timezone(): DateTimeZone
+{
+    $name = trim((string) (getenv('DENT_NAVID_DAILY_TIMEZONE') ?: 'Asia/Tehran'));
+    try {
+        return new DateTimeZone($name);
+    } catch (Throwable $exception) {
+        return new DateTimeZone('Asia/Tehran');
+    }
+}
+
+function navid_daily_date(): string
+{
+    return (new DateTimeImmutable('now', navid_daily_timezone()))->format('Y-m-d');
+}
+
+function navid_daily_validate_date(string $date): string
+{
+    $date = trim($date);
+    $today = navid_daily_date();
+    if ($date === '') {
+        return $today;
+    }
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) !== 1 || !hash_equals($today, $date)) {
+        dent_error('تاریخ اجرای روزانه نوید معتبر نیست.', 409, ['code' => 'NAVID_DAILY_DATE_MISMATCH']);
+    }
+    return $date;
+}
+
+function navid_daily_public_status(array $store): array
+{
+    $automation = is_array($store['automation'] ?? null) ? $store['automation'] : [];
+    $challenge = navid_get_challenge($store);
+    return [
+        'date' => (string) ($automation['dailyDate'] ?? ''),
+        'challengePending' => navid_challenge_is_active($challenge)
+            && trim((string) ($challenge['captchaDataUri'] ?? '')) !== '',
+        'challengeExpiresAt' => (string) ($automation['challengeExpiresAt'] ?? ''),
+        'completedAt' => (string) ($automation['completedAt'] ?? ''),
+        'lastResult' => (string) ($automation['lastResult'] ?? ''),
+    ];
+}
+
+function navid_daily_start(string $requestedDate = '', bool $refresh = false): array
+{
+    $date = navid_daily_validate_date($requestedDate);
+    $store = navid_load_store();
+    $automation = is_array($store['automation'] ?? null) ? $store['automation'] : [];
+    if ((string) ($automation['dailyDate'] ?? '') === $date
+        && trim((string) ($automation['completedAt'] ?? '')) !== ''
+    ) {
+        return [
+            'success' => true,
+            'status' => 'already-completed',
+            'message' => 'بررسی امروز نوید قبلاً انجام شده است.',
+            'daily' => navid_daily_public_status($store),
+        ];
+    }
+
+    $challenge = navid_get_challenge($store);
+    if (!$refresh
+        && (string) ($automation['dailyDate'] ?? '') === $date
+        && navid_challenge_is_active($challenge)
+        && trim((string) ($challenge['captchaDataUri'] ?? '')) !== ''
+    ) {
+        return [
+            'success' => true,
+            'status' => 'challenge-ready',
+            'message' => 'کپچای امروز نوید آماده است.',
+            'captchaDataUri' => (string) ($challenge['captchaDataUri'] ?? ''),
+            'expiresAt' => (string) ($challenge['expiresAt'] ?? ''),
+            'daily' => navid_daily_public_status($store),
+        ];
+    }
+
+    $result = navid_create_captcha_challenge_browser();
+    $store = navid_load_store();
+    $store['automation'] = array_merge(navid_default_store()['automation'], [
+        'dailyDate' => $date,
+        'challengeIssuedAt' => dent_iso_now(),
+        'challengeExpiresAt' => (string) ($result['expiresAt'] ?? ''),
+        'completedAt' => '',
+        'lastResult' => 'challenge-ready',
+    ]);
+    navid_save_store($store);
+
+    return [
+        'success' => true,
+        'status' => 'challenge-ready',
+        'message' => 'کپچای امروز نوید آماده است.',
+        'captchaDataUri' => (string) ($result['captchaDataUri'] ?? ''),
+        'expiresAt' => (string) ($result['expiresAt'] ?? ''),
+        'daily' => navid_daily_public_status($store),
+    ];
+}
+
+function navid_daily_complete(string $requestedDate, string $captchaCode): array
+{
+    $date = navid_daily_validate_date($requestedDate);
+    $store = navid_load_store();
+    $automation = is_array($store['automation'] ?? null) ? $store['automation'] : [];
+    if ((string) ($automation['dailyDate'] ?? '') !== $date) {
+        dent_error('برای امروز کپچای فعالی ثبت نشده است.', 409, ['code' => 'NAVID_DAILY_CHALLENGE_MISSING']);
+    }
+    if (trim((string) ($automation['completedAt'] ?? '')) !== '') {
+        return [
+            'success' => true,
+            'status' => 'already-completed',
+            'message' => 'بررسی امروز نوید قبلاً انجام شده است.',
+            'daily' => navid_daily_public_status($store),
+        ];
+    }
+
+    $completed = navid_complete_captcha_challenge_browser($captchaCode);
+    $sync = !empty($completed['summary']) ? $completed : navid_sync_auto(true);
+    if (empty($sync['success'])) {
+        return $sync;
+    }
+
+    $store = navid_load_store();
+    $store['automation'] = array_merge(navid_default_store()['automation'], [
+        'dailyDate' => $date,
+        'challengeIssuedAt' => (string) ($automation['challengeIssuedAt'] ?? ''),
+        'challengeExpiresAt' => '',
+        'completedAt' => dent_iso_now(),
+        'lastResult' => (string) ($sync['status'] ?? 'ok'),
+    ]);
+    navid_save_store($store);
+
+    return [
+        'success' => true,
+        'status' => 'completed',
+        'message' => 'بررسی روزانه نوید انجام شد.',
+        'summary' => is_array($sync['summary'] ?? null) ? $sync['summary'] : [],
+        'daily' => navid_daily_public_status($store),
+    ];
 }
 
 function navid_feed_payload(bool $ownerView): array

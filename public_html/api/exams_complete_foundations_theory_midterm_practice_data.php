@@ -16,7 +16,7 @@ function dent_exams_complete_foundations_theory_midterm_practice_course(bool $hy
     }
 
     $courseSlug = 'complete-foundations-theory-midterm-practice';
-    $courseTitle = 'آزمون های تمرینی میانترم مبانی کامل نظری';
+    $courseTitle = 'تمرینی مبانی کامل نظری';
     $addedAt = '2026-07-13T14:45:00+03:30';
 
     $sessions = [
@@ -68,6 +68,51 @@ function dent_exams_complete_foundations_theory_midterm_practice_course(bool $hy
             'patterns' => ['session6_*.txt'],
             'questionCount' => 50,
         ],
+        [
+            'slug' => '8',
+            'label' => 'جلسه ۸',
+            'topic' => 'اکلوژن در پروتز کامل',
+            'professor' => '',
+            'patterns' => ['session8_*.txt'],
+            'questionCount' => 40,
+            'addedAt' => '2026-07-21T23:45:00+03:30',
+        ],
+        [
+            'slug' => '9',
+            'label' => 'جلسه ۹',
+            'topic' => 'اکلوژن پروتز کامل',
+            'professor' => '',
+            'patterns' => ['session9_*.txt'],
+            'questionCount' => 40,
+            'addedAt' => '2026-07-21T23:45:00+03:30',
+        ],
+        [
+            'slug' => '10',
+            'label' => 'جلسه ۱۰',
+            'topic' => 'مبانی پروتز کامل',
+            'professor' => '',
+            'patterns' => ['session10_*.txt'],
+            'questionCount' => 40,
+            'addedAt' => '2026-07-21T23:45:00+03:30',
+        ],
+        [
+            'slug' => '11',
+            'label' => 'جلسه ۱۱',
+            'topic' => 'مفل‌گذاری و پرداخت',
+            'professor' => '',
+            'patterns' => ['session11_*.txt'],
+            'questionCount' => 45,
+            'addedAt' => '2026-07-21T23:45:00+03:30',
+        ],
+        [
+            'slug' => '12',
+            'label' => 'جلسه ۱۲',
+            'topic' => 'بالانس بعد از پخت و تحویل',
+            'professor' => '',
+            'patterns' => ['session12_*.txt'],
+            'questionCount' => 40,
+            'addedAt' => '2026-07-21T23:45:00+03:30',
+        ],
     ];
 
     if (!$hydrateQuestions) {
@@ -94,7 +139,7 @@ function dent_exams_complete_foundations_theory_midterm_practice_course(bool $hy
     $course = dent_exams_text_source_build_course([
         'courseSlug' => $courseSlug,
         'title' => $courseTitle,
-        'shortTitle' => 'تمرینی میانترم',
+        'shortTitle' => 'تمرینی مبانی کامل نظری',
         'termLabel' => 'ترم ۶',
         'dataDir' => __DIR__ . '/data/complete_foundations_theory_midterm_practice',
         'paymentAmount' => 300000,
@@ -122,9 +167,13 @@ function dent_exams_complete_foundations_theory_midterm_practice_course(bool $hy
         $professor = (string) ($session['professor'] ?? '');
         $questionCount = max(0, (int) ($exam['questionCount'] ?? 0));
         $questionCountFa = dent_exams_text_source_to_persian_digits((string) $questionCount);
+        $examAddedAt = trim((string) ($session['addedAt'] ?? ''));
+        if ($examAddedAt === '') {
+            $examAddedAt = $addedAt;
+        }
         $totalQuestions += $questionCount;
 
-        $course['exams'][$index]['addedAt'] = $addedAt;
+        $course['exams'][$index]['addedAt'] = $examAddedAt;
         $course['exams'][$index]['subtitle'] = $questionCountFa . ' سوال چهارگزینه‌ای با پاسخ تشریحی'
             . ($professor !== '' ? ' • استاد ' . $professor : '');
         $course['exams'][$index]['description'] = 'مرور ' . $questionCountFa . ' سوال از مبحث «' . $topic . '» در میانترم مبانی کامل نظری.';
@@ -148,15 +197,15 @@ function dent_exams_complete_foundations_theory_midterm_practice_course(bool $hy
 
     $course['addedAt'] = $addedAt;
     $course['title'] = $courseTitle;
-    $course['shortTitle'] = 'تمرینی میانترم';
+    $course['shortTitle'] = 'تمرینی مبانی کامل نظری';
     $course['badge'] = $examCountFa . ' آزمون';
     $course['cardDescription'] = $examCountFa . ' آزمون میانترم مبانی کامل نظری با مجموع ' . $questionCountFa . ' سوال و پاسخ تشریحی در این بخش قرار گرفت.';
     $course['heroTitle'] = $courseTitle;
     $course['heroDescription'] = 'این مجموعه برای درس پروتز کامل نظری ترم ۶ آماده شده و شامل ' . $examCountFa
         . ' آزمون فعال با مجموع ' . $questionCountFa
-        . ' سوال است. جلسه‌های ۵ و ۷ به‌دلیل هم‌پوشانی مبحث، در یک آزمون مشترک قرار گرفته‌اند. با یک بار پرداخت ۳۰ هزار تومان، کل این مجموعه برای همین حساب فعال می‌شود.';
-    $course['paymentTitle'] = 'دسترسی به ' . $courseTitle;
-    $course['paymentDescription'] = 'با یک بار پرداخت ۳۰ هزار تومان، همه آزمون‌های میانترم مبانی کامل نظری برای همین حساب فعال می‌شود.';
+        . ' سوال است. جلسه‌های ۵ و ۷ به‌دلیل هم‌پوشانی مبحث، در یک آزمون مشترک قرار گرفته‌اند و جلسات ۸ تا ۱۲ نیز به مجموعه اضافه شده‌اند. با یک بار پرداخت ۳۰ هزار تومان، کل این مجموعه برای همین حساب فعال می‌شود.';
+    $course['paymentTitle'] = 'دسترسی به آزمون‌های ' . $courseTitle;
+    $course['paymentDescription'] = 'با یک بار پرداخت ۳۰ هزار تومان، همه آزمون‌های ' . $courseTitle . ' برای همین حساب فعال می‌شود.';
     $course['paymentSuccessMessage'] = 'پرداخت شما تایید شد و همه آزمون‌های ' . $courseTitle . ' برای این حساب باز شد.';
     $course['paymentFailureMessage'] = 'فعال‌سازی ' . $courseTitle . ' انجام نشد. نتیجه را دوباره بررسی کنید.';
 
@@ -184,6 +233,10 @@ function dent_exams_complete_foundations_theory_midterm_practice_catalog_course(
         $topic = trim((string) ($session['topic'] ?? ''));
         $professor = trim((string) ($session['professor'] ?? ''));
         $questionCount = max(0, (int) ($session['questionCount'] ?? 0));
+        $examAddedAt = trim((string) ($session['addedAt'] ?? ''));
+        if ($examAddedAt === '') {
+            $examAddedAt = $addedAt;
+        }
         if ($slug === '' || $label === '' || $questionCount <= 0) {
             continue;
         }
@@ -215,7 +268,7 @@ function dent_exams_complete_foundations_theory_midterm_practice_catalog_course(
             'emptyStateMessage' => 'اگر این پیام را می‌بینید، لطفاً صفحه را چند دقیقه بعد دوباره باز کنید.',
             'countsTowardStats' => true,
             'questionCount' => $questionCount,
-            'addedAt' => $addedAt,
+            'addedAt' => $examAddedAt,
         ];
     }
 
@@ -226,16 +279,16 @@ function dent_exams_complete_foundations_theory_midterm_practice_catalog_course(
     return [
         'slug' => $courseSlug,
         'title' => $courseTitle,
-        'shortTitle' => 'تمرینی میانترم',
+        'shortTitle' => 'تمرینی مبانی کامل نظری',
         'badge' => $examCountFa . ' آزمون',
         'cardDescription' => $examCountFa . ' آزمون میانترم مبانی کامل نظری با مجموع ' . $questionCountFa . ' سوال و پاسخ تشریحی در این بخش قرار گرفت.',
         'heroTitle' => $courseTitle,
         'heroDescription' => 'این مجموعه برای درس پروتز کامل نظری ترم ۶ آماده شده و شامل ' . $examCountFa
-            . ' آزمون فعال با مجموع ' . $questionCountFa
-            . ' سوال است. جلسه‌های ۵ و ۷ به‌دلیل هم‌پوشانی مبحث، در یک آزمون مشترک قرار گرفته‌اند. با یک بار پرداخت ۳۰ هزار تومان، کل این مجموعه برای همین حساب فعال می‌شود.',
+        . ' آزمون فعال با مجموع ' . $questionCountFa
+        . ' سوال است. جلسه‌های ۵ و ۷ به‌دلیل هم‌پوشانی مبحث، در یک آزمون مشترک قرار گرفته‌اند و جلسات ۸ تا ۱۲ نیز به مجموعه اضافه شده‌اند. با یک بار پرداخت ۳۰ هزار تومان، کل این مجموعه برای همین حساب فعال می‌شود.',
         'path' => $coursePath,
-        'paymentTitle' => 'دسترسی به ' . $courseTitle,
-        'paymentDescription' => 'با یک بار پرداخت ۳۰ هزار تومان، همه آزمون‌های میانترم مبانی کامل نظری برای همین حساب فعال می‌شود.',
+        'paymentTitle' => 'دسترسی به آزمون‌های ' . $courseTitle,
+        'paymentDescription' => 'با یک بار پرداخت ۳۰ هزار تومان، همه آزمون‌های ' . $courseTitle . ' برای همین حساب فعال می‌شود.',
         'paymentSuccessMessage' => 'پرداخت شما تایید شد و همه آزمون‌های ' . $courseTitle . ' برای این حساب باز شد.',
         'paymentFailureMessage' => 'فعال‌سازی ' . $courseTitle . ' انجام نشد. نتیجه را دوباره بررسی کنید.',
         'defaultPaymentMode' => 'paid',
@@ -309,6 +362,7 @@ function dent_exams_complete_foundations_theory_midterm_practice_parse_file(stri
             'reference' => (string) ($answerData['reference'] ?? ''),
             'optionRationales' => is_array($answerData['optionRationales'] ?? null) ? $answerData['optionRationales'] : [],
             'answerMeta' => is_array($answerData['answerMeta'] ?? null) ? $answerData['answerMeta'] : [],
+            'answerSections' => is_array($answerData['answerSections'] ?? null) ? $answerData['answerSections'] : [],
         ];
     }
 
@@ -355,6 +409,9 @@ function dent_exams_complete_foundations_theory_midterm_practice_parse_answer_ch
     for ($index = 0; $index < count($lines); $index++) {
         $line = trim((string) $lines[$index]);
         if ($line === '') {
+            continue;
+        }
+        if (preg_match('/^[\s\-_=ـ━]{5,}$/u', $line) === 1) {
             continue;
         }
 
@@ -407,6 +464,10 @@ function dent_exams_complete_foundations_theory_midterm_practice_parse_answer_ch
     $correctIndex = dent_exams_text_source_option_letter_to_index($letter);
     $reference = dent_exams_complete_foundations_theory_midterm_practice_join_lines($referenceLines);
     $optionRationales = dent_exams_complete_foundations_theory_midterm_practice_option_rationales($analysisLines);
+    $answerSections = dent_exams_complete_foundations_theory_midterm_practice_build_answer_sections(
+        $reasonLines,
+        $analysisLines
+    );
     $explanation = dent_exams_complete_foundations_theory_midterm_practice_compose_explanation(
         $correctRaw,
         $reasonLines,
@@ -436,6 +497,7 @@ function dent_exams_complete_foundations_theory_midterm_practice_parse_answer_ch
         'reference' => $reference,
         'optionRationales' => $optionRationales,
         'answerMeta' => $answerMeta,
+        'answerSections' => $answerSections,
     ];
 }
 
@@ -472,6 +534,32 @@ function dent_exams_complete_foundations_theory_midterm_practice_compose_explana
     }
 
     return implode("\n\n", array_values(array_filter($sections, static fn(string $section): bool => trim($section) !== '')));
+}
+
+function dent_exams_complete_foundations_theory_midterm_practice_build_answer_sections(
+    array $reasonLines,
+    array $analysisLines
+): array {
+    $sections = [];
+    $reason = dent_exams_complete_foundations_theory_midterm_practice_join_lines($reasonLines);
+    if ($reason !== '') {
+        $sections[] = [
+            'label' => 'دلیل درست‌بودن',
+            'value' => $reason,
+            'tone' => 'success',
+        ];
+    }
+
+    $analysis = dent_exams_complete_foundations_theory_midterm_practice_join_lines($analysisLines);
+    if ($analysis !== '') {
+        $sections[] = [
+            'label' => 'بررسی گزینه‌ها',
+            'value' => $analysis,
+            'tone' => '',
+        ];
+    }
+
+    return $sections;
 }
 
 function dent_exams_complete_foundations_theory_midterm_practice_option_rationales(array $analysisLines): array

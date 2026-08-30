@@ -367,6 +367,60 @@ function dent_exams_normalize_course_setting(array $value): array
     ];
 }
 
+function dent_exams_legacy_purchase_effective_timestamp(array $order): int
+{
+    foreach (['paid_at', 'verified_at', 'created_at'] as $field) {
+        $value = trim((string) ($order[$field] ?? ''));
+        if ($value === '') {
+            continue;
+        }
+
+        $timestamp = strtotime($value);
+        if ($timestamp !== false && $timestamp > 0) {
+            return $timestamp;
+        }
+    }
+
+    return 0;
+}
+
+function dent_exams_find_eligible_legacy_purchase(
+    array $orders,
+    string $studentNumber,
+    string $purchasedBefore,
+    string $successStatus = 'success'
+): ?array {
+    $normalizedStudentNumber = dent_normalize_student_number($studentNumber);
+    $cutoffTimestamp = strtotime(trim($purchasedBefore));
+    if ($normalizedStudentNumber === '' || $cutoffTimestamp === false || $cutoffTimestamp <= 0) {
+        return null;
+    }
+
+    $eligibleOrder = null;
+    $eligibleTimestamp = 0;
+    foreach ($orders as $order) {
+        if (!is_array($order) || (string) ($order['status'] ?? '') !== $successStatus) {
+            continue;
+        }
+
+        $matchesUser = $normalizedStudentNumber === dent_normalize_student_number((string) ($order['user_id'] ?? ''))
+            || $normalizedStudentNumber === dent_normalize_student_number((string) ($order['payer_student_number'] ?? ''));
+        if (!$matchesUser) {
+            continue;
+        }
+
+        $orderTimestamp = dent_exams_legacy_purchase_effective_timestamp($order);
+        if ($orderTimestamp <= 0 || $orderTimestamp > $cutoffTimestamp || $orderTimestamp < $eligibleTimestamp) {
+            continue;
+        }
+
+        $eligibleOrder = $order;
+        $eligibleTimestamp = $orderTimestamp;
+    }
+
+    return $eligibleOrder;
+}
+
 function dent_exams_default_course_setting(?array $course = null): array
 {
     $paymentMode = trim(strtolower((string) ($course['defaultPaymentMode'] ?? 'free')));

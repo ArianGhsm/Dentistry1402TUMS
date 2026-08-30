@@ -8,6 +8,9 @@ import urllib.error
 import urllib.request
 
 
+DIRECT_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
 def find_free_port() -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.bind(("127.0.0.1", 0))
@@ -18,7 +21,7 @@ def wait_for_server(base_url: str, timeout: float = 15.0) -> None:
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen(base_url + "/", timeout=5) as response:
+            with DIRECT_OPENER.open(base_url + "/", timeout=5) as response:
                 if response.status < 500:
                     return
         except Exception:
@@ -29,7 +32,7 @@ def wait_for_server(base_url: str, timeout: float = 15.0) -> None:
 def request_text(url: str) -> str:
     request = urllib.request.Request(url, headers={"Connection": "close"})
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
+        with DIRECT_OPENER.open(request, timeout=30) as response:
             if response.status != 200:
                 raise RuntimeError(f"Unexpected status {response.status} for {url}")
             return response.read().decode("utf-8", errors="replace")
@@ -82,27 +85,27 @@ def main() -> int:
             assert_contains(exams_home_html, "exams-home-root", "exams home root")
             assert_contains(exams_course_html, "exams-course-root", "exams course root")
 
-            assert_contains(quiz_js, "renderAssessmentReportDashboard", "report dashboard renderer")
-            assert_contains(quiz_js, "review-filter-focus", "review shortcut action")
-            assert_contains(quiz_js, "confirm-dialog-action", "confirm modal action")
-            assert_contains(quiz_js, "exam-busy-overlay", "busy overlay renderer")
-            assert_contains(quiz_js, "exam-toast-stack", "toast renderer")
-            assert_contains(quiz_js, "getAssessmentDerived", "assessment derived cache")
-            assert_contains(quiz_js, "flushPendingStatePersistence", "state persistence flush")
+            assert_contains(quiz_js, "renderAssessmentReportStage", "shared report stage renderer")
+            assert_contains(quiz_js, "confirm-submit-assessment", "final review submission action")
+            assert_contains(quiz_js, "renderSessionDialog", "shared session dialog renderer")
+            assert_contains(quiz_js, "syncPendingOfflineAssessment", "offline assessment queue sync")
+            assert_contains(quiz_js, "flushStudySync", "study-state persistence flush")
+            assert_contains(quiz_js, "flushFlagSync", "flag persistence flush")
             assert_contains(quiz_js, "fetchWithTimeout", "quiz timeout fetch")
 
-            assert_contains(bootstrap_js, "data-exam-bootstrap-action='retry'", "bootstrap retry action")
+            assert_contains(bootstrap_js, "data-exam-bootstrap-action", "bootstrap retry action")
             assert_contains(bootstrap_js, "fetchWithTimeout", "bootstrap timeout fetch")
 
             assert_contains(exams_home_js, "fetchWithTimeout", "exams home timeout fetch")
-            assert_contains(exams_course_js, "buildVisibleSessionCollection", "course session collection cache")
-            assert_contains(exams_course_js, "renderAsyncState", "course async state rendering")
-            assert_contains(exams_course_js, "SEARCH_RENDER_DEBOUNCE_MS", "course search debounce")
+            assert_contains(exams_home_js, "setError", "exams home async error state")
+            assert_contains(exams_course_js, "fetchWithTimeout", "course timeout fetch")
+            assert_contains(exams_course_js, "createSessionModel", "course session model")
+            assert_contains(exams_course_js, "scheduleCourseRender", "course scheduled rendering")
 
-            assert_contains(quiz_css, ".exam-report-summary-card", "report summary card styles")
-            assert_contains(quiz_css, ".exam-report-breakdown__grid", "report breakdown styles")
-            assert_contains(quiz_css, ".exam-confirm-dialog", "confirm dialog styles")
-            assert_contains(quiz_css, ".exam-toast-stack", "toast styles")
+            assert_contains(quiz_css, ".exam-report-score", "report score styles")
+            assert_contains(quiz_css, ".exam-report-insights", "report insight styles")
+            assert_contains(quiz_css, ".exam-session-dialog", "session dialog styles")
+            assert_contains(quiz_css, ".exam-question-map", "question-map styles")
 
             print("OK: exam report/review smoke passed.")
             return 0

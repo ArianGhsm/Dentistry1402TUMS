@@ -43,12 +43,20 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 - PWA version stamp دیگر نباید `HTML/PHP`های کل سایت را فقط برای تغییر `?v=` rewrite کند. cache-busting فایل‌های shared از این به بعد با revalidate header روی `css/js` و stamp محدود به `pwa.js`, `sw.js`, `manifest.webmanifest`, `app-version.json` انجام می‌شود.
 - به‌محض موفقیت deploy روی هاست و health-check زنده، state و manifest لوکال باید قبل از notification/GitHub sync ثبت شوند تا failureهای مرحله‌های بعدی باعث تکرار uploadهای قبلاً deploy‌شده نشوند.
 - هیچ سقف حجمی/proxy budget نباید deploy یا GitHub sync را متوقف کند؛ اگر مسیر شبکه در دسترس است، deploy باید ادامه پیدا کند.
-- بعد از health-check موفق، اسکریپت باید با login واقعی مالک یک اعلان داخل سایت فقط برای مالک ثبت کند که نسخه‌ی فعال و زمان دقیق deploy را ذکر می‌کند.
+- اعلان‌های شروع و نتیجهٔ نهایی باید از notifier مرکزی با قرارداد امضاشده داخل سایت فقط برای مالک ثبت شوند. مسیر login واقعی مالک فقط fallback صریح bootstrap است و در deploy عادی نباید یک اعلان سوم و تکراری بسازد.
 - اگر در rerun هیچ delta جدیدی زیر `public_html/` روی هاست deploy نشود، owner notification نباید دوباره ارسال شود؛ retryهای repair فقط باید مرحله‌های باقی‌مانده مثل GitHub sync را ادامه دهند.
-- اعلان completion deploy فقط داخل سایت ثبت می‌شود؛ پیامک یا کانال اعلان موازی برای آن مجاز نیست.
+- همان lifecycle مرکزی باید هر رویداد را مستقلاً به Telegram، Bale و مرکز اعلان owner-only سایت تحویل دهد. رکورد سایت `disablePush` است تا workerهای ربات آن را دوباره ارسال نکنند. نگه‌داری token یا transport موازی داخل این مخزن ممنوع است.
+
+## اعلان عملیاتی Telegram/Bale/Website
+
+- مالک پیاده‌سازی transport، صف، retry و secretها پروژه `IntegratedDent1402Tums` است.
+- deploy canonical سایت فقط eventهای lifecycle خودش را با `service=website` و `event-id` پایدار emit می‌کند.
+- رویداد باید قبل از ارسال روی notifier به‌صورت durable queue شود؛ اختلال یک کانال نباید باعث تکرار upload موفق سایت شود.
+- deploy با `started` آغاز می‌شود و دقیقاً با یکی از `succeeded`، `failed` یا `rolled_back` خاتمه می‌یابد.
+- notifier سه‌کاناله روی VPS ایران نصب است؛ هر تغییر topology باید دوباره با health و تحویل واقعی هر سه کانال اثبات شود.
+- token، chat ID، cookie و secret اعلان نباید در این repository، آرگومان command، log یا manifest deploy ذخیره شوند.
 - صفحات منابع/جزوات فقط shell کد هستند. کارت‌های قابل مدیریت منابع باید از storage و API خوانده شوند، از جمله `notes/1402_terms.json`، `notes/1403_terms.json`، `notes/1404_terms.json` و `notes/prosthesis_1402_terms.json`.
-- سیستم مشاهده خصوصی جزوات از storage خصوصی `private_notes/` استفاده می‌کند: PDF اصلی در `private_notes/originals/` و tile/pageهای رندرشده در `private_notes/pages/` می‌مانند. این مسیرها runtime/private هستند، نباید public deploy شوند و نبودن زیرپوشه‌های runtime خالی مثل `pages/` نباید mirror/deploy را fail کند.
-- تحویل tileهای سیستم مشاهده خصوصی به secret محیطی `DENT_PRIVATE_NOTES_TILE_SIGNING_SECRET` و ImageMagick نیاز دارد. cache کوتاه‌مدت watermark فقط باید زیر `server-only/tmp/private_notes_tile_cache/` بماند و هرگز public deploy نشود. قرارداد endpointها و envها در `docs/private-notes-tile-delivery.md` ثبت شده است.
+- صدور و تحویل PDF محافظت‌شده در پروژه `IntegratedDent1402Tums` و ربات تلگرام انجام می‌شود. سایت فقط endpoint امضاشدهٔ هویت canonical واترمارک را نگه می‌دارد؛ هیچ فایل PDF، cache واترمارک، viewer یا state دستگاه مطالعه روی هاست سایت deploy نمی‌شود.
 
 ## دستورات مهم
 Dry run:

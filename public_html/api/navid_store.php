@@ -53,6 +53,13 @@ function navid_default_store(): array
             'assignments' => [],
         ],
         'updates' => [],
+        'automation' => [
+            'dailyDate' => '',
+            'challengeIssuedAt' => '',
+            'challengeExpiresAt' => '',
+            'completedAt' => '',
+            'lastResult' => '',
+        ],
     ];
 }
 
@@ -66,7 +73,7 @@ function navid_load_store(): array
     $defaults = navid_default_store();
     $merged = $defaults;
 
-    foreach (['schemaVersion', 'config', 'session', 'challenge', 'state', 'snapshot', 'updates'] as $key) {
+    foreach (['schemaVersion', 'config', 'session', 'challenge', 'state', 'snapshot', 'updates', 'automation'] as $key) {
         if (array_key_exists($key, $raw)) {
             $merged[$key] = $raw[$key];
         }
@@ -104,6 +111,11 @@ function navid_load_store(): array
     }
     if (!is_array($merged['updates'])) {
         $merged['updates'] = [];
+    }
+    if (!is_array($merged['automation'])) {
+        $merged['automation'] = $defaults['automation'];
+    } else {
+        $merged['automation'] = array_merge($defaults['automation'], $merged['automation']);
     }
 
     return $merged;

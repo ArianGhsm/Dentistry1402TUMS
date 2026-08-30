@@ -120,7 +120,6 @@ def main() -> int:
 
     stamp_script_versions(version, changed, args.dry_run)
     stamp_manifest(version, changed, args.dry_run)
-    stamp_document_asset_versions(version, changed, args.dry_run)
     stamp_app_version_file(version, changed, args.dry_run)
 
     print(f"STAMP_VERSION={version}")

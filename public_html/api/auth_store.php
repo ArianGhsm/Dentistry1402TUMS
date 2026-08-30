@@ -1998,6 +1998,317 @@ function dent_auth_status(array $user): string
     return 'logged-in';
 }
 
+function dent_auth_sessions_path(): string
+{
+    return dent_storage_path('auth/active_sessions.json');
+}
+
+function dent_auth_sessions_default_store(): array
+{
+    return [
+        'schemaVersion' => 1,
+        'updatedAt' => '',
+        'sessions' => [],
+    ];
+}
+
+function dent_auth_sessions_with_lock(callable $callback, bool $required = false): array
+{
+    $path = dent_auth_sessions_path();
+    dent_ensure_directory(dirname($path));
+    $lock = @fopen($path . '.lock', 'c+');
+    if ($lock === false || !@flock($lock, LOCK_EX)) {
+        if (is_resource($lock)) {
+            @fclose($lock);
+        }
+        if ($required) {
+            dent_error('امکان مدیریت نشست‌های حساب وجود ندارد.', 503);
+        }
+        return [];
+    }
+
+    try {
+        $store = dent_read_json_file($path, dent_auth_sessions_default_store());
+        if (!is_array($store)) {
+            $store = dent_auth_sessions_default_store();
+        }
+        $store['sessions'] = is_array($store['sessions'] ?? null) ? $store['sessions'] : [];
+
+        $now = time();
+        foreach ($store['sessions'] as $id => $row) {
+            if (!is_array($row)) {
+                unset($store['sessions'][$id]);
+                continue;
+            }
+            $lastSeen = strtotime((string) ($row['lastSeenAt'] ?? ($row['createdAt'] ?? '')));
+            $status = (string) ($row['status'] ?? 'active');
+            $retention = $status === 'active' ? 60 * 60 * 24 * 45 : 60 * 60 * 24 * 7;
+            if ($lastSeen !== false && ($now - $lastSeen) > $retention) {
+                unset($store['sessions'][$id]);
+            }
+        }
+
+        $result = $callback($store);
+        $store['schemaVersion'] = 1;
+        $store['updatedAt'] = dent_iso_now();
+        $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+        if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
+            $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
+        }
+        $json = json_encode($store, $flags);
+        if (!is_string($json) || @file_put_contents($path, $json . PHP_EOL, LOCK_EX) === false) {
+            if ($required) {
+                dent_error('ذخیره وضعیت نشست‌ها انجام نشد.', 503);
+            }
+            return [];
+        }
+        return is_array($result) ? $result : [];
+    } finally {
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+}
+
+function dent_auth_session_client_summary(): array
+{
+    $ua = trim((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''));
+    $lower = strtolower($ua);
+    $browser = 'مرورگر';
+    if (str_contains($lower, 'edg/')) {
+        $browser = 'Edge';
+    } elseif (str_contains($lower, 'firefox/')) {
+        $browser = 'Firefox';
+    } elseif (str_contains($lower, 'crios/') || str_contains($lower, 'chrome/')) {
+        $browser = 'Chrome';
+    } elseif (str_contains($lower, 'safari/')) {
+        $browser = 'Safari';
+    }
+
+    $os = 'دستگاه ناشناس';
+    $type = 'computer';
+    if (str_contains($lower, 'iphone')) {
+        $os = 'iPhone';
+        $type = 'phone';
+    } elseif (str_contains($lower, 'ipad')) {
+        $os = 'iPad';
+        $type = 'tablet';
+    } elseif (str_contains($lower, 'android')) {
+        $os = 'Android';
+        $type = str_contains($lower, 'mobile') ? 'phone' : 'tablet';
+    } elseif (str_contains($lower, 'windows')) {
+        $os = 'Windows';
+    } elseif (str_contains($lower, 'mac os') || str_contains($lower, 'macintosh')) {
+        $os = 'macOS';
+    } elseif (str_contains($lower, 'linux')) {
+        $os = 'Linux';
+    }
+
+    $ip = trim((string) ($_SERVER['REMOTE_ADDR'] ?? ''));
+    $network = '';
+    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+        $parts = explode('.', $ip);
+        $network = implode('.', array_slice($parts, 0, 3)) . '.x';
+    } elseif (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+        $parts = explode(':', $ip);
+        $network = implode(':', array_slice($parts, 0, 3)) . ':…';
+    }
+
+    return [
+        'browser' => $browser,
+        'operatingSystem' => $os,
+        'deviceType' => $type,
+        'label' => $browser . ' روی ' . $os,
+        'network' => $network,
+        'userAgentSummary' => dent_clean_text($ua, 220),
+    ];
+}
+
+function dent_auth_session_current_public_id(): string
+{
+    $id = trim((string) ($_SESSION['auth_session_public_id'] ?? ''));
+    if (preg_match('/^das-[a-f0-9]{24}$/', $id) !== 1) {
+        $id = 'das-' . bin2hex(random_bytes(12));
+        $_SESSION['auth_session_public_id'] = $id;
+    }
+    return $id;
+}
+
+function dent_auth_session_register(string $studentNumber, bool $force = false): array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '' || session_status() !== PHP_SESSION_ACTIVE) {
+        return [];
+    }
+    $id = dent_auth_session_current_public_id();
+    $now = dent_iso_now();
+    $summary = dent_auth_session_client_summary();
+    $sessionHash = hash('sha256', session_id());
+
+    $result = dent_auth_sessions_with_lock(static function (array &$store) use ($id, $studentNumber, $now, $summary, $sessionHash, $force): array {
+        $existing = is_array($store['sessions'][$id] ?? null) ? $store['sessions'][$id] : [];
+        if (!$force && $existing !== [] && (string) ($existing['status'] ?? '') !== 'active') {
+            return ['ok' => false, 'revoked' => true];
+        }
+        $store['sessions'][$id] = array_merge($existing, $summary, [
+            'id' => $id,
+            'userKey' => $studentNumber,
+            'sessionHash' => $sessionHash,
+            'status' => 'active',
+            'createdAt' => (string) (($existing['createdAt'] ?? '') ?: $now),
+            'lastSeenAt' => $now,
+            'revokedAt' => '',
+            'revokedReason' => '',
+        ]);
+        return ['ok' => true, 'session' => $store['sessions'][$id]];
+    });
+
+    $_SESSION['auth_session_touch_at'] = time();
+    return $result;
+}
+
+function dent_auth_session_validate_and_touch(string $studentNumber): bool
+{
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        return true;
+    }
+    $id = trim((string) ($_SESSION['auth_session_public_id'] ?? ''));
+    if ($id === '') {
+        dent_auth_session_register($studentNumber, true);
+        return true;
+    }
+
+    $store = dent_read_json_file(dent_auth_sessions_path(), dent_auth_sessions_default_store());
+    $record = is_array($store['sessions'][$id] ?? null) ? $store['sessions'][$id] : null;
+    if (!is_array($record)) {
+        dent_auth_session_register($studentNumber, true);
+        return true;
+    }
+    if ((string) ($record['userKey'] ?? '') !== $studentNumber || (string) ($record['status'] ?? '') !== 'active') {
+        unset($_SESSION['student_number'], $_SESSION['auth_at'], $_SESSION['auth_session_public_id'], $_SESSION['auth_session_touch_at']);
+        return false;
+    }
+
+    $lastTouch = (int) ($_SESSION['auth_session_touch_at'] ?? 0);
+    if ($lastTouch <= 0 || (time() - $lastTouch) >= 300) {
+        dent_auth_session_register($studentNumber, false);
+    }
+    return true;
+}
+
+function dent_auth_session_public_payload(array $record, string $currentId): array
+{
+    return [
+        'id' => (string) ($record['id'] ?? ''),
+        'label' => (string) ($record['label'] ?? 'نشست ورود'),
+        'browser' => (string) ($record['browser'] ?? ''),
+        'operatingSystem' => (string) ($record['operatingSystem'] ?? ''),
+        'deviceType' => (string) ($record['deviceType'] ?? 'computer'),
+        'network' => (string) ($record['network'] ?? ''),
+        'createdAt' => (string) ($record['createdAt'] ?? ''),
+        'lastSeenAt' => (string) ($record['lastSeenAt'] ?? ''),
+        'isCurrent' => $currentId !== '' && (string) ($record['id'] ?? '') === $currentId,
+        'status' => (string) ($record['status'] ?? 'active'),
+    ];
+}
+
+function dent_auth_sessions_for_user(array $user): array
+{
+    $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    dent_auth_session_validate_and_touch($studentNumber);
+    $currentId = trim((string) ($_SESSION['auth_session_public_id'] ?? ''));
+    $store = dent_read_json_file(dent_auth_sessions_path(), dent_auth_sessions_default_store());
+    $sessions = [];
+    foreach (($store['sessions'] ?? []) as $record) {
+        if (!is_array($record) || (string) ($record['userKey'] ?? '') !== $studentNumber || (string) ($record['status'] ?? '') !== 'active') {
+            continue;
+        }
+        $sessions[] = dent_auth_session_public_payload($record, $currentId);
+    }
+    usort($sessions, static function (array $left, array $right): int {
+        if (!empty($left['isCurrent']) !== !empty($right['isCurrent'])) {
+            return !empty($left['isCurrent']) ? -1 : 1;
+        }
+        return strcmp((string) ($right['lastSeenAt'] ?? ''), (string) ($left['lastSeenAt'] ?? ''));
+    });
+    return ['sessions' => $sessions, 'currentSessionId' => $currentId];
+}
+
+function dent_auth_session_revoke(array $user, string $sessionId, string $reason = 'revoked-by-user'): array
+{
+    $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    $sessionId = trim($sessionId);
+    $currentId = trim((string) ($_SESSION['auth_session_public_id'] ?? ''));
+    if ($sessionId === '' || $sessionId === $currentId) {
+        dent_error('برای خروج از همین دستگاه از گزینه خروج حساب استفاده کن.', 422);
+    }
+    return dent_auth_sessions_with_lock(static function (array &$store) use ($studentNumber, $sessionId, $reason): array {
+        $record = is_array($store['sessions'][$sessionId] ?? null) ? $store['sessions'][$sessionId] : null;
+        if (!is_array($record) || (string) ($record['userKey'] ?? '') !== $studentNumber) {
+            dent_error('نشست موردنظر پیدا نشد.', 404);
+        }
+        $record['status'] = 'revoked';
+        $record['revokedAt'] = dent_iso_now();
+        $record['revokedReason'] = $reason;
+        $store['sessions'][$sessionId] = $record;
+        return ['revokedSessionId' => $sessionId];
+    }, true);
+}
+
+function dent_auth_session_revoke_others(array $user): array
+{
+    $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    $currentId = trim((string) ($_SESSION['auth_session_public_id'] ?? ''));
+    return dent_auth_sessions_with_lock(static function (array &$store) use ($studentNumber, $currentId): array {
+        $revoked = [];
+        foreach ($store['sessions'] as $id => $record) {
+            if (!is_array($record) || (string) ($record['userKey'] ?? '') !== $studentNumber || (string) ($record['status'] ?? '') !== 'active' || (string) $id === $currentId) {
+                continue;
+            }
+            $record['status'] = 'revoked';
+            $record['revokedAt'] = dent_iso_now();
+            $record['revokedReason'] = 'revoked-other-sessions-by-user';
+            $store['sessions'][$id] = $record;
+            $revoked[] = (string) $id;
+        }
+        return ['revokedSessionIds' => $revoked];
+    }, true);
+}
+
+function dent_auth_session_mark_current_revoked(string $reason): void
+{
+    $id = trim((string) ($_SESSION['auth_session_public_id'] ?? ''));
+    if ($id === '') {
+        return;
+    }
+    dent_auth_sessions_with_lock(static function (array &$store) use ($id, $reason): array {
+        if (is_array($store['sessions'][$id] ?? null)) {
+            $store['sessions'][$id]['status'] = 'revoked';
+            $store['sessions'][$id]['revokedAt'] = dent_iso_now();
+            $store['sessions'][$id]['revokedReason'] = $reason;
+        }
+        return [];
+    });
+}
+
+function dent_auth_session_csrf_token(): string
+{
+    $token = trim((string) ($_SESSION['auth_session_csrf_token'] ?? ''));
+    if (strlen($token) < 32) {
+        $token = dent_base64url_encode(random_bytes(32));
+        $_SESSION['auth_session_csrf_token'] = $token;
+    }
+    return $token;
+}
+
+function dent_auth_session_require_csrf(): void
+{
+    $expected = dent_auth_session_csrf_token();
+    $provided = trim((string) ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ($_POST['csrfToken'] ?? '')));
+    if ($provided === '' || !hash_equals($expected, $provided)) {
+        dent_error('نشست صفحه منقضی شده؛ صفحه را دوباره باز کن.', 403);
+    }
+}
+
 function dent_current_user(): ?array
 {
     $studentNumber = dent_normalize_student_number((string) ($_SESSION['student_number'] ?? ''));
@@ -2008,6 +2319,10 @@ function dent_current_user(): ?array
     $user = dent_get_user_record($studentNumber);
     if ($user === null) {
         unset($_SESSION['student_number'], $_SESSION['auth_at']);
+        return null;
+    }
+
+    if (!dent_auth_session_validate_and_touch($studentNumber)) {
         return null;
     }
 
@@ -2149,12 +2464,15 @@ function dent_login_user(array $user): array
     session_regenerate_id(true);
     $_SESSION['student_number'] = (string) ($user['studentNumber'] ?? '');
     $_SESSION['auth_at'] = time();
+    unset($_SESSION['auth_session_public_id'], $_SESSION['auth_session_touch_at'], $_SESSION['auth_session_csrf_token']);
+    dent_auth_session_register((string) ($user['studentNumber'] ?? ''), true);
 
     return dent_public_user($user);
 }
 
 function dent_logout_user(): void
 {
+    dent_auth_session_mark_current_revoked('logout');
     $_SESSION = [];
 
     if (ini_get('session.use_cookies')) {
@@ -3271,6 +3589,33 @@ function dent_auth_dis_request_phone_index(): array
     return $index;
 }
 
+function dent_dis_request_private_identity_for_student(string $studentNumber): array
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    if ($studentNumber === '') {
+        return ['nationalCode' => '', 'phoneNumber' => ''];
+    }
+    $store = dent_read_json_file(dent_storage_path('dis_request/store.json'), [
+        'responses' => [],
+    ]);
+    $responses = is_array($store['responses'] ?? null) ? $store['responses'] : [];
+    $record = is_array($responses[$studentNumber] ?? null) ? $responses[$studentNumber] : null;
+    if (!is_array($record)) {
+        foreach ($responses as $candidate) {
+            if (!is_array($candidate)) continue;
+            if (dent_normalize_student_number((string) ($candidate['studentNumber'] ?? '')) === $studentNumber) {
+                $record = $candidate;
+                break;
+            }
+        }
+    }
+    $fields = is_array($record['fields'] ?? null) ? $record['fields'] : [];
+    return [
+        'nationalCode' => dent_normalize_national_code((string) ($fields['nationalCode'] ?? '')),
+        'phoneNumber' => dent_normalize_phone_number((string) ($fields['phoneNumber'] ?? '')),
+    ];
+}
+
 function dent_phone_number_in_use(string $phoneNumber, string $excludeStudentNumber = ''): bool
 {
     $normalizedPhone = dent_normalize_phone_number($phoneNumber);
@@ -3708,11 +4053,47 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
         return ['success' => false, 'message' => 'پاسخ سرویس پیامکی نامعتبر است.' . $detail, 'httpStatus' => $httpCode];
     }
 
+    $providerResult = dent_sms_parse_pattern_response($decoded, $httpCode);
+    $ok = (bool) $providerResult['success'];
+    $messageCode = (string) $providerResult['messageCode'];
+    $providerRequestId = (string) $providerResult['providerRequestId'];
+    $message = (string) $providerResult['message'];
+
+    dent_sms_log($ok ? 'send_ok' : 'send_failed', [
+        'phone' => dent_mask_phone_number($normalizedPhone),
+        'httpStatus' => $httpCode,
+        'messageCode' => $messageCode,
+        'providerRequestId' => $providerRequestId,
+        'providerMessage' => $message,
+    ]);
+
+    return [
+        'success' => $ok,
+        'message' => $message,
+        'httpStatus' => $httpCode,
+        'messageCode' => $messageCode,
+        'providerRequestId' => $providerRequestId,
+    ];
+}
+
+/**
+ * Normalize the current IranPayamak/FarazSMS pattern endpoint response.
+ *
+ * A successful response means the provider accepted the request. It does not
+ * prove delivery to the handset, so callers must not present it as delivered.
+ */
+function dent_sms_parse_pattern_response(array $decoded, int $httpCode): array
+{
     $statusRaw = strtolower(trim((string) ($decoded['status'] ?? '')));
-    $ok = $statusRaw === 'success';
+    $ok = $httpCode >= 200 && $httpCode < 300 && $statusRaw === 'success';
     $messageCode = dent_clean_text((string) ($decoded['code'] ?? ''), 40);
+    $providerRequestId = '';
+    if (is_string($decoded['data'] ?? null) || is_int($decoded['data'] ?? null)) {
+        $providerRequestId = dent_clean_text((string) $decoded['data'], 80);
+    }
+
     $message = '';
-    $rawMessage = $decoded['message'] ?? '';
+    $rawMessage = $decoded['messages'] ?? ($decoded['message'] ?? '');
     if (is_string($rawMessage)) {
         $message = dent_clean_text($rawMessage, 220);
     } elseif (is_array($rawMessage)) {
@@ -3739,24 +4120,19 @@ function dent_sms_send_pattern(string $phoneNumber, string $otpCode): array
         }
     }
     if ($message === '') {
-        $message = $ok ? 'ارسال انجام شد.' : 'ارسال پیامک انجام نشد.';
+        $message = $ok ? 'درخواست ارسال در سرویس پیامکی ثبت شد.' : 'ارسال پیامک انجام نشد.';
     }
     if (!$ok && $httpCode >= 500) {
         $message = 'سرویس پیامکی موقتاً در دسترس نیست.';
     }
-
-    dent_sms_log($ok ? 'send_ok' : 'send_failed', [
-        'phone' => dent_mask_phone_number($normalizedPhone),
-        'httpStatus' => $httpCode,
-        'messageCode' => $messageCode,
-        'providerMessage' => $message,
-    ]);
 
     return [
         'success' => $ok,
         'message' => $message,
         'httpStatus' => $httpCode,
         'messageCode' => $messageCode,
+        'providerRequestId' => $providerRequestId,
+        'acceptanceOnly' => $ok,
     ];
 }
 
@@ -4056,7 +4432,6 @@ function dent_issue_otp_for_phone(string $purpose, string $phoneNumber, string $
     dent_save_auth_meta_store($meta);
 
     $sendResult = dent_sms_send_pattern($normalizedPhone, $code);
-    dent_sms_health_store_update((bool) ($sendResult['success'] ?? false), (string) ($sendResult['message'] ?? ''));
     if (!(bool) ($sendResult['success'] ?? false)) {
         $records[$key]['lastSendFailedAt'] = time();
         $records[$key]['lastSendFailureMessage'] = dent_clean_text((string) ($sendResult['message'] ?? ''), 220);
@@ -4068,6 +4443,7 @@ function dent_issue_otp_for_phone(string $purpose, string $phoneNumber, string $
         $records[$key]['consumedAt'] = 0;
         $meta['otp']['records'] = $records;
         dent_save_auth_meta_store($meta);
+        dent_sms_health_store_update(false, (string) ($sendResult['message'] ?? ''));
         return [
             'success' => false,
             'error' => (string) ($sendResult['message'] ?? 'ارسال کد تایید انجام نشد.'),
@@ -4093,6 +4469,7 @@ function dent_issue_otp_for_phone(string $purpose, string $phoneNumber, string $
     ];
     $meta['otp']['records'] = $records;
     dent_save_auth_meta_store($meta);
+    dent_sms_health_store_update(true, (string) ($sendResult['message'] ?? ''));
 
     return [
         'success' => true,

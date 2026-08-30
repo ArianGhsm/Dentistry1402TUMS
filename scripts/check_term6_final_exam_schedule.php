@@ -71,6 +71,14 @@ $diagnosticsCourseSchedule = dent_dentistry_curriculum_final_exams(
 if (count($diagnosticsCourseSchedule) !== 1 || (string) ($diagnosticsCourseSchedule[0]['jalaliDate'] ?? '') !== '۱۴۰۵/۰۵/۲۴') {
     $errors[] = 'diagnostics-1 course is not mapped to its dedicated final-exam date';
 }
+$diagnostics2CourseSchedule = dent_dentistry_curriculum_final_exams(
+    is_array($diagnosticsUnit) ? $diagnosticsUnit : [],
+    'dentistry-1402',
+    'diagnostics-2-term6'
+);
+if (count($diagnostics2CourseSchedule) !== 1 || (string) ($diagnostics2CourseSchedule[0]['jalaliDate'] ?? '') !== '۱۴۰۵/۰۴/۲۹') {
+    $errors[] = 'diagnostics-2 course is not mapped to its dedicated final-exam date';
+}
 
 if (dent_dentistry_curriculum_final_exams(is_array($restorativeUnit) ? $restorativeUnit : [], 'dentistry-1403') !== []) {
     $errors[] = 'dentistry-1402 schedule leaked into dentistry-1403';

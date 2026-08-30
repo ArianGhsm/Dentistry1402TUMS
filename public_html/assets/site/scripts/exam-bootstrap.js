@@ -35,6 +35,19 @@
     var params = new URLSearchParams(window.location.search);
     var started = false;
     var authRechecked = false;
+    var quizRuntimeWarmed = false;
+
+    appRoot.addEventListener("click", function (event) {
+        var target = event.target && event.target.closest
+            ? event.target.closest("[data-exam-bootstrap-action]")
+            : null;
+        if (!target || target.dataset.examBootstrapAction !== "retry") {
+            return;
+        }
+        started = false;
+        authRechecked = false;
+        loadExam();
+    });
 
     function escapeHtml(value) {
         return String(value == null ? "" : value).replace(/[&<>"]/g, function (char) {
@@ -105,7 +118,12 @@
     }
 
     function renderFailure(message) {
-        renderShell("بارگذاری آزمون انجام نشد", message || "این آزمون فعلا در دسترس نیست.", '<a class="back-btn" href="/exams/">بازگشت به آزمون‌ها</a>');
+        renderShell("بارگذاری آزمون انجام نشد", message || "این آزمون فعلا در دسترس نیست.", [
+            '<div class="exam-empty-state__actions">',
+            '  <button class="back-btn" type="button" data-exam-bootstrap-action="retry">تلاش دوباره</button>',
+            '  <a class="back-btn" href="/exams/">بازگشت به آزمون‌ها</a>',
+            '</div>'
+        ].join(""));
     }
 
     function renderLogin() {
@@ -154,18 +172,46 @@
         document.body.appendChild(script);
     }
 
+    function warmQuizRuntime() {
+        if (quizRuntimeWarmed) {
+            return;
+        }
+        quizRuntimeWarmed = true;
+        var preload = document.createElement("link");
+        preload.rel = "preload";
+        preload.as = "script";
+        preload.href = "/assets/site/scripts/exam-quiz.js" + assetVersionQuery;
+        document.head.appendChild(preload);
+    }
+
+    function fetchWithTimeout(url, options, timeoutMs) {
+        if (typeof AbortController !== "function") {
+            return fetch(url, options);
+        }
+
+        var controller = new AbortController();
+        var requestOptions = Object.assign({}, options || {}, { signal: controller.signal });
+        var timer = window.setTimeout(function () {
+            controller.abort();
+        }, Math.max(1000, Number(timeoutMs) || 20000));
+
+        return fetch(url, requestOptions).finally(function () {
+            window.clearTimeout(timer);
+        });
+    }
+
     function loadExam() {
         if (started) {
             return;
         }
         started = true;
         renderLoading();
-        fetch("/api/exams_api.php?" + queryWithCohort().toString(), {
+        fetchWithTimeout("/api/exams_api.php?" + queryWithCohort().toString(), {
             method: "GET",
             cache: "no-store",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
-        }).then(parseJson).then(function (payload) {
+        }, 20000).then(parseJson).then(function (payload) {
             if (payload && payload.success && payload.exam) {
                 mountExam(payload.exam);
                 return;
@@ -196,6 +242,10 @@
             }
             throw new Error((payload && payload.error) || "بارگذاری آزمون انجام نشد.");
         }).catch(function (error) {
+            if (error && error.name === "AbortError") {
+                renderFailure("پاسخ سرور بیش از حد طول کشید. دوباره تلاش کنید.");
+                return;
+            }
             if (error instanceof TypeError) {
                 renderFailure("ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.");
                 return;
@@ -206,12 +256,10 @@
 
     function boot() {
         renderLoading();
-        if (window.Dent1402Auth && typeof window.Dent1402Auth.ready === "function") {
-            window.Dent1402Auth.ready().catch(function () {
-                return null;
-            }).finally(loadExam);
-            return;
-        }
+        warmQuizRuntime();
+        // The exam endpoint performs the canonical session/permission check on
+        // its own. Starting it immediately avoids a full auth-request waterfall;
+        // a genuine or transient 401 is still verified through Dent1402Auth.
         loadExam();
     }
 

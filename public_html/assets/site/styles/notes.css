@@ -675,3 +675,214 @@ html[data-performance-mode="lite"] .notes-unit-card {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
 }
+
+/* Mature educational pass: the archive reads as one continuous document. */
+body.notes-curriculum-page :is(
+    .notes-summary-shell,
+    .notes-group-card,
+    .notes-term-card,
+    .notes-legacy-shell,
+    .notes-resource-card,
+    .notes-unit-card,
+    .notes-resource-insights,
+    .notes-resource-mini-list,
+    .notes-resource-request,
+    .notes-resource-inbox,
+    .notes-resource-pack
+) {
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+body.notes-curriculum-page :is(
+    .notes-summary-shell,
+    .notes-group-card,
+    .notes-term-card,
+    .notes-legacy-shell,
+    .notes-resource-card,
+    .notes-unit-card
+)::before {
+    content: none !important;
+}
+
+body.notes-curriculum-page :is(.notes-summary-shell, .notes-group-card, .notes-legacy-shell) {
+    overflow: visible !important;
+    padding-inline: 0 !important;
+}
+
+body.notes-curriculum-page :is(.notes-summary-shell, .notes-group-card, .notes-legacy-shell, .notes-resource-insights) {
+    border: 0 !important;
+    border-block-start: 1px solid var(--flat-divider, var(--border-color)) !important;
+    padding-block: clamp(0.95rem, 2vw, 1.35rem) !important;
+}
+
+body.notes-curriculum-page :is(.notes-term-grid, .notes-unit-list, .notes-resource-list),
+body.notes-curriculum-page .notes-resource-mini-list__items,
+body.notes-curriculum-page .notes-resource-inbox {
+    gap: 0;
+}
+
+body.notes-curriculum-page :is(.notes-term-card, .notes-unit-card, .notes-resource-card, .notes-resource-pack) {
+    overflow: visible;
+    border: 0 !important;
+    border-block-end: 1px solid var(--flat-divider, var(--border-color)) !important;
+}
+
+body.notes-curriculum-page :is(.notes-unit-card, .notes-resource-card) {
+    padding-block: 0.82rem;
+    padding-inline: 0;
+}
+
+body.notes-curriculum-page .notes-term-card__link {
+    min-height: 54px;
+    padding: 0.82rem 0;
+    border-radius: 0;
+}
+
+body.notes-curriculum-page .notes-summary-grid {
+    gap: 0;
+}
+
+body.notes-curriculum-page .notes-summary-stat {
+    min-height: 62px;
+    justify-content: center;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    padding: 0.48rem clamp(0.55rem, 2vw, 1rem);
+}
+
+body.notes-curriculum-page .notes-summary-stat + .notes-summary-stat {
+    border-inline-start: 1px solid var(--flat-divider, var(--border-color)) !important;
+}
+
+body.notes-curriculum-page :is(.notes-term-card__stats, .notes-unit-card__stats) .notes-summary-stat {
+    min-height: 0;
+    min-width: 0;
+    padding: 0;
+    border: 0 !important;
+}
+
+body.notes-curriculum-page .notes-resource-insights__head,
+body.notes-curriculum-page .notes-resource-request__title {
+    text-align: start;
+}
+
+body.notes-curriculum-page .notes-resource-insights__grid {
+    gap: 0;
+}
+
+body.notes-curriculum-page :is(.notes-resource-mini-list, .notes-resource-request, .notes-resource-inbox) {
+    border: 0 !important;
+    padding: 0.72rem clamp(0.65rem, 1.8vw, 1rem);
+}
+
+body.notes-curriculum-page .notes-resource-insights__grid > * + * {
+    border-inline-start: 1px solid var(--flat-divider, var(--border-color)) !important;
+}
+
+body.notes-curriculum-page .notes-resource-mini-list__item,
+body.notes-curriculum-page .notes-resource-inbox__row {
+    min-height: 40px;
+    padding-block: 0.48rem;
+    border-block-end: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
+}
+
+body.notes-curriculum-page :is(.notes-link-btn, .notes-resource-action) {
+    min-height: 40px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent-soft) 42%, var(--surface-solid));
+    box-shadow: none;
+    transition:
+        color 140ms cubic-bezier(.2, 0, .38, .9),
+        border-color 140ms cubic-bezier(.2, 0, .38, .9),
+        background 140ms cubic-bezier(.2, 0, .38, .9),
+        transform 90ms cubic-bezier(.2, 0, .38, .9);
+}
+
+body.notes-curriculum-page :is(.notes-link-btn--muted, .notes-resource-action--muted) {
+    background: transparent;
+}
+
+body.notes-curriculum-page .notes-resource-version {
+    min-height: 28px;
+    border-radius: 4px;
+    background: transparent;
+}
+
+body.notes-curriculum-page .notes-resource-request__input {
+    min-height: 44px;
+    border-radius: 10px !important;
+    background: color-mix(in srgb, var(--surface-solid) 74%, transparent) !important;
+    outline: none;
+    transition: border-color 140ms cubic-bezier(.2, 0, .38, .9), box-shadow 140ms cubic-bezier(.2, 0, .38, .9);
+}
+
+body.notes-curriculum-page :is(.notes-resource-request__input, .notes-link-btn, .notes-resource-action, .notes-term-card__link):focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+    box-shadow: none;
+    transform: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body.notes-curriculum-page :is(.notes-term-card__link, .notes-resource-card, .notes-unit-card):hover {
+        background: var(--flat-hover, color-mix(in srgb, var(--accent-color) 5%, transparent)) !important;
+        transform: none;
+    }
+
+    body.notes-curriculum-page :is(.notes-link-btn, .notes-resource-action):hover {
+        border-color: color-mix(in srgb, var(--accent-color) 42%, var(--border-color));
+        background: color-mix(in srgb, var(--accent-soft) 58%, var(--surface-solid));
+        transform: none;
+    }
+}
+
+body.notes-curriculum-page :is(.notes-link-btn, .notes-resource-action):active {
+    transform: scale(.98);
+}
+
+@media (max-width: 720px) {
+    body.notes-curriculum-page :is(.notes-summary-shell, .notes-group-card, .notes-legacy-shell) {
+        padding-inline: 0 !important;
+    }
+
+    body.notes-curriculum-page :is(.notes-unit-card, .notes-resource-card),
+    body.notes-curriculum-page .notes-term-card__link {
+        padding-inline: 0;
+    }
+
+    body.notes-curriculum-page .notes-resource-insights__grid > * + * {
+        border-inline-start: 0 !important;
+        border-block-start: 1px solid var(--flat-divider, var(--border-color)) !important;
+    }
+
+    body.notes-curriculum-page :is(.notes-resource-mini-list, .notes-resource-request, .notes-resource-inbox) {
+        padding-inline: 0;
+    }
+
+    body.notes-curriculum-page .notes-resource-row__actions {
+        padding-inline: 0;
+    }
+}
+
+@media (max-width: 420px) {
+    body.notes-curriculum-page .notes-summary-stat + .notes-summary-stat {
+        border-inline-start: 0 !important;
+        border-block-start: 1px solid var(--flat-divider, var(--border-color)) !important;
+    }
+
+    body.notes-curriculum-page :is(.notes-resource-action, .notes-resource-pack__actions .notes-link-btn) {
+        min-height: 44px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.notes-curriculum-page :is(.notes-link-btn, .notes-resource-action, .notes-term-card__link) {
+        scroll-behavior: auto;
+        transition-duration: .01ms !important;
+    }
+}

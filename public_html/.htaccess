@@ -1,6 +1,6 @@
 <IfModule mod_mime.c>
   AddDefaultCharset UTF-8
-  AddCharset UTF-8 .html .htm .css .js .json .webmanifest .txt .xml .svg
+  AddCharset UTF-8 .html .htm .css .js .mjs .json .webmanifest .txt .xml .svg
 
   AddType font/woff2 .woff2
   AddType font/woff  .woff
@@ -8,6 +8,7 @@
   AddType font/ttf .ttf
   AddType font/otf .otf
   AddType application/manifest+json .webmanifest
+  AddType text/javascript .mjs
 </IfModule>
 
 <IfModule mod_deflate.c>
@@ -35,18 +36,31 @@
     Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
   </FilesMatch>
 
-  <FilesMatch "^(?!sw\.js$).*\.(css|js)$">
-    Header set Cache-Control "public, max-age=31536000, immutable" env=ASSET_VERSIONED
-    Header set Cache-Control "public, no-cache, max-age=0, must-revalidate" env=!ASSET_VERSIONED
+  <FilesMatch "^(?!sw\.js$).*\.(css|js|mjs)$">
+    Header set Cache-Control "public, no-cache, max-age=0, must-revalidate"
+    Header set Cache-Control "public, max-age=31536000, immutable" "expr=%{QUERY_STRING} =~ m#(^|&)v=[^&]+#"
+  </FilesMatch>
+
+  # theme.css reaches almost every route and is linked with a few legacy query
+  # tokens. Keep its freshness window short without forcing a round-trip on
+  # every page transition. Its imported design layers use versioned URLs.
+  <FilesMatch "^theme\.css$">
+    Header set Cache-Control "public, max-age=300, stale-while-revalidate=86400"
   </FilesMatch>
 
   # Exam pages are catalog-generated in large batches. Revalidate their shared
   # runtime assets so a UI release never requires rewriting hundreds of pages.
-  <FilesMatch "^exam-(quiz|bootstrap)\.(css|js)$">
+  <FilesMatch "^(exam-(quiz|bootstrap)|exams(-course)?)\.(css|js)$">
     Header set Cache-Control "public, no-cache, max-age=0, must-revalidate"
   </FilesMatch>
 
-  <FilesMatch "^(?!sw\.js$).*\.(png|jpg|jpeg|gif|svg|webp|woff2|woff)$">
+  # Shared visual/navigation/PWA assets must not require a hard refresh when
+  # older HTML still carries a legacy version query.
+  <FilesMatch "^(core|shell|pwa|auth|chat)\.(css|js)$">
+    Header set Cache-Control "public, no-cache, max-age=0, must-revalidate"
+  </FilesMatch>
+
+  <FilesMatch "^(?!sw\.js$).*\.(png|jpg|jpeg|gif|svg|webp|woff2|woff|ttf|otf|eot)$">
     Header set Cache-Control "public, max-age=2592000, immutable"
   </FilesMatch>
 </IfModule>
@@ -63,6 +77,9 @@
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
+
+  # Serve the app shell at the domain root without a second slow host request.
+  RewriteRule ^$ app/index.html [L]
 
   RewriteCond %{QUERY_STRING} (^|&)v= [NC]
   RewriteRule .* - [E=ASSET_VERSIONED:1]

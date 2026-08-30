@@ -94,19 +94,33 @@
         };
     }
 
+    function fetchWithTimeout(url, options, timeoutMs) {
+        if (typeof AbortController !== "function") {
+            return fetch(url, options);
+        }
+        var controller = new AbortController();
+        var requestOptions = Object.assign({}, options || {}, { signal: controller.signal });
+        var timer = window.setTimeout(function () {
+            controller.abort();
+        }, Math.max(1000, Number(timeoutMs) || 20000));
+        return fetch(url, requestOptions).finally(function () {
+            window.clearTimeout(timer);
+        });
+    }
+
     function apiGet(action, payload) {
         var query = new URLSearchParams(withCohort(Object.assign({ action: action }, payload || {})));
         query.set("_t", String(Date.now()));
-        return fetch("/api/exams_api.php?" + query.toString(), {
+        return fetchWithTimeout("/api/exams_api.php?" + query.toString(), {
             method: "GET",
             cache: "no-store",
             credentials: "same-origin",
             headers: { Accept: "application/json" }
-        }).then(parseJson).catch(networkErrorResponse);
+        }, 20000).then(parseJson).catch(networkErrorResponse);
     }
 
     function apiPost(action, payload) {
-        return fetch("/api/exams_api.php", {
+        return fetchWithTimeout("/api/exams_api.php", {
             method: "POST",
             credentials: "same-origin",
             headers: {
@@ -114,7 +128,7 @@
                 Accept: "application/json"
             },
             body: new URLSearchParams(withCohort(Object.assign({ action: action }, payload || {})))
-        }).then(parseJson).catch(networkErrorResponse);
+        }, 20000).then(parseJson).catch(networkErrorResponse);
     }
 
     function authSnapshot() {
@@ -607,10 +621,7 @@
             '  <div class="exams-toolbar-row">',
             '    <label class="exams-search-field" for="exams-session-search">',
             '      <span class="exams-search-field__icon">' + searchIcon() + "</span>",
-            state.query
-                ? ""
-                : '      <span class="exams-search-field__ghost">جستجو در عنوان جلسه...</span>',
-            '      <input id="exams-session-search" type="search" inputmode="search" autocomplete="off" aria-label="جستجو در عنوان جلسه" value="' + escapeHtml(state.query) + '">',
+            '      <input id="exams-session-search" type="search" inputmode="search" autocomplete="off" aria-label="جستجو در عنوان جلسه" placeholder="جستجو در عنوان جلسه..." value="' + escapeHtml(state.query) + '">',
             "    </label>",
             '    <button class="exams-filter-launch' + (state.filtersOpen ? " is-active" : "") + '" type="button" data-filter-toggle aria-expanded="' + (state.filtersOpen ? "true" : "false") + '">',
             '      <span class="exams-filter-launch__icon">' + filterIcon() + "</span>",
@@ -829,7 +840,7 @@
             "      </div>",
             '      <label class="exams-owner-label">',
             "        <span>هزینه این درس</span>",
-            '        <input class="exams-owner-input" id="exams-owner-amount" name="amount" type="text" inputmode="numeric" dir="ltr" data-latin-digits="true" value="' + escapeHtml(String(draft.amount || "")) + '" placeholder="مثلاً 300000">',
+            '        <input class="exams-owner-input" id="exams-owner-amount" name="amount" type="text" inputmode="numeric" dir="ltr" data-latin-digits="true" value="' + escapeHtml(String(draft.amount || "")) + '" placeholder="مثلاً 450000">',
             "      </label>",
             '      <section class="exams-owner-section">',
             '        <div class="exams-owner-section__head">',

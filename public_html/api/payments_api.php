@@ -5,6 +5,7 @@ require_once __DIR__ . '/auth_store.php';
 require_once __DIR__ . '/payments_store.php';
 require_once __DIR__ . '/payments_gateway.php';
 require_once __DIR__ . '/endosim_catalog.php';
+require_once __DIR__ . '/bot_store.php';
 
 const PAYMENTS_PUBLIC_LIST_PATH = '/buy/';
 const PAYMENTS_PUBLIC_ITEM_PATH = '/buy/item/';
@@ -650,6 +651,20 @@ function payments_api_redirect_to_result(string $orderToken): void
     $orderIndex = payments_find_order_index_by_token($store, $orderToken);
     if ($orderIndex >= 0 && is_array($store['orders'][$orderIndex] ?? null)) {
         $extra = is_array($store['orders'][$orderIndex]['extra_form_data'] ?? null) ? $store['orders'][$orderIndex]['extra_form_data'] : [];
+        if ((string) ($extra['source'] ?? '') === 'bot-offer') {
+            $platform = (string) ($extra['bot_origin_platform'] ?? '');
+            $envKey = $platform === 'telegram' ? 'DENT_TELEGRAM_BOT_USERNAME' : ($platform === 'bale' ? 'DENT_BALE_BOT_USERNAME' : '');
+            $username = $envKey !== '' ? trim((string) dent_env_value($envKey)) : '';
+            if ($username === '') {
+                $username = $platform === 'telegram' ? 'Dent1402Bot' : ($platform === 'bale' ? 'dent1402bot' : '');
+            }
+            if (preg_match('/^[A-Za-z0-9_]{4,64}$/', $username) === 1) {
+                $host = $platform === 'bale' ? 'https://ble.ir/' : 'https://t.me/';
+                $target = $host . $username . '?start=receipt_' . rawurlencode($orderToken);
+                header('Location: ' . $target, true, 302);
+                exit;
+            }
+        }
         $returnPath = dent_clean_text((string) ($extra['_return_path'] ?? ''), 420);
         if ($returnPath !== '' && str_starts_with($returnPath, '/') && !str_starts_with($returnPath, '//')) {
             $separator = str_contains($returnPath, '?') ? '&' : '?';
@@ -667,6 +682,16 @@ function payments_api_append_order_notification(
     ?array $item,
     bool $success
 ): array {
+    if ($success && dent_bot_payment_is_offer_order($order)) {
+        try {
+            dent_bot_queue_payment_success_deliveries($order);
+        } catch (Throwable $error) {
+            // Payment verification is authoritative and must never be rolled
+            // back because an auxiliary bot-delivery store is temporarily
+            // unavailable. The claim action idempotently backfills this intent.
+            error_log('Bot payment success delivery deferred: ' . get_class($error));
+        }
+    }
     $orderId = (int) ($order['id'] ?? 0);
     $type = $success ? PAYMENTS_NOTIFICATION_TYPE_ORDER_SUCCESS : PAYMENTS_NOTIFICATION_TYPE_ORDER_FAILED;
     $title = $success ? 'پرداخت موفق جدید' : 'پرداخت ناموفق یا لغوشده';

@@ -64,6 +64,11 @@ function dent_exams_endotorabinejad_course_map(): array
             'defaultPaymentMode' => 'paid',
             'defaultAmount' => 300000,
             'paymentGroupVersion' => 2,
+            'paymentLegacyCollectionTitles' => [
+                'دسترسی به فصول ۱ تا ۵ ترابی‌نژاد',
+                'دسترسی به فصول ۶ تا ۱۰ ترابی‌نژاد',
+                'دسترسی به فصول ۱۱ تا ۱۵ ترابی‌نژاد',
+            ],
             'paymentLegacyCourseSlugs' => [
                 'endotorabinejad-1-5',
                 'endotorabinejad-6-10',

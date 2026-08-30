@@ -501,7 +501,11 @@
             state.lastFailedCourses != null ? state.lastFailedCourses : snapshotCounts.failedCourses
         ) || 0));
         if (!ownerStatusState.loaded) {
-            ownerExpanded = actionRequired !== "none" || !!state.hasActiveChallenge;
+            // Keep the operational feed above the fold. Ordinary credential or
+            // reconnect errors remain visible in the compact status summary and
+            // can be opened deliberately; only an active CAPTCHA challenge
+            // expands automatically because it needs immediate interaction.
+            ownerExpanded = !!state.hasActiveChallenge;
         }
         ownerStatusState.loaded = true;
         ownerStatusState.ownerStatus = currentStatus;
@@ -1351,7 +1355,7 @@
             setAuthFeedback(
                 detail.status === "unauthorized"
                     ? (detail.error || "نشست شما منقضی شد.")
-                    : "برای دسترسی به خروجی نوید وارد حساب شو.",
+                    : "",
                 detail.status === "unauthorized" ? "error" : ""
             );
             if (loginLink) {

@@ -21,15 +21,9 @@
     var primaryAction = $("home-identity-primary");
     var secondaryAction = $("home-identity-secondary");
     var ownerBadge = $("home-owner-badge");
-    var resourceSection = $("home-resource-section");
-    var resourceStrip = $("home-resource-strip");
-    var classSection = $("home-class-section");
-    var classStrip = $("home-class-strip");
     var activeExamsPanel = $("home-active-exams");
     var activeExamsList = $("home-active-exams-list");
     var activeExamsCount = activeExamsPanel ? activeExamsPanel.querySelector(".home-active-exams__count") : null;
-    var resourceSectionTitle = resourceSection ? resourceSection.querySelector(".portal-section-title") : null;
-    var classSectionTitle = classSection ? classSection.querySelector(".portal-section-title") : null;
 
     var navidPanel = $("home-navid-panel");
     var navidStateText = $("home-navid-state");
@@ -43,13 +37,6 @@
     var navidLoadedFor = "";
     var navidLoadToken = 0;
     var navidLoading = false;
-    var formsSessionState = {
-        loading: false,
-        requestToken: 0,
-        lastUserKey: "",
-        cohortKey: "",
-        count: 0
-    };
     var activeExamsState = {
         cohortKey: "",
         loading: false,
@@ -62,6 +49,8 @@
     var homeKicker = document.querySelector(".home-kicker");
     var homeTitle = $("app-home-title");
     var homeServicesTitle = $("home-services-title");
+    var quickActionsRoot = document.querySelector(".home-quick-actions");
+    var quickActions = Array.prototype.slice.call(document.querySelectorAll("[data-home-quick]"));
     var fallbackPrimaryCohort = {
         key: "dentistry-1402",
         title: "دندانپزشکی ۱۴۰۲",
@@ -85,6 +74,25 @@
         }
     };
 
+    function setupHomeScrollState() {
+        var frameId = 0;
+
+        function renderScrollState() {
+            frameId = 0;
+            document.body.classList.toggle("is-home-scrolled", window.scrollY > 8);
+        }
+
+        function requestScrollState() {
+            if (frameId) {
+                return;
+            }
+            frameId = window.requestAnimationFrame(renderScrollState);
+        }
+
+        renderScrollState();
+        window.addEventListener("scroll", requestScrollState, { passive: true });
+    }
+
     function applyBranding(isProsthesis) {
         var brand = isProsthesis ? "ورودی ۱۴۰۲ پروتز تهران" : "ورودی ۱۴۰۲ دندانپزشکی تهران";
         if (appHeaderTitle) {
@@ -94,13 +102,15 @@
             appFooterTitle.textContent = brand;
         }
         if (homeKicker) {
-            homeKicker.textContent = "صفحه اصلی سایت";
+            homeKicker.innerHTML = '<i aria-hidden="true"></i> ' + (isProsthesis
+                ? "پروتز ۱۴۰۲"
+                : "ورودی ۱۴۰۲");
         }
         if (homeTitle) {
-            homeTitle.textContent = "خانه سایت";
+            homeTitle.textContent = "خانه";
         }
         if (homeServicesTitle) {
-            homeServicesTitle.textContent = isProsthesis ? "مسیرهای اصلی پروتز" : "بخش‌های اصلی سایت";
+            homeServicesTitle.textContent = isProsthesis ? "دسترسی‌های پروتز" : "دسترسی‌ها";
         }
         if (document.title) {
             document.title = isProsthesis
@@ -184,23 +194,6 @@
         });
     }
 
-    function iconSvg(name) {
-        switch (name) {
-            case "notes":
-                return '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6.8A2.8 2.8 0 0 1 8.8 4H15.2A2.8 2.8 0 0 1 18 6.8V17.2A2.8 2.8 0 0 1 15.2 20H8.8A2.8 2.8 0 0 1 6 17.2V6.8Z" stroke="currentColor" stroke-width="1.8"/><path d="M9 9H15M9 12.2H15M9 15.4H12.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-            case "forms":
-                return '<svg viewBox="0 0 24 24" fill="none"><rect x="5.5" y="4.2" width="13" height="15.6" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8.7 9H15.3M8.7 12.2H15.3M8.7 15.4H12.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-            case "grades":
-                return '<svg viewBox="0 0 24 24" fill="none"><path d="M5 18.5V13.4M12 18.5V9.2M19 18.5V5.5M3.8 19.5H20.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-            case "navid":
-                return '<svg viewBox="0 0 24 24" fill="none"><path d="M6 6.8A2.8 2.8 0 0 1 8.8 4H15.2A2.8 2.8 0 0 1 18 6.8V17.2A2.8 2.8 0 0 1 15.2 20H8.8A2.8 2.8 0 0 1 6 17.2V6.8Z" stroke="currentColor" stroke-width="1.8"/><path d="M9.2 8.8H14.8M9.2 12H14.8M9.2 15.2H12.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-            case "buy":
-                return '<svg viewBox="0 0 24 24" fill="none"><path d="M6 7.2H18L16.9 14.1A2 2 0 0 1 14.9 15.8H9.1A2 2 0 0 1 7.1 14.1L6 7.2Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.2 18.6A1.1 1.1 0 1 0 8.2 20.8A1.1 1.1 0 0 0 8.2 18.6ZM15.8 18.6A1.1 1.1 0 1 0 15.8 20.8A1.1 1.1 0 0 0 15.8 18.6Z" fill="currentColor"/><path d="M9 10.4H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-            default:
-                return "";
-        }
-    }
-
     function cohortServices(cohort) {
         var services = cohort && typeof cohort === "object" && cohort.services && typeof cohort.services === "object"
             ? cohort.services
@@ -268,34 +261,46 @@
         return matched || cohorts[0] || fallbackPrimaryCohort;
     }
 
-    function homeFormsMetaText() {
-        if (formsSessionState.loading) {
-            return "در حال بررسی فرم‌های فعال...";
-        }
-        if (formsSessionState.lastUserKey) {
-            if (formsSessionState.count > 0) {
-                return "تعداد " + formsSessionState.count.toLocaleString("fa-IR") + " فرم برای شما فعال است";
-            }
-            return "در حال حاضر فرم فعالی برای شما نیست";
-        }
-        return "فرم و نظرسنجی";
-    }
+    function updateQuickActions(detail) {
+        var activeCohort = activeHomeCohort(detail);
+        var services = cohortServices(activeCohort);
+        var routes = cohortRoutes(activeCohort);
+        var targets = {
+            notes: {
+                enabled: services.notes && !!routes.notes,
+                href: routes.notes
+            },
+            forms: {
+                enabled: services.forms && !!routes.forms,
+                href: routes.forms
+            },
+            navid: {
+                enabled: services.navid && !!routes.navid,
+                href: routes.navid
+            },
+            grades: {
+                enabled: services.grades && !!routes.grades,
+                href: routes.grades
+            },
+            chat: { enabled: true, href: "/chat/" },
+            account: { enabled: true, href: "/account/" }
+        };
+        var visibleCount = 0;
 
-    function renderServiceCards(root, cards) {
-        if (!root) {
-            return;
+        quickActions.forEach(function (link) {
+            var key = String(link.getAttribute("data-home-quick") || "");
+            var target = targets[key];
+            var enabled = !!(target && target.enabled && target.href);
+            link.hidden = !enabled;
+            if (enabled) {
+                link.href = target.href;
+                visibleCount += 1;
+            }
+        });
+
+        if (quickActionsRoot) {
+            quickActionsRoot.setAttribute("data-visible-count", String(visibleCount));
         }
-        root.innerHTML = (cards || []).map(function (card) {
-            return [
-                '<a class="home-service-link" href="' + safeText(card.href || "#") + '">',
-                '  <span class="home-service-link__icon" aria-hidden="true">' + String(card.icon || "") + "</span>",
-                '  <span class="home-service-link__meta">',
-                '    <strong>' + safeText(card.label || "بخش") + "</strong>",
-                '    <small>' + safeText(card.meta || "") + "</small>",
-                "  </span>",
-                "</a>"
-            ].join("");
-        }).join("");
     }
 
     function hideActiveExams() {
@@ -468,114 +473,8 @@
         }
     }
 
-    function buildResourceCards(detail) {
-        var cohorts = detail && detail.loggedIn && detail.user && detail.user.isOwner
-            ? availableHomeCohorts(detail)
-            : [activeHomeCohort(detail)];
-        return cohorts.filter(function (cohort) {
-            return cohortServices(cohort).notes && cohortRoutes(cohort).notes;
-        }).map(function (cohort) {
-            var cohortKey = String(cohort && cohort.key ? cohort.key : "");
-            return {
-                href: cohortRoutes(cohort).notes,
-                label: "منابع " + String(cohort.shortTitle || cohort.title || cohort.key || "ورودی"),
-                meta: cohortKey === "dentistry-1402"
-                    ? "آرشیو جزوات"
-                    : String(cohort && cohort.notesMode === "archive" ? "آرشیو جزوات" : "منابع و ترم‌ها"),
-                icon: iconSvg("notes")
-            };
-        });
-    }
-
-    function buildClassCards(detail) {
-        var activeCohort = activeHomeCohort(detail);
-        var services = cohortServices(activeCohort);
-        var routes = cohortRoutes(activeCohort);
-        var cards = [];
-        if (services.forms && routes.forms) {
-            cards.push({
-                href: routes.forms,
-                label: "فرم‌ها",
-                meta: homeFormsMetaText(),
-                icon: iconSvg("forms")
-            });
-        }
-        if (services.grades && routes.grades) {
-            cards.push({
-                href: routes.grades,
-                label: "نمرات",
-                meta: String(activeCohort && activeCohort.productType === "prosthesis" ? "کارنامه پروتز" : "کارنامه و نمره"),
-                icon: iconSvg("grades")
-            });
-        }
-        if (services.navid && routes.navid) {
-            cards.push({
-                href: routes.navid,
-                label: "مشاهده تکالیف",
-                meta: "تکلیف‌های نوید",
-                icon: iconSvg("navid")
-            });
-        }
-        if (services.buy && routes.buy) {
-            cards.push({
-                href: routes.buy,
-                label: "خرید و ثبت‌نام",
-                meta: "پرداخت و سفارش",
-                icon: iconSvg("buy")
-            });
-        }
-        return cards;
-    }
-
-    function renderHomeCatalog(detail) {
-        var resourceCards = buildResourceCards(detail || null);
-        var classCards = buildClassCards(detail || null);
-
-        if (resourceSection) {
-            resourceSection.hidden = resourceCards.length === 0;
-        }
-        if (classSection) {
-            classSection.hidden = classCards.length === 0;
-        }
-        if (resourceSectionTitle) {
-            resourceSectionTitle.textContent = detail && detail.loggedIn && detail.user && detail.user.isOwner
-                ? "منابع ورودی‌ها"
-                : "منابع درسی";
-        }
-        if (classSectionTitle) {
-            classSectionTitle.textContent = detail && detail.loggedIn && detail.user && detail.user.isOwner
-                ? "مسیرهای ورودی فعال"
-                : "امور کلاسی";
-        }
-
-        renderServiceCards(resourceStrip, resourceCards);
-        renderServiceCards(classStrip, classCards);
-    }
-
-    function resetHomeFormsMeta() {
-        formsSessionState.loading = false;
-        formsSessionState.requestToken += 1;
-        formsSessionState.lastUserKey = "";
-        formsSessionState.cohortKey = "";
-        formsSessionState.count = 0;
-        renderHomeCatalog(authApi && typeof authApi.getState === "function" ? authApi.getState() : null);
-    }
-
-    function renderHomeFormsCount(count) {
-        formsSessionState.count = Math.max(0, Math.floor(Number(count) || 0));
-        renderHomeCatalog(authApi && typeof authApi.getState === "function" ? authApi.getState() : null);
-    }
-
-    function formsSessionUrl(cohortKey) {
-        var baseUrl = "/api/forms_api.php?action=session";
-        var cleanCohort = String(cohortKey || "").trim() || "main";
-        if (authApi && typeof authApi.appendCohortQuery === "function") {
-            return authApi.appendCohortQuery(baseUrl, cleanCohort);
-        }
-        if (cleanCohort === "main") {
-            return baseUrl;
-        }
-        return baseUrl + "&cohort=" + encodeURIComponent(cleanCohort);
+    function updateHomeAccess(detail) {
+        updateQuickActions(detail || null);
     }
 
     function networkErrorResponse() {
@@ -584,70 +483,6 @@
             error: "ارتباط با سرور برقرار نشد. اتصال اینترنت خود را بررسی کنید.",
             httpStatus: 0
         };
-    }
-
-    function requestFormsSession(cohortKey) {
-        return fetch(formsSessionUrl(cohortKey), {
-            method: "GET",
-            credentials: "same-origin",
-            headers: {
-                Accept: "application/json"
-            }
-        }).then(function (response) {
-            return response.json().catch(function () {
-                return {
-                    success: false,
-                    error: "پاسخ نامعتبر از سرور دریافت شد."
-                };
-            }).then(function (data) {
-                data.httpStatus = response.status;
-                return data;
-            });
-        }).catch(networkErrorResponse);
-    }
-
-    async function loadHomeFormsCount(user) {
-        var userKey = String(user && user.studentNumber ? user.studentNumber : "").trim();
-        var cohortKey = String(user && user.cohortKey ? user.cohortKey : "main").trim() || "main";
-        if (!userKey || formsSessionState.loading) {
-            return;
-        }
-
-        if (formsSessionState.lastUserKey === userKey && formsSessionState.cohortKey === cohortKey) {
-            renderHomeFormsCount(formsSessionState.count);
-            return;
-        }
-
-        formsSessionState.loading = true;
-        formsSessionState.lastUserKey = userKey;
-        formsSessionState.cohortKey = cohortKey;
-        var ticket = ++formsSessionState.requestToken;
-        renderHomeCatalog(authApi && typeof authApi.getState === "function" ? authApi.getState() : null);
-
-        try {
-            var response = await requestFormsSession(cohortKey);
-            if (ticket !== formsSessionState.requestToken) {
-                return;
-            }
-            if (consumeUnauthorized(response, "نشست شما به پایان رسید.")) {
-                resetHomeFormsMeta();
-                return;
-            }
-            if (!response || !response.success) {
-                renderHomeFormsCount(0);
-                return;
-            }
-            renderHomeFormsCount(response.activeCount);
-        } catch (_error) {
-            if (ticket !== formsSessionState.requestToken) {
-                return;
-            }
-            renderHomeFormsCount(0);
-        } finally {
-            if (ticket === formsSessionState.requestToken) {
-                formsSessionState.loading = false;
-            }
-        }
     }
 
     function navidResultLabel(result) {
@@ -685,11 +520,10 @@
 
     function setIdentityLoggedOut(errorText) {
         applyBranding(false);
-        resetHomeFormsMeta();
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = true;
         });
-        renderHomeCatalog(null);
+        updateHomeAccess(null);
         panel.dataset.authState = errorText ? "unauthorized" : "logged-out";
         status.textContent = "\u0648\u0631\u0648\u062f \u0644\u0627\u0632\u0645 \u0627\u0633\u062a";
         title.textContent = "\u062d\u0633\u0627\u0628 \u0633\u0631\u0627\u0633\u0631\u06cc\u200c\u0627\u062a \u0631\u0627 \u0641\u0639\u0627\u0644 \u06a9\u0646.";
@@ -704,11 +538,10 @@
 
     function setIdentityBoot(message) {
         applyBranding(false);
-        resetHomeFormsMeta();
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = true;
         });
-        renderHomeCatalog(authApi && typeof authApi.getState === "function" ? authApi.getState() : null);
+        updateHomeAccess(authApi && typeof authApi.getState === "function" ? authApi.getState() : null);
         panel.dataset.authState = "session-restoring";
         status.textContent = "\u062f\u0631 \u062d\u0627\u0644 \u0628\u0627\u0632\u06cc\u0627\u0628\u06cc";
         title.textContent = "\u0646\u0634\u0633\u062a \u062d\u0633\u0627\u0628 \u062f\u0631 \u062d\u0627\u0644 \u0622\u0645\u0627\u062f\u0647\u200c\u0633\u0627\u0632\u06cc \u0627\u0633\u062a.";
@@ -732,7 +565,7 @@
         document.querySelectorAll("[data-owner-only]").forEach(function (node) {
             node.hidden = !isOwner;
         });
-        renderHomeCatalog(authApi && typeof authApi.getState === "function" ? authApi.getState() : { loggedIn: true, user: user, availableCohorts: [user.cohort || fallbackPrimaryCohort] });
+        updateHomeAccess(authApi && typeof authApi.getState === "function" ? authApi.getState() : { loggedIn: true, user: user, availableCohorts: [user.cohort || fallbackPrimaryCohort] });
         panel.dataset.authState = "logged-in";
         status.textContent = isOwner ? "\u0645\u0627\u0644\u06a9 \u0633\u0627\u0645\u0627\u0646\u0647" : (user.roleLabel || "\u062d\u0633\u0627\u0628 \u0641\u0639\u0627\u0644");
         title.textContent = (user.name || "\u062f\u0627\u0646\u0634\u062c\u0648") + "\u060c \u062e\u0648\u0634 \u0628\u0631\u06af\u0634\u062a\u06cc.";
@@ -1060,12 +893,12 @@
 
         setIdentityLoggedIn(detail.user);
         loadActiveExams(activeHomeCohort(detail));
-        loadHomeFormsCount(detail.user);
         var userKey = String(detail.user.studentNumber || "_logged");
         if (userKey !== navidLoadedFor) {
             loadNavidFeed(detail.user);
         }
     }
 
+    setupHomeScrollState();
     window.Dent1402Auth.onChange(sync);
 })();

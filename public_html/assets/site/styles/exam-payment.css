@@ -416,3 +416,225 @@ html[data-performance-mode="lite"] .exam-payment-panel {
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* Mature educational pass: a compact transaction flow, not a campaign page. */
+body.exam-payment-page .exam-payment-main {
+    width: min(980px, 100%);
+    padding-block: clamp(0.9rem, 2.4vw, 1.4rem) calc(var(--shell-nav-content-reserve, 0px) + 1rem + env(safe-area-inset-bottom, 0px));
+}
+
+body.exam-payment-page .exam-payment-shell {
+    gap: clamp(1rem, 2.5vw, 1.6rem);
+}
+
+body.exam-payment-page :is(.exam-payment-card, .exam-payment-panel) {
+    overflow: visible;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.exam-payment-page .exam-payment-card__inner,
+body.exam-payment-page .exam-payment-panel {
+    padding: clamp(0.9rem, 2.2vw, 1.3rem) 0;
+    border-block-start: 1px solid var(--flat-divider, var(--border-color)) !important;
+}
+
+body.exam-payment-page .exam-payment-card__inner {
+    border-block-start: 0 !important;
+}
+
+body.exam-payment-page .exam-payment-head {
+    text-align: start;
+}
+
+body.exam-payment-page :is(.exam-payment-kicker, .exam-payment-chip, .exam-payment-user, .exam-payment-feature__index) {
+    min-height: 28px;
+    padding: 0.24rem 0.52rem;
+    border-radius: 4px;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.exam-payment-page .exam-payment-title {
+    margin-block-start: 0.62rem;
+    font-size: clamp(1.35rem, 3vw, 1.9rem);
+    line-height: 1.35;
+    text-wrap: pretty;
+}
+
+body.exam-payment-page .exam-payment-copy {
+    width: min(62ch, 100%);
+    margin: 0.48rem 0 0;
+    font-size: 0.9rem;
+    line-height: 1.85;
+}
+
+body.exam-payment-page .exam-payment-headline {
+    justify-content: flex-start;
+    margin-top: 0.7rem;
+}
+
+body.exam-payment-page .exam-payment-price {
+    width: auto;
+    min-height: 58px;
+    margin: 0.7rem 0 0;
+    padding: 0.5rem 0;
+    align-items: flex-start;
+    border: 0;
+    border-block: 1px solid var(--flat-divider, var(--border-color));
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.exam-payment-page .exam-payment-price strong {
+    font-size: clamp(1.35rem, 2.6vw, 1.75rem);
+}
+
+body.exam-payment-page .exam-payment-action,
+body.exam-payment-page .exam-payment-subactions {
+    justify-content: flex-start;
+}
+
+body.exam-payment-page .exam-payment-discount {
+    margin-top: 1rem;
+    padding: 1rem 0 0;
+    border: 0;
+    border-block-start: 1px solid var(--flat-divider, var(--border-color));
+    border-radius: 0;
+    background: transparent;
+}
+
+body.exam-payment-page :is(.exam-payment-input, .exam-payment-secondary-btn, .exam-payment-btn) {
+    min-height: 46px;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    transition:
+        color 140ms cubic-bezier(.2, 0, .38, .9),
+        border-color 140ms cubic-bezier(.2, 0, .38, .9),
+        background 140ms cubic-bezier(.2, 0, .38, .9),
+        transform 90ms cubic-bezier(.2, 0, .38, .9);
+}
+
+body.exam-payment-page .exam-payment-input {
+    background: color-mix(in srgb, var(--surface-solid) 74%, transparent) !important;
+}
+
+body.exam-payment-page .exam-payment-btn {
+    padding: 0.72rem 1.08rem;
+    background: var(--accent-color) !important;
+    background-image: none !important;
+    font-size: 0.9rem;
+}
+
+body.exam-payment-page .exam-payment-secondary-btn {
+    background: transparent !important;
+}
+
+body.exam-payment-page .exam-payment-quote {
+    gap: 0;
+}
+
+body.exam-payment-page .exam-payment-quote div {
+    min-height: 42px;
+    padding-block: 0.48rem;
+    border-block-end: 1px solid color-mix(in srgb, var(--border-color) 62%, transparent);
+}
+
+body.exam-payment-page .exam-payment-quote .is-total {
+    padding-top: 0.48rem;
+    border-block-start: 0;
+}
+
+body.exam-payment-page .exam-payment-features {
+    gap: 0;
+}
+
+body.exam-payment-page .exam-payment-feature {
+    min-height: 54px;
+    align-items: center;
+    padding: 0.72rem 0;
+    border: 0;
+    border-block-end: 1px solid var(--flat-divider, var(--border-color));
+    border-radius: 0;
+    background: transparent;
+}
+
+body.exam-payment-page .exam-payment-result {
+    padding: 0.78rem 0.9rem;
+    border: 0;
+    border-inline-start: 3px solid var(--border-color-strong);
+    border-radius: 0;
+    background: transparent;
+}
+
+body.exam-payment-page .exam-payment-result.is-success {
+    border-inline-start-color: var(--success-color);
+    background: color-mix(in srgb, var(--success-color) 6%, transparent);
+}
+
+body.exam-payment-page .exam-payment-result.is-error {
+    border-inline-start-color: var(--danger-color);
+    background: color-mix(in srgb, var(--danger-color) 6%, transparent);
+}
+
+body.exam-payment-page :is(.exam-payment-input, .exam-payment-secondary-btn, .exam-payment-btn, .exam-payment-link):focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+    box-shadow: none;
+    transform: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body.exam-payment-page :is(.exam-payment-btn, .exam-payment-secondary-btn):hover {
+        filter: brightness(.97);
+        transform: none;
+    }
+
+    body.exam-payment-page .exam-payment-link:hover {
+        text-decoration: underline;
+        text-underline-offset: 0.24em;
+    }
+}
+
+body.exam-payment-page :is(.exam-payment-btn, .exam-payment-secondary-btn):active {
+    transform: scale(.98);
+}
+
+@media (min-width: 920px) {
+    body.exam-payment-page .exam-payment-shell {
+        grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.8fr);
+    }
+
+    body.exam-payment-page .exam-payment-side {
+        gap: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    body.exam-payment-page .exam-payment-main {
+        padding-inline: 1rem;
+    }
+
+    body.exam-payment-page .exam-payment-field__row {
+        gap: 0.5rem;
+    }
+
+    body.exam-payment-page :is(.exam-payment-btn, .exam-payment-secondary-btn) {
+        width: 100%;
+        min-height: 48px;
+    }
+
+    body.exam-payment-page .exam-payment-action,
+    body.exam-payment-page .exam-payment-subactions {
+        align-items: stretch;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.exam-payment-page :is(.exam-payment-input, .exam-payment-secondary-btn, .exam-payment-btn, .exam-payment-link) {
+        transition-duration: .01ms !important;
+    }
+}

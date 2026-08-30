@@ -390,6 +390,36 @@ function notifications_clean_meta(array $meta, array $record = []): array
         $clean['disablePush'] = $disablePush;
     }
 
+    $eventId = trim((string) ($meta['eventId'] ?? ''));
+    if (preg_match('/^[A-Za-z0-9_.-]{1,120}$/', $eventId) === 1) {
+        $clean['eventId'] = $eventId;
+    }
+
+    $deployService = trim((string) ($meta['service'] ?? ''));
+    if (in_array($deployService, ['website', 'archive-worker', 'telegram-bot', 'bale-bot', 'integrated-ops'], true)) {
+        $clean['service'] = $deployService;
+    }
+
+    $deployStatus = trim((string) ($meta['deployStatus'] ?? ''));
+    if (in_array($deployStatus, ['started', 'succeeded', 'failed', 'rolled_back'], true)) {
+        $clean['deployStatus'] = $deployStatus;
+    }
+
+    $environment = trim((string) ($meta['environment'] ?? ''));
+    if (in_array($environment, ['production', 'staging', 'development'], true)) {
+        $clean['environment'] = $environment;
+    }
+
+    $deployActor = dent_clean_text((string) ($meta['actor'] ?? ''), 120);
+    if ($deployActor !== '') {
+        $clean['actor'] = $deployActor;
+    }
+
+    $deploySummary = dent_clean_text((string) ($meta['summary'] ?? ''), 1200);
+    if ($deploySummary !== '') {
+        $clean['summary'] = $deploySummary;
+    }
+
     foreach (notifications_hydrate_deploy_meta($record, $meta) as $key => $value) {
         if ((string) $value === '') {
             continue;
@@ -2978,6 +3008,144 @@ function notifications_create_owner_deploy_notice(array $viewer, array $payload)
     return is_array($latestStore['notifications'][$recordId] ?? null)
         ? $latestStore['notifications'][$recordId]
         : $record;
+}
+
+function notifications_create_owner_deploy_event_notice(array $viewer, array $event): array
+{
+    if (!notifications_user_is_owner($viewer)) {
+        dent_error('ثبت اعلان استقرار فقط برای مالک سامانه مجاز است.', 403);
+    }
+
+    $eventId = trim((string) ($event['event_id'] ?? ''));
+    $service = trim((string) ($event['service'] ?? ''));
+    $status = trim((string) ($event['status'] ?? ''));
+    $environment = trim((string) ($event['environment'] ?? 'production'));
+    $version = dent_clean_text((string) ($event['version'] ?? ''), 160);
+    $summary = dent_clean_text((string) ($event['summary'] ?? ''), 1200);
+    $actor = dent_clean_text((string) ($event['actor'] ?? ''), 120);
+    $createdAt = notifications_normalize_iso_datetime((string) ($event['created_at'] ?? ''));
+
+    $serviceLabels = [
+        'website' => 'وب‌سایت دندان‌پزشکی ۱۴۰۲',
+        'archive-worker' => 'آرشیو جزوات و منابع',
+        'telegram-bot' => 'دنت‌یار تلگرام',
+        'bale-bot' => 'دنت‌یار بله',
+        'integrated-ops' => 'زیرساخت یکپارچه',
+    ];
+    $statusLabels = [
+        'started' => 'استقرار آغاز شد',
+        'succeeded' => 'استقرار با موفقیت انجام شد',
+        'failed' => 'استقرار ناموفق بود',
+        'rolled_back' => 'نسخهٔ قبلی بازیابی شد',
+    ];
+    $statusTones = [
+        'started' => 'accent',
+        'succeeded' => 'ok',
+        'failed' => 'danger',
+        'rolled_back' => 'warn',
+    ];
+
+    if (preg_match('/^[A-Za-z0-9_.-]{1,120}$/', $eventId) !== 1) {
+        dent_error('شناسه رویداد استقرار نامعتبر است.', 422, ['code' => 'INVALID_DEPLOY_EVENT_ID']);
+    }
+    if (!isset($serviceLabels[$service]) || !isset($statusLabels[$status])) {
+        dent_error('سرویس یا وضعیت استقرار نامعتبر است.', 422, ['code' => 'INVALID_DEPLOY_EVENT']);
+    }
+    if (!in_array($environment, ['production', 'staging', 'development'], true) || $createdAt === '') {
+        dent_error('محیط یا زمان استقرار نامعتبر است.', 422, ['code' => 'INVALID_DEPLOY_EVENT']);
+    }
+
+    $recipientStudentNumber = dent_owner_student_number();
+    $recipients = notifications_snapshot_recipients_for_target(
+        DENT_NOTIFICATION_TARGET_USER,
+        '',
+        $recipientStudentNumber
+    );
+    if (!$recipients) {
+        dent_error('گیرنده اعلان استقرار مالک پیدا نشد.', 500);
+    }
+
+    $sourceKey = 'deploy-event:' . $eventId;
+    $serviceLabel = $serviceLabels[$service];
+    $title = $statusLabels[$status] . ' — ' . $serviceLabel;
+    $bodyParts = [
+        'سرویس: ' . $serviceLabel,
+        'محیط: ' . $environment,
+    ];
+    if ($version !== '') {
+        $bodyParts[] = 'نسخه: ' . $version;
+    }
+    $bodyParts[] = 'زمان: ' . notifications_format_fa_tehran_datetime($createdAt, true);
+    if ($summary !== '') {
+        $bodyParts[] = $summary;
+    }
+    $bodyParts[] = 'شناسه پیگیری: ' . $eventId;
+
+    return notifications_with_store_lock(static function (array &$store) use (
+        $sourceKey,
+        $title,
+        $bodyParts,
+        $statusTones,
+        $status,
+        $recipientStudentNumber,
+        $recipients,
+        $createdAt,
+        $eventId,
+        $service,
+        $environment,
+        $version,
+        $summary,
+        $actor
+    ): array {
+        foreach (($store['notifications'] ?? []) as $existing) {
+            if (
+                is_array($existing)
+                && (string) ($existing['source'] ?? '') === 'deploy'
+                && (string) ($existing['sourceKey'] ?? '') === $sourceKey
+            ) {
+                return $existing;
+            }
+        }
+
+        $id = notifications_generate_id();
+        $record = notifications_normalize_record($id, [
+            'id' => $id,
+            'kind' => DENT_NOTIFICATION_KIND_ANNOUNCEMENT,
+            'title' => $title,
+            'body' => implode("\n", $bodyParts),
+            'tone' => $statusTones[$status],
+            'target' => DENT_NOTIFICATION_TARGET_USER,
+            'targetStudentNumber' => $recipientStudentNumber,
+            'source' => 'deploy',
+            'sourceKey' => $sourceKey,
+            'createdAt' => $createdAt,
+            'publishAt' => $createdAt,
+            'releasedAt' => $createdAt,
+            'status' => DENT_NOTIFICATION_STATUS_ACTIVE,
+            'createdByStudentNumber' => $recipientStudentNumber,
+            'createdByName' => 'استقرار خودکار',
+            'createdByRole' => 'سیستم',
+            'meta' => [
+                'eventId' => $eventId,
+                'service' => $service,
+                'deployStatus' => $status,
+                'environment' => $environment,
+                'version' => $version,
+                'summary' => $summary,
+                'actor' => $actor,
+                'deployedAt' => $createdAt,
+                'disablePush' => true,
+            ],
+            'recipients' => $recipients,
+            'sendSms' => false,
+            'smsStatus' => DENT_NOTIFICATION_SMS_STATUS_NONE,
+        ]);
+        if ($record === null) {
+            dent_error('اعلان استقرار مالک قابل ذخیره‌سازی نبود.', 500);
+        }
+        $store['notifications'][$record['id']] = $record;
+        return $record;
+    });
 }
 
 function notifications_write_store_locked_best_effort(array $store): bool

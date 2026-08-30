@@ -3318,3 +3318,325 @@ body.buy-modal-open {
         grid-template-columns: 1fr;
     }
 }
+
+/* Mature commerce pass: catalogue and operations share one quiet canvas. */
+body.buy-page {
+    background: var(--bg-body);
+}
+
+body.buy-page main.buy-shell {
+    gap: clamp(.72rem, 1.45vw, 1rem);
+}
+
+body.buy-page .buy-market-head {
+    padding-block: .26rem;
+    background: color-mix(in srgb, var(--bg-body) 90%, transparent);
+    backdrop-filter: blur(12px);
+}
+
+body.buy-page .buy-search,
+body.buy-page .buy-icon-btn {
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+body.buy-page .buy-trust-strip,
+body.buy-page .buy-owner-entry,
+body.buy-page .buy-owner-console {
+    border: 0;
+    border-block: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.buy-page .buy-trust-strip {
+    min-height: 52px;
+    padding: .62rem .12rem;
+}
+
+body.buy-page .buy-category-strip {
+    gap: .18rem;
+    border-block-end: 1px solid var(--border-color);
+}
+
+body.buy-page .buy-category {
+    min-height: 68px;
+    border-radius: 0;
+    border-block-end: 2px solid transparent;
+    transition: border-color .14s cubic-bezier(.2, 0, .38, .9), color .14s cubic-bezier(.2, 0, .38, .9), background-color .14s cubic-bezier(.2, 0, .38, .9), transform .09s cubic-bezier(.2, 0, .38, .9);
+}
+
+body.buy-page .buy-category:hover,
+body.buy-page .buy-category:focus-visible,
+body.buy-page .buy-category.is-active {
+    border-block-end-color: var(--commerce-accent);
+    background: transparent;
+}
+
+body.buy-page .buy-category:active {
+    transform: scale(.98);
+}
+
+body.buy-page .buy-category__icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: transparent;
+}
+
+body.buy-page .buy-filter-bar {
+    gap: .1rem;
+    border-block-end: 1px solid var(--border-color);
+}
+
+body.buy-page .buy-filter-chip,
+body.buy-page .buy-report-btn {
+    min-height: 38px;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+}
+
+body.buy-page .buy-filter-chip.is-active,
+body.buy-page .buy-filter-chip:hover,
+body.buy-page .buy-filter-chip:focus-visible {
+    border-block-end-color: var(--commerce-accent);
+    background: transparent;
+}
+
+body.buy-page .buy-info-grid {
+    gap: 0;
+    border-block: 1px solid var(--border-color);
+}
+
+body.buy-page .buy-info-grid article {
+    padding: .78rem .86rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.buy-page .buy-info-grid article + article {
+    border-inline-start: 1px solid var(--border-color);
+}
+
+body.buy-page .buy-item-card__hero,
+body.buy-page .buy-card-link,
+body.buy-page .buy-card-icon-btn {
+    border-radius: 10px;
+}
+
+body.buy-page .buy-detail,
+body.buy-page .buy-checkout-card,
+body.buy-page .buy-receipt-card,
+body.buy-page .buy-meta-card,
+body.buy-page .buy-review-card,
+body.buy-page .buy-cart-card {
+    box-shadow: none;
+}
+
+body.buy-page .buy-manage-nav {
+    gap: .16rem;
+    padding: .2rem 0 0;
+    border: 0;
+    border-block-end: 1px solid var(--border-color);
+    border-radius: 0;
+    background: color-mix(in srgb, var(--bg-body) 92%, transparent);
+    box-shadow: none;
+}
+
+body.buy-page .buy-manage-nav a,
+body.buy-page .buy-manage-subtabs button {
+    min-height: 40px;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+}
+
+body.buy-page .buy-manage-nav a.is-active,
+body.buy-page .buy-manage-nav a:hover,
+body.buy-page .buy-manage-nav a:focus-visible,
+body.buy-page .buy-manage-subtabs button.is-active,
+body.buy-page .buy-manage-subtabs button:hover,
+body.buy-page .buy-manage-subtabs button:focus-visible {
+    border-block-end-color: var(--commerce-accent);
+    background: transparent;
+}
+
+body.buy-page .buy-manage-folder {
+    min-height: 78px;
+    border: 0;
+    border-block-end: 2px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.buy-page .buy-manage-folder.is-active,
+body.buy-page .buy-manage-folder:focus-visible {
+    border-block-end-color: var(--commerce-accent);
+    background: color-mix(in srgb, var(--commerce-accent-soft) 34%, transparent);
+    transform: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body.buy-page .buy-manage-folder:hover {
+        border-block-end-color: var(--commerce-accent);
+        background: color-mix(in srgb, var(--commerce-accent-soft) 34%, transparent);
+        transform: none;
+    }
+}
+
+body.buy-page .payments-item-card,
+body.buy-page .payments-order-card,
+body.buy-page .payments-note,
+body.buy-page .owner-block--payments,
+body.buy-page .owner-block--payments-toolbar,
+body.buy-page .buy-manage-editor__main,
+body.buy-page .payments-filter-grid,
+body.buy-page .buy-manage-gateway-form {
+    padding: .82rem .1rem;
+    border: 0;
+    border-block-start: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.buy-page .buy-manage-list,
+body.buy-page .payments-notifications-list {
+    gap: 0;
+}
+
+body.buy-page .payments-item-card + .payments-item-card,
+body.buy-page .payments-order-card + .payments-order-card,
+body.buy-page .payments-note + .payments-note {
+    border-block-start: 0;
+    border-block-end: 1px solid var(--border-color);
+}
+
+body.buy-page .payments-breakdown-strip {
+    gap: 0;
+    border-block: 1px solid var(--border-color);
+}
+
+body.buy-page .payments-breakdown-group {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+body.buy-page .payments-breakdown-group + .payments-breakdown-group {
+    border-inline-start: 1px solid var(--border-color);
+}
+
+body.buy-page .buy-primary-btn,
+body.buy-page .buy-secondary-btn,
+body.buy-page .shell-action-btn,
+body.buy-page .buy-card-link,
+body.buy-page .buy-card-icon-btn {
+    box-shadow: none;
+    transition: background-color .14s cubic-bezier(.2, 0, .38, .9), border-color .14s cubic-bezier(.2, 0, .38, .9), color .14s cubic-bezier(.2, 0, .38, .9), transform .09s cubic-bezier(.2, 0, .38, .9);
+}
+
+body.buy-page .buy-primary-btn:active,
+body.buy-page .buy-secondary-btn:active,
+body.buy-page .shell-action-btn:active,
+body.buy-page .buy-card-link:active,
+body.buy-page .buy-card-icon-btn:active {
+    transform: scale(.98);
+}
+
+@media (max-width: 980px) {
+    body.buy-page .buy-info-grid article + article {
+        border-inline-start: 0;
+        border-block-start: 1px solid var(--border-color);
+    }
+}
+
+@media (max-width: 760px) {
+    body.buy-page main.buy-shell {
+        padding-inline: max(.68rem, 3.8vw);
+        gap: .68rem;
+    }
+
+    body.buy-page .buy-trust-strip,
+    body.buy-page .buy-owner-entry,
+    body.buy-page .buy-owner-console {
+        padding-inline: 0;
+    }
+
+    body.buy-page .buy-category-strip {
+        display: grid;
+        grid-template-columns: none;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(82px, 1fr);
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+    }
+
+    body.buy-page .buy-category-strip::-webkit-scrollbar {
+        display: none;
+    }
+
+    body.buy-page .buy-category {
+        min-height: 62px;
+        scroll-snap-align: start;
+    }
+
+    body.buy-page .buy-item-card {
+        grid-template-columns: minmax(0, 1fr) 98px;
+        gap: .58rem;
+    }
+
+    body.buy-page .buy-item-card__desc {
+        -webkit-line-clamp: 1;
+    }
+
+    body.buy-page .buy-manage-folder {
+        min-height: 70px;
+    }
+
+    body.buy-page .payments-breakdown-group + .payments-breakdown-group {
+        border-inline-start: 0;
+        border-block-start: 1px solid var(--border-color);
+    }
+}
+
+@media (max-width: 420px) {
+    body.buy-page .buy-item-card {
+        grid-template-columns: minmax(0, 1fr) 88px;
+    }
+
+    body.buy-page .buy-filter-chip,
+    body.buy-page .buy-report-btn {
+        padding-inline: .58rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.buy-page *,
+    body.buy-page *::before,
+    body.buy-page *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
+}
+
+/* Catalogue rows stay compact under the later shared anti-card layer. */
+body.buy-page main.buy-shell .buy-item-card {
+    padding-block: .9rem !important;
+}
+
+@media (max-width: 760px) {
+    body.buy-page main.buy-shell .buy-item-card {
+        padding-block: .72rem !important;
+    }
+}

@@ -1201,3 +1201,348 @@ html[data-performance-mode="lite"] body.forms-page .forms-metric {
         font-size: 16px;
     }
 }
+
+/* Mature educational pass: forms use sections, rails and rows instead of tiles. */
+body.forms-page .forms-shell {
+    gap: clamp(0.8rem, 2vw, 1.2rem);
+    padding-inline: clamp(0.9rem, 3vw, 1.4rem);
+}
+
+body.forms-page :is(.forms-topbar, .forms-card, .forms-metric, .forms-field-card, .forms-item, .forms-response-card) {
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.forms-page .forms-topbar {
+    min-height: 58px;
+    padding: 0.52rem 0;
+    border: 0;
+    border-block-end: 1px solid var(--flat-divider, var(--forms-border));
+}
+
+body.forms-page :is(.forms-panel, .forms-card, .forms-state-card, .forms-submit-card) {
+    border: 0;
+    border-block-start: 1px solid var(--flat-divider, var(--forms-border));
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: clamp(0.84rem, 2vw, 1.14rem) 0;
+}
+
+body.forms-page .forms-card--accent,
+html[data-theme="dark"] body.forms-page .forms-card--accent {
+    background: transparent;
+}
+
+body.forms-page .forms-summary {
+    gap: 0;
+    border-block: 1px solid var(--flat-divider, var(--forms-border));
+}
+
+body.forms-page .forms-metric {
+    min-height: 70px;
+    align-content: center;
+    padding: 0.55rem clamp(0.5rem, 1.8vw, 0.9rem);
+    border: 0;
+}
+
+body.forms-page .forms-metric + .forms-metric {
+    border-inline-start: 1px solid var(--flat-divider, var(--forms-border));
+}
+
+body.forms-page .forms-metric strong {
+    font-size: clamp(1.12rem, 2.4vw, 1.35rem);
+}
+
+body.forms-page .forms-tabs {
+    display: flex;
+    align-items: stretch;
+    gap: clamp(0.9rem, 2.5vw, 1.6rem);
+    overflow-x: auto;
+    padding: 0;
+    border: 0;
+    border-block-end: 1px solid var(--flat-divider, var(--forms-border));
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    scrollbar-width: none;
+}
+
+body.forms-page .forms-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+body.forms-page .forms-tabs button {
+    flex: 0 0 auto;
+    min-height: 42px;
+    padding: 0.52rem 0.12rem;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.forms-page .forms-tabs button.is-active {
+    color: var(--forms-accent);
+    border-block-end-color: currentColor;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.forms-page :is(.forms-chip, .forms-cap-badge) {
+    min-height: 26px;
+    padding: 0.2rem 0.48rem;
+    border-radius: 4px;
+    box-shadow: none;
+}
+
+body.forms-page :is(.forms-field input, .forms-field textarea, .forms-field select, .forms-card-head select, .forms-share-input, .forms-answer .forms-input, .forms-option-cap) {
+    min-height: 44px;
+    border-radius: 10px !important;
+    background: color-mix(in srgb, var(--forms-surface-solid) 76%, transparent) !important;
+    box-shadow: none;
+    outline: none;
+    transition: border-color 140ms cubic-bezier(.2, 0, .38, .9), box-shadow 140ms cubic-bezier(.2, 0, .38, .9);
+}
+
+body.forms-page .forms-toggle-grid,
+body.forms-page :is(.forms-options-box, .forms-list, .forms-responses-list, .forms-results-list) {
+    gap: 0;
+}
+
+body.forms-page :is(.forms-toggle, .forms-option-line, .forms-choice) {
+    border: 0;
+    border-block-end: 1px solid var(--flat-divider, var(--forms-border));
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.forms-page .forms-toggle {
+    padding-inline: 0;
+}
+
+body.forms-page .forms-field-card,
+body.forms-page .forms-fill-question {
+    padding: clamp(0.82rem, 2vw, 1.05rem) 0;
+    border: 0;
+    border-block-start: 1px solid var(--flat-divider, var(--forms-border));
+    border-inline-start: 3px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.forms-page :is(.forms-field-card, .forms-fill-question):focus-within {
+    border-inline-start-color: var(--forms-accent);
+    background: color-mix(in srgb, var(--forms-accent-soft) 34%, transparent);
+}
+
+body.forms-page .forms-option-line {
+    min-height: 46px;
+    padding-inline: 0;
+}
+
+body.forms-page .forms-choice {
+    min-height: 48px;
+    padding-inline: 0.55rem;
+}
+
+body.forms-page .forms-choice.is-selected {
+    border-inline-start-color: var(--forms-accent);
+    background: color-mix(in srgb, var(--forms-accent-soft) 66%, transparent);
+}
+
+body.forms-page :is(.forms-item, .forms-response-card) {
+    padding: 0.82rem 0;
+    border: 0;
+    border-block-end: 1px solid var(--flat-divider, var(--forms-border));
+}
+
+body.forms-page .forms-answer-grid {
+    gap: 0;
+    border-block-start: 1px solid color-mix(in srgb, var(--forms-border) 68%, transparent);
+}
+
+body.forms-page .forms-answer {
+    min-height: 54px;
+    padding: 0.56rem 0.64rem;
+    border: 0;
+    border-block-end: 1px solid color-mix(in srgb, var(--forms-border) 68%, transparent);
+    border-radius: 0;
+    background: transparent;
+}
+
+body.forms-page .forms-answer:nth-child(even) {
+    border-inline-start: 1px solid color-mix(in srgb, var(--forms-border) 68%, transparent);
+}
+
+body.forms-page :is(.forms-payment-box, .forms-receipt-pay-card, .forms-return-note) {
+    padding: 0.72rem 0;
+    border: 0;
+    border-block-start: 1px solid var(--flat-divider, var(--forms-border));
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.forms-page .forms-payment-box.is-paid {
+    border-inline-start: 3px solid var(--forms-success);
+    background: color-mix(in srgb, var(--forms-success) 6%, transparent);
+}
+
+body.forms-page .forms-receipt-file {
+    border-radius: 8px;
+    background: transparent;
+}
+
+body.forms-page [data-field-type="linear_scale"] .forms-choice {
+    min-height: 48px;
+    border: 1px solid var(--forms-border);
+    border-radius: 8px;
+}
+
+body.forms-page .forms-grid-question-wrap {
+    border-radius: 4px;
+    box-shadow: none;
+}
+
+body.forms-page .forms-grid-choice {
+    border-radius: 6px;
+}
+
+body.forms-page .forms-result-bar {
+    height: 6px;
+    border-radius: 3px;
+}
+
+body.forms-page .forms-result-bar i {
+    border-radius: inherit;
+    background: var(--forms-accent);
+}
+
+body.forms-page :is(.forms-icon-btn, .forms-btn, .forms-copy-mini, .forms-option-line button) {
+    min-height: 42px;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    background-image: none !important;
+    transition:
+        color 140ms cubic-bezier(.2, 0, .38, .9),
+        border-color 140ms cubic-bezier(.2, 0, .38, .9),
+        background 140ms cubic-bezier(.2, 0, .38, .9),
+        transform 90ms cubic-bezier(.2, 0, .38, .9);
+}
+
+body.forms-page .forms-btn--primary {
+    background: var(--forms-accent) !important;
+}
+
+body.forms-page .forms-toast {
+    border-radius: 10px;
+    transition:
+        opacity 180ms cubic-bezier(0, 0, .38, .9),
+        transform 180ms cubic-bezier(0, 0, .38, .9);
+}
+
+body.forms-page :is(
+    .forms-icon-btn,
+    .forms-btn,
+    .forms-copy-mini,
+    .forms-tabs button,
+    .forms-choice,
+    .forms-toggle,
+    .forms-field input,
+    .forms-field textarea,
+    .forms-field select,
+    .forms-card-head select,
+    .forms-share-input,
+    .forms-answer .forms-input,
+    .forms-option-cap
+):focus-visible {
+    outline: 2px solid var(--forms-accent);
+    outline-offset: 2px;
+    box-shadow: none;
+    transform: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body.forms-page :is(.forms-item, .forms-response-card, .forms-choice):hover {
+        background: var(--flat-hover, color-mix(in srgb, var(--forms-accent) 5%, transparent));
+    }
+
+    body.forms-page :is(.forms-icon-btn, .forms-btn, .forms-copy-mini):hover {
+        border-color: color-mix(in srgb, var(--forms-accent) 42%, var(--forms-border));
+        transform: none;
+    }
+}
+
+body.forms-page :is(.forms-icon-btn, .forms-btn, .forms-copy-mini):active {
+    transform: scale(.98);
+}
+
+@media (max-width: 860px) {
+    body.forms-page .forms-shell {
+        padding-inline: 1rem;
+    }
+
+    body.forms-page .forms-field-card__top {
+        grid-template-columns: minmax(0, 1fr);
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 560px) {
+    body.forms-page .forms-topbar {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    body.forms-page .forms-summary {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    body.forms-page .forms-tabs {
+        display: flex;
+        grid-template-columns: none;
+    }
+
+    body.forms-page .forms-card {
+        padding-inline: 0;
+    }
+
+    body.forms-page .forms-answer-grid {
+        grid-template-columns: 1fr;
+    }
+
+    body.forms-page .forms-answer:nth-child(even) {
+        border-inline-start: 0;
+    }
+
+    body.forms-page .forms-response-actions,
+    body.forms-page .forms-actions {
+        align-items: stretch;
+    }
+
+    body.forms-page .forms-submit-card {
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 390px) {
+    body.forms-page .forms-metric {
+        padding-inline: 0.38rem;
+    }
+
+    body.forms-page .forms-metric span {
+        font-size: 0.64rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.forms-page :is(button, a, input, textarea, select, .forms-choice, .forms-toggle, .forms-field-card, .forms-fill-question, .forms-toast) {
+        transition-duration: .01ms !important;
+    }
+}

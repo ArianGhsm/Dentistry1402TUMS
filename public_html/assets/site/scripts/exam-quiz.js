@@ -235,8 +235,8 @@
             '          <h2 class="exam-launch-panel__title">' + escapeHtml(previewTitle) + "</h2>",
             "        </div>",
             '        <div class="exam-mode-pills">',
-            canUseAssessmentMode() ? renderModePill("assessment", "سنجشی", !state.mode) : "",
-            renderModePill("learning", exam.essayOnly || exam.learningOnly ? "مرور سوال‌ها" : "آموزشی", !state.mode),
+            canUseAssessmentMode() ? renderModePill("assessment", "سنجشی", "ثبت پاسخ‌ها و کارنامه نهایی", !state.mode) : "",
+            renderModePill("learning", exam.essayOnly || exam.learningOnly ? "مرور سوال‌ها" : "آموزشی", exam.essayOnly || exam.learningOnly ? "پاسخ‌ها را قدم‌به‌قدم مرور کن" : "پاسخ و توضیح را همان لحظه ببین", !state.mode),
             "        </div>",
             "      </div>",
             '      <p class="exam-launch-panel__copy">' + escapeHtml(previewCopy) + "</p>",
@@ -437,10 +437,12 @@
         ].join("");
     }
 
-    function renderModePill(mode, label, ghostWhenEmpty) {
+    function renderModePill(mode, label, description, ghostWhenEmpty) {
+        var selected = state.mode === mode;
         return [
-            '<button class="exam-mode-pill' + (state.mode === mode ? " is-active" : "") + (ghostWhenEmpty ? " is-neutral" : "") + '" type="button" data-action="set-mode" data-mode="' + escapeHtml(mode) + '">',
-            escapeHtml(label),
+            '<button class="exam-mode-pill' + (selected ? " is-active" : "") + (ghostWhenEmpty ? " is-neutral" : "") + '" type="button" data-action="set-mode" data-mode="' + escapeHtml(mode) + '" aria-pressed="' + (selected ? "true" : "false") + '">',
+            '  <span class="exam-mode-pill__copy"><strong>' + escapeHtml(label) + '</strong><small>' + escapeHtml(description) + '</small></span>',
+            '  <span class="exam-mode-pill__indicator" aria-hidden="true">' + (selected ? "✓" : "") + '</span>',
             "</button>"
         ].join("");
     }
@@ -633,8 +635,8 @@
             "    </div>",
             '    <div class="exam-stage-head__aside">',
             '      <div class="exam-mode-pills exam-mode-pills--compact">',
-            canUseAssessmentMode() ? renderModePill("assessment", "سنجشی", false) : "",
-            canUseAssessmentMode() ? renderModePill("learning", "آموزشی", false) : "",
+            canUseAssessmentMode() ? renderModePill("assessment", "سنجشی", "ثبت کارنامه", false) : "",
+            canUseAssessmentMode() ? renderModePill("learning", "آموزشی", "پاسخ فوری", false) : "",
             "      </div>",
             config.statusText ? '<div class="exam-feedback exam-feedback--' + escapeHtml(config.statusKind || "neutral") + '">' + escapeHtml(config.statusText) + "</div>" : "",
             "    </div>",
@@ -3135,9 +3137,25 @@
         };
     }
 
+    function fetchWithTimeout(url, options, timeoutMs) {
+        if (typeof AbortController !== "function") {
+            return fetch(url, options);
+        }
+
+        var controller = new AbortController();
+        var requestOptions = Object.assign({}, options || {}, { signal: controller.signal });
+        var timer = window.setTimeout(function () {
+            controller.abort();
+        }, Math.max(1000, Number(timeoutMs) || 20000));
+
+        return fetch(url, requestOptions).finally(function () {
+            window.clearTimeout(timer);
+        });
+    }
+
     function apiPost(action, payload) {
         var body = new URLSearchParams(withCohort(Object.assign({ action: action }, payload || {})));
-        return fetch("/api/exams_api.php", {
+        return fetchWithTimeout("/api/exams_api.php", {
             method: "POST",
             credentials: "same-origin",
             headers: {
@@ -3145,7 +3163,7 @@
                 Accept: "application/json"
             },
             body: body.toString()
-        }).then(parseJson).catch(networkErrorResponse);
+        }, 20000).then(parseJson).catch(networkErrorResponse);
     }
 
     function offlineApi() {

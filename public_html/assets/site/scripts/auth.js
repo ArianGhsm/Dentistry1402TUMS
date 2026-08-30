@@ -597,20 +597,26 @@
                         attempts: SESSION_RECHECK_ATTEMPTS,
                         delayMs: SESSION_RECHECK_DELAY_MS
                     }).then(function (result) {
-                        keepCachedAuthenticatedState();
+                        if (result === false) {
+                            applyLoggedOutState(STATUS.LOGGED_OUT, "", response && response.siteSettings);
+                        } else if (result === null) {
+                            keepCachedAuthenticatedState();
+                        }
+                        // result === true means verifySession already applied the
+                        // current canonical user payload.
                         resolveReady();
                         return snapshot();
                     });
                 }
                 applyLoggedOutState(STATUS.LOGGED_OUT, "", response && response.siteSettings);
-            } else if (state.status !== STATUS.LOGGED_IN) {
-                applyLoggedOutState(STATUS.LOGGED_OUT, "");
+            } else if (!keepCachedAuthenticatedState()) {
+                applyLoggedOutState(STATUS.LOGGED_OUT, "Session restore failed.");
             }
 
             resolveReady();
             return snapshot();
         }).catch(function () {
-            if (state.status !== STATUS.LOGGED_IN) {
+            if (!keepCachedAuthenticatedState()) {
                 applyLoggedOutState(STATUS.LOGGED_OUT, "Session restore failed.");
             }
             resolveReady();

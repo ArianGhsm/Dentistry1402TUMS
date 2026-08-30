@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>دستگاه‌های جزوه خصوصی | ورودی ۱۴۰۲</title>
-    <meta name="description" content="مدیریت دستگاه‌های ثبت‌شده و نشست‌های نمایش جزوه‌های خصوصی.">
-    <meta name="theme-color" content="#eef2f7">
+    <title>نشست‌ها و دستگاه‌های فعال | ورودی ۱۴۰۲</title>
+    <meta name="description" content="مشاهده و مدیریت نشست‌های فعال حساب کاربری.">
+    <meta name="theme-color" content="#073743">
     <meta name="robots" content="noindex,nofollow,noarchive">
-    <link rel="manifest" href="/manifest.webmanifest?v=20260716-225703">
-    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260716-225703">
+    <link rel="manifest" href="/manifest.webmanifest?v=20260722-200509">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260722-200509">
     <link rel="preload" as="font" type="font/woff2" href="/fonts/YekanBakh-VF.woff2" crossorigin>
-    <script src="/assets/site/scripts/theme.js?v=20260716-225703"></script>
-    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260716-225703">
-    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260716-225703">
-    <link rel="stylesheet" href="/assets/site/styles/private-notes-devices.css?v=20260716-225703">
-    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260716-225703">
+    <script src="/assets/site/scripts/theme.js?v=20260722-200509"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260722-200509">
+    <link rel="stylesheet" href="/assets/site/styles/account.css?v=20260722-200509">
+  <link rel="stylesheet" href="/assets/site/styles/account-sessions.css?v=20260828-sessions1">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260812-mobile-foundation3">
 </head>
-<body class="account-page private-note-devices-page" data-shell-reserve="self">
+<body class="account-page account-sessions-page" data-shell-reserve="self">
     <div class="background-overlay" aria-hidden="true"></div>
 
     <header class="site-header">
         <div class="logo-area">
             <div class="logo-circle">
-                <img src="/assets/images/logo.png?v=20260716-225703" alt="لوگوی ورودی ۱۴۰۲">
+                <img src="/assets/images/logo.png?v=20260722-200509" alt="لوگوی ورودی ۱۴۰۲">
             </div>
             <div class="site-info">
-                <h1>دستگاه‌های جزوه خصوصی</h1>
-                <p>مدیریت دسترسی دستگاه‌ها و نشست فعال نمایش</p>
+                <h1>نشست‌ها و دستگاه‌ها</h1>
+                <p>امنیت حساب کاربری</p>
             </div>
         </div>
         <div class="header-actions">
@@ -34,54 +34,41 @@
         </div>
     </header>
 
-    <main class="private-devices-shell" aria-labelledby="private-devices-title">
-        <section class="private-devices-hero">
-            <span class="account-kicker">امنیت جزوه</span>
-            <h2 id="private-devices-title">دستگاه‌های مجاز برای نمایش خصوصی</h2>
-            <p>credential دستگاه در cookie امن و HttpOnly نگه‌داری می‌شود و این صفحه فقط وضعیت دستگاه‌ها و نشست‌ها را نشان می‌دهد.</p>
+    <main class="account-sessions-shell" aria-labelledby="sessions-title">
+        <section class="account-sessions-hero">
+            <div>
+                <h2 id="sessions-title">ببین حسابت کجا باز است.</h2>
+                <p>هر مرورگری که با حساب تو وارد سایت شده اینجا ثبت می‌شود. نشست ناشناس را ببند و بعد رمز حسابت را تغییر بده.</p>
+            </div>
+            <div class="account-sessions-count" aria-label="تعداد نشست‌های فعال">
+                <strong id="auth-session-count">—</strong>
+                <span>نشست فعال</span>
+            </div>
         </section>
 
-        <section class="private-devices-status" id="devices-status" role="status" aria-live="polite">در حال بارگذاری...</section>
+        <div id="sessions-status" class="account-sessions-status" role="status" aria-live="polite">
+            در حال بررسی امنیت حساب…
+        </div>
 
-        <section class="private-devices-grid">
-            <article class="private-devices-panel">
-                <header class="private-devices-panel__head">
-                    <div>
-                        <span class="account-section-kicker">دستگاه‌های من</span>
-                        <h3>ثبت‌شده‌ها</h3>
-                    </div>
-                    <button id="sign-out-all-devices" class="shell-action-btn" type="button" disabled>خروج از همه دستگاه‌ها</button>
-                </header>
-                <div id="device-limit" class="private-devices-limit"></div>
-                <div id="my-devices-list" class="private-devices-list"></div>
-            </article>
-
-            <article class="private-devices-panel">
-                <header class="private-devices-panel__head">
-                    <div>
-                        <span class="account-section-kicker">نشست نمایش</span>
-                        <h3>وضعیت فعلی</h3>
-                    </div>
-                </header>
-                <div id="viewing-sessions-list" class="private-devices-list"></div>
-            </article>
-        </section>
-
-        <section id="owner-devices-panel" class="private-devices-panel" hidden>
-            <header class="private-devices-panel__head">
+        <section class="account-sessions-panel" aria-labelledby="auth-sessions-title">
+            <header class="account-sessions-panel__head">
                 <div>
-                    <span class="account-section-kicker">مدیریت مالک</span>
-                    <h3>لغو دستگاه کاربران</h3>
+                    <h3 id="auth-sessions-title">نشست‌های فعال حساب</h3>
+                    <p>خروج از یک نشست، همان مرورگر را از حساب سایت خارج می‌کند.</p>
                 </div>
-                <button id="refresh-owner-devices" class="shell-action-btn" type="button">به‌روزرسانی</button>
+                <button id="end-other-sessions" type="button" disabled>خروج از بقیه دستگاه‌ها</button>
             </header>
-            <div id="owner-devices-list" class="private-devices-list"></div>
+            <div id="auth-sessions-list" aria-live="polite"></div>
         </section>
+
+        <aside class="account-sessions-note">
+            اگر دستگاهی را نمی‌شناسی، نشست را ببند و از بخش <a href="/account/#security">امنیت حساب</a> رمز را تغییر بده.
+        </aside>
     </main>
 
-    <script src="/assets/site/scripts/auth.js?v=20260716-225703"></script>
-    <script src="/assets/site/scripts/pwa.js?v=20260716-225703"></script>
-    <script src="/assets/site/scripts/shell.js?v=20260716-225703"></script>
-    <script src="/assets/site/scripts/private-notes-devices.js?v=20260716-225703"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260722-200509"></script>
+    <script src="/assets/site/scripts/pwa.js?v=20260722-200509"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260812-phase3b"></script>
+  <script src="/assets/site/scripts/account-sessions.js?v=20260828-sessions1"></script>
 </body>
 </html>

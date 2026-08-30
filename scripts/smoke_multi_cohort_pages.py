@@ -20,9 +20,10 @@ def find_free_port() -> int:
 
 def wait_for_server(base_url: str, timeout: float = 15.0) -> None:
     deadline = time.time() + timeout
+    direct_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     while time.time() < deadline:
         try:
-            with urllib.request.urlopen(base_url + "/") as response:
+            with direct_opener.open(base_url + "/") as response:
                 if response.status < 500:
                     return
         except Exception:

@@ -518,3 +518,199 @@ html[data-theme="dark"] .admin-appearance-hero {
         white-space: normal;
     }
 }
+
+/* Mature admin pass: operational rails and rows on a single canvas. */
+body.admin-page .admin-main {
+    gap: clamp(.82rem, 1.55vw, 1.08rem);
+}
+
+body.admin-page .admin-appearance-layout {
+    grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr);
+    gap: clamp(.9rem, 2vw, 1.35rem);
+}
+
+body.admin-page .admin-appearance-hero {
+    min-height: 0;
+    padding: 1rem .9rem;
+    border: 0;
+    border-inline-start: 3px solid var(--admin-accent-b);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.admin-page .admin-appearance-hero h2 {
+    font-size: clamp(1.08rem, 2vw, 1.36rem);
+}
+
+body.admin-page .admin-appearance-hero__chips {
+    gap: .28rem;
+}
+
+body.admin-page .admin-appearance-hero__chips span {
+    min-height: 28px;
+    padding-inline: .58rem;
+    border-radius: 999px;
+    background: transparent;
+}
+
+body.admin-page .admin-status-strip {
+    gap: 0;
+    overflow: hidden;
+    border-block: 1px solid var(--border-color);
+}
+
+body.admin-page .admin-status-card {
+    min-height: 72px;
+    padding: .72rem .82rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.admin-page .admin-status-card + .admin-status-card {
+    border-inline-start: 1px solid var(--border-color);
+}
+
+body.admin-page .admin-panel,
+body.admin-page .admin-links-panel {
+    padding: clamp(.85rem, 1.55vw, 1.05rem) .08rem;
+    border: 0;
+    border-block-start: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+body.admin-page .admin-panel--appearance {
+    padding-top: .2rem;
+    border-block-start: 0;
+}
+
+body.admin-page .admin-metric-list,
+body.admin-page .admin-log-list,
+body.admin-page .admin-links-grid {
+    gap: 0;
+}
+
+body.admin-page .admin-metric-row,
+body.admin-page .admin-log-row,
+body.admin-page .admin-link-row {
+    min-height: 54px;
+    padding: .65rem .08rem;
+    border: 0;
+    border-block-end: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.admin-page .admin-toggle-row {
+    min-height: 58px;
+    padding: .62rem .08rem;
+    border: 0;
+    border-block-end: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+body.admin-page .admin-toggle-row--primary {
+    border-block-start: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--accent-soft) 32%, transparent);
+}
+
+body.admin-page .admin-appearance-options {
+    gap: 0;
+}
+
+body.admin-page .admin-save-button,
+body.admin-page .admin-panel__link,
+body.admin-page .admin-header-button {
+    border-radius: 10px;
+    box-shadow: none;
+    transition: background-color .14s cubic-bezier(.2, 0, .38, .9), border-color .14s cubic-bezier(.2, 0, .38, .9), color .14s cubic-bezier(.2, 0, .38, .9), transform .09s cubic-bezier(.2, 0, .38, .9);
+}
+
+body.admin-page .admin-save-button:active,
+body.admin-page .admin-panel__link:active,
+body.admin-page .admin-header-button:active {
+    transform: scale(.98);
+}
+
+@media (max-width: 900px) {
+    body.admin-page .admin-appearance-layout {
+        grid-template-columns: 1fr;
+    }
+
+    body.admin-page .admin-appearance-hero {
+        padding-block: .82rem;
+    }
+}
+
+@media (max-width: 620px) {
+    body.admin-page .admin-main {
+        width: min(100% - 1rem, 680px);
+        gap: .76rem;
+    }
+
+    body.admin-page .admin-status-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.admin-page .admin-status-card:nth-child(3) {
+        border-inline-start: 0;
+        border-block-start: 1px solid var(--border-color);
+    }
+
+    body.admin-page .admin-status-card:nth-child(4) {
+        border-block-start: 1px solid var(--border-color);
+    }
+
+    body.admin-page .admin-panel,
+    body.admin-page .admin-links-panel {
+        padding: .78rem 0;
+    }
+
+    body.admin-page .admin-toggle-row,
+    body.admin-page .admin-metric-row,
+    body.admin-page .admin-log-row,
+    body.admin-page .admin-link-row {
+        padding-inline: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.admin-page *,
+    body.admin-page *::before,
+    body.admin-page *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
+}
+
+/* Page-specific spacing remains compact after the shared anti-card layer. */
+body.admin-page .admin-main .admin-appearance-hero {
+    padding-block: 1rem !important;
+}
+
+body.admin-page .admin-main :is(.admin-panel, .admin-links-panel) {
+    padding-block: clamp(.85rem, 1.55vw, 1.05rem) !important;
+    border-block-start: 1px solid var(--border-color) !important;
+}
+
+body.admin-page .admin-main .admin-panel--appearance {
+    padding-block-start: .2rem !important;
+    border-block-start: 0 !important;
+}
+
+@media (max-width: 620px) {
+    body.admin-page .admin-main .admin-appearance-hero,
+    body.admin-page .admin-main :is(.admin-panel, .admin-links-panel) {
+        padding-block: .78rem !important;
+    }
+}

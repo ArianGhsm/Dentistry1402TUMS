@@ -1322,3 +1322,322 @@ body.content-tools-page--files-center .background-overlay {
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* Mature utility pass: one working canvas with rails and rows. */
+body.content-tools-page--files-center {
+    --ctf-radius: 14px;
+    --ctf-radius-lg: 16px;
+    --ctf-radius-sm: 10px;
+    --ctf-card-bg: transparent;
+    --ctf-card-bg-strong: transparent;
+    --ctf-card-shadow: none;
+    --ctf-btn-bg: var(--surface-solid);
+    --ctf-btn-shadow: none;
+    --ctf-btn-hover-shadow: none;
+    --ctf-btn-primary-bg: var(--accent-color);
+    --ctf-btn-primary-shadow: none;
+    background: var(--bg-body);
+}
+
+body.content-tools-page--files-center .background-overlay {
+    background: var(--background-overlay);
+    opacity: .12;
+}
+
+body.content-tools-page--files-center .ctf-shell,
+body.content-tools-page--files-center .ctf-app {
+    gap: clamp(.82rem, 1.45vw, 1.05rem);
+}
+
+body.content-tools-page--files-center .ctf-hero,
+body.content-tools-page--files-center .ctf-upload-card,
+body.content-tools-page--files-center .ctf-browser-card,
+body.content-tools-page--files-center .ctf-links-card,
+body.content-tools-page--files-center .ctf-settings-card {
+    overflow: visible;
+    border: 0;
+    border-block-start: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+body.content-tools-page--files-center .ctf-hero {
+    padding: 1rem .2rem .9rem;
+    border-block-start: 0;
+    border-block-end: 1px solid var(--border-color);
+}
+
+body.content-tools-page--files-center .ctf-hero::before,
+body.content-tools-page--files-center .ctf-hero::after,
+body.content-tools-page--files-center .ctf-upload-card::before,
+body.content-tools-page--files-center .ctf-browser-card::before,
+body.content-tools-page--files-center .ctf-links-card::before,
+body.content-tools-page--files-center .ctf-settings-card::before {
+    display: none;
+}
+
+body.content-tools-page--files-center .ctf-hero-main {
+    gap: .75rem;
+}
+
+body.content-tools-page--files-center .ctf-hero-copy h1,
+body.content-tools-page--files-center .ctf-upload-head h2,
+body.content-tools-page--files-center .ctf-browser-copy h2,
+body.content-tools-page--files-center .ctf-links-head h2,
+body.content-tools-page--files-center .ctf-settings-copy h2 {
+    font-size: clamp(1rem, 1.7vw, 1.18rem);
+}
+
+body.content-tools-page--files-center .ctf-hero-copy p,
+body.content-tools-page--files-center .ctf-upload-head p,
+body.content-tools-page--files-center .ctf-browser-copy p,
+body.content-tools-page--files-center .ctf-links-head p,
+body.content-tools-page--files-center .ctf-settings-copy p {
+    line-height: 1.7;
+}
+
+body.content-tools-page--files-center .ctf-hero-visual {
+    width: 68px;
+}
+
+body.content-tools-page--files-center .ctf-hero-visual::before,
+body.content-tools-page--files-center .ctf-hero-visual::after {
+    display: none;
+}
+
+body.content-tools-page--files-center .ctf-hero-icon {
+    filter: none;
+}
+
+body.content-tools-page--files-center .ctf-summary-grid,
+body.content-tools-page--files-center .ctf-upload-kpis {
+    gap: 0;
+    overflow: hidden;
+    border-block: 1px solid var(--border-color);
+}
+
+body.content-tools-page--files-center .ctf-summary-card,
+body.content-tools-page--files-center .ctf-upload-kpis article {
+    min-height: 64px;
+    padding: .68rem .8rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+body.content-tools-page--files-center .ctf-summary-card + .ctf-summary-card,
+body.content-tools-page--files-center .ctf-upload-kpis article + article {
+    border-inline-start: 1px solid var(--border-color);
+}
+
+body.content-tools-page--files-center .ctf-board {
+    gap: clamp(1rem, 2.1vw, 1.55rem);
+}
+
+body.content-tools-page--files-center .ctf-upload-card,
+body.content-tools-page--files-center .ctf-browser-card,
+body.content-tools-page--files-center .ctf-links-card,
+body.content-tools-page--files-center .ctf-settings-card {
+    padding: clamp(.95rem, 1.7vw, 1.2rem) .2rem;
+}
+
+body.content-tools-page--files-center .ctf-app .ct-btn,
+body.content-tools-page--files-center .ctf-app button.ct-btn,
+body.content-tools-page--files-center .ctf-app a.ct-btn {
+    min-height: 42px;
+    border-radius: 10px;
+    box-shadow: none;
+    transition: background-color .14s cubic-bezier(.2, 0, .38, .9), border-color .14s cubic-bezier(.2, 0, .38, .9), color .14s cubic-bezier(.2, 0, .38, .9), transform .09s cubic-bezier(.2, 0, .38, .9);
+}
+
+body.content-tools-page--files-center .ctf-app .ct-btn:active {
+    transform: scale(.98);
+}
+
+body.content-tools-page--files-center .ctf-app input:not([type="checkbox"]):not([type="file"]),
+body.content-tools-page--files-center .ctf-app select,
+body.content-tools-page--files-center .ctf-app textarea,
+body.content-tools-page--files-center .ctf-destination,
+body.content-tools-page--files-center .ctf-browser-search input {
+    min-height: 44px;
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+body.content-tools-page--files-center .ct-dropzone {
+    min-height: 10.5rem;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface-muted) 64%, transparent);
+}
+
+body.content-tools-page--files-center .ctf-upload-queue-shell,
+body.content-tools-page--files-center .ctf-browser-toolbar,
+body.content-tools-page--files-center .ctf-links-card .ct-toolbar,
+body.content-tools-page--files-center .ctf-links-card .ct-bulkbar {
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--surface-muted) 52%, transparent);
+    box-shadow: none;
+}
+
+body.content-tools-page--files-center .ctf-toolbar-chip,
+body.content-tools-page--files-center .ctf-path-badge,
+body.content-tools-page--files-center .ctf-link-url {
+    border-radius: 8px;
+}
+
+body.content-tools-page--files-center .ctf-entries,
+body.content-tools-page--files-center .ctf-queue-list,
+body.content-tools-page--files-center .ctf-links-scroll {
+    gap: 0;
+}
+
+body.content-tools-page--files-center .ctf-entry,
+body.content-tools-page--files-center .ctf-link-row,
+body.content-tools-page--files-center .ctf-queue-item {
+    padding: .78rem .18rem;
+    border: 0;
+    border-block-end: 1px solid var(--border-color);
+    border-radius: 0;
+    background: transparent;
+}
+
+body.content-tools-page--files-center .ctf-entry[data-type="dir"] {
+    background: color-mix(in srgb, var(--accent-soft) 30%, transparent);
+}
+
+body.content-tools-page--files-center .ctf-entry-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 9px;
+}
+
+body.content-tools-page--files-center .ctf-settings-card {
+    overflow: hidden;
+}
+
+body.content-tools-page--files-center .ctf-settings-summary {
+    padding-inline: .2rem;
+}
+
+body.content-tools-page--files-center .ctf-settings-scroll {
+    padding-inline: .2rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    body.content-tools-page--files-center .ctf-app .ct-btn:hover,
+    body.content-tools-page--files-center .ctf-breadcrumbs button:hover {
+        transform: translateY(-1px);
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 780px) {
+    body.content-tools-page--files-center .ctf-shell {
+        padding-inline: max(.64rem, 3.5vw);
+    }
+
+    body.content-tools-page--files-center .ctf-hero,
+    body.content-tools-page--files-center .ctf-upload-card,
+    body.content-tools-page--files-center .ctf-browser-card,
+    body.content-tools-page--files-center .ctf-links-card,
+    body.content-tools-page--files-center .ctf-settings-card {
+        padding: .82rem 0;
+        border-radius: 0;
+    }
+
+    body.content-tools-page--files-center .ctf-hero-main {
+        justify-content: flex-start;
+        text-align: start;
+    }
+
+    body.content-tools-page--files-center .ctf-hero-copy,
+    body.content-tools-page--files-center .ctf-path-copy {
+        justify-items: start;
+        text-align: start;
+    }
+
+    body.content-tools-page--files-center .ctf-hero-visual {
+        display: none;
+    }
+
+    body.content-tools-page--files-center .ctf-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    body.content-tools-page--files-center .ctf-summary-card {
+        min-height: 58px;
+        padding: .56rem .45rem;
+    }
+
+    body.content-tools-page--files-center .ctf-summary-card span,
+    body.content-tools-page--files-center .ctf-summary-card small {
+        font-size: .65rem;
+    }
+
+    body.content-tools-page--files-center .ctf-summary-card strong {
+        font-size: .9rem;
+    }
+
+    body.content-tools-page--files-center .ctf-entry,
+    body.content-tools-page--files-center .ctf-link-row,
+    body.content-tools-page--files-center .ctf-queue-item {
+        padding-inline: 0;
+    }
+}
+
+@media (max-width: 420px) {
+    body.content-tools-page--files-center .ctf-shell {
+        padding-inline: max(.62rem, 3.5vw);
+    }
+
+    body.content-tools-page--files-center .ctf-summary-card-head {
+        align-items: center;
+        gap: .28rem;
+    }
+
+    body.content-tools-page--files-center .ctf-summary-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+    }
+}
+
+@media (max-width: 360px) {
+    body.content-tools-page--files-center .ctf-summary-grid,
+    body.content-tools-page--files-center .ctf-upload-kpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.content-tools-page--files-center *,
+    body.content-tools-page--files-center *::before,
+    body.content-tools-page--files-center *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+    }
+}
+
+/* Page-level density wins over the later shared layer without changing its flat language. */
+body.content-tools-page--files-center .ctf-app .ctf-hero {
+    padding-block: 1rem !important;
+}
+
+body.content-tools-page--files-center .ctf-board :is(.ctf-upload-card, .ctf-browser-card, .ctf-links-card, .ctf-settings-card) {
+    padding-block: clamp(.95rem, 1.7vw, 1.2rem) !important;
+}
+
+@media (max-width: 780px) {
+    body.content-tools-page--files-center .ctf-app .ctf-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    body.content-tools-page--files-center .ctf-app .ctf-hero,
+    body.content-tools-page--files-center .ctf-board :is(.ctf-upload-card, .ctf-browser-card, .ctf-links-card, .ctf-settings-card) {
+        padding-block: .82rem !important;
+    }
+}

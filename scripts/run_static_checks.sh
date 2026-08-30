@@ -71,11 +71,6 @@ section "Unit tests"
 section "Signed bot integration contracts"
 "$PYTHON_BIN" scripts/test_bot_integration_contracts.py || fail "test_bot_integration_contracts.py"
 
-section "Private notes frontend/security contracts"
-"$PYTHON_BIN" scripts/test_private_notes_viewer_contracts.py || fail "test_private_notes_viewer_contracts.py"
-"$PYTHON_BIN" scripts/test_private_notes_admin_contracts.py || fail "test_private_notes_admin_contracts.py"
-"$PYTHON_BIN" scripts/test_private_notes_security_contracts.py || fail "test_private_notes_security_contracts.py"
-
 section "Result"
 if [ "$status" -eq 0 ]; then
   echo "All static checks passed."

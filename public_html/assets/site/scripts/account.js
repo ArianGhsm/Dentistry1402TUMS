@@ -295,6 +295,10 @@
     var notificationsFeedback = $("notifications-feedback");
     var notificationsEmpty = $("notifications-empty");
     var notificationsList = $("notifications-list");
+    var accountRowBotsMeta = $("account-row-bots-meta");
+    var botConnectionsFeedback = $("bot-connections-feedback");
+    var botConnectionsList = $("bot-connections-list");
+    var botConnectionsRefresh = $("bot-connections-refresh");
 
     var redirectedAfterLogin = false;
     var pendingReturnTo = safeReturnTo(new URLSearchParams(window.location.search).get("returnTo"));
@@ -369,6 +373,13 @@
         audienceLoadingIds: {},
         expandedAudienceId: "",
         deletingId: ""
+    };
+    var botConnectionsState = {
+        loading: false,
+        loadedForUserKey: "",
+        csrfToken: "",
+        connections: null,
+        disconnectingPlatform: ""
     };
     var loginMode = "otp";
     var loginOtpCooldownUntil = 0;
@@ -689,6 +700,7 @@
             case "info":
             case "security":
             case "phone":
+            case "bots":
             case "owner":
             case "owner-user":
             case "notifications":
@@ -903,6 +915,9 @@
 
         if (target === "notifications" && currentUser) {
             loadNotifications(true);
+        }
+        if (target === "bots" && currentUser) {
+            loadBotConnections(true);
         }
     }
 
@@ -2104,6 +2119,180 @@
                 return data;
             });
         }).catch(networkErrorResponse);
+    }
+
+    function botConnectionsGet() {
+        return fetch("/api/bot_api.php?action=accountConnections", {
+            method: "GET",
+            credentials: "same-origin",
+            headers: { "Accept": "application/json" }
+        }).then(function (response) {
+            return response.json().catch(function () {
+                return { success: false, error: "پاسخ نامعتبر از سرور دریافت شد." };
+            }).then(function (data) {
+                data.httpStatus = response.status;
+                return data;
+            });
+        }).catch(networkErrorResponse);
+    }
+
+    function botConnectionDisconnect(platform) {
+        return fetch("/api/bot_api.php", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "X-CSRF-Token": botConnectionsState.csrfToken
+            },
+            body: new URLSearchParams({
+                action: "disconnectAccount",
+                platform: platform
+            })
+        }).then(function (response) {
+            return response.json().catch(function () {
+                return { success: false, error: "پاسخ نامعتبر از سرور دریافت شد." };
+            }).then(function (data) {
+                data.httpStatus = response.status;
+                return data;
+            });
+        }).catch(networkErrorResponse);
+    }
+
+    function botPlatformMeta(platform) {
+        return platform === "bale"
+            ? { label: "بله", icon: "💬" }
+            : { label: "تلگرام", icon: "✈️" };
+    }
+
+    function botConnectionCard(connection, platform) {
+        var item = connection && typeof connection === "object" ? connection : {};
+        var meta = botPlatformMeta(platform);
+        var connected = item.connected === true;
+        var statusClass = connected ? " is-connected" : "";
+        var statusLabel = connected ? "متصل" : "متصل نیست";
+        var details = "";
+        if (connected) {
+            var platformName = String(item.platformDisplayName || "").trim();
+            var username = String(item.platformUsername || "").trim();
+            var displayName = platformName || "در اتصال قدیمی ثبت نشده";
+            var usernameRow = username
+                ? '<div><dt>نام کاربری پیام‌رسان</dt><dd><bdi dir="ltr">@' + escapeHtml(username) + "</bdi></dd></div>"
+                : "";
+            details = [
+                '<dl class="bot-connection-details">',
+                '<div><dt>نام حساب سایت</dt><dd>' + escapeHtml(item.websiteName || "—") + "</dd></div>",
+                '<div><dt>نام اکانت پیام‌رسان</dt><dd>' + escapeHtml(displayName) + "</dd></div>",
+                usernameRow,
+                '<div><dt>شناسه عددی</dt><dd><bdi dir="ltr">' + escapeHtml(toPersianDigits(item.platformUserId || "—")) + "</bdi></dd></div>",
+                '<div><dt>زمان اتصال</dt><dd>' + escapeHtml(formatJalaliDateTime(item.linkedAt, "—", true)) + "</dd></div>",
+                "</dl>"
+            ].join("");
+        } else {
+            details = '<p class="bot-connection-card__empty">این حساب سایت هنوز به ربات ' + escapeHtml(meta.label) + " متصل نشده است.</p>";
+        }
+        var busy = botConnectionsState.disconnectingPlatform === platform;
+        var action = connected
+            ? '<div class="bot-connection-card__actions"><button class="shell-action-btn bot-connection-card__disconnect" type="button" data-disconnect-bot="' + escapeHtml(platform) + '"' + (busy ? " disabled" : "") + ">" + (busy ? "در حال قطع اتصال…" : "قطع اتصال") + "</button></div>"
+            : "";
+        return [
+            '<article class="bot-connection-card" data-bot-platform="' + escapeHtml(platform) + '">',
+            '<div class="bot-connection-card__head">',
+            '<div class="bot-connection-card__identity"><span class="bot-connection-card__icon" aria-hidden="true">' + meta.icon + "</span><span><strong>ربات " + escapeHtml(meta.label) + "</strong><small>اتصال مستقل همین پیام‌رسان</small></span></div>",
+            '<span class="bot-connection-status' + statusClass + '">' + statusLabel + "</span>",
+            "</div>",
+            details,
+            action,
+            "</article>"
+        ].join("");
+    }
+
+    function renderBotConnections() {
+        if (!botConnectionsList) {
+            return;
+        }
+        if (botConnectionsState.loading && !botConnectionsState.connections) {
+            botConnectionsList.innerHTML = '<div class="bot-connection-skeleton" aria-label="در حال دریافت وضعیت اتصال"></div><div class="bot-connection-skeleton" aria-hidden="true"></div>';
+            return;
+        }
+        var connections = botConnectionsState.connections || {};
+        botConnectionsList.innerHTML = botConnectionCard(connections.telegram, "telegram")
+            + botConnectionCard(connections.bale, "bale");
+        var connectedCount = [connections.telegram, connections.bale].filter(function (item) {
+            return item && item.connected === true;
+        }).length;
+        if (accountRowBotsMeta) {
+            accountRowBotsMeta.textContent = connectedCount
+                ? (toPersianDigits(connectedCount) + " پیام‌رسان از ۲ پیام‌رسان متصل است")
+                : "تلگرام و بله به این حساب متصل نیستند";
+        }
+        if (botConnectionsRefresh) {
+            botConnectionsRefresh.disabled = botConnectionsState.loading || !!botConnectionsState.disconnectingPlatform;
+        }
+    }
+
+    async function loadBotConnections(force) {
+        var userKey = accountUserKey();
+        if (!userKey || botConnectionsState.loading) {
+            return;
+        }
+        if (!force && botConnectionsState.loadedForUserKey === userKey && botConnectionsState.connections) {
+            renderBotConnections();
+            return;
+        }
+        botConnectionsState.loading = true;
+        setInlineFeedback(botConnectionsFeedback, "در حال دریافت وضعیت اتصال‌ها…", "", true);
+        renderBotConnections();
+        try {
+            var response = await botConnectionsGet();
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                return;
+            }
+            if (!response || !response.success || response.contractVersion !== "bot-account-connections-v1") {
+                throw new Error((response && response.error) || "وضعیت اتصال‌ها دریافت نشد.");
+            }
+            botConnectionsState.connections = response.connections || {};
+            botConnectionsState.csrfToken = String(response.csrfToken || "");
+            botConnectionsState.loadedForUserKey = userKey;
+            setInlineFeedback(botConnectionsFeedback, "", "");
+        } catch (error) {
+            setInlineFeedback(botConnectionsFeedback, String(error && error.message || "وضعیت اتصال‌ها دریافت نشد."), "error");
+        } finally {
+            botConnectionsState.loading = false;
+            renderBotConnections();
+        }
+    }
+
+    async function disconnectBotConnection(platform) {
+        var meta = botPlatformMeta(platform);
+        var item = botConnectionsState.connections && botConnectionsState.connections[platform];
+        if (!item || item.connected !== true || botConnectionsState.disconnectingPlatform) {
+            return;
+        }
+        if (!window.confirm("اتصال ربات " + meta.label + " به حساب سایت قطع شود؟ دسترسی همان ربات فوراً بسته می‌شود.")) {
+            return;
+        }
+        botConnectionsState.disconnectingPlatform = platform;
+        setInlineFeedback(botConnectionsFeedback, "در حال قطع اتصال ربات " + meta.label + "…", "", true);
+        renderBotConnections();
+        try {
+            var response = await botConnectionDisconnect(platform);
+            if (consumeUnauthorized(response, "نشست شما منقضی شده است.")) {
+                return;
+            }
+            if (!response || !response.success || response.contractVersion !== "bot-account-connections-v1") {
+                throw new Error((response && response.error) || "قطع اتصال انجام نشد.");
+            }
+            botConnectionsState.loadedForUserKey = "";
+            botConnectionsState.connections = null;
+            await loadBotConnections(true);
+            setInlineFeedback(botConnectionsFeedback, "اتصال ربات " + meta.label + " قطع شد و پیام اطلاع‌رسانی برای همان حساب در صف ارسال قرار گرفت.", "success");
+        } catch (error) {
+            setInlineFeedback(botConnectionsFeedback, String(error && error.message || "قطع اتصال انجام نشد."), "error");
+        } finally {
+            botConnectionsState.disconnectingPlatform = "";
+            renderBotConnections();
+        }
     }
 
     function requestUsers() {
@@ -7453,6 +7642,16 @@
             if (accountRowNotificationsMeta) {
                 accountRowNotificationsMeta.textContent = "اعلان‌های نوید و پیام‌های ارسال‌شده برای این حساب در همین بخش نمایش داده می‌شوند.";
             }
+            if (accountRowBotsMeta) {
+                accountRowBotsMeta.textContent = "بررسی اتصال تلگرام و بله و مدیریت هر اتصال";
+            }
+            botConnectionsState.loading = false;
+            botConnectionsState.loadedForUserKey = "";
+            botConnectionsState.csrfToken = "";
+            botConnectionsState.connections = null;
+            botConnectionsState.disconnectingPlatform = "";
+            setInlineFeedback(botConnectionsFeedback, "", "");
+            renderBotConnections();
             if (accountNavidAlertCard) {
                 accountNavidAlertCard.hidden = true;
             }
@@ -7546,6 +7745,7 @@
             accountRowNotificationsMeta.textContent = "در حال دریافت اعلان‌های این حساب...";
         }
         loadNotifications(false);
+        loadBotConnections(false);
 
         if (hasManagementAccess()) {
             if (ownerHubSection) {
@@ -7635,6 +7835,29 @@
             openSurface("hub", { replaceHash: true });
         });
     });
+
+    if (botConnectionsRefresh) {
+        botConnectionsRefresh.addEventListener("click", function (event) {
+            event.preventDefault();
+            loadBotConnections(true);
+        });
+    }
+
+    if (botConnectionsList) {
+        botConnectionsList.addEventListener("click", function (event) {
+            var button = event.target && event.target.closest
+                ? event.target.closest("[data-disconnect-bot]")
+                : null;
+            if (!button || !botConnectionsList.contains(button)) {
+                return;
+            }
+            event.preventDefault();
+            var platform = String(button.dataset.disconnectBot || "").trim();
+            if (platform === "telegram" || platform === "bale") {
+                disconnectBotConnection(platform);
+            }
+        });
+    }
 
     if (accountNavidAlertLink) {
         accountNavidAlertLink.addEventListener("click", function (event) {
@@ -8539,7 +8762,15 @@
 
     updateCreateStudentGroupOptions();
     syncOwnerRoleOptions();
-    setLoginMode("otp");
+    var requestedLoginMode = "";
+    try {
+        requestedLoginMode = String(new URLSearchParams(window.location.search || "").get("mode") || "").trim().toLowerCase();
+    } catch (_error) {
+        requestedLoginMode = "";
+    }
+    setLoginMode(requestedLoginMode === "signup" || requestedLoginMode === "password" || requestedLoginMode === "reset"
+        ? requestedLoginMode
+        : "otp");
     resetOtpUi();
     window.Dent1402Auth.onChange(handleAuthState);
 })();
