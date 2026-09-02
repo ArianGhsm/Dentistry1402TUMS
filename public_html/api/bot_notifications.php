@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/notifications_store.php';
+require_once __DIR__ . '/academic_term7.php';
 
 function dent_bot_notifications_require_owner(array $user): void
 {
@@ -44,6 +45,23 @@ function dent_bot_mark_notification_read(array $user, array $payload): array
     return ['success' => true, 'notificationId' => $notificationId, 'summary' => $summary];
 }
 
+function dent_bot_perform_notification_action(array $user, string $platform, array $payload): array
+{
+    $notificationId = trim((string) ($payload['notificationId'] ?? ''));
+    $actionRef = trim((string) ($payload['actionRef'] ?? ''));
+    if (preg_match('/^nt-[A-Za-z0-9._-]{6,80}$/', $notificationId) !== 1
+        || preg_match('/^[A-Za-z0-9_-]{1,20}$/', $actionRef) !== 1) {
+        dent_error('عملیات اعلان معتبر نیست.', 422, ['code' => 'INVALID_NOTIFICATION_ACTION']);
+    }
+    $store = notifications_read_store();
+    $record = is_array($store['notifications'][$notificationId] ?? null) ? $store['notifications'][$notificationId] : null;
+    $userState = notifications_user_state($store, $user);
+    if (!is_array($record) || !notifications_record_visible_to_user($record, $user, $userState)) {
+        dent_error('اعلان پیدا نشد.', 404, ['code' => 'NOTIFICATION_NOT_FOUND']);
+    }
+    return dent_term7_perform_notification_action($user, $platform, $record, $actionRef);
+}
+
 function dent_bot_notification_audience(array $user, array $payload): array
 {
     dent_bot_notifications_require_owner($user);
@@ -82,6 +100,9 @@ function dent_bot_notification_absolute_cta(string $href): string
 function dent_bot_claim_notification_deliveries(array $caller, string $platform, array $payload): array
 {
     dent_bot_notifications_require_owner($caller);
+    // Central, retry-safe generation: both workers may tick it, while canonical
+    // source keys and locks guarantee that only one notification is created.
+    dent_term7_scheduler_tick();
     $limit = max(1, min(20, (int) ($payload['limit'] ?? 10)));
     $leaseSeconds = max(30, min(600, (int) (getenv('DENT_BOT_NOTIFICATION_LEASE_SECONDS') ?: 120)));
     $maxAttempts = max(1, min(12, (int) (getenv('DENT_BOT_NOTIFICATION_MAX_ATTEMPTS') ?: 5)));
@@ -140,6 +161,9 @@ function dent_bot_claim_notification_deliveries(array $caller, string $platform,
                 if (notifications_record_is_retired_exam_reminder($record)) {
                     continue;
                 }
+                if (dent_term7_notification_is_suppressed_for_user($record, $user)) {
+                    continue;
+                }
                 if (count($deliveries) >= $limit) {
                     break 2;
                 }
@@ -195,8 +219,11 @@ function dent_bot_claim_notification_deliveries(array $caller, string $platform,
                         'tone' => (string) ($record['tone'] ?? 'accent'),
                         'important' => notifications_record_is_important($record),
                         'effectiveAt' => notifications_record_effective_at($record),
-                        'ctaLabel' => (string) ($record['ctaLabel'] ?? ''),
-                        'ctaUrl' => dent_bot_notification_absolute_cta((string) ($record['ctaHref'] ?? '')),
+                        'ctaLabel' => (string) (($recordMeta['externalUrl'] ?? '') !== '' ? '🍽 رزرو غذا' : ($record['ctaLabel'] ?? '')),
+                        'ctaUrl' => (string) (($recordMeta['externalUrl'] ?? '') !== ''
+                            ? $recordMeta['externalUrl']
+                            : dent_bot_notification_absolute_cta((string) ($record['ctaHref'] ?? ''))),
+                        'actions' => dent_term7_public_actions_for_notification($record, $user),
                     ],
                 ];
             }

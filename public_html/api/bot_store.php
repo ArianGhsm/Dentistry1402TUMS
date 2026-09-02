@@ -284,6 +284,7 @@ function dent_bot_public_user(array $user): array
     return [
         'name' => (string) ($public['name'] ?? ''),
         'studentNumber' => (string) ($public['studentNumber'] ?? ''),
+        'disNumber' => (string) ($public['disNumber'] ?? ''),
         'role' => (string) ($public['role'] ?? 'student'),
         'roleLabel' => (string) ($public['roleLabel'] ?? ''),
         'cohortKey' => (string) ($public['cohortKey'] ?? ''),
@@ -1517,6 +1518,9 @@ function dent_bot_service_dispatch(array $payload): array
     }
     if ($action === 'markNotificationRead') {
         return dent_bot_mark_notification_read($user, $payload);
+    }
+    if ($action === 'performNotificationAction') {
+        return dent_bot_perform_notification_action($user, $platform, $payload);
     }
     if ($action === 'notificationAudience') {
         return dent_bot_notification_audience($user, $payload);

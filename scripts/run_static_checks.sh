@@ -68,6 +68,7 @@ section "Upload pipeline config"
 section "Unit tests"
 "$PHP_BIN" scripts/test_unit.php || fail "test_unit.php"
 "$PHP_BIN" scripts/test_exam_reminder_retirement.php || fail "test_exam_reminder_retirement.php"
+"$PHP_BIN" scripts/test_term7_academic_assistant.php || fail "test_term7_academic_assistant.php"
 
 section "Signed bot integration contracts"
 "$PYTHON_BIN" scripts/test_bot_integration_contracts.py || fail "test_bot_integration_contracts.py"

@@ -121,6 +121,27 @@ function notifications_clean_cta_href(?string $value): string
     return $href;
 }
 
+function notifications_clean_actions(array $actions): array
+{
+    $clean = [];
+    foreach (array_slice($actions, 0, 4) as $action) {
+        if (!is_array($action)) {
+            continue;
+        }
+        $ref = trim((string) ($action['ref'] ?? ''));
+        $label = dent_clean_text((string) ($action['label'] ?? ''), 60);
+        $style = trim((string) ($action['style'] ?? ''));
+        if (preg_match('/^[A-Za-z0-9_-]{1,20}$/', $ref) !== 1 || $label === '') {
+            continue;
+        }
+        if (!in_array($style, ['primary', 'success', 'danger'], true)) {
+            $style = '';
+        }
+        $clean[] = ['ref' => $ref, 'label' => $label, 'style' => $style];
+    }
+    return $clean;
+}
+
 function notifications_clean_tone(?string $value): string
 {
     $tone = trim((string) $value);
@@ -390,6 +411,21 @@ function notifications_clean_meta(array $meta, array $record = []): array
         $clean['disablePush'] = $disablePush;
     }
 
+    $scheduleVersion = dent_clean_text((string) ($meta['scheduleVersion'] ?? ''), 80);
+    if ($scheduleVersion !== '') {
+        $clean['scheduleVersion'] = $scheduleVersion;
+    }
+
+    $foodWeekKey = trim((string) ($meta['foodWeekKey'] ?? ''));
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $foodWeekKey) === 1) {
+        $clean['foodWeekKey'] = $foodWeekKey;
+    }
+
+    $externalUrl = trim((string) ($meta['externalUrl'] ?? ''));
+    if ($externalUrl === 'http://foodstu.tums.ac.ir') {
+        $clean['externalUrl'] = $externalUrl;
+    }
+
     $eventId = trim((string) ($meta['eventId'] ?? ''));
     if (preg_match('/^[A-Za-z0-9_.-]{1,120}$/', $eventId) === 1) {
         $clean['eventId'] = $eventId;
@@ -652,6 +688,7 @@ function notifications_normalize_record(string $key, array $record): ?array
         'sourceKey' => dent_clean_text((string) ($record['sourceKey'] ?? ''), 220),
         'ctaLabel' => $ctaLabel,
         'ctaHref' => $ctaHref,
+        'actions' => notifications_clean_actions(is_array($record['actions'] ?? null) ? $record['actions'] : []),
         'createdAt' => $createdAt,
         'publishAt' => $publishAt,
         'releasedAt' => $releasedAt,
@@ -1195,6 +1232,12 @@ function notifications_public_payload(array $record, array $user, array $store):
     $canManage = notifications_user_can_manage_record($user, $record);
     $audienceSummary = $canManage ? notifications_record_audience_counts($record, $store) : null;
 
+    $actions = function_exists('dent_term7_public_actions_for_notification')
+        ? dent_term7_public_actions_for_notification($record, $user)
+        : (is_array($record['actions'] ?? null) ? $record['actions'] : []);
+    $meta = is_array($record['meta'] ?? null) ? $record['meta'] : [];
+    $externalUrl = (string) ($meta['externalUrl'] ?? '');
+
     return [
         'id' => (string) ($record['id'] ?? ''),
         'kind' => (string) ($record['kind'] ?? ''),
@@ -1208,6 +1251,8 @@ function notifications_public_payload(array $record, array $user, array $store):
         'senderLabel' => notifications_sender_label($record),
         'ctaLabel' => (string) ($record['ctaLabel'] ?? ''),
         'ctaHref' => (string) ($record['ctaHref'] ?? ''),
+        'ctaUrl' => $externalUrl,
+        'actions' => $actions,
         'createdAt' => (string) ($record['createdAt'] ?? ''),
         'publishAt' => (string) ($record['publishAt'] ?? ''),
         'effectiveAt' => notifications_record_effective_at($record),
@@ -1216,7 +1261,7 @@ function notifications_public_payload(array $record, array $user, array $store):
         'unread' => !$isScheduled && !isset($readIds[(string) ($record['id'] ?? '')]),
         'important' => notifications_record_is_important($record),
         'canSnooze' => !$isScheduled,
-        'meta' => is_array($record['meta'] ?? null) ? $record['meta'] : [],
+        'meta' => $meta,
         'sms' => notifications_record_sms_payload($record),
         'manager' => [
             'canInspectAudience' => $canManage,
@@ -2270,6 +2315,7 @@ function notifications_ensure_user_candidate(array $user, array $candidate): arr
             'sourceKey' => $sourceKey,
             'ctaHref' => (string) ($candidate['ctaHref'] ?? ''),
             'ctaLabel' => (string) ($candidate['ctaLabel'] ?? ''),
+            'actions' => is_array($candidate['actions'] ?? null) ? $candidate['actions'] : [],
             'createdAt' => $now,
             'publishAt' => $now,
             'releasedAt' => $now,
