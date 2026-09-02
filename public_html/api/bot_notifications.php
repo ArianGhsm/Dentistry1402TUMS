@@ -35,6 +35,37 @@ function dent_bot_notification_feed(array $user, array $payload): array
     return ['success' => true, 'data' => notifications_list_payload_for_user($store, $user, $limit)];
 }
 
+function dent_bot_term7_status(array $user): array
+{
+    dent_bot_notifications_require_owner($user);
+    $schedule = dent_term7_schedule();
+    $state = dent_term7_state_read();
+    $sample = dent_term7_resolve_jalali('1405/07/04', 6, ['group10' => 6, 'group8' => 15]);
+    $thursday = dent_term7_resolve_jalali('1405/07/02', 4, []);
+    $endo = is_array($thursday['theory'][0] ?? null) ? $thursday['theory'][0] : [];
+    return [
+        'success' => true,
+        'contractVersion' => DENT_TERM7_CONTRACT,
+        'scheduleVersion' => (string) ($schedule['scheduleVersion'] ?? ''),
+        'cohortKey' => (string) ($schedule['cohortKey'] ?? ''),
+        'timezone' => (string) ($schedule['timezone'] ?? ''),
+        'assignmentCount' => count(is_array($state['assignments'] ?? null) ? $state['assignments'] : []),
+        'foodConfirmationCount' => count(is_array($state['foodConfirmations'] ?? null) ? $state['foodConfirmations'] : []),
+        'schedulerSlotCount' => count(is_array($state['schedulerSlots'] ?? null) ? $state['schedulerSlots'] : []),
+        'sample' => [
+            'rotation' => (string) ($sample['rotation'] ?? ''),
+            'morningTitles' => array_values(array_map(static fn(array $event): string => (string) ($event['title'] ?? ''), $sample['practicalMorning'] ?? [])),
+            'afternoonTitles' => array_values(array_map(static fn(array $event): string => (string) ($event['title'] ?? ''), $sample['practicalAfternoon'] ?? [])),
+        ],
+        'thursdayEndo' => [
+            'title' => (string) ($endo['title'] ?? ''),
+            'start' => (string) ($endo['start'] ?? ''),
+            'end' => (string) ($endo['end'] ?? ''),
+        ],
+        'foodUrl' => (string) ($schedule['foodUrl'] ?? ''),
+    ];
+}
+
 function dent_bot_mark_notification_read(array $user, array $payload): array
 {
     $notificationId = trim((string) ($payload['notificationId'] ?? ''));

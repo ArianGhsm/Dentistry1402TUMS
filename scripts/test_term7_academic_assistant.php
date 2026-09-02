@@ -142,6 +142,13 @@ try {
 
     $publicWithDis = dent_bot_public_user(['studentNumber' => '40211272000', 'name' => 'کاربر تست', 'role' => 'student', 'cohortKey' => DENT_TERM7_COHORT]);
     term7_assert(array_key_exists('disNumber', $publicWithDis), 'Signed bot account contract includes canonical disNumber field');
+    $statusPayload = dent_bot_term7_status(['studentNumber' => '40211272003', 'role' => 'owner', 'cohortKey' => DENT_TERM7_COHORT]);
+    term7_assert(
+        ($statusPayload['contractVersion'] ?? '') === DENT_TERM7_CONTRACT
+            && ($statusPayload['thursdayEndo']['end'] ?? '') === '10:30'
+            && ($statusPayload['sample']['morningTitles'] ?? []) === ['پروتز پارسیل عملی ۱'],
+        'Owner-only live status smoke exposes version, Endo correction and RTL sample without PII'
+    );
 
     // End-to-end synthetic fixture through canonical auth, link, schedule,
     // notification and callback stores (no production data or credentials).

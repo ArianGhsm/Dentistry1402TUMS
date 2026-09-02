@@ -1513,6 +1513,9 @@ function dent_bot_service_dispatch(array $payload): array
     if ($action === 'notifications') {
         return dent_bot_notification_feed($user, $payload);
     }
+    if ($action === 'academicTerm7StatusV1') {
+        return dent_bot_term7_status($user);
+    }
     if ($action === 'createDeployNotification') {
         return dent_bot_create_deploy_notification($user, $payload);
     }
