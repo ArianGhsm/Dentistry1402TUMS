@@ -480,6 +480,13 @@ function dent_term7_user_is_eligible(array $user): bool
         && dent_normalize_student_number((string) ($user['studentNumber'] ?? '')) !== '';
 }
 
+function dent_term7_jalali_in_active_window(string $jalaliDate): bool
+{
+    $schedule = dent_term7_schedule();
+    return strcmp($jalaliDate, (string) $schedule['activeFrom']) >= 0
+        && strcmp($jalaliDate, (string) $schedule['activeThrough']) <= 0;
+}
+
 function dent_term7_linked_eligible_users(): array
 {
     if (!function_exists('dent_bot_store_read') || !function_exists('dent_bot_link_auth_complete')) {
@@ -658,15 +665,33 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
 {
     $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
     $local = ($now ?? new DateTimeImmutable('now', $timezone))->setTimezone($timezone);
+    $tomorrow = $local->modify('+1 day');
+    $academicDue = (int) $local->format('G') === 21
+        && dent_term7_jalali_in_active_window(dent_term7_jalali_key($tomorrow));
+    $foodSlot = dent_term7_food_slot($local);
+    if ($foodSlot !== null && !dent_term7_jalali_in_active_window(dent_term7_jalali_key($local))) {
+        $foodSlot = null;
+    }
+    if (!$academicDue && $foodSlot === null) {
+        return [
+            'success' => true,
+            'contractVersion' => DENT_TERM7_CONTRACT,
+            'scheduleVersion' => DENT_TERM7_SCHEDULE_VERSION,
+            'checkedAt' => $local->format(DATE_ATOM),
+            'eligibleUsers' => 0,
+            'created' => 0,
+            'existing' => 0,
+            'errors' => [],
+        ];
+    }
     $users = dent_term7_linked_eligible_users();
     $created = 0;
     $existing = 0;
     $errors = [];
 
     $academicSlotKey = 'academic:' . $local->format('Y-m-d') . ':21';
-    if ((int) $local->format('G') === 21 && dent_term7_scheduler_claim_slot($academicSlotKey, $local->getTimestamp())) {
+    if ($academicDue && dent_term7_scheduler_claim_slot($academicSlotKey, $local->getTimestamp())) {
         $slotErrors = [];
-        $tomorrow = $local->modify('+1 day');
         $state = dent_term7_state_read();
         foreach ($users as $studentNumber => $user) {
             try {
@@ -690,7 +715,6 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
         $errors = array_merge($errors, $slotErrors);
     }
 
-    $foodSlot = dent_term7_food_slot($local);
     $foodSlotKey = $foodSlot === null ? '' : 'food:' . $foodSlot['weekKey'] . ':' . sprintf('%02d', $foodSlot['hour']);
     if ($foodSlot !== null && dent_term7_scheduler_claim_slot($foodSlotKey, $local->getTimestamp())) {
         $slotErrors = [];
@@ -761,7 +785,15 @@ function dent_term7_import_assignments(array $rows, string $field, bool $commit)
             $nameIndex[$normalizedName][] = (string) $studentNumber;
         }
     }
-    $report = ['matched' => [], 'unmatched' => [], 'ambiguous' => [], 'duplicates' => [], 'invalid' => [], 'missing' => []];
+    $report = [
+        'matched' => [],
+        'unmatched' => [],
+        'ambiguous' => [],
+        'duplicates' => [],
+        'invalid' => [],
+        'missingGroup10' => [],
+        'missingGroup8' => [],
+    ];
     $pending = [];
     foreach ($rows as $index => $row) {
         if (!is_array($row)) {
@@ -801,13 +833,31 @@ function dent_term7_import_assignments(array $rows, string $field, bool $commit)
         $pending[$studentNumber] = $group;
         $report['matched'][] = ['studentNumber' => $studentNumber, 'name' => (string) ($user['name'] ?? ''), 'group' => $group, 'matchedBy' => $matchedBy];
     }
+    $currentState = dent_term7_state_read();
     foreach ($userStore['users'] ?? [] as $studentNumber => $user) {
-        if (is_array($user) && dent_user_cohort_key($user) === DENT_TERM7_COHORT && !isset($pending[$studentNumber])) {
-            $report['missing'][] = ['studentNumber' => (string) $studentNumber, 'name' => (string) ($user['name'] ?? '')];
+        if (!is_array($user) || dent_user_cohort_key($user) !== DENT_TERM7_COHORT) {
+            continue;
+        }
+        $prospective = dent_term7_assignment_for_student((string) $studentNumber, $currentState);
+        if (isset($pending[$studentNumber])) {
+            $prospective[$field] = $pending[$studentNumber];
+        }
+        $missing = ['studentNumber' => (string) $studentNumber, 'name' => (string) ($user['name'] ?? '')];
+        if (!is_int($prospective['group10'] ?? null)) {
+            $report['missingGroup10'][] = $missing;
+        }
+        if (!is_int($prospective['group8'] ?? null)) {
+            $report['missingGroup8'][] = $missing;
         }
     }
     $report['committed'] = false;
-    if ($commit && $report['unmatched'] === [] && $report['ambiguous'] === [] && $report['duplicates'] === [] && $report['invalid'] === []) {
+    $targetMissingKey = $field === 'group10' ? 'missingGroup10' : 'missingGroup8';
+    if ($commit
+        && $report['unmatched'] === []
+        && $report['ambiguous'] === []
+        && $report['duplicates'] === []
+        && $report['invalid'] === []
+        && $report[$targetMissingKey] === []) {
         dent_term7_state_with_lock(static function (array &$state) use ($pending, $field): array {
             foreach ($pending as $studentNumber => $group) {
                 $current = dent_term7_assignment_for_student((string) $studentNumber, $state);

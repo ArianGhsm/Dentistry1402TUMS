@@ -155,6 +155,7 @@ try {
     $studentA = '40211272991';
     $studentB = '40211272992';
     $studentC = '40211272993';
+    $studentD = '40211272994';
     $fixturePassword = dent_hash_password('fixture-password-only');
     dent_save_user_store([
         'cohorts' => dent_default_cohort_catalog(),
@@ -162,6 +163,7 @@ try {
             $studentA => ['studentNumber' => $studentA, 'name' => 'دانشجوی الف', 'passwordHash' => $fixturePassword, 'role' => 'student', 'cohortKey' => DENT_TERM7_COHORT],
             $studentB => ['studentNumber' => $studentB, 'name' => 'دانشجوی ب', 'passwordHash' => $fixturePassword, 'role' => 'student', 'cohortKey' => DENT_TERM7_COHORT],
             $studentC => ['studentNumber' => $studentC, 'name' => 'دانشجوی ج', 'passwordHash' => $fixturePassword, 'role' => 'prosthesis_student', 'cohortKey' => 'prosthesis-1402'],
+            $studentD => ['studentNumber' => $studentD, 'name' => 'دانشجوی د', 'passwordHash' => $fixturePassword, 'role' => 'student', 'cohortKey' => DENT_TERM7_COHORT],
         ],
     ]);
     dent_term7_state_with_lock(static function (array &$state) use ($studentA, $studentB): array {
@@ -169,6 +171,16 @@ try {
         $state['assignments'][$studentB] = ['studentNumber' => $studentB, 'group10' => 1, 'group8' => 11, 'updatedAt' => dent_iso_now()];
         return [];
     });
+    $incompleteImport = dent_term7_import_assignments([
+        ['studentNumber' => $studentA, 'name' => 'دانشجوی الف', 'group' => 6],
+        ['studentNumber' => $studentB, 'name' => 'دانشجوی ب', 'group' => 1],
+    ], 'group10', true);
+    term7_assert(
+        empty($incompleteImport['committed'])
+            && count($incompleteImport['missingGroup10'] ?? []) === 1
+            && count($incompleteImport['missingGroup8'] ?? []) === 1,
+        'Importer reports missing group10/group8 separately and blocks incomplete target commit'
+    );
     dent_bot_store_with_lock(static function (array &$store) use ($studentA, $studentB, $studentC): array {
         $fixtures = [
             ['telegram', '900001', $studentA],
@@ -191,6 +203,9 @@ try {
         }
         return [];
     });
+
+    $preTermTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-08 15:00:00', $tz));
+    term7_assert($preTermTick['created'] === 0 && $preTermTick['eligibleUsers'] === 0, 'Scheduler creates no academic/food reminder outside the active term window');
 
     $academicTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-19 21:00:00', $tz));
     $notificationStore = notifications_read_store();

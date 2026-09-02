@@ -16,9 +16,9 @@ studentNumber,name,group
 
 JSON نیز آرایه‌ای با همین سه field است. شماره دانشجویی مرجع اصلی است. تطبیق نام
 فقط fallback است و حروف `ي/ی`، `ك/ک`، نیم‌فاصله و فاصله‌های اضافی را normalize
-می‌کند. گزارش dry-run شامل matched، unmatched، ambiguous، duplicate، invalid و
-missing است. تا وقتی خطای مبهم/نامعتبر وجود داشته باشد `--commit` چیزی ثبت
-نمی‌کند.
+می‌کند. گزارش dry-run شامل matched، unmatched، ambiguous، duplicate، invalid،
+`missingGroup10` و `missingGroup8` است. تا وقتی خطای مبهم/نامعتبر یا کمبود در
+فهرست target وجود داشته باشد `--commit` چیزی ثبت نمی‌کند.
 
 ابتدا dry-run و سپس commit گروه‌های ۱ تا ۱۰:
 
