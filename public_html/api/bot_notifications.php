@@ -128,9 +128,9 @@ function dent_bot_notification_absolute_cta(string $href): string
     return $clean === '' ? '' : dent_bot_site_origin() . $clean;
 }
 
-function dent_bot_claim_notification_deliveries(array $caller, string $platform, array $payload): array
+function dent_bot_claim_notification_deliveries(string $platform, array $payload): array
 {
-    dent_bot_notifications_require_owner($caller);
+    [$platform] = dent_bot_identity($platform, (string) ($payload['platformUserId'] ?? ''));
     // Central, retry-safe generation: both workers may tick it, while canonical
     // source keys and locks guarantee that only one notification is created.
     dent_term7_scheduler_tick();
@@ -260,14 +260,14 @@ function dent_bot_claim_notification_deliveries(array $caller, string $platform,
             }
         }
         return ['deliveries' => $deliveries];
-    });
+    }, 'claim-notification-deliveries');
 
     return ['success' => true, 'deliveries' => array_values($claimed['deliveries'] ?? [])];
 }
 
-function dent_bot_ack_notification_delivery(array $caller, string $platform, array $payload): array
+function dent_bot_ack_notification_delivery(string $platform, array $payload): array
 {
-    dent_bot_notifications_require_owner($caller);
+    [$platform] = dent_bot_identity($platform, (string) ($payload['platformUserId'] ?? ''));
     $deliveryId = trim((string) ($payload['deliveryId'] ?? ''));
     $delivered = filter_var($payload['delivered'] ?? false, FILTER_VALIDATE_BOOLEAN);
     $reasonCode = dent_clean_text((string) ($payload['reasonCode'] ?? ''), 60);
@@ -289,7 +289,7 @@ function dent_bot_ack_notification_delivery(array $caller, string $platform, arr
             return ['found' => true];
         }
         return ['found' => false];
-    });
+    }, 'ack-notification-delivery');
     if (empty($updated['found'])) {
         dent_error('تحویل اعلان پیدا نشد.', 404, ['code' => 'DELIVERY_NOT_FOUND']);
     }
