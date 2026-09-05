@@ -25,6 +25,8 @@ headers and HTML, has nonce-only script/style CSP, no external resources,
 no-store, nosniff, noindex and frame denial. Normal JS navigation and the manual
 fallback both use the fixed provider host. Only reason/gateway/truncated tracking
 hash enter the handoff operational log. This is not a new authorization token.
+The launch route opts out of PHP session startup, so opening it creates neither
+an auth-session file nor a `Set-Cookie` response.
 
 The PWA worker bypasses `/payment/start/`; payment launch documents must never
 be put into its page cache. No production browser dependency is needed.

@@ -172,35 +172,38 @@ function dent_bootstrap(): void
     $booted = true;
     dent_load_env_files();
 
-    ini_set('session.use_strict_mode', '1');
-    ini_set('session.use_only_cookies', '1');
-    ini_set('session.cookie_httponly', '1');
-    $sessionLifetime = 60 * 60 * 24 * 30;
-    ini_set('session.cookie_lifetime', (string) $sessionLifetime);
-    ini_set('session.gc_maxlifetime', (string) $sessionLifetime);
+    $withoutSession = defined('DENT_BOOTSTRAP_WITHOUT_SESSION') && DENT_BOOTSTRAP_WITHOUT_SESSION === true;
+    if (!$withoutSession) {
+        ini_set('session.use_strict_mode', '1');
+        ini_set('session.use_only_cookies', '1');
+        ini_set('session.cookie_httponly', '1');
+        $sessionLifetime = 60 * 60 * 24 * 30;
+        ini_set('session.cookie_lifetime', (string) $sessionLifetime);
+        ini_set('session.gc_maxlifetime', (string) $sessionLifetime);
 
-    $sessionSavePath = dent_default_session_save_path();
-    if ($sessionSavePath !== '' && (is_dir($sessionSavePath) || @mkdir($sessionSavePath, 0755, true))) {
-        ini_set('session.save_path', $sessionSavePath);
-    }
+        $sessionSavePath = dent_default_session_save_path();
+        if ($sessionSavePath !== '' && (is_dir($sessionSavePath) || @mkdir($sessionSavePath, 0755, true))) {
+            ini_set('session.save_path', $sessionSavePath);
+        }
 
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        $forwardedProto = strtolower(trim((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')));
-        $forwardedSsl = strtolower(trim((string) ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '')));
-        $isSecure = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
-            || $forwardedProto === 'https'
-            || $forwardedSsl === 'on';
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            $forwardedProto = strtolower(trim((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')));
+            $forwardedSsl = strtolower(trim((string) ($_SERVER['HTTP_X_FORWARDED_SSL'] ?? '')));
+            $isSecure = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+                || $forwardedProto === 'https'
+                || $forwardedSsl === 'on';
 
-        session_name('dent1402_session');
-        session_set_cookie_params([
-            'lifetime' => $sessionLifetime,
-            'path' => '/',
-            'secure' => $isSecure,
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]);
+            session_name('dent1402_session');
+            session_set_cookie_params([
+                'lifetime' => $sessionLifetime,
+                'path' => '/',
+                'secure' => $isSecure,
+                'httponly' => true,
+                'samesite' => 'Lax',
+            ]);
 
-        session_start();
+            session_start();
+        }
     }
 
     set_exception_handler(static function (Throwable $exception): void {

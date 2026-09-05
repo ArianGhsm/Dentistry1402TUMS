@@ -217,6 +217,7 @@ def main():
                 assert headers["Cache-Control"] == "no-store"
                 assert headers["X-Content-Type-Options"] == "nosniff"
                 assert headers["X-Robots-Tag"] == "noindex, nofollow, noarchive"
+                assert "Set-Cookie" not in headers
                 for suffix in ("&url=https://evil.test", "&trackId=1", "&unknown=1"):
                     bad_status, _, bad_body = read_url(origin + parts.path + "?" + parts.query + suffix)
                     assert bad_status == 400 and b"gateway.zibal.ir" not in bad_body

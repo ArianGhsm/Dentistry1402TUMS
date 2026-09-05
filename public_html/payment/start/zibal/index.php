@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+define('DENT_BOOTSTRAP_WITHOUT_SESSION', true);
 require_once dirname(__DIR__, 3) . '/api/payment_handoff.php';
 require_once dirname(__DIR__, 3) . '/api/payments_store.php';
 
@@ -20,9 +21,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
     http_response_code(405);
 } elseif (!$result['valid']) {
     http_response_code($result['reason'] === 'expired' ? 410 : 400);
-}
-if (session_status() === PHP_SESSION_ACTIVE) {
-    session_write_close();
 }
 payments_log_gateway_event($result['valid'] ? 'payment_handoff_rendered' : 'payment_handoff_rejected', [
     'gateway' => 'zibal',
