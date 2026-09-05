@@ -76,6 +76,14 @@
   `integrations/bot_links.json` رمز می‌شوند، OTP خام ذخیره یا log نمی‌شود و
   پروفایل بین Telegram/Bale فقط با HMAC شماره‌ای که در هر دو مستقل تأیید شده
   همگام می‌شود. این storage باید پیش از deploy از host روی لپ‌تاپ mirror شود.
+- `bot_links.json` فقط source of truth هویت/link/onboarding/audit است. صف‌های
+  پرداخت و اعلان به‌ترتیب در `bot_payment_deliveries.json` و
+  `bot_notification_deliveries.json` با lock/generation مستقل نگه‌داری می‌شوند؛
+  خرابی identity نباید workerهای service-to-service را پاک یا reset کند. هر JSON
+  موجود ولی malformed باید fail-closed/503 شود و فقط نبود واقعی فایل با
+  initialization صریح مجاز است. write باید temp + full-write + flush/fsync +
+  decode/hash + atomic rename و previous generation تأییدشده باشد؛ truncate فایل
+  فعال ممنوع است.
 - کاتالوگ همین قرارداد ۷۵ مرکز علوم پزشکی دولتی و ۳۱ واحد علوم پزشکی دانشگاه
   آزاد را با فیلد صریح `system` نگه می‌دارد. پذیرش مراکز دولتی یکی از شش ترکیب
   نیمسال/نوع دوره است؛ برای واحد آزاد فقط `نیمسال اول` یا `نیمسال دوم` مجاز
@@ -330,7 +338,7 @@ python .\scripts\check_host_deploy_freshness.py
   - host storage backup/mirror -> local validation -> host deploy -> live health-check -> GitHub sync
 - local validation پیش‌فرض باید پایدار، سریع و کم‌نویز بماند؛ اضافه‌کردن check جدیدی که مرتب false-fail می‌دهد یا به شرایط ناپایدار بیرونی وابسته است بدون کنترل scope و پایداری مجاز نیست.
 - چک‌های static قطعی و آفلاین (lint PHP/JS، text-integrity، instruction-contracts، resilience/quality/upload، و unit testهای `scripts/test_unit.php`) از `scripts/run_static_checks.sh` اجرا می‌شوند و همین اسکریپت در GitHub Actions (`.github/workflows/ci.yml`) روی push/PR هم اجرا می‌شود. این مسیر CI نباید به سرور زنده، دیتابیس، شبکه یا credential وابسته شود؛ smoke چندورودی که نیاز به login مالک دارد فقط در deploy محلی می‌ماند نه CI. توابع pure جدید (مثل crypto، token signing، access decision یا normalization) باید همراه خود unit test در همین فایل بیایند.
-- قبل از upload کد، `storage/` هاست باید در `.codex-local/remote-storage/snapshots/` ذخیره و در `server-only/storage/` mirror شود.
+- قبل از upload کد، `storage/` هاست باید در `.codex-local/remote-storage/snapshots/` ذخیره و در `server-only/storage/` mirror شود. تنها snapshotی حق promotion به `latest` دارد که همه JSONها parse، schema/size/checksum آن verify و همه storeهای atomic حیاتی در دو read پیاپی byte-stable باشند؛ snapshot خراب یا transition evidence هرگز latest نمی‌شود.
 - upload/delete دیتای runtime از لپتاپ به هاست ممنوع است؛ حتی FullSync هم نباید `public_html/.env` یا `public_html/storage/` را آپلود/حذف کند.
 - `git pull` قبل از deploy پیش‌فرض ممنوع است مگر درخواست صریح.
 - deploy و GitHub sync نباید به سقف حجمی/proxy budget وابسته باشند؛ budget حجمی نباید blocker دپلوی باشد.

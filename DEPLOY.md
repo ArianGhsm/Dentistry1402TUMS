@@ -31,6 +31,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 ## رفتار ایمن پیش‌فرض
 - منبع اصلی کد، فایل‌های ویندوز است؛ منبع اصلی دیتا و دیتابیس، `storage/` روی هاست است.
 - قبل از هر deploy، دیتای هاست در `.codex-local/remote-storage/snapshots/` بکاپ گرفته می‌شود و نسخه‌ی فعال لوکال در `server-only/storage/` فقط از روی هاست mirror می‌شود.
+- promotion به `latest` فقط از snapshot کامل verified انجام می‌شود: تمام JSONها باید parse شوند، schemaهای حیاتی حاضر باشند، size/hash manifest دوباره تطبیق داده شود و `bot_links.json`، صف پرداخت و صف اعلان در دو read متوالی پایدار باشند. failure یا snapshot انتقالی اجازه تغییر active/latest را ندارد.
 - این mirror شامل فایل‌های upload شده‌ی runtime هم هست؛ مسیرهای موقتی مثل `tmp`، `sessions`، `backups` و `cache` جزو منبع حقیقت deploy نیستند.
 - نبودن دایرکتوری‌های اختیاریِ runtime مثل media preview/original/upload rootها نباید mirror را fail کند؛ فقط stateهای واقعی مثل `store.json` و storageهای اصلی blocker هستند.
 - جهت sync دیتا فقط هاست -> لپتاپ است. دیتای `storage/`، `server-only/storage/`، بکاپ‌ها، sessionها، lockها و فایل‌های `.env` نباید از لپتاپ به هاست یا GitHub آپلود شوند.

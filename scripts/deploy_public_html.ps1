@@ -1493,29 +1493,36 @@ function Sync-RemoteStorageFromHost() {
     Write-Host "Remote storage source: /$remoteRoot"
     Write-Host "Local storage snapshot: $snapshotPath"
 
-    New-Item -ItemType Directory -Path $snapshotPath -Force | Out-Null
-    $visited = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
-    $fileCountValue = 0
-    $totalBytesValue = [int64]0
-    $reusedCountValue = 0
-    $fileCount = [ref]$fileCountValue
-    $totalBytes = [ref]$totalBytesValue
-    $reusedCount = [ref]$reusedCountValue
-
-    Download-RemoteStorageDirectory `
-        -remoteRelative $remoteRoot `
-        -remoteRoot $remoteRoot `
-        -snapshotRoot $snapshotPath `
-        -seedRoot $latestPath `
-        -visited $visited `
-        -fileCount $fileCount `
-        -totalBytes $totalBytes `
-        -reusedCount $reusedCount
+    $python = Resolve-PythonCommand
+    if ([string]::IsNullOrWhiteSpace($python)) {
+        throw "Python is required for verified host-storage snapshots."
+    }
+    $snapshotScript = Join-Path $projectRoot "scripts\snapshot_remote_storage_verified.py"
+    if (-not (Test-Path -LiteralPath $snapshotScript -PathType Leaf)) {
+        throw "Verified host-storage snapshot script is missing: $snapshotScript"
+    }
+    & $python $snapshotScript --config (Join-Path $projectRoot ".vscode\sftp.json") --remote-root $remoteRoot --output $snapshotPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Verified host-storage snapshot failed; active/latest mirrors were not changed."
+    }
+    $manifestPath = Join-Path $snapshotPath "snapshot-manifest.json"
+    if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+        throw "Verified snapshot manifest is missing; active/latest mirrors were not changed."
+    }
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    if ($manifest.consistency.eligibleForLatest -ne $true) {
+        throw "Snapshot is not eligible for latest promotion; active/latest mirrors were not changed."
+    }
 
     $serverOnlyRoot = Join-Path $projectRoot "server-only"
     $codexLocalRoot = Join-Path $projectRoot ".codex-local"
     Reset-DirectoryFromSource -source $snapshotPath -target $activePath -allowedRoot $serverOnlyRoot -label "Active storage mirror"
     Reset-DirectoryFromSource -source $snapshotPath -target $latestPath -allowedRoot $codexLocalRoot -label "Latest storage backup"
+    foreach ($mirrorManifest in @((Join-Path $activePath "snapshot-manifest.json"), (Join-Path $latestPath "snapshot-manifest.json"))) {
+        if (Test-Path -LiteralPath $mirrorManifest -PathType Leaf) {
+            Remove-Item -LiteralPath $mirrorManifest -Force
+        }
+    }
 
     return [PSCustomObject]@{
         Status       = "completed"
@@ -1525,9 +1532,9 @@ function Sync-RemoteStorageFromHost() {
         SnapshotPath = $snapshotPath
         ActivePath   = $activePath
         LatestPath   = $latestPath
-        FileCount    = [int]$fileCount.Value
-        Bytes        = [int64]$totalBytes.Value
-        ReusedFiles  = [int]$reusedCount.Value
+        FileCount    = [int]$manifest.fileCount
+        Bytes        = [int64]$manifest.totalBytes
+        ReusedFiles  = 0
     }
 }
 

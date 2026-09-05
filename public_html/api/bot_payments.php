@@ -369,6 +369,10 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
                 'bot_offer_version' => $productVersion,
                 'bot_origin_platform' => $platform,
                 'bot_origin_identity_hash' => dent_bot_identity_hash($platform, $platformUserId),
+                'bot_origin_route_encrypted_json' => json_encode(
+                    dent_encrypt_secret_text($platformUserId),
+                    JSON_UNESCAPED_SLASHES
+                ) ?: '',
                 'bot_available_from' => $availableFrom,
                 'bot_expires_at' => $expiresAt,
                 'bot_capacity' => $capacity,

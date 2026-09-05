@@ -146,8 +146,11 @@ function dent_bot_claim_notification_deliveries(string $platform, array $payload
         true
     );
     $now = time();
+    dent_bot_delivery_stores_ensure_migrated();
+    $identityStore = dent_bot_identity_snapshot_optional() ?? dent_bot_store_default();
 
-    $claimed = dent_bot_store_with_lock(static function (array &$store) use (
+    $claimed = dent_bot_notification_delivery_store_with_lock(static function (array &$store) use (
+        $identityStore,
         $platform,
         $limit,
         $leaseSeconds,
@@ -157,8 +160,8 @@ function dent_bot_claim_notification_deliveries(string $platform, array $payload
         $retiredNotificationIds,
         $now
     ): array {
-        dent_bot_cleanup_store($store, $now);
-        foreach (($store['notificationDeliveries'] ?? []) as $deliveryKey => $delivery) {
+        dent_bot_cleanup_notification_delivery_store($store, $now);
+        foreach (($store['deliveries'] ?? []) as $deliveryKey => $delivery) {
             if (!is_array($delivery)) {
                 continue;
             }
@@ -170,15 +173,49 @@ function dent_bot_claim_notification_deliveries(string $platform, array $payload
             $delivery['status'] = 'failed';
             $delivery['leaseUntil'] = 0;
             $delivery['reasonCode'] = 'EXAM_REMINDER_RETIRED';
-            $store['notificationDeliveries'][$deliveryKey] = $delivery;
+            $store['deliveries'][$deliveryKey] = $delivery;
         }
-        $storedSince = strtotime((string) ($store['notificationDispatchSince'] ?? ''));
+        $storedSince = strtotime((string) ($store['dispatchSince'] ?? ''));
         $since = $configuredSince ?? ($storedSince !== false ? $storedSince : $now);
         if ($storedSince === false) {
-            $store['notificationDispatchSince'] = gmdate('c', $since);
+            $store['dispatchSince'] = gmdate('c', $since);
         }
         $deliveries = [];
-        foreach ($store['links'] ?? [] as $identityHash => $link) {
+        foreach ($store['deliveries'] ?? [] as $deliveryKey => $delivery) {
+            if (count($deliveries) >= $limit
+                || !is_array($delivery)
+                || (string) ($delivery['platform'] ?? '') !== $platform
+                || !is_array($delivery['notificationPayload'] ?? null)) {
+                continue;
+            }
+            $status = (string) ($delivery['status'] ?? 'pending');
+            $attempts = max(0, (int) ($delivery['attempts'] ?? 0));
+            if ($status === 'delivered' || $status === 'failed' || ($status === 'leased' && (int) ($delivery['leaseUntil'] ?? 0) > $now)) {
+                continue;
+            }
+            if ($attempts >= $maxAttempts) {
+                $delivery['status'] = 'failed';
+                $delivery['leaseUntil'] = 0;
+                $delivery['reasonCode'] = (string) (($delivery['reasonCode'] ?? '') ?: 'MAX_ATTEMPTS');
+                $store['deliveries'][$deliveryKey] = $delivery;
+                continue;
+            }
+            $chatId = dent_decrypt_secret_text($delivery['platformUserIdEncrypted'] ?? null);
+            if (preg_match('/^[0-9]{1,24}$/', $chatId) !== 1) {
+                continue;
+            }
+            $delivery['status'] = 'leased';
+            $delivery['attempts'] = $attempts + 1;
+            $delivery['leaseUntil'] = $now + $leaseSeconds;
+            $delivery['lastAttemptAt'] = dent_iso_now();
+            $store['deliveries'][$deliveryKey] = $delivery;
+            $deliveries[] = [
+                'deliveryId' => (string) ($delivery['deliveryId'] ?? ''),
+                'chatId' => $chatId,
+                'notification' => $delivery['notificationPayload'],
+            ];
+        }
+        foreach ($identityStore['links'] ?? [] as $identityHash => $link) {
             if (count($deliveries) >= $limit || !is_array($link) || (string) ($link['platform'] ?? '') !== $platform) {
                 continue;
             }
@@ -208,8 +245,8 @@ function dent_bot_claim_notification_deliveries(string $platform, array $payload
                     continue;
                 }
                 $deliveryKey = dent_bot_notification_delivery_key($platform, (string) $identityHash, $notificationId);
-                $existing = is_array($store['notificationDeliveries'][$deliveryKey] ?? null)
-                    ? $store['notificationDeliveries'][$deliveryKey]
+                $existing = is_array($store['deliveries'][$deliveryKey] ?? null)
+                    ? $store['deliveries'][$deliveryKey]
                     : [];
                 $status = (string) ($existing['status'] ?? 'pending');
                 $leaseUntil = (int) ($existing['leaseUntil'] ?? 0);
@@ -221,16 +258,33 @@ function dent_bot_claim_notification_deliveries(string $platform, array $payload
                     $existing['status'] = 'failed';
                     $existing['leaseUntil'] = 0;
                     $existing['reasonCode'] = (string) (($existing['reasonCode'] ?? '') ?: 'MAX_ATTEMPTS');
-                    $store['notificationDeliveries'][$deliveryKey] = $existing;
+                    $store['deliveries'][$deliveryKey] = $existing;
                     continue;
                 }
                 $attempts++;
                 $deliveryId = dent_bot_notification_delivery_id($deliveryKey);
-                $store['notificationDeliveries'][$deliveryKey] = [
+                $notificationPayload = [
+                    'id' => $notificationId,
+                    'source' => (string) ($record['source'] ?? ''),
+                    'sourceKey' => (string) ($record['sourceKey'] ?? ''),
+                    'title' => (string) ($record['title'] ?? ''),
+                    'body' => (string) ($record['body'] ?? ''),
+                    'tone' => (string) ($record['tone'] ?? 'accent'),
+                    'important' => notifications_record_is_important($record),
+                    'effectiveAt' => notifications_record_effective_at($record),
+                    'ctaLabel' => (string) (($recordMeta['externalUrl'] ?? '') !== '' ? '🍽 رزرو غذا' : ($record['ctaLabel'] ?? '')),
+                    'ctaUrl' => (string) (($recordMeta['externalUrl'] ?? '') !== ''
+                        ? $recordMeta['externalUrl']
+                        : dent_bot_notification_absolute_cta((string) ($record['ctaHref'] ?? ''))),
+                    'actions' => dent_term7_public_actions_for_notification($record, $user),
+                ];
+                $store['deliveries'][$deliveryKey] = [
                     'deliveryId' => $deliveryId,
                     'notificationId' => $notificationId,
                     'identityHash' => (string) $identityHash,
                     'platform' => $platform,
+                    'platformUserIdEncrypted' => $link['platformUserIdEncrypted'] ?? dent_encrypt_secret_text($platformUserId),
+                    'notificationPayload' => $notificationPayload,
                     'status' => 'leased',
                     'attempts' => $attempts,
                     'leaseUntil' => $now + $leaseSeconds,
@@ -241,21 +295,7 @@ function dent_bot_claim_notification_deliveries(string $platform, array $payload
                 $deliveries[] = [
                     'deliveryId' => $deliveryId,
                     'chatId' => $platformUserId,
-                    'notification' => [
-                        'id' => $notificationId,
-                        'source' => (string) ($record['source'] ?? ''),
-                        'sourceKey' => (string) ($record['sourceKey'] ?? ''),
-                        'title' => (string) ($record['title'] ?? ''),
-                        'body' => (string) ($record['body'] ?? ''),
-                        'tone' => (string) ($record['tone'] ?? 'accent'),
-                        'important' => notifications_record_is_important($record),
-                        'effectiveAt' => notifications_record_effective_at($record),
-                        'ctaLabel' => (string) (($recordMeta['externalUrl'] ?? '') !== '' ? '🍽 رزرو غذا' : ($record['ctaLabel'] ?? '')),
-                        'ctaUrl' => (string) (($recordMeta['externalUrl'] ?? '') !== ''
-                            ? $recordMeta['externalUrl']
-                            : dent_bot_notification_absolute_cta((string) ($record['ctaHref'] ?? ''))),
-                        'actions' => dent_term7_public_actions_for_notification($record, $user),
-                    ],
+                    'notification' => $notificationPayload,
                 ];
             }
         }
@@ -275,8 +315,9 @@ function dent_bot_ack_notification_delivery(string $platform, array $payload): a
         dent_error('شناسه تحویل نامعتبر است.', 422, ['code' => 'INVALID_DELIVERY_ID']);
     }
 
-    $updated = dent_bot_store_with_lock(static function (array &$store) use ($deliveryId, $platform, $delivered, $reasonCode): array {
-        foreach ($store['notificationDeliveries'] ?? [] as $key => $delivery) {
+    dent_bot_delivery_stores_ensure_migrated();
+    $updated = dent_bot_notification_delivery_store_with_lock(static function (array &$store) use ($deliveryId, $platform, $delivered, $reasonCode): array {
+        foreach ($store['deliveries'] ?? [] as $key => $delivery) {
             if (!is_array($delivery) || (string) ($delivery['deliveryId'] ?? '') !== $deliveryId || (string) ($delivery['platform'] ?? '') !== $platform) {
                 continue;
             }
@@ -285,7 +326,7 @@ function dent_bot_ack_notification_delivery(string $platform, array $payload): a
             $delivery['leaseUntil'] = 0;
             $delivery['deliveredAt'] = $delivered ? dent_iso_now() : '';
             $delivery['reasonCode'] = $delivered ? '' : $reasonCode;
-            $store['notificationDeliveries'][$key] = $delivery;
+            $store['deliveries'][$key] = $delivery;
             return ['found' => true];
         }
         return ['found' => false];

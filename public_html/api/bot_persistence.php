@@ -171,7 +171,11 @@ function dent_bot_persistence_read_raw(string $path, bool $allowMissing, array $
 
 function dent_bot_persistence_encode(array $store): string
 {
-    $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    // This is a machine-owned hot store. Pretty printing inflated the incident
+    // recovery generation by ~44%, increased every write, and could exhaust a
+    // constrained hosting quota before atomic rename. Compact JSON preserves
+    // semantics while reducing both quota pressure and write amplification.
+    $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
     if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
         $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
     }
@@ -235,23 +239,31 @@ function dent_bot_persistence_fsync_directory(string $directory): void
     }
 }
 
-function dent_bot_persistence_preserve_previous(string $path, string $raw, int $generation, array $testOptions): void
+function dent_bot_persistence_preserve_previous(string $path, string $raw, int $generation, array $testOptions): string
 {
     if ($raw === '') {
-        return;
+        return '';
     }
     $directory = dent_bot_persistence_backup_directory($path);
     dent_ensure_directory($directory);
     $hash = hash('sha256', $raw);
-    $target = $directory . DIRECTORY_SEPARATOR . basename($path) . '.g' . max(0, $generation) . '.' . $hash . '.json';
+    $compressed = function_exists('gzencode') ? gzencode($raw, 9) : false;
+    $useGzip = is_string($compressed) && $compressed !== '' && function_exists('gzdecode');
+    $backupPayload = $useGzip ? $compressed : $raw;
+    $extension = $useGzip ? '.json.gz' : '.json';
+    $target = $directory . DIRECTORY_SEPARATOR . basename($path) . '.g' . max(0, $generation) . '.' . $hash . $extension;
     if (is_file($target)) {
-        return;
+        return $target;
     }
     $temp = $target . '.tmp.' . getmypid() . '.' . bin2hex(random_bytes(4));
     try {
-        dent_bot_persistence_write_full($temp, $raw, $testOptions);
-        $decoded = dent_bot_persistence_decode((string) @file_get_contents($temp), 'BOT_STORE_BACKUP_INVALID');
-        if (!is_array($decoded) || hash_file('sha256', $temp) !== $hash) {
+        dent_bot_persistence_write_full($temp, $backupPayload, $testOptions);
+        $stored = @file_get_contents($temp);
+        $verifiedRaw = $useGzip && is_string($stored) ? gzdecode($stored) : $stored;
+        $decoded = is_string($verifiedRaw)
+            ? dent_bot_persistence_decode($verifiedRaw, 'BOT_STORE_BACKUP_INVALID')
+            : null;
+        if (!is_array($decoded) || !is_string($verifiedRaw) || !hash_equals($hash, hash('sha256', $verifiedRaw))) {
             throw new DentBotPersistenceException('BOT_STORE_BACKUP_INVALID', 'Previous bot store generation verification failed');
         }
         if (!@rename($temp, $target)) {
@@ -262,6 +274,19 @@ function dent_bot_persistence_preserve_previous(string $path, string $raw, int $
         if (is_file($temp)) {
             @unlink($temp);
         }
+    }
+    return $target;
+}
+
+function dent_bot_persistence_prune_previous(string $path, string $keepTarget): void
+{
+    $directory = dent_bot_persistence_backup_directory($path);
+    $pattern = $directory . DIRECTORY_SEPARATOR . basename($path) . '.g*.json*';
+    foreach (glob($pattern) ?: [] as $candidate) {
+        if (!is_string($candidate) || $candidate === $keepTarget || !is_file($candidate)) {
+            continue;
+        }
+        @unlink($candidate);
     }
 }
 
@@ -284,7 +309,12 @@ function dent_bot_persistence_read(
             dent_bot_persistence_preserve_corrupt($path, (string) $snapshot['raw']);
             throw $exception;
         }
-        $result = $callback($store);
+        $result = $callback($store, [
+            'exists' => (bool) $snapshot['exists'],
+            'sha256' => (string) $snapshot['hash'],
+            'size' => (int) $snapshot['size'],
+            'generation' => max(0, (int) (($store['_storage']['generation'] ?? 0))),
+        ]);
         return is_array($result) ? $result : [];
     } catch (DentBotPersistenceException $exception) {
         dent_bot_persistence_log('error', [
@@ -332,7 +362,12 @@ function dent_bot_persistence_update(
         }
         $oldGeneration = max(0, (int) (($store['_storage']['generation'] ?? 0)));
         $before = dent_bot_persistence_encode($store);
-        $result = $callback($store);
+        $result = $callback($store, [
+            'exists' => (bool) $snapshot['exists'],
+            'sha256' => (string) $snapshot['hash'],
+            'size' => (int) $snapshot['size'],
+            'generation' => $oldGeneration,
+        ]);
         $store = $normalize($store);
         $afterWithoutGeneration = dent_bot_persistence_encode($store);
         if ($snapshot['exists'] && hash_equals(hash('sha256', $before), hash('sha256', $afterWithoutGeneration))) {
@@ -360,12 +395,15 @@ function dent_bot_persistence_update(
         if (($testOptions['interruptBeforeCommit'] ?? false) === true) {
             throw new DentBotPersistenceException('BOT_STORE_INTERRUPTED', 'Simulated interruption before commit');
         }
-        dent_bot_persistence_preserve_previous($path, (string) $snapshot['raw'], $oldGeneration, []);
+        $previousTarget = dent_bot_persistence_preserve_previous($path, (string) $snapshot['raw'], $oldGeneration, []);
         if (!@rename($temp, $path)) {
             throw new DentBotPersistenceException('BOT_STORE_COMMIT_FAILED', 'Atomic bot store rename failed');
         }
         $temp = '';
         dent_bot_persistence_fsync_directory(dirname($path));
+        if ($previousTarget !== '') {
+            dent_bot_persistence_prune_previous($path, $previousTarget);
+        }
         dent_bot_persistence_log('info', [
             'action' => $action,
             'path' => $path,

@@ -3,12 +3,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/grades_store.php';
 require_once __DIR__ . '/bot_payments.php';
+require_once __DIR__ . '/bot_persistence.php';
+require_once __DIR__ . '/bot_delivery_store.php';
 require_once __DIR__ . '/bot_notifications.php';
 require_once __DIR__ . '/bot_navid.php';
 require_once __DIR__ . '/bot_student_assistant.php';
 require_once __DIR__ . '/bot_onboarding.php';
 require_once __DIR__ . '/bot_voice_payment_bridge.php';
-require_once __DIR__ . '/bot_persistence.php';
 
 function dent_bot_store_path(): string
 {
@@ -30,6 +31,7 @@ function dent_bot_store_default(): array
         'paymentResultDeliveries' => [],
         'paymentResultPoll' => ['highWatermark' => 0, 'unresolvedOrderIds' => []],
         'notificationDispatchSince' => '',
+        'deliveryStoreMigration' => [],
         'onboardingProfiles' => [],
         'onboardingIdentityProfiles' => [],
         'onboardingIdentityRoutes' => [],
@@ -41,7 +43,7 @@ function dent_bot_store_default(): array
 function dent_bot_store_normalize(array $store): array
 {
     $defaults = dent_bot_store_default();
-    foreach (['links', 'challenges', 'identityCandidates', 'identityClaims', 'nonces', 'audit', 'notificationDeliveries', 'accountDisconnectDeliveries', 'paymentResultDeliveries', 'paymentResultPoll', 'onboardingProfiles', 'onboardingIdentityProfiles', 'onboardingIdentityRoutes', 'onboardingChallenges', 'onboardingEditRequests'] as $key) {
+    foreach (['links', 'challenges', 'identityCandidates', 'identityClaims', 'nonces', 'audit', 'notificationDeliveries', 'accountDisconnectDeliveries', 'paymentResultDeliveries', 'paymentResultPoll', 'deliveryStoreMigration', 'onboardingProfiles', 'onboardingIdentityProfiles', 'onboardingIdentityRoutes', 'onboardingChallenges', 'onboardingEditRequests'] as $key) {
         if (array_key_exists($key, $store) && !is_array($store[$key])) {
             throw new DentBotPersistenceException('BOT_STORE_SCHEMA_INVALID', 'Bot store collection has an invalid type');
         }
@@ -967,9 +969,12 @@ function dent_bot_queue_payment_success_deliveries(array $order): void
     if (!in_array($originPlatform, ['telegram', 'bale'], true) || preg_match('/^[a-f0-9]{64}$/', $originIdentityHash) !== 1 || $orderId <= 0) {
         return;
     }
-    dent_bot_store_with_lock(static function (array &$store) use ($order, $originPlatform, $originIdentityHash, $orderId): array {
+    dent_bot_delivery_stores_ensure_migrated();
+    $identityStore = dent_bot_identity_snapshot_optional() ?? dent_bot_store_default();
+    dent_bot_payment_delivery_store_with_lock(static function (array &$store) use ($identityStore, $order, $originPlatform, $originIdentityHash, $orderId): array {
         return ['success' => true, 'created' => dent_bot_add_payment_success_deliveries(
             $store,
+            $identityStore,
             $order,
             $originPlatform,
             $originIdentityHash,
@@ -980,15 +985,24 @@ function dent_bot_queue_payment_success_deliveries(array $order): void
 
 function dent_bot_add_payment_success_deliveries(
     array &$store,
+    array $identityStore,
     array $order,
     string $originPlatform,
     string $originIdentityHash,
     int $orderId
 ): int {
+    $orderExtra = dent_bot_payment_extra($order);
+    $originRoute = json_decode((string) ($orderExtra['bot_origin_route_encrypted_json'] ?? ''), true);
+    if (!is_array($originRoute)) {
+        $originRoute = dent_bot_route_encrypted_from_identity($identityStore, $originIdentityHash, $originPlatform);
+    }
     $targets = [[
-        'kind' => 'user', 'platform' => $originPlatform, 'identityHash' => $originIdentityHash,
+        'kind' => 'user',
+        'platform' => $originPlatform,
+        'identityHash' => $originIdentityHash,
+        'platformUserIdEncrypted' => $originRoute,
     ]];
-    foreach ($store['links'] as $identityHash => $link) {
+    foreach ($identityStore['links'] ?? [] as $identityHash => $link) {
         if (!is_array($link) || !dent_bot_link_auth_complete($link)) {
             continue;
         }
@@ -999,22 +1013,28 @@ function dent_bot_add_payment_success_deliveries(
         }
         $targetPlatform = (string) ($link['platform'] ?? '');
         if (in_array($targetPlatform, ['telegram', 'bale'], true)) {
-            $targets[] = ['kind' => 'owner', 'platform' => $targetPlatform, 'identityHash' => (string) $identityHash];
+            $targets[] = [
+                'kind' => 'owner',
+                'platform' => $targetPlatform,
+                'identityHash' => (string) $identityHash,
+                'platformUserIdEncrypted' => $link['platformUserIdEncrypted'] ?? null,
+            ];
         }
     }
     $created = 0;
     foreach ($targets as $target) {
         $dedupeKey = $orderId . '|' . $target['kind'] . '|' . $target['platform'] . '|' . $target['identityHash'];
         $deliveryId = 'prd-' . substr(hash_hmac('sha256', $dedupeKey, dent_auth_secret_key()), 0, 32);
-        if (is_array($store['paymentResultDeliveries'][$deliveryId] ?? null)) {
+        if (is_array($store['deliveries'][$deliveryId] ?? null)) {
             continue;
         }
-        $store['paymentResultDeliveries'][$deliveryId] = [
+        $store['deliveries'][$deliveryId] = [
             'deliveryId' => $deliveryId,
             'dedupeKey' => hash('sha256', $dedupeKey),
             'kind' => $target['kind'],
             'platform' => $target['platform'],
             'identityHash' => $target['identityHash'],
+            'platformUserIdEncrypted' => $target['platformUserIdEncrypted'] ?? null,
             'orderId' => $orderId,
             'order' => dent_bot_payment_order_payload($order, $target['kind'] === 'owner'),
             'status' => 'pending', 'attempts' => 0, 'leaseUntil' => 0,
@@ -1025,9 +1045,9 @@ function dent_bot_add_payment_success_deliveries(
     return $created;
 }
 
-function dent_bot_backfill_payment_success_deliveries(array &$store, array $orders): array
+function dent_bot_backfill_payment_success_deliveries(array &$store, array $identityStore, array $orders): array
 {
-    $poll = is_array($store['paymentResultPoll'] ?? null) ? $store['paymentResultPoll'] : [];
+    $poll = is_array($store['poll'] ?? null) ? $store['poll'] : [];
     $highWatermark = max(0, (int) ($poll['highWatermark'] ?? 0));
     $unresolved = is_array($poll['unresolvedOrderIds'] ?? null) ? $poll['unresolvedOrderIds'] : [];
     usort($orders, static fn(array $left, array $right): int => ((int) ($left['id'] ?? 0)) <=> ((int) ($right['id'] ?? 0)));
@@ -1050,7 +1070,7 @@ function dent_bot_backfill_payment_success_deliveries(array &$store, array $orde
             $originPlatform = (string) ($extra['bot_origin_platform'] ?? '');
             $originIdentityHash = (string) ($extra['bot_origin_identity_hash'] ?? '');
             if (in_array($originPlatform, ['telegram', 'bale'], true) && preg_match('/^[a-f0-9]{64}$/', $originIdentityHash) === 1) {
-                $created += dent_bot_add_payment_success_deliveries($store, $order, $originPlatform, $originIdentityHash, $orderId);
+                $created += dent_bot_add_payment_success_deliveries($store, $identityStore, $order, $originPlatform, $originIdentityHash, $orderId);
             }
             unset($unresolved[(string) $orderId]);
         } elseif ($status === PAYMENTS_ORDER_STATUS_PENDING) {
@@ -1059,7 +1079,7 @@ function dent_bot_backfill_payment_success_deliveries(array &$store, array $orde
             unset($unresolved[(string) $orderId]);
         }
     }
-    $store['paymentResultPoll'] = [
+    $store['poll'] = [
         'highWatermark' => $nextHighWatermark,
         'unresolvedOrderIds' => $unresolved,
     ];
@@ -1075,11 +1095,13 @@ function dent_bot_claim_payment_result_deliveries(string $platform, array $paylo
     $limit = max(1, min(20, (int) ($payload['limit'] ?? 10)));
     $now = time();
     $orders = dent_bot_payment_orders();
-    return dent_bot_store_with_lock(static function (array &$store) use ($platform, $limit, $now, $orders): array {
-        dent_bot_cleanup_store($store, $now);
-        $poll = dent_bot_backfill_payment_success_deliveries($store, $orders);
+    dent_bot_delivery_stores_ensure_migrated();
+    $identityStore = dent_bot_identity_snapshot_optional() ?? dent_bot_store_default();
+    return dent_bot_payment_delivery_store_with_lock(static function (array &$store) use ($identityStore, $platform, $limit, $now, $orders): array {
+        dent_bot_cleanup_payment_delivery_store($store, $now);
+        $poll = dent_bot_backfill_payment_success_deliveries($store, $identityStore, $orders);
         $deliveries = [];
-        foreach ($store['paymentResultDeliveries'] as $key => $delivery) {
+        foreach ($store['deliveries'] as $key => $delivery) {
             if (count($deliveries) >= $limit || !is_array($delivery) || (string) ($delivery['platform'] ?? '') !== $platform) {
                 continue;
             }
@@ -1091,23 +1113,23 @@ function dent_bot_claim_payment_result_deliveries(string $platform, array $paylo
             if ($attempts >= 8) {
                 $delivery['status'] = 'failed';
                 $delivery['reasonCode'] = 'MAX_ATTEMPTS';
-                $store['paymentResultDeliveries'][$key] = $delivery;
+                $store['deliveries'][$key] = $delivery;
                 continue;
             }
             $identityHash = (string) ($delivery['identityHash'] ?? '');
-            $link = $store['links'][$identityHash] ?? null;
-            $chatId = '';
-            if (is_array($link)
+            $chatId = dent_decrypt_secret_text($delivery['platformUserIdEncrypted'] ?? null);
+            $link = $identityStore['links'][$identityHash] ?? null;
+            if ($chatId === '' && is_array($link)
                 && (string) ($link['platform'] ?? '') === $platform
                 && dent_bot_link_auth_complete($link)) {
                 $chatId = dent_decrypt_secret_text($link['platformUserIdEncrypted'] ?? null);
-            } elseif ((string) ($delivery['kind'] ?? '') === 'user') {
-                $route = is_array($store['onboardingIdentityRoutes'][$identityHash] ?? null)
-                    ? $store['onboardingIdentityRoutes'][$identityHash]
+            } elseif ($chatId === '' && (string) ($delivery['kind'] ?? '') === 'user') {
+                $route = is_array($identityStore['onboardingIdentityRoutes'][$identityHash] ?? null)
+                    ? $identityStore['onboardingIdentityRoutes'][$identityHash]
                     : null;
-                $profileRef = (string) ($store['onboardingIdentityProfiles'][$identityHash] ?? '');
-                $profileRecord = $profileRef !== '' && is_array($store['onboardingProfiles'][$profileRef] ?? null)
-                    ? $store['onboardingProfiles'][$profileRef]
+                $profileRef = (string) ($identityStore['onboardingIdentityProfiles'][$identityHash] ?? '');
+                $profileRecord = $profileRef !== '' && is_array($identityStore['onboardingProfiles'][$profileRef] ?? null)
+                    ? $identityStore['onboardingProfiles'][$profileRef]
                     : null;
                 $profilePlain = is_array($profileRecord)
                     ? dent_decrypt_secret_text($profileRecord['profileEncrypted'] ?? null)
@@ -1134,11 +1156,14 @@ function dent_bot_claim_payment_result_deliveries(string $platform, array $paylo
             if (preg_match('/^[0-9]{1,24}$/', $chatId) !== 1) {
                 continue;
             }
+            if (!isset($delivery['platformUserIdEncrypted'])) {
+                $delivery['platformUserIdEncrypted'] = dent_encrypt_secret_text($chatId);
+            }
             $delivery['status'] = 'leased';
             $delivery['attempts'] = $attempts + 1;
             $delivery['leaseUntil'] = $now + 120;
             $delivery['lastAttemptAt'] = dent_iso_now();
-            $store['paymentResultDeliveries'][$key] = $delivery;
+            $store['deliveries'][$key] = $delivery;
             $deliveries[] = [
                 'deliveryId' => (string) ($delivery['deliveryId'] ?? $key),
                 'deliveryKind' => (string) ($delivery['kind'] ?? 'user'),
@@ -1163,22 +1188,71 @@ function dent_bot_ack_payment_result_delivery(string $platform, array $payload):
     if (preg_match('/^prd-[a-f0-9]{32}$/', $deliveryId) !== 1) {
         dent_error('شناسه تحویل نامعتبر است.', 422, ['code' => 'INVALID_DELIVERY_ID']);
     }
-    $found = dent_bot_store_with_lock(static function (array &$store) use ($platform, $deliveryId, $delivered, $reason): array {
-        $delivery = $store['paymentResultDeliveries'][$deliveryId] ?? null;
-        if (!is_array($delivery) || (string) ($delivery['platform'] ?? '') !== $platform || (string) ($delivery['status'] ?? '') !== 'leased') {
-            return ['found' => false];
-        }
-        $delivery['status'] = $delivered ? 'delivered' : 'pending';
-        $delivery['leaseUntil'] = 0;
-        $delivery['deliveredAt'] = $delivered ? dent_iso_now() : '';
-        $delivery['reasonCode'] = $delivered ? '' : $reason;
-        $store['paymentResultDeliveries'][$deliveryId] = $delivery;
-        return ['found' => true];
-    }, 'ack-payment-result');
-    if (empty($found['found'])) {
+    $batch = dent_bot_ack_payment_result_deliveries($platform, [
+        'platformUserId' => (string) ($payload['platformUserId'] ?? ''),
+        'contractVersion' => 'bot-payment-return-v1',
+        'results' => [[
+            'deliveryId' => $deliveryId,
+            'delivered' => $delivered,
+            'reasonCode' => $reason,
+        ]],
+    ]);
+    if (empty($batch['results'][0]['found'])) {
         dent_error('تحویل نتیجه پرداخت پیدا نشد.', 404, ['code' => 'DELIVERY_NOT_FOUND']);
     }
     return ['success' => true, 'deliveryId' => $deliveryId, 'delivered' => $delivered];
+}
+
+function dent_bot_ack_payment_result_deliveries(string $platform, array $payload): array
+{
+    [$platform] = dent_bot_identity($platform, (string) ($payload['platformUserId'] ?? ''));
+    if ((string) ($payload['contractVersion'] ?? '') !== 'bot-payment-return-v1') {
+        dent_error('نسخه قرارداد نتیجه پرداخت معتبر نیست.', 409, ['code' => 'PAYMENT_RETURN_CONTRACT_REQUIRED']);
+    }
+    $items = is_array($payload['results'] ?? null) ? array_values($payload['results']) : [];
+    if ($items === [] || count($items) > 20) {
+        dent_error('فهرست تایید تحویل نامعتبر است.', 422, ['code' => 'INVALID_DELIVERY_ACK_BATCH']);
+    }
+    $normalized = [];
+    foreach ($items as $item) {
+        if (!is_array($item)) {
+            dent_error('نتیجه تحویل نامعتبر است.', 422, ['code' => 'INVALID_DELIVERY_ACK']);
+        }
+        $deliveryId = trim((string) ($item['deliveryId'] ?? ''));
+        if (preg_match('/^prd-[a-f0-9]{32}$/', $deliveryId) !== 1 || isset($normalized[$deliveryId])) {
+            dent_error('شناسه تحویل نامعتبر است.', 422, ['code' => 'INVALID_DELIVERY_ID']);
+        }
+        $normalized[$deliveryId] = [
+            'deliveryId' => $deliveryId,
+            'delivered' => filter_var($item['delivered'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'reasonCode' => dent_clean_text((string) ($item['reasonCode'] ?? ''), 60),
+        ];
+    }
+    dent_bot_delivery_stores_ensure_migrated();
+    $result = dent_bot_payment_delivery_store_with_lock(static function (array &$store) use ($platform, $normalized): array {
+        $results = [];
+        foreach ($normalized as $deliveryId => $item) {
+            $delivery = $store['deliveries'][$deliveryId] ?? null;
+            $found = is_array($delivery)
+                && (string) ($delivery['platform'] ?? '') === $platform
+                && (string) ($delivery['status'] ?? '') === 'leased';
+            if ($found) {
+                $delivered = (bool) $item['delivered'];
+                $delivery['status'] = $delivered ? 'delivered' : 'pending';
+                $delivery['leaseUntil'] = 0;
+                $delivery['deliveredAt'] = $delivered ? dent_iso_now() : '';
+                $delivery['reasonCode'] = $delivered ? '' : (string) $item['reasonCode'];
+                $store['deliveries'][$deliveryId] = $delivery;
+            }
+            $results[] = ['deliveryId' => $deliveryId, 'found' => $found, 'delivered' => (bool) $item['delivered']];
+        }
+        return ['results' => $results];
+    }, 'ack-payment-results-batch');
+    return [
+        'success' => true,
+        'contractVersion' => 'bot-payment-return-v1',
+        'results' => is_array($result['results'] ?? null) ? $result['results'] : [],
+    ];
 }
 
 function dent_bot_link_for_identity(string $platform, string $platformUserId): ?array
@@ -1495,6 +1569,9 @@ function dent_bot_service_dispatch(array $payload): array
     }
     if ($action === 'ackPaymentResultDeliveryV1') {
         return dent_bot_ack_payment_result_delivery($platform, $payload);
+    }
+    if ($action === 'ackPaymentResultDeliveriesV1') {
+        return dent_bot_ack_payment_result_deliveries($platform, $payload);
     }
     if ($action === 'claimNotificationDeliveries') {
         return dent_bot_claim_notification_deliveries($platform, $payload);
