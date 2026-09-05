@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/payments_gateway.php';
+require_once __DIR__ . '/payment_handoff.php';
 
 const DENT_VOICE_PAYMENT_CONTRACT = 'voice-payment-bridge-v1';
 const DENT_VOICE_PAYMENT_MIN_RIALS = 20000;
@@ -108,7 +109,9 @@ function dent_voice_payment_start(array $payload): array
     }
     $trackId = trim((string) ($result['trackId'] ?? ''));
     $redirectUrl = trim((string) ($result['redirectUrl'] ?? ''));
-    if ($trackId === '' || preg_match('#^https://gateway\.zibal\.ir/start/[A-Za-z0-9_-]+$#D', $redirectUrl) !== 1) {
+    try {
+        $redirectUrl = dent_zibal_handoff_url($redirectUrl, $trackId);
+    } catch (InvalidArgumentException $error) {
         dent_error('پاسخ درگاه پرداخت معتبر نبود.', 502, ['code' => 'VOICE_PAYMENT_START_RESPONSE_INVALID']);
     }
     return [

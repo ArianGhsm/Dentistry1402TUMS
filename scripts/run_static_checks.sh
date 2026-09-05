@@ -73,6 +73,9 @@ section "Unit tests"
 section "Signed bot integration contracts"
 "$PYTHON_BIN" scripts/test_bot_integration_contracts.py || fail "test_bot_integration_contracts.py"
 
+section "Zibal first-party payment handoff"
+"$PYTHON_BIN" scripts/test_payment_handoff_http.py || fail "test_payment_handoff_http.py"
+
 section "Result"
 if [ "$status" -eq 0 ]; then
   echo "All static checks passed."

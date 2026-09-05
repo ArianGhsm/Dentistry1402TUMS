@@ -2,6 +2,34 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/payments_gateway.php';
+require_once __DIR__ . '/payment_handoff.php';
+
+/** Keep provider URLs internal and expose only the constrained browser launch URL. */
+function dent_bot_payment_public_redirect(array $startResult, string $gateway): string
+{
+    $redirectUrl = dent_clean_text((string) ($startResult['redirectUrl'] ?? ''), 900);
+    $resolved = payments_gateway_resolve_record($gateway);
+    $provider = payments_gateway_provider_clean((string) ($startResult['gateway'] ?? ($resolved['provider'] ?? '')));
+    $isExactZibalUrl = preg_match('#^https://gateway\.zibal\.ir/start/[1-9][0-9]{0,19}$#D', $redirectUrl) === 1;
+
+    if ($provider === PAYMENTS_GATEWAY_ZIBAL || $isExactZibalUrl) {
+        $trackId = trim((string) (($startResult['trackId'] ?? '') ?: ($startResult['authority'] ?? '')));
+        try {
+            return dent_zibal_handoff_url($redirectUrl, $trackId);
+        } catch (InvalidArgumentException $error) {
+            dent_error('پاسخ درگاه معتبر نبود.', 503, ['code' => 'PAYMENT_GATEWAY_RESPONSE_INVALID']);
+        }
+    }
+
+    if (str_starts_with($redirectUrl, '/')) {
+        $redirectUrl = dent_bot_site_origin() . $redirectUrl;
+    }
+    $redirectScheme = strtolower((string) parse_url($redirectUrl, PHP_URL_SCHEME));
+    if ($redirectUrl === '' || filter_var($redirectUrl, FILTER_VALIDATE_URL) === false || $redirectScheme !== 'https') {
+        dent_error('پاسخ درگاه معتبر نبود.', 503, ['code' => 'PAYMENT_GATEWAY_RESPONSE_INVALID']);
+    }
+    return $redirectUrl;
+}
 
 function dent_bot_payment_request_ref(string $platform, string $platformUserId, string $requestId): string
 {
@@ -154,11 +182,14 @@ function dent_bot_payment_existing_response(array $order): ?array
 {
     $snapshot = is_array($order['gateway_response_snapshot'] ?? null) ? $order['gateway_response_snapshot'] : [];
     $start = is_array($snapshot['start'] ?? null) ? $snapshot['start'] : [];
-    $redirectUrl = dent_clean_text((string) ($start['redirectUrl'] ?? ''), 900);
     $orderToken = (string) ($order['public_token'] ?? '');
-    if ($redirectUrl === '' || $orderToken === '') {
+    if (trim((string) ($start['redirectUrl'] ?? '')) === '' || $orderToken === '') {
         return null;
     }
+    $start['gateway'] = (string) (($start['gateway'] ?? '') ?: ($order['gateway'] ?? ''));
+    $start['authority'] = (string) (($start['authority'] ?? '') ?: ($order['authority'] ?? ''));
+    $start['trackId'] = (string) (($start['trackId'] ?? '') ?: $start['authority']);
+    $redirectUrl = dent_bot_payment_public_redirect($start, (string) ($order['gateway'] ?? ''));
     return [
         'success' => true,
         'alreadyCreated' => true,
@@ -405,14 +436,7 @@ function dent_bot_create_offer_payment(array $user, string $platform, string $pl
         dent_error('ساخت درخواست درگاه انجام نشد.', 503, ['code' => 'PAYMENT_START_FAILED']);
     }
 
-    $redirectUrl = dent_clean_text((string) ($startResult['redirectUrl'] ?? ''), 900);
-    if (str_starts_with($redirectUrl, '/')) {
-        $redirectUrl = dent_bot_site_origin() . $redirectUrl;
-    }
-    $redirectScheme = strtolower((string) parse_url($redirectUrl, PHP_URL_SCHEME));
-    if ($redirectUrl === '' || filter_var($redirectUrl, FILTER_VALIDATE_URL) === false || $redirectScheme !== 'https') {
-        dent_error('پاسخ درگاه معتبر نبود.', 503, ['code' => 'PAYMENT_GATEWAY_RESPONSE_INVALID']);
-    }
+    $redirectUrl = dent_bot_payment_public_redirect($startResult, (string) ($order['gateway'] ?? ''));
     payments_with_store_lock(static function (array &$store) use ($order, $startResult): void {
         $index = payments_find_order_index_by_id($store, (int) ($order['id'] ?? 0));
         if ($index < 0) {

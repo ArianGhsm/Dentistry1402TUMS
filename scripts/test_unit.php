@@ -24,6 +24,13 @@ require_once __DIR__ . '/../public_html/api/bot_payments.php';
 require_once __DIR__ . '/../public_html/api/bot_voice_payment_bridge.php';
 require_once __DIR__ . '/../public_html/api/payment_handoff.php';
 
+if (!function_exists('dent_bot_site_origin')) {
+    function dent_bot_site_origin(): string
+    {
+        return 'https://dentistry1402tums.ir';
+    }
+}
+
 // Order-status constants live in payments_store.php (not loaded here); define the
 // stable values the funnel relies on so the test stays self-contained.
 if (!defined('PAYMENTS_ORDER_STATUS_SUCCESS')) {
@@ -762,6 +769,23 @@ unit_assert(str_contains($handoffHtml, '<meta name="referrer" content="origin">'
     && str_contains($handoffHtml, 'window.location.replace('), 'handoff: document navigation and no-JS fallback');
 unit_assert(!str_contains(dent_zibal_handoff_document(['valid' => false], 'unit-nonce'), 'gateway.zibal.ir'),
     'handoff: invalid link cannot navigate to provider');
+$botHandoff = dent_bot_payment_public_redirect([
+    'gateway' => 'zibal', 'trackId' => '123456789', 'redirectUrl' => $providerUrl,
+], 'zibal');
+unit_assert(parse_url($botHandoff, PHP_URL_HOST) === 'dentistry1402tums.ir'
+    && !str_contains($botHandoff, 'gateway.zibal.ir/start/'), 'handoff: bot-facing Zibal URL is wrapped');
+$legacyResponse = dent_bot_payment_existing_response([
+    'public_token' => str_repeat('t', 24), 'amount' => 20000, 'status' => PAYMENTS_ORDER_STATUS_PENDING,
+    'gateway' => 'zibal', 'authority' => '123456789',
+    'gateway_response_snapshot' => ['start' => ['redirectUrl' => $providerUrl]],
+]);
+unit_assert(is_array($legacyResponse)
+    && parse_url((string) $legacyResponse['redirectUrl'], PHP_URL_HOST) === 'dentistry1402tums.ir',
+    'handoff: legacy pending bot order is wrapped at response time');
+$otherProviderUrl = 'https://www.zarinpal.com/pg/StartPay/unit-fixture';
+unit_assert(dent_bot_payment_public_redirect([
+    'gateway' => 'zarinpal', 'redirectUrl' => $otherProviderUrl,
+], 'zarinpal') === $otherProviderUrl, 'handoff: non-Zibal provider behavior is preserved');
 
 echo "\n";
 echo sprintf(
