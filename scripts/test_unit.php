@@ -11,6 +11,8 @@ declare(strict_types=1);
  * Usage: php scripts/test_unit.php
  */
 
+// Never let cryptographic unit fixtures read or create a production secret.
+putenv('DENT_AUTH_SECRET_KEY=' . base64_encode(str_repeat('unit-fixture-', 3)));
 require_once __DIR__ . '/../public_html/api/search_store.php';
 require_once __DIR__ . '/../public_html/api/push_store.php';
 require_once __DIR__ . '/../public_html/api/analytics_store.php';
@@ -20,6 +22,7 @@ require_once __DIR__ . '/../public_html/api/exams_home_highlights.php';
 require_once __DIR__ . '/../public_html/api/navid_service.php';
 require_once __DIR__ . '/../public_html/api/bot_payments.php';
 require_once __DIR__ . '/../public_html/api/bot_voice_payment_bridge.php';
+require_once __DIR__ . '/../public_html/api/payment_handoff.php';
 
 // Order-status constants live in payments_store.php (not loaded here); define the
 // stable values the funnel relies on so the test stays self-contained.
@@ -718,6 +721,47 @@ unit_assert(
         && !str_contains($homeHighlightsApiSource, 'exams_modules.php'),
     'exams: home highlights endpoint avoids the full exam, payment and module stores'
 );
+
+$handoffNow = 1788600000;
+$providerUrl = 'https://gateway.zibal.ir/start/123456789';
+$handoffUrl = dent_zibal_handoff_url($providerUrl, '123456789', $handoffNow);
+$handoffQuery = (string) parse_url($handoffUrl, PHP_URL_QUERY);
+unit_assert(parse_url($handoffUrl, PHP_URL_HOST) === 'dentistry1402tums.ir'
+    && !str_contains($handoffUrl, 'gateway.zibal.ir/start/'), 'handoff: canonical first-party public URL');
+$validHandoff = dent_zibal_handoff_validate($handoffQuery, $handoffNow);
+unit_assert($validHandoff['valid'] && $validHandoff['trackId'] === '123456789', 'handoff: valid signature');
+unit_assert(dent_zibal_handoff_validate($handoffQuery, $handoffNow + 900)['reason'] === 'expired', 'handoff: expiry boundary');
+foreach ([
+    'track mutation' => str_replace('123456789', '123456788', $handoffQuery),
+    'expiry mutation' => str_replace((string) ($handoffNow + 900), (string) ($handoffNow + 901), $handoffQuery),
+    'signature mutation' => substr($handoffQuery, 0, -1) . (str_ends_with($handoffQuery, '0') ? '1' : '0'),
+    'unknown key' => $handoffQuery . '&other=1',
+    'open redirect' => $handoffQuery . '&url=https://evil.test',
+    'duplicate' => $handoffQuery . '&trackId=2',
+    'invalid characters' => str_replace('123456789', '../bad', $handoffQuery),
+    'array key' => str_replace('trackId=', 'trackId%5B%5D=', $handoffQuery),
+    'newline' => $handoffQuery . "\n",
+] as $label => $query) {
+    unit_assert(!dent_zibal_handoff_validate($query, $handoffNow)['valid'], 'handoff: reject ' . $label);
+}
+foreach (['http://gateway.zibal.ir/start/123456789', 'https://gateway.zibal.ir.evil.test/start/123456789',
+    $providerUrl . '?url=https://evil.test', $providerUrl . '#', 'https://user@gateway.zibal.ir/start/123456789',
+    'https://gateway.zibal.ir:443/start/123456789', 'https://gateway.zibal.ir/start/0123'] as $badUrl) {
+    $rejected = false;
+    try { dent_zibal_handoff_url($badUrl, '123456789', $handoffNow); }
+    catch (InvalidArgumentException $error) { $rejected = true; }
+    unit_assert($rejected, 'handoff: provider URL rejected');
+}
+$wrongTrackRejected = false;
+try { dent_zibal_handoff_url($providerUrl, '123456788', $handoffNow); }
+catch (InvalidArgumentException $error) { $wrongTrackRejected = true; }
+unit_assert($wrongTrackRejected, 'handoff: provider track matches expected transaction');
+$handoffHtml = dent_zibal_handoff_document($validHandoff, 'unit-nonce');
+unit_assert(str_contains($handoffHtml, '<meta name="referrer" content="origin">')
+    && str_contains($handoffHtml, 'referrerpolicy="origin"')
+    && str_contains($handoffHtml, 'window.location.replace('), 'handoff: document navigation and no-JS fallback');
+unit_assert(!str_contains(dent_zibal_handoff_document(['valid' => false], 'unit-nonce'), 'gateway.zibal.ir'),
+    'handoff: invalid link cannot navigate to provider');
 
 echo "\n";
 echo sprintf(

@@ -42,6 +42,7 @@ const STATIC_ASSETS = [
 ];
 
 const DYNAMIC_BYPASS = [
+  "/payment/start/",
   "/app-version.json",
   "/api/admin_api.php",
   "/chat/chat_api.php",
