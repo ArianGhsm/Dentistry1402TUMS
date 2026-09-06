@@ -82,6 +82,7 @@ $voicePaymentContract = dent_voice_payment_contract_payload([
 ], 'voicePaymentVerifyV1');
 unit_assert(
     $voicePaymentContract === [
+        'platform' => 'telegram',
         'platformUserId' => '123456789',
         'orderId' => 'VT-20260829-AbCdEf_123',
         'amountRials' => 200000,
@@ -107,9 +108,21 @@ unit_assert(
     'voice payment bridge extracts amount and order identity before wallet credit'
 );
 unit_assert(
-    dent_voice_payment_callback_url('abcdefghijklmnopqrstuvwxyz_12345')
-        === 'https://dentistry1402tums.ir/api/voice_payment_return.php?token=abcdefghijklmnopqrstuvwxyz_12345',
+    dent_voice_payment_callback_url('abcdefghijklmnopqrstuvwxyz_12345', 'bale')
+        === 'https://dentistry1402tums.ir/api/voice_payment_return.php?token=abcdefghijklmnopqrstuvwxyz_12345&platform=bale',
     'voice payment bridge uses the fixed HTTPS return relay accepted by the gateway'
+);
+$voiceBaleContract = dent_voice_payment_contract_payload([
+    'action' => 'voicePaymentVerifyV1',
+    'contractVersion' => DENT_VOICE_PAYMENT_CONTRACT,
+    'platform' => 'bale',
+    'platformUserId' => '123456789',
+    'orderId' => 'VB-20260906-AbCdEf_123',
+    'amountRials' => 200000,
+], 'voicePaymentVerifyV1');
+unit_assert(
+    $voiceBaleContract['platform'] === 'bale' && $voiceBaleContract['orderId'] === 'VB-20260906-AbCdEf_123',
+    'voice payment bridge keeps Bale identity separate from Telegram orders'
 );
 $botOrderFixture = payments_normalize_order_record([
     'id' => 901,

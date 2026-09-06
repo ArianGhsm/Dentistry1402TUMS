@@ -8,7 +8,7 @@ const DENT_VOICE_PAYMENT_CONTRACT = 'voice-payment-bridge-v1';
 const DENT_VOICE_PAYMENT_MIN_RIALS = 20000;
 const DENT_VOICE_PAYMENT_MAX_RIALS = 500000000;
 
-function dent_voice_payment_callback_url(string $callbackToken): string
+function dent_voice_payment_callback_url(string $callbackToken, string $platform): string
 {
     $configured = trim((string) getenv('DENT_VOICE_PAYMENT_CALLBACK_URL'));
     if ($configured === '') {
@@ -17,7 +17,8 @@ function dent_voice_payment_callback_url(string $callbackToken): string
     if (preg_match('#^https://dentistry1402tums\.ir/api/voice_payment_return\.php$#D', $configured) !== 1) {
         dent_error('تنظیم مسیر بازگشت پرداخت معتبر نیست.', 500, ['code' => 'VOICE_PAYMENT_CALLBACK_CONFIG_INVALID']);
     }
-    return $configured . '?token=' . rawurlencode($callbackToken);
+    return $configured . '?token=' . rawurlencode($callbackToken)
+        . '&platform=' . rawurlencode($platform);
 }
 
 /**
@@ -32,7 +33,8 @@ function dent_voice_payment_contract_payload(array $payload, string $expectedAct
     if ((string) ($payload['action'] ?? '') !== $expectedAction) {
         dent_error('عملیات پرداخت نامعتبر است.', 422, ['code' => 'VOICE_PAYMENT_ACTION_INVALID']);
     }
-    if ((string) ($payload['platform'] ?? '') !== 'telegram') {
+    $platform = (string) ($payload['platform'] ?? '');
+    if (!in_array($platform, ['telegram', 'bale'], true)) {
         dent_error('بستر پرداخت نامعتبر است.', 422, ['code' => 'VOICE_PAYMENT_PLATFORM_INVALID']);
     }
     $platformUserId = trim((string) ($payload['platformUserId'] ?? ''));
@@ -40,7 +42,8 @@ function dent_voice_payment_contract_payload(array $payload, string $expectedAct
         dent_error('شناسه کاربر پرداخت نامعتبر است.', 422, ['code' => 'VOICE_PAYMENT_USER_INVALID']);
     }
     $orderId = trim((string) ($payload['orderId'] ?? ''));
-    if (preg_match('/^VT-[0-9]{8}-[A-Za-z0-9_-]{8,24}$/D', $orderId) !== 1) {
+    $expectedPrefix = $platform === 'bale' ? 'VB' : 'VT';
+    if (preg_match('/^' . $expectedPrefix . '-[0-9]{8}-[A-Za-z0-9_-]{8,24}$/D', $orderId) !== 1) {
         dent_error('شناسه سفارش پرداخت نامعتبر است.', 422, ['code' => 'VOICE_PAYMENT_ORDER_INVALID']);
     }
     $amountRials = filter_var($payload['amountRials'] ?? null, FILTER_VALIDATE_INT);
@@ -49,6 +52,7 @@ function dent_voice_payment_contract_payload(array $payload, string $expectedAct
     }
 
     return [
+        'platform' => $platform,
         'platformUserId' => $platformUserId,
         'orderId' => $orderId,
         'amountRials' => $amountRials,
@@ -96,7 +100,7 @@ function dent_voice_payment_start(array $payload): array
             'public_token' => $request['orderId'],
         ],
         [
-            'callbackUrl' => dent_voice_payment_callback_url($callbackToken),
+            'callbackUrl' => dent_voice_payment_callback_url($callbackToken, $request['platform']),
             'description' => 'افزایش موجودی ربات تبدیل ویس به متن',
             'orderId' => $request['orderId'],
         ]

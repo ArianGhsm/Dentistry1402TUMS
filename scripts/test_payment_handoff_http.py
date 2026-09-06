@@ -197,7 +197,11 @@ def main():
                 assert voice["status"] == 200, voice
                 assert urlsplit(voice["payload"]["redirectUrl"]).hostname == "dentistry1402tums.ir"
                 assert voice["payload"]["contractVersion"] == "voice-payment-bridge-v1"
-                assert len(FakeGateway.requests) == 3, "duplicate checkout contacted provider"
+                voice_bale = request(endpoint, secret, dict(action="voicePaymentStartV1", contractVersion="voice-payment-bridge-v1",
+                    platform="bale", platformUserId="123456", orderId="VB-20260905-TestVoice123", amountRials=200000, callbackToken="y" * 32))
+                assert voice_bale["status"] == 200, voice_bale
+                assert FakeGateway.requests[-1]["callbackUrl"].endswith("token=" + "y" * 32 + "&platform=bale")
+                assert len(FakeGateway.requests) == 4, "duplicate checkout contacted provider"
                 assert all(urlsplit(p["callbackUrl"]).hostname == "dentistry1402tums.ir" for p in FakeGateway.requests)
                 no_redirect = build_opener(ProxyHandler({}), NoRedirect())
                 for platform, token in created_orders:

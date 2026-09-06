@@ -17,6 +17,12 @@ and the stateless `voice-payment-bridge-v1` response use
 Legacy raw snapshots remain untouched and get a fresh signed URL when reopened.
 Opening this document creates no order, verifies no payment and changes no wallet.
 
+The Voice bridge accepts only signed runtime identities `telegram` and `bale`,
+binds them to distinct `VT-` and `VB-` order prefixes, and carries the validated
+platform into the gateway callback. The stateless return relay then routes to
+the corresponding independent callback (`/voice-pay/` or `/voice-bale-pay/`).
+The website stores no Voice user, wallet, ledger or job state.
+
 The site signs a 900-second URL with the existing auth key, a separate
 `zibal-payment-handoff-v1:` HMAC domain and constant-time verification. The exact
 query grammar rejects duplicate/unknown keys, arrays, alternate encoding and
