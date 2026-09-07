@@ -24,6 +24,8 @@ for needle in required:
 assert "Sync-GitHubFromLaptop -GitHubPlan" not in DEPLOY, "deploy must not invoke post-deploy GitHub sync"
 assert "Run-OptionalPullBeforeDeploy\n" not in DEPLOY, "deploy must not pull inside an immutable release"
 assert "function Get-GitCommitMetadata" in DEPLOY, "release report metadata helper must be defined"
+assert "function Get-FileSha256Hex" in DEPLOY, "deploy hashing must be available without Get-FileHash"
+assert "Get-FileHash" not in DEPLOY, "canonical Windows PowerShell deploy must not require the optional Get-FileHash cmdlet"
 assert "$lastDeployManifest.Files.ContainsKey($relative)" in DEPLOY, (
     "host manifest delta must look up normalized dictionary keys, not PSObject properties"
 )

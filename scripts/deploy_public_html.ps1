@@ -842,6 +842,26 @@ function Write-HostDeployState([string]$head, [string]$branch, [string]$finished
     return $path
 }
 
+function Get-FileSha256Hex([string]$path) {
+    if ([string]::IsNullOrWhiteSpace($path) -or -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        return ""
+    }
+
+    $stream = $null
+    $algorithm = $null
+    try {
+        $stream = [System.IO.File]::Open($path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
+        $algorithm = [System.Security.Cryptography.SHA256]::Create()
+        $hashBytes = $algorithm.ComputeHash($stream)
+        return ([System.BitConverter]::ToString($hashBytes) -replace '-', '').ToLowerInvariant()
+    } catch {
+        return ""
+    } finally {
+        if ($null -ne $algorithm) { $algorithm.Dispose() }
+        if ($null -ne $stream) { $stream.Dispose() }
+    }
+}
+
 function Get-LocalPublicHtmlFileHash([string]$relativePath) {
     if ([string]::IsNullOrWhiteSpace($relativePath)) {
         return ""
@@ -853,11 +873,7 @@ function Get-LocalPublicHtmlFileHash([string]$relativePath) {
         return ""
     }
 
-    try {
-        return ([string](Get-FileHash -LiteralPath $fullPath -Algorithm SHA256 -ErrorAction Stop).Hash).Trim().ToLowerInvariant()
-    } catch {
-        return ""
-    }
+    return Get-FileSha256Hex -path $fullPath
 }
 
 function Read-HostDeployManifest() {
@@ -2338,7 +2354,7 @@ function Build-DeployPlan() {
             # as a PSObject enumerates dictionary metadata instead of paths,
             # causing a false full upload and unsafe pseudo-deletes.
             $expectedHash = if ($lastDeployManifest.Files.ContainsKey($relative)) { [string]$lastDeployManifest.Files[$relative] } else { "" }
-            $actualHash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            $actualHash = Get-FileSha256Hex -path $file.FullName
             if ([string]::IsNullOrWhiteSpace($expectedHash) -or $actualHash -ne $expectedHash.ToLowerInvariant()) {
                 [void]$uploadSet.Add($relative)
             }
