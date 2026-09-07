@@ -23,6 +23,13 @@ for needle in required:
     assert needle in DEPLOY, f"missing GitHub-first deploy invariant: {needle}"
 assert "Sync-GitHubFromLaptop -GitHubPlan" not in DEPLOY, "deploy must not invoke post-deploy GitHub sync"
 assert "Run-OptionalPullBeforeDeploy\n" not in DEPLOY, "deploy must not pull inside an immutable release"
+assert "--config $configPath" in DEPLOY, "storage snapshot must use shared ignored deploy config"
+assert '$snapshotPath = Join-Path $opsRoot ".codex-local\\remote-storage\\snapshots\\$snapshotName"' in DEPLOY, (
+    "storage snapshot must not be written inside a disposable release worktree"
+)
+assert '$activePath = Join-Path $opsRoot "server-only\\storage"' in DEPLOY, (
+    "active storage mirror must remain under shared server-only state"
+)
 for retired in ROOT.glob("public_html/api/private_notes_*.php"):
     raise AssertionError(f"retired undeployed private-notes source remains: {retired.name}")
 

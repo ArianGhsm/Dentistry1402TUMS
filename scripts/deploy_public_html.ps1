@@ -61,6 +61,9 @@ try {
     $resolvedCommonDir = (Resolve-Path -LiteralPath $commonDir).Path
     if ((Split-Path $resolvedCommonDir -Leaf) -eq '.git') { $localOpsRoot = Split-Path $resolvedCommonDir -Parent }
 } catch {}
+# Credentials and verified mirrors are deliberately ignored, shared workstation
+# state.  An immutable release worktree contains code only, so it must never
+# look for these files inside its own detached checkout.
 $configPath = Join-Path $localOpsRoot ".vscode\sftp.json"
 if (-not (Test-Path $configPath)) {
     throw "Missing deploy config at $configPath"
@@ -79,7 +82,7 @@ $runStartedAt = [DateTimeOffset]::Now
 $centralDeployBaseId = "website-" + (Get-Date -Format "yyyyMMdd-HHmmss")
 $centralDeployStarted = $false
 $centralDeployFinalized = $false
-$script:SharedProjectRoot = $null
+$script:SharedProjectRoot = $localOpsRoot
 
 function Send-CentralDeployLifecycle([string]$Status, [string]$Version, [string]$Summary) {
     if ($DryRun -or $SkipCentralDeployNotification) {
@@ -1516,9 +1519,10 @@ function Sync-RemoteStorageFromHost() {
 
     $remoteRoot = Normalize-RemoteStoragePath -path $RemoteStoragePath
     $snapshotName = ([DateTimeOffset]::Now).ToString("yyyyMMdd-HHmmss")
-    $snapshotPath = Join-Path $projectRoot ".codex-local\remote-storage\snapshots\$snapshotName"
-    $latestPath = Join-Path $projectRoot ".codex-local\remote-storage\latest"
-    $activePath = Join-Path $projectRoot "server-only\storage"
+    $opsRoot = Get-SharedProjectRoot
+    $snapshotPath = Join-Path $opsRoot ".codex-local\remote-storage\snapshots\$snapshotName"
+    $latestPath = Join-Path $opsRoot ".codex-local\remote-storage\latest"
+    $activePath = Join-Path $opsRoot "server-only\storage"
 
     Write-Host "Step 0/5: download host storage to laptop"
     Write-Host "Remote storage source: /$remoteRoot"
@@ -1532,7 +1536,7 @@ function Sync-RemoteStorageFromHost() {
     if (-not (Test-Path -LiteralPath $snapshotScript -PathType Leaf)) {
         throw "Verified host-storage snapshot script is missing: $snapshotScript"
     }
-    & $python $snapshotScript --config (Join-Path $projectRoot ".vscode\sftp.json") --remote-root $remoteRoot --output $snapshotPath
+    & $python $snapshotScript --config $configPath --remote-root $remoteRoot --output $snapshotPath
     if ($LASTEXITCODE -ne 0) {
         throw "Verified host-storage snapshot failed; active/latest mirrors were not changed."
     }
@@ -1545,8 +1549,8 @@ function Sync-RemoteStorageFromHost() {
         throw "Snapshot is not eligible for latest promotion; active/latest mirrors were not changed."
     }
 
-    $serverOnlyRoot = Join-Path $projectRoot "server-only"
-    $codexLocalRoot = Join-Path $projectRoot ".codex-local"
+    $serverOnlyRoot = Join-Path $opsRoot "server-only"
+    $codexLocalRoot = Join-Path $opsRoot ".codex-local"
     Reset-DirectoryFromSource -source $snapshotPath -target $activePath -allowedRoot $serverOnlyRoot -label "Active storage mirror"
     Reset-DirectoryFromSource -source $snapshotPath -target $latestPath -allowedRoot $codexLocalRoot -label "Latest storage backup"
     foreach ($mirrorManifest in @((Join-Path $activePath "snapshot-manifest.json"), (Join-Path $latestPath "snapshot-manifest.json"))) {
