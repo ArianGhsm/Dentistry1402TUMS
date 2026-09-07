@@ -1,0 +1,9 @@
+{
+  "contractVersion": "shared-boundaries-v1",
+  "boundaries": {
+    "structuredDraft": {"version": "classops-structured-draft-v1", "mutationAuthority": "classops-owner-confirmed-api", "directDatabaseWrite": false, "directSend": false},
+    "canonicalStudentIdentity": {"version": "canonical-student-identity-v1", "keys": ["studentNumber", "canonicalUserId"], "displayNameIsIdentity": false},
+    "runtimeSiteService": {"version": "runtime-site-service-v1", "authentication": "service-hmac", "dependsOnEndUserBotLink": false},
+    "notificationIntegration": {"version": "notification-integration-v1", "sourceOfTruth": "existing-notification-subsystem", "parallelFeedAllowed": false}
+  }
+}

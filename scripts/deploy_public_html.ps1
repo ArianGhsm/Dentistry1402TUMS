@@ -1,4 +1,7 @@
 param(
+    [Parameter(Mandatory = $true)]
+    [ValidatePattern('^[0-9a-f]{40}$')]
+    [string]$ReleaseSha,
     [switch]$DeleteVscodeOnRemote,
     [switch]$FullSync,
     [switch]$DryRun,
@@ -34,7 +37,31 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$configPath = Join-Path $PSScriptRoot "..\.vscode\sftp.json"
+$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$expectedRepository = "ArianGhsm/Dentistry1402TUMS"
+$originUrl = (& git -C $projectRoot remote get-url origin).Trim()
+if ($LASTEXITCODE -ne 0 -or $originUrl -notmatch '(?i)(?:github\.com[/:])ArianGhsm/Dentistry1402TUMS(?:\.git)?/?$') {
+    throw "Repository lock failed; expected $expectedRepository."
+}
+$headSha = (& git -C $projectRoot rev-parse HEAD).Trim()
+$originMainSha = (& git -C $projectRoot rev-parse origin/main).Trim()
+$workingTreeState = (& git -C $projectRoot status --porcelain=v1 --untracked-files=all) -join "`n"
+if ($headSha -ne $ReleaseSha) { throw "HEAD does not equal -ReleaseSha." }
+if ($originMainSha -ne $ReleaseSha) { throw "origin/main does not equal -ReleaseSha. Fetch and prepare an exact release workspace first." }
+if (-not [string]::IsNullOrWhiteSpace($workingTreeState)) { throw "Release workspace is not clean." }
+if ($PullBeforeDeploy) { throw "-PullBeforeDeploy is incompatible with immutable GitHub-first releases." }
+if ($PathScope.Count -gt 0) { throw "-PathScope is disabled for GitHub-first releases; deploy the complete exact-SHA delta." }
+if ($SkipGitHubSync) { throw "-SkipGitHubSync is obsolete: GitHub is verified before deploy and no post-deploy push occurs." }
+$SkipVersionStamp = $true
+
+$commonDir = (& git -C $projectRoot rev-parse --git-common-dir).Trim()
+if (-not [IO.Path]::IsPathRooted($commonDir)) { $commonDir = Join-Path $projectRoot $commonDir }
+$localOpsRoot = $projectRoot
+try {
+    $resolvedCommonDir = (Resolve-Path -LiteralPath $commonDir).Path
+    if ((Split-Path $resolvedCommonDir -Leaf) -eq '.git') { $localOpsRoot = Split-Path $resolvedCommonDir -Parent }
+} catch {}
+$configPath = Join-Path $localOpsRoot ".vscode\sftp.json"
 if (-not (Test-Path $configPath)) {
     throw "Missing deploy config at $configPath"
 }
@@ -45,7 +72,6 @@ if ($config.remotePath -ne "public_html") {
 }
 
 $localRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\public_html")).Path
-$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $remotePath = "/" + ($config.remotePath.TrimStart('/'))
 $ftpBase = "ftp://$($config.host)$remotePath"
 $credentials = "$($config.username):$($config.password)"
@@ -59,13 +85,18 @@ function Send-CentralDeployLifecycle([string]$Status, [string]$Version, [string]
     if ($DryRun -or $SkipCentralDeployNotification) {
         return
     }
-    $integrationRoot = Join-Path (Split-Path -Parent $projectRoot) "IntegratedDent1402Tums"
-    $emitter = Join-Path $integrationRoot "scripts\emit-deploy-status.ps1"
+    $integrationStateRoot = Join-Path (Split-Path -Parent (Get-SharedProjectRoot)) "IntegratedDent1402Tums"
+    $runtimeRoot = Join-Path $projectRoot "bot_runtime"
+    $emitter = Join-Path $runtimeRoot "scripts\emit-deploy-status.ps1"
+    $serverConfig = Join-Path $integrationStateRoot ".codex-local\iran-server.json"
     if (-not (Test-Path -LiteralPath $emitter -PathType Leaf)) {
         throw "Central deployment notifier emitter was not found."
     }
+    if (-not (Test-Path -LiteralPath $serverConfig -PathType Leaf)) {
+        throw "Central deployment notifier server-only configuration was not found."
+    }
     $eventId = "$centralDeployBaseId-$Status"
-    $eventOutput = @(& $emitter -Service website -Status $Status -EventId $eventId -Version $Version -Summary $Summary -Actor "website-deploy-script")
+    $eventOutput = @(& $emitter -Service website -Status $Status -EventId $eventId -Version $Version -Summary $Summary -Actor "website-deploy-script" -ServerConfig $serverConfig)
     if ($LASTEXITCODE -ne 0) {
         throw "Central website deployment lifecycle event could not be queued."
     }
@@ -1878,6 +1909,18 @@ function Run-VersionStamp([bool]$ShouldRunVersionStamp = $true) {
         }
     }
 
+    if ($SkipVersionStamp) {
+        Write-Host "PWA version stamp skipped: immutable release source cannot be modified during deploy."
+        return [PSCustomObject]@{
+            Status      = "skipped-immutable-source"
+            StartedAt   = $started
+            FinishedAt  = Get-IsoNow
+            Version     = Get-ActivePwaVersion
+            Command     = ""
+            ChangedFiles = @()
+        }
+    }
+
     if ($DryRun) {
         Write-Host "[DryRun] Preview PWA version stamp"
         $previewOutput = & $python $scriptPath --dry-run
@@ -1892,18 +1935,6 @@ function Run-VersionStamp([bool]$ShouldRunVersionStamp = $true) {
             Version     = $previewInfo.Version
             Command     = "$python $scriptPath --dry-run"
             ChangedFiles = @($previewInfo.ChangedFiles)
-        }
-    }
-
-    if ($SkipVersionStamp) {
-        Write-Warning "PWA version stamp skipped by explicit -SkipVersionStamp override."
-        return [PSCustomObject]@{
-            Status      = "skipped-explicit"
-            StartedAt   = $started
-            FinishedAt  = Get-IsoNow
-            Version     = Get-ActivePwaVersion
-            Command     = ""
-            ChangedFiles = @()
         }
     }
 
@@ -2274,6 +2305,34 @@ function Build-DeployPlan() {
     $currentHead = Run-GitSingle -GitArgs @("rev-parse", "HEAD")
     $lastDeployManifest = Read-HostDeployManifest
     $lastDeployState = Read-HostDeployState
+
+    if (-not $FullSync -and $null -ne $lastDeployManifest -and $null -ne $lastDeployManifest.Files) {
+        $currentPaths = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::Ordinal)
+        foreach ($file in Get-ChildItem -LiteralPath $localRoot -Recurse -File) {
+            $relative = $file.FullName.Substring($localRoot.Length).TrimStart('\') -replace '\\', '/'
+            if (Test-ProtectedPublicHtmlRelativePath -relative $relative) { continue }
+            [void]$currentPaths.Add($relative)
+            $property = $lastDeployManifest.Files.PSObject.Properties[$relative]
+            $expectedHash = if ($null -ne $property) { [string]$property.Value.Hash } else { "" }
+            $expectedLength = if ($null -ne $property) { [int64]$property.Value.Length } else { [int64]-1 }
+            $actualLength = [int64]$file.Length
+            $actualHash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actualLength -ne $expectedLength -or $actualHash -ne $expectedHash.ToLowerInvariant()) {
+                [void]$uploadSet.Add($relative)
+            }
+        }
+        foreach ($property in $lastDeployManifest.Files.PSObject.Properties) {
+            $relative = [string]$property.Name
+            if (-not (Test-ProtectedPublicHtmlRelativePath -relative $relative) -and -not $currentPaths.Contains($relative)) {
+                [void]$deleteSet.Add($relative)
+            }
+        }
+        [void]$notes.Add("Compared the complete exact-SHA public_html tree with the last verified host manifest.")
+        return [PSCustomObject]@{
+            Mode = "exact-sha-manifest-delta"; UploadList = @($uploadSet) | Sort-Object
+            DeleteList = @($deleteSet) | Sort-Object; SourceHead = $currentHead; Notes = @($notes)
+        }
+    }
 
     if ($FullSync) {
         $files = Get-ChildItem -LiteralPath $localRoot -Recurse -File
@@ -2897,7 +2956,7 @@ function Invoke-ReleaseCompletionGuard([object]$DeployInfo, [object]$Verificatio
         throw "Release completion guard failed: owner deploy notification status is '$ownerNoticeStatus'."
     }
 
-    $output = & $python $freshnessScriptPath
+    $output = & $python $freshnessScriptPath --project-root $projectRoot --metadata-root (Get-SharedProjectRoot) --public-root $localRoot
     if ($LASTEXITCODE -ne 0) {
         throw "Release completion guard failed (scripts/check_host_deploy_freshness.py)."
     }
@@ -2906,7 +2965,7 @@ function Invoke-ReleaseCompletionGuard([object]$DeployInfo, [object]$Verificatio
         Status     = "completed"
         StartedAt  = $started
         FinishedAt = Get-IsoNow
-        Command    = "$python $freshnessScriptPath"
+        Command    = "$python $freshnessScriptPath --metadata-root <shared-ops-root> --public-root <release-public-html>"
         Notes      = @($output)
     }
 }
@@ -3498,7 +3557,9 @@ $nonBlockingFailureMessage = ""
 
 try {
     $remoteStorageInfo = Sync-RemoteStorageFromHost
-    $pullInfo = Run-OptionalPullBeforeDeploy
+    $pullInfo.Status = "skipped-immutable-source"
+    $pullInfo.StartedAt = Get-IsoNow
+    $pullInfo.FinishedAt = Get-IsoNow
     $preVersionPlan = Build-DeployPlan
     $shouldRunVersionStamp = $FullSync -or @($preVersionPlan.UploadList).Count -gt 0 -or @($preVersionPlan.DeleteList).Count -gt 0
     $versionStampInfo = Run-VersionStamp -ShouldRunVersionStamp:$shouldRunVersionStamp
@@ -3571,14 +3632,14 @@ try {
     if ($null -ne $plan.PSObject.Properties["SourceHead"]) {
         $deploySourceHead = [string]$plan.SourceHead
     }
-    $deploySourceBranch = Run-GitSingle -GitArgs @("rev-parse", "--abbrev-ref", "HEAD")
+    $deploySourceBranch = "main@$($ReleaseSha.Substring(0, 12))"
 
     $deployInfo.Mode = [string]$plan.Mode
     $deployInfo.UploadCount = $uploadList.Count
     $deployInfo.DeleteCount = $deleteList.Count
     $deployInfo.EstimatedUploadBytes = Get-FileBytesFromRelativeList -rootPath $localRoot -relativeList $uploadList
     $deployInfo.Notes = @($plan.Notes)
-    $githubPlanInfo = Build-GitHubSyncPlan -upstream (Try-GetUpstreamBranch)
+    $githubPlanInfo = $null
 
     if (-not $DryRun -and ($uploadList.Count -gt 0 -or $deleteList.Count -gt 0)) {
         Send-CentralDeployLifecycle -Status "started" -Version ([string]$versionStampInfo.Version) -Summary "Website deployment started."
@@ -3657,7 +3718,13 @@ try {
             -DeployHead ([string]$deploySourceHead)
     }
 
-    $githubSyncInfo = Sync-GitHubFromLaptop -GitHubPlan $githubPlanInfo
+    $githubSyncInfo = [PSCustomObject]@{
+        Status = "completed-noop"; StartedAt = Get-IsoNow; FinishedAt = Get-IsoNow
+        CurrentBranch = "origin/main"; CreatedCommit = ""; HeadAfterSync = $ReleaseSha
+        HeadCommit = Get-GitCommitMetadata -commitHash $ReleaseSha; PushCommand = ""
+        EstimatedPushBytes = [int64]0
+        Notes = @("GitHub source was verified before deploy; post-deploy GitHub mutation is disabled.")
+    }
 
     if (-not $DryRun -and -not [string]::IsNullOrWhiteSpace($deploySourceHead)) {
         $gitHubHead = ""
@@ -3763,7 +3830,7 @@ try {
     }
 
     Write-Host "Deploy completed to $remotePath"
-    Write-Host "Deployment report (host-storage-first, laptop-code deploy):"
+    Write-Host "Deployment report (host-storage-first, exact-GitHub-SHA deploy):"
     Write-Host " - Run started at: $($runStartedAt.ToString('yyyy-MM-ddTHH:mm:sszzz'))"
     Write-Host " - Proxy endpoint target: $($script:NetworkPolicy.ProxyEndpoint)"
     Write-Host " - Proxy env detected: $($script:NetworkPolicy.ProxyConfigured)"
@@ -3869,12 +3936,12 @@ try {
         Write-Host " - Owner deploy notification message: $($ownerNoticeInfo.Message)"
     }
 
-    Write-Host " - GitHub sync status: $($githubSyncInfo.Status)"
+    Write-Host " - GitHub source verification status: $($githubSyncInfo.Status)"
     if (-not [string]::IsNullOrWhiteSpace($githubSyncInfo.StartedAt)) {
-        Write-Host " - GitHub sync started at: $($githubSyncInfo.StartedAt)"
+        Write-Host " - GitHub source verification started at: $($githubSyncInfo.StartedAt)"
     }
     if (-not [string]::IsNullOrWhiteSpace($githubSyncInfo.FinishedAt)) {
-        Write-Host " - GitHub sync finished at: $($githubSyncInfo.FinishedAt)"
+        Write-Host " - GitHub source verification finished at: $($githubSyncInfo.FinishedAt)"
     }
     if (-not [string]::IsNullOrWhiteSpace($githubSyncInfo.CurrentBranch)) {
         Write-Host " - GitHub sync branch: $($githubSyncInfo.CurrentBranch)"

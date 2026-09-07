@@ -46,10 +46,25 @@ settings.json
 *.tmp
 *.log
 logs/
+/bot_runtime/.codex-local/
+/bot_runtime/backups/
+/bot_runtime/output/
+/bot_runtime/server-only/
+/bot_runtime/storage/
+/bot_runtime/tmp/
+/bot_runtime/sessions/
+/bot_runtime/**/*.db
+/bot_runtime/**/*.sqlite*
 
 # Dependency folders
 node_modules/
 vendor/
+!/public_html/assets/vendor/
+!/public_html/assets/vendor/pdfjs/
+!/public_html/assets/vendor/pdfjs/6.2.108/
+!/public_html/assets/vendor/pdfjs/6.2.108/LICENSE
+!/public_html/assets/vendor/pdfjs/6.2.108/pdf.min.mjs
+!/public_html/assets/vendor/pdfjs/6.2.108/pdf.worker.min.mjs
 
 # OS-specific files
 .DS_Store

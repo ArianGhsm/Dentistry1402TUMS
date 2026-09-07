@@ -1,101 +1,91 @@
-﻿# DEPLOY
+# DEPLOY — GitHub-first exact-SHA release
 
-Deploy رسمی پروژه فقط از مسیر اسکریپت canonical انجام شود.
-خطای بسیار تکرار شده: با دپلوی کردن، بعضی صفحات به نسخه های قبلی که ربطی به دپلوی و تاغییرات فعلی هم نداشت باز میگردند! نگذار این خطا رخ دهد.
+## Sources of truth
 
-## دستور نهایی بستن کار
+- Code: exact commit on `ArianGhsm/Dentistry1402TUMS`.
+- Data: production `storage/` and service runtime state.
+- Recovery: verified ignored laptop/server-only mirrors.
+
+Deploy must never push to GitHub, create a commit, stamp/mutate source, upload
+local data, or treat a dirty workspace as a release source.
+
+## Feature branch versus release
+
+A feature branch runs targeted tests, contract tests, static checks, and CI. It
+does not merge or deploy. Only an integrated release on `main` runs full
+regression, runtime gates, verified backup, deploy and live checks. Full rules
+are in `docs/DEVELOPMENT_WORKFLOW.md`.
+
+## Prepare an immutable release workspace
+
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1
+git fetch origin main
+$sha = git rev-parse origin/main
+powershell -ExecutionPolicy Bypass -File .\scripts\prepare_release_workspace.ps1 -ReleaseSha $sha
 ```
 
-این wrapper فقط یک alias است و در نهایت همان `scripts/deploy_public_html.ps1` را با release-completion guard داخلی اجرا می‌کند.
+The prepared worktree must be clean and satisfy the exact repository lock,
+`HEAD == ReleaseSha`, `origin/main == ReleaseSha`, and an empty Git status.
 
-## دستور canonical deploy
+## Canonical deploy
+
+Run from that prepared worktree:
+
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1 -ReleaseSha <exact-sha>
 ```
 
-## Definition of Done
-- بعد از هر پرامپت/کاری که روی پروژه انجام می‌شود، deploy canonical باید قبل از پاسخ نهایی اجرا شود مگر کاربر صراحتاً همان نوبت منع کند.
-- command نهایی بالا دیگر نباید به deploy خام ختم شود؛ اسکریپت canonical حالا freshness guard را هم داخل همان run اجرا می‌کند و اگر `public_html/` بعد از آخرین host deploy drift داشته باشد non-zero fail می‌شود.
-- کار فقط وقتی `completed` محسوب می‌شود که deploy، live health-check و اعلان داخل سایت برای مالک موفق شده باشند؛ fail/skip شدن deploy یا اعلان باید صریحاً `blocked` یا `partial` گزارش شود.
-- ارسال پاسخ `final` بدون اجرای موفق `scripts/complete_task.ps1` در همان turn یک completion bug است، نه فراموشی قابل‌قبول؛ اگر این command اجرا نشده یا fail شده باشد، کار هنوز بسته نشده است.
+Dry-run:
 
-## ترتیب اجباری Deploy
-0. دانلود یک‌طرفه‌ی `storage/` از هاست به لپتاپ و mirror در `server-only/storage`
-1. local validation
-2. deploy به `/public_html`
-3. live health-check
-4. GitHub sync
-
-## رفتار ایمن پیش‌فرض
-- منبع اصلی کد، فایل‌های ویندوز است؛ منبع اصلی دیتا و دیتابیس، `storage/` روی هاست است.
-- قبل از هر deploy، دیتای هاست در `.codex-local/remote-storage/snapshots/` بکاپ گرفته می‌شود و نسخه‌ی فعال لوکال در `server-only/storage/` فقط از روی هاست mirror می‌شود.
-- promotion به `latest` فقط از snapshot کامل verified انجام می‌شود: تمام JSONها باید parse شوند، schemaهای حیاتی حاضر باشند، size/hash manifest دوباره تطبیق داده شود و `bot_links.json`، صف پرداخت و صف اعلان در دو read متوالی پایدار باشند. failure یا snapshot انتقالی اجازه تغییر active/latest را ندارد.
-- این mirror شامل فایل‌های upload شده‌ی runtime هم هست؛ مسیرهای موقتی مثل `tmp`، `sessions`، `backups` و `cache` جزو منبع حقیقت deploy نیستند.
-- نبودن دایرکتوری‌های اختیاریِ runtime مثل media preview/original/upload rootها نباید mirror را fail کند؛ فقط stateهای واقعی مثل `store.json` و storageهای اصلی blocker هستند.
-- جهت sync دیتا فقط هاست -> لپتاپ است. دیتای `storage/`، `server-only/storage/`، بکاپ‌ها، sessionها، lockها و فایل‌های `.env` نباید از لپتاپ به هاست یا GitHub آپلود شوند.
-- GitHub باید بر اساس فایل‌های کد/ظاهر/اسکریپت روی لپتاپ آپدیت شود، نه دیتای runtime.
-- مرحله‌ی GitHub sync باید روی worktree موقتِ مبتنی بر آخرین upstream انجام شود؛ نه با `git add -A` روی workspace اصلی. این کار باعث می‌شود اختلاف branch محلی با `origin/main` یا dirty بودن workspace، deploy را روی push گیر ندهد.
-- صرفا فایل هایی که تغییر کرده اند باید دپلوی شوند. نیازی به اپلود هرباره همه فایل ها نیست.
-- delta deploy باید علاوه بر `git diff` با manifest آخرین محتوای deploy‌شده روی همین لپتاپ فیلتر شود؛ یعنی اگر فایلی هنوز در worktree dirty است اما همان محتوا قبلاً deploy شده، دوباره upload نشود.
-- اگر `HEAD` فعلی همان آخرین `host deploy` موفق است، اختلاف `upstream..HEAD` نباید دوباره وارد plan شود؛ در این حالت فقط delta بعد از آخرین deploy موفق و تغییرات واقعی worktree مجازند.
-- deploy عادی اگر بیش از ۸۰ upload یا بیش از ۲۵ delete داشته باشد باید قبل از upload fail شود. deploy گسترده فقط وقتی مجاز است که dry-run دیده شده و دستور با `-AllowLargeDeploy` یا `-FullSync` صریح اجرا شود.
-- PWA version stamp دیگر نباید `HTML/PHP`های کل سایت را فقط برای تغییر `?v=` rewrite کند. cache-busting فایل‌های shared از این به بعد با revalidate header روی `css/js` و stamp محدود به `pwa.js`, `sw.js`, `manifest.webmanifest`, `app-version.json` انجام می‌شود.
-- به‌محض موفقیت deploy روی هاست و health-check زنده، state و manifest لوکال باید قبل از notification/GitHub sync ثبت شوند تا failureهای مرحله‌های بعدی باعث تکرار uploadهای قبلاً deploy‌شده نشوند.
-- هیچ سقف حجمی/proxy budget نباید deploy یا GitHub sync را متوقف کند؛ اگر مسیر شبکه در دسترس است، deploy باید ادامه پیدا کند.
-- اعلان‌های شروع و نتیجهٔ نهایی باید از notifier مرکزی با قرارداد امضاشده داخل سایت فقط برای مالک ثبت شوند. مسیر login واقعی مالک فقط fallback صریح bootstrap است و در deploy عادی نباید یک اعلان سوم و تکراری بسازد.
-- اگر در rerun هیچ delta جدیدی زیر `public_html/` روی هاست deploy نشود، owner notification نباید دوباره ارسال شود؛ retryهای repair فقط باید مرحله‌های باقی‌مانده مثل GitHub sync را ادامه دهند.
-- همان lifecycle مرکزی باید هر رویداد را مستقلاً به Telegram، Bale و مرکز اعلان owner-only سایت تحویل دهد. رکورد سایت `disablePush` است تا workerهای ربات آن را دوباره ارسال نکنند. نگه‌داری token یا transport موازی داخل این مخزن ممنوع است.
-
-## اعلان عملیاتی Telegram/Bale/Website
-
-- مالک پیاده‌سازی transport، صف، retry و secretها پروژه `IntegratedDent1402Tums` است.
-- deploy canonical سایت فقط eventهای lifecycle خودش را با `service=website` و `event-id` پایدار emit می‌کند.
-- رویداد باید قبل از ارسال روی notifier به‌صورت durable queue شود؛ اختلال یک کانال نباید باعث تکرار upload موفق سایت شود.
-- deploy با `started` آغاز می‌شود و دقیقاً با یکی از `succeeded`، `failed` یا `rolled_back` خاتمه می‌یابد.
-- notifier سه‌کاناله روی VPS ایران نصب است؛ هر تغییر topology باید دوباره با health و تحویل واقعی هر سه کانال اثبات شود.
-- token، chat ID، cookie و secret اعلان نباید در این repository، آرگومان command، log یا manifest deploy ذخیره شوند.
-- صفحات منابع/جزوات فقط shell کد هستند. کارت‌های قابل مدیریت منابع باید از storage و API خوانده شوند، از جمله `notes/1402_terms.json`، `notes/1403_terms.json`، `notes/1404_terms.json` و `notes/prosthesis_1402_terms.json`.
-- صدور و تحویل PDF محافظت‌شده در پروژه `IntegratedDent1402Tums` و ربات تلگرام انجام می‌شود. سایت فقط endpoint امضاشدهٔ هویت canonical واترمارک را نگه می‌دارد؛ هیچ فایل PDF، cache واترمارک، viewer یا state دستگاه مطالعه روی هاست سایت deploy نمی‌شود.
-
-## دستورات مهم
-Dry run:
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -DryRun
-```
-این dry-run باید version-stamp واقعی را preview کند؛ اگر run واقعی قرار است صدها فایل cache-sensitive را rewrite کند، dry-run هم باید همان delta را نشان دهد.
-در حالت عادی بعد از اصلاح pipeline، preview version-stamp نباید از چند فایل shared بیشتر شود مگر این‌که واقعاً asset-url یا HTMLهای سراسری را خودت تغییر داده باشی.
-
-Full sync (فقط در نیاز صریح):
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -FullSync
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -ReleaseSha <exact-sha> -DryRun
 ```
 
-pre-deploy pull (فقط با درخواست صریح):
+Broad deploy is exceptional and follows reviewed dry-run output:
+
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullBeforeDeploy
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -ReleaseSha <exact-sha> -FullSync -AllowLargeDeploy
 ```
 
-retry سبک برای تکمیل GitHub sync بعد از live deploy موفق:
+`-PullBeforeDeploy`, `-PathScope`, `-SkipGitHubSync`, and deploy-time version
+stamping are incompatible with immutable releases. Cache/PWA version changes
+must be prepared, tested and committed before integration.
+
+## Preserved release safety
+
+The canonical script still performs, in order:
+
+1. exact repository/SHA/clean-worktree verification;
+2. one-way production `storage/` download;
+3. verified snapshot and laptop/server-only mirror promotion;
+4. local deterministic validation;
+5. manifest-based delta deploy to `/public_html`;
+6. live health and multi-cohort smoke checks;
+7. durable owner lifecycle notifications when a real host delta exists;
+8. host manifest/state recording with the exact GitHub SHA;
+9. freshness/coherence completion guard.
+
+Snapshot promotion remains conditional on JSON/schema/size/hash validation and
+double-read stability of critical stores. A malformed/transitional snapshot
+never becomes `latest`. Production data, `.env`, sessions, locks, backups,
+cache and runtime uploads are protected even during full sync.
+
+Normal deploy guards remain 80 uploads and 25 deletes. Bypass requires explicit
+`-AllowLargeDeploy` or `-FullSync` after review. FTP retry, rollback inputs,
+notifications and live verification remain mandatory for an integrated release.
+
+## Runtime services
+
+`bot_runtime/` is Git-canonical source. Production service releases remain
+under `/opt/integrated-dent` and use server-only environment/state. Runtime
+changes require the relevant deployment script plus actual Telegram/Bale
+health, NRestarts, logs, site API, scheduler/notifier and smoke verification.
+
+## Manual audit
+
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -SkipRemoteStorageSync -SkipValidation -SkipPostDeployVerification -SkipVersionStamp -SkipOwnerDeployNotification -HostDeployNetworkPath direct -HealthCheckNetworkPath direct -GitHubNetworkPath proxy
+python .\scripts\check_host_deploy_freshness.py --metadata-root <shared-ops-root> --public-root .\public_html
+python .\scripts\verify_release_source.py --sha <exact-sha>
 ```
 
-Deploy محدود به فایل‌های مشخص، وقتی workspace تغییرات unrelated زیادی دارد:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PathScope public_html/assets/site/scripts/account.js,public_html/assets/site/styles/account.css
-```
-
-audit دستی اختیاری بعد از هر deploy:
-```powershell
-python .\scripts\check_host_deploy_freshness.py
-```
-
-## ایمنی داده
-- state/runtime باید زیر `server-only/` بماند و commit نشود.
-- `storage/`, `server-only/`, `scripts/` وب‌دیپلوی نمی‌شوند.
-- حتی در `FullSync`، فایل‌های runtime/data مثل `public_html/.env` و `public_html/storage/` از upload/delete محافظت می‌شوند.
-- deploy نباید seed یا HTML ثابت را جایگزین کارت‌های منابعی کند که مالک در سایت اضافه، ویرایش یا حذف کرده است.
-- از deploy دستی و ad-hoc پرهیز شود.
-- عملیات FTP canonical باید retry محدود و خودکار برای timeout/connection error داشته باشد تا خطاهای گذرای شبکه کل deploy را بی‌دلیل fail نکنند.
+Ad-hoc FTP upload and post-deploy GitHub synchronization are prohibited.

@@ -1,5 +1,16 @@
 ﻿# AGENTS.md
 
+## 0) Repository and workflow invariants (highest priority)
+
+- The only writable repository for this product is exactly `ArianGhsm/Dentistry1402TUMS`. Verify `origin` before every write; similarly named repositories are read-only evidence.
+- Canonical code is an exact GitHub commit. Production `storage/` is canonical data; verified ignored laptop/server-only snapshots are recovery copies.
+- `bot_runtime/` is the canonical source for Telegram/Bale runtime. Live state, credentials, logs and service releases remain outside Git.
+- `main` is integration/release only. Feature branches start at an immutable declared SHA, do not rebase/pull mid-task, do not self-merge, and do not deploy.
+- Feature-branch completion and integrated-release completion are distinct. Only an integrated release requires backup, exact-SHA canonical deploy and live verification. A docs/tests/workflow-only change with no production code change does not trigger an empty production deploy.
+- The canonical release command requires `-ReleaseSha <exact-origin-main-sha>`. Deploy never creates or pushes a Git commit and never rewrites source files.
+- Shared contracts and integration-only hotspots are defined in `docs/SHARED_CONTRACTS.md` and `docs/DEVELOPMENT_WORKFLOW.md`; those documents override older local-first wording below.
+- No agent lock-in is allowed. Any capable agent, including Codex, must be able to continue from the exact SHA plus repository docs/contracts/tests.
+
 اصل اساسی: اگر بعد تغییر فایل های md و اینستراکشن ها نیاز به تغغیر داشتند(حذف کردن یا اضافه کردن موارد) حتما چک کن و انجام بده. مثلا یک قابلیتی حذف، اصول سایت تغییر یا چیزهایی به سایت اضافه شود(و یا موارد دیگر)
 
 دستورالعمل اجرایی اصلی برای کل پروژه Dentistry1402TUMS.
@@ -28,7 +39,7 @@
   baseline خاموش است و نباید همه تکلیف‌های تاریخی را اعلان کند؛ فقط assignment
   key جدید بعدی از `notifications_enqueue_navid_assignment` وارد اعلان canonical
   سایت می‌شود. ربات‌ها feed یا read-state موازی نمی‌سازند. قرارداد کامل در
-  `../IntegratedDent1402Tums/docs/NAVID_DAILY_AUTOMATION.md` است.
+  `bot_runtime/docs/NAVID_DAILY_AUTOMATION.md` است.
 - داشبورد عملیاتی مالک از `public_html/admin/` و `public_html/api/admin_api.php` استفاده می‌کند؛ این مسیر فقط summary/health/status/linkهای مدیریتی را با auth مشترک مالک نمایش می‌دهد و نباید به پنل موازی برای عملیات تخصصی مثل خرید، فرم، منابع، فایل، paste، HTML uploader یا نوید تبدیل شود. عملیات تخصصی باید در route خودش بماند و `/admin/` فقط ورود سریع و وضعیت عملیاتی بدهد.
 - تنظیم‌های ظاهر سراسری سایت، مثل روشن/خاموش‌کردن سوایپ نوار پایین، از بخش «مدیریت ظاهر سایت» در `/admin/` مدیریت می‌شوند و state پایدارشان باید در `auth/meta.json` و helperهای `auth_store.php` بماند؛ نه در HTML ثابت، localStorage یا فایل deploy-replaced.
 - Storage: داده‌های پایدار باید در مسیرهای ذخیره‌سازی مشترک نگه‌داری شوند؛ نه در فایل‌های موقتی جایگزین‌شونده در Deploy.
@@ -313,22 +324,22 @@
 4. اصلاح scoped اعمال کنید؛ بدون بازنویسی بی‌مورد لایه‌هایی که به change ربط ندارند و بدون ساختن guard/checkی که بیش از خود change ریسک و پیچیدگی بیاورد.
 5. retest کامل همان flow + سناریوهای وابسته + regression بخش‌های متاثر روی desktop/mobile و هر لایه‌ی relevant از بخش `10.1` و `10.2`.
 6. وضعیت را دقیق گزارش کنید: `completed` / `partial` / `blocked`، و اگر بخشی از لایه‌های relevant verify نشده‌اند یا عمداً scope نشده‌اند، صریحاً ذکر کنید.
-7. بعد از هر پرامپت/کار انجام‌شده، فرمان نهایی بستن کار باید قبل از پاسخ نهایی اجرا شود مگر کاربر صراحتاً همان نوبت منع کند:
+7. برای integrated release، پس از merge به `main` و قبل از پاسخ نهایی release، فرمان زیر با SHA دقیق `origin/main` اجرا شود:
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1 -ReleaseSha <exact-sha>
 ```
-7.1. این wrapper باید همان `scripts/deploy_public_html.ps1` را با release-completion guard داخلی اجرا کند؛ یعنی freshness check دیگر نباید به‌صورت step دستیِ جدا باقی بماند. اگر این guard drift بین `public_html/` فعلی و آخرین manifest دیپلوی‌شده را نشان داد، پاسخ نهایی کامل مجاز نیست.
-7.2. فرستادن هر پیام `final` بدون اجرای موفق همین command در همان turn، failure اجرایی محسوب می‌شود؛ حتی اگر خود تغییرات کد کامل شده باشند. در این وضعیت باید اول deploy canonical انجام شود و فقط بعد از موفقیت آن، پاسخ نهایی ارسال شود.
-8. وضعیت `completed` فقط وقتی مجاز است که deploy canonical، live health-check و اعلان داخل سایت برای مالک همگی موفق شده باشند؛ اگر deploy یا اعلان به هر دلیل fail/skip شد، خروجی کار `blocked` یا `partial` است و نباید موفقیت کامل گزارش شود.
+7.1. Feature branch حق merge یا production deploy ندارد؛ DoD آن در `docs/DEVELOPMENT_WORKFLOW.md` است.
+7.2. تغییر صرفاً workflow/docs/tests که production code/runtime را تغییر نداده است با CI و coherence check بسته می‌شود، نه empty deploy.
+8. وضعیت integrated release فقط وقتی کامل است که backup، deploy exact-SHA، live health/log/smoke و rollback readiness موفق باشند.
 
 ## 12) Deploy پیش‌فرض
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\complete_task.ps1 -ReleaseSha <exact-origin-main-sha>
 ```
 - این مرحله بخشی از definition of done هر کار است: بعد از اصلاح، تست و قبل از پاسخ نهایی باید اجرا شود، نه اینکه به حافظه یا پیگیری دستی موکول شود.
 - این wrapper فقط alias بستن کار است و در نهایت همان deploy canonical زیر را اجرا می‌کند:
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -ReleaseSha <exact-origin-main-sha>
 ```
 - guard freshness حالا داخل همان run canonical اجرا می‌شود؛ اگر `host_last_deploy.json` و `host_last_deploy_manifest.json` با درخت فعلی `public_html/` mismatch داشته باشند، خود command باید fail شود و کار هنوز done نیست.
 - audit دستی اختیاری بعد از deploy:
@@ -336,20 +347,16 @@ powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1
 python .\scripts\check_host_deploy_freshness.py
 ```
 - ترتیب اجباری:
-  - host storage backup/mirror -> local validation -> host deploy -> live health-check -> GitHub sync
+  - verify exact GitHub SHA -> host storage backup/mirror -> local validation -> host deploy -> live health-check/freshness
 - local validation پیش‌فرض باید پایدار، سریع و کم‌نویز بماند؛ اضافه‌کردن check جدیدی که مرتب false-fail می‌دهد یا به شرایط ناپایدار بیرونی وابسته است بدون کنترل scope و پایداری مجاز نیست.
 - چک‌های static قطعی و آفلاین (lint PHP/JS، text-integrity، instruction-contracts، resilience/quality/upload، و unit testهای `scripts/test_unit.php`) از `scripts/run_static_checks.sh` اجرا می‌شوند و همین اسکریپت در GitHub Actions (`.github/workflows/ci.yml`) روی push/PR هم اجرا می‌شود. این مسیر CI نباید به سرور زنده، دیتابیس، شبکه یا credential وابسته شود؛ smoke چندورودی که نیاز به login مالک دارد فقط در deploy محلی می‌ماند نه CI. توابع pure جدید (مثل crypto، token signing، access decision یا normalization) باید همراه خود unit test در همین فایل بیایند.
 - قبل از upload کد، `storage/` هاست باید در `.codex-local/remote-storage/snapshots/` ذخیره و در `server-only/storage/` mirror شود. تنها snapshotی حق promotion به `latest` دارد که همه JSONها parse، schema/size/checksum آن verify و همه storeهای atomic حیاتی در دو read پیاپی byte-stable باشند؛ snapshot خراب یا transition evidence هرگز latest نمی‌شود.
 - upload/delete دیتای runtime از لپتاپ به هاست ممنوع است؛ حتی FullSync هم نباید `public_html/.env` یا `public_html/storage/` را آپلود/حذف کند.
-- `git pull` قبل از deploy پیش‌فرض ممنوع است مگر درخواست صریح.
-- deploy و GitHub sync نباید به سقف حجمی/proxy budget وابسته باشند؛ budget حجمی نباید blocker دپلوی باشد.
+- `git pull` داخل release workspace ممنوع است؛ release workspace از SHA دقیق آماده می‌شود.
+- deploy نباید به سقف حجمی/proxy budget وابسته باشد؛ budget حجمی نباید blocker دپلوی باشد.
 - بعد از اتمام موفق deploy هیچ مرحله‌ی پیامکی اجرا نمی‌شود. اما در هر deploy موفق باید یک اعلان داخل سایت فقط برای مالک از مسیر shared اعلان‌ها ثبت شود و نسخه‌ی فعال + تاریخ و زمان دقیق deploy را داخل خود اعلان ذکر کند.
 - credential مالک برای smoke validation چندورودی، login تستی و ثبت همین اعلان deploy مجاز است؛ برای ارسال پیامک یا workflowهای ad-hoc دیگر مجاز نیست.
-- override اختیاری:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -PullBeforeDeploy
-```
-- dry-run باید version-stamp واقعی را preview کند؛ اگر run واقعی قرار است تعداد زیادی فایل cache-sensitive را rewrite کند، dry-run هم باید همان delta را تا حد ممکن نشان دهد.
+- version stamp باید پیش از commit در integration آماده و تست شود؛ deploy exact-SHA source را mutate نمی‌کند.
 - صرفا فایل هایی که تغییر کردن یا اضافه/حذف شدن دپلوی/حذف بشن! نیاز نیست هربار کل فایل ها من جمله کل فونت ها آپلود بشن!
 
 ## 13) درصورت نیاز به تست سایت

@@ -95,6 +95,8 @@ def summarize_paths(label: str, items: list[str], limit: int) -> list[str]:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Verify that current public_html matches the last successful host deploy manifest.")
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--metadata-root", type=Path, help="Repository root holding ignored deploy metadata (defaults to project root).")
+    parser.add_argument("--public-root", type=Path, help="Exact release public_html directory (defaults to project-root/public_html).")
     parser.add_argument("--limit", type=int, default=20, help="Maximum sample paths to print per drift category.")
     return parser.parse_args()
 
@@ -102,10 +104,11 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     repo_root = args.project_root.resolve()
-    deploy_dir = repo_root / ".codex-local" / "deploy"
+    metadata_root = (args.metadata_root or repo_root).resolve()
+    deploy_dir = metadata_root / ".codex-local" / "deploy"
     state_path = deploy_dir / "host_last_deploy.json"
     manifest_path = deploy_dir / "host_last_deploy_manifest.json"
-    public_root = repo_root / "public_html"
+    public_root = (args.public_root or (repo_root / "public_html")).resolve()
 
     state_payload = read_json(state_path)
     manifest_payload = read_json(manifest_path)

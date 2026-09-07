@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dentistry1402tums.ir/contracts/classops-v1.schema.json",
+  "title": "ClassOps v1 canonical item",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "contractVersion", "cohortKey", "type", "title", "description", "course", "timing", "location", "importance", "requireAck", "audienceSpec", "deliveryPlan", "reminderPolicy", "status", "source", "metadata", "extensions", "revision", "createdBy", "createdAt", "updatedAt"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^cop_[a-f0-9]{24}$"},
+    "contractVersion": {"const": "classops-v1"},
+    "cohortKey": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,79}$"},
+    "type": {"enum": ["announcement", "event", "class_change", "deadline", "task", "requirement", "exam", "critical_notice", "service_reminder"]},
+    "title": {"type": "string", "minLength": 1, "maxLength": 160},
+    "description": {"type": "string", "maxLength": 4000},
+    "course": {"anyOf": [{"type": "null"}, {"type": "object", "additionalProperties": false, "required": ["ref", "title"], "properties": {"ref": {"type": "string", "maxLength": 96}, "title": {"type": "string", "maxLength": 180}}}]},
+    "timing": {"type": "object", "additionalProperties": false, "required": ["startsAt", "endsAt", "dueAt", "timezone"], "properties": {"startsAt": {"type": ["string", "null"]}, "endsAt": {"type": ["string", "null"]}, "dueAt": {"type": ["string", "null"]}, "timezone": {"const": "Asia/Tehran"}}},
+    "location": {"type": "string", "maxLength": 300},
+    "importance": {"enum": ["normal", "important", "critical"]},
+    "requireAck": {"type": "boolean"},
+    "audienceSpec": {"$ref": "#/$defs/audience"},
+    "deliveryPlan": {"$ref": "#/$defs/delivery"},
+    "reminderPolicy": {"$ref": "#/$defs/reminder"},
+    "status": {"enum": ["draft", "scheduled", "active", "completed", "cancelled", "archived"]},
+    "source": {"type": "object", "additionalProperties": false, "required": ["kind", "ref"], "properties": {"kind": {"enum": ["manual", "import", "system"]}, "ref": {"type": "string", "maxLength": 120}}},
+    "metadata": {"type": "object", "maxProperties": 50},
+    "extensions": {"type": "object", "maxProperties": 50},
+    "revision": {"type": "integer", "minimum": 1},
+    "createdBy": {"$ref": "#/$defs/actor"},
+    "createdAt": {"type": "string", "pattern": "Z$"},
+    "updatedAt": {"type": "string", "pattern": "Z$"}
+  },
+  "$defs": {
+    "actor": {"type": "object", "additionalProperties": false, "required": ["kind", "ref", "role"], "properties": {"kind": {"const": "canonical_user"}, "ref": {"type": "string", "pattern": "^usr_[a-f0-9]{24}$"}, "role": {"const": "owner"}}},
+    "audience": {"type": "object", "additionalProperties": false, "required": ["version", "mode", "refs"], "properties": {"version": {"const": "classops-audience-placeholder-v1"}, "mode": {"enum": ["entire_cohort", "single_student", "explicit_students", "academic_group", "snapshot", "dynamic"]}, "refs": {"type": "array", "maxItems": 500, "uniqueItems": true, "items": {"type": "string", "maxLength": 96}}}},
+    "delivery": {"type": "object", "additionalProperties": false, "required": ["version", "initialDestinations", "reminderDestinations"], "properties": {"version": {"const": "classops-delivery-placeholder-v1"}, "initialDestinations": {"$ref": "#/$defs/destinations"}, "reminderDestinations": {"$ref": "#/$defs/destinations"}}},
+    "destinations": {"type": "array", "maxItems": 3, "uniqueItems": true, "items": {"enum": ["private_users", "class_group", "information_channel"]}},
+    "reminder": {"type": "object", "additionalProperties": false, "required": ["version", "rules"], "properties": {"version": {"const": "classops-reminder-placeholder-v1"}, "rules": {"type": "array", "maxItems": 20, "items": {"type": "object", "additionalProperties": false, "required": ["offsetSeconds", "destinationScope"], "properties": {"offsetSeconds": {"type": "integer", "minimum": 0, "maximum": 31536000}, "destinationScope": {"enum": ["inherit", "reminder_only"]}}}}}}
+  }
+}

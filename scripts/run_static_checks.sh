@@ -45,6 +45,12 @@ section "Persian / UTF-8 text integrity"
 section "Instruction contract audit"
 "$PYTHON_BIN" scripts/check_instruction_contracts.py || fail "check_instruction_contracts.py"
 
+section "Repository and shared-contract freeze"
+"$PYTHON_BIN" scripts/check_repository_hygiene.py || fail "check_repository_hygiene.py"
+"$PYTHON_BIN" scripts/test_shared_contracts.py || fail "test_shared_contracts.py"
+"$PYTHON_BIN" scripts/test_release_source_contract.py || fail "test_release_source_contract.py"
+"$PYTHON_BIN" scripts/test_github_first_workflow.py || fail "test_github_first_workflow.py"
+
 section "Auth store resilience"
 "$PHP_BIN" scripts/check_auth_store_resilience.php || fail "check_auth_store_resilience.php"
 "$PHP_BIN" scripts/test_json_persistence.php || fail "test_json_persistence.php"
