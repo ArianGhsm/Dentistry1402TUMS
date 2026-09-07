@@ -585,7 +585,12 @@ function dent_write_json_file(string $path, $payload, bool $lockAlreadyHeld = fa
         try {
             $expected = strlen($encoded);
             while ($writtenTotal < $expected) {
-                $written = @fwrite($handle, substr($encoded, $writtenTotal));
+                // Shared hosting can reject a multi-megabyte fwrite even when
+                // the temporary file and filesystem are healthy.  Keep the
+                // atomic generation protocol, but bound each syscall so a
+                // large notification/auth store is written incrementally.
+                $remaining = min(65536, $expected - $writtenTotal);
+                $written = @fwrite($handle, substr($encoded, $writtenTotal, $remaining));
                 if ($written === false || $written === 0) {
                     throw new DentJsonPersistenceException('JSON_STORE_SHORT_WRITE', 'Short JSON generation write');
                 }

@@ -17,6 +17,13 @@ dent_write_json_file($path, ['schemaVersion' => 1, 'items' => []]);
 if (file_get_contents($path) !== $first) {
     throw new RuntimeException('no-op JSON write changed bytes');
 }
+$largePath = $root . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'large-fixture.json';
+$largePayload = ['schemaVersion' => 1, 'body' => str_repeat('x', 4 * 1024 * 1024)];
+dent_write_json_file($largePath, $largePayload);
+$largeDecoded = dent_read_json_file($largePath, null);
+if (!is_array($largeDecoded) || !isset($largeDecoded['body']) || strlen((string) $largeDecoded['body']) !== 4 * 1024 * 1024) {
+    throw new RuntimeException('large JSON generation did not round trip');
+}
 file_put_contents($path, '{malformed');
 $malformed = file_get_contents($path);
 try {
