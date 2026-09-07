@@ -71,16 +71,19 @@ These are plans only; no feature branch is created by this migration. Workload s
 
 | Scope / branch | Owned paths | Read-only / forbidden paths | Dependencies and contracts | Test scope | Workload |
 |---|---|---|---|---|---:|
-| Audience & policy / `feature/classops-audience-policy` | new audience modules, schemas, domain tests | all integration-only hotspots; no transport/payment/Term7 rewrite | `classops-v1`, canonical student identity | resolver policy, cohort isolation, snapshots, authorization | 8.6 |
-| Destination & delivery / `feature/classops-destination-delivery` | new destination/delivery modules and adapter-facing tests | central runtime router/site API and existing notification store are integration-only | delivery placeholder, notification boundary, service auth | idempotency, retry plans, destination isolation, adapter contracts | 9.1 |
+| Audience & policy / `feature/classops-audience-policy` | new audience modules, schemas, domain tests | all integration-only hotspots; no transport/payment/Term7 rewrite | `classops-v1`, canonical student identity | resolver policy, cohort isolation, snapshots, authorization | 8.8 |
+| Destination & delivery / `feature/classops-destination-delivery` | new destination/delivery modules and adapter-facing tests | central runtime router/site API and existing notification store are integration-only | delivery placeholder, notification boundary, service auth | idempotency, retry plans, destination isolation, adapter contracts | 9.2 |
+| AI copilot & structured draft / `feature/classops-ai-copilot` | AI draft client, strict structured-draft validator, preview-only domain tests | core ClassOps, central runtime/router, all credentials and transports | `classops-structured-draft-v1`, canonical identity | null-on-unknown fields, ambiguity handling, natural-language edits, confirmation boundary, safe usage telemetry | 9.0 |
 | Tasks & requirements / `feature/classops-tasks-requirements` | new task/requirement domain modules and tests | core ClassOps, Term7, transports | structured draft, identity and audience contracts | lifecycle, submissions/requirements calculations, edge cases | 8.9 |
-| Exams & critical ACK / `feature/classops-exams-critical-ack` | new exam/ACK domain modules and tests | core ClassOps, payments, notification wiring | core item/revision/idempotency, audience/delivery interfaces | exam states, access/payment boundaries, ACK correctness | 9.2 |
-| Scheduler & summaries / `feature/classops-scheduler-summaries` | new planning/summary modules and deterministic scheduler tests | central scheduler/router and notification wiring | reminder placeholder, delivery interface, Term7 read contract | time zones, retry/idempotency, digest determinism, clock tests | 8.5 |
+| Exams & critical ACK / `feature/classops-exams-critical-ack` | new exam/ACK domain modules and tests | core ClassOps, payments, notification wiring | core item/revision/idempotency, audience/delivery interfaces | exam states, access/payment boundaries, ACK correctness | 9.1 |
 
-The spread is 0.7 on a 9.2 maximum (under 8%), comfortably within the 20–25%
+The spread is 0.4 on a 9.2 maximum (under 5%), comfortably within the 20–25%
 target. Integration order is audience/destination contracts first, then central
 wiring for all modules; domain implementation can still proceed in parallel
-against frozen interfaces.
+against frozen interfaces. Scheduler, Tomorrow Summary and Weekly Digest are a
+deliberately sequential post-integration stage because they consume delivery,
+audience, AI-produced drafts and multiple domain states; parallelizing them
+earlier would create a shared scheduling hotspot and increase integration risk.
 
 ## Agent reversibility
 

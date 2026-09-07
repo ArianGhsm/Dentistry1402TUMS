@@ -87,6 +87,18 @@ try {
     // 1 + 2: explicit initialization of a truly missing store, then valid R/W.
     dent_bot_persistence_initialize($path, $default, 'test_normalize', 'test-initialize');
     test_assert(is_file($path), 'explicit initialization did not create the store');
+
+    // Shared hosts can retain a stale path stat across a delete/recreate. The
+    // writer must validate its own descriptor and clear the path cache rather
+    // than turning a completed write into a false SHORT_WRITE incident.
+    $statProbe = $root . DIRECTORY_SEPARATOR . 'stat-probe.json';
+    file_put_contents($statProbe, 'old', LOCK_EX);
+    test_assert(filesize($statProbe) === 3, 'unable to prime stat cache');
+    @unlink($statProbe);
+    dent_bot_persistence_write_full($statProbe, "fresh\n", []);
+    clearstatcache(true, $statProbe);
+    test_assert(filesize($statProbe) === 6, 'fresh temp write size was not verified correctly');
+    @unlink($statProbe);
     dent_bot_persistence_update(
         $path,
         $default,
@@ -106,7 +118,7 @@ try {
         'test-valid-read'
     );
     test_assert(($read['records']['first'] ?? false) === true, 'valid read/write lost data');
-    $tests += 2;
+    $tests += 3;
 
     // 3: an existing malformed store fails closed and remains byte-identical.
     $malformed = $root . DIRECTORY_SEPARATOR . 'malformed.json';

@@ -218,10 +218,20 @@ function dent_bot_persistence_write_full(string $path, string $payload, array $t
         if (function_exists('fsync') && !@fsync($handle)) {
             throw new DentBotPersistenceException('BOT_STORE_FSYNC_FAILED', 'Unable to fsync bot store temp file');
         }
+        // Verify the descriptor while it is still open. Some shared-host PHP
+        // runtimes retain a stale path stat after a newly-created temp file;
+        // relying on that cache can report a successful fwrite as a false
+        // BOT_STORE_SHORT_WRITE and unnecessarily fail closed.
+        $handleStat = @fstat($handle);
+        if (!is_array($handleStat) || !isset($handleStat['size']) || (int) $handleStat['size'] !== $expected) {
+            throw new DentBotPersistenceException('BOT_STORE_SHORT_WRITE', 'Bot store temp descriptor size mismatch');
+        }
     } finally {
         fclose($handle);
     }
-    if ($written !== $expected || @filesize($path) !== $expected) {
+    clearstatcache(true, $path);
+    $pathSize = @filesize($path);
+    if ($written !== $expected || !is_int($pathSize) || $pathSize !== $expected) {
         throw new DentBotPersistenceException('BOT_STORE_SHORT_WRITE', 'Bot store temp file size mismatch');
     }
     return $written;

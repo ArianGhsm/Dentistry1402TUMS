@@ -22,6 +22,12 @@ assert SCHEMA["properties"]["status"]["enum"] == php_array("classops_allowed_sta
 assert SCHEMA["properties"]["importance"]["enum"] == php_array("classops_allowed_importance")
 for required in ("structuredDraft", "canonicalStudentIdentity", "runtimeSiteService", "notificationIntegration"):
     assert required in BOUNDARIES["boundaries"]
+draft = BOUNDARIES["boundaries"]["structuredDraft"]
+assert draft["unknownFields"] == "null"
+assert draft["deterministicResolution"] == "outside-producer"
+assert draft["requiresOwnerPreviewConfirm"] is True
+assert draft["credentialScope"] == "classops-ai-only"
+assert draft["voiceOrSttCredentialReuse"] is False
 assert BOUNDARIES["boundaries"]["canonicalStudentIdentity"]["displayNameIsIdentity"] is False
 assert BOUNDARIES["boundaries"]["runtimeSiteService"]["dependsOnEndUserBotLink"] is False
 assert BOUNDARIES["boundaries"]["notificationIntegration"]["parallelFeedAllowed"] is False

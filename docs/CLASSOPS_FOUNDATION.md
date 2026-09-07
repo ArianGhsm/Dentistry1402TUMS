@@ -99,10 +99,12 @@ cursor-paginated and bounded to 100 rows.
 
 Later phases may add Audience resolution, Destination/Delivery planning, an AI
 draft producer, specialized Tasks/Requirements, Exams, Digest and Saba logic.
-Those components must submit structured drafts through the same validator and
-owner confirmation path; they must not mutate storage or send directly. A
-future ClassOps AI credential must be feature-scoped and independent of all
-VoiceMatn/speech credentials.
+The planned AI workstream is `feature/classops-ai-copilot`: a DeepSeek parser
+may produce only a strict structured draft, unknown fields become `null`, and
+deterministic resolution remains outside AI. It has no direct storage mutation
+or send authority and always ends at owner preview/confirmation. Its credential
+must be feature-scoped and independent of all VoiceMatn/speech credentials;
+usage telemetry is aggregate and does not retain sensitive prompts.
 
 `academic_term7.php` remains the official Term 7 schedule and assignment source.
 ClassOps must only overlay later operational exceptions; it must not copy that
