@@ -1695,6 +1695,23 @@ function Get-CommitInfo([string]$Revision) {
     }
 }
 
+function Get-GitCommitMetadata([string]$commitHash) {
+    if ([string]::IsNullOrWhiteSpace($commitHash)) {
+        return $null
+    }
+
+    $metadata = Run-Git -GitArgs @("show", "-s", "--format=%H%n%aI%n%s", $commitHash)
+    if (@($metadata).Count -lt 2) {
+        throw "Unable to read Git commit metadata for $commitHash."
+    }
+
+    return [PSCustomObject]@{
+        Hash        = ([string]$metadata[0]).Trim()
+        CommittedAt = ([string]$metadata[1]).Trim()
+        Subject     = if (@($metadata).Count -ge 3) { ([string]$metadata[2]).Trim() } else { "" }
+    }
+}
+
 function Run-GitSingleAtPath([string]$repoPath, [string[]]$GitArgs) {
     $gitResult = Invoke-GitCommandCapture -repoPath $repoPath -GitArgs $GitArgs
     if ($gitResult.ExitCode -ne 0) {
@@ -2316,17 +2333,18 @@ function Build-DeployPlan() {
             $relative = $file.FullName.Substring($localRoot.Length).TrimStart('\') -replace '\\', '/'
             if (Test-ProtectedPublicHtmlRelativePath -relative $relative) { continue }
             [void]$currentPaths.Add($relative)
-            $property = $lastDeployManifest.Files.PSObject.Properties[$relative]
-            $expectedHash = if ($null -ne $property) { [string]$property.Value.Hash } else { "" }
-            $expectedLength = if ($null -ne $property) { [int64]$property.Value.Length } else { [int64]-1 }
-            $actualLength = [int64]$file.Length
+            # Read-HostDeployManifest intentionally normalizes its persisted
+            # JSON into a Dictionary<string,string>.  Treating that dictionary
+            # as a PSObject enumerates dictionary metadata instead of paths,
+            # causing a false full upload and unsafe pseudo-deletes.
+            $expectedHash = if ($lastDeployManifest.Files.ContainsKey($relative)) { [string]$lastDeployManifest.Files[$relative] } else { "" }
             $actualHash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-            if ($actualLength -ne $expectedLength -or $actualHash -ne $expectedHash.ToLowerInvariant()) {
+            if ([string]::IsNullOrWhiteSpace($expectedHash) -or $actualHash -ne $expectedHash.ToLowerInvariant()) {
                 [void]$uploadSet.Add($relative)
             }
         }
-        foreach ($property in $lastDeployManifest.Files.PSObject.Properties) {
-            $relative = [string]$property.Name
+        foreach ($relative in @($lastDeployManifest.Files.Keys)) {
+            $relative = [string]$relative
             if (-not (Test-ProtectedPublicHtmlRelativePath -relative $relative) -and -not $currentPaths.Contains($relative)) {
                 [void]$deleteSet.Add($relative)
             }

@@ -23,6 +23,16 @@ for needle in required:
     assert needle in DEPLOY, f"missing GitHub-first deploy invariant: {needle}"
 assert "Sync-GitHubFromLaptop -GitHubPlan" not in DEPLOY, "deploy must not invoke post-deploy GitHub sync"
 assert "Run-OptionalPullBeforeDeploy\n" not in DEPLOY, "deploy must not pull inside an immutable release"
+assert "function Get-GitCommitMetadata" in DEPLOY, "release report metadata helper must be defined"
+assert "$lastDeployManifest.Files.ContainsKey($relative)" in DEPLOY, (
+    "host manifest delta must look up normalized dictionary keys, not PSObject properties"
+)
+assert "foreach ($relative in @($lastDeployManifest.Files.Keys))" in DEPLOY, (
+    "host manifest deletion delta must enumerate file keys only"
+)
+assert "Capacity" not in DEPLOY[DEPLOY.index("function Build-DeployPlan"):DEPLOY.index("function Collect-GitHubRangeDelta")], (
+    "manifest delta must never derive pseudo-paths from dictionary object properties"
+)
 assert "--config $configPath" in DEPLOY, "storage snapshot must use shared ignored deploy config"
 assert '$snapshotPath = Join-Path $opsRoot ".codex-local\\remote-storage\\snapshots\\$snapshotName"' in DEPLOY, (
     "storage snapshot must not be written inside a disposable release worktree"
