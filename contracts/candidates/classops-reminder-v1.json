@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dentistry1402tums.ir/contracts/candidates/classops-reminder-v1.json",
+  "title": "ClassOps Reminder Planner v1",
+  "description": "Candidate, integration-not-yet-promoted contract for pure deterministic ClassOps reminder planning. It does not replace classops-v1 or its frozen reminder placeholder.",
+  "oneOf": [
+    { "$ref": "#/$defs/plannerSnapshot" },
+    { "$ref": "#/$defs/plannerResult" }
+  ],
+  "$defs": {
+    "utcTimestamp": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "canonicalItemId": {
+      "type": "string",
+      "pattern": "^cop_[a-f0-9]{24}$"
+    },
+    "machineRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z][A-Za-z0-9._:-]*$"
+    },
+    "catchUp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "maxAgeSeconds"],
+      "properties": {
+        "mode": { "enum": ["skip", "latest_once"] },
+        "maxAgeSeconds": { "type": "integer", "minimum": 0, "maximum": 604800 }
+      }
+    },
+    "absoluteRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleId", "type", "at", "reason"],
+      "properties": {
+        "ruleId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" },
+        "type": { "const": "absolute" },
+        "at": { "$ref": "#/$defs/utcTimestamp" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 160 }
+      }
+    },
+    "relativeRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleId", "type", "anchor", "offsetSeconds", "reason"],
+      "properties": {
+        "ruleId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" },
+        "type": { "const": "relative" },
+        "anchor": { "enum": ["startsAt", "dueAt"] },
+        "offsetSeconds": { "type": "integer", "minimum": -31536000, "maximum": 31536000 },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 160 }
+      }
+    },
+    "daypartRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleId", "type", "anchor", "dayOffset", "daypart", "reason"],
+      "properties": {
+        "ruleId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" },
+        "type": { "const": "daypart" },
+        "anchor": { "enum": ["startsAt", "dueAt"] },
+        "dayOffset": { "type": "integer", "minimum": -31, "maximum": 31 },
+        "daypart": { "enum": ["morning", "afternoon", "evening", "night"] },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 160 }
+      }
+    },
+    "recurringRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ruleId", "type", "frequency", "interval", "localTime", "startAt", "maxOccurrences", "reason"],
+      "properties": {
+        "ruleId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" },
+        "type": { "const": "recurring" },
+        "frequency": { "enum": ["daily", "weekly"] },
+        "interval": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "localTime": { "type": "string", "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$" },
+        "startAt": { "$ref": "#/$defs/utcTimestamp" },
+        "until": { "oneOf": [{ "$ref": "#/$defs/utcTimestamp" }, { "type": "null" }] },
+        "maxOccurrences": { "type": "integer", "minimum": 1, "maximum": 128 },
+        "weekdays": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 7,
+          "uniqueItems": true,
+          "items": { "type": "integer", "minimum": 1, "maximum": 7 }
+        },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 160 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "frequency": { "const": "weekly" } }, "required": ["frequency"] },
+          "then": { "required": ["weekdays"] },
+          "else": { "not": { "required": ["weekdays"] } }
+        }
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "timezone", "catchUp", "rules"],
+      "properties": {
+        "version": { "const": "classops-reminder-v1" },
+        "timezone": { "const": "Asia/Tehran" },
+        "catchUp": { "$ref": "#/$defs/catchUp" },
+        "rules": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/absoluteRule" },
+              { "$ref": "#/$defs/relativeRule" },
+              { "$ref": "#/$defs/daypartRule" },
+              { "$ref": "#/$defs/recurringRule" }
+            ]
+          }
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["itemId", "revision", "itemType", "status", "timing", "audience", "deliveryPolicyRef", "reminderPolicy", "serviceRef"],
+      "properties": {
+        "itemId": { "$ref": "#/$defs/canonicalItemId" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "itemType": { "enum": ["announcement", "event", "class_change", "deadline", "task", "requirement", "exam", "critical_notice", "service_reminder"] },
+        "status": { "enum": ["draft", "scheduled", "active", "completed", "cancelled", "archived"] },
+        "timing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["startsAt", "dueAt"],
+          "properties": {
+            "startsAt": { "oneOf": [{ "$ref": "#/$defs/utcTimestamp" }, { "type": "null" }] },
+            "dueAt": { "oneOf": [{ "$ref": "#/$defs/utcTimestamp" }, { "type": "null" }] }
+          }
+        },
+        "audience": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ref", "hash"],
+          "properties": {
+            "ref": { "$ref": "#/$defs/machineRef" },
+            "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        },
+        "deliveryPolicyRef": { "$ref": "#/$defs/machineRef" },
+        "reminderPolicy": { "$ref": "#/$defs/policy" },
+        "serviceRef": { "oneOf": [{ "$ref": "#/$defs/machineRef" }, { "type": "null" }] }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "itemType": { "const": "service_reminder" } }, "required": ["itemType"] },
+          "then": { "properties": { "serviceRef": { "$ref": "#/$defs/machineRef" } } }
+        }
+      ]
+    },
+    "knownOccurrence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["occurrenceKey", "idempotencyKey", "itemId", "revision", "ruleId", "dueAt", "state"],
+      "properties": {
+        "occurrenceKey": { "type": "string", "pattern": "^occ_[a-f0-9]{64}$" },
+        "idempotencyKey": { "type": "string", "pattern": "^idem_[a-f0-9]{64}$" },
+        "itemId": { "$ref": "#/$defs/canonicalItemId" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "ruleId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$" },
+        "dueAt": { "$ref": "#/$defs/utcTimestamp" },
+        "state": { "enum": ["planned", "leased", "delivered", "failed", "superseded"] }
+      }
+    },
+    "plannerSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "planningHorizonSeconds", "maxOccurrences", "items", "knownOccurrences"],
+      "properties": {
+        "contractVersion": { "const": "classops-reminder-v1" },
+        "planningHorizonSeconds": { "type": "integer", "minimum": 1, "maximum": 2678400 },
+        "maxOccurrences": { "type": "integer", "minimum": 1, "maximum": 128 },
+        "items": { "type": "array", "maxItems": 500, "items": { "$ref": "#/$defs/item" } },
+        "knownOccurrences": { "type": "array", "maxItems": 5000, "items": { "$ref": "#/$defs/knownOccurrence" } }
+      }
+    },
+    "coordination": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requirement", "scope", "sideEffectOwner", "plannerSideEffects"],
+      "properties": {
+        "requirement": { "const": "single_active_leader" },
+        "scope": { "const": "classops-reminder-delivery" },
+        "sideEffectOwner": { "const": "integration-runtime" },
+        "plannerSideEffects": { "const": "none" }
+      }
+    },
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["itemId", "revision", "ruleId", "occurrenceKey", "idempotencyKey", "dueAt", "plannedDueAt", "audienceRef", "audienceHash", "deliveryPolicyRef", "reason", "serviceRef", "catchUp", "coordination"],
+      "properties": {
+        "itemId": { "$ref": "#/$defs/canonicalItemId" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "ruleId": { "type": "string" },
+        "occurrenceKey": { "type": "string", "pattern": "^occ_[a-f0-9]{64}$" },
+        "idempotencyKey": { "type": "string", "pattern": "^idem_[a-f0-9]{64}$" },
+        "dueAt": { "$ref": "#/$defs/utcTimestamp" },
+        "plannedDueAt": { "$ref": "#/$defs/utcTimestamp" },
+        "audienceRef": { "$ref": "#/$defs/machineRef" },
+        "audienceHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "deliveryPolicyRef": { "$ref": "#/$defs/machineRef" },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "serviceRef": { "oneOf": [{ "$ref": "#/$defs/machineRef" }, { "type": "null" }] },
+        "catchUp": { "type": "boolean" },
+        "coordination": { "$ref": "#/$defs/coordination" }
+      }
+    },
+    "supersession": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["occurrenceKey", "itemId", "revision", "dueAt", "reason"],
+      "properties": {
+        "occurrenceKey": { "type": "string", "pattern": "^occ_[a-f0-9]{64}$" },
+        "itemId": { "$ref": "#/$defs/canonicalItemId" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "dueAt": { "$ref": "#/$defs/utcTimestamp" },
+        "reason": { "enum": ["item_missing_from_snapshot", "item_cancelled", "item_archived", "item_completed", "item_revision_changed", "schedule_changed"] }
+      }
+    },
+    "plannerError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "details"],
+      "properties": {
+        "code": { "type": "string", "pattern": "^CLASSOPS_REMINDER_[A-Z0-9_]+$" },
+        "message": { "type": "string" },
+        "details": { "type": "object" }
+      }
+    },
+    "plannerResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ok", "contractVersion", "plannedAt", "horizonEnd", "intents", "supersessions", "errors", "truncated"],
+      "properties": {
+        "ok": { "type": "boolean" },
+        "contractVersion": { "const": "classops-reminder-v1" },
+        "plannedAt": { "oneOf": [{ "$ref": "#/$defs/utcTimestamp" }, { "type": "null" }] },
+        "horizonEnd": { "oneOf": [{ "$ref": "#/$defs/utcTimestamp" }, { "type": "null" }] },
+        "intents": { "type": "array", "maxItems": 128, "items": { "$ref": "#/$defs/intent" } },
+        "supersessions": { "type": "array", "maxItems": 5000, "items": { "$ref": "#/$defs/supersession" } },
+        "errors": { "type": "array", "maxItems": 1, "items": { "$ref": "#/$defs/plannerError" } },
+        "truncated": { "type": "boolean" }
+      }
+    }
+  }
+}
