@@ -218,13 +218,19 @@ function dent_bot_persistence_write_full(string $path, string $payload, array $t
         if (function_exists('fsync') && !@fsync($handle)) {
             throw new DentBotPersistenceException('BOT_STORE_FSYNC_FAILED', 'Unable to fsync bot store temp file');
         }
-        // Verify the descriptor while it is still open. Some shared-host PHP
-        // runtimes retain a stale path stat after a newly-created temp file;
-        // relying on that cache can report a successful fwrite as a false
-        // BOT_STORE_SHORT_WRITE and unnecessarily fail closed.
-        $handleStat = @fstat($handle);
-        if (!is_array($handleStat) || !isset($handleStat['size']) || (int) $handleStat['size'] !== $expected) {
-            throw new DentBotPersistenceException('BOT_STORE_SHORT_WRITE', 'Bot store temp descriptor size mismatch');
+        // Verify the exact bytes through the open descriptor.  A few shared
+        // PHP hosting runtimes expose an unreliable fstat() size for a newly
+        // created file, even after a successful flush.  Descriptor readback
+        // checks the actual payload without depending on a path stat cache or
+        // a filesystem-specific fstat implementation.
+        if (@fseek($handle, 0, SEEK_SET) !== 0) {
+            throw new DentBotPersistenceException('BOT_STORE_TEMP_VERIFY_FAILED', 'Unable to rewind bot store temp file');
+        }
+        $roundTrip = stream_get_contents($handle);
+        if (!is_string($roundTrip)
+            || strlen($roundTrip) !== $expected
+            || !hash_equals(hash('sha256', $payload), hash('sha256', $roundTrip))) {
+            throw new DentBotPersistenceException('BOT_STORE_SHORT_WRITE', 'Bot store temp readback mismatch');
         }
     } finally {
         fclose($handle);

@@ -25,8 +25,9 @@ $persistenceSource = (string) file_get_contents(dirname(__DIR__) . '/public_html
 if (
     strpos($persistenceSource, "min(65536, \$expected - \$written)") === false
     || strpos($persistenceSource, 'filesize($path)') !== false
+    || strpos($persistenceSource, 'stream_get_contents($handle)') === false
 ) {
-    throw new RuntimeException('bot persistence must use bounded writes and descriptor/readback validation, not path filesize validation');
+    throw new RuntimeException('bot persistence must use bounded writes and descriptor readback validation, not path filesize validation');
 }
 
 function test_normalize(array $store): array
@@ -96,9 +97,8 @@ try {
     dent_bot_persistence_initialize($path, $default, 'test_normalize', 'test-initialize');
     test_assert(is_file($path), 'explicit initialization did not create the store');
 
-    // Shared hosts can retain a stale path stat across a delete/recreate. The
-    // writer must validate its own descriptor and clear the path cache rather
-    // than turning a completed write into a false SHORT_WRITE incident.
+    // A completed temp write is verified by descriptor readback, rather than
+    // an unreliable path stat from a shared-host PHP runtime.
     $statProbe = $root . DIRECTORY_SEPARATOR . 'stat-probe.json';
     file_put_contents($statProbe, 'old', LOCK_EX);
     test_assert(filesize($statProbe) === 3, 'unable to prime stat cache');
