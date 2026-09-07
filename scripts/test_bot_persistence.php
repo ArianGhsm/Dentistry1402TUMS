@@ -21,6 +21,14 @@ if (!function_exists('dent_clean_text')) {
 
 require_once dirname(__DIR__) . '/public_html/api/bot_persistence.php';
 
+$persistenceSource = (string) file_get_contents(dirname(__DIR__) . '/public_html/api/bot_persistence.php');
+if (
+    strpos($persistenceSource, "min(65536, \$expected - \$written)") === false
+    || strpos($persistenceSource, 'filesize($path)') !== false
+) {
+    throw new RuntimeException('bot persistence must use bounded writes and descriptor/readback validation, not path filesize validation');
+}
+
 function test_normalize(array $store): array
 {
     if (isset($store['records']) && !is_array($store['records'])) {

@@ -198,7 +198,7 @@ function dent_bot_persistence_write_full(string $path, string $payload, array $t
     $shortAfter = max(0, (int) ($testOptions['shortWriteAfterBytes'] ?? 0));
     try {
         while ($written < $expected) {
-            $remaining = substr($payload, $written);
+            $remaining = substr($payload, $written, min(65536, $expected - $written));
             if ($shortAfter > 0) {
                 $remaining = substr($remaining, 0, max(1, min(strlen($remaining), $shortAfter - $written)));
             }
@@ -229,10 +229,8 @@ function dent_bot_persistence_write_full(string $path, string $payload, array $t
     } finally {
         fclose($handle);
     }
-    clearstatcache(true, $path);
-    $pathSize = @filesize($path);
-    if ($written !== $expected || !is_int($pathSize) || $pathSize !== $expected) {
-        throw new DentBotPersistenceException('BOT_STORE_SHORT_WRITE', 'Bot store temp file size mismatch');
+    if ($written !== $expected) {
+        throw new DentBotPersistenceException('BOT_STORE_SHORT_WRITE', 'Bot store temp write count mismatch');
     }
     return $written;
 }
