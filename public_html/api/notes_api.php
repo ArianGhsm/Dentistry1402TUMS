@@ -181,8 +181,11 @@ function notes_direct_upload_load_store_unlocked(): array
 {
     notes_direct_upload_ensure_storage();
     $raw = dent_read_json_file(notes_direct_upload_store_path(), notes_direct_upload_default_store());
-    if (!is_array($raw)) {
-        $raw = notes_direct_upload_default_store();
+    if (!isset($raw['sessions']) || !is_array($raw['sessions'])) {
+        throw new DentJsonPersistenceException(
+            'NOTES_DIRECT_UPLOAD_STORE_SCHEMA_INVALID',
+            'Existing direct-upload session store has an invalid schema'
+        );
     }
 
     return notes_direct_upload_normalize_store($raw);
@@ -1376,8 +1379,11 @@ function notes_1402_normalize_store(array $seed): array
 function notes_1402_load_store_unlocked(): array
 {
     $raw = dent_read_json_file(notes_1402_store_path(), notes_1402_default_store());
-    if (!is_array($raw)) {
-        $raw = notes_1402_default_store();
+    if (!isset($raw['terms']) || !is_array($raw['terms'])) {
+        throw new DentJsonPersistenceException(
+            'NOTES_1402_STORE_SCHEMA_INVALID',
+            'Existing notes 1402 store has an invalid schema'
+        );
     }
     $raw = notes_1402_apply_term_5_seed_backfill($raw);
     $raw = notes_1402_apply_pulp_periapical_curriculum_fix($raw);
@@ -1541,8 +1547,11 @@ function notes_1404_ensure_storage(): void
 function notes_1403_load_store_unlocked(): array
 {
     $raw = dent_read_json_file(notes_1403_store_path(), notes_1403_default_store());
-    if (!is_array($raw)) {
-        $raw = notes_1403_default_store();
+    if (!isset($raw['terms']) || !is_array($raw['terms'])) {
+        throw new DentJsonPersistenceException(
+            'NOTES_1403_STORE_SCHEMA_INVALID',
+            'Existing notes 1403 store has an invalid schema'
+        );
     }
 
     return notes_1403_normalize_store($raw);
@@ -1556,8 +1565,11 @@ function notes_1403_save_store_unlocked(array $store): void
 function notes_1404_load_store_unlocked(): array
 {
     $raw = dent_read_json_file(notes_1404_store_path(), notes_1404_default_store());
-    if (!is_array($raw)) {
-        $raw = notes_1404_default_store();
+    if (!isset($raw['terms']) || !is_array($raw['terms'])) {
+        throw new DentJsonPersistenceException(
+            'NOTES_1404_STORE_SCHEMA_INVALID',
+            'Existing notes 1404 store has an invalid schema'
+        );
     }
 
     return notes_1404_normalize_store($raw);
@@ -1688,8 +1700,11 @@ function notes_prosthesis_1402_normalize_store(array $seed): array
 function notes_prosthesis_1402_load_store_unlocked(): array
 {
     $raw = dent_read_json_file(notes_prosthesis_1402_store_path(), notes_prosthesis_1402_default_store());
-    if (!is_array($raw)) {
-        $raw = notes_prosthesis_1402_default_store();
+    if (!isset($raw['terms']) || !is_array($raw['terms'])) {
+        throw new DentJsonPersistenceException(
+            'NOTES_PROSTHESIS_STORE_SCHEMA_INVALID',
+            'Existing prosthesis notes store has an invalid schema'
+        );
     }
 
     return notes_prosthesis_1402_normalize_store($raw);

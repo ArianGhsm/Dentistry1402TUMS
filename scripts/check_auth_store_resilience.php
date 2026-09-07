@@ -131,6 +131,23 @@ try {
         }
     }
 
+    $brokenPrimary = '{"broken":';
+    $brokenBackup = '{"schemaVersion":2,"users":false}';
+    file_put_contents($primaryPath, $brokenPrimary, LOCK_EX);
+    file_put_contents($backupPath, $brokenBackup, LOCK_EX);
+    dent_auth_store_runtime_cache(null, false, true);
+    try {
+        dent_load_user_store();
+        throw new RuntimeException('Auth loader accepted two invalid generations.');
+    } catch (DentJsonPersistenceException $exception) {
+        if ($exception->reasonCode !== 'AUTH_STORE_NO_VALID_GENERATION') {
+            throw $exception;
+        }
+    }
+    if (file_get_contents($primaryPath) !== $brokenPrimary || file_get_contents($backupPath) !== $brokenBackup) {
+        throw new RuntimeException('Auth loader overwrote invalid forensic generations.');
+    }
+
     fwrite(STDOUT, "Auth store resilience check passed.\n");
     $exitCode = 0;
 } finally {

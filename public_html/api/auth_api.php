@@ -7,10 +7,8 @@ require_once __DIR__ . '/grades_store.php';
 
 function dent_owner_dis_request_private_index(): array
 {
-    $store = dent_read_json_file(dent_storage_path('dis_request/store.json'), [
-        'responses' => [],
-    ]);
-    $responses = is_array($store['responses'] ?? null) ? $store['responses'] : [];
+    $store = dent_auth_load_dis_request_store();
+    $responses = $store['responses'];
     $index = [];
 
     foreach ($responses as $studentNumber => $record) {

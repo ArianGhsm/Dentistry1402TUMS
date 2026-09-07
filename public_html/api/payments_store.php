@@ -218,8 +218,18 @@ function payments_with_store_lock(callable $callback)
 function payments_load_store_unlocked(): array
 {
     $raw = dent_read_json_file(payments_store_path(), payments_default_store());
-    if (!is_array($raw)) {
-        $raw = payments_default_store();
+    if (
+        !is_array($raw)
+        || !isset($raw['items'])
+        || !is_array($raw['items'])
+        || !isset($raw['orders'])
+        || !is_array($raw['orders'])
+        || (isset($raw['schemaVersion']) && (!is_int($raw['schemaVersion']) || $raw['schemaVersion'] < 1))
+    ) {
+        throw new DentJsonPersistenceException(
+            'PAYMENTS_STORE_SCHEMA_INVALID',
+            'Existing payment store has an invalid schema'
+        );
     }
 
     return payments_normalize_store($raw);

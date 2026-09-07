@@ -781,6 +781,19 @@ function forms_load_store(): array
         $sources[] = ['raw' => dent_read_json_file($path, forms_default_store()), 'fallbackCohort' => forms_clean_cohort($cohort)];
     }
 
+    foreach ($sources as $source) {
+        $raw = $source['raw'] ?? null;
+        if (!is_array($raw)
+            || !isset($raw['forms'], $raw['responses'])
+            || !is_array($raw['forms'])
+            || !is_array($raw['responses'])) {
+            throw new DentJsonPersistenceException(
+                'FORMS_STORE_SCHEMA_INVALID',
+                'Existing forms store has an invalid schema'
+            );
+        }
+    }
+
     $forms = [];
     $needsSharedBackfill = false;
     foreach ($sources as $source) {

@@ -57,8 +57,11 @@ function content_load_store_unlocked(): array
 {
     content_ensure_storage();
     $raw = dent_read_json_file(content_store_path(), content_default_store());
-    if (!is_array($raw)) {
-        $raw = content_default_store();
+    if (!isset($raw['files'], $raw['pastes']) || !is_array($raw['files']) || !is_array($raw['pastes'])) {
+        throw new DentJsonPersistenceException(
+            'CONTENT_STORE_SCHEMA_INVALID',
+            'Existing content-tools store has an invalid schema'
+        );
     }
     return content_normalize_store($raw);
 }

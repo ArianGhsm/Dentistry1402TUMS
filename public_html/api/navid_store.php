@@ -66,8 +66,15 @@ function navid_default_store(): array
 function navid_load_store(): array
 {
     $raw = dent_read_json_file(navid_store_path(), navid_default_store());
-    if (!is_array($raw)) {
-        $raw = navid_default_store();
+    if (!isset($raw['config'], $raw['state'], $raw['snapshot'], $raw['updates'])
+        || !is_array($raw['config'])
+        || !is_array($raw['state'])
+        || !is_array($raw['snapshot'])
+        || !is_array($raw['updates'])) {
+        throw new DentJsonPersistenceException(
+            'NAVID_STORE_SCHEMA_INVALID',
+            'Existing Navid store has an invalid schema'
+        );
     }
 
     $defaults = navid_default_store();
@@ -174,22 +181,7 @@ function navid_secret_key(): string
         return $cached;
     }
 
-    $path = navid_secret_key_path();
-    if (is_file($path)) {
-        $content = trim((string) file_get_contents($path));
-        if ($content !== '') {
-            $decoded = base64_decode($content, true);
-            if (is_string($decoded) && strlen($decoded) === 32) {
-                $cached = $decoded;
-                return $cached;
-            }
-        }
-    }
-
-    $key = random_bytes(32);
-    dent_ensure_directory(dirname($path));
-    @file_put_contents($path, base64_encode($key), LOCK_EX);
-    $cached = $key;
+    $cached = dent_load_or_create_base64_secret_file(navid_secret_key_path());
     return $cached;
 }
 

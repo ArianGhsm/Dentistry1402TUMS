@@ -132,8 +132,11 @@ function dent_exams_with_store_lock(callable $callback)
 function dent_exams_load_store_unlocked(): array
 {
     $raw = dent_read_json_file(dent_exams_store_path(), dent_exams_default_store());
-    if (!is_array($raw)) {
-        $raw = dent_exams_default_store();
+    if (!isset($raw['courseSettings'], $raw['examRecords']) || !is_array($raw['courseSettings']) || !is_array($raw['examRecords'])) {
+        throw new DentJsonPersistenceException(
+            'EXAMS_STORE_SCHEMA_INVALID',
+            'Existing exam store has an invalid schema'
+        );
     }
 
     return dent_exams_normalize_store($raw);

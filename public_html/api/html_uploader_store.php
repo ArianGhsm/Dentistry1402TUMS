@@ -47,8 +47,11 @@ function html_uploader_load_store_unlocked(): array
 {
     html_uploader_ensure_storage();
     $raw = dent_read_json_file(html_uploader_store_path(), html_uploader_default_store());
-    if (!is_array($raw)) {
-        $raw = html_uploader_default_store();
+    if (!isset($raw['pages']) || !is_array($raw['pages'])) {
+        throw new DentJsonPersistenceException(
+            'HTML_UPLOADER_STORE_SCHEMA_INVALID',
+            'Existing HTML uploader store has an invalid schema'
+        );
     }
     return html_uploader_normalize_store($raw);
 }

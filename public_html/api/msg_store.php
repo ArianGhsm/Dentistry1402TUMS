@@ -48,7 +48,13 @@ function msg_load_unlocked(): array
 {
     msg_ensure_storage();
     $raw = dent_read_json_file(msg_store_path(), msg_default_store());
-    return is_array($raw) ? $raw : msg_default_store();
+    if (!isset($raw['cards']) || !is_array($raw['cards'])) {
+        throw new DentJsonPersistenceException(
+            'MSG_STORE_SCHEMA_INVALID',
+            'Existing message-card store has an invalid schema'
+        );
+    }
+    return $raw;
 }
 
 function msg_read_store(): array

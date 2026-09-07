@@ -247,6 +247,12 @@ function dent_read_grades_meta(): array
         'schemaVersion' => 1,
         'courses' => [],
     ]);
+    if (!isset($raw['courses']) || !is_array($raw['courses'])) {
+        throw new DentJsonPersistenceException(
+            'GRADES_META_SCHEMA_INVALID',
+            'Existing grade metadata store has an invalid schema'
+        );
+    }
 
     $courses = [];
     foreach (($raw['courses'] ?? []) as $key => $course) {

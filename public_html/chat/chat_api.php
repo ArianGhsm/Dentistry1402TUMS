@@ -963,39 +963,10 @@ function chat_read_presence_store_file(): ?array
 
 function chat_write_presence_store_file(array $store): void
 {
-    dent_ensure_directory(dirname(chat_presence_path()));
-
-    $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
-    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
-        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
-    }
-
     $store = chat_normalize_presence_store($store);
     $store['schemaVersion'] = CHAT_PRESENCE_SCHEMA_VERSION;
     $store['updatedAt'] = time();
-
-    $json = json_encode($store, $flags);
-    if ($json === false) {
-        dent_error('Chat presence JSON encoding failed.', 500);
-    }
-
-    $path = chat_presence_path();
-    $tmpPath = $path . '.tmp.' . getmypid() . '.' . str_replace('.', '', uniqid('', true));
-    if (@file_put_contents($tmpPath, $json . PHP_EOL, LOCK_EX) === false) {
-        @unlink($tmpPath);
-        dent_error('Chat presence write failed.', 500);
-    }
-    @chmod($tmpPath, 0644);
-
-    if (!@rename($tmpPath, $path)) {
-        if (is_file($path)) {
-            @unlink($path);
-        }
-        if (!@rename($tmpPath, $path)) {
-            @unlink($tmpPath);
-            dent_error('Chat presence replace failed.', 500);
-        }
-    }
+    dent_write_json_file(chat_presence_path(), $store);
 }
 
 function chat_load_presence_store(): array
@@ -2969,44 +2940,26 @@ function chat_read_store_file(): ?array
     if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
         dent_error('Chat canonical store is temporarily invalid. Deployment must not fall back to legacy files.', 503);
     }
+    if (
+        !isset($decoded['conversations'])
+        || !is_array($decoded['conversations'])
+        || !isset($decoded['messages'])
+        || !is_array($decoded['messages'])
+    ) {
+        throw new DentJsonPersistenceException(
+            'CHAT_STORE_SCHEMA_INVALID',
+            'Existing chat store has an invalid schema'
+        );
+    }
 
     return $decoded;
 }
 
 function chat_write_store_file(array $store): void
 {
-    dent_ensure_directory(dirname(chat_store_path()));
-
-    $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
-    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
-        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
-    }
-
     $store['schemaVersion'] = CHAT_SCHEMA_VERSION;
     $store['classConversationId'] = CHAT_CLASS_CONVERSATION_ID;
-
-    $json = json_encode($store, $flags);
-    if ($json === false) {
-        dent_error('Chat store JSON encoding failed.', 500);
-    }
-
-    $path = chat_store_path();
-    $tmpPath = $path . '.tmp.' . getmypid() . '.' . str_replace('.', '', uniqid('', true));
-    if (@file_put_contents($tmpPath, $json . PHP_EOL, LOCK_EX) === false) {
-        @unlink($tmpPath);
-        dent_error('Chat store write failed.', 500);
-    }
-    @chmod($tmpPath, 0644);
-
-    if (!@rename($tmpPath, $path)) {
-        if (is_file($path)) {
-            @unlink($path);
-        }
-        if (!@rename($tmpPath, $path)) {
-            @unlink($tmpPath);
-            dent_error('Chat store replace failed.', 500);
-        }
-    }
+    dent_write_json_file(chat_store_path(), $store);
 }
 
 function chat_migrate_from_legacy_files(): array

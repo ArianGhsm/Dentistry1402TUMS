@@ -115,11 +115,19 @@ function push_read_store(): array
     push_ensure_storage();
     $lock = fopen(push_store_lock_path(), 'c+');
     if ($lock === false) {
-        return push_default_store();
+        dent_error('قفل خواندن اعلان‌های مرورگر در دسترس نیست.', 503);
     }
     try {
-        @flock($lock, LOCK_SH);
+        if (!flock($lock, LOCK_SH)) {
+            dent_error('قفل خواندن اعلان‌های مرورگر آماده نشد.', 503);
+        }
         $raw = dent_read_json_file(push_store_path(), push_default_store());
+        if (!isset($raw['subscriptions']) || !is_array($raw['subscriptions'])) {
+            throw new DentJsonPersistenceException(
+                'PUSH_STORE_SCHEMA_INVALID',
+                'Existing push subscription store has an invalid schema'
+            );
+        }
         return push_normalize_store($raw);
     } finally {
         @flock($lock, LOCK_UN);
@@ -144,6 +152,12 @@ function push_with_store_lock(callable $callback)
             dent_error('قفل ذخیره‌سازی اعلان‌های مرورگر آماده نشد.', 500);
         }
         $raw = dent_read_json_file(push_store_path(), push_default_store());
+        if (!isset($raw['subscriptions']) || !is_array($raw['subscriptions'])) {
+            throw new DentJsonPersistenceException(
+                'PUSH_STORE_SCHEMA_INVALID',
+                'Existing push subscription store has an invalid schema'
+            );
+        }
         $store = push_normalize_store($raw);
         $result = $callback($store);
         dent_write_json_file(push_store_path(), push_normalize_store($store));
@@ -170,21 +184,36 @@ function push_load_or_create_vapid(): ?array
         return null;
     }
 
-    $existing = dent_read_json_file(push_vapid_path(), null);
+    $vapidPath = push_vapid_path();
+    $existing = dent_read_json_file($vapidPath, null);
     if (is_array($existing) && !empty($existing['publicKey']) && !empty($existing['privateKeyPem'])) {
         return $existing;
     }
+    if (is_file($vapidPath)) {
+        throw new DentJsonPersistenceException(
+            'VAPID_STORE_SCHEMA_INVALID',
+            'Existing VAPID identity store has an invalid schema'
+        );
+    }
 
-    dent_ensure_directory(dirname(push_vapid_path()));
+    dent_ensure_directory(dirname($vapidPath));
     $lock = fopen(push_vapid_lock_path(), 'c+');
     if ($lock === false) {
-        return null;
+        dent_error('قفل کلید اعلان‌های مرورگر در دسترس نیست.', 503);
     }
     try {
-        @flock($lock, LOCK_EX);
-        $existing = dent_read_json_file(push_vapid_path(), null);
+        if (!flock($lock, LOCK_EX)) {
+            dent_error('قفل کلید اعلان‌های مرورگر آماده نشد.', 503);
+        }
+        $existing = dent_read_json_file($vapidPath, null);
         if (is_array($existing) && !empty($existing['publicKey']) && !empty($existing['privateKeyPem'])) {
             return $existing;
+        }
+        if (is_file($vapidPath)) {
+            throw new DentJsonPersistenceException(
+                'VAPID_STORE_SCHEMA_INVALID',
+                'Existing VAPID identity store has an invalid schema'
+            );
         }
 
         $resource = openssl_pkey_new([
@@ -210,7 +239,7 @@ function push_load_or_create_vapid(): ?array
             'privateKeyPem' => $privatePem,
             'createdAt' => dent_iso_now(),
         ];
-        dent_write_json_file(push_vapid_path(), $vapid);
+        dent_write_json_file($vapidPath, $vapid);
 
         return $vapid;
     } finally {

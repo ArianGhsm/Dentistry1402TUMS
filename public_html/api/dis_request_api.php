@@ -25,14 +25,13 @@ function dis_request_default_store(): array
 function dis_request_load_store(): array
 {
     $store = dent_read_json_file(dis_request_store_path(), dis_request_default_store());
-    if (!is_array($store)) {
-        $store = dis_request_default_store();
+    if (!isset($store['responses']) || !is_array($store['responses'])) {
+        throw new DentJsonPersistenceException(
+            'DIS_REQUEST_STORE_SCHEMA_INVALID',
+            'Existing DIS request store has an invalid schema'
+        );
     }
-
-    $responses = $store['responses'] ?? [];
-    if (!is_array($responses)) {
-        $responses = [];
-    }
+    $responses = $store['responses'];
 
     $normalizedResponses = [];
     foreach ($responses as $studentNumber => $response) {

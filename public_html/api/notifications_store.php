@@ -55,8 +55,17 @@ function notifications_load_store_unlocked(): array
 {
     notifications_ensure_storage();
     $raw = dent_read_json_file(notifications_store_path(), notifications_default_store());
-    if (!is_array($raw)) {
-        $raw = notifications_default_store();
+    if (
+        !is_array($raw)
+        || !isset($raw['notifications'])
+        || !is_array($raw['notifications'])
+        || !isset($raw['userStates'])
+        || !is_array($raw['userStates'])
+    ) {
+        throw new DentJsonPersistenceException(
+            'NOTIFICATIONS_STORE_SCHEMA_INVALID',
+            'Existing notification store has an invalid schema'
+        );
     }
 
     return notifications_normalize_store($raw);

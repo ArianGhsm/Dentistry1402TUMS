@@ -623,6 +623,83 @@ function dent_write_json_file(string $path, $payload, bool $lockAlreadyHeld = fa
     }
 }
 
+function dent_load_or_create_base64_secret_file(string $path): string
+{
+    dent_ensure_directory(dirname($path));
+    $lock = @fopen($path . '.lock', 'c');
+    if ($lock === false || !@flock($lock, LOCK_EX)) {
+        if (is_resource($lock)) {
+            @fclose($lock);
+        }
+        throw new DentJsonPersistenceException('SECRET_KEY_LOCK_FAILED', 'Unable to lock secret key storage');
+    }
+
+    $temp = '';
+    try {
+        if (file_exists($path)) {
+            $raw = @file_get_contents($path);
+            if ($raw === false || trim($raw) === '') {
+                throw new DentJsonPersistenceException('SECRET_KEY_UNREADABLE', 'Existing secret key is unreadable or empty');
+            }
+            $decoded = base64_decode(trim($raw), true);
+            if (!is_string($decoded) || strlen($decoded) !== 32) {
+                throw new DentJsonPersistenceException('SECRET_KEY_CORRUPT', 'Existing secret key is invalid');
+            }
+            return $decoded;
+        }
+
+        $key = random_bytes(32);
+        $encoded = base64_encode($key) . PHP_EOL;
+        $temp = $path . '.tmp.' . bin2hex(random_bytes(6));
+        $handle = @fopen($temp, 'xb');
+        if ($handle === false) {
+            throw new DentJsonPersistenceException('SECRET_KEY_TEMP_OPEN_FAILED', 'Unable to open secret key temporary generation');
+        }
+        $writtenTotal = 0;
+        try {
+            $expected = strlen($encoded);
+            while ($writtenTotal < $expected) {
+                $written = @fwrite($handle, substr($encoded, $writtenTotal));
+                if ($written === false || $written === 0) {
+                    throw new DentJsonPersistenceException('SECRET_KEY_SHORT_WRITE', 'Short secret key generation write');
+                }
+                $writtenTotal += $written;
+            }
+            if (!@fflush($handle)) {
+                throw new DentJsonPersistenceException('SECRET_KEY_FLUSH_FAILED', 'Unable to flush secret key generation');
+            }
+            if (function_exists('fsync') && !@fsync($handle)) {
+                throw new DentJsonPersistenceException('SECRET_KEY_FSYNC_FAILED', 'Unable to sync secret key generation');
+            }
+        } finally {
+            @fclose($handle);
+        }
+        @chmod($temp, 0600);
+        $verified = @file_get_contents($temp);
+        $verifiedKey = is_string($verified) ? base64_decode(trim($verified), true) : false;
+        if (
+            !is_string($verified)
+            || strlen($verified) !== strlen($encoded)
+            || !is_string($verifiedKey)
+            || strlen($verifiedKey) !== 32
+            || !hash_equals($key, $verifiedKey)
+        ) {
+            throw new DentJsonPersistenceException('SECRET_KEY_TEMP_INVALID', 'Secret key generation validation failed');
+        }
+        if (!@rename($temp, $path)) {
+            throw new DentJsonPersistenceException('SECRET_KEY_COMMIT_FAILED', 'Atomic secret key generation commit failed');
+        }
+        $temp = '';
+        return $key;
+    } finally {
+        if ($temp !== '' && is_file($temp)) {
+            @unlink($temp);
+        }
+        @flock($lock, LOCK_UN);
+        @fclose($lock);
+    }
+}
+
 function dent_request_action(): string
 {
     $action = $_POST['action'] ?? $_GET['action'] ?? '';

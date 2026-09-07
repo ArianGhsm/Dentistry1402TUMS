@@ -559,6 +559,12 @@ function dent_decode_auth_store_snapshot(string $path): ?array
     if (!is_array($decoded) || json_last_error() !== JSON_ERROR_NONE) {
         return null;
     }
+    if (!isset($decoded['users']) || !is_array($decoded['users'])) {
+        return null;
+    }
+    if (isset($decoded['schemaVersion']) && (!is_int($decoded['schemaVersion']) || $decoded['schemaVersion'] < 1)) {
+        return null;
+    }
 
     return $decoded;
 }
@@ -1794,7 +1800,8 @@ function dent_load_user_store(): array
     $backupPath = dent_auth_store_backup_path();
     $seedPayload = dent_auth_store_seed_payload();
     $storeFileExists = is_file($path);
-    $backupMissing = !is_file($backupPath);
+    $backupFileExists = is_file($backupPath);
+    $backupMissing = !$backupFileExists;
     $store = dent_decode_auth_store_snapshot($path);
     $backupStore = dent_decode_auth_store_snapshot($backupPath);
     $restoredFromBackup = false;
@@ -1804,6 +1811,11 @@ function dent_load_user_store(): array
         if (is_array($backupStore)) {
             $store = $backupStore;
             $restoredFromBackup = true;
+        } elseif ($storeFileExists || $backupFileExists) {
+            throw new DentJsonPersistenceException(
+                'AUTH_STORE_NO_VALID_GENERATION',
+                'No valid auth store generation is available'
+            );
         } else {
             $store = $seedPayload;
         }
@@ -2035,6 +2047,19 @@ function dent_auth_sessions_default_store(): array
     ];
 }
 
+function dent_auth_sessions_load_store(): array
+{
+    $path = dent_auth_sessions_path();
+    $store = dent_read_json_file($path, dent_auth_sessions_default_store());
+    if (!isset($store['sessions']) || !is_array($store['sessions'])) {
+        throw new DentJsonPersistenceException(
+            'AUTH_SESSIONS_SCHEMA_INVALID',
+            'Existing auth session store has an invalid schema'
+        );
+    }
+    return $store;
+}
+
 function dent_auth_sessions_with_lock(callable $callback, bool $required = false): array
 {
     $path = dent_auth_sessions_path();
@@ -2051,11 +2076,7 @@ function dent_auth_sessions_with_lock(callable $callback, bool $required = false
     }
 
     try {
-        $store = dent_read_json_file($path, dent_auth_sessions_default_store());
-        if (!is_array($store)) {
-            $store = dent_auth_sessions_default_store();
-        }
-        $store['sessions'] = is_array($store['sessions'] ?? null) ? $store['sessions'] : [];
+        $store = dent_auth_sessions_load_store();
 
         $now = time();
         foreach ($store['sessions'] as $id => $row) {
@@ -2197,7 +2218,7 @@ function dent_auth_session_validate_and_touch(string $studentNumber): bool
         return true;
     }
 
-    $store = dent_read_json_file(dent_auth_sessions_path(), dent_auth_sessions_default_store());
+    $store = dent_auth_sessions_load_store();
     $record = is_array($store['sessions'][$id] ?? null) ? $store['sessions'][$id] : null;
     if (!is_array($record)) {
         dent_auth_session_register($studentNumber, true);
@@ -2236,7 +2257,7 @@ function dent_auth_sessions_for_user(array $user): array
     $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
     dent_auth_session_validate_and_touch($studentNumber);
     $currentId = trim((string) ($_SESSION['auth_session_public_id'] ?? ''));
-    $store = dent_read_json_file(dent_auth_sessions_path(), dent_auth_sessions_default_store());
+    $store = dent_auth_sessions_load_store();
     $sessions = [];
     foreach (($store['sessions'] ?? []) as $record) {
         if (!is_array($record) || (string) ($record['userKey'] ?? '') !== $studentNumber || (string) ($record['status'] ?? '') !== 'active') {
@@ -3281,8 +3302,11 @@ function dent_load_auth_meta_store(): array
 {
     $defaults = dent_default_auth_meta_store();
     $raw = dent_read_json_file(dent_auth_meta_path(), $defaults);
-    if (!is_array($raw)) {
-        $raw = $defaults;
+    if (!isset($raw['sms'], $raw['otp']) || !is_array($raw['sms']) || !is_array($raw['otp'])) {
+        throw new DentJsonPersistenceException(
+            'AUTH_META_SCHEMA_INVALID',
+            'Existing authentication metadata store has an invalid schema'
+        );
     }
 
     $store = $defaults;
@@ -3426,22 +3450,7 @@ function dent_auth_secret_key(): string
         return $cached;
     }
 
-    $path = dent_auth_secret_key_path();
-    if (is_file($path)) {
-        $content = trim((string) file_get_contents($path));
-        if ($content !== '') {
-            $decoded = base64_decode($content, true);
-            if (is_string($decoded) && strlen($decoded) === 32) {
-                $cached = $decoded;
-                return $cached;
-            }
-        }
-    }
-
-    $key = random_bytes(32);
-    dent_ensure_directory(dirname($path));
-    @file_put_contents($path, base64_encode($key), LOCK_EX);
-    $cached = $key;
+    $cached = dent_load_or_create_base64_secret_file(dent_auth_secret_key_path());
     return $cached;
 }
 
@@ -3579,12 +3588,24 @@ function dent_user_phone_ready_for_otp(array $user): bool
     return $phoneNumber !== '' && $verifiedAt !== '' && $otpEnabled;
 }
 
-function dent_auth_dis_request_phone_index(): array
+function dent_auth_load_dis_request_store(): array
 {
     $store = dent_read_json_file(dent_storage_path('dis_request/store.json'), [
         'responses' => [],
     ]);
-    $responses = is_array($store['responses'] ?? null) ? $store['responses'] : [];
+    if (!isset($store['responses']) || !is_array($store['responses'])) {
+        throw new DentJsonPersistenceException(
+            'DIS_REQUEST_STORE_SCHEMA_INVALID',
+            'Existing DIS request store has an invalid schema'
+        );
+    }
+    return $store;
+}
+
+function dent_auth_dis_request_phone_index(): array
+{
+    $store = dent_auth_load_dis_request_store();
+    $responses = $store['responses'];
     $index = [];
 
     foreach ($responses as $studentNumber => $record) {
@@ -3615,10 +3636,8 @@ function dent_dis_request_private_identity_for_student(string $studentNumber): a
     if ($studentNumber === '') {
         return ['nationalCode' => '', 'phoneNumber' => ''];
     }
-    $store = dent_read_json_file(dent_storage_path('dis_request/store.json'), [
-        'responses' => [],
-    ]);
-    $responses = is_array($store['responses'] ?? null) ? $store['responses'] : [];
+    $store = dent_auth_load_dis_request_store();
+    $responses = $store['responses'];
     $record = is_array($responses[$studentNumber] ?? null) ? $responses[$studentNumber] : null;
     if (!is_array($record)) {
         foreach ($responses as $candidate) {
