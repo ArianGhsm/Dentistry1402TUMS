@@ -61,6 +61,34 @@ with tempfile.TemporaryDirectory(prefix="dent-snapshot-test-") as temp:
     if sentinel.read_text(encoding="utf-8") != "known-good":
         raise AssertionError("failed snapshot changed latest")
 
+    valid = {
+        "storage/integrations/bot_links.json": b'{"schemaVersion":6,"links":{},"audit":[]}',
+        "storage/integrations/bot_payment_deliveries.json": b'{"schemaVersion":1,"deliveries":{},"poll":{}}',
+        "storage/integrations/bot_notification_deliveries.json": b'{"schemaVersion":1,"deliveries":{},"dispatchSince":""}',
+        "storage/auth/users.json": b'{"schemaVersion":2,"ownerStudentNumber":"1","cohorts":{},"users":{}}',
+        "storage/payments/store.json": b'{"schemaVersion":3,"orders":[],"items":[],"gateways":[],"collections":[]}',
+    }
+    for relative in ("auth/users.json", "payments/store.json"):
+        broken = dict(valid)
+        broken["storage/" + relative] = b"{}"
+        candidate = base / ("invalid-" + relative.replace("/", "-"))
+        candidate.mkdir()
+        snapshot.connect = lambda _config, files=broken: FakeFtp(files)
+        try:
+            snapshot.capture_once(Path("unused"), "storage", candidate, critical_only=True)
+        except snapshot.SnapshotError:
+            pass
+        else:
+            raise AssertionError(f"empty critical store was accepted: {relative}")
+
+    eligible_candidate = base / "eligible-candidate"
+    eligible_candidate.mkdir()
+    snapshot.connect = lambda _config: FakeFtp(valid)
+    manifest = snapshot.capture_once(Path("unused"), "storage", eligible_candidate, critical_only=True)
+    if manifest["consistency"]["eligibleForLatest"] is not False:
+        raise AssertionError("critical-only evidence was marked eligible for latest")
+    snapshot.connect = original_connect
+
 deploy = (ROOT / "scripts" / "deploy_public_html.ps1").read_text(encoding="utf-8")
 eligibility = deploy.index("eligibleForLatest")
 promotion = deploy.index("Reset-DirectoryFromSource -source $snapshotPath")

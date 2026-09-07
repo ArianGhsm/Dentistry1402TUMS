@@ -5,6 +5,14 @@ if (!defined('DENT_PROJECT_ROOT')) {
     define('DENT_PROJECT_ROOT', dirname(__DIR__, 2));
 }
 
+final class DentJsonPersistenceException extends RuntimeException
+{
+    public function __construct(public readonly string $reasonCode, string $message)
+    {
+        parent::__construct($message);
+    }
+}
+
 function dent_env_value(string $name): string
 {
     $value = getenv($name);
@@ -207,18 +215,26 @@ function dent_bootstrap(): void
     }
 
     set_exception_handler(static function (Throwable $exception): void {
+        $status = $exception instanceof DentJsonPersistenceException ? 503 : 500;
         dent_error_log_record([
             'type' => 'exception',
             'message' => get_class($exception) . ': ' . $exception->getMessage(),
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
-            'status' => 500,
+            'status' => $status,
         ]);
 
         if (headers_sent()) {
             return;
         }
 
+        if ($exception instanceof DentJsonPersistenceException) {
+            dent_json_response([
+                'success' => false,
+                'error' => 'ذخیره‌سازی موقتاً در دسترس نیست؛ داده موجود دست‌نخورده باقی ماند.',
+                'code' => $exception->reasonCode,
+            ], 503);
+        }
         dent_emit_fallback_json_error('خطای داخلی سرور رخ داد.', 500);
     });
 
@@ -502,18 +518,21 @@ function dent_read_json_file(string $path, $default)
 
     $raw = file_get_contents($path);
     if ($raw === false || trim($raw) === '') {
-        return $default;
+        throw new DentJsonPersistenceException('JSON_STORE_UNREADABLE', 'Existing JSON store is unreadable or empty');
     }
 
     $decoded = json_decode($raw, true);
     if (json_last_error() !== JSON_ERROR_NONE) {
-        return $default;
+        throw new DentJsonPersistenceException('JSON_STORE_CORRUPT', 'Existing JSON store is malformed');
+    }
+    if (is_array($default) && !is_array($decoded)) {
+        throw new DentJsonPersistenceException('JSON_STORE_SCHEMA_INVALID', 'Existing JSON store has an invalid root type');
     }
 
     return $decoded;
 }
 
-function dent_write_json_file(string $path, $payload): void
+function dent_write_json_file(string $path, $payload, bool $lockAlreadyHeld = false): void
 {
     dent_ensure_directory(dirname($path));
 
@@ -527,8 +546,80 @@ function dent_write_json_file(string $path, $payload): void
         dent_error('خطا در تولید داده JSON.', 500);
     }
 
-    if (file_put_contents($path, $json . PHP_EOL, LOCK_EX) === false) {
-        dent_error('خطا در ذخیره‌سازی داده‌ها.', 500);
+    $encoded = $json . PHP_EOL;
+    $lock = null;
+    if (!$lockAlreadyHeld) {
+        $lockPath = $path . '.lock';
+        $lock = @fopen($lockPath, 'c');
+        if ($lock === false || !@flock($lock, LOCK_EX)) {
+            if (is_resource($lock)) {
+                @fclose($lock);
+            }
+            throw new DentJsonPersistenceException('JSON_STORE_LOCK_FAILED', 'Unable to lock JSON store');
+        }
+    }
+    $temp = '';
+    try {
+        if (is_file($path)) {
+            $current = @file_get_contents($path);
+            if ($current === false || trim($current) === '') {
+                throw new DentJsonPersistenceException('JSON_STORE_UNREADABLE', 'Existing JSON store is unreadable or empty');
+            }
+            $currentDecoded = json_decode($current, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new DentJsonPersistenceException('JSON_STORE_CORRUPT', 'Existing JSON store is malformed');
+            }
+            if (is_array($payload) && !is_array($currentDecoded)) {
+                throw new DentJsonPersistenceException('JSON_STORE_SCHEMA_INVALID', 'Existing JSON store has an invalid root type');
+            }
+            if (hash_equals(hash('sha256', $current), hash('sha256', $encoded))) {
+                return;
+            }
+        }
+        $temp = $path . '.tmp.' . bin2hex(random_bytes(6));
+        $handle = @fopen($temp, 'xb');
+        if ($handle === false) {
+            throw new DentJsonPersistenceException('JSON_STORE_TEMP_OPEN_FAILED', 'Unable to open JSON temporary generation');
+        }
+        $writtenTotal = 0;
+        try {
+            $expected = strlen($encoded);
+            while ($writtenTotal < $expected) {
+                $written = @fwrite($handle, substr($encoded, $writtenTotal));
+                if ($written === false || $written === 0) {
+                    throw new DentJsonPersistenceException('JSON_STORE_SHORT_WRITE', 'Short JSON generation write');
+                }
+                $writtenTotal += $written;
+            }
+            if (!@fflush($handle)) {
+                throw new DentJsonPersistenceException('JSON_STORE_FLUSH_FAILED', 'Unable to flush JSON generation');
+            }
+            if (function_exists('fsync') && !@fsync($handle)) {
+                throw new DentJsonPersistenceException('JSON_STORE_FSYNC_FAILED', 'Unable to sync JSON generation');
+            }
+        } finally {
+            @fclose($handle);
+        }
+        $verified = @file_get_contents($temp);
+        if ($verified === false || strlen($verified) !== strlen($encoded)) {
+            throw new DentJsonPersistenceException('JSON_STORE_TEMP_INVALID', 'JSON generation length validation failed');
+        }
+        json_decode($verified, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new DentJsonPersistenceException('JSON_STORE_TEMP_INVALID', 'JSON generation decode validation failed');
+        }
+        if (!@rename($temp, $path)) {
+            throw new DentJsonPersistenceException('JSON_STORE_COMMIT_FAILED', 'Atomic JSON generation commit failed');
+        }
+        $temp = '';
+    } finally {
+        if ($temp !== '' && is_file($temp)) {
+            @unlink($temp);
+        }
+        if (is_resource($lock)) {
+            @flock($lock, LOCK_UN);
+            @fclose($lock);
+        }
     }
 }
 

@@ -3,6 +3,15 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/public_html/api/bot_store.php';
 
+// Production initialization is an explicit provisioning action. Tests mirror
+// that contract instead of relying on an absent/corrupt store becoming empty.
+dent_bot_persistence_initialize(
+    dent_bot_store_path(),
+    dent_bot_store_default(),
+    'dent_bot_store_normalize',
+    'fixture-explicit-bot-store-initialize'
+);
+
 $studentNumber = dent_owner_student_number();
 $authStore = dent_auth_store_seed_payload();
 $authStore['users'][$studentNumber] = [

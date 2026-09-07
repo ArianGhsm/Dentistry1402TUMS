@@ -580,21 +580,44 @@ function dent_write_auth_store_payload(array $payload, bool $refreshBackup = tru
     $writeSnapshot = static function (string $targetPath, string $contents): void {
         dent_ensure_directory(dirname($targetPath));
         $tmpPath = $targetPath . '.tmp.' . bin2hex(random_bytes(6));
-        $bytesWritten = @file_put_contents($tmpPath, $contents, LOCK_EX);
-        if ($bytesWritten === false) {
+        $handle = @fopen($tmpPath, 'xb');
+        if ($handle === false) {
+            dent_error('خطا در ذخیره‌سازی داده‌ها.', 500);
+        }
+        $total = 0;
+        $length = strlen($contents);
+        try {
+            while ($total < $length) {
+                $written = @fwrite($handle, substr($contents, $total));
+                if ($written === false || $written === 0) {
+                    throw new RuntimeException('AUTH_STORE_SHORT_WRITE');
+                }
+                $total += $written;
+            }
+            if (!@fflush($handle)) {
+                throw new RuntimeException('AUTH_STORE_FLUSH_FAILED');
+            }
+            if (function_exists('fsync') && !@fsync($handle)) {
+                throw new RuntimeException('AUTH_STORE_FSYNC_FAILED');
+            }
+        } catch (Throwable $exception) {
+            @fclose($handle);
+            @unlink($tmpPath);
+            dent_error('خطا در ذخیره‌سازی داده‌ها.', 500);
+        } finally {
+            if (is_resource($handle)) {
+                @fclose($handle);
+            }
+        }
+        if ($total !== $length) {
             @unlink($tmpPath);
             dent_error('خطا در ذخیره‌سازی داده‌ها.', 500);
         }
-
-        if (@rename($tmpPath, $targetPath)) {
-            return;
-        }
-
-        if (is_file($targetPath) && !@unlink($targetPath)) {
+        $verified = dent_decode_auth_store_snapshot($tmpPath);
+        if (!is_array($verified) || @filesize($tmpPath) !== $length) {
             @unlink($tmpPath);
             dent_error('خطا در ذخیره‌سازی داده‌ها.', 500);
         }
-
         if (!@rename($tmpPath, $targetPath)) {
             @unlink($tmpPath);
             dent_error('خطا در ذخیره‌سازی داده‌ها.', 500);
@@ -2051,14 +2074,11 @@ function dent_auth_sessions_with_lock(callable $callback, bool $required = false
         $result = $callback($store);
         $store['schemaVersion'] = 1;
         $store['updatedAt'] = dent_iso_now();
-        $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
-        if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
-            $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
-        }
-        $json = json_encode($store, $flags);
-        if (!is_string($json) || @file_put_contents($path, $json . PHP_EOL, LOCK_EX) === false) {
+        try {
+            dent_write_json_file($path, $store, true);
+        } catch (DentJsonPersistenceException $exception) {
             if ($required) {
-                dent_error('ذخیره وضعیت نشست‌ها انجام نشد.', 503);
+                throw $exception;
             }
             return [];
         }

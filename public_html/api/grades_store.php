@@ -556,37 +556,57 @@ function dent_write_grades_source(array $header, array $rows): void
     $csvFile = dent_grades_store_path();
     dent_ensure_directory(dirname($csvFile));
 
-    $handle = fopen($csvFile, 'c+');
-    if ($handle === false) {
+    $lock = fopen($csvFile . '.lock', 'c');
+    if ($lock === false) {
         dent_error('امکان نگارش فایل نمرات وجود ندارد.', 500);
     }
 
-    if (!flock($handle, LOCK_EX)) {
-        fclose($handle);
+    if (!flock($lock, LOCK_EX)) {
+        fclose($lock);
         dent_error('قفل فایل نمرات گرفته نشد.', 500);
     }
-
-    $columnCount = count($header);
-    rewind($handle);
-    ftruncate($handle, 0);
-    fputcsv($handle, $header, ',', '"', '\\');
-
-    foreach ($rows as $row) {
-        if (!is_array($row)) {
-            continue;
+    $temp = $csvFile . '.tmp.' . bin2hex(random_bytes(6));
+    try {
+        $handle = fopen($temp, 'xb');
+        if ($handle === false) {
+            dent_error('امکان نگارش فایل نمرات وجود ندارد.', 500);
         }
-        $normalizedRow = $row;
-        if (count($normalizedRow) < $columnCount) {
-            $normalizedRow = array_pad($normalizedRow, $columnCount, '');
-        } elseif (count($normalizedRow) > $columnCount) {
-            $normalizedRow = array_slice($normalizedRow, 0, $columnCount);
+        try {
+            $columnCount = count($header);
+            if (fputcsv($handle, $header, ',', '"', '\\') === false) {
+                throw new RuntimeException('GRADES_STORE_WRITE_FAILED');
+            }
+            foreach ($rows as $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+                $normalizedRow = $row;
+                if (count($normalizedRow) < $columnCount) {
+                    $normalizedRow = array_pad($normalizedRow, $columnCount, '');
+                } elseif (count($normalizedRow) > $columnCount) {
+                    $normalizedRow = array_slice($normalizedRow, 0, $columnCount);
+                }
+                if (fputcsv($handle, $normalizedRow, ',', '"', '\\') === false) {
+                    throw new RuntimeException('GRADES_STORE_WRITE_FAILED');
+                }
+            }
+            if (!fflush($handle) || (function_exists('fsync') && !fsync($handle))) {
+                throw new RuntimeException('GRADES_STORE_FLUSH_FAILED');
+            }
+        } finally {
+            fclose($handle);
         }
-        fputcsv($handle, $normalizedRow, ',', '"', '\\');
+        if (!@rename($temp, $csvFile)) {
+            throw new RuntimeException('GRADES_STORE_COMMIT_FAILED');
+        }
+        $temp = '';
+    } finally {
+        if ($temp !== '' && is_file($temp)) {
+            @unlink($temp);
+        }
+        flock($lock, LOCK_UN);
+        fclose($lock);
     }
-
-    fflush($handle);
-    flock($handle, LOCK_UN);
-    fclose($handle);
 }
 
 function dent_owner_grades_payload(string $studentNumber, string $fallbackName = ''): array

@@ -32,8 +32,8 @@ CRITICAL_SCHEMAS: dict[str, tuple[str, ...]] = {
     "integrations/bot_links.json": ("schemaVersion", "links", "audit"),
     "integrations/bot_payment_deliveries.json": ("schemaVersion", "deliveries", "poll"),
     "integrations/bot_notification_deliveries.json": ("schemaVersion", "deliveries", "dispatchSince"),
-    "auth/users.json": (),
-    "payments/store.json": (),
+    "auth/users.json": ("schemaVersion", "ownerStudentNumber", "cohorts", "users"),
+    "payments/store.json": ("schemaVersion", "orders", "items", "gateways", "collections"),
 }
 
 
@@ -115,6 +115,24 @@ def validate_json(relative_path: str, payload: bytes) -> dict[str, Any] | None:
         missing = [key for key in CRITICAL_SCHEMAS[relative_path] if key not in decoded]
         if missing:
             raise SnapshotError(f"Critical JSON schema mismatch: {relative_path}")
+        if not isinstance(decoded.get("schemaVersion"), int) or int(decoded["schemaVersion"]) <= 0:
+            raise SnapshotError(f"Critical JSON schema version is invalid: {relative_path}")
+        collection_types = {
+            "integrations/bot_links.json": {"links": dict, "audit": list},
+            "integrations/bot_payment_deliveries.json": {"deliveries": dict, "poll": dict},
+            "integrations/bot_notification_deliveries.json": {"deliveries": dict},
+            "auth/users.json": {"cohorts": dict, "users": dict},
+            "payments/store.json": {
+                "orders": list,
+                "items": list,
+                "gateways": list,
+                "collections": list,
+            },
+        }[relative_path]
+        if any(not isinstance(decoded.get(key), expected) for key, expected in collection_types.items()):
+            raise SnapshotError(f"Critical JSON collection type is invalid: {relative_path}")
+        if relative_path == "auth/users.json" and not str(decoded.get("ownerStudentNumber") or "").strip():
+            raise SnapshotError("Critical auth owner identity is missing")
     return decoded if isinstance(decoded, dict) else None
 
 
@@ -208,7 +226,7 @@ def capture_once(
         "consistency": {
             "mode": "critical-atomic-double-read" if critical_only else "atomic-double-read",
             "criticalStoresStable": sorted(stable_critical),
-            "eligibleForLatest": not allow_legacy_combined,
+            "eligibleForLatest": not critical_only and not allow_legacy_combined,
             "note": (
                 "Transition evidence only: legacy combined bot store is accepted and must not become latest."
                 if allow_legacy_combined

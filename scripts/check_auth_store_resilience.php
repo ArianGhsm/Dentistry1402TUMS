@@ -7,6 +7,18 @@ if ($projectRoot === false) {
     exit(1);
 }
 
+$fixtureRoot = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR)
+    . DIRECTORY_SEPARATOR . 'dent-auth-resilience-' . bin2hex(random_bytes(8));
+$fixtureStorage = $fixtureRoot . DIRECTORY_SEPARATOR . 'storage';
+$fixtureServerOnly = $fixtureRoot . DIRECTORY_SEPARATOR . 'server-only';
+if (!mkdir($fixtureStorage, 0700, true) && !is_dir($fixtureStorage)) {
+    fwrite(STDERR, "Unable to create isolated auth fixture root.\n");
+    exit(1);
+}
+putenv('DENT_STORAGE_ROOT=' . $fixtureStorage);
+putenv('DENT_SERVER_ONLY_ROOT=' . $fixtureServerOnly);
+putenv('DENT_SESSION_SAVE_PATH=' . $fixtureRoot . DIRECTORY_SEPARATOR . 'sessions');
+
 require_once $projectRoot . '/public_html/api/auth_store.php';
 
 $primaryPath = dent_auth_store_path();
@@ -21,11 +33,11 @@ $fixtureStore = [
         '40211272003' => [
             'studentNumber' => '40211272003',
             'name' => 'مالک سایت',
-            'passwordHash' => dent_hash_password('AAbb11__'),
+            'passwordHash' => dent_hash_password('fixture-owner-password'),
             'role' => 'owner',
             'cohortKey' => dent_primary_cohort_key(),
-            'phoneNumber' => '+989009840305',
-            'directoryPhoneNumber' => '+989009840305',
+            'phoneNumber' => '+989999999999',
+            'directoryPhoneNumber' => '+989999999999',
             'profile' => [
                 'about' => '',
                 'bio' => '',
@@ -59,21 +71,24 @@ $fixtureStore = [
     ],
 ];
 
-$originalPrimary = is_file($primaryPath) ? file_get_contents($primaryPath) : null;
-$originalBackup = is_file($backupPath) ? file_get_contents($backupPath) : null;
-
-$restoreFile = static function (string $path, $contents): void {
-    if ($contents === null) {
-        if (is_file($path)) {
-            unlink($path);
-        }
+$removeTree = static function (string $path) use (&$removeTree): void {
+    if (!file_exists($path)) {
         return;
     }
-
-    dent_ensure_directory(dirname($path));
-    file_put_contents($path, $contents);
+    if (is_link($path) || is_file($path)) {
+        @unlink($path);
+        return;
+    }
+    foreach (scandir($path) ?: [] as $entry) {
+        if ($entry === '.' || $entry === '..') {
+            continue;
+        }
+        $removeTree($path . DIRECTORY_SEPARATOR . $entry);
+    }
+    @rmdir($path);
 };
 
+$exitCode = 1;
 try {
     dent_ensure_directory(dirname($primaryPath));
     if (is_file($primaryPath)) {
@@ -101,8 +116,8 @@ try {
 
     $assertions = [
         !empty($users['40311272041']),
-        ($owner['phoneNumber'] ?? '') === '+989009840305',
-        ($owner['directoryPhoneNumber'] ?? '') === '+989009840305',
+        ($owner['phoneNumber'] ?? '') === '+989999999999',
+        ($owner['directoryPhoneNumber'] ?? '') === '+989999999999',
         (($owner['profile'] ?? [])['avatarUrl'] ?? '') === $fixtureAvatar,
         ($cohorts['dentistry-1403'] ?? 0) >= 1,
         dent_decode_auth_store_snapshot($primaryPath) !== null,
@@ -112,13 +127,17 @@ try {
     foreach ($assertions as $index => $passed) {
         if (!$passed) {
             fwrite(STDERR, "Auth resilience assertion failed at check #" . ($index + 1) . ".\n");
-            exit(1);
+            throw new RuntimeException('Auth resilience assertion failed.');
         }
     }
 
     fwrite(STDOUT, "Auth store resilience check passed.\n");
-    exit(0);
+    $exitCode = 0;
 } finally {
-    $restoreFile($primaryPath, $originalPrimary);
-    $restoreFile($backupPath, $originalBackup);
+    dent_release_session_lock();
+    $expectedPrefix = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'dent-auth-resilience-';
+    if (str_starts_with($fixtureRoot, $expectedPrefix)) {
+        $removeTree($fixtureRoot);
+    }
 }
+exit($exitCode);

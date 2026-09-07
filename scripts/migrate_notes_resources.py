@@ -22,10 +22,6 @@ NOTES_STORAGE_ROOT = PROJECT_ROOT / "server-only" / "storage" / "notes"
 DEFAULT_BACKUP_ROOT = Path(r"D:\Arian's Documents\Lessons-Works-Projects\AI-Dev\DL-Dentistry1402TUMS")
 DEFAULT_SECRET_PATH = PROJECT_ROOT / ".codex-local" / "mihan-download-host.json"
 DEFAULT_LIVE_BASE_URL = "https://dentistry1402tums.ir"
-DEFAULT_OWNER_LOGIN = {
-    "studentNumber": "40211272003",
-    "password": "AAbb11__",
-}
 MANIFEST_DIR_NAME = "_migration"
 MANIFEST_FILE_NAME = "resource_manifest.json"
 INVALID_FILENAME_CHARS = '<>:"/\\|?*'
@@ -748,6 +744,16 @@ def update_live_links(manifest: dict[str, Any], live_base_url: str, owner_login:
         )
 
 
+def owner_login_from_environment() -> dict[str, str]:
+    student_number = os.environ.get("DENT_MIGRATION_OWNER_STUDENT_NUMBER", "").strip()
+    password = os.environ.get("DENT_MIGRATION_OWNER_PASSWORD", "")
+    if not student_number or not password:
+        raise RuntimeError(
+            "Live owner credentials must be supplied through the ignored migration environment."
+        )
+    return {"studentNumber": student_number, "password": password}
+
+
 def print_summary(manifest: dict[str, Any]) -> None:
     entries = manifest["entries"]
     counts: dict[str, int] = {}
@@ -849,7 +855,7 @@ def main() -> int:
         return 0
 
     if args.action == "update-live":
-        update_live_links(manifest, args.live_base_url, DEFAULT_OWNER_LOGIN)
+        update_live_links(manifest, args.live_base_url, owner_login_from_environment())
         save_manifest(backup_root, manifest)
         print(f"Manifest: {manifest_file}")
         print_summary(manifest)

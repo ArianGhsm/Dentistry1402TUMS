@@ -301,7 +301,7 @@ function analytics_update_store(callable $mutator): array
 {
     $path = analytics_store_path();
     dent_ensure_directory(dirname($path));
-    $handle = @fopen($path, 'c+');
+    $handle = @fopen($path . '.lock', 'c');
     if ($handle === false) {
         dent_error('ذخیره‌سازی آمار سایت در دسترس نیست.', 500);
     }
@@ -311,13 +311,11 @@ function analytics_update_store(callable $mutator): array
             dent_error('قفل ذخیره‌سازی آمار سایت آماده نشد.', 500);
         }
 
-        $raw = stream_get_contents($handle);
-        if (!is_string($raw) || trim($raw) === '') {
-            $store = analytics_default_store();
-        } else {
-            $decoded = json_decode($raw, true);
-            $store = is_array($decoded) ? analytics_normalize_store($decoded) : analytics_default_store();
+        $decoded = is_file($path) ? dent_read_json_file($path, analytics_default_store()) : analytics_default_store();
+        if (!is_array($decoded)) {
+            throw new DentJsonPersistenceException('ANALYTICS_STORE_SCHEMA_INVALID', 'Analytics state must be an object');
         }
+        $store = analytics_normalize_store($decoded);
 
         $result = $mutator($store);
         if (is_array($result)) {
@@ -325,23 +323,7 @@ function analytics_update_store(callable $mutator): array
         }
 
         $store = analytics_normalize_store($store);
-        $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
-        if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
-            $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
-        }
-        $json = json_encode($store, $flags);
-        if (!is_string($json) || $json === '') {
-            dent_error('تولید JSON آمار سایت ناموفق بود.', 500);
-        }
-
-        rewind($handle);
-        if (!ftruncate($handle, 0)) {
-            dent_error('بازنویسی آمار سایت ناموفق بود.', 500);
-        }
-        if (@fwrite($handle, $json . PHP_EOL) === false) {
-            dent_error('ذخیره آمار سایت ناموفق بود.', 500);
-        }
-        fflush($handle);
+        dent_write_json_file($path, $store, true);
         return $store;
     } finally {
         @flock($handle, LOCK_UN);

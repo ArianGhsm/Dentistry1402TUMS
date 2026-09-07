@@ -181,6 +181,12 @@ try {
             && count($incompleteImport['missingGroup8'] ?? []) === 1,
         'Importer reports missing group10/group8 separately and blocks incomplete target commit'
     );
+    dent_bot_persistence_initialize(
+        dent_bot_store_path(),
+        dent_bot_store_default(),
+        'dent_bot_store_normalize',
+        'term7-fixture-initialize'
+    );
     dent_bot_store_with_lock(static function (array &$store) use ($studentA, $studentB, $studentC): array {
         $fixtures = [
             ['telegram', '900001', $studentA],

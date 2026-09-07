@@ -39,7 +39,7 @@ function dent_student_assistant_store_with_lock(callable $callback): array
 {
     $path = dent_student_assistant_store_path();
     dent_ensure_directory(dirname($path));
-    $handle = fopen($path, 'c+');
+    $handle = fopen($path . '.lock', 'c');
     if ($handle === false || !flock($handle, LOCK_EX)) {
         if (is_resource($handle)) {
             fclose($handle);
@@ -48,22 +48,14 @@ function dent_student_assistant_store_with_lock(callable $callback): array
     }
 
     try {
-        rewind($handle);
-        $raw = stream_get_contents($handle);
-        $decoded = is_string($raw) && trim($raw) !== '' ? json_decode($raw, true) : null;
+        $decoded = is_file($path) ? dent_read_json_file($path, dent_student_assistant_store_default()) : dent_student_assistant_store_default();
+        if (!is_array($decoded)) {
+            throw new DentJsonPersistenceException('STUDENT_ASSISTANT_STORE_SCHEMA_INVALID', 'Student assistant state must be an object');
+        }
         $store = dent_student_assistant_normalize_store($decoded);
         dent_student_assistant_cleanup($store, time());
         $result = $callback($store);
-        $json = json_encode($store, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        if (!is_string($json)) {
-            dent_error('ذخیره وضعیت دستیار دانشجو انجام نشد.', 500, ['code' => 'STUDENT_ASSISTANT_STORE_FAILED']);
-        }
-        rewind($handle);
-        ftruncate($handle, 0);
-        if (fwrite($handle, $json . PHP_EOL) === false) {
-            dent_error('ذخیره وضعیت دستیار دانشجو انجام نشد.', 500, ['code' => 'STUDENT_ASSISTANT_STORE_FAILED']);
-        }
-        fflush($handle);
+        dent_write_json_file($path, $store, true);
         return is_array($result) ? $result : [];
     } finally {
         flock($handle, LOCK_UN);

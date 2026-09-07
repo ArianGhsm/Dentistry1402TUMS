@@ -3117,29 +3117,11 @@ function notifications_create_owner_deploy_event_notice(array $viewer, array $ev
 
 function notifications_write_store_locked_best_effort(array $store): bool
 {
-    $normalizedStore = notifications_normalize_store($store);
-    $flags = JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
-    if (defined('JSON_INVALID_UTF8_SUBSTITUTE')) {
-        $flags |= JSON_INVALID_UTF8_SUBSTITUTE;
-    }
-
-    $json = json_encode($normalizedStore, $flags);
-    if ($json === false) {
+    try {
+        dent_write_json_file(notifications_store_path(), notifications_normalize_store($store));
+    } catch (Throwable $exception) {
         return false;
     }
-
-    $path = notifications_store_path();
-    $tmpPath = $path . '.tmp-' . preg_replace('/[^a-z0-9]+/i', '', uniqid('', true));
-    if (@file_put_contents($tmpPath, $json . PHP_EOL) === false) {
-        @unlink($tmpPath);
-        return false;
-    }
-
-    if (!@rename($tmpPath, $path)) {
-        @unlink($tmpPath);
-        return false;
-    }
-
     return true;
 }
 

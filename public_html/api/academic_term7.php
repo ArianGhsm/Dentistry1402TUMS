@@ -114,7 +114,7 @@ function dent_term7_state_with_lock(callable $callback)
 {
     $path = dent_term7_state_path();
     dent_ensure_directory(dirname($path));
-    $handle = fopen($path, 'c+');
+    $handle = fopen($path . '.lock', 'c');
     if ($handle === false || !flock($handle, LOCK_EX)) {
         if (is_resource($handle)) {
             fclose($handle);
@@ -122,22 +122,14 @@ function dent_term7_state_with_lock(callable $callback)
         dent_error('ذخیره‌سازی برنامه ترم موقتاً در دسترس نیست.', 503, ['code' => 'ACADEMIC_STORE_UNAVAILABLE']);
     }
     try {
-        rewind($handle);
-        $raw = stream_get_contents($handle);
-        $decoded = is_string($raw) && trim($raw) !== '' ? json_decode($raw, true) : [];
-        $state = dent_term7_normalize_state(is_array($decoded) ? $decoded : []);
+        $decoded = is_file($path) ? dent_read_json_file($path, []) : [];
+        if (!is_array($decoded)) {
+            throw new DentJsonPersistenceException('ACADEMIC_STORE_SCHEMA_INVALID', 'Academic state must be an object');
+        }
+        $state = dent_term7_normalize_state($decoded);
         $result = $callback($state);
         $state = dent_term7_normalize_state($state);
-        $json = json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        if (!is_string($json)) {
-            dent_error('ذخیره برنامه ترم انجام نشد.', 500, ['code' => 'ACADEMIC_STORE_WRITE_FAILED']);
-        }
-        rewind($handle);
-        ftruncate($handle, 0);
-        if (fwrite($handle, $json . PHP_EOL) === false) {
-            dent_error('ذخیره برنامه ترم انجام نشد.', 500, ['code' => 'ACADEMIC_STORE_WRITE_FAILED']);
-        }
-        fflush($handle);
+        dent_write_json_file($path, $state, true);
         return $result;
     } finally {
         flock($handle, LOCK_UN);
@@ -151,7 +143,7 @@ function dent_term7_state_read(): array
     if (!is_file($path)) {
         return dent_term7_state_default();
     }
-    $handle = fopen($path, 'rb');
+    $handle = fopen($path . '.lock', 'c');
     if ($handle === false || !flock($handle, LOCK_SH)) {
         if (is_resource($handle)) {
             fclose($handle);
@@ -159,9 +151,11 @@ function dent_term7_state_read(): array
         return dent_term7_state_default();
     }
     try {
-        $raw = stream_get_contents($handle);
-        $decoded = is_string($raw) ? json_decode($raw, true) : null;
-        return dent_term7_normalize_state(is_array($decoded) ? $decoded : []);
+        $decoded = dent_read_json_file($path, []);
+        if (!is_array($decoded)) {
+            throw new DentJsonPersistenceException('ACADEMIC_STORE_SCHEMA_INVALID', 'Academic state must be an object');
+        }
+        return dent_term7_normalize_state($decoded);
     } finally {
         flock($handle, LOCK_UN);
         fclose($handle);
