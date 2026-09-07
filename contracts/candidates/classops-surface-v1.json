@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dentistry1402tums.invalid/contracts/candidates/classops-surface-v1.json",
+  "title": "ClassOps cross-surface action/view candidate contract",
+  "contractVersion": "classops-surface-v1",
+  "status": "candidate-not-frozen",
+  "baseContracts": [
+    "classops-v1",
+    "classops-structured-draft-v1",
+    "canonical-student-identity-v1",
+    "runtime-site-service-v1",
+    "notification-integration-v1"
+  ],
+  "principles": {
+    "canonicalTimestamps": "UTC ISO-8601",
+    "presentationTimezone": "Asia/Tehran",
+    "displayNameIsIdentity": false,
+    "rawChatIdsAllowed": false,
+    "secretsAllowed": false,
+    "directDatabaseMutation": false,
+    "directSend": false,
+    "aiAuthority": "draft-request-preview-only",
+    "ownerPreviewConfirmRequired": true,
+    "unsupportedCapabilityBehavior": "disabled-or-pending-never-success"
+  },
+  "definitions": {
+    "roles": ["owner", "student"],
+    "platforms": ["website", "telegram", "bale"],
+    "actions": {
+      "items.list": {"roles": ["owner"], "kind": "read", "capability": "foundation.read", "confirmationRequired": false, "expectedRevisionRequired": false, "idempotencyRequired": false},
+      "item.get": {"roles": ["owner"], "kind": "read", "capability": "foundation.read", "confirmationRequired": false, "expectedRevisionRequired": false, "idempotencyRequired": false},
+      "draft.create": {"roles": ["owner"], "kind": "mutation", "capability": "foundation.create", "confirmationRequired": true, "expectedRevisionRequired": false, "idempotencyRequired": true, "forcedStatus": "draft"},
+      "item.preview_diff": {"roles": ["owner"], "kind": "preview", "capability": "surface.preview", "confirmationRequired": false, "expectedRevisionRequired": false, "idempotencyRequired": false},
+      "item.edit": {"roles": ["owner"], "kind": "mutation", "capability": "foundation.update", "confirmationRequired": true, "expectedRevisionRequired": true, "idempotencyRequired": true},
+      "item.schedule_intent": {"roles": ["owner"], "kind": "mutation", "capability": "foundation.update", "confirmationRequired": true, "expectedRevisionRequired": true, "idempotencyRequired": true, "statusOnly": "scheduled", "deliveryAuthority": false},
+      "item.activate_intent": {"roles": ["owner"], "kind": "mutation", "capability": "foundation.update", "confirmationRequired": true, "expectedRevisionRequired": true, "idempotencyRequired": true, "statusOnly": "active", "deliveryAuthority": false},
+      "item.cancel": {"roles": ["owner"], "kind": "mutation", "capability": "foundation.cancel", "confirmationRequired": true, "expectedRevisionRequired": true, "idempotencyRequired": true},
+      "item.archive": {"roles": ["owner"], "kind": "mutation", "capability": "foundation.archive", "confirmationRequired": true, "expectedRevisionRequired": true, "idempotencyRequired": true},
+      "audience.preview": {"roles": ["owner"], "kind": "preview", "capability": "audience.resolve", "confirmationRequired": false, "expectedRevisionRequired": false, "idempotencyRequired": false},
+      "destination.preview": {"roles": ["owner"], "kind": "preview", "capability": "delivery.destinations", "confirmationRequired": false, "expectedRevisionRequired": false, "idempotencyRequired": false},
+      "task.requirement_view": {"roles": ["owner", "student"], "kind": "read", "capability": "task.requirement", "confirmationRequired": false, "expectedRevisionRequired": false, "idempotencyRequired": false},
+      "exam.view": {"roles": ["owner", "student"], "kind": "read", "capability": "exam.view", "confirmationRequired": false, "expectedRevisionRequired": false, "idempotencyRequired": false},
+      "exam.ack": {"roles": ["student"], "kind": "mutation", "capability": "exam.critical_ack", "confirmationRequired": true, "expectedRevisionRequired": true, "idempotencyRequired": true},
+      "reminder.preview": {"roles": ["owner", "student"], "kind": "preview", "capability": "reminder.preview", "confirmationRequired": false, "expectedRevisionRequired": false, "idempotencyRequired": false},
+      "summary.tomorrow": {"roles": ["owner", "student"], "kind": "read", "capability": "summary.tomorrow", "confirmationRequired": false, "expectedRevisionRequired": false, "idempotencyRequired": false},
+      "summary.weekly": {"roles": ["owner", "student"], "kind": "read", "capability": "summary.weekly", "confirmationRequired": false, "expectedRevisionRequired": false, "idempotencyRequired": false},
+      "ai.draft_request": {"roles": ["owner"], "kind": "preview", "capability": "ai.preview_request", "confirmationRequired": false, "expectedRevisionRequired": false, "idempotencyRequired": false, "providerCall": false, "mutationAuthority": false}
+    },
+    "foundationCapabilitiesAtBase": {
+      "foundation.read": true,
+      "foundation.create": true,
+      "foundation.update": true,
+      "foundation.cancel": true,
+      "foundation.archive": true,
+      "surface.preview": true,
+      "ai.preview_request": true,
+      "audience.resolve": false,
+      "delivery.destinations": false,
+      "task.requirement": false,
+      "exam.view": false,
+      "exam.critical_ack": false,
+      "reminder.preview": false,
+      "summary.tomorrow": false,
+      "summary.weekly": false
+    },
+    "platformFallbacks": {
+      "telegram": {"buttonStyle": "native-optional"},
+      "bale": {"buttonStyle": "omit-style-preserve-copy-and-action"},
+      "website": {"disabled": "native-disabled-control-with-reason"}
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "action", "actorRole", "itemId", "expectedRevision", "idempotencyKey", "confirmationRequired", "confirmed", "payload"],
+  "properties": {
+    "contractVersion": {"const": "classops-surface-v1"},
+    "action": {"type": "string", "enum": [
+      "items.list", "item.get", "draft.create", "item.preview_diff", "item.edit",
+      "item.schedule_intent", "item.activate_intent", "item.cancel", "item.archive",
+      "audience.preview", "destination.preview", "task.requirement_view", "exam.view",
+      "exam.ack", "reminder.preview", "summary.tomorrow", "summary.weekly", "ai.draft_request"
+    ]},
+    "actorRole": {"type": "string", "enum": ["owner", "student"]},
+    "itemId": {"type": ["string", "null"], "maxLength": 96},
+    "expectedRevision": {"type": ["integer", "null"], "minimum": 1},
+    "idempotencyKey": {"type": ["string", "null"], "pattern": "^surface_[a-f0-9]{32}$"},
+    "confirmationRequired": {"type": "boolean"},
+    "confirmed": {"type": "boolean"},
+    "payload": {
+      "type": "object",
+      "description": "Presentation/action payload only. It MUST NOT contain raw Telegram/Bale chat IDs, bot/user tokens, secrets, passwords, OTPs, phone/mobile values or national codes. Canonical student identity is referenced only by approved canonical IDs when a promoted downstream contract permits it."
+    }
+  }
+}
