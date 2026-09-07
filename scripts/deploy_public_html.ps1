@@ -1706,9 +1706,9 @@ function Get-GitCommitMetadata([string]$commitHash) {
     }
 
     return [PSCustomObject]@{
-        Hash        = ([string]$metadata[0]).Trim()
-        CommittedAt = ([string]$metadata[1]).Trim()
-        Subject     = if (@($metadata).Count -ge 3) { ([string]$metadata[2]).Trim() } else { "" }
+        Hash       = ([string]$metadata[0]).Trim()
+        CommitTime = ([string]$metadata[1]).Trim()
+        Subject    = if (@($metadata).Count -ge 3) { ([string]$metadata[2]).Trim() } else { "" }
     }
 }
 
