@@ -12,7 +12,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$server = Get-Content -LiteralPath (Join-Path $root $ServerConfig) -Raw | ConvertFrom-Json
+$serverConfigPath = if ([IO.Path]::IsPathRooted($ServerConfig)) { $ServerConfig } else { Join-Path $root $ServerConfig }
+$serverConfigPath = (Resolve-Path -LiteralPath $serverConfigPath).Path
+$serverStateRoot = if ((Split-Path $serverConfigPath -Leaf) -eq 'iran-server.json' -and (Split-Path (Split-Path $serverConfigPath -Parent) -Leaf) -eq '.codex-local') { Split-Path (Split-Path $serverConfigPath -Parent) -Parent } else { $root }
+$server = Get-Content -LiteralPath $serverConfigPath -Raw | ConvertFrom-Json
 $sshUser = if ($server.user) { $server.user } else { $server.bootstrapUser }
 if (-not $sshUser) { throw "SSH user is missing from server config." }
 $payload = @{
@@ -34,7 +37,9 @@ $sshOptions = @("-i", $identityFile, "-p", [string]$server.port, "-o", "BatchMod
 $scpOptions = @("-q", "-i", $identityFile, "-P", [string]$server.port, "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=yes", "-o", "ConnectTimeout=10", "-o", "ConnectionAttempts=1")
 $runtimeKnownHosts = ""
 if ($server.knownHostsFile) {
-    $knownHosts = [IO.Path]::GetFullPath((Join-Path $root ([string]$server.knownHostsFile)))
+    $knownHosts = [string]$server.knownHostsFile
+    if (-not [IO.Path]::IsPathRooted($knownHosts)) { $knownHosts = Join-Path $serverStateRoot $knownHosts }
+    $knownHosts = [IO.Path]::GetFullPath($knownHosts)
     if (-not (Test-Path -LiteralPath $knownHosts -PathType Leaf)) { throw "The configured known-hosts file is missing." }
     $runtimeKnownHosts = Join-Path $env:TEMP ("deploy-notifier-known-hosts-" + [Guid]::NewGuid().ToString("N"))
     Copy-Item -LiteralPath $knownHosts -Destination $runtimeKnownHosts -Force

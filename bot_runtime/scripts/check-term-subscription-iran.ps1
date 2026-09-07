@@ -6,7 +6,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$server = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $root $ServerConfig) | ConvertFrom-Json
+$serverConfigPath = if ([IO.Path]::IsPathRooted($ServerConfig)) { $ServerConfig } else { Join-Path $root $ServerConfig }
+$serverConfigPath = (Resolve-Path -LiteralPath $serverConfigPath).Path
+$serverStateRoot = if ((Split-Path $serverConfigPath -Leaf) -eq 'iran-server.json' -and (Split-Path (Split-Path $serverConfigPath -Parent) -Leaf) -eq '.codex-local') { Split-Path (Split-Path $serverConfigPath -Parent) -Parent } else { $root }
+$server = Get-Content -Raw -Encoding UTF8 -LiteralPath $serverConfigPath | ConvertFrom-Json
 if ([string]$server.host -ne $ConfirmTargetHost) {
     throw "ConfirmTargetHost does not match the configured Iran server."
 }
@@ -16,7 +19,9 @@ $target = "$sshUser@$($server.host)"
 $knownHostsTemp = (New-TemporaryFile).FullName
 
 try {
-    $knownHostsSource = [IO.Path]::GetFullPath((Join-Path $root ([string]$server.knownHostsFile)))
+    $knownHostsSource = [string]$server.knownHostsFile
+    if (-not [IO.Path]::IsPathRooted($knownHostsSource)) { $knownHostsSource = Join-Path $serverStateRoot $knownHostsSource }
+    $knownHostsSource = [IO.Path]::GetFullPath($knownHostsSource)
     Copy-Item -LiteralPath $knownHostsSource -Destination $knownHostsTemp -Force
     $sshOptions = @(
         "-i", $identityFile, "-p", [string]$server.port,

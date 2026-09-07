@@ -6,7 +6,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-$server = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $root $ServerConfig) | ConvertFrom-Json
+$serverConfigPath = if ([IO.Path]::IsPathRooted($ServerConfig)) { $ServerConfig } else { Join-Path $root $ServerConfig }
+$serverConfigPath = (Resolve-Path -LiteralPath $serverConfigPath).Path
+$serverStateRoot = if ((Split-Path $serverConfigPath -Leaf) -eq 'iran-server.json' -and (Split-Path (Split-Path $serverConfigPath -Parent) -Leaf) -eq '.codex-local') { Split-Path (Split-Path $serverConfigPath -Parent) -Parent } else { $root }
+$server = Get-Content -Raw -Encoding UTF8 -LiteralPath $serverConfigPath | ConvertFrom-Json
 if ([string]$server.host -ne $ConfirmTargetHost) { throw 'ConfirmTargetHost does not match the Iran server.' }
 $sshUser = if ($server.user) { [string]$server.user } else { [string]$server.bootstrapUser }
 $identityFile = [Environment]::ExpandEnvironmentVariables([string]$server.identityFile)
@@ -17,7 +20,9 @@ $localCheck = Join-Path $temporaryRoot 'check.sh'
 $remoteCheck = "/tmp/integrated-dent-runtime-check-$([Guid]::NewGuid().ToString('N')).sh"
 
 New-Item -ItemType Directory -Force -Path $temporaryRoot | Out-Null
-Copy-Item -LiteralPath ([IO.Path]::GetFullPath((Join-Path $root ([string]$server.knownHostsFile)))) -Destination $runtimeKnownHosts
+$knownHostsPath = [string]$server.knownHostsFile
+if (-not [IO.Path]::IsPathRooted($knownHostsPath)) { $knownHostsPath = Join-Path $serverStateRoot $knownHostsPath }
+Copy-Item -LiteralPath ([IO.Path]::GetFullPath($knownHostsPath)) -Destination $runtimeKnownHosts
 $sshOptions = @(
     '-i', $identityFile, '-p', [string]$server.port,
     '-o', 'BatchMode=yes', '-o', 'StrictHostKeyChecking=yes',

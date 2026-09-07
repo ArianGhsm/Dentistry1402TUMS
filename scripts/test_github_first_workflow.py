@@ -26,6 +26,22 @@ assert "Run-OptionalPullBeforeDeploy\n" not in DEPLOY, "deploy must not pull ins
 for retired in ROOT.glob("public_html/api/private_notes_*.php"):
     raise AssertionError(f"retired undeployed private-notes source remains: {retired.name}")
 
+# Runtime state stays server-only and is deliberately outside this repository.
+# Checks must therefore accept an explicitly supplied absolute config path instead
+# of accidentally treating it as a path relative to the Git checkout.
+for runtime_check in [
+    "bot_runtime/scripts/check-iran-bot-runtime.ps1",
+    "bot_runtime/scripts/check-term-subscription-iran.ps1",
+    "bot_runtime/scripts/emit-deploy-status.ps1",
+]:
+    runtime_text = (ROOT / runtime_check).read_text(encoding="utf-8")
+    assert "[IO.Path]::IsPathRooted($ServerConfig)" in runtime_text, (
+        f"absolute server-only config support missing: {runtime_check}"
+    )
+    assert "$serverStateRoot" in runtime_text, (
+        f"server-only known-host resolution missing: {runtime_check}"
+    )
+
 with tempfile.TemporaryDirectory() as temporary:
     base = Path(temporary)
     metadata = base / "metadata"
