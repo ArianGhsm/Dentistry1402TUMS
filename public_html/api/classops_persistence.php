@@ -21,12 +21,21 @@ final class DentClassOpsPersistenceException extends RuntimeException
 
 function classops_persistence_request_id(): string
 {
+    $internalKey = 'DENT_CLASSOPS_REQUEST_ID_INTERNAL';
+    $cached = trim((string) ($_SERVER[$internalKey] ?? ''));
+    if ($cached !== '' && preg_match('/^[A-Za-z0-9._:-]{8,96}$/', $cached) === 1) {
+        return $cached;
+    }
+
     $candidate = trim((string) ($_SERVER['HTTP_X_REQUEST_ID'] ?? ''));
     if ($candidate !== '' && preg_match('/^[A-Za-z0-9._:-]{8,96}$/', $candidate) === 1) {
+        $_SERVER[$internalKey] = $candidate;
         return $candidate;
     }
 
-    return bin2hex(random_bytes(8));
+    $generated = bin2hex(random_bytes(8));
+    $_SERVER[$internalKey] = $generated;
+    return $generated;
 }
 
 function classops_persistence_log(string $level, array $context): void

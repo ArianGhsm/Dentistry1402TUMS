@@ -67,6 +67,14 @@ require_once dirname(__DIR__) . '/public_html/api/classops_store.php';
 $owner = ['studentNumber' => '402000000', 'role' => 'owner'];
 $metrics = [];
 
+unset($_SERVER['HTTP_X_REQUEST_ID'], $_SERVER['DENT_CLASSOPS_REQUEST_ID_INTERNAL']);
+$generatedRequestId = classops_persistence_request_id();
+classops_test_assert($generatedRequestId === classops_persistence_request_id(), 'generated persistence request id must remain stable within one request');
+$_SERVER['HTTP_X_REQUEST_ID'] = 'classops-test-request-0001';
+unset($_SERVER['DENT_CLASSOPS_REQUEST_ID_INTERNAL']);
+classops_test_assert(classops_persistence_request_id() === 'classops-test-request-0001', 'valid upstream request id must be preserved');
+unset($_SERVER['HTTP_X_REQUEST_ID'], $_SERVER['DENT_CLASSOPS_REQUEST_ID_INTERNAL']);
+
 try {
     // Missing storage is readable as an uninitialized empty view, never written implicitly.
     $missing = classops_status();

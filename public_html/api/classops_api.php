@@ -187,4 +187,12 @@ try {
     dent_error('ذخیره‌سازی ClassOps موقتاً در دسترس نیست؛ داده موجود دست‌نخورده باقی ماند.', 503, [
         'code' => $exception->reasonCode,
     ]);
+} catch (Throwable $exception) {
+    classops_persistence_log('error', [
+        'action' => 'api',
+        'decodeStatus' => 'not-applicable',
+        'commitResult' => 'unhandled-error',
+        'reasonCode' => 'CLASSOPS_INTERNAL_ERROR',
+    ]);
+    dent_error('خطای داخلی ClassOps رخ داد.', 500, ['code' => 'CLASSOPS_INTERNAL_ERROR']);
 }
