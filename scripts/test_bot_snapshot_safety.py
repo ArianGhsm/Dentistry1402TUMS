@@ -67,6 +67,7 @@ with tempfile.TemporaryDirectory(prefix="dent-snapshot-test-") as temp:
         "storage/integrations/bot_notification_deliveries.json": b'{"schemaVersion":1,"deliveries":{},"dispatchSince":""}',
         "storage/auth/users.json": b'{"schemaVersion":2,"ownerStudentNumber":"1","cohorts":{},"users":{}}',
         "storage/payments/store.json": b'{"schemaVersion":3,"orders":[],"items":[],"gateways":[],"collections":[]}',
+        "storage/classops/store.json": b'{"schemaVersion":1,"contractVersion":"classops-v1","items":{},"revisions":{},"idempotency":{},"audit":[],"_storage":{"format":"classops-atomic-json-v1","generation":1}}',
     }
     for relative in ("auth/users.json", "payments/store.json"):
         broken = dict(valid)
@@ -87,6 +88,20 @@ with tempfile.TemporaryDirectory(prefix="dent-snapshot-test-") as temp:
     manifest = snapshot.capture_once(Path("unused"), "storage", eligible_candidate, critical_only=True)
     if manifest["consistency"]["eligibleForLatest"] is not False:
         raise AssertionError("critical-only evidence was marked eligible for latest")
+    if "classops/store.json" not in manifest["consistency"]["criticalStoresStable"]:
+        raise AssertionError("existing ClassOps store was not captured as a byte-stable critical store")
+
+    invalid_classops = dict(valid)
+    invalid_classops["storage/classops/store.json"] = b'{"schemaVersion":1,"contractVersion":"wrong","items":{},"revisions":{},"idempotency":{},"audit":[],"_storage":{}}'
+    invalid_classops_candidate = base / "invalid-classops"
+    invalid_classops_candidate.mkdir()
+    snapshot.connect = lambda _config: FakeFtp(invalid_classops)
+    try:
+        snapshot.capture_once(Path("unused"), "storage", invalid_classops_candidate, critical_only=True)
+    except snapshot.SnapshotError:
+        pass
+    else:
+        raise AssertionError("invalid ClassOps critical store was accepted")
     snapshot.connect = original_connect
 
 deploy = (ROOT / "scripts" / "deploy_public_html.ps1").read_text(encoding="utf-8")

@@ -1950,6 +1950,9 @@ function Run-Validation() {
     $finalExamScheduleScriptPath = Join-Path $projectRoot "scripts\check_term6_final_exam_schedule.php"
     $uploadConfigScriptPath = Join-Path $projectRoot "scripts\check_upload_pipeline_config.php"
     $smokeScriptPath = Join-Path $projectRoot "scripts\smoke_multi_cohort_pages.py"
+    $classOpsFoundationScriptPath = Join-Path $projectRoot "scripts\test_classops_foundation.php"
+    $classOpsApiScriptPath = Join-Path $projectRoot "scripts\test_classops_api_http.py"
+    $snapshotSafetyScriptPath = Join-Path $projectRoot "scripts\test_bot_snapshot_safety.py"
     if (-not (Test-Path $scriptPath)) {
         throw "Validation script not found: $scriptPath"
     }
@@ -1976,6 +1979,15 @@ function Run-Validation() {
     }
     if (-not (Test-Path $smokeScriptPath)) {
         throw "Smoke validation script not found: $smokeScriptPath"
+    }
+    if (-not (Test-Path $classOpsFoundationScriptPath)) {
+        throw "ClassOps foundation validation script not found: $classOpsFoundationScriptPath"
+    }
+    if (-not (Test-Path $classOpsApiScriptPath)) {
+        throw "ClassOps API validation script not found: $classOpsApiScriptPath"
+    }
+    if (-not (Test-Path $snapshotSafetyScriptPath)) {
+        throw "Snapshot safety validation script not found: $snapshotSafetyScriptPath"
     }
 
     $python = Resolve-PythonCommand
@@ -2061,11 +2073,29 @@ function Run-Validation() {
         throw "Validation failed (scripts/smoke_multi_cohort_pages.py). Deployment aborted before host upload."
     }
 
+    Write-Host "Running: $($php.Source) $classOpsFoundationScriptPath"
+    & $php.Source $classOpsFoundationScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Validation failed (scripts/test_classops_foundation.php). Deployment aborted before host upload."
+    }
+
+    Write-Host "Running: $python $classOpsApiScriptPath"
+    & $python $classOpsApiScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Validation failed (scripts/test_classops_api_http.py). Deployment aborted before host upload."
+    }
+
+    Write-Host "Running: $python $snapshotSafetyScriptPath"
+    & $python $snapshotSafetyScriptPath
+    if ($LASTEXITCODE -ne 0) {
+        throw "Validation failed (scripts/test_bot_snapshot_safety.py). Deployment aborted before host upload."
+    }
+
     return [PSCustomObject]@{
         Status     = "completed"
         StartedAt  = $started
         FinishedAt = Get-IsoNow
-        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $($php.Source) $examQualityScriptPath ; $($php.Source) $examTimelineScriptPath ; $($php.Source) $examHomeHighlightsIndexScriptPath --check ; $($php.Source) $finalExamScheduleScriptPath ; $($php.Source) $uploadConfigScriptPath ; $python $($smokeDisplayCommand -join ' ')"
+        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $($php.Source) $examQualityScriptPath ; $($php.Source) $examTimelineScriptPath ; $($php.Source) $examHomeHighlightsIndexScriptPath --check ; $($php.Source) $finalExamScheduleScriptPath ; $($php.Source) $uploadConfigScriptPath ; $python $($smokeDisplayCommand -join ' ') ; $($php.Source) $classOpsFoundationScriptPath ; $python $classOpsApiScriptPath ; $python $snapshotSafetyScriptPath"
     }
 }
 

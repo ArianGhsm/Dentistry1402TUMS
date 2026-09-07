@@ -35,6 +35,12 @@ CRITICAL_SCHEMAS: dict[str, tuple[str, ...]] = {
     "auth/users.json": ("schemaVersion", "ownerStudentNumber", "cohorts", "users"),
     "payments/store.json": ("schemaVersion", "orders", "items", "gateways", "collections"),
 }
+OPTIONAL_CRITICAL_SCHEMAS: dict[str, tuple[str, ...]] = {
+    # ClassOps is initialized explicitly by its first owner mutation. Before
+    # that point its absence is valid; once present it receives the same
+    # double-read/parse/schema protection as every critical canonical store.
+    "classops/store.json": ("schemaVersion", "contractVersion", "items", "revisions", "idempotency", "audit", "_storage"),
+}
 
 
 class SnapshotError(RuntimeError):
@@ -109,10 +115,11 @@ def validate_json(relative_path: str, payload: bytes) -> dict[str, Any] | None:
         decoded = json.loads(payload.decode("utf-8-sig"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise SnapshotError(f"JSON validation failed: {relative_path}") from exc
-    if relative_path in CRITICAL_SCHEMAS:
+    critical_schemas = {**CRITICAL_SCHEMAS, **OPTIONAL_CRITICAL_SCHEMAS}
+    if relative_path in critical_schemas:
         if not isinstance(decoded, dict):
             raise SnapshotError(f"Critical JSON must be an object: {relative_path}")
-        missing = [key for key in CRITICAL_SCHEMAS[relative_path] if key not in decoded]
+        missing = [key for key in critical_schemas[relative_path] if key not in decoded]
         if missing:
             raise SnapshotError(f"Critical JSON schema mismatch: {relative_path}")
         if not isinstance(decoded.get("schemaVersion"), int) or int(decoded["schemaVersion"]) <= 0:
@@ -128,11 +135,24 @@ def validate_json(relative_path: str, payload: bytes) -> dict[str, Any] | None:
                 "gateways": list,
                 "collections": list,
             },
+            "classops/store.json": {
+                "items": dict,
+                "revisions": dict,
+                "idempotency": dict,
+                "audit": list,
+                "_storage": dict,
+            },
         }[relative_path]
         if any(not isinstance(decoded.get(key), expected) for key, expected in collection_types.items()):
             raise SnapshotError(f"Critical JSON collection type is invalid: {relative_path}")
         if relative_path == "auth/users.json" and not str(decoded.get("ownerStudentNumber") or "").strip():
             raise SnapshotError("Critical auth owner identity is missing")
+        if relative_path == "classops/store.json":
+            if decoded.get("schemaVersion") != 1 or decoded.get("contractVersion") != "classops-v1":
+                raise SnapshotError("Critical ClassOps contract version is invalid")
+            storage_meta = decoded.get("_storage") or {}
+            if storage_meta.get("format") != "classops-atomic-json-v1" or not isinstance(storage_meta.get("generation"), int):
+                raise SnapshotError("Critical ClassOps generation metadata is invalid")
     return decoded if isinstance(decoded, dict) else None
 
 
@@ -144,6 +164,7 @@ def capture_once(
     allow_legacy_combined: bool = False,
 ) -> dict[str, Any]:
     required_schemas = dict(CRITICAL_SCHEMAS)
+    optional_schemas = dict(OPTIONAL_CRITICAL_SCHEMAS)
     if allow_legacy_combined:
         required_schemas.pop("integrations/bot_payment_deliveries.json", None)
         required_schemas.pop("integrations/bot_notification_deliveries.json", None)
@@ -155,6 +176,14 @@ def capture_once(
             if critical_only
             else sorted(iter_files(ftp, remote_root))
         )
+        if critical_only:
+            for relative in optional_schemas:
+                optional_remote = str(PurePosixPath(remote_root.strip("/")) / relative)
+                try:
+                    download_bytes(ftp, optional_remote)
+                except SnapshotError:
+                    continue
+                files.append(optional_remote)
         for remote_path in files:
             relative = str(PurePosixPath(remote_path).relative_to(remote_root.strip("/")))
             target = staging_path.joinpath(*PurePosixPath(relative).parts)
@@ -177,7 +206,12 @@ def capture_once(
                 }
             )
         stable_critical: dict[str, bytes] = {}
-        for critical_relative in required_schemas:
+        critical_to_stabilize = dict(required_schemas)
+        captured_relatives = {record["path"] for record in records}
+        for relative, schema in optional_schemas.items():
+            if relative in captured_relatives:
+                critical_to_stabilize[relative] = schema
+        for critical_relative in critical_to_stabilize:
             critical_remote = str(PurePosixPath(remote_root.strip("/")) / critical_relative)
             prior: bytes | None = None
             for _ in range(8):

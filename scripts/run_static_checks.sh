@@ -71,6 +71,8 @@ section "Unit tests"
 "$PHP_BIN" scripts/test_unit.php || fail "test_unit.php"
 "$PHP_BIN" scripts/test_exam_reminder_retirement.php || fail "test_exam_reminder_retirement.php"
 "$PHP_BIN" scripts/test_term7_academic_assistant.php || fail "test_term7_academic_assistant.php"
+"$PHP_BIN" scripts/test_classops_foundation.php || fail "test_classops_foundation.php"
+"$PYTHON_BIN" scripts/test_classops_api_http.py || fail "test_classops_api_http.py"
 
 section "Signed bot integration contracts"
 "$PYTHON_BIN" scripts/test_bot_integration_contracts.py || fail "test_bot_integration_contracts.py"
