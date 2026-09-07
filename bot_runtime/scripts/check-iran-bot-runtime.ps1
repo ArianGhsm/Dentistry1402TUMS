@@ -101,7 +101,14 @@ client = SiteApiClient(
     timeout=settings.site_timeout_seconds,
     relay_secret=settings.site_relay_secret,
 )
-catalog = client.onboarding_catalog(settings.owner_id)
+try:
+    catalog = client.onboarding_catalog(settings.owner_id)
+except SiteApiError as error:
+    # The public message intentionally stays generic.  The release gate needs
+    # only the non-sensitive HTTP/reason-code pair to distinguish a service
+    # signature problem from fail-closed storage availability.
+    print(f"ONBOARDING_CATALOG_ERROR status={error.status} code={error.code}")
+    raise
 assert catalog.get("contractVersion") == "bot-onboarding-v1", ("catalog_contract", catalog.get("contractVersion"))
 institutions = list(catalog.get("institutions") or [])
 assert len(institutions) == 106, ("institutions", len(institutions))

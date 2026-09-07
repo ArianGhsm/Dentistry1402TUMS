@@ -42,6 +42,11 @@ for runtime_check in [
         f"server-only known-host resolution missing: {runtime_check}"
     )
 
+runtime_diagnostic = (ROOT / "bot_runtime/scripts/check-iran-bot-runtime.ps1").read_text(encoding="utf-8")
+assert "ONBOARDING_CATALOG_ERROR status={error.status} code={error.code}" in runtime_diagnostic, (
+    "runtime verification must retain safe onboarding failure diagnostics"
+)
+
 with tempfile.TemporaryDirectory() as temporary:
     base = Path(temporary)
     metadata = base / "metadata"
