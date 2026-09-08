@@ -1,0 +1,127 @@
+{
+  "candidateContractVersion": "classops-digest-v1",
+  "schemaVersion": 1,
+  "status": "candidate",
+  "format": "strict-contract-spec-v1",
+  "boundary": {
+    "timezone": "Asia/Tehran",
+    "locale": "fa-IR",
+    "weekStartsOn": "saturday",
+    "canonicalTimestamps": "UTC-ISO8601-Z",
+    "authorizationSource": "resolved-visibility-input",
+    "projectionMayAuthorize": false,
+    "directDatabaseWrite": false,
+    "directSend": false,
+    "aiSummarization": false,
+    "term7ScheduleCopied": false,
+    "notificationFeedCreated": false,
+    "platformNeutral": true
+  },
+  "consumes": [
+    "classops-v1",
+    "canonical-student-identity-v1",
+    "notification-integration-v1"
+  ],
+  "producerInterfaces": {
+    "audienceResolvedRecord": "classops-digest-record-v1",
+    "scheduleProjection": "classops-digest-record-v1/source=schedule",
+    "taskRequirementProjection": "classops-digest-record-v1/source=task|requirement",
+    "examProjection": "classops-digest-record-v1/source=exam",
+    "ackProjection": "classops-digest-record-v1/source=ack",
+    "serviceReminderProjection": "classops-digest-record-v1/source=service"
+  },
+  "requestSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["contractVersion", "digestKind", "viewer", "window", "records"],
+    "properties": {
+      "contractVersion": {"const": "classops-digest-v1"},
+      "digestKind": {"enum": ["tomorrow", "weekly"]},
+      "viewer": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["scope", "cohortKey", "studentNumber", "canonicalUserId"],
+        "properties": {
+          "scope": {"enum": ["student", "owner"]},
+          "cohortKey": {"type": "string"},
+          "studentNumber": {"type": ["string", "null"]},
+          "canonicalUserId": {"type": ["string", "null"]}
+        }
+      },
+      "window": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["nowUtc", "timezone"],
+        "properties": {
+          "nowUtc": {"type": "string", "pattern": "Z$"},
+          "timezone": {"const": "Asia/Tehran"}
+        }
+      },
+      "budget": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "maxItems": {"type": "integer", "minimum": 1, "maximum": 200},
+          "maxEstimatedChars": {"type": "integer", "minimum": 512, "maximum": 50000}
+        }
+      },
+      "records": {"type": "array", "maxItems": 5000, "items": {"$ref": "recordSchema"}}
+    }
+  },
+  "recordSchema": {
+    "version": "classops-digest-record-v1",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "recordVersion", "entityRef", "revision", "cohortKey", "source", "itemType", "title", "description",
+      "course", "location", "importance", "status", "scheduleRef", "timing", "visibility", "state", "change", "supersedesRef"
+    ],
+    "enums": {
+      "source": ["classops", "schedule", "task", "requirement", "exam", "ack", "service"],
+      "itemType": ["announcement", "event", "class_change", "deadline", "task", "requirement", "exam", "critical_notice", "service_reminder", "schedule_ref"],
+      "importance": ["normal", "important", "critical"],
+      "status": ["active", "pending", "completed", "cancelled", "superseded"],
+      "taskState": [null, "pending", "overdue", "completed"],
+      "ackState": [null, "pending", "acked", "not_required"],
+      "changeKind": ["none", "revised", "cancelled", "superseded"]
+    },
+    "visibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["studentAllowed", "ownerAllowed", "subject"],
+      "subjectKinds": ["studentNumber", "canonicalUserId"],
+      "semantics": "student projection requires studentAllowed=true and matching subject when subject is non-null; owner projection requires ownerAllowed=true"
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allDay", "localDate", "startsAtUtc", "endsAtUtc", "dueAtUtc", "timezone"],
+      "allDayRule": "allDay=true requires localDate; localDate is forbidden when allDay=false",
+      "timezone": "Asia/Tehran"
+    }
+  },
+  "viewModelSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "contractVersion", "locale", "timezone", "digestKind", "projectionScope", "cohortKey", "window",
+      "title", "empty", "sections", "budget", "plainText"
+    ],
+    "projectionScopes": ["student", "owner"],
+    "tomorrowSections": ["critical_ack", "schedule", "deadlines", "tasks_requirements", "exams", "changes", "service_reminders", "other"],
+    "weeklySections": ["critical_ack", "schedule", "deadlines", "exams", "outstanding_tasks", "changes", "service_reminders", "other"],
+    "privacy": "visibility and subject identity are consumed but never emitted in the view model",
+    "budgetMetadata": ["maxItems", "maxEstimatedChars", "estimatedChars", "totalItems", "visibleItems", "truncated", "omittedItems", "omittedBySection"]
+  },
+  "determinism": {
+    "dedupe": "highest revision per entityRef; conflicting same-revision payloads fail closed; explicit supersedesRef removes superseded entity",
+    "priorityOrder": ["critical-ack", "critical-importance", "exam", "deadline", "overdue-task", "pending-task", "class-change", "schedule-ref", "event", "service-reminder", "other"],
+    "tieBreakers": ["priority-desc", "effectiveAtUtc-asc", "title-asc", "entityRef-asc"],
+    "emptyBehavior": "fixed empty message with all section definitions retained",
+    "truncation": "fixed section order; entry priority order; omitted counts preserved"
+  },
+  "windows": {
+    "tomorrow": "next local calendar day [00:00, 00:00) in Asia/Tehran",
+    "weekly": "next Saturday 00:00 through following Saturday 00:00, exclusive; if now is Saturday the next week begins seven days later"
+  }
+}

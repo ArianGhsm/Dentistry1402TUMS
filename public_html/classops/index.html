@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>مرکز عملیات کلاس | Dentistry1402TUMS</title>
+    <meta name="description" content="مرکز یکپارچه ClassOps برای پیش‌نمایش، تأیید، مخاطب، ارسال، یادآوری، ACK و خلاصه‌ها.">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260722-200509">
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/YekanBakh-VF.woff2" crossorigin>
+    <script src="/assets/site/scripts/theme.js?v=20260722-200509"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260722-200509">
+    <link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260722-200509">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260812-phase4b">
+    <link rel="stylesheet" href="/assets/classops_ops/classops_ops.css?v=classops-surface-v1">
+    <link rel="stylesheet" href="/assets/classops_ops/classops_stage2.css?v=classops-stage2-v1">
+</head>
+<body class="hub-page classops-page">
+    <div class="background-overlay" aria-hidden="true"></div>
+    <header class="site-header">
+        <div class="logo-area">
+            <div class="logo-circle"><img src="/assets/images/logo.png?v=20260722-200509" alt="لوگوی رسمی سایت"></div>
+            <div class="site-info"><h1>مرکز عملیات کلاس</h1><p>ClassOps Stage 2 · preview → confirm → canonical commit</p></div>
+        </div>
+        <div class="header-actions">
+            <a class="header-link" href="/account/">حساب</a>
+            <a class="header-link" href="/app/">خانه</a>
+        </div>
+    </header>
+
+    <main class="classops-shell" aria-labelledby="classops-page-title">
+        <section class="classops-hero">
+            <div>
+                <span class="classops-kicker">Owner Operations Center</span>
+                <h2 id="classops-page-title">یک workflow برای وب، تلگرام و بله</h2>
+                <p>هر عملیات ابتدا مخاطب، مقصد و سیاست یادآوری را بدون mutation پیش‌نمایش می‌کند. commit فقط پس از تأیید مالک و بازبینی دوباره hash مخاطب انجام می‌شود؛ Telegram و Bale صرفاً adapterهای delivery هستند.</p>
+            </div>
+            <button id="classops-refresh" type="button" class="classops-button classops-button--secondary">بازیابی فهرست</button>
+        </section>
+
+        <p id="classops-access-state" class="classops-state" data-state="loading" role="status" aria-live="polite">در حال بررسی دسترسی canonical مالک...</p>
+
+        <section id="classops-owner-center" hidden>
+            <p id="classops-operation-state" class="classops-state classops-operation-state" data-state="ready" role="status" aria-live="polite">Stage2 آماده است.</p>
+
+            <div class="classops-grid classops-grid--wide">
+                <article class="classops-panel">
+                    <div class="classops-panel__head">
+                        <div><span class="classops-kicker">Compose</span><h3>ساخت و انتشار کنترل‌شده</h3></div>
+                        <span>resolve → preview → confirm</span>
+                    </div>
+                    <form id="classops-draft-form" class="classops-form">
+                        <label>ورودی canonical
+                            <input id="classops-cohort" name="cohortKey" required maxlength="80" autocomplete="off" value="dentistry-1402">
+                        </label>
+                        <label>نوع
+                            <select id="classops-type" name="type">
+                                <option value="announcement">اطلاعیه</option>
+                                <option value="event">رویداد</option>
+                                <option value="class_change">تغییر برنامه کلاس</option>
+                                <option value="deadline">ددلاین</option>
+                                <option value="task">تسک</option>
+                                <option value="requirement">الزام</option>
+                                <option value="exam">آزمون</option>
+                                <option value="critical_notice">اطلاعیه حیاتی</option>
+                                <option value="service_reminder">یادآوری سرویس</option>
+                            </select>
+                        </label>
+                        <label>عنوان<input id="classops-title" name="title" required maxlength="160"></label>
+                        <label>درس<input id="classops-course-title" name="courseTitle" maxlength="180" placeholder="اختیاری"></label>
+                        <label class="classops-form__full">توضیح<textarea id="classops-description" name="description" maxlength="4000" rows="4"></textarea></label>
+                        <label>شروع در تهران<input id="classops-starts-at" type="datetime-local" name="startsAt"></label>
+                        <label>مهلت در تهران<input id="classops-due-at" type="datetime-local" name="dueAt"></label>
+                        <label>مکان<input id="classops-location" name="location" maxlength="300"></label>
+                        <label>اهمیت
+                            <select id="classops-importance" name="importance">
+                                <option value="normal">عادی</option>
+                                <option value="important">مهم</option>
+                                <option value="critical">حیاتی</option>
+                            </select>
+                        </label>
+                        <label class="classops-check classops-form__full">
+                            <input id="classops-require-ack" type="checkbox" disabled>
+                            <span>برای اطلاعیه حیاتی ACK نسخه‌محور لازم است</span>
+                        </label>
+                        <p id="classops-saba-note" class="classops-note classops-form__full" hidden>یادآوری Saba فقط reminder محلی است؛ نام کاربری، رمز، token یا session صبا ذخیره یا استفاده نمی‌شود.</p>
+
+                        <fieldset class="classops-fieldset classops-form__full">
+                            <legend>مخاطب</legend>
+                            <div class="classops-form classops-form--nested">
+                                <label>روش انتخاب
+                                    <select id="classops-audience-mode">
+                                        <option value="whole_cohort">کل ورودی</option>
+                                        <option value="students">شماره‌های دانشجویی مشخص</option>
+                                        <option value="selector">Selector canonical</option>
+                                    </select>
+                                </label>
+                                <label id="classops-audience-students-wrap" hidden>شماره‌های دانشجویی
+                                    <textarea id="classops-audience-students" rows="3" placeholder="با فاصله یا ویرگول جدا کن"></textarea>
+                                </label>
+                                <div id="classops-audience-selector-wrap" class="classops-selector-row" hidden>
+                                    <label>نوع selector
+                                        <select id="classops-audience-selector-kind">
+                                            <option value="group">گروه</option>
+                                            <option value="category">دسته</option>
+                                            <option value="role">نقش</option>
+                                        </select>
+                                    </label>
+                                    <label>کلید canonical<input id="classops-audience-selector-key" maxlength="120" autocomplete="off"></label>
+                                </div>
+                                <label>Include اختیاری<textarea id="classops-audience-include" rows="2" placeholder="شماره دانشجویی"></textarea></label>
+                                <label>Exclude اختیاری<textarea id="classops-audience-exclude" rows="2" placeholder="شماره دانشجویی"></textarea></label>
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="classops-fieldset classops-form__full">
+                            <legend>مقصد ارسال</legend>
+                            <div class="classops-destination-options">
+                                <label class="classops-check"><input id="classops-dest-private_users" type="checkbox" checked><span>پیام خصوصی</span></label>
+                                <label class="classops-check"><input id="classops-dest-class_group" type="checkbox"><span>گروه کلاس</span></label>
+                                <label class="classops-check"><input id="classops-dest-information_channel" type="checkbox"><span>کانال اطلاع‌رسانی</span></label>
+                            </div>
+                            <p class="classops-note">در preview فقط route/capability بررسی می‌شود. هیچ chat ID خام در ClassOps ذخیره نمی‌شود.</p>
+                        </fieldset>
+
+                        <div class="classops-form__actions">
+                            <button type="submit" class="classops-button classops-button--primary">پیش‌نمایش نهایی</button>
+                        </div>
+                    </form>
+                </article>
+
+                <article class="classops-panel">
+                    <div class="classops-panel__head">
+                        <div><span class="classops-kicker">AI Copilot</span><h3>متن آزاد → structured draft</h3></div>
+                        <span id="classops-ai-state">در حال بررسی...</span>
+                    </div>
+                    <form id="classops-ai-form" class="classops-form classops-form--stack">
+                        <label>ورودی canonical<input id="classops-ai-cohort" value="dentistry-1402" maxlength="80"></label>
+                        <label>دستور مالک<textarea id="classops-ai-text" rows="5" maxlength="12000" placeholder="مثلاً: فردا کلاس ترمیمی ساعت ۸ به ۱۰ منتقل شد..."></textarea></label>
+                        <label>متن فورواردشده، در صورت وجود<textarea id="classops-ai-forwarded" rows="4" maxlength="24000" placeholder="این بخش untrusted data در نظر گرفته می‌شود."></textarea></label>
+                        <button id="classops-ai-submit" type="submit" class="classops-button classops-button--secondary">ساخت structured draft</button>
+                    </form>
+                    <pre id="classops-ai-preview" class="classops-preview" hidden aria-live="polite"></pre>
+                    <div id="classops-ai-edit-wrap" class="classops-ai-edit" hidden>
+                        <label>اصلاح متنی draft<textarea id="classops-ai-edit-text" rows="3" maxlength="8000" placeholder="مثلاً: فقط عنوان را کوتاه‌تر کن"></textarea></label>
+                        <div class="classops-action-row">
+                            <button id="classops-ai-edit" type="button" class="classops-button classops-button--secondary">اصلاح draft</button>
+                            <button id="classops-ai-apply" type="button" class="classops-button classops-button--primary">انتقال فیلدهای قطعی به فرم</button>
+                        </div>
+                    </div>
+                    <p class="classops-note">AI authority برای mutation، resolution هویت/تاریخ یا send صفر است. مقادیر حل‌نشده باید توسط مالک در فرم تعیین شوند.</p>
+                </article>
+            </div>
+
+            <section id="classops-stage2-preview-panel" class="classops-panel classops-preview-panel" hidden aria-labelledby="classops-preview-title">
+                <div class="classops-panel__head">
+                    <div><span class="classops-kicker">Trusted preview</span><h3 id="classops-preview-title">پیش‌نمایش مخاطب، مقصد و side effect</h3></div>
+                    <span>zero mutation until confirm</span>
+                </div>
+                <pre id="classops-stage2-preview" class="classops-preview"></pre>
+                <div class="classops-action-row">
+                    <button id="classops-stage2-dismiss" type="button" class="classops-button classops-button--secondary">انصراف</button>
+                    <button id="classops-stage2-confirm" type="button" class="classops-button classops-button--primary">تأیید مالک و commit</button>
+                </div>
+            </section>
+
+            <section class="classops-panel" aria-labelledby="classops-cap-title">
+                <div class="classops-panel__head">
+                    <div><span class="classops-kicker">Runtime capabilities</span><h3 id="classops-cap-title">وضعیت زیرسامانه‌ها</h3></div>
+                    <span>unknown/blocked ≠ success</span>
+                </div>
+                <div id="classops-capabilities" class="classops-capability-grid" aria-live="polite"></div>
+            </section>
+
+            <div class="classops-grid classops-grid--items">
+                <article class="classops-panel">
+                    <div class="classops-panel__head">
+                        <div><span class="classops-kicker">Canonical items</span><h3>فهرست</h3></div>
+                        <span id="classops-item-state" aria-live="polite">—</span>
+                    </div>
+                    <div id="classops-conflict" class="classops-state" data-state="conflict" hidden role="alert"></div>
+                    <p id="classops-empty" class="classops-empty" hidden>موردی برای نمایش وجود ندارد.</p>
+                    <div id="classops-item-list" class="classops-item-list"></div>
+                </article>
+
+                <article id="classops-selected" class="classops-panel" hidden>
+                    <div class="classops-panel__head">
+                        <div><span class="classops-kicker">Selected revision</span><h3 id="classops-selected-title">—</h3></div>
+                        <span id="classops-selected-meta">—</span>
+                    </div>
+                    <p id="classops-legacy-item-note" class="classops-state" data-state="loading" hidden>این آیتم فقط Foundation است. Stage2 آن را خودکار به audience/delivery جدید promote نمی‌کند تا انتشار ناخواسته رخ ندهد.</p>
+                    <label class="classops-edit-label">توضیح<textarea id="classops-edit-description" rows="5" maxlength="4000"></textarea></label>
+                    <div class="classops-action-row">
+                        <button id="classops-edit" class="classops-button classops-button--secondary" type="button">preview ویرایش</button>
+                        <button id="classops-schedule" class="classops-button classops-button--secondary" type="button">scheduled</button>
+                        <button id="classops-activate" class="classops-button classops-button--secondary" type="button">active</button>
+                        <button id="classops-complete" class="classops-button classops-button--secondary" type="button">completed</button>
+                        <button id="classops-cancel" class="classops-button classops-button--danger" type="button">لغو</button>
+                        <button id="classops-archive" class="classops-button classops-button--danger" type="button">آرشیو</button>
+                    </div>
+                    <div id="classops-task-tools" class="classops-inline-tools" hidden>
+                        <label>شماره دانشجویی برای مشاهده state<input id="classops-task-student" inputmode="numeric" autocomplete="off"></label>
+                        <button id="classops-task-state" type="button" class="classops-button classops-button--secondary">Task state</button>
+                    </div>
+                    <button id="classops-ack-stats" type="button" class="classops-button classops-button--secondary" hidden>آمار ACK این revision</button>
+                    <pre id="classops-selected-output" class="classops-preview" hidden></pre>
+                    <p class="classops-note">ویرایش Stage2 نیز ابتدا preview می‌شود. اگر audience یا revision در فاصله preview تا confirm تغییر کند، commit با 409 متوقف می‌شود.</p>
+                </article>
+            </div>
+
+            <section class="classops-panel">
+                <div class="classops-panel__head">
+                    <div><span class="classops-kicker">Deterministic digests</span><h3>خلاصه‌های عملیاتی</h3></div>
+                    <span>read-only projection</span>
+                </div>
+                <div class="classops-action-row">
+                    <button id="classops-digest-tomorrow" type="button" class="classops-button classops-button--secondary">خلاصه فردا</button>
+                    <button id="classops-digest-weekly" type="button" class="classops-button classops-button--secondary">خلاصه هفتگی</button>
+                </div>
+                <pre id="classops-digest-output" class="classops-preview" hidden></pre>
+                <p class="classops-note">این endpointها projection خواندنی هستند و هنگام مشاهده task state یا notification جدید نمی‌سازند.</p>
+            </section>
+        </section>
+    </main>
+
+    <dialog id="classops-confirm-dialog" class="classops-dialog" aria-labelledby="classops-confirm-title">
+        <h3 id="classops-confirm-title">تأیید عملیات lifecycle</h3>
+        <pre id="classops-confirm-text"></pre>
+        <div class="classops-action-row">
+            <button id="classops-confirm-no" type="button" class="classops-button classops-button--secondary">انصراف</button>
+            <button id="classops-confirm-yes" type="button" class="classops-button classops-button--danger">تأیید نهایی</button>
+        </div>
+    </dialog>
+
+    <script src="/assets/site/scripts/pwa.js?v=20260722-200509"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260722-200509"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260812-phase3b"></script>
+    <script src="/assets/classops_ops/classops_ops.js?v=classops-surface-v1"></script>
+    <script src="/assets/classops_ops/classops_ops_dom.js?v=classops-surface-v1"></script>
+    <script src="/assets/classops_ops/classops_stage2_dom.js?v=classops-stage2-v1"></script>
+    <script>window.addEventListener('DOMContentLoaded', function () { window.ClassOpsOps.mountOperationsCenter(); });</script>
+</body>
+</html>

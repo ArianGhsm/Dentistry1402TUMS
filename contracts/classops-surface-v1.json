@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dentistry1402tums.ir/contracts/classops-surface-v1.json",
+  "title": "ClassOps cross-surface application contract v1",
+  "contractVersion": "classops-surface-v1",
+  "status": "stage2-approved",
+  "baseContracts": [
+    "classops-v1",
+    "classops-audience-v1",
+    "classops-delivery-v1",
+    "classops-ai-draft-v1",
+    "classops-tasks-v1",
+    "classops-exam-ack-v1",
+    "classops-reminder-v1",
+    "classops-digest-v1",
+    "canonical-student-identity-v1",
+    "runtime-site-service-v1",
+    "notification-integration-v1"
+  ],
+  "principles": {
+    "canonicalTimestamps": "UTC ISO-8601",
+    "presentationTimezone": "Asia/Tehran",
+    "displayNameIsIdentity": false,
+    "rawPlatformIdsInDomain": false,
+    "secretsInPayload": false,
+    "directDatabaseMutationFromAdapter": false,
+    "aiAuthority": "draft-only",
+    "ownerPreviewConfirmRequired": true,
+    "criticalAckAuthority": "explicit-application-state-only",
+    "unsupportedCapabilityBehavior": "fail-closed-never-fake-success",
+    "websiteNotifications": "existing-canonical-notification-subsystem",
+    "term7Source": "academic_term7.php"
+  },
+  "definitions": {
+    "roles": ["owner", "student", "runtime-service"],
+    "platforms": ["website", "telegram", "bale"],
+    "actions": {
+      "capabilities.get": {"roles": ["owner", "student", "runtime-service"], "kind": "read"},
+      "status.get": {"roles": ["owner", "runtime-service"], "kind": "read"},
+      "items.list": {"roles": ["owner"], "kind": "read"},
+      "item.get": {"roles": ["owner"], "kind": "read"},
+      "item.revisions": {"roles": ["owner"], "kind": "read"},
+      "draft.validate": {"roles": ["owner"], "kind": "preview"},
+      "ai.draft_create": {"roles": ["owner"], "kind": "preview", "directMutation": false, "directSend": false},
+      "ai.draft_edit": {"roles": ["owner"], "kind": "preview", "directMutation": false, "directSend": false},
+      "item.preview": {"roles": ["owner"], "kind": "preview"},
+      "audience.preview": {"roles": ["owner"], "kind": "preview"},
+      "delivery.preview": {"roles": ["owner"], "kind": "preview"},
+      "reminder.preview": {"roles": ["owner"], "kind": "preview"},
+      "item.confirm_create": {"roles": ["owner"], "kind": "mutation", "idempotencyRequired": true, "audienceHashRequired": true},
+      "item.confirm_update": {"roles": ["owner"], "kind": "mutation", "expectedRevisionRequired": true, "idempotencyRequired": true, "audienceHashRequired": true},
+      "item.cancel": {"roles": ["owner"], "kind": "mutation", "expectedRevisionRequired": true, "idempotencyRequired": true},
+      "item.archive": {"roles": ["owner"], "kind": "mutation", "expectedRevisionRequired": true, "idempotencyRequired": true},
+      "task.owner_transition": {"roles": ["owner"], "kind": "mutation", "expectedStateRevisionRequired": true, "idempotencyRequired": true},
+      "ack.owner_stats": {"roles": ["owner"], "kind": "read"},
+      "student.items": {"roles": ["student"], "kind": "read", "personalized": true},
+      "student.item": {"roles": ["student"], "kind": "read", "personalized": true},
+      "student.task_transition": {"roles": ["student"], "kind": "mutation", "expectedStateRevisionRequired": true, "idempotencyRequired": true},
+      "student.critical_ack": {"roles": ["student"], "kind": "mutation", "expectedRevisionRequired": true, "idempotencyRequired": true},
+      "student.service_transition": {"roles": ["student"], "kind": "mutation", "expectedStateRevisionRequired": true, "idempotencyRequired": true, "externalVerification": false},
+      "summary.tomorrow": {"roles": ["owner", "student", "runtime-service"], "kind": "read", "deterministic": true},
+      "summary.weekly": {"roles": ["owner", "student", "runtime-service"], "kind": "read", "deterministic": true},
+      "runtime.delivery_claim": {"roles": ["runtime-service"], "kind": "mutation", "leaseBased": true},
+      "runtime.delivery_ack": {"roles": ["runtime-service"], "kind": "mutation", "idempotencyRequired": true},
+      "runtime.scheduler_tick": {"roles": ["runtime-service"], "kind": "mutation", "coordinatorRequired": true}
+    },
+    "platformFallbacks": {
+      "telegram": {"buttons": "native-inline", "style": "optional"},
+      "bale": {"buttons": "native-inline-compatible", "style": "omitted-when-unsupported"},
+      "website": {"disabled": "disabled-control-with-reason"}
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "action", "actorRole", "payload"],
+  "properties": {
+    "contractVersion": {"const": "classops-surface-v1"},
+    "action": {"type": "string", "minLength": 1, "maxLength": 80},
+    "actorRole": {"type": "string", "enum": ["owner", "student", "runtime-service"]},
+    "itemId": {"type": ["string", "null"], "pattern": "^cop_[a-f0-9]{16,64}$"},
+    "expectedRevision": {"type": ["integer", "null"], "minimum": 1},
+    "idempotencyKey": {"type": ["string", "null"], "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"},
+    "payload": {
+      "type": "object",
+      "description": "Transport-neutral application payload. Raw Telegram/Bale chat IDs, bot/user tokens, passwords, OTPs, cookies and arbitrary identity assertions are forbidden."
+    }
+  }
+}

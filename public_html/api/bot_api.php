@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/bot_store.php';
+require_once __DIR__ . '/classops_bot_service.php';
 
 header('Cache-Control: private, no-store, max-age=0');
 header('Pragma: no-cache');
@@ -11,8 +12,17 @@ header('X-Robots-Tag: noindex, nofollow, noarchive');
 $action = dent_request_action();
 
 if ($action === 'service') {
+    // HMAC timestamp/nonce verification happens before ClassOps dispatch. The
+    // ClassOps service never accepts an unsigned runtime request or a client-
+    // asserted canonical identity; it resolves the linked website user from
+    // platform + platformUserId inside bot_store.php.
     $payload = dent_bot_service_request();
-    dent_json_response(dent_bot_service_dispatch($payload));
+    $serviceAction = trim((string) ($payload['action'] ?? ''));
+    dent_json_response(
+        classops_bot_service_action($serviceAction)
+            ? classops_bot_service_dispatch($payload)
+            : dent_bot_service_dispatch($payload)
+    );
 }
 
 if ($action === 'linkInfo') {

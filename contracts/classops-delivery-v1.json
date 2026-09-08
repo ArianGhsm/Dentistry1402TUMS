@@ -1,0 +1,72 @@
+{
+  "contractVersion": "classops-delivery-v1",
+  "status": "candidate",
+  "promotionOwner": "integration",
+  "compatibleWith": [
+    "classops-v1",
+    "notification-integration-v1",
+    "runtime-site-service-v1"
+  ],
+  "boundaries": {
+    "planningOnly": true,
+    "directSend": false,
+    "notificationStoreWrite": false,
+    "parallelFeedAllowed": false,
+    "rawPlatformIdentifiersInDomain": false,
+    "audienceResolutionInsideDelivery": false,
+    "identityAuthorizationInsideCapabilityCheck": false,
+    "canonicalTime": "UTC_ISO_8601_Z"
+  },
+  "registry": {
+    "version": "classops-destination-registry-v1",
+    "destinationKinds": ["private_recipient", "class_group", "channel", "logical"],
+    "platforms": ["telegram", "bale"],
+    "capabilityStates": ["supported", "unsupported", "unknown"],
+    "capabilities": ["text_message", "private_recipient", "group_delivery", "channel_delivery", "silent_delivery", "protected_content"],
+    "rawPlatformIdentifiersForbidden": true,
+    "logicalFallbackRequiresSemanticEquivalent": true
+  },
+  "capabilityPolicy": {
+    "unknown": "fail_closed",
+    "overridesRequireEvidence": true,
+    "platformParityMayNotBeAssumed": true
+  },
+  "intent": {
+    "schemaVersion": 1,
+    "deterministicBy": [
+      "item.id", "item.revision", "item.snapshotHash", "audience.ref", "audience.version", "audience.hash",
+      "registry.id", "registry.version", "requestedDestinationAlias", "resolvedDestinationAlias", "bindingRef",
+      "platform", "occurrence", "requiredCapabilities", "fallbackFrom"
+    ],
+    "newRevisionSupersedesPriorSameLane": true,
+    "sameSemanticOccurrenceSameDedupeKey": true,
+    "payloadReferenceBased": true
+  },
+  "retry": {
+    "maxAttempts": 5,
+    "baseBackoffSeconds": 30,
+    "maxBackoffSeconds": 900
+  },
+  "reconciliation": {
+    "futureCancelledOrArchived": "cancel",
+    "futureNewerRevision": "supersede",
+    "dueOrPast": "runtime_reconcile"
+  },
+  "adapter": {
+    "contractVersion": "classops-delivery-adapter-v1",
+    "consumerMust": [
+      "resolve bindingRef outside ClassOps domain",
+      "resolve private recipient from canonical identity/audience reference",
+      "recheck identity authorization before private send",
+      "claim and dedupe by dedupeKey",
+      "report platform results independently",
+      "write user-visible notifications only through canonical notification subsystem"
+    ],
+    "consumerMustNot": [
+      "treat planned as sent",
+      "infer Bale capability from Telegram capability",
+      "persist raw chat identifiers in ClassOps",
+      "create parallel notification feed or read state"
+    ]
+  }
+}
