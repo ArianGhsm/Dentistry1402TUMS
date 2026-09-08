@@ -11,7 +11,11 @@ if ($DryRun -eq $Deploy) { throw 'Specify exactly one of -DryRun or -Deploy.' }
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $child = Join-Path $root 'scripts\deploy_public_html.ps1'
 $mode = if ($DryRun) { 'dry-run' } else { 'deploy' }
-& $child -ReleaseSha $ReleaseSha @($(if ($DryRun) { '-DryRun' }))
+if ($DryRun) {
+    & $child -ReleaseSha $ReleaseSha -DryRun
+} else {
+    & $child -ReleaseSha $ReleaseSha
+}
 $code = $LASTEXITCODE
 $ops = Split-Path ((Resolve-Path (& git -C $root rev-parse --git-common-dir)).Path) -Parent
 $reportRoot = Join-Path $ops ".codex-local\release-runs\$ReleaseSha"
