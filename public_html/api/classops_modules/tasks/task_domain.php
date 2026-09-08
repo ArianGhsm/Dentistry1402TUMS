@@ -247,7 +247,6 @@ function classops_task_transition(array $state, int $expectedStateRevision, stri
         if (($event['to'] ?? null) !== $target) {
             classops_task_fail('CLASSOPS_TASK_IDEMPOTENCY_CONFLICT', 'Command id was already used for another transition.', 409);
         }
-        $state['idempotentReplay'] = true;
         return $state;
     }
     if ($state['stateRevision'] !== $expectedStateRevision) {
@@ -273,7 +272,6 @@ function classops_task_transition(array $state, int $expectedStateRevision, stri
     $state['state'] = $target;
     $state['stateRevision']++;
     $state['updatedAt'] = $atUtc;
-    $state['idempotentReplay'] = false;
     return $state;
 }
 
@@ -304,7 +302,6 @@ function classops_task_set_progress(array $state, int $expectedStateRevision, in
             if (($event['kind'] ?? null) !== 'progress' || ($event['progressCount'] ?? null) !== $progressCount) {
                 classops_task_fail('CLASSOPS_TASK_IDEMPOTENCY_CONFLICT', 'Command id was already used for another mutation.', 409);
             }
-            $state['idempotentReplay'] = true;
             return $state;
         }
     }
@@ -316,7 +313,6 @@ function classops_task_set_progress(array $state, int $expectedStateRevision, in
     $state['progressCount'] = $progressCount;
     $state['stateRevision']++;
     $state['updatedAt'] = $event['at'];
-    $state['idempotentReplay'] = false;
     return $state;
 }
 
