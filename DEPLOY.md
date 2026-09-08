@@ -88,6 +88,13 @@ double-read stability of critical stores. A malformed/transitional snapshot
 never becomes `latest`. Production data, `.env`, sessions, locks, backups,
 cache and runtime uploads are protected even during full sync.
 
+Verified website-storage snapshots have bounded retention: after a successful
+verified promotion, the deploy keeps the five newest complete snapshots. Partial,
+malformed, or otherwise ineligible directories are never promoted or removed by
+this cleanup and remain available for forensic inspection. This policy applies
+only to the website-storage mirror under `.codex-local/remote-storage`; encrypted
+VPS runtime backups keep their separate disaster-recovery retention policy.
+
 Normal deploy guards remain 80 uploads and 25 deletes. Bypass requires explicit
 `-AllowLargeDeploy` or `-FullSync` after review. FTP retry, rollback inputs,
 notifications and live verification remain mandatory for an integrated release.
