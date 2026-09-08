@@ -8,6 +8,7 @@ def read(path: str) -> str:
     return (ROOT / path).read_text(encoding='utf-8')
 
 registry = json.loads(read('contracts/classops-domain-contracts-v1.json'))
+assert registry['stage'] in {'integration-stage1', 'integration-stage2'}
 assert registry['compatibility']['historicalClassopsV1Readable'] is True
 assert registry['compatibility']['audiencePlaceholderReadable'] is True
 assert registry['compatibility']['deliveryPlaceholderReadable'] is True
@@ -88,8 +89,18 @@ assert 'classops-audience-placeholder-v1' in store
 assert 'classops-delivery-placeholder-v1' in store
 assert 'classops-reminder-placeholder-v1' in store
 
-# Cross-surface files are deliberately not part of Stage 1.
-assert not (ROOT / 'public_html/classops/index.html').exists()
-assert registry['futureSurface']['promotion'] == 'stage2-only-not-merged'
+# The Stage 1 invariants remain frozen, but Stage 2 is allowed to add the
+# promoted cross-surface product only when the registry explicitly says so.
+if registry['stage'] == 'integration-stage1':
+    assert not (ROOT / 'public_html/classops/index.html').exists()
+    assert registry['futureSurface']['promotion'] == 'stage2-only-not-merged'
+else:
+    assert registry['surface']['promotion'] == 'stage2-approved-surface'
+    assert (ROOT / 'contracts/classops-surface-v1.json').is_file()
+    assert (ROOT / 'public_html/classops/index.html').is_file()
+    assert (ROOT / 'public_html/api/classops_stage2_store.php').is_file()
+    assert (ROOT / 'public_html/api/classops_stage2/owner_workflow.php').is_file()
+    assert (ROOT / 'public_html/api/classops_stage2/student_workflow.php').is_file()
+    assert (ROOT / 'public_html/api/classops_stage2_scheduler.php').is_file()
 
-print('ClassOps Stage 1 cross-domain invariant checks passed')
+print('ClassOps Stage 1 invariants preserved; Stage 2 promotion state is coherent')
