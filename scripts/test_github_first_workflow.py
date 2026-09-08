@@ -66,6 +66,7 @@ for needle in [
     '$script:DeployPlanComplete = $true',
     'protectedPathViolations',
     'productionMutation',
+    'exitCode = if ($status -eq "passed") { 0 } else { 1 }',
 ]:
     assert needle in DEPLOY, f"missing durable release-report invariant: {needle}"
 assert 'if ($DryRun -and -not $script:DeployPlanComplete)' in DEPLOY, (
@@ -76,6 +77,9 @@ assert 'Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }' in DEPLO
 )
 assert 'Write-Warning $failureMessage' in DEPLOY, (
     "failure reporting must not terminate inside finally before the durable report is written"
+)
+assert '$deployInfo.UploadCount -gt 0 -or $deployInfo.DeleteCount -gt 0' in DEPLOY, (
+    "a successful zero-delta release must not be reported as a production mutation"
 )
 assert DEPLOY.index('Write-Warning $failureMessage') < DEPLOY.index(
     'Write-ReleaseReport -status "failed" -failureCode "RELEASE_PIPELINE_FAILED"'
