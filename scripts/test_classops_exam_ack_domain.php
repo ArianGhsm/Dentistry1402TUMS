@@ -99,6 +99,7 @@ function test_eligibility(array $notice, string $studentNumber, bool $eligible =
     ];
 }
 
+// Exam validation and UTC canonicalization.
 $create = classops_exam_build_create_input(test_exam_input());
 test_same('exam', $create['type'], 'Exam builder sets Foundation item type.');
 test_same('2026-10-10T05:00:00Z', $create['timing']['startsAt'], 'Exam start is canonical UTC.');
@@ -147,6 +148,7 @@ test_exam_exception('CLASSOPS_EXAM_INVALID_FOUNDATION_REF', static function (): 
     classops_exam_build_create_input($input);
 }, 'Exam course ref matches frozen Foundation canonical-ref syntax.');
 
+// Reminder policy stays declarative; no due timestamp is calculated here.
 $reminders = classops_exam_default_reminder_policy();
 test_same(CLASSOPS_EXAM_REMINDER_VERSION, $reminders['version'], 'Reminder version is explicit.');
 test_same(4, count($reminders['rules']), 'Four default reminder intents are serialized.');
@@ -156,6 +158,7 @@ test_same('night_before', $reminders['rules'][2]['marker'], 'Night-before marker
 test_same('morning_of', $reminders['rules'][3]['marker'], 'Morning-of marker is declarative.');
 test_assert(!array_key_exists('dueAt', $reminders), 'Reminder policy does not calculate scheduler due times.');
 
+// Reschedule/cancel use exact revision and preserve foreign extension namespaces.
 $item = test_exam_item(1);
 $item['extensions']['foreign_v1'] = ['preserve' => true];
 $reschedule = classops_exam_build_reschedule_command($item, 1, [
@@ -192,6 +195,7 @@ foreach (['attempts', 'answers', 'timer', 'access', 'paymentStatus', 'verifiedSu
 }
 test_same('reference_only', $projectionA['paymentAccessRef']['mode'], 'Payment access is reference-only.');
 
+// Critical ACK: exact item revision + canonical actor + explicit intent + idempotency.
 $state = classops_ack_empty_state();
 $noticeV3 = test_notice(3);
 $student = '1402123456';
@@ -302,6 +306,7 @@ test_assert(!str_contains($auditJson, 'ack-test-0001'), 'Audit history omits raw
 test_assert(!str_contains($auditJson, 'telegram'), 'Audit history omits transport identifiers.');
 test_assert(!str_contains($auditJson, 'bale'), 'Audit history omits transport identifiers for Bale.');
 
+// Reusing one idempotency key for a different ACK payload is a conflict.
 $otherNotice = test_notice(1, 'cop_aaaaaaaaaaaaaaaa');
 $otherEligibility = test_eligibility($otherNotice, $student, true);
 test_ack_exception('CLASSOPS_ACK_IDEMPOTENCY_CONFLICT', static function () use ($state, $otherNotice, $actor, $otherEligibility): void {

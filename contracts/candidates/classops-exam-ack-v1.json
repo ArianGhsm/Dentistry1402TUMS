@@ -29,10 +29,26 @@
       "version": "classops-exam-reminder-v1",
       "enabled": true,
       "rules": [
-        {"key": "t_minus_3d", "kind": "relative_before_start", "offsetSeconds": 259200},
-        {"key": "t_minus_1d", "kind": "relative_before_start", "offsetSeconds": 86400},
-        {"key": "night_before", "kind": "calendar_marker", "marker": "night_before"},
-        {"key": "morning_of", "kind": "calendar_marker", "marker": "morning_of"}
+        {
+          "key": "t_minus_3d",
+          "kind": "relative_before_start",
+          "offsetSeconds": 259200
+        },
+        {
+          "key": "t_minus_1d",
+          "kind": "relative_before_start",
+          "offsetSeconds": 86400
+        },
+        {
+          "key": "night_before",
+          "kind": "calendar_marker",
+          "marker": "night_before"
+        },
+        {
+          "key": "morning_of",
+          "kind": "calendar_marker",
+          "marker": "morning_of"
+        }
       ]
     },
     "schedulerOwnsDueCalculation": true,
@@ -42,11 +58,32 @@
       "cancelUsesFoundationLifecycle": true,
       "historyDestructiveRewriteAllowed": false
     },
-    "referenceOnlyFields": ["reference", "assessmentRef", "resourceRefs", "paymentAccessRef"],
+    "referenceOnlyFields": [
+      "reference",
+      "assessmentRef",
+      "resourceRefs",
+      "paymentAccessRef"
+    ],
     "forbiddenParallelStateFields": [
-      "attempt", "attempts", "attemptState", "attemptsByUser", "answer", "answers", "answersByUser",
-      "timer", "timerState", "access", "hasAccess", "payment", "payments", "paymentStatus", "paid",
-      "verifiedPayment", "verifiedSuccess", "transaction", "transactions"
+      "attempt",
+      "attempts",
+      "attemptState",
+      "attemptsByUser",
+      "answer",
+      "answers",
+      "answersByUser",
+      "timer",
+      "timerState",
+      "access",
+      "hasAccess",
+      "payment",
+      "payments",
+      "paymentStatus",
+      "paid",
+      "verifiedPayment",
+      "verifiedSuccess",
+      "transaction",
+      "transactions"
     ]
   },
   "criticalAck": {
@@ -54,14 +91,22 @@
     "stateVersion": "classops-critical-ack-state-v1",
     "projectionVersion": "classops-critical-ack-projection-v1",
     "eligibilityVersion": "classops-audience-eligibility-v1",
-    "tuple": ["itemId", "revision", "studentNumber"],
+    "tuple": [
+      "itemId",
+      "revision",
+      "studentNumber"
+    ],
     "requiresExplicitUserIntent": true,
     "transportDeliveryOrReadReceiptIsAck": false,
     "exactRevisionRequired": true,
     "newRevisionRequiresNewAck": true,
     "audienceEligibilityRequired": true,
     "crossAudienceFailsClosed": true,
-    "ownerAggregateFields": ["eligible", "acked", "pending"],
+    "ownerAggregateFields": [
+      "eligible",
+      "acked",
+      "pending"
+    ],
     "auditContainsRawStudentNumber": false,
     "auditContainsRawIdempotencyKey": false
   },
@@ -72,7 +117,11 @@
       "idempotencyKey": "8..128 canonical characters",
       "intent": "explicit_user_ack"
     },
-    "serverDerived": ["studentNumber", "ackedAt", "audience eligibility proof"],
+    "serverDerived": [
+      "studentNumber",
+      "ackedAt",
+      "audience eligibility proof"
+    ],
     "notYetWired": true
   },
   "storageCandidate": {
@@ -92,10 +141,19 @@
     "externalReference": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["system", "ref"],
+      "required": [
+        "system",
+        "ref"
+      ],
       "properties": {
-        "system": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{1,63}$"},
-        "ref": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,159}$"}
+        "system": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]{1,63}$"
+        },
+        "ref": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,159}$"
+        }
       }
     },
     "reminderRule": {
@@ -103,21 +161,48 @@
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["key", "kind", "offsetSeconds"],
+          "required": [
+            "key",
+            "kind",
+            "offsetSeconds"
+          ],
           "properties": {
-            "key": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,47}$"},
-            "kind": {"const": "relative_before_start"},
-            "offsetSeconds": {"type": "integer", "minimum": 1, "maximum": 31536000}
+            "key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{1,47}$"
+            },
+            "kind": {
+              "const": "relative_before_start"
+            },
+            "offsetSeconds": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 31536000
+            }
           }
         },
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["key", "kind", "marker"],
+          "required": [
+            "key",
+            "kind",
+            "marker"
+          ],
           "properties": {
-            "key": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,47}$"},
-            "kind": {"const": "calendar_marker"},
-            "marker": {"enum": ["night_before", "morning_of"]}
+            "key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{1,47}$"
+            },
+            "kind": {
+              "const": "calendar_marker"
+            },
+            "marker": {
+              "enum": [
+                "night_before",
+                "morning_of"
+              ]
+            }
           }
         }
       ]
@@ -125,48 +210,112 @@
     "reminderPolicy": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["version", "enabled", "rules"],
+      "required": [
+        "version",
+        "enabled",
+        "rules"
+      ],
       "properties": {
-        "version": {"const": "classops-exam-reminder-v1"},
-        "enabled": {"type": "boolean"},
-        "rules": {"type": "array", "maxItems": 12, "items": {"$ref": "#/$defs/reminderRule"}}
+        "version": {
+          "const": "classops-exam-reminder-v1"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "rules": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/reminderRule"
+          }
+        }
       }
     },
     "paymentAccessReference": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["system", "ref", "mode"],
+      "required": [
+        "system",
+        "ref",
+        "mode"
+      ],
       "properties": {
-        "system": {"enum": ["website_assessment_access", "payments_store"]},
-        "ref": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,159}$"},
-        "mode": {"const": "reference_only"}
+        "system": {
+          "enum": [
+            "website_assessment_access",
+            "payments_store"
+          ]
+        },
+        "ref": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,159}$"
+        },
+        "mode": {
+          "const": "reference_only"
+        }
       }
     },
     "examExtension": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "contractVersion", "reference", "scope", "notes", "reminderPolicy", "assessmentRef",
-        "resourceRefs", "paymentAccessRef", "lastScheduleChange"
+        "contractVersion",
+        "reference",
+        "scope",
+        "notes",
+        "reminderPolicy",
+        "assessmentRef",
+        "resourceRefs",
+        "paymentAccessRef",
+        "lastScheduleChange"
       ],
       "properties": {
-        "contractVersion": {"const": "classops-exam-ack-v1"},
-        "reference": {"anyOf": [{"$ref": "#/$defs/externalReference"}, {"type": "null"}]},
-        "scope": {"type": "string", "maxLength": 3000},
-        "notes": {"type": "string", "maxLength": 6000},
-        "reminderPolicy": {"$ref": "#/$defs/reminderPolicy"},
+        "contractVersion": {
+          "const": "classops-exam-ack-v1"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/externalReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scope": {
+          "type": "string",
+          "maxLength": 3000
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 6000
+        },
+        "reminderPolicy": {
+          "$ref": "#/$defs/reminderPolicy"
+        },
         "assessmentRef": {
           "anyOf": [
             {
               "type": "object",
               "additionalProperties": false,
-              "required": ["system", "ref"],
+              "required": [
+                "system",
+                "ref"
+              ],
               "properties": {
-                "system": {"const": "website_assessment"},
-                "ref": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,159}$"}
+                "system": {
+                  "const": "website_assessment"
+                },
+                "ref": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,159}$"
+                }
               }
             },
-            {"type": "null"}
+            {
+              "type": "null"
+            }
           ]
         },
         "resourceRefs": {
@@ -175,26 +324,54 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["kind", "ref"],
+            "required": [
+              "kind",
+              "ref"
+            ],
             "properties": {
-              "kind": {"type": "string", "pattern": "^[a-z][a-z0-9_-]{1,47}$"},
-              "ref": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,159}$"}
+              "kind": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_-]{1,47}$"
+              },
+              "ref": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]{0,159}$"
+              }
             }
           }
         },
-        "paymentAccessRef": {"anyOf": [{"$ref": "#/$defs/paymentAccessReference"}, {"type": "null"}]},
+        "paymentAccessRef": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/paymentAccessReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "lastScheduleChange": {
           "anyOf": [
             {
               "type": "object",
               "additionalProperties": false,
-              "required": ["kind", "supersedesRevision"],
+              "required": [
+                "kind",
+                "supersedesRevision"
+              ],
               "properties": {
-                "kind": {"const": "rescheduled"},
-                "supersedesRevision": {"type": "integer", "minimum": 1}
+                "kind": {
+                  "const": "rescheduled"
+                },
+                "supersedesRevision": {
+                  "type": "integer",
+                  "minimum": 1
+                }
               }
             },
-            {"type": "null"}
+            {
+              "type": "null"
+            }
           ]
         }
       }
@@ -202,41 +379,117 @@
     "ackRecord": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["contractVersion", "ackId", "itemId", "revision", "studentNumber", "ackedAt", "idempotencyKey", "intent"],
+      "required": [
+        "contractVersion",
+        "ackId",
+        "itemId",
+        "revision",
+        "studentNumber",
+        "ackedAt",
+        "idempotencyKey",
+        "intent"
+      ],
       "properties": {
-        "contractVersion": {"const": "classops-critical-ack-record-v1"},
-        "ackId": {"type": "string", "pattern": "^ack_[a-f0-9]{24}$"},
-        "itemId": {"type": "string", "pattern": "^cop_[a-f0-9]{16,64}$"},
-        "revision": {"type": "integer", "minimum": 1},
-        "studentNumber": {"type": "string", "pattern": "^[0-9]{4,32}$"},
-        "ackedAt": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
-        "idempotencyKey": {"type": "string", "minLength": 8, "maxLength": 128},
-        "intent": {"const": "explicit_user_ack"}
+        "contractVersion": {
+          "const": "classops-critical-ack-record-v1"
+        },
+        "ackId": {
+          "type": "string",
+          "pattern": "^ack_[a-f0-9]{24}$"
+        },
+        "itemId": {
+          "type": "string",
+          "pattern": "^cop_[a-f0-9]{16,64}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "studentNumber": {
+          "type": "string",
+          "pattern": "^[0-9]{4,32}$"
+        },
+        "ackedAt": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 128
+        },
+        "intent": {
+          "const": "explicit_user_ack"
+        }
       }
     },
     "eligibilityProof": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["contractVersion", "itemId", "revision", "studentNumber", "eligible", "audienceFingerprint"],
+      "required": [
+        "contractVersion",
+        "itemId",
+        "revision",
+        "studentNumber",
+        "eligible",
+        "audienceFingerprint"
+      ],
       "properties": {
-        "contractVersion": {"const": "classops-audience-eligibility-v1"},
-        "itemId": {"type": "string", "pattern": "^cop_[a-f0-9]{16,64}$"},
-        "revision": {"type": "integer", "minimum": 1},
-        "studentNumber": {"type": "string", "pattern": "^[0-9]{4,32}$"},
-        "eligible": {"type": "boolean"},
-        "audienceFingerprint": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        "contractVersion": {
+          "const": "classops-audience-eligibility-v1"
+        },
+        "itemId": {
+          "type": "string",
+          "pattern": "^cop_[a-f0-9]{16,64}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "studentNumber": {
+          "type": "string",
+          "pattern": "^[0-9]{4,32}$"
+        },
+        "eligible": {
+          "type": "boolean"
+        },
+        "audienceFingerprint": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
       }
     },
     "ownerAggregate": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["itemId", "revision", "eligible", "acked", "pending"],
+      "required": [
+        "itemId",
+        "revision",
+        "eligible",
+        "acked",
+        "pending"
+      ],
       "properties": {
-        "itemId": {"type": "string", "pattern": "^cop_[a-f0-9]{16,64}$"},
-        "revision": {"type": "integer", "minimum": 1},
-        "eligible": {"type": "integer", "minimum": 0},
-        "acked": {"type": "integer", "minimum": 0},
-        "pending": {"type": "integer", "minimum": 0}
+        "itemId": {
+          "type": "string",
+          "pattern": "^cop_[a-f0-9]{16,64}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "eligible": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "acked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pending": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     }
   }

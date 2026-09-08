@@ -256,3 +256,4 @@ function classops_ack_normalize_state(array $state): array
         'history' => $history,
     ];
 }
+

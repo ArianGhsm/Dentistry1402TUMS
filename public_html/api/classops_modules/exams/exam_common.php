@@ -56,6 +56,7 @@ function classops_exam_text($value, int $maxLength, string $field, bool $require
     return $text;
 }
 
+
 function classops_exam_cohort_key($value): string
 {
     $cohort = classops_exam_text($value, 80, 'cohortKey', true);
@@ -102,7 +103,7 @@ function classops_exam_ref($value, string $field, bool $required = false, int $m
         return null;
     }
     $ref = classops_exam_text($value, $maxLength, $field, true);
-    if (preg_match('/^[A-Za-z0-9][A-Za-z0-9._:\\/-]{0,159}$/D', $ref) !== 1) {
+    if (preg_match('/^[A-Za-z0-9][A-Za-z0-9._:\/-]{0,159}$/D', $ref) !== 1) {
         classops_exam_fail('CLASSOPS_EXAM_INVALID_REF', "{$field} is not a canonical reference.");
     }
     return $ref;
@@ -291,3 +292,4 @@ function classops_exam_normalize_resource_refs($value): array
     }
     return $normalized;
 }
+
