@@ -68,16 +68,42 @@
             [/Canonical items/gi, "موارد کلاس"],
             [/Selected revision/gi, "مورد انتخاب‌شده"],
             [/Deterministic digests/gi, "خلاصه‌ها"],
+            [/ساخت آیتم جدید/g, "ثبت مورد جدید"],
+            [/ثبت revision جدید برای آیتم موجود/gi, "ثبت ویرایش جدید"],
             [/revision\s*\d+/gi, ""],
             [/revision/gi, "ویرایش"],
             [/audience hash/gi, ""],
             [/resolution hash/gi, ""],
+            [/هشدار audience/gi, "هشدار مخاطبان"],
+            [/snapshot مخاطب/gi, "فهرست مخاطبان"],
+            [/همان hash/gi, "همان مخاطبان"],
+            [/commit انجام می‌شود/gi, "ثبت انجام می‌شود"],
+            [/mutation\/send/gi, "ثبت یا ارسال"],
+            [/mutation/gi, "ثبت"],
+            [/send/gi, "ارسال"],
             [/side effect/gi, "نتیجه"],
             [/zero mutation until confirm/gi, "تا قبل از تأیید چیزی ثبت یا ارسال نمی‌شود"],
             [/resolve\s*→\s*preview\s*→\s*confirm/gi, "پیش‌نمایش → تأیید"],
             [/unknown\/blocked\s*≠\s*success/gi, "وضعیت واقعی هر مسیر نمایش داده می‌شود"],
+            [/Foundation/gi, "پایه"],
+            [/Audience/gi, "مخاطبان"],
+            [/Delivery/gi, "ارسال"],
+            [/Tasks\s*\/\s*Requirements/gi, "تکالیف و الزامات"],
+            [/Exam\s*\/\s*ACK/gi, "امتحان و تأیید"],
+            [/Scheduler/gi, "زمان‌بندی"],
+            [/Digest/gi, "خلاصه‌ها"],
+            [/Website/gi, "سایت"],
+            [/Telegram/gi, "تلگرام"],
+            [/Bale/gi, "بله"],
+            [/\bAI\b/gi, "هوش مصنوعی"],
+            [/private_users/gi, "پیام خصوصی"],
+            [/class_group/gi, "گروه کلاس"],
+            [/information_channel/gi, "کانال اطلاع‌رسانی"],
             [/available/gi, "فعال"],
             [/unavailable/gi, "غیرفعال"],
+            [/configured/gi, "فعال"],
+            [/unconfigured/gi, "غیرفعال"],
+            [/reminder-only/gi, "فقط یادآوری"],
             [/unknown/gi, "نامشخص"],
             [/blocked/gi, "در دسترس نیست"],
             [/scheduled/gi, "زمان‌بندی‌شده"],
@@ -85,7 +111,17 @@
             [/active/gi, "فعال"],
             [/draft/gi, "پیش‌نویس"],
             [/ACK/gi, "تأیید"],
-            [/Saba/gi, "صبا"]
+            [/Saba/gi, "صبا"],
+            [/\btype\b/gi, "نوع"],
+            [/\btitle\b/gi, "عنوان"],
+            [/\bdescription\b/gi, "توضیحات"],
+            [/\blocation\b/gi, "مکان"],
+            [/\bimportance\b/gi, "اهمیت"],
+            [/\bcourse\b/gi, "درس"],
+            [/timing clue/gi, "نشانه زمانی"],
+            [/audience clue/gi, "نشانه مخاطب"],
+            [/\bdelivery\b/gi, "ارسال"],
+            [/\bmodel\b/gi, "مدل"]
         ];
         replacements.forEach(function (entry) { value = value.replace(entry[0], entry[1]); });
         return value.replace(/\s+·\s+·/g, " · ").replace(/\s{2,}/g, " ").trim();
@@ -99,18 +135,38 @@
         node.dataset.productRaw = node.textContent || "";
     }
 
+    function localizeTextTree(root) {
+        if (!root) return;
+        var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        var nodes = [];
+        var current;
+        while ((current = walker.nextNode())) nodes.push(current);
+        nodes.forEach(function (node) {
+            var before = node.nodeValue || "";
+            var after = productizeText(before);
+            if (after && after !== before) node.nodeValue = after;
+        });
+    }
+
     function installCopyObserver() {
-        var ids = [
+        var scalarIds = [
             "classops-access-state", "classops-operation-state", "classops-ai-state",
             "classops-selected-meta", "classops-item-state", "classops-selected-output",
-            "classops-digest-output"
+            "classops-digest-output", "classops-stage2-preview", "classops-ai-preview",
+            "classops-confirm-text"
         ];
-        var nodes = ids.map($).filter(Boolean);
+        var scalarNodes = scalarIds.map($).filter(Boolean);
+        var treeNodes = [$("classops-capabilities"), $("classops-item-list")].filter(Boolean);
         var observer = new MutationObserver(function () {
-            nodes.forEach(localizeDynamicNode);
+            scalarNodes.forEach(localizeDynamicNode);
+            treeNodes.forEach(localizeTextTree);
         });
-        nodes.forEach(function (node) {
+        scalarNodes.forEach(function (node) {
             localizeDynamicNode(node);
+            observer.observe(node, {childList:true,subtree:true,characterData:true});
+        });
+        treeNodes.forEach(function (node) {
+            localizeTextTree(node);
             observer.observe(node, {childList:true,subtree:true,characterData:true});
         });
     }
