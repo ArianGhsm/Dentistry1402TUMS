@@ -2,7 +2,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/auth_store.php';
-require_once __DIR__ . '/classops_store.php';
+require_once __DIR__ . '/classops_domain_store_adapter.php';
+require_once __DIR__ . '/classops_modules/domain_facade.php';
 
 header('Cache-Control: private, no-store, max-age=0');
 header('Pragma: no-cache');
@@ -88,6 +89,13 @@ try {
         dent_json_response(classops_capabilities());
     }
 
+    if ($action === 'domain-capabilities') {
+        if (dent_request_method() !== 'GET') {
+            classops_domain_error('CLASSOPS_METHOD_NOT_ALLOWED', 'متد دریافت domain capability معتبر نیست.', 405);
+        }
+        dent_json_response(['success' => true, 'domain' => classops_domain_capabilities()]);
+    }
+
     if ($action === 'status') {
         if (dent_request_method() !== 'GET') {
             classops_domain_error('CLASSOPS_METHOD_NOT_ALLOWED', 'متد دریافت وضعیت معتبر نیست.', 405);
@@ -142,7 +150,7 @@ try {
         classops_assert_known_keys($payload, ['action', 'idempotencyKey', 'reason', 'item']);
         $item = classops_api_object_field($payload, 'item');
         classops_api_validate_cohort(trim((string) ($item['cohortKey'] ?? '')));
-        dent_json_response(['success' => true] + classops_create_item(
+        dent_json_response(['success' => true] + classops_domain_store_create_item(
             $item,
             $viewer,
             (string) ($payload['idempotencyKey'] ?? ''),
@@ -157,7 +165,7 @@ try {
         if (array_key_exists('cohortKey', $patch)) {
             classops_api_validate_cohort(trim((string) $patch['cohortKey']));
         }
-        dent_json_response(['success' => true] + classops_update_item(
+        dent_json_response(['success' => true] + classops_domain_store_update_item(
             (string) ($payload['id'] ?? ''),
             (int) ($payload['expectedRevision'] ?? 0),
             $patch,
