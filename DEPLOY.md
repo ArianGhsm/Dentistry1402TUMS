@@ -9,12 +9,14 @@
 Deploy must never push to GitHub, create a commit, stamp/mutate source, upload
 local data, or treat a dirty workspace as a release source.
 
-## Feature branch versus release
+## Sequential source task versus release
 
-A feature branch runs targeted tests, contract tests, static checks, and CI. It
-does not merge or deploy. Only an integrated release on `main` runs full
-regression, runtime gates, verified backup, deploy and live checks. Full rules
-are in `docs/DEVELOPMENT_WORKFLOW.md`.
+Current development is sequential: one task branch starts from an exact current
+`main` SHA, runs its targeted/full relevant tests and CI, and after a clean
+divergence/security review may merge its PR to `main`. Source-development tasks
+do **not** deploy production. Only the resulting exact `main` SHA can enter the
+separate release gate with full regression, runtime checks, verified backup,
+deploy and live verification. Full rules are in `docs/DEVELOPMENT_WORKFLOW.md`.
 
 ## Prepare an immutable release workspace
 
