@@ -17,6 +17,10 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$"
     },
+    "selectorId": {
+      "type": "string",
+      "pattern": "^(?:role|group|category):[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$"
+    },
     "hash": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
@@ -122,19 +126,44 @@
       "additionalProperties": false,
       "required": ["code", "count"],
       "properties": {
-        "code": {"type": "string", "pattern": "^[A-Z0-9_]{3,96}$"},
+        "code": {
+          "enum": [
+            "AUDIENCE_DUPLICATE_STUDENT_REF",
+            "AUDIENCE_DUPLICATE_EXPRESSION",
+            "AUDIENCE_INCLUDE_EXCLUDE_CONFLICT",
+            "AUDIENCE_NEGATION_UNRESOLVED",
+            "AUDIENCE_CONTRADICTORY_INTERSECTION",
+            "AUDIENCE_EMPTY_RESULT"
+          ]
+        },
         "count": {"type": "integer", "minimum": 1}
       }
     },
-    "unresolved": {
+    "unresolvedStudent": {
       "type": "object",
       "additionalProperties": false,
       "required": ["kind", "reference", "code"],
       "properties": {
-        "kind": {"enum": ["student", "selector"]},
-        "reference": {"type": "string", "minLength": 1, "maxLength": 120},
-        "code": {"enum": ["AUDIENCE_STUDENT_NOT_FOUND", "AUDIENCE_SELECTOR_NOT_FOUND"]}
+        "kind": {"const": "student"},
+        "reference": {"$ref": "#/$defs/studentNumber"},
+        "code": {"const": "AUDIENCE_STUDENT_NOT_FOUND"}
       }
+    },
+    "unresolvedSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "reference", "code"],
+      "properties": {
+        "kind": {"const": "selector"},
+        "reference": {"$ref": "#/$defs/selectorId"},
+        "code": {"const": "AUDIENCE_SELECTOR_NOT_FOUND"}
+      }
+    },
+    "unresolved": {
+      "oneOf": [
+        {"$ref": "#/$defs/unresolvedStudent"},
+        {"$ref": "#/$defs/unresolvedSelector"}
+      ]
     },
     "sourceProvenance": {
       "type": "object",
@@ -150,7 +179,7 @@
       "additionalProperties": false,
       "required": ["selectorId", "sourceRef"],
       "properties": {
-        "selectorId": {"type": "string", "pattern": "^(?:role|group|category):[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$"},
+        "selectorId": {"$ref": "#/$defs/selectorId"},
         "sourceRef": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"}
       }
     },
@@ -168,6 +197,12 @@
         }
       }
     },
+    "recipientReasonValue": {
+      "oneOf": [
+        {"enum": ["whole_cohort", "explicit_student", "include_student", "not_expression"]},
+        {"type": "string", "pattern": "^selector:(?:role|group|category):[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$"}
+      ]
+    },
     "recipientReason": {
       "type": "object",
       "additionalProperties": false,
@@ -176,9 +211,10 @@
         "studentNumber": {"$ref": "#/$defs/studentNumber"},
         "reasons": {
           "type": "array",
+          "minItems": 1,
           "maxItems": 32,
           "uniqueItems": true,
-          "items": {"type": "string", "pattern": "^[A-Za-z0-9._:-]+$", "maxLength": 180}
+          "items": {"$ref": "#/$defs/recipientReasonValue"}
         }
       }
     },
