@@ -68,7 +68,11 @@ jobs:
           sudo apt-get install -y --no-install-recommends qpdf
 
       - name: Install deterministic bot runtime test dependencies
-        run: python -m pip install --disable-pip-version-check -r bot_runtime/requirements-bot-pdf.txt pytest pikepdf
+        run: |
+          python -m pip install --disable-pip-version-check \
+            -r bot_runtime/requirements-bot-pdf.txt \
+            -r bot_runtime/requirements-forensic.txt \
+            pytest pikepdf
 
       - name: Run deterministic static checks
         run: bash scripts/run_static_checks.sh
