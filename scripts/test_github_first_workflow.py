@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEPLOY = (ROOT / "scripts/deploy_public_html.ps1").read_text(encoding="utf-8")
+RELEASE_GATE = (ROOT / "scripts/run_release_gate.ps1").read_text(encoding="utf-8")
 
 required = [
     "[Parameter(Mandatory = $true)]",
@@ -22,6 +23,12 @@ required = [
 for needle in required:
     assert needle in DEPLOY, f"missing GitHub-first deploy invariant: {needle}"
 assert "Sync-GitHubFromLaptop -GitHubPlan" not in DEPLOY, "deploy must not invoke post-deploy GitHub sync"
+assert "& $child -ReleaseSha $ReleaseSha -DryRun" in RELEASE_GATE, (
+    "release gate must bind DryRun as a named switch"
+)
+assert "@($(if ($DryRun)" not in RELEASE_GATE, (
+    "release gate must not pass DryRun positionally into the child parameter list"
+)
 assert "Run-OptionalPullBeforeDeploy\n" not in DEPLOY, "deploy must not pull inside an immutable release"
 assert "function Get-GitCommitMetadata" in DEPLOY, "release report metadata helper must be defined"
 assert "function Get-FileSha256Hex" in DEPLOY, "deploy hashing must be available without Get-FileHash"
