@@ -221,7 +221,13 @@ try {
 
     if ($action === 'capabilities') {
         classops_api_require_method('GET');
-        dent_json_response(['success'=>true,'surface'=>classops_stage2_capabilities(),'foundation'=>classops_capabilities(),'domain'=>classops_domain_capabilities()]);
+        // Preserve the original classops-v1 response at the top level so
+        // Foundation clients remain byte-shape compatible in the fields they
+        // already consume. Stage2 capability details are additive only.
+        $foundation = classops_capabilities();
+        $foundation['surface'] = classops_stage2_capabilities();
+        $foundation['domain'] = classops_domain_capabilities();
+        dent_json_response($foundation);
     }
     if ($action === 'domain-capabilities') {
         classops_api_require_method('GET');
@@ -360,6 +366,12 @@ try {
     classops_domain_error('CLASSOPS_UNKNOWN_ACTION', 'عملیات ClassOps شناخته‌شده نیست.', 404);
 } catch (DentClassOpsDomainException $exception) {
     dent_error($exception->getMessage(), $exception->httpStatus, ['code'=>$exception->reasonCode]);
+} catch (DentClassOpsTaskException $exception) {
+    dent_error('عملیات task/requirement انجام نشد.', $exception->httpStatus, ['code'=>$exception->reasonCode]);
+} catch (DentClassOpsCriticalAckException $exception) {
+    dent_error('عملیات ACK انجام نشد.', $exception->statusCode, ['code'=>$exception->reasonCode]);
+} catch (DentClassOpsAudienceException $exception) {
+    dent_error('مخاطبان ClassOps قابل resolve نیستند.', property_exists($exception,'httpStatus')?(int)$exception->httpStatus:422, ['code'=>$exception->reasonCode]);
 } catch (DentClassOpsPersistenceException $exception) {
     dent_error('ذخیره‌سازی ClassOps موقتاً در دسترس نیست؛ داده موجود دست‌نخورده باقی ماند.',503,['code'=>$exception->reasonCode]);
 } catch (Throwable $exception) {
