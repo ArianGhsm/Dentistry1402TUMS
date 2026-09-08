@@ -101,7 +101,11 @@ function classops_stage2_digest(array $user,string $kind,?string $nowUtc=null): 
         $taskState=null;
         if (!$owner) {
             if (classops_stage2_item_audience_for_student($item,(string)$student)===null) continue;
-            if (in_array((string)$item['type'],['task','requirement'],true)) $taskState=classops_stage2_get_task_state($item,(string)$student,true);
+            if (in_array((string)$item['type'],['task','requirement'],true)) {
+                // Digest generation is a read projection and must never initialize
+                // per-student state as a side effect.
+                $taskState=classops_stage2_get_task_state($item,(string)$student,false);
+            }
         }
         $records[]=classops_stage2_digest_record_from_item($item,$viewer,$taskState,$nowUtc);
     }
