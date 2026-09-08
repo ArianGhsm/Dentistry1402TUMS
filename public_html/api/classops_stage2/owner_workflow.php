@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/notifications.php';
-require_once __DIR__ . '/service_state.php';
+require_once __DIR__ . '/state_migrations.php';
 
 function classops_stage2_reject_client_binding(array $itemOrPatch): void
 {
@@ -66,6 +66,16 @@ function classops_stage2_commit_direct_intents(array $item,array $resolution,arr
     return ['plans'=>$plans,'direct'=>$direct];
 }
 
+function classops_stage2_existing_binding(array $item): array
+{
+    $extensions=is_array($item['extensions']??null)?$item['extensions']:[];
+    $binding=$extensions[CLASSOPS_STAGE2_EXTENSION_KEY]??[];
+    if (!is_array($binding)||array_is_list($binding)) return [];
+    try { return classops_stage2_validate_binding_extension($binding,(string)($item['type']??'')); }
+    catch (DentClassOpsDomainException $exception) { throw $exception; }
+    catch (Throwable $exception) { classops_domain_error('CLASSOPS_STAGE2_BINDING_INVALID','Stage2 binding ذخیره‌شده معتبر نیست.',500); }
+}
+
 function classops_stage2_confirm(array $owner,array $payload): array
 {
     if (!classops_stage2_is_owner($owner)) classops_domain_error('CLASSOPS_OWNER_REQUIRED','این عملیات فقط برای مالک سامانه مجاز است.',403);
@@ -79,25 +89,60 @@ function classops_stage2_confirm(array $owner,array $payload): array
     classops_stage2_derived_idem($rootIdem,'validate');
     $reason=trim((string)($payload['reason']??'owner-confirmed'));
 
+    $previousItem=null;
+    $existingBinding=[];
     if ($mode==='create') {
         $normalized=classops_domain_store_normalize_create($itemInput);
         $cohort=(string)$normalized['cohortKey'];
     } else {
         $id=classops_stage2_require_item_id($payload['id']??'');
-        $current=classops_get_item($id);
-        $patch=classops_domain_store_normalize_patch($current,$itemInput);
-        $cohort=(string)($patch['cohortKey']??$current['cohortKey']);
-        $normalized=array_replace($current,$patch);
+        $previousItem=classops_get_item($id);
+        $existingBinding=classops_stage2_existing_binding($previousItem);
+        $patch=classops_domain_store_normalize_patch($previousItem,$itemInput);
+        $cohort=(string)($patch['cohortKey']??$previousItem['cohortKey']);
+        $normalized=array_replace($previousItem,$patch);
     }
     if ($cohort===''||!dent_cohort_exists($cohort)) classops_domain_error('CLASSOPS_INVALID_COHORT','ورودی canonical موردنظر وجود ندارد.');
-    $spec=is_array($payload['audienceSpec']??null)?$payload['audienceSpec']:classops_stage2_default_audience_spec();
+
+    if (array_key_exists('audienceSpec',$payload)) {
+        if (!is_array($payload['audienceSpec'])||array_is_list($payload['audienceSpec'])) classops_domain_error('CLASSOPS_AUDIENCE_INVALID_SPEC','تعریف مخاطب باید object باشد.');
+        $spec=$payload['audienceSpec'];
+    } elseif ($mode==='update'&&is_array($existingBinding['audienceSpec']??null)) {
+        $spec=$existingBinding['audienceSpec'];
+    } else {
+        $spec=classops_stage2_default_audience_spec();
+    }
+
     $expectedHash=trim((string)($payload['expectedAudienceHash']??''));
     if (preg_match('/^[a-f0-9]{64}$/D',$expectedHash)!==1) classops_domain_error('CLASSOPS_AUDIENCE_CONFIRMATION_HASH_REQUIRED','برای commit باید hash همان preview ارسال شود.',409);
     $resolution=classops_stage2_resolve_audience($owner,$cohort,$spec,$expectedHash);
-    $destinations=classops_stage2_normalize_destinations($payload['destinations']??null);
-    $reminder=classops_stage2_normalize_reminder_policy($payload['reminderPolicy']??null,(string)$normalized['type']);
-    $serviceRef=array_key_exists('serviceRef',$payload)&&$payload['serviceRef']!==null?strtolower(trim((string)$payload['serviceRef'])):null;
+
+    if (array_key_exists('destinations',$payload)) {
+        $destinations=classops_stage2_normalize_destinations($payload['destinations']);
+    } elseif ($mode==='update'&&is_array($existingBinding['destinations']??null)) {
+        $destinations=classops_stage2_normalize_destinations($existingBinding['destinations']);
+    } else {
+        $destinations=classops_stage2_normalize_destinations(null);
+    }
+
+    if (array_key_exists('reminderPolicy',$payload)) {
+        $reminder=classops_stage2_normalize_reminder_policy($payload['reminderPolicy'],(string)$normalized['type']);
+    } elseif ($mode==='update'&&array_key_exists('reminderPolicy',$existingBinding)) {
+        $reminder=classops_stage2_normalize_reminder_policy($existingBinding['reminderPolicy'],(string)$normalized['type']);
+    } else {
+        $reminder=classops_stage2_normalize_reminder_policy(null,(string)$normalized['type']);
+    }
+
+    if (array_key_exists('serviceRef',$payload)) {
+        $serviceRef=$payload['serviceRef']===null?null:strtolower(trim((string)$payload['serviceRef']));
+    } elseif ($mode==='update'&&array_key_exists('serviceRef',$existingBinding)) {
+        $serviceRef=$existingBinding['serviceRef'];
+    } else {
+        $serviceRef=null;
+    }
     if (($normalized['type']??'')==='service_reminder'&&$serviceRef===null) $serviceRef='saba';
+    if (($normalized['type']??'')!=='service_reminder') $serviceRef=null;
+
     $binding=classops_stage2_validate_binding_extension(classops_stage2_binding_extension($resolution,$destinations,$reminder,$serviceRef),(string)$normalized['type']);
     $foundationAudience=classops_stage2_foundation_audience($resolution);
 
@@ -115,7 +160,7 @@ function classops_stage2_confirm(array $owner,array $payload): array
             $item=$draft;
         }
     } else {
-        $current=classops_get_item(classops_stage2_require_item_id($payload['id']??''));
+        $current=$previousItem;
         $expectedRevision=(int)($payload['expectedRevision']??0);
         if ($expectedRevision<1) classops_domain_error('CLASSOPS_EXPECTED_REVISION_REQUIRED','expectedRevision معتبر الزامی است.');
         $patch=classops_domain_store_normalize_patch($current,$itemInput);
@@ -128,6 +173,10 @@ function classops_stage2_confirm(array $owner,array $payload): array
     }
 
     classops_stage2_save_audience($item,$resolution['normalizedSpec'],$resolution);
+    if (is_array($previousItem)) {
+        classops_stage2_carry_task_states($previousItem,$item,$resolution['recipientStudentNumbers']);
+        classops_stage2_carry_service_states($previousItem,$item,$resolution['recipientStudentNumbers']);
+    }
     classops_stage2_ensure_task_states($item,$resolution['recipientStudentNumbers']);
     classops_stage2_ensure_service_states($item,$resolution['recipientStudentNumbers']);
     classops_stage2_remove_prior_notifications((string)$item['id'],(int)$item['revision']);
