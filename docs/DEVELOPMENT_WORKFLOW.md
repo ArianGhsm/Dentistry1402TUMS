@@ -2,58 +2,74 @@
 
 ## Canonical model
 
-Code starts from an immutable GitHub commit in
-`ArianGhsm/Dentistry1402TUMS`. Production storage remains the canonical data
-source. Deploy/recovery workspaces are disposable views of a commit; they are
-not independent sources of code.
+Code starts from an immutable GitHub commit in `ArianGhsm/Dentistry1402TUMS`. Production storage remains the canonical data source. Deploy/recovery workspaces are disposable views of a commit; they are not independent sources of code.
 
-The repository is agent-agnostic. ChatGPT, Codex, or another capable agent may
-continue work from the same SHA, contracts, tests, and documents.
+The repository is agent-agnostic. ChatGPT, Codex, or another capable agent may continue work from the same SHA, contracts, tests, and documents.
 
 ## Layered gates
 
-1. A feature branch starts at the declared `PARALLEL_BASE_SHA`.
+1. A feature branch starts at the declared immutable `PARALLEL_BASE_SHA`.
 2. Its worker runs targeted unit/domain/contract tests and deterministic static checks.
 3. GitHub CI must pass without production credentials.
-4. Integration reviews and wires all completed branches, then runs the full deterministic suite.
-5. Codex performs environment-dependent runtime, concurrency, restart, service, Telegram/Bale, and log checks.
-6. A verified production-data backup is taken.
-7. The exact integrated GitHub SHA is deployed through the canonical script.
-8. Live health, logs, smoke tests, notifications, and rollback readiness are verified.
+4. Integration locks exact feature-head SHAs, audits/reconciles them, and runs the full deterministic suite.
+5. Cross-surface/central wiring is integrated after domain contracts are coherent.
+6. Codex performs environment-dependent runtime, concurrency, restart, service, Telegram/Bale, provider/network and log checks.
+7. A verified production-data backup is taken.
+8. The exact integrated GitHub SHA is deployed through the canonical script.
+9. Live health, logs, smoke tests, notifications, data invariants and rollback readiness are verified.
 
-This reduces duplicate release work on branches; it does not remove any release assurance.
+Feature-branch work never substitutes for integrated-release/runtime gates.
 
 ## Branch policy
 
 - `main` is the integration/release baseline. Feature workers do not write directly to it.
 - Branches are agent-neutral: `feature/<scope>`.
-- Every worker starts from the exact immutable parallel base; it must not pull/rebase to a moving `main` mid-task.
-- A worker does not merge its own branch and does not deploy production.
-- Shared-contract changes require a documented change request or failing contract test and an integration-stage decision.
+- Every parallel worker starts from the exact immutable base and does not pull/rebase to moving `main` mid-task.
+- Workers do not merge their own branch and do not deploy production.
+- Integration branches are `integration/<scope>` and may own previously frozen hotspots only for the declared integration stage.
+- Shared-contract changes require explicit integration review, version discipline and tests.
+- Force-overwriting `main` or feature history is forbidden.
 
 ## Definitions of Done
 
 ### Feature branch
 
-- Requested scope complete; no unrelated refactor.
-- Targeted unit/domain/contract tests and static checks pass.
+- Requested isolated scope complete; no unrelated refactor.
+- Targeted unit/domain/contract/security tests are present and executed when environment permits.
 - No secret or runtime data is tracked.
 - CI is green where applicable.
 - Commit is reviewable and ready for integration.
-- No merge and no production deploy.
+- No merge to `main` and no production deploy.
 
-### Integrated release
+### Domain integration stage
 
-- Required branches are audited, integrated, and centrally wired.
-- Frozen contracts and full deterministic regression suite pass.
+- Exact input branch heads are locked and ancestry is verified.
+- Domain implementations are reconciled against canonical source-of-truth boundaries.
+- Candidate contracts are reviewed and an explicit compatible contract graph is recorded.
+- Missing workstreams are reported honestly and either recovered in integration or block completion.
+- Cross-domain invariants and the full deterministic repository suite are green.
+- Cross-surface/runtime wiring that is intentionally deferred is documented precisely.
+- No production deploy.
+
+### Final GitHub integration
+
+- Website/API/shared application/Telegram/Bale wiring is coherent.
+- Capability claims match real implementation.
+- Full deterministic regression and CI pass.
+- Runtime migration/deploy handoff is complete.
+- The final integrated GitHub SHA may be merged to `main` only after divergence/security checks.
+- Still no production deploy; runtime release remains a separate Codex/environment gate.
+
+### Integrated production release
+
 - Runtime-only tests pass in the real environment.
 - Production backup and rollback inputs are verified.
 - Workspace is a clean checkout of the exact GitHub SHA.
-- Canonical deploy, live health/log/smoke, lifecycle notifications, and freshness checks pass.
+- Canonical deploy, live health/log/smoke, lifecycle notifications, data invariants and freshness checks pass.
 
 ## Integration-only hotspots
 
-Future workers may read but must not write these without explicit integration ownership:
+Feature workers may read but do not write these without explicit integration ownership:
 
 - `AGENTS.md`, `DEPLOY.md`, `.env.example`, `.github/workflows/*`
 - `scripts/run_static_checks.sh`, `scripts/complete_task.ps1`, `scripts/deploy_public_html.ps1`
@@ -61,38 +77,48 @@ Future workers may read but must not write these without explicit integration ow
 - `public_html/api/notifications_store.php`, `academic_term7.php`
 - `public_html/api/classops_api.php`, `classops_store.php`, `classops_persistence.php`
 - `bot_runtime/dent_bot/app.py`, `runtime.py`, `site_api.py`, `state.py`
-- runtime central scheduler/router, service units, deploy scripts, and dependency manifests
+- runtime central scheduler/router, service units, deploy scripts and dependency manifests
 
-Workers needing central wiring expose a module/interface and tests. Integration owns the wiring change.
+Workers needing central wiring expose isolated modules/interfaces/tests. The appropriate integration stage owns the wiring.
 
-## Proposed balanced workstreams
+## ClassOps parallel wave executed from `06042c2bf31d64d69d884528d43796c2c3b7ae5d`
 
-These are plans only; no feature branch is created by this migration. Workload scores combine code volume, business logic, tests, integrations, and security/edge cases.
+The ClassOps expansion was split into eight isolated workstreams so shared hotspots stayed frozen while domain logic could proceed concurrently:
 
-| Scope / branch | Owned paths | Read-only / forbidden paths | Dependencies and contracts | Test scope | Workload |
-|---|---|---|---|---|---:|
-| Audience & policy / `feature/classops-audience-policy` | new audience modules, schemas, domain tests | all integration-only hotspots; no transport/payment/Term7 rewrite | `classops-v1`, canonical student identity | resolver policy, cohort isolation, snapshots, authorization | 8.8 |
-| Destination & delivery / `feature/classops-destination-delivery` | new destination/delivery modules and adapter-facing tests | central runtime router/site API and existing notification store are integration-only | delivery placeholder, notification boundary, service auth | idempotency, retry plans, destination isolation, adapter contracts | 9.2 |
-| AI copilot & structured draft / `feature/classops-ai-copilot` | AI draft client, strict structured-draft validator, preview-only domain tests | core ClassOps, central runtime/router, all credentials and transports | `classops-structured-draft-v1`, canonical identity | null-on-unknown fields, ambiguity handling, natural-language edits, confirmation boundary, safe usage telemetry | 9.0 |
-| Tasks & requirements / `feature/classops-tasks-requirements` | new task/requirement domain modules and tests | core ClassOps, Term7, transports | structured draft, identity and audience contracts | lifecycle, submissions/requirements calculations, edge cases | 8.9 |
-| Exams & critical ACK / `feature/classops-exams-critical-ack` | new exam/ACK domain modules and tests | core ClassOps, payments, notification wiring | core item/revision/idempotency, audience/delivery interfaces | exam states, access/payment boundaries, ACK correctness | 9.1 |
+| Workstream | Branch | Stage 1 treatment |
+|---|---|---|
+| Audience & policy | `feature/classops-audience-policy` | integrated as pure domain |
+| Destination & delivery | `feature/classops-destination-delivery` | integrated as planning-only domain |
+| AI Copilot / structured draft | `feature/classops-ai-copilot` | integrated as preview-only domain |
+| Tasks & requirements | `feature/classops-tasks-requirements` | branch was empty at Stage 1 lock; gap recovered explicitly in integration |
+| Exams & critical ACK | `feature/classops-exams-critical-ack` | integrated as operational exam/ACK domain |
+| Reminder scheduler / Saba | `feature/classops-reminder-scheduler` | integrated as pure deterministic planner |
+| Tomorrow / Weekly digests | `feature/classops-digests-summaries` | integrated as deterministic projection domain |
+| Cross-surface UX | `feature/classops-cross-surface-ux` | audited only in Stage 1; reserved for Stage 2 wiring |
 
-The spread is 0.4 on a 9.2 maximum (under 5%), comfortably within the 20–25%
-target. Integration order is audience/destination contracts first, then central
-wiring for all modules; domain implementation can still proceed in parallel
-against frozen interfaces. Scheduler, Tomorrow Summary and Weekly Digest are a
-deliberately sequential post-integration stage because they consume delivery,
-audience, AI-produced drafts and multiple domain states; parallelizing them
-earlier would create a shared scheduling hotspot and increase integration risk.
+Scheduler and digest were safe to develop concurrently only because their branches remained pure planners/projections and did not modify the central runtime scheduler, notification system or shared transport router. Their **runtime wiring remains sequential integration work** after domain reconciliation.
+
+Stage 1 target: `integration/classops-domain-unification-v1`.
+Stage 2 target: `integration/classops-final-unification-v1`.
+
+## Source-of-truth rules for ClassOps integration
+
+- `auth_store.php` remains identity/role authority.
+- `academic_term7.php` remains official Term 7 schedule/assignment authority.
+- existing notification subsystem remains notification feed/read-state authority.
+- existing payment subsystem remains verified payment/order authority.
+- ClassOps uses one canonical storage family; no per-platform or per-domain shadow databases.
+- Telegram and Bale are thin adapters; background side effects later use one coordinator rather than duplicate schedulers.
+- AI produces drafts only and cannot send/mutate directly.
 
 ## Agent reversibility
 
-If parallel ChatGPT development stops:
+If ChatGPT integration stops:
 
-1. Freeze unfinished branches and record their exact SHAs.
-2. Review completed branches and select an integration checkpoint or branch SHA.
-3. Codex checks out that exact SHA in a clean worktree.
-4. Codex reads `AGENTS.md`, contracts, architecture docs, and tests.
-5. Codex continues development and later uses the same integration/release gates.
+1. Freeze the current branch and record its exact SHA.
+2. Read the integration report, contracts, architecture docs and tests.
+3. Codex or another agent checks out that exact SHA in a clean worktree.
+4. Continue from the same contracts/test gates; do not reverse-migrate directories or reconstruct decisions from chat history.
+5. Runtime deploy still follows the same exact-SHA backup/deploy/verification gates.
 
-No directory reversal, repository migration, or agent-specific tooling is required.
+No agent-specific repository structure is required.
