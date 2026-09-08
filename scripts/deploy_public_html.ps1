@@ -3668,6 +3668,11 @@ $releaseGuardInfo = [PSCustomObject]@{
 $failureMessage = ""
 $nonBlockingFailureMessage = ""
 
+# A release run is observable before any mirror/network work begins. If the
+# invoking shell is interrupted, this durable `running` report is evidence of
+# an incomplete run rather than a false-success exit code.
+Write-ReleaseReport -status "running"
+
 try {
     $remoteStorageInfo = Sync-RemoteStorageFromHost
     $pullInfo.Status = "skipped-immutable-source"
