@@ -18,6 +18,30 @@ function classops_audience_snapshot_from_result(array $result): array
     ];
 }
 
+function classops_audience_snapshot_warning_codes(): array
+{
+    return [
+        'AUDIENCE_DUPLICATE_STUDENT_REF',
+        'AUDIENCE_DUPLICATE_EXPRESSION',
+        'AUDIENCE_INCLUDE_EXCLUDE_CONFLICT',
+        'AUDIENCE_NEGATION_UNRESOLVED',
+        'AUDIENCE_CONTRADICTORY_INTERSECTION',
+        'AUDIENCE_EMPTY_RESULT',
+    ];
+}
+
+function classops_audience_snapshot_reason(string $reason): string
+{
+    $reason = trim($reason);
+    if (in_array($reason, ['whole_cohort', 'explicit_student', 'include_student', 'not_expression'], true)) {
+        return $reason;
+    }
+    if (preg_match('/^selector:(?:role|group|category):[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$/', $reason) === 1) {
+        return $reason;
+    }
+    classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot reason is invalid.');
+}
+
 function classops_audience_result_from_snapshot(array $snapshot, array $normalizedSpec, array $context): array
 {
     classops_audience_assert_known_keys($snapshot, [
@@ -121,21 +145,27 @@ function classops_audience_result_from_snapshot(array $snapshot, array $normaliz
         if (!isset($recipientSet[$studentKey])) {
             classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot reason references a non-recipient.');
         }
+        if (isset($reasonMap[$studentKey])) {
+            classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot contains duplicate recipient reasons.');
+        }
         $reasonList = $row['reasons'] ?? null;
-        if (!is_array($reasonList) || !array_is_list($reasonList) || count($reasonList) > 32) {
+        if (!is_array($reasonList) || !array_is_list($reasonList) || count($reasonList) < 1 || count($reasonList) > 32) {
             classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot reason list is invalid.');
         }
         $safeReasons = [];
         foreach ($reasonList as $reason) {
-            $reason = trim((string) $reason);
-            if ($reason === '' || strlen($reason) > 180 || preg_match('/^[A-Za-z0-9._:-]+$/', $reason) !== 1) {
-                classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot reason is invalid.');
+            $normalizedReason = classops_audience_snapshot_reason((string) $reason);
+            if (isset($safeReasons[$normalizedReason])) {
+                classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot reason list contains duplicates.');
             }
-            $safeReasons[$reason] = true;
+            $safeReasons[$normalizedReason] = true;
         }
         $keys = array_keys($safeReasons);
         sort($keys, SORT_STRING);
         $reasonMap[$studentKey] = ['studentNumber' => $studentNumber, 'reasons' => $keys];
+    }
+    if (count($reasonMap) !== count($recipientSet)) {
+        classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot is missing recipient reasons.');
     }
     ksort($reasonMap, SORT_STRING);
     $recipientReasons = array_values($reasonMap);
@@ -145,6 +175,7 @@ function classops_audience_result_from_snapshot(array $snapshot, array $normaliz
         classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot unresolved list is invalid.');
     }
     $normalizedUnresolved = [];
+    $unresolvedSeen = [];
     foreach ($unresolved as $row) {
         $row = classops_audience_assert_object($row, 'CLASSOPS_AUDIENCE_SNAPSHOT_INVALID');
         classops_audience_assert_known_keys($row, ['kind', 'reference', 'code'], 'CLASSOPS_AUDIENCE_SNAPSHOT_INVALID');
@@ -153,14 +184,24 @@ function classops_audience_result_from_snapshot(array $snapshot, array $normaliz
         $code = (string) ($row['code'] ?? '');
         if ($kind === 'student') {
             $reference = classops_audience_normalize_student_number($reference);
+            if ($code !== 'AUDIENCE_STUDENT_NOT_FOUND') {
+                classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot unresolved code does not match its kind.');
+            }
         } elseif ($kind === 'selector') {
-            $reference = classops_audience_normalize_selector_key($reference);
+            if (preg_match('/^(?:role|group|category):[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$/', $reference) !== 1) {
+                classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot unresolved selector is invalid.');
+            }
+            if ($code !== 'AUDIENCE_SELECTOR_NOT_FOUND') {
+                classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot unresolved code does not match its kind.');
+            }
         } else {
             classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot unresolved kind is invalid.');
         }
-        if (!in_array($code, ['AUDIENCE_STUDENT_NOT_FOUND', 'AUDIENCE_SELECTOR_NOT_FOUND'], true)) {
-            classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot unresolved code is invalid.');
+        $unresolvedKey = $kind . '|' . $reference . '|' . $code;
+        if (isset($unresolvedSeen[$unresolvedKey])) {
+            classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot unresolved list contains duplicates.');
         }
+        $unresolvedSeen[$unresolvedKey] = true;
         $normalizedUnresolved[] = ['kind' => $kind, 'reference' => $reference, 'code' => $code];
     }
     usort($normalizedUnresolved, static fn(array $left, array $right): int => strcmp(
@@ -173,14 +214,20 @@ function classops_audience_result_from_snapshot(array $snapshot, array $normaliz
         classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot warnings are invalid.');
     }
     $normalizedWarnings = [];
+    $warningSeen = [];
+    $allowedWarningCodes = classops_audience_snapshot_warning_codes();
     foreach ($warnings as $warning) {
         $warning = classops_audience_assert_object($warning, 'CLASSOPS_AUDIENCE_SNAPSHOT_INVALID');
         classops_audience_assert_known_keys($warning, ['code', 'count'], 'CLASSOPS_AUDIENCE_SNAPSHOT_INVALID');
         $code = trim((string) ($warning['code'] ?? ''));
         $count = (int) ($warning['count'] ?? 0);
-        if ($code === '' || preg_match('/^[A-Z0-9_]{3,96}$/', $code) !== 1 || $count < 1) {
+        if (!in_array($code, $allowedWarningCodes, true) || $count < 1) {
             classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot warning is invalid.');
         }
+        if (isset($warningSeen[$code])) {
+            classops_audience_error('CLASSOPS_AUDIENCE_SNAPSHOT_INVALID', 'Audience snapshot warnings contain duplicate codes.');
+        }
+        $warningSeen[$code] = true;
         $normalizedWarnings[] = ['code' => $code, 'count' => $count];
     }
     usort($normalizedWarnings, static fn(array $left, array $right): int => strcmp($left['code'], $right['code']));
