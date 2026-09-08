@@ -7,7 +7,7 @@ putenv('DENT_SERVER_ONLY_ROOT=' . $testRoot . DIRECTORY_SEPARATOR . 'server-only
 putenv('DENT_AUTH_SECRET_KEY=' . base64_encode(str_repeat('t', 32)));
 
 require_once __DIR__ . '/../public_html/api/bot_store.php';
-require_once __DIR__ . '/../public_html/api/classops_bot_service.php';
+require_once __DIR__ . '/../public_html/api/academic_term7_bot_service.php';
 restore_error_handler();
 restore_exception_handler();
 
@@ -16,9 +16,7 @@ function term7_group_assert(bool $condition, string $label): void
 {
     global $failures;
     echo ($condition ? 'PASS: ' : 'FAIL: ') . $label . PHP_EOL;
-    if (!$condition) {
-        $failures++;
-    }
+    if (!$condition) $failures++;
 }
 function term7_group_cleanup(string $path): void
 {
@@ -51,7 +49,8 @@ try {
     dent_term7_owner_set_leader($owner, $studentB, 'group10', true);
     term7_group_assert((dent_term7_public_assignment_for_student($studentA)['group10Status'] ?? '') === 'member', 'One leader per group is enforced');
     dent_term7_owner_update_assignment($owner, $studentB, 'group10', 2);
-    term7_group_assert(!isset(dent_term7_state_read()['groupLeaders']['1']), 'Moving a leader clears stale group leader state');
+    term7_group_assert((dent_term7_public_assignment_for_student($studentB)['group10Status'] ?? '') === 'member', 'Moving a leader safely invalidates stale leader state');
+    term7_group_assert((dent_term7_group_leader_state_read()['group10']['1'] ?? '') === '', 'Stale old-group leader pointer is hidden on read');
     $cleared = dent_term7_owner_update_assignment($owner, $studentA, 'group10', null);
     term7_group_assert(array_key_exists('group10', $cleared) && $cleared['group10'] === null && ($cleared['group10Status'] ?? '') === 'unassigned', 'Owner can explicitly clear a group');
     dent_term7_owner_update_assignment($owner, $studentA, 'group8', 12);
@@ -75,9 +74,9 @@ try {
         ];
         return [];
     });
-    $capabilities = classops_bot_service_dispatch(['action'=>'classopsCapabilities','platform'=>'telegram','platformUserId'=>'900001']);
-    term7_group_assert(($capabilities['role'] ?? '') === 'owner' && isset($capabilities['term7']['group10Status']), 'Signed ClassOps capability response carries Term 7 assignment');
-    $serviceRoster = classops_bot_service_dispatch(['action'=>'classopsTerm7Roster','platform'=>'telegram','platformUserId'=>'900001']);
+    $self = dent_term7_bot_service_dispatch(['action'=>'academicTerm7Self','platform'=>'telegram','platformUserId'=>'900001']);
+    term7_group_assert(!empty($self['eligible']) && isset($self['assignment']['group10Status']), 'Signed Term 7 self response carries status-aware assignment');
+    $serviceRoster = dent_term7_bot_service_dispatch(['action'=>'academicTerm7Roster','platform'=>'telegram','platformUserId'=>'900001']);
     term7_group_assert(count($serviceRoster['roster'] ?? []) === 3, 'Signed owner service exposes canonical Term 7 roster');
 } finally {
     term7_group_cleanup($testRoot);
