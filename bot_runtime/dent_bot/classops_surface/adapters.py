@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Mapping
 
 from .model import ActionIntent, build_intent
-from .render import SurfaceButton, SurfaceView
+from .render import SurfaceView
 
 
 @dataclass(frozen=True)
@@ -16,8 +16,9 @@ class RenderedSurface:
 
 
 def _callback_key(action: str) -> str:
-    # Context (item/revision/nonce) is supplied by integration when the callback
-    # is resolved. The callback itself therefore cannot mutate ClassOps storage.
+    # This legacy semantic adapter never embeds identity, revision, payload or
+    # secret data in callback_data. Sensitive real runtime actions use opaque
+    # server-issued cxo_* references from classops_runtime.py.
     key = "classops:" + action
     if len(key.encode("utf-8")) > 64:
         raise ValueError("ClassOps callback key exceeds transport-safe length")
@@ -29,22 +30,30 @@ class BaseAdapter:
     supports_button_style = False
 
     def render(self, view: SurfaceView) -> RenderedSurface:
-        rows = []
-        semantic = []
+        rows: list[list[dict[str, Any]]] = []
+        semantic: list[str] = []
+        disabled_notes: list[str] = []
         for button in view.buttons:
             payload: dict[str, Any] = {"text": button.label}
             if button.enabled:
                 payload["callback_data"] = _callback_key(button.action)
                 semantic.append(button.action)
             else:
-                payload["calllback_data"] = _callback_key("disabled")
-                payload["disabled_reason"] = button.disabled_reason
+                # Telegram/Bale do not have a portable disabled-inline-button
+                # primitive. Use one inert generic callback and render the reason
+                # as text; never inject non-Bot-API fields into the button.
+                payload["callback_data"] = _callback_key("disabled")
+                if button.disabled_reason:
+                    disabled_notes.append(f"• {button.label}: {button.disabled_reason}")
             if self.supports_button_style and button.style != "default":
                 payload["style"] = button.style
             rows.append([payload])
+        text = f"{view.title}\n\n{view.text}".strip()
+        if disabled_notes:
+            text += "\n\nقابلیت‌های در دسترس‌نبودن:\n" + "\n".join(disabled_notes)
         return RenderedSurface(
             platform=self.platform,
-            text=f"{view.title}\n\n{view.text}".strip(),
+            text=text,
             keyboard={"inline_keyboard": rows},
             semantic_actions=tuple(semantic),
         )
@@ -57,8 +66,8 @@ class TelegramAdapter(BaseAdapter):
 
 class BaleAdapter(BaseAdapter):
     platform = "bale"
-    # Bale compatibility path deliberately omits optional style metadata; copy,
-    # action identity and confirmation semantics stay identical.
+    # Bale fallback deliberately omits Telegram-optional style metadata. Copy,
+    # semantic action identity and confirmation rules remain identical.
     supports_button_style = False
 
 
