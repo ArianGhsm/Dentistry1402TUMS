@@ -1,133 +1,202 @@
-# ClassOps cross-surface UX (`classops-surface-v1` candidate)
+# ClassOps cross-surface UX ‚Äî Stage 2 integration
 
-## Scope and authority
+## Status
 
-This branch adds a presentation/action layer for the ClassOps Operations Center across website, Telegram and Bale. It does not change `classops-v1`, does not add a second source of truth, and does not wire central runtime/API hotspots.
+This document describes the integrated Stage 2 branch `integration/classops-final-unification-v1`.
+It supersedes the earlier foundation-only/candidate handoff text for this branch.
 
-The machine-readable surface proposal is `contracts/candidates/classops-surface-v1.json`. Its status is **candidate-not-frozen**. Integration must review and explicitly promote/version it before another subsystem treats it as a frozen shared contract.
+Stage 2 remains **unreleased** until the acceptance matrix, repository CI, runtime verification, backup and exact-SHA deployment gates are green. The integration branch must not be treated as production state merely because a capability is implemented in source.
 
-At the declared base SHA, only the existing owner-only ClassOps foundation capabilities are live: list/get/status, draft creation, generic update/status transitions, cancel and archive. Audience resolution, destination resolution/delivery, specialized task/requirement behavior, exam/critical ACK persistence, reminder planning, tomorrow/weekly summaries and AI provider calls are not live capabilities. Their controls are disabled or preview-only; they never report fabricated success.
+## Authority model
 
-`scheduled` and `active` remain generic lifecycle statuses only. They do not grant delivery authority.
+ClassOps uses one business workflow across website, Telegram and Bale:
 
-## Shared action semantics
+1. owner input or AI structured draft;
+2. deterministic validation;
+3. canonical audience resolution;
+4. destination/reminder preview;
+5. explicit owner confirmation;
+6. audience hash re-check;
+7. canonical revision commit;
+8. notification/delivery intent creation;
+9. server coordinator / thin transport adapters.
 
-| Action | Roles | Base behavior | Confirmation | expectedRevision | Idempotency |
-|---|---|---|---|---|---|
-| `items.list` / `item.get` | owner | live read | no | no | no |
-| `draft.create` | owner | live; status forced to `draft` | yes | no | yes |
-| `item.preview_diff` | owner | local deterministic preview | no | no | no |
-| `item.edit` | owner | live generic update | yes | yes | yes |
-| `item.schedule_intent` | owner | live status-only update to `scheduled`; no send authority | yes | yes | yes |
-| `item.activate_intent` | owner | live status-only update to `active`; no send authority | yes | yes | yes |
-| `item.cancel` / `item.archive` | owner | live foundation lifecycle mutation | yes | yes | yes |
-| `audience.preview` | owner | disabled until resolver integration | no | no | no |
-| `destination.preview` | owner | disabled until delivery integration | no | no | no |
-| `task.requirement_view` | owner, student | disabled until specialized domain integration | no | no | no |
-| `exam.view` | owner, student | disabled until specialized exam authorization integration | no | no | no |
-| `exam.ack` | student | disabled until critical-ACK persistence/authorization integration | yes | yes | yes |
-| `reminder.preview` | owner, student | disabled until reminder integration | no | no | no |
-| `summary.tomorrow` / `summary.weekly` | owner, student | disabled until authorized summary backend exists | no | no | no |
-| `ai.draft_request` | owner | local request preview only; no provider call/write/send | no | no | no |
+AI, website JavaScript, Telegram and Bale do not have independent publication authority.
 
-Every destructive or semantic mutation produces a typed action intent first. An intent requiring confirmation cannot be sent through the website client until it is explicitly confirmed. Revision-sensitive actions require `expectedRevision >= 1`; mutation intents carry deterministic surface idempotency metadata.
+Canonical boundaries remain:
+
+- GitHub: code source of truth;
+- production storage: data source of truth;
+- `auth_store.php`: canonical user/student/cohort identity source;
+- existing website notification subsystem: canonical website notification/feed state;
+- ClassOps Stage 2 state: audience snapshots, task/service state, ACK state, delivery intents, scheduler occurrences and opaque callback references;
+- Telegram/Bale: transport adapters, not parallel business databases.
 
 ## Website Operations Center
 
-The isolated owner surface is `/classops/`, with assets under `public_html/assets/classops_ops/`.
+The owner surface is `/classops/`.
 
-- Owner controls start hidden. The page uses the canonical ClassOps owner `status` read to authorize the surface; an ordinary user cannot reveal owner controls merely through cached browser identity.
-- Existing live mutations call only `/api/classops_api.php` actions already implemented by `classops-v1`.
-- CSRF is obtained through the existing authenticated `authSessions` response from `/api/auth_api.php?action=authSessions`; the ClassOps surface creates no token store.
-- Draft creation forces `status=draft` even if caller input attempts another status.
-- Edit and lifecycle operations show a confirmation model carrying item ID, expected revision and idempotency key.
-- HTTP 409 is rendered as an explicit stale-revision conflict and requires a refresh/review rather than silent retry.
-- AI free text is normalized into a local preview only. No AI/provider endpoint is called and the preview has no mutation or send authority.
-- Pending integrations use disabled controls and `backend-integration-pending` semantics.
-- RTL Persian copy is deterministic. Loading, error, empty, conflict and disabled states are explicit; keyboard focus and reduced-motion behavior are included.
-- The ClassOps JS creates no `localStorage`/`indexedDB` state.
+The page starts with all owner controls hidden. It calls the owner-only ClassOps `status` endpoint before exposing the management surface. No role decision is cached in local storage, IndexedDB or another client-side authorization store.
 
-The route is intentionally not added to the central `/admin/` navigation in this feature branch. Integration may add a link after review without turning `/admin/` into a second ClassOps management implementation.
+### Create workflow
 
-## Telegram / Bale parity
+The composer supports:
 
-`bot_runtime/dent_bot/classops_surface/` owns platform-neutral actions and view models plus thin rendering adapters.
+- canonical cohort key;
+- ClassOps item type;
+- title, description, course title, location and importance;
+- Tehran-local start/due time converted to ISO-8601 with explicit offset;
+- version-aware ACK requirement for `critical_notice`;
+- canonical audience modes: whole cohort, explicit student numbers or selector (`role`, `group`, `category`);
+- include/exclude canonical student-number overrides;
+- symbolic destinations: `private_users`, `class_group`, `information_channel`;
+- reminder-only Saba service metadata for `service_reminder`.
 
-Both platforms receive the same action names, role gates, Persian copy, enabled/disabled state and confirmation semantics. Telegram may carry optional button style metadata; Bale omits that cosmetic field when necessary. This is the documented equivalent fallback and does not alter action identity.
+Submitting the form calls the Stage 2 `preview` action. Preview performs audience resolution and delivery/reminder planning but performs no mutation.
 
-A callback contains only an opaque surface action key such as `classops:item.edit`. `intent_from_callback()` converts it to an **unconfirmed typed intent** only. It performs no database mutation, ClassOps API call, message send, or bot-state mutation. Item/revision/nonce context must be supplied by the later integration layer after canonical authorization.
+The confirmation panel displays audience count/warnings, delivery route outcomes and reminder/service information. A confirm request contains the exact preview `audienceHash`. The backend re-resolves the audience and fails with `CLASSOPS_AUDIENCE_DRIFT` if it changed.
 
-Disabled actions map to a non-semantic `classops:disabled` callback and cannot produce an action intent.
+Only the Stage 2 `confirm` action can turn that preview into a canonical commit and side effects.
 
-## Owner / student separation
+### Existing item revisions
 
-Owner actions and student views are independent menus. Owner mutation controls never appear in the student menu. Student-facing task/requirement, exam/ACK, reminder and tomorrow/weekly views are modeled but remain disabled at the foundation base. Integration must enable each only from backend capability **and** canonical per-user authorization; platform linkage alone is not authorization.
+Items carrying `extensions.classops_stage2_v1` are edited through the same preview/confirm workflow. Revision-sensitive updates carry `expectedRevision`. A stale revision or changed audience returns HTTP 409 and forces a fresh review.
 
-Critical ACK is student-only in this candidate. It remains disabled until the exams/ACK workstream exposes authoritative eligibility, revision and persistence semantics.
+Historical Foundation-only items are not silently promoted to Stage 2 by the website. This prevents an ordinary legacy edit from unexpectedly creating audience/delivery side effects.
 
-## Privacy and identity
+Cancel/archive use the Stage 2 lifecycle path and supersede future delivery work/notifications as defined by the backend.
 
-The surface contract forbids raw Telegram/Bale chat IDs and credential/private identity fields in intents. Payload validation rejects chat/platform IDs, bot/user tokens, secrets, passwords, OTPs, phone/mobile fields and national-code fields.
+### Owner projections
 
-Canonical student identity must use the approved student-number/canonical-user boundaries of `canonical-student-identity-v1` after a downstream contract explicitly permits the relevant field. Display-name matching is never an identity mechanism.
+The website can read:
 
-No runtime JSON/SQLite, sessions, secrets, logs, backups, production data or private user content are added by this branch.
+- task/requirement per-student state;
+- critical-notice ACK statistics;
+- deterministic tomorrow summary;
+- deterministic weekly digest.
 
-## Integration-only handoff
+These reads do not initialize task state or create notification/digest state.
 
-The files below are intentionally unchanged in this branch.
+## AI Copilot
 
-### `public_html/api/classops_api.php`
+The AI endpoint uses `classops-structured-draft-v1` and a dedicated ClassOps credential.
 
-In the main action router inside the existing `try` block:
+Supported runtime provider for this release is AvalAI. The model is runtime-configured; the code does not hard-code or silently fall back to a Voice/STT credential.
 
-1. Preserve current `capabilities`, `status`, `list`, `get`, `revisions`, `create`, `update`, `cancel` and `archive` request/response shapes used by this surface.
-2. After the audience workstream is integrated, add an owner-authorized **read/preview** action for resolved audience output. It must consume canonical IDs/snapshots and must not resolve by display name.
-3. After destination/delivery integration, add destination preview separately from send/delivery authority. Preview must not enqueue delivery.
-4. After task/requirement and exam/ACK workstreams are integrated, add authorized student reads and ACK mutation endpoints. Student endpoints must derive the current canonical user from `auth_store.php`; do not accept caller-supplied student identity as authorization.
-5. ACK mutation must require authoritative expected revision and idempotency metadata and fail closed on stale/unauthorized state.
-6. Reminder/tomorrow/weekly endpoints should be added only after their canonical domain/scheduler dependencies exist; reads must not create notification or digest state.
-7. Do not add an AI mutation endpoint merely for this surface. The future structured-draft producer must terminate at owner preview/confirm under `classops-structured-draft-v1`.
+AI rules:
 
-### `public_html/api/classops_store.php`
+- owner-only;
+- output is structured draft only;
+- no direct mutation;
+- no direct send;
+- no identity resolution;
+- no audience resolution;
+- no course/date resolution authority;
+- forwarded text is untrusted data;
+- unresolved values remain null/unresolved;
+- manual composer remains available when AI is unconfigured or unavailable.
 
-Do not change the generic foundation merely to make pending controls look enabled. If integration needs new capability advertisement or a promoted surface/domain contract, version it explicitly and keep lifecycle/revision/idempotency semantics backward compatible. `scheduled`/`active` must continue to be non-delivery-authoritative until the delivery contract says otherwise.
+The website can create and edit an AI draft, then copy only concrete safe fields into the manual composer. Timing and audience clues are deliberately not guessed.
 
-### `bot_runtime/dent_bot/app.py`
+Runtime configuration is documented in `.env.example`:
 
-At `DentBotApp.handle()` / the existing callback dispatch path:
+- `DENT_CLASSOPS_AI_PROVIDER`
+- `DENT_CLASSOPS_AI_BASE_URL`
+- `DENT_CLASSOPS_AI_AVALAI_API_KEY`
+- `DENT_CLASSOPS_AI_MODEL`
+- `DENT_CLASSOPS_AI_TIMEOUT_MS`
+- `DENT_CLASSOPS_AI_MAX_RETRIES`
+- optional input/output cost rates.
 
-1. Recognize `classops:*` only after normal platform/user/link authorization has run.
-2. Delegate rendering and callback parsing to `dent_bot.classops_surface`; do not duplicate Telegram/Bale business rules in `app.py`.
-3. Resolve item/revision/context through the authenticated site-service client, then use `intent_from_callback()` to build an unconfirmed action intent.
-4. Require an explicit confirmation interaction before any semantic mutation. Do not map a callback directly to ClassOps DB/state mutation.
-5. Add an owner ClassOps menu entry only for the canonical owner; add student views only when the backend returns an authorized capability for that canonical user.
-6. Keep Telegram and Bale on the same view model; only transport rendering/fallback differs.
+The endpoint must be clean HTTPS. Literal localhost/private endpoints are rejected. Runtime retries are bounded to 0..2 and apply only to transient transport failures, 429 and 5xx responses. Direct test/client construction keeps a no-retry default for deterministic compatibility.
 
-### `bot_runtime/dent_bot/site_api.py`
+## Audience and delivery
 
-After matching backend endpoints are integrated, add typed ClassOps service calls here rather than transport-specific HTTP calls in adapters. Reuse `runtime-site-service-v1` HMAC/service authentication, keep service credentials independent of end-user bot links, and never send raw chat IDs as ClassOps domain data.
+The integrated audience contract is `classops-audience-v1`.
 
-### Central scheduler/router and notification integration
+Audience resolution derives from canonical server context. Display names are never identity keys. Supported expression primitives include:
 
-Reminder dispatch, tomorrow summary, weekly digest and delivery scheduling belong to the later central scheduler/router integration. They must reuse `notification-integration-v1` and the existing canonical notification subsystem; no ClassOps parallel notification feed or read-state store may be created.
+- `whole_cohort`;
+- explicit canonical `students`;
+- canonical `selector` by role/group/category;
+- `not`, `any`, `all` combinations at the domain contract level;
+- include/exclude student-number overrides.
 
-### Optional website navigation wiring
+The website currently exposes the common whole-cohort / explicit-students / selector cases. More complex boolean expressions remain available at the API/domain contract boundary rather than being represented by an unsafe free-form identity UI.
 
-After integration review, `public_html/admin/index.html` may expose a navigation link to `/classops/`. The ClassOps UI tself remains isolated; `/admin/` should not duplicate its CRUD implementation.
+Delivery uses symbolic destination aliases and capability planning. Raw Telegram/Bale chat IDs and bot tokens are not ClassOps domain fields.
 
-## Dependencies before capabilities can be enabled
+A platform state of `unknown`, `unavailable` or unsupported capability is shown as blocked rather than reported as success. Telegram and Bale are independent routes; a platform outage does not silently rewrite business semantics.
 
-- Audience preview: integrated/promoted audience resolver contract.
-- Destination preview/delivery: destination registry + delivery contract; existing notification boundary retained.
-- Task/requirement views: specialized task/requirement domain and canonical student authorization.
-- Exam/critical ACK: specialized exam/ACK domain, access policy and ACK persistence.
-- Reminder/tomorrow/weekly: integrated domain reads plus central scheduler/digest design.
-- AI parsing: `classops-structured-draft-v1` producer implementation with independent ClassOps AI credential and owner preview/confirm.
+## Tasks / Requirements
 
-## Tests
+Task states are:
 
-Focused branch tests:
+- `pending`
+- `submitted`
+- `needs_revision`
+- `completed`
+- `waived`
 
-```bash
-PY”îUXõ›‹ù[ù[YH]€à[H[ö]\›\ÿ€›ô\à\»õ›‹ù[ù[YK›\›»\	›\›ÿ€\‹€‹◊‹›\ôòXŸKúI¬ú]€àÿ‹ö\À›\›ÿ€\‹€‹◊ÿ‹õ‹‹◊‹›\ôòXŸWÿ€€ùòX›úBõõŸHÿ‹ö\À›\›ÿ€\‹€‹◊ÿ‹õ‹‹◊‹›\ôòXŸW‹⁄]Köú¬òÇëõ›[ô][€àôY‹ô\‹⁄[€à⁄X⁄‹»»ù[à[à[à[ùY‹ò]Y⁄X⁄€›]ÇÇòò\⁄úÿ‹ö\À›\›ÿ€\‹€‹◊Ÿõ›[ô][€ãúú]€àÿ‹ö\À›\›ÿ€\‹€‹◊ÿ\W⁄úBòò\⁄ÿ‹ö\À‹ù[ó‹›]X◊ÿ⁄X⁄‹Àú⁄òÇï\»ôX]\ôHúò[ò⁄Ÿ\»õ›[ŸYûHHŸ[ùò[›]XÀX⁄X⁄»ù[õô\ã“H€‹öŸõ›À\ﬁHÿ‹ö\Àù[ù[YHŸ\ùöXŸ\ÀõŸX›[€à›‹òYŸH‹àŸ\ùô\à›]Kà\ﬁ[Y[ù[ô]ôHù[ù[YHô\öYöXÿ][€àô[XZ[àŸ\\ò]H[ùY‹ò][€ã‹ô[X\ŸH€‹öÀÇ
+Per-student task state is revision-aware and uses optimistic state revisions/idempotent commands. Eligible state can be carried to a newer ClassOps revision according to the integrated domain policy; unauthorized students are rejected against the stored audience snapshot.
+
+## Exams / Critical ACK
+
+Critical ACK is explicit application state. A Telegram/Bale delivery or read receipt is not an ACK.
+
+ACK is bound to item revision and audience eligibility. A newer critical-notice revision requires a new ACK; satisfaction is not carried from an older revision.
+
+Owner statistics are computed against the authoritative audience snapshot for that revision.
+
+## Scheduler, reminders and Saba
+
+The coordinator is server-canonical. Telegram and Bale do not independently schedule the same ClassOps occurrence.
+
+Exam defaults include deterministic T-3, T-1, night-before and morning-of rules in Asia/Tehran.
+
+Reminder occurrence keys and delivery intents are idempotent/revision-aware; future work is superseded on relevant update/cancel/archive transitions.
+
+Saba support is reminder-only. The ClassOps model rejects Saba credentials/session material and performs no Saba login automation.
+
+Digest schedule defaults are documented in `.env.example` and are interpreted in Asia/Tehran.
+
+## Telegram / Bale
+
+`bot_runtime/dent_bot/classops_surface/` contains shared semantic models/rendering. Transport-specific adapters may differ cosmetically but not in authorization or business action identity.
+
+The integrated callback/service boundary uses opaque, actor-bound callback references where a mutation needs server context. Raw platform user/chat IDs are not persisted in ClassOps domain payloads.
+
+The canonical website/service layer resolves item, audience and authorization. Bot code remains a thin adapter over that business logic.
+
+## Security and privacy invariants
+
+- owner management endpoints require canonical owner authorization;
+- browser mutations require existing CSRF protection;
+- student endpoints derive the current canonical user server-side;
+- no caller-supplied student identity grants authorization;
+- no ClassOps AI secret is exposed to browser/bot payloads;
+- no Voice/STT credential fallback;
+- no raw platform destination IDs in domain state;
+- no Saba credentials;
+- no runtime JSON/SQLite, sessions, secrets, logs or backups committed to Git;
+- unknown/unsupported capability fails closed;
+- 409 conflicts require refresh/review, never blind retry.
+
+## Test gates
+
+The integration branch adds `scripts/test_classops_stage2_web_surface.py` and wires it into `.github/workflows/classops-stage1.yml` alongside the domain matrix.
+
+The repository-wide static workflow also checks JavaScript syntax, PHP lint, UTF-8 integrity, repository hygiene, Foundation compatibility, persistence/concurrency and existing product regressions.
+
+Stage 2 is not releasable until all of the following are true:
+
+1. domain matrix green;
+2. repository static checks green;
+3. Stage 2 web surface contract green;
+4. Foundation HTTP/backward-compatibility green;
+5. bot/runtime deterministic tests green;
+6. runtime configuration verified without exposing secrets;
+7. verified production backup exists;
+8. exact integrated GitHub SHA is deployed;
+9. post-deploy health/log/smoke checks pass;
+10. rollback remains available.
