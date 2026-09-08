@@ -40,6 +40,8 @@ jobs:
         run: |
           python scripts/test_classops_domain_contract_graph.py
           python scripts/test_classops_stage1_invariants.py
+          python scripts/test_classops_stage1_api_contract.py
+          php scripts/test_classops_domain_store_adapter.php
 
       - name: Audience
         run: |
