@@ -49,6 +49,7 @@ jobs:
         run: |
           python scripts/test_classops_stage2_web_surface.py
           php scripts/test_classops_stage2_terminal.php
+          php scripts/test_classops_stage2_state_carry.php
           python scripts/test_classops_stage2_http.py
 
       - name: Audience
