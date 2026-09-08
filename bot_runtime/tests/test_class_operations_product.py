@@ -1,49 +1,95 @@
 from __future__ import annotations
 
+import re
 import unittest
+from unittest.mock import patch
 
+from dent_bot.api import BaleBotApi, BotApiError, TelegramBotApi
 from dent_bot.class_operations_product import (
+    _ai_draft_screen,
     _class_home_screen,
     _detail_screen,
+    _digest_screen,
     _home_keyboard,
     _legacy_action,
     _list_screen,
     _preview_screen,
+    _render_screen,
 )
 from dent_bot.ui import Screen, button, keyboard
 
 
 class _App:
     site_url = "https://example.test"
+    platform = "telegram"
+
+
+class _CaptureApi:
+    def __init__(self) -> None:
+        self.sent = []
+        self.edited = []
+
+    def send(self, chat_id, text, reply_markup):
+        self.sent.append((chat_id, text, reply_markup))
+        return {"message_id": 10}
+
+    def edit(self, chat_id, message_id, text, reply_markup):
+        self.edited.append((chat_id, message_id, text, reply_markup))
+        return {"message_id": message_id}
+
+
+class _RenderApp:
+    platform = "telegram"
+
+    def __init__(self) -> None:
+        self.api = _CaptureApi()
 
 
 class ClassOperationsProductTests(unittest.TestCase):
-    def test_main_menu_gets_native_class_operations_entry(self) -> None:
+    def _sample_item(self) -> dict:
+        return {
+            "id": "cop_123456789012345678901234",
+            "type": "task",
+            "status": "active",
+            "title": "تحویل تمرین 2",
+            "description": "شرح طولانی تمرین 3",
+            "courseTitle": "ترمیمی 1",
+            "timing": {"dueAt": "2026-09-08T16:30:00+03:30"},
+            "location": "کلاس 4",
+            "importance": "important",
+            "task": {"state": "pending"},
+        }
+
+    def test_main_menu_uses_distinct_class_operations_semantic_icon(self) -> None:
         original = Screen(
             "<b>خانه</b>",
             keyboard(
+                [button("📚 جزوات", action="notes")],
                 [button("📝 آزمون‌ها", action="exams")],
                 [button("🔔 اعلان‌ها", action="notifications"), button("🛟 راهنما", action="help")],
             ),
         )
         updated = _home_keyboard(original)
-        callbacks = [
-            item.get("callback_data")
-            for row in updated.keyboard["inline_keyboard"]
-            for item in row
-        ]
+        buttons = [item for row in updated.keyboard["inline_keyboard"] for item in row]
+        labels = [str(item.get("text") or "") for item in buttons]
+        callbacks = [str(item.get("callback_data") or "") for item in buttons]
+        self.assertIn("📅 امور کلاس", labels)
+        self.assertNotIn("📚 امور کلاس", labels)
+        self.assertIn("📚 جزوات", labels)
         self.assertIn("v1:class-operations", callbacks)
-        self.assertIn("v1:notifications", callbacks)
         self.assertLess(callbacks.index("v1:class-operations"), callbacks.index("v1:notifications"))
 
-    def test_student_class_home_is_product_facing(self) -> None:
+    def test_student_class_home_is_native_rich_product_facing(self) -> None:
         screen = _class_home_screen(
             _App(),
             role="student",
             items=[{"type": "task", "status": "active", "title": "تحویل تمرین"}],
         )
-        rendered = screen.text + str(screen.keyboard)
-        self.assertIn("امور کلاس", rendered)
+        rich = str(getattr(screen.text, "rich_html", "") or "")
+        rendered = str(screen.text) + rich + str(screen.keyboard)
+        self.assertIn("📅 امور کلاس", rendered)
+        self.assertIn("<table bordered striped compact>", rich)
+        self.assertNotIn("<pre>", rich)
         self.assertIn("تکالیف و کارها", rendered)
         self.assertNotIn("canonical", rendered.lower())
         self.assertNotIn("ClassOps", rendered)
@@ -59,50 +105,219 @@ class ClassOperationsProductTests(unittest.TestCase):
         self.assertEqual(_legacy_action("classops:tomorrow"), "class-operations:tomorrow")
         self.assertEqual(_legacy_action("classops:item:cop_123"), "class-operations:item:cop_123")
 
-    def test_list_translates_internal_item_types(self) -> None:
+    def test_list_is_native_rich_and_translates_types_time_and_digits(self) -> None:
         screen = _list_screen(
-            [{"id": "cop_123456789012345678901234", "type": "class_change", "status": "active", "title": "جابجایی ترمیمی"}],
+            [{
+                "id": "cop_123456789012345678901234",
+                "type": "class_change",
+                "status": "active",
+                "title": "جابجایی ترمیمی 2",
+                "timing": {"startsAt": "2026-09-08T10:00:00+03:30"},
+            }],
             "schedule",
         )
-        self.assertIn("تغییر کلاس", screen.text)
-        self.assertNotIn("class_change", screen.text)
+        rich = screen.text.rich_html
+        combined = str(screen.text) + rich
+        self.assertIn("تغییر کلاس", combined)
+        self.assertNotIn("class_change", combined)
+        self.assertIn("<table bordered striped compact>", rich)
+        self.assertNotIn("<pre>", rich)
+        self.assertNotIn("2026-09-08", combined)
+        self.assertNotRegex(combined, r"(?<![A-Za-z])\b2\b")
+        self.assertIn("۲", combined)
+        self.assertIn("۱۴۰۵", combined)
 
-    def test_student_detail_translates_task_state_and_ack(self) -> None:
+    def test_student_detail_uses_rich_facts_details_and_ack(self) -> None:
         screen = _detail_screen(
             {
+                "id": "cop_123456789012345678901234",
                 "type": "critical_notice",
-                "title": "اطلاعیه مهم",
+                "title": "اطلاعیه مهم 2",
                 "status": "active",
-                "description": "متن",
+                "description": "متن توضیح 3",
+                "timing": {"startsAt": "2026-09-08T08:00:00+03:30"},
                 "ack": {"acked": False},
             },
             {"ack": "cxo_12345678901234567890"},
         )
-        button_texts = [
-            str(item.get("text") or "")
-            for row in screen.keyboard["inline_keyboard"]
-            for item in row
-        ]
-        self.assertIn("نیازمند تأیید", screen.text)
-        self.assertTrue(any("دیدم و تأیید می‌کنم" in text for text in button_texts))
-        self.assertNotIn("revision", screen.text.lower())
-        self.assertFalse(any("revision" in text.lower() for text in button_texts))
+        button_rows = screen.keyboard["inline_keyboard"]
+        ack_buttons = [item for row in button_rows for item in row if "دیدم و تأیید می‌کنم" in str(item.get("text") or "")]
+        combined = str(screen.text) + screen.text.rich_html
+        self.assertIn("نیازمند تأیید", combined)
+        self.assertEqual(len(ack_buttons), 1)
+        self.assertEqual(ack_buttons[0].get("style"), "success")
+        self.assertIn("<table bordered striped compact>", screen.text.rich_html)
+        self.assertIn("<details>", screen.text.rich_html)
+        self.assertIn("<blockquote expandable>", str(screen.text))
+        self.assertNotIn("revision", combined.lower())
+        self.assertNotIn("2026-09-08", combined)
+        self.assertIn("۱۴۰۵", combined)
+        self.assertIn("۲", combined)
+        self.assertIn("۳", combined)
 
-    def test_preview_hides_internal_hash_and_revision(self) -> None:
+    def test_saba_copy_preserves_reminder_only_boundary(self) -> None:
+        screen = _detail_screen(
+            {
+                "id": "cop_123456789012345678901234",
+                "type": "service_reminder",
+                "title": "ثبت صبا",
+                "status": "active",
+                "service": {"state": {"state": "pending"}},
+            },
+            {},
+        )
+        combined = str(screen.text) + screen.text.rich_html
+        self.assertIn("انجام واقعی در صبا را تأیید نمی‌کند", combined)
+        self.assertNotIn("password", combined.lower())
+        self.assertNotIn("session", combined.lower())
+
+    def test_preview_is_native_rich_persian_and_hides_internal_values(self) -> None:
         screen = _preview_screen(
             _App(),
             {
                 "preview": {
-                    "item": {"type": "announcement", "title": "اطلاعیه", "description": "متن"},
+                    "item": {
+                        "type": "announcement",
+                        "title": "اطلاعیه 12",
+                        "description": "متن 4",
+                        "timing": {"startsAt": "2026-09-08T10:00:00+03:30"},
+                    },
                     "audience": {"total": 12, "resolutionHash": "secret-ish-hash"},
                     "destinations": [{"bindingRef": "private_users"}],
                 },
                 "confirmToken": "cxo_12345678901234567890",
             },
         )
-        self.assertIn("۱۲", screen.text.replace("12", "۱۲") if "12" in screen.text else screen.text)
-        self.assertNotIn("secret-ish-hash", screen.text)
-        self.assertNotIn("revision", screen.text.lower())
+        combined = str(screen.text) + screen.text.rich_html + str(screen.keyboard)
+        self.assertIn("<table bordered striped compact>", screen.text.rich_html)
+        self.assertIn("۱۲", combined)
+        self.assertIn("۴", combined)
+        self.assertIn("۱۴۰۵", combined)
+        self.assertNotIn("2026-09-08", combined)
+        self.assertNotIn("secret-ish-hash", combined)
+        self.assertNotIn("revision", combined.lower())
+        self.assertNotIn("audience", combined.lower())
+        self.assertNotIn("private_users", combined)
+        self.assertNotIn("cxo_12345678901234567890", str(screen.text) + screen.text.rich_html)
+
+    def test_ai_draft_is_native_rich_and_stays_preview_only(self) -> None:
+        screen = _ai_draft_screen(
+            _App(),
+            {
+                "draft": {
+                    "fields": {"type": "announcement", "title": "اطلاعیه 2", "description": "متن 3"},
+                    "unresolved": ["زمان 4"],
+                }
+            },
+        )
+        combined = str(screen.text) + screen.text.rich_html
+        self.assertIn("<table bordered striped compact>", screen.text.rich_html)
+        self.assertIn("بدون تأیید تو چیزی ثبت یا ارسال نمی‌شود", combined)
+        self.assertIn("۲", combined)
+        self.assertIn("۳", combined)
+        self.assertIn("۴", combined)
+        self.assertNotIn("provider", combined.lower())
+        self.assertNotIn("token", combined.lower())
+
+    def test_tomorrow_and_weekly_digest_renderer_preserves_sections_and_budget(self) -> None:
+        response = {
+            "digest": {
+                "sections": [
+                    {
+                        "key": "tasks_requirements",
+                        "label": "تکلیف‌ها و الزامات باز",
+                        "omitted": 1,
+                        "items": [{
+                            "itemType": "task",
+                            "title": "تمرین 2",
+                            "course": {"title": "ترمیمی 1"},
+                            "location": "کلاس 4",
+                            "timing": {"allDay": False, "dueAtUtc": "2026-09-09T16:30:00Z"},
+                            "changeLabel": None,
+                        }],
+                    }
+                ],
+                "budget": {"truncated": True, "omittedItems": 1},
+            }
+        }
+        for title in ("🌤 فردا", "🗓 هفته پیش رو"):
+            with self.subTest(title=title):
+                screen = _digest_screen(response, title=title)
+                combined = str(screen.text) + screen.text.rich_html
+                self.assertIn("<table bordered striped compact>", screen.text.rich_html)
+                self.assertIn("تکلیف‌ها و الزامات باز", combined)
+                self.assertIn("۱ مورد دیگر", combined)
+                self.assertNotIn("2026-09-09", combined)
+                self.assertIn("۱۴۰۵", combined)
+                self.assertNotIn("<pre>", screen.text.rich_html)
+
+    def test_regular_callback_to_rich_sends_new_message_and_rich_refresh_edits(self) -> None:
+        rich_screen = _list_screen([self._sample_item()], "tasks")
+        app = _RenderApp()
+        regular_callback = {"message": {"message_id": 7, "text": "menu"}}
+        _render_screen(app, 10, rich_screen, callback=regular_callback)
+        self.assertEqual(len(app.api.sent), 1)
+        self.assertEqual(len(app.api.edited), 0)
+
+        app2 = _RenderApp()
+        rich_callback = {"message": {"message_id": 8, "rich_message": {"html": "<h2>old</h2>"}}}
+        _render_screen(app2, 10, rich_screen, callback=rich_callback)
+        self.assertEqual(len(app2.api.sent), 0)
+        self.assertEqual(len(app2.api.edited), 1)
+
+    def test_native_telegram_transport_uses_rtl_rich_message(self) -> None:
+        screen = _list_screen([self._sample_item()], "tasks")
+        api = TelegramBotApi("123:test", api_root="https://example.test")
+        try:
+            with patch.object(api, "call", return_value={"message_id": 1}) as call:
+                api.send(10, screen.text, screen.keyboard)
+                method, payload = call.call_args.args[:2]
+                self.assertEqual(method, "sendRichMessage")
+                self.assertIs(payload["rich_message"]["is_rtl"], True)
+                self.assertIn("<table bordered striped compact>", payload["rich_message"]["html"])
+        finally:
+            api.close()
+
+    def test_malformed_native_rich_is_not_silently_degraded(self) -> None:
+        screen = _list_screen([self._sample_item()], "tasks")
+        api = TelegramBotApi("123:test", api_root="https://example.test")
+        try:
+            with patch.object(api, "call", side_effect=BotApiError("Bad Request: malformed rich html")):
+                with self.assertRaises(BotApiError):
+                    api.send(10, screen.text, screen.keyboard)
+        finally:
+            api.close()
+
+    def test_bale_fallback_is_readable_and_contains_no_raw_telegram_html(self) -> None:
+        screen = _detail_screen(self._sample_item(), {})
+        api = BaleBotApi("123:test")
+        try:
+            with patch.object(api, "call", return_value={"message_id": 1}) as call:
+                api.send(10, screen.text, screen.keyboard)
+                method, payload = call.call_args.args[:2]
+                self.assertEqual(method, "sendMessage")
+                rendered = str(payload.get("text") or "")
+                self.assertNotRegex(rendered, re.compile(r"</?(?:b|i|code|pre|blockquote|table|tr|td|th|details)\b", re.I))
+                self.assertNotIn("parse_mode", payload)
+                self.assertIn("۱۴۰۵", rendered)
+                self.assertIn("۲", rendered)
+        finally:
+            api.close()
+
+    def test_copy_guard_for_production_class_operations_surfaces(self) -> None:
+        screens = [
+            _class_home_screen(_App(), role="student", items=[self._sample_item()]),
+            _list_screen([self._sample_item()], "all"),
+            _detail_screen(self._sample_item(), {}),
+            _preview_screen(_App(), {"preview": {"item": self._sample_item(), "audience": {"total": 2}, "destinations": []}}),
+        ]
+        forbidden = ("ClassOps", "canonical", "audience hash", "delivery intent", "capability enum")
+        iso_pattern = re.compile(r"\b20\d{2}-\d{2}-\d{2}T")
+        for screen in screens:
+            combined = str(screen.text) + str(getattr(screen.text, "rich_html", ""))
+            for needle in forbidden:
+                self.assertNotIn(needle.lower(), combined.lower())
+            self.assertIsNone(iso_pattern.search(combined))
 
 
 if __name__ == "__main__":
