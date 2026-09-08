@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .api import TelegramBotApi
-from .class_operations_product import install_class_operations_product
+from .class_operations import install_class_operations_product
 from .config import load_settings
 from .runtime import run_service
 
