@@ -78,10 +78,15 @@ class ClassOperationsProductTests(unittest.TestCase):
             },
             {"ack": "cxo_12345678901234567890"},
         )
-        rendered = screen.text + str(screen.keyboard)
-        self.assertIn("نیازمند تأیید", rendered)
-        self.assertIn("دیدم و تأیید می‌کنم", rendered)
-        self.assertNotIn("revision", rendered.lower())
+        button_texts = [
+            str(item.get("text") or "")
+            for row in screen.keyboard["inline_keyboard"]
+            for item in row
+        ]
+        self.assertIn("نیازمند تأیید", screen.text)
+        self.assertTrue(any("دیدم و تأیید می‌کنم" in text for text in button_texts))
+        self.assertNotIn("revision", screen.text.lower())
+        self.assertFalse(any("revision" in text.lower() for text in button_texts))
 
     def test_preview_hides_internal_hash_and_revision(self) -> None:
         screen = _preview_screen(
