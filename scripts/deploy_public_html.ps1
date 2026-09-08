@@ -2018,6 +2018,7 @@ function Run-Validation() {
     $finalExamScheduleScriptPath = Join-Path $projectRoot "scripts\check_term6_final_exam_schedule.php"
     $uploadConfigScriptPath = Join-Path $projectRoot "scripts\check_upload_pipeline_config.php"
     $smokeScriptPath = Join-Path $projectRoot "scripts\smoke_multi_cohort_pages.py"
+    $smokeFixtureScriptPath = Join-Path $projectRoot "scripts\setup_classops_api_fixture.php"
     $classOpsFoundationScriptPath = Join-Path $projectRoot "scripts\test_classops_foundation.php"
     $classOpsApiScriptPath = Join-Path $projectRoot "scripts\test_classops_api_http.py"
     $snapshotSafetyScriptPath = Join-Path $projectRoot "scripts\test_bot_snapshot_safety.py"
@@ -2047,6 +2048,9 @@ function Run-Validation() {
     }
     if (-not (Test-Path $smokeScriptPath)) {
         throw "Smoke validation script not found: $smokeScriptPath"
+    }
+    if (-not (Test-Path $smokeFixtureScriptPath)) {
+        throw "Smoke fixture script not found: $smokeFixtureScriptPath"
     }
     if (-not (Test-Path $classOpsFoundationScriptPath)) {
         throw "ClassOps foundation validation script not found: $classOpsFoundationScriptPath"
@@ -2116,29 +2120,43 @@ function Run-Validation() {
         throw "Validation failed (scripts/check_upload_pipeline_config.php). Deployment aborted before host upload."
     }
 
-    $liveCredentials = Get-DeployOwnerCredentials
-    if ([string]::IsNullOrWhiteSpace($liveCredentials.StudentNumber) -or [string]::IsNullOrWhiteSpace($liveCredentials.Password)) {
-        $credentialHints = @($liveCredentials.Paths | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-        $hintText = if ($credentialHints.Count -gt 0) { $credentialHints -join ", " } else { "the configured owner credential path" }
-        throw "Owner credentials are required for multi-cohort smoke validation. Set DENT_DEPLOY_OWNER_STUDENT_NUMBER / DENT_DEPLOY_OWNER_PASSWORD or populate one of these files: $hintText"
+    $smokeFixtureRoot = Join-Path $env:TEMP ("dent-release-smoke-" + [Guid]::NewGuid().ToString("N"))
+    $smokeServerOnlyRoot = Join-Path $smokeFixtureRoot "server-only"
+    $smokeStorageRoot = Join-Path $smokeServerOnlyRoot "storage"
+    $sharedStorageRoot = Join-Path (Get-SharedProjectRoot) "server-only\storage"
+    if (-not (Test-Path -LiteralPath (Join-Path $sharedStorageRoot "auth\users.json") -PathType Leaf)) {
+        throw "Verified local storage mirror has no auth store for the isolated smoke fixture."
     }
-
-    $smokeCommand = @(
-        $smokeScriptPath,
-        "--project-root", $projectRoot,
-        "--owner-student-number", $liveCredentials.StudentNumber,
-        "--owner-password", $liveCredentials.Password
-    )
-    $smokeDisplayCommand = @(
-        $smokeScriptPath,
-        "--project-root", $projectRoot,
-        "--owner-student-number", $liveCredentials.StudentNumber,
-        "--owner-password", "[REDACTED]"
-    )
-    Write-Host "Running: $python $($smokeDisplayCommand -join ' ')"
-    & $python @smokeCommand
-    if ($LASTEXITCODE -ne 0) {
-        throw "Validation failed (scripts/smoke_multi_cohort_pages.py). Deployment aborted before host upload."
+    $previousServerOnlyRoot = [Environment]::GetEnvironmentVariable("DENT_SERVER_ONLY_ROOT")
+    $previousStorageRoot = [Environment]::GetEnvironmentVariable("DENT_STORAGE_ROOT")
+    $previousSessionPath = [Environment]::GetEnvironmentVariable("DENT_SESSION_SAVE_PATH")
+    try {
+        New-Item -ItemType Directory -Force -Path $smokeServerOnlyRoot, (Join-Path $smokeServerOnlyRoot "sessions") | Out-Null
+        Copy-Item -LiteralPath $sharedStorageRoot -Destination $smokeStorageRoot -Recurse -Force
+        [Environment]::SetEnvironmentVariable("DENT_SERVER_ONLY_ROOT", $smokeServerOnlyRoot)
+        [Environment]::SetEnvironmentVariable("DENT_STORAGE_ROOT", $smokeStorageRoot)
+        [Environment]::SetEnvironmentVariable("DENT_SESSION_SAVE_PATH", (Join-Path $smokeServerOnlyRoot "sessions"))
+        $fixtureOutput = (& $php.Source $smokeFixtureScriptPath) -join "`n"
+        if ($LASTEXITCODE -ne 0) { throw "Smoke fixture initialization failed." }
+        $smokeIdentity = $fixtureOutput | ConvertFrom-Json
+        if ([string]::IsNullOrWhiteSpace([string]$smokeIdentity.owner)) { throw "Smoke fixture did not return an owner identity." }
+        $smokeCommand = @(
+            $smokeScriptPath,
+            "--project-root", $projectRoot,
+            "--server-only-root", $smokeServerOnlyRoot,
+            "--owner-student-number", [string]$smokeIdentity.owner,
+            "--owner-password", "classops-test-password"
+        )
+        Write-Host "Running isolated local authenticated smoke with synthetic fixture identity."
+        & $python @smokeCommand
+        if ($LASTEXITCODE -ne 0) {
+            throw "Validation failed (scripts/smoke_multi_cohort_pages.py). Deployment aborted before host upload."
+        }
+    } finally {
+        [Environment]::SetEnvironmentVariable("DENT_SERVER_ONLY_ROOT", $previousServerOnlyRoot)
+        [Environment]::SetEnvironmentVariable("DENT_STORAGE_ROOT", $previousStorageRoot)
+        [Environment]::SetEnvironmentVariable("DENT_SESSION_SAVE_PATH", $previousSessionPath)
+        Remove-Item -LiteralPath $smokeFixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
 
     Write-Host "Running: $($php.Source) $classOpsFoundationScriptPath"
@@ -2163,7 +2181,7 @@ function Run-Validation() {
         Status     = "completed"
         StartedAt  = $started
         FinishedAt = Get-IsoNow
-        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $($php.Source) $examQualityScriptPath ; $($php.Source) $examTimelineScriptPath ; $($php.Source) $examHomeHighlightsIndexScriptPath --check ; $($php.Source) $finalExamScheduleScriptPath ; $($php.Source) $uploadConfigScriptPath ; $python $($smokeDisplayCommand -join ' ') ; $($php.Source) $classOpsFoundationScriptPath ; $python $classOpsApiScriptPath ; $python $snapshotSafetyScriptPath"
+        Command    = "$python $scriptPath ; $($php.Source) $authResilienceScriptPath ; $($php.Source) $examQualityScriptPath ; $($php.Source) $examTimelineScriptPath ; $($php.Source) $examHomeHighlightsIndexScriptPath --check ; $($php.Source) $finalExamScheduleScriptPath ; $($php.Source) $uploadConfigScriptPath ; isolated synthetic authenticated smoke ; $($php.Source) $classOpsFoundationScriptPath ; $python $classOpsApiScriptPath ; $python $snapshotSafetyScriptPath"
     }
 }
 
