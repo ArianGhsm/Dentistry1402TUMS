@@ -26,7 +26,13 @@ try {
     );
     if (($submitted['state']??'')!=='submitted') throw new RuntimeException('submitted transition failed');
 
-    $carried=classops_stage2_carry_task_states($item1,$item2,[$student]);
+    try {
+        $carried=classops_stage2_carry_task_states($item1,$item2,[$student]);
+    } catch (Throwable $exception) {
+        $reason=property_exists($exception,'reasonCode')?(string)$exception->reasonCode:'';
+        fwrite(STDERR,'CARRY_DIAGNOSTIC type='.get_class($exception).' reason='.$reason.' message='.$exception->getMessage()."\n");
+        throw $exception;
+    }
     if ($carried!==1) throw new RuntimeException('state was not carried');
     $next=classops_stage2_get_task_state($item2,$student,false);
     if (!is_array($next)
