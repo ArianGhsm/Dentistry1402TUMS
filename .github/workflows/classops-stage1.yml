@@ -1,0 +1,80 @@
+name: ClassOps Stage 1 Domain Matrix
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "public_html/api/classops_*"
+      - "public_html/api/classops_modules/**"
+      - "contracts/**"
+      - "docs/classops/**"
+      - "docs/SHARED_CONTRACTS.md"
+      - "docs/CLASSOPS_FOUNDATION.md"
+      - "docs/DEVELOPMENT_WORKFLOW.md"
+      - "scripts/test_classops_*"
+      - "scripts/run_static_checks.sh"
+      - ".github/workflows/classops-stage1.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: classops-stage1-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  domain-matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, openssl, curl
+          coverage: none
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Contract graph and cross-domain invariants
+        run: |
+          python scripts/test_classops_domain_contract_graph.py
+          python scripts/test_classops_stage1_invariants.py
+
+      - name: Audience
+        run: |
+          php scripts/test_classops_audience_policy.php
+          php scripts/test_classops_audience_snapshot_strict.php
+          python scripts/test_classops_audience_contract.py
+
+      - name: Destination and delivery
+        run: |
+          php scripts/test_classops_delivery_domain.php
+          python scripts/test_classops_delivery_contract.py
+
+      - name: AI Copilot
+        run: |
+          php scripts/test_classops_ai_copilot.php
+          python scripts/test_classops_ai_contract.py
+
+      - name: Tasks and requirements
+        run: php scripts/test_classops_tasks_requirements.php
+
+      - name: Exams and critical ACK
+        run: |
+          php scripts/test_classops_exam_ack_contract.php
+          php scripts/test_classops_exam_ack_domain.php
+
+      - name: Reminder scheduler and Saba
+        run: php scripts/test_classops_scheduler.php
+
+      - name: Digests and summaries
+        run: |
+          python scripts/test_classops_digest_contract.py
+          php scripts/test_classops_digest_engine.php
+
+      - name: Foundation compatibility
+        run: |
+          php scripts/test_classops_foundation.php
+          python scripts/test_classops_api_http.py
+          python scripts/test_shared_contracts.py
