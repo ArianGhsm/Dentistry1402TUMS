@@ -82,6 +82,7 @@ section "Unit tests"
 
 section "ClassOps Stage 1 domain contracts"
 "$PYTHON_BIN" scripts/test_classops_domain_contract_graph.py || fail "test_classops_domain_contract_graph.py"
+"$PYTHON_BIN" scripts/test_classops_stage1_invariants.py || fail "test_classops_stage1_invariants.py"
 "$PHP_BIN" scripts/test_classops_audience_policy.php || fail "test_classops_audience_policy.php"
 "$PHP_BIN" scripts/test_classops_audience_snapshot_strict.php || fail "test_classops_audience_snapshot_strict.php"
 "$PYTHON_BIN" scripts/test_classops_audience_contract.py || fail "test_classops_audience_contract.py"
