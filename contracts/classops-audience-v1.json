@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dentistry1402tums.ir/contracts/candidates/classops-audience-v1.json",
+  "title": "ClassOps Audience v1 candidate contract",
+  "$comment": "CANDIDATE ONLY. Integration must explicitly approve/promote this contract before wiring it into frozen classops-v1. Runtime additionally enforces max depth 6, max nodes 64, max 16 children per any/all node, max 1000 total explicit student refs, max roster 5000, max selectors 200, and fail-closed unresolved negation.",
+  "$ref": "#/$defs/spec",
+  "$defs": {
+    "studentNumber": {
+      "type": "string",
+      "pattern": "^[0-9]{5,20}$"
+    },
+    "cohortKey": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,79}$"
+    },
+    "selectorKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$"
+    },
+    "selectorId": {
+      "type": "string",
+      "pattern": "^(?:role|group|category):[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "students": {
+      "type": "array",
+      "maxItems": 500,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/studentNumber"}
+    },
+    "expression": {
+      "oneOf": [
+        {"$ref": "#/$defs/wholeCohortExpression"},
+        {"$ref": "#/$defs/studentsExpression"},
+        {"$ref": "#/$defs/selectorExpression"},
+        {"$ref": "#/$defs/notExpression"},
+        {"$ref": "#/$defs/anyExpression"},
+        {"$ref": "#/$defs/allExpression"}
+      ]
+    },
+    "wholeCohortExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op"],
+      "properties": {"op": {"const": "whole_cohort"}}
+    },
+    "studentsExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "studentNumbers"],
+      "properties": {
+        "op": {"const": "students"},
+        "studentNumbers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 500,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/studentNumber"}
+        }
+      }
+    },
+    "selectorExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "kind", "key"],
+      "properties": {
+        "op": {"const": "selector"},
+        "kind": {"enum": ["role", "group", "category"]},
+        "key": {"$ref": "#/$defs/selectorKey"}
+      }
+    },
+    "notExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "child"],
+      "properties": {
+        "op": {"const": "not"},
+        "child": {"$ref": "#/$defs/expression"}
+      }
+    },
+    "anyExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "children"],
+      "properties": {
+        "op": {"const": "any"},
+        "children": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 16,
+          "items": {"$ref": "#/$defs/expression"}
+        }
+      }
+    },
+    "allExpression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "children"],
+      "properties": {
+        "op": {"const": "all"},
+        "children": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 16,
+          "items": {"$ref": "#/$defs/expression"}
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "resolutionMode", "expression", "includeStudentNumbers", "excludeStudentNumbers"],
+      "properties": {
+        "version": {"const": "classops-audience-v1"},
+        "resolutionMode": {"enum": ["snapshot", "live"]},
+        "expression": {"$ref": "#/$defs/expression"},
+        "includeStudentNumbers": {"$ref": "#/$defs/students"},
+        "excludeStudentNumbers": {"$ref": "#/$defs/students"}
+      }
+    },
+    "warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "count"],
+      "properties": {
+        "code": {
+          "enum": [
+            "AUDIENCE_DUPLICATE_STUDENT_REF",
+            "AUDIENCE_DUPLICATE_EXPRESSION",
+            "AUDIENCE_INCLUDE_EXCLUDE_CONFLICT",
+            "AUDIENCE_NEGATION_UNRESOLVED",
+            "AUDIENCE_CONTRADICTORY_INTERSECTION",
+            "AUDIENCE_EMPTY_RESULT"
+          ]
+        },
+        "count": {"type": "integer", "minimum": 1}
+      }
+    },
+    "unresolvedStudent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "reference", "code"],
+      "properties": {
+        "kind": {"const": "student"},
+        "reference": {"$ref": "#/$defs/studentNumber"},
+        "code": {"const": "AUDIENCE_STUDENT_NOT_FOUND"}
+      }
+    },
+    "unresolvedSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "reference", "code"],
+      "properties": {
+        "kind": {"const": "selector"},
+        "reference": {"$ref": "#/$defs/selectorId"},
+        "code": {"const": "AUDIENCE_SELECTOR_NOT_FOUND"}
+      }
+    },
+    "unresolved": {
+      "oneOf": [
+        {"$ref": "#/$defs/unresolvedStudent"},
+        {"$ref": "#/$defs/unresolvedSelector"}
+      ]
+    },
+    "sourceProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "version"],
+      "properties": {
+        "type": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,79}$"},
+        "version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"}
+      }
+    },
+    "selectorProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selectorId", "sourceRef"],
+      "properties": {
+        "selectorId": {"$ref": "#/$defs/selectorId"},
+        "sourceRef": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,119}$"}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "wholeCohort", "selectors"],
+      "properties": {
+        "source": {"$ref": "#/$defs/sourceProvenance"},
+        "wholeCohort": {"type": "boolean"},
+        "selectors": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {"$ref": "#/$defs/selectorProvenance"}
+        }
+      }
+    },
+    "recipientReasonValue": {
+      "oneOf": [
+        {"enum": ["whole_cohort", "explicit_student", "include_student", "not_expression"]},
+        {"type": "string", "pattern": "^selector:(?:role|group|category):[A-Za-z0-9][A-Za-z0-9._:-]{0,95}$"}
+      ]
+    },
+    "recipientReason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["studentNumber", "reasons"],
+      "properties": {
+        "studentNumber": {"$ref": "#/$defs/studentNumber"},
+        "reasons": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/recipientReasonValue"}
+        }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "specHash", "cohortKey", "provenance", "recipientStudentNumbers", "recipientReasons", "unresolvedReferences", "warnings", "deterministicHash"],
+      "properties": {
+        "version": {"const": "classops-audience-snapshot-v1"},
+        "specHash": {"$ref": "#/$defs/hash"},
+        "cohortKey": {"$ref": "#/$defs/cohortKey"},
+        "provenance": {"$ref": "#/$defs/provenance"},
+        "recipientStudentNumbers": {
+          "type": "array",
+          "maxItems": 5000,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/studentNumber"}
+        },
+        "recipientReasons": {
+          "type": "array",
+          "maxItems": 5000,
+          "items": {"$ref": "#/$defs/recipientReason"}
+        },
+        "unresolvedReferences": {
+          "type": "array",
+          "maxItems": 1200,
+          "items": {"$ref": "#/$defs/unresolved"}
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {"$ref": "#/$defs/warning"}
+        },
+        "deterministicHash": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "specVersion", "specHash", "cohortKey", "resolutionMode", "resolutionSource", "normalizedSpec", "recipientStudentNumbers", "recipientCount", "recipientReasons", "unresolvedReferences", "warnings", "provenance", "deterministicHash"],
+      "properties": {
+        "version": {"const": "classops-audience-resolution-v1"},
+        "specVersion": {"const": "classops-audience-v1"},
+        "specHash": {"$ref": "#/$defs/hash"},
+        "cohortKey": {"$ref": "#/$defs/cohortKey"},
+        "resolutionMode": {"enum": ["snapshot", "live"]},
+        "resolutionSource": {"enum": ["live", "live_initial_snapshot", "snapshot"]},
+        "normalizedSpec": {"$ref": "#/$defs/spec"},
+        "recipientStudentNumbers": {
+          "type": "array",
+          "maxItems": 5000,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/studentNumber"}
+        },
+        "recipientCount": {"type": "integer", "minimum": 0, "maximum": 5000},
+        "recipientReasons": {
+          "type": "array",
+          "maxItems": 5000,
+          "items": {"$ref": "#/$defs/recipientReason"}
+        },
+        "unresolvedReferences": {
+          "type": "array",
+          "maxItems": 1200,
+          "items": {"$ref": "#/$defs/unresolved"}
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {"$ref": "#/$defs/warning"}
+        },
+        "provenance": {"$ref": "#/$defs/provenance"},
+        "deterministicHash": {"$ref": "#/$defs/hash"},
+        "snapshot": {"$ref": "#/$defs/snapshot"}
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "cohortKey", "resolutionMode", "resolutionHash", "total", "added", "removed", "unresolved", "warningCounts"],
+      "properties": {
+        "version": {"const": "classops-audience-preview-v1"},
+        "cohortKey": {"$ref": "#/$defs/cohortKey"},
+        "resolutionMode": {"enum": ["snapshot", "live"]},
+        "resolutionHash": {"$ref": "#/$defs/hash"},
+        "total": {"type": "integer", "minimum": 0, "maximum": 5000},
+        "added": {"type": "integer", "minimum": 0, "maximum": 5000},
+        "removed": {"type": "integer", "minimum": 0, "maximum": 5000},
+        "unresolved": {"type": "integer", "minimum": 0, "maximum": 1200},
+        "warningCounts": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {"$ref": "#/$defs/warning"}
+        },
+        "addedStudentNumbers": {
+          "type": "array",
+          "maxItems": 5000,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/studentNumber"}
+        },
+        "removedStudentNumbers": {
+          "type": "array",
+          "maxItems": 5000,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/studentNumber"}
+        },
+        "unresolvedReferences": {
+          "type": "array",
+          "maxItems": 1200,
+          "items": {"$ref": "#/$defs/unresolved"}
+        }
+      }
+    }
+  }
+}

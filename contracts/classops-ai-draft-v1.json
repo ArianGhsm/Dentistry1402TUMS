@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dentistry1402tums.ir/contracts/candidates/classops-ai-draft-v1.json",
+  "title": "Candidate ClassOps AI structured draft v1",
+  "description": "Integration candidate for preview-only AI output. This does not replace the frozen shared-boundaries contract until integration promotes it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "draftVersion", "operation", "context", "fields", "changedFields", "unresolved", "provenance", "preview"],
+  "properties": {
+    "contractVersion": {"const": "classops-structured-draft-v1"},
+    "draftVersion": {"type": "integer", "minimum": 1, "maximum": 10000},
+    "operation": {"enum": ["create", "edit"]},
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cohortKey"],
+      "properties": {
+        "cohortKey": {"anyOf": [{"type": "null"}, {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,79}$"}]}
+      }
+    },
+    "fields": {"$ref": "#/$defs/fields"},
+    "changedFields": {
+      "type": "array",
+      "maxItems": 11,
+      "uniqueItems": true,
+      "items": {"enum": ["type", "title", "description", "course", "timing", "location", "importance", "requireAck", "audience", "delivery", "reminderHint"]}
+    },
+    "unresolved": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {"enum": ["type", "title", "description", "course", "course.ref", "timing", "timing.startsAt", "timing.endsAt", "timing.dueAt", "location", "importance", "requireAck", "audience", "audience.mode", "audience.refs", "delivery", "reminderHint"]}
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model", "parserVersion", "promptVersion", "generatedAt", "parentDraftVersion", "fieldOrigins"],
+      "properties": {
+        "provider": {"const": "avalai"},
+        "model": {"type": "string", "minLength": 1, "maxLength": 120},
+        "parserVersion": {"const": "classops-ai-parser-v1"},
+        "promptVersion": {"const": "classops-ai-prompt-v1"},
+        "generatedAt": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+        "parentDraftVersion": {"type": ["integer", "null"], "minimum": 1},
+        "fieldOrigins": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "title", "description", "course", "timing", "location", "importance", "requireAck", "audience", "delivery", "reminderHint"],
+          "properties": {
+            "type": {"type": "integer", "minimum": 1},
+            "title": {"type": "integer", "minimum": 1},
+            "description": {"type": "integer", "minimum": 1},
+            "course": {"type": "integer", "minimum": 1},
+            "timing": {"type": "integer", "minimum": 1},
+            "location": {"type": "integer", "minimum": 1},
+            "importance": {"type": "integer", "minimum": 1},
+            "requireAck": {"type": "integer", "minimum": 1},
+            "audience": {"type": "integer", "minimum": 1},
+            "delivery": {"type": "integer", "minimum": 1},
+            "reminderHint": {"type": "integer", "minimum": 1}
+          }
+        }
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "confirmed", "mutationAuthority", "directSend"],
+      "properties": {
+        "required": {"const": true},
+        "confirmed": {"const": false},
+        "mutationAuthority": {"const": "none"},
+        "directSend": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "fields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "title", "description", "course", "timing", "location", "importance", "requireAck", "audience", "delivery", "reminderHint"],
+      "properties": {
+        "type": {"anyOf": [{"type": "null"}, {"enum": ["announcement", "event", "class_change", "deadline", "task", "requirement", "exam", "critical_notice", "service_reminder"]}]},
+        "title": {"type": ["string", "null"], "maxLength": 160},
+        "description": {"type": ["string", "null"], "maxLength": 4000},
+        "course": {
+          "anyOf": [
+            {"type": "null"},
+            {"type": "object", "additionalProperties": false, "required": ["ref", "title", "rawText"], "properties": {
+              "ref": {"type": "null"},
+              "title": {"type": ["string", "null"], "maxLength": 180},
+              "rawText": {"type": ["string", "null"], "maxLength": 300}
+            }}
+          ]
+        },
+        "timing": {
+          "anyOf": [
+            {"type": "null"},
+            {"type": "object", "additionalProperties": false, "required": ["startsAt", "endsAt", "dueAt", "timezone", "rawText"], "properties": {
+              "startsAt": {"type": "null"},
+              "endsAt": {"type": "null"},
+              "dueAt": {"type": "null"},
+              "timezone": {"type": "null"},
+              "rawText": {"type": ["string", "null"], "maxLength": 500}
+            }}
+          ]
+        },
+        "location": {"type": ["string", "null"], "maxLength": 300},
+        "importance": {"anyOf": [{"type": "null"}, {"enum": ["normal", "important", "critical"]}]},
+        "requireAck": {"type": ["boolean", "null"]},
+        "audience": {
+          "anyOf": [
+            {"type": "null"},
+            {"type": "object", "additionalProperties": false, "required": ["mode", "refs", "rawText"], "properties": {
+              "mode": {"type": "null"},
+              "refs": {"const": []},
+              "rawText": {"type": ["string", "null"], "maxLength": 500}
+            }}
+          ]
+        },
+        "delivery": {
+          "anyOf": [
+            {"type": "null"},
+            {"type": "object", "additionalProperties": false, "required": ["initialDestinations", "reminderDestinations"], "properties": {
+              "initialDestinations": {"$ref": "#/$defs/destinations"},
+              "reminderDestinations": {"$ref": "#/$defs/destinations"}
+            }}
+          ]
+        },
+        "reminderHint": {"type": ["string", "null"], "maxLength": 500}
+      }
+    },
+    "destinations": {
+      "type": "array",
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {"enum": ["private_users", "class_group", "information_channel"]}
+    }
+  }
+}
