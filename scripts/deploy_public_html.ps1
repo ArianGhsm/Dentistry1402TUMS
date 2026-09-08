@@ -563,6 +563,7 @@ function Write-ReleaseReport([string]$status, [string]$failureCode = "") {
         startedAt = $runStartedAt.ToString("yyyy-MM-ddTHH:mm:sszzz")
         finishedAt = Get-IsoNow
         status = $status
+        exitCode = if ($status -eq "passed") { 0 } else { 1 }
         failureCode = $failureCode
         source = [ordered]@{ headSha = $headSha; originMainSha = $originMainSha; clean = [bool]([string]::IsNullOrWhiteSpace($workingTreeState)) }
         snapshot = [ordered]@{ id = [string]$remoteStorageInfo.SnapshotPath; validated = $snapshotValidated; doubleRead = $snapshotValidated }
@@ -585,7 +586,11 @@ function Write-ReleaseReport([string]$status, [string]$failureCode = "") {
             host_upload = [string]$deployInfo.Status
             host_health = [string]$verificationInfo.Status
         }
-        productionMutation = (-not $DryRun -and $deployInfo.Status -eq "completed")
+        productionMutation = (
+            -not $DryRun -and
+            $deployInfo.Status -eq "completed" -and
+            ($deployInfo.UploadCount -gt 0 -or $deployInfo.DeleteCount -gt 0)
+        )
     }
     $temp = "$($script:ReleaseReportPath).tmp-$PID-$([Guid]::NewGuid().ToString('N'))"
     $json = $report | ConvertTo-Json -Depth 8
