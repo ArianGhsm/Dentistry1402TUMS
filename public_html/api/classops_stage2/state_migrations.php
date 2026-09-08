@@ -23,13 +23,16 @@ function classops_stage2_carry_task_states(array $previousItem, array $nextItem,
     $students=[];
     foreach ($recipientStudentNumbers as $raw) {
         try { $student=classops_task_digits($raw); } catch (Throwable $e) { continue; }
-        $students[$student]=true;
+        // Numeric-looking PHP array keys are coerced to int. Keep the canonical
+        // identifier as the value behind a non-numeric key so strict string
+        // contracts remain intact for every student number.
+        $students['student:'.$student]=$student;
     }
     if ($students===[]) return 0;
 
     $tx=classops_stage2_transaction(static function(array &$state) use($students,$oldRevision,$newRevision,$itemId,$cohort): int {
         $carried=0;
-        foreach (array_keys($students) as $student) {
+        foreach ($students as $student) {
             $oldKey=classops_stage2_task_key($itemId,$oldRevision,$student);
             $newKey=classops_stage2_task_key($itemId,$newRevision,$student);
             if (isset($state['taskStates'][$newKey])) continue;
@@ -70,13 +73,13 @@ function classops_stage2_carry_service_states(array $previousItem, array $nextIt
     $students=[];
     foreach ($recipientStudentNumbers as $raw) {
         $student=dent_normalize_student_number((string)$raw);
-        if ($student!=='') $students[$student]=true;
+        if ($student!=='') $students['student:'.$student]=$student;
     }
     if ($students===[]) return 0;
 
-    $tx=classops_stage2_transaction(static function(array &$state) use($students,$oldRevision,$newRevision,$itemId,$nextItem): int {
+    $tx=classops_stage2_transaction(static function(array &$state) use($students,$oldRevision,$newRevision,$itemId): int {
         $carried=0;
-        foreach (array_keys($students) as $student) {
+        foreach ($students as $student) {
             $oldKey=classops_stage2_service_state_key($itemId,$oldRevision,$student);
             $newKey=classops_stage2_service_state_key($itemId,$newRevision,$student);
             if (isset($state['schedulerOccurrences'][$newKey])) continue;
