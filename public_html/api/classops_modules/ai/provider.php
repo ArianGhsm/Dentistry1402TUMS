@@ -53,7 +53,11 @@ final class DentClassOpsAiCurlTransport implements DentClassOpsAiTransport
 
 final class DentClassOpsAiAvalAiClient
 {
-    public const API_URL = 'https://api.avalai.ir/v1/chat/completions';
+    public const DEFAULT_PROVIDER = 'avalai';
+    public const DEFAULT_BASE_URL = 'https://api.avalai.ir';
+    public const CHAT_PATH = '/v1/chat/completions';
+    // Backward-compatible constant retained for tests/integrations that inspect it.
+    public const API_URL = self::DEFAULT_BASE_URL . self::CHAT_PATH;
 
     public function __construct(
         private readonly DentClassOpsAiTransport $transport,
@@ -61,7 +65,9 @@ final class DentClassOpsAiAvalAiClient
         private readonly string $model,
         private readonly int $timeoutMs = 12000,
         private readonly ?float $inputUsdPerMillion = null,
-        private readonly ?float $outputUsdPerMillion = null
+        private readonly ?float $outputUsdPerMillion = null,
+        private readonly string $endpointUrl = self::API_URL,
+        private readonly int $maxRetries = 1
     ) {
         if (trim($apiKey) === '') {
             classops_ai_error('CLASSOPS_AI_NOT_CONFIGURED', 'ClassOps AI credential is not configured', 503);
@@ -72,10 +78,19 @@ final class DentClassOpsAiAvalAiClient
         if ($timeoutMs < 1000 || $timeoutMs > 30000) {
             classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'ClassOps AI timeout is invalid', 500);
         }
+        if ($maxRetries < 0 || $maxRetries > 2) {
+            classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'ClassOps AI retry count is invalid', 500);
+        }
+        self::validateEndpoint($endpointUrl);
     }
 
     public static function fromEnvironment(?DentClassOpsAiTransport $transport = null): self
     {
+        $provider = strtolower(trim((string) getenv('DENT_CLASSOPS_AI_PROVIDER')));
+        if ($provider === '') $provider = self::DEFAULT_PROVIDER;
+        if ($provider !== self::DEFAULT_PROVIDER) {
+            classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'Unsupported ClassOps AI provider', 500);
+        }
         $apiKey = trim((string) getenv('DENT_CLASSOPS_AI_AVALAI_API_KEY'));
         $model = trim((string) getenv('DENT_CLASSOPS_AI_MODEL'));
         $timeoutRaw = trim((string) getenv('DENT_CLASSOPS_AI_TIMEOUT_MS'));
@@ -83,17 +98,75 @@ final class DentClassOpsAiAvalAiClient
         if ($timeout === false) {
             classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'ClassOps AI timeout is invalid', 500);
         }
+        $retryRaw = trim((string) getenv('DENT_CLASSOPS_AI_MAX_RETRIES'));
+        $retries = $retryRaw === '' ? 1 : filter_var($retryRaw, FILTER_VALIDATE_INT);
+        if ($retries === false || $retries < 0 || $retries > 2) {
+            classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'ClassOps AI retry count is invalid', 500);
+        }
+        $baseUrl = trim((string) getenv('DENT_CLASSOPS_AI_BASE_URL'));
+        if ($baseUrl === '') $baseUrl = self::DEFAULT_BASE_URL;
+        $endpoint = self::endpointFromBase($baseUrl);
         $inputRate = self::optionalRate('DENT_CLASSOPS_AI_INPUT_USD_PER_MILLION');
         $outputRate = self::optionalRate('DENT_CLASSOPS_AI_OUTPUT_USD_PER_MILLION');
-        return new self($transport ?? new DentClassOpsAiCurlTransport(), $apiKey, $model, (int) $timeout, $inputRate, $outputRate);
+        return new self(
+            $transport ?? new DentClassOpsAiCurlTransport(),
+            $apiKey,
+            $model,
+            (int) $timeout,
+            $inputRate,
+            $outputRate,
+            $endpoint,
+            (int) $retries
+        );
+    }
+
+    public static function endpointFromBase(string $baseUrl): string
+    {
+        $baseUrl = rtrim(trim($baseUrl), '/');
+        if ($baseUrl === '') {
+            classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'ClassOps AI base endpoint is empty', 500);
+        }
+        $endpoint = $baseUrl;
+        if (!str_ends_with($endpoint, self::CHAT_PATH)) $endpoint .= self::CHAT_PATH;
+        self::validateEndpoint($endpoint);
+        return $endpoint;
+    }
+
+    private static function validateEndpoint(string $url): void
+    {
+        if (strlen($url) > 512) {
+            classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'ClassOps AI endpoint is too long', 500);
+        }
+        $parts = parse_url($url);
+        if (!is_array($parts)
+            || strtolower((string) ($parts['scheme'] ?? '')) !== 'https'
+            || trim((string) ($parts['host'] ?? '')) === ''
+            || isset($parts['user'])
+            || isset($parts['pass'])
+            || isset($parts['fragment'])
+            || isset($parts['query'])) {
+            classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'ClassOps AI endpoint must be a clean HTTPS URL', 500);
+        }
+        $host = strtolower((string) $parts['host']);
+        if ($host === 'localhost' || str_ends_with($host, '.localhost')) {
+            classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'Local ClassOps AI endpoints are forbidden', 500);
+        }
+        if (filter_var($host, FILTER_VALIDATE_IP) !== false) {
+            // A literal private/link-local/loopback endpoint is never required for
+            // the approved AvalAI integration and unnecessarily expands SSRF risk.
+            if (filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+                classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'Private ClassOps AI endpoints are forbidden', 500);
+            }
+        }
+        if (($parts['path'] ?? '') !== self::CHAT_PATH) {
+            classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'ClassOps AI endpoint path is unsupported', 500);
+        }
     }
 
     private static function optionalRate(string $name): ?float
     {
         $raw = trim((string) getenv($name));
-        if ($raw === '') {
-            return null;
-        }
+        if ($raw === '') return null;
         if (!is_numeric($raw) || (float) $raw < 0 || (float) $raw > 10000) {
             classops_ai_error('CLASSOPS_AI_INVALID_CONFIG', 'ClassOps AI cost rate is invalid', 500);
         }
@@ -103,6 +176,11 @@ final class DentClassOpsAiAvalAiClient
     public function model(): string
     {
         return $this->model;
+    }
+
+    public function endpoint(): string
+    {
+        return $this->endpointUrl;
     }
 
     /** @return array{candidate:array,telemetry:array} */
@@ -125,6 +203,32 @@ final class DentClassOpsAiAvalAiClient
         ]);
     }
 
+    /** @return array{status:int,body:string,latencyMs:float} */
+    private function postWithRetry(array $headers, string $body): array
+    {
+        $attempt = 0;
+        while (true) {
+            try {
+                $response = $this->transport->postJson($this->endpointUrl, $headers, $body, $this->timeoutMs);
+            } catch (DentClassOpsAiException $exception) {
+                $transient = in_array($exception->reasonCode, [
+                    'CLASSOPS_AI_TIMEOUT', 'CLASSOPS_AI_TRANSPORT_ERROR', 'CLASSOPS_AI_TRANSPORT_UNAVAILABLE',
+                ], true);
+                if (!$transient || $attempt >= $this->maxRetries) throw $exception;
+                $attempt++;
+                usleep(min(300000, 100000 * $attempt));
+                continue;
+            }
+            $status = (int) ($response['status'] ?? 0);
+            if (($status === 429 || $status >= 500) && $attempt < $this->maxRetries) {
+                $attempt++;
+                usleep(min(300000, 100000 * $attempt));
+                continue;
+            }
+            return $response;
+        }
+    }
+
     /** @return array{candidate:array,telemetry:array} */
     private function requestCandidate(array $input): array
     {
@@ -139,11 +243,11 @@ final class DentClassOpsAiAvalAiClient
             ],
         ];
         $body = json_encode($request, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-        $response = $this->transport->postJson(self::API_URL, [
+        $response = $this->postWithRetry([
             'Content-Type: application/json',
             'Accept: application/json',
             'Authorization: Bearer ' . $this->apiKey,
-        ], $body, $this->timeoutMs);
+        ], $body);
 
         $status = (int) ($response['status'] ?? 0);
         if ($status === 429) {
@@ -217,9 +321,7 @@ final class DentClassOpsAiAvalAiClient
 
     private static function usageInt($value): ?int
     {
-        if ($value === null) {
-            return null;
-        }
+        if ($value === null) return null;
         if (!is_int($value) || $value < 0 || $value > 100000000) {
             classops_ai_error('CLASSOPS_AI_MALFORMED_RESPONSE', 'AI usage telemetry is invalid', 503);
         }
