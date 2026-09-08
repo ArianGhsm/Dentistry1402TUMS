@@ -77,6 +77,7 @@ section "Unit tests"
 "$PHP_BIN" scripts/test_unit.php || fail "test_unit.php"
 "$PHP_BIN" scripts/test_exam_reminder_retirement.php || fail "test_exam_reminder_retirement.php"
 "$PHP_BIN" scripts/test_term7_academic_assistant.php || fail "test_term7_academic_assistant.php"
+"$PHP_BIN" scripts/test_term7_group_management.php || fail "test_term7_group_management.php"
 "$PHP_BIN" scripts/test_classops_foundation.php || fail "test_classops_foundation.php"
 "$PYTHON_BIN" scripts/test_classops_api_http.py || fail "test_classops_api_http.py"
 
