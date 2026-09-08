@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from .api import BaleBotApi
 from .bale_config import load_settings
-from .class_operations_product import install_class_operations_product
+from .class_operations import install_class_operations_product
 from .runtime import run_service
 
 
