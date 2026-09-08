@@ -5,9 +5,10 @@ import unittest
 from unittest.mock import patch
 
 from dent_bot.api import BaleBotApi, BotApiError, TelegramBotApi
-from dent_bot.class_operations_product import (
+from dent_bot.class_operations import (
     _ai_draft_screen,
     _class_home_screen,
+    _compose_prompt,
     _detail_screen,
     _digest_screen,
     _home_keyboard,
@@ -25,9 +26,10 @@ class _App:
 
 
 class _CaptureApi:
-    def __init__(self) -> None:
+    def __init__(self, *, edit_error: Exception | None = None) -> None:
         self.sent = []
         self.edited = []
+        self.edit_error = edit_error
 
     def send(self, chat_id, text, reply_markup):
         self.sent.append((chat_id, text, reply_markup))
@@ -35,14 +37,16 @@ class _CaptureApi:
 
     def edit(self, chat_id, message_id, text, reply_markup):
         self.edited.append((chat_id, message_id, text, reply_markup))
+        if self.edit_error is not None:
+            raise self.edit_error
         return {"message_id": message_id}
 
 
 class _RenderApp:
     platform = "telegram"
 
-    def __init__(self) -> None:
-        self.api = _CaptureApi()
+    def __init__(self, *, edit_error: Exception | None = None) -> None:
+        self.api = _CaptureApi(edit_error=edit_error)
 
 
 class ClassOperationsProductTests(unittest.TestCase):
@@ -79,18 +83,18 @@ class ClassOperationsProductTests(unittest.TestCase):
         self.assertIn("v1:class-operations", callbacks)
         self.assertLess(callbacks.index("v1:class-operations"), callbacks.index("v1:notifications"))
 
-    def test_student_class_home_is_native_rich_product_facing(self) -> None:
+    def test_student_class_home_matches_compact_core_bot_hub(self) -> None:
         screen = _class_home_screen(
             _App(),
             role="student",
             items=[{"type": "task", "status": "active", "title": "تحویل تمرین"}],
         )
-        rich = str(getattr(screen.text, "rich_html", "") or "")
-        rendered = str(screen.text) + rich + str(screen.keyboard)
+        rendered = str(screen.text) + str(screen.keyboard)
         self.assertIn("📅 امور کلاس", rendered)
-        self.assertIn("<table bordered striped compact>", rich)
-        self.assertNotIn("<pre>", rich)
         self.assertIn("تکالیف و کارها", rendered)
+        self.assertIn("۱ کار", rendered)
+        self.assertFalse(bool(getattr(screen.text, "rich_html", "")))
+        self.assertNotIn("<table", str(screen.text))
         self.assertNotIn("canonical", rendered.lower())
         self.assertNotIn("ClassOps", rendered)
         self.assertNotIn("مرکز عملیات وب", rendered)
@@ -98,6 +102,19 @@ class ClassOperationsProductTests(unittest.TestCase):
     def test_owner_class_home_has_management_entry(self) -> None:
         screen = _class_home_screen(_App(), role="owner", items=[])
         self.assertIn("مدیریت امور کلاس", str(screen.keyboard))
+
+    def test_compose_flow_is_button_led_not_formatted_command_led(self) -> None:
+        title = _compose_prompt("announcement")
+        body = _compose_prompt("announcement-description")
+        ai = _compose_prompt("ai")
+        combined = str(title.text) + str(body.text) + str(ai.text)
+        self.assertIn("عنوان کوتاه اطلاعیه", combined)
+        self.assertIn("متن اطلاعیه را بفرست", combined)
+        self.assertIn("متن خام اطلاعیه", combined)
+        self.assertNotIn("/classops draft", combined)
+        self.assertNotIn("/classops ai", combined)
+        for screen in (title, body, ai):
+            self.assertIn("انصراف", str(screen.keyboard))
 
     def test_legacy_classops_callback_opens_new_presentation(self) -> None:
         self.assertEqual(_legacy_action("classops:menu"), "class-operations")
@@ -251,19 +268,39 @@ class ClassOperationsProductTests(unittest.TestCase):
                 self.assertIn("۱۴۰۵", combined)
                 self.assertNotIn("<pre>", screen.text.rich_html)
 
-    def test_regular_callback_to_rich_sends_new_message_and_rich_refresh_edits(self) -> None:
+    def test_all_callbacks_edit_the_same_message_even_when_target_is_rich(self) -> None:
         rich_screen = _list_screen([self._sample_item()], "tasks")
+        regular_screen = _class_home_screen(_App(), role="student", items=[self._sample_item()])
+
         app = _RenderApp()
-        regular_callback = {"message": {"message_id": 7, "text": "menu"}}
-        _render_screen(app, 10, rich_screen, callback=regular_callback)
-        self.assertEqual(len(app.api.sent), 1)
-        self.assertEqual(len(app.api.edited), 0)
+        _render_screen(app, 10, rich_screen, callback={"message": {"message_id": 7, "text": "menu"}})
+        self.assertEqual(len(app.api.sent), 0)
+        self.assertEqual(len(app.api.edited), 1)
+        self.assertEqual(app.api.edited[0][1], 7)
 
         app2 = _RenderApp()
-        rich_callback = {"message": {"message_id": 8, "rich_message": {"html": "<h2>old</h2>"}}}
-        _render_screen(app2, 10, rich_screen, callback=rich_callback)
+        _render_screen(app2, 10, rich_screen, callback={"message": {"message_id": 8, "rich_message": {"html": "<h2>old</h2>"}}})
         self.assertEqual(len(app2.api.sent), 0)
         self.assertEqual(len(app2.api.edited), 1)
+        self.assertEqual(app2.api.edited[0][1], 8)
+
+        app3 = _RenderApp()
+        _render_screen(app3, 10, regular_screen, callback={"message": {"message_id": 9, "rich_message": {"html": "<h2>old</h2>"}}})
+        self.assertEqual(len(app3.api.sent), 0)
+        self.assertEqual(len(app3.api.edited), 1)
+        self.assertEqual(app3.api.edited[0][1], 9)
+
+    def test_new_message_is_only_fallback_for_truly_uneditable_message(self) -> None:
+        screen = _list_screen([self._sample_item()], "tasks")
+        app = _RenderApp(edit_error=BotApiError("Bad Request: message can't be edited"))
+        _render_screen(app, 10, screen, callback={"message": {"message_id": 7, "text": "menu"}})
+        self.assertEqual(len(app.api.edited), 1)
+        self.assertEqual(len(app.api.sent), 1)
+
+        fatal = _RenderApp(edit_error=BotApiError("Bad Request: malformed rich html"))
+        with self.assertRaises(BotApiError):
+            _render_screen(fatal, 10, screen, callback={"message": {"message_id": 7, "text": "menu"}})
+        self.assertEqual(len(fatal.api.sent), 0)
 
     def test_native_telegram_transport_uses_rtl_rich_message(self) -> None:
         screen = _list_screen([self._sample_item()], "tasks")
