@@ -138,11 +138,30 @@ function classops_stage2_delivery_plan_for_item(
     ?string $scheduledAt = null,
     array $previousIntents = []
 ): array {
+    $status=(string)($item['status']??'');
+    if (in_array($status,['completed','cancelled','archived'],true)) {
+        // The generic delivery domain deliberately rejects terminal items. The
+        // integrated Stage2 caller, however, still needs a deterministic empty
+        // plan after a completion revision so post-commit reconciliation cannot
+        // turn a successful lifecycle mutation into an API error.
+        $plans=[];
+        foreach ($destinations as $destination) {
+            $plans[(string)$destination]=[
+                'contractVersion'=>CLASSOPS_DELIVERY_CONTRACT_VERSION,
+                'requestedAlias'=>(string)$destination,
+                'intents'=>[],
+                'outcomes'=>[],
+                'blockedReason'=>'item_status_'.$status,
+            ];
+        }
+        return $plans;
+    }
+
     $scheduledAt = $scheduledAt ?? gmdate('Y-m-d\TH:i:s\Z');
     $audHash = (string) ($resolution['deterministicHash'] ?? '');
     $itemRef = [
         'id'=>(string)$item['id'],'revision'=>(int)$item['revision'],'snapshotHash'=>classops_stage2_item_snapshot_hash($item),
-        'cohortId'=>(string)$item['cohortKey'],'status'=>(string)$item['status'],
+        'cohortId'=>(string)$item['cohortKey'],'status'=>$status,
     ];
     $audienceRef = [
         'contractVersion'=>'classops-audience-v1','ref'=>'audience.' . substr($audHash,0,24),
