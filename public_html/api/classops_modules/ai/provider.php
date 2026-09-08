@@ -67,7 +67,7 @@ final class DentClassOpsAiAvalAiClient
         private readonly ?float $inputUsdPerMillion = null,
         private readonly ?float $outputUsdPerMillion = null,
         private readonly string $endpointUrl = self::API_URL,
-        private readonly int $maxRetries = 1
+        private readonly int $maxRetries = 0
     ) {
         if (trim($apiKey) === '') {
             classops_ai_error('CLASSOPS_AI_NOT_CONFIGURED', 'ClassOps AI credential is not configured', 503);
