@@ -22,8 +22,10 @@ $state = classops_task_new_state('cop_0123456789abcdef', 1, 'dentistry-1402', '1
 tassert($state['state'] === 'pending' && $state['stateRevision'] === 1, 'initial task state mismatch');
 $state = classops_task_transition($state, 1, 'submitted', 'cmd.submit.001', 'usr_owner001', '2026-09-08T00:01:00Z', 'submitted');
 tassert($state['state'] === 'submitted' && $state['stateRevision'] === 2, 'submit transition mismatch');
+$beforeReplay = $state;
 $replay = classops_task_transition($state, 2, 'submitted', 'cmd.submit.001', 'usr_owner001', '2026-09-08T00:01:00Z', 'submitted');
-tassert($replay['idempotentReplay'] === true && $replay['stateRevision'] === 2, 'idempotent replay wrote state');
+tassert($replay === $beforeReplay, 'idempotent replay must return the exact canonical state without transient fields or writes');
+classops_task_validate_state($replay);
 $state = classops_task_transition($state, 2, 'needs_revision', 'cmd.revise.001', 'usr_owner001', '2026-09-08T00:02:00Z', 'revise');
 $state = classops_task_transition($state, 3, 'submitted', 'cmd.resubmit.001', 'usr_student001', '2026-09-08T00:03:00Z', 'resubmit');
 $state = classops_task_transition($state, 4, 'completed', 'cmd.complete.001', 'usr_owner001', '2026-09-08T00:04:00Z', 'complete');
@@ -32,6 +34,7 @@ $state = classops_task_transition($state, 5, 'pending', 'cmd.reopen.001', 'usr_o
 tassert($state['state'] === 'pending', 'reopen mismatch');
 $state = classops_task_transition($state, 6, 'waived', 'cmd.waive.001', 'usr_owner001', '2026-09-08T00:06:00Z', 'waive');
 tassert($state['state'] === 'waived', 'waive mismatch');
+classops_task_validate_state($state);
 
 texpect('CLASSOPS_TASK_TRANSITION_FORBIDDEN', fn() => classops_task_transition(
     classops_task_new_state('cop_0123456789abcdef', 1, 'dentistry-1402', '1402123456', '2026-09-08T00:00:00Z'),
@@ -51,6 +54,17 @@ texpect('CLASSOPS_TASK_FORBIDDEN', fn() => classops_task_student_projection(
     '1402999999', '2026-09-07T23:00:00Z', '2026-09-08T01:00:00Z'
 ));
 texpect('CLASSOPS_TASK_PRIVATE_CONTENT_FORBIDDEN', fn() => classops_task_normalize_metadata(['password'=>'x']));
+
+$progressState = classops_task_new_state('cop_0123456789abcdef', 1, 'dentistry-1402', '1402123456', '2026-09-08T00:00:00Z');
+$progressState = classops_task_set_progress($progressState, 1, 2, 'cmd.progress.001', 'usr_owner001', '2026-09-08T00:01:00Z');
+tassert($progressState['progressCount'] === 2 && $progressState['stateRevision'] === 2, 'progress mutation mismatch');
+$beforeProgressReplay = $progressState;
+$progressReplay = classops_task_set_progress($progressState, 2, 2, 'cmd.progress.001', 'usr_owner001', '2026-09-08T00:01:00Z');
+tassert($progressReplay === $beforeProgressReplay, 'progress replay must be zero-write canonical state');
+classops_task_validate_state($progressReplay);
+texpect('CLASSOPS_TASK_IDEMPOTENCY_CONFLICT', fn() => classops_task_set_progress(
+    $progressState, 2, 3, 'cmd.progress.001', 'usr_owner001', '2026-09-08T00:02:00Z'
+));
 
 $pending = classops_task_new_state('cop_0123456789abcdef', 1, 'dentistry-1402', '1402123456', '2026-09-08T00:00:00Z');
 tassert(classops_task_is_overdue($pending, '2026-09-08T00:30:00Z', '2026-09-08T01:00:00Z') === true, 'overdue derived state mismatch');
