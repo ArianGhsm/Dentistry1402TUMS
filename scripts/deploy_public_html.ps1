@@ -28,6 +28,7 @@ param(
     [string]$OwnerStudentNumber = "",
     [string]$OwnerPassword = "",
     [string]$OwnerCredentialPath = ".codex-local\deploy_owner.json",
+    [string]$ReportRoot = "",
     [string]$CommitMessage = "chore: sync deployed laptop state to github",
     [string[]]$HealthCheckUrls = @(
         "https://dentistry1402tums.ir/",
@@ -83,6 +84,13 @@ $centralDeployBaseId = "website-" + (Get-Date -Format "yyyyMMdd-HHmmss")
 $centralDeployStarted = $false
 $centralDeployFinalized = $false
 $script:SharedProjectRoot = $localOpsRoot
+$script:ReleaseRunId = (Get-Date -Format "yyyyMMdd-HHmmss") + "-" + [Guid]::NewGuid().ToString("N").Substring(0, 8)
+if ([string]::IsNullOrWhiteSpace($ReportRoot)) {
+    $ReportRoot = Join-Path $localOpsRoot ".codex-local\release-runs"
+}
+$script:ReleaseReportPath = Join-Path (Join-Path (Join-Path $ReportRoot $ReleaseSha) $script:ReleaseRunId) "release-report.json"
+$script:DeployPlanComplete = $false
+$script:DeployPlanProtectedViolations = @()
 
 function Send-CentralDeployLifecycle([string]$Status, [string]$Version, [string]$Summary) {
     if ($DryRun -or $SkipCentralDeployNotification) {
@@ -540,6 +548,52 @@ function Invoke-WithNetworkPath(
 
 function Get-IsoNow() {
     return ([DateTimeOffset]::Now).ToString("yyyy-MM-ddTHH:mm:sszzz")
+}
+
+function Write-ReleaseReport([string]$status, [string]$failureCode = "") {
+    $directory = Split-Path -Parent $script:ReleaseReportPath
+    New-Item -ItemType Directory -Force -Path $directory | Out-Null
+    $snapshotValidated = ($remoteStorageInfo.Status -eq "completed")
+    $report = [ordered]@{
+        schemaVersion = 1
+        runId = $script:ReleaseRunId
+        repository = $expectedRepository
+        releaseSha = $ReleaseSha
+        mode = if ($DryRun) { "dry-run" } else { "deploy" }
+        startedAt = $runStartedAt.ToString("yyyy-MM-ddTHH:mm:sszzz")
+        finishedAt = Get-IsoNow
+        status = $status
+        failureCode = $failureCode
+        source = [ordered]@{ headSha = $headSha; originMainSha = $originMainSha; clean = [bool]([string]::IsNullOrWhiteSpace($workingTreeState)) }
+        snapshot = [ordered]@{ id = [string]$remoteStorageInfo.SnapshotPath; validated = $snapshotValidated; doubleRead = $snapshotValidated }
+        validation = [ordered]@{ status = [string]$validationInfo.Status }
+        deployPlan = [ordered]@{
+            complete = [bool]$script:DeployPlanComplete
+            uploadCount = [int]$deployInfo.UploadCount
+            deleteCount = [int]$deployInfo.DeleteCount
+            uploadBytes = [int64]$deployInfo.EstimatedUploadBytes
+            protectedPathViolations = @($script:DeployPlanProtectedViolations)
+            withinNormalLimits = (($deployInfo.UploadCount -le $MaxDeployUploads) -and ($deployInfo.DeleteCount -le $MaxDeployDeletes))
+            fullSync = [bool]$FullSync
+        }
+        phases = [ordered]@{
+            source_lock = if ($headSha -eq $ReleaseSha -and $originMainSha -eq $ReleaseSha) { "passed" } else { "failed" }
+            production_snapshot = [string]$remoteStorageInfo.Status
+            local_validation = [string]$validationInfo.Status
+            deploy_plan = if ($script:DeployPlanComplete) { "passed" } else { "failed" }
+            dryrun_complete = if ($DryRun -and $status -eq "passed" -and $script:DeployPlanComplete) { "passed" } elseif ($DryRun) { "failed" } else { "skipped" }
+            host_upload = [string]$deployInfo.Status
+            host_health = [string]$verificationInfo.Status
+        }
+        productionMutation = (-not $DryRun -and $deployInfo.Status -eq "completed")
+    }
+    $temp = "$($script:ReleaseReportPath).tmp-$PID-$([Guid]::NewGuid().ToString('N'))"
+    $json = $report | ConvertTo-Json -Depth 8
+    [IO.File]::WriteAllText($temp, $json, [Text.UTF8Encoding]::new($false))
+    $verified = Get-Content -Raw -LiteralPath $temp | ConvertFrom-Json
+    if ([string]$verified.releaseSha -ne $ReleaseSha -or [bool]$verified.deployPlan.complete -ne [bool]$script:DeployPlanComplete) { throw "RELEASE_REPORT_WRITE_FAILED" }
+    Move-Item -LiteralPath $temp -Destination $script:ReleaseReportPath -Force
+    Write-Host "Release report: $($script:ReleaseReportPath)"
 }
 
 function Test-ProtectedPublicHtmlRelativePath([string]$relative) {
@@ -3698,6 +3752,13 @@ try {
     $deployInfo.DeleteCount = $deleteList.Count
     $deployInfo.EstimatedUploadBytes = Get-FileBytesFromRelativeList -rootPath $localRoot -relativeList $uploadList
     $deployInfo.Notes = @($plan.Notes)
+    $script:DeployPlanProtectedViolations = @(
+        @($uploadList + $deleteList) | Where-Object { Test-ProtectedPublicHtmlRelativePath -relative ([string]$_) }
+    )
+    if ($script:DeployPlanProtectedViolations.Count -gt 0) {
+        throw "RELEASE_PROTECTED_PATH_VIOLATION"
+    }
+    $script:DeployPlanComplete = $true
     $githubPlanInfo = $null
 
     if (-not $DryRun -and ($uploadList.Count -gt 0 -or $deleteList.Count -gt 0)) {
@@ -4058,5 +4119,13 @@ try {
 }
 
 if (-not [string]::IsNullOrWhiteSpace($failureMessage)) {
+    Write-ReleaseReport -status "failed" -failureCode "RELEASE_PIPELINE_FAILED"
     throw $failureMessage
 }
+
+if ($DryRun -and -not $script:DeployPlanComplete) {
+    Write-ReleaseReport -status "failed" -failureCode "RELEASE_PLAN_INCOMPLETE"
+    throw "RELEASE_PLAN_INCOMPLETE"
+}
+
+Write-ReleaseReport -status "passed"

@@ -41,6 +41,17 @@ Dry-run:
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -ReleaseSha <exact-sha> -DryRun
 ```
 
+The command writes an atomic, ignored machine-readable report under the shared
+ops root at `.codex-local/release-runs/<sha>/<run-id>/release-report.json`.
+Treat a dry-run as successful only when its exit code is zero **and** the report
+has `status: passed`, `deployPlan.complete: true`, no protected-path violations,
+and `productionMutation: false`. The final console summary prints that report
+path; operators must not infer completion from buffered console output alone.
+The isolated local smoke uses a synthetic owner in a copied snapshot and never
+uses a real owner credential. The only bootstrap exception is a queued website
+`started` lifecycle event; final `succeeded` or `failed` lifecycle delivery is
+still mandatory.
+
 Broad deploy is exceptional and follows reviewed dry-run output:
 
 ```powershell
