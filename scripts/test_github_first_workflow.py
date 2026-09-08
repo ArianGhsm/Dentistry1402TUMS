@@ -33,6 +33,11 @@ assert "Run-OptionalPullBeforeDeploy\n" not in DEPLOY, "deploy must not pull ins
 assert "function Get-GitCommitMetadata" in DEPLOY, "release report metadata helper must be defined"
 assert "function Get-FileSha256Hex" in DEPLOY, "deploy hashing must be available without Get-FileHash"
 assert "Get-FileHash" not in DEPLOY, "canonical Windows PowerShell deploy must not require the optional Get-FileHash cmdlet"
+assert "function Prune-VerifiedStorageSnapshots" in DEPLOY, "verified snapshot retention helper must be present"
+assert "$script:VerifiedSnapshotRetentionCount = 5" in DEPLOY, "snapshot retention must keep five verified copies"
+assert "eligibleForLatest -ne $true" in DEPLOY, "retention must never delete an unverified snapshot"
+assert "-notmatch '^\\d{8}-\\d{6}$'" in DEPLOY, "retention must preserve partial/non-snapshot directories"
+assert "SnapshotsPruned" in DEPLOY and "SnapshotsRetained" in DEPLOY, "retention result must be observable"
 assert "$lastDeployManifest.Files.ContainsKey($relative)" in DEPLOY, (
     "host manifest delta must look up normalized dictionary keys, not PSObject properties"
 )

@@ -91,6 +91,7 @@ if ([string]::IsNullOrWhiteSpace($ReportRoot)) {
 $script:ReleaseReportPath = Join-Path (Join-Path (Join-Path $ReportRoot $ReleaseSha) $script:ReleaseRunId) "release-report.json"
 $script:DeployPlanComplete = $false
 $script:DeployPlanProtectedViolations = @()
+$script:VerifiedSnapshotRetentionCount = 5
 
 function Send-CentralDeployLifecycle([string]$Status, [string]$Version, [string]$Summary) {
     if ($DryRun -or $SkipCentralDeployNotification) {
@@ -566,7 +567,14 @@ function Write-ReleaseReport([string]$status, [string]$failureCode = "") {
         exitCode = if ($status -eq "passed") { 0 } else { 1 }
         failureCode = $failureCode
         source = [ordered]@{ headSha = $headSha; originMainSha = $originMainSha; clean = [bool]([string]::IsNullOrWhiteSpace($workingTreeState)) }
-        snapshot = [ordered]@{ id = [string]$remoteStorageInfo.SnapshotPath; validated = $snapshotValidated; doubleRead = $snapshotValidated }
+        snapshot = [ordered]@{
+            id = [string]$remoteStorageInfo.SnapshotPath
+            validated = $snapshotValidated
+            doubleRead = $snapshotValidated
+            retained = [int]$remoteStorageInfo.SnapshotsRetained
+            pruned = [int]$remoteStorageInfo.SnapshotsPruned
+            skipped = [int]$remoteStorageInfo.SnapshotsSkipped
+        }
         validation = [ordered]@{ status = [string]$validationInfo.Status }
         deployPlan = [ordered]@{
             complete = [bool]$script:DeployPlanComplete
@@ -1398,6 +1406,51 @@ function Reset-DirectoryFromSource([string]$source, [string]$target, [string]$al
     }
 }
 
+function Prune-VerifiedStorageSnapshots([string]$snapshotsRoot) {
+    # Keep the newest five complete, eligible snapshots. Partial, malformed,
+    # and otherwise unverified directories remain available for forensics.
+    $result = [ordered]@{ Retained = 0; Pruned = 0; Skipped = 0 }
+    if (-not (Test-Path -LiteralPath $snapshotsRoot -PathType Container)) {
+        return [PSCustomObject]$result
+    }
+
+    $complete = New-Object System.Collections.Generic.List[object]
+    foreach ($directory in @(Get-ChildItem -LiteralPath $snapshotsRoot -Directory -Force)) {
+        if ($directory.Name -notmatch '^\d{8}-\d{6}$') {
+            $result.Skipped++
+            continue
+        }
+        $manifestPath = Join-Path $directory.FullName 'snapshot-manifest.json'
+        if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+            $result.Skipped++
+            continue
+        }
+        try {
+            $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+            if ($manifest.consistency.eligibleForLatest -ne $true) {
+                $result.Skipped++
+                continue
+            }
+        } catch {
+            $result.Skipped++
+            continue
+        }
+        [void]$complete.Add($directory)
+    }
+
+    $ordered = @($complete | Sort-Object Name -Descending)
+    $result.Retained = [Math]::Min($script:VerifiedSnapshotRetentionCount, $ordered.Count)
+    foreach ($directory in @($ordered | Select-Object -Skip $script:VerifiedSnapshotRetentionCount)) {
+        try {
+            Remove-Item -LiteralPath $directory.FullName -Recurse -Force -ErrorAction Stop
+            $result.Pruned++
+        } catch {
+            throw "Verified snapshot retention cleanup failed for $($directory.FullName): $($_.Exception.Message)"
+        }
+    }
+    return [PSCustomObject]$result
+}
+
 function Download-RemoteStorageFile(
     [string]$remoteRelative,
     [string]$remoteRoot,
@@ -1592,6 +1645,9 @@ function Sync-RemoteStorageFromHost() {
             FileCount   = 0
             Bytes       = [int64]0
             ReusedFiles = 0
+            SnapshotsRetained = 0
+            SnapshotsPruned   = 0
+            SnapshotsSkipped  = 0
         }
     }
 
@@ -1636,6 +1692,8 @@ function Sync-RemoteStorageFromHost() {
             Remove-Item -LiteralPath $mirrorManifest -Force
         }
     }
+    $snapshotRetention = Prune-VerifiedStorageSnapshots -snapshotsRoot (Join-Path $opsRoot ".codex-local\remote-storage\snapshots")
+    Write-Host "Snapshot retention: kept $($snapshotRetention.Retained), pruned $($snapshotRetention.Pruned), skipped $($snapshotRetention.Skipped) unverified/partial."
 
     return [PSCustomObject]@{
         Status       = "completed"
@@ -1648,6 +1706,9 @@ function Sync-RemoteStorageFromHost() {
         FileCount    = [int]$manifest.fileCount
         Bytes        = [int64]$manifest.totalBytes
         ReusedFiles  = 0
+        SnapshotsRetained = [int]$snapshotRetention.Retained
+        SnapshotsPruned   = [int]$snapshotRetention.Pruned
+        SnapshotsSkipped  = [int]$snapshotRetention.Skipped
     }
 }
 
