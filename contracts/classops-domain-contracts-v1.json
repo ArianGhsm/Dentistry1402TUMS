@@ -1,6 +1,6 @@
 {
   "contractVersion": "classops-domain-contracts-v1",
-  "stage": "integration-stage1",
+  "stage": "integration-stage2",
   "baseContract": "classops-v1",
   "compatibility": {
     "historicalClassopsV1Readable": true,
@@ -58,10 +58,12 @@
       "readOnly": true
     }
   },
-  "futureSurface": {
+  "surface": {
     "version": "classops-surface-v1",
-    "source": "feature/classops-cross-surface-ux/contracts/candidates/classops-surface-v1.json",
-    "promotion": "stage2-only-not-merged"
+    "schema": "contracts/classops-surface-v1.json",
+    "promotion": "stage2-approved-surface",
+    "candidateOrigin": {"path": "contracts/candidates/classops-surface-v1.json", "blobSha": "41549aeb65c8e8c8cf70e9e2e2f1b222b9cd506b"},
+    "reconciledFromCandidate": true
   },
   "sourceOfTruth": {
     "identity": "auth_store.php",
