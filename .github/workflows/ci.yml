@@ -69,10 +69,14 @@ jobs:
 
       - name: Install deterministic bot runtime test dependencies
         run: |
+          # The separate production/admin forensic venv intentionally follows
+          # requirements-forensic.txt and the server's system Python. Repository
+          # CI remains on the frozen Python 3.11 baseline, so use the newest
+          # compatible NumPy with the same OpenCV build for detector coverage.
           python -m pip install --disable-pip-version-check \
             -r bot_runtime/requirements-bot-pdf.txt \
-            -r bot_runtime/requirements-forensic.txt \
-            pytest pikepdf
+            pytest pikepdf \
+            numpy==2.4.6 opencv-python-headless==5.0.0.93
 
       - name: Run deterministic static checks
         run: bash scripts/run_static_checks.sh
