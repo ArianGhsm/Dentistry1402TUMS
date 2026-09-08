@@ -258,7 +258,10 @@ def main() -> int:
             "expectedRevision": notice["revision"],
             "idempotencyKey": "stage2-http-ack-student-0001",
         })
-        assert status == 200 and acked["ack"]["acknowledged"] is True, (status, acked)
+        assert status == 200, (status, acked)
+        ack_record = acked["ack"]["ack"]
+        assert ack_record["itemId"] == notice["id"] and ack_record["revision"] == notice["revision"], acked
+        assert ack_record["intent"] == "explicit_user_ack" and acked["ack"]["stateChanged"] is True, acked
         status, notice_projection = request(student, base + f"/api/classops_api.php?action=student-get&id={notice['id']}")
         assert status == 200 and notice_projection["item"]["ack"]["acked"] is True
 
@@ -290,10 +293,11 @@ def main() -> int:
         status, service_transition = request(student, base + "/api/classops_api.php?action=student-service-transition", method="POST", csrf=student_csrf, fields={
             "id": service["id"],
             "expectedStateRevision": service_state["stateRevision"],
-            "target": "done",
-            "commandId": "stage2-saba-done-0001",
+            "target": "completed",
+            "commandId": "stage2-saba-complete-0001",
         })
         assert status == 200 and service_transition["externallyVerified"] is False, (status, service_transition)
+        assert service_transition["state"]["state"] == "completed", service_transition
 
         print(json.dumps({
             "status": "ok",
