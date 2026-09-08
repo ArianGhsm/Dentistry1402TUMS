@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/notifications.php';
+require_once __DIR__ . '/service_state.php';
 
 function classops_stage2_reject_client_binding(array $itemOrPatch): void
 {
@@ -128,6 +129,7 @@ function classops_stage2_confirm(array $owner,array $payload): array
 
     classops_stage2_save_audience($item,$resolution['normalizedSpec'],$resolution);
     classops_stage2_ensure_task_states($item,$resolution['recipientStudentNumbers']);
+    classops_stage2_ensure_service_states($item,$resolution['recipientStudentNumbers']);
     classops_stage2_remove_prior_notifications((string)$item['id'],(int)$item['revision']);
     $allowPrivate=in_array('private_users',$destinations,true);
     $notificationRecords=classops_stage2_ensure_notification_record($item,$resolution['recipientStudentNumbers'],$allowPrivate);
