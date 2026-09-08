@@ -25,9 +25,11 @@ store so an owner action on either platform has the same immediate result.
 
 Emoji are semantic interface markers, not decoration. Use at most one leading
 emoji for a title or button and keep the mapping stable: `📝` exams, `📚` notes,
-`📊` grades, `👤` account, `🔔` notifications, `🛟` help, and `⚙️` owner tools.
-Operational reports reserve `🔵`, `🟢`, `🟠`, and `🔴` for started, succeeded,
-rolled back, and failed. Do not scatter unrelated emoji through body copy.
+`📅` class operations, `📊` grades, `👤` account, `🔔` notifications, `🛟` help,
+and `⚙️` owner tools. Operational reports reserve `🔵`, `🟢`, `🟠`, and `🔴`
+for started, succeeded, rolled back, and failed. Do not scatter unrelated emoji
+through body copy. `📚` therefore remains notes-only and must not label class
+operations.
 
 Use the current Telegram Bot API native Rich Message layer for structured data:
 `sendRichMessage` on send and the `rich_message` field of `editMessageText` on
@@ -36,11 +38,23 @@ compact>`, lists, `<details>`, footer and inline formatting blocks. Grades and
 Navid are native tables inside Telegram itself. A `<pre>` imitation, screenshot
 or external page is not accepted as the primary Telegram renderer.
 
+Class operations follows that same structured-report standard. Its overview
+when it has structured status, item lists/details, Tomorrow Summary, Weekly
+Digest, owner preview and AI draft preview use the shared native-rich layer on
+Telegram. Long descriptions belong in `<details>` or an expandable bounded
+fallback rather than a wall of text. The shared semantic data is rendered as a
+readable Bale fallback; no ClassOps renderer may fork audience, ordering,
+permission, ACK, task or digest semantics per platform. Machine UTC/ISO time
+remains internal: every visible Class Operations date/time uses the shared
+Tehran Solar Hijri formatter and every visible number uses Persian digits.
+
 When a callback originates from a regular menu message and opens a native rich
 report, send a new `sendRichMessage`; do not change the content type of that
 regular message with `editMessageText`, because Telegram clients do not
 consistently repaint this transition. Refreshes and actions originating from an
-existing rich message may use `editMessageText.rich_message`.
+existing rich message may use `editMessageText.rich_message`. Class Operations
+must use this same transition rather than implementing a transport-specific
+shortcut.
 
 Regular screens still use bounded Telegram HTML where a document structure
 would add no value: bold for a title/field, blockquote for a short status, code
@@ -144,12 +158,13 @@ gates, or business logic.
   `success` for constructive submission/confirmation, and `danger` only for a
   destructive action that also receives a confirmation screen.
 - Do not use color as the only meaning; every button has an explicit text label.
-- Use one consistent emoji per domain: exams, notes, grades, account,
-  notifications, help, and administration.
+- Use one consistent emoji per domain: exams, notes, class operations, grades,
+  account, notifications, help, and administration.
 - Keep a screen to a short title, one or two sentences, an optional status
   block, and at most four rows of actions where practical.
 - Edit the current inline-menu message for navigation instead of sending a new
-  message on every tap.
+  message on every tap. The regular-to-native-rich exception above sends one
+  fresh Rich Message only when required by the Telegram client transition.
 - Site-backed callbacks may run concurrently in a bounded update worker pool
   (`DENT_BOT_UPDATE_WORKERS`, default 8). Local screens such as bot offers must
   not wait for the site relay.
@@ -174,6 +189,7 @@ Main sections:
 
 - Exams
 - Notes
+- Class operations
 - Grades
 - Account and devices
 - Notifications
