@@ -106,7 +106,9 @@ function classops_stage2_owner_scope(array $owner, string $cohortKey): array
     if (!classops_stage2_is_owner($owner)) {
         classops_domain_error('CLASSOPS_OWNER_REQUIRED', 'این عملیات فقط برای مالک سامانه مجاز است.', 403);
     }
-    return ['scope'=>'owner','cohortKey'=>$cohortKey];
+    // The audience domain owns the scope schema. Keep this adapter canonical
+    // rather than inventing a second Stage2 scope representation.
+    return ['role'=>'owner','cohortKeys'=>[$cohortKey]];
 }
 
 function classops_stage2_ai_create(array $owner, string $ownerText, ?string $forwardedText, string $cohortKey): array
