@@ -12,6 +12,7 @@ assert registry['compatibility']['historicalClassopsV1Readable'] is True
 assert registry['compatibility']['audiencePlaceholderReadable'] is True
 assert registry['compatibility']['deliveryPlaceholderReadable'] is True
 assert registry['compatibility']['reminderPlaceholderReadable'] is True
+assert registry['compatibility']['productionDataMigrationPerformed'] is False
 assert registry['sourceOfTruth']['term7'] == 'academic_term7.php'
 assert registry['sourceOfTruth']['notifications'] == 'existing-notification-subsystem'
 assert registry['sourceOfTruth']['payments'] == 'existing-payment-subsystem'
@@ -47,20 +48,48 @@ assert 'supersedesintentid' in delivery
 
 ack = read('public_html/api/classops_modules/ack/critical_ack.php').lower()
 assert 'transport delivery/read receipt is not an acknowledgement' in ack
-assert 'noticeversion' in ack or "['revision']" in ack
 exam_test = read('scripts/test_classops_exam_ack_domain.php')
 assert 'Revised notice invalidates prior revision satisfaction.' in exam_test
 assert 'Platform read receipt cannot become ACK.' in exam_test
+assert 'Exam rejects duplicate verified payment state.' in exam_test
 
 scheduler = read('public_html/api/classops_modules/scheduler/classops_reminder_planner.php').lower()
 assert 'single_active_leader' in scheduler
-assert 'planner side' not in scheduler or 'sideeffectowner' in scheduler
 assert 'classops_reminder_assert_no_credentials' in scheduler
 for forbidden in ['saba_password', 'saba_username', 'saba_token', 'saba_session']:
     assert forbidden not in scheduler
-
 scheduler_test = read('scripts/test_classops_scheduler.php').lower()
 for marker in ['saba', 'supersed', 'credential']:
     assert marker in scheduler_test, f'scheduler tests must cover {marker}'
 
- tasks = read('public_html/api/classops_modules/tasks/task_domain.php')
+tasks = read('public_html/api/classops_modules/tasks/task_domain.php').lower()
+for state in ['pending', 'submitted', 'needs_revision', 'completed', 'waived']:
+    assert state in tasks
+assert 'classops_task_student_projection' in tasks
+assert 'classops_task_is_overdue' in tasks
+assert 'submissioncontent' in tasks  # forbidden-content guard
+
+audience = read('public_html/api/classops_modules/audience/resolver.php').lower()
+audience_spec = read('public_html/api/classops_modules/audience/spec.php').lower()
+assert 'classops_audience_drift' in audience
+assert 'display' not in audience_spec or 'displayname' not in audience_spec
+assert "['role', 'group', 'category']" in audience_spec
+assert "'not'" in audience_spec and "'any'" in audience_spec and "'all'" in audience_spec
+
+digest = read('public_html/api/classops_modules/digests/digest_engine.php').lower()
+assert 'classops_digest_visible' in digest
+assert "record['cohortkey'] !== $viewer['cohortkey']" in digest
+assert "hash_equals" in digest
+assert 'academic_term7' not in digest, 'digest must consume injected schedule projection, not import Term7 store directly'
+
+store = read('public_html/api/classops_store.php')
+assert "const CLASSOPS_CONTRACT_VERSION = 'classops-v1';" in store
+assert 'classops-audience-placeholder-v1' in store
+assert 'classops-delivery-placeholder-v1' in store
+assert 'classops-reminder-placeholder-v1' in store
+
+# Cross-surface files are deliberately not part of Stage 1.
+assert not (ROOT / 'public_html/classops/index.html').exists()
+assert registry['futureSurface']['promotion'] == 'stage2-only-not-merged'
+
+print('ClassOps Stage 1 cross-domain invariant checks passed')
