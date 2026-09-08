@@ -71,6 +71,11 @@ function classops_stage2_ensure_notification_record(
     string $occurrence = 'initial',
     ?string $publishAt = null
 ): array {
+    // Terminal revisions must never generate a fresh notification merely because
+    // the owner recorded completion. Existing/future ClassOps notifications are
+    // reconciled separately by the lifecycle/update path.
+    if (in_array((string)($item['status']??''), ['completed','cancelled','archived'], true)) return [];
+
     $recipients=[];
     foreach ($recipientNumbers as $raw) {
         $student=dent_normalize_student_number((string)$raw);
