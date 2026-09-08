@@ -10,24 +10,64 @@
     "productionDataMigrationPerformed": false
   },
   "domains": {
-    "audience": {"version":"classops-audience-v1","schema":"contracts/candidates/classops-audience-v1.json","promotion":"stage1-approved-domain"},
-    "delivery": {"version":"classops-delivery-v1","schema":"contracts/candidates/classops-delivery-v1.json","promotion":"stage1-approved-domain","directSend":false},
-    "aiDraft": {"version":"classops-ai-draft-v1","schema":"contracts/candidates/classops-ai-draft-v1.json","promotion":"stage1-approved-domain","directMutation":false,"directSend":false},
-    "tasksRequirements": {"version":"classops-tasks-v1","schema":"contracts/candidates/classops-tasks-v1.json","promotion":"stage1-approved-domain"},
-    "examAck": {"version":"classops-exam-ack-v1","schema":"contracts/candidates/classops-exam-ack-v1.json","promotion":"stage1-approved-domain"},
-    "reminder": {"version":"classops-reminder-v1","schema":"contracts/candidates/classops-reminder-v1.json","promotion":"stage1-approved-domain","directSend":false},
-    "digest": {"version":"classops-digest-v1","schema":"contracts/candidates/classops-digest-v1.json","promotion":"stage1-approved-domain","readOnly":true}
+    "audience": {
+      "version": "classops-audience-v1",
+      "schema": "contracts/classops-audience-v1.json",
+      "promotion": "stage1-approved-domain",
+      "candidateOrigin": {"path": "contracts/candidates/classops-audience-v1.json", "blobSha": "d8d4abc47e8c36fa5010f3a4b09b47172d46862f"}
+    },
+    "delivery": {
+      "version": "classops-delivery-v1",
+      "schema": "contracts/classops-delivery-v1.json",
+      "promotion": "stage1-approved-domain",
+      "candidateOrigin": {"path": "contracts/candidates/classops-delivery-v1.json", "blobSha": "651c7bdf1b0d909680d313eca2746b87cdff8cde"},
+      "directSend": false
+    },
+    "aiDraft": {
+      "version": "classops-ai-draft-v1",
+      "schema": "contracts/classops-ai-draft-v1.json",
+      "promotion": "stage1-approved-domain",
+      "candidateOrigin": {"path": "contracts/candidates/classops-ai-draft-v1.json", "blobSha": "954b2eb73642d6c8dc9e18a675855bdeab3c60ac"},
+      "directMutation": false,
+      "directSend": false
+    },
+    "tasksRequirements": {
+      "version": "classops-tasks-v1",
+      "schema": "contracts/classops-tasks-v1.json",
+      "promotion": "stage1-approved-domain",
+      "candidateOrigin": {"path": "contracts/candidates/classops-tasks-v1.json", "blobSha": "3c677a337629c043c7ea603c144f41a9b2298aa5"}
+    },
+    "examAck": {
+      "version": "classops-exam-ack-v1",
+      "schema": "contracts/classops-exam-ack-v1.json",
+      "promotion": "stage1-approved-domain",
+      "candidateOrigin": {"path": "contracts/candidates/classops-exam-ack-v1.json", "blobSha": "e06b2084f9d67a8ffbe4401157e120ab0b6adb50"}
+    },
+    "reminder": {
+      "version": "classops-reminder-v1",
+      "schema": "contracts/classops-reminder-v1.json",
+      "promotion": "stage1-approved-domain",
+      "candidateOrigin": {"path": "contracts/candidates/classops-reminder-v1.json", "blobSha": "46799537f01f6d50ee2e26ffd808e3d9d6614091"},
+      "directSend": false
+    },
+    "digest": {
+      "version": "classops-digest-v1",
+      "schema": "contracts/classops-digest-v1.json",
+      "promotion": "stage1-approved-domain",
+      "candidateOrigin": {"path": "contracts/candidates/classops-digest-v1.json", "blobSha": "185eecb87770080c15ebf71f6e447d13d6931738"},
+      "readOnly": true
+    }
   },
   "futureSurface": {
-    "version":"classops-surface-v1",
-    "source":"feature/classops-cross-surface-ux/contracts/candidates/classops-surface-v1.json",
-    "promotion":"stage2-only-not-merged"
+    "version": "classops-surface-v1",
+    "source": "feature/classops-cross-surface-ux/contracts/candidates/classops-surface-v1.json",
+    "promotion": "stage2-only-not-merged"
   },
   "sourceOfTruth": {
-    "identity":"auth_store.php",
-    "term7":"academic_term7.php",
-    "notifications":"existing-notification-subsystem",
-    "payments":"existing-payment-subsystem",
-    "classops":"canonical-classops-storage-family"
+    "identity": "auth_store.php",
+    "term7": "academic_term7.php",
+    "notifications": "existing-notification-subsystem",
+    "payments": "existing-payment-subsystem",
+    "classops": "canonical-classops-storage-family"
   }
 }
