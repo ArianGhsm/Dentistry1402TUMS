@@ -6,6 +6,8 @@ on:
     paths:
       - "public_html/api/classops_*"
       - "public_html/api/classops_modules/**"
+      - "public_html/classops/**"
+      - "public_html/assets/classops_ops/**"
       - "contracts/**"
       - "docs/classops/**"
       - "docs/SHARED_CONTRACTS.md"
@@ -42,6 +44,9 @@ jobs:
           python scripts/test_classops_stage1_invariants.py
           python scripts/test_classops_stage1_api_contract.py
           php scripts/test_classops_domain_store_adapter.php
+
+      - name: Stage 2 website operations surface
+        run: python scripts/test_classops_stage2_web_surface.py
 
       - name: Audience
         run: |
