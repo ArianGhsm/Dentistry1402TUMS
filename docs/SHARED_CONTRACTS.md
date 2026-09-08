@@ -28,15 +28,23 @@ The integration branch has approved the following implementations as the Stage 1
 - `classops-reminder-v1` — pure deterministic reminder planning, bounded recurrence and Saba reminder safety; no credential/session material and no direct send.
 - `classops-digest-v1` — deterministic Tomorrow Summary / Weekly Digest projection with cohort/privacy filtering and no AI-generated facts.
 
-Candidate source schemas remain under `contracts/candidates/` as review evidence. Their approved relationship is recorded by `contracts/classops-domain-contracts-v1.json` rather than silently changing the meaning of historical `classops-v1`.
+Each approved contract now has a canonical file directly under `contracts/`. The original feature-branch candidate material remains under `contracts/candidates/` as provenance/review evidence. `contracts/classops-domain-contracts-v1.json` points only to the canonical paths and records the exact Git blob SHA of each candidate origin. `scripts/test_classops_domain_contract_graph.py` verifies that the promoted canonical copy is byte-identical to the locked candidate blob and fails on origin drift. This promotion does not alter the frozen `classops-v1` item schema.
 
 ## Persistence compatibility decision
 
-Stage 1 deliberately does **not** rewrite production data and does not claim that the new domain contracts are already persisted through the historical top-level `classops-v1` placeholders.
+Stage 1 performs **no production-data migration** and does not reinterpret the historical audience/delivery/reminder placeholder fields.
 
-The existing ClassOps store remains schema/contract version 1 and therefore remains byte/semantic compatible with existing stored revisions. Stage 1 adds a unified pure domain facade and versioned domain contracts. Stage 2 owns the trusted confirmation/persistence wiring and must choose only a tested, backward-compatible representation inside the **same canonical ClassOps storage family**. No second ClassOps database/store is permitted.
+The existing ClassOps store remains schema/contract version 1 and therefore remains compatible with existing stored revisions. Stage 1 now adds `public_html/api/classops_domain_store_adapter.php` as a compatibility bridge for new Stage 1 API mutations:
 
-This is intentional: audience snapshots must be server-produced/trusted, delivery intents must not be accepted as client-authored facts, and task/ACK state requires canonical per-student authorization. Allowing arbitrary client extension payloads to become trusted state during Stage 1 would violate the confirmation/security boundary.
+- generic Foundation normalization still owns the stored `classops-v1` item;
+- known `classops_tasks_v1` and `exam_ops_v1` extension namespaces are version-checked and normalized before new create/update writes;
+- a type-only update validates the complete prospective known-extension set so a known extension cannot be stranded under an incompatible item type;
+- unknown historical extension namespaces remain opaque/readable;
+- promoted audience/delivery/reminder contracts are **not** accepted as silent replacements for frozen stored placeholders.
+
+This is deliberately narrower than Stage 2 persistence. Trusted server-produced audience snapshots, delivery/scheduler execution state, per-student task state and critical-ACK state are not yet exposed as arbitrary Foundation item fields. When they require persistence, Stage 2 must place them inside the **same canonical ClassOps storage family** with explicit schema/version/atomic-transaction and migration/rollback tests. No second ClassOps database/store is permitted.
+
+The Stage 1 HTTP boundary requires the store adapter for create/update and exposes only a non-sensitive read-only `domain-capabilities` action in addition to the frozen Foundation API. It does not send messages, execute reminder jobs, invoke the AI provider as a side effect, or write a parallel notification feed.
 
 ## Source-of-truth boundaries
 
@@ -51,7 +59,7 @@ Audience membership is independent from delivery capability. A missing bot link 
 
 ## Stage 2 surface contract
 
-`classops-surface-v1` remains Stage 2-only. Stage 1 audits it for compatibility but does not merge the website/bot cross-surface branch. Stage 2 will wire the approved domain graph to the Website Operations Center, Telegram and Bale, including trusted persistence and canonical notification/runtime adapters.
+`classops-surface-v1` remains Stage 2-only. Stage 1 audits it for compatibility but does not merge the website/bot cross-surface branch. Stage 2 will wire the approved domain graph to the Website Operations Center, Telegram and Bale, including trusted state persistence and canonical notification/runtime adapters.
 
 ## Change process
 
