@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import hashlib
 import json
 from pathlib import Path
 
@@ -18,13 +19,26 @@ expected = {
     'reminder': 'classops-reminder-v1',
     'digest': 'classops-digest-v1',
 }
+
+def git_blob_sha(data: bytes) -> str:
+    return hashlib.sha1(b'blob ' + str(len(data)).encode('ascii') + b'\0' + data).hexdigest()
+
 for key, version in expected.items():
     entry = registry['domains'][key]
     assert entry['version'] == version
     assert entry['promotion'] == 'stage1-approved-domain'
     schema = root / entry['schema']
-    assert schema.is_file(), f'missing schema for {key}: {schema}'
+    assert schema.is_file(), f'missing canonical contract for {key}: {schema}'
+    assert '/candidates/' not in schema.as_posix(), f'{key} was not promoted to canonical contracts/'
     json.loads(schema.read_text(encoding='utf-8'))
+
+    origin = entry['candidateOrigin']
+    candidate = root / origin['path']
+    assert candidate.is_file(), f'missing recorded candidate origin for {key}'
+    canonical_bytes = schema.read_bytes()
+    candidate_bytes = candidate.read_bytes()
+    assert canonical_bytes == candidate_bytes, f'{key} canonical promotion drifted from locked candidate origin'
+    assert git_blob_sha(candidate_bytes) == origin['blobSha'], f'{key} candidate origin blob SHA drifted'
 
 assert registry['futureSurface']['promotion'] == 'stage2-only-not-merged'
 assert not (root / 'public_html/classops/index.html').exists(), 'cross-surface UX must remain Stage2-only'
