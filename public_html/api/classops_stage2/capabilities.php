@@ -22,8 +22,26 @@ function classops_stage2_bool_env(string $name): ?bool
 
 function classops_stage2_ai_configured(): bool
 {
-    return trim((string) getenv('DENT_CLASSOPS_AI_AVALAI_API_KEY')) !== ''
-        && trim((string) getenv('DENT_CLASSOPS_AI_MODEL')) !== '';
+    if (trim((string) getenv('DENT_CLASSOPS_AI_AVALAI_API_KEY')) === ''
+        || trim((string) getenv('DENT_CLASSOPS_AI_MODEL')) === '') {
+        return false;
+    }
+    $provider = strtolower(trim((string) getenv('DENT_CLASSOPS_AI_PROVIDER')));
+    if ($provider !== '' && $provider !== DentClassOpsAiAvalAiClient::DEFAULT_PROVIDER) return false;
+    $base = trim((string) getenv('DENT_CLASSOPS_AI_BASE_URL'));
+    if ($base !== '') {
+        try {
+            DentClassOpsAiAvalAiClient::endpointFromBase($base);
+        } catch (DentClassOpsAiException $exception) {
+            return false;
+        }
+    }
+    $retry = trim((string) getenv('DENT_CLASSOPS_AI_MAX_RETRIES'));
+    if ($retry !== '') {
+        $value = filter_var($retry, FILTER_VALIDATE_INT);
+        if ($value === false || $value < 0 || $value > 2) return false;
+    }
+    return true;
 }
 
 function classops_stage2_platform_state(string $platform): string
@@ -34,6 +52,7 @@ function classops_stage2_platform_state(string $platform): string
 
 function classops_stage2_capabilities(): array
 {
+    $base = trim((string) getenv('DENT_CLASSOPS_AI_BASE_URL'));
     return [
         'success' => true,
         'surfaceVersion' => CLASSOPS_STAGE2_SURFACE_VERSION,
@@ -42,7 +61,8 @@ function classops_stage2_capabilities(): array
         'deliveryPlanning' => ['state'=>'available','contract'=>'classops-delivery-v1'],
         'ai' => [
             'state' => classops_stage2_ai_configured() ? 'configured' : 'unconfigured',
-            'provider' => 'avalai',
+            'provider' => DentClassOpsAiAvalAiClient::DEFAULT_PROVIDER,
+            'baseEndpointConfigured' => $base !== '',
             'manualFallback' => true,
             'directMutation' => false,
             'directSend' => false,
