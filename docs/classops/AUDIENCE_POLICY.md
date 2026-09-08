@@ -70,7 +70,7 @@ and exclude ends excluded and produces machine-readable warning
 
 ### Bounds
 
-Runtime bounds are intentionally stricter and deterministic:
+Runtime bounds are intentionally strict and deterministic:
 
 | Limit | Value |
 | --- | ---: |
@@ -184,6 +184,10 @@ This is the default owner preview and avoids unnecessary identity disclosure.
 unresolved references. That detailed variant must remain owner-only and should
 be used only where the UI explicitly needs the diff.
 
+`classops_audience_preview()` is an internal/domain helper. API integration must
+feed it only resolver results produced server-side; it must not accept an
+arbitrary client-supplied object and treat that object as a trusted resolution.
+
 Audience is independent from Destination. Preview must not add platform or bot
 capability data.
 
@@ -252,9 +256,15 @@ Add owner-only preview/confirm integration rather than exposing a public
 resolver action. Reuse the existing `classops_api_owner_for_read()` /
 `classops_api_owner_for_mutation()` authorization and CSRF boundary.
 
+Before constructing an Audience source, pass the requested cohort through the
+existing `classops_api_validate_cohort($targetCohort)` helper. The domain module
+validates cohort format/isolation, but the API remains responsible for proving
+that the requested cohort exists in the canonical cohort catalog.
+
 Small adapter flow:
 
 ```php
+classops_api_validate_cohort($targetCohort);
 $source = new DentClassOpsAuthStoreAudienceSource();
 $ownerScope = ['role' => 'owner', 'cohortKeys' => [$targetCohort]];
 $result = classops_audience_resolve_from_source(
@@ -267,12 +277,14 @@ $result = classops_audience_resolve_from_source(
 );
 ```
 
-The actual owner scope should be derived from canonical owner authorization;
-do not accept arbitrary owner scope from request JSON.
+The actual owner scope must be derived from canonical owner authorization; do
+not accept arbitrary owner scope from request JSON. Likewise, snapshot input
+must come from trusted server-side ClassOps revision state, not raw request JSON.
 
-Preview should call `classops_audience_preview()`. Confirmation must supply the
-preview hash as `expectedResolutionHash`; drift is 409 and requires re-preview.
-Do not create a mutation/send path that bypasses confirmation.
+Preview should call `classops_audience_preview()` only with resolver output.
+Confirmation must supply the preview hash as `expectedResolutionHash`; drift is
+409 and requires re-preview. Do not create a mutation/send path that bypasses
+confirmation.
 
 ### 4. Canonical identity/selector adapter
 
@@ -303,6 +315,19 @@ truth. No ClassOps audience feed/queue should be added.
 assignments. Audience does not copy that state. If an eventual Term 7 selector
 is required, integration must consume a canonical student-number-based Term 7
 interface and keep ClassOps as an operational overlay only.
+
+### 7. `scripts/run_static_checks.sh`
+
+This script is integration-only. Its existing PHP-lint section already lints
+all new Audience PHP files, but it does not automatically execute newly named
+tests. In the `Unit tests` / ClassOps area, integration should add exactly:
+
+```bash
+"$PHP_BIN" scripts/test_classops_audience_policy.php || fail "test_classops_audience_policy.php"
+"$PYTHON_BIN" scripts/test_classops_audience_contract.py || fail "test_classops_audience_contract.py"
+```
+
+Do not edit the central static-check runner on this feature branch.
 
 ## Test commands
 
