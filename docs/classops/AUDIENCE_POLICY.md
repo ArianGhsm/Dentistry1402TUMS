@@ -156,6 +156,13 @@ signature**. Integration must never trust an arbitrary client-authored snapshot.
 Only a server-produced snapshot obtained during owner preview/confirmation may
 be persisted as canonical revision data.
 
+This feature branch deliberately does not choose a new persistent slot for that
+snapshot. `classops-v1` has a strict frozen item schema, so integration must make
+an explicit versioned contract decision about where an approved snapshot lives
+(for example, an approved versioned extension or new item contract). Do not
+silently add snapshot state to the strict audience spec and do not create a
+parallel persistent audience store.
+
 ### `resolutionMode = live`
 
 Every operation resolves against the current canonical source. Owner preview
@@ -230,7 +237,9 @@ At function `classops_normalize_audience()`:
   unsupported legacy modes require an explicit migration decision.
 
 Do not weaken revision, optimistic-concurrency or idempotency semantics in the
-Foundation.
+Foundation. If snapshot persistence is approved, store only a trusted
+server-produced snapshot through an explicit versioned item/extension contract;
+do not add a second Audience persistence source.
 
 ### 2. `contracts/classops-v1.schema.json`
 
@@ -242,6 +251,8 @@ silently replace the placeholder definition.
 
 Promote/copy the reviewed candidate schema from
 `contracts/candidates/classops-audience-v1.json` only as part of that decision.
+Any snapshot persistence field/extension must be included in the same explicit
+contract review rather than added ad hoc.
 
 ### 3. `public_html/api/classops_api.php`
 
@@ -324,6 +335,7 @@ tests. In the `Unit tests` / ClassOps area, integration should add exactly:
 
 ```bash
 "$PHP_BIN" scripts/test_classops_audience_policy.php || fail "test_classops_audience_policy.php"
+"$PHP_BIN" scripts/test_classops_audience_snapshot_strict.php || fail "test_classops_audience_snapshot_strict.php"
 "$PYTHON_BIN" scripts/test_classops_audience_contract.py || fail "test_classops_audience_contract.py"
 ```
 
@@ -335,6 +347,7 @@ Focused feature tests:
 
 ```bash
 php scripts/test_classops_audience_policy.php
+php scripts/test_classops_audience_snapshot_strict.php
 python scripts/test_classops_audience_contract.py
 ```
 
