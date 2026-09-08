@@ -25,12 +25,11 @@ function classops_stage2_student_item_projection(array $item,array $user): array
         'status'=>$item['status'],'requireAck'=>$item['requireAck'],
     ];
     if (in_array((string)$item['type'],['task','requirement'],true)) {
-        // Read paths never initialize state; trusted state is created at owner confirmation time.
+        // Reads must never initialize state. Task state is created on owner
+        // confirmation, or lazily only inside an explicit mutation transaction.
         $state=classops_stage2_get_task_state($item,$student,false);
         $due=is_array($item['timing']??null)?($item['timing']['dueAt']??null):null;
-        $projection['task']=$state===null
-            ? ['state'=>'unavailable','reasonCode'=>'CLASSOPS_TASK_STATE_MISSING']
-            : classops_task_student_projection($state,$student,is_string($due)?$due:null,gmdate('Y-m-d\TH:i:s\Z'));
+        $projection['task']=$state===null?null:classops_task_student_projection($state,$student,is_string($due)?$due:null,gmdate('Y-m-d\TH:i:s\Z'));
     }
     if (($item['type']??'')==='exam') {
         try { $projection['exam']=classops_exam_projection($item); }
@@ -40,11 +39,12 @@ function classops_stage2_student_item_projection(array $item,array $user): array
         $projection['ack']=['acked'=>classops_ack_is_satisfied(classops_stage2_ack_state(),$item,$student),'revision'=>(int)$item['revision']];
     }
     if (($item['type']??'')==='service_reminder') {
-        $state=classops_stage2_get_service_state($item,$student);
+        $serviceState=classops_stage2_get_service_state($item,$student);
         $projection['service']=[
             'serviceRef'=>$item['extensions'][CLASSOPS_STAGE2_EXTENSION_KEY]['serviceRef']??null,
-            'externallyVerified'=>false,'claim'=>'local-reminder-only',
-            'localState'=>$state===null?['state'=>'unavailable','reasonCode'=>'CLASSOPS_SERVICE_STATE_MISSING']:$state,
+            'externallyVerified'=>false,
+            'claim'=>'local-reminder-only',
+            'state'=>$serviceState,
         ];
     }
     return $projection;
@@ -55,11 +55,14 @@ function classops_stage2_student_list(array $user,array $filters=[]): array
     $student=classops_stage2_student_number($user);
     $cohort=dent_user_cohort_key($user);
     if ($cohort==='') classops_domain_error('CLASSOPS_CANONICAL_COHORT_REQUIRED','ورودی canonical کاربر مشخص نیست.',403);
+    $allowedFilters=['type','status'];
+    foreach (array_keys($filters) as $key) if (!in_array($key,$allowedFilters,true)) classops_domain_error('CLASSOPS_UNKNOWN_FIELD','فیلتر شناخته‌شده نیست.');
     $store=classops_read_store();
     $items=[];
     foreach (($store['items']??[]) as $item) {
         if (!is_array($item)||($item['cohortKey']??'')!==$cohort||in_array((string)($item['status']??''),['archived','cancelled'],true)) continue;
-        if (isset($filters['type'])&&$filters['type']!==''&&($item['type']??'')!==$filters['type']) continue;
+        if (($filters['type']??'')!==''&&($item['type']??'')!==$filters['type']) continue;
+        if (($filters['status']??'')!==''&&($item['status']??'')!==$filters['status']) continue;
         if (classops_stage2_item_audience_for_student($item,$student)===null) continue;
         $items[]=classops_stage2_student_item_projection($item,$user);
     }
@@ -92,18 +95,6 @@ function classops_stage2_student_task_transition(array $user,array $payload): ar
     );
 }
 
-function classops_stage2_student_service_transition(array $user,array $payload): array
-{
-    classops_assert_known_keys($payload,['id','expectedStateRevision','target','commandId']);
-    $item=classops_get_item(classops_stage2_require_item_id($payload['id']??''));
-    if (($item['type']??'')!=='service_reminder') classops_domain_error('CLASSOPS_SERVICE_TYPE_REQUIRED','این آیتم یادآوری خدمت نیست.');
-    $student=classops_stage2_student_number($user);
-    if (classops_stage2_item_audience_for_student($item,$student)===null) classops_domain_error('CLASSOPS_ITEM_NOT_VISIBLE','این آیتم برای حساب شما قابل مشاهده نیست.',403);
-    return classops_stage2_transition_service_state(
-        $item,$student,(int)($payload['expectedStateRevision']??0),trim((string)($payload['target']??'')),trim((string)($payload['commandId']??''))
-    );
-}
-
 function classops_stage2_student_ack(array $user,array $payload): array
 {
     classops_assert_known_keys($payload,['id','expectedRevision','idempotencyKey']);
@@ -113,4 +104,16 @@ function classops_stage2_student_ack(array $user,array $payload): array
     if ($aud===null) classops_domain_error('CLASSOPS_ACK_NOT_ELIGIBLE','این اطلاعیه برای حساب شما نیست.',403);
     if ((int)($payload['expectedRevision']??0)!==(int)$item['revision']) classops_domain_error('CLASSOPS_ACK_STALE_REVISION','نسخه اطلاعیه تغییر کرده است.',409);
     return classops_stage2_record_ack($item,$student,(string)$aud['resolutionHash'],trim((string)($payload['idempotencyKey']??'')));
+}
+
+function classops_stage2_student_service_transition(array $user,array $payload): array
+{
+    classops_assert_known_keys($payload,['id','expectedStateRevision','target','commandId']);
+    $item=classops_get_item(classops_stage2_require_item_id($payload['id']??''));
+    if (($item['type']??'')!=='service_reminder') classops_domain_error('CLASSOPS_SERVICE_REMINDER_REQUIRED','این آیتم service reminder نیست.');
+    $student=classops_stage2_student_number($user);
+    if (classops_stage2_item_audience_for_student($item,$student)===null) classops_domain_error('CLASSOPS_ITEM_NOT_VISIBLE','این آیتم برای حساب شما قابل مشاهده نیست.',403);
+    return classops_stage2_transition_service_state(
+        $item,$student,(int)($payload['expectedStateRevision']??0),trim((string)($payload['target']??'')),trim((string)($payload['commandId']??''))
+    );
 }
