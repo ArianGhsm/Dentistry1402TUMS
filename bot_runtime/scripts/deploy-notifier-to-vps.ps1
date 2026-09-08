@@ -7,7 +7,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$configPath = Join-Path $root $ServerConfig
+$configPath = if ([IO.Path]::IsPathRooted($ServerConfig)) { $ServerConfig } else { Join-Path $root $ServerConfig }
+$configPath = (Resolve-Path -LiteralPath $configPath).Path
+$serverStateRoot = if ((Split-Path $configPath -Leaf) -eq 'iran-server.json' -and (Split-Path (Split-Path $configPath -Parent) -Leaf) -eq '.codex-local') { Split-Path (Split-Path $configPath -Parent) -Parent } else { $root }
 if (-not (Test-Path -LiteralPath $configPath)) { throw "Server config is missing." }
 $server = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
 if ([string]$server.host -ne $ConfirmTargetHost) { throw "ConfirmTargetHost does not match the Iran server." }
@@ -27,11 +29,13 @@ $target = "$sshUser@$($server.host)"
 
 try {
     if (-not $Bootstrap) {
-        Publish-DentDeployLifecycle -Service integrated-ops -Status started -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Central notifier deployment started." -ServerConfig $ServerConfig
+        Publish-DentDeployLifecycle -Service integrated-ops -Status started -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Central notifier deployment started." -ServerConfig $configPath
         $lifecycleStarted = $true
     }
     New-Item -ItemType Directory -Force -Path $temporaryRoot | Out-Null
-    Copy-Item -LiteralPath (Join-Path $root ([string]$server.knownHostsFile)) -Destination $runtimeKnownHosts -Force
+    $knownHostsPath = [string]$server.knownHostsFile
+    if (-not [IO.Path]::IsPathRooted($knownHostsPath)) { $knownHostsPath = Join-Path $serverStateRoot $knownHostsPath }
+    Copy-Item -LiteralPath ([IO.Path]::GetFullPath($knownHostsPath)) -Destination $runtimeKnownHosts -Force
     $sshOptions = @(
         "-i", $identityFile, "-p", [string]$server.port,
         "-o", "BatchMode=yes", "-o", "StrictHostKeyChecking=yes",
@@ -56,15 +60,15 @@ try {
     & ssh @sshOptions $target $remote
     if ($LASTEXITCODE -ne 0) { throw "Remote notifier installation failed." }
     if ($Bootstrap) {
-        Publish-DentDeployLifecycle -Service integrated-ops -Status started -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Central notifier bootstrap delivery validation started." -ServerConfig $ServerConfig
+        Publish-DentDeployLifecycle -Service integrated-ops -Status started -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Central notifier bootstrap delivery validation started." -ServerConfig $configPath
         $lifecycleStarted = $true
     }
-    Publish-DentDeployLifecycle -Service integrated-ops -Status succeeded -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Central notifier deployment passed three-channel health checks." -ServerConfig $ServerConfig
+    Publish-DentDeployLifecycle -Service integrated-ops -Status succeeded -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Central notifier deployment passed three-channel health checks." -ServerConfig $configPath
     $lifecycleStarted = $false
 }
 catch {
     if ($lifecycleStarted) {
-        Publish-DentDeployLifecycle -Service integrated-ops -Status failed -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Central notifier deployment failed; inspect the deploy report." -ServerConfig $ServerConfig
+        Publish-DentDeployLifecycle -Service integrated-ops -Status failed -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Central notifier deployment failed; inspect the deploy report." -ServerConfig $configPath
         $lifecycleStarted = $false
     }
     throw

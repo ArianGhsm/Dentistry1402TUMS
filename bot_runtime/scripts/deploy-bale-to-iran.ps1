@@ -8,8 +8,11 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$serverPath = [IO.Path]::GetFullPath((Join-Path $root $ServerConfig))
-$knownHostsPath = [IO.Path]::GetFullPath((Join-Path $root $KnownHostsFile))
+$serverPath = if ([IO.Path]::IsPathRooted($ServerConfig)) { $ServerConfig } else { Join-Path $root $ServerConfig }
+$serverPath = (Resolve-Path -LiteralPath $serverPath).Path
+$serverStateRoot = if ((Split-Path $serverPath -Leaf) -eq 'iran-server.json' -and (Split-Path (Split-Path $serverPath -Parent) -Leaf) -eq '.codex-local') { Split-Path (Split-Path $serverPath -Parent) -Parent } else { $root }
+$knownHostsPath = if ([IO.Path]::IsPathRooted($KnownHostsFile)) { $KnownHostsFile } else { Join-Path $serverStateRoot $KnownHostsFile }
+$knownHostsPath = [IO.Path]::GetFullPath($knownHostsPath)
 $server = Get-Content -Raw -Encoding UTF8 -LiteralPath $serverPath | ConvertFrom-Json
 if ([string]$server.host -ne $ConfirmTargetHost) {
     throw "ConfirmTargetHost does not match the configured Iran server."
@@ -57,7 +60,7 @@ $scpOptions = @(
 )
 
 try {
-    Publish-DentDeployLifecycle -Service bale-bot -Status started -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Bale bot deployment started."
+    Publish-DentDeployLifecycle -Service bale-bot -Status started -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Bale bot deployment started." -ServerConfig $serverPath
     $lifecycleStarted = $true
     New-Item -ItemType Directory -Force -Path $restoreRoot | Out-Null
     $restoreArgs = @{ Destination = $restoreRoot }
@@ -230,12 +233,12 @@ echo BALE_RELEASE=__RELEASE_ID__
 
     & ssh @sshOptions $target "sudo bash '$remoteInstaller'"
     if ($LASTEXITCODE -ne 0) { throw "The Bale deployment or health check failed." }
-    Publish-DentDeployLifecycle -Service bale-bot -Status succeeded -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Bale bot and its direct network route passed health checks."
+    Publish-DentDeployLifecycle -Service bale-bot -Status succeeded -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Bale bot and its direct network route passed health checks." -ServerConfig $serverPath
     $lifecycleStarted = $false
 }
 catch {
     if ($lifecycleStarted) {
-        Publish-DentDeployLifecycle -Service bale-bot -Status failed -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Bale bot deployment failed; inspect the deploy report."
+        Publish-DentDeployLifecycle -Service bale-bot -Status failed -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Bale bot deployment failed; inspect the deploy report." -ServerConfig $serverPath
         $lifecycleStarted = $false
     }
     throw
