@@ -3757,8 +3757,15 @@ try {
     $deployInfo.DeleteCount = $deleteList.Count
     $deployInfo.EstimatedUploadBytes = Get-FileBytesFromRelativeList -rootPath $localRoot -relativeList $uploadList
     $deployInfo.Notes = @($plan.Notes)
+    # PowerShell represents `$null + $null` as a one-element pipeline.  Filter
+    # empty values before applying the fail-closed path predicate so a genuine
+    # zero-delta release does not become a false protected-path violation.
+    $deployPlanPaths = @(
+        @($uploadList) + @($deleteList) |
+            Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }
+    )
     $script:DeployPlanProtectedViolations = @(
-        @($uploadList + $deleteList) | Where-Object { Test-ProtectedPublicHtmlRelativePath -relative ([string]$_) }
+        $deployPlanPaths | Where-Object { Test-ProtectedPublicHtmlRelativePath -relative ([string]$_) }
     )
     if ($script:DeployPlanProtectedViolations.Count -gt 0) {
         throw "RELEASE_PROTECTED_PATH_VIOLATION"
@@ -4119,7 +4126,10 @@ try {
     Write-Host " - Run finished at: $runFinishedAt"
 
     if (-not [string]::IsNullOrWhiteSpace($failureMessage)) {
-        Write-Error $failureMessage
+        # Do not emit a terminating error inside finally: the durable failure
+        # report below is the release source of truth and must be committed
+        # before the original failure is rethrown to the caller.
+        Write-Warning $failureMessage
     }
 }
 

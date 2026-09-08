@@ -71,6 +71,15 @@ for needle in [
 assert 'if ($DryRun -and -not $script:DeployPlanComplete)' in DEPLOY, (
     "dry-run must never return success without a complete deploy plan"
 )
+assert 'Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }' in DEPLOY, (
+    "zero-delta plans must discard PowerShell null pipeline entries before protected-path validation"
+)
+assert 'Write-Warning $failureMessage' in DEPLOY, (
+    "failure reporting must not terminate inside finally before the durable report is written"
+)
+assert DEPLOY.index('Write-Warning $failureMessage') < DEPLOY.index(
+    'Write-ReleaseReport -status "failed" -failureCode "RELEASE_PIPELINE_FAILED"'
+), "the durable failure report must be reachable after final diagnostics"
 assert '"--server-only-root", $smokeServerOnlyRoot' in DEPLOY, (
     "release smoke must explicitly bind the PHP server to its isolated server-only fixture"
 )
