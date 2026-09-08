@@ -42,6 +42,23 @@ assert '$snapshotPath = Join-Path $opsRoot ".codex-local\\remote-storage\\snapsh
 assert '$activePath = Join-Path $opsRoot "server-only\\storage"' in DEPLOY, (
     "active storage mirror must remain under shared server-only state"
 )
+assert "Running isolated local authenticated smoke with synthetic fixture identity." in DEPLOY, (
+    "release smoke must use an isolated synthetic fixture instead of a production owner credential"
+)
+assert '"--server-only-root", $smokeServerOnlyRoot' in DEPLOY, (
+    "release smoke must explicitly bind the PHP server to its isolated server-only fixture"
+)
+validation_section = DEPLOY[DEPLOY.index("Step 1/5: local validation"):DEPLOY.index("function Run-OptionalPullBeforeDeploy")]
+assert '"--owner-student-number", $liveCredentials.StudentNumber' not in validation_section, (
+    "production owner credentials must not be passed to the local smoke harness"
+)
+SMOKE = (ROOT / "scripts/smoke_multi_cohort_pages.py").read_text(encoding="utf-8")
+assert 'parser.add_argument("--server-only-root", required=True)' in SMOKE, (
+    "smoke harness must require an explicit isolated server-only root"
+)
+assert 'server_env["DENT_SERVER_ONLY_ROOT"] = server_only_root' in SMOKE, (
+    "smoke PHP server must receive its isolated storage root"
+)
 for retired in ROOT.glob("public_html/api/private_notes_*.php"):
     raise AssertionError(f"retired undeployed private-notes source remains: {retired.name}")
 

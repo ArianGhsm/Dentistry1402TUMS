@@ -83,6 +83,13 @@ def run_smoke_session(args: argparse.Namespace) -> None:
     if not os.path.isdir(public_root):
         raise RuntimeError(f"public_html not found: {public_root}")
 
+    server_only_root = os.path.abspath(args.server_only_root)
+    storage_root = os.path.join(server_only_root, "storage")
+    session_root = os.path.join(server_only_root, "sessions")
+    if not os.path.isfile(os.path.join(storage_root, "auth", "users.json")):
+        raise RuntimeError("Smoke server-only storage has no auth store.")
+    os.makedirs(session_root, exist_ok=True)
+
     port = find_free_port()
     base_url = f"http://127.0.0.1:{port}"
     smoke_log_dir = os.path.join(args.project_root, ".codex-local")
@@ -90,11 +97,16 @@ def run_smoke_session(args: argparse.Namespace) -> None:
     smoke_log_path = os.path.join(smoke_log_dir, "smoke_multi_cohort_pages.log")
 
     with open(smoke_log_path, "w", encoding="utf-8") as smoke_log:
+        server_env = os.environ.copy()
+        server_env["DENT_SERVER_ONLY_ROOT"] = server_only_root
+        server_env["DENT_STORAGE_ROOT"] = storage_root
+        server_env["DENT_SESSION_SAVE_PATH"] = session_root
         process = subprocess.Popen(
             ["php", "-S", f"127.0.0.1:{port}", "-t", public_root],
             stdout=smoke_log,
             stderr=smoke_log,
             cwd=args.project_root,
+            env=server_env,
         )
 
         try:
@@ -287,6 +299,7 @@ def run_smoke_session(args: argparse.Namespace) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--project-root", required=True)
+    parser.add_argument("--server-only-root", required=True)
     parser.add_argument("--owner-student-number", required=True)
     parser.add_argument("--owner-password", required=True)
     args = parser.parse_args()
