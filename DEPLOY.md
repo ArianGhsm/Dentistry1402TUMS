@@ -41,6 +41,13 @@ Dry-run:
 powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1 -ReleaseSha <exact-sha> -DryRun
 ```
 
+For an operator-facing gate that validates the child exit code and its durable
+report, use:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 -ReleaseSha <exact-sha> -DryRun
+```
+
 The command writes an atomic, ignored machine-readable report under the shared
 ops root at `.codex-local/release-runs/<sha>/<run-id>/release-report.json`.
 Treat a dry-run as successful only when its exit code is zero **and** the report
