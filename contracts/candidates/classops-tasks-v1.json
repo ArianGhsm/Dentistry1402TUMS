@@ -1,0 +1,38 @@
+{
+  "contractVersion": "classops-tasks-v1",
+  "status": "candidate",
+  "promotionOwner": "integration",
+  "compatibleWith": ["classops-v1", "canonical-student-identity-v1", "classops-audience-v1"],
+  "boundaries": {
+    "sourceOfTruth": "canonical-classops-storage-family",
+    "parallelUserStore": false,
+    "parallelSubmissionContentStore": false,
+    "directTransport": false,
+    "displayNameIdentity": false,
+    "readMutatesState": false
+  },
+  "states": ["pending", "submitted", "needs_revision", "completed", "waived"],
+  "transitions": {
+    "pending": ["submitted", "completed", "waived"],
+    "submitted": ["needs_revision", "completed", "waived"],
+    "needs_revision": ["submitted", "completed", "waived"],
+    "completed": ["pending"],
+    "waived": ["pending"]
+  },
+  "requirementKinds": ["binary", "count"],
+  "limits": {
+    "maxTargetCount": 10000,
+    "maxHistoryEntries": 512,
+    "maxReasonChars": 500,
+    "maxMetadataBytes": 4096
+  },
+  "identity": {
+    "studentKey": "canonicalStudentNumber",
+    "cohortKey": "canonicalCohortKey"
+  },
+  "audienceChangePolicy": ["snapshot", "explicit_re_evaluation"],
+  "submission": {
+    "contentStorage": "out_of_scope",
+    "safeMetadataOnly": true
+  }
+}
