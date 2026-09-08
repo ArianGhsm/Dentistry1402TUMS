@@ -51,6 +51,19 @@ assert '$siteDeliveryStatus -ne "delivered" -and $Status -eq "started"' in DEPLO
 assert 'Final lifecycle delivery remains mandatory.' in DEPLOY, (
     "the completion lifecycle notice must remain delivery-gated"
 )
+for needle in [
+    'function Write-ReleaseReport',
+    'release-report.json',
+    'RELEASE_PLAN_INCOMPLETE',
+    'RELEASE_PROTECTED_PATH_VIOLATION',
+    '$script:DeployPlanComplete = $true',
+    'protectedPathViolations',
+    'productionMutation',
+]:
+    assert needle in DEPLOY, f"missing durable release-report invariant: {needle}"
+assert 'if ($DryRun -and -not $script:DeployPlanComplete)' in DEPLOY, (
+    "dry-run must never return success without a complete deploy plan"
+)
 assert '"--server-only-root", $smokeServerOnlyRoot' in DEPLOY, (
     "release smoke must explicitly bind the PHP server to its isolated server-only fixture"
 )
