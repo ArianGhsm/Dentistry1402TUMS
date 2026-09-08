@@ -1,0 +1,33 @@
+{
+  "contractVersion": "classops-domain-contracts-v1",
+  "stage": "integration-stage1",
+  "baseContract": "classops-v1",
+  "compatibility": {
+    "historicalClassopsV1Readable": true,
+    "audiencePlaceholderReadable": true,
+    "deliveryPlaceholderReadable": true,
+    "reminderPlaceholderReadable": true,
+    "productionDataMigrationPerformed": false
+  },
+  "domains": {
+    "audience": {"version":"classops-audience-v1","schema":"contracts/candidates/classops-audience-v1.json","promotion":"stage1-approved-domain"},
+    "delivery": {"version":"classops-delivery-v1","schema":"contracts/candidates/classops-delivery-v1.json","promotion":"stage1-approved-domain","directSend":false},
+    "aiDraft": {"version":"classops-ai-draft-v1","schema":"contracts/candidates/classops-ai-draft-v1.json","promotion":"stage1-approved-domain","directMutation":false,"directSend":false},
+    "tasksRequirements": {"version":"classops-tasks-v1","schema":"contracts/candidates/classops-tasks-v1.json","promotion":"stage1-approved-domain"},
+    "examAck": {"version":"classops-exam-ack-v1","schema":"contracts/candidates/classops-exam-ack-v1.json","promotion":"stage1-approved-domain"},
+    "reminder": {"version":"classops-reminder-v1","schema":"contracts/candidates/classops-reminder-v1.json","promotion":"stage1-approved-domain","directSend":false},
+    "digest": {"version":"classops-digest-v1","schema":"contracts/candidates/classops-digest-v1.json","promotion":"stage1-approved-domain","readOnly":true}
+  },
+  "futureSurface": {
+    "version":"classops-surface-v1",
+    "source":"feature/classops-cross-surface-ux/contracts/candidates/classops-surface-v1.json",
+    "promotion":"stage2-only-not-merged"
+  },
+  "sourceOfTruth": {
+    "identity":"auth_store.php",
+    "term7":"academic_term7.php",
+    "notifications":"existing-notification-subsystem",
+    "payments":"existing-payment-subsystem",
+    "classops":"canonical-classops-storage-family"
+  }
+}
