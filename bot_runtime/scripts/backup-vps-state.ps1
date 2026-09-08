@@ -9,7 +9,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$server = Get-Content -Raw -LiteralPath (Join-Path $root $ServerConfig) | ConvertFrom-Json
+$serverConfigPath = if ([IO.Path]::IsPathRooted($ServerConfig)) { $ServerConfig } else { Join-Path $root $ServerConfig }
+$serverConfigPath = (Resolve-Path -LiteralPath $serverConfigPath).Path
+$serverStateRoot = if ((Split-Path $serverConfigPath -Leaf) -eq 'iran-server.json' -and (Split-Path (Split-Path $serverConfigPath -Parent) -Leaf) -eq '.codex-local') { Split-Path (Split-Path $serverConfigPath -Parent) -Parent } else { $root }
+$server = Get-Content -Raw -LiteralPath $serverConfigPath | ConvertFrom-Json
 $sshUser = if ($server.user) { $server.user } else { $server.bootstrapUser }
 if ([string]$sshUser -notmatch '^[a-z_][a-z0-9_-]*$') { throw "The configured SSH user is invalid." }
 $identityFile = [Environment]::ExpandEnvironmentVariables([string]$server.identityFile)
@@ -37,7 +40,9 @@ function Get-Sha256([byte[]]$Bytes) {
 try {
     New-Item -ItemType Directory -Force -Path $temporaryRoot | Out-Null
     if ($server.knownHostsFile) {
-        $knownHostsSource = [IO.Path]::GetFullPath((Join-Path $root ([string]$server.knownHostsFile)))
+        $knownHostsSource = [string]$server.knownHostsFile
+        if (-not [IO.Path]::IsPathRooted($knownHostsSource)) { $knownHostsSource = Join-Path $serverStateRoot $knownHostsSource }
+        $knownHostsSource = [IO.Path]::GetFullPath($knownHostsSource)
         if (-not (Test-Path -LiteralPath $knownHostsSource -PathType Leaf)) {
             throw "The configured known-hosts file is missing."
         }

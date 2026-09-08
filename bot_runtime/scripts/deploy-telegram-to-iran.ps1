@@ -7,7 +7,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
-$server = Get-Content -Raw -Encoding UTF8 -LiteralPath (Join-Path $root $ServerConfig) | ConvertFrom-Json
+$serverConfigPath = if ([IO.Path]::IsPathRooted($ServerConfig)) { $ServerConfig } else { Join-Path $root $ServerConfig }
+$serverConfigPath = (Resolve-Path -LiteralPath $serverConfigPath).Path
+$serverStateRoot = if ((Split-Path $serverConfigPath -Leaf) -eq 'iran-server.json' -and (Split-Path (Split-Path $serverConfigPath -Parent) -Leaf) -eq '.codex-local') { Split-Path (Split-Path $serverConfigPath -Parent) -Parent } else { $root }
+$server = Get-Content -Raw -Encoding UTF8 -LiteralPath $serverConfigPath | ConvertFrom-Json
+$knownHostsPath = [string]$server.knownHostsFile
+if (-not [IO.Path]::IsPathRooted($knownHostsPath)) { $knownHostsPath = Join-Path $serverStateRoot $knownHostsPath }
+$knownHostsPath = [IO.Path]::GetFullPath($knownHostsPath)
+if (-not (Test-Path -LiteralPath $knownHostsPath -PathType Leaf)) { throw "The pinned Iran known-hosts file is missing." }
 if ([string]$server.host -ne $ConfirmTargetHost) { throw "ConfirmTargetHost does not match the Iran server." }
 $sshUser = if ($server.user) { [string]$server.user } else { [string]$server.bootstrapUser }
 $identityFile = [Environment]::ExpandEnvironmentVariables([string]$server.identityFile)
@@ -23,10 +30,10 @@ $codeBundle = Join-Path $temporaryRoot "telegram-code.tar.gz"
 $remotePrefix = "/tmp/integrated-dent-telegram-$([Guid]::NewGuid().ToString('N'))"
 
 try {
-    Publish-DentDeployLifecycle -Service telegram-bot -Status started -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Telegram bot deployment started."
+    Publish-DentDeployLifecycle -Service telegram-bot -Status started -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Telegram bot deployment started." -ServerConfig $serverConfigPath
     $lifecycleStarted = $true
     New-Item -ItemType Directory -Force -Path $temporaryRoot, $restoreRoot | Out-Null
-    Copy-Item -LiteralPath (Join-Path $root ([string]$server.knownHostsFile)) -Destination $runtimeKnownHosts -Force
+    Copy-Item -LiteralPath $knownHostsPath -Destination $runtimeKnownHosts -Force
     $restoreArgs = @{ Destination = $restoreRoot }
     if ($Snapshot) { $restoreArgs.Snapshot = $Snapshot }
     & (Join-Path $PSScriptRoot "restore-vps-state.ps1") @restoreArgs | Out-Null
@@ -255,12 +262,12 @@ echo TELEGRAM_RELEASE=__RELEASE_ID__
     if ($LASTEXITCODE -ne 0) {
         throw "Telegram deployment failed; rollback to the previous active release was attempted."
     }
-    Publish-DentDeployLifecycle -Service telegram-bot -Status succeeded -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Telegram bot and its isolated egress passed health checks."
+    Publish-DentDeployLifecycle -Service telegram-bot -Status succeeded -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Telegram bot and its isolated egress passed health checks." -ServerConfig $serverConfigPath
     $lifecycleStarted = $false
 }
 catch {
     if ($lifecycleStarted) {
-        Publish-DentDeployLifecycle -Service telegram-bot -Status failed -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Telegram bot deployment failed; inspect the deploy report."
+        Publish-DentDeployLifecycle -Service telegram-bot -Status failed -ReleaseId $releaseId -EventBaseId $lifecycleBaseId -Summary "Telegram bot deployment failed; inspect the deploy report." -ServerConfig $serverConfigPath
         $lifecycleStarted = $false
     }
     throw
