@@ -46,7 +46,9 @@ jobs:
           php scripts/test_classops_domain_store_adapter.php
 
       - name: Stage 2 website operations surface
-        run: python scripts/test_classops_stage2_web_surface.py
+        run: |
+          python scripts/test_classops_stage2_web_surface.py
+          php scripts/test_classops_stage2_terminal.php
 
       - name: Audience
         run: |
