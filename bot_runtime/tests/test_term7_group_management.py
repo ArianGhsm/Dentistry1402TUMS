@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import unittest
 
-from dent_bot.class_operations import (
-    _term7_assignment_summary,
-    _term7_choose_group_screen,
-    _term7_group_index,
-    _term7_group_screen,
-    _term7_student_screen,
+from dent_bot.term7_group_management import (
+    _assignment_summary,
+    _choose_group_screen,
+    _group_index,
+    _group_screen,
+    _home_screen,
+    _owner_screen_with_term7,
+    _student_screen,
 )
+from dent_bot.ui import Screen, button, keyboard
 
 
 ROSTER = [
@@ -50,12 +53,12 @@ class Term7GroupManagementTests(unittest.TestCase):
         ]
 
     def test_student_summary_is_persian_and_status_aware(self):
-        text = _term7_assignment_summary(ROSTER[0]["assignment"])
+        text = _assignment_summary(ROSTER[0]["assignment"])
         self.assertIn("صبح: گروه ۱ · سرگروه", text)
         self.assertIn("عصر: گروه ۱۲ · عضو", text)
 
     def test_group_index_is_native_rich_and_has_no_fake_table(self):
-        screen = _term7_group_index(ROSTER, "group10")
+        screen = _group_index(ROSTER, "group10")
         self.assertTrue(hasattr(screen.text, "rich_html"))
         self.assertIn("<table bordered striped compact>", screen.text.rich_html)
         self.assertNotIn("<pre>", screen.text.rich_html)
@@ -63,21 +66,31 @@ class Term7GroupManagementTests(unittest.TestCase):
 
     def test_callbacks_remain_within_transport_limit(self):
         screens = [
-            _term7_group_screen(ROSTER, "group10", 1),
-            _term7_student_screen(ROSTER[0]),
-            _term7_choose_group_screen(ROSTER[0], "group8"),
+            _home_screen(ROSTER),
+            _group_screen(ROSTER, "group10", 1),
+            _student_screen(ROSTER[0]),
+            _choose_group_screen(ROSTER[0], "group8"),
         ]
         for screen in screens:
             for callback in self.callbacks(screen):
                 self.assertLessEqual(len(callback.encode("utf-8")), 64, callback)
 
     def test_leader_toggle_and_clear_group_are_explicit(self):
-        student = _term7_student_screen(ROSTER[0])
+        student = _student_screen(ROSTER[0])
         labels = [item.get("text") for row in student.keyboard["inline_keyboard"] for item in row]
         self.assertIn("برداشتن سرگروهی صبح", labels)
-        choose = _term7_choose_group_screen(ROSTER[0], "group10")
+        choose = _choose_group_screen(ROSTER[0], "group10")
         labels = [item.get("text") for row in choose.keyboard["inline_keyboard"] for item in row]
         self.assertIn("پاک‌کردن گروه", labels)
+
+    def test_owner_screen_gets_single_term7_management_entry(self):
+        def original(*args, **kwargs):
+            return Screen("owner", keyboard([button("خانه", action="home")]))
+
+        first = _owner_screen_with_term7(original)
+        second = _owner_screen_with_term7(lambda: first)
+        labels = [item.get("text") for row in second.keyboard["inline_keyboard"] for item in row]
+        self.assertEqual(labels.count("گروه‌بندی ترم ۷"), 1)
 
 
 if __name__ == "__main__":
