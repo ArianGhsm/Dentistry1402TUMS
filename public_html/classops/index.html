@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>مرکز عملیات کلاس | Dentistry1402TUMS</title>
+    <meta name="description" content="سطح عملیاتی مالک برای پیش‌نویس، بازبینی و lifecycle آیتم‌های ClassOps.">
+    <meta name="robots" content="noindex,nofollow,noarchive">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png?v=20260722-200509">
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/YekanBakh-VF.woff2" crossorigin>
+    <script src="/assets/site/scripts/theme.js?v=20260722-200509"></script>
+    <link rel="stylesheet" href="/assets/site/styles/core.css?v=20260722-200509">
+    <link rel="stylesheet" href="/assets/site/styles/hub.css?v=20260722-200509">
+    <link rel="stylesheet" href="/assets/site/styles/theme.css?v=20260812-phase4b">
+    <link rel="stylesheet" href="/assets/classops_ops/classops_ops.css?v=classops-surface-v1">
+</head>
+<body class="hub-page classops-page">
+    <div class="background-overlay" aria-hidden="true"></div>
+    <header class="site-header">
+        <div class="logo-area">
+            <div class="logo-circle"><img src="/assets/images/logo.png?v=20260722-200509" alt="لوگوی رسمی سایت"></div>
+            <div class="site-info"><h1>مرکز عملیات کلاس</h1><p>ClassOps · preview / confirm / lifecycle</p></div>
+        </div>
+        <div class="header-actions">
+            <a class="header-link" href="/account/">حساب</a>
+            <a class="header-link" href="/app/">خانه</a>
+        </div>
+    </header>
+
+    <main class="classops-shell" aria-labelledby="classops-page-title">
+        <section class="classops-hero">
+            <div>
+                <span class="classops-kicker">Owner Operations Surface</span>
+                <h2 id="classops-page-title">یک workflow، سه surface</h2>
+                <p>این صفحه فقط capabilityهای واقعی Foundation را اجرا می‌کند. وضعیت scheduled/active مجوز ارسال Telegram/Bale نیست و قابلیت‌های متصل‌نشده به‌صورت disabled نمایش داده می‌شوند.</p>
+            </div>
+            <button id="classops-refresh" type="button" class="classops-button classops-button--secondary">بازیابی فهرست</button>
+        </section>
+
+        <p id="classops-access-state" class="classops-state" data-state="loading" role="status" aria-live="polite">در حال بررسی دسترسی مالک...</p>
+
+        <section id="classops-owner-center" hidden>
+            <div class="classops-grid classops-grid--wide">
+                <article class="classops-panel">
+                    <div class="classops-panel__head"><div><span class="classops-kicker">Draft</span><h3>ساخت پیش‌نویس</h3></div><span>preview → confirm → create</span></div>
+                    <form id="classops-draft-form" class="classops-form">
+                        <label>شناسه canonical ورودی<input name="cohortKey" required maxlength="80" autocomplete="off" placeholder="مثال: dentistry-1402"></label>
+                        <label>نوع<select name="type"><option value="announcement">اعلان</option><option value="event">رویداد</option><option value="class_change">تغییر کلاس</option><option value="deadline">مهلت</option><option value="task">تکلیف</option><option value="requirement">الزام</option><option value="exam">آزمون</option><option value="critical_notice">اطلاعیه حیاتی</option><option value="service_reminder">یادآور سرویس</option></select></label>
+                        <label>عنوان<input name="title" required maxlength="160"></label>
+                        <label class="classops-form__full">توضیح<textarea name="description" maxlength="4000" rows="4"></textarea></label>
+                        <label>اهمیت<select name="importance"><option value="normal">عادی</option><option value="important">مهم</option><option value="critical">حیاتی</option></select></label>
+                        <div class="classops-form__actions"><button type="submit" class="classops-button classops-button--primary">پیش‌نمایش و تأیید ساخت</button></div>
+                    </form>
+                </article>
+
+                <article class="classops-panel">
+                    <div class="classops-panel__head"><div><span class="classops-kicker">AI boundary</span><h3>ورودی متن آزاد</h3></div><span>preview-only</span></div>
+                    <form id="classops-ai-form" class="classops-form classops-form--stack">
+                        <label>درخواست مالک<textarea id="classops-ai-text" rows="5" maxlength="3000" placeholder="مثلاً: فردا کلاس ترمیمی ساعت ۸ به ۱۰ منتقل شد..."></textarea></label>
+                        <button type="submit" class="classops-button classops-button--secondary">ساخت درخواست پیش‌نویس</button>
+                    </form>
+                    <pre id="classops-ai-preview" class="classops-preview" hidden aria-live="polite"></pre>
+                    <p class="classops-note">در این branch هیچ provider فراخوانی نمی‌شود، AI چیزی در ClassOps نمی‌نویسد و هیچ send انجام نمی‌شود.</p>
+                </article>
+            </div>
+
+            <section class="classops-panel" aria-labelledby="classops-cap-title">
+                <div class="classops-panel__head"><div><span class="classops-kicker">Capability gate</span><h3 id="classops-cap-title">وضعیت actionها</h3></div><span>disabled ≠ success</span></div>
+                <div id="classops-capabilities" class="classops-capability-grid" aria-live="polite"></div>
+            </section>
+
+            <div class="classops-grid classops-grid--items">
+                <article class="classops-panel">
+                    <div class="classops-panel__head"><div><span class="classops-kicker">Items</span><h3>فهرست</h3></div><span id="classops-item-state" aria-live="polite">—</span></div>
+                    <div id="classops-conflict" class="classops-state" data-state="conflict" hidden role="alert"></div>
+                    <p id="classops-empty" class="classops-empty" hidden>موردی برای نمایش وجود ندارد.</p>
+                    <div id="classops-item-list" class="classops-item-list"></div>
+                </article>
+
+                <article id="classops-selected" class="classops-panel" hidden>
+                    <div class="classops-panel__head"><div><span class="classops-kicker">Selected</span><h3 id="classops-selected-title">—</h3></div><span id="classops-selected-meta">—</span></div>
+                    <label class="classops-edit-label">توضیح<textarea id="classops-edit-description" rows="5" maxlength="4000"></textarea></label>
+                    <pre id="classops-diff" class="classops-preview">برای preview تغییر، متن را ویرایش کن.</pre>
+                    <div class="classops-action-row">
+                        <button id="classops-edit" class="classops-button classops-button--secondary" type="button">پیش‌نمایش و تأیید ویرایش</button>
+                        <button id="classops-schedule" class="classops-button classops-button--secondary" type="button">scheduled</button>
+                        <button id="classops-activate" class="classops-button classops-button--secondary" type="button">active</button>
+                        <button id="classops-cancel" class="classops-button classops-button--danger" type="button">لغو</button>
+                        <button id="classops-archive" class="classops-button classops-button--danger" type="button">آرشیو</button>
+                    </div>
+                    <p class="classops-note">هر mutation با expectedRevision و idempotency key وارد confirmation می‌شود. conflict با 409 به refresh اجباری برمی‌گردد.</p>
+                </article>
+            </div>
+
+            <section class="classops-panel">
+                <div class="classops-panel__head"><div><span class="classops-kicker">Pending integration</span><h3>Audience / Delivery / Domain / Digest</h3></div><span>صریحاً غیرفعال</span></div>
+                <div class="classops-disabled-grid">
+                    <button disabled>پیش‌نمایش مخاطب حل‌شده</button><button disabled>پیش‌نمایش مقصد واقعی</button><button disabled>تکلیف / Requirement تخصصی</button><button disabled>Exam / Critical ACK</button><button disabled>Reminder preview</button><button disabled>خلاصه فردا</button><button disabled>خلاصه هفتگی</button>
+                </div>
+                <p class="classops-note">placeholderهای `classops-v1` فقط symbolic هستند. تا integration contract مربوطه promote نشود، این صفحه result واقعی نمایش نمی‌دهد.</p>
+            </section>
+        </section>
+    </main>
+
+    <dialog id="classops-confirm-dialog" class="classops-dialog" aria-labelledby="classops-confirm-title">
+        <h3 id="classops-confirm-title">تأیید عملیات</h3>
+        <pre id="classops-confirm-text"></pre>
+        <div class="classops-action-row"><button id="classops-confirm-no" type="button" class="classops-button classops-button--secondary">انصراف</button><button id="classops-confirm-yes" type="button" class="classops-button classops-button--primary">تأیید نهایی</button></div>
+    </dialog>
+
+    <script src="/assets/site/scripts/pwa.js?v=20260722-200509"></script>
+    <script src="/assets/site/scripts/auth.js?v=20260722-200509"></script>
+    <script src="/assets/site/scripts/shell.js?v=20260812-phase3b"></script>
+    <script src="/assets/classops_ops/classops_ops.js?v=classops-surface-v1"></script>
+    <script src="/assets/classops_ops/classops_ops_dom.js?v=classops-surface-v1"></script>
+    <script>window.addEventListener('DOMContentLoaded', function () { window.ClassOpsOps.mountOperationsCenter(); });</script>
+</body>
+</html>
