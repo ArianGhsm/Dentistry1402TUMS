@@ -109,7 +109,10 @@ function Send-CentralDeployLifecycle([string]$Status, [string]$Version, [string]
     } catch {
         throw "Central website deployment lifecycle response was invalid."
     }
-    if ([string]$eventResult.deliveries.site.status -ne "delivered") {
+    $siteDeliveryStatus = [string]$eventResult.deliveries.site.status
+    if ($siteDeliveryStatus -ne "delivered" -and $Status -eq "started") {
+        Write-Warning "Central website deployment start event is queued but its owner website notice is pending. Final lifecycle delivery remains mandatory."
+    } elseif ($siteDeliveryStatus -ne "delivered") {
         throw "Central website deployment lifecycle event was queued but the owner website notice was not delivered."
     }
     foreach ($line in $eventOutput) {

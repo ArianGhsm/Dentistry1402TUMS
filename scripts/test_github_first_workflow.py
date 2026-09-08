@@ -45,6 +45,12 @@ assert '$activePath = Join-Path $opsRoot "server-only\\storage"' in DEPLOY, (
 assert "Running isolated local authenticated smoke with synthetic fixture identity." in DEPLOY, (
     "release smoke must use an isolated synthetic fixture instead of a production owner credential"
 )
+assert '$siteDeliveryStatus -ne "delivered" -and $Status -eq "started"' in DEPLOY, (
+    "only a queued bootstrap lifecycle event may proceed before the website persistence repair is active"
+)
+assert 'Final lifecycle delivery remains mandatory.' in DEPLOY, (
+    "the completion lifecycle notice must remain delivery-gated"
+)
 assert '"--server-only-root", $smokeServerOnlyRoot' in DEPLOY, (
     "release smoke must explicitly bind the PHP server to its isolated server-only fixture"
 )
