@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/classops_bot_service.php';
 require_once __DIR__ . '/academic_term7_bot_service.php';
+require_once __DIR__ . '/classops_partial_theory_syllabus.php';
 
 function classops_bot_ux_v3_action(string $action): bool
 {
@@ -98,22 +99,33 @@ function classops_bot_ux_v3_term7_record(
     $start = trim((string) ($event['start'] ?? ''));
     $end = trim((string) ($event['end'] ?? ''));
     $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
-    $startsAt = $start !== '' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $start, $timezone) : null;
-    $endsAt = $end !== '' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $end, $timezone) : null;
+    $sessionMode = (string) ($event['sessionMode'] ?? '');
+    $startsAt = $start !== '' && $sessionMode !== 'virtual' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $start, $timezone) : null;
+    $endsAt = $end !== '' && $sessionMode !== 'virtual' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $end, $timezone) : null;
     $selector = (string) ($event['selector'] ?? '');
     $group = $selector === 'group10' ? ($assignment['group10'] ?? null) : ($selector === 'group8' ? ($assignment['group8'] ?? null) : null);
-    $ref = 't7_' . $date->format('Ymd') . '_' . substr(hash('sha256', $slug . '|' . $period), 0, 10);
+    $sessionNumber = isset($event['sessionNumber']) && (int) $event['sessionNumber'] > 0 ? (int) $event['sessionNumber'] : null;
+    $refIdentity = $slug . '|' . $period . '|' . ($sessionNumber ?? '');
+    $ref = 't7_' . $date->format('Ymd') . '_' . substr(hash('sha256', $refIdentity), 0, 10);
     $sortHour = $startsAt?->format('H:i') ?? ($period === 'afternoon' ? '13:00' : ($period === 'morning' ? '08:00' : '00:00'));
     $sortAt = new DateTimeImmutable($date->format('Y-m-d') . ' ' . $sortHour, $timezone);
     return [
         'source' => 'term7', 'ref' => $ref, 'type' => $kind, 'status' => 'active',
-        'title' => (string) ($event['title'] ?? ''), 'description' => '', 'courseTitle' => '',
+        'title' => (string) ($event['title'] ?? ''), 'description' => '',
+        'courseTitle' => (string) ($event['courseTitle'] ?? ''),
         'location' => (string) ($event['location'] ?? ''), 'importance' => 'normal',
         'localDate' => $date->format('Y-m-d'), 'startsAt' => $startsAt?->format('c') ?? '',
         'endsAt' => $endsAt?->format('c') ?? '', 'dueAt' => '',
-        'timeLabel' => $period === 'morning' ? 'صبح' : ($period === 'afternoon' ? 'عصر' : ''),
+        'timeLabel' => $sessionMode === 'virtual' ? 'مجازی' : ($period === 'morning' ? 'صبح' : ($period === 'afternoon' ? 'عصر' : '')),
         'sortAt' => $sortAt->setTimezone(new DateTimeZone('UTC'))->format('c'), 'overdue' => false,
         'rotation' => $rotation, 'rotationLabel' => dent_term7_bot_service_rotation_label($rotation),
+        'sessionNumber' => $sessionNumber,
+        'sessionTitle' => (string) ($event['sessionTitle'] ?? ''),
+        'instructor' => (string) ($event['instructor'] ?? ''),
+        'sessionMode' => $sessionMode,
+        'sessionModeLabel' => (string) ($event['sessionModeLabel'] ?? ''),
+        'references' => is_array($event['references'] ?? null) ? $event['references'] : [],
+        'sourceDate' => (string) ($event['sourceDate'] ?? ''),
         'applicability' => [
             'selector' => $selector,
             'group' => is_int($group) ? $group : null,
@@ -122,15 +134,22 @@ function classops_bot_ux_v3_term7_record(
     ];
 }
 
-function classops_bot_ux_v3_term7_records(array $user, DateTimeImmutable $date): array
+function classops_bot_ux_v3_term7_records(array $user, DateTimeImmutable $date, ?array $term7State = null): array
 {
     if (dent_user_cohort_key($user) !== DENT_TERM7_COHORT) return [];
-    $student = classops_stage2_student_number($user);
-    $assignment = dent_term7_assignment_for_student($student, dent_term7_state_read());
+    $student = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+    if ($student === '') return [];
+    $state = $term7State ?? dent_term7_state_read();
+    if (classops_stage2_is_owner($user) && !isset($state['assignments'][$student])) return [];
+    $assignment = dent_term7_assignment_for_student($student, $state);
     $resolved = dent_term7_resolve_date($date, $assignment);
     $rotation = (string) ($resolved['rotation'] ?? '');
     $out = [];
-    foreach (($resolved['theory'] ?? []) as $event) {
+    $theory = classops_partial_theory_enrich_events(
+        is_array($resolved['theory'] ?? null) ? $resolved['theory'] : [],
+        (string) ($resolved['date'] ?? '')
+    );
+    foreach ($theory as $event) {
         if (is_array($event)) $out[] = classops_bot_ux_v3_term7_record($event, $date, 'theory', 'theory', $rotation, $assignment);
     }
     foreach (($resolved['practicalMorning'] ?? []) as $event) {
@@ -161,18 +180,20 @@ function classops_bot_ux_v3_timeline(array $request, array $user): array
         if ($record === null || !isset($buckets[$record['localDate']])) continue;
         $buckets[$record['localDate']]['items'][] = $record;
     }
-    if (!classops_stage2_is_owner($user)) {
-        foreach ($buckets as $dateKey => &$bucket) {
-            $date = new DateTimeImmutable($dateKey . ' 00:00:00', $timezone);
-            $bucket['items'] = array_merge($bucket['items'], classops_bot_ux_v3_term7_records($user, $date));
-        }
-        unset($bucket);
+    foreach ($buckets as $dateKey => &$bucket) {
+        $date = new DateTimeImmutable($dateKey . ' 00:00:00', $timezone);
+        $bucket['items'] = array_merge($bucket['items'], classops_bot_ux_v3_term7_records($user, $date));
     }
+    unset($bucket);
     foreach ($buckets as &$bucket) {
         usort($bucket['items'], static function (array $left, array $right): int {
             $a = strtotime((string) ($left['sortAt'] ?? '')) ?: PHP_INT_MAX;
             $b = strtotime((string) ($right['sortAt'] ?? '')) ?: PHP_INT_MAX;
-            return $a <=> $b ?: strcmp((string) ($left['title'] ?? ''), (string) ($right['title'] ?? ''));
+            if ($a !== $b) return $a <=> $b;
+            $leftSession = (int) ($left['sessionNumber'] ?? 0);
+            $rightSession = (int) ($right['sessionNumber'] ?? 0);
+            if ($leftSession > 0 && $rightSession > 0 && $leftSession !== $rightSession) return $leftSession <=> $rightSession;
+            return strcmp((string) ($left['title'] ?? ''), (string) ($right['title'] ?? ''));
         });
     }
     unset($bucket);
