@@ -1,10 +1,15 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Callable
 
 from . import class_operations as classops
 from .app import DentBotApp
-from .bot_home_classops_ux_v2 import _owner, notification_status_screen, owner_classops_screen
+from .bot_home_classops_ux_v2 import (
+    _handle_v2_callback,
+    _owner,
+    notification_status_screen,
+    owner_classops_screen,
+)
 from .persian_datetime import to_persian_digits
 from .state import BotState
 from .ui import Screen, button, keyboard
@@ -12,8 +17,8 @@ from .ui import Screen, button, keyboard
 _INSTALLED = False
 
 
-def _callback_data(update: dict[str, Any]) -> tuple[dict[str, Any], int, int, str]:
-    callback = dict(update.get("callback_query") or {})
+def _callback_data(callback: dict[str, Any]) -> tuple[dict[str, Any], int, int, str]:
+    callback = dict(callback or {})
     message = dict(callback.get("message") or {})
     sender = dict(callback.get("from") or message.get("from") or {})
     chat = dict(message.get("chat") or {})
@@ -56,11 +61,10 @@ def _notification_status_with_ack_screen(status: dict[str, Any], ack_payload: di
     return Screen("\n".join(lines), base.keyboard)
 
 
-def install_bot_home_classops_ux_v2_compat() -> None:
-    """Post-install guards for runtime compatibility and deterministic owner paths."""
-    # UX v2 originally called ``state.get_dialog`` while the canonical BotState
-    # reader is ``dialog``. Keep this compatibility alias deterministic for both
-    # Telegram and Bale until the v2 surface no longer needs the legacy name.
+def install_bot_home_classops_ux_v2_compat(*, base_callback: Callable[..., Any]) -> None:
+    """Install the v2 runtime bridge over the current DentBot callback contract."""
+    # The v2 message wrapper shipped with a stale reader name. Preserve the
+    # canonical BotState implementation and expose only a compatibility alias.
     if not hasattr(BotState, "get_dialog"):
         setattr(BotState, "get_dialog", BotState.dialog)
 
@@ -92,21 +96,35 @@ def install_bot_home_classops_ux_v2_compat() -> None:
 
     classops._detail_screen = detail_with_owner_back
 
-    previous_callback = DentBotApp._callback
+    def callback_with_stale_owner_guard(
+        self: DentBotApp,
+        callback: dict[str, Any],
+        *,
+        interaction_version: int | None = None,
+    ) -> Any:
+        callback, chat_id, user_id, data = _callback_data(callback)
 
-    def callback_with_stale_owner_guard(self: DentBotApp, update: dict[str, Any]) -> Any:
-        callback, chat_id, user_id, data = _callback_data(update)
+        def original_from_update(app: DentBotApp, update: dict[str, Any]) -> Any:
+            payload = dict(update.get("callback_query") or {})
+            return base_callback(app, payload, interaction_version=interaction_version)
+
+        def dispatch_v2_or_base() -> Any:
+            update = {"callback_query": callback}
+            if _handle_v2_callback(self, update, original_from_update):
+                return None
+            return base_callback(self, callback, interaction_version=interaction_version)
+
         if data == "class-operations:owner":
             if chat_id == 0 or user_id == 0:
                 return None
             if not _owner(self, user_id):
-                return previous_callback(self, update)
+                return dispatch_v2_or_base()
             try:
                 capabilities = self.site_api.request("classopsCapabilities", user_id)
             except Exception:
-                return previous_callback(self, update)
+                return dispatch_v2_or_base()
             if str(capabilities.get("role") or "") != "owner":
-                return previous_callback(self, update)
+                return dispatch_v2_or_base()
             callback_id = str(callback.get("id") or "")
             if callback_id:
                 try:
@@ -121,7 +139,7 @@ def install_bot_home_classops_ux_v2_compat() -> None:
                 status = self.site_api.request("classopsNotificationStatus", user_id)
                 ack_status = self.site_api.request("classopsAckStatusV2", user_id)
             except Exception:
-                return previous_callback(self, update)
+                return dispatch_v2_or_base()
             callback_id = str(callback.get("id") or "")
             if callback_id:
                 try:
@@ -138,7 +156,7 @@ def install_bot_home_classops_ux_v2_compat() -> None:
 
         if data.startswith("classops-v2:confirm-cancel:cxo_") or data.startswith("classops-v2:confirm-archive:cxo_"):
             if chat_id == 0 or user_id == 0 or not _owner(self, user_id):
-                return previous_callback(self, update)
+                return dispatch_v2_or_base()
             verb = "cancel" if ":confirm-cancel:" in data else "archive"
             token = data.rsplit(":", 1)[-1]
             callback_id = str(callback.get("id") or "")
@@ -150,6 +168,6 @@ def install_bot_home_classops_ux_v2_compat() -> None:
             classops._render_screen(self, chat_id, _owner_confirmation_screen(token, verb), callback=callback)
             return None
 
-        return previous_callback(self, update)
+        return dispatch_v2_or_base()
 
     DentBotApp._callback = callback_with_stale_owner_guard
