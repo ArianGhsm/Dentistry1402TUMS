@@ -99,8 +99,9 @@ function classops_bot_ux_v3_term7_record(
     $start = trim((string) ($event['start'] ?? ''));
     $end = trim((string) ($event['end'] ?? ''));
     $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
-    $startsAt = $start !== '' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $start, $timezone) : null;
-    $endsAt = $end !== '' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $end, $timezone) : null;
+    $sessionMode = (string) ($event['sessionMode'] ?? '');
+    $startsAt = $start !== '' && $sessionMode !== 'virtual' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $start, $timezone) : null;
+    $endsAt = $end !== '' && $sessionMode !== 'virtual' ? new DateTimeImmutable($date->format('Y-m-d') . ' ' . $end, $timezone) : null;
     $selector = (string) ($event['selector'] ?? '');
     $group = $selector === 'group10' ? ($assignment['group10'] ?? null) : ($selector === 'group8' ? ($assignment['group8'] ?? null) : null);
     $sessionNumber = isset($event['sessionNumber']) && (int) $event['sessionNumber'] > 0 ? (int) $event['sessionNumber'] : null;
@@ -108,7 +109,6 @@ function classops_bot_ux_v3_term7_record(
     $ref = 't7_' . $date->format('Ymd') . '_' . substr(hash('sha256', $refIdentity), 0, 10);
     $sortHour = $startsAt?->format('H:i') ?? ($period === 'afternoon' ? '13:00' : ($period === 'morning' ? '08:00' : '00:00'));
     $sortAt = new DateTimeImmutable($date->format('Y-m-d') . ' ' . $sortHour, $timezone);
-    $sessionMode = (string) ($event['sessionMode'] ?? '');
     return [
         'source' => 'term7', 'ref' => $ref, 'type' => $kind, 'status' => 'active',
         'title' => (string) ($event['title'] ?? ''), 'description' => '',
