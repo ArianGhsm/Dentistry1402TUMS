@@ -195,7 +195,7 @@ test -d "$root/shared/server-only"
 test -f "$root/current/.release-sha"
 nginx -t >/dev/null
 php-fpm8.3 -t >/dev/null
-nginx -T 2>&1 | grep -Fq 'root /srv/dentistry1402/current/public_html;'
+nginx -T 2>&1 | grep -F 'root /srv/dentistry1402/current/public_html;' >/dev/null
 systemctl is-active --quiet nginx
 systemctl is-active --quiet php8.3-fpm
 systemctl is-active --quiet integrated-dent-bot.service
@@ -221,7 +221,7 @@ test -d "$root/shared/storage"
 test -d "$root/shared/server-only"
 nginx -t >/dev/null
 php-fpm8.3 -t >/dev/null
-nginx -T 2>&1 | grep -Fq 'root /srv/dentistry1402/current/public_html;'
+nginx -T 2>&1 | grep -F 'root /srv/dentistry1402/current/public_html;' >/dev/null
 systemctl is-active --quiet nginx
 systemctl is-active --quiet php8.3-fpm
 systemctl is-active --quiet integrated-dent-bot.service
@@ -326,7 +326,7 @@ printf '%s  %s\n' "$expected" "$bundle" | sha256sum -c -
 tar -tzf "$bundle" | awk 'BEGIN{ok=1} /^\//{ok=0} /(^|\/)\.\.($|\/)/{ok=0} !/^public_html\// && $0!="public_html"{ok=0} END{exit ok?0:1}'
 nginx -t >/dev/null
 php-fpm8.3 -t >/dev/null
-nginx -T 2>&1 | grep -Fq 'root /srv/dentistry1402/current/public_html;'
+nginx -T 2>&1 | grep -F 'root /srv/dentistry1402/current/public_html;' >/dev/null
 python3 - "$root/shared/storage" <<'PY'
 import json, pathlib, sys
 for path in pathlib.Path(sys.argv[1]).rglob('*.json'):

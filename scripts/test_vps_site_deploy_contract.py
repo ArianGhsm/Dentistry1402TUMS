@@ -24,7 +24,7 @@ for needle in [
     'Write-Utf8NoBom',
     'Assert-CodeOnlyPublicHtml',
     "sudo bash",
-    "nginx -T 2>&1 | grep -Fq 'root /srv/dentistry1402/current/public_html;'",
+    "nginx -T 2>&1 | grep -F 'root /srv/dentistry1402/current/public_html;' >/dev/null",
     "SITE_DATA_BACKUP=",
     "storage.tar.gz",
     "sha256sum -c SHA256SUMS",
@@ -43,6 +43,7 @@ for needle in [
     assert needle in DEPLOY, f'missing VPS deploy invariant: {needle}'
 
 assert '<<<' not in DEPLOY, 'PowerShell deployer must not use Bash here-strings/redirection syntax'
+assert "nginx -T 2>&1 | grep -Fq" not in DEPLOY, 'pipefail-safe nginx validation must consume the complete producer output'
 assert 'Set-Content -LiteralPath $installerPath -Value $installer -Encoding UTF8' not in DEPLOY, 'remote shell installer must be UTF-8 without BOM'
 assert 'deploy_public_html.ps1' not in GATE, 'release gate must not route production through retired cPanel/FTP deployer'
 assert 'deploy_site_vps.ps1' in GATE, 'release gate must route website production to VPS deployer'
@@ -64,9 +65,10 @@ assert DEPLOY.index("$productionMutation = $true") > DEPLOY.index('SITE_VPS_DEPL
 pwsh = shutil.which('pwsh') or shutil.which('powershell')
 if pwsh:
     for script_path in (DEPLOY_PATH, GATE_PATH, COMPLETE_PATH):
+        escaped_script_path = script_path.as_posix().replace("'", "''")
         command = (
             "$tokens=$null; $errors=$null; "
-            f"[System.Management.Automation.Language.Parser]::ParseFile('{script_path.as_posix()}', [ref]$tokens, [ref]$errors) | Out-Null; "
+            f"[System.Management.Automation.Language.Parser]::ParseFile('{escaped_script_path}', [ref]$tokens, [ref]$errors) | Out-Null; "
             "if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }"
         )
         result = subprocess.run([pwsh, '-NoProfile', '-Command', command], text=True, capture_output=True)
