@@ -1,0 +1,50 @@
+name: Temporary Final FEH Repair
+
+on:
+  push:
+    branches:
+      - fix/website-persian-text-corruption
+    paths:
+      - ".github/workflows/_tmp_fix_remaining_feh.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/website-persian-text-corruption
+          fetch-depth: 0
+      - name: Apply exact audited remaining repair
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          account = Path('public_html/account/index.html')
+          text = account.read_text(encoding='utf-8')
+          bad = '<h3>پیگیری اطلاعیه‌ها و تکالی جدید</h3>'
+          good = '<h3>پیگیری اطلاعیه‌ها و تکالیف جدید</h3>'
+          if text.count(bad) != 1:
+              raise SystemExit(f'expected exactly one remaining account corruption, found {text.count(bad)}')
+          account.write_text(text.replace(bad, good, 1), encoding='utf-8')
+
+          checker = Path('scripts/check_text_integrity.py')
+          source = checker.read_text(encoding='utf-8')
+          old = '    "تکلی",\n    "حذ",'
+          new = '    "تکلی",\n    "تکالی",\n    "حذ",'
+          if source.count(old) != 1:
+              raise SystemExit('checker insertion point mismatch')
+          checker.write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
+          python3 scripts/check_text_integrity.py
+          git diff -- public_html/account/index.html scripts/check_text_integrity.py
+      - name: Commit final audited repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public_html/account/index.html scripts/check_text_integrity.py
+          git commit -m "fix: restore remaining Persian FEH occurrence"
+          git push origin HEAD:fix/website-persian-text-corruption
