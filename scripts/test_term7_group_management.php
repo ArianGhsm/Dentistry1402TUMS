@@ -31,6 +31,7 @@ try {
     $ownerSn = '40211272003';
     $studentA = '40211272991';
     $studentB = '40211272992';
+    $studentWithoutTerm7Assignment = '40211272993';
     $fixturePassword = dent_hash_password('fixture-password-only');
     dent_save_user_store([
         'cohorts' => dent_default_cohort_catalog(),
@@ -38,9 +39,12 @@ try {
             $ownerSn => ['studentNumber'=>$ownerSn,'name'=>'مالک تست','passwordHash'=>$fixturePassword,'role'=>'owner','cohortKey'=>DENT_TERM7_COHORT],
             $studentA => ['studentNumber'=>$studentA,'name'=>'دانشجوی الف','passwordHash'=>$fixturePassword,'role'=>'student','cohortKey'=>DENT_TERM7_COHORT],
             $studentB => ['studentNumber'=>$studentB,'name'=>'دانشجوی ب','passwordHash'=>$fixturePassword,'role'=>'student','cohortKey'=>DENT_TERM7_COHORT],
+            $studentWithoutTerm7Assignment => ['studentNumber'=>$studentWithoutTerm7Assignment,'name'=>'خارج از فهرست ترم ۷','passwordHash'=>$fixturePassword,'role'=>'student','cohortKey'=>DENT_TERM7_COHORT],
         ],
     ]);
     $owner = dent_get_user_record($ownerSn);
+    dent_term7_owner_update_assignment($owner, $ownerSn, 'group10', 5);
+    dent_term7_owner_update_assignment($owner, $ownerSn, 'group8', 14);
     $first = dent_term7_owner_update_assignment($owner, $studentA, 'group10', 1);
     term7_group_assert(($first['group10Status'] ?? '') === 'member', 'Owner can assign morning group with member status');
     $leader = dent_term7_owner_set_leader($owner, $studentA, 'group10', true);
@@ -77,7 +81,9 @@ try {
     $self = dent_term7_bot_service_dispatch(['action'=>'academicTerm7Self','platform'=>'telegram','platformUserId'=>'900001']);
     term7_group_assert(!empty($self['eligible']) && isset($self['assignment']['group10Status']), 'Signed Term 7 self response carries status-aware assignment');
     $serviceRoster = dent_term7_bot_service_dispatch(['action'=>'academicTerm7Roster','platform'=>'telegram','platformUserId'=>'900001']);
-    term7_group_assert(count($serviceRoster['roster'] ?? []) === 3, 'Signed owner service exposes canonical Term 7 roster');
+    term7_group_assert(count($serviceRoster['roster'] ?? []) === 3, 'Signed owner service exposes only assignment-backed Term 7 roster');
+    $serviceNumbers = array_map(static fn(array $row): string => (string) ($row['studentNumber'] ?? ''), $serviceRoster['roster'] ?? []);
+    term7_group_assert(!in_array($studentWithoutTerm7Assignment, $serviceNumbers, true), 'Cohort account without Term 7 assignment is excluded from bot roster');
 } finally {
     term7_group_cleanup($testRoot);
 }
