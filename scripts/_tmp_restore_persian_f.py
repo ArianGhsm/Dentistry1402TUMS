@@ -139,6 +139,20 @@ def main() -> int:
     if fixed == original:
         raise SystemExit("Repair made no changes")
 
+    # Two whitespace-only lines already existed in the exact audited source and
+    # sit inside hunks changed by the text repair. Normalize only those exact
+    # lines so git diff --check validates the resulting patch without a broad
+    # formatting cleanup.
+    lines = fixed.splitlines()
+    for line_number in (908, 917):
+        index = line_number - 1
+        if index >= len(lines) or lines[index].strip() != "":
+            raise SystemExit(
+                f"Refusing whitespace normalization: line {line_number} is not blank"
+            )
+        lines[index] = ""
+    fixed = "\n".join(lines) + "\n"
+
     TARGET.write_text(fixed, encoding="utf-8", newline="\n")
     print(f"Repaired {sum(counts.values())} proven corrupted token occurrences")
     for bad in sorted(counts):
