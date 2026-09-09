@@ -45,6 +45,91 @@ function dent_term7_bot_service_roster(array $owner): array
     ));
 }
 
+function dent_term7_bot_service_event_projection(array $event, string $period = ''): array
+{
+    return [
+        'slug' => (string) ($event['slug'] ?? ''),
+        'title' => (string) ($event['title'] ?? ''),
+        'eventType' => (string) ($event['eventType'] ?? ''),
+        'period' => $period !== '' ? $period : (string) ($event['period'] ?? ''),
+        'start' => (string) ($event['start'] ?? ''),
+        'end' => (string) ($event['end'] ?? ''),
+        'location' => (string) ($event['location'] ?? ''),
+    ];
+}
+
+function dent_term7_bot_service_rotation_label(string $rotation): string
+{
+    return match ($rotation) {
+        'A' => 'روتیشن اول',
+        'B' => 'روتیشن دوم',
+        'makeup' => 'جبرانی',
+        default => '',
+    };
+}
+
+function dent_term7_bot_service_schedule_context(array $assignment, ?DateTimeImmutable $now = null): array
+{
+    $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
+    $local = ($now ?? new DateTimeImmutable('now', $timezone))->setTimezone($timezone);
+    $resolved = dent_term7_resolve_date($local, $assignment);
+    $schedule = dent_term7_schedule();
+    $rotation = (string) ($resolved['rotation'] ?? '');
+    $period = null;
+    if (in_array($rotation, ['A', 'B'], true) && is_array($schedule['rotations'][$rotation] ?? null)) {
+        $period = [
+            'from' => (string) ($schedule['rotations'][$rotation]['from'] ?? ''),
+            'through' => (string) ($schedule['rotations'][$rotation]['through'] ?? ''),
+        ];
+    }
+    $current = [];
+    foreach (($resolved['practicalMorning'] ?? []) as $event) {
+        if (is_array($event)) $current[] = dent_term7_bot_service_event_projection($event, 'morning');
+    }
+    foreach (($resolved['practicalAfternoon'] ?? []) as $event) {
+        if (is_array($event)) $current[] = dent_term7_bot_service_event_projection($event, 'afternoon');
+    }
+    $theory = [];
+    foreach (($resolved['theory'] ?? []) as $event) {
+        if (is_array($event)) $theory[] = dent_term7_bot_service_event_projection($event, 'theory');
+    }
+    $next = null;
+    for ($offset = 1; $offset <= 90; $offset++) {
+        $candidateDate = $local->setTime(0, 0)->modify('+' . $offset . ' days');
+        $candidate = dent_term7_resolve_date($candidateDate, $assignment);
+        $events = [];
+        foreach (($candidate['practicalMorning'] ?? []) as $event) {
+            if (is_array($event)) $events[] = dent_term7_bot_service_event_projection($event, 'morning');
+        }
+        foreach (($candidate['practicalAfternoon'] ?? []) as $event) {
+            if (is_array($event)) $events[] = dent_term7_bot_service_event_projection($event, 'afternoon');
+        }
+        if ($events !== []) {
+            $next = [
+                'date' => (string) ($candidate['date'] ?? ''),
+                'weekdayLabel' => (string) ($candidate['weekdayLabel'] ?? ''),
+                'rotation' => (string) ($candidate['rotation'] ?? ''),
+                'rotationLabel' => dent_term7_bot_service_rotation_label((string) ($candidate['rotation'] ?? '')),
+                'events' => $events,
+            ];
+            break;
+        }
+        if (strcmp((string) ($candidate['date'] ?? ''), (string) ($schedule['activeThrough'] ?? '')) > 0) break;
+    }
+    return [
+        'date' => (string) ($resolved['date'] ?? ''),
+        'weekdayLabel' => (string) ($resolved['weekdayLabel'] ?? ''),
+        'inSchedule' => !empty($resolved['inTerm']),
+        'rotation' => $rotation,
+        'rotationLabel' => dent_term7_bot_service_rotation_label($rotation),
+        'rotationPeriod' => $period,
+        'practicalClosed' => !empty($resolved['practicalClosed']),
+        'currentPractical' => $current,
+        'currentTheory' => $theory,
+        'nextPractical' => $next,
+    ];
+}
+
 function dent_term7_bot_service_dispatch(array $request): array
 {
     $action = trim((string) ($request['action'] ?? ''));
@@ -52,14 +137,19 @@ function dent_term7_bot_service_dispatch(array $request): array
 
     if ($action === 'academicTerm7Self') {
         $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
-        if (dent_user_cohort_key($user) !== DENT_TERM7_COHORT
-            || !dent_term7_bot_service_has_assignment($studentNumber)) {
+        if (dent_user_cohort_key($user) !== DENT_TERM7_COHORT) {
             return ['success' => true, 'eligible' => false, 'assignment' => null];
         }
+        $academicState = dent_term7_state_read();
+        $leaderState = dent_term7_group_leader_state_read($academicState);
+        $assignment = dent_term7_public_assignment_for_student($studentNumber, $academicState, $leaderState);
         return [
             'success' => true,
             'eligible' => true,
-            'assignment' => dent_term7_public_assignment_for_student($studentNumber),
+            'assignment' => $assignment,
+            'academicTerm' => dent_term7_academic_context(),
+            'groups' => dent_term7_public_group_context_for_student($studentNumber, $academicState, $leaderState),
+            'scheduleContext' => dent_term7_bot_service_schedule_context($assignment),
         ];
     }
 

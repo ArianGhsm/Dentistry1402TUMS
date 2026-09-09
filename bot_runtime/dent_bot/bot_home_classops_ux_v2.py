@@ -85,7 +85,7 @@ def canonical_home_screen(*, is_owner: bool) -> Screen:
         for row in CANONICAL_HOME_ROWS
     ]
     if is_owner:
-        rows.append([button("🛠 مدیریت روبات", action="admin", style="primary")])
+        rows.append([button("🛠 مدیریت ربات", action="admin", style="primary")])
     return Screen(
         "<b>دنت‌یار | ورودی ۱۴۰۲</b>\n\n"
         "سرویس موردنظرت را از منوی زیر انتخاب کن.\n"
@@ -96,8 +96,8 @@ def canonical_home_screen(*, is_owner: bool) -> Screen:
 
 def owner_management_screen() -> Screen:
     return Screen(
-        "<b>🛠 مدیریت روبات</b>\n\n"
-        "مدیریت سرویس‌های ربات، عملیات کلاس و مسیرهای bot-native.",
+        "<b>🛠 مدیریت ربات</b>\n\n"
+        "مدیریت سرویس‌های ربات، عملیات کلاس و مسیرهای داخلی ربات.",
         keyboard(
             [button("🖥 وضعیت سرویس‌ها", action="system-status"), button("🗂 مدیریت امور کلاس", action="classops-v2:owner")],
             [button("🧭 مرکز نوید", action="navid"), button("💳 پرداخت‌ها", action="admin-payments")],
@@ -125,12 +125,12 @@ def service_status_screen(payload: dict[str, Any] | None, *, api_failed: bool = 
         marker, label = status_marker(item.get("state"))
         name = html.escape(str(item.get("label") or "سرویس"))
         lines.append(f"{marker} <b>{name}</b> · {label}")
-    lines.extend(("", "وضعیت‌ها فقط بر اساس check واقعی همین درخواست نمایش داده می‌شوند."))
+    lines.extend(("", "وضعیت‌ها فقط بر اساس بررسی واقعی همین درخواست نمایش داده می‌شوند."))
     return Screen(
         "\n".join(lines),
         keyboard(
             [button("↻ تازه‌سازی", action="system-status", style="primary")],
-            [button("↩️ مدیریت روبات", action="admin"), button("🏠 خانه", action="home")],
+            [button("↩️ مدیریت ربات", action="admin"), button("🏠 خانه", action="home")],
         ),
     )
 
@@ -175,14 +175,14 @@ def classops_home_screen(items: list[dict[str, Any]], assignment_payload: dict[s
 def owner_classops_screen() -> Screen:
     return Screen(
         "<b>🗂 مدیریت امور کلاس</b>\n\n"
-        "ثبت و مدیریت آیتم‌ها از همان ClassOps canonical انجام می‌شود؛ ثبت نهایی همیشه تأیید صریح می‌خواهد.",
+        "ثبت و مدیریت آیتم‌ها از همان منبع اصلی امور کلاس انجام می‌شود؛ ثبت نهایی همیشه تأیید صریح می‌خواهد.",
         keyboard(
             [button("➕ امتحان", action="classops-v2:add:exam"), button("➕ رویداد", action="classops-v2:add:event")],
             [button("➕ کار", action="classops-v2:add:task"), button("➕ ددلاین", action="classops-v2:add:deadline")],
             [button("➕ الزام", action="classops-v2:add:requirement")],
             [button("📅 آیتم‌های آینده", action="classops-v2:future:0"), button("🔔 وضعیت اعلان‌ها", action="classops-v2:notification-status")],
             [button("👥 مدیریت گروه‌بندی", action="t7:home"), button("📊 خلاصه فردا", action="class-operations:tomorrow")],
-            [button("↩️ مدیریت روبات", action="admin"), button("🏠 خانه", action="home")],
+            [button("↩️ مدیریت ربات", action="admin"), button("🏠 خانه", action="home")],
         ),
     )
 
@@ -264,7 +264,7 @@ def timeline_screen(records: list[dict[str, Any]], page: int = 0, *, owner: bool
         if item_id.startswith("cop_"):
             rows.append([button(str(item.get("title") or "جزئیات")[:28], action=f"class-operations:item:{item_id}")])
     if not visible:
-        lines.append("در ۳۰ روز آینده موردی در داده‌های canonical پیدا نشد.")
+        lines.append("در ۳۰ روز آینده موردی در منبع اصلی پیدا نشد.")
     nav: list[dict] = []
     if page > 0:
         nav.append(button("‹ قبلی", action=f"classops-v2:month:{page - 1}"))
@@ -313,7 +313,7 @@ def grouping_screen(payload: dict[str, Any]) -> Screen:
         else:
             lines.append("• هنوز گروهی ثبت نشده است.")
         lines.append("")
-    lines.append("برنامه دقیق روزها از «ماه پیش رو» و منبع رسمی Term 7 نمایش داده می‌شود.")
+    lines.append("برنامه دقیق روزها از «ماه پیش رو» و منبع رسمی ترم ۷ نمایش داده می‌شود.")
     return Screen(
         "\n".join(lines),
         keyboard([button("📅 ماه پیش رو", action="classops-v2:month:0")], [button("↩️ امور کلاس", action="class-operations")]),
@@ -337,7 +337,7 @@ def student_notifications_screen(response: dict[str, Any]) -> Screen:
         effective = format_jalali_datetime(item.get("publishAt") or item.get("effectiveAt"))
         lines.append(f"• <b>{title}</b> · {state}" + (f"\n  {html.escape(effective)}" if effective else ""))
     if not items:
-        lines.append("اعلان فعالی از منبع ClassOps برای این حساب دیده نمی‌شود.")
+        lines.append("اعلان فعالی از منبع امور کلاس برای این حساب دیده نمی‌شود.")
     return Screen("\n".join(lines), keyboard([button("↩️ امور کلاس", action="class-operations")], [button("🏠 خانه", action="home")]))
 
 
@@ -354,7 +354,7 @@ def notification_status_screen(payload: dict[str, Any]) -> Screen:
             lines.append(f"{marker} {label}: <b>{to_persian_digits(count)}</b>")
     if not any(int(value or 0) for value in notification_counts.values()):
         lines.append("⚪️ موردی ثبت نشده است.")
-    lines.extend(("", "<b>Delivery intentها</b>"))
+    lines.extend(("", "<b>سوابق ارسال</b>"))
     for state in ("planned", "leased", "retry", "delivered", "failed", "superseded", "cancelled"):
         count = int(delivery_counts.get(state) or 0)
         if count:
@@ -364,7 +364,7 @@ def notification_status_screen(payload: dict[str, Any]) -> Screen:
         counts = dict(platform_counts.get(platform) or {})
         total = sum(int(value or 0) for value in counts.values())
         lines.append(f"• {label}: {to_persian_digits(total)} intent")
-    lines.extend(("", "این صفحه فقط stateهای ثبت‌شده در subsystemهای canonical را نشان می‌دهد."))
+    lines.extend(("", "این صفحه فقط وضعیت‌های ثبت‌شده در زیرسامانه‌های اصلی را نشان می‌دهد."))
     return Screen(
         "\n".join(lines),
         keyboard([button("↻ تازه‌سازی", action="classops-v2:notification-status")], [button("↩️ مدیریت امور کلاس", action="classops-v2:owner")]),
@@ -467,7 +467,7 @@ def _confirm_lifecycle_screen(token: str, verb: str, item_id: str = "") -> Scree
         rows.append([button("↩️ برگشت به جزئیات", action=f"class-operations:item:{item_id}")])
     rows.append([button("🏠 خانه", action="home")])
     return Screen(
-        f"<b>⚠️ تأیید {label}</b>\n\nاین تغییر روی آیتم canonical اعمال می‌شود. برای ادامه، تأیید نهایی را بزن.",
+        f"<b>⚠️ تأیید {label}</b>\n\nاین تغییر روی آیتم اصلی اعمال می‌شود. برای ادامه، تأیید نهایی را بزن.",
         keyboard(*rows),
     )
 
@@ -741,7 +741,7 @@ def _handle_v2_callback(app: DentBotApp, update: dict[str, Any], original: Calla
             item = dict(response.get("item") or {})
             item_type = str(item.get("type") or "")
             if item_type not in _CREATE_TYPES:
-                show(Screen("<b>✏️ ویرایش</b>\n\nویرایش این نوع آیتم در UI فعلی پشتیبانی نمی‌شود.", keyboard([button("↩️ مدیریت امور کلاس", action="classops-v2:owner")])))
+                show(Screen("<b>✏️ ویرایش</b>\n\nویرایش این نوع آیتم در رابط فعلی پشتیبانی نمی‌شود.", keyboard([button("↩️ مدیریت امور کلاس", action="classops-v2:owner")])))
                 return True
             origin = int(dict(callback.get("message") or {}).get("message_id") or 0)
             show(_start_dialog(app, user_id, item_type, origin, edit_item=item))

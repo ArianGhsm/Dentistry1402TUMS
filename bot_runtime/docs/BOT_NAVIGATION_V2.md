@@ -11,7 +11,7 @@ The authenticated Home information architecture is fixed in this order:
 3. `📊 نمرات` + `🗂 امور کلاس`.
 4. `👤 حساب من` + `🔔 اعلان‌ها` + `❓ راهنما`.
 
-Owners receive `🛠 مدیریت روبات` as an additional owner-only row after the canonical student rows. The owner button is not a website-dashboard shortcut. Website-only admin shortcuts do not belong in this menu.
+Owners receive `🛠 مدیریت ربات` as an additional owner-only row after the canonical student rows. The owner button is not a website-dashboard shortcut. Website-only admin shortcuts do not belong in this menu.
 
 Legacy/stale callbacks remain routable where practical, but they must land on the current destination. In particular, the old ClassOps owner callback routes to the current owner ClassOps screen instead of reviving the retired flat management UI.
 
@@ -36,7 +36,7 @@ No owner-management button is rendered in the student ClassOps home. Authorizati
 
 The canonical path is:
 
-`🏠 Home` → `🛠 مدیریت روبات` → `🗂 مدیریت امور کلاس`.
+`🏠 Home` → `🛠 مدیریت ربات` → `🗂 مدیریت امور کلاس`.
 
 Owner ClassOps exposes bot-native workflows for adding supported exam/event/task/deadline/requirement items, viewing upcoming items, revision-aware editing, confirmed cancel/archive operations, notification status, canonical Term 7 grouping, and the existing digest views.
 

@@ -67,7 +67,7 @@ class BotHomeClassOpsUxV2Tests(unittest.TestCase):
         home = canonical_home_screen(is_owner=True)
         management = owner_management_screen()
         rendered = str(home.text) + str(home.keyboard) + str(management.text) + str(management.keyboard)
-        self.assertIn("🛠 مدیریت روبات", rendered)
+        self.assertIn("🛠 مدیریت ربات", rendered)
         self.assertNotIn("مدیریت دنتیار", rendered)
         self.assertNotIn("مدیریت دنت‌یار", rendered)
         self.assertNotIn("/admin/", rendered)

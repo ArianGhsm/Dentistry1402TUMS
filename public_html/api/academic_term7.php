@@ -14,6 +14,31 @@ const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
 
+// Academic-term context is deliberately separate from the teaching timetable.
+// The schedule may start later or end earlier than the university term itself.
+const DENT_TERM7_ACADEMIC_FROM = '1405/06/18';
+const DENT_TERM7_ACADEMIC_THROUGH = '1405/11/23';
+
+function dent_term7_academic_context(?DateTimeImmutable $date = null): array
+{
+    $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
+    $local = ($date ?? new DateTimeImmutable('now', $timezone))->setTimezone($timezone);
+    $jalali = dent_term7_jalali_key($local);
+    $active = strcmp($jalali, DENT_TERM7_ACADEMIC_FROM) >= 0
+        && strcmp($jalali, DENT_TERM7_ACADEMIC_THROUGH) <= 0;
+    $state = $active
+        ? 'active'
+        : (strcmp($jalali, DENT_TERM7_ACADEMIC_FROM) < 0 ? 'before_window' : 'after_window');
+    return [
+        'currentJalaliDate' => $jalali,
+        'term' => $active ? 7 : null,
+        'termLabel' => $active ? 'ترم ۷' : '',
+        'state' => $state,
+        'activeFrom' => DENT_TERM7_ACADEMIC_FROM,
+        'activeThrough' => DENT_TERM7_ACADEMIC_THROUGH,
+    ];
+}
+
 function dent_term7_state_path(): string
 {
     return dent_storage_path('academic/term7-1405-1406.json');

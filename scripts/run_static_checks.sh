@@ -80,6 +80,7 @@ section "Unit tests"
 "$PHP_BIN" scripts/test_term7_academic_assistant.php || fail "test_term7_academic_assistant.php"
 "$PHP_BIN" scripts/test_term7_group_management.php || fail "test_term7_group_management.php"
 "$PHP_BIN" scripts/test_classops_foundation.php || fail "test_classops_foundation.php"
+"$PHP_BIN" scripts/test_classops_bot_ux_v3.php || fail "test_classops_bot_ux_v3.php"
 "$PYTHON_BIN" scripts/test_classops_api_http.py || fail "test_classops_api_http.py"
 
 section "ClassOps Stage 1 domain contracts"
