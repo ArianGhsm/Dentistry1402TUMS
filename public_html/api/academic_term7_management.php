@@ -162,6 +162,53 @@ function dent_term7_public_assignment_for_student(string $studentNumber, ?array 
     ];
 }
 
+function dent_term7_public_group_context_for_student(
+    string $studentNumber,
+    ?array $academicState = null,
+    ?array $leaderState = null
+): array {
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    $academicState = $academicState ?? dent_term7_state_read();
+    $leaderState = $leaderState ?? dent_term7_group_leader_state_read($academicState);
+    $self = dent_term7_public_assignment_for_student($studentNumber, $academicState, $leaderState);
+    $store = dent_load_user_store();
+    $users = is_array($store['users'] ?? null) ? $store['users'] : [];
+
+    $nameByStudent = [];
+    foreach ($users as $key => $user) {
+        if (!is_array($user) || dent_user_cohort_key($user) !== DENT_TERM7_COHORT) continue;
+        $number = dent_normalize_student_number((string) ($user['studentNumber'] ?? $key));
+        $name = trim((string) ($user['name'] ?? ''));
+        if ($number !== '' && $name !== '') $nameByStudent[$number] = $name;
+    }
+
+    $out = [];
+    foreach (['group10' => 'morning', 'group8' => 'afternoon'] as $field => $key) {
+        $group = is_int($self[$field] ?? null) ? (int) $self[$field] : null;
+        $members = [];
+        $leaderNumber = '';
+        if ($group !== null) {
+            $leaderNumber = dent_normalize_student_number((string) ($leaderState[$field][(string) $group] ?? ''));
+            foreach (($academicState['assignments'] ?? []) as $number => $assignment) {
+                if (!is_array($assignment) || !is_int($assignment[$field] ?? null) || (int) $assignment[$field] !== $group) continue;
+                $number = dent_normalize_student_number((string) ($assignment['studentNumber'] ?? $number));
+                $name = (string) ($nameByStudent[$number] ?? '');
+                if ($name !== '') $members[] = $name;
+            }
+            sort($members, SORT_NATURAL | SORT_FLAG_CASE);
+        }
+        $out[$key] = [
+            'group' => $group,
+            'status' => (string) ($self[$field . 'Status'] ?? 'unassigned'),
+            'statusLabel' => (string) ($self[$field . 'StatusLabel'] ?? 'بدون گروه'),
+            'leaderName' => (string) ($nameByStudent[$leaderNumber] ?? ''),
+            'memberCount' => count($members),
+            'members' => array_values($members),
+        ];
+    }
+    return $out;
+}
+
 function dent_term7_owner_roster(array $owner): array
 {
     dent_term7_require_owner($owner);
