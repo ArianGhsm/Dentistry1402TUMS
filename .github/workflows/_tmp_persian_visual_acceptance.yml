@@ -1,0 +1,207 @@
+name: Temporary Persian Visual Acceptance
+
+on:
+  push:
+    branches:
+      - fix/website-persian-text-corruption
+    paths:
+      - ".github/workflows/_tmp_persian_visual_acceptance.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  browser-acceptance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout task branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/website-persian-text-corruption
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Verify text-integrity guard passes and catches regression
+        run: |
+          python3 scripts/check_text_integrity.py
+          cp public_html/account/index.html /tmp/account-index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('public_html/account/index.html')
+          text = path.read_text(encoding='utf-8')
+          if 'پروفایل پیام‌رسان / هویت' not in text:
+              raise SystemExit('expected corrected profile anchor missing')
+          path.write_text(text.replace('پروفایل پیام‌رسان / هویت', 'پروایل پیام‌رسان / هویت', 1), encoding='utf-8')
+          PY
+          if python3 scripts/check_text_integrity.py public_html/account/index.html; then
+            echo "ERROR: integrity guard accepted deliberate FEH deletion"
+            exit 1
+          fi
+          mv /tmp/account-index.html public_html/account/index.html
+          python3 scripts/check_text_integrity.py public_html/account/index.html
+
+      - name: Install browser driver library
+        run: npm install --no-save --no-package-lock playwright-core@1.55.0
+
+      - name: Start isolated static website
+        run: |
+          python3 -m http.server 8080 --directory public_html >/tmp/dent1402-http.log 2>&1 &
+          echo $! >/tmp/dent1402-http.pid
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:8080/account/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/dent1402-http.log
+          exit 1
+
+      - name: Render representative desktop and mobile RTL views
+        run: |
+          mkdir -p visual-acceptance
+          cat > /tmp/visual-acceptance.cjs <<'NODE'
+          const { chromium } = require(process.cwd() + '/node_modules/playwright-core');
+          const fs = require('fs');
+
+          const base = 'http://127.0.0.1:8080';
+          const surfaces = [
+            { name: 'home', route: '/app/' },
+            { name: 'account-login', route: '/account/', mode: 'login' },
+            { name: 'account-profile', route: '/account/', mode: 'profile' },
+            { name: 'grades', route: '/grades/' },
+            { name: 'exams', route: '/exams/' },
+            { name: 'resources', route: '/resources/' },
+            { name: 'notes', route: '/notes/' },
+            { name: 'admin', route: '/admin/' },
+          ];
+          const viewports = [
+            { name: 'desktop', width: 1440, height: 1000 },
+            { name: 'mobile', width: 390, height: 844 },
+          ];
+          const badVisible = ['پروایل', 'راموش', 'سارش', 'دریات', 'بلااصله', 'پیش‌رض'];
+
+          (async () => {
+            const browser = await chromium.launch({
+              executablePath: '/usr/bin/google-chrome',
+              headless: true,
+              args: ['--no-sandbox', '--disable-dev-shm-usage'],
+            });
+            const results = [];
+            try {
+              for (const viewport of viewports) {
+                const context = await browser.newContext({ viewport });
+                for (const surface of surfaces) {
+                  const page = await context.newPage();
+                  await page.goto(base + surface.route, { waitUntil: 'domcontentloaded', timeout: 30000 });
+                  await page.evaluate(async () => { if (document.fonts) await document.fonts.ready; });
+
+                  if (surface.mode === 'login') {
+                    await page.evaluate(() => {
+                      const boot = document.querySelector('#account-boot');
+                      const login = document.querySelector('#account-login');
+                      const panel = document.querySelector('#account-panel');
+                      if (boot) boot.hidden = true;
+                      if (login) login.hidden = false;
+                      if (panel) panel.hidden = true;
+                    });
+                  }
+                  if (surface.mode === 'profile') {
+                    await page.evaluate(() => {
+                      const boot = document.querySelector('#account-boot');
+                      const login = document.querySelector('#account-login');
+                      const panel = document.querySelector('#account-panel');
+                      const hub = document.querySelector('#account-hub-panel');
+                      const layout = document.querySelector('#account-surface-layout');
+                      const profile = document.querySelector('[data-surface="profile"]');
+                      if (boot) boot.hidden = true;
+                      if (login) login.hidden = true;
+                      if (panel) panel.hidden = false;
+                      if (hub) hub.hidden = true;
+                      if (layout) layout.hidden = false;
+                      if (profile) profile.hidden = false;
+                    });
+                  }
+
+                  await page.waitForTimeout(250);
+                  const diagnostics = await page.evaluate((badVisible) => {
+                    const root = document.documentElement;
+                    const body = document.body;
+                    const text = body ? body.innerText : '';
+                    const rootStyle = getComputedStyle(root);
+                    const bodyStyle = body ? getComputedStyle(body) : null;
+                    const viewportWidth = root.clientWidth;
+                    const overflow = body ? Math.max(0, body.scrollWidth - viewportWidth) : 0;
+                    const bad = badVisible.filter(token => text.includes(token));
+                    const fWidth = (() => {
+                      const canvas = document.createElement('canvas');
+                      const ctx = canvas.getContext('2d');
+                      if (!ctx) return 0;
+                      ctx.font = bodyStyle ? bodyStyle.font : '16px sans-serif';
+                      return ctx.measureText('ف').width;
+                    })();
+                    return {
+                      dir: root.getAttribute('dir'),
+                      computedDirection: rootStyle.direction,
+                      lang: root.getAttribute('lang'),
+                      fontFamily: bodyStyle ? bodyStyle.fontFamily : '',
+                      fontsStatus: document.fonts ? document.fonts.status : 'unsupported',
+                      overflow,
+                      bad,
+                      hasPersian: /[\u0600-\u06ff]/.test(text),
+                      fWidth,
+                      textSample: text.replace(/\s+/g, ' ').slice(0, 220),
+                    };
+                  }, badVisible);
+
+                  if (diagnostics.dir !== 'rtl' || diagnostics.computedDirection !== 'rtl') {
+                    throw new Error(`${surface.name}/${viewport.name}: RTL contract failed: ${JSON.stringify(diagnostics)}`);
+                  }
+                  if (diagnostics.lang !== 'fa' || !diagnostics.hasPersian) {
+                    throw new Error(`${surface.name}/${viewport.name}: Persian document contract failed`);
+                  }
+                  if (diagnostics.bad.length) {
+                    throw new Error(`${surface.name}/${viewport.name}: visible corruption ${diagnostics.bad.join(', ')}`);
+                  }
+                  if (diagnostics.fWidth <= 0) {
+                    throw new Error(`${surface.name}/${viewport.name}: FEH glyph measured zero width`);
+                  }
+                  if (diagnostics.overflow > 24) {
+                    throw new Error(`${surface.name}/${viewport.name}: horizontal overflow ${diagnostics.overflow}px`);
+                  }
+                  if (surface.mode === 'profile') {
+                    const profileText = await page.locator('[data-surface="profile"]').innerText();
+                    for (const expected of ['پروفایل پیام‌رسان', 'عکس پروفایل', 'فرمت مجاز', 'معرفی کوتاه']) {
+                      if (!profileText.includes(expected)) throw new Error(`profile/${viewport.name}: missing ${expected}`);
+                    }
+                  }
+
+                  const shot = `visual-acceptance/${surface.name}-${viewport.name}.jpg`;
+                  await page.screenshot({ path: shot, fullPage: true, type: 'jpeg', quality: 55 });
+                  results.push({ surface: surface.name, viewport: viewport.name, ...diagnostics, screenshot: shot });
+                  console.log(JSON.stringify(results[results.length - 1]));
+                  await page.close();
+                }
+                await context.close();
+              }
+              fs.writeFileSync('visual-acceptance/report.json', JSON.stringify(results, null, 2));
+            } finally {
+              await browser.close();
+            }
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
+          node /tmp/visual-acceptance.cjs
+
+      - name: Upload acceptance screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: persian-visual-acceptance
+          path: visual-acceptance
+          if-no-files-found: error
+          retention-days: 3
