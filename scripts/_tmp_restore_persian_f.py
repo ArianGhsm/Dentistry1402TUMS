@@ -15,8 +15,6 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 TARGET = ROOT / "public_html" / "account" / "index.html"
 PERSIAN_LETTERS = "\u0600-\u06ff"
 
-# Whole-token reversals proven by the historical source diff. A Persian-letter
-# boundary prevents touching already-correct words such as «فعال» or «فقط».
 TOKEN_FIXES = {
     "پروایل": "پروفایل",
     "صحه": "صفحه",
@@ -49,8 +47,6 @@ TOKEN_FIXES = {
     "موق": "موفق",
 }
 
-# «علی» is a legitimate proper name, so these are repaired only in the exact
-# UI phrases that historical diff proves were «فعلی» before corruption.
 PHRASE_FIXES = {
     "رمز علی": "رمز فعلی",
     "وضعیت علی شماره": "وضعیت فعلی شماره",
@@ -138,20 +134,6 @@ def main() -> int:
         raise SystemExit(f"Repair validation failed; expected copy missing: {missing_good}")
     if fixed == original:
         raise SystemExit("Repair made no changes")
-
-    # Two whitespace-only lines already existed in the exact audited source and
-    # sit inside hunks changed by the text repair. Normalize only those exact
-    # lines so git diff --check validates the resulting patch without a broad
-    # formatting cleanup.
-    lines = fixed.splitlines()
-    for line_number in (908, 917):
-        index = line_number - 1
-        if index >= len(lines) or lines[index].strip() != "":
-            raise SystemExit(
-                f"Refusing whitespace normalization: line {line_number} is not blank"
-            )
-        lines[index] = ""
-    fixed = "\n".join(lines) + "\n"
 
     TARGET.write_text(fixed, encoding="utf-8", newline="\n")
     print(f"Repaired {sum(counts.values())} proven corrupted token occurrences")
