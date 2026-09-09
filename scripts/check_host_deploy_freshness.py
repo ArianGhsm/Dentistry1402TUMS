@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Fail when local public_html drifted after the last successful host deploy."""
+"""Audit a legacy host manifest against an exact public_html tree.
+
+The manifest format remains useful for historical/recovery inspection, but a
+failure must never direct an operator to the retired cPanel/FTP deployment path.
+Production releases go through the exact-SHA VPS release gate.
+"""
 
 from __future__ import annotations
 
@@ -93,9 +98,9 @@ def summarize_paths(label: str, items: list[str], limit: int) -> list[str]:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Verify that current public_html matches the last successful host deploy manifest.")
+    parser = argparse.ArgumentParser(description="Verify that an exact public_html tree matches legacy host-deploy metadata.")
     parser.add_argument("--project-root", type=Path, default=Path(__file__).resolve().parents[1])
-    parser.add_argument("--metadata-root", type=Path, help="Repository root holding ignored deploy metadata (defaults to project root).")
+    parser.add_argument("--metadata-root", type=Path, help="Repository root holding ignored legacy deploy metadata (defaults to project root).")
     parser.add_argument("--public-root", type=Path, help="Exact release public_html directory (defaults to project-root/public_html).")
     parser.add_argument("--limit", type=int, default=20, help="Maximum sample paths to print per drift category.")
     return parser.parse_args()
@@ -130,21 +135,20 @@ def main() -> int:
     modified = [path for path in added_or_modified if path in manifest_files]
 
     if added or modified or deleted:
-        print("Host deploy freshness check failed.")
+        print("Legacy host-manifest freshness check failed.")
         print(f"Last successful host deploy FinishedAt: {state_payload.get('FinishedAt', '')}")
         print(f"Last recorded deploy metadata update: {state_payload.get('RecordedAt', '')}")
         print(f"Manifest generated at: {manifest_payload.get('GeneratedAt', '')}")
-        for line in summarize_paths("Undeployed new files under public_html", added, args.limit):
+        for line in summarize_paths("Files newer/different from the legacy manifest", added + modified, args.limit):
             print(line)
-        for line in summarize_paths("Undeployed modified files under public_html", modified, args.limit):
+        for line in summarize_paths("Files absent from the exact tree", deleted, args.limit):
             print(line)
-        for line in summarize_paths("Local deletions after the last host deploy", deleted, args.limit):
-            print(line)
-        print(r"Run: powershell -ExecutionPolicy Bypass -File .\scripts\deploy_public_html.ps1")
+        print("Do not deploy a working-tree drift. Commit/merge the intended code first, then run:")
+        print(r"powershell -ExecutionPolicy Bypass -File .\scripts\run_release_gate.ps1 -ReleaseSha <exact-origin-main-sha> -DryRun")
         return 1
 
     print(
-        "OK: current public_html matches the last successful host deploy manifest "
+        "OK: exact public_html matches the legacy host deploy manifest "
         f"({len(current_files)} files, FinishedAt={state_payload.get('FinishedAt', '')})."
     )
     return 0
