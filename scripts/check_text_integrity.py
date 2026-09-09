@@ -53,6 +53,7 @@ ACCOUNT_FEH_DROP_TOKENS = (
     "راموش",
     "سارش",
     "تکلی",
+    "تکالی",
     "حذ",
     "رمت",
     "معری",
@@ -144,7 +145,10 @@ def scan_account_persian_contract(path: Path, text: str) -> list[tuple[int, str,
         if token_match:
             issues.append((line_no, "persian-feh-drop", token_match.group(0)))
         for phrase in ACCOUNT_FEH_DROP_PHRASES:
-            if phrase in line:
+            phrase_pattern = re.compile(
+                rf"(?<![{PERSIAN_LETTER_CLASS}]){re.escape(phrase)}(?![{PERSIAN_LETTER_CLASS}])"
+            )
+            if phrase_pattern.search(line):
                 issues.append((line_no, "persian-feh-drop", phrase))
 
     for anchor in ACCOUNT_REQUIRED_PERSIAN_ANCHORS:
