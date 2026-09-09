@@ -87,11 +87,25 @@ CRITICAL_GOOD = (
 )
 
 
-def replace_token(text: str, bad: str, good: str) -> tuple[str, int]:
-    pattern = re.compile(
-        rf"(?<![{PERSIAN_LETTERS}]){re.escape(bad)}(?![{PERSIAN_LETTERS}])"
+def token_pattern(token: str) -> re.Pattern[str]:
+    return re.compile(
+        rf"(?<![{PERSIAN_LETTERS}]){re.escape(token)}(?![{PERSIAN_LETTERS}])"
     )
-    return pattern.subn(good, text)
+
+
+def replace_token(text: str, bad: str, good: str) -> tuple[str, int]:
+    return token_pattern(bad).subn(good, text)
+
+
+def has_bad_phrase(text: str, phrase: str) -> bool:
+    first, separator, rest = phrase.partition(" ")
+    if not separator:
+        return bool(token_pattern(first).search(text))
+    pattern = re.compile(
+        rf"(?<![{PERSIAN_LETTERS}]){re.escape(first)}(?![{PERSIAN_LETTERS}])"
+        rf"{re.escape(separator + rest)}"
+    )
+    return bool(pattern.search(text))
 
 
 def main() -> int:
@@ -116,7 +130,7 @@ def main() -> int:
         if count:
             counts[bad] = count
 
-    remaining = [marker for marker in CRITICAL_BAD if marker in fixed]
+    remaining = [marker for marker in CRITICAL_BAD if has_bad_phrase(fixed, marker)]
     if remaining:
         raise SystemExit(f"Repair incomplete; known corruptions remain: {remaining}")
     missing_good = [marker for marker in CRITICAL_GOOD if marker not in fixed]
