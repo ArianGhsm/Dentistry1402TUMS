@@ -22,12 +22,21 @@ for needle in [
     'StrictHostKeyChecking=yes',
     'UserKnownHostsFile=',
     'Write-Utf8NoBom',
+    'Assert-CodeOnlyPublicHtml',
+    "sudo bash",
+    "nginx -T 2>&1 | grep -Fq 'root /srv/dentistry1402/current/public_html;'",
+    "SITE_DATA_BACKUP=",
+    "storage.tar.gz",
+    "sha256sum -c SHA256SUMS",
+    "test ! -e \"$candidate/public_html/storage\"",
+    "test ! -e \"$candidate/public_html/server-only\"",
     'SITE_ROLLED_BACK',
     'SITE_ROLLBACK_FAILED',
     "Publish-DentDeployLifecycle -Service website -Status started",
     "Publish-DentDeployLifecycle -Service website -Status succeeded",
     'release-report.json',
     'protectedPathViolations',
+    'verifiedDataBackup',
     'productionMutation',
     'Exact SHA already active; verification-only release passed with zero production mutation.',
 ]:
@@ -48,7 +57,7 @@ for needle in [
 assert 'ValueFromRemainingArguments' not in COMPLETE, 'task completion must not rely on ambiguous passthrough parsing'
 assert 'deploy_public_html.ps1' not in COMPLETE, 'task completion must not invoke retired cPanel deployer'
 assert DEPLOY.index("Status succeeded") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'success lifecycle must occur only after remote live verification'
-assert DEPLOY.index("$productionMutation = $true") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'mutation report must be set only after verified activation'
+assert DEPLOY.index("$productionMutation = $true") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'mutation reporting must occur only after the remote installer contains its live-verification boundary'
 
 # Hosted Ubuntu runners include PowerShell. Parse the scripts using the real
 # PowerShell AST when available so text-contract checks cannot hide syntax bugs.
