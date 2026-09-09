@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
+import shutil
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DEPLOY = (ROOT / 'scripts/deploy_site_vps.ps1').read_text(encoding='utf-8')
-GATE = (ROOT / 'scripts/run_release_gate.ps1').read_text(encoding='utf-8')
-COMPLETE = (ROOT / 'scripts/complete_task.ps1').read_text(encoding='utf-8')
+DEPLOY_PATH = ROOT / 'scripts/deploy_site_vps.ps1'
+GATE_PATH = ROOT / 'scripts/run_release_gate.ps1'
+COMPLETE_PATH = ROOT / 'scripts/complete_task.ps1'
+DEPLOY = DEPLOY_PATH.read_text(encoding='utf-8')
+GATE = GATE_PATH.read_text(encoding='utf-8')
+COMPLETE = COMPLETE_PATH.read_text(encoding='utf-8')
 
 for needle in [
     'ArianGhsm/Dentistry1402TUMS',
@@ -44,5 +49,18 @@ assert 'ValueFromRemainingArguments' not in COMPLETE, 'task completion must not 
 assert 'deploy_public_html.ps1' not in COMPLETE, 'task completion must not invoke retired cPanel deployer'
 assert DEPLOY.index("Status succeeded") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'success lifecycle must occur only after remote live verification'
 assert DEPLOY.index("$productionMutation = $true") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'mutation report must be set only after verified activation'
+
+# Hosted Ubuntu runners include PowerShell. Parse the scripts using the real
+# PowerShell AST when available so text-contract checks cannot hide syntax bugs.
+pwsh = shutil.which('pwsh') or shutil.which('powershell')
+if pwsh:
+    for script_path in (DEPLOY_PATH, GATE_PATH, COMPLETE_PATH):
+        command = (
+            "$tokens=$null; $errors=$null; "
+            f"[System.Management.Automation.Language.Parser]::ParseFile('{script_path.as_posix()}', [ref]$tokens, [ref]$errors) | Out-Null; "
+            "if ($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }"
+        )
+        result = subprocess.run([pwsh, '-NoProfile', '-Command', command], text=True, capture_output=True)
+        assert result.returncode == 0, f'PowerShell parse failed for {script_path.name}: {result.stdout}{result.stderr}'
 
 print('Canonical VPS website deploy contracts: ok')
