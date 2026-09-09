@@ -6,6 +6,7 @@ from . import class_operations as classops
 from .app import DentBotApp
 from .bot_home_classops_ux_v2 import _owner, notification_status_screen, owner_classops_screen
 from .persian_datetime import to_persian_digits
+from .state import BotState
 from .ui import Screen, button, keyboard
 
 _INSTALLED = False
@@ -56,7 +57,13 @@ def _notification_status_with_ack_screen(status: dict[str, Any], ack_payload: di
 
 
 def install_bot_home_classops_ux_v2_compat() -> None:
-    """Post-install guards for stale owner callbacks and deterministic owner back paths."""
+    """Post-install guards for runtime compatibility and deterministic owner paths."""
+    # UX v2 originally called ``state.get_dialog`` while the canonical BotState
+    # reader is ``dialog``. Keep this compatibility alias deterministic for both
+    # Telegram and Bale until the v2 surface no longer needs the legacy name.
+    if not hasattr(BotState, "get_dialog"):
+        setattr(BotState, "get_dialog", BotState.dialog)
+
     global _INSTALLED
     if _INSTALLED:
         return
