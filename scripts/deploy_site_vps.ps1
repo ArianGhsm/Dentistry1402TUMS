@@ -19,6 +19,7 @@ $productionMutation = $false
 $deployPlanComplete = $false
 $currentSha = ''
 $targetHost = ''
+$dataBackupPath = ''
 $lifecycleStarted = $false
 $lifecycleTerminalSent = $false
 $temporaryRoot = ''
@@ -65,7 +66,7 @@ function Write-ReleaseReport([string]$Status, [string]$FailureCode = '', [string
     $dir = Join-Path $root $runId
     New-Item -ItemType Directory -Force -Path $dir | Out-Null
     $report = [ordered]@{
-        schemaVersion = 3
+        schemaVersion = 4
         status = $Status
         mode = $mode
         releaseSha = $ReleaseSha
@@ -81,6 +82,7 @@ function Write-ReleaseReport([string]$Status, [string]$FailureCode = '', [string
             protectedPathViolations = @()
         }
         protectedRuntimeRoots = @('/srv/dentistry1402/shared/storage', '/srv/dentistry1402/shared/server-only')
+        verifiedDataBackup = $dataBackupPath
         productionMutation = $productionMutation
         failureCode = $FailureCode
         failureMessage = $FailureMessage
@@ -108,14 +110,28 @@ function Get-Sha256([string]$Path) {
 
 function Invoke-RemoteBash([string]$ScriptText) {
     $encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($ScriptText))
-    $remoteCommand = "printf '%s' '$encoded' | base64 -d | bash"
+    $remoteCommand = "printf '%s' '$encoded' | base64 -d | sudo bash"
     $output = @(& ssh @script:sshOptions $script:target $remoteCommand 2>&1)
     $code = $LASTEXITCODE
     if ($code -ne 0) {
-        $tail = (@($output) | Select-Object -Last 16) -join "`n"
+        $tail = (@($output) | Select-Object -Last 20) -join "`n"
         throw "Remote command failed with exit code $code.`n$tail"
     }
     return @($output)
+}
+
+function Assert-CodeOnlyPublicHtml {
+    $tracked = @(& git -C $projectRoot ls-files -- public_html 2>&1)
+    if ($LASTEXITCODE -ne 0) { throw 'Unable to enumerate tracked public_html files.' }
+    foreach ($raw in $tracked) {
+        $relative = ([string]$raw).Replace('\\', '/').Trim()
+        if ($relative -match '^public_html/(?:storage|server-only)(?:/|$)') {
+            throw "Protected runtime path is tracked under public_html: $relative"
+        }
+        if ($relative -match '(?i)(?:^|/)(?:\.env(?:\..*)?|[^/]*\.(?:sqlite3?|db|key|pem))$') {
+            throw "Secret/database-like file is tracked under public_html: $relative"
+        }
+    }
 }
 
 try {
@@ -123,6 +139,7 @@ try {
     if ($LASTEXITCODE -ne 0 -or $origin -notmatch '(?i)(?:github\.com[/:])ArianGhsm/Dentistry1402TUMS(?:\.git)?/?$') {
         throw "Repository lock failed; expected $expectedRepository."
     }
+
     & git -C $projectRoot fetch origin main --quiet
     if ($LASTEXITCODE -ne 0) { throw 'git fetch origin main failed.' }
     $headSha = (& git -C $projectRoot rev-parse HEAD).Trim()
@@ -131,6 +148,7 @@ try {
     if ($headSha -ne $ReleaseSha) { throw 'HEAD does not equal -ReleaseSha.' }
     if ($originMainSha -ne $ReleaseSha) { throw 'origin/main does not equal -ReleaseSha.' }
     if (-not [string]::IsNullOrWhiteSpace($dirty)) { throw 'Release workspace is not clean.' }
+    Assert-CodeOnlyPublicHtml
 
     $serverConfigPath = Resolve-SharedFile -Path $ServerConfig
     $serverStateRoot = if ((Split-Path $serverConfigPath -Leaf) -eq 'iran-server.json' -and (Split-Path (Split-Path $serverConfigPath -Parent) -Leaf) -eq '.codex-local') {
@@ -177,6 +195,7 @@ test -d "$root/shared/server-only"
 test -f "$root/current/.release-sha"
 nginx -t >/dev/null
 php-fpm8.3 -t >/dev/null
+nginx -T 2>&1 | grep -Fq 'root /srv/dentistry1402/current/public_html;'
 systemctl is-active --quiet nginx
 systemctl is-active --quiet php8.3-fpm
 systemctl is-active --quiet integrated-dent-bot.service
@@ -202,6 +221,7 @@ test -d "$root/shared/storage"
 test -d "$root/shared/server-only"
 nginx -t >/dev/null
 php-fpm8.3 -t >/dev/null
+nginx -T 2>&1 | grep -Fq 'root /srv/dentistry1402/current/public_html;'
 systemctl is-active --quiet nginx
 systemctl is-active --quiet php8.3-fpm
 systemctl is-active --quiet integrated-dent-bot.service
@@ -217,6 +237,11 @@ for path in '/.env' '/storage/auth/users.json' '/server-only/.env' '/.git/config
   code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "https://dentistry1402tums.ir$path")"
   test "$code" = 403
 done
+python3 - "$root/shared/storage" <<'PY'
+import json, pathlib, sys
+for path in pathlib.Path(sys.argv[1]).rglob('*.json'):
+    json.loads(path.read_text(encoding='utf-8'))
+PY
 set -a
 source /etc/integrated-dent/dent-bot.env
 set +a
@@ -272,6 +297,7 @@ release="$root/releases/$sha"
 incoming="$root/releases/.incoming-$sha-$$"
 previous="$(readlink -f "$root/current")"
 activated=0
+backup=''
 
 cleanup() {
   rm -rf -- "$incoming"
@@ -300,29 +326,40 @@ printf '%s  %s\n' "$expected" "$bundle" | sha256sum -c -
 tar -tzf "$bundle" | awk 'BEGIN{ok=1} /^\//{ok=0} /(^|\/)\.\.($|\/)/{ok=0} !/^public_html\// && $0!="public_html"{ok=0} END{exit ok?0:1}'
 nginx -t >/dev/null
 php-fpm8.3 -t >/dev/null
+nginx -T 2>&1 | grep -Fq 'root /srv/dentistry1402/current/public_html;'
 python3 - "$root/shared/storage" <<'PY'
 import json, pathlib, sys
 for path in pathlib.Path(sys.argv[1]).rglob('*.json'):
     json.loads(path.read_text(encoding='utf-8'))
 PY
 
-backup="/var/backups/dent-site-switch-$(date -u +%Y%m%dT%H%M%SZ)-${sha:0:12}"
+# A code release should not mutate shared state by design, but new application
+# code can still expose migration-on-read bugs. Keep a verified pre-switch data
+# snapshot for manual recovery; never auto-restore it over concurrent writes.
+storage_bytes="$(du -sb "$root/shared/storage" | awk '{print $1}')"
+avail_bytes="$(df -B1 --output=avail /var/backups | tail -1 | tr -d ' ')"
+required_bytes="$((storage_bytes * 2 + 209715200))"
+test "$avail_bytes" -gt "$required_bytes"
+backup="/var/backups/dent-site-data-$(date -u +%Y%m%dT%H%M%SZ)-${sha:0:12}"
 install -d -o root -g root -m 0700 "$backup"
 printf 'previous=%s\ntarget=%s\n' "$previous" "$sha" > "$backup/runtime-pointers.txt"
-sha256sum "$backup/runtime-pointers.txt" > "$backup/SHA256SUMS"
-sha256sum -c "$backup/SHA256SUMS" >/dev/null
+tar -C "$root/shared" -czf "$backup/storage.tar.gz" storage
+sha256sum "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" > "$backup/SHA256SUMS"
+(cd "$backup" && sha256sum -c SHA256SUMS >/dev/null)
+chmod 0600 "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" "$backup/SHA256SUMS"
+echo "SITE_DATA_BACKUP=$backup"
 
 validate_release() {
   candidate="$1"
   test "$(cat "$candidate/.release-sha")" = "$sha"
   test -d "$candidate/public_html"
-  test ! -e "$candidate/storage"
-  test ! -e "$candidate/server-only"
+  test ! -e "$candidate/public_html/storage"
+  test ! -e "$candidate/public_html/server-only"
   ! find "$candidate/public_html" -type l -print -quit | grep -q .
-  ! find "$candidate/public_html" -type f \( -name '.env' -o -name '*.sqlite' -o -name '*.sqlite3' -o -name '*.key' -o -name '*.pem' \) -print -quit | grep -q .
+  ! find "$candidate/public_html" -type f \( -name '.env' -o -name '.env.*' -o -name '*.sqlite' -o -name '*.sqlite3' -o -name '*.db' -o -name '*.key' -o -name '*.pem' \) -print -quit | grep -q .
   while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find "$candidate/public_html" -type f -name '*.php' -print0)
   if command -v node >/dev/null 2>&1; then
-    while IFS= read -r -d '' file; do node --check "$file" >/dev/null; done < <(find "$candidate/public_html" -type f -name '*.js' -print0)
+    while IFS= read -r -d '' file; do node --check "$file" >/dev/null; done < <(find "$candidate/public_html" -type f -name '*.js' -not -path '*/vendor/*' -print0)
   fi
 }
 
@@ -355,6 +392,11 @@ for path in '/.env' '/storage/auth/users.json' '/server-only/.env' '/.git/config
   code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "https://dentistry1402tums.ir$path")"
   test "$code" = 403
 done
+python3 - "$root/shared/storage" <<'PY'
+import json, pathlib, sys
+for path in pathlib.Path(sys.argv[1]).rglob('*.json'):
+    json.loads(path.read_text(encoding='utf-8'))
+PY
 systemctl is-active --quiet integrated-dent-bot.service
 systemctl is-active --quiet integrated-dent-bale-bot.service
 set -a
@@ -368,11 +410,6 @@ source /etc/integrated-dent/bale-bot.env
 set +a
 cd /opt/integrated-dent/bale/current
 /usr/bin/python3 -m dent_bot.bale_health | grep -q '"ready": true'
-python3 - "$root/shared/storage" <<'PY'
-import json, pathlib, sys
-for path in pathlib.Path(sys.argv[1]).rglob('*.json'):
-    json.loads(path.read_text(encoding='utf-8'))
-PY
 
 echo SITE_VPS_DEPLOY_OK
 '@
@@ -381,22 +418,31 @@ echo SITE_VPS_DEPLOY_OK
     & scp @scpOptions $installerPath "${script:target}:${remotePrefix}.install.sh"
     if ($LASTEXITCODE -ne 0) { throw 'Site installer transfer failed.' }
 
-    $remoteOutput = @(& ssh @script:sshOptions $script:target bash "${remotePrefix}.install.sh" 2>&1)
+    $remoteOutput = @(& ssh @script:sshOptions $script:target sudo bash "${remotePrefix}.install.sh" 2>&1)
     $remoteCode = $LASTEXITCODE
     foreach ($line in $remoteOutput) { Write-Output $line }
+    foreach ($line in $remoteOutput) {
+        if ([string]$line -match '^SITE_DATA_BACKUP=(/var/backups/[A-Za-z0-9._-]+)$') {
+            $dataBackupPath = $Matches[1]
+        }
+    }
     if ($remoteCode -ne 0) {
         $joined = $remoteOutput -join "`n"
         if ($joined -match 'SITE_ROLLED_BACK') {
-            Publish-DentDeployLifecycle -Service website -Status rolled_back -ReleaseId $ReleaseSha -EventBaseId $lifecycleBaseId -Summary 'VPS website deployment failed after activation and was rolled back.' -ServerConfig $serverConfigPath
+            $productionMutation = $true
+            Publish-DentDeployLifecycle -Service website -Status rolled_back -ReleaseId $ReleaseSha -EventBaseId $lifecycleBaseId -Summary 'VPS website deployment failed after activation and code was rolled back.' -ServerConfig $serverConfigPath
             $lifecycleTerminalSent = $true
         }
         if ($joined -match 'SITE_ROLLBACK_FAILED') {
             $productionMutation = $true
-            throw 'VPS website deploy failed and automatic rollback failed.'
+            throw 'VPS website deploy failed and automatic code rollback failed.'
         }
         throw "VPS website deploy failed with exit code $remoteCode."
     }
 
+    if ([string]::IsNullOrWhiteSpace($dataBackupPath)) {
+        throw 'Remote deploy completed without reporting its verified pre-switch data backup.'
+    }
     $productionMutation = $true
     $currentSha = $ReleaseSha
     Publish-DentDeployLifecycle -Service website -Status succeeded -ReleaseId $ReleaseSha -EventBaseId $lifecycleBaseId -Summary 'Exact-SHA VPS website deployment and live verification passed.' -ServerConfig $serverConfigPath
