@@ -195,6 +195,19 @@ function dent_term7_owner_update_assignment(array $owner, string $studentNumber,
     if ($group !== null && ($group < $meta['minimum'] || $group > $meta['maximum'])) {
         dent_error('شماره گروه معتبر نیست.', 422, ['code' => 'TERM7_GROUP_RANGE_INVALID']);
     }
+
+    $before = dent_term7_assignment_for_student($studentNumber);
+    $previousGroup = is_int($before[$field] ?? null) ? (int) $before[$field] : null;
+    if ($previousGroup !== null && $previousGroup !== $group) {
+        dent_term7_group_leader_state_with_lock(static function (array &$state) use ($studentNumber, $field, $previousGroup): array {
+            $key = (string) $previousGroup;
+            if ((string) ($state[$field][$key] ?? '') === $studentNumber) {
+                unset($state[$field][$key]);
+            }
+            return [];
+        });
+    }
+
     dent_term7_state_with_lock(static function (array &$state) use ($studentNumber, $field, $group): array {
         $current = dent_term7_assignment_for_student($studentNumber, $state);
         $current[$field] = $group;
