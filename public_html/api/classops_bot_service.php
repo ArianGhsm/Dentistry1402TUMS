@@ -160,23 +160,202 @@ function classops_bot_service_item_actions(array $request, array $user, array $p
     return $actions;
 }
 
+function classops_bot_service_preview_item_from_existing(array $current, array $patch): array
+{
+    $normalizedPatch = classops_domain_store_normalize_patch($current, $patch);
+    $candidate = array_replace($current, $normalizedPatch);
+    return [
+        'cohortKey' => (string) ($candidate['cohortKey'] ?? ''),
+        'type' => (string) ($candidate['type'] ?? ''),
+        'title' => (string) ($candidate['title'] ?? ''),
+        'description' => (string) ($candidate['description'] ?? ''),
+        'course' => $candidate['course'] ?? null,
+        'timing' => is_array($candidate['timing'] ?? null) ? $candidate['timing'] : [],
+        'location' => (string) ($candidate['location'] ?? ''),
+        'importance' => (string) ($candidate['importance'] ?? 'normal'),
+        'requireAck' => !empty($candidate['requireAck']),
+        'status' => (string) ($candidate['status'] ?? 'draft'),
+    ];
+}
+
 function classops_bot_service_owner_preview(array $request, array $owner): array
 {
     $previewRequest = classops_bot_service_object($request, 'request');
+    $mode = strtolower(trim((string) ($request['mode'] ?? 'create')));
+    if (!in_array($mode, ['create', 'update'], true)) {
+        classops_domain_error('CLASSOPS_CONFIRM_MODE_INVALID', 'Bot preview mode is invalid.');
+    }
+
+    $confirmItem = $previewRequest['item'] ?? [];
+    $confirmPayload = [];
+    if ($mode === 'update') {
+        $id = classops_stage2_require_item_id($request['id'] ?? '');
+        $expectedRevision = (int) ($request['expectedRevision'] ?? 0);
+        $current = classops_get_item($id);
+        if ($expectedRevision < 1 || $expectedRevision !== (int) ($current['revision'] ?? 0)) {
+            classops_domain_error('CLASSOPS_REVISION_CONFLICT', 'Item revision changed; refresh before preview.', 409);
+        }
+        $binding = classops_stage2_existing_binding($current);
+        $previewRequest['item'] = classops_bot_service_preview_item_from_existing($current, is_array($confirmItem) ? $confirmItem : []);
+        if (!array_key_exists('audienceSpec', $previewRequest) && is_array($binding['audienceSpec'] ?? null)) {
+            $previewRequest['audienceSpec'] = $binding['audienceSpec'];
+        }
+        if (!array_key_exists('destinations', $previewRequest) && is_array($binding['destinations'] ?? null)) {
+            $previewRequest['destinations'] = $binding['destinations'];
+        }
+        if (!array_key_exists('reminderPolicy', $previewRequest) && array_key_exists('reminderPolicy', $binding)) {
+            $previewRequest['reminderPolicy'] = $binding['reminderPolicy'];
+        }
+        if (!array_key_exists('serviceRef', $previewRequest) && array_key_exists('serviceRef', $binding)) {
+            $previewRequest['serviceRef'] = $binding['serviceRef'];
+        }
+        $confirmPayload['id'] = $id;
+        $confirmPayload['expectedRevision'] = $expectedRevision;
+    }
+
     $preview = classops_stage2_preview($owner, $previewRequest);
-    $confirmPayload = [
-        'mode' => 'create',
-        'item' => $previewRequest['item'],
+    $confirmPayload += [
+        'mode' => $mode,
+        'item' => $mode === 'update' ? $confirmItem : $previewRequest['item'],
         'audienceSpec' => $previewRequest['audienceSpec'] ?? classops_stage2_default_audience_spec(),
         'expectedAudienceHash' => (string) ($preview['confirmation']['audienceHash'] ?? ''),
         'destinations' => $previewRequest['destinations'] ?? ['private_users'],
         'reminderPolicy' => $previewRequest['reminderPolicy'] ?? null,
         'serviceRef' => $previewRequest['serviceRef'] ?? null,
         'idempotencyKey' => classops_bot_service_random_ref('bot.confirm.'),
-        'reason' => 'explicit-bot-owner-confirm',
+        'reason' => $mode === 'update' ? 'explicit-bot-owner-update-confirm' : 'explicit-bot-owner-confirm',
     ];
     $token = classops_bot_service_issue_action($request, 'owner_confirm', $confirmPayload, 900);
-    return ['success'=>true,'preview'=>$preview,'confirmToken'=>$token];
+    return ['success'=>true,'preview'=>$preview,'confirmToken'=>$token,'mode'=>$mode];
+}
+
+function classops_bot_service_record_sort_at(array $item): ?int
+{
+    $timing = is_array($item['timing'] ?? null) ? $item['timing'] : [];
+    foreach (['startsAt','dueAt','endsAt'] as $field) {
+        $raw = trim((string) ($timing[$field] ?? ''));
+        if ($raw === '') continue;
+        $timestamp = strtotime($raw);
+        if ($timestamp !== false) return $timestamp;
+    }
+    return null;
+}
+
+function classops_bot_service_upcoming_month(array $request, array $user): array
+{
+    $timezone = new DateTimeZone('Asia/Tehran');
+    $today = (new DateTimeImmutable('now', $timezone))->setTime(0, 0, 0);
+    $end = $today->modify('+30 days');
+    $nowTs = time();
+    $endTs = $end->getTimestamp();
+    $owner = classops_stage2_is_owner($user);
+    $rawItems = [];
+    if ($owner) {
+        $listed = classops_list_items(['cohortKey'=>dent_user_cohort_key($user),'type'=>'','status'=>'','limit'=>CLASSOPS_BOT_SERVICE_MAX_LIST,'cursor'=>'']);
+        $rawItems = is_array($listed['items'] ?? null) ? $listed['items'] : [];
+    } else {
+        $listed = classops_stage2_student_list($user, []);
+        $rawItems = is_array($listed['items'] ?? null) ? $listed['items'] : [];
+    }
+    $records = [];
+    foreach ($rawItems as $item) {
+        if (!is_array($item) || ($item['status'] ?? '') === 'archived') continue;
+        $sortAt = classops_bot_service_record_sort_at($item);
+        $status = (string) ($item['status'] ?? '');
+        $overdue = $sortAt !== null && $sortAt < $nowTs && !in_array($status, ['completed','cancelled','archived'], true);
+        if ($sortAt !== null && $sortAt > $endTs) continue;
+        if ($sortAt !== null && $sortAt < $today->getTimestamp() && !$overdue) continue;
+        $course = is_array($item['course'] ?? null) ? (string) ($item['course']['title'] ?? '') : '';
+        $records[] = [
+            'source'=>'classops','id'=>(string)($item['id']??''),'type'=>(string)($item['type']??''),'status'=>$status,
+            'title'=>(string)($item['title']??''),'description'=>(string)($item['description']??''),'courseTitle'=>$course,
+            'location'=>(string)($item['location']??''),'timing'=>is_array($item['timing']??null)?$item['timing']:[],
+            'sortAt'=>$sortAt===null?null:gmdate('c',$sortAt),'overdue'=>$overdue,
+        ];
+    }
+    if (dent_user_cohort_key($user) === DENT_TERM7_COHORT) {
+        try {
+            for ($index = 0; $index < 30; $index++) {
+                $localDate = $today->modify('+' . $index . ' days');
+                $record = classops_stage2_term7_record_for_date($user, $localDate);
+                $description = trim((string) ($record['description'] ?? ''));
+                if ($description === '') continue;
+                $records[] = [
+                    'source'=>'term7','id'=>'','type'=>'schedule_ref','status'=>'active','title'=>'برنامه ترم ۷',
+                    'description'=>$description,'courseTitle'=>'','location'=>'',
+                    'timing'=>['localDate'=>$localDate->format('Y-m-d'),'allDay'=>true],
+                    'sortAt'=>$localDate->setTime(0,0,0)->setTimezone(new DateTimeZone('UTC'))->format('c'),'overdue'=>false,
+                ];
+            }
+        } catch (Throwable $exception) {
+            $records[] = [
+                'source'=>'term7','id'=>'','type'=>'schedule_ref','status'=>'unknown','title'=>'برنامه ترم ۷',
+                'description'=>'برنامه رسمی در این لحظه قابل resolve نبود؛ داده‌ای حدس زده نشد.','courseTitle'=>'','location'=>'',
+                'timing'=>['localDate'=>$today->format('Y-m-d'),'allDay'=>true],
+                'sortAt'=>$today->setTimezone(new DateTimeZone('UTC'))->format('c'),'overdue'=>false,
+            ];
+        }
+    }
+    usort($records, static function(array $a, array $b): int {
+        $left = strtotime((string)($a['sortAt']??'')) ?: PHP_INT_MAX;
+        $right = strtotime((string)($b['sortAt']??'')) ?: PHP_INT_MAX;
+        return $left <=> $right ?: strcmp((string)($a['title']??''),(string)($b['title']??''));
+    });
+    return ['success'=>true,'role'=>$owner?'owner':'student','timezone'=>'Asia/Tehran','days'=>30,'records'=>$records];
+}
+
+function classops_bot_service_notification_status(array $request, array $owner): array
+{
+    if (!classops_stage2_is_owner($owner)) classops_domain_error('CLASSOPS_OWNER_REQUIRED','Owner status required.',403);
+    $notificationStore = notifications_read_store();
+    $stage2State = classops_stage2_read_state();
+    $notificationCounts = [];
+    $notifications = [];
+    foreach (($notificationStore['notifications'] ?? []) as $record) {
+        if (!is_array($record) || (string)($record['source']??'') !== 'classops') continue;
+        $status = (string)($record['status']??'unknown');
+        $notificationCounts[$status] = ($notificationCounts[$status] ?? 0) + 1;
+        $notifications[] = [
+            'title'=>(string)($record['title']??'اعلان امور کلاس'),'status'=>$status,
+            'publishAt'=>(string)($record['publishAt']??''),'releasedAt'=>(string)($record['releasedAt']??''),
+        ];
+    }
+    usort($notifications, static fn(array $a,array $b): int => strcmp((string)($b['publishAt']??''),(string)($a['publishAt']??'')));
+    $deliveryCounts = [];
+    $platformCounts = ['telegram'=>[],'bale'=>[]];
+    foreach (($stage2State['deliveryIntents'] ?? []) as $entry) {
+        if (!is_array($entry)) continue;
+        $status = (string)($entry['status']??'unknown');
+        $platform = (string)($entry['intent']['platform']??'');
+        $deliveryCounts[$status] = ($deliveryCounts[$status] ?? 0) + 1;
+        if (isset($platformCounts[$platform])) {
+            $platformCounts[$platform][$status] = ($platformCounts[$platform][$status] ?? 0) + 1;
+        }
+    }
+    return [
+        'success'=>true,'notifications'=>array_slice($notifications,0,20),
+        'notificationCounts'=>$notificationCounts,'deliveryCounts'=>$deliveryCounts,'platformCounts'=>$platformCounts,
+        'stateUpdatedAt'=>(string)($stage2State['updatedAt']??''),
+    ];
+}
+
+function classops_bot_service_runtime_status(array $request, array $owner): array
+{
+    if (!classops_stage2_is_owner($owner)) classops_domain_error('CLASSOPS_OWNER_REQUIRED','Owner status required.',403);
+    $currentPlatform = classops_bot_service_platform($request);
+    $otherPlatform = $currentPlatform === 'telegram' ? 'bale' : 'telegram';
+    $notificationStore = notifications_read_store();
+    $stage2State = classops_stage2_read_state();
+    return [
+        'success'=>true,
+        'services'=>[
+            ['key'=>'site_api','label'=>'اتصال API سایت','state'=>'ready'],
+            ['key'=>'classops','label'=>'امور کلاس','state'=>'ready','checkedAt'=>(string)($stage2State['updatedAt']??'')],
+            ['key'=>'notifications','label'=>'اعلان‌ها','state'=>'ready','checkedAt'=>(string)($notificationStore['updatedAt']??'')],
+            ['key'=>$currentPlatform,'label'=>$currentPlatform==='telegram'?'تلگرام':'بله','state'=>'ready'],
+            ['key'=>$otherPlatform,'label'=>$otherPlatform==='telegram'?'تلگرام':'بله','state'=>'unknown'],
+        ],
+    ];
 }
 
 function classops_bot_service_resolve_action(array $request, array $user): array
@@ -244,6 +423,10 @@ function classops_bot_service_dispatch(array $request): array
             $user=classops_bot_service_linked_user($request);
             return ['success'=>true,'digest'=>classops_stage2_digest($user,$action==='classopsTomorrowSummary'?'tomorrow':'weekly')];
         }
+        if ($action === 'classopsUpcomingMonth') {
+            $user=classops_bot_service_linked_user($request);
+            return classops_bot_service_upcoming_month($request,$user);
+        }
         if ($action === 'classopsOwnerAiDraft') {
             $owner=classops_bot_service_owner($request);
             $forwarded=array_key_exists('forwardedText',$request)&&$request['forwardedText']!==null?(string)$request['forwardedText']:null;
@@ -251,6 +434,12 @@ function classops_bot_service_dispatch(array $request): array
         }
         if ($action === 'classopsOwnerPreview') {
             return classops_bot_service_owner_preview($request,classops_bot_service_owner($request));
+        }
+        if ($action === 'classopsNotificationStatus') {
+            return classops_bot_service_notification_status($request,classops_bot_service_owner($request));
+        }
+        if ($action === 'classopsRuntimeStatus') {
+            return classops_bot_service_runtime_status($request,classops_bot_service_owner($request));
         }
         if ($action === 'classopsResolveAction') {
             $user=classops_bot_service_linked_user($request);
