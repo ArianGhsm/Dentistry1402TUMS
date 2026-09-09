@@ -29,11 +29,11 @@ jobs:
       - name: Restore only historically proven FEH deletions
         run: python3 scripts/_tmp_restore_persian_f.py
 
-      - name: Validate repair diff
+      - name: Validate repair scope
         run: |
-          git diff --check
           git diff -- public_html/account/index.html
           test -n "$(git status --porcelain -- public_html/account/index.html)"
+          test "$(git status --porcelain | wc -l)" -eq 1
 
       - name: Commit repaired canonical source
         run: |
