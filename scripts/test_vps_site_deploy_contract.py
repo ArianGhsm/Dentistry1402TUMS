@@ -32,7 +32,15 @@ assert '<<<' not in DEPLOY, 'PowerShell deployer must not use Bash here-strings/
 assert 'Set-Content -LiteralPath $installerPath -Value $installer -Encoding UTF8' not in DEPLOY, 'remote shell installer must be UTF-8 without BOM'
 assert 'deploy_public_html.ps1' not in GATE, 'release gate must not route production through retired cPanel/FTP deployer'
 assert 'deploy_site_vps.ps1' in GATE, 'release gate must route website production to VPS deployer'
-assert "-Deploy @DeployArgs" in COMPLETE, 'task completion must enter the validated release gate'
+for needle in [
+    '[string]$ReleaseSha',
+    '[string]$ServerConfig',
+    '[string]$ConfirmTargetHost',
+    "'-Deploy'",
+    '& $powershellCommand.Source -ExecutionPolicy Bypass -File $gate @gateArgs',
+]:
+    assert needle in COMPLETE, f'missing explicit task-completion contract: {needle}'
+assert 'ValueFromRemainingArguments' not in COMPLETE, 'task completion must not rely on ambiguous passthrough parsing'
 assert 'deploy_public_html.ps1' not in COMPLETE, 'task completion must not invoke retired cPanel deployer'
 assert DEPLOY.index("Status succeeded") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'success lifecycle must occur only after remote live verification'
 assert DEPLOY.index("$productionMutation = $true") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'mutation report must be set only after verified activation'
