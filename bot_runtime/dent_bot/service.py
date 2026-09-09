@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from .api import TelegramBotApi
+from .app import DentBotApp
 from .bot_home_classops_ux_v2 import install_bot_home_classops_ux_v2
 from .bot_home_classops_ux_v2_compat import install_bot_home_classops_ux_v2_compat
 from .class_operations import install_class_operations_product
@@ -14,8 +15,9 @@ def main() -> int:
     api = TelegramBotApi(settings.token, proxy_url=settings.telegram_proxy_url)
     install_class_operations_product()
     install_term7_group_management()
+    base_callback = DentBotApp._callback
     install_bot_home_classops_ux_v2()
-    install_bot_home_classops_ux_v2_compat()
+    install_bot_home_classops_ux_v2_compat(base_callback=base_callback)
     return run_service(settings=settings, api=api, platform_name="Telegram")
 
 
