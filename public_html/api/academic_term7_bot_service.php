@@ -26,26 +26,47 @@ function dent_term7_bot_service_linked_user(array $payload): array
     return $user;
 }
 
+function dent_term7_bot_service_has_assignment(string $studentNumber, ?array $state = null): bool
+{
+    $studentNumber = dent_normalize_student_number($studentNumber);
+    $state = $state ?? dent_term7_state_read();
+    return $studentNumber !== '' && is_array($state['assignments'][$studentNumber] ?? null);
+}
+
+function dent_term7_bot_service_roster(array $owner): array
+{
+    $state = dent_term7_state_read();
+    return array_values(array_filter(
+        dent_term7_owner_roster($owner),
+        static fn(array $row): bool => dent_term7_bot_service_has_assignment(
+            (string) ($row['studentNumber'] ?? ''),
+            $state
+        )
+    ));
+}
+
 function dent_term7_bot_service_dispatch(array $request): array
 {
     $action = trim((string) ($request['action'] ?? ''));
     $user = dent_term7_bot_service_linked_user($request);
 
     if ($action === 'academicTerm7Self') {
-        if (dent_user_cohort_key($user) !== DENT_TERM7_COHORT) {
+        $studentNumber = dent_normalize_student_number((string) ($user['studentNumber'] ?? ''));
+        if (dent_user_cohort_key($user) !== DENT_TERM7_COHORT
+            || !dent_term7_bot_service_has_assignment($studentNumber)) {
             return ['success' => true, 'eligible' => false, 'assignment' => null];
         }
         return [
             'success' => true,
             'eligible' => true,
-            'assignment' => dent_term7_public_assignment_for_student((string) ($user['studentNumber'] ?? '')),
+            'assignment' => dent_term7_public_assignment_for_student($studentNumber),
         ];
     }
 
     dent_term7_require_owner($user);
 
     if ($action === 'academicTerm7Roster') {
-        return ['success' => true, 'roster' => dent_term7_owner_roster($user)];
+        return ['success' => true, 'roster' => dent_term7_bot_service_roster($user)];
     }
 
     $studentNumber = (string) ($request['studentNumber'] ?? '');
