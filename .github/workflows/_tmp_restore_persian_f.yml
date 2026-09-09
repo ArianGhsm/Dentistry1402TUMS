@@ -21,6 +21,11 @@ jobs:
           ref: fix/website-persian-text-corruption
           fetch-depth: 0
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Restore only historically proven FEH deletions
         run: python3 scripts/_tmp_restore_persian_f.py
 
