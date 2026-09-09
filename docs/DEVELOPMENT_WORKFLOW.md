@@ -3,13 +3,17 @@
 ## Current workflow — sequential GitHub-first development
 
 This section is the active development policy. Older references in historical
-reports to parallel workers, `PARALLEL_BASE_SHA`, integration waves or a
-separate migration chat describe completed historical work only and do not
-control new tasks.
+reports to parallel workers, `PARALLEL_BASE_SHA`, integration waves, cPanel/FTP
+production deploys or a separate migration chat describe completed historical
+work only and do not control new tasks.
 
 Code starts from an exact GitHub commit in `ArianGhsm/Dentistry1402TUMS`.
-Production storage remains the canonical data source. Deploy/recovery workspaces
-are disposable views of a commit; they are not independent sources of code.
+Production storage remains the canonical data source. The website production
+runtime is on the Iran VPS: immutable code releases live under
+`/srv/dentistry1402/releases/<sha>`, while mutable data and server-only state
+remain under `/srv/dentistry1402/shared/storage` and
+`/srv/dentistry1402/shared/server-only`. Deploy/recovery workspaces are
+disposable views of a commit; they are not independent sources of code.
 The repository is agent-agnostic: ChatGPT, Codex or another capable agent may
 continue from the same SHA, contracts, tests and documents.
 
@@ -30,7 +34,7 @@ New development is sequential:
     may merge that PR to `main`;
 11. record the exact resulting `main` SHA;
 12. production release remains a separate exact-SHA backup/deploy/live-
-    verification operation.
+    verification operation when production code/runtime actually changed.
 
 Do not create multiple workers or feature branches for one task, do not run an
 integration wave after the task branch, do not force-push, and do not write
@@ -54,17 +58,29 @@ merge; reconcile only when necessary and never hide a risky conflict.
 
 ### Production release gate
 
-Merging to `main` is not a production deployment. The exact merged `main` SHA
-must separately pass:
+Merging to `main` is not automatically a production deployment. When the merged
+SHA contains production website or runtime code changes, that exact merged
+`main` SHA must separately pass:
 
 1. clean immutable release-workspace verification;
 2. runtime/environment checks that repository CI cannot prove;
-3. verified production-data backup and rollback inputs;
+3. verified backup/rollback inputs for any production state that may be mutated;
 4. canonical exact-SHA deploy;
 5. actual website/Telegram/Bale/service/scheduler health checks as applicable;
-6. post-deploy data, log, notification and freshness invariants.
+6. post-deploy data, log, notification and release-marker invariants.
 
-Feature/task work never substitutes for the production release gate.
+The canonical website release path is `scripts/run_release_gate.ps1` ->
+`scripts/deploy_site_vps.ps1`. cPanel/FTP and `scripts/deploy_public_html.ps1`
+are not production release routes. The VPS website deployer replaces code only;
+it must never copy, delete or overwrite either shared production root.
+
+A docs/tests/workflow-only merge with no production code/runtime delta must not
+perform an empty production deploy merely to make the active production marker
+match the tooling commit. In that case CI plus read-only live verification is
+the completion gate.
+
+Feature/task work never substitutes for the production release gate when a real
+production code/runtime change exists.
 
 ## Branch policy
 
@@ -94,16 +110,16 @@ Feature/task work never substitutes for the production release gate.
 - GitHub CI is green;
 - no unexpected moving-main divergence remains;
 - PR is merged and exact final `main` SHA is reported;
-- production deploy is explicitly reported as not performed unless a separate
-  release instruction was given.
+- production deploy is explicitly reported as not performed unless a real
+  production delta required the separate release gate.
 
 ### Integrated production release
 
 - runtime-only tests pass in the real environment;
-- production backup and rollback inputs are verified;
+- any state that can be mutated has verified backup/rollback inputs;
 - workspace is a clean checkout of the exact GitHub `main` SHA;
 - canonical deploy, live health/log/smoke, lifecycle notifications, data
-  invariants and freshness checks pass.
+  invariants and exact release-marker checks pass.
 
 ## Shared/high-risk files
 
@@ -115,7 +131,8 @@ appropriate regression coverage:
 
 - `AGENTS.md`, `DEPLOY.md`, `.env.example`, `.github/workflows/*`
 - `scripts/run_static_checks.sh`, `scripts/complete_task.ps1`,
-  `scripts/deploy_public_html.ps1`
+  `scripts/run_release_gate.ps1`, `scripts/deploy_site_vps.ps1`
+- `scripts/deploy_public_html.ps1` only as retired legacy/recovery evidence;
 - `public_html/api/bootstrap.php`, `auth_store.php`, `bot_store.php`, `bot_api.php`
 - `public_html/api/notifications_store.php`, `academic_term7.php`
 - `public_html/api/classops_api.php`, `classops_store.php`,

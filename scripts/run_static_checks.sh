@@ -50,6 +50,7 @@ section "Repository and shared-contract freeze"
 "$PYTHON_BIN" scripts/test_shared_contracts.py || fail "test_shared_contracts.py"
 "$PYTHON_BIN" scripts/test_release_source_contract.py || fail "test_release_source_contract.py"
 "$PYTHON_BIN" scripts/test_github_first_workflow.py || fail "test_github_first_workflow.py"
+"$PYTHON_BIN" scripts/test_vps_site_deploy_contract.py || fail "test_vps_site_deploy_contract.py"
 
 section "Auth store resilience"
 "$PHP_BIN" scripts/check_auth_store_resilience.php || fail "check_auth_store_resilience.php"
