@@ -8,8 +8,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEPLOY = (ROOT / "scripts/deploy_public_html.ps1").read_text(encoding="utf-8")
+VPS_DEPLOY = (ROOT / "scripts/deploy_site_vps.ps1").read_text(encoding="utf-8")
 RELEASE_GATE = (ROOT / "scripts/run_release_gate.ps1").read_text(encoding="utf-8")
 
+# The legacy FTP deployer remains test-covered as recovery/history evidence, but
+# it is no longer a canonical production route. GitHub-first release wrappers
+# must point only to the exact-SHA VPS deployer.
 required = [
     "[Parameter(Mandatory = $true)]",
     "[string]$ReleaseSha",
@@ -21,15 +25,29 @@ required = [
     "post-deploy GitHub mutation is disabled",
 ]
 for needle in required:
-    assert needle in DEPLOY, f"missing GitHub-first deploy invariant: {needle}"
-assert "Sync-GitHubFromLaptop -GitHubPlan" not in DEPLOY, "deploy must not invoke post-deploy GitHub sync"
-assert "& $child -ReleaseSha $ReleaseSha -DryRun" in RELEASE_GATE, (
-    "release gate must bind DryRun as a named switch"
-)
-assert "@($(if ($DryRun)" not in RELEASE_GATE, (
-    "release gate must not pass DryRun positionally into the child parameter list"
-)
-assert "Run-OptionalPullBeforeDeploy\n" not in DEPLOY, "deploy must not pull inside an immutable release"
+    assert needle in DEPLOY, f"missing legacy GitHub-first deploy invariant: {needle}"
+assert "Sync-GitHubFromLaptop -GitHubPlan" not in DEPLOY, "legacy deploy must not invoke post-deploy GitHub sync"
+assert "deploy_site_vps.ps1" in RELEASE_GATE, "canonical release gate must target the VPS deployer"
+assert "deploy_public_html.ps1" not in RELEASE_GATE, "canonical release gate must not target retired cPanel/FTP"
+assert "if ($DryRun) { $args.DryRun = $true }" in RELEASE_GATE, "release gate must bind DryRun as a named switch"
+assert "@($(if ($DryRun)" not in RELEASE_GATE, "release gate must not pass DryRun positionally"
+for needle in [
+    "ArianGhsm/Dentistry1402TUMS",
+    "HEAD does not equal -ReleaseSha.",
+    "origin/main does not equal -ReleaseSha.",
+    "Release workspace is not clean.",
+    "/srv/dentistry1402/shared/storage",
+    "/srv/dentistry1402/shared/server-only",
+    "StrictHostKeyChecking=yes",
+    "UserKnownHostsFile=",
+    "release-report.json",
+]:
+    assert needle in VPS_DEPLOY, f"missing canonical VPS release invariant: {needle}"
+assert "<<<" not in VPS_DEPLOY, "PowerShell VPS deployer must not contain Bash here-string redirection"
+
+# Preserve safety coverage for the retired FTP implementation while it remains
+# in the repository as non-canonical recovery evidence.
+assert "Run-OptionalPullBeforeDeploy\n" not in DEPLOY, "legacy deploy must not pull inside an immutable release"
 assert "function Get-GitCommitMetadata" in DEPLOY, "release report metadata helper must be defined"
 assert "function Get-FileSha256Hex" in DEPLOY, "deploy hashing must be available without Get-FileHash"
 assert "Get-FileHash" not in DEPLOY, "canonical Windows PowerShell deploy must not require the optional Get-FileHash cmdlet"
@@ -73,9 +91,9 @@ for needle in [
     'productionMutation',
     'exitCode = if ($status -eq "passed") { 0 } else { 1 }',
 ]:
-    assert needle in DEPLOY, f"missing durable release-report invariant: {needle}"
+    assert needle in DEPLOY, f"missing durable legacy release-report invariant: {needle}"
 assert 'if ($DryRun -and -not $script:DeployPlanComplete)' in DEPLOY, (
-    "dry-run must never return success without a complete deploy plan"
+    "legacy dry-run must never return success without a complete deploy plan"
 )
 assert 'Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) }' in DEPLOY, (
     "zero-delta plans must discard PowerShell null pipeline entries before protected-path validation"
