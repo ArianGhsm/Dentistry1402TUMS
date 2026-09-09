@@ -18,26 +18,37 @@ jobs:
         with:
           ref: fix/website-persian-text-corruption
           fetch-depth: 0
-      - name: Apply exact audited remaining repair
+      - name: Apply exact audited remaining repairs
         run: |
           python3 - <<'PY'
           from pathlib import Path
 
           account = Path('public_html/account/index.html')
           text = account.read_text(encoding='utf-8')
-          bad = '<h3>پیگیری اطلاعیه‌ها و تکالی جدید</h3>'
-          good = '<h3>پیگیری اطلاعیه‌ها و تکالیف جدید</h3>'
-          if text.count(bad) != 1:
-              raise SystemExit(f'expected exactly one remaining account corruption, found {text.count(bad)}')
-          account.write_text(text.replace(bad, good, 1), encoding='utf-8')
+          account_replacements = {
+              '<h3>پیگیری اطلاعیه‌ها و تکالی جدید</h3>': '<h3>پیگیری اطلاعیه‌ها و تکالیف جدید</h3>',
+              'نمایش میان‌بر تکالی نوید برای این cohort': 'نمایش میان‌بر تکالیف نوید برای این cohort',
+          }
+          for bad, good in account_replacements.items():
+              if text.count(bad) != 1:
+                  raise SystemExit(f'expected exactly one remaining account corruption {bad!r}, found {text.count(bad)}')
+              text = text.replace(bad, good, 1)
+          account.write_text(text, encoding='utf-8')
 
           checker = Path('scripts/check_text_integrity.py')
           source = checker.read_text(encoding='utf-8')
-          old = '    "تکلی",\n    "حذ",'
-          new = '    "تکلی",\n    "تکالی",\n    "حذ",'
-          if source.count(old) != 1:
-              raise SystemExit('checker insertion point mismatch')
-          checker.write_text(source.replace(old, new, 1), encoding='utf-8')
+          token_old = '    "تکلی",\n    "حذ",'
+          token_new = '    "تکلی",\n    "تکالی",\n    "حذ",'
+          if source.count(token_old) != 1:
+              raise SystemExit('checker token insertion point mismatch')
+          source = source.replace(token_old, token_new, 1)
+
+          phrase_old = '''        for phrase in ACCOUNT_FEH_DROP_PHRASES:\n            if phrase in line:\n                issues.append((line_no, "persian-feh-drop", phrase))'''
+          phrase_new = '''        for phrase in ACCOUNT_FEH_DROP_PHRASES:\n            phrase_pattern = re.compile(\n                rf"(?<![{PERSIAN_LETTER_CLASS}]){re.escape(phrase)}(?![{PERSIAN_LETTER_CLASS}])"\n            )\n            if phrase_pattern.search(line):\n                issues.append((line_no, "persian-feh-drop", phrase))'''
+          if source.count(phrase_old) != 1:
+              raise SystemExit('checker phrase-boundary insertion point mismatch')
+          source = source.replace(phrase_old, phrase_new, 1)
+          checker.write_text(source, encoding='utf-8')
           PY
           python3 scripts/check_text_integrity.py
           git diff -- public_html/account/index.html scripts/check_text_integrity.py
@@ -46,5 +57,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public_html/account/index.html scripts/check_text_integrity.py
-          git commit -m "fix: restore remaining Persian FEH occurrence"
+          git commit -m "fix: restore remaining Persian FEH occurrences"
           git push origin HEAD:fix/website-persian-text-corruption
