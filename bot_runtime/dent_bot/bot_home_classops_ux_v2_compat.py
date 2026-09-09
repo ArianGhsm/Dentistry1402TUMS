@@ -4,7 +4,8 @@ from typing import Any
 
 from . import class_operations as classops
 from .app import DentBotApp
-from .bot_home_classops_ux_v2 import _owner, owner_classops_screen
+from .bot_home_classops_ux_v2 import _owner, notification_status_screen, owner_classops_screen
+from .persian_datetime import to_persian_digits
 from .ui import Screen, button, keyboard
 
 _INSTALLED = False
@@ -35,6 +36,23 @@ def _owner_confirmation_screen(token: str, verb: str) -> Screen:
             [button("🏠 خانه", action="home")],
         ),
     )
+
+
+def _notification_status_with_ack_screen(status: dict[str, Any], ack_payload: dict[str, Any]) -> Screen:
+    base = notification_status_screen(status)
+    ack = dict(ack_payload.get("ack") or {})
+    eligible = int(ack.get("eligible") or 0)
+    acked = int(ack.get("acked") or 0)
+    pending = int(ack.get("pending") or 0)
+    notice_count = int(ack.get("noticeCount") or 0)
+    lines = [str(base.text), "", "<b>تأیید اطلاعیه‌های مهم</b>"]
+    if notice_count == 0:
+        lines.append("⚪️ اطلاعیه فعالی که نیازمند تأیید باشد وجود ندارد.")
+    else:
+        lines.append(f"✅ تأییدشده: <b>{to_persian_digits(acked)}</b> از {to_persian_digits(eligible)}")
+        lines.append(f"🟡 در انتظار تأیید: <b>{to_persian_digits(pending)}</b>")
+        lines.append(f"• اطلاعیه‌های مشمول: {to_persian_digits(notice_count)}")
+    return Screen("\n".join(lines), base.keyboard)
 
 
 def install_bot_home_classops_ux_v2_compat() -> None:
@@ -89,6 +107,26 @@ def install_bot_home_classops_ux_v2_compat() -> None:
                 except Exception:
                     pass
             classops._render_screen(self, chat_id, owner_classops_screen(), callback=callback)
+            return None
+
+        if data == "classops-v2:notification-status" and _owner(self, user_id):
+            try:
+                status = self.site_api.request("classopsNotificationStatus", user_id)
+                ack_status = self.site_api.request("classopsAckStatusV2", user_id)
+            except Exception:
+                return previous_callback(self, update)
+            callback_id = str(callback.get("id") or "")
+            if callback_id:
+                try:
+                    self.api.answer_callback(callback_id)
+                except Exception:
+                    pass
+            classops._render_screen(
+                self,
+                chat_id,
+                _notification_status_with_ack_screen(status, ack_status),
+                callback=callback,
+            )
             return None
 
         if data.startswith("classops-v2:confirm-cancel:cxo_") or data.startswith("classops-v2:confirm-archive:cxo_"):
