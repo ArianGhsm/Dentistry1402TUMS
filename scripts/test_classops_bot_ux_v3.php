@@ -105,8 +105,9 @@ classops_v3_assert(
     ($partialRows[1]['sessionModeLabel'] ?? '') === 'مجازی'
         && str_contains((string) ($partialRows[1]['title'] ?? ''), 'مجازی')
         && ($partialRows[1]['location'] ?? 'x') === ''
-        && ($partialRows[1]['startsAt'] ?? '') !== '',
-    'Virtual session 10 keeps course time, virtual label, and no physical room'
+        && ($partialRows[1]['startsAt'] ?? 'x') === ''
+        && ($partialRows[1]['endsAt'] ?? 'x') === '',
+    'Virtual session 10 keeps virtual label without fabricating clock time or physical room'
 );
 classops_v3_assert(
     ($partialRows[2]['sessionModeLabel'] ?? '') === 'مجازی'
