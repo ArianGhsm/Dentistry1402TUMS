@@ -40,6 +40,67 @@ UNSAFE_BIDI_PLAINTEXT_RE = re.compile(r"unicode-bidi\s*:\s*plaintext\b", re.IGNO
 UNSAFE_BIDI_ALLOW_MARKER = "rtl-bidi-allow-plaintext"
 MOJIBAKE_ALLOW_MARKER = "text-integrity-allow-mojibake"
 
+# Regression contract for the 2026-07-17 source-copy incident that literally
+# deleted U+0641 (Persian/Arabic FEH, «ف») from account UI strings. These tokens
+# are intentionally checked only in the canonical account source so stored user
+# data, educational content, proper nouns, and unrelated Persian prose are not
+# rewritten or rejected.
+ACCOUNT_UI_PARTS = ("public_html", "account", "index.html")
+PERSIAN_LETTER_CLASS = "\u0600-\u06ff"
+ACCOUNT_FEH_DROP_TOKENS = (
+    "پروایل",
+    "صحه",
+    "راموش",
+    "سارش",
+    "تکلی",
+    "تکالی",
+    "حذ",
+    "رمت",
+    "معری",
+    "استاده",
+    "ارسی",
+    "دریات",
+    "بلااصله",
+    "رتن",
+    "هرست",
+    "ردی",
+    "ازودن",
+    "حظ",
+    "ضای",
+    "اقد",
+    "اضاه",
+    "پیش‌رض",
+)
+ACCOUNT_FEH_DROP_TOKEN_RE = re.compile(
+    rf"(?<![{PERSIAN_LETTER_CLASS}])(?:"
+    + "|".join(re.escape(token) for token in ACCOUNT_FEH_DROP_TOKENS)
+    + rf")(?![{PERSIAN_LETTER_CLASS}])"
+)
+ACCOUNT_FEH_DROP_PHRASES = (
+    "نشست عال",
+    "ورود با موبایل را عال کن",
+    "برای ورودی عال",
+    "قط‌خواندنی",
+    "رمز علی",
+    "وضعیت علی شماره",
+    "شماره علی",
+    "اعلان وری",
+    "قی خرید",
+    "پرداخت موق",
+    "کارت رم‌ها",
+    "یادآور رم‌ها",
+    "ید اعلان‌ها",
+    "ایل‌سنتر",
+)
+ACCOUNT_REQUIRED_PERSIAN_ANCHORS = (
+    "در صفحه اصلی حساب فقط",
+    "رمز عبور خود را فراموش کرده‌اید",
+    "پروفایل پیام‌رسان / هویت",
+    "فید اعلان‌ها",
+    "پرداخت موفق",
+    "فایل‌سنتر",
+)
+
 
 def iter_text_files(root: Path) -> list[Path]:
     files: list[Path] = []
@@ -71,6 +132,33 @@ def looks_like_mojibake(line: str) -> bool:
     return False
 
 
+def is_account_ui_source(path: Path) -> bool:
+    return len(path.parts) >= len(ACCOUNT_UI_PARTS) and tuple(path.parts[-3:]) == ACCOUNT_UI_PARTS
+
+
+def scan_account_persian_contract(path: Path, text: str) -> list[tuple[int, str, str]]:
+    if not is_account_ui_source(path):
+        return []
+
+    issues: list[tuple[int, str, str]] = []
+    for line_no, line in enumerate(text.splitlines(), 1):
+        token_match = ACCOUNT_FEH_DROP_TOKEN_RE.search(line)
+        if token_match:
+            issues.append((line_no, "persian-feh-drop", token_match.group(0)))
+        for phrase in ACCOUNT_FEH_DROP_PHRASES:
+            phrase_pattern = re.compile(
+                rf"(?<![{PERSIAN_LETTER_CLASS}]){re.escape(phrase)}(?![{PERSIAN_LETTER_CLASS}])"
+            )
+            if phrase_pattern.search(line):
+                issues.append((line_no, "persian-feh-drop", phrase))
+
+    for anchor in ACCOUNT_REQUIRED_PERSIAN_ANCHORS:
+        if anchor not in text:
+            issues.append((0, "missing-persian-ui-anchor", anchor))
+
+    return issues
+
+
 def scan_file(path: Path) -> list[tuple[int, str, str]]:
     issues: list[tuple[int, str, str]] = []
 
@@ -85,6 +173,8 @@ def scan_file(path: Path) -> list[tuple[int, str, str]]:
     except UnicodeDecodeError as exc:
         issues.append((0, "invalid-utf8", str(exc)))
         return issues
+
+    issues.extend(scan_account_persian_contract(path, text))
 
     for line_no, line in enumerate(text.splitlines(), 1):
         if MOJIBAKE_ALLOW_MARKER in line:
@@ -159,4 +249,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
