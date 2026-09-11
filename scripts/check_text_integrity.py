@@ -79,6 +79,7 @@ ACCOUNT_FEH_DROP_TOKEN_RE = re.compile(
 ACCOUNT_FEH_DROP_PHRASES = (
     "نشست عال",
     "ورود با موبایل را عال کن",
+    "برای ورودی عال",
     "قط‌خواندنی",
     "رمز علی",
     "وضعیت علی شماره",
