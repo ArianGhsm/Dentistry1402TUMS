@@ -176,8 +176,12 @@ jobs:
                   }
                   if (surface.mode === 'profile') {
                     const profileText = await page.locator('[data-surface="profile"]').innerText();
-                    for (const expected of ['پروفایل پیام‌رسان', 'عکس پروفایل', 'فرمت مجاز', 'معرفی کوتاه']) {
+                    for (const expected of ['پروفایل پیام‌رسان', 'عکس پروفایل', 'فرمت مجاز']) {
                       if (!profileText.includes(expected)) throw new Error(`profile/${viewport.name}: missing ${expected}`);
+                    }
+                    const aboutPlaceholder = await page.locator('#profile-about').getAttribute('placeholder');
+                    if (!aboutPlaceholder || !aboutPlaceholder.includes('معرفی کوتاه')) {
+                      throw new Error(`profile/${viewport.name}: missing معرفی کوتاه placeholder`);
                     }
                   }
 
