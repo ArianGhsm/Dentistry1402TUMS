@@ -266,7 +266,7 @@ digest_assert(isset($budgetView['budget']['omittedBySection']['schedule']), 'per
 $term7Fixture = digest_record('term7_proj_1', 'schedule_ref', [
     'source' => 'schedule',
     'title' => 'اندو نظری ۱',
-    'scheduleRef' => 'term7:1405-1406.1:2026-09-09:endodontics-theory-1',
+    'scheduleRef' => 'term7:1405-1406.2:2026-09-09:endodontics-theory-1',
     'course' => ['ref' => 'endo-theory-1', 'title' => 'اندو نظری ۱'],
     'location' => 'آمفی‌تئاتر ۹۰',
     'timing' => digest_timing('2026-09-09T05:00:00Z', '2026-09-09T07:00:00Z'),

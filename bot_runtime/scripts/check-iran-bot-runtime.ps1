@@ -135,7 +135,7 @@ assert status.get("contractVersion") == "bot-onboarding-v1", ("status_contract",
 owner_account = client.account(settings.owner_id)
 term7_status = client.request("academicTerm7StatusV1", settings.owner_id)
 assert term7_status.get("contractVersion") == "academic-term7-v1", ("term7_contract", term7_status.get("contractVersion"))
-assert term7_status.get("scheduleVersion") == "1405-1406.1", ("term7_schedule", term7_status.get("scheduleVersion"))
+assert term7_status.get("scheduleVersion") == "1405-1406.2", ("term7_schedule", term7_status.get("scheduleVersion"))
 assert term7_status.get("cohortKey") == "dentistry-1402", ("term7_cohort", term7_status.get("cohortKey"))
 assert term7_status.get("timezone") == "Asia/Tehran", ("term7_timezone", term7_status.get("timezone"))
 term7_endo = dict(term7_status.get("thursdayEndo") or {})
