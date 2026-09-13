@@ -188,7 +188,29 @@ try {
     term7_assert(!dent_term7_user_is_eligible($other), 'Synthetic fixture C receives no academic or food reminder');
 
     $saturdayTheory = dent_term7_resolve_jalali('1405/07/04', 6, []);
-    term7_assert(count($saturdayTheory['theory']) === 2, 'Theory and practical sources remain separate without title deduplication');
+    term7_assert(count($saturdayTheory['theory']) === 1, 'Rotation-scoped Research Methodology 2 is absent from shared theory');
+    $researchCases = [
+        ['1405/07/04', 6, ['group10' => 1, 'group8' => 11, 'oralHealthRotationAWeekday' => 1], 1],
+        ['1405/07/04', 6, ['group10' => 6, 'group8' => 15], 0],
+        ['1405/09/01', 6, ['group10' => 6, 'group8' => 11], 1],
+        ['1405/09/01', 6, ['group10' => 1, 'group8' => 12], 0],
+        ['1405/07/08', 3, ['group10' => 1, 'group8' => 18, 'oralHealthRotationAWeekday' => 1], 1],
+        ['1405/09/05', 3, ['group10' => 6, 'group8' => 14], 1],
+    ];
+    foreach ($researchCases as [$date, $weekday, $assignment, $expectedCount]) {
+        $resolvedResearch = dent_term7_resolve_jalali($date, $weekday, $assignment);
+        $allRows = array_merge($resolvedResearch['theory'], $resolvedResearch['practicalMorning'], $resolvedResearch['practicalAfternoon']);
+        $researchRows = array_values(array_filter($allRows, static fn(array $event): bool => str_starts_with((string) ($event['slug'] ?? ''), 'research-methods-2')));
+        term7_assert(count($researchRows) === $expectedCount, 'Research Methodology 2 follows active rotation and never duplicates');
+        if ($expectedCount === 1) {
+            term7_assert(
+                ($researchRows[0]['start'] ?? '') === '13:00'
+                    && ($researchRows[0]['end'] ?? '') === '15:00'
+                    && ($researchRows[0]['location'] ?? '') === (dent_term7_schedule()['theory'][6][0]['location'] ?? ''),
+                'Research Methodology 2 keeps canonical time and amphitheater location'
+            );
+        }
+    }
     term7_assert(str_contains(dent_term7_summary_body($missing), 'گروه کارآموزی'), 'Missing-group UX is explicit');
     $clockSummary = dent_term7_summary_body($satA15);
     term7_assert(

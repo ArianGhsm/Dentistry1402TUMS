@@ -9,7 +9,7 @@ declare(strict_types=1);
  */
 
 const DENT_TERM7_CONTRACT = 'academic-term7-v1';
-const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.2';
+const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.3';
 const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
@@ -255,7 +255,6 @@ function dent_term7_schedule(): array
         'theory' => [
             6 => [
                 ['slug' => 'periodontology-theory-1', 'title' => 'پریو نظری ۱', 'start' => '07:30', 'end' => '08:30', 'location' => $theoryLocation],
-                ['slug' => 'research-methods-2-theory', 'title' => 'روش تحقیق ۲', 'start' => '13:00', 'end' => '15:00', 'location' => $theoryLocation],
             ],
             7 => [
                 ['slug' => 'diagnostic-dentistry-3-sun', 'title' => 'دندانپزشکی تشخیصی ۳', 'start' => '07:30', 'end' => '08:30', 'location' => $theoryLocation],
@@ -270,7 +269,6 @@ function dent_term7_schedule(): array
             ],
             3 => [
                 ['slug' => 'partial-basics-theory', 'title' => 'مبانی پارسیل نظری', 'start' => '07:30', 'end' => '08:30', 'location' => $theoryLocation],
-                ['slug' => 'research-methods-2-theory-wed', 'title' => 'روش تحقیق ۲', 'start' => '13:00', 'end' => '15:00', 'location' => $theoryLocation],
             ],
             4 => [
                 // Explicit owner correction takes precedence over the older PDF cell.
@@ -287,7 +285,7 @@ function dent_term7_schedule(): array
                         dent_term7_event('restorative-practical-2', 'ترمیمی عملی ۲', 'morning', 'group10', [9]),
                         dent_term7_event('oral-health-practical-2', 'سلامت دهان عملی ۲', 'morning', 'group10', $g1to5),
                         dent_term7_event('restorative-practical-2-pm', 'ترمیمی عملی ۲', 'afternoon', 'group8', [15]),
-                        dent_term7_event('research-methods-2-practical', 'روش تحقیق ۲', 'afternoon', 'group10', $g1to5),
+                        dent_term7_event('research-methods-2-practical', 'روش تحقیق ۲', 'afternoon', 'group10', $g1to5, $theoryLocation),
                         dent_term7_event('surgery-practical-2', 'جراحی عملی ۲', 'afternoon', 'group8', [16]),
                     ],
                     7 => [
@@ -320,7 +318,7 @@ function dent_term7_schedule(): array
                         dent_term7_event('restorative-practical-2', 'ترمیمی عملی ۲', 'morning', 'group10', [6]),
                         dent_term7_event('oral-health-practical-2', 'سلامت دهان عملی ۲', 'morning', 'group10', $g1to5),
                         dent_term7_event('restorative-practical-2-pm', 'ترمیمی عملی ۲', 'afternoon', 'group8', [18]),
-                        dent_term7_event('research-methods-2-practical', 'روش تحقیق ۲', 'afternoon', 'group10', $g1to5),
+                        dent_term7_event('research-methods-2-practical', 'روش تحقیق ۲', 'afternoon', 'group10', $g1to5, $theoryLocation),
                         dent_term7_event('surgery-practical-2', 'جراحی عملی ۲', 'afternoon', 'group8', [17]),
                     ],
                 ],
@@ -334,7 +332,7 @@ function dent_term7_schedule(): array
                         dent_term7_event('restorative-practical-2', 'ترمیمی عملی ۲', 'morning', 'group10', [4]),
                         dent_term7_event('oral-health-practical-2', 'سلامت دهان عملی ۲', 'morning', 'group10', $g6to10),
                         dent_term7_event('restorative-practical-2-pm', 'ترمیمی عملی ۲', 'afternoon', 'group8', [11]),
-                        dent_term7_event('research-methods-2-practical', 'روش تحقیق ۲', 'afternoon', 'group10', $g6to10),
+                        dent_term7_event('research-methods-2-practical', 'روش تحقیق ۲', 'afternoon', 'group10', $g6to10, $theoryLocation),
                         dent_term7_event('surgery-practical-2', 'جراحی عملی ۲', 'afternoon', 'group8', [12]),
                     ],
                     7 => [
@@ -367,7 +365,7 @@ function dent_term7_schedule(): array
                         dent_term7_event('restorative-practical-2', 'ترمیمی عملی ۲', 'morning', 'group10', [2]),
                         dent_term7_event('oral-health-practical-2', 'سلامت دهان عملی ۲', 'morning', 'group10', $g6to10),
                         dent_term7_event('restorative-practical-2-pm', 'ترمیمی عملی ۲', 'afternoon', 'group8', [14]),
-                        dent_term7_event('research-methods-2-practical', 'روش تحقیق ۲', 'afternoon', 'group10', $g6to10),
+                        dent_term7_event('research-methods-2-practical', 'روش تحقیق ۲', 'afternoon', 'group10', $g6to10, $theoryLocation),
                         dent_term7_event('surgery-practical-2', 'جراحی عملی ۲', 'afternoon', 'group8', [13]),
                     ],
                 ],
