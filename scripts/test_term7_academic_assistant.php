@@ -273,16 +273,19 @@ try {
         ];
         foreach ($fixtures as [$platform, $platformUserId, $studentNumber]) {
             $identityHash = dent_bot_identity_hash($platform, $platformUserId);
-            $store['links'][$identityHash] = [
+            $link = [
                 'platform' => $platform,
                 // Scheduler eligibility never decrypts transport IDs. Keep the
                 // fixture crypto-free because CI PHP may omit openssl.
-                'platformUserIdEncrypted' => ['iv' => 'fixture', 'tag' => 'fixture', 'cipher' => 'fixture'],
+                'platformUserIdEncrypted' => ['iv' => 'fixture', 'tag' => 'fixture', 'ct' => 'fixture'],
                 'studentNumber' => $studentNumber,
-                'authVersion' => dent_bot_canonical_auth_version(),
-                'authMethod' => 'secure-site-login',
-                'authCompletedAt' => dent_iso_now(),
             ];
+            if ($studentNumber !== $studentB) {
+                $link['authVersion'] = dent_bot_canonical_auth_version();
+                $link['authMethod'] = 'secure-site-login';
+                $link['authCompletedAt'] = dent_iso_now();
+            }
+            $store['links'][$identityHash] = $link;
         }
         return [];
     });
@@ -293,7 +296,7 @@ try {
     $academicTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-18 21:00:00', $tz));
     $notificationStore = notifications_read_store();
     $academicRecords = array_values(array_filter($notificationStore['notifications'], static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7'));
-    term7_assert($academicTick['eligibleUsers'] === 2 && count($academicRecords) === 2, 'Integration: only linked dentistry-1402 A/B users receive tomorrow summaries');
+    term7_assert($academicTick['eligibleUsers'] === 2 && count($academicRecords) === 2, 'Integration: every canonical linked dentistry-1402 A/B user receives tomorrow summaries regardless of link-generation metadata');
     term7_assert(($academicRecords[0]['body'] ?? '') !== ($academicRecords[1]['body'] ?? ''), 'Integration: A/B summary bodies are personalized');
     $studentBReminder = array_values(array_filter($academicRecords, static fn($record): bool => str_ends_with((string) ($record['sourceKey'] ?? ''), ':' . $studentB)))[0] ?? [];
     term7_assert(

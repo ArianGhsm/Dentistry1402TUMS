@@ -571,17 +571,17 @@ def main() -> int:
         "action": "account", "platform": "telegram", "platformUserId": str(claim_identity),
     })
     assert claimed_account["status"] == 200 and claimed_account["payload"]["linked"] is True, claimed_account
-    assert claimed_account["payload"]["authComplete"] is False, claimed_account
-    legacy_private = request(endpoint, secret, {
-        "action": "grades", "platform": "telegram", "platformUserId": str(claim_identity),
+    assert claimed_account["payload"]["authComplete"] is True, claimed_account
+    mapped_private = request(endpoint, secret, {
+        "action": "notifications", "platform": "telegram", "platformUserId": str(claim_identity), "limit": 1,
     })
-    assert legacy_private["status"] == 403 and legacy_private["payload"].get("code") == "ACCOUNT_AUTH_REQUIRED", legacy_private
-    legacy_reauth = request(endpoint, secret, {
+    assert mapped_private["status"] == 200 and mapped_private["payload"].get("success") is True, mapped_private
+    mapped_relink = request(endpoint, secret, {
         "action": "startLink", "platform": "telegram", "platformUserId": str(claim_identity),
         "authVersion": "bot-canonical-auth-v1",
     })
-    assert legacy_reauth["status"] == 200 and legacy_reauth["payload"].get("alreadyLinked") is False, legacy_reauth
-    assert legacy_reauth["payload"]["linkUrl"].startswith("https://example.test/account/bot-link/?token="), legacy_reauth
+    assert mapped_relink["status"] == 200 and mapped_relink["payload"].get("alreadyLinked") is True, mapped_relink
+    assert mapped_relink["payload"].get("authComplete") is True, mapped_relink
 
     retired_pending_account = request(endpoint, secret, {
         "action": "account", "platform": "telegram", "platformUserId": "888003",
