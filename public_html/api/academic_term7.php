@@ -9,10 +9,35 @@ declare(strict_types=1);
  */
 
 const DENT_TERM7_CONTRACT = 'academic-term7-v1';
-const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.1';
+const DENT_TERM7_SCHEDULE_VERSION = '1405-1406.2';
 const DENT_TERM7_COHORT = 'dentistry-1402';
 const DENT_TERM7_TIMEZONE = 'Asia/Tehran';
 const DENT_TERM7_FOOD_URL = 'http://foodstu.tums.ac.ir';
+
+// Academic-term context is deliberately separate from the teaching timetable.
+// The schedule may start later or end earlier than the university term itself.
+const DENT_TERM7_ACADEMIC_FROM = '1405/06/18';
+const DENT_TERM7_ACADEMIC_THROUGH = '1405/11/23';
+
+function dent_term7_academic_context(?DateTimeImmutable $date = null): array
+{
+    $timezone = new DateTimeZone(DENT_TERM7_TIMEZONE);
+    $local = ($date ?? new DateTimeImmutable('now', $timezone))->setTimezone($timezone);
+    $jalali = dent_term7_jalali_key($local);
+    $active = strcmp($jalali, DENT_TERM7_ACADEMIC_FROM) >= 0
+        && strcmp($jalali, DENT_TERM7_ACADEMIC_THROUGH) <= 0;
+    $state = $active
+        ? 'active'
+        : (strcmp($jalali, DENT_TERM7_ACADEMIC_FROM) < 0 ? 'before_window' : 'after_window');
+    return [
+        'currentJalaliDate' => $jalali,
+        'term' => $active ? 7 : null,
+        'termLabel' => $active ? 'ترم ۷' : '',
+        'state' => $state,
+        'activeFrom' => DENT_TERM7_ACADEMIC_FROM,
+        'activeThrough' => DENT_TERM7_ACADEMIC_THROUGH,
+    ];
+}
 
 function dent_term7_state_path(): string
 {
@@ -48,12 +73,19 @@ function dent_term7_normalize_assignment(string $studentNumber, array $assignmen
     if ($group8 !== null && ($group8 < 11 || $group8 > 18)) {
         $group8 = null;
     }
+    $oralHealthRotationAWeekday = isset($assignment['oralHealthRotationAWeekday']) && $assignment['oralHealthRotationAWeekday'] !== ''
+        ? (int) $assignment['oralHealthRotationAWeekday']
+        : null;
+    if ($oralHealthRotationAWeekday !== null && !in_array($oralHealthRotationAWeekday, [1, 3, 6], true)) {
+        $oralHealthRotationAWeekday = null;
+    }
     return [
         'studentNumber' => $studentNumber,
         'cohortKey' => DENT_TERM7_COHORT,
         'term' => 7,
         'group10' => $group10,
         'group8' => $group8,
+        'oralHealthRotationAWeekday' => $oralHealthRotationAWeekday,
         'updatedAt' => trim((string) ($assignment['updatedAt'] ?? '')),
     ];
 }
@@ -162,14 +194,39 @@ function dent_term7_state_read(): array
     }
 }
 
-function dent_term7_event(string $slug, string $title, string $period, string $selector, array $groups, string $location = ''): array
+function dent_term7_practical_time_range(string $period): array
 {
+    return match ($period) {
+        'morning' => ['09:00', '12:00'],
+        'afternoon' => ['13:00', '15:00'],
+        default => ['', ''],
+    };
+}
+
+function dent_term7_event(
+    string $slug,
+    string $title,
+    string $period,
+    string $selector,
+    array $groups,
+    string $location = '',
+    string $start = '',
+    string $end = ''
+): array {
+    $start = trim($start);
+    $end = trim($end);
+    $validClock = static fn(string $value): bool => preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/D', $value) === 1;
+    if (!$validClock($start) || !$validClock($end)) {
+        [$start, $end] = dent_term7_practical_time_range($period);
+    }
     return [
         'slug' => $slug,
         'title' => $title,
         'eventType' => 'practical',
         'source' => 'official-practical-schedule',
         'period' => $period,
+        'start' => $start,
+        'end' => $end,
         'selector' => $selector,
         'groups' => array_values(array_map('intval', $groups)),
         'location' => $location,
@@ -345,14 +402,28 @@ function dent_term7_assignment_for_student(string $studentNumber, ?array $state 
     $state = $state ?? dent_term7_state_read();
     return is_array($state['assignments'][$studentNumber] ?? null)
         ? $state['assignments'][$studentNumber]
-        : ['studentNumber' => $studentNumber, 'cohortKey' => DENT_TERM7_COHORT, 'term' => 7, 'group10' => null, 'group8' => null];
+        : [
+            'studentNumber' => $studentNumber,
+            'cohortKey' => DENT_TERM7_COHORT,
+            'term' => 7,
+            'group10' => null,
+            'group8' => null,
+            'oralHealthRotationAWeekday' => null,
+        ];
 }
 
-function dent_term7_event_matches(array $event, array $assignment): bool
+function dent_term7_event_matches(array $event, array $assignment, string $rotation = '', int $weekday = 0): bool
 {
     $selector = (string) ($event['selector'] ?? '');
     $group = $selector === 'group10' ? ($assignment['group10'] ?? null) : ($selector === 'group8' ? ($assignment['group8'] ?? null) : null);
-    return is_int($group) && in_array($group, is_array($event['groups'] ?? null) ? $event['groups'] : [], true);
+    if (!is_int($group) || !in_array($group, is_array($event['groups'] ?? null) ? $event['groups'] : [], true)) {
+        return false;
+    }
+    if ((string) ($event['slug'] ?? '') === 'oral-health-practical-2' && $rotation === 'A') {
+        $assignedWeekday = $assignment['oralHealthRotationAWeekday'] ?? null;
+        return is_int($assignedWeekday) && $assignedWeekday === $weekday;
+    }
+    return true;
 }
 
 function dent_term7_theory_events(array $events): array
@@ -390,7 +461,7 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
     $morning = [];
     $afternoon = [];
     foreach ($practicalSource as $event) {
-        if (!is_array($event) || !dent_term7_event_matches($event, $assignment)) {
+        if (!is_array($event) || !dent_term7_event_matches($event, $assignment, $rotation, $weekday)) {
             continue;
         }
         if ((string) ($event['period'] ?? '') === 'afternoon') {
@@ -411,6 +482,10 @@ function dent_term7_resolve_jalali(string $jalaliDate, int $weekday, array $assi
         'practicalAfternoon' => $afternoon,
         'missingGroup10' => !isset($assignment['group10']) || !is_int($assignment['group10']),
         'missingGroup8' => !isset($assignment['group8']) || !is_int($assignment['group8']),
+        'missingOralHealthRotationA' => $rotation === 'A'
+            && is_int($assignment['group10'] ?? null)
+            && in_array((int) $assignment['group10'], range(1, 5), true)
+            && !is_int($assignment['oralHealthRotationAWeekday'] ?? null),
     ];
 }
 
@@ -423,11 +498,14 @@ function dent_term7_resolve_date(DateTimeImmutable $date, array $assignment = []
 function dent_term7_summary_body(array $resolved): string
 {
     $lines = [];
-    $appendEvents = static function (array &$target, array $events, bool $showTime): void {
+    $appendEvents = static function (array &$target, array $events): void {
         foreach ($events as $event) {
             $target[] = '• ' . (string) ($event['title'] ?? '');
-            if ($showTime && (string) ($event['start'] ?? '') !== '') {
-                $target[] = '  ⏰ ' . (string) $event['start'] . ' تا ' . (string) ($event['end'] ?? '');
+            $start = trim((string) ($event['start'] ?? ''));
+            $end = trim((string) ($event['end'] ?? ''));
+            if ($start !== '') {
+                $time = $end !== '' ? $start . ' تا ' . $end : $start;
+                $target[] = '  ⏰ ' . dent_to_fa_digits($time);
             }
             if ((string) ($event['location'] ?? '') !== '') {
                 $target[] = '  📍 ' . (string) $event['location'];
@@ -438,25 +516,29 @@ function dent_term7_summary_body(array $resolved): string
     if (($resolved['theory'] ?? []) === []) {
         $lines[] = '• کلاس نظری ثبت‌شده‌ای ندارد.';
     } else {
-        $appendEvents($lines, $resolved['theory'], true);
+        $appendEvents($lines, $resolved['theory']);
     }
     $lines[] = '';
-    $lines[] = '🦷 کارآموزی صبح';
+    $lines[] = '🦷 کارآموزی ۰۹:۰۰ تا ۱۲:۰۰';
     if (($resolved['practicalMorning'] ?? []) === []) {
         $lines[] = '• برنامه‌ای برای گروه شما ثبت نشده است.';
     } else {
-        $appendEvents($lines, $resolved['practicalMorning'], false);
+        $appendEvents($lines, $resolved['practicalMorning']);
     }
     $lines[] = '';
-    $lines[] = '🌆 کارآموزی عصر';
+    $lines[] = '🌆 کارآموزی ۱۳:۰۰ تا ۱۵:۰۰';
     if (($resolved['practicalAfternoon'] ?? []) === []) {
         $lines[] = '• برنامه‌ای برای گروه شما ثبت نشده است.';
     } else {
-        $appendEvents($lines, $resolved['practicalAfternoon'], false);
+        $appendEvents($lines, $resolved['practicalAfternoon']);
     }
     if (!empty($resolved['missingGroup10']) || !empty($resolved['missingGroup8'])) {
         $lines[] = '';
         $lines[] = 'ℹ️ گروه کارآموزی شما هنوز به‌طور کامل در سامانه ثبت نشده است؛ برنامه عملی حدس زده نمی‌شود.';
+    }
+    if (!empty($resolved['missingOralHealthRotationA'])) {
+        $lines[] = '';
+        $lines[] = 'ℹ️ روز سلامت دهان عملی ۲ شما برای روتیشن اول هنوز ثبت نشده است؛ این بخش حدس زده نمی‌شود.';
     }
     if (($resolved['theory'] ?? []) === [] && ($resolved['practicalMorning'] ?? []) === [] && ($resolved['practicalAfternoon'] ?? []) === []) {
         $lines[] = '';
@@ -483,13 +565,13 @@ function dent_term7_jalali_in_active_window(string $jalaliDate): bool
 
 function dent_term7_linked_eligible_users(): array
 {
-    if (!function_exists('dent_bot_store_read') || !function_exists('dent_bot_link_auth_complete')) {
+    if (!function_exists('dent_bot_store_read')) {
         return [];
     }
     $result = dent_bot_store_read(static function (array $store): array {
         $users = [];
         foreach (is_array($store['links'] ?? null) ? $store['links'] : [] as $link) {
-            if (!is_array($link) || !dent_bot_link_auth_complete($link)) {
+            if (!is_array($link)) {
                 continue;
             }
             $studentNumber = dent_normalize_student_number((string) ($link['studentNumber'] ?? ''));
@@ -694,7 +776,7 @@ function dent_term7_scheduler_tick(?DateTimeImmutable $now = null): array
                 $candidate = [
                     'source' => 'academic-term7',
                     'sourceKey' => 'term7:' . DENT_TERM7_SCHEDULE_VERSION . ':tomorrow:' . $tomorrow->format('Y-m-d') . ':' . $studentNumber,
-                    'title' => '📅 برنامه فردا | ' . $resolved['weekdayLabel'] . ' ' . $resolved['date'],
+                    'title' => '📅 برنامه فردا | ' . $resolved['weekdayLabel'] . ' ' . dent_to_fa_digits((string) $resolved['date']),
                     'body' => dent_term7_summary_body($resolved),
                     'tone' => 'accent',
                     'meta' => ['important' => true, 'scheduleVersion' => DENT_TERM7_SCHEDULE_VERSION],
@@ -761,6 +843,141 @@ function dent_term7_normalize_person_name(string $name): string
     return trim(preg_replace('/\s+/u', ' ', $name) ?? $name);
 }
 
+function dent_term7_import_name_aliases(): array
+{
+    // Owner-confirmed aliases from the canonical Term 7 roster import.
+    // These are import-only identity hints; they never grant authentication.
+    $pairs = [
+        'مهدیه دهقان' => 'مهدیه دهقانی نیری',
+        'بردیا باطبی' => 'علی باطبی',
+        'امیرمحمد قیصری' => 'امیر محمد قیصری',
+        'نازنین ختایی' => 'نازنین ختائی',
+        'آیلین هاشمی' => 'ایلین هاشمی',
+        'هومن چاووشی فر' => 'هومن چاوشی فر',
+        'محمدمهدی زارع' => 'محمد مهدی زارع گاریزی',
+        'ثنا مهدوی' => 'ثنا مهدوی یوسفی',
+        'امیرحسین شهیدی' => 'امیرحسین شهیدی زندی',
+        'سید مهدی آقایی' => 'سید مهدی آقائی زارچ',
+        'سجاد اشرف' => 'سجاد اشرف گنجوئی',
+        'حسام قربانی' => 'حسام قربانی پاشاکلایی',
+        'مبینا روحانی' => 'فاطمه روحانی',
+        'مائده بابایی آذر' => 'مائده بابائی آذر',
+        'محدثه هدایتی' => 'محدثه هدایتی نسب',
+        'امیرحسین درواری' => 'سیدامیرحسین درواری',
+        'اسما زارعی پور' => 'سیده اسما زارعی پور',
+        'فاطمه موسی زاده' => 'فاطمه سادات موسی زاده',
+    ];
+    $aliases = [];
+    foreach ($pairs as $input => $canonical) {
+        $aliases[dent_term7_normalize_person_name($input)] = dent_term7_normalize_person_name($canonical);
+    }
+    return $aliases;
+}
+
+function dent_term7_import_person_name_key(string $name): array
+{
+    $normalized = dent_term7_normalize_person_name($name);
+    $aliases = dent_term7_import_name_aliases();
+    if ($normalized !== '' && isset($aliases[$normalized])) {
+        return ['key' => $aliases[$normalized], 'matchedBy' => 'explicitAlias'];
+    }
+    return ['key' => $normalized, 'matchedBy' => 'normalizedName'];
+}
+
+function dent_term7_import_oral_health_rotation_a(array $rows, bool $commit): array
+{
+    $userStore = dent_load_user_store();
+    $nameIndex = [];
+    foreach (is_array($userStore['users'] ?? null) ? $userStore['users'] : [] as $studentNumber => $user) {
+        if (!is_array($user) || dent_user_cohort_key($user) !== DENT_TERM7_COHORT) {
+            continue;
+        }
+        $normalizedName = dent_term7_normalize_person_name((string) ($user['name'] ?? ''));
+        if ($normalizedName !== '') {
+            $nameIndex[$normalizedName][] = (string) $studentNumber;
+        }
+    }
+    $state = dent_term7_state_read();
+    $report = [
+        'rotation' => 'A',
+        'matched' => [],
+        'unmatched' => [],
+        'ambiguous' => [],
+        'duplicates' => [],
+        'invalid' => [],
+        'committed' => false,
+    ];
+    $pending = [];
+    foreach ($rows as $index => $row) {
+        if (!is_array($row)) {
+            $report['invalid'][] = ['row' => $index + 1, 'reason' => 'ROW_NOT_OBJECT'];
+            continue;
+        }
+        $studentNumber = dent_normalize_student_number((string) ($row['studentNumber'] ?? ''));
+        $rawName = (string) ($row['name'] ?? '');
+        $nameMatch = dent_term7_import_person_name_key($rawName);
+        $name = dent_term7_normalize_person_name($rawName);
+        $weekday = (int) ($row['weekday'] ?? ($row['oralHealthRotationAWeekday'] ?? 0));
+        if (!in_array($weekday, [1, 3, 6], true)) {
+            $report['invalid'][] = ['row' => $index + 1, 'name' => $name, 'reason' => 'ORAL_HEALTH_WEEKDAY'];
+            continue;
+        }
+        $matchedBy = 'studentNumber';
+        if ($studentNumber === '' || !isset($userStore['users'][$studentNumber])) {
+            $candidates = $nameMatch['key'] !== '' ? ($nameIndex[$nameMatch['key']] ?? []) : [];
+            if (count($candidates) > 1) {
+                $report['ambiguous'][] = ['row' => $index + 1, 'name' => $name, 'candidates' => $candidates];
+                continue;
+            }
+            if (count($candidates) === 0) {
+                $report['unmatched'][] = ['row' => $index + 1, 'name' => $name, 'studentNumber' => $studentNumber];
+                continue;
+            }
+            $studentNumber = $candidates[0];
+            $matchedBy = (string) $nameMatch['matchedBy'];
+        }
+        $user = $userStore['users'][$studentNumber] ?? null;
+        if (!is_array($user) || dent_user_cohort_key($user) !== DENT_TERM7_COHORT) {
+            $report['unmatched'][] = ['row' => $index + 1, 'name' => $name, 'studentNumber' => $studentNumber, 'reason' => 'WRONG_COHORT'];
+            continue;
+        }
+        $current = dent_term7_assignment_for_student($studentNumber, $state);
+        if (!is_int($current['group10'] ?? null) || !in_array((int) $current['group10'], range(1, 5), true)) {
+            $report['invalid'][] = ['row' => $index + 1, 'name' => (string) ($user['name'] ?? ''), 'reason' => 'ROTATION_A_GROUP_REQUIRED'];
+            continue;
+        }
+        if (isset($pending[$studentNumber])) {
+            $report['duplicates'][] = ['row' => $index + 1, 'studentNumber' => $studentNumber];
+            continue;
+        }
+        $pending[$studentNumber] = $weekday;
+        $report['matched'][] = [
+            'studentNumber' => $studentNumber,
+            'name' => (string) ($user['name'] ?? ''),
+            'weekday' => $weekday,
+            'weekdayLabel' => dent_term7_weekday_label($weekday),
+            'matchedBy' => $matchedBy,
+        ];
+    }
+    if ($commit
+        && $report['unmatched'] === []
+        && $report['ambiguous'] === []
+        && $report['duplicates'] === []
+        && $report['invalid'] === []) {
+        dent_term7_state_with_lock(static function (array &$lockedState) use ($pending): array {
+            foreach ($pending as $studentNumber => $weekday) {
+                $current = dent_term7_assignment_for_student((string) $studentNumber, $lockedState);
+                $current['oralHealthRotationAWeekday'] = (int) $weekday;
+                $current['updatedAt'] = dent_iso_now();
+                $lockedState['assignments'][$studentNumber] = $current;
+            }
+            return [];
+        });
+        $report['committed'] = true;
+    }
+    return $report;
+}
+
 function dent_term7_import_assignments(array $rows, string $field, bool $commit): array
 {
     if (!in_array($field, ['group10', 'group8'], true)) {
@@ -795,7 +1012,9 @@ function dent_term7_import_assignments(array $rows, string $field, bool $commit)
             continue;
         }
         $studentNumber = dent_normalize_student_number((string) ($row['studentNumber'] ?? ''));
-        $name = dent_term7_normalize_person_name((string) ($row['name'] ?? ''));
+        $rawName = (string) ($row['name'] ?? '');
+        $name = dent_term7_normalize_person_name($rawName);
+        $nameMatch = dent_term7_import_person_name_key($rawName);
         $group = (int) ($row['group'] ?? ($row[$field] ?? 0));
         if ($group < $minimum || $group > $maximum) {
             $report['invalid'][] = ['row' => $index + 1, 'name' => $name, 'reason' => 'GROUP_RANGE'];
@@ -803,7 +1022,7 @@ function dent_term7_import_assignments(array $rows, string $field, bool $commit)
         }
         $matchedBy = 'studentNumber';
         if ($studentNumber === '' || !isset($userStore['users'][$studentNumber])) {
-            $candidates = $name !== '' ? ($nameIndex[$name] ?? []) : [];
+            $candidates = $nameMatch['key'] !== '' ? ($nameIndex[$nameMatch['key']] ?? []) : [];
             if (count($candidates) > 1) {
                 $report['ambiguous'][] = ['row' => $index + 1, 'name' => $name, 'candidates' => $candidates];
                 continue;
@@ -813,7 +1032,7 @@ function dent_term7_import_assignments(array $rows, string $field, bool $commit)
                 continue;
             }
             $studentNumber = $candidates[0];
-            $matchedBy = 'normalizedName';
+            $matchedBy = (string) $nameMatch['matchedBy'];
         }
         $user = $userStore['users'][$studentNumber] ?? null;
         if (!is_array($user) || dent_user_cohort_key($user) !== DENT_TERM7_COHORT) {

@@ -87,5 +87,6 @@ jobs:
       - name: Foundation compatibility
         run: |
           php scripts/test_classops_foundation.php
+          php scripts/test_classops_bot_ux_v3.php
           python scripts/test_classops_api_http.py
           python scripts/test_shared_contracts.py

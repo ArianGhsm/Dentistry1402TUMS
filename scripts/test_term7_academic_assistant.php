@@ -65,6 +65,60 @@ try {
     $mondayB = dent_term7_resolve_jalali('1405/09/03', 1, ['group10' => 6, 'group8' => 11]);
     term7_assert($mondayA['practicalAfternoon'] === [] && $mondayB['practicalAfternoon'] === [], 'Monday afternoon is disabled in both rotations');
 
+    term7_assert(
+        dent_term7_practical_time_range('morning') === ['09:00', '12:00']
+            && dent_term7_practical_time_range('afternoon') === ['13:00', '15:00'],
+        'Practical period contract maps morning 09:00-12:00 and afternoon 13:00-15:00'
+    );
+    $precisePractical = dent_term7_event('fixture', 'نمونه', 'morning', 'group10', [1], '', '10:15', '11:45');
+    term7_assert(
+        ($precisePractical['start'] ?? '') === '10:15' && ($precisePractical['end'] ?? '') === '11:45',
+        'Explicit canonical practical time overrides the morning/afternoon fallback'
+    );
+    term7_assert(
+        ($satA15['practicalMorning'][0]['start'] ?? '') === '09:00'
+            && ($satA15['practicalMorning'][0]['end'] ?? '') === '12:00'
+            && ($satA15['practicalAfternoon'][0]['start'] ?? '') === '13:00'
+            && ($satA15['practicalAfternoon'][0]['end'] ?? '') === '15:00',
+        'Resolved practical events carry explicit clock ranges'
+    );
+
+    $oralHealthSaturday = dent_term7_resolve_jalali('1405/06/28', 6, [
+        'group10' => 1,
+        'group8' => 11,
+        'oralHealthRotationAWeekday' => 6,
+    ]);
+    term7_assert(
+        term7_titles($oralHealthSaturday['practicalMorning']) === ['سلامت دهان عملی ۲']
+            && empty($oralHealthSaturday['missingOralHealthRotationA']),
+        'Rotation A oral-health Saturday subgroup sees oral health only on Saturday'
+    );
+    $oralHealthMondayOnSaturday = dent_term7_resolve_jalali('1405/06/28', 6, [
+        'group10' => 1,
+        'group8' => 11,
+        'oralHealthRotationAWeekday' => 1,
+    ]);
+    term7_assert(
+        $oralHealthMondayOnSaturday['practicalMorning'] === []
+            && !str_contains(dent_term7_summary_body($oralHealthMondayOnSaturday), 'سلامت دهان عملی ۲'),
+        'Rotation A Monday subgroup does not receive false Saturday oral health'
+    );
+    $oralHealthMonday = dent_term7_resolve_jalali('1405/06/30', 1, [
+        'group10' => 1,
+        'group8' => 11,
+        'oralHealthRotationAWeekday' => 1,
+    ]);
+    term7_assert(term7_titles($oralHealthMonday['practicalMorning']) === ['سلامت دهان عملی ۲'], 'Rotation A Monday subgroup sees oral health on Monday');
+    $oralHealthMissing = dent_term7_resolve_jalali('1405/06/28', 6, ['group10' => 1, 'group8' => 11]);
+    term7_assert(
+        $oralHealthMissing['practicalMorning'] === []
+            && !empty($oralHealthMissing['missingOralHealthRotationA'])
+            && str_contains(dent_term7_summary_body($oralHealthMissing), 'روز سلامت دهان عملی ۲ شما'),
+        'Rotation A missing oral-health weekday fails closed and is explicit'
+    );
+    $oralHealthRotationB = dent_term7_resolve_jalali('1405/09/01', 6, ['group10' => 6, 'group8' => 11]);
+    term7_assert(term7_titles($oralHealthRotationB['practicalMorning']) === ['سلامت دهان عملی ۲'], 'Rotation B remains unchanged until its subgroup roster exists');
+
     foreach (['1405/10/02', '1405/10/16'] as $closedDate) {
         $closed = dent_term7_resolve_jalali($closedDate, 3, ['group10' => 2, 'group8' => 14]);
         term7_assert($closed['practicalClosed'] && $closed['practicalMorning'] === [] && $closed['practicalAfternoon'] === [], "Red practical closure {$closedDate}");
@@ -136,6 +190,14 @@ try {
     $saturdayTheory = dent_term7_resolve_jalali('1405/07/04', 6, []);
     term7_assert(count($saturdayTheory['theory']) === 2, 'Theory and practical sources remain separate without title deduplication');
     term7_assert(str_contains(dent_term7_summary_body($missing), 'گروه کارآموزی'), 'Missing-group UX is explicit');
+    $clockSummary = dent_term7_summary_body($satA15);
+    term7_assert(
+        str_contains($clockSummary, '۰۹:۰۰ تا ۱۲:۰۰')
+            && str_contains($clockSummary, '۱۳:۰۰ تا ۱۵:۰۰')
+            && !str_contains($clockSummary, 'کارآموزی صبح')
+            && !str_contains($clockSummary, 'کارآموزی عصر'),
+        'User-facing practical summary is clock-based with Persian digits'
+    );
     term7_assert(dent_term7_schedule()['prepChecklists'] === [], 'Preparation checklist remains intentionally empty');
     term7_assert(dent_term7_schedule()['foodUrl'] === DENT_TERM7_FOOD_URL, 'Food URL has one canonical config source');
     term7_assert(dent_term7_schedule()['timezone'] === 'Asia/Tehran', 'Academic timezone is explicit');
@@ -156,6 +218,7 @@ try {
     $studentB = '40211272992';
     $studentC = '40211272993';
     $studentD = '40211272994';
+    $studentE = '40211272995';
     $fixturePassword = dent_hash_password('fixture-password-only');
     dent_save_user_store([
         'cohorts' => dent_default_cohort_catalog(),
@@ -164,13 +227,27 @@ try {
             $studentB => ['studentNumber' => $studentB, 'name' => 'دانشجوی ب', 'passwordHash' => $fixturePassword, 'role' => 'student', 'cohortKey' => DENT_TERM7_COHORT],
             $studentC => ['studentNumber' => $studentC, 'name' => 'دانشجوی ج', 'passwordHash' => $fixturePassword, 'role' => 'prosthesis_student', 'cohortKey' => 'prosthesis-1402'],
             $studentD => ['studentNumber' => $studentD, 'name' => 'دانشجوی د', 'passwordHash' => $fixturePassword, 'role' => 'student', 'cohortKey' => DENT_TERM7_COHORT],
+            $studentE => ['studentNumber' => $studentE, 'name' => 'علی باطبی', 'passwordHash' => $fixturePassword, 'role' => 'student', 'cohortKey' => DENT_TERM7_COHORT],
         ],
     ]);
-    dent_term7_state_with_lock(static function (array &$state) use ($studentA, $studentB): array {
+    dent_term7_state_with_lock(static function (array &$state) use ($studentA, $studentB, $studentE): array {
         $state['assignments'][$studentA] = ['studentNumber' => $studentA, 'group10' => 6, 'group8' => 15, 'updatedAt' => dent_iso_now()];
-        $state['assignments'][$studentB] = ['studentNumber' => $studentB, 'group10' => 1, 'group8' => 11, 'updatedAt' => dent_iso_now()];
+        $state['assignments'][$studentB] = ['studentNumber' => $studentB, 'group10' => 1, 'group8' => 11, 'oralHealthRotationAWeekday' => 1, 'updatedAt' => dent_iso_now()];
+        $state['assignments'][$studentE] = ['studentNumber' => $studentE, 'group10' => 3, 'group8' => 12, 'updatedAt' => dent_iso_now()];
         return [];
     });
+    $oralHealthAliasImport = dent_term7_import_oral_health_rotation_a([
+        ['name' => 'بردیا باطبی', 'weekday' => 3],
+    ], true);
+    $oralHealthAliasState = dent_term7_state_read();
+    term7_assert(
+        !empty($oralHealthAliasImport['committed'])
+            && (($oralHealthAliasImport['matched'][0]['matchedBy'] ?? '') === 'explicitAlias')
+            && (($oralHealthAliasState['assignments'][$studentE]['oralHealthRotationAWeekday'] ?? null) === 3),
+        'Owner-confirmed Bardia Batbi alias resolves to canonical Ali Batbi'
+    );
+    $mobinaAlias = dent_term7_import_person_name_key('مبینا روحانی');
+    term7_assert(($mobinaAlias['key'] ?? '') === dent_term7_normalize_person_name('فاطمه روحانی') && ($mobinaAlias['matchedBy'] ?? '') === 'explicitAlias', 'Owner-confirmed Mobina Rouhani alias remains explicit import metadata');
     $incompleteImport = dent_term7_import_assignments([
         ['studentNumber' => $studentA, 'name' => 'دانشجوی الف', 'group' => 6],
         ['studentNumber' => $studentB, 'name' => 'دانشجوی ب', 'group' => 1],
@@ -196,16 +273,19 @@ try {
         ];
         foreach ($fixtures as [$platform, $platformUserId, $studentNumber]) {
             $identityHash = dent_bot_identity_hash($platform, $platformUserId);
-            $store['links'][$identityHash] = [
+            $link = [
                 'platform' => $platform,
                 // Scheduler eligibility never decrypts transport IDs. Keep the
                 // fixture crypto-free because CI PHP may omit openssl.
-                'platformUserIdEncrypted' => ['iv' => 'fixture', 'tag' => 'fixture', 'cipher' => 'fixture'],
+                'platformUserIdEncrypted' => ['iv' => 'fixture', 'tag' => 'fixture', 'ct' => 'fixture'],
                 'studentNumber' => $studentNumber,
-                'authVersion' => dent_bot_canonical_auth_version(),
-                'authMethod' => 'secure-site-login',
-                'authCompletedAt' => dent_iso_now(),
             ];
+            if ($studentNumber !== $studentB) {
+                $link['authVersion'] = dent_bot_canonical_auth_version();
+                $link['authMethod'] = 'secure-site-login';
+                $link['authCompletedAt'] = dent_iso_now();
+            }
+            $store['links'][$identityHash] = $link;
         }
         return [];
     });
@@ -213,13 +293,26 @@ try {
     $preTermTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-08 15:00:00', $tz));
     term7_assert($preTermTick['created'] === 0 && $preTermTick['eligibleUsers'] === 0, 'Scheduler creates no academic/food reminder outside the active term window');
 
-    $academicTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-19 21:00:00', $tz));
+    $academicTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-18 21:00:00', $tz));
     $notificationStore = notifications_read_store();
     $academicRecords = array_values(array_filter($notificationStore['notifications'], static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7'));
-    term7_assert($academicTick['eligibleUsers'] === 2 && count($academicRecords) === 2, 'Integration: only linked dentistry-1402 A/B users receive tomorrow summaries');
+    term7_assert($academicTick['eligibleUsers'] === 2 && count($academicRecords) === 2, 'Integration: every canonical linked dentistry-1402 A/B user receives tomorrow summaries regardless of link-generation metadata');
     term7_assert(($academicRecords[0]['body'] ?? '') !== ($academicRecords[1]['body'] ?? ''), 'Integration: A/B summary bodies are personalized');
+    $studentBReminder = array_values(array_filter($academicRecords, static fn($record): bool => str_ends_with((string) ($record['sourceKey'] ?? ''), ':' . $studentB)))[0] ?? [];
+    term7_assert(
+        !str_contains((string) ($studentBReminder['body'] ?? ''), 'سلامت دهان عملی ۲')
+            && str_contains((string) ($studentBReminder['title'] ?? ''), 'شنبه')
+            && str_contains((string) ($studentBReminder['title'] ?? ''), '۱۴۰۵/۰۶/۲۸'),
+        'Friday-night reminder is a personalized Saturday summary with Persian date'
+    );
+    $studentAReminder = array_values(array_filter($academicRecords, static fn($record): bool => str_ends_with((string) ($record['sourceKey'] ?? ''), ':' . $studentA)))[0] ?? [];
+    term7_assert(
+        str_contains((string) ($studentAReminder['body'] ?? ''), '۰۹:۰۰ تا ۱۲:۰۰')
+            && str_contains((string) ($studentAReminder['body'] ?? ''), '۱۳:۰۰ تا ۱۵:۰۰'),
+        'Canonical reminder body preserves explicit practical clock ranges'
+    );
     term7_assert(!str_contains(implode('|', array_column($academicRecords, 'sourceKey')), $studentC), 'Integration: cross-cohort fixture C is absent');
-    $retryTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-19 21:30:00', $tz));
+    $retryTick = dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-18 21:30:00', $tz));
     term7_assert($retryTick['created'] === 0 && count(array_filter(notifications_read_store()['notifications'], static fn($record): bool => is_array($record) && ($record['source'] ?? '') === 'academic-term7')) === 2, 'Integration: scheduler restart/retry creates no duplicate');
 
     dent_term7_scheduler_tick(new DateTimeImmutable('2026-09-22 15:00:00', $tz));

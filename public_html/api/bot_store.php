@@ -1349,10 +1349,18 @@ function dent_bot_canonical_auth_version(): string
 
 function dent_bot_link_auth_complete(?array $link): bool
 {
-    return is_array($link)
-        && hash_equals(dent_bot_canonical_auth_version(), (string) ($link['authVersion'] ?? ''))
-        && trim((string) ($link['authCompletedAt'] ?? '')) !== ''
-        && in_array((string) ($link['authMethod'] ?? ''), ['class-site-otp', 'secure-site-login'], true);
+    if (!is_array($link)) {
+        return false;
+    }
+    $studentNumber = dent_normalize_student_number((string) ($link['studentNumber'] ?? ''));
+    $platform = strtolower(trim((string) ($link['platform'] ?? '')));
+    $encryptedPlatformUserId = $link['platformUserIdEncrypted'] ?? null;
+    return $studentNumber !== ''
+        && in_array($platform, ['telegram', 'bale'], true)
+        && is_array($encryptedPlatformUserId)
+        && trim((string) ($encryptedPlatformUserId['iv'] ?? '')) !== ''
+        && trim((string) ($encryptedPlatformUserId['tag'] ?? '')) !== ''
+        && trim((string) ($encryptedPlatformUserId['ct'] ?? '')) !== '';
 }
 
 function dent_bot_site_origin(): string
