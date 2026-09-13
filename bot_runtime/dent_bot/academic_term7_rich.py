@@ -10,8 +10,10 @@ def academic_notification_text(item: dict[str, Any]):
     if str(item.get("source") or "") != "academic-term7":
         return None
     raw_title = " ".join(str(item.get("title") or "").split())
-    date_label = raw_title.split("|", 1)[1].strip() if "|" in raw_title else ""
-    if not date_label:
+    if "|" not in raw_title:
+        return None
+    heading, date_label = [part.strip() for part in raw_title.split("|", 1)]
+    if not heading or not date_label:
         return None
 
     rows: list[dict[str, str]] = []
@@ -49,8 +51,8 @@ def academic_notification_text(item: dict[str, Any]):
         if current is not None and line.startswith("📍"):
             current["location"] = line.removeprefix("📍").strip() or "—"
 
-    fallback = ["<b>📅 برنامه فردا</b>", "", f"<blockquote>{html.escape(date_label)}</blockquote>"]
-    rich = ["<h2>📅 برنامه فردا</h2>", f"<p><b>{html.escape(date_label)}</b></p>"]
+    fallback = [f"<b>{html.escape(heading)}</b>", "", f"<blockquote>{html.escape(date_label)}</blockquote>"]
+    rich = [f"<h2>{html.escape(heading)}</h2>", f"<p><b>{html.escape(date_label)}</b></p>"]
     if rows:
         rich.append("<table bordered striped compact><tr><th>زمان</th><th>برنامه</th><th>مکان</th></tr>")
         for row in rows[:16]:
