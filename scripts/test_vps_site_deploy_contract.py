@@ -56,6 +56,9 @@ for needle in [
 ]:
     assert needle in COMPLETE, f'missing explicit task-completion contract: {needle}'
 assert 'ValueFromRemainingArguments' not in COMPLETE, 'task completion must not rely on ambiguous passthrough parsing'
+assert COMPLETE.index('Get-Command pwsh') < COMPLETE.index('Get-Command powershell'), (
+    'task completion must prefer PowerShell 7 so native stderr does not become a terminating RemoteException'
+)
 assert 'deploy_public_html.ps1' not in COMPLETE, 'task completion must not invoke retired cPanel deployer'
 assert DEPLOY.index("Status succeeded") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'success lifecycle must occur only after remote live verification'
 assert DEPLOY.index("$productionMutation = $true") > DEPLOY.index('SITE_VPS_DEPLOY_OK'), 'mutation reporting must occur only after the remote installer contains its live-verification boundary'
