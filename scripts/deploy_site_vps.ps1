@@ -349,6 +349,25 @@ sha256sum "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" > "$backup/SHA
 chmod 0600 "$backup/runtime-pointers.txt" "$backup/storage.tar.gz" "$backup/SHA256SUMS"
 echo "SITE_DATA_BACKUP=$backup"
 
+# Keep the five newest verified canonical site-data backups. Validate every
+# deletion candidate before removing anything, and never match forensic or
+# manually named backup directories outside this exact timestamped namespace.
+mapfile -t site_backups < <(find /var/backups -maxdepth 1 -mindepth 1 -type d \
+  -name 'dent-site-data-????????T??????Z-????????????' -printf '%p\n' | sort -r)
+if test "${#site_backups[@]}" -gt 5; then
+  for candidate in "${site_backups[@]:5}"; do
+    [[ "$candidate" =~ ^/var/backups/dent-site-data-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}$ ]]
+    test -f "$candidate/runtime-pointers.txt"
+    test -f "$candidate/storage.tar.gz"
+    test -f "$candidate/SHA256SUMS"
+    (cd "$candidate" && sha256sum -c SHA256SUMS >/dev/null)
+  done
+  for candidate in "${site_backups[@]:5}"; do
+    rm -rf --one-file-system -- "$candidate"
+  done
+fi
+echo "SITE_DATA_BACKUPS_RETAINED=$(find /var/backups -maxdepth 1 -mindepth 1 -type d -name 'dent-site-data-????????T??????Z-????????????' | wc -l)"
+
 validate_release() {
   candidate="$1"
   test "$(cat "$candidate/.release-sha")" = "$sha"
