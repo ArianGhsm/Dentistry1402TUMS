@@ -85,13 +85,13 @@ def install_academic_term7_rich_notifications() -> None:
     original_detail = ui_module.notification_detail_screen
     original_push = ui_module.notification_push_screen
 
-    def detail(item, ref, *, platform, is_owner):
-        screen = original_detail(item, ref, platform=platform, is_owner=is_owner)
+    def detail(item, ref, *args, **kwargs):
+        screen = original_detail(item, ref, *args, **kwargs)
         rich = academic_notification_text(item)
         return ui_module.Screen(rich, screen.keyboard) if rich is not None else screen
 
-    def push(item, ref, *, platform, is_owner):
-        screen = original_push(item, ref, platform=platform, is_owner=is_owner)
+    def push(item, ref, *args, **kwargs):
+        screen = original_push(item, ref, *args, **kwargs)
         rich = academic_notification_text(item)
         return ui_module.Screen(rich, screen.keyboard) if rich is not None else screen
 

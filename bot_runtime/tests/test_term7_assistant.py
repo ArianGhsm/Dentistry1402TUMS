@@ -67,6 +67,34 @@ class Term7AssistantUiTests(unittest.TestCase):
         self.assertIn("روز سلامت دهان عملی ۲", str(screen.text))
         self.assertIn("حدس زده نمی‌شود", str(screen.text))
 
+    def test_academic_wrapper_preserves_detail_optional_kwargs(self):
+        item = {
+            "source": "academic-term7",
+            "title": "📅 برنامه فردا | شنبه ۱۴۰۵/۰۶/۲۸",
+            "body": "🦷 کارآموزی ۰۹:۰۰ تا ۱۲:۰۰\n• پروتز پارسیل عملی ۱\n  ⏰ ۰۹:۰۰ تا ۱۲:۰۰",
+        }
+        screen = notification_detail_screen(
+            item,
+            "ref123",
+            platform="telegram",
+            is_owner=False,
+            site_url="https://example.test",
+            show_mark_read=False,
+        )
+        self.assertIn("<table bordered striped compact>", screen.text.rich_html)
+        self.assertNotIn("notification-read:", str(screen.keyboard))
+
+    def test_academic_wrapper_preserves_push_defaults(self):
+        from dent_bot import runtime as runtime_module
+
+        item = {
+            "source": "academic-term7",
+            "title": "📅 برنامه فردا | شنبه ۱۴۰۵/۰۶/۲۸",
+            "body": "🦷 کارآموزی ۰۹:۰۰ تا ۱۲:۰۰\n• پروتز پارسیل عملی ۱\n  ⏰ ۰۹:۰۰ تا ۱۲:۰۰",
+        }
+        screen = runtime_module.notification_push_screen(item, "ref123", platform="telegram")
+        self.assertIn("۰۹:۰۰–۱۲:۰۰", str(screen.text))
+
     def test_notification_persian_html_is_escaped_without_breaking_structure(self):
         screen = notification_detail_screen(
             {"title": "برنامه <فردا>", "body": "📚 نظری\n• اندو 1 & عملی"},
