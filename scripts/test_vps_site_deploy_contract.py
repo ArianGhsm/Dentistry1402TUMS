@@ -28,6 +28,9 @@ for needle in [
     "SITE_DATA_BACKUP=",
     "storage.tar.gz",
     "sha256sum -c SHA256SUMS",
+    "SITE_DATA_BACKUPS_RETAINED=",
+    "${site_backups[@]:5}",
+    "rm -rf --one-file-system -- \"$candidate\"",
     "test ! -e \"$candidate/public_html/storage\"",
     "test ! -e \"$candidate/public_html/server-only\"",
     'SITE_ROLLED_BACK',
@@ -44,6 +47,10 @@ for needle in [
 
 assert '<<<' not in DEPLOY, 'PowerShell deployer must not use Bash here-strings/redirection syntax'
 assert "nginx -T 2>&1 | grep -Fq" not in DEPLOY, 'pipefail-safe nginx validation must consume the complete producer output'
+assert "-name 'dent-site-data-????????T??????Z-????????????'" in DEPLOY, 'retention must only match canonical timestamped site-data backups'
+assert DEPLOY.index('(cd "$candidate" && sha256sum -c SHA256SUMS >/dev/null)') < DEPLOY.index('rm -rf --one-file-system -- "$candidate"'), (
+    'every old site-data backup must be verified before any retention deletion'
+)
 assert 'Set-Content -LiteralPath $installerPath -Value $installer -Encoding UTF8' not in DEPLOY, 'remote shell installer must be UTF-8 without BOM'
 assert 'deploy_public_html.ps1' not in GATE, 'release gate must not route production through retired cPanel/FTP deployer'
 assert 'deploy_site_vps.ps1' in GATE, 'release gate must route website production to VPS deployer'

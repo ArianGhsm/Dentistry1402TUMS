@@ -7,6 +7,9 @@
 - **Website secrets/runtime:** `/srv/dentistry1402/shared/server-only` on the Iran VPS.
 - **Telegram/Bale runtime state:** server-only state under `/var/lib/integrated-dent` and `/etc/integrated-dent`.
 - **Recovery:** immutable previous code releases plus verified VPS/runtime backups.
+- **Retention:** each successful VPS release keeps only the five newest verified
+  timestamped `dent-site-data-*` backups; forensic/manual backup namespaces are
+  not part of this automatic cleanup.
 
 The website no longer deploys to cPanel/FTP. cPanel is retired as a production target. `scripts/deploy_public_html.ps1` is legacy evidence only and must not be used by any canonical release wrapper.
 
