@@ -201,8 +201,45 @@ def main():
                     platform="bale", platformUserId="123456", orderId="VB-20260905-TestVoice123", amountRials=200000, callbackToken="y" * 32))
                 assert voice_bale["status"] == 200, voice_bale
                 assert FakeGateway.requests[-1]["callbackUrl"].endswith("token=" + "y" * 32 + "&platform=bale")
-                assert len(FakeGateway.requests) == 4, "duplicate checkout contacted provider"
-                assert all(urlsplit(p["callbackUrl"]).hostname == "dentistry1402tums.ir" for p in FakeGateway.requests)
+                assert FakeGateway.requests[-1]["merchant"] == "synthetic-merchant"
+                voice_verify = request(endpoint, secret, dict(action="voicePaymentVerifyV1", contractVersion="voice-payment-bridge-v1",
+                    platform="telegram", platformUserId="123456", orderId="VT-20260905-TestVoice123",
+                    amountRials=200000, trackId=voice["payload"]["trackId"]))
+                assert voice_verify["status"] == 200 and voice_verify["payload"]["verified"] is False, voice_verify
+                assert FakeGateway.requests[-1] == {
+                    "merchant": "synthetic-merchant",
+                    "trackId": voice["payload"]["trackId"],
+                }, FakeGateway.requests[-1]
+                assert len(FakeGateway.requests) == 5, "duplicate checkout contacted provider"
+                assert all(
+                    urlsplit(p["callbackUrl"]).hostname == "dentistry1402tums.ir"
+                    for p in FakeGateway.requests if "callbackUrl" in p
+                )
+
+                # Provider resolution must fail closed when a managed store has
+                # no unique enabled/configured Zibal record. These requests
+                # must not reach the fake provider.
+                payment_store_path = Path(directory) / "storage/payments/store.json"
+                payment_store = json.loads(payment_store_path.read_text(encoding="utf-8"))
+                second_zibal = dict(payment_store["gateways"][0], id=3, key="zibal-3", is_default=False)
+                payment_store["gateways"].append(second_zibal)
+                payment_store_path.write_text(json.dumps(payment_store, ensure_ascii=False), encoding="utf-8")
+                ambiguous = request(endpoint, secret, dict(action="voicePaymentStartV1", contractVersion="voice-payment-bridge-v1",
+                    platform="telegram", platformUserId="123456", orderId="VT-20260905-Ambiguous1",
+                    amountRials=200000, callbackToken="a" * 32))
+                assert ambiguous["status"] == 503, ambiguous
+                assert ambiguous["payload"].get("code") == "VOICE_PAYMENT_GATEWAY_AMBIGUOUS", ambiguous
+                assert len(FakeGateway.requests) == 5, "ambiguous gateway selection contacted provider"
+
+                for gateway_record in payment_store["gateways"]:
+                    gateway_record["is_enabled"] = False
+                payment_store_path.write_text(json.dumps(payment_store, ensure_ascii=False), encoding="utf-8")
+                unavailable = request(endpoint, secret, dict(action="voicePaymentStartV1", contractVersion="voice-payment-bridge-v1",
+                    platform="telegram", platformUserId="123456", orderId="VT-20260905-Unavailable1",
+                    amountRials=200000, callbackToken="b" * 32))
+                assert unavailable["status"] == 503, unavailable
+                assert unavailable["payload"].get("code") == "VOICE_PAYMENT_GATEWAY_UNAVAILABLE", unavailable
+                assert len(FakeGateway.requests) == 5, "unavailable gateway selection contacted provider"
                 no_redirect = build_opener(ProxyHandler({}), NoRedirect())
                 for platform, token in created_orders:
                     try:
